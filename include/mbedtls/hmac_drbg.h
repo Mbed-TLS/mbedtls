@@ -56,25 +56,31 @@
  */
 
 #if !defined(MBEDTLS_HMAC_DRBG_RESEED_INTERVAL)
-#define MBEDTLS_HMAC_DRBG_RESEED_INTERVAL   10000   /**< Interval before reseed is performed by default */
+/** Interval before reseed is performed by default */
+#define MBEDTLS_HMAC_DRBG_RESEED_INTERVAL   10000
 #endif
 
 #if !defined(MBEDTLS_HMAC_DRBG_MAX_INPUT)
-#define MBEDTLS_HMAC_DRBG_MAX_INPUT         256     /**< Maximum number of additional input bytes */
+/** Maximum number of additional input bytes */
+#define MBEDTLS_HMAC_DRBG_MAX_INPUT         256
 #endif
 
 #if !defined(MBEDTLS_HMAC_DRBG_MAX_REQUEST)
-#define MBEDTLS_HMAC_DRBG_MAX_REQUEST       1024    /**< Maximum number of requested bytes per call */
+/** Maximum number of requested bytes per call */
+#define MBEDTLS_HMAC_DRBG_MAX_REQUEST       1024
 #endif
 
 #if !defined(MBEDTLS_HMAC_DRBG_MAX_SEED_INPUT)
-#define MBEDTLS_HMAC_DRBG_MAX_SEED_INPUT    384     /**< Maximum size of (re)seed buffer */
+/** Maximum size of (re)seed buffer */
+#define MBEDTLS_HMAC_DRBG_MAX_SEED_INPUT    384
 #endif
 
 /* \} name SECTION: Module settings */
 
-#define MBEDTLS_HMAC_DRBG_PR_OFF   0   /**< No prediction resistance       */
-#define MBEDTLS_HMAC_DRBG_PR_ON    1   /**< Prediction resistance enabled  */
+/** No prediction resistance       */
+#define MBEDTLS_HMAC_DRBG_PR_OFF   0
+/** Prediction resistance enabled  */
+#define MBEDTLS_HMAC_DRBG_PR_ON    1
 
 #ifdef __cplusplus
 extern "C" {

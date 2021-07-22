@@ -37,12 +37,17 @@
 
 #include "mbedtls/platform_util.h"
 
-#define MBEDTLS_ARIA_ENCRYPT     1 /**< ARIA encryption. */
-#define MBEDTLS_ARIA_DECRYPT     0 /**< ARIA decryption. */
+/** ARIA encryption. */
+#define MBEDTLS_ARIA_ENCRYPT     1
+/** ARIA decryption. */
+#define MBEDTLS_ARIA_DECRYPT     0
 
-#define MBEDTLS_ARIA_BLOCKSIZE   16 /**< ARIA block size in bytes. */
-#define MBEDTLS_ARIA_MAX_ROUNDS  16 /**< Maxiumum number of rounds in ARIA. */
-#define MBEDTLS_ARIA_MAX_KEYSIZE 32 /**< Maximum size of an ARIA key in bytes. */
+/** ARIA block size in bytes. */
+#define MBEDTLS_ARIA_BLOCKSIZE   16
+/** Maxiumum number of rounds in ARIA. */
+#define MBEDTLS_ARIA_MAX_ROUNDS  16
+/** Maximum size of an ARIA key in bytes. */
+#define MBEDTLS_ARIA_MAX_KEYSIZE 32
 
 /** Bad input data. */
 #define MBEDTLS_ERR_ARIA_BAD_INPUT_DATA -0x005C

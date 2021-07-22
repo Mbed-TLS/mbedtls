@@ -66,8 +66,10 @@
 /** The context is invalid. For example, because it was freed. */
 #define MBEDTLS_ERR_CIPHER_INVALID_CONTEXT      -0x6380
 
-#define MBEDTLS_CIPHER_VARIABLE_IV_LEN     0x01    /**< Cipher accepts IVs of variable length. */
-#define MBEDTLS_CIPHER_VARIABLE_KEY_LEN    0x02    /**< Cipher accepts keys of variable length. */
+/** Cipher accepts IVs of variable length. */
+#define MBEDTLS_CIPHER_VARIABLE_IV_LEN     0x01
+/** Cipher accepts keys of variable length. */
+#define MBEDTLS_CIPHER_VARIABLE_KEY_LEN    0x02
 
 #ifdef __cplusplus
 extern "C" {

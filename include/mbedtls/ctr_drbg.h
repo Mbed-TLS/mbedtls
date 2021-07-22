@@ -59,7 +59,8 @@
 /** Read or write error in file. */
 #define MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR                -0x003A
 
-#define MBEDTLS_CTR_DRBG_BLOCKSIZE          16 /**< The block size used by the cipher. */
+/** The block size used by the cipher. */
+#define MBEDTLS_CTR_DRBG_BLOCKSIZE          16
 
 #if defined(MBEDTLS_CTR_DRBG_USE_128_BIT_KEY)
 #define MBEDTLS_CTR_DRBG_KEYSIZE            16

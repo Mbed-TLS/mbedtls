@@ -64,11 +64,15 @@
  * RSA constants
  */
 
-#define MBEDTLS_RSA_PKCS_V15    0 /**< Use PKCS#1 v1.5 encoding. */
-#define MBEDTLS_RSA_PKCS_V21    1 /**< Use PKCS#1 v2.1 encoding. */
+/** Use PKCS#1 v1.5 encoding. */
+#define MBEDTLS_RSA_PKCS_V15    0
+/** Use PKCS#1 v2.1 encoding. */
+#define MBEDTLS_RSA_PKCS_V21    1
 
-#define MBEDTLS_RSA_SIGN        1 /**< Identifier for RSA signature operations. */
-#define MBEDTLS_RSA_CRYPT       2 /**< Identifier for RSA encryption and decryption operations. */
+/** Identifier for RSA signature operations. */
+#define MBEDTLS_RSA_SIGN        1
+/** Identifier for RSA encryption and decryption operations. */
+#define MBEDTLS_RSA_CRYPT       2
 
 #define MBEDTLS_RSA_SALT_LEN_ANY    -1
 

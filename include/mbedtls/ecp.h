@@ -278,7 +278,8 @@ mbedtls_ecp_group;
  *      224       475     475     453     398     342
  *      192       640     640     633     587     476
  */
-#define MBEDTLS_ECP_WINDOW_SIZE    4   /**< The maximum window size used. */
+/** The maximum window size used. */
+#define MBEDTLS_ECP_WINDOW_SIZE    4
 #endif /* MBEDTLS_ECP_WINDOW_SIZE */
 
 #if !defined(MBEDTLS_ECP_FIXED_POINT_OPTIM)
@@ -294,7 +295,8 @@ mbedtls_ecp_group;
  *
  * Change this value to 0 to reduce code size.
  */
-#define MBEDTLS_ECP_FIXED_POINT_OPTIM  1   /**< Enable fixed-point speed-up. */
+/** Enable fixed-point speed-up. */
+#define MBEDTLS_ECP_FIXED_POINT_OPTIM  1
 #endif /* MBEDTLS_ECP_FIXED_POINT_OPTIM */
 
 /* \} name SECTION: Module settings */
@@ -427,13 +429,16 @@ mbedtls_ecp_keypair;
 /*
  * Point formats, from RFC 4492's enum ECPointFormat
  */
-#define MBEDTLS_ECP_PF_UNCOMPRESSED    0   /**< Uncompressed point format. */
-#define MBEDTLS_ECP_PF_COMPRESSED      1   /**< Compressed point format. */
+/** Uncompressed point format. */
+#define MBEDTLS_ECP_PF_UNCOMPRESSED    0
+/** Compressed point format. */
+#define MBEDTLS_ECP_PF_COMPRESSED      1
 
 /*
  * Some other constants from RFC 4492
  */
-#define MBEDTLS_ECP_TLS_NAMED_CURVE    3   /**< The named_curve of ECCurveType. */
+/** The named_curve of ECCurveType. */
+#define MBEDTLS_ECP_TLS_NAMED_CURVE    3
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
 /**

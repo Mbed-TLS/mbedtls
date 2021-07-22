@@ -65,41 +65,53 @@ extern "C" {
 #include <time.h>
 #if !defined(MBEDTLS_PLATFORM_STD_SNPRINTF)
 #if defined(MBEDTLS_PLATFORM_HAS_NON_CONFORMING_SNPRINTF)
-#define MBEDTLS_PLATFORM_STD_SNPRINTF   mbedtls_platform_win32_snprintf /**< The default \c snprintf function to use.  */
+/** The default \c snprintf function to use.  */
+#define MBEDTLS_PLATFORM_STD_SNPRINTF   mbedtls_platform_win32_snprintf
 #else
-#define MBEDTLS_PLATFORM_STD_SNPRINTF   snprintf /**< The default \c snprintf function to use.  */
+/** The default \c snprintf function to use.  */
+#define MBEDTLS_PLATFORM_STD_SNPRINTF   snprintf
 #endif
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_VSNPRINTF)
 #if defined(MBEDTLS_PLATFORM_HAS_NON_CONFORMING_VSNPRINTF)
-#define MBEDTLS_PLATFORM_STD_VSNPRINTF   mbedtls_platform_win32_vsnprintf /**< The default \c vsnprintf function to use.  */
+/** The default \c vsnprintf function to use.  */
+#define MBEDTLS_PLATFORM_STD_VSNPRINTF   mbedtls_platform_win32_vsnprintf
 #else
-#define MBEDTLS_PLATFORM_STD_VSNPRINTF   vsnprintf /**< The default \c vsnprintf function to use.  */
+/** The default \c vsnprintf function to use.  */
+#define MBEDTLS_PLATFORM_STD_VSNPRINTF   vsnprintf
 #endif
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_PRINTF)
-#define MBEDTLS_PLATFORM_STD_PRINTF   printf /**< The default \c printf function to use. */
+/** The default \c printf function to use. */
+#define MBEDTLS_PLATFORM_STD_PRINTF   printf
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_FPRINTF)
-#define MBEDTLS_PLATFORM_STD_FPRINTF fprintf /**< The default \c fprintf function to use. */
+/** The default \c fprintf function to use. */
+#define MBEDTLS_PLATFORM_STD_FPRINTF fprintf
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_CALLOC)
-#define MBEDTLS_PLATFORM_STD_CALLOC   calloc /**< The default \c calloc function to use. */
+/** The default \c calloc function to use. */
+#define MBEDTLS_PLATFORM_STD_CALLOC   calloc
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_FREE)
-#define MBEDTLS_PLATFORM_STD_FREE       free /**< The default \c free function to use. */
+/** The default \c free function to use. */
+#define MBEDTLS_PLATFORM_STD_FREE       free
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_EXIT)
-#define MBEDTLS_PLATFORM_STD_EXIT      exit /**< The default \c exit function to use. */
+/** The default \c exit function to use. */
+#define MBEDTLS_PLATFORM_STD_EXIT      exit
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_TIME)
-#define MBEDTLS_PLATFORM_STD_TIME       time    /**< The default \c time function to use. */
+/** The default \c time function to use. */
+#define MBEDTLS_PLATFORM_STD_TIME       time
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_EXIT_SUCCESS)
-#define MBEDTLS_PLATFORM_STD_EXIT_SUCCESS  EXIT_SUCCESS /**< The default exit value to use. */
+/** The default exit value to use. */
+#define MBEDTLS_PLATFORM_STD_EXIT_SUCCESS  EXIT_SUCCESS
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_EXIT_FAILURE)
-#define MBEDTLS_PLATFORM_STD_EXIT_FAILURE  EXIT_FAILURE /**< The default exit value to use. */
+/** The default exit value to use. */
+#define MBEDTLS_PLATFORM_STD_EXIT_FAILURE  EXIT_FAILURE
 #endif
 #if defined(MBEDTLS_FS_IO)
 #if !defined(MBEDTLS_PLATFORM_STD_NV_SEED_READ)

@@ -73,13 +73,18 @@
 /** Input invalid. */
 #define MBEDTLS_ERR_NET_BAD_INPUT_DATA                    -0x0049
 
-#define MBEDTLS_NET_LISTEN_BACKLOG         10 /**< The backlog that listen() should use. */
+/** The backlog that listen() should use. */
+#define MBEDTLS_NET_LISTEN_BACKLOG         10
 
-#define MBEDTLS_NET_PROTO_TCP 0 /**< The TCP transport protocol */
-#define MBEDTLS_NET_PROTO_UDP 1 /**< The UDP transport protocol */
+/** The TCP transport protocol */
+#define MBEDTLS_NET_PROTO_TCP 0
+/** The UDP transport protocol */
+#define MBEDTLS_NET_PROTO_UDP 1
 
-#define MBEDTLS_NET_POLL_READ  1 /**< Used in \c mbedtls_net_poll to check for pending data  */
-#define MBEDTLS_NET_POLL_WRITE 2 /**< Used in \c mbedtls_net_poll to check if write possible */
+/** Used in \c mbedtls_net_poll to check for pending data  */
+#define MBEDTLS_NET_POLL_READ  1
+/** Used in \c mbedtls_net_poll to check if write possible */
+#define MBEDTLS_NET_POLL_WRITE 2
 
 #ifdef __cplusplus
 extern "C" {

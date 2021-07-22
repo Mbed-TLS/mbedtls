@@ -39,9 +39,11 @@ extern "C" {
 #define MBEDTLS_DES3_BLOCK_SIZE         8
 
 #if defined(MBEDTLS_AES_C)
-#define MBEDTLS_CIPHER_BLKSIZE_MAX      16  /**< The longest block used by CMAC is that of AES. */
+/** The longest block used by CMAC is that of AES. */
+#define MBEDTLS_CIPHER_BLKSIZE_MAX      16
 #else
-#define MBEDTLS_CIPHER_BLKSIZE_MAX      8   /**< The longest block used by CMAC is that of 3DES. */
+/** The longest block used by CMAC is that of 3DES. */
+#define MBEDTLS_CIPHER_BLKSIZE_MAX      8
 #endif
 
 #if !defined(MBEDTLS_CMAC_ALT)

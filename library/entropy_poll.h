@@ -33,9 +33,11 @@ extern "C" {
 /*
  * Default thresholds for built-in sources, in bytes
  */
-#define MBEDTLS_ENTROPY_MIN_PLATFORM     32     /**< Minimum for platform source    */
+/** Minimum for platform source    */
+#define MBEDTLS_ENTROPY_MIN_PLATFORM     32
 #if !defined(MBEDTLS_ENTROPY_MIN_HARDWARE)
-#define MBEDTLS_ENTROPY_MIN_HARDWARE     32     /**< Minimum for the hardware source */
+/** Minimum for the hardware source */
+#define MBEDTLS_ENTROPY_MIN_HARDWARE     32
 #endif
 
 #if !defined(MBEDTLS_NO_PLATFORM_ENTROPY)

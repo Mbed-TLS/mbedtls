@@ -47,8 +47,10 @@
 #include <stdint.h>
 
 /* padlock.c and aesni.c rely on these values! */
-#define MBEDTLS_AES_ENCRYPT     1 /**< AES encryption. */
-#define MBEDTLS_AES_DECRYPT     0 /**< AES decryption. */
+/** AES encryption. */
+#define MBEDTLS_AES_ENCRYPT     1
+/** AES decryption. */
+#define MBEDTLS_AES_DECRYPT     0
 
 /* Error codes in range 0x0020-0x0022 */
 /** Invalid key length. */

@@ -62,26 +62,33 @@
  */
 
 #if !defined(MBEDTLS_ENTROPY_MAX_SOURCES)
-#define MBEDTLS_ENTROPY_MAX_SOURCES     20      /**< Maximum number of sources supported */
+/** Maximum number of sources supported */
+#define MBEDTLS_ENTROPY_MAX_SOURCES     20
 #endif
 
 #if !defined(MBEDTLS_ENTROPY_MAX_GATHER)
-#define MBEDTLS_ENTROPY_MAX_GATHER      128     /**< Maximum amount requested from entropy sources */
+/** Maximum amount requested from entropy sources */
+#define MBEDTLS_ENTROPY_MAX_GATHER      128
 #endif
 
 /* \} name SECTION: Module settings */
 
 #if defined(MBEDTLS_ENTROPY_SHA512_ACCUMULATOR)
-#define MBEDTLS_ENTROPY_BLOCK_SIZE      64      /**< Block size of entropy accumulator (SHA-512) */
+/** Block size of entropy accumulator (SHA-512) */
+#define MBEDTLS_ENTROPY_BLOCK_SIZE      64
 #else
-#define MBEDTLS_ENTROPY_BLOCK_SIZE      32      /**< Block size of entropy accumulator (SHA-256) */
+/** Block size of entropy accumulator (SHA-256) */
+#define MBEDTLS_ENTROPY_BLOCK_SIZE      32
 #endif
 
-#define MBEDTLS_ENTROPY_MAX_SEED_SIZE   1024    /**< Maximum size of seed we read from seed file */
+/** Maximum size of seed we read from seed file */
+#define MBEDTLS_ENTROPY_MAX_SEED_SIZE   1024
 #define MBEDTLS_ENTROPY_SOURCE_MANUAL   MBEDTLS_ENTROPY_MAX_SOURCES
 
-#define MBEDTLS_ENTROPY_SOURCE_STRONG   1       /**< Entropy source is strong   */
-#define MBEDTLS_ENTROPY_SOURCE_WEAK     0       /**< Entropy source is weak     */
+/** Entropy source is strong   */
+#define MBEDTLS_ENTROPY_SOURCE_STRONG   1
+/** Entropy source is weak     */
+#define MBEDTLS_ENTROPY_SOURCE_WEAK     0
 
 #ifdef __cplusplus
 extern "C" {

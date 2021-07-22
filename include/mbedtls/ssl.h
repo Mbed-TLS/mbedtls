@@ -319,7 +319,8 @@
 /*
  * Signaling ciphersuite values (SCSV)
  */
-#define MBEDTLS_SSL_EMPTY_RENEGOTIATION_INFO    0xFF   /**< renegotiation info ext */
+/** renegotiation info ext */
+#define MBEDTLS_SSL_EMPTY_RENEGOTIATION_INFO    0xFF
 
 /*
  * Supported Signature and Hash algorithms (For TLS 1.2)

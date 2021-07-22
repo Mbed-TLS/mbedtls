@@ -39,9 +39,12 @@
 /** Given private key password does not allow for correct decryption. */
 #define MBEDTLS_ERR_PKCS12_PASSWORD_MISMATCH              -0x1E00
 
-#define MBEDTLS_PKCS12_DERIVE_KEY       1   /**< encryption/decryption key */
-#define MBEDTLS_PKCS12_DERIVE_IV        2   /**< initialization vector     */
-#define MBEDTLS_PKCS12_DERIVE_MAC_KEY   3   /**< integrity / MAC key       */
+/** encryption/decryption key */
+#define MBEDTLS_PKCS12_DERIVE_KEY       1
+/** initialization vector     */
+#define MBEDTLS_PKCS12_DERIVE_IV        2
+/** integrity / MAC key       */
+#define MBEDTLS_PKCS12_DERIVE_MAC_KEY   3
 
 #define MBEDTLS_PKCS12_PBE_DECRYPT      0
 #define MBEDTLS_PKCS12_PBE_ENCRYPT      1

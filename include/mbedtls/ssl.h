@@ -927,6 +927,8 @@ struct mbedtls_ssl_session
 
     unsigned char exported;
 
+    unsigned char MBEDTLS_PRIVATE(minor_ver);    /*!< The TLS version used in the session. */
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     mbedtls_x509_crt *MBEDTLS_PRIVATE(peer_cert);       /*!< peer X.509 cert chain */

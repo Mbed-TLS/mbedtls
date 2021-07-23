@@ -1392,6 +1392,7 @@ read_record_header:
 
     mbedtls_ssl_read_version( &ssl->major_ver, &ssl->minor_ver,
                       ssl->conf->transport, buf );
+    ssl->session_negotiate->minor_ver = ssl->minor_ver;
 
     ssl->handshake->max_major_ver = ssl->major_ver;
     ssl->handshake->max_minor_ver = ssl->minor_ver;

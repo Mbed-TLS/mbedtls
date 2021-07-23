@@ -2024,6 +2024,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, version", buf + 0, 2 );
     mbedtls_ssl_read_version( &ssl->major_ver, &ssl->minor_ver,
                       ssl->conf->transport, buf + 0 );
+    ssl->session_negotiate->minor_ver = ssl->minor_ver;
 
     if( ssl->major_ver < ssl->conf->min_major_ver ||
         ssl->minor_ver < ssl->conf->min_minor_ver ||

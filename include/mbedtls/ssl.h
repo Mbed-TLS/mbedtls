@@ -2521,21 +2521,45 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
  *                      order. First in the list has the highest preference.
  *                      (Overrides all version-specific lists)
  *
- *                      The ciphersuites array is not copied, and must remain
- *                      valid for the lifetime of the ssl_config.
+ *                      For TLS 1.2, the notion of ciphersuite determines both
+ *                      the key exchange mechanism and the suite of symmetric
+ *                      algorithms to be used during and after the handshake.
  *
- *                      Note: By default, the server chooses its preferred
+ *                      For TLS 1.3 (in development), the notion of ciphersuite
+ *                      only determines the suite of symmetric algorithmc to be
+ *                      used during and after the handshake, while key exchange
+ *                      mechanisms are configured separately.
+ *
+ *                      In Mbed TLS, ciphersuites for both TLS 1.2 and TLS 1.3
+ *                      are configured via this function. For users of TLS 1.3,
+ *                      there will be separate API for the configuration of key
+ *                      exchange mechanisms.
+ *
+ *                      The list of ciphersuites passed to this function may
+ *                      contain a mixture of TLS 1.2 and TLS 1.3 ciphersuite
+ *                      identifiers. This is useful if negotiation of TLS 1.3
+ *                      should be attempted, but a fallback to TLS 1.2 would
+ *                      be tolerated.
+ *
+ * \note                By default, the server chooses its preferred
  *                      ciphersuite among those that the client supports. If
  *                      mbedtls_ssl_conf_preference_order() is called to prefer
  *                      the client's preferences, the server instead chooses
  *                      the client's preferred ciphersuite among those that
  *                      the server supports.
  *
- * \param conf          SSL configuration
- * \param ciphersuites  0-terminated list of allowed ciphersuites
+ * \warning             The ciphersuites array \p ciphersuites is not copied.
+ *                      It must remain valid for the lifetime the SSL
+ *                      configuration \p conf.
+ *
+ * \param conf          The SSL configuration to modify.
+ * \param ciphersuites  A 0-terminated list of IANA identifiers of supported
+ *                      ciphersuites, accessible through \c MBEDTLS_TLS_XXX
+ *                      and \c MBEDTLS_TLS1_3_XXX macros defined in
+ *                      ssl_ciphersuites.h.
  */
 void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
-                                   const int *ciphersuites );
+                                    const int *ciphersuites );
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 #define MBEDTLS_SSL_UNEXPECTED_CID_IGNORE 0

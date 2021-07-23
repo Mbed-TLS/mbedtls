@@ -25,6 +25,7 @@
 
 #if defined(MBEDTLS_PSA_CRYPTO_DRIVERS) && defined(PSA_CRYPTO_DRIVER_TEST)
 #include "psa_crypto_aead.h"
+#include "psa_crypto_core.h"
 
 #include "test/drivers/aead.h"
 

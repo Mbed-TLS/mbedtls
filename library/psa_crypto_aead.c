@@ -568,13 +568,12 @@ psa_status_t mbedtls_psa_aead_update(
 
     update_output_length = input_length;
 
-    if( PSA_AEAD_UPDATE_OUTPUT_SIZE( operation->key_type, operation->alg,
-                                        input_length ) > output_size )
-        return ( PSA_ERROR_BUFFER_TOO_SMALL );
-
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
     if( operation->alg == PSA_ALG_GCM )
     {
+        if( output_size < input_length )
+            return( PSA_ERROR_BUFFER_TOO_SMALL );
+
         status =  mbedtls_to_psa_error(
             mbedtls_gcm_update( &operation->ctx.gcm,
                                 input, input_length,
@@ -586,6 +585,9 @@ psa_status_t mbedtls_psa_aead_update(
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
     if( operation->alg == PSA_ALG_CHACHA20_POLY1305 )
     {
+        if( output_size < input_length )
+            return( PSA_ERROR_BUFFER_TOO_SMALL );
+
         status = mbedtls_to_psa_error(
            mbedtls_chachapoly_update( &operation->ctx.chachapoly,
                                       input_length,
@@ -625,10 +627,15 @@ psa_status_t mbedtls_psa_aead_finish(
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
     if( operation->alg == PSA_ALG_GCM )
+    {
+        if( ciphertext_size < 15 )
+            return( PSA_ERROR_BUFFER_TOO_SMALL );
+
         status =  mbedtls_to_psa_error(
             mbedtls_gcm_finish( &operation->ctx.gcm,
                                 ciphertext, ciphertext_size,
                                 tag, operation->tag_length ) );
+    }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)

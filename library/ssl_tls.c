@@ -3548,6 +3548,14 @@ void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
     conf->ciphersuite_list = ciphersuites;
 }
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+void mbedtls_ssl_conf_tls13_key_exchange_modes( mbedtls_ssl_config* conf,
+                                                const int kex_modes )
+{
+    conf->tls13_kex_modes = kex_modes;
+}
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 void mbedtls_ssl_conf_cert_profile( mbedtls_ssl_config *conf,
                                     const mbedtls_x509_crt_profile *profile )
@@ -6352,6 +6360,13 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
         }
     }
 #endif
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+    /*
+     * Allow all TLS 1.3 key exchange modes by default.
+     */
+    conf->tls13_kex_modes = MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_ALL;
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
     /*
      * Preset-specific defaults

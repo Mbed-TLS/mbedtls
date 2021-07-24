@@ -170,6 +170,30 @@
 #define MBEDTLS_ERR_SSL_BAD_CONFIG                        -0x5E80
 
 /*
+ * TLS 1.3 Key Exchange Modes
+ *
+ * Mbed TLS internal identifiers for use with the SSL configuration API
+ * mbedtls_ssl_conf_tls13_key_exchange_modes().
+ */
+
+#define MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_NONE           0
+#define MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK            ( 1u << 0 )
+#define MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_EPHEMERAL  ( 1u << 1 )
+#define MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_EPHEMERAL      ( 1u << 2 )
+
+/* Convenience macros for sets of key exchanges. */
+#define MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_ALL                         \
+    ( MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK              |            \
+      MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_EPHEMERAL    |            \
+      MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_EPHEMERAL )
+#define MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_ALL                     \
+    ( MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK              |            \
+      MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_EPHEMERAL    )
+#define MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_EPHEMERAL_ALL               \
+    ( MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_EPHEMERAL        |            \
+      MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_EPHEMERAL    )
+
+/*
  * Various constants
  */
 
@@ -1068,6 +1092,11 @@ struct mbedtls_ssl_config
 
     /** Allowed ciphersuites for (D)TLS 1.2 (0-terminated)                  */
     const int *MBEDTLS_PRIVATE(ciphersuite_list);
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+    /** Allowed TLS 1.3 key exchange modes.                                 */
+    int MBEDTLS_PRIVATE(tls13_kex_modes);
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
     /** Callback for printing debug output                                  */
     void (*MBEDTLS_PRIVATE(f_dbg))(void *, int, const char *, int, const char *);
@@ -2560,6 +2589,53 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
  */
 void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
                                     const int *ciphersuites );
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+/**
+ * \brief Set the supported key exchange modes for TLS 1.3 connections.
+ *
+ *        In contrast to TLS 1.2, the ciphersuite concept in TLS 1.3 does not
+ *        include the choice of key exchange mechanism. It is therefore not
+ *        covered by the API mbedtls_ssl_conf_ciphersuites(). See the
+ *        documentation of mbedtls_ssl_conf_ciphersuites() for more
+ *        information on the ciphersuite concept in TLS 1.2 and TLS 1.3.
+ *
+ *        The present function is specific to TLS 1.3 and allows users to
+ *        configure the set of supported key exchange mechanisms in TLS 1.3.
+ *
+ * \param conf       The SSL configuration the change should apply to.
+ * \param kex_modes  A bitwise combination of one or more of the following:
+ *                   - MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK
+ *                     This flag enables pure-PSK key exchanges.
+ *                   - MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_EPHEMERAL
+ *                     This flag enables combined PSK-ephemeral key exchanges.
+ *                   - MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_EPHEMERAL
+ *                     This flag enables pure-ephemeral key exchanges.
+ *                   For convenience, the following pre-defined macros are
+ *                   available for combinations of the above:
+ *                   - MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_ALL
+ *                     Includes all of pure-PSK, PSK-ephemeral and pure-ephemeral.
+ *                   - MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_ALL
+ *                     Includes both pure-PSK and combined PSK-ephemeral
+ *                     key exchanges, but excludes pure-ephemeral key exchanges.
+ *                   - MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_EPHEMERAL_ALL
+ *                     Includes both pure-ephemeral and combined PSK-ephemeral
+ *                     key exchanges.
+ *
+ * \note  If a PSK-based key exchange mode shall be supported, applications
+ *        must also use the APIs mbedtls_ssl_conf_psk() or
+ *        mbedtls_ssl_conf_psk_cb() or mbedtls_ssl_conf_psk_opaque()
+ *        to configure the PSKs to be used.
+ *
+ * \note  If an ECDHE-based key exchange mode shall be supported,
+ *        server-side applications must also provide a certificate via
+ *        mbedtls_ssl_conf_own_cert().
+ *
+ */
+
+void mbedtls_ssl_conf_tls13_key_exchange_modes( mbedtls_ssl_config* conf,
+                                                const int kex_modes );
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 #define MBEDTLS_SSL_UNEXPECTED_CID_IGNORE 0

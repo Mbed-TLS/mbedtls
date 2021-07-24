@@ -6337,20 +6337,20 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #endif
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
-            if( endpoint == MBEDTLS_SSL_IS_SERVER )
-            {
-                const unsigned char dhm_p[] =
-                    MBEDTLS_DHM_RFC3526_MODP_2048_P_BIN;
-                const unsigned char dhm_g[] =
-                    MBEDTLS_DHM_RFC3526_MODP_2048_G_BIN;
+    if( endpoint == MBEDTLS_SSL_IS_SERVER )
+    {
+        const unsigned char dhm_p[] =
+            MBEDTLS_DHM_RFC3526_MODP_2048_P_BIN;
+        const unsigned char dhm_g[] =
+            MBEDTLS_DHM_RFC3526_MODP_2048_G_BIN;
 
-                if ( ( ret = mbedtls_ssl_conf_dh_param_bin( conf,
-                                               dhm_p, sizeof( dhm_p ),
-                                               dhm_g, sizeof( dhm_g ) ) ) != 0 )
-                {
-                    return( ret );
-                }
-            }
+        if ( ( ret = mbedtls_ssl_conf_dh_param_bin( conf,
+                                                    dhm_p, sizeof( dhm_p ),
+                                                    dhm_g, sizeof( dhm_g ) ) ) != 0 )
+        {
+            return( ret );
+        }
+    }
 #endif
 
     /*

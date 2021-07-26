@@ -46,16 +46,13 @@ CIPHERS="TLS-ECDHE-ECDSA-WITH-NULL-SHA      \
     TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA    \
     "
 
-M_CIPHERS="$M_CIPHERS                       \
-           $CIPHERS"
+M_CIPHERS="$M_CIPHERS $CIPHERS"
 
 G=`python3 translate_ciphers.py g "$CIPHERS"`
-G_CIPHERS="$G_CIPHERS                       \
-           $G"
+G_CIPHERS="$G_CIPHERS $G"
 
 O=`python3 translate_ciphers.py o "$CIPHERS"`
-O_CIPHERS="$O_CIPHERS                       \
-           $O"
+O_CIPHERS="$O_CIPHERS $O"
 
 Mt_CIPHERS="$Mt_CIPHERS                       \
     TLS-ECDHE-ECDSA-WITH-NULL-SHA           \
@@ -84,16 +81,13 @@ CIPHERS="TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256         \
           TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384         \
          "
 
-M_CIPHERS="$M_CIPHERS                       \
-           $CIPHERS"
+M_CIPHERS="$M_CIPHERS $CIPHERS"
 
 G=`python3 translate_ciphers.py g "$CIPHERS"`
-G_CIPHERS="$G_CIPHERS                       \
-           $G"
+G_CIPHERS="$G_CIPHERS $G"
 
 O=`python3 translate_ciphers.py o "$CIPHERS"`
-O_CIPHERS="$O_CIPHERS                       \
-           $O"
+O_CIPHERS="$O_CIPHERS $O"
 
 Mt_CIPHERS="$Mt_CIPHERS                               \
     TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256         \

@@ -68,9 +68,17 @@ foreach my $file (@files) {
     close FILE;
     my $found = 0;
     while ($content =~ m[
-            (?:/\*[*!]([^<](?:[^*]|\*+[^*/])*)\*/)?
-            \s*\#\s*define\s+(MBEDTLS_ERR_\w+)\s+\-(0[Xx][0-9A-Fa-f]+)\s*
-            (?:/\*[*!]<((?:[^*]|\*+[^*/])*)\*/)?
+            # Both the before-comment and the after-comment are optional.
+            # Only the comment content is a regex capture group. The comment
+            # start and end parts are outside the capture group.
+            (?:/\*[*!](?!<)             # Doxygen before-comment start
+                ((?:[^*]|\*+[^*/])*)    # $1: Comment content (no */ inside)
+                \*/)?                   # Comment end
+            \s*\#\s*define\s+(MBEDTLS_ERR_\w+)  # $2: name
+            \s+\-(0[Xx][0-9A-Fa-f]+)\s*         # $3: value (without the sign)
+            (?:/\*[*!]<                 # Doxygen after-comment start
+                ((?:[^*]|\*+[^*/])*)    # $4: Comment content (no */ inside)
+                \*/)?                   # Comment end
     ]gsx) {
         my ($before, $name, $value, $after) = ($1, $2, $3, $4);
         # Discard Doxygen comments that are coincidentally present before

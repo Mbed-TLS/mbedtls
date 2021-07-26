@@ -41,8 +41,10 @@
 #include "mbedtls/platform_time.h"
 #endif
 
-#define MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED     -0x0070 /**< Hardware accelerator failed */
-#define MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED -0x0072 /**< The requested feature is not supported by the platform */
+/** Hardware accelerator failed */
+#define MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED     -0x0070
+/** The requested feature is not supported by the platform */
+#define MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED -0x0072
 
 #ifdef __cplusplus
 extern "C" {

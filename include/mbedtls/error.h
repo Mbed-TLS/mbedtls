@@ -116,8 +116,10 @@
 extern "C" {
 #endif
 
-#define MBEDTLS_ERR_ERROR_GENERIC_ERROR       -0x0001  /**< Generic error */
-#define MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED -0x006E  /**< This is a bug in the library */
+/** Generic error */
+#define MBEDTLS_ERR_ERROR_GENERIC_ERROR       -0x0001
+/** This is a bug in the library */
+#define MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED -0x006E
 
 /**
  * \brief Combines a high-level and low-level error code together.

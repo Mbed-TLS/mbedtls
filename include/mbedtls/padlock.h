@@ -34,7 +34,8 @@
 
 #include "mbedtls/aes.h"
 
-#define MBEDTLS_ERR_PADLOCK_DATA_MISALIGNED               -0x0030  /**< Input data should be aligned. */
+/** Input data should be aligned. */
+#define MBEDTLS_ERR_PADLOCK_DATA_MISALIGNED               -0x0030
 
 #if defined(__has_feature)
 #if __has_feature(address_sanitizer)

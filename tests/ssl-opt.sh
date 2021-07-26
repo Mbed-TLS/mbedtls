@@ -8699,6 +8699,7 @@ requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
 requires_gnutls
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: gnutls server, DTLS 1.0" \
             "$G_SRV -u" \
             "$P_CLI dtls=1 debug_level=2 \
@@ -8739,6 +8740,7 @@ requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
 requires_gnutls
 requires_not_i686
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: gnutls client, DTLS 1.0" \
             "$P_SRV dtls=1 debug_level=2 \
              crt_file=data_files/server7_int-ca.crt \
@@ -8767,6 +8769,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: openssl server, DTLS 1.0" \
             "$O_SRV -dtls1 -verify 10" \
             "$P_CLI dtls=1 debug_level=2 \
@@ -8795,6 +8798,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: openssl client, DTLS 1.0" \
             "$P_SRV dtls=1 debug_level=2 \
              crt_file=data_files/server7_int-ca.crt \
@@ -8832,6 +8836,7 @@ requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
 client_needs_more_time 4
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.0" \
             -p "$P_PXY drop=8 delay=8 duplicate=8" \
             "$G_NEXT_SRV -u" \
@@ -8866,6 +8871,7 @@ requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
 client_needs_more_time 4
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.0" \
             -p "$P_PXY drop=8 delay=8 duplicate=8" \
             "$P_SRV dtls=1 debug_level=2 \
@@ -8905,6 +8911,7 @@ requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
 client_needs_more_time 4
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.0" \
             -p "$P_PXY drop=8 delay=8 duplicate=8" \
             "$O_SRV -dtls1 -verify 10" \
@@ -8941,6 +8948,7 @@ requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
 client_needs_more_time 4
+requires_max_content_len 2048
 run_test    "DTLS fragmenting: 3d, openssl client, DTLS 1.0" \
             -p "$P_PXY drop=8 delay=8 duplicate=8" \
             "$P_SRV dgram_packing=0 dtls=1 debug_level=2 \

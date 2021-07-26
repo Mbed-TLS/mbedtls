@@ -36,7 +36,8 @@
 #define MBEDTLS_DES_ENCRYPT     1
 #define MBEDTLS_DES_DECRYPT     0
 
-#define MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH              -0x0032  /**< The data input has an invalid length. */
+/** The data input has an invalid length. */
+#define MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH              -0x0032
 
 #define MBEDTLS_DES_KEY_SIZE    8
 

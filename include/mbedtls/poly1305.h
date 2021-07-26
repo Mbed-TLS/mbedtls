@@ -38,7 +38,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA         -0x0057 /**< Invalid input parameter(s). */
+/** Invalid input parameter(s). */
+#define MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA         -0x0057
 
 #ifdef __cplusplus
 extern "C" {

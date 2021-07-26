@@ -44,9 +44,11 @@
 #define MBEDTLS_ARIA_MAX_ROUNDS  16 /**< Maxiumum number of rounds in ARIA. */
 #define MBEDTLS_ARIA_MAX_KEYSIZE 32 /**< Maximum size of an ARIA key in bytes. */
 
-#define MBEDTLS_ERR_ARIA_BAD_INPUT_DATA -0x005C /**< Bad input data. */
+/** Bad input data. */
+#define MBEDTLS_ERR_ARIA_BAD_INPUT_DATA -0x005C
 
-#define MBEDTLS_ERR_ARIA_INVALID_INPUT_LENGTH -0x005E /**< Invalid data input length. */
+/** Invalid data input length. */
+#define MBEDTLS_ERR_ARIA_INVALID_INPUT_LENGTH -0x005E
 
 #ifdef __cplusplus
 extern "C" {

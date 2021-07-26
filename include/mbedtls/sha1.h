@@ -35,7 +35,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define MBEDTLS_ERR_SHA1_BAD_INPUT_DATA                   -0x0073  /**< SHA-1 input data was malformed. */
+/** SHA-1 input data was malformed. */
+#define MBEDTLS_ERR_SHA1_BAD_INPUT_DATA                   -0x0073
 
 #ifdef __cplusplus
 extern "C" {

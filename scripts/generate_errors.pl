@@ -83,7 +83,7 @@ foreach my $file (@files) {
           if defined($before) && defined($after);
         my $description = (defined($before) ? $before : $after);
         $description =~ s/^\s+//;
-        $description =~ s/\n( \*)?//g;
+        $description =~ s/\n( *\*)? */ /g;
         $description =~ s/\.?\s+$//;
         push @matches, [$name, $value, $description];
         ++$found;

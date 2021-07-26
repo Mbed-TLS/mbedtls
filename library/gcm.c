@@ -34,6 +34,7 @@
 #include "mbedtls/gcm.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
+#include "mbedtls/inst.h"
 
 #include <string.h>
 
@@ -86,6 +87,7 @@
  */
 void mbedtls_gcm_init( mbedtls_gcm_context *ctx )
 {
+    MBEDTLS_INST_PRIM_OP_CTX( "gcm", "init", ctx );
     GCM_VALIDATE( ctx != NULL );
     memset( ctx, 0, sizeof( mbedtls_gcm_context ) );
 }
@@ -601,6 +603,7 @@ int mbedtls_gcm_crypt_and_tag( mbedtls_gcm_context *ctx,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t olen;
 
+    MBEDTLS_INST_PRIM_OP_CTX_BYTES( "gcm", "crypt_and_tag", ctx, length );
     GCM_VALIDATE_RET( ctx != NULL );
     GCM_VALIDATE_RET( iv != NULL );
     GCM_VALIDATE_RET( add_len == 0 || add != NULL );
@@ -669,6 +672,7 @@ int mbedtls_gcm_auth_decrypt( mbedtls_gcm_context *ctx,
 
 void mbedtls_gcm_free( mbedtls_gcm_context *ctx )
 {
+    MBEDTLS_INST_PRIM_OP_CTX( "gcm", "free", ctx );
     if( ctx == NULL )
         return;
     mbedtls_cipher_free( &ctx->cipher_ctx );

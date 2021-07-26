@@ -1821,7 +1821,7 @@
  *
  * This modules adds support for the AES-NI instructions on x86-64
  */
-#define MBEDTLS_AESNI_C
+//#define MBEDTLS_AESNI_C
 
 /**
  * \def MBEDTLS_AES_C
@@ -2159,6 +2159,14 @@
  * This module provides debugging functions.
  */
 #define MBEDTLS_DEBUG_C
+
+/**
+ * \def MBEDTLS_INST
+ *
+ * Enable the instrumentation functions to report invocations of various
+ * primitives. See 'include/mbedtls/inst.h' for more information.
+ */
+#define MBEDTLS_INST
 
 /**
  * \def MBEDTLS_DES_C

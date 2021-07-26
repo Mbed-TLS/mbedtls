@@ -31,6 +31,7 @@
 #include "mbedtls/ecdh.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
+#include "mbedtls/inst.h"
 
 #include <string.h>
 
@@ -173,6 +174,7 @@ static void ecdh_init_internal( mbedtls_ecdh_context_mbed *ctx )
  */
 void mbedtls_ecdh_init( mbedtls_ecdh_context *ctx )
 {
+    MBEDTLS_INST_PRIM_OP_CTX( "ecdh", "init", ctx);
     ECDH_VALIDATE( ctx != NULL );
 
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
@@ -264,6 +266,7 @@ void mbedtls_ecdh_enable_restart( mbedtls_ecdh_context *ctx )
  */
 void mbedtls_ecdh_free( mbedtls_ecdh_context *ctx )
 {
+    MBEDTLS_INST_PRIM_OP_CTX( "ecdh", "free", ctx );
     if( ctx == NULL )
         return;
 
@@ -697,6 +700,7 @@ int mbedtls_ecdh_calc_secret( mbedtls_ecdh_context *ctx, size_t *olen,
                               void *p_rng )
 {
     int restart_enabled = 0;
+    MBEDTLS_INST_PRIM_OP_CTX( "ecdh", "calc_secret", ctx );
     ECDH_VALIDATE_RET( ctx != NULL );
     ECDH_VALIDATE_RET( olen != NULL );
     ECDH_VALIDATE_RET( buf != NULL );

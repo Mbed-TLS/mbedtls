@@ -29,6 +29,7 @@
 #include "mbedtls/sha256.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
+#include "mbedtls/inst.h"
 
 #include <string.h>
 
@@ -75,6 +76,7 @@ do {                                                    \
 
 void mbedtls_sha256_init( mbedtls_sha256_context *ctx )
 {
+    MBEDTLS_INST_PRIM_OP_CTX( "sha256", "init", ctx );
     SHA256_VALIDATE( ctx != NULL );
 
     memset( ctx, 0, sizeof( mbedtls_sha256_context ) );
@@ -82,6 +84,7 @@ void mbedtls_sha256_init( mbedtls_sha256_context *ctx )
 
 void mbedtls_sha256_free( mbedtls_sha256_context *ctx )
 {
+    MBEDTLS_INST_PRIM_OP_CTX( "sha256", "free", ctx );
     if( ctx == NULL )
         return;
 
@@ -91,6 +94,7 @@ void mbedtls_sha256_free( mbedtls_sha256_context *ctx )
 void mbedtls_sha256_clone( mbedtls_sha256_context *dst,
                            const mbedtls_sha256_context *src )
 {
+    MBEDTLS_INST_PRIM_OP_CTX_CTX( "sha256", "clone", src, dst );
     SHA256_VALIDATE( dst != NULL );
     SHA256_VALIDATE( src != NULL );
 
@@ -293,6 +297,7 @@ int mbedtls_sha256_update( mbedtls_sha256_context *ctx,
     size_t fill;
     uint32_t left;
 
+    MBEDTLS_INST_PRIM_OP_CTX_BYTES( "sha256", "update", ctx, ilen );
     SHA256_VALIDATE_RET( ctx != NULL );
     SHA256_VALIDATE_RET( ilen == 0 || input != NULL );
 

@@ -1023,7 +1023,6 @@ int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
         //
     }
 #endif
-printf("FOO\n");
     if( mode == MBEDTLS_AES_ENCRYPT )
         return( mbedtls_internal_aes_encrypt( ctx, input, output ) );
     else

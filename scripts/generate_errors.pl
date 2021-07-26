@@ -88,7 +88,6 @@ my %error_codes_seen;
 
 foreach my $line (@matches)
 {
-    next if ($line =~ /compat-1.2.h/);
     my ($error_name, $error_code) = $line =~ /(MBEDTLS_ERR_\w+)\s+\-(0x\w+)/;
     my ($description) = $line =~ /\/\*\*< (.*?)\.? \*\//;
 

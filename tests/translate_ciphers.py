@@ -120,7 +120,7 @@ def format_ciphersuite_names(mode, ciphers):
 
 def main():
     if len(sys.argv) != 3:
-        print("""Incorrect number of arguments. 
+        print("""Incorrect number of arguments.
 The first argument with either an \"o\" for OpenSSL or \"g\" for GNUTLS.
 The second argument should a single space seperated string of MBedTLS ciphersuite names""")
         sys.exit(1)

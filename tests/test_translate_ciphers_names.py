@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# test_translate_names.py
+# test_translate_ciphers_names.py
 #
 # Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0

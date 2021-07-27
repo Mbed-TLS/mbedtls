@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# test_translate_format.sh
+# test_translate_ciphers_format.sh
 #
 # Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0

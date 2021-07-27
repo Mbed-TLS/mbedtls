@@ -145,7 +145,7 @@ static void mbedtls_ccm_clear_state(mbedtls_ccm_context *ctx) {
     memset( ctx->ctr, 0, 16);
 }
 
-static int mbedtls_ccm_calculate_first_block(mbedtls_ccm_context *ctx)
+static int ccm_calculate_first_block_if_ready(mbedtls_ccm_context *ctx)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char i;
@@ -237,12 +237,12 @@ int mbedtls_ccm_starts( mbedtls_ccm_context *ctx,
     ctx->ctr[15] = 1;
 
     /*
-     * See mbedtls_ccm_calculate_first_block() for block layout description
+     * See ccm_calculate_first_block_if_ready() for block layout description
      */
     memcpy( ctx->y + 1, iv, iv_len );
 
     ctx->state |= CCM_STATE__STARTED;
-    return mbedtls_ccm_calculate_first_block(ctx);
+    return ccm_calculate_first_block_if_ready(ctx);
 }
 
 int mbedtls_ccm_set_lengths( mbedtls_ccm_context *ctx,
@@ -276,7 +276,7 @@ int mbedtls_ccm_set_lengths( mbedtls_ccm_context *ctx,
     ctx->processed = 0;
 
     ctx->state |= CCM_STATE__LENGHTS_SET;
-    return mbedtls_ccm_calculate_first_block(ctx);
+    return ccm_calculate_first_block_if_ready(ctx);
 }
 
 int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,

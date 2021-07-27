@@ -107,9 +107,9 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx )
 }
 
 #define CCM_STATE__CLEAR                0
-#define CCM_STATE__STARTED              0x0001
-#define CCM_STATE__LENGHTS_SET          0x0002
-#define CCM_STATE__ERROR                0x0004
+#define CCM_STATE__STARTED              (1 << 0)
+#define CCM_STATE__LENGHTS_SET          (1 << 1)
+#define CCM_STATE__ERROR                (1 << 2)
 
 /*
  * Encrypt or decrypt a partial block with CTR

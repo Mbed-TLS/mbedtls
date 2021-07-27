@@ -127,13 +127,15 @@ static int mbedtls_ccm_crypt( mbedtls_ccm_context *ctx,
     if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx, ctx->ctr, 16, tmp_buf,
                                        &olen ) ) != 0 )
     {
-        ctx->state |= CCM_STATE__ERROR;                                    \
+        ctx->state |= CCM_STATE__ERROR;           
+        mbedtls_platform_zeroize(tmp_buf, sizeof(tmp_buf));
         return ret;
     }
 
     for( i = 0; i < use_len; i++ )
         output[i] = input[i] ^ tmp_buf[offset + i];
 
+    mbedtls_platform_zeroize(tmp_buf, sizeof(tmp_buf));
     return ret;
 }
 

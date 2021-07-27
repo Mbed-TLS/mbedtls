@@ -21,7 +21,7 @@
 #
 # Test translate_ciphers.py by running every MBedTLS ciphersuite name
 # combination through the translate functions and comparing them to their
-# correct GNU or OpenSSL counterpart.
+# correct GNUTLS or OpenSSL counterpart.
 
 from translate_ciphers import *
 
@@ -170,21 +170,17 @@ def test_all_common():
         "PSK-3DES-EDE-CBC-SHA",
         "PSK-AES128-CBC-SHA",
         "PSK-AES256-CBC-SHA",
-
-        #"PSK-DES-CBC3-SHA",
-        #"PSK-AES128-SHA",
-        #"PSK-AES256-SHA",
     ]
 
     for i in range(len(m_ciphers)):
 
-        g = translate_gnu(m_ciphers[i])
+        g = translate_gnutls(m_ciphers[i])
         assert_equal(g, g_ciphers[i])
 
         o = translate_ossl(m_ciphers[i])
         assert_equal(o, o_ciphers[i])
 
-def test_mbed_ossl_common():
+def test_mbedtls_ossl_common():
     m_ciphers = [
         "TLS-ECDH-ECDSA-WITH-NULL-SHA",
         "TLS-ECDH-ECDSA-WITH-3DES-EDE-CBC-SHA",
@@ -235,7 +231,6 @@ def test_mbed_ossl_common():
 
         "DES-CBC-SHA",
         "EDH-RSA-DES-CBC-SHA",
-        #"DHE-RSA-DES-CBC-SHA",
 
         "ECDHE-ARIA256-GCM-SHA384",
         "DHE-RSA-ARIA256-GCM-SHA384",
@@ -260,7 +255,7 @@ def test_mbed_ossl_common():
         o = translate_ossl(m_ciphers[i])
         assert_equal(o, o_ciphers[i])
 
-def test_mbed_gnu_common():
+def test_mbedtls_gnutls_common():
     m_ciphers = [
         "TLS-ECDHE-ECDSA-WITH-CAMELLIA-128-CBC-SHA256",
         "TLS-ECDHE-ECDSA-WITH-CAMELLIA-256-CBC-SHA384",
@@ -442,9 +437,9 @@ def test_mbed_gnu_common():
 
     for i in range(len(m_ciphers)):
 
-        g = translate_gnu(m_ciphers[i])
+        g = translate_gnutls(m_ciphers[i])
         assert_equal(g, g_ciphers[i])
 
 test_all_common()
-test_mbed_ossl_common()
-test_mbed_gnu_common()
+test_mbedtls_ossl_common()
+test_mbedtls_gnutls_common()

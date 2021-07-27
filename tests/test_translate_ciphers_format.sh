@@ -121,13 +121,13 @@ Ot_CIPHERS=$( echo "$Ot_CIPHERS" | sed -e 's/[[:space:]][[:space:]]*/ /g' -e 's/
 # Upon fail, print them to view the differences
 if [ "$Mt_CIPHERS" != "$M_CIPHERS" ]
 then
-    echo "MBED Translated:   $M_CIPHERS"
-    echo "MBED Original:     $Mt_CIPHERS"
+    echo "MBEDTLS Translated:   $M_CIPHERS"
+    echo "MBEDTLS Original:     $Mt_CIPHERS"
 fi
 if [ "$Gt_CIPHERS" != "$G_CIPHERS" ]
 then
-    echo "GNU Translated:    $G_CIPHERS"
-    echo "GNU Original:      $Gt_CIPHERS"
+    echo "GNUTLS Translated:    $G_CIPHERS"
+    echo "GNUTLS Original:      $Gt_CIPHERS"
 fi
 if [ "$Ot_CIPHERS" != "$O_CIPHERS" ]
 then

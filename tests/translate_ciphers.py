@@ -19,20 +19,20 @@
 #
 # Purpose
 #
-# Translate ciphersuite names in MBedTLS format to OpenSSL and GNU
+# Translate ciphersuite names in MBedTLS format to OpenSSL and GNUTLS
 # standards.
 #
 # Format and analyse strings past in via input arguments to match
 # the expected strings utilised in compat.sh.
 #
-# sys.argv[1] should be "g" or "o" for GNU or OpenSSL.
+# sys.argv[1] should be "g" or "o" for GNUTLS or OpenSSL.
 # sys.argv[2] should be a string containing one or more
 # ciphersuite names.
 
 import re
 import sys
 
-def translate_gnu(m_cipher):
+def translate_gnutls(m_cipher):
     # Remove "TLS-"
     # Replace "-WITH-" with ":+"
     # Remove "EDE"
@@ -97,23 +97,35 @@ def translate_ossl(m_cipher):
 
     return m_cipher
 
-def format(mode, ciphers):
-    ciphers = ciphers.split()
-    t_ciphers = []
-    if mode == "g":
-        for i in ciphers:
-            t_ciphers.append(translate_gnu(i))
-    if mode == "o":
-        for i in ciphers:
-            t_ciphers.append(translate_ossl(i))
-    return " ".join(t_ciphers)
+def format_ciphersuite_names(mode, ciphers):
+    #ciphers = ciphers.split()
+    #t_ciphers = []
+    #if mode == "g":
+    #    for i in ciphers:
+    #        t_ciphers.append(translate_gnutls(i))
+    #elif mode == "o":
+    #    for i in ciphers:
+    #        t_ciphers.append(translate_ossl(i))
+    #else:
+    #    print("Incorrect use of argument 1, should be either \"g\" or \"o\"")
+    #    exit(1)
+    #return " ".join(t_ciphers)
+    try:
+        t = {"g": translate_gnutls, "o": translate_ossl}[mode]
+        return " ".join(t(c) for c in ciphers.split())
+    except Exception as E:
+        if E != mode: print(E)
+        else: print("Incorrect use of argument 1, should be either \"g\" or \"o\"")
+        sys.exit(1)
 
 def main():
-    # print command line arguments
-    if len(sys.argv) <= 2:
-        exit(1)
-    else:
-        print(format(sys.argv[1], sys.argv[2]))
+    if len(sys.argv) != 3:
+        print("""Incorrect number of arguments. 
+The first argument with either an \"o\" for OpenSSL or \"g\" for GNUTLS.
+The second argument should a single space seperated string of MBedTLS ciphersuite names""")
+        sys.exit(1)
+    print(format_ciphersuite_names(sys.argv[1], sys.argv[2]))
+    sys.exit(0)
 
 if __name__ == "__main__":
     main()

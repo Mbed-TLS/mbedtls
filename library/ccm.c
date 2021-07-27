@@ -118,7 +118,7 @@ static int mbedtls_ccm_crypt( mbedtls_ccm_context *ctx,
     if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx, ctx->ctr, 16, tmp_buf,
                                        &olen ) ) != 0 )
     {
-        ctx->state |= CCM_STATE__ERROR;           
+        ctx->state |= CCM_STATE__ERROR;
         mbedtls_platform_zeroize(tmp_buf, sizeof(tmp_buf));
         return ret;
     }
@@ -196,11 +196,6 @@ int mbedtls_ccm_starts( mbedtls_ccm_context *ctx,
     if( iv_len < 7 || iv_len > 13 )
         return( MBEDTLS_ERR_CCM_BAD_INPUT );
 
-    if( ctx->state & CCM_STATE__ERROR )
-    {
-        mbedtls_ccm_clear_state(ctx);
-    }
-
     ctx->mode = mode;
     ctx->q = 16 - 1 - (unsigned char) iv_len;
 
@@ -247,11 +242,6 @@ int mbedtls_ccm_set_lengths( mbedtls_ccm_context *ctx,
     if( total_ad_len >= 0xFF00 )
         return( MBEDTLS_ERR_CCM_BAD_INPUT );
 
-    if( ctx->state & CCM_STATE__ERROR )
-    {
-        mbedtls_ccm_clear_state(ctx);
-    }
-
     ctx->plaintext_len = plaintext_len;
     ctx->add_len = total_ad_len;
     ctx->tag_len = tag_len;
@@ -268,6 +258,11 @@ int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char i;
     size_t olen, use_len, offset;
+
+    if( ctx->state & CCM_STATE__ERROR )
+    {
+        return ret;
+    }
 
     if( ctx->add_len > 0 && add_len > 0)
     {
@@ -320,6 +315,11 @@ int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char i;
     size_t use_len, offset, olen;
+
+    if( ctx->state & CCM_STATE__ERROR )
+    {
+        return ret;
+    }
 
     if( output_size < input_len )
         return( MBEDTLS_ERR_CCM_BAD_INPUT );
@@ -396,6 +396,11 @@ int mbedtls_ccm_finish( mbedtls_ccm_context *ctx,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char i;
+
+    if( ctx->state & CCM_STATE__ERROR )
+    {
+        return ret;
+    }
 
     /*
      * Authentication: reset counter and crypt/mask internal tag

@@ -47,18 +47,12 @@
 
 #if !defined(MBEDTLS_CCM_ALT)
 
-#define CCM_VALIDATE_RET( cond ) \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_CCM_BAD_INPUT )
-#define CCM_VALIDATE( cond ) \
-    MBEDTLS_INTERNAL_VALIDATE( cond )
-
 
 /*
  * Initialize context
  */
 void mbedtls_ccm_init( mbedtls_ccm_context *ctx )
 {
-    CCM_VALIDATE( ctx != NULL );
     memset( ctx, 0, sizeof( mbedtls_ccm_context ) );
 }
 
@@ -69,9 +63,6 @@ int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const mbedtls_cipher_info_t *cipher_info;
-
-    CCM_VALIDATE_RET( ctx != NULL );
-    CCM_VALIDATE_RET( key != NULL );
 
     cipher_info = mbedtls_cipher_info_from_values( cipher, keybits,
                                                    MBEDTLS_MODE_ECB );
@@ -201,13 +192,6 @@ int mbedtls_ccm_starts( mbedtls_ccm_context *ctx,
                         const unsigned char *iv,
                         size_t iv_len )
 {
-    CCM_VALIDATE_RET( ctx != NULL );
-    CCM_VALIDATE_RET( iv != NULL );
-    CCM_VALIDATE_RET( mode == MBEDTLS_CCM_DECRYPT      || \
-                      mode == MBEDTLS_CCM_STAR_DECRYPT || \
-                      mode == MBEDTLS_CCM_ENCRYPT      || \
-                      mode == MBEDTLS_CCM_STAR_ENCRYPT );
-
     /* Also implies q is within bounds */
     if( iv_len < 7 || iv_len > 13 )
         return( MBEDTLS_ERR_CCM_BAD_INPUT );
@@ -250,8 +234,6 @@ int mbedtls_ccm_set_lengths( mbedtls_ccm_context *ctx,
                              size_t plaintext_len,
                              size_t tag_len )
 {
-    CCM_VALIDATE_RET( ctx != NULL );
-
     /*
      * Check length requirements: SP800-38C A.1
      * Additional requirement: a < 2^16 - 2^8 to simplify the code.
@@ -283,8 +265,6 @@ int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
                            const unsigned char *add,
                            size_t add_len )
 {
-    CCM_VALIDATE_RET( ctx->add_len == 0 || add != NULL );
-
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char i;
     size_t olen, use_len, offset;
@@ -337,16 +317,12 @@ int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
                         unsigned char *output, size_t output_size,
                         size_t *output_len )
 {
-    CCM_VALIDATE_RET( ctx->plaintext_len == 0 || input != NULL );
-    CCM_VALIDATE_RET( ctx->plaintext_len == 0 || output != NULL );
-
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char i;
     size_t use_len, offset, olen;
 
     if( output_size < input_len )
         return( MBEDTLS_ERR_CCM_BAD_INPUT );
-    CCM_VALIDATE_RET( output_length != NULL );
     *output_len = input_len;
 
     while ( input_len > 0 )
@@ -421,7 +397,6 @@ int mbedtls_ccm_finish( mbedtls_ccm_context *ctx,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char i;
 
-    CCM_VALIDATE_RET( tag_len == 0 || tag != NULL );
     /*
      * Authentication: reset counter and crypt/mask internal tag
      */

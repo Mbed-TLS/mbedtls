@@ -241,43 +241,33 @@ reset_ciphersuites()
 # three times: in each peer's list (with the name that this peer uses).
 add_common_ciphersuites()
 {
+    CIPHERS=""
     case $TYPE in
 
         "ECDSA")
             if [ `minor_ver "$MODE"` -gt 0 ]
             then
-                CIPHERS="TLS-ECDHE-ECDSA-WITH-NULL-SHA      \
+                CIPHERS="$CIPHERS                           \
+                    TLS-ECDHE-ECDSA-WITH-NULL-SHA           \
                     TLS-ECDHE-ECDSA-WITH-3DES-EDE-CBC-SHA   \
                     TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA    \
                     TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA    \
                     "
-                M_CIPHERS="$M_CIPHERS $CIPHERS"
-
-                G=`python3 translate_ciphers.py g "$CIPHERS"`
-                G_CIPHERS="$G_CIPHERS $G"
-
-                O=`python3 translate_ciphers.py o "$CIPHERS"`
-                O_CIPHERS="$O_CIPHERS $O"
             fi
             if [ `minor_ver "$MODE"` -ge 3 ]
             then
-                CIPHERS="TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256    \
+                CIPHERS="$CIPHERS                                   \
+                    TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256         \
                     TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA384         \
                     TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256         \
                     TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384         \
                     "
-                M_CIPHERS="$M_CIPHERS $CIPHERS"
-
-                G=`python3 translate_ciphers.py g "$CIPHERS"`
-                G_CIPHERS="$G_CIPHERS $G"
-
-                O=`python3 translate_ciphers.py o "$CIPHERS"`
-                O_CIPHERS="$O_CIPHERS $O"
             fi
             ;;
 
         "RSA")
-            CIPHERS="TLS-DHE-RSA-WITH-AES-128-CBC-SHA        \
+            CIPHERS="$CIPHERS                           \
+                TLS-DHE-RSA-WITH-AES-128-CBC-SHA        \
                 TLS-DHE-RSA-WITH-AES-256-CBC-SHA        \
                 TLS-DHE-RSA-WITH-CAMELLIA-128-CBC-SHA   \
                 TLS-DHE-RSA-WITH-CAMELLIA-256-CBC-SHA   \
@@ -290,32 +280,19 @@ add_common_ciphersuites()
                 TLS-RSA-WITH-NULL-MD5                   \
                 TLS-RSA-WITH-NULL-SHA                   \
                 "
-            M_CIPHERS="$M_CIPHERS $CIPHERS"
-
-            G=`python3 translate_ciphers.py g "$CIPHERS"`
-            G_CIPHERS="$G_CIPHERS $G"
-
-            O=`python3 translate_ciphers.py o "$CIPHERS"`
-            O_CIPHERS="$O_CIPHERS $O"
-
             if [ `minor_ver "$MODE"` -gt 0 ]
             then
-                CIPHERS="TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA \
+                CIPHERS="$CIPHERS                           \
+                    TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA      \
                     TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA      \
                     TLS-ECDHE-RSA-WITH-3DES-EDE-CBC-SHA     \
                     TLS-ECDHE-RSA-WITH-NULL-SHA             \
                     "
-                M_CIPHERS="$M_CIPHERS $CIPHERS"
-
-                G=`python3 translate_ciphers.py g "$CIPHERS"`
-                G_CIPHERS="$G_CIPHERS $G"
-
-                O=`python3 translate_ciphers.py o "$CIPHERS"`
-                O_CIPHERS="$O_CIPHERS $O"
             fi
             if [ `minor_ver "$MODE"` -ge 3 ]
             then
-                CIPHERS="TLS-RSA-WITH-AES-128-CBC-SHA256    \
+                CIPHERS="$CIPHERS                           \
+                    TLS-RSA-WITH-AES-128-CBC-SHA256         \
                     TLS-DHE-RSA-WITH-AES-128-CBC-SHA256     \
                     TLS-RSA-WITH-AES-256-CBC-SHA256         \
                     TLS-DHE-RSA-WITH-AES-256-CBC-SHA256     \
@@ -328,30 +305,26 @@ add_common_ciphersuites()
                     TLS-ECDHE-RSA-WITH-AES-128-GCM-SHA256   \
                     TLS-ECDHE-RSA-WITH-AES-256-GCM-SHA384   \
                     "
-                M_CIPHERS="$M_CIPHERS $CIPHERS"
-
-                G=`python3 translate_ciphers.py g "$CIPHERS"`
-                G_CIPHERS="$G_CIPHERS $G"
-
-                O=`python3 translate_ciphers.py o "$CIPHERS"`
-                O_CIPHERS="$O_CIPHERS NULL-SHA256  $O"
+                O_CIPHERS="$O_CIPHERS NULL-SHA256"
             fi
             ;;
 
         "PSK")
-            CIPHERS="TLS-PSK-WITH-3DES-EDE-CBC-SH       \
+            CIPHERS="$CIPHERS                           \
+                TLS-PSK-WITH-3DES-EDE-CBC-SHA           \
                 TLS-PSK-WITH-AES-128-CBC-SHA            \
                 TLS-PSK-WITH-AES-256-CBC-SHA            \
                 "
-            M_CIPHERS="$M_CIPHERS $CIPHERS"
-
-            G=`python3 translate_ciphers.py g "$CIPHERS"`
-            G_CIPHERS="$G_CIPHERS $G"
-
-            O=`python3 translate_ciphers.py o "$CIPHERS"`
-            O_CIPHERS="$O_CIPHERS $O"
             ;;
     esac
+
+    M_CIPHERS="$M_CIPHERS $CIPHERS"
+
+    G=`python3 translate_ciphers.py g "$CIPHERS"`
+    G_CIPHERS="$G_CIPHERS $G"
+
+    O=`python3 translate_ciphers.py o "$CIPHERS"`
+    O_CIPHERS="$O_CIPHERS $O"
 }
 
 # Ciphersuites usable only with Mbed TLS and OpenSSL
@@ -366,24 +339,23 @@ add_common_ciphersuites()
 # GnuTLS in 3.5.0 and the CI only has 3.4.x so far.
 add_openssl_ciphersuites()
 {
+    CIPHERS=""
     case $TYPE in
 
         "ECDSA")
             if [ `minor_ver "$MODE"` -gt 0 ]
             then
-                CIPHERS="TLS-ECDH-ECDSA-WITH-NULL-SHA       \
+                CIPHERS="$CIPHERS                           \
+                    TLS-ECDH-ECDSA-WITH-NULL-SHA       \
                     TLS-ECDH-ECDSA-WITH-3DES-EDE-CBC-SHA    \
                     TLS-ECDH-ECDSA-WITH-AES-128-CBC-SHA     \
                     TLS-ECDH-ECDSA-WITH-AES-256-CBC-SHA     \
                     "
-                M_CIPHERS="$M_CIPHERS $CIPHERS"
-
-                O=`python3 translate_ciphers.py o "$CIPHERS"`
-                O_CIPHERS="$O_CIPHERS $O"
             fi
             if [ `minor_ver "$MODE"` -ge 3 ]
             then
-                CIPHERS="TLS-ECDH-ECDSA-WITH-AES-128-CBC-SHA256     \
+                CIPHERS="$CIPHERS                           \
+                    TLS-ECDH-ECDSA-WITH-AES-128-CBC-SHA256     \
                     TLS-ECDH-ECDSA-WITH-AES-256-CBC-SHA384          \
                     TLS-ECDH-ECDSA-WITH-AES-128-GCM-SHA256          \
                     TLS-ECDH-ECDSA-WITH-AES-256-GCM-SHA384          \
@@ -391,25 +363,18 @@ add_openssl_ciphersuites()
                     TLS-ECDHE-ECDSA-WITH-ARIA-128-GCM-SHA256        \
                     TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256   \
                     "
-                M_CIPHERS="$M_CIPHERS $CIPHERS"
-
-                O=`python3 translate_ciphers.py o "$CIPHERS"`
-                O_CIPHERS="$O_CIPHERS $O"
             fi
             ;;
 
         "RSA")
-            CIPHERS="TLS-RSA-WITH-DES-CBC-SHA           \
+            CIPHERS="$CIPHERS                           \
+                TLS-RSA-WITH-DES-CBC-SHA           \
                 TLS-DHE-RSA-WITH-DES-CBC-SHA            \
                 "
-            M_CIPHERS="$M_CIPHERS $CIPHERS"
-
-            O=`python3 translate_ciphers.py o "$CIPHERS"`
-            O_CIPHERS="$O_CIPHERS $O"
-
             if [ `minor_ver "$MODE"` -ge 3 ]
             then
-                CIPHERS="TLS-ECDHE-RSA-WITH-ARIA-256-GCM-SHA384     \
+                CIPHERS="$CIPHERS                           \
+                    TLS-ECDHE-RSA-WITH-ARIA-256-GCM-SHA384     \
                     TLS-DHE-RSA-WITH-ARIA-256-GCM-SHA384            \
                     TLS-RSA-WITH-ARIA-256-GCM-SHA384                \
                     TLS-ECDHE-RSA-WITH-ARIA-128-GCM-SHA256          \
@@ -418,17 +383,14 @@ add_openssl_ciphersuites()
                     TLS-DHE-RSA-WITH-CHACHA20-POLY1305-SHA256       \
                     TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256     \
                     "
-                M_CIPHERS="$M_CIPHERS $CIPHERS"
-
-                O=`python3 translate_ciphers.py o "$CIPHERS"`
-                O_CIPHERS="$O_CIPHERS $O"
             fi
             ;;
 
         "PSK")
             if [ `minor_ver "$MODE"` -ge 3 ]
             then
-                CIPHERS="TLS-DHE-PSK-WITH-ARIA-256-GCM-SHA384       \
+                CIPHERS="$CIPHERS                           \
+                    TLS-DHE-PSK-WITH-ARIA-256-GCM-SHA384       \
                     TLS-DHE-PSK-WITH-ARIA-128-GCM-SHA256            \
                     TLS-PSK-WITH-ARIA-256-GCM-SHA384                \
                     TLS-PSK-WITH-ARIA-128-GCM-SHA256                \
@@ -436,13 +398,14 @@ add_openssl_ciphersuites()
                     TLS-ECDHE-PSK-WITH-CHACHA20-POLY1305-SHA256     \
                     TLS-DHE-PSK-WITH-CHACHA20-POLY1305-SHA256       \
                     "
-                M_CIPHERS="$M_CIPHERS $CIPHERS"
-
-                O=`python3 translate_ciphers.py o "$CIPHERS"`
-                O_CIPHERS="$O_CIPHERS $O"
             fi
             ;;
     esac
+
+    M_CIPHERS="$M_CIPHERS $CIPHERS"
+
+    O=`python3 translate_ciphers.py o "$CIPHERS"`
+    O_CIPHERS="$O_CIPHERS $O"
 }
 
 # Ciphersuites usable only with Mbed TLS and GnuTLS
@@ -450,12 +413,14 @@ add_openssl_ciphersuites()
 # with its Mbed TLS name.
 add_gnutls_ciphersuites()
 {
+    CIPHERS=""
     case $TYPE in
 
         "ECDSA")
             if [ `minor_ver "$MODE"` -ge 3 ]
             then
-                CIPHERS="TLS-ECDHE-ECDSA-WITH-CAMELLIA-128-CBC-SHA256   \
+                CIPHERS="$CIPHERS                           \
+                    TLS-ECDHE-ECDSA-WITH-CAMELLIA-128-CBC-SHA256   \
                     TLS-ECDHE-ECDSA-WITH-CAMELLIA-256-CBC-SHA384        \
                     TLS-ECDHE-ECDSA-WITH-CAMELLIA-128-GCM-SHA256        \
                     TLS-ECDHE-ECDSA-WITH-CAMELLIA-256-GCM-SHA384        \
@@ -464,25 +429,18 @@ add_gnutls_ciphersuites()
                     TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8                  \
                     TLS-ECDHE-ECDSA-WITH-AES-256-CCM-8                  \
                    "
-                M_CIPHERS="$M_CIPHERS $CIPHERS"
-
-                G=`python3 translate_ciphers.py g "$CIPHERS"`
-                G_CIPHERS="$G_CIPHERS $G"
             fi
             ;;
 
         "RSA")
             if [ `minor_ver "$MODE"` -gt 0 ]
             then
-                CIPHERS="TLS-RSA-WITH-NULL-SHA256"
-                M_CIPHERS="$M_CIPHERS $CIPHERS"
-
-                G=`python3 translate_ciphers.py g "$CIPHERS"`
-                G_CIPHERS="$G_CIPHERS $G"
+                CIPHERS="$CIPHERS TLS-RSA-WITH-NULL-SHA256"
             fi
             if [ `minor_ver "$MODE"` -ge 3 ]
             then
-                CIPHERS="TLS-ECDHE-RSA-WITH-CAMELLIA-128-CBC-SHA256  \
+                CIPHERS="$CIPHERS                               \
+                    TLS-ECDHE-RSA-WITH-CAMELLIA-128-CBC-SHA256  \
                     TLS-ECDHE-RSA-WITH-CAMELLIA-256-CBC-SHA384  \
                     TLS-RSA-WITH-CAMELLIA-128-CBC-SHA256        \
                     TLS-RSA-WITH-CAMELLIA-256-CBC-SHA256        \
@@ -503,41 +461,30 @@ add_gnutls_ciphersuites()
                     TLS-DHE-RSA-WITH-AES-128-CCM-8              \
                     TLS-DHE-RSA-WITH-AES-256-CCM-8              \
                     "
-                M_CIPHERS="$M_CIPHERS $CIPHERS"
-
-                G=`python3 translate_ciphers.py g "$CIPHERS"`
-                G_CIPHERS="$G_CIPHERS $G"
             fi
             ;;
 
         "PSK")
-            CIPHERS="TLS-DHE-PSK-WITH-3DES-EDE-CBC-SHA          \
-                TLS-DHE-PSK-WITH-AES-128-CBC-SHA                \
-                TLS-DHE-PSK-WITH-AES-256-CBC-SHA                \
+            CIPHERS="$CIPHERS                                 \
+                TLS-DHE-PSK-WITH-3DES-EDE-CBC-SHA             \
+                TLS-DHE-PSK-WITH-AES-128-CBC-SHA              \
+                TLS-DHE-PSK-WITH-AES-256-CBC-SHA              \
                 "
-            M_CIPHERS="$M_CIPHERS $CIPHERS"
-
-            G=`python3 translate_ciphers.py g "$CIPHERS"`
-            G_CIPHERS="$G_CIPHERS $G"
-
             if [ `minor_ver "$MODE"` -gt 0 ]
             then
-                CIPHERS="TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA     \
+                CIPHERS="$CIPHERS                               \
+                    TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA          \
                     TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA          \
                     TLS-ECDHE-PSK-WITH-3DES-EDE-CBC-SHA         \
                     TLS-RSA-PSK-WITH-3DES-EDE-CBC-SHA           \
                     TLS-RSA-PSK-WITH-AES-256-CBC-SHA            \
                     TLS-RSA-PSK-WITH-AES-128-CBC-SHA            \
                     "
-                M_CIPHERS="$M_CIPHERS $CIPHERS"
-
-                G=`python3 translate_ciphers.py g "$CIPHERS"`
-                G_CIPHERS="$G_CIPHERS $G"
-
             fi
             if [ `minor_ver "$MODE"` -ge 3 ]
             then
-                CIPHERS="TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA384  \
+                CIPHERS="$CIPHERS                               \
+                    TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA384       \
                     TLS-ECDHE-PSK-WITH-CAMELLIA-256-CBC-SHA384  \
                     TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA256       \
                     TLS-ECDHE-PSK-WITH-CAMELLIA-128-CBC-SHA256  \
@@ -582,13 +529,14 @@ add_gnutls_ciphersuites()
                     TLS-RSA-PSK-WITH-AES-256-GCM-SHA384         \
                     TLS-RSA-PSK-WITH-AES-128-GCM-SHA256         \
                     "
-                M_CIPHERS="$M_CIPHERS $CIPHERS"
-
-                G=`python3 translate_ciphers.py g "$CIPHERS"`
-                G_CIPHERS="$G_CIPHERS $G"
             fi
             ;;
     esac
+    
+    M_CIPHERS="$M_CIPHERS $CIPHERS"
+
+    G=`python3 translate_ciphers.py g "$CIPHERS"`
+    G_CIPHERS="$G_CIPHERS $G"
 }
 
 # Ciphersuites usable only with Mbed TLS (not currently supported by another

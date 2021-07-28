@@ -538,6 +538,9 @@ int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
                             add, add_len, input, output, tag, tag_len ) );
 }
 
+/*
+ * Authenticated decryption
+ */
 static int mbedtls_ccm_compare_tags(const unsigned char *tag1, const unsigned char *tag2, size_t tag_len)
 {
     unsigned char i;
@@ -555,9 +558,6 @@ static int mbedtls_ccm_compare_tags(const unsigned char *tag1, const unsigned ch
     return( 0 );
 }
 
-/*
- * Authenticated decryption
- */
 int mbedtls_ccm_star_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
                       const unsigned char *iv, size_t iv_len,
                       const unsigned char *add, size_t add_len,

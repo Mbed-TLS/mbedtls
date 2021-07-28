@@ -16,23 +16,27 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-# Purpose
-#
-# Translate ciphersuite names in MBedTLS format to OpenSSL and GNUTLS
-# standards.
-#
-# Format and analyse strings past in via input arguments to match
-# the expected strings utilised in compat.sh.
-#
-# sys.argv[1] should be "g" or "o" for GNUTLS or OpenSSL.
-# sys.argv[2] should be a string containing one or more
-# ciphersuite names.
+
+"""
+Translate ciphersuite names in MBedTLS format to OpenSSL and GNUTLS
+standards.
+
+Format and analyse strings past in via input arguments to match
+the expected strings utilised in compat.sh.
+
+sys.argv[1] should be "g" or "o" for GNUTLS or OpenSSL.
+sys.argv[2] should be a string containing one or more ciphersuite names.
+"""
 
 import re
 import sys
 
 def translate_gnutls(m_cipher):
+    """
+    Translate m_cipher from MBedTLS ciphersuite naming convention
+    and return the GnuTLS naming convention
+    """
+
     # Remove "TLS-"
     # Replace "-WITH-" with ":+"
     # Remove "EDE"
@@ -51,13 +55,18 @@ def translate_gnutls(m_cipher):
     # Replace the last "-" with ":+"
     # Replace "GCM:+SHAxyz" with "GCM:+AEAD"
     else:
-        index=m_cipher.rindex("-")
+        index = m_cipher.rindex("-")
         m_cipher = m_cipher[:index]+":+"+m_cipher[index+1:]
         m_cipher = re.sub(r"GCM\:\+SHA\d\d\d", "GCM:+AEAD", m_cipher)
 
     return m_cipher
 
 def translate_ossl(m_cipher):
+    """
+    Translate m_cipher from MBedTLS ciphersuite naming convention
+    and return the OpenSSL naming convention
+    """
+
     # Remove "TLS-"
     # Remove "WITH"
     m_cipher = m_cipher[4:]
@@ -89,7 +98,7 @@ def translate_ossl(m_cipher):
     # POLY1305 should not be followed by anything
     if "POLY1305" in m_cipher:
         index = m_cipher.rindex("POLY1305")
-        m_cipher=m_cipher[:index+8]
+        m_cipher = m_cipher[:index+8]
 
     # If DES is being used, Replace DHE with EDH
     if "DES" in m_cipher and "DHE" in m_cipher and "ECDHE" not in m_cipher:
@@ -101,9 +110,9 @@ def format_ciphersuite_names(mode, ciphers):
     try:
         t = {"g": translate_gnutls, "o": translate_ossl}[mode]
         return " ".join(t(c) for c in ciphers.split())
-    except Exception as E:
-        if E != mode: print(E)
-        else: print("Incorrect use of argument 1, should be either \"g\" or \"o\"")
+    except (KeyError) as e:
+        print(e)
+        print("Incorrect use of argument 1, should be either \"g\" or \"o\"")
         sys.exit(1)
 
 def main():

@@ -17,21 +17,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Purpose
-#
-# Test translate_ciphers.py by running every MBedTLS ciphersuite name
-# combination through the translate functions and comparing them to their
-# correct GNUTLS or OpenSSL counterpart.
 
-from translate_ciphers import *
+"""
+Test translate_ciphers.py by running every MBedTLS ciphersuite name
+combination through the translate functions and comparing them to their
+correct GNUTLS or OpenSSL counterpart.
+"""
+
+from translate_ciphers import translate_gnutls, translate_ossl
 
 def assert_equal(translate, original):
+    """
+    Compare the translated ciphersuite name against the original
+    On fail, print the mismatch on the screen to directly compare the
+    differences
+    """
     try:
-        assert(translate == original)
+        assert translate == original
     except AssertionError:
         print("%s\n%s\n" %(translate, original))
 
 def test_all_common():
+    """
+    Translate the MBedTLS ciphersuite names to the common OpenSSL and
+    GnuTLS ciphersite names, and compare them with the true, expected
+    corresponding OpenSSL and GnuTLS ciphersuite names
+    """
     m_ciphers = [
         "TLS-ECDHE-ECDSA-WITH-NULL-SHA",
         "TLS-ECDHE-ECDSA-WITH-3DES-EDE-CBC-SHA",
@@ -172,15 +183,20 @@ def test_all_common():
         "PSK-AES256-CBC-SHA",
     ]
 
-    for i in range(len(m_ciphers)):
+    for i, m_cipher in enumerate(m_ciphers):
 
-        g = translate_gnutls(m_ciphers[i])
+        g = translate_gnutls(m_cipher)
         assert_equal(g, g_ciphers[i])
 
-        o = translate_ossl(m_ciphers[i])
+        o = translate_ossl(m_cipher)
         assert_equal(o, o_ciphers[i])
 
 def test_mbedtls_ossl_common():
+    """
+    Translate the MBedTLS ciphersuite names to the common OpenSSL
+    ciphersite names, and compare them with the true, expected
+    corresponding OpenSSL ciphersuite name
+    """
     m_ciphers = [
         "TLS-ECDH-ECDSA-WITH-NULL-SHA",
         "TLS-ECDH-ECDSA-WITH-3DES-EDE-CBC-SHA",
@@ -250,12 +266,17 @@ def test_mbedtls_ossl_common():
         "DHE-PSK-CHACHA20-POLY1305",
     ]
 
-    for i in range(len(m_ciphers)):
+    for i, m_cipher in enumerate(m_ciphers):
 
-        o = translate_ossl(m_ciphers[i])
+        o = translate_ossl(m_cipher)
         assert_equal(o, o_ciphers[i])
 
 def test_mbedtls_gnutls_common():
+    """
+    Translate the MBedTLS ciphersuite names to the common GnuTLS
+    ciphersite names, and compare them with the true, expected
+    corresponding GnuTLS ciphersuite names
+    """
     m_ciphers = [
         "TLS-ECDHE-ECDSA-WITH-CAMELLIA-128-CBC-SHA256",
         "TLS-ECDHE-ECDSA-WITH-CAMELLIA-256-CBC-SHA384",
@@ -435,9 +456,9 @@ def test_mbedtls_gnutls_common():
         "+RSA-PSK:+AES-128-GCM:+AEAD",
     ]
 
-    for i in range(len(m_ciphers)):
+    for i, m_ciphers in enumerate(m_ciphers):
 
-        g = translate_gnutls(m_ciphers[i])
+        g = translate_gnutls(m_ciphers)
         assert_equal(g, g_ciphers[i])
 
 test_all_common()

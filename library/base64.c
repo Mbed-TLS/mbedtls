@@ -46,23 +46,6 @@ static const unsigned char base64_enc_map[64] =
     '8', '9', '+', '/'
 };
 
-static const unsigned char base64_dec_map[128] =
-{
-    127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
-    127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
-    127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
-    127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
-    127, 127, 127,  62, 127, 127, 127,  63,  52,  53,
-     54,  55,  56,  57,  58,  59,  60,  61, 127, 127,
-    127, 127, 127, 127, 127,   0,   1,   2,   3,   4,
-      5,   6,   7,   8,   9,  10,  11,  12,  13,  14,
-     15,  16,  17,  18,  19,  20,  21,  22,  23,  24,
-     25, 127, 127, 127, 127, 127, 127,  26,  27,  28,
-     29,  30,  31,  32,  33,  34,  35,  36,  37,  38,
-     39,  40,  41,  42,  43,  44,  45,  46,  47,  48,
-     49,  50,  51, 127, 127, 127, 127, 127
-};
-
 #define BASE64_SIZE_T_MAX   ( (size_t) -1 ) /* SIZE_T_MAX is not standard */
 
 /*
@@ -131,6 +114,18 @@ static unsigned char mbedtls_base64_table_lookup( const unsigned char * const ta
     }
 
     return result;
+}
+
+/* Return 0xff if low <= c <= high, 0 otherwise.
+ *
+ * Constant flow with respect to c.
+ */
+static unsigned char mask_of_range( unsigned char low, unsigned char high,
+                                    unsigned char c )
+{
+    unsigned low_mask = ( c - low ) >> 8;
+    unsigned high_mask = ( c - high - 1 ) >> 8;
+    return( ~low_mask & high_mask & 0xff );
 }
 
 /*
@@ -211,6 +206,34 @@ int mbedtls_base64_encode( unsigned char *dst, size_t dlen, size_t *olen,
     return( 0 );
 }
 
+/* Given a Base64 digit, return its value.
+ * If c is not a Base64 digit ('A'..'Z', 'a'..'z', '0'..'9', '+' or '/'),
+ * return -1.
+ *
+ * The implementation assumes that letters are consecutive (e.g. ASCII
+ * but not EBCDIC).
+ *
+ * The implementation is constant-flow (no branch or memory access depending
+ * on the value of c) unless the compiler inlines and optimizes a specific
+ * access.
+ */
+static signed char dec_value( unsigned char c )
+{
+    unsigned char val = 0;
+    /* For each range of digits, if c is in that range, mask val with
+     * the corresponding value. Since c can only be in a single range,
+     * only at most one masking will change val. Set val to one plus
+     * the desired value so that it stays 0 if c is in none of the ranges. */
+    val |= mask_of_range( 'A', 'Z', c ) & ( c - 'A' +  0 + 1 );
+    val |= mask_of_range( 'a', 'z', c ) & ( c - 'a' + 26 + 1 );
+    val |= mask_of_range( '0', '9', c ) & ( c - '0' + 52 + 1 );
+    val |= mask_of_range( '+', '+', c ) & ( c - '+' + 62 + 1 );
+    val |= mask_of_range( '/', '/', c ) & ( c - '/' + 63 + 1 );
+    /* At this point, val is 0 if c is an invalid digit and v+1 if c is
+     * a digit with the value v. */
+    return( val - 1 );
+}
+
 /*
  * Decode a base64-formatted buffer
  */
@@ -220,7 +243,6 @@ int mbedtls_base64_decode( unsigned char *dst, size_t dlen, size_t *olen,
     size_t i, n;
     uint32_t j, x;
     unsigned char *p;
-    unsigned char dec_map_lookup;
 
     /* First pass: check for validity and get output length */
     for( i = n = j = 0; i < slen; i++ )
@@ -260,8 +282,7 @@ int mbedtls_base64_decode( unsigned char *dst, size_t dlen, size_t *olen,
         {
             if( j != 0 )
                 return( MBEDTLS_ERR_BASE64_INVALID_CHARACTER );
-            dec_map_lookup = mbedtls_base64_table_lookup( base64_dec_map, sizeof( base64_dec_map ), src[i] );
-            if( dec_map_lookup == 127 )
+            if( dec_value( src[i] ) < 0 )
                 return( MBEDTLS_ERR_BASE64_INVALID_CHARACTER );
         }
         n++;
@@ -298,8 +319,7 @@ int mbedtls_base64_decode( unsigned char *dst, size_t dlen, size_t *olen,
         }
         else
         {
-            dec_map_lookup = mbedtls_base64_table_lookup( base64_dec_map, sizeof( base64_dec_map ), *src );
-            x  = ( x << 6 ) | ( dec_map_lookup & 0x3F );
+            x  = ( x << 6 ) | ( dec_value( *src ) & 0x3F );
         }
 
         if( ++n == 4 )

@@ -48,10 +48,7 @@ static int check_multipart( mbedtls_ccm_context *ctx,
     mbedtls_free( output );
     output = NULL;
 
-    if( tag->len == 0 )
-        ASSERT_ALLOC( output, 16 );
-    else
-        ASSERT_ALLOC( output, tag->len );
+    ASSERT_ALLOC( output, tag->len );
     TEST_EQUAL( 0, mbedtls_ccm_finish( ctx, output, tag->len ) );
     ASSERT_COMPARE( output, tag->len, tag->x, tag->len );
     mbedtls_free( output );

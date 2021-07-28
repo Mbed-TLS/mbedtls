@@ -478,7 +478,8 @@ int mbedtls_ccm_finish( mbedtls_ccm_context *ctx,
     ret = mbedtls_ccm_crypt( ctx, 0, 16, ctx->y, ctx->y );
     if( ret != 0 )
         return ret;
-    memcpy( tag, ctx->y, tag_len );
+    if( tag != NULL )
+        memcpy( tag, ctx->y, tag_len );
     mbedtls_ccm_clear_state(ctx);
 
     return( 0 );

@@ -54,7 +54,7 @@ static const unsigned char base64_dec_map[128] =
     127, 127, 127, 127, 127, 127, 127, 127, 127, 127,
     127, 127, 127,  62, 127, 127, 127,  63,  52,  53,
      54,  55,  56,  57,  58,  59,  60,  61, 127, 127,
-    127,  64, 127, 127, 127,   0,   1,   2,   3,   4,
+    127, 127, 127, 127, 127,   0,   1,   2,   3,   4,
       5,   6,   7,   8,   9,  10,  11,  12,  13,  14,
      15,  16,  17,  18,  19,  20,  21,  22,  23,  24,
      25, 127, 127, 127, 127, 127, 127,  26,  27,  28,
@@ -88,31 +88,6 @@ static void mbedtls_base64_cond_assign_uchar( unsigned char * dest, const unsign
 #endif
 
     *dest = ( ( *src ) & mask ) | ( ( *dest ) & ~mask );
-}
-
-/*
- * Constant flow conditional assignment to uint_32
- */
-static void mbedtls_base64_cond_assign_uint32( uint32_t * dest, const uint32_t src,
-                                       uint32_t condition )
-{
-    /* MSVC has a warning about unary minus on unsigned integer types,
-     * but this is well-defined and precisely what we want to do here. */
-#if defined(_MSC_VER)
-#pragma warning( push )
-#pragma warning( disable : 4146 )
-#endif
-
-    /* Generate bitmask from condition, mask will either be 0xFFFFFFFF or 0 */
-    uint32_t mask = ( condition | -condition );
-    mask >>= 31;
-    mask = -mask;
-
-#if defined(_MSC_VER)
-#pragma warning( pop )
-#endif
-
-    *dest = ( src & mask ) | ( ( *dest ) & ~mask );
 }
 
 /*
@@ -273,17 +248,22 @@ int mbedtls_base64_decode( unsigned char *dst, size_t dlen, size_t *olen,
         if( x != 0 )
             return( MBEDTLS_ERR_BASE64_INVALID_CHARACTER );
 
-        if( src[i] == '=' && ++j > 2 )
+        if( src[i] > 127 )
             return( MBEDTLS_ERR_BASE64_INVALID_CHARACTER );
 
-        dec_map_lookup = mbedtls_base64_table_lookup( base64_dec_map, sizeof( base64_dec_map ), src[i] );
-
-        if( src[i] > 127 || dec_map_lookup == 127 )
-            return( MBEDTLS_ERR_BASE64_INVALID_CHARACTER );
-
-        if( dec_map_lookup < 64 && j != 0 )
-            return( MBEDTLS_ERR_BASE64_INVALID_CHARACTER );
-
+        if( src[i] == '=' )
+        {
+            if( ++j > 2 )
+                return( MBEDTLS_ERR_BASE64_INVALID_CHARACTER );
+        }
+        else
+        {
+            if( j != 0 )
+                return( MBEDTLS_ERR_BASE64_INVALID_CHARACTER );
+            dec_map_lookup = mbedtls_base64_table_lookup( base64_dec_map, sizeof( base64_dec_map ), src[i] );
+            if( dec_map_lookup == 127 )
+                return( MBEDTLS_ERR_BASE64_INVALID_CHARACTER );
+        }
         n++;
     }
 
@@ -311,10 +291,16 @@ int mbedtls_base64_decode( unsigned char *dst, size_t dlen, size_t *olen,
         if( *src == '\r' || *src == '\n' || *src == ' ' )
             continue;
 
-        dec_map_lookup = mbedtls_base64_table_lookup( base64_dec_map, sizeof( base64_dec_map ), *src );
-
-        mbedtls_base64_cond_assign_uint32( &j, j - 1, mbedtls_base64_eq( dec_map_lookup, 64 ) );
-        x  = ( x << 6 ) | ( dec_map_lookup & 0x3F );
+        if( *src == '=' )
+        {
+            --j;
+            x = x << 6;
+        }
+        else
+        {
+            dec_map_lookup = mbedtls_base64_table_lookup( base64_dec_map, sizeof( base64_dec_map ), *src );
+            x  = ( x << 6 ) | ( dec_map_lookup & 0x3F );
+        }
 
         if( ++n == 4 )
         {

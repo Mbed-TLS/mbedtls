@@ -100,7 +100,8 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx )
 #define CCM_STATE__CLEAR                0
 #define CCM_STATE__STARTED              (1 << 0)
 #define CCM_STATE__LENGHTS_SET          (1 << 1)
-#define CCM_STATE__ERROR                (1 << 2)
+#define CCM_STATE__AUTH_DATA_FINISHED   (1 << 2)
+#define CCM_STATE__ERROR                (1 << 4)
 
 /*
  * Encrypt or decrypt a partial block with CTR
@@ -264,14 +265,28 @@ int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
         return ret;
     }
 
-    if( ctx->add_len > 0 && add_len > 0)
+    if( ctx->add_len > 0 && add_len > 0 )
     {
+        if( ctx->state & CCM_STATE__AUTH_DATA_FINISHED )
+        {
+            return ret;
+        }
+
         if( ctx->processed == 0 )
         {
+            if ( add_len > ctx->add_len )
+            {
+                return MBEDTLS_ERR_CCM_BAD_INPUT;
+            }
+
             ctx->y[0] ^= (unsigned char)( ( ctx->add_len >> 8 ) & 0xFF );
             ctx->y[1] ^= (unsigned char)( ( ctx->add_len      ) & 0xFF );
 
             ctx->processed += 2;
+        }
+        else if ( ctx->processed - 2 + add_len > ctx->add_len )
+        {
+            return MBEDTLS_ERR_CCM_BAD_INPUT;
         }
 
         while( add_len > 0 )
@@ -299,10 +314,13 @@ int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
                 }
             }
         }
-    }
 
-    if( ctx->processed - 2 == ctx->add_len )
-        ctx->processed = 0; // prepare for mbedtls_ccm_update()
+        if( ctx->processed - 2 == ctx->add_len )
+        {
+            ctx->state |= CCM_STATE__AUTH_DATA_FINISHED;
+            ctx->processed = 0; // prepare for mbedtls_ccm_update()
+        }
+    }
 
     return (0);
 }
@@ -319,6 +337,11 @@ int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
     if( ctx->state & CCM_STATE__ERROR )
     {
         return ret;
+    }
+
+    if( ctx->processed + input_len > ctx->plaintext_len )
+    {
+        return MBEDTLS_ERR_CCM_BAD_INPUT;
     }
 
     if( output_size < input_len )
@@ -398,6 +421,16 @@ int mbedtls_ccm_finish( mbedtls_ccm_context *ctx,
     unsigned char i;
 
     if( ctx->state & CCM_STATE__ERROR )
+    {
+        return ret;
+    }
+
+    if( ctx->add_len > 0 && !( ctx->state & CCM_STATE__AUTH_DATA_FINISHED ) )
+    {
+        return ret;
+    }
+
+    if( ctx->plaintext_len > 0 && ctx->processed != ctx->plaintext_len )
     {
         return ret;
     }

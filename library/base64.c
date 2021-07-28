@@ -240,19 +240,22 @@ static signed char dec_value( unsigned char c )
 int mbedtls_base64_decode( unsigned char *dst, size_t dlen, size_t *olen,
                    const unsigned char *src, size_t slen )
 {
-    size_t i, n;
-    uint32_t j, x;
+    size_t i; /* index in source */
+    size_t n; /* number of digits or trailing = in source */
+    uint32_t x; /* value accumulator */
+    unsigned equals = 0;
+    int spaces_present = 0;
     unsigned char *p;
 
     /* First pass: check for validity and get output length */
-    for( i = n = j = 0; i < slen; i++ )
+    for( i = n = 0; i < slen; i++ )
     {
         /* Skip spaces before checking for EOL */
-        x = 0;
+        spaces_present = 0;
         while( i < slen && src[i] == ' ' )
         {
             ++i;
-            ++x;
+            spaces_present = 1;
         }
 
         /* Spaces at end of buffer are OK */
@@ -267,7 +270,7 @@ int mbedtls_base64_decode( unsigned char *dst, size_t dlen, size_t *olen,
             continue;
 
         /* Space inside a line is an error */
-        if( x != 0 )
+        if( spaces_present )
             return( MBEDTLS_ERR_BASE64_INVALID_CHARACTER );
 
         if( src[i] > 127 )
@@ -275,12 +278,12 @@ int mbedtls_base64_decode( unsigned char *dst, size_t dlen, size_t *olen,
 
         if( src[i] == '=' )
         {
-            if( ++j > 2 )
+            if( ++equals > 2 )
                 return( MBEDTLS_ERR_BASE64_INVALID_CHARACTER );
         }
         else
         {
-            if( j != 0 )
+            if( equals != 0 )
                 return( MBEDTLS_ERR_BASE64_INVALID_CHARACTER );
             if( dec_value( src[i] ) < 0 )
                 return( MBEDTLS_ERR_BASE64_INVALID_CHARACTER );
@@ -299,7 +302,7 @@ int mbedtls_base64_decode( unsigned char *dst, size_t dlen, size_t *olen,
      *     n = ( ( n * 6 ) + 7 ) >> 3;
      */
     n = ( 6 * ( n >> 3 ) ) + ( ( 6 * ( n & 0x7 ) + 7 ) >> 3 );
-    n -= j;
+    n -= equals;
 
     if( dst == NULL || dlen < n )
     {
@@ -307,27 +310,24 @@ int mbedtls_base64_decode( unsigned char *dst, size_t dlen, size_t *olen,
         return( MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL );
     }
 
-   for( j = 3, n = x = 0, p = dst; i > 0; i--, src++ )
-   {
+    equals = 0;
+    for( n = x = 0, p = dst; i > 0; i--, src++ )
+    {
         if( *src == '\r' || *src == '\n' || *src == ' ' )
             continue;
 
+        x = x << 6;
         if( *src == '=' )
-        {
-            --j;
-            x = x << 6;
-        }
+            ++equals;
         else
-        {
-            x  = ( x << 6 ) | ( dec_value( *src ) & 0x3F );
-        }
+            x |= dec_value( *src );
 
         if( ++n == 4 )
         {
             n = 0;
-            if( j > 0 ) *p++ = MBEDTLS_BYTE_2( x );
-            if( j > 1 ) *p++ = MBEDTLS_BYTE_1( x );
-            if( j > 2 ) *p++ = MBEDTLS_BYTE_0( x );
+            *p++ = MBEDTLS_BYTE_2( x );
+            if( equals <= 1 ) *p++ = MBEDTLS_BYTE_1( x );
+            if( equals <= 0 ) *p++ = MBEDTLS_BYTE_0( x );
         }
     }
 

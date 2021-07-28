@@ -35,86 +35,7 @@
 #endif /* MBEDTLS_PLATFORM_C */
 #endif /* MBEDTLS_SELF_TEST */
 
-static const unsigned char base64_enc_map[64] =
-{
-    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
-    'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
-    'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd',
-    'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
-    'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
-    'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7',
-    '8', '9', '+', '/'
-};
-
 #define BASE64_SIZE_T_MAX   ( (size_t) -1 ) /* SIZE_T_MAX is not standard */
-
-/*
- * Constant flow conditional assignment to unsigned char
- */
-static void mbedtls_base64_cond_assign_uchar( unsigned char * dest, const unsigned char * const src,
-                                       unsigned char condition )
-{
-    /* MSVC has a warning about unary minus on unsigned integer types,
-     * but this is well-defined and precisely what we want to do here. */
-#if defined(_MSC_VER)
-#pragma warning( push )
-#pragma warning( disable : 4146 )
-#endif
-
-    /* Generate bitmask from condition, mask will either be 0xFF or 0 */
-    unsigned char mask = ( condition | -condition );
-    mask >>= 7;
-    mask = -mask;
-
-#if defined(_MSC_VER)
-#pragma warning( pop )
-#endif
-
-    *dest = ( ( *src ) & mask ) | ( ( *dest ) & ~mask );
-}
-
-/*
- * Constant flow check for equality
- */
-static unsigned char mbedtls_base64_eq( size_t in_a, size_t in_b )
-{
-    size_t difference = in_a ^ in_b;
-
-    /* MSVC has a warning about unary minus on unsigned integer types,
-     * but this is well-defined and precisely what we want to do here. */
-#if defined(_MSC_VER)
-#pragma warning( push )
-#pragma warning( disable : 4146 )
-#endif
-
-    difference |= -difference;
-
-#if defined(_MSC_VER)
-#pragma warning( pop )
-#endif
-
-    /* cope with the varying size of size_t per platform */
-    difference >>= ( sizeof( difference ) * 8 - 1 );
-
-    return (unsigned char) ( 1 ^ difference );
-}
-
-/*
- * Constant flow lookup into table.
- */
-static unsigned char mbedtls_base64_table_lookup( const unsigned char * const table,
-                                                 const size_t table_size, const size_t table_index )
-{
-    size_t i;
-    unsigned char result = 0;
-
-    for( i = 0; i < table_size; ++i )
-    {
-        mbedtls_base64_cond_assign_uchar( &result, &table[i], mbedtls_base64_eq( i, table_index ) );
-    }
-
-    return result;
-}
 
 /* Return 0xff if low <= c <= high, 0 otherwise.
  *
@@ -126,6 +47,24 @@ static unsigned char mask_of_range( unsigned char low, unsigned char high,
     unsigned low_mask = ( c - low ) >> 8;
     unsigned high_mask = ( c - high - 1 ) >> 8;
     return( ~low_mask & high_mask & 0xff );
+}
+
+/* Given a value in the range 0..63, return the corresponding Base64 digit.
+ * The implementation assumes that letters are consecutive (e.g. ASCII
+ * but not EBCDIC).
+ */
+static unsigned char enc_char( unsigned char val )
+{
+    unsigned char digit = 0;
+    /* For each range of values, if val is in that range, mask digit with
+     * the corresponding value. Since val can only be in a single range,
+     * only at most one masking will change digit. */
+    digit |= mask_of_range(  0, 25, val ) & ( 'A' + val );
+    digit |= mask_of_range( 26, 51, val ) & ( 'a' + val - 26 );
+    digit |= mask_of_range( 52, 61, val ) & ( '0' + val - 52 );
+    digit |= mask_of_range( 62, 62, val ) & '+';
+    digit |= mask_of_range( 63, 63, val ) & '/';
+    return( digit );
 }
 
 /*
@@ -168,17 +107,10 @@ int mbedtls_base64_encode( unsigned char *dst, size_t dlen, size_t *olen,
         C2 = *src++;
         C3 = *src++;
 
-        *p++ = mbedtls_base64_table_lookup( base64_enc_map, sizeof( base64_enc_map ),
-                                            ( ( C1 >> 2 ) & 0x3F ) );
-
-        *p++ = mbedtls_base64_table_lookup( base64_enc_map, sizeof( base64_enc_map ),
-                                            ( ( ( ( C1 &  3 ) << 4 ) + ( C2 >> 4 ) ) & 0x3F ) );
-
-        *p++ = mbedtls_base64_table_lookup( base64_enc_map, sizeof( base64_enc_map ),
-                                            ( ( ( ( C2 & 15 ) << 2 ) + ( C3 >> 6 ) ) & 0x3F ) );
-
-        *p++ = mbedtls_base64_table_lookup( base64_enc_map, sizeof( base64_enc_map ),
-                                            ( C3 & 0x3F ) );
+        *p++ = enc_char( ( C1 >> 2 ) & 0x3F );
+        *p++ = enc_char( ( ( ( C1 &  3 ) << 4 ) + ( C2 >> 4 ) ) & 0x3F );
+        *p++ = enc_char( ( ( ( C2 & 15 ) << 2 ) + ( C3 >> 6 ) ) & 0x3F );
+        *p++ = enc_char( C3 & 0x3F );
     }
 
     if( i < slen )
@@ -186,15 +118,11 @@ int mbedtls_base64_encode( unsigned char *dst, size_t dlen, size_t *olen,
         C1 = *src++;
         C2 = ( ( i + 1 ) < slen ) ? *src++ : 0;
 
-        *p++ = mbedtls_base64_table_lookup( base64_enc_map, sizeof( base64_enc_map ),
-                                            ( ( C1 >> 2 ) & 0x3F ) );
-
-        *p++ = mbedtls_base64_table_lookup( base64_enc_map, sizeof( base64_enc_map ),
-                                            ( ( ( ( C1 & 3 ) << 4 ) + ( C2 >> 4 ) ) & 0x3F ) );
+        *p++ = enc_char( ( C1 >> 2 ) & 0x3F );
+        *p++ = enc_char( ( ( ( C1 & 3 ) << 4 ) + ( C2 >> 4 ) ) & 0x3F );
 
         if( ( i + 1 ) < slen )
-             *p++ = mbedtls_base64_table_lookup( base64_enc_map, sizeof( base64_enc_map ),
-                                                 ( ( ( C2 & 15 ) << 2 ) & 0x3F ) );
+             *p++ = enc_char( ( ( C2 & 15 ) << 2 ) & 0x3F );
         else *p++ = '=';
 
         *p++ = '=';

@@ -61,6 +61,8 @@
 #define MBEDTLS_ERR_CCM_BAD_INPUT       -0x000D
 /** Authenticated decryption failed. */
 #define MBEDTLS_ERR_CCM_AUTH_FAILED     -0x000F
+/** Memory allocation failed */
+#define MBEDTLS_ERR_CCM_ALLOC_FAILED    -0x0011
 
 #ifdef __cplusplus
 extern "C" {

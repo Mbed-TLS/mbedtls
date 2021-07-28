@@ -36,14 +36,17 @@
 
 #include <string.h>
 
-#if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
+#if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)
 #include <stdio.h>
 #define mbedtls_printf printf
-#endif /* MBEDTLS_PLATFORM_C */
 #endif /* MBEDTLS_SELF_TEST && MBEDTLS_AES_C */
+#include <stdlib.h>
+#define mbedtls_calloc    calloc
+#define mbedtls_free       free
+#endif /* MBEDTLS_PLATFORM_C */
 
 #if !defined(MBEDTLS_CCM_ALT)
 
@@ -330,13 +333,16 @@ int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
                         unsigned char *output, size_t output_size,
                         size_t *output_len )
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    int ret;
     unsigned char i;
     size_t use_len, offset, olen;
 
+    const size_t local_output_len = input_len;
+    unsigned char* local_output = NULL;
+
     if( ctx->state & CCM_STATE__ERROR )
     {
-        return ret;
+        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     }
 
     if( ctx->processed + input_len > ctx->plaintext_len )
@@ -344,9 +350,23 @@ int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
         return MBEDTLS_ERR_CCM_BAD_INPUT;
     }
 
+    /* Local output is used for decryption only. */
+    if( ctx->mode == MBEDTLS_CCM_DECRYPT || \
+        ctx->mode == MBEDTLS_CCM_STAR_DECRYPT )
+    {
+        local_output = mbedtls_calloc( local_output_len, sizeof( *local_output) );
+        if( local_output == NULL )
+        {
+            ctx->state |= CCM_STATE__ERROR;
+            return MBEDTLS_ERR_CCM_ALLOC_FAILED;
+        }
+    }
+
     if( output_size < input_len )
         return( MBEDTLS_ERR_CCM_BAD_INPUT );
     *output_len = input_len;
+
+    ret = 0;
 
     while ( input_len > 0 )
     {
@@ -370,31 +390,37 @@ int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
                 if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx, ctx->y, 16, ctx->y, &olen ) ) != 0 )
                 {
                     ctx->state |= CCM_STATE__ERROR;
-                    return( ret );
+                    goto exit;
                 }
             }
 
             ret = mbedtls_ccm_crypt( ctx, offset, use_len, input, output );
             if( ret != 0 )
-                return ret;
+                goto exit;
         }
 
         if( ctx->mode == MBEDTLS_CCM_DECRYPT || \
             ctx->mode == MBEDTLS_CCM_STAR_DECRYPT )
         {
-            ret = mbedtls_ccm_crypt( ctx, offset, use_len, input, output );
+            /* Write decrypted data to local_output to avoid using output variable as
+             * input in the XOR operation for Y.
+             */
+            ret = mbedtls_ccm_crypt( ctx, offset, use_len, input, local_output );
             if( ret != 0 )
-                return ret;
+                goto exit;
 
             for( i = 0; i < use_len; i++ )
-                ctx->y[i + offset] ^= output[i];
+                ctx->y[i + offset] ^= local_output[i];
+
+            memcpy( output, local_output, use_len );
+            mbedtls_platform_zeroize( local_output, local_output_len );
 
             if( use_len + offset == 16 || ctx->processed == ctx->plaintext_len )
             {
                 if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx, ctx->y, 16, ctx->y, &olen ) ) != 0 )
                 {
                     ctx->state |= CCM_STATE__ERROR;
-                    return( ret );
+                    goto exit;
                 }
             }
         }
@@ -411,7 +437,15 @@ int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
         output += use_len;
     }
 
-    return 0;
+exit:
+    if( ctx->mode == MBEDTLS_CCM_DECRYPT || \
+        ctx->mode == MBEDTLS_CCM_STAR_DECRYPT )
+    {
+        mbedtls_platform_zeroize( local_output, local_output_len );
+        mbedtls_free( local_output );
+    }
+
+    return ret;
 }
 
 int mbedtls_ccm_finish( mbedtls_ccm_context *ctx,

@@ -98,18 +98,6 @@ def translate_ossl(m_cipher):
     return m_cipher
 
 def format_ciphersuite_names(mode, ciphers):
-    #ciphers = ciphers.split()
-    #t_ciphers = []
-    #if mode == "g":
-    #    for i in ciphers:
-    #        t_ciphers.append(translate_gnutls(i))
-    #elif mode == "o":
-    #    for i in ciphers:
-    #        t_ciphers.append(translate_ossl(i))
-    #else:
-    #    print("Incorrect use of argument 1, should be either \"g\" or \"o\"")
-    #    exit(1)
-    #return " ".join(t_ciphers)
     try:
         t = {"g": translate_gnutls, "o": translate_ossl}[mode]
         return " ".join(t(c) for c in ciphers.split())

@@ -93,7 +93,6 @@
 #define AES_VALIDATE( cond )        \
     MBEDTLS_INTERNAL_VALIDATE( cond )
 
-
 /*
  * 32-bit integer manipulation macros (little endian)
  */

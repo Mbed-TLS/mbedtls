@@ -454,3 +454,114 @@ exit:
     mbedtls_free( io_msg_buf );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void mbedtls_ccm_skip_auth( int cipher_id, int mode,
+                            data_t * key, data_t * msg, data_t * iv,
+                            data_t * result, data_t * tag )
+{
+    mbedtls_ccm_context ctx;
+    uint8_t *output = NULL;
+    size_t olen;
+
+    /* Sanity checks on the test data */
+    TEST_EQUAL( msg->len, result->len );
+
+    mbedtls_ccm_init( &ctx );
+    TEST_EQUAL( mbedtls_ccm_setkey( &ctx, cipher_id, key->x, key->len * 8 ), 0 );
+    TEST_EQUAL( 0, mbedtls_ccm_starts( &ctx, mode, iv->x, iv->len ) );
+    TEST_EQUAL( 0, mbedtls_ccm_set_lengths( &ctx, 0, msg->len, tag->len ) );
+
+    ASSERT_ALLOC( output, result->len );
+    olen = 0xdeadbeef;
+    TEST_EQUAL( 0, mbedtls_ccm_update( &ctx, msg->x, msg->len, output, result->len, &olen ) );
+    TEST_EQUAL( result->len, olen );
+    ASSERT_COMPARE( output, olen, result->x, result->len );
+    mbedtls_free( output );
+    output = NULL;
+
+    ASSERT_ALLOC( output, tag->len );
+    TEST_EQUAL( 0, mbedtls_ccm_finish( &ctx, output, tag->len ) );
+    ASSERT_COMPARE( output, tag->len, tag->x, tag->len );
+    mbedtls_free( output );
+    output = NULL;
+
+exit:
+    mbedtls_free( output );
+    mbedtls_ccm_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mbedtls_ccm_skip_cipher( int cipher_id, int mode,
+                              data_t * key, data_t * iv, data_t* add,
+                              data_t * tag )
+{
+    mbedtls_ccm_context ctx;
+    uint8_t *output = NULL;
+
+    mbedtls_ccm_init( &ctx );
+    TEST_EQUAL( mbedtls_ccm_setkey( &ctx, cipher_id, key->x, key->len * 8 ), 0 );
+    TEST_EQUAL( 0, mbedtls_ccm_starts( &ctx, mode, iv->x, iv->len ) );
+    TEST_EQUAL( 0, mbedtls_ccm_set_lengths( &ctx, add->len, 0, tag->len ) );
+
+    TEST_EQUAL( 0, mbedtls_ccm_update_ad( &ctx, add->x, add->len) );
+
+    ASSERT_ALLOC( output, tag->len );
+    TEST_EQUAL( 0, mbedtls_ccm_finish( &ctx, output, tag->len ) );
+    ASSERT_COMPARE( output, tag->len, tag->x, tag->len );
+    mbedtls_free( output );
+    output = NULL;
+
+exit:
+    mbedtls_free( output );
+    mbedtls_ccm_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mbedtls_ccm_overflow_auth( int cipher_id, int mode,
+                                 data_t * key, data_t * iv,
+                                 data_t * add )
+{
+    mbedtls_ccm_context ctx;
+
+    mbedtls_ccm_init( &ctx );
+    TEST_EQUAL( mbedtls_ccm_setkey( &ctx, cipher_id, key->x, key->len * 8 ), 0 );
+    TEST_EQUAL( 0, mbedtls_ccm_starts( &ctx, mode, iv->x, iv->len ) );
+    // use hardcoded values for msg length and tag length. They are not a part of this test
+    // set half of auth data length to provoke an overflow
+    TEST_EQUAL( 0, mbedtls_ccm_set_lengths( &ctx, add->len / 2, 16, 16 ) );
+
+    TEST_EQUAL( MBEDTLS_ERR_CCM_BAD_INPUT, mbedtls_ccm_update_ad( &ctx, add->x, add->len) );
+exit:
+    mbedtls_ccm_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mbedtls_ccm_overflow_cipher( int cipher_id, int mode,
+                                  data_t * key, data_t * msg, data_t * iv,
+                                  data_t * add )
+{
+    mbedtls_ccm_context ctx;
+    uint8_t *output = NULL;
+    size_t olen;
+
+    mbedtls_ccm_init( &ctx );
+    TEST_EQUAL( mbedtls_ccm_setkey( &ctx, cipher_id, key->x, key->len * 8 ), 0 );
+    TEST_EQUAL( 0, mbedtls_ccm_starts( &ctx, mode, iv->x, iv->len ) );
+    // use hardcoded value for tag length. It is a not a part of this test
+    // set half of msg length to provoke an overflow
+    TEST_EQUAL( 0, mbedtls_ccm_set_lengths( &ctx, add->len, msg->len / 2, 16 ) );
+
+    TEST_EQUAL( 0, mbedtls_ccm_update_ad( &ctx, add->x, add->len) );
+
+    ASSERT_ALLOC( output, msg->len );
+    TEST_EQUAL( MBEDTLS_ERR_CCM_BAD_INPUT, \
+                mbedtls_ccm_update( &ctx, msg->x, msg->len, output, msg->len, &olen ) );
+exit:
+    mbedtls_free( output );
+    mbedtls_ccm_free( &ctx );
+}
+/* END_CASE */

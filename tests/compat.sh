@@ -238,8 +238,9 @@ reset_ciphersuites()
 
 check_translation()
 {
-    if [ $? -eq 1 ]; then
-        echo $T
+    if [ $1 -ne 0 ]; then
+        echo "translate_ciphers.py failed with exit code $1" >&2
+        echo "$2" >&2
         exit 1
     fi
 }
@@ -329,11 +330,11 @@ add_common_ciphersuites()
     M_CIPHERS="$M_CIPHERS $CIPHERS"
 
     T=`python3 scripts/translate_ciphers.py g "$CIPHERS"`
-    check_translation $? $T
+    check_translation $? "$T"
     G_CIPHERS="$G_CIPHERS $T"
 
     T=`python3 scripts/translate_ciphers.py o "$CIPHERS"`
-    check_translation $? $T
+    check_translation $? "$T"
     O_CIPHERS="$O_CIPHERS $T"
 }
 
@@ -417,7 +418,7 @@ add_openssl_ciphersuites()
     M_CIPHERS="$M_CIPHERS $CIPHERS"
 
     T=`python3 scripts/translate_ciphers.py o "$CIPHERS"`
-    check_translation $? $T
+    check_translation $? "$T"
     O_CIPHERS="$O_CIPHERS $T"
 }
 
@@ -551,7 +552,7 @@ add_gnutls_ciphersuites()
     M_CIPHERS="$M_CIPHERS $CIPHERS"
 
     T=`python3 scripts/translate_ciphers.py g "$CIPHERS"`
-    check_translation $? $T
+    check_translation $? "$T"
     G_CIPHERS="$G_CIPHERS $T"
 }
 

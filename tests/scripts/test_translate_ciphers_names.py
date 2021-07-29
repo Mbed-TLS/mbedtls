@@ -183,13 +183,13 @@ def test_all_common():
         "PSK-AES256-CBC-SHA",
     ]
 
-    for i, m_cipher in enumerate(m_ciphers):
+    for m, g_exp, o_exp in zip(m_ciphers, g_ciphers, o_ciphers):
 
-        g = translate_gnutls(m_cipher)
-        assert_equal(g, g_ciphers[i])
+        g = translate_gnutls(m)
+        assert_equal(g, g_exp)
 
-        o = translate_ossl(m_cipher)
-        assert_equal(o, o_ciphers[i])
+        o = translate_ossl(m)
+        assert_equal(o, o_exp)
 
 def test_mbedtls_ossl_common():
     """
@@ -266,10 +266,10 @@ def test_mbedtls_ossl_common():
         "DHE-PSK-CHACHA20-POLY1305",
     ]
 
-    for i, m_cipher in enumerate(m_ciphers):
+    for m, o_exp in zip(m_ciphers, o_ciphers):
 
-        o = translate_ossl(m_cipher)
-        assert_equal(o, o_ciphers[i])
+        o = translate_ossl(m)
+        assert_equal(o, o_exp)
 
 def test_mbedtls_gnutls_common():
     """
@@ -456,10 +456,10 @@ def test_mbedtls_gnutls_common():
         "+RSA-PSK:+AES-128-GCM:+AEAD",
     ]
 
-    for i, m_ciphers in enumerate(m_ciphers):
+    for m, g_exp in zip(m_ciphers, g_ciphers):
 
-        g = translate_gnutls(m_ciphers)
-        assert_equal(g, g_ciphers[i])
+        g = translate_gnutls(m)
+        assert_equal(g, g_exp)
 
 test_all_common()
 test_mbedtls_ossl_common()

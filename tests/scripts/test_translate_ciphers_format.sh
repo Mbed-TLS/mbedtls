@@ -29,6 +29,11 @@
 # This files main purpose is to ensure translate_ciphers.py can take strings
 # in the expected format and return them in the format compat.sh will expect.
 
+if cd $( dirname $0 ); then :; else
+    echo "cd $( dirname $0 ) failed" >&2
+    exit 1
+fi
+
 # Ciphers that will use translate_ciphers.py
 M_CIPHERS=""
 O_CIPHERS=""

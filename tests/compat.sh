@@ -236,6 +236,14 @@ reset_ciphersuites()
     G_CIPHERS=""
 }
 
+check_translation()
+{
+    if [ $? -eq 1 ]; then
+        echo $T
+        exit 1
+    fi
+}
+
 # Ciphersuites that can be used with all peers.
 # Since we currently have three possible peers, each ciphersuite should appear
 # three times: in each peer's list (with the name that this peer uses).
@@ -320,11 +328,13 @@ add_common_ciphersuites()
 
     M_CIPHERS="$M_CIPHERS $CIPHERS"
 
-    G=`python3 scripts/translate_ciphers.py g "$CIPHERS"`
-    G_CIPHERS="$G_CIPHERS $G"
+    T=`python3 scripts/translate_ciphers.py g "$CIPHERS"`
+    check_translation $? $T
+    G_CIPHERS="$G_CIPHERS $T"
 
-    O=`python3 scripts/translate_ciphers.py o "$CIPHERS"`
-    O_CIPHERS="$O_CIPHERS $O"
+    T=`python3 scripts/translate_ciphers.py o "$CIPHERS"`
+    check_translation $? $T
+    O_CIPHERS="$O_CIPHERS $T"
 }
 
 # Ciphersuites usable only with Mbed TLS and OpenSSL
@@ -406,8 +416,9 @@ add_openssl_ciphersuites()
 
     M_CIPHERS="$M_CIPHERS $CIPHERS"
 
-    O=`python3 scripts/translate_ciphers.py o "$CIPHERS"`
-    O_CIPHERS="$O_CIPHERS $O"
+    T=`python3 scripts/translate_ciphers.py o "$CIPHERS"`
+    check_translation $? $T
+    O_CIPHERS="$O_CIPHERS $T"
 }
 
 # Ciphersuites usable only with Mbed TLS and GnuTLS
@@ -539,8 +550,9 @@ add_gnutls_ciphersuites()
 
     M_CIPHERS="$M_CIPHERS $CIPHERS"
 
-    G=`python3 scripts/translate_ciphers.py g "$CIPHERS"`
-    G_CIPHERS="$G_CIPHERS $G"
+    T=`python3 scripts/translate_ciphers.py g "$CIPHERS"`
+    check_translation $? $T
+    G_CIPHERS="$G_CIPHERS $T"
 }
 
 # Ciphersuites usable only with Mbed TLS (not currently supported by another

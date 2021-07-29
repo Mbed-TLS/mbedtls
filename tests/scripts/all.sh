@@ -2611,12 +2611,16 @@ component_check_python_files () {
     record_status tests/scripts/check-python-files.sh
 }
 
-component_check_generate_test_code () {
-    msg "uint test: generate_test_code.py"
+component_check_test_helpers () {
+    msg "unit test: generate_test_code.py"
     # unittest writes out mundane stuff like number or tests run on stderr.
     # Our convention is to reserve stderr for actual errors, and write
     # harmless info on stdout so it can be suppress with --quiet.
     record_status ./tests/scripts/test_generate_test_code.py 2>&1
+
+    msg "test: translate_ciphers.py"
+    record_status ./tests/scripts/test_translate_ciphers_format.sh
+    record_status ./tests/scripts/test_translate_ciphers_names.py
 }
 
 ################################################################

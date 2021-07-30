@@ -44,9 +44,11 @@
 static unsigned char mask_of_range( unsigned char low, unsigned char high,
                                     unsigned char c )
 {
-    unsigned low_mask = ( c - low ) >> 8;
-    unsigned high_mask = ( c - high - 1 ) >> 8;
-    return( ~low_mask & high_mask & 0xff );
+    /* low_mask is: 0 if low <= c, 0x...ff if low > c */
+    unsigned low_mask = ( (unsigned) c - low ) >> 8;
+    /* high_mask is: 0 if c <= high, 0x...ff if high > c */
+    unsigned high_mask = ( (unsigned) high - c ) >> 8;
+    return( ~( low_mask | high_mask ) & 0xff );
 }
 
 /* Given a value in the range 0..63, return the corresponding Base64 digit.

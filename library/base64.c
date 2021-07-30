@@ -171,6 +171,7 @@ int mbedtls_base64_decode( unsigned char *dst, size_t dlen, size_t *olen,
     size_t i; /* index in source */
     size_t n; /* number of digits or trailing = in source */
     uint32_t x; /* value accumulator */
+    unsigned accumulated_digits = 0;
     unsigned equals = 0;
     int spaces_present = 0;
     unsigned char *p;
@@ -239,7 +240,7 @@ int mbedtls_base64_decode( unsigned char *dst, size_t dlen, size_t *olen,
     }
 
     equals = 0;
-    for( n = x = 0, p = dst; i > 0; i--, src++ )
+    for( x = 0, p = dst; i > 0; i--, src++ )
     {
         if( *src == '\r' || *src == '\n' || *src == ' ' )
             continue;
@@ -250,9 +251,9 @@ int mbedtls_base64_decode( unsigned char *dst, size_t dlen, size_t *olen,
         else
             x |= dec_value( *src );
 
-        if( ++n == 4 )
+        if( ++accumulated_digits == 4 )
         {
-            n = 0;
+            accumulated_digits = 0;
             *p++ = MBEDTLS_BYTE_2( x );
             if( equals <= 1 ) *p++ = MBEDTLS_BYTE_1( x );
             if( equals <= 0 ) *p++ = MBEDTLS_BYTE_0( x );

@@ -21,15 +21,13 @@
 Translate ciphersuite names in MBedTLS format to OpenSSL and GNUTLS
 standards.
 
-Format and analyse strings past in via input arguments to match
-the expected strings utilised in compat.sh.
-
 sys.argv[1] should be "g" or "o" for GNUTLS or OpenSSL.
 sys.argv[2] should be a string containing one or more ciphersuite names.
 """
 
 import re
 import sys
+import argparse
 
 def translate_gnutls(m_cipher):
     """
@@ -37,27 +35,25 @@ def translate_gnutls(m_cipher):
     and return the GnuTLS naming convention
     """
 
-    # Remove "TLS-"
-    # Replace "-WITH-" with ":+"
-    # Remove "EDE"
-    m_cipher = "+" + m_cipher[4:]
+    m_cipher = re.sub(r'\ATLS-', '+', m_cipher)
     m_cipher = m_cipher.replace("-WITH-", ":+")
     m_cipher = m_cipher.replace("-EDE", "")
 
-    # SHA == SHA1, if the last 3 chars are SHA append 1
+    # SHA in Mbed TLS == SHA1 GnuTLS,
+    # if the last 3 chars are SHA append 1
     if m_cipher[-3:] == "SHA":
         m_cipher = m_cipher+"1"
 
     # CCM or CCM-8 should be followed by ":+AEAD"
-    if "CCM" in m_cipher:
+    # Replace "GCM:+SHAxyz" with "GCM:+AEAD"
+    if "CCM" in m_cipher or "GCM" in m_cipher:
+        m_cipher = re.sub(r"GCM-SHA\d\d\d", "GCM", m_cipher)
         m_cipher = m_cipher+":+AEAD"
 
     # Replace the last "-" with ":+"
-    # Replace "GCM:+SHAxyz" with "GCM:+AEAD"
     else:
         index = m_cipher.rindex("-")
-        m_cipher = m_cipher[:index]+":+"+m_cipher[index+1:]
-        m_cipher = re.sub(r"GCM\:\+SHA\d\d\d", "GCM:+AEAD", m_cipher)
+        m_cipher = m_cipher[:index] + ":+" + m_cipher[index+1:]
 
     return m_cipher
 
@@ -67,9 +63,7 @@ def translate_ossl(m_cipher):
     and return the OpenSSL naming convention
     """
 
-    # Remove "TLS-"
-    # Remove "WITH"
-    m_cipher = m_cipher[4:]
+    m_cipher = re.sub(r'^TLS-', '', m_cipher)
     m_cipher = m_cipher.replace("-WITH", "")
 
     # Remove the "-" from "ABC-xyz"
@@ -78,8 +72,7 @@ def translate_ossl(m_cipher):
     m_cipher = m_cipher.replace("ARIA-", "ARIA")
 
     # Remove "RSA" if it is at the beginning
-    if m_cipher[:4] == "RSA-":
-        m_cipher = m_cipher[4:]
+    m_cipher = re.sub(r'^RSA-', r'', m_cipher)
 
     # For all circumstances outside of PSK
     if "PSK" not in m_cipher:
@@ -87,10 +80,7 @@ def translate_ossl(m_cipher):
         m_cipher = m_cipher.replace("3DES-CBC", "DES-CBC3")
 
         # Remove "CBC" if it is not prefixed by DES
-        if "CBC" in m_cipher:
-            index = m_cipher.rindex("CBC")
-            if m_cipher[index-4:index-1] != "DES":
-                m_cipher = m_cipher.replace("CBC-", "")
+        m_cipher = re.sub(r'(?<!DES-)CBC-', r'', m_cipher)
 
     # ECDHE-RSA-ARIA does not exist in OpenSSL
     m_cipher = m_cipher.replace("ECDHE-RSA-ARIA", "ECDHE-ARIA")
@@ -106,23 +96,16 @@ def translate_ossl(m_cipher):
 
     return m_cipher
 
-def format_ciphersuite_names(mode, ciphers):
-    try:
-        t = {"g": translate_gnutls, "o": translate_ossl}[mode]
-        return " ".join(t(c) for c in ciphers.split())
-    except (KeyError) as e:
-        print(e)
-        print("Incorrect use of argument 1, should be either \"g\" or \"o\"")
-        sys.exit(1)
+def format_ciphersuite_names(mode, names):
+    t = {"g": translate_gnutls, "o": translate_ossl}[mode]
+    return " ".join(t(c) for c in names)
 
-def main():
-    if len(sys.argv) != 3:
-        print("""Incorrect number of arguments.
-The first argument with either an \"o\" for OpenSSL or \"g\" for GNUTLS.
-The second argument should a single space seperated string of MBedTLS ciphersuite names""")
-        sys.exit(1)
-    print(format_ciphersuite_names(sys.argv[1], sys.argv[2]))
-    sys.exit(0)
+def main(target, names):
+    print(format_ciphersuite_names(target, names))
 
 if __name__ == "__main__":
-    main()
+    PARSER = argparse.ArgumentParser()
+    PARSER.add_argument('target', metavar='TARGET', choices=['o', 'g'])
+    PARSER.add_argument('names', metavar='NAMES', nargs='+')
+    ARGS = PARSER.parse_args()
+    main(ARGS.target, ARGS.names)

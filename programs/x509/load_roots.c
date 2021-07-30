@@ -82,7 +82,7 @@ int main( void )
 #define DFL_PRIME_CACHE         1
 
 #define USAGE \
-    "\n usage: load_roots param=<>... [--] {FILE|DIR}...\n"   \
+    "\n usage: load_roots param=<>... [--] FILE...\n"   \
     "\n acceptable parameters:\n"                       \
     "    iterations=%%d        Iteration count (not including cache priming); default: 1\n"  \
     "    prime=%%d             Prime the disk read cache? Default: 1 (yes)\n"  \

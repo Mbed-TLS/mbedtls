@@ -23,7 +23,6 @@ Test translate_ciphers.py by running every Mbed TLS ciphersuite name
 combination through the translate functions and comparing them to their
 correct GNUTLS or OpenSSL counterpart.
 """
-import sys
 from translate_ciphers import translate_gnutls, translate_ossl
 
 def assert_equal(translate, original):
@@ -36,7 +35,7 @@ def assert_equal(translate, original):
         assert translate == original
     except AssertionError:
         print("%s\n%s\n" %(translate, original))
-        sys.exit(1)
+        raise AssertionError
 
 def test_all_common():
     """
@@ -498,11 +497,11 @@ def test_all_common():
 
     for m, g_exp, o_exp in ciphers:
 
-        if g_exp != None:
+        if g_exp is not None:
             g = translate_gnutls(m)
             assert_equal(g, g_exp)
 
-        if o_exp != None:
+        if o_exp is not None:
             o = translate_ossl(m)
             assert_equal(o, o_exp)
 

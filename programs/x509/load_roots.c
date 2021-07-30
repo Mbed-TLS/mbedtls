@@ -132,7 +132,7 @@ int main( int argc, char *argv[] )
     struct mbedtls_timing_hr_time timer;
     unsigned long ms;
 
-    if( argc == 0 )
+    if( argc <= 1 )
     {
         mbedtls_printf( USAGE );
         goto exit;

@@ -204,7 +204,7 @@ void mbedtls_ccm_encrypt_and_tag( int cipher_id, data_t * key,
     ASSERT_COMPARE( io_msg_buf, msg->len, result->x, msg->len );
     ASSERT_COMPARE( tag_buf, expected_tag_len, expected_tag, expected_tag_len );
 
-    /* Prepare data_t structers for multipart testing */
+    /* Prepare data_t structures for multipart testing */
     const data_t encrypted_expected = { .x = result->x,
                                         .len = msg->len };
     const data_t tag_expected = { .x = (uint8_t*) expected_tag, /* cast to conform with data_t x type */
@@ -259,7 +259,7 @@ void mbedtls_ccm_auth_decrypt( int cipher_id, data_t * key,
     {
         ASSERT_COMPARE( io_msg_buf, expected_msg_len, expected_msg->x, expected_msg_len );
 
-         /* Prepare data_t structers for multipart testing */
+         /* Prepare data_t structures for multipart testing */
         const data_t encrypted = { .x = msg->x,
                                    .len = expected_msg_len };
 

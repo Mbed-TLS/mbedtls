@@ -168,7 +168,11 @@ int main( int argc, char *argv[] )
             opt.iterations = atoi( q ) != 0;
         }
         else
+        {
             mbedtls_printf( "Unknown option: %s\n", p );
+            mbedtls_printf( USAGE );
+            goto exit;
+        }
     }
 
     opt.filenames = (const char**) argv + i;

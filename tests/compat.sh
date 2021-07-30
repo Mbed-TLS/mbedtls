@@ -329,11 +329,11 @@ add_common_ciphersuites()
 
     M_CIPHERS="$M_CIPHERS $CIPHERS"
 
-    T=`python3 scripts/translate_ciphers.py g "$CIPHERS"`
+    T=$(./scripts/translate_ciphers.py g $CIPHERS)
     check_translation $? "$T"
     G_CIPHERS="$G_CIPHERS $T"
 
-    T=`python3 scripts/translate_ciphers.py o "$CIPHERS"`
+    T=$(./scripts/translate_ciphers.py o $CIPHERS)
     check_translation $? "$T"
     O_CIPHERS="$O_CIPHERS $T"
 }
@@ -417,7 +417,7 @@ add_openssl_ciphersuites()
 
     M_CIPHERS="$M_CIPHERS $CIPHERS"
 
-    T=`python3 scripts/translate_ciphers.py o "$CIPHERS"`
+    T=$(./scripts/translate_ciphers.py o $CIPHERS)
     check_translation $? "$T"
     O_CIPHERS="$O_CIPHERS $T"
 }
@@ -551,7 +551,7 @@ add_gnutls_ciphersuites()
 
     M_CIPHERS="$M_CIPHERS $CIPHERS"
 
-    T=`python3 scripts/translate_ciphers.py g "$CIPHERS"`
+    T=$(./scripts/translate_ciphers.py g $CIPHERS)
     check_translation $? "$T"
     G_CIPHERS="$G_CIPHERS $T"
 }

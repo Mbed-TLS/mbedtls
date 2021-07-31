@@ -26,7 +26,6 @@ sys.argv[2] should be a string containing one or more ciphersuite names.
 """
 
 import re
-import sys
 import argparse
 
 def translate_gnutls(m_cipher):

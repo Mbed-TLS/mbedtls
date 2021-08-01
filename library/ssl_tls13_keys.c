@@ -815,7 +815,7 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
      * type-extended and padded plaintext is therefore the padding
      * granularity. */
     transform->minlen =
-        transform->taglen + MBEDTLS_SSL_TLS1_3_PADDING_GRANULARITY;
+        transform->taglen + MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY;
 
     return( 0 );
 }

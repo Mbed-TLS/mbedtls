@@ -655,7 +655,6 @@ typedef int ssl_tls_prf_t(const unsigned char *, size_t, const char *,
  * - [in] ciphersuite
  * - [in] master
  * - [in] encrypt_then_mac
- * - [in] trunc_hmac
  * - [in] compression
  * - [in] tls_prf: pointer to PRF to use for key derivation
  * - [in] randbytes: buffer holding ServerHello.random + ClientHello.random
@@ -4506,8 +4505,6 @@ int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl,
 #define SSL_SERIALIZED_SESSION_CONFIG_MFL 0
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
-#define SSL_SERIALIZED_SESSION_CONFIG_TRUNC_HMAC 0
-
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
 #define SSL_SERIALIZED_SESSION_CONFIG_ETM 1
 #else
@@ -4524,9 +4521,8 @@ int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl,
 #define SSL_SERIALIZED_SESSION_CONFIG_CRT_BIT           1
 #define SSL_SERIALIZED_SESSION_CONFIG_CLIENT_TICKET_BIT 2
 #define SSL_SERIALIZED_SESSION_CONFIG_MFL_BIT           3
-#define SSL_SERIALIZED_SESSION_CONFIG_TRUNC_HMAC_BIT    4
-#define SSL_SERIALIZED_SESSION_CONFIG_ETM_BIT           5
-#define SSL_SERIALIZED_SESSION_CONFIG_TICKET_BIT        6
+#define SSL_SERIALIZED_SESSION_CONFIG_ETM_BIT           4
+#define SSL_SERIALIZED_SESSION_CONFIG_TICKET_BIT        5
 
 #define SSL_SERIALIZED_SESSION_CONFIG_BITFLAG                           \
     ( (uint16_t) (                                                      \
@@ -4534,7 +4530,6 @@ int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl,
         ( SSL_SERIALIZED_SESSION_CONFIG_CRT           << SSL_SERIALIZED_SESSION_CONFIG_CRT_BIT           ) | \
         ( SSL_SERIALIZED_SESSION_CONFIG_CLIENT_TICKET << SSL_SERIALIZED_SESSION_CONFIG_CLIENT_TICKET_BIT ) | \
         ( SSL_SERIALIZED_SESSION_CONFIG_MFL           << SSL_SERIALIZED_SESSION_CONFIG_MFL_BIT           ) | \
-        ( SSL_SERIALIZED_SESSION_CONFIG_TRUNC_HMAC    << SSL_SERIALIZED_SESSION_CONFIG_TRUNC_HMAC_BIT    ) | \
         ( SSL_SERIALIZED_SESSION_CONFIG_ETM           << SSL_SERIALIZED_SESSION_CONFIG_ETM_BIT           ) | \
         ( SSL_SERIALIZED_SESSION_CONFIG_TICKET        << SSL_SERIALIZED_SESSION_CONFIG_TICKET_BIT        ) ) )
 
@@ -4594,7 +4589,6 @@ static unsigned char ssl_serialized_session_header[] = {
  *    opaque ticket<0..2^24-1>;       // length 0 means no ticket
  *    uint32 ticket_lifetime;
  *    uint8 mfl_code;                 // up to 255 according to standard
- *    uint8 trunc_hmac;               // 0 or 1
  *    uint8 encrypt_then_mac;         // 0 or 1
  * } serialized_session_tls12;
  *

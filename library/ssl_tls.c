@@ -4547,9 +4547,9 @@ static unsigned char ssl_serialized_session_header[] = {
  *
  *  struct {
  *
- *    opaque mbedtls_version[3];   // major, minor, patch
- *    opaque session_format[2];    // version-specific 16-bit field determining
- *                                 // the format of the remaining
+ *    opaque mbedtls_version[3];   // library version: major, minor, patch
+ *    opaque session_format[2];    // library-version specific 16-bit field
+ *                                 // determining the format of the remaining
  *                                 // serialized data.
  *
  *          Note: When updating the format, remember to keep
@@ -4560,7 +4560,7 @@ static unsigned char ssl_serialized_session_header[] = {
  *                                 // configuration options which influence
  *                                 // the structure of mbedtls_ssl_session.
  *
- *    uint8_t minor_ver;           // Possible values:
+ *    uint8_t minor_ver;           // Protol-version. Possible values:
  *                                 // - TLS 1.2 (MBEDTLS_SSL_MINOR_VERSION_3)
  *
  *    select (serialized_session.minor_ver) {

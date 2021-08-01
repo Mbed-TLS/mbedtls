@@ -3947,6 +3947,7 @@ void ssl_tls1_3_create_psk_binder( int hash_alg,
 void ssl_tls1_3_record_protection( int ciphersuite,
                                    int endpoint,
                                    int ctr,
+                                   int padding_used,
                                    data_t *server_write_key,
                                    data_t *server_write_iv,
                                    data_t *client_write_key,
@@ -3959,6 +3960,7 @@ void ssl_tls1_3_record_protection( int ciphersuite,
     mbedtls_ssl_transform transform_recv;
     mbedtls_record rec;
     unsigned char *buf = NULL;
+    size_t buf_len;
     int other_endpoint;
 
     TEST_ASSERT( endpoint == MBEDTLS_SSL_IS_CLIENT ||
@@ -3994,7 +3996,10 @@ void ssl_tls1_3_record_protection( int ciphersuite,
                      &transform_recv, other_endpoint,
                      ciphersuite, &keys, NULL ) == 0 );
 
-    ASSERT_ALLOC( buf, ciphertext->len );
+    /* Make sure we have enough space in the buffer even if
+     * we use more padding than the KAT. */
+    buf_len = ciphertext->len + MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY;
+    ASSERT_ALLOC( buf, buf_len );
     rec.type   = MBEDTLS_SSL_MSG_APPLICATION_DATA;
 
     /* TLS 1.3 uses the version identifier from TLS 1.2 on the wire. */
@@ -4005,7 +4010,7 @@ void ssl_tls1_3_record_protection( int ciphersuite,
 
     /* Copy plaintext into record structure */
     rec.buf = buf;
-    rec.buf_len = ciphertext->len;
+    rec.buf_len = buf_len;
     rec.data_offset = 0;
     TEST_ASSERT( plaintext->len <= ciphertext->len );
     memcpy( rec.buf + rec.data_offset, plaintext->x, plaintext->len );
@@ -4019,8 +4024,12 @@ void ssl_tls1_3_record_protection( int ciphersuite,
 
     TEST_ASSERT( mbedtls_ssl_encrypt_buf( NULL, &transform_send, &rec,
                                           NULL, NULL ) == 0 );
-    ASSERT_COMPARE( rec.buf + rec.data_offset, rec.data_len,
-                    ciphertext->x, ciphertext->len );
+
+    if( padding_used == MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY )
+    {
+        ASSERT_COMPARE( rec.buf + rec.data_offset, rec.data_len,
+                        ciphertext->x, ciphertext->len );
+    }
 
     TEST_ASSERT( mbedtls_ssl_decrypt_buf( NULL, &transform_recv, &rec ) == 0 );
     ASSERT_COMPARE( rec.buf + rec.data_offset, rec.data_len,

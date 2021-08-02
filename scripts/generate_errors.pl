@@ -21,6 +21,7 @@
 # limitations under the License.
 
 use strict;
+use warnings;
 
 my ($include_dir, $data_dir, $error_file);
 
@@ -84,7 +85,7 @@ foreach my $file (@files) {
         # Discard Doxygen comments that are coincidentally present before
         # an error definition but not attached to it. This is ad hoc, based
         # on what actually matters (or mattered at some point).
-        undef $before if $before =~ /\s*\\name\s/s;
+        undef $before if defined($before) && $before =~ /\s*\\name\s/s;
         die "Description neither before nor after $name in $file\n"
           if !defined($before) && !defined($after);
         die "Description both before and after $name in $file\n"

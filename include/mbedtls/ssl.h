@@ -2559,7 +2559,7 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
  *                      algorithms to be used during and after the handshake.
  *
  *                      For TLS 1.3 (in development), the notion of ciphersuite
- *                      only determines the suite of symmetric algorithmc to be
+ *                      only determines the suite of symmetric algorithms to be
  *                      used during and after the handshake, while key exchange
  *                      mechanisms are configured separately.
  *

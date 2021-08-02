@@ -176,22 +176,27 @@
  * mbedtls_ssl_conf_tls13_key_exchange_modes().
  */
 
-#define MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_NONE           0
-#define MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK            ( 1u << 0 )
-#define MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_EPHEMERAL  ( 1u << 1 )
-#define MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_EPHEMERAL      ( 1u << 2 )
+#define MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK            ( 1u << 0 ) /*!< Pure-PSK TLS 1.3 key exchange,
+                                                                        *   encompassing both externally agreed PSKs
+                                                                        *   as well as resumption PSKs. */
+#define MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_EPHEMERAL      ( 1u << 1 ) /*!< Pure-Ephemeral TLS 1.3 key exchanges,
+                                                                        *   including for example ECDHE and DHE
+                                                                        *   key exchanges. */
+#define MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_EPHEMERAL  ( 1u << 2 ) /*!< PSK-Ephemeral TLS 1.3 key exchanges,
+                                                                        *   using both a PSK and an ephemeral
+                                                                        *   key exchange. */
 
 /* Convenience macros for sets of key exchanges. */
 #define MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_ALL                         \
     ( MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK              |            \
       MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_EPHEMERAL    |            \
-      MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_EPHEMERAL )
+      MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_EPHEMERAL )        /*!< All TLS 1.3 key exchanges           */
 #define MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_ALL                     \
     ( MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK              |            \
-      MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_EPHEMERAL    )
+      MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_EPHEMERAL    ) /*!< All PSK-based TLS 1.3 key exchanges */
 #define MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_EPHEMERAL_ALL               \
     ( MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_EPHEMERAL        |            \
-      MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_EPHEMERAL    )
+      MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_EPHEMERAL    ) /*!< All ephemeral TLS 1.3 key exchanges */
 
 /*
  * Various constants

@@ -4560,7 +4560,7 @@ static unsigned char ssl_serialized_session_header[] = {
  *                                 // configuration options which influence
  *                                 // the structure of mbedtls_ssl_session.
  *
- *    uint8_t minor_ver;           // Protol-version. Possible values:
+ *    uint8_t minor_ver;           // Protocol-version. Possible values:
  *                                 // - TLS 1.2 (MBEDTLS_SSL_MINOR_VERSION_3)
  *
  *    select (serialized_session.minor_ver) {

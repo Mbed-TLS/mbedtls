@@ -543,13 +543,19 @@ pre_setup_keep_going () {
     # Whether it makes sense to keep a component going after the specified
     # command fails (test command) or not (configure or build).
     # This doesn't have to be 100% accurate: all failures are recorded anyway.
+    # False positives result in running things that can't be expected to
+    # work. False negatives result in things not running after something else
+    # failed even though they might have given useful feedback.
     can_keep_going_after_failure () {
         case "$1" in
             "msg "*) false;;
-            *[!A-Za-z]"test"|*[!A-Za-z]"test"[!A-Za-z]*) true;;
-            "tests/"*) true;;
-            "grep "*|"! grep "*) true;;
-            "test "*|"[ "*) true;;
+            "cd "*) false;;
+            *make*[\ /]tests*) false;; # make tests, make CFLAGS=-I../tests, ...
+            *test*) true;; # make test, tests/stuff, env V=v tests/stuff, ...
+            *make*check*) true;;
+            "grep "*) true;;
+            "[ "*) true;;
+            "! "*) true;;
             *) false;;
         esac
     }

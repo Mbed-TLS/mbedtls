@@ -2709,11 +2709,13 @@ post_report () {
 
 # Function invoked by --error-test to test error reporting.
 pseudo_component_error_test () {
-    msg "Testing error reporting $error_test"
+    msg "Testing error reporting $error_test_i"
     if [ $KEEP_GOING -ne 0 ]; then
         echo "Expect three failing commands."
     fi
-    error_test='this should not be used since the component runs in a subshell'
+    # If the component doesn't run in a subshell, changing error_test_i to an
+    # invalid integer will cause an error in the loop that runs this function.
+    error_test_i=this_should_not_be_used_since_the_component_runs_in_a_subshell
     # Expected error: 'grep non_existent /dev/null -> 1'
     grep non_existent /dev/null
     # Expected error: '! grep -q . tests/scripts/all.sh -> 1'
@@ -2796,10 +2798,10 @@ cleanup
 pre_generate_files
 
 # Run the requested tests.
-while [ $error_test -gt 0 ]; do
+for ((error_test_i=1; error_test_i <= error_test; error_test_i++)); do
     run_component pseudo_component_error_test
-    error_test=$((error_test - 1))
 done
+unset error_test_i
 for component in $RUN_COMPONENTS; do
     run_component "component_$component"
 done

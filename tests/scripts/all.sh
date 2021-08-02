@@ -2714,8 +2714,11 @@ pseudo_component_error_test () {
         echo "Expect three failing commands."
     fi
     error_test='this should not be used since the component runs in a subshell'
+    # Expected error: 'grep non_existent /dev/null -> 1'
     grep non_existent /dev/null
+    # Expected error: '! grep -q . tests/scripts/all.sh -> 1'
     not grep -q . "$0"
+    # Expected error: 'make unknown_target -> 2'
     make unknown_target
     false "this should not be executed"
 }
@@ -2735,8 +2738,11 @@ run_component () {
     esac
     "${dd_cmd[@]}"
 
-    # Run the component in a subshell
+    # Run the component in a subshell, with error trapping and output
+    # redirection set up based on the relevant options.
     if [ $KEEP_GOING -eq 1 ]; then
+        # We want to keep running if the subshell fails, so 'set -e' must
+        # be off when the subshell runs.
         set +e
     fi
     (

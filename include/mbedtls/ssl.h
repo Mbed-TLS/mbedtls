@@ -2631,7 +2631,7 @@ void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
  *        mbedtls_ssl_conf_psk_cb() or mbedtls_ssl_conf_psk_opaque()
  *        to configure the PSKs to be used.
  *
- * \note  If an ECDHE-based key exchange mode shall be supported,
+ * \note  If a pure-ephemeral key exchange mode shall be supported,
  *        server-side applications must also provide a certificate via
  *        mbedtls_ssl_conf_own_cert().
  *

@@ -334,8 +334,7 @@ static const mbedtls_ssl_ciphersuite_t ciphersuite_definitions[] =
       MBEDTLS_KEY_EXCHANGE_NONE, /* Key exchange not part of ciphersuite in TLS 1.3 */
       MBEDTLS_SSL_MAJOR_VERSION_3, MBEDTLS_SSL_MINOR_VERSION_4,
       MBEDTLS_SSL_MAJOR_VERSION_3, MBEDTLS_SSL_MINOR_VERSION_4,
-          0 // field not used in TLS 1.3 implementation
-    },
+      0 },
 #endif /* MBEDTLS_CHACHAPOLY_C && MBEDTLS_SHA256_C */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 

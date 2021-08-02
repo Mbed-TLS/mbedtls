@@ -2553,7 +2553,6 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
 /**
  * \brief               Set the list of allowed ciphersuites and the preference
  *                      order. First in the list has the highest preference.
- *                      (Overrides all version-specific lists)
  *
  *                      For TLS 1.2, the notion of ciphersuite determines both
  *                      the key exchange mechanism and the suite of symmetric

@@ -927,6 +927,11 @@ struct mbedtls_ssl_session
 
     unsigned char MBEDTLS_PRIVATE(exported);
 
+    /* This field is temporarily duplicated with mbedtls_ssl_context.minor_ver.
+     * Once runtime negotiation of TLS 1.2 and TLS 1.3 is implemented, it needs
+     * to be studied whether one of them can be removed. */
+    unsigned char MBEDTLS_PRIVATE(minor_ver);    /*!< The TLS version used in the session. */
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     mbedtls_x509_crt *MBEDTLS_PRIVATE(peer_cert);       /*!< peer X.509 cert chain */
@@ -1245,6 +1250,10 @@ struct mbedtls_ssl_context
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
     int MBEDTLS_PRIVATE(major_ver);              /*!< equal to  MBEDTLS_SSL_MAJOR_VERSION_3    */
+
+    /* This field is temporarily duplicated with mbedtls_ssl_context.minor_ver.
+     * Once runtime negotiation of TLS 1.2 and TLS 1.3 is implemented, it needs
+     * to be studied whether one of them can be removed. */
     int MBEDTLS_PRIVATE(minor_ver);              /*!< one of MBEDTLS_SSL_MINOR_VERSION_x macros */
     unsigned MBEDTLS_PRIVATE(badmac_seen);       /*!< records with a bad MAC received    */
 

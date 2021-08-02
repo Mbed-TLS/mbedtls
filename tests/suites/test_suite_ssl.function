@@ -1435,13 +1435,14 @@ cleanup:
  * Populate a session structure for serialization tests.
  * Choose dummy values, mostly non-0 to distinguish from the init default.
  */
-static int ssl_populate_session( mbedtls_ssl_session *session,
-                                 int ticket_len,
-                                 const char *crt_file )
+static int ssl_populate_session_tls12( mbedtls_ssl_session *session,
+                                       int ticket_len,
+                                       const char *crt_file )
 {
 #if defined(MBEDTLS_HAVE_TIME)
     session->start = mbedtls_time( NULL ) - 42;
 #endif
+    session->minor_ver = MBEDTLS_SSL_MINOR_VERSION_3;
     session->ciphersuite = 0xabcd;
     session->compression = 1;
     session->id_len = sizeof( session->id );
@@ -1449,7 +1450,7 @@ static int ssl_populate_session( mbedtls_ssl_session *session,
     memset( session->master, 17, sizeof( session->master ) );
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_FS_IO)
-    if( strlen( crt_file ) != 0 )
+    if( crt_file != NULL && strlen( crt_file ) != 0 )
     {
         mbedtls_x509_crt tmp_crt;
         int ret;
@@ -4005,7 +4006,7 @@ void ssl_serialize_session_save_load( int ticket_len, char *crt_file )
     mbedtls_ssl_session_init( &restored );
 
     /* Prepare a dummy session to work on */
-    TEST_ASSERT( ssl_populate_session( &original, ticket_len, crt_file ) == 0 );
+    TEST_ASSERT( ssl_populate_session_tls12( &original, ticket_len, crt_file ) == 0 );
 
     /* Serialize it */
     TEST_ASSERT( mbedtls_ssl_session_save( &original, NULL, 0, &len )
@@ -4023,6 +4024,7 @@ void ssl_serialize_session_save_load( int ticket_len, char *crt_file )
 #if defined(MBEDTLS_HAVE_TIME)
     TEST_ASSERT( original.start == restored.start );
 #endif
+    TEST_ASSERT( original.minor_ver == restored.minor_ver );
     TEST_ASSERT( original.ciphersuite == restored.ciphersuite );
     TEST_ASSERT( original.compression == restored.compression );
     TEST_ASSERT( original.id_len == restored.id_len );
@@ -4101,7 +4103,7 @@ void ssl_serialize_session_load_save( int ticket_len, char *crt_file )
     mbedtls_ssl_session_init( &session );
 
     /* Prepare a dummy session to work on */
-    TEST_ASSERT( ssl_populate_session( &session, ticket_len, crt_file ) == 0 );
+    TEST_ASSERT( ssl_populate_session_tls12( &session, ticket_len, crt_file ) == 0 );
 
     /* Get desired buffer size for serializing */
     TEST_ASSERT( mbedtls_ssl_session_save( &session, NULL, 0, &len0 )
@@ -4151,7 +4153,7 @@ void ssl_serialize_session_save_buf_size( int ticket_len, char *crt_file )
     mbedtls_ssl_session_init( &session );
 
     /* Prepare dummy session and get serialized size */
-    TEST_ASSERT( ssl_populate_session( &session, ticket_len, crt_file ) == 0 );
+    TEST_ASSERT( ssl_populate_session_tls12( &session, ticket_len, crt_file ) == 0 );
     TEST_ASSERT( mbedtls_ssl_session_save( &session, NULL, 0, &good_len )
                  == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
 
@@ -4187,7 +4189,7 @@ void ssl_serialize_session_load_buf_size( int ticket_len, char *crt_file )
     mbedtls_ssl_session_init( &session );
 
     /* Prepare serialized session data */
-    TEST_ASSERT( ssl_populate_session( &session, ticket_len, crt_file ) == 0 );
+    TEST_ASSERT( ssl_populate_session_tls12( &session, ticket_len, crt_file ) == 0 );
     TEST_ASSERT( mbedtls_ssl_session_save( &session, NULL, 0, &good_len )
                  == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
     TEST_ASSERT( ( good_buf = mbedtls_calloc( 1, good_len ) ) != NULL );
@@ -4232,6 +4234,7 @@ void ssl_session_serialize_version_check( int corrupt_major,
                                       corrupt_config == 1 };
 
     mbedtls_ssl_session_init( &session );
+    ssl_populate_session_tls12( &session, 0, NULL );
 
     /* Infer length of serialized session. */
     TEST_ASSERT( mbedtls_ssl_session_save( &session,

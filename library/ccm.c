@@ -351,8 +351,9 @@ int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
     }
 
     /* Local output is used for decryption only. */
-    if( ctx->mode == MBEDTLS_CCM_DECRYPT || \
-        ctx->mode == MBEDTLS_CCM_STAR_DECRYPT )
+    if( local_output_len > 0 && \
+        ( ctx->mode == MBEDTLS_CCM_DECRYPT || \
+          ctx->mode == MBEDTLS_CCM_STAR_DECRYPT ) )
     {
         local_output = mbedtls_calloc( local_output_len, sizeof( *local_output) );
         if( local_output == NULL )

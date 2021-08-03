@@ -135,7 +135,8 @@ int mbedtls_net_connect(mbedtls_net_context *ctx, const char *host, const char *
  * \param host     Host to connect to
  * \param port     Port to connect to
  * \param proto    Protocol: MBEDTLS_NET_PROTO_TCP or MBEDTLS_NET_PROTO_UDP
- * \param timeout  The timeout in milliseconds
+ * \param timeout  Maximum number of milliseconds to wait for a connection
+ *                 0 means no timeout (wait forever)
  *
  * \return         0 if successful, or one of:
  *                      MBEDTLS_ERR_NET_SOCKET_FAILED,
@@ -148,7 +149,7 @@ int mbedtls_net_connect_timeout(mbedtls_net_context *ctx,
                                 const char *host,
                                 const char *port,
                                 int proto,
-                                int timeout);
+                                uint32_t timeout);
 
 /**
  * \brief          Create a receiving socket on bind_ip:port in the chosen

@@ -19,6 +19,7 @@ void mask_of_range( int low_arg, int high_arg )
         TEST_CF_SECRET( &c, sizeof( c ) );
         unsigned char m = mbedtls_base64_mask_of_range( low, high, c );
         TEST_CF_PUBLIC( &c, sizeof( c ) );
+        TEST_CF_PUBLIC( &m, sizeof( m ) );
         if( low <= c && c <= high )
             TEST_EQUAL( m, 0xff );
         else

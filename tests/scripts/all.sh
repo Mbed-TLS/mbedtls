@@ -444,7 +444,9 @@ pre_parse_command_line () {
 
     if [ $all_except -eq 0 ]; then
         unsupported=0
+        set -f
         for component in $COMMAND_LINE_COMPONENTS; do
+            set +f
             case $component in
                 *[*?\[]*) continue;;
             esac
@@ -455,6 +457,7 @@ pre_parse_command_line () {
                     unsupported=$((unsupported + 1));;
             esac
         done
+        set +f
         if [ $unsupported -ne 0 ]; then
             exit 2
         fi

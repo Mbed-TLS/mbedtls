@@ -3875,8 +3875,8 @@ static int ssl_decrypt_encrypted_pms( mbedtls_ssl_context *ssl,
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
             return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
         }
-        if( *p++ != MBEDTLS_CHAR_1( len ) ||
-            *p++ != MBEDTLS_CHAR_0( len ) ){
+        if( *p++ != MBEDTLS_BYTE_1( len ) ||
+            *p++ != MBEDTLS_BYTE_0( len ) ){
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
             return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
         }

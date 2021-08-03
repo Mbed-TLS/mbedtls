@@ -21,14 +21,14 @@
 #include "mbedtls/build_info.h"
 
 #if defined(MBEDTLS_PLATFORM_C)
-#include "mbedtls/platform.h"
+#    include "mbedtls/platform.h"
 #else
-#include <stdio.h>
-#include <stdlib.h>
-#define mbedtls_printf          printf
-#define mbedtls_exit            exit
-#define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
-#define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
+#    include <stdio.h>
+#    include <stdlib.h>
+#    define mbedtls_printf       printf
+#    define mbedtls_exit         exit
+#    define MBEDTLS_EXIT_SUCCESS EXIT_SUCCESS
+#    define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
 #endif
 
 /*
@@ -42,55 +42,52 @@
  * goal of minimizing use of the libc functions on full-blown OSes.
  */
 #if defined(unix) || defined(__unix__) || defined(__unix) || defined(__APPLE__)
-#define UNIX
+#    define UNIX
 #endif
 
 #if !defined(MBEDTLS_CTR_DRBG_C) || !defined(MBEDTLS_ENTROPY_C) || \
-    !defined(MBEDTLS_NET_C) || !defined(MBEDTLS_SSL_CLI_C) || \
-    !defined(UNIX)
+    !defined(MBEDTLS_NET_C) || !defined(MBEDTLS_SSL_CLI_C) || !defined(UNIX)
 
-int main( void )
+int main(void)
 {
-    mbedtls_printf( "MBEDTLS_CTR_DRBG_C and/or MBEDTLS_ENTROPY_C and/or "
-            "MBEDTLS_NET_C and/or MBEDTLS_SSL_CLI_C and/or UNIX "
-            "not defined.\n");
-    mbedtls_exit( 0 );
+    mbedtls_printf("MBEDTLS_CTR_DRBG_C and/or MBEDTLS_ENTROPY_C and/or "
+                   "MBEDTLS_NET_C and/or MBEDTLS_SSL_CLI_C and/or UNIX "
+                   "not defined.\n");
+    mbedtls_exit(0);
 }
 #else
 
-#include <string.h>
+#    include <string.h>
 
-#include "mbedtls/net_sockets.h"
-#include "mbedtls/ssl.h"
-#include "mbedtls/entropy.h"
-#include "mbedtls/ctr_drbg.h"
+#    include "mbedtls/net_sockets.h"
+#    include "mbedtls/ssl.h"
+#    include "mbedtls/entropy.h"
+#    include "mbedtls/ctr_drbg.h"
 
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#    include <sys/socket.h>
+#    include <netinet/in.h>
+#    include <arpa/inet.h>
 
 /*
  * Hardcoded values for server host and port
  */
-#define PORT_BE 0x1151      /* 4433 */
-#define PORT_LE 0x5111
-#define ADDR_BE 0x7f000001  /* 127.0.0.1 */
-#define ADDR_LE 0x0100007f
-#define HOSTNAME "localhost" /* for cert verification if enabled */
+#    define PORT_BE  0x1151 /* 4433 */
+#    define PORT_LE  0x5111
+#    define ADDR_BE  0x7f000001 /* 127.0.0.1 */
+#    define ADDR_LE  0x0100007f
+#    define HOSTNAME "localhost" /* for cert verification if enabled */
 
-#define GET_REQUEST "GET / HTTP/1.0\r\n\r\n"
+#    define GET_REQUEST "GET / HTTP/1.0\r\n\r\n"
 
 const char *pers = "mini_client";
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
-const unsigned char psk[] = {
-    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-    0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
-};
+#    if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+const unsigned char psk[] = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                              0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f };
 const char psk_id[] = "Client_identity";
-#endif
+#    endif
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#    if defined(MBEDTLS_X509_CRT_PARSE_C)
 /* This is tests/data_files/test-ca2.crt, a CA using EC secp384r1 */
 const unsigned char ca_cert[] = {
     0x30, 0x82, 0x02, 0x52, 0x30, 0x82, 0x01, 0xd7, 0xa0, 0x03, 0x02, 0x01,
@@ -144,7 +141,7 @@ const unsigned char ca_cert[] = {
     0xb8, 0x28, 0xe7, 0xf2, 0x9c, 0x14, 0x3a, 0x40, 0x01, 0x5c, 0xaf, 0x0c,
     0xb2, 0xcf, 0x74, 0x7f, 0x30, 0x9f, 0x08, 0x43, 0xad, 0x20,
 };
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#    endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 enum exit_codes
 {
@@ -160,109 +157,100 @@ enum exit_codes
     ssl_write_failed,
 };
 
-
-int main( void )
+int main(void)
 {
     int ret = exit_ok;
     mbedtls_net_context server_fd;
     struct sockaddr_in addr;
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#    if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_x509_crt ca;
-#endif
+#    endif
 
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
-    mbedtls_ctr_drbg_init( &ctr_drbg );
+    mbedtls_ctr_drbg_init(&ctr_drbg);
 
     /*
      * 0. Initialize and setup stuff
      */
-    mbedtls_net_init( &server_fd );
-    mbedtls_ssl_init( &ssl );
-    mbedtls_ssl_config_init( &conf );
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
-    mbedtls_x509_crt_init( &ca );
-#endif
+    mbedtls_net_init(&server_fd);
+    mbedtls_ssl_init(&ssl);
+    mbedtls_ssl_config_init(&conf);
+#    if defined(MBEDTLS_X509_CRT_PARSE_C)
+    mbedtls_x509_crt_init(&ca);
+#    endif
 
-    mbedtls_entropy_init( &entropy );
-    if( mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
-                       (const unsigned char *) pers, strlen( pers ) ) != 0 )
-    {
+    mbedtls_entropy_init(&entropy);
+    if (mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
+                              (const unsigned char *)pers, strlen(pers)) != 0) {
         ret = ctr_drbg_seed_failed;
         goto exit;
     }
 
-    if( mbedtls_ssl_config_defaults( &conf,
-                MBEDTLS_SSL_IS_CLIENT,
-                MBEDTLS_SSL_TRANSPORT_STREAM,
-                MBEDTLS_SSL_PRESET_DEFAULT ) != 0 )
-    {
+    if (mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_CLIENT,
+                                    MBEDTLS_SSL_TRANSPORT_STREAM,
+                                    MBEDTLS_SSL_PRESET_DEFAULT) != 0) {
         ret = ssl_config_defaults_failed;
         goto exit;
     }
 
-    mbedtls_ssl_conf_rng( &conf, mbedtls_ctr_drbg_random, &ctr_drbg );
+    mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
-    mbedtls_ssl_conf_psk( &conf, psk, sizeof( psk ),
-                (const unsigned char *) psk_id, sizeof( psk_id ) - 1 );
-#endif
+#    if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+    mbedtls_ssl_conf_psk(&conf, psk, sizeof(psk), (const unsigned char *)psk_id,
+                         sizeof(psk_id) - 1);
+#    endif
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
-    if( mbedtls_x509_crt_parse_der( &ca, ca_cert, sizeof( ca_cert ) ) != 0 )
-    {
+#    if defined(MBEDTLS_X509_CRT_PARSE_C)
+    if (mbedtls_x509_crt_parse_der(&ca, ca_cert, sizeof(ca_cert)) != 0) {
         ret = x509_crt_parse_failed;
         goto exit;
     }
 
-    mbedtls_ssl_conf_ca_chain( &conf, &ca, NULL );
-    mbedtls_ssl_conf_authmode( &conf, MBEDTLS_SSL_VERIFY_REQUIRED );
-#endif
+    mbedtls_ssl_conf_ca_chain(&conf, &ca, NULL);
+    mbedtls_ssl_conf_authmode(&conf, MBEDTLS_SSL_VERIFY_REQUIRED);
+#    endif
 
-    if( mbedtls_ssl_setup( &ssl, &conf ) != 0 )
-    {
+    if (mbedtls_ssl_setup(&ssl, &conf) != 0) {
         ret = ssl_setup_failed;
         goto exit;
     }
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
-    if( mbedtls_ssl_set_hostname( &ssl, HOSTNAME ) != 0 )
-    {
+#    if defined(MBEDTLS_X509_CRT_PARSE_C)
+    if (mbedtls_ssl_set_hostname(&ssl, HOSTNAME) != 0) {
         ret = hostname_failed;
         goto exit;
     }
-#endif
+#    endif
 
     /*
      * 1. Start the connection
      */
-    memset( &addr, 0, sizeof( addr ) );
+    memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
 
     ret = 1; /* for endianness detection */
-    addr.sin_port = *((char *) &ret) == ret ? PORT_LE : PORT_BE;
-    addr.sin_addr.s_addr = *((char *) &ret) == ret ? ADDR_LE : ADDR_BE;
+    addr.sin_port = *((char *)&ret) == ret ? PORT_LE : PORT_BE;
+    addr.sin_addr.s_addr = *((char *)&ret) == ret ? ADDR_LE : ADDR_BE;
     ret = 0;
 
-    if( ( server_fd.MBEDTLS_PRIVATE(fd) = socket( AF_INET, SOCK_STREAM, 0 ) ) < 0 )
-    {
+    if ((server_fd.MBEDTLS_PRIVATE(fd) = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         ret = socket_failed;
         goto exit;
     }
 
-    if( connect( server_fd.MBEDTLS_PRIVATE(fd),
-                (const struct sockaddr *) &addr, sizeof( addr ) ) < 0 )
-    {
+    if (connect(server_fd.MBEDTLS_PRIVATE(fd), (const struct sockaddr *)&addr,
+                sizeof(addr)) < 0) {
         ret = connect_failed;
         goto exit;
     }
 
-    mbedtls_ssl_set_bio( &ssl, &server_fd, mbedtls_net_send, mbedtls_net_recv, NULL );
+    mbedtls_ssl_set_bio(&ssl, &server_fd, mbedtls_net_send, mbedtls_net_recv,
+                        NULL);
 
-    if( mbedtls_ssl_handshake( &ssl ) != 0 )
-    {
+    if (mbedtls_ssl_handshake(&ssl) != 0) {
         ret = ssl_handshake_failed;
         goto exit;
     }
@@ -270,26 +258,25 @@ int main( void )
     /*
      * 2. Write the GET request and close the connection
      */
-    if( mbedtls_ssl_write( &ssl, (const unsigned char *) GET_REQUEST,
-                         sizeof( GET_REQUEST ) - 1 ) <= 0 )
-    {
+    if (mbedtls_ssl_write(&ssl, (const unsigned char *)GET_REQUEST,
+                          sizeof(GET_REQUEST) - 1) <= 0) {
         ret = ssl_write_failed;
         goto exit;
     }
 
-    mbedtls_ssl_close_notify( &ssl );
+    mbedtls_ssl_close_notify(&ssl);
 
 exit:
-    mbedtls_net_free( &server_fd );
+    mbedtls_net_free(&server_fd);
 
-    mbedtls_ssl_free( &ssl );
-    mbedtls_ssl_config_free( &conf );
-    mbedtls_ctr_drbg_free( &ctr_drbg );
-    mbedtls_entropy_free( &entropy );
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
-    mbedtls_x509_crt_free( &ca );
-#endif
+    mbedtls_ssl_free(&ssl);
+    mbedtls_ssl_config_free(&conf);
+    mbedtls_ctr_drbg_free(&ctr_drbg);
+    mbedtls_entropy_free(&entropy);
+#    if defined(MBEDTLS_X509_CRT_PARSE_C)
+    mbedtls_x509_crt_free(&ca);
+#    endif
 
-    mbedtls_exit( ret );
+    mbedtls_exit(ret);
 }
 #endif

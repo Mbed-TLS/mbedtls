@@ -19,11 +19,8 @@
 #ifndef GCM_ALT_H
 #define GCM_ALT_H
 
-typedef struct mbedtls_gcm_context
-{
+typedef struct mbedtls_gcm_context {
     int dummy;
-}
-mbedtls_gcm_context;
-
+} mbedtls_gcm_context;
 
 #endif /* gcm_alt.h */

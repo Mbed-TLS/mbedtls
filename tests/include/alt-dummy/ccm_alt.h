@@ -19,11 +19,8 @@
 #ifndef CCM_ALT_H
 #define CCM_ALT_H
 
-typedef struct mbedtls_ccm_context
-{
+typedef struct mbedtls_ccm_context {
     int dummy;
-}
-mbedtls_ccm_context;
-
+} mbedtls_ccm_context;
 
 #endif /* ccm_alt.h */

@@ -9,16 +9,16 @@
 
 int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size);
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
-    FILE * fp;
+    FILE *fp;
     uint8_t *Data;
     size_t Size;
 
     if (argc != 2) {
         return 1;
     }
-    //opens the file, get its size, and reads it into a buffer
+    // opens the file, get its size, and reads it into a buffer
     fp = fopen(argv[1], "rb");
     if (fp == NULL) {
         return 2;
@@ -28,7 +28,7 @@ int main(int argc, char** argv)
         return 2;
     }
     Size = ftell(fp);
-    if (Size == (size_t) -1) {
+    if (Size == (size_t)-1) {
         fclose(fp);
         return 2;
     }
@@ -47,10 +47,9 @@ int main(int argc, char** argv)
         return 2;
     }
 
-    //lauch fuzzer
+    // lauch fuzzer
     LLVMFuzzerTestOneInput(Data, Size);
     free(Data);
     fclose(fp);
     return 0;
 }
-

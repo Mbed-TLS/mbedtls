@@ -53,132 +53,113 @@
 #include <string.h>
 
 #if defined(MBEDTLS_PLATFORM_C)
-#include "mbedtls/platform.h"
+#    include "mbedtls/platform.h"
 #else
-#include <stdio.h>
-#include <stdlib.h>
-#define mbedtls_calloc     calloc
-#define mbedtls_free       free
-#define mbedtls_printf     printf
-#define mbedtls_snprintf   snprintf
-#define mbedtls_exit       exit
-#define MBEDTLS_EXIT_SUCCESS EXIT_SUCCESS
-#define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
+#    include <stdio.h>
+#    include <stdlib.h>
+#    define mbedtls_calloc       calloc
+#    define mbedtls_free         free
+#    define mbedtls_printf       printf
+#    define mbedtls_snprintf     snprintf
+#    define mbedtls_exit         exit
+#    define MBEDTLS_EXIT_SUCCESS EXIT_SUCCESS
+#    define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
 #endif
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
-#include "mbedtls/memory_buffer_alloc.h"
+#    include "mbedtls/memory_buffer_alloc.h"
 #endif
-
 
 #if defined MBEDTLS_SELF_TEST
 /* Sanity check for malloc. This is not expected to fail, and is rather
  * intended to display potentially useful information about the platform,
  * in particular the behavior of malloc(0). */
-static int calloc_self_test( int verbose )
+static int calloc_self_test(int verbose)
 {
     int failures = 0;
-    void *empty1 = mbedtls_calloc( 0, 1 );
-    void *empty2 = mbedtls_calloc( 0, 1 );
-    void *buffer1 = mbedtls_calloc( 1, 1 );
-    void *buffer2 = mbedtls_calloc( 1, 1 );
+    void *empty1 = mbedtls_calloc(0, 1);
+    void *empty2 = mbedtls_calloc(0, 1);
+    void *buffer1 = mbedtls_calloc(1, 1);
+    void *buffer2 = mbedtls_calloc(1, 1);
     uintptr_t old_buffer1;
 
-    if( empty1 == NULL && empty2 == NULL )
-    {
-        if( verbose )
-            mbedtls_printf( "  CALLOC(0): passed (NULL)\n" );
-    }
-    else if( empty1 == NULL || empty2 == NULL )
-    {
-        if( verbose )
-            mbedtls_printf( "  CALLOC(0): failed (mix of NULL and non-NULL)\n" );
+    if (empty1 == NULL && empty2 == NULL) {
+        if (verbose)
+            mbedtls_printf("  CALLOC(0): passed (NULL)\n");
+    } else if (empty1 == NULL || empty2 == NULL) {
+        if (verbose)
+            mbedtls_printf("  CALLOC(0): failed (mix of NULL and non-NULL)\n");
         ++failures;
-    }
-    else if( empty1 == empty2 )
-    {
-        if( verbose )
-            mbedtls_printf( "  CALLOC(0): passed (same non-null)\n" );
-    }
-    else
-    {
-        if( verbose )
-            mbedtls_printf( "  CALLOC(0): passed (distinct non-null)\n" );
+    } else if (empty1 == empty2) {
+        if (verbose)
+            mbedtls_printf("  CALLOC(0): passed (same non-null)\n");
+    } else {
+        if (verbose)
+            mbedtls_printf("  CALLOC(0): passed (distinct non-null)\n");
     }
 
-    if( buffer1 == NULL || buffer2 == NULL )
-    {
-        if( verbose )
-            mbedtls_printf( "  CALLOC(1): failed (NULL)\n" );
+    if (buffer1 == NULL || buffer2 == NULL) {
+        if (verbose)
+            mbedtls_printf("  CALLOC(1): failed (NULL)\n");
         ++failures;
-    }
-    else if( buffer1 == buffer2 )
-    {
-        if( verbose )
-            mbedtls_printf( "  CALLOC(1): failed (same buffer twice)\n" );
+    } else if (buffer1 == buffer2) {
+        if (verbose)
+            mbedtls_printf("  CALLOC(1): failed (same buffer twice)\n");
         ++failures;
-    }
-    else
-    {
-        if( verbose )
-            mbedtls_printf( "  CALLOC(1): passed\n" );
+    } else {
+        if (verbose)
+            mbedtls_printf("  CALLOC(1): passed\n");
     }
 
-    old_buffer1 = (uintptr_t) buffer1;
-    mbedtls_free( buffer1 );
-    buffer1 = mbedtls_calloc( 1, 1 );
-    if( buffer1 == NULL )
-    {
-        if( verbose )
-            mbedtls_printf( "  CALLOC(1 again): failed (NULL)\n" );
+    old_buffer1 = (uintptr_t)buffer1;
+    mbedtls_free(buffer1);
+    buffer1 = mbedtls_calloc(1, 1);
+    if (buffer1 == NULL) {
+        if (verbose)
+            mbedtls_printf("  CALLOC(1 again): failed (NULL)\n");
         ++failures;
-    }
-    else
-    {
-        if( verbose )
-            mbedtls_printf( "  CALLOC(1 again): passed (%s address)\n",
-                            (uintptr_t) old_buffer1 == (uintptr_t) buffer1 ?
-                            "same" : "different" );
+    } else {
+        if (verbose)
+            mbedtls_printf("  CALLOC(1 again): passed (%s address)\n",
+                           (uintptr_t)old_buffer1 == (uintptr_t)buffer1 ?
+                               "same" :
+                               "different");
     }
 
-    if( verbose )
-        mbedtls_printf( "\n" );
-    mbedtls_free( empty1 );
-    mbedtls_free( empty2 );
-    mbedtls_free( buffer1 );
-    mbedtls_free( buffer2 );
-    return failures ;
+    if (verbose)
+        mbedtls_printf("\n");
+    mbedtls_free(empty1);
+    mbedtls_free(empty2);
+    mbedtls_free(buffer1);
+    mbedtls_free(buffer2);
+    return failures;
 }
 #endif /* MBEDTLS_SELF_TEST */
 
-static int test_snprintf( size_t n, const char *ref_buf, int ref_ret )
+static int test_snprintf(size_t n, const char *ref_buf, int ref_ret)
 {
     int ret;
     char buf[10] = "xxxxxxxxx";
     const char ref[10] = "xxxxxxxxx";
 
-    ret = mbedtls_snprintf( buf, n, "%s", "123" );
-    if( ret < 0 || (size_t) ret >= n )
+    ret = mbedtls_snprintf(buf, n, "%s", "123");
+    if (ret < 0 || (size_t)ret >= n)
         ret = -1;
 
-    if( strncmp( ref_buf, buf, sizeof( buf ) ) != 0 ||
-        ref_ret != ret ||
-        memcmp( buf + n, ref + n, sizeof( buf ) - n ) != 0 )
-    {
-        return 1 ;
+    if (strncmp(ref_buf, buf, sizeof(buf)) != 0 || ref_ret != ret ||
+        memcmp(buf + n, ref + n, sizeof(buf) - n) != 0) {
+        return 1;
     }
 
-    return 0 ;
+    return 0;
 }
 
-static int run_test_snprintf( void )
+static int run_test_snprintf(void)
 {
-    return( test_snprintf( 0, "xxxxxxxxx",  -1 ) != 0 ||
-            test_snprintf( 1, "",           -1 ) != 0 ||
-            test_snprintf( 2, "1",          -1 ) != 0 ||
-            test_snprintf( 3, "12",         -1 ) != 0 ||
-            test_snprintf( 4, "123",         3 ) != 0 ||
-            test_snprintf( 5, "123",         3 ) != 0 );
+    return (test_snprintf(0, "xxxxxxxxx", -1) != 0 ||
+            test_snprintf(1, "", -1) != 0 || test_snprintf(2, "1", -1) != 0 ||
+            test_snprintf(3, "12", -1) != 0 ||
+            test_snprintf(4, "123", 3) != 0 || test_snprintf(5, "123", 3) != 0);
 }
 
 /*
@@ -187,8 +168,9 @@ static int run_test_snprintf( void )
  * back.
  */
 #if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_ENTROPY_C)
-#if defined(MBEDTLS_ENTROPY_NV_SEED) && !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
-static void create_entropy_seed_file( void )
+#    if defined(MBEDTLS_ENTROPY_NV_SEED) && \
+        !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
+static void create_entropy_seed_file(void)
 {
     int result;
     size_t output_len = 0;
@@ -196,145 +178,141 @@ static void create_entropy_seed_file( void )
 
     /* Attempt to read the entropy seed file. If this fails - attempt to write
      * to the file to ensure one is present. */
-    result = mbedtls_platform_std_nv_seed_read( seed_value,
-                                                    MBEDTLS_ENTROPY_BLOCK_SIZE );
-    if( 0 == result )
+    result = mbedtls_platform_std_nv_seed_read(seed_value,
+                                               MBEDTLS_ENTROPY_BLOCK_SIZE);
+    if (0 == result)
         return;
 
-    result = mbedtls_platform_entropy_poll( NULL,
-                                            seed_value,
-                                            MBEDTLS_ENTROPY_BLOCK_SIZE,
-                                            &output_len );
-    if( 0 != result )
+    result = mbedtls_platform_entropy_poll(
+        NULL, seed_value, MBEDTLS_ENTROPY_BLOCK_SIZE, &output_len);
+    if (0 != result)
         return;
 
-    if( MBEDTLS_ENTROPY_BLOCK_SIZE != output_len )
+    if (MBEDTLS_ENTROPY_BLOCK_SIZE != output_len)
         return;
 
-    mbedtls_platform_std_nv_seed_write( seed_value, MBEDTLS_ENTROPY_BLOCK_SIZE );
+    mbedtls_platform_std_nv_seed_write(seed_value, MBEDTLS_ENTROPY_BLOCK_SIZE);
 }
-#endif
+#    endif
 
-int mbedtls_entropy_self_test_wrapper( int verbose )
+int mbedtls_entropy_self_test_wrapper(int verbose)
 {
-#if defined(MBEDTLS_ENTROPY_NV_SEED) && !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
-    create_entropy_seed_file( );
-#endif
-    return mbedtls_entropy_self_test( verbose ) ;
+#    if defined(MBEDTLS_ENTROPY_NV_SEED) && \
+        !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
+    create_entropy_seed_file();
+#    endif
+    return mbedtls_entropy_self_test(verbose);
 }
 #endif
 
 #if defined(MBEDTLS_SELF_TEST)
-#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
-int mbedtls_memory_buffer_alloc_free_and_self_test( int verbose )
+#    if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
+int mbedtls_memory_buffer_alloc_free_and_self_test(int verbose)
 {
-    if( verbose != 0 )
-    {
-#if defined(MBEDTLS_MEMORY_DEBUG)
-        mbedtls_memory_buffer_alloc_status( );
-#endif
+    if (verbose != 0) {
+#        if defined(MBEDTLS_MEMORY_DEBUG)
+        mbedtls_memory_buffer_alloc_status();
+#        endif
     }
-    mbedtls_memory_buffer_alloc_free( );
-    return mbedtls_memory_buffer_alloc_self_test( verbose ) ;
+    mbedtls_memory_buffer_alloc_free();
+    return mbedtls_memory_buffer_alloc_self_test(verbose);
 }
-#endif
+#    endif
 
-typedef struct
-{
+typedef struct {
     const char *name;
-    int ( *function )( int );
+    int (*function)(int);
 } selftest_t;
 
-const selftest_t selftests[] =
-{
-    {"calloc", calloc_self_test},
-#if defined(MBEDTLS_MD5_C)
-    {"md5", mbedtls_md5_self_test},
-#endif
-#if defined(MBEDTLS_RIPEMD160_C)
-    {"ripemd160", mbedtls_ripemd160_self_test},
-#endif
-#if defined(MBEDTLS_SHA1_C)
-    {"sha1", mbedtls_sha1_self_test},
-#endif
-#if defined(MBEDTLS_SHA256_C)
-    {"sha256", mbedtls_sha256_self_test},
-#endif
-#if defined(MBEDTLS_SHA512_C)
-    {"sha512", mbedtls_sha512_self_test},
-#endif
-#if defined(MBEDTLS_DES_C)
-    {"des", mbedtls_des_self_test},
-#endif
-#if defined(MBEDTLS_AES_C)
-    {"aes", mbedtls_aes_self_test},
-#endif
-#if defined(MBEDTLS_GCM_C) && defined(MBEDTLS_AES_C)
-    {"gcm", mbedtls_gcm_self_test},
-#endif
-#if defined(MBEDTLS_CCM_C) && defined(MBEDTLS_AES_C)
-    {"ccm", mbedtls_ccm_self_test},
-#endif
-#if defined(MBEDTLS_NIST_KW_C) && defined(MBEDTLS_AES_C)
-    {"nist_kw", mbedtls_nist_kw_self_test},
-#endif
-#if defined(MBEDTLS_CMAC_C)
-    {"cmac", mbedtls_cmac_self_test},
-#endif
-#if defined(MBEDTLS_CHACHA20_C)
-    {"chacha20", mbedtls_chacha20_self_test},
-#endif
-#if defined(MBEDTLS_POLY1305_C)
-    {"poly1305", mbedtls_poly1305_self_test},
-#endif
-#if defined(MBEDTLS_CHACHAPOLY_C)
-    {"chacha20-poly1305", mbedtls_chachapoly_self_test},
-#endif
-#if defined(MBEDTLS_BASE64_C)
-    {"base64", mbedtls_base64_self_test},
-#endif
-#if defined(MBEDTLS_BIGNUM_C)
-    {"mpi", mbedtls_mpi_self_test},
-#endif
-#if defined(MBEDTLS_RSA_C)
-    {"rsa", mbedtls_rsa_self_test},
-#endif
-#if defined(MBEDTLS_CAMELLIA_C)
-    {"camellia", mbedtls_camellia_self_test},
-#endif
-#if defined(MBEDTLS_ARIA_C)
-    {"aria", mbedtls_aria_self_test},
-#endif
-#if defined(MBEDTLS_CTR_DRBG_C)
-    {"ctr_drbg", mbedtls_ctr_drbg_self_test},
-#endif
-#if defined(MBEDTLS_HMAC_DRBG_C)
-    {"hmac_drbg", mbedtls_hmac_drbg_self_test},
-#endif
-#if defined(MBEDTLS_ECP_C)
-    {"ecp", mbedtls_ecp_self_test},
-#endif
-#if defined(MBEDTLS_ECJPAKE_C)
-    {"ecjpake", mbedtls_ecjpake_self_test},
-#endif
-#if defined(MBEDTLS_DHM_C)
-    {"dhm", mbedtls_dhm_self_test},
-#endif
-#if defined(MBEDTLS_ENTROPY_C)
-    {"entropy", mbedtls_entropy_self_test_wrapper},
-#endif
-#if defined(MBEDTLS_PKCS5_C)
-    {"pkcs5", mbedtls_pkcs5_self_test},
-#endif
+const selftest_t selftests[] = {
+    { "calloc", calloc_self_test },
+#    if defined(MBEDTLS_MD5_C)
+    { "md5", mbedtls_md5_self_test },
+#    endif
+#    if defined(MBEDTLS_RIPEMD160_C)
+    { "ripemd160", mbedtls_ripemd160_self_test },
+#    endif
+#    if defined(MBEDTLS_SHA1_C)
+    { "sha1", mbedtls_sha1_self_test },
+#    endif
+#    if defined(MBEDTLS_SHA256_C)
+    { "sha256", mbedtls_sha256_self_test },
+#    endif
+#    if defined(MBEDTLS_SHA512_C)
+    { "sha512", mbedtls_sha512_self_test },
+#    endif
+#    if defined(MBEDTLS_DES_C)
+    { "des", mbedtls_des_self_test },
+#    endif
+#    if defined(MBEDTLS_AES_C)
+    { "aes", mbedtls_aes_self_test },
+#    endif
+#    if defined(MBEDTLS_GCM_C) && defined(MBEDTLS_AES_C)
+    { "gcm", mbedtls_gcm_self_test },
+#    endif
+#    if defined(MBEDTLS_CCM_C) && defined(MBEDTLS_AES_C)
+    { "ccm", mbedtls_ccm_self_test },
+#    endif
+#    if defined(MBEDTLS_NIST_KW_C) && defined(MBEDTLS_AES_C)
+    { "nist_kw", mbedtls_nist_kw_self_test },
+#    endif
+#    if defined(MBEDTLS_CMAC_C)
+    { "cmac", mbedtls_cmac_self_test },
+#    endif
+#    if defined(MBEDTLS_CHACHA20_C)
+    { "chacha20", mbedtls_chacha20_self_test },
+#    endif
+#    if defined(MBEDTLS_POLY1305_C)
+    { "poly1305", mbedtls_poly1305_self_test },
+#    endif
+#    if defined(MBEDTLS_CHACHAPOLY_C)
+    { "chacha20-poly1305", mbedtls_chachapoly_self_test },
+#    endif
+#    if defined(MBEDTLS_BASE64_C)
+    { "base64", mbedtls_base64_self_test },
+#    endif
+#    if defined(MBEDTLS_BIGNUM_C)
+    { "mpi", mbedtls_mpi_self_test },
+#    endif
+#    if defined(MBEDTLS_RSA_C)
+    { "rsa", mbedtls_rsa_self_test },
+#    endif
+#    if defined(MBEDTLS_CAMELLIA_C)
+    { "camellia", mbedtls_camellia_self_test },
+#    endif
+#    if defined(MBEDTLS_ARIA_C)
+    { "aria", mbedtls_aria_self_test },
+#    endif
+#    if defined(MBEDTLS_CTR_DRBG_C)
+    { "ctr_drbg", mbedtls_ctr_drbg_self_test },
+#    endif
+#    if defined(MBEDTLS_HMAC_DRBG_C)
+    { "hmac_drbg", mbedtls_hmac_drbg_self_test },
+#    endif
+#    if defined(MBEDTLS_ECP_C)
+    { "ecp", mbedtls_ecp_self_test },
+#    endif
+#    if defined(MBEDTLS_ECJPAKE_C)
+    { "ecjpake", mbedtls_ecjpake_self_test },
+#    endif
+#    if defined(MBEDTLS_DHM_C)
+    { "dhm", mbedtls_dhm_self_test },
+#    endif
+#    if defined(MBEDTLS_ENTROPY_C)
+    { "entropy", mbedtls_entropy_self_test_wrapper },
+#    endif
+#    if defined(MBEDTLS_PKCS5_C)
+    { "pkcs5", mbedtls_pkcs5_self_test },
+#    endif
 /* Heap test comes last */
-#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
-    {"memory_buffer_alloc", mbedtls_memory_buffer_alloc_free_and_self_test},
-#endif
-    {NULL, NULL}
+#    if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
+    { "memory_buffer_alloc", mbedtls_memory_buffer_alloc_free_and_self_test },
+#    endif
+    { NULL, NULL }
 };
 #endif /* MBEDTLS_SELF_TEST */
 
-int main( int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
 #if defined(MBEDTLS_SELF_TEST)
     const selftest_t *test;
@@ -353,93 +331,73 @@ int main( int argc, char *argv[] )
      * of a NULL pointer. We do however use that in our code for initializing
      * structures, which should work on every modern platform. Let's be sure.
      */
-    memset( &pointer, 0, sizeof( void * ) );
-    if( pointer != NULL )
-    {
-        mbedtls_printf( "all-bits-zero is not a NULL pointer\n" );
-        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+    memset(&pointer, 0, sizeof(void *));
+    if (pointer != NULL) {
+        mbedtls_printf("all-bits-zero is not a NULL pointer\n");
+        mbedtls_exit(MBEDTLS_EXIT_FAILURE);
     }
 
     /*
      * Make sure we have a snprintf that correctly zero-terminates
      */
-    if( run_test_snprintf() != 0 )
-    {
-        mbedtls_printf( "the snprintf implementation is broken\n" );
-        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+    if (run_test_snprintf() != 0) {
+        mbedtls_printf("the snprintf implementation is broken\n");
+        mbedtls_exit(MBEDTLS_EXIT_FAILURE);
     }
 
-    for( argp = argv + ( argc >= 1 ? 1 : argc ); *argp != NULL; ++argp )
-    {
-        if( strcmp( *argp, "--quiet" ) == 0 ||
-            strcmp( *argp, "-q" ) == 0 )
-        {
+    for (argp = argv + (argc >= 1 ? 1 : argc); *argp != NULL; ++argp) {
+        if (strcmp(*argp, "--quiet") == 0 || strcmp(*argp, "-q") == 0) {
             v = 0;
-        }
-        else if( strcmp( *argp, "--exclude" ) == 0 ||
-                 strcmp( *argp, "-x" ) == 0 )
-        {
+        } else if (strcmp(*argp, "--exclude") == 0 ||
+                   strcmp(*argp, "-x") == 0) {
             exclude_mode = 1;
-        }
-        else
+        } else
             break;
     }
 
-    if( v != 0 )
-        mbedtls_printf( "\n" );
+    if (v != 0)
+        mbedtls_printf("\n");
 
 #if defined(MBEDTLS_SELF_TEST)
 
-#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
-    mbedtls_memory_buffer_alloc_init( buf, sizeof(buf) );
-#endif
+#    if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
+    mbedtls_memory_buffer_alloc_init(buf, sizeof(buf));
+#    endif
 
-    if( *argp != NULL && exclude_mode == 0 )
-    {
+    if (*argp != NULL && exclude_mode == 0) {
         /* Run the specified tests */
-        for( ; *argp != NULL; argp++ )
-        {
-            for( test = selftests; test->name != NULL; test++ )
-            {
-                if( !strcmp( *argp, test->name ) )
-                {
-                    if( test->function( v )  != 0 )
-                    {
+        for (; *argp != NULL; argp++) {
+            for (test = selftests; test->name != NULL; test++) {
+                if (!strcmp(*argp, test->name)) {
+                    if (test->function(v) != 0) {
                         suites_failed++;
                     }
                     suites_tested++;
                     break;
                 }
             }
-            if( test->name == NULL )
-            {
-                mbedtls_printf( "  Test suite %s not available -> failed\n\n", *argp );
+            if (test->name == NULL) {
+                mbedtls_printf("  Test suite %s not available -> failed\n\n",
+                               *argp);
                 suites_failed++;
             }
         }
-    }
-    else
-    {
+    } else {
         /* Run all the tests except excluded ones */
-        for( test = selftests; test->name != NULL; test++ )
-        {
-            if( exclude_mode )
-            {
+        for (test = selftests; test->name != NULL; test++) {
+            if (exclude_mode) {
                 char **excluded;
-                for( excluded = argp; *excluded != NULL; ++excluded )
-                {
-                    if( !strcmp( *excluded, test->name ) )
+                for (excluded = argp; *excluded != NULL; ++excluded) {
+                    if (!strcmp(*excluded, test->name))
                         break;
                 }
-                if( *excluded )
-                {
-                    if( v )
-                        mbedtls_printf( "  Skip: %s\n", test->name );
+                if (*excluded) {
+                    if (v)
+                        mbedtls_printf("  Skip: %s\n", test->name);
                     continue;
                 }
             }
-            if( test->function( v )  != 0 )
-            {
+            if (test->function(v) != 0) {
                 suites_failed++;
             }
             suites_tested++;
@@ -447,30 +405,27 @@ int main( int argc, char *argv[] )
     }
 
 #else
-    (void) exclude_mode;
-    mbedtls_printf( " MBEDTLS_SELF_TEST not defined.\n" );
+    (void)exclude_mode;
+    mbedtls_printf(" MBEDTLS_SELF_TEST not defined.\n");
 #endif
 
-    if( v != 0 )
-    {
-        mbedtls_printf( "  Executed %d test suites\n\n", suites_tested );
+    if (v != 0) {
+        mbedtls_printf("  Executed %d test suites\n\n", suites_tested);
 
-        if( suites_failed > 0)
-        {
-            mbedtls_printf( "  [ %d tests FAIL ]\n\n", suites_failed );
-        }
-        else
-        {
-            mbedtls_printf( "  [ All tests PASS ]\n\n" );
+        if (suites_failed > 0) {
+            mbedtls_printf("  [ %d tests FAIL ]\n\n", suites_failed);
+        } else {
+            mbedtls_printf("  [ All tests PASS ]\n\n");
         }
 #if defined(_WIN32)
-        mbedtls_printf( "  Press Enter to exit this program.\n" );
-        fflush( stdout ); getchar();
+        mbedtls_printf("  Press Enter to exit this program.\n");
+        fflush(stdout);
+        getchar();
 #endif
     }
 
-    if( suites_failed > 0)
-        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+    if (suites_failed > 0)
+        mbedtls_exit(MBEDTLS_EXIT_FAILURE);
 
-    mbedtls_exit( MBEDTLS_EXIT_SUCCESS );
+    mbedtls_exit(MBEDTLS_EXIT_SUCCESS);
 }

@@ -32,15 +32,16 @@
  */
 
 #ifndef PSA_CRYPTO_DRIVER_CONTEXTS_COMPOSITES_H
-#define PSA_CRYPTO_DRIVER_CONTEXTS_COMPOSITES_H
+#    define PSA_CRYPTO_DRIVER_CONTEXTS_COMPOSITES_H
 
-#include "psa/crypto_driver_common.h"
+#    include "psa/crypto_driver_common.h"
 
 /* Include the context structure definitions for those drivers that were
  * declared during the autogeneration process. */
 
-/* Include the context structure definitions for the Mbed TLS software drivers */
-#include "psa/crypto_builtin_composites.h"
+/* Include the context structure definitions for the Mbed TLS software drivers
+ */
+#    include "psa/crypto_builtin_composites.h"
 
 /* Define the context to be used for an operation that is executed through the
  * PSA Driver wrapper layer as the union of all possible driver's contexts.
@@ -52,10 +53,10 @@
 typedef union {
     unsigned dummy; /* Make sure this union is always non-empty */
     mbedtls_psa_mac_operation_t mbedtls_ctx;
-#if defined(PSA_CRYPTO_DRIVER_TEST)
+#    if defined(PSA_CRYPTO_DRIVER_TEST)
     mbedtls_transparent_test_driver_mac_operation_t transparent_test_driver_ctx;
     mbedtls_opaque_test_driver_mac_operation_t opaque_test_driver_ctx;
-#endif
+#    endif
 } psa_driver_mac_context_t;
 
 #endif /* PSA_CRYPTO_DRIVER_CONTEXTS_COMPOSITES_H */

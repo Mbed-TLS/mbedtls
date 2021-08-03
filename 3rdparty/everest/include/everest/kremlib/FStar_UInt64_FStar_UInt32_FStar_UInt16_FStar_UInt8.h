@@ -7,11 +7,8 @@
  * KreMLin version: 916c37ac
  */
 
-
-
 #ifndef __FStar_UInt64_FStar_UInt32_FStar_UInt16_FStar_UInt8_H
 #define __FStar_UInt64_FStar_UInt32_FStar_UInt16_FStar_UInt8_H
-
 
 #include <inttypes.h>
 #include <stdbool.h>

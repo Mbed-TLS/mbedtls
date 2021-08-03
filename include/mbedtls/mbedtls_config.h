@@ -165,8 +165,8 @@
  *
  * Enabling MBEDTLS_PLATFORM_MEMORY without the
  * MBEDTLS_PLATFORM_{FREE,CALLOC}_MACROs will provide
- * "mbedtls_platform_set_calloc_free()" allowing you to set an alternative calloc() and
- * free() function pointer at runtime.
+ * "mbedtls_platform_set_calloc_free()" allowing you to set an alternative
+ * calloc() and free() function pointer at runtime.
  *
  * Enabling MBEDTLS_PLATFORM_MEMORY and specifying
  * MBEDTLS_PLATFORM_{CALLOC,FREE}_MACROs will allow you to specify the
@@ -346,14 +346,14 @@
  * used, in contrast to the MBEDTLS__MODULE_NAME__ALT flags.
  *
  * Example: In case you uncomment MBEDTLS_SHA256_PROCESS_ALT, mbed TLS will
- * no longer provide the mbedtls_sha1_process() function, but it will still provide
- * the other function (using your mbedtls_sha1_process() function) and the definition
- * of mbedtls_sha1_context, so your implementation of mbedtls_sha1_process must be compatible
- * with this definition.
+ * no longer provide the mbedtls_sha1_process() function, but it will still
+ * provide the other function (using your mbedtls_sha1_process() function) and
+ * the definition of mbedtls_sha1_context, so your implementation of
+ * mbedtls_sha1_process must be compatible with this definition.
  *
  * \note If you use the AES_xxx_ALT macros, then it is recommended to also set
- *       MBEDTLS_AES_ROM_TABLES in order to help the linker garbage-collect the AES
- *       tables.
+ *       MBEDTLS_AES_ROM_TABLES in order to help the linker garbage-collect the
+ * AES tables.
  *
  * Uncomment a macro to enable alternate implementation of the corresponding
  * function.
@@ -3020,7 +3020,8 @@
 //#define MBEDTLS_MPI_MAX_SIZE            1024
 
 /* CTR_DRBG options */
-/** Amount of entropy used per seed by default (48 with SHA-512, 32 with SHA-256) */
+/** Amount of entropy used per seed by default (48 with SHA-512, 32 with
+ * SHA-256) */
 //#define MBEDTLS_CTR_DRBG_ENTROPY_LEN               48
 /** Interval before reseed is performed by default */
 //#define MBEDTLS_CTR_DRBG_RESEED_INTERVAL        10000
@@ -3052,7 +3053,8 @@
 //#define MBEDTLS_ENTROPY_MAX_SOURCES                20
 /** Maximum amount requested from entropy sources */
 //#define MBEDTLS_ENTROPY_MAX_GATHER                128
-/** Default minimum number of bytes required for the hardware entropy source mbedtls_hardware_poll() before entropy is released */
+/** Default minimum number of bytes required for the hardware entropy source
+ * mbedtls_hardware_poll() before entropy is released */
 //#define MBEDTLS_ENTROPY_MIN_HARDWARE               32
 
 /* Memory buffer allocator options */
@@ -3060,7 +3062,9 @@
 //#define MBEDTLS_MEMORY_ALIGN_MULTIPLE      4
 
 /* Platform options */
-//#define MBEDTLS_PLATFORM_STD_MEM_HDR   <stdlib.h> /**< Header to include if MBEDTLS_PLATFORM_NO_STD_FUNCTIONS is defined. Don't define if no header is needed. */
+//#define MBEDTLS_PLATFORM_STD_MEM_HDR   <stdlib.h> /**< Header to include if
+// MBEDTLS_PLATFORM_NO_STD_FUNCTIONS is defined. Don't define if no header is
+// needed. */
 /** Default allocator to use, can be undefined */
 //#define MBEDTLS_PLATFORM_STD_CALLOC        calloc
 /** Default free to use, can be undefined */
@@ -3084,19 +3088,23 @@
 //#define MBEDTLS_PLATFORM_STD_NV_SEED_READ   mbedtls_platform_std_nv_seed_read
 /** Default nv_seed_write function to use, can be undefined */
 //#define MBEDTLS_PLATFORM_STD_NV_SEED_WRITE  mbedtls_platform_std_nv_seed_write
-//#define MBEDTLS_PLATFORM_STD_NV_SEED_FILE  "seedfile" /**< Seed file to read/write with default implementation */
+//#define MBEDTLS_PLATFORM_STD_NV_SEED_FILE  "seedfile" /**< Seed file to
+// read/write with default implementation */
 
 /* To Use Function Macros MBEDTLS_PLATFORM_C must be enabled */
-/* MBEDTLS_PLATFORM_XXX_MACRO and MBEDTLS_PLATFORM_XXX_ALT cannot both be defined */
+/* MBEDTLS_PLATFORM_XXX_MACRO and MBEDTLS_PLATFORM_XXX_ALT cannot both be
+ * defined */
 /** Default allocator macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_CALLOC_MACRO        calloc
 /** Default free macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_FREE_MACRO            free
 /** Default exit macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_EXIT_MACRO            exit
-/** Default time macro to use, can be undefined. MBEDTLS_HAVE_TIME must be enabled */
+/** Default time macro to use, can be undefined. MBEDTLS_HAVE_TIME must be
+ * enabled */
 //#define MBEDTLS_PLATFORM_TIME_MACRO            time
-/** Default time macro to use, can be undefined. MBEDTLS_HAVE_TIME must be enabled */
+/** Default time macro to use, can be undefined. MBEDTLS_HAVE_TIME must be
+ * enabled */
 //#define MBEDTLS_PLATFORM_TIME_TYPE_MACRO       time_t
 /** Default fprintf macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_FPRINTF_MACRO      fprintf
@@ -3108,9 +3116,10 @@
 /** Default vsnprintf macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_VSNPRINTF_MACRO    vsnprintf
 /** Default nv_seed_read function to use, can be undefined */
-//#define MBEDTLS_PLATFORM_NV_SEED_READ_MACRO   mbedtls_platform_std_nv_seed_read
+//#define MBEDTLS_PLATFORM_NV_SEED_READ_MACRO mbedtls_platform_std_nv_seed_read
 /** Default nv_seed_write function to use, can be undefined */
-//#define MBEDTLS_PLATFORM_NV_SEED_WRITE_MACRO  mbedtls_platform_std_nv_seed_write
+//#define MBEDTLS_PLATFORM_NV_SEED_WRITE_MACRO
+// mbedtls_platform_std_nv_seed_write
 
 /* PSA options */
 /**
@@ -3234,7 +3243,8 @@
 
 /** Max size of TLS pre-shared keys, in bytes (default 256 bits) */
 //#define MBEDTLS_PSK_MAX_LEN               32
-/** Default expiration delay of DTLS cookies, in seconds if HAVE_TIME, or in number of cookies issued */
+/** Default expiration delay of DTLS cookies, in seconds if HAVE_TIME, or in
+ * number of cookies issued */
 //#define MBEDTLS_SSL_COOKIE_TIMEOUT        60
 
 /**
@@ -3249,12 +3259,14 @@
  *
  * The value below is only an example, not the default.
  */
-//#define MBEDTLS_SSL_CIPHERSUITES MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+//#define MBEDTLS_SSL_CIPHERSUITES
+// MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
 
 /* X509 options */
 /** Maximum number of intermediate CAs in a verification chain. */
 //#define MBEDTLS_X509_MAX_INTERMEDIATE_CA   8
-/** Maximum length of a path/filename string in bytes including the null terminator character ('\0'). */
+/** Maximum length of a path/filename string in bytes including the null
+ * terminator character ('\0'). */
 //#define MBEDTLS_X509_MAX_FILE_PATH_LEN     512
 
 /**

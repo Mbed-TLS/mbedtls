@@ -20,12 +20,12 @@
 #include "mbedtls/build_info.h"
 
 #if defined(MBEDTLS_PLATFORM_C)
-#include "mbedtls/platform.h"
+#    include "mbedtls/platform.h"
 #else
-#include <stdio.h>
-#include <stdlib.h>
-#define mbedtls_printf       printf
-#define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
+#    include <stdio.h>
+#    include <stdlib.h>
+#    define mbedtls_printf       printf
+#    define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
 #endif
 
 #define USAGE                                                                \
@@ -38,13 +38,12 @@
 
 #include "query_config.h"
 
-int main( int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
-    if ( argc != 2 )
-    {
-        mbedtls_printf( USAGE, argv[0] );
-        return MBEDTLS_EXIT_FAILURE ;
+    if (argc != 2) {
+        mbedtls_printf(USAGE, argv[0]);
+        return MBEDTLS_EXIT_FAILURE;
     }
 
-    return query_config( argv[1] ) ;
+    return query_config(argv[1]);
 }

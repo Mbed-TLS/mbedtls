@@ -32,7 +32,8 @@ extern "C" {
  * \name SECTION: Module settings
  *
  * The configuration options you can set for this module are in this section.
- * Either change them in mbedtls_config.h or define them on the compiler command line.
+ * Either change them in mbedtls_config.h or define them on the compiler command
+ * line.
  * \{
  */
 
@@ -43,7 +44,7 @@ extern "C" {
 typedef MBEDTLS_PLATFORM_TIME_TYPE_MACRO mbedtls_time_t;
 #else
 /* For time_t */
-#include <time.h>
+#    include <time.h>
 typedef time_t mbedtls_time_t;
 #endif /* MBEDTLS_PLATFORM_TIME_TYPE_MACRO */
 
@@ -51,7 +52,7 @@ typedef time_t mbedtls_time_t;
  * The function pointers for time
  */
 #if defined(MBEDTLS_PLATFORM_TIME_ALT)
-extern mbedtls_time_t (*mbedtls_time)( mbedtls_time_t* time );
+extern mbedtls_time_t (*mbedtls_time)(mbedtls_time_t *time);
 
 /**
  * \brief   Set your own time function pointer
@@ -60,13 +61,13 @@ extern mbedtls_time_t (*mbedtls_time)( mbedtls_time_t* time );
  *
  * \return              0
  */
-int mbedtls_platform_set_time( mbedtls_time_t (*time_func)( mbedtls_time_t* time ) );
+int mbedtls_platform_set_time(mbedtls_time_t (*time_func)(mbedtls_time_t *time));
 #else
-#if defined(MBEDTLS_PLATFORM_TIME_MACRO)
-#define mbedtls_time    MBEDTLS_PLATFORM_TIME_MACRO
-#else
-#define mbedtls_time   time
-#endif /* MBEDTLS_PLATFORM_TIME_MACRO */
+#    if defined(MBEDTLS_PLATFORM_TIME_MACRO)
+#        define mbedtls_time MBEDTLS_PLATFORM_TIME_MACRO
+#    else
+#        define mbedtls_time time
+#    endif /* MBEDTLS_PLATFORM_TIME_MACRO */
 #endif /* MBEDTLS_PLATFORM_TIME_ALT */
 
 #ifdef __cplusplus

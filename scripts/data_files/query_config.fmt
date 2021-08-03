@@ -22,10 +22,10 @@
 #include "query_config.h"
 
 #if defined(MBEDTLS_PLATFORM_C)
-#include "mbedtls/platform.h"
+#    include "mbedtls/platform.h"
 #else
-#include <stdio.h>
-#define mbedtls_printf printf
+#    include <stdio.h>
+#    define mbedtls_printf printf
 #endif /* MBEDTLS_PLATFORM_C */
 
 /*
@@ -95,9 +95,9 @@
  * WARNING: This does not work for expanding function-like macros. However,
  * Mbed TLS does not currently have configuration options used in this fashion.
  */
-#define MACRO_EXPANSION_TO_STR(macro)   MACRO_NAME_TO_STR(macro)
-#define MACRO_NAME_TO_STR(macro)                                        \
-    mbedtls_printf( "%s", strlen( #macro "" ) > 0 ? #macro "\n" : "" )
+#define MACRO_EXPANSION_TO_STR(macro) MACRO_NAME_TO_STR(macro)
+#define MACRO_NAME_TO_STR(macro) \
+    mbedtls_printf("%s", strlen(#macro "") > 0 ? #macro "\n" : "")
 
 #if defined(_MSC_VER)
 /*
@@ -108,16 +108,16 @@
  * clean build and to ensure that tests treating warnings as errors do not
  * fail.
  */
-#pragma warning(push)
-#pragma warning(disable:4003)
+#    pragma warning(push)
+#    pragma warning(disable : 4003)
 #endif /* _MSC_VER */
 
-int query_config( const char *config )
+int query_config(const char *config)
 {
-CHECK_CONFIG    /* If the symbol is not found, return an error */
-    return 1 ;
+    CHECK_CONFIG /* If the symbol is not found, return an error */
+        return 1;
 }
 
 #if defined(_MSC_VER)
-#pragma warning(pop)
+#    pragma warning(pop)
 #endif /* _MSC_VER */

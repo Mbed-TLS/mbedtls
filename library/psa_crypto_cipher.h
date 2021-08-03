@@ -36,9 +36,11 @@
  * \return  The Mbed TLS cipher information of the cipher algorithm.
  *          \c NULL if the PSA cipher algorithm is not supported.
  */
-const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
-    psa_algorithm_t alg, psa_key_type_t key_type, size_t key_bits,
-    mbedtls_cipher_id_t *cipher_id );
+const mbedtls_cipher_info_t *
+mbedtls_cipher_info_from_psa(psa_algorithm_t alg,
+                             psa_key_type_t key_type,
+                             size_t key_bits,
+                             mbedtls_cipher_id_t *cipher_id);
 
 /**
  * \brief Set the key for a multipart symmetric encryption operation.
@@ -64,11 +66,12 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  */
-psa_status_t mbedtls_psa_cipher_encrypt_setup(
-    mbedtls_psa_cipher_operation_t *operation,
-    const psa_key_attributes_t *attributes,
-    const uint8_t *key_buffer, size_t key_buffer_size,
-    psa_algorithm_t alg );
+psa_status_t
+mbedtls_psa_cipher_encrypt_setup(mbedtls_psa_cipher_operation_t *operation,
+                                 const psa_key_attributes_t *attributes,
+                                 const uint8_t *key_buffer,
+                                 size_t key_buffer_size,
+                                 psa_algorithm_t alg);
 
 /**
  * \brief Set the key for a multipart symmetric decryption operation.
@@ -94,11 +97,12 @@ psa_status_t mbedtls_psa_cipher_encrypt_setup(
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  */
-psa_status_t mbedtls_psa_cipher_decrypt_setup(
-    mbedtls_psa_cipher_operation_t *operation,
-    const psa_key_attributes_t *attributes,
-    const uint8_t *key_buffer, size_t key_buffer_size,
-    psa_algorithm_t alg );
+psa_status_t
+mbedtls_psa_cipher_decrypt_setup(mbedtls_psa_cipher_operation_t *operation,
+                                 const psa_key_attributes_t *attributes,
+                                 const uint8_t *key_buffer,
+                                 size_t key_buffer_size,
+                                 psa_algorithm_t alg);
 
 /** Set the IV for a symmetric encryption or decryption operation.
  *
@@ -122,9 +126,10 @@ psa_status_t mbedtls_psa_cipher_decrypt_setup(
  *         or the chosen algorithm does not use an IV.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  */
-psa_status_t mbedtls_psa_cipher_set_iv(
-    mbedtls_psa_cipher_operation_t *operation,
-    const uint8_t *iv, size_t iv_length );
+psa_status_t
+mbedtls_psa_cipher_set_iv(mbedtls_psa_cipher_operation_t *operation,
+                          const uint8_t *iv,
+                          size_t iv_length);
 
 /** Encrypt or decrypt a message fragment in an active cipher operation.
  *
@@ -147,10 +152,13 @@ psa_status_t mbedtls_psa_cipher_set_iv(
  *         The size of the \p output buffer is too small.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  */
-psa_status_t mbedtls_psa_cipher_update(
-    mbedtls_psa_cipher_operation_t *operation,
-    const uint8_t *input, size_t input_length,
-    uint8_t *output, size_t output_size, size_t *output_length );
+psa_status_t
+mbedtls_psa_cipher_update(mbedtls_psa_cipher_operation_t *operation,
+                          const uint8_t *input,
+                          size_t input_length,
+                          uint8_t *output,
+                          size_t output_size,
+                          size_t *output_length);
 
 /** Finish encrypting or decrypting a message in a cipher operation.
  *
@@ -178,9 +186,11 @@ psa_status_t mbedtls_psa_cipher_update(
  *         The size of the \p output buffer is too small.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  */
-psa_status_t mbedtls_psa_cipher_finish(
-    mbedtls_psa_cipher_operation_t *operation,
-    uint8_t *output, size_t output_size, size_t *output_length );
+psa_status_t
+mbedtls_psa_cipher_finish(mbedtls_psa_cipher_operation_t *operation,
+                          uint8_t *output,
+                          size_t output_size,
+                          size_t *output_length);
 
 /** Abort a cipher operation.
  *
@@ -197,7 +207,8 @@ psa_status_t mbedtls_psa_cipher_finish(
  *
  * \retval #PSA_SUCCESS
  */
-psa_status_t mbedtls_psa_cipher_abort( mbedtls_psa_cipher_operation_t *operation );
+psa_status_t
+mbedtls_psa_cipher_abort(mbedtls_psa_cipher_operation_t *operation);
 
 /** Encrypt a message using a symmetric cipher.
  *
@@ -245,15 +256,15 @@ psa_status_t mbedtls_psa_cipher_abort( mbedtls_psa_cipher_operation_t *operation
  *         This is a decryption operation for an algorithm that includes
  *         padding, and the ciphertext does not contain valid padding.
  */
-psa_status_t mbedtls_psa_cipher_encrypt( const psa_key_attributes_t *attributes,
-                                         const uint8_t *key_buffer,
-                                         size_t key_buffer_size,
-                                         psa_algorithm_t alg,
-                                         const uint8_t *input,
-                                         size_t input_length,
-                                         uint8_t *output,
-                                         size_t output_size,
-                                         size_t *output_length );
+psa_status_t mbedtls_psa_cipher_encrypt(const psa_key_attributes_t *attributes,
+                                        const uint8_t *key_buffer,
+                                        size_t key_buffer_size,
+                                        psa_algorithm_t alg,
+                                        const uint8_t *input,
+                                        size_t input_length,
+                                        uint8_t *output,
+                                        size_t output_size,
+                                        size_t *output_length);
 
 /** Decrypt a message using a symmetric cipher.
  *
@@ -294,15 +305,15 @@ psa_status_t mbedtls_psa_cipher_encrypt( const psa_key_attributes_t *attributes,
  *         This is a decryption operation for an algorithm that includes
  *         padding, and the ciphertext does not contain valid padding.
  */
-psa_status_t mbedtls_psa_cipher_decrypt( const psa_key_attributes_t *attributes,
-                                         const uint8_t *key_buffer,
-                                         size_t key_buffer_size,
-                                         psa_algorithm_t alg,
-                                         const uint8_t *input,
-                                         size_t input_length,
-                                         uint8_t *output,
-                                         size_t output_size,
-                                         size_t *output_length );
+psa_status_t mbedtls_psa_cipher_decrypt(const psa_key_attributes_t *attributes,
+                                        const uint8_t *key_buffer,
+                                        size_t key_buffer_size,
+                                        psa_algorithm_t alg,
+                                        const uint8_t *input,
+                                        size_t input_length,
+                                        uint8_t *output,
+                                        size_t output_size,
+                                        size_t *output_length);
 
 /*
  * BEYOND THIS POINT, TEST DRIVER ENTRY POINTS ONLY.
@@ -312,30 +323,38 @@ psa_status_t mbedtls_psa_cipher_decrypt( const psa_key_attributes_t *attributes,
 psa_status_t mbedtls_transparent_test_driver_cipher_encrypt_setup(
     mbedtls_psa_cipher_operation_t *operation,
     const psa_key_attributes_t *attributes,
-    const uint8_t *key_buffer, size_t key_buffer_size,
-    psa_algorithm_t alg );
+    const uint8_t *key_buffer,
+    size_t key_buffer_size,
+    psa_algorithm_t alg);
 
 psa_status_t mbedtls_transparent_test_driver_cipher_decrypt_setup(
     mbedtls_psa_cipher_operation_t *operation,
     const psa_key_attributes_t *attributes,
-    const uint8_t *key_buffer, size_t key_buffer_size,
-    psa_algorithm_t alg );
+    const uint8_t *key_buffer,
+    size_t key_buffer_size,
+    psa_algorithm_t alg);
 
 psa_status_t mbedtls_transparent_test_driver_cipher_set_iv(
     mbedtls_psa_cipher_operation_t *operation,
-    const uint8_t *iv, size_t iv_length );
+    const uint8_t *iv,
+    size_t iv_length);
 
 psa_status_t mbedtls_transparent_test_driver_cipher_update(
     mbedtls_psa_cipher_operation_t *operation,
-    const uint8_t *input, size_t input_length,
-    uint8_t *output, size_t output_size, size_t *output_length );
+    const uint8_t *input,
+    size_t input_length,
+    uint8_t *output,
+    size_t output_size,
+    size_t *output_length);
 
 psa_status_t mbedtls_transparent_test_driver_cipher_finish(
     mbedtls_psa_cipher_operation_t *operation,
-    uint8_t *output, size_t output_size, size_t *output_length );
+    uint8_t *output,
+    size_t output_size,
+    size_t *output_length);
 
 psa_status_t mbedtls_transparent_test_driver_cipher_abort(
-    mbedtls_psa_cipher_operation_t *operation );
+    mbedtls_psa_cipher_operation_t *operation);
 
 psa_status_t mbedtls_transparent_test_driver_cipher_encrypt(
     const psa_key_attributes_t *attributes,
@@ -346,7 +365,7 @@ psa_status_t mbedtls_transparent_test_driver_cipher_encrypt(
     size_t input_length,
     uint8_t *output,
     size_t output_size,
-    size_t *output_length );
+    size_t *output_length);
 
 psa_status_t mbedtls_transparent_test_driver_cipher_decrypt(
     const psa_key_attributes_t *attributes,
@@ -357,7 +376,7 @@ psa_status_t mbedtls_transparent_test_driver_cipher_decrypt(
     size_t input_length,
     uint8_t *output,
     size_t output_size,
-    size_t *output_length );
+    size_t *output_length);
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 
 #endif /* PSA_CRYPTO_CIPHER_H */

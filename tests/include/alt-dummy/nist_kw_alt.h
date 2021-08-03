@@ -23,5 +23,4 @@ typedef struct {
     int dummy;
 } mbedtls_nist_kw_context;
 
-
 #endif /* nist_kw_alt.h */

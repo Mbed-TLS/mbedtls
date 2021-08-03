@@ -72,7 +72,7 @@
  *
  * \return          Non-zero if successful.
  */
-unsigned char mbedtls_internal_ecp_grp_capable( const mbedtls_ecp_group *grp );
+unsigned char mbedtls_internal_ecp_grp_capable(const mbedtls_ecp_group *grp);
 
 /**
  * \brief           Initialise the Elliptic Curve Point module extension.
@@ -89,7 +89,7 @@ unsigned char mbedtls_internal_ecp_grp_capable( const mbedtls_ecp_group *grp );
  *
  * \return          0 if successful.
  */
-int mbedtls_internal_ecp_init( const mbedtls_ecp_group *grp );
+int mbedtls_internal_ecp_init(const mbedtls_ecp_group *grp);
 
 /**
  * \brief           Frees and deallocates the Elliptic Curve Point module
@@ -97,11 +97,11 @@ int mbedtls_internal_ecp_init( const mbedtls_ecp_group *grp );
  *
  * \param grp       The pointer to the group the module was initialised for.
  */
-void mbedtls_internal_ecp_free( const mbedtls_ecp_group *grp );
+void mbedtls_internal_ecp_free(const mbedtls_ecp_group *grp);
 
-#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
+#    if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
 
-#if defined(MBEDTLS_ECP_RANDOMIZE_JAC_ALT)
+#        if defined(MBEDTLS_ECP_RANDOMIZE_JAC_ALT)
 /**
  * \brief           Randomize jacobian coordinates:
  *                  (X, Y, Z) -> (l^2 X, l^3 Y, l Z) for random l.
@@ -117,12 +117,15 @@ void mbedtls_internal_ecp_free( const mbedtls_ecp_group *grp );
  *
  * \return          0 if successful.
  */
-int mbedtls_internal_ecp_randomize_jac( const mbedtls_ecp_group *grp,
-        mbedtls_ecp_point *pt, int (*f_rng)(void *, unsigned char *, size_t),
-        void *p_rng );
-#endif
+int mbedtls_internal_ecp_randomize_jac(const mbedtls_ecp_group *grp,
+                                       mbedtls_ecp_point *pt,
+                                       int (*f_rng)(void *,
+                                                    unsigned char *,
+                                                    size_t),
+                                       void *p_rng);
+#        endif
 
-#if defined(MBEDTLS_ECP_ADD_MIXED_ALT)
+#        if defined(MBEDTLS_ECP_ADD_MIXED_ALT)
 /**
  * \brief           Addition: R = P + Q, mixed affine-Jacobian coordinates.
  *
@@ -162,10 +165,11 @@ int mbedtls_internal_ecp_randomize_jac( const mbedtls_ecp_group *grp,
  *
  * \return          0 if successful.
  */
-int mbedtls_internal_ecp_add_mixed( const mbedtls_ecp_group *grp,
-        mbedtls_ecp_point *R, const mbedtls_ecp_point *P,
-        const mbedtls_ecp_point *Q );
-#endif
+int mbedtls_internal_ecp_add_mixed(const mbedtls_ecp_group *grp,
+                                   mbedtls_ecp_point *R,
+                                   const mbedtls_ecp_point *P,
+                                   const mbedtls_ecp_point *Q);
+#        endif
 
 /**
  * \brief           Point doubling R = 2 P, Jacobian coordinates.
@@ -186,10 +190,11 @@ int mbedtls_internal_ecp_add_mixed( const mbedtls_ecp_group *grp,
  *
  * \return          0 if successful.
  */
-#if defined(MBEDTLS_ECP_DOUBLE_JAC_ALT)
-int mbedtls_internal_ecp_double_jac( const mbedtls_ecp_group *grp,
-        mbedtls_ecp_point *R, const mbedtls_ecp_point *P );
-#endif
+#        if defined(MBEDTLS_ECP_DOUBLE_JAC_ALT)
+int mbedtls_internal_ecp_double_jac(const mbedtls_ecp_group *grp,
+                                    mbedtls_ecp_point *R,
+                                    const mbedtls_ecp_point *P);
+#        endif
 
 /**
  * \brief           Normalize jacobian coordinates of an array of (pointers to)
@@ -216,10 +221,11 @@ int mbedtls_internal_ecp_double_jac( const mbedtls_ecp_group *grp,
  * \return          0 if successful,
  *                      an error if one of the points is zero.
  */
-#if defined(MBEDTLS_ECP_NORMALIZE_JAC_MANY_ALT)
-int mbedtls_internal_ecp_normalize_jac_many( const mbedtls_ecp_group *grp,
-        mbedtls_ecp_point *T[], size_t t_len );
-#endif
+#        if defined(MBEDTLS_ECP_NORMALIZE_JAC_MANY_ALT)
+int mbedtls_internal_ecp_normalize_jac_many(const mbedtls_ecp_group *grp,
+                                            mbedtls_ecp_point *T[],
+                                            size_t t_len);
+#        endif
 
 /**
  * \brief           Normalize jacobian coordinates so that Z == 0 || Z == 1.
@@ -234,20 +240,23 @@ int mbedtls_internal_ecp_normalize_jac_many( const mbedtls_ecp_group *grp,
  *
  * \return          0 if successful.
  */
-#if defined(MBEDTLS_ECP_NORMALIZE_JAC_ALT)
-int mbedtls_internal_ecp_normalize_jac( const mbedtls_ecp_group *grp,
-        mbedtls_ecp_point *pt );
-#endif
+#        if defined(MBEDTLS_ECP_NORMALIZE_JAC_ALT)
+int mbedtls_internal_ecp_normalize_jac(const mbedtls_ecp_group *grp,
+                                       mbedtls_ecp_point *pt);
+#        endif
 
-#endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
+#    endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
 
-#if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
+#    if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
 
-#if defined(MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT)
-int mbedtls_internal_ecp_double_add_mxz( const mbedtls_ecp_group *grp,
-        mbedtls_ecp_point *R, mbedtls_ecp_point *S, const mbedtls_ecp_point *P,
-        const mbedtls_ecp_point *Q, const mbedtls_mpi *d );
-#endif
+#        if defined(MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT)
+int mbedtls_internal_ecp_double_add_mxz(const mbedtls_ecp_group *grp,
+                                        mbedtls_ecp_point *R,
+                                        mbedtls_ecp_point *S,
+                                        const mbedtls_ecp_point *P,
+                                        const mbedtls_ecp_point *Q,
+                                        const mbedtls_mpi *d);
+#        endif
 
 /**
  * \brief           Randomize projective x/z coordinates:
@@ -264,11 +273,14 @@ int mbedtls_internal_ecp_double_add_mxz( const mbedtls_ecp_group *grp,
  *
  * \return          0 if successful
  */
-#if defined(MBEDTLS_ECP_RANDOMIZE_MXZ_ALT)
-int mbedtls_internal_ecp_randomize_mxz( const mbedtls_ecp_group *grp,
-        mbedtls_ecp_point *P, int (*f_rng)(void *, unsigned char *, size_t),
-        void *p_rng );
-#endif
+#        if defined(MBEDTLS_ECP_RANDOMIZE_MXZ_ALT)
+int mbedtls_internal_ecp_randomize_mxz(const mbedtls_ecp_group *grp,
+                                       mbedtls_ecp_point *P,
+                                       int (*f_rng)(void *,
+                                                    unsigned char *,
+                                                    size_t),
+                                       void *p_rng);
+#        endif
 
 /**
  * \brief           Normalize Montgomery x/z coordinates: X = X/Z, Z = 1.
@@ -280,14 +292,13 @@ int mbedtls_internal_ecp_randomize_mxz( const mbedtls_ecp_group *grp,
  *
  * \return          0 if successful
  */
-#if defined(MBEDTLS_ECP_NORMALIZE_MXZ_ALT)
-int mbedtls_internal_ecp_normalize_mxz( const mbedtls_ecp_group *grp,
-        mbedtls_ecp_point *P );
-#endif
+#        if defined(MBEDTLS_ECP_NORMALIZE_MXZ_ALT)
+int mbedtls_internal_ecp_normalize_mxz(const mbedtls_ecp_group *grp,
+                                       mbedtls_ecp_point *P);
+#        endif
 
-#endif /* MBEDTLS_ECP_MONTGOMERY_ENABLED */
+#    endif /* MBEDTLS_ECP_MONTGOMERY_ENABLED */
 
 #endif /* MBEDTLS_ECP_INTERNAL_ALT */
 
 #endif /* ecp_internal_alt.h */
-

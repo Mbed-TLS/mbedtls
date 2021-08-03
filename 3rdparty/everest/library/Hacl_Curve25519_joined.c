@@ -23,19 +23,18 @@
 
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
 
-#if defined(__SIZEOF_INT128__) && (__SIZEOF_INT128__ == 16)
-#define MBEDTLS_HAVE_INT128
-#endif
+#    if defined(__SIZEOF_INT128__) && (__SIZEOF_INT128__ == 16)
+#        define MBEDTLS_HAVE_INT128
+#    endif
 
-#if defined(MBEDTLS_HAVE_INT128)
-#include "Hacl_Curve25519.c"
-#else
-#define KRML_VERIFIED_UINT128
-#include "kremlib/FStar_UInt128_extracted.c"
-#include "legacy/Hacl_Curve25519.c"
-#endif
+#    if defined(MBEDTLS_HAVE_INT128)
+#        include "Hacl_Curve25519.c"
+#    else
+#        define KRML_VERIFIED_UINT128
+#        include "kremlib/FStar_UInt128_extracted.c"
+#        include "legacy/Hacl_Curve25519.c"
+#    endif
 
-#include "kremlib/FStar_UInt64_FStar_UInt32_FStar_UInt16_FStar_UInt8.c"
+#    include "kremlib/FStar_UInt64_FStar_UInt32_FStar_UInt16_FStar_UInt8.c"
 
 #endif /* defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED) */
-

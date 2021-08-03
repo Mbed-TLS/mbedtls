@@ -26,4 +26,4 @@
 #include "kremlin/internal/types.h"
 #include "kremlin/c_endianness.h"
 
-#endif     /* __KREMLIB_H */
+#endif /* __KREMLIB_H */

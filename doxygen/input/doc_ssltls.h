@@ -31,7 +31,8 @@
  * - initialise an SSL/TLS context (see \c mbedtls_ssl_init()).
  * - perform an SSL/TLS handshake (see \c mbedtls_ssl_handshake()).
  * - read/write (see \c mbedtls_ssl_read() and \c mbedtls_ssl_write()).
- * - notify a peer that connection is being closed (see \c mbedtls_ssl_close_notify()).
+ * - notify a peer that connection is being closed (see \c
+ * mbedtls_ssl_close_notify()).
  *
  * Many aspects of such a channel are set through parameters and callback
  * functions:
@@ -43,7 +44,8 @@
  * - session control functions.
  * - X.509 parameters for certificate-handling and key exchange.
  *
- * This module can be used to create an SSL/TLS server and client and to provide a basic
- * framework to setup and communicate through an SSL/TLS communication channel.\n
- * Note that you need to provide for several aspects yourself as mentioned above.
+ * This module can be used to create an SSL/TLS server and client and to provide
+ * a basic framework to setup and communicate through an SSL/TLS communication
+ * channel.\n Note that you need to provide for several aspects yourself as
+ * mentioned above.
  */

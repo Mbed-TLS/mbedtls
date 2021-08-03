@@ -44,14 +44,14 @@ void WasmSupport_check_buffer_size(uint32_t s);
   default : "unknown")
 /* clang-format on */
 
-#  define KRML_DEBUG_RETURN(X)                                                 \
-    ({                                                                         \
-      __auto_type _ret = (X);                                                  \
-      KRML_HOST_PRINTF("returning: ");                                         \
-      KRML_HOST_PRINTF(KRML_FORMAT(_ret), KRML_FORMAT_ARG(_ret));              \
-      KRML_HOST_PRINTF(" \n");                                                 \
-      _ret;                                                                    \
-    })
+#    define KRML_DEBUG_RETURN(X)                                        \
+        ({                                                              \
+            __auto_type _ret = (X);                                     \
+            KRML_HOST_PRINTF("returning: ");                            \
+            KRML_HOST_PRINTF(KRML_FORMAT(_ret), KRML_FORMAT_ARG(_ret)); \
+            KRML_HOST_PRINTF(" \n");                                    \
+            _ret;                                                       \
+        })
 #endif
 
 #endif

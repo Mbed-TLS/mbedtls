@@ -22,7 +22,7 @@
 #define PSA_HELPERS_H
 
 #if defined(MBEDTLS_PSA_CRYPTO_SPM)
-#include "spm/psa_defs.h"
+#    include "spm/psa_defs.h"
 #endif
 
 /** Evaluate an expression and fail the test case if it returns an error.
@@ -31,6 +31,6 @@
  *                  to a \c psa_xxx function that returns a value of type
  *                  #psa_status_t.
  */
-#define PSA_ASSERT( expr ) TEST_EQUAL( ( expr ), PSA_SUCCESS )
+#define PSA_ASSERT(expr) TEST_EQUAL((expr), PSA_SUCCESS)
 
 #endif /* PSA_HELPERS_H */

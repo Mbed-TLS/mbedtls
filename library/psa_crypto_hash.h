@@ -32,7 +32,7 @@
  * \return  The Mbed TLS MD information of the hash algorithm. \c NULL if the
  *          PSA hash algorithm is not supported.
  */
-const mbedtls_md_info_t *mbedtls_md_info_from_psa( psa_algorithm_t alg );
+const mbedtls_md_info_t *mbedtls_md_info_from_psa(psa_algorithm_t alg);
 
 /** Calculate the hash (digest) of a message using Mbed TLS routines.
  *
@@ -60,13 +60,12 @@ const mbedtls_md_info_t *mbedtls_md_info_from_psa( psa_algorithm_t alg );
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  */
-psa_status_t mbedtls_psa_hash_compute(
-    psa_algorithm_t alg,
-    const uint8_t *input,
-    size_t input_length,
-    uint8_t *hash,
-    size_t hash_size,
-    size_t *hash_length);
+psa_status_t mbedtls_psa_hash_compute(psa_algorithm_t alg,
+                                      const uint8_t *input,
+                                      size_t input_length,
+                                      uint8_t *hash,
+                                      size_t hash_size,
+                                      size_t *hash_length);
 
 /** Set up a multipart hash operation using Mbed TLS routines.
  *
@@ -83,7 +82,8 @@ psa_status_t mbedtls_psa_hash_compute(
  * After a successful call to mbedtls_psa_hash_setup(), the core must
  * eventually terminate the operation. The following events terminate an
  * operation:
- * - A successful call to mbedtls_psa_hash_finish() or mbedtls_psa_hash_verify().
+ * - A successful call to mbedtls_psa_hash_finish() or
+ * mbedtls_psa_hash_verify().
  * - A call to mbedtls_psa_hash_abort().
  *
  * \param[in,out] operation The operation object to set up. It must have
@@ -100,9 +100,8 @@ psa_status_t mbedtls_psa_hash_compute(
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  */
-psa_status_t mbedtls_psa_hash_setup(
-    mbedtls_psa_hash_operation_t *operation,
-    psa_algorithm_t alg );
+psa_status_t mbedtls_psa_hash_setup(mbedtls_psa_hash_operation_t *operation,
+                                    psa_algorithm_t alg);
 
 /** Clone an Mbed TLS hash operation.
  *
@@ -132,9 +131,9 @@ psa_status_t mbedtls_psa_hash_setup(
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  */
-psa_status_t mbedtls_psa_hash_clone(
-    const mbedtls_psa_hash_operation_t *source_operation,
-    mbedtls_psa_hash_operation_t *target_operation );
+psa_status_t
+mbedtls_psa_hash_clone(const mbedtls_psa_hash_operation_t *source_operation,
+                       mbedtls_psa_hash_operation_t *target_operation);
 
 /** Add a message fragment to a multipart Mbed TLS hash operation.
  *
@@ -143,7 +142,8 @@ psa_status_t mbedtls_psa_hash_clone(
  *       defined in the PSA driver interface specification for transparent
  *       drivers.
  *
- * The application must call mbedtls_psa_hash_setup() before calling this function.
+ * The application must call mbedtls_psa_hash_setup() before calling this
+ * function.
  *
  * If this function returns an error status, the operation enters an error
  * state and must be aborted by calling mbedtls_psa_hash_abort().
@@ -159,10 +159,9 @@ psa_status_t mbedtls_psa_hash_clone(
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  */
-psa_status_t mbedtls_psa_hash_update(
-    mbedtls_psa_hash_operation_t *operation,
-    const uint8_t *input,
-    size_t input_length );
+psa_status_t mbedtls_psa_hash_update(mbedtls_psa_hash_operation_t *operation,
+                                     const uint8_t *input,
+                                     size_t input_length);
 
 /** Finish the calculation of the Mbed TLS-calculated hash of a message.
  *
@@ -171,9 +170,10 @@ psa_status_t mbedtls_psa_hash_update(
  *       defined in the PSA driver interface specification for transparent
  *       drivers.
  *
- * The application must call mbedtls_psa_hash_setup() before calling this function.
- * This function calculates the hash of the message formed by concatenating
- * the inputs passed to preceding calls to mbedtls_psa_hash_update().
+ * The application must call mbedtls_psa_hash_setup() before calling this
+ * function. This function calculates the hash of the message formed by
+ * concatenating the inputs passed to preceding calls to
+ * mbedtls_psa_hash_update().
  *
  * When this function returns successfuly, the operation becomes inactive.
  * If this function returns an error status, the operation enters an error
@@ -198,11 +198,10 @@ psa_status_t mbedtls_psa_hash_update(
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  */
-psa_status_t mbedtls_psa_hash_finish(
-    mbedtls_psa_hash_operation_t *operation,
-    uint8_t *hash,
-    size_t hash_size,
-    size_t *hash_length );
+psa_status_t mbedtls_psa_hash_finish(mbedtls_psa_hash_operation_t *operation,
+                                     uint8_t *hash,
+                                     size_t hash_size,
+                                     size_t *hash_length);
 
 /** Abort an Mbed TLS hash operation.
  *
@@ -220,16 +219,15 @@ psa_status_t mbedtls_psa_hash_finish(
  * been initialized by one of the methods described in #psa_hash_operation_t.
  *
  * In particular, calling mbedtls_psa_hash_abort() after the operation has been
- * terminated by a call to mbedtls_psa_hash_abort(), mbedtls_psa_hash_finish() or
- * mbedtls_psa_hash_verify() is safe and has no effect.
+ * terminated by a call to mbedtls_psa_hash_abort(), mbedtls_psa_hash_finish()
+ * or mbedtls_psa_hash_verify() is safe and has no effect.
  *
  * \param[in,out] operation     Initialized hash operation.
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  */
-psa_status_t mbedtls_psa_hash_abort(
-    mbedtls_psa_hash_operation_t *operation );
+psa_status_t mbedtls_psa_hash_abort(mbedtls_psa_hash_operation_t *operation);
 
 /*
  * BEYOND THIS POINT, TEST DRIVER ENTRY POINTS ONLY.
@@ -237,35 +235,34 @@ psa_status_t mbedtls_psa_hash_abort(
 
 #if defined(PSA_CRYPTO_DRIVER_TEST)
 
-psa_status_t mbedtls_transparent_test_driver_hash_compute(
-    psa_algorithm_t alg,
-    const uint8_t *input,
-    size_t input_length,
-    uint8_t *hash,
-    size_t hash_size,
-    size_t *hash_length);
+psa_status_t mbedtls_transparent_test_driver_hash_compute(psa_algorithm_t alg,
+                                                          const uint8_t *input,
+                                                          size_t input_length,
+                                                          uint8_t *hash,
+                                                          size_t hash_size,
+                                                          size_t *hash_length);
 
 psa_status_t mbedtls_transparent_test_driver_hash_setup(
     mbedtls_transparent_test_driver_hash_operation_t *operation,
-    psa_algorithm_t alg );
+    psa_algorithm_t alg);
 
 psa_status_t mbedtls_transparent_test_driver_hash_clone(
     const mbedtls_transparent_test_driver_hash_operation_t *source_operation,
-    mbedtls_transparent_test_driver_hash_operation_t *target_operation );
+    mbedtls_transparent_test_driver_hash_operation_t *target_operation);
 
 psa_status_t mbedtls_transparent_test_driver_hash_update(
     mbedtls_transparent_test_driver_hash_operation_t *operation,
     const uint8_t *input,
-    size_t input_length );
+    size_t input_length);
 
 psa_status_t mbedtls_transparent_test_driver_hash_finish(
     mbedtls_transparent_test_driver_hash_operation_t *operation,
     uint8_t *hash,
     size_t hash_size,
-    size_t *hash_length );
+    size_t *hash_length);
 
 psa_status_t mbedtls_transparent_test_driver_hash_abort(
-    mbedtls_transparent_test_driver_hash_operation_t *operation );
+    mbedtls_transparent_test_driver_hash_operation_t *operation);
 
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 

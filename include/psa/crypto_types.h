@@ -40,7 +40,7 @@
  * is defined as well to include all PSA code.
  */
 #if defined(MBEDTLS_PSA_CRYPTO_C)
-#define MBEDTLS_PSA_CRYPTO_CLIENT
+#    define MBEDTLS_PSA_CRYPTO_CLIENT
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 
 #include <stdint.h>
@@ -233,8 +233,7 @@ typedef psa_key_id_t mbedtls_svc_key_id_t;
  * client and encodes the client identity in the key identifier argument of
  * functions such as psa_open_key().
  */
-typedef struct
-{
+typedef struct {
     psa_key_id_t MBEDTLS_PRIVATE(key_id);
     mbedtls_key_owner_id_t MBEDTLS_PRIVATE(owner);
 } mbedtls_svc_key_id_t;
@@ -359,15 +358,14 @@ typedef uint32_t psa_key_usage_t;
  */
 typedef struct psa_key_attributes_s psa_key_attributes_t;
 
-
 #ifndef __DOXYGEN_ONLY__
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+#    if defined(MBEDTLS_PSA_CRYPTO_SE_C)
 /* Mbed Crypto defines this type in crypto_types.h because it is also
  * visible to applications through an implementation-specific extension.
  * For the PSA Cryptography specification, this type is only visible
  * via crypto_se_driver.h. */
 typedef uint64_t psa_key_slot_number_t;
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+#    endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 #endif /* !__DOXYGEN_ONLY__ */
 
 /**@}*/

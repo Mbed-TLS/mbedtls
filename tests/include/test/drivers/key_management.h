@@ -23,10 +23,10 @@
 #include "mbedtls/build_info.h"
 
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-#include <psa/crypto_driver_common.h>
+#    include <psa/crypto_driver_common.h>
 
-#define PSA_CRYPTO_TEST_DRIVER_BUILTIN_AES_KEY_SLOT     0
-#define PSA_CRYPTO_TEST_DRIVER_BUILTIN_ECDSA_KEY_SLOT   1
+#    define PSA_CRYPTO_TEST_DRIVER_BUILTIN_AES_KEY_SLOT   0
+#    define PSA_CRYPTO_TEST_DRIVER_BUILTIN_ECDSA_KEY_SLOT 1
 
 typedef struct {
     /* If non-null, on success, copy this to the output. */
@@ -40,54 +40,72 @@ typedef struct {
     unsigned long hits;
 } mbedtls_test_driver_key_management_hooks_t;
 
-#define MBEDTLS_TEST_DRIVER_KEY_MANAGEMENT_INIT { NULL, 0, PSA_SUCCESS, 0 }
+#    define MBEDTLS_TEST_DRIVER_KEY_MANAGEMENT_INIT \
+        {                                           \
+            NULL, 0, PSA_SUCCESS, 0                 \
+        }
 static inline mbedtls_test_driver_key_management_hooks_t
-    mbedtls_test_driver_key_management_hooks_init( void )
+mbedtls_test_driver_key_management_hooks_init(void)
 {
-    const mbedtls_test_driver_key_management_hooks_t
-        v = MBEDTLS_TEST_DRIVER_KEY_MANAGEMENT_INIT;
-    return v ;
+    const mbedtls_test_driver_key_management_hooks_t v =
+        MBEDTLS_TEST_DRIVER_KEY_MANAGEMENT_INIT;
+    return v;
 }
 
 extern mbedtls_test_driver_key_management_hooks_t
     mbedtls_test_driver_key_management_hooks;
 
-psa_status_t mbedtls_test_transparent_generate_key(
-    const psa_key_attributes_t *attributes,
-    uint8_t *key, size_t key_size, size_t *key_length );
+psa_status_t
+mbedtls_test_transparent_generate_key(const psa_key_attributes_t *attributes,
+                                      uint8_t *key,
+                                      size_t key_size,
+                                      size_t *key_length);
 
-psa_status_t mbedtls_test_opaque_generate_key(
-    const psa_key_attributes_t *attributes,
-    uint8_t *key, size_t key_size, size_t *key_length );
+psa_status_t
+mbedtls_test_opaque_generate_key(const psa_key_attributes_t *attributes,
+                                 uint8_t *key,
+                                 size_t key_size,
+                                 size_t *key_length);
 
-psa_status_t mbedtls_test_opaque_export_key(
-    const psa_key_attributes_t *attributes,
-    const uint8_t *key, size_t key_length,
-    uint8_t *data, size_t data_size, size_t *data_length );
+psa_status_t
+mbedtls_test_opaque_export_key(const psa_key_attributes_t *attributes,
+                               const uint8_t *key,
+                               size_t key_length,
+                               uint8_t *data,
+                               size_t data_size,
+                               size_t *data_length);
 
 psa_status_t mbedtls_test_transparent_export_public_key(
     const psa_key_attributes_t *attributes,
-    const uint8_t *key, size_t key_length,
-    uint8_t *data, size_t data_size, size_t *data_length );
+    const uint8_t *key,
+    size_t key_length,
+    uint8_t *data,
+    size_t data_size,
+    size_t *data_length);
 
-psa_status_t mbedtls_test_opaque_export_public_key(
-    const psa_key_attributes_t *attributes,
-    const uint8_t *key, size_t key_length,
-    uint8_t *data, size_t data_size, size_t *data_length );
+psa_status_t
+mbedtls_test_opaque_export_public_key(const psa_key_attributes_t *attributes,
+                                      const uint8_t *key,
+                                      size_t key_length,
+                                      uint8_t *data,
+                                      size_t data_size,
+                                      size_t *data_length);
 
-psa_status_t mbedtls_test_transparent_import_key(
-    const psa_key_attributes_t *attributes,
-    const uint8_t *data,
-    size_t data_length,
-    uint8_t *key_buffer,
-    size_t key_buffer_size,
-    size_t *key_buffer_length,
-    size_t *bits);
+psa_status_t
+mbedtls_test_transparent_import_key(const psa_key_attributes_t *attributes,
+                                    const uint8_t *data,
+                                    size_t data_length,
+                                    uint8_t *key_buffer,
+                                    size_t key_buffer_size,
+                                    size_t *key_buffer_length,
+                                    size_t *bits);
 
-psa_status_t mbedtls_test_opaque_get_builtin_key(
-    psa_drv_slot_number_t slot_number,
-    psa_key_attributes_t *attributes,
-    uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length );
+psa_status_t
+mbedtls_test_opaque_get_builtin_key(psa_drv_slot_number_t slot_number,
+                                    psa_key_attributes_t *attributes,
+                                    uint8_t *key_buffer,
+                                    size_t key_buffer_size,
+                                    size_t *key_buffer_length);
 
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_TEST_DRIVERS_KEY_MANAGEMENT_H */

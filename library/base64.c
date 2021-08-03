@@ -41,8 +41,10 @@
  *
  * Constant flow with respect to c.
  */
-static unsigned char mask_of_range( unsigned char low, unsigned char high,
-                                    unsigned char c )
+MBEDTLS_STATIC_TESTABLE
+unsigned char mbedtls_base64_mask_of_range( unsigned char low,
+                                            unsigned char high,
+                                            unsigned char c )
 {
     /* low_mask is: 0 if low <= c, 0x...ff if low > c */
     unsigned low_mask = ( (unsigned) c - low ) >> 8;
@@ -55,17 +57,18 @@ static unsigned char mask_of_range( unsigned char low, unsigned char high,
  * The implementation assumes that letters are consecutive (e.g. ASCII
  * but not EBCDIC).
  */
-static unsigned char enc_char( unsigned char val )
+MBEDTLS_STATIC_TESTABLE
+unsigned char mbedtls_base64_enc_char( unsigned char val )
 {
     unsigned char digit = 0;
     /* For each range of values, if val is in that range, mask digit with
      * the corresponding value. Since val can only be in a single range,
      * only at most one masking will change digit. */
-    digit |= mask_of_range(  0, 25, val ) & ( 'A' + val );
-    digit |= mask_of_range( 26, 51, val ) & ( 'a' + val - 26 );
-    digit |= mask_of_range( 52, 61, val ) & ( '0' + val - 52 );
-    digit |= mask_of_range( 62, 62, val ) & '+';
-    digit |= mask_of_range( 63, 63, val ) & '/';
+    digit |= mbedtls_base64_mask_of_range(  0, 25, val ) & ( 'A' + val );
+    digit |= mbedtls_base64_mask_of_range( 26, 51, val ) & ( 'a' + val - 26 );
+    digit |= mbedtls_base64_mask_of_range( 52, 61, val ) & ( '0' + val - 52 );
+    digit |= mbedtls_base64_mask_of_range( 62, 62, val ) & '+';
+    digit |= mbedtls_base64_mask_of_range( 63, 63, val ) & '/';
     return( digit );
 }
 
@@ -109,10 +112,12 @@ int mbedtls_base64_encode( unsigned char *dst, size_t dlen, size_t *olen,
         C2 = *src++;
         C3 = *src++;
 
-        *p++ = enc_char( ( C1 >> 2 ) & 0x3F );
-        *p++ = enc_char( ( ( ( C1 &  3 ) << 4 ) + ( C2 >> 4 ) ) & 0x3F );
-        *p++ = enc_char( ( ( ( C2 & 15 ) << 2 ) + ( C3 >> 6 ) ) & 0x3F );
-        *p++ = enc_char( C3 & 0x3F );
+        *p++ = mbedtls_base64_enc_char( ( C1 >> 2 ) & 0x3F );
+        *p++ = mbedtls_base64_enc_char( ( ( ( C1 &  3 ) << 4 ) + ( C2 >> 4 ) )
+                                        & 0x3F );
+        *p++ = mbedtls_base64_enc_char( ( ( ( C2 & 15 ) << 2 ) + ( C3 >> 6 ) )
+                                        & 0x3F );
+        *p++ = mbedtls_base64_enc_char( C3 & 0x3F );
     }
 
     if( i < slen )
@@ -120,11 +125,12 @@ int mbedtls_base64_encode( unsigned char *dst, size_t dlen, size_t *olen,
         C1 = *src++;
         C2 = ( ( i + 1 ) < slen ) ? *src++ : 0;
 
-        *p++ = enc_char( ( C1 >> 2 ) & 0x3F );
-        *p++ = enc_char( ( ( ( C1 & 3 ) << 4 ) + ( C2 >> 4 ) ) & 0x3F );
+        *p++ = mbedtls_base64_enc_char( ( C1 >> 2 ) & 0x3F );
+        *p++ = mbedtls_base64_enc_char( ( ( ( C1 & 3 ) << 4 ) + ( C2 >> 4 ) )
+                                        & 0x3F );
 
         if( ( i + 1 ) < slen )
-             *p++ = enc_char( ( ( C2 & 15 ) << 2 ) & 0x3F );
+             *p++ = mbedtls_base64_enc_char( ( ( C2 & 15 ) << 2 ) & 0x3F );
         else *p++ = '=';
 
         *p++ = '=';
@@ -147,18 +153,19 @@ int mbedtls_base64_encode( unsigned char *dst, size_t dlen, size_t *olen,
  * on the value of c) unless the compiler inlines and optimizes a specific
  * access.
  */
-static signed char dec_value( unsigned char c )
+MBEDTLS_STATIC_TESTABLE
+signed char mbedtls_base64_dec_value( unsigned char c )
 {
     unsigned char val = 0;
     /* For each range of digits, if c is in that range, mask val with
      * the corresponding value. Since c can only be in a single range,
      * only at most one masking will change val. Set val to one plus
      * the desired value so that it stays 0 if c is in none of the ranges. */
-    val |= mask_of_range( 'A', 'Z', c ) & ( c - 'A' +  0 + 1 );
-    val |= mask_of_range( 'a', 'z', c ) & ( c - 'a' + 26 + 1 );
-    val |= mask_of_range( '0', '9', c ) & ( c - '0' + 52 + 1 );
-    val |= mask_of_range( '+', '+', c ) & ( c - '+' + 62 + 1 );
-    val |= mask_of_range( '/', '/', c ) & ( c - '/' + 63 + 1 );
+    val |= mbedtls_base64_mask_of_range( 'A', 'Z', c ) & ( c - 'A' +  0 + 1 );
+    val |= mbedtls_base64_mask_of_range( 'a', 'z', c ) & ( c - 'a' + 26 + 1 );
+    val |= mbedtls_base64_mask_of_range( '0', '9', c ) & ( c - '0' + 52 + 1 );
+    val |= mbedtls_base64_mask_of_range( '+', '+', c ) & ( c - '+' + 62 + 1 );
+    val |= mbedtls_base64_mask_of_range( '/', '/', c ) & ( c - '/' + 63 + 1 );
     /* At this point, val is 0 if c is an invalid digit and v+1 if c is
      * a digit with the value v. */
     return( val - 1 );
@@ -216,7 +223,7 @@ int mbedtls_base64_decode( unsigned char *dst, size_t dlen, size_t *olen,
         {
             if( equals != 0 )
                 return( MBEDTLS_ERR_BASE64_INVALID_CHARACTER );
-            if( dec_value( src[i] ) < 0 )
+            if( mbedtls_base64_dec_value( src[i] ) < 0 )
                 return( MBEDTLS_ERR_BASE64_INVALID_CHARACTER );
         }
         n++;
@@ -251,7 +258,7 @@ int mbedtls_base64_decode( unsigned char *dst, size_t dlen, size_t *olen,
         if( *src == '=' )
             ++equals;
         else
-            x |= dec_value( *src );
+            x |= mbedtls_base64_dec_value( *src );
 
         if( ++accumulated_digits == 4 )
         {

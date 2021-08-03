@@ -271,7 +271,9 @@ Tool path options:
 EOF
 }
 
-# remove built files as well as the cmake cache/config
+# Cleanup before/after running a component.
+# Remove built files as well as the cmake cache/config.
+# Does not remove generated source files.
 cleanup()
 {
     command make clean
@@ -306,6 +308,8 @@ cleanup()
     done
 }
 
+# Final cleanup when this script exits (except when exiting on a failure
+# in non-keep-going mode).
 final_cleanup () {
     cleanup
 
@@ -442,11 +446,14 @@ pre_parse_command_line () {
         COMMAND_LINE_COMPONENTS="$COMMAND_LINE_COMPONENTS *_armcc*"
     fi
 
+    # Error out if an explicitly requested component doesn't exist.
     if [ $all_except -eq 0 ]; then
         unsupported=0
         set -f
         for component in $COMMAND_LINE_COMPONENTS; do
             set +f
+            # If the requested name includes a wildcard character, don't
+            # check it. Accept wildcard patterns that don't match anything.
             case $component in
                 *[*?\[]*) continue;;
             esac

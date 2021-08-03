@@ -87,6 +87,16 @@ int mbedtls_base64_self_test( int verbose );
 
 #endif /* MBEDTLS_SELF_TEST */
 
+#if defined(MBEDTLS_TEST_HOOKS)
+/* These functions are only exposed in testing configurations for testing
+ * purposes and may change or disappear at any time. */
+unsigned char mbedtls_base64_mask_of_range( unsigned char low,
+                                            unsigned char high,
+                                            unsigned char c );
+unsigned char mbedtls_base64_enc_char( unsigned char val );
+signed char mbedtls_base64_dec_value( unsigned char c );
+#endif
+
 #ifdef __cplusplus
 }
 #endif

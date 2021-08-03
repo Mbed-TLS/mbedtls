@@ -494,8 +494,8 @@ static void ssl_mac( mbedtls_md_context_t *md_ctx,
 
     memcpy( header, ctr, 8 );
     header[ 8] = (unsigned char)  type;
-    header[ 9] = (unsigned char)( len >> 8 );
-    header[10] = (unsigned char)( len      );
+    header[ 9] = MBEDTLS_BYTE_1( len );
+    header[10] = MBEDTLS_BYTE_0( len );
 
     memset( padding, 0x36, padlen );
     mbedtls_md_starts( md_ctx );

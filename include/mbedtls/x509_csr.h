@@ -45,10 +45,10 @@ extern "C" {
  */
 typedef struct mbedtls_x509_csr
 {
+    int MBEDTLS_PRIVATE(version);            /**< CSR version (1=v1). */
+    
     mbedtls_x509_buf MBEDTLS_PRIVATE(raw);           /**< The raw CSR data (DER). */
     mbedtls_x509_buf MBEDTLS_PRIVATE(cri);           /**< The raw CertificateRequestInfo body (DER). */
-
-    int MBEDTLS_PRIVATE(version);            /**< CSR version (1=v1). */
 
     mbedtls_x509_buf  MBEDTLS_PRIVATE(subject_raw);  /**< The raw subject data (DER). */
     mbedtls_x509_name MBEDTLS_PRIVATE(subject);      /**< The parsed subject data (named information object). */

@@ -3,11 +3,11 @@
  *
  * \brief Instrumentation macros.
  * 
- * This file contains the `MBEDTLS_INST` instrumentation macros. These macros
+ * This file contains the `MBEDTLS_TRACE` instrumentation macros. These macros
  * provide a means for tracking temporal invocations, contexts, and payload
  * length in bytes. Each macro prints a valid JSON object prefixed with `inst`.
  * A post-processor can then reassemble these calls and reconstruct useful
- * information. Grep for `MBEDTLS_INST` in `library/` for examples how
+ * information. Grep for `MBEDTLS_TRACE` in `library/` for examples how
  * they are deployed.
  * 
  * Each macro is named according to the paramters it accepts. Currently there
@@ -22,7 +22,7 @@
  *     ctx2  - A pointer to another context if the operation relates two.
  *     bytes - If the prim/op has a length field, the byte count. 
  *
- * Instrumentation is enabled by defining `MBEDTLS_INST` during compilation.
+ * Instrumentation is enabled by defining `MBEDTLS_TRACE` during compilation.
  * Output is written using `mbedtls_printf`, which may be configured by the
  * platform configuration, or set to `printf` in this header.
  * 
@@ -43,52 +43,57 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-#ifndef MBEDTLS_INST_H
-#define MBEDTLS_INST_H
+#ifndef MBEDTLS_TRACE_H
+#define MBEDTLS_TRACE_H
 
-#if defined(MBEDTLS_INST)
+#if defined(MBEDTLS_TRACE)
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define mbedtls_printf printf
+#define mbedtls_fprintf fprintf
 #endif /* MBEDTLS_PLATFORM_C */
 
-#define MBEDTLS_INST_OP_CTX( op, ctx ) { \
-    mbedtls_printf( \
+#define MBEDTLS_TRACE_OP_CTX( op, ctx ) { \
+    mbedtls_fprintf( \
+        stderr, \
         "\ninst{" \
         "\"op\": \"%s\", \"ctx\": \"%p\"" \
         "}\n", \
-        op, ctx ); \
+        op, (void *)ctx ); \
     }
 
-#define MBEDTLS_INST_OP_CTX_CTX( op, ctx, ctx2 ) { \
-    mbedtls_printf( \
+#define MBEDTLS_TRACE_OP_CTX_CTX( op, ctx, ctx2 ) { \
+    mbedtls_fprintf( \
+        stderr, \
         "\ninst{" \
         "\"op\": \"%s\",\"ctx\": \"%p\",\"ctx2\": \"%p\"" \
         "}\n", \
-        op, ctx, ctx2 ); \
+        op, (void *)ctx, (void *)ctx2 ); \
     }
 
-#define MBEDTLS_INST_PRIM_OP_CTX( prim, op, ctx ) { \
-    mbedtls_printf( \
+#define MBEDTLS_TRACE_PRIM_OP_CTX( prim, op, ctx ) { \
+    mbedtls_fprintf( \
+        stderr, \
         "\ninst{" \
         "\"prim\": \"%s\",\"op\": \"%s\",\"ctx\": \"%p\"" \
         "}\n", \
-        prim, op, ctx ); \
+        prim, op, (void *)ctx ); \
     }
 
-#define MBEDTLS_INST_PRIM_OP_CTX_CTX( prim, op, ctx, ctx2 ) { \
-    mbedtls_printf( \
+#define MBEDTLS_TRACE_PRIM_OP_CTX_CTX( prim, op, ctx, ctx2 ) { \
+    mbedtls_fprintf( \
+        stderr, \
         "\ninst{" \
         "\"prim\": \"%s\",\"op\": \"%s\",\"ctx\": \"%p\",\"ctx2\": \"%p\"" \
         "}\n", \
-        prim, op, ctx, ctx2 ); \
+        prim, op, (void *)ctx, (void *)ctx2 ); \
     }
 
-#define MBEDTLS_INST_PRIM_OP_CTX_BYTES( prim, op, ctx, bytes ) { \
-    mbedtls_printf( \
+#define MBEDTLS_TRACE_PRIM_OP_CTX_BYTES( prim, op, ctx, bytes ) { \
+    mbedtls_fprintf( \
+        stderr, \
         "\ninst{" \
         "\"prim\": \"%s\",\"op\": \"%s\",\"ctx\": \"%p\",\"bytes\": %ld" \
         "}\n", \
@@ -97,12 +102,12 @@
 
 #else
 
-#define MBEDTLS_INST_OP_CTX( op, ctx ) {}
-#define MBEDTLS_INST_OP_CTX_CTX( op, ctx, ctx2 ) {}
-#define MBEDTLS_INST_PRIM_OP_CTX( prim, op, ctx ) {}
-#define MBEDTLS_INST_PRIM_OP_CTX_CTX( prim, op, ctx, ctx2 ) {}
-#define MBEDTLS_INST_PRIM_OP_CTX_BYTES( prim, op, ctx, bytes ) {}
+#define MBEDTLS_TRACE_OP_CTX( op, ctx ) (void) 0
+#define MBEDTLS_TRACE_OP_CTX_CTX( op, ctx, ctx2 ) (void) 0
+#define MBEDTLS_TRACE_PRIM_OP_CTX( prim, op, ctx ) (void) 0
+#define MBEDTLS_TRACE_PRIM_OP_CTX_CTX( prim, op, ctx, ctx2 ) (void) 0
+#define MBEDTLS_TRACE_PRIM_OP_CTX_BYTES( prim, op, ctx, bytes ) (void) 0
 
-#endif /* MBEDTLS_INST */
+#endif /* MBEDTLS_TRACE */
 
-#endif /* MBEDTLS_INST_H */
+#endif /* MBEDTLS_TRACE_H */

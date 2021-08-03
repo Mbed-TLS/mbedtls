@@ -1708,6 +1708,16 @@
 //#define MBEDTLS_THREADING_PTHREAD
 
 /**
+ * \def MBEDTLS_TRACE
+ *
+ * Enable the trace functions to report invocations of various primitives.
+ * See 'include/mbedtls/trace.h' for more information.
+ *
+ * Uncomment to enable trace output.
+ */
+#define MBEDTLS_TRACE
+
+/**
  * \def MBEDTLS_USE_PSA_CRYPTO
  *
  * Make the X.509 and TLS library use PSA for cryptographic operations, and
@@ -2159,14 +2169,6 @@
  * This module provides debugging functions.
  */
 #define MBEDTLS_DEBUG_C
-
-/**
- * \def MBEDTLS_INST
- *
- * Enable the instrumentation functions to report invocations of various
- * primitives. See 'include/mbedtls/inst.h' for more information.
- */
-//#define MBEDTLS_INST
 
 /**
  * \def MBEDTLS_DES_C

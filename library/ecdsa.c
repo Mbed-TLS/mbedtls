@@ -46,7 +46,7 @@
 
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
-#include "mbedtls/inst.h"
+#include "mbedtls/trace.h"
 
 /* Parameter validation macros based on platform_util.h */
 #define ECDSA_VALIDATE_RET( cond )    \
@@ -722,7 +722,7 @@ int mbedtls_ecdsa_write_signature_restartable( mbedtls_ecdsa_context *ctx,
 cleanup:
     mbedtls_mpi_free( &r );
     mbedtls_mpi_free( &s );
-    MBEDTLS_INST_PRIM_OP_CTX( "ecdsa", "write_signature-EXIT", ctx );
+    MBEDTLS_TRACE_PRIM_OP_CTX( "ecdsa", "write_signature-EXIT", ctx );
 
     return( ret );
 }
@@ -737,7 +737,7 @@ int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx,
                                  int (*f_rng)(void *, unsigned char *, size_t),
                                  void *p_rng )
 {
-    MBEDTLS_INST_PRIM_OP_CTX( "ecdsa", "write_signature", ctx );
+    MBEDTLS_TRACE_PRIM_OP_CTX( "ecdsa", "write_signature", ctx );
     ECDSA_VALIDATE_RET( ctx  != NULL );
     ECDSA_VALIDATE_RET( hash != NULL );
     ECDSA_VALIDATE_RET( sig  != NULL );
@@ -754,7 +754,7 @@ int mbedtls_ecdsa_read_signature( mbedtls_ecdsa_context *ctx,
                           const unsigned char *hash, size_t hlen,
                           const unsigned char *sig, size_t slen )
 {
-    MBEDTLS_INST_PRIM_OP_CTX( "ecdsa", "read_signature", ctx );
+    MBEDTLS_TRACE_PRIM_OP_CTX( "ecdsa", "read_signature", ctx );
     ECDSA_VALIDATE_RET( ctx  != NULL );
     ECDSA_VALIDATE_RET( hash != NULL );
     ECDSA_VALIDATE_RET( sig  != NULL );
@@ -823,7 +823,7 @@ int mbedtls_ecdsa_read_signature_restartable( mbedtls_ecdsa_context *ctx,
 cleanup:
     mbedtls_mpi_free( &r );
     mbedtls_mpi_free( &s );
-    MBEDTLS_INST_PRIM_OP_CTX( "ecdsa", "read_signature-EXIT", ctx );
+    MBEDTLS_TRACE_PRIM_OP_CTX( "ecdsa", "read_signature-EXIT", ctx );
 
     return( ret );
 }
@@ -872,7 +872,7 @@ int mbedtls_ecdsa_from_keypair( mbedtls_ecdsa_context *ctx, const mbedtls_ecp_ke
  */
 void mbedtls_ecdsa_init( mbedtls_ecdsa_context *ctx )
 {
-    MBEDTLS_INST_PRIM_OP_CTX( "ecdsa", "init", ctx );
+    MBEDTLS_TRACE_PRIM_OP_CTX( "ecdsa", "init", ctx );
     ECDSA_VALIDATE( ctx != NULL );
 
     mbedtls_ecp_keypair_init( ctx );
@@ -883,7 +883,7 @@ void mbedtls_ecdsa_init( mbedtls_ecdsa_context *ctx )
  */
 void mbedtls_ecdsa_free( mbedtls_ecdsa_context *ctx )
 {
-    MBEDTLS_INST_PRIM_OP_CTX( "ecdsa", "free", ctx );
+    MBEDTLS_TRACE_PRIM_OP_CTX( "ecdsa", "free", ctx );
     if( ctx == NULL )
         return;
 

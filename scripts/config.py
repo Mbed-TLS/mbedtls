@@ -200,6 +200,7 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_RSA_NO_CRT', # influences the use of RSA in X.509 and TLS
     'MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN', # build dependency (clang+memsan)
     'MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND', # build dependency (valgrind headers)
+    'MBEDTLS_TRACE', # tracing not required for full build
     'MBEDTLS_X509_REMOVE_INFO', # removes a feature
 ])
 

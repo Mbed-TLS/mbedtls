@@ -33,7 +33,7 @@
 #include "mbedtls/platform.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
-#include "mbedtls/inst.h"
+#include "mbedtls/trace.h"
 #if defined(MBEDTLS_PADLOCK_C)
 #include "padlock.h"
 #endif
@@ -513,7 +513,7 @@ static void aes_gen_tables( void )
 
 void mbedtls_aes_init( mbedtls_aes_context *ctx )
 {
-    MBEDTLS_INST_PRIM_OP_CTX( "aes", "init", ctx );
+    MBEDTLS_TRACE_PRIM_OP_CTX( "aes", "init", ctx );
     AES_VALIDATE( ctx != NULL );
 
     memset( ctx, 0, sizeof( mbedtls_aes_context ) );
@@ -521,7 +521,7 @@ void mbedtls_aes_init( mbedtls_aes_context *ctx )
 
 void mbedtls_aes_free( mbedtls_aes_context *ctx )
 {
-    MBEDTLS_INST_PRIM_OP_CTX( "aes", "free", ctx );
+    MBEDTLS_TRACE_PRIM_OP_CTX( "aes", "free", ctx );
 
     if( ctx == NULL )
         return;
@@ -877,7 +877,7 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
         uint32_t Y[4];
     } t;
 
-    MBEDTLS_INST_PRIM_OP_CTX_BYTES( "aes", "encrypt", ctx, 16 );
+    MBEDTLS_TRACE_PRIM_OP_CTX_BYTES( "aes", "encrypt", ctx, 16 );
 
     GET_UINT32_LE( t.X[0], input,  0 ); t.X[0] ^= *RK++;
     GET_UINT32_LE( t.X[1], input,  4 ); t.X[1] ^= *RK++;
@@ -943,7 +943,7 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
         uint32_t Y[4];
     } t;
 
-    MBEDTLS_INST_PRIM_OP_CTX_BYTES( "aes", "decrypt", ctx, 16 );
+    MBEDTLS_TRACE_PRIM_OP_CTX_BYTES( "aes", "decrypt", ctx, 16 );
 
     GET_UINT32_LE( t.X[0], input,  0 ); t.X[0] ^= *RK++;
     GET_UINT32_LE( t.X[1], input,  4 ); t.X[1] ^= *RK++;

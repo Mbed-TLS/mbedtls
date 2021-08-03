@@ -108,11 +108,15 @@
 extern "C" {
 #endif
 
-#define MBEDTLS_ERR_ERROR_GENERIC_ERROR       -0x0001  /**< Generic error */
-#define MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED -0x006E  /**< This is a bug in the library */
+/** Generic error */
+#define MBEDTLS_ERR_ERROR_GENERIC_ERROR       -0x0001
+/** This is a bug in the library */
+#define MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED -0x006E
 
-#define MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED     -0x0070 /**< Hardware accelerator failed */
-#define MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED -0x0072 /**< The requested feature is not supported by the platform */
+/** Hardware accelerator failed */
+#define MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED     -0x0070
+/** The requested feature is not supported by the platform */
+#define MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED -0x0072
 
 /**
  * \brief Combines a high-level and low-level error code together.

@@ -115,7 +115,8 @@ int read_certificates( const char *const *filenames )
         if( ret != 0 )
         {
             mbedtls_strerror( ret, error_message, sizeof( error_message ) );
-            printf( "\n%s: -0x%04x (%s)\n", *cur, -ret, error_message );
+            printf( "\n%s: -0x%04x (%s)\n",
+                    *cur, (unsigned) -ret, error_message );
             goto exit;
         }
     }

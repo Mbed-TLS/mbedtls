@@ -3142,6 +3142,53 @@ void mbedtls_ssl_init( mbedtls_ssl_context *ssl )
     memset( ssl, 0, sizeof( mbedtls_ssl_context ) );
 }
 
+static int ssl_conf_version_check( const mbedtls_ssl_context *ssl )
+{
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+    if( mbedtls_ssl_conf_is_tls13_only( ssl->conf ) )
+    {
+        if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+        {
+             MBEDTLS_SSL_DEBUG_MSG( 1, ( "DTLS 1.3 is not yet supported" ) );
+             return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+        }
+        MBEDTLS_SSL_DEBUG_MSG( 4, ( "The SSL configuration is tls13 only." ) );
+        return( 0 );
+    }
+#endif
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    if( mbedtls_ssl_conf_is_tls12_only( ssl->conf ) )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 4, ( "The SSL configuration is tls12 only." ) );
+        return( 0 );
+    }
+#endif
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+    if( mbedtls_ssl_conf_is_hybrid_tls12_tls13( ssl->conf ) )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Hybrid TLS 1.2 + TLS 1.3 configurations are not yet supported" ) );
+        return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+    }
+#endif
+
+    MBEDTLS_SSL_DEBUG_MSG( 1, ( "The SSL configuration is invalid." ) );
+    return( MBEDTLS_ERR_SSL_BAD_CONFIG );
+}
+
+static int ssl_conf_check(const mbedtls_ssl_context *ssl)
+{
+    int ret;
+    ret = ssl_conf_version_check( ssl );
+    if( ret != 0 )
+        return( ret );
+
+    /* Space for further checks */
+
+    return( 0 );
+}
+
 /*
  * Setup an SSL context
  */
@@ -3154,6 +3201,9 @@ int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
     size_t out_buf_len = MBEDTLS_SSL_OUT_BUFFER_LEN;
 
     ssl->conf = conf;
+
+    if( ( ret = ssl_conf_check( ssl ) ) != 0 )
+        return( ret );
 
     /*
      * Prepare base structures

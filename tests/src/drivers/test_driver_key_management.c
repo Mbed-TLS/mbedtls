@@ -271,15 +271,6 @@ psa_status_t mbedtls_test_opaque_import_key(
     {
         *bits = PSA_BYTES_TO_BITS( data_length );
 
-        /* Ensure that the bytes-to-bits conversion hasn't overflown. */
-        if( data_length > SIZE_MAX / 8 )
-            goto exit;
-
-        /* Enforce a size limit, and in particular ensure that the bit
-         * size fits in its representation type. */
-        if( ( *bits ) > PSA_MAX_KEY_BITS )
-            goto exit;
-
         status = psa_validate_unstructured_key_bit_size( attributes->core.type, *bits );
         if( status != PSA_SUCCESS )
             goto exit;

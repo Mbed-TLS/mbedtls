@@ -558,15 +558,6 @@ psa_status_t psa_import_key_into_slot(
     {
         *bits = PSA_BYTES_TO_BITS( data_length );
 
-        /* Ensure that the bytes-to-bits conversion hasn't overflown. */
-        if( data_length > SIZE_MAX / 8 )
-            return( status );
-
-        /* Enforce a size limit, and in particular ensure that the bit
-         * size fits in its representation type. */
-        if( ( *bits ) > PSA_MAX_KEY_BITS )
-            return( status );
-
         status = psa_validate_unstructured_key_bit_size( attributes->core.type, *bits );
         if( status != PSA_SUCCESS )
             return( status );
@@ -1901,6 +1892,10 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
     if( data_length == 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
+    /* Ensure that the bytes-to-bits conversion hasn't overflown. */
+    if( data_length > SIZE_MAX / 8 )
+        return( PSA_ERROR_NOT_SUPPORTED );
+
     status = psa_start_key_creation( PSA_KEY_CREATION_IMPORT, attributes,
                                      &slot, &driver );
     if( status != PSA_SUCCESS )
@@ -1941,6 +1936,13 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
         goto exit;
     }
 
+    /* Enforce a size limit, and in particular ensure that the bit
+     * size fits in its representation type.*/
+    if( bits > PSA_MAX_KEY_BITS )
+    {
+        status = PSA_ERROR_NOT_SUPPORTED;
+        goto exit;
+    }
     status = psa_validate_optional_attributes( slot, attributes );
     if( status != PSA_SUCCESS )
         goto exit;

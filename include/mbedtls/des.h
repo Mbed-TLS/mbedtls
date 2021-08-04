@@ -29,6 +29,7 @@
 #include "mbedtls/private_access.h"
 
 #include "mbedtls/build_info.h"
+#include "mbedtls/platform_util.h"
 
 #include <stddef.h>
 #include <stdint.h>

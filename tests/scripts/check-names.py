@@ -213,7 +213,7 @@ class NameCheck(object):
                         state = 1
                     elif state is 1 and re.match(r"^}", line):
                         state = 0
-                    elif state is 1:
+                    elif state is 1 and not re.match(r"^#", line):
                         enum_const = re.match(r"^\s*(?P<enum_const>\w+)", line)
                         if enum_const:
                             enum_consts.append(Match(

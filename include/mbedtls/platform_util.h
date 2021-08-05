@@ -201,6 +201,13 @@ MBEDTLS_DEPRECATED typedef int mbedtls_deprecated_numeric_constant_t;
  */
 #define MBEDTLS_CHECK_RETURN_OPTIONAL
 
+/** \def MBEDTLS_IGNORE_RETURN
+ *
+ * Silences warning about unused return value given by functions
+ * with \c MBEDTLS_CHECK_RETURN attribute.
+ */
+#define MBEDTLS_IGNORE_RETURN(result) if( result ) {}
+
 /**
  * \brief       Securely zeroize a buffer
  *

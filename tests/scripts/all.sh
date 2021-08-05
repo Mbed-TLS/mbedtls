@@ -246,7 +246,7 @@ General options:
                         (default: "${ARM_LINUX_GNUEABI_GCC_PREFIX}")
      --armcc            Run ARM Compiler builds (on by default).
      --error-test       Error test mode: run a failing function in addition
-                        to any specified component.
+                        to any specified component. May be repeated.
      --except           Exclude the COMPONENTs listed on the command line,
                         instead of running only those.
      --no-append-outcome    Write a new outcome file and analyze it (default).

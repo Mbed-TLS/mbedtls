@@ -31,7 +31,7 @@ import subprocess
 import logging
 
 # Naming patterns to check against
-MACRO_PATTERN = r"^MBEDTLS_[0-9A-Z_]*[0-9A-Z]$"
+MACRO_PATTERN = r"^(MBEDTLS|PSA)_[0-9A-Z_]*[0-9A-Z]$"
 IDENTIFIER_PATTERN = r"^(mbedtls|psa)_[0-9a-z_]*[0-9a-z]$"
 
 class Match(object):
@@ -159,20 +159,19 @@ class NameCheck(object):
 
         return macros
 
-    def parse_MBED_names(self, header_files, library_files):
+    def parse_MBED_names(self, files):
         """
         Parse all words in the file that begin with MBED. Includes macros.
 
         Args:
-            header_files: A list of filepaths to look through.
-            library_files: A list of filepaths to look through.
+            files: A list of filepaths to look through.
         
         Returns:
             A list of Match objects for words beginning with MBED.
         """
         MBED_names = []
         
-        for filename in header_files + library_files:
+        for filename in files:
             with open(filename, "r") as fp:
                 for line in fp:
                     for name in re.finditer(r"\bMBED.+?_[A-Z0-9_]*", line):
@@ -380,11 +379,12 @@ class NameCheck(object):
         p_headers = self.get_files(os.path.join("include", "psa"))
         libraries = self.get_files("library")
         
-        all_macros = self.parse_macros(m_headers + ["configs/config-default.h"])
+        all_macros = self.parse_macros(
+            m_headers + p_headers)
         enum_consts = self.parse_enum_consts(m_headers)
         identifiers = self.parse_identifiers(m_headers + p_headers)
         symbols = self.parse_symbols()
-        mbed_names = self.parse_MBED_names(m_headers, libraries)
+        mbed_names = self.parse_MBED_names(m_headers + p_headers + libraries)
         
         # Remove identifier macros like mbedtls_printf or mbedtls_calloc
         macros = list(set(all_macros) - set(identifiers))

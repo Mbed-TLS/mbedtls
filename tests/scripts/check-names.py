@@ -119,12 +119,12 @@ class NameCheck(object):
         if current_dir != root_dir:
             raise Exception("Must be run from Mbed TLS root")
 
-    def get_files(self, directory):
+    def get_files(self, extension, directory):
         filenames = []
         for root, dirs, files in sorted(os.walk(directory)):
             for filename in sorted(files):
                 if (filename not in self.excluded_files and
-                        filename.endswith((".c", ".h"))):
+                        filename.endswith("." + extension)):
                     filenames.append(os.path.join(root, filename))
         return filenames
 
@@ -375,21 +375,22 @@ class NameCheck(object):
         """
         self.log.info("Parsing source code...")
 
-        m_headers = self.get_files(os.path.join("include", "mbedtls"))
-        p_headers = self.get_files(os.path.join("include", "psa"))
+        m_headers = self.get_files("h", os.path.join("include", "mbedtls"))
+        p_headers = self.get_files("h", os.path.join("include", "psa"))
         t_headers = ["3rdparty/everest/include/everest/everest.h",
                      "3rdparty/everest/include/everest/x25519.h"]
-        libraries = self.get_files("library") + [
+        l_headers = self.get_files("h", "library")
+        libraries = self.get_files("c", "library") + [
             "3rdparty/everest/library/everest.c",
             "3rdparty/everest/library/x25519.c"]
         
         all_macros = self.parse_macros(
-            m_headers + p_headers + t_headers)
+            m_headers + p_headers + t_headers + l_headers)
         enum_consts = self.parse_enum_consts(m_headers + t_headers)
         identifiers = self.parse_identifiers(m_headers + p_headers + t_headers)
         symbols = self.parse_symbols()
         mbed_names = self.parse_MBED_names(
-            m_headers + p_headers + t_headers + libraries)
+            m_headers + p_headers + t_headers + l_headers + libraries)
         
         # Remove identifier macros like mbedtls_printf or mbedtls_calloc
         macros = list(set(all_macros) - set(identifiers))

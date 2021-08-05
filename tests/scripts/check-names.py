@@ -377,14 +377,19 @@ class NameCheck(object):
 
         m_headers = self.get_files(os.path.join("include", "mbedtls"))
         p_headers = self.get_files(os.path.join("include", "psa"))
-        libraries = self.get_files("library")
+        t_headers = ["3rdparty/everest/include/everest/everest.h",
+                     "3rdparty/everest/include/everest/x25519.h"]
+        libraries = self.get_files("library") + [
+            "3rdparty/everest/library/everest.c",
+            "3rdparty/everest/library/x25519.c"]
         
         all_macros = self.parse_macros(
-            m_headers + p_headers)
-        enum_consts = self.parse_enum_consts(m_headers)
-        identifiers = self.parse_identifiers(m_headers + p_headers)
+            m_headers + p_headers + t_headers)
+        enum_consts = self.parse_enum_consts(m_headers + t_headers)
+        identifiers = self.parse_identifiers(m_headers + p_headers + t_headers)
         symbols = self.parse_symbols()
-        mbed_names = self.parse_MBED_names(m_headers + p_headers + libraries)
+        mbed_names = self.parse_MBED_names(
+            m_headers + p_headers + t_headers + libraries)
         
         # Remove identifier macros like mbedtls_printf or mbedtls_calloc
         macros = list(set(all_macros) - set(identifiers))

@@ -383,13 +383,14 @@ class NameCheck(object):
         p_headers = self.get_files("h", os.path.join("include", "psa"))
         t_headers = ["3rdparty/everest/include/everest/everest.h",
                      "3rdparty/everest/include/everest/x25519.h"]
+        d_headers = self.get_files("h", os.path.join("tests", "include", "test", "drivers"))
         l_headers = self.get_files("h", "library")
         libraries = self.get_files("c", "library") + [
             "3rdparty/everest/library/everest.c",
             "3rdparty/everest/library/x25519.c"]
         
         all_macros = self.parse_macros(
-            m_headers + p_headers + t_headers + l_headers)
+            m_headers + p_headers + t_headers + l_headers + d_headers)
         enum_consts = self.parse_enum_consts(m_headers + t_headers)
         identifiers = self.parse_identifiers(m_headers + p_headers + t_headers)
         symbols = self.parse_symbols()

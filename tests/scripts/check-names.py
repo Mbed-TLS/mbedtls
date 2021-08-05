@@ -392,7 +392,7 @@ class NameCheck(object):
         all_macros = self.parse_macros(
             m_headers + p_headers + t_headers + l_headers + d_headers)
         enum_consts = self.parse_enum_consts(m_headers + t_headers)
-        identifiers = self.parse_identifiers(m_headers + p_headers + t_headers)
+        identifiers = self.parse_identifiers(m_headers + p_headers + t_headers + l_headers)
         symbols = self.parse_symbols()
         mbed_names = self.parse_MBED_names(
             m_headers + p_headers + t_headers + l_headers + libraries)

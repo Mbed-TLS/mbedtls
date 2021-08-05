@@ -173,6 +173,10 @@ class NameCheck(object):
         for filename in files:
             with open(filename, "r") as fp:
                 for line in fp:
+                    # Ignore any names that are deliberately opted-out
+                    if re.search(r"// *no-check-names", line):
+                        continue
+                    
                     for name in re.finditer(r"\bMBED.+?_[A-Z0-9_]*", line):
                         MBED_names.append(Match(
                             filename,

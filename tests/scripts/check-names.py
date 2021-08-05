@@ -301,7 +301,7 @@ class NameCheck(object):
                     "include/mbedtls/mbedtls_config.h.bak")        
         try:
             subprocess.run(
-                ["perl", "scripts/config.pl", "full"],
+                ["perl", "scripts/config.py", "full"],
                 encoding=sys.stdout.encoding,
                 check=True
             )

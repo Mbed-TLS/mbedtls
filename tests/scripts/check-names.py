@@ -88,8 +88,7 @@ class NameCheck(object):
         self.log = None
         self.check_repo_path()
         self.return_code = 0
-        self.excluded_files = ["compat-1.3.h"]
-        self.typo_check_pattern = r"XXX|__|_$|^MBEDTLS_.*CONFIG_FILE$"
+        self.excluded_files = ["bn_mul"]
 
     def set_return_code(self, return_code):
         if return_code > self.return_code:

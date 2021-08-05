@@ -21,7 +21,7 @@ set -e
 export LC_ALL=C
 
 print_cpp () {
-  cat <<'EOF'
+    cat <<'EOF'
 /* Automatically generated file. Do not edit.
  *
  *  This program is a dummy C++ program to ensure Mbed TLS library header files
@@ -47,19 +47,20 @@ print_cpp () {
 
 EOF
 
-  for header in include/mbedtls/*.h include/psa/*.h; do
-    case ${header#include/} in
-      mbedtls/mbedtls_config.h) :;; # not meant for direct inclusion
-      psa/crypto_config.h) :;; # not meant for direct inclusion
-      # Some of the psa/crypto_*.h headers are not meant to be included directly.
-      # They do have include guards that make them no-ops if psa/crypto.h
-      # has been included before. Since psa/crypto.h comes before psa/crypto_*.h
-      # in the wildcard enumeration, we don't need to skip those headers.
-      *) echo "#include \"${header#include/}\"";;
-    esac
-  done
+    for header in include/mbedtls/*.h include/psa/*.h; do
+        case ${header#include/} in
+            mbedtls/mbedtls_config.h) :;; # not meant for direct inclusion
+            psa/crypto_config.h) :;; # not meant for direct inclusion
+            # Some of the psa/crypto_*.h headers are not meant to be included
+            # directly. They do have include guards that make them no-ops if
+            # psa/crypto.h has been included before. Since psa/crypto.h comes
+            # before psa/crypto_*.h in the wildcard enumeration, we don't need
+            # to skip those headers.
+            *) echo "#include \"${header#include/}\"";;
+        esac
+    done
 
-  cat <<'EOF'
+    cat <<'EOF'
 
 int main()
 {
@@ -72,14 +73,14 @@ EOF
 }
 
 if [ -d include/mbedtls ]; then
-  :
+    :
 elif [ -d ../include/mbedtls ]; then
-  cd ..
+    cd ..
 elif [ -d ../../include/mbedtls ]; then
-  cd ../..
+    cd ../..
 else
-  echo >&2 "This script must be run from an Mbed TLS source tree."
-  exit 3
+    echo >&2 "This script must be run from an Mbed TLS source tree."
+    exit 3
 fi
 
 print_cpp >"${1:-programs/test/cpp_dummy_build.cpp}"

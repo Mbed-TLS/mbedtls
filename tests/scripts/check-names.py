@@ -32,7 +32,7 @@ import logging
 
 # Naming patterns to check against
 MACRO_PATTERN = r"^MBEDTLS_[0-9A-Z_]*[0-9A-Z]$|^YOTTA_[0-9A-Z_]*[0-9A-Z]$"
-IDENTIFIER_PATTERN = r"^mbedtls_[0-9a-z_]*[0-9a-z]$"
+IDENTIFIER_PATTERN = r"^(mbedtls|psa)_[0-9a-z_]*[0-9a-z]$"
 
 class Match(object):
     def __init__(self, filename, line, pos, name):
@@ -377,11 +377,12 @@ class NameCheck(object):
         self.log.info("Parsing source code...")
 
         m_headers = self.get_files(os.path.join("include", "mbedtls"))
+        p_headers = self.get_files(os.path.join("include", "psa"))
         libraries = self.get_files("library")
         
-        all_macros = self.parse_macros(m_headers)
+        all_macros = self.parse_macros(m_headers + ["configs/config-default.h"])
         enum_consts = self.parse_enum_consts(m_headers)
-        identifiers = self.parse_identifiers(m_headers)
+        identifiers = self.parse_identifiers(m_headers + p_headers)
         symbols = self.parse_symbols()
         mbed_names = self.parse_MBED_names(m_headers, libraries)
         

@@ -752,7 +752,7 @@ pre_generate_files() {
     # file that might be around before generating fresh ones
     make neat
     if [ $QUIET -eq 1 ]; then
-        make -s generated_files
+        make generated_files >/dev/null
     else
         make generated_files
     fi

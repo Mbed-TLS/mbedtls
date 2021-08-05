@@ -31,7 +31,7 @@ import subprocess
 import logging
 
 # Naming patterns to check against
-MACRO_PATTERN = r"^MBEDTLS_[0-9A-Z_]*[0-9A-Z]$|^YOTTA_[0-9A-Z_]*[0-9A-Z]$"
+MACRO_PATTERN = r"^MBEDTLS_[0-9A-Z_]*[0-9A-Z]$"
 IDENTIFIER_PATTERN = r"^(mbedtls|psa)_[0-9a-z_]*[0-9a-z]$"
 
 class Match(object):

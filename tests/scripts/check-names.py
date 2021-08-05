@@ -469,6 +469,8 @@ class NameCheck(object):
         for item_match in self.parse_result[group_to_check]:
             if not re.match(check_pattern, item_match.name):
                 problems.append(PatternMismatch(check_pattern, item_match))
+            if re.match(r".*__.*", item_match.name):
+                problems.append(PatternMismatch("double underscore", item_match))
         
         if problems:
             self.set_return_code(1)

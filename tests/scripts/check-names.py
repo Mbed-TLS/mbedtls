@@ -237,7 +237,7 @@ class NameCheck(object):
             A list of (identifier, containing filename)
         """
         EXCLUDED_DECLARATIONS = (
-            r"^(extern \"C\"|(typedef )?(struct|enum)( {)?$|};?$|$)"
+            r"^(extern \"C\"|(typedef )?(struct|union|enum)( {)?$|};?$|$)"
         )
 
         identifiers = []
@@ -258,19 +258,15 @@ class NameCheck(object):
                     
                     # Skip parsing this line if it's a line comment, or if it
                     # begins with a preprocessor directive
-                    if in_block_comment or re.match(r"(//|#)", line):
+                    if in_block_comment or re.match(r"^(//|#)", line):
                         continue
 
                     if re.match(EXCLUDED_DECLARATIONS, line):
                         continue
-                
+
                     identifier = re.search(
                         # Matches: "mbedtls_aes_init("
-                        r"([a-zA-Z_][a-zA-Z0-9_]*)\(|"
-                        # Matches: "(*f_rng)("
-                        r"\(\*(.+)\)\(|"
-                        # TODO: unknown purpose
-                        r"(\w+)\W*$",
+                        r"([a-zA-Z_][a-zA-Z0-9_]*)\(",
                         line
                     )
 
@@ -281,7 +277,7 @@ class NameCheck(object):
                                     header_file,
                                     line,
                                     (identifier.start(), identifier.end()),
-                                    identifier.group(0)))
+                                    identifier.group(1)))
 
         return identifiers
 

@@ -348,6 +348,7 @@ class NameCheck(object):
         """
         UNDEFINED_SYMBOL = r"^\S+: +U |^$|^\S+:$"
         VALID_SYMBOL = r"^\S+( [0-9A-Fa-f]+)* . _*(?P<symbol>\w+)"
+        EXCLUSIONS = ("FStar", "Hacl")
 
         symbols = []
 
@@ -363,8 +364,8 @@ class NameCheck(object):
         for line in nm_output.splitlines():
             if not re.match(UNDEFINED_SYMBOL, line):
                 symbol = re.match(VALID_SYMBOL, line)
-                if symbol:
-                    symbols.append(symbol.group('symbol'))
+                if symbol and not symbol.group("symbol").startswith(EXCLUSIONS):
+                    symbols.append(symbol.group("symbol"))
                 else:
                     self.log.error(line)
         

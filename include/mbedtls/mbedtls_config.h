@@ -1715,7 +1715,7 @@
  *
  * Uncomment to enable trace output.
  */
-#define MBEDTLS_TRACE
+//#define MBEDTLS_TRACE
 
 /**
  * \def MBEDTLS_USE_PSA_CRYPTO

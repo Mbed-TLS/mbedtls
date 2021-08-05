@@ -1,5 +1,18 @@
 #!/bin/sh
 
+DEFAULT_OUTPUT_FILE=programs/test/cpp_dummy_build.cpp
+
+if [ "$1" = "--help" ]; then
+    cat <<EOF
+Usage: $0 [OUTPUT]
+Generate a C++ dummy build program that includes all the headers.
+OUTPUT defaults to "programs/test/cpp_dummy_build.cpp".
+Run this program from the root of an Mbed TLS directory tree or from
+its "programs" or "programs/test" subdirectory.
+EOF
+    exit
+fi
+
 # Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -83,4 +96,4 @@ else
     exit 3
 fi
 
-print_cpp >"${1:-programs/test/cpp_dummy_build.cpp}"
+print_cpp >"${1:-$DEFAULT_OUTPUT_FILE}"

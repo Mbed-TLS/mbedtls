@@ -193,6 +193,10 @@ class NameCheck(object):
         internal variable self.parse_result.
         """
         self.log.info("Parsing source code...")
+        self.log.debug(
+            "The following files are excluded from the search: {}"
+            .format(str(self.excluded_files))
+        )
 
         m_headers = self.get_files("h", os.path.join("include", "mbedtls"))
         p_headers = self.get_files("h", os.path.join("include", "psa"))

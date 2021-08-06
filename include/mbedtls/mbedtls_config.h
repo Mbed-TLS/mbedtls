@@ -256,6 +256,18 @@
  */
 //#define MBEDTLS_DEPRECATED_REMOVED
 
+/** \def MBEDTLS_CHECK_RETURN
+ *
+ * This macro appearing at the beginning of the declaration of a function
+ * indicates that its return value should be checked.
+ *
+ * Default implementation resides in platform_util.h.
+ * You can override default implementation by defining your own.
+ * Custom implementation can be empty, which will disable checking
+ * of functions' return values.
+ */
+//#define MBEDTLS_CHECK_RETURN
+
 /* \} name SECTION: System support */
 
 /**

@@ -243,6 +243,9 @@ General options:
                         Prefix for a cross-compiler for arm-none-eabi
                         (default: "${ARM_NONE_EABI_GCC_PREFIX}")
      --armcc            Run ARM Compiler builds (on by default).
+     --restore          First clean up the build tree, restoring backed up
+                        files. Do not run any components unless they are
+                        explicitly specified.
      --error-test       Error test mode: run a failing function in addition
                         to any specified component. May be repeated.
      --except           Exclude the COMPONENTs listed on the command line,
@@ -388,6 +391,7 @@ pre_parse_command_line () {
     COMMAND_LINE_COMPONENTS=
     all_except=0
     error_test=0
+    restore_first=0
     no_armcc=
 
     # Note that legacy options are ignored instead of being omitted from this
@@ -426,6 +430,7 @@ pre_parse_command_line () {
             --quiet|-q) QUIET=1;;
             --random-seed) unset SEED;;
             --release-test|-r) SEED=$RELEASE_SEED;;
+            --restore) restore_first=1;;
             --seed|-s) shift; SEED="$1";;
             -*)
                 echo >&2 "Unknown option: $1"
@@ -438,7 +443,7 @@ pre_parse_command_line () {
     done
 
     # With no list of components, run everything.
-    if [ -z "$COMMAND_LINE_COMPONENTS" ]; then
+    if [ -z "$COMMAND_LINE_COMPONENTS" ] && [ $restore_first -eq 0 ]; then
         all_except=1
     fi
 

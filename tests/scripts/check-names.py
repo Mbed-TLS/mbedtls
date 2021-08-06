@@ -273,7 +273,7 @@ class NameCheck():
         macros = []
 
         for header_file in header_files:
-            with open(header_file, "r") as header:
+            with open(header_file, "r", encoding="utf-8") as header:
                 for line_no, line in enumerate(header):
                     for macro in macro_regex.finditer(line):
                         if not macro.group("macro").startswith(exclusions):
@@ -303,7 +303,7 @@ class NameCheck():
         mbed_words = []
 
         for filename in files:
-            with open(filename, "r") as fp:
+            with open(filename, "r", encoding="utf-8") as fp:
                 for line_no, line in enumerate(fp):
                     if exclusions.search(line):
                         continue
@@ -337,7 +337,7 @@ class NameCheck():
             # 1 = inside enum
             # 2 = almost inside enum
             state = 0
-            with open(header_file, "r") as header:
+            with open(header_file, "r", encoding="utf-8") as header:
                 for line_no, line in enumerate(header):
                     # Match typedefs and brackets only when they are at the
                     # beginning of the line -- if they are indented, they might
@@ -399,7 +399,7 @@ class NameCheck():
         identifiers = []
 
         for header_file in header_files:
-            with open(header_file, "r") as header:
+            with open(header_file, "r", encoding="utf-8") as header:
                 in_block_comment = False
                 previous_line = ""
 

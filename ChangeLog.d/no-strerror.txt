@@ -1,0 +1,3 @@
+Bugfix
+   * Fix the build of sample programs when neither MBEDTLS_ERROR_C nor
+     MBEDTLS_ERROR_STRERROR_DUMMY is enabled.

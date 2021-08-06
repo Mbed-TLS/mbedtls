@@ -22,6 +22,7 @@
 #if defined(MBEDTLS_BASE64_C)
 
 #include "mbedtls/base64.h"
+#include "base64_invasive.h"
 
 #include <stdint.h>
 

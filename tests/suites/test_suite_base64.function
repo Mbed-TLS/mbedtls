@@ -1,5 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/base64.h"
+#include "base64_invasive.h"
 #include <test/constant_flow.h>
 /* END_HEADER */
 

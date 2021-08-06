@@ -386,13 +386,13 @@ class NameCheck():
             # Match names of typedef instances, after closing bracket.
             r"}? *(\w+)[;[].*")
         exclusion_lines = re.compile(r"^("
-            r"extern +\"C\"|"
-            r"(typedef +)?(struct|union|enum)( *{)?$|"
-            r"} *;?$|"
-            r"$|"
-            r"//|"
-            r"#"
-            r")")
+                                     r"extern +\"C\"|"
+                                     r"(typedef +)?(struct|union|enum)( *{)?$|"
+                                     r"} *;?$|"
+                                     r"$|"
+                                     r"//|"
+                                     r"#"
+                                     r")")
 
         self.log.debug("Looking for identifiers in {} files".format(len(header_files)))
 
@@ -524,7 +524,7 @@ class NameCheck():
         """
         nm_undefined_regex = re.compile(r"^\S+: +U |^$|^\S+:$")
         nm_valid_regex = re.compile(r"^\S+( [0-9A-Fa-f]+)* . _*(?P<symbol>\w+)")
-        nm_exclusions = ("FStar", "Hacl")
+        exclusions = ("FStar", "Hacl")
 
         symbols = []
 
@@ -542,8 +542,7 @@ class NameCheck():
         for line in nm_output.splitlines():
             if not nm_undefined_regex.match(line):
                 symbol = nm_valid_regex.match(line)
-                if (symbol and not symbol.group("symbol").startswith(
-                       nm_exclusions)):
+                if (symbol and not symbol.group("symbol").startswith(exclusions)):
                     symbols.append(symbol.group("symbol"))
                 else:
                     self.log.error(line)

@@ -560,7 +560,7 @@ class NameCheck(object):
 
         return symbols
 
-    def perform_checks(self, show_problems: True):
+    def perform_checks(self, show_problems=True):
         """
         Perform each check in order, output its PASS/FAIL status. Maintain an
         overall test status, and output that at the end.

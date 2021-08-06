@@ -141,6 +141,7 @@ class NameCheck(object):
 
     def set_return_code(self, return_code):
         if return_code > self.return_code:
+            self.log.debug("Setting new return code to {}".format(return_code))
             self.return_code = return_code
 
     def setup_logger(self, verbose=False):
@@ -252,7 +253,7 @@ class NameCheck(object):
         )
 
         macros = []
-
+        self.log.debug("Looking for macros in {} files".format(len(header_files)))
         for header_file in header_files:
             with open(header_file, "r") as header:
                 for line in header:
@@ -277,7 +278,7 @@ class NameCheck(object):
         Returns a List of Match objects for words beginning with MBED.
         """
         MBED_names = []
-
+        self.log.debug("Looking for MBED names in {} files".format(len(files)))
         for filename in files:
             with open(filename, "r") as fp:
                 for line in fp:
@@ -307,7 +308,7 @@ class NameCheck(object):
         """
 
         enum_consts = []
-
+        self.log.debug("Looking for enum consts in {} files".format(len(header_files)))
         for header_file in header_files:
             # Emulate a finite state machine to parse enum declarations.
             # 0 = not in enum
@@ -357,7 +358,7 @@ class NameCheck(object):
         )
 
         identifiers = []
-
+        self.log.debug("Looking for identifiers in {} files".format(len(header_files)))
         for header_file in header_files:
             with open(header_file, "r") as header:
                 in_block_comment = False
@@ -593,6 +594,7 @@ class NameCheck(object):
         for item_match in self.parse_result[group_to_check]:
             if not re.match(check_pattern, item_match.name):
                 problems.append(PatternMismatch(check_pattern, item_match))
+            # Double underscore is a reserved identifier, never to be used
             if re.match(r".*__.*", item_match.name):
                 problems.append(PatternMismatch("double underscore", item_match))
 
@@ -633,7 +635,7 @@ class NameCheck(object):
                     "MBEDTLS_PSA_BUILTIN_") in all_caps_names
 
             if not found and not re.search(TYPO_EXCLUSION, name_match.name):
-                    problems.append(Typo(name_match))
+                problems.append(Typo(name_match))
 
         self.output_check_result("Likely typos", problems, show_problems)
         return len(problems)

@@ -63,10 +63,15 @@ class Match(): # pylint: disable=too-few-public-methods
         self.name = name
 
     def __str__(self):
+        ln_str = str(self.pos[0])
+        gutter_len = max(4, len(ln_str))
+        gutter = (gutter_len - len(ln_str)) * " " + ln_str
+        underline = self.pos[1] * " " + (self.pos[2] - self.pos[1]) * "^"
+
         return (
-            "       |\n" +
-            "       | {}".format(self.line) +
-            "       | " + self.pos[1] * " " + (self.pos[2] - self.pos[1]) * "^"
+            " {0} |\n".format(gutter_len * " ") +
+            " {0} | {1}".format(gutter, self.line) +
+            " {0} | {1}".format(gutter_len * " ", underline)
         )
 
 class Problem(): # pylint: disable=too-few-public-methods

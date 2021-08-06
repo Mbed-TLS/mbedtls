@@ -2398,26 +2398,7 @@ int main( int argc, char *argv[] )
 #endif /* SNI_OPTION */
 
     /*
-     * 2. Setup the listening TCP socket
-     */
-    mbedtls_printf( "  . Bind on %s://%s:%s/ ...",
-            opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM ? "tcp" : "udp",
-            opt.server_addr ? opt.server_addr : "*",
-            opt.server_port );
-    fflush( stdout );
-
-    if( ( ret = mbedtls_net_bind( &listen_fd, opt.server_addr, opt.server_port,
-                          opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM ?
-                          MBEDTLS_NET_PROTO_TCP : MBEDTLS_NET_PROTO_UDP ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_net_bind returned -0x%x\n\n", (unsigned int) -ret );
-        goto exit;
-    }
-
-    mbedtls_printf( " ok\n" );
-
-    /*
-     * 3. Setup stuff
+     * 2. Setup stuff
      */
     mbedtls_printf( "  . Setting up the SSL/TLS structure..." );
     fflush( stdout );
@@ -2909,6 +2890,24 @@ int main( int argc, char *argv[] )
                                             mbedtls_timing_get_delay );
 #endif
 
+    mbedtls_printf( " ok\n" );
+
+    /*
+     * 3. Setup the listening TCP socket
+     */
+    mbedtls_printf( "  . Bind on %s://%s:%s/ ...",
+            opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM ? "tcp" : "udp",
+            opt.server_addr ? opt.server_addr : "*",
+            opt.server_port );
+    fflush( stdout );
+
+    if( ( ret = mbedtls_net_bind( &listen_fd, opt.server_addr, opt.server_port,
+                          opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM ?
+                          MBEDTLS_NET_PROTO_TCP : MBEDTLS_NET_PROTO_UDP ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_net_bind returned -0x%x\n\n", (unsigned int) -ret );
+        goto exit;
+    }
     mbedtls_printf( " ok\n" );
 
 reset:

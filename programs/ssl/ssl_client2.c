@@ -1592,41 +1592,7 @@ int main( int argc, char *argv[] )
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     /*
-     * 2. Start the connection
-     */
-    if( opt.server_addr == NULL)
-        opt.server_addr = opt.server_name;
-
-    mbedtls_printf( "  . Connecting to %s/%s/%s...",
-            opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM ? "tcp" : "udp",
-            opt.server_addr, opt.server_port );
-    fflush( stdout );
-
-    if( ( ret = mbedtls_net_connect( &server_fd,
-                       opt.server_addr, opt.server_port,
-                       opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM ?
-                       MBEDTLS_NET_PROTO_TCP : MBEDTLS_NET_PROTO_UDP ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_net_connect returned -0x%x\n\n",
-                        (unsigned int) -ret );
-        goto exit;
-    }
-
-    if( opt.nbio > 0 )
-        ret = mbedtls_net_set_nonblock( &server_fd );
-    else
-        ret = mbedtls_net_set_block( &server_fd );
-    if( ret != 0 )
-    {
-        mbedtls_printf( " failed\n  ! net_set_(non)block() returned -0x%x\n\n",
-                        (unsigned int) -ret );
-        goto exit;
-    }
-
-    mbedtls_printf( " ok\n" );
-
-    /*
-     * 3. Setup stuff
+     * 2. Setup stuff
      */
     mbedtls_printf( "  . Setting up the SSL/TLS structure..." );
     fflush( stdout );
@@ -1975,6 +1941,40 @@ int main( int argc, char *argv[] )
         }
     }
 #endif
+
+    mbedtls_printf( " ok\n" );
+
+    /*
+     * 3. Start the connection
+     */
+    if( opt.server_addr == NULL)
+        opt.server_addr = opt.server_name;
+
+    mbedtls_printf( "  . Connecting to %s/%s/%s...",
+            opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM ? "tcp" : "udp",
+            opt.server_addr, opt.server_port );
+    fflush( stdout );
+
+    if( ( ret = mbedtls_net_connect( &server_fd,
+                       opt.server_addr, opt.server_port,
+                       opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM ?
+                       MBEDTLS_NET_PROTO_TCP : MBEDTLS_NET_PROTO_UDP ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_net_connect returned -0x%x\n\n",
+                        (unsigned int) -ret );
+        goto exit;
+    }
+
+    if( opt.nbio > 0 )
+        ret = mbedtls_net_set_nonblock( &server_fd );
+    else
+        ret = mbedtls_net_set_block( &server_fd );
+    if( ret != 0 )
+    {
+        mbedtls_printf( " failed\n  ! net_set_(non)block() returned -0x%x\n\n",
+                        (unsigned int) -ret );
+        goto exit;
+    }
 
     mbedtls_printf( " ok\n" );
 

@@ -513,6 +513,7 @@ class NameCheck(object):
                 check=True
             )
         except subprocess.CalledProcessError as error:
+            self.log.debug(error.output)
             self.set_return_code(2)
             raise error
         finally:

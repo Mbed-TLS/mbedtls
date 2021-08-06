@@ -502,61 +502,6 @@ class TestTranslateCiphers(unittest.TestCase):
                 o = translate_ossl(m)
                 self.assertEqual(o, o_exp)
 
-    def test_cipher_format(self):
-        """
-        Ensure translate_ciphers.py can take names in the expected
-        format and return them in the format compat.sh will expect.
-        """
-        # Ciphers in Mbed TLS format
-        ciphers = "TLS-ECDHE-ECDSA-WITH-NULL-SHA                  \
-                   TLS-ECDHE-ECDSA-WITH-3DES-EDE-CBC-SHA          \
-                   TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA           \
-                   TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA           \
-                  "
-        ciphers = "%s                                             \
-                   TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256        \
-                   TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA384        \
-                   TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256        \
-                   TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384        \
-                  " % ciphers
-
-        # Corresponding ciphers in GnuTLS format
-        g_ciphers = "+ECDHE-ECDSA:+NULL:+SHA1                \
-                     +ECDHE-ECDSA:+3DES-CBC:+SHA1            \
-                     +ECDHE-ECDSA:+AES-128-CBC:+SHA1         \
-                     +ECDHE-ECDSA:+AES-256-CBC:+SHA1         \
-                    "
-        g_ciphers = "%s                                      \
-                     +ECDHE-ECDSA:+AES-128-CBC:+SHA256       \
-                     +ECDHE-ECDSA:+AES-256-CBC:+SHA384       \
-                     +ECDHE-ECDSA:+AES-128-GCM:+AEAD         \
-                     +ECDHE-ECDSA:+AES-256-GCM:+AEAD         \
-                    " % g_ciphers
-
-        # Corresponding ciphers in OpenSSL format
-        o_ciphers = "ECDHE-ECDSA-NULL-SHA            \
-                     ECDHE-ECDSA-DES-CBC3-SHA        \
-                     ECDHE-ECDSA-AES128-SHA          \
-                     ECDHE-ECDSA-AES256-SHA          \
-                    "
-        o_ciphers = "%s                              \
-                     ECDHE-ECDSA-AES128-SHA256       \
-                     ECDHE-ECDSA-AES256-SHA384       \
-                     ECDHE-ECDSA-AES128-GCM-SHA256   \
-                     ECDHE-ECDSA-AES256-GCM-SHA384   \
-                    " % o_ciphers
-
-        # Translate ciphers in mbedtls format
-        g_translated = format_ciphersuite_names("g", ciphers.split())
-        o_translated = format_ciphersuite_names("o", ciphers.split())
-
-        # Normalise whitespace
-        g_ciphers = (" ").join(g_ciphers.split())
-        o_ciphers = (" ").join(o_ciphers.split())
-
-        self.assertEqual(g_translated, g_ciphers)
-        self.assertEqual(o_translated, o_ciphers)
-
 def translate_gnutls(m_cipher):
     """
     Translate m_cipher from MBedTLS ciphersuite naming convention

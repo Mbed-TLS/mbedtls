@@ -250,7 +250,7 @@ class NameCheck(object):
 
         Returns a List of Match objects for the found macros.
         """
-        MACRO_REGEX = r"#define (?P<macro>\w+)"
+        MACRO_REGEX = r"# *define +(?P<macro>\w+)"
         NON_MACROS = (
             "asm", "inline", "EMIT", "_CRT_SECURE_NO_DEPRECATE", "MULADDC_"
         )

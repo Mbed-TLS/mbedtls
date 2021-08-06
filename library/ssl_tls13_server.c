@@ -1,5 +1,5 @@
 /*
- *  TLSv1.3 server-side functions
+ *  TLS 1.3 server-side functions
  *
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
@@ -21,11 +21,15 @@
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
 
-
 #if defined(MBEDTLS_SSL_SRV_C)
 
 #include "ssl_misc.h"
 
+int mbedtls_ssl_handshake_server_step_tls1_3( mbedtls_ssl_context *ssl )
+{
+    ((void) ssl);
+    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+}
 
 #endif /* MBEDTLS_SSL_SRV_C */
 

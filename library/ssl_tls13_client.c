@@ -27,7 +27,11 @@
 
 #include "ssl_misc.h"
 
-
+int mbedtls_ssl_handshake_client_step_tls1_3( mbedtls_ssl_context *ssl )
+{
+    ((void) ssl);
+    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+}
 
 #endif /* MBEDTLS_SSL_CLI_C */
 

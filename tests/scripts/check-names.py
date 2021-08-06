@@ -17,11 +17,13 @@
 
 """
 This script confirms that the naming of all symbols and identifiers in Mbed TLS
-are consistent with the house style and are also self-consistent. It performs
-the following checks:
+are consistent with the house style and are also self-consistent. It only runs
+on Linux and macOS since it depends on nm.
+
+The script performs the following checks:
 
 - All exported and available symbols in the library object files, are explicitly
-  declared in the header files.
+  declared in the header files. This uses the nm command.
 - All macros, constants, and identifiers (function names, struct names, etc)
   follow the required pattern.
 - Typo checking: All words that begin with MBED exist as macros or constants.

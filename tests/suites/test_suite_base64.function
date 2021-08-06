@@ -2,6 +2,12 @@
 #include "mbedtls/base64.h"
 #include "base64_invasive.h"
 #include <test/constant_flow.h>
+
+#if defined(MBEDTLS_TEST_HOOKS)
+static const char digits[] =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+#endif /* MBEDTLS_TEST_HOOKS */
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -30,7 +36,7 @@ void mask_of_range( int low_arg, int high_arg )
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
-void enc_chars( char *chars )
+void enc_chars( )
 {
     for( unsigned value = 0; value < 64; value++ )
     {
@@ -39,26 +45,26 @@ void enc_chars( char *chars )
         unsigned char digit = mbedtls_base64_enc_char( value );
         TEST_CF_PUBLIC( &value, sizeof( value ) );
         TEST_CF_PUBLIC( &digit, sizeof( digit ) );
-        TEST_EQUAL( digit, chars[value] );
+        TEST_EQUAL( digit, digits[value] );
     }
 }
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
-void dec_chars( char *chars )
+void dec_chars( )
 {
     char *p;
-    const size_t chars_len = strlen( chars );
     signed char expected;
 
     for( unsigned c = 0; c <= 0xff; c++ )
     {
         mbedtls_test_set_step( c );
-        p = memchr( chars, c, chars_len );
+        /* digits is 0-terminated. sizeof()-1 excludes the trailing 0. */
+        p = memchr( digits, c, sizeof( digits ) - 1 );
         if( p == NULL )
             expected = -1;
         else
-            expected = p - chars;
+            expected = p - digits;
         TEST_CF_SECRET( &c, sizeof( c ) );
         signed char actual = mbedtls_base64_dec_value( c );
         TEST_CF_PUBLIC( &c, sizeof( c ) );

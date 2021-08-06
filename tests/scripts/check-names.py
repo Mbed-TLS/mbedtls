@@ -162,11 +162,10 @@ class NameCheck(object):
         Check that the current working directory is the project root, and throw
         an exception if not.
         """
-        current_dir = os.path.realpath('.')
-        root_dir = os.path.dirname(os.path.dirname(
-            os.path.dirname(os.path.realpath(__file__))))
-        if current_dir != root_dir:
-            raise Exception("Must be run from Mbed TLS root")
+        if (not os.path.isdir("include") or
+            not os.path.isdir("tests") or
+            not os.path.isdir("library")):
+            raise Exception("This script must be run from Mbed TLS root")
 
     def get_files(self, extension, directory):
         """

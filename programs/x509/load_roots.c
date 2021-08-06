@@ -105,7 +105,6 @@ int read_certificates( const char *const *filenames )
     mbedtls_x509_crt cas;
     int ret = 0;
     const char *const *cur;
-    char error_message[200];
 
     mbedtls_x509_crt_init( &cas );
 
@@ -114,9 +113,15 @@ int read_certificates( const char *const *filenames )
         ret = mbedtls_x509_crt_parse_file( &cas, *cur );
         if( ret != 0 )
         {
+#if defined(MBEDTLS_ERROR_C) || defined(MBEDTLS_ERROR_STRERROR_DUMMY)
+            char error_message[200];
             mbedtls_strerror( ret, error_message, sizeof( error_message ) );
             printf( "\n%s: -0x%04x (%s)\n",
                     *cur, (unsigned) -ret, error_message );
+#else
+            printf( "\n%s: -0x%04x\n",
+                    *cur, (unsigned) -ret );
+#endif
             goto exit;
         }
     }

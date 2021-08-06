@@ -471,7 +471,7 @@ class NameCheck():
             # as exceptions and logged.
             subprocess.run(
                 ["python3", "scripts/config.py", "full"],
-                encoding=sys.stdout.encoding,
+                universal_newlines=True,
                 check=True
             )
             my_environment = os.environ.copy()
@@ -479,7 +479,7 @@ class NameCheck():
             subprocess.run(
                 ["make", "clean", "lib"],
                 env=my_environment,
-                encoding=sys.stdout.encoding,
+                universal_newlines=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 check=True
@@ -493,7 +493,7 @@ class NameCheck():
 
             subprocess.run(
                 ["make", "clean"],
-                encoding=sys.stdout.encoding,
+                universal_newlines=True,
                 check=True
             )
         except subprocess.CalledProcessError as error:
@@ -528,7 +528,7 @@ class NameCheck():
         for lib in object_files:
             nm_output += subprocess.run(
                 ["nm", "-og", lib],
-                encoding=sys.stdout.encoding,
+                universal_newlines=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 check=True

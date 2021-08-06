@@ -203,6 +203,8 @@ pre_initialize_variables () {
 # Test whether the component $1 is included in the command line patterns.
 is_component_included()
 {
+    # Temporarily disable wildcard expansion so that $COMMAND_LINE_COMPONENTS
+    # only does word splitting.
     set -f
     for pattern in $COMMAND_LINE_COMPONENTS; do
         set +f
@@ -449,6 +451,8 @@ pre_parse_command_line () {
     # Error out if an explicitly requested component doesn't exist.
     if [ $all_except -eq 0 ]; then
         unsupported=0
+        # Temporarily disable wildcard expansion so that $COMMAND_LINE_COMPONENTS
+        # only does word splitting.
         set -f
         for component in $COMMAND_LINE_COMPONENTS; do
             set +f
@@ -552,6 +556,9 @@ pre_setup_keep_going () {
 
     # Whether it makes sense to keep a component going after the specified
     # command fails (test command) or not (configure or build).
+    # This function normally receives the failing simple command
+    # ($BASH_COMMAND) as an argument, but if $report_failed_command is set,
+    # this is passed instead.
     # This doesn't have to be 100% accurate: all failures are recorded anyway.
     # False positives result in running things that can't be expected to
     # work. False negatives result in things not running after something else

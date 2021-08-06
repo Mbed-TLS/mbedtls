@@ -320,16 +320,19 @@ class NameCheck(object):
             state = 0
             with open(header_file, "r") as header:
                 for line in header:
-                    if state is 0 and re.match(r"^(typedef )?enum {", line):
+                    # Match typedefs and brackets only when they are at the
+                    # beginning of the line -- if they are indented, they might
+                    # be sub-structures within structs, etc.
+                    if state is 0 and re.match(r"^(typedef +)?enum +{", line):
                         state = 1
-                    elif state is 0 and re.match(r"^(typedef )?enum", line):
+                    elif state is 0 and re.match(r"^(typedef +)?enum", line):
                         state = 2
                     elif state is 2 and re.match(r"^{", line):
                         state = 1
                     elif state is 1 and re.match(r"^}", line):
                         state = 0
-                    elif state is 1 and not re.match(r"^#", line):
-                        enum_const = re.match(r"^\s*(?P<enum_const>\w+)", line)
+                    elif state is 1 and not re.match(r" *#", line):
+                        enum_const = re.match(r" *(?P<enum_const>\w+)", line)
                         if enum_const:
                             enum_consts.append(Match(
                                 header_file,
@@ -351,9 +354,9 @@ class NameCheck(object):
         """
         EXCLUDED_LINES = (
             r"^("
-               r"extern \"C\"|"
-               r"(typedef )?(struct|union|enum)( {)?$|"
-               r"};?$|"
+               r"extern +\"C\"|"
+               r"(typedef +)?(struct|union|enum)( *{)?$|"
+               r"} *;?$|"
                r"$|"
                r"//|"
                r"#"
@@ -389,7 +392,7 @@ class NameCheck(object):
                     # This *might* be a function with its argument brackets on
                     # the next line, or a struct declaration, so keep note of it
                     if re.match(
-                        r"(inline |static |typedef )*\w+ \w+$",
+                        r"(inline +|static +|typedef +)*\w+ +\w+$",
                         line):
                         previous_line = line
                         continue
@@ -408,7 +411,7 @@ class NameCheck(object):
                         continue
 
                     identifier = re.search(
-                        # Match something(
+                        # Match " something(" or " *something(". function calls.
                         r".* \**(\w+)\(|"
                         # Match (*something)(
                         r".*\( *\* *(\w+) *\) *\(|"

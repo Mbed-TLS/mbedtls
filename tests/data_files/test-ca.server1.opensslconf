@@ -1,6 +1,6 @@
  [ ca ]
  default_ca             = test-ca
- 
+
  [ test-ca ]
  certificate            = test-ca.crt
  private_key            = test-ca.key

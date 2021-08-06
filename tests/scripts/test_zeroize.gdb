@@ -1,8 +1,19 @@
 # test_zeroize.gdb
 #
-# This file is part of Mbed TLS (https://tls.mbed.org)
+# Copyright The Mbed TLS Contributors
+# SPDX-License-Identifier: Apache-2.0
 #
-# Copyright (c) 2018, Arm Limited, All Rights Reserved
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # Purpose
 #
@@ -17,7 +28,7 @@
 # seem to be a mechanism to reliably check whether the zeroize calls are being
 # eliminated by compiler optimizations from within the compiled program. The
 # problem is that a compiler would typically remove what it considers to be
-# "unecessary" assignments as part of redundant code elimination. To identify
+# "unnecessary" assignments as part of redundant code elimination. To identify
 # such code, the compilar will create some form dependency graph between
 # reads and writes to variables (among other situations). It will then use this
 # data structure to remove redundant code that does not have an impact on the
@@ -31,18 +42,13 @@
 # the compiler potentially has a bug.
 #
 # Note: This test requires that the test program is compiled with -g3.
-#
-# WARNING: There does not seem to be a mechanism in GDB scripts to set a
-# breakpoint at the end of a function (probably because there are a lot of
-# complications as function can have multiple exit points, etc). Therefore, it
-# was necessary to hard-code the line number of the breakpoint in the zeroize.c
-# test app. The assumption is that zeroize.c is a simple test app that does not
-# change often (as opposed to the actual library code), so the breakpoint line
-# number does not need to be updated often.
 
 set confirm off
+
 file ./programs/test/zeroize
-break zeroize.c:100
+
+search GDB_BREAK_HERE
+break $_
 
 set args ./programs/test/zeroize.c
 run

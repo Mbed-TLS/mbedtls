@@ -4,7 +4,7 @@
  * \brief DTLS cookie callbacks implementation
  */
 /*
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -18,23 +18,24 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 #ifndef MBEDTLS_SSL_COOKIE_H
 #define MBEDTLS_SSL_COOKIE_H
+#include "mbedtls/private_access.h"
 
-#include "ssl.h"
+#include "mbedtls/build_info.h"
+
+#include "mbedtls/ssl.h"
 
 #if defined(MBEDTLS_THREADING_C)
-#include "threading.h"
+#include "mbedtls/threading.h"
 #endif
 
 /**
  * \name SECTION: Module settings
  *
  * The configuration options you can set for this module are in this section.
- * Either change them in config.h or define them on the compiler command line.
+ * Either change them in mbedtls_config.h or define them on the compiler command line.
  * \{
  */
 #ifndef MBEDTLS_SSL_COOKIE_TIMEOUT
@@ -50,17 +51,17 @@ extern "C" {
 /**
  * \brief          Context for the default cookie functions.
  */
-typedef struct
+typedef struct mbedtls_ssl_cookie_ctx
 {
-    mbedtls_md_context_t    hmac_ctx;   /*!< context for the HMAC portion   */
+    mbedtls_md_context_t    MBEDTLS_PRIVATE(hmac_ctx);   /*!< context for the HMAC portion   */
 #if !defined(MBEDTLS_HAVE_TIME)
-    unsigned long   serial;     /*!< serial number for expiration   */
+    unsigned long   MBEDTLS_PRIVATE(serial);     /*!< serial number for expiration   */
 #endif
-    unsigned long   timeout;    /*!< timeout delay, in seconds if HAVE_TIME,
+    unsigned long   MBEDTLS_PRIVATE(timeout);    /*!< timeout delay, in seconds if HAVE_TIME,
                                      or in number of tickets issued */
 
 #if defined(MBEDTLS_THREADING_C)
-    mbedtls_threading_mutex_t mutex;
+    mbedtls_threading_mutex_t MBEDTLS_PRIVATE(mutex);
 #endif
 } mbedtls_ssl_cookie_ctx;
 

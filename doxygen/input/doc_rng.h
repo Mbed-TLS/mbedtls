@@ -5,7 +5,7 @@
  */
 /*
  *
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -19,8 +19,6 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
 /**
@@ -33,11 +31,6 @@
  * bit generator (CTR_DBRG) as specified in NIST SP800-90. It needs an external
  * source of entropy. For these purposes \c mbedtls_entropy_func() can be used.
  * This is an implementation based on a simple entropy accumulator design.
- *
- * The other number generator that is included is less strong and uses the
- * HAVEGE (HArdware Volatile Entropy Gathering and Expansion) software heuristic
- * which considered unsafe for primary usage, but provides additional random
- * to the entropy pool if enables.
  *
  * Meaning that there seems to be no practical algorithm that can guess
  * the next bit with a probability larger than 1/2 in an output sequence.

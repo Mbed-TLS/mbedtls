@@ -8,7 +8,7 @@
  */
 
 /* BEGIN_CASE */
-void check_compiletime_version( char *version_str )
+void check_compiletime_version( char * version_str )
 {
     char build_str[100];
     char build_str_full[100];
@@ -35,7 +35,7 @@ void check_compiletime_version( char *version_str )
 /* END_CASE */
 
 /* BEGIN_CASE */
-void check_runtime_version( char *version_str )
+void check_runtime_version( char * version_str )
 {
     char build_str[100];
     char get_str[100];
@@ -52,7 +52,7 @@ void check_runtime_version( char *version_str )
     mbedtls_version_get_string( get_str );
     mbedtls_version_get_string_full( get_str_full );
 
-    mbedtls_snprintf( build_str, 100, "%d.%d.%d",
+    mbedtls_snprintf( build_str, 100, "%u.%u.%u",
         (get_int >> 24) & 0xFF,
         (get_int >> 16) & 0xFF,
         (get_int >> 8) & 0xFF );

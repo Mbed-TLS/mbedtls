@@ -10,7 +10,7 @@
  */
 
 /* BEGIN_CASE depends_on:MBEDTLS_RSA_C:MBEDTLS_FS_IO */
-void pk_parse_keyfile_rsa( char *key_file, char *password, int result )
+void pk_parse_keyfile_rsa( char * key_file, char * password, int result )
 {
     mbedtls_pk_context ctx;
     int res;
@@ -21,7 +21,8 @@ void pk_parse_keyfile_rsa( char *key_file, char *password, int result )
     if( strcmp( pwd, "NULL" ) == 0 )
         pwd = NULL;
 
-    res = mbedtls_pk_parse_keyfile( &ctx, key_file, pwd );
+    res = mbedtls_pk_parse_keyfile( &ctx, key_file, pwd,
+            mbedtls_test_rnd_std_rand, NULL );
 
     TEST_ASSERT( res == result );
 
@@ -39,7 +40,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_RSA_C:MBEDTLS_FS_IO */
-void pk_parse_public_keyfile_rsa( char *key_file, int result )
+void pk_parse_public_keyfile_rsa( char * key_file, int result )
 {
     mbedtls_pk_context ctx;
     int res;
@@ -64,7 +65,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_ECP_C */
-void pk_parse_public_keyfile_ec( char *key_file, int result )
+void pk_parse_public_keyfile_ec( char * key_file, int result )
 {
     mbedtls_pk_context ctx;
     int res;
@@ -89,14 +90,15 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_ECP_C */
-void pk_parse_keyfile_ec( char *key_file, char *password, int result )
+void pk_parse_keyfile_ec( char * key_file, char * password, int result )
 {
     mbedtls_pk_context ctx;
     int res;
 
     mbedtls_pk_init( &ctx );
 
-    res = mbedtls_pk_parse_keyfile( &ctx, key_file, password );
+    res = mbedtls_pk_parse_keyfile( &ctx, key_file, password,
+            mbedtls_test_rnd_std_rand, NULL );
 
     TEST_ASSERT( res == result );
 
@@ -114,26 +116,14 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void pk_parse_key( char *key_data, char *result_str, int result )
+void pk_parse_key( data_t * buf, int result )
 {
     mbedtls_pk_context pk;
-    unsigned char buf[2000];
-    unsigned char output[2000];
-    int data_len;
-    ((void) result_str);
 
     mbedtls_pk_init( &pk );
 
-    memset( buf, 0, 2000 );
-    memset( output, 0, 2000 );
-
-    data_len = unhexify( buf, key_data );
-
-    TEST_ASSERT( mbedtls_pk_parse_key( &pk, buf, data_len, NULL, 0 ) == ( result ) );
-    if( ( result ) == 0 )
-    {
-        TEST_ASSERT( 1 );
-    }
+    TEST_ASSERT( mbedtls_pk_parse_key( &pk, buf->x, buf->len, NULL, 0,
+                        mbedtls_test_rnd_std_rand, NULL ) == result );
 
 exit:
     mbedtls_pk_free( &pk );

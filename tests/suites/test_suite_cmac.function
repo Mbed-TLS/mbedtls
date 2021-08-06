@@ -9,14 +9,14 @@
  */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
-void mbedtls_cmac_self_test( )
+void mbedtls_cmac_self_test(  )
 {
     TEST_ASSERT( mbedtls_cmac_self_test( 1 ) == 0 );
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_cmac_null_args( )
+void mbedtls_cmac_null_args(  )
 {
     mbedtls_cipher_context_t ctx;
     const mbedtls_cipher_info_t *cipher_info;
@@ -99,8 +99,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_cmac_setkey( int cipher_type, int key_size,
-                          int result )
+void mbedtls_cmac_setkey( int cipher_type, int key_size, int result )
 {
     const mbedtls_cipher_info_t *cipher_info;
     unsigned char key[32];
@@ -120,32 +119,19 @@ void mbedtls_cmac_setkey( int cipher_type, int key_size,
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_cmac_multiple_blocks( int cipher_type,
-                                   char *key_string, int keybits,
-                                   int block_size,
-                                   char *block1_string, int block1_len,
-                                   char *block2_string, int block2_len,
-                                   char *block3_string, int block3_len,
-                                   char *block4_string, int block4_len,
-                                   char *expected_result_string )
+void mbedtls_cmac_multiple_blocks( int cipher_type, data_t * key,
+                                   int keybits, int block_size,
+                                   data_t * block1, int block1_len,
+                                   data_t * block2, int block2_len,
+                                   data_t * block3, int block3_len,
+                                   data_t * block4, int block4_len,
+                                   data_t * expected_result )
 {
-    unsigned char key[100];
-    unsigned char block1[100];
-    unsigned char block2[100];
-    unsigned char block3[100];
-    unsigned char block4[100];
-    unsigned char expected_result[100];
     const mbedtls_cipher_info_t *cipher_info;
     mbedtls_cipher_context_t ctx;
     unsigned char output[MBEDTLS_CIPHER_BLKSIZE_MAX];
 
     /* Convert the test parameters to binary data */
-    unhexify( key, key_string );
-    unhexify( block1, block1_string );
-    unhexify( block2, block2_string );
-    unhexify( block3, block3_string );
-    unhexify( block4, block4_string );
-    unhexify( expected_result, expected_result_string );
 
     mbedtls_cipher_init( &ctx );
 
@@ -162,34 +148,34 @@ void mbedtls_cmac_multiple_blocks( int cipher_type,
     TEST_ASSERT( mbedtls_cipher_setup( &ctx, cipher_info ) == 0 );
 
     TEST_ASSERT( mbedtls_cipher_cmac_starts( &ctx,
-                                             (const unsigned char*)key,
+                                             (const unsigned char*)key->x,
                                              keybits ) == 0 );
 
     /* Multiple partial and complete blocks. A negative length means skip the
      * update operation */
     if( block1_len >= 0)
         TEST_ASSERT( mbedtls_cipher_cmac_update( &ctx,
-                                                 (unsigned char*)block1,
+                                                 (unsigned char*)block1->x,
                                                  block1_len ) == 0);
 
     if( block2_len >= 0 )
         TEST_ASSERT( mbedtls_cipher_cmac_update( &ctx,
-                                                 (unsigned char*)block2,
+                                                 (unsigned char*)block2->x,
                                                  block2_len ) == 0);
 
     if( block3_len >= 0 )
         TEST_ASSERT( mbedtls_cipher_cmac_update( &ctx,
-                                                 (unsigned char*)block3,
+                                                 (unsigned char*)block3->x,
                                                  block3_len ) == 0);
 
     if( block4_len >= 0 )
         TEST_ASSERT( mbedtls_cipher_cmac_update( &ctx,
-                                                 (unsigned char*)block4,
+                                                 (unsigned char*)block4->x,
                                                  block4_len ) == 0);
 
     TEST_ASSERT( mbedtls_cipher_cmac_finish( &ctx, output ) == 0 );
 
-    TEST_ASSERT( memcmp( output, expected_result, block_size )  == 0 );
+    TEST_ASSERT( memcmp( output, expected_result->x, block_size )  == 0 );
 
 exit:
     mbedtls_cipher_free( &ctx );
@@ -198,41 +184,31 @@ exit:
 
 /* BEGIN_CASE */
 void mbedtls_cmac_multiple_operations_same_key( int cipher_type,
-                                   char *key_string, int keybits,
-                                   int block_size,
-                                   char *block_a1_string, int block_a1_len,
-                                   char *block_a2_string, int block_a2_len,
-                                   char *block_a3_string, int block_a3_len,
-                                   char *expected_result_a_string,
-                                   char *block_b1_string, int block_b1_len,
-                                   char *block_b2_string, int block_b2_len,
-                                   char *block_b3_string, int block_b3_len,
-                                   char *expected_result_b_string )
+                                                data_t * key, int keybits,
+                                                int block_size,
+                                                data_t * block_a1,
+                                                int block_a1_len,
+                                                data_t * block_a2,
+                                                int block_a2_len,
+                                                data_t * block_a3,
+                                                int block_a3_len,
+                                                data_t * expected_result_a,
+                                                data_t * block_b1,
+                                                int block_b1_len,
+                                                data_t * block_b2,
+                                                int block_b2_len,
+                                                data_t * block_b3,
+                                                int block_b3_len,
+                                                data_t * expected_result_b
+                                                )
 {
-    unsigned char key[100];
-    unsigned char block_a1[100];
-    unsigned char block_a2[100];
-    unsigned char block_a3[100];
-    unsigned char block_b1[100];
-    unsigned char block_b2[100];
-    unsigned char block_b3[100];
-    unsigned char expected_result_a[100], expected_result_b[100];
     const mbedtls_cipher_info_t *cipher_info;
     mbedtls_cipher_context_t ctx;
     unsigned char output[MBEDTLS_CIPHER_BLKSIZE_MAX];
 
     /* Convert the test parameters to binary data */
-    unhexify( key, key_string );
-    unhexify( block_a1, block_a1_string );
-    unhexify( block_a2, block_a2_string );
-    unhexify( block_a3, block_a3_string );
 
-    unhexify( block_b1, block_b1_string );
-    unhexify( block_b2, block_b2_string );
-    unhexify( block_b3, block_b3_string );
 
-    unhexify( expected_result_a, expected_result_a_string );
-    unhexify( expected_result_b, expected_result_b_string );
 
     mbedtls_cipher_init( &ctx );
 
@@ -252,7 +228,7 @@ void mbedtls_cmac_multiple_operations_same_key( int cipher_type,
     TEST_ASSERT( mbedtls_cipher_setup( &ctx, cipher_info ) == 0 );
 
     TEST_ASSERT( mbedtls_cipher_cmac_starts( &ctx,
-                                             (const unsigned char*)key,
+                                             (const unsigned char*)key->x,
                                              keybits ) == 0 );
 
     /* Sequence A */
@@ -261,22 +237,22 @@ void mbedtls_cmac_multiple_operations_same_key( int cipher_type,
      * update operation */
     if( block_a1_len >= 0 )
         TEST_ASSERT( mbedtls_cipher_cmac_update( &ctx,
-                                                 (unsigned char*)block_a1,
+                                                 (unsigned char*)block_a1->x,
                                                  block_a1_len ) == 0);
 
     if( block_a2_len >= 0 )
         TEST_ASSERT( mbedtls_cipher_cmac_update( &ctx,
-                                                 (unsigned char*)block_a2,
+                                                 (unsigned char*)block_a2->x,
                                                  block_a2_len ) == 0);
 
     if( block_a3_len >= 0 )
         TEST_ASSERT( mbedtls_cipher_cmac_update( &ctx,
-                                                 (unsigned char*)block_a3,
+                                                 (unsigned char*)block_a3->x,
                                                   block_a3_len ) == 0);
 
     TEST_ASSERT( mbedtls_cipher_cmac_finish( &ctx, output ) == 0 );
 
-    TEST_ASSERT( memcmp( output, expected_result_a, block_size )  == 0 );
+    TEST_ASSERT( memcmp( output, expected_result_a->x, block_size )  == 0 );
 
     TEST_ASSERT( mbedtls_cipher_cmac_reset( &ctx ) == 0 );
 
@@ -286,22 +262,22 @@ void mbedtls_cmac_multiple_operations_same_key( int cipher_type,
      * update operation */
     if( block_b1_len >= 0)
         TEST_ASSERT( mbedtls_cipher_cmac_update( &ctx,
-                                                 (unsigned char*)block_b1,
+                                                 (unsigned char*)block_b1->x,
                                                  block_b1_len ) == 0);
 
     if( block_b2_len >= 0 )
         TEST_ASSERT( mbedtls_cipher_cmac_update( &ctx,
-                                                 (unsigned char*)block_b2,
+                                                 (unsigned char*)block_b2->x,
                                                  block_b2_len ) == 0);
 
     if( block_b3_len >= 0 )
         TEST_ASSERT( mbedtls_cipher_cmac_update( &ctx,
-                                                 (unsigned char*)block_b3,
+                                                 (unsigned char*)block_b3->x,
                                                  block_b3_len ) == 0);
 
     TEST_ASSERT( mbedtls_cipher_cmac_finish( &ctx, output ) == 0 );
 
-    TEST_ASSERT( memcmp( output, expected_result_b, block_size )  == 0 );
+    TEST_ASSERT( memcmp( output, expected_result_b->x, block_size )  == 0 );
 
 exit:
     mbedtls_cipher_free( &ctx );

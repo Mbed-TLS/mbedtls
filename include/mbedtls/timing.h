@@ -4,7 +4,7 @@
  * \brief Portable interface to timeouts and to the CPU cycle counter
  */
 /*
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -18,17 +18,12 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 #ifndef MBEDTLS_TIMING_H
 #define MBEDTLS_TIMING_H
+#include "mbedtls/private_access.h"
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 #include <stdint.h>
 
@@ -45,67 +40,25 @@ extern "C" {
  */
 struct mbedtls_timing_hr_time
 {
-    unsigned char opaque[32];
+    unsigned char MBEDTLS_PRIVATE(opaque)[32];
 };
 
 /**
  * \brief          Context for mbedtls_timing_set/get_delay()
  */
-typedef struct
+typedef struct mbedtls_timing_delay_context
 {
-    struct mbedtls_timing_hr_time   timer;
-    uint32_t                        int_ms;
-    uint32_t                        fin_ms;
+    struct mbedtls_timing_hr_time   MBEDTLS_PRIVATE(timer);
+    uint32_t                        MBEDTLS_PRIVATE(int_ms);
+    uint32_t                        MBEDTLS_PRIVATE(fin_ms);
 } mbedtls_timing_delay_context;
 
 #else  /* MBEDTLS_TIMING_ALT */
 #include "timing_alt.h"
 #endif /* MBEDTLS_TIMING_ALT */
 
-extern volatile int mbedtls_timing_alarmed;
-
-/**
- * \brief          Return the CPU cycle counter value
- *
- * \warning        This is only a best effort! Do not rely on this!
- *                 In particular, it is known to be unreliable on virtual
- *                 machines.
- *
- * \note           This value starts at an unspecified origin and
- *                 may wrap around.
- */
-unsigned long mbedtls_timing_hardclock( void );
-
-/**
- * \brief          Return the elapsed time in milliseconds
- *
- * \param val      points to a timer structure
- * \param reset    If 0, query the elapsed time. Otherwise (re)start the timer.
- *
- * \return         Elapsed time since the previous reset in ms. When
- *                 restarting, this is always 0.
- *
- * \note           To initialize a timer, call this function with reset=1.
- *
- *                 Determining the elapsed time and resetting the timer is not
- *                 atomic on all platforms, so after the sequence
- *                 `{ get_timer(1); ...; time1 = get_timer(1); ...; time2 =
- *                 get_timer(0) }` the value time1+time2 is only approximately
- *                 the delay since the first reset.
- */
+/* Internal use */
 unsigned long mbedtls_timing_get_timer( struct mbedtls_timing_hr_time *val, int reset );
-
-/**
- * \brief          Setup an alarm clock
- *
- * \param seconds  delay before the "mbedtls_timing_alarmed" flag is set
- *                 (must be >=0)
- *
- * \warning        Only one alarm at a time  is supported. In a threaded
- *                 context, this means one for the whole process, not one per
- *                 thread.
- */
-void mbedtls_set_alarm( int seconds );
 
 /**
  * \brief          Set a pair of delays to watch
@@ -136,15 +89,6 @@ void mbedtls_timing_set_delay( void *data, uint32_t int_ms, uint32_t fin_ms );
  *                  2 if the final delay is passed.
  */
 int mbedtls_timing_get_delay( void *data );
-
-#if defined(MBEDTLS_SELF_TEST)
-/**
- * \brief          Checkup routine
- *
- * \return         0 if successful, or 1 if a test failed
- */
-int mbedtls_timing_self_test( int verbose );
-#endif
 
 #ifdef __cplusplus
 }

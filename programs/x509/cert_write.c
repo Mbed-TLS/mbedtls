@@ -1,7 +1,7 @@
 /*
  *  Certificate generation and signing
  *
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -15,22 +15,20 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define mbedtls_printf     printf
-#endif
+#include <stdlib.h>
+#define mbedtls_printf          printf
+#define mbedtls_exit            exit
+#define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
+#define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
+#endif /* MBEDTLS_PLATFORM_C */
 
 #if !defined(MBEDTLS_X509_CRT_WRITE_C) || \
     !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_FS_IO) || \
@@ -43,7 +41,7 @@ int main( void )
             "MBEDTLS_FS_IO and/or MBEDTLS_SHA256_C and/or "
             "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C and/or "
             "MBEDTLS_ERROR_C not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
@@ -116,8 +114,9 @@ int main( void )
     "    is_ca=%%d                default: 0 (disabled)\n"  \
     "    max_pathlen=%%d          default: -1 (none)\n"     \
     "    md=%%s                   default: SHA256\n"        \
-    "                            Supported values:\n"       \
-    "                            MD5, SHA1, SHA256, SHA512\n"\
+    "                            Supported values (if enabled):\n"      \
+    "                            MD5, RIPEMD160, SHA1,\n" \
+    "                            SHA224, SHA256, SHA384, SHA512\n" \
     "    version=%%d              default: 3\n"            \
     "                            Possible values: 1, 2, 3\n"\
     "    subject_identifier=%%s   default: 1\n"             \
@@ -150,6 +149,7 @@ int main( void )
     "                            object_signing_ca\n"     \
     "\n"
 
+
 /*
  * global options
  */
@@ -161,7 +161,7 @@ struct options
     const char *issuer_key;     /* filename of the issuer key file      */
     const char *subject_pwd;    /* password for the subject key file    */
     const char *issuer_pwd;     /* password for the issuer key file     */
-    const char *output_file;    /* where to store the constructed key file  */
+    const char *output_file;    /* where to store the constructed CRT   */
     const char *subject_name;   /* subject name for certificate         */
     const char *issuer_name;    /* issuer name for certificate          */
     const char *not_before;     /* validity period not before           */
@@ -211,7 +211,8 @@ int write_certificate( mbedtls_x509write_cert *crt, const char *output_file,
 
 int main( int argc, char *argv[] )
 {
-    int ret = 0;
+    int ret = 1;
+    int exit_code = MBEDTLS_EXIT_FAILURE;
     mbedtls_x509_crt issuer_crt;
     mbedtls_pk_context loaded_issuer_key, loaded_subject_key;
     mbedtls_pk_context *issuer_key = &loaded_issuer_key,
@@ -238,6 +239,7 @@ int main( int argc, char *argv[] )
     mbedtls_pk_init( &loaded_subject_key );
     mbedtls_mpi_init( &serial );
     mbedtls_ctr_drbg_init( &ctr_drbg );
+    mbedtls_entropy_init( &entropy );
 #if defined(MBEDTLS_X509_CSR_PARSE_C)
     mbedtls_x509_csr_init( &csr );
 #endif
@@ -248,7 +250,6 @@ int main( int argc, char *argv[] )
     {
     usage:
         mbedtls_printf( USAGE );
-        ret = 1;
         goto exit;
     }
 
@@ -349,19 +350,14 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "md" ) == 0 )
         {
-            if( strcmp( q, "SHA1" ) == 0 )
-                opt.md = MBEDTLS_MD_SHA1;
-            else if( strcmp( q, "SHA256" ) == 0 )
-                opt.md = MBEDTLS_MD_SHA256;
-            else if( strcmp( q, "SHA512" ) == 0 )
-                opt.md = MBEDTLS_MD_SHA512;
-            else if( strcmp( q, "MD5" ) == 0 )
-                opt.md = MBEDTLS_MD_MD5;
-            else
+            const mbedtls_md_info_t *md_info =
+                mbedtls_md_info_from_string( q );
+            if( md_info == NULL )
             {
                 mbedtls_printf( "Invalid argument for option %s\n", p );
                 goto usage;
             }
+            opt.md = mbedtls_md_get_type( md_info );
         }
         else if( strcmp( p, "version" ) == 0 )
         {
@@ -472,7 +468,6 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "  . Seeding the random number generator..." );
     fflush( stdout );
 
-    mbedtls_entropy_init( &entropy );
     if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
@@ -494,7 +489,7 @@ int main( int argc, char *argv[] )
     {
         mbedtls_strerror( ret, buf, 1024 );
         mbedtls_printf( " failed\n  !  mbedtls_mpi_read_string "
-                        "returned -0x%04x - %s\n\n", -ret, buf );
+                        "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
         goto exit;
     }
 
@@ -514,17 +509,17 @@ int main( int argc, char *argv[] )
         {
             mbedtls_strerror( ret, buf, 1024 );
             mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse_file "
-                            "returned -0x%04x - %s\n\n", -ret, buf );
+                            "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
             goto exit;
         }
 
         ret = mbedtls_x509_dn_gets( issuer_name, sizeof(issuer_name),
-                                 &issuer_crt.subject );
+                                 &issuer_crt.MBEDTLS_PRIVATE(subject) );
         if( ret < 0 )
         {
             mbedtls_strerror( ret, buf, 1024 );
             mbedtls_printf( " failed\n  !  mbedtls_x509_dn_gets "
-                            "returned -0x%04x - %s\n\n", -ret, buf );
+                            "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
             goto exit;
         }
 
@@ -548,22 +543,22 @@ int main( int argc, char *argv[] )
         {
             mbedtls_strerror( ret, buf, 1024 );
             mbedtls_printf( " failed\n  !  mbedtls_x509_csr_parse_file "
-                            "returned -0x%04x - %s\n\n", -ret, buf );
+                            "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
             goto exit;
         }
 
         ret = mbedtls_x509_dn_gets( subject_name, sizeof(subject_name),
-                                 &csr.subject );
+                                 &csr.MBEDTLS_PRIVATE(subject) );
         if( ret < 0 )
         {
             mbedtls_strerror( ret, buf, 1024 );
             mbedtls_printf( " failed\n  !  mbedtls_x509_dn_gets "
-                            "returned -0x%04x - %s\n\n", -ret, buf );
+                            "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
             goto exit;
         }
 
         opt.subject_name = subject_name;
-        subject_key = &csr.pk;
+        subject_key = &csr.MBEDTLS_PRIVATE(pk);
 
         mbedtls_printf( " ok\n" );
     }
@@ -578,12 +573,12 @@ int main( int argc, char *argv[] )
         fflush( stdout );
 
         ret = mbedtls_pk_parse_keyfile( &loaded_subject_key, opt.subject_key,
-                                 opt.subject_pwd );
+                opt.subject_pwd, mbedtls_ctr_drbg_random, &ctr_drbg );
         if( ret != 0 )
         {
             mbedtls_strerror( ret, buf, 1024 );
             mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile "
-                            "returned -0x%04x - %s\n\n", -ret, buf );
+                            "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
             goto exit;
         }
 
@@ -594,12 +589,12 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
     ret = mbedtls_pk_parse_keyfile( &loaded_issuer_key, opt.issuer_key,
-                             opt.issuer_pwd );
+            opt.issuer_pwd, mbedtls_ctr_drbg_random, &ctr_drbg );
     if( ret != 0 )
     {
         mbedtls_strerror( ret, buf, 1024 );
         mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile "
-                        "returned -x%02x - %s\n\n", -ret, buf );
+                        "returned -x%02x - %s\n\n", (unsigned int) -ret, buf );
         goto exit;
     }
 
@@ -607,15 +602,11 @@ int main( int argc, char *argv[] )
     //
     if( strlen( opt.issuer_crt ) )
     {
-        if( !mbedtls_pk_can_do( &issuer_crt.pk, MBEDTLS_PK_RSA ) ||
-            mbedtls_mpi_cmp_mpi( &mbedtls_pk_rsa( issuer_crt.pk )->N,
-                         &mbedtls_pk_rsa( *issuer_key )->N ) != 0 ||
-            mbedtls_mpi_cmp_mpi( &mbedtls_pk_rsa( issuer_crt.pk )->E,
-                         &mbedtls_pk_rsa( *issuer_key )->E ) != 0 )
+        if( mbedtls_pk_check_pair( &issuer_crt.MBEDTLS_PRIVATE(pk), issuer_key,
+                                   mbedtls_ctr_drbg_random, &ctr_drbg ) != 0 )
         {
             mbedtls_printf( " failed\n  !  issuer_key does not match "
                             "issuer certificate\n\n" );
-            ret = -1;
             goto exit;
         }
     }
@@ -638,7 +629,7 @@ int main( int argc, char *argv[] )
     {
         mbedtls_strerror( ret, buf, 1024 );
         mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_subject_name "
-                        "returned -0x%04x - %s\n\n", -ret, buf );
+                        "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
         goto exit;
     }
 
@@ -646,7 +637,7 @@ int main( int argc, char *argv[] )
     {
         mbedtls_strerror( ret, buf, 1024 );
         mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_issuer_name "
-                        "returned -0x%04x - %s\n\n", -ret, buf );
+                        "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
         goto exit;
     }
 
@@ -661,7 +652,7 @@ int main( int argc, char *argv[] )
     {
         mbedtls_strerror( ret, buf, 1024 );
         mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_serial "
-                        "returned -0x%04x - %s\n\n", -ret, buf );
+                        "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
         goto exit;
     }
 
@@ -670,7 +661,7 @@ int main( int argc, char *argv[] )
     {
         mbedtls_strerror( ret, buf, 1024 );
         mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_validity "
-                        "returned -0x%04x - %s\n\n", -ret, buf );
+                        "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
         goto exit;
     }
 
@@ -688,7 +679,7 @@ int main( int argc, char *argv[] )
         {
             mbedtls_strerror( ret, buf, 1024 );
             mbedtls_printf( " failed\n  !  x509write_crt_set_basic_contraints "
-                            "returned -0x%04x - %s\n\n", -ret, buf );
+                            "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
             goto exit;
         }
 
@@ -708,7 +699,7 @@ int main( int argc, char *argv[] )
             mbedtls_strerror( ret, buf, 1024 );
             mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_subject"
                             "_key_identifier returned -0x%04x - %s\n\n",
-                            -ret, buf );
+                            (unsigned int) -ret, buf );
             goto exit;
         }
 
@@ -727,7 +718,7 @@ int main( int argc, char *argv[] )
             mbedtls_strerror( ret, buf, 1024 );
             mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_authority_"
                             "key_identifier returned -0x%04x - %s\n\n",
-                            -ret, buf );
+                            (unsigned int) -ret, buf );
             goto exit;
         }
 
@@ -746,7 +737,7 @@ int main( int argc, char *argv[] )
         {
             mbedtls_strerror( ret, buf, 1024 );
             mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_key_usage "
-                            "returned -0x%04x - %s\n\n", -ret, buf );
+                            "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
             goto exit;
         }
 
@@ -764,7 +755,7 @@ int main( int argc, char *argv[] )
         {
             mbedtls_strerror( ret, buf, 1024 );
             mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_ns_cert_type "
-                            "returned -0x%04x - %s\n\n", -ret, buf );
+                            "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
             goto exit;
         }
 
@@ -772,7 +763,7 @@ int main( int argc, char *argv[] )
     }
 
     /*
-     * 1.2. Writing the request
+     * 1.2. Writing the certificate
      */
     mbedtls_printf( "  . Writing the certificate..." );
     fflush( stdout );
@@ -782,13 +773,19 @@ int main( int argc, char *argv[] )
     {
         mbedtls_strerror( ret, buf, 1024 );
         mbedtls_printf( " failed\n  !  write_certificate -0x%04x - %s\n\n",
-                        -ret, buf );
+                        (unsigned int) -ret, buf );
         goto exit;
     }
 
     mbedtls_printf( " ok\n" );
 
+    exit_code = MBEDTLS_EXIT_SUCCESS;
+
 exit:
+#if defined(MBEDTLS_X509_CSR_PARSE_C)
+    mbedtls_x509_csr_free( &csr );
+#endif /* MBEDTLS_X509_CSR_PARSE_C */
+    mbedtls_x509_crt_free( &issuer_crt );
     mbedtls_x509write_crt_free( &crt );
     mbedtls_pk_free( &loaded_subject_key );
     mbedtls_pk_free( &loaded_issuer_key );
@@ -801,7 +798,7 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
-    return( ret );
+    mbedtls_exit( exit_code );
 }
 #endif /* MBEDTLS_X509_CRT_WRITE_C && MBEDTLS_X509_CRT_PARSE_C &&
           MBEDTLS_FS_IO && MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C &&

@@ -2,61 +2,46 @@ set(THREADS_USE_PTHREADS_WIN32 true)
 find_package(Threads)
 
 set(libs
-    mbedtls
+    ${mbedtls_target}
 )
 
-set(targets
+set(executables
     dtls_client
     dtls_server
+    mini_client
     ssl_client1
     ssl_client2
-    ssl_server
+    ssl_context_info
     ssl_fork_server
     ssl_mail_client
-    mini_client
+    ssl_server
+    ssl_server2
 )
 
-if(USE_PKCS11_HELPER_LIBRARY)
-    set(libs ${libs} pkcs11-helper)
-endif(USE_PKCS11_HELPER_LIBRARY)
+foreach(exe IN LISTS executables)
+    set(extra_sources "")
+    if(exe STREQUAL "ssl_client2" OR exe STREQUAL "ssl_server2")
+        list(APPEND extra_sources
+            ${CMAKE_CURRENT_SOURCE_DIR}/../test/query_config.c)
+    endif()
+    add_executable(${exe} ${exe}.c $<TARGET_OBJECTS:mbedtls_test>
+        ${extra_sources})
+    target_link_libraries(${exe} ${libs})
+    target_include_directories(${exe} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tests/include)
+endforeach()
 
-if(ENABLE_ZLIB_SUPPORT)
-    set(libs ${libs} ${ZLIB_LIBRARIES})
-endif(ENABLE_ZLIB_SUPPORT)
-
-add_executable(dtls_client dtls_client.c)
-target_link_libraries(dtls_client ${libs})
-
-add_executable(dtls_server dtls_server.c)
-target_link_libraries(dtls_server ${libs})
-
-add_executable(ssl_client1 ssl_client1.c)
-target_link_libraries(ssl_client1 ${libs})
-
-add_executable(ssl_client2 ssl_client2.c)
-target_link_libraries(ssl_client2 ${libs})
-
-add_executable(ssl_server ssl_server.c)
-target_link_libraries(ssl_server ${libs})
-
-add_executable(ssl_server2 ssl_server2.c)
-target_link_libraries(ssl_server2 ${libs})
-
-add_executable(ssl_fork_server ssl_fork_server.c)
-target_link_libraries(ssl_fork_server ${libs})
-
-add_executable(ssl_mail_client ssl_mail_client.c)
-target_link_libraries(ssl_mail_client ${libs})
-
-add_executable(mini_client mini_client.c)
-target_link_libraries(mini_client ${libs})
+set_property(TARGET ssl_client2 APPEND PROPERTY SOURCES
+    ssl_test_lib.c ${CMAKE_CURRENT_SOURCE_DIR}/../test/query_config.c)
+set_property(TARGET ssl_server2 APPEND PROPERTY SOURCES
+    ssl_test_lib.c ${CMAKE_CURRENT_SOURCE_DIR}/../test/query_config.c)
 
 if(THREADS_FOUND)
-    add_executable(ssl_pthread_server ssl_pthread_server.c)
+    add_executable(ssl_pthread_server ssl_pthread_server.c $<TARGET_OBJECTS:mbedtls_test>)
+    target_include_directories(ssl_pthread_server PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tests/include)
     target_link_libraries(ssl_pthread_server ${libs} ${CMAKE_THREAD_LIBS_INIT})
-    set(targets ${targets} ssl_pthread_server)
+    list(APPEND executables ssl_pthread_server)
 endif(THREADS_FOUND)
 
-install(TARGETS ${targets}
+install(TARGETS ${executables}
         DESTINATION "bin"
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)

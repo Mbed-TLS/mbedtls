@@ -1,10 +1,26 @@
 /**
  * \file net_sockets.h
  *
- * \brief Network communication functions
+ * \brief   Network sockets abstraction layer to integrate Mbed TLS into a
+ *          BSD-style sockets API.
+ *
+ *          The network sockets module provides an example integration of the
+ *          Mbed TLS library into a BSD sockets implementation. The module is
+ *          intended to be an example of how Mbed TLS can be integrated into a
+ *          networking stack, as well as to be Mbed TLS's network integration
+ *          for its supported platforms.
+ *
+ *          The module is intended only to be used with the Mbed TLS library and
+ *          is not intended to be used by third party application software
+ *          directly.
+ *
+ *          The supported platforms are as follows:
+ *              * Microsoft Windows and Windows CE
+ *              * POSIX/Unix platforms including Linux, OS X
+ *
  */
 /*
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -18,36 +34,44 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 #ifndef MBEDTLS_NET_SOCKETS_H
 #define MBEDTLS_NET_SOCKETS_H
+#include "mbedtls/private_access.h"
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
-#include "ssl.h"
+#include "mbedtls/ssl.h"
 
 #include <stddef.h>
 #include <stdint.h>
 
-#define MBEDTLS_ERR_NET_SOCKET_FAILED                     -0x0042  /**< Failed to open a socket. */
-#define MBEDTLS_ERR_NET_CONNECT_FAILED                    -0x0044  /**< The connection to the given server / port failed. */
-#define MBEDTLS_ERR_NET_BIND_FAILED                       -0x0046  /**< Binding of the socket failed. */
-#define MBEDTLS_ERR_NET_LISTEN_FAILED                     -0x0048  /**< Could not listen on the socket. */
-#define MBEDTLS_ERR_NET_ACCEPT_FAILED                     -0x004A  /**< Could not accept the incoming connection. */
-#define MBEDTLS_ERR_NET_RECV_FAILED                       -0x004C  /**< Reading information from the socket failed. */
-#define MBEDTLS_ERR_NET_SEND_FAILED                       -0x004E  /**< Sending information through the socket failed. */
-#define MBEDTLS_ERR_NET_CONN_RESET                        -0x0050  /**< Connection was reset by peer. */
-#define MBEDTLS_ERR_NET_UNKNOWN_HOST                      -0x0052  /**< Failed to get an IP address for the given hostname. */
-#define MBEDTLS_ERR_NET_BUFFER_TOO_SMALL                  -0x0043  /**< Buffer is too small to hold the data. */
-#define MBEDTLS_ERR_NET_INVALID_CONTEXT                   -0x0045  /**< The context is invalid, eg because it was free()ed. */
-#define MBEDTLS_ERR_NET_POLL_FAILED                       -0x0047  /**< Polling the net context failed. */
-#define MBEDTLS_ERR_NET_BAD_INPUT_DATA                    -0x0049  /**< Input invalid. */
+/** Failed to open a socket. */
+#define MBEDTLS_ERR_NET_SOCKET_FAILED                     -0x0042
+/** The connection to the given server / port failed. */
+#define MBEDTLS_ERR_NET_CONNECT_FAILED                    -0x0044
+/** Binding of the socket failed. */
+#define MBEDTLS_ERR_NET_BIND_FAILED                       -0x0046
+/** Could not listen on the socket. */
+#define MBEDTLS_ERR_NET_LISTEN_FAILED                     -0x0048
+/** Could not accept the incoming connection. */
+#define MBEDTLS_ERR_NET_ACCEPT_FAILED                     -0x004A
+/** Reading information from the socket failed. */
+#define MBEDTLS_ERR_NET_RECV_FAILED                       -0x004C
+/** Sending information through the socket failed. */
+#define MBEDTLS_ERR_NET_SEND_FAILED                       -0x004E
+/** Connection was reset by peer. */
+#define MBEDTLS_ERR_NET_CONN_RESET                        -0x0050
+/** Failed to get an IP address for the given hostname. */
+#define MBEDTLS_ERR_NET_UNKNOWN_HOST                      -0x0052
+/** Buffer is too small to hold the data. */
+#define MBEDTLS_ERR_NET_BUFFER_TOO_SMALL                  -0x0043
+/** The context is invalid, eg because it was free()ed. */
+#define MBEDTLS_ERR_NET_INVALID_CONTEXT                   -0x0045
+/** Polling the net context failed. */
+#define MBEDTLS_ERR_NET_POLL_FAILED                       -0x0047
+/** Input invalid. */
+#define MBEDTLS_ERR_NET_BAD_INPUT_DATA                    -0x0049
 
 #define MBEDTLS_NET_LISTEN_BACKLOG         10 /**< The backlog that listen() should use. */
 
@@ -68,9 +92,9 @@ extern "C" {
  * (eg two file descriptors for combined IPv4 + IPv6 support, or additional
  * structures for hand-made UDP demultiplexing).
  */
-typedef struct
+typedef struct mbedtls_net_context
 {
-    int fd;             /**< The underlying file descriptor                 */
+    int MBEDTLS_PRIVATE(fd);             /**< The underlying file descriptor                 */
 }
 mbedtls_net_context;
 
@@ -110,6 +134,7 @@ int mbedtls_net_connect( mbedtls_net_context *ctx, const char *host, const char 
  *
  * \return         0 if successful, or one of:
  *                      MBEDTLS_ERR_NET_SOCKET_FAILED,
+ *                      MBEDTLS_ERR_NET_UNKNOWN_HOST,
  *                      MBEDTLS_ERR_NET_BIND_FAILED,
  *                      MBEDTLS_ERR_NET_LISTEN_FAILED
  *
@@ -129,6 +154,8 @@ int mbedtls_net_bind( mbedtls_net_context *ctx, const char *bind_ip, const char 
  *                  can be NULL if client_ip is null
  *
  * \return          0 if successful, or
+ *                  MBEDTLS_ERR_NET_SOCKET_FAILED,
+ *                  MBEDTLS_ERR_NET_BIND_FAILED,
  *                  MBEDTLS_ERR_NET_ACCEPT_FAILED, or
  *                  MBEDTLS_ERR_NET_BUFFER_TOO_SMALL if buf_size is too small,
  *                  MBEDTLS_ERR_SSL_WANT_READ if bind_fd was set to
@@ -140,6 +167,10 @@ int mbedtls_net_accept( mbedtls_net_context *bind_ctx,
 
 /**
  * \brief          Check and wait for the context to be ready for read/write
+ *
+ * \note           The current implementation of this function uses
+ *                 select() and returns an error if the file descriptor
+ *                 is \c FD_SETSIZE or greater.
  *
  * \param ctx      Socket to check
  * \param rw       Bitflag composed of MBEDTLS_NET_POLL_READ and
@@ -222,16 +253,21 @@ int mbedtls_net_send( void *ctx, const unsigned char *buf, size_t len );
  *                 'timeout' seconds. If no error occurs, the actual amount
  *                 read is returned.
  *
+ * \note           The current implementation of this function uses
+ *                 select() and returns an error if the file descriptor
+ *                 is \c FD_SETSIZE or greater.
+ *
  * \param ctx      Socket
  * \param buf      The buffer to write to
  * \param len      Maximum length of the buffer
  * \param timeout  Maximum number of milliseconds to wait for data
  *                 0 means no timeout (wait forever)
  *
- * \return         the number of bytes received,
- *                 or a non-zero error code:
- *                 MBEDTLS_ERR_SSL_TIMEOUT if the operation timed out,
+ * \return         The number of bytes received if successful.
+ *                 MBEDTLS_ERR_SSL_TIMEOUT if the operation timed out.
  *                 MBEDTLS_ERR_SSL_WANT_READ if interrupted by a signal.
+ *                 Another negative error code (MBEDTLS_ERR_NET_xxx)
+ *                 for other failures.
  *
  * \note           This function will block (until data becomes available or
  *                 timeout is reached) even if the socket is set to
@@ -240,6 +276,13 @@ int mbedtls_net_send( void *ctx, const unsigned char *buf, size_t len );
  */
 int mbedtls_net_recv_timeout( void *ctx, unsigned char *buf, size_t len,
                       uint32_t timeout );
+
+/**
+ * \brief          Closes down the connection and free associated data
+ *
+ * \param ctx      The context to close
+ */
+void mbedtls_net_close( mbedtls_net_context *ctx );
 
 /**
  * \brief          Gracefully shutdown the connection and free associated data

@@ -7,7 +7,7 @@
  * Authentication is defined in <em>RFC-4493: The AES-CMAC Algorithm</em>.
  */
 /*
- *  Copyright (C) 2015-2018, Arm Limited (or its affiliates), All Rights Reserved
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -21,20 +21,19 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
- *  This file is part of Mbed TLS (https://tls.mbed.org)
  */
 
 #ifndef MBEDTLS_CMAC_H
 #define MBEDTLS_CMAC_H
+#include "mbedtls/private_access.h"
+
+#include "mbedtls/build_info.h"
 
 #include "mbedtls/cipher.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define MBEDTLS_ERR_CMAC_HW_ACCEL_FAILED -0x007A  /**< CMAC hardware accelerator failed. */
 
 #define MBEDTLS_AES_BLOCK_SIZE          16
 #define MBEDTLS_DES3_BLOCK_SIZE         8
@@ -53,14 +52,14 @@ extern "C" {
 struct mbedtls_cmac_context_t
 {
     /** The internal state of the CMAC algorithm.  */
-    unsigned char       state[MBEDTLS_CIPHER_BLKSIZE_MAX];
+    unsigned char       MBEDTLS_PRIVATE(state)[MBEDTLS_CIPHER_BLKSIZE_MAX];
 
     /** Unprocessed data - either data that was not block aligned and is still
      *  pending processing, or the final block. */
-    unsigned char       unprocessed_block[MBEDTLS_CIPHER_BLKSIZE_MAX];
+    unsigned char       MBEDTLS_PRIVATE(unprocessed_block)[MBEDTLS_CIPHER_BLKSIZE_MAX];
 
     /** The length of data pending processing. */
-    size_t              unprocessed_len;
+    size_t              MBEDTLS_PRIVATE(unprocessed_len);
 };
 
 #else  /* !MBEDTLS_CMAC_ALT */
@@ -71,6 +70,12 @@ struct mbedtls_cmac_context_t
  * \brief               This function sets the CMAC key, and prepares to authenticate
  *                      the input data.
  *                      Must be called with an initialized cipher context.
+ *
+ * \note                When the CMAC implementation is supplied by an alternate
+ *                      implementation (through #MBEDTLS_CMAC_ALT), some ciphers
+ *                      may not be supported by that implementation, and thus
+ *                      return an error. Alternate implementations must support
+ *                      AES-128 and AES-256, and may support AES-192 and 3DES.
  *
  * \param ctx           The cipher context used for the CMAC operation, initialized
  *                      as one of the following types: MBEDTLS_CIPHER_AES_128_ECB,
@@ -149,6 +154,11 @@ int mbedtls_cipher_cmac_reset( mbedtls_cipher_context_t *ctx );
  *                      The CMAC result is calculated as
  *                      output = generic CMAC(cmac key, input buffer).
  *
+ * \note                When the CMAC implementation is supplied by an alternate
+ *                      implementation (through #MBEDTLS_CMAC_ALT), some ciphers
+ *                      may not be supported by that implementation, and thus
+ *                      return an error. Alternate implementations must support
+ *                      AES-128 and AES-256, and may support AES-192 and 3DES.
  *
  * \param cipher_info   The cipher information.
  * \param key           The CMAC key.
@@ -192,6 +202,13 @@ int mbedtls_aes_cmac_prf_128( const unsigned char *key, size_t key_len,
 #if defined(MBEDTLS_SELF_TEST) && ( defined(MBEDTLS_AES_C) || defined(MBEDTLS_DES_C) )
 /**
  * \brief          The CMAC checkup routine.
+ *
+ * \note           In case the CMAC routines are provided by an alternative
+ *                 implementation (i.e. #MBEDTLS_CMAC_ALT is defined), the
+ *                 checkup routine will succeed even if the implementation does
+ *                 not support the less widely used AES-192 or 3DES primitives.
+ *                 The self-test requires at least AES-128 and AES-256 to be
+ *                 supported by the underlying implementation.
  *
  * \return         \c 0 on success.
  * \return         \c 1 on failure.

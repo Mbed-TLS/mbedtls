@@ -287,14 +287,15 @@ class NameCheck():
 
     def parse_mbed_words(self, files):
         """
-        Parse all words in the file that begin with MBED. Includes macros.
-        There have been typos of TLS, hence the broader check than MBEDTLS.
+        Parse all words in the file that begin with MBED, in and out of macros,
+        comments, anything.
 
         Args:
         * files: a List of filepaths to look through.
 
         Returns a List of Match objects for words beginning with MBED.
         """
+        # Typos of TLS are common, hence the broader check below than MBEDTLS.
         mbed_regex = re.compile(r"\bMBED.+?_[A-Z0-9_]*")
         exclusions = re.compile(r"// *no-check-names|#error")
 

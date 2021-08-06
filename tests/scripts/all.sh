@@ -2619,8 +2619,7 @@ component_check_test_helpers () {
     record_status ./tests/scripts/test_generate_test_code.py 2>&1
 
     msg "test: translate_ciphers.py"
-    record_status ./tests/scripts/test_translate_ciphers_format.sh
-    record_status ./tests/scripts/test_translate_ciphers_names.py
+    record_status python3 -m unittest tests/scripts/translate_ciphers.py 2>&1
 }
 
 ################################################################

@@ -52,15 +52,23 @@ class Match(object):
     Fields:
     * filename: the file that the match was in.
     * line: the full line containing the match.
+    * line_no: the line number of the file.
     * pos: a tuple of (start, end) positions on the line where the match is.
     * name: the match itself.
     """
-    def __init__(self, filename, line, pos, name):
+    def __init__(self, filename, line, line_no, pos, name):
         self.filename = filename
         self.line = line
+        self.line_no = line_no
         self.pos = pos
         self.name = name
 
+    def __str__(self):
+        return (
+            "       |\n" +
+            "       | {}".format(self.line) +
+            "       | " + self.pos[0] * " " + (self.pos[1] - self.pos[0]) * "^"
+        )
 class Problem(object):
     """
     A parent class representing a form of static analysis error.
@@ -71,7 +79,7 @@ class Problem(object):
     def __init__(self):
         self.textwrapper = textwrap.TextWrapper()
         self.textwrapper.width = 80
-        self.textwrapper.initial_indent = "    * "
+        self.textwrapper.initial_indent = "    > "
         self.textwrapper.subsequent_indent = "      "
 
 class SymbolNotInHeader(Problem):
@@ -109,8 +117,12 @@ class PatternMismatch(Problem):
 
     def __str__(self):
         return self.textwrapper.fill(
-            "{0}: '{1}' does not match the required pattern '{2}'."
-            .format(self.match.filename, self.match.name, self.pattern))
+            "{0}:{1}: '{2}' does not match the required pattern '{3}'."
+            .format(
+                self.match.filename,
+                self.match.line_no,
+                self.match.name,
+                self.pattern)) + "\n" + str(self.match)
 
 class Typo(Problem):
     """
@@ -125,10 +137,15 @@ class Typo(Problem):
         Problem.__init__(self)
 
     def __str__(self):
+        match_len = self.match.pos[1] - self.match.pos[0]
         return self.textwrapper.fill(
-            "{0}: '{1}' looks like a typo. It was not found in any macros or "
-            "any enums. If this is not a typo, put //no-check-names after it."
-            .format(self.match.filename, self.match.name))
+            "{0}:{1}: '{2}' looks like a typo. It was not found in any "
+            "macros or any enums. If this is not a typo, put "
+            "//no-check-names after it."
+            .format(
+                self.match.filename,
+                self.match.line_no,
+                self.match.name)) + "\n" + str(self.match)
 
 class NameCheck(object):
     """
@@ -261,12 +278,15 @@ class NameCheck(object):
         self.log.debug("Looking for macros in {} files".format(len(header_files)))
         for header_file in header_files:
             with open(header_file, "r") as header:
+                line_no = 0
                 for line in header:
+                    line_no += 1
                     for macro in re.finditer(MACRO_REGEX, line):
                         if not macro.group("macro").startswith(NON_MACROS):
                             macros.append(Match(
                                 header_file,
                                 line,
+                                line_no,
                                 (macro.start(), macro.end()),
                                 macro.group("macro")))
 
@@ -286,7 +306,9 @@ class NameCheck(object):
         self.log.debug("Looking for MBED names in {} files".format(len(files)))
         for filename in files:
             with open(filename, "r") as fp:
+                line_no = 0
                 for line in fp:
+                    line_no += 1
                     # Ignore any names that are deliberately opted-out or in
                     # legacy error directives
                     if re.search(r"// *no-check-names|#error", line):
@@ -296,6 +318,7 @@ class NameCheck(object):
                         MBED_names.append(Match(
                             filename,
                             line,
+                            line_no,
                             (name.start(), name.end()),
                             name.group(0)
                             ))
@@ -321,7 +344,9 @@ class NameCheck(object):
             # 2 = almost inside enum
             state = 0
             with open(header_file, "r") as header:
+                line_no = 0
                 for line in header:
+                    line_no += 1
                     # Match typedefs and brackets only when they are at the
                     # beginning of the line -- if they are indented, they might
                     # be sub-structures within structs, etc.
@@ -339,6 +364,7 @@ class NameCheck(object):
                             enum_consts.append(Match(
                                 header_file,
                                 line,
+                                line_no,
                                 (enum_const.start(), enum_const.end()),
                                 enum_const.group("enum_const")))
 
@@ -369,10 +395,12 @@ class NameCheck(object):
         self.log.debug("Looking for identifiers in {} files".format(len(header_files)))
         for header_file in header_files:
             with open(header_file, "r") as header:
+                line_no = 0
                 in_block_comment = False
                 previous_line = None
 
                 for line in header:
+                    line_no += 1
                     # Skip parsing this line if a block comment ends on it,
                     # but don't skip if it has just started -- there is a chance
                     # it ends on the same line.
@@ -431,6 +459,7 @@ class NameCheck(object):
                                 identifiers.append(Match(
                                     header_file,
                                     line,
+                                    line_no,
                                     (identifier.start(), identifier.end()),
                                     group))
 

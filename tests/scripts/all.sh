@@ -2750,9 +2750,8 @@ component_check_test_helpers () {
     # harmless info on stdout so it can be suppress with --quiet.
     ./tests/scripts/test_generate_test_code.py 2>&1
 
-    msg "test: translate_ciphers.py"
-    ./tests/scripts/test_translate_ciphers_format.sh
-    ./tests/scripts/test_translate_ciphers_names.py
+    msg "unit test: translate_ciphers.py"
+    python3 -m unittest tests/scripts/translate_ciphers.py 2>&1
 }
 
 ################################################################

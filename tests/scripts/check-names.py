@@ -278,9 +278,7 @@ class NameCheck(object):
         self.log.debug("Looking for macros in {} files".format(len(header_files)))
         for header_file in header_files:
             with open(header_file, "r") as header:
-                line_no = 0
-                for line in header:
-                    line_no += 1
+                for line_no, line in enumerate(header):
                     for macro in re.finditer(MACRO_REGEX, line):
                         if not macro.group("macro").startswith(NON_MACROS):
                             macros.append(Match(
@@ -306,9 +304,7 @@ class NameCheck(object):
         self.log.debug("Looking for MBED names in {} files".format(len(files)))
         for filename in files:
             with open(filename, "r") as fp:
-                line_no = 0
-                for line in fp:
-                    line_no += 1
+                for line_no, line in enumerate(fp):
                     # Ignore any names that are deliberately opted-out or in
                     # legacy error directives
                     if re.search(r"// *no-check-names|#error", line):
@@ -344,9 +340,7 @@ class NameCheck(object):
             # 2 = almost inside enum
             state = 0
             with open(header_file, "r") as header:
-                line_no = 0
-                for line in header:
-                    line_no += 1
+                for line_no, line in enumerate(header):
                     # Match typedefs and brackets only when they are at the
                     # beginning of the line -- if they are indented, they might
                     # be sub-structures within structs, etc.
@@ -395,12 +389,10 @@ class NameCheck(object):
         self.log.debug("Looking for identifiers in {} files".format(len(header_files)))
         for header_file in header_files:
             with open(header_file, "r") as header:
-                line_no = 0
                 in_block_comment = False
                 previous_line = None
 
-                for line in header:
-                    line_no += 1
+                for line_no, line in enumerate(header):
                     # Skip parsing this line if a block comment ends on it,
                     # but don't skip if it has just started -- there is a chance
                     # it ends on the same line.

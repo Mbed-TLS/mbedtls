@@ -410,20 +410,21 @@ class NameCheck(object):
                         previous_line = None
                         continue
 
-                    # Match "^something something$", with optional inline/static
-                    # This *might* be a function with its argument brackets on
-                    # the next line, or a struct declaration, so keep note of it
-                    if re.match(
-                        r"(inline +|static +|typedef +)*\w+ +\w+$",
-                        line):
-                        previous_line = line
+                    # If the line contains only space-separated alphanumeric
+                    # characters (or underscore, asterisk, or, open bracket),
+                    # and nothing else, high chance it's a declaration that
+                    # continues on the next line
+                    if re.match(r"^([\w\*\(]+\s+)+$", line):
+                        if previous_line:
+                            previous_line += " " + line
+                        else:
+                            previous_line = line
                         continue
 
                     # If previous line seemed to start an unfinished declaration
-                    # (as above), and this line begins with a bracket, concat
-                    # them and treat them as one line.
-                    if previous_line and re.match(" *[\({]", line):
-                        line = previous_line.strip() + line.strip()
+                    # (as above), concat and treat them as one.
+                    if previous_line:
+                        line = previous_line.strip() + " " + line.strip()
                         previous_line = None
 
                     # Skip parsing if line has a space in front = hueristic to
@@ -433,9 +434,15 @@ class NameCheck(object):
                         continue
 
                     identifier = re.search(
-                        # Match " something(" or " *something(". function calls.
-                        r".* \**(\w+)\(|"
-                        # Match (*something)(
+                        # Match " something(a" or " *something(a". Functions.
+                        # Assumptions:
+                        # - function definition from return type to one of its
+                        #   arguments is all on one line (enforced by the above
+                        #   previous_line concat)
+                        # - function definition line only contains alphanumeric,
+                        #   asterisk, underscore, and open bracket
+                        r".* \**(\w+) *\( *\w|"
+                        # Match "(*something)(". Flexible with spaces.
                         r".*\( *\* *(\w+) *\) *\(|"
                         # Match names of named data structures
                         r"(?:typedef +)?(?:struct|union|enum) +(\w+)(?: *{)?$|"

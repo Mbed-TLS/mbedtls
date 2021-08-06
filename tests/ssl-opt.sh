@@ -693,6 +693,11 @@ find_in_both() {
         fi
 }
 
+SKIP_HANDSHAKE_CHECK="NO"
+skip_handshake_stage_check() {
+    SKIP_HANDSHAKE_CHECK="YES"
+}
+
 # Usage: run_test name [-p proxy_cmd] srv_cmd cli_cmd cli_exit [option [...]]
 # Options:  -s pattern  pattern that must be present in server output
 #           -c pattern  pattern that must be present in client output
@@ -855,21 +860,25 @@ run_test() {
     # (useful to avoid tests with only negative assertions and non-zero
     # expected client exit to incorrectly succeed in case of catastrophic
     # failure)
-    if is_polar "$SRV_CMD"; then
-        if grep "Performing the SSL/TLS handshake" $SRV_OUT >/dev/null; then :;
-        else
-            fail "server or client failed to reach handshake stage"
-            return
+    if [ "X$SKIP_HANDSHAKE_CHECK" != "XYES" ]
+    then
+        if is_polar "$SRV_CMD"; then
+            if grep "Performing the SSL/TLS handshake" $SRV_OUT >/dev/null; then :;
+            else
+                fail "server or client failed to reach handshake stage"
+                return
+            fi
         fi
-    fi
-    if is_polar "$CLI_CMD"; then
-        if grep "Performing the SSL/TLS handshake" $CLI_OUT >/dev/null; then :;
-        else
-            fail "server or client failed to reach handshake stage"
-            return
+        if is_polar "$CLI_CMD"; then
+            if grep "Performing the SSL/TLS handshake" $CLI_OUT >/dev/null; then :;
+            else
+                fail "server or client failed to reach handshake stage"
+                return
+            fi
         fi
     fi
 
+    SKIP_HANDSHAKE_CHECK="NO"
     # Check server exit code (only for Mbed TLS: GnuTLS and OpenSSL don't
     # exit with status 0 when interrupted by a signal, and we don't really
     # care anyway), in case e.g. the server reports a memory leak.
@@ -8477,6 +8486,20 @@ run_test    "export keys functionality" \
             -s "EAP-TLS key material is:"\
             -c "EAP-TLS IV is:" \
             -s "EAP-TLS IV is:"
+
+# TLS1.3 test cases
+# TODO: remove or rewrite this test case if #4832 is resolved.
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+skip_handshake_stage_check
+run_test    "TLS1.3: Not supported version check: tls1_2 and tls1_3" \
+            "$P_SRV debug_level=1 min_version=tls1_2 max_version=tls1_3" \
+            "$P_CLI debug_level=1 min_version=tls1_2 max_version=tls1_3" \
+            1 \
+            -s "SSL - The requested feature is not available" \
+            -c "SSL - The requested feature is not available" \
+            -s "Hybrid TLS 1.2 + TLS 1.3 configurations are not yet supported" \
+            -c "Hybrid TLS 1.2 + TLS 1.3 configurations are not yet supported"
 
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_MEMORY_DEBUG

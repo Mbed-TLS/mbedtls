@@ -5076,12 +5076,40 @@ int mbedtls_ssl_session_load( mbedtls_ssl_session *session,
 /*
  * Perform a single step of the SSL handshake
  */
+static int ssl_prepare_handshake_step( mbedtls_ssl_context *ssl )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    if( ( ret = mbedtls_ssl_flush_output( ssl ) ) != 0 )
+        return( ret );
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+        ssl->handshake->retransmit_state == MBEDTLS_SSL_RETRANS_SENDING )
+    {
+        if( ( ret = mbedtls_ssl_flight_transmit( ssl ) ) != 0 )
+            return( ret );
+    }
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+
+    return( ret );
+}
+
 int mbedtls_ssl_handshake_step( mbedtls_ssl_context *ssl )
 {
-    int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    if( ssl == NULL || ssl->conf == NULL )
+    if( ssl            == NULL                       ||
+        ssl->conf      == NULL                       ||
+        ssl->handshake == NULL                       ||
+        ssl->state     == MBEDTLS_SSL_HANDSHAKE_OVER )
+    {
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+    ret = ssl_prepare_handshake_step( ssl );
+    if( ret != 0 )
+        return( ret );
 
 #if defined(MBEDTLS_SSL_CLI_C)
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )

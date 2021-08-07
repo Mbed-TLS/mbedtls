@@ -71,7 +71,7 @@ class Match(): # pylint: disable=too-few-public-methods
         return (
             " {0} |\n".format(gutter_len * " ") +
             " {0} | {1}".format(gutter, self.line) +
-            " {0} | {1}".format(gutter_len * " ", underline)
+            " {0} | {1}\n".format(gutter_len * " ", underline)
         )
 
 class Problem(): # pylint: disable=too-few-public-methods
@@ -96,11 +96,15 @@ class SymbolNotInHeader(Problem): # pylint: disable=too-few-public-methods
     Fields:
     * symbol_name: the name of the symbol.
     """
-    def __init__(self, symbol_name):
+    def __init__(self, symbol_name, quiet=False):
         self.symbol_name = symbol_name
+        self.quiet = quiet
         Problem.__init__(self)
 
     def __str__(self):
+        if self.quiet:
+            return "{0}".format(self.symbol_name)
+
         return self.textwrapper.fill(
             "'{0}' was found as an available symbol in the output of nm, "
             "however it was not declared in any header files."
@@ -115,12 +119,20 @@ class PatternMismatch(Problem): # pylint: disable=too-few-public-methods
     * pattern: the expected regex pattern
     * match: the Match object in question
     """
-    def __init__(self, pattern, match):
+    def __init__(self, pattern, match, quiet=False):
         self.pattern = pattern
         self.match = match
+        self.quiet = quiet
         Problem.__init__(self)
 
     def __str__(self):
+        if self.quiet:
+            return ("{0}:{1}:{3}"
+                    .format(
+                        self.match.filename,
+                        self.match.pos[0],
+                        self.match.name))
+
         return self.textwrapper.fill(
             "{0}:{1}: '{2}' does not match the required pattern '{3}'."
             .format(
@@ -137,11 +149,19 @@ class Typo(Problem): # pylint: disable=too-few-public-methods
     Fields:
     * match: the Match object of the MBED name in question.
     """
-    def __init__(self, match):
+    def __init__(self, match, quiet=False):
         self.match = match
+        self.quiet = quiet
         Problem.__init__(self)
 
     def __str__(self):
+        if self.quiet:
+            return ("{0}:{1}:{2}"
+                    .format(
+                        self.match.filename,
+                        self.match.pos[0],
+                        self.match.name))
+
         return self.textwrapper.fill(
             "{0}:{1}: '{2}' looks like a typo. It was not found in any "
             "macros or any enums. If this is not a typo, put "
@@ -550,43 +570,42 @@ class NameCheck():
 
         return symbols
 
-    def perform_checks(self, show_problems=True):
+    def perform_checks(self, quiet=False):
         """
         Perform each check in order, output its PASS/FAIL status. Maintain an
         overall test status, and output that at the end.
 
         Args:
-        * show_problems: whether to show the problematic examples.
+        * quiet: whether to hide detailed problem explanation.
         """
         self.log.info("=============")
         problems = 0
 
-        problems += self.check_symbols_declared_in_header(show_problems)
+        problems += self.check_symbols_declared_in_header(quiet)
 
         pattern_checks = [("macros", MACRO_PATTERN),
                           ("enum_consts", CONSTANTS_PATTERN),
                           ("identifiers", IDENTIFIER_PATTERN)]
         for group, check_pattern in pattern_checks:
-            problems += self.check_match_pattern(
-                show_problems, group, check_pattern)
+            problems += self.check_match_pattern(quiet, group, check_pattern)
 
-        problems += self.check_for_typos(show_problems)
+        problems += self.check_for_typos(quiet)
 
         self.log.info("=============")
         if problems > 0:
             self.log.info("FAIL: {0} problem(s) to fix".format(str(problems)))
-            if not show_problems:
-                self.log.info("Remove --quiet to show the problems.")
+            if quiet:
+                self.log.info("Remove --quiet to see explanations.")
         else:
             self.log.info("PASS")
 
-    def check_symbols_declared_in_header(self, show_problems):
+    def check_symbols_declared_in_header(self, quiet):
         """
         Perform a check that all detected symbols in the library object files
         are properly declared in headers.
 
         Args:
-        * show_problems: whether to show the problematic examples.
+        * quiet: whether to hide detailed problem explanation.
 
         Returns the number of problems that need fixing.
         """
@@ -600,18 +619,18 @@ class NameCheck():
                     break
 
             if not found_symbol_declared:
-                problems.append(SymbolNotInHeader(symbol))
+                problems.append(SymbolNotInHeader(symbol, quiet=quiet))
 
-        self.output_check_result("All symbols in header", problems, show_problems)
+        self.output_check_result("All symbols in header", problems)
         return len(problems)
 
 
-    def check_match_pattern(self, show_problems, group_to_check, check_pattern):
+    def check_match_pattern(self, quiet, group_to_check, check_pattern):
         """
         Perform a check that all items of a group conform to a regex pattern.
 
         Args:
-        * show_problems: whether to show the problematic examples.
+        * quiet: whether to hide detailed problem explanation.
         * group_to_check: string key to index into self.parse_result.
         * check_pattern: the regex to check against.
 
@@ -624,21 +643,23 @@ class NameCheck():
                 problems.append(PatternMismatch(check_pattern, item_match))
             # Double underscore is a reserved identifier, never to be used
             if re.match(r".*__.*", item_match.name):
-                problems.append(PatternMismatch("double underscore", item_match))
+                problems.append(PatternMismatch(
+                    "double underscore",
+                    item_match,
+                    quiet=quiet))
 
         self.output_check_result(
             "Naming patterns of {}".format(group_to_check),
-            problems,
-            show_problems)
+            problems)
         return len(problems)
 
-    def check_for_typos(self, show_problems):
+    def check_for_typos(self, quiet):
         """
         Perform a check that all words in the soure code beginning with MBED are
         either defined as macros, or as enum constants.
 
         Args:
-        * show_problems: whether to show the problematic examples.
+        * quiet: whether to hide detailed problem explanation.
 
         Returns the number of problems that need fixing.
         """
@@ -664,26 +685,21 @@ class NameCheck():
                     "MBEDTLS_PSA_BUILTIN_") in all_caps_names
 
             if not found and not typo_exclusion.search(name_match.name):
-                problems.append(Typo(name_match))
+                problems.append(Typo(name_match, quiet=quiet))
 
-        self.output_check_result("Likely typos", problems, show_problems)
+        self.output_check_result("Likely typos", problems)
         return len(problems)
 
-    def output_check_result(self, name, problems, show_problems):
+    def output_check_result(self, name, problems):
         """
         Write out the PASS/FAIL status of a performed check depending on whether
         there were problems.
-
-        Args:
-        * show_problems: whether to show the problematic examples.
         """
         if problems:
             self.set_return_code(1)
-            self.log.info("{}: FAIL".format(name))
-            if show_problems:
-                self.log.info("")
-                for problem in problems:
-                    self.log.warning("{}\n".format(str(problem)))
+            self.log.info("{}: FAIL\n".format(name))
+            for problem in problems:
+                self.log.warning(str(problem))
         else:
             self.log.info("{}: PASS".format(name))
 
@@ -716,7 +732,7 @@ def main():
 
     parser.add_argument("-q", "--quiet",
                         action="store_true",
-                        help="hide unnecessary text and problematic examples")
+                        help="hide unnecessary text, explanations, and highlighs")
 
     args = parser.parse_args()
 
@@ -725,7 +741,7 @@ def main():
         name_check = NameCheck()
         name_check.setup_logger(verbose=args.verbose)
         name_check.parse_names_in_source()
-        name_check.perform_checks(show_problems=not args.quiet)
+        name_check.perform_checks(quiet=args.quiet)
         sys.exit(name_check.return_code)
     except Exception: # pylint: disable=broad-except
         traceback.print_exc()

@@ -27,6 +27,9 @@ The script performs the following checks:
 - All macros, constants, and identifiers (function names, struct names, etc)
   follow the required pattern.
 - Typo checking: All words that begin with MBED exist as macros or constants.
+
+Returns 0 on success, 1 on test failure, and 2 if there is a script error or a
+subprocess error. Must be run from Mbed TLS root.
 """
 
 import argparse
@@ -178,6 +181,7 @@ class NameCheck():
     """
     def __init__(self):
         self.log = None
+        self.check_repo_path()
         self.return_code = 0
         self.excluded_files = ["bn_mul", "compat-2.x.h"]
         self.parse_result = {}
@@ -186,6 +190,15 @@ class NameCheck():
         if return_code > self.return_code:
             self.log.debug("Setting new return code to {}".format(return_code))
             self.return_code = return_code
+
+    @staticmethod
+    def check_repo_path():
+        """
+        Check that the current working directory is the project root, and throw
+        an exception if not.
+        """
+        if not all(os.path.isdir(d) for d in ["include", "library", "tests"]):
+            raise Exception("This script must be run from Mbed TLS root")
 
     def setup_logger(self, verbose=False):
         """
@@ -596,6 +609,8 @@ class NameCheck():
             self.log.info("FAIL: {0} problem(s) to fix".format(str(problems)))
             if quiet:
                 self.log.info("Remove --quiet to see explanations.")
+            else:
+                self.log.info("Use --quiet for minimal output.")
         else:
             self.log.info("PASS")
 
@@ -703,16 +718,6 @@ class NameCheck():
         else:
             self.log.info("{}: PASS".format(name))
 
-def check_repo_path():
-    """
-    Check that the current working directory is the project root, and throw
-    an exception if not.
-    """
-    if (not os.path.isdir("include") or
-            not os.path.isdir("tests") or
-            not os.path.isdir("library")):
-        raise Exception("This script must be run from Mbed TLS root")
-
 def main():
     """
     Perform argument parsing, and create an instance of NameCheck to begin the
@@ -737,7 +742,6 @@ def main():
     args = parser.parse_args()
 
     try:
-        check_repo_path()
         name_check = NameCheck()
         name_check.setup_logger(verbose=args.verbose)
         name_check.parse_names_in_source()

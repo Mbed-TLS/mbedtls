@@ -540,6 +540,8 @@ class NameCheck():
             self.set_return_code(2)
             raise error
         finally:
+            # Put back the original config regardless of there being errors.
+            # Works also for keyboard interrupts.
             shutil.move("include/mbedtls/mbedtls_config.h.bak",
                         "include/mbedtls/mbedtls_config.h")
 

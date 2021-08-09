@@ -43,9 +43,6 @@
 #include <stdio.h>
 #define mbedtls_printf printf
 #endif /* MBEDTLS_SELF_TEST && MBEDTLS_AES_C */
-#include <stdlib.h>
-#define mbedtls_calloc    calloc
-#define mbedtls_free       free
 #endif /* MBEDTLS_PLATFORM_C */
 
 #if !defined(MBEDTLS_CCM_ALT)
@@ -337,8 +334,7 @@ int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
     unsigned char i;
     size_t use_len, offset, olen;
 
-    const size_t local_output_len = input_len;
-    unsigned char* local_output = NULL;
+    unsigned char local_output[16];
 
     if( ctx->state & CCM_STATE__ERROR )
     {
@@ -348,19 +344,6 @@ int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
     if( ctx->processed + input_len > ctx->plaintext_len )
     {
         return MBEDTLS_ERR_CCM_BAD_INPUT;
-    }
-
-    /* Local output is used for decryption only. */
-    if( local_output_len > 0 && \
-        ( ctx->mode == MBEDTLS_CCM_DECRYPT || \
-          ctx->mode == MBEDTLS_CCM_STAR_DECRYPT ) )
-    {
-        local_output = mbedtls_calloc( local_output_len, sizeof( *local_output) );
-        if( local_output == NULL )
-        {
-            ctx->state |= CCM_STATE__ERROR;
-            return MBEDTLS_ERR_CCM_ALLOC_FAILED;
-        }
     }
 
     if( output_size < input_len )
@@ -414,7 +397,7 @@ int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
                 ctx->y[i + offset] ^= local_output[i];
 
             memcpy( output, local_output, use_len );
-            mbedtls_platform_zeroize( local_output, local_output_len );
+            mbedtls_platform_zeroize( local_output, 16 );
 
             if( use_len + offset == 16 || ctx->processed == ctx->plaintext_len )
             {
@@ -439,12 +422,7 @@ int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
     }
 
 exit:
-    if( ctx->mode == MBEDTLS_CCM_DECRYPT || \
-        ctx->mode == MBEDTLS_CCM_STAR_DECRYPT )
-    {
-        mbedtls_platform_zeroize( local_output, local_output_len );
-        mbedtls_free( local_output );
-    }
+    mbedtls_platform_zeroize( local_output, 16 );
 
     return ret;
 }

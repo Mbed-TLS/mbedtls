@@ -22,9 +22,9 @@ previously `list-identifiers.sh --internal`, and is useful for generating an
 exclusion file list for ABI/API checking, since we do not promise compatibility
 for them.
 
-It uses the NameCeck class from check_names.py to perform the parsing.
+It uses the CodeParser class from check_names.py to perform the parsing.
 
-Returns 0 on success, 1 if there is a script error.
+The script returns 0 on success, 1 if there is a script error.
 Must be run from Mbed TLS root.
 """
 
@@ -40,7 +40,7 @@ def main():
         description=(
             "This script writes a list of parsed identifiers in internal "
             "headers to \"_identifiers\". This is useful for generating a list "
-            "of names to exclude from ABI checking. "))
+            "of names to exclude from API/ABI compatibility checking. "))
 
     parser.parse_args()
 

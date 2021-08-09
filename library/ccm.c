@@ -100,7 +100,8 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx )
 #define CCM_STATE__CLEAR                0
 #define CCM_STATE__STARTED              (1 << 0)
 #define CCM_STATE__LENGHTS_SET          (1 << 1)
-#define CCM_STATE__AUTH_DATA_FINISHED   (1 << 2)
+#define CCM_STATE__AUTH_DATA_STARTED    (1 << 2)
+#define CCM_STATE__AUTH_DATA_FINISHED   (1 << 3)
 #define CCM_STATE__ERROR                (1 << 4)
 
 /*
@@ -272,7 +273,7 @@ int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
             return MBEDTLS_ERR_CCM_BAD_SEQUENCE;
         }
 
-        if( ctx->processed == 0 )
+        if( !(ctx->state & CCM_STATE__AUTH_DATA_STARTED) )
         {
             if ( add_len > ctx->add_len )
             {
@@ -282,17 +283,17 @@ int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
             ctx->y[0] ^= (unsigned char)( ( ctx->add_len >> 8 ) & 0xFF );
             ctx->y[1] ^= (unsigned char)( ( ctx->add_len      ) & 0xFF );
 
-            ctx->processed += 2;
+            ctx->state |= CCM_STATE__AUTH_DATA_STARTED;
         }
-        else if ( ctx->processed - 2 + add_len > ctx->add_len )
+        else if ( ctx->processed + add_len > ctx->add_len )
         {
             return MBEDTLS_ERR_CCM_BAD_INPUT;
         }
 
         while( add_len > 0 )
         {
-            offset = ctx->processed % 16;
-
+            offset = (ctx->processed + 2) % 16; /* account for y[0] and y[1]
+                                                 * holding total auth data length */
             use_len = 16 - offset;
 
             if( use_len > add_len )
@@ -305,7 +306,7 @@ int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
             add_len -= use_len;
             add += use_len;
 
-            if( use_len + offset == 16 || ctx->processed - 2 == ctx->add_len )
+            if( use_len + offset == 16 || ctx->processed == ctx->add_len )
             {
                 if( ( ret = mbedtls_cipher_update( &ctx->cipher_ctx, ctx->y, 16, ctx->y, &olen ) ) != 0 )
                 {
@@ -315,7 +316,7 @@ int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
             }
         }
 
-        if( ctx->processed - 2 == ctx->add_len )
+        if( ctx->processed == ctx->add_len )
         {
             ctx->state |= CCM_STATE__AUTH_DATA_FINISHED;
             ctx->processed = 0; // prepare for mbedtls_ccm_update()

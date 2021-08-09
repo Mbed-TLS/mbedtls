@@ -84,7 +84,12 @@ typedef struct mbedtls_ccm_context
     size_t MBEDTLS_PRIVATE(plaintext_len);   /*!< Total plaintext length */
     size_t MBEDTLS_PRIVATE(add_len);         /*!< Total authentication data length */
     size_t MBEDTLS_PRIVATE(tag_len);         /*!< Total tag length */
-    size_t MBEDTLS_PRIVATE(processed);       /*!< How many bytes of input data were processed (chunked input) */
+    size_t MBEDTLS_PRIVATE(processed);       /*!< Track how many bytes of input data
+                                                  were processed (chunked input).
+                                                  Used indepenedantly for both auth data
+                                                  and plaintext/ciphertext.
+                                                  This variable is set to zero after
+                                                  auth data input is finished. */
     unsigned char MBEDTLS_PRIVATE(q);        /*!< The Q working value */
     unsigned char MBEDTLS_PRIVATE(mode);     /*!< The operation to perform:
                                                   #MBEDTLS_CCM_ENCRYPT or

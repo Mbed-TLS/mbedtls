@@ -331,7 +331,7 @@ int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
                         unsigned char *output, size_t output_size,
                         size_t *output_len )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char i;
     size_t use_len, offset, olen;
 
@@ -431,7 +431,7 @@ exit:
 int mbedtls_ccm_finish( mbedtls_ccm_context *ctx,
                         unsigned char *tag, size_t tag_len )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char i;
 
     if( ctx->state & CCM_STATE__ERROR )

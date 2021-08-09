@@ -45,12 +45,10 @@ def main():
 
     try:
         name_check = NameCheck()
-        internal_headers = (
-            name_check.get_files("include/mbedtls/*_internal.h") +
-            name_check.get_files("library/*.h")
-        )
-
-        result = name_check.parse_identifiers(internal_headers)
+        result = name_check.parse_identifiers([
+            "include/mbedtls/*_internal.h",
+            "library/*.h"
+        ])
 
         identifiers = ["{}\n".format(match.name) for match in result]
         with open("_identifiers", "w", encoding="utf-8") as f:

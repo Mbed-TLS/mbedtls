@@ -265,7 +265,7 @@ class NameCheck():
         """
         self.log.info("Parsing source code...")
         self.log.debug(
-            "The following filenames are excluded from the search: {}"
+            "The following files are excluded from the search: {}"
             .format(str(self.excluded_files))
         )
 
@@ -339,9 +339,11 @@ class NameCheck():
             "asm", "inline", "EMIT", "_CRT_SECURE_NO_DEPRECATE", "MULADDC_"
         )
 
-        macros = []
+        files = self.get_files(include, exclude)
+        self.log.debug("Looking for macros in {} files".format(len(files)))
 
-        for header_file in self.get_files(include, exclude):
+        macros = []
+        for header_file in files:
             with open(header_file, "r", encoding="utf-8") as header:
                 for line_no, line in enumerate(header):
                     for macro in macro_regex.finditer(line):
@@ -371,9 +373,11 @@ class NameCheck():
         mbed_regex = re.compile(r"\bMBED.+?_[A-Z0-9_]*")
         exclusions = re.compile(r"// *no-check-names|#error")
 
-        mbed_words = []
+        files = self.get_files(include, exclude)
+        self.log.debug("Looking for MBED words in {} files".format(len(files)))
 
-        for filename in self.get_files(include, exclude):
+        mbed_words = []
+        for filename in files:
             with open(filename, "r", encoding="utf-8") as fp:
                 for line_no, line in enumerate(fp):
                     if exclusions.search(line):
@@ -399,9 +403,11 @@ class NameCheck():
 
         Returns a List of Match objects for the findings.
         """
-        enum_consts = []
+        files = self.get_files(include, exclude)
+        self.log.debug("Looking for enum consts in {} files".format(len(files)))
 
-        for header_file in self.get_files(include, exclude):
+        enum_consts = []
+        for header_file in files:
             # Emulate a finite state machine to parse enum declarations.
             # 0 = not in enum
             # 1 = inside enum
@@ -471,9 +477,12 @@ class NameCheck():
             r"#"
             r")"
         )
-        identifiers = []
 
-        for header_file in self.get_files(include, exclude):
+        files = self.get_files(include, exclude)
+        self.log.debug("Looking for identifiers in {} files".format(len(files)))
+
+        identifiers = []
+        for header_file in files:
             with open(header_file, "r", encoding="utf-8") as header:
                 in_block_comment = False
                 # The previous line varibale is used for concatenating lines

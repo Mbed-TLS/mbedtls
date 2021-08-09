@@ -269,7 +269,7 @@ int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
     {
         if( ctx->state & CCM_STATE__AUTH_DATA_FINISHED )
         {
-            return ret;
+            return MBEDTLS_ERR_CCM_BAD_SEQUENCE;
         }
 
         if( ctx->processed == 0 )
@@ -430,22 +430,22 @@ exit:
 int mbedtls_ccm_finish( mbedtls_ccm_context *ctx,
                         unsigned char *tag, size_t tag_len )
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    int ret;
     unsigned char i;
 
     if( ctx->state & CCM_STATE__ERROR )
     {
-        return ret;
+        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     }
 
     if( ctx->add_len > 0 && !( ctx->state & CCM_STATE__AUTH_DATA_FINISHED ) )
     {
-        return ret;
+        return MBEDTLS_ERR_CCM_BAD_SEQUENCE;
     }
 
     if( ctx->plaintext_len > 0 && ctx->processed != ctx->plaintext_len )
     {
-        return ret;
+        return MBEDTLS_ERR_CCM_BAD_SEQUENCE;
     }
 
     /*

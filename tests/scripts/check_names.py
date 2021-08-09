@@ -766,23 +766,26 @@ def main():
     Perform argument parsing, and create an instance of NameCheck to begin the
     core operation.
     """
-    argparser = argparse.ArgumentParser(
+    parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=(
             "This script confirms that the naming of all symbols and identifiers "
             "in Mbed TLS are consistent with the house style and are also "
             "self-consistent.\n\n"
-            "Expected to be run from the MbedTLS root directory."))
+            "Expected to be run from the MbedTLS root directory.")
+    )
+    parser.add_argument(
+        "-v", "--verbose",
+        action="store_true",
+        help="show parse results"
+    )
+    parser.add_argument(
+        "-q", "--quiet",
+        action="store_true",
+        help="hide unnecessary text, explanations, and highlighs"
+    )
 
-    argparser.add_argument("-v", "--verbose",
-                        action="store_true",
-                        help="show parse results")
-
-    argparser.add_argument("-q", "--quiet",
-                        action="store_true",
-                        help="hide unnecessary text, explanations, and highlighs")
-
-    args = argparser.parse_args()
+    args = parser.parse_args()
 
     try:
         name_check = NameCheck(verbose=args.verbose)

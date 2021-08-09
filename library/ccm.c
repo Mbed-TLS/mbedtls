@@ -387,7 +387,10 @@ int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
         if( ctx->mode == MBEDTLS_CCM_DECRYPT || \
             ctx->mode == MBEDTLS_CCM_STAR_DECRYPT )
         {
-            /* Write decrypted data to local_output to avoid using output variable as
+            /* Since output may be in shared memory, we cannot be sure that
+             * it will contain what we wrote to it. Therefore, we should avoid using
+             * it as input to any operations.
+             * Write decrypted data to local_output to avoid using output variable as
              * input in the XOR operation for Y.
              */
             ret = mbedtls_ccm_crypt( ctx, offset, use_len, input, local_output );

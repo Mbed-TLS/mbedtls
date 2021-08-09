@@ -29,9 +29,10 @@ Must be run from Mbed TLS root.
 """
 
 import argparse
+import logging
 import traceback
 import sys
-from check_names import NameCheck
+from check_names import CodeParser
 
 def main():
     parser = argparse.ArgumentParser(
@@ -44,7 +45,7 @@ def main():
     parser.parse_args()
 
     try:
-        name_check = NameCheck()
+        name_check = CodeParser(logging.getLogger())
         result = name_check.parse_identifiers([
             "include/mbedtls/*_internal.h",
             "library/*.h"

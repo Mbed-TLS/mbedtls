@@ -456,7 +456,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_ccm_skip_auth( int cipher_id, int mode,
+void mbedtls_ccm_skip_ad( int cipher_id, int mode,
                             data_t * key, data_t * msg, data_t * iv,
                             data_t * result, data_t * tag )
 {
@@ -493,7 +493,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_ccm_skip_cipher( int cipher_id, int mode,
+void mbedtls_ccm_skip_update( int cipher_id, int mode,
                               data_t * key, data_t * iv, data_t* add,
                               data_t * tag )
 {
@@ -520,7 +520,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_ccm_overflow_auth( int cipher_id, int mode,
+void mbedtls_ccm_overflow_ad( int cipher_id, int mode,
                                  data_t * key, data_t * iv,
                                  data_t * add )
 {
@@ -540,7 +540,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_ccm_overflow_cipher( int cipher_id, int mode,
+void mbedtls_ccm_overflow_update( int cipher_id, int mode,
                                   data_t * key, data_t * msg, data_t * iv,
                                   data_t * add )
 {

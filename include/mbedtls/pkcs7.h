@@ -46,6 +46,8 @@
 #ifndef MBEDTLS_PKCS7_H
 #define MBEDTLS_PKCS7_H
 
+#include "mbedtls/private_access.h"
+
 #include "mbedtls/build_info.h"
 
 #include "asn1.h"
@@ -115,14 +117,14 @@ mbedtls_pkcs7_type;
  */
 typedef struct mbedtls_pkcs7_signer_info
 {
-    int version;
-    mbedtls_x509_buf serial;
-    mbedtls_x509_name issuer;
-    mbedtls_x509_buf issuer_raw;
-    mbedtls_x509_buf alg_identifier;
-    mbedtls_x509_buf sig_alg_identifier;
-    mbedtls_x509_buf sig;
-    struct mbedtls_pkcs7_signer_info *next;
+    int MBEDTLS_PRIVATE(version);
+    mbedtls_x509_buf MBEDTLS_PRIVATE(serial);
+    mbedtls_x509_name MBEDTLS_PRIVATE(issuer);
+    mbedtls_x509_buf MBEDTLS_PRIVATE(issuer_raw);
+    mbedtls_x509_buf MBEDTLS_PRIVATE(alg_identifier);
+    mbedtls_x509_buf MBEDTLS_PRIVATE(sig_alg_identifier);
+    mbedtls_x509_buf MBEDTLS_PRIVATE(sig);
+    struct mbedtls_pkcs7_signer_info *MBEDTLS_PRIVATE(next);
 }
 mbedtls_pkcs7_signer_info;
 
@@ -131,8 +133,8 @@ mbedtls_pkcs7_signer_info;
  */
 typedef struct mbedtls_pkcs7_data
 {
-    mbedtls_pkcs7_buf oid;
-    mbedtls_pkcs7_buf data;
+    mbedtls_pkcs7_buf MBEDTLS_PRIVATE(oid);
+    mbedtls_pkcs7_buf MBEDTLS_PRIVATE(data);
 }
 mbedtls_pkcs7_data;
 
@@ -141,15 +143,15 @@ mbedtls_pkcs7_data;
  */
 typedef struct mbedtls_pkcs7_signed_data
 {
-    int version;
-    mbedtls_pkcs7_buf digest_alg_identifiers;
-    struct mbedtls_pkcs7_data content;
-    int no_of_certs;
-    mbedtls_x509_crt certs;
-    int no_of_crls;
-    mbedtls_x509_crl crl;
-    int no_of_signers;
-    mbedtls_pkcs7_signer_info signers;
+    int MBEDTLS_PRIVATE(version);
+    mbedtls_pkcs7_buf MBEDTLS_PRIVATE(digest_alg_identifiers);
+    struct mbedtls_pkcs7_data MBEDTLS_PRIVATE(content);
+    int MBEDTLS_PRIVATE(no_of_certs);
+    mbedtls_x509_crt MBEDTLS_PRIVATE(certs);
+    int MBEDTLS_PRIVATE(no_of_crls);
+    mbedtls_x509_crl MBEDTLS_PRIVATE(crl);
+    int MBEDTLS_PRIVATE(no_of_signers);
+    mbedtls_pkcs7_signer_info MBEDTLS_PRIVATE(signers);
 }
 mbedtls_pkcs7_signed_data;
 
@@ -158,9 +160,9 @@ mbedtls_pkcs7_signed_data;
  */
 typedef struct mbedtls_pkcs7
 {
-    mbedtls_pkcs7_buf raw;
-    mbedtls_pkcs7_buf content_type_oid;
-    mbedtls_pkcs7_signed_data signed_data;
+    mbedtls_pkcs7_buf MBEDTLS_PRIVATE(raw);
+    mbedtls_pkcs7_buf MBEDTLS_PRIVATE(content_type_oid);
+    mbedtls_pkcs7_signed_data MBEDTLS_PRIVATE(signed_data);
 }
 mbedtls_pkcs7;
 

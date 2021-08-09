@@ -81,11 +81,9 @@ class Match(): # pylint: disable=too-few-public-methods
 class Problem(): # pylint: disable=too-few-public-methods
     """
     A parent class representing a form of static analysis error.
-
-    Fields:
-    * textwrapper: a TextWrapper instance to format problems nicely.
     """
     def __init__(self):
+        self.quiet = False
         self.textwrapper = textwrap.TextWrapper()
         self.textwrapper.width = 80
         self.textwrapper.initial_indent = "    > "
@@ -100,9 +98,8 @@ class SymbolNotInHeader(Problem): # pylint: disable=too-few-public-methods
     Fields:
     * symbol_name: the name of the symbol.
     """
-    def __init__(self, symbol_name, quiet=False):
+    def __init__(self, symbol_name):
         self.symbol_name = symbol_name
-        self.quiet = quiet
         Problem.__init__(self)
 
     def __str__(self):
@@ -123,19 +120,17 @@ class PatternMismatch(Problem): # pylint: disable=too-few-public-methods
     * pattern: the expected regex pattern
     * match: the Match object in question
     """
-    def __init__(self, pattern, match, quiet=False):
+    def __init__(self, pattern, match):
         self.pattern = pattern
         self.match = match
-        self.quiet = quiet
         Problem.__init__(self)
 
     def __str__(self):
         if self.quiet:
-            return ("{0}:{1}:{3}"
-                    .format(
-                        self.match.filename,
-                        self.match.pos[0],
-                        self.match.name))
+            return (
+                "{0}:{1}:{3}"
+                .format(self.match.filename, self.match.pos[0], self.match.name)
+            )
 
         return self.textwrapper.fill(
             "{0}:{1}: '{2}' does not match the required pattern '{3}'."
@@ -143,7 +138,9 @@ class PatternMismatch(Problem): # pylint: disable=too-few-public-methods
                 self.match.filename,
                 self.match.pos[0],
                 self.match.name,
-                self.pattern)) + "\n" + str(self.match)
+                self.pattern
+            )
+        ) + "\n" + str(self.match)
 
 class Typo(Problem): # pylint: disable=too-few-public-methods
     """
@@ -153,27 +150,23 @@ class Typo(Problem): # pylint: disable=too-few-public-methods
     Fields:
     * match: the Match object of the MBED name in question.
     """
-    def __init__(self, match, quiet=False):
+    def __init__(self, match):
         self.match = match
-        self.quiet = quiet
         Problem.__init__(self)
 
     def __str__(self):
         if self.quiet:
-            return ("{0}:{1}:{2}"
-                    .format(
-                        self.match.filename,
-                        self.match.pos[0],
-                        self.match.name))
+            return (
+                "{0}:{1}:{2}"
+                .format(self.match.filename, self.match.pos[0], self.match.name)
+            )
 
         return self.textwrapper.fill(
             "{0}:{1}: '{2}' looks like a typo. It was not found in any "
             "macros or any enums. If this is not a typo, put "
             "//no-check-names after it."
-            .format(
-                self.match.filename,
-                self.match.pos[0],
-                self.match.name)) + "\n" + str(self.match)
+            .format(self.match.filename, self.match.pos[0], self.match.name)
+        ) + "\n" + str(self.match)
 
 class NameCheck():
     """
@@ -184,7 +177,6 @@ class NameCheck():
         self.log = None
         self.check_repo_path()
         self.return_code = 0
-
         self.setup_logger(verbose)
 
         # Globally excluded filenames
@@ -192,11 +184,6 @@ class NameCheck():
 
         # Will contain the parse result after a comprehensive parse
         self.parse_result = {}
-
-    def set_return_code(self, return_code):
-        if return_code > self.return_code:
-            self.log.debug("Setting new return code to {}".format(return_code))
-            self.return_code = return_code
 
     @staticmethod
     def check_repo_path():
@@ -206,6 +193,11 @@ class NameCheck():
         """
         if not all(os.path.isdir(d) for d in ["include", "library", "tests"]):
             raise Exception("This script must be run from Mbed TLS root")
+
+    def set_return_code(self, return_code):
+        if return_code > self.return_code:
+            self.log.debug("Setting new return code to {}".format(return_code))
+            self.return_code = return_code
 
     def setup_logger(self, verbose=False):
         """
@@ -247,28 +239,35 @@ class NameCheck():
         """
         self.log.info("Parsing source code...")
         self.log.debug(
-            "The following files are excluded from the search: {}"
+            "The following filenames are excluded from the search: {}"
             .format(str(self.excluded_files))
         )
 
         m_headers = self.get_files("include/mbedtls/*.h")
         p_headers = self.get_files("include/psa/*.h")
-        t_headers = ["3rdparty/everest/include/everest/everest.h",
-                     "3rdparty/everest/include/everest/x25519.h"]
+        t_headers = [
+            "3rdparty/everest/include/everest/everest.h",
+            "3rdparty/everest/include/everest/x25519.h"
+        ]
         d_headers = self.get_files("tests/include/test/drivers/*.h")
         l_headers = self.get_files("library/*.h")
         libraries = self.get_files("library/*.c") + [
             "3rdparty/everest/library/everest.c",
-            "3rdparty/everest/library/x25519.c"]
+            "3rdparty/everest/library/x25519.c"
+        ]
 
         all_macros = self.parse_macros(
-            m_headers + p_headers + t_headers + l_headers + d_headers)
+            m_headers + p_headers + t_headers + l_headers + d_headers
+        )
         enum_consts = self.parse_enum_consts(
-            m_headers + l_headers + t_headers)
+            m_headers + l_headers + t_headers
+        )
         identifiers = self.parse_identifiers(
-            m_headers + p_headers + t_headers + l_headers)
+            m_headers + p_headers + t_headers + l_headers
+        )
         mbed_words = self.parse_mbed_words(
-            m_headers + p_headers + t_headers + l_headers + libraries)
+            m_headers + p_headers + t_headers + l_headers + libraries
+        )
         symbols = self.parse_symbols()
 
         # Remove identifier macros like mbedtls_printf or mbedtls_calloc
@@ -279,7 +278,7 @@ class NameCheck():
                 actual_macros.append(macro)
 
         self.log.debug("Found:")
-        self.log.debug("  {} Macros".format(len(all_macros)))
+        self.log.debug("  {} Total Macros".format(len(all_macros)))
         self.log.debug("  {} Non-identifier Macros".format(len(actual_macros)))
         self.log.debug("  {} Enum Constants".format(len(enum_consts)))
         self.log.debug("  {} Identifiers".format(len(identifiers)))
@@ -294,12 +293,12 @@ class NameCheck():
             "mbed_words": mbed_words
         }
 
-    def parse_macros(self, header_files):
+    def parse_macros(self, files):
         """
         Parse all macros defined by #define preprocessor directives.
 
         Args:
-        * header_files: A List of filepaths to look through.
+        * files: A List of filepaths to look through.
 
         Returns a List of Match objects for the found macros.
         """
@@ -308,20 +307,22 @@ class NameCheck():
             "asm", "inline", "EMIT", "_CRT_SECURE_NO_DEPRECATE", "MULADDC_"
         )
 
-        self.log.debug("Looking for macros in {} files".format(len(header_files)))
+        self.log.debug("Looking for macros in {} files".format(len(files)))
 
         macros = []
 
-        for header_file in header_files:
+        for header_file in files:
             with open(header_file, "r", encoding="utf-8") as header:
                 for line_no, line in enumerate(header):
                     for macro in macro_regex.finditer(line):
-                        if not macro.group("macro").startswith(exclusions):
-                            macros.append(Match(
-                                header_file,
-                                line,
-                                (line_no, macro.start(), macro.end()),
-                                macro.group("macro")))
+                        if macro.group("macro").startswith(exclusions):
+                            continue
+
+                        macros.append(Match(
+                            header_file,
+                            line,
+                            (line_no, macro.start(), macro.end()),
+                            macro.group("macro")))
 
         return macros
 
@@ -359,20 +360,23 @@ class NameCheck():
 
         return mbed_words
 
-    def parse_enum_consts(self, header_files):
+    def parse_enum_consts(self, files):
         """
         Parse all enum value constants that are declared.
 
         Args:
-        * header_files: A List of filepaths to look through.
+        * files: A List of filepaths to look through.
 
         Returns a List of Match objects for the findings.
         """
-        self.log.debug("Looking for enum consts in {} files".format(len(header_files)))
+        self.log.debug(
+            "Looking for enum consts in {} files"
+            .format(len(files))
+        )
 
         enum_consts = []
 
-        for header_file in header_files:
+        for header_file in files:
             # Emulate a finite state machine to parse enum declarations.
             # 0 = not in enum
             # 1 = inside enum
@@ -393,22 +397,26 @@ class NameCheck():
                         state = 0
                     elif state == 1 and not re.match(r" *#", line):
                         enum_const = re.match(r" *(?P<enum_const>\w+)", line)
-                        if enum_const:
-                            enum_consts.append(Match(
-                                header_file,
-                                line,
-                                (line_no, enum_const.start(), enum_const.end()),
-                                enum_const.group("enum_const")))
+                        if not enum_const:
+                            continue
+
+                        enum_consts.append(Match(
+                            header_file,
+                            line,
+                            (line_no, enum_const.start(), enum_const.end()),
+                            enum_const.group("enum_const")))
 
         return enum_consts
 
-    def parse_identifiers(self, header_files):
+    def parse_identifiers(self, files):
         """
         Parse all lines of a header where a function identifier is declared,
         based on some huersitics. Highly dependent on formatting style.
+        Note: .match() checks at the beginning of the string (implicit ^), while
+        .search() checks throughout.
 
         Args:
-        * header_files: A List of filepaths to look through.
+        * files: A List of filepaths to look through.
 
         Returns a List of Match objects with identifiers.
         """
@@ -425,23 +433,31 @@ class NameCheck():
             # Match names of named data structures.
             r"(?:typedef +)?(?:struct|union|enum) +(\w+)(?: *{)?$|"
             # Match names of typedef instances, after closing bracket.
-            r"}? *(\w+)[;[].*")
-        exclusion_lines = re.compile(r"^("
-                                     r"extern +\"C\"|"
-                                     r"(typedef +)?(struct|union|enum)( *{)?$|"
-                                     r"} *;?$|"
-                                     r"$|"
-                                     r"//|"
-                                     r"#"
-                                     r")")
+            r"}? *(\w+)[;[].*"
+        )
+        exclusion_lines = re.compile(
+            r"^("
+            r"extern +\"C\"|"
+            r"(typedef +)?(struct|union|enum)( *{)?$|"
+            r"} *;?$|"
+            r"$|"
+            r"//|"
+            r"#"
+            r")"
+        )
 
-        self.log.debug("Looking for identifiers in {} files".format(len(header_files)))
+        self.log.debug(
+            "Looking for identifiers in {} files"
+            .format(len(files))
+        )
 
         identifiers = []
 
-        for header_file in header_files:
+        for header_file in files:
             with open(header_file, "r", encoding="utf-8") as header:
                 in_block_comment = False
+                # The previous line varibale is used for concatenating lines
+                # when identifiers are formatted and spread across multiple.
                 previous_line = ""
 
                 for line_no, line in enumerate(header):
@@ -484,15 +500,19 @@ class NameCheck():
 
                     identifier = identifier_regex.search(line)
 
-                    if identifier:
-                        # Find the group that matched, and append it
-                        for group in identifier.groups():
-                            if group:
-                                identifiers.append(Match(
-                                    header_file,
-                                    line,
-                                    (line_no, identifier.start(), identifier.end()),
-                                    group))
+                    if not identifier:
+                        continue
+
+                    # Find the group that matched, and append it
+                    for group in identifier.groups():
+                        if not group:
+                            continue
+
+                        identifiers.append(Match(
+                            header_file,
+                            line,
+                            (line_no, identifier.start(), identifier.end()),
+                            group))
 
         return identifiers
 
@@ -510,8 +530,10 @@ class NameCheck():
         symbols = []
 
         # Back up the config and atomically compile with the full configratuion.
-        shutil.copy("include/mbedtls/mbedtls_config.h",
-                    "include/mbedtls/mbedtls_config.h.bak")
+        shutil.copy(
+            "include/mbedtls/mbedtls_config.h",
+            "include/mbedtls/mbedtls_config.h.bak"
+        )
         try:
             # Use check=True in all subprocess calls so that failures are raised
             # as exceptions and logged.
@@ -532,10 +554,11 @@ class NameCheck():
             )
 
             # Perform object file analysis using nm
-            symbols = self.parse_symbols_from_nm(
-                ["library/libmbedcrypto.a",
-                 "library/libmbedtls.a",
-                 "library/libmbedx509.a"])
+            symbols = self.parse_symbols_from_nm([
+                "library/libmbedcrypto.a",
+                "library/libmbedtls.a",
+                "library/libmbedx509.a"
+            ])
 
             subprocess.run(
                 ["make", "clean"],
@@ -549,8 +572,10 @@ class NameCheck():
         finally:
             # Put back the original config regardless of there being errors.
             # Works also for keyboard interrupts.
-            shutil.move("include/mbedtls/mbedtls_config.h.bak",
-                        "include/mbedtls/mbedtls_config.h")
+            shutil.move(
+                "include/mbedtls/mbedtls_config.h.bak",
+                "include/mbedtls/mbedtls_config.h"
+            )
 
         return symbols
 
@@ -606,9 +631,11 @@ class NameCheck():
 
         problems += self.check_symbols_declared_in_header(quiet)
 
-        pattern_checks = [("macros", MACRO_PATTERN),
-                          ("enum_consts", CONSTANTS_PATTERN),
-                          ("identifiers", IDENTIFIER_PATTERN)]
+        pattern_checks = [
+            ("macros", MACRO_PATTERN),
+            ("enum_consts", CONSTANTS_PATTERN),
+            ("identifiers", IDENTIFIER_PATTERN)
+        ]
         for group, check_pattern in pattern_checks:
             problems += self.check_match_pattern(quiet, group, check_pattern)
 
@@ -645,11 +672,10 @@ class NameCheck():
                     break
 
             if not found_symbol_declared:
-                problems.append(SymbolNotInHeader(symbol, quiet=quiet))
+                problems.append(SymbolNotInHeader(symbol))
 
-        self.output_check_result("All symbols in header", problems)
+        self.output_check_result(quiet, "All symbols in header", problems)
         return len(problems)
-
 
     def check_match_pattern(self, quiet, group_to_check, check_pattern):
         """
@@ -670,12 +696,10 @@ class NameCheck():
                 problems.append(PatternMismatch(check_pattern, item_match))
             # Double underscore is a reserved identifier, never to be used
             if re.match(r".*__.*", item_match.name):
-                problems.append(PatternMismatch(
-                    "double underscore",
-                    item_match,
-                    quiet=quiet))
+                problems.append(PatternMismatch("double underscore", item_match))
 
         self.output_check_result(
+            quiet,
             "Naming patterns of {}".format(group_to_check),
             problems)
         return len(problems)
@@ -693,7 +717,7 @@ class NameCheck():
         """
         problems = []
 
-        # Set comprehension, equivalent to a list comprehension inside set()
+        # Set comprehension, equivalent to a list comprehension wrapped by set()
         all_caps_names = {
             match.name
             for match
@@ -713,20 +737,26 @@ class NameCheck():
                     "MBEDTLS_PSA_BUILTIN_") in all_caps_names
 
             if not found and not typo_exclusion.search(name_match.name):
-                problems.append(Typo(name_match, quiet=quiet))
+                problems.append(Typo(name_match))
 
-        self.output_check_result("Likely typos", problems)
+        self.output_check_result(quiet, "Likely typos", problems)
         return len(problems)
 
-    def output_check_result(self, name, problems):
+    def output_check_result(self, quiet, name, problems):
         """
         Write out the PASS/FAIL status of a performed check depending on whether
         there were problems.
+
+        Args:
+        * quiet: whether to hide detailed problem explanation.
+        * name: the name of the test
+        * problems: a List of encountered Problems
         """
         if problems:
             self.set_return_code(1)
             self.log.info("{}: FAIL\n".format(name))
             for problem in problems:
+                problem.quiet = quiet
                 self.log.warning(str(problem))
         else:
             self.log.info("{}: PASS".format(name))

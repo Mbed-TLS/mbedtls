@@ -47,8 +47,8 @@ size_t mbedtls_cf_size_mask_ge( size_t x,
 size_t mbedtls_cf_size_bool_eq( size_t x,
                                 size_t y );
 
-unsigned mbedtls_cf_size_gt( size_t size,
-                             size_t max );
+unsigned mbedtls_cf_size_gt( size_t x,
+                             size_t y );
 
 #if defined(MBEDTLS_BIGNUM_C)
 
@@ -57,24 +57,24 @@ unsigned mbedtls_cf_mpi_uint_lt( const mbedtls_mpi_uint x,
 
 #endif /* MBEDTLS_BIGNUM_C */
 
-unsigned mbedtls_cf_uint_if( unsigned cond,
+unsigned mbedtls_cf_uint_if( unsigned condition,
                              unsigned if1,
                              unsigned if0 );
 
-size_t mbedtls_cf_size_if( unsigned cond,
+size_t mbedtls_cf_size_if( unsigned condition,
                            size_t if1,
                            size_t if0 );
 
-int mbedtls_cf_cond_select_sign( int a,
-                                 int b,
-                                 unsigned char second );
+int mbedtls_cf_cond_select_sign( unsigned char condition,
+                                 int if1,
+                                 int if0 );
 
 #if defined(MBEDTLS_BIGNUM_C)
 
 void mbedtls_cf_mpi_uint_cond_assign( size_t n,
                                       mbedtls_mpi_uint *dest,
                                       const mbedtls_mpi_uint *src,
-                                      unsigned char assign );
+                                      unsigned char condition );
 
 #endif /* MBEDTLS_BIGNUM_C */
 
@@ -82,7 +82,7 @@ void mbedtls_cf_mem_move_to_left( void *start,
                                   size_t total,
                                   size_t offset );
 
-void mbedtls_cf_memcpy_if_eq( unsigned char *dst,
+void mbedtls_cf_memcpy_if_eq( unsigned char *dest,
                               const unsigned char *src,
                               size_t len,
                               size_t c1, size_t c2 );

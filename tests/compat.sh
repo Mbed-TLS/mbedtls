@@ -275,10 +275,10 @@ add_common_ciphersuites()
                 TLS-RSA-WITH-CAMELLIA-256-CBC-SHA       \
                 TLS-RSA-WITH-AES-128-CBC-SHA            \
                 TLS-RSA-WITH-CAMELLIA-128-CBC-SHA       \
-                
+
                 TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA      \
                 TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA      \
-                
+
                 TLS-RSA-WITH-AES-128-CBC-SHA256         \
                 TLS-DHE-RSA-WITH-AES-128-CBC-SHA256     \
                 TLS-RSA-WITH-AES-256-CBC-SHA256         \
@@ -335,7 +335,7 @@ add_openssl_ciphersuites()
             CIPHERS="$CIPHERS                           \
                 TLS-ECDH-ECDSA-WITH-AES-128-CBC-SHA     \
                 TLS-ECDH-ECDSA-WITH-AES-256-CBC-SHA     \
-        
+
                 TLS-ECDH-ECDSA-WITH-AES-128-CBC-SHA256          \
                 TLS-ECDH-ECDSA-WITH-AES-256-CBC-SHA384          \
                 TLS-ECDH-ECDSA-WITH-AES-128-GCM-SHA256          \
@@ -431,12 +431,12 @@ add_gnutls_ciphersuites()
             CIPHERS="$CIPHERS                               \
                 TLS-DHE-PSK-WITH-AES-128-CBC-SHA            \
                 TLS-DHE-PSK-WITH-AES-256-CBC-SHA            \
-            
+
                 TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA          \
                 TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA          \
                 TLS-RSA-PSK-WITH-AES-256-CBC-SHA            \
                 TLS-RSA-PSK-WITH-AES-128-CBC-SHA            \
-            
+
                 TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA384       \
                 TLS-ECDHE-PSK-WITH-CAMELLIA-256-CBC-SHA384  \
                 TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA256       \
@@ -495,7 +495,7 @@ add_mbedtls_ciphersuites()
             M_CIPHERS="$M_CIPHERS                               \
                 TLS-ECDH-ECDSA-WITH-CAMELLIA-128-CBC-SHA256     \
                 TLS-ECDH-ECDSA-WITH-CAMELLIA-256-CBC-SHA384     \
-        
+
                 TLS-ECDH-ECDSA-WITH-CAMELLIA-128-GCM-SHA256     \
                 TLS-ECDH-ECDSA-WITH-CAMELLIA-256-GCM-SHA384     \
                 TLS-ECDHE-ECDSA-WITH-ARIA-256-CBC-SHA384        \

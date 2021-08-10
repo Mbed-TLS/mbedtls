@@ -16,7 +16,7 @@
 # limitations under the License.
 
 """
-This script generates a file called _identifiers that contains all Mbed TLS
+This script generates a file called identifiers that contains all Mbed TLS
 identifiers found on internal headers. This is the equivalent of what was
 previously `list-identifiers.sh --internal`, and is useful for generating an
 exclusion file list for ABI/API checking, since we do not promise compatibility
@@ -39,7 +39,7 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=(
             "This script writes a list of parsed identifiers in internal "
-            "headers to \"_identifiers\". This is useful for generating a list "
+            "headers to \"identifiers\". This is useful for generating a list "
             "of names to exclude from API/ABI compatibility checking. "))
 
     parser.parse_args()
@@ -50,9 +50,10 @@ def main():
             "include/mbedtls/*_internal.h",
             "library/*.h"
         ])
+        result.sort(key=lambda x: x.name)
 
         identifiers = ["{}\n".format(match.name) for match in result]
-        with open("_identifiers", "w", encoding="utf-8") as f:
+        with open("identifiers", "w", encoding="utf-8") as f:
             f.writelines(identifiers)
 
     except Exception: # pylint: disable=broad-except

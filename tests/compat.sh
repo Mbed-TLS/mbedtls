@@ -247,7 +247,6 @@ add_common_ciphersuites()
         "ECDSA")
             CIPHERS="$CIPHERS                           \
                 TLS-ECDHE-ECDSA-WITH-NULL-SHA           \
-                TLS-ECDHE-ECDSA-WITH-3DES-EDE-CBC-SHA   \
                 TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA    \
                 TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA    \
 
@@ -264,18 +263,15 @@ add_common_ciphersuites()
                 TLS-DHE-RSA-WITH-AES-256-CBC-SHA        \
                 TLS-DHE-RSA-WITH-CAMELLIA-128-CBC-SHA   \
                 TLS-DHE-RSA-WITH-CAMELLIA-256-CBC-SHA   \
-                TLS-DHE-RSA-WITH-3DES-EDE-CBC-SHA       \
                 TLS-RSA-WITH-AES-256-CBC-SHA            \
                 TLS-RSA-WITH-CAMELLIA-256-CBC-SHA       \
                 TLS-RSA-WITH-AES-128-CBC-SHA            \
                 TLS-RSA-WITH-CAMELLIA-128-CBC-SHA       \
-                TLS-RSA-WITH-3DES-EDE-CBC-SHA           \
                 TLS-RSA-WITH-NULL-MD5                   \
                 TLS-RSA-WITH-NULL-SHA                   \
 
                 TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA      \
                 TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA      \
-                TLS-ECDHE-RSA-WITH-3DES-EDE-CBC-SHA     \
                 TLS-ECDHE-RSA-WITH-NULL-SHA             \
 
                 TLS-RSA-WITH-AES-128-CBC-SHA256         \
@@ -297,7 +293,6 @@ add_common_ciphersuites()
 
         "PSK")
             CIPHERS="$CIPHERS                           \
-                TLS-PSK-WITH-3DES-EDE-CBC-SHA           \
                 TLS-PSK-WITH-AES-128-CBC-SHA            \
                 TLS-PSK-WITH-AES-256-CBC-SHA            \
                 "
@@ -335,7 +330,6 @@ add_openssl_ciphersuites()
         "ECDSA")
             CIPHERS="$CIPHERS                           \
                 TLS-ECDH-ECDSA-WITH-NULL-SHA            \
-                TLS-ECDH-ECDSA-WITH-3DES-EDE-CBC-SHA    \
                 TLS-ECDH-ECDSA-WITH-AES-128-CBC-SHA     \
                 TLS-ECDH-ECDSA-WITH-AES-256-CBC-SHA     \
 
@@ -351,9 +345,6 @@ add_openssl_ciphersuites()
 
         "RSA")
             CIPHERS="$CIPHERS                           \
-                TLS-RSA-WITH-DES-CBC-SHA                \
-                TLS-DHE-RSA-WITH-DES-CBC-SHA            \
-
                 TLS-ECDHE-RSA-WITH-ARIA-256-GCM-SHA384          \
                 TLS-DHE-RSA-WITH-ARIA-256-GCM-SHA384            \
                 TLS-RSA-WITH-ARIA-256-GCM-SHA384                \
@@ -435,14 +426,11 @@ add_gnutls_ciphersuites()
 
         "PSK")
             CIPHERS="$CIPHERS                               \
-                TLS-DHE-PSK-WITH-3DES-EDE-CBC-SHA           \
                 TLS-DHE-PSK-WITH-AES-128-CBC-SHA            \
                 TLS-DHE-PSK-WITH-AES-256-CBC-SHA            \
 
                 TLS-ECDHE-PSK-WITH-AES-256-CBC-SHA          \
                 TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA          \
-                TLS-ECDHE-PSK-WITH-3DES-EDE-CBC-SHA         \
-                TLS-RSA-PSK-WITH-3DES-EDE-CBC-SHA           \
                 TLS-RSA-PSK-WITH-AES-256-CBC-SHA            \
                 TLS-RSA-PSK-WITH-AES-128-CBC-SHA            \
 

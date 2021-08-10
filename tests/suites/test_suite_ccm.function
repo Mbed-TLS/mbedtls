@@ -455,6 +455,7 @@ exit:
 }
 /* END_CASE */
 
+/* Skip auth data, provide full text */
 /* BEGIN_CASE */
 void mbedtls_ccm_skip_ad( int cipher_id, int mode,
                             data_t * key, data_t * msg, data_t * iv,
@@ -492,6 +493,7 @@ exit:
 }
 /* END_CASE */
 
+/* Provide auth data, skip full text */
 /* BEGIN_CASE */
 void mbedtls_ccm_skip_update( int cipher_id, int mode,
                               data_t * key, data_t * iv, data_t* add,
@@ -519,6 +521,7 @@ exit:
 }
 /* END_CASE */
 
+/* Provide too much auth data */
 /* BEGIN_CASE */
 void mbedtls_ccm_overflow_ad( int cipher_id, int mode,
                                  data_t * key, data_t * iv,
@@ -539,6 +542,7 @@ exit:
 }
 /* END_CASE */
 
+/* Provide incomplete auth data and finish */
 /* BEGIN_CASE */
 void mbedtls_ccm_incomplete_ad( int cipher_id, int mode,
                                 data_t * key, data_t * iv, data_t* add )
@@ -563,7 +567,8 @@ exit:
 }
 /* END_CASE */
 
-
+/* Provide complete auth data on first update_ad.
+ * Provide unexpected auth data on second update_ad */
 /* BEGIN_CASE */
 void mbedtls_ccm_full_ad_and_overflow( int cipher_id, int mode,
                                        data_t * key, data_t * iv,
@@ -586,6 +591,7 @@ exit:
 }
 /* END_CASE */
 
+/* Provide too much plaintext/ciphertext */
 /* BEGIN_CASE */
 void mbedtls_ccm_overflow_update( int cipher_id, int mode,
                                   data_t * key, data_t * msg, data_t * iv,
@@ -613,6 +619,7 @@ exit:
 }
 /* END_CASE */
 
+/* Provide incomplete plaintext/ciphertext and finish */
 /* BEGIN_CASE */
 void mbedtls_ccm_incomplete_update( int cipher_id, int mode,
                                     data_t * key, data_t * msg, data_t * iv,
@@ -645,6 +652,8 @@ exit:
 }
 /* END_CASE */
 
+/* Provide full plaintext/ciphertext of first update
+ * Provide unexpected plaintext/ciphertext on second update */
 /* BEGIN_CASE */
 void mbedtls_ccm_full_update_and_overflow( int cipher_id, int mode,
                                            data_t * key, data_t * msg, data_t * iv,

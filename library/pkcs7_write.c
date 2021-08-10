@@ -19,6 +19,7 @@
 
 #include "common.h"
 
+#include "mbedtls/build_info.h"
 #if defined(MBEDTLS_PKCS7_WRITE_C)
 #include <stdio.h>
 #include <stdlib.h>
@@ -89,6 +90,8 @@ typedef struct mbedtls_pkcs7_info {
     const char *hash_funct_oid;
     /*  if already_signed_flag is 1 then then PKCS7Info.keys contains signatures, if 0 then contains siging key in DER format */
     int already_signed_flag;
+    int (*rng_func)(void *, unsigned char *, size_t);
+    void *rng_param;
 
 } mbedtls_pkcs7_info;
 
@@ -181,7 +184,7 @@ static int pkcs7_hash_create( const unsigned char *data, size_t size,
         ret = MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA;
         goto out;
     }
-    *out_hash = mbedtls_calloc( 1, md_info->size );
+    *out_hash = mbedtls_calloc( 1, (size_t) mbedtls_md_get_size( md_info ) );
     if( *out_hash == NULL ) {
         ret = MBEDTLS_ERR_PKCS7_ALLOC_FAILED;
         goto out;
@@ -193,8 +196,8 @@ static int pkcs7_hash_create( const unsigned char *data, size_t size,
         goto out;
     }
 
-    *out_hash_size = md_info->size;
-    mbedtls_printf( "Hash generation successful, %s: ", md_info->name );
+    *out_hash_size = (size_t) mbedtls_md_get_size( md_info );
+    mbedtls_printf( "Hash generation successful, %s: ", mbedtls_md_get_name( md_info ) );
     for (i = 0; i < *out_hash_size - 1; i++)
         mbedtls_printf("%02x:", (*out_hash)[i]);
     mbedtls_printf("%02x\n", (*out_hash)[i]);
@@ -347,12 +350,14 @@ static int pkcs7_set_signature( unsigned char **start, size_t *size,
 
     mbedtls_pk_init( priv_key );
     /* make sure private key parses into private key format */
-    ret = mbedtls_pk_parse_key( priv_key, priv, priv_size, NULL, 0 );
+    ret = mbedtls_pk_parse_key( priv_key, priv, priv_size, NULL, 0,
+                                pkcs7_info->rng_func, pkcs7_info->rng_param );
     if( ret != 0 )
         goto out;
 
     /* make sure private key is matched with public key */
-    ret = mbedtls_pk_check_pair( &( pub->pk ), priv_key );
+    ret = mbedtls_pk_check_pair( &( pub->pk ), priv_key,
+                                 pkcs7_info->rng_func, pkcs7_info->rng_param );
     if( ret != 0 )
         goto out;
 
@@ -380,8 +385,9 @@ static int pkcs7_set_signature( unsigned char **start, size_t *size,
 
 
     ret = mbedtls_pk_sign( priv_key, pkcs7_info->hash_funct,
-                           (const unsigned char *) hash, 0,
-                           (unsigned char *) signature, &sig_size, 0, NULL );
+                           (const unsigned char *) hash, hash_size,
+                           (unsigned char *) signature, sig_size_bits / 8,
+                           &sig_size, pkcs7_info->rng_func, pkcs7_info->rng_param );
     if( ret != 0 ) {
         goto out;
     }
@@ -409,7 +415,7 @@ static int pkcs7_set_algorithm_ids( unsigned char **start, size_t *size,
     int ret;
     char *sig_type = NULL;
 
-    /* if the private key already holds signature (see definition of pkcs7Info.keys)
+    /* if the private key already holds signature (see definition of pkcs7_info.keys)
     * then just write the signature, no generation is needed
     */
     if (pkcs7_info->already_signed_flag) {
@@ -736,7 +742,8 @@ static int pkcs7_start_generation( unsigned char **start, size_t *size,
 int mbedtls_pkcs7_create( unsigned char **pkcs7, size_t *pkcs7_size,
                           const unsigned char *data, size_t data_size, const unsigned char **crts,
                           const unsigned char **keys, size_t *crt_sizes, size_t *key_sizes, int key_pairs,
-                          mbedtls_md_type_t hash_funct, int keys_are_sigs )
+                          mbedtls_md_type_t hash_funct, int (*f_rng)(void *, unsigned char *, size_t),
+                          void *p_rng, int keys_are_sigs )
 {
     unsigned char *pkcs7_buff = NULL, *hash_funct_oid;
     unsigned char *ptr;
@@ -776,7 +783,8 @@ int mbedtls_pkcs7_create( unsigned char **pkcs7, size_t *pkcs7_size,
     info.hash_funct = hash_funct;
     info.hash_funct_oid = (char *) hash_funct_oid;
     info.already_signed_flag = keys_are_sigs;
-
+    info.rng_func =  f_rng;
+    info.rng_param = p_rng;
 
     printf( "Generating Pkcs7 with %d pair(s) of signers...\n", key_pairs );
 

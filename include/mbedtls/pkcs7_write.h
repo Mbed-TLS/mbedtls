@@ -25,11 +25,9 @@
 #ifndef MBEDTLS_PKCS7_WRITE_H
 #define MBEDTLS_PKCS7_WRITE_H
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/private_access.h"
+
+#include "mbedtls/build_info.h"
 
 #include "md.h"
 
@@ -60,6 +58,8 @@ extern "C" {
  * \param key_pairs         Number or key pairs. Array length of key/crtFiles.
  * \param hash_funct        Hash function to use in digest, see mbedtls_md_type_t for
  *                          values in mbedtls/md.h
+ * \param f_rng             RNG function. This must not be \c NULL.
+ * \param p_rng             RNG parameter, can be \c NULL .
  * \param keys_are_sigs     Flag that is set to 0 if \p keys contains private keys
  *                          If not 0, then \p keys are considered to contain raw
  *                          signatures that were generated externally.
@@ -72,7 +72,8 @@ extern "C" {
 int mbedtls_pkcs7_create( unsigned char **pkcs7, size_t *pkcs7_size,
                           const unsigned char *data, size_t data_size, const unsigned char **crts,
                           const unsigned char **keys, size_t *crt_sizes, size_t *key_sizes, int key_pairs,
-                          mbedtls_md_type_t hash_funct, int keys_are_sigs );
+                          mbedtls_md_type_t hash_funct, int (*f_rng)(void *, unsigned char *, size_t),
+                          void *p_rng, int keys_are_sigs );
 
 /**
  * \brief                   This function recievces a buffer in PEM format and returns the DER.

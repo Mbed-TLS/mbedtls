@@ -540,6 +540,53 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void mbedtls_ccm_incomplete_ad( int cipher_id, int mode,
+                                data_t * key, data_t * iv, data_t* add )
+{
+    mbedtls_ccm_context ctx;
+    uint8_t *output = NULL;
+
+    mbedtls_ccm_init( &ctx );
+    TEST_EQUAL( mbedtls_ccm_setkey( &ctx, cipher_id, key->x, key->len * 8 ), 0 );
+    TEST_EQUAL( 0, mbedtls_ccm_starts( &ctx, mode, iv->x, iv->len ) );
+    // use hardcoded values for msg length and tag length. They are not a part of this test
+    TEST_EQUAL( 0, mbedtls_ccm_set_lengths( &ctx, add->len, 0, 16 ) );
+
+    TEST_EQUAL( 0, mbedtls_ccm_update_ad( &ctx, add->x, add->len/2) );
+
+    ASSERT_ALLOC( output, 16 );
+    TEST_EQUAL( MBEDTLS_ERR_CCM_BAD_SEQUENCE, mbedtls_ccm_finish( &ctx, output, 16 ) );
+
+exit:
+    mbedtls_free( output );
+    mbedtls_ccm_free( &ctx );
+}
+/* END_CASE */
+
+
+/* BEGIN_CASE */
+void mbedtls_ccm_full_ad_and_overflow( int cipher_id, int mode,
+                                       data_t * key, data_t * iv,
+                                       data_t * add )
+{
+    mbedtls_ccm_context ctx;
+
+    mbedtls_ccm_init( &ctx );
+    TEST_EQUAL( mbedtls_ccm_setkey( &ctx, cipher_id, key->x, key->len * 8 ), 0 );
+    TEST_EQUAL( 0, mbedtls_ccm_starts( &ctx, mode, iv->x, iv->len ) );
+    // use hardcoded values for msg length and tag length. They are not a part of this test
+    TEST_EQUAL( 0, mbedtls_ccm_set_lengths( &ctx, add->len, 16, 16 ) );
+
+    // pass full auth data
+    TEST_EQUAL( 0, mbedtls_ccm_update_ad( &ctx, add->x, add->len) );
+    // pass 1 extra byte
+    TEST_EQUAL( MBEDTLS_ERR_CCM_BAD_SEQUENCE, mbedtls_ccm_update_ad( &ctx, add->x, 1) );
+exit:
+    mbedtls_ccm_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mbedtls_ccm_overflow_update( int cipher_id, int mode,
                                   data_t * key, data_t * msg, data_t * iv,
                                   data_t * add )
@@ -560,6 +607,67 @@ void mbedtls_ccm_overflow_update( int cipher_id, int mode,
     ASSERT_ALLOC( output, msg->len );
     TEST_EQUAL( MBEDTLS_ERR_CCM_BAD_INPUT, \
                 mbedtls_ccm_update( &ctx, msg->x, msg->len, output, msg->len, &olen ) );
+exit:
+    mbedtls_free( output );
+    mbedtls_ccm_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mbedtls_ccm_incomplete_update( int cipher_id, int mode,
+                                    data_t * key, data_t * msg, data_t * iv,
+                                    data_t * add )
+{
+    mbedtls_ccm_context ctx;
+    uint8_t *output = NULL;
+    size_t olen;
+
+    mbedtls_ccm_init( &ctx );
+    TEST_EQUAL( mbedtls_ccm_setkey( &ctx, cipher_id, key->x, key->len * 8 ), 0 );
+    TEST_EQUAL( 0, mbedtls_ccm_starts( &ctx, mode, iv->x, iv->len ) );
+    // use hardcoded value for tag length. It is not a part of this test
+    TEST_EQUAL( 0, mbedtls_ccm_set_lengths( &ctx, add->len, msg->len, 16 ) );
+
+    TEST_EQUAL( 0, mbedtls_ccm_update_ad( &ctx, add->x, add->len) );
+
+    ASSERT_ALLOC( output, msg->len );
+    olen = 0xdeadbeef;
+    TEST_EQUAL( 0, mbedtls_ccm_update( &ctx, msg->x, msg->len/2, output, msg->len, &olen ) );
+    mbedtls_free( output );
+    output = NULL;
+
+    ASSERT_ALLOC( output, 16 );
+    TEST_EQUAL( MBEDTLS_ERR_CCM_BAD_SEQUENCE, mbedtls_ccm_finish( &ctx, output, 16 ) );
+
+exit:
+    mbedtls_free( output );
+    mbedtls_ccm_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mbedtls_ccm_full_update_and_overflow( int cipher_id, int mode,
+                                           data_t * key, data_t * msg, data_t * iv,
+                                           data_t * add )
+{
+    mbedtls_ccm_context ctx;
+    uint8_t *output = NULL;
+    size_t olen;
+
+    mbedtls_ccm_init( &ctx );
+    TEST_EQUAL( mbedtls_ccm_setkey( &ctx, cipher_id, key->x, key->len * 8 ), 0 );
+    TEST_EQUAL( 0, mbedtls_ccm_starts( &ctx, mode, iv->x, iv->len ) );
+    // use hardcoded value for tag length. It is a not a part of this test
+    TEST_EQUAL( 0, mbedtls_ccm_set_lengths( &ctx, add->len, msg->len, 16 ) );
+
+    TEST_EQUAL( 0, mbedtls_ccm_update_ad( &ctx, add->x, add->len) );
+
+    ASSERT_ALLOC( output, msg->len );
+    // pass full text
+    TEST_EQUAL( 0, mbedtls_ccm_update( &ctx, msg->x, msg->len, output, msg->len, &olen ) );
+    // pass 1 extra byte
+    TEST_EQUAL( MBEDTLS_ERR_CCM_BAD_INPUT, \
+                mbedtls_ccm_update( &ctx, msg->x, 1, output, 1, &olen ) );
 exit:
     mbedtls_free( output );
     mbedtls_ccm_free( &ctx );

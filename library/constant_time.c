@@ -178,19 +178,19 @@ size_t mbedtls_cf_size_bool_eq( size_t x,
 
 /** Check whether a size is out of bounds, without branches.
  *
- * This is equivalent to `size > max`, but is likely to be compiled to
+ * This is equivalent to `x > y`, but is likely to be compiled to
  * to code using bitwise operation rather than a branch.
  *
- * \param size      Size to check.
- * \param max       Maximum desired value for \p size.
- * \return          \c 0 if `size <= max`.
- * \return          \c 1 if `size > max`.
+ * \param x         Size to check.
+ * \param y         Maximum desired value for \p size.
+ * \return          \c 0 if `x <= y`.
+ * \return          \c 1 if `x > y`.
  */
-unsigned mbedtls_cf_size_gt( size_t size,
-                             size_t max )
+unsigned mbedtls_cf_size_gt( size_t x,
+                             size_t y )
 {
-    /* Return the sign bit (1 for negative) of (max - size). */
-    return( ( max - size ) >> ( sizeof( size_t ) * 8 - 1 ) );
+    /* Return the sign bit (1 for negative) of (y - x). */
+    return( ( y - x ) >> ( sizeof( size_t ) * 8 - 1 ) );
 }
 
 #if defined(MBEDTLS_BIGNUM_C)
@@ -234,57 +234,58 @@ unsigned mbedtls_cf_mpi_uint_lt( const mbedtls_mpi_uint x,
 
 /** Choose between two integer values, without branches.
  *
- * This is equivalent to `cond ? if1 : if0`, but is likely to be compiled
+ * This is equivalent to `condition ? if1 : if0`, but is likely to be compiled
  * to code using bitwise operation rather than a branch.
  *
- * \param cond      Condition to test.
- * \param if1       Value to use if \p cond is nonzero.
- * \param if0       Value to use if \p cond is zero.
- * \return          \c if1 if \p cond is nonzero, otherwise \c if0.
+ * \param condition Condition to test.
+ * \param if1       Value to use if \p condition is nonzero.
+ * \param if0       Value to use if \p condition is zero.
+ * \return          \c if1 if \p condition is nonzero, otherwise \c if0.
  */
-unsigned mbedtls_cf_uint_if( unsigned cond,
+
+unsigned mbedtls_cf_uint_if( unsigned condition,
                              unsigned if1,
                              unsigned if0 )
 {
-    unsigned mask = mbedtls_cf_uint_mask( cond );
+    unsigned mask = mbedtls_cf_uint_mask( condition );
     return( ( mask & if1 ) | (~mask & if0 ) );
 }
 
-size_t mbedtls_cf_size_if( unsigned cond,
+size_t mbedtls_cf_size_if( unsigned condition,
                            size_t if1,
                            size_t if0 )
 {
-    size_t mask = mbedtls_cf_size_mask( cond );
+    size_t mask = mbedtls_cf_size_mask( condition );
     return( ( mask & if1 ) | (~mask & if0 ) );
 }
 
 /**
  * Select between two sign values in constant-time.
  *
- * This is functionally equivalent to second ? a : b but uses only bit
+ * This is functionally equivalent to condition ? if1 : if0 but uses only bit
  * operations in order to avoid branches.
  *
- * \param[in] a         The first sign; must be either +1 or -1.
- * \param[in] b         The second sign; must be either +1 or -1.
- * \param[in] second    Must be either 1 (return b) or 0 (return a).
+ * \param[in] condition Must be either 1 (return \p if1) or 0 (return \pp if0).
+ * \param[in] if1       The first sign; must be either +1 or -1.
+ * \param[in] if0       The second sign; must be either +1 or -1.
  *
- * \return The selected sign value.
+ * \return  \c if1 if \p condition is nonzero, otherwise \c if0.
  */
-int mbedtls_cf_cond_select_sign( int a,
-                                 int b,
-                                 unsigned char second )
+int mbedtls_cf_cond_select_sign( unsigned char condition,
+                                 int if1,
+                                 int if0 )
 {
     /* In order to avoid questions about what we can reasonnably assume about
      * the representations of signed integers, move everything to unsigned
      * by taking advantage of the fact that a and b are either +1 or -1. */
-    unsigned ua = a + 1;
-    unsigned ub = b + 1;
+    unsigned uif1 = if1 + 1;
+    unsigned uif0 = if0 + 1;
 
-    /* second was 0 or 1, mask is 0 or 2 as are ua and ub */
-    const unsigned mask = second << 1;
+    /* condition was 0 or 1, mask is 0 or 2 as are ua and ub */
+    const unsigned mask = condition << 1;
 
     /* select ua or ub */
-    unsigned ur = ( ua & ~mask ) | ( ub & mask );
+    unsigned ur = ( uif0 & ~mask ) | ( uif1 & mask );
 
     /* ur is now 0 or 2, convert back to -1 or +1 */
     return( (int) ur - 1 );
@@ -296,12 +297,12 @@ int mbedtls_cf_cond_select_sign( int a,
  * Conditionally assign dest = src, without leaking information
  * about whether the assignment was made or not.
  * dest and src must be arrays of limbs of size n.
- * assign must be 0 or 1.
+ * condition must be 0 or 1.
  */
 void mbedtls_cf_mpi_uint_cond_assign( size_t n,
                                       mbedtls_mpi_uint *dest,
                                       const mbedtls_mpi_uint *src,
-                                      unsigned char assign )
+                                      unsigned char condition )
 {
     size_t i;
 
@@ -312,8 +313,8 @@ void mbedtls_cf_mpi_uint_cond_assign( size_t n,
 #pragma warning( disable : 4146 )
 #endif
 
-    /* all-bits 1 if assign is 1, all-bits 0 if assign is 0 */
-    const mbedtls_mpi_uint mask = -assign;
+    /* all-bits 1 if condition is 1, all-bits 0 if condition is 0 */
+    const mbedtls_mpi_uint mask = -condition;
 
 #if defined(_MSC_VER)
 #pragma warning( pop )
@@ -375,7 +376,7 @@ void mbedtls_cf_mem_move_to_left( void *start,
  * This function is implemented without using comparison operators, as those
  * might be translated to branches by some compilers on some platforms.
  */
-void mbedtls_cf_memcpy_if_eq( unsigned char *dst,
+void mbedtls_cf_memcpy_if_eq( unsigned char *dest,
                               const unsigned char *src,
                               size_t len,
                               size_t c1,
@@ -385,9 +386,9 @@ void mbedtls_cf_memcpy_if_eq( unsigned char *dst,
     const size_t equal = mbedtls_cf_size_bool_eq( c1, c2 );
     const unsigned char mask = (unsigned char) mbedtls_cf_size_mask( equal );
 
-    /* dst[i] = c1 == c2 ? src[i] : dst[i] */
+    /* dest[i] = c1 == c2 ? src[i] : dest[i] */
     for( size_t i = 0; i < len; i++ )
-        dst[i] = ( src[i] & mask ) | ( dst[i] & ~mask );
+        dest[i] = ( src[i] & mask ) | ( dest[i] & ~mask );
 }
 
 /*
@@ -543,7 +544,7 @@ int mbedtls_mpi_safe_cond_assign( mbedtls_mpi *X,
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, Y->n ) );
 
-    X->s = mbedtls_cf_cond_select_sign( X->s, Y->s, assign );
+    X->s = mbedtls_cf_cond_select_sign( assign, Y->s, X->s );
 
     mbedtls_cf_mpi_uint_cond_assign( Y->n, X->p, Y->p, assign );
 
@@ -594,8 +595,8 @@ int mbedtls_mpi_safe_cond_swap( mbedtls_mpi *X,
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( Y, X->n ) );
 
     s = X->s;
-    X->s = mbedtls_cf_cond_select_sign( X->s, Y->s, swap );
-    Y->s = mbedtls_cf_cond_select_sign( Y->s, s, swap );
+    X->s = mbedtls_cf_cond_select_sign( swap, Y->s, X->s );
+    Y->s = mbedtls_cf_cond_select_sign( swap, s, Y->s );
 
 
     for( i = 0; i < X->n; i++ )

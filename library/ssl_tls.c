@@ -6463,11 +6463,10 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
             conf->sig_hashes = ssl_preset_default_hashes;
-#endif
-
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
             conf->tls13_sig_algs = ssl_preset_default_sig_algs;
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_ECP_C)
             conf->curve_list = ssl_preset_default_curves;

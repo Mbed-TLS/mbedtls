@@ -72,9 +72,9 @@ unsigned mbedtls_cf_uint_mask( unsigned value )
 }
 
 /*
- * Turn a bit into a mask:
- * - if bit == 1, return the all-bits 1 mask, aka (size_t) -1
- * - if bit == 0, return the all-bits 0 mask, aka 0
+ * Turn a value into a mask:
+ * - if value != 0, return the all-bits 1 mask, aka (size_t) -1
+ * - if value == 0, return the all-bits 0 mask, aka 0
  *
  * This function can be used to write constant-time code by replacing branches
  * with bit operations using masks.
@@ -82,7 +82,7 @@ unsigned mbedtls_cf_uint_mask( unsigned value )
  * This function is implemented without using comparison operators, as those
  * might be translated to branches by some compilers on some platforms.
  */
-size_t mbedtls_cf_size_mask( size_t bit )
+size_t mbedtls_cf_size_mask( size_t value )
 {
     /* MSVC has a warning about unary minus on unsigned integer types,
      * but this is well-defined and precisely what we want to do here. */
@@ -90,7 +90,7 @@ size_t mbedtls_cf_size_mask( size_t bit )
 #pragma warning( push )
 #pragma warning( disable : 4146 )
 #endif
-    return -bit;
+    return( - ( ( value | - value ) >> ( sizeof( value ) * 8 - 1 ) ) );
 #if defined(_MSC_VER)
 #pragma warning( pop )
 #endif

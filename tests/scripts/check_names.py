@@ -138,7 +138,7 @@ class PatternMismatch(Problem): # pylint: disable=too-few-public-methods
     def __str__(self):
         if self.quiet:
             return (
-                "{0}:{1}:{3}"
+                "{0}:{1}:{2}"
                 .format(self.match.filename, self.match.pos[0], self.match.name)
             )
 

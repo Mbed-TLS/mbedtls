@@ -55,50 +55,45 @@
 #define mbedtls_fprintf fprintf
 #endif /* MBEDTLS_PLATFORM_C */
 
-#define MBEDTLS_TRACE_OP_CTX( op, ctx ) { \
+#define MBEDTLS_TRACE_OP_CTX( op, ctx ) \
     mbedtls_fprintf( \
         stderr, \
-        "\ninst{" \
+        "\ntrace{" \
         "\"op\": \"%s\", \"ctx\": \"%p\"" \
         "}\n", \
-        op, (void *)ctx ); \
-    }
+        op, (void *)ctx );
 
-#define MBEDTLS_TRACE_OP_CTX_CTX( op, ctx, ctx2 ) { \
+#define MBEDTLS_TRACE_OP_CTX_CTX( op, ctx, ctx2 ) \
     mbedtls_fprintf( \
         stderr, \
-        "\ninst{" \
+        "\ntrace{" \
         "\"op\": \"%s\",\"ctx\": \"%p\",\"ctx2\": \"%p\"" \
         "}\n", \
-        op, (void *)ctx, (void *)ctx2 ); \
-    }
+        op, (void *)ctx, (void *)ctx2 );
 
-#define MBEDTLS_TRACE_PRIM_OP_CTX( prim, op, ctx ) { \
+#define MBEDTLS_TRACE_PRIM_OP_CTX( prim, op, ctx ) \
     mbedtls_fprintf( \
         stderr, \
-        "\ninst{" \
+        "\ntrace{" \
         "\"prim\": \"%s\",\"op\": \"%s\",\"ctx\": \"%p\"" \
         "}\n", \
-        prim, op, (void *)ctx ); \
-    }
+        prim, op, (void *)ctx );
 
-#define MBEDTLS_TRACE_PRIM_OP_CTX_CTX( prim, op, ctx, ctx2 ) { \
+#define MBEDTLS_TRACE_PRIM_OP_CTX_CTX( prim, op, ctx, ctx2 ) \
     mbedtls_fprintf( \
         stderr, \
-        "\ninst{" \
+        "\ntrace{" \
         "\"prim\": \"%s\",\"op\": \"%s\",\"ctx\": \"%p\",\"ctx2\": \"%p\"" \
         "}\n", \
-        prim, op, (void *)ctx, (void *)ctx2 ); \
-    }
+        prim, op, (void *)ctx, (void *)ctx2 );
 
-#define MBEDTLS_TRACE_PRIM_OP_CTX_BYTES( prim, op, ctx, bytes ) { \
+#define MBEDTLS_TRACE_PRIM_OP_CTX_BYTES( prim, op, ctx, bytes ) \
     mbedtls_fprintf( \
         stderr, \
-        "\ninst{" \
+        "\ntrace{" \
         "\"prim\": \"%s\",\"op\": \"%s\",\"ctx\": \"%p\",\"bytes\": %ld" \
         "}\n", \
-        prim, op, ctx, (unsigned long)bytes ); \
-    }
+        prim, op, ctx, (unsigned long)bytes );
 
 #else
 

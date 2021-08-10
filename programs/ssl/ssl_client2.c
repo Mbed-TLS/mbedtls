@@ -395,13 +395,20 @@ int main( void )
     USAGE_CURVES                                            \
     USAGE_DHMLEN                                            \
     "\n"
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+#define TLS1_3_VERSION_OPTIONS  ", tls1_3"
+#else /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+#define TLS1_3_VERSION_OPTIONS  ""
+#endif /* !MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+
 #define USAGE4 \
     "    allow_sha1=%%d       default: 0\n"                             \
     "    min_version=%%s      default: (library default: tls1_2)\n"       \
     "    max_version=%%s      default: (library default: tls1_2)\n"     \
     "    force_version=%%s    default: \"\" (none)\n"       \
-    "                        options: tls1_2, dtls1_2\n" \
-    "\n"                                                    \
+    "                        options: tls1_2, dtls1_2" TLS1_3_VERSION_OPTIONS \
+    "\n\n"                                                    \
     "    force_ciphersuite=<name>    default: all enabled\n"\
     "    query_config=<name>         return 0 if the specified\n"       \
     "                                configuration macro is defined and 1\n"  \
@@ -1070,6 +1077,10 @@ int main( int argc, char *argv[] )
             if( strcmp( q, "tls1_2" ) == 0 ||
                      strcmp( q, "dtls1_2" ) == 0 )
                 opt.min_version = MBEDTLS_SSL_MINOR_VERSION_3;
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+            else if( strcmp( q, "tls1_3" ) == 0 )
+                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_4;
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
             else
                 goto usage;
         }
@@ -1078,6 +1089,10 @@ int main( int argc, char *argv[] )
             if( strcmp( q, "tls1_2" ) == 0 ||
                      strcmp( q, "dtls1_2" ) == 0 )
                 opt.max_version = MBEDTLS_SSL_MINOR_VERSION_3;
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+            else if( strcmp( q, "tls1_3" ) == 0 )
+                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_4;
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
             else
                 goto usage;
         }
@@ -1103,6 +1118,13 @@ int main( int argc, char *argv[] )
                 opt.max_version = MBEDTLS_SSL_MINOR_VERSION_3;
                 opt.transport = MBEDTLS_SSL_TRANSPORT_DATAGRAM;
             }
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+            else if( strcmp( q, "tls1_3" ) == 0 )
+            {
+                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_4;
+                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_4;
+            }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
             else
                 goto usage;
         }
@@ -1570,41 +1592,7 @@ int main( int argc, char *argv[] )
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     /*
-     * 2. Start the connection
-     */
-    if( opt.server_addr == NULL)
-        opt.server_addr = opt.server_name;
-
-    mbedtls_printf( "  . Connecting to %s/%s/%s...",
-            opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM ? "tcp" : "udp",
-            opt.server_addr, opt.server_port );
-    fflush( stdout );
-
-    if( ( ret = mbedtls_net_connect( &server_fd,
-                       opt.server_addr, opt.server_port,
-                       opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM ?
-                       MBEDTLS_NET_PROTO_TCP : MBEDTLS_NET_PROTO_UDP ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_net_connect returned -0x%x\n\n",
-                        (unsigned int) -ret );
-        goto exit;
-    }
-
-    if( opt.nbio > 0 )
-        ret = mbedtls_net_set_nonblock( &server_fd );
-    else
-        ret = mbedtls_net_set_block( &server_fd );
-    if( ret != 0 )
-    {
-        mbedtls_printf( " failed\n  ! net_set_(non)block() returned -0x%x\n\n",
-                        (unsigned int) -ret );
-        goto exit;
-    }
-
-    mbedtls_printf( " ok\n" );
-
-    /*
-     * 3. Setup stuff
+     * 2. Setup stuff
      */
     mbedtls_printf( "  . Setting up the SSL/TLS structure..." );
     fflush( stdout );
@@ -1953,6 +1941,40 @@ int main( int argc, char *argv[] )
         }
     }
 #endif
+
+    mbedtls_printf( " ok\n" );
+
+    /*
+     * 3. Start the connection
+     */
+    if( opt.server_addr == NULL)
+        opt.server_addr = opt.server_name;
+
+    mbedtls_printf( "  . Connecting to %s/%s/%s...",
+            opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM ? "tcp" : "udp",
+            opt.server_addr, opt.server_port );
+    fflush( stdout );
+
+    if( ( ret = mbedtls_net_connect( &server_fd,
+                       opt.server_addr, opt.server_port,
+                       opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM ?
+                       MBEDTLS_NET_PROTO_TCP : MBEDTLS_NET_PROTO_UDP ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_net_connect returned -0x%x\n\n",
+                        (unsigned int) -ret );
+        goto exit;
+    }
+
+    if( opt.nbio > 0 )
+        ret = mbedtls_net_set_nonblock( &server_fd );
+    else
+        ret = mbedtls_net_set_block( &server_fd );
+    if( ret != 0 )
+    {
+        mbedtls_printf( " failed\n  ! net_set_(non)block() returned -0x%x\n\n",
+                        (unsigned int) -ret );
+        goto exit;
+    }
 
     mbedtls_printf( " ok\n" );
 

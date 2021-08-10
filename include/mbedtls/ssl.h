@@ -1341,6 +1341,12 @@ struct mbedtls_ssl_context
                                                                   *    This pointer owns the transform
                                                                   *    it references.                  */
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+    /* The application data transform in TLS 1.3.
+     * This pointer owns the transform it references. */
+    mbedtls_ssl_transform *MBEDTLS_PRIVATE(transform_application);
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+
     /*
      * Timers
      */

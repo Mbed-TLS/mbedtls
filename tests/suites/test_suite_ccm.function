@@ -682,3 +682,27 @@ exit:
     mbedtls_ccm_free( &ctx );
 }
 /* END_CASE */
+
+/* Finish without passing any auth data or plaintext/ciphertext input */
+/* BEGIN_CASE */
+void mbedtls_ccm_instant_finish( int cipher_id, int mode,
+                                 data_t * key, data_t * iv )
+{
+    mbedtls_ccm_context ctx;
+    uint8_t *output = NULL;
+
+    mbedtls_ccm_init( &ctx );
+    TEST_EQUAL( mbedtls_ccm_setkey( &ctx, cipher_id, key->x, key->len * 8 ), 0 );
+    TEST_EQUAL( 0, mbedtls_ccm_starts( &ctx, mode, iv->x, iv->len ) );
+    // use hardcoded values for add length, msg length and tag length.
+    // They are not a part of this test
+    TEST_EQUAL( 0, mbedtls_ccm_set_lengths( &ctx, 16, 16, 16 ) );
+
+    ASSERT_ALLOC( output, 16 );
+    TEST_EQUAL( MBEDTLS_ERR_CCM_BAD_SEQUENCE, mbedtls_ccm_finish( &ctx, output, 16 ) );
+
+exit:
+    mbedtls_free( output );
+    mbedtls_ccm_free( &ctx );
+}
+/* END_CASE */

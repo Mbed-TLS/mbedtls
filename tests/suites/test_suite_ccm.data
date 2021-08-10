@@ -1645,3 +1645,15 @@ mbedtls_ccm_incomplete_update:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_DECRYPT:"b5
 CCM* decrypt, full update and overflow NIST VADT AES-192 #14 (P=24, N=13, A=13, T=16)
 depends_on:MBEDTLS_AES_C
 mbedtls_ccm_full_update_and_overflow:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_DECRYPT:"b5f43f3ae38a6165f0f990abe9ee50cd9ad7e847a0a51731":"3726c1aaf85ee8099a7ebd3268700e07d4b3f292c65bba34":"13501aebda19a9bf1b5ffaa42a":"ead4c45ff9db54f9902a6de181"
+
+CCM encrypt, instant finish NIST VADT AES-192 #14 (P=24, N=13, A=13, T=16)
+mbedtls_ccm_instant_finish:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:"b5f43f3ae38a6165f0f990abe9ee50cd9ad7e847a0a51731":"13501aebda19a9bf1b5ffaa42a"
+
+CCM decrypt, instant finish NIST VADT AES-192 #14 (P=24, N=13, A=13, T=16)
+mbedtls_ccm_instant_finish:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_DECRYPT:"b5f43f3ae38a6165f0f990abe9ee50cd9ad7e847a0a51731":"13501aebda19a9bf1b5ffaa42a"
+
+CCM* encrypt, instant finish NIST VADT AES-192 #14 (P=24, N=13, A=13, T=16)
+mbedtls_ccm_instant_finish:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_ENCRYPT:"b5f43f3ae38a6165f0f990abe9ee50cd9ad7e847a0a51731":"13501aebda19a9bf1b5ffaa42a"
+
+CCM* decrypt, instant finish NIST VADT AES-192 #14 (P=24, N=13, A=13, T=16)
+mbedtls_ccm_instant_finish:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_DECRYPT:"b5f43f3ae38a6165f0f990abe9ee50cd9ad7e847a0a51731":"13501aebda19a9bf1b5ffaa42a"

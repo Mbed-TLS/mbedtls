@@ -71,6 +71,22 @@ void context_init_free( int reinit )
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void context_set_fd( int fd, int result )
+{
+    mbedtls_net_context ctx;
+
+    mbedtls_net_init( &ctx );
+
+    /* Test mbedtls_net_set_fd with a "valid" file descriptor and an invalid
+     * one. */
+    TEST_ASSERT( mbedtls_net_set_fd( &ctx, fd ) == result );
+
+exit:
+    mbedtls_net_free(&ctx);
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_PLATFORM_IS_UNIXLIKE */
 void poll_beyond_fd_setsize( )
 {

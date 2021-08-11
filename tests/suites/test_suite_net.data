@@ -4,5 +4,11 @@ context_init_free:0
 Context init-free-init-free
 context_init_free:1
 
+Context init-set-fd
+context_set_fd:1:0
+
+Context init-set-fd-invalid
+context_set_fd:-1:MBEDTLS_ERR_NET_INVALID_CONTEXT
+
 net_poll beyond FD_SETSIZE
 poll_beyond_fd_setsize:

@@ -107,6 +107,23 @@ mbedtls_net_context;
 void mbedtls_net_init( mbedtls_net_context *ctx );
 
 /**
+ * \brief          Set file descriptor for given context
+ *
+ * \param ctx      The context to configure
+ * \param fd       The file descriptor
+ *
+ * \return         O if succesful, or MBEDTLS_ERR_NET_INVALID_CONTEXT
+ *
+ * \note           The file descriptor set by this function will be overwritten by
+ *                 calling any of the the following functions:
+ *                 mbedtls_net_connect(), mbedtls_net_bind(), mbedtls_net_accept()
+ *                 mbedtls_net_close() and mbedtls_net_free().
+ *                 Additionally, mbedtls_net_close() and mbedtls_net_free() will alter the state
+ *                 of the file descriptor before overwriting it.
+ */
+int mbedtls_net_set_fd( mbedtls_net_context *ctx, int fd );
+
+/**
  * \brief          Initiate a connection with host:port in the given protocol
  *
  * \param ctx      Socket to use

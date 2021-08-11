@@ -16,7 +16,7 @@
  */
 
 /* BEGIN_CASE */
-void pkcs7_write( char *data_file, char *cert_file, char *key_file, int md )
+void pkcs7_write( char *data_file, char *cert_file, char *key_file, int md, int keys_are_signatures )
 {
     unsigned char *pkcs7_buf = NULL, *new_data = NULL, *key_pem = NULL, *key = NULL, *crt_pem = NULL, *crt = NULL, **crts = NULL, **keys = NULL;
     size_t pkcs7_len, new_data_len, key_pem_len, key_len, crt_pem_len, crt_len, *crt_sizes = NULL, *key_sizes = NULL;
@@ -28,13 +28,21 @@ void pkcs7_write( char *data_file, char *cert_file, char *key_file, int md )
     key_pairs = 1;
     res = mbedtls_pkcs7_load_file( data_file, &new_data, &new_data_len );
     TEST_ASSERT( res == 0 );
-    res = mbedtls_pkcs7_load_file( key_file, &key_pem, &key_pem_len );
-    TEST_ASSERT( res == 0 );
-    res = mbedtls_convert_pem_to_der(key_pem, key_pem_len, &key, &key_len );
-    TEST_ASSERT( res == 0 );
+    if( keys_are_signatures )
+    {
+        res = mbedtls_pkcs7_load_file( key_file, &key, &key_len);
+        TEST_ASSERT( res == 0 );
+    }
+    else
+    {
+        res = mbedtls_pkcs7_load_file( key_file, &key_pem, &key_pem_len );
+        TEST_ASSERT( res == 0 );
+        res = mbedtls_convert_pem_to_der( key_pem, key_pem_len, &key, &key_len );
+        TEST_ASSERT( res == 0 );
+    }
     res = mbedtls_pkcs7_load_file( cert_file, &crt_pem, &crt_pem_len );
     TEST_ASSERT( res == 0 );
-    res = mbedtls_convert_pem_to_der(crt_pem, crt_pem_len, &crt, &crt_len);
+    res = mbedtls_convert_pem_to_der( crt_pem, crt_pem_len, &crt, &crt_len);
     TEST_ASSERT( res == 0 );
 
     ASSERT_ALLOC( keys, key_pairs * sizeof( &key ) );
@@ -47,7 +55,7 @@ void pkcs7_write( char *data_file, char *cert_file, char *key_file, int md )
     key_sizes[0] = key_len;
 
     /* test that we can correctly create a pkcs7 */
-    res = mbedtls_pkcs7_create(&pkcs7_buf, &pkcs7_len, new_data, new_data_len, (const unsigned char **) crts,(const unsigned char **) keys, crt_sizes, key_sizes, key_pairs, md, mbedtls_test_rnd_pseudo_rand, NULL, 0);
+    res = mbedtls_pkcs7_create(&pkcs7_buf, &pkcs7_len, new_data, new_data_len, (const unsigned char **) crts,(const unsigned char **) keys, crt_sizes, key_sizes, key_pairs, md, mbedtls_test_rnd_pseudo_rand, NULL, keys_are_signatures);
     TEST_ASSERT( res == 0 );
 
     /* test that it can be parsed */
@@ -72,6 +80,7 @@ exit:
     mbedtls_free( crts );
     mbedtls_free( keys );
     mbedtls_free( new_data );
+    if( !keys_are_signatures )
     mbedtls_free( key_pem );
     mbedtls_free( crt_pem );
     mbedtls_free( key_sizes );
@@ -83,7 +92,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void pkcs7_write_fail( char *data_file, char *cert_file, char *key_file, int md)
+void pkcs7_write_fail( char *data_file, char *cert_file, char *key_file, int md, int keys_are_signatures)
 {
     unsigned char *pkcs7_buf = NULL, *new_data = NULL, *key_pem = NULL, *key = NULL, *crt_pem = NULL, *crt = NULL, **crts = NULL, **keys = NULL;
     size_t pkcs7_len, new_data_len, key_pem_len, key_len, crt_pem_len, crt_len, *crt_sizes = NULL, *key_sizes = NULL;
@@ -95,10 +104,18 @@ void pkcs7_write_fail( char *data_file, char *cert_file, char *key_file, int md)
     key_pairs = 1;
     res = mbedtls_pkcs7_load_file( data_file, &new_data, &new_data_len );
     TEST_ASSERT( res == 0 );
-    res = mbedtls_pkcs7_load_file( key_file, &key_pem, &key_pem_len );
-    TEST_ASSERT( res == 0 );
-    res = mbedtls_convert_pem_to_der(key_pem, key_pem_len, &key, &key_len );
-    TEST_ASSERT( res == 0 );
+    if( keys_are_signatures )
+    {
+        res = mbedtls_pkcs7_load_file( key_file, &key, &key_len);
+        TEST_ASSERT( res == 0 );
+    }
+    else
+    {
+        res = mbedtls_pkcs7_load_file( key_file, &key_pem, &key_pem_len );
+        TEST_ASSERT( res == 0 );
+        res = mbedtls_convert_pem_to_der( key_pem, key_pem_len, &key, &key_len );
+        TEST_ASSERT( res == 0 );
+    }
     res = mbedtls_pkcs7_load_file( cert_file, &crt_pem, &crt_pem_len );
     TEST_ASSERT( res == 0 );
     res = mbedtls_convert_pem_to_der( crt_pem, crt_pem_len, &crt, &crt_len );
@@ -113,7 +130,7 @@ void pkcs7_write_fail( char *data_file, char *cert_file, char *key_file, int md)
     ASSERT_ALLOC( key_sizes , key_pairs * sizeof (key_len) );
     key_sizes[0] = key_len;
 
-    res = mbedtls_pkcs7_create(&pkcs7_buf, &pkcs7_len, new_data, new_data_len, (const unsigned char **) crts,(const unsigned char **) keys, crt_sizes, key_sizes, key_pairs, md, mbedtls_test_rnd_pseudo_rand, NULL, 0);
+    res = mbedtls_pkcs7_create(&pkcs7_buf, &pkcs7_len, new_data, new_data_len, (const unsigned char **) crts,(const unsigned char **) keys, crt_sizes, key_sizes, key_pairs, md, mbedtls_test_rnd_pseudo_rand, NULL, keys_are_signatures);
     TEST_ASSERT( res != 0 );
 
 exit:
@@ -126,7 +143,8 @@ exit:
     mbedtls_free( crts );
     mbedtls_free( keys );
     mbedtls_free( new_data );
-    mbedtls_free( key_pem );
+    if( !keys_are_signatures )
+        mbedtls_free( key_pem );
     mbedtls_free( crt_pem );
     mbedtls_free( key_sizes );
     mbedtls_free( crt_sizes );

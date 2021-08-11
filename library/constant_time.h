@@ -38,6 +38,12 @@ unsigned mbedtls_cf_uint_mask( unsigned value );
 
 size_t mbedtls_cf_size_mask( size_t value );
 
+#if defined(MBEDTLS_BIGNUM_C)
+
+mbedtls_mpi_uint mbedtls_cf_mpi_uint_mask( mbedtls_mpi_uint value );
+
+#endif /* MBEDTLS_BIGNUM_C */
+
 size_t mbedtls_cf_size_mask_lt( size_t x,
                                 size_t y );
 

@@ -344,6 +344,35 @@ static int pkcs7_set_signature( unsigned char **start, size_t *size,
     char *signature = NULL, *sig_type = NULL;
     mbedtls_pk_context *priv_key;
 
+    /* generate hash to sign, this will return alloc'd mem on success */
+    ret = pkcs7_hash_create( pkcs7_info->data, pkcs7_info->data_size,
+                             pkcs7_info->hash_funct,
+                             &hash, &hash_size );
+    if( ret != 0 )
+        return ret;
+
+    /* if the private key already holds signature (see definition of pkcs7_info.keys)
+     * then just write the signature, no generation is needed
+     */
+    if( pkcs7_info->already_signed_flag ) {
+        /* ensure decrypted signature is equal to the hash of input data */
+        ret = mbedtls_pk_verify( &pub->pk, pkcs7_info->hash_funct, hash, hash_size,
+                                 priv, priv_size );
+        if( ret ) {
+            mbedtls_printf( "Public key cannot decrypt the given signed data\n");
+            ret = MBEDTLS_ERR_PKCS7_BAD_INPUT_DATA;
+        } else {
+            ret = pkcs7_write_data( start, size, ptr, MBEDTLS_ASN1_OCTET_STRING, priv,
+                                    priv_size, 0 );
+        }
+        mbedtls_free( hash );
+        if( ret )
+            mbedtls_printf( "Failed to add signature to PKCS7\n" );
+
+        return ( ret );
+    }
+
+    /* if here we know that `priv` contains a private key, not a signature */
     priv_key = mbedtls_calloc( 1, sizeof( *priv_key ) );
     if( priv_key == NULL )
         return ( MBEDTLS_ERR_PKCS7_ALLOC_FAILED );
@@ -370,13 +399,6 @@ static int pkcs7_set_signature( unsigned char **start, size_t *size,
     /* get size of RSA signature, ex 2048, 4096 ... */
     sig_size_bits = priv_key->pk_info->get_bitlen( priv_key->pk_ctx );
 
-    /* at this point we know pub and priv are valid, now we need the data to sign */
-    ret = pkcs7_hash_create( pkcs7_info->data, pkcs7_info->data_size,
-                             pkcs7_info->hash_funct,
-                             &hash, &hash_size );
-    if( ret != 0 )
-        goto out;
-
     signature = mbedtls_calloc( 1, sig_size_bits / 8 );
     if( signature == NULL ) {
         ret = MBEDTLS_ERR_PKCS7_ALLOC_FAILED;
@@ -389,10 +411,13 @@ static int pkcs7_set_signature( unsigned char **start, size_t *size,
                            (unsigned char *) signature, sig_size_bits / 8,
                            &sig_size, pkcs7_info->rng_func, pkcs7_info->rng_param );
     if( ret != 0 ) {
+        mbedtls_free( signature );
         goto out;
     }
     ret = pkcs7_write_data( start, size, ptr, WRITE_SIGNATURE, signature,
                             sig_size, 0 );
+    mbedtls_free( signature );
+
     if( ret != 0 ) {
         mbedtls_printf(
             "Failed to add signature to PKCS7 (signature generation was successful "
@@ -402,7 +427,6 @@ out:
     mbedtls_pk_free( priv_key );
     mbedtls_free( priv_key );
     mbedtls_free( hash );
-    mbedtls_free( signature );
 
     return ( ret );
 }
@@ -415,16 +439,8 @@ static int pkcs7_set_algorithm_ids( unsigned char **start, size_t *size,
     int ret;
     char *sig_type = NULL;
 
-    /* if the private key already holds signature (see definition of pkcs7_info.keys)
-    * then just write the signature, no generation is needed
-    */
-    if (pkcs7_info->already_signed_flag) {
-        ret = pkcs7_write_data(start, size, ptr, MBEDTLS_ASN1_OCTET_STRING, priv,
-                               priv_size, 0);
-        if (ret)
-            mbedtls_printf("Failed to add signature to PKCS7\n");
-    } else
-        ret = pkcs7_set_signature( start, size, ptr, pkcs7_info, pub, priv, priv_size );
+    
+    ret = pkcs7_set_signature( start, size, ptr, pkcs7_info, pub, priv, priv_size );
     if( ret != 0 )
         return ( ret );
 
@@ -433,7 +449,7 @@ static int pkcs7_set_algorithm_ids( unsigned char **start, size_t *size,
     if( strcmp( sig_type, "RSA" ) ) {
         ret = MBEDTLS_ERR_PKCS7_INVALID_CERT;
         mbedtls_printf( "ERROR: Public Key is of type %s expected RSA\n", sig_type );
-        return ret;
+        return ( ret );
     }
     ret = pkcs7_write_data(
               start, size, ptr, WRITE_OID, (void *) MBEDTLS_OID_PKCS1_RSA,

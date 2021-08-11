@@ -52,11 +52,6 @@ int mbedtls_cf_memcmp( const void *a,
     return( (int)diff );
 }
 
-/** Turn zero-or-nonzero into zero-or-all-bits-one, without branches.
- *
- * \param value     The value to analyze.
- * \return          Zero if \p value is zero, otherwise all-bits-one.
- */
 unsigned mbedtls_cf_uint_mask( unsigned value )
 {
     /* MSVC has a warning about unary minus on unsigned, but this is
@@ -71,17 +66,6 @@ unsigned mbedtls_cf_uint_mask( unsigned value )
 #endif
 }
 
-/*
- * Turn a value into a mask:
- * - if value != 0, return the all-bits 1 mask, aka (size_t) -1
- * - if value == 0, return the all-bits 0 mask, aka 0
- *
- * This function can be used to write constant-time code by replacing branches
- * with bit operations using masks.
- *
- * This function is implemented without using comparison operators, as those
- * might be translated to branches by some compilers on some platforms.
- */
 size_t mbedtls_cf_size_mask( size_t value )
 {
     /* MSVC has a warning about unary minus on unsigned integer types,
@@ -114,17 +98,6 @@ mbedtls_mpi_uint mbedtls_cf_mpi_uint_mask( mbedtls_mpi_uint value )
 
 #endif /* MBEDTLS_BIGNUM_C */
 
-/*
- * Constant-flow mask generation for "less than" comparison:
- * - if x < y,  return all bits 1, that is (size_t) -1
- * - otherwise, return all bits 0, that is 0
- *
- * This function can be used to write constant-time code by replacing branches
- * with bit operations using masks.
- *
- * This function is implemented without using comparison operators, as those
- * might be translated to branches by some compilers on some platforms.
- */
 size_t mbedtls_cf_size_mask_lt( size_t x,
                                 size_t y )
 {
@@ -140,34 +113,12 @@ size_t mbedtls_cf_size_mask_lt( size_t x,
     return( mask );
 }
 
-/*
- * Constant-flow mask generation for "greater or equal" comparison:
- * - if x >= y, return all bits 1, that is (size_t) -1
- * - otherwise, return all bits 0, that is 0
- *
- * This function can be used to write constant-time code by replacing branches
- * with bit operations using masks.
- *
- * This function is implemented without using comparison operators, as those
- * might be translated to branches by some compilers on some platforms.
- */
 size_t mbedtls_cf_size_mask_ge( size_t x,
                                 size_t y )
 {
     return( ~mbedtls_cf_size_mask_lt( x, y ) );
 }
 
-/*
- * Constant-flow boolean "equal" comparison:
- * return x == y
- *
- * This function can be used to write constant-time code by replacing branches
- * with bit operations - it can be used in conjunction with
- * mbedtls_ssl_cf_mask_from_bit().
- *
- * This function is implemented without using comparison operators, as those
- * might be translated to branches by some compilers on some platforms.
- */
 unsigned mbedtls_cf_size_bool_eq( size_t x,
                                   size_t y )
 {
@@ -194,16 +145,6 @@ unsigned mbedtls_cf_size_bool_eq( size_t x,
     return( 1 ^ diff1 );
 }
 
-/** Check whether a size is out of bounds, without branches.
- *
- * This is equivalent to `x > y`, but is likely to be compiled to
- * to code using bitwise operation rather than a branch.
- *
- * \param x         Size to check.
- * \param y         Maximum desired value for \p size.
- * \return          \c 0 if `x <= y`.
- * \return          \c 1 if `x > y`.
- */
 unsigned mbedtls_cf_size_gt( size_t x,
                              size_t y )
 {
@@ -213,13 +154,6 @@ unsigned mbedtls_cf_size_gt( size_t x,
 
 #if defined(MBEDTLS_BIGNUM_C)
 
-/** Decide if an integer is less than the other, without branches.
- *
- * \param x         First integer.
- * \param y         Second integer.
- *
- * \return          1 if \p x is less than \p y, 0 otherwise
- */
 unsigned mbedtls_cf_mpi_uint_lt( const mbedtls_mpi_uint x,
                                  const mbedtls_mpi_uint y )
 {
@@ -250,17 +184,6 @@ unsigned mbedtls_cf_mpi_uint_lt( const mbedtls_mpi_uint x,
 
 #endif /* MBEDTLS_BIGNUM_C */
 
-/** Choose between two integer values, without branches.
- *
- * This is equivalent to `condition ? if1 : if0`, but is likely to be compiled
- * to code using bitwise operation rather than a branch.
- *
- * \param condition Condition to test.
- * \param if1       Value to use if \p condition is nonzero.
- * \param if0       Value to use if \p condition is zero.
- * \return          \c if1 if \p condition is nonzero, otherwise \c if0.
- */
-
 unsigned mbedtls_cf_uint_if( unsigned condition,
                              unsigned if1,
                              unsigned if0 )
@@ -277,18 +200,6 @@ size_t mbedtls_cf_size_if( unsigned condition,
     return( ( mask & if1 ) | (~mask & if0 ) );
 }
 
-/**
- * Select between two sign values in constant-time.
- *
- * This is functionally equivalent to condition ? if1 : if0 but uses only bit
- * operations in order to avoid branches.
- *
- * \param[in] condition Must be either 1 (return \p if1) or 0 (return \pp if0).
- * \param[in] if1       The first sign; must be either +1 or -1.
- * \param[in] if0       The second sign; must be either +1 or -1.
- *
- * \return  \c if1 if \p condition is nonzero, otherwise \c if0.
- */
 int mbedtls_cf_cond_select_sign( unsigned char condition,
                                  int if1,
                                  int if0 )
@@ -311,12 +222,6 @@ int mbedtls_cf_cond_select_sign( unsigned char condition,
 
 #if defined(MBEDTLS_BIGNUM_C)
 
-/*
- * Conditionally assign dest = src, without leaking information
- * about whether the assignment was made or not.
- * dest and src must be arrays of limbs of size n.
- * condition must be 0 or 1.
- */
 void mbedtls_cf_mpi_uint_cond_assign( size_t n,
                                       mbedtls_mpi_uint *dest,
                                       const mbedtls_mpi_uint *src,
@@ -344,23 +249,6 @@ void mbedtls_cf_mpi_uint_cond_assign( size_t n,
 
 #endif /* MBEDTLS_BIGNUM_C */
 
-/** Shift some data towards the left inside a buffer without leaking
- * the length of the data through side channels.
- *
- * `mbedtls_cf_mem_move_to_left(start, total, offset)` is functionally
- * equivalent to
- * ```
- * memmove(start, start + offset, total - offset);
- * memset(start + offset, 0, total - offset);
- * ```
- * but it strives to use a memory access pattern (and thus total timing)
- * that does not depend on \p offset. This timing independence comes at
- * the expense of performance.
- *
- * \param start     Pointer to the start of the buffer.
- * \param total     Total size of the buffer.
- * \param offset    Offset from which to copy \p total - \p offset bytes.
- */
 void mbedtls_cf_mem_move_to_left( void *start,
                                   size_t total,
                                   size_t offset )
@@ -385,15 +273,6 @@ void mbedtls_cf_mem_move_to_left( void *start,
     }
 }
 
-/*
- * Constant-flow conditional memcpy:
- *  - if c1 == c2, equivalent to memcpy(dst, src, len),
- *  - otherwise, a no-op,
- * but with execution flow independent of the values of c1 and c2.
- *
- * This function is implemented without using comparison operators, as those
- * might be translated to branches by some compilers on some platforms.
- */
 void mbedtls_cf_memcpy_if_eq( unsigned char *dest,
                               const unsigned char *src,
                               size_t len,
@@ -409,11 +288,6 @@ void mbedtls_cf_memcpy_if_eq( unsigned char *dest,
         dest[i] = ( src[i] & mask ) | ( dest[i] & ~mask );
 }
 
-/*
- * Constant-flow memcpy from variable position in buffer.
- * - functionally equivalent to memcpy(dst, src + offset_secret, len)
- * - but with execution flow independent from the value of offset_secret.
- */
 void mbedtls_cf_memcpy_offset( unsigned char *dst,
                                const unsigned char *src_base,
                                size_t offset_secret,
@@ -432,12 +306,6 @@ void mbedtls_cf_memcpy_offset( unsigned char *dst,
 
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
 
-/*
- * Compute HMAC of variable-length data with constant flow.
- *
- * Only works with MD-5, SHA-1, SHA-256 and SHA-384.
- * (Otherwise, computation of block_size needs to be adapted.)
- */
 int mbedtls_cf_hmac( mbedtls_md_context_t *ctx,
                      const unsigned char *add_data,
                      size_t add_data_len,

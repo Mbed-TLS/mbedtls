@@ -2437,11 +2437,22 @@ component_build_armcc () {
 }
 
 component_test_tls13_experimental () {
-    msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL enabled"
+    msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL enabled, without padding"
     scripts/config.pl set MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+    scripts/config.pl set MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY 1
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
-    msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL enabled"
+    msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL enabled, without padding"
+    make test
+}
+
+component_test_tls13_experimental_with_padding () {
+    msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL enabled, with padding"
+    scripts/config.pl set MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+    scripts/config.pl set MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY 16
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+    msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL enabled, with padding"
     make test
 }
 

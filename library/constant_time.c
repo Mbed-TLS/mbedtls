@@ -96,6 +96,24 @@ size_t mbedtls_cf_size_mask( size_t value )
 #endif
 }
 
+#if defined(MBEDTLS_BIGNUM_C)
+
+mbedtls_mpi_uint mbedtls_cf_mpi_uint_mask( mbedtls_mpi_uint value )
+{
+    /* MSVC has a warning about unary minus on unsigned, but this is
+     * well-defined and precisely what we want to do here */
+#if defined(_MSC_VER)
+#pragma warning( push )
+#pragma warning( disable : 4146 )
+#endif
+    return( - ( ( value | - value ) >> ( sizeof( value ) * 8 - 1 ) ) );
+#if defined(_MSC_VER)
+#pragma warning( pop )
+#endif
+}
+
+#endif /* MBEDTLS_BIGNUM_C */
+
 /*
  * Constant-flow mask generation for "less than" comparison:
  * - if x < y,  return all bits 1, that is (size_t) -1
@@ -526,21 +544,8 @@ int mbedtls_mpi_safe_cond_assign( mbedtls_mpi *X,
     MPI_VALIDATE_RET( X != NULL );
     MPI_VALIDATE_RET( Y != NULL );
 
-    /* MSVC has a warning about unary minus on unsigned integer types,
-     * but this is well-defined and precisely what we want to do here. */
-#if defined(_MSC_VER)
-#pragma warning( push )
-#pragma warning( disable : 4146 )
-#endif
-
-    /* make sure assign is 0 or 1 in a time-constant manner */
-    assign = (assign | (unsigned char)-assign) >> (sizeof( assign ) * 8 - 1);
     /* all-bits 1 if assign is 1, all-bits 0 if assign is 0 */
-    limb_mask = -assign;
-
-#if defined(_MSC_VER)
-#pragma warning( pop )
-#endif
+    limb_mask = mbedtls_cf_mpi_uint_mask( assign );;
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, Y->n ) );
 
@@ -575,21 +580,8 @@ int mbedtls_mpi_safe_cond_swap( mbedtls_mpi *X,
     if( X == Y )
         return( 0 );
 
-    /* MSVC has a warning about unary minus on unsigned integer types,
-     * but this is well-defined and precisely what we want to do here. */
-#if defined(_MSC_VER)
-#pragma warning( push )
-#pragma warning( disable : 4146 )
-#endif
-
-    /* make sure swap is 0 or 1 in a time-constant manner */
-    swap = (swap | (unsigned char)-swap) >> (sizeof( swap ) * 8 - 1);
     /* all-bits 1 if swap is 1, all-bits 0 if swap is 0 */
-    limb_mask = -swap;
-
-#if defined(_MSC_VER)
-#pragma warning( pop )
-#endif
+    limb_mask = mbedtls_cf_mpi_uint_mask( swap );
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, Y->n ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( Y, X->n ) );

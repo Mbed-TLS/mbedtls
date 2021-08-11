@@ -243,10 +243,12 @@ do {                                                                    \
 
 static unsigned long mbedtls_timing_hardclock( void )
 {
+    /* clang-format off */
     unsigned long tsc;
     __asm   rdtsc
     __asm   mov  [tsc], eax
-    return tsc ;
+    return tsc;
+    /* clang-format on */
 }
 #endif /* !HAVE_HARDCLOCK && MBEDTLS_HAVE_ASM &&
           ( _MSC_VER && _M_IX86 ) || __WATCOMC__ */

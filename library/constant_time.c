@@ -168,8 +168,8 @@ size_t mbedtls_cf_size_mask_ge( size_t x,
  * This function is implemented without using comparison operators, as those
  * might be translated to branches by some compilers on some platforms.
  */
-size_t mbedtls_cf_size_bool_eq( size_t x,
-                                size_t y )
+unsigned mbedtls_cf_size_bool_eq( size_t x,
+                                  size_t y )
 {
     /* diff = 0 if x == y, non-zero otherwise */
     const size_t diff = x ^ y;
@@ -189,7 +189,7 @@ size_t mbedtls_cf_size_bool_eq( size_t x,
 #endif
 
     /* diff1 = (x != y) ? 1 : 0 */
-    const size_t diff1 = diff_msb >> ( sizeof( diff_msb ) * 8 - 1 );
+    const unsigned diff1 = diff_msb >> ( sizeof( diff_msb ) * 8 - 1 );
 
     return( 1 ^ diff1 );
 }

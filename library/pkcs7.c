@@ -571,10 +571,10 @@ int mbedtls_pkcs7_signed_data_verify( mbedtls_pkcs7 *pkcs7,
 
     mbedtls_md( md_info, data, datalen, hash );
 
-   fprintf(stderr, "Testing verification with data (%lu bytes):\n", datalen);
+   fprintf(stderr, "Testing verification with data (%zu bytes):\n", datalen);
     for( size_t i = 0; i < datalen ; i++)
         fprintf(stderr, "%02x ", data[i] );
-    fprintf(stderr, "\n generated hash (%lu bytes ):\n",(size_t) mbedtls_md_get_size(md_info) );
+    fprintf(stderr, "\n generated hash (%zu bytes ):\n",(size_t) mbedtls_md_get_size(md_info) );
       for( size_t i = 0; i < (size_t) mbedtls_md_get_size(md_info); i++)
         fprintf(stderr, "%02x ", hash[i] );
     fprintf(  stderr, "\n");

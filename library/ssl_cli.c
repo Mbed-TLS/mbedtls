@@ -4210,22 +4210,7 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
 
-    if( ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER || ssl->handshake == NULL )
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "client state: %d", ssl->state ) );
-
-    if( ( ret = mbedtls_ssl_flush_output( ssl ) ) != 0 )
-        return( ret );
-
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
-        ssl->handshake->retransmit_state == MBEDTLS_SSL_RETRANS_SENDING )
-    {
-        if( ( ret = mbedtls_ssl_flight_transmit( ssl ) ) != 0 )
-            return( ret );
-    }
-#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
     /* Change state now, so that it is right in mbedtls_ssl_read_record(), used
      * by DTLS for dropping out-of-sequence ChangeCipherSpec records */

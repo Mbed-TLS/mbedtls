@@ -1328,10 +1328,24 @@ struct mbedtls_ssl_context
     /*
      * Record layer transformations
      */
-    mbedtls_ssl_transform *MBEDTLS_PRIVATE(transform_in);        /*!<  current transform params (in)   */
-    mbedtls_ssl_transform *MBEDTLS_PRIVATE(transform_out);       /*!<  current transform params (in)   */
-    mbedtls_ssl_transform *MBEDTLS_PRIVATE(transform);           /*!<  negotiated transform params     */
-    mbedtls_ssl_transform *MBEDTLS_PRIVATE(transform_negotiate); /*!<  transform params in negotiation */
+    mbedtls_ssl_transform *MBEDTLS_PRIVATE(transform_in);        /*!<  current transform params (in)
+                                                                  *    This is always a reference,
+                                                                  *    never an owning pointer.        */
+    mbedtls_ssl_transform *MBEDTLS_PRIVATE(transform_out);       /*!<  current transform params (out)
+                                                                  *    This is always a reference,
+                                                                  *    never an owning pointer.        */
+    mbedtls_ssl_transform *MBEDTLS_PRIVATE(transform);           /*!<  negotiated transform params
+                                                                  *    This pointer owns the transform
+                                                                  *    it references.                  */
+    mbedtls_ssl_transform *MBEDTLS_PRIVATE(transform_negotiate); /*!<  transform params in negotiation
+                                                                  *    This pointer owns the transform
+                                                                  *    it references.                  */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+    /*! The application data transform in TLS 1.3.
+     *  This pointer owns the transform it references. */
+    mbedtls_ssl_transform *MBEDTLS_PRIVATE(transform_application);
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
     /*
      * Timers

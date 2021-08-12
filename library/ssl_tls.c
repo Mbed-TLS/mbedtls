@@ -3280,9 +3280,9 @@ error:
  * If partial is non-zero, keep data in the input buffer and client ID.
  * (Use when a DTLS client reconnects from the same port.)
  */
-int mbedtls_ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
+static void ssl_session_reset_msg_layer( mbedtls_ssl_context *ssl,
+                                         int partial )
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 #if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
     size_t in_buf_len = ssl->in_buf_len;
     size_t out_buf_len = ssl->out_buf_len;
@@ -3291,16 +3291,65 @@ int mbedtls_ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
     size_t out_buf_len = MBEDTLS_SSL_OUT_BUFFER_LEN;
 #endif
 
-#if !defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE) ||     \
-    !defined(MBEDTLS_SSL_SRV_C)
-    ((void) partial);
+#if !defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE) || !defined(MBEDTLS_SSL_SRV_C)
+    partial = 0;
 #endif
-
-    ssl->state = MBEDTLS_SSL_HELLO_REQUEST;
 
     /* Cancel any possibly running timer */
     mbedtls_ssl_set_timer( ssl, 0 );
 
+    mbedtls_ssl_reset_in_out_pointers( ssl );
+
+    /* Reset incoming message parsing */
+    ssl->in_offt    = NULL;
+    ssl->nb_zero    = 0;
+    ssl->in_msgtype = 0;
+    ssl->in_msglen  = 0;
+    ssl->in_hslen   = 0;
+    ssl->keep_current_message = 0;
+    ssl->transform_in  = NULL;
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    ssl->next_record_offset = 0;
+    ssl->in_epoch = 0;
+#endif
+
+    /* Keep current datagram if partial == 1 */
+    if( partial == 0 )
+    {
+        ssl->in_left = 0;
+        memset( ssl->in_buf, 0, in_buf_len );
+    }
+
+    /* Reset outgoing message writing */
+    ssl->out_msgtype = 0;
+    ssl->out_msglen  = 0;
+    ssl->out_left    = 0;
+    memset( ssl->out_buf, 0, out_buf_len );
+    memset( ssl->cur_out_ctr, 0, sizeof( ssl->cur_out_ctr ) );
+    ssl->transform_out = NULL;
+
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+    mbedtls_ssl_dtls_replay_reset( ssl );
+#endif
+
+    if( ssl->transform )
+    {
+        mbedtls_ssl_transform_free( ssl->transform );
+        mbedtls_free( ssl->transform );
+        ssl->transform = NULL;
+    }
+}
+
+int mbedtls_ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    ssl->state = MBEDTLS_SSL_HELLO_REQUEST;
+
+    ssl_session_reset_msg_layer( ssl, partial );
+
+    /* Reset renegotiation state */
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     ssl->renego_status = MBEDTLS_SSL_INITIAL_HANDSHAKE;
     ssl->renego_records_seen = 0;
@@ -3311,53 +3360,8 @@ int mbedtls_ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
 #endif
     ssl->secure_renegotiation = MBEDTLS_SSL_LEGACY_RENEGOTIATION;
 
-    ssl->in_offt = NULL;
-    mbedtls_ssl_reset_in_out_pointers( ssl );
-
-    ssl->in_msgtype = 0;
-    ssl->in_msglen = 0;
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    ssl->next_record_offset = 0;
-    ssl->in_epoch = 0;
-#endif
-#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
-    mbedtls_ssl_dtls_replay_reset( ssl );
-#endif
-
-    ssl->in_hslen = 0;
-    ssl->nb_zero = 0;
-
-    ssl->keep_current_message = 0;
-
-    ssl->out_msgtype = 0;
-    ssl->out_msglen = 0;
-    ssl->out_left = 0;
-
-    memset( ssl->cur_out_ctr, 0, sizeof( ssl->cur_out_ctr ) );
-
-    ssl->transform_in = NULL;
-    ssl->transform_out = NULL;
-
-    ssl->session_in = NULL;
+    ssl->session_in  = NULL;
     ssl->session_out = NULL;
-
-    memset( ssl->out_buf, 0, out_buf_len );
-
-#if defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE) && defined(MBEDTLS_SSL_SRV_C)
-    if( partial == 0 )
-#endif /* MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE && MBEDTLS_SSL_SRV_C */
-    {
-        ssl->in_left = 0;
-        memset( ssl->in_buf, 0, in_buf_len );
-    }
-
-    if( ssl->transform )
-    {
-        mbedtls_ssl_transform_free( ssl->transform );
-        mbedtls_free( ssl->transform );
-        ssl->transform = NULL;
-    }
-
     if( ssl->session )
     {
         mbedtls_ssl_session_free( ssl->session );

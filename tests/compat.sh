@@ -313,8 +313,8 @@ add_common_ciphersuites()
                     TLS-DHE-RSA-WITH-AES-256-GCM-SHA384     \
                     TLS-ECDHE-RSA-WITH-AES-128-GCM-SHA256   \
                     TLS-ECDHE-RSA-WITH-AES-256-GCM-SHA384   \
+                    TLS-RSA-WITH-NULL-SHA256                \
                     "
-                O_CIPHERS="$O_CIPHERS NULL-SHA256"
             fi
             ;;
 
@@ -449,10 +449,6 @@ add_gnutls_ciphersuites()
             ;;
 
         "RSA")
-            if [ `minor_ver "$MODE"` -gt 0 ]
-            then
-                CIPHERS="$CIPHERS TLS-RSA-WITH-NULL-SHA256"
-            fi
             if [ `minor_ver "$MODE"` -ge 3 ]
             then
                 CIPHERS="$CIPHERS                               \

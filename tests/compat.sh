@@ -255,6 +255,7 @@ add_common_ciphersuites()
 
         "ECDSA")
             CIPHERS="$CIPHERS                           \
+                TLS-ECDHE-ECDSA-WITH-NULL-SHA           \
                 TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA    \
                 TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA    \
 
@@ -275,9 +276,12 @@ add_common_ciphersuites()
                 TLS-RSA-WITH-CAMELLIA-256-CBC-SHA       \
                 TLS-RSA-WITH-AES-128-CBC-SHA            \
                 TLS-RSA-WITH-CAMELLIA-128-CBC-SHA       \
+                TLS-RSA-WITH-NULL-MD5                   \
+                TLS-RSA-WITH-NULL-SHA                   \
 
                 TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA      \
                 TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA      \
+                TLS-ECDHE-RSA-WITH-NULL-SHA             \
 
                 TLS-RSA-WITH-AES-128-CBC-SHA256         \
                 TLS-DHE-RSA-WITH-AES-128-CBC-SHA256     \
@@ -333,6 +337,7 @@ add_openssl_ciphersuites()
 
         "ECDSA")
             CIPHERS="$CIPHERS                           \
+                TLS-ECDH-ECDSA-WITH-NULL-SHA            \
                 TLS-ECDH-ECDSA-WITH-AES-128-CBC-SHA     \
                 TLS-ECDH-ECDSA-WITH-AES-256-CBC-SHA     \
 
@@ -348,6 +353,7 @@ add_openssl_ciphersuites()
 
         "RSA")
             CIPHERS="$CIPHERS                                   \
+                TLS-RSA-WITH-NULL-SHA256                        \
                 TLS-ECDHE-RSA-WITH-ARIA-256-GCM-SHA384          \
                 TLS-DHE-RSA-WITH-ARIA-256-GCM-SHA384            \
                 TLS-RSA-WITH-ARIA-256-GCM-SHA384                \
@@ -441,12 +447,20 @@ add_gnutls_ciphersuites()
                 TLS-ECDHE-PSK-WITH-CAMELLIA-256-CBC-SHA384  \
                 TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA256       \
                 TLS-ECDHE-PSK-WITH-CAMELLIA-128-CBC-SHA256  \
+                TLS-ECDHE-PSK-WITH-NULL-SHA384              \
+                TLS-ECDHE-PSK-WITH-NULL-SHA256              \
                 TLS-PSK-WITH-AES-128-CBC-SHA256             \
                 TLS-PSK-WITH-AES-256-CBC-SHA384             \
                 TLS-DHE-PSK-WITH-AES-128-CBC-SHA256         \
                 TLS-DHE-PSK-WITH-AES-256-CBC-SHA384         \
+                TLS-PSK-WITH-NULL-SHA256                    \
+                TLS-PSK-WITH-NULL-SHA384                    \
+                TLS-DHE-PSK-WITH-NULL-SHA256                \
+                TLS-DHE-PSK-WITH-NULL-SHA384                \
                 TLS-RSA-PSK-WITH-AES-256-CBC-SHA384         \
                 TLS-RSA-PSK-WITH-AES-128-CBC-SHA256         \
+                TLS-RSA-PSK-WITH-NULL-SHA256                \
+                TLS-RSA-PSK-WITH-NULL-SHA384                \
                 TLS-DHE-PSK-WITH-CAMELLIA-128-CBC-SHA256    \
                 TLS-DHE-PSK-WITH-CAMELLIA-256-CBC-SHA384    \
                 TLS-PSK-WITH-CAMELLIA-128-CBC-SHA256        \
@@ -521,6 +535,12 @@ add_mbedtls_ciphersuites()
         "PSK")
             # *PSK-NULL-SHA suites supported by GnuTLS 3.3.5 but not 3.2.15
             M_CIPHERS="$M_CIPHERS                               \
+                TLS-PSK-WITH-NULL-SHA                           \
+                TLS-DHE-PSK-WITH-NULL-SHA                       \
+
+                TLS-ECDHE-PSK-WITH-NULL-SHA                     \
+                TLS-RSA-PSK-WITH-NULL-SHA                       \
+
                 TLS-RSA-PSK-WITH-ARIA-256-CBC-SHA384            \
                 TLS-RSA-PSK-WITH-ARIA-128-CBC-SHA256            \
                 TLS-PSK-WITH-ARIA-256-CBC-SHA384                \

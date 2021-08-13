@@ -169,6 +169,42 @@
 /** Invalid value in SSL config */
 #define MBEDTLS_ERR_SSL_BAD_CONFIG                        -0x5E80
 
+/** List of extensions used in ssl_misc.h / extensions_present in mbedtls_ssl_handshake_params */
+#define MBEDTLS_SSL_EXT_NONE                      0
+#define MBEDTLS_SSL_EXT_PRE_SHARED_KEY            1
+#define MBEDTLS_SSL_EXT_KEY_SHARE                 2
+#define MBEDTLS_SSL_EXT_SIGNATURE_ALGORITHM       4
+#define MBEDTLS_SSL_EXT_SUPPORTED_GROUPS          8
+#define MBEDTLS_SSL_EXT_MAX_FRAGMENT_LENGTH       16
+#define MBEDTLS_SSL_EXT_ALPN                      32
+#define MBEDTLS_SSL_EXT_SUPPORTED_VERSION         64
+#define MBEDTLS_SSL_EXT_PSK_KEY_EXCHANGE_MODES    128
+#define MBEDTLS_SSL_EXT_EARLY_DATA                256
+#define MBEDTLS_SSL_EXT_SERVERNAME                512
+#define MBEDTLS_SSL_EXT_COOKIE                    1024
+#define MBEDTLS_SSL_EXT_CID                       2048
+
+/*
+ * TLS 1.3 Key Exchange Modes
+ *
+ * Mbed TLS internal identifiers for use with the SSL configuration API
+ * mbedtls_ssl_conf_tls13_key_exchange().
+ */
+
+#define MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_NONE                0
+#define MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_KE      ( 1u << 0 )
+#define MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_DHE_KE  ( 1u << 1 )
+#define MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_ECDHE_ECDSA ( 1u << 2 )
+
+/* Convenience macros for sets of key exchanges. */
+#define MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_ALL ( MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_KE     | \
+                                                  MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_DHE_KE | \
+                                                  MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_ECDHE_ECDSA )
+#define MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_ALL ( MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_KE     | \
+                                                      MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_DHE_KE )
+#define MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_ECDHE_ALL ( MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_ECDHE_ECDSA     | \
+                                                      MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_DHE_KE )
+
 /*
  * Various constants
  */
@@ -336,6 +372,41 @@
 #define MBEDTLS_SSL_SIG_ANON                 0
 #define MBEDTLS_SSL_SIG_RSA                  1
 #define MBEDTLS_SSL_SIG_ECDSA                3
+
+ /*
+ * TLS 1.3 signature algorithms
+ * RFC 8446, Section 4.2.2
+ */
+
+/* RSASSA-PKCS1-v1_5 algorithms */
+#define MBEDTLS_TLS13_SIG_RSA_PKCS1_SHA256 0x0401
+#define MBEDTLS_TLS13_SIG_RSA_PKCS1_SHA384 0x0501
+#define MBEDTLS_TLS13_SIG_RSA_PKCS1_SHA512 0x0601
+
+/* ECDSA algorithms */
+#define MBEDTLS_TLS13_SIG_ECDSA_SECP256R1_SHA256 0x0403
+#define MBEDTLS_TLS13_SIG_ECDSA_SECP384R1_SHA384 0x0503
+#define MBEDTLS_TLS13_SIG_ECDSA_SECP521R1_SHA512 0x0603
+
+/* RSASSA-PSS algorithms with public key OID rsaEncryption */
+#define MBEDTLS_TLS13_SIG_RSA_PSS_RSAE_SHA256 0x0804
+#define MBEDTLS_TLS13_SIG_RSA_PSS_RSAE_SHA384 0x0805
+#define MBEDTLS_TLS13_SIG_RSA_PSS_RSAE_SHA512 0x0806
+
+/* EdDSA algorithms */
+#define MBEDTLS_TLS13_SIG_ED25519 0x0807
+#define MBEDTLS_TLS13_SIG_ED448 0x0808
+
+/* RSASSA-PSS algorithms with public key OID RSASSA-PSS  */
+#define MBEDTLS_TLS13_SIG_RSA_PSS_PSS_SHA256 0x0809
+#define MBEDTLS_TLS13_SIG_RSA_PSS_PSS_SHA384 0x080A
+#define MBEDTLS_TLS13_SIG_RSA_PSS_PSS_SHA512 0x080B
+
+/* LEGACY ALGORITHMS */
+#define MBEDTLS_TLS13_SIG_RSA_PKCS1_SHA1 0x0201
+#define MBEDTLS_TLS13_SIG_ECDSA_SHA1     0x0203
+
+#define MBEDTLS_TLS13_SIG_NONE 0x0
 
 /*
  * Client Certificate Types
@@ -1147,11 +1218,18 @@ struct mbedtls_ssl_config
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     const int *MBEDTLS_PRIVATE(sig_hashes);          /*!< allowed signature hashes           */
-#endif
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+    const int* MBEDTLS_PRIVATE(tls13_sig_algs);   /*!< allowed signature algorithms in TLS 1.3 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_ECP_C)
     const mbedtls_ecp_group_id *MBEDTLS_PRIVATE(curve_list); /*!< allowed curves             */
 #endif
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+    int MBEDTLS_PRIVATE(key_exchange_modes); /*!< key exchange mode */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 #if defined(MBEDTLS_DHM_C)
     mbedtls_mpi MBEDTLS_PRIVATE(dhm_P);              /*!< prime modulus for DHM              */
@@ -4211,6 +4289,24 @@ int  mbedtls_ssl_tls_prf( const mbedtls_tls_prf_types prf,
                           const char *label,
                           const unsigned char *random, size_t rlen,
                           unsigned char *dstbuf, size_t dlen );
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL) && defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+/**
+ * \brief          Configure signature algorithms (Optional).
+ *
+ *                 If set, the signature algorithms will be advertised in
+ *                 the signature_algorithms extension in the ClientHello of
+ *                 TLS 1.3.
+ *
+ *
+ * \param conf     The SSL configuration to use.
+ * \param sig_algs A list of signature algorithms with the most preferred algorithm listed first.
+ *
+ *                 Note: sig_algs must be terminated with MBEDTLS_TLS13_SIG_NONE.
+ */
+void mbedtls_ssl_conf_signature_algorithms( mbedtls_ssl_config *conf,
+                     const int* sig_algs );
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL && MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #ifdef __cplusplus
 }

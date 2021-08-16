@@ -966,6 +966,12 @@ mbedtls_dtls_srtp_info;
  */
 struct mbedtls_ssl_session
 {
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+    unsigned char MBEDTLS_PRIVATE(mfl_code);     /*!< MaxFragmentLength negotiated by peer */
+#endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
+
+    unsigned char MBEDTLS_PRIVATE(exported);
+
 #if defined(MBEDTLS_HAVE_TIME)
     mbedtls_time_t MBEDTLS_PRIVATE(start);       /*!< starting time      */
 #endif
@@ -974,8 +980,6 @@ struct mbedtls_ssl_session
     size_t MBEDTLS_PRIVATE(id_len);              /*!< session id length  */
     unsigned char MBEDTLS_PRIVATE(id)[32];       /*!< session identifier */
     unsigned char MBEDTLS_PRIVATE(master)[48];   /*!< the master secret  */
-
-    unsigned char MBEDTLS_PRIVATE(exported);
 
     /* This field is temporarily duplicated with mbedtls_ssl_context.minor_ver.
      * Once runtime negotiation of TLS 1.2 and TLS 1.3 is implemented, it needs
@@ -1000,10 +1004,6 @@ struct mbedtls_ssl_session
     size_t MBEDTLS_PRIVATE(ticket_len);          /*!< session ticket length   */
     uint32_t MBEDTLS_PRIVATE(ticket_lifetime);   /*!< ticket lifetime hint    */
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
-
-#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    unsigned char MBEDTLS_PRIVATE(mfl_code);     /*!< MaxFragmentLength negotiated by peer */
-#endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     int MBEDTLS_PRIVATE(encrypt_then_mac);       /*!< flag for EtM activation                */
@@ -1066,7 +1066,86 @@ typedef void mbedtls_ssl_export_keys_t( void *p_expkey,
  */
 struct mbedtls_ssl_config
 {
-    /* Group items by size (largest first) to minimize padding overhead */
+     /* Group items by size and reorder them to maximize usage of immediate offset access.    */
+
+
+    /*
+     * Numerical settings (char)
+     */
+
+    unsigned char MBEDTLS_PRIVATE(max_major_ver);    /*!< max. major version used            */
+    unsigned char MBEDTLS_PRIVATE(max_minor_ver);    /*!< max. minor version used            */
+    unsigned char MBEDTLS_PRIVATE(min_major_ver);    /*!< min. major version used            */
+    unsigned char MBEDTLS_PRIVATE(min_minor_ver);    /*!< min. minor version used            */
+
+   /*
+     * Flags (bitfields)
+     */
+
+    unsigned int MBEDTLS_PRIVATE(endpoint) : 1;      /*!< 0: client, 1: server               */
+    unsigned int MBEDTLS_PRIVATE(transport) : 1;     /*!< stream (TLS) or datagram (DTLS)    */
+    unsigned int MBEDTLS_PRIVATE(authmode) : 2;      /*!< MBEDTLS_SSL_VERIFY_XXX             */
+    /* needed even with renego disabled for LEGACY_BREAK_HANDSHAKE          */
+    unsigned int MBEDTLS_PRIVATE(allow_legacy_renegotiation) : 2 ; /*!< MBEDTLS_LEGACY_XXX   */
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+    unsigned int MBEDTLS_PRIVATE(mfl_code) : 3;      /*!< desired fragment length            */
+#endif
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+    unsigned int MBEDTLS_PRIVATE(encrypt_then_mac) : 1 ; /*!< negotiate encrypt-then-mac?    */
+#endif
+#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
+    unsigned int MBEDTLS_PRIVATE(extended_ms) : 1;   /*!< negotiate extended master secret?  */
+#endif
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+    unsigned int MBEDTLS_PRIVATE(anti_replay) : 1;   /*!< detect and prevent replay?         */
+#endif
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    unsigned int MBEDTLS_PRIVATE(disable_renegotiation) : 1; /*!< disable renegotiation?     */
+#endif
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    unsigned int MBEDTLS_PRIVATE(session_tickets) : 1;   /*!< use session tickets?           */
+#endif
+#if defined(MBEDTLS_SSL_SRV_C)
+    unsigned int MBEDTLS_PRIVATE(cert_req_ca_list) : 1;  /*!< enable sending CA list in
+                                          Certificate Request messages?     */
+    unsigned int MBEDTLS_PRIVATE(respect_cli_pref) : 1;  /*!< pick the ciphersuite according to
+                                          the client's preferences rather
+                                          than ours                         */
+#endif
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+    unsigned int MBEDTLS_PRIVATE(ignore_unexpected_cid) : 1; /*!< Determines whether DTLS
+                                             *   record with unexpected CID
+                                             *   should lead to failure.    */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+#if defined(MBEDTLS_SSL_DTLS_SRTP)
+    unsigned int MBEDTLS_PRIVATE(dtls_srtp_mki_support) : 1; /* support having mki_value
+                                               in the use_srtp extension     */
+#endif
+
+    /*
+     * Numerical settings (int)
+     */
+
+    uint32_t MBEDTLS_PRIVATE(read_timeout);          /*!< timeout for mbedtls_ssl_read (ms)  */
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    uint32_t MBEDTLS_PRIVATE(hs_timeout_min);        /*!< initial value of the handshake
+                                         retransmission timeout (ms)        */
+    uint32_t MBEDTLS_PRIVATE(hs_timeout_max);        /*!< maximum value of the handshake
+                                         retransmission timeout (ms)        */
+#endif
+
+    unsigned int MBEDTLS_PRIVATE(badmac_limit);      /*!< limit of records with a bad MAC    */
+
+#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_CLI_C)
+    unsigned int MBEDTLS_PRIVATE(dhm_min_bitlen);    /*!< min. bit length of the DHM prime   */
+#endif
+
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    int MBEDTLS_PRIVATE(renego_max_records);         /*!< grace period for renegotiation     */
+    unsigned char MBEDTLS_PRIVATE(renego_period)[8]; /*!< value of the record counters
+                                        that triggers renegotiation        */
+#endif
 
     /*
      * Pointers
@@ -1208,80 +1287,6 @@ struct mbedtls_ssl_config
     /*! number of supported profiles */
     size_t MBEDTLS_PRIVATE(dtls_srtp_profile_list_len);
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
-
-    /*
-     * Numerical settings (int then char)
-     */
-
-    uint32_t MBEDTLS_PRIVATE(read_timeout);          /*!< timeout for mbedtls_ssl_read (ms)  */
-
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    uint32_t MBEDTLS_PRIVATE(hs_timeout_min);        /*!< initial value of the handshake
-                                         retransmission timeout (ms)        */
-    uint32_t MBEDTLS_PRIVATE(hs_timeout_max);        /*!< maximum value of the handshake
-                                         retransmission timeout (ms)        */
-#endif
-
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    int MBEDTLS_PRIVATE(renego_max_records);         /*!< grace period for renegotiation     */
-    unsigned char MBEDTLS_PRIVATE(renego_period)[8]; /*!< value of the record counters
-                                         that triggers renegotiation        */
-#endif
-
-    unsigned int MBEDTLS_PRIVATE(badmac_limit);      /*!< limit of records with a bad MAC    */
-
-#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_CLI_C)
-    unsigned int MBEDTLS_PRIVATE(dhm_min_bitlen);    /*!< min. bit length of the DHM prime   */
-#endif
-
-    unsigned char MBEDTLS_PRIVATE(max_major_ver);    /*!< max. major version used            */
-    unsigned char MBEDTLS_PRIVATE(max_minor_ver);    /*!< max. minor version used            */
-    unsigned char MBEDTLS_PRIVATE(min_major_ver);    /*!< min. major version used            */
-    unsigned char MBEDTLS_PRIVATE(min_minor_ver);    /*!< min. minor version used            */
-
-    /*
-     * Flags (bitfields)
-     */
-
-    unsigned int MBEDTLS_PRIVATE(endpoint) : 1;      /*!< 0: client, 1: server               */
-    unsigned int MBEDTLS_PRIVATE(transport) : 1;     /*!< stream (TLS) or datagram (DTLS)    */
-    unsigned int MBEDTLS_PRIVATE(authmode) : 2;      /*!< MBEDTLS_SSL_VERIFY_XXX             */
-    /* needed even with renego disabled for LEGACY_BREAK_HANDSHAKE          */
-    unsigned int MBEDTLS_PRIVATE(allow_legacy_renegotiation) : 2 ; /*!< MBEDTLS_LEGACY_XXX   */
-#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    unsigned int MBEDTLS_PRIVATE(mfl_code) : 3;      /*!< desired fragment length            */
-#endif
-#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
-    unsigned int MBEDTLS_PRIVATE(encrypt_then_mac) : 1 ; /*!< negotiate encrypt-then-mac?    */
-#endif
-#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
-    unsigned int MBEDTLS_PRIVATE(extended_ms) : 1;   /*!< negotiate extended master secret?  */
-#endif
-#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
-    unsigned int MBEDTLS_PRIVATE(anti_replay) : 1;   /*!< detect and prevent replay?         */
-#endif
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    unsigned int MBEDTLS_PRIVATE(disable_renegotiation) : 1; /*!< disable renegotiation?     */
-#endif
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    unsigned int MBEDTLS_PRIVATE(session_tickets) : 1;   /*!< use session tickets?           */
-#endif
-#if defined(MBEDTLS_SSL_SRV_C)
-    unsigned int MBEDTLS_PRIVATE(cert_req_ca_list) : 1;  /*!< enable sending CA list in
-                                          Certificate Request messages?     */
-    unsigned int MBEDTLS_PRIVATE(respect_cli_pref) : 1;  /*!< pick the ciphersuite according to
-                                          the client's preferences rather
-                                          than ours                         */
-#endif
-#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-    unsigned int MBEDTLS_PRIVATE(ignore_unexpected_cid) : 1; /*!< Determines whether DTLS
-                                             *   record with unexpected CID
-                                             *   should lead to failure.    */
-#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
-#if defined(MBEDTLS_SSL_DTLS_SRTP)
-    unsigned int MBEDTLS_PRIVATE(dtls_srtp_mki_support) : 1; /* support having mki_value
-                                               in the use_srtp extension     */
-#endif
 };
 
 struct mbedtls_ssl_context

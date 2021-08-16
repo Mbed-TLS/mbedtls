@@ -1323,4 +1323,14 @@ static inline int mbedtls_ssl_conf_is_hybrid_tls12_tls13( const mbedtls_ssl_conf
 }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL*/
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+
+static inline void mbedtls_ssl_handshake_set_state( mbedtls_ssl_context* ssl,
+    int state )
+{
+    ssl->state = state;
+}
+
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+
 #endif /* ssl_misc.h */

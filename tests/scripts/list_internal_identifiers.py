@@ -44,21 +44,16 @@ def main():
 
     parser.parse_args()
 
-    try:
-        name_check = CodeParser(logging.getLogger())
-        result = name_check.parse_identifiers([
-            "include/mbedtls/*_internal.h",
-            "library/*.h"
-        ])
-        result.sort(key=lambda x: x.name)
+    name_check = CodeParser(logging.getLogger())
+    result = name_check.parse_identifiers([
+        "include/mbedtls/*_internal.h",
+        "library/*.h"
+    ])
+    result.sort(key=lambda x: x.name)
 
-        identifiers = ["{}\n".format(match.name) for match in result]
-        with open("identifiers", "w", encoding="utf-8") as f:
-            f.writelines(identifiers)
-
-    except Exception: # pylint: disable=broad-except
-        traceback.print_exc()
-        sys.exit(1)
+    identifiers = ["{}\n".format(match.name) for match in result]
+    with open("identifiers", "w", encoding="utf-8") as f:
+        f.writelines(identifiers)
 
 if __name__ == "__main__":
     main()

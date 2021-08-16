@@ -407,16 +407,16 @@ class CodeParser():
                     # Match typedefs and brackets only when they are at the
                     # beginning of the line -- if they are indented, they might
                     # be sub-structures within structs, etc.
-                    if state == 0 and re.match(r"^(typedef +)?enum +{", line):
+                    if state == 0 and re.search(r"^(typedef +)?enum +{", line):
                         state = 1
-                    elif state == 0 and re.match(r"^(typedef +)?enum", line):
+                    elif state == 0 and re.search(r"^(typedef +)?enum", line):
                         state = 2
-                    elif state == 2 and re.match(r"^{", line):
+                    elif state == 2 and re.search(r"^{", line):
                         state = 1
-                    elif state == 1 and re.match(r"^}", line):
+                    elif state == 1 and re.search(r"^}", line):
                         state = 0
-                    elif state == 1 and not re.match(r" *#", line):
-                        enum_const = re.match(r" *(?P<enum_const>\w+)", line)
+                    elif state == 1 and not re.search(r"^ *#", line):
+                        enum_const = re.search(r"^ *(?P<enum_const>\w+)", line)
                         if not enum_const:
                             continue
 
@@ -433,8 +433,6 @@ class CodeParser():
         Parse all lines of a header where a function/enum/struct/union/typedef
         identifier is declared, based on some heuristics. Highly dependent on
         formatting style.
-        Note: .match() checks at the beginning of the string (implicit ^), while
-        .search() checks throughout.
 
         Args:
         * include: A List of glob expressions to look for files through.
@@ -459,12 +457,12 @@ class CodeParser():
         )
         exclusion_lines = re.compile(
             r"^("
-            r"extern +\"C\"|"
-            r"(typedef +)?(struct|union|enum)( *{)?$|"
-            r"} *;?$|"
-            r"$|"
-            r"//|"
-            r"#"
+                r"extern +\"C\"|"
+                r"(typedef +)?(struct|union|enum)( *{)?$|"
+                r"} *;?$|"
+                r"$|"
+                r"//|"
+                r"#"
             r")"
         )
 
@@ -493,7 +491,7 @@ class CodeParser():
                         previous_line = ""
                         continue
 
-                    if exclusion_lines.match(line):
+                    if exclusion_lines.search(line):
                         previous_line = ""
                         continue
 
@@ -501,14 +499,14 @@ class CodeParser():
                     # characters (or underscore, asterisk, or, open bracket),
                     # and nothing else, high chance it's a declaration that
                     # continues on the next line
-                    if re.match(r"^([\w\*\(]+\s+)+$", line):
+                    if re.search(r"^([\w\*\(]+\s+)+$", line):
                         previous_line += line
                         continue
 
                     # If previous line seemed to start an unfinished declaration
                     # (as above), concat and treat them as one.
                     if previous_line:
-                        line = previous_line.strip() + " " + line.strip()
+                        line = previous_line.strip() + " " + line.strip() + "\n"
                         previous_line = ""
 
                     # Skip parsing if line has a space in front = heuristic to
@@ -626,8 +624,8 @@ class CodeParser():
             ).stdout
 
         for line in nm_output.splitlines():
-            if not nm_undefined_regex.match(line):
-                symbol = nm_valid_regex.match(line)
+            if not nm_undefined_regex.search(line):
+                symbol = nm_valid_regex.search(line)
                 if (symbol and not symbol.group("symbol").startswith(exclusions)):
                     symbols.append(symbol.group("symbol"))
                 else:
@@ -718,10 +716,10 @@ class NameChecker():
         problems = []
 
         for item_match in self.parse_result[group_to_check]:
-            if not re.match(check_pattern, item_match.name):
+            if not re.search(check_pattern, item_match.name):
                 problems.append(PatternMismatch(check_pattern, item_match))
-            # Double underscore is a reserved identifier, never to be used
-            if re.match(r".*__.*", item_match.name):
+            # Double underscore should not be used for names
+            if re.search(r".*__.*", item_match.name):
                 problems.append(PatternMismatch("double underscore", item_match))
 
         self.output_check_result(

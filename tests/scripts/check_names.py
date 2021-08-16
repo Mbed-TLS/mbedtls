@@ -258,11 +258,12 @@ class CodeParser():
                 actual_macros.append(macro)
 
         self.log.debug("Found:")
-        self.log.debug("  {} Total Macros".format(len(all_macros)))
-        self.log.debug("  {} Non-identifier Macros".format(len(actual_macros)))
-        self.log.debug("  {} Enum Constants".format(len(enum_consts)))
-        self.log.debug("  {} Identifiers".format(len(identifiers)))
-        self.log.debug("  {} Exported Symbols".format(len(symbols)))
+        # Aligns the counts on the assumption that none exceeds 4 digits
+        self.log.debug("  {:4} Total Macros".format(len(all_macros)))
+        self.log.debug("  {:4} Non-identifier Macros".format(len(actual_macros)))
+        self.log.debug("  {:4} Enum Constants".format(len(enum_consts)))
+        self.log.debug("  {:4} Identifiers".format(len(identifiers)))
+        self.log.debug("  {:4} Exported Symbols".format(len(symbols)))
         return {
             "macros": actual_macros,
             "enum_consts": enum_consts,

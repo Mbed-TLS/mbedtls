@@ -77,15 +77,16 @@ class Match(): # pylint: disable=too-few-public-methods
         self.name = name
 
     def __str__(self):
-        ln_str = str(self.pos[0])
-        gutter_len = max(4, len(ln_str))
-        gutter = (gutter_len - len(ln_str)) * " " + ln_str
+        """
+        Return a formatted code listing representation of the erroneous line.
+        """
+        gutter = format(self.pos[0], "4d")
         underline = self.pos[1] * " " + (self.pos[2] - self.pos[1]) * "^"
 
         return (
-            " {0} |\n".format(gutter_len * " ") +
+            " {0} |\n".format(" " * len(gutter)) +
             " {0} | {1}".format(gutter, self.line) +
-            " {0} | {1}\n".format(gutter_len * " ", underline)
+            " {0} | {1}\n".format(" " * len(gutter), underline)
         )
 
 class Problem(): # pylint: disable=too-few-public-methods

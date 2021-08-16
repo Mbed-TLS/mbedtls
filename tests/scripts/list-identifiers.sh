@@ -56,9 +56,9 @@ else
     cat <<EOF
 Sorry, this script has to be called with --internal.
 
-This script exists solely for backwards compatibility for the previous ieration
-of list-identifiers.sh, of which only the --internal option remains in use. It
-is a thin wrapper around list_internal_identifiers.py.
+This script exists solely for backwards compatibility with the previous
+iteration of list-identifiers.sh, of which only the --internal option remains in
+use. It is a thin wrapper around list_internal_identifiers.py.
 
 check-names.sh, which used to depend on this script, has been replaced with
 check_names.py and is now self-complete.

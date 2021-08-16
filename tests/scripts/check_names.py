@@ -39,7 +39,7 @@ NameChecker performs the following checks:
 - Typo checking: All words that begin with MBED exist as macros or constants.
 
 The script returns 0 on success, 1 on test failure, and 2 if there is a script
-error error. Must be run from Mbed TLS root.
+error. It must be run from Mbed TLS root.
 """
 
 import argparse
@@ -429,8 +429,9 @@ class CodeParser():
 
     def parse_identifiers(self, include, exclude=None):
         """
-        Parse all lines of a header where a function identifier is declared,
-        based on some huersitics. Highly dependent on formatting style.
+        Parse all lines of a header where a function/enum/struct/union/typedef
+        identifier is declared, based on some heuristics. Highly dependent on
+        formatting style.
         Note: .match() checks at the beginning of the string (implicit ^), while
         .search() checks throughout.
 
@@ -509,7 +510,7 @@ class CodeParser():
                         line = previous_line.strip() + " " + line.strip()
                         previous_line = ""
 
-                    # Skip parsing if line has a space in front = hueristic to
+                    # Skip parsing if line has a space in front = heuristic to
                     # skip function argument lines (highly subject to formatting
                     # changes)
                     if line[0] == " ":

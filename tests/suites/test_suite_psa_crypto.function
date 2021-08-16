@@ -3771,6 +3771,7 @@ exit:
 void aead_multipart_set_nonce( int key_type_arg, data_t *key_data,
                                int alg_arg,
                                int nonce_len,
+                               int allow_null_nonce_buffer,
                                data_t *additional_data,
                                data_t *input_data,
                                int expected_status_arg )
@@ -3829,11 +3830,22 @@ void aead_multipart_set_nonce( int key_type_arg, data_t *key_data,
 
     PSA_ASSERT( status );
 
-    ASSERT_ALLOC( nonce_buffer, nonce_len );
-
-    for( index = 0; index < nonce_len - 1; ++index)
+    if( nonce_len == 0 )
     {
-        nonce_buffer[index] = 'a' + index;
+        if( !allow_null_nonce_buffer )
+        {
+            /* Arbitrary size buffer, to test zero length valid buffer. */
+            ASSERT_ALLOC( nonce_buffer, 4 );
+        }
+    }
+    else
+    {
+        ASSERT_ALLOC( nonce_buffer, nonce_len );
+
+        for( index = 0; index < nonce_len - 1; ++index)
+        {
+            nonce_buffer[index] = 'a' + index;
+        }
     }
 
     status = psa_aead_set_nonce( &operation, nonce_buffer, nonce_len );

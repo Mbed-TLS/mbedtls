@@ -141,6 +141,21 @@ static psa_status_t mbedtls_aead_check_nonce_length(
     mbedtls_psa_aead_operation_t *operation,
     size_t nonce_length )
 {
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
+    if( operation->alg == PSA_ALG_GCM )
+    {
+        if( nonce_length == 0 )
+            return( PSA_ERROR_NOT_SUPPORTED );
+    }
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
+    if( operation->alg == PSA_ALG_CCM )
+    {
+        if( nonce_length < 7 || nonce_length > 13 )
+            return( PSA_ERROR_NOT_SUPPORTED );
+    }
+    else
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
     if( operation->alg == PSA_ALG_CHACHA20_POLY1305 )
     {
@@ -428,7 +443,7 @@ psa_status_t mbedtls_psa_aead_set_nonce(
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     if( mbedtls_aead_check_nonce_length( operation, nonce_length )
-        != PSA_SUCCESS )
+        != PSA_SUCCESS || nonce == NULL )
     {
         return( PSA_ERROR_INVALID_ARGUMENT );
     }

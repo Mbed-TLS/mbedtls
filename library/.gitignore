@@ -1,4 +1,6 @@
 *.o
+*.i
+*.im
 libmbed*
 *.sln
 *.vcxproj

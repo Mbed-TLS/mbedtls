@@ -267,6 +267,9 @@ libmbedcrypto.dll: $(OBJS_CRYPTO)
 .c.o:
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
+	echo "  CC -E    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -I/home/mtst/pycparser/utils/fake_libc_include -E $< -o $*.i
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -I/home/mtst/pycparser/utils/fake_libc_include -E -dM $< -o $*.im
 
 .PHONY: generated_files
 GENERATED_FILES = error.c version_features.c
@@ -293,10 +296,12 @@ version_features.c:
 
 clean:
 ifndef WINDOWS
-	rm -f *.o libmbed*
+	rm -f *.o *.i *.im libmbed*
 	rm -f $(THIRDPARTY_CRYPTO_OBJECTS)
 else
 	if exist *.o del /Q /F *.o
+	if exist *.i del /Q /F *.i
+	if exist *.im del /Q /F *.im
 	if exist libmbed* del /Q /F libmbed*
 	del /Q /F del_errors_out_if_the_file_list_is_empty_but_not_if_a_file_does_not_exist $(subst /,\,$(THIRDPARTY_CRYPTO_OBJECTS))
 endif

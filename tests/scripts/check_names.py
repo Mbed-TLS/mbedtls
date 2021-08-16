@@ -290,26 +290,20 @@ class CodeParser():
         # exclude_wildcards may be None. Also, consider the global exclusions.
         exclude_wildcards = (exclude_wildcards or []) + self.excluded_files
 
-        # Perform set union on the glob results. Memoise individual sets.
+        # Internal function to hit the memoisation cache or add to it the result
+        # of a glob operation. Used both for inclusion and exclusion since the
+        # only difference between them is whether they perform set union or
+        # difference on the return value of this function.
+        def hit_cache(wildcard):
+            if wildcard not in self.files:
+                self.files[wildcard] = set(glob.glob(wildcard, recursive=True))
+            return self.files[wildcard]
+
         for include_wildcard in include_wildcards:
-            if include_wildcard not in self.files:
-                self.files[include_wildcard] = set(glob.glob(
-                    include_wildcard,
-                    recursive=True
-                ))
+            accumulator = accumulator.union(hit_cache(include_wildcard))
 
-            accumulator = accumulator.union(self.files[include_wildcard])
-
-        # Perform set difference to exclude. Also use the same memo since their
-        # behaviour is pretty much identical and it can benefit from the cache.
         for exclude_wildcard in exclude_wildcards:
-            if exclude_wildcard not in self.files:
-                self.files[exclude_wildcard] = set(glob.glob(
-                    exclude_wildcard,
-                    recursive=True
-                ))
-
-            accumulator = accumulator.difference(self.files[exclude_wildcard])
+            accumulator = accumulator.difference(hit_cache(exclude_wildcard))
 
         return list(accumulator)
 

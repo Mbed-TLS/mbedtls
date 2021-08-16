@@ -46,7 +46,7 @@ extern "C" {
 typedef struct mbedtls_x509_csr
 {
     int MBEDTLS_PRIVATE(version);            /**< CSR version (1=v1). */
-    
+
     mbedtls_x509_buf MBEDTLS_PRIVATE(raw);           /**< The raw CSR data (DER). */
     mbedtls_x509_buf MBEDTLS_PRIVATE(cri);           /**< The raw CertificateRequestInfo body (DER). */
 

@@ -408,7 +408,7 @@ class CodeParser():
                     # beginning of the line -- if they are indented, they might
                     # be sub-structures within structs, etc.
                     if (state == states.OUTSIDE_KEYWORD and
-                        re.search(r"^(typedef +)?enum +{", line)):
+                            re.search(r"^(typedef +)?enum +{", line)):
                         state = states.IN_BRACES
                     elif (state == states.OUTSIDE_KEYWORD and
                           re.search(r"^(typedef +)?enum", line)):
@@ -461,9 +461,10 @@ class CodeParser():
             # Match names of typedef instances, after closing bracket.
             r"}? *(\w+)[;[].*"
         )
+        # The regex below is indented for clarity.
         exclusion_lines = re.compile(
             r"^("
-                r"extern +\"C\"|"
+                r"extern +\"C\"|" # pylint: disable=bad-continuation
                 r"(typedef +)?(struct|union|enum)( *{)?$|"
                 r"} *;?$|"
                 r"$|"

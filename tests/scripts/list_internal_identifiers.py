@@ -30,8 +30,6 @@ Must be run from Mbed TLS root.
 
 import argparse
 import logging
-import traceback
-import sys
 from check_names import CodeParser
 
 def main():

@@ -1184,7 +1184,7 @@ struct mbedtls_ssl_config
     const int *MBEDTLS_PRIVATE(sig_hashes);          /*!< allowed signature hashes           */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
-    const uint16_t* MBEDTLS_PRIVATE(tls13_sig_algs); /*!< allowed signature algorithms in TLS 1.3 */
+    const uint16_t *MBEDTLS_PRIVATE(tls13_sig_algs); /*!< allowed signature algorithms for TLS 1.3 */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 #endif
 
@@ -3036,9 +3036,10 @@ void mbedtls_ssl_conf_sig_hashes( mbedtls_ssl_config *conf,
  * \brief          Configure allowed signature algorithms for use in TLS 1.3
  *
  * \param conf     The SSL configuration to use.
- * \param sig_algs A 0-terminated list of IANA values for TLS 1.3 signature algorithms,
- *                 with the most preferred algorithm listed first. Supported values
- *                 are available as \c MBEDTLS_TLS13_SIG_XXX.
+ * \param sig_algs List of allowed IANA values for TLS 1.3 signature algorithms,
+ *                 terminated by \c MBEDTLS_TLS13_SIG_NONE. The list must remain
+ *                 available throughout the liftime of the conf object. Supported
+ *                 values are available as \c MBEDTLS_TLS13_SIG_XXXX
  */
 void mbedtls_ssl_conf_sig_algs( mbedtls_ssl_config *conf,
                                 const uint16_t* sig_algs );

@@ -569,8 +569,15 @@ class CodeParser():
             )
             my_environment = os.environ.copy()
             my_environment["CFLAGS"] = "-fno-asynchronous-unwind-tables"
+            # Run make clean separately to lib to prevent unwanted behavior when
+            # make is invoked with parallelism.
             subprocess.run(
-                ["make", "clean", "lib"],
+                ["make", "clean"],
+                universal_newlines=True,
+                check=True
+            )
+            subprocess.run(
+                ["make", "lib"],
                 env=my_environment,
                 universal_newlines=True,
                 stdout=subprocess.PIPE,

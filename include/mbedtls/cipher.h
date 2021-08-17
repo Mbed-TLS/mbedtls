@@ -317,11 +317,29 @@ typedef struct mbedtls_cipher_info_t
  */
 typedef struct mbedtls_cipher_context_t
 {
-    /** Information about the associated cipher. */
-    const mbedtls_cipher_info_t *cipher_info;
+    /** Current IV or NONCE_COUNTER for CTR-mode, data unit (or sector) number
+     * for XTS-mode. */
+    unsigned char iv[MBEDTLS_MAX_IV_LENGTH];
+    
+    /** Buffer for input that has not been processed yet. */
+    unsigned char unprocessed_data[MBEDTLS_MAX_BLOCK_LENGTH];
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    /** Indicates whether the cipher operations should be performed
+     *  by Mbed TLS' own crypto library or an external implementation
+     *  of the PSA Crypto API.
+     *  This is unset if the cipher context was established through
+     *  mbedtls_cipher_setup(), and set if it was established through
+     *  mbedtls_cipher_setup_psa().
+     */
+    unsigned char psa_enabled;
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     /** Key length to use. */
     int key_bitlen;
+
+    /** Information about the associated cipher. */
+    const mbedtls_cipher_info_t *cipher_info;
 
     /** Operation that the key of the context has been
      * initialized for.
@@ -336,15 +354,8 @@ typedef struct mbedtls_cipher_context_t
     int (*get_padding)( unsigned char *input, size_t ilen, size_t *data_len );
 #endif
 
-    /** Buffer for input that has not been processed yet. */
-    unsigned char unprocessed_data[MBEDTLS_MAX_BLOCK_LENGTH];
-
     /** Number of Bytes that have not been processed yet. */
     size_t unprocessed_len;
-
-    /** Current IV or NONCE_COUNTER for CTR-mode, data unit (or sector) number
-     * for XTS-mode. */
-    unsigned char iv[MBEDTLS_MAX_IV_LENGTH];
 
     /** IV size in Bytes, for ciphers with variable-length IVs. */
     size_t iv_size;
@@ -356,17 +367,6 @@ typedef struct mbedtls_cipher_context_t
     /** CMAC-specific context. */
     mbedtls_cmac_context_t *cmac_ctx;
 #endif
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    /** Indicates whether the cipher operations should be performed
-     *  by Mbed TLS' own crypto library or an external implementation
-     *  of the PSA Crypto API.
-     *  This is unset if the cipher context was established through
-     *  mbedtls_cipher_setup(), and set if it was established through
-     *  mbedtls_cipher_setup_psa().
-     */
-    unsigned char psa_enabled;
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 } mbedtls_cipher_context_t;
 

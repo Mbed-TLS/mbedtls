@@ -51,12 +51,22 @@ extern "C" {
  */
 typedef struct mbedtls_x509_crt
 {
+    unsigned char ns_cert_type;         /**< Optional Netscape certificate type extension value: See the values in x509.h */
+
     int own_buffer;                     /**< Indicates if \c raw is owned
                                          *   by the structure or not.        */
+
+    int ext_types;                      /**< Bit string containing detected and parsed extensions */
+    int ca_istrue;                      /**< Optional Basic Constraint extension value: 1 if this certificate belongs to a CA, 0 otherwise. */
+    int max_pathlen;                    /**< Optional Basic Constraint extension value: The maximum path length to the root certificate. Path length is 1 higher than RFC 5280 'meaning', so 1+ */
+
+    int version;                        /**< The X.509 version. (1=v1, 2=v2, 3=v3) */
+
+    unsigned int key_usage;             /**< Optional key usage extension value: See the values in x509.h */
+
     mbedtls_x509_buf raw;               /**< The raw certificate data (DER). */
     mbedtls_x509_buf tbs;               /**< The raw certificate body (DER). The part that is To Be Signed. */
 
-    int version;                /**< The X.509 version. (1=v1, 2=v2, 3=v3) */
     mbedtls_x509_buf serial;            /**< Unique id for certificate issued by a specific CA. */
     mbedtls_x509_buf sig_oid;           /**< Signature algorithm, e.g. sha1RSA */
 
@@ -79,15 +89,7 @@ typedef struct mbedtls_x509_crt
 
     mbedtls_x509_sequence certificate_policies; /**< Optional list of certificate policies (Only anyPolicy is printed and enforced, however the rest of the policies are still listed). */
 
-    int ext_types;              /**< Bit string containing detected and parsed extensions */
-    int ca_istrue;              /**< Optional Basic Constraint extension value: 1 if this certificate belongs to a CA, 0 otherwise. */
-    int max_pathlen;            /**< Optional Basic Constraint extension value: The maximum path length to the root certificate. Path length is 1 higher than RFC 5280 'meaning', so 1+ */
-
-    unsigned int key_usage;     /**< Optional key usage extension value: See the values in x509.h */
-
     mbedtls_x509_sequence ext_key_usage; /**< Optional list of extended key usage OIDs. */
-
-    unsigned char ns_cert_type; /**< Optional Netscape certificate type extension value: See the values in x509.h */
 
     mbedtls_x509_buf sig;               /**< Signature: hash of the tbs part signed with the private key. */
     mbedtls_md_type_t sig_md;           /**< Internal representation of the MD algorithm of the signature algorithm, e.g. MBEDTLS_MD_SHA256 */

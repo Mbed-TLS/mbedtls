@@ -121,9 +121,6 @@ for my $suite (@suites)
         }
     }
 
-    my ($passed, $tests, $skipped) = $result =~ /([0-9]*) \/ ([0-9]*) tests.*?([0-9]*) skipped/;
-    $total_tests_run += $tests - $skipped;
-
     if( $verbose > 1 ) {
         print "(test cases passed:", $suite_cases_passed,
                 " failed:", $suite_cases_failed,
@@ -142,7 +139,7 @@ print "-" x 72, "\n";
 print $failed_suites ? "FAILED" : "PASSED";
 printf( " (%d suites, %d tests run%s)\n",
         scalar(@suites) - $suites_skipped,
-        $total_tests_run,
+        $total_cases_passed + $total_cases_failed,
         $suites_skipped ? ", $suites_skipped suites skipped" : "" );
 
 if( $verbose > 1 ) {

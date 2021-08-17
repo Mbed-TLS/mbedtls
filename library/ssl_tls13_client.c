@@ -26,11 +26,58 @@
 #if defined(MBEDTLS_SSL_CLI_C)
 
 #include "ssl_misc.h"
+#include <mbedtls/debug.h>
+
+static int ssl_client_hello_process( mbedtls_ssl_context* ssl );
 
 int mbedtls_ssl_handshake_client_step_tls1_3( mbedtls_ssl_context *ssl )
 {
-    ((void) ssl);
-    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+    int ret = 0;
+
+    if( ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER || ssl->handshake == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "Handshake completed but ssl->handshake is NULL.\n" ) );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "client state: %d", ssl->state ) );
+
+    switch( ssl->state )
+    {
+        case MBEDTLS_SSL_HELLO_REQUEST:
+            mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_HELLO );
+            break;
+
+        case MBEDTLS_SSL_CLIENT_HELLO:
+            ret = ssl_client_hello_process( ssl );
+            break;
+
+        case MBEDTLS_SSL_SERVER_HELLO:
+            // Stop here : we haven't finished whole flow
+            ret=MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
+            mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_ENCRYPTED_EXTENSIONS );
+            break;
+
+        default:
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "invalid state %d", ssl->state ) );
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+    return( ret );
+}
+
+static int ssl_client_hello_process( mbedtls_ssl_context* ssl )
+{
+    int ret = 0;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write client hello" ) );
+
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_HELLO );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write client hello" ) );
+    /* client_hello_process haven't finished */
+    ret=MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
+    return ret;
 }
 
 #endif /* MBEDTLS_SSL_CLI_C */

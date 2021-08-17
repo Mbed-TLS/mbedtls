@@ -49,6 +49,7 @@ import os
 import sys
 import traceback
 import re
+import enum
 import shutil
 import subprocess
 import logging
@@ -390,27 +391,33 @@ class CodeParser():
         files = self.get_files(include, exclude)
         self.log.debug("Looking for enum consts in {} files".format(len(files)))
 
+        # Emulate a finite state machine to parse enum declarations.
+        # OUTSIDE_KEYWORD = outside the enum keyword
+        # IN_BRACES = inside enum opening braces
+        # IN_BETWEEN = between enum keyword and opening braces
+        states = enum.Enum("FSM", ["OUTSIDE_KEYWORD", "IN_BRACES", "IN_BETWEEN"])
         enum_consts = []
         for header_file in files:
-            # Emulate a finite state machine to parse enum declarations.
-            # 0 = not in enum
-            # 1 = inside enum
-            # 2 = almost inside enum
-            state = 0
+            state = states.OUTSIDE_KEYWORD
             with open(header_file, "r", encoding="utf-8") as header:
                 for line_no, line in enumerate(header):
                     # Match typedefs and brackets only when they are at the
                     # beginning of the line -- if they are indented, they might
                     # be sub-structures within structs, etc.
-                    if state == 0 and re.search(r"^(typedef +)?enum +{", line):
-                        state = 1
-                    elif state == 0 and re.search(r"^(typedef +)?enum", line):
-                        state = 2
-                    elif state == 2 and re.search(r"^{", line):
-                        state = 1
-                    elif state == 1 and re.search(r"^}", line):
-                        state = 0
-                    elif state == 1 and not re.search(r"^ *#", line):
+                    if (state == states.OUTSIDE_KEYWORD and
+                        re.search(r"^(typedef +)?enum +{", line)):
+                        state = states.IN_BRACES
+                    elif (state == states.OUTSIDE_KEYWORD and
+                          re.search(r"^(typedef +)?enum", line)):
+                        state = states.IN_BETWEEN
+                    elif (state == states.IN_BETWEEN and
+                          re.search(r"^{", line)):
+                        state = states.IN_BRACES
+                    elif (state == states.IN_BRACES and
+                          re.search(r"^}", line)):
+                        state = states.OUTSIDE_KEYWORD
+                    elif (state == states.IN_BRACES and
+                          not re.search(r"^ *#", line)):
                         enum_const = re.search(r"^ *(?P<enum_const>\w+)", line)
                         if not enum_const:
                             continue
@@ -418,7 +425,9 @@ class CodeParser():
                         enum_consts.append(Match(
                             header_file,
                             line,
-                            (line_no, enum_const.start(), enum_const.end()),
+                            (line_no,
+                             enum_const.start("enum_const"),
+                             enum_const.end("enum_const")),
                             enum_const.group("enum_const")))
 
         return enum_consts
@@ -426,8 +435,8 @@ class CodeParser():
     def parse_identifiers(self, include, exclude=None):
         """
         Parse all lines of a header where a function/enum/struct/union/typedef
-        identifier is declared, based on some heuristics. Highly dependent on
-        formatting style.
+        identifier is declared, based on some regex and heuristics. Highly
+        dependent on formatting style.
 
         Args:
         * include: A List of glob expressions to look for files through.
@@ -469,7 +478,8 @@ class CodeParser():
             with open(header_file, "r", encoding="utf-8") as header:
                 in_block_comment = False
                 # The previous line variable is used for concatenating lines
-                # when identifiers are formatted and spread across multiple.
+                # when identifiers are formatted and spread across multiple
+                # lines.
                 previous_line = ""
 
                 for line_no, line in enumerate(header):

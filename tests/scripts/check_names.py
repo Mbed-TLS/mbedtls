@@ -67,13 +67,15 @@ class Match(): # pylint: disable=too-few-public-methods
     Fields:
     * filename: the file that the match was in.
     * line: the full line containing the match.
-    * pos: a tuple of (line_no, start, end) positions on the file line where the
-           match is.
+    * line_no: the line number.
+    * pos: a tuple of (start, end) positions on the line where the match is.
     * name: the match itself.
     """
-    def __init__(self, filename, line, pos, name):
+    def __init__(self, filename, line, line_no, pos, name):
+        # pylint: disable=too-many-arguments
         self.filename = filename
         self.line = line
+        self.line_no = line_no
         self.pos = pos
         self.name = name
 
@@ -81,8 +83,8 @@ class Match(): # pylint: disable=too-few-public-methods
         """
         Return a formatted code listing representation of the erroneous line.
         """
-        gutter = format(self.pos[0], "4d")
-        underline = self.pos[1] * " " + (self.pos[2] - self.pos[1]) * "^"
+        gutter = format(self.line_no, "4d")
+        underline = self.pos[0] * " " + (self.pos[1] - self.pos[0]) * "^"
 
         return (
             " {0} |\n".format(" " * len(gutter)) +
@@ -338,7 +340,8 @@ class CodeParser():
                         macros.append(Match(
                             header_file,
                             line,
-                            (line_no, macro.start(), macro.end()),
+                            line_no,
+                            macro.span("macro"),
                             macro.group("macro")))
 
         return macros
@@ -372,9 +375,9 @@ class CodeParser():
                         mbed_words.append(Match(
                             filename,
                             line,
-                            (line_no, name.start(), name.end()),
-                            name.group(0)
-                            ))
+                            line_no,
+                            name.span(0),
+                            name.group(0)))
 
         return mbed_words
 
@@ -425,9 +428,8 @@ class CodeParser():
                         enum_consts.append(Match(
                             header_file,
                             line,
-                            (line_no,
-                             enum_const.start("enum_const"),
-                             enum_const.end("enum_const")),
+                            line_no,
+                            enum_const.span("enum_const"),
                             enum_const.group("enum_const")))
 
         return enum_consts
@@ -533,7 +535,8 @@ class CodeParser():
                         identifiers.append(Match(
                             header_file,
                             line,
-                            (line_no, identifier.start(), identifier.end()),
+                            line_no,
+                            identifier.span(),
                             group))
 
         return identifiers
@@ -722,7 +725,8 @@ class NameChecker():
                 problems.append(PatternMismatch(check_pattern, item_match))
             # Double underscore should not be used for names
             if re.search(r".*__.*", item_match.name):
-                problems.append(PatternMismatch("double underscore", item_match))
+                problems.append(
+                    PatternMismatch("no double underscore allowed", item_match))
 
         self.output_check_result(
             "Naming patterns of {}".format(group_to_check),

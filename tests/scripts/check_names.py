@@ -93,8 +93,9 @@ class Problem(): # pylint: disable=too-few-public-methods
     """
     A parent class representing a form of static analysis error.
     """
+    # Class variable to control the quietness of all problems
+    quiet = False
     def __init__(self):
-        self.quiet = False
         self.textwrapper = textwrap.TextWrapper()
         self.textwrapper.width = 80
         self.textwrapper.initial_indent = "    > "
@@ -644,8 +645,9 @@ class NameChecker():
         * quiet: whether to hide detailed problem explanation.
         """
         self.log.info("=============")
+        Problem.quiet = quiet
         problems = 0
-        problems += self.check_symbols_declared_in_header(quiet)
+        problems += self.check_symbols_declared_in_header()
 
         pattern_checks = [
             ("macros", MACRO_PATTERN),
@@ -653,9 +655,9 @@ class NameChecker():
             ("identifiers", IDENTIFIER_PATTERN)
         ]
         for group, check_pattern in pattern_checks:
-            problems += self.check_match_pattern(quiet, group, check_pattern)
+            problems += self.check_match_pattern(group, check_pattern)
 
-        problems += self.check_for_typos(quiet)
+        problems += self.check_for_typos()
 
         self.log.info("=============")
         if problems > 0:
@@ -669,14 +671,11 @@ class NameChecker():
             self.log.info("PASS")
             return 0
 
-    def check_symbols_declared_in_header(self, quiet):
+    def check_symbols_declared_in_header(self):
         """
         Perform a check that all detected symbols in the library object files
         are properly declared in headers.
         Assumes parse_names_in_source() was called before this.
-
-        Args:
-        * quiet: whether to hide detailed problem explanation.
 
         Returns the number of problems that need fixing.
         """
@@ -692,16 +691,15 @@ class NameChecker():
             if not found_symbol_declared:
                 problems.append(SymbolNotInHeader(symbol))
 
-        self.output_check_result(quiet, "All symbols in header", problems)
+        self.output_check_result("All symbols in header", problems)
         return len(problems)
 
-    def check_match_pattern(self, quiet, group_to_check, check_pattern):
+    def check_match_pattern(self, group_to_check, check_pattern):
         """
         Perform a check that all items of a group conform to a regex pattern.
         Assumes parse_names_in_source() was called before this.
 
         Args:
-        * quiet: whether to hide detailed problem explanation.
         * group_to_check: string key to index into self.parse_result.
         * check_pattern: the regex to check against.
 
@@ -717,19 +715,15 @@ class NameChecker():
                 problems.append(PatternMismatch("double underscore", item_match))
 
         self.output_check_result(
-            quiet,
             "Naming patterns of {}".format(group_to_check),
             problems)
         return len(problems)
 
-    def check_for_typos(self, quiet):
+    def check_for_typos(self):
         """
         Perform a check that all words in the soure code beginning with MBED are
         either defined as macros, or as enum constants.
         Assumes parse_names_in_source() was called before this.
-
-        Args:
-        * quiet: whether to hide detailed problem explanation.
 
         Returns the number of problems that need fixing.
         """
@@ -757,23 +751,21 @@ class NameChecker():
             if not found and not typo_exclusion.search(name_match.name):
                 problems.append(Typo(name_match))
 
-        self.output_check_result(quiet, "Likely typos", problems)
+        self.output_check_result("Likely typos", problems)
         return len(problems)
 
-    def output_check_result(self, quiet, name, problems):
+    def output_check_result(self, name, problems):
         """
         Write out the PASS/FAIL status of a performed check depending on whether
         there were problems.
 
         Args:
-        * quiet: whether to hide detailed problem explanation.
         * name: the name of the test
         * problems: a List of encountered Problems
         """
         if problems:
             self.log.info("{}: FAIL\n".format(name))
             for problem in problems:
-                problem.quiet = quiet
                 self.log.warning(str(problem))
         else:
             self.log.info("{}: PASS".format(name))

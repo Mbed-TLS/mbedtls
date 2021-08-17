@@ -67,10 +67,11 @@ mbedtls_x509_crl_entry;
  */
 typedef struct mbedtls_x509_crl
 {
+    int version;                    /**< CRL version (1=v1, 2=v2) */
+
     mbedtls_x509_buf raw;           /**< The raw certificate data (DER). */
     mbedtls_x509_buf tbs;           /**< The raw certificate body (DER). The part that is To Be Signed. */
 
-    int version;            /**< CRL version (1=v1, 2=v2) */
     mbedtls_x509_buf sig_oid;       /**< CRL signature type identifier */
 
     mbedtls_x509_buf issuer_raw;    /**< The raw issuer data (DER). */

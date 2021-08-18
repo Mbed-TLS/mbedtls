@@ -26,6 +26,7 @@
 
 #include "mbedtls/ssl.h"
 #include "mbedtls/cipher.h"
+#include "mbedtls/debug.h"
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
@@ -101,6 +102,30 @@
 #define MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS   1   /* In progress */
 #define MBEDTLS_SSL_RENEGOTIATION_DONE          2   /* Done or aborted */
 #define MBEDTLS_SSL_RENEGOTIATION_PENDING       3   /* Requested (server only) */
+
+#define MBEDTLS_SSL_PROC_STRIP_PARENS( ... )   __VA_ARGS__
+
+#define MBEDTLS_SSL_PROC_CHK( fn, args )                        \
+    do {                                                        \
+        ret = fn(MBEDTLS_SSL_PROC_STRIP_PARENS args);           \
+        if( ret != 0 )                                          \
+        {                                                       \
+            if( ret > 0 )                                       \
+                ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;           \
+            MBEDTLS_SSL_DEBUG_RET( 1, #fn, ret );               \
+            goto cleanup;                                       \
+        }                                                       \
+    } while( 0 )
+
+#define MBEDTLS_SSL_PROC_CHK_NEG( fn, args )                    \
+    do {                                                        \
+        ret = fn(MBEDTLS_SSL_PROC_STRIP_PARENS args);           \
+        if( ret < 0 )                                           \
+        {                                                       \
+            MBEDTLS_SSL_DEBUG_RET( 1, #fn, ret );               \
+            goto cleanup;                                       \
+        }                                                       \
+    } while( 0 )
 
 /*
  * DTLS retransmission states, see RFC 6347 4.2.4
@@ -1330,6 +1355,18 @@ static inline void mbedtls_ssl_handshake_set_state( mbedtls_ssl_context* ssl,
 {
     ssl->state = state;
 }
+
+int mbedtls_ssl_start_handshake_msg( mbedtls_ssl_context *ssl,
+                                     unsigned hs_type,
+                                     unsigned char **buf,
+                                     size_t *buflen );
+int mbedtls_ssl_finish_handshake_msg( mbedtls_ssl_context *ssl,
+                                      size_t buf_len,
+                                      size_t msg_len );
+void mbedtls_ssl_add_hs_hdr_to_checksum( mbedtls_ssl_context *ssl,
+                                         unsigned hs_type,
+                                         size_t total_hs_len );
+
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 

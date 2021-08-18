@@ -169,6 +169,7 @@ OBJS_TLS= \
 	  ssl_tls13_keys.o \
 	  ssl_tls13_client.o \
 	  ssl_tls13_server.o \
+	  ssl_tls13_generic.o \
 	  # This line is intentionally left blank
 
 .SILENT:

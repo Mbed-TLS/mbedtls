@@ -23,6 +23,8 @@
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
 
+#include "mbedtls/error.h"
+
 #include "ssl_misc.h"
 
 int mbedtls_ssl_start_handshake_msg( mbedtls_ssl_context *ssl,
@@ -30,21 +32,27 @@ int mbedtls_ssl_start_handshake_msg( mbedtls_ssl_context *ssl,
                                      unsigned char **buf,
                                      size_t *buflen )
 {
-    ((void) ssl);
-    ((void) hs_type);
-    ((void) buf);
-    ((void) buflen);
-    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+    *buf = ssl->out_msg + 4;
+    *buflen = MBEDTLS_SSL_OUT_CONTENT_LEN - 4;
+
+    ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
+    ssl->out_msg[0]  = hs_type;
+
+    return( 0 );
 }
 
 int mbedtls_ssl_finish_handshake_msg( mbedtls_ssl_context *ssl,
                                       size_t buf_len,
                                       size_t msg_len )
 {
-    ((void) ssl);
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     ((void) buf_len);
-    ((void) msg_len);
-    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+
+    ssl->out_msglen = msg_len + 4;
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_write_handshake_msg_ext, ( ssl, 0 ) );
+
+cleanup:
+    return( ret );
 }
 
 void mbedtls_ssl_add_hs_hdr_to_checksum( mbedtls_ssl_context *ssl,

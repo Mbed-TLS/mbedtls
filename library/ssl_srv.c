@@ -1322,8 +1322,8 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
     for( i = 0, p = buf + 6; i < ciph_len; i += 3, p += 3 )
     {
         if( p[0] == 0 &&
-            p[1] == (unsigned char)( ( MBEDTLS_SSL_FALLBACK_SCSV_VALUE >> 8 ) & 0xff ) &&
-            p[2] == (unsigned char)( ( MBEDTLS_SSL_FALLBACK_SCSV_VALUE      ) & 0xff ) )
+            p[1] == MBEDTLS_BYTE_1( MBEDTLS_SSL_FALLBACK_SCSV_VALUE ) &&
+            p[2] == MBEDTLS_BYTE_0( MBEDTLS_SSL_FALLBACK_SCSV_VALUE ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "received FALLBACK_SCSV" ) );
 
@@ -1354,8 +1354,8 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
 #endif
         {
             if( p[0] != 0 ||
-                p[1] != ( ( ciphersuites[i] >> 8 ) & 0xFF ) ||
-                p[2] != ( ( ciphersuites[i]      ) & 0xFF ) )
+                p[1] != MBEDTLS_BYTE_1( ciphersuites[i] ) ||
+                p[2] != MBEDTLS_BYTE_0( ciphersuites[i] ) )
                 continue;
 
             got_common_suite = 1;
@@ -2086,8 +2086,8 @@ read_record_header:
 #if defined(MBEDTLS_SSL_FALLBACK_SCSV)
     for( i = 0, p = buf + ciph_offset + 2; i < ciph_len; i += 2, p += 2 )
     {
-        if( p[0] == (unsigned char)( ( MBEDTLS_SSL_FALLBACK_SCSV_VALUE >> 8 ) & 0xff ) &&
-            p[1] == (unsigned char)( ( MBEDTLS_SSL_FALLBACK_SCSV_VALUE      ) & 0xff ) )
+        if( p[0] == MBEDTLS_BYTE_1( MBEDTLS_SSL_FALLBACK_SCSV_VALUE ) &&
+            p[1] == MBEDTLS_BYTE_0( MBEDTLS_SSL_FALLBACK_SCSV_VALUE ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "received FALLBACK_SCSV" ) );
 
@@ -2206,7 +2206,7 @@ read_record_header:
 #endif
         {
             if( p[0] != MBEDTLS_BYTE_1( ciphersuites[i] ) ||
-                p[1] != MBEDTLS_BYTE_0( ciphersuites[i] ))
+                p[1] != MBEDTLS_BYTE_0( ciphersuites[i] ) )
                 continue;
 
             got_common_suite = 1;
@@ -2290,8 +2290,8 @@ static void ssl_write_truncated_hmac_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, adding truncated hmac extension" ) );
 
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_TRUNCATED_HMAC >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_TRUNCATED_HMAC      ) & 0xFF );
+    *p++ = MBEDTLS_BYTE_1( MBEDTLS_TLS_EXT_TRUNCATED_HMAC );
+    *p++ = MBEDTLS_BYTE_0( MBEDTLS_TLS_EXT_TRUNCATED_HMAC );
 
     *p++ = 0x00;
     *p++ = 0x00;
@@ -3871,12 +3871,14 @@ static int ssl_decrypt_encrypted_pms( mbedtls_ssl_context *ssl,
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_0 )
     {
-        if ( p + 2 > end ) {
+        if ( p + 2 > end )
+        {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
             return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
         }
         if( *p++ != MBEDTLS_BYTE_1( len ) ||
-            *p++ != MBEDTLS_BYTE_0( len ) ){
+            *p++ != MBEDTLS_BYTE_0( len ) )
+        {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
             return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
         }

@@ -569,8 +569,8 @@ static int ssl_write_truncated_hmac_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 4 );
 
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_TRUNCATED_HMAC >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_TRUNCATED_HMAC      ) & 0xFF );
+    *p++ = MBEDTLS_BYTE_1( MBEDTLS_TLS_EXT_TRUNCATED_HMAC );
+    *p++ = MBEDTLS_BYTE_0( MBEDTLS_TLS_EXT_TRUNCATED_HMAC );
 
     *p++ = 0x00;
     *p++ = 0x00;

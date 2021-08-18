@@ -1482,7 +1482,7 @@ int main( int argc, char *argv[] )
         p = (char *) opt.sig_algs;
         i = 0;
 
-        /* Leave room for a final MBEDTLS_TLS13_SIG_NONE in signature algorithm list(sig_alg_list) */
+        /* Leave room for a final MBEDTLS_TLS13_SIG_NONE in signature algorithm list (sig_alg_list). */
         while( i < SIG_ALG_LIST_SIZE - 1 && *p != '\0' )
         {
             q = p;

@@ -3038,7 +3038,7 @@ void mbedtls_ssl_conf_sig_hashes( mbedtls_ssl_config *conf,
  * \param conf     The SSL configuration to use.
  * \param sig_algs List of allowed IANA values for TLS 1.3 signature algorithms,
  *                 terminated by \c MBEDTLS_TLS13_SIG_NONE. The list must remain
- *                 available throughout the liftime of the conf object. Supported
+ *                 available throughout the lifetime of the conf object. Supported
  *                 values are available as \c MBEDTLS_TLS13_SIG_XXXX
  */
 void mbedtls_ssl_conf_sig_algs( mbedtls_ssl_config *conf,

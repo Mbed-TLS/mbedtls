@@ -144,14 +144,14 @@ class PatternMismatch(Problem): # pylint: disable=too-few-public-methods
         if self.quiet:
             return (
                 "{0}:{1}:{2}"
-                .format(self.match.filename, self.match.pos[0], self.match.name)
+                .format(self.match.filename, self.match.line_no, self.match.name)
             )
 
         return self.textwrapper.fill(
             "{0}:{1}: '{2}' does not match the required pattern '{3}'."
             .format(
                 self.match.filename,
-                self.match.pos[0],
+                self.match.line_no,
                 self.match.name,
                 self.pattern
             )
@@ -173,14 +173,14 @@ class Typo(Problem): # pylint: disable=too-few-public-methods
         if self.quiet:
             return (
                 "{0}:{1}:{2}"
-                .format(self.match.filename, self.match.pos[0], self.match.name)
+                .format(self.match.filename, self.match.line_no, self.match.name)
             )
 
         return self.textwrapper.fill(
             "{0}:{1}: '{2}' looks like a typo. It was not found in any "
             "macros or any enums. If this is not a typo, put "
             "//no-check-names after it."
-            .format(self.match.filename, self.match.pos[0], self.match.name)
+            .format(self.match.filename, self.match.line_no, self.match.name)
         ) + "\n" + str(self.match)
 
 class CodeParser():

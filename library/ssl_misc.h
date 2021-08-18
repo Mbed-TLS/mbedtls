@@ -103,6 +103,21 @@
 #define MBEDTLS_SSL_RENEGOTIATION_DONE          2   /* Done or aborted */
 #define MBEDTLS_SSL_RENEGOTIATION_PENDING       3   /* Requested (server only) */
 
+/* List of extensions used in extensions_present of mbedtls_ssl_handshake_params */
+#define MBEDTLS_SSL_EXT_NONE                      0
+#define MBEDTLS_SSL_EXT_PRE_SHARED_KEY            ( 1 <<  0 )
+#define MBEDTLS_SSL_EXT_KEY_SHARE                 ( 1 <<  1 )
+#define MBEDTLS_SSL_EXT_SIGNATURE_ALGORITHM       ( 1 <<  2 )
+#define MBEDTLS_SSL_EXT_SUPPORTED_GROUPS          ( 1 <<  3 )
+#define MBEDTLS_SSL_EXT_MAX_FRAGMENT_LENGTH       ( 1 <<  4 )
+#define MBEDTLS_SSL_EXT_ALPN                      ( 1 <<  5 )
+#define MBEDTLS_SSL_EXT_SUPPORTED_VERSION         ( 1 <<  6 )
+#define MBEDTLS_SSL_EXT_PSK_KEY_EXCHANGE_MODES    ( 1 <<  7 )
+#define MBEDTLS_SSL_EXT_EARLY_DATA                ( 1 <<  8 )
+#define MBEDTLS_SSL_EXT_SERVERNAME                ( 1 <<  9 )
+#define MBEDTLS_SSL_EXT_COOKIE                    ( 1 << 10 )
+#define MBEDTLS_SSL_EXT_CID                       ( 1 << 11 )
+
 #define MBEDTLS_SSL_PROC_STRIP_PARENS( ... )   __VA_ARGS__
 
 #define MBEDTLS_SSL_PROC_CHK( fn, args )                        \
@@ -631,6 +646,9 @@ struct mbedtls_ssl_handshake_params
     int max_major_ver;                  /*!< max. major version client*/
     int max_minor_ver;                  /*!< max. minor version client*/
     int cli_exts;                       /*!< client extension presence*/
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+    int extensions_present;             /*!< extension presence; Each bitfield represents an extension and defined as \c MBEDTLS_SSL_EXT_XXX */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     int new_session_ticket;             /*!< use NewSessionTicket?    */

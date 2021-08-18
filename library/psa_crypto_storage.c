@@ -18,6 +18,8 @@
  *  limitations under the License.
  */
 
+#include "common.h"
+
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
 
 #include <stdlib.h>
@@ -41,8 +43,6 @@
 #define mbedtls_calloc   calloc
 #define mbedtls_free     free
 #endif
-
-#include "common.h"
 
 /****************************************************************/
 /* Key storage */

@@ -18,6 +18,8 @@
  *  limitations under the License.
  */
 
+#include "common.h"
+
 #if defined(MBEDTLS_PSA_ITS_FILE_C)
 
 #if defined(MBEDTLS_PLATFORM_C)
@@ -31,8 +33,6 @@
 #endif
 
 #include "psa_crypto_its.h"
-
-#include "common.h"
 
 #include <limits.h>
 #include <stdint.h>

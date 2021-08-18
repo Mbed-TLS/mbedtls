@@ -445,6 +445,8 @@
 #define MBEDTLS_TLS_EXT_TRUNCATED_HMAC               4
 
 #define MBEDTLS_TLS_EXT_SUPPORTED_ELLIPTIC_CURVES   10
+#define MBEDTLS_TLS_EXT_SUPPORTED_GROUPS            10 /* Renamed in TLS 1.3 */
+
 #define MBEDTLS_TLS_EXT_SUPPORTED_POINT_FORMATS     11
 
 #define MBEDTLS_TLS_EXT_SIG_ALG                     13
@@ -457,6 +459,15 @@
 #define MBEDTLS_TLS_EXT_EXTENDED_MASTER_SECRET  0x0017 /* 23 */
 
 #define MBEDTLS_TLS_EXT_SESSION_TICKET              35
+
+/* TLS 1.3 */
+#define MBEDTLS_TLS_EXT_PRE_SHARED_KEY              41
+#define MBEDTLS_TLS_EXT_EARLY_DATA                  42
+#define MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS          43
+#define MBEDTLS_TLS_EXT_COOKIE                      44
+#define MBEDTLS_TLS_EXT_PSK_KEY_EXCHANGE_MODES      45
+
+#define MBEDTLS_TLS_EXT_KEY_SHARES                  51
 
 /* The value of the CID extension is still TBD as of
  * draft-ietf-tls-dtls-connection-id-05

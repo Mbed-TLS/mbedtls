@@ -18,12 +18,6 @@
  *  limitations under the License.
  */
 
-#if defined(MBEDTLS_CONFIG_FILE)
-#include MBEDTLS_CONFIG_FILE
-#else
-#include "mbedtls/config.h"
-#endif
-
 #if defined(MBEDTLS_PSA_ITS_FILE_C)
 
 #if defined(MBEDTLS_PLATFORM_C)

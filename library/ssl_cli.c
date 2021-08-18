@@ -1208,8 +1208,8 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "adding FALLBACK_SCSV" ) );
 
         MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
-        *p++ = (unsigned char)( MBEDTLS_SSL_FALLBACK_SCSV_VALUE >> 8 );
-        *p++ = (unsigned char)( MBEDTLS_SSL_FALLBACK_SCSV_VALUE      );
+        *p++ = MBEDTLS_BYTE_1( MBEDTLS_SSL_FALLBACK_SCSV_VALUE );
+        *p++ = MBEDTLS_BYTE_0( MBEDTLS_SSL_FALLBACK_SCSV_VALUE );
         n++;
     }
 #endif

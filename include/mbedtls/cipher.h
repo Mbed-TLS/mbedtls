@@ -320,7 +320,7 @@ typedef struct mbedtls_cipher_context_t
     /** Current IV or NONCE_COUNTER for CTR-mode, data unit (or sector) number
      * for XTS-mode. */
     unsigned char iv[MBEDTLS_MAX_IV_LENGTH];
-    
+
     /** Buffer for input that has not been processed yet. */
     unsigned char unprocessed_data[MBEDTLS_MAX_BLOCK_LENGTH];
 

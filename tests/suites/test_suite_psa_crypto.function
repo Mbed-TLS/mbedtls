@@ -818,7 +818,7 @@ void mac_key_policy( int policy_usage_arg,
                 mbedtls_test_update_key_usage_flags( policy_usage ) );
 
     status = psa_mac_sign_setup( &operation, key, exercise_alg );
-    if( ( policy_usage & PSA_KEY_USAGE_SIGN_HASH ) == 0 )
+    if( ( mbedtls_test_update_key_usage_flags(policy_usage) & PSA_KEY_USAGE_SIGN_MESSAGE ) == 0 )
         TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
     else
         TEST_EQUAL( status, expected_status );
@@ -827,7 +827,7 @@ void mac_key_policy( int policy_usage_arg,
 
     memset( mac, 0, sizeof( mac ) );
     status = psa_mac_verify_setup( &operation, key, exercise_alg );
-    if( ( policy_usage & PSA_KEY_USAGE_VERIFY_HASH ) == 0 )
+    if( ( mbedtls_test_update_key_usage_flags(policy_usage) & PSA_KEY_USAGE_VERIFY_MESSAGE ) == 0 )
         TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
     else
         TEST_EQUAL( status, expected_status );

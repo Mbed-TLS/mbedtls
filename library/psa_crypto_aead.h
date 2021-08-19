@@ -159,10 +159,7 @@ psa_status_t mbedtls_psa_aead_decrypt(
  * mbedtls_psa_aead_encrypt_setup(), the operation is reset by the PSA core by a
  * call to mbedtls_psa_aead_abort(). The PSA core may call
  * mbedtls_psa_aead_abort() at any time after the operation has been
- * initialized.
- *
- * After a successful call to mbedtls_psa_aead_encrypt_setup(), the PSA core
- * eventually terminates the operation by calling mbedtls_psa_aead_abort().
+ * initialized, and is required to when the operation is no longer needed.
  *
  * \param[in,out] operation     The operation object to set up. It must have
  *                              been initialized as per the documentation for
@@ -203,10 +200,7 @@ psa_status_t mbedtls_psa_aead_encrypt_setup(
  * mbedtls_psa_aead_decrypt_setup(), the PSA core resets the operation by a
  * call to mbedtls_psa_aead_abort(). The PSA core may call
  * mbedtls_psa_aead_abort() at any time after the operation has been
- * initialized.
- *
- * After a successful call to mbedtls_psa_aead_decrypt_setup(), the PSA core
- * eventually terminates the operation by a call to mbedtls_psa_aead_abort().
+ * initialized, and is required to when the operation is no longer needed.
  *
  * \param[in,out] operation     The operation object to set up. It must have
  *                              been initialized as per the documentation for

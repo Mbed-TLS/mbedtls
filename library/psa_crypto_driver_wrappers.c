@@ -1509,7 +1509,7 @@ psa_status_t psa_driver_wrapper_aead_decrypt_setup(
             operation->id = PSA_CRYPTO_TRANSPARENT_TEST_DRIVER_ID;
             status = mbedtls_test_transparent_aead_decrypt_setup(
                         &operation->ctx.transparent_test_driver_ctx,
-                         attributes,
+                        attributes,
                         key_buffer, key_buffer_size,
                         alg );
 
@@ -1523,7 +1523,7 @@ psa_status_t psa_driver_wrapper_aead_decrypt_setup(
             operation->id = PSA_CRYPTO_MBED_TLS_DRIVER_ID;
             status = mbedtls_psa_aead_decrypt_setup(
                         &operation->ctx.mbedtls_ctx,
-                         attributes,
+                        attributes,
                         key_buffer, key_buffer_size,
                         alg );
 

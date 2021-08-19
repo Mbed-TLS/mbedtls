@@ -338,6 +338,41 @@
 #define MBEDTLS_SSL_SIG_ECDSA                3
 
 /*
+ * TLS 1.3 signature algorithms
+ * RFC 8446, Section 4.2.2
+ */
+
+/* RSASSA-PKCS1-v1_5 algorithms */
+#define MBEDTLS_TLS13_SIG_RSA_PKCS1_SHA256 0x0401
+#define MBEDTLS_TLS13_SIG_RSA_PKCS1_SHA384 0x0501
+#define MBEDTLS_TLS13_SIG_RSA_PKCS1_SHA512 0x0601
+
+/* ECDSA algorithms */
+#define MBEDTLS_TLS13_SIG_ECDSA_SECP256R1_SHA256 0x0403
+#define MBEDTLS_TLS13_SIG_ECDSA_SECP384R1_SHA384 0x0503
+#define MBEDTLS_TLS13_SIG_ECDSA_SECP521R1_SHA512 0x0603
+
+/* RSASSA-PSS algorithms with public key OID rsaEncryption */
+#define MBEDTLS_TLS13_SIG_RSA_PSS_RSAE_SHA256 0x0804
+#define MBEDTLS_TLS13_SIG_RSA_PSS_RSAE_SHA384 0x0805
+#define MBEDTLS_TLS13_SIG_RSA_PSS_RSAE_SHA512 0x0806
+
+/* EdDSA algorithms */
+#define MBEDTLS_TLS13_SIG_ED25519 0x0807
+#define MBEDTLS_TLS13_SIG_ED448 0x0808
+
+/* RSASSA-PSS algorithms with public key OID RSASSA-PSS  */
+#define MBEDTLS_TLS13_SIG_RSA_PSS_PSS_SHA256 0x0809
+#define MBEDTLS_TLS13_SIG_RSA_PSS_PSS_SHA384 0x080A
+#define MBEDTLS_TLS13_SIG_RSA_PSS_PSS_SHA512 0x080B
+
+/* LEGACY ALGORITHMS */
+#define MBEDTLS_TLS13_SIG_RSA_PKCS1_SHA1 0x0201
+#define MBEDTLS_TLS13_SIG_ECDSA_SHA1     0x0203
+
+#define MBEDTLS_TLS13_SIG_NONE 0x0
+
+/*
  * Client Certificate Types
  * RFC 5246 section 7.4.4 plus RFC 4492 section 5.5
  */
@@ -1154,6 +1189,10 @@ struct mbedtls_ssl_config
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     const int *MBEDTLS_PRIVATE(sig_hashes);          /*!< allowed signature hashes           */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+    const uint16_t *MBEDTLS_PRIVATE(tls13_sig_algs); /*!< allowed signature algorithms for TLS 1.3 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 #endif
 
 #if defined(MBEDTLS_ECP_C)
@@ -3012,6 +3051,20 @@ void mbedtls_ssl_conf_curves( mbedtls_ssl_config *conf,
  */
 void mbedtls_ssl_conf_sig_hashes( mbedtls_ssl_config *conf,
                                   const int *hashes );
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+/**
+ * \brief          Configure allowed signature algorithms for use in TLS 1.3
+ *
+ * \param conf     The SSL configuration to use.
+ * \param sig_algs List of allowed IANA values for TLS 1.3 signature algorithms,
+ *                 terminated by \c MBEDTLS_TLS13_SIG_NONE. The list must remain
+ *                 available throughout the lifetime of the conf object. Supported
+ *                 values are available as \c MBEDTLS_TLS13_SIG_XXXX
+ */
+void mbedtls_ssl_conf_sig_algs( mbedtls_ssl_config *conf,
+                                const uint16_t* sig_algs );
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)

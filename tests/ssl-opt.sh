@@ -1322,6 +1322,11 @@ if [ -n "${OPENSSL_LEGACY:-}" ]; then
     O_LEGACY_CLI="$O_LEGACY_CLI -connect localhost:+SRV_PORT"
 fi
 
+if [ -n "${OPENSSL_NEXT:-}" ]; then
+    O_NEXT_SRV="$O_NEXT_SRV -accept $SRV_PORT"
+    O_NEXT_CLI="$O_NEXT_CLI -connect localhost:+SRV_PORT"
+fi
+
 if [ -n "${GNUTLS_NEXT_SERV:-}" ]; then
     G_NEXT_SRV="$G_NEXT_SRV -p $SRV_PORT"
 fi
@@ -8660,6 +8665,15 @@ run_test    "TLS1.3: handshake dispatch test: tls1_3 only" \
             1 \
             -s "SSL - The requested feature is not available" \
             -c "SSL - The requested feature is not available"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+run_test    "TLS1.3: Test client hello msg work" \
+            "$O_NEXT_SRV -tls1_3 -msg" \
+            "$P_CLI min_version=tls1_3 max_version=tls1_3" \
+            1 \
+            -c "SSL - The requested feature is not available" \
+            -s "ServerHello"
 
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_MEMORY_DEBUG

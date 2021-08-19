@@ -113,8 +113,8 @@ static const unsigned char NIST_KW_ICV1[] = {0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6,
 /*! The 32-bit default integrity check value (ICV) for KWP mode. */
 static const  unsigned char NIST_KW_ICV2[] = {0xA6, 0x59, 0x59, 0xA6};
 
-#ifndef GET_UINT32_BE
-#define GET_UINT32_BE(n,b,i)                            \
+#ifndef MBEDTLS_GET_UINT32_BE
+#define MBEDTLS_GET_UINT32_BE(n,b,i)                            \
 do {                                                    \
     (n) = ( (uint32_t) (b)[(i)    ] << 24 )             \
         | ( (uint32_t) (b)[(i) + 1] << 16 )             \
@@ -123,8 +123,8 @@ do {                                                    \
 } while( 0 )
 #endif
 
-#ifndef PUT_UINT32_BE
-#define PUT_UINT32_BE(n,b,i)                            \
+#ifndef MBEDTLS_PUT_UINT32_BE
+#define MBEDTLS_PUT_UINT32_BE(n,b,i)                            \
 do {                                                    \
     (b)[(i)    ] = (unsigned char) ( (n) >> 24 );       \
     (b)[(i) + 1] = (unsigned char) ( (n) >> 16 );       \
@@ -279,7 +279,7 @@ int mbedtls_nist_kw_wrap( mbedtls_nist_kw_context *ctx,
         }
 
         memcpy( output, NIST_KW_ICV2, KW_SEMIBLOCK_LENGTH / 2 );
-        PUT_UINT32_BE( ( in_len & 0xffffffff ), output,
+        MBEDTLS_PUT_UINT32_BE( ( in_len & 0xffffffff ), output,
                        KW_SEMIBLOCK_LENGTH / 2 );
 
         memcpy( output + KW_SEMIBLOCK_LENGTH, input, in_len );
@@ -510,7 +510,7 @@ int mbedtls_nist_kw_unwrap( mbedtls_nist_kw_context *ctx,
             ret = MBEDTLS_ERR_CIPHER_AUTH_FAILED;
         }
 
-        GET_UINT32_BE( Plen, A, KW_SEMIBLOCK_LENGTH / 2 );
+        MBEDTLS_GET_UINT32_BE( Plen, A, KW_SEMIBLOCK_LENGTH / 2 );
 
         /*
          * Plen is the length of the plaintext, when the input is valid.

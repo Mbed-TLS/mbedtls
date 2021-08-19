@@ -96,8 +96,8 @@
 /*
  * 32-bit integer manipulation macros (little endian)
  */
-#ifndef GET_UINT32_LE
-#define GET_UINT32_LE(n,b,i)                            \
+#ifndef MBEDTLS_GET_UINT32_LE
+#define MBEDTLS_GET_UINT32_LE(n,b,i)                            \
 {                                                       \
     (n) = ( (uint32_t) (b)[(i)    ]       )             \
         | ( (uint32_t) (b)[(i) + 1] <<  8 )             \
@@ -106,8 +106,8 @@
 }
 #endif
 
-#ifndef PUT_UINT32_LE
-#define PUT_UINT32_LE(n,b,i)                                    \
+#ifndef MBEDTLS_PUT_UINT32_LE
+#define MBEDTLS_PUT_UINT32_LE(n,b,i)                                    \
 {                                                               \
     (b)[(i)    ] = (unsigned char) ( ( (n)       ) & 0xFF );    \
     (b)[(i) + 1] = (unsigned char) ( ( (n) >>  8 ) & 0xFF );    \
@@ -626,7 +626,7 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
 
     for( i = 0; i < ( keybits >> 5 ); i++ )
     {
-        GET_UINT32_LE( RK[i], key, i << 2 );
+        MBEDTLS_GET_UINT32_LE( RK[i], key, i << 2 );
     }
 
     switch( ctx->nr )
@@ -909,10 +909,10 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
         uint32_t Y[4];
     } t;
 
-    GET_UINT32_LE( t.X[0], input,  0 ); t.X[0] ^= *RK++;
-    GET_UINT32_LE( t.X[1], input,  4 ); t.X[1] ^= *RK++;
-    GET_UINT32_LE( t.X[2], input,  8 ); t.X[2] ^= *RK++;
-    GET_UINT32_LE( t.X[3], input, 12 ); t.X[3] ^= *RK++;
+    MBEDTLS_GET_UINT32_LE( t.X[0], input,  0 ); t.X[0] ^= *RK++;
+    MBEDTLS_GET_UINT32_LE( t.X[1], input,  4 ); t.X[1] ^= *RK++;
+    MBEDTLS_GET_UINT32_LE( t.X[2], input,  8 ); t.X[2] ^= *RK++;
+    MBEDTLS_GET_UINT32_LE( t.X[3], input, 12 ); t.X[3] ^= *RK++;
 
     for( i = ( ctx->nr >> 1 ) - 1; i > 0; i-- )
     {
@@ -946,10 +946,10 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
             ( (uint32_t) FSb[ MBEDTLS_BYTE_2( t.Y[1] ) ] << 16 ) ^
             ( (uint32_t) FSb[ MBEDTLS_BYTE_3( t.Y[2] ) ] << 24 );
 
-    PUT_UINT32_LE( t.X[0], output,  0 );
-    PUT_UINT32_LE( t.X[1], output,  4 );
-    PUT_UINT32_LE( t.X[2], output,  8 );
-    PUT_UINT32_LE( t.X[3], output, 12 );
+    MBEDTLS_PUT_UINT32_LE( t.X[0], output,  0 );
+    MBEDTLS_PUT_UINT32_LE( t.X[1], output,  4 );
+    MBEDTLS_PUT_UINT32_LE( t.X[2], output,  8 );
+    MBEDTLS_PUT_UINT32_LE( t.X[3], output, 12 );
 
     mbedtls_platform_zeroize( &t, sizeof( t ) );
 
@@ -982,10 +982,10 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
         uint32_t Y[4];
     } t;
 
-    GET_UINT32_LE( t.X[0], input,  0 ); t.X[0] ^= *RK++;
-    GET_UINT32_LE( t.X[1], input,  4 ); t.X[1] ^= *RK++;
-    GET_UINT32_LE( t.X[2], input,  8 ); t.X[2] ^= *RK++;
-    GET_UINT32_LE( t.X[3], input, 12 ); t.X[3] ^= *RK++;
+    MBEDTLS_GET_UINT32_LE( t.X[0], input,  0 ); t.X[0] ^= *RK++;
+    MBEDTLS_GET_UINT32_LE( t.X[1], input,  4 ); t.X[1] ^= *RK++;
+    MBEDTLS_GET_UINT32_LE( t.X[2], input,  8 ); t.X[2] ^= *RK++;
+    MBEDTLS_GET_UINT32_LE( t.X[3], input, 12 ); t.X[3] ^= *RK++;
 
     for( i = ( ctx->nr >> 1 ) - 1; i > 0; i-- )
     {
@@ -1019,10 +1019,10 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
             ( (uint32_t) RSb[ MBEDTLS_BYTE_2( t.Y[1] ) ] << 16 ) ^
             ( (uint32_t) RSb[ MBEDTLS_BYTE_3( t.Y[0] ) ] << 24 );
 
-    PUT_UINT32_LE( t.X[0], output,  0 );
-    PUT_UINT32_LE( t.X[1], output,  4 );
-    PUT_UINT32_LE( t.X[2], output,  8 );
-    PUT_UINT32_LE( t.X[3], output, 12 );
+    MBEDTLS_PUT_UINT32_LE( t.X[0], output,  0 );
+    MBEDTLS_PUT_UINT32_LE( t.X[1], output,  4 );
+    MBEDTLS_PUT_UINT32_LE( t.X[2], output,  8 );
+    MBEDTLS_PUT_UINT32_LE( t.X[3], output, 12 );
 
     mbedtls_platform_zeroize( &t, sizeof( t ) );
 
@@ -1152,8 +1152,8 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
 #if defined(MBEDTLS_CIPHER_MODE_XTS)
 
 /* Endianess with 64 bits values */
-#ifndef GET_UINT64_LE
-#define GET_UINT64_LE(n,b,i)                            \
+#ifndef MBEDTLS_GET_UINT64_LE
+#define MBEDTLS_GET_UINT64_LE(n,b,i)                            \
 {                                                       \
     (n) = ( (uint64_t) (b)[(i) + 7] << 56 )             \
         | ( (uint64_t) (b)[(i) + 6] << 48 )             \
@@ -1166,8 +1166,8 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
 }
 #endif
 
-#ifndef PUT_UINT64_LE
-#define PUT_UINT64_LE(n,b,i)                            \
+#ifndef MBEDTLS_PUT_UINT64_LE
+#define MBEDTLS_PUT_UINT64_LE(n,b,i)                            \
 {                                                       \
     (b)[(i) + 7] = (unsigned char) ( (n) >> 56 );       \
     (b)[(i) + 6] = (unsigned char) ( (n) >> 48 );       \
@@ -1195,14 +1195,14 @@ static void mbedtls_gf128mul_x_ble( unsigned char r[16],
 {
     uint64_t a, b, ra, rb;
 
-    GET_UINT64_LE( a, x, 0 );
-    GET_UINT64_LE( b, x, 8 );
+    MBEDTLS_GET_UINT64_LE( a, x, 0 );
+    MBEDTLS_GET_UINT64_LE( b, x, 8 );
 
     ra = ( a << 1 )  ^ 0x0087 >> ( 8 - ( ( b >> 63 ) << 3 ) );
     rb = ( a >> 63 ) | ( b << 1 );
 
-    PUT_UINT64_LE( ra, r, 0 );
-    PUT_UINT64_LE( rb, r, 8 );
+    MBEDTLS_PUT_UINT64_LE( ra, r, 0 );
+    MBEDTLS_PUT_UINT64_LE( rb, r, 8 );
 }
 
 /*

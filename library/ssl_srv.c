@@ -1970,12 +1970,11 @@ static void ssl_write_cid_ext( mbedtls_ssl_context *ssl,
      *      opaque cid<0..2^8-1>;
      *   } ConnectionId;
     */
-
-    *p++ = MBEDTLS_BYTE_1( MBEDTLS_TLS_EXT_CID );
-    *p++ = MBEDTLS_BYTE_0( MBEDTLS_TLS_EXT_CID );
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_CID, p, 0 );
+    p += 2;
     ext_len = (size_t) ssl->own_cid_len + 1;
-    *p++ = MBEDTLS_BYTE_1( ext_len );
-    *p++ = MBEDTLS_BYTE_0( ext_len );
+    MBEDTLS_PUT_UINT16_BE( ext_len, p, 0 );
+    p += 2;
 
     *p++ = (uint8_t) ssl->own_cid_len;
     memcpy( p, ssl->own_cid, ssl->own_cid_len );
@@ -2016,8 +2015,8 @@ static void ssl_write_encrypt_then_mac_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, adding encrypt then mac extension" ) );
 
-    *p++ = MBEDTLS_BYTE_1( MBEDTLS_TLS_EXT_ENCRYPT_THEN_MAC );
-    *p++ = MBEDTLS_BYTE_0( MBEDTLS_TLS_EXT_ENCRYPT_THEN_MAC );
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_ENCRYPT_THEN_MAC, p, 0 );
+    p += 2;
 
     *p++ = 0x00;
     *p++ = 0x00;
@@ -2042,8 +2041,8 @@ static void ssl_write_extended_ms_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, adding extended master secret "
                         "extension" ) );
 
-    *p++ = MBEDTLS_BYTE_1( MBEDTLS_TLS_EXT_EXTENDED_MASTER_SECRET );
-    *p++ = MBEDTLS_BYTE_0( MBEDTLS_TLS_EXT_EXTENDED_MASTER_SECRET );
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_EXTENDED_MASTER_SECRET, p, 0 );
+    p += 2;
 
     *p++ = 0x00;
     *p++ = 0x00;
@@ -2067,8 +2066,8 @@ static void ssl_write_session_ticket_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, adding session ticket extension" ) );
 
-    *p++ = MBEDTLS_BYTE_1( MBEDTLS_TLS_EXT_SESSION_TICKET );
-    *p++ = MBEDTLS_BYTE_0( MBEDTLS_TLS_EXT_SESSION_TICKET );
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SESSION_TICKET, p, 0 );
+    p += 2;
 
     *p++ = 0x00;
     *p++ = 0x00;
@@ -2091,8 +2090,8 @@ static void ssl_write_renegotiation_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, secure renegotiation extension" ) );
 
-    *p++ = MBEDTLS_BYTE_1( MBEDTLS_TLS_EXT_RENEGOTIATION_INFO );
-    *p++ = MBEDTLS_BYTE_0( MBEDTLS_TLS_EXT_RENEGOTIATION_INFO );
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_RENEGOTIATION_INFO, p, 0 );
+    p += 2;
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     if( ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE )
@@ -2132,8 +2131,8 @@ static void ssl_write_max_fragment_length_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, max_fragment_length extension" ) );
 
-    *p++ = MBEDTLS_BYTE_1( MBEDTLS_TLS_EXT_MAX_FRAGMENT_LENGTH );
-    *p++ = MBEDTLS_BYTE_0( MBEDTLS_TLS_EXT_MAX_FRAGMENT_LENGTH );
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_MAX_FRAGMENT_LENGTH, p, 0 );
+    p += 2;
 
     *p++ = 0x00;
     *p++ = 1;
@@ -2162,8 +2161,8 @@ static void ssl_write_supported_point_formats_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, supported_point_formats extension" ) );
 
-    *p++ = MBEDTLS_BYTE_1( MBEDTLS_TLS_EXT_SUPPORTED_POINT_FORMATS );
-    *p++ = MBEDTLS_BYTE_0( MBEDTLS_TLS_EXT_SUPPORTED_POINT_FORMATS );
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SUPPORTED_POINT_FORMATS, p, 0 );
+    p += 2;
 
     *p++ = 0x00;
     *p++ = 2;
@@ -2200,8 +2199,8 @@ static void ssl_write_ecjpake_kkpp_ext( mbedtls_ssl_context *ssl,
         return;
     }
 
-    *p++ = MBEDTLS_BYTE_1( MBEDTLS_TLS_EXT_ECJPAKE_KKPP );
-    *p++ = MBEDTLS_BYTE_0( MBEDTLS_TLS_EXT_ECJPAKE_KKPP );
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_ECJPAKE_KKPP, p, 0 );
+    p += 2;
 
     ret = mbedtls_ecjpake_write_round_one( &ssl->handshake->ecjpake_ctx,
                                         p + 2, end - p - 2, &kkpp_len,
@@ -2212,8 +2211,8 @@ static void ssl_write_ecjpake_kkpp_ext( mbedtls_ssl_context *ssl,
         return;
     }
 
-    *p++ = MBEDTLS_BYTE_1( kkpp_len );
-    *p++ = MBEDTLS_BYTE_0( kkpp_len );
+    MBEDTLS_PUT_UINT16_BE( kkpp_len, p, 0 );
+    p += 2;
 
     *olen = kkpp_len + 4;
 }
@@ -2488,10 +2487,8 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_HAVE_TIME)
     t = mbedtls_time( NULL );
-    *p++ = MBEDTLS_BYTE_3( t );
-    *p++ = MBEDTLS_BYTE_2( t );
-    *p++ = MBEDTLS_BYTE_1( t );
-    *p++ = MBEDTLS_BYTE_0( t );
+    MBEDTLS_PUT_UINT32_BE( t, p, 0 );
+    p += 4;
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, current time: %" MBEDTLS_PRINTF_LONGLONG,
                                 (long long) t ) );
@@ -2572,8 +2569,8 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "%s session has been resumed",
                    ssl->handshake->resume ? "a" : "no" ) );
 
-    *p++ = MBEDTLS_BYTE_1( ssl->session_negotiate->ciphersuite );
-    *p++ = MBEDTLS_BYTE_0( ssl->session_negotiate->ciphersuite );
+    MBEDTLS_PUT_UINT16_BE( ssl->session_negotiate->ciphersuite, p, 0 );
+    p += 2;
     *p++ = MBEDTLS_BYTE_0( ssl->session_negotiate->compression );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, chosen ciphersuite: %s",
@@ -2642,8 +2639,8 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 
     if( ext_len > 0 )
     {
-        *p++ = MBEDTLS_BYTE_1( ext_len );
-        *p++ = MBEDTLS_BYTE_0( ext_len );
+        MBEDTLS_PUT_UINT16_BE( ext_len, p, 0 );
+        p += 2;
         p += ext_len;
     }
 
@@ -2819,8 +2816,8 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
                 break;
             }
 
-            *p++ = MBEDTLS_BYTE_1( dn_size );
-            *p++ = MBEDTLS_BYTE_0( dn_size );
+            MBEDTLS_PUT_UINT16_BE( dn_size, p, 0 );
+            p += 2;
             memcpy( p, crt->subject_raw.p, dn_size );
             p += dn_size;
 

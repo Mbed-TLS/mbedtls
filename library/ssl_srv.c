@@ -1322,8 +1322,7 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
     for( i = 0, p = buf + 6; i < ciph_len; i += 3, p += 3 )
     {
         if( p[0] == 0 &&
-            p[1] == MBEDTLS_BYTE_1( MBEDTLS_SSL_FALLBACK_SCSV_VALUE ) &&
-            p[2] == MBEDTLS_BYTE_0( MBEDTLS_SSL_FALLBACK_SCSV_VALUE ) )
+            MBEDTLS_GET_UINT16_BE(p, 1) != MBEDTLS_SSL_FALLBACK_SCSV_VALUE )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "received FALLBACK_SCSV" ) );
 
@@ -1354,8 +1353,7 @@ static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
 #endif
         {
             if( p[0] != 0 ||
-                p[1] != MBEDTLS_BYTE_1( ciphersuites[i] ) ||
-                p[2] != MBEDTLS_BYTE_0( ciphersuites[i] ) )
+                MBEDTLS_GET_UINT16_BE(p, 1) != ciphersuites[i] )
                 continue;
 
             got_common_suite = 1;
@@ -2086,8 +2084,7 @@ read_record_header:
 #if defined(MBEDTLS_SSL_FALLBACK_SCSV)
     for( i = 0, p = buf + ciph_offset + 2; i < ciph_len; i += 2, p += 2 )
     {
-        if( p[0] == MBEDTLS_BYTE_1( MBEDTLS_SSL_FALLBACK_SCSV_VALUE ) &&
-            p[1] == MBEDTLS_BYTE_0( MBEDTLS_SSL_FALLBACK_SCSV_VALUE ) )
+        if( MBEDTLS_GET_UINT16_BE( p, 0 ) == MBEDTLS_SSL_FALLBACK_SCSV_VALUE )
         {
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "received FALLBACK_SCSV" ) );
 
@@ -2205,8 +2202,7 @@ read_record_header:
         for( j = 0, p = buf + ciph_offset + 2; j < ciph_len; j += 2, p += 2 )
 #endif
         {
-            if( p[0] != MBEDTLS_BYTE_1( ciphersuites[i] ) ||
-                p[1] != MBEDTLS_BYTE_0( ciphersuites[i] ) )
+            if( MBEDTLS_GET_UINT16_BE(p, 0) != ciphersuites[i] )
                 continue;
 
             got_common_suite = 1;

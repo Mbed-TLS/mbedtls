@@ -2638,8 +2638,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
     if( ext_len > 0 )
     {
         MBEDTLS_PUT_UINT16_BE( ext_len, p, 0 );
-        p += 2;
-        p += ext_len;
+        p += 2 + ext_len;
     }
 
     ssl->out_msglen  = p - buf;

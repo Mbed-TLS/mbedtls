@@ -788,7 +788,6 @@ static int ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
                                         profile_value ) );
             MBEDTLS_PUT_UINT16_BE( profile_value, p, 0 );
             p += 2;
-
         }
         else
         {
@@ -1321,8 +1320,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
         /* No need to check for space here, because the extension
          * writing functions already took care of that. */
         MBEDTLS_PUT_UINT16_BE( ext_len, p, 0 );
-        p += 2;
-        p += ext_len;
+        p += 2 + ext_len;
     }
 
     ssl->out_msglen  = p - buf;

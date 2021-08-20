@@ -1848,8 +1848,7 @@ read_record_header:
         for( j = 0, p = buf + ciph_offset + 2; j < ciph_len; j += 2, p += 2 )
             for( i = 0; ciphersuites[i] != 0; i++ )
             {
-                if( p[0] != MBEDTLS_BYTE_1( ciphersuites[i] ) ||
-                    p[1] != MBEDTLS_BYTE_0( ciphersuites[i] ))
+                if( MBEDTLS_GET_UINT16_BE(p, 0) != ciphersuites[i] )
                     continue;
 
                 got_common_suite = 1;
@@ -1865,8 +1864,7 @@ read_record_header:
         for( i = 0; ciphersuites[i] != 0; i++ )
             for( j = 0, p = buf + ciph_offset + 2; j < ciph_len; j += 2, p += 2 )
             {
-                if( p[0] != MBEDTLS_BYTE_1( ciphersuites[i] ) ||
-                    p[1] != MBEDTLS_BYTE_0( ciphersuites[i] ))
+                if( MBEDTLS_GET_UINT16_BE(p, 0) != ciphersuites[i] )
                     continue;
 
                 got_common_suite = 1;

@@ -3403,6 +3403,7 @@ static psa_algorithm_t psa_aead_get_base_algorithm( psa_algorithm_t alg )
 
 /* Set the key for a multipart authenticated operation. */
 static psa_status_t psa_aead_setup( psa_aead_operation_t *operation,
+                                    int is_encrypt,
                                     mbedtls_svc_key_id_t key,
                                     psa_algorithm_t alg )
 {
@@ -3430,7 +3431,7 @@ static psa_status_t psa_aead_setup( psa_aead_operation_t *operation,
         goto exit;
     }
 
-    if( operation->is_encrypt )
+    if( is_encrypt )
         key_usage = PSA_KEY_USAGE_ENCRYPT;
     else
         key_usage = PSA_KEY_USAGE_DECRYPT;
@@ -3445,7 +3446,7 @@ static psa_status_t psa_aead_setup( psa_aead_operation_t *operation,
         .core = slot->attr
     };
 
-    if( operation->is_encrypt )
+    if( is_encrypt )
         status = psa_driver_wrapper_aead_encrypt_setup( operation,
                                                         &attributes,
                                                         slot->key.data,
@@ -3472,6 +3473,7 @@ exit:
     {
         status = unlock_status;
         operation->alg = psa_aead_get_base_algorithm( alg );
+        operation->is_encrypt = is_encrypt;
     }
     else
         psa_aead_abort( operation );
@@ -3484,9 +3486,7 @@ psa_status_t psa_aead_encrypt_setup( psa_aead_operation_t *operation,
                                      mbedtls_svc_key_id_t key,
                                      psa_algorithm_t alg )
 {
-    operation->is_encrypt = 1;
-
-    return( psa_aead_setup( operation, key, alg ) );
+    return( psa_aead_setup( operation, 1, key, alg ) );
 }
 
 /* Set the key for a multipart authenticated decryption operation. */
@@ -3494,9 +3494,7 @@ psa_status_t psa_aead_decrypt_setup( psa_aead_operation_t *operation,
                                      mbedtls_svc_key_id_t key,
                                      psa_algorithm_t alg )
 {
-    operation->is_encrypt = 0;
-
-    return( psa_aead_setup( operation, key, alg ) );
+    return( psa_aead_setup( operation, 0, key, alg ) );
 }
 
 /* Generate a random nonce / IV for multipart AEAD operation */

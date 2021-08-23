@@ -1066,7 +1066,7 @@ typedef void mbedtls_ssl_export_keys_t( void *p_expkey,
  */
 struct mbedtls_ssl_config
 {
-     /* Group items by size and reorder them to maximize usage of immediate offset access.    */
+    /* Group items by size and reorder them to maximize usage of immediate offset access.    */
 
 
     /*
@@ -1078,7 +1078,7 @@ struct mbedtls_ssl_config
     unsigned char MBEDTLS_PRIVATE(min_major_ver);    /*!< min. major version used            */
     unsigned char MBEDTLS_PRIVATE(min_minor_ver);    /*!< min. minor version used            */
 
-   /*
+    /*
      * Flags (bitfields)
      */
 

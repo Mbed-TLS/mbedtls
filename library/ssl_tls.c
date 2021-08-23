@@ -1487,8 +1487,8 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
         if( end - p < 2 )
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-        *(p++) = MBEDTLS_BYTE_1( psk_len );
-        *(p++) = MBEDTLS_BYTE_0( psk_len );
+        MBEDTLS_PUT_UINT16_BE( psk_len, p, 0 );
+        p += 2;
 
         if( end < p || (size_t)( end - p ) < psk_len )
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
@@ -1528,9 +1528,8 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_dhm_calc_secret", ret );
             return( ret );
         }
-        *(p++) = MBEDTLS_BYTE_1( len );
-        *(p++) = MBEDTLS_BYTE_0( len );
-        p += len;
+        MBEDTLS_PUT_UINT16_BE( len, p, 0 );
+        p += 2 + len;
 
         MBEDTLS_SSL_DEBUG_MPI( 3, "DHM: K ", &ssl->handshake->dhm_ctx.K  );
     }
@@ -1550,9 +1549,8 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
             return( ret );
         }
 
-        *(p++) = MBEDTLS_BYTE_1( zlen );
-        *(p++) = MBEDTLS_BYTE_0( zlen );
-        p += zlen;
+        MBEDTLS_PUT_UINT16_BE( zlen, p, 0 );
+        p += 2 + zlen;
 
         MBEDTLS_SSL_DEBUG_ECDH( 3, &ssl->handshake->ecdh_ctx,
                                 MBEDTLS_DEBUG_ECDH_Z );
@@ -1568,8 +1566,8 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
     if( end - p < 2 )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    *(p++) = MBEDTLS_BYTE_1( psk_len );
-    *(p++) = MBEDTLS_BYTE_0( psk_len );
+    MBEDTLS_PUT_UINT16_BE( psk_len, p, 0 );
+    p += 2;
 
     if( end < p || (size_t)( end - p ) < psk_len )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );

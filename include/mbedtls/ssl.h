@@ -1291,7 +1291,23 @@ struct mbedtls_ssl_config
 
 struct mbedtls_ssl_context
 {
-    const mbedtls_ssl_config *MBEDTLS_PRIVATE(conf); /*!< configuration information          */
+    /*
+     * Secure renegotiation
+     */
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+    /* CID configuration to use in subsequent handshakes. */
+
+    /*! The next incoming CID, chosen by the user and applying to
+     *  all subsequent handshakes. This may be different from the
+     *  CID currently used in case the user has re-configured the CID
+     *  after an initial handshake. */
+    uint8_t MBEDTLS_PRIVATE(own_cid_len);   /*!< The length of \c own_cid. */
+    uint8_t MBEDTLS_PRIVATE(negotiate_cid); /*!< This indicates whether the CID extension should
+                            *   be negotiated in the next handshake or not.
+                            *   Possible values are #MBEDTLS_SSL_CID_ENABLED
+                            *   and #MBEDTLS_SSL_CID_DISABLED. */
+    unsigned char MBEDTLS_PRIVATE(own_cid)[ MBEDTLS_SSL_CID_IN_LEN_MAX ];
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
     /*
      * Miscellaneous
@@ -1312,6 +1328,8 @@ struct mbedtls_ssl_context
     int MBEDTLS_PRIVATE(minor_ver);              /*!< one of MBEDTLS_SSL_MINOR_VERSION_x macros */
     unsigned MBEDTLS_PRIVATE(badmac_seen);       /*!< records with a bad MAC received    */
 
+    const mbedtls_ssl_config *MBEDTLS_PRIVATE(conf); /*!< configuration information          */
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     /** Callback to customize X.509 certificate chain verification          */
     int (*MBEDTLS_PRIVATE(f_vrfy))(void *, mbedtls_x509_crt *, int, uint32_t *);
@@ -1324,6 +1342,11 @@ struct mbedtls_ssl_context
                                 /*!< Callback for network receive with timeout */
 
     void *MBEDTLS_PRIVATE(p_bio);                /*!< context for I/O operations   */
+
+    /*
+     * PKI layer
+     */
+    int MBEDTLS_PRIVATE(client_auth);                    /*!<  flag for client auth.   */
 
     /*
      * Session layer
@@ -1369,6 +1392,16 @@ struct mbedtls_ssl_context
     /*
      * Record layer (incoming data)
      */
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    uint8_t MBEDTLS_PRIVATE(disable_datagram_packing);  /*!< Disable packing multiple records
+                                        *   within a single datagram.  */
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+
+    int MBEDTLS_PRIVATE(nb_zero);                /*!< # of 0-length encrypted messages */
+
+    int MBEDTLS_PRIVATE(keep_current_message);   /*!< drop or reuse current message
+                                     on next call to record layer? */
+
     unsigned char *MBEDTLS_PRIVATE(in_buf);      /*!< input buffer                     */
     unsigned char *MBEDTLS_PRIVATE(in_ctr);      /*!< 64-bit incoming message counter
                                      TLS: maintained by us
@@ -1401,15 +1434,6 @@ struct mbedtls_ssl_context
 
     size_t MBEDTLS_PRIVATE(in_hslen);            /*!< current handshake message length,
                                      including the handshake header   */
-    int MBEDTLS_PRIVATE(nb_zero);                /*!< # of 0-length encrypted messages */
-
-    int MBEDTLS_PRIVATE(keep_current_message);   /*!< drop or reuse current message
-                                     on next call to record layer? */
-
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    uint8_t MBEDTLS_PRIVATE(disable_datagram_packing);  /*!< Disable packing multiple records
-                                        *   within a single datagram.  */
-#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
     /*
      * Record layer (outgoing data)
@@ -1439,11 +1463,6 @@ struct mbedtls_ssl_context
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
     /*
-     * PKI layer
-     */
-    int MBEDTLS_PRIVATE(client_auth);                    /*!<  flag for client auth.   */
-
-    /*
      * User settings
      */
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -1471,7 +1490,7 @@ struct mbedtls_ssl_context
 #endif /* MBEDTLS_SSL_DTLS_HELLO_VERIFY && MBEDTLS_SSL_SRV_C */
 
     /*
-     * Secure renegotiation
+     * Secure renegotiation (continued)
      */
     /* needed to know when to send extension on server */
     int MBEDTLS_PRIVATE(secure_renegotiation);           /*!<  does peer support legacy or
@@ -1481,21 +1500,6 @@ struct mbedtls_ssl_context
     char MBEDTLS_PRIVATE(own_verify_data)[MBEDTLS_SSL_VERIFY_DATA_MAX_LEN]; /*!<  previous handshake verify data */
     char MBEDTLS_PRIVATE(peer_verify_data)[MBEDTLS_SSL_VERIFY_DATA_MAX_LEN]; /*!<  previous handshake verify data */
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
-
-#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-    /* CID configuration to use in subsequent handshakes. */
-
-    /*! The next incoming CID, chosen by the user and applying to
-     *  all subsequent handshakes. This may be different from the
-     *  CID currently used in case the user has re-configured the CID
-     *  after an initial handshake. */
-    unsigned char MBEDTLS_PRIVATE(own_cid)[ MBEDTLS_SSL_CID_IN_LEN_MAX ];
-    uint8_t MBEDTLS_PRIVATE(own_cid_len);   /*!< The length of \c own_cid. */
-    uint8_t MBEDTLS_PRIVATE(negotiate_cid); /*!< This indicates whether the CID extension should
-                            *   be negotiated in the next handshake or not.
-                            *   Possible values are #MBEDTLS_SSL_CID_ENABLED
-                            *   and #MBEDTLS_SSL_CID_DISABLED. */
-#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)
     /** Callback to export key block and master secret                      */

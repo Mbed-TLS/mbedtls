@@ -166,10 +166,7 @@ static int ecjpake_write_len_point( unsigned char **p,
     if( ret != 0 )
         return( ret );
 
-    (*p)[0] = MBEDTLS_BYTE_3( len );
-    (*p)[1] = MBEDTLS_BYTE_2( len );
-    (*p)[2] = MBEDTLS_BYTE_1( len );
-    (*p)[3] = MBEDTLS_BYTE_0( len );
+    MBEDTLS_PUT_UINT32_BE( len, *p, 0 );
 
     *p += 4 + len;
 
@@ -209,10 +206,8 @@ static int ecjpake_hash( const mbedtls_md_info_t *md_info,
     if( end - p < 4 )
         return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
 
-    *p++ = MBEDTLS_BYTE_3( id_len );
-    *p++ = MBEDTLS_BYTE_2( id_len );
-    *p++ = MBEDTLS_BYTE_1( id_len );
-    *p++ = MBEDTLS_BYTE_0( id_len );
+    MBEDTLS_PUT_UINT32_BE( id_len, p, 0 );
+    p += 4;
 
     if( end < p || (size_t)( end - p ) < id_len )
         return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );

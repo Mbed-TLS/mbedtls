@@ -42,6 +42,7 @@ The script returns 0 on success, 1 on test failure, and 2 if there is a script
 error. It must be run from Mbed TLS root.
 """
 
+import abc
 import argparse
 import glob
 import textwrap
@@ -92,9 +93,11 @@ class Match(): # pylint: disable=too-few-public-methods
             " {0} | {1}\n".format(" " * len(gutter), underline)
         )
 
-class Problem(): # pylint: disable=too-few-public-methods
+class Problem(abc.ABC): # pylint: disable=too-few-public-methods
     """
-    A parent class representing a form of static analysis error.
+    An abstract parent class representing a form of static analysis error.
+    It extends an Abstract Base Class, which means it is not instantiable, and
+    it also mandates certain abstract methods to be implemented in subclasses.
     """
     # Class variable to control the quietness of all problems
     quiet = False
@@ -103,6 +106,28 @@ class Problem(): # pylint: disable=too-few-public-methods
         self.textwrapper.width = 80
         self.textwrapper.initial_indent = "    > "
         self.textwrapper.subsequent_indent = "      "
+
+    def __str__(self):
+        """
+        Unified string representation method for all Problems.
+        """
+        if self.__class__.quiet:
+            return self.quiet_output()
+        return self.verbose_output()
+
+    @abc.abstractmethod
+    def quiet_output(self):
+        """
+        The output when --quiet is enabled.
+        """
+        pass
+
+    @abc.abstractmethod
+    def verbose_output(self):
+        """
+        The default output with explanation and code snippet if appropriate.
+        """
+        pass
 
 class SymbolNotInHeader(Problem): # pylint: disable=too-few-public-methods
     """
@@ -117,10 +142,10 @@ class SymbolNotInHeader(Problem): # pylint: disable=too-few-public-methods
         self.symbol_name = symbol_name
         Problem.__init__(self)
 
-    def __str__(self):
-        if self.quiet:
-            return "{0}".format(self.symbol_name)
+    def quiet_output(self):
+        return "{0}".format(self.symbol_name)
 
+    def verbose_output(self):
         return self.textwrapper.fill(
             "'{0}' was found as an available symbol in the output of nm, "
             "however it was not declared in any header files."
@@ -140,13 +165,14 @@ class PatternMismatch(Problem): # pylint: disable=too-few-public-methods
         self.match = match
         Problem.__init__(self)
 
-    def __str__(self):
-        if self.quiet:
-            return (
-                "{0}:{1}:{2}"
-                .format(self.match.filename, self.match.line_no, self.match.name)
-            )
 
+    def quiet_output(self):
+        return (
+            "{0}:{1}:{2}"
+            .format(self.match.filename, self.match.line_no, self.match.name)
+        )
+
+    def verbose_output(self):
         return self.textwrapper.fill(
             "{0}:{1}: '{2}' does not match the required pattern '{3}'."
             .format(
@@ -169,13 +195,13 @@ class Typo(Problem): # pylint: disable=too-few-public-methods
         self.match = match
         Problem.__init__(self)
 
-    def __str__(self):
-        if self.quiet:
-            return (
-                "{0}:{1}:{2}"
-                .format(self.match.filename, self.match.line_no, self.match.name)
-            )
+    def quiet_output(self):
+        return (
+            "{0}:{1}:{2}"
+            .format(self.match.filename, self.match.line_no, self.match.name)
+        )
 
+    def verbose_output(self):
         return self.textwrapper.fill(
             "{0}:{1}: '{2}' looks like a typo. It was not found in any "
             "macros or any enums. If this is not a typo, put "

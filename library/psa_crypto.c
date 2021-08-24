@@ -1212,14 +1212,11 @@ psa_status_t psa_get_key_attributes( mbedtls_svc_key_id_t key,
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
         case PSA_KEY_TYPE_RSA_KEY_PAIR:
         case PSA_KEY_TYPE_RSA_PUBLIC_KEY:
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
             /* TODO: reporting the public exponent for opaque keys
              * is not yet implemented.
              * https://github.com/ARMmbed/mbed-crypto/issues/216
              */
-            if( psa_key_slot_is_external( slot ) )
-                break;
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+            if( ! psa_key_lifetime_is_external( slot->attr.lifetime ) )
             {
                 mbedtls_rsa_context *rsa = NULL;
 

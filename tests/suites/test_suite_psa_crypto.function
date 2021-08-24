@@ -853,7 +853,8 @@ void mac_key_policy( int policy_usage_arg,
                      int key_type_arg,
                      data_t *key_data,
                      int exercise_alg_arg,
-                     int expected_status_arg )
+                     int expected_status_sign_arg,
+                     int expected_status_verify_arg )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -863,7 +864,8 @@ void mac_key_policy( int policy_usage_arg,
     psa_algorithm_t exercise_alg = exercise_alg_arg;
     psa_key_usage_t policy_usage = policy_usage_arg;
     psa_status_t status;
-    psa_status_t expected_status = expected_status_arg;
+    psa_status_t expected_status_sign = expected_status_sign_arg;
+    psa_status_t expected_status_verify = expected_status_verify_arg;
     unsigned char mac[PSA_MAC_MAX_SIZE];
 
     PSA_ASSERT( psa_crypto_init( ) );
@@ -879,19 +881,13 @@ void mac_key_policy( int policy_usage_arg,
                 mbedtls_test_update_key_usage_flags( policy_usage ) );
 
     status = psa_mac_sign_setup( &operation, key, exercise_alg );
-    if( ( mbedtls_test_update_key_usage_flags(policy_usage) & PSA_KEY_USAGE_SIGN_MESSAGE ) == 0 )
-        TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
-    else
-        TEST_EQUAL( status, expected_status );
+    TEST_EQUAL( status, expected_status_sign );
 
     psa_mac_abort( &operation );
 
     memset( mac, 0, sizeof( mac ) );
     status = psa_mac_verify_setup( &operation, key, exercise_alg );
-    if( ( mbedtls_test_update_key_usage_flags(policy_usage) & PSA_KEY_USAGE_VERIFY_MESSAGE ) == 0 )
-        TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
-    else
-        TEST_EQUAL( status, expected_status );
+    TEST_EQUAL( status, expected_status_verify );
 
 exit:
     psa_mac_abort( &operation );

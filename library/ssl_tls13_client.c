@@ -400,15 +400,49 @@ static int ssl_client_hello_write_partial( mbedtls_ssl_context* ssl,
     return( 0 );
 }
 
+/*
+ * ssl_write_supported_versions_ext():
+ *
+ * struct {
+ *      ProtocolVersion versions<2..254>;
+ * } SupportedVersions;
+ */
 static void ssl_write_supported_versions_ext( mbedtls_ssl_context *ssl,
                                              unsigned char* buf,
                                              unsigned char* end,
                                              size_t* olen )
 {
-    ((void) ssl);
-    ((void) buf);
-    ((void) end);
-    ((void) olen);
+    unsigned char *p = buf;
+
+    *olen = 0;
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding supported version extension" ) );
+
+    if( end < p || (size_t)( end - p ) < 7 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
+        return;
+    }
+
+    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS >> 8 ) & 0xFF );
+    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS ) & 0xFF );
+
+    /* total length */
+    *p++ = 0x00;
+    *p++ = 3;
+
+    /* length of next field */
+    *p++ = 0x2;
+
+    /* This implementation only supports a single TLS version, and only
+     * advertises a single value.
+     */
+    mbedtls_ssl_write_version( ssl->conf->max_major_ver, ssl->conf->max_minor_ver,
+                              ssl->conf->transport, p );
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "supported version: [%d:%d]", ssl->conf->max_major_ver, ssl->conf->max_minor_ver ) );
+
+    *olen = 7;
 }
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)

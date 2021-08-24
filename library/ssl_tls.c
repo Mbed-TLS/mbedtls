@@ -3552,7 +3552,7 @@ void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
 void mbedtls_ssl_conf_tls13_key_exchange_modes( mbedtls_ssl_config *conf,
                                                 const int kex_modes )
 {
-    conf->tls13_kex_modes = kex_modes;
+    conf->tls13_kex_modes = kex_modes & MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_ALL;
 }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 

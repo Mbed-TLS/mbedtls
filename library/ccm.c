@@ -171,7 +171,7 @@ static int ccm_calculate_first_block_if_ready(mbedtls_ccm_context *ctx)
     ctx->y[0] |= ctx->q - 1;
 
     for( i = 0, len_left = ctx->plaintext_len; i < ctx->q; i++, len_left >>= 8 )
-        ctx->y[15-i] = (unsigned char)( len_left & 0xFF );
+        ctx->y[15-i] = MBEDTLS_BYTE_0( len_left );
 
     if( len_left > 0 )
     {

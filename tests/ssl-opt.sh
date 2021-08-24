@@ -77,6 +77,14 @@ else
     O_LEGACY_CLI=false
 fi
 
+if [ -n "${OPENSSL_NEXT:-}" ]; then
+    O_NEXT_SRV="$OPENSSL_NEXT s_server -www -cert data_files/server5.crt -key data_files/server5.key"
+    O_NEXT_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_NEXT s_client"
+else
+    O_NEXT_SRV=false
+    O_NEXT_CLI=false
+fi
+
 if [ -n "${GNUTLS_NEXT_SERV:-}" ]; then
     G_NEXT_SRV="$GNUTLS_NEXT_SERV --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key"
 else
@@ -342,6 +350,57 @@ requires_openssl_legacy() {
         fi
     fi
     if [ "$OPENSSL_LEGACY_AVAILABLE" = "NO" ]; then
+        SKIP_NEXT="YES"
+    fi
+}
+
+requires_openssl_next() {
+    if [ -z "${OPENSSL_NEXT_AVAILABLE:-}" ]; then
+        if which "${OPENSSL_NEXT:-}" >/dev/null 2>&1; then
+            OPENSSL_NEXT_AVAILABLE="YES"
+        else
+            OPENSSL_NEXT_AVAILABLE="NO"
+        fi
+    fi
+    if [ "$OPENSSL_NEXT_AVAILABLE" = "NO" ]; then
+        SKIP_NEXT="YES"
+    fi
+}
+
+# skip next test if tls1_3 is not available
+requires_openssl_tls1_3() {
+    requires_openssl_next
+    if [ "$OPENSSL_NEXT_AVAILABLE" = "NO" ]; then
+        OPENSSL_TLS1_3_AVAILABLE="NO"
+    fi
+    if [ -z "${OPENSSL_TLS1_3_AVAILABLE:-}" ]; then
+        if $OPENSSL_NEXT s_client -help 2>&1 | grep tls1_3 >/dev/null
+        then
+            OPENSSL_TLS1_3_AVAILABLE="YES"
+        else
+            OPENSSL_TLS1_3_AVAILABLE="NO"
+        fi
+    fi
+    if [ "$OPENSSL_TLS1_3_AVAILABLE" = "NO" ]; then
+        SKIP_NEXT="YES"
+    fi
+}
+
+# skip next test if tls1_3 is not available
+requires_gnutls_tls1_3() {
+    requires_gnutls_next
+    if [ "$GNUTLS_NEXT_AVAILABLE" = "NO" ]; then
+        GNUTLS_TLS1_3_AVAILABLE="NO"
+    fi
+    if [ -z "${GNUTLS_TLS1_3_AVAILABLE:-}" ]; then
+        if $GNUTLS_NEXT_CLI -l 2>&1 | grep VERS-TLS1.3 >/dev/null
+        then
+            GNUTLS_TLS1_3_AVAILABLE="YES"
+        else
+            GNUTLS_TLS1_3_AVAILABLE="NO"
+        fi
+    fi
+    if [ "$GNUTLS_TLS1_3_AVAILABLE" = "NO" ]; then
         SKIP_NEXT="YES"
     fi
 }
@@ -693,6 +752,11 @@ find_in_both() {
         fi
 }
 
+SKIP_HANDSHAKE_CHECK="NO"
+skip_handshake_stage_check() {
+    SKIP_HANDSHAKE_CHECK="YES"
+}
+
 # Usage: run_test name [-p proxy_cmd] srv_cmd cli_cmd cli_exit [option [...]]
 # Options:  -s pattern  pattern that must be present in server output
 #           -c pattern  pattern that must be present in client output
@@ -855,21 +919,25 @@ run_test() {
     # (useful to avoid tests with only negative assertions and non-zero
     # expected client exit to incorrectly succeed in case of catastrophic
     # failure)
-    if is_polar "$SRV_CMD"; then
-        if grep "Performing the SSL/TLS handshake" $SRV_OUT >/dev/null; then :;
-        else
-            fail "server or client failed to reach handshake stage"
-            return
+    if [ "X$SKIP_HANDSHAKE_CHECK" != "XYES" ]
+    then
+        if is_polar "$SRV_CMD"; then
+            if grep "Performing the SSL/TLS handshake" $SRV_OUT >/dev/null; then :;
+            else
+                fail "server or client failed to reach handshake stage"
+                return
+            fi
         fi
-    fi
-    if is_polar "$CLI_CMD"; then
-        if grep "Performing the SSL/TLS handshake" $CLI_OUT >/dev/null; then :;
-        else
-            fail "server or client failed to reach handshake stage"
-            return
+        if is_polar "$CLI_CMD"; then
+            if grep "Performing the SSL/TLS handshake" $CLI_OUT >/dev/null; then :;
+            else
+                fail "server or client failed to reach handshake stage"
+                return
+            fi
         fi
     fi
 
+    SKIP_HANDSHAKE_CHECK="NO"
     # Check server exit code (only for Mbed TLS: GnuTLS and OpenSSL don't
     # exit with status 0 when interrupted by a signal, and we don't really
     # care anyway), in case e.g. the server reports a memory leak.
@@ -8477,6 +8545,47 @@ run_test    "export keys functionality" \
             -s "EAP-TLS key material is:"\
             -c "EAP-TLS IV is:" \
             -s "EAP-TLS IV is:"
+
+# openssl feature tests: check if tls1.3 exists.
+requires_openssl_tls1_3
+run_test    "TLS1.3: Test openssl tls1_3 feature" \
+            "$O_NEXT_SRV -tls1_3 -msg" \
+            "$O_NEXT_CLI -tls1_3 -msg" \
+            0 \
+            -c "TLS 1.3" \
+            -s "TLS 1.3"
+
+# gnutls feature tests: check if tls1.3 exists.
+requires_gnutls_tls1_3
+run_test    "TLS1.3: Test gnutls tls1_3 feature" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V" \
+            0 \
+            -s "Version: TLS1.3" \
+            -c "Version: TLS1.3"
+
+# TLS1.3 test cases
+# TODO: remove or rewrite this test case if #4832 is resolved.
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+skip_handshake_stage_check
+run_test    "TLS1.3: Not supported version check: tls1_2 and tls1_3" \
+            "$P_SRV debug_level=1 min_version=tls1_2 max_version=tls1_3" \
+            "$P_CLI debug_level=1 min_version=tls1_2 max_version=tls1_3" \
+            1 \
+            -s "SSL - The requested feature is not available" \
+            -c "SSL - The requested feature is not available" \
+            -s "Hybrid TLS 1.2 + TLS 1.3 configurations are not yet supported" \
+            -c "Hybrid TLS 1.2 + TLS 1.3 configurations are not yet supported"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+run_test    "TLS1.3: handshake dispatch test: tls1_3 only" \
+            "$P_SRV min_version=tls1_3 max_version=tls1_3" \
+            "$P_CLI min_version=tls1_3 max_version=tls1_3" \
+            1 \
+            -s "SSL - The requested feature is not available" \
+            -c "SSL - The requested feature is not available"
 
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_MEMORY_DEBUG

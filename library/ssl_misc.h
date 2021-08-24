@@ -562,6 +562,13 @@ struct mbedtls_ssl_handshake_params
     uint16_t mtu;                       /*!<  Handshake mtu, used to fragment outgoing messages */
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+    /*! TLS 1.3 transforms for 0-RTT and encrypted handshake messages.
+     *  Those pointers own the transforms they reference. */
+    mbedtls_ssl_transform *transform_handshake;
+    mbedtls_ssl_transform *transform_earlydata;
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+
     /*
      * Checksum contexts
      */
@@ -740,7 +747,8 @@ struct mbedtls_ssl_transform
 
 #if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
     /* We need the Hello random bytes in order to re-derive keys from the
-     * Master Secret and other session info, see ssl_populate_transform() */
+     * Master Secret and other session info,
+     * see ssl_tls12_populate_transform() */
     unsigned char randbytes[64]; /*!< ServerHello.random+ClientHello.random */
 #endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
 };
@@ -881,6 +889,10 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl );
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+int mbedtls_ssl_handshake_client_step_tls1_3( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_handshake_server_step_tls1_3( mbedtls_ssl_context *ssl );
+#endif
 
 int mbedtls_ssl_send_fatal_handshake_failure( mbedtls_ssl_context *ssl );
 
@@ -971,7 +983,13 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl,
                              unsigned update_hs_digest );
 int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want );
 
-int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_write_handshake_msg_ext( mbedtls_ssl_context *ssl,
+                                         int update_checksum );
+static inline int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
+{
+    return( mbedtls_ssl_write_handshake_msg_ext( ssl, 1 /* update checksum */ ) );
+}
+
 int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush );
 int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl );
 
@@ -1258,5 +1276,51 @@ size_t mbedtls_ssl_get_current_mtu( const mbedtls_ssl_context *ssl );
 void mbedtls_ssl_buffering_free( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_flight_free( mbedtls_ssl_flight_item *flight );
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
+
+/**
+ * ssl utils functions for checking configuration.
+ */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+static inline int mbedtls_ssl_conf_is_tls13_only( const mbedtls_ssl_config *conf )
+{
+    if( conf->min_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
+        conf->max_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
+        conf->min_minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 &&
+        conf->max_minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+    {
+        return( 1 );
+    }
+    return( 0 );
+}
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+static inline int mbedtls_ssl_conf_is_tls12_only( const mbedtls_ssl_config *conf )
+{
+    if( conf->min_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
+        conf->max_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
+        conf->min_minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 &&
+        conf->max_minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+    {
+        return( 1 );
+    }
+    return( 0 );
+}
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+static inline int mbedtls_ssl_conf_is_hybrid_tls12_tls13( const mbedtls_ssl_config *conf )
+{
+    if( conf->min_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
+        conf->max_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
+        conf->min_minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 &&
+        conf->max_minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+    {
+        return( 1 );
+    }
+    return( 0 );
+}
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL*/
 
 #endif /* ssl_misc.h */

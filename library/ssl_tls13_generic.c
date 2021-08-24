@@ -70,6 +70,40 @@ void mbedtls_ssl_add_hs_hdr_to_checksum( mbedtls_ssl_context *ssl,
     ssl->handshake->update_checksum( ssl, hs_hdr, sizeof( hs_hdr ) );
 }
 
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+
+/*
+ * mbedtls_ssl_write_signature_algorithms_ext( )
+ *
+ * enum {
+ *    ....
+ *   ecdsa_secp256r1_sha256( 0x0403 ),
+ *   ecdsa_secp384r1_sha384( 0x0503 ),
+ *   ecdsa_secp521r1_sha512( 0x0603 ),
+ *    ....
+ * } SignatureScheme;
+ *
+ * struct {
+ *    SignatureScheme supported_signature_algorithms<2..2^16-2>;
+ * } SignatureSchemeList;
+ *
+ * Only if we handle at least one key exchange that needs signatures.
+ */
+
+int mbedtls_ssl_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
+                                        unsigned char* buf,
+                                        unsigned char* end,
+                                        size_t* olen )
+{
+    ((void) ssl);
+    ((void) buf);
+    ((void) end);
+    ((void) olen);
+    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+}
+
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 #endif /* MBEDTLS_SSL_TLS_C */

@@ -322,13 +322,6 @@ psa_status_t mbedtls_to_psa_error( int ret )
 /* Key management */
 /****************************************************************/
 
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-static inline int psa_key_slot_is_external( const psa_key_slot_t *slot )
-{
-    return( psa_key_lifetime_is_external( slot->attr.lifetime ) );
-}
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
-
 /* For now the MBEDTLS_PSA_ACCEL_ guards are also used here since the
  * current test driver in key_management.c is using this function
  * when accelerators are used for ECC key pair and public key.

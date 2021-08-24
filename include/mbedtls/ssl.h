@@ -2582,7 +2582,7 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
  *                      the server supports.
  *
  * \warning             The ciphersuites array \p ciphersuites is not copied.
- *                      It must remain valid for the lifetime the SSL
+ *                      It must remain valid for the lifetime of the SSL
  *                      configuration \p conf.
  *
  * \param conf          The SSL configuration to modify.

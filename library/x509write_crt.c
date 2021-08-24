@@ -251,8 +251,7 @@ int mbedtls_x509write_crt_set_key_usage( mbedtls_x509write_cert *ctx,
         return( MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE );
 
     c = buf + 5;
-    ku[0] = (unsigned char)( key_usage      );
-    ku[1] = (unsigned char)( key_usage >> 8 );
+    MBEDTLS_PUT_UINT16_LE( key_usage, ku, 0 );
     ret = mbedtls_asn1_write_named_bitstring( &c, buf, ku, 9 );
 
     if( ret < 0 )

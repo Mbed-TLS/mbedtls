@@ -1201,7 +1201,7 @@ psa_status_t psa_get_key_attributes( mbedtls_svc_key_id_t key,
                                 MBEDTLS_PSA_KA_MASK_DUAL_USE );
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    if( psa_key_slot_is_external( slot ) )
+    if( psa_get_se_driver_entry( slot->attr.lifetime ) != NULL )
         psa_set_key_slot_number( attributes,
                                  psa_key_slot_get_slot_number( slot ) );
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */

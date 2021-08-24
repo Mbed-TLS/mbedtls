@@ -1458,8 +1458,8 @@ run_test    "SHA-256 allowed by default in client certificate" \
 # ssl_client2/ssl_server2 example programs works.
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 run_test    "TLS 1.3, key exchange mode parameter passing: PSK only" \
-            "$P_SRV tls13_kex_modes=psk_pure" \
-            "$P_CLI tls13_kex_modes=psk_pure" \
+            "$P_SRV tls13_kex_modes=psk" \
+            "$P_CLI tls13_kex_modes=psk" \
             0
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 run_test    "TLS 1.3, key exchange mode parameter passing: PSK-ephemeral only" \
@@ -1468,8 +1468,8 @@ run_test    "TLS 1.3, key exchange mode parameter passing: PSK-ephemeral only" \
             0
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 run_test    "TLS 1.3, key exchange mode parameter passing: Pure-ephemeral only" \
-            "$P_SRV tls13_kex_modes=ephemeral_pure" \
-            "$P_CLI tls13_kex_modes=ephemeral_pure" \
+            "$P_SRV tls13_kex_modes=ephemeral" \
+            "$P_CLI tls13_kex_modes=ephemeral" \
             0
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 run_test    "TLS 1.3, key exchange mode parameter passing: All ephemeral" \

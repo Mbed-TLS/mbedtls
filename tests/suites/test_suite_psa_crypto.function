@@ -3772,7 +3772,6 @@ exit:
 void aead_multipart_set_nonce( int key_type_arg, data_t *key_data,
                                int alg_arg,
                                int nonce_length,
-                               int allow_null_nonce_buffer,
                                data_t *additional_data,
                                data_t *input_data,
                                int expected_status_arg )
@@ -3833,11 +3832,8 @@ void aead_multipart_set_nonce( int key_type_arg, data_t *key_data,
 
     if( nonce_length == 0 )
     {
-        if( !allow_null_nonce_buffer )
-        {
-            /* Arbitrary size buffer, to test zero length valid buffer. */
-            ASSERT_ALLOC( nonce_buffer, 4 );
-        }
+         /* Arbitrary size buffer, to test zero length valid buffer. */
+         ASSERT_ALLOC( nonce_buffer, 4 );
     }
     else
     {

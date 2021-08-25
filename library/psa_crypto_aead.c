@@ -473,9 +473,7 @@ psa_status_t mbedtls_psa_aead_set_nonce(
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
     {
-        ( void ) operation;
         ( void ) nonce;
-        ( void ) nonce_length;
 
         return ( PSA_ERROR_NOT_SUPPORTED );
     }

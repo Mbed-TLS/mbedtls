@@ -3438,7 +3438,6 @@ static psa_status_t psa_aead_setup( psa_aead_operation_t *operation,
 
     status = psa_get_and_lock_key_slot_with_policy( key, &slot, key_usage,
                                                     alg );
-
     if( status != PSA_SUCCESS )
         goto exit;
 
@@ -3458,15 +3457,12 @@ static psa_status_t psa_aead_setup( psa_aead_operation_t *operation,
                                                         slot->key.data,
                                                         slot->key.bytes,
                                                         alg );
-
-
     if( status != PSA_SUCCESS )
         goto exit;
 
     operation->key_type = psa_get_key_type( &attributes );
 
 exit:
-
     unlock_status = psa_unlock_key_slot( slot );
 
     if( status == PSA_SUCCESS )
@@ -3522,7 +3518,6 @@ psa_status_t psa_aead_generate_nonce( psa_aead_operation_t *operation,
 
     required_nonce_size = PSA_AEAD_NONCE_LENGTH( operation->key_type,
                                                 operation->alg );
-
     if( nonce_size < required_nonce_size )
     {
         status = PSA_ERROR_BUFFER_TOO_SMALL;
@@ -3530,14 +3525,12 @@ psa_status_t psa_aead_generate_nonce( psa_aead_operation_t *operation,
     }
 
     status = psa_generate_random( nonce, required_nonce_size );
-
     if( status != PSA_SUCCESS )
         goto exit;
 
     status = psa_aead_set_nonce( operation, nonce, required_nonce_size );
 
 exit:
-
     if( status == PSA_SUCCESS )
         *nonce_length = required_nonce_size;
     else
@@ -3576,7 +3569,6 @@ psa_status_t psa_aead_set_nonce( psa_aead_operation_t *operation,
                                                 nonce_length );
 
 exit:
-
     if( status == PSA_SUCCESS )
         operation->nonce_set = 1;
     else
@@ -3609,7 +3601,6 @@ psa_status_t psa_aead_set_lengths( psa_aead_operation_t *operation,
                                                   plaintext_length );
 
 exit:
-
     if( status == PSA_SUCCESS )
     {
         operation->ad_remaining = ad_length;
@@ -3655,7 +3646,6 @@ psa_status_t psa_aead_update_ad( psa_aead_operation_t *operation,
                                                 input_length );
 
 exit:
-
     if( status == PSA_SUCCESS )
         operation->ad_started = 1;
     else
@@ -3714,7 +3704,6 @@ psa_status_t psa_aead_update( psa_aead_operation_t *operation,
                                              output_length );
 
 exit:
-
     if( status == PSA_SUCCESS )
         operation->body_started = 1;
     else
@@ -3750,7 +3739,6 @@ psa_status_t psa_aead_finish( psa_aead_operation_t *operation,
     *tag_length = tag_size;
 
     status = psa_aead_final_checks( operation );
-
     if( status != PSA_SUCCESS )
         goto exit;
 
@@ -3766,7 +3754,6 @@ psa_status_t psa_aead_finish( psa_aead_operation_t *operation,
                                              tag, tag_size, tag_length );
 
 exit:
-
     /* In case the operation fails and the user fails to check for failure or
      * the zero tag size, make sure the tag is set to something impossible.
      * Even if the operation succeeds, make sure we set the rest of the
@@ -3796,7 +3783,6 @@ psa_status_t psa_aead_verify( psa_aead_operation_t *operation,
     *plaintext_length = 0;
 
     status = psa_aead_final_checks( operation );
-
     if( status != PSA_SUCCESS )
         goto exit;
 
@@ -3812,7 +3798,6 @@ psa_status_t psa_aead_verify( psa_aead_operation_t *operation,
                                              tag, tag_length );
 
 exit:
-
     psa_aead_abort( operation );
 
     return( status );

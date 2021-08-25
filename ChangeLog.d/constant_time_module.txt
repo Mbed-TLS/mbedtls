@@ -1,0 +1,6 @@
+Changes
+    * The mbedcrypto library includes new a source code module constant_time.c,
+      containing various functions meant to resist timing side channel attacks.
+      This module does not have a separate configuration option, and functions
+      from this module will be included in the build as required. Currently
+      the interface of this module is private and may change at any time.

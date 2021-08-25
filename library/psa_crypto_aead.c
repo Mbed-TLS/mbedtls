@@ -469,7 +469,7 @@ psa_status_t mbedtls_psa_aead_set_nonce(
                                       operation->is_encrypt ?
                                       MBEDTLS_CHACHAPOLY_ENCRYPT :
                                       MBEDTLS_CHACHAPOLY_DECRYPT ) );
-        }
+    }
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
     {
@@ -482,6 +482,7 @@ psa_status_t mbedtls_psa_aead_set_nonce(
 
     return( status );
 }
+
  /* Declare the lengths of the message and additional data for AEAD. */
 psa_status_t mbedtls_psa_aead_set_lengths(
     mbedtls_psa_aead_operation_t *operation,

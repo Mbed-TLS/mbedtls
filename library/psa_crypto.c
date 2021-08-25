@@ -3514,8 +3514,7 @@ psa_status_t psa_aead_generate_nonce( psa_aead_operation_t *operation,
         goto exit;
     }
 
-    if( operation->nonce_set || operation->ad_started ||
-        operation->body_started || !operation->is_encrypt )
+    if( operation->nonce_set || !operation->is_encrypt )
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
@@ -3561,8 +3560,7 @@ psa_status_t psa_aead_set_nonce( psa_aead_operation_t *operation,
         goto exit;
     }
 
-    if( operation->nonce_set || operation->ad_started ||
-        operation->body_started )
+    if( operation->nonce_set  )
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;

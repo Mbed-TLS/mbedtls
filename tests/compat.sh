@@ -339,10 +339,10 @@ add_common_ciphersuites()
 }
 
 # Ciphersuites usable only with Mbed TLS and OpenSSL
-# Each ciphersuite is compiled case by case in the MBedTLS standard, and
-# is appended to the list of MBedTLS ciphersuites $M_CIPHERS. The same list
-# is translated to the OpenSSL naming standard and appended to the list of
-# OpenSSL ciphersuites $O_CIPHERS
+# A list of ciphersuites in the Mbed TLS convention is compiled and
+# appended to the list of Mbed TLS ciphersuites $M_CIPHERS. The same list
+# is translated to the OpenSSL naming convention and appended to the list of
+# OpenSSL ciphersuites $O_CIPHERS.
 #
 # NOTE: for some reason RSA-PSK doesn't work with OpenSSL,
 # so RSA-PSK ciphersuites need to go in other sections, see
@@ -423,10 +423,10 @@ add_openssl_ciphersuites()
 }
 
 # Ciphersuites usable only with Mbed TLS and GnuTLS
-# Each ciphersuite is compiled case by case in the MBedTLS standard, and
-# is appended to the list of MBedTLS ciphersuites $M_CIPHERS. The same list
-# is translated to the GnuTLS naming standard and appended to the list of
-# GnuTLS ciphersuites $G_CIPHERS
+# A list of ciphersuites in the Mbed TLS convention is compiled and
+# appended to the list of Mbed TLS ciphersuites $M_CIPHERS. The same list
+# is translated to the GnuTLS naming convention and appended to the list of
+# GnuTLS ciphersuites $G_CIPHERS.
 add_gnutls_ciphersuites()
 {
     CIPHERS=""

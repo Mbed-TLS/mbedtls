@@ -18,7 +18,7 @@
 # limitations under the License.
 
 """
-Translate ciphersuite names in MBedTLS format to OpenSSL and GNUTLS
+Translate ciphersuite names in Mbed TLS format to OpenSSL and GNUTLS
 standards.
 
 To test the translation functions run:
@@ -504,7 +504,7 @@ class TestTranslateCiphers(unittest.TestCase):
 
 def translate_gnutls(m_cipher):
     """
-    Translate m_cipher from MBedTLS ciphersuite naming convention
+    Translate m_cipher from Mbed TLS ciphersuite naming convention
     and return the GnuTLS naming convention
     """
 
@@ -532,7 +532,7 @@ def translate_gnutls(m_cipher):
 
 def translate_ossl(m_cipher):
     """
-    Translate m_cipher from MBedTLS ciphersuite naming convention
+    Translate m_cipher from Mbed TLS ciphersuite naming convention
     and return the OpenSSL naming convention
     """
 

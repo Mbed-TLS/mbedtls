@@ -62,10 +62,10 @@ void mbedtls_ssl_add_hs_hdr_to_checksum( mbedtls_ssl_context *ssl,
     unsigned char hs_hdr[4];
 
     /* Build HS header for checksum update. */
-    hs_hdr[0] = hs_type;
-    hs_hdr[1] = (unsigned char)( total_hs_len >> 16 );
-    hs_hdr[2] = (unsigned char)( total_hs_len >>  8 );
-    hs_hdr[3] = (unsigned char)( total_hs_len >>  0 );
+    hs_hdr[0] = MBEDTLS_BYTE_0( hs_type );
+    hs_hdr[1] = MBEDTLS_BYTE_2( total_hs_len );
+    hs_hdr[2] = MBEDTLS_BYTE_1( total_hs_len );
+    hs_hdr[3] = MBEDTLS_BYTE_0( total_hs_len );
 
     ssl->handshake->update_checksum( ssl, hs_hdr, sizeof( hs_hdr ) );
 }

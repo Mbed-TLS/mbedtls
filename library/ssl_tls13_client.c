@@ -73,8 +73,7 @@ int mbedtls_ssl_handshake_client_step_tls1_3( mbedtls_ssl_context *ssl )
 static int ssl_client_hello_prepare( mbedtls_ssl_context* ssl );
 static int ssl_client_hello_write_partial( mbedtls_ssl_context* ssl,
                                            unsigned char* buf, size_t buflen,
-                                           size_t* len_without_binders,
-                                           size_t* len_with_binders );
+                                           size_t *len_with_binders );
 static int ssl_client_hello_postprocess( mbedtls_ssl_context* ssl );
 
 static int ssl_client_hello_process( mbedtls_ssl_context* ssl )
@@ -82,7 +81,6 @@ static int ssl_client_hello_process( mbedtls_ssl_context* ssl )
     int ret = 0;
     unsigned char *buf;
     size_t buf_len, msg_len;
-    size_t len_without_binders = 0;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write client hello" ) );
 
@@ -91,13 +89,11 @@ static int ssl_client_hello_process( mbedtls_ssl_context* ssl )
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_start_handshake_msg, ( ssl,
                  MBEDTLS_SSL_HS_CLIENT_HELLO, &buf, &buf_len ) );
 
-    MBEDTLS_SSL_PROC_CHK( ssl_client_hello_write_partial, ( ssl, buf, buf_len,
-                                                  &len_without_binders,
-                                                  &msg_len ) );
+    MBEDTLS_SSL_PROC_CHK( ssl_client_hello_write_partial, ( ssl, buf, buf_len, &msg_len ) );
 
     mbedtls_ssl_add_hs_hdr_to_checksum( ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
                                         msg_len );
-    ssl->handshake->update_checksum( ssl, buf, len_without_binders );
+    ssl->handshake->update_checksum( ssl, buf, 0 );
 
     MBEDTLS_SSL_PROC_CHK( ssl_client_hello_postprocess, ( ssl ) );
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_finish_handshake_msg, ( ssl, buf_len, msg_len ) );
@@ -162,8 +158,7 @@ static int ssl_write_key_shares_ext( mbedtls_ssl_context *ssl,
 
 static int ssl_client_hello_write_partial( mbedtls_ssl_context* ssl,
                                            unsigned char* buf, size_t buflen,
-                                           size_t* len_without_binders,
-                                           size_t* len_with_binders )
+                                           size_t *len_with_binders )
 {
      /* Extensions */
 
@@ -396,7 +391,6 @@ static int ssl_client_hello_write_partial( mbedtls_ssl_context* ssl,
     *extension_start++ = (unsigned char)( ( total_ext_len >> 8 ) & 0xFF );
     *extension_start++ = (unsigned char)( ( total_ext_len ) & 0xFF );
 
-    *len_without_binders = buf - start;
     *len_with_binders = ( extension_start + total_ext_len ) - start;
     return( 0 );
 }

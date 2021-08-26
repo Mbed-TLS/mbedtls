@@ -790,6 +790,9 @@
 #define PSA_ALG_IS_KEY_DERIVATION(alg)                                  \
     (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_KEY_DERIVATION)
 
+/** An invalid algorithm identifier value. */
+#define PSA_ALG_NONE                            ((psa_algorithm_t)0)
+
 #define PSA_ALG_HASH_MASK                       ((psa_algorithm_t)0x000000ff)
 /** MD2 */
 #define PSA_ALG_MD2                             ((psa_algorithm_t)0x02000001)

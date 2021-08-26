@@ -107,7 +107,7 @@ cleanup:
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write client hello" ) );
     /* client_hello_process haven't finished */
-    ret=MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
+    ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
     return ret;
 }
 

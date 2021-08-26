@@ -2652,7 +2652,7 @@ static psa_status_t psa_sign_verify_check_alg( int input_is_message,
     }
     else
     {
-        if( ! PSA_ALG_IS_HASH_AND_SIGN( alg ) )
+        if( ! PSA_ALG_IS_SIGN_HASH( alg ) )
             return( PSA_ERROR_INVALID_ARGUMENT );
     }
 

@@ -216,8 +216,8 @@ static int ssl_client_hello_write_partial( mbedtls_ssl_context *ssl,
      *  In cTLS the version number is elided.
      */
     MBEDTLS_SSL_CHK_BUF_PTR( buf, end, CLIENT_HELLO_VERSION_LEN);
-    *buf++ = 0x03;
-    *buf++ = 0x03;
+    MBEDTLS_PUT_UINT16_BE( 0x0303, buf, 0);
+    buf += 2;
     buflen -= CLIENT_HELLO_VERSION_LEN;
 
     /* Write random bytes */
@@ -295,16 +295,16 @@ static int ssl_client_hello_write_partial( mbedtls_ssl_context *ssl,
             return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
         }
 
-        *buf++ = (unsigned char)( ciphersuites[i] >> 8 );
-        *buf++ = (unsigned char)( ciphersuites[i] );
+        MBEDTLS_PUT_UINT16_BE( ciphersuites[i], buf, 0);
 
+        buf += 2;
         buflen -= 2;
 
     }
 
     /* write ciphersuite length now */
-    *ciphersuite_start++ = (unsigned char)( ciphersuite_count*2 >> 8 );
-    *ciphersuite_start++ = (unsigned char)( ciphersuite_count*2 );
+    MBEDTLS_PUT_UINT16_BE( ciphersuite_count*2, ciphersuite_start, 0);
+    ciphersuite_start += 2;
 
     MBEDTLS_SSL_DEBUG_MSG( 3,
                            ( "client hello, got %" MBEDTLS_PRINTF_SIZET " ciphersuites",
@@ -385,8 +385,8 @@ static int ssl_client_hello_write_partial( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello extensions", extension_start, total_ext_len );
 
     /* Write extension length */
-    *extension_start++ = (unsigned char)( ( total_ext_len >> 8 ) & 0xFF );
-    *extension_start++ = (unsigned char)( ( total_ext_len ) & 0xFF );
+    MBEDTLS_PUT_UINT16_BE( total_ext_len, extension_start, 0);
+    extension_start += 2;
 
     *len_with_binders = ( extension_start + total_ext_len ) - start;
     return( 0 );
@@ -412,12 +412,12 @@ static int ssl_write_supported_versions_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 7 );
 
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS ) & 0xFF );
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS, p, 0);
 
     /* total length */
-    *p++ = 0x00;
-    *p++ = 3;
+    MBEDTLS_PUT_UINT16_BE( 3, p, 2);
+
+    p+=4;
 
     /* length of next field */
     *p++ = 0x2;

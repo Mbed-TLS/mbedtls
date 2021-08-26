@@ -30,8 +30,10 @@
 #include "ssl_misc.h"
 #include <mbedtls/debug.h>
 
+#define CLIENT_HELLO_RAND_BYTES_LEN 32
+#define CLIENT_HELLO_VERSION_LEN    2
 /* Main entry point; orchestrates the other functions */
-static int ssl_client_hello_process( mbedtls_ssl_context* ssl );
+static int ssl_client_hello_process( mbedtls_ssl_context *ssl );
 
 int mbedtls_ssl_handshake_client_step_tls1_3( mbedtls_ssl_context *ssl )
 {
@@ -70,13 +72,13 @@ int mbedtls_ssl_handshake_client_step_tls1_3( mbedtls_ssl_context *ssl )
 }
 
 
-static int ssl_client_hello_prepare( mbedtls_ssl_context* ssl );
-static int ssl_client_hello_write_partial( mbedtls_ssl_context* ssl,
-                                           unsigned char* buf, size_t buflen,
+static int ssl_client_hello_prepare( mbedtls_ssl_context *ssl );
+static int ssl_client_hello_write_partial( mbedtls_ssl_context *ssl,
+                                           unsigned char *buf, size_t buflen,
                                            size_t *len_with_binders );
-static int ssl_client_hello_postprocess( mbedtls_ssl_context* ssl );
+static int ssl_client_hello_postprocess( mbedtls_ssl_context *ssl );
 
-static int ssl_client_hello_process( mbedtls_ssl_context* ssl )
+static int ssl_client_hello_process( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
     unsigned char *buf;
@@ -106,14 +108,13 @@ cleanup:
     return ret;
 }
 
-static int ssl_client_hello_prepare( mbedtls_ssl_context* ssl )
+static int ssl_client_hello_prepare( mbedtls_ssl_context *ssl )
 {
     int ret;
-    size_t rand_bytes_len;
 
-    rand_bytes_len = 32;
-
-    if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng, ssl->handshake->randbytes, rand_bytes_len ) ) != 0 )
+    if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng, 
+                                  ssl->handshake->randbytes, 
+                                  CLIENT_HELLO_RAND_BYTES_LEN ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "ssl_generate_random", ret );
         return( ret );
@@ -131,27 +132,27 @@ static int ssl_client_hello_postprocess( mbedtls_ssl_context* ssl )
 
 /* Write extensions */
 
-static void ssl_write_supported_versions_ext( mbedtls_ssl_context *ssl,
-                                             unsigned char* buf,
-                                             unsigned char* end,
-                                             size_t* olen );
+static int ssl_write_supported_versions_ext( mbedtls_ssl_context *ssl,
+                                              unsigned char *buf,
+                                              unsigned char *end,
+                                              size_t *olen );
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 
 static int ssl_write_supported_groups_ext( mbedtls_ssl_context *ssl,
-                                          unsigned char* buf,
-                                          unsigned char* end,
-                                          size_t* olen );
+                                          unsigned char *buf,
+                                          unsigned char *end,
+                                          size_t *olen );
 
 static int ssl_write_key_shares_ext( mbedtls_ssl_context *ssl,
-                                     unsigned char* buf,
-                                     unsigned char* end,
-                                     size_t* olen );
+                                     unsigned char *buf,
+                                     unsigned char *end,
+                                     size_t *olen );
 
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
-static int ssl_client_hello_write_partial( mbedtls_ssl_context* ssl,
-                                           unsigned char* buf, size_t buflen,
+static int ssl_client_hello_write_partial( mbedtls_ssl_context *ssl,
+                                           unsigned char *buf, size_t buflen,
                                            size_t *len_with_binders )
 {
      /* Extensions */
@@ -169,10 +170,6 @@ static int ssl_client_hello_write_partial( mbedtls_ssl_context* ssl,
     size_t cur_ext_len;          /* Size of the current extension */
     size_t total_ext_len;        /* Size of list of extensions    */
 
-    /* Length information */
-    size_t rand_bytes_len;
-    size_t version_len;
-
     /* Buffer management */
     unsigned char* start = buf;
     unsigned char* end = buf + buflen;
@@ -188,8 +185,6 @@ static int ssl_client_hello_write_partial( mbedtls_ssl_context* ssl,
     /* Keeping track of the included extensions */
     ssl->handshake->extensions_present = MBEDTLS_SSL_EXT_NONE;
 
-    rand_bytes_len = 32;
-
     /* NOTE:
      * Even for DTLS 1.3, we are writing a TLS handshake header here.
      * The actual DTLS 1.3 handshake header is inserted in
@@ -198,7 +193,6 @@ static int ssl_client_hello_write_partial( mbedtls_ssl_context* ssl,
      * For cTLS the length, and the version field
      * are elided. The random bytes are shorter.
      */
-    version_len = 2;
 
     if( ssl->conf->max_major_ver == 0 )
     {
@@ -218,16 +212,18 @@ static int ssl_client_hello_write_partial( mbedtls_ssl_context* ssl,
      *
      *  In cTLS the version number is elided.
      */
+    MBEDTLS_SSL_CHK_BUF_PTR( buf, end, CLIENT_HELLO_VERSION_LEN);
     *buf++ = 0x03;
     *buf++ = 0x03;
-    buflen -= version_len;
+    buflen -= CLIENT_HELLO_VERSION_LEN;
 
     /* Write random bytes */
-    memcpy( buf, ssl->handshake->randbytes, rand_bytes_len );
-    MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, random bytes", buf, rand_bytes_len );
+    MBEDTLS_SSL_CHK_BUF_PTR( buf, end, CLIENT_HELLO_RAND_BYTES_LEN);
+    memcpy( buf, ssl->handshake->randbytes, CLIENT_HELLO_RAND_BYTES_LEN );
+    MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, random bytes", buf, CLIENT_HELLO_RAND_BYTES_LEN );
 
-    buf += rand_bytes_len;
-    buflen -= rand_bytes_len;
+    buf += CLIENT_HELLO_RAND_BYTES_LEN;
+    buflen -= CLIENT_HELLO_RAND_BYTES_LEN;
 
     /* Versions of TLS before TLS 1.3 supported a
      * "session resumption" feature which has been merged with pre-shared
@@ -396,10 +392,10 @@ static int ssl_client_hello_write_partial( mbedtls_ssl_context* ssl,
  *      ProtocolVersion versions<2..254>;
  * } SupportedVersions;
  */
-static void ssl_write_supported_versions_ext( mbedtls_ssl_context *ssl,
-                                             unsigned char* buf,
-                                             unsigned char* end,
-                                             size_t* olen )
+static int ssl_write_supported_versions_ext( mbedtls_ssl_context *ssl,
+                                              unsigned char *buf,
+                                              unsigned char *end,
+                                              size_t *olen )
 {
     unsigned char *p = buf;
 
@@ -407,11 +403,7 @@ static void ssl_write_supported_versions_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding supported version extension" ) );
 
-    if( end < p || (size_t)( end - p ) < 7 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
-        return;
-    }
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 7 );
 
     *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS ) & 0xFF );
@@ -432,14 +424,16 @@ static void ssl_write_supported_versions_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "supported version: [%d:%d]", ssl->conf->max_major_ver, ssl->conf->max_minor_ver ) );
 
     *olen = 7;
+
+    return( 0 );
 }
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 
 static int ssl_write_supported_groups_ext( mbedtls_ssl_context *ssl,
-                                          unsigned char* buf,
-                                          unsigned char* end,
-                                          size_t* olen )
+                                           unsigned char *buf,
+                                           unsigned char *end,
+                                           size_t *olen )
 {
     ((void) ssl);
     ((void) buf);
@@ -449,9 +443,9 @@ static int ssl_write_supported_groups_ext( mbedtls_ssl_context *ssl,
 }
 
 static int ssl_write_key_shares_ext( mbedtls_ssl_context *ssl,
-                                     unsigned char* buf,
-                                     unsigned char* end,
-                                     size_t* olen )
+                                     unsigned char *buf,
+                                     unsigned char *end,
+                                     size_t *olen )
 {
     ((void) ssl);
     ((void) buf);

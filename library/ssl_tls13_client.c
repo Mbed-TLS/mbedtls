@@ -111,12 +111,6 @@ static int ssl_client_hello_prepare( mbedtls_ssl_context* ssl )
     int ret;
     size_t rand_bytes_len;
 
-    if( ssl->conf->f_rng == NULL )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "no RNG provided" ) );
-        return( MBEDTLS_ERR_SSL_NO_RNG );
-    }
-
     rand_bytes_len = 32;
 
     if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng, ssl->handshake->randbytes, rand_bytes_len ) ) != 0 )

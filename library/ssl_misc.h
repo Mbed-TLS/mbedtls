@@ -949,7 +949,7 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl );
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
-int mbedtls_ssl_handshake_client_step_tls1_3( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_handshake_server_step_tls1_3( mbedtls_ssl_context *ssl );
 #endif
 
@@ -1385,24 +1385,24 @@ static inline int mbedtls_ssl_conf_is_hybrid_tls12_tls13( const mbedtls_ssl_conf
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
 
 static inline void mbedtls_ssl_handshake_set_state( mbedtls_ssl_context* ssl,
-    int state )
+    mbedtls_ssl_states state )
 {
     ssl->state = state;
 }
 
-int mbedtls_ssl_start_handshake_msg( mbedtls_ssl_context *ssl,
+int mbedtls_ssl_tls13_start_handshake_msg( mbedtls_ssl_context *ssl,
                                      unsigned hs_type,
                                      unsigned char **buf,
                                      size_t *buflen );
-int mbedtls_ssl_finish_handshake_msg( mbedtls_ssl_context *ssl,
+int mbedtls_ssl_tls13_finish_handshake_msg( mbedtls_ssl_context *ssl,
                                       size_t buf_len,
                                       size_t msg_len );
-void mbedtls_ssl_add_hs_hdr_to_checksum( mbedtls_ssl_context *ssl,
+void mbedtls_ssl_tls13_add_hs_hdr_to_checksum( mbedtls_ssl_context *ssl,
                                          unsigned hs_type,
                                          size_t total_hs_len );
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-int mbedtls_ssl_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
+int mbedtls_ssl_tls13_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
                                                 unsigned char *buf, unsigned char *end,
                                                 size_t *olen);
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */

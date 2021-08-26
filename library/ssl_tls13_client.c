@@ -33,9 +33,9 @@
 #define CLIENT_HELLO_RAND_BYTES_LEN 32
 #define CLIENT_HELLO_VERSION_LEN    2
 /* Main entry point; orchestrates the other functions */
-static int ssl_client_hello_process( mbedtls_ssl_context *ssl );
+static int ssl_tls13_write_client_hello( mbedtls_ssl_context *ssl );
 
-int mbedtls_ssl_handshake_client_step_tls1_3( mbedtls_ssl_context *ssl )
+int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
 
@@ -54,7 +54,7 @@ int mbedtls_ssl_handshake_client_step_tls1_3( mbedtls_ssl_context *ssl )
             break;
 
         case MBEDTLS_SSL_CLIENT_HELLO:
-            ret = ssl_client_hello_process( ssl );
+            ret = ssl_tls13_write_client_hello( ssl );
             break;
 
         case MBEDTLS_SSL_SERVER_HELLO:
@@ -72,13 +72,13 @@ int mbedtls_ssl_handshake_client_step_tls1_3( mbedtls_ssl_context *ssl )
 }
 
 
-static int ssl_client_hello_prepare( mbedtls_ssl_context *ssl );
-static int ssl_client_hello_write_partial( mbedtls_ssl_context *ssl,
+static int ssl_tls13_prepare_client_hello( mbedtls_ssl_context *ssl );
+static int ssl_tls13_write_exts_client_hello( mbedtls_ssl_context *ssl,
                                            unsigned char *buf, size_t buflen,
                                            size_t *len_with_binders );
-static int ssl_client_hello_postprocess( mbedtls_ssl_context *ssl );
+static int ssl_tls13_finalize_client_hello( mbedtls_ssl_context *ssl );
 
-static int ssl_client_hello_process( mbedtls_ssl_context *ssl )
+static int ssl_tls13_write_client_hello( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
     unsigned char *buf;
@@ -86,21 +86,21 @@ static int ssl_client_hello_process( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write client hello" ) );
 
-    MBEDTLS_SSL_PROC_CHK( ssl_client_hello_prepare, ( ssl ) );
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_prepare_client_hello, ( ssl ) );
 
-    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_start_handshake_msg,
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_start_handshake_msg,
                           ( ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
                           &buf, &buf_len ) );
 
-    MBEDTLS_SSL_PROC_CHK( ssl_client_hello_write_partial,
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_write_exts_client_hello,
                           ( ssl, buf, buf_len, &msg_len ) );
 
-    mbedtls_ssl_add_hs_hdr_to_checksum( ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
+    mbedtls_ssl_tls13_add_hs_hdr_to_checksum( ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
                                         msg_len );
     ssl->handshake->update_checksum( ssl, buf, 0 );
 
-    MBEDTLS_SSL_PROC_CHK( ssl_client_hello_postprocess, ( ssl ) );
-    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_finish_handshake_msg,
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_client_hello, ( ssl ) );
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_finish_handshake_msg,
                           ( ssl, buf_len, msg_len ) );
 
 cleanup:
@@ -111,7 +111,7 @@ cleanup:
     return ret;
 }
 
-static int ssl_client_hello_prepare( mbedtls_ssl_context *ssl )
+static int ssl_tls13_prepare_client_hello( mbedtls_ssl_context *ssl )
 {
     int ret;
 
@@ -126,7 +126,7 @@ static int ssl_client_hello_prepare( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
-static int ssl_client_hello_postprocess( mbedtls_ssl_context* ssl )
+static int ssl_tls13_finalize_client_hello( mbedtls_ssl_context* ssl )
 {
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_HELLO );
 
@@ -135,26 +135,26 @@ static int ssl_client_hello_postprocess( mbedtls_ssl_context* ssl )
 
 /* Write extensions */
 
-static int ssl_write_supported_versions_ext( mbedtls_ssl_context *ssl,
+static int ssl_tls13_write_supported_versions_ext( mbedtls_ssl_context *ssl,
                                               unsigned char *buf,
                                               unsigned char *end,
                                               size_t *olen );
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 
-static int ssl_write_supported_groups_ext( mbedtls_ssl_context *ssl,
+static int ssl_tls13_write_supported_groups_ext( mbedtls_ssl_context *ssl,
                                           unsigned char *buf,
                                           unsigned char *end,
                                           size_t *olen );
 
-static int ssl_write_key_shares_ext( mbedtls_ssl_context *ssl,
+static int ssl_tls13_write_key_shares_ext( mbedtls_ssl_context *ssl,
                                      unsigned char *buf,
                                      unsigned char *end,
                                      size_t *olen );
 
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
-static int ssl_client_hello_write_partial( mbedtls_ssl_context *ssl,
+static int ssl_tls13_write_exts_client_hello( mbedtls_ssl_context *ssl,
                                            unsigned char *buf, size_t buflen,
                                            size_t *len_with_binders )
 {
@@ -337,7 +337,7 @@ static int ssl_client_hello_write_partial( mbedtls_ssl_context *ssl,
      * For cTLS we only need to provide it if there is more than one version
      * and currently there is only one.
      */
-    ssl_write_supported_versions_ext( ssl, buf, end, &cur_ext_len );
+    ssl_tls13_write_supported_versions_ext( ssl, buf, end, &cur_ext_len );
     total_ext_len += cur_ext_len;
     buf += cur_ext_len;
 
@@ -345,7 +345,7 @@ static int ssl_client_hello_write_partial( mbedtls_ssl_context *ssl,
     /* The supported_groups and the key_share extensions are
      * REQUIRED for ECDHE ciphersuites.
      */
-    ret = ssl_write_supported_groups_ext( ssl, buf, end, &cur_ext_len );
+    ret = ssl_tls13_write_supported_groups_ext( ssl, buf, end, &cur_ext_len );
     if( ret != 0 )
         return( ret );
 
@@ -354,7 +354,8 @@ static int ssl_client_hello_write_partial( mbedtls_ssl_context *ssl,
 
     /* The supported_signature_algorithms extension is REQUIRED for
      * certificate authenticated ciphersuites. */
-    ret = mbedtls_ssl_write_signature_algorithms_ext( ssl, buf, end, &cur_ext_len );
+    ret = mbedtls_ssl_tls13_write_signature_algorithms_ext( ssl, buf, 
+                                                            end, &cur_ext_len );
     if( ret != 0 )
         return( ret );
 
@@ -369,7 +370,7 @@ static int ssl_client_hello_write_partial( mbedtls_ssl_context *ssl,
      * 3 ) Or, in case all ciphers are supported ( which includes #1 and #2 from above )
      */
 
-    ret = ssl_write_key_shares_ext( ssl, buf, end, &cur_ext_len );
+    ret = ssl_tls13_write_key_shares_ext( ssl, buf, end, &cur_ext_len );
     if( ret != 0 )
         return( ret );
 
@@ -393,13 +394,13 @@ static int ssl_client_hello_write_partial( mbedtls_ssl_context *ssl,
 }
 
 /*
- * ssl_write_supported_versions_ext():
+ * ssl_tls13_write_supported_versions_ext():
  *
  * struct {
  *      ProtocolVersion versions<2..254>;
  * } SupportedVersions;
  */
-static int ssl_write_supported_versions_ext( mbedtls_ssl_context *ssl,
+static int ssl_tls13_write_supported_versions_ext( mbedtls_ssl_context *ssl,
                                               unsigned char *buf,
                                               unsigned char *end,
                                               size_t *olen )
@@ -438,7 +439,7 @@ static int ssl_write_supported_versions_ext( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 
-static int ssl_write_supported_groups_ext( mbedtls_ssl_context *ssl,
+static int ssl_tls13_write_supported_groups_ext( mbedtls_ssl_context *ssl,
                                            unsigned char *buf,
                                            unsigned char *end,
                                            size_t *olen )
@@ -450,7 +451,7 @@ static int ssl_write_supported_groups_ext( mbedtls_ssl_context *ssl,
     return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
 }
 
-static int ssl_write_key_shares_ext( mbedtls_ssl_context *ssl,
+static int ssl_tls13_write_key_shares_ext( mbedtls_ssl_context *ssl,
                                      unsigned char *buf,
                                      unsigned char *end,
                                      size_t *olen )

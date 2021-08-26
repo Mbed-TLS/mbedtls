@@ -2150,6 +2150,9 @@
 
 #define PSA_KEY_LOCATION_VENDOR_FLAG            ((psa_key_location_t)0x800000)
 
+/** The null key identifier.
+ */
+#define PSA_KEY_ID_NULL                         ((psa_key_id_t)0)
 /** The minimum value for a key identifier chosen by the application.
  */
 #define PSA_KEY_ID_USER_MIN                     ((psa_key_id_t)0x00000001)

@@ -847,6 +847,9 @@
     (PSA_ALG_IS_KEY_DERIVATION(alg) &&              \
      (alg) & PSA_ALG_KEY_DERIVATION_STRETCHING_FLAG)
 
+/** An invalid algorithm identifier value. */
+#define PSA_ALG_NONE                            ((psa_algorithm_t)0)
+
 #define PSA_ALG_HASH_MASK                       ((psa_algorithm_t)0x000000ff)
 /** MD5 */
 #define PSA_ALG_MD5                             ((psa_algorithm_t)0x02000003)

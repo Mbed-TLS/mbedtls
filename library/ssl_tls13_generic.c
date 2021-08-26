@@ -27,7 +27,7 @@
 
 #include "ssl_misc.h"
 
-int mbedtls_ssl_start_handshake_msg( mbedtls_ssl_context *ssl,
+int mbedtls_ssl_tls13_start_handshake_msg( mbedtls_ssl_context *ssl,
                                      unsigned hs_type,
                                      unsigned char **buf,
                                      size_t *buflen )
@@ -41,7 +41,7 @@ int mbedtls_ssl_start_handshake_msg( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
-int mbedtls_ssl_finish_handshake_msg( mbedtls_ssl_context *ssl,
+int mbedtls_ssl_tls13_finish_handshake_msg( mbedtls_ssl_context *ssl,
                                       size_t buf_len,
                                       size_t msg_len )
 {
@@ -55,7 +55,7 @@ cleanup:
     return( ret );
 }
 
-void mbedtls_ssl_add_hs_hdr_to_checksum( mbedtls_ssl_context *ssl,
+void mbedtls_ssl_tls13_add_hs_hdr_to_checksum( mbedtls_ssl_context *ssl,
                                          unsigned hs_type,
                                          size_t total_hs_len )
 {
@@ -73,7 +73,7 @@ void mbedtls_ssl_add_hs_hdr_to_checksum( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 
 /*
- * mbedtls_ssl_write_signature_algorithms_ext( )
+ * mbedtls_ssl_tls13_write_signature_algorithms_ext( )
  *
  * enum {
  *    ....
@@ -90,7 +90,7 @@ void mbedtls_ssl_add_hs_hdr_to_checksum( mbedtls_ssl_context *ssl,
  * Only if we handle at least one key exchange that needs signatures.
  */
 
-int mbedtls_ssl_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
+int mbedtls_ssl_tls13_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
                                         unsigned char* buf,
                                         unsigned char* end,
                                         size_t* olen )

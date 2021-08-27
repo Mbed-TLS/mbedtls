@@ -132,8 +132,15 @@
 #define MBEDTLS_SSL_EXT_SIG_ALG_CERT                ( 1 << 20 )
 #define MBEDTLS_SSL_EXT_KEY_SHARE                   ( 1 << 21 )
 
+/*
+ * Helper macros for function call with returen check.
+ */
+/* utils for strip parens in marcro */
 #define MBEDTLS_SSL_PROC_STRIP_PARENS( ... )   __VA_ARGS__
 
+/*
+ * Exit and print debug message when return none zero value
+ */
 #define MBEDTLS_SSL_PROC_CHK( fn, args )                        \
     do {                                                        \
         ret = fn(MBEDTLS_SSL_PROC_STRIP_PARENS args);           \
@@ -146,6 +153,9 @@
         }                                                       \
     } while( 0 )
 
+/*
+ * Exit and print debug message when return negative value
+ */
 #define MBEDTLS_SSL_PROC_CHK_NEG( fn, args )                    \
     do {                                                        \
         ret = fn(MBEDTLS_SSL_PROC_STRIP_PARENS args);           \
@@ -949,7 +959,18 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl );
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+/**
+ * \brief           TLS1.3 client side state machine entry
+ *
+ * \param ssl       SSL context
+ */
 int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl );
+
+/**
+ * \brief           TLS1.3 server side state machine entry
+ *
+ * \param ssl       SSL context
+ */
 int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl );
 #endif
 
@@ -1390,18 +1411,30 @@ static inline void mbedtls_ssl_handshake_set_state( mbedtls_ssl_context* ssl,
     ssl->state = state;
 }
 
+/*
+ * Write tls13 handshake message header
+ */
 int mbedtls_ssl_tls13_start_handshake_msg( mbedtls_ssl_context *ssl,
                                      unsigned hs_type,
                                      unsigned char **buf,
                                      size_t *buflen );
+/*
+ * Write tls13 handshake message tail
+ */
 int mbedtls_ssl_tls13_finish_handshake_msg( mbedtls_ssl_context *ssl,
                                       size_t buf_len,
                                       size_t msg_len );
+/*
+ * Update checksum with handshake header
+ */
 void mbedtls_ssl_tls13_add_hs_hdr_to_checksum( mbedtls_ssl_context *ssl,
                                          unsigned hs_type,
                                          size_t total_hs_len );
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+/*
+ * Write TLS1.3 Signature Algorithm extesion
+ */
 int mbedtls_ssl_tls13_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
                                                 unsigned char *buf, unsigned char *end,
                                                 size_t *olen);

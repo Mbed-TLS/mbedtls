@@ -32,134 +32,81 @@
 
 #define CLIENT_HELLO_RAND_BYTES_LEN 32
 #define CLIENT_HELLO_VERSION_LEN    2
-/* Main entry point; orchestrates the other functions */
-static int ssl_tls13_write_client_hello( mbedtls_ssl_context *ssl );
-
-int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl )
-{
-    int ret = 0;
-
-    if( ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER || ssl->handshake == NULL )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "Handshake completed but ssl->handshake is NULL.\n" ) );
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-    }
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "client state: %d", ssl->state ) );
-
-    switch( ssl->state )
-    {
-        /*
-         * ssl->state is initialized as HELLO_REQUEST. It is same
-         * with CLIENT_HELLO status
-         */
-        case MBEDTLS_SSL_HELLO_REQUEST:
-        case MBEDTLS_SSL_CLIENT_HELLO:
-            ret = ssl_tls13_write_client_hello( ssl );
-            break;
-
-        case MBEDTLS_SSL_SERVER_HELLO:
-            // Stop here : we haven't finished whole flow
-            ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
-            mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_ENCRYPTED_EXTENSIONS );
-            break;
-
-        default:
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "invalid state %d", ssl->state ) );
-            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-    }
-
-    return( ret );
-}
-
-
-static int ssl_tls13_prepare_client_hello( mbedtls_ssl_context *ssl );
-static int ssl_tls13_write_exts_client_hello( mbedtls_ssl_context *ssl,
-                                           unsigned char *buf, size_t buflen,
-                                           size_t *len_with_binders );
-static int ssl_tls13_finalize_client_hello( mbedtls_ssl_context *ssl );
-
-static int ssl_tls13_write_client_hello( mbedtls_ssl_context *ssl )
-{
-    int ret = 0;
-    unsigned char *buf;
-    size_t buf_len, msg_len;
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write client hello" ) );
-
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_prepare_client_hello, ( ssl ) );
-
-    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_start_handshake_msg,
-                          ( ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
-                          &buf, &buf_len ) );
-
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_write_exts_client_hello,
-                          ( ssl, buf, buf_len, &msg_len ) );
-
-    mbedtls_ssl_tls13_add_hs_hdr_to_checksum( ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
-                                        msg_len );
-    ssl->handshake->update_checksum( ssl, buf, 0 );
-
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_client_hello, ( ssl ) );
-    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_finish_handshake_msg,
-                          ( ssl, buf_len, msg_len ) );
-
-cleanup:
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write client hello" ) );
-    /* client_hello_process haven't finished */
-    ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
-    return ret;
-}
-
-static int ssl_tls13_prepare_client_hello( mbedtls_ssl_context *ssl )
-{
-    int ret;
-
-    if( ssl->conf->f_rng == NULL )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "no RNG provided" ) );
-        return( MBEDTLS_ERR_SSL_NO_RNG );
-    }
-
-    if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng,
-                                  ssl->handshake->randbytes,
-                                  CLIENT_HELLO_RAND_BYTES_LEN ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_generate_random", ret );
-        return( ret );
-    }
-
-    return( 0 );
-}
-
-static int ssl_tls13_finalize_client_hello( mbedtls_ssl_context* ssl )
-{
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_HELLO );
-
-    return( 0 );
-}
 
 /* Write extensions */
 
+/*
+ * ssl_tls13_write_supported_versions_ext():
+ *
+ * struct {
+ *      ProtocolVersion versions<2..254>;
+ * } SupportedVersions;
+ */
 static int ssl_tls13_write_supported_versions_ext( mbedtls_ssl_context *ssl,
                                               unsigned char *buf,
                                               unsigned char *end,
-                                              size_t *olen );
+                                              size_t *olen )
+{
+    unsigned char *p = buf;
+
+    *olen = 0;
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding supported version extension" ) );
+
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 7 );
+
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS, p, 0);
+
+    /* total length */
+    MBEDTLS_PUT_UINT16_BE( 3, p, 2);
+    p+=4;
+
+    /* length of next field */
+    *p++ = 0x2;
+
+    /* This implementation only supports a single TLS version, and only
+     * advertises a single value.
+     */
+    mbedtls_ssl_write_version( ssl->conf->max_major_ver, ssl->conf->max_minor_ver,
+                              ssl->conf->transport, p );
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "supported version: [%d:%d]",
+                                ssl->conf->max_major_ver, ssl->conf->max_minor_ver ) );
+
+    *olen = 7;
+
+    return( 0 );
+}
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 
 static int ssl_tls13_write_supported_groups_ext( mbedtls_ssl_context *ssl,
-                                          unsigned char *buf,
-                                          unsigned char *end,
-                                          size_t *olen );
+                                           unsigned char *buf,
+                                           unsigned char *end,
+                                           size_t *olen )
+{
+    ((void) ssl);
+    ((void) buf);
+    ((void) end);
+    ((void) olen);
+    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+}
 
 static int ssl_tls13_write_key_shares_ext( mbedtls_ssl_context *ssl,
                                      unsigned char *buf,
                                      unsigned char *end,
-                                     size_t *olen );
+                                     size_t *olen )
+{
+    ((void) ssl);
+    ((void) buf);
+    ((void) end);
+    ((void) olen);
+    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+}
 
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+
+/* Functions for ClientHello */
 
 static int ssl_tls13_write_exts_client_hello( mbedtls_ssl_context *ssl,
                                            unsigned char *buf, size_t buflen,
@@ -344,7 +291,9 @@ static int ssl_tls13_write_exts_client_hello( mbedtls_ssl_context *ssl,
      * For cTLS we only need to provide it if there is more than one version
      * and currently there is only one.
      */
-    ssl_tls13_write_supported_versions_ext( ssl, buf, end, &cur_ext_len );
+    ret = ssl_tls13_write_supported_versions_ext( ssl, buf, end, &cur_ext_len );
+    if( ret != 0 )
+        return( ret );
     total_ext_len += cur_ext_len;
     buf += cur_ext_len;
 
@@ -400,77 +349,104 @@ static int ssl_tls13_write_exts_client_hello( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
-/*
- * ssl_tls13_write_supported_versions_ext():
- *
- * struct {
- *      ProtocolVersion versions<2..254>;
- * } SupportedVersions;
- */
-static int ssl_tls13_write_supported_versions_ext( mbedtls_ssl_context *ssl,
-                                              unsigned char *buf,
-                                              unsigned char *end,
-                                              size_t *olen )
+static int ssl_tls13_finalize_client_hello( mbedtls_ssl_context* ssl )
 {
-    unsigned char *p = buf;
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_HELLO );
+    return( 0 );
+}
 
-    *olen = 0;
+static int ssl_tls13_prepare_client_hello( mbedtls_ssl_context *ssl )
+{
+    int ret;
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding supported version extension" ) );
+    if( ssl->conf->f_rng == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "no RNG provided" ) );
+        return( MBEDTLS_ERR_SSL_NO_RNG );
+    }
 
-    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 7 );
-
-    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS, p, 0);
-
-    /* total length */
-    MBEDTLS_PUT_UINT16_BE( 3, p, 2);
-
-    p+=4;
-
-    /* length of next field */
-    *p++ = 0x2;
-
-    /* This implementation only supports a single TLS version, and only
-     * advertises a single value.
-     */
-    mbedtls_ssl_write_version( ssl->conf->max_major_ver, ssl->conf->max_minor_ver,
-                              ssl->conf->transport, p );
-
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "supported version: [%d:%d]",
-                                ssl->conf->max_major_ver, ssl->conf->max_minor_ver ) );
-
-    *olen = 7;
+    if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng,
+                                  ssl->handshake->randbytes,
+                                  CLIENT_HELLO_RAND_BYTES_LEN ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_generate_random", ret );
+        return( ret );
+    }
 
     return( 0 );
 }
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-
-static int ssl_tls13_write_supported_groups_ext( mbedtls_ssl_context *ssl,
-                                           unsigned char *buf,
-                                           unsigned char *end,
-                                           size_t *olen )
+/*
+ * ClientHello Main entry point.
+ * orchestrates the other functions.
+ */
+static int ssl_tls13_write_client_hello( mbedtls_ssl_context *ssl )
 {
-    ((void) ssl);
-    ((void) buf);
-    ((void) end);
-    ((void) olen);
-    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+    int ret = 0;
+    unsigned char *buf;
+    size_t buf_len, msg_len;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write client hello" ) );
+
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_prepare_client_hello, ( ssl ) );
+
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_start_handshake_msg,
+                          ( ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
+                          &buf, &buf_len ) );
+
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_write_exts_client_hello,
+                          ( ssl, buf, buf_len, &msg_len ) );
+
+    mbedtls_ssl_tls13_add_hs_hdr_to_checksum( ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
+                                        msg_len );
+    ssl->handshake->update_checksum( ssl, buf, 0 );
+
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_client_hello, ( ssl ) );
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_finish_handshake_msg,
+                          ( ssl, buf_len, msg_len ) );
+
+cleanup:
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write client hello" ) );
+    return ret;
 }
 
-static int ssl_tls13_write_key_shares_ext( mbedtls_ssl_context *ssl,
-                                     unsigned char *buf,
-                                     unsigned char *end,
-                                     size_t *olen )
+int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl )
 {
-    ((void) ssl);
-    ((void) buf);
-    ((void) end);
-    ((void) olen);
-    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
-}
+    int ret = 0;
 
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+    if( ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER || ssl->handshake == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "Handshake completed but ssl->handshake is NULL.\n" ) );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "client state: %d", ssl->state ) );
+
+    switch( ssl->state )
+    {
+        /*
+         * ssl->state is initialized as HELLO_REQUEST. It is same
+         * with CLIENT_HELLO status
+         */
+        case MBEDTLS_SSL_HELLO_REQUEST:
+        case MBEDTLS_SSL_CLIENT_HELLO:
+            ret = ssl_tls13_write_client_hello( ssl );
+            break;
+
+        case MBEDTLS_SSL_SERVER_HELLO:
+            // Stop here : we haven't finished whole flow
+            ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
+            mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_ENCRYPTED_EXTENSIONS );
+            break;
+
+        default:
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "invalid state %d", ssl->state ) );
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+    return( ret );
+}
 
 #endif /* MBEDTLS_SSL_CLI_C */
 

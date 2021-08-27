@@ -112,7 +112,7 @@ static int ssl_tls13_write_exts_client_hello( mbedtls_ssl_context *ssl,
                                            unsigned char *buf, size_t buflen,
                                            size_t *len_with_binders )
 {
-     /* Extensions */
+    /* Extensions */
 
     /* extension_start
      *    Used during extension writing where the
@@ -120,9 +120,7 @@ static int ssl_tls13_write_exts_client_hello( mbedtls_ssl_context *ssl,
      *    extension list must be kept to write
      *    the total extension list size in the end.
      */
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     int ret;
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
     unsigned char* extension_start;
     size_t cur_ext_len;          /* Size of the current extension */
     size_t total_ext_len;        /* Size of list of extensions    */

@@ -116,6 +116,12 @@ static int ssl_tls13_prepare_client_hello( mbedtls_ssl_context *ssl )
 {
     int ret;
 
+    if( ssl->conf->f_rng == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "no RNG provided" ) );
+        return( MBEDTLS_ERR_SSL_NO_RNG );
+    }
+
     if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng,
                                   ssl->handshake->randbytes,
                                   CLIENT_HELLO_RAND_BYTES_LEN ) ) != 0 )

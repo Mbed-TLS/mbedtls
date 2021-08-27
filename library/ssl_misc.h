@@ -950,7 +950,7 @@ int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl );
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
 int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl );
-int mbedtls_ssl_handshake_server_step_tls1_3( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl );
 #endif
 
 int mbedtls_ssl_send_fatal_handshake_failure( mbedtls_ssl_context *ssl );

@@ -1439,6 +1439,24 @@ static inline int mbedtls_ssl_conf_is_hybrid_tls12_tls13( const mbedtls_ssl_conf
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
 
+/*
+ * Helper functions for NamedGroup.
+ */
+static inline int mbedtls_ssl_named_group_is_ecdhe( uint16_t named_group )
+{
+    return( named_group == MBEDTLS_SSL_TLS13_NAMED_GROUP_SECP256R1 ||
+            named_group == MBEDTLS_SSL_TLS13_NAMED_GROUP_SECP384R1 ||
+            named_group == MBEDTLS_SSL_TLS13_NAMED_GROUP_SECP521R1 ||
+            named_group == MBEDTLS_SSL_TLS13_NAMED_GROUP_X25519    ||
+            named_group == MBEDTLS_SSL_TLS13_NAMED_GROUP_X448 );
+}
+
+static inline int mbedtls_ssl_named_group_is_dhe( uint16_t named_group )
+{
+    return( named_group >= MBEDTLS_SSL_TLS13_NAMED_GROUP_FFDHE2048 &&
+            named_group <= MBEDTLS_SSL_TLS13_NAMED_GROUP_FFDHE8192 );
+}
+
 static inline void mbedtls_ssl_handshake_set_state( mbedtls_ssl_context *ssl,
                                                     mbedtls_ssl_states state )
 {

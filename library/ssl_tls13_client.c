@@ -49,7 +49,7 @@ int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl )
 
     switch( ssl->state )
     {
-        /* 
+        /*
          * ssl->state is initialized as HELLO_REQUEST. It is same
          * with CLIENT_HELLO status
          */
@@ -361,7 +361,7 @@ static int ssl_tls13_write_exts_client_hello( mbedtls_ssl_context *ssl,
 
     /* The supported_signature_algorithms extension is REQUIRED for
      * certificate authenticated ciphersuites. */
-    ret = mbedtls_ssl_tls13_write_signature_algorithms_ext( ssl, buf, 
+    ret = mbedtls_ssl_tls13_write_signature_algorithms_ext( ssl, buf,
                                                             end, &cur_ext_len );
     if( ret != 0 )
         return( ret );

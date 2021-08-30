@@ -883,6 +883,23 @@ void mac_key_policy( int policy_usage_arg,
     status = psa_mac_sign_setup( &operation, key, exercise_alg );
     TEST_EQUAL( status, expected_status_sign );
 
+    /* Calculate the MAC, one-shot case. */
+    uint8_t input[128] = {0};
+    size_t mac_len;
+    TEST_EQUAL( psa_mac_compute( key, exercise_alg,
+                                 input, 128,
+                                 mac, PSA_MAC_MAX_SIZE, &mac_len ),
+                expected_status_sign );
+
+    /* Verify correct MAC, one-shot case. */
+    status = psa_mac_verify( key, exercise_alg, input, 128,
+                                mac, mac_len );
+
+    if( expected_status_sign != PSA_SUCCESS && expected_status_verify == PSA_SUCCESS )
+        TEST_EQUAL( status, PSA_ERROR_INVALID_SIGNATURE );
+    else
+        TEST_EQUAL( status, expected_status_verify );
+
     psa_mac_abort( &operation );
 
     memset( mac, 0, sizeof( mac ) );

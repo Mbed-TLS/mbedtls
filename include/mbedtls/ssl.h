@@ -1292,7 +1292,7 @@ struct mbedtls_ssl_config
 struct mbedtls_ssl_context
 {
     /*
-     * Secure renegotiation
+     * DTLS connection ID
      */
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     /* CID configuration to use in subsequent handshakes. */
@@ -1490,7 +1490,7 @@ struct mbedtls_ssl_context
 #endif /* MBEDTLS_SSL_DTLS_HELLO_VERIFY && MBEDTLS_SSL_SRV_C */
 
     /*
-     * Secure renegotiation (continued)
+     * Secure renegotiation
      */
     /* needed to know when to send extension on server */
     int MBEDTLS_PRIVATE(secure_renegotiation);           /*!<  does peer support legacy or

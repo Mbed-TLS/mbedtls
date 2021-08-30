@@ -745,6 +745,140 @@ cleanup:
     return ret;
 }
 
+/*
+ * Functions for parsing and processing ServerHello
+ */
+static int ssl_server_hello_is_hrr( unsigned const char *buf )
+{
+    const char magic_hrr_string[32] =
+        { 0xCF, 0x21, 0xAD, 0x74, 0xE5, 0x9A, 0x61, 0x11,
+          0xBE, 0x1D, 0x8C, 0x02, 0x1E, 0x65, 0xB8, 0x91,
+          0xC2, 0xA2, 0x11, 0x16, 0x7A, 0xBB, 0x8C, 0x5E,
+          0x07, 0x9E, 0x09, 0xE2, 0xC8, 0xA8, 0x33 ,0x9C };
+
+    /* Check whether this message is a HelloRetryRequest ( HRR ) message.
+     *
+     * ServerHello and HRR are only distinguished by Random set to the
+     * special value of the SHA-256 of "HelloRetryRequest".
+     *
+     * struct {
+     * 	  ProtocolVersion legacy_version = 0x0303;
+     *    Random random;
+     *    opaque legacy_session_id_echo<0..32>;
+     *    CipherSuite cipher_suite;
+     *    uint8 legacy_compression_method = 0;
+     *    Extension extensions<6..2 ^ 16 - 1>;
+     * } ServerHello;
+     *
+     */
+
+    if( memcmp( buf + 2, magic_hrr_string,
+                sizeof( magic_hrr_string ) ) == 0 )
+    {
+        return( 1 );
+    }
+
+    return( 0 );
+}
+
+/* Fetch and preprocess
+ * Returns a negative value on failure, and otherwise
+ * - SSL_SERVER_HELLO_COORDINATE_HELLO or
+ * - SSL_SERVER_HELLO_COORDINATE_HRR
+ * to indicate which message is expected and to be parsed next. */
+#define SSL_SERVER_HELLO_COORDINATE_HELLO  0
+#define SSL_SERVER_HELLO_COORDINATE_HRR 1
+static int ssl_server_hello_coordinate( mbedtls_ssl_context* ssl,
+                                        unsigned char **buf,
+                                        size_t *buflen )
+{
+    int ret;
+
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_read_record( ssl, 0 ) );
+
+    /* TBD: If we do an HRR, keep track of the number
+     * of ClientHello's we sent, and fail if it
+     * exceeds the configured threshold. */
+
+    if( ( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE ) ||
+        ( ssl->in_msg[0] != MBEDTLS_SSL_HS_SERVER_HELLO ) )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "unexpected message" ) );
+
+        MBEDTLS_SSL_SEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE,
+                                      MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
+        return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
+    }
+
+    *buf = ssl->in_msg + 4;
+    *buflen = ssl->in_hslen - 4;
+
+    if( ssl_server_hello_is_hrr( ssl->in_msg + 4 ) )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "received HelloRetryRequest message" ) );
+        ret = SSL_SERVER_HELLO_COORDINATE_HRR;
+    }
+    else
+    {
+        ret = SSL_SERVER_HELLO_COORDINATE_HELLO;
+    }
+
+cleanup:
+
+    return( ret );
+}
+
+/*
+ * Wait and Parse ServerHello handshake message.
+ */
+static int ssl_tls13_process_server_hello( mbedtls_ssl_context *ssl )
+{
+    int ret = 0;
+    unsigned char *buf;
+    size_t buf_len;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse server hello" ) );
+
+    /* Coordination step
+     * - Fetch record
+     * - Make sure it's either a ServerHello or a HRR.
+     * - Switch processing routine in case of HRR
+     */
+
+    ssl->major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
+    ssl->handshake->extensions_present = MBEDTLS_SSL_EXT_NONE;
+
+
+    ret = ssl_server_hello_coordinate( ssl, &buf, &buf_len );
+    /* Parsing step
+     * We know what message to expect by now and call
+     * the respective parsing function.
+     */
+    if( ret == SSL_SERVER_HELLO_COORDINATE_HELLO )
+    {
+        MBEDTLS_SSL_PROC_CHK( ssl_server_hello_parse( ssl, buf, buf_len ) );
+
+        mbedtls_ssl_tls13_add_hs_msg_to_checksum( ssl, 
+                                                  MBEDTLS_SSL_HS_SERVER_HELLO,
+                                                  buf, buf_len );
+
+        MBEDTLS_SSL_PROC_CHK( ssl_server_hello_postprocess( ssl ) );
+    }
+    else if( ret == SSL_SERVER_HELLO_COORDINATE_HRR )
+    {
+        /* TODO: Implement HRR in future #4915 */
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "HRR hasn't been implemented" ) );
+
+        MBEDTLS_SSL_SEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE,
+                                      MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
+        ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
+    }
+
+cleanup:
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse server hello" ) );
+    return( ret );
+}
+
 int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
@@ -763,9 +897,12 @@ int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl )
             break;
 
         case MBEDTLS_SSL_SERVER_HELLO:
+            ret = ssl_tls13_process_server_hello( ssl );
+            break;
+
+        case MBEDTLS_SSL_ENCRYPTED_EXTENSIONS:
             // Stop here : we haven't finished whole flow
             ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
-            mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_ENCRYPTED_EXTENSIONS );
             break;
 
         default:

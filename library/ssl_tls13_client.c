@@ -43,9 +43,9 @@
  * } SupportedVersions;
  */
 static int ssl_tls13_write_supported_versions_ext( mbedtls_ssl_context *ssl,
-                                              unsigned char *buf,
-                                              unsigned char *end,
-                                              size_t *olen )
+                                                   unsigned char *buf,
+                                                   unsigned char *end,
+                                                   size_t *olen )
 {
     unsigned char *p = buf;
 
@@ -55,11 +55,11 @@ static int ssl_tls13_write_supported_versions_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 7 );
 
-    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS, p, 0);
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS, p, 0 );
 
     /* total length */
     MBEDTLS_PUT_UINT16_BE( 3, p, 2);
-    p+=4;
+    p += 4;
 
     /* length of next field */
     *p++ = 0x2;
@@ -67,11 +67,13 @@ static int ssl_tls13_write_supported_versions_ext( mbedtls_ssl_context *ssl,
     /* This implementation only supports a single TLS version, and only
      * advertises a single value.
      */
-    mbedtls_ssl_write_version( ssl->conf->max_major_ver, ssl->conf->max_minor_ver,
-                              ssl->conf->transport, p );
+    mbedtls_ssl_write_version( ssl->conf->max_major_ver,
+                               ssl->conf->max_minor_ver,
+                               ssl->conf->transport, p );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "supported version: [%d:%d]",
-                                ssl->conf->max_major_ver, ssl->conf->max_minor_ver ) );
+                                ssl->conf->max_major_ver,
+                                ssl->conf->max_minor_ver ) );
 
     *olen = 7;
 
@@ -81,9 +83,9 @@ static int ssl_tls13_write_supported_versions_ext( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 
 static int ssl_tls13_write_supported_groups_ext( mbedtls_ssl_context *ssl,
-                                           unsigned char *buf,
-                                           unsigned char *end,
-                                           size_t *olen )
+                                                 unsigned char *buf,
+                                                 unsigned char *end,
+                                                 size_t *olen )
 {
     ((void) ssl);
     ((void) buf);
@@ -93,9 +95,9 @@ static int ssl_tls13_write_supported_groups_ext( mbedtls_ssl_context *ssl,
 }
 
 static int ssl_tls13_write_key_shares_ext( mbedtls_ssl_context *ssl,
-                                     unsigned char *buf,
-                                     unsigned char *end,
-                                     size_t *olen )
+                                           unsigned char *buf,
+                                           unsigned char *end,
+                                           size_t *olen )
 {
     ((void) ssl);
     ((void) buf);
@@ -109,8 +111,9 @@ static int ssl_tls13_write_key_shares_ext( mbedtls_ssl_context *ssl,
 /* Functions for ClientHello */
 
 static int ssl_tls13_write_exts_client_hello( mbedtls_ssl_context *ssl,
-                                           unsigned char *buf, size_t buflen,
-                                           size_t *len_with_binders )
+                                              unsigned char *buf,
+                                              size_t buflen,
+                                              size_t *len_with_binders )
 {
     /* Extensions */
 
@@ -121,20 +124,20 @@ static int ssl_tls13_write_exts_client_hello( mbedtls_ssl_context *ssl,
      *    the total extension list size in the end.
      */
     int ret;
-    unsigned char* extension_start;
+    unsigned char *extension_start;
     size_t cur_ext_len;          /* Size of the current extension */
     size_t total_ext_len;        /* Size of list of extensions    */
 
     /* Buffer management */
-    unsigned char* start = buf;
-    unsigned char* end = buf + buflen;
+    unsigned char *start = buf;
+    unsigned char *end = buf + buflen;
 
     /* Ciphersuite-related variables */
-    const int* ciphersuites;
-    const mbedtls_ssl_ciphersuite_t* ciphersuite_info;
+    const int *ciphersuites;
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
     /*  ciphersuite_start points to the start of
         the ciphersuite list, i.e. to the length field*/
-    unsigned char* ciphersuite_start;
+    unsigned char *ciphersuite_start;
     size_t ciphersuite_count;
 
     /* Keeping track of the included extensions */
@@ -167,13 +170,13 @@ static int ssl_tls13_write_exts_client_hello( mbedtls_ssl_context *ssl,
      *
      *  In cTLS the version number is elided.
      */
-    MBEDTLS_SSL_CHK_BUF_PTR( buf, end, CLIENT_HELLO_VERSION_LEN);
+    MBEDTLS_SSL_CHK_BUF_PTR( buf, end, CLIENT_HELLO_VERSION_LEN );
     MBEDTLS_PUT_UINT16_BE( 0x0303, buf, 0);
     buf += 2;
     buflen -= CLIENT_HELLO_VERSION_LEN;
 
     /* Write random bytes */
-    MBEDTLS_SSL_CHK_BUF_PTR( buf, end, CLIENT_HELLO_RAND_BYTES_LEN);
+    MBEDTLS_SSL_CHK_BUF_PTR( buf, end, CLIENT_HELLO_RAND_BYTES_LEN );
     memcpy( buf, ssl->handshake->randbytes, CLIENT_HELLO_RAND_BYTES_LEN );
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, random bytes",
                            buf, CLIENT_HELLO_RAND_BYTES_LEN );
@@ -255,7 +258,7 @@ static int ssl_tls13_write_exts_client_hello( mbedtls_ssl_context *ssl,
     }
 
     /* write ciphersuite length now */
-    MBEDTLS_PUT_UINT16_BE( ciphersuite_count*2, ciphersuite_start, 0);
+    MBEDTLS_PUT_UINT16_BE( ciphersuite_count*2, ciphersuite_start, 0 );
     ciphersuite_start += 2;
 
     MBEDTLS_SSL_DEBUG_MSG( 3,
@@ -340,7 +343,7 @@ static int ssl_tls13_write_exts_client_hello( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello extensions", extension_start, total_ext_len );
 
     /* Write extension length */
-    MBEDTLS_PUT_UINT16_BE( total_ext_len, extension_start, 0);
+    MBEDTLS_PUT_UINT16_BE( total_ext_len, extension_start, 0 );
     extension_start += 2;
 
     *len_with_binders = ( extension_start + total_ext_len ) - start;

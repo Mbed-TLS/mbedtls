@@ -28,9 +28,9 @@
 #include "ssl_misc.h"
 
 int mbedtls_ssl_tls13_start_handshake_msg( mbedtls_ssl_context *ssl,
-                                     unsigned hs_type,
-                                     unsigned char **buf,
-                                     size_t *buflen )
+                                           unsigned hs_type,
+                                           unsigned char **buf,
+                                           size_t *buflen )
 {
     *buf = ssl->out_msg + 4;
     *buflen = MBEDTLS_SSL_OUT_CONTENT_LEN - 4;
@@ -42,8 +42,8 @@ int mbedtls_ssl_tls13_start_handshake_msg( mbedtls_ssl_context *ssl,
 }
 
 int mbedtls_ssl_tls13_finish_handshake_msg( mbedtls_ssl_context *ssl,
-                                      size_t buf_len,
-                                      size_t msg_len )
+                                            size_t buf_len,
+                                            size_t msg_len )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     ((void) buf_len);
@@ -56,8 +56,8 @@ cleanup:
 }
 
 void mbedtls_ssl_tls13_add_hs_hdr_to_checksum( mbedtls_ssl_context *ssl,
-                                         unsigned hs_type,
-                                         size_t total_hs_len )
+                                               unsigned hs_type,
+                                               size_t total_hs_len )
 {
     unsigned char hs_hdr[4];
 
@@ -90,10 +90,11 @@ void mbedtls_ssl_tls13_add_hs_hdr_to_checksum( mbedtls_ssl_context *ssl,
  * Only if we handle at least one key exchange that needs signatures.
  */
 
-int mbedtls_ssl_tls13_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
-                                        unsigned char* buf,
-                                        unsigned char* end,
-                                        size_t* olen )
+int mbedtls_ssl_tls13_write_signature_algorithms_ext( 
+    mbedtls_ssl_context *ssl,
+    unsigned char *buf,
+    unsigned char *end,
+    size_t *olen )
 {
     ((void) ssl);
     ((void) buf);

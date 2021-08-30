@@ -1405,8 +1405,8 @@ static inline int mbedtls_ssl_conf_is_hybrid_tls12_tls13( const mbedtls_ssl_conf
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
 
-static inline void mbedtls_ssl_handshake_set_state( mbedtls_ssl_context* ssl,
-    mbedtls_ssl_states state )
+static inline void mbedtls_ssl_handshake_set_state( mbedtls_ssl_context *ssl,
+                                                    mbedtls_ssl_states state )
 {
     ssl->state = state;
 }
@@ -1415,29 +1415,30 @@ static inline void mbedtls_ssl_handshake_set_state( mbedtls_ssl_context* ssl,
  * Write tls13 handshake message header
  */
 int mbedtls_ssl_tls13_start_handshake_msg( mbedtls_ssl_context *ssl,
-                                     unsigned hs_type,
-                                     unsigned char **buf,
-                                     size_t *buflen );
+                                           unsigned hs_type,
+                                           unsigned char **buf,
+                                           size_t *buflen );
 /*
  * Write tls13 handshake message tail
  */
 int mbedtls_ssl_tls13_finish_handshake_msg( mbedtls_ssl_context *ssl,
-                                      size_t buf_len,
-                                      size_t msg_len );
+                                            size_t buf_len,
+                                            size_t msg_len );
 /*
  * Update checksum with handshake header
  */
 void mbedtls_ssl_tls13_add_hs_hdr_to_checksum( mbedtls_ssl_context *ssl,
-                                         unsigned hs_type,
-                                         size_t total_hs_len );
+                                               unsigned hs_type,
+                                               size_t total_hs_len );
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 /*
  * Write TLS1.3 Signature Algorithm extesion
  */
 int mbedtls_ssl_tls13_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
-                                                unsigned char *buf, unsigned char *end,
-                                                size_t *olen);
+                                                      unsigned char *buf,
+                                                      unsigned char *end,
+                                                      size_t *olen);
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */

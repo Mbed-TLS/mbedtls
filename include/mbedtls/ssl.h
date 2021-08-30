@@ -443,21 +443,21 @@
 #define MBEDTLS_TLS_EXT_MAX_FRAGMENT_LENGTH          1
 
 #define MBEDTLS_TLS_EXT_TRUNCATED_HMAC               4
-#define MBEDTLS_TLS_EXT_STATUS_REQUEST               5 /* RFC 8446 TLS 1.3 */
+#define MBEDTLS_TLS_EXT_STATUS_REQUEST               5 /* RFC 6066 TLS 1.3 */
 
 #define MBEDTLS_TLS_EXT_SUPPORTED_ELLIPTIC_CURVES   10
-#define MBEDTLS_TLS_EXT_SUPPORTED_GROUPS            10 /* RFC 8446 TLS 1.3 */
+#define MBEDTLS_TLS_EXT_SUPPORTED_GROUPS            10 /* RFC 8422,7919 TLS 1.3 */
 #define MBEDTLS_TLS_EXT_SUPPORTED_POINT_FORMATS     11
 
 #define MBEDTLS_TLS_EXT_SIG_ALG                     13 /* RFC 8446 TLS 1.3 */
 #define MBEDTLS_TLS_EXT_USE_SRTP                    14
-#define MBEDTLS_TLS_EXT_HEARTBEAT                   15 /* RFC 8446 TLS 1.3 */
+#define MBEDTLS_TLS_EXT_HEARTBEAT                   15 /* RFC 6520 TLS 1.3 */
 #define MBEDTLS_TLS_EXT_ALPN                        16
 
-#define MBEDTLS_TLS_EXT_SCT                         18 /* RFC 8446 TLS 1.3 */
-#define MBEDTLS_TLS_EXT_SERV_CERT_TYPE              19 /* RFC 8446 TLS 1.3 */
-#define MBEDTLS_TLS_EXT_CLI_CERT_TYPE               20 /* RFC 8446 TLS 1.3 */
-#define MBEDTLS_TLS_EXT_PADDING                     21 /* RFC 8446 TLS 1.3 */
+#define MBEDTLS_TLS_EXT_SCT                         18 /* RFC 6962 TLS 1.3 */
+#define MBEDTLS_TLS_EXT_CLI_CERT_TYPE               19 /* RFC 7259 TLS 1.3 */
+#define MBEDTLS_TLS_EXT_SERV_CERT_TYPE              20 /* RFC 7250 TLS 1.3 */
+#define MBEDTLS_TLS_EXT_PADDING                     21 /* RFC 7685 TLS 1.3 */
 #define MBEDTLS_TLS_EXT_ENCRYPT_THEN_MAC            22 /* 0x16 */
 #define MBEDTLS_TLS_EXT_EXTENDED_MASTER_SECRET  0x0017 /* 23 */
 

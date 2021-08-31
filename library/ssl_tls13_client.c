@@ -30,8 +30,8 @@
 #include "ssl_misc.h"
 #include <mbedtls/debug.h>
 
-#define CLIENT_HELLO_RAND_BYTES_LEN 32
-#define CLIENT_HELLO_VERSION_LEN    2
+#define CLIENT_HELLO_RANDOM_LEN 32
+#define CLIENT_HELLO_LEGACY_VERSION_LEN    2
 
 /* Write extensions */
 
@@ -110,7 +110,7 @@ static int ssl_tls13_write_key_shares_ext( mbedtls_ssl_context *ssl,
 
 /* Functions for ClientHello */
 
-static int ssl_tls13_write_exts_client_hello( mbedtls_ssl_context *ssl,
+static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
                                               unsigned char *buf,
                                               size_t buflen,
                                               size_t *len_with_binders )
@@ -170,19 +170,19 @@ static int ssl_tls13_write_exts_client_hello( mbedtls_ssl_context *ssl,
      *
      *  In cTLS the version number is elided.
      */
-    MBEDTLS_SSL_CHK_BUF_PTR( buf, end, CLIENT_HELLO_VERSION_LEN );
+    MBEDTLS_SSL_CHK_BUF_PTR( buf, end, CLIENT_HELLO_LEGACY_VERSION_LEN );
     MBEDTLS_PUT_UINT16_BE( 0x0303, buf, 0);
-    buf += 2;
-    buflen -= CLIENT_HELLO_VERSION_LEN;
+    buf += CLIENT_HELLO_LEGACY_VERSION_LEN;
+    buflen -= CLIENT_HELLO_LEGACY_VERSION_LEN;
 
     /* Write random bytes */
-    MBEDTLS_SSL_CHK_BUF_PTR( buf, end, CLIENT_HELLO_RAND_BYTES_LEN );
-    memcpy( buf, ssl->handshake->randbytes, CLIENT_HELLO_RAND_BYTES_LEN );
+    MBEDTLS_SSL_CHK_BUF_PTR( buf, end, CLIENT_HELLO_RANDOM_LEN );
+    memcpy( buf, ssl->handshake->randbytes, CLIENT_HELLO_RANDOM_LEN );
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, random bytes",
-                           buf, CLIENT_HELLO_RAND_BYTES_LEN );
+                           buf, CLIENT_HELLO_RANDOM_LEN );
 
-    buf += CLIENT_HELLO_RAND_BYTES_LEN;
-    buflen -= CLIENT_HELLO_RAND_BYTES_LEN;
+    buf += CLIENT_HELLO_RANDOM_LEN;
+    buflen -= CLIENT_HELLO_RANDOM_LEN;
 
     /* Versions of TLS before TLS 1.3 supported a
      * "session resumption" feature which has been merged with pre-shared
@@ -367,7 +367,7 @@ static int ssl_tls13_prepare_client_hello( mbedtls_ssl_context *ssl )
 
     if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng,
                                   ssl->handshake->randbytes,
-                                  CLIENT_HELLO_RAND_BYTES_LEN ) ) != 0 )
+                                  CLIENT_HELLO_RANDOM_LEN ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "ssl_generate_random", ret );
         return( ret );
@@ -394,7 +394,7 @@ static int ssl_tls13_write_client_hello( mbedtls_ssl_context *ssl )
                           ( ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
                           &buf, &buf_len ) );
 
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_write_exts_client_hello,
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_write_client_hello_body,
                           ( ssl, buf, buf_len, &msg_len ) );
 
     mbedtls_ssl_tls13_add_hs_hdr_to_checksum( ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,

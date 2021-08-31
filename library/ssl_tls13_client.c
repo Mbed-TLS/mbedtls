@@ -65,7 +65,7 @@ static int ssl_tls13_write_supported_versions_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS, p, 0 );
 
     /* Write Extension Length */
-    MBEDTLS_PUT_UINT16_BE( 3, p, 2);
+    MBEDTLS_PUT_UINT16_BE( 3, p, 2 );
     p += 4;
 
     /* Length of the SupportedVersions field data */
@@ -169,7 +169,7 @@ static int ssl_tls13_write_client_hello_ciphersuites(
         /* Check for available spaces */
         MBEDTLS_SSL_CHK_BUF_PTR( buf, end, 2 );
 
-        MBEDTLS_PUT_UINT16_BE( ciphersuites[i], ciphersuite_iter, 0);
+        MBEDTLS_PUT_UINT16_BE( ciphersuites[i], ciphersuite_iter, 0 );
         ciphersuite_iter += 2;
 
     }
@@ -245,7 +245,7 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
      *  In cTLS the version number is elided.
      */
     MBEDTLS_SSL_CHK_BUF_PTR( buf, end, CLIENT_HELLO_LEGACY_VERSION_LEN );
-    MBEDTLS_PUT_UINT16_BE( 0x0303, buf, 0);
+    MBEDTLS_PUT_UINT16_BE( 0x0303, buf, 0 );
     buf += CLIENT_HELLO_LEGACY_VERSION_LEN;
 
     /* Write random bytes

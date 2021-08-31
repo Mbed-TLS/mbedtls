@@ -184,6 +184,8 @@ static int ssl_tls13_write_client_hello_ciphersuites(
                            ( "client hello, got %" MBEDTLS_PRINTF_SIZET " ciphersuites",
                              buf_len/2 ) );
 
+    *olen = ciphersuite_iter - buf;
+
     return( 0 );
 }
 

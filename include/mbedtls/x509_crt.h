@@ -95,7 +95,10 @@ typedef struct mbedtls_x509_crt
     mbedtls_pk_type_t MBEDTLS_PRIVATE(sig_pk);           /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. MBEDTLS_PK_RSA */
     void *MBEDTLS_PRIVATE(sig_opts);             /**< Signature options to be passed to mbedtls_pk_verify_ext(), e.g. for RSASSA-PSS */
 
-    struct mbedtls_x509_crt *MBEDTLS_PRIVATE(next);     /**< Next certificate in the CA-chain. */
+    /** Next certificate in the linked list that constitutes the CA chain.
+     * \p NULL indicates the end of the list.
+     * Do not modify this field directly. */
+    struct mbedtls_x509_crt *next;
 }
 mbedtls_x509_crt;
 

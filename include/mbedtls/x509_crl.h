@@ -63,7 +63,10 @@ typedef struct mbedtls_x509_crl_entry
      * `entry_ext.p == NULL`. */
     mbedtls_x509_buf entry_ext;
 
-    struct mbedtls_x509_crl_entry *MBEDTLS_PRIVATE(next);
+    /** Next element in the linked list of entries.
+     * \p NULL indicates the end of the list.
+     * Do not modify this field directly. */
+    struct mbedtls_x509_crl_entry *next;
 }
 mbedtls_x509_crl_entry;
 
@@ -96,7 +99,10 @@ typedef struct mbedtls_x509_crl
     mbedtls_pk_type_t MBEDTLS_PRIVATE(sig_pk);           /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. MBEDTLS_PK_RSA */
     void *MBEDTLS_PRIVATE(sig_opts);             /**< Signature options to be passed to mbedtls_pk_verify_ext(), e.g. for RSASSA-PSS */
 
-    struct mbedtls_x509_crl *MBEDTLS_PRIVATE(next);
+    /** Next element in the linked list of CRL.
+     * \p NULL indicates the end of the list.
+     * Do not modify this field directly. */
+    struct mbedtls_x509_crl *next;
 }
 mbedtls_x509_crl;
 

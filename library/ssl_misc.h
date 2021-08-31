@@ -1408,7 +1408,7 @@ static inline int mbedtls_ssl_conf_is_hybrid_tls12_tls13( const mbedtls_ssl_conf
 static inline void mbedtls_ssl_handshake_set_state( mbedtls_ssl_context *ssl,
                                                     mbedtls_ssl_states state )
 {
-    ssl->state = state;
+    ssl->state = ( int ) state;
 }
 
 /*

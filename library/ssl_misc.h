@@ -960,14 +960,14 @@ int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl );
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
 /**
- * \brief           TLS1.3 client side state machine entry
+ * \brief           TLS 1.3 client side state machine entry
  *
  * \param ssl       SSL context
  */
 int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl );
 
 /**
- * \brief           TLS1.3 server side state machine entry
+ * \brief           TLS 1.3 server side state machine entry
  *
  * \param ssl       SSL context
  */

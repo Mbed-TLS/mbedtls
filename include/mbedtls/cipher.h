@@ -258,6 +258,13 @@ typedef struct mbedtls_cmac_context_t mbedtls_cmac_context_t;
 /**
  * Cipher information. Allows calling cipher functions
  * in a generic way.
+ *
+ * \note        The library does not support custom cipher info structures,
+ *              only built-in structures returned by the functions
+ *              mbedtls_cipher_info_from_string(),
+ *              mbedtls_cipher_info_from_type(),
+ *              mbedtls_cipher_info_from_values(),
+ *              mbedtls_cipher_info_from_psa().
  */
 typedef struct mbedtls_cipher_info_t
 {

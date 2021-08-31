@@ -45,7 +45,7 @@ extern "C" {
  *
  * Some fields of this structure are publicly readable. Do not modify
  * them except via Mbed TLS library functions: the effect of modifying
- * those fields or the data that those fields points to is unspecified.
+ * those fields or the data that those fields point to is unspecified.
  */
 typedef struct mbedtls_x509_csr
 {

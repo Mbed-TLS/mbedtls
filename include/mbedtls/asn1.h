@@ -178,9 +178,9 @@ typedef struct mbedtls_asn1_sequence
 
     /** The next entry in the sequence.
      *
-     * The details memory management for sequences are not documented and
+     * The details of memory management for sequences are not documented and
      * may change in future versions. Set this field to \p NULL when
-     * initializing a structure, and do not modify it except  via Mbed TLS
+     * initializing a structure, and do not modify it except via Mbed TLS
      * library functions.
      */
     struct mbedtls_asn1_sequence *next;
@@ -197,9 +197,9 @@ typedef struct mbedtls_asn1_named_data
 
     /** The next entry in the sequence.
      *
-     * The details memory management for named data sequences are not documented
-     * and may change in future versions. Set this field to \p NULL when
-     * initializing a structure, and do not modify it except  via Mbed TLS
+     * The details of memory management for named data sequences are not
+     * documented and may change in future versions. Set this field to \p NULL
+     * when initializing a structure, and do not modify it except via Mbed TLS
      * library functions.
      */
     struct mbedtls_asn1_named_data *next;

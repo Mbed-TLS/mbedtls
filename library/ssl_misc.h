@@ -1412,14 +1412,14 @@ static inline void mbedtls_ssl_handshake_set_state( mbedtls_ssl_context *ssl,
 }
 
 /*
- * Write tls13 handshake message header
+ * Write TLS 1.3 handshake message header
  */
 int mbedtls_ssl_tls13_start_handshake_msg( mbedtls_ssl_context *ssl,
                                            unsigned hs_type,
                                            unsigned char **buf,
                                            size_t *buflen );
 /*
- * Write tls13 handshake message tail
+ * Write TLS 1.3 handshake message tail
  */
 int mbedtls_ssl_tls13_finish_handshake_msg( mbedtls_ssl_context *ssl,
                                             size_t buf_len,
@@ -1433,7 +1433,7 @@ void mbedtls_ssl_tls13_add_hs_hdr_to_checksum( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 /*
- * Write TLS1.3 Signature Algorithm extesion
+ * Write TLS 1.3 Signature Algorithm extension
  */
 int mbedtls_ssl_tls13_write_sig_alg_ext( mbedtls_ssl_context *ssl,
                                          unsigned char *buf,

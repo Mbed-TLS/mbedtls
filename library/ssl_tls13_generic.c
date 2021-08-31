@@ -73,7 +73,7 @@ void mbedtls_ssl_tls13_add_hs_hdr_to_checksum( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 
 /*
- * mbedtls_ssl_tls13_write_signature_algorithms_ext( )
+ * mbedtls_ssl_tls13_write_sig_alg_ext( )
  *
  * enum {
  *    ....
@@ -90,11 +90,10 @@ void mbedtls_ssl_tls13_add_hs_hdr_to_checksum( mbedtls_ssl_context *ssl,
  * Only if we handle at least one key exchange that needs signatures.
  */
 
-int mbedtls_ssl_tls13_write_signature_algorithms_ext( 
-    mbedtls_ssl_context *ssl,
-    unsigned char *buf,
-    unsigned char *end,
-    size_t *olen )
+int mbedtls_ssl_tls13_write_sig_alg_ext( mbedtls_ssl_context *ssl,
+                                         unsigned char *buf,
+                                         unsigned char *end,
+                                         size_t *olen )
 {
     ((void) ssl);
     ((void) buf);

@@ -1435,10 +1435,10 @@ void mbedtls_ssl_tls13_add_hs_hdr_to_checksum( mbedtls_ssl_context *ssl,
 /*
  * Write TLS1.3 Signature Algorithm extesion
  */
-int mbedtls_ssl_tls13_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
-                                                      unsigned char *buf,
-                                                      unsigned char *end,
-                                                      size_t *olen);
+int mbedtls_ssl_tls13_write_sig_alg_ext( mbedtls_ssl_context *ssl,
+                                         unsigned char *buf,
+                                         unsigned char *end,
+                                         size_t *olen);
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */

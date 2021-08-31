@@ -311,8 +311,7 @@ static int ssl_tls13_write_exts_client_hello( mbedtls_ssl_context *ssl,
 
     /* The supported_signature_algorithms extension is REQUIRED for
      * certificate authenticated ciphersuites. */
-    ret = mbedtls_ssl_tls13_write_signature_algorithms_ext( ssl, buf,
-                                                            end, &cur_ext_len );
+    ret = mbedtls_ssl_tls13_write_sig_alg_ext( ssl, buf, end, &cur_ext_len );
     if( ret != 0 )
         return( ret );
 

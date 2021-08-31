@@ -51,17 +51,24 @@ static int ssl_tls13_write_supported_versions_ext( mbedtls_ssl_context *ssl,
 
     *olen = 0;
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding supported version extension" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding supported versions extension" ) );
 
+    /*
+     * ExtensionType    2
+     * ExtensionLength  2
+     * VersionSLength   1
+     * Version          2
+     */
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 7 );
 
+    /* Write Extension Type */
     MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS, p, 0 );
 
-    /* total length */
+    /* Write Extension Length */
     MBEDTLS_PUT_UINT16_BE( 3, p, 2);
     p += 4;
 
-    /* length of next field */
+    /* Length of the SupportedVersions field data */
     *p++ = 0x2;
 
     /* This implementation only supports a single TLS version, and only
@@ -108,7 +115,7 @@ static int ssl_tls13_write_key_shares_ext( mbedtls_ssl_context *ssl,
 
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
-/* Functions for ClientHello */
+/* Functions for writing ClientHello message */
 
 static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
                                               unsigned char *buf,
@@ -319,11 +326,13 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
     buf += cur_ext_len;
 
     /* We need to send the key shares under three conditions:
-     * 1 ) A certificate-based ciphersuite is being offered. In this case
-     *    supported_groups and supported_signature extensions have been successfully added.
-     * 2 ) A PSK-based ciphersuite with ECDHE is offered. In this case the
+     * 1) A certificate-based ciphersuite is being offered. In this case
+     *    supported_groups and supported_signature extensions have been
+     *    successfully added.
+     * 2) A PSK-based ciphersuite with ECDHE is offered. In this case the
      *    psk_key_exchange_modes has been added as the last extension.
-     * 3 ) Or, in case all ciphers are supported ( which includes #1 and #2 from above )
+     * 3) Or, in case all ciphers are supported ( which includes #1 and #2
+     *    from above )
      */
 
     ret = ssl_tls13_write_key_shares_ext( ssl, buf, end, &cur_ext_len );
@@ -377,8 +386,21 @@ static int ssl_tls13_prepare_client_hello( mbedtls_ssl_context *ssl )
 }
 
 /*
- * ClientHello Main entry point.
- * orchestrates the other functions.
+ * Write ClientHello handshake message.
+ *
+ * Structure of this message:
+ *
+ *    uint16 ProtocolVersion;
+ *    opaque Random[32];
+ *    uint8 CipherSuite[2];     // Cryptographic suite selector
+ *    struct {
+ *        ProtocolVersion legacy_version = 0x0303;    // TLS v1.2
+ *        Random random;
+ *        opaque legacy_session_id<0..32>;
+ *        CipherSuite cipher_suites<2..2^16-2>;
+ *        opaque legacy_compression_methods<1..2^8-1>;
+ *        Extension extensions<8..2^16-1>;
+ *    } ClientHello;
  */
 static int ssl_tls13_write_client_hello( mbedtls_ssl_context *ssl )
 {

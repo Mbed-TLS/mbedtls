@@ -31,7 +31,7 @@
 #include <mbedtls/debug.h>
 
 #define CLIENT_HELLO_RANDOM_LEN 32
-#define CLIENT_HELLO_LEGACY_VERSION_LEN    2
+#define CLIENT_HELLO_LEGACY_VERSION_LEN 2
 
 /* Write extensions */
 
@@ -54,25 +54,31 @@ static int ssl_tls13_write_supported_versions_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding supported versions extension" ) );
 
     /*
-     * ExtensionType    2
-     * ExtensionLength  2
-     * VersionSLength   1
-     * Version          2
+     * Reserve space for extension header.
+     *
+     * extension_type           2
+     * extension_data_length    2
+     * version_length           1
+     * versions                 2
      */
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 7 );
 
-    /* Write Extension Type */
+    /* Write extension_type */
     MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS, p, 0 );
 
-    /* Write Extension Length */
+    /* Write extension_data_length */
     MBEDTLS_PUT_UINT16_BE( 3, p, 2 );
     p += 4;
 
-    /* Length of the SupportedVersions field data */
+    /* Length of versions */
     *p++ = 0x2;
 
-    /* This implementation only supports a single TLS version, and only
-     * advertises a single value.
+    /* Write values of supported version.
+     *
+     * They are come from configuration values. And
+     * ssl_conf_check has valided the values.
+     *
+     * Currently, only one vesrion is advertised.
      */
     mbedtls_ssl_write_version( ssl->conf->max_major_ver,
                                ssl->conf->max_minor_ver,
@@ -115,22 +121,22 @@ static int ssl_tls13_write_key_shares_ext( mbedtls_ssl_context *ssl,
 
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
-/* Write ciphersuites
+/*
+ * Functions for writing ClientHello message.
+ */
+/* Write cipher_suites
  * CipherSuite cipher_suites<2..2^16-2>;
  */
-static int ssl_tls13_write_client_hello_ciphersuites(
+static int ssl_tls13_write_client_hello_cipher_suites(
             mbedtls_ssl_context *ssl,
             unsigned char *buf,
             unsigned char *end,
             size_t *olen )
 {
-    /* Ciphersuite-related variables */
-    const int *ciphersuites;
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
-    /*  ciphersuite_start points to the start of
-        the ciphersuite list, i.e. to the length field*/
-    unsigned char *ciphersuite_start, *ciphersuite_iter;
-    size_t buf_len;
+    const int *cipher_suite_list;
+    unsigned char *cipher_suites_start; /* start of the cipher_suite_list */
+    unsigned char *cipher_suites_iter;  /* iteration of the cipher_suite_list */
+    size_t cipher_suites_len;
 
     *olen = 0 ;
 
@@ -142,164 +148,146 @@ static int ssl_tls13_write_client_hello_ciphersuites(
      * ( including secret key length ) and a hash to be used with
      * HKDF, in descending order of client preference.
      */
-    ciphersuites = ssl->conf->ciphersuite_list;
+    cipher_suite_list = ssl->conf->ciphersuite_list;
 
-    /* Check available spaces for ciphersuite */
+    /* Check there is space for the cipher suite list length (2 bytes). */
     MBEDTLS_SSL_CHK_BUF_PTR( buf, end, 2 );
 
-    /* Write ciphersuites */
-    ciphersuite_start = buf + 2;
-    ciphersuite_iter  = ciphersuite_start;
+    /* Write cipher_suite_list */
+    cipher_suites_start = buf + 2;
+    cipher_suites_iter  = cipher_suites_start;
 
-    for ( size_t i = 0; ciphersuites[i] != 0; i++ )
+    for ( size_t i = 0; cipher_suite_list[i] != 0; i++ )
     {
-        ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( ciphersuites[i] );
+        int cipher_suite = cipher_suite_list[i];
+        const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
 
+        ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( cipher_suite );
         if( ciphersuite_info == NULL )
             continue;
-
         if( ciphersuite_info->min_minor_ver != MBEDTLS_SSL_MINOR_VERSION_4 ||
             ciphersuite_info->max_minor_ver != MBEDTLS_SSL_MINOR_VERSION_4 )
             continue;
 
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, add ciphersuite: %04x, %s",
-                                    (unsigned int) ciphersuites[i],
+                                    (unsigned int) cipher_suite,
                                     ciphersuite_info->name ) );
 
-        /* Check for available spaces */
+        /* Check there is space for the cipher suite identifier (2 bytes). */
         MBEDTLS_SSL_CHK_BUF_PTR( buf, end, 2 );
-
-        MBEDTLS_PUT_UINT16_BE( ciphersuites[i], ciphersuite_iter, 0 );
-        ciphersuite_iter += 2;
-
+        MBEDTLS_PUT_UINT16_BE( cipher_suite, cipher_suites_iter, 0 );
+        cipher_suites_iter += 2;
     }
 
-    buf_len = ciphersuite_iter - ciphersuite_start;
-
-    /* write ciphersuite buf length */
-    MBEDTLS_PUT_UINT16_BE( buf_len, buf, 0 );
-
-
+    /* Write the cipher_suite_list length in number of bytes */
+    cipher_suites_len = cipher_suites_iter - cipher_suites_start;
+    MBEDTLS_PUT_UINT16_BE( cipher_suites_len, buf, 0 );
     MBEDTLS_SSL_DEBUG_MSG( 3,
-                           ( "client hello, got %" MBEDTLS_PRINTF_SIZET " ciphersuites",
-                             buf_len/2 ) );
+                           ( "client hello, got %" MBEDTLS_PRINTF_SIZET " cipher suites",
+                             cipher_suites_len/2 ) );
 
-    *olen = ciphersuite_iter - buf;
+    /* Output the total length of cipher_suites field. */
+    *olen = cipher_suites_iter - buf;
 
     return( 0 );
 }
 
-/* Functions for writing ClientHello message */
+/*
+ * Structure of ClientHello message:
+ *
+ *    struct {
+ *        ProtocolVersion legacy_version = 0x0303;    // TLS v1.2
+ *        Random random;
+ *        opaque legacy_session_id<0..32>;
+ *        CipherSuite cipher_suites<2..2^16-2>;
+ *        opaque legacy_compression_methods<1..2^8-1>;
+ *        Extension extensions<8..2^16-1>;
+ *    } ClientHello;
+ */
 static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
                                               unsigned char *buf,
                                               size_t buflen,
-                                              size_t *len_with_binders )
+                                              size_t *olen )
 {
-    /* Extensions */
 
-    /* extension_start
-     *    Used during extension writing where the
-     *    buffer pointer to the beginning of the
-     *    extension list must be kept to write
-     *    the total extension list size in the end.
-     */
     int ret;
-    unsigned char *extension_start;
-    size_t cur_ext_len;          /* Size of the current extension */
-    size_t total_ext_len;        /* Size of list of extensions    */
+    unsigned char *extension_start; /* Start of extensions buffer */
+    size_t cur_ext_len;             /* Size of the current extension */
+    size_t total_ext_len;           /* Size of list of extensions    */
 
     /* Buffer management */
     unsigned char *start = buf;
     unsigned char *end = buf + buflen;
 
-    *len_with_binders = 0;
+    *olen = 0;
 
-    /* Keeping track of the included extensions */
-    ssl->handshake->extensions_present = MBEDTLS_SSL_EXT_NONE;
-
-    /* NOTE:
-     * Even for DTLS 1.3, we are writing a TLS handshake header here.
-     * The actual DTLS 1.3 handshake header is inserted in
-     * the record writing routine mbedtls_ssl_write_record().
-     *
-     * For cTLS the length, and the version field
-     * are elided. The random bytes are shorter.
-     */
-
-    if( ssl->conf->max_major_ver == 0 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "configured max major version is invalid, "
-                                    "consider using mbedtls_ssl_config_defaults()" ) );
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-    }
-
+    /* No validation needed here. It has been done by ssl_conf_check() */
     ssl->major_ver = ssl->conf->min_major_ver;
     ssl->minor_ver = ssl->conf->min_minor_ver;
 
-    /* Write legacy_version
+    /*
+     * Write legacy_version
      *    ProtocolVersion legacy_version = 0x0303;    // TLS v1.2
-     * For TLS 1.3 we use the legacy version number {0x03, 0x03}
+     *
+     *  For TLS 1.3 we use the legacy version number {0x03, 0x03}
      *  instead of the true version number.
-     *
-     *  For DTLS 1.3 we use the legacy version number
-     *  {254,253}.
-     *
-     *  In cTLS the version number is elided.
      */
     MBEDTLS_SSL_CHK_BUF_PTR( buf, end, CLIENT_HELLO_LEGACY_VERSION_LEN );
     MBEDTLS_PUT_UINT16_BE( 0x0303, buf, 0 );
     buf += CLIENT_HELLO_LEGACY_VERSION_LEN;
 
-    /* Write random bytes
-            Random random
-    */
+    /* Write the random bytes ( random ).*/
     MBEDTLS_SSL_CHK_BUF_PTR( buf, end, CLIENT_HELLO_RANDOM_LEN );
     memcpy( buf, ssl->handshake->randbytes, CLIENT_HELLO_RANDOM_LEN );
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, random bytes",
                            buf, CLIENT_HELLO_RANDOM_LEN );
-
     buf += CLIENT_HELLO_RANDOM_LEN;
 
-    /* Versions of TLS before TLS 1.3 supported a
-     * "session resumption" feature which has been merged with pre-shared
-     * keys in this version. A client which has a
-     * cached session ID set by a pre-TLS 1.3 server SHOULD set this
-     * field to that value. In compatibility mode,
-     * this field MUST be non-empty, so a client not offering a
-     * pre-TLS 1.3 session MUST generate a new 32-byte value. This value
-     * need not be random but SHOULD be unpredictable to avoid
-     * implementations fixating on a specific value ( also known as
-     * ossification ). Otherwise, it MUST be set as a zero-length vector
-     * ( i.e., a zero-valued single byte length field ).
+    /*
+     * Write legacy_session_id
+     *
+     * Versions of TLS before TLS 1.3 supported a "session resumption" feature
+     * which has been merged with pre-shared keys in this version. A client
+     * which has a cached session ID set by a pre-TLS 1.3 server SHOULD set
+     * this field to that value. In compatibility mode, this field MUST be
+     * non-empty, so a client not offering a pre-TLS 1.3 session MUST generate
+     * a new 32-byte value. This value need not be random but SHOULD be
+     * unpredictable to avoid implementations fixating on a specific value
+     * ( also known as ossification ). Otherwise, it MUST be set as a zero-length
+     * vector ( i.e., a zero-valued single byte length field ).
      */
     MBEDTLS_SSL_CHK_BUF_PTR( buf, end, 1 );
     *buf++ = 0; /* session id length set to zero */
 
-    /* Write ciphersuites */
-    ret = ssl_tls13_write_client_hello_ciphersuites( ssl, buf, end, &cur_ext_len );
+    /* Write cipher_suites */
+    ret = ssl_tls13_write_client_hello_cipher_suites( ssl, buf, end, &cur_ext_len );
     if( ret != 0)
         return( ret );
     buf += cur_ext_len;
 
-    /* For every TLS 1.3 ClientHello, this vector MUST contain exactly
+    /* Write legacy_compression_methods
+     *
+     * For every TLS 1.3 ClientHello, this vector MUST contain exactly
      * one byte set to zero, which corresponds to the 'null' compression
      * method in prior versions of TLS.
-     *
-     * For cTLS this field is elided.
      */
     MBEDTLS_SSL_CHK_BUF_PTR( buf, end, 2 );
     *buf++ = 1;
     *buf++ = MBEDTLS_SSL_COMPRESS_NULL;
 
+    /* Write extensions */
+
+    /* Keeping track of the included extensions */
+    ssl->handshake->extensions_present = MBEDTLS_SSL_EXT_NONE;
 
     /* First write extensions, then the total length */
+    MBEDTLS_SSL_CHK_BUF_PTR( buf, end, 2 );
     extension_start = buf;
     buf += 2;
 
-    /* Supported Versions Extension is mandatory with TLS 1.3.
+    /* Write supported_versions extension
      *
-     * For cTLS we only need to provide it if there is more than one version
-     * and currently there is only one.
+     * Supported Versions Extension is mandatory with TLS 1.3.
      */
     ret = ssl_tls13_write_supported_versions_ext( ssl, buf, end, &cur_ext_len );
     if( ret != 0 )
@@ -307,22 +295,18 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
     buf += cur_ext_len;
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-    /* The supported_groups and the key_share extensions are
-     * REQUIRED for ECDHE ciphersuites.
+    /* Write supported_groups extension
+     *
+     * It is REQUIRED for ECDHE cipher_suites.
      */
     ret = ssl_tls13_write_supported_groups_ext( ssl, buf, end, &cur_ext_len );
     if( ret != 0 )
         return( ret );
     buf += cur_ext_len;
 
-    /* The supported_signature_algorithms extension is REQUIRED for
-     * certificate authenticated ciphersuites. */
-    ret = mbedtls_ssl_tls13_write_sig_alg_ext( ssl, buf, end, &cur_ext_len );
-    if( ret != 0 )
-        return( ret );
-    buf += cur_ext_len;
-
-    /* We need to send the key shares under three conditions:
+    /* Write key_share extension
+     *
+     * We need to send the key shares under three conditions:
      * 1) A certificate-based ciphersuite is being offered. In this case
      *    supported_groups and supported_signature extensions have been
      *    successfully added.
@@ -331,8 +315,16 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
      * 3) Or, in case all ciphers are supported ( which includes #1 and #2
      *    from above )
      */
-
     ret = ssl_tls13_write_key_shares_ext( ssl, buf, end, &cur_ext_len );
+    if( ret != 0 )
+        return( ret );
+    buf += cur_ext_len;
+
+    /* Write signature_algorithms extension
+     *
+     * It is REQUIRED for certificate authenticated cipher_suites.
+     */
+    ret = mbedtls_ssl_tls13_write_sig_alg_ext( ssl, buf, end, &cur_ext_len );
     if( ret != 0 )
         return( ret );
     buf += cur_ext_len;
@@ -341,17 +333,14 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
 
     /* Add more extensions here */
 
+    /* Write the length of the list of extensions. */
     total_ext_len = buf - extension_start - 2;
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, total extension length: %" MBEDTLS_PRINTF_SIZET ,
                                 total_ext_len ) );
-
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello extensions", extension_start, total_ext_len );
-
-    /* Write extension length */
     MBEDTLS_PUT_UINT16_BE( total_ext_len, extension_start, 0 );
-    extension_start += 2;
 
-    *len_with_binders = buf - start;
+    *olen = buf - start;
     return( 0 );
 }
 
@@ -384,17 +373,6 @@ static int ssl_tls13_prepare_client_hello( mbedtls_ssl_context *ssl )
 
 /*
  * Write ClientHello handshake message.
- *
- * Structure of this message:
- *
- *    struct {
- *        ProtocolVersion legacy_version = 0x0303;    // TLS v1.2
- *        Random random;
- *        opaque legacy_session_id<0..32>;
- *        CipherSuite cipher_suites<2..2^16-2>;
- *        opaque legacy_compression_methods<1..2^8-1>;
- *        Extension extensions<8..2^16-1>;
- *    } ClientHello;
  */
 static int ssl_tls13_write_client_hello( mbedtls_ssl_context *ssl )
 {

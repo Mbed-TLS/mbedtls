@@ -4224,6 +4224,19 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     psa_aead_abort( &operation );
 
+    /* ------------------------------------------------------- */
+
+    operation = psa_aead_operation_init( );
+
+    PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
+
+    TEST_EQUAL( psa_aead_update( &operation, input_data->x,
+                                 input_data->len, output_data,
+                                 output_size, &output_length ),
+                PSA_ERROR_BAD_STATE );
+
+    psa_aead_abort( &operation );
+
     /* Test for double setting nonce. */
 
     operation = psa_aead_operation_init( );

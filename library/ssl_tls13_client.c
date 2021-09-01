@@ -93,17 +93,168 @@ static int ssl_tls13_write_supported_versions_ext( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 
-static int ssl_tls13_write_supported_groups_ext( mbedtls_ssl_context *ssl,
-                                                 unsigned char *buf,
-                                                 unsigned char *end,
-                                                 size_t *olen )
+/*
+ * Functions for writing supported_groups extension.
+ *
+ * Stucture of supported_groups:
+ *      enum {
+ *          secp256r1(0x0017), secp384r1(0x0018), secp521r1(0x0019),
+ *          x25519(0x001D), x448(0x001E),
+ *          ffdhe2048(0x0100), ffdhe3072(0x0101), ffdhe4096(0x0102),
+ *          ffdhe6144(0x0103), ffdhe8192(0x0104),
+ *          ffdhe_private_use(0x01FC..0x01FF),
+ *          ecdhe_private_use(0xFE00..0xFEFF),
+ *          (0xFFFF)
+ *      } NamedGroup;
+ *      struct {
+ *          NamedGroup named_group_list<2..2^16-1>;
+ *      } NamedGroupList;
+ */
+/* Find out available ecdhe named groups in current configuration */
+#if defined(MBEDTLS_ECDH_C)
+/*
+ * In versions of TLS prior to TLS 1.3, this extension was named
+ * 'elliptic_curves' and only contained elliptic curve groups.
+ */
+static int ssl_tls13_write_named_group_ecdhe( mbedtls_ssl_context *ssl,
+                                              unsigned char *buf,
+                                              unsigned char *end,
+                                              size_t *olen )
+{
+    unsigned char *p = buf;
+#if !defined(MBEDTLS_ECP_C)
+    ((void) ssl);
+#endif
+
+    *olen = 0;
+
+#if defined(MBEDTLS_ECP_C)
+    for ( const mbedtls_ecp_group_id *grp_id = ssl->conf->curve_list;
+          *grp_id != MBEDTLS_ECP_DP_NONE;
+          grp_id++ )
+    {
+        const mbedtls_ecp_curve_info *info;
+        info = mbedtls_ecp_curve_info_from_grp_id( *grp_id );
+        if( info == NULL )
+            continue;
+#else
+    for ( const mbedtls_ecp_curve_info *info = mbedtls_ecp_curve_list();
+          info->grp_id != MBEDTLS_ECP_DP_NONE;
+          info++ )
+    {
+#endif
+        if( !mbedtls_ssl_named_group_is_ecdhe( info->tls_id ) )
+            continue;
+
+        MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2);
+        MBEDTLS_PUT_UINT16_BE( info->tls_id, p, 0 );
+        p += 2;
+
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "NamedGroup: %s ( %x )",
+                  mbedtls_ecp_curve_info_from_tls_id( info->tls_id )->name,
+                  info->tls_id ) );
+    }
+
+    *olen = p - buf;
+
+    return( 0 );
+}
+#else
+static int ssl_tls13_write_named_group_ecdhe( mbedtls_ssl_context *ssl,
+                                              unsigned char *buf,
+                                              unsigned char *end,
+                                              size_t *olen )
 {
     ((void) ssl);
     ((void) buf);
     ((void) end);
     *olen = 0;
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "supported groups extension is not available" ) );
-    return( 0 );
+    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+}
+#endif /* MBEDTLS_ECDH_C */
+
+/* Find out available dhe named groups in current configuration */
+static int ssl_tls13_write_named_group_dhe( mbedtls_ssl_context *ssl,
+                                              unsigned char *buf,
+                                              unsigned char *end,
+                                              size_t *olen )
+{
+    ((void) ssl);
+    ((void) buf);
+    ((void) end);
+    *olen = 0;
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "write_named_group_dhe is not implemented" ) );
+    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+}
+
+/*
+ * Supported Groups Extension (supported_groups)
+ */
+static int ssl_tls13_write_supported_groups_ext( mbedtls_ssl_context *ssl,
+                                                 unsigned char *buf,
+                                                 unsigned char *end,
+                                                 size_t *olen )
+{
+    unsigned char *p = buf ;
+    unsigned char *named_group_ptr; /* Start of named_group_list */
+    size_t named_group_len = 0;
+    int ret = 0, ret_ecdhe, ret_dhe;
+
+    *olen = 0;
+
+    if( !mbedtls_ssl_conf_tls13_some_ephemeral_enabled( ssl ) )
+        return( 0 );
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding supported_groups extension" ) );
+
+    /* Check there is space for extension header */
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 6 );
+    p += 6;
+
+    named_group_ptr = p;
+    ret_ecdhe = ssl_tls13_write_named_group_ecdhe( ssl, p, end, &named_group_len );
+    if( ret_ecdhe != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_write_named_group_ecdhe", ret );
+    }
+    p += named_group_len;
+
+    ret_dhe = ssl_tls13_write_named_group_dhe( ssl, p, end, &named_group_len );
+    if( ret_dhe != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_write_named_group_dhe", ret );
+    }
+    p += named_group_len;
+
+    /* Both ECDHE and DHE Fail. */
+    if( ret_ecdhe != 0 && ret_dhe != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Both ECDHE and DHE groups are fail. " ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+
+    /* Length of named_group_list*/
+    named_group_len = p - named_group_ptr;
+    if( named_group_len == 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "No Named Group Available." ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+
+    /* Write extension_type */
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SUPPORTED_GROUPS, buf, 0 );
+    /* Write extension_data_length */
+    MBEDTLS_PUT_UINT16_BE( named_group_len + 2, buf, 2 );
+    /* Write length of named_group_list */
+    MBEDTLS_PUT_UINT16_BE( named_group_len, buf, 4 );
+
+    MBEDTLS_SSL_DEBUG_BUF( 3, "Supported groups extension", buf + 4, named_group_len + 2 );
+
+    *olen = p - buf;
+
+    ssl->handshake->extensions_present |= MBEDTLS_SSL_EXT_SUPPORTED_GROUPS;
+
+    return( ret );
 }
 
 static int ssl_tls13_write_key_shares_ext( mbedtls_ssl_context *ssl,

@@ -3553,7 +3553,7 @@ psa_status_t psa_aead_set_nonce( psa_aead_operation_t *operation,
         goto exit;
     }
 
-    if( operation->nonce_set  )
+    if( operation->nonce_set )
     {
         status = PSA_ERROR_BAD_STATE;
         goto exit;
@@ -3612,7 +3612,8 @@ exit:
 
     return( status );
 }
- /* Pass additional data to an active multipart AEAD operation. */
+
+/* Pass additional data to an active multipart AEAD operation. */
 psa_status_t psa_aead_update_ad( psa_aead_operation_t *operation,
                                  const uint8_t *input,
                                  size_t input_length )

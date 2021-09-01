@@ -4,6 +4,7 @@
 CFLAGS	?= -O2
 WARNING_CFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
 LDFLAGS ?=
+QEMU_BINARY ?=
 
 default: all
 
@@ -195,7 +196,7 @@ endif
 
 # Test suites caught by SKIP_TEST_SUITES are built but not executed.
 check: $(BINARIES)
-	perl scripts/run-test-suites.pl --skip=$(SKIP_TEST_SUITES)
+	perl scripts/run-test-suites.pl --skip=$(SKIP_TEST_SUITES) --qemu_binary=$(QEMU_BINARY)
 
 test: check
 

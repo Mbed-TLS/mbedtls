@@ -163,6 +163,12 @@ pre_initialize_variables () {
     : ${ARM_NONE_EABI_GCC_PREFIX:=arm-none-eabi-}
     : ${ARM_LINUX_GNUEABI_GCC_PREFIX:=arm-linux-gnueabi-}
 
+    # Default list of architectures to test Mbed TLS on with QEMU: the list
+    # of supported architectures (see get_parameters_for_testing_on_qemu()
+    # minus m68k, alpha and sparc64 architectures on which some tests fail (to
+    # be investigated).
+    : ${QEMU_ARCHITECTURE_LIST:="arm mips powerpc powerpc64 aarch64"}
+
     # if MAKEFLAGS is not set add the -j option to speed up invocations of make
     if [ -z "${MAKEFLAGS+set}" ]; then
         export MAKEFLAGS="-j"
@@ -377,6 +383,62 @@ check_headers_in_cpp () {
     sort |
     diff headers.txt -
     rm headers.txt
+}
+
+# The list of supported architectures to test Mbed TLS on with QEMU is the
+# intersection of the list of architectures for which the library has some
+# assembly code (in bn_mul.h) and of the list of the architectures for
+# which there is an on the shelf cross-compiler in Ubuntu 18.04.
+get_parameters_for_testing_on_qemu () {
+    case "$1" in
+        arm)
+            QEMU_TESTING_CROSS_COMPILER_PREFIX="arm-linux-gnueabi-"
+            QEMU_TESTING_QEMU_LD_PREFIX="/usr/arm-linux-gnueabi"
+            QEMU_TESTING_QEMU_BINARY="qemu-arm"
+            ;;
+        mips)
+            QEMU_TESTING_CROSS_COMPILER_PREFIX="mips-linux-gnu-"
+            QEMU_TESTING_QEMU_LD_PREFIX="/usr/mips-linux-gnu"
+            QEMU_TESTING_QEMU_BINARY="qemu-mips"
+            ;;
+        powerpc)
+            QEMU_TESTING_CROSS_COMPILER_PREFIX="powerpc-linux-gnu-"
+            QEMU_TESTING_QEMU_LD_PREFIX="/usr/powerpc-linux-gnu"
+            QEMU_TESTING_QEMU_BINARY="qemu-ppc"
+            ;;
+        powerpc64)
+            QEMU_TESTING_CROSS_COMPILER_PREFIX="powerpc64-linux-gnu-"
+            QEMU_TESTING_QEMU_LD_PREFIX="/usr/powerpc64-linux-gnu"
+            QEMU_TESTING_QEMU_BINARY="qemu-ppc64"
+            ;;
+        aarch64)
+            QEMU_TESTING_CROSS_COMPILER_PREFIX="aarch64-linux-gnu-"
+            QEMU_TESTING_QEMU_LD_PREFIX="/usr/aarch64-linux-gnu"
+            QEMU_TESTING_QEMU_BINARY="qemu-aarch64"
+            ;;
+        m68k)
+            QEMU_TESTING_CROSS_COMPILER_PREFIX="m68k-linux-gnu-"
+            QEMU_TESTING_QEMU_LD_PREFIX="/usr/m68k-linux-gnu"
+            QEMU_TESTING_QEMU_BINARY="qemu-m68k"
+            ;;
+        alpha)
+            QEMU_TESTING_CROSS_COMPILER_PREFIX="alpha-linux-gnu-"
+            QEMU_TESTING_QEMU_LD_PREFIX="/usr/alpha-linux-gnu"
+            QEMU_TESTING_QEMU_BINARY="qemu-alpha"
+            ;;
+        sparc64)
+            QEMU_TESTING_CROSS_COMPILER_PREFIX="sparc64-linux-gnu-"
+            QEMU_TESTING_QEMU_LD_PREFIX="/usr/sparc64-linux-gnu"
+            QEMU_TESTING_QEMU_BINARY="qemu-sparc64"
+            ;;
+        *)
+            unset QEMU_TESTING_CROSS_COMPILER_PREFIX
+            unset QEMU_TESTING_QEMU_LD_PREFIX
+            unset QEMU_TESTING_QEMU_BINARY
+            echo >&2 "Unknown architecture for testing on QEMU: $1"
+            return 1
+            ;;
+    esac
 }
 
 pre_parse_command_line () {
@@ -2650,6 +2712,33 @@ component_check_generate_test_code () {
     # Our convention is to reserve stderr for actual errors, and write
     # harmless info on stdout so it can be suppress with --quiet.
     record_status ./tests/scripts/test_generate_test_code.py 2>&1
+}
+
+component_test_qemu_basic () {
+    scripts/config.py full
+    for arch in ${QEMU_ARCHITECTURE_LIST}; do
+        msg "Architecture: ${arch}"
+        if ! get_parameters_for_testing_on_qemu $arch; then
+            continue;
+        fi
+        make CC="${QEMU_TESTING_CROSS_COMPILER_PREFIX}gcc" AR="${QEMU_TESTING_CROSS_COMPILER_PREFIX}ar" LD="${QEMU_TESTING_CROSS_COMPILER_PREFIX}ld" CFLAGS='-Werror -Wall -Wextra -O1'
+        export QEMU_LD_PREFIX=${QEMU_TESTING_QEMU_LD_PREFIX}
+        export QEMU_BINARY=${QEMU_TESTING_QEMU_BINARY}
+        make check
+        make clean
+    done
+}
+
+support_test_qemu_basic () {
+    for arch in ${QEMU_ARCHITECTURE_LIST}; do
+        if ! get_parameters_for_testing_on_qemu $arch; then
+            return 1
+        fi
+       if ! `type "${QEMU_TESTING_CROSS_COMPILER_PREFIX}gcc" >/dev/null 2>&1`; then
+            return 1
+       fi
+    done
+    type qemu-arm >/dev/null 2>&1
 }
 
 ################################################################

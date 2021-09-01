@@ -689,7 +689,7 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
     unsigned char *mac_dec;
     size_t mac_key_len = 0;
     size_t iv_copy_len;
-    unsigned keylen;
+    size_t keylen;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
     const mbedtls_cipher_info_t *cipher_info;
     const mbedtls_md_info_t *md_info;
@@ -1060,7 +1060,7 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
     }
 
     if( ( ret = mbedtls_cipher_setkey( &transform->cipher_ctx_enc, key1,
-                               mbedtls_cipher_info_get_key_bitlen( cipher_info ),
+                               (int) mbedtls_cipher_info_get_key_bitlen( cipher_info ),
                                MBEDTLS_ENCRYPT ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setkey", ret );
@@ -1068,7 +1068,7 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
     }
 
     if( ( ret = mbedtls_cipher_setkey( &transform->cipher_ctx_dec, key2,
-                               mbedtls_cipher_info_get_key_bitlen( cipher_info ),
+                               (int) mbedtls_cipher_info_get_key_bitlen( cipher_info ),
                                MBEDTLS_DECRYPT ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setkey", ret );

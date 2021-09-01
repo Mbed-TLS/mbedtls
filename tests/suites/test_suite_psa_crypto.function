@@ -4407,6 +4407,40 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     psa_aead_abort( &operation );
 
+    /* Test for sending too much additional data after setting lengths. */
+
+    operation = psa_aead_operation_init( );
+
+    PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
+
+    PSA_ASSERT( psa_aead_set_nonce( &operation, nonce->x, nonce->len ) );
+
+    PSA_ASSERT( psa_aead_set_lengths( &operation, 0, 0 ) );
+
+
+    TEST_EQUAL( psa_aead_update_ad( &operation, additional_data->x,
+                                    additional_data->len ),
+                PSA_ERROR_INVALID_ARGUMENT );
+
+    psa_aead_abort( &operation );
+
+    /* Test for sending too much data after setting lengths. */
+
+    operation = psa_aead_operation_init( );
+
+    PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
+
+    PSA_ASSERT( psa_aead_set_nonce( &operation, nonce->x, nonce->len ) );
+
+    PSA_ASSERT( psa_aead_set_lengths( &operation, 0, 0 ) );
+
+    TEST_EQUAL( psa_aead_update( &operation, input_data->x,
+                                 input_data->len, output_data,
+                                 output_size, &output_length ),
+                PSA_ERROR_INVALID_ARGUMENT );
+
+    psa_aead_abort( &operation );
+
     /* Test sending additional data after data. */
 
     operation = psa_aead_operation_init( );

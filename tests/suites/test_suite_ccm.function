@@ -559,7 +559,7 @@ void mbedtls_ccm_incomplete_ad( int cipher_id, int mode,
     TEST_EQUAL( 0, mbedtls_ccm_update_ad( &ctx, add->x, add->len/2) );
 
     ASSERT_ALLOC( output, 16 );
-    TEST_EQUAL( MBEDTLS_ERR_CCM_BAD_SEQUENCE, mbedtls_ccm_finish( &ctx, output, 16 ) );
+    TEST_EQUAL( MBEDTLS_ERR_CCM_BAD_INPUT, mbedtls_ccm_finish( &ctx, output, 16 ) );
 
 exit:
     mbedtls_free( output );
@@ -585,7 +585,7 @@ void mbedtls_ccm_full_ad_and_overflow( int cipher_id, int mode,
     // pass full auth data
     TEST_EQUAL( 0, mbedtls_ccm_update_ad( &ctx, add->x, add->len) );
     // pass 1 extra byte
-    TEST_EQUAL( MBEDTLS_ERR_CCM_BAD_SEQUENCE, mbedtls_ccm_update_ad( &ctx, add->x, 1) );
+    TEST_EQUAL( MBEDTLS_ERR_CCM_BAD_INPUT, mbedtls_ccm_update_ad( &ctx, add->x, 1) );
 exit:
     mbedtls_ccm_free( &ctx );
 }
@@ -644,7 +644,7 @@ void mbedtls_ccm_incomplete_update( int cipher_id, int mode,
     output = NULL;
 
     ASSERT_ALLOC( output, 16 );
-    TEST_EQUAL( MBEDTLS_ERR_CCM_BAD_SEQUENCE, mbedtls_ccm_finish( &ctx, output, 16 ) );
+    TEST_EQUAL( MBEDTLS_ERR_CCM_BAD_INPUT, mbedtls_ccm_finish( &ctx, output, 16 ) );
 
 exit:
     mbedtls_free( output );
@@ -699,7 +699,7 @@ void mbedtls_ccm_instant_finish( int cipher_id, int mode,
     TEST_EQUAL( 0, mbedtls_ccm_set_lengths( &ctx, 16, 16, 16 ) );
 
     ASSERT_ALLOC( output, 16 );
-    TEST_EQUAL( MBEDTLS_ERR_CCM_BAD_SEQUENCE, mbedtls_ccm_finish( &ctx, output, 16 ) );
+    TEST_EQUAL( MBEDTLS_ERR_CCM_BAD_INPUT, mbedtls_ccm_finish( &ctx, output, 16 ) );
 
 exit:
     mbedtls_free( output );

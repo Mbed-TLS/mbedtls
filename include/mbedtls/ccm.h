@@ -61,8 +61,6 @@
 #define MBEDTLS_ERR_CCM_BAD_INPUT       -0x000D
 /** Authenticated decryption failed. */
 #define MBEDTLS_ERR_CCM_AUTH_FAILED     -0x000F
-/** CCM functions called in the wrong sequence. */
-#define MBEDTLS_ERR_CCM_BAD_SEQUENCE    -0x0011
 
 #ifdef __cplusplus
 extern "C" {

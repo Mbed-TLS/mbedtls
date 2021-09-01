@@ -86,7 +86,7 @@ typedef struct mbedtls_ccm_context
     size_t MBEDTLS_PRIVATE(tag_len);         /*!< Total tag length */
     size_t MBEDTLS_PRIVATE(processed);       /*!< Track how many bytes of input data
                                                   were processed (chunked input).
-                                                  Used indepenedantly for both auth data
+                                                  Used independently for both auth data
                                                   and plaintext/ciphertext.
                                                   This variable is set to zero after
                                                   auth data input is finished. */

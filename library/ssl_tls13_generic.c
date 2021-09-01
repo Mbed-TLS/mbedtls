@@ -24,8 +24,10 @@
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
 
 #include "mbedtls/error.h"
+#include "mbedtls/debug.h"
 
 #include "ssl_misc.h"
+
 
 int mbedtls_ssl_tls13_start_handshake_msg( mbedtls_ssl_context *ssl,
                                            unsigned hs_type,
@@ -108,8 +110,9 @@ int mbedtls_ssl_tls13_write_sig_alg_ext( mbedtls_ssl_context *ssl,
     ((void) ssl);
     ((void) buf);
     ((void) end);
-    ((void) olen);
-    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+    *olen = 0;
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "signature_algorithm extension is not available" ) );
+    return( 0 );
 }
 
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */

@@ -101,8 +101,9 @@ static int ssl_tls13_write_supported_groups_ext( mbedtls_ssl_context *ssl,
     ((void) ssl);
     ((void) buf);
     ((void) end);
-    ((void) olen);
-    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+    *olen = 0;
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "supported groups extension is not available" ) );
+    return( 0 );
 }
 
 static int ssl_tls13_write_key_shares_ext( mbedtls_ssl_context *ssl,
@@ -113,8 +114,9 @@ static int ssl_tls13_write_key_shares_ext( mbedtls_ssl_context *ssl,
     ((void) ssl);
     ((void) buf);
     ((void) end);
-    ((void) olen);
-    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+    *olen = 0;
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "key share extension is not available" ) );
+    return( 0 );
 }
 
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */

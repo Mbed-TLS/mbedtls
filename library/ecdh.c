@@ -31,6 +31,7 @@
 #include "mbedtls/ecdh.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
+#include "ssl_misc.h"
 
 #include <string.h>
 
@@ -725,5 +726,89 @@ int mbedtls_ecdh_calc_secret( mbedtls_ecdh_context *ctx, size_t *olen,
     }
 #endif
 }
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+
+static int ecdh_tls13_make_params_internal( mbedtls_ecdh_context_mbed *ctx,
+                                            size_t *olen, int point_format,
+                                            unsigned char *buf, size_t blen,
+                                            int ( *f_rng )( void *,
+                                                            unsigned char *,
+                                                            size_t),
+                                            void *p_rng, int restart_enabled )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    mbedtls_ecp_restart_ctx *rs_ctx = NULL;
+#endif
+
+    if( ctx->grp.pbits == 0 )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    if( restart_enabled )
+        rs_ctx = &ctx->rs;
+#else
+    (void) restart_enabled;
+#endif
+
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    if( ( ret = ecdh_gen_public_restartable( &ctx->grp, &ctx->d, &ctx->Q,
+                                             f_rng, p_rng, rs_ctx ) ) != 0 )
+        return( ret );
+#else
+    if( ( ret = mbedtls_ecdh_gen_public( &ctx->grp, &ctx->d, &ctx->Q,
+                                         f_rng, p_rng ) ) != 0 )
+        return( ret );
+#endif /* MBEDTLS_ECP_RESTARTABLE */
+
+    ret = mbedtls_ecp_point_write_binary( &ctx->grp, &ctx->Q, point_format,
+                                          olen, buf, blen );
+    if( ret != 0 )
+        return( ret );
+
+    return( 0 );
+}
+
+int mbedtls_ecdh_tls13_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
+                                    unsigned char *buf, size_t blen,
+                                    int ( *f_rng )( void *, unsigned char *, size_t ),
+                                    void *p_rng )
+{
+    int restart_enabled = 0;
+    ECDH_VALIDATE_RET( ctx != NULL );
+    ECDH_VALIDATE_RET( olen != NULL );
+    ECDH_VALIDATE_RET( buf != NULL );
+    ECDH_VALIDATE_RET( f_rng != NULL );
+
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    restart_enabled = ctx->restart_enabled;
+#else
+    (void) restart_enabled;
+#endif
+
+#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
+    return( ecdh_tls13_make_params_internal( ctx, olen, ctx->point_format, buf, blen,
+                                       f_rng, p_rng, restart_enabled ) );
+#else
+    switch( ctx->var )
+    {
+#if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
+        case MBEDTLS_ECDH_VARIANT_EVEREST:
+            return( mbedtls_everest_make_params( &ctx->ctx.everest_ecdh, olen,
+                                                 buf, blen, f_rng, p_rng ) );
+#endif
+        case MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0:
+            return( ecdh_tls13_make_params_internal( &ctx->ctx.mbed_ecdh, olen,
+                                               ctx->point_format, buf, blen,
+                                               f_rng, p_rng,
+                                               restart_enabled ) );
+        default:
+            return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+#endif
+}
+
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 #endif /* MBEDTLS_ECDH_C */

@@ -32,6 +32,13 @@ int mbedtls_ssl_tls13_start_handshake_msg( mbedtls_ssl_context *ssl,
                                            unsigned char **buf,
                                            size_t *buflen )
 {
+    /*
+     * Reserve 4 bytes for hanshake header. ( Section 4,RFC 8446 )
+     *    ...
+     *    HandshakeType msg_type;
+     *    uint24 length;
+     *    ...
+     */
     *buf = ssl->out_msg + 4;
     *buflen = MBEDTLS_SSL_OUT_CONTENT_LEN - 4;
 
@@ -48,6 +55,7 @@ int mbedtls_ssl_tls13_finish_handshake_msg( mbedtls_ssl_context *ssl,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     ((void) buf_len);
 
+    /* Add reserved 4 bytes for handshake header */
     ssl->out_msglen = msg_len + 4;
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_write_handshake_msg_ext, ( ssl, 0 ) );
 

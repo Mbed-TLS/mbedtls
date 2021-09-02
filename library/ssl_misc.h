@@ -26,7 +26,6 @@
 
 #include "mbedtls/ssl.h"
 #include "mbedtls/cipher.h"
-#include "mbedtls/debug.h"
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
@@ -135,33 +134,25 @@
 /*
  * Helper macros for function call with returen check.
  */
-/* utils for strip parens in marcro */
-#define MBEDTLS_SSL_PROC_STRIP_PARENS( ... )   __VA_ARGS__
-
 /*
  * Exit and print debug message when return none zero value
  */
-#define MBEDTLS_SSL_PROC_CHK( fn, args )                        \
+#define MBEDTLS_SSL_PROC_CHK( f )                               \
     do {                                                        \
-        ret = fn(MBEDTLS_SSL_PROC_STRIP_PARENS args);           \
+        ret = ( f );                                            \
         if( ret != 0 )                                          \
         {                                                       \
-            if( ret > 0 )                                       \
-                ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;           \
-            MBEDTLS_SSL_DEBUG_RET( 1, #fn, ret );               \
             goto cleanup;                                       \
         }                                                       \
     } while( 0 )
-
 /*
  * Exit and print debug message when return negative value
  */
-#define MBEDTLS_SSL_PROC_CHK_NEG( fn, args )                    \
+#define MBEDTLS_SSL_PROC_CHK_NEG( f )                           \
     do {                                                        \
-        ret = fn(MBEDTLS_SSL_PROC_STRIP_PARENS args);           \
+        ret = ( f );                                            \
         if( ret < 0 )                                           \
         {                                                       \
-            MBEDTLS_SSL_DEBUG_RET( 1, #fn, ret );               \
             goto cleanup;                                       \
         }                                                       \
     } while( 0 )

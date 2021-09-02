@@ -30,7 +30,7 @@
 int mbedtls_ssl_tls13_start_handshake_msg( mbedtls_ssl_context *ssl,
                                            unsigned hs_type,
                                            unsigned char **buf,
-                                           size_t *buflen )
+                                           size_t *buf_len )
 {
     /*
      * Reserve 4 bytes for hanshake header. ( Section 4,RFC 8446 )
@@ -40,7 +40,7 @@ int mbedtls_ssl_tls13_start_handshake_msg( mbedtls_ssl_context *ssl,
      *    ...
      */
     *buf = ssl->out_msg + 4;
-    *buflen = MBEDTLS_SSL_OUT_CONTENT_LEN - 4;
+    *buf_len = MBEDTLS_SSL_OUT_CONTENT_LEN - 4;
 
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = hs_type;

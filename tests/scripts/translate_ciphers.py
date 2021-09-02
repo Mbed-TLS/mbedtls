@@ -41,21 +41,21 @@ class TestTranslateCiphers(unittest.TestCase):
         that exercise each step of the translate functions
         """
         ciphers = [
-             ("TLS-ECDHE-ECDSA-WITH-NULL-SHA",
-              "+ECDHE-ECDSA:+NULL:+SHA1",
-              "ECDHE-ECDSA-NULL-SHA"),
-             ("TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256",
-              "+ECDHE-ECDSA:+AES-128-GCM:+AEAD",
-              "ECDHE-ECDSA-AES128-GCM-SHA256"),
-             ("TLS-DHE-RSA-WITH-3DES-EDE-CBC-SHA",
-              "+DHE-RSA:+3DES-CBC:+SHA1",
-              "EDH-RSA-DES-CBC3-SHA"),
-             ("TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256",
-              None,
-              "ECDHE-ECDSA-CHACHA20-POLY1305"),
-             ("TLS-ECDHE-ECDSA-WITH-AES-128-CCM",
-              "+ECDHE-ECDSA:+AES-128-CCM:+AEAD",
-              None),
+            ("TLS-ECDHE-ECDSA-WITH-NULL-SHA",
+             "+ECDHE-ECDSA:+NULL:+SHA1",
+             "ECDHE-ECDSA-NULL-SHA"),
+            ("TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256",
+             "+ECDHE-ECDSA:+AES-128-GCM:+AEAD",
+             "ECDHE-ECDSA-AES128-GCM-SHA256"),
+            ("TLS-DHE-RSA-WITH-3DES-EDE-CBC-SHA",
+             "+DHE-RSA:+3DES-CBC:+SHA1",
+             "EDH-RSA-DES-CBC3-SHA"),
+            ("TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256",
+             None,
+             "ECDHE-ECDSA-CHACHA20-POLY1305"),
+            ("TLS-ECDHE-ECDSA-WITH-AES-128-CCM",
+             "+ECDHE-ECDSA:+AES-128-CCM:+AEAD",
+             None),
         ]
 
         for m, g_exp, o_exp in ciphers:

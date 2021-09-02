@@ -591,6 +591,41 @@ exit:
 }
 /* END_CASE */
 
+/* Provide incomplete auth data on first update_ad.
+ * Provide too much auth data on second update_ad */
+/* BEGIN_CASE */
+void mbedtls_ccm_incomplete_ad_and_overflow( int cipher_id, int mode,
+                                             data_t * key, data_t * iv,
+                                             data_t * add )
+{
+    mbedtls_ccm_context ctx;
+
+    /* New auth buffer containing same data as original one,
+     * with added extra byte at the end */
+    uint8_t* add_extended = NULL;
+    ASSERT_ALLOC( add_extended, add->len + 1 );
+    if( add_extended )
+    {
+        memcpy( add_extended, add->x, add->len );
+        add_extended[add->len] = 0xAB; // some magic value
+    }
+
+    mbedtls_ccm_init( &ctx );
+    TEST_EQUAL( mbedtls_ccm_setkey( &ctx, cipher_id, key->x, key->len * 8 ), 0 );
+    TEST_EQUAL( 0, mbedtls_ccm_starts( &ctx, mode, iv->x, iv->len ) );
+    // use hardcoded values for msg length and tag length. They are not a part of this test
+    TEST_EQUAL( 0, mbedtls_ccm_set_lengths( &ctx, add->len, 16, 16 ) );
+
+    // pass incomplete auth data
+    TEST_EQUAL( 0, mbedtls_ccm_update_ad( &ctx, add_extended, add->len - 1) );
+    // pass 2 extra bytes (1 missing byte from previous incomplete pass, and 1 unexpected byte)
+    TEST_EQUAL( MBEDTLS_ERR_CCM_BAD_INPUT, mbedtls_ccm_update_ad( &ctx, add_extended + add->len - 1, 2) );
+exit:
+    mbedtls_free( add_extended );
+    mbedtls_ccm_free( &ctx );
+}
+/* END_CASE */
+
 /* Provide too much plaintext/ciphertext */
 /* BEGIN_CASE */
 void mbedtls_ccm_overflow_update( int cipher_id, int mode,
@@ -678,6 +713,48 @@ void mbedtls_ccm_full_update_and_overflow( int cipher_id, int mode,
     TEST_EQUAL( MBEDTLS_ERR_CCM_BAD_INPUT, \
                 mbedtls_ccm_update( &ctx, msg->x, 1, output, 1, &olen ) );
 exit:
+    mbedtls_free( output );
+    mbedtls_ccm_free( &ctx );
+}
+/* END_CASE */
+
+/* Provide incomplete plaintext/ciphertext of first update
+ * Provide too much plaintext/ciphertext on second update */
+/* BEGIN_CASE */
+void mbedtls_ccm_incomplete_update_overflow( int cipher_id, int mode,
+                                             data_t * key, data_t * msg, data_t * iv,
+                                             data_t * add )
+{
+    mbedtls_ccm_context ctx;
+    uint8_t *output = NULL;
+    size_t olen;
+
+    /* New plaintext/ciphertext buffer containing same data as original one,
+     * with added extra byte at the end */
+    uint8_t* msg_extended = NULL;
+    ASSERT_ALLOC( msg_extended, msg->len + 1 );
+    if( msg_extended )
+    {
+        memcpy( msg_extended, msg->x, msg->len );
+        msg_extended[msg->len] = 0xAB; // some magic value
+    }
+
+    mbedtls_ccm_init( &ctx );
+    TEST_EQUAL( mbedtls_ccm_setkey( &ctx, cipher_id, key->x, key->len * 8 ), 0 );
+    TEST_EQUAL( 0, mbedtls_ccm_starts( &ctx, mode, iv->x, iv->len ) );
+    // use hardcoded value for tag length. It is a not a part of this test
+    TEST_EQUAL( 0, mbedtls_ccm_set_lengths( &ctx, add->len, msg->len, 16 ) );
+
+    TEST_EQUAL( 0, mbedtls_ccm_update_ad( &ctx, add->x, add->len) );
+
+    ASSERT_ALLOC( output, msg->len + 1 );
+    // pass incomplete text
+    TEST_EQUAL( 0, mbedtls_ccm_update( &ctx, msg_extended, msg->len - 1, output, msg->len + 1, &olen ) );
+    // pass 2 extra bytes (1 missing byte from previous incomplete pass, and 1 unexpected byte)
+    TEST_EQUAL( MBEDTLS_ERR_CCM_BAD_INPUT, \
+                mbedtls_ccm_update( &ctx, msg_extended + msg->len - 1, 2, output +  msg->len - 1, 2, &olen ) );
+exit:
+    mbedtls_free( msg_extended );
     mbedtls_free( output );
     mbedtls_ccm_free( &ctx );
 }

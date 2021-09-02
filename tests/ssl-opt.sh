@@ -405,6 +405,44 @@ requires_gnutls_tls1_3() {
     fi
 }
 
+# Check %NO_TICKETS option
+requires_gnutls_next_no_ticket() {
+    requires_gnutls_next
+    if [ "$GNUTLS_NEXT_AVAILABLE" = "NO" ]; then
+        GNUTLS_NO_TICKETS_AVAILABLE="NO"
+    fi
+    if [ -z "${GNUTLS_NO_TICKETS_AVAILABLE:-}" ]; then
+        if $GNUTLS_NEXT_CLI --priority-list 2>&1 | grep NO_TICKETS >/dev/null
+        then
+            GNUTLS_NO_TICKETS_AVAILABLE="YES"
+        else
+            GNUTLS_NO_TICKETS_AVAILABLE="NO"
+        fi
+    fi
+    if [ "$GNUTLS_NO_TICKETS_AVAILABLE" = "NO" ]; then
+        SKIP_NEXT="YES"
+    fi
+}
+
+# Check %DISABLE_TLS13_COMPAT_MODE option
+requires_gnutls_next_disable_tls13_compat() {
+    requires_gnutls_next
+    if [ "$GNUTLS_NEXT_AVAILABLE" = "NO" ]; then
+        GNUTLS_DISABLE_TLS13_COMPAT_MODE_AVAILABLE="NO"
+    fi
+    if [ -z "${GNUTLS_DISABLE_TLS13_COMPAT_MODE_AVAILABLE:-}" ]; then
+        if $GNUTLS_NEXT_CLI --priority-list 2>&1 | grep DISABLE_TLS13_COMPAT_MODE >/dev/null
+        then
+            GNUTLS_DISABLE_TLS13_COMPAT_MODE_AVAILABLE="YES"
+        else
+            GNUTLS_DISABLE_TLS13_COMPAT_MODE_AVAILABLE="NO"
+        fi
+    fi
+    if [ "$GNUTLS_DISABLE_TLS13_COMPAT_MODE_AVAILABLE" = "NO" ]; then
+        SKIP_NEXT="YES"
+    fi
+}
+
 # skip next test if IPv6 isn't available on this host
 requires_ipv6() {
     if [ -z "${HAS_IPV6:-}" ]; then
@@ -8589,11 +8627,13 @@ run_test    "TLS1.3: Test openssl tls1_3 feature" \
             -c "TLS 1.3" \
             -s "TLS 1.3"
 
-# gnutls feature tests: check if tls1.3 exists.
+# gnutls feature tests: check if TLS 1.3 is supported as well as the NO_TICKETS and DISABLE_TLS13_COMPAT_MODE options.
 requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
 run_test    "TLS1.3: Test gnutls tls1_3 feature" \
-            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3" \
-            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 -V" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
             0 \
             -s "Version: TLS1.3" \
             -c "Version: TLS1.3"

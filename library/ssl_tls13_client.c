@@ -205,7 +205,7 @@ static int ssl_tls13_write_client_hello_cipher_suites(
  */
 static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
                                               unsigned char *buf,
-                                              size_t buflen,
+                                              unsigned char *end,
                                               size_t *olen )
 {
 
@@ -216,7 +216,6 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
 
     /* Buffer management */
     unsigned char *start = buf;
-    unsigned char *end = buf + buflen;
 
     *olen = 0;
 
@@ -388,7 +387,7 @@ static int ssl_tls13_write_client_hello( mbedtls_ssl_context *ssl )
                                 &buf, &buf_len ) );
 
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_write_client_hello_body( ssl, buf,
-                                                             buf_len,
+                                                             buf + buf_len,
                                                              &msg_len ) );
 
     mbedtls_ssl_tls13_add_hs_hdr_to_checksum( ssl,

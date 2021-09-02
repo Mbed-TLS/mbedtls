@@ -5175,7 +5175,7 @@ int mbedtls_ssl_handshake_step( mbedtls_ssl_context *ssl )
     {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
         if( mbedtls_ssl_conf_is_tls13_only( ssl->conf ) )
-            ret = mbedtls_ssl_handshake_client_step_tls1_3( ssl );
+            ret = mbedtls_ssl_tls13_handshake_client_step( ssl );
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
@@ -5189,7 +5189,7 @@ int mbedtls_ssl_handshake_step( mbedtls_ssl_context *ssl )
     {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
         if( mbedtls_ssl_conf_is_tls13_only( ssl->conf ) )
-            ret = mbedtls_ssl_handshake_server_step_tls1_3( ssl );
+            ret = mbedtls_ssl_tls13_handshake_server_step( ssl );
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)

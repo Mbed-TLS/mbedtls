@@ -472,20 +472,37 @@
 #define MBEDTLS_TLS_EXT_MAX_FRAGMENT_LENGTH          1
 
 #define MBEDTLS_TLS_EXT_TRUNCATED_HMAC               4
+#define MBEDTLS_TLS_EXT_STATUS_REQUEST               5 /* RFC 6066 TLS 1.2 and 1.3 */
 
 #define MBEDTLS_TLS_EXT_SUPPORTED_ELLIPTIC_CURVES   10
+#define MBEDTLS_TLS_EXT_SUPPORTED_GROUPS            10 /* RFC 8422,7919 TLS 1.2 and 1.3 */
 #define MBEDTLS_TLS_EXT_SUPPORTED_POINT_FORMATS     11
 
-#define MBEDTLS_TLS_EXT_SIG_ALG                     13
-
+#define MBEDTLS_TLS_EXT_SIG_ALG                     13 /* RFC 8446 TLS 1.3 */
 #define MBEDTLS_TLS_EXT_USE_SRTP                    14
-
+#define MBEDTLS_TLS_EXT_HEARTBEAT                   15 /* RFC 6520 TLS 1.2 and 1.3 */
 #define MBEDTLS_TLS_EXT_ALPN                        16
 
+#define MBEDTLS_TLS_EXT_SCT                         18 /* RFC 6962 TLS 1.2 and 1.3 */
+#define MBEDTLS_TLS_EXT_CLI_CERT_TYPE               19 /* RFC 7250 TLS 1.2 and 1.3 */
+#define MBEDTLS_TLS_EXT_SERV_CERT_TYPE              20 /* RFC 7250 TLS 1.2 and 1.3 */
+#define MBEDTLS_TLS_EXT_PADDING                     21 /* RFC 7685 TLS 1.2 and 1.3 */
 #define MBEDTLS_TLS_EXT_ENCRYPT_THEN_MAC            22 /* 0x16 */
 #define MBEDTLS_TLS_EXT_EXTENDED_MASTER_SECRET  0x0017 /* 23 */
 
 #define MBEDTLS_TLS_EXT_SESSION_TICKET              35
+
+#define MBEDTLS_TLS_EXT_PRE_SHARED_KEY              41 /* RFC 8446 TLS 1.3 */
+#define MBEDTLS_TLS_EXT_EARLY_DATA                  42 /* RFC 8446 TLS 1.3 */
+#define MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS          43 /* RFC 8446 TLS 1.3 */
+#define MBEDTLS_TLS_EXT_COOKIE                      44 /* RFC 8446 TLS 1.3 */
+#define MBEDTLS_TLS_EXT_PSK_KEY_EXCHANGE_MODES      45 /* RFC 8446 TLS 1.3 */
+
+#define MBEDTLS_TLS_EXT_CERT_AUTH                   47 /* RFC 8446 TLS 1.3 */
+#define MBEDTLS_TLS_EXT_OID_FILTERS                 48 /* RFC 8446 TLS 1.3 */
+#define MBEDTLS_TLS_EXT_POST_HANDSHAKE_AUTH         49 /* RFC 8446 TLS 1.3 */
+#define MBEDTLS_TLS_EXT_SIG_ALG_CERT                50 /* RFC 8446 TLS 1.3 */
+#define MBEDTLS_TLS_EXT_KEY_SHARE                   51 /* RFC 8446 TLS 1.3 */
 
 /* The value of the CID extension is still TBD as of
  * draft-ietf-tls-dtls-connection-id-05
@@ -573,6 +590,9 @@ typedef enum
     MBEDTLS_SSL_HANDSHAKE_OVER,
     MBEDTLS_SSL_SERVER_NEW_SESSION_TICKET,
     MBEDTLS_SSL_SERVER_HELLO_VERIFY_REQUEST_SENT,
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+    MBEDTLS_SSL_ENCRYPTED_EXTENSIONS,
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 }
 mbedtls_ssl_states;
 

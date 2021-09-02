@@ -381,22 +381,25 @@ static int ssl_tls13_write_client_hello( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write client hello" ) );
 
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_prepare_client_hello, ( ssl ) );
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_prepare_client_hello( ssl ) );
 
-    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_start_handshake_msg,
-                          ( ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
-                          &buf, &buf_len ) );
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_start_handshake_msg(
+                                ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
+                                &buf, &buf_len ) );
 
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_write_client_hello_body,
-                          ( ssl, buf, buf_len, &msg_len ) );
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_write_client_hello_body( ssl, buf,
+                                                             buf_len,
+                                                             &msg_len ) );
 
-    mbedtls_ssl_tls13_add_hs_hdr_to_checksum( ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
+    mbedtls_ssl_tls13_add_hs_hdr_to_checksum( ssl,
+                                              MBEDTLS_SSL_HS_CLIENT_HELLO,
                                               msg_len );
     ssl->handshake->update_checksum( ssl, buf, msg_len );
 
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_client_hello, ( ssl ) );
-    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_finish_handshake_msg,
-                          ( ssl, buf_len, msg_len ) );
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_client_hello( ssl ) );
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_finish_handshake_msg( ssl,
+                                                                  buf_len,
+                                                                  msg_len ) );
 
 cleanup:
 

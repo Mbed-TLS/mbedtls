@@ -57,7 +57,7 @@ int mbedtls_ssl_tls13_finish_handshake_msg( mbedtls_ssl_context *ssl,
 
     /* Add reserved 4 bytes for handshake header */
     ssl->out_msglen = msg_len + 4;
-    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_write_handshake_msg_ext, ( ssl, 0 ) );
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_write_handshake_msg_ext( ssl, 0 ) );
 
 cleanup:
     return( ret );

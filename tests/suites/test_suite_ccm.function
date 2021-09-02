@@ -533,8 +533,8 @@ void mbedtls_ccm_overflow_ad( int cipher_id, int mode,
     TEST_EQUAL( mbedtls_ccm_setkey( &ctx, cipher_id, key->x, key->len * 8 ), 0 );
     TEST_EQUAL( 0, mbedtls_ccm_starts( &ctx, mode, iv->x, iv->len ) );
     // use hardcoded values for msg length and tag length. They are not a part of this test
-    // set half of auth data length to provoke an overflow
-    TEST_EQUAL( 0, mbedtls_ccm_set_lengths( &ctx, add->len / 2, 16, 16 ) );
+    // subtract 1 from configured auth data length to provoke an overflow
+    TEST_EQUAL( 0, mbedtls_ccm_set_lengths( &ctx, add->len - 1, 16, 16 ) );
 
     TEST_EQUAL( MBEDTLS_ERR_CCM_BAD_INPUT, mbedtls_ccm_update_ad( &ctx, add->x, add->len) );
 exit:
@@ -556,7 +556,7 @@ void mbedtls_ccm_incomplete_ad( int cipher_id, int mode,
     // use hardcoded values for msg length and tag length. They are not a part of this test
     TEST_EQUAL( 0, mbedtls_ccm_set_lengths( &ctx, add->len, 0, 16 ) );
 
-    TEST_EQUAL( 0, mbedtls_ccm_update_ad( &ctx, add->x, add->len/2) );
+    TEST_EQUAL( 0, mbedtls_ccm_update_ad( &ctx, add->x, add->len - 1) );
 
     ASSERT_ALLOC( output, 16 );
     TEST_EQUAL( MBEDTLS_ERR_CCM_BAD_INPUT, mbedtls_ccm_finish( &ctx, output, 16 ) );
@@ -605,8 +605,8 @@ void mbedtls_ccm_overflow_update( int cipher_id, int mode,
     TEST_EQUAL( mbedtls_ccm_setkey( &ctx, cipher_id, key->x, key->len * 8 ), 0 );
     TEST_EQUAL( 0, mbedtls_ccm_starts( &ctx, mode, iv->x, iv->len ) );
     // use hardcoded value for tag length. It is a not a part of this test
-    // set half of msg length to provoke an overflow
-    TEST_EQUAL( 0, mbedtls_ccm_set_lengths( &ctx, add->len, msg->len / 2, 16 ) );
+    // subtract 1 from configured msg length to provoke an overflow
+    TEST_EQUAL( 0, mbedtls_ccm_set_lengths( &ctx, add->len, msg->len - 1, 16 ) );
 
     TEST_EQUAL( 0, mbedtls_ccm_update_ad( &ctx, add->x, add->len) );
 
@@ -639,7 +639,7 @@ void mbedtls_ccm_incomplete_update( int cipher_id, int mode,
 
     ASSERT_ALLOC( output, msg->len );
     olen = 0xdeadbeef;
-    TEST_EQUAL( 0, mbedtls_ccm_update( &ctx, msg->x, msg->len/2, output, msg->len, &olen ) );
+    TEST_EQUAL( 0, mbedtls_ccm_update( &ctx, msg->x, msg->len - 1, output, msg->len, &olen ) );
     mbedtls_free( output );
     output = NULL;
 

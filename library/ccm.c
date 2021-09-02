@@ -263,7 +263,7 @@ int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
 
     if( ctx->state & CCM_STATE__ERROR )
     {
-        return ret;
+        return MBEDTLS_ERR_CCM_BAD_INPUT;
     }
 
     if( ctx->add_len > 0 && add_len > 0 )
@@ -339,7 +339,7 @@ int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
 
     if( ctx->state & CCM_STATE__ERROR )
     {
-        return MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        return MBEDTLS_ERR_CCM_BAD_INPUT;
     }
 
     if( ctx->processed + input_len > ctx->plaintext_len )

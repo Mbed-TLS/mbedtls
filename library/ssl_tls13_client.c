@@ -54,7 +54,7 @@ static int ssl_tls13_write_supported_versions_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding supported versions extension" ) );
 
     /*
-     * Reserve space for extension header.
+     * Check space for extension header.
      *
      * extension_type           2
      * extension_data_length    2
@@ -73,12 +73,11 @@ static int ssl_tls13_write_supported_versions_ext( mbedtls_ssl_context *ssl,
     /* Length of versions */
     *p++ = 0x2;
 
-    /* Write values of supported version.
+    /* Write values of supported versions.
      *
-     * They are come from configuration values. And
-     * ssl_conf_check has valided the values.
+     * They are defined by the configuration.
      *
-     * Currently, only one vesrion is advertised.
+     * Currently, only one version is advertised.
      */
     mbedtls_ssl_write_version( ssl->conf->max_major_ver,
                                ssl->conf->max_minor_ver,
@@ -133,9 +132,9 @@ static int ssl_tls13_write_client_hello_cipher_suites(
             unsigned char *end,
             size_t *olen )
 {
-    const int *cipher_suite_list;
-    unsigned char *cipher_suites_start; /* start of the cipher_suite_list */
-    unsigned char *cipher_suites_iter;  /* iteration of the cipher_suite_list */
+    const int *ciphersuite_list;
+    unsigned char *cipher_suites_start; /* Start of the cipher_suites list */
+    unsigned char *cipher_suites_iter;  /* Iteration over the cipher_suites list */
     size_t cipher_suites_len;
 
     *olen = 0 ;
@@ -148,18 +147,18 @@ static int ssl_tls13_write_client_hello_cipher_suites(
      * ( including secret key length ) and a hash to be used with
      * HKDF, in descending order of client preference.
      */
-    cipher_suite_list = ssl->conf->ciphersuite_list;
+    ciphersuite_list = ssl->conf->ciphersuite_list;
 
     /* Check there is space for the cipher suite list length (2 bytes). */
     MBEDTLS_SSL_CHK_BUF_PTR( buf, end, 2 );
 
-    /* Write cipher_suite_list */
+    /* Write cipher_suites */
     cipher_suites_start = buf + 2;
     cipher_suites_iter  = cipher_suites_start;
 
-    for ( size_t i = 0; cipher_suite_list[i] != 0; i++ )
+    for ( size_t i = 0; ciphersuite_list[i] != 0; i++ )
     {
-        int cipher_suite = cipher_suite_list[i];
+        int cipher_suite = ciphersuite_list[i];
         const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
 
         ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( cipher_suite );
@@ -179,7 +178,7 @@ static int ssl_tls13_write_client_hello_cipher_suites(
         cipher_suites_iter += 2;
     }
 
-    /* Write the cipher_suite_list length in number of bytes */
+    /* Write the cipher_suites length in number of bytes */
     cipher_suites_len = cipher_suites_iter - cipher_suites_start;
     MBEDTLS_PUT_UINT16_BE( cipher_suites_len, buf, 0 );
     MBEDTLS_SSL_DEBUG_MSG( 3,
@@ -211,7 +210,7 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
 {
 
     int ret;
-    unsigned char *extensions_len_ptr; /* pointer of extensions length */
+    unsigned char *extensions_len_ptr; /* Pointer of extensions length */
     size_t output_len;                 /* Length of buffer used by function */
     size_t extensions_len;             /* Length of the list of extensions*/
 
@@ -392,8 +391,8 @@ static int ssl_tls13_write_client_hello( mbedtls_ssl_context *ssl )
                           ( ssl, buf, buf_len, &msg_len ) );
 
     mbedtls_ssl_tls13_add_hs_hdr_to_checksum( ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
-                                        msg_len );
-    ssl->handshake->update_checksum( ssl, buf, 0 );
+                                              msg_len );
+    ssl->handshake->update_checksum( ssl, buf, msg_len );
 
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_client_hello, ( ssl ) );
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_finish_handshake_msg,
@@ -420,8 +419,8 @@ int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl )
     switch( ssl->state )
     {
         /*
-         * ssl->state is initialized as HELLO_REQUEST. It is same
-         * with CLIENT_HELLO status
+         * ssl->state is initialized as HELLO_REQUEST. It is the same
+         * as CLIENT_HELLO state.
          */
         case MBEDTLS_SSL_HELLO_REQUEST:
         case MBEDTLS_SSL_CLIENT_HELLO:

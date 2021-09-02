@@ -405,7 +405,7 @@ requires_gnutls_tls1_3() {
     fi
 }
 
-# check %NO_TICKETS option
+# Check %NO_TICKETS option
 requires_gnutls_next_no_ticket() {
     requires_gnutls_next
     if [ "$GNUTLS_NEXT_AVAILABLE" = "NO" ]; then
@@ -424,7 +424,7 @@ requires_gnutls_next_no_ticket() {
     fi
 }
 
-# check %%DISABLE_TLS13_COMPAT_MODE option
+# Check %DISABLE_TLS13_COMPAT_MODE option
 requires_gnutls_next_disable_tls13_compat() {
     requires_gnutls_next
     if [ "$GNUTLS_NEXT_AVAILABLE" = "NO" ]; then
@@ -8627,7 +8627,7 @@ run_test    "TLS1.3: Test openssl tls1_3 feature" \
             -c "TLS 1.3" \
             -s "TLS 1.3"
 
-# gnutls feature tests: check if tls1.3,NO_TICKETS and DISABLE_TLS13_COMPAT_MODE exist.
+# gnutls feature tests: check if TLS 1.3 is supported as well as the NO_TICKETS and DISABLE_TLS13_COMPAT_MODE options.
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat

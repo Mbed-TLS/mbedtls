@@ -365,7 +365,7 @@ class Configuration():
             break
 
     @upgrader('3.0')
-    def changed_options_3_0(self) -> None:
+    def changed_crypto_options_3_0(self) -> None:
         if 'MBEDTLS_SHA512_C' in self.symbols:
             if 'MBEDTLS_SHA512_NO_SHA384' in self.symbols:
                 self.remove_definition('MBEDTLS_SHA512_NO_SHA384')
@@ -373,6 +373,16 @@ class Configuration():
                 self.define_symbol('MBEDTLS_SHA384_C')
         if 'MBEDTLS_SHA256_C' in self.symbols:
             self.define_symbol('MBEDTLS_SHA224_C')
+
+    @upgrader('3.0')
+    def changed_ssl_options_3_0(self) -> None:
+        if 'MBEDTLS_SSL_MAX_CONTENT_LEN' in self.symbols:
+            self.remove_definition('MBEDTLS_SSL_MAX_CONTENT_LEN')
+            value = self.symbols['MBEDTLS_SSL_MAX_CONTENT_LEN']
+            for sym in ('MBEDTLS_SSL_IN_CONTENT_LEN',
+                        'MBEDTLS_SSL_OUT_CONTENT_LEN'):
+                if sym not in self.symbols:
+                    self.define_symbol(sym, value)
 
 Upgrader = Callable[[Configuration], None]
 """The type of configuration upgrader methods."""

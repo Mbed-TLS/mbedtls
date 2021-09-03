@@ -542,6 +542,53 @@ exit:
 }
 /* END_CASE */
 
+/* Provide unexpected auth data */
+/* BEGIN_CASE */
+void mbedtls_ccm_unexpected_ad( int cipher_id, int mode,
+                                 data_t * key, data_t * iv,
+                                 data_t * add )
+{
+    mbedtls_ccm_context ctx;
+
+    mbedtls_ccm_init( &ctx );
+    TEST_EQUAL( mbedtls_ccm_setkey( &ctx, cipher_id, key->x, key->len * 8 ), 0 );
+    TEST_EQUAL( 0, mbedtls_ccm_starts( &ctx, mode, iv->x, iv->len ) );
+    // use hardcoded values for msg length and tag length. They are not a part of this test
+    TEST_EQUAL( 0, mbedtls_ccm_set_lengths( &ctx, 0, 16, 16 ) );
+
+    TEST_EQUAL( MBEDTLS_ERR_CCM_BAD_INPUT, mbedtls_ccm_update_ad( &ctx, add->x, add->len) );
+exit:
+    mbedtls_ccm_free( &ctx );
+}
+/* END_CASE */
+
+/* Provide unexpected plaintext/ciphertext data */
+/* BEGIN_CASE */
+void mbedtls_ccm_unexpected_text( int cipher_id, int mode,
+                                  data_t * key, data_t * msg, data_t * iv,
+                                  data_t * add )
+{
+    mbedtls_ccm_context ctx;
+    uint8_t *output = NULL;
+    size_t olen;
+
+    mbedtls_ccm_init( &ctx );
+    TEST_EQUAL( mbedtls_ccm_setkey( &ctx, cipher_id, key->x, key->len * 8 ), 0 );
+    TEST_EQUAL( 0, mbedtls_ccm_starts( &ctx, mode, iv->x, iv->len ) );
+    // use hardcoded value for tag length. It is not a part of this test
+    TEST_EQUAL( 0, mbedtls_ccm_set_lengths( &ctx, add->len, 0, 16 ) );
+
+    TEST_EQUAL( 0, mbedtls_ccm_update_ad( &ctx, add->x, add->len) );
+
+    ASSERT_ALLOC( output, msg->len );
+    olen = 0xdeadbeef;
+    TEST_EQUAL( MBEDTLS_ERR_CCM_BAD_INPUT, mbedtls_ccm_update( &ctx, msg->x, msg->len, output, msg->len, &olen ) );
+exit:
+    mbedtls_free( output );
+    mbedtls_ccm_free( &ctx );
+}
+/* END_CASE */
+
 /* Provide incomplete auth data and finish */
 /* BEGIN_CASE */
 void mbedtls_ccm_incomplete_ad( int cipher_id, int mode,

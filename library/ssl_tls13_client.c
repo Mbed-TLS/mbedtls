@@ -164,8 +164,8 @@ static int ssl_tls13_write_client_hello_cipher_suites(
         ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( cipher_suite );
         if( ciphersuite_info == NULL )
             continue;
-        if( ciphersuite_info->min_minor_ver != MBEDTLS_SSL_MINOR_VERSION_4 ||
-            ciphersuite_info->max_minor_ver != MBEDTLS_SSL_MINOR_VERSION_4 )
+        if( !( MBEDTLS_SSL_MINOR_VERSION_4 > ciphersuite_info->min_minor_ver &&
+               MBEDTLS_SSL_MINOR_VERSION_4 < ciphersuite_info->max_minor_ver ) )
             continue;
 
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, add ciphersuite: %04x, %s",
@@ -173,7 +173,7 @@ static int ssl_tls13_write_client_hello_cipher_suites(
                                     ciphersuite_info->name ) );
 
         /* Check there is space for the cipher suite identifier (2 bytes). */
-        MBEDTLS_SSL_CHK_BUF_PTR( buf, end, 2 );
+        MBEDTLS_SSL_CHK_BUF_PTR( cipher_suites_iter, end, 2 );
         MBEDTLS_PUT_UINT16_BE( cipher_suite, cipher_suites_iter, 0 );
         cipher_suites_iter += 2;
     }
@@ -210,7 +210,7 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
 {
 
     int ret;
-    unsigned char *extensions_len_ptr; /* Pointer of extensions length */
+    unsigned char *extensions_len_ptr; /* Pointer to extensions length */
     size_t output_len;                 /* Length of buffer used by function */
     size_t extensions_len;             /* Length of the list of extensions*/
 
@@ -362,7 +362,7 @@ static int ssl_tls13_prepare_client_hello( mbedtls_ssl_context *ssl )
                                   ssl->handshake->randbytes,
                                   CLIENT_HELLO_RANDOM_LEN ) ) != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_generate_random", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "f_rng", ret );
         return( ret );
     }
 
@@ -409,12 +409,6 @@ cleanup:
 int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
-
-    if( ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER || ssl->handshake == NULL )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "Handshake completed but ssl->handshake is NULL.\n" ) );
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-    }
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "client state: %d", ssl->state ) );
 

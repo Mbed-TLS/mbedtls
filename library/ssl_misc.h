@@ -132,10 +132,10 @@
 #define MBEDTLS_SSL_EXT_KEY_SHARE                   ( 1 << 21 )
 
 /*
- * Helper macros for function call with returen check.
+ * Helper macros for function call with return check.
  */
 /*
- * Exit and print debug message when return none zero value
+ * Exit when return non-zero value
  */
 #define MBEDTLS_SSL_PROC_CHK( f )                               \
     do {                                                        \
@@ -146,7 +146,7 @@
         }                                                       \
     } while( 0 )
 /*
- * Exit and print debug message when return negative value
+ * Exit when return negative value
  */
 #define MBEDTLS_SSL_PROC_CHK_NEG( f )                           \
     do {                                                        \

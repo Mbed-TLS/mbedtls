@@ -50,12 +50,21 @@ class TestTranslateCiphers(unittest.TestCase):
             ("TLS-DHE-RSA-WITH-3DES-EDE-CBC-SHA",
              "+DHE-RSA:+3DES-CBC:+SHA1",
              "EDH-RSA-DES-CBC3-SHA"),
+            ("TLS-RSA-WITH-AES-256-CBC-SHA",
+             "+RSA:+AES-256-CBC:+SHA1",
+             "AES256-SHA"),
+            ("TLS-PSK-WITH-3DES-EDE-CBC-SHA",
+             "+PSK:+3DES-CBC:+SHA1",
+             "PSK-3DES-EDE-CBC-SHA"),
             ("TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256",
              None,
              "ECDHE-ECDSA-CHACHA20-POLY1305"),
             ("TLS-ECDHE-ECDSA-WITH-AES-128-CCM",
              "+ECDHE-ECDSA:+AES-128-CCM:+AEAD",
              None),
+            ("TLS-ECDHE-RSA-WITH-ARIA-256-GCM-SHA384",
+             None,
+             "ECDHE-ARIA256-GCM-SHA384"),
         ]
 
         for m, g_exp, o_exp in ciphers:

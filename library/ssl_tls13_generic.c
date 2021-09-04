@@ -53,10 +53,12 @@ int mbedtls_ssl_tls13_finish_handshake_msg( mbedtls_ssl_context *ssl,
                                             size_t msg_len )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t msg_len_with_header;
     ((void) buf_len);
 
     /* Add reserved 4 bytes for handshake header */
-    ssl->out_msglen = msg_len + 4;
+    msg_len_with_header = msg_len + 4;
+    ssl->out_msglen = msg_len_with_header;
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_write_handshake_msg_ext( ssl, 0 ) );
 
 cleanup:

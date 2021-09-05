@@ -1265,11 +1265,99 @@ static int ssl_tls1_3_parse_server_hello( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
-static int ssl_tls13_finalize_server_hello( mbedtls_ssl_context *ssl )
+static int ssl_tls1_3_finalize_server_hello( mbedtls_ssl_context *ssl )
 {
-    ((void) ssl);
-    MBEDTLS_SSL_DEBUG_MSG( 1, ( "postprocess hasn't been implemented" ) );
-    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+    int ret;
+    mbedtls_ssl_key_set traffic_keys;
+    mbedtls_ssl_transform *transform_handshake;
+
+    /* We need to set the key exchange algorithm based on the
+     * following rules:
+     *
+     *   1 ) IF PRE_SHARED_KEY extension was received
+     *      THEN set MBEDTLS_KEY_EXCHANGE_PSK
+     *   2 ) IF PRE_SHARED_KEY extension && KEY_SHARE was received
+     *      THEN set MBEDTLS_KEY_EXCHANGE_ECDHE_PSK
+     *   3 ) IF KEY_SHARES extension was received && SIG_ALG extension received
+     *      THEN set MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA
+     *   ELSE unknown key exchange mechanism.
+     */
+
+    if( ssl->handshake->extensions_present & MBEDTLS_SSL_EXT_PRE_SHARED_KEY )
+    {
+        if( ssl->handshake->extensions_present & MBEDTLS_SSL_EXT_KEY_SHARE )
+            ssl->handshake->tls1_3_kex_modes = MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_EPHEMERAL;
+        else
+            ssl->handshake->tls1_3_kex_modes = MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK;
+    }
+    else if( ssl->handshake->extensions_present & MBEDTLS_SSL_EXT_KEY_SHARE )
+        ssl->handshake->tls1_3_kex_modes = MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_EPHEMERAL;
+    else
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Unknown key exchange." ) );
+        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+    }
+
+    /* Start the TLS 1.3 key schedule: Set the PSK and derive early secret.
+     *
+     * TODO: We don't have to do this in case we offered 0-RTT and the
+     *       server accepted it. In this case, we could skip generating
+     *       the early secret. */
+    ret = mbedtls_ssl_tls1_3_key_schedule_stage_early( ssl );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls1_3_key_schedule_stage_early_data",
+                               ret );
+        return( ret );
+    }
+
+    /* Compute handshake secret */
+    ret = mbedtls_ssl_tls1_3_key_schedule_stage_handshake( ssl );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls1_3_derive_master_secret", ret );
+        return( ret );
+    }
+
+    /* Next evolution in key schedule: Establish handshake secret and
+     * key material. */
+    ret = mbedtls_ssl_tls1_3_generate_handshake_keys( ssl, &traffic_keys );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1,
+                "mbedtls_ssl_tls1_3_generate_handshake_keys", ret );
+        return( ret );
+    }
+
+    transform_handshake =
+        mbedtls_calloc( 1, sizeof( mbedtls_ssl_transform ) );
+    if( transform_handshake == NULL )
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+
+    ret = mbedtls_ssl_tls13_populate_transform( transform_handshake,
+                              ssl->conf->endpoint,
+                              ssl->session_negotiate->ciphersuite,
+                              &traffic_keys,
+                              ssl );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_populate_transform", ret );
+        return( ret );
+    }
+
+    ssl->handshake->transform_handshake = transform_handshake;
+    mbedtls_ssl_set_inbound_transform( ssl, ssl->handshake->transform_handshake );
+
+    MBEDTLS_SSL_DEBUG_MSG( 1, ( "Switch to handshake keys for inbound traffic" ) );
+    ssl->session_in = ssl->session_negotiate;
+
+    /*
+     * State machine update
+     */
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_ENCRYPTED_EXTENSIONS );
+
+    mbedtls_platform_zeroize( &traffic_keys, sizeof( traffic_keys ) );
+    return( 0 );
 }
 
 /*
@@ -1308,7 +1396,7 @@ static int ssl_tls1_3_process_server_hello( mbedtls_ssl_context *ssl )
                                                    MBEDTLS_SSL_HS_SERVER_HELLO,
                                                    buf, buf_len );
 
-        MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_server_hello( ssl ) );
+        MBEDTLS_SSL_PROC_CHK( ssl_tls1_3_finalize_server_hello( ssl ) );
     }
     else if( ret == SSL_SERVER_HELLO_COORDINATE_HRR )
     {

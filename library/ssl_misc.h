@@ -497,6 +497,9 @@ struct mbedtls_ssl_handshake_params
     /*
      * Handshake specific crypto variables
      */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+    int tls13_kex_modes; /*!< key exchange modes for TLS 1.3 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
@@ -1528,9 +1531,25 @@ int mbedtls_ecdh_tls13_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
                                     unsigned char *buf, size_t blen,
                                     int ( *f_rng )( void *, unsigned char *, size_t ),
                                     void *p_rng );
+
+/*
+ * TLS 1.3 version of mbedtls_ecdh_read_public in ecdh.h
+ */
+int mbedtls_ecdh_tls13_read_public( mbedtls_ecdh_context *ctx,
+                                    const unsigned char *buf,
+                                    size_t blen );
 #endif /* MBEDTLS_ECDH_C */
 
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+
+#if defined(MBEDTLS_ECP_C)
+/*
+ * TLS 1.3 version of mbedtls_ecp_tls_read_point in ecp.h
+ */
+int mbedtls_ecp_tls_13_read_point( const mbedtls_ecp_group *grp,
+                                mbedtls_ecp_point *pt,
+                                const unsigned char **buf, size_t len );
+#endif /* MBEDTLS_ECP_C */
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 

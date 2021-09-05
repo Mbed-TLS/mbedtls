@@ -252,6 +252,17 @@
       + ( MBEDTLS_SSL_CID_OUT_LEN_MAX ) )
 #endif
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+/*
+ * Macro for sending fatal alert.
+ */
+#define MBEDTLS_SSL_SEND_FATAL_ALERT( type, user_return_value )         \
+    mbedtls_ssl_send_alert_message( ssl,                                \
+                                    MBEDTLS_SSL_ALERT_LEVEL_FATAL,      \
+                                    type )
+
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 /**
  * \brief          Return the maximum fragment length (payload, in bytes) for

@@ -5551,6 +5551,23 @@ void mbedtls_ssl_transform_free( mbedtls_ssl_transform *transform )
     mbedtls_platform_zeroize( transform, sizeof( mbedtls_ssl_transform ) );
 }
 
+void mbedtls_ssl_set_inbound_transform( mbedtls_ssl_context *ssl,
+                                        mbedtls_ssl_transform *transform )
+{
+    if( ssl->transform_in == transform )
+        return;
+
+    ssl->transform_in = transform;
+    mbedtls_platform_zeroize( ssl->in_ctr, 8 );
+}
+
+void mbedtls_ssl_set_outbound_transform( mbedtls_ssl_context *ssl,
+                                         mbedtls_ssl_transform *transform )
+{
+    ssl->transform_out = transform;
+    mbedtls_platform_zeroize( ssl->cur_out_ctr, 8 );
+}
+
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 
 void mbedtls_ssl_buffering_free( mbedtls_ssl_context *ssl )

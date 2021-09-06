@@ -1191,17 +1191,16 @@ static int ssl_server_hello_parse( mbedtls_ssl_context* ssl,
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "pre_shared_key:Not supported yet:SKIP" ) );
                 break;
 
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
             case MBEDTLS_TLS_EXT_KEY_SHARE:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found key_shares extension" ) );
-
                 if( ( ret = ssl_parse_key_shares_ext( ssl, ext + 4, (size_t)ext_size ) ) != 0 )
                 {
                     MBEDTLS_SSL_DEBUG_RET( 1, "ssl_parse_key_shares_ext", ret );
                     return( ret );
                 }
                 break;
-#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
             default:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "unknown extension found: %u ( ignoring )", ext_id ) );

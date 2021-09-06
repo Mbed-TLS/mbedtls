@@ -132,9 +132,9 @@ static int ssl_tls13_write_client_hello_cipher_suites(
             unsigned char *end,
             size_t *olen )
 {
+    unsigned char *p = buf;  /* Iteration over the cipher_suites list */
     const int *ciphersuite_list;
     unsigned char *cipher_suites_ptr; /* Start of the cipher_suites list */
-    unsigned char *p;  /* Iteration over the cipher_suites list */
     size_t cipher_suites_len;
 
     *olen = 0 ;
@@ -150,12 +150,11 @@ static int ssl_tls13_write_client_hello_cipher_suites(
     ciphersuite_list = ssl->conf->ciphersuite_list;
 
     /* Check there is space for the cipher suite list length (2 bytes). */
-    MBEDTLS_SSL_CHK_BUF_PTR( buf, end, 2 );
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
+    p += 2;
 
     /* Write cipher_suites */
-    cipher_suites_ptr = buf + 2;
-    p  = cipher_suites_ptr;
-
+    cipher_suites_ptr = p;
     for ( size_t i = 0; ciphersuite_list[i] != 0; i++ )
     {
         int cipher_suite = ciphersuite_list[i];

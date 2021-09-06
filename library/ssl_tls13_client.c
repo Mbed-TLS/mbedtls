@@ -508,7 +508,6 @@ static int check_ecdh_params( const mbedtls_ssl_context *ssl )
 
     return( 0 );
 }
-#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C */
 
 /* The ssl_parse_key_shares_ext() function is used
  *  by the client to parse a KeyShare extension in
@@ -538,6 +537,7 @@ static int ssl_read_public_ecdhe_share( mbedtls_ssl_context *ssl,
 
     return( 0 );
 }
+#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C */
 
 static int ssl_parse_key_shares_ext( mbedtls_ssl_context *ssl,
                                      const unsigned char *buf,
@@ -561,7 +561,7 @@ static int ssl_parse_key_shares_ext( mbedtls_ssl_context *ssl,
               (unsigned) ssl->handshake->offered_group_id, (unsigned) their_group ) );
         return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
     }
-
+#if defined(MBEDTLS_ECDH_C)
     if( mbedtls_ssl_named_group_is_ecdhe( their_group ) )
     {
         /* Complete ECDHE key agreement */
@@ -569,6 +569,7 @@ static int ssl_parse_key_shares_ext( mbedtls_ssl_context *ssl,
         if( ret != 0 )
             return( ret );
     }
+#endif /* MBEDTLS_ECDH_C */
     else if( 0 /* other KEMs? */ )
     {
         /* Do something */

@@ -66,6 +66,8 @@
 #if defined(MBEDTLS_ECDH_C)
 #define MBEDTLS_SSL_DEBUG_ECDH( level, ecdh, attr )               \
     mbedtls_debug_printf_ecdh( ssl, level, __FILE__, __LINE__, ecdh, attr )
+#else
+#define MBEDTLS_SSL_DEBUG_ECDH( level, ecdh, attr )     do { } while( 0 )
 #endif
 
 #else /* MBEDTLS_DEBUG_C */

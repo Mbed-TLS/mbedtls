@@ -28,6 +28,8 @@
 #include <string.h>
 
 #include "ssl_misc.h"
+#include "ssl_tls13_keys.h"
+
 #include "mbedtls/debug.h"
 #include "mbedtls/error.h"
 #include "mbedtls/platform.h"

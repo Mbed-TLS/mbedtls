@@ -8661,10 +8661,10 @@ requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 run_test    "TLS1.3: handshake dispatch test: tls1_3 only" \
             "$P_SRV min_version=tls1_3 max_version=tls1_3" \
-            "$P_CLI min_version=tls1_3 max_version=tls1_3" \
+            "$P_CLI min_version=tls1_3 max_version=tls1_3 debug_level=2" \
             1 \
             -s "SSL - The requested feature is not available" \
-            -c "SSL - The requested feature is not available"
+            -c "=> write client hello"
 
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL

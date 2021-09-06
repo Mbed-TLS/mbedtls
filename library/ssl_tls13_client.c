@@ -1081,7 +1081,7 @@ static int ssl_server_hello_parse( mbedtls_ssl_context* ssl,
 
     if( ssl->handshake->ciphersuite_info == NULL )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "ciphersuite info for %04x not found", i ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "ciphersuite info for %04x not found", (unsigned int) i ) );
         MBEDTLS_SSL_SEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR,
                                       MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
@@ -1100,7 +1100,7 @@ static int ssl_server_hello_parse( mbedtls_ssl_context* ssl,
         return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, chosen ciphersuite: ( %04x ) - %s", i, suite_info->name ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, chosen ciphersuite: ( %04x ) - %s", ( unsigned int ) i, suite_info->name ) );
 
 #if defined(MBEDTLS_HAVE_TIME)
     ssl->session_negotiate->start = time( NULL );
@@ -1204,7 +1204,7 @@ static int ssl_server_hello_parse( mbedtls_ssl_context* ssl,
 #endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C */
 
             default:
-                MBEDTLS_SSL_DEBUG_MSG( 3, ( "unknown extension found: %d ( ignoring )", ext_id ) );
+                MBEDTLS_SSL_DEBUG_MSG( 3, ( "unknown extension found: %u ( ignoring )", ext_id ) );
         }
 
         ext_len -= 4 + ext_size;

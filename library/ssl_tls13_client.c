@@ -869,7 +869,7 @@ cleanup:
  */
 static int ssl_server_hello_is_hrr( unsigned const char *buf )
 {
-    const char magic_hrr_string[32] =
+    const unsigned char magic_hrr_string[32] =
         { 0xCF, 0x21, 0xAD, 0x74, 0xE5, 0x9A, 0x61, 0x11,
           0xBE, 0x1D, 0x8C, 0x02, 0x1E, 0x65, 0xB8, 0x91,
           0xC2, 0xA2, 0x11, 0x16, 0x7A, 0xBB, 0x8C, 0x5E,
@@ -890,7 +890,6 @@ static int ssl_server_hello_is_hrr( unsigned const char *buf )
      * } ServerHello;
      *
      */
-
     if( memcmp( buf + 2, magic_hrr_string,
                 sizeof( magic_hrr_string ) ) == 0 )
     {

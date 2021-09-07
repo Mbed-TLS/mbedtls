@@ -31,7 +31,6 @@
 #include <mbedtls/debug.h>
 
 #define CLIENT_HELLO_RANDOM_LEN 32
-#define CLIENT_HELLO_LEGACY_VERSION_LEN 2
 
 /* Write extensions */
 
@@ -132,7 +131,7 @@ static int ssl_tls13_write_client_hello_cipher_suites(
             unsigned char *end,
             size_t *olen )
 {
-    unsigned char *p = buf;  /* Iteration over the cipher_suites list */
+    unsigned char *p = buf;
     const int *ciphersuite_list;
     unsigned char *cipher_suites_ptr; /* Start of the cipher_suites list */
     size_t cipher_suites_len;
@@ -229,9 +228,9 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
      *  For TLS 1.3 we use the legacy version number {0x03, 0x03}
      *  instead of the true version number.
      */
-    MBEDTLS_SSL_CHK_BUF_PTR( p, end, CLIENT_HELLO_LEGACY_VERSION_LEN );
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
     MBEDTLS_PUT_UINT16_BE( 0x0303, p, 0 );
-    p += CLIENT_HELLO_LEGACY_VERSION_LEN;
+    p += 2;
 
     /* Write the random bytes ( random ).*/
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, CLIENT_HELLO_RANDOM_LEN );

@@ -13,6 +13,9 @@ if(NOT MBEDTLS_PYTHON_EXECUTABLE)
     message(FATAL_ERROR "Cannot build test suites without Python 3")
 endif()
 
+# generated .data files will go there
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/suites)
+
 add_custom_command(
     OUTPUT
         ${CMAKE_CURRENT_BINARY_DIR}/suites/test_suite_psa_crypto_not_supported.generated.data
@@ -215,5 +218,4 @@ if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
     link_to_source(data_files)
     link_to_source(scripts)
     link_to_source(ssl-opt.sh)
-    link_to_source(suites)
 endif()

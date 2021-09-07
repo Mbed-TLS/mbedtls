@@ -173,10 +173,14 @@ class Ast:
 
         Format: <type>.<name>,"FIELD",<size>,<alignment>,<offset>
         """
+        # Empirically, offsetof is in bits, not bytes. To make the output
+        # easier to read, convert to bytes (the same unit as size and
+        # alignment), which means that bitfields will be located at their
+        # first byte.
+        offset = field.get_field_offsetof() // 8
         out.write('{},FIELD,{},{},{}\n'.format(
             prefix + field.spelling,
-            field.type.get_size(), field.type.get_align(),
-            field.get_field_offsetof()
+            field.type.get_size(), field.type.get_align(), offset
         ))
 
     def report_fields_from_typedefs(self, out: typing_util.Writable) -> None:

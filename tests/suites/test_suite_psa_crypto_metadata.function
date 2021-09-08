@@ -217,7 +217,6 @@ void hash_algorithm( int alg_arg, int length_arg )
     psa_algorithm_t alg = alg_arg;
     size_t length = length_arg;
     psa_algorithm_t hmac_alg = PSA_ALG_HMAC( alg );
-    psa_algorithm_t rsa_pkcs1v15_sign_alg = PSA_ALG_RSA_PKCS1V15_SIGN( alg );
     psa_algorithm_t rsa_pss_alg = PSA_ALG_RSA_PSS( alg );
     psa_algorithm_t dsa_alg = PSA_ALG_DSA( alg );
     psa_algorithm_t deterministic_dsa_alg = PSA_ALG_DETERMINISTIC_DSA( alg );
@@ -240,7 +239,6 @@ void hash_algorithm( int alg_arg, int length_arg )
 
     /* Dependent algorithms */
     TEST_EQUAL( PSA_ALG_HMAC_GET_HASH( hmac_alg ), alg );
-    TEST_EQUAL( PSA_ALG_SIGN_GET_HASH( rsa_pkcs1v15_sign_alg ), alg );
     TEST_EQUAL( PSA_ALG_SIGN_GET_HASH( rsa_pss_alg ), alg );
     TEST_EQUAL( PSA_ALG_SIGN_GET_HASH( dsa_alg ), alg );
     TEST_EQUAL( PSA_ALG_SIGN_GET_HASH( deterministic_dsa_alg ), alg );

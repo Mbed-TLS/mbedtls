@@ -1538,9 +1538,8 @@
  *         algorithm identifier.
  */
 #define PSA_ALG_IS_HASH_AND_SIGN(alg)                                   \
-    (PSA_ALG_IS_RSA_PSS(alg) || PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg) ||    \
-     PSA_ALG_IS_ECDSA(alg) || PSA_ALG_IS_HASH_EDDSA(alg) ||             \
-     PSA_ALG_IS_VENDOR_HASH_AND_SIGN(alg))
+    (PSA_ALG_IS_RSA_PSS(alg) || PSA_ALG_IS_ECDSA(alg) ||                \
+     PSA_ALG_IS_HASH_EDDSA(alg) || PSA_ALG_IS_VENDOR_HASH_AND_SIGN(alg))
 
 /** Whether the specified algorithm is a signature algorithm that can be used
  * with psa_sign_message() and psa_verify_message().
@@ -1568,8 +1567,8 @@
  *         supported algorithm identifier.
  */
 #define PSA_ALG_IS_SIGN_HASH(alg)                                       \
-    (PSA_ALG_IS_HASH_AND_SIGN(alg) || (alg) == PSA_ALG_ED25519PH ||     \
-    (alg) == PSA_ALG_ED448PH)
+    (PSA_ALG_IS_HASH_AND_SIGN(alg) ||                                   \
+     (alg) == PSA_ALG_RSA_PKCS1V15_SIGN_RAW)
 
 /** Get the hash used by a hash-and-sign signature algorithm.
  *

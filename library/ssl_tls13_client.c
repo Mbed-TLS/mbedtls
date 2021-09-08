@@ -53,13 +53,11 @@ static int ssl_tls13_write_supported_versions_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding supported versions extension" ) );
 
-    /*
-     * Check space for extension header.
-     *
-     * extension_type           2
-     * extension_data_length    2
-     * version_length           1
-     * versions                 2
+    /* Check if we have space for header and length fields:
+     * - extension_type         (2 bytes)
+     * - extension_data_length  (2 bytes)
+     * - versions_length        (1 byte )
+     * - versions               (2 bytes)
      */
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 7 );
 
@@ -111,16 +109,15 @@ static int ssl_tls13_write_supported_versions_ext( mbedtls_ssl_context *ssl,
  *          NamedGroup named_group_list<2..2^16-1>;
  *      } NamedGroupList;
  */
-/* Find out available ecdhe named groups in current configuration */
 #if defined(MBEDTLS_ECDH_C)
 /*
  * In versions of TLS prior to TLS 1.3, this extension was named
  * 'elliptic_curves' and only contained elliptic curve groups.
  */
-static int ssl_tls13_write_named_group_ecdhe( mbedtls_ssl_context *ssl,
-                                              unsigned char *buf,
-                                              unsigned char *end,
-                                              size_t *olen )
+static int ssl_tls13_write_named_group_list_ecdhe( mbedtls_ssl_context *ssl,
+                                            unsigned char *buf,
+                                            unsigned char *end,
+                                            size_t *olen )
 {
     unsigned char *p = buf;
 #if !defined(MBEDTLS_ECP_C)
@@ -144,7 +141,7 @@ static int ssl_tls13_write_named_group_ecdhe( mbedtls_ssl_context *ssl,
           info++ )
     {
 #endif
-        if( !mbedtls_ssl_named_group_is_ecdhe( info->tls_id ) )
+        if( !mbedtls_ssl_tls13_named_group_is_ecdhe( info->tls_id ) )
             continue;
 
         MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2);
@@ -161,10 +158,10 @@ static int ssl_tls13_write_named_group_ecdhe( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 #else
-static int ssl_tls13_write_named_group_ecdhe( mbedtls_ssl_context *ssl,
-                                              unsigned char *buf,
-                                              unsigned char *end,
-                                              size_t *olen )
+static int ssl_tls13_write_named_group_list_ecdhe( mbedtls_ssl_context *ssl,
+                                            unsigned char *buf,
+                                            unsigned char *end,
+                                            size_t *olen )
 {
     ((void) ssl);
     ((void) buf);
@@ -174,11 +171,10 @@ static int ssl_tls13_write_named_group_ecdhe( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_ECDH_C */
 
-/* Find out available dhe named groups in current configuration */
-static int ssl_tls13_write_named_group_dhe( mbedtls_ssl_context *ssl,
-                                              unsigned char *buf,
-                                              unsigned char *end,
-                                              size_t *olen )
+static int ssl_tls13_write_named_group_list_dhe( mbedtls_ssl_context *ssl,
+                                        unsigned char *buf,
+                                        unsigned char *end,
+                                        size_t *olen )
 {
     ((void) ssl);
     ((void) buf);
@@ -188,18 +184,15 @@ static int ssl_tls13_write_named_group_dhe( mbedtls_ssl_context *ssl,
     return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
 }
 
-/*
- * Supported Groups Extension (supported_groups)
- */
 static int ssl_tls13_write_supported_groups_ext( mbedtls_ssl_context *ssl,
                                                  unsigned char *buf,
                                                  unsigned char *end,
                                                  size_t *olen )
 {
     unsigned char *p = buf ;
-    unsigned char *named_group_ptr; /* Start of named_group_list */
-    size_t named_group_len = 0;
-    int ret = 0, ret_ecdhe, ret_dhe;
+    unsigned char *name_group_list_ptr; /* Start of named_group_list */
+    size_t output_len = 0;
+    int ret_ecdhe, ret_dhe;
 
     *olen = 0;
 
@@ -208,24 +201,28 @@ static int ssl_tls13_write_supported_groups_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding supported_groups extension" ) );
 
-    /* Check there is space for extension header */
+    /* Check if we have space for header and length fields:
+     * - extension_type         (2 bytes)
+     * - extension_data_length  (2 bytes)
+     * - named_group_list_length   (2 bytes)
+     */
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 6 );
     p += 6;
 
-    named_group_ptr = p;
-    ret_ecdhe = ssl_tls13_write_named_group_ecdhe( ssl, p, end, &named_group_len );
+    name_group_list_ptr = p;
+    ret_ecdhe = ssl_tls13_write_named_group_list_ecdhe( ssl, p, end, &output_len );
     if( ret_ecdhe != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_write_named_group_ecdhe", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_write_named_group_list_ecdhe", ret_ecdhe );
     }
-    p += named_group_len;
+    p += output_len;
 
-    ret_dhe = ssl_tls13_write_named_group_dhe( ssl, p, end, &named_group_len );
+    ret_dhe = ssl_tls13_write_named_group_list_dhe( ssl, p, end, &output_len );
     if( ret_dhe != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_write_named_group_dhe", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_write_named_group_list_dhe", ret_dhe );
     }
-    p += named_group_len;
+    p += output_len;
 
     /* Both ECDHE and DHE Fail. */
     if( ret_ecdhe != 0 && ret_dhe != 0 )
@@ -235,8 +232,8 @@ static int ssl_tls13_write_supported_groups_ext( mbedtls_ssl_context *ssl,
     }
 
     /* Length of named_group_list*/
-    named_group_len = p - named_group_ptr;
-    if( named_group_len == 0 )
+    size_t named_group_list_len = p - name_group_list_ptr;
+    if( named_group_list_len == 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "No Named Group Available." ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
@@ -245,31 +242,31 @@ static int ssl_tls13_write_supported_groups_ext( mbedtls_ssl_context *ssl,
     /* Write extension_type */
     MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SUPPORTED_GROUPS, buf, 0 );
     /* Write extension_data_length */
-    MBEDTLS_PUT_UINT16_BE( named_group_len + 2, buf, 2 );
+    MBEDTLS_PUT_UINT16_BE( named_group_list_len + 2, buf, 2 );
     /* Write length of named_group_list */
-    MBEDTLS_PUT_UINT16_BE( named_group_len, buf, 4 );
+    MBEDTLS_PUT_UINT16_BE( named_group_list_len, buf, 4 );
 
-    MBEDTLS_SSL_DEBUG_BUF( 3, "Supported groups extension", buf + 4, named_group_len + 2 );
+    MBEDTLS_SSL_DEBUG_BUF( 3, "Supported groups extension", buf + 4, named_group_list_len + 2 );
 
     *olen = p - buf;
 
     ssl->handshake->extensions_present |= MBEDTLS_SSL_EXT_SUPPORTED_GROUPS;
 
-    return( ret );
+    return( 0 );
 }
 
 /*
  * Functions for writing key_share extension.
  */
 #if defined(MBEDTLS_ECDH_C)
-static int ssl_key_share_gen_and_write_ecdhe( mbedtls_ssl_context *ssl,
-                                              uint16_t named_group,
-                                              unsigned char *buf,
-                                              unsigned char *end,
-                                              size_t *olen )
+static int ssl_tls13_generate_and_write_ecdh_key_exchange( 
+                mbedtls_ssl_context *ssl,
+                uint16_t named_group,
+                unsigned char *buf,
+                unsigned char *end,
+                size_t *olen )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
     const mbedtls_ecp_curve_info *curve_info =
         mbedtls_ecp_curve_info_from_tls_id( named_group );
 
@@ -300,8 +297,8 @@ static int ssl_key_share_gen_and_write_ecdhe( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_ECDH_C */
 
-static int ssl_named_group_get_default_id( mbedtls_ssl_context *ssl,
-                                           uint16_t *named_group_id )
+static int ssl_tls13_get_default_group_id( mbedtls_ssl_context *ssl,
+                                           uint16_t *group_id )
 {
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
 
@@ -329,15 +326,15 @@ static int ssl_named_group_get_default_id( mbedtls_ssl_context *ssl,
           info++ )
     {
 #endif
-        if( info != NULL && mbedtls_ssl_named_group_is_ecdhe( info->tls_id ) )
+        if( info != NULL && mbedtls_ssl_tls13_named_group_is_ecdhe( info->tls_id ) )
         {
-            *named_group_id = info->tls_id;
+            *group_id = info->tls_id;
             return( 0 );
         }
     }
 #else
     ((void) ssl);
-    ((void) named_group_id);
+    ((void) group_id);
 #endif /* MBEDTLS_ECDH_C */
 
     /*
@@ -368,8 +365,8 @@ static int ssl_tls13_write_key_share_ext( mbedtls_ssl_context *ssl,
 {
     unsigned char *p = buf;
     unsigned char *client_shares_ptr; /* Start of client_shares */
+    size_t client_shares_len;         /* Length of client_shares */
     uint16_t group_id;
-
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
 
     *olen = 0;
@@ -377,7 +374,7 @@ static int ssl_tls13_write_key_share_ext( mbedtls_ssl_context *ssl,
     if( !mbedtls_ssl_conf_tls13_some_ephemeral_enabled( ssl ) )
         return( 0 );
 
-    /* Check if we have space for headers and length fields:
+    /* Check if we have space for header and length fields:
      * - extension_type         (2 bytes)
      * - extension_data_length  (2 bytes)
      * - client_shares_length   (2 bytes)
@@ -389,10 +386,10 @@ static int ssl_tls13_write_key_share_ext( mbedtls_ssl_context *ssl,
 
     /* HRR could already have requested something else. */
     group_id = ssl->handshake->offered_group_id;
-    if( !mbedtls_ssl_named_group_is_ecdhe( group_id ) &&
-        !mbedtls_ssl_named_group_is_dhe( group_id ) )
+    if( !mbedtls_ssl_tls13_named_group_is_ecdhe( group_id ) &&
+        !mbedtls_ssl_tls13_named_group_is_dhe( group_id ) )
     {
-        MBEDTLS_SSL_PROC_CHK( ssl_named_group_get_default_id( ssl,
+        MBEDTLS_SSL_PROC_CHK( ssl_tls13_get_default_group_id( ssl,
                                                               &group_id ) );
     }
 
@@ -406,7 +403,7 @@ static int ssl_tls13_write_key_share_ext( mbedtls_ssl_context *ssl,
      */
     client_shares_ptr = p;
 #if defined(MBEDTLS_ECDH_C)
-    if( mbedtls_ssl_named_group_is_ecdhe( group_id ) )
+    if( mbedtls_ssl_tls13_named_group_is_ecdhe( group_id ) )
     {
         /* Pointer of group */
         unsigned char *group_id_ptr = p;
@@ -419,9 +416,9 @@ static int ssl_tls13_write_key_share_ext( mbedtls_ssl_context *ssl,
          */
         MBEDTLS_SSL_CHK_BUF_PTR( p, end, 4 );
         p += 4;
-        ret = ssl_key_share_gen_and_write_ecdhe( ssl, group_id,
-                                                 p, end,
-                                                 &key_exchange_len );
+        ret = ssl_tls13_generate_and_write_ecdh_key_exchange( ssl, group_id,
+                                                              p, end,
+                                                              &key_exchange_len );
         p += key_exchange_len;
         if( ret != 0 )
             return( ret );
@@ -440,12 +437,19 @@ static int ssl_tls13_write_key_share_ext( mbedtls_ssl_context *ssl,
     else
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 
+    /* Length of client_shares */
+    client_shares_len = p - client_shares_ptr;
+    if( client_shares_len == 0)
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "No key share defined." ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    } 
     /* Write extension_type */
     MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_KEY_SHARE, buf, 0 );
     /* Write extension_data_length */
-    MBEDTLS_PUT_UINT16_BE( p - client_shares_ptr + 2, buf, 2 );
+    MBEDTLS_PUT_UINT16_BE( client_shares_len + 2, buf, 2 );
     /* Write client_shares_length */
-    MBEDTLS_PUT_UINT16_BE( p - client_shares_ptr, buf, 4 );
+    MBEDTLS_PUT_UINT16_BE( client_shares_len, buf, 4 );
 
     /* Update offered_group_id field */
     ssl->handshake->offered_group_id = group_id;

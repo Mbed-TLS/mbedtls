@@ -2000,9 +2000,6 @@ static psa_status_t psa_copy_key_material( const psa_key_slot_t *source,
     if( status != PSA_SUCCESS )
         return( status );
 
-    target->attr.type = source->attr.type;
-    target->attr.bits = source->attr.bits;
-
     return( PSA_SUCCESS );
 }
 
@@ -2029,6 +2026,15 @@ psa_status_t psa_copy_key( mbedtls_svc_key_id_t source_key,
                                                specified_attributes );
     if( status != PSA_SUCCESS )
         goto exit;
+
+    /* The actual attributes that we received from the user could have
+     * zero values for key bits and type.These optional attributes
+     * have been validated and so it is safe to inherit these
+     * from the source key.
+     * */
+     actual_attributes.core.bits = source_slot->attr.bits;
+     actual_attributes.core.type = source_slot->attr.type;
+
 
     status = psa_restrict_key_policy( source_slot->attr.type,
                                       &actual_attributes.core.policy,
@@ -2065,9 +2071,11 @@ psa_status_t psa_copy_key( mbedtls_svc_key_id_t source_key,
                                                          &storage_size );
         if( status != PSA_SUCCESS )
             goto exit;
+
         status = psa_allocate_buffer_to_slot( target_slot, storage_size );
         if( status != PSA_SUCCESS )
             goto exit;
+
         status = psa_driver_wrapper_copy_key( &actual_attributes,
                                               source_slot->key.data,
                                               source_slot->key.bytes,

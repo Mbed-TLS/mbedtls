@@ -16,23 +16,29 @@ endif()
 # generated .data files will go there
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/suites)
 
-add_custom_command(
-    OUTPUT
-        ${CMAKE_CURRENT_BINARY_DIR}/suites/test_suite_psa_crypto_not_supported.generated.data
-        ${CMAKE_CURRENT_BINARY_DIR}/suites/test_suite_psa_crypto_storage_format.current.data
-        ${CMAKE_CURRENT_BINARY_DIR}/suites/test_suite_psa_crypto_storage_format.v0.data
-    WORKING_DIRECTORY
-        ${CMAKE_CURRENT_SOURCE_DIR}/..
-    COMMAND
-        ${MBEDTLS_PYTHON_EXECUTABLE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/../tests/scripts/generate_psa_tests.py
-        --directory ${CMAKE_CURRENT_BINARY_DIR}/suites
-    DEPENDS
-        ${CMAKE_CURRENT_SOURCE_DIR}/../tests/scripts/generate_psa_tests.py
-        ${CMAKE_CURRENT_SOURCE_DIR}/../include/psa/crypto_config.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/../include/psa/crypto_values.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/../include/psa/crypto_extra.h
-)
+if(DEV_MODE)
+    add_custom_command(
+        OUTPUT
+            ${CMAKE_CURRENT_BINARY_DIR}/suites/test_suite_psa_crypto_not_supported.generated.data
+            ${CMAKE_CURRENT_BINARY_DIR}/suites/test_suite_psa_crypto_storage_format.current.data
+            ${CMAKE_CURRENT_BINARY_DIR}/suites/test_suite_psa_crypto_storage_format.v0.data
+        WORKING_DIRECTORY
+            ${CMAKE_CURRENT_SOURCE_DIR}/..
+        COMMAND
+            ${MBEDTLS_PYTHON_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/../tests/scripts/generate_psa_tests.py
+            --directory ${CMAKE_CURRENT_BINARY_DIR}/suites
+        DEPENDS
+            ${CMAKE_CURRENT_SOURCE_DIR}/../tests/scripts/generate_psa_tests.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../include/psa/crypto_config.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/../include/psa/crypto_values.h
+            ${CMAKE_CURRENT_SOURCE_DIR}/../include/psa/crypto_extra.h
+    )
+else()
+    link_to_source(suites/test_suite_psa_crypto_not_supported.generated.data)
+    link_to_source(suites/test_suite_psa_crypto_storage_format.current.data)
+    link_to_source(suites/test_suite_psa_crypto_storage_format.v0.data)
+endif()
 
 # Test suites caught by SKIP_TEST_SUITES are built but not executed.
 # "foo" as a skip pattern skips "test_suite_foo" and "test_suite_foo.bar"

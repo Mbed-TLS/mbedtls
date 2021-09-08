@@ -120,13 +120,12 @@ static int ssl_tls13_write_named_group_list_ecdhe( mbedtls_ssl_context *ssl,
                                             size_t *olen )
 {
     unsigned char *p = buf;
-#if !defined(MBEDTLS_ECP_C)
-    ((void) ssl);
-#endif
 
     *olen = 0;
 
-#if defined(MBEDTLS_ECP_C)
+    if( ssl->conf->curve_list == NULL )
+        return( MBEDTLS_ERR_SSL_BAD_CONFIG );
+
     for ( const mbedtls_ecp_group_id *grp_id = ssl->conf->curve_list;
           *grp_id != MBEDTLS_ECP_DP_NONE;
           grp_id++ )
@@ -135,12 +134,7 @@ static int ssl_tls13_write_named_group_list_ecdhe( mbedtls_ssl_context *ssl,
         info = mbedtls_ecp_curve_info_from_grp_id( *grp_id );
         if( info == NULL )
             continue;
-#else
-    for ( const mbedtls_ecp_curve_info *info = mbedtls_ecp_curve_list();
-          info->grp_id != MBEDTLS_ECP_DP_NONE;
-          info++ )
-    {
-#endif
+
         if( !mbedtls_ssl_tls13_named_group_is_ecdhe( info->tls_id ) )
             continue;
 
@@ -259,7 +253,7 @@ static int ssl_tls13_write_supported_groups_ext( mbedtls_ssl_context *ssl,
  * Functions for writing key_share extension.
  */
 #if defined(MBEDTLS_ECDH_C)
-static int ssl_tls13_generate_and_write_ecdh_key_exchange( 
+static int ssl_tls13_generate_and_write_ecdh_key_exchange(
                 mbedtls_ssl_context *ssl,
                 uint16_t named_group,
                 unsigned char *buf,
@@ -443,7 +437,7 @@ static int ssl_tls13_write_key_share_ext( mbedtls_ssl_context *ssl,
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "No key share defined." ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-    } 
+    }
     /* Write extension_type */
     MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_KEY_SHARE, buf, 0 );
     /* Write extension_data_length */

@@ -58,11 +58,13 @@ const uint8_t mbedtls_test_driver_ecdsa_pubkey[65] =
 
 
 /*
- * This macro returns the base size for the key context when SE does not support storage.
- * It is the size of the metadata that gets added to the wrapped key.
- * In its test functionality the metadata is just some padded prefixing to the key.
+ * This macro returns the base size for the key context when SE does not
+ * support storage. It is the size of the metadata that gets added to the
+ * wrapped key. In its test functionality the metadata is just some padded
+ * prefixing to the key.
  */
-#define TEST_DRIVER_KEY_CONTEXT_BASE_SIZE  PSA_CRYPTO_TEST_DRIVER_OPAQUE_PAD_PREFIX_SIZE
+#define TEST_DRIVER_KEY_CONTEXT_BASE_SIZE  \
+                             PSA_CRYPTO_TEST_DRIVER_OPAQUE_PAD_PREFIX_SIZE
 
 
 size_t mbedtls_test_opaque_size_function(
@@ -80,62 +82,70 @@ size_t mbedtls_test_opaque_size_function(
     return( key_buffer_size );
 }
 
-size_t mbedtls_test_opaque_get_base_size()
+static size_t mbedtls_test_opaque_get_base_size()
 {
     return TEST_DRIVER_KEY_CONTEXT_BASE_SIZE;
 }
 
 /*
- * The wrap function mbedtls_test_opaque_wrap_key pads and wraps the clear key.
- * It expects the clear and wrap buffers to be passed in.
- * key_buffer_size is the size of the clear key to be wrapped.
- * wrap_buffer_size is the size of the output buffer wrap_key.
- * The argument key_buffer_length is filled with the wrapped key_size on success.
+ * The wrap function mbedtls_test_opaque_wrap_key pads and wraps the
+ * clear key. It expects the clear and wrap buffers to be passed in.
+ * key_length is the size of the clear key to be wrapped.
+ * wrapped_key_buffer_size is the size of the output buffer wrap_key.
+ * The argument wrapped_key_buffer_length is filled with the wrapped
+ * key_size on success.
  * */
 static psa_status_t mbedtls_test_opaque_wrap_key(
-    const uint8_t *key_buffer,
-    size_t key_buffer_size,
-    uint8_t *wrap_key,
-    size_t wrap_buffer_size,
-    size_t *key_buffer_length )
+    const uint8_t *key,
+    size_t key_length,
+    uint8_t *wrapped_key_buffer,
+    size_t wrapped_key_buffer_size,
+    size_t *wrapped_key_buffer_length )
 {
-   size_t opaque_key_base_size = mbedtls_test_opaque_get_base_size();
-   uint64_t prefix = PSA_CRYPTO_TEST_DRIVER_OPAQUE_PAD_PREFIX;
-   if( key_buffer_size + opaque_key_base_size > wrap_buffer_size )
-      return( PSA_ERROR_BUFFER_TOO_SMALL );
-   /* Write in the opaque pad prefix */
-   memcpy( wrap_key, &prefix, opaque_key_base_size);
-   wrap_key += opaque_key_base_size;
-   *key_buffer_length = key_buffer_size + opaque_key_base_size;
-   while( key_buffer_size-- )
-      wrap_key[key_buffer_size] = key_buffer[key_buffer_size] ^ 0xFF;
-   return( PSA_SUCCESS );
+    size_t opaque_key_base_size = mbedtls_test_opaque_get_base_size();
+    uint64_t prefix = PSA_CRYPTO_TEST_DRIVER_OPAQUE_PAD_PREFIX;
+
+    if( key_length + opaque_key_base_size > wrapped_key_buffer_size )
+        return( PSA_ERROR_BUFFER_TOO_SMALL );
+
+    /* Write in the opaque pad prefix */
+    memcpy( wrapped_key_buffer, &prefix, opaque_key_base_size);
+    wrapped_key_buffer += opaque_key_base_size;
+    *wrapped_key_buffer_length = key_length + opaque_key_base_size;
+
+    while( key_length-- )
+        wrapped_key_buffer[key_length] = key[key_length] ^ 0xFF;
+    return( PSA_SUCCESS );
 }
 
 /*
- * The unwrap function mbedtls_test_opaque_unwrap_key removes a pad prefix and unwraps
- * the wrapped key. It expects the clear and wrap buffers to be passed in.
- * wrapped_key_buffer_size is the size of the wrapped key,
+ * The unwrap function mbedtls_test_opaque_unwrap_key removes a pad prefix
+ * and unwraps the wrapped key. It expects the clear and wrap buffers to be
+ * passed in.
+ * wrapped_key_length is the size of the wrapped key,
  * key_buffer_size is the size of the output buffer clear_key.
- * The argument key_buffer_length is filled with the unwrapped(clear) key_size on success.
+ * The argument key_buffer_length is filled with the unwrapped(clear)
+ * key_size on success.
  * */
 static psa_status_t mbedtls_test_opaque_unwrap_key(
     const uint8_t *wrapped_key,
-    size_t wrapped_key_buffer_size,
+    size_t wrapped_key_length,
     uint8_t *key_buffer,
     size_t key_buffer_size,
     size_t *key_buffer_length)
 {
-   /* Remove the pad prefis from the wrapped key */
-   size_t opaque_key_base_size = mbedtls_test_opaque_get_base_size();
-   size_t clear_key_size = wrapped_key_buffer_size - opaque_key_base_size;
-   wrapped_key += opaque_key_base_size;
-   if( clear_key_size > key_buffer_size )
-      return( PSA_ERROR_BUFFER_TOO_SMALL );
-   *key_buffer_length = clear_key_size;
-   while( clear_key_size-- )
-      key_buffer[clear_key_size] = wrapped_key[clear_key_size] ^ 0xFF;
-   return( PSA_SUCCESS );
+    /* Remove the pad prefix from the wrapped key */
+    size_t opaque_key_base_size = mbedtls_test_opaque_get_base_size();
+    size_t clear_key_size = wrapped_key_length - opaque_key_base_size;
+
+    wrapped_key += opaque_key_base_size;
+    if( clear_key_size > key_buffer_size )
+        return( PSA_ERROR_BUFFER_TOO_SMALL );
+
+    *key_buffer_length = clear_key_size;
+    while( clear_key_size-- )
+        key_buffer[clear_key_size] = wrapped_key[clear_key_size] ^ 0xFF;
+    return( PSA_SUCCESS );
 }
 
 psa_status_t mbedtls_test_transparent_generate_key(
@@ -257,21 +267,22 @@ psa_status_t mbedtls_test_opaque_import_key(
     size_t *key_buffer_length,
     size_t *bits)
 {
-
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_type_t type = psa_get_key_type( attributes );
-    /* This buffer will be used as an intermediate placeholder for the clear
-     * key till we wrap it */
+    /* This buffer will be used as an intermediate placeholder for
+     * the clear key till we wrap it */
     uint8_t *key_buffer_temp;
-    key_buffer_temp = mbedtls_calloc( 1, key_buffer_size );
 
-    if( !key_buffer_temp )
+    key_buffer_temp = mbedtls_calloc( 1, key_buffer_size );
+    if( key_buffer_temp == NULL )
         return( PSA_ERROR_INSUFFICIENT_MEMORY );
+
     if( PSA_KEY_TYPE_IS_UNSTRUCTURED( type ) )
     {
         *bits = PSA_BYTES_TO_BITS( data_length );
 
-        status = psa_validate_unstructured_key_bit_size( attributes->core.type, *bits );
+        status = psa_validate_unstructured_key_bit_size( attributes->core.type,
+                                                         *bits );
         if( status != PSA_SUCCESS )
             goto exit;
 
@@ -311,13 +322,6 @@ psa_status_t mbedtls_test_opaque_import_key(
 #endif
     {
         status = PSA_ERROR_INVALID_ARGUMENT;
-        (void)data;
-        (void)data_length;
-        (void)key_buffer;
-        (void)key_buffer_size;
-        (void)key_buffer_length;
-        (void)bits;
-        (void)type;
         goto exit;
     }
     status = mbedtls_test_opaque_wrap_key( key_buffer_temp, *key_buffer_length,
@@ -389,10 +393,10 @@ psa_status_t mbedtls_test_opaque_export_key(
     }
     else
     {
-        /* This buffer will be used as an intermediate placeholder for the opaque key
-         * till we unwrap the key into key_buffer */
+        /* This buffer will be used as an intermediate placeholder for
+         * the opaque key till we unwrap the key into key_buffer */
         uint8_t *key_buffer_temp;
-        size_t status = PSA_ERROR_BUFFER_TOO_SMALL;
+        size_t status = PSA_ERROR_CORRUPTION_DETECTED;
         psa_key_type_t type = psa_get_key_type( attributes );
 
         if( PSA_KEY_TYPE_IS_UNSTRUCTURED( type ) ||
@@ -400,7 +404,7 @@ psa_status_t mbedtls_test_opaque_export_key(
             PSA_KEY_TYPE_IS_ECC( type ) )
         {
             key_buffer_temp = mbedtls_calloc( 1, key_length );
-            if( !key_buffer_temp )
+            if( key_buffer_temp == NULL )
                 return( PSA_ERROR_INSUFFICIENT_MEMORY );
             memcpy( key_buffer_temp, key, key_length );
             status = mbedtls_test_opaque_unwrap_key( key_buffer_temp, key_length,
@@ -475,12 +479,14 @@ psa_status_t mbedtls_test_opaque_export_public_key(
 {
     if( key_length != sizeof( psa_drv_slot_number_t ) )
     {
-        psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
+        psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
         psa_key_type_t key_type = psa_get_key_type( attributes );
         uint8_t *key_buffer_temp;
+
         key_buffer_temp = mbedtls_calloc( 1, key_length );
-        if( !key_buffer_temp )
+        if( key_buffer_temp == NULL )
             return( PSA_ERROR_INSUFFICIENT_MEMORY );
+
     #if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) || \
     defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY)
         if( PSA_KEY_TYPE_IS_ECC( key_type ) )
@@ -512,7 +518,6 @@ psa_status_t mbedtls_test_opaque_export_public_key(
         {
             status = PSA_ERROR_NOT_SUPPORTED;
             (void)key;
-            (void)key_length;
             (void)key_type;
         }
         mbedtls_free( key_buffer_temp );

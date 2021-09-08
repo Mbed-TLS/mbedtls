@@ -380,9 +380,8 @@ psa_status_t psa_driver_wrapper_verify_hash(
     }
 }
 
-/** calculate the key buffer size required to store the key material of a key
+/** Calculate the key buffer size required to store the key material of a key
  *  associated with an opaque driver from input key data.
- *
  *
  * \param[in] attributes        The key attributes
  * \param[in] data              The input key data.
@@ -399,7 +398,8 @@ psa_status_t psa_driver_wrapper_get_key_buffer_size_from_key_data(
     size_t data_length,
     size_t *key_buffer_size )
 {
-    psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( attributes->core.lifetime );
+    psa_key_location_t location =
+        PSA_KEY_LIFETIME_GET_LOCATION( attributes->core.lifetime );
     psa_key_type_t key_type = attributes->core.type;
 
     *key_buffer_size = 0;
@@ -459,7 +459,8 @@ psa_status_t psa_driver_wrapper_get_key_buffer_size(
                 return( PSA_SUCCESS );
             }
 #endif /* MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
-            *key_buffer_size = mbedtls_test_opaque_size_function( key_type, key_bits );
+            *key_buffer_size = mbedtls_test_opaque_size_function( key_type,
+                                                                  key_bits );
             return( ( *key_buffer_size != 0 ) ?
                     PSA_SUCCESS : PSA_ERROR_NOT_SUPPORTED );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
@@ -785,20 +786,12 @@ psa_status_t psa_driver_wrapper_get_builtin_key(
 psa_status_t psa_driver_wrapper_copy_key(
     psa_key_attributes_t *attributes,
     const uint8_t *source_key, size_t source_key_size,
-    uint8_t *target_key_buffer, size_t target_buffer_size, size_t *key_length )
+    uint8_t *target_key_buffer, size_t target_key_buffer_size,
+    size_t *target_key_buffer_length )
 {
-    psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
-    psa_key_location_t location = PSA_KEY_LIFETIME_GET_LOCATION( attributes->core.lifetime );
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    const psa_drv_se_t *drv;
-    psa_drv_se_context_t *drv_context;
-
-    if( psa_get_se_driver( attributes->core.lifetime, &drv, &drv_context ) )
-    {
-        /* Copying to a secure element is not implemented yet. */
-        return( PSA_ERROR_NOT_SUPPORTED );
-    }
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_location_t location =
+        PSA_KEY_LIFETIME_GET_LOCATION( attributes->core.lifetime );
 
     switch( location )
     {
@@ -808,16 +801,16 @@ psa_status_t psa_driver_wrapper_copy_key(
             return( mbedtls_test_opaque_copy_key( attributes, source_key,
                                                   source_key_size,
                                                   target_key_buffer,
-                                                  target_buffer_size,
-                                                  key_length ) );
+                                                  target_key_buffer_size,
+                                                  target_key_buffer_length) );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
         default:
             (void)source_key;
             (void)source_key_size;
             (void)target_key_buffer;
-            (void)target_buffer_size;
-            (void)key_length;
+            (void)target_key_buffer_size;
+            (void)target_key_buffer_length;
             status = PSA_ERROR_INVALID_ARGUMENT;
     }
     return( status );

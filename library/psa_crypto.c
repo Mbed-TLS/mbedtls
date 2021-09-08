@@ -431,7 +431,7 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_family_t curve,
         * defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY) */
 
 psa_status_t psa_validate_unstructured_key_bit_size( psa_key_type_t type,
-                                                   size_t bits )
+                                                     size_t bits )
 {
     /* Check that the bit size is acceptable for the key type */
     switch( type )
@@ -558,7 +558,8 @@ psa_status_t psa_import_key_into_slot(
     {
         *bits = PSA_BYTES_TO_BITS( data_length );
 
-        status = psa_validate_unstructured_key_bit_size( attributes->core.type, *bits );
+        status = psa_validate_unstructured_key_bit_size( attributes->core.type,
+                                                         *bits );
         if( status != PSA_SUCCESS )
             return( status );
 
@@ -1892,7 +1893,7 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
     if( data_length == 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    /* Ensure that the bytes-to-bits conversion hasn't overflown. */
+    /* Ensure that the bytes-to-bits conversion cannot overflow. */
     if( data_length > SIZE_MAX / 8 )
         return( PSA_ERROR_NOT_SUPPORTED );
 
@@ -1902,15 +1903,15 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
         goto exit;
 
     /* In the case of a transparent key or an opaque key stored in local
-     * storage( thus not in the case of the old-style secure element interface
-     * (MBEDTLS_PSA_CRYPTO_SE_C)),we have to allocate a buffer to hold the
-     * imported key material. */
+     * storage ( thus not in the case of importing a key in a secure element
+     * with storage ( MBEDTLS_PSA_CRYPTO_SE_C ) ),we have to allocate a
+     * buffer to hold the imported key material. */
     if( slot->key.data == NULL )
     {
         if( psa_key_lifetime_is_external( attributes->core.lifetime ) )
         {
-            status = psa_driver_wrapper_get_key_buffer_size_from_key_data( attributes, data,
-                                           data_length , &storage_size );
+            status = psa_driver_wrapper_get_key_buffer_size_from_key_data(
+                         attributes, data, data_length, &storage_size );
             if( status != PSA_SUCCESS )
                 goto exit;
         }
@@ -2046,7 +2047,7 @@ psa_status_t psa_copy_key( mbedtls_svc_key_id_t source_key,
          * If the source and target keys are stored across different locations,
          * the source key would need to be exported as plaintext and re-imported
          * in the other location. This has security implications which have not
-         * been fully mapped.For now, this can be acheived through
+         * been fully mapped. For now, this can be achieved through
          * appropriate API invocations from the application, if needed.
          * */
         status = PSA_ERROR_NOT_SUPPORTED;
@@ -2054,14 +2055,14 @@ psa_status_t psa_copy_key( mbedtls_svc_key_id_t source_key,
     }
     /*
      * When the source and target keys are within the same location,
-     * - For transparent keys it is a blind copy sans any driver invocation,
+     * - For transparent keys it is a blind copy without any driver invocation,
      * - For opaque keys this translates to an invocation of the drivers'
      *   copy_key entry point through the dispatch layer.
      * */
     if( psa_key_lifetime_is_external( actual_attributes.core.lifetime ) )
     {
         status = psa_driver_wrapper_get_key_buffer_size( &actual_attributes,
-                         &storage_size );
+                                                         &storage_size );
         if( status != PSA_SUCCESS )
             goto exit;
         status = psa_allocate_buffer_to_slot( target_slot, storage_size );
@@ -4197,7 +4198,8 @@ static psa_status_t psa_generate_derived_key_internal(
 
     if( psa_key_lifetime_is_external( attributes.core.lifetime ) )
     {
-        status = psa_driver_wrapper_get_key_buffer_size( &attributes, &storage_size );
+        status = psa_driver_wrapper_get_key_buffer_size( &attributes,
+                                                         &storage_size );
         if( status != PSA_SUCCESS )
             goto exit;
     }
@@ -5193,9 +5195,9 @@ psa_status_t psa_generate_key( const psa_key_attributes_t *attributes,
         goto exit;
 
     /* In the case of a transparent key or an opaque key stored in local
-     * storage( thus not in the case of the old-style secure element interface
-     * (MBEDTLS_PSA_CRYPTO_SE_C)),we have to allocate a buffer to hold the
-     * imported key material. */
+     * storage ( thus not in the case of generating a key in a secure element
+     * with storage ( MBEDTLS_PSA_CRYPTO_SE_C ) ),we have to allocate a
+     * buffer to hold the generated key material. */
     if( slot->key.data == NULL )
     {
         if ( PSA_KEY_LIFETIME_GET_LOCATION( attributes->core.lifetime ) ==

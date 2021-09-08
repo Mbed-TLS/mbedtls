@@ -51,18 +51,17 @@ static inline mbedtls_test_driver_key_management_hooks_t
 
 /*
  * In order to convert the plain text keys to Opaque, the size of the key is
- * padded up by PSA_CRYPTO_TEST_DRIVER_OPAQUE_PAD_PREFIX_SIZE in addition to xor mangling
- * the key. The pad prefix needs to be accounted for while sizing for the key.
+ * padded up by PSA_CRYPTO_TEST_DRIVER_OPAQUE_PAD_PREFIX_SIZE in addition to
+ * xor mangling the key. The pad prefix needs to be accounted for while
+ * sizing for the key.
  */
 #define PSA_CRYPTO_TEST_DRIVER_OPAQUE_PAD_PREFIX           0xBEEFED00U
-#define PSA_CRYPTO_TEST_DRIVER_OPAQUE_PAD_PREFIX_SIZE      sizeof( PSA_CRYPTO_TEST_DRIVER_OPAQUE_PAD_PREFIX )
-
-size_t mbedtls_test_opaque_get_base_size();
+#define PSA_CRYPTO_TEST_DRIVER_OPAQUE_PAD_PREFIX_SIZE      sizeof( \
+                                  PSA_CRYPTO_TEST_DRIVER_OPAQUE_PAD_PREFIX )
 
 size_t mbedtls_test_opaque_size_function(
     const psa_key_type_t key_type,
     const size_t key_bits );
-
 
 extern mbedtls_test_driver_key_management_hooks_t
     mbedtls_test_driver_key_management_hooks;
@@ -118,8 +117,8 @@ psa_status_t mbedtls_test_opaque_copy_key(
     const uint8_t *source_key,
     size_t source_key_size,
     uint8_t *target_key_buffer,
-    size_t target_buffer_size,
-    size_t *key_length );
+    size_t target_key_buffer_size,
+    size_t *target_key_buffer_length);
 
 
 #endif /* PSA_CRYPTO_DRIVER_TEST */

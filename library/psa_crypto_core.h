@@ -546,5 +546,5 @@ psa_status_t psa_verify_hash_builtin(
  *         the two is not supported.
  */
 psa_status_t psa_validate_unstructured_key_bit_size( psa_key_type_t type,
-                                                   size_t bits );
+                                                     size_t bits );
 #endif /* PSA_CRYPTO_CORE_H */

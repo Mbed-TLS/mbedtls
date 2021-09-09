@@ -3494,6 +3494,8 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
     size_t ad_part_len = 0;
     size_t data_part_len = 0;
 
+    /* Ensure that either one part of the test or the other is done, i.e this
+     * test does something. */
     TEST_ASSERT( do_test_ad_chunked || do_test_data_chunked );
 
     /* Temporary whilst we have algorithms that cannot support chunking */
@@ -3587,6 +3589,10 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
 {
     size_t ad_part_len = 0;
     size_t data_part_len = 0;
+
+    /* Ensure that either one part of the test or the other is done, i.e this
+     * test does something. */
+    TEST_ASSERT( do_test_ad_chunked || do_test_data_chunked );
 
     /* Temporary whilst we have algorithms that cannot support chunking */
     if( do_test_ad_chunked == 1 )

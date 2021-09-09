@@ -1523,6 +1523,14 @@ void mbedtls_ssl_tls13_add_hs_hdr_to_checksum( mbedtls_ssl_context *ssl,
                                                unsigned hs_type,
                                                size_t total_hs_len );
 
+/*
+ * Update checksum of handshake message
+ */
+void mbedtls_ssl_tls13_add_hs_msg_to_checksum( mbedtls_ssl_context *ssl,
+                                               unsigned hs_type,
+                                               unsigned char const *msg,
+                                               size_t msg_len );
+
 /* Get handshake transcript */
 int mbedtls_ssl_tls13_get_handshake_transcript( mbedtls_ssl_context *ssl,
                                                 const mbedtls_md_type_t md,

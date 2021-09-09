@@ -675,6 +675,13 @@ struct mbedtls_ssl_handshake_params
     int extensions_present;             /*!< extension presence; Each bitfield
                                              represents an extension and defined
                                              as \c MBEDTLS_SSL_EXT_XXX */
+
+    union
+    {
+        unsigned char early    [MBEDTLS_MD_MAX_SIZE];
+        unsigned char handshake[MBEDTLS_MD_MAX_SIZE];
+        unsigned char app      [MBEDTLS_MD_MAX_SIZE];
+    } tls13_master_secrets;
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)

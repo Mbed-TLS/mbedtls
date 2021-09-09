@@ -820,4 +820,31 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
     return( 0 );
 }
 
+int mbedtls_ssl_tls13_key_schedule_stage_early_data( mbedtls_ssl_context *ssl )
+{
+    int ret = 0;
+
+    if( ssl->handshake->ciphersuite_info == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "cipher suite info not found" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+    mbedtls_md_type_t const md_type = ssl->handshake->ciphersuite_info->mac;
+    const unsigned char *input = NULL;
+    size_t input_len = 0;
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+    input = ssl->handshake->psk;
+    input_len = ssl->handshake->psk_len;
+#endif
+    ret = mbedtls_ssl_tls1_3_evolve_secret( md_type, NULL, input, input_len,
+                                            ssl->handshake->tls13_master_secrets.early );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls1_3_evolve_secret", ret );
+        return( ret );
+    }
+
+    return( 0 );
+}
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */

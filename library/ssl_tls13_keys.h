@@ -533,11 +533,29 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
 int mbedtls_ssl_tls1_3_key_schedule_stage_early( mbedtls_ssl_context *ssl );
 
 /**
+ * \brief Transition into handshake stage of TLS 1.3 key schedule.
+ *
+ *        The TLS 1.3 key schedule can be viewed as a simple state machine
+ *        with states Initial -> Early -> Handshake -> Application, and
+ *        this function represents the Early -> Handshake transition.
+ *
+ *        In the handshake stage, mbedtls_ssl_tls1_3_generate_handshake_keys()
+ *        can be used to derive the handshake traffic keys.
+ *
+ * \param ssl  The SSL context to operate on. This must be in key schedule
+ *             stage \c Early.
+ *
+ * \returns    \c 0 on success.
+ * \returns    A negative error code on failure.
+ */
+int mbedtls_ssl_tls1_3_key_schedule_stage_handshake( mbedtls_ssl_context *ssl );
+
+/**
  * \brief Compute TLS 1.3 handshake traffic keys.
  *
  * \param ssl  The SSL context to operate on. This must be in
  *             key schedule stage \c Handshake, see
- *             mbedtls_ssl_tls13_key_schedule_stage_handshake().
+ *             mbedtls_ssl_tls1_3_key_schedule_stage_handshake().
  * \param traffic_keys The address at which to store the handshake traffic key
  *                     keys. This must be writable but may be uninitialized.
  *

@@ -963,4 +963,96 @@ exit:
     return( ret );
 }
 
+static int ssl_tls1_3_complete_ephemeral_secret( mbedtls_ssl_context *ssl,
+                                                 unsigned char *secret,
+                                                 size_t secret_len,
+                                                 unsigned char **actual_secret,
+                                                 size_t *actual_len )
+{
+    int ret = 0;
+
+    *actual_secret = NULL;
+    *actual_len = 0;
+    /*
+     * Compute ECDHE secret for second stage of secret evolution.
+     */
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED)
+    if( mbedtls_ssl_tls1_3_some_ephemeral_enabled( ssl ) )
+    {
+        if( mbedtls_ssl_tls13_named_group_is_ecdhe(
+                ssl->handshake->offered_group_id ) )
+        {
+#if defined(MBEDTLS_ECDH_C)
+            ret = mbedtls_ecdh_calc_secret( &ssl->handshake->ecdh_ctx,
+                                            actual_len, secret, secret_len,
+                                            ssl->conf->f_rng,
+                                            ssl->conf->p_rng );
+
+            if( ret != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_calc_secret", ret );
+                return( ret );
+            }
+
+            *actual_secret = secret;
+#endif /* MBEDTLS_ECDH_C */
+        }
+        else if( mbedtls_ssl_tls13_named_group_is_dhe(
+                    ssl->handshake->offered_group_id ) )
+        {
+            /* TODO: Not supported yet */
+        }
+    }
+#else
+    ((void) ssl);
+    ((void) secret);
+    ((void) secret_len);
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED */
+
+    return( ret );
+}
+
+int mbedtls_ssl_tls1_3_key_schedule_stage_handshake( mbedtls_ssl_context *ssl )
+{
+    int ret = 0;
+    mbedtls_md_type_t const md_type = ssl->handshake->ciphersuite_info->mac;
+#if defined(MBEDTLS_DEBUG_C)
+    mbedtls_md_info_t const * const md_info = mbedtls_md_info_from_type( md_type );
+    size_t const md_size = mbedtls_md_get_size( md_info );
+#endif /* MBEDTLS_DEBUG_C */
+
+    unsigned char *ephemeral;
+    size_t ephemeral_len;
+
+    unsigned char ecdhe[66]; /* TODO: Magic constant! */
+
+    /* Finalize calculation of ephemeral input to key schedule, if present. */
+    ret = ssl_tls1_3_complete_ephemeral_secret( ssl, ecdhe, sizeof( ecdhe ),
+                                               &ephemeral, &ephemeral_len );
+    if( ret != 0 )
+        return( ret );
+
+    /*
+     * Compute HandshakeSecret
+     */
+
+    ret = mbedtls_ssl_tls1_3_evolve_secret( md_type,
+                              ssl->handshake->tls1_3_master_secrets.early,
+                              ephemeral, ephemeral_len,
+                              ssl->handshake->tls1_3_master_secrets.handshake );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls1_3_evolve_secret", ret );
+        return( ret );
+    }
+
+    MBEDTLS_SSL_DEBUG_BUF( 4, "Handshake secret",
+            ssl->handshake->tls1_3_master_secrets.handshake, md_size );
+
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED)
+    mbedtls_platform_zeroize( ecdhe, sizeof( ecdhe ) );
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED */
+    return( 0 );
+}
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */

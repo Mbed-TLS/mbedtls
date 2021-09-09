@@ -1538,6 +1538,24 @@ int mbedtls_ssl_tls13_get_handshake_transcript( mbedtls_ssl_context *ssl,
                                                 size_t dst_len,
                                                 size_t *olen );
 
+#if defined(MBEDTLS_ECDH_C)
+/*
+ * TLS 1.3 version of mbedtls_ecdh_read_public in ecdh.h
+ */
+int mbedtls_ecdh_tls13_read_public( mbedtls_ecdh_context *ctx,
+                                    const unsigned char *buf,
+                                    size_t blen );
+#endif /* MBEDTLS_ECDH_C */
+
+#if defined(MBEDTLS_ECP_C)
+/*
+ * TLS 1.3 version of mbedtls_ecp_tls_read_point in ecp.h
+ */
+int mbedtls_ecp_tls13_read_point( const mbedtls_ecp_group *grp,
+                                  mbedtls_ecp_point *pt,
+                                  const unsigned char **buf, size_t len );
+#endif /* MBEDTLS_ECP_C */
+
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 /*
  * Write TLS 1.3 Signature Algorithm extension

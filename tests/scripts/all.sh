@@ -999,7 +999,16 @@ component_test_psa_crypto_rsa_no_genprime() {
 
 component_test_ref_configs () {
     msg "test/build: ref-configs (ASan build)" # ~ 6 min 20s
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    # test-ref-configs works by overwriting mbedtls_config.h; this makes cmake
+    # want to re-generate generated files that depend on it, quite correctly.
+    # However this doesn't work as the generation script expects a specific
+    # format for mbedtls_config.h, which the other files don't follow. Also,
+    # cmake can't know this, but re-generation is actually not necessary as
+    # the generated files only depend on the list of availabe options, not
+    # whether they're on or off. So, disable cmake's (over-sensitive here)
+    # dependency resolution for generated files and just rely on them being
+    # present (thanks for pre_generate_files) by turning DEV_MODE off.
+    CC=gcc cmake -D DEV_MODE=Off -D CMAKE_BUILD_TYPE:String=Asan .
     tests/scripts/test-ref-configs.pl
 }
 

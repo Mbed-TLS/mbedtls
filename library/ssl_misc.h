@@ -1493,6 +1493,13 @@ void mbedtls_ssl_tls13_add_hs_hdr_to_checksum( mbedtls_ssl_context *ssl,
                                                unsigned hs_type,
                                                size_t total_hs_len );
 
+/* Get handshake transcript */
+int mbedtls_ssl_tls13_get_handshake_transcript( mbedtls_ssl_context *ssl,
+                                                const mbedtls_md_type_t md,
+                                                unsigned char *dst,
+                                                size_t dst_len,
+                                                size_t *olen );
+
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 /*
  * Write TLS 1.3 Signature Algorithm extension

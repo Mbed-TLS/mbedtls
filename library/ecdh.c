@@ -31,7 +31,6 @@
 #include "mbedtls/ecdh.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
-#include "ssl_misc.h"
 
 #include "ecdh_misc.h"
 
@@ -690,55 +689,6 @@ static int ecdh_calc_secret_internal( mbedtls_ecdh_context_mbed *ctx,
 
     return mbedtls_mpi_write_binary( &ctx->z, buf, *olen );
 }
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
-
-static int ecdh_read_tls13_public_internal( mbedtls_ecdh_context_mbed *ctx,
-                                            const unsigned char *buf,
-                                            size_t blen )
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    const unsigned char *p = buf;
-
-    if( ( ret = mbedtls_ecp_tls13_read_point( &ctx->grp, &ctx->Qp, &p,
-                                              blen ) ) != 0 )
-        return( ret );
-
-    if( (size_t)( p - buf ) != blen )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-
-    return( 0 );
-}
-
-/*
- * Parse and import the client's TLS 1.3 public value
- */
-int mbedtls_ecdh_tls13_read_public( mbedtls_ecdh_context *ctx,
-                                    const unsigned char *buf, size_t blen )
-{
-    ECDH_VALIDATE_RET( ctx != NULL );
-    ECDH_VALIDATE_RET( buf != NULL );
-
-#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
-    return( ecdh_read_tls13_public_internal( ctx, buf, blen ) );
-#else
-    switch( ctx->var )
-    {
-#if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
-        case MBEDTLS_ECDH_VARIANT_EVEREST:
-            return( mbedtls_everest_read_public( &ctx->ctx.everest_ecdh,
-                                                 buf, blen ) );
-#endif
-        case MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0:
-            return( ecdh_read_tls13_public_internal( &ctx->ctx.mbed_ecdh,
-                                                     buf, blen ) );
-        default:
-            return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
-    }
-#endif
-}
-
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 /*
  * Derive and export the shared secret

@@ -1539,24 +1539,6 @@ void mbedtls_ssl_tls13_add_hs_msg_to_checksum( mbedtls_ssl_context *ssl,
                                                unsigned char const *msg,
                                                size_t msg_len );
 
-#if defined(MBEDTLS_ECDH_C)
-/*
- * TLS 1.3 version of mbedtls_ecdh_read_public in ecdh.h
- */
-int mbedtls_ecdh_tls13_read_public( mbedtls_ecdh_context *ctx,
-                                    const unsigned char *buf,
-                                    size_t blen );
-#endif /* MBEDTLS_ECDH_C */
-
-#if defined(MBEDTLS_ECP_C)
-/*
- * TLS 1.3 version of mbedtls_ecp_tls_read_point in ecp.h
- */
-int mbedtls_ecp_tls13_read_point( const mbedtls_ecp_group *grp,
-                                  mbedtls_ecp_point *pt,
-                                  const unsigned char **buf, size_t len );
-#endif /* MBEDTLS_ECP_C */
-
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 /*
  * Write TLS 1.3 Signature Algorithm extension

@@ -1991,18 +1991,6 @@ exit:
 }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
-static psa_status_t psa_copy_key_material( const psa_key_slot_t *source,
-                                           psa_key_slot_t *target )
-{
-    psa_status_t status = psa_copy_key_material_into_slot( target,
-                                                           source->key.data,
-                                                           source->key.bytes );
-    if( status != PSA_SUCCESS )
-        return( status );
-
-    return( PSA_SUCCESS );
-}
-
 psa_status_t psa_copy_key( mbedtls_svc_key_id_t source_key,
                            const psa_key_attributes_t *specified_attributes,
                            mbedtls_svc_key_id_t *target_key )
@@ -2027,13 +2015,13 @@ psa_status_t psa_copy_key( mbedtls_svc_key_id_t source_key,
     if( status != PSA_SUCCESS )
         goto exit;
 
-    /* The actual attributes that we received from the user could have
-     * zero values for key bits and type.These optional attributes
-     * have been validated and so it is safe to inherit these
-     * from the source key.
+    /* The target key type and number of bits have been validated by
+     * psa_validate_optional_attributes() to be either equal to zero or
+     * equal to the ones of the source key. So it is safe to inherit
+     * them from the source key now."
      * */
-     actual_attributes.core.bits = source_slot->attr.bits;
-     actual_attributes.core.type = source_slot->attr.type;
+    actual_attributes.core.bits = source_slot->attr.bits;
+    actual_attributes.core.type = source_slot->attr.type;
 
 
     status = psa_restrict_key_policy( source_slot->attr.type,
@@ -2050,7 +2038,7 @@ psa_status_t psa_copy_key( mbedtls_svc_key_id_t source_key,
         PSA_KEY_LIFETIME_GET_LOCATION( source_slot->attr.lifetime ) )
     {
         /*
-         * If the source and target keys are stored across different locations,
+         * If the source and target keys are stored in different locations,
          * the source key would need to be exported as plaintext and re-imported
          * in the other location. This has security implications which have not
          * been fully mapped. For now, this can be achieved through
@@ -2087,7 +2075,9 @@ psa_status_t psa_copy_key( mbedtls_svc_key_id_t source_key,
     }
     else
     {
-        status = psa_copy_key_material( source_slot, target_slot );
+       status = psa_copy_key_material_into_slot( target_slot,
+                                                 source_slot->key.data,
+                                                 source_slot->key.bytes );
         if( status != PSA_SUCCESS )
             goto exit;
     }

@@ -75,7 +75,7 @@ size_t mbedtls_test_opaque_size_function(
 
     key_buffer_size = PSA_EXPORT_KEY_OUTPUT_SIZE( key_type, key_bits );
     if( key_buffer_size == 0 )
-        return( key_buffer_size );
+        return( 0 );
     /* Include spacing for base size overhead over the key size
      * */
     key_buffer_size += TEST_DRIVER_KEY_CONTEXT_BASE_SIZE;
@@ -109,7 +109,7 @@ static psa_status_t mbedtls_test_opaque_wrap_key(
         return( PSA_ERROR_BUFFER_TOO_SMALL );
 
     /* Write in the opaque pad prefix */
-    memcpy( wrapped_key_buffer, &prefix, opaque_key_base_size);
+    memcpy( wrapped_key_buffer, &prefix, opaque_key_base_size );
     wrapped_key_buffer += opaque_key_base_size;
     *wrapped_key_buffer_length = key_length + opaque_key_base_size;
 
@@ -136,7 +136,12 @@ static psa_status_t mbedtls_test_opaque_unwrap_key(
 {
     /* Remove the pad prefix from the wrapped key */
     size_t opaque_key_base_size = mbedtls_test_opaque_get_base_size();
-    size_t clear_key_size = wrapped_key_length - opaque_key_base_size;
+    size_t clear_key_size;
+
+    /* Check for underflow */
+    if( wrapped_key_length < opaque_key_base_size )
+        return( PSA_ERROR_DATA_CORRUPT );
+    clear_key_size = wrapped_key_length - opaque_key_base_size;
 
     wrapped_key += opaque_key_base_size;
     if( clear_key_size > key_buffer_size )
@@ -281,10 +286,13 @@ psa_status_t mbedtls_test_opaque_import_key(
     {
         *bits = PSA_BYTES_TO_BITS( data_length );
 
-        status = psa_validate_unstructured_key_bit_size( attributes->core.type,
+        status = psa_validate_unstructured_key_bit_size( type,
                                                          *bits );
         if( status != PSA_SUCCESS )
             goto exit;
+
+        if( data_length > key_buffer_size )
+            return( PSA_ERROR_BUFFER_TOO_SMALL );
 
         /* Copy the key material accounting for opaque key padding. */
         memcpy( key_buffer_temp, data, data_length );
@@ -327,7 +335,7 @@ psa_status_t mbedtls_test_opaque_import_key(
     status = mbedtls_test_opaque_wrap_key( key_buffer_temp, *key_buffer_length,
                  key_buffer, key_buffer_size, key_buffer_length );
 exit:
-    free( key_buffer_temp );
+    mbedtls_free( key_buffer_temp );
     return( status );
 }
 
@@ -395,21 +403,15 @@ psa_status_t mbedtls_test_opaque_export_key(
     {
         /* This buffer will be used as an intermediate placeholder for
          * the opaque key till we unwrap the key into key_buffer */
-        uint8_t *key_buffer_temp;
-        size_t status = PSA_ERROR_CORRUPTION_DETECTED;
+        psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
         psa_key_type_t type = psa_get_key_type( attributes );
 
         if( PSA_KEY_TYPE_IS_UNSTRUCTURED( type ) ||
             PSA_KEY_TYPE_IS_RSA( type )   ||
             PSA_KEY_TYPE_IS_ECC( type ) )
         {
-            key_buffer_temp = mbedtls_calloc( 1, key_length );
-            if( key_buffer_temp == NULL )
-                return( PSA_ERROR_INSUFFICIENT_MEMORY );
-            memcpy( key_buffer_temp, key, key_length );
-            status = mbedtls_test_opaque_unwrap_key( key_buffer_temp, key_length,
+            status = mbedtls_test_opaque_unwrap_key( key, key_length,
                                          data, data_size, data_length );
-            mbedtls_free( key_buffer_temp );
             return( status );
         }
     }
@@ -614,7 +616,7 @@ psa_status_t mbedtls_test_opaque_get_builtin_key(
 
 psa_status_t mbedtls_test_opaque_copy_key(
     psa_key_attributes_t *attributes,
-    const uint8_t *source_key_buffer, size_t source_key_buffer_size,
+    const uint8_t *source_key, size_t source_key_length,
     uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length)
 {
     /* This is a case where the opaque test driver emulates an SE without storage.
@@ -623,10 +625,11 @@ psa_status_t mbedtls_test_opaque_copy_key(
      * copied keys. This could change when the opaque test driver is extended
      * to support SE with storage, or to emulate an SE without storage but
      * still holding some slot references */
-    if( source_key_buffer_size > key_buffer_size )
+    if( source_key_length > key_buffer_size )
         return( PSA_ERROR_BUFFER_TOO_SMALL );
-    memcpy( key_buffer, source_key_buffer, source_key_buffer_size );
-    *key_buffer_length = source_key_buffer_size;
+
+    memcpy( key_buffer, source_key, source_key_length );
+    *key_buffer_length = source_key_length;
     (void)attributes;
     return( PSA_SUCCESS );
 }

@@ -785,7 +785,7 @@ psa_status_t psa_driver_wrapper_get_builtin_key(
 
 psa_status_t psa_driver_wrapper_copy_key(
     psa_key_attributes_t *attributes,
-    const uint8_t *source_key, size_t source_key_size,
+    const uint8_t *source_key, size_t source_key_length,
     uint8_t *target_key_buffer, size_t target_key_buffer_size,
     size_t *target_key_buffer_length )
 {
@@ -793,13 +793,24 @@ psa_status_t psa_driver_wrapper_copy_key(
     psa_key_location_t location =
         PSA_KEY_LIFETIME_GET_LOCATION( attributes->core.lifetime );
 
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    const psa_drv_se_t *drv;
+    psa_drv_se_context_t *drv_context;
+
+    if( psa_get_se_driver( attributes->core.lifetime, &drv, &drv_context ) )
+    {
+        /* Copying to a secure element is not implemented yet. */
+        return( PSA_ERROR_NOT_SUPPORTED );
+    }
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+
     switch( location )
     {
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
 #if defined(PSA_CRYPTO_DRIVER_TEST)
         case PSA_CRYPTO_TEST_DRIVER_LOCATION:
             return( mbedtls_test_opaque_copy_key( attributes, source_key,
-                                                  source_key_size,
+                                                  source_key_length,
                                                   target_key_buffer,
                                                   target_key_buffer_size,
                                                   target_key_buffer_length) );
@@ -807,7 +818,7 @@ psa_status_t psa_driver_wrapper_copy_key(
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
         default:
             (void)source_key;
-            (void)source_key_size;
+            (void)source_key_length;
             (void)target_key_buffer;
             (void)target_key_buffer_size;
             (void)target_key_buffer_length;

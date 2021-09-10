@@ -564,18 +564,18 @@ void import_export( data_t *data,
     {
         mbedtls_svc_key_id_t key2 = MBEDTLS_SVC_KEY_ID_INIT;
         PSA_ASSERT( psa_import_key( &attributes, exported, exported_length,
-                                     &key2 ) );
+                                    &key2 ) );
         PSA_ASSERT( psa_export_key( key2,
-                                     reexported,
-                                     export_size,
-                                     &reexported_length ) );
+                                    reexported,
+                                    export_size,
+                                    &reexported_length ) );
         ASSERT_COMPARE( exported, exported_length,
                          reexported, reexported_length );
         PSA_ASSERT( psa_destroy_key( key2 ) );
     }
     TEST_ASSERT( exported_length <=
              PSA_EXPORT_KEY_OUTPUT_SIZE( type,
-                                             psa_get_key_bits( &got_attributes ) ) );
+                                         psa_get_key_bits( &got_attributes ) ) );
     TEST_ASSERT( exported_length <= PSA_EXPORT_KEY_PAIR_MAX_SIZE );
 
 destroy:
@@ -629,8 +629,8 @@ void import_export_public_key( data_t *data,
     /* Export the public key */
     ASSERT_ALLOC( exported, export_size );
     status = psa_export_public_key( key,
-                                exported, export_size,
-                                &exported_length );
+                                    exported, export_size,
+                                    &exported_length );
     TEST_EQUAL( status, expected_export_status );
     if( status == PSA_SUCCESS )
     {

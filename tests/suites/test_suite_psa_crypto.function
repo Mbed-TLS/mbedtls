@@ -3777,7 +3777,7 @@ exit:
 /* BEGIN_CASE */
 void aead_multipart_set_nonce( int key_type_arg, data_t *key_data,
                                int alg_arg,
-                               int nonce_length,
+                               int nonce_length_arg,
                                data_t *additional_data,
                                data_t *input_data,
                                int expected_status_arg )
@@ -3793,12 +3793,13 @@ void aead_multipart_set_nonce( int key_type_arg, data_t *key_data,
     psa_status_t expected_status = expected_status_arg;
     unsigned char *output = NULL;
     unsigned char *ciphertext = NULL;
+    size_t nonce_length;
     size_t output_size = 0;
     size_t ciphertext_size = 0;
     size_t ciphertext_length = 0;
     size_t tag_length = 0;
     uint8_t tag_buffer[PSA_AEAD_TAG_MAX_SIZE];
-    int index = 0;
+    size_t index = 0;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -3831,23 +3832,30 @@ void aead_multipart_set_nonce( int key_type_arg, data_t *key_data,
     if( status == PSA_ERROR_NOT_SUPPORTED )
     {
         MBEDTLS_TEST_PSA_SKIP_IF_ALT_AES_192( key_type, key_data->len * 8 );
-        MBEDTLS_TEST_PSA_SKIP_IF_ALT_GCM_NOT_12BYTES_NONCE( alg, nonce_length );
+        MBEDTLS_TEST_PSA_SKIP_IF_ALT_GCM_NOT_12BYTES_NONCE( alg, nonce_length_arg );
     }
 
     PSA_ASSERT( status );
 
-    if( nonce_length == 0 )
+    /* -1 == zero length and valid buffer, 0 = zero length and NULL buffer. */
+    if( nonce_length_arg == -1 )
     {
          /* Arbitrary size buffer, to test zero length valid buffer. */
          ASSERT_ALLOC( nonce_buffer, 4 );
+         nonce_length = 0;
     }
     else
     {
+        /* If length is zero, then this will return NULL. */
+        nonce_length = ( size_t ) nonce_length_arg;
         ASSERT_ALLOC( nonce_buffer, nonce_length );
 
-        for( index = 0; index < nonce_length - 1; ++index)
+        if( nonce_buffer )
         {
-            nonce_buffer[index] = 'a' + index;
+            for( index = 0; index < nonce_length - 1; ++index )
+            {
+                nonce_buffer[index] = 'a' + index;
+            }
         }
     }
 

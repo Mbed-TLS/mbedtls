@@ -34,6 +34,17 @@ from clang.cindex import CursorKind, TypeKind
 from mbedtls_dev import typing_util
 
 
+class FieldInfo:
+    """Information about a field of a structure."""
+
+    def __init__(self, node: Cursor) -> None:
+        self.node = node
+        self.uses = 0
+
+    def record_use(self, _node: Cursor) -> None:
+        self.uses += 1
+
+
 class Ast:
     """Abstract representation of the source code."""
 
@@ -51,7 +62,7 @@ class Ast:
         self.index = clang.cindex.Index.create()
         self.files = {} #type: Dict[str, TranslationUnit]
         # fields[TYPE_OR_STRUCT_NAME][FIELD_NAME]
-        self.fields = {} #type: Dict[str, Dict[str, Cursor]]
+        self.fields = {} #type: Dict[str, Dict[str, FieldInfo]]
 
     def load(self, *filenames: str) -> None:
         """Load the AST of the given source files."""
@@ -59,11 +70,11 @@ class Ast:
             self.files[filename] = self.index.parse(filename,
                                                     self.parse_options)
 
-    INTERESTING_FILE_RE = re.compile(r'(?:.*/)?(mbedtls|psa)/[^/]*\.h\Z')
+    INTERESTING_FILE_RE = re.compile(r'(?:.*/)?(mbedtls|psa|library)/[^/]*\.[ch]\Z')
     def in_interesting_file(self, location: SourceLocation) -> bool:
         """Whether the given location is in a file that should be analyzed.
 
-        This function detects Mbed TLS headers.
+        This function detects Mbed TLS headers and source files.
         """
         if not hasattr(location.file, 'name'):
             # Some artificial nodes have associated no file name.
@@ -89,22 +100,57 @@ class Ast:
                     if not type_name:
                         continue
                     self.fields.setdefault(type_name, collections.OrderedDict())
-                    self.fields[type_name][node.spelling] = node
+                    self.fields[type_name][node.spelling] = FieldInfo(node)
+
+    QUALIFIERS_RE = re.compile(r'\s*(const|volatile|restrict)\s+')
+    def get_type_core(self, typ: clang.cindex.Type) -> str:
+        """Get the base name of a type, without typedefs, qualifiers or pointers."""
+        while typ.kind == TypeKind.POINTER:
+            typ = typ.get_pointee()
+        while hasattr(typ, 'underlying_typedef_type'):
+            typ = typ.underlying_typedef_type
+            while typ.kind == TypeKind.POINTER:
+                typ = typ.get_pointee()
+        # There's no API function to remove qualifiers from a type,
+        # so do it textually.
+        return re.sub(self.QUALIFIERS_RE, r'', typ.spelling)
+
+    def record_field_access(self, node: Cursor) -> None:
+        """Record one location where a field is accessed."""
+        field_name = node.spelling
+        lhs = next(node.get_children())
+        structure_type = self.get_type_core(lhs.type)
+        if structure_type not in self.fields:
+            # This is not a structure defined by the library
+            return
+        self.fields[structure_type][field_name].record_use(node)
+
+    def read_field_usage(self, filenames: List[str]) -> None:
+        """Parse field usage in the given C source files."""
+        self.load(*filenames)
+        for filename in filenames:
+            for node in self.files[filename].cursor.walk_preorder():
+                if not self.in_interesting_file(node.location):
+                    continue
+                if node.kind == CursorKind.MEMBER_REF_EXPR:
+                    self.record_field_access(node)
 
     def report_field(self, out: typing_util.Writable,
-                     prefix: str, field: Cursor) -> None:
+                     prefix: str, field: FieldInfo) -> None:
         """Print information about a structure field.
 
-        Format: <type>.<name>,<size>,<alignment>,<offset>
+        Format: <type>.<name>,<size>,<alignment>,<offset>,use_count
         """
+        type_node = field.node.type
         # Empirically, offsetof is in bits, not bytes. To make the output
         # easier to read, convert to bytes (the same unit as size and
         # alignment), which means that bitfields will be located at their
         # first byte.
-        offset = field.get_field_offsetof() // 8
-        out.write('{},{},{},{}\n'.format(
-            prefix + field.spelling,
-            field.type.get_size(), field.type.get_align(), offset
+        offset = field.node.get_field_offsetof() // 8
+        out.write('{},{},{},{},{}\n'.format(
+            prefix + field.node.spelling,
+            type_node.get_size(), type_node.get_align(), offset,
+            field.uses
         ))
 
     def report_fields(self, out: typing_util.Writable) -> None:
@@ -119,8 +165,15 @@ class Ast:
                 for pat in ['include/*/*.h', 'library/*.h']
                 for filename in sorted(glob.glob(pat))]
 
+    @staticmethod
+    def c_files() -> List[str]:
+        return sorted(glob.glob('library/*.c'))
+
     def run_analysis(self) -> None:
-        self.read_field_definitions(self.header_files())
+        header_files = self.header_files()
+        c_files = self.c_files()
+        self.read_field_definitions(header_files)
+        self.read_field_usage(header_files + c_files)
         self.report_fields(sys.stdout)
 
 

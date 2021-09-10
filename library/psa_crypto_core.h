@@ -528,4 +528,23 @@ psa_status_t psa_verify_hash_builtin(
     psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
     const uint8_t *signature, size_t signature_length );
 
+/**
+ * \brief Validate the key bit size for unstructured keys.
+ *
+ * \note  Check that the bit size is acceptable for a given key type for
+ *        unstructured keys.
+ *
+ * \param[in]  type  The key type
+ * \param[in]  bits  The number of bits of the key
+ *
+ * \retval #PSA_SUCCESS
+ *         The key type and size are valid.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The size in bits of the key is not valid.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         The type and/or the size in bits of the key or the combination of
+ *         the two is not supported.
+ */
+psa_status_t psa_validate_unstructured_key_bit_size( psa_key_type_t type,
+                                                     size_t bits );
 #endif /* PSA_CRYPTO_CORE_H */

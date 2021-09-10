@@ -21,7 +21,6 @@ This script uses the clang python bindings (``pip3 install --user clang``).
 
 import argparse
 import collections
-import enum
 import glob
 import os
 import re
@@ -33,38 +32,6 @@ from clang.cindex import Cursor, SourceLocation, TranslationUnit
 from clang.cindex import CursorKind, TypeKind
 
 from mbedtls_dev import typing_util
-
-
-class Kind(enum.Enum):
-    UNKNOWN = 0
-    POINTER = 1
-    INTEGER = 2
-    ENUM = 3
-    STRUCT = 4
-    UNION = 5
-
-
-class Type:
-    """Information about a type defined by the library."""
-
-    def __init__(self, name: str, kind: Kind) -> None:
-        self.name = name
-        self.kind = kind
-
-
-class Struct(Type):
-    """Information about a structure type."""
-
-    def __init__(self, name: str, fields: List[str]) -> None:
-        super().__init__(name, Kind.STRUCT)
-        self.fields = fields
-
-class Union(Type):
-    """Information about a union type."""
-
-    def __init__(self, name: str, fields: List[str]) -> None:
-        super().__init__(name, Kind.UNION)
-        self.fields = fields
 
 
 class Ast:
@@ -83,9 +50,6 @@ class Ast:
             self.parse_options.append('-D' + d)
         self.index = clang.cindex.Index.create()
         self.files = {} #type: Dict[str, TranslationUnit]
-        self.types = {} #type: Dict[str, Type]
-        self.typedefs = {} #type: Dict[str, Cursor]
-        self.structs = {} #type: Dict[str, Cursor]
         # fields[TYPE_OR_STRUCT_NAME][FIELD_NAME]
         self.fields = {} #type: Dict[str, Dict[str, Cursor]]
 
@@ -110,36 +74,14 @@ class Ast:
             return True
         return False
 
-    def record_typedef(self, node: Cursor) -> None:
-        """Record information about a type definition."""
-        actual = node
-        while hasattr(actual, 'underlying_typedef_type'):
-            actual = actual.underlying_typedef_type
-        kind = Kind.UNKNOWN
-        if actual.kind == TypeKind.ELABORATED and \
-           actual.spelling.startswith('struct '):
-            kind = Kind.STRUCT
-            fields = [field.spelling for field in actual.get_fields()]
-            data = Struct(node.spelling, fields)
-        else:
-            data = Type(node.spelling, kind)
-        self.types[node.spelling] = data
-        self.typedefs[node.spelling] = actual
-
-    def read_type_definitions(self, filenames: List[str]) -> None:
-        """Parse type definitions in the given C source files (usually headers)."""
+    def read_field_definitions(self, filenames: List[str]) -> None:
+        """Parse structure field definitions in the given C source files (usually headers)."""
         self.load(*filenames)
         for filename in filenames:
             for node in self.files[filename].cursor.walk_preorder():
                 if not self.in_interesting_file(node.location):
                     continue
-                if node.kind == CursorKind.TYPEDEF_DECL:
-                    self.record_typedef(node)
-                # elif node.kind == CursorKind.STRUCT_DECL:
-                #     # print(node.spelling, node.location, node.underlying_typedef_type, list(node.underlying_typedef_type.get_fields()))
-                #     # import pdb; pdb.set_trace()
-                #     self.structs[node.spelling] = node.underlying_typedef_type
-                elif node.kind == CursorKind.FIELD_DECL:
+                if node.kind == CursorKind.FIELD_DECL:
                     # If node.lexical_parent.spelling is an empty string,
                     # the field is inside an anonymous structure nested in
                     # another structure.
@@ -148,24 +90,6 @@ class Ast:
                         continue
                     self.fields.setdefault(type_name, collections.OrderedDict())
                     self.fields[type_name][node.spelling] = node
-
-    def report_type(self, out: typing_util.Writable,
-                    name: str, node: Cursor) -> None:
-        """Print information about a type.
-
-        Format: <name>,<kind>,<size>,<alignment>,
-        """
-        kind = re.sub(r'.*\.', r'', str(node.kind))
-        out.write('{},{},{},{},\n'.format(
-            name, kind, node.get_size(), node.get_align()
-        ))
-
-    def report_types(self, out: typing_util.Writable) -> None:
-        """Print information about types defined by the library.
-        """
-        for name in sorted(self.typedefs):
-            node = self.typedefs[name]
-            self.report_type(out, name, node)
 
     def report_field(self, out: typing_util.Writable,
                      prefix: str, field: Cursor) -> None:
@@ -183,19 +107,6 @@ class Ast:
             field.type.get_size(), field.type.get_align(), offset
         ))
 
-    def report_fields_from_typedefs(self, out: typing_util.Writable) -> None:
-        """Print information about fields of structures defined by the library.
-
-        This implementation only enumerates fields from structures defined
-        in typedefs, not fields defined in separate struct definitions.
-        """
-        for name in sorted(self.typedefs):
-            node = self.typedefs[name]
-            if hasattr(node, 'get_fields'):
-                for field in sorted(node.get_fields(),
-                                    key=lambda f: f.spelling):
-                    self.report_field(out, name + '.', field)
-
     def report_fields(self, out: typing_util.Writable) -> None:
         """Print information about fields of structures defined by the library."""
         for type_name in sorted(self.fields):
@@ -209,8 +120,7 @@ class Ast:
                 for filename in sorted(glob.glob(pat))]
 
     def run_analysis(self) -> None:
-        self.read_type_definitions(self.header_files())
-        self.report_types(sys.stdout)
+        self.read_field_definitions(self.header_files())
         self.report_fields(sys.stdout)
 
 

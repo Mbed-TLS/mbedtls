@@ -95,14 +95,14 @@ class Ast:
                      prefix: str, field: Cursor) -> None:
         """Print information about a structure field.
 
-        Format: <type>.<name>,"FIELD",<size>,<alignment>,<offset>
+        Format: <type>.<name>,<size>,<alignment>,<offset>
         """
         # Empirically, offsetof is in bits, not bytes. To make the output
         # easier to read, convert to bytes (the same unit as size and
         # alignment), which means that bitfields will be located at their
         # first byte.
         offset = field.get_field_offsetof() // 8
-        out.write('{},FIELD,{},{},{}\n'.format(
+        out.write('{},{},{},{}\n'.format(
             prefix + field.spelling,
             field.type.get_size(), field.type.get_align(), offset
         ))

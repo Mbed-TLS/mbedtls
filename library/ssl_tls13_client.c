@@ -184,7 +184,8 @@ static int ssl_tls13_write_supported_groups_ext( mbedtls_ssl_context *ssl,
                                                  size_t *olen )
 {
     unsigned char *p = buf ;
-    unsigned char *name_group_list_ptr; /* Start of named_group_list */
+    unsigned char *named_group_list_ptr; /* Start of named_group_list */
+    size_t named_group_list_len;         /* Length of named_group_list */
     size_t output_len = 0;
     int ret_ecdhe, ret_dhe;
 
@@ -203,7 +204,7 @@ static int ssl_tls13_write_supported_groups_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 6 );
     p += 6;
 
-    name_group_list_ptr = p;
+    named_group_list_ptr = p;
     ret_ecdhe = ssl_tls13_write_named_group_list_ecdhe( ssl, p, end, &output_len );
     if( ret_ecdhe != 0 )
     {
@@ -226,10 +227,10 @@ static int ssl_tls13_write_supported_groups_ext( mbedtls_ssl_context *ssl,
     }
 
     /* Length of named_group_list*/
-    size_t named_group_list_len = p - name_group_list_ptr;
+    named_group_list_len = p - named_group_list_ptr;
     if( named_group_list_len == 0 )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "No Named Group Available." ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "No group Available." ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 

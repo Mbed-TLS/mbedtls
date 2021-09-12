@@ -681,7 +681,7 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
-static int ssl_tls13_finalize_client_hello( mbedtls_ssl_context* ssl )
+static int ssl_tls13_finalize_client_hello( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_HELLO );
     return( 0 );

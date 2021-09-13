@@ -29,8 +29,12 @@
 #include "mbedtls/error.h"
 
 #include "test/drivers/key_management.h"
-
 #include "test/random.h"
+
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
+#include "libtestdriver1/library/psa_crypto_ecp.h"
+#include "libtestdriver1/library/psa_crypto_rsa.h"
+#endif
 
 #include <string.h>
 
@@ -195,10 +199,11 @@ psa_status_t mbedtls_test_transparent_generate_key(
     if( PSA_KEY_TYPE_IS_ECC( psa_get_key_type( attributes ) )
         && PSA_KEY_TYPE_IS_KEY_PAIR( psa_get_key_type( attributes ) ) )
     {
-#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) && \
-    defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR)
         return( libtestdriver1_mbedtls_psa_ecp_generate_key(
-                    attributes, key, key_size, key_length ) );
+                    (const libtestdriver1_psa_key_attributes_t *)attributes,
+                    key, key_size, key_length ) );
 #elif defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR)
         return( mbedtls_psa_ecp_generate_key(
                     attributes, key, key_size, key_length ) );
@@ -206,10 +211,11 @@ psa_status_t mbedtls_test_transparent_generate_key(
     }
     else if( psa_get_key_type( attributes ) == PSA_KEY_TYPE_RSA_KEY_PAIR )
     {
-#if defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR) && \
-    defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR)
         return( libtestdriver1_mbedtls_psa_rsa_generate_key(
-                    attributes, key, key_size, key_length ) );
+                    (const libtestdriver1_psa_key_attributes_t *)attributes,
+                    key, key_size, key_length ) );
 #elif defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR)
         return( mbedtls_psa_rsa_generate_key(
                     attributes, key, key_size, key_length ) );
@@ -249,11 +255,11 @@ psa_status_t mbedtls_test_transparent_import_key(
 
     if( PSA_KEY_TYPE_IS_ECC( type ) )
     {
-#if ( defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) || \
-      defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY) ) && \
-    defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    ( defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
+      defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) )
         return( libtestdriver1_mbedtls_psa_ecp_import_key(
-                    attributes,
+                    (const libtestdriver1_psa_key_attributes_t *)attributes,
                     data, data_length,
                     key_buffer, key_buffer_size,
                     key_buffer_length, bits ) );
@@ -268,11 +274,11 @@ psa_status_t mbedtls_test_transparent_import_key(
     }
     else if( PSA_KEY_TYPE_IS_RSA( type ) )
     {
-#if ( defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR) || \
-      defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_PUBLIC_KEY) ) && \
-    defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    ( defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) || \
+      defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) )
         return( libtestdriver1_mbedtls_psa_rsa_import_key(
-                    attributes,
+                    (const libtestdriver1_psa_key_attributes_t *)attributes,
                     data, data_length,
                     key_buffer, key_buffer_size,
                     key_buffer_length, bits ) );
@@ -335,11 +341,11 @@ psa_status_t mbedtls_test_opaque_import_key(
     }
     else if( PSA_KEY_TYPE_IS_ECC( type ) )
     {
-#if ( defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) || \
-      defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY) ) && \
-    defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    ( defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) || \
+      defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY) )
         status = libtestdriver1_mbedtls_psa_ecp_import_key(
-                     attributes,
+                     (const libtestdriver1_psa_key_attributes_t *)attributes,
                      data, data_length,
                      key_buffer_temp, key_buffer_size,
                      key_buffer_length, bits );
@@ -358,11 +364,11 @@ psa_status_t mbedtls_test_opaque_import_key(
     }
     else if( PSA_KEY_TYPE_IS_RSA( type ) )
     {
-#if ( defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR) || \
-      defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_PUBLIC_KEY) ) && \
-    defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    ( defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR) || \
+      defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_PUBLIC_KEY) )
         status = libtestdriver1_mbedtls_psa_rsa_import_key(
-                     attributes,
+                     (const libtestdriver1_psa_key_attributes_t *)attributes,
                      data, data_length,
                      key_buffer_temp, key_buffer_size,
                      key_buffer_length, bits );
@@ -496,11 +502,11 @@ psa_status_t mbedtls_test_transparent_export_public_key(
 
     if( PSA_KEY_TYPE_IS_ECC( key_type ) )
     {
-#if ( defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) || \
-      defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY) ) && \
-    defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    ( defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
+      defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) )
         return( libtestdriver1_mbedtls_psa_ecp_export_public_key(
-                    attributes,
+                    (const libtestdriver1_psa_key_attributes_t *)attributes,
                     key_buffer, key_buffer_size,
                     data, data_size, data_length ) );
 #elif defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
@@ -513,11 +519,11 @@ psa_status_t mbedtls_test_transparent_export_public_key(
     }
     else if( PSA_KEY_TYPE_IS_RSA( key_type ) )
     {
-#if ( defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR) || \
-      defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_PUBLIC_KEY) ) && \
-    defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    ( defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) || \
+      defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY) )
         return( libtestdriver1_mbedtls_psa_rsa_export_public_key(
-                    attributes,
+                    (const libtestdriver1_psa_key_attributes_t *)attributes,
                     key_buffer, key_buffer_size,
                     data, data_size, data_length ) );
 #elif defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) || \
@@ -557,11 +563,11 @@ psa_status_t mbedtls_test_opaque_export_public_key(
                                          key_buffer_temp, key_length, data_length );
             if( status == PSA_SUCCESS )
             {
-#if ( defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) || \
-      defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY) ) && \
-    defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    ( defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) || \
+      defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY) )
                 status = libtestdriver1_mbedtls_psa_ecp_export_public_key(
-                             attributes,
+                             (const libtestdriver1_psa_key_attributes_t *)attributes,
                              key_buffer_temp, *data_length,
                              data, data_size, data_length );
 #elif defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
@@ -581,11 +587,11 @@ psa_status_t mbedtls_test_opaque_export_public_key(
                                          key_buffer_temp, key_length, data_length );
             if( status == PSA_SUCCESS )
             {
-#if ( defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR) || \
-      defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_PUBLIC_KEY) ) && \
-    defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    ( defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_KEY_PAIR) || \
+      defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_RSA_PUBLIC_KEY) )
                 status = libtestdriver1_mbedtls_psa_rsa_export_public_key(
-                             attributes,
+                             (const libtestdriver1_psa_key_attributes_t *)attributes,
                              key_buffer_temp, *data_length,
                              data, data_size, data_length );
 #elif defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_KEY_PAIR) || \

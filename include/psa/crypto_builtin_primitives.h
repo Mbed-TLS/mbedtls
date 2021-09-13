@@ -112,29 +112,4 @@ typedef struct {
 
 #define MBEDTLS_PSA_CIPHER_OPERATION_INIT {0, 0, 0, {0}}
 
-/*
- * BEYOND THIS POINT, TEST DRIVER DECLARATIONS ONLY.
- */
-#if defined(PSA_CRYPTO_DRIVER_TEST)
-
-typedef mbedtls_psa_hash_operation_t mbedtls_transparent_test_driver_hash_operation_t;
-
-#define MBEDTLS_TRANSPARENT_TEST_DRIVER_HASH_OPERATION_INIT MBEDTLS_PSA_HASH_OPERATION_INIT
-
-typedef mbedtls_psa_cipher_operation_t
-        mbedtls_transparent_test_driver_cipher_operation_t;
-
-typedef struct {
-    unsigned int initialised : 1;
-    mbedtls_transparent_test_driver_cipher_operation_t ctx;
-} mbedtls_opaque_test_driver_cipher_operation_t;
-
-#define MBEDTLS_TRANSPARENT_TEST_DRIVER_CIPHER_OPERATION_INIT \
-     MBEDTLS_PSA_CIPHER_OPERATION_INIT
-
-#define MBEDTLS_OPAQUE_TEST_DRIVER_CIPHER_OPERATION_INIT \
-     { 0, MBEDTLS_TRANSPARENT_TEST_DRIVER_CIPHER_OPERATION_INIT }
-
-#endif /* PSA_CRYPTO_DRIVER_TEST */
-
 #endif /* PSA_CRYPTO_BUILTIN_PRIMITIVES_H */

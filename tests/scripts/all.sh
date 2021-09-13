@@ -1553,46 +1553,6 @@ component_test_no_use_psa_crypto_full_cmake_asan() {
     env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
 }
 
-component_test_psa_crypto_config_basic() {
-    # Test the library excluding all Mbed TLS cryptographic support for which
-    # we have an accelerator support. Acceleration is faked with the
-    # transparent test driver.
-    msg "test: full + MBEDTLS_PSA_CRYPTO_CONFIG + as much acceleration as supported"
-    scripts/config.py full
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
-    scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
-    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
-
-    # There is no intended accelerator support for ALG STREAM_CIPHER and
-    # ALG_ECB_NO_PADDING. Therefore, asking for them in the build implies the
-    # inclusion of the Mbed TLS cipher operations. As we want to test here with
-    # cipher operations solely supported by accelerators, disabled those
-    # PSA configuration options.
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
-
-    # Don't test DES encryption as:
-    # 1) It is not an issue if we don't test all cipher types here.
-    # 2) That way we don't have to modify in psa_crypto.c the compilation
-    #    guards MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES for the code they guard to be
-    #    available to the test driver. Modifications that we would need to
-    #    revert when we move to compile the test driver separately.
-    # We also disable MBEDTLS_DES_C as the dependencies on DES in PSA test
-    # suites are still based on MBEDTLS_DES_C and not PSA_WANT_KEY_TYPE_DES.
-    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_KEY_TYPE_DES
-    scripts/config.py unset MBEDTLS_DES_C
-
-    loc_cflags="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST_ALL"
-    loc_cflags="${loc_cflags} '-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/user-config-for-test.h\"'"
-    loc_cflags="${loc_cflags} -I../tests/include -O2"
-
-    make CC=gcc CFLAGS="$loc_cflags" LDFLAGS="$ASAN_CFLAGS"
-    unset loc_cflags
-
-    msg "test: full + MBEDTLS_PSA_CRYPTO_CONFIG"
-    make test
-}
-
 component_test_psa_crypto_config_no_driver() {
     # full plus MBEDTLS_PSA_CRYPTO_CONFIG
     msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG minus MBEDTLS_PSA_CRYPTO_DRIVERS"

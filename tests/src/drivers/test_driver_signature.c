@@ -38,6 +38,12 @@
 
 #include "test/random.h"
 
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
+#include "libtestdriver1/library/psa_crypto_ecp.h"
+#include "libtestdriver1/library/psa_crypto_hash.h"
+#include "libtestdriver1/library/psa_crypto_rsa.h"
+#endif
+
 #include <string.h>
 
 mbedtls_test_driver_signature_hooks_t
@@ -61,11 +67,11 @@ psa_status_t sign_hash(
         if( PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) ||
             PSA_ALG_IS_RSA_PSS( alg) )
         {
-#if ( defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN) || \
-      defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PSS) ) && \
-    defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    ( defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) || \
+      defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) )
             return( libtestdriver1_mbedtls_psa_rsa_sign_hash(
-                        attributes,
+                        (const libtestdriver1_psa_key_attributes_t *) attributes,
                         key_buffer, key_buffer_size,
                         alg, hash, hash_length,
                         signature, signature_size, signature_length ) );
@@ -87,11 +93,11 @@ psa_status_t sign_hash(
     {
         if( PSA_ALG_IS_ECDSA( alg ) )
         {
-#if ( defined(MBEDTLS_PSA_ACCEL_ALG_ECDSA) || \
-      defined(MBEDTLS_PSA_ACCEL_ALG_DETERMINISTIC_ECDSA) ) && \
-    defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    ( defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+      defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) )
             return( libtestdriver1_mbedtls_psa_ecdsa_sign_hash(
-                        attributes,
+                        (const libtestdriver1_psa_key_attributes_t *) attributes,
                         key_buffer, key_buffer_size,
                         alg, hash, hash_length,
                         signature, signature_size, signature_length ) );
@@ -137,11 +143,11 @@ psa_status_t verify_hash(
         if( PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) ||
             PSA_ALG_IS_RSA_PSS( alg) )
         {
-#if ( defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN) || \
-      defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PSS) ) && \
-    defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    ( defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) || \
+      defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) )
             return( libtestdriver1_mbedtls_psa_rsa_verify_hash(
-                        attributes,
+                        (const libtestdriver1_psa_key_attributes_t *) attributes,
                         key_buffer, key_buffer_size,
                         alg, hash, hash_length,
                         signature, signature_length ) );
@@ -163,11 +169,11 @@ psa_status_t verify_hash(
     {
         if( PSA_ALG_IS_ECDSA( alg ) )
         {
-#if ( defined(MBEDTLS_PSA_ACCEL_ALG_ECDSA) || \
-      defined(MBEDTLS_PSA_ACCEL_ALG_DETERMINISTIC_ECDSA) ) && \
-    defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    ( defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+      defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) )
             return( libtestdriver1_mbedtls_psa_ecdsa_verify_hash(
-                        attributes,
+                        (const libtestdriver1_psa_key_attributes_t *) attributes,
                         key_buffer, key_buffer_size,
                         alg, hash, hash_length,
                         signature, signature_length ) );
@@ -229,7 +235,8 @@ psa_status_t mbedtls_test_transparent_signature_sign_message(
         return( PSA_SUCCESS );
     }
 
-#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_HASH)
     status = libtestdriver1_mbedtls_psa_hash_compute(
                 PSA_ALG_SIGN_GET_HASH( alg ), input, input_length,
                 hash, sizeof( hash ), &hash_length );
@@ -293,7 +300,8 @@ psa_status_t mbedtls_test_transparent_signature_verify_message(
     if( mbedtls_test_driver_signature_verify_hooks.forced_status != PSA_SUCCESS )
         return( mbedtls_test_driver_signature_verify_hooks.forced_status );
 
-#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1) && \
+    defined(LIBTESTDRIVER1_MBEDTLS_PSA_BUILTIN_HASH)
     status = libtestdriver1_mbedtls_psa_hash_compute(
                 PSA_ALG_SIGN_GET_HASH( alg ), input, input_length,
                 hash, sizeof( hash ), &hash_length );

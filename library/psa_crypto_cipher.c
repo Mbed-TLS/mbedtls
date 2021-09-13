@@ -268,11 +268,11 @@ static psa_status_t cipher_set_iv( mbedtls_psa_cipher_operation_t *operation,
  *                      This does not need to be aligned to a block boundary.
  *                      If there is a partial block at the end of the input,
  *                      it is stored in \p ctx for future processing.
- * \param output        The buffer where the output is written. Its size
- *                      must be at least `floor((p + input_length) / BS)`
- *                      where `p` is the number of bytes in the unprocessed
- *                      partial block in \p ctx (`0 <= p <= BS - 1`) and
- *                      `BS` is the block size.
+ * \param output        The buffer where the output is written. It must be
+ *                      at least `BS * floor((p + input_length) / BS)` bytes
+ *                      long, where `p` is the number of bytes in the
+ *                      unprocessed partial block in \p ctx (with
+ *                      `0 <= p <= BS - 1`) and `BS` is the block size.
  * \param output_length On success, the number of bytes written to \p output.
  *                      \c 0 on error.
  *

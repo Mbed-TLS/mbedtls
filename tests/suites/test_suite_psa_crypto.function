@@ -372,13 +372,13 @@ static int aead_multipart_internal_func( int key_type_arg, data_t *key_data,
 
     if( is_encrypt )
     {
-        final_output_size = PSA_AEAD_VERIFY_OUTPUT_SIZE( key_type, alg );
-        TEST_ASSERT( final_output_size <= PSA_AEAD_VERIFY_OUTPUT_MAX_SIZE );
+        final_output_size = PSA_AEAD_FINISH_OUTPUT_SIZE( key_type, alg );
+        TEST_ASSERT( final_output_size <= PSA_AEAD_FINISH_OUTPUT_MAX_SIZE );
     }
     else
     {
-        final_output_size = PSA_AEAD_FINISH_OUTPUT_SIZE( key_type, alg );
-        TEST_ASSERT( final_output_size <= PSA_AEAD_FINISH_OUTPUT_MAX_SIZE );
+        final_output_size = PSA_AEAD_VERIFY_OUTPUT_SIZE( key_type, alg );
+        TEST_ASSERT( final_output_size <= PSA_AEAD_VERIFY_OUTPUT_MAX_SIZE );
     }
 
     ASSERT_ALLOC( final_data, final_output_size );

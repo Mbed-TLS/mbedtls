@@ -255,10 +255,30 @@ static psa_status_t cipher_set_iv( mbedtls_psa_cipher_operation_t *operation,
                                        iv, iv_length ) ) );
 }
 
-/* Process input for which the algorithm is set to ECB mode. This requires
- * manual processing, since the PSA API is defined as being able to process
- * arbitrary-length calls to psa_cipher_update() with ECB mode, but the
- * underlying mbedtls_cipher_update only takes full blocks. */
+/** Process input for which the algorithm is set to ECB mode.
+ *
+ * This requires manual processing, since the PSA API is defined as being
+ * able to process arbitrary-length calls to psa_cipher_update() with ECB mode,
+ * but the underlying mbedtls_cipher_update only takes full blocks.
+ *
+ * \param ctx           The mbedtls cipher context to use. It must have been
+ *                      set up for ECB.
+ * \param[in] input     The input plaintext or ciphertext to process.
+ * \param input_length  The number of bytes to process from \p input.
+ *                      This does not need to be aligned to a block boundary.
+ *                      If there is a partial block at the end of the input,
+ *                      it is stored in \p ctx for future processing.
+ * \param output        The buffer where the output is written.
+ * \param output_size   The size of \p output in bytes.
+ *                      It must be at least `floor((p + input_length) / BS)`
+ *                      where `p` is the number of bytes in the unprocessed
+ *                      partial block in \p ctx (`0 <= p <= BS - 1`) and
+ *                      `BS` is the block size.
+ * \param output_length On success, the number of bytes written to \p output.
+ *                      \c 0 on error.
+ *
+ * \return #PSA_SUCCESS or an error from a hardware accelerator
+ */
 static psa_status_t psa_cipher_update_ecb(
     mbedtls_cipher_context_t *ctx,
     const uint8_t *input,

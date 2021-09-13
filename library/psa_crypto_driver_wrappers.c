@@ -1749,7 +1749,7 @@ psa_status_t psa_driver_wrapper_aead_verify(
                                                   plaintext_size,
                                                   plaintext_length,
                                                   check_tag,
-                                                  tag_length,
+                                                  sizeof( check_tag ),
                                                   &check_tag_length );
 
                 if( status == PSA_SUCCESS )

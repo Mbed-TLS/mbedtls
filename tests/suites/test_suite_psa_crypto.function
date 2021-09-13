@@ -3977,6 +3977,7 @@ exit:
 void aead_multipart_finish_buffer_test( int key_type_arg, data_t *key_data,
                                         int alg_arg,
                                         int finish_ciphertext_size_arg,
+                                        int tag_size_arg,
                                         data_t *nonce,
                                         data_t *additional_data,
                                         data_t *input_data,
@@ -3992,11 +3993,12 @@ void aead_multipart_finish_buffer_test( int key_type_arg, data_t *key_data,
     psa_status_t expected_status = expected_status_arg;
     unsigned char *ciphertext = NULL;
     unsigned char *finish_ciphertext = NULL;
+    unsigned char *tag_buffer = NULL;
     size_t ciphertext_size = 0;
     size_t ciphertext_length = 0;
     size_t finish_ciphertext_size = ( size_t ) finish_ciphertext_size_arg;
+    size_t tag_size = ( size_t ) tag_size_arg;
     size_t tag_length = 0;
-    uint8_t tag_buffer[PSA_AEAD_TAG_MAX_SIZE];
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -4016,6 +4018,8 @@ void aead_multipart_finish_buffer_test( int key_type_arg, data_t *key_data,
     TEST_ASSERT( finish_ciphertext_size <= PSA_AEAD_FINISH_OUTPUT_MAX_SIZE );
 
     ASSERT_ALLOC( finish_ciphertext, finish_ciphertext_size );
+
+    ASSERT_ALLOC( tag_buffer, tag_size );
 
     operation = psa_aead_operation_init( );
 
@@ -4044,7 +4048,7 @@ void aead_multipart_finish_buffer_test( int key_type_arg, data_t *key_data,
     status = psa_aead_finish( &operation, finish_ciphertext,
                               finish_ciphertext_size,
                               &ciphertext_length, tag_buffer,
-                              PSA_AEAD_TAG_MAX_SIZE, &tag_length );
+                              tag_size, &tag_length );
 
     TEST_EQUAL( status, expected_status );
 

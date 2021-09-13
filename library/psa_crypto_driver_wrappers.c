@@ -1760,6 +1760,8 @@ psa_status_t psa_driver_wrapper_aead_verify(
                         status = PSA_ERROR_INVALID_SIGNATURE;
                 }
 
+                mbedtls_platform_zeroize( check_tag, sizeof( check_tag ) );
+
                 return( status );
             }
 

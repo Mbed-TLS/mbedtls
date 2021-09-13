@@ -1526,6 +1526,23 @@ struct mbedtls_ssl_context
     int MBEDTLS_PRIVATE(keep_current_message);   /*!< drop or reuse current message
                                      on next call to record layer? */
 
+    /* The following three variables indicate if and, if yes,
+     * what kind of alert or warning is pending to be sent.
+     * They should not be set manually but through the macro
+     * MBEDTLS_SSL_PEND_FATAL_ALERT( type, user_return_value )
+     * defined below.
+     */
+    unsigned char MBEDTLS_PRIVATE(send_alert);   /*!< Determines if either a fatal error
+                                  or a warning should be sent. Values:
+                                  - \c 0 if no alert is to be sent.
+                                  - #MBEDTLS_SSL_ALERT_LEVEL_FATAL
+                                  if a fatal alert is to be sent
+                                  - #MBEDTLS_SSL_ALERT_LEVEL_WARNING
+                                  if a non-fatal alert is to be sent. */
+    unsigned char MBEDTLS_PRIVATE(alert_type);   /*!< Type of alert if send_alert != 0 */
+    int MBEDTLS_PRIVATE(alert_reason);           /*!< The error code to be returned to the
+                                 *   user once the fatal alert has been sent. */
+
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     uint8_t MBEDTLS_PRIVATE(disable_datagram_packing);  /*!< Disable packing multiple records
                                         *   within a single datagram.  */
@@ -1623,6 +1640,14 @@ struct mbedtls_ssl_context
     void *MBEDTLS_PRIVATE(p_export_keys);            /*!< context for key export callback    */
 #endif
 };
+
+#define MBEDTLS_SSL_PEND_FATAL_ALERT( type, user_return_value )         \
+    do                                                                  \
+    {                                                                   \
+        ssl->send_alert = 1;                                            \
+        ssl->alert_reason = (user_return_value);                        \
+        ssl->alert_type = (type);                                       \
+    } while( 0 )
 
 /**
  * \brief               Return the name of the ciphersuite associated with the

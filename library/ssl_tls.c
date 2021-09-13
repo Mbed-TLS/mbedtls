@@ -5170,6 +5170,10 @@ int mbedtls_ssl_handshake_step( mbedtls_ssl_context *ssl )
     if( ret != 0 )
         return( ret );
 
+    ret = mbedtls_ssl_handle_pending_alert( ssl );
+    if( ret != 0 )
+        goto cleanup;
+
 #if defined(MBEDTLS_SSL_CLI_C)
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
@@ -5199,6 +5203,18 @@ int mbedtls_ssl_handshake_step( mbedtls_ssl_context *ssl )
     }
 #endif
 
+    if( ret != 0 )
+    {
+        int alert_ret;
+        alert_ret = mbedtls_ssl_handle_pending_alert( ssl );
+        if( alert_ret != 0 )
+        {
+            ret = alert_ret;
+            goto cleanup;
+        }
+    }
+
+cleanup:
     return( ret );
 }
 

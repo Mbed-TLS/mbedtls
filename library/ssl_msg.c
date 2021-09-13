@@ -5639,4 +5639,26 @@ void mbedtls_ssl_read_version( int *major, int *minor, int transport,
     }
 }
 
+/*
+ * Send pending fatal alerts or warnings.
+ */
+int mbedtls_ssl_handle_pending_alert( mbedtls_ssl_context *ssl )
+{
+    int ret;
+
+    /* Send alert if requested */
+    if( ssl->send_alert != 0 )
+    {
+        ret = mbedtls_ssl_send_alert_message( ssl,
+                                 MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                 ssl->alert_type );
+        if( ret != 0 )
+            return( ret );
+    }
+
+    ssl->send_alert = 0;
+    ssl->alert_type = 0;
+    return( 0 );
+}
+
 #endif /* MBEDTLS_SSL_TLS_C */

@@ -108,6 +108,13 @@
 #define MBEDTLS_PRINTF_ATTRIBUTE(string_index, first_to_check)
 #endif
 
+/* MSVC support __func__ from visual studio 2015( 1900 )
+   Use MSVC predefine macro to avoid name check fail.
+ */
+#if (defined(_MSC_VER) && ( _MSC_VER <= 1900 ))
+#define  __func__ __FUNCTION__
+#endif
+
 /**
  * \def MBEDTLS_PRINTF_SIZET
  *

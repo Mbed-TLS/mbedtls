@@ -1532,16 +1532,15 @@ struct mbedtls_ssl_context
      * MBEDTLS_SSL_PEND_FATAL_ALERT( type, user_return_value )
      * defined below.
      */
-    unsigned char MBEDTLS_PRIVATE(send_alert);   /*!< Determines if either a fatal error
-                                  or a warning should be sent. Values:
-                                  - \c 0 if no alert is to be sent.
-                                  - #MBEDTLS_SSL_ALERT_LEVEL_FATAL
-                                  if a fatal alert is to be sent
-                                  - #MBEDTLS_SSL_ALERT_LEVEL_WARNING
-                                  if a non-fatal alert is to be sent. */
-    unsigned char MBEDTLS_PRIVATE(alert_type);   /*!< Type of alert if send_alert != 0 */
-    int MBEDTLS_PRIVATE(alert_reason);           /*!< The error code to be returned to the
-                                 *   user once the fatal alert has been sent. */
+    unsigned char MBEDTLS_PRIVATE(send_alert);   /*!< Determines if a fatal alert
+                                                should be sent. Values:
+                                                - \c 0 , no alert is to be sent.
+                                                - \c 1 , alert is to be sent. */
+    unsigned char MBEDTLS_PRIVATE(alert_type);   /*!< Type of alert if send_alert
+                                                 != 0 */
+    int MBEDTLS_PRIVATE(alert_reason);           /*!< The error code to be returned
+                                                 to the user once the fatal alert
+                                                 has been sent. */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     uint8_t MBEDTLS_PRIVATE(disable_datagram_packing);  /*!< Disable packing multiple records

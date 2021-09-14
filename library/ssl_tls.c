@@ -6978,13 +6978,11 @@ exit:
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
-
 #if defined(MBEDTLS_SHA384_C)
-static int ssl_tls13_get_handshake_transcript_sha384( mbedtls_ssl_context *ssl,
-                                                      unsigned char *dst,
-                                                      size_t dst_len,
-                                                      size_t *olen )
+static int ssl_get_handshake_transcript_sha384( mbedtls_ssl_context *ssl,
+                                                unsigned char *dst,
+                                                size_t dst_len,
+                                                size_t *olen )
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_status_t status;
@@ -7039,10 +7037,10 @@ exit:
 #endif /* MBEDTLS_SHA384_C */
 
 #if defined(MBEDTLS_SHA256_C)
-static int ssl_tls13_get_handshake_transcript_sha256( mbedtls_ssl_context *ssl,
-                                                      unsigned char *dst,
-                                                      size_t dst_len,
-                                                      size_t *olen )
+static int ssl_get_handshake_transcript_sha256( mbedtls_ssl_context *ssl,
+                                                unsigned char *dst,
+                                                size_t dst_len,
+                                                size_t *olen )
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_status_t status;
@@ -7096,29 +7094,27 @@ exit:
 }
 #endif /* MBEDTLS_SHA256_C */
 
-int mbedtls_ssl_tls13_get_handshake_transcript( mbedtls_ssl_context *ssl,
-                                                const mbedtls_md_type_t md,
-                                                unsigned char *dst,
-                                                size_t dst_len,
-                                                size_t *olen )
+int mbedtls_ssl_get_handshake_transcript( mbedtls_ssl_context *ssl,
+                                          const mbedtls_md_type_t md,
+                                          unsigned char *dst,
+                                          size_t dst_len,
+                                          size_t *olen )
 {
 #if defined(MBEDTLS_SHA384_C)
     if( md == MBEDTLS_MD_SHA384 )
     {
-        return( ssl_tls13_get_handshake_transcript_sha384( ssl, dst, dst_len, olen ) );
+        return( ssl_get_handshake_transcript_sha384( ssl, dst, dst_len, olen ) );
     }
     else
 #endif /* MBEDTLS_SHA512_C */
 #if defined(MBEDTLS_SHA256_C)
     if( md == MBEDTLS_MD_SHA256 )
     {
-        return( ssl_tls13_get_handshake_transcript_sha256( ssl, dst, dst_len, olen ) );
+        return( ssl_get_handshake_transcript_sha256( ssl, dst, dst_len, olen ) );
     }
     else
 #endif /* MBEDTLS_SHA256_C */
     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 }
-
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 #endif /* MBEDTLS_SSL_TLS_C */

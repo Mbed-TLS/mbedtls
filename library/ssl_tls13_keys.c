@@ -875,14 +875,14 @@ int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
     md_info = mbedtls_md_info_from_type( md_type );
     md_size = mbedtls_md_get_size( md_info );
 
-    ret = mbedtls_ssl_tls13_get_handshake_transcript( ssl, md_type,
+    ret = mbedtls_ssl_get_handshake_transcript( ssl, md_type,
                                                       transcript,
                                                       sizeof( transcript ),
                                                       &transcript_len );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1,
-                               "mbedtls_ssl_tls13_get_handshake_transcript",
+                               "mbedtls_ssl_get_handshake_transcript",
                                ret );
         return( ret );
     }

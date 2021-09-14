@@ -1539,13 +1539,6 @@ void mbedtls_ssl_tls13_add_hs_msg_to_checksum( mbedtls_ssl_context *ssl,
                                                unsigned char const *msg,
                                                size_t msg_len );
 
-/* Get handshake transcript */
-int mbedtls_ssl_tls13_get_handshake_transcript( mbedtls_ssl_context *ssl,
-                                                const mbedtls_md_type_t md,
-                                                unsigned char *dst,
-                                                size_t dst_len,
-                                                size_t *olen );
-
 #if defined(MBEDTLS_ECDH_C)
 /*
  * TLS 1.3 version of mbedtls_ecdh_read_public in ecdh.h
@@ -1576,5 +1569,12 @@ int mbedtls_ssl_tls13_write_sig_alg_ext( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+
+/* Get handshake transcript */
+int mbedtls_ssl_get_handshake_transcript( mbedtls_ssl_context *ssl,
+                                          const mbedtls_md_type_t md,
+                                          unsigned char *dst,
+                                          size_t dst_len,
+                                          size_t *olen );
 
 #endif /* ssl_misc.h */

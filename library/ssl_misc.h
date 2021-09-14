@@ -1501,15 +1501,6 @@ int mbedtls_ssl_tls13_write_sig_alg_ext( mbedtls_ssl_context *ssl,
                                          unsigned char *buf,
                                          unsigned char *end,
                                          size_t *olen);
-#if defined(MBEDTLS_ECDH_C)
-/*
- * TLS 1.3 version of mbedtls_ecdh_make_params in ecdh.h
- */
-int mbedtls_ecdh_tls13_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
-                                    unsigned char *buf, size_t blen,
-                                    int ( *f_rng )( void *, unsigned char *, size_t ),
-                                    void *p_rng );
-#endif /* MBEDTLS_ECDH_C */
 
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 

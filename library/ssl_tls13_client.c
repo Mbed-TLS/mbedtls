@@ -27,9 +27,11 @@
 
 #include <string.h>
 
-#include "ssl_misc.h"
 #include "mbedtls/debug.h"
 #include "mbedtls/error.h"
+
+#include "ssl_misc.h"
+#include "ecdh_misc.h"
 
 #define CLIENT_HELLO_RANDOM_LEN 32
 

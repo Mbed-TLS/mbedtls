@@ -1343,9 +1343,21 @@ void mbedtls_ssl_update_in_pointers( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial );
 
 /*
- * Send pending fatal alerts or warnings.
+ * Send pending alert
  */
 int mbedtls_ssl_handle_pending_alert( mbedtls_ssl_context *ssl );
+
+/*
+ * Set pending fatal alert flag.
+ */
+void mbedtls_ssl_pend_fatal_alert( mbedtls_ssl_context *ssl,
+                                   unsigned char alert_type,
+                                   int alert_reason );
+
+/* Alias of mbedtls_ssl_pend_fatal_alert */
+#define MBEDTLS_SSL_PEND_FATAL_ALERT( type, user_return_value )         \
+            mbedtls_ssl_pend_fatal_alert( ssl, type, user_return_value )
+
 
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
 void mbedtls_ssl_dtls_replay_reset( mbedtls_ssl_context *ssl );

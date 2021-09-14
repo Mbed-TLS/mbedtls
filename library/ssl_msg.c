@@ -5649,16 +5649,28 @@ int mbedtls_ssl_handle_pending_alert( mbedtls_ssl_context *ssl )
     /* Send alert if requested */
     if( ssl->send_alert != 0 )
     {
+        /* Clear send_alert to avoid infinite loop */
+        ssl->send_alert = 0;
+
         ret = mbedtls_ssl_send_alert_message( ssl,
                                  MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                  ssl->alert_type );
         if( ret != 0 )
             return( ret );
     }
-
-    ssl->send_alert = 0;
-    ssl->alert_type = 0;
     return( 0 );
+}
+
+/*
+ * Set pending fatal alert flag.
+ */
+void mbedtls_ssl_pend_fatal_alert( mbedtls_ssl_context *ssl,
+                                   unsigned char alert_type,
+                                   int alert_reason )
+{
+    ssl->send_alert = 1;
+    ssl->alert_type = alert_type;
+    ssl->alert_reason = alert_reason;
 }
 
 #endif /* MBEDTLS_SSL_TLS_C */

@@ -1527,10 +1527,7 @@ struct mbedtls_ssl_context
                                      on next call to record layer? */
 
     /* The following three variables indicate if and, if yes,
-     * what kind of alert or warning is pending to be sent.
-     * They should not be set manually but through the macro
-     * MBEDTLS_SSL_PEND_FATAL_ALERT( type, user_return_value )
-     * defined below.
+     * what kind of alert is pending to be sent.
      */
     unsigned char MBEDTLS_PRIVATE(send_alert);   /*!< Determines if a fatal alert
                                                 should be sent. Values:
@@ -1639,14 +1636,6 @@ struct mbedtls_ssl_context
     void *MBEDTLS_PRIVATE(p_export_keys);            /*!< context for key export callback    */
 #endif
 };
-
-#define MBEDTLS_SSL_PEND_FATAL_ALERT( type, user_return_value )         \
-    do                                                                  \
-    {                                                                   \
-        ssl->send_alert = 1;                                            \
-        ssl->alert_reason = (user_return_value);                        \
-        ssl->alert_type = (type);                                       \
-    } while( 0 )
 
 /**
  * \brief               Return the name of the ciphersuite associated with the

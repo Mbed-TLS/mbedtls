@@ -1,0 +1,10 @@
+Removals
+   * Remove config option MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES,
+     which allowed SHA-1 in the default TLS configuration for certificate
+     signing. It was intended to facilitate the transition in environments
+     with SHA-1 certificates. SHA-1 is considered a weak message digest and
+     its use constitutes a security risk.
+
+Changes
+   * Set config option MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE to be
+     disabled by default.

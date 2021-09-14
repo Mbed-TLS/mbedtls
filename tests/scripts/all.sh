@@ -2625,15 +2625,6 @@ component_build_ssl_hw_record_accel() {
     make CFLAGS='-Werror -O1'
 }
 
-component_test_allow_sha1 () {
-    msg "build: allow SHA1 in certificates by default"
-    scripts/config.py set MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
-    make CFLAGS='-Werror -Wall -Wextra'
-    msg "test: allow SHA1 in certificates by default"
-    make test
-    if_build_succeeded tests/ssl-opt.sh -f SHA-1
-}
-
 component_test_tls13_experimental () {
     msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL enabled"
     scripts/config.pl set MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL

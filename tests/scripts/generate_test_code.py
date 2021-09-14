@@ -106,10 +106,6 @@ Platform file:
 Platform file contains platform specific setup code and test case
 dispatch code. For example, host_test.function reads test data
 file from host's file system and dispatches tests.
-In case of on-target target_test.function tests are not dispatched
-on target. Target code is kept minimum and only test functions are
-dispatched. Test case dispatch is done on the host using tools like
-Greentea.
 
 Template file:
 ---------

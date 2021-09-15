@@ -195,12 +195,10 @@ psa_status_t mbedtls_psa_aead_encrypt(
     }
     tag = ciphertext + plaintext_length;
 
-    if( mbedtls_aead_check_nonce_length( &operation, nonce_length )
-        != PSA_SUCCESS )
-    {
-        status = PSA_ERROR_NOT_SUPPORTED;
+    status = mbedtls_aead_check_nonce_length( &operation, nonce_length );
+
+    if( status != PSA_SUCCESS )
         goto exit;
-    }
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
     if( operation.alg == PSA_ALG_CCM )
@@ -310,12 +308,10 @@ psa_status_t mbedtls_psa_aead_decrypt(
     if( status != PSA_SUCCESS )
         goto exit;
 
-    if( mbedtls_aead_check_nonce_length( &operation, nonce_length )
-        != PSA_SUCCESS )
-    {
-        status = PSA_ERROR_NOT_SUPPORTED;
+    status = mbedtls_aead_check_nonce_length( &operation, nonce_length );
+
+    if( status != PSA_SUCCESS )
         goto exit;
-    }
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
     if( operation.alg == PSA_ALG_CCM )

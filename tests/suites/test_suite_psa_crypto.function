@@ -439,16 +439,13 @@ static int aead_multipart_internal_func( int key_type_arg, data_t *key_data,
             {
                 part_length = 0;
             }
+            else if( additional_data->len - part_offset < ad_part_len )
+            {
+                part_length = additional_data->len - part_offset;
+            }
             else
             {
-                if( additional_data->len - part_offset < ad_part_len )
-                {
-                    part_length = additional_data->len - part_offset;
-                }
-                else
-                {
-                    part_length = ad_part_len;
-                }
+                part_length = ad_part_len;
             }
 
             PSA_ASSERT( psa_aead_update_ad( &operation,
@@ -481,16 +478,13 @@ static int aead_multipart_internal_func( int key_type_arg, data_t *key_data,
             {
                 part_length = 0;
             }
+            else if( ( data_true_size - part_offset ) < data_part_len )
+            {
+                part_length = ( data_true_size - part_offset );
+            }
             else
             {
-                if( ( data_true_size - part_offset ) < data_part_len )
-                {
-                    part_length = ( data_true_size - part_offset );
-                }
-                else
-                {
-                    part_length = data_part_len;
-                }
+                part_length = data_part_len;
             }
 
             PSA_ASSERT( psa_aead_update( &operation,

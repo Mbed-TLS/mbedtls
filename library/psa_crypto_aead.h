@@ -325,14 +325,6 @@ psa_status_t mbedtls_psa_aead_set_lengths(
  * If this function returns an error status, the PSA core will call
  * mbedtls_psa_aead_abort().
  *
- * \warning When decrypting, until mbedtls_psa_aead_verify() has returned
- *          #PSA_SUCCESS, there is no guarantee that the input is valid.
- *          Therefore, until you have called mbedtls_psa_aead_verify() and it
- *          has returned #PSA_SUCCESS, treat the input as untrusted and prepare
- *          to undo any action that depends on the input if
- *          mbedtls_psa_aead_verify() returns an error status.
- *
- *
  * \param[in,out] operation     Active AEAD operation.
  * \param[in] input             Buffer containing the fragment of
  *                              additional data.
@@ -370,9 +362,9 @@ psa_status_t mbedtls_psa_aead_update_ad(
  * particular block boundary. If the implementation can only process
  * a whole block at a time, it must consume all the input provided, but
  * it may delay the end of the corresponding output until a subsequent
- * call to mbedtls_psa_aead_update(), mbedtls_psa_aead_finish() or
- * mbedtls_psa_aead_verify() provides sufficient input. The amount of data that
- * can be delayed in this way is bounded by #PSA_AEAD_UPDATE_OUTPUT_SIZE.
+ * call to mbedtls_psa_aead_update(), mbedtls_psa_aead_finish() provides
+ * sufficient input. The amount of data that can be delayed in this way is
+ * bounded by #PSA_AEAD_UPDATE_OUTPUT_SIZE.
  *
  * \param[in,out] operation     Active AEAD operation.
  * \param[in] input             Buffer containing the message fragment to
@@ -501,8 +493,8 @@ psa_status_t mbedtls_psa_aead_finish(
  * been initialized as described in #mbedtls_psa_aead_operation_t.
  *
  * In particular, calling mbedtls_psa_aead_abort() after the operation has been
- * terminated by a call to mbedtls_psa_aead_abort(), mbedtls_psa_aead_finish()
- * or mbedtls_psa_aead_verify() is safe and has no effect.
+ * terminated by a call to mbedtls_psa_aead_abort() or
+ * mbedtls_psa_aead_finish() is safe and has no effect.
  *
  * \param[in,out] operation     Initialized AEAD operation.
  *

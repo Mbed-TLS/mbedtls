@@ -524,16 +524,18 @@ static int aead_multipart_internal_func( int key_type_arg, data_t *key_data,
                                      ( input_data->x + data_true_size ),
                                      tag_length );
 
-        if( status != PSA_SUCCESS )
+        if( expect_valid_signature )
+            PSA_ASSERT( status );
+        else
         {
-            if( !expect_valid_signature )
+            TEST_ASSERT( status != PSA_SUCCESS );
+
+            if( status != PSA_SUCCESS )
             {
                 /* Expected failure. */
                 test_ok = 1;
                 goto exit;
             }
-            else
-                PSA_ASSERT( status );
         }
     }
 

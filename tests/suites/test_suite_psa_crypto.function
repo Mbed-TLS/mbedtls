@@ -4018,8 +4018,6 @@ void aead_multipart_finish_buffer_test( int key_type_arg, data_t *key_data,
 
     ASSERT_ALLOC( ciphertext, ciphertext_size );
 
-    TEST_ASSERT( finish_ciphertext_size <= PSA_AEAD_FINISH_OUTPUT_MAX_SIZE );
-
     ASSERT_ALLOC( finish_ciphertext, finish_ciphertext_size );
 
     ASSERT_ALLOC( tag_buffer, tag_size );

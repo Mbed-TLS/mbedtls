@@ -787,6 +787,25 @@ int mbedtls_ecdh_tls13_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
 #endif
 }
 
+/*
+ * Setup context without everst
+ */
+int mbedtls_ecdh_setup_no_everest( mbedtls_ecdh_context *ctx,
+                                   mbedtls_ecp_group_id grp_id )
+{
+    ECDH_VALIDATE_RET( ctx != NULL );
+
+#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
+    return( ecdh_setup_internal( ctx, grp_id ) );
+#else
+    ctx->point_format = MBEDTLS_ECP_PF_UNCOMPRESSED;
+    ctx->var = MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0;
+    ctx->grp_id = grp_id;
+    ecdh_init_internal( &ctx->ctx.mbed_ecdh );
+    return( ecdh_setup_internal( &ctx->ctx.mbed_ecdh, grp_id ) );
+#endif
+}
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 #endif /* MBEDTLS_ECDH_C */

@@ -272,8 +272,8 @@ static int ssl_tls13_generate_and_write_ecdh_key_exchange(
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "offer curve %s", curve_info->name ) );
 
-    if( ( ret = mbedtls_ecdh_setup( &ssl->handshake->ecdh_ctx,
-                                    curve_info->grp_id ) ) != 0 )
+    if( ( ret = mbedtls_ecdh_setup_no_everest( &ssl->handshake->ecdh_ctx,
+                                               curve_info->grp_id ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecp_group_load", ret );
         return( ret );

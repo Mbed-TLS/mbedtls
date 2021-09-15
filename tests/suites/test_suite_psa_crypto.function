@@ -430,11 +430,12 @@ static int aead_multipart_internal_func( int key_type_arg, data_t *key_data,
     {
         /* Pass additional data in parts */
         ad_part_len = (size_t) ad_part_len_arg;
-        part_offset = 0;
 
-        while( part_offset < additional_data->len )
+        for( part_offset = 0, part_count = 0;
+             part_offset < additional_data->len;
+             part_offset += part_length, part_count++ )
         {
-            if( do_zero_parts && part_count++ & 0x01 )
+            if( do_zero_parts && ( part_count & 0x01 ) )
             {
                 part_length = 0;
             }
@@ -454,7 +455,6 @@ static int aead_multipart_internal_func( int key_type_arg, data_t *key_data,
                                             additional_data->x + part_offset,
                                             part_length ) );
 
-            part_offset += part_length;
         }
     }
     else
@@ -473,11 +473,11 @@ static int aead_multipart_internal_func( int key_type_arg, data_t *key_data,
 
         ASSERT_ALLOC( part_data, part_data_size );
 
-        part_offset = 0;
-
-        while( part_offset < data_true_size )
+        for( part_offset = 0, part_count = 0;
+             part_offset < data_true_size;
+             part_offset += part_length, part_count++ )
         {
-            if( do_zero_parts && part_count++ & 0x01 )
+            if( do_zero_parts && ( part_count & 0x01 ) )
             {
                 part_length = 0;
             }
@@ -505,7 +505,6 @@ static int aead_multipart_internal_func( int key_type_arg, data_t *key_data,
                         output_part_length );
             }
 
-            part_offset += part_length;
             output_length += output_part_length;
         }
     }

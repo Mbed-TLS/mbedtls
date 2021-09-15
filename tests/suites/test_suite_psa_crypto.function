@@ -297,9 +297,9 @@ static int aead_multipart_internal_func( int key_type_arg, data_t *key_data,
                                          int alg_arg,
                                          data_t *nonce,
                                          data_t *additional_data,
-                                         int ad_part_len,
+                                         int ad_part_len_arg,
                                          data_t *input_data,
-                                         int data_part_len,
+                                         int data_part_len_arg,
                                          int do_set_lengths,
                                          data_t *expected_output,
                                          int expect_valid_signature,
@@ -321,16 +321,18 @@ static int aead_multipart_internal_func( int key_type_arg, data_t *key_data,
     size_t output_length = 0;
     size_t key_bits = 0;
     size_t tag_length = 0;
-    uint32_t part_offset = 0;
+    size_t part_offset = 0;
     size_t part_length = 0;
     size_t output_part_length = 0;
     size_t tag_size = 0;
+    size_t ad_part_len = 0;
+    size_t data_part_len = 0;
     uint8_t tag_buffer[PSA_AEAD_TAG_MAX_SIZE];
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
 
     int test_ok = 0;
-    uint32_t part_count = 0;
+    size_t part_count = 0;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -423,9 +425,10 @@ static int aead_multipart_internal_func( int key_type_arg, data_t *key_data,
         }
     }
 
-    if( ad_part_len != -1 )
+    if( ad_part_len_arg != -1 )
     {
         /* Pass additional data in parts */
+        ad_part_len = (size_t) ad_part_len_arg;
         part_offset = 0;
 
         while( part_offset < additional_data->len )
@@ -436,8 +439,7 @@ static int aead_multipart_internal_func( int key_type_arg, data_t *key_data,
             }
             else
             {
-                if( additional_data->len - part_offset <
-                    ( uint32_t ) ad_part_len )
+                if( additional_data->len - part_offset < ad_part_len )
                 {
                     part_length = additional_data->len - part_offset;
                 }
@@ -461,9 +463,10 @@ static int aead_multipart_internal_func( int key_type_arg, data_t *key_data,
                                         additional_data->len ) );
     }
 
-    if( data_part_len != -1 )
+    if( data_part_len_arg != -1 )
     {
         /* Pass data in parts */
+        data_part_len = ( size_t ) data_part_len_arg;
         part_data_size = PSA_AEAD_UPDATE_OUTPUT_SIZE( key_type, alg,
                                                       ( size_t ) data_part_len );
 
@@ -479,7 +482,7 @@ static int aead_multipart_internal_func( int key_type_arg, data_t *key_data,
             }
             else
             {
-                if( ( data_true_size - part_offset ) < ( uint32_t ) data_part_len )
+                if( ( data_true_size - part_offset ) < data_part_len )
                 {
                     part_length = ( data_true_size - part_offset );
                 }

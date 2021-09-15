@@ -264,6 +264,13 @@ typedef enum {
     DERIVE_KEY = 2
 } generate_method;
 
+typedef enum
+{
+    DO_NOT_SET_LENGTHS = 0,
+    SET_LENGTHS_BEFORE_NONCE = 1,
+    SET_LENGTHS_AFTER_NONCE = 2
+} setlengths_method;
+
 /*!
  * \brief                           Internal Function for AEAD multipart tests.
  *
@@ -300,12 +307,11 @@ static int aead_multipart_internal_func( int key_type_arg, data_t *key_data,
                                          int ad_part_len_arg,
                                          data_t *input_data,
                                          int data_part_len_arg,
-                                         int do_set_lengths,
+                                         setlengths_method set_lengths_method,
                                          data_t *expected_output,
                                          int expect_valid_signature,
                                          int is_encrypt,
-                                         int do_zero_parts,
-                                         int swap_set_functions )
+                                         int do_zero_parts )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t key_type = key_type_arg;
@@ -404,25 +410,20 @@ static int aead_multipart_internal_func( int key_type_arg, data_t *key_data,
 
     PSA_ASSERT( status );
 
-    if( swap_set_functions )
+    if( set_lengths_method ==  DO_NOT_SET_LENGTHS )
+        PSA_ASSERT( psa_aead_set_nonce( &operation, nonce->x, nonce->len ) );
+    else if( set_lengths_method == SET_LENGTHS_BEFORE_NONCE )
     {
-        if( do_set_lengths )
-        {
-            PSA_ASSERT( psa_aead_set_lengths( &operation, additional_data->len,
-                                              data_true_size ) );
-        }
-
+        PSA_ASSERT( psa_aead_set_lengths( &operation, additional_data->len,
+                                          data_true_size ) );
         PSA_ASSERT( psa_aead_set_nonce( &operation, nonce->x, nonce->len ) );
     }
-    else
+    else if( set_lengths_method ==  SET_LENGTHS_AFTER_NONCE )
     {
         PSA_ASSERT( psa_aead_set_nonce( &operation, nonce->x, nonce->len ) );
 
-        if( do_set_lengths )
-        {
-            PSA_ASSERT( psa_aead_set_lengths( &operation, additional_data->len,
-                                              data_true_size ) );
-        }
+        PSA_ASSERT( psa_aead_set_lengths( &operation, additional_data->len,
+                                          data_true_size ) );
     }
 
     if( ad_part_len_arg != -1 )
@@ -3496,6 +3497,7 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
 {
     size_t ad_part_len = 0;
     size_t data_part_len = 0;
+    setlengths_method set_lengths_method = DO_NOT_SET_LENGTHS;
 
     /* Ensure that either one part of the test or the other is done, i.e this
      * test does something. */
@@ -3509,16 +3511,23 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
         {
             mbedtls_test_set_step( ad_part_len );
 
+            if( do_set_lengths )
+            {
+                if( ad_part_len & 0x01 )
+                    set_lengths_method = SET_LENGTHS_AFTER_NONCE;
+                else
+                    set_lengths_method = SET_LENGTHS_BEFORE_NONCE;
+            }
+
             /* Split ad into length(ad_part_len) parts. */
             if( !aead_multipart_internal_func( key_type_arg, key_data,
                                                alg_arg, nonce,
                                                additional_data,
                                                ad_part_len,
                                                input_data, -1,
-                                               do_set_lengths,
+                                               set_lengths_method,
                                                expected_output,
-                                               1, 1, 0,
-                                               ( ad_part_len & 0x01 ) ) )
+                                               1, 1, 0 ) )
                 break;
 
             /* length(0) part, length(ad_part_len) part, length(0) part... */
@@ -3529,10 +3538,9 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
                                                additional_data,
                                                ad_part_len,
                                                input_data, -1,
-                                               do_set_lengths,
+                                               set_lengths_method,
                                                expected_output,
-                                               1, 1, 1,
-                                               ( ad_part_len & 0x01 ) ) )
+                                               1, 1, 1 ) )
                 break;
         }
     }
@@ -3546,14 +3554,21 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
             /* Split data into length(data_part_len) parts. */
             mbedtls_test_set_step( 2000 + data_part_len );
 
+            if( do_set_lengths )
+            {
+                if( data_part_len & 0x01 )
+                    set_lengths_method = SET_LENGTHS_AFTER_NONCE;
+                else
+                    set_lengths_method = SET_LENGTHS_BEFORE_NONCE;
+            }
+
             if( !aead_multipart_internal_func( key_type_arg, key_data,
                                                alg_arg, nonce,
                                                additional_data, -1,
                                                input_data, data_part_len,
-                                               do_set_lengths,
+                                               set_lengths_method,
                                                expected_output,
-                                               1, 1, 0,
-                                               ( data_part_len & 0x01 ) ) )
+                                               1, 1, 0 ) )
                 break;
 
             /* length(0) part, length(data_part_len) part, length(0) part... */
@@ -3563,10 +3578,9 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
                                                alg_arg, nonce,
                                                additional_data, -1,
                                                input_data, data_part_len,
-                                               do_set_lengths,
+                                               set_lengths_method,
                                                expected_output,
-                                               1, 1, 1,
-                                               ( data_part_len & 0x01 ) ) )
+                                               1, 1, 1 ) )
                 break;
         }
     }
@@ -3592,6 +3606,7 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
 {
     size_t ad_part_len = 0;
     size_t data_part_len = 0;
+    setlengths_method set_lengths_method = DO_NOT_SET_LENGTHS;
 
     /* Ensure that either one part of the test or the other is done, i.e this
      * test does something. */
@@ -3606,16 +3621,23 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
             /* Split ad into length(ad_part_len) parts. */
             mbedtls_test_set_step( ad_part_len );
 
+            if( do_set_lengths )
+            {
+                if( ad_part_len & 0x01 )
+                    set_lengths_method = SET_LENGTHS_AFTER_NONCE;
+                else
+                    set_lengths_method = SET_LENGTHS_BEFORE_NONCE;
+            }
+
             if( !aead_multipart_internal_func( key_type_arg, key_data,
                                                alg_arg, nonce,
                                                additional_data,
                                                ad_part_len,
                                                input_data, -1,
-                                               do_set_lengths,
+                                               set_lengths_method,
                                                expected_output,
                                                expect_valid_signature,
-                                               0, 0,
-                                               ( ad_part_len & 0x01 ) ) )
+                                               0, 0 ) )
                 break;
 
             /* length(0) part, length(ad_part_len) part, length(0) part... */
@@ -3626,11 +3648,10 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
                                                additional_data,
                                                ad_part_len,
                                                input_data, -1,
-                                               do_set_lengths,
+                                               set_lengths_method,
                                                expected_output,
                                                expect_valid_signature,
-                                               0, 1,
-                                               ( ad_part_len & 0x01 ) ) )
+                                               0, 1 ) )
                 break;
         }
     }
@@ -3644,15 +3665,22 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
             /* Split data into length(data_part_len) parts. */
             mbedtls_test_set_step( 2000 + data_part_len );
 
+            if( do_set_lengths )
+            {
+                if( data_part_len & 0x01 )
+                    set_lengths_method = SET_LENGTHS_AFTER_NONCE;
+                else
+                    set_lengths_method = SET_LENGTHS_BEFORE_NONCE;
+            }
+
             if( !aead_multipart_internal_func( key_type_arg, key_data,
                                                alg_arg, nonce,
                                                additional_data, -1,
                                                input_data, data_part_len,
-                                               do_set_lengths,
+                                               set_lengths_method,
                                                expected_output,
                                                expect_valid_signature,
-                                               0, 0,
-                                               ( data_part_len & 0x01 ) ) )
+                                               0, 0 ) )
                 break;
 
             /* length(0) part, length(data_part_len) part, length(0) part... */
@@ -3662,11 +3690,10 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
                                                alg_arg, nonce,
                                                additional_data, -1,
                                                input_data, data_part_len,
-                                               do_set_lengths,
+                                               set_lengths_method,
                                                expected_output,
                                                expect_valid_signature,
-                                               0, 1,
-                                               ( data_part_len & 0x01 ) ) )
+                                               0, 1 ) )
                 break;
         }
     }

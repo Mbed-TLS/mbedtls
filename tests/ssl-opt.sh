@@ -8692,7 +8692,9 @@ run_test    "TLS1.3: Test client hello msg work - openssl" \
             -c "tls1_3 client state: 20"    \
             -c "tls1_3 client state: 11"    \
             -c "tls1_3 client state: 14"    \
-            -c "tls1_3 client state: 15"
+            -c "tls1_3 client state: 15"    \
+            -c "<= ssl_tls1_3_process_server_hello" \
+            -c "=> ssl_tls1_3_process_server_hello"
 
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
@@ -8713,7 +8715,9 @@ run_test    "TLS1.3: Test client hello msg work - gnutls" \
             -c "tls1_3 client state: 20"    \
             -c "tls1_3 client state: 11"    \
             -c "tls1_3 client state: 14"    \
-            -c "tls1_3 client state: 15"
+            -c "tls1_3 client state: 15"    \
+            -c "<= ssl_tls1_3_process_server_hello" \
+            -c "=> ssl_tls1_3_process_server_hello"
 
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_MEMORY_DEBUG

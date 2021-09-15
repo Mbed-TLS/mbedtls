@@ -788,7 +788,7 @@ int mbedtls_ecdh_tls13_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
 }
 
 /*
- * Setup context without everst
+ * Setup context without Everest
  */
 int mbedtls_ecdh_setup_no_everest( mbedtls_ecdh_context *ctx,
                                    mbedtls_ecp_group_id grp_id )

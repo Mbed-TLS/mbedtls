@@ -55,7 +55,7 @@ static int ssl_tls13_write_supported_versions_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding supported versions extension" ) );
 
-    /* Check if we have space for header and length fields:
+    /* Check if we have space to write the extension:
      * - extension_type         (2 bytes)
      * - extension_data_length  (2 bytes)
      * - versions_length        (1 byte )
@@ -221,7 +221,7 @@ static int ssl_tls13_write_supported_groups_ext( mbedtls_ssl_context *ssl,
     }
     p += output_len;
 
-    /* Both ECDHE and DHE Fail. */
+    /* Both ECDHE and DHE failed. */
     if( ret_ecdhe != 0 && ret_dhe != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Both ECDHE and DHE groups are fail. " ) );
@@ -232,7 +232,7 @@ static int ssl_tls13_write_supported_groups_ext( mbedtls_ssl_context *ssl,
     named_group_list_len = p - named_group_list_ptr;
     if( named_group_list_len == 0 )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "No group Available." ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "No group available." ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
@@ -275,7 +275,7 @@ static int ssl_tls13_generate_and_write_ecdh_key_exchange(
     if( ( ret = mbedtls_ecdh_setup_no_everest( &ssl->handshake->ecdh_ctx,
                                                curve_info->grp_id ) ) != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecp_group_load", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_setup_no_everest", ret );
         return( ret );
     }
 
@@ -299,31 +299,20 @@ static int ssl_tls13_get_default_group_id( mbedtls_ssl_context *ssl,
 {
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
 
-    /* Pick first entry of curve list.
-     *
-     * TODO: When we introduce PQC KEMs, we'll have a NamedGroup
-     *       list instead, and can just return its first element.
-     */
 
-    /* Check if ecdhe named groups are available and pick first entry */
 #if defined(MBEDTLS_ECDH_C)
-#if !defined(MBEDTLS_ECP_C)
-    ((void) ssl);
-#endif
-#if defined(MBEDTLS_ECP_C)
-    for ( const mbedtls_ecp_group_id * grp_id = ssl->conf->curve_list;
+    /* Pick first available ECDHE group compatible with TLS 1.3 */
+    if( ssl->conf->curve_list == NULL )
+        return( MBEDTLS_ERR_SSL_BAD_CONFIG );
+
+    for ( const mbedtls_ecp_group_id *grp_id = ssl->conf->curve_list;
           *grp_id != MBEDTLS_ECP_DP_NONE;
           grp_id++ )
     {
         const mbedtls_ecp_curve_info *info;
         info = mbedtls_ecp_curve_info_from_grp_id( *grp_id );
-#else
-    for ( const mbedtls_ecp_curve_info *info = mbedtls_ecp_curve_list();
-          info->grp_id != MBEDTLS_ECP_DP_NONE;
-          info++ )
-    {
-#endif
-        if( info != NULL && mbedtls_ssl_tls13_named_group_is_ecdhe( info->tls_id ) )
+        if( info != NULL &&
+            mbedtls_ssl_tls13_named_group_is_ecdhe( info->tls_id ) )
         {
             *group_id = info->tls_id;
             return( 0 );
@@ -336,7 +325,7 @@ static int ssl_tls13_get_default_group_id( mbedtls_ssl_context *ssl,
 
     /*
      * Add DHE named groups here.
-     * Check if ecdhe named groups are available and pick first entry
+     * Pick first available DHE group compatible with TLS 1.3
      */
 
     return( ret );
@@ -345,7 +334,7 @@ static int ssl_tls13_get_default_group_id( mbedtls_ssl_context *ssl,
 /*
  * ssl_tls13_write_key_share_ext
  *
- * Structure of key_share extension in ClientHelo:
+ * Structure of key_share extension in ClientHello:
  *
  *  struct {
  *          NamedGroup group;
@@ -402,8 +391,8 @@ static int ssl_tls13_write_key_share_ext( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_ECDH_C)
     if( mbedtls_ssl_tls13_named_group_is_ecdhe( group_id ) )
     {
-        /* Pointer of group */
-        unsigned char *group_id_ptr = p;
+        /* Pointer to group */
+        unsigned char *group_ptr = p;
         /* Length of key_exchange */
         size_t key_exchange_len;
 
@@ -421,9 +410,9 @@ static int ssl_tls13_write_key_share_ext( mbedtls_ssl_context *ssl,
             return( ret );
 
         /* Write group */
-        MBEDTLS_PUT_UINT16_BE( group_id, group_id_ptr, 0 );
+        MBEDTLS_PUT_UINT16_BE( group_id, group_ptr, 0 );
         /* Write key_exchange_length */
-        MBEDTLS_PUT_UINT16_BE( key_exchange_len, group_id_ptr, 2 );
+        MBEDTLS_PUT_UINT16_BE( key_exchange_len, group_ptr, 2 );
     }
     else
 #endif /* MBEDTLS_ECDH_C */

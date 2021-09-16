@@ -102,18 +102,36 @@ class Ast:
                     self.fields.setdefault(type_name, collections.OrderedDict())
                     self.fields[type_name][node.spelling] = FieldInfo(node)
 
-    QUALIFIERS_RE = re.compile(r'\s*(const|volatile|restrict)\s+')
-    def get_type_core(self, typ: clang.cindex.Type) -> str:
+    @staticmethod
+    def get_underlying_type(typ: clang.cindex.Type) -> Optional[clang.cindex.Type]:
+        """Strip off one level of type indirection.
+
+        Return None if the type is as primitive as can be.
+        """
+        if hasattr(typ, 'get_canonical'):
+            lower = typ.get_canonical()
+            if lower == typ:
+                return None
+            else:
+                return lower
+        if typ.kind == TypeKind.POINTER:
+            return typ.get_pointee()
+        if hasattr(typ, 'underlying_typedef_type'):
+            return typ.underlying_typedef_type
+        return None
+
+    QUALIFIERS_RE = re.compile(r'.* ')
+    def get_type_core(self, type: clang.cindex.Type) -> str:
         """Get the base name of a type, without typedefs, qualifiers or pointers."""
-        while typ.kind == TypeKind.POINTER:
-            typ = typ.get_pointee()
-        while hasattr(typ, 'underlying_typedef_type'):
-            typ = typ.underlying_typedef_type
-            while typ.kind == TypeKind.POINTER:
-                typ = typ.get_pointee()
+        core = type
+        lower = type # type: Optional[clang.cindex.Type]
+        while lower:
+            core, lower = lower, self.get_underlying_type(core)
         # There's no API function to remove qualifiers from a type,
-        # so do it textually.
-        return re.sub(self.QUALIFIERS_RE, r'', typ.spelling)
+        # so do it textually. Remove 'const', 'restrict', etc.
+        # Also remove 'struct', so we'll get the struct name from struct
+        # definitions.
+        return re.sub(self.QUALIFIERS_RE, r'', core.spelling)
 
     def record_field_access(self, node: Cursor) -> None:
         """Record one location where a field is accessed."""

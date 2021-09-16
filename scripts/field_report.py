@@ -52,6 +52,21 @@ class FieldInfo:
     def uses(self) -> int:
         return self.lexical_uses
 
+    def is_indirect(self) -> bool:
+        """Whether access to this field is indirect on ARM Cortex-M0+."""
+        word_offset = self.offset // self.align
+        return word_offset >= 128
+
+    def score(self) -> int:
+        """A field's score is an estimate of its access cost.
+
+        The cost is calculated as the number of instructions needed to
+        access the field on ARM Cortex-M0+, multiplied by the number of uses
+        of the field inside the library.
+        """
+        cost_per_use = 1 + 2 * self.is_indirect()
+        return self.uses() * cost_per_use
+
 
 class Ast:
     """Abstract representation of the source code."""
@@ -166,12 +181,12 @@ class Ast:
                      prefix: str, field: FieldInfo) -> None:
         """Print information about a structure field.
 
-        Format: <type>.<name>,<size>,<alignment>,<offset>,use_count
+        Format: <type>.<name>,<size>,<alignment>,<offset>,<use_count>,<score>
         """
-        out.write('{},{},{},{},{}\n'.format(
+        out.write('{},{},{},{},{},{}\n'.format(
             prefix + field.node.spelling,
             field.size, field.align, field.offset,
-            field.uses()
+            field.uses(), field.score()
         ))
 
     def report_fields(self, out: typing_util.Writable) -> None:

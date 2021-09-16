@@ -79,7 +79,7 @@ class Ast:
         if not hasattr(location.file, 'name'):
             # Some artificial nodes have associated no file name.
             # Let's hope they're not important.
-            return True
+            return False
         filename = location.file.name
         if self.INTERESTING_FILE_RE.match(filename):
             return True

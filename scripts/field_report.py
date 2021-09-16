@@ -21,8 +21,6 @@ This script uses the clang python bindings (``pip3 install --user clang``).
 
 import argparse
 import collections
-import glob
-import os
 import re
 import sys
 from typing import Dict, FrozenSet, List, Optional
@@ -70,20 +68,13 @@ class Ast:
             self.files[filename] = self.index.parse(filename,
                                                     self.parse_options)
 
-    INTERESTING_FILE_RE = re.compile(r'(?:.*/)?(mbedtls|psa|library)/[^/]*\.[ch]\Z')
     def in_interesting_file(self, location: SourceLocation) -> bool:
-        """Whether the given location is in a file that should be analyzed.
-
-        This function detects Mbed TLS headers and source files.
-        """
+        """Whether the given location is in a file that should be analyzed."""
         if not hasattr(location.file, 'name'):
             # Some artificial nodes have associated no file name.
             # Let's hope they're not important.
             return False
-        filename = location.file.name
-        if self.INTERESTING_FILE_RE.match(filename):
-            return True
-        return False
+        return location.file.name in self.files
 
     def read_field_definitions(self, filenames: List[str]) -> None:
         """Parse structure field definitions in the given C source files (usually headers)."""
@@ -177,21 +168,9 @@ class Ast:
             for field in self.fields[type_name].values():
                 self.report_field(out, type_name + '.', field)
 
-    @staticmethod
-    def header_files() -> List[str]:
-        return [filename
-                for pat in ['include/*/*.h', 'library/*.h']
-                for filename in sorted(glob.glob(pat))]
-
-    @staticmethod
-    def c_files() -> List[str]:
-        return sorted(glob.glob('library/*.c'))
-
-    def run_analysis(self) -> None:
-        header_files = self.header_files()
-        c_files = self.c_files()
-        self.read_field_definitions(header_files)
-        self.read_field_usage(header_files + c_files)
+    def run_analysis(self, files) -> None:
+        self.read_field_definitions(files)
+        self.read_field_usage(files)
         self.report_fields(sys.stdout)
 
 
@@ -209,9 +188,11 @@ def main():
                         help="Directory to add to the header include path")
     parser.add_argument('--target', '-t',
                         help="Target triple to build for (default: native build)")
+    parser.add_argument('files', metavar='FILE', nargs='*',
+                        help="Source files to analyze")
     options = parser.parse_args()
     ast = Ast(options)
-    ast.run_analysis()
+    ast.run_analysis(options.files)
 
 if __name__ == '__main__':
     main()

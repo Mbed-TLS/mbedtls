@@ -70,6 +70,27 @@ extern const struct mbedtls_ssl_tls1_3_labels_struct mbedtls_ssl_tls1_3_labels;
 #define MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_CONTEXT_LEN  \
     MBEDTLS_MD_MAX_SIZE
 
+typedef struct
+{
+    unsigned char binder_key                  [ MBEDTLS_MD_MAX_SIZE ];
+    unsigned char client_early_traffic_secret [ MBEDTLS_MD_MAX_SIZE ];
+    unsigned char early_exporter_master_secret[ MBEDTLS_MD_MAX_SIZE ];
+} mbedtls_ssl_tls1_3_early_secrets;
+
+typedef struct
+{
+    unsigned char client_handshake_traffic_secret[ MBEDTLS_MD_MAX_SIZE ];
+    unsigned char server_handshake_traffic_secret[ MBEDTLS_MD_MAX_SIZE ];
+} mbedtls_ssl_tls1_3_handshake_secrets;
+
+typedef struct
+{
+    unsigned char client_application_traffic_secret_N[ MBEDTLS_MD_MAX_SIZE ];
+    unsigned char server_application_traffic_secret_N[ MBEDTLS_MD_MAX_SIZE ];
+    unsigned char exporter_master_secret             [ MBEDTLS_MD_MAX_SIZE ];
+    unsigned char resumption_master_secret           [ MBEDTLS_MD_MAX_SIZE ];
+} mbedtls_ssl_tls1_3_application_secrets;
+
 /* Maximum desired length for expanded key material generated
  * by HKDF-Expand-Label.
  *
@@ -535,20 +556,5 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
  * \returns    A negative error code on failure.
  */
 int mbedtls_ssl_tls13_key_schedule_stage_early( mbedtls_ssl_context *ssl );
-
-/**
- * \brief Compute TLS 1.3 handshake traffic keys.
- *
- * \param ssl  The SSL context to operate on. This must be in
- *             key schedule stage \c Handshake, see
- *             mbedtls_ssl_tls13_key_schedule_stage_handshake().
- * \param traffic_keys The address at which to store the handshake traffic key
- *                     keys. This must be writable but may be uninitialized.
- *
- * \returns    \c 0 on success.
- * \returns    A negative error code on failure.
- */
-int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
-                                               mbedtls_ssl_key_set *traffic_keys );
 
 #endif /* MBEDTLS_SSL_TLS1_3_KEYS_H */

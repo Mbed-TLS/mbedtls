@@ -1532,7 +1532,7 @@ void mbedtls_ssl_tls13_add_hs_hdr_to_checksum( mbedtls_ssl_context *ssl,
                                                size_t total_hs_len );
 
 /*
- * Update checksum of handshake message
+ * Update checksum of handshake messages.
  */
 void mbedtls_ssl_tls13_add_hs_msg_to_checksum( mbedtls_ssl_context *ssl,
                                                unsigned hs_type,

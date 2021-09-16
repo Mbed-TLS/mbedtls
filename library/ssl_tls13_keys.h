@@ -534,7 +534,7 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
  * \returns    \c 0 on success.
  * \returns    A negative error code on failure.
  */
-int mbedtls_ssl_tls13_key_schedule_stage_early_data( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_tls13_key_schedule_stage_early( mbedtls_ssl_context *ssl );
 
 /**
  * \brief Compute TLS 1.3 handshake traffic keys.

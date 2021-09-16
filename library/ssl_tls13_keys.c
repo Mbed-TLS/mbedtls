@@ -21,13 +21,15 @@
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
 
-#include "mbedtls/hkdf.h"
-#include "ssl_misc.h"
-#include "ssl_tls13_keys.h"
-#include "mbedtls/debug.h"
-
 #include <stdint.h>
 #include <string.h>
+
+#include "mbedtls/hkdf.h"
+#include "mbedtls/debug.h"
+#include "mbedtls/error.h"
+
+#include "ssl_misc.h"
+#include "ssl_tls13_keys.h"
 
 #define MBEDTLS_SSL_TLS1_3_LABEL( name, string )       \
     .name = string,
@@ -820,24 +822,25 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
     return( 0 );
 }
 
-int mbedtls_ssl_tls13_key_schedule_stage_early_data( mbedtls_ssl_context *ssl )
+int mbedtls_ssl_tls13_key_schedule_stage_early( mbedtls_ssl_context *ssl )
 {
-    int ret = 0;
-
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_md_type_t md_type;
+    const unsigned char *input = NULL;
+    size_t input_len = 0;
     if( ssl->handshake->ciphersuite_info == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "cipher suite info not found" ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
-    mbedtls_md_type_t const md_type = ssl->handshake->ciphersuite_info->mac;
-    const unsigned char *input = NULL;
-    size_t input_len = 0;
+
+    md_type = ssl->handshake->ciphersuite_info->mac;
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
     input = ssl->handshake->psk;
     input_len = ssl->handshake->psk_len;
 #endif
     ret = mbedtls_ssl_tls1_3_evolve_secret( md_type, NULL, input, input_len,
-                                            ssl->handshake->tls13_master_secrets.early );
+                                ssl->handshake->tls13_master_secrets.early );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls1_3_evolve_secret", ret );
@@ -876,9 +879,9 @@ int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
     md_size = mbedtls_md_get_size( md_info );
 
     ret = mbedtls_ssl_get_handshake_transcript( ssl, md_type,
-                                                      transcript,
-                                                      sizeof( transcript ),
-                                                      &transcript_len );
+                                                transcript,
+                                                sizeof( transcript ),
+                                                &transcript_len );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1,
@@ -893,7 +896,8 @@ int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
                 &ssl->handshake->tls13_hs_secrets );
     if( ret != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls1_3_derive_early_secrets", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls1_3_derive_handshake_secrets",
+                               ret );
         return( ret );
     }
 

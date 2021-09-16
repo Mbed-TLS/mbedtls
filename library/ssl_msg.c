@@ -5565,7 +5565,7 @@ void mbedtls_ssl_set_outbound_transform( mbedtls_ssl_context *ssl,
                                          mbedtls_ssl_transform *transform )
 {
     ssl->transform_out = transform;
-    mbedtls_platform_zeroize( ssl->cur_out_ctr, 8 );
+    mbedtls_platform_zeroize( ssl->cur_out_ctr, sizeof( ssl->cur_out_ctr ) );
 }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)

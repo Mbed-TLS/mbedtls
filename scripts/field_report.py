@@ -94,11 +94,17 @@ class Ast:
                 if not self.in_interesting_file(node.location):
                     continue
                 if node.kind == CursorKind.FIELD_DECL:
-                    # If node.lexical_parent.spelling is an empty string,
-                    # the field is inside an anonymous structure nested in
-                    # another structure.
                     type_name = node.lexical_parent.spelling
+                    # Skip unions
+                    if node.lexical_parent.kind != CursorKind.STRUCT_DECL:
+                        continue
+                    # type_name is the struct name. If there's no struct
+                    # name, see if there's a typedef name, to cope with
+                    # "typedef struct { ... } foo;"
                     if not type_name:
+                        type_name = node.lexical_parent.type.spelling
+                    # Skip anonymous structs for now.
+                    if '(anonymous ' in type_name:
                         continue
                     self.fields.setdefault(type_name, collections.OrderedDict())
                     self.fields[type_name][node.spelling] = FieldInfo(node)

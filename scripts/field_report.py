@@ -23,7 +23,7 @@ import argparse
 import collections
 import re
 import sys
-from typing import Dict, FrozenSet, List, Optional
+from typing import Dict, List, Optional
 
 import clang.cindex #type: ignore
 from clang.cindex import Cursor, SourceLocation, TranslationUnit
@@ -37,10 +37,20 @@ class FieldInfo:
 
     def __init__(self, node: Cursor) -> None:
         self.node = node
-        self.uses = 0
+        self.lexical_uses = 0
+        self.size = node.type.get_size()
+        self.align = node.type.get_align()
+        # Empirically, offsetof is in bits, not bytes. To make the output
+        # easier to read, convert to bytes (the same unit as size and
+        # alignment), which means that bitfields will be located at their
+        # first byte.
+        self.offset = node.get_field_offsetof() // 8
 
     def record_use(self, _node: Cursor) -> None:
-        self.uses += 1
+        self.lexical_uses += 1
+
+    def uses(self) -> int:
+        return self.lexical_uses
 
 
 class Ast:
@@ -113,6 +123,7 @@ class Ast:
 
     QUALIFIERS_RE = re.compile(r'.* ')
     def get_type_core(self, type: clang.cindex.Type) -> str:
+        # pylint: disable=redefined-builtin
         """Get the base name of a type, without typedefs, qualifiers or pointers."""
         core = type
         lower = type # type: Optional[clang.cindex.Type]
@@ -144,22 +155,17 @@ class Ast:
                 if node.kind == CursorKind.MEMBER_REF_EXPR:
                     self.record_field_access(node)
 
-    def report_field(self, out: typing_util.Writable,
+    @staticmethod
+    def report_field(out: typing_util.Writable,
                      prefix: str, field: FieldInfo) -> None:
         """Print information about a structure field.
 
         Format: <type>.<name>,<size>,<alignment>,<offset>,use_count
         """
-        type_node = field.node.type
-        # Empirically, offsetof is in bits, not bytes. To make the output
-        # easier to read, convert to bytes (the same unit as size and
-        # alignment), which means that bitfields will be located at their
-        # first byte.
-        offset = field.node.get_field_offsetof() // 8
         out.write('{},{},{},{},{}\n'.format(
             prefix + field.node.spelling,
-            type_node.get_size(), type_node.get_align(), offset,
-            field.uses
+            field.size, field.align, field.offset,
+            field.uses()
         ))
 
     def report_fields(self, out: typing_util.Writable) -> None:

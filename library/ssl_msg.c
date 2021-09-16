@@ -54,6 +54,8 @@
 #include "mbedtls/oid.h"
 #endif
 
+#define MBEDTLS_SSL_IN_CTR_LEN 8
+
 static uint32_t ssl_get_hs_total_len( mbedtls_ssl_context const *ssl );
 
 /*
@@ -4791,7 +4793,7 @@ int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl )
     }
     else
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
-    memset( ssl->in_ctr, 0, 8 );
+    mbedtls_platform_zeroize( ssl->in_ctr, MBEDTLS_SSL_IN_CTR_LEN );
 
     mbedtls_ssl_update_in_pointers( ssl );
 
@@ -5558,7 +5560,7 @@ void mbedtls_ssl_set_inbound_transform( mbedtls_ssl_context *ssl,
         return;
 
     ssl->transform_in = transform;
-    mbedtls_platform_zeroize( ssl->in_ctr, 8 );
+    mbedtls_platform_zeroize( ssl->in_ctr, MBEDTLS_SSL_IN_CTR_LEN );
 }
 
 void mbedtls_ssl_set_outbound_transform( mbedtls_ssl_context *ssl,

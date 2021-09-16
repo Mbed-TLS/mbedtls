@@ -1417,7 +1417,7 @@ static int ssl_tls13_encrypted_extensions_parse( mbedtls_ssl_context *ssl,
 static int ssl_tls13_encrypted_extensions_postprocess( mbedtls_ssl_context *ssl );
 
 /*
- * Handler for  MBEDTLS_SSL_ENCRYPTED_ENTENSIONS
+ * Handler for  MBEDTLS_SSL_ENCRYPTED_EXTENSIONS
  */
 static int ssl_tls13_encrypted_extensions_process( mbedtls_ssl_context *ssl )
 {

@@ -132,9 +132,7 @@ class Ast:
         """
         if hasattr(typ, 'get_canonical'):
             lower = typ.get_canonical()
-            if lower == typ:
-                return None
-            else:
+            if lower != typ:
                 return lower
         if typ.kind == TypeKind.POINTER:
             return typ.get_pointee()

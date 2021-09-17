@@ -205,11 +205,11 @@ def main():
                         help="Alternative location of libclang.so")
     parser.add_argument('--define', '-D',
                         action='append',
-                        default=['MBEDTLS_ALLOW_PRIVATE_ACCESS'],
+                        default=[],
                         help="Additional C preprocessor definition")
     parser.add_argument('--include', '-I',
                         action='append',
-                        default=['include'],
+                        default=[],
                         help="Directory to add to the header include path")
     parser.add_argument('--target', '-t',
                         help="Target triple to build for (default: native build)")

@@ -309,7 +309,6 @@ static int aead_multipart_internal_func( int key_type_arg, data_t *key_data,
                                          int data_part_len_arg,
                                          setlengths_method set_lengths_method,
                                          data_t *expected_output,
-                                         int expect_valid_signature,
                                          int is_encrypt,
                                          int do_zero_parts )
 {
@@ -518,25 +517,11 @@ static int aead_multipart_internal_func( int key_type_arg, data_t *key_data,
                                      &tag_size ) );
     else
     {
-        status = psa_aead_verify( &operation, final_data,
+        PSA_ASSERT( psa_aead_verify( &operation, final_data,
                                      final_output_size,
                                      &output_part_length,
                                      ( input_data->x + data_true_size ),
-                                     tag_length );
-
-        if( expect_valid_signature )
-            PSA_ASSERT( status );
-        else
-        {
-            TEST_ASSERT( status != PSA_SUCCESS );
-
-            if( status != PSA_SUCCESS )
-            {
-                /* Expected failure. */
-                test_ok = 1;
-                goto exit;
-            }
-        }
+                                     tag_length ) );
     }
 
     if( output_data && output_part_length )
@@ -3522,7 +3507,7 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
                                                input_data, -1,
                                                set_lengths_method,
                                                expected_output,
-                                               1, 1, 0 ) )
+                                               1, 0 ) )
                 break;
 
             /* length(0) part, length(ad_part_len) part, length(0) part... */
@@ -3535,7 +3520,7 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
                                                input_data, -1,
                                                set_lengths_method,
                                                expected_output,
-                                               1, 1, 1 ) )
+                                               1, 1 ) )
                 break;
         }
     }
@@ -3563,7 +3548,7 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
                                                input_data, data_part_len,
                                                set_lengths_method,
                                                expected_output,
-                                               1, 1, 0 ) )
+                                               1, 0 ) )
                 break;
 
             /* length(0) part, length(data_part_len) part, length(0) part... */
@@ -3575,7 +3560,7 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
                                                input_data, data_part_len,
                                                set_lengths_method,
                                                expected_output,
-                                               1, 1, 1 ) )
+                                               1, 1 ) )
                 break;
         }
     }
@@ -3596,8 +3581,7 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
                              data_t *input_data,
                              int do_test_data_chunked,
                              int do_set_lengths,
-                             data_t *expected_output,
-                             int expect_valid_signature )
+                             data_t *expected_output )
 {
     size_t ad_part_len = 0;
     size_t data_part_len = 0;
@@ -3631,7 +3615,6 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
                                                input_data, -1,
                                                set_lengths_method,
                                                expected_output,
-                                               expect_valid_signature,
                                                0, 0 ) )
                 break;
 
@@ -3645,7 +3628,6 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
                                                input_data, -1,
                                                set_lengths_method,
                                                expected_output,
-                                               expect_valid_signature,
                                                0, 1 ) )
                 break;
         }
@@ -3674,7 +3656,6 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
                                                input_data, data_part_len,
                                                set_lengths_method,
                                                expected_output,
-                                               expect_valid_signature,
                                                0, 0 ) )
                 break;
 
@@ -3687,7 +3668,6 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
                                                input_data, data_part_len,
                                                set_lengths_method,
                                                expected_output,
-                                               expect_valid_signature,
                                                0, 1 ) )
                 break;
         }
@@ -4083,6 +4063,90 @@ exit:
     PSA_DONE( );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void aead_multipart_verify( int key_type_arg, data_t *key_data,
+                            int alg_arg,
+                            data_t *nonce,
+                            data_t *additional_data,
+                            data_t *input_data,
+                            data_t *tag,
+                            int expected_status_arg )
+{
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    psa_aead_operation_t operation;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
+    psa_status_t expected_status = expected_status_arg;
+    unsigned char *plaintext = NULL;
+    unsigned char *finish_plaintext = NULL;
+    size_t plaintext_size = 0;
+    size_t plaintext_length = 0;
+    size_t verify_plaintext_size = 0;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DECRYPT  );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, key_type );
+
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &key ) );
+
+    PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
+
+    plaintext_size = PSA_AEAD_UPDATE_OUTPUT_SIZE( key_type, alg,
+                                                  input_data->len );
+
+    ASSERT_ALLOC( plaintext, plaintext_size );
+
+    verify_plaintext_size = PSA_AEAD_VERIFY_OUTPUT_SIZE( key_type, alg );
+
+    ASSERT_ALLOC( finish_plaintext, verify_plaintext_size );
+
+    operation = psa_aead_operation_init( );
+
+    status = psa_aead_decrypt_setup( &operation, key, alg );
+
+    /* If the operation is not supported, just skip and not fail in case the
+     * encryption involves a common limitation of cryptography hardwares and
+     * an alternative implementation. */
+    if( status == PSA_ERROR_NOT_SUPPORTED )
+    {
+        MBEDTLS_TEST_PSA_SKIP_IF_ALT_AES_192( key_type, key_data->len * 8 );
+        MBEDTLS_TEST_PSA_SKIP_IF_ALT_GCM_NOT_12BYTES_NONCE( alg, nonce->len );
+    }
+
+    PSA_ASSERT( status );
+
+    PSA_ASSERT( psa_aead_set_nonce( &operation, nonce->x, nonce->len ) );
+
+    PSA_ASSERT( psa_aead_update_ad( &operation, additional_data->x,
+                                    additional_data->len ) );
+
+    PSA_ASSERT( psa_aead_update( &operation, input_data->x,
+                                 input_data->len,
+                                 plaintext, plaintext_size,
+                                 &plaintext_length ) );
+
+    status = psa_aead_verify( &operation, finish_plaintext,
+                              verify_plaintext_size,
+                              &plaintext_length,
+                              tag->x, tag->len );
+
+    TEST_EQUAL( status, expected_status );
+
+exit:
+    psa_destroy_key( key );
+    mbedtls_free( plaintext );
+    mbedtls_free( finish_plaintext );
+    psa_aead_abort( &operation );
+    PSA_DONE( );
+}
+/* END_CASE */
+
 
 /* BEGIN_CASE */
 void aead_multipart_state_test( int key_type_arg, data_t *key_data,

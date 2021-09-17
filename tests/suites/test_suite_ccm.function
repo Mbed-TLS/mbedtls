@@ -646,16 +646,10 @@ void mbedtls_ccm_incomplete_ad_and_overflow( int cipher_id, int mode,
                                              data_t * add )
 {
     mbedtls_ccm_context ctx;
+    uint8_t add_second_buffer[2];
 
-    /* New auth buffer containing same data as original one,
-     * with added extra byte at the end */
-    uint8_t* add_extended = NULL;
-    ASSERT_ALLOC( add_extended, add->len + 1 );
-    if( add_extended )
-    {
-        memcpy( add_extended, add->x, add->len );
-        add_extended[add->len] = 0xAB; // some magic value
-    }
+    add_second_buffer[0] = add->x[ add->len - 1 ];
+    add_second_buffer[1] = 0xAB; // some magic value
 
     mbedtls_ccm_init( &ctx );
     TEST_EQUAL( mbedtls_ccm_setkey( &ctx, cipher_id, key->x, key->len * 8 ), 0 );
@@ -664,11 +658,10 @@ void mbedtls_ccm_incomplete_ad_and_overflow( int cipher_id, int mode,
     TEST_EQUAL( 0, mbedtls_ccm_set_lengths( &ctx, add->len, 16, 16 ) );
 
     // pass incomplete auth data
-    TEST_EQUAL( 0, mbedtls_ccm_update_ad( &ctx, add_extended, add->len - 1) );
+    TEST_EQUAL( 0, mbedtls_ccm_update_ad( &ctx, add->x, add->len - 1) );
     // pass 2 extra bytes (1 missing byte from previous incomplete pass, and 1 unexpected byte)
-    TEST_EQUAL( MBEDTLS_ERR_CCM_BAD_INPUT, mbedtls_ccm_update_ad( &ctx, add_extended + add->len - 1, 2) );
+    TEST_EQUAL( MBEDTLS_ERR_CCM_BAD_INPUT, mbedtls_ccm_update_ad( &ctx, add_second_buffer, 2) );
 exit:
-    mbedtls_free( add_extended );
     mbedtls_ccm_free( &ctx );
 }
 /* END_CASE */
@@ -775,16 +768,10 @@ void mbedtls_ccm_incomplete_update_overflow( int cipher_id, int mode,
     mbedtls_ccm_context ctx;
     uint8_t *output = NULL;
     size_t olen;
+    uint8_t msg_second_buffer[2];
 
-    /* New plaintext/ciphertext buffer containing same data as original one,
-     * with added extra byte at the end */
-    uint8_t* msg_extended = NULL;
-    ASSERT_ALLOC( msg_extended, msg->len + 1 );
-    if( msg_extended )
-    {
-        memcpy( msg_extended, msg->x, msg->len );
-        msg_extended[msg->len] = 0xAB; // some magic value
-    }
+    msg_second_buffer[0] = msg->x[ msg->len - 1 ];
+    msg_second_buffer[1] = 0xAB; // some magic value
 
     mbedtls_ccm_init( &ctx );
     TEST_EQUAL( mbedtls_ccm_setkey( &ctx, cipher_id, key->x, key->len * 8 ), 0 );
@@ -796,12 +783,11 @@ void mbedtls_ccm_incomplete_update_overflow( int cipher_id, int mode,
 
     ASSERT_ALLOC( output, msg->len + 1 );
     // pass incomplete text
-    TEST_EQUAL( 0, mbedtls_ccm_update( &ctx, msg_extended, msg->len - 1, output, msg->len + 1, &olen ) );
+    TEST_EQUAL( 0, mbedtls_ccm_update( &ctx, msg->x, msg->len - 1, output, msg->len + 1, &olen ) );
     // pass 2 extra bytes (1 missing byte from previous incomplete pass, and 1 unexpected byte)
     TEST_EQUAL( MBEDTLS_ERR_CCM_BAD_INPUT, \
-                mbedtls_ccm_update( &ctx, msg_extended + msg->len - 1, 2, output +  msg->len - 1, 2, &olen ) );
+                mbedtls_ccm_update( &ctx, msg_second_buffer, 2, output +  msg->len - 1, 2, &olen ) );
 exit:
-    mbedtls_free( msg_extended );
     mbedtls_free( output );
     mbedtls_ccm_free( &ctx );
 }

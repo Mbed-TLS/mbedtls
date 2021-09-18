@@ -1358,7 +1358,6 @@ void mbedtls_ssl_pend_fatal_alert( mbedtls_ssl_context *ssl,
 #define MBEDTLS_SSL_PEND_FATAL_ALERT( type, user_return_value )         \
             mbedtls_ssl_pend_fatal_alert( ssl, type, user_return_value )
 
-
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
 void mbedtls_ssl_dtls_replay_reset( mbedtls_ssl_context *ssl );
 #endif

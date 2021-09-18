@@ -570,4 +570,65 @@ int mbedtls_ssl_tls13_key_schedule_stage_handshake( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
                                                mbedtls_ssl_key_set *traffic_keys );
 
+/**
+ * \brief Transition into application stage of TLS 1.3 key schedule.
+ *
+ *        The TLS 1.3 key schedule can be viewed as a simple state machine
+ *        with states Initial -> Early -> Handshake -> Application, and
+ *        this function represents the Handshake -> Application transition.
+ *
+ *        In the handshake stage, mbedtls_ssl_tls1_3_generate_application_keys()
+ *        can be used to derive the handshake traffic keys.
+ *
+ * \param ssl  The SSL context to operate on. This must be in key schedule
+ *             stage \c Handshake.
+ *
+ * \returns    \c 0 on success.
+ * \returns    A negative error code on failure.
+ */
+int mbedtls_ssl_tls1_3_key_schedule_stage_application(
+    mbedtls_ssl_context *ssl );
+
+/**
+ * \brief Compute TLS 1.3 application traffic keys.
+ *
+ * \param ssl  The SSL context to operate on. This must be in
+ *             key schedule stage \c Application, see
+ *             mbedtls_ssl_tls1_3_key_schedule_stage_application().
+ * \param traffic_keys The address at which to store the application traffic key
+ *                     keys. This must be writable but may be uninitialized.
+ *
+ * \returns    \c 0 on success.
+ * \returns    A negative error code on failure.
+ */
+int mbedtls_ssl_tls1_3_generate_application_keys(
+    mbedtls_ssl_context* ssl, mbedtls_ssl_key_set *traffic_keys );
+
+/**
+ * \brief Calculate content of TLS 1.3 Finished message.
+ *
+ * \param ssl  The SSL context to operate on. This must be in
+ *             key schedule stage \c Handshake, see
+ *             mbedtls_ssl_tls1_3_key_schedule_stage_application().
+ * \param dst        The address at which to write the Finished content.
+ * \param dst_len    The size of \p dst in bytes.
+ * \param actual_len The address at which to store the amount of data
+ *                   actually written to \p dst upon success.
+ * \param from       The endpoint the Finished message originates from:
+ *                   - #MBEDTLS_SSL_IS_CLIENT for the Client's Finished message
+ *                   - #MBEDTLS_SSL_IS_SERVER for the Server's Finished message
+ *
+ * \note       Both client and server call this function twice, once to
+ *             generate their own Finished message, and once to verify the
+ *             peer's Finished message.
+
+ * \returns    \c 0 on success.
+ * \returns    A negative error code on failure.
+ */
+int mbedtls_ssl_tls1_3_calc_finished( mbedtls_ssl_context *ssl,
+                                      unsigned char *dst,
+                                      size_t dst_len,
+                                      size_t *actual_len,
+                                      int from );
+
 #endif /* MBEDTLS_SSL_TLS1_3_KEYS_H */

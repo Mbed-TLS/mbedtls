@@ -845,6 +845,159 @@ cleanup:
     return( ret );
 }
 
+/*
+ *
+ * STATE HANDLING: Incoming Finished
+ * Overview
+ */
+
+/* Main entry point: orchestrates the other functions */
+int mbedtls_ssl_tls1_3_finished_in_process( mbedtls_ssl_context* ssl );
+
+static int ssl_finished_in_preprocess( mbedtls_ssl_context* ssl );
+static int ssl_finished_in_postprocess( mbedtls_ssl_context* ssl );
+static int ssl_finished_in_parse( mbedtls_ssl_context* ssl,
+                                  const unsigned char* buf,
+                                  size_t buflen );
+
+/*
+ * Implementation
+ */
+
+int mbedtls_ssl_tls1_3_finished_in_process( mbedtls_ssl_context* ssl )
+{
+    int ret = 0;
+    unsigned char *buf;
+    size_t buflen;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse finished" ) );
+
+    /* Preprocessing step: Compute handshake digest */
+    MBEDTLS_SSL_PROC_CHK( ssl_finished_in_preprocess( ssl ) );
+
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls1_3_fetch_handshake_msg( ssl,
+                                              MBEDTLS_SSL_HS_FINISHED,
+                                              &buf, &buflen ) );
+    MBEDTLS_SSL_PROC_CHK( ssl_finished_in_parse( ssl, buf, buflen ) );
+    mbedtls_ssl_tls1_3_add_hs_msg_to_checksum(
+        ssl, MBEDTLS_SSL_HS_FINISHED, buf, buflen );
+    MBEDTLS_SSL_PROC_CHK( ssl_finished_in_postprocess( ssl ) );
+
+cleanup:
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse finished" ) );
+    return( ret );
+}
+
+static int ssl_finished_in_preprocess( mbedtls_ssl_context* ssl )
+{
+    int ret;
+
+    ret = mbedtls_ssl_tls1_3_calc_finished( ssl,
+                    ssl->handshake->state_local.finished_in.digest,
+                    sizeof( ssl->handshake->state_local.finished_in.digest ),
+                    &ssl->handshake->state_local.finished_in.digest_len,
+                    ssl->conf->endpoint ^ 1 );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls1_3_calc_finished", ret );
+        return( ret );
+    }
+
+    return( 0 );
+}
+
+static int ssl_finished_in_parse( mbedtls_ssl_context* ssl,
+                                  const unsigned char* buf,
+                                  size_t buflen )
+{
+    /* Structural validation */
+    if( buflen != ssl->handshake->state_local.finished_in.digest_len )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
+
+        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
+                              MBEDTLS_ERR_SSL_DECODE_ERROR );
+        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
+    }
+
+    MBEDTLS_SSL_DEBUG_BUF( 4, "Hash (self-computed):",
+                           ssl->handshake->state_local.finished_in.digest,
+                           ssl->handshake->state_local.finished_in.digest_len );
+    MBEDTLS_SSL_DEBUG_BUF( 4, "Hash (received message):", buf,
+                           ssl->handshake->state_local.finished_in.digest_len );
+
+    /* Semantic validation */
+    if( mbedtls_ssl_safer_memcmp( buf,
+                   ssl->handshake->state_local.finished_in.digest,
+                   ssl->handshake->state_local.finished_in.digest_len ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
+
+        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
+                              MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+    }
+    return( 0 );
+}
+
+static int ssl_finished_in_postprocess_cli( mbedtls_ssl_context *ssl )
+{
+    int ret = 0;
+    mbedtls_ssl_key_set traffic_keys;
+    mbedtls_ssl_transform *transform_application;
+
+    ret = mbedtls_ssl_tls1_3_key_schedule_stage_application( ssl );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1,
+           "mbedtls_ssl_tls1_3_key_schedule_stage_application", ret );
+        return( ret );
+    }
+
+    ret = mbedtls_ssl_tls1_3_generate_application_keys(
+        ssl, &traffic_keys );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1,
+            "mbedtls_ssl_tls1_3_generate_application_keys", ret );
+        return( ret );
+    }
+
+    transform_application =
+        mbedtls_calloc( 1, sizeof( mbedtls_ssl_transform ) );
+    if( transform_application == NULL )
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+
+    ret = mbedtls_ssl_tls13_populate_transform(
+                                    transform_application,
+                                    ssl->conf->endpoint,
+                                    ssl->session_negotiate->ciphersuite,
+                                    &traffic_keys,
+                                    ssl );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_populate_transform", ret );
+        return( ret );
+    }
+
+    ssl->transform_application = transform_application;
+
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_END_OF_EARLY_DATA );
+    return( 0 );
+}
+
+static int ssl_finished_in_postprocess( mbedtls_ssl_context* ssl )
+{
+
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
+    {
+        return( ssl_finished_in_postprocess_cli( ssl ) );
+    }
+
+    return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+}
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 #endif /* MBEDTLS_SSL_TLS_C */

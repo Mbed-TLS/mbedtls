@@ -719,6 +719,104 @@ struct mbedtls_ssl_handshake_params
                                 * but can be overwritten by the HRR. */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
+    /*
+     * State-local variables used during the processing
+     * of a specific handshake state.
+     */
+    union
+    {
+        /* Outgoing Finished message */
+        struct
+        {
+            uint8_t preparation_done;
+
+            /* Buffer holding digest of the handshake up to
+             * but excluding the outgoing finished message. */
+            unsigned char digest[MBEDTLS_MD_MAX_SIZE];
+            size_t digest_len;
+        } finished_out;
+
+        /* Incoming Finished message */
+        struct
+        {
+            /* Buffer holding digest of the handshake up to but
+             * excluding the peer's incoming finished message. */
+            unsigned char digest[MBEDTLS_MD_MAX_SIZE];
+            size_t digest_len;
+        } finished_in;
+
+#if defined(MBEDTLS_SSL_CLI_C)
+
+        /* Client, incoming ServerKeyExchange */
+        struct
+        {
+            uint8_t preparation_done;
+        } srv_key_exchange;
+
+        /* Client, incoming ServerHello */
+        struct
+        {
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+            int renego_info_seen;
+#else
+            int dummy;
+#endif
+        } srv_hello_in;
+
+        /* Client, outgoing ClientKeyExchange */
+        struct
+        {
+            uint8_t preparation_done;
+        } cli_key_exch_out;
+
+        /* Client, outgoing Certificate Verify */
+        struct
+        {
+            uint8_t preparation_done;
+        } crt_vrfy_out;
+
+        /* Client, outgoing ClientHello */
+        struct
+        {
+            uint8_t preparation_done;
+        }  cli_hello_out;
+
+#endif /* MBEDTLS_SSL_CLI_C */
+
+#if defined(MBEDTLS_SSL_SRV_C)
+
+        /* Server, outgoing ClientKeyExchange */
+        struct
+        {
+            uint8_t preparation_done;
+        } cli_key_exch_in;
+
+        /* Server, outgoing ClientKeyExchange */
+        struct
+        {
+            uint8_t preparation_done;
+        } encrypted_extensions_out;
+
+#endif /* MBEDTLS_SSL_SRV_C */
+
+        /* Incoming CertificateVerify */
+        struct
+        {
+            unsigned char verify_buffer[ 64 + 33 + 1 + MBEDTLS_MD_MAX_SIZE ];
+            size_t verify_buffer_len;
+        } certificate_verify_in;
+
+        /* Outgoing CertificateVerify */
+        struct
+        {
+            unsigned char handshake_hash[ MBEDTLS_MD_MAX_SIZE ];
+            size_t handshake_hash_len;
+        } certificate_verify_out;
+
+    } state_local;
+
+    /* End of state-local variables. */
+
     mbedtls_ssl_ciphersuite_t const *ciphersuite_info;
 
     size_t pmslen;                      /*!<  premaster length        */
@@ -1161,6 +1259,11 @@ static inline int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
 
 int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush );
 int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl );
+
+int mbedtls_ssl_read_certificate_process(mbedtls_ssl_context *ssl);
+int mbedtls_ssl_write_certificate_process(mbedtls_ssl_context *ssl);
+int mbedtls_ssl_tls1_3_finished_in_process( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_tls1_3_finished_out_process( mbedtls_ssl_context *ssl );
 
 int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl );

@@ -681,7 +681,7 @@ struct mbedtls_ssl_handshake_params
         unsigned char early    [MBEDTLS_MD_MAX_SIZE];
         unsigned char handshake[MBEDTLS_MD_MAX_SIZE];
         unsigned char app      [MBEDTLS_MD_MAX_SIZE];
-    } tls13_master_secrets;
+    } tls1_3_master_secrets;
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
@@ -1511,10 +1511,10 @@ void mbedtls_ssl_tls13_add_hs_hdr_to_checksum( mbedtls_ssl_context *ssl,
 /*
  * Update checksum of handshake messages.
  */
-void mbedtls_ssl_tls13_add_hs_msg_to_checksum( mbedtls_ssl_context *ssl,
-                                               unsigned hs_type,
-                                               unsigned char const *msg,
-                                               size_t msg_len );
+void mbedtls_ssl_tls1_3_add_hs_msg_to_checksum( mbedtls_ssl_context *ssl,
+                                                unsigned hs_type,
+                                                unsigned char const *msg,
+                                                size_t msg_len );
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 /*

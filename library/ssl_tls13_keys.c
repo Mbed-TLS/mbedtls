@@ -822,7 +822,7 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
     return( 0 );
 }
 
-int mbedtls_ssl_tls13_key_schedule_stage_early( mbedtls_ssl_context *ssl )
+int mbedtls_ssl_tls1_3_key_schedule_stage_early( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_md_type_t md_type;
@@ -840,7 +840,7 @@ int mbedtls_ssl_tls13_key_schedule_stage_early( mbedtls_ssl_context *ssl )
     input_len = ssl->handshake->psk_len;
 #endif
     ret = mbedtls_ssl_tls1_3_evolve_secret( md_type, NULL, input, input_len,
-                                ssl->handshake->tls13_master_secrets.early );
+                                ssl->handshake->tls1_3_master_secrets.early );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls1_3_evolve_secret", ret );

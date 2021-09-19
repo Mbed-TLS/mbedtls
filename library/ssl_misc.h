@@ -409,6 +409,29 @@ static inline int mbedtls_ssl_chk_buf_ptr( const uint8_t *cur,
         }                                                                \
     } while( 0 )
 
+/**
+ * \brief        This macro checks if the remaining size in a input buffer is
+ *               greater or equal than a needed space. If it is not the case,
+ *               it returns an SSL_DECODE_ERROR error and sends DECODE_ERROR
+ *               alert message.
+ *
+ * \param cur    Pointer to the current position in the buffer.
+ * \param end    Pointer to one past the end of the buffer.
+ * \param need   Needed space in bytes.
+ *
+ */
+#define MBEDTLS_SSL_CHK_BUF_READ_PTR( cur, end, need )                          \
+    do {                                                                        \
+        if( mbedtls_ssl_chk_buf_ptr( ( cur ), ( end ), ( need ) ) != 0 )        \
+        {                                                                       \
+            MBEDTLS_SSL_DEBUG_MSG( 1,                                           \
+                                   ( "missing input data in %s", __func__ ) );  \
+            MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,   \
+                                          MBEDTLS_ERR_SSL_DECODE_ERROR );       \
+            return( MBEDTLS_ERR_SSL_DECODE_ERROR );                             \
+        }                                                                       \
+    } while( 0 )
+
 #ifdef __cplusplus
 extern "C" {
 #endif

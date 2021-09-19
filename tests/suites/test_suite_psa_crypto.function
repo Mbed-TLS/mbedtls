@@ -271,6 +271,12 @@ typedef enum
     SET_LENGTHS_AFTER_NONCE = 2
 } setlengths_method;
 
+typedef enum
+{
+    USE_NULL_TAG = 0,
+    USE_GIVEN_TAG = 1,
+} tagusage_method;
+
 /*!
  * \brief                           Internal Function for AEAD multipart tests.
  *
@@ -4071,6 +4077,7 @@ void aead_multipart_verify( int key_type_arg, data_t *key_data,
                             data_t *additional_data,
                             data_t *input_data,
                             data_t *tag,
+                            int tag_usage_arg,
                             int expected_status_arg )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
@@ -4085,6 +4092,9 @@ void aead_multipart_verify( int key_type_arg, data_t *key_data,
     size_t plaintext_size = 0;
     size_t plaintext_length = 0;
     size_t verify_plaintext_size = 0;
+    tagusage_method tag_usage = tag_usage_arg;
+    unsigned char *tag_buffer = NULL;
+    size_t tag_size = 0;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -4131,10 +4141,16 @@ void aead_multipart_verify( int key_type_arg, data_t *key_data,
                                  plaintext, plaintext_size,
                                  &plaintext_length ) );
 
+    if( tag_usage == USE_GIVEN_TAG )
+    {
+        tag_buffer = tag->x;
+        tag_size = tag->len;
+    }
+
     status = psa_aead_verify( &operation, finish_plaintext,
                               verify_plaintext_size,
                               &plaintext_length,
-                              tag->x, tag->len );
+                              tag_buffer, tag_size );
 
     TEST_EQUAL( status, expected_status );
 
@@ -4146,7 +4162,6 @@ exit:
     PSA_DONE( );
 }
 /* END_CASE */
-
 
 /* BEGIN_CASE */
 void aead_multipart_state_test( int key_type_arg, data_t *key_data,

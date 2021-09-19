@@ -3756,10 +3756,10 @@ psa_status_t psa_aead_finish( psa_aead_operation_t *operation,
 
 exit:
     /* In case the operation fails and the user fails to check for failure or
-     * the zero tag size, make sure the tag is set to something impossible.
-     * Even if the operation succeeds, make sure we set the rest of the
-     * buffer to something impossible to prevent potential leakage of
-     * anything previously placed in the same buffer.*/
+     * the zero tag size, make sure the tag is set to something implausible.
+     * Even if the operation succeeds, make sure we clear the rest of the
+     * buffer to prevent potential leakage of anything previously placed in
+     * the same buffer.*/
     if( status != PSA_SUCCESS )
         memset( tag, '!', tag_size );
     else if( *tag_length < tag_size )

@@ -570,7 +570,7 @@ static int ssl_tls1_3_parse_key_share_ext( mbedtls_ssl_context *ssl,
     uint16_t server_share_group, offered_group;
 
     /* server_share_group (2 bytes) */
-    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2);
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2);
     server_share_group = MBEDTLS_GET_UINT16_BE( p, 0 );
     p += 2;
 
@@ -979,10 +979,10 @@ static int ssl_tls1_3_check_server_hello_session_id( mbedtls_ssl_context *ssl,
     const unsigned char *p = *buf;
     size_t recv_id_len;
 
-    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 1 );
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 1 );
     recv_id_len = *p++ ;
 
-    MBEDTLS_SSL_CHK_BUF_PTR( p, end, recv_id_len );
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, recv_id_len );
 
     /* legacy_session_id_echo */
     if( ssl->session_negotiate->id_len != recv_id_len )
@@ -1042,13 +1042,12 @@ static int ssl_tls1_3_parse_server_hello( mbedtls_ssl_context *ssl,
                                           const unsigned char *buf,
                                           const unsigned char *end )
 {
-
     int ret;
     const unsigned char *p = buf;
     size_t field_len; /* Length of field */
     const unsigned char *ext_end; /* Pointer to end of individual extension */
     uint16_t cipher_suite;
-    const mbedtls_ssl_ciphersuite_t* ciphersuite_info;
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
 
     /*
      * Check there is space for minimal fields
@@ -1059,14 +1058,7 @@ static int ssl_tls1_3_parse_server_hello( mbedtls_ssl_context *ssl,
      * - cipher_suite               ( 2 bytes)
      * - legacy_compression_method  ( 1 byte )
      */
-    if( mbedtls_ssl_chk_buf_ptr( p, end, 38 ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1,
-            ( "bad server hello message - min size not reached" ) );
-        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
-                                      MBEDTLS_ERR_SSL_DECODE_ERROR );
-        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
-    }
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 38 );
 
     MBEDTLS_SSL_DEBUG_BUF( 4, "server hello", p, end - p );
 
@@ -1106,7 +1098,7 @@ static int ssl_tls1_3_parse_server_hello( mbedtls_ssl_context *ssl,
 
     /* Read server-selected ciphersuite,
        Check if there is space for cipher_suite. */
-    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2);
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2);
     cipher_suite = MBEDTLS_GET_UINT16_BE( p, 0 );
     p += 2;
 
@@ -1153,7 +1145,7 @@ static int ssl_tls1_3_parse_server_hello( mbedtls_ssl_context *ssl,
      *
      * legacy_compression_method == 0 ( 1 byte)
      */
-    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 1 );
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 1 );
     if( p[0] != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
@@ -1164,26 +1156,13 @@ static int ssl_tls1_3_parse_server_hello( mbedtls_ssl_context *ssl,
     p++;
 
     /* Check there is space fore extensions_length */
-    if( mbedtls_ssl_chk_buf_ptr( p, end, 2 ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
-        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
-                                      MBEDTLS_ERR_SSL_DECODE_ERROR );
-        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
-    }
-
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2 );
     /* Get length of extensions field (2 bytes)*/
-    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
     field_len = MBEDTLS_GET_UINT16_BE( p, 0 );
     p += 2;
+
     /* Check there is space for extensions_data */
-    if( mbedtls_ssl_chk_buf_ptr( p, end, field_len ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
-        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
-                                      MBEDTLS_ERR_SSL_DECODE_ERROR );
-        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
-    }
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, field_len );
     /* Set end of extensions */
     ext_end = p + field_len;
 
@@ -1209,18 +1188,12 @@ static int ssl_tls1_3_parse_server_hello( mbedtls_ssl_context *ssl,
          * extension_type           (2 bytes)
          * extension_data_length    (2 bytes)
          */
-        MBEDTLS_SSL_CHK_BUF_PTR( p, ext_end, 4 );
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, ext_end, 4 );
         extension_type = MBEDTLS_GET_UINT16_BE( p, 0 );
         extension_data_len = MBEDTLS_GET_UINT16_BE( p, 2 );
         p += 4;
 
-        if( mbedtls_ssl_chk_buf_ptr( p, ext_end, extension_data_len ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
-            MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
-                                          MBEDTLS_ERR_SSL_DECODE_ERROR );
-            return( MBEDTLS_ERR_SSL_DECODE_ERROR );
-        }
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, ext_end, extension_data_len );
 
         switch( extension_type )
         {
@@ -1392,7 +1365,6 @@ static int ssl_tls1_3_process_server_hello( mbedtls_ssl_context *ssl )
 
     ssl->major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
     ssl->handshake->extensions_present = MBEDTLS_SSL_EXT_NONE;
-
 
     ret = ssl_server_hello_coordinate( ssl, &buf, &buf_len );
     /* Parsing step

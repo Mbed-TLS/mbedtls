@@ -677,6 +677,8 @@ psa_status_t mbedtls_psa_aead_finish(
 
     if( status == PSA_SUCCESS )
     {
+        /* This will be zero for all supported algorithms currently, but left
+         * here for future support. */
         *ciphertext_length = finish_output_size;
         *tag_length = operation->tag_length;
     }

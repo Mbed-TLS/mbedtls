@@ -1274,26 +1274,38 @@ static int ssl_tls1_3_finalize_server_hello( mbedtls_ssl_context *ssl )
     /* We need to set the key exchange algorithm based on the
      * following rules:
      *
-     *   1 ) IF PRE_SHARED_KEY extension was received
-     *      THEN set MBEDTLS_KEY_EXCHANGE_PSK
-     *   2 ) IF PRE_SHARED_KEY extension && KEY_SHARE was received
-     *      THEN set MBEDTLS_KEY_EXCHANGE_ECDHE_PSK
-     *   3 ) IF KEY_SHARES extension was received && SIG_ALG extension received
-     *      THEN set MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA
+     *   1) IF PRE_SHARED_KEY extension was received
+     *          THEN set KEY_EXCHANGE_MODE_PSK_EPHEMERAL;
+     *   2) IF PRE_SHARED_KEY extension && KEY_SHARE was received
+     *          THEN set KEY_EXCHANGE_MODE_PSK;
+     *   3) IF KEY_SHARES extension was received && SIG_ALG extension received
+     *      THEN set KEY_EXCHANGE_MODE_EPHEMERAL
      *   ELSE unknown key exchange mechanism.
      */
-
     if( ssl->handshake->extensions_present & MBEDTLS_SSL_EXT_PRE_SHARED_KEY )
     {
         if( ssl->handshake->extensions_present & MBEDTLS_SSL_EXT_KEY_SHARE )
-            ssl->handshake->tls1_3_kex_modes = MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_EPHEMERAL;
+        {
+            /* Condition 2) */
+            ssl->handshake->tls1_3_kex_modes =
+                MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_EPHEMERAL;
+        }
         else
-            ssl->handshake->tls1_3_kex_modes = MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK;
+        {
+            /* Condition 1) */
+            ssl->handshake->tls1_3_kex_modes =
+                MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK;
+        }
     }
-    else if( ssl->handshake->extensions_present & MBEDTLS_SSL_EXT_KEY_SHARE )
-        ssl->handshake->tls1_3_kex_modes = MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_EPHEMERAL;
+    else if( ( ssl->handshake->extensions_present & MBEDTLS_SSL_EXT_KEY_SHARE ) )
+    {
+        /* Condition 3) */
+        ssl->handshake->tls1_3_kex_modes =
+            MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_EPHEMERAL;
+    }
     else
     {
+        /* ELSE case */
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Unknown key exchange." ) );
         return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }

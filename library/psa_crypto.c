@@ -3819,12 +3819,7 @@ psa_status_t psa_aead_abort( psa_aead_operation_t *operation )
 
     status = psa_driver_wrapper_aead_abort( operation );
 
-    operation->id = 0;
-    operation->nonce_set = 0;
-    operation->lengths_set = 0;
-    operation->ad_started = 0;
-    operation->body_started = 0;
-    operation->is_encrypt = 0;
+    memset( operation, 0, sizeof( psa_aead_operation_t ) );
 
     return( status );
 }

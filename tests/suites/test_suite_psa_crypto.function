@@ -279,32 +279,29 @@ typedef enum
 
 /*!
  * \brief                           Internal Function for AEAD multipart tests.
- *
  * \param key_type_arg              Type of key passed in
  * \param key_data                  The encryption / decryption key data
  * \param alg_arg                   The type of algorithm used
  * \param nonce                     Nonce data
  * \param additional_data           Additional data
- * \param ad_part_len               If not -1, the length of chunks to
+ * \param ad_part_len_arg           If not -1, the length of chunks to
  *                                  feed additional data in to be encrypted /
  *                                  decrypted. If -1, no chunking.
  * \param input_data                Data to encrypt / decrypt
- * \param data_part_len             If not -1, the length of chunks to feed the
- *                                  data in to be encrypted / decrypted. If -1,
- *                                  no chunking
- * \param do_set_lengths            If non-zero, then set lengths prior to
- *                                  calling encryption / decryption.
+ * \param data_part_len_arg         If not -1, the length of chunks to feed
+ *                                  the data in to be encrypted / decrypted. If
+ *                                  -1, no chunking
+ * \param set_lengths_method        A member of the setlengths_method enum is
+ *                                  expected here, this controls whether or not
+ *                                  to set lengths, and in what order with
+ *                                  respect to set nonce.
  * \param expected_output           Expected output
  * \param expect_valid_signature    If non zero, we expect the signature to be
  *                                  valid
  * \param is_encrypt                If non-zero this is an encryption operation.
  * \param do_zero_parts             If non-zero, interleave zero length chunks
- *                                  with normal length chunks
- * \param swap_set_functions        If non-zero, swap the order of set lengths
- *                                  and set nonce.
- *
+ *                                  with normal length chunks.
  * \return int                      Zero on failure, non-zero on success.
- *
  */
 static int aead_multipart_internal_func( int key_type_arg, data_t *key_data,
                                          int alg_arg,

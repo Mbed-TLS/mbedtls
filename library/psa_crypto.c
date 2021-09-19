@@ -3760,10 +3760,13 @@ exit:
      * Even if the operation succeeds, make sure we clear the rest of the
      * buffer to prevent potential leakage of anything previously placed in
      * the same buffer.*/
-    if( status != PSA_SUCCESS )
-        memset( tag, '!', tag_size );
-    else if( *tag_length < tag_size )
-        memset( tag + *tag_length, '!', ( tag_size - *tag_length ) );
+    if( tag )
+    {
+        if( status != PSA_SUCCESS )
+            memset( tag, '!', tag_size );
+        else if( *tag_length < tag_size )
+            memset( tag + *tag_length, '!', ( tag_size - *tag_length ) );
+    }
 
     psa_aead_abort( operation );
 

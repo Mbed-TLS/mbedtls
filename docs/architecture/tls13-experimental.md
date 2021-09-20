@@ -66,3 +66,245 @@ together with their level of testing:
   as part of `MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL`:
 
   - Reader ([`library/mps_reader.h`](../../library/mps_reader.h))
+
+
+MVP definition
+--------------
+
+The TLS 1.3 MVP implements only the client side of the protocol.
+The TLS 1.3 MVP does not support the handling of server HelloRetryRequest and
+CertificateRequest messages. If it receives one of those messages, it aborts
+the handshake with an handshake_failure closure alert.
+
+- Supported cipher suites: depends on the library configuration. Potentially
+  all of them:
+  TLS_AES_128_GCM_SHA256, TLS_AES_256_GCM_SHA384, TLS_CHACHA20_POLY1305_SHA256,
+  TLS_AES_128_CCM_SHA256 and TLS_AES_128_CCM_8_SHA256.
+
+- Supported ClientHello extensions:
+
+                                 MVP   Prototype
+                                       (for comparison)
+
+  server_name                    no    YES
+  max_fragment_length            no    YES
+  status_request                 no    no
+  supported_groups               YES   YES
+  signature_algorithms           YES   YES
+  use_srtp                       no    no
+  heartbeat                      no    no
+  apln                           no    YES
+  signed_certificate_timestamp   no    no
+  client_certificate_type        no    no
+  server_certificate_type        no    no
+  padding                        no    no
+  key_share                      YES   YES
+  pre_shared_key                 no    YES
+  psk_key_exchange_modes         no    YES
+  early_data                     no    YES
+  cookie                         no    YES
+  supported_versions             YES   YES
+  certificate_authorities        no    no
+  post_handshake_auth            no    no
+  signature_algorithms_cert      no    no
+
+- Supported groups: depends on the library configuration.
+  Potentially all ECDHE groups:
+  secp256r1, secp384r1, secp521r1(0x0019), x25519, x448.
+
+- Supported signature algorithms: depends on the library configuration.
+  Potentially:
+  ecdsa_secp256r1_sha256, ecdsa_secp384r1_sha384, ecdsa_secp521r1_sha512,
+  rsa_pss_rsae_sha256.
+
+- Supported versions: only TLS 1.3
+
+- Support of Mbed TLS SSL/TLS related (not DTLS) features:
+
+  The TLS 1.3 MVP is compatible with all TLS 1.2 configuration options in the
+  sense that when enabling the TLS 1.3 MVP in the library there is no need to
+  modify the configuration for TLS 1.2. Mbed TLS SSL/TLS related features are
+  not supported or not applicable to the TLS 1.3 MVP:
+
+                                         Supported  Comment
+  MBEDTLS_SSL_ALL_ALERT_MESSAGES           no
+  MBEDTLS_SSL_ASYNC_PRIVATE                no
+  MBEDTLS_SSL_CONTEXT_SERIALIZATION        no
+  MBEDTLS_SSL_DEBUG_ALL                    no
+  MBEDTLS_SSL_ENCRYPT_THEN_MAC             n/a
+  MBEDTLS_SSL_EXTENDED_MASTER_SECRET       n/a
+  MBEDTLS_SSL_KEEP_PEER_CERTIFICATE        no
+  MBEDTLS_SSL_RENEGOTIATION                n/a        Not TLS 1.2 dependent
+  MBEDTLS_SSL_MAX_FRAGMENT_LENGTH          no
+  MBEDTLS_SSL_ALPN                         no
+
+  MBEDTLS_SSL_SESSION_TICKETS              no
+  MBEDTLS_SSL_EXPORT_KEYS                  no         Incomplete support
+  MBEDTLS_SSL_SERVER_NAME_INDICATION       no
+  MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH       no
+
+  MBEDTLS_ECP_RESTARTABLE                  no
+  MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED     no
+
+  MBEDTLS_KEY_EXCHANGE_PSK_ENABLED         n/a        Make sense in TLS 1.3
+  MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED     n/a        context but their current
+  MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED   n/a        definition is TLS 1.2 only.
+  MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED     n/a
+  MBEDTLS_KEY_EXCHANGE_RSA_ENABLED         n/a
+  MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED     n/a
+  MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED   n/a
+  MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED n/a
+  MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED  n/a
+  MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED    n/a
+  MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED     n/a
+
+  MBEDTLS_USE_PSA_CRYPTO                   no
+
+Not in the plan yet but probably necessary for a viable client:
+- server_name extension
+- support for HelloRetryRequest
+- fallback to TLS 1.2
+
+Coding rules checklist for TLS 1.3
+----------------------------------
+
+The following coding rules are aimed to be a checklist for TLS 1.3 upstreaming
+work to reduce review rounds and the number of comments in each round. They
+come along (do NOT replace) the project coding rules
+(https://tls.mbed.org/kb/development/mbedtls-coding-standards). They have been
+established and discussed following the review of #4882 that was the
+PR upstreaming the first part of TLS 1.3 ClientHello writing code.
+
+TLS 1.3 specific coding rules:
+
+  - TLS 1.3 specific C modules, headers, static functions names are prefixed
+    with `ssl_tls1_3_`. The same applies to structures and types that are
+    internal to C modules.
+
+  - TLS 1.3 specific exported functions, macros, structures and types are
+    prefixed with `mbedtls_ssl_tls1_3_`.
+
+  - The names of macros and variables related to a field or structure in the
+    TLS 1.3 specification should contain as far as possible the field name as
+    it is in the specification. If the field name is `too long` and we prefer
+    to introduce some kind of abbreviation of it, use the same abbreviation
+    everywhere in the code.
+
+    Example 1: #define CLIENT_HELLO_RANDOM_LEN 32, macro for the length of the
+        `random` field of the ClientHello message.
+
+    Example 2 (consistent abbreviation): mbedtls_ssl_tls1_3_write_sig_alg_ext()
+        and MBEDTLS_TLS_EXT_SIG_ALG, `sig_alg` standing for
+        `signature_algorithms`.
+
+  - Regarding vectors that are represented by a length followed by their value
+    in the data exchanged between servers and clients:
+
+    - Use `<vector name>_len` for the name of a variable used to compute the
+      length in bytes of the vector, where <vector name> is the name of the
+      vector as defined in the TLS 1.3 specification.
+
+    - Use `<vector_name>_len_ptr` for the name of a variable intended to hold
+      the address of the first byte of the vector length.
+
+    - Use `<vector_name>_ptr` for the name of a variable intended to hold the
+      address of the first byte of the vector value.
+
+    - Use `<vector_name>_end_ptr` for the name of a variable intended to hold
+      the address of the first byte past the vector value.
+
+    Those two last idioms should lower the risk of mis-using one of the address
+    in place of the other one which could potentially lead to some nasty
+    issues.
+
+    Example: `cipher_suites` vector of ClientHello in
+             ssl_tls1_3_write_client_hello_cipher_suites()
+
+             size_t cipher_suites_len;
+             unsigned char *cipher_suites_len_ptr;
+             unsigned char *cipher_suites_ptr;
+
+  - Use of MBEDTLS_BYTE_xyz, MBEDTLS_PUT/GET_xyz, MBEDTLS_SSL_CHK_BUF_PTR
+    MBEDTLS_SSL_CHK_BUF_READ_PTR macros where applicable.
+
+    These macros were introduced after the prototype was written thus are
+    likely not to be used in prototype where we now would use them in
+    development.
+
+    The two first types, MBEDTLS_BYTE_xyz and MBEDTLS_PUT/GET_xyz, improve
+    the readability of the code and reduce the risk of writing or reading
+    bytes in the wrong order: we should probably have only MBEDTLS_GET/PUT_*_BE
+    (BE stands for Big-Endian) macros in the TLS 1.3 code.
+
+    The two last types, MBEDTLS_SSL_CHK_BUF_PTR and
+    MBEDTLS_SSL_CHK_BUF_READ_PTR, improve the readability of the code and
+    reduce the risk of error in the non-completely-trivial arithmetic to
+    check that we do not write or read past the end of a data buffer. The
+    usage of those macros combined with the following rule mitigate the risk
+    to read/write past the end of a data buffer.
+
+    Examples: hs_hdr[1] = MBEDTLS_BYTE_2( total_hs_len );
+              MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS, p, 0 );
+              MBEDTLS_SSL_CHK_BUF_PTR( p, end, 7 );
+
+  - To mitigate what happened here
+    (https://github.com/ARMmbed/mbedtls/pull/4882#discussion_r701704527) from
+    happening again, use always a local variable named `p` for the reading
+    pointer in functions parsing TLS 1.3 data, and for the writing pointer in
+    functions writing data into an output buffer. The name `p` has been
+    chosen as it was already widely used in TLS code.
+
+  - When an TLS 1.3 structure is written or read by a function or as part of
+    a function, provide as documentation the definition of the structure as
+    it is in the TLS 1.3 specification.
+
+General coding rules:
+
+  - We prefer grouping `related statement lines` by not adding blank lines
+    between them.
+
+    Example 1:
+
+    ret = ssl_tls13_write_client_hello_cipher_suites( ssl, buf, end, &output_len );
+    if( ret != 0 )
+        return( ret );
+    buf += output_len;
+
+    Example 2:
+
+    MBEDTLS_SSL_CHK_BUF_PTR( cipher_suites_iter, end, 2 );
+    MBEDTLS_PUT_UINT16_BE( cipher_suite, cipher_suites_iter, 0 );
+    cipher_suites_iter += 2;
+
+  - Use macros for constants that are used in different functions, different
+    places in the code. When a constant is used only locally in a function
+    (like the length in bytes of the vector lengths in functions reading and
+    writing TLS handshake message) there is no need to define a macro for it.
+
+    Example: #define CLIENT_HELLO_RANDOM_LEN 32
+
+  - When declaring a pointer the dereferencing operator should be prepended to
+    the pointer name not appended to the pointer type:
+
+    Example: mbedtls_ssl_context *ssl;
+
+  - Maximum line length is 80 characters.
+
+    Exceptions:
+
+    - string literals can extend beyond 80 characters as we do not want to
+      split them to ease their search in the code base.
+
+    - A line can be more than 80 characters by a few characters if just looking
+      at the 80 first characters is enough to fully understand the line. For
+      example it is generally fine if some closure characters like ";" or ")"
+      are beyond the 80 characters limit.
+
+  - When in successive lines, functions and macros parameters should be aligned
+    vertically.
+
+    Example:
+    int mbedtls_ssl_tls13_start_handshake_msg( mbedtls_ssl_context *ssl,
+                                               unsigned hs_type,
+                                               unsigned char **buf,
+                                               size_t *buf_len );

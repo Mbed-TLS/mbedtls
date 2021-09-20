@@ -1718,6 +1718,9 @@
  * will still continue to work as usual, so enabling this option should not
  * break backwards compatibility.
  *
+ * \note See docs/use-psa-crypto.md for a complete description of what this
+ * option currently does, and of parts that are not affected by it so far.
+ *
  * \warning The PSA Crypto API is in beta stage. While you're welcome to
  * experiment using it, incompatible API changes are still possible, and some
  * parts may not have reached the same quality as the rest of Mbed TLS yet.

@@ -4060,6 +4060,7 @@ exit:
     psa_destroy_key( key );
     mbedtls_free( ciphertext );
     mbedtls_free( finish_ciphertext );
+    mbedtls_free( tag_buffer );
     psa_aead_abort( &operation );
     PSA_DONE( );
 }

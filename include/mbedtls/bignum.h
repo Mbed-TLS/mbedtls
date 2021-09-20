@@ -825,6 +825,70 @@ int mbedtls_mpi_mod_mpi( mbedtls_mpi *R, const mbedtls_mpi *A,
 int mbedtls_mpi_mod_int( mbedtls_mpi_uint *r, const mbedtls_mpi *A,
                          mbedtls_mpi_sint b );
 
+/** Convert to Montgomery representation: X = A * R mod N.
+ *
+ * The coefficient R depends on N and is selected by the library.
+ *
+ * \param X        The destination MPI. This must point to an initialized MPI.
+ * \param A        The MPI to convert to Montgomery representation. This must
+ *                 point to an initialized MPI.
+ * \param N        The base of the modular reduction. This must point to an
+ *                 initialized MPI.
+ * \param prec_RR  A helper MPI depending solely on \p N which is used to speed
+ *                 up multiplication by \p R mod \p N. This may be \c NULL.
+ *                 This argument behaves the same way as the argument \p
+ *                 prec_RR in mbedtls_mpi_exp_mod and is set to the same value
+ *                 for same values of \p N.
+ *
+ * \return         \c 0 if successful.
+ * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if a memory allocation failed.
+ * \return         #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \c N is negative or
+ *                 even.
+ * \return         Another negative error code on different kinds of failure.
+ */
+int mbedtls_mpi_to_mont_mpi( mbedtls_mpi *X, const mbedtls_mpi *A,
+                             const mbedtls_mpi *N, mbedtls_mpi *prec_RR );
+
+/** Convert from Montgomery representation: X = A * R^-1 mod N.
+ *
+ * The coefficient R depends on N and is selected by the library.
+ *
+ * \param X        The destination MPI. This must point to an initialized MPI.
+ * \param A        The MPI to convert to Montgomery representation. This must
+ *                 point to an initialized MPI.
+ * \param N        The base of the modular reduction. This must point to an
+ *                 initialized MPI.
+ *
+ * \return         \c 0 if successful.
+ * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if a memory allocation failed.
+ * \return         #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \c N is negative or
+ *                 even.
+ * \return         Another negative error code on different kinds of failure.
+ */
+int mbedtls_mpi_from_mont_mpi( mbedtls_mpi *X, const mbedtls_mpi *A,
+                               const mbedtls_mpi *N );
+
+/** Perform Montgomery multiplication: X = A * B * R^-1 mod N.
+ *
+ * The coefficient R depends on N and is selected by the library.
+ *
+ * \param X        The destination MPI. This must point to an initialized MPI.
+ * \param A        One of the numbers to multiply. This must point to an
+ *                 initialized MPI and be in range [0, N-1].
+ * \param B        One of the numbers to multiply. This must point to an
+ *                 initialized MPI and be in range [0, N-1].
+ * \param N        The base for the modular reduction. This must point to an
+ *                 initialized MPI.
+ *
+ * \return         \c 0 if successful.
+ * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if a memory allocation failed.
+ * \return         #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \c N is negative or
+ *                 even.
+ * \return         Another negative error code on different kinds of failure.
+ */
+int mbedtls_mpi_montmul( mbedtls_mpi *X, const mbedtls_mpi *A,
+                         const mbedtls_mpi *B, const mbedtls_mpi *N );
+
 /**
  * \brief          Perform a sliding-window exponentiation: X = A^E mod N
  *

@@ -2150,8 +2150,9 @@ static void mpi_montg_init( mbedtls_mpi_uint *mm, const mbedtls_mpi *N )
  *                      the multiplication A * B * R^-1 mod N where
  *                      R = (2^ciL)^n.
  * \param[in]       B   One of the numbers to multiply.
- *                      It must be nonzero and must not have more limbs than N
- *                      (B->n <= N->n).
+ *                      It must be nonzero. Any limbs beyond limbs of N must be
+ *                      equal to zero
+ *                      (For all i >= N->n, i < B->n: B->p[i] == 0).
  * \param[in]       N   The modulo. N must be odd.
  * \param           mm  The value calculated by `mpi_montg_init(&mm, N)`.
  *                      This is -N^-1 mod 2^ciL.
@@ -2292,6 +2293,192 @@ cleanup:
     return( ret );
 }
 
+/**
+ * Precompute R^2 mod N.
+ * If prec_RR is NULL or newly initialized, compute RR = R^2 mod N. If prec_RR
+ * is newly initialized, point it to computed RR.
+ * Otherwise, assume prec_RR is the precomputed value and point RR to prec_RR.
+ *
+ * \param[in,out] prec_RR    Precomputed RR. Can be NULL or newly initialized.
+ * \param[out]    RR         Where to write the computed RR. Must point to a
+ *                           newly initialized MPI.
+ * \return                   Error code in case of an error, 0 otherwise.
+ */
+static int precompute_rr_mod_n( mbedtls_mpi *prec_RR, mbedtls_mpi *RR,
+                                const mbedtls_mpi *N )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    if( prec_RR == NULL || prec_RR->p == NULL )
+    {
+        MBEDTLS_MPI_CHK( mbedtls_mpi_lset( RR, 1 ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( RR, N->n * 2 * biL ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( RR, RR, N ) );
+
+        if( prec_RR != NULL )
+            memcpy( prec_RR, RR, sizeof( mbedtls_mpi ) );
+    }
+    else
+        memcpy( RR, prec_RR, sizeof( mbedtls_mpi ) );
+
+    ret = 0;
+cleanup:
+    return( ret );
+}
+
+/*
+ * Return whether A is in range [0, N-1].
+ */
+static int mpi_in_mod_range( const mbedtls_mpi *A, const mbedtls_mpi *N )
+{
+    return( mbedtls_mpi_cmp_mpi( A, N ) < 0 &&
+            mbedtls_mpi_cmp_int( A, 0 ) >= 0 );
+}
+
+int mbedtls_mpi_montmul( mbedtls_mpi *X, const mbedtls_mpi *A,
+                         const mbedtls_mpi *B, const mbedtls_mpi *N )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    /* FIXME should mm and T be provided by user? */
+    mbedtls_mpi_uint mm;
+    mbedtls_mpi T;
+    mbedtls_mpi *inner_A;
+    const mbedtls_mpi *inner_B;
+
+    MPI_VALIDATE_RET( A != NULL );
+    MPI_VALIDATE_RET( B != NULL );
+    MPI_VALIDATE_RET( N != NULL );
+
+    if( mbedtls_mpi_cmp_int( N, 0 ) <= 0 || ( N->p[0] & 1 ) == 0 )
+        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+
+    /*
+     * The point is to avoid dividing by N, so we reject values that aren't
+     * already in range [0, N-1].
+     *
+     * FIXME we can relax this to numbers with no more limbs than N, is it fine?
+     */
+    if( !mpi_in_mod_range( A, N ) )
+    {
+        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+    }
+    if( !mpi_in_mod_range( B, N ) )
+    {
+        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+    }
+
+    mpi_montg_init( &mm, N );
+    mbedtls_mpi_init( &T );
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &T, (N->n + 1) * 2 ) );
+
+    /*
+     * Check aliases.
+     * It's okay for inner_A to alias inner_B, mpi_montmul handles that.
+     */
+    inner_A = X;
+    if( X == A )
+    {
+        inner_B = B;
+    }
+    else if( X == B )
+    {
+        inner_B = A;
+    }
+    else
+    {
+        MBEDTLS_MPI_CHK( mbedtls_mpi_copy( X, A ) );
+        inner_B = B;
+    }
+
+    /* Cover mpi_montmul preconditions. */
+    if( mbedtls_mpi_cmp_int( inner_B, 0 ) == 0 )
+    {
+       MBEDTLS_MPI_CHK( mbedtls_mpi_lset( inner_A, 0) );
+       ret = 0;
+       goto cleanup;
+    }
+    if( inner_A->n < N->n )
+    {
+       MBEDTLS_MPI_CHK( mbedtls_mpi_grow( inner_A, N->n ) );
+    }
+
+    /* Precondition checks:
+     * inner_A was extended to have enough limbs.
+     * inner_B is not zero and smaller than N, so its limbs beyond N are zero.
+     * N is odd and positive.
+     * mm and T are as requested.
+     */
+    mpi_montmul( inner_A, inner_B, N, mm, &T );
+
+cleanup:
+    mbedtls_mpi_free( &T );
+    return( ret );
+}
+
+int mbedtls_mpi_to_mont_mpi( mbedtls_mpi *X, const mbedtls_mpi *A,
+                             const mbedtls_mpi *N, mbedtls_mpi *prec_RR )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_mpi RR;
+    const mbedtls_mpi *AmodN = A;
+
+    MPI_VALIDATE_RET( X != NULL );
+    MPI_VALIDATE_RET( A != NULL );
+    MPI_VALIDATE_RET( N != NULL );
+
+    if( mbedtls_mpi_cmp_int( N, 0 ) <= 0 || ( N->p[0] & 1 ) == 0 )
+        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+
+    mbedtls_mpi_init( &RR );
+
+    MBEDTLS_MPI_CHK( precompute_rr_mod_n( prec_RR, &RR, N ) );
+
+    if( !mpi_in_mod_range( A, N ) )
+    {
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( X, A, N ) );
+        AmodN = X;
+    }
+    MBEDTLS_MPI_CHK( mbedtls_mpi_montmul ( X, AmodN, &RR, N ) );
+
+cleanup:
+    if( prec_RR == NULL || prec_RR->p == NULL )
+        mbedtls_mpi_free( &RR );
+
+    return( ret );
+}
+
+int mbedtls_mpi_from_mont_mpi( mbedtls_mpi *X, const mbedtls_mpi *A,
+                               const mbedtls_mpi *N )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    const mbedtls_mpi *AmodN = A;
+    mbedtls_mpi_uint z = 1;
+    mbedtls_mpi U;
+
+    MPI_VALIDATE_RET( X != NULL );
+    MPI_VALIDATE_RET( A != NULL );
+    MPI_VALIDATE_RET( N != NULL );
+
+    if( mbedtls_mpi_cmp_int( N, 0 ) <= 0 || ( N->p[0] & 1 ) == 0 )
+        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+
+    U.n = U.s = (int) z;
+    U.p = &z;
+
+    if( !mpi_in_mod_range( A, N ) )
+    {
+        ret = mbedtls_mpi_mod_mpi( X, A, N );
+        AmodN = X;
+        if( ret )
+        {
+            return ret;
+        }
+    }
+    ret = mbedtls_mpi_montmul ( X, AmodN, &U, N );
+    return( ret );
+}
+
 /*
  * Sliding-window exponentiation: X = A^E mod N  (HAC 14.85)
  */
@@ -2365,17 +2552,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
     /*
      * If 1st call, pre-compute R^2 mod N
      */
-    if( prec_RR == NULL || prec_RR->p == NULL )
-    {
-        MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &RR, 1 ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( &RR, N->n * 2 * biL ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &RR, &RR, N ) );
-
-        if( prec_RR != NULL )
-            memcpy( prec_RR, &RR, sizeof( mbedtls_mpi ) );
-    }
-    else
-        memcpy( &RR, prec_RR, sizeof( mbedtls_mpi ) );
+    MBEDTLS_MPI_CHK( precompute_rr_mod_n( prec_RR, &RR, N ) );
 
     /*
      * W[1] = A * R^2 * R^-1 mod N = A * R mod N

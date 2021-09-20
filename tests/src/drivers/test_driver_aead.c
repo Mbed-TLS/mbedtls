@@ -282,7 +282,7 @@ psa_status_t mbedtls_test_transparent_aead_verify(
                                    plaintext_size,
                                    plaintext_length,
                                    check_tag,
-                                   tag_length,
+                                   sizeof( check_tag ),
                                    &check_tag_length );
 
        if( mbedtls_test_driver_aead_hooks.driver_status == PSA_SUCCESS )
@@ -293,6 +293,8 @@ psa_status_t mbedtls_test_transparent_aead_verify(
              mbedtls_test_driver_aead_hooks.driver_status =
                                                     PSA_ERROR_INVALID_SIGNATURE;
        }
+
+       mbedtls_platform_zeroize( check_tag, sizeof( check_tag ) );
     }
 
     return( mbedtls_test_driver_aead_hooks.driver_status );

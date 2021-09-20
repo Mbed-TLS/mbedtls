@@ -178,7 +178,7 @@ pre_initialize_variables () {
         export MAKEFLAGS="-j"
     fi
 
-    # Include more verbose output for failing tests run by CMake
+    # Include more verbose output for failing tests run by CMake or make
     export CTEST_OUTPUT_ON_FAILURE=1
 
     # CFLAGS and LDFLAGS for Asan builds that don't use CMake

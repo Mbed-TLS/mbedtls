@@ -296,8 +296,6 @@ typedef enum
  *                                  to set lengths, and in what order with
  *                                  respect to set nonce.
  * \param expected_output           Expected output
- * \param expect_valid_signature    If non zero, we expect the signature to be
- *                                  valid
  * \param is_encrypt                If non-zero this is an encryption operation.
  * \param do_zero_parts             If non-zero, interleave zero length chunks
  *                                  with normal length chunks.

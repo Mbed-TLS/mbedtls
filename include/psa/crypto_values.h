@@ -466,6 +466,10 @@
  */
 #define PSA_KEY_TYPE_AES                            ((psa_key_type_t)0x2400)
 
+/** Key for a cipher, AEAD or MAC algorithm based on the
+ * ARIA block cipher. */
+#define PSA_KEY_TYPE_ARIA                           ((psa_key_type_t)0x2406)
+
 /** Key for a cipher or MAC algorithm based on DES or 3DES (Triple-DES).
  *
  * The size of the key can be 64 bits (single DES), 128 bits (2-key 3DES) or

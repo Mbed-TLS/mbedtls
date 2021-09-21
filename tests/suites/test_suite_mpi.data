@@ -1243,6 +1243,9 @@ mbedtls_mpi_to_from_mont:10:"37":10:"":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 Test mbedtls_mpi_to_from_mont: Very large values
 mbedtls_mpi_to_from_mont_size:10001:10000:0
 
+Test mbedtls_mpi_to_from_mont: Aliasing
+mbedtls_mpi_to_from_mont_aliasing:
+
 Base test mbedtls_mpi_exp_mod #1
 mbedtls_mpi_exp_mod:10:"23":10:"13":10:"29":10:"24":0
 

@@ -1096,6 +1096,24 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void mbedtls_mpi_to_from_mont_aliasing()
+{
+    mbedtls_mpi A, N;
+
+    mbedtls_mpi_init( &A ); mbedtls_mpi_init( &N );
+
+    mbedtls_mpi_lset( &A, 5 );
+    mbedtls_mpi_lset( &N, 9 );
+
+    TEST_ASSERT( mbedtls_mpi_to_mont_mpi( &A, &A, &N, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_from_mont_mpi( &A, &A, &N ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_int ( &A, 5 ) == 0 );
+
+    /* FIXME assuming we won't alias N, mpi_mod_mpi assumes so. */
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mbedtls_mpi_exp_mod( int radix_A, char * input_A, int radix_E,
                           char * input_E, int radix_N, char * input_N,
                           int radix_X, char * input_X, int exp_result )

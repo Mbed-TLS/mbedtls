@@ -1219,6 +1219,27 @@ mbedtls_mpi_mod_int:16:"":1:0:0
 Test mbedtls_mpi_mod_int: 0 (null) % -1
 mbedtls_mpi_mod_int:16:"":-1:0:MBEDTLS_ERR_MPI_NEGATIVE_VALUE
 
+Base test mbedtls_mpi_to_from_mont #1
+mbedtls_mpi_to_from_mont:10:"15":10:"23":0
+
+Base test mbedtls_mpi_to_from_mont #2 (A = 0)
+mbedtls_mpi_to_from_mont:10:"":10:"23":0
+
+Base test mbedtls_mpi_to_from_mont #2 (Negative A)
+mbedtls_mpi_to_from_mont:10:"-15":10:"23":0
+
+Base test mbedtls_mpi_to_from_mont #2 (A larger than N)
+mbedtls_mpi_to_from_mont:10:"38":10:"23":0
+
+Base test mbedtls_mpi_to_from_mont #3 (Even N)
+mbedtls_mpi_to_from_mont:10:"37":10:"28":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Base test mbedtls_mpi_to_from_mont #3 (Negative N)
+mbedtls_mpi_to_from_mont:10:"37":10:"-15":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Base test mbedtls_mpi_to_from_mont #3 (N = 0 (null))
+mbedtls_mpi_to_from_mont:10:"37":10:"":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
 Base test mbedtls_mpi_exp_mod #1
 mbedtls_mpi_exp_mod:10:"23":10:"13":10:"29":10:"24":0
 

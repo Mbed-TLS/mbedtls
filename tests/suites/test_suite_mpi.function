@@ -987,6 +987,86 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void mbedtls_mpi_to_from_mont( int radix_A, char * input_A, int radix_N,
+                               char * input_N, int exp_result)
+{
+    mbedtls_mpi A, RR, N, X, Y, Z;
+    int res;
+    mbedtls_mpi_init( &A ); mbedtls_mpi_init( &RR ); mbedtls_mpi_init( &N );
+    mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y  ); mbedtls_mpi_init( &Z );
+
+    TEST_ASSERT( mbedtls_test_read_mpi( &A, radix_A, input_A ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &N, radix_N, input_N ) == 0 );
+
+    res = mbedtls_mpi_to_mont_mpi( &X, &A, &N, NULL );
+    TEST_ASSERT( res == exp_result );
+    if( res == 0 )
+    {
+        TEST_ASSERT( sign_is_valid( &X ) );
+        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &X, &N ) < 0 );
+        TEST_ASSERT( mbedtls_mpi_cmp_int( &X, 0 ) >= 0 );
+
+        /* Since we succeeded, verify that conversion back works. */
+        res = mbedtls_mpi_mod_mpi( &Z, &A, &N );
+        TEST_ASSERT( res == 0 );
+
+        res = mbedtls_mpi_from_mont_mpi( &Y, &X, &N );
+        TEST_ASSERT( res == 0 );
+
+        TEST_ASSERT( mbedtls_mpi_cmp_mpi (&Z, &Y) == 0 );
+    }
+
+    /* Once more, saving the speed-up parameter. */
+    res = mbedtls_mpi_to_mont_mpi( &X, &A, &N, &RR );
+    TEST_ASSERT( res == exp_result );
+    if( res == 0 )
+    {
+        TEST_ASSERT( sign_is_valid( &X ) );
+        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &X, &N ) < 0 );
+        TEST_ASSERT( mbedtls_mpi_cmp_int( &X, 0 ) >= 0 );
+
+        /* Z = A mod N has already been calculated. */
+        res = mbedtls_mpi_from_mont_mpi( &Y, &X, &N );
+        TEST_ASSERT( res == 0 );
+
+        TEST_ASSERT( mbedtls_mpi_cmp_mpi (&Z, &Y) == 0 );
+    }
+
+    /* Once more, with the speed-up parameter precalculated. */
+    res = mbedtls_mpi_to_mont_mpi( &X, &A, &N, &RR );
+    TEST_ASSERT( res == exp_result );
+    if( res == 0 )
+    {
+        TEST_ASSERT( sign_is_valid( &X ) );
+        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &X, &N ) < 0 );
+        TEST_ASSERT( mbedtls_mpi_cmp_int( &X, 0 ) >= 0 );
+
+        res = mbedtls_mpi_from_mont_mpi( &Y, &X, &N );
+        TEST_ASSERT( res == 0 );
+
+        TEST_ASSERT( mbedtls_mpi_cmp_mpi (&Z, &Y) == 0 );
+    }
+
+    /*
+     * Finally, check just conversion from. It should satisfy all validation
+     * checks that conversion to does.
+     */
+    res = mbedtls_mpi_from_mont_mpi( &X, &A, &N);
+    TEST_ASSERT( res == exp_result );
+    if( res == 0 )
+    {
+        TEST_ASSERT( sign_is_valid( &X ) );
+        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &X, &N ) < 0 );
+        TEST_ASSERT( mbedtls_mpi_cmp_int( &X, 0 ) >= 0 );
+    }
+
+exit:
+    mbedtls_mpi_free( &A ); mbedtls_mpi_free( &RR ); mbedtls_mpi_free( &N );
+    mbedtls_mpi_free( &X ); mbedtls_mpi_free( &Y  ); mbedtls_mpi_free( &Z );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mbedtls_mpi_exp_mod( int radix_A, char * input_A, int radix_E,
                           char * input_E, int radix_N, char * input_N,
                           int radix_X, char * input_X, int exp_result )

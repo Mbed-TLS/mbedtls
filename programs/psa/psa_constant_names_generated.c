@@ -96,6 +96,7 @@ static int psa_snprint_key_type(char *buffer, size_t buffer_size,
     switch (type) {
     case PSA_KEY_TYPE_AES: append(&buffer, buffer_size, &required_size, "PSA_KEY_TYPE_AES", 16); break;
     case PSA_KEY_TYPE_ARC4: append(&buffer, buffer_size, &required_size, "PSA_KEY_TYPE_ARC4", 17); break;
+    case PSA_KEY_TYPE_ARIA: append(&buffer, buffer_size, &required_size, "PSA_KEY_TYPE_ARIA", 17); break;
     case PSA_KEY_TYPE_CAMELLIA: append(&buffer, buffer_size, &required_size, "PSA_KEY_TYPE_CAMELLIA", 21); break;
     case PSA_KEY_TYPE_CATEGORY_FLAG_PAIR: append(&buffer, buffer_size, &required_size, "PSA_KEY_TYPE_CATEGORY_FLAG_PAIR", 31); break;
     case PSA_KEY_TYPE_CATEGORY_KEY_PAIR: append(&buffer, buffer_size, &required_size, "PSA_KEY_TYPE_CATEGORY_KEY_PAIR", 30); break;

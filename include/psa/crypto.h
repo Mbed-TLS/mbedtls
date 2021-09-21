@@ -3654,6 +3654,7 @@ psa_status_t psa_key_derivation_output_bytes(
  *
  *     - #PSA_KEY_TYPE_AES;
  *     - #PSA_KEY_TYPE_ARC4;
+ *     - #PSA_KEY_TYPE_ARIA;
  *     - #PSA_KEY_TYPE_CAMELLIA;
  *     - #PSA_KEY_TYPE_DERIVE;
  *     - #PSA_KEY_TYPE_HMAC.

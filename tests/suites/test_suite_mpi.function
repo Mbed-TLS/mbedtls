@@ -1067,6 +1067,35 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void mbedtls_mpi_to_from_mont_size( int A_bytes, int N_bytes,
+                                    int exp_result )
+{
+    mbedtls_mpi A, N, RR, Z;
+    mbedtls_mpi_init( &A ); mbedtls_mpi_init( &N ); mbedtls_mpi_init( &RR );
+    mbedtls_mpi_init( &Z );
+
+    /* Set A to 2^(A_bytes - 1) + 1 */
+    TEST_ASSERT( mbedtls_mpi_lset( &A, 1 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_shift_l( &A, ( A_bytes * 8 ) - 1 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_set_bit( &A, 0, 1 ) == 0 );
+
+    /* Set N to 2^(N_bytes - 1) + 1 */
+    TEST_ASSERT( mbedtls_mpi_lset( &N, 1 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_shift_l( &N, ( N_bytes * 8 ) - 1 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_set_bit( &N, 0, 1 ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_to_mont_mpi( &Z, &A, &N, &RR ) == exp_result );
+    /* Again with precalculated RR */
+    TEST_ASSERT( mbedtls_mpi_to_mont_mpi( &Z, &A, &N, &RR ) == exp_result );
+    TEST_ASSERT( mbedtls_mpi_from_mont_mpi( &Z, &A, &N ) == exp_result );
+
+exit:
+    mbedtls_mpi_free( &A ); mbedtls_mpi_free( &N ); mbedtls_mpi_free( &RR );
+    mbedtls_mpi_free( &Z );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mbedtls_mpi_exp_mod( int radix_A, char * input_A, int radix_E,
                           char * input_E, int radix_N, char * input_N,
                           int radix_X, char * input_X, int exp_result )

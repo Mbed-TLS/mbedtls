@@ -1,6 +1,6 @@
-This document describes the compile-time configutation option
-`MBEDTLS_USE_PSA_CRYPTO`: its current effects as well as some design
-considerations and plans for the future.
+This document describes the compile-time configuration option
+`MBEDTLS_USE_PSA_CRYPTO` from a user's perspective, more specifically its
+current effects as well as the parts that aren't covered yet.
 
 Current effects
 ===============
@@ -148,10 +148,39 @@ Benefits: use of PSA Crypto drivers.
 Parts that are not covered yet
 ==============================
 
-(To be written.)
+This is only a high-level overview, grouped by theme
 
-Design considerations
-=====================
+TLS: key exchanges / asymmetric crypto
+--------------------------------------
 
-(To be written.)
+- RSA: not covered
+- DHE-RSA: not covered
+- ECDHE-RSA: ECDHE computation client-side only
+- ECDHE-ECDSA:
+  - ECDHE computation client-side
+  - ECDSA verification both sides
+  - ECDSA signature (if using `mbedtls_pk_setup_opaque()`)
+- PSK: client-side PSA-held using `mbedtls_ssl_conf_psk_opaque()`
+- DHE-PSK: not covered
+- RSA-PSK: not covered
+- ECDHE-PSK: not covered
+- ECDH-RSA: not covered
+- ECDH-ECDSA: not covered
+- ECJPAKE: not covered
 
+TLS: symmetric crypto
+---------------------
+
+- some ciphers not supported via PSA yet: ARIA, Camellia, ChachaPoly (silent
+  fallback to the legacy APIs)
+- the HMAC part of the CBC and NULL ciphersuites is not covered
+- the HMAC computation in `ssl_cookie.c`
+
+X.509
+-----
+
+- most hash operations are still done via the legacy API, except the few that
+  are documented above as using PSA
+- RSA PKCS#1 v1.5 signature generation (from PSA-held keys): not covered
+- RSA PKCS#1 v1.5 signature verification: not covered
+- RSA-PSS signature verification: not covered

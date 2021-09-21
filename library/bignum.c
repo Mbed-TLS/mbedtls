@@ -3477,6 +3477,34 @@ int mbedtls_mpi_self_test( int verbose )
     if( verbose != 0 )
         mbedtls_printf( "passed\n" );
 
+    MBEDTLS_MPI_CHK( mbedtls_mpi_to_mont_mpi( &X, &A, &N, NULL ) );
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_to_mont_mpi( &Y, &E, &N, NULL ) );
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_montmul( &U, &X, &Y, &N ) );
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_from_mont_mpi( &V, &U, &N ) );
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &U, 16,
+        "4C3EAC9C60CA6D9AB4E3D16D3AEC4AEC" \
+        "52605751521CE871F2E191115B241AD1" \
+        "6B517ED785E59EEBAC973D270F3C8A" ) );
+
+    if( verbose != 0 )
+        mbedtls_printf( "  MPI test #3 (montmul): " );
+
+    if( mbedtls_mpi_cmp_mpi( &V, &U ) != 0 )
+    {
+        if( verbose != 0 )
+            mbedtls_printf( "failed\n" );
+
+        ret = 1;
+        goto cleanup;
+    }
+
+    if( verbose != 0 )
+        mbedtls_printf( "passed\n" );
+
     MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( &X, &A, &N ) );
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &U, 16,

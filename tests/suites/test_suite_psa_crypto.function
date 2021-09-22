@@ -3747,6 +3747,10 @@ void aead_multipart_generate_nonce( int key_type_arg, data_t *key_data,
 
     TEST_EQUAL( actual_nonce_length, expected_nonce_length );
 
+    if( expected_status == PSA_SUCCESS )
+        TEST_EQUAL( actual_nonce_length, PSA_AEAD_NONCE_LENGTH( key_type,
+                                                                alg ) );
+
     TEST_ASSERT( actual_nonce_length < PSA_AEAD_NONCE_MAX_SIZE );
 
     if( expected_status == PSA_SUCCESS )

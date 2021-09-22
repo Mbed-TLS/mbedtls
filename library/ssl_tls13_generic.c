@@ -29,6 +29,7 @@
 #include "mbedtls/debug.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/platform.h"
+#include <string.h>
 
 #include "ssl_misc.h"
 #include "ssl_tls13_keys.h"
@@ -1014,6 +1015,131 @@ cleanup:
     return( ret );
 }
 
+/*
+ *
+ * STATE HANDLING: Outgoing Finished
+ *
+ */
+
+/*
+ * Overview
+ */
+
+/* Main entry point: orchestrates the other functions */
+
+int mbedtls_ssl_finished_out_process( mbedtls_ssl_context *ssl );
+
+static int ssl_finished_out_prepare( mbedtls_ssl_context *ssl );
+static int ssl_finished_out_write( mbedtls_ssl_context *ssl,
+                                   unsigned char *buf,
+                                   size_t buflen,
+                                   size_t *olen );
+static int ssl_finished_out_postprocess( mbedtls_ssl_context *ssl );
+
+
+int mbedtls_ssl_tls1_3_finished_out_process( mbedtls_ssl_context *ssl )
+{
+    int ret;
+    unsigned char *buf;
+    size_t buf_len, msg_len;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write finished" ) );
+
+    if( !ssl->handshake->state_local.finished_out.preparation_done )
+    {
+        MBEDTLS_SSL_PROC_CHK( ssl_finished_out_prepare( ssl ) );
+        ssl->handshake->state_local.finished_out.preparation_done = 1;
+    }
+
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_start_handshake_msg( ssl,
+                         MBEDTLS_SSL_HS_FINISHED, &buf, &buf_len ) );
+
+    MBEDTLS_SSL_PROC_CHK( ssl_finished_out_write(
+                              ssl, buf, buf_len, &msg_len ) );
+
+    mbedtls_ssl_tls1_3_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_FINISHED,
+                                        buf, msg_len );
+
+    MBEDTLS_SSL_PROC_CHK( ssl_finished_out_postprocess( ssl ) );
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_finish_handshake_msg( ssl,
+                                              buf_len, msg_len ) );
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_flush_output( ssl ) );
+
+cleanup:
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write finished" ) );
+    return( ret );
+}
+
+static int ssl_finished_out_prepare( mbedtls_ssl_context *ssl )
+{
+    int ret;
+
+    /* Compute transcript of handshake up to now. */
+    ret = mbedtls_ssl_tls1_3_calc_finished( ssl,
+                    ssl->handshake->state_local.finished_out.digest,
+                    sizeof( ssl->handshake->state_local.finished_out.digest ),
+                    &ssl->handshake->state_local.finished_out.digest_len,
+                    ssl->conf->endpoint );
+
+    if( ret != 0 )
+    {
+         MBEDTLS_SSL_DEBUG_RET( 1, "calc_finished failed", ret );
+        return( ret );
+    }
+
+    return( 0 );
+}
+
+static int ssl_finished_out_postprocess( mbedtls_ssl_context *ssl )
+{
+    int ret = 0;
+
+#if defined(MBEDTLS_SSL_CLI_C)
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
+    {
+        /* Compute resumption_master_secret */
+        ret = mbedtls_ssl_tls1_3_generate_resumption_master_secret( ssl );
+        if( ret != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1,
+                    "mbedtls_ssl_tls1_3_generate_resumption_master_secret ", ret );
+            return ( ret );
+        }
+
+        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_FLUSH_BUFFERS );
+    }
+    else
+#endif /* MBEDTLS_SSL_CLI_C */
+    {
+        /* Should never happen */
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+
+    return( 0 );
+}
+
+static int ssl_finished_out_write( mbedtls_ssl_context *ssl,
+                                   unsigned char *buf,
+                                   size_t buflen,
+                                   size_t *olen )
+{
+    size_t finished_len = ssl->handshake->state_local.finished_out.digest_len;
+
+    /* Note: Even if DTLS is used, the current message writing functions
+     * write TLS headers, and it is only at sending time that the actual
+     * DTLS header is generated. That's why we unconditionally shift by
+     * 4 bytes here as opposed to mbedtls_ssl_hs_hdr_len( ssl ). */
+
+    if( buflen < finished_len )
+        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+
+    memcpy( buf, ssl->handshake->state_local.finished_out.digest,
+            ssl->handshake->state_local.finished_out.digest_len );
+
+    *olen = finished_len;
+    return( 0 );
+}
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 

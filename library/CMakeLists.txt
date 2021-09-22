@@ -77,6 +77,7 @@ set(src_crypto
     sha1.c
     sha256.c
     sha512.c
+    ssl_debug_helpers_generated.c
     threading.c
     timing.c
     version.c

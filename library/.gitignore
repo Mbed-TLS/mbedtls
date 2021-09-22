@@ -6,3 +6,5 @@ libmbed*
 # Automatically generated files
 /error.c
 /version_features.c
+/ssl_debug_helpers_generated.c
+/ssl_debug_helpers_generated.h

@@ -24,6 +24,12 @@ endif
 
 PERL ?= perl
 
+ifdef WINDOWS
+PYTHON ?= python
+else
+PYTHON ?= $(shell if type python3 >/dev/null 2>/dev/null; then echo python3; else echo python; fi)
+endif
+
 # if were running on Windows build for Windows
 ifdef WINDOWS
 WINDOWS_BUILD=1
@@ -136,6 +142,7 @@ OBJS_CRYPTO= \
 	     sha1.o \
 	     sha256.o \
 	     sha512.o \
+	     ssl_debug_helpers_generated.o \
 	     threading.o \
 	     timing.o \
 	     version.o \
@@ -281,7 +288,7 @@ libmbedcrypto.dll: $(OBJS_CRYPTO)
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
 
 .PHONY: generated_files
-GENERATED_FILES = error.c version_features.c
+GENERATED_FILES = error.c version_features.c ssl_debug_helpers_generated.c
 generated_files: $(GENERATED_FILES)
 
 error.c: ../scripts/generate_errors.pl
@@ -290,6 +297,12 @@ error.c: $(filter-out %config%,$(wildcard ../include/mbedtls/*.h))
 error.c:
 	echo "  Gen   $@"
 	$(PERL) ../scripts/generate_errors.pl
+
+ssl_debug_helpers_generated.c: ../scripts/generate_ssl_debug_helpers.py
+ssl_debug_helpers_generated.c: $(filter-out %config%,$(wildcard ../include/mbedtls/*.h))
+ssl_debug_helpers_generated.c:
+	echo "  Gen   $@"
+	$(PYTHON) ../scripts/generate_ssl_debug_helpers.py
 
 version_features.c: ../scripts/generate_features.pl
 version_features.c: ../scripts/data_files/version_features.fmt

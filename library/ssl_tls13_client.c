@@ -34,6 +34,7 @@
 #include "ssl_misc.h"
 #include "ecdh_misc.h"
 #include "ssl_tls13_keys.h"
+#include "ssl_debug_helpers_generated.h"
 
 /* Write extensions */
 

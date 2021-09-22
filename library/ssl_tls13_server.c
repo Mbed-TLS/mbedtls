@@ -26,6 +26,7 @@
 #include "mbedtls/debug.h"
 
 #include "ssl_misc.h"
+#include "ssl_debug_helpers_generated.h"
 
 int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
 {

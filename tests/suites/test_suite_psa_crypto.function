@@ -269,13 +269,13 @@ typedef enum
     DO_NOT_SET_LENGTHS = 0,
     SET_LENGTHS_BEFORE_NONCE = 1,
     SET_LENGTHS_AFTER_NONCE = 2
-} setlengths_method;
+} set_lengths_method_t;
 
 typedef enum
 {
     USE_NULL_TAG = 0,
     USE_GIVEN_TAG = 1,
-} tagusage_method;
+} tag_usage_method_t;
 
 /*!
  * \brief                           Internal Function for AEAD multipart tests.
@@ -291,7 +291,7 @@ typedef enum
  * \param data_part_len_arg         If not -1, the length of chunks to feed
  *                                  the data in to be encrypted / decrypted. If
  *                                  -1, no chunking
- * \param set_lengths_method        A member of the setlengths_method enum is
+ * \param set_lengths_method        A member of the set_lengths_method_t enum is
  *                                  expected here, this controls whether or not
  *                                  to set lengths, and in what order with
  *                                  respect to set nonce.
@@ -308,7 +308,7 @@ static int aead_multipart_internal_func( int key_type_arg, data_t *key_data,
                                          int ad_part_len_arg,
                                          data_t *input_data,
                                          int data_part_len_arg,
-                                         setlengths_method set_lengths_method,
+                                         set_lengths_method_t set_lengths_method,
                                          data_t *expected_output,
                                          int is_encrypt,
                                          int do_zero_parts )
@@ -3478,7 +3478,7 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
 {
     size_t ad_part_len = 0;
     size_t data_part_len = 0;
-    setlengths_method set_lengths_method = DO_NOT_SET_LENGTHS;
+    set_lengths_method_t set_lengths_method = DO_NOT_SET_LENGTHS;
 
     /* Ensure that either one part of the test or the other is done, i.e this
      * test does something. */
@@ -3586,7 +3586,7 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
 {
     size_t ad_part_len = 0;
     size_t data_part_len = 0;
-    setlengths_method set_lengths_method = DO_NOT_SET_LENGTHS;
+    set_lengths_method_t set_lengths_method = DO_NOT_SET_LENGTHS;
 
     /* Ensure that either one part of the test or the other is done, i.e this
      * test does something. */
@@ -4088,7 +4088,7 @@ void aead_multipart_verify( int key_type_arg, data_t *key_data,
     size_t plaintext_size = 0;
     size_t plaintext_length = 0;
     size_t verify_plaintext_size = 0;
-    tagusage_method tag_usage = tag_usage_arg;
+    tag_usage_method_t tag_usage = tag_usage_arg;
     unsigned char *tag_buffer = NULL;
     size_t tag_size = 0;
 

@@ -42,29 +42,6 @@
 #endif
 
 #if defined(BUILTIN_ALG_HMAC)
-static size_t psa_get_hash_block_size( psa_algorithm_t alg )
-{
-    switch( alg )
-    {
-        case PSA_ALG_MD5:
-            return( 64 );
-        case PSA_ALG_RIPEMD160:
-            return( 64 );
-        case PSA_ALG_SHA_1:
-            return( 64 );
-        case PSA_ALG_SHA_224:
-            return( 64 );
-        case PSA_ALG_SHA_256:
-            return( 64 );
-        case PSA_ALG_SHA_384:
-            return( 128 );
-        case PSA_ALG_SHA_512:
-            return( 128 );
-        default:
-            return( 0 );
-    }
-}
-
 static psa_status_t psa_hmac_abort_internal(
     mbedtls_psa_hmac_operation_t *hmac )
 {
@@ -81,7 +58,7 @@ static psa_status_t psa_hmac_setup_internal(
     uint8_t ipad[PSA_HMAC_MAX_HASH_BLOCK_SIZE];
     size_t i;
     size_t hash_size = PSA_HASH_LENGTH( hash_alg );
-    size_t block_size = psa_get_hash_block_size( hash_alg );
+    size_t block_size = PSA_HASH_BLOCK_LENGTH( hash_alg );
     psa_status_t status;
 
     hmac->alg = hash_alg;
@@ -153,7 +130,7 @@ static psa_status_t psa_hmac_finish_internal(
     uint8_t tmp[MBEDTLS_MD_MAX_SIZE];
     psa_algorithm_t hash_alg = hmac->alg;
     size_t hash_size = 0;
-    size_t block_size = psa_get_hash_block_size( hash_alg );
+    size_t block_size = PSA_HASH_BLOCK_LENGTH( hash_alg );
     psa_status_t status;
 
     status = psa_hash_finish( &hmac->hash_ctx, tmp, sizeof( tmp ), &hash_size );

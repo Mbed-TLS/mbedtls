@@ -4191,8 +4191,6 @@ void aead_multipart_setup( int key_type_arg, data_t *key_data,
 
     psa_aead_abort( &operation );
 
-    operation = psa_aead_operation_init( );
-
     mbedtls_test_set_step( 1 );
 
     status = psa_aead_decrypt_setup( &operation, key, alg );
@@ -4267,8 +4265,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     psa_aead_abort( &operation );
 
-    operation = psa_aead_operation_init( );
-
     TEST_EQUAL( psa_aead_generate_nonce( &operation, nonce_buffer,
                                          PSA_AEAD_NONCE_MAX_SIZE,
                                          &nonce_length ),
@@ -4278,8 +4274,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     /* ------------------------------------------------------- */
 
-    operation = psa_aead_operation_init( );
-
     TEST_EQUAL( psa_aead_set_lengths( &operation, additional_data->len,
                                       input_data->len ),
                 PSA_ERROR_BAD_STATE );
@@ -4287,8 +4281,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
     psa_aead_abort( &operation );
 
     /* ------------------------------------------------------- */
-
-    operation = psa_aead_operation_init( );
 
     TEST_EQUAL( psa_aead_update_ad( &operation, additional_data->x,
                                     additional_data->len ),
@@ -4298,8 +4290,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     /* ------------------------------------------------------- */
 
-    operation = psa_aead_operation_init( );
-
     TEST_EQUAL( psa_aead_update( &operation, input_data->x,
                                  input_data->len, output_data,
                                  output_size, &output_length ),
@@ -4308,8 +4298,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
     psa_aead_abort( &operation );
 
     /* ------------------------------------------------------- */
-
-    operation = psa_aead_operation_init( );
 
     TEST_EQUAL( psa_aead_finish( &operation, final_data,
                                  finish_output_size,
@@ -4321,8 +4309,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
     psa_aead_abort( &operation );
 
     /* ------------------------------------------------------- */
-
-    operation = psa_aead_operation_init( );
 
     TEST_EQUAL( psa_aead_verify( &operation, final_data,
                                  finish_output_size,
@@ -4335,8 +4321,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     /* Test for double setups. */
 
-    operation = psa_aead_operation_init( );
-
     PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
 
     TEST_EQUAL( psa_aead_encrypt_setup( &operation, key, alg ),
@@ -4345,8 +4329,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
     psa_aead_abort( &operation );
 
     /* ------------------------------------------------------- */
-
-    operation = psa_aead_operation_init( );
 
     PSA_ASSERT( psa_aead_decrypt_setup( &operation, key, alg ) );
 
@@ -4357,8 +4339,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     /* ------------------------------------------------------- */
 
-    operation = psa_aead_operation_init( );
-
     PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
 
     TEST_EQUAL( psa_aead_decrypt_setup( &operation, key, alg ),
@@ -4367,8 +4347,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
     psa_aead_abort( &operation );
 
     /* ------------------------------------------------------- */
-
-    operation = psa_aead_operation_init( );
 
     PSA_ASSERT( psa_aead_decrypt_setup( &operation, key, alg ) );
 
@@ -4378,8 +4356,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
     psa_aead_abort( &operation );
 
     /* Test for not setting a nonce. */
-
-    operation = psa_aead_operation_init( );
 
     PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
 
@@ -4391,8 +4367,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     /* ------------------------------------------------------- */
 
-    operation = psa_aead_operation_init( );
-
     PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
 
     TEST_EQUAL( psa_aead_update( &operation, input_data->x,
@@ -4403,8 +4377,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
     psa_aead_abort( &operation );
 
     /* ------------------------------------------------------- */
-
-    operation = psa_aead_operation_init( );
 
     PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
 
@@ -4418,8 +4390,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
     psa_aead_abort( &operation );
 
     /* ------------------------------------------------------- */
-
-    operation = psa_aead_operation_init( );
 
     PSA_ASSERT( psa_aead_decrypt_setup( &operation, key, alg ) );
 
@@ -4434,8 +4404,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     /* Test for double setting nonce. */
 
-    operation = psa_aead_operation_init( );
-
     PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
 
     PSA_ASSERT( psa_aead_set_nonce( &operation, nonce->x, nonce->len ) );
@@ -4446,8 +4414,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
     psa_aead_abort( &operation );
 
     /* Test for double generating nonce. */
-
-    operation = psa_aead_operation_init( );
 
     PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
 
@@ -4465,8 +4431,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     /* Test for generate nonce then set and vice versa */
 
-    operation = psa_aead_operation_init( );
-
     PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
 
     PSA_ASSERT( psa_aead_generate_nonce( &operation, nonce_buffer,
@@ -4479,8 +4443,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
     psa_aead_abort( &operation );
 
     /* ------------------------------------------------------- */
-
-    operation = psa_aead_operation_init( );
 
     PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
 
@@ -4495,8 +4457,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     /* Test for generating nonce in decrypt setup. */
 
-    operation = psa_aead_operation_init( );
-
     PSA_ASSERT( psa_aead_decrypt_setup( &operation, key, alg ) );
 
     TEST_EQUAL( psa_aead_generate_nonce( &operation, nonce_buffer,
@@ -4507,8 +4467,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
     psa_aead_abort( &operation );
 
     /* Test for setting lengths twice. */
-
-    operation = psa_aead_operation_init( );
 
     PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
 
@@ -4525,8 +4483,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     /* Test for setting lengths after already starting data. */
 
-    operation = psa_aead_operation_init( );
-
     PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
 
     PSA_ASSERT( psa_aead_set_nonce( &operation, nonce->x, nonce->len ) );
@@ -4541,8 +4497,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
     psa_aead_abort( &operation );
 
     /* ------------------------------------------------------- */
-
-    operation = psa_aead_operation_init( );
 
     PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
 
@@ -4560,8 +4514,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     /* Test for not sending any additional data or data after setting non zero
      * lengths for them. (encrypt) */
-
-    operation = psa_aead_operation_init( );
 
     PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
 
@@ -4582,8 +4534,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
     /* Test for not sending any additional data or data after setting non-zero
      * lengths for them. (decrypt) */
 
-    operation = psa_aead_operation_init( );
-
     PSA_ASSERT( psa_aead_decrypt_setup( &operation, key, alg ) );
 
     PSA_ASSERT( psa_aead_set_nonce( &operation, nonce->x, nonce->len ) );
@@ -4603,8 +4553,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
     /* Test for not sending any additional data after setting a non-zero length
      * for it. */
 
-    operation = psa_aead_operation_init( );
-
     PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
 
     PSA_ASSERT( psa_aead_set_nonce( &operation, nonce->x, nonce->len ) );
@@ -4620,8 +4568,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
     psa_aead_abort( &operation );
 
     /* Test for not sending any data after setting a non-zero length for it.*/
-
-    operation = psa_aead_operation_init( );
 
     PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
 
@@ -4644,8 +4590,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     /* Test for sending too much additional data after setting lengths. */
 
-    operation = psa_aead_operation_init( );
-
     PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
 
     PSA_ASSERT( psa_aead_set_nonce( &operation, nonce->x, nonce->len ) );
@@ -4659,7 +4603,7 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     psa_aead_abort( &operation );
 
-    operation = psa_aead_operation_init( );
+    /* ------------------------------------------------------- */
 
     PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
 
@@ -4679,8 +4623,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     /* Test for sending too much data after setting lengths. */
 
-    operation = psa_aead_operation_init( );
-
     PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
 
     PSA_ASSERT( psa_aead_set_nonce( &operation, nonce->x, nonce->len ) );
@@ -4694,7 +4636,7 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     psa_aead_abort( &operation );
 
-    operation = psa_aead_operation_init( );
+    /* ------------------------------------------------------- */
 
     PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
 
@@ -4719,8 +4661,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     /* Test sending additional data after data. */
 
-    operation = psa_aead_operation_init( );
-
     PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
 
     PSA_ASSERT( psa_aead_set_nonce( &operation, nonce->x, nonce->len ) );
@@ -4737,8 +4677,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     /* Test calling finish on decryption. */
 
-    operation = psa_aead_operation_init( );
-
     PSA_ASSERT( psa_aead_decrypt_setup( &operation, key, alg ) );
 
     PSA_ASSERT( psa_aead_set_nonce( &operation, nonce->x, nonce->len ) );
@@ -4753,8 +4691,6 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
     psa_aead_abort( &operation );
 
     /* Test calling verify on encryption. */
-
-    operation = psa_aead_operation_init( );
 
     PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
 

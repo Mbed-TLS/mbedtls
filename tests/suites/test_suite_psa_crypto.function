@@ -4172,15 +4172,11 @@ void aead_multipart_setup( int key_type_arg, data_t *key_data,
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &key ) );
 
-    mbedtls_test_set_step( 0 );
-
     status = psa_aead_encrypt_setup( &operation, key, alg );
 
     TEST_EQUAL( status, expected_status );
 
     psa_aead_abort( &operation );
-
-    mbedtls_test_set_step( 1 );
 
     status = psa_aead_decrypt_setup( &operation, key, alg );
 

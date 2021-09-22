@@ -306,7 +306,7 @@ static int exercise_signature_key( mbedtls_svc_key_id_t key,
         psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH( alg );
 
         /* If the policy allows signing with any hash, just pick one. */
-        if( PSA_ALG_IS_HASH_AND_SIGN( alg ) && hash_alg == PSA_ALG_ANY_HASH )
+        if( PSA_ALG_IS_SIGN_HASH( alg ) && hash_alg == PSA_ALG_ANY_HASH )
         {
     #if defined(KNOWN_SUPPORTED_HASH_ALG)
             hash_alg = KNOWN_SUPPORTED_HASH_ALG;
@@ -925,7 +925,7 @@ psa_key_usage_t mbedtls_test_psa_usage_to_exercise( psa_key_type_t type,
 {
     if( PSA_ALG_IS_MAC( alg ) || PSA_ALG_IS_SIGN( alg ) )
     {
-        if( PSA_ALG_IS_HASH_AND_SIGN( alg ) )
+        if( PSA_ALG_IS_SIGN_HASH( alg ) )
         {
             if( PSA_ALG_SIGN_GET_HASH( alg ) )
                 return( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) ?

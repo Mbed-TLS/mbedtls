@@ -3822,7 +3822,7 @@ psa_status_t psa_aead_abort( psa_aead_operation_t *operation )
 
     status = psa_driver_wrapper_aead_abort( operation );
 
-    memset( operation, 0, sizeof( psa_aead_operation_t ) );
+    memset( operation, 0, sizeof( *operation ) );
 
     return( status );
 }

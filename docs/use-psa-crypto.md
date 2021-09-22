@@ -160,7 +160,7 @@ TLS: key exchanges / asymmetric crypto
   - ECDHE computation client-side
   - ECDSA verification both sides
   - ECDSA signature (if using `mbedtls_pk_setup_opaque()`)
-- PSK: client-side PSA-held using `mbedtls_ssl_conf_psk_opaque()`
+- PSK: PSA-held keys using `mbedtls_ssl_conf_psk_opaque()`
 - DHE-PSK: not covered
 - RSA-PSK: not covered
 - ECDHE-PSK: not covered

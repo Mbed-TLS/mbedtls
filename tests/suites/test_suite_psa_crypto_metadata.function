@@ -353,6 +353,7 @@ void hmac_algorithm( int alg_arg,
     TEST_ASSERT( PSA_ALG_IS_HASH( hash_alg ) );
     TEST_EQUAL( PSA_ALG_HMAC( hash_alg ), alg );
 
+    TEST_ASSERT( block_size == PSA_HASH_BLOCK_LENGTH( alg ) );
     TEST_ASSERT( block_size <= PSA_HMAC_MAX_HASH_BLOCK_SIZE );
 
     test_mac_algorithm( alg_arg, ALG_IS_HMAC, length,

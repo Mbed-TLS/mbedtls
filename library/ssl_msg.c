@@ -5640,9 +5640,10 @@ void mbedtls_ssl_read_version( int *major, int *minor, int transport,
 }
 
 /*
- * Send pending fatal alerts or warnings.
- * 0, No alert message.
- * !0, error from send_alert_message or handshake_step return
+ * Send pending fatal alert.
+ * 0,   No alert message.
+ * !0,  if mbedtls_ssl_send_alert_message() returned in error, the error code it
+ *      returned, ssl->alert_reason otherwise.
  */
 int mbedtls_ssl_handle_pending_alert( mbedtls_ssl_context *ssl )
 {
@@ -5656,8 +5657,8 @@ int mbedtls_ssl_handle_pending_alert( mbedtls_ssl_context *ssl )
                                 MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                 ssl->alert_type );
 
-    /* Success or send message fail, clear send_alert flag
-     * except WANT_WRITE. WANT_WRITE means need re-send message.
+    /* If mbedtls_ssl_send_alert_message() returned with MBEDTLS_ERR_SSL_WANT_WRITE,
+     * do not clear the alert to be able to send it later.
      */
     if( ret != MBEDTLS_ERR_SSL_WANT_WRITE )
     {
@@ -5665,12 +5666,8 @@ int mbedtls_ssl_handle_pending_alert( mbedtls_ssl_context *ssl )
     }
 
     if( ret != 0 )
-    {
-        /* some errors on send alert message */
         return( ret );
-    }
 
-    /* Assume alert_reason == handshake_step return */
     return( ssl->alert_reason );
 }
 

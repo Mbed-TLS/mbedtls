@@ -5208,13 +5208,9 @@ int mbedtls_ssl_handshake_step( mbedtls_ssl_context *ssl )
         /* handshake_step return error. And it is same
          * with alert_reason.
          */
-        int alert_ret;
-        alert_ret = mbedtls_ssl_handle_pending_alert( ssl );
-        if( alert_ret != 0 )
+        if( ssl->send_alert )
         {
-            /* If success send, ret == alert_ret.
-             */
-            ret = alert_ret;
+            ret = mbedtls_ssl_handle_pending_alert( ssl );
             goto cleanup;
         }
     }

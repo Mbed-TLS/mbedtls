@@ -278,7 +278,7 @@ int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
     else
     {
         memset( work_buf, 0x00, 16 );
-        MBEDTLS_PUT_UINT64_BE( iv_len * 8,  work_buf, 8 );
+        MBEDTLS_PUT_UINT64_BE( iv_len * 8, work_buf, 8 );
 
         p = iv;
         while( iv_len > 0 )

@@ -3760,7 +3760,7 @@ exit:
      * Even if the operation succeeds, make sure we clear the rest of the
      * buffer to prevent potential leakage of anything previously placed in
      * the same buffer.*/
-    if( tag )
+    if( tag != NULL )
     {
         if( status != PSA_SUCCESS )
             memset( tag, '!', tag_size );

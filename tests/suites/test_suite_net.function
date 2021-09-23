@@ -9,11 +9,11 @@
 #endif
 
 #if defined(MBEDTLS_PLATFORM_IS_UNIXLIKE)
-#include <sys/fcntl.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <fcntl.h>
 #include <unistd.h>
 #endif
 

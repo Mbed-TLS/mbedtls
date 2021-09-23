@@ -835,10 +835,7 @@ int mbedtls_ssl_tls1_3_key_schedule_stage_early( mbedtls_ssl_context *ssl )
     }
 
     md_type = ssl->handshake->ciphersuite_info->mac;
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
-    input = ssl->handshake->psk;
-    input_len = ssl->handshake->psk_len;
-#endif
+
     ret = mbedtls_ssl_tls1_3_evolve_secret( md_type, NULL, input, input_len,
                                 ssl->handshake->tls1_3_master_secrets.early );
     if( ret != 0 )

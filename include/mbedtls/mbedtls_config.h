@@ -258,13 +258,16 @@
 
 /** \def MBEDTLS_CHECK_RETURN
  *
- * This macro appearing at the beginning of the declaration of a function
- * indicates that its return value should be checked.
+ * This macro is used at the beginning of the declaration of a function
+ * to indicate that its return value should be checked. It should
+ * instruct the compiler to emit a warning or an error if the function
+ * is called without checking its return value.
  *
- * Default implementation resides in platform_util.h.
- * You can override default implementation by defining your own.
- * Custom implementation can be empty, which will disable checking
- * of functions' return values.
+ * There is a default implementation for popular compilers in platform_util.h.
+ * You can override the default implementation by defining your own here.
+ *
+ * If the implementation here is empty, this will effectively disable the
+ * checking of functions' return values.
  */
 //#define MBEDTLS_CHECK_RETURN
 

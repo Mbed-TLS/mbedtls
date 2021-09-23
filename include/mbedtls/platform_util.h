@@ -60,14 +60,12 @@ MBEDTLS_DEPRECATED typedef int mbedtls_deprecated_numeric_constant_t;
 #endif /* MBEDTLS_DEPRECATED_WARNING */
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
 
-/** \def MBEDTLS_CHECK_RETURN
+/* Implementation of the check-return facility.
+ * See the user documentation in mbedtls_config.h.
  *
- * This macro appearing at the beginning of the declaration of a function
- * indicates that its return value should be checked.
- *
- * This should appear before most functions returning an error code
- * (as \c int in the \c mbedtls_xxx API or
- * as ::psa_status_t in the \c psa_xxx API).
+ * Do not use this macro directly to annotate function: instead,
+ * use one of MBEDTLS_CHECK_RETURN_CRITICAL or MBEDTLS_CHECK_RETURN_TYPICAL
+ * depending on how important it is to check the return value.
  */
 #if !defined(MBEDTLS_CHECK_RETURN)
 #if defined(__GNUC__)
@@ -79,6 +77,52 @@ MBEDTLS_DEPRECATED typedef int mbedtls_deprecated_numeric_constant_t;
 #define MBEDTLS_CHECK_RETURN
 #endif
 #endif
+
+/** Critical-failure function
+ *
+ * This macro appearing at the beginning of the declaration of a function
+ * indicates that its return value should be checked in all applications.
+ * Omitting the check is very likely to indicate a bug in the application
+ * and will result in a compile-time warning if #MBEDTLS_CHECK_RETURN
+ * is implemented for the compiler in use.
+ *
+ * \note  The use of this macro is a work in progress.
+ *        This macro may be added to more functions in the future.
+ *        Such an extension is not considered an API break, provided that
+ *        there are near-unavoidable circumstances under which the function
+ *        can fail. For example, signature/MAC/AEAD verification functions,
+ *        and functions that require a random generator, are considered
+ *        return-check-critical.
+ */
+#define MBEDTLS_CHECK_RETURN_CRITICAL MBEDTLS_CHECK_RETURN
+
+/** Ordinary-failure function
+ *
+ * This macro appearing at the beginning of the declaration of a function
+ * indicates that its return value should be generally be checked in portable
+ * applications. Omitting the check will result in a compile-time warning if
+ * #MBEDTLS_CHECK_RETURN is implemented for the compiler in use.
+ *
+ * \note  The use of this macro is a work in progress.
+ *        This macro will be added to more functions in the future.
+ *        Eventually this should appear before most functions returning
+ *        an error code (as \c int in the \c mbedtls_xxx API or
+ *        as ::psa_status_t in the \c psa_xxx API).
+ */
+#define MBEDTLS_CHECK_RETURN_TYPICAL MBEDTLS_CHECK_RETURN
+
+/** Benign-failure function
+ *
+ * This macro appearing at the beginning of the declaration of a function
+ * indicates that it is rarely useful to check its return value.
+ *
+ * This macro has an empty expansion. It exists for documentation purposes:
+ * a #MBEDTLS_CHECK_RETURN_OPTIONAL annotation indicates that the function
+ * has been analyzed for return-check usefuless, whereas the lack of
+ * an annotation indicates that the function has not been analyzed and its
+ * return-check usefulness is unknown.
+ */
+#define MBEDTLS_CHECK_RETURN_OPTIONAL
 
 /**
  * \brief       Securely zeroize a buffer

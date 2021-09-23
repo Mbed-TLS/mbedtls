@@ -256,21 +256,6 @@
  */
 //#define MBEDTLS_DEPRECATED_REMOVED
 
-/** \def MBEDTLS_CHECK_RETURN
- *
- * This macro is used at the beginning of the declaration of a function
- * to indicate that its return value should be checked. It should
- * instruct the compiler to emit a warning or an error if the function
- * is called without checking its return value.
- *
- * There is a default implementation for popular compilers in platform_util.h.
- * You can override the default implementation by defining your own here.
- *
- * If the implementation here is empty, this will effectively disable the
- * checking of functions' return values.
- */
-//#define MBEDTLS_CHECK_RETURN
-
 /* \} name SECTION: System support */
 
 /**
@@ -3081,6 +3066,21 @@
 //#define MBEDTLS_PLATFORM_VSNPRINTF_MACRO    vsnprintf /**< Default vsnprintf macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_NV_SEED_READ_MACRO   mbedtls_platform_std_nv_seed_read /**< Default nv_seed_read function to use, can be undefined */
 //#define MBEDTLS_PLATFORM_NV_SEED_WRITE_MACRO  mbedtls_platform_std_nv_seed_write /**< Default nv_seed_write function to use, can be undefined */
+
+/** \def MBEDTLS_CHECK_RETURN
+ *
+ * This macro is used at the beginning of the declaration of a function
+ * to indicate that its return value should be checked. It should
+ * instruct the compiler to emit a warning or an error if the function
+ * is called without checking its return value.
+ *
+ * There is a default implementation for popular compilers in platform_util.h.
+ * You can override the default implementation by defining your own here.
+ *
+ * If the implementation here is empty, this will effectively disable the
+ * checking of functions' return values.
+ */
+//#define MBEDTLS_CHECK_RETURN
 
 /* PSA options */
 /**

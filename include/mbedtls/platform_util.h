@@ -109,7 +109,11 @@ MBEDTLS_DEPRECATED typedef int mbedtls_deprecated_numeric_constant_t;
  *        an error code (as \c int in the \c mbedtls_xxx API or
  *        as ::psa_status_t in the \c psa_xxx API).
  */
+#if defined(MBEDTLS_CHECK_RETURN_WARNING)
 #define MBEDTLS_CHECK_RETURN_TYPICAL MBEDTLS_CHECK_RETURN
+#else
+#define MBEDTLS_CHECK_RETURN_TYPICAL
+#endif
 
 /** Benign-failure function
  *

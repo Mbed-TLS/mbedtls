@@ -6,7 +6,12 @@ Bugfix
      where this function cannot fail, or full-module replacements with
      MBEDTLS_AES_ALT or MBEDTLS_DES_ALT. Reported by Armelle Duboc in #1092.
 
-Changes
-   * Warn if errors from AES or DES functions are ignored. This is currently
-     supported on GCC-like compilers and on MSVC and can be configured by
-     setting MBEDTLS_CHECK_RETURN in mbedtls_config.h.
+Features
+   * Warn if errors from certain functions are ignored. This is currently
+     supported on GCC-like compilers and on MSVC and can be configured through
+     the macro MBEDTLS_CHECK_RETURN. The warnings are always enabled
+     (where supported) for critical functions where ignoring the return
+     value is almost always a bug. Enable the new configuration option
+     MBEDTLS_CHECK_RETURN_WARNING to get warnings for other functions. This
+     is currently implemented in the AES and DES modules, and will be extended
+     to other modules in the future.

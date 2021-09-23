@@ -3080,7 +3080,7 @@
  * If the implementation here is empty, this will effectively disable the
  * checking of functions' return values.
  */
-//#define MBEDTLS_CHECK_RETURN
+//#define MBEDTLS_CHECK_RETURN __attribute__(__warn_unused_result__)
 
 /* PSA options */
 /**

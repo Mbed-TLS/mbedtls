@@ -3788,9 +3788,7 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
                              int alg_arg,
                              data_t *nonce,
                              data_t *additional_data,
-                             int do_test_ad_chunked,
                              data_t *input_data,
-                             int do_test_data_chunked,
                              int do_set_lengths,
                              data_t *expected_output )
 {
@@ -3798,92 +3796,77 @@ void aead_multipart_encrypt( int key_type_arg, data_t *key_data,
     size_t data_part_len = 0;
     set_lengths_method_t set_lengths_method = DO_NOT_SET_LENGTHS;
 
-    /* Ensure that either one part of the test or the other is done, i.e this
-     * test does something. */
-    TEST_ASSERT( do_test_ad_chunked || do_test_data_chunked );
-
-    /* Temporary whilst we have algorithms that cannot support chunking */
-    if( do_test_ad_chunked == 1 )
+    for( ad_part_len = 1; ad_part_len <= additional_data->len; ad_part_len++ )
     {
-        for( ad_part_len = 1; ad_part_len <= additional_data->len;
-             ad_part_len++ )
+        mbedtls_test_set_step( ad_part_len );
+
+        if( do_set_lengths )
         {
-            mbedtls_test_set_step( ad_part_len );
-
-            if( do_set_lengths )
-            {
-                if( ad_part_len & 0x01 )
-                    set_lengths_method = SET_LENGTHS_AFTER_NONCE;
-                else
-                    set_lengths_method = SET_LENGTHS_BEFORE_NONCE;
-            }
-
-            /* Split ad into length(ad_part_len) parts. */
-            if( !aead_multipart_internal_func( key_type_arg, key_data,
-                                               alg_arg, nonce,
-                                               additional_data,
-                                               ad_part_len,
-                                               input_data, -1,
-                                               set_lengths_method,
-                                               expected_output,
-                                               1, 0 ) )
-                break;
-
-            /* length(0) part, length(ad_part_len) part, length(0) part... */
-            mbedtls_test_set_step( 1000 + ad_part_len );
-
-            if( !aead_multipart_internal_func( key_type_arg, key_data,
-                                               alg_arg, nonce,
-                                               additional_data,
-                                               ad_part_len,
-                                               input_data, -1,
-                                               set_lengths_method,
-                                               expected_output,
-                                               1, 1 ) )
-                break;
+            if( ad_part_len & 0x01 )
+                set_lengths_method = SET_LENGTHS_AFTER_NONCE;
+            else
+                set_lengths_method = SET_LENGTHS_BEFORE_NONCE;
         }
+
+        /* Split ad into length(ad_part_len) parts. */
+        if( !aead_multipart_internal_func( key_type_arg, key_data,
+                                           alg_arg, nonce,
+                                           additional_data,
+                                           ad_part_len,
+                                           input_data, -1,
+                                           set_lengths_method,
+                                           expected_output,
+                                           1, 0 ) )
+            break;
+
+        /* length(0) part, length(ad_part_len) part, length(0) part... */
+        mbedtls_test_set_step( 1000 + ad_part_len );
+
+        if( !aead_multipart_internal_func( key_type_arg, key_data,
+                                           alg_arg, nonce,
+                                           additional_data,
+                                           ad_part_len,
+                                           input_data, -1,
+                                           set_lengths_method,
+                                           expected_output,
+                                           1, 1 ) )
+            break;
     }
 
-    /* Temporary whilst we have algorithms that cannot support chunking */
-    if( do_test_data_chunked == 1 )
+    for( data_part_len = 1; data_part_len <= input_data->len; data_part_len++ )
     {
-        for( data_part_len = 1; data_part_len <= input_data->len;
-             data_part_len++ )
+        /* Split data into length(data_part_len) parts. */
+        mbedtls_test_set_step( 2000 + data_part_len );
+
+        if( do_set_lengths )
         {
-            /* Split data into length(data_part_len) parts. */
-            mbedtls_test_set_step( 2000 + data_part_len );
-
-            if( do_set_lengths )
-            {
-                if( data_part_len & 0x01 )
-                    set_lengths_method = SET_LENGTHS_AFTER_NONCE;
-                else
-                    set_lengths_method = SET_LENGTHS_BEFORE_NONCE;
-            }
-
-            if( !aead_multipart_internal_func( key_type_arg, key_data,
-                                               alg_arg, nonce,
-                                               additional_data, -1,
-                                               input_data, data_part_len,
-                                               set_lengths_method,
-                                               expected_output,
-                                               1, 0 ) )
-                break;
-
-            /* length(0) part, length(data_part_len) part, length(0) part... */
-            mbedtls_test_set_step( 3000 + data_part_len );
-
-            if( !aead_multipart_internal_func( key_type_arg, key_data,
-                                               alg_arg, nonce,
-                                               additional_data, -1,
-                                               input_data, data_part_len,
-                                               set_lengths_method,
-                                               expected_output,
-                                               1, 1 ) )
-                break;
+            if( data_part_len & 0x01 )
+                set_lengths_method = SET_LENGTHS_AFTER_NONCE;
+            else
+                set_lengths_method = SET_LENGTHS_BEFORE_NONCE;
         }
-    }
 
+        if( !aead_multipart_internal_func( key_type_arg, key_data,
+                                           alg_arg, nonce,
+                                           additional_data, -1,
+                                           input_data, data_part_len,
+                                           set_lengths_method,
+                                           expected_output,
+                                           1, 0 ) )
+            break;
+
+        /* length(0) part, length(data_part_len) part, length(0) part... */
+        mbedtls_test_set_step( 3000 + data_part_len );
+
+        if( !aead_multipart_internal_func( key_type_arg, key_data,
+                                           alg_arg, nonce,
+                                           additional_data, -1,
+                                           input_data, data_part_len,
+                                           set_lengths_method,
+                                           expected_output,
+                                           1, 1 ) )
+            break;
+    }
 
     /* Goto is required to silence warnings about unused labels, as we
      * don't actually do any test assertions in this function. */
@@ -3896,9 +3879,7 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
                              int alg_arg,
                              data_t *nonce,
                              data_t *additional_data,
-                             int do_test_ad_chunked,
                              data_t *input_data,
-                             int do_test_data_chunked,
                              int do_set_lengths,
                              data_t *expected_output )
 {
@@ -3906,90 +3887,76 @@ void aead_multipart_decrypt( int key_type_arg, data_t *key_data,
     size_t data_part_len = 0;
     set_lengths_method_t set_lengths_method = DO_NOT_SET_LENGTHS;
 
-    /* Ensure that either one part of the test or the other is done, i.e this
-     * test does something. */
-    TEST_ASSERT( do_test_ad_chunked || do_test_data_chunked );
-
-    /* Temporary whilst we have algorithms that cannot support chunking */
-    if( do_test_ad_chunked == 1 )
+    for( ad_part_len = 1; ad_part_len <= additional_data->len; ad_part_len++ )
     {
-        for( ad_part_len = 1; ad_part_len <= additional_data->len;
-             ad_part_len++ )
+        /* Split ad into length(ad_part_len) parts. */
+        mbedtls_test_set_step( ad_part_len );
+
+        if( do_set_lengths )
         {
-            /* Split ad into length(ad_part_len) parts. */
-            mbedtls_test_set_step( ad_part_len );
-
-            if( do_set_lengths )
-            {
-                if( ad_part_len & 0x01 )
-                    set_lengths_method = SET_LENGTHS_AFTER_NONCE;
-                else
-                    set_lengths_method = SET_LENGTHS_BEFORE_NONCE;
-            }
-
-            if( !aead_multipart_internal_func( key_type_arg, key_data,
-                                               alg_arg, nonce,
-                                               additional_data,
-                                               ad_part_len,
-                                               input_data, -1,
-                                               set_lengths_method,
-                                               expected_output,
-                                               0, 0 ) )
-                break;
-
-            /* length(0) part, length(ad_part_len) part, length(0) part... */
-            mbedtls_test_set_step( 1000 + ad_part_len );
-
-            if( !aead_multipart_internal_func( key_type_arg, key_data,
-                                               alg_arg, nonce,
-                                               additional_data,
-                                               ad_part_len,
-                                               input_data, -1,
-                                               set_lengths_method,
-                                               expected_output,
-                                               0, 1 ) )
-                break;
+            if( ad_part_len & 0x01 )
+                set_lengths_method = SET_LENGTHS_AFTER_NONCE;
+            else
+                set_lengths_method = SET_LENGTHS_BEFORE_NONCE;
         }
+
+        if( !aead_multipart_internal_func( key_type_arg, key_data,
+                                           alg_arg, nonce,
+                                           additional_data,
+                                           ad_part_len,
+                                           input_data, -1,
+                                           set_lengths_method,
+                                           expected_output,
+                                           0, 0 ) )
+            break;
+
+        /* length(0) part, length(ad_part_len) part, length(0) part... */
+        mbedtls_test_set_step( 1000 + ad_part_len );
+
+        if( !aead_multipart_internal_func( key_type_arg, key_data,
+                                           alg_arg, nonce,
+                                           additional_data,
+                                           ad_part_len,
+                                           input_data, -1,
+                                           set_lengths_method,
+                                           expected_output,
+                                           0, 1 ) )
+            break;
     }
 
-    /* Temporary whilst we have algorithms that cannot support chunking */
-    if( do_test_data_chunked == 1 )
+    for( data_part_len = 1; data_part_len <= input_data->len; data_part_len++ )
     {
-        for( data_part_len = 1; data_part_len <= input_data->len;
-             data_part_len++ )
+        /* Split data into length(data_part_len) parts. */
+        mbedtls_test_set_step( 2000 + data_part_len );
+
+        if( do_set_lengths )
         {
-            /* Split data into length(data_part_len) parts. */
-            mbedtls_test_set_step( 2000 + data_part_len );
-
-            if( do_set_lengths )
-            {
-                if( data_part_len & 0x01 )
-                    set_lengths_method = SET_LENGTHS_AFTER_NONCE;
-                else
-                    set_lengths_method = SET_LENGTHS_BEFORE_NONCE;
-            }
-
-            if( !aead_multipart_internal_func( key_type_arg, key_data,
-                                               alg_arg, nonce,
-                                               additional_data, -1,
-                                               input_data, data_part_len,
-                                               set_lengths_method,
-                                               expected_output,
-                                               0, 0 ) )
-                break;
-
-            /* length(0) part, length(data_part_len) part, length(0) part... */
-            mbedtls_test_set_step( 3000 + data_part_len );
-
-            if( !aead_multipart_internal_func( key_type_arg, key_data,
-                                               alg_arg, nonce,
-                                               additional_data, -1,
-                                               input_data, data_part_len,
-                                               set_lengths_method,
-                                               expected_output,
-                                               0, 1 ) )
-                break;
+            if( data_part_len & 0x01 )
+                set_lengths_method = SET_LENGTHS_AFTER_NONCE;
+            else
+                set_lengths_method = SET_LENGTHS_BEFORE_NONCE;
         }
+
+        if( !aead_multipart_internal_func( key_type_arg, key_data,
+                                           alg_arg, nonce,
+                                           additional_data, -1,
+                                           input_data, data_part_len,
+                                           set_lengths_method,
+                                           expected_output,
+                                           0, 0 ) )
+            break;
+
+        /* length(0) part, length(data_part_len) part, length(0) part... */
+        mbedtls_test_set_step( 3000 + data_part_len );
+
+        if( !aead_multipart_internal_func( key_type_arg, key_data,
+                                           alg_arg, nonce,
+                                           additional_data, -1,
+                                           input_data, data_part_len,
+                                           set_lengths_method,
+                                           expected_output,
+                                           0, 1 ) )
+            break;
     }
 
     /* Goto is required to silence warnings about unused labels, as we

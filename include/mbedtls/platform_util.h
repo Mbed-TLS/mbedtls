@@ -69,7 +69,7 @@ MBEDTLS_DEPRECATED typedef int mbedtls_deprecated_numeric_constant_t;
  */
 #if !defined(MBEDTLS_CHECK_RETURN)
 #if defined(__GNUC__)
-#define MBEDTLS_CHECK_RETURN __attribute__((warn_unused_result))
+#define MBEDTLS_CHECK_RETURN __attribute__((__warn_unused_result__))
 #elif defined(_MSC_VER) && _MSC_VER >= 1700
 #include <sal.h>
 #define MBEDTLS_CHECK_RETURN _Check_return_

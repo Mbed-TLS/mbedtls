@@ -86,24 +86,24 @@ typedef struct
 /* Context structure for the Mbed TLS AEAD implementation. */
 typedef struct
 {
-    psa_algorithm_t alg;
-    psa_key_type_t key_type;
+    psa_algorithm_t MBEDTLS_PRIVATE(alg);
+    psa_key_type_t MBEDTLS_PRIVATE(key_type);
 
-    unsigned int is_encrypt : 1;
+    unsigned int MBEDTLS_PRIVATE(is_encrypt) : 1;
 
-    uint8_t tag_length;
+    uint8_t MBEDTLS_PRIVATE(tag_length);
 
     union
     {
         unsigned dummy; /* Enable easier initializing of the union. */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
-        mbedtls_ccm_context ccm;
+        mbedtls_ccm_context MBEDTLS_PRIVATE(ccm);
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
-        mbedtls_gcm_context gcm;
+        mbedtls_gcm_context MBEDTLS_PRIVATE(gcm);
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
-        mbedtls_chachapoly_context chachapoly;
+        mbedtls_chachapoly_context MBEDTLS_PRIVATE(chachapoly);
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
 
     } ctx;

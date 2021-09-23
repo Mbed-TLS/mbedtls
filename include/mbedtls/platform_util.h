@@ -173,7 +173,8 @@ MBEDTLS_DEPRECATED typedef int mbedtls_deprecated_numeric_constant_t;
  * This macro appearing at the beginning of the declaration of a function
  * indicates that its return value should be generally be checked in portable
  * applications. Omitting the check will result in a compile-time warning if
- * #MBEDTLS_CHECK_RETURN is implemented for the compiler in use.
+ * #MBEDTLS_CHECK_RETURN is implemented for the compiler in use and
+ * #MBEDTLS_CHECK_RETURN_WARNING is enabled in the compile-time configuration.
  *
  * \note  The use of this macro is a work in progress.
  *        This macro will be added to more functions in the future.
@@ -181,7 +182,11 @@ MBEDTLS_DEPRECATED typedef int mbedtls_deprecated_numeric_constant_t;
  *        an error code (as \c int in the \c mbedtls_xxx API or
  *        as ::psa_status_t in the \c psa_xxx API).
  */
+#if defined(MBEDTLS_CHECK_RETURN_WARNING)
 #define MBEDTLS_CHECK_RETURN_TYPICAL MBEDTLS_CHECK_RETURN
+#else
+#define MBEDTLS_CHECK_RETURN_TYPICAL
+#endif
 
 /** Benign-failure function
  *

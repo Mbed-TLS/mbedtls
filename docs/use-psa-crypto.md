@@ -153,27 +153,33 @@ This is only a high-level overview, grouped by theme
 TLS: key exchanges / asymmetric crypto
 --------------------------------------
 
-- RSA: not covered
-- DHE-RSA: not covered
-- ECDHE-RSA: ECDHE computation client-side only
-- ECDHE-ECDSA:
-  - ECDHE computation client-side
-  - ECDSA verification both sides
-  - ECDSA signature (if using `mbedtls_pk_setup_opaque()`)
-- PSK: PSA-held keys using `mbedtls_ssl_conf_psk_opaque()`
-- DHE-PSK: not covered
-- RSA-PSK: not covered
-- ECDHE-PSK: not covered
-- ECDH-RSA: not covered
-- ECDH-ECDSA: not covered
-- ECJPAKE: not covered
+The following key exchanges are not covered at all:
+
+- RSA
+- DHE-RSA
+- DHE-PSK
+- RSA-PSK
+- ECDHE-PSK
+- ECDH-RSA
+- ECDH-ECDSA
+- ECJPAKE
+
+The following key exchanges are only partially covered:
+
+- ECDHE-RSA: RSA operations are not covered and, server-side, the ECDHE
+  operation isn't either
+- ECDHE-ECDSA: server-side, the ECDHE operation isn't covered. (ECDSA
+  signature generation is only covered if using `mbedtls_pk_setup_opaque()`.)
+
+PSK if covered when the application uses `mbedtls_ssl_conf_psk_opaque()` or
+`mbedtls_ssl_set_hs_psk_opaque()`.
 
 TLS: symmetric crypto
 ---------------------
 
 - some ciphers not supported via PSA yet: ARIA, Camellia, ChachaPoly (silent
   fallback to the legacy APIs)
-- the HMAC part of the CBC and NULL ciphersuites is not covered
+- the HMAC part of the CBC and NULL ciphersuites
 - the HMAC computation in `ssl_cookie.c`
 
 X.509
@@ -181,6 +187,6 @@ X.509
 
 - most hash operations are still done via the legacy API, except the few that
   are documented above as using PSA
-- RSA PKCS#1 v1.5 signature generation (from PSA-held keys): not covered
-- RSA PKCS#1 v1.5 signature verification: not covered
-- RSA-PSS signature verification: not covered
+- RSA PKCS#1 v1.5 signature generation (from PSA-held keys)
+- RSA PKCS#1 v1.5 signature verification
+- RSA-PSS signature verification

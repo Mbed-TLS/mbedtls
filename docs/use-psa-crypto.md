@@ -64,7 +64,7 @@ keypair as a PK context: `mbedtls_x509write_crt_set_subject_key()` and
 `mbedtls_x509write_crt_set_issuer_key()`. Use of opaque contexts here probably
 works but is so far untested.
 
-### PSA-held (opaque) keys for TLS 1.2 pre-shared keys (PSK)
+### PSA-held (opaque) keys for TLS pre-shared keys (PSK)
 
 There are two new API functions `mbedtls_ssl_conf_psk_opaque()` and
 `mbedtls_ssl_set_hs_psk_opaque()`. Call one of these from an application to
@@ -72,7 +72,7 @@ register a PSA key for use with a PSK key exchange.
 
 Benefits: isolation of long-term secrets.
 
-Limitations: the key can only be used with with TLS 1.2, and only with "pure"
+Limitations: the key can only be used with "pure"
 PSK key exchanges (ciphersuites starting with `TLS_PSK_WITH_`), to the
 exclusion of RSA-PSK, DHE-PSK and ECDHE-PSK key exchanges. It is the responsibility of
 the user to make sure that when provisioning an opaque pre-shared key, the
@@ -153,6 +153,11 @@ Parts that are not covered yet
 ==============================
 
 This is only a high-level overview, grouped by theme
+
+TLS: 1.3 experimental support
+-----------------------------
+
+No part of the experimental support for TLS 1.3 is covered at the moment.
 
 TLS: key exchanges / asymmetric crypto
 --------------------------------------

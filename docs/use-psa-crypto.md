@@ -37,15 +37,18 @@ X.509) layers to pick up the improvements.
 
 ### PSA-held (opaque) keys in the PK layer
 
-Add `mbedtls_pk_setup_opaque()` to wrap a PSA keypair into a PK context. The key
-can be used for private-key operations and its public part can be written out.
+There is a new API function `mbedtls_pk_setup_opaque()` that can be used to
+wrap a PSA keypair into a PK context. The key can be used for private-key
+operations and its public part can be exported.
 
 Benefits: isolation of long-term secrets, use of PSA Crypto drivers.
 
 Limitations: only for private keys, only ECC. (That is, only ECDSA signature
-generation.) The following operations are not supported with a context set
-this way, while they would be available with a normal `ECKEY` context:
-`mbedtls_pk_verify()`, `mbedtls_pk_check_pair()`, `mbedtls_pk_debug()`.
+generation. Note: currently this will use randomized ECDSA while Mbed TLS uses
+deterministic ECDSA by default.) The following operations are not supported
+with a context set this way, while they would be available with a normal
+`ECKEY` context: `mbedtls_pk_verify()`, `mbedtls_pk_check_pair()`,
+`mbedtls_pk_debug()`.
 
 Use in X.509 and TLS: opt-in. The application needs to construct the PK context
 using the new API in order to get the benefits; it can then pass the
@@ -56,14 +59,15 @@ resulting context to the following existing APIs:
 - `mbedtls_x509write_csr_set_key()` to generate a CSR (certificate signature
   request).
 
-In the TLS and X.509 API, there's two other function which accept a key or
+In the TLS and X.509 API, there are two other functions which accept a key or
 keypair as a PK context: `mbedtls_x509write_crt_set_subject_key()` and
 `mbedtls_x509write_crt_set_issuer_key()`. Use of opaque contexts here probably
 works but is so far untested.
 
 ### PSA-held (opaque) keys for TLS 1.2 pre-shared keys (PSK)
 
-Add `mbedtls_ssl_conf_psk_opaque()` and `mbedtls_ssl_set_hs_psk_opaque()` to
+There are two new API functions `mbedtls_ssl_conf_psk_opaque()` and
+`mbedtls_ssl_set_hs_psk_opaque()`. Call one of these from an application to
 register a PSA key for use with a PSK key exchange.
 
 Benefits: isolation of long-term secrets.
@@ -81,8 +85,8 @@ APIs to get the benefits.
 
 ### PSA-based operations in the Cipher layer
 
-Add `mbedtls_cipher_setup_psa()` to set up a context that will call PSA to
-store the key and perform the operations.
+There is a new API function `mbedtls_cipher_setup_psa()` to set up a context
+that will call PSA to store the key and perform the operations.
 
 Benefits: use of PSA Crypto drivers; partial isolation of short-term secrets
 (still generated outside of PSA, but then held by PSA).

@@ -1,4 +1,0 @@
-Bugfix
-    * Add missing memory constraints in aarch64 inline assembly for
-      bignum multiplication.
-      Fixes #4962.

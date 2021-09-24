@@ -29,38 +29,6 @@
 #include "ssl_misc.h"
 #include <mbedtls/debug.h>
 
-int mbedtls_ssl_tls13_fetch_handshake_msg( mbedtls_ssl_context *ssl,
-                                     unsigned hs_type,
-                                     unsigned char **buf,
-                                     size_t *buflen )
-{
-    int ret;
-
-    if( ( ret = mbedtls_ssl_read_record( ssl, 0 ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
-        goto cleanup;
-    }
-
-    if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE         ||
-        ssl->in_msg[0]  != hs_type )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
-        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE,
-                              MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
-        ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
-        goto cleanup;
-    }
-
-    *buf    = ssl->in_msg   + 4;
-    *buflen = ssl->in_hslen - 4;
-
-
-cleanup:
-
-    return( ret );
-}
-
 int mbedtls_ssl_tls1_3_fetch_handshake_msg( mbedtls_ssl_context *ssl,
                                             unsigned hs_type,
                                             unsigned char **buf,

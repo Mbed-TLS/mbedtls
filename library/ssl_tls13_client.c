@@ -1406,20 +1406,19 @@ cleanup:
 /*
  * Overview
  */
-static int ssl_tls1_3_read_encrypted_extensions( mbedtls_ssl_context *ssl );
 
 /* Main entry point; orchestrates the other functions */
-static int ssl_tls13_encrypted_extensions_process( mbedtls_ssl_context *ssl );
+static int ssl_tls1_3_process_encrypted_extensions( mbedtls_ssl_context *ssl );
 
-static int ssl_tls13_encrypted_extensions_parse( mbedtls_ssl_context *ssl,
+static int ssl_tls1_3_parse_encrypted_extensions( mbedtls_ssl_context *ssl,
                                            const unsigned char *buf,
                                            size_t buf_len );
-static int ssl_tls13_encrypted_extensions_postprocess( mbedtls_ssl_context *ssl );
+static int ssl_tls1_3_postprocess_encrypted_extensions( mbedtls_ssl_context *ssl );
 
 /*
  * Handler for  MBEDTLS_SSL_ENCRYPTED_EXTENSIONS
  */
-static int ssl_tls13_encrypted_extensions_process( mbedtls_ssl_context *ssl )
+static int ssl_tls1_3_process_encrypted_extensions( mbedtls_ssl_context *ssl )
 {
     int ret;
     unsigned char *buf;
@@ -1427,17 +1426,17 @@ static int ssl_tls13_encrypted_extensions_process( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse encrypted extensions" ) );
 
-    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_fetch_handshake_msg( ssl,
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls1_3_fetch_handshake_msg( ssl,
                                              MBEDTLS_SSL_HS_ENCRYPTED_EXTENSION,
                                              &buf, &buf_len ) );
 
     /* Process the message contents */
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_encrypted_extensions_parse( ssl, buf, buf_len ) );
+    MBEDTLS_SSL_PROC_CHK( ssl_tls1_3_parse_encrypted_extensions( ssl, buf, buf_len ) );
 
-    mbedtls_ssl_tls13_add_hs_msg_to_checksum(
+    mbedtls_ssl_tls1_3_add_hs_msg_to_checksum(
         ssl, MBEDTLS_SSL_HS_ENCRYPTED_EXTENSION, buf, buf_len );
 
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_encrypted_extensions_postprocess( ssl ) );
+    MBEDTLS_SSL_PROC_CHK( ssl_tls1_3_postprocess_encrypted_extensions( ssl ) );
 
 cleanup:
 
@@ -1446,7 +1445,7 @@ cleanup:
 
 }
 
-static int ssl_tls13_encrypted_extensions_parse( mbedtls_ssl_context *ssl,
+static int ssl_tls1_3_parse_encrypted_extensions( mbedtls_ssl_context *ssl,
                                            const unsigned char *buf,
                                            size_t buf_len )
 {
@@ -1512,7 +1511,7 @@ static int ssl_tls13_encrypted_extensions_parse( mbedtls_ssl_context *ssl,
     return( ret );
 }
 
-static int ssl_tls13_encrypted_extensions_postprocess( mbedtls_ssl_context *ssl )
+static int ssl_tls1_3_postprocess_encrypted_extensions( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CERTIFICATE_REQUEST );
     return( 0 );
@@ -1667,10 +1666,6 @@ int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl )
 
         case MBEDTLS_SSL_HANDSHAKE_WRAPUP:
             ret = ssl_tls1_3_handshake_wrapup( ssl );
-            break;
-
-        case MBEDTLS_SSL_ENCRYPTED_EXTENSIONS:
-            ret = ssl_tls13_encrypted_extensions_process( ssl );
             break;
 
         default:

@@ -55,7 +55,8 @@ using the new API in order to get the benefits; it can then pass the
 resulting context to the following existing APIs:
 
 - `mbedtls_ssl_conf_own_cert()` or `mbedtls_ssl_set_hs_own_cert()` to use the
-  key together with a certificate for ECDSA-based key exchanges;
+  key together with a certificate for ECDSA-based key exchanges (note: while
+this is supported on both sides, it's currently only tested client-side);
 - `mbedtls_x509write_csr_set_key()` to generate a CSR (certificate signature
   request).
 
@@ -95,7 +96,9 @@ Limitations: the key is still passed in the clear by the application. The
 multi-part APIs are not supported, only the one-shot APIs. The only modes
 supported are ECB, CBC without padding, GCM and CCM (this excludes stream
 ciphers and ChachaPoly); the only cipher supported is AES (this excludes Aria,
-Camellia, and ChachaPoly).
+Camellia, and ChachaPoly). (Note: ECB is currently not tested.) (Note: it is
+possible to perform multiple one-shot operations with the same context;
+however this is not unit-tested, only tested via usage in TLS.)
 
 Use in TLS: automatic. Used when the cipher and mode is supported (with
 gracious fallback to the legacy API otherwise) in all places where a cipher is

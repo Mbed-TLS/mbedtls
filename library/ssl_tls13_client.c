@@ -792,8 +792,8 @@ static int ssl_tls1_3_read_certificate_verify( mbedtls_ssl_context *ssl )
  */
 static int ssl_tls1_3_read_server_finished( mbedtls_ssl_context *ssl )
 {
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE );
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "%s hasn't been implemented", __func__ ) );
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE );
     return( 0 );
 }
 

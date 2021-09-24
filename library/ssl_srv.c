@@ -1220,7 +1220,7 @@ read_record_header:
             return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
         }
 
-        memcpy( ssl->cur_out_ctr + 2, ssl->in_ctr + 2, 6 );
+        memcpy( ssl->cur_out_ctr + 2, ssl->in_ctr + 2, MBEDTLS_SSL_IN_CTR_LEN - 2 );
 
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
         if( mbedtls_ssl_dtls_replay_check( ssl ) != 0 )

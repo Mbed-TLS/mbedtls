@@ -54,8 +54,6 @@
 #include "mbedtls/oid.h"
 #endif
 
-#define SSL_CONTEXT_INPUT_COUNTER_LEN 8
-
 static uint32_t ssl_get_hs_total_len( mbedtls_ssl_context const *ssl );
 
 /*
@@ -3651,7 +3649,7 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl,
 #endif
         {
             unsigned i;
-            for( i = 8; i > mbedtls_ssl_ep_len( ssl ); i-- )
+            for( i = MBEDTLS_SSL_IN_CTR_LEN; i > mbedtls_ssl_ep_len( ssl ); i-- )
                 if( ++ssl->in_ctr[i - 1] != 0 )
                     break;
 
@@ -4793,7 +4791,7 @@ int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl )
     }
     else
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
-    mbedtls_platform_zeroize( ssl->in_ctr, SSL_CONTEXT_INPUT_COUNTER_LEN );
+    mbedtls_platform_zeroize( ssl->in_ctr, MBEDTLS_SSL_IN_CTR_LEN );
 
     mbedtls_ssl_update_in_pointers( ssl );
 
@@ -4883,17 +4881,17 @@ void mbedtls_ssl_update_in_pointers( mbedtls_ssl_context *ssl )
          * ssl_parse_record_header(). */
         ssl->in_ctr = ssl->in_hdr +  3;
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-        ssl->in_cid = ssl->in_ctr +  8;
+        ssl->in_cid = ssl->in_ctr +  MBEDTLS_SSL_IN_CTR_LEN;
         ssl->in_len = ssl->in_cid; /* Default: no CID */
 #else /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
-        ssl->in_len = ssl->in_ctr + 8;
+        ssl->in_len = ssl->in_ctr + MBEDTLS_SSL_IN_CTR_LEN;
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
         ssl->in_iv  = ssl->in_len + 2;
     }
     else
 #endif
     {
-        ssl->in_ctr = ssl->in_hdr - 8;
+        ssl->in_ctr = ssl->in_hdr - MBEDTLS_SSL_IN_CTR_LEN;
         ssl->in_len = ssl->in_hdr + 3;
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
         ssl->in_cid = ssl->in_len;
@@ -5560,7 +5558,7 @@ void mbedtls_ssl_set_inbound_transform( mbedtls_ssl_context *ssl,
         return;
 
     ssl->transform_in = transform;
-    mbedtls_platform_zeroize( ssl->in_ctr, SSL_CONTEXT_INPUT_COUNTER_LEN );
+    mbedtls_platform_zeroize( ssl->in_ctr, MBEDTLS_SSL_IN_CTR_LEN );
 }
 
 void mbedtls_ssl_set_outbound_transform( mbedtls_ssl_context *ssl,

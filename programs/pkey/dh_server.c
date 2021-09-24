@@ -17,11 +17,7 @@
  *  limitations under the License.
  */
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -95,7 +91,6 @@ int main( void )
 
     mbedtls_net_init( &listen_fd );
     mbedtls_net_init( &client_fd );
-    mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, MBEDTLS_MD_SHA256 );
     mbedtls_dhm_init( &dhm );
     mbedtls_aes_init( &aes );
     mbedtls_ctr_drbg_init( &ctr_drbg );
@@ -131,7 +126,7 @@ int main( void )
         goto exit;
     }
 
-    mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
+    mbedtls_rsa_init( &rsa );
 
     if( ( ret = mbedtls_mpi_read_file( &N , 16, f ) ) != 0 ||
         ( ret = mbedtls_mpi_read_file( &E , 16, f ) ) != 0 ||
@@ -173,8 +168,8 @@ int main( void )
         goto exit;
     }
 
-    if( mbedtls_mpi_read_file( &dhm.P, 16, f ) != 0 ||
-        mbedtls_mpi_read_file( &dhm.G, 16, f ) != 0 )
+    if( mbedtls_mpi_read_file( &dhm.MBEDTLS_PRIVATE(P), 16, f ) != 0 ||
+        mbedtls_mpi_read_file( &dhm.MBEDTLS_PRIVATE(G), 16, f ) != 0 )
     {
         mbedtls_printf( " failed\n  ! Invalid DH parameter file\n\n" );
         fclose( f );
@@ -210,7 +205,7 @@ int main( void )
 
     memset( buf, 0, sizeof( buf ) );
 
-    if( ( ret = mbedtls_dhm_make_params( &dhm, (int) mbedtls_mpi_size( &dhm.P ), buf, &n,
+    if( ( ret = mbedtls_dhm_make_params( &dhm, (int) mbedtls_mpi_size( &dhm.MBEDTLS_PRIVATE(P) ), buf, &n,
                                  mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_dhm_make_params returned %d\n\n", ret );
@@ -220,23 +215,23 @@ int main( void )
     /*
      * 5. Sign the parameters and send them
      */
-    if( ( ret = mbedtls_sha1_ret( buf, n, hash ) ) != 0 )
+    if( ( ret = mbedtls_sha1( buf, n, hash ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_sha1_ret returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_sha1 returned %d\n\n", ret );
         goto exit;
     }
 
-    buf[n    ] = (unsigned char)( rsa.len >> 8 );
-    buf[n + 1] = (unsigned char)( rsa.len      );
+    buf[n    ] = (unsigned char)( rsa.MBEDTLS_PRIVATE(len) >> 8 );
+    buf[n + 1] = (unsigned char)( rsa.MBEDTLS_PRIVATE(len)      );
 
     if( ( ret = mbedtls_rsa_pkcs1_sign( &rsa, NULL, NULL, MBEDTLS_MD_SHA256,
-                                0, hash, buf + n + 2 ) ) != 0 )
+                                32, hash, buf + n + 2 ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_rsa_pkcs1_sign returned %d\n\n", ret );
         goto exit;
     }
 
-    buflen = n + 2 + rsa.len;
+    buflen = n + 2 + rsa.MBEDTLS_PRIVATE(len);
     buf2[0] = (unsigned char)( buflen >> 8 );
     buf2[1] = (unsigned char)( buflen      );
 
@@ -255,14 +250,14 @@ int main( void )
 
     memset( buf, 0, sizeof( buf ) );
 
-    n = dhm.len;
+    n = mbedtls_dhm_get_len( &dhm );
     if( ( ret = mbedtls_net_recv( &client_fd, buf, n ) ) != (int) n )
     {
         mbedtls_printf( " failed\n  ! mbedtls_net_recv returned %d\n\n", ret );
         goto exit;
     }
 
-    if( ( ret = mbedtls_dhm_read_public( &dhm, buf, dhm.len ) ) != 0 )
+    if( ( ret = mbedtls_dhm_read_public( &dhm, buf, n ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_dhm_read_public returned %d\n\n", ret );
         goto exit;

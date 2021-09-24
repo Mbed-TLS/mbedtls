@@ -25,12 +25,9 @@
  */
 #ifndef MBEDTLS_HMAC_DRBG_H
 #define MBEDTLS_HMAC_DRBG_H
+#include "mbedtls/private_access.h"
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 #include "mbedtls/md.h"
 
@@ -41,16 +38,20 @@
 /*
  * Error codes
  */
-#define MBEDTLS_ERR_HMAC_DRBG_REQUEST_TOO_BIG              -0x0003  /**< Too many random requested in single call. */
-#define MBEDTLS_ERR_HMAC_DRBG_INPUT_TOO_BIG                -0x0005  /**< Input too large (Entropy + additional). */
-#define MBEDTLS_ERR_HMAC_DRBG_FILE_IO_ERROR                -0x0007  /**< Read/write error in file. */
-#define MBEDTLS_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED        -0x0009  /**< The entropy source failed. */
+/** Too many random requested in single call. */
+#define MBEDTLS_ERR_HMAC_DRBG_REQUEST_TOO_BIG              -0x0003
+/** Input too large (Entropy + additional). */
+#define MBEDTLS_ERR_HMAC_DRBG_INPUT_TOO_BIG                -0x0005
+/** Read/write error in file. */
+#define MBEDTLS_ERR_HMAC_DRBG_FILE_IO_ERROR                -0x0007
+/** The entropy source failed. */
+#define MBEDTLS_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED        -0x0009
 
 /**
  * \name SECTION: Module settings
  *
  * The configuration options you can set for this module are in this section.
- * Either change them in config.h or define them on the compiler command line.
+ * Either change them in mbedtls_config.h or define them on the compiler command line.
  * \{
  */
 
@@ -86,19 +87,19 @@ typedef struct mbedtls_hmac_drbg_context
 {
     /* Working state: the key K is not stored explicitly,
      * but is implied by the HMAC context */
-    mbedtls_md_context_t md_ctx;                    /*!< HMAC context (inc. K)  */
-    unsigned char V[MBEDTLS_MD_MAX_SIZE];  /*!< V in the spec          */
-    int reseed_counter;                     /*!< reseed counter         */
+    mbedtls_md_context_t MBEDTLS_PRIVATE(md_ctx);                    /*!< HMAC context (inc. K)  */
+    unsigned char MBEDTLS_PRIVATE(V)[MBEDTLS_MD_MAX_SIZE];  /*!< V in the spec          */
+    int MBEDTLS_PRIVATE(reseed_counter);                     /*!< reseed counter         */
 
     /* Administrative state */
-    size_t entropy_len;         /*!< entropy bytes grabbed on each (re)seed */
-    int prediction_resistance;  /*!< enable prediction resistance (Automatic
+    size_t MBEDTLS_PRIVATE(entropy_len);         /*!< entropy bytes grabbed on each (re)seed */
+    int MBEDTLS_PRIVATE(prediction_resistance);  /*!< enable prediction resistance (Automatic
                                      reseed before every random generation) */
-    int reseed_interval;        /*!< reseed interval   */
+    int MBEDTLS_PRIVATE(reseed_interval);        /*!< reseed interval   */
 
     /* Callbacks */
-    int (*f_entropy)(void *, unsigned char *, size_t); /*!< entropy function */
-    void *p_entropy;            /*!< context for the entropy function        */
+    int (*MBEDTLS_PRIVATE(f_entropy))(void *, unsigned char *, size_t); /*!< entropy function */
+    void *MBEDTLS_PRIVATE(p_entropy);            /*!< context for the entropy function        */
 
 #if defined(MBEDTLS_THREADING_C)
     /* Invariant: the mutex is initialized if and only if
@@ -109,7 +110,7 @@ typedef struct mbedtls_hmac_drbg_context
      * Note that this invariant may change without notice. Do not rely on it
      * and do not access the mutex directly in application code.
      */
-    mbedtls_threading_mutex_t mutex;
+    mbedtls_threading_mutex_t MBEDTLS_PRIVATE(mutex);
 #endif
 } mbedtls_hmac_drbg_context;
 
@@ -294,8 +295,8 @@ void mbedtls_hmac_drbg_set_reseed_interval( mbedtls_hmac_drbg_context *ctx,
  * \return              \c 0 on success, or an error from the underlying
  *                      hash calculation.
  */
-int mbedtls_hmac_drbg_update_ret( mbedtls_hmac_drbg_context *ctx,
-                       const unsigned char *additional, size_t add_len );
+int mbedtls_hmac_drbg_update( mbedtls_hmac_drbg_context *ctx,
+                              const unsigned char *additional, size_t add_len );
 
 /**
  * \brief               This function reseeds the HMAC_DRBG context, that is

@@ -17,11 +17,7 @@
  *  limitations under the License.
  */
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -102,7 +98,8 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "\n  . Reading private key from '%s'", argv[1] );
     fflush( stdout );
 
-    if( ( ret = mbedtls_pk_parse_keyfile( &pk, argv[1], "" ) ) != 0 )
+    if( ( ret = mbedtls_pk_parse_keyfile( &pk, argv[1], "",
+                    mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! Could not read key from '%s'\n", argv[1] );
         mbedtls_printf( "  ! mbedtls_pk_parse_public_keyfile returned %d\n\n", ret );
@@ -115,7 +112,13 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    mbedtls_rsa_set_padding( mbedtls_pk_rsa( pk ), MBEDTLS_RSA_PKCS_V21, MBEDTLS_MD_SHA256 );
+    if( ( ret = mbedtls_rsa_set_padding( mbedtls_pk_rsa( pk ),
+                                         MBEDTLS_RSA_PKCS_V21,
+                                         MBEDTLS_MD_SHA256 ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! Padding not supported\n" );
+        goto exit;
+    }
 
     /*
      * Compute the SHA-256 hash of the input file,
@@ -132,8 +135,9 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    if( ( ret = mbedtls_pk_sign( &pk, MBEDTLS_MD_SHA256, hash, 0, buf, &olen,
-                         mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
+    if( ( ret = mbedtls_pk_sign( &pk, MBEDTLS_MD_SHA256, hash, 0,
+                                 buf, sizeof( buf ), &olen,
+                                 mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_pk_sign returned %d\n\n", ret );
         goto exit;

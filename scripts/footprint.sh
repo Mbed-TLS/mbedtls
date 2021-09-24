@@ -21,7 +21,7 @@
 # configurations, when built for a Cortex M3/M4 target.
 #
 # Configurations included:
-#   default    include/mbedtls/config.h
+#   default    include/mbedtls/mbedtls_config.h
 #   thread     configs/config-thread.h
 #   suite-b    configs/config-suite-b.h
 #   psk        configs/config-ccm-psk-tls1_2.h
@@ -30,7 +30,7 @@
 #
 set -eu
 
-CONFIG_H='include/mbedtls/config.h'
+CONFIG_H='include/mbedtls/mbedtls_config.h'
 
 if [ -r $CONFIG_H ]; then :; else
     echo "$CONFIG_H not found" >&2
@@ -112,7 +112,7 @@ log "mbed TLS $MBEDTLS_VERSION$GIT_VERSION"
 log "$( arm-none-eabi-gcc --version | head -n1 )"
 log "CFLAGS=$ARMGCC_FLAGS"
 
-doit default    include/mbedtls/config.h
+doit default    include/mbedtls/mbedtls_config.h
 doit thread     configs/config-thread.h
 doit suite-b    configs/config-suite-b.h
 doit psk        configs/config-ccm-psk-tls1_2.h

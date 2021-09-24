@@ -21,12 +21,9 @@
  */
 #ifndef MBEDTLS_PEM_H
 #define MBEDTLS_PEM_H
+#include "mbedtls/private_access.h"
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 #include <stddef.h>
 
@@ -36,15 +33,24 @@
  * PEM data.
  * \{
  */
-#define MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT          -0x1080  /**< No PEM header or footer found. */
-#define MBEDTLS_ERR_PEM_INVALID_DATA                      -0x1100  /**< PEM string is not as expected. */
-#define MBEDTLS_ERR_PEM_ALLOC_FAILED                      -0x1180  /**< Failed to allocate memory. */
-#define MBEDTLS_ERR_PEM_INVALID_ENC_IV                    -0x1200  /**< RSA IV is not in hex-format. */
-#define MBEDTLS_ERR_PEM_UNKNOWN_ENC_ALG                   -0x1280  /**< Unsupported key encryption algorithm. */
-#define MBEDTLS_ERR_PEM_PASSWORD_REQUIRED                 -0x1300  /**< Private key password can't be empty. */
-#define MBEDTLS_ERR_PEM_PASSWORD_MISMATCH                 -0x1380  /**< Given private key password does not allow for correct decryption. */
-#define MBEDTLS_ERR_PEM_FEATURE_UNAVAILABLE               -0x1400  /**< Unavailable feature, e.g. hashing/encryption combination. */
-#define MBEDTLS_ERR_PEM_BAD_INPUT_DATA                    -0x1480  /**< Bad input parameters to function. */
+/** No PEM header or footer found. */
+#define MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT          -0x1080
+/** PEM string is not as expected. */
+#define MBEDTLS_ERR_PEM_INVALID_DATA                      -0x1100
+/** Failed to allocate memory. */
+#define MBEDTLS_ERR_PEM_ALLOC_FAILED                      -0x1180
+/** RSA IV is not in hex-format. */
+#define MBEDTLS_ERR_PEM_INVALID_ENC_IV                    -0x1200
+/** Unsupported key encryption algorithm. */
+#define MBEDTLS_ERR_PEM_UNKNOWN_ENC_ALG                   -0x1280
+/** Private key password can't be empty. */
+#define MBEDTLS_ERR_PEM_PASSWORD_REQUIRED                 -0x1300
+/** Given private key password does not allow for correct decryption. */
+#define MBEDTLS_ERR_PEM_PASSWORD_MISMATCH                 -0x1380
+/** Unavailable feature, e.g. hashing/encryption combination. */
+#define MBEDTLS_ERR_PEM_FEATURE_UNAVAILABLE               -0x1400
+/** Bad input parameters to function. */
+#define MBEDTLS_ERR_PEM_BAD_INPUT_DATA                    -0x1480
 /* \} name */
 
 #ifdef __cplusplus
@@ -57,9 +63,9 @@ extern "C" {
  */
 typedef struct mbedtls_pem_context
 {
-    unsigned char *buf;     /*!< buffer for decoded data             */
-    size_t buflen;          /*!< length of the buffer                */
-    unsigned char *info;    /*!< buffer for extra header information */
+    unsigned char *MBEDTLS_PRIVATE(buf);     /*!< buffer for decoded data             */
+    size_t MBEDTLS_PRIVATE(buflen);          /*!< length of the buffer                */
+    unsigned char *MBEDTLS_PRIVATE(info);    /*!< buffer for extra header information */
 }
 mbedtls_pem_context;
 

@@ -199,6 +199,111 @@ psa_status_t mbedtls_psa_cipher_finish(
  */
 psa_status_t mbedtls_psa_cipher_abort( mbedtls_psa_cipher_operation_t *operation );
 
+/** Encrypt a message using a symmetric cipher.
+ *
+ * \note The signature of this function is that of a PSA driver
+ *       cipher_encrypt entry point. This function behaves as a
+ *       cipher_encrypt entry point as defined in the PSA driver
+ *       interface specification for transparent drivers.
+ *
+ * \param[in] attributes        The attributes of the key to use for the
+ *                              operation.
+ * \param[in] key_buffer        The buffer containing the key context.
+ * \param[in] key_buffer_size   Size of the \p key_buffer buffer in bytes.
+ * \param[in] alg               The cipher algorithm to compute
+ *                              (\c PSA_ALG_XXX value such that
+ *                              #PSA_ALG_IS_CIPHER(\p alg) is true).
+ * \param[in]  input            Buffer containing the message to encrypt.
+ * \param[in]  input_length     Size of the \p input buffer in bytes.
+ * \param[in,out] output        Buffer where the output is to be written.
+ *                              The core has generated and written the IV
+ *                              at the beginning of this buffer before
+ *                              this function is called. The size of the IV
+ *                              is PSA_CIPHER_IV_LENGTH( key_type, alg ) where
+ *                              \c key_type is the type of the key identified
+ *                              by \p key and \p alg is the cipher algorithm
+ *                              to compute.
+ * \param[in]  output_size      Size of the \p output buffer in bytes.
+ * \param[out] output_length    On success, the number of bytes that make up
+ *                              the returned output. Initialized to zero
+ *                              by the core.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p output buffer is too small.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The size of \p iv is not acceptable for the chosen algorithm,
+ *         or the chosen algorithm does not use an IV.
+ *         The total input size passed to this operation is not valid for
+ *         this particular algorithm. For example, the algorithm is a based
+ *         on block cipher and requires a whole number of blocks, but the
+ *         total input size is not a multiple of the block size.
+ * \retval #PSA_ERROR_INVALID_PADDING
+ *         This is a decryption operation for an algorithm that includes
+ *         padding, and the ciphertext does not contain valid padding.
+ */
+psa_status_t mbedtls_psa_cipher_encrypt( const psa_key_attributes_t *attributes,
+                                         const uint8_t *key_buffer,
+                                         size_t key_buffer_size,
+                                         psa_algorithm_t alg,
+                                         const uint8_t *input,
+                                         size_t input_length,
+                                         uint8_t *output,
+                                         size_t output_size,
+                                         size_t *output_length );
+
+/** Decrypt a message using a symmetric cipher.
+ *
+ * \note The signature of this function is that of a PSA driver
+ *       cipher_decrypt entry point. This function behaves as a
+ *       cipher_decrypt entry point as defined in the PSA driver
+ *       interface specification for transparent drivers.
+ *
+ * \param[in]  attributes       The attributes of the key to use for the
+ *                              operation.
+ * \param[in]  key_buffer       The buffer containing the key context.
+ * \param[in]  key_buffer_size  Size of the \p key_buffer buffer in bytes.
+ * \param[in]  alg              The cipher algorithm to compute
+ *                              (\c PSA_ALG_XXX value such that
+ *                              #PSA_ALG_IS_CIPHER(\p alg) is true).
+ * \param[in]  input            Buffer containing the iv and the ciphertext.
+ * \param[in]  input_length     Size of the \p input buffer in bytes.
+ * \param[out] output           Buffer where the output is to be written.
+ * \param[in]  output_size      Size of the \p output buffer in bytes.
+ * \param[out] output_length    On success, the number of bytes that make up
+ *                              the returned output. Initialized to zero
+ *                              by the core.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p output buffer is too small.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The size of \p iv is not acceptable for the chosen algorithm,
+ *         or the chosen algorithm does not use an IV.
+ *         The total input size passed to this operation is not valid for
+ *         this particular algorithm. For example, the algorithm is a based
+ *         on block cipher and requires a whole number of blocks, but the
+ *         total input size is not a multiple of the block size.
+ * \retval #PSA_ERROR_INVALID_PADDING
+ *         This is a decryption operation for an algorithm that includes
+ *         padding, and the ciphertext does not contain valid padding.
+ */
+psa_status_t mbedtls_psa_cipher_decrypt( const psa_key_attributes_t *attributes,
+                                         const uint8_t *key_buffer,
+                                         size_t key_buffer_size,
+                                         psa_algorithm_t alg,
+                                         const uint8_t *input,
+                                         size_t input_length,
+                                         uint8_t *output,
+                                         size_t output_size,
+                                         size_t *output_length );
+
 /*
  * BEYOND THIS POINT, TEST DRIVER ENTRY POINTS ONLY.
  */
@@ -231,6 +336,28 @@ psa_status_t mbedtls_transparent_test_driver_cipher_finish(
 
 psa_status_t mbedtls_transparent_test_driver_cipher_abort(
     mbedtls_psa_cipher_operation_t *operation );
+
+psa_status_t mbedtls_transparent_test_driver_cipher_encrypt(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer,
+    size_t key_buffer_size,
+    psa_algorithm_t alg,
+    const uint8_t *input,
+    size_t input_length,
+    uint8_t *output,
+    size_t output_size,
+    size_t *output_length );
+
+psa_status_t mbedtls_transparent_test_driver_cipher_decrypt(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer,
+    size_t key_buffer_size,
+    psa_algorithm_t alg,
+    const uint8_t *input,
+    size_t input_length,
+    uint8_t *output,
+    size_t output_size,
+    size_t *output_length );
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 
 #endif /* PSA_CRYPTO_CIPHER_H */

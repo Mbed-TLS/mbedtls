@@ -48,29 +48,6 @@
 
 #if !defined(MBEDTLS_SHA1_ALT)
 
-/*
- * 32-bit integer manipulation macros (big endian)
- */
-#ifndef GET_UINT32_BE
-#define GET_UINT32_BE(n,b,i)                            \
-{                                                       \
-    (n) = ( (uint32_t) (b)[(i)    ] << 24 )             \
-        | ( (uint32_t) (b)[(i) + 1] << 16 )             \
-        | ( (uint32_t) (b)[(i) + 2] <<  8 )             \
-        | ( (uint32_t) (b)[(i) + 3]       );            \
-}
-#endif
-
-#ifndef PUT_UINT32_BE
-#define PUT_UINT32_BE(n,b,i)                            \
-{                                                       \
-    (b)[(i)    ] = (unsigned char) ( (n) >> 24 );       \
-    (b)[(i) + 1] = (unsigned char) ( (n) >> 16 );       \
-    (b)[(i) + 2] = (unsigned char) ( (n) >>  8 );       \
-    (b)[(i) + 3] = (unsigned char) ( (n)       );       \
-}
-#endif
-
 void mbedtls_sha1_init( mbedtls_sha1_context *ctx )
 {
     SHA1_VALIDATE( ctx != NULL );
@@ -98,7 +75,7 @@ void mbedtls_sha1_clone( mbedtls_sha1_context *dst,
 /*
  * SHA-1 context setup
  */
-int mbedtls_sha1_starts_ret( mbedtls_sha1_context *ctx )
+int mbedtls_sha1_starts( mbedtls_sha1_context *ctx )
 {
     SHA1_VALIDATE_RET( ctx != NULL );
 
@@ -126,22 +103,22 @@ int mbedtls_internal_sha1_process( mbedtls_sha1_context *ctx,
     SHA1_VALIDATE_RET( ctx != NULL );
     SHA1_VALIDATE_RET( (const unsigned char *)data != NULL );
 
-    GET_UINT32_BE( local.W[ 0], data,  0 );
-    GET_UINT32_BE( local.W[ 1], data,  4 );
-    GET_UINT32_BE( local.W[ 2], data,  8 );
-    GET_UINT32_BE( local.W[ 3], data, 12 );
-    GET_UINT32_BE( local.W[ 4], data, 16 );
-    GET_UINT32_BE( local.W[ 5], data, 20 );
-    GET_UINT32_BE( local.W[ 6], data, 24 );
-    GET_UINT32_BE( local.W[ 7], data, 28 );
-    GET_UINT32_BE( local.W[ 8], data, 32 );
-    GET_UINT32_BE( local.W[ 9], data, 36 );
-    GET_UINT32_BE( local.W[10], data, 40 );
-    GET_UINT32_BE( local.W[11], data, 44 );
-    GET_UINT32_BE( local.W[12], data, 48 );
-    GET_UINT32_BE( local.W[13], data, 52 );
-    GET_UINT32_BE( local.W[14], data, 56 );
-    GET_UINT32_BE( local.W[15], data, 60 );
+    local.W[ 0] = MBEDTLS_GET_UINT32_BE( data,  0 );
+    local.W[ 1] = MBEDTLS_GET_UINT32_BE( data,  4 );
+    local.W[ 2] = MBEDTLS_GET_UINT32_BE( data,  8 );
+    local.W[ 3] = MBEDTLS_GET_UINT32_BE( data, 12 );
+    local.W[ 4] = MBEDTLS_GET_UINT32_BE( data, 16 );
+    local.W[ 5] = MBEDTLS_GET_UINT32_BE( data, 20 );
+    local.W[ 6] = MBEDTLS_GET_UINT32_BE( data, 24 );
+    local.W[ 7] = MBEDTLS_GET_UINT32_BE( data, 28 );
+    local.W[ 8] = MBEDTLS_GET_UINT32_BE( data, 32 );
+    local.W[ 9] = MBEDTLS_GET_UINT32_BE( data, 36 );
+    local.W[10] = MBEDTLS_GET_UINT32_BE( data, 40 );
+    local.W[11] = MBEDTLS_GET_UINT32_BE( data, 44 );
+    local.W[12] = MBEDTLS_GET_UINT32_BE( data, 48 );
+    local.W[13] = MBEDTLS_GET_UINT32_BE( data, 52 );
+    local.W[14] = MBEDTLS_GET_UINT32_BE( data, 56 );
+    local.W[15] = MBEDTLS_GET_UINT32_BE( data, 60 );
 
 #define S(x,n) (((x) << (n)) | (((x) & 0xFFFFFFFF) >> (32 - (n))))
 
@@ -292,7 +269,7 @@ int mbedtls_internal_sha1_process( mbedtls_sha1_context *ctx,
 /*
  * SHA-1 process buffer
  */
-int mbedtls_sha1_update_ret( mbedtls_sha1_context *ctx,
+int mbedtls_sha1_update( mbedtls_sha1_context *ctx,
                              const unsigned char *input,
                              size_t ilen )
 {
@@ -345,7 +322,7 @@ int mbedtls_sha1_update_ret( mbedtls_sha1_context *ctx,
 /*
  * SHA-1 final digest
  */
-int mbedtls_sha1_finish_ret( mbedtls_sha1_context *ctx,
+int mbedtls_sha1_finish( mbedtls_sha1_context *ctx,
                              unsigned char output[20] )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -385,8 +362,8 @@ int mbedtls_sha1_finish_ret( mbedtls_sha1_context *ctx,
          | ( ctx->total[1] <<  3 );
     low  = ( ctx->total[0] <<  3 );
 
-    PUT_UINT32_BE( high, ctx->buffer, 56 );
-    PUT_UINT32_BE( low,  ctx->buffer, 60 );
+    MBEDTLS_PUT_UINT32_BE( high, ctx->buffer, 56 );
+    MBEDTLS_PUT_UINT32_BE( low,  ctx->buffer, 60 );
 
     if( ( ret = mbedtls_internal_sha1_process( ctx, ctx->buffer ) ) != 0 )
         return( ret );
@@ -394,11 +371,11 @@ int mbedtls_sha1_finish_ret( mbedtls_sha1_context *ctx,
     /*
      * Output final state
      */
-    PUT_UINT32_BE( ctx->state[0], output,  0 );
-    PUT_UINT32_BE( ctx->state[1], output,  4 );
-    PUT_UINT32_BE( ctx->state[2], output,  8 );
-    PUT_UINT32_BE( ctx->state[3], output, 12 );
-    PUT_UINT32_BE( ctx->state[4], output, 16 );
+    MBEDTLS_PUT_UINT32_BE( ctx->state[0], output,  0 );
+    MBEDTLS_PUT_UINT32_BE( ctx->state[1], output,  4 );
+    MBEDTLS_PUT_UINT32_BE( ctx->state[2], output,  8 );
+    MBEDTLS_PUT_UINT32_BE( ctx->state[3], output, 12 );
+    MBEDTLS_PUT_UINT32_BE( ctx->state[4], output, 16 );
 
     return( 0 );
 }
@@ -408,7 +385,7 @@ int mbedtls_sha1_finish_ret( mbedtls_sha1_context *ctx,
 /*
  * output = SHA-1( input buffer )
  */
-int mbedtls_sha1_ret( const unsigned char *input,
+int mbedtls_sha1( const unsigned char *input,
                       size_t ilen,
                       unsigned char output[20] )
 {
@@ -420,13 +397,13 @@ int mbedtls_sha1_ret( const unsigned char *input,
 
     mbedtls_sha1_init( &ctx );
 
-    if( ( ret = mbedtls_sha1_starts_ret( &ctx ) ) != 0 )
+    if( ( ret = mbedtls_sha1_starts( &ctx ) ) != 0 )
         goto exit;
 
-    if( ( ret = mbedtls_sha1_update_ret( &ctx, input, ilen ) ) != 0 )
+    if( ( ret = mbedtls_sha1_update( &ctx, input, ilen ) ) != 0 )
         goto exit;
 
-    if( ( ret = mbedtls_sha1_finish_ret( &ctx, output ) ) != 0 )
+    if( ( ret = mbedtls_sha1_finish( &ctx, output ) ) != 0 )
         goto exit;
 
 exit:
@@ -481,7 +458,7 @@ int mbedtls_sha1_self_test( int verbose )
         if( verbose != 0 )
             mbedtls_printf( "  SHA-1 test #%d: ", i + 1 );
 
-        if( ( ret = mbedtls_sha1_starts_ret( &ctx ) ) != 0 )
+        if( ( ret = mbedtls_sha1_starts( &ctx ) ) != 0 )
             goto fail;
 
         if( i == 2 )
@@ -490,20 +467,20 @@ int mbedtls_sha1_self_test( int verbose )
 
             for( j = 0; j < 1000; j++ )
             {
-                ret = mbedtls_sha1_update_ret( &ctx, buf, buflen );
+                ret = mbedtls_sha1_update( &ctx, buf, buflen );
                 if( ret != 0 )
                     goto fail;
             }
         }
         else
         {
-            ret = mbedtls_sha1_update_ret( &ctx, sha1_test_buf[i],
+            ret = mbedtls_sha1_update( &ctx, sha1_test_buf[i],
                                            sha1_test_buflen[i] );
             if( ret != 0 )
                 goto fail;
         }
 
-        if( ( ret = mbedtls_sha1_finish_ret( &ctx, sha1sum ) ) != 0 )
+        if( ( ret = mbedtls_sha1_finish( &ctx, sha1sum ) ) != 0 )
             goto fail;
 
         if( memcmp( sha1sum, sha1_test_sum[i], 20 ) != 0 )

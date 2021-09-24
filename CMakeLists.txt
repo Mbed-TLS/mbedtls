@@ -16,7 +16,11 @@
 #   mbedtls, mbedx509, mbedcrypto and apidoc targets.
 #
 
-cmake_minimum_required(VERSION 2.8.12)
+# We specify a minimum requirement of 3.10.2, but for now use 3.5.1 here
+# until our infrastructure catches up.
+cmake_minimum_required(VERSION 3.5.1)
+
+include(CMakePackageConfigHelpers)
 
 # https://cmake.org/cmake/help/latest/policy/CMP0011.html
 # Setting this policy is required in CMake >= 3.18.0, otherwise a warning is generated. The OLD
@@ -82,7 +86,7 @@ endif()
 if(MBEDTLS_PYTHON_EXECUTABLE)
 
     # If 128-bit keys are configured for CTR_DRBG, display an appropriate warning
-    execute_process(COMMAND ${MBEDTLS_PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/config.py -f ${CMAKE_CURRENT_SOURCE_DIR}/include/mbedtls/config.h get MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
+    execute_process(COMMAND ${MBEDTLS_PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/config.py -f ${CMAKE_CURRENT_SOURCE_DIR}/include/mbedtls/mbedtls_config.h get MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
                         RESULT_VARIABLE result)
     if(${result} EQUAL 0)
         message(WARNING ${CTR_DRBG_128_BIT_KEY_WARNING})
@@ -221,7 +225,6 @@ endif()
 add_subdirectory(include)
 
 add_subdirectory(3rdparty)
-list(APPEND libs ${thirdparty_lib})
 
 add_subdirectory(library)
 
@@ -299,4 +302,38 @@ if(ENABLE_TESTING)
         configure_file(${CMAKE_CURRENT_SOURCE_DIR}/DartConfiguration.tcl
                     ${CMAKE_CURRENT_BINARY_DIR}/DartConfiguration.tcl COPYONLY)
     endif()
+endif()
+
+configure_package_config_file(
+    "cmake/MbedTLSConfig.cmake.in"
+    "cmake/MbedTLSConfig.cmake"
+        INSTALL_DESTINATION "cmake")
+
+write_basic_package_version_file(
+    "cmake/MbedTLSConfigVersion.cmake"
+        COMPATIBILITY SameMajorVersion
+        VERSION 3.0.0)
+
+install(
+    FILES "${CMAKE_CURRENT_BINARY_DIR}/cmake/MbedTLSConfig.cmake"
+          "${CMAKE_CURRENT_BINARY_DIR}/cmake/MbedTLSConfigVersion.cmake"
+    DESTINATION "cmake")
+
+export(
+    EXPORT MbedTLSTargets
+    NAMESPACE MbedTLS::
+    FILE "cmake/MbedTLSTargets.cmake")
+
+install(
+    EXPORT MbedTLSTargets
+    NAMESPACE MbedTLS::
+    DESTINATION "cmake"
+    FILE "MbedTLSTargets.cmake")
+
+if(CMAKE_VERSION VERSION_GREATER 3.15 OR CMAKE_VERSION VERSION_EQUAL 3.15)
+    # Do not export the package by default
+    cmake_policy(SET CMP0090 NEW)
+
+    # Make this package visible to the system
+    export(PACKAGE MbedTLS)
 endif()

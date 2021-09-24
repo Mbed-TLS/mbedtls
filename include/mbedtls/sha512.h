@@ -23,17 +23,15 @@
  */
 #ifndef MBEDTLS_SHA512_H
 #define MBEDTLS_SHA512_H
+#include "mbedtls/private_access.h"
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 #include <stddef.h>
 #include <stdint.h>
 
-#define MBEDTLS_ERR_SHA512_BAD_INPUT_DATA                 -0x0075  /**< SHA-512 input data was malformed. */
+/** SHA-512 input data was malformed. */
+#define MBEDTLS_ERR_SHA512_BAD_INPUT_DATA                 -0x0075
 
 #ifdef __cplusplus
 extern "C" {
@@ -48,16 +46,16 @@ extern "C" {
  *
  *                 The structure is used both for SHA-384 and for SHA-512
  *                 checksum calculations. The choice between these two is
- *                 made in the call to mbedtls_sha512_starts_ret().
+ *                 made in the call to mbedtls_sha512_starts().
  */
 typedef struct mbedtls_sha512_context
 {
-    uint64_t total[2];          /*!< The number of Bytes processed. */
-    uint64_t state[8];          /*!< The intermediate digest state. */
-    unsigned char buffer[128];  /*!< The data block being processed. */
+    uint64_t MBEDTLS_PRIVATE(total)[2];          /*!< The number of Bytes processed. */
+    uint64_t MBEDTLS_PRIVATE(state)[8];          /*!< The intermediate digest state. */
+    unsigned char MBEDTLS_PRIVATE(buffer)[128];  /*!< The data block being processed. */
 #if defined(MBEDTLS_SHA384_C)
-    int is384;                  /*!< Determines which function to use:
-                                     0: Use SHA-512, or 1: Use SHA-384. */
+    int MBEDTLS_PRIVATE(is384);                  /*!< Determines which function to use:
+                                                      0: Use SHA-512, or 1: Use SHA-384. */
 #endif
 }
 mbedtls_sha512_context;
@@ -108,7 +106,7 @@ void mbedtls_sha512_clone( mbedtls_sha512_context *dst,
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
-int mbedtls_sha512_starts_ret( mbedtls_sha512_context *ctx, int is384 );
+int mbedtls_sha512_starts( mbedtls_sha512_context *ctx, int is384 );
 
 /**
  * \brief          This function feeds an input buffer into an ongoing
@@ -123,9 +121,9 @@ int mbedtls_sha512_starts_ret( mbedtls_sha512_context *ctx, int is384 );
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
-int mbedtls_sha512_update_ret( mbedtls_sha512_context *ctx,
-                    const unsigned char *input,
-                    size_t ilen );
+int mbedtls_sha512_update( mbedtls_sha512_context *ctx,
+                           const unsigned char *input,
+                           size_t ilen );
 
 /**
  * \brief          This function finishes the SHA-512 operation, and writes
@@ -140,8 +138,8 @@ int mbedtls_sha512_update_ret( mbedtls_sha512_context *ctx,
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
-int mbedtls_sha512_finish_ret( mbedtls_sha512_context *ctx,
-                               unsigned char *output );
+int mbedtls_sha512_finish( mbedtls_sha512_context *ctx,
+                           unsigned char *output );
 
 /**
  * \brief          This function processes a single data block within
@@ -184,10 +182,10 @@ int mbedtls_internal_sha512_process( mbedtls_sha512_context *ctx,
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
-int mbedtls_sha512_ret( const unsigned char *input,
-                        size_t ilen,
-                        unsigned char *output,
-                        int is384 );
+int mbedtls_sha512( const unsigned char *input,
+                    size_t ilen,
+                    unsigned char *output,
+                    int is384 );
 
 #if defined(MBEDTLS_SELF_TEST)
 

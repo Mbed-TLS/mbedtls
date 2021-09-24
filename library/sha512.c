@@ -56,44 +56,13 @@
 
 #if !defined(MBEDTLS_SHA512_ALT)
 
-/*
- * 64-bit integer manipulation macros (big endian)
- */
-#ifndef GET_UINT64_BE
-#define GET_UINT64_BE(n,b,i)                            \
-{                                                       \
-    (n) = ( (uint64_t) (b)[(i)    ] << 56 )       \
-        | ( (uint64_t) (b)[(i) + 1] << 48 )       \
-        | ( (uint64_t) (b)[(i) + 2] << 40 )       \
-        | ( (uint64_t) (b)[(i) + 3] << 32 )       \
-        | ( (uint64_t) (b)[(i) + 4] << 24 )       \
-        | ( (uint64_t) (b)[(i) + 5] << 16 )       \
-        | ( (uint64_t) (b)[(i) + 6] <<  8 )       \
-        | ( (uint64_t) (b)[(i) + 7]       );      \
-}
-#endif /* GET_UINT64_BE */
-
-#ifndef PUT_UINT64_BE
-#define PUT_UINT64_BE(n,b,i)                            \
-{                                                       \
-    (b)[(i)    ] = (unsigned char) ( (n) >> 56 );       \
-    (b)[(i) + 1] = (unsigned char) ( (n) >> 48 );       \
-    (b)[(i) + 2] = (unsigned char) ( (n) >> 40 );       \
-    (b)[(i) + 3] = (unsigned char) ( (n) >> 32 );       \
-    (b)[(i) + 4] = (unsigned char) ( (n) >> 24 );       \
-    (b)[(i) + 5] = (unsigned char) ( (n) >> 16 );       \
-    (b)[(i) + 6] = (unsigned char) ( (n) >>  8 );       \
-    (b)[(i) + 7] = (unsigned char) ( (n)       );       \
-}
-#endif /* PUT_UINT64_BE */
-
 #if defined(MBEDTLS_SHA512_SMALLER)
 static void sha512_put_uint64_be( uint64_t n, unsigned char *b, uint8_t i )
 {
-    PUT_UINT64_BE(n, b, i);
+    MBEDTLS_PUT_UINT64_BE(n, b, i);
 }
 #else
-#define sha512_put_uint64_be    PUT_UINT64_BE
+#define sha512_put_uint64_be    MBEDTLS_PUT_UINT64_BE
 #endif /* MBEDTLS_SHA512_SMALLER */
 
 void mbedtls_sha512_init( mbedtls_sha512_context *ctx )
@@ -123,7 +92,7 @@ void mbedtls_sha512_clone( mbedtls_sha512_context *dst,
 /*
  * SHA-512 context setup
  */
-int mbedtls_sha512_starts_ret( mbedtls_sha512_context *ctx, int is384 )
+int mbedtls_sha512_starts( mbedtls_sha512_context *ctx, int is384 )
 {
     SHA512_VALIDATE_RET( ctx != NULL );
 #if defined(MBEDTLS_SHA384_C)
@@ -261,7 +230,7 @@ int mbedtls_internal_sha512_process( mbedtls_sha512_context *ctx,
     {
         if( i < 16 )
         {
-            GET_UINT64_BE( local.W[i], data, i << 3 );
+            local.W[i] = MBEDTLS_GET_UINT64_BE( data, i << 3 );
         }
         else
         {
@@ -281,7 +250,7 @@ int mbedtls_internal_sha512_process( mbedtls_sha512_context *ctx,
 #else /* MBEDTLS_SHA512_SMALLER */
     for( i = 0; i < 16; i++ )
     {
-        GET_UINT64_BE( local.W[i], data, i << 3 );
+        local.W[i] = MBEDTLS_GET_UINT64_BE( data, i << 3 );
     }
 
     for( ; i < 80; i++ )
@@ -327,7 +296,7 @@ int mbedtls_internal_sha512_process( mbedtls_sha512_context *ctx,
 /*
  * SHA-512 process buffer
  */
-int mbedtls_sha512_update_ret( mbedtls_sha512_context *ctx,
+int mbedtls_sha512_update( mbedtls_sha512_context *ctx,
                                const unsigned char *input,
                                size_t ilen )
 {
@@ -379,7 +348,7 @@ int mbedtls_sha512_update_ret( mbedtls_sha512_context *ctx,
 /*
  * SHA-512 final digest
  */
-int mbedtls_sha512_finish_ret( mbedtls_sha512_context *ctx,
+int mbedtls_sha512_finish( mbedtls_sha512_context *ctx,
                                unsigned char *output )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -451,7 +420,7 @@ int mbedtls_sha512_finish_ret( mbedtls_sha512_context *ctx,
 /*
  * output = SHA-512( input buffer )
  */
-int mbedtls_sha512_ret( const unsigned char *input,
+int mbedtls_sha512( const unsigned char *input,
                     size_t ilen,
                     unsigned char *output,
                     int is384 )
@@ -469,13 +438,13 @@ int mbedtls_sha512_ret( const unsigned char *input,
 
     mbedtls_sha512_init( &ctx );
 
-    if( ( ret = mbedtls_sha512_starts_ret( &ctx, is384 ) ) != 0 )
+    if( ( ret = mbedtls_sha512_starts( &ctx, is384 ) ) != 0 )
         goto exit;
 
-    if( ( ret = mbedtls_sha512_update_ret( &ctx, input, ilen ) ) != 0 )
+    if( ( ret = mbedtls_sha512_update( &ctx, input, ilen ) ) != 0 )
         goto exit;
 
-    if( ( ret = mbedtls_sha512_finish_ret( &ctx, output ) ) != 0 )
+    if( ( ret = mbedtls_sha512_finish( &ctx, output ) ) != 0 )
         goto exit;
 
 exit:
@@ -591,7 +560,7 @@ int mbedtls_sha512_self_test( int verbose )
         if( verbose != 0 )
             mbedtls_printf( "  SHA-%d test #%d: ", 512 - k * 128, j + 1 );
 
-        if( ( ret = mbedtls_sha512_starts_ret( &ctx, k ) ) != 0 )
+        if( ( ret = mbedtls_sha512_starts( &ctx, k ) ) != 0 )
             goto fail;
 
         if( j == 2 )
@@ -600,20 +569,20 @@ int mbedtls_sha512_self_test( int verbose )
 
             for( j = 0; j < 1000; j++ )
             {
-                ret = mbedtls_sha512_update_ret( &ctx, buf, buflen );
+                ret = mbedtls_sha512_update( &ctx, buf, buflen );
                 if( ret != 0 )
                     goto fail;
             }
         }
         else
         {
-            ret = mbedtls_sha512_update_ret( &ctx, sha512_test_buf[j],
+            ret = mbedtls_sha512_update( &ctx, sha512_test_buf[j],
                                              sha512_test_buflen[j] );
             if( ret != 0 )
                 goto fail;
         }
 
-        if( ( ret = mbedtls_sha512_finish_ret( &ctx, sha512sum ) ) != 0 )
+        if( ( ret = mbedtls_sha512_finish( &ctx, sha512sum ) ) != 0 )
             goto fail;
 
         if( memcmp( sha512sum, sha512_test_sum[i], 64 - k * 16 ) != 0 )

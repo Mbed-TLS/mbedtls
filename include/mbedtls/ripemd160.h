@@ -21,12 +21,9 @@
  */
 #ifndef MBEDTLS_RIPEMD160_H
 #define MBEDTLS_RIPEMD160_H
+#include "mbedtls/private_access.h"
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -44,9 +41,9 @@ extern "C" {
  */
 typedef struct mbedtls_ripemd160_context
 {
-    uint32_t total[2];          /*!< number of bytes processed  */
-    uint32_t state[5];          /*!< intermediate digest state  */
-    unsigned char buffer[64];   /*!< data block being processed */
+    uint32_t MBEDTLS_PRIVATE(total)[2];          /*!< number of bytes processed  */
+    uint32_t MBEDTLS_PRIVATE(state)[5];          /*!< intermediate digest state  */
+    unsigned char MBEDTLS_PRIVATE(buffer)[64];   /*!< data block being processed */
 }
 mbedtls_ripemd160_context;
 
@@ -84,7 +81,7 @@ void mbedtls_ripemd160_clone( mbedtls_ripemd160_context *dst,
  *
  * \return         0 if successful
  */
-int mbedtls_ripemd160_starts_ret( mbedtls_ripemd160_context *ctx );
+int mbedtls_ripemd160_starts( mbedtls_ripemd160_context *ctx );
 
 /**
  * \brief          RIPEMD-160 process buffer
@@ -95,9 +92,9 @@ int mbedtls_ripemd160_starts_ret( mbedtls_ripemd160_context *ctx );
  *
  * \return         0 if successful
  */
-int mbedtls_ripemd160_update_ret( mbedtls_ripemd160_context *ctx,
-                                  const unsigned char *input,
-                                  size_t ilen );
+int mbedtls_ripemd160_update( mbedtls_ripemd160_context *ctx,
+                              const unsigned char *input,
+                              size_t ilen );
 
 /**
  * \brief          RIPEMD-160 final digest
@@ -107,8 +104,8 @@ int mbedtls_ripemd160_update_ret( mbedtls_ripemd160_context *ctx,
  *
  * \return         0 if successful
  */
-int mbedtls_ripemd160_finish_ret( mbedtls_ripemd160_context *ctx,
-                                  unsigned char output[20] );
+int mbedtls_ripemd160_finish( mbedtls_ripemd160_context *ctx,
+                              unsigned char output[20] );
 
 /**
  * \brief          RIPEMD-160 process data block (internal use only)
@@ -130,9 +127,9 @@ int mbedtls_internal_ripemd160_process( mbedtls_ripemd160_context *ctx,
  *
  * \return         0 if successful
  */
-int mbedtls_ripemd160_ret( const unsigned char *input,
-                           size_t ilen,
-                           unsigned char output[20] );
+int mbedtls_ripemd160( const unsigned char *input,
+                       size_t ilen,
+                       unsigned char output[20] );
 
 #if defined(MBEDTLS_SELF_TEST)
 

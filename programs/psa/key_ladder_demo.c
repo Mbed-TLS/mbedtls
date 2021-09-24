@@ -50,11 +50,7 @@
 /* First include Mbed TLS headers to get the Mbed TLS configuration and
  * platform definitions that we'll use in this program. Also include
  * standard C headers for functions we'll use here. */
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 #include <stdlib.h>
 #include <stdio.h>

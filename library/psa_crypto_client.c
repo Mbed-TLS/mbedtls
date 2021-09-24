@@ -19,7 +19,6 @@
  */
 
 #include "common.h"
-#include "psa_crypto_service_integration.h"
 #include "psa/crypto.h"
 
 #if defined(MBEDTLS_PSA_CRYPTO_CLIENT)

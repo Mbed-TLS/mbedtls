@@ -178,7 +178,7 @@ int mbedtls_x509write_crt_set_subject_key_identifier( mbedtls_x509write_cert *ct
     MBEDTLS_ASN1_CHK_ADD( len,
                 mbedtls_pk_write_pubkey( &c, buf, ctx->subject_key ) );
 
-    ret = mbedtls_sha1_ret( buf + sizeof( buf ) - len, len,
+    ret = mbedtls_sha1( buf + sizeof( buf ) - len, len,
                             buf + sizeof( buf ) - 20 );
     if( ret != 0 )
         return( ret );
@@ -206,7 +206,7 @@ int mbedtls_x509write_crt_set_authority_key_identifier( mbedtls_x509write_cert *
     MBEDTLS_ASN1_CHK_ADD( len,
                           mbedtls_pk_write_pubkey( &c, buf, ctx->issuer_key ) );
 
-    ret = mbedtls_sha1_ret( buf + sizeof( buf ) - len, len,
+    ret = mbedtls_sha1( buf + sizeof( buf ) - len, len,
                             buf + sizeof( buf ) - 20 );
     if( ret != 0 )
         return( ret );
@@ -251,8 +251,7 @@ int mbedtls_x509write_crt_set_key_usage( mbedtls_x509write_cert *ctx,
         return( MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE );
 
     c = buf + 5;
-    ku[0] = (unsigned char)( key_usage      );
-    ku[1] = (unsigned char)( key_usage >> 8 );
+    MBEDTLS_PUT_UINT16_LE( key_usage, ku, 0 );
     ret = mbedtls_asn1_write_named_bitstring( &c, buf, ku, 9 );
 
     if( ret < 0 )
@@ -474,7 +473,7 @@ int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx,
     }
 
     if( ( ret = mbedtls_pk_sign( ctx->issuer_key, ctx->md_alg,
-                                 hash, 0, sig, &sig_len,
+                                 hash, 0, sig, sizeof( sig ), &sig_len,
                                  f_rng, p_rng ) ) != 0 )
     {
         return( ret );

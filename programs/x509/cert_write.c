@@ -17,11 +17,7 @@
  *  limitations under the License.
  */
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -119,7 +115,7 @@ int main( void )
     "    max_pathlen=%%d          default: -1 (none)\n"     \
     "    md=%%s                   default: SHA256\n"        \
     "                            Supported values (if enabled):\n"      \
-    "                            MD2, MD4, MD5, RIPEMD160, SHA1,\n" \
+    "                            MD5, RIPEMD160, SHA1,\n" \
     "                            SHA224, SHA256, SHA384, SHA512\n" \
     "    version=%%d              default: 3\n"            \
     "                            Possible values: 1, 2, 3\n"\
@@ -518,7 +514,7 @@ int main( int argc, char *argv[] )
         }
 
         ret = mbedtls_x509_dn_gets( issuer_name, sizeof(issuer_name),
-                                 &issuer_crt.subject );
+                                 &issuer_crt.MBEDTLS_PRIVATE(subject) );
         if( ret < 0 )
         {
             mbedtls_strerror( ret, buf, 1024 );
@@ -552,7 +548,7 @@ int main( int argc, char *argv[] )
         }
 
         ret = mbedtls_x509_dn_gets( subject_name, sizeof(subject_name),
-                                 &csr.subject );
+                                 &csr.MBEDTLS_PRIVATE(subject) );
         if( ret < 0 )
         {
             mbedtls_strerror( ret, buf, 1024 );
@@ -562,7 +558,7 @@ int main( int argc, char *argv[] )
         }
 
         opt.subject_name = subject_name;
-        subject_key = &csr.pk;
+        subject_key = &csr.MBEDTLS_PRIVATE(pk);
 
         mbedtls_printf( " ok\n" );
     }
@@ -577,7 +573,7 @@ int main( int argc, char *argv[] )
         fflush( stdout );
 
         ret = mbedtls_pk_parse_keyfile( &loaded_subject_key, opt.subject_key,
-                                 opt.subject_pwd );
+                opt.subject_pwd, mbedtls_ctr_drbg_random, &ctr_drbg );
         if( ret != 0 )
         {
             mbedtls_strerror( ret, buf, 1024 );
@@ -593,7 +589,7 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
     ret = mbedtls_pk_parse_keyfile( &loaded_issuer_key, opt.issuer_key,
-                             opt.issuer_pwd );
+            opt.issuer_pwd, mbedtls_ctr_drbg_random, &ctr_drbg );
     if( ret != 0 )
     {
         mbedtls_strerror( ret, buf, 1024 );
@@ -606,7 +602,8 @@ int main( int argc, char *argv[] )
     //
     if( strlen( opt.issuer_crt ) )
     {
-        if( mbedtls_pk_check_pair( &issuer_crt.pk, issuer_key ) != 0 )
+        if( mbedtls_pk_check_pair( &issuer_crt.MBEDTLS_PRIVATE(pk), issuer_key,
+                                   mbedtls_ctr_drbg_random, &ctr_drbg ) != 0 )
         {
             mbedtls_printf( " failed\n  !  issuer_key does not match "
                             "issuer certificate\n\n" );

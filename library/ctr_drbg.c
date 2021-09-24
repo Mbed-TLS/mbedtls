@@ -152,11 +152,8 @@ static int block_cipher_df( unsigned char *output,
      *     (Total is padded to a multiple of 16-bytes with zeroes)
      */
     p = buf + MBEDTLS_CTR_DRBG_BLOCKSIZE;
-    *p++ = ( data_len >> 24 ) & 0xff;
-    *p++ = ( data_len >> 16 ) & 0xff;
-    *p++ = ( data_len >> 8  ) & 0xff;
-    *p++ = ( data_len       ) & 0xff;
-    p += 3;
+    MBEDTLS_PUT_UINT32_BE( data_len, p, 0);
+    p += 4 + 3;
     *p++ = MBEDTLS_CTR_DRBG_SEEDLEN;
     memcpy( p, data, data_len );
     p[data_len] = 0x80;
@@ -304,7 +301,7 @@ exit:
 }
 
 /* CTR_DRBG_Instantiate with derivation function (SP 800-90A &sect;10.2.1.3.2)
- * mbedtls_ctr_drbg_update_ret(ctx, additional, add_len)
+ * mbedtls_ctr_drbg_update(ctx, additional, add_len)
  * implements
  * CTR_DRBG_Instantiate(entropy_input, nonce, personalization_string,
  *                      security_strength) -> initial_working_state
@@ -315,7 +312,7 @@ exit:
  * and with outputs
  *   ctx = initial_working_state
  */
-int mbedtls_ctr_drbg_update_ret( mbedtls_ctr_drbg_context *ctx,
+int mbedtls_ctr_drbg_update( mbedtls_ctr_drbg_context *ctx,
                                  const unsigned char *additional,
                                  size_t add_len )
 {
@@ -657,7 +654,7 @@ int mbedtls_ctr_drbg_update_seed_file( mbedtls_ctr_drbg_context *ctx,
     fclose( f );
     f = NULL;
 
-    ret = mbedtls_ctr_drbg_update_ret( ctx, buf, n );
+    ret = mbedtls_ctr_drbg_update( ctx, buf, n );
 
 exit:
     mbedtls_platform_zeroize( buf, sizeof( buf ) );

@@ -24,19 +24,20 @@
 
 #ifndef MBEDTLS_MD_H
 #define MBEDTLS_MD_H
+#include "mbedtls/private_access.h"
 
 #include <stddef.h>
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
-#define MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE                -0x5080  /**< The selected feature is not available. */
-#define MBEDTLS_ERR_MD_BAD_INPUT_DATA                     -0x5100  /**< Bad input parameters to function. */
-#define MBEDTLS_ERR_MD_ALLOC_FAILED                       -0x5180  /**< Failed to allocate memory. */
-#define MBEDTLS_ERR_MD_FILE_IO_ERROR                      -0x5200  /**< Opening or reading of file failed. */
+/** The selected feature is not available. */
+#define MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE                -0x5080
+/** Bad input parameters to function. */
+#define MBEDTLS_ERR_MD_BAD_INPUT_DATA                     -0x5100
+/** Failed to allocate memory. */
+#define MBEDTLS_ERR_MD_ALLOC_FAILED                       -0x5180
+/** Opening or reading of file failed. */
+#define MBEDTLS_ERR_MD_FILE_IO_ERROR                      -0x5200
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,15 +46,13 @@ extern "C" {
 /**
  * \brief     Supported message digests.
  *
- * \warning   MD2, MD4, MD5 and SHA-1 are considered weak message digests and
+ * \warning   MD5 and SHA-1 are considered weak message digests and
  *            their use constitutes a security risk. We recommend considering
  *            stronger message digests instead.
  *
  */
 typedef enum {
     MBEDTLS_MD_NONE=0,    /**< None. */
-    MBEDTLS_MD_MD2,       /**< The MD2 message digest. */
-    MBEDTLS_MD_MD4,       /**< The MD4 message digest. */
     MBEDTLS_MD_MD5,       /**< The MD5 message digest. */
     MBEDTLS_MD_SHA1,      /**< The SHA-1 message digest. */
     MBEDTLS_MD_SHA224,    /**< The SHA-224 message digest. */
@@ -93,13 +92,13 @@ typedef struct mbedtls_md_info_t mbedtls_md_info_t;
 typedef struct mbedtls_md_context_t
 {
     /** Information about the associated message digest. */
-    const mbedtls_md_info_t *md_info;
+    const mbedtls_md_info_t *MBEDTLS_PRIVATE(md_info);
 
     /** The digest-specific context. */
-    void *md_ctx;
+    void *MBEDTLS_PRIVATE(md_ctx);
 
     /** The HMAC part of the context. */
-    void *hmac_ctx;
+    void *MBEDTLS_PRIVATE(hmac_ctx);
 } mbedtls_md_context_t;
 
 /**

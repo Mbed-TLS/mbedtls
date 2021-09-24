@@ -112,12 +112,6 @@ psa_status_t psa_crypto_init(void);
  * This macro returns a suitable initializer for a key attribute structure
  * of type #psa_key_attributes_t.
  */
-#ifdef __DOXYGEN_ONLY__
-/* This is an example definition for documentation purposes.
- * Implementations should define a suitable value in `crypto_struct.h`.
- */
-#define PSA_KEY_ATTRIBUTES_INIT {0}
-#endif
 
 /** Return an initial value for a key attributes structure.
  */
@@ -938,8 +932,8 @@ psa_status_t psa_hash_compare(psa_algorithm_t alg,
  *   \endcode
  *
  * This is an implementation-defined \c struct. Applications should not
- * make any assumptions about the content of this structure except
- * as directed by the documentation of a specific implementation. */
+ * make any assumptions about the content of this structure.
+ * Implementation details can change in future versions without notice. */
 typedef struct psa_hash_operation_s psa_hash_operation_t;
 
 /** \def PSA_HASH_OPERATION_INIT
@@ -947,12 +941,6 @@ typedef struct psa_hash_operation_s psa_hash_operation_t;
  * This macro returns a suitable initializer for a hash operation object
  * of type #psa_hash_operation_t.
  */
-#ifdef __DOXYGEN_ONLY__
-/* This is an example definition for documentation purposes.
- * Implementations should define a suitable value in `crypto_struct.h`.
- */
-#define PSA_HASH_OPERATION_INIT {0}
-#endif
 
 /** Return an initial value for a hash operation object.
  */
@@ -1307,9 +1295,10 @@ psa_status_t psa_mac_verify(mbedtls_svc_key_id_t key,
  *   operation = psa_mac_operation_init();
  *   \endcode
  *
+ *
  * This is an implementation-defined \c struct. Applications should not
- * make any assumptions about the content of this structure except
- * as directed by the documentation of a specific implementation. */
+ * make any assumptions about the content of this structure.
+ * Implementation details can change in future versions without notice. */
 typedef struct psa_mac_operation_s psa_mac_operation_t;
 
 /** \def PSA_MAC_OPERATION_INIT
@@ -1317,12 +1306,6 @@ typedef struct psa_mac_operation_s psa_mac_operation_t;
  * This macro returns a suitable initializer for a MAC operation object of type
  * #psa_mac_operation_t.
  */
-#ifdef __DOXYGEN_ONLY__
-/* This is an example definition for documentation purposes.
- * Implementations should define a suitable value in `crypto_struct.h`.
- */
-#define PSA_MAC_OPERATION_INIT {0}
-#endif
 
 /** Return an initial value for a MAC operation object.
  */
@@ -1732,8 +1715,8 @@ psa_status_t psa_cipher_decrypt(mbedtls_svc_key_id_t key,
  *   \endcode
  *
  * This is an implementation-defined \c struct. Applications should not
- * make any assumptions about the content of this structure except
- * as directed by the documentation of a specific implementation. */
+ * make any assumptions about the content of this structure.
+ * Implementation details can change in future versions without notice. */
 typedef struct psa_cipher_operation_s psa_cipher_operation_t;
 
 /** \def PSA_CIPHER_OPERATION_INIT
@@ -1741,12 +1724,6 @@ typedef struct psa_cipher_operation_s psa_cipher_operation_t;
  * This macro returns a suitable initializer for a cipher operation object of
  * type #psa_cipher_operation_t.
  */
-#ifdef __DOXYGEN_ONLY__
-/* This is an example definition for documentation purposes.
- * Implementations should define a suitable value in `crypto_struct.h`.
- */
-#define PSA_CIPHER_OPERATION_INIT {0}
-#endif
 
 /** Return an initial value for a cipher operation object.
  */
@@ -2261,8 +2238,8 @@ psa_status_t psa_aead_decrypt(mbedtls_svc_key_id_t key,
  *   \endcode
  *
  * This is an implementation-defined \c struct. Applications should not
- * make any assumptions about the content of this structure except
- * as directed by the documentation of a specific implementation. */
+ * make any assumptions about the content of this structure.
+ * Implementation details can change in future versions without notice. */
 typedef struct psa_aead_operation_s psa_aead_operation_t;
 
 /** \def PSA_AEAD_OPERATION_INIT
@@ -2270,12 +2247,6 @@ typedef struct psa_aead_operation_s psa_aead_operation_t;
  * This macro returns a suitable initializer for an AEAD operation object of
  * type #psa_aead_operation_t.
  */
-#ifdef __DOXYGEN_ONLY__
-/* This is an example definition for documentation purposes.
- * Implementations should define a suitable value in `crypto_struct.h`.
- */
-#define PSA_AEAD_OPERATION_INIT {0}
-#endif
 
 /** Return an initial value for an AEAD operation object.
  */
@@ -3260,8 +3231,8 @@ psa_status_t psa_asymmetric_decrypt(mbedtls_svc_key_id_t key,
  *   \endcode
  *
  * This is an implementation-defined \c struct. Applications should not
- * make any assumptions about the content of this structure except
- * as directed by the documentation of a specific implementation.
+ * make any assumptions about the content of this structure.
+ * Implementation details can change in future versions without notice.
  */
 typedef struct psa_key_derivation_s psa_key_derivation_operation_t;
 
@@ -3270,12 +3241,6 @@ typedef struct psa_key_derivation_s psa_key_derivation_operation_t;
  * This macro returns a suitable initializer for a key derivation operation
  * object of type #psa_key_derivation_operation_t.
  */
-#ifdef __DOXYGEN_ONLY__
-/* This is an example definition for documentation purposes.
- * Implementations should define a suitable value in `crypto_struct.h`.
- */
-#define PSA_KEY_DERIVATION_OPERATION_INIT {0}
-#endif
 
 /** Return an initial value for a key derivation operation object.
  */
@@ -3717,7 +3682,6 @@ psa_status_t psa_key_derivation_output_bytes(
  *   The following key types defined in this specification follow this scheme:
  *
  *     - #PSA_KEY_TYPE_AES;
- *     - #PSA_KEY_TYPE_ARC4;
  *     - #PSA_KEY_TYPE_CAMELLIA;
  *     - #PSA_KEY_TYPE_DERIVE;
  *     - #PSA_KEY_TYPE_HMAC;
@@ -3841,7 +3805,7 @@ psa_status_t psa_key_derivation_output_key(
  * This function calculates output bytes from a key derivation algorithm and
  * compares those bytes to an expected value in constant time.
  * If you view the key derivation's output as a stream of bytes, this
- * function destructively reads the requested number of bytes from the
+ * function destructively reads the expected number of bytes from the
  * stream before comparing them.
  * The operation's capacity decreases by the number of bytes read.
  *
@@ -3860,13 +3824,13 @@ psa_status_t psa_key_derivation_output_key(
  * psa_key_derivation_abort().
  *
  * \param[in,out] operation The key derivation operation object to read from.
- * \param[in] expected_output Buffer where the output will be written.
+ * \param[in] expected_output Buffer containing the expected derivation output.
  * \param output_length     Length ot the expected output; this is also the
  *                          number of bytes that will be read.
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_INVALID_SIGNATURE
- *         The output was read successfully, but if differs from the expected
+ *         The output was read successfully, but it differs from the expected
  *         output.
  * \retval #PSA_ERROR_NOT_PERMITTED
  *         One of the inputs was a key whose policy didn't allow
@@ -3876,7 +3840,7 @@ psa_status_t psa_key_derivation_output_key(
  *                          \p output_length bytes. Note that in this case,
  *                          the operation's capacity is set to 0, thus
  *                          subsequent calls to this function will not
- *                          succeed, even with a smaller output buffer.
+ *                          succeed, even with a smaller expected output.
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (it must be active and completed
  *         all required input steps).
@@ -3941,7 +3905,7 @@ psa_status_t psa_key_derivation_verify_bytes(
  *                          the length of the expected value. In this case,
  *                          the operation's capacity is set to 0, thus
  *                          subsequent calls to this function will not
- *                          succeed, even with a smaller output buffer.
+ *                          succeed, even with a smaller expected output.
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (it must be active and completed
  *         all required input steps).

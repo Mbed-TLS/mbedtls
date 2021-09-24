@@ -55,8 +55,21 @@
 #define KEY_TYPE_IS_ECC                 ( 1u << 6 )
 #define KEY_TYPE_IS_DH                  ( 1u << 7 )
 
-#define TEST_CLASSIFICATION_MACRO( flag, alg, flags )           \
-    TEST_ASSERT( PSA_##flag( alg ) == !! ( ( flags ) & flag ) )
+/* Flags for lifetime classification macros. There is a flag for every
+ * lifetime classification macro PSA_KEY_LIFETIME_IS_xxx. The name of the
+ * flag is the name of the classification macro without the PSA_ prefix. */
+#define KEY_LIFETIME_IS_VOLATILE        ( 1u << 0 )
+#define KEY_LIFETIME_IS_READ_ONLY       ( 1u << 1 )
+
+#define TEST_CLASSIFICATION_MACRO( flag, alg, flags ) \
+    do                                                \
+    {                                                 \
+        if( ( flags ) & ( flag ) )                    \
+            TEST_ASSERT( PSA_##flag( alg ) );         \
+        else                                          \
+            TEST_ASSERT( ! PSA_##flag( alg ) );       \
+    }                                                 \
+    while( 0 )
 
 /* Check the parity of value.
  *
@@ -156,6 +169,7 @@ void mac_algorithm_core( psa_algorithm_t alg, int classification_flags,
     TEST_ASSERT( ! PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) );
     TEST_ASSERT( ! PSA_ALG_IS_KEY_AGREEMENT( alg ) );
     TEST_ASSERT( ! PSA_ALG_IS_KEY_DERIVATION( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_PAKE( alg ) );
     algorithm_classification( alg, classification_flags );
 
     /* Length */
@@ -181,6 +195,7 @@ void aead_algorithm_core( psa_algorithm_t alg, int classification_flags,
     TEST_ASSERT( ! PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) );
     TEST_ASSERT( ! PSA_ALG_IS_KEY_AGREEMENT( alg ) );
     TEST_ASSERT( ! PSA_ALG_IS_KEY_DERIVATION( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_PAKE( alg ) );
     algorithm_classification( alg, classification_flags );
 
     /* Tag length */
@@ -220,6 +235,7 @@ void hash_algorithm( int alg_arg, int length_arg )
     TEST_ASSERT( ! PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) );
     TEST_ASSERT( ! PSA_ALG_IS_KEY_AGREEMENT( alg ) );
     TEST_ASSERT( ! PSA_ALG_IS_KEY_DERIVATION( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_PAKE( alg ) );
     algorithm_classification( alg, 0 );
 
     /* Dependent algorithms */
@@ -362,6 +378,7 @@ void cipher_algorithm( int alg_arg, int classification_flags )
     TEST_ASSERT( ! PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) );
     TEST_ASSERT( ! PSA_ALG_IS_KEY_AGREEMENT( alg ) );
     TEST_ASSERT( ! PSA_ALG_IS_KEY_DERIVATION( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_PAKE( alg ) );
     algorithm_classification( alg, classification_flags );
 }
 /* END_CASE */
@@ -462,6 +479,7 @@ void asymmetric_signature_algorithm( int alg_arg, int classification_flags )
     TEST_ASSERT( ! PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) );
     TEST_ASSERT( ! PSA_ALG_IS_KEY_AGREEMENT( alg ) );
     TEST_ASSERT( ! PSA_ALG_IS_KEY_DERIVATION( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_PAKE( alg ) );
     algorithm_classification( alg, classification_flags );
 }
 /* END_CASE */
@@ -491,6 +509,7 @@ void asymmetric_encryption_algorithm( int alg_arg, int classification_flags )
     TEST_ASSERT( PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) );
     TEST_ASSERT( ! PSA_ALG_IS_KEY_AGREEMENT( alg ) );
     TEST_ASSERT( ! PSA_ALG_IS_KEY_DERIVATION( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_PAKE( alg ) );
     algorithm_classification( alg, classification_flags );
 }
 /* END_CASE */
@@ -511,6 +530,7 @@ void key_derivation_algorithm( int alg_arg, int classification_flags )
     TEST_ASSERT( ! PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) );
     TEST_ASSERT( ! PSA_ALG_IS_KEY_AGREEMENT( alg ) );
     TEST_ASSERT( PSA_ALG_IS_KEY_DERIVATION( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_PAKE( alg ) );
     algorithm_classification( alg, classification_flags );
 
     /* Check combinations with key agreements */
@@ -540,6 +560,7 @@ void key_agreement_algorithm( int alg_arg, int classification_flags,
     TEST_ASSERT( ! PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) );
     TEST_ASSERT( PSA_ALG_IS_KEY_AGREEMENT( alg ) );
     TEST_ASSERT( ! PSA_ALG_IS_KEY_DERIVATION( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_PAKE( alg ) );
     algorithm_classification( alg, classification_flags );
 
     /* Shared secret derivation properties */
@@ -548,6 +569,24 @@ void key_agreement_algorithm( int alg_arg, int classification_flags,
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void pake_algorithm( int alg_arg )
+{
+    psa_algorithm_t alg = alg_arg;
+
+    /* Algorithm classification */
+    TEST_ASSERT( ! PSA_ALG_IS_HASH( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_MAC( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_CIPHER( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_AEAD( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_SIGN( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_KEY_AGREEMENT( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_KEY_DERIVATION( alg ) );
+    TEST_ASSERT( PSA_ALG_IS_PAKE( alg ) );
+}
+
+/* END_CASE */
 /* BEGIN_CASE */
 void key_type( int type_arg, int classification_flags )
 {
@@ -590,6 +629,10 @@ void block_cipher_key_type( int type_arg, int block_size_arg )
     TEST_EQUAL( type & PSA_KEY_TYPE_CATEGORY_MASK,
                 PSA_KEY_TYPE_CATEGORY_SYMMETRIC );
     TEST_EQUAL( PSA_BLOCK_CIPHER_BLOCK_LENGTH( type ), block_size );
+
+    /* Check that the block size is a power of 2. This is required, at least,
+    for PSA_ROUND_UP_TO_MULTIPLE(block_size, length) in crypto_sizes.h. */
+    TEST_ASSERT( ( ( block_size - 1 ) & block_size ) == 0 );
 }
 /* END_CASE */
 
@@ -637,5 +680,22 @@ void dh_key_family( int group_arg )
 
     TEST_EQUAL( PSA_KEY_TYPE_DH_GET_FAMILY( public_type ), group );
     TEST_EQUAL( PSA_KEY_TYPE_DH_GET_FAMILY( pair_type ), group );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void lifetime( int lifetime_arg, int classification_flags,
+               int persistence_arg, int location_arg )
+{
+    psa_key_lifetime_t lifetime = lifetime_arg;
+    psa_key_persistence_t persistence = persistence_arg;
+    psa_key_location_t location = location_arg;
+    unsigned flags = classification_flags;
+
+    TEST_CLASSIFICATION_MACRO( KEY_LIFETIME_IS_VOLATILE, lifetime, flags );
+    TEST_CLASSIFICATION_MACRO( KEY_LIFETIME_IS_READ_ONLY, lifetime, flags );
+
+    TEST_EQUAL( PSA_KEY_LIFETIME_GET_PERSISTENCE( lifetime ), persistence );
+    TEST_EQUAL( PSA_KEY_LIFETIME_GET_LOCATION( lifetime ), location );
 }
 /* END_CASE */

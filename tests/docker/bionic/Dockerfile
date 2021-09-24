@@ -137,29 +137,29 @@ RUN cd /tmp \
 ENV GNUTLS_CLI=/usr/local/gnutls-3.4.10/bin/gnutls-cli
 ENV GNUTLS_SERV=/usr/local/gnutls-3.4.10/bin/gnutls-serv
 
-# Build libnettle 3.4 (needed by gnutls next)
+# Build libnettle 3.7.3 (needed by gnutls next)
 RUN cd /tmp \
-    && wget https://ftp.gnu.org/gnu/nettle/nettle-3.4.1.tar.gz -qO- | tar xz \
-    && cd nettle-3.4.1 \
+    && wget https://ftp.gnu.org/gnu/nettle/nettle-3.7.3.tar.gz -qO- | tar xz \
+    && cd nettle-3.7.3 \
     && ./configure --disable-documentation \
     && make ${MAKEFLAGS_PARALLEL} \
     && make install \
     && /sbin/ldconfig \
     && rm -rf /tmp/nettle*
 
-# Build gnutls next (3.6.5)
+# Build gnutls next (3.7.2)
 RUN cd /tmp \
-    && wget https://www.gnupg.org/ftp/gcrypt/gnutls/v3.6/gnutls-3.6.5.tar.xz -qO- | tar xJ \
-    && cd gnutls-3.6.5 \
-    && ./configure --prefix=/usr/local/gnutls-3.6.5 --exec_prefix=/usr/local/gnutls-3.6.5 \
+    && wget https://www.gnupg.org/ftp/gcrypt/gnutls/v3.7/gnutls-3.7.2.tar.xz -qO- | tar xJ \
+    && cd gnutls-3.7.2 \
+    && ./configure --prefix=/usr/local/gnutls-3.7.2 --exec_prefix=/usr/local/gnutls-3.7.2 \
         --with-included-libtasn1 --with-included-unistring --without-p11-kit \
         --disable-shared --disable-guile --disable-doc \
     && make ${MAKEFLAGS_PARALLEL} \
     && make install \
     && rm -rf /tmp/gnutls*
 
-ENV GNUTLS_NEXT_CLI=/usr/local/gnutls-3.6.5/bin/gnutls-cli
-ENV GNUTLS_NEXT_SERV=/usr/local/gnutls-3.6.5/bin/gnutls-serv
+ENV GNUTLS_NEXT_CLI=/usr/local/gnutls-3.7.2/bin/gnutls-cli
+ENV GNUTLS_NEXT_SERV=/usr/local/gnutls-3.7.2/bin/gnutls-serv
 
 RUN pip3 install --no-cache-dir \
     mbed-host-tests \

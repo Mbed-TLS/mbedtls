@@ -42,13 +42,13 @@ esac
 
 case "${GNUTLS_CLI:-default}" in
     "legacy")  export GNUTLS_CLI="/usr/local/gnutls-3.3.8/bin/gnutls-cli";;
-    "next")  export GNUTLS_CLI="/usr/local/gnutls-3.6.5/bin/gnutls-cli";;
+    "next")  export GNUTLS_CLI="/usr/local/gnutls-3.7.2/bin/gnutls-cli";;
     *) ;;
 esac
 
 case "${GNUTLS_SERV:-default}" in
     "legacy")  export GNUTLS_SERV="/usr/local/gnutls-3.3.8/bin/gnutls-serv";;
-    "next")  export GNUTLS_SERV="/usr/local/gnutls-3.6.5/bin/gnutls-serv";;
+    "next")  export GNUTLS_SERV="/usr/local/gnutls-3.7.2/bin/gnutls-serv";;
     *) ;;
 esac
 

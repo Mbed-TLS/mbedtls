@@ -18,16 +18,13 @@
  */
 
 /* Enable definition of gethostname() even when compiling with -std=c99. Must
- * be set before config.h, which pulls in glibc's features.h indirectly.
+ * be set before mbedtls_config.h, which pulls in glibc's features.h indirectly.
  * Harmless on other platforms. */
+
 #define _POSIX_C_SOURCE 200112L
 #define _XOPEN_SOURCE 600
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -555,12 +552,17 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_FS_IO)
     if( strlen( opt.key_file ) )
-        ret = mbedtls_pk_parse_keyfile( &pkey, opt.key_file, "" );
+    {
+        ret = mbedtls_pk_parse_keyfile( &pkey, opt.key_file, "",
+                mbedtls_ctr_drbg_random, &ctr_drbg );
+    }
     else
 #endif
 #if defined(MBEDTLS_PEM_PARSE_C)
+    {
         ret = mbedtls_pk_parse_key( &pkey, (const unsigned char *) mbedtls_test_cli_key,
-                mbedtls_test_cli_key_len, NULL, 0 );
+                mbedtls_test_cli_key_len, NULL, 0, mbedtls_ctr_drbg_random, &ctr_drbg );
+    }
 #else
     {
         mbedtls_printf("MBEDTLS_PEM_PARSE_C not defined.");

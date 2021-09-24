@@ -46,10 +46,6 @@ static size_t psa_get_hash_block_size( psa_algorithm_t alg )
 {
     switch( alg )
     {
-        case PSA_ALG_MD2:
-            return( 16 );
-        case PSA_ALG_MD4:
-            return( 64 );
         case PSA_ALG_MD5:
             return( 64 );
         case PSA_ALG_RIPEMD160:
@@ -359,30 +355,6 @@ static psa_status_t mac_setup( mbedtls_psa_mac_operation_t *operation,
     return( status );
 }
 
-static psa_status_t mac_compute(
-    const psa_key_attributes_t *attributes,
-    const uint8_t *key_buffer,
-    size_t key_buffer_size,
-    psa_algorithm_t alg,
-    const uint8_t *input,
-    size_t input_length,
-    uint8_t *mac,
-    size_t mac_size,
-    size_t *mac_length )
-{
-    /* One-shot MAC has not been implemented in this PSA implementation yet. */
-    (void) attributes;
-    (void) key_buffer;
-    (void) key_buffer_size;
-    (void) alg;
-    (void) input;
-    (void) input_length;
-    (void) mac;
-    (void) mac_size;
-    (void) mac_length;
-    return( PSA_ERROR_NOT_SUPPORTED );
-}
-
 static psa_status_t mac_update(
     mbedtls_psa_mac_operation_t *operation,
     const uint8_t *input,
@@ -497,6 +469,44 @@ cleanup:
 
     return( status );
 }
+
+static psa_status_t mac_compute(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer,
+    size_t key_buffer_size,
+    psa_algorithm_t alg,
+    const uint8_t *input,
+    size_t input_length,
+    uint8_t *mac,
+    size_t mac_size,
+    size_t *mac_length )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    mbedtls_psa_mac_operation_t operation = MBEDTLS_PSA_MAC_OPERATION_INIT;
+
+    status = mac_setup( &operation,
+                        attributes, key_buffer, key_buffer_size,
+                        alg );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    if( input_length > 0 )
+    {
+        status = mac_update( &operation, input, input_length );
+        if( status != PSA_SUCCESS )
+            goto exit;
+    }
+
+    status = mac_finish_internal( &operation, mac, mac_size );
+    if( status == PSA_SUCCESS )
+        *mac_length = mac_size;
+
+exit:
+    mac_abort( &operation );
+
+    return( status );
+}
+
 #endif /* BUILTIN_ALG_HMAC || BUILTIN_ALG_CMAC */
 
 #if defined(MBEDTLS_PSA_BUILTIN_MAC)

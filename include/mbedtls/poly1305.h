@@ -31,17 +31,15 @@
 
 #ifndef MBEDTLS_POLY1305_H
 #define MBEDTLS_POLY1305_H
+#include "mbedtls/private_access.h"
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 #include <stdint.h>
 #include <stddef.h>
 
-#define MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA         -0x0057 /**< Invalid input parameter(s). */
+/** Invalid input parameter(s). */
+#define MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA         -0x0057
 
 #ifdef __cplusplus
 extern "C" {
@@ -51,11 +49,11 @@ extern "C" {
 
 typedef struct mbedtls_poly1305_context
 {
-    uint32_t r[4];      /** The value for 'r' (low 128 bits of the key). */
-    uint32_t s[4];      /** The value for 's' (high 128 bits of the key). */
-    uint32_t acc[5];    /** The accumulator number. */
-    uint8_t queue[16];  /** The current partial block of data. */
-    size_t queue_len;   /** The number of bytes stored in 'queue'. */
+    uint32_t MBEDTLS_PRIVATE(r)[4];      /** The value for 'r' (low 128 bits of the key). */
+    uint32_t MBEDTLS_PRIVATE(s)[4];      /** The value for 's' (high 128 bits of the key). */
+    uint32_t MBEDTLS_PRIVATE(acc)[5];    /** The accumulator number. */
+    uint8_t MBEDTLS_PRIVATE(queue)[16];  /** The current partial block of data. */
+    size_t MBEDTLS_PRIVATE(queue_len);   /** The number of bytes stored in 'queue'. */
 }
 mbedtls_poly1305_context;
 

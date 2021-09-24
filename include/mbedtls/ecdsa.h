@@ -29,12 +29,9 @@
 
 #ifndef MBEDTLS_ECDSA_H
 #define MBEDTLS_ECDSA_H
+#include "mbedtls/private_access.h"
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 #include "mbedtls/ecp.h"
 #include "mbedtls/md.h"
@@ -107,12 +104,12 @@ typedef struct mbedtls_ecdsa_restart_det mbedtls_ecdsa_restart_det_ctx;
  */
 typedef struct
 {
-    mbedtls_ecp_restart_ctx ecp;        /*!<  base context for ECP restart and
+    mbedtls_ecp_restart_ctx MBEDTLS_PRIVATE(ecp);        /*!<  base context for ECP restart and
                                               shared administrative info    */
-    mbedtls_ecdsa_restart_ver_ctx *ver; /*!<  ecdsa_verify() sub-context    */
-    mbedtls_ecdsa_restart_sig_ctx *sig; /*!<  ecdsa_sign() sub-context      */
+    mbedtls_ecdsa_restart_ver_ctx *MBEDTLS_PRIVATE(ver); /*!<  ecdsa_verify() sub-context    */
+    mbedtls_ecdsa_restart_sig_ctx *MBEDTLS_PRIVATE(sig); /*!<  ecdsa_sign() sub-context      */
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
-    mbedtls_ecdsa_restart_det_ctx *det; /*!<  ecdsa_sign_det() sub-context  */
+    mbedtls_ecdsa_restart_det_ctx *MBEDTLS_PRIVATE(det); /*!<  ecdsa_sign_det() sub-context  */
 #endif
 } mbedtls_ecdsa_restart_ctx;
 
@@ -293,6 +290,7 @@ int mbedtls_ecdsa_verify( mbedtls_ecp_group *grp,
  *                  size of the curve used, plus 9. For example, 73 Bytes if
  *                  a 256-bit curve is used. A buffer length of
  *                  #MBEDTLS_ECDSA_MAX_LEN is always safe.
+ * \param sig_size  The size of the \p sig buffer in bytes.
  * \param slen      The address at which to store the actual length of
  *                  the signature written. Must not be \c NULL.
  * \param f_rng     The RNG function. This must not be \c NULL if
@@ -309,7 +307,7 @@ int mbedtls_ecdsa_verify( mbedtls_ecp_group *grp,
 int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx,
                                    mbedtls_md_type_t md_alg,
                            const unsigned char *hash, size_t hlen,
-                           unsigned char *sig, size_t *slen,
+                           unsigned char *sig, size_t sig_size, size_t *slen,
                            int (*f_rng)(void *, unsigned char *, size_t),
                            void *p_rng );
 
@@ -335,6 +333,7 @@ int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx,
  *                  size of the curve used, plus 9. For example, 73 Bytes if
  *                  a 256-bit curve is used. A buffer length of
  *                  #MBEDTLS_ECDSA_MAX_LEN is always safe.
+ * \param sig_size  The size of the \p sig buffer in bytes.
  * \param slen      The address at which to store the actual length of
  *                  the signature written. Must not be \c NULL.
  * \param f_rng     The RNG function. This must not be \c NULL if
@@ -355,7 +354,7 @@ int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx,
 int mbedtls_ecdsa_write_signature_restartable( mbedtls_ecdsa_context *ctx,
                            mbedtls_md_type_t md_alg,
                            const unsigned char *hash, size_t hlen,
-                           unsigned char *sig, size_t *slen,
+                           unsigned char *sig, size_t sig_size, size_t *slen,
                            int (*f_rng)(void *, unsigned char *, size_t),
                            void *p_rng,
                            mbedtls_ecdsa_restart_ctx *rs_ctx );

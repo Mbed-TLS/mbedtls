@@ -22,7 +22,6 @@
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 
-#include "psa_crypto_service_integration.h"
 #include "psa/crypto.h"
 
 #include "psa_crypto_core.h"
@@ -392,6 +391,10 @@ psa_status_t psa_get_and_lock_key_slot( mbedtls_svc_key_id_t key,
         if( status == PSA_ERROR_DOES_NOT_EXIST )
             status = PSA_ERROR_INVALID_HANDLE;
     }
+    else
+        /* Add implicit usage flags. */
+        psa_extend_key_usage_flags( &(*p_slot)->attr.policy.usage );
+
     return( status );
 #else /* MBEDTLS_PSA_CRYPTO_STORAGE_C || MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
     return( PSA_ERROR_INVALID_HANDLE );
@@ -409,17 +412,15 @@ psa_status_t psa_unlock_key_slot( psa_key_slot_t *slot )
         return( PSA_SUCCESS );
     }
 
-    /*
-     * As the return error code may not be handled in case of multiple errors,
-     * do our best to report if the lock counter is equal to zero: if
-     * available call MBEDTLS_PARAM_FAILED that may terminate execution (if
-     * called as part of the execution of a unit test suite this will stop the
-     * test suite execution).
-     */
-#ifdef MBEDTLS_CHECK_PARAMS
-    MBEDTLS_PARAM_FAILED( slot->lock_count > 0 );
-#endif
-
+   /*
+    * As the return error code may not be handled in case of multiple errors,
+    * do our best to report if the lock counter is equal to zero. Assert with
+    * MBEDTLS_TEST_HOOK_TEST_ASSERT that the lock counter is strictly greater
+    * than zero: if the MBEDTLS_TEST_HOOKS configuration option is enabled and
+    * the function is called as part of the execution of a test suite, the
+    * execution of the test suite is stopped in error if the assertion fails.
+    */
+    MBEDTLS_TEST_HOOK_TEST_ASSERT( slot->lock_count > 0 );
     return( PSA_ERROR_CORRUPTION_DETECTED );
 }
 
@@ -466,7 +467,10 @@ psa_status_t psa_validate_key_persistence( psa_key_lifetime_t lifetime )
     {
         /* Persistent keys require storage support */
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-        return( PSA_SUCCESS );
+        if( PSA_KEY_LIFETIME_IS_READ_ONLY( lifetime ) )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        else
+            return( PSA_SUCCESS );
 #else /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
         return( PSA_ERROR_NOT_SUPPORTED );
 #endif /* !MBEDTLS_PSA_CRYPTO_STORAGE_C */
@@ -475,7 +479,8 @@ psa_status_t psa_validate_key_persistence( psa_key_lifetime_t lifetime )
 
 psa_status_t psa_open_key( mbedtls_svc_key_id_t key, psa_key_handle_t *handle )
 {
-#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) || \
+    defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS)
     psa_status_t status;
     psa_key_slot_t *slot;
 
@@ -493,11 +498,11 @@ psa_status_t psa_open_key( mbedtls_svc_key_id_t key, psa_key_handle_t *handle )
 
     return( psa_unlock_key_slot( slot ) );
 
-#else /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
+#else /* MBEDTLS_PSA_CRYPTO_STORAGE_C || MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
     (void) key;
     *handle = PSA_KEY_HANDLE_INIT;
     return( PSA_ERROR_NOT_SUPPORTED );
-#endif /* !defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
+#endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C || MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
 }
 
 psa_status_t psa_close_key( psa_key_handle_t handle )
@@ -556,16 +561,17 @@ void mbedtls_psa_get_stats( mbedtls_psa_stats_t *stats )
             ++stats->empty_slots;
             continue;
         }
-        if( slot->attr.lifetime == PSA_KEY_LIFETIME_VOLATILE )
+        if( PSA_KEY_LIFETIME_IS_VOLATILE( slot->attr.lifetime ) )
             ++stats->volatile_slots;
-        else if( slot->attr.lifetime == PSA_KEY_LIFETIME_PERSISTENT )
+        else
         {
             psa_key_id_t id = MBEDTLS_SVC_KEY_ID_GET_KEY_ID( slot->attr.id );
             ++stats->persistent_slots;
             if( id > stats->max_open_internal_key_id )
                 stats->max_open_internal_key_id = id;
         }
-        else
+        if( PSA_KEY_LIFETIME_GET_LOCATION( slot->attr.lifetime ) !=
+            PSA_KEY_LOCATION_LOCAL_STORAGE )
         {
             psa_key_id_t id = MBEDTLS_SVC_KEY_ID_GET_KEY_ID( slot->attr.id );
             ++stats->external_slots;

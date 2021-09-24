@@ -643,7 +643,7 @@ psa_status_t mbedtls_psa_aead_finish(
 
         status =  mbedtls_to_psa_error(
             mbedtls_gcm_finish( &operation->ctx.gcm,
-                                ciphertext, ciphertext_size,
+                                ciphertext, ciphertext_size, ciphertext_length,
                                 tag, operation->tag_length ) );
     }
     else

@@ -648,7 +648,8 @@ int mbedtls_ecdsa_verify( mbedtls_ecp_group *grp,
  * Convert a signature (given by context) to ASN.1
  */
 static int ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
-                                    unsigned char *sig, size_t *slen )
+                                    unsigned char *sig, size_t sig_size,
+                                    size_t *slen )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char buf[MBEDTLS_ECDSA_MAX_LEN] = {0};
@@ -662,6 +663,9 @@ static int ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &p, buf,
                                        MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) );
 
+    if( len > sig_size )
+        return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+
     memcpy( sig, p, len );
     *slen = len;
 
@@ -674,7 +678,7 @@ static int ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
 int mbedtls_ecdsa_write_signature_restartable( mbedtls_ecdsa_context *ctx,
                            mbedtls_md_type_t md_alg,
                            const unsigned char *hash, size_t hlen,
-                           unsigned char *sig, size_t *slen,
+                           unsigned char *sig, size_t sig_size, size_t *slen,
                            int (*f_rng)(void *, unsigned char *, size_t),
                            void *p_rng,
                            mbedtls_ecdsa_restart_ctx *rs_ctx )
@@ -712,7 +716,7 @@ int mbedtls_ecdsa_write_signature_restartable( mbedtls_ecdsa_context *ctx,
 #endif /* MBEDTLS_ECDSA_SIGN_ALT */
 #endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 
-    MBEDTLS_MPI_CHK( ecdsa_signature_to_asn1( &r, &s, sig, slen ) );
+    MBEDTLS_MPI_CHK( ecdsa_signature_to_asn1( &r, &s, sig, sig_size, slen ) );
 
 cleanup:
     mbedtls_mpi_free( &r );
@@ -727,7 +731,7 @@ cleanup:
 int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx,
                                  mbedtls_md_type_t md_alg,
                                  const unsigned char *hash, size_t hlen,
-                                 unsigned char *sig, size_t *slen,
+                                 unsigned char *sig, size_t sig_size, size_t *slen,
                                  int (*f_rng)(void *, unsigned char *, size_t),
                                  void *p_rng )
 {
@@ -736,7 +740,8 @@ int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx,
     ECDSA_VALIDATE_RET( sig  != NULL );
     ECDSA_VALIDATE_RET( slen != NULL );
     return( mbedtls_ecdsa_write_signature_restartable(
-                ctx, md_alg, hash, hlen, sig, slen, f_rng, p_rng, NULL ) );
+                ctx, md_alg, hash, hlen, sig, sig_size, slen,
+                f_rng, p_rng, NULL ) );
 }
 
 /*

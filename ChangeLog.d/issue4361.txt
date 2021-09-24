@@ -1,3 +1,0 @@
-Removals
-   * Remove the MBEDTLS_SSL_RECORD_CHECKING option and enable by default its
-     previous action. Fixes #4361.

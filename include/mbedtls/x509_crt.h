@@ -21,12 +21,9 @@
  */
 #ifndef MBEDTLS_X509_CRT_H
 #define MBEDTLS_X509_CRT_H
+#include "mbedtls/private_access.h"
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 #include "mbedtls/x509.h"
 #include "mbedtls/x509_crl.h"
@@ -51,50 +48,50 @@ extern "C" {
  */
 typedef struct mbedtls_x509_crt
 {
-    int own_buffer;                     /**< Indicates if \c raw is owned
+    int MBEDTLS_PRIVATE(own_buffer);                     /**< Indicates if \c raw is owned
                                          *   by the structure or not.        */
-    mbedtls_x509_buf raw;               /**< The raw certificate data (DER). */
-    mbedtls_x509_buf tbs;               /**< The raw certificate body (DER). The part that is To Be Signed. */
+    mbedtls_x509_buf MBEDTLS_PRIVATE(raw);               /**< The raw certificate data (DER). */
+    mbedtls_x509_buf MBEDTLS_PRIVATE(tbs);               /**< The raw certificate body (DER). The part that is To Be Signed. */
 
-    int version;                /**< The X.509 version. (1=v1, 2=v2, 3=v3) */
-    mbedtls_x509_buf serial;            /**< Unique id for certificate issued by a specific CA. */
-    mbedtls_x509_buf sig_oid;           /**< Signature algorithm, e.g. sha1RSA */
+    int MBEDTLS_PRIVATE(version);                /**< The X.509 version. (1=v1, 2=v2, 3=v3) */
+    mbedtls_x509_buf MBEDTLS_PRIVATE(serial);            /**< Unique id for certificate issued by a specific CA. */
+    mbedtls_x509_buf MBEDTLS_PRIVATE(sig_oid);           /**< Signature algorithm, e.g. sha1RSA */
 
-    mbedtls_x509_buf issuer_raw;        /**< The raw issuer data (DER). Used for quick comparison. */
-    mbedtls_x509_buf subject_raw;       /**< The raw subject data (DER). Used for quick comparison. */
+    mbedtls_x509_buf MBEDTLS_PRIVATE(issuer_raw);        /**< The raw issuer data (DER). Used for quick comparison. */
+    mbedtls_x509_buf MBEDTLS_PRIVATE(subject_raw);       /**< The raw subject data (DER). Used for quick comparison. */
 
-    mbedtls_x509_name issuer;           /**< The parsed issuer data (named information object). */
-    mbedtls_x509_name subject;          /**< The parsed subject data (named information object). */
+    mbedtls_x509_name MBEDTLS_PRIVATE(issuer);           /**< The parsed issuer data (named information object). */
+    mbedtls_x509_name MBEDTLS_PRIVATE(subject);          /**< The parsed subject data (named information object). */
 
-    mbedtls_x509_time valid_from;       /**< Start time of certificate validity. */
-    mbedtls_x509_time valid_to;         /**< End time of certificate validity. */
+    mbedtls_x509_time MBEDTLS_PRIVATE(valid_from);       /**< Start time of certificate validity. */
+    mbedtls_x509_time MBEDTLS_PRIVATE(valid_to);         /**< End time of certificate validity. */
 
-    mbedtls_x509_buf pk_raw;
-    mbedtls_pk_context pk;              /**< Container for the public key context. */
+    mbedtls_x509_buf MBEDTLS_PRIVATE(pk_raw);
+    mbedtls_pk_context MBEDTLS_PRIVATE(pk);              /**< Container for the public key context. */
 
-    mbedtls_x509_buf issuer_id;         /**< Optional X.509 v2/v3 issuer unique identifier. */
-    mbedtls_x509_buf subject_id;        /**< Optional X.509 v2/v3 subject unique identifier. */
-    mbedtls_x509_buf v3_ext;            /**< Optional X.509 v3 extensions.  */
-    mbedtls_x509_sequence subject_alt_names;    /**< Optional list of raw entries of Subject Alternative Names extension (currently only dNSName and OtherName are listed). */
+    mbedtls_x509_buf MBEDTLS_PRIVATE(issuer_id);         /**< Optional X.509 v2/v3 issuer unique identifier. */
+    mbedtls_x509_buf MBEDTLS_PRIVATE(subject_id);        /**< Optional X.509 v2/v3 subject unique identifier. */
+    mbedtls_x509_buf MBEDTLS_PRIVATE(v3_ext);            /**< Optional X.509 v3 extensions.  */
+    mbedtls_x509_sequence MBEDTLS_PRIVATE(subject_alt_names);    /**< Optional list of raw entries of Subject Alternative Names extension (currently only dNSName and OtherName are listed). */
 
-    mbedtls_x509_sequence certificate_policies; /**< Optional list of certificate policies (Only anyPolicy is printed and enforced, however the rest of the policies are still listed). */
+    mbedtls_x509_sequence MBEDTLS_PRIVATE(certificate_policies); /**< Optional list of certificate policies (Only anyPolicy is printed and enforced, however the rest of the policies are still listed). */
 
-    int ext_types;              /**< Bit string containing detected and parsed extensions */
-    int ca_istrue;              /**< Optional Basic Constraint extension value: 1 if this certificate belongs to a CA, 0 otherwise. */
-    int max_pathlen;            /**< Optional Basic Constraint extension value: The maximum path length to the root certificate. Path length is 1 higher than RFC 5280 'meaning', so 1+ */
+    int MBEDTLS_PRIVATE(ext_types);              /**< Bit string containing detected and parsed extensions */
+    int MBEDTLS_PRIVATE(ca_istrue);              /**< Optional Basic Constraint extension value: 1 if this certificate belongs to a CA, 0 otherwise. */
+    int MBEDTLS_PRIVATE(max_pathlen);            /**< Optional Basic Constraint extension value: The maximum path length to the root certificate. Path length is 1 higher than RFC 5280 'meaning', so 1+ */
 
-    unsigned int key_usage;     /**< Optional key usage extension value: See the values in x509.h */
+    unsigned int MBEDTLS_PRIVATE(key_usage);     /**< Optional key usage extension value: See the values in x509.h */
 
-    mbedtls_x509_sequence ext_key_usage; /**< Optional list of extended key usage OIDs. */
+    mbedtls_x509_sequence MBEDTLS_PRIVATE(ext_key_usage); /**< Optional list of extended key usage OIDs. */
 
-    unsigned char ns_cert_type; /**< Optional Netscape certificate type extension value: See the values in x509.h */
+    unsigned char MBEDTLS_PRIVATE(ns_cert_type); /**< Optional Netscape certificate type extension value: See the values in x509.h */
 
-    mbedtls_x509_buf sig;               /**< Signature: hash of the tbs part signed with the private key. */
-    mbedtls_md_type_t sig_md;           /**< Internal representation of the MD algorithm of the signature algorithm, e.g. MBEDTLS_MD_SHA256 */
-    mbedtls_pk_type_t sig_pk;           /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. MBEDTLS_PK_RSA */
-    void *sig_opts;             /**< Signature options to be passed to mbedtls_pk_verify_ext(), e.g. for RSASSA-PSS */
+    mbedtls_x509_buf MBEDTLS_PRIVATE(sig);               /**< Signature: hash of the tbs part signed with the private key. */
+    mbedtls_md_type_t MBEDTLS_PRIVATE(sig_md);           /**< Internal representation of the MD algorithm of the signature algorithm, e.g. MBEDTLS_MD_SHA256 */
+    mbedtls_pk_type_t MBEDTLS_PRIVATE(sig_pk);           /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. MBEDTLS_PK_RSA */
+    void *MBEDTLS_PRIVATE(sig_opts);             /**< Signature options to be passed to mbedtls_pk_verify_ext(), e.g. for RSASSA-PSS */
 
-    struct mbedtls_x509_crt *next;     /**< Next certificate in the CA-chain. */
+    struct mbedtls_x509_crt *MBEDTLS_PRIVATE(next);     /**< Next certificate in the CA-chain. */
 }
 mbedtls_x509_crt;
 
@@ -111,7 +108,7 @@ typedef struct mbedtls_x509_san_other_name
      * To check the value of the type id, you should use
      * \p MBEDTLS_OID_CMP with a known OID mbedtls_x509_buf.
      */
-    mbedtls_x509_buf type_id;                   /**< The type id. */
+    mbedtls_x509_buf MBEDTLS_PRIVATE(type_id);                   /**< The type id. */
     union
     {
         /**
@@ -122,12 +119,12 @@ typedef struct mbedtls_x509_san_other_name
          */
         struct
         {
-            mbedtls_x509_buf oid;               /**< The object identifier. */
-            mbedtls_x509_buf val;               /**< The named value. */
+            mbedtls_x509_buf MBEDTLS_PRIVATE(oid);               /**< The object identifier. */
+            mbedtls_x509_buf MBEDTLS_PRIVATE(val);               /**< The named value. */
         }
-        hardware_module_name;
+        MBEDTLS_PRIVATE(hardware_module_name);
     }
-    value;
+    MBEDTLS_PRIVATE(value);
 }
 mbedtls_x509_san_other_name;
 
@@ -136,12 +133,12 @@ mbedtls_x509_san_other_name;
  */
 typedef struct mbedtls_x509_subject_alternative_name
 {
-    int type;                              /**< The SAN type, value of MBEDTLS_X509_SAN_XXX. */
+    int MBEDTLS_PRIVATE(type);                              /**< The SAN type, value of MBEDTLS_X509_SAN_XXX. */
     union {
-        mbedtls_x509_san_other_name other_name; /**< The otherName supported type. */
-        mbedtls_x509_buf   unstructured_name; /**< The buffer for the un constructed types. Only dnsName currently supported */
+        mbedtls_x509_san_other_name MBEDTLS_PRIVATE(other_name); /**< The otherName supported type. */
+        mbedtls_x509_buf   MBEDTLS_PRIVATE(unstructured_name); /**< The buffer for the un constructed types. Only dnsName currently supported */
     }
-    san; /**< A union of the supported SAN types */
+    MBEDTLS_PRIVATE(san); /**< A union of the supported SAN types */
 }
 mbedtls_x509_subject_alternative_name;
 
@@ -155,6 +152,26 @@ mbedtls_x509_subject_alternative_name;
  * Security profile for certificate verification.
  *
  * All lists are bitfields, built by ORing flags from MBEDTLS_X509_ID_FLAG().
+ *
+ * The fields of this structure are part of the public API and can be
+ * manipulated directly by applications. Future versions of the library may
+ * add extra fields or reorder existing fields.
+ *
+ * You can create custom profiles by starting from a copy of
+ * an existing profile, such as mbedtls_x509_crt_profile_default or
+ * mbedtls_x509_ctr_profile_none and then tune it to your needs.
+ *
+ * For example to allow SHA-224 in addition to the default:
+ *
+ *  mbedtls_x509_crt_profile my_profile = mbedtls_x509_crt_profile_default;
+ *  my_profile.allowed_mds |= MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA224 );
+ *
+ * Or to allow only RSA-3072+ with SHA-256:
+ *
+ *  mbedtls_x509_crt_profile my_profile = mbedtls_x509_crt_profile_none;
+ *  my_profile.allowed_mds = MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA256 );
+ *  my_profile.allowed_pks = MBEDTLS_X509_ID_FLAG( MBEDTLS_PK_RSA );
+ *  my_profile.rsa_min_bitlen = 3072;
  */
 typedef struct mbedtls_x509_crt_profile
 {
@@ -249,16 +266,16 @@ mbedtls_x509_crt_profile;
  */
 typedef struct mbedtls_x509write_cert
 {
-    int version;
-    mbedtls_mpi serial;
-    mbedtls_pk_context *subject_key;
-    mbedtls_pk_context *issuer_key;
-    mbedtls_asn1_named_data *subject;
-    mbedtls_asn1_named_data *issuer;
-    mbedtls_md_type_t md_alg;
-    char not_before[MBEDTLS_X509_RFC5280_UTC_TIME_LEN + 1];
-    char not_after[MBEDTLS_X509_RFC5280_UTC_TIME_LEN + 1];
-    mbedtls_asn1_named_data *extensions;
+    int MBEDTLS_PRIVATE(version);
+    mbedtls_mpi MBEDTLS_PRIVATE(serial);
+    mbedtls_pk_context *MBEDTLS_PRIVATE(subject_key);
+    mbedtls_pk_context *MBEDTLS_PRIVATE(issuer_key);
+    mbedtls_asn1_named_data *MBEDTLS_PRIVATE(subject);
+    mbedtls_asn1_named_data *MBEDTLS_PRIVATE(issuer);
+    mbedtls_md_type_t MBEDTLS_PRIVATE(md_alg);
+    char MBEDTLS_PRIVATE(not_before)[MBEDTLS_X509_RFC5280_UTC_TIME_LEN + 1];
+    char MBEDTLS_PRIVATE(not_after)[MBEDTLS_X509_RFC5280_UTC_TIME_LEN + 1];
+    mbedtls_asn1_named_data *MBEDTLS_PRIVATE(extensions);
 }
 mbedtls_x509write_cert;
 
@@ -266,8 +283,8 @@ mbedtls_x509write_cert;
  * Item in a verification chain: cert and flags for it
  */
 typedef struct {
-    mbedtls_x509_crt *crt;
-    uint32_t flags;
+    mbedtls_x509_crt *MBEDTLS_PRIVATE(crt);
+    uint32_t MBEDTLS_PRIVATE(flags);
 } mbedtls_x509_crt_verify_chain_item;
 
 /**
@@ -280,15 +297,15 @@ typedef struct {
  */
 typedef struct
 {
-    mbedtls_x509_crt_verify_chain_item items[MBEDTLS_X509_MAX_VERIFY_CHAIN_SIZE];
-    unsigned len;
+    mbedtls_x509_crt_verify_chain_item MBEDTLS_PRIVATE(items)[MBEDTLS_X509_MAX_VERIFY_CHAIN_SIZE];
+    unsigned MBEDTLS_PRIVATE(len);
 
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
     /* This stores the list of potential trusted signers obtained from
      * the CA callback used for the CRT verification, if configured.
      * We must track it somewhere because the callback passes its
      * ownership to the caller. */
-    mbedtls_x509_crt *trust_ca_cb_result;
+    mbedtls_x509_crt *MBEDTLS_PRIVATE(trust_ca_cb_result);
 #endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 } mbedtls_x509_crt_verify_chain;
 
@@ -300,23 +317,23 @@ typedef struct
 typedef struct
 {
     /* for check_signature() */
-    mbedtls_pk_restart_ctx pk;
+    mbedtls_pk_restart_ctx MBEDTLS_PRIVATE(pk);
 
     /* for find_parent_in() */
-    mbedtls_x509_crt *parent; /* non-null iff parent_in in progress */
-    mbedtls_x509_crt *fallback_parent;
-    int fallback_signature_is_good;
+    mbedtls_x509_crt *MBEDTLS_PRIVATE(parent); /* non-null iff parent_in in progress */
+    mbedtls_x509_crt *MBEDTLS_PRIVATE(fallback_parent);
+    int MBEDTLS_PRIVATE(fallback_signature_is_good);
 
     /* for find_parent() */
-    int parent_is_trusted; /* -1 if find_parent is not in progress */
+    int MBEDTLS_PRIVATE(parent_is_trusted); /* -1 if find_parent is not in progress */
 
     /* for verify_chain() */
     enum {
         x509_crt_rs_none,
         x509_crt_rs_find_parent,
-    } in_progress;  /* none if no operation is in progress */
-    int self_cnt;
-    mbedtls_x509_crt_verify_chain ver_chain;
+    } MBEDTLS_PRIVATE(in_progress);  /* none if no operation is in progress */
+    int MBEDTLS_PRIVATE(self_cnt);
+    mbedtls_x509_crt_verify_chain MBEDTLS_PRIVATE(ver_chain);
 
 } mbedtls_x509_crt_restart_ctx;
 
@@ -331,12 +348,22 @@ typedef void mbedtls_x509_crt_restart_ctx;
 /**
  * Default security profile. Should provide a good balance between security
  * and compatibility with current deployments.
+ *
+ * This profile permits:
+ * - SHA2 hashes with at least 256 bits: SHA-256, SHA-384, SHA-512.
+ * - Elliptic curves with 255 bits and above except secp256k1.
+ * - RSA with 2048 bits and above.
+ *
+ * New minor versions of Mbed TLS may extend this profile, for example if
+ * new algorithms are added to the library. New minor versions of Mbed TLS will
+ * not reduce this profile unless serious security concerns require it.
  */
 extern const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_default;
 
 /**
  * Expected next default profile. Recommended for new deployments.
- * Currently targets a 128-bit security level, except for RSA-2048.
+ * Currently targets a 128-bit security level, except for allowing RSA-2048.
+ * This profile may change at any time.
  */
 extern const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_next;
 
@@ -344,6 +371,12 @@ extern const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_next;
  * NSA Suite B profile.
  */
 extern const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_suiteb;
+
+/**
+ * Empty profile that allows nothing. Useful as a basis for constructing
+ * custom profiles.
+ */
+extern const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_none;
 
 /**
  * \brief          Parse a single DER formatted certificate and add it
@@ -827,7 +860,6 @@ int mbedtls_x509_crt_verify_with_ca_cb( mbedtls_x509_crt *crt,
 
 #endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 
-#if defined(MBEDTLS_X509_CHECK_KEY_USAGE)
 /**
  * \brief          Check usage of certificate against keyUsage extension.
  *
@@ -851,9 +883,7 @@ int mbedtls_x509_crt_verify_with_ca_cb( mbedtls_x509_crt *crt,
  */
 int mbedtls_x509_crt_check_key_usage( const mbedtls_x509_crt *crt,
                                       unsigned int usage );
-#endif /* MBEDTLS_X509_CHECK_KEY_USAGE) */
 
-#if defined(MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE)
 /**
  * \brief           Check usage of certificate against extendedKeyUsage.
  *
@@ -870,7 +900,6 @@ int mbedtls_x509_crt_check_key_usage( const mbedtls_x509_crt *crt,
 int mbedtls_x509_crt_check_extended_key_usage( const mbedtls_x509_crt *crt,
                                                const char *usage_oid,
                                                size_t usage_len );
-#endif /* MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE */
 
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
 /**
@@ -1111,16 +1140,13 @@ void mbedtls_x509write_crt_free( mbedtls_x509write_cert *ctx );
  * \param ctx       certificate to write away
  * \param buf       buffer to write to
  * \param size      size of the buffer
- * \param f_rng     RNG function (for signature, see note)
+ * \param f_rng     RNG function. This must not be \c NULL.
  * \param p_rng     RNG parameter
  *
  * \return          length of data written if successful, or a specific
  *                  error code
  *
- * \note            f_rng may be NULL if RSA is used for signature and the
- *                  signature is made offline (otherwise f_rng is desirable
- *                  for countermeasures against timing attacks).
- *                  ECDSA signatures always require a non-NULL f_rng.
+ * \note            \p f_rng is used for the signature operation.
  */
 int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx, unsigned char *buf, size_t size,
                        int (*f_rng)(void *, unsigned char *, size_t),
@@ -1133,15 +1159,12 @@ int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx, unsigned char *buf, 
  * \param ctx       certificate to write away
  * \param buf       buffer to write to
  * \param size      size of the buffer
- * \param f_rng     RNG function (for signature, see note)
+ * \param f_rng     RNG function. This must not be \c NULL.
  * \param p_rng     RNG parameter
  *
  * \return          0 if successful, or a specific error code
  *
- * \note            f_rng may be NULL if RSA is used for signature and the
- *                  signature is made offline (otherwise f_rng is desirable
- *                  for countermeasures against timing attacks).
- *                  ECDSA signatures always require a non-NULL f_rng.
+ * \note            \p f_rng is used for the signature operation.
  */
 int mbedtls_x509write_crt_pem( mbedtls_x509write_cert *ctx, unsigned char *buf, size_t size,
                        int (*f_rng)(void *, unsigned char *, size_t),

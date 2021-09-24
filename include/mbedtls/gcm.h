@@ -30,12 +30,9 @@
 
 #ifndef MBEDTLS_GCM_H
 #define MBEDTLS_GCM_H
+#include "mbedtls/private_access.h"
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 #include "mbedtls/cipher.h"
 
@@ -44,8 +41,10 @@
 #define MBEDTLS_GCM_ENCRYPT     1
 #define MBEDTLS_GCM_DECRYPT     0
 
-#define MBEDTLS_ERR_GCM_AUTH_FAILED                       -0x0012  /**< Authenticated decryption failed. */
-#define MBEDTLS_ERR_GCM_BAD_INPUT                         -0x0014  /**< Bad input parameters to function. */
+/** Authenticated decryption failed. */
+#define MBEDTLS_ERR_GCM_AUTH_FAILED                       -0x0012
+/** Bad input parameters to function. */
+#define MBEDTLS_ERR_GCM_BAD_INPUT                         -0x0014
 
 #ifdef __cplusplus
 extern "C" {
@@ -58,15 +57,15 @@ extern "C" {
  */
 typedef struct mbedtls_gcm_context
 {
-    mbedtls_cipher_context_t cipher_ctx;  /*!< The cipher context used. */
-    uint64_t HL[16];                      /*!< Precalculated HTable low. */
-    uint64_t HH[16];                      /*!< Precalculated HTable high. */
-    uint64_t len;                         /*!< The total length of the encrypted data. */
-    uint64_t add_len;                     /*!< The total length of the additional data. */
-    unsigned char base_ectr[16];          /*!< The first ECTR for tag. */
-    unsigned char y[16];                  /*!< The Y working value. */
-    unsigned char buf[16];                /*!< The buf working value. */
-    int mode;                             /*!< The operation to perform:
+    mbedtls_cipher_context_t MBEDTLS_PRIVATE(cipher_ctx);  /*!< The cipher context used. */
+    uint64_t MBEDTLS_PRIVATE(HL)[16];                      /*!< Precalculated HTable low. */
+    uint64_t MBEDTLS_PRIVATE(HH)[16];                      /*!< Precalculated HTable high. */
+    uint64_t MBEDTLS_PRIVATE(len);                         /*!< The total length of the encrypted data. */
+    uint64_t MBEDTLS_PRIVATE(add_len);                     /*!< The total length of the additional data. */
+    unsigned char MBEDTLS_PRIVATE(base_ectr)[16];          /*!< The first ECTR for tag. */
+    unsigned char MBEDTLS_PRIVATE(y)[16];                  /*!< The Y working value. */
+    unsigned char MBEDTLS_PRIVATE(buf)[16];                /*!< The buf working value. */
+    int MBEDTLS_PRIVATE(mode);                             /*!< The operation to perform:
                                                #MBEDTLS_GCM_ENCRYPT or
                                                #MBEDTLS_GCM_DECRYPT. */
 }
@@ -245,11 +244,6 @@ int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
  *                  you do not need to call this function. You may not
  *                  call this function after calling mbedtls_cipher_update().
  *
- * \note            This function may only be called once per operation:
- *                  you must pass the whole associated data in a single
- *                  call. This limitation will be lifted in a future version
- *                  of Mbed TLS.
- *
  * \param ctx       The GCM context. This must have been started with
  *                  mbedtls_gcm_starts() and must not have yet received
  *                  any input with mbedtls_gcm_update().
@@ -343,6 +337,10 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
  *                    then mbedtls_gcm_finish() never produces any output,
  *                    so \p output_size can be \c 0.
  *                  - \p output_size never needs to be more than \c 15.
+ * \param output_length On success, \p *output_length contains the actual
+ *                      length of the output written in \p output.
+ *                      On failure, the content of \p *output_length is
+ *                      unspecified.
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_GCM_BAD_INPUT on failure:
@@ -351,6 +349,7 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
  */
 int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
                         unsigned char *output, size_t output_size,
+                        size_t *output_length,
                         unsigned char *tag, size_t tag_len );
 
 /**

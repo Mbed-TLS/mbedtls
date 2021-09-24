@@ -34,7 +34,7 @@
  * \c mbedtls_md_setup())
  *
  * The following hashing-algorithms are provided:
- * - MD2, MD4, MD5 128-bit one-way hash functions by Ron Rivest.
+ * - MD5 128-bit one-way hash function by Ron Rivest.
  * - SHA-1, SHA-256, SHA-384/512 160-bit or more one-way hash functions by
  *   NIST and NSA.
  *

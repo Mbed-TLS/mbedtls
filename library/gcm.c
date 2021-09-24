@@ -59,29 +59,6 @@
     MBEDTLS_INTERNAL_VALIDATE( cond )
 
 /*
- * 32-bit integer manipulation macros (big endian)
- */
-#ifndef GET_UINT32_BE
-#define GET_UINT32_BE(n,b,i)                            \
-{                                                       \
-    (n) = ( (uint32_t) (b)[(i)    ] << 24 )             \
-        | ( (uint32_t) (b)[(i) + 1] << 16 )             \
-        | ( (uint32_t) (b)[(i) + 2] <<  8 )             \
-        | ( (uint32_t) (b)[(i) + 3]       );            \
-}
-#endif
-
-#ifndef PUT_UINT32_BE
-#define PUT_UINT32_BE(n,b,i)                            \
-{                                                       \
-    (b)[(i)    ] = (unsigned char) ( (n) >> 24 );       \
-    (b)[(i) + 1] = (unsigned char) ( (n) >> 16 );       \
-    (b)[(i) + 2] = (unsigned char) ( (n) >>  8 );       \
-    (b)[(i) + 3] = (unsigned char) ( (n)       );       \
-}
-#endif
-
-/*
  * Initialize a context
  */
 void mbedtls_gcm_init( mbedtls_gcm_context *ctx )
@@ -111,12 +88,12 @@ static int gcm_gen_table( mbedtls_gcm_context *ctx )
         return( ret );
 
     /* pack h as two 64-bits ints, big-endian */
-    GET_UINT32_BE( hi, h,  0  );
-    GET_UINT32_BE( lo, h,  4  );
+    hi = MBEDTLS_GET_UINT32_BE( h,  0  );
+    lo = MBEDTLS_GET_UINT32_BE( h,  4  );
     vh = (uint64_t) hi << 32 | lo;
 
-    GET_UINT32_BE( hi, h,  8  );
-    GET_UINT32_BE( lo, h,  12 );
+    hi = MBEDTLS_GET_UINT32_BE( h,  8  );
+    lo = MBEDTLS_GET_UINT32_BE( h,  12 );
     vl = (uint64_t) hi << 32 | lo;
 
     /* 8 = 1000 corresponds to 1 in GF(2^128) */
@@ -223,10 +200,10 @@ static void gcm_mult( mbedtls_gcm_context *ctx, const unsigned char x[16],
     if( mbedtls_aesni_has_support( MBEDTLS_AESNI_CLMUL ) ) {
         unsigned char h[16];
 
-        PUT_UINT32_BE( ctx->HH[8] >> 32, h,  0 );
-        PUT_UINT32_BE( ctx->HH[8],       h,  4 );
-        PUT_UINT32_BE( ctx->HL[8] >> 32, h,  8 );
-        PUT_UINT32_BE( ctx->HL[8],       h, 12 );
+        MBEDTLS_PUT_UINT32_BE( ctx->HH[8] >> 32, h,  0 );
+        MBEDTLS_PUT_UINT32_BE( ctx->HH[8],       h,  4 );
+        MBEDTLS_PUT_UINT32_BE( ctx->HL[8] >> 32, h,  8 );
+        MBEDTLS_PUT_UINT32_BE( ctx->HL[8],       h, 12 );
 
         mbedtls_aesni_gcm_mult( output, x, h );
         return;
@@ -262,10 +239,10 @@ static void gcm_mult( mbedtls_gcm_context *ctx, const unsigned char x[16],
         zl ^= ctx->HL[hi];
     }
 
-    PUT_UINT32_BE( zh >> 32, output, 0 );
-    PUT_UINT32_BE( zh, output, 4 );
-    PUT_UINT32_BE( zl >> 32, output, 8 );
-    PUT_UINT32_BE( zl, output, 12 );
+    MBEDTLS_PUT_UINT32_BE( zh >> 32, output, 0 );
+    MBEDTLS_PUT_UINT32_BE( zh, output, 4 );
+    MBEDTLS_PUT_UINT32_BE( zl >> 32, output, 8 );
+    MBEDTLS_PUT_UINT32_BE( zl, output, 12 );
 }
 
 int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
@@ -281,7 +258,7 @@ int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
     GCM_VALIDATE_RET( ctx != NULL );
     GCM_VALIDATE_RET( iv != NULL );
 
-    /* IV is are limited to 2^64 bits, so 2^61 bytes */
+    /* IV is limited to 2^64 bits, so 2^61 bytes */
     /* IV is not allowed to be zero length */
     if( iv_len == 0 || (uint64_t) iv_len >> 61 != 0 )
         return( MBEDTLS_ERR_GCM_BAD_INPUT );
@@ -301,7 +278,7 @@ int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
     else
     {
         memset( work_buf, 0x00, 16 );
-        PUT_UINT32_BE( iv_len * 8, work_buf, 12 );
+        MBEDTLS_PUT_UINT32_BE( iv_len * 8, work_buf, 12 );
 
         p = iv;
         while( iv_len > 0 )
@@ -332,36 +309,72 @@ int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
     return( 0 );
 }
 
-
+/**
+ * mbedtls_gcm_context::buf contains the partial state of the computation of
+ * the authentication tag.
+ * mbedtls_gcm_context::add_len and mbedtls_gcm_context::len indicate
+ * different stages of the computation:
+ *     * len == 0 && add_len == 0:      initial state
+ *     * len == 0 && add_len % 16 != 0: the first `add_len % 16` bytes have
+ *                                      a partial block of AD that has been
+ *                                      xored in but not yet multiplied in.
+ *     * len == 0 && add_len % 16 == 0: the authentication tag is correct if
+ *                                      the data ends now.
+ *     * len % 16 != 0:                 the first `len % 16` bytes have
+ *                                      a partial block of ciphertext that has
+ *                                      been xored in but not yet multiplied in.
+ *     * len > 0 && len % 16 == 0:      the authentication tag is correct if
+ *                                      the data ends now.
+ */
 int mbedtls_gcm_update_ad( mbedtls_gcm_context *ctx,
                            const unsigned char *add, size_t add_len )
 {
     const unsigned char *p;
-    size_t use_len, i;
+    size_t use_len, i, offset;
 
     GCM_VALIDATE_RET( add_len == 0 || add != NULL );
 
-    /* IV is are limited to 2^64 bits, so 2^61 bytes */
+    /* IV is limited to 2^64 bits, so 2^61 bytes */
     if( (uint64_t) add_len >> 61 != 0 )
         return( MBEDTLS_ERR_GCM_BAD_INPUT );
 
-    /* Calling update_ad multiple times is not yet supported */
-    if( ctx->add_len != 0 )
-        return( MBEDTLS_ERR_GCM_BAD_INPUT );
-
-    ctx->add_len = add_len;
+    offset = ctx->add_len % 16;
     p = add;
-    while( add_len > 0 )
+
+    if( offset != 0 )
     {
-        use_len = ( add_len < 16 ) ? add_len : 16;
+        use_len = 16 - offset;
+        if( use_len > add_len )
+            use_len = add_len;
 
         for( i = 0; i < use_len; i++ )
+            ctx->buf[i+offset] ^= p[i];
+
+        if( offset + use_len == 16 )
+            gcm_mult( ctx, ctx->buf, ctx->buf );
+
+        ctx->add_len += use_len;
+        add_len -= use_len;
+        p += use_len;
+    }
+
+    ctx->add_len += add_len;
+
+    while( add_len >= 16 )
+    {
+        for( i = 0; i < 16; i++ )
             ctx->buf[i] ^= p[i];
 
         gcm_mult( ctx, ctx->buf, ctx->buf );
 
-        add_len -= use_len;
-        p += use_len;
+        add_len -= 16;
+        p += 16;
+    }
+
+    if( add_len > 0 )
+    {
+        for( i = 0; i < add_len; i++ )
+            ctx->buf[i] ^= p[i];
     }
 
     return( 0 );
@@ -423,7 +436,9 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
     *output_length = input_length;
 
     /* Exit early if input_length==0 so that we don't do any pointer arithmetic
-     * on a potentially null pointer. */
+     * on a potentially null pointer.
+     * Returning early also means that the last partial block of AD remains
+     * untouched for mbedtls_gcm_finish */
     if( input_length == 0 )
         return( 0 );
 
@@ -440,6 +455,11 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
         (uint64_t) ctx->len + input_length > 0xFFFFFFFE0ull )
     {
         return( MBEDTLS_ERR_GCM_BAD_INPUT );
+    }
+
+    if( ctx->len == 0 && ctx->add_len % 16 != 0 )
+    {
+        gcm_mult( ctx, ctx->buf, ctx->buf );
     }
 
     offset = ctx->len % 16;
@@ -489,6 +509,7 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
 
 int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
                         unsigned char *output, size_t output_size,
+                        size_t *output_length,
                         unsigned char *tag, size_t tag_len )
 {
     unsigned char work_buf[16];
@@ -503,9 +524,15 @@ int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
      * for the sake of alternative implementations. */
     (void) output;
     (void) output_size;
+    *output_length = 0;
 
     orig_len = ctx->len * 8;
     orig_add_len = ctx->add_len * 8;
+
+    if( ctx->len == 0 && ctx->add_len % 16 != 0 )
+    {
+        gcm_mult( ctx, ctx->buf, ctx->buf );
+    }
 
     if( tag_len > 16 || tag_len < 4 )
         return( MBEDTLS_ERR_GCM_BAD_INPUT );
@@ -519,10 +546,10 @@ int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
     {
         memset( work_buf, 0x00, 16 );
 
-        PUT_UINT32_BE( ( orig_add_len >> 32 ), work_buf, 0  );
-        PUT_UINT32_BE( ( orig_add_len       ), work_buf, 4  );
-        PUT_UINT32_BE( ( orig_len     >> 32 ), work_buf, 8  );
-        PUT_UINT32_BE( ( orig_len           ), work_buf, 12 );
+        MBEDTLS_PUT_UINT32_BE( ( orig_add_len >> 32 ), work_buf, 0  );
+        MBEDTLS_PUT_UINT32_BE( ( orig_add_len       ), work_buf, 4  );
+        MBEDTLS_PUT_UINT32_BE( ( orig_len     >> 32 ), work_buf, 8  );
+        MBEDTLS_PUT_UINT32_BE( ( orig_len           ), work_buf, 12 );
 
         for( i = 0; i < 16; i++ )
             ctx->buf[i] ^= work_buf[i];
@@ -568,7 +595,7 @@ int mbedtls_gcm_crypt_and_tag( mbedtls_gcm_context *ctx,
                                     output, length, &olen ) ) != 0 )
         return( ret );
 
-    if( ( ret = mbedtls_gcm_finish( ctx, NULL, 0, tag, tag_len ) ) != 0 )
+    if( ( ret = mbedtls_gcm_finish( ctx, NULL, 0, &olen, tag, tag_len ) ) != 0 )
         return( ret );
 
     return( 0 );
@@ -1020,7 +1047,7 @@ int mbedtls_gcm_self_test( int verbose )
                     goto exit;
             }
 
-            ret = mbedtls_gcm_finish( &ctx, NULL, 0, tag_buf, 16 );
+            ret = mbedtls_gcm_finish( &ctx, NULL, 0, &olen, tag_buf, 16 );
             if( ret != 0 )
                 goto exit;
 
@@ -1092,7 +1119,7 @@ int mbedtls_gcm_self_test( int verbose )
                     goto exit;
             }
 
-            ret = mbedtls_gcm_finish( &ctx, NULL, 0, tag_buf, 16 );
+            ret = mbedtls_gcm_finish( &ctx, NULL, 0, &olen, tag_buf, 16 );
             if( ret != 0 )
                 goto exit;
 

@@ -5,15 +5,10 @@ Mbed TLS is a C library that implements cryptographic primitives, X.509 certific
 
 Mbed TLS includes a reference implementation of the [PSA Cryptography API](#psa-cryptography-api). This is currently a preview for evaluation purposes only.
 
-Stability
----------
-
-**Warning: the [`development`](https://github.com/ARMmbed/mbedtls/tree/development) branch of Mbed TLS currently has an unstable API.** It is where work is happening on the next major release of Mbed TLS. Until Mbed TLS 3.0 is released, if you need a stable API, please use the branch [`development_2.x`](https://github.com/ARMmbed/mbedtls/tree/development_2.x) instead.
-
 Configuration
 -------------
 
-Mbed TLS should build out of the box on most systems. Some platform specific options are available in the fully documented configuration file `include/mbedtls/config.h`, which is also the place where features can be selected. This file can be edited manually, or in a more programmatic way using the Python 3 script `scripts/config.py` (use `--help` for usage instructions).
+Mbed TLS should build out of the box on most systems. Some platform specific options are available in the fully documented configuration file `include/mbedtls/mbedtls_config.h`, which is also the place where features can be selected. This file can be edited manually, or in a more programmatic way using the Python 3 script `scripts/config.py` (use `--help` for usage instructions).
 
 Compiler options can be set using conventional environment variables such as `CC` and `CFLAGS` when using the Make and CMake build system (see below).
 
@@ -26,7 +21,7 @@ Documentation for the Mbed TLS interfaces in the default library configuration i
 
 To generate a local copy of the library documentation in HTML format, tailored to your compile-time configuration:
 
-1. Make sure that [Doxygen](http://www.doxygen.nl/) is installed. We use version 1.8.11 but slightly older or more recent versions should work.
+1. Make sure that [Doxygen](http://www.doxygen.nl/) is installed.
 1. Run `make apidoc`.
 1. Browse `apidoc/index.html` or `apidoc/modules.html`.
 
@@ -39,7 +34,7 @@ There are currently three active build systems used within Mbed TLS releases:
 
 -   GNU Make
 -   CMake
--   Microsoft Visual Studio (Microsoft Visual Studio 2013 or later)
+-   Microsoft Visual Studio
 
 The main systems used for development are CMake and GNU Make. Those systems are always complete and up-to-date. The others should reflect all changes present in the CMake and Make build system, although features may not be ported there automatically.
 
@@ -49,10 +44,13 @@ The Make and CMake build systems create three libraries: libmbedcrypto, libmbedx
 
 You need the following tools to build the library with the provided makefiles:
 
-* GNU Make or a build tool that CMake supports.
-* A C99 toolchain (compiler, linker, archiver). We actively test with GCC 5.4, Clang 3.8, IAR8 and Visual Studio 2013. More recent versions should work. Slightly older versions may work.
-* Python 3 to generate the test code, and to generate sample programs in the development branch.
+* GNU Make 3.82 or a build tool that CMake supports.
+* A C99 toolchain (compiler, linker, archiver). We actively test with GCC 5.4, Clang 3.8, IAR 8 and Visual Studio 2013. More recent versions should work. Slightly older versions may work.
+* Python 3.6 to generate the test code, and to generate sample programs in the development branch.
 * Perl to run the tests, and to generate some source files in the development branch.
+* CMake 3.10.2 or later (if using CMake).
+* Microsoft Visual Studio 2013 or later (if using Visual Studio).
+* Doxygen 1.8.11 or later (if building the documentation; slightly older versions should work).
 
 ### Generated source files in the development branch
 
@@ -181,6 +179,33 @@ Regarding variables, also note that if you set CFLAGS when invoking cmake,
 your value of CFLAGS doesn't override the content provided by cmake (depending
 on the build mode as seen above), it's merely prepended to it.
 
+#### Consuming Mbed TLS
+
+Mbed TLS provides a package config file for consumption as a dependency in other
+CMake projects. You can include Mbed TLS's CMake targets yourself with:
+
+    find_package(MbedTLS)
+
+If prompted, set `MbedTLS_DIR` to `${YOUR_MBEDTLS_INSTALL_DIR}/cmake`. This
+creates the following targets:
+
+- `MbedTLS::mbedcrypto` (Crypto library)
+- `MbedTLS::mbedtls` (TLS library)
+- `MbedTLS::mbedx509` (X509 library)
+
+You can then use these directly through `target_link_libraries()`:
+
+    add_executable(xyz)
+
+    target_link_libraries(xyz
+        PUBLIC MbedTLS::mbedtls
+               MbedTLS::mbedcrypto
+               MbedTLS::mbedx509)
+
+This will link the Mbed TLS libraries to your library or application, and add
+its include directories to your target (transitively, in the case of `PUBLIC` or
+`INTERFACE` link libraries).
+
 #### Mbed TLS as a subproject
 
 Mbed TLS supports being built as a CMake subproject. One can
@@ -212,7 +237,7 @@ For machines with a Unix shell and OpenSSL (and optionally GnuTLS) installed, ad
 -   `tests/compat.sh` tests interoperability of every ciphersuite with other implementations.
 -   `tests/scripts/test-ref-configs.pl` test builds in various reduced configurations.
 -   `tests/scripts/key-exchanges.pl` test builds in configurations with a single key exchange enabled
--   `tests/scripts/all.sh` runs a combination of the above tests, plus some more, with various build options (such as ASan, full `config.h`, etc).
+-   `tests/scripts/all.sh` runs a combination of the above tests, plus some more, with various build options (such as ASan, full `mbedtls_config.h`, etc).
 
 Porting Mbed TLS
 ----------------
@@ -251,7 +276,7 @@ A browsable copy of the PSA Cryptography API documents is available on the [PSA 
 Mbed TLS includes a reference implementation of the PSA Cryptography API.
 This implementation is not yet as mature as the rest of the library. Some parts of the code have not been reviewed as thoroughly, and some parts of the PSA implementation are not yet well optimized for code size.
 
-The X.509 and TLS code can use PSA cryptography for a limited subset of operations. To enable this support, activate the compilation option `MBEDTLS_USE_PSA_CRYPTO` in `config.h`.
+The X.509 and TLS code can use PSA cryptography for a limited subset of operations. To enable this support, activate the compilation option `MBEDTLS_USE_PSA_CRYPTO` in `mbedtls_config.h`.
 
 There are currently a few deviations where the library does not yet implement the latest version of the specification. Please refer to the [compliance issues on Github](https://github.com/ARMmbed/mbed-crypto/labels/compliance) for an up-to-date list.
 

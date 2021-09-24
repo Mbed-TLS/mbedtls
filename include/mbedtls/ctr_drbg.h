@@ -16,7 +16,7 @@
  * The security strength as defined in NIST SP 800-90A is
  * 128 bits when AES-128 is used (\c MBEDTLS_CTR_DRBG_USE_128_BIT_KEY enabled)
  * and 256 bits otherwise, provided that #MBEDTLS_CTR_DRBG_ENTROPY_LEN is
- * kept at its default value (and not overridden in config.h) and that the
+ * kept at its default value (and not overridden in mbedtls_config.h) and that the
  * DRBG instance is set up with default parameters.
  * See the documentation of mbedtls_ctr_drbg_seed() for more
  * information.
@@ -40,12 +40,9 @@
 
 #ifndef MBEDTLS_CTR_DRBG_H
 #define MBEDTLS_CTR_DRBG_H
+#include "mbedtls/private_access.h"
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 #include "mbedtls/aes.h"
 
@@ -53,10 +50,14 @@
 #include "mbedtls/threading.h"
 #endif
 
-#define MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED        -0x0034  /**< The entropy source failed. */
-#define MBEDTLS_ERR_CTR_DRBG_REQUEST_TOO_BIG              -0x0036  /**< The requested random buffer length is too big. */
-#define MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG                -0x0038  /**< The input (entropy + additional data) is too large. */
-#define MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR                -0x003A  /**< Read or write error in file. */
+/** The entropy source failed. */
+#define MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED        -0x0034
+/** The requested random buffer length is too big. */
+#define MBEDTLS_ERR_CTR_DRBG_REQUEST_TOO_BIG              -0x0036
+/** The input (entropy + additional data) is too large. */
+#define MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG                -0x0038
+/** Read or write error in file. */
+#define MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR                -0x003A
 
 #define MBEDTLS_CTR_DRBG_BLOCKSIZE          16 /**< The block size used by the cipher. */
 
@@ -83,7 +84,7 @@
  * \name SECTION: Module settings
  *
  * The configuration options you can set for this module are in this section.
- * Either change them in config.h or define them using the compiler command
+ * Either change them in mbedtls_config.h or define them using the compiler command
  * line.
  * \{
  */
@@ -168,8 +169,8 @@ extern "C" {
  */
 typedef struct mbedtls_ctr_drbg_context
 {
-    unsigned char counter[16];  /*!< The counter (V). */
-    int reseed_counter;         /*!< The reseed counter.
+    unsigned char MBEDTLS_PRIVATE(counter)[16];  /*!< The counter (V). */
+    int MBEDTLS_PRIVATE(reseed_counter);         /*!< The reseed counter.
                                  * This is the number of requests that have
                                  * been made since the last (re)seeding,
                                  * minus one.
@@ -179,25 +180,25 @@ typedef struct mbedtls_ctr_drbg_context
                                  * or -1 if no nonce length has been explicitly
                                  * set (see mbedtls_ctr_drbg_set_nonce_len()).
                                  */
-    int prediction_resistance;  /*!< This determines whether prediction
+    int MBEDTLS_PRIVATE(prediction_resistance);  /*!< This determines whether prediction
                                      resistance is enabled, that is
                                      whether to systematically reseed before
                                      each random generation. */
-    size_t entropy_len;         /*!< The amount of entropy grabbed on each
+    size_t MBEDTLS_PRIVATE(entropy_len);         /*!< The amount of entropy grabbed on each
                                      seed or reseed operation, in bytes. */
-    int reseed_interval;        /*!< The reseed interval.
+    int MBEDTLS_PRIVATE(reseed_interval);        /*!< The reseed interval.
                                  * This is the maximum number of requests
                                  * that can be made between reseedings. */
 
-    mbedtls_aes_context aes_ctx;        /*!< The AES context. */
+    mbedtls_aes_context MBEDTLS_PRIVATE(aes_ctx);        /*!< The AES context. */
 
     /*
      * Callbacks (Entropy)
      */
-    int (*f_entropy)(void *, unsigned char *, size_t);
+    int (*MBEDTLS_PRIVATE(f_entropy))(void *, unsigned char *, size_t);
                                 /*!< The entropy callback function. */
 
-    void *p_entropy;            /*!< The context for the entropy function. */
+    void *MBEDTLS_PRIVATE(p_entropy);            /*!< The context for the entropy function. */
 
 #if defined(MBEDTLS_THREADING_C)
     /* Invariant: the mutex is initialized if and only if f_entropy != NULL.
@@ -207,7 +208,7 @@ typedef struct mbedtls_ctr_drbg_context
      * Note that this invariant may change without notice. Do not rely on it
      * and do not access the mutex directly in application code.
      */
-    mbedtls_threading_mutex_t mutex;
+    mbedtls_threading_mutex_t MBEDTLS_PRIVATE(mutex);
 #endif
 }
 mbedtls_ctr_drbg_context;
@@ -462,9 +463,9 @@ int mbedtls_ctr_drbg_reseed( mbedtls_ctr_drbg_context *ctx,
  *                     #MBEDTLS_CTR_DRBG_MAX_SEED_INPUT.
  * \return             An error from the underlying AES cipher on failure.
  */
-int mbedtls_ctr_drbg_update_ret( mbedtls_ctr_drbg_context *ctx,
-                                 const unsigned char *additional,
-                                 size_t add_len );
+int mbedtls_ctr_drbg_update( mbedtls_ctr_drbg_context *ctx,
+                             const unsigned char *additional,
+                             size_t add_len );
 
 /**
  * \brief   This function updates a CTR_DRBG instance with additional

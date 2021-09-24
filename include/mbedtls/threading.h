@@ -21,12 +21,9 @@
  */
 #ifndef MBEDTLS_THREADING_H
 #define MBEDTLS_THREADING_H
+#include "mbedtls/private_access.h"
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/build_info.h"
 
 #include <stdlib.h>
 
@@ -34,18 +31,20 @@
 extern "C" {
 #endif
 
-#define MBEDTLS_ERR_THREADING_BAD_INPUT_DATA              -0x001C  /**< Bad input parameters to function. */
-#define MBEDTLS_ERR_THREADING_MUTEX_ERROR                 -0x001E  /**< Locking / unlocking / free failed with error code. */
+/** Bad input parameters to function. */
+#define MBEDTLS_ERR_THREADING_BAD_INPUT_DATA              -0x001C
+/** Locking / unlocking / free failed with error code. */
+#define MBEDTLS_ERR_THREADING_MUTEX_ERROR                 -0x001E
 
 #if defined(MBEDTLS_THREADING_PTHREAD)
 #include <pthread.h>
 typedef struct mbedtls_threading_mutex_t
 {
-    pthread_mutex_t mutex;
+    pthread_mutex_t MBEDTLS_PRIVATE(mutex);
     /* is_valid is 0 after a failed init or a free, and nonzero after a
      * successful init. This field is not considered part of the public
      * API of Mbed TLS and may change without notice. */
-    char is_valid;
+    char MBEDTLS_PRIVATE(is_valid);
 } mbedtls_threading_mutex_t;
 #endif
 

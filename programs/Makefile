@@ -43,11 +43,15 @@ LOCAL_LDFLAGS += -lws2_32
 ifdef SHARED
 SHARED_SUFFIX=.$(DLEXT)
 endif
-PYTHON ?= python
 else
 DLEXT ?= so
 EXEXT=
 SHARED_SUFFIX=
+endif
+
+ifdef WINDOWS
+PYTHON ?= python
+else
 PYTHON ?= $(shell if type python3 >/dev/null 2>/dev/null; then echo python3; else echo python; fi)
 endif
 
@@ -153,12 +157,12 @@ psa/psa_constant_names_generated.c:
 	$(PYTHON) ../scripts/generate_psa_constants.py
 
 test/query_config.c: ../scripts/generate_query_config.pl
-## The generated file only depends on the options that are present in config.h,
+## The generated file only depends on the options that are present in mbedtls_config.h,
 ## not on which options are set. To avoid regenerating this file all the time
-## when switching between configurations, don't declare config.h as a
+## when switching between configurations, don't declare mbedtls_config.h as a
 ## dependency. Remove this file from your working tree if you've just added or
-## removed an option in config.h.
-#test/query_config.c: ../include/mbedtls/config.h
+## removed an option in mbedtls_config.h.
+#test/query_config.c: ../include/mbedtls/mbedtls_config.h
 test/query_config.c: ../scripts/data_files/query_config.fmt
 test/query_config.c:
 	echo "  Gen   $@"
@@ -331,6 +335,10 @@ test/benchmark$(EXEXT): test/benchmark.c $(DEP)
 	echo "  CC    test/benchmark.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/benchmark.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
+test/cpp_dummy_build.cpp: test/generate_cpp_dummy_build.sh
+	echo "  Gen   test/cpp_dummy_build.cpp"
+	test/generate_cpp_dummy_build.sh
+
 test/cpp_dummy_build$(EXEXT): test/cpp_dummy_build.cpp $(DEP)
 	echo "  CXX   test/cpp_dummy_build.cpp"
 	$(CXX) $(LOCAL_CXXFLAGS) $(CXXFLAGS) test/cpp_dummy_build.cpp   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
@@ -391,10 +399,11 @@ clean:
 ifndef WINDOWS
 	rm -f $(EXES)
 	-rm -f ssl/ssl_pthread_server$(EXEXT)
-	-rm -f test/cpp_dummy_build$(EXEXT)
+	-rm -f test/cpp_dummy_build.cpp test/cpp_dummy_build$(EXEXT)
 else
 	if exist *.o del /Q /F *.o
 	if exist *.exe del /Q /F *.exe
+	if exist test\cpp_dummy_build.cpp del /Q /F test\cpp_dummy_build.cpp
 endif
 	$(MAKE) -C fuzz clean
 

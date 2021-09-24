@@ -32,6 +32,8 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
+#include "ecdh_misc.h"
+
 #include <string.h>
 
 /* Parameter validation macros based on platform_util.h */
@@ -725,5 +727,85 @@ int mbedtls_ecdh_calc_secret( mbedtls_ecdh_context *ctx, size_t *olen,
     }
 #endif
 }
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+
+static int ecdh_tls13_make_params_internal( mbedtls_ecdh_context_mbed *ctx,
+                size_t *olen, int point_format, unsigned char *buf, size_t blen,
+                int ( *f_rng )( void *, unsigned char *, size_t), void *p_rng )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    if( ctx->grp.pbits == 0 )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+    if( ( ret = mbedtls_ecdh_gen_public( &ctx->grp, &ctx->d, &ctx->Q,
+                                         f_rng, p_rng ) ) != 0 )
+        return( ret );
+
+    ret = mbedtls_ecp_point_write_binary( &ctx->grp, &ctx->Q, point_format,
+                                          olen, buf, blen );
+    if( ret != 0 )
+        return( ret );
+
+    return( 0 );
+}
+
+int mbedtls_ecdh_tls13_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
+                            unsigned char *buf, size_t blen,
+                            int ( *f_rng )( void *, unsigned char *, size_t ),
+                            void *p_rng )
+{
+    ECDH_VALIDATE_RET( ctx != NULL );
+    ECDH_VALIDATE_RET( olen != NULL );
+    ECDH_VALIDATE_RET( buf != NULL );
+    ECDH_VALIDATE_RET( f_rng != NULL );
+
+
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    if( ctx-> restart_enabled )
+        return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
+#endif
+
+#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
+    return( ecdh_tls13_make_params_internal( ctx, olen, ctx->point_format,
+                                             buf, blen, f_rng, p_rng ) );
+#else
+    switch( ctx->var )
+    {
+#if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
+        case MBEDTLS_ECDH_VARIANT_EVEREST:
+            return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
+#endif
+        case MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0:
+            return( ecdh_tls13_make_params_internal( &ctx->ctx.mbed_ecdh, olen,
+                                               ctx->point_format, buf, blen,
+                                               f_rng, p_rng ) );
+        default:
+            return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+#endif
+}
+
+/*
+ * Setup context without Everest
+ */
+int mbedtls_ecdh_setup_no_everest( mbedtls_ecdh_context *ctx,
+                                   mbedtls_ecp_group_id grp_id )
+{
+    ECDH_VALIDATE_RET( ctx != NULL );
+
+#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
+    return( ecdh_setup_internal( ctx, grp_id ) );
+#else
+    ctx->point_format = MBEDTLS_ECP_PF_UNCOMPRESSED;
+    ctx->var = MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0;
+    ctx->grp_id = grp_id;
+    ecdh_init_internal( &ctx->ctx.mbed_ecdh );
+    return( ecdh_setup_internal( &ctx->ctx.mbed_ecdh, grp_id ) );
+#endif
+}
+
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 #endif /* MBEDTLS_ECDH_C */

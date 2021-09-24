@@ -330,7 +330,7 @@ install(
     DESTINATION "cmake"
     FILE "MbedTLSTargets.cmake")
 
-if(CMAKE_VERSION VERSION_GREATER 3.14)
+if(CMAKE_VERSION VERSION_GREATER 3.15 OR CMAKE_VERSION VERSION_EQUAL 3.15)
     # Do not export the package by default
     cmake_policy(SET CMP0090 NEW)
 

@@ -174,6 +174,10 @@ CCM encrypt and tag RFC 3610 #24
 depends_on:MBEDTLS_AES_C
 mbedtls_ccm_encrypt_and_tag:MBEDTLS_CIPHER_ID_AES:"D7828D13B2B0BDC325A76236DF93CC6B":"ABF21C0B02FEB88F856DF4A37381BCE3CC128517D4":"008D493B30AE8B3C9696766CFA":"6E37A6EF546D955D34AB6059":"F32905B88A641B04B9C9FFB58CC390900F3DA12AB16DCE9E82EFA16DA62059"
 
+CCM encrypt and tag AES-128 (P=0, N=13, A=0, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_encrypt_and_tag:MBEDTLS_CIPHER_ID_AES:"54caf96ef6d448734700aadab50faf7a":"":"a3803e752ae849c910d8da36af":"":"eba8347baa6d61f87b67c2dd7c6d2053"
+
 CCM encrypt and tag NIST VTT AES-128 #1 (P=24, N=13, A=32, T=4)
 depends_on:MBEDTLS_AES_C
 mbedtls_ccm_encrypt_and_tag:MBEDTLS_CIPHER_ID_AES:"43b1a6bc8d0d22d6d1ca95c18593cca5":"a2b381c7d1545c408fe29817a21dc435a154c87256346b05":"9882578e750b9682c6ca7f8f86":"2084f3861c9ad0ccee7c63a7e05aece5db8b34bd8724cc06b4ca99a7f9c4914f":"cc69ed76985e0ed4c8365a72775e5a19bfccc71aeb116c85a8c74677"
@@ -1517,3 +1521,226 @@ mbedtls_ccm_encrypt_and_tag:MBEDTLS_CIPHER_ID_CAMELLIA:"D75C2778078CA93D971F96FD
 CCM-Camellia encrypt and tag RFC 5528 #24
 depends_on:MBEDTLS_CAMELLIA_C
 mbedtls_ccm_encrypt_and_tag:MBEDTLS_CIPHER_ID_CAMELLIA:"D75C2778078CA93D971F96FDE720F4CD":"9DC9EDAE2FF5DF8636E8C6DE0EED55F7867E33337D":"003B8FD8D3A937B160B6A31C1C":"A4D499F78419728C19178B0C":"4B198156393B0F7796086AAFB454F8C3F034CCA966945F1FCEA7E11BEE6A2F"
+
+CCM encrypt, skip ad AES-128 (P=0, N=13, A=0, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_skip_ad:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:"54caf96ef6d448734700aadab50faf7a":"":"a3803e752ae849c910d8da36af":"":"eba8347baa6d61f87b67c2dd7c6d2053"
+
+CCM* encrypt, skip ad AES-128 (P=0, N=13, A=0, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_skip_ad:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_ENCRYPT:"54caf96ef6d448734700aadab50faf7a":"":"a3803e752ae849c910d8da36af":"":"eba8347baa6d61f87b67c2dd7c6d2053"
+
+CCM decrypt, skip ad AES-128 (P=0, N=13, A=0, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_skip_ad:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_DECRYPT:"54caf96ef6d448734700aadab50faf7a":"":"a3803e752ae849c910d8da36af":"":"eba8347baa6d61f87b67c2dd7c6d2053"
+
+CCM* decrypt, skip ad AES-128 (P=0, N=13, A=0, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_skip_ad:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_DECRYPT:"54caf96ef6d448734700aadab50faf7a":"":"a3803e752ae849c910d8da36af":"":"eba8347baa6d61f87b67c2dd7c6d2053"
+
+CCM encrypt, skip ad NIST VADT AES-128 (P=24, N=13, A=0, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_skip_ad:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:"d24a3d3dde8c84830280cb87abad0bb3":"7c86135ed9c2a515aaae0e9a208133897269220f30870006":"f1100035bb24a8d26004e0e24b":"1faeb0ee2ca2cd52f0aa3966578344f24e69b742c4ab37ab":"1123301219c70599b7c373ad4b3ad67b"
+
+CCM* encrypt, skip ad NIST VADT AES-128 (P=24, N=13, A=0, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_skip_ad:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_ENCRYPT:"d24a3d3dde8c84830280cb87abad0bb3":"7c86135ed9c2a515aaae0e9a208133897269220f30870006":"f1100035bb24a8d26004e0e24b":"1faeb0ee2ca2cd52f0aa3966578344f24e69b742c4ab37ab":"1123301219c70599b7c373ad4b3ad67b"
+
+CCM decrypt, skip ad NIST DVPT AES-192 (P=24, N=7, A=0, T=4)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_skip_ad:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_DECRYPT:"19ebfde2d5468ba0a3031bde629b11fd4094afcb205393fa":"411986d04d6463100bff03f7d0bde7ea2c3488784378138c":"5a8aa485c316e9":"3796cf51b8726652a4204733b8fbb047cf00fb91a9837e22":"ddc93a54"
+
+CCM* decrypt, skip ad NIST DVPT AES-192 (P=24, N=7, A=0, T=4)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_skip_ad:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_DECRYPT:"19ebfde2d5468ba0a3031bde629b11fd4094afcb205393fa":"411986d04d6463100bff03f7d0bde7ea2c3488784378138c":"5a8aa485c316e9":"3796cf51b8726652a4204733b8fbb047cf00fb91a9837e22":"ddc93a54"
+
+CCM encrypt, skip update AES-128 (P=0, N=13, A=0, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_skip_update:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:"54caf96ef6d448734700aadab50faf7a":"a3803e752ae849c910d8da36af":"":"eba8347baa6d61f87b67c2dd7c6d2053"
+
+CCM decrypt, skip update AES-128 (P=0, N=13, A=0, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_skip_update:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_DECRYPT:"54caf96ef6d448734700aadab50faf7a":"a3803e752ae849c910d8da36af":"":"eba8347baa6d61f87b67c2dd7c6d2053"
+
+CCM* encrypt, skip update AES-128 (P=0, N=13, A=0, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_skip_update:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_ENCRYPT:"54caf96ef6d448734700aadab50faf7a":"a3803e752ae849c910d8da36af":"":"eba8347baa6d61f87b67c2dd7c6d2053"
+
+CCM* decrypt, skip update AES-128 (P=0, N=13, A=0, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_skip_update:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_DECRYPT:"54caf96ef6d448734700aadab50faf7a":"a3803e752ae849c910d8da36af":"":"eba8347baa6d61f87b67c2dd7c6d2053"
+
+CCM encrypt, skip update NIST VPT AES-128 #1 (P=0, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_skip_update:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:"2ebf60f0969013a54a3dedb19d20f6c8":"1de8c5e21f9db33123ff870add":"e1de6c6119d7db471136285d10b47a450221b16978569190ef6a22b055295603":"0ead29ef205fbb86d11abe5ed704b880"
+
+CCM* encrypt, skip update NIST VPT AES-128 #1 (P=0, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_skip_update:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_ENCRYPT:"2ebf60f0969013a54a3dedb19d20f6c8":"1de8c5e21f9db33123ff870add":"e1de6c6119d7db471136285d10b47a450221b16978569190ef6a22b055295603":"0ead29ef205fbb86d11abe5ed704b880"
+
+CCM decrypt, skip update NIST DVPT AES-256 #23 (P=0, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_skip_update:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_DECRYPT:"8c5cf3457ff22228c39c051c4e05ed4093657eb303f859a9d4b0f8be0127d88a":"a544218dadd3c10583db49cf39":"3c0e2815d37d844f7ac240ba9d6e3a0b2a86f706e885959e09a1005e024f6907":"867b0d87cf6e0f718200a97b4f6d5ad5"
+
+CCM* decrypt, skip update NIST DVPT AES-256 #23 (P=0, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_skip_update:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_DECRYPT:"8c5cf3457ff22228c39c051c4e05ed4093657eb303f859a9d4b0f8be0127d88a":"a544218dadd3c10583db49cf39":"3c0e2815d37d844f7ac240ba9d6e3a0b2a86f706e885959e09a1005e024f6907":"867b0d87cf6e0f718200a97b4f6d5ad5"
+
+CCM encrypt, overflow ad NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_overflow_ad:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:"d32088d50df9aba14d9022c870a0cb85":"e16c69861efc206e85aab1255e":"a6f73242f2f227350c0277e4e72cdaa6"
+
+CCM encrypt, incomplete ad NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_incomplete_ad:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:"d32088d50df9aba14d9022c870a0cb85":"e16c69861efc206e85aab1255e":"a6f73242f2f227350c0277e4e72cdaa6"
+
+CCM encrypt, full ad and overflow NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_full_ad_and_overflow:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:"d32088d50df9aba14d9022c870a0cb85":"e16c69861efc206e85aab1255e":"a6f73242f2f227350c0277e4e72cdaa6"
+
+CCM encrypt, incomplete ad and overflow NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_incomplete_ad_and_overflow:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:"d32088d50df9aba14d9022c870a0cb85":"e16c69861efc206e85aab1255e":"a6f73242f2f227350c0277e4e72cdaa6"
+
+CCM encrypt, overflow update NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_overflow_update:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:"d32088d50df9aba14d9022c870a0cb85":"4b10788c1a03bca656f04f1f98":"e16c69861efc206e85aab1255e":"0eff7d7bcceb873c3203a8df74f4e91b04bd607ec11202f96cfeb99f5bcdb7aa"
+
+CCM encrypt, incomplete update NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_incomplete_update:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:"d32088d50df9aba14d9022c870a0cb85":"4b10788c1a03bca656f04f1f98":"e16c69861efc206e85aab1255e":"0eff7d7bcceb873c3203a8df74f4e91b04bd607ec11202f96cfeb99f5bcdb7aa"
+
+CCM encrypt, full update and overflow NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_full_update_and_overflow:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:"d32088d50df9aba14d9022c870a0cb85":"4b10788c1a03bca656f04f1f98":"e16c69861efc206e85aab1255e":"0eff7d7bcceb873c3203a8df74f4e91b04bd607ec11202f96cfeb99f5bcdb7aa"
+
+CCM encrypt, incomplete update and overflow NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_incomplete_update_overflow:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:"d32088d50df9aba14d9022c870a0cb85":"4b10788c1a03bca656f04f1f98":"e16c69861efc206e85aab1255e":"0eff7d7bcceb873c3203a8df74f4e91b04bd607ec11202f96cfeb99f5bcdb7aa"
+
+CCM decrypt, overflow ad NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_overflow_ad:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_DECRYPT:"d32088d50df9aba14d9022c870a0cb85":"e16c69861efc206e85aab1255e":"a6f73242f2f227350c0277e4e72cdaa6"
+
+CCM decrypt, incomplete ad NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_incomplete_ad:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_DECRYPT:"d32088d50df9aba14d9022c870a0cb85":"e16c69861efc206e85aab1255e":"a6f73242f2f227350c0277e4e72cdaa6"
+
+CCM decrypt, full ad and overflow NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_full_ad_and_overflow:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_DECRYPT:"d32088d50df9aba14d9022c870a0cb85":"e16c69861efc206e85aab1255e":"a6f73242f2f227350c0277e4e72cdaa6"
+
+CCM decrypt, incomplete ad and overflow NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_incomplete_ad_and_overflow:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_DECRYPT:"d32088d50df9aba14d9022c870a0cb85":"e16c69861efc206e85aab1255e":"a6f73242f2f227350c0277e4e72cdaa6"
+
+CCM decrypt, overflow update NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16))
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_overflow_update:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_DECRYPT:"d32088d50df9aba14d9022c870a0cb85":"4b10788c1a03bca656f04f1f98":"e16c69861efc206e85aab1255e":"0eff7d7bcceb873c3203a8df74f4e91b04bd607ec11202f96cfeb99f5bcdb7aa"
+
+CCM decrypt, incomplete update NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16))
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_incomplete_update:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_DECRYPT:"d32088d50df9aba14d9022c870a0cb85":"4b10788c1a03bca656f04f1f98":"e16c69861efc206e85aab1255e":"0eff7d7bcceb873c3203a8df74f4e91b04bd607ec11202f96cfeb99f5bcdb7aa"
+
+CCM decrypt, full update and overflow NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_full_update_and_overflow:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_DECRYPT:"d32088d50df9aba14d9022c870a0cb85":"4b10788c1a03bca656f04f1f98":"e16c69861efc206e85aab1255e":"0eff7d7bcceb873c3203a8df74f4e91b04bd607ec11202f96cfeb99f5bcdb7aa"
+
+CCM decrypt, incomplete update and overflow NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_incomplete_update_overflow:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_DECRYPT:"d32088d50df9aba14d9022c870a0cb85":"4b10788c1a03bca656f04f1f98":"e16c69861efc206e85aab1255e":"0eff7d7bcceb873c3203a8df74f4e91b04bd607ec11202f96cfeb99f5bcdb7aa"
+
+CCM* encrypt, overflow ad NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_overflow_ad:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_ENCRYPT:"d32088d50df9aba14d9022c870a0cb85":"e16c69861efc206e85aab1255e":"a6f73242f2f227350c0277e4e72cdaa6"
+
+CCM* encrypt, incomplete ad NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_incomplete_ad:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_ENCRYPT:"d32088d50df9aba14d9022c870a0cb85":"e16c69861efc206e85aab1255e":"a6f73242f2f227350c0277e4e72cdaa6"
+
+CCM* encrypt, full ad and overflow NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_full_ad_and_overflow:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_ENCRYPT:"d32088d50df9aba14d9022c870a0cb85":"e16c69861efc206e85aab1255e":"a6f73242f2f227350c0277e4e72cdaa6"
+
+CCM* encrypt, overflow update NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_overflow_update:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_ENCRYPT:"d32088d50df9aba14d9022c870a0cb85":"4b10788c1a03bca656f04f1f98":"e16c69861efc206e85aab1255e":"0eff7d7bcceb873c3203a8df74f4e91b04bd607ec11202f96cfeb99f5bcdb7aa"
+
+CCM* encrypt, incomplete ad and overflow NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_incomplete_ad_and_overflow:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_ENCRYPT:"d32088d50df9aba14d9022c870a0cb85":"e16c69861efc206e85aab1255e":"a6f73242f2f227350c0277e4e72cdaa6"
+
+CCM* encrypt, incomplete update NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_incomplete_update:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_ENCRYPT:"d32088d50df9aba14d9022c870a0cb85":"4b10788c1a03bca656f04f1f98":"e16c69861efc206e85aab1255e":"0eff7d7bcceb873c3203a8df74f4e91b04bd607ec11202f96cfeb99f5bcdb7aa"
+
+CCM* encrypt, full update and overflow NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_full_update_and_overflow:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_ENCRYPT:"d32088d50df9aba14d9022c870a0cb85":"4b10788c1a03bca656f04f1f98":"e16c69861efc206e85aab1255e":"0eff7d7bcceb873c3203a8df74f4e91b04bd607ec11202f96cfeb99f5bcdb7aa"
+
+CCM* encrypt, incomplete update and overflow NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_incomplete_update_overflow:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_ENCRYPT:"d32088d50df9aba14d9022c870a0cb85":"4b10788c1a03bca656f04f1f98":"e16c69861efc206e85aab1255e":"0eff7d7bcceb873c3203a8df74f4e91b04bd607ec11202f96cfeb99f5bcdb7aa"
+
+CCM* decrypt, overflow ad NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_overflow_ad:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_DECRYPT:"d32088d50df9aba14d9022c870a0cb85":"e16c69861efc206e85aab1255e":"a6f73242f2f227350c0277e4e72cdaa6"
+
+CCM* decrypt, incomplete ad NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_incomplete_ad:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_DECRYPT:"d32088d50df9aba14d9022c870a0cb85":"e16c69861efc206e85aab1255e":"a6f73242f2f227350c0277e4e72cdaa6"
+
+CCM* decrypt, full ad and overflow NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_full_ad_and_overflow:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_DECRYPT:"d32088d50df9aba14d9022c870a0cb85":"e16c69861efc206e85aab1255e":"a6f73242f2f227350c0277e4e72cdaa6"
+
+CCM* decrypt, incomplete ad and overflow NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_incomplete_ad_and_overflow:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_DECRYPT:"d32088d50df9aba14d9022c870a0cb85":"e16c69861efc206e85aab1255e":"a6f73242f2f227350c0277e4e72cdaa6"
+
+CCM* decrypt, overflow update NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_overflow_update:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_DECRYPT:"d32088d50df9aba14d9022c870a0cb85":"4b10788c1a03bca656f04f1f98":"e16c69861efc206e85aab1255e":"0eff7d7bcceb873c3203a8df74f4e91b04bd607ec11202f96cfeb99f5bcdb7aa"
+
+CCM* decrypt, incomplete update NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_incomplete_update:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_DECRYPT:"d32088d50df9aba14d9022c870a0cb85":"4b10788c1a03bca656f04f1f98":"e16c69861efc206e85aab1255e":"0eff7d7bcceb873c3203a8df74f4e91b04bd607ec11202f96cfeb99f5bcdb7aa"
+
+CCM* decrypt, full update and overflow NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_full_update_and_overflow:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_DECRYPT:"d32088d50df9aba14d9022c870a0cb85":"4b10788c1a03bca656f04f1f98":"e16c69861efc206e85aab1255e":"0eff7d7bcceb873c3203a8df74f4e91b04bd607ec11202f96cfeb99f5bcdb7aa"
+
+CCM* decrypt, incomplete update and overflow NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_incomplete_update_overflow:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_DECRYPT:"d32088d50df9aba14d9022c870a0cb85":"4b10788c1a03bca656f04f1f98":"e16c69861efc206e85aab1255e":"0eff7d7bcceb873c3203a8df74f4e91b04bd607ec11202f96cfeb99f5bcdb7aa"
+
+CCM encrypt, instant finish NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+mbedtls_ccm_instant_finish:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:"d32088d50df9aba14d9022c870a0cb85":"4b10788c1a03bca656f04f1f98"
+
+CCM decrypt, instant finish NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+mbedtls_ccm_instant_finish:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_DECRYPT:"d32088d50df9aba14d9022c870a0cb85":"4b10788c1a03bca656f04f1f98"
+
+CCM* encrypt, instant finish NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+mbedtls_ccm_instant_finish:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_ENCRYPT:"d32088d50df9aba14d9022c870a0cb85":"4b10788c1a03bca656f04f1f98"
+
+CCM* decrypt, instant finish NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+mbedtls_ccm_instant_finish:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_DECRYPT:"d32088d50df9aba14d9022c870a0cb85":"4b10788c1a03bca656f04f1f98"
+
+CCM encrypt, instant finish AES-128 (P=0, N=13, A=0, T=16)
+mbedtls_ccm_instant_finish:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:"54caf96ef6d448734700aadab50faf7a":"a3803e752ae849c910d8da36af"
+
+CCM decrypt, instant finish AES-128 (P=0, N=13, A=0, T=16)
+mbedtls_ccm_instant_finish:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_DECRYPT:"54caf96ef6d448734700aadab50faf7a":"a3803e752ae849c910d8da36af"
+
+CCM* encrypt, instant finish AES-128 (P=0, N=13, A=0, T=16)
+mbedtls_ccm_instant_finish:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_ENCRYPT:"54caf96ef6d448734700aadab50faf7a":"a3803e752ae849c910d8da36af"
+
+CCM* decrypt, instant finish AES-128 (P=0, N=13, A=0, T=16)
+mbedtls_ccm_instant_finish:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_STAR_DECRYPT:"54caf96ef6d448734700aadab50faf7a":"a3803e752ae849c910d8da36af"
+
+CCM pass unexpected auth data, NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+mbedtls_ccm_unexpected_ad::MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:"d32088d50df9aba14d9022c870a0cb85":"e16c69861efc206e85aab1255e":"0eff7d7bcceb873c3203a8df74f4e91b04bd607ec11202f96cfeb99f5bcdb7aa"
+
+CCM encrypt, unexpected ciphertext/plaintext data, NIST VPT AES-128 #14 (P=13, N=13, A=32, T=16)
+depends_on:MBEDTLS_AES_C
+mbedtls_ccm_unexpected_text:MBEDTLS_CIPHER_ID_AES:MBEDTLS_CCM_ENCRYPT:"d32088d50df9aba14d9022c870a0cb85":"4b10788c1a03bca656f04f1f98":"e16c69861efc206e85aab1255e":"0eff7d7bcceb873c3203a8df74f4e91b04bd607ec11202f96cfeb99f5bcdb7aa"

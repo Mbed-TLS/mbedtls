@@ -1,7 +1,7 @@
 /*
- * Test driver for context size functions
- */
-/*  Copyright The Mbed TLS Contributors
+ *  TLS 1.3 server-side functions
+ *
+ *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -15,19 +15,22 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- */
+*/
 
-#ifndef PSA_CRYPTO_TEST_DRIVERS_SIZE_H
-#define PSA_CRYPTO_TEST_DRIVERS_SIZE_H
+#include "common.h"
 
-#include "mbedtls/build_info.h"
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
 
-#if defined(PSA_CRYPTO_DRIVER_TEST)
-#include <psa/crypto_driver_common.h>
+#if defined(MBEDTLS_SSL_SRV_C)
 
-size_t mbedtls_test_size_function(
-    const psa_key_type_t key_type,
-    const size_t key_bits );
+#include "ssl_misc.h"
 
-#endif /* PSA_CRYPTO_DRIVER_TEST */
-#endif /* PSA_CRYPTO_TEST_DRIVERS_SIZE_H */
+int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
+{
+    ((void) ssl);
+    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+}
+
+#endif /* MBEDTLS_SSL_SRV_C */
+
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */

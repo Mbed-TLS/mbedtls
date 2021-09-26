@@ -1458,20 +1458,15 @@ cleanup:
 #endif /* MBEDTLS_PKCS1_V21 */
 
 #if defined(MBEDTLS_PKCS1_V15)
-/*
- * Implementation of the PKCS#1 v2.1 RSAES-PKCS1-V1_5-DECRYPT function
- */
-int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
-                                 int (*f_rng)(void *, unsigned char *, size_t),
-                                 void *p_rng,
-                                 size_t *olen,
-                                 const unsigned char *input,
-                                 unsigned char *output,
-                                 size_t output_max_len )
+int mbedtls_cf_rsaes_pkcs1_v15_unpadding( size_t ilen,
+                                          size_t *olen,
+                                          unsigned char *output,
+                                          size_t output_max_len,
+                                          unsigned char *buf )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t ilen, i, plaintext_max_size;
-    unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
+    size_t i, plaintext_max_size;
+
     /* The following variables take sensitive values: their value must
      * not leak into the observable behavior of the function other than
      * the designated outputs (output, olen, return value). Otherwise
@@ -1488,26 +1483,9 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
     size_t plaintext_size = 0;
     unsigned output_too_large;
 
-    RSA_VALIDATE_RET( ctx != NULL );
-    RSA_VALIDATE_RET( output_max_len == 0 || output != NULL );
-    RSA_VALIDATE_RET( input != NULL );
-    RSA_VALIDATE_RET( olen != NULL );
-
-    ilen = ctx->len;
-    plaintext_max_size = ( output_max_len > ilen - 11 ?
-                           ilen - 11 :
-                           output_max_len );
-
-    if( ctx->padding != MBEDTLS_RSA_PKCS_V15 )
-        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
-
-    if( ilen < 16 || ilen > sizeof( buf ) )
-        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
-
-    ret = mbedtls_rsa_private( ctx, f_rng, p_rng, input, buf );
-
-    if( ret != 0 )
-        goto cleanup;
+    plaintext_max_size = mbedtls_cf_size_if( output_max_len > ilen - 11,
+                                             ilen - 11,
+                                             output_max_len );
 
     /* Check and get padding length in constant time and constant
      * memory trace. The first byte must be 0. */
@@ -1603,6 +1581,46 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
      * when this function returns is not specified. Making it equivalent
      * to the good case limits the risks of leaking the padding validity. */
     *olen = plaintext_size;
+
+    return( ret );
+}
+
+/*
+ * Implementation of the PKCS#1 v2.1 RSAES-PKCS1-V1_5-DECRYPT function
+ */
+int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
+                                 int (*f_rng)(void *, unsigned char *, size_t),
+                                 void *p_rng,
+                                 size_t *olen,
+                                 const unsigned char *input,
+                                 unsigned char *output,
+                                 size_t output_max_len )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t ilen;
+    unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
+
+    RSA_VALIDATE_RET( ctx != NULL );
+    RSA_VALIDATE_RET( output_max_len == 0 || output != NULL );
+    RSA_VALIDATE_RET( input != NULL );
+    RSA_VALIDATE_RET( olen != NULL );
+
+    ilen = ctx->len;
+
+    if( ctx->padding != MBEDTLS_RSA_PKCS_V15 )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    if( ilen < 16 || ilen > sizeof( buf ) )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    ret = mbedtls_rsa_private( ctx, f_rng, p_rng, input, buf );
+
+    if( ret != 0 )
+        goto cleanup;
+
+    ret = mbedtls_cf_rsaes_pkcs1_v15_unpadding( ilen, olen, output,
+                                                output_max_len,
+                                                (unsigned char *) &buf );
 
 cleanup:
     mbedtls_platform_zeroize( buf, sizeof( buf ) );

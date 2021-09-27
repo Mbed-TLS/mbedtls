@@ -1458,25 +1458,6 @@ cleanup:
 #endif /* MBEDTLS_PKCS1_V21 */
 
 #if defined(MBEDTLS_PKCS1_V15)
-/** Turn zero-or-nonzero into zero-or-all-bits-one, without branches.
- *
- * \param value     The value to analyze.
- * \return          Zero if \p value is zero, otherwise all-bits-one.
- */
-static unsigned mbedtls_cf_uint_mask( unsigned value )
-{
-    /* MSVC has a warning about unary minus on unsigned, but this is
-     * well-defined and precisely what we want to do here */
-#if defined(_MSC_VER)
-#pragma warning( push )
-#pragma warning( disable : 4146 )
-#endif
-    return( - ( ( value | - value ) >> ( sizeof( value ) * 8 - 1 ) ) );
-#if defined(_MSC_VER)
-#pragma warning( pop )
-#endif
-}
-
 /** Check whether a size is out of bounds, without branches.
  *
  * This is equivalent to `size > max`, but is likely to be compiled to

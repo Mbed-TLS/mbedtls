@@ -92,3 +92,22 @@ int mbedtls_safer_memcmp( const void *a, const void *b, size_t n )
 
     return( diff );
 }
+
+/** Turn zero-or-nonzero into zero-or-all-bits-one, without branches.
+ *
+ * \param value     The value to analyze.
+ * \return          Zero if \p value is zero, otherwise all-bits-one.
+ */
+unsigned mbedtls_cf_uint_mask( unsigned value )
+{
+    /* MSVC has a warning about unary minus on unsigned, but this is
+     * well-defined and precisely what we want to do here */
+#if defined(_MSC_VER)
+#pragma warning( push )
+#pragma warning( disable : 4146 )
+#endif
+    return( - ( ( value | - value ) >> ( sizeof( value ) * 8 - 1 ) ) );
+#if defined(_MSC_VER)
+#pragma warning( pop )
+#endif
+}

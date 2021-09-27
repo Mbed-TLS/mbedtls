@@ -29,9 +29,9 @@
 #include "ssl_misc.h"
 
 int mbedtls_ssl_tls1_3_fetch_handshake_msg( mbedtls_ssl_context *ssl,
-                                     unsigned hs_type,
-                                     unsigned char **buf,
-                                     size_t *buflen )
+                                            unsigned hs_type,
+                                            unsigned char **buf,
+                                            size_t *buflen )
 {
     int ret;
 
@@ -41,10 +41,10 @@ int mbedtls_ssl_tls1_3_fetch_handshake_msg( mbedtls_ssl_context *ssl,
         goto cleanup;
     }
 
-    if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE         ||
+    if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE ||
         ssl->in_msg[0]  != hs_type )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Receive unexpected handshake message." ) );
         MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE,
                               MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
         ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
@@ -53,7 +53,6 @@ int mbedtls_ssl_tls1_3_fetch_handshake_msg( mbedtls_ssl_context *ssl,
 
     *buf    = ssl->in_msg   + 4;
     *buflen = ssl->in_hslen - 4;
-
 
 cleanup:
 

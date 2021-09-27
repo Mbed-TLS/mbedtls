@@ -1493,9 +1493,9 @@ static inline void mbedtls_ssl_handshake_set_state( mbedtls_ssl_context *ssl,
  * Fetch TLS 1.3 handshake message header
  */
 int mbedtls_ssl_tls1_3_fetch_handshake_msg( mbedtls_ssl_context *ssl,
-                                       unsigned hs_type,
-                                       unsigned char **buf,
-                                       size_t *buf_len );
+                                            unsigned hs_type,
+                                            unsigned char **buf,
+                                            size_t *buf_len );
 
 /*
  * Write TLS 1.3 handshake message header

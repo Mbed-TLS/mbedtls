@@ -148,3 +148,13 @@ int mbedtls_ssl_cf_hmac(
         unsigned char *output );
 
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
+
+#if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT)
+
+int mbedtls_cf_rsaes_pkcs1_v15_unpadding( size_t ilen,
+                                          size_t *olen,
+                                          unsigned char *output,
+                                          size_t output_max_len,
+                                          unsigned char *buf );
+
+#endif /* MBEDTLS_PKCS1_V15 && MBEDTLS_RSA_C && ! MBEDTLS_RSA_ALT */

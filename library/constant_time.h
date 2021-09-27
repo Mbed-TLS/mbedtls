@@ -69,3 +69,8 @@ void mbedtls_cf_mpi_uint_cond_assign( size_t n,
 void mbedtls_cf_mem_move_to_left( void *start,
                                   size_t total,
                                   size_t offset );
+
+void mbedtls_cf_memcpy_if_eq( unsigned char *dst,
+                              const unsigned char *src,
+                              size_t len,
+                              size_t c1, size_t c2 );

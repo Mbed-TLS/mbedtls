@@ -126,13 +126,22 @@ the handshake with an handshake_failure closure alert and the
       re-initiate a server handshake.
 
 - Supported groups: depends on the library configuration.
-  Potentially all ECDHE groups:
-  secp256r1, secp384r1, secp521r1(0x0019), x25519, x448.
+  Minimally (as defined in section 9.1 of the TLS 1.3 specification):
+  secp256r1 and x25519.
 
-- Supported signature algorithms: depends on the library configuration.
-  Potentially:
-  ecdsa_secp256r1_sha256, ecdsa_secp384r1_sha384, ecdsa_secp521r1_sha512,
-  rsa_pss_rsae_sha256.
+  Furthermore, depending on the library configuration, potentially:
+  secp384r1 and secp521r1.
+
+  Finite field groups (DHE) are not supported.
+
+- Supported signature algorithms(both for certificates and CertificateVerify):
+  Minimally (as defined in section 9.1 of the TLS 1.3 specification):
+  rsa_pkcs1_sha256, rsa_pss_rsae_sha256 and ecdsa_secp256r1_sha256
+
+  Furthermore, depending on the library configuration, potentially:
+  ecdsa_secp384r1_sha384 and ecdsa_secp521r1_sha512
+
+- Supported versions: only TLS 1.3, version negotiation is not supported.
 
 - Support of Mbed TLS SSL/TLS related (not DTLS) features:
 

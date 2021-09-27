@@ -242,25 +242,24 @@ TLS 1.3 specific coding rules:
       length in bytes of the vector, where <vector name> is the name of the
       vector as defined in the TLS 1.3 specification.
 
-    - Use `<vector_name>_len_ptr` for the name of a variable intended to hold
+    - Use `p_<vector_name>_len` for the name of a variable intended to hold
       the address of the first byte of the vector length.
 
-    - Use `<vector_name>_ptr` for the name of a variable intended to hold the
+    - Use `<vector_name>` for the name of a variable intended to hold the
       address of the first byte of the vector value.
 
-    - Use `<vector_name>_end_ptr` for the name of a variable intended to hold
+    - Use `<vector_name>_end` for the name of a variable intended to hold
       the address of the first byte past the vector value.
 
-    Those two last idioms should lower the risk of mis-using one of the address
-    in place of the other one which could potentially lead to some nasty
-    issues.
+    Those idioms should lower the risk of mis-using one of the address in place
+    of another one which could potentially lead to some nasty issues.
 
     Example: `cipher_suites` vector of ClientHello in
              `ssl_tls1_3_write_client_hello_cipher_suites()`
     ```
     size_t cipher_suites_len;
-    unsigned char *cipher_suites_len_ptr;
-    unsigned char *cipher_suites_ptr;
+    unsigned char *p_cipher_suites_len;
+    unsigned char *cipher_suites;
     ```
 
   - Use of MBEDTLS_BYTE_xyz, MBEDTLS_PUT/GET_xyz, MBEDTLS_SSL_CHK_BUF_PTR

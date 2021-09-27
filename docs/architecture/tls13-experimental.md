@@ -190,6 +190,17 @@ the handshake with an handshake_failure closure alert and the
       of the MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_NONE/PSK/PSK_EPHEMERAL/EPHEMERAL
       runtime configuration macros.
 
+- Quality considerations
+  - Standard Mbed TLS review bar
+  - Interoperability testing with OpenSSL and GnuTLS. Test with all the
+    cipher suites supported by OpenSSL/GnuTLS server with and without
+    certificate base authentication.
+  - Negative testing against OpenSSL/GnuTLS servers with which the
+    handshake fails due to imcompatibility with the capabilities of the
+    MVP: TLS 1.2 or 1.1 server, server sending an HelloRetryRequest message in
+    response to the MVP ClientHello, server sending a CertificateRequest
+    message ...
+
 Coding rules checklist for TLS 1.3
 ----------------------------------
 

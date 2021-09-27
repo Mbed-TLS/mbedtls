@@ -1027,27 +1027,6 @@ cleanup:
     mbedtls_md_free( &aux );
     return( ret );
 }
-
-/*
- * Constant-flow memcpy from variable position in buffer.
- * - functionally equivalent to memcpy(dst, src + offset_secret, len)
- * - but with execution flow independent from the value of offset_secret.
- */
-MBEDTLS_STATIC_TESTABLE void mbedtls_cf_memcpy_offset(
-                                   unsigned char *dst,
-                                   const unsigned char *src_base,
-                                   size_t offset_secret,
-                                   size_t offset_min, size_t offset_max,
-                                   size_t len )
-{
-    size_t offset;
-
-    for( offset = offset_min; offset <= offset_max; offset++ )
-    {
-        mbedtls_cf_memcpy_if_eq( dst, src_base + offset, len,
-                                 offset, offset_secret );
-    }
-}
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
 
 int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,

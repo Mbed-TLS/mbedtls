@@ -74,3 +74,27 @@ void mbedtls_cf_memcpy_if_eq( unsigned char *dst,
                               const unsigned char *src,
                               size_t len,
                               size_t c1, size_t c2 );
+
+/** Copy data from a secret position with constant flow.
+ *
+ * This function copies \p len bytes from \p src_base + \p offset_secret to \p
+ * dst, with a code flow and memory access pattern that does not depend on \p
+ * offset_secret, but only on \p offset_min, \p offset_max and \p len.
+ *
+ * \param dst           The destination buffer. This must point to a writable
+ *                      buffer of at least \p len bytes.
+ * \param src_base      The base of the source buffer. This must point to a
+ *                      readable buffer of at least \p offset_max + \p len
+ *                      bytes.
+ * \param offset_secret The offset in the source buffer from which to copy.
+ *                      This must be no less than \p offset_min and no greater
+ *                      than \p offset_max.
+ * \param offset_min    The minimal value of \p offset_secret.
+ * \param offset_max    The maximal value of \p offset_secret.
+ * \param len           The number of bytes to copy.
+ */
+void mbedtls_cf_memcpy_offset( unsigned char *dst,
+                               const unsigned char *src_base,
+                               size_t offset_secret,
+                               size_t offset_min, size_t offset_max,
+                               size_t len );

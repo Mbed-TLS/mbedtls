@@ -418,3 +418,24 @@ void mbedtls_cf_memcpy_if_eq( unsigned char *dst,
     for( size_t i = 0; i < len; i++ )
         dst[i] = ( src[i] & mask ) | ( dst[i] & ~mask );
 }
+
+/*
+ * Constant-flow memcpy from variable position in buffer.
+ * - functionally equivalent to memcpy(dst, src + offset_secret, len)
+ * - but with execution flow independent from the value of offset_secret.
+ */
+void mbedtls_cf_memcpy_offset(
+                                   unsigned char *dst,
+                                   const unsigned char *src_base,
+                                   size_t offset_secret,
+                                   size_t offset_min, size_t offset_max,
+                                   size_t len )
+{
+    size_t offset;
+
+    for( offset = offset_min; offset <= offset_max; offset++ )
+    {
+        mbedtls_cf_memcpy_if_eq( dst, src_base + offset, len,
+                                 offset, offset_secret );
+    }
+}

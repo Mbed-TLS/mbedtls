@@ -267,47 +267,6 @@ psa_status_t mbedtls_psa_aead_set_nonce(
     const uint8_t *nonce,
     size_t nonce_length );
 
-/** Declare the lengths of the message and additional data for AEAD.
- *
- * \note The signature of this function is that of a PSA driver aead_set_lengths
- *       entry point. This function behaves as an aead_set_lengths entry point
- *       as defined in the PSA driver interface specification for transparent
- *       drivers.
- *
- * The PSA core calls this function before calling mbedtls_psa_aead_update_ad()
- * or mbedtls_psa_aead_update() if the algorithm for the operation requires it.
- * If the algorithm does not require it, calling this function is optional, but
- * if this function is called then the implementation must enforce the lengths.
- *
- * The PSA core may call this function before or after setting the nonce with
- * mbedtls_psa_aead_set_nonce().
- *
- * - For #PSA_ALG_CCM, calling this function is required.
- * - For the other AEAD algorithms defined in this specification, calling
- *   this function is not required.
- *
- * If this function returns an error status, the PSA core calls
- * mbedtls_psa_aead_abort().
- *
- * \param[in,out] operation     Active AEAD operation.
- * \param ad_length             Size of the non-encrypted additional
- *                              authenticated data in bytes.
- * \param plaintext_length      Size of the plaintext to encrypt in bytes.
- *
- * \retval #PSA_SUCCESS
- *         Success.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         At least one of the lengths is not acceptable for the chosen
- *         algorithm.
- * \retval #PSA_ERROR_NOT_SUPPORTED
- *         Algorithm previously set is not supported in this configuration of
- *         the library.
- */
-psa_status_t mbedtls_psa_aead_set_lengths(
-    mbedtls_psa_aead_operation_t *operation,
-    size_t ad_length,
-    size_t plaintext_length );
-
 /** Pass additional data to an active AEAD operation.
  *
  *  \note The signature of this function is that of a PSA driver

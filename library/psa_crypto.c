@@ -3901,6 +3901,41 @@ psa_status_t psa_aead_set_lengths( psa_aead_operation_t *operation,
         goto exit;
     }
 
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
+    if( operation->alg == PSA_ALG_GCM )
+    {
+        /* Lengths can only be too large for GCM if size_t is bigger than 32
+        * bits. Without the guard this code will generate warnings on 32bit
+        * builds */
+#if SIZE_MAX > UINT32_MAX
+        if( (( uint64_t ) ad_length ) >> 61 != 0 ||
+            (( uint64_t ) plaintext_length ) > 0xFFFFFFFE0ull )
+        {
+            status = PSA_ERROR_INVALID_ARGUMENT;
+            goto exit;
+        }
+#endif
+    }
+    else
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
+    if( operation->alg == PSA_ALG_CCM )
+    {
+        if( ad_length > 0xFF00 )
+        {
+            status = PSA_ERROR_INVALID_ARGUMENT;
+            goto exit;
+        }
+    }
+    else
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
+    if( operation->alg == PSA_ALG_CHACHA20_POLY1305 )
+    {
+        /* No length restrictions for ChaChaPoly. */
+    }
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
+
     status = psa_driver_wrapper_aead_set_lengths( operation, ad_length,
                                                   plaintext_length );
 

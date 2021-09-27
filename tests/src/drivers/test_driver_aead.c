@@ -171,9 +171,8 @@ psa_status_t mbedtls_test_transparent_aead_set_lengths(
     }
     else
     {
-        mbedtls_test_driver_aead_hooks.driver_status =
-            mbedtls_psa_aead_set_lengths( operation, ad_length,
-                                          plaintext_length );
+       /* No mbedtls_psa_aead_set_lengths, everything is done in PSA Core. */
+       mbedtls_test_driver_aead_hooks.driver_status = PSA_SUCCESS;
     }
 
     return( mbedtls_test_driver_aead_hooks.driver_status );

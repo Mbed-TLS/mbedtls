@@ -1706,9 +1706,9 @@ psa_status_t psa_driver_wrapper_aead_set_lengths(
     {
 #if defined(MBEDTLS_PSA_BUILTIN_AEAD)
         case PSA_CRYPTO_MBED_TLS_DRIVER_ID:
-            return( mbedtls_psa_aead_set_lengths( &operation->ctx.mbedtls_ctx,
-                                                  ad_length,
-                                                  plaintext_length ) );
+            /* No mbedtls_psa_aead_set_lengths, everything is done in PSA
+             * Core. */
+            return( PSA_SUCCESS );
 
 #endif /* MBEDTLS_PSA_BUILTIN_AEAD */
 

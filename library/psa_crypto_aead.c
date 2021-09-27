@@ -477,55 +477,6 @@ psa_status_t mbedtls_psa_aead_set_nonce(
     return( status );
 }
 
- /* Declare the lengths of the message and additional data for AEAD. */
-psa_status_t mbedtls_psa_aead_set_lengths(
-    mbedtls_psa_aead_operation_t *operation,
-    size_t ad_length,
-    size_t plaintext_length )
-{
-
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
-    if( operation->alg == PSA_ALG_GCM )
-    {
-        /* Lengths can only be too large for GCM if size_t is bigger than 32
-         * bits. Without the guard this code will generate warnings on 32bit
-         * builds */
-#if SIZE_MAX > UINT32_MAX
-        if( ( (uint64_t) ad_length ) >> 61 != 0 ||
-            ( (uint64_t) plaintext_length ) > 0xFFFFFFFE0ull )
-        {
-            return ( PSA_ERROR_INVALID_ARGUMENT );
-        }
-#endif
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
-    if( operation->alg == PSA_ALG_CCM )
-    {
-        if( ad_length > 0xFF00 )
-            return ( PSA_ERROR_INVALID_ARGUMENT );
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
-    if( operation->alg == PSA_ALG_CHACHA20_POLY1305 )
-    {
-        /* No length restrictions for ChaChaPoly. */
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
-    {
-        ( void ) operation;
-        ( void ) ad_length;
-        ( void ) plaintext_length;
-
-        return ( PSA_ERROR_NOT_SUPPORTED );
-    }
-
-    return ( PSA_SUCCESS );
-}
-
 /* Pass additional data to an active multipart AEAD operation. */
 psa_status_t mbedtls_psa_aead_update_ad(
     mbedtls_psa_aead_operation_t *operation,

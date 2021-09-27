@@ -740,7 +740,7 @@ cleanup:
 /*
  * Handler for MBEDTLS_SSL_SERVER_HELLO
  */
-static int ssl_tls1_3_read_server_hello( mbedtls_ssl_context *ssl )
+static int ssl_tls1_3_process_server_hello( mbedtls_ssl_context *ssl )
 {
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "%s hasn't been implemented", __func__ ) );
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_ENCRYPTED_EXTENSIONS );
@@ -750,7 +750,7 @@ static int ssl_tls1_3_read_server_hello( mbedtls_ssl_context *ssl )
 /*
  * Handler for MBEDTLS_SSL_ENCRYPTED_EXTENSIONS
  */
-static int ssl_tls1_3_read_encrypted_extensions( mbedtls_ssl_context *ssl )
+static int ssl_tls1_3_process_encrypted_extensions( mbedtls_ssl_context *ssl )
 {
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "%s hasn't been implemented", __func__ ) );
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CERTIFICATE_REQUEST );
@@ -760,7 +760,7 @@ static int ssl_tls1_3_read_encrypted_extensions( mbedtls_ssl_context *ssl )
 /*
  * Handler for  MBEDTLS_SSL_CERTIFICATE_REQUEST
  */
-static int ssl_tls1_3_read_certificate_request( mbedtls_ssl_context *ssl )
+static int ssl_tls1_3_process_certificate_request( mbedtls_ssl_context *ssl )
 {
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "%s hasn't been implemented", __func__ ) );
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_CERTIFICATE );
@@ -770,7 +770,7 @@ static int ssl_tls1_3_read_certificate_request( mbedtls_ssl_context *ssl )
 /*
  * Handler for MBEDTLS_SSL_SERVER_CERTIFICATE
  */
-static int ssl_tls1_3_read_server_certificate( mbedtls_ssl_context *ssl )
+static int ssl_tls1_3_process_server_certificate( mbedtls_ssl_context *ssl )
 {
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "%s hasn't been implemented", __func__ ) );
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CERTIFICATE_VERIFY );
@@ -780,7 +780,7 @@ static int ssl_tls1_3_read_server_certificate( mbedtls_ssl_context *ssl )
 /*
  * Handler for MBEDTLS_SSL_CERTIFICATE_VERIFY
  */
-static int ssl_tls1_3_read_certificate_verify( mbedtls_ssl_context *ssl )
+static int ssl_tls1_3_process_certificate_verify( mbedtls_ssl_context *ssl )
 {
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "%s hasn't been implemented", __func__ ) );
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_FINISHED );
@@ -790,7 +790,7 @@ static int ssl_tls1_3_read_certificate_verify( mbedtls_ssl_context *ssl )
 /*
  * Handler for MBEDTLS_SSL_SERVER_FINISHED
  */
-static int ssl_tls1_3_read_server_finished( mbedtls_ssl_context *ssl )
+static int ssl_tls1_3_process_server_finished( mbedtls_ssl_context *ssl )
 {
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "%s hasn't been implemented", __func__ ) );
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE );
@@ -865,27 +865,27 @@ int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl )
             break;
 
         case MBEDTLS_SSL_SERVER_HELLO:
-            ret = ssl_tls1_3_read_server_hello( ssl );
+            ret = ssl_tls1_3_process_server_hello( ssl );
             break;
 
         case MBEDTLS_SSL_ENCRYPTED_EXTENSIONS:
-            ret = ssl_tls1_3_read_encrypted_extensions( ssl );
+            ret = ssl_tls1_3_process_encrypted_extensions( ssl );
             break;
 
         case MBEDTLS_SSL_CERTIFICATE_REQUEST:
-            ret = ssl_tls1_3_read_certificate_request( ssl );
+            ret = ssl_tls1_3_process_certificate_request( ssl );
             break;
 
         case MBEDTLS_SSL_SERVER_CERTIFICATE:
-            ret = ssl_tls1_3_read_server_certificate( ssl );
+            ret = ssl_tls1_3_process_server_certificate( ssl );
             break;
 
         case MBEDTLS_SSL_CERTIFICATE_VERIFY:
-            ret = ssl_tls1_3_read_certificate_verify( ssl );
+            ret = ssl_tls1_3_process_certificate_verify( ssl );
             break;
 
         case MBEDTLS_SSL_SERVER_FINISHED:
-            ret = ssl_tls1_3_read_server_finished( ssl );
+            ret = ssl_tls1_3_process_server_finished( ssl );
             break;
 
         case MBEDTLS_SSL_CLIENT_CERTIFICATE:

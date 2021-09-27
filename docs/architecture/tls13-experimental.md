@@ -74,7 +74,9 @@ MVP definition
 The TLS 1.3 MVP implements only the client side of the protocol.
 The TLS 1.3 MVP does not support the handling of server HelloRetryRequest and
 CertificateRequest messages. If it receives one of those messages, it aborts
-the handshake with an handshake_failure closure alert.
+the handshake with an handshake_failure closure alert and the
+`mbedtls_ssl_handshake()` returns in error with the
+`MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE` error code.
 
 - Supported cipher suites: depends on the library configuration. Potentially
   all of them:

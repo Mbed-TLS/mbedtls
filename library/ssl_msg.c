@@ -42,8 +42,6 @@
 #include "mbedtls/version.h"
 #include "constant_time.h"
 
-#include "ssl_invasive.h"
-
 #include <string.h>
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)

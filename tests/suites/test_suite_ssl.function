@@ -10,7 +10,7 @@
 
 #include <psa/crypto.h>
 
-#include <ssl_invasive.h>
+#include <constant_time.h>
 
 #include <test/constant_flow.h>
 

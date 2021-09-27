@@ -289,3 +289,33 @@ unsigned mbedtls_cf_uint_if( unsigned cond, unsigned if1, unsigned if0 )
     unsigned mask = mbedtls_cf_uint_mask( cond );
     return( ( mask & if1 ) | (~mask & if0 ) );
 }
+
+/**
+ * Select between two sign values in constant-time.
+ *
+ * This is functionally equivalent to second ? a : b but uses only bit
+ * operations in order to avoid branches.
+ *
+ * \param[in] a         The first sign; must be either +1 or -1.
+ * \param[in] b         The second sign; must be either +1 or -1.
+ * \param[in] second    Must be either 1 (return b) or 0 (return a).
+ *
+ * \return The selected sign value.
+ */
+int mbedtls_cf_cond_select_sign( int a, int b, unsigned char second )
+{
+    /* In order to avoid questions about what we can reasonnably assume about
+     * the representations of signed integers, move everything to unsigned
+     * by taking advantage of the fact that a and b are either +1 or -1. */
+    unsigned ua = a + 1;
+    unsigned ub = b + 1;
+
+    /* second was 0 or 1, mask is 0 or 2 as are ua and ub */
+    const unsigned mask = second << 1;
+
+    /* select ua or ub */
+    unsigned ur = ( ua & ~mask ) | ( ub & mask );
+
+    /* ur is now 0 or 2, convert back to -1 or +1 */
+    return( (int) ur - 1 );
+}

@@ -52,3 +52,6 @@ unsigned mbedtls_cf_mpi_uint_lt( const mbedtls_mpi_uint x,
                                  const mbedtls_mpi_uint y );
 
 #endif /* MBEDTLS_BIGNUM_C */
+
+unsigned mbedtls_cf_uint_if( unsigned cond, unsigned if1, unsigned if0 );
+

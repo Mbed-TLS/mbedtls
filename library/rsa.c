@@ -1458,22 +1458,6 @@ cleanup:
 #endif /* MBEDTLS_PKCS1_V21 */
 
 #if defined(MBEDTLS_PKCS1_V15)
-/** Choose between two integer values, without branches.
- *
- * This is equivalent to `cond ? if1 : if0`, but is likely to be compiled
- * to code using bitwise operation rather than a branch.
- *
- * \param cond      Condition to test.
- * \param if1       Value to use if \p cond is nonzero.
- * \param if0       Value to use if \p cond is zero.
- * \return          \c if1 if \p cond is nonzero, otherwise \c if0.
- */
-static unsigned mbedtls_cf_uint_if( unsigned cond, unsigned if1, unsigned if0 )
-{
-    unsigned mask = mbedtls_cf_uint_mask( cond );
-    return( ( mask & if1 ) | (~mask & if0 ) );
-}
-
 /** Shift some data towards the left inside a buffer without leaking
  * the length of the data through side channels.
  *

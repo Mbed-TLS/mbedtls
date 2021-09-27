@@ -851,7 +851,7 @@ int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "client state: %d", ssl->state ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "tls1_3 client state: %d", ssl->state ) );
 
     switch( ssl->state )
     {

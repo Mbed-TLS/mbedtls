@@ -214,11 +214,13 @@ PR upstreaming the first part of TLS 1.3 ClientHello writing code.
 TLS 1.3 specific coding rules:
 
   - TLS 1.3 specific C modules, headers, static functions names are prefixed
-    with `ssl_tls1_3_`. The same applies to structures and types that are
+    with `ssl_tls13_`. The same applies to structures and types that are
     internal to C modules.
 
-  - TLS 1.3 specific exported functions, macros, structures and types are
-    prefixed with `mbedtls_ssl_tls1_3_`.
+  - TLS 1.3 specific exported functions, structures and types are
+    prefixed with `mbedtls_ssl_tls13_`.
+
+  - Use TLS1_3 in TLS 1.3 specific macros.
 
   - The names of macros and variables related to a field or structure in the
     TLS 1.3 specification should contain as far as possible the field name as

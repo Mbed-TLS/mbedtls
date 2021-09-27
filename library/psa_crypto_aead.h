@@ -169,6 +169,8 @@ psa_status_t mbedtls_psa_aead_decrypt(
  *                              operation.
  * \param[in]  key_buffer       The buffer containing the key context.
  * \param      key_buffer_size  Size of the \p key_buffer buffer in bytes.
+                                It must be consistent with the size in bits
+                                recorded in \p attributes.
  * \param alg                   The AEAD algorithm to compute
  *                              (\c PSA_ALG_XXX value such that
  *                              #PSA_ALG_IS_AEAD(\p alg) is true).
@@ -210,6 +212,8 @@ psa_status_t mbedtls_psa_aead_encrypt_setup(
  *                              operation.
  * \param[in]  key_buffer       The buffer containing the key context.
  * \param      key_buffer_size  Size of the \p key_buffer buffer in bytes.
+                                It must be consistent with the size in bits
+                                recorded in \p attributes.
  * \param alg                   The AEAD algorithm to compute
  *                              (\c PSA_ALG_XXX value such that
  *                              #PSA_ALG_IS_AEAD(\p alg) is true).

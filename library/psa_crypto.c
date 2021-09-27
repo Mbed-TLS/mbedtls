@@ -3863,11 +3863,43 @@ psa_status_t psa_aead_set_nonce( psa_aead_operation_t *operation,
         goto exit;
     }
 
-    /* Not checking nonce size here as GCM spec allows almost arbitrarily
-     * large nonces. Please note that we do not generally recommend the usage
-     * of nonces of greater length than PSA_AEAD_NONCE_MAX_SIZE, as large
-     * nonces are hashed to a shorter size, which can then lead to collisions
-     * if you encrypt a very large number of messages.*/
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
+    if( operation->alg == PSA_ALG_GCM )
+    {
+        /* Not checking max nonce size here as GCM spec allows almost
+         * arbitrarily large nonces. Please note that we do not generally
+         * recommend the usage of nonces of greater length than
+         * PSA_AEAD_NONCE_MAX_SIZE, as large nonces are hashed to a shorter
+         * size, which can then lead to collisions if you encrypt a very
+         * large number of messages.*/
+        if( nonce_length == 0 )
+        {
+            status = PSA_ERROR_INVALID_ARGUMENT;
+            goto exit;
+        }
+    }
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
+    if( operation->alg == PSA_ALG_CCM )
+    {
+        if( nonce_length < 7 || nonce_length > 13 )
+        {
+            status = PSA_ERROR_INVALID_ARGUMENT;
+            goto exit;
+        }
+    }
+    else
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
+        if( operation->alg == PSA_ALG_CHACHA20_POLY1305 )
+        {
+            if( nonce_length != 12 )
+            {
+                status = PSA_ERROR_INVALID_ARGUMENT;
+                goto exit;
+            }
+        }
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
 
     status = psa_driver_wrapper_aead_set_nonce( operation, nonce,
                                                 nonce_length );

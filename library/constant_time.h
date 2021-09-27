@@ -29,26 +29,38 @@
 
 #include <stddef.h>
 
-int mbedtls_ssl_safer_memcmp( const void *a, const void *b, size_t n );
+int mbedtls_ssl_safer_memcmp( const void *a,
+                              const void *b,
+                              size_t n );
 
-int mbedtls_constant_time_memcmp( const void *v1, const void *v2, size_t len );
+int mbedtls_constant_time_memcmp( const void *v1,
+                                  const void *v2,
+                                  size_t len );
 
-unsigned char mbedtls_nist_kw_safer_memcmp( const void *a, const void *b, size_t n );
+unsigned char mbedtls_nist_kw_safer_memcmp( const void *a,
+                                            const void *b,
+                                            size_t n );
 
-int mbedtls_safer_memcmp( const void *a, const void *b, size_t n );
+int mbedtls_safer_memcmp( const void *a,
+                          const void *b,
+                          size_t n );
 
 
 unsigned mbedtls_cf_uint_mask( unsigned value );
 
 size_t mbedtls_cf_size_mask( size_t bit );
 
-size_t mbedtls_cf_size_mask_lt( size_t x, size_t y );
+size_t mbedtls_cf_size_mask_lt( size_t x,
+                                size_t y );
 
-size_t mbedtls_cf_size_mask_ge( size_t x, size_t y );
+size_t mbedtls_cf_size_mask_ge( size_t x,
+                                size_t y );
 
-size_t mbedtls_cf_size_bool_eq( size_t x, size_t y );
+size_t mbedtls_cf_size_bool_eq( size_t x,
+                                size_t y );
 
-unsigned mbedtls_cf_size_gt( size_t size, size_t max );
+unsigned mbedtls_cf_size_gt( size_t size,
+                             size_t max );
 
 #if defined(MBEDTLS_BIGNUM_C)
 
@@ -57,11 +69,17 @@ unsigned mbedtls_cf_mpi_uint_lt( const mbedtls_mpi_uint x,
 
 #endif /* MBEDTLS_BIGNUM_C */
 
-unsigned mbedtls_cf_uint_if( unsigned cond, unsigned if1, unsigned if0 );
+unsigned mbedtls_cf_uint_if( unsigned cond,
+                             unsigned if1,
+                             unsigned if0 );
 
-size_t mbedtls_cf_size_if( unsigned cond, size_t if1, size_t if0 );
+size_t mbedtls_cf_size_if( unsigned cond,
+                           size_t if1,
+                           size_t if0 );
 
-int mbedtls_cf_cond_select_sign( int a, int b, unsigned char second );
+int mbedtls_cf_cond_select_sign( int a,
+                                 int b,
+                                 unsigned char second );
 
 #if defined(MBEDTLS_BIGNUM_C)
 
@@ -102,7 +120,8 @@ void mbedtls_cf_memcpy_if_eq( unsigned char *dst,
 void mbedtls_cf_memcpy_offset( unsigned char *dst,
                                const unsigned char *src_base,
                                size_t offset_secret,
-                               size_t offset_min, size_t offset_max,
+                               size_t offset_min,
+                               size_t offset_max,
                                size_t len );
 
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
@@ -140,12 +159,14 @@ void mbedtls_cf_memcpy_offset( unsigned char *dst,
  * \retval MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED
  *         The hardware accelerator failed.
  */
-int mbedtls_ssl_cf_hmac(
-        mbedtls_md_context_t *ctx,
-        const unsigned char *add_data, size_t add_data_len,
-        const unsigned char *data, size_t data_len_secret,
-        size_t min_data_len, size_t max_data_len,
-        unsigned char *output );
+int mbedtls_cf_hmac( mbedtls_md_context_t *ctx,
+                     const unsigned char *add_data,
+                     size_t add_data_len,
+                     const unsigned char *data,
+                     size_t data_len_secret,
+                     size_t min_data_len,
+                     size_t max_data_len,
+                     unsigned char *output );
 
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
 

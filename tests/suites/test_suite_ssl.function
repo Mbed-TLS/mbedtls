@@ -8,7 +8,7 @@
 #include <mbedtls/debug.h>
 #include <ssl_tls13_keys.h>
 
-#include <ssl_invasive.h>
+#include <constant_time.h>
 
 #include <test/constant_flow.h>
 

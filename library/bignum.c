@@ -270,48 +270,6 @@ void mbedtls_mpi_swap( mbedtls_mpi *X, mbedtls_mpi *Y )
 }
 
 /*
- * Conditionally assign X = Y, without leaking information
- * about whether the assignment was made or not.
- * (Leaking information about the respective sizes of X and Y is ok however.)
- */
-int mbedtls_mpi_safe_cond_assign( mbedtls_mpi *X, const mbedtls_mpi *Y, unsigned char assign )
-{
-    int ret = 0;
-    size_t i;
-    mbedtls_mpi_uint limb_mask;
-    MPI_VALIDATE_RET( X != NULL );
-    MPI_VALIDATE_RET( Y != NULL );
-
-    /* MSVC has a warning about unary minus on unsigned integer types,
-     * but this is well-defined and precisely what we want to do here. */
-#if defined(_MSC_VER)
-#pragma warning( push )
-#pragma warning( disable : 4146 )
-#endif
-
-    /* make sure assign is 0 or 1 in a time-constant manner */
-    assign = (assign | (unsigned char)-assign) >> (sizeof( assign ) * 8 - 1);
-    /* all-bits 1 if assign is 1, all-bits 0 if assign is 0 */
-    limb_mask = -assign;
-
-#if defined(_MSC_VER)
-#pragma warning( pop )
-#endif
-
-    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, Y->n ) );
-
-    X->s = mbedtls_cf_cond_select_sign( X->s, Y->s, assign );
-
-    mbedtls_cf_mpi_uint_cond_assign( Y->n, X->p, Y->p, assign );
-
-    for( i = Y->n; i < X->n; i++ )
-        X->p[i] &= ~limb_mask;
-
-cleanup:
-    return( ret );
-}
-
-/*
  * Conditionally swap X and Y, without leaking information
  * about whether the swap was made or not.
  * Here it is not ok to simply swap the pointers, which whould lead to

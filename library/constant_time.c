@@ -319,3 +319,38 @@ int mbedtls_cf_cond_select_sign( int a, int b, unsigned char second )
     /* ur is now 0 or 2, convert back to -1 or +1 */
     return( (int) ur - 1 );
 }
+
+#if defined(MBEDTLS_BIGNUM_C)
+
+/*
+ * Conditionally assign dest = src, without leaking information
+ * about whether the assignment was made or not.
+ * dest and src must be arrays of limbs of size n.
+ * assign must be 0 or 1.
+ */
+void mbedtls_cf_mpi_uint_cond_assign( size_t n,
+                                      mbedtls_mpi_uint *dest,
+                                      const mbedtls_mpi_uint *src,
+                                      unsigned char assign )
+{
+    size_t i;
+
+    /* MSVC has a warning about unary minus on unsigned integer types,
+     * but this is well-defined and precisely what we want to do here. */
+#if defined(_MSC_VER)
+#pragma warning( push )
+#pragma warning( disable : 4146 )
+#endif
+
+    /* all-bits 1 if assign is 1, all-bits 0 if assign is 0 */
+    const mbedtls_mpi_uint mask = -assign;
+
+#if defined(_MSC_VER)
+#pragma warning( pop )
+#endif
+
+    for( i = 0; i < n; i++ )
+        dest[i] = ( src[i] & mask ) | ( dest[i] & ~mask );
+}
+
+#endif /* MBEDTLS_BIGNUM_C */

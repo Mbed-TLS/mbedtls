@@ -56,3 +56,12 @@ unsigned mbedtls_cf_mpi_uint_lt( const mbedtls_mpi_uint x,
 unsigned mbedtls_cf_uint_if( unsigned cond, unsigned if1, unsigned if0 );
 
 int mbedtls_cf_cond_select_sign( int a, int b, unsigned char second );
+
+#if defined(MBEDTLS_BIGNUM_C)
+
+void mbedtls_cf_mpi_uint_cond_assign( size_t n,
+                                      mbedtls_mpi_uint *dest,
+                                      const mbedtls_mpi_uint *src,
+                                      unsigned char assign );
+
+#endif /* MBEDTLS_BIGNUM_C */

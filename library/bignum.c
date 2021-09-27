@@ -270,37 +270,6 @@ void mbedtls_mpi_swap( mbedtls_mpi *X, mbedtls_mpi *Y )
 }
 
 /*
- * Conditionally assign dest = src, without leaking information
- * about whether the assignment was made or not.
- * dest and src must be arrays of limbs of size n.
- * assign must be 0 or 1.
- */
-void mbedtls_cf_mpi_uint_cond_assign( size_t n,
-                                      mbedtls_mpi_uint *dest,
-                                      const mbedtls_mpi_uint *src,
-                                      unsigned char assign )
-{
-    size_t i;
-
-    /* MSVC has a warning about unary minus on unsigned integer types,
-     * but this is well-defined and precisely what we want to do here. */
-#if defined(_MSC_VER)
-#pragma warning( push )
-#pragma warning( disable : 4146 )
-#endif
-
-    /* all-bits 1 if assign is 1, all-bits 0 if assign is 0 */
-    const mbedtls_mpi_uint mask = -assign;
-
-#if defined(_MSC_VER)
-#pragma warning( pop )
-#endif
-
-    for( i = 0; i < n; i++ )
-        dest[i] = ( src[i] & mask ) | ( dest[i] & ~mask );
-}
-
-/*
  * Conditionally assign X = Y, without leaking information
  * about whether the assignment was made or not.
  * (Leaking information about the respective sizes of X and Y is ok however.)

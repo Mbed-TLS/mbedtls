@@ -161,3 +161,19 @@ size_t mbedtls_cf_size_mask_lt( size_t x, size_t y )
 
     return( mask );
 }
+
+/*
+ * Constant-flow mask generation for "greater or equal" comparison:
+ * - if x >= y, return all bits 1, that is (size_t) -1
+ * - otherwise, return all bits 0, that is 0
+ *
+ * This function can be used to write constant-time code by replacing branches
+ * with bit operations using masks.
+ *
+ * This function is implemented without using comparison operators, as those
+ * might be translated to branches by some compilers on some platforms.
+ */
+size_t mbedtls_cf_size_mask_ge( size_t x, size_t y )
+{
+    return( ~mbedtls_cf_size_mask_lt( x, y ) );
+}

@@ -99,18 +99,31 @@ the handshake with an handshake_failure closure alert and the
   | client_certificate_type      | no      | no            |
   | server_certificate_type      | no      | no            |
   | padding                      | no      | no            |
-  | key_share                    | YES     | YES           |
+  | key_share                    | YES (2) | YES           |
   | pre_shared_key               | no      | YES           |
   | psk_key_exchange_modes       | no      | YES           |
   | early_data                   | no      | YES           |
   | cookie                       | no      | YES           |
-  | supported_versions           | YES     | YES           |
+  | supported_versions           | YES (3) | YES           |
   | certificate_authorities      | no      | no            |
   | post_handshake_auth          | no      | no            |
   | signature_algorithms_cert    | no      | no            |
 
   (1) This is just for comparison.
 
+  (2) The MVP sends one shared secret corresponding to the configured preferred
+      group. The preferred group is the group of the first curve in the list of
+      allowed curves as defined by the configuration. By default, it is the
+      mandatory group as defined by section 9.1 of the specification,
+      `secp256r1`. The list of allowed curves can be set through the
+      `mbedtls_ssl_conf_curves()` API.
+
+  (3) The MVP proposes only TLS 1.3 and does not support version negociation.
+      Out-of-protocol fallback is supported though if the Mbed TLS library
+      has been built to support both TLS 1.3 and TLS 1.2: just set the
+      maximum of the minor version of the SSL configuration to
+      MBEDTLS_SSL_MINOR_VERSION_3 (`mbedtls_ssl_conf_min_version()` API) and
+      re-initiate a server handshake.
 
 - Supported groups: depends on the library configuration.
   Potentially all ECDHE groups:
@@ -120,8 +133,6 @@ the handshake with an handshake_failure closure alert and the
   Potentially:
   ecdsa_secp256r1_sha256, ecdsa_secp384r1_sha384, ecdsa_secp521r1_sha512,
   rsa_pss_rsae_sha256.
-
-- Supported versions: only TLS 1.3
 
 - Support of Mbed TLS SSL/TLS related (not DTLS) features:
 

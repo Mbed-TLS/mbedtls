@@ -157,7 +157,7 @@ struct psa_aead_operation_s
      * ID values are auto-generated in psa_crypto_driver_wrappers.h
      * ID value zero means the context is not valid or not assigned to
      * any driver (i.e. none of the driver contexts are active). */
-    unsigned int id;
+    unsigned int MBEDTLS_PRIVATE(id);
 
     psa_algorithm_t MBEDTLS_PRIVATE(alg);
     psa_key_type_t MBEDTLS_PRIVATE(key_type);

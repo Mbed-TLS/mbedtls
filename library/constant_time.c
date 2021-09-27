@@ -136,3 +136,28 @@ size_t mbedtls_cf_size_mask( size_t bit )
 #pragma warning( pop )
 #endif
 }
+
+/*
+ * Constant-flow mask generation for "less than" comparison:
+ * - if x < y,  return all bits 1, that is (size_t) -1
+ * - otherwise, return all bits 0, that is 0
+ *
+ * This function can be used to write constant-time code by replacing branches
+ * with bit operations using masks.
+ *
+ * This function is implemented without using comparison operators, as those
+ * might be translated to branches by some compilers on some platforms.
+ */
+size_t mbedtls_cf_size_mask_lt( size_t x, size_t y )
+{
+    /* This has the most significant bit set if and only if x < y */
+    const size_t sub = x - y;
+
+    /* sub1 = (x < y) ? 1 : 0 */
+    const size_t sub1 = sub >> ( sizeof( sub ) * 8 - 1 );
+
+    /* mask = (x < y) ? 0xff... : 0x00... */
+    const size_t mask = mbedtls_cf_size_mask( sub1 );
+
+    return( mask );
+}

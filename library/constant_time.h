@@ -33,3 +33,5 @@ int mbedtls_safer_memcmp( const void *a, const void *b, size_t n );
 unsigned mbedtls_cf_uint_mask( unsigned value );
 
 size_t mbedtls_cf_size_mask( size_t bit );
+
+size_t mbedtls_cf_size_mask_lt( size_t x, size_t y );

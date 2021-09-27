@@ -190,11 +190,6 @@ the handshake with an handshake_failure closure alert and the
       of the MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_NONE/PSK/PSK_EPHEMERAL/EPHEMERAL
       runtime configuration macros.
 
-Not in the plan yet but probably necessary for a viable client:
-- server_name extension
-- support for HelloRetryRequest
-- fallback to TLS 1.2
-
 Coding rules checklist for TLS 1.3
 ----------------------------------
 

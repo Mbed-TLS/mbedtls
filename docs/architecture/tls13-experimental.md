@@ -87,7 +87,7 @@ the handshake with an handshake_failure closure alert and the
 
   | Extension                    |   MVP   | Prototype (1) |
   | ---------------------------- | ------- | ------------- |
-  | server_name                  | no      | YES           |
+  | server_name                  | YES     | YES           |
   | max_fragment_length          | no      | YES           |
   | status_request               | no      | no            |
   | supported_groups             | YES     | YES           |

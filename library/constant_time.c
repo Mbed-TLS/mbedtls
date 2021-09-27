@@ -273,3 +273,19 @@ unsigned mbedtls_cf_mpi_uint_lt( const mbedtls_mpi_uint x,
 }
 
 #endif /* MBEDTLS_BIGNUM_C */
+
+/** Choose between two integer values, without branches.
+ *
+ * This is equivalent to `cond ? if1 : if0`, but is likely to be compiled
+ * to code using bitwise operation rather than a branch.
+ *
+ * \param cond      Condition to test.
+ * \param if1       Value to use if \p cond is nonzero.
+ * \param if0       Value to use if \p cond is zero.
+ * \return          \c if1 if \p cond is nonzero, otherwise \c if0.
+ */
+unsigned mbedtls_cf_uint_if( unsigned cond, unsigned if1, unsigned if0 )
+{
+    unsigned mask = mbedtls_cf_uint_mask( cond );
+    return( ( mask & if1 ) | (~mask & if0 ) );
+}

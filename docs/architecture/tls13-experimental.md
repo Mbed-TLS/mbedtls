@@ -83,30 +83,32 @@ the handshake with an handshake_failure closure alert.
 
 - Supported ClientHello extensions:
 
-                                 MVP   Prototype
-                                       (for comparison)
+  | Extension                    |   MVP   | Prototype (1) |
+  | ---------------------------- | ------- | ------------- |
+  | server_name                  | no      | YES           |
+  | max_fragment_length          | no      | YES           |
+  | status_request               | no      | no            |
+  | supported_groups             | YES     | YES           |
+  | signature_algorithms         | YES     | YES           |
+  | use_srtp                     | no      | no            |
+  | heartbeat                    | no      | no            |
+  | apln                         | no      | YES           |
+  | signed_certificate_timestamp | no      | no            |
+  | client_certificate_type      | no      | no            |
+  | server_certificate_type      | no      | no            |
+  | padding                      | no      | no            |
+  | key_share                    | YES     | YES           |
+  | pre_shared_key               | no      | YES           |
+  | psk_key_exchange_modes       | no      | YES           |
+  | early_data                   | no      | YES           |
+  | cookie                       | no      | YES           |
+  | supported_versions           | YES     | YES           |
+  | certificate_authorities      | no      | no            |
+  | post_handshake_auth          | no      | no            |
+  | signature_algorithms_cert    | no      | no            |
 
-  server_name                    no    YES
-  max_fragment_length            no    YES
-  status_request                 no    no
-  supported_groups               YES   YES
-  signature_algorithms           YES   YES
-  use_srtp                       no    no
-  heartbeat                      no    no
-  apln                           no    YES
-  signed_certificate_timestamp   no    no
-  client_certificate_type        no    no
-  server_certificate_type        no    no
-  padding                        no    no
-  key_share                      YES   YES
-  pre_shared_key                 no    YES
-  psk_key_exchange_modes         no    YES
-  early_data                     no    YES
-  cookie                         no    YES
-  supported_versions             YES   YES
-  certificate_authorities        no    no
-  post_handshake_auth            no    no
-  signature_algorithms_cert      no    no
+  (1) This is just for comparison.
+
 
 - Supported groups: depends on the library configuration.
   Potentially all ECDHE groups:
@@ -126,39 +128,42 @@ the handshake with an handshake_failure closure alert.
   modify the configuration for TLS 1.2. Mbed TLS SSL/TLS related features are
   not supported or not applicable to the TLS 1.3 MVP:
 
-                                         Supported  Comment
-  MBEDTLS_SSL_ALL_ALERT_MESSAGES           no
-  MBEDTLS_SSL_ASYNC_PRIVATE                no
-  MBEDTLS_SSL_CONTEXT_SERIALIZATION        no
-  MBEDTLS_SSL_DEBUG_ALL                    no
-  MBEDTLS_SSL_ENCRYPT_THEN_MAC             n/a
-  MBEDTLS_SSL_EXTENDED_MASTER_SECRET       n/a
-  MBEDTLS_SSL_KEEP_PEER_CERTIFICATE        no
-  MBEDTLS_SSL_RENEGOTIATION                n/a
-  MBEDTLS_SSL_MAX_FRAGMENT_LENGTH          no
-  MBEDTLS_SSL_ALPN                         no
+  | Mbed TLS configuration option            | Support |
+  | ---------------------------------------- | ------- |
+  | MBEDTLS_SSL_ALL_ALERT_MESSAGES           | no      |
+  | MBEDTLS_SSL_ASYNC_PRIVATE                | no      |
+  | MBEDTLS_SSL_CONTEXT_SERIALIZATION        | no      |
+  | MBEDTLS_SSL_DEBUG_ALL                    | no      |
+  | MBEDTLS_SSL_ENCRYPT_THEN_MAC             | n/a     |
+  | MBEDTLS_SSL_EXTENDED_MASTER_SECRET       | n/a     |
+  | MBEDTLS_SSL_KEEP_PEER_CERTIFICATE        | no      |
+  | MBEDTLS_SSL_RENEGOTIATION                | n/a     |
+  | MBEDTLS_SSL_MAX_FRAGMENT_LENGTH          | no      |
+  |                                          |         |
+  | MBEDTLS_SSL_SESSION_TICKETS              | no      |
+  | MBEDTLS_SSL_EXPORT_KEYS                  | no (1)  |
+  | MBEDTLS_SSL_SERVER_NAME_INDICATION       | no      |
+  | MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH       | no      |
+  |                                          |         |
+  | MBEDTLS_ECP_RESTARTABLE                  | no      |
+  | MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED     | no      |
+  |                                          |         |
+  | MBEDTLS_KEY_EXCHANGE_PSK_ENABLED         | n/a (2) |
+  | MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED     | n/a     |
+  | MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED   | n/a     |
+  | MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED     | n/a     |
+  | MBEDTLS_KEY_EXCHANGE_RSA_ENABLED         | n/a     |
+  | MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED     | n/a     |
+  | MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED   | n/a     |
+  | MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED | n/a     |
+  | MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED  | n/a     |
+  | MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED    | n/a     |
+  | MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED     | n/a     |
+  |                                          |         |
+  | MBEDTLS_USE_PSA_CRYPTO                   | no      |
 
-  MBEDTLS_SSL_SESSION_TICKETS              no
-  MBEDTLS_SSL_EXPORT_KEYS                  no         Incomplete support
-  MBEDTLS_SSL_SERVER_NAME_INDICATION       no
-  MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH       no
-
-  MBEDTLS_ECP_RESTARTABLE                  no
-  MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED     no
-
-  MBEDTLS_KEY_EXCHANGE_PSK_ENABLED         n/a        Make sense in TLS 1.3
-  MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED     n/a        context but their current
-  MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED   n/a        definition is TLS 1.2 only.
-  MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED     n/a
-  MBEDTLS_KEY_EXCHANGE_RSA_ENABLED         n/a
-  MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED     n/a
-  MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED   n/a
-  MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED n/a
-  MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED  n/a
-  MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED    n/a
-  MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED     n/a
-
-  MBEDTLS_USE_PSA_CRYPTO                   no
+  (1) Some support has already been upstreamed but it is incomplete.
+  (2) Make sense in TLS 1.3 context but their current definition is TLS 1.2 only.
 
 Not in the plan yet but probably necessary for a viable client:
 - server_name extension

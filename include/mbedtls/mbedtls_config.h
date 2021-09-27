@@ -3173,7 +3173,7 @@
  * Maximum number of heap-allocated bytes for the purpose of
  * DTLS handshake message reassembly and future message buffering.
  *
- * This should be at least 9/8 * MBEDTLSSL_IN_CONTENT_LEN
+ * This should be at least 9/8 * MBEDTLS_SSL_IN_CONTENT_LEN
  * to account for a reassembled handshake message of maximum size,
  * together with its reassembly bitmap.
  *

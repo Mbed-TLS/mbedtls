@@ -395,3 +395,26 @@ void mbedtls_cf_mem_move_to_left( void *start,
         buf[total-1] = mbedtls_cf_uint_if( no_op, buf[total-1], 0 );
     }
 }
+
+/*
+ * Constant-flow conditional memcpy:
+ *  - if c1 == c2, equivalent to memcpy(dst, src, len),
+ *  - otherwise, a no-op,
+ * but with execution flow independent of the values of c1 and c2.
+ *
+ * This function is implemented without using comparison operators, as those
+ * might be translated to branches by some compilers on some platforms.
+ */
+void mbedtls_cf_memcpy_if_eq( unsigned char *dst,
+                                     const unsigned char *src,
+                                     size_t len,
+                                     size_t c1, size_t c2 )
+{
+    /* mask = c1 == c2 ? 0xff : 0x00 */
+    const size_t equal = mbedtls_cf_size_bool_eq( c1, c2 );
+    const unsigned char mask = (unsigned char) mbedtls_cf_size_mask( equal );
+
+    /* dst[i] = c1 == c2 ? src[i] : dst[i] */
+    for( size_t i = 0; i < len; i++ )
+        dst[i] = ( src[i] & mask ) | ( dst[i] & ~mask );
+}

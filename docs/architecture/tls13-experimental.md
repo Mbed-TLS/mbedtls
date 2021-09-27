@@ -163,7 +163,10 @@ the handshake with an handshake_failure closure alert.
   | MBEDTLS_USE_PSA_CRYPTO                   | no      |
 
   (1) Some support has already been upstreamed but it is incomplete.
-  (2) Make sense in TLS 1.3 context but their current definition is TLS 1.2 only.
+  (2) Key exchange configuration options for TLS 1.3 will likely to be
+      organized around the notion of key exchange mode along the line
+      of the MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_NONE/PSK/PSK_EPHEMERAL/EPHEMERAL
+      runtime configuration macros.
 
 Not in the plan yet but probably necessary for a viable client:
 - server_name extension

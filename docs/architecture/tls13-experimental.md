@@ -134,7 +134,7 @@ the handshake with an handshake_failure closure alert.
   MBEDTLS_SSL_ENCRYPT_THEN_MAC             n/a
   MBEDTLS_SSL_EXTENDED_MASTER_SECRET       n/a
   MBEDTLS_SSL_KEEP_PEER_CERTIFICATE        no
-  MBEDTLS_SSL_RENEGOTIATION                n/a        Not TLS 1.2 dependent
+  MBEDTLS_SSL_RENEGOTIATION                n/a
   MBEDTLS_SSL_MAX_FRAGMENT_LENGTH          no
   MBEDTLS_SSL_ALPN                         no
 

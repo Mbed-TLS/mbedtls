@@ -222,15 +222,15 @@ TLS 1.3 specific coding rules:
 
   - The names of macros and variables related to a field or structure in the
     TLS 1.3 specification should contain as far as possible the field name as
-    it is in the specification. If the field name is `too long` and we prefer
+    it is in the specification. If the field name is "too long" and we prefer
     to introduce some kind of abbreviation of it, use the same abbreviation
     everywhere in the code.
 
     Example 1: #define CLIENT_HELLO_RANDOM_LEN 32, macro for the length of the
         `random` field of the ClientHello message.
 
-    Example 2 (consistent abbreviation): mbedtls_ssl_tls1_3_write_sig_alg_ext()
-        and MBEDTLS_TLS_EXT_SIG_ALG, `sig_alg` standing for
+    Example 2 (consistent abbreviation): `mbedtls_ssl_tls1_3_write_sig_alg_ext()`
+        and `MBEDTLS_TLS_EXT_SIG_ALG`, `sig_alg` standing for
         `signature_algorithms`.
 
   - Regarding vectors that are represented by a length followed by their value
@@ -254,11 +254,12 @@ TLS 1.3 specific coding rules:
     issues.
 
     Example: `cipher_suites` vector of ClientHello in
-             ssl_tls1_3_write_client_hello_cipher_suites()
-
-             size_t cipher_suites_len;
-             unsigned char *cipher_suites_len_ptr;
-             unsigned char *cipher_suites_ptr;
+             `ssl_tls1_3_write_client_hello_cipher_suites()`
+    ```
+    size_t cipher_suites_len;
+    unsigned char *cipher_suites_len_ptr;
+    unsigned char *cipher_suites_ptr;
+    ```
 
   - Use of MBEDTLS_BYTE_xyz, MBEDTLS_PUT/GET_xyz, MBEDTLS_SSL_CHK_BUF_PTR
     MBEDTLS_SSL_CHK_BUF_READ_PTR macros where applicable.
@@ -272,16 +273,19 @@ TLS 1.3 specific coding rules:
     bytes in the wrong order: we should probably have only MBEDTLS_GET/PUT_*_BE
     (BE stands for Big-Endian) macros in the TLS 1.3 code.
 
-    The two last types, MBEDTLS_SSL_CHK_BUF_PTR and
-    MBEDTLS_SSL_CHK_BUF_READ_PTR, improve the readability of the code and
+    The two last types, `MBEDTLS_SSL_CHK_BUF_PTR` and
+    `MBEDTLS_SSL_CHK_BUF_READ_PTR`, improve the readability of the code and
     reduce the risk of error in the non-completely-trivial arithmetic to
     check that we do not write or read past the end of a data buffer. The
     usage of those macros combined with the following rule mitigate the risk
     to read/write past the end of a data buffer.
 
-    Examples: hs_hdr[1] = MBEDTLS_BYTE_2( total_hs_len );
-              MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS, p, 0 );
-              MBEDTLS_SSL_CHK_BUF_PTR( p, end, 7 );
+    Examples:
+    ```
+    hs_hdr[1] = MBEDTLS_BYTE_2( total_hs_len );
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS, p, 0 );
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 7 );
+    ```
 
   - To mitigate what happened here
     (https://github.com/ARMmbed/mbedtls/pull/4882#discussion_r701704527) from
@@ -296,33 +300,35 @@ TLS 1.3 specific coding rules:
 
 General coding rules:
 
-  - We prefer grouping `related statement lines` by not adding blank lines
+  - We prefer grouping "related statement lines" by not adding blank lines
     between them.
 
     Example 1:
-
+    ```
     ret = ssl_tls13_write_client_hello_cipher_suites( ssl, buf, end, &output_len );
     if( ret != 0 )
         return( ret );
     buf += output_len;
+    ```
 
     Example 2:
-
+    ```
     MBEDTLS_SSL_CHK_BUF_PTR( cipher_suites_iter, end, 2 );
     MBEDTLS_PUT_UINT16_BE( cipher_suite, cipher_suites_iter, 0 );
     cipher_suites_iter += 2;
+    ```
 
   - Use macros for constants that are used in different functions, different
     places in the code. When a constant is used only locally in a function
     (like the length in bytes of the vector lengths in functions reading and
     writing TLS handshake message) there is no need to define a macro for it.
 
-    Example: #define CLIENT_HELLO_RANDOM_LEN 32
+    Example: `#define CLIENT_HELLO_RANDOM_LEN 32`
 
   - When declaring a pointer the dereferencing operator should be prepended to
     the pointer name not appended to the pointer type:
 
-    Example: mbedtls_ssl_context *ssl;
+    Example: `mbedtls_ssl_context *ssl;`
 
   - Maximum line length is 80 characters.
 
@@ -340,7 +346,9 @@ General coding rules:
     vertically.
 
     Example:
+    ```
     int mbedtls_ssl_tls13_start_handshake_msg( mbedtls_ssl_context *ssl,
                                                unsigned hs_type,
                                                unsigned char **buf,
                                                size_t *buf_len );
+    ```

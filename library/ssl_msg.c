@@ -940,31 +940,6 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
 /*
- * Turn a bit into a mask:
- * - if bit == 1, return the all-bits 1 mask, aka (size_t) -1
- * - if bit == 0, return the all-bits 0 mask, aka 0
- *
- * This function can be used to write constant-time code by replacing branches
- * with bit operations using masks.
- *
- * This function is implemented without using comparison operators, as those
- * might be translated to branches by some compilers on some platforms.
- */
-static size_t mbedtls_cf_size_mask( size_t bit )
-{
-    /* MSVC has a warning about unary minus on unsigned integer types,
-     * but this is well-defined and precisely what we want to do here. */
-#if defined(_MSC_VER)
-#pragma warning( push )
-#pragma warning( disable : 4146 )
-#endif
-    return -bit;
-#if defined(_MSC_VER)
-#pragma warning( pop )
-#endif
-}
-
-/*
  * Constant-flow mask generation for "less than" comparison:
  * - if x < y,  return all bits 1, that is (size_t) -1
  * - otherwise, return all bits 0, that is 0

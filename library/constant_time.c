@@ -32,7 +32,9 @@
 #include <string.h>
 
 /* constant-time buffer comparison */
-int mbedtls_ssl_safer_memcmp( const void *a, const void *b, size_t n )
+int mbedtls_ssl_safer_memcmp( const void *a,
+                              const void *b,
+                              size_t n )
 {
     size_t i;
     volatile const unsigned char *A = (volatile const unsigned char *) a;
@@ -56,7 +58,8 @@ int mbedtls_ssl_safer_memcmp( const void *a, const void *b, size_t n )
  * a non-zero value.
  * This is currently only used by GCM and ChaCha20+Poly1305.
  */
-int mbedtls_constant_time_memcmp( const void *v1, const void *v2,
+int mbedtls_constant_time_memcmp( const void *v1,
+                                  const void *v2,
                                   size_t len )
 {
     const unsigned char *p1 = (const unsigned char*) v1;
@@ -71,7 +74,9 @@ int mbedtls_constant_time_memcmp( const void *v1, const void *v2,
 }
 
 /* constant-time buffer comparison */
-unsigned char mbedtls_nist_kw_safer_memcmp( const void *a, const void *b, size_t n )
+unsigned char mbedtls_nist_kw_safer_memcmp( const void *a,
+                                            const void *b,
+                                            size_t n )
 {
     size_t i;
     volatile const unsigned char *A = (volatile const unsigned char *) a;
@@ -91,7 +96,9 @@ unsigned char mbedtls_nist_kw_safer_memcmp( const void *a, const void *b, size_t
 }
 
 /* constant-time buffer comparison */
-int mbedtls_safer_memcmp( const void *a, const void *b, size_t n )
+int mbedtls_safer_memcmp( const void *a,
+                          const void *b,
+                          size_t n )
 {
     size_t i;
     const unsigned char *A = (const unsigned char *) a;
@@ -159,7 +166,8 @@ size_t mbedtls_cf_size_mask( size_t bit )
  * This function is implemented without using comparison operators, as those
  * might be translated to branches by some compilers on some platforms.
  */
-size_t mbedtls_cf_size_mask_lt( size_t x, size_t y )
+size_t mbedtls_cf_size_mask_lt( size_t x,
+                                size_t y )
 {
     /* This has the most significant bit set if and only if x < y */
     const size_t sub = x - y;
@@ -184,7 +192,8 @@ size_t mbedtls_cf_size_mask_lt( size_t x, size_t y )
  * This function is implemented without using comparison operators, as those
  * might be translated to branches by some compilers on some platforms.
  */
-size_t mbedtls_cf_size_mask_ge( size_t x, size_t y )
+size_t mbedtls_cf_size_mask_ge( size_t x,
+                                size_t y )
 {
     return( ~mbedtls_cf_size_mask_lt( x, y ) );
 }
@@ -200,7 +209,8 @@ size_t mbedtls_cf_size_mask_ge( size_t x, size_t y )
  * This function is implemented without using comparison operators, as those
  * might be translated to branches by some compilers on some platforms.
  */
-size_t mbedtls_cf_size_bool_eq( size_t x, size_t y )
+size_t mbedtls_cf_size_bool_eq( size_t x,
+                                size_t y )
 {
     /* diff = 0 if x == y, non-zero otherwise */
     const size_t diff = x ^ y;
@@ -235,7 +245,8 @@ size_t mbedtls_cf_size_bool_eq( size_t x, size_t y )
  * \return          \c 0 if `size <= max`.
  * \return          \c 1 if `size > max`.
  */
-unsigned mbedtls_cf_size_gt( size_t size, size_t max )
+unsigned mbedtls_cf_size_gt( size_t size,
+                             size_t max )
 {
     /* Return the sign bit (1 for negative) of (max - size). */
     return( ( max - size ) >> ( sizeof( size_t ) * 8 - 1 ) );
@@ -251,7 +262,7 @@ unsigned mbedtls_cf_size_gt( size_t size, size_t max )
  * \return          1 if \p x is less than \p y, 0 otherwise
  */
 unsigned mbedtls_cf_mpi_uint_lt( const mbedtls_mpi_uint x,
-        const mbedtls_mpi_uint y )
+                                 const mbedtls_mpi_uint y )
 {
     mbedtls_mpi_uint ret;
     mbedtls_mpi_uint cond;
@@ -290,13 +301,17 @@ unsigned mbedtls_cf_mpi_uint_lt( const mbedtls_mpi_uint x,
  * \param if0       Value to use if \p cond is zero.
  * \return          \c if1 if \p cond is nonzero, otherwise \c if0.
  */
-unsigned mbedtls_cf_uint_if( unsigned cond, unsigned if1, unsigned if0 )
+unsigned mbedtls_cf_uint_if( unsigned cond,
+                             unsigned if1,
+                             unsigned if0 )
 {
     unsigned mask = mbedtls_cf_uint_mask( cond );
     return( ( mask & if1 ) | (~mask & if0 ) );
 }
 
-size_t mbedtls_cf_size_if( unsigned cond, size_t if1, size_t if0 )
+size_t mbedtls_cf_size_if( unsigned cond,
+                           size_t if1,
+                           size_t if0 )
 {
     size_t mask = mbedtls_cf_size_mask( cond );
     return( ( mask & if1 ) | (~mask & if0 ) );
@@ -314,7 +329,9 @@ size_t mbedtls_cf_size_if( unsigned cond, size_t if1, size_t if0 )
  *
  * \return The selected sign value.
  */
-int mbedtls_cf_cond_select_sign( int a, int b, unsigned char second )
+int mbedtls_cf_cond_select_sign( int a,
+                                 int b,
+                                 unsigned char second )
 {
     /* In order to avoid questions about what we can reasonnably assume about
      * the representations of signed integers, move everything to unsigned
@@ -385,8 +402,8 @@ void mbedtls_cf_mpi_uint_cond_assign( size_t n,
  * \param offset    Offset from which to copy \p total - \p offset bytes.
  */
 void mbedtls_cf_mem_move_to_left( void *start,
-                                         size_t total,
-                                         size_t offset )
+                                  size_t total,
+                                  size_t offset )
 {
     volatile unsigned char *buf = start;
     size_t i, n;
@@ -418,9 +435,10 @@ void mbedtls_cf_mem_move_to_left( void *start,
  * might be translated to branches by some compilers on some platforms.
  */
 void mbedtls_cf_memcpy_if_eq( unsigned char *dst,
-                                     const unsigned char *src,
-                                     size_t len,
-                                     size_t c1, size_t c2 )
+                              const unsigned char *src,
+                              size_t len,
+                              size_t c1,
+                              size_t c2 )
 {
     /* mask = c1 == c2 ? 0xff : 0x00 */
     const size_t equal = mbedtls_cf_size_bool_eq( c1, c2 );
@@ -436,12 +454,12 @@ void mbedtls_cf_memcpy_if_eq( unsigned char *dst,
  * - functionally equivalent to memcpy(dst, src + offset_secret, len)
  * - but with execution flow independent from the value of offset_secret.
  */
-void mbedtls_cf_memcpy_offset(
-                                   unsigned char *dst,
-                                   const unsigned char *src_base,
-                                   size_t offset_secret,
-                                   size_t offset_min, size_t offset_max,
-                                   size_t len )
+void mbedtls_cf_memcpy_offset( unsigned char *dst,
+                               const unsigned char *src_base,
+                               size_t offset_secret,
+                               size_t offset_min,
+                               size_t offset_max,
+                               size_t len )
 {
     size_t offset;
 
@@ -460,12 +478,14 @@ void mbedtls_cf_memcpy_offset(
  * Only works with MD-5, SHA-1, SHA-256 and SHA-384.
  * (Otherwise, computation of block_size needs to be adapted.)
  */
-int mbedtls_cf_hmac(
-        mbedtls_md_context_t *ctx,
-        const unsigned char *add_data, size_t add_data_len,
-        const unsigned char *data, size_t data_len_secret,
-        size_t min_data_len, size_t max_data_len,
-        unsigned char *output )
+int mbedtls_cf_hmac( mbedtls_md_context_t *ctx,
+                     const unsigned char *add_data,
+                     size_t add_data_len,
+                     const unsigned char *data,
+                     size_t data_len_secret,
+                     size_t min_data_len,
+                     size_t max_data_len,
+                     unsigned char *output )
 {
     /*
      * This function breaks the HMAC abstraction and uses the md_clone()
@@ -554,7 +574,9 @@ cleanup:
  * about whether the assignment was made or not.
  * (Leaking information about the respective sizes of X and Y is ok however.)
  */
-int mbedtls_mpi_safe_cond_assign( mbedtls_mpi *X, const mbedtls_mpi *Y, unsigned char assign )
+int mbedtls_mpi_safe_cond_assign( mbedtls_mpi *X,
+                                  const mbedtls_mpi *Y,
+                                  unsigned char assign )
 {
     int ret = 0;
     size_t i;
@@ -597,7 +619,9 @@ cleanup:
  * Here it is not ok to simply swap the pointers, which whould lead to
  * different memory access patterns when X and Y are used afterwards.
  */
-int mbedtls_mpi_safe_cond_swap( mbedtls_mpi *X, mbedtls_mpi *Y, unsigned char swap )
+int mbedtls_mpi_safe_cond_swap( mbedtls_mpi *X,
+                                mbedtls_mpi *Y,
+                                unsigned char swap )
 {
     int ret, s;
     size_t i;
@@ -647,8 +671,9 @@ cleanup:
 /*
  * Compare signed values in constant time
  */
-int mbedtls_mpi_lt_mpi_ct( const mbedtls_mpi *X, const mbedtls_mpi *Y,
-        unsigned *ret )
+int mbedtls_mpi_lt_mpi_ct( const mbedtls_mpi *X,
+                           const mbedtls_mpi *Y,
+                           unsigned *ret )
 {
     size_t i;
     /* The value of any of these variables is either 0 or 1 at all times. */

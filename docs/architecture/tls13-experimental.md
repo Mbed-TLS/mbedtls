@@ -262,17 +262,24 @@ TLS 1.3 specific coding rules:
     unsigned char *cipher_suites;
     ```
 
-  - Use of MBEDTLS_BYTE_xyz, MBEDTLS_PUT/GET_xyz, MBEDTLS_SSL_CHK_BUF_PTR
-    MBEDTLS_SSL_CHK_BUF_READ_PTR macros where applicable.
+  - Where applicable, use:
+    - the macros to extract a byte from a multi-byte integer MBEDTLS_BYTE_{0-8}.
+    - the macros to write in memory in big-endian order a multi-byte integer
+      MBEDTLS_PUT_UINT{8|16|32|64}_BE.
+    - the macros to read from memory a multi-byte integer in big-endian order
+      MBEDTLS_GET_UINT{8|16|32|64}_BE.
+    - the macro to check for space when writing into an output buffer
+      `MBEDTLS_SSL_CHK_BUF_PTR`.
+    - the macro to check for data when reading from an input buffer
+      `MBEDTLS_SSL_CHK_BUF_READ_PTR`.
 
     These macros were introduced after the prototype was written thus are
     likely not to be used in prototype where we now would use them in
     development.
 
-    The two first types, MBEDTLS_BYTE_xyz and MBEDTLS_PUT/GET_xyz, improve
-    the readability of the code and reduce the risk of writing or reading
-    bytes in the wrong order: we should probably have only MBEDTLS_GET/PUT_*_BE
-    (BE stands for Big-Endian) macros in the TLS 1.3 code.
+    The three first types, MBEDTLS_BYTE_{0-8}, MBEDTLS_PUT_UINT{8|16|32|64}_BE
+    and MBEDTLS_GET_UINT{8|16|32|64}_BE improve the readability of the code and
+    reduce the risk of writing or reading bytes in the wrong order.
 
     The two last types, `MBEDTLS_SSL_CHK_BUF_PTR` and
     `MBEDTLS_SSL_CHK_BUF_READ_PTR`, improve the readability of the code and

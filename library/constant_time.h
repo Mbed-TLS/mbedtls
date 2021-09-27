@@ -19,6 +19,10 @@
 
 #include "common.h"
 
+#if defined(MBEDTLS_BIGNUM_C)
+#include "mbedtls/bignum.h"
+#endif
+
 #include <stddef.h>
 
 int mbedtls_ssl_safer_memcmp( const void *a, const void *b, size_t n );
@@ -41,3 +45,10 @@ size_t mbedtls_cf_size_mask_ge( size_t x, size_t y );
 size_t mbedtls_cf_size_bool_eq( size_t x, size_t y );
 
 unsigned mbedtls_cf_size_gt( size_t size, size_t max );
+
+#if defined(MBEDTLS_BIGNUM_C)
+
+unsigned mbedtls_cf_mpi_uint_lt( const mbedtls_mpi_uint x,
+                                 const mbedtls_mpi_uint y );
+
+#endif /* MBEDTLS_BIGNUM_C */

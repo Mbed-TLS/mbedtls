@@ -1247,41 +1247,6 @@ int mbedtls_mpi_cmp_mpi( const mbedtls_mpi *X, const mbedtls_mpi *Y )
     return( 0 );
 }
 
-/** Decide if an integer is less than the other, without branches.
- *
- * \param x         First integer.
- * \param y         Second integer.
- *
- * \return          1 if \p x is less than \p y, 0 otherwise
- */
-static unsigned mbedtls_cf_mpi_uint_lt( const mbedtls_mpi_uint x,
-        const mbedtls_mpi_uint y )
-{
-    mbedtls_mpi_uint ret;
-    mbedtls_mpi_uint cond;
-
-    /*
-     * Check if the most significant bits (MSB) of the operands are different.
-     */
-    cond = ( x ^ y );
-    /*
-     * If the MSB are the same then the difference x-y will be negative (and
-     * have its MSB set to 1 during conversion to unsigned) if and only if x<y.
-     */
-    ret = ( x - y ) & ~cond;
-    /*
-     * If the MSB are different, then the operand with the MSB of 1 is the
-     * bigger. (That is if y has MSB of 1, then x<y is true and it is false if
-     * the MSB of y is 0.)
-     */
-    ret |= y & cond;
-
-
-    ret = ret >> ( sizeof( mbedtls_mpi_uint ) * 8 - 1 );
-
-    return (unsigned) ret;
-}
-
 /*
  * Compare signed values in constant time
  */

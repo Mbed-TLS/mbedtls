@@ -59,6 +59,8 @@ unsigned mbedtls_cf_mpi_uint_lt( const mbedtls_mpi_uint x,
 
 unsigned mbedtls_cf_uint_if( unsigned cond, unsigned if1, unsigned if0 );
 
+size_t mbedtls_cf_size_if( unsigned cond, size_t if1, size_t if0 );
+
 int mbedtls_cf_cond_select_sign( int a, int b, unsigned char second );
 
 #if defined(MBEDTLS_BIGNUM_C)

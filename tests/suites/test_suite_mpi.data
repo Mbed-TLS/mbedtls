@@ -1246,6 +1246,39 @@ mbedtls_mpi_to_from_mont_size:10001:10000:0
 Test mbedtls_mpi_to_from_mont: Aliasing
 mbedtls_mpi_to_from_mont_aliasing:
 
+Base test mbedtls_mpi_montmul #1
+mbedtls_mpi_montmul:10:"10":10:"10":10:"13":0
+
+Base test mbedtls_mpi_montmul #2 (Even N)
+mbedtls_mpi_montmul:10:"10":10:"10":10:"18":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Base test mbedtls_mpi_montmul #2 (N = 0 (null))
+mbedtls_mpi_montmul:10:"10":10:"10":10:"":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Base test mbedtls_mpi_montmul #3 (Negative N)
+mbedtls_mpi_montmul:10:"10":10:"10":10:"-13":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Base test mbedtls_mpi_montmul #4 (Negative A)
+mbedtls_mpi_montmul:10:"-10":10:"10":10:"13":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Base test mbedtls_mpi_montmul #4 (Negative B)
+mbedtls_mpi_montmul:10:"10":10:"-10":10:"13":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Base test mbedtls_mpi_montmul #4 (A >= N)
+mbedtls_mpi_montmul:10:"13":10:"10":10:"13":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Base test mbedtls_mpi_montmul #4 (B >= N)
+mbedtls_mpi_montmul:10:"10":10:"13":10:"13":MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+
+Test mbedtls_mpi_montmul_chk: 0 (null) * 0 (null) mod 9
+mbedtls_mpi_montmul_chk:10:"":10:"":10:"9":10:"0"
+
+Test mbedtls_mpi_montmul_chk: 4 * 5 mod 9
+mbedtls_mpi_montmul_chk:10:"4":10:"5":10:"9":10:"2"
+
+Test mbedtls_mpi_montmul: Aliasing
+mbedtls_mpi_montmul_aliasing:
+
 Base test mbedtls_mpi_exp_mod #1
 mbedtls_mpi_exp_mod:10:"23":10:"13":10:"29":10:"24":0
 

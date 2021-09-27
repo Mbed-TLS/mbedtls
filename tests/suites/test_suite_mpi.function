@@ -1110,6 +1110,119 @@ void mbedtls_mpi_to_from_mont_aliasing()
     TEST_ASSERT( mbedtls_mpi_cmp_int ( &A, 5 ) == 0 );
 
     /* FIXME assuming we won't alias N, mpi_mod_mpi assumes so. */
+exit:
+    mbedtls_mpi_free( &A ); mbedtls_mpi_free( &N );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mbedtls_mpi_montmul( int radix_A, char * input_A, int radix_B,
+                          char * input_B, int radix_N, char * input_N,
+                          int exp_result )
+{
+    mbedtls_mpi A, B, N, X;
+    int res;
+    mbedtls_mpi_init( &A ); mbedtls_mpi_init( &B ); mbedtls_mpi_init( &N );
+    mbedtls_mpi_init( &X );
+
+    TEST_ASSERT( mbedtls_test_read_mpi( &A, radix_A, input_A ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &B, radix_B, input_B ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &N, radix_N, input_N ) == 0 );
+
+    res = mbedtls_mpi_montmul( &X, &A, &B, &N );
+    TEST_ASSERT( res == exp_result );
+
+    if( res == 0 ) {
+        /* Can't check expected result without converting to/from mont */
+        TEST_ASSERT( sign_is_valid( &X ) );
+        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &X, &N ) < 0 );
+        TEST_ASSERT( mbedtls_mpi_cmp_int( &X, 0 ) >= 0 );
+    }
+exit:
+    mbedtls_mpi_free( &A ); mbedtls_mpi_free( &B ); mbedtls_mpi_free( &N );
+    mbedtls_mpi_free( &X );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mbedtls_mpi_montmul_aliasing()
+{
+    mbedtls_mpi A, B, N;
+
+    mbedtls_mpi_init( &A ); mbedtls_mpi_init( &B ); mbedtls_mpi_init( &N );
+
+    mbedtls_mpi_lset( &N, 9 );
+
+    /* X is A */
+    mbedtls_mpi_lset( &A, 5 );
+    TEST_ASSERT( mbedtls_mpi_to_mont_mpi( &A, &A, &N, NULL ) == 0 );
+    mbedtls_mpi_lset( &B, 4 );
+    TEST_ASSERT( mbedtls_mpi_to_mont_mpi( &B, &B, &N, NULL ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_montmul(&A, &A, &B, &N) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_from_mont_mpi( &A, &A, &N ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_int( &A, 2) == 0 );
+
+    /* X is B */
+    mbedtls_mpi_lset( &A, 5 );
+    TEST_ASSERT( mbedtls_mpi_to_mont_mpi( &A, &A, &N, NULL ) == 0 );
+    mbedtls_mpi_lset( &B, 4 );
+    TEST_ASSERT( mbedtls_mpi_to_mont_mpi( &B, &B, &N, NULL ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_montmul(&B, &A, &B, &N) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_from_mont_mpi( &B, &B, &N ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_int( &B, 2) == 0 );
+
+    /* A is B */
+    mbedtls_mpi_lset( &A, 5 );
+    TEST_ASSERT( mbedtls_mpi_to_mont_mpi( &A, &A, &N, NULL ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_montmul(&B, &A, &A, &N) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_from_mont_mpi( &B, &B, &N ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_int( &B, 7) == 0 );
+
+    /* X is A is B */
+    mbedtls_mpi_lset( &A, 5 );
+    TEST_ASSERT( mbedtls_mpi_to_mont_mpi( &A, &A, &N, NULL ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_montmul(&A, &A, &A, &N) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_from_mont_mpi( &A, &A, &N ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_int( &A, 7) == 0 );
+
+exit:
+    mbedtls_mpi_free( &A ); mbedtls_mpi_free( &B ); mbedtls_mpi_free( &N );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mbedtls_mpi_montmul_chk( int radix_A, char * input_A, int radix_B,
+                              char * input_B, int radix_N, char * input_N,
+                              int radix_X, char * input_X )
+{
+    mbedtls_mpi A, B, TA, TB, N, X, Y;
+    mbedtls_mpi_init( &A  ); mbedtls_mpi_init( &B ); mbedtls_mpi_init( &N  );
+    mbedtls_mpi_init( &X  ); mbedtls_mpi_init( &Y ); mbedtls_mpi_init( &TA );
+    mbedtls_mpi_init( &TB );
+
+    TEST_ASSERT( mbedtls_test_read_mpi( &A, radix_A, input_A ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &B, radix_B, input_B ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &N, radix_N, input_N ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &X, radix_X, input_X ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_to_mont_mpi( &TA, &A, &N, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_to_mont_mpi( &TB, &B, &N, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_montmul( &Y, &TA, &TB, &N ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_from_mont_mpi( &Y, &Y, &N ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &X, &Y ) == 0 );
+exit:
+    mbedtls_mpi_free( &A  ); mbedtls_mpi_free( &B ); mbedtls_mpi_free( &N  );
+    mbedtls_mpi_free( &X  ); mbedtls_mpi_free( &Y ); mbedtls_mpi_free( &TA );
+    mbedtls_mpi_free( &TB );
 }
 /* END_CASE */
 

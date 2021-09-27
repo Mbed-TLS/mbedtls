@@ -350,6 +350,11 @@ General coding rules:
       example it is generally fine if some closure characters like ";" or ")"
       are beyond the 80 characters limit.
 
+    If a line becomes too long due to a refactoring (for example renaming a
+    function to a longer name, or indenting a block more), avoid rewrapping
+    lines in the same commit: it makes the review harder. Make one commit with
+    the longer lines and another commit with just the rewrapping.
+
   - When in successive lines, functions and macros parameters should be aligned
     vertically.
 
@@ -360,3 +365,19 @@ General coding rules:
                                                unsigned char **buf,
                                                size_t *buf_len );
     ```
+
+  - When a function's parameters span several lines, group related parameters
+    together if possible.
+
+    For example, prefer:
+
+    ```
+    mbedtls_ssl_tls13_start_handshake_msg( ssl, hs_type,
+                                           buf, buf_len );
+    ```
+    over
+    ```
+    mbedtls_ssl_tls13_start_handshake_msg( ssl, hs_type, buf,
+                                           buf_len );
+    ```
+    even if it fits.

@@ -39,3 +39,5 @@ size_t mbedtls_cf_size_mask_lt( size_t x, size_t y );
 size_t mbedtls_cf_size_mask_ge( size_t x, size_t y );
 
 size_t mbedtls_cf_size_bool_eq( size_t x, size_t y );
+
+unsigned mbedtls_cf_size_gt( size_t size, size_t max );

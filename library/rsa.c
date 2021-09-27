@@ -1458,22 +1458,6 @@ cleanup:
 #endif /* MBEDTLS_PKCS1_V21 */
 
 #if defined(MBEDTLS_PKCS1_V15)
-/** Check whether a size is out of bounds, without branches.
- *
- * This is equivalent to `size > max`, but is likely to be compiled to
- * to code using bitwise operation rather than a branch.
- *
- * \param size      Size to check.
- * \param max       Maximum desired value for \p size.
- * \return          \c 0 if `size <= max`.
- * \return          \c 1 if `size > max`.
- */
-static unsigned mbedtls_cf_size_gt( size_t size, size_t max )
-{
-    /* Return the sign bit (1 for negative) of (max - size). */
-    return( ( max - size ) >> ( sizeof( size_t ) * 8 - 1 ) );
-}
-
 /** Choose between two integer values, without branches.
  *
  * This is equivalent to `cond ? if1 : if0`, but is likely to be compiled

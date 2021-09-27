@@ -143,7 +143,7 @@ the handshake with an handshake_failure closure alert and the
 
 - Supported versions: only TLS 1.3, version negotiation is not supported.
 
-- Support of Mbed TLS SSL/TLS related (not DTLS) features:
+- Compatibility with existing SSL/TLS build options:
 
   The TLS 1.3 MVP is compatible with all TLS 1.2 configuration options in the
   sense that when enabling the TLS 1.3 MVP in the library there is no need to
@@ -299,8 +299,8 @@ TLS 1.3 specific coding rules:
     (https://github.com/ARMmbed/mbedtls/pull/4882#discussion_r701704527) from
     happening again, use always a local variable named `p` for the reading
     pointer in functions parsing TLS 1.3 data, and for the writing pointer in
-    functions writing data into an output buffer. The name `p` has been
-    chosen as it was already widely used in TLS code.
+    functions writing data into an output buffer and only that variable. The
+    name `p` has been chosen as it was already widely used in TLS code.
 
   - When an TLS 1.3 structure is written or read by a function or as part of
     a function, provide as documentation the definition of the structure as

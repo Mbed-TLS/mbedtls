@@ -295,6 +295,12 @@ unsigned mbedtls_cf_uint_if( unsigned cond, unsigned if1, unsigned if0 )
     return( ( mask & if1 ) | (~mask & if0 ) );
 }
 
+size_t mbedtls_cf_size_if( unsigned cond, size_t if1, size_t if0 )
+{
+    size_t mask = mbedtls_cf_size_mask( cond );
+    return( ( mask & if1 ) | (~mask & if0 ) );
+}
+
 /**
  * Select between two sign values in constant-time.
  *

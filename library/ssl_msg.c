@@ -44,6 +44,7 @@
 #include "mbedtls/error.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/version.h"
+#include "constant_time.h"
 
 #include "ssl_invasive.h"
 

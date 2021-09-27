@@ -36,6 +36,7 @@
 #include "mbedtls/ssl_internal.h"
 #include "mbedtls/error.h"
 #include "mbedtls/platform_util.h"
+#include "constant_time.h"
 
 #include <string.h>
 

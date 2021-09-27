@@ -44,6 +44,7 @@
 #include "mbedtls/oid.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
+#include "constant_time.h"
 
 #include <string.h>
 
@@ -71,22 +72,6 @@
     MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_RSA_BAD_INPUT_DATA )
 #define RSA_VALIDATE( cond )                                           \
     MBEDTLS_INTERNAL_VALIDATE( cond )
-
-#if defined(MBEDTLS_PKCS1_V15)
-/* constant-time buffer comparison */
-static inline int mbedtls_safer_memcmp( const void *a, const void *b, size_t n )
-{
-    size_t i;
-    const unsigned char *A = (const unsigned char *) a;
-    const unsigned char *B = (const unsigned char *) b;
-    unsigned char diff = 0;
-
-    for( i = 0; i < n; i++ )
-        diff |= A[i] ^ B[i];
-
-    return( diff );
-}
-#endif /* MBEDTLS_PKCS1_V15 */
 
 int mbedtls_rsa_import( mbedtls_rsa_context *ctx,
                         const mbedtls_mpi *N,

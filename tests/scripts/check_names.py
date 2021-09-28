@@ -305,7 +305,7 @@ class CodeParser():
         }
 
     def is_file_excluded(self, path, exclude_wildcards):
-        """Whether the give file path is excluded."""
+        """Whether the given file path is excluded."""
         # exclude_wildcards may be None. Also, consider the global exclusions.
         exclude_wildcards = (exclude_wildcards or []) + self.excluded_files
         for pattern in exclude_wildcards:

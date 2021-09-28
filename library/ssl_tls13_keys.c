@@ -826,8 +826,7 @@ int mbedtls_ssl_tls1_3_key_schedule_stage_early( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_md_type_t md_type;
-    const unsigned char *input = NULL;
-    size_t input_len = 0;
+
     if( ssl->handshake->ciphersuite_info == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "cipher suite info not found" ) );
@@ -836,7 +835,7 @@ int mbedtls_ssl_tls1_3_key_schedule_stage_early( mbedtls_ssl_context *ssl )
 
     md_type = ssl->handshake->ciphersuite_info->mac;
 
-    ret = mbedtls_ssl_tls1_3_evolve_secret( md_type, NULL, input, input_len,
+    ret = mbedtls_ssl_tls1_3_evolve_secret( md_type, NULL, NULL, 0,
                                 ssl->handshake->tls1_3_master_secrets.early );
     if( ret != 0 )
     {

@@ -1478,7 +1478,7 @@ cleanup:
  * \param value     The value to analyze.
  * \return          Zero if \p value is zero, otherwise all-bits-one.
  */
-static unsigned all_or_nothing_int( unsigned value )
+static unsigned mbedtls_cf_uint_mask( unsigned value )
 {
     /* MSVC has a warning about unary minus on unsigned, but this is
      * well-defined and precisely what we want to do here */
@@ -1502,7 +1502,7 @@ static unsigned all_or_nothing_int( unsigned value )
  * \return          \c 0 if `size <= max`.
  * \return          \c 1 if `size > max`.
  */
-static unsigned size_greater_than( size_t size, size_t max )
+static unsigned mbedtls_cf_size_gt( size_t size, size_t max )
 {
     /* Return the sign bit (1 for negative) of (max - size). */
     return( ( max - size ) >> ( sizeof( size_t ) * 8 - 1 ) );
@@ -1518,16 +1518,17 @@ static unsigned size_greater_than( size_t size, size_t max )
  * \param if0       Value to use if \p cond is zero.
  * \return          \c if1 if \p cond is nonzero, otherwise \c if0.
  */
-static unsigned if_int( unsigned cond, unsigned if1, unsigned if0 )
+static unsigned mbedtls_cf_uint_if( unsigned cond, unsigned if1, unsigned if0 )
 {
-    unsigned mask = all_or_nothing_int( cond );
+    unsigned mask = mbedtls_cf_uint_mask( cond );
     return( ( mask & if1 ) | (~mask & if0 ) );
 }
 
 /** Shift some data towards the left inside a buffer without leaking
  * the length of the data through side channels.
  *
- * `mem_move_to_left(start, total, offset)` is functionally equivalent to
+ * `mbedtls_cf_mem_move_to_left(start, total, offset)` is functionally
+ * equivalent to
  * ```
  * memmove(start, start + offset, total - offset);
  * memset(start + offset, 0, total - offset);
@@ -1540,9 +1541,9 @@ static unsigned if_int( unsigned cond, unsigned if1, unsigned if0 )
  * \param total     Total size of the buffer.
  * \param offset    Offset from which to copy \p total - \p offset bytes.
  */
-static void mem_move_to_left( void *start,
-                              size_t total,
-                              size_t offset )
+static void mbedtls_cf_mem_move_to_left( void *start,
+                                         size_t total,
+                                         size_t offset )
 {
     volatile unsigned char *buf = start;
     size_t i, n;
@@ -1550,7 +1551,7 @@ static void mem_move_to_left( void *start,
         return;
     for( i = 0; i < total; i++ )
     {
-        unsigned no_op = size_greater_than( total - offset, i );
+        unsigned no_op = mbedtls_cf_size_gt( total - offset, i );
         /* The first `total - offset` passes are a no-op. The last
          * `offset` passes shift the data one byte to the left and
          * zero out the last byte. */
@@ -1558,9 +1559,9 @@ static void mem_move_to_left( void *start,
         {
             unsigned char current = buf[n];
             unsigned char next = buf[n+1];
-            buf[n] = if_int( no_op, current, next );
+            buf[n] = mbedtls_cf_uint_if( no_op, current, next );
         }
-        buf[total-1] = if_int( no_op, buf[total-1], 0 );
+        buf[total-1] = mbedtls_cf_uint_if( no_op, buf[total-1], 0 );
     }
 }
 
@@ -1634,10 +1635,10 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
 
 
     /* If pad_done is still zero, there's no data, only unfinished padding. */
-    bad |= if_int( pad_done, 0, 1 );
+    bad |= mbedtls_cf_uint_if( pad_done, 0, 1 );
 
     /* There must be at least 8 bytes of padding. */
-    bad |= size_greater_than( 8, pad_count );
+    bad |= mbedtls_cf_size_gt( 8, pad_count );
 
     /* If the padding is valid, set plaintext_size to the number of
      * remaining bytes after stripping the padding. If the padding
@@ -1646,23 +1647,25 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
      * buffer. Do it without branches to avoid leaking the padding
      * validity through timing. RSA keys are small enough that all the
      * size_t values involved fit in unsigned int. */
-    plaintext_size = if_int( bad,
-                             (unsigned) plaintext_max_size,
-                             (unsigned) ( ilen - pad_count - 3 ) );
+    plaintext_size = mbedtls_cf_uint_if(
+                        bad, (unsigned) plaintext_max_size,
+                        (unsigned) ( ilen - pad_count - 3 ) );
 
     /* Set output_too_large to 0 if the plaintext fits in the output
      * buffer and to 1 otherwise. */
-    output_too_large = size_greater_than( plaintext_size,
-                                          plaintext_max_size );
+    output_too_large = mbedtls_cf_size_gt( plaintext_size,
+                                           plaintext_max_size );
 
     /* Set ret without branches to avoid timing attacks. Return:
      * - INVALID_PADDING if the padding is bad (bad != 0).
      * - OUTPUT_TOO_LARGE if the padding is good but the decrypted
      *   plaintext does not fit in the output buffer.
      * - 0 if the padding is correct. */
-    ret = - (int) if_int( bad, - MBEDTLS_ERR_RSA_INVALID_PADDING,
-                  if_int( output_too_large, - MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE,
-                          0 ) );
+    ret = - (int) mbedtls_cf_uint_if(
+                    bad, - MBEDTLS_ERR_RSA_INVALID_PADDING,
+                    mbedtls_cf_uint_if( output_too_large,
+                                        - MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE,
+                                        0 ) );
 
     /* If the padding is bad or the plaintext is too large, zero the
      * data that we're about to copy to the output buffer.
@@ -1670,7 +1673,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
      * from the same buffer whether the padding is good or not to
      * avoid leaking the padding validity through overall timing or
      * through memory or cache access patterns. */
-    bad = all_or_nothing_int( bad | output_too_large );
+    bad = mbedtls_cf_uint_mask( bad | output_too_large );
     for( i = 11; i < ilen; i++ )
         buf[i] &= ~bad;
 
@@ -1678,9 +1681,9 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
      * Copy anyway to avoid revealing the length through timing, because
      * revealing the length is as bad as revealing the padding validity
      * for a Bleichenbacher attack. */
-    plaintext_size = if_int( output_too_large,
-                             (unsigned) plaintext_max_size,
-                             (unsigned) plaintext_size );
+    plaintext_size = mbedtls_cf_uint_if( output_too_large,
+                                         (unsigned) plaintext_max_size,
+                                         (unsigned) plaintext_size );
 
     /* Move the plaintext to the leftmost position where it can start in
      * the working buffer, i.e. make it start plaintext_max_size from
@@ -1688,9 +1691,9 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
      * does not depend on the plaintext size. After this move, the
      * starting location of the plaintext is no longer sensitive
      * information. */
-    mem_move_to_left( buf + ilen - plaintext_max_size,
-                      plaintext_max_size,
-                      plaintext_max_size - plaintext_size );
+    mbedtls_cf_mem_move_to_left( buf + ilen - plaintext_max_size,
+                                 plaintext_max_size,
+                                 plaintext_max_size - plaintext_size );
 
     /* Finally copy the decrypted plaintext plus trailing zeros into the output
      * buffer. If output_max_len is 0, then output may be an invalid pointer

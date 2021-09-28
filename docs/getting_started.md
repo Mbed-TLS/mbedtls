@@ -1,8 +1,8 @@
-## Getting started with Mbed Crypto
+## Getting started with Mbed TLS
 
-### What is Mbed Crypto?
+### What is Mbed TLS?
 
-Mbed Crypto is an open source cryptographic library that supports a wide range of cryptographic operations, including:
+Mbed TLS is an open source cryptographic library that supports a wide range of cryptographic operations, including:
 * Key management
 * Hashing
 * Symmetric cryptography
@@ -11,20 +11,20 @@ Mbed Crypto is an open source cryptographic library that supports a wide range o
 * Key generation and derivation
 * Authenticated encryption with associated data (AEAD)
 
-The Mbed Crypto library is a reference implementation of the cryptography interface of the Arm Platform Security Architecture (PSA). It is written in portable C.
+The Mbed TLS library is a reference implementation of the cryptography interface of the Arm Platform Security Architecture (PSA). It is written in portable C.
 
-The Mbed Crypto library is distributed under the Apache License, version 2.0.
+The Mbed TLS library is distributed under the Apache License, version 2.0.
 
 #### Platform Security Architecture (PSA)
 
 Arm's Platform Security Architecture (PSA) is a holistic set of threat models,
 security analyses, hardware and firmware architecture specifications, and an open source firmware reference implementation. PSA provides a recipe, based on industry best practice, that enables you to design security into both hardware and firmware consistently. Part of the API provided by PSA is the cryptography interface, which provides access to a set of primitives.
 
-### Using Mbed Crypto
+### Using Mbed TLS
 
-* [Getting the Mbed Crypto library](#getting-the-mbed-crypto-library)
-* [Building the Mbed Crypto library](#building-the-mbed-crypto-library)
-* [Using the Mbed Crypto library](#using-the-mbed-crypto-library)
+* [Getting the Mbed TLS library](#getting-the-mbed-tls-library)
+* [Building the Mbed TLS library](#building-the-mbed-tls-library)
+* [Using the Mbed TLS library](#using-the-mbed-tls-library)
 * [Importing a key](#importing-a-key)
 * [Signing a message using RSA](#signing-a-message-using-RSA)
 * [Encrypting or decrypting using symmetric ciphers](#encrypting-or-decrypting-using-symmetric-ciphers)
@@ -33,13 +33,13 @@ security analyses, hardware and firmware architecture specifications, and an ope
 * [Generating a random value](#generating-a-random-value)
 * [Authenticating and encrypting or decrypting a message](#authenticating-and-encrypting-or-decrypting-a-message)
 * [Generating and exporting keys](#generating-and-exporting-keys)
-* [More about the Mbed Crypto library](#more-about-the-mbed-crypto-library)
+* [More about the Mbed TLS library](#more-about-the-mbed-tls-library)
 
-### Getting the Mbed Crypto library
+### Getting the Mbed TLS library
 
-Mbed Crypto releases are available in the [public GitHub repository](https://github.com/ARMmbed/mbed-crypto).
+Mbed TLS releases are available in the [public GitHub repository](https://github.com/ARMmbed/mbedtls).
 
-### Building the Mbed Crypto library
+### Building the Mbed TLS library
 
 **Prerequisites to building the library with the provided makefiles:**
 * GNU Make.
@@ -57,13 +57,13 @@ The provided makefiles pass options to the compiler that assume a GCC-like comma
 
 To run the unit tests on the host machine, run `make test` from the top-level directory. If you are cross-compiling, copy the test executable from the `tests` directory to the target machine.
 
-### Using the Mbed Crypto library
+### Using the Mbed TLS library
 
-To use the Mbed Crypto APIs, call `psa_crypto_init()` before calling any other API. This initializes the library.
+To use the Mbed TLS APIs, call `psa_crypto_init()` before calling any other API. This initializes the library.
 
 ### Importing a key
 
-To use a key for cryptography operations in Mbed Crypto, you need to first
+To use a key for cryptography operations in Mbed TLS, you need to first
 import it. The import operation returns the identifier of the key for use
 with other function calls.
 
@@ -114,7 +114,7 @@ void import_a_key(const uint8_t *key, size_t key_len)
 
 ### Signing a message using RSA
 
-Mbed Crypto supports encrypting, decrypting, signing and verifying messages using public key signature algorithms, such as RSA or ECDSA.
+Mbed TLS supports encrypting, decrypting, signing and verifying messages using public key signature algorithms, such as RSA or ECDSA.
 
 **Prerequisites to performing asymmetric signature operations:**
 * Initialize the library with a successful call to `psa_crypto_init()`.
@@ -184,7 +184,7 @@ void sign_a_message_using_rsa(const uint8_t *key, size_t key_len)
 
 ### Using symmetric ciphers
 
-Mbed Crypto supports encrypting and decrypting messages using various symmetric cipher algorithms (both block and stream ciphers).
+Mbed TLS supports encrypting and decrypting messages using various symmetric cipher algorithms (both block and stream ciphers).
 
 **Prerequisites to working with the symmetric cipher API:**
 * Initialize the library with a successful call to `psa_crypto_init()`.
@@ -364,7 +364,7 @@ After you've initialized the operation structure with a successful call to `psa_
 
 The call to `psa_cipher_abort()` frees any resources associated with the operation, except for the operation structure itself.
 
-Mbed Crypto implicitly calls `psa_cipher_abort()` when:
+Mbed TLS implicitly calls `psa_cipher_abort()` when:
 * A call to `psa_cipher_generate_iv()`, `psa_cipher_set_iv()` or `psa_cipher_update()` fails (returning any status other than `PSA_SUCCESS`).
 * A call to `psa_cipher_finish()` succeeds or fails.
 
@@ -376,7 +376,7 @@ Making multiple sequential calls to `psa_cipher_abort()` on an operation that is
 
 ### Hashing a message
 
-Mbed Crypto lets you compute and verify hashes using various hashing
+Mbed TLS lets you compute and verify hashes using various hashing
 algorithms.
 
 **Prerequisites to working with the hash APIs:**
@@ -488,7 +488,7 @@ The API provides the macro `PSA_HASH_LENGTH`, which returns the expected hash le
 
 After a successful call to `psa_hash_setup()`, you can terminate the operation at any time by calling `psa_hash_abort()`. The call to `psa_hash_abort()` frees any resources associated with the operation, except for the operation structure itself.
 
-Mbed Crypto implicitly calls `psa_hash_abort()` when:
+Mbed TLS implicitly calls `psa_hash_abort()` when:
 1. A call to `psa_hash_update()` fails (returning any status other than `PSA_SUCCESS`).
 1. A call to `psa_hash_finish()` succeeds or fails.
 1. A call to `psa_hash_verify()` succeeds or fails.
@@ -501,7 +501,7 @@ Making multiple sequential calls to `psa_hash_abort()` on an operation that has 
 
 ### Generating a random value
 
-Mbed Crypto can generate random data.
+Mbed TLS can generate random data.
 
 **Prerequisites to generating random data:**
 * Initialize the library with a successful call to `psa_crypto_init()`.
@@ -537,7 +537,7 @@ This example shows how to generate ten bytes of random data by calling `psa_gene
 
 ### Deriving a new key from an existing key
 
-Mbed Crypto provides a key derivation API that lets you derive new keys from
+Mbed TLS provides a key derivation API that lets you derive new keys from
 existing ones. The key derivation API has functions to take inputs, including
 other keys and data, and functions to generate outputs, such as new keys or
 other data.
@@ -675,7 +675,7 @@ derived from the key, salt and info provided:
 
 ### Authenticating and encrypting or decrypting a message
 
-Mbed Crypto provides a simple way to authenticate and encrypt with associated data (AEAD), supporting the `PSA_ALG_CCM` algorithm.
+Mbed TLS provides a simple way to authenticate and encrypt with associated data (AEAD), supporting the `PSA_ALG_CCM` algorithm.
 
 **Prerequisites to working with the AEAD cipher APIs:**
 * Initialize the library with a successful call to `psa_crypto_init()`.
@@ -829,7 +829,7 @@ This example shows how to authenticate and decrypt a message:
 
 ### Generating and exporting keys
 
-Mbed Crypto provides a simple way to generate a key or key pair.
+Mbed TLS provides a simple way to generate a key or key pair.
 
 **Prerequisites to using key generation and export APIs:**
 * Initialize the library with a successful call to `psa_crypto_init()`.
@@ -891,4 +891,4 @@ Mbed Crypto provides a simple way to generate a key or key pair.
 
 ### More about the PSA Crypto API
 
-For more information about the PSA Crypto API, please see the [PSA Cryptography API Specification](https://armmbed.github.io/mbed-crypto/html/index.html).
+For more information about the PSA Crypto API, please see the [PSA Cryptography API Specification](https://armmbed.github.io/mbedtls/html/index.html).

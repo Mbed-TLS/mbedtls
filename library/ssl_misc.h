@@ -573,8 +573,8 @@ struct mbedtls_ssl_handshake_params
                                               flight being received          */
     mbedtls_ssl_transform *alt_transform_out;   /*!<  Alternative transform for
                                               resending messages             */
-    unsigned char alt_out_ctr[8];       /*!<  Alternative record epoch/counter
-                                              for resending messages         */
+    unsigned char alt_out_ctr[MBEDTLS_SSL_COUNTER_LEN]; /*!<  Alternative record epoch/counter
+                                                              for resending messages         */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     /* The state of CID configuration in this handshake. */
@@ -873,14 +873,14 @@ static inline int mbedtls_ssl_transform_uses_aead(
 
 typedef struct
 {
-    uint8_t ctr[8];         /* In TLS:  The implicit record sequence number.
-                             * In DTLS: The 2-byte epoch followed by
-                             *          the 6-byte sequence number.
-                             * This is stored as a raw big endian byte array
-                             * as opposed to a uint64_t because we rarely
-                             * need to perform arithmetic on this, but do
-                             * need it as a Byte array for the purpose of
-                             * MAC computations.                             */
+    uint8_t ctr[MBEDTLS_SSL_COUNTER_LEN];  /* In TLS:  The implicit record sequence number.
+                                            * In DTLS: The 2-byte epoch followed by
+                                            *          the 6-byte sequence number.
+                                            * This is stored as a raw big endian byte array
+                                            * as opposed to a uint64_t because we rarely
+                                            * need to perform arithmetic on this, but do
+                                            * need it as a Byte array for the purpose of
+                                            * MAC computations.                             */
     uint8_t type;           /* The record content type.                      */
     uint8_t ver[2];         /* SSL/TLS version as present on the wire.
                              * Convert to internal presentation of versions

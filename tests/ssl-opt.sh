@@ -8809,8 +8809,8 @@ run_test    "TLS 1.3: handshake dispatch test: tls13 only" \
             "$P_SRV debug_level=2 min_version=tls13 max_version=tls13" \
             "$P_CLI debug_level=2 min_version=tls13 max_version=tls13" \
             1 \
-            -s "tls13 server state: 0"     \
-            -c "tls13 client state: 0"
+            -s "tls13 server state: MBEDTLS_SSL_HELLO_REQUEST"     \
+            -c "tls13 client state: MBEDTLS_SSL_HELLO_REQUEST"
 
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL

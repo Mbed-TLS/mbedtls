@@ -136,37 +136,6 @@ static psa_status_t psa_aead_setup(
     return( PSA_SUCCESS );
 }
 
-/* Perform common nonce length checks */
-static psa_status_t mbedtls_aead_check_nonce_length(
-    mbedtls_psa_aead_operation_t *operation,
-    size_t nonce_length )
-{
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
-    if( operation->alg == PSA_ALG_GCM )
-    {
-        if( nonce_length == 0 )
-            return( PSA_ERROR_NOT_SUPPORTED );
-    }
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
-    if( operation->alg == PSA_ALG_CCM )
-    {
-        if( nonce_length < 7 || nonce_length > 13 )
-            return( PSA_ERROR_NOT_SUPPORTED );
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
-    if( operation->alg == PSA_ALG_CHACHA20_POLY1305 )
-    {
-        if( nonce_length != 12 )
-            return( PSA_ERROR_NOT_SUPPORTED );
-    }
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
-
-    return PSA_SUCCESS;
-}
-
 psa_status_t mbedtls_psa_aead_encrypt(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
@@ -194,11 +163,6 @@ psa_status_t mbedtls_psa_aead_encrypt(
         goto exit;
     }
     tag = ciphertext + plaintext_length;
-
-    status = mbedtls_aead_check_nonce_length( &operation, nonce_length );
-
-    if( status != PSA_SUCCESS )
-        goto exit;
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
     if( operation.alg == PSA_ALG_CCM )
@@ -305,11 +269,6 @@ psa_status_t mbedtls_psa_aead_decrypt(
     status = psa_aead_unpadded_locate_tag( operation.tag_length,
                                            ciphertext, ciphertext_length,
                                            plaintext_size, &tag );
-    if( status != PSA_SUCCESS )
-        goto exit;
-
-    status = mbedtls_aead_check_nonce_length( &operation, nonce_length );
-
     if( status != PSA_SUCCESS )
         goto exit;
 

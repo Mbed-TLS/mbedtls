@@ -3609,6 +3609,42 @@ exit:
 /* AEAD */
 /****************************************************************/
 
+/* Helper to perform common nonce length checks. */
+static psa_status_t psa_aead_check_nonce_length( psa_algorithm_t alg,
+                                                 size_t nonce_length )
+{
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
+    if( alg == PSA_ALG_GCM )
+    {
+        /* Not checking max nonce size here as GCM spec allows almost
+         * arbitrarily large nonces. Please note that we do not generally
+         * recommend the usage of nonces of greater length than
+         * PSA_AEAD_NONCE_MAX_SIZE, as large nonces are hashed to a shorter
+         * size, which can then lead to collisions if you encrypt a very
+         * large number of messages.*/
+        if( nonce_length == 0 )
+            return( PSA_ERROR_NOT_SUPPORTED );
+    }
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
+    if( alg == PSA_ALG_CCM )
+    {
+        if( nonce_length < 7 || nonce_length > 13 )
+            return( PSA_ERROR_NOT_SUPPORTED );
+    }
+    else
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
+        if( alg == PSA_ALG_CHACHA20_POLY1305 )
+        {
+            if( nonce_length != 12 )
+                return( PSA_ERROR_NOT_SUPPORTED );
+        }
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
+
+    return PSA_SUCCESS;
+}
+
 psa_status_t psa_aead_encrypt( mbedtls_svc_key_id_t key,
                                psa_algorithm_t alg,
                                const uint8_t *nonce,
@@ -3638,6 +3674,10 @@ psa_status_t psa_aead_encrypt( mbedtls_svc_key_id_t key,
       .core = slot->attr
     };
 
+    status = psa_aead_check_nonce_length( alg, nonce_length );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
     status = psa_driver_wrapper_aead_encrypt(
         &attributes, slot->key.data, slot->key.bytes,
         alg,
@@ -3649,6 +3689,7 @@ psa_status_t psa_aead_encrypt( mbedtls_svc_key_id_t key,
     if( status != PSA_SUCCESS && ciphertext_size != 0 )
         memset( ciphertext, 0, ciphertext_size );
 
+exit:
     psa_unlock_key_slot( slot );
 
     return( status );
@@ -3683,6 +3724,10 @@ psa_status_t psa_aead_decrypt( mbedtls_svc_key_id_t key,
       .core = slot->attr
     };
 
+    status = psa_aead_check_nonce_length( alg, nonce_length );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
     status = psa_driver_wrapper_aead_decrypt(
         &attributes, slot->key.data, slot->key.bytes,
         alg,
@@ -3694,6 +3739,7 @@ psa_status_t psa_aead_decrypt( mbedtls_svc_key_id_t key,
     if( status != PSA_SUCCESS && plaintext_size != 0 )
         memset( plaintext, 0, plaintext_size );
 
+exit:
     psa_unlock_key_slot( slot );
 
     return( status );
@@ -3863,43 +3909,13 @@ psa_status_t psa_aead_set_nonce( psa_aead_operation_t *operation,
         goto exit;
     }
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
-    if( operation->alg == PSA_ALG_GCM )
+    status = psa_aead_check_nonce_length( operation->alg, nonce_length );
+
+    if( status != PSA_SUCCESS )
     {
-        /* Not checking max nonce size here as GCM spec allows almost
-         * arbitrarily large nonces. Please note that we do not generally
-         * recommend the usage of nonces of greater length than
-         * PSA_AEAD_NONCE_MAX_SIZE, as large nonces are hashed to a shorter
-         * size, which can then lead to collisions if you encrypt a very
-         * large number of messages.*/
-        if( nonce_length == 0 )
-        {
-            status = PSA_ERROR_INVALID_ARGUMENT;
-            goto exit;
-        }
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto exit;
     }
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
-    if( operation->alg == PSA_ALG_CCM )
-    {
-        if( nonce_length < 7 || nonce_length > 13 )
-        {
-            status = PSA_ERROR_INVALID_ARGUMENT;
-            goto exit;
-        }
-    }
-    else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
-        if( operation->alg == PSA_ALG_CHACHA20_POLY1305 )
-        {
-            if( nonce_length != 12 )
-            {
-                status = PSA_ERROR_INVALID_ARGUMENT;
-                goto exit;
-            }
-        }
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
 
     status = psa_driver_wrapper_aead_set_nonce( operation, nonce,
                                                 nonce_length );

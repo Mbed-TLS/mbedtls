@@ -410,14 +410,14 @@ static inline int mbedtls_ssl_chk_buf_ptr( const uint8_t *cur,
     } while( 0 )
 
 /**
- * \brief        This macro checks if the remaining size in a input buffer is
- *               greater or equal than a needed space. If it is not the case,
- *               it returns an SSL_DECODE_ERROR error and sends DECODE_ERROR
- *               alert message.
+ * \brief        This macro checks if the remaining length in an input buffer is
+ *               greater or equal than a needed length. If it is not the case, it
+ *               returns an SSL_DECODE_ERROR error and pends DECODE_ERROR alert
+ *               message.
  *
  * \param cur    Pointer to the current position in the buffer.
  * \param end    Pointer to one past the end of the buffer.
- * \param need   Needed space in bytes.
+ * \param need   Needed length in bytes.
  *
  */
 #define MBEDTLS_SSL_CHK_BUF_READ_PTR( cur, end, need )                          \
@@ -1442,9 +1442,9 @@ static inline int mbedtls_ssl_conf_tls13_some_psk_enabled( mbedtls_ssl_context *
 }
 
 static inline unsigned mbedtls_ssl_tls1_3_check_kex_modes( mbedtls_ssl_context *ssl,
-                                                           int kex_mode_mask )
+                                                           int kex_modes_mask )
 {
-    return( ( ssl->handshake->tls1_3_kex_modes & kex_mode_mask ) != 0 );
+    return( ( ssl->handshake->tls1_3_kex_modes & kex_modes_mask ) == 0 );
 }
 
 static inline int mbedtls_ssl_tls1_3_psk_enabled( mbedtls_ssl_context *ssl )

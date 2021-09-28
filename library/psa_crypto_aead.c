@@ -412,6 +412,16 @@ psa_status_t mbedtls_psa_aead_set_nonce(
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
     if( operation->alg == PSA_ALG_CHACHA20_POLY1305 )
     {
+        /* Note - ChaChaPoly allows an 8 byte nonce, but we would have to
+         * allocate a buffer in the operation, copy the nonce to it and pad
+         * it, so for now check the nonce is 12 bytes, as
+         * mbedtls_chachapoly_starts() assumes it can read 12 bytes from the
+         * passed in buffer. */
+        if( nonce_length != 12 )
+        {
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        }
+
         status = mbedtls_to_psa_error(
            mbedtls_chachapoly_starts( &operation->ctx.chachapoly,
                                       nonce,

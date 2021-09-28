@@ -323,7 +323,7 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
  *      Use MSVC predefine macro to avoid name check fail.
  */
 #if (defined(_MSC_VER) && ( _MSC_VER <= 1900 ))
-#define  __func__ __FUNCTION__
+#define /*no-check-names*/ __func__ __FUNCTION__
 #endif
 
 #endif /* MBEDTLS_LIBRARY_COMMON_H */

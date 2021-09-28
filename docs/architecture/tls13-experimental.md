@@ -218,10 +218,9 @@ MVP definition
 - Quality considerations
   - Standard Mbed TLS review bar
   - Interoperability testing with OpenSSL and GnuTLS. Test with all the
-    cipher suites supported by OpenSSL/GnuTLS server with and without
-    certificate base authentication.
+    cipher suites and signature algorithms supported by OpenSSL/GnuTLS server.
   - Negative testing against OpenSSL/GnuTLS servers with which the
-    handshake fails due to imcompatibility with the capabilities of the
+    handshake fails due to incompatibility with the capabilities of the
     MVP: TLS 1.2 or 1.1 server, server sending an HelloRetryRequest message in
     response to the MVP ClientHello, server sending a CertificateRequest
     message ...

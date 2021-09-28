@@ -3609,12 +3609,20 @@ exit:
 /* AEAD */
 /****************************************************************/
 
-/* Helper to perform common nonce length checks. */
+/* Helper function to get the base algorithm from its variants. */
+static psa_algorithm_t psa_aead_get_base_algorithm( psa_algorithm_t alg )
+{
+    return PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG( alg );
+}
+
+/* Helper function to perform common nonce length checks. */
 static psa_status_t psa_aead_check_nonce_length( psa_algorithm_t alg,
                                                  size_t nonce_length )
 {
+    psa_algorithm_t base_alg = psa_aead_get_base_algorithm( alg );
+
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
-    if( alg == PSA_ALG_GCM )
+    if( base_alg == PSA_ALG_GCM )
     {
         /* Not checking max nonce size here as GCM spec allows almost
          * arbitrarily large nonces. Please note that we do not generally
@@ -3627,7 +3635,7 @@ static psa_status_t psa_aead_check_nonce_length( psa_algorithm_t alg,
     }
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
-    if( alg == PSA_ALG_CCM )
+    if( base_alg == PSA_ALG_CCM )
     {
         if( nonce_length < 7 || nonce_length > 13 )
             return( PSA_ERROR_NOT_SUPPORTED );
@@ -3635,11 +3643,11 @@ static psa_status_t psa_aead_check_nonce_length( psa_algorithm_t alg,
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
-        if( alg == PSA_ALG_CHACHA20_POLY1305 )
-        {
-            if( nonce_length != 12 )
-                return( PSA_ERROR_NOT_SUPPORTED );
-        }
+    if( base_alg == PSA_ALG_CHACHA20_POLY1305 )
+    {
+        if( nonce_length != 12 )
+            return( PSA_ERROR_NOT_SUPPORTED );
+    }
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
 
     return PSA_SUCCESS;
@@ -3743,12 +3751,6 @@ exit:
     psa_unlock_key_slot( slot );
 
     return( status );
-}
-
-/* Helper function to get the base algorithm from its variants. */
-static psa_algorithm_t psa_aead_get_base_algorithm( psa_algorithm_t alg )
-{
-    return PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG( alg );
 }
 
 /* Set the key for a multipart authenticated operation. */

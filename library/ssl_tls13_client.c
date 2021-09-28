@@ -802,8 +802,8 @@ static int ssl_tls1_3_process_server_finished( mbedtls_ssl_context *ssl )
  */
 static int ssl_tls1_3_write_client_certificate( mbedtls_ssl_context *ssl )
 {
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY );
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "%s hasn't been implemented", __func__ ) );
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY );
     return( 0 );
 }
 
@@ -812,8 +812,8 @@ static int ssl_tls1_3_write_client_certificate( mbedtls_ssl_context *ssl )
  */
 static int ssl_tls1_3_write_client_certificate_verify( mbedtls_ssl_context *ssl )
 {
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_FINISHED );
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "%s hasn't been implemented", __func__ ) );
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_FINISHED );
     return( 0 );
 }
 
@@ -822,8 +822,8 @@ static int ssl_tls1_3_write_client_certificate_verify( mbedtls_ssl_context *ssl 
  */
 static int ssl_tls1_3_write_client_finished( mbedtls_ssl_context *ssl )
 {
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_FLUSH_BUFFERS );
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "%s hasn't been implemented", __func__ ) );
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_FLUSH_BUFFERS );
     return( 0 );
 }
 
@@ -832,8 +832,8 @@ static int ssl_tls1_3_write_client_finished( mbedtls_ssl_context *ssl )
  */
 static int ssl_tls1_3_flush_buffers( mbedtls_ssl_context *ssl )
 {
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_HANDSHAKE_WRAPUP );
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "%s hasn't been implemented", __func__ ) );
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_HANDSHAKE_WRAPUP );
     return( 0 );
 }
 

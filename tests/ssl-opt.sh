@@ -8675,6 +8675,7 @@ run_test    "TLS1.3: handshake dispatch test: tls1_3 only" \
 
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS1.3: Test client hello msg work - openssl" \
             "$O_NEXT_SRV -tls1_3 -msg" \
             "$P_CLI debug_level=2 min_version=tls1_3 max_version=tls1_3" \
@@ -8698,6 +8699,7 @@ run_test    "TLS1.3: Test client hello msg work - openssl" \
 
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS1.3: Test client hello msg work - gnutls" \
             "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 --debug=4" \
             "$P_CLI debug_level=2 min_version=tls1_3 max_version=tls1_3" \

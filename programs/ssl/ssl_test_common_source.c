@@ -24,7 +24,6 @@
  *  limitations under the License.
  */
 
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
 void eap_tls_key_derivation( void *p_expkey,
                              mbedtls_ssl_key_export_type secret_type,
                              const unsigned char *secret,
@@ -139,8 +138,6 @@ void dtls_srtp_key_derivation( void *p_expkey,
     keys->tls_prf_type = tls_prf_type;
 }
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
-
-#endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 int ssl_check_record( mbedtls_ssl_context const *ssl,
                       unsigned char const *buf, size_t len )

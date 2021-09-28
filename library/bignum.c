@@ -280,7 +280,7 @@ void mbedtls_mpi_swap( mbedtls_mpi *X, mbedtls_mpi *Y )
  *
  * \return The selected sign value.
  */
-static int mpi_safe_cond_select_sign( int a, int b, unsigned char second )
+static int mbedtls_cf_cond_select_sign( int a, int b, unsigned char second )
 {
     /* In order to avoid questions about what we can reasonnably assume about
      * the representations of signed integers, move everything to unsigned
@@ -304,10 +304,10 @@ static int mpi_safe_cond_select_sign( int a, int b, unsigned char second )
  * dest and src must be arrays of limbs of size n.
  * assign must be 0 or 1.
  */
-static void mpi_safe_cond_assign( size_t n,
-                                  mbedtls_mpi_uint *dest,
-                                  const mbedtls_mpi_uint *src,
-                                  unsigned char assign )
+void mbedtls_cf_mpi_uint_cond_assign( size_t n,
+                                      mbedtls_mpi_uint *dest,
+                                      const mbedtls_mpi_uint *src,
+                                      unsigned char assign )
 {
     size_t i;
 
@@ -360,9 +360,9 @@ int mbedtls_mpi_safe_cond_assign( mbedtls_mpi *X, const mbedtls_mpi *Y, unsigned
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, Y->n ) );
 
-    X->s = mpi_safe_cond_select_sign( X->s, Y->s, assign );
+    X->s = mbedtls_cf_cond_select_sign( X->s, Y->s, assign );
 
-    mpi_safe_cond_assign( Y->n, X->p, Y->p, assign );
+    mbedtls_cf_mpi_uint_cond_assign( Y->n, X->p, Y->p, assign );
 
     for( i = Y->n; i < X->n; i++ )
         X->p[i] &= ~limb_mask;
@@ -409,8 +409,8 @@ int mbedtls_mpi_safe_cond_swap( mbedtls_mpi *X, mbedtls_mpi *Y, unsigned char sw
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( Y, X->n ) );
 
     s = X->s;
-    X->s = mpi_safe_cond_select_sign( X->s, Y->s, swap );
-    Y->s = mpi_safe_cond_select_sign( Y->s, s, swap );
+    X->s = mbedtls_cf_cond_select_sign( X->s, Y->s, swap );
+    Y->s = mbedtls_cf_cond_select_sign( Y->s, s, swap );
 
 
     for( i = 0; i < X->n; i++ )
@@ -1253,7 +1253,7 @@ int mbedtls_mpi_cmp_mpi( const mbedtls_mpi *X, const mbedtls_mpi *Y )
  *
  * \return          1 if \p x is less than \p y, 0 otherwise
  */
-static unsigned ct_lt_mpi_uint( const mbedtls_mpi_uint x,
+static unsigned mbedtls_cf_mpi_uint_lt( const mbedtls_mpi_uint x,
         const mbedtls_mpi_uint y )
 {
     mbedtls_mpi_uint ret;
@@ -1328,7 +1328,7 @@ int mbedtls_mpi_lt_mpi_ct( const mbedtls_mpi *X, const mbedtls_mpi *Y,
          * Again even if we can make a decision, we just mark the result and
          * the fact that we are done and continue looping.
          */
-        cond = ct_lt_mpi_uint( Y->p[i - 1], X->p[i - 1] );
+        cond = mbedtls_cf_mpi_uint_lt( Y->p[i - 1], X->p[i - 1] );
         *ret |= cond & ( 1 - done ) & X_is_negative;
         done |= cond;
 
@@ -1339,7 +1339,7 @@ int mbedtls_mpi_lt_mpi_ct( const mbedtls_mpi *X, const mbedtls_mpi *Y,
          * Again even if we can make a decision, we just mark the result and
          * the fact that we are done and continue looping.
          */
-        cond = ct_lt_mpi_uint( X->p[i - 1], Y->p[i - 1] );
+        cond = mbedtls_cf_mpi_uint_lt( X->p[i - 1], Y->p[i - 1] );
         *ret |= cond & ( 1 - done ) & ( 1 - X_is_negative );
         done |= cond;
     }
@@ -2207,7 +2207,7 @@ static void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi
      * so d[n] == 1 and we want to set A to the result of the subtraction
      * which is d - (2^biL)^n, i.e. the n least significant limbs of d.
      * This exactly corresponds to a conditional assignment. */
-    mpi_safe_cond_assign( n, A->p, d, (unsigned char) d[n] );
+    mbedtls_cf_mpi_uint_cond_assign( n, A->p, d, (unsigned char) d[n] );
 }
 
 /*
@@ -2238,7 +2238,7 @@ static void mpi_montred( mbedtls_mpi *A, const mbedtls_mpi *N,
  * This function is implemented without using comparison operators, as those
  * might be translated to branches by some compilers on some platforms.
  */
-static size_t mbedtls_mpi_cf_bool_eq( size_t x, size_t y )
+static size_t mbedtls_cf_size_bool_eq( size_t x, size_t y )
 {
     /* diff = 0 if x == y, non-zero otherwise */
     const size_t diff = x ^ y;
@@ -2285,7 +2285,7 @@ static int mpi_select( mbedtls_mpi *R, const mbedtls_mpi *T, size_t T_size, size
     for( size_t i = 0; i < T_size; i++ )
     {
         MBEDTLS_MPI_CHK( mbedtls_mpi_safe_cond_assign( R, &T[i],
-                        (unsigned char) mbedtls_mpi_cf_bool_eq( i, idx ) ) );
+                        (unsigned char) mbedtls_cf_size_bool_eq( i, idx ) ) );
     }
 
 cleanup:

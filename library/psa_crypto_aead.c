@@ -471,6 +471,29 @@ psa_status_t mbedtls_psa_aead_set_nonce(
     return( status );
 }
 
+ /* Declare the lengths of the message and additional data for AEAD. */
+psa_status_t mbedtls_psa_aead_set_lengths(
+    mbedtls_psa_aead_operation_t *operation,
+    size_t ad_length,
+    size_t plaintext_length )
+{
+
+    ( void ) operation;
+    ( void ) ad_length;
+    ( void ) plaintext_length;
+
+#if !defined(MBEDTLS_PSA_BUILTIN_ALG_GCM) && \
+    !defined(MBEDTLS_PSA_BUILTIN_ALG_CCM) && \
+    !defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
+    {
+        return ( PSA_ERROR_NOT_SUPPORTED );
+    }
+#endif /* !MBEDTLS_PSA_BUILTIN_ALG_GCM && !MBEDTLS_PSA_BUILTIN_ALG_CCM &&
+         !MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305) */
+
+    return ( PSA_SUCCESS );
+}
+
 /* Pass additional data to an active multipart AEAD operation. */
 psa_status_t mbedtls_psa_aead_update_ad(
     mbedtls_psa_aead_operation_t *operation,

@@ -156,12 +156,15 @@ MVP definition
 
   Finite field groups (DHE) are not supported.
 
-- Supported signature algorithms(both for certificates and CertificateVerify):
-  Minimally (as defined in section 9.1 of the TLS 1.3 specification):
-  rsa_pkcs1_sha256, rsa_pss_rsae_sha256 and ecdsa_secp256r1_sha256
+- Supported signature algorithms (both for certificates and CertificateVerify):
+  depends on the library configuration.
+  Potentially:
+  rsa_pkcs1_sha256, rsa_pss_rsae_sha256, ecdsa_secp256r1_sha256,
+  ecdsa_secp384r1_sha384 and ecdsa_secp521r1_sha512.
 
-  Furthermore, depending on the library configuration, potentially:
-  ecdsa_secp384r1_sha384 and ecdsa_secp521r1_sha512
+  Note that in absence of an application profile standard specifying otherwise
+  the three first ones in the list above are mandatory (see section 9.1 of the
+  specification).
 
 - Supported versions: only TLS 1.3, version negotiation is not supported.
 

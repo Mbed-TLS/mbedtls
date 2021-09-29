@@ -46,11 +46,18 @@ int mbedtls_ssl_tls1_3_fetch_handshake_msg( mbedtls_ssl_context *ssl,
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Receive unexpected handshake message." ) );
         MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE,
-                              MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
+                                      MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
         ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
         goto cleanup;
     }
 
+    /*
+     * Jump handshake header (4 bytes, see Section 4 of RFC 8446).
+     *    ...
+     *    HandshakeType msg_type;
+     *    uint24 length;
+     *    ...
+     */
     *buf    = ssl->in_msg   + 4;
     *buflen = ssl->in_hslen - 4;
 

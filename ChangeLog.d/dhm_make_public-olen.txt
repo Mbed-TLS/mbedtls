@@ -1,0 +1,3 @@
+Bugfix
+   * Remove a spurious output buffer length check in mbedtls_dhm_make_public
+     that prevented from passing a buffer that's larger than the prime.

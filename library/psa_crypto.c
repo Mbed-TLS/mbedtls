@@ -3912,7 +3912,6 @@ psa_status_t psa_aead_set_nonce( psa_aead_operation_t *operation,
     }
 
     status = psa_aead_check_nonce_length( operation->alg, nonce_length );
-
     if( status != PSA_SUCCESS )
     {
         status = PSA_ERROR_INVALID_ARGUMENT;
@@ -3955,8 +3954,8 @@ psa_status_t psa_aead_set_lengths( psa_aead_operation_t *operation,
     if( operation->alg == PSA_ALG_GCM )
     {
         /* Lengths can only be too large for GCM if size_t is bigger than 32
-        * bits. Without the guard this code will generate warnings on 32bit
-        * builds */
+         * bits. Without the guard this code will generate warnings on 32bit
+         * builds. */
 #if SIZE_MAX > UINT32_MAX
         if( (( uint64_t ) ad_length ) >> 61 != 0 ||
             (( uint64_t ) plaintext_length ) > 0xFFFFFFFE0ull )

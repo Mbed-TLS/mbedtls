@@ -20,6 +20,7 @@
 #include "common.h"
 #include "constant_time.h"
 #include "mbedtls/error.h"
+#include "mbedtls/platform_util.h"
 
 #if defined(MBEDTLS_BIGNUM_C)
 #include "mbedtls/bignum.h"
@@ -27,6 +28,10 @@
 
 #if defined(MBEDTLS_SSL_TLS_C)
 #include "mbedtls/ssl_internal.h"
+#endif
+
+#if defined(MBEDTLS_RSA_C)
+#include "mbedtls/rsa.h"
 #endif
 
 #include <string.h>

@@ -57,6 +57,7 @@ static inline psa_key_type_t mbedtls_psa_translate_cipher_type(
         case MBEDTLS_CIPHER_AES_128_CBC:
         case MBEDTLS_CIPHER_AES_192_CBC:
         case MBEDTLS_CIPHER_AES_256_CBC:
+        case MBEDTLS_CIPHER_AES_128_ECB:
             return( PSA_KEY_TYPE_AES );
 
         /* ARIA not yet supported in PSA. */

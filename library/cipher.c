@@ -1266,9 +1266,12 @@ int mbedtls_cipher_crypt( mbedtls_cipher_context_t *ctx,
         if( status != PSA_SUCCESS )
             return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
 
-        status = psa_cipher_set_iv( &cipher_op, iv, iv_len );
-        if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+        if( ctx->cipher_info->mode != MBEDTLS_MODE_ECB )
+        {
+            status = psa_cipher_set_iv( &cipher_op, iv, iv_len );
+            if( status != PSA_SUCCESS )
+                return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+        }
 
         status = psa_cipher_update( &cipher_op,
                                     input, ilen,

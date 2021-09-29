@@ -258,6 +258,13 @@ typedef struct mbedtls_cmac_context_t mbedtls_cmac_context_t;
 /**
  * Cipher information. Allows calling cipher functions
  * in a generic way.
+ *
+ * \note        The library does not support custom cipher info structures,
+ *              only built-in structures returned by the functions
+ *              mbedtls_cipher_info_from_string(),
+ *              mbedtls_cipher_info_from_type(),
+ *              mbedtls_cipher_info_from_values(),
+ *              mbedtls_cipher_info_from_psa().
  */
 typedef struct mbedtls_cipher_info_t
 {
@@ -413,6 +420,82 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_type( const mbedtls_cipher
 const mbedtls_cipher_info_t *mbedtls_cipher_info_from_values( const mbedtls_cipher_id_t cipher_id,
                                               int key_bitlen,
                                               const mbedtls_cipher_mode_t mode );
+
+/**
+ * \brief               Retrieve the identifier for a cipher info structure.
+ *
+ * \param[in] info      The cipher info structure to query.
+ *                      This may be \c NULL.
+ *
+ * \return              The full cipher identifier (\c MBEDTLS_CIPHER_xxx).
+ * \return              #MBEDTLS_CIPHER_NONE if \p info is \c NULL.
+ */
+static inline mbedtls_cipher_type_t mbedtls_cipher_info_get_type(
+    const mbedtls_cipher_info_t *info )
+{
+    if( info == NULL )
+        return( MBEDTLS_CIPHER_NONE );
+    else
+        return( info->MBEDTLS_PRIVATE(type) );
+}
+
+/**
+ * \brief               Retrieve the operation mode for a cipher info structure.
+ *
+ * \param[in] info      The cipher info structure to query.
+ *                      This may be \c NULL.
+ *
+ * \return              The cipher mode (\c MBEDTLS_MODE_xxx).
+ * \return              #MBEDTLS_MODE_NONE if \p info is \c NULL.
+ */
+static inline mbedtls_cipher_mode_t mbedtls_cipher_info_get_mode(
+    const mbedtls_cipher_info_t *info )
+{
+    if( info == NULL )
+        return( MBEDTLS_MODE_NONE );
+    else
+        return( info->MBEDTLS_PRIVATE(mode) );
+}
+
+/**
+ * \brief               Retrieve the key size for a cipher info structure.
+ *
+ * \param[in] info      The cipher info structure to query.
+ *                      This may be \c NULL.
+ *
+ * \return              The key length in bits.
+ *                      For variable-sized ciphers, this is the default length.
+ *                      For DES, this includes the parity bits.
+ * \return              \c 0 if \p info is \c NULL.
+ */
+static inline size_t mbedtls_cipher_info_get_key_bitlen(
+    const mbedtls_cipher_info_t *info )
+{
+    if( info == NULL )
+        return( 0 );
+    else
+        return( info->MBEDTLS_PRIVATE(key_bitlen) );
+}
+
+/**
+ * \brief               Retrieve the human-readable name for a
+ *                      cipher info structure.
+ *
+ * \param[in] info      The cipher info structure to query.
+ *                      This may be \c NULL.
+ *
+ * \return              The cipher name, which is a human readable string,
+ *                      with static storage duration.
+ * \return              \c NULL if \c info is \p NULL.
+ */
+static inline const char *mbedtls_cipher_info_get_name(
+    const mbedtls_cipher_info_t *info )
+{
+    if( info == NULL )
+        return( NULL );
+    else
+        return( info->MBEDTLS_PRIVATE(name) );
+}
 
 /**
  * \brief               This function initializes a \p cipher_context as NONE.

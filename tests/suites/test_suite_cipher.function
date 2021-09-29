@@ -13,6 +13,59 @@
 #define MBEDTLS_CIPHER_AUTH_CRYPT
 #endif
 
+/* Check the internal consistency of a cipher info structure, and
+ * check it against mbedtls_cipher_info_from_xxx(). */
+static int check_cipher_info( mbedtls_cipher_type_t type,
+                              const mbedtls_cipher_info_t *info )
+{
+    size_t key_bitlen;
+
+    TEST_ASSERT( info != NULL );
+    TEST_EQUAL( type, mbedtls_cipher_info_get_type( info ) );
+    TEST_EQUAL( type, info->type );
+    TEST_ASSERT( mbedtls_cipher_info_from_type( type ) == info );
+
+    TEST_EQUAL( info->mode, mbedtls_cipher_info_get_mode( info ) );
+
+    /* Insist that get_name() return the string from the structure and
+     * not a copy. A copy would have an unknown storage duration. */
+    TEST_ASSERT( mbedtls_cipher_info_get_name( info ) == info->name );
+    TEST_ASSERT( mbedtls_cipher_info_from_string( info->name ) == info );
+
+    key_bitlen = mbedtls_cipher_info_get_key_bitlen( info );
+    if( info->type == MBEDTLS_CIPHER_NULL )
+        TEST_ASSERT( key_bitlen == 0 );
+    else if( info->mode == MBEDTLS_MODE_XTS )
+    {
+        TEST_ASSERT( key_bitlen == 256 ||
+                     key_bitlen == 384 ||
+                     key_bitlen == 512 );
+    }
+    else if( ! strncmp( info->name, "DES-EDE3-", 9 ) )
+    {
+        TEST_ASSERT( key_bitlen == 192 );
+    }
+    else if( ! strncmp( info->name, "DES-EDE-", 8 ) )
+    {
+        TEST_ASSERT( key_bitlen == 128 );
+    }
+    else if( ! strncmp( info->name, "DES-", 4 ) )
+    {
+        TEST_ASSERT( key_bitlen == 64 );
+    }
+    else
+    {
+        TEST_ASSERT( key_bitlen == 128 ||
+                     key_bitlen == 192 ||
+                     key_bitlen == 256 );
+    }
+
+    return( 1 );
+
+exit:
+    return( 0 );
+}
+
 #if defined(MBEDTLS_CIPHER_AUTH_CRYPT)
 /* Helper for resetting key/direction
  *
@@ -81,7 +134,13 @@ void mbedtls_cipher_list(  )
     const int *cipher_type;
 
     for( cipher_type = mbedtls_cipher_list(); *cipher_type != 0; cipher_type++ )
-        TEST_ASSERT( mbedtls_cipher_info_from_type( *cipher_type ) != NULL );
+    {
+        const mbedtls_cipher_info_t *info =
+            mbedtls_cipher_info_from_type( *cipher_type );
+        mbedtls_test_set_step( *cipher_type );
+        if( ! check_cipher_info( *cipher_type, info ) )
+            goto exit;
+    }
 }
 /* END_CASE */
 
@@ -309,6 +368,8 @@ void enc_dec_buf( int cipher_id, char * cipher_string, int key_len,
     cipher_info = mbedtls_cipher_info_from_type( cipher_id );
     TEST_ASSERT( NULL != cipher_info );
     TEST_ASSERT( mbedtls_cipher_info_from_string( cipher_string ) == cipher_info );
+    TEST_ASSERT( strcmp( mbedtls_cipher_info_get_name( cipher_info ),
+                         cipher_string ) == 0 );
 
     /* Initialise enc and dec contexts */
     TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx_dec, cipher_info ) );

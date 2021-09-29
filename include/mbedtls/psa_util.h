@@ -369,7 +369,7 @@ static inline psa_key_type_t mbedtls_psa_parse_tls_ecc_group(
     if( curve_info == NULL )
         return( 0 );
     return( PSA_KEY_TYPE_ECC_KEY_PAIR(
-                mbedtls_ecc_group_to_psa( curve_info->MBEDTLS_PRIVATE(grp_id), bits ) ) );
+                mbedtls_ecc_group_to_psa( curve_info->grp_id, bits ) ) );
 }
 #endif /* MBEDTLS_ECP_C */
 

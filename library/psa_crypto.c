@@ -3621,7 +3621,7 @@ static psa_status_t psa_aead_check_nonce_length( psa_algorithm_t alg,
 {
     psa_algorithm_t base_alg = psa_aead_get_base_algorithm( alg );
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
+#if defined(PSA_WANT_ALG_GCM)
     if( base_alg == PSA_ALG_GCM )
     {
         /* Not checking max nonce size here as GCM spec allows almost
@@ -3633,22 +3633,22 @@ static psa_status_t psa_aead_check_nonce_length( psa_algorithm_t alg,
         if( nonce_length == 0 )
             return( PSA_ERROR_NOT_SUPPORTED );
     }
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
+#endif /* PSA_WANT_ALG_GCM */
+#if defined(PSA_WANT_ALG_CCM)
     if( base_alg == PSA_ALG_CCM )
     {
         if( nonce_length < 7 || nonce_length > 13 )
             return( PSA_ERROR_NOT_SUPPORTED );
     }
     else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
+#endif /* PSA_WANT_ALG_CCM */
+#if defined(PSA_WANT_ALG_CHACHA20_POLY1305)
     if( base_alg == PSA_ALG_CHACHA20_POLY1305 )
     {
         if( nonce_length != 12 )
             return( PSA_ERROR_NOT_SUPPORTED );
     }
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
+#endif /* PSA_WANT_ALG_CHACHA20_POLY1305 */
 
     return PSA_SUCCESS;
 }
@@ -3951,7 +3951,7 @@ psa_status_t psa_aead_set_lengths( psa_aead_operation_t *operation,
         goto exit;
     }
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
+#if defined(PSA_WANT_ALG_GCM)
     if( operation->alg == PSA_ALG_GCM )
     {
         /* Lengths can only be too large for GCM if size_t is bigger than 32
@@ -3967,8 +3967,8 @@ psa_status_t psa_aead_set_lengths( psa_aead_operation_t *operation,
 #endif
     }
     else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_GCM */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
+#endif /* PSA_WANT_ALG_GCM */
+#if defined(PSA_WANT_ALG_CCM)
     if( operation->alg == PSA_ALG_CCM )
     {
         if( ad_length > 0xFF00 )
@@ -3978,13 +3978,13 @@ psa_status_t psa_aead_set_lengths( psa_aead_operation_t *operation,
         }
     }
     else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CCM */
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
+#endif /* PSA_WANT_ALG_CCM */
+#if defined(PSA_WANT_ALG_CHACHA20_POLY1305)
     if( operation->alg == PSA_ALG_CHACHA20_POLY1305 )
     {
         /* No length restrictions for ChaChaPoly. */
     }
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
+#endif /* PSA_WANT_ALG_CHACHA20_POLY1305 */
 
     status = psa_driver_wrapper_aead_set_lengths( operation, ad_length,
                                                   plaintext_length );

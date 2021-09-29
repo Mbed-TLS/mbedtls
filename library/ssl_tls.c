@@ -693,8 +693,9 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
     const mbedtls_cipher_info_t *cipher_info;
     const mbedtls_md_info_t *md_info;
 
-#if !defined(MBEDTLS_DEBUG_C)
-    ssl = NULL; /* make sure we don't use it except for this case */
+#if !defined(MBEDTLS_DEBUG_C) && \
+    !defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+    ssl = NULL; /* make sure we don't use it except for these cases */
     (void) ssl;
 #endif
 

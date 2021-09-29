@@ -695,8 +695,11 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
 
 #if !defined(MBEDTLS_DEBUG_C) && \
     !defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-    ssl = NULL; /* make sure we don't use it except for these cases */
-    (void) ssl;
+    if( ssl->f_export_keys == NULL )
+    {
+        ssl = NULL; /* make sure we don't use it except for these cases */
+        (void) ssl;
+    }
 #endif
 
     /*
@@ -959,7 +962,7 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
     ((void) mac_dec);
     ((void) mac_enc);
 
-    if( ssl->f_export_keys != NULL )
+    if( ssl != NULL && ssl->f_export_keys != NULL )
     {
         ssl->f_export_keys( ssl->p_export_keys,
                             MBEDTLS_SSL_KEY_EXPORT_TLS12_MASTER_SECRET,

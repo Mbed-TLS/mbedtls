@@ -1510,6 +1510,14 @@ void test_vec_crypt( int cipher_id, int operation, data_t *key,
     if( use_psa == 1 )
     {
         PSA_ASSERT( psa_crypto_init( ) );
+
+        if (cipher_id == MBEDTLS_CIPHER_AES_192_ECB ||
+            cipher_id == MBEDTLS_CIPHER_AES_256_ECB)
+        {
+            TEST_ASSERT( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE == mbedtls_cipher_setup_psa( &ctx,
+                        mbedtls_cipher_info_from_type( cipher_id ), 0 ) );
+            goto exit;
+        }
         TEST_ASSERT( 0 == mbedtls_cipher_setup_psa( &ctx,
                               mbedtls_cipher_info_from_type( cipher_id ), 0 ) );
     }

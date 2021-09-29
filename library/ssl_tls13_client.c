@@ -1542,7 +1542,12 @@ static int ssl_tls1_3_process_certificate_request( mbedtls_ssl_context *ssl )
  */
 static int ssl_tls1_3_process_server_certificate( mbedtls_ssl_context *ssl )
 {
-    MBEDTLS_SSL_DEBUG_MSG( 1, ( "%s hasn't been implemented", __func__ ) );
+    int ret;
+
+    ret = mbedtls_ssl_tls13_process_certificate( ssl );
+    if( ret != 0)
+        return( ret );
+
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CERTIFICATE_VERIFY );
     return( 0 );
 }

@@ -3630,27 +3630,27 @@ static psa_status_t psa_aead_check_nonce_length( psa_algorithm_t alg,
          * PSA_AEAD_NONCE_MAX_SIZE, as large nonces are hashed to a shorter
          * size, which can then lead to collisions if you encrypt a very
          * large number of messages.*/
-        if( nonce_length == 0 )
-            return( PSA_ERROR_NOT_SUPPORTED );
+        if( nonce_length != 0 )
+            return( PSA_SUCCESS );
     }
 #endif /* PSA_WANT_ALG_GCM */
 #if defined(PSA_WANT_ALG_CCM)
     if( base_alg == PSA_ALG_CCM )
     {
-        if( nonce_length < 7 || nonce_length > 13 )
-            return( PSA_ERROR_NOT_SUPPORTED );
+        if( nonce_length >= 7 && nonce_length <= 13 )
+            return( PSA_SUCCESS );
     }
     else
 #endif /* PSA_WANT_ALG_CCM */
 #if defined(PSA_WANT_ALG_CHACHA20_POLY1305)
     if( base_alg == PSA_ALG_CHACHA20_POLY1305 )
     {
-        if( nonce_length != 12 )
-            return( PSA_ERROR_NOT_SUPPORTED );
+        if( nonce_length == 12 )
+            return( PSA_SUCCESS );
     }
 #endif /* PSA_WANT_ALG_CHACHA20_POLY1305 */
 
-    return PSA_SUCCESS;
+    return( PSA_ERROR_NOT_SUPPORTED );
 }
 
 psa_status_t psa_aead_encrypt( mbedtls_svc_key_id_t key,

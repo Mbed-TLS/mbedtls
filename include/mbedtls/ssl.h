@@ -593,7 +593,7 @@ union mbedtls_ssl_premaster_secret
 
 #define MBEDTLS_PREMASTER_SIZE     sizeof( union mbedtls_ssl_premaster_secret )
 
-/* Length of in_ctr buffer in mbedtls_ssl_session */
+/* Length in number of bytes of the TLS sequence number */
 #define MBEDTLS_SSL_COUNTER_LEN 8
 
 #ifdef __cplusplus

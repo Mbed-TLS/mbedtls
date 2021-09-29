@@ -2821,7 +2821,7 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
         /* Remember current epoch settings for resending */
         ssl->handshake->alt_transform_out = ssl->transform_out;
         memcpy( ssl->handshake->alt_out_ctr, ssl->cur_out_ctr,
-                sizeof( ssl->cur_out_ctr ) );
+                sizeof( ssl->handshake->alt_out_ctr ) );
 
         /* Set sequence_number to zero */
         mbedtls_platform_zeroize( &ssl->cur_out_ctr[2],
@@ -5778,11 +5778,11 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
     }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-    used += 8;
+    used += MBEDTLS_SSL_COUNTER_LEN;
     if( used <= buf_len )
     {
-        memcpy( p, ssl->cur_out_ctr, sizeof( ssl->cur_out_ctr ) );
-        p += 8;
+        memcpy( p, ssl->cur_out_ctr, MBEDTLS_SSL_COUNTER_LEN );
+        p += MBEDTLS_SSL_COUNTER_LEN;
     }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -6040,7 +6040,6 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
 
     if( (size_t)( end - p ) < sizeof( ssl->cur_out_ctr ) )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-
     memcpy( ssl->cur_out_ctr, p, sizeof( ssl->cur_out_ctr ) );
     p += sizeof( ssl->cur_out_ctr );
 

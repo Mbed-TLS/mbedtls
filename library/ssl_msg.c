@@ -2101,7 +2101,7 @@ void mbedtls_ssl_flight_free( mbedtls_ssl_flight_item *flight )
 static int ssl_swap_epochs( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_transform *tmp_transform;
-    unsigned char tmp_out_ctr[8];
+    unsigned char tmp_out_ctr[MBEDTLS_SSL_COUNTER_LEN];
 
     if( ssl->transform_out == ssl->handshake->alt_transform_out )
     {
@@ -2117,9 +2117,11 @@ static int ssl_swap_epochs( mbedtls_ssl_context *ssl )
     ssl->handshake->alt_transform_out = tmp_transform;
 
     /* Swap epoch + sequence_number */
-    memcpy( tmp_out_ctr,                 ssl->cur_out_ctr,            sizeof( ssl->cur_out_ctr ) );
-    memcpy( ssl->cur_out_ctr,            ssl->handshake->alt_out_ctr, sizeof( ssl->cur_out_ctr ) );
-    memcpy( ssl->handshake->alt_out_ctr, tmp_out_ctr,                 sizeof( ssl->handshake->alt_out_ctr ) );
+    memcpy( tmp_out_ctr, ssl->cur_out_ctr, sizeof( tmp_out_ctr ) );
+    memcpy( ssl->cur_out_ctr, ssl->handshake->alt_out_ctr,
+            sizeof( ssl->cur_out_ctr ) );
+    memcpy( ssl->handshake->alt_out_ctr, tmp_out_ctr,
+            sizeof( ssl->handshake->alt_out_ctr ) );
 
     /* Adjust to the newly activated transform */
     mbedtls_ssl_update_out_pointers( ssl, ssl->transform_out );
@@ -2562,7 +2564,7 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
         mbedtls_ssl_write_version( ssl->major_ver, ssl->minor_ver,
                            ssl->conf->transport, ssl->out_hdr + 1 );
 
-        memcpy( ssl->out_ctr, ssl->cur_out_ctr, sizeof( ssl->cur_out_ctr ) );
+        memcpy( ssl->out_ctr, ssl->cur_out_ctr, MBEDTLS_SSL_COUNTER_LEN );
         MBEDTLS_PUT_UINT16_BE( len, ssl->out_len, 0);
 
         if( ssl->transform_out != NULL )
@@ -2574,7 +2576,7 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
             rec.data_len    = ssl->out_msglen;
             rec.data_offset = ssl->out_msg - rec.buf;
 
-            memcpy( &rec.ctr[0], ssl->out_ctr, MBEDTLS_SSL_COUNTER_LEN );
+            memcpy( &rec.ctr[0], ssl->out_ctr, sizeof( rec.ctr ) );
             mbedtls_ssl_write_version( ssl->major_ver, ssl->minor_ver,
                                        ssl->conf->transport, rec.ver );
             rec.type = ssl->out_msgtype;

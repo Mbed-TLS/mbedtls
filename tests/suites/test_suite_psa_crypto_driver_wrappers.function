@@ -1063,7 +1063,7 @@ void aead_encrypt( int key_type_arg, data_t *key_data,
                                input_data->x, input_data->len,
                                output_data, output_size,
                                &output_length );
-    TEST_EQUAL( mbedtls_test_driver_aead_hooks.hits, 1 );
+    TEST_EQUAL( mbedtls_test_driver_aead_hooks.hits_encrypt, 1 );
     TEST_EQUAL( mbedtls_test_driver_aead_hooks.driver_status, forced_status );
 
     TEST_EQUAL( status, ( forced_status == PSA_ERROR_NOT_SUPPORTED ) ?
@@ -1127,7 +1127,7 @@ void aead_decrypt( int key_type_arg, data_t *key_data,
                                input_data->x, input_data->len,
                                output_data, output_size,
                                &output_length );
-    TEST_EQUAL( mbedtls_test_driver_aead_hooks.hits, 1 );
+    TEST_EQUAL( mbedtls_test_driver_aead_hooks.hits_decrypt, 1 );
     TEST_EQUAL( mbedtls_test_driver_aead_hooks.driver_status, forced_status );
 
     TEST_EQUAL( status, ( forced_status == PSA_ERROR_NOT_SUPPORTED ) ?

@@ -1,0 +1,3 @@
+Features
+   * Implement the PSA multipart AEAD interface, currently supporting
+     ChaChaPoly and GCM.

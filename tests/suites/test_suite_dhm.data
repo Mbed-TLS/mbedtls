@@ -103,6 +103,22 @@ dhm_do_dhm:10:"93450983094850938450983409623":13:10:"934509830948509384509834096
 Diffie-Hellman: x_size < 0
 dhm_do_dhm:10:"93450983094850938450983409623":-1:10:"9345098304850938450983409622":MBEDTLS_ERR_DHM_BAD_INPUT_DATA
 
+Diffie-Hellman 128-bit modulus
+dhm_make_public:16:10:"5":16:0
+
+Diffie-Hellman 128-bit modulus, larger output
+dhm_make_public:16:10:"5":17:0
+
+Diffie-Hellman 128-bit modulus, output too small
+# The output is randomized and there's a 1/256 chance that it has a leading
+# zero byte and thus fits in a one-byte-short buffer, a (1/256)^2 chance of
+# two leading zero bytes, etc. Test with an output buffer that's 8 bytes too
+# short so the probability of a false positive is 2^(-64).
+dhm_make_public:16:10:"5":8:MBEDTLS_ERR_DHM_MAKE_PUBLIC_FAILED + MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL
+
+Diffie-Hellman 128-bit modulus, empty output
+dhm_make_public:16:10:"5":0:MBEDTLS_ERR_DHM_MAKE_PUBLIC_FAILED + MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL
+
 Diffie-Hellman MPI_MAX_SIZE modulus
 dhm_make_public:MBEDTLS_MPI_MAX_SIZE:10:"5":MBEDTLS_MPI_MAX_SIZE:0
 

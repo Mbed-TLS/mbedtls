@@ -318,4 +318,12 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
 }
 #endif
 
+/* Fix MSVC C99 compatible issue
+ *      MSVC support __func__ from visual studio 2015( 1900 )
+ *      Use MSVC predefine macro to avoid name check fail.
+ */
+#if (defined(_MSC_VER) && ( _MSC_VER <= 1900 ))
+#define /*no-check-names*/ __func__ __FUNCTION__
+#endif
+
 #endif /* MBEDTLS_LIBRARY_COMMON_H */

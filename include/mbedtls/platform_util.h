@@ -139,7 +139,7 @@ MBEDTLS_DEPRECATED typedef int mbedtls_deprecated_numeric_constant_t;
  */
 #if !defined(MBEDTLS_IGNORE_RETURN)
 /* GCC doesn't silence the warning with just (void)(result).
- * !(void)(result) is known to work up at least up to GCC 10, as well
+ * (void)!(result) is known to work up at least up to GCC 10, as well
  * as with Clang and MSVC.
  *
  * https://gcc.gnu.org/onlinedocs/gcc-3.4.6/gcc/Non_002dbugs.html

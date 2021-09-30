@@ -1,0 +1,11 @@
+Bugfix
+   * Remove PSA'a AEAD finish/verify output buffer limitation for GCM.
+     The requirement of minimum 15 bytes for output buffer in
+     psa_aead_finish() and psa_aead_verify() does not apply to the built-in
+     implementation of GCM.
+
+API changes
+   * New error code for GCM: MBEDTLS_ERR_GCM_BUFFER_TOO_SMALL.
+     Alternative GCM implementations are expected to verify
+     the length of the provided output buffers and to return the
+     MBEDTLS_ERR_GCM_BUFFER_TOO_SMALL in case the buffer length is too small.

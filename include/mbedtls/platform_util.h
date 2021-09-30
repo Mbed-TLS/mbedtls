@@ -133,8 +133,15 @@ MBEDTLS_DEPRECATED typedef int mbedtls_deprecated_numeric_constant_t;
  *
  * Silences warning about unused return value given by functions
  * with \c MBEDTLS_CHECK_RETURN attribute.
+/* GCC doesn't silence the warning with just (void)(result).
+ * !(void)(result) is known to work up at least up to GCC 10, as well
+ * as with Clang and MSVC.
+ *
+ * https://gcc.gnu.org/onlinedocs/gcc-3.4.6/gcc/Non_002dbugs.html
+ * https://stackoverflow.com/questions/40576003/ignoring-warning-wunused-result
+ * https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66425#c34
  */
-#define MBEDTLS_IGNORE_RETURN(result) if( result ) {}
+#define MBEDTLS_IGNORE_RETURN(result) ( (void) !( result ) )
 
 /**
  * \brief       Securely zeroize a buffer

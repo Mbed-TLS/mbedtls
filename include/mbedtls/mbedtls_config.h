@@ -3105,6 +3105,14 @@
  */
 //#define MBEDTLS_CHECK_RETURN __attribute__((__warn_unused_result__))
 
+/** \def MBEDTLS_IGNORE_RETURN
+ *
+ * This macro requires one argument, which should be a C function call.
+ * If that function call would cause a #MBEDTLS_CHECK_RETURN warning, this
+ * warning is suppressed.
+ */
+//#define MBEDTLS_IGNORE_RETURN( result ) ((void) !(result))
+
 /* PSA options */
 /**
  * Use HMAC_DRBG with the specified hash algorithm for HMAC_DRBG for the

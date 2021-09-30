@@ -104,6 +104,9 @@ MBEDTLS_DEPRECATED typedef int mbedtls_deprecated_numeric_constant_t;
  * #MBEDTLS_CHECK_RETURN is implemented for the compiler in use and
  * #MBEDTLS_CHECK_RETURN_WARNING is enabled in the compile-time configuration.
  *
+ * You can use #MBEDTLS_IGNORE_RETURN to explicitly ignore the return value
+ * of a function that is annotated with #MBEDTLS_CHECK_RETURN.
+ *
  * \note  The use of this macro is a work in progress.
  *        This macro will be added to more functions in the future.
  *        Eventually this should appear before most functions returning
@@ -131,8 +134,10 @@ MBEDTLS_DEPRECATED typedef int mbedtls_deprecated_numeric_constant_t;
 
 /** \def MBEDTLS_IGNORE_RETURN
  *
- * Silences warning about unused return value given by functions
- * with \c MBEDTLS_CHECK_RETURN attribute.
+ * Call this macro with one argument, a function call, to suppress a warning
+ * from #MBEDTLS_CHECK_RETURN due to that function call.
+ */
+#if !defined(MBEDTLS_IGNORE_RETURN)
 /* GCC doesn't silence the warning with just (void)(result).
  * !(void)(result) is known to work up at least up to GCC 10, as well
  * as with Clang and MSVC.
@@ -142,6 +147,7 @@ MBEDTLS_DEPRECATED typedef int mbedtls_deprecated_numeric_constant_t;
  * https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66425#c34
  */
 #define MBEDTLS_IGNORE_RETURN(result) ( (void) !( result ) )
+#endif
 
 /**
  * \brief       Securely zeroize a buffer

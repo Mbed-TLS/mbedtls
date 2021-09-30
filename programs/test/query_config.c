@@ -770,6 +770,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_CAMELLIA_SMALL_MEMORY */
 
+#if defined(MBEDTLS_CHECK_RETURN_WARNING)
+    if( strcmp( "MBEDTLS_CHECK_RETURN_WARNING", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_CHECK_RETURN_WARNING );
+        return( 0 );
+    }
+#endif /* MBEDTLS_CHECK_RETURN_WARNING */
+
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
     if( strcmp( "MBEDTLS_CIPHER_MODE_CBC", config ) == 0 )
     {
@@ -2641,6 +2649,22 @@ int query_config( const char *config )
         return( 0 );
     }
 #endif /* MBEDTLS_PLATFORM_NV_SEED_WRITE_MACRO */
+
+#if defined(MBEDTLS_CHECK_RETURN)
+    if( strcmp( "MBEDTLS_CHECK_RETURN", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_CHECK_RETURN );
+        return( 0 );
+    }
+#endif /* MBEDTLS_CHECK_RETURN */
+
+#if defined(MBEDTLS_IGNORE_RETURN)
+    if( strcmp( "MBEDTLS_IGNORE_RETURN", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_IGNORE_RETURN );
+        return( 0 );
+    }
+#endif /* MBEDTLS_IGNORE_RETURN */
 
 #if defined(MBEDTLS_PSA_HMAC_DRBG_MD_TYPE)
     if( strcmp( "MBEDTLS_PSA_HMAC_DRBG_MD_TYPE", config ) == 0 )

@@ -5,6 +5,9 @@ CFLAGS	?= -O2
 WARNING_CFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
 LDFLAGS ?=
 
+# Set this to -v to see the details of failing test cases
+TEST_FLAGS ?= $(if $(filter-out 0 OFF Off off NO No no FALSE False false N n,$(CTEST_OUTPUT_ON_FAILURE)),-v,)
+
 default: all
 
 # Include public header files from ../include, test-specific header files
@@ -195,7 +198,7 @@ endif
 
 # Test suites caught by SKIP_TEST_SUITES are built but not executed.
 check: $(BINARIES)
-	perl scripts/run-test-suites.pl --skip=$(SKIP_TEST_SUITES)
+	perl scripts/run-test-suites.pl $(TEST_FLAGS) --skip=$(SKIP_TEST_SUITES)
 
 test: check
 

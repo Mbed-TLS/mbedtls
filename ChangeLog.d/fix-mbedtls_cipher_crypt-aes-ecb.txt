@@ -1,0 +1,2 @@
+Bugfix
+   * Fix mbedtls_cipher_crypt: AES-ECB when MBEDTLS_USE_PSA_CRYPTO is enabled.

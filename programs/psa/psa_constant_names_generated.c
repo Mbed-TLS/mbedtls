@@ -226,6 +226,7 @@ static int psa_snprint_algorithm(char *buffer, size_t buffer_size,
     case PSA_ALG_RSA_OAEP_BASE: append(&buffer, buffer_size, &required_size, "PSA_ALG_RSA_OAEP_BASE", 21); break;
     case PSA_ALG_RSA_PKCS1V15_CRYPT: append(&buffer, buffer_size, &required_size, "PSA_ALG_RSA_PKCS1V15_CRYPT", 26); break;
     case PSA_ALG_RSA_PKCS1V15_SIGN_RAW: append(&buffer, buffer_size, &required_size, "PSA_ALG_RSA_PKCS1V15_SIGN_RAW", 29); break;
+    case PSA_ALG_RSA_PSS_ANY_SALT_BASE: append(&buffer, buffer_size, &required_size, "PSA_ALG_RSA_PSS_ANY_SALT_BASE", 29); break;
     case PSA_ALG_RSA_PSS_BASE: append(&buffer, buffer_size, &required_size, "PSA_ALG_RSA_PSS_BASE", 20); break;
     case PSA_ALG_SHA3_224: append(&buffer, buffer_size, &required_size, "PSA_ALG_SHA3_224", 16); break;
     case PSA_ALG_SHA3_256: append(&buffer, buffer_size, &required_size, "PSA_ALG_SHA3_256", 16); break;
@@ -300,9 +301,16 @@ static int psa_snprint_algorithm(char *buffer, size_t buffer_size,
                             psa_hash_algorithm_name,
                             PSA_ALG_GET_HASH(core_alg));
             append(&buffer, buffer_size, &required_size, ")", 1);
-        } else if (PSA_ALG_IS_RSA_PSS(core_alg)) {
+        } else if (PSA_ALG_IS_RSA_PSS_STANDARD_SALT(core_alg)) {
             append(&buffer, buffer_size, &required_size,
                    "PSA_ALG_RSA_PSS(", 15 + 1);
+            append_with_alg(&buffer, buffer_size, &required_size,
+                            psa_hash_algorithm_name,
+                            PSA_ALG_GET_HASH(core_alg));
+            append(&buffer, buffer_size, &required_size, ")", 1);
+        } else if (PSA_ALG_IS_RSA_PSS_ANY_SALT(core_alg)) {
+            append(&buffer, buffer_size, &required_size,
+                   "PSA_ALG_RSA_PSS_ANY_SALT(", 24 + 1);
             append_with_alg(&buffer, buffer_size, &required_size,
                             psa_hash_algorithm_name,
                             PSA_ALG_GET_HASH(core_alg));

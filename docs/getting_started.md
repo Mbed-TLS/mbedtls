@@ -2,7 +2,7 @@
 
 ### What is Mbed TLS?
 
-Mbed TLS is an open source cryptographic library that supports a wide range of cryptographic operations, including:
+Mbed TLS is an open source library that supports a wide range of cryptographic operations and functionality, including:
 * Key management
 * Hashing
 * Symmetric cryptography
@@ -10,8 +10,10 @@ Mbed TLS is an open source cryptographic library that supports a wide range of c
 * Message authentication (MAC)
 * Key generation and derivation
 * Authenticated encryption with associated data (AEAD)
+* SSL/TLS communication
+* Managing X.509 certificates
 
-The Mbed TLS library is a reference implementation of the cryptography interface of the Arm Platform Security Architecture (PSA). It is written in portable C.
+The Mbed TLS library contains a reference implementation of the cryptography interface of the Arm Platform Security Architecture (PSA). It is written in portable C.
 
 The Mbed TLS library is distributed under the Apache License, version 2.0.
 
@@ -33,6 +35,8 @@ security analyses, hardware and firmware architecture specifications, and an ope
 * [Generating a random value](#generating-a-random-value)
 * [Authenticating and encrypting or decrypting a message](#authenticating-and-encrypting-or-decrypting-a-message)
 * [Generating and exporting keys](#generating-and-exporting-keys)
+* [Reading a X.509 certificate](#reading-a-x509-certificate)
+* [Establishing a TLS connection](#establishing-a-tls-connection)
 * [More about the Mbed TLS library](#more-about-the-mbed-tls-library)
 
 ### Getting the Mbed TLS library
@@ -42,12 +46,12 @@ Mbed TLS releases are available in the [public GitHub repository](https://github
 ### Building the Mbed TLS library
 
 **Prerequisites to building the library with the provided makefiles:**
-* GNU Make.
+* CMake.
 * A C toolchain (compiler, linker, archiver).
-* Python 2 or Python 3 (either works) to generate the test code.
+* Python 3 to generate the test code.
 * Perl to run the tests.
 
-If you have a C compiler such as GCC or Clang, just run `make` in the top-level directory to build the library, a set of unit tests and some sample programs.
+If you have a C compiler such as GCC or Clang, create a new directory (eg 'build') and run `cmake <path to source>` from that directory. Run `make` from the build directory to build the library, a set of unit tests and some sample programs.
 
 To select a different compiler, set the `CC` variable to the name or path of the compiler and linker (default: `cc`) and set `AR` to a compatible archiver (default: `ar`); for example:
 ```
@@ -55,7 +59,7 @@ make CC=arm-linux-gnueabi-gcc AR=arm-linux-gnueabi-ar
 ```
 The provided makefiles pass options to the compiler that assume a GCC-like command line syntax. To use a different compiler, you may need to pass different values for `CFLAGS`, `WARNINGS_CFLAGS` and `LDFLAGS`.
 
-To run the unit tests on the host machine, run `make test` from the top-level directory. If you are cross-compiling, copy the test executable from the `tests` directory to the target machine.
+To run the unit tests on the host machine, run `make test` from the build directory. If you are cross-compiling, copy the test executable and the associated datax-file from the `tests` directory to the target machine.
 
 ### Using the Mbed TLS library
 
@@ -888,6 +892,14 @@ Mbed TLS provides a simple way to generate a key or key pair.
 
     mbedtls_psa_crypto_free();
 ```
+
+### Reading a X.509 certificate
+
+Example code is available under the programs/x509 directory.
+
+### Establishing a TLS connection
+
+Example code is available under the program/ssl directory.
 
 ### More about the PSA Crypto API
 

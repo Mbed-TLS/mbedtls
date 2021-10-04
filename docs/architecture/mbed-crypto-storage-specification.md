@@ -2,6 +2,8 @@ Mbed TLS storage specification
 =================================
 
 This document specifies how Mbed TLS uses storage.
+Key storage was originally introduced in a product called Mbed Crypto, which was re-distributed via Mbed TLS and has since been merged into Mbed TLS.
+This document contains historical information both from before and after this merge.
 
 Mbed TLS may be upgraded on an existing device with the storage preserved. Therefore:
 

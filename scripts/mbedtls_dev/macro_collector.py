@@ -250,6 +250,8 @@ class PSAMacroCollector(PSAMacroEnumerator):
         suffix = name[len(prefix):]
         if suffix in ['DSA', 'ECDSA']:
             midfix += 'RANDOMIZED_'
+        elif suffix == 'RSA_PSS':
+            suffix += '_STANDARD_SALT'
         return prefix + midfix + suffix
 
     def record_algorithm_subtype(self, name: str, expansion: str) -> None:

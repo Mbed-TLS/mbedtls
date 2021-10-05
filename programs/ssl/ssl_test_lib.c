@@ -30,19 +30,57 @@
 
 #if !defined(MBEDTLS_SSL_TEST_IMPOSSIBLE)
 
+/* Print the current time in a human-readable format.
+ *
+ * The time is intended to be informative about synchronizations across
+ * processes, so it starts from an absolute origin. It is intended to be
+ * useful over short time spans (typically no more than a few seconds),
+ * so the origin is the start of the day.
+ *
+ * \param[out] timestamp    A buffer of at least \c TIMESTAMP_SIZE bytes.
+ *                          This function fills it with a human-readable
+ *                          time indication, terminated with a null byte.
+ */
+#if defined(__unix__) && defined(MBEDTLS_PLATFORM_C)
+#include <sys/time.h>
+#define TIMESTAMP_SIZE 13       /* "sssss.uuuuuu\0" */
+static void fill_timestamp( char *timestamp )
+{
+    struct timeval tv;
+    struct tm tm;
+    (void) gettimeofday( &tv, NULL );
+    mbedtls_platform_gmtime_r( &tv.tv_sec, &tm );
+    (void) mbedtls_snprintf( timestamp, TIMESTAMP_SIZE, "%05u.%06u",
+                             (unsigned) ( tm.tm_hour * 24 * 60 +
+                                          tm.tm_min * 60 +
+                                          tm.tm_sec ),
+                             (unsigned) tv.tv_usec );
+}
+#else
+#define TIMESTAMP_SIZE 1
+static void fill_timestamp( char *timestamp )
+{
+    timestamp[0] = 0;
+}
+#endif
+
 void my_debug( void *ctx, int level,
                const char *file, int line,
                const char *str )
 {
     const char *p, *basename;
+    char timestamp[TIMESTAMP_SIZE + 1] = {0};
 
     /* Extract basename from file */
     for( p = basename = file; *p != '\0'; p++ )
         if( *p == '/' || *p == '\\' )
             basename = p + 1;
 
-    mbedtls_fprintf( (FILE *) ctx, "%s:%04d: |%d| %s",
-                     basename, line, level, str );
+    fill_timestamp( timestamp );
+    if( *timestamp )
+        strcat( timestamp, " " );
+    mbedtls_fprintf( (FILE *) ctx, "%s%s:%04d: |%d| %s",
+                     timestamp, basename, line, level, str );
     fflush( (FILE *) ctx  );
 }
 

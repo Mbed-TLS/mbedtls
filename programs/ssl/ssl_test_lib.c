@@ -41,7 +41,8 @@
  *                          This function fills it with a human-readable
  *                          time indication, terminated with a null byte.
  */
-#if defined(__unix__) && defined(MBEDTLS_PLATFORM_C)
+#if defined(__unix__) &&                        \
+    defined(MBEDTLS_PLATFORM_C) && defined(MBEDTLS_HAVE_TIME_DATE)
 #include <sys/time.h>
 #define TIMESTAMP_SIZE 13       /* "sssss.uuuuuu\0" */
 static void fill_timestamp( char *timestamp )

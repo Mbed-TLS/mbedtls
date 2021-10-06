@@ -1647,6 +1647,23 @@ run_test    "Opaque key for server authentication" \
             -S "error" \
             -C "error"
 
+# Test using an opaque private key for client/server authentication
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_SHA256_C
+run_test    "Opaque key for client/server authentication" \
+            "$P_SRV auth_mode=required key_opaque=1" \
+            "$P_CLI key_opaque=1 crt_file=data_files/server5.crt \
+             key_file=data_files/server5.key" \
+            0 \
+            -c "key type: Opaque" \
+            -c "Verifying peer X.509 certificate... ok" \
+            -s "key type: Opaque" \
+            -s "Verifying peer X.509 certificate... ok" \
+            -S "error" \
+            -C "error"
+
 # Test ciphersuites which we expect to be fully supported by PSA Crypto
 # and check that we don't fall back to Mbed TLS' internal crypto primitives.
 run_test_psa TLS-ECDHE-ECDSA-WITH-AES-128-CCM

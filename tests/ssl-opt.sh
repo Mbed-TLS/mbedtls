@@ -49,6 +49,7 @@ fi
 : ${GNUTLS_CLI:=gnutls-cli}
 : ${GNUTLS_SERV:=gnutls-serv}
 : ${PERL:=perl}
+: ${EXT_CMD_PREFIX:='../tests/scripts/ts.pl '}
 
 guess_config_name() {
     if git diff --quiet ../include/mbedtls/mbedtls_config.h 2>/dev/null; then
@@ -61,38 +62,38 @@ guess_config_name() {
 : ${MBEDTLS_TEST_CONFIGURATION:="$(guess_config_name)"}
 : ${MBEDTLS_TEST_PLATFORM:="$(uname -s | tr -c \\n0-9A-Za-z _)-$(uname -m | tr -c \\n0-9A-Za-z _)"}
 
-O_SRV="$OPENSSL_CMD s_server -www -cert data_files/server5.crt -key data_files/server5.key"
-O_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_CMD s_client"
-G_SRV="$GNUTLS_SERV --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key"
-G_CLI="echo 'GET / HTTP/1.0' | $GNUTLS_CLI --x509cafile data_files/test-ca_cat12.crt"
+O_SRV="$EXT_CMD_PREFIX$OPENSSL_CMD s_server -www -cert data_files/server5.crt -key data_files/server5.key"
+O_CLI="echo 'GET / HTTP/1.0' | $EXT_CMD_PREFIX$OPENSSL_CMD s_client"
+G_SRV="$EXT_CMD_PREFIX$GNUTLS_SERV --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key"
+G_CLI="echo 'GET / HTTP/1.0' | $EXT_CMD_PREFIX$GNUTLS_CLI --x509cafile data_files/test-ca_cat12.crt"
 TCP_CLIENT="$PERL scripts/tcp_client.pl"
 
 # alternative versions of OpenSSL and GnuTLS (no default path)
 
 if [ -n "${OPENSSL_LEGACY:-}" ]; then
-    O_LEGACY_SRV="$OPENSSL_LEGACY s_server -www -cert data_files/server5.crt -key data_files/server5.key"
-    O_LEGACY_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_LEGACY s_client"
+    O_LEGACY_SRV="$EXT_CMD_PREFIX$OPENSSL_LEGACY s_server -www -cert data_files/server5.crt -key data_files/server5.key"
+    O_LEGACY_CLI="echo 'GET / HTTP/1.0' | $EXT_CMD_PREFIX$OPENSSL_LEGACY s_client"
 else
     O_LEGACY_SRV=false
     O_LEGACY_CLI=false
 fi
 
 if [ -n "${OPENSSL_NEXT:-}" ]; then
-    O_NEXT_SRV="$OPENSSL_NEXT s_server -www -cert data_files/server5.crt -key data_files/server5.key"
-    O_NEXT_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_NEXT s_client"
+    O_NEXT_SRV="$EXT_CMD_PREFIX$OPENSSL_NEXT s_server -www -cert data_files/server5.crt -key data_files/server5.key"
+    O_NEXT_CLI="echo 'GET / HTTP/1.0' | $EXT_CMD_PREFIX$OPENSSL_NEXT s_client"
 else
     O_NEXT_SRV=false
     O_NEXT_CLI=false
 fi
 
 if [ -n "${GNUTLS_NEXT_SERV:-}" ]; then
-    G_NEXT_SRV="$GNUTLS_NEXT_SERV --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key"
+    G_NEXT_SRV="$EXT_CMD_PREFIX$GNUTLS_NEXT_SERV --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key"
 else
     G_NEXT_SRV=false
 fi
 
 if [ -n "${GNUTLS_NEXT_CLI:-}" ]; then
-    G_NEXT_CLI="echo 'GET / HTTP/1.0' | $GNUTLS_NEXT_CLI --x509cafile data_files/test-ca_cat12.crt"
+    G_NEXT_CLI="echo 'GET / HTTP/1.0' | $EXT_CMD_PREFIX$GNUTLS_NEXT_CLI --x509cafile data_files/test-ca_cat12.crt"
 else
     G_NEXT_CLI=false
 fi
@@ -633,7 +634,7 @@ if type lsof >/dev/null 2>/dev/null; then
             proto=TCP
         fi
         # Make a tight loop, server normally takes less than 1s to start.
-        while ! lsof -a -n -b -i "$proto:$1" -p "$2" >/dev/null 2>/dev/null; do
+        while ! lsof -a -n -b -i "$proto:$1" >/dev/null 2>/dev/null; do
               if [ $(( $(date +%s) - $START_TIME )) -gt $DOG_DELAY ]; then
                   echo "$3 START TIMEOUT"
                   echo "$3 START TIMEOUT" >> $4

@@ -4238,6 +4238,9 @@ void aead_multipart_update_buffer_test( int key_type_arg, data_t *key_data,
 
     PSA_ASSERT( status );
 
+    PSA_ASSERT( psa_aead_set_lengths( &operation, additional_data->len,
+                                      input_data->len ) );
+
     PSA_ASSERT( psa_aead_set_nonce( &operation, nonce->x, nonce->len ) );
 
     PSA_ASSERT( psa_aead_update_ad( &operation, additional_data->x,

@@ -2695,7 +2695,6 @@ run_test    "Session resume using tickets, DTLS: openssl server" \
             -c "parse new session ticket" \
             -c "a session has been resumed"
 
-client_needs_more_time 10
 server_needs_more_time 10
 run_test    "Session resume using tickets, DTLS: openssl client" \
             "$P_SRV dtls=1 debug_level=3 tickets=1" \
@@ -2793,8 +2792,6 @@ run_test    "Session resume using cache: session copy" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
-client_needs_more_time 10
-server_needs_more_time 10
 run_test    "Session resume using cache: openssl client" \
             "$P_SRV debug_level=3 tickets=0" \
             "( $O_CLI -sess_out $SESSION; \
@@ -2899,6 +2896,7 @@ run_test    "Session resume using cache, DTLS: session copy" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+client_needs_more_time 10
 run_test    "Session resume using cache, DTLS: openssl client" \
             "$P_SRV dtls=1 debug_level=3 tickets=0" \
             "( $O_CLI -dtls -sess_out $SESSION; \

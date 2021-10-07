@@ -2303,7 +2303,7 @@ component_test_m32_o2 () {
     msg "test ssl-opt.sh, i386, make, gcc-O2"
     tests/ssl-opt.sh
 }
-support_test_m32_o1 () {
+support_test_m32_o2 () {
     support_test_m32_o0 "$@"
 }
 

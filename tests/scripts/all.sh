@@ -1442,7 +1442,8 @@ component_build_mbedtls_config_file () {
 }
 
 component_test_m32_o0 () {
-    # Build without optimization, to not use the i386 specific inline assembly.
+    # Build without optimization, so as to use portable C code (in a 32-bit
+    # build) and not the i386-specific inline assembly.
     msg "build: i386, make, gcc -O0 (ASan build)" # ~ 30s
     scripts/config.pl full
     make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O0" LDFLAGS="-m32 $ASAN_CFLAGS"

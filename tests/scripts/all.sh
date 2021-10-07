@@ -817,7 +817,7 @@ EOF
 component_test_zlib_cmake() {
     msg "build: zlib enabled, cmake"
     scripts/config.pl set MBEDTLS_ZLIB_SUPPORT
-    cmake -D ENABLE_ZLIB_SUPPORT=On -D CMAKE_BUILD_TYPE:String=Check .
+    cmake -D ENABLE_ZLIB_SUPPORT=On -D CMAKE_BUILD_TYPE:String=Release .
     make
 
     msg "test: main suites (zlib, cmake)"
@@ -1055,7 +1055,7 @@ component_test_small_mbedtls_ssl_dtls_max_buffering () {
 component_test_full_cmake_clang () {
     msg "build: cmake, full config, clang" # ~ 50s
     scripts/config.pl full
-    CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check -D ENABLE_TESTING=On .
+    CC=clang cmake -D CMAKE_BUILD_TYPE:String=Release -D ENABLE_TESTING=On .
     make
 
     msg "test: main suites (full config)" # ~ 5s
@@ -1330,7 +1330,7 @@ component_test_null_entropy () {
 component_test_no_date_time () {
     msg "build: default config without MBEDTLS_HAVE_TIME_DATE"
     scripts/config.pl unset MBEDTLS_HAVE_TIME_DATE
-    CC=gcc cmake
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Check
     make
 
     msg "test: !MBEDTLS_HAVE_TIME_DATE - main suites"
@@ -1722,7 +1722,7 @@ component_test_cmake_out_of_source () {
     MBEDTLS_ROOT_DIR="$PWD"
     mkdir "$OUT_OF_SOURCE_DIR"
     cd "$OUT_OF_SOURCE_DIR"
-    cmake "$MBEDTLS_ROOT_DIR"
+    cmake -D CMAKE_BUILD_TYPE:String=Check "$MBEDTLS_ROOT_DIR"
     make
 
     msg "test: cmake 'out-of-source' build"

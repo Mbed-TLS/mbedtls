@@ -2824,8 +2824,7 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
                 sizeof( ssl->handshake->alt_out_ctr ) );
 
         /* Set sequence_number to zero */
-        mbedtls_platform_zeroize( &ssl->cur_out_ctr[2],
-                                  sizeof( ssl->cur_out_ctr ) - 2 );
+        memset( &ssl->cur_out_ctr[2], 0, sizeof( ssl->cur_out_ctr ) - 2 );
 
 
         /* Increment epoch */
@@ -2842,7 +2841,7 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
     }
     else
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
-    mbedtls_platform_zeroize( ssl->cur_out_ctr, sizeof( ssl->cur_out_ctr ) );
+    memset( ssl->cur_out_ctr, 0, sizeof( ssl->cur_out_ctr ) );
 
     ssl->transform_out = ssl->transform_negotiate;
     ssl->session_out = ssl->session_negotiate;
@@ -3327,7 +3326,7 @@ static void ssl_session_reset_msg_layer( mbedtls_ssl_context *ssl,
     ssl->out_msglen  = 0;
     ssl->out_left    = 0;
     memset( ssl->out_buf, 0, out_buf_len );
-    mbedtls_platform_zeroize( ssl->cur_out_ctr, sizeof( ssl->cur_out_ctr ) );
+    memset( ssl->cur_out_ctr, 0, sizeof( ssl->cur_out_ctr ) );
     ssl->transform_out = NULL;
 
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)

@@ -150,11 +150,11 @@ def test_case_for_key_type_not_supported_invalid_arg(
         adverb = param_descr + ' ' + adverb
     if (verb == "generate") and ("PUBLIC" in short_key_type):
         tc.set_description('PSA {} {} {}-bit invalid argument'
-                    .format(verb, short_key_type, bits))
+                           .format(verb, short_key_type, bits))
         tc.set_function(verb + '_invalid_arg')
     else:
         tc.set_description('PSA {} {} {}-bit {} supported'
-                        .format(verb, short_key_type, bits, adverb))
+                           .format(verb, short_key_type, bits, adverb))
         tc.set_function(verb + '_not_supported')
     tc.set_dependencies(dependencies)
     tc.set_arguments([key_type] + list(args))

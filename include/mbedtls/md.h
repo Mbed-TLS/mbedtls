@@ -74,6 +74,10 @@ typedef enum {
 #define MBEDTLS_MD_MAX_BLOCK_SIZE         64
 #endif
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+#define MBEDTLS_TLS1_3_MD_MAX_SIZE         MBEDTLS_MD_MAX_SIZE
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+
 /**
  * Opaque struct.
  *

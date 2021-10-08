@@ -678,9 +678,9 @@ struct mbedtls_ssl_handshake_params
 
     union
     {
-        unsigned char early    [MBEDTLS_MD_MAX_SIZE];
-        unsigned char handshake[MBEDTLS_MD_MAX_SIZE];
-        unsigned char app      [MBEDTLS_MD_MAX_SIZE];
+        unsigned char early    [MBEDTLS_TLS1_3_MD_MAX_SIZE];
+        unsigned char handshake[MBEDTLS_TLS1_3_MD_MAX_SIZE];
+        unsigned char app      [MBEDTLS_TLS1_3_MD_MAX_SIZE];
     } tls1_3_master_secrets;
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 

@@ -456,7 +456,7 @@ static int rsa_pss_expected_salt_len( psa_algorithm_t alg,
         return( MBEDTLS_RSA_SALT_LEN_ANY );
     /* Otherwise: standard salt length, i.e. largest possible salt length
      * up to the hash length. */
-    int klen = (int) (int) mbedtls_rsa_get_len( rsa ); // known to fit
+    int klen = (int) mbedtls_rsa_get_len( rsa ); // known to fit
     int hlen = (int) hash_length; // known to fit
     int room = klen - 2 - hlen;
     if( room < 0 )

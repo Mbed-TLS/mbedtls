@@ -1373,8 +1373,8 @@
  *                      a supported algorithm identifier or policy.
  */
 #define PSA_ALG_IS_RSA_PSS(alg)                                 \
-    ((((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_RSA_PSS_BASE) ||  \
-     (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_RSA_PSS_ANY_SALT_BASE))
+    (PSA_ALG_IS_RSA_PSS_STANDARD_SALT(alg) ||                   \
+     PSA_ALG_IS_RSA_PSS_ANY_SALT(alg))
 
 #define PSA_ALG_ECDSA_BASE                      ((psa_algorithm_t)0x06000600)
 /** ECDSA signature with hashing.

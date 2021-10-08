@@ -2101,7 +2101,7 @@ void mbedtls_ssl_flight_free( mbedtls_ssl_flight_item *flight )
 static int ssl_swap_epochs( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_transform *tmp_transform;
-    unsigned char tmp_out_ctr[MBEDTLS_SSL_COUNTER_LEN];
+    unsigned char tmp_out_ctr[MBEDTLS_SSL_SEQUENCE_NUMBER_LEN];
 
     if( ssl->transform_out == ssl->handshake->alt_transform_out )
     {
@@ -2564,7 +2564,7 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
         mbedtls_ssl_write_version( ssl->major_ver, ssl->minor_ver,
                            ssl->conf->transport, ssl->out_hdr + 1 );
 
-        memcpy( ssl->out_ctr, ssl->cur_out_ctr, MBEDTLS_SSL_COUNTER_LEN );
+        memcpy( ssl->out_ctr, ssl->cur_out_ctr, MBEDTLS_SSL_SEQUENCE_NUMBER_LEN );
         MBEDTLS_PUT_UINT16_BE( len, ssl->out_len, 0);
 
         if( ssl->transform_out != NULL )
@@ -3651,9 +3651,12 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl,
 #endif
         {
             unsigned i;
-            for( i = MBEDTLS_SSL_COUNTER_LEN; i > mbedtls_ssl_ep_len( ssl ); i-- )
+            for( i = MBEDTLS_SSL_SEQUENCE_NUMBER_LEN;
+                 i > mbedtls_ssl_ep_len( ssl ); i-- )
+            {
                 if( ++ssl->in_ctr[i - 1] != 0 )
                     break;
+            }
 
             /* The loop goes to its end iff the counter is wrapping */
             if( i == mbedtls_ssl_ep_len( ssl ) )
@@ -4793,7 +4796,7 @@ int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl )
     }
     else
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
-    mbedtls_platform_zeroize( ssl->in_ctr, MBEDTLS_SSL_COUNTER_LEN );
+    mbedtls_platform_zeroize( ssl->in_ctr, MBEDTLS_SSL_SEQUENCE_NUMBER_LEN );
 
     mbedtls_ssl_update_in_pointers( ssl );
 
@@ -4829,12 +4832,12 @@ void mbedtls_ssl_update_out_pointers( mbedtls_ssl_context *ssl,
     {
         ssl->out_ctr = ssl->out_hdr +  3;
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-        ssl->out_cid = ssl->out_ctr + MBEDTLS_SSL_COUNTER_LEN;
+        ssl->out_cid = ssl->out_ctr + MBEDTLS_SSL_SEQUENCE_NUMBER_LEN;
         ssl->out_len = ssl->out_cid;
         if( transform != NULL )
             ssl->out_len += transform->out_cid_len;
 #else /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
-        ssl->out_len = ssl->out_ctr + MBEDTLS_SSL_COUNTER_LEN;
+        ssl->out_len = ssl->out_ctr + MBEDTLS_SSL_SEQUENCE_NUMBER_LEN;
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
         ssl->out_iv  = ssl->out_len + 2;
     }
@@ -4883,17 +4886,17 @@ void mbedtls_ssl_update_in_pointers( mbedtls_ssl_context *ssl )
          * ssl_parse_record_header(). */
         ssl->in_ctr = ssl->in_hdr +  3;
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-        ssl->in_cid = ssl->in_ctr + MBEDTLS_SSL_COUNTER_LEN;
+        ssl->in_cid = ssl->in_ctr + MBEDTLS_SSL_SEQUENCE_NUMBER_LEN;
         ssl->in_len = ssl->in_cid; /* Default: no CID */
 #else /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
-        ssl->in_len = ssl->in_ctr + MBEDTLS_SSL_COUNTER_LEN;
+        ssl->in_len = ssl->in_ctr + MBEDTLS_SSL_SEQUENCE_NUMBER_LEN;
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
         ssl->in_iv  = ssl->in_len + 2;
     }
     else
 #endif
     {
-        ssl->in_ctr = ssl->in_hdr - MBEDTLS_SSL_COUNTER_LEN;
+        ssl->in_ctr = ssl->in_hdr - MBEDTLS_SSL_SEQUENCE_NUMBER_LEN;
         ssl->in_len = ssl->in_hdr + 3;
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
         ssl->in_cid = ssl->in_len;
@@ -5068,7 +5071,7 @@ static int ssl_check_ctr_renegotiate( mbedtls_ssl_context *ssl )
 
     in_ctr_cmp = memcmp( ssl->in_ctr + ep_len,
                          &ssl->conf->renego_period[ep_len],
-                         MBEDTLS_SSL_COUNTER_LEN - ep_len );
+                         MBEDTLS_SSL_SEQUENCE_NUMBER_LEN - ep_len );
     out_ctr_cmp = memcmp( &ssl->cur_out_ctr[ep_len],
                           &ssl->conf->renego_period[ep_len],
                           sizeof( ssl->cur_out_ctr ) - ep_len );
@@ -5559,7 +5562,7 @@ void mbedtls_ssl_set_inbound_transform( mbedtls_ssl_context *ssl,
                                         mbedtls_ssl_transform *transform )
 {
     ssl->transform_in = transform;
-    mbedtls_platform_zeroize( ssl->in_ctr, MBEDTLS_SSL_COUNTER_LEN );
+    mbedtls_platform_zeroize( ssl->in_ctr, MBEDTLS_SSL_SEQUENCE_NUMBER_LEN );
 }
 
 void mbedtls_ssl_set_outbound_transform( mbedtls_ssl_context *ssl,

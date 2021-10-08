@@ -5778,11 +5778,11 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
     }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-    used += MBEDTLS_SSL_COUNTER_LEN;
+    used += MBEDTLS_SSL_SEQUENCE_NUMBER_LEN;
     if( used <= buf_len )
     {
-        memcpy( p, ssl->cur_out_ctr, MBEDTLS_SSL_COUNTER_LEN );
-        p += MBEDTLS_SSL_COUNTER_LEN;
+        memcpy( p, ssl->cur_out_ctr, MBEDTLS_SSL_SEQUENCE_NUMBER_LEN );
+        p += MBEDTLS_SSL_SEQUENCE_NUMBER_LEN;
     }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)

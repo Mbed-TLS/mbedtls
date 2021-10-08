@@ -412,8 +412,9 @@ static inline int mbedtls_ssl_chk_buf_ptr( const uint8_t *cur,
 /**
  * \brief        This macro checks if the remaining length in an input buffer is
  *               greater or equal than a needed length. If it is not the case, it
- *               returns an SSL_DECODE_ERROR error and pends DECODE_ERROR alert
- *               message.
+ *               returns #MBEDTLS_SSL_DECODE_ERROR error and pends a
+ *               #MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR alert message.
+ *               It is used to guaranteed remaining length.
  *
  * \param cur    Pointer to the current position in the buffer.
  * \param end    Pointer to one past the end of the buffer.
@@ -1449,7 +1450,7 @@ static inline int mbedtls_ssl_conf_tls13_some_psk_enabled( mbedtls_ssl_context *
  * \param kex_modes_mask  Mask of the key exchange modes to check
  *
  * \return 0 if at least one of the key exchange modes is supported,
- *         <>0 otherwise.
+ *         !=0 otherwise.
  */
 static inline unsigned mbedtls_ssl_tls1_3_check_kex_modes( mbedtls_ssl_context *ssl,
                                                            int kex_modes_mask )

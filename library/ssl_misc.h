@@ -416,7 +416,7 @@ static inline int mbedtls_ssl_chk_buf_ptr( const uint8_t *cur,
 /**
  * \brief        This macro checks if the remaining length in an input buffer is
  *               greater or equal than a needed length. If it is not the case, it
- *               returns #MBEDTLS_SSL_DECODE_ERROR error and pends a
+ *               returns #MBEDTLS_ERR_SSL_DECODE_ERROR error and pends a
  *               #MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR alert message.
  *               It is used to guaranteed remaining length.
  *

@@ -1926,7 +1926,7 @@ component_build_no_std_function () {
     scripts/config.py set MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
     scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED
     scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Check
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Check .
     make
 }
 
@@ -2095,7 +2095,7 @@ component_test_when_no_ciphersuites_have_mac () {
 component_test_no_date_time () {
     msg "build: default config without MBEDTLS_HAVE_TIME_DATE"
     scripts/config.py unset MBEDTLS_HAVE_TIME_DATE
-    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Check
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Check .
     make
 
     msg "test: !MBEDTLS_HAVE_TIME_DATE - main suites"

@@ -534,21 +534,17 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
 /*
  * TLS 1.3 key schedule evolutions
  *
- *   Early Data -> Handshake -> Application
+ *   Early -> Handshake -> Application
  *
  * Small wrappers around mbedtls_ssl_tls1_3_evolve_secret().
  */
 
 /**
- * \brief Begin TLS 1.3 key schedule by calculating early secret
- *        from chosen PSK.
+ * \brief Begin TLS 1.3 key schedule by calculating early secret.
  *
  *        The TLS 1.3 key schedule can be viewed as a simple state machine
  *        with states Initial -> Early -> Handshake -> Application, and
  *        this function represents the Initial -> Early transition.
- *
- *        In the early stage, mbedtls_ssl_tls1_3_generate_early_data_keys()
- *        can be used to derive the 0-RTT traffic keys.
  *
  * \param ssl  The SSL context to operate on.
  *

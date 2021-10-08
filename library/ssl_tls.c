@@ -7062,20 +7062,22 @@ int mbedtls_ssl_get_handshake_transcript( mbedtls_ssl_context *ssl,
                                           size_t dst_len,
                                           size_t *olen )
 {
+    switch( md )
+    {
+
 #if defined(MBEDTLS_SHA384_C)
-    if( md == MBEDTLS_MD_SHA384 )
-    {
+    case MBEDTLS_MD_SHA384:
         return( ssl_get_handshake_transcript_sha384( ssl, dst, dst_len, olen ) );
-    }
-    else
-#endif /* MBEDTLS_SHA512_C */
+#endif /* MBEDTLS_SHA384_C */
+
 #if defined(MBEDTLS_SHA256_C)
-    if( md == MBEDTLS_MD_SHA256 )
-    {
+    case MBEDTLS_MD_SHA256:
         return( ssl_get_handshake_transcript_sha256( ssl, dst, dst_len, olen ) );
-    }
-    else
 #endif /* MBEDTLS_SHA256_C */
+
+    default:
+        break;
+    }
     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 }
 #endif /* !MBEDTLS_USE_PSA_CRYPTO */

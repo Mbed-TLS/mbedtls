@@ -5558,9 +5558,6 @@ void mbedtls_ssl_transform_free( mbedtls_ssl_transform *transform )
 void mbedtls_ssl_set_inbound_transform( mbedtls_ssl_context *ssl,
                                         mbedtls_ssl_transform *transform )
 {
-    if( ssl->transform_in == transform )
-        return;
-
     ssl->transform_in = transform;
     mbedtls_platform_zeroize( ssl->in_ctr, MBEDTLS_SSL_COUNTER_LEN );
 }

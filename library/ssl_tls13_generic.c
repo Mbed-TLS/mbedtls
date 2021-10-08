@@ -27,7 +27,6 @@
 #include "mbedtls/debug.h"
 
 #include "ssl_misc.h"
-#include <mbedtls/debug.h>
 
 int mbedtls_ssl_tls1_3_fetch_handshake_msg( mbedtls_ssl_context *ssl,
                                             unsigned hs_type,

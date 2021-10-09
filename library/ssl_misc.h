@@ -418,7 +418,9 @@ static inline int mbedtls_ssl_chk_buf_ptr( const uint8_t *cur,
  *               greater or equal than a needed length. If it is not the case, it
  *               returns #MBEDTLS_ERR_SSL_DECODE_ERROR error and pends a
  *               #MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR alert message.
- *               It is used to guaranteed remaining length.
+ *
+ *               This is a function-like macro. It is guaranteed to evaluate each
+ *               argument exactly once.
  *
  * \param cur    Pointer to the current position in the buffer.
  * \param end    Pointer to one past the end of the buffer.

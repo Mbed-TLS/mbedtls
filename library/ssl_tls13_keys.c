@@ -847,10 +847,10 @@ int mbedtls_ssl_tls1_3_key_schedule_stage_early( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
-/* mbedtls_ssl_tls1_3_generate_handshake_keys() generates keys necessary for
+/* mbedtls_ssl_tls13_generate_handshake_keys() generates keys necessary for
  * protecting the handshake messages, as described in Section 7 of TLS 1.3. */
-int mbedtls_ssl_tls1_3_generate_handshake_keys( mbedtls_ssl_context *ssl,
-                                                mbedtls_ssl_key_set *traffic_keys )
+int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
+                                               mbedtls_ssl_key_set *traffic_keys )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
@@ -864,7 +864,7 @@ int mbedtls_ssl_tls1_3_generate_handshake_keys( mbedtls_ssl_context *ssl,
     mbedtls_cipher_info_t const *cipher_info;
     size_t keylen, ivlen;
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> mbedtls_ssl_tls1_3_generate_handshake_keys" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> mbedtls_ssl_tls13_generate_handshake_keys" ) );
 
     cipher_info = mbedtls_cipher_info_from_type(
                     ssl->handshake->ciphersuite_info->cipher );
@@ -890,7 +890,7 @@ int mbedtls_ssl_tls1_3_generate_handshake_keys( mbedtls_ssl_context *ssl,
     ret = mbedtls_ssl_tls1_3_derive_handshake_secrets( md_type,
                 ssl->handshake->tls1_3_master_secrets.handshake,
                 transcript, transcript_len,
-                &ssl->handshake->tls1_3_hs_secrets );
+                &ssl->handshake->tls13_hs_secrets );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls1_3_derive_handshake_secrets",
@@ -899,11 +899,11 @@ int mbedtls_ssl_tls1_3_generate_handshake_keys( mbedtls_ssl_context *ssl,
     }
 
     MBEDTLS_SSL_DEBUG_BUF( 4, "Client handshake traffic secret",
-                    ssl->handshake->tls1_3_hs_secrets.client_handshake_traffic_secret,
+                    ssl->handshake->tls13_hs_secrets.client_handshake_traffic_secret,
                     md_size );
 
     MBEDTLS_SSL_DEBUG_BUF( 4, "Server handshake traffic secret",
-                    ssl->handshake->tls1_3_hs_secrets.server_handshake_traffic_secret,
+                    ssl->handshake->tls13_hs_secrets.server_handshake_traffic_secret,
                     md_size );
 
     /*
@@ -914,7 +914,7 @@ int mbedtls_ssl_tls1_3_generate_handshake_keys( mbedtls_ssl_context *ssl,
     {
         ssl->f_export_keys( ssl->p_export_keys,
                 MBEDTLS_SSL_KEY_EXPORT_TLS13_CLIENT_HANDSHAKE_TRAFFIC_SECRET,
-                ssl->handshake->tls1_3_hs_secrets.client_handshake_traffic_secret,
+                ssl->handshake->tls13_hs_secrets.client_handshake_traffic_secret,
                 md_size,
                 ssl->handshake->randbytes + 32,
                 ssl->handshake->randbytes,
@@ -922,7 +922,7 @@ int mbedtls_ssl_tls1_3_generate_handshake_keys( mbedtls_ssl_context *ssl,
 
         ssl->f_export_keys( ssl->p_export_keys,
                 MBEDTLS_SSL_KEY_EXPORT_TLS13_SERVER_HANDSHAKE_TRAFFIC_SECRET,
-                ssl->handshake->tls1_3_hs_secrets.server_handshake_traffic_secret,
+                ssl->handshake->tls13_hs_secrets.server_handshake_traffic_secret,
                 md_size,
                 ssl->handshake->randbytes + 32,
                 ssl->handshake->randbytes,
@@ -931,8 +931,8 @@ int mbedtls_ssl_tls1_3_generate_handshake_keys( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
     ret = mbedtls_ssl_tls1_3_make_traffic_keys( md_type,
-                ssl->handshake->tls1_3_hs_secrets.client_handshake_traffic_secret,
-                ssl->handshake->tls1_3_hs_secrets.server_handshake_traffic_secret,
+                ssl->handshake->tls13_hs_secrets.client_handshake_traffic_secret,
+                ssl->handshake->tls13_hs_secrets.server_handshake_traffic_secret,
                 md_size,
                 keylen, ivlen, traffic_keys );
     if( ret != 0 )
@@ -957,7 +957,7 @@ int mbedtls_ssl_tls1_3_generate_handshake_keys( mbedtls_ssl_context *ssl,
                            traffic_keys->server_write_iv,
                            traffic_keys->iv_len);
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= mbedtls_ssl_tls1_3_generate_handshake_keys" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= mbedtls_ssl_tls13_generate_handshake_keys" ) );
 
 exit:
 

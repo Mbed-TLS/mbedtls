@@ -539,7 +539,7 @@ int mbedtls_ssl_tls1_3_key_schedule_stage_early( mbedtls_ssl_context *ssl );
  *        with states Initial -> Early -> Handshake -> Application, and
  *        this function represents the Early -> Handshake transition.
  *
- *        In the handshake stage, mbedtls_ssl_tls1_3_generate_handshake_keys()
+ *        In the handshake stage, mbedtls_ssl_tls13_generate_handshake_keys()
  *        can be used to derive the handshake traffic keys.
  *
  * \param ssl  The SSL context to operate on. This must be in key schedule
@@ -562,7 +562,7 @@ int mbedtls_ssl_tls13_key_schedule_stage_handshake( mbedtls_ssl_context *ssl );
  * \returns    \c 0 on success.
  * \returns    A negative error code on failure.
  */
-int mbedtls_ssl_tls1_3_generate_handshake_keys( mbedtls_ssl_context *ssl,
-                                        mbedtls_ssl_key_set *traffic_keys );
+int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
+                                               mbedtls_ssl_key_set *traffic_keys );
 
 #endif /* MBEDTLS_SSL_TLS1_3_KEYS_H */

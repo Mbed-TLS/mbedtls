@@ -737,7 +737,7 @@ struct mbedtls_ssl_handshake_params
         unsigned char app      [MBEDTLS_TLS1_3_MD_MAX_SIZE];
     } tls1_3_master_secrets;
 
-    mbedtls_ssl_tls1_3_handshake_secrets tls1_3_hs_secrets;
+    mbedtls_ssl_tls1_3_handshake_secrets tls13_hs_secrets;
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)

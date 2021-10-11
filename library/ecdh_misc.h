@@ -46,9 +46,9 @@ int mbedtls_ecdh_tls13_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
 /*
  * TLS 1.3 version of mbedtls_ecdh_read_public in ecdh.h
  */
-int mbedtls_ecdh_tls1_3_read_public( mbedtls_ecdh_context *ctx,
-                                     const unsigned char *buf,
-                                     size_t blen );
+int mbedtls_ecdh_tls13_read_public( mbedtls_ecdh_context *ctx,
+                                    const unsigned char *buf,
+                                    size_t blen );
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 

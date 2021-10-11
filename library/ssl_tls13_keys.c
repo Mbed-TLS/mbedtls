@@ -826,17 +826,18 @@ int mbedtls_ssl_tls1_3_key_schedule_stage_early( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_md_type_t md_type;
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
-    if( ssl->handshake->ciphersuite_info == NULL )
+    if( handshake->ciphersuite_info == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "cipher suite info not found" ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
-    md_type = ssl->handshake->ciphersuite_info->mac;
+    md_type = handshake->ciphersuite_info->mac;
 
     ret = mbedtls_ssl_tls1_3_evolve_secret( md_type, NULL, NULL, 0,
-                                ssl->handshake->tls1_3_master_secrets.early );
+                                            handshake->tls1_3_master_secrets.early );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls1_3_evolve_secret", ret );
@@ -1015,7 +1016,8 @@ static int ssl_tls1_3_complete_ephemeral_secret( mbedtls_ssl_context *ssl,
 int mbedtls_ssl_tls1_3_key_schedule_stage_handshake( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
-    mbedtls_md_type_t const md_type = ssl->handshake->ciphersuite_info->mac;
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+    mbedtls_md_type_t const md_type = handshake->ciphersuite_info->mac;
 #if defined(MBEDTLS_DEBUG_C)
     mbedtls_md_info_t const * const md_info = mbedtls_md_info_from_type( md_type );
     size_t const md_size = mbedtls_md_get_size( md_info );
@@ -1037,9 +1039,9 @@ int mbedtls_ssl_tls1_3_key_schedule_stage_handshake( mbedtls_ssl_context *ssl )
      */
 
     ret = mbedtls_ssl_tls1_3_evolve_secret( md_type,
-                              ssl->handshake->tls1_3_master_secrets.early,
-                              ephemeral, ephemeral_len,
-                              ssl->handshake->tls1_3_master_secrets.handshake );
+                                            handshake->tls1_3_master_secrets.early,
+                                            ephemeral, ephemeral_len,
+                                            handshake->tls1_3_master_secrets.handshake );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls1_3_evolve_secret", ret );
@@ -1047,7 +1049,7 @@ int mbedtls_ssl_tls1_3_key_schedule_stage_handshake( mbedtls_ssl_context *ssl )
     }
 
     MBEDTLS_SSL_DEBUG_BUF( 4, "Handshake secret",
-            ssl->handshake->tls1_3_master_secrets.handshake, md_size );
+                           handshake->tls1_3_master_secrets.handshake, md_size );
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED)
     mbedtls_platform_zeroize( ecdhe, sizeof( ecdhe ) );

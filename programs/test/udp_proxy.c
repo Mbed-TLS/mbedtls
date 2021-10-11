@@ -509,7 +509,22 @@ typedef struct
 /* Print packet. Outgoing packets come with a reason (forward, dupl, etc.) */
 void print_packet( const packet *p, const char *why )
 {
-#if defined(MBEDTLS_TIMING_C)
+#if defined(__unix__) &&                        \
+    defined(MBEDTLS_PLATFORM_C) && defined(MBEDTLS_HAVE_TIME_DATE)
+    struct timeval tv;
+    struct tm tm;
+    (void) gettimeofday( &tv, NULL );
+    mbedtls_platform_gmtime_r( &tv.tv_sec, &tm );
+    unsigned sec = tm.tm_hour * 24 * 60 + tm.tm_min * 60 + tm.tm_sec;
+    unsigned usec = tv.tv_usec;
+
+    if( why == NULL )
+        mbedtls_printf( "  %05u.%06u dispatch %s %s (%u bytes)\n",
+                sec, usec, p->way, p->type, p->len );
+    else
+        mbedtls_printf( "  %05u.%06u dispatch %s %s (%u bytes): %s\n",
+                sec, usec, p->way, p->type, p->len, why );
+#elif defined(MBEDTLS_TIMING_C)
     if( why == NULL )
         mbedtls_printf( "  %05u dispatch %s %s (%u bytes)\n",
                 ellapsed_time(), p->way, p->type, p->len );

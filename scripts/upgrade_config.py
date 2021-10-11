@@ -26,6 +26,7 @@ import functools
 import os
 import re
 import sys
+import textwrap
 from typing import Callable, Dict, List, Optional, Tuple
 
 from mbedtls_dev import typing_util
@@ -127,7 +128,7 @@ def detect_input_file(options) -> Tuple[str, VersionNumber]:
 class Chunk:
     """A chunk of a configuration file."""
 
-    def __init__(self, text: str, line_number: int) -> None:
+    def __init__(self, text: str, line_number: int, doc: Optional[str] = None) -> None:
         """A chunk with the given text.
 
         `line_number` is the line number where the chunk starts. The first line
@@ -136,6 +137,7 @@ class Chunk:
         """
         self.text = text #type: str
         self.line_number = line_number #type: int
+        self.doc = doc #type: Optional[str]
 
     def is_blank(self) -> bool:
         """True if this chunk is blank or is a comment."""
@@ -147,7 +149,7 @@ class Chunk:
 
     def blank_clone(self) -> 'Chunk':
         """Return a blank chunk with the same number of newlines as this one."""
-        return Chunk(re.sub(r'[^\n]+', r'', self.text), self.line_number)
+        return Chunk(re.sub(r'[^\n]+', r'', self.text), self.line_number, doc=self.doc)
 
 class Directive(Chunk):
     """A configuration file chunk that is a C preprocessor directive."""
@@ -155,8 +157,8 @@ class Directive(Chunk):
 
     START_RE = re.compile(r'\s*#\s*(\w+)(?:\s+(\w+))?')
 
-    def __init__(self, text: str, line_number: int = 0) -> None:
-        super().__init__(text, line_number)
+    def __init__(self, text: str, line_number: int = 0, doc: Optional[str] = None) -> None:
+        super().__init__(text, line_number, doc)
         m = self.START_RE.match(text)
         if not m:
             raise ValueError('Unable to parse preprocessor directive: ' + text)
@@ -192,8 +194,9 @@ class Configuration():
         self.content_version = self.presumed_version
         self.symbols = {} #type: Dict[str, Optional[str]]
 
-    def __init__(self, input_version: VersionNumber) -> None:
+    def __init__(self, input_version: VersionNumber, with_docs: bool) -> None:
         self.presumed_version = input_version #type: VersionNumber
+        self.with_docs = with_docs
         self.reset()
 
     CHUNK_RE = re.compile(r'|'.join([
@@ -267,9 +270,23 @@ class Configuration():
         if os.path.exists(filename):
             os.replace(filename, filename + '.bak')
 
+    @staticmethod
+    def comment(doc: str) -> str:
+        """Create a comment from a documentation string."""
+        comment_doc = doc.strip('\n')
+        # Wrap lines that are already too long
+        comment_doc = textwrap.fill(comment_doc, width=80, replace_whitespace=False)
+        # Make a comment
+        comment_doc = '/* Config Upgrade Script:\n * ' \
+                + re.sub(r'\n', r'\n * ', comment_doc) \
+                + '\n */\n'
+        return comment_doc
+
     def write(self, out: typing_util.Writable) -> None:
         """Write the configuration to the specified output stream."""
         for chunk in self.content:
+            if self.with_docs and chunk.doc:
+                out.write(self.comment(chunk.doc))
             out.write(chunk.text)
 
     def save(self, filename: str) -> None:
@@ -283,15 +300,15 @@ class Configuration():
 
     ### Upgrader methods and their helper functions follow ####
 
-    def define_symbol(self, symbol: str, value: Optional[str] = None) -> None:
+    def define_symbol(self, symbol: str, value: Optional[str] = None, doc: Optional[str] = None) -> None:
         """Add a definition of `symbol` at the end of the file.
         """
         if symbol in self.symbols:
             return
         rhs = ' ' + value if value else ''
-        self.content.append(Directive('#define ' + symbol + rhs + '\n'))
+        self.content.append(Directive('#define ' + symbol + rhs + '\n', doc=doc))
 
-    def remove_definition(self, symbol: str) -> None:
+    def remove_definition(self, symbol: str, doc: Optional[str] = None) -> None:
         """Remove all definitions of `symbol` (``#define symbol ...``)."""
         for idx in range(len(self.content)):
             chunk = self.content[idx]
@@ -299,7 +316,7 @@ class Configuration():
                chunk.name == 'define' and \
                chunk.word == symbol:
                 self.content[idx] = Chunk('// ' + self.content[idx].text,
-                                          self.content[idx].line_number)
+                                          self.content[idx].line_number, doc=doc)
 
     def maybe_remove_short_conditional(self, idx: int) -> None:
         """Remove a conditional directive around a single blank chunk.
@@ -392,17 +409,21 @@ Upgrader = Callable[[Configuration], None]
 def convert_config(
         input_version: VersionNumber,
         input_file: str,
-        output_file: str
+        output_file: str,
+        with_docs: bool
 ) -> None:
     """Upgrade the configuration to the current Mbed TLS version.
 
     input_version is the presumed version of the old configuration. It may be
     overridden if the version can be inferred from the content.
 
+    with_docs specifies whether documentation comments will be included when
+    the configuration is written out.
+
     output_file can be '-' to read from standard input.
     output_file can be '-' to write to standard output.
     """
-    configuration = Configuration(input_version)
+    configuration = Configuration(input_version, with_docs)
     if input_file == '-':
         configuration.parse(sys.stdin.read())
     else:
@@ -421,6 +442,8 @@ def main(*args) -> None:
                         help=('Assume input is for this version '
                               '(default: autodetected; '
                               'overridden by an explicit declaration in the file)'))
+    parser.add_argument('--no-docs', default=False, action='store_true',
+                        help=('Disable documentation comments'))
     parser.add_argument('--output', '-o', metavar='OUTPUT_FILE',
                         default=DEFAULT_CONFIG,
                         help='Output file (default: {})'.format(DEFAULT_CONFIG))
@@ -429,7 +452,7 @@ def main(*args) -> None:
                               .format(V2_CONFIG, DEFAULT_CONFIG)))
     options = parser.parse_args(args)
     input_file, input_version = detect_input_file(options)
-    convert_config(input_version, input_file, options.output)
+    convert_config(input_version, input_file, options.output, (not options.no_docs))
 
 if __name__ == '__main__':
     main(*sys.argv[1:])

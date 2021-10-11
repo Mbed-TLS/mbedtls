@@ -865,6 +865,9 @@ run_test() {
         return
     fi
 
+    preserve_these_logs=$PRESERVE_NEXT_LOGS
+    PRESERVE_NEXT_LOGS=$PRESERVE_LOGS
+
     # update DTLS variable
     detect_dtls "$SRV_CMD"
 
@@ -1094,14 +1097,13 @@ run_test() {
 
     # if we're here, everything is ok
     record_outcome "PASS"
-    if [ "$PRESERVE_LOGS" -gt 0 ] || [ "$PRESERVE_NEXT_LOGS" -gt 0 ]; then
+    if [ "$preserve_these_logs" -gt 0 ]; then
         mv $SRV_OUT o-srv-${TESTS}.log
         mv $CLI_OUT o-cli-${TESTS}.log
         if [ -n "$PXY_CMD" ]; then
             mv $PXY_OUT o-pxy-${TESTS}.log
         fi
     fi
-    PRESERVE_NEXT_LOGS=0
 
     rm -f $SRV_OUT $CLI_OUT $PXY_OUT
 }

@@ -812,10 +812,9 @@ static int ecdh_tls1_3_read_public_internal( mbedtls_ecdh_context_mbed *ctx,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const unsigned char *p = buf;
-    const unsigned char *end = buf + blen;
     size_t data_len;
 
-    if( end - p < 3 )
+    if( blen < 3 )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     data_len = MBEDTLS_GET_UINT16_BE( p, 0 );
@@ -828,7 +827,7 @@ static int ecdh_tls1_3_read_public_internal( mbedtls_ecdh_context_mbed *ctx,
      * Save buffer start for read_binary and update buf
      */
     if( ( ret = mbedtls_ecp_point_read_binary( &ctx->grp,
-                                        &ctx->Qp, p, data_len ) ) != 0)
+                                               &ctx->Qp, p, data_len ) ) != 0)
     {
         return( ret );
     }

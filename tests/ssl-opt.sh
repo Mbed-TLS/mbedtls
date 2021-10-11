@@ -63,7 +63,7 @@ guess_config_name() {
 : ${MBEDTLS_TEST_PLATFORM:="$(uname -s | tr -c \\n0-9A-Za-z _)-$(uname -m | tr -c \\n0-9A-Za-z _)"}
 
 O_SRV="$EXT_CMD_PREFIX$OPENSSL_CMD s_server -www -cert data_files/server5.crt -key data_files/server5.key"
-O_CLI="echo 'GET / HTTP/1.0' | $EXT_CMD_PREFIX$OPENSSL_CMD s_client"
+O_CLI="echo 'GET / HTTP/1.0' | $EXT_CMD_PREFIX$OPENSSL_CMD s_client -debug"
 G_SRV="$EXT_CMD_PREFIX$GNUTLS_SERV --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key"
 G_CLI="echo 'GET / HTTP/1.0' | $EXT_CMD_PREFIX$GNUTLS_CLI --x509cafile data_files/test-ca_cat12.crt"
 TCP_CLIENT="$PERL scripts/tcp_client.pl"
@@ -72,7 +72,7 @@ TCP_CLIENT="$PERL scripts/tcp_client.pl"
 
 if [ -n "${OPENSSL_LEGACY:-}" ]; then
     O_LEGACY_SRV="$EXT_CMD_PREFIX$OPENSSL_LEGACY s_server -www -cert data_files/server5.crt -key data_files/server5.key"
-    O_LEGACY_CLI="echo 'GET / HTTP/1.0' | $EXT_CMD_PREFIX$OPENSSL_LEGACY s_client"
+    O_LEGACY_CLI="echo 'GET / HTTP/1.0' | $EXT_CMD_PREFIX$OPENSSL_LEGACY s_client -debug"
 else
     O_LEGACY_SRV=false
     O_LEGACY_CLI=false
@@ -80,7 +80,7 @@ fi
 
 if [ -n "${OPENSSL_NEXT:-}" ]; then
     O_NEXT_SRV="$EXT_CMD_PREFIX$OPENSSL_NEXT s_server -www -cert data_files/server5.crt -key data_files/server5.key"
-    O_NEXT_CLI="echo 'GET / HTTP/1.0' | $EXT_CMD_PREFIX$OPENSSL_NEXT s_client"
+    O_NEXT_CLI="echo 'GET / HTTP/1.0' | $EXT_CMD_PREFIX$OPENSSL_NEXT s_client -debug"
 else
     O_NEXT_SRV=false
     O_NEXT_CLI=false

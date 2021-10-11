@@ -393,8 +393,15 @@ class Configuration():
 
     @upgrader('3.0')
     def changed_ssl_options_3_0(self) -> None:
+        max_content = "MBEDTLS_SSL_MAX_CONTENT_LEN is replaced by the more " \
+                      "fine-grained options MBEDTLS_SSL_IN_CONTENT_LEN and " \
+                      "MBEDTLS_SSL_OUT_CONTENT_LEN that set the maximum "    \
+                      "incoming and outgoing plaintext fragment lengths, "   \
+                      "respectively."
+
         if 'MBEDTLS_SSL_MAX_CONTENT_LEN' in self.symbols:
-            self.remove_definition('MBEDTLS_SSL_MAX_CONTENT_LEN')
+            self.remove_definition('MBEDTLS_SSL_MAX_CONTENT_LEN',
+                    doc=max_content)
             value = self.symbols['MBEDTLS_SSL_MAX_CONTENT_LEN']
             for sym in ('MBEDTLS_SSL_IN_CONTENT_LEN',
                         'MBEDTLS_SSL_OUT_CONTENT_LEN'):

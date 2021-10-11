@@ -531,4 +531,26 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
                                           mbedtls_ssl_key_set const *traffic_keys,
                                           mbedtls_ssl_context *ssl );
 
+/*
+ * TLS 1.3 key schedule evolutions
+ *
+ *   Early -> Handshake -> Application
+ *
+ * Small wrappers around mbedtls_ssl_tls1_3_evolve_secret().
+ */
+
+/**
+ * \brief Begin TLS 1.3 key schedule by calculating early secret.
+ *
+ *        The TLS 1.3 key schedule can be viewed as a simple state machine
+ *        with states Initial -> Early -> Handshake -> Application, and
+ *        this function represents the Initial -> Early transition.
+ *
+ * \param ssl  The SSL context to operate on.
+ *
+ * \returns    \c 0 on success.
+ * \returns    A negative error code on failure.
+ */
+int mbedtls_ssl_tls1_3_key_schedule_stage_early( mbedtls_ssl_context *ssl );
+
 #endif /* MBEDTLS_SSL_TLS1_3_KEYS_H */

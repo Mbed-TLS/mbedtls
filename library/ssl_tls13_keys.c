@@ -21,13 +21,15 @@
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
 
-#include "mbedtls/hkdf.h"
-#include "ssl_misc.h"
-#include "ssl_tls13_keys.h"
-#include "mbedtls/debug.h"
-
 #include <stdint.h>
 #include <string.h>
+
+#include "mbedtls/hkdf.h"
+#include "mbedtls/debug.h"
+#include "mbedtls/error.h"
+
+#include "ssl_misc.h"
+#include "ssl_tls13_keys.h"
 
 #define MBEDTLS_SSL_TLS1_3_LABEL( name, string )       \
     .name = string,
@@ -816,6 +818,30 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
      * granularity. */
     transform->minlen =
         transform->taglen + MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY;
+
+    return( 0 );
+}
+
+int mbedtls_ssl_tls1_3_key_schedule_stage_early( mbedtls_ssl_context *ssl )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_md_type_t md_type;
+
+    if( ssl->handshake->ciphersuite_info == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "cipher suite info not found" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+
+    md_type = ssl->handshake->ciphersuite_info->mac;
+
+    ret = mbedtls_ssl_tls1_3_evolve_secret( md_type, NULL, NULL, 0,
+                                ssl->handshake->tls1_3_master_secrets.early );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls1_3_evolve_secret", ret );
+        return( ret );
+    }
 
     return( 0 );
 }

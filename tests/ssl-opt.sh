@@ -2705,8 +2705,39 @@ run_test    "Session resume using tickets, DTLS: openssl server" \
 
 preserve_next_logs
 server_needs_more_time 10
+client_needs_more_time 10
 run_test    "Session resume using tickets, DTLS: openssl client" \
             "$P_SRV dtls=1 debug_level=3 tickets=1" \
+            "( $O_CLI -dtls -sess_out $SESSION; \
+               $O_CLI -dtls -sess_in $SESSION; \
+               rm -f $SESSION )" \
+            0 \
+            -s "found session ticket extension" \
+            -s "server hello, adding session ticket extension" \
+            -S "session successfully restored from cache" \
+            -s "session successfully restored from ticket" \
+            -s "a session has been resumed"
+
+preserve_next_logs
+server_needs_more_time 10
+client_needs_more_time 10
+run_test    "Session resume using tickets, DTLS: openssl client (dgram_packing=0)" \
+            "$P_SRV dtls=1 dgram_packing=0 debug_level=3 tickets=1" \
+            "( $O_CLI -dtls -sess_out $SESSION; \
+               $O_CLI -dtls -sess_in $SESSION; \
+               rm -f $SESSION )" \
+            0 \
+            -s "found session ticket extension" \
+            -s "server hello, adding session ticket extension" \
+            -S "session successfully restored from cache" \
+            -s "session successfully restored from ticket" \
+            -s "a session has been resumed"
+
+preserve_next_logs
+server_needs_more_time 10
+client_needs_more_time 10
+run_test    "Session resume using tickets, DTLS: openssl client (cookies=0)" \
+            "$P_SRV dtls=1 cookies=0 debug_level=3 tickets=1" \
             "( $O_CLI -dtls -sess_out $SESSION; \
                $O_CLI -dtls -sess_in $SESSION; \
                rm -f $SESSION )" \
@@ -2906,9 +2937,40 @@ run_test    "Session resume using cache, DTLS: session copy" \
             -c "a session has been resumed"
 
 preserve_next_logs
+server_needs_more_time 10
 client_needs_more_time 10
 run_test    "Session resume using cache, DTLS: openssl client" \
             "$P_SRV dtls=1 debug_level=3 tickets=0" \
+            "( $O_CLI -dtls -sess_out $SESSION; \
+               $O_CLI -dtls -sess_in $SESSION; \
+               rm -f $SESSION )" \
+            0 \
+            -s "found session ticket extension" \
+            -S "server hello, adding session ticket extension" \
+            -s "session successfully restored from cache" \
+            -S "session successfully restored from ticket" \
+            -s "a session has been resumed"
+
+preserve_next_logs
+server_needs_more_time 10
+client_needs_more_time 10
+run_test    "Session resume using cache, DTLS: openssl client (dgram_packing=0)" \
+            "$P_SRV dtls=1 dgram_packing=0 debug_level=3 tickets=0" \
+            "( $O_CLI -dtls -sess_out $SESSION; \
+               $O_CLI -dtls -sess_in $SESSION; \
+               rm -f $SESSION )" \
+            0 \
+            -s "found session ticket extension" \
+            -S "server hello, adding session ticket extension" \
+            -s "session successfully restored from cache" \
+            -S "session successfully restored from ticket" \
+            -s "a session has been resumed"
+
+preserve_next_logs
+server_needs_more_time 10
+client_needs_more_time 10
+run_test    "Session resume using cache, DTLS: openssl client (cookies=0)" \
+            "$P_SRV dtls=1 cookies=0 debug_level=3 tickets=0" \
             "( $O_CLI -dtls -sess_out $SESSION; \
                $O_CLI -dtls -sess_in $SESSION; \
                rm -f $SESSION )" \

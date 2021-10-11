@@ -112,6 +112,7 @@ SHOW_TEST_NUMBER=0
 RUN_TEST_NUMBER=''
 
 PRESERVE_LOGS=0
+PRESERVE_NEXT_LOGS=0
 
 # Pick a "unique" server port in the range 10000-19999, and a proxy
 # port which is this plus 10000. Each port number may be independently
@@ -521,6 +522,12 @@ client_needs_more_time() {
 # wait for the given seconds after the client finished in the next test
 server_needs_more_time() {
     SRV_DELAY_SECONDS=$1
+}
+
+# Always keep the logs of the next test case. Not intended for production.
+# Use this temporarily when debugging a test case on the CI.
+preserve_next_logs() {
+    PRESERVE_NEXT_LOGS=1
 }
 
 # print_name <name>
@@ -1087,13 +1094,14 @@ run_test() {
 
     # if we're here, everything is ok
     record_outcome "PASS"
-    if [ "$PRESERVE_LOGS" -gt 0 ]; then
+    if [ "$PRESERVE_LOGS" -gt 0 ] || [ "$PRESERVE_NEXT_LOGS" -gt 0 ]; then
         mv $SRV_OUT o-srv-${TESTS}.log
         mv $CLI_OUT o-cli-${TESTS}.log
         if [ -n "$PXY_CMD" ]; then
             mv $PXY_OUT o-pxy-${TESTS}.log
         fi
     fi
+    PRESERVE_NEXT_LOGS=0
 
     rm -f $SRV_OUT $CLI_OUT $PXY_OUT
 }

@@ -548,14 +548,14 @@ int mbedtls_ssl_tls1_3_key_schedule_stage_early( mbedtls_ssl_context *ssl );
  * \returns    \c 0 on success.
  * \returns    A negative error code on failure.
  */
-int mbedtls_ssl_tls1_3_key_schedule_stage_handshake( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_tls13_key_schedule_stage_handshake( mbedtls_ssl_context *ssl );
 
 /**
  * \brief Compute TLS 1.3 handshake traffic keys.
  *
  * \param ssl  The SSL context to operate on. This must be in
  *             key schedule stage \c Handshake, see
- *             mbedtls_ssl_tls1_3_key_schedule_stage_handshake().
+ *             mbedtls_ssl_tls13_key_schedule_stage_handshake().
  * \param traffic_keys The address at which to store the handshake traffic key
  *                     keys. This must be writable but may be uninitialized.
  *

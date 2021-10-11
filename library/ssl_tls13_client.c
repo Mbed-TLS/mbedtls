@@ -1297,7 +1297,7 @@ static int ssl_tls1_3_finalize_server_hello( mbedtls_ssl_context *ssl )
     }
 
     /* Compute handshake secret */
-    ret = mbedtls_ssl_tls1_3_key_schedule_stage_handshake( ssl );
+    ret = mbedtls_ssl_tls13_key_schedule_stage_handshake( ssl );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls1_3_derive_master_secret", ret );

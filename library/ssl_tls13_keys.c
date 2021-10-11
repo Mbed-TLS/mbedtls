@@ -964,83 +964,57 @@ exit:
     return( ret );
 }
 
-static int ssl_tls1_3_complete_ephemeral_secret( mbedtls_ssl_context *ssl,
-                                                 unsigned char *secret,
-                                                 size_t secret_len,
-                                                 unsigned char **actual_secret,
-                                                 size_t *actual_len )
+int mbedtls_ssl_tls13_key_schedule_stage_handshake( mbedtls_ssl_context *ssl )
 {
-    int ret = 0;
-
-    *actual_secret = NULL;
-    *actual_len = 0;
-    /*
-     * Compute ECDHE secret for second stage of secret evolution.
-     */
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED)
-    if( mbedtls_ssl_tls1_3_some_ephemeral_enabled( ssl ) )
-    {
-        if( mbedtls_ssl_tls13_named_group_is_ecdhe(
-                ssl->handshake->offered_group_id ) )
-        {
-#if defined(MBEDTLS_ECDH_C)
-            ret = mbedtls_ecdh_calc_secret( &ssl->handshake->ecdh_ctx,
-                                            actual_len, secret, secret_len,
-                                            ssl->conf->f_rng,
-                                            ssl->conf->p_rng );
-
-            if( ret != 0 )
-            {
-                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_calc_secret", ret );
-                return( ret );
-            }
-
-            *actual_secret = secret;
-#endif /* MBEDTLS_ECDH_C */
-        }
-        else if( mbedtls_ssl_tls13_named_group_is_dhe(
-                    ssl->handshake->offered_group_id ) )
-        {
-            /* TODO: Not supported yet */
-        }
-    }
-#else
-    ((void) ssl);
-    ((void) secret);
-    ((void) secret_len);
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED */
-
-    return( ret );
-}
-
-int mbedtls_ssl_tls1_3_key_schedule_stage_handshake( mbedtls_ssl_context *ssl )
-{
-    int ret = 0;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
     mbedtls_md_type_t const md_type = handshake->ciphersuite_info->mac;
+    size_t ephemeral_len = 0;
+    unsigned char ecdhe[MBEDTLS_ECP_MAX_BYTES];
 #if defined(MBEDTLS_DEBUG_C)
     mbedtls_md_info_t const * const md_info = mbedtls_md_info_from_type( md_type );
     size_t const md_size = mbedtls_md_get_size( md_info );
 #endif /* MBEDTLS_DEBUG_C */
 
-    unsigned char *ephemeral;
-    size_t ephemeral_len;
-
-    unsigned char ecdhe[66]; /* TODO: Magic constant! */
-
-    /* Finalize calculation of ephemeral input to key schedule, if present. */
-    ret = ssl_tls1_3_complete_ephemeral_secret( ssl, ecdhe, sizeof( ecdhe ),
-                                               &ephemeral, &ephemeral_len );
-    if( ret != 0 )
-        return( ret );
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED)
+    /*
+     * Compute ECDHE secret used to compute the handshake secret from which
+     * client_handshake_traffic_secret and server_handshake_traffic_secret
+     * are derived in the handshake secret derivation stage.
+     */
+    if( mbedtls_ssl_tls1_3_ephemeral_enabled( ssl ) )
+    {
+        if( mbedtls_ssl_tls13_named_group_is_ecdhe( handshake->offered_group_id ) )
+        {
+#if defined(MBEDTLS_ECDH_C)
+            ret = mbedtls_ecdh_calc_secret( &handshake->ecdh_ctx,
+                                            &ephemeral_len, ecdhe, sizeof( ecdhe ),
+                                            ssl->conf->f_rng,
+                                            ssl->conf->p_rng );
+            if( ret != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_calc_secret", ret );
+                return( ret );
+            }
+#endif /* MBEDTLS_ECDH_C */
+        }
+        else if( mbedtls_ssl_tls13_named_group_is_dhe( handshake->offered_group_id ) )
+        {
+            /* TODO: Not supported yet */
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "DHE not supported." ) );
+            return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
+        }
+    }
+#else
+    return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED */
 
     /*
-     * Compute HandshakeSecret
+     * Compute the Handshake Secret
      */
-
     ret = mbedtls_ssl_tls1_3_evolve_secret( md_type,
                                             handshake->tls1_3_master_secrets.early,
-                                            ephemeral, ephemeral_len,
+                                            ecdhe, ephemeral_len,
                                             handshake->tls1_3_master_secrets.handshake );
     if( ret != 0 )
     {

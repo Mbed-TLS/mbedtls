@@ -1337,7 +1337,7 @@
  *
  * Uncomment to enable the Connection ID extension.
  */
-#define MBEDTLS_SSL_DTLS_CONNECTION_ID
+//#define MBEDTLS_SSL_DTLS_CONNECTION_ID
 
 /**
  * \def MBEDTLS_SSL_ASYNC_PRIVATE
@@ -3422,14 +3422,14 @@
  * The maximum length of CIDs used for incoming DTLS messages.
  *
  */
-#define MBEDTLS_SSL_CID_IN_LEN_MAX 32
+//#define MBEDTLS_SSL_CID_IN_LEN_MAX 32
 
 /** \def MBEDTLS_SSL_CID_OUT_LEN_MAX
  *
  * The maximum length of CIDs used for outgoing DTLS messages.
  *
  */
-#define MBEDTLS_SSL_CID_OUT_LEN_MAX 32
+//#define MBEDTLS_SSL_CID_OUT_LEN_MAX 32
 
 /** \def MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY
  *

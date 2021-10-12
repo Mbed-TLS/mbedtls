@@ -425,13 +425,14 @@ class Configuration():
                       "respectively."
 
         if 'MBEDTLS_SSL_MAX_CONTENT_LEN' in self.symbols:
-            self.remove_definition('MBEDTLS_SSL_MAX_CONTENT_LEN',
+            max_content_chunk = self.remove_definition('MBEDTLS_SSL_MAX_CONTENT_LEN',
                     doc=max_content)
             value = self.symbols['MBEDTLS_SSL_MAX_CONTENT_LEN']
             for sym in ('MBEDTLS_SSL_IN_CONTENT_LEN',
                         'MBEDTLS_SSL_OUT_CONTENT_LEN'):
                 if sym not in self.symbols:
-                    self.define_symbol(sym, value)
+                    self.define_symbol(sym, value,
+                            after_chunk=max_content_chunk)
 
 Upgrader = Callable[[Configuration], None]
 """The type of configuration upgrader methods."""

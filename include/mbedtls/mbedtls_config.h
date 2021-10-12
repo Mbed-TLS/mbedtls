@@ -1315,9 +1315,7 @@
 /**
  * \def MBEDTLS_SSL_DTLS_CONNECTION_ID
  *
- * Enable support for the DTLS Connection ID extension
- * (version draft-ietf-tls-dtls-connection-id-05,
- * https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-05)
+ * Enable support for the DTLS Connection ID extension,
  * which allows to identify DTLS connections across changes
  * in the underlying transport.
  *
@@ -1339,7 +1337,7 @@
  *
  * Uncomment to enable the Connection ID extension.
  */
-//#define MBEDTLS_SSL_DTLS_CONNECTION_ID
+#define MBEDTLS_SSL_DTLS_CONNECTION_ID
 
 /**
  * \def MBEDTLS_SSL_ASYNC_PRIVATE
@@ -3424,14 +3422,14 @@
  * The maximum length of CIDs used for incoming DTLS messages.
  *
  */
-//#define MBEDTLS_SSL_CID_IN_LEN_MAX 32
+#define MBEDTLS_SSL_CID_IN_LEN_MAX 32
 
 /** \def MBEDTLS_SSL_CID_OUT_LEN_MAX
  *
  * The maximum length of CIDs used for outgoing DTLS messages.
  *
  */
-//#define MBEDTLS_SSL_CID_OUT_LEN_MAX 32
+#define MBEDTLS_SSL_CID_OUT_LEN_MAX 32
 
 /** \def MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY
  *
@@ -3488,17 +3486,6 @@
 
 //#define MBEDTLS_PSK_MAX_LEN               32 /**< Max size of TLS pre-shared keys, in bytes (default 256 bits) */
 //#define MBEDTLS_SSL_COOKIE_TIMEOUT        60 /**< Default expiration delay of DTLS cookies, in seconds if HAVE_TIME, or in number of cookies issued */
-
-/** \def MBEDTLS_TLS_EXT_CID
- *
- * At the time of writing, the CID extension has not been assigned its
- * final value. Set this configuration option to make Mbed TLS use a
- * different value.
- *
- * A future minor revision of Mbed TLS may change the default value of
- * this option to match evolving standards and usage.
- */
-//#define MBEDTLS_TLS_EXT_CID                        254
 
 /**
  * Complete list of ciphersuites to use, in order of preference.

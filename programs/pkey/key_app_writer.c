@@ -45,12 +45,12 @@
 
 #if defined(MBEDTLS_PEM_WRITE_C)
 #define USAGE_OUT \
-    "    output_file=%%s      default: keyfile.pem\n"   \
-    "    output_format=pem|der default: pem\n"
+    "    output_file=%%s           default: keyfile.pem\n"   \
+    "    output_format=pem|der|bin default: pem\n"
 #else
 #define USAGE_OUT \
-    "    output_file=%%s      default: keyfile.der\n"   \
-    "    output_format=der     default: der\n"
+    "    output_file=%%s           default: keyfile.der\n"   \
+    "    output_format=der|bin     default: der\n"
 #endif
 
 #if defined(MBEDTLS_PEM_WRITE_C)
@@ -76,6 +76,7 @@
 
 #define OUTPUT_FORMAT_PEM              0
 #define OUTPUT_FORMAT_DER              1
+#define OUTPUT_FORMAT_BIN              2
 
 #define USAGE \
     "\n usage: key_app_writer param=<>...\n"            \
@@ -193,6 +194,51 @@ static int write_private_key( mbedtls_pk_context *key, const char *output_file )
     return( 0 );
 }
 
+static int ascii2uc(const char c, unsigned char *uc)
+{
+    if( ( c >= '0' ) && ( c <= '9' ) )
+        *uc = c - '0';
+    else if( ( c >= 'a' ) && ( c <= 'f' ) )
+        *uc = c - 'a' + 10;
+    else if( ( c >= 'A' ) && ( c <= 'F' ) )
+        *uc = c - 'A' + 10;
+    else
+        return( -1 );
+
+    return( 0 );
+}
+
+int hexstring_to_binary( unsigned char *obuf,
+                           size_t obufmax,
+                           const char *ibuf,
+                           size_t *len )
+{
+    unsigned char uc, uc2;
+
+    *len = strlen( ibuf );
+
+    /* Must be even number of bytes. */
+    if ( ( *len ) & 1 )
+        return( -1 );
+    *len /= 2;
+
+    if ( (*len) > obufmax )
+        return( -1 );
+
+    while( *ibuf != 0 )
+    {
+        if ( ascii2uc( *(ibuf++), &uc ) != 0 )
+            return( -1 );
+
+        if ( ascii2uc( *(ibuf++), &uc2 ) != 0 )
+            return( -1 );
+
+        *(obuf++) = ( uc << 4 ) | uc2;
+    }
+
+    return( 0 );
+}
+
 int main( int argc, char *argv[] )
 {
     int ret = 1;
@@ -200,6 +246,11 @@ int main( int argc, char *argv[] )
     char buf[1024];
     int i;
     char *p, *q;
+    uint8_t output[80];
+    size_t output_len;
+    char tmp[80];
+    size_t olen;
+    uint8_t *ptr;
 
     mbedtls_pk_context key;
     mbedtls_mpi N, P, Q, D, E, DP, DQ, QP;
@@ -261,6 +312,9 @@ int main( int argc, char *argv[] )
 #endif
             if( strcmp( q, "der" ) == 0 )
                 opt.output_format = OUTPUT_FORMAT_DER;
+            else
+            if( strcmp( q, "bin" ) == 0 )
+                opt.output_format = OUTPUT_FORMAT_BIN;
             else
                 goto usage;
         }
@@ -339,6 +393,101 @@ int main( int argc, char *argv[] )
             mbedtls_mpi_write_file( "Q(Y): ", &ecp->Q.Y, 16, NULL );
             mbedtls_mpi_write_file( "Q(Z): ", &ecp->Q.Z, 16, NULL );
             mbedtls_mpi_write_file( "D   : ", &ecp->d  , 16, NULL );
+
+            if( opt.output_format == OUTPUT_FORMAT_BIN )
+            {
+                if( opt.output_mode == MODE_PRIVATE )
+                {
+                    ptr = output;
+                    size_t remaining_bytes=sizeof(output);
+            
+                    // D coordinate
+                    ret = mbedtls_mpi_write_string( &ecp->d, 16, tmp, sizeof(tmp), &olen);
+
+                    if( ret != 0 )
+                    {
+                        mbedtls_printf( " failed\n  !  mbedtls_mpi_write_string returned -0x%04x\n\n", (unsigned int) -ret );
+                        goto exit;
+                    }
+
+                    if( (olen / 2) > remaining_bytes )
+                    {
+                        mbedtls_printf( " failed\n  !  not enough memory for X coordinate -%zu bytes left but %zu bytes needed \n\n", remaining_bytes, olen );
+                        goto exit;
+                    }
+
+                    ret = hexstring_to_binary( ptr, remaining_bytes,
+                                tmp, &olen );
+
+                    if( ret != 0 )
+                    {
+                        mbedtls_printf( " failed\n  !  hexstring_to_binary returned -0x%04x\n\n", (unsigned int) -ret );
+                        goto exit;
+                    }
+
+                    ptr += olen;
+                    remaining_bytes -= olen;
+                    output_len = ptr-output;
+                }
+                else if( opt.output_mode == MODE_PUBLIC )
+                {
+                    ptr = output;
+                    size_t remaining_bytes=sizeof(output);
+            
+                    // Uncompressed point
+                    *ptr++=0x04;
+                    remaining_bytes--;
+
+                    // X coordinate
+                    ret = mbedtls_mpi_write_string( &ecp->Q.X, 16, tmp, sizeof(tmp), &olen);
+
+                    if( ret != 0 )
+                    {
+                        mbedtls_printf( " failed\n  !  mbedtls_mpi_write_string returned -0x%04x\n\n", (unsigned int) -ret );
+                        goto exit;
+                    }
+
+                    if( (olen / 2) > remaining_bytes )
+                    {
+                        mbedtls_printf( " failed\n  !  not enough memory for X coordinate - %zu bytes left but %zu bytes needed \n\n", remaining_bytes, olen );
+                        goto exit;
+                    }
+
+                    ret = hexstring_to_binary( ptr, remaining_bytes,
+                                tmp, &olen );
+
+                    if( ret != 0 )
+                    {
+                        mbedtls_printf( " failed\n  !  hexstring_to_binary returned -0x%04x\n\n", (unsigned int) -ret );
+                        goto exit;
+                    }
+
+                    ptr += olen;
+                    remaining_bytes -= olen;
+            
+                    // Y coordinate
+                    ret = mbedtls_mpi_write_string( &ecp->Q.Y, 16, tmp, sizeof(tmp), &olen);
+
+                    if( ret != 0 )
+                    {
+                        mbedtls_printf( " failed\n  !  mbedtls_mpi_write_string returned -0x%04x\n\n", (unsigned int) -ret );
+                        goto exit;
+                    }            
+
+                    if( (olen / 2) > remaining_bytes )
+                    {
+                        mbedtls_printf( " failed\n  !  not enough memory for Y coordinate - %zu bytes left but %zu bytes needed \n\n",
+                            remaining_bytes, olen );
+                        goto exit;
+                    }
+
+                    ret = hexstring_to_binary( ptr, remaining_bytes, tmp, &olen );
+
+                    ptr += olen;
+                    remaining_bytes -= olen;
+                    output_len = ptr-output;
+                }
+            }
         }
         else
 #endif
@@ -392,13 +541,108 @@ int main( int argc, char *argv[] )
             mbedtls_mpi_write_file( "Q(X): ", &ecp->Q.X, 16, NULL );
             mbedtls_mpi_write_file( "Q(Y): ", &ecp->Q.Y, 16, NULL );
             mbedtls_mpi_write_file( "Q(Z): ", &ecp->Q.Z, 16, NULL );
+
+
+            if( opt.output_format == OUTPUT_FORMAT_BIN )
+            {
+                ptr = output;
+                size_t remaining_bytes=sizeof(output);
+            
+                // Uncompressed point
+                *ptr++=0x04;
+                remaining_bytes--;
+
+                // X coordinate
+                ret = mbedtls_mpi_write_string( &ecp->Q.X, 16, tmp, sizeof(tmp), &olen);
+
+                if( ret != 0 )
+                {
+                    mbedtls_printf( " failed\n  !  mbedtls_mpi_write_string returned -0x%04x\n\n", (unsigned int) -ret );
+                    goto exit;
+                }
+
+                if( (olen / 2) > remaining_bytes )
+                {
+                    mbedtls_printf( " failed\n  !  not enough memory for X coordinate - %zu bytes left but %zu bytes needed \n\n", remaining_bytes, olen );
+                    goto exit;
+                }
+
+                ret = hexstring_to_binary( ptr, remaining_bytes,
+                            tmp, &olen );
+
+                if( ret != 0 )
+                {
+                    mbedtls_printf( " failed\n  !  hexstring_to_binary returned -0x%04x\n\n", (unsigned int) -ret );
+                    goto exit;
+                }
+
+                ptr += olen;
+                remaining_bytes -= olen;
+            
+                // Y coordinate
+                ret = mbedtls_mpi_write_string( &ecp->Q.Y, 16, tmp, sizeof(tmp), &olen);
+
+                if( ret != 0 )
+                {
+                    mbedtls_printf( " failed\n  !  mbedtls_mpi_write_string returned -0x%04x\n\n", (unsigned int) -ret );
+                    goto exit;
+                }            
+
+                if( (olen / 2) > remaining_bytes )
+                {
+                    mbedtls_printf( " failed\n  !  not enough memory for Y coordinate - %zu bytes left but %zu bytes needed \n\n",
+                        remaining_bytes, olen );
+                    goto exit;
+                }
+
+                ret = hexstring_to_binary( ptr, remaining_bytes, tmp, &olen );
+
+                ptr += olen;
+                remaining_bytes -= olen;
+                output_len = ptr-output;
+            }
         }
         else
 #endif
-            mbedtls_printf("key type not supported yet\n");
+            mbedtls_printf( " key type not supported yet\n" );
     }
     else
         goto usage;
+
+    if( opt.output_format == OUTPUT_FORMAT_BIN )
+    {
+            FILE *f;
+
+#if defined(_WIN32)
+            errno_t err  = fopen_s(&f, opt.output_file, "w" );
+
+            if( err != 0 )
+            {
+                mbedtls_printf( " cannot open file '%s': %d\n ",
+                   opt.filename, err );
+                goto exit;
+            }
+#else
+            if( ( f = fopen( opt.output_file, "w" ) ) == NULL )
+            {
+
+                mbedtls_printf( " cannot open file '%s'\n ",
+                   opt.filename );
+                goto exit;
+            }
+#endif
+            if( fwrite( output, 1, output_len, f ) != output_len )
+            {
+                mbedtls_printf( " writing to file failed '%s'\n ", opt.filename );
+                fclose( f );
+                goto exit;
+            }
+
+            fclose( f );
+
+            exit_code = MBEDTLS_EXIT_SUCCESS;
+            goto exit;
+    }
 
     if( opt.output_mode == OUTPUT_MODE_PUBLIC )
     {

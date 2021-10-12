@@ -41,6 +41,7 @@ int main( void )
         return( EXIT_FAILURE );
     }
 
+
     // Compute hash using multi-part operation
 
     status = psa_hash_setup( &sha256_psa, PSA_ALG_SHA_256 );

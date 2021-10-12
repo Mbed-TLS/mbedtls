@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "mbedtls/build_info.h"
 
 #define BUFFER_SIZE 500
 

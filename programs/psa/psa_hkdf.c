@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include "mbedtls/build_info.h"
 
 #if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(MBEDTLS_SHA256_C)
 int main( void )

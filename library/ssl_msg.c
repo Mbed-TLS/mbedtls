@@ -390,9 +390,9 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
      * and the MAC calculations for those ciphers differ slightly. Further
      * variants were added when the CID functionality was added with RFC 9146.
      * We will distinguish between the non-CID and the CID cases below.
-     * 
+     *
      * --- Non-CID cases ---
-     * 
+     *
      * Quoting RFC 5246 (TLS 1.2):
      *
      *    additional_data = seq_num + TLSCompressed.type +
@@ -416,8 +416,8 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
      * --- CID cases ---
      *
      * RFC 9146 uses a common pattern when constructing the data
-     * passed into a MAC / AEAD cipher. 
-     * 
+     * passed into a MAC / AEAD cipher.
+     *
      * Data concatenation for MACs used with block ciphers with
      * Encrypt-then-MAC Processing (with CID):
      *
@@ -447,7 +447,7 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
      *          DTLSInnerPlaintext.content +
      *          DTLSInnerPlaintext.real_type +
      *          DTLSInnerPlaintext.zeros
-     * 
+     *
      * AEAD ciphers use the following additional data calculation (with CIDs):
      *
      *     additional_data = seq_num_placeholder +
@@ -1097,7 +1097,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
              *     ENC(content + padding + padding_length));
              *
              * MAC calculation (with CID):
-             * 
+             *
              *     MAC(MAC_write_key,
              *         seq_num_placeholder +
              *         tls12_cid +

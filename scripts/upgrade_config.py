@@ -298,18 +298,40 @@ class Configuration():
         with open(filename, 'w') as out:
             self.write(out)
 
+    def insert_chunk(self, chunk: 'Chunk', after_this: Optional['Chunk'] = None) -> None:
+        """Insert a chunk into the content list at the specified place.
+
+        If `after_this` is None, the chunk will be inserted at the end, otherwise
+        it will be inserted after `after_this`.
+        """
+        if after_this is None:
+            self.content.append(chunk)
+        elif len(self.content) == 0:
+            self.content.append(chunk)
+        else:
+            idx = 0
+            while idx < len(self.content) and self.content[idx] != after_this:
+                idx += 1
+            if idx < len(self.content):
+                # Insert such that its index becomes idx+1
+                self.content.insert(idx+1, chunk)
+
     ### Upgrader methods and their helper functions follow ####
 
-    def define_symbol(self, symbol: str, value: Optional[str] = None, doc: Optional[str] = None) -> None:
-        """Add a definition of `symbol` at the end of the file.
+    def define_symbol(self, symbol: str, value: Optional[str] = None,
+            doc: Optional[str] = None, after_chunk: Optional[Chunk] = None) -> None:
+        """Add a definition of `symbol`.
         """
         if symbol in self.symbols:
             return
         rhs = ' ' + value if value else ''
-        self.content.append(Directive('#define ' + symbol + rhs + '\n', doc=doc))
+        self.insert_chunk(Directive('#define ' + symbol + rhs + '\n', doc=doc), after_chunk)
 
-    def remove_definition(self, symbol: str, doc: Optional[str] = None) -> None:
-        """Remove all definitions of `symbol` (``#define symbol ...``)."""
+    def remove_definition(self, symbol: str, doc: Optional[str] = None) -> Optional['Chunk']:
+        """Remove all definitions of `symbol` (``#define symbol ...``).
+        Return the Chunk of the replacement of the first occurence.
+        """
+        first_occurrence = None
         for idx in range(len(self.content)):
             chunk = self.content[idx]
             if isinstance(chunk, Directive) and \
@@ -317,6 +339,9 @@ class Configuration():
                chunk.word == symbol:
                 self.content[idx] = Chunk('// ' + self.content[idx].text,
                                           self.content[idx].line_number, doc=doc)
+                if first_occurrence is None:
+                    first_occurrence = self.content[idx]
+        return first_occurrence
 
     def maybe_remove_short_conditional(self, idx: int) -> None:
         """Remove a conditional directive around a single blank chunk.

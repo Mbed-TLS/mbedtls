@@ -753,7 +753,7 @@ wait_client_done() {
 # check if the given command uses dtls and sets global variable DTLS
 detect_dtls() {
     case "$1" in
-        *dtls=1*|-dtls|-u) DTLS=1;;
+        *dtls=1*|*-dtls*|*-u*) DTLS=1;;
         *) DTLS=0;;
     esac
 }

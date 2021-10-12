@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Bugfix
+   * Fix a bug in mbedtls_gcm_starts() when bits of iv are longer than 2^32.
+   * Fix #4950.
+
 = Mbed TLS 3.0.0 branch released 2021-07-07
 
 API changes

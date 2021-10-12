@@ -120,7 +120,6 @@ SHOW_TEST_NUMBER=0
 RUN_TEST_NUMBER=''
 
 PRESERVE_LOGS=0
-PRESERVE_NEXT_LOGS=0
 
 # Pick a "unique" server port in the range 10000-19999, and a proxy
 # port which is this plus 10000. Each port number may be independently
@@ -186,6 +185,7 @@ get_options() {
         esac
         shift
     done
+    PRESERVE_NEXT_LOGS=$PRESERVE_LOGS
 }
 
 # Make the outcome file path relative to the original directory, not

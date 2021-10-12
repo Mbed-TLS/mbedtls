@@ -564,7 +564,7 @@ int mbedtls_ssl_tls1_3_derive_resumption_master_secret(
     return( 0 );
 }
 
-int mbedtls_ssl_tls1_3_key_schedule_stage_application(
+int mbedtls_ssl_tls13_key_schedule_stage_application(
     mbedtls_ssl_context *ssl )
 {
     int ret = 0;
@@ -577,7 +577,6 @@ int mbedtls_ssl_tls1_3_key_schedule_stage_application(
     /*
      * Compute MasterSecret
      */
-
     ret = mbedtls_ssl_tls1_3_evolve_secret( md_type,
                     ssl->handshake->tls1_3_master_secrets.handshake,
                     NULL, 0,
@@ -687,7 +686,6 @@ int mbedtls_ssl_tls1_3_calc_finished( mbedtls_ssl_context* ssl,
     *actual_len = md_size;
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "verify_data for finished message", dst, md_size );
-
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= mbedtls_ssl_tls1_3_calc_finished" ) );
     return( 0 );
 }
@@ -1152,7 +1150,7 @@ int mbedtls_ssl_tls1_3_generate_application_keys(
                                       transcript, sizeof( transcript ),
                                       &transcript_len );
     if( ret != 0 )
-        return( ret );
+        goto cleanup;
 
     /* Compute application secrets from master secret and transcript hash. */
 
@@ -1164,7 +1162,7 @@ int mbedtls_ssl_tls1_3_generate_application_keys(
     {
         MBEDTLS_SSL_DEBUG_RET( 1,
                      "mbedtls_ssl_tls1_3_derive_application_secrets", ret );
-        return( ret );
+        goto cleanup;
     }
 
     /* Derive first epoch of IV + Key for application traffic. */
@@ -1176,7 +1174,7 @@ int mbedtls_ssl_tls1_3_generate_application_keys(
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls1_3_make_traffic_keys", ret );
-        return( ret );
+        goto cleanup;
     }
 
     MBEDTLS_SSL_DEBUG_BUF( 4, "Client application traffic secret",
@@ -1219,7 +1217,19 @@ int mbedtls_ssl_tls1_3_generate_application_keys(
                               traffic_keys->server_write_iv, ivlen );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= derive application traffic keys" ) );
-    return( 0 );
+
+ cleanup:
+
+    mbedtls_platform_zeroize( transcript, sizeof(transcript) );
+    mbedtls_platform_zeroize( traffic_keys->client_write_key,
+                              sizeof(traffic_keys->client_write_key)  );
+    mbedtls_platform_zeroize( traffic_keys->server_write_key,
+                              sizeof(traffic_keys->server_write_key)  );
+    mbedtls_platform_zeroize( traffic_keys->client_write_iv,
+                              sizeof(traffic_keys->client_write_iv)  );
+    mbedtls_platform_zeroize( traffic_keys->server_write_iv,
+                              sizeof(traffic_keys->server_write_iv)  );
+    return( ret );
 }
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */

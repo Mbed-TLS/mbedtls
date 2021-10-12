@@ -783,22 +783,6 @@ struct mbedtls_ssl_handshake_params
 
 #endif /* MBEDTLS_SSL_CLI_C */
 
-#if defined(MBEDTLS_SSL_SRV_C)
-
-        /* Server, outgoing ClientKeyExchange */
-        struct
-        {
-            uint8_t preparation_done;
-        } cli_key_exch_in;
-
-        /* Server, outgoing ClientKeyExchange */
-        struct
-        {
-            uint8_t preparation_done;
-        } encrypted_extensions_out;
-
-#endif /* MBEDTLS_SSL_SRV_C */
-
         /* Incoming CertificateVerify */
         struct
         {
@@ -1262,8 +1246,9 @@ int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl );
 
 int mbedtls_ssl_read_certificate_process(mbedtls_ssl_context *ssl);
 int mbedtls_ssl_write_certificate_process(mbedtls_ssl_context *ssl);
-int mbedtls_ssl_tls1_3_finished_in_process( mbedtls_ssl_context *ssl );
-int mbedtls_ssl_tls1_3_finished_out_process( mbedtls_ssl_context *ssl );
+
+int mbedtls_ssl_tls13_finished_in_process( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_tls13_finished_out_process( mbedtls_ssl_context *ssl );
 
 int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl );

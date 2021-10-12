@@ -1605,9 +1605,7 @@ static int ssl_tls1_3_process_certificate_verify( mbedtls_ssl_context *ssl )
  */
 static int ssl_tls1_3_process_server_finished( mbedtls_ssl_context *ssl )
 {
-    MBEDTLS_SSL_DEBUG_MSG( 1, ( "%s hasn't been implemented", __func__ ) );
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE );
-    return( 0 );
+    return ( mbedtls_ssl_tls13_finished_in_process( ssl ) );
 }
 
 /*

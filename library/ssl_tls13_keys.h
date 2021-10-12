@@ -586,7 +586,7 @@ int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
  * \returns    \c 0 on success.
  * \returns    A negative error code on failure.
  */
-int mbedtls_ssl_tls1_3_key_schedule_stage_application(
+int mbedtls_ssl_tls13_key_schedule_stage_application(
     mbedtls_ssl_context *ssl );
 
 /**
@@ -594,7 +594,7 @@ int mbedtls_ssl_tls1_3_key_schedule_stage_application(
  *
  * \param ssl  The SSL context to operate on. This must be in
  *             key schedule stage \c Application, see
- *             mbedtls_ssl_tls1_3_key_schedule_stage_application().
+ *             mbedtls_ssl_tls13_key_schedule_stage_application().
  * \param traffic_keys The address at which to store the application traffic key
  *                     keys. This must be writable but may be uninitialized.
  *
@@ -609,7 +609,7 @@ int mbedtls_ssl_tls1_3_generate_application_keys(
  *
  * \param ssl  The SSL context to operate on. This must be in
  *             key schedule stage \c Handshake, see
- *             mbedtls_ssl_tls1_3_key_schedule_stage_application().
+ *             mbedtls_ssl_tls13_key_schedule_stage_application().
  * \param dst        The address at which to write the Finished content.
  * \param dst_len    The size of \p dst in bytes.
  * \param actual_len The address at which to store the amount of data

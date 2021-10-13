@@ -486,8 +486,12 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
         {
             memcpy(cur, rec->ctr, sizeof(rec->ctr));
             cur += sizeof(rec->ctr);
-        }
+        } else
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+       {
+            memcpy( cur, rec->ctr, sizeof( rec->ctr ) );
+            cur += sizeof( rec->ctr );
+       }
     }
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)

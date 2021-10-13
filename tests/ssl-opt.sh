@@ -77,6 +77,14 @@ else
     O_LEGACY_CLI=false
 fi
 
+if [ -n "${OPENSSL_NEXT:-}" ]; then
+    O_NEXT_SRV="$OPENSSL_NEXT s_server -www -cert data_files/server5.crt -key data_files/server5.key"
+    O_NEXT_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_NEXT s_client"
+else
+    O_NEXT_SRV=false
+    O_NEXT_CLI=false
+fi
+
 if [ -n "${GNUTLS_NEXT_SERV:-}" ]; then
     G_NEXT_SRV="$GNUTLS_NEXT_SERV --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key"
 else
@@ -351,6 +359,19 @@ requires_openssl_legacy() {
         fi
     fi
     if [ "$OPENSSL_LEGACY_AVAILABLE" = "NO" ]; then
+        SKIP_NEXT="YES"
+    fi
+}
+
+requires_openssl_next() {
+    if [ -z "${OPENSSL_NEXT_AVAILABLE:-}" ]; then
+        if which "${OPENSSL_NEXT:-}" >/dev/null 2>&1; then
+            OPENSSL_NEXT_AVAILABLE="YES"
+        else
+            OPENSSL_NEXT_AVAILABLE="NO"
+        fi
+    fi
+    if [ "$OPENSSL_NEXT_AVAILABLE" = "NO" ]; then
         SKIP_NEXT="YES"
     fi
 }
@@ -1223,6 +1244,11 @@ G_CLI="$G_CLI -p +SRV_PORT"
 if [ -n "${OPENSSL_LEGACY:-}" ]; then
     O_LEGACY_SRV="$O_LEGACY_SRV -accept $SRV_PORT -dhparam data_files/dhparams.pem"
     O_LEGACY_CLI="$O_LEGACY_CLI -connect localhost:+SRV_PORT"
+fi
+
+if [ -n "${OPENSSL_NEXT:-}" ]; then
+    O_NEXT_SRV="$O_NEXT_SRV -accept $SRV_PORT"
+    O_NEXT_CLI="$O_NEXT_CLI -connect localhost:+SRV_PORT"
 fi
 
 if [ -n "${GNUTLS_NEXT_SERV:-}" ]; then

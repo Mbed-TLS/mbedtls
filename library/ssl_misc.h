@@ -510,15 +510,15 @@ typedef struct mbedtls_ssl_key_set mbedtls_ssl_key_set;
 
 typedef struct
 {
-    unsigned char binder_key                  [ MBEDTLS_MD_MAX_SIZE ];
-    unsigned char client_early_traffic_secret [ MBEDTLS_MD_MAX_SIZE ];
-    unsigned char early_exporter_master_secret[ MBEDTLS_MD_MAX_SIZE ];
+    unsigned char binder_key                  [ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
+    unsigned char client_early_traffic_secret [ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
+    unsigned char early_exporter_master_secret[ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
 } mbedtls_ssl_tls1_3_early_secrets;
 
 typedef struct
 {
-    unsigned char client_handshake_traffic_secret[ MBEDTLS_MD_MAX_SIZE ];
-    unsigned char server_handshake_traffic_secret[ MBEDTLS_MD_MAX_SIZE ];
+    unsigned char client_handshake_traffic_secret[ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
+    unsigned char server_handshake_traffic_secret[ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
 } mbedtls_ssl_tls1_3_handshake_secrets;
 
 typedef struct

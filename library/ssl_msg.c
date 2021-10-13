@@ -481,35 +481,28 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
     {
         ((void) tls_version);
         ((void) taglen);
+
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-        if( rec->cid_len == 0 )
+        if (rec->cid_len != 0)
         {
-            memcpy(cur, rec->ctr, sizeof(rec->ctr));
-            cur += sizeof(rec->ctr);
-        } else
+            // seq_num_placeholder
+            memcpy(cur, seq_num_placeholder, sizeof(seq_num_placeholder));
+            cur += sizeof(seq_num_placeholder);
+
+            // type
+            *cur = rec->type;
+            cur++;
+
+            // cid_length
+            *cur = rec->cid_len;
+            cur++;
+        }
+#else
+        memcpy( cur, rec->ctr, sizeof( rec->ctr ) );
+        cur += sizeof( rec->ctr );
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
-       {
-            memcpy( cur, rec->ctr, sizeof( rec->ctr ) );
-            cur += sizeof( rec->ctr );
-       }
+
     }
-
-#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-    if( rec->cid_len != 0 )
-    {
-        // seq_num_placeholder
-        memcpy(cur, seq_num_placeholder, sizeof(seq_num_placeholder));
-        cur += sizeof(seq_num_placeholder);
-
-        // type
-        *cur = rec->type;
-        cur++;
-
-        // cid_length
-        *cur = rec->cid_len;
-        cur++;
-    }
-#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
     // type
     *cur = rec->type;

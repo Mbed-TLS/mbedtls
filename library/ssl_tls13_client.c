@@ -926,6 +926,11 @@ static int ssl_server_hello_is_hrr( mbedtls_ssl_context *ssl,
     return( SSL_SERVER_HELLO_COORDINATE_HELLO );
 }
 
+/* Fetch and preprocess
+ * Returns a negative value on failure, and otherwise
+ * - SSL_SERVER_HELLO_COORDINATE_HELLO or
+ * - SSL_SERVER_HELLO_COORDINATE_HRR
+ */
 static int ssl_tls13_server_hello_coordinate( mbedtls_ssl_context *ssl,
                                               unsigned char **buf,
                                               size_t *buf_len )
@@ -950,12 +955,12 @@ static int ssl_tls13_server_hello_coordinate( mbedtls_ssl_context *ssl,
     ret = ssl_server_hello_is_hrr( ssl, *buf, *buf + *buf_len );
     switch( ret )
     {
-    case SSL_SERVER_HELLO_COORDINATE_HELLO:
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "received ServerHello message" ) );
-        break;
-    case SSL_SERVER_HELLO_COORDINATE_HRR:
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "received HelloRetryRequest message" ) );
-        break;
+        case SSL_SERVER_HELLO_COORDINATE_HELLO:
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "received ServerHello message" ) );
+            break;
+        case SSL_SERVER_HELLO_COORDINATE_HRR:
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "received HelloRetryRequest message" ) );
+            break;
     }
 
 cleanup:
@@ -1248,26 +1253,26 @@ static int ssl_tls13_finalize_server_hello( mbedtls_ssl_context *ssl )
     switch( handshake->extensions_present &
             ( MBEDTLS_SSL_EXT_PRE_SHARED_KEY | MBEDTLS_SSL_EXT_KEY_SHARE ) )
     {
-    /* Only the pre_shared_key extension was received */
-    case MBEDTLS_SSL_EXT_PRE_SHARED_KEY:
-        handshake->tls1_3_kex_modes = MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK;
-        break;
+        /* Only the pre_shared_key extension was received */
+        case MBEDTLS_SSL_EXT_PRE_SHARED_KEY:
+            handshake->tls1_3_kex_modes = MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK;
+            break;
 
-    /* Only the key_share extension was received */
-    case MBEDTLS_SSL_EXT_KEY_SHARE:
-        handshake->tls1_3_kex_modes = MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_EPHEMERAL;
-        break;
+        /* Only the key_share extension was received */
+        case MBEDTLS_SSL_EXT_KEY_SHARE:
+            handshake->tls1_3_kex_modes = MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_EPHEMERAL;
+            break;
 
-    /* Both the pre_shared_key and key_share extensions were received */
-    case ( MBEDTLS_SSL_EXT_PRE_SHARED_KEY | MBEDTLS_SSL_EXT_KEY_SHARE ):
-        handshake->tls1_3_kex_modes = MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_EPHEMERAL;
-        break;
+        /* Both the pre_shared_key and key_share extensions were received */
+        case ( MBEDTLS_SSL_EXT_PRE_SHARED_KEY | MBEDTLS_SSL_EXT_KEY_SHARE ):
+            handshake->tls1_3_kex_modes = MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_EPHEMERAL;
+            break;
 
-    /* Neither pre_shared_key nor key_share extension was received */
-    default:
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Unknown key exchange." ) );
-        ret = MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
-        goto cleanup;
+        /* Neither pre_shared_key nor key_share extension was received */
+        default:
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Unknown key exchange." ) );
+            ret = MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
+            goto cleanup;
     }
 
     /* Start the TLS 1.3 key schedule: Set the PSK and derive early secret.

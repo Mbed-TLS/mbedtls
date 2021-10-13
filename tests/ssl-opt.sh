@@ -2695,7 +2695,7 @@ run_test    "Session resume using tickets, DTLS: openssl server" \
             -c "a session has been resumed"
 
 # For reasons that aren't fully understood, this test randomly fails with high
-# probabiliby with OpenSSL 1.0.2g on the CI, see #5012.
+# probability with OpenSSL 1.0.2g on the CI, see #5012.
 requires_openssl_next
 run_test    "Session resume using tickets, DTLS: openssl client" \
             "$P_SRV dtls=1 debug_level=3 tickets=1" \
@@ -2898,7 +2898,7 @@ run_test    "Session resume using cache, DTLS: session copy" \
             -c "a session has been resumed"
 
 # For reasons that aren't fully understood, this test randomly fails with high
-# probabiliby with OpenSSL 1.0.2g on the CI, see #5012.
+# probability with OpenSSL 1.0.2g on the CI, see #5012.
 requires_openssl_next
 run_test    "Session resume using cache, DTLS: openssl client" \
             "$P_SRV dtls=1 debug_level=3 tickets=0" \

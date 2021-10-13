@@ -150,9 +150,20 @@ static int ccm_calculate_first_block_if_ready(mbedtls_ccm_context *ctx)
     if( !(ctx->state & CCM_STATE__STARTED) || !(ctx->state & CCM_STATE__LENGHTS_SET) )
         return 0;
 
-    if( ctx->tag_len == 0 && \
-        ( ctx->mode == MBEDTLS_CCM_ENCRYPT || ctx->mode == MBEDTLS_CCM_DECRYPT ) )
-        return( MBEDTLS_ERR_CCM_BAD_INPUT );
+    /* CCM expects non-empty tag.
+     * CCM* allows empty tag. For CCM* without tag, ignore plaintext length.
+     */
+    if( ctx->tag_len == 0 )
+    {
+        if( ctx->mode == MBEDTLS_CCM_STAR_ENCRYPT || ctx->mode == MBEDTLS_CCM_STAR_DECRYPT )
+        {
+            ctx->plaintext_len = 0;
+        }
+        else
+        {
+            return( MBEDTLS_ERR_CCM_BAD_INPUT );
+        }
+    }
 
     /*
      * First block:
@@ -342,7 +353,10 @@ int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
         return MBEDTLS_ERR_CCM_BAD_INPUT;
     }
 
-    if( ctx->processed + input_len > ctx->plaintext_len )
+    /* Check against plaintext length only if performing operation with
+     * authentication
+     */
+    if( ctx->tag_len != 0 && ctx->processed + input_len > ctx->plaintext_len )
     {
         return MBEDTLS_ERR_CCM_BAD_INPUT;
     }

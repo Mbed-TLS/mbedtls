@@ -198,6 +198,7 @@ int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
  * \param ctx       The CCM context to use for encryption. This must be
  *                  initialized and bound to a key.
  * \param length    The length of the input data in Bytes.
+ *                  For tag length = 0, input length is ignored.
  * \param iv        The initialization vector (nonce). This must be a readable
  *                  buffer of at least \p iv_len Bytes.
  * \param iv_len    The length of the nonce in Bytes: 7, 8, 9, 10, 11, 12,
@@ -207,6 +208,7 @@ int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
  *                  at least \p ad_len Bytes.
  * \param ad_len    The length of additional data in Bytes.
  *                  This must be less than 2^16 - 2^8.
+ *                  For tag length = 0, AD length can be 0.
  * \param input     The buffer holding the input data. If \p length is greater
  *                  than zero, \p input must be a readable buffer of at least
  *                  that length.
@@ -279,6 +281,7 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
  * \param ctx       The CCM context to use for decryption. This must be
  *                  initialized and bound to a key.
  * \param length    The length of the input data in Bytes.
+ *                  For tag length = 0, input length is ignored.
  * \param iv        The initialization vector (nonce). This must be a readable
  *                  buffer of at least \p iv_len Bytes.
  * \param iv_len    The length of the nonce in Bytes: 7, 8, 9, 10, 11, 12,
@@ -288,6 +291,7 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
  *                  at least that \p ad_len Bytes.
  * \param ad_len    The length of additional data in Bytes.
  *                  This must be less than 2^16 - 2^8.
+ *                  For tag length = 0, AD length can be 0.
  * \param input     The buffer holding the input data. If \p length is greater
  *                  than zero, \p input must be a readable buffer of at least
  *                  that length.

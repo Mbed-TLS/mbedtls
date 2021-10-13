@@ -753,7 +753,7 @@ wait_client_done() {
 # check if the given command uses dtls and sets global variable DTLS
 detect_dtls() {
     case "$1" in
-        *dtls=1*|-dtls|-u) DTLS=1;;
+        *dtls=1*|*-dtls*|*-u*) DTLS=1;;
         *) DTLS=0;;
     esac
 }
@@ -1309,22 +1309,24 @@ SRV_DELAY_SECONDS=0
 
 # fix commands to use this port, force IPv4 while at it
 # +SRV_PORT will be replaced by either $SRV_PORT or $PXY_PORT later
+# Note: Using 'localhost' rather than 127.0.0.1 here is unwise, as on many
+# machines that will resolve to ::1, and we don't want ipv6 here.
 P_SRV="$P_SRV server_addr=127.0.0.1 server_port=$SRV_PORT"
 P_CLI="$P_CLI server_addr=127.0.0.1 server_port=+SRV_PORT"
 P_PXY="$P_PXY server_addr=127.0.0.1 server_port=$SRV_PORT listen_addr=127.0.0.1 listen_port=$PXY_PORT ${SEED:+"seed=$SEED"}"
 O_SRV="$O_SRV -accept $SRV_PORT"
-O_CLI="$O_CLI -connect localhost:+SRV_PORT"
+O_CLI="$O_CLI -connect 127.0.0.1:+SRV_PORT"
 G_SRV="$G_SRV -p $SRV_PORT"
 G_CLI="$G_CLI -p +SRV_PORT"
 
 if [ -n "${OPENSSL_LEGACY:-}" ]; then
     O_LEGACY_SRV="$O_LEGACY_SRV -accept $SRV_PORT -dhparam data_files/dhparams.pem"
-    O_LEGACY_CLI="$O_LEGACY_CLI -connect localhost:+SRV_PORT"
+    O_LEGACY_CLI="$O_LEGACY_CLI -connect 127.0.0.1:+SRV_PORT"
 fi
 
 if [ -n "${OPENSSL_NEXT:-}" ]; then
     O_NEXT_SRV="$O_NEXT_SRV -accept $SRV_PORT"
-    O_NEXT_CLI="$O_NEXT_CLI -connect localhost:+SRV_PORT"
+    O_NEXT_CLI="$O_NEXT_CLI -connect 127.0.0.1:+SRV_PORT"
 fi
 
 if [ -n "${GNUTLS_NEXT_SERV:-}" ]; then
@@ -2694,10 +2696,13 @@ run_test    "Session resume using tickets, DTLS: openssl server" \
             -c "parse new session ticket" \
             -c "a session has been resumed"
 
+# For reasons that aren't fully understood, this test randomly fails with high
+# probability with OpenSSL 1.0.2g on the CI, see #5012.
+requires_openssl_next
 run_test    "Session resume using tickets, DTLS: openssl client" \
             "$P_SRV dtls=1 debug_level=3 tickets=1" \
-            "( $O_CLI -dtls -sess_out $SESSION; \
-               $O_CLI -dtls -sess_in $SESSION; \
+            "( $O_NEXT_CLI -dtls -sess_out $SESSION; \
+               $O_NEXT_CLI -dtls -sess_in $SESSION; \
                rm -f $SESSION )" \
             0 \
             -s "found session ticket extension" \
@@ -2894,10 +2899,13 @@ run_test    "Session resume using cache, DTLS: session copy" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+# For reasons that aren't fully understood, this test randomly fails with high
+# probability with OpenSSL 1.0.2g on the CI, see #5012.
+requires_openssl_next
 run_test    "Session resume using cache, DTLS: openssl client" \
             "$P_SRV dtls=1 debug_level=3 tickets=0" \
-            "( $O_CLI -dtls -sess_out $SESSION; \
-               $O_CLI -dtls -sess_in $SESSION; \
+            "( $O_NEXT_CLI -dtls -sess_out $SESSION; \
+               $O_NEXT_CLI -dtls -sess_in $SESSION; \
                rm -f $SESSION )" \
             0 \
             -s "found session ticket extension" \

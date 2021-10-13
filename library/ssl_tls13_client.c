@@ -1432,7 +1432,7 @@ static int ssl_tls13_process_encrypted_extensions( mbedtls_ssl_context *ssl )
 
     /* Process the message contents */
     MBEDTLS_SSL_PROC_CHK(
-        ssl_tls13_parse_encrypted_extensions( ssl, buf, ( buf + buf_len ) ) );
+        ssl_tls13_parse_encrypted_extensions( ssl, buf, buf + buf_len ) );
 
     mbedtls_ssl_tls1_3_add_hs_msg_to_checksum(
         ssl, MBEDTLS_SSL_HS_ENCRYPTED_EXTENSION, buf, buf_len );
@@ -1458,14 +1458,17 @@ static int ssl_tls13_parse_encrypted_extensions( mbedtls_ssl_context *ssl,
     int ret = 0;
     size_t extensions_len;
     const unsigned char *p = buf;
+    const unsigned char *extensions_end;
 
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2 );
     extensions_len = MBEDTLS_GET_UINT16_BE( p, 0 );
     p += 2;
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "encrypted extensions", p, extensions_len );
+    extensions_end = p + extensions_len;
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, extensions_len );
 
-    while( p < end )
+    while( p < extensions_end )
     {
         unsigned int extension_type;
         size_t extension_data_len;
@@ -1476,12 +1479,12 @@ static int ssl_tls13_parse_encrypted_extensions( mbedtls_ssl_context *ssl,
          *     opaque extension_data<0..2^16-1>;
          * } Extension;
          */
-        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 4 );
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, extensions_end, 4 );
         extension_type = MBEDTLS_GET_UINT16_BE( p, 0 );
         extension_data_len = MBEDTLS_GET_UINT16_BE( p, 2 );
         p += 4;
 
-        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, extension_data_len );
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, extensions_end, extension_data_len );
 
         /* The client MUST check EncryptedExtensions for the
          * presence of any forbidden extensions and if any are found MUST abort
@@ -1501,18 +1504,17 @@ static int ssl_tls13_parse_encrypted_extensions( mbedtls_ssl_context *ssl,
                     MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT,   \
                     MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION );
                 return ( MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION );
-                break;
         }
 
         p += extension_data_len;
     }
 
     /* Check that we consumed all the message. */
-    if( p != end )
+    if( p != extensions_end )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "EncryptedExtension lengths misaligned" ) );
-        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,   \
-                                      MBEDTLS_ERR_SSL_DECODE_ERROR );
+        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,   \
+                                      MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
         return( MBEDTLS_ERR_SSL_DECODE_ERROR );
     }
 

@@ -617,6 +617,29 @@
 //#define MBEDTLS_CAMELLIA_SMALL_MEMORY
 
 /**
+ * \def MBEDTLS_CHECK_RETURN_WARNING
+ *
+ * If this macro is defined, emit a compile-time warning if application code
+ * calls a function without checking its return value, but the return value
+ * should generally be checked in portable applications.
+ *
+ * This is only supported on platforms where #MBEDTLS_CHECK_RETURN is
+ * implemented. Otherwise this option has no effect.
+ *
+ * Uncomment to get warnings on using fallible functions without checking
+ * their return value.
+ *
+ * \note  This feature is a work in progress.
+ *        Warnings will be added to more functions in the future.
+ *
+ * \note  A few functions are considered critical, and ignoring the return
+ *        value of these functions will trigger a warning even if this
+ *        macro is not defined. To completely disable return value check
+ *        warnings, define #MBEDTLS_CHECK_RETURN with an empty expansion.
+ */
+//#define MBEDTLS_CHECK_RETURN_WARNING
+
+/**
  * \def MBEDTLS_CIPHER_MODE_CBC
  *
  * Enable Cipher Block Chaining mode (CBC) for symmetric ciphers.
@@ -3688,6 +3711,29 @@
  * \param cond  The expression that should evaluate to true, but doesn't.
  */
 //#define MBEDTLS_PARAM_FAILED( cond )               assert( cond )
+
+/** \def MBEDTLS_CHECK_RETURN
+ *
+ * This macro is used at the beginning of the declaration of a function
+ * to indicate that its return value should be checked. It should
+ * instruct the compiler to emit a warning or an error if the function
+ * is called without checking its return value.
+ *
+ * There is a default implementation for popular compilers in platform_util.h.
+ * You can override the default implementation by defining your own here.
+ *
+ * If the implementation here is empty, this will effectively disable the
+ * checking of functions' return values.
+ */
+//#define MBEDTLS_CHECK_RETURN __attribute__((__warn_unused_result__))
+
+/** \def MBEDTLS_IGNORE_RETURN
+ *
+ * This macro requires one argument, which should be a C function call.
+ * If that function call would cause a #MBEDTLS_CHECK_RETURN warning, this
+ * warning is suppressed.
+ */
+//#define MBEDTLS_IGNORE_RETURN( result ) ((void) !(result))
 
 /* PSA options */
 /**

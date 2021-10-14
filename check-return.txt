@@ -1,0 +1,7 @@
+Bugfix
+   * Failures of alternative implementations of AES or DES single-block
+     functions enabled with MBEDTLS_AES_ENCRYPT_ALT, MBEDTLS_AES_DECRYPT_ALT,
+     MBEDTLS_DES_CRYPT_ECB_ALT or MBEDTLS_DES3_CRYPT_ECB_ALT were ignored.
+     This does not concern the implementation provided with Mbed TLS,
+     where this function cannot fail, or full-module replacements with
+     MBEDTLS_AES_ALT or MBEDTLS_DES_ALT. Reported by Armelle Duboc in #1092.

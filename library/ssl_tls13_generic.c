@@ -320,6 +320,18 @@ static int ssl_tls13_process_certificate_verify_coordinate(
 }
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+static int ssl_tls13_sig_alg_is_offered( mbedtls_ssl_context *ssl, uint16_t sig_alg )
+{
+    const uint16_t *tls13_sig_alg = ssl->conf->tls13_sig_algs;
+
+    for( ; *tls13_sig_alg !=MBEDTLS_TLS13_SIG_NONE ; tls13_sig_alg++ )
+    {
+        if( *tls13_sig_alg == sig_alg )
+            return 1;
+    }
+    return 0;
+}
+
 static int ssl_tls13_process_certificate_verify_parse( mbedtls_ssl_context *ssl,
                                                        const unsigned char *buf,
                                                        const unsigned char *end,
@@ -329,7 +341,6 @@ static int ssl_tls13_process_certificate_verify_parse( mbedtls_ssl_context *ssl,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const unsigned char *p = buf;
     uint16_t algorithm;
-    const uint16_t *tls13_sig_alg = ssl->conf->tls13_sig_algs;
     size_t signature_len;
     mbedtls_pk_type_t sig_alg;
     mbedtls_md_type_t md_alg;
@@ -361,26 +372,16 @@ static int ssl_tls13_process_certificate_verify_parse( mbedtls_ssl_context *ssl,
      * Check if algorithm in offered signature algorithms. Send `unsupported_certificate`
      * alert message on failure.
      */
-    while( 1 )
+    if( ssl_tls13_sig_alg_is_offered( ssl, algorithm ) == 0 )
     {
-        /* Found algorithm in offered signature algorithms */
-        if( *tls13_sig_alg == algorithm )
-            break;
-
-        if( *tls13_sig_alg == MBEDTLS_TLS13_SIG_NONE )
-        {
-            /* End of offered signature algorithms list */
-            MBEDTLS_SSL_DEBUG_MSG( 1,
-                                   ( "signature algorithm(%04x) not in offered"
-                                     "signature algorithms ",
-                                     ( unsigned int ) algorithm ) );
-            MBEDTLS_SSL_PEND_FATAL_ALERT(
-                MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT,
-                MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-            return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
-        }
-
-        tls13_sig_alg++;
+        /* algorithm not in offered signature algorithms list */
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Received signature algorithm(%04x) is not "
+                                    "offered.",
+                                    ( unsigned int ) algorithm ) );
+        MBEDTLS_SSL_PEND_FATAL_ALERT(
+            MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT,
+            MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+        return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
     }
 
     /* We currently only support ECDSA-based signatures */

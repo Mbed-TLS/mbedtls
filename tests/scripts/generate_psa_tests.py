@@ -261,6 +261,83 @@ class NotSupported:
                 yield from self.test_cases_for_key_type_not_supported(
                     kt, 0, param_descr='curve')
 
+def test_case_for_key_generation(
+        key_type: str, bits: int,
+        dependencies: List[str],
+        *args: str,
+        result: str = '',
+        param_descr: str = '',
+) -> test_case.TestCase:
+    """Return one test case exercising a key generation.
+    """
+    hack_dependencies_not_implemented(dependencies)
+    tc = test_case.TestCase()
+    short_key_type = re.sub(r'PSA_(KEY_TYPE|ECC_FAMILY)_', r'', key_type)
+    tc.set_description('PSA {} {}-bit'
+                       .format( short_key_type, bits))
+    tc.set_dependencies(dependencies)
+    tc.set_function('generate_key')
+    tc.set_arguments([key_type] + list(args))
+    tc.set_result(result)
+
+    return tc
+
+class KeyGenerate:
+    """Generate positive and negative (invalid argument) test cases for key generation."""
+
+    def __init__(self, info: Information) -> None:
+        self.constructors = info.constructors
+
+    def test_cases_for_key_type_key_generation(
+            self,
+            kt: crypto_knowledge.KeyType,
+            param: Optional[int] = None,
+            param_descr: str = '',
+    ) -> Iterator[test_case.TestCase]:
+        """Return test cases exercising key generation.
+
+        All key types can be generated except for public keys. For public key
+        PSA_ERROR_INVALID_ARGUMENT status is expected.
+        """
+        result = 'PSA_SUCCESS'
+
+        import_dependencies = [psa_want_symbol(kt.name)]
+        if kt.params is not None:
+            import_dependencies += [psa_want_symbol(sym)
+                                    for i, sym in enumerate(kt.params)]
+        if kt.name.endswith('_PUBLIC_KEY'):
+            generate_dependencies = []
+            result = 'PSA_ERROR_INVALID_ARGUMENT'
+        else:
+            generate_dependencies = import_dependencies
+        for bits in kt.sizes_to_test():
+            yield test_case_for_key_generation(
+                kt.expression, bits,
+                finish_family_dependencies(generate_dependencies, bits),
+                str(bits),
+                result,
+                param_descr=param_descr
+            )
+
+    ECC_KEY_TYPES = ('PSA_KEY_TYPE_ECC_KEY_PAIR',
+                     'PSA_KEY_TYPE_ECC_PUBLIC_KEY')
+
+    def test_cases_for_key_generation(self) -> Iterator[test_case.TestCase]:
+        """Generate test cases that exercise the generation of keys."""
+        for key_type in sorted(self.constructors.key_types):
+            if key_type in self.ECC_KEY_TYPES:
+                continue
+            kt = crypto_knowledge.KeyType(key_type)
+            yield from self.test_cases_for_key_type_key_generation(kt)
+        for curve_family in sorted(self.constructors.ecc_curves):
+            for constr in self.ECC_KEY_TYPES:
+                kt = crypto_knowledge.KeyType(constr, [curve_family])
+                yield from self.test_cases_for_key_type_key_generation(
+                    kt, param_descr='type')
+                yield from self.test_cases_for_key_type_key_generation(
+                    kt, 0, param_descr='curve')
+
+
 class StorageKey(psa_storage.Key):
     """Representation of a key for storage format testing."""
 
@@ -682,6 +759,8 @@ class TestGenerator:
         test_case.write_data_file(filename, test_cases)
 
     TARGETS = {
+        'test_suite_psa_crypto_generate_key.generated':
+        lambda info: KeyGenerate(info).test_cases_for_key_generation(),
         'test_suite_psa_crypto_not_supported.generated':
         lambda info: NotSupported(info).test_cases_for_not_supported(),
         'test_suite_psa_crypto_storage_format.current':

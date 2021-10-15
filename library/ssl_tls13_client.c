@@ -884,8 +884,7 @@ cleanup:
 /*
  * Functions for parsing and processing Server Hello
  */
-/* Fetch and preprocess
- * Returns a negative value on failure, and otherwise
+/* Returns a negative value on failure, and otherwise
  * - SSL_SERVER_HELLO_COORDINATE_HELLO or
  * - SSL_SERVER_HELLO_COORDINATE_HRR
  * to indicate which message is expected and to be parsed next. */

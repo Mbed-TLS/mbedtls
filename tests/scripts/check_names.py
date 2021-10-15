@@ -44,6 +44,7 @@ error. It must be run from Mbed TLS root.
 
 import abc
 import argparse
+import fnmatch
 import glob
 import textwrap
 import os
@@ -222,8 +223,9 @@ class CodeParser():
         # Memo for storing "glob expression": set(filepaths)
         self.files = {}
 
-        # Globally excluded filenames
-        self.excluded_files = ["**/bn_mul", "**/compat-2.x.h"]
+        # Globally excluded filenames.
+        # Note that "*" can match directory separators in exclude lists.
+        self.excluded_files = ["*/bn_mul", "*/compat-2.x.h"]
 
     @staticmethod
     def check_repo_path():
@@ -302,6 +304,15 @@ class CodeParser():
             "mbed_words": mbed_words
         }
 
+    def is_file_excluded(self, path, exclude_wildcards):
+        """Whether the given file path is excluded."""
+        # exclude_wildcards may be None. Also, consider the global exclusions.
+        exclude_wildcards = (exclude_wildcards or []) + self.excluded_files
+        for pattern in exclude_wildcards:
+            if fnmatch.fnmatch(path, pattern):
+                return True
+        return False
+
     def get_files(self, include_wildcards, exclude_wildcards):
         """
         Get all files that match any of the UNIX-style wildcards. While the
@@ -317,25 +328,11 @@ class CodeParser():
         """
         accumulator = set()
 
-        # exclude_wildcards may be None. Also, consider the global exclusions.
-        exclude_wildcards = (exclude_wildcards or []) + self.excluded_files
-
-        # Internal function to hit the memoisation cache or add to it the result
-        # of a glob operation. Used both for inclusion and exclusion since the
-        # only difference between them is whether they perform set union or
-        # difference on the return value of this function.
-        def hit_cache(wildcard):
-            if wildcard not in self.files:
-                self.files[wildcard] = set(glob.glob(wildcard, recursive=True))
-            return self.files[wildcard]
-
         for include_wildcard in include_wildcards:
-            accumulator = accumulator.union(hit_cache(include_wildcard))
+            accumulator = accumulator.union(glob.iglob(include_wildcard))
 
-        for exclude_wildcard in exclude_wildcards:
-            accumulator = accumulator.difference(hit_cache(exclude_wildcard))
-
-        return list(accumulator)
+        return list(path for path in accumulator
+                    if not self.is_file_excluded(path, exclude_wildcards))
 
     def parse_macros(self, include, exclude=None):
         """

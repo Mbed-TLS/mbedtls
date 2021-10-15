@@ -521,10 +521,10 @@ typedef struct
 
 typedef struct
 {
-    unsigned char client_application_traffic_secret_N[ MBEDTLS_MD_MAX_SIZE ];
-    unsigned char server_application_traffic_secret_N[ MBEDTLS_MD_MAX_SIZE ];
-    unsigned char exporter_master_secret             [ MBEDTLS_MD_MAX_SIZE ];
-    unsigned char resumption_master_secret           [ MBEDTLS_MD_MAX_SIZE ];
+    unsigned char client_application_traffic_secret_N[ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
+    unsigned char server_application_traffic_secret_N[ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
+    unsigned char exporter_master_secret             [ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
+    unsigned char resumption_master_secret           [ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
 } mbedtls_ssl_tls1_3_application_secrets;
 
 /*

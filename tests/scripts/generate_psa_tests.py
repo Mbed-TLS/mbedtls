@@ -699,6 +699,8 @@ def main(args):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--list', action='store_true',
                         help='List available targets and exit')
+    parser.add_argument('--list-for-cmake', action='store_true',
+                        help='Print \';\'-separated list of available targets and exit')
     parser.add_argument('--directory', metavar='DIR',
                         help='Output directory (default: tests/suites)')
     parser.add_argument('targets', nargs='*', metavar='TARGET',
@@ -709,6 +711,15 @@ def main(args):
     if options.list:
         for name in sorted(generator.TARGETS):
             print(generator.filename_for(name))
+        return
+    # List in a cmake list format (i.e. ';'-separated)
+    if options.list_for_cmake:
+        filenames = []
+        for name in sorted(generator.TARGETS):
+            if ';' in generator.filename_for(name):
+                raise ValueError('Cannot pass filename containing \';\' to cmake: ' + name)
+            filenames.append(generator.filename_for(name))
+        print(';'.join(filenames), end='')
         return
     if options.targets:
         # Allow "-" as a special case so you can run

@@ -17,11 +17,18 @@ endif()
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/suites)
 
 if(DEV_MODE)
+    execute_process(
+        COMMAND
+            ${CMAKE_CURRENT_SOURCE_DIR}/../tests/scripts/generate_psa_tests.py
+            --list-for-cmake
+            --directory ${CMAKE_CURRENT_BINARY_DIR}/suites
+        WORKING_DIRECTORY
+            ${CMAKE_CURRENT_SOURCE_DIR}/..
+        OUTPUT_VARIABLE
+            TEST_SUITE_DATA_FILES)
     add_custom_command(
         OUTPUT
-            ${CMAKE_CURRENT_BINARY_DIR}/suites/test_suite_psa_crypto_not_supported.generated.data
-            ${CMAKE_CURRENT_BINARY_DIR}/suites/test_suite_psa_crypto_storage_format.current.data
-            ${CMAKE_CURRENT_BINARY_DIR}/suites/test_suite_psa_crypto_storage_format.v0.data
+            ${TEST_SUITE_DATA_FILES}
         WORKING_DIRECTORY
             ${CMAKE_CURRENT_SOURCE_DIR}/..
         COMMAND

@@ -1,4 +1,3 @@
 Bugfix
-   * Use switch statement instead if-else in
-     psa_aead_check_nonce_length()
-     and psa_aead_set_lengths(). Fixes #5065.
+   * Fix compile-time or run-time errors in PSA
+     AEAD functions when ChachaPoly is disabled. Fixes #5065.

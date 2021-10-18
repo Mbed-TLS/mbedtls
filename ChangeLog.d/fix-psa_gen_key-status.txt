@@ -1,0 +1,2 @@
+Bugfix
+   * Fix the error returned by psa_generate_key() for a public key. Fixes #4551.

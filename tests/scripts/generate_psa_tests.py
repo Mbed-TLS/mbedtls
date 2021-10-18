@@ -155,30 +155,8 @@ def test_case_for_key_type_not_supported(
     tc.set_arguments([key_type] + list(args))
     return tc
 
-def test_case_for_key_type_invalid_argument(
-        verb: str, key_type: str, bits: int,
-        dependencies: List[str],
-        *args: str,
-        param_descr: str = ''
-) -> test_case.TestCase:
-    """Return one test case exercising a key creation method
-    for an invalid argument when key is public.
-    """
-    hack_dependencies_not_implemented(dependencies)
-    tc = test_case.TestCase()
-    short_key_type = re.sub(r'PSA_(KEY_TYPE|ECC_FAMILY)_', r'', key_type)
-    adverb = 'not' if dependencies else 'never'
-    if param_descr:
-        adverb = param_descr + ' ' + adverb
-    tc.set_description('PSA {} {} {}-bit invalid argument'
-                       .format(verb, short_key_type, bits))
-    tc.set_function(verb + '_invalid_argument')
-    tc.set_dependencies(dependencies)
-    tc.set_arguments([key_type] + list(args))
-    return tc
-
 class NotSupported:
-    """Generate test cases for when something is not supported or argument is inavlid."""
+    """Generate test cases for when something is not supported."""
 
     def __init__(self, info: Information) -> None:
         self.constructors = info.constructors
@@ -193,13 +171,11 @@ class NotSupported:
             param: Optional[int] = None,
             param_descr: str = '',
     ) -> Iterator[test_case.TestCase]:
-        """Return test cases exercising key creation when the given type is unsupported
-        or argument is invalid.
+        """Return test cases exercising key creation when the given type is unsupported.
 
         If param is present and not None, emit test cases conditioned on this
         parameter not being supported. If it is absent or None, emit test cases
-        conditioned on the base type not being supported. If key is public emit test
-        case for invalid argument.
+        conditioned on the base type not being supported.
         """
         if kt.name in self.ALWAYS_SUPPORTED:
             # Don't generate test cases for key types that are always supported.
@@ -227,14 +203,8 @@ class NotSupported:
                 # supported or not depending on implementation capabilities,
                 # only generate the test case once.
                 continue
-            if kt.name.endswith('_PUBLIC_KEY'):
-                yield test_case_for_key_type_invalid_argument(
-                    'generate', kt.expression, bits,
-                    finish_family_dependencies(generate_dependencies, bits),
-                    str(bits),
-                    param_descr=param_descr,
-                )
-            else:
+                # Public key cannot be generated
+            if not kt.name.endswith('_PUBLIC_KEY'):
                 yield test_case_for_key_type_not_supported(
                     'generate', kt.expression, bits,
                     finish_family_dependencies(generate_dependencies, bits),
@@ -266,7 +236,7 @@ def test_case_for_key_generation(
         dependencies: List[str],
         *args: str,
         result: str = '',
-        param_descr: str = '',
+        param_descr: str = ''
 ) -> test_case.TestCase:
     """Return one test case exercising a key generation.
     """

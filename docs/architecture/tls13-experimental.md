@@ -255,7 +255,7 @@ TLS 1.3 specific coding rules:
     Example 1: #define CLIENT_HELLO_RANDOM_LEN 32, macro for the length of the
         `random` field of the ClientHello message.
 
-    Example 2 (consistent abbreviation): `mbedtls_ssl_tls1_3_write_sig_alg_ext()`
+    Example 2 (consistent abbreviation): `mbedtls_ssl_tls13_write_sig_alg_ext()`
         and `MBEDTLS_TLS_EXT_SIG_ALG`, `sig_alg` standing for
         `signature_algorithms`.
 
@@ -279,7 +279,7 @@ TLS 1.3 specific coding rules:
     of another one which could potentially lead to some nasty issues.
 
     Example: `cipher_suites` vector of ClientHello in
-             `ssl_tls1_3_write_client_hello_cipher_suites()`
+             `ssl_tls13_write_client_hello_cipher_suites()`
     ```
     size_t cipher_suites_len;
     unsigned char *p_cipher_suites_len;

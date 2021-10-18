@@ -122,19 +122,6 @@ size_t mbedtls_cf_size_mask_ge( size_t x,
 unsigned mbedtls_cf_size_bool_eq( size_t x,
                                   size_t y );
 
-/** Constant-flow "greater than" comparison:
- * return x > y
- *
- * This is equivalent to \p x > \p y, but is likely to be compiled
- * to code using bitwise operation rather than a branch.
- *
- * \param x     The first value to analyze.
- * \param y     The second value to analyze.
- *
- * \return      1 if \p x greater than \p y, otherwise 0.
- */
-unsigned mbedtls_cf_size_gt( size_t x,
-                             size_t y );
 
 #if defined(MBEDTLS_BIGNUM_C)
 
@@ -168,38 +155,6 @@ unsigned mbedtls_cf_uint_if( unsigned condition,
                              unsigned if1,
                              unsigned if0 );
 
-/** Choose between two integer values without branches.
- *
- * This is equivalent to `condition ? if1 : if0`, but is likely to be compiled
- * to code using bitwise operation rather than a branch.
- *
- * \param condition     Condition to test.
- * \param if1           Value to use if \p condition is nonzero.
- * \param if0           Value to use if \p condition is zero.
- *
- * \return  \c if1 if \p condition is nonzero, otherwise \c if0.
- */
-size_t mbedtls_cf_size_if( unsigned condition,
-                           size_t if1,
-                           size_t if0 );
-
-/** Select between two sign values witout branches.
- *
- * This is functionally equivalent to `condition ? if1 : if0` but uses only bit
- * operations in order to avoid branches.
- *
- * \note if1 and if0 must be either 1 or -1, otherwise the result
- *       is undefined.
- *
- * \param condition     Condition to test.
- * \param if1           The first sign; must be either +1 or -1.
- * \param if0           The second sign; must be either +1 or -1.
- *
- * \return  \c if1 if \p condition is nonzero, otherwise \c if0. */
-int mbedtls_cf_cond_select_sign( unsigned char condition,
-                                 int if1,
-                                 int if0 );
-
 #if defined(MBEDTLS_BIGNUM_C)
 
 /** Conditionally assign a value without branches.
@@ -221,26 +176,6 @@ void mbedtls_cf_mpi_uint_cond_assign( size_t n,
 
 #endif /* MBEDTLS_BIGNUM_C */
 
-
-/** Shift some data towards the left inside a buffer.
- *
- * `mbedtls_cf_mem_move_to_left(start, total, offset)` is functionally
- * equivalent to
- * ```
- * memmove(start, start + offset, total - offset);
- * memset(start + offset, 0, total - offset);
- * ```
- * but it strives to use a memory access pattern (and thus total timing)
- * that does not depend on \p offset. This timing independence comes at
- * the expense of performance.
- *
- * \param start     Pointer to the start of the buffer.
- * \param total     Total size of the buffer.
- * \param offset    Offset from which to copy \p total - \p offset bytes.
- */
-void mbedtls_cf_mem_move_to_left( void *start,
-                                  size_t total,
-                                  size_t offset );
 
 /** Conditional memcpy without branches.
  *

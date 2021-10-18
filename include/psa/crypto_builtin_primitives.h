@@ -61,21 +61,23 @@ typedef struct
     psa_algorithm_t MBEDTLS_PRIVATE(alg);
     union
     {
-        unsigned MBEDTLS_PRIVATE(dummy); /* Make the union non-empty even with no supported algorithms. */
-#if defined(MBEDTLS_MD5_C)
-        mbedtls_md5_context MBEDTLS_PRIVATE(md5);
+        unsigned dummy; /* Make the union non-empty even with no supported algorithms. */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_MD5)
+        mbedtls_md5_context md5;
 #endif
-#if defined(MBEDTLS_RIPEMD160_C)
-        mbedtls_ripemd160_context MBEDTLS_PRIVATE(ripemd160);
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_RIPEMD160)
+        mbedtls_ripemd160_context ripemd160;
 #endif
-#if defined(MBEDTLS_SHA1_C)
-        mbedtls_sha1_context MBEDTLS_PRIVATE(sha1);
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_1)
+        mbedtls_sha1_context sha1;
 #endif
-#if defined(MBEDTLS_SHA256_C)
-        mbedtls_sha256_context MBEDTLS_PRIVATE(sha256);
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_256) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_224)
+        mbedtls_sha256_context sha256;
 #endif
-#if defined(MBEDTLS_SHA512_C)
-        mbedtls_sha512_context MBEDTLS_PRIVATE(sha512);
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_512) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_384)
+        mbedtls_sha512_context sha512;
 #endif
     } MBEDTLS_PRIVATE(ctx);
 } mbedtls_psa_hash_operation_t;

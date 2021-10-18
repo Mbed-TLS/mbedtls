@@ -127,7 +127,7 @@ static psa_status_t psa_hmac_finish_internal(
     uint8_t *mac,
     size_t mac_size )
 {
-    uint8_t tmp[MBEDTLS_MD_MAX_SIZE];
+    uint8_t tmp[PSA_HASH_MAX_SIZE];
     psa_algorithm_t hash_alg = hmac->alg;
     size_t hash_size = 0;
     size_t block_size = PSA_HASH_BLOCK_LENGTH( hash_alg );

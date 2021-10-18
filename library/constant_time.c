@@ -225,24 +225,6 @@ unsigned mbedtls_cf_uint_if( unsigned condition,
     return( ( mask & if1 ) | (~mask & if0 ) );
 }
 
-/** Choose between two integer values without branches.
- *
- * This is equivalent to `condition ? if1 : if0`, but is likely to be compiled
- * to code using bitwise operation rather than a branch.
- *
- * \param condition     Condition to test.
- * \param if1           Value to use if \p condition is nonzero.
- * \param if0           Value to use if \p condition is zero.
- *
- * \return  \c if1 if \p condition is nonzero, otherwise \c if0.
- */
-static size_t mbedtls_cf_size_if( unsigned condition,
-                                  size_t if1,
-                                  size_t if0 )
-{
-    size_t mask = mbedtls_cf_size_mask( condition );
-    return( ( mask & if1 ) | (~mask & if0 ) );
-}
 
 /** Select between two sign values witout branches.
  *

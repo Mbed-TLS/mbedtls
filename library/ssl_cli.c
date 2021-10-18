@@ -37,6 +37,7 @@
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "mbedtls/psa_util.h"
+#include "psa/crypto.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #include <string.h>
@@ -3082,7 +3083,11 @@ start_processing:
     if( mbedtls_ssl_ciphersuite_uses_server_signature( ciphersuite_info ) )
     {
         size_t sig_len, hashlen;
-        unsigned char hash[64];
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        unsigned char hash[PSA_HASH_MAX_SIZE];
+#else
+        unsigned char hash[MBEDTLS_MD_MAX_SIZE];
+#endif
         mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
         mbedtls_pk_type_t pk_alg = MBEDTLS_PK_NONE;
         unsigned char *params = ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl );

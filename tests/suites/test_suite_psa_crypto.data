@@ -4705,7 +4705,7 @@ generate_random:2 * MBEDTLS_CTR_DRBG_MAX_REQUEST + 1
 
 PSA generate key: bad type (RSA public key)
 depends_on:PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
-generate_key:PSA_KEY_TYPE_RSA_PUBLIC_KEY:512:PSA_KEY_USAGE_EXPORT:0:PSA_ERROR_NOT_SUPPORTED:0
+generate_key:PSA_KEY_TYPE_RSA_PUBLIC_KEY:512:PSA_KEY_USAGE_EXPORT:0:PSA_ERROR_INVALID_ARGUMENT:0
 
 PSA generate key: raw data, 0 bits: invalid argument
 # The spec allows either INVALID_ARGUMENT or NOT_SUPPORTED

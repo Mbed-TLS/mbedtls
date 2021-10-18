@@ -92,6 +92,8 @@ mbedtls_mpi_uint mbedtls_cf_mpi_uint_mask( mbedtls_mpi_uint value );
 
 #endif /* MBEDTLS_BIGNUM_C */
 
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
+
 /** Constant-flow mask generation for "greater or equal" comparison:
  * - if \p x >= \p y, return all-bits 1, that is (size_t) -1
  * - otherwise, return all bits 0, that is 0
@@ -108,6 +110,8 @@ mbedtls_mpi_uint mbedtls_cf_mpi_uint_mask( mbedtls_mpi_uint value );
 size_t mbedtls_cf_size_mask_ge( size_t x,
                                 size_t y );
 
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
+
 /** Constant-flow boolean "equal" comparison:
  * return x == y
  *
@@ -121,7 +125,6 @@ size_t mbedtls_cf_size_mask_ge( size_t x,
  */
 unsigned mbedtls_cf_size_bool_eq( size_t x,
                                   size_t y );
-
 
 #if defined(MBEDTLS_BIGNUM_C)
 
@@ -176,6 +179,7 @@ void mbedtls_cf_mpi_uint_cond_assign( size_t n,
 
 #endif /* MBEDTLS_BIGNUM_C */
 
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
 
 /** Conditional memcpy without branches.
  *
@@ -218,8 +222,6 @@ void mbedtls_cf_memcpy_offset( unsigned char *dest,
                                size_t offset_min,
                                size_t offset_max,
                                size_t len );
-
-#if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
 
 /** Compute the HMAC of variable-length data with constant flow.
  *

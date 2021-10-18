@@ -588,9 +588,8 @@ int mbedtls_cf_rsaes_pkcs1_v15_unpadding( size_t ilen,
     size_t plaintext_size = 0;
     unsigned output_too_large;
 
-    plaintext_max_size = mbedtls_cf_size_if( output_max_len > ilen - 11,
-                                             ilen - 11,
-                                             output_max_len );
+    plaintext_max_size = ( output_max_len > ilen - 11 ) ? ilen - 11
+                                                        : output_max_len;
 
     /* Check and get padding length in constant time and constant
      * memory trace. The first byte must be 0. */

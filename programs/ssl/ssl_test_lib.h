@@ -95,8 +95,6 @@
 
 #include "../test/query_config.h"
 
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
-
 typedef struct eap_tls_keys
 {
     unsigned char master_secret[48];
@@ -121,8 +119,6 @@ typedef struct dtls_srtp_keys
 } dtls_srtp_keys;
 
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
-
-#endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 typedef struct
 {

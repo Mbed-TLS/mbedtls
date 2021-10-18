@@ -1622,16 +1622,6 @@
 #define MBEDTLS_SSL_SESSION_TICKETS
 
 /**
- * \def MBEDTLS_SSL_EXPORT_KEYS
- *
- * Enable support for exporting key block and master secret.
- * This is required for certain users of TLS, e.g. EAP-TLS.
- *
- * Comment this macro to disable support for key export
- */
-#define MBEDTLS_SSL_EXPORT_KEYS
-
-/**
  * \def MBEDTLS_SSL_SERVER_NAME_INDICATION
  *
  * Enable support for RFC 6066 server name indication (SNI) in SSL.

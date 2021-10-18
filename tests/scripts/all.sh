@@ -1720,6 +1720,45 @@ component_test_psa_crypto_config_accel_hash () {
     make test
 }
 
+component_test_psa_crypto_config_accel_cipher () {
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated cipher"
+
+    loc_accel_list="ALG_CBC_NO_PADDING ALG_CBC_PKCS7 ALG_CTR ALG_CFB ALG_OFB ALG_XTS KEY_TYPE_DES"
+    loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
+    make -C tests libtestdriver1.a CFLAGS="$ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
+
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+
+    # There is no intended accelerator support for ALG STREAM_CIPHER and
+    # ALG_ECB_NO_PADDING. Therefore, asking for them in the build implies the
+    # inclusion of the Mbed TLS cipher operations. As we want to test here with
+    # cipher operations solely supported by accelerators, disabled those
+    # PSA configuration options.
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_CMAC
+
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
+    scripts/config.py unset MBEDTLS_CIPHER_PADDING_PKCS7
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CTR
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CFB
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_OFB
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
+    scripts/config.py unset MBEDTLS_DES_C
+
+    loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
+    make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
+
+    unset loc_accel_flags
+    unset loc_accel_list
+
+    if_build_succeeded not grep mbedtls_des* library/des.o
+
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash"
+    make test
+}
+
 component_test_psa_crypto_config_no_driver() {
     # full plus MBEDTLS_PSA_CRYPTO_CONFIG
     msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG minus MBEDTLS_PSA_CRYPTO_DRIVERS"

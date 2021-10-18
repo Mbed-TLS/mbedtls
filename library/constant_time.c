@@ -228,14 +228,14 @@ int mbedtls_cf_cond_select_sign( unsigned char condition,
 {
     /* In order to avoid questions about what we can reasonnably assume about
      * the representations of signed integers, move everything to unsigned
-     * by taking advantage of the fact that a and b are either +1 or -1. */
+     * by taking advantage of the fact that if1 and if0 are either +1 or -1. */
     unsigned uif1 = if1 + 1;
     unsigned uif0 = if0 + 1;
 
-    /* condition was 0 or 1, mask is 0 or 2 as are ua and ub */
+    /* condition was 0 or 1, mask is 0 or 2 as are uif1 and uif0 */
     const unsigned mask = condition << 1;
 
-    /* select ua or ub */
+    /* select uif1 or uif0 */
     unsigned ur = ( uif0 & ~mask ) | ( uif1 & mask );
 
     /* ur is now 0 or 2, convert back to -1 or +1 */

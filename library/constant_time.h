@@ -51,7 +51,7 @@ int mbedtls_cf_memcmp( const void *a,
 
 /** Turn a value into a mask:
  * - if \p value == 0, return the all-bits 0 mask, aka 0
- * - otherwise, return the all-bits 1 mask, aka (size_t) -1
+ * - otherwise, return the all-bits 1 mask, aka (unsigned) -1
  *
  * This function can be used to write constant-time code by replacing branches
  * with bit operations using masks.
@@ -79,7 +79,7 @@ size_t mbedtls_cf_size_mask( size_t value );
 
 /** Turn a value into a mask:
  * - if \p value == 0, return the all-bits 0 mask, aka 0
- * - otherwise, return the all-bits 1 mask, aka (size_t) -1
+ * - otherwise, return the all-bits 1 mask, aka (mbedtls_mpi_uint) -1
  *
  * This function can be used to write constant-time code by replacing branches
  * with bit operations using masks.
@@ -188,6 +188,8 @@ size_t mbedtls_cf_size_if( unsigned condition,
  * This is functionally equivalent to `condition ? if1 : if0` but uses only bit
  * operations in order to avoid branches.
  *
+ * \note if1 and if0 must be either 1 or -1, otherwise the result
+ *       is undefined.
  *
  * \param condition     Condition to test.
  * \param if1           The first sign; must be either +1 or -1.
@@ -246,7 +248,7 @@ void mbedtls_cf_mem_move_to_left( void *start,
  * to be compiled to code using bitwise operation rather than a branch.
  *
  * \param dest      The pointer to conditionally copy to.
- * \param src       The pointer to copy from.
+ * \param src       The pointer to copy from. Shouldn't overlap with \p dest.
  * \param len       The number of bytes to copy.
  * \param c1        The first value to analyze in the condition.
  * \param c2        The second value to analyze in the condition.
@@ -261,7 +263,7 @@ void mbedtls_cf_memcpy_if_eq( unsigned char *dest,
  * This function copies \p len bytes from \p src_base + \p offset_secret to \p
  * dst, with a code flow and memory access pattern that does not depend on \p
  * offset_secret, but only on \p offset_min, \p offset_max and \p len.
- * Functionally equivalent to memcpy(dst, src + offset_secret, len).
+ * Functionally equivalent to `memcpy(dst, src + offset_secret, len)`.
  *
  * \param dest          The destination buffer. This must point to a writable
  *                      buffer of at least \p len bytes.
@@ -298,23 +300,26 @@ void mbedtls_cf_memcpy_offset( unsigned char *dest,
  *                          It is reset using mbedtls_md_hmac_reset() after
  *                          the computation is complete to prepare for the
  *                          next computation.
- * \param add_data          The additional data prepended to \p data. This
- *                          must point to a readable buffer of \p add_data_len
- *                          bytes.
+ * \param add_data          The first part of the message whose HMAC is being
+ *                          calculated. This must point to a readable buffer
+ *                          of \p add_data_len bytes.
  * \param add_data_len      The length of \p add_data in bytes.
- * \param data              The data appended to \p add_data. This must point
- *                          to a readable buffer of \p max_data_len bytes.
+ * \param data              The buffer containing the second part of the
+ *                          message. This must point to a readable buffer
+ *                          of \p max_data_len bytes.
  * \param data_len_secret   The length of the data to process in \p data.
  *                          This must be no less than \p min_data_len and no
  *                          greater than \p max_data_len.
- * \param min_data_len      The minimal length of \p data in bytes.
- * \param max_data_len      The maximal length of \p data in bytes.
+ * \param min_data_len      The minimal length of the second part of the
+ *                          message, read from /p data.
+ * \param max_data_len      The maximal length of the second part of the
+ *                          message, read from /p data.
  * \param output            The HMAC will be written here. This must point to
  *                          a writable buffer of sufficient size to hold the
  *                          HMAC value.
  *
  * \retval 0 on success.
- * \retval MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED
+ * \retval #MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED
  *         The hardware accelerator failed.
  */
 int mbedtls_cf_hmac( mbedtls_md_context_t *ctx,
@@ -331,25 +336,30 @@ int mbedtls_cf_hmac( mbedtls_md_context_t *ctx,
 #if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT)
 
 /** This function performs the unpadding part of a PKCS#1 v1.5 decryption
- *  operation (RSAES-PKCS1-v1_5-DECRYPT).
+ *  operation (EME-PKCS1-v1_5 decoding).
  *
- * \note           The output buffer length \c output_max_len should be
- *                 as large as the size \p ctx->len of \p ctx->N, for example,
- *                 128 Bytes if RSA-1024 is used, to be able to hold an
- *                 arbitrary decrypted message. If it is not large enough to
- *                 hold the decryption of the particular ciphertext provided,
- *                 the function returns #MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE.
+ * \note The return value from this function is a sensitive value
+ *       (this is unusual). #MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE shouldn't happen
+ *       in a well-written application, but 0 vs #MBEDTLS_ERR_RSA_INVALID_PADDING
+ *       is often a situation that an attacker can provoke and leaking which
+ *       one is the result is precisely the information the attacker wants.
  *
- * \param input          The input buffer for the unpadding operation.
- * \param ilen           The length of the ciphertext.
- * \param output         The buffer used to hold the plaintext. This must
- *                       be a writable buffer of length \p output_max_len Bytes.
- * \param output_max_len The length in Bytes of the output buffer \p output.
+ * \param input          The input buffer which is the payload inside PKCS#1v1.5
+ *                       encryption padding, called the "encoded message EM"
+ *                       by the terminology.
+ * \param ilen           The length of the payload in the \p input buffer.
+ * \param output         The buffer for the payload, called "message M" by the
+ *                       PKCS#1 terminology. This must be a writable buffer of
+ *                       length \p output_max_len bytes.
  * \param olen           The address at which to store the length of
- *                       the plaintext. This must not be \c NULL.
+ *                       the payload. This must not be \c NULL.
+ * \param output_max_len The length in bytes of the output buffer \p output.
  *
- * \return         \c 0 on success.
- * \return         An \c MBEDTLS_ERR_RSA_XXX error code on failure.
+ * \return      \c 0 on success.
+ * \return      #MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE
+ *              The output buffer is too small for the unpadded payload.
+ * \return      #MBEDTLS_ERR_RSA_INVALID_PADDING
+ *              The input doesn't contain properly formatted padding.
  */
 int mbedtls_cf_rsaes_pkcs1_v15_unpadding( unsigned char *input,
                                           size_t ilen,

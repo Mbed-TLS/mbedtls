@@ -65,25 +65,27 @@ typedef struct
     union
     {
         unsigned dummy; /* Make the union non-empty even with no supported algorithms. */
-#if defined(MBEDTLS_MD2_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_MD2)
         mbedtls_md2_context md2;
 #endif
-#if defined(MBEDTLS_MD4_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_MD4)
         mbedtls_md4_context md4;
 #endif
-#if defined(MBEDTLS_MD5_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_MD5)
         mbedtls_md5_context md5;
 #endif
-#if defined(MBEDTLS_RIPEMD160_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_RIPEMD160)
         mbedtls_ripemd160_context ripemd160;
 #endif
-#if defined(MBEDTLS_SHA1_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_1)
         mbedtls_sha1_context sha1;
 #endif
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_256) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_224)
         mbedtls_sha256_context sha256;
 #endif
-#if defined(MBEDTLS_SHA512_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_512) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_384)
         mbedtls_sha512_context sha512;
 #endif
     } ctx;

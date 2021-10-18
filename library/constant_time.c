@@ -108,6 +108,8 @@ mbedtls_mpi_uint mbedtls_cf_mpi_uint_mask( mbedtls_mpi_uint value )
 
 #endif /* MBEDTLS_BIGNUM_C */
 
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
+
 /** Constant-flow mask generation for "less than" comparison:
  * - if \p x < \p y, return all-bits 1, that is (size_t) -1
  * - otherwise, return all bits 0, that is 0
@@ -141,6 +143,8 @@ size_t mbedtls_cf_size_mask_ge( size_t x,
     return( ~mbedtls_cf_size_mask_lt( x, y ) );
 }
 
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
+
 unsigned mbedtls_cf_size_bool_eq( size_t x,
                                   size_t y )
 {
@@ -167,6 +171,8 @@ unsigned mbedtls_cf_size_bool_eq( size_t x,
     return( 1 ^ diff1 );
 }
 
+#if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT)
+
 /** Constant-flow "greater than" comparison:
  * return x > y
  *
@@ -184,6 +190,8 @@ static unsigned mbedtls_cf_size_gt( size_t x,
     /* Return the sign bit (1 for negative) of (y - x). */
     return( ( y - x ) >> ( sizeof( size_t ) * 8 - 1 ) );
 }
+
+#endif /* MBEDTLS_PKCS1_V15 && MBEDTLS_RSA_C && ! MBEDTLS_RSA_ALT */
 
 #if defined(MBEDTLS_BIGNUM_C)
 
@@ -225,6 +233,7 @@ unsigned mbedtls_cf_uint_if( unsigned condition,
     return( ( mask & if1 ) | (~mask & if0 ) );
 }
 
+#if defined(MBEDTLS_BIGNUM_C)
 
 /** Select between two sign values witout branches.
  *
@@ -260,8 +269,6 @@ static int mbedtls_cf_cond_select_sign( unsigned char condition,
     return( (int) ur - 1 );
 }
 
-#if defined(MBEDTLS_BIGNUM_C)
-
 void mbedtls_cf_mpi_uint_cond_assign( size_t n,
                                       mbedtls_mpi_uint *dest,
                                       const mbedtls_mpi_uint *src,
@@ -288,6 +295,8 @@ void mbedtls_cf_mpi_uint_cond_assign( size_t n,
 }
 
 #endif /* MBEDTLS_BIGNUM_C */
+
+#if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT)
 
 /** Shift some data towards the left inside a buffer.
  *
@@ -329,6 +338,10 @@ static void mbedtls_cf_mem_move_to_left( void *start,
     }
 }
 
+#endif /* MBEDTLS_PKCS1_V15 && MBEDTLS_RSA_C && ! MBEDTLS_RSA_ALT */
+
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
+
 void mbedtls_cf_memcpy_if_eq( unsigned char *dest,
                               const unsigned char *src,
                               size_t len,
@@ -359,8 +372,6 @@ void mbedtls_cf_memcpy_offset( unsigned char *dest,
                                  offsetval, offset );
     }
 }
-
-#if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
 
 int mbedtls_cf_hmac( mbedtls_md_context_t *ctx,
                      const unsigned char *add_data,

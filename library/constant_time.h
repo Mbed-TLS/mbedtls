@@ -104,24 +104,6 @@ mbedtls_mpi_uint mbedtls_cf_mpi_uint_mask( mbedtls_mpi_uint value );
 
 #endif /* MBEDTLS_BIGNUM_C */
 
-/** Constant-flow mask generation for "less than" comparison:
- * - if \p x < \p y, return all-bits 1, that is (size_t) -1
- * - otherwise, return all bits 0, that is 0
- *
- * This function can be used to write constant-time code by replacing branches
- * with bit operations using masks.
- *
- * This function is implemented without using comparison operators, as those
- * might be translated to branches by some compilers on some platforms.
- *
- * \param x     The first value to analyze.
- * \param y     The second value to analyze.
- *
- * \return      All-bits-one if \p x is less than \p y, otherwise zero.
- */
-size_t mbedtls_cf_size_mask_lt( size_t x,
-                                size_t y );
-
 /** Constant-flow mask generation for "greater or equal" comparison:
  * - if \p x >= \p y, return all-bits 1, that is (size_t) -1
  * - otherwise, return all bits 0, that is 0

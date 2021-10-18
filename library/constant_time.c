@@ -17,6 +17,11 @@
  *  limitations under the License.
  */
 
+ /*
+ * The following functiona are implemented without using comparison operators, as those
+ * might be translated to branches by some compilers on some platforms.
+ */
+
 #include "common.h"
 #include "constant_time.h"
 #include "mbedtls/error.h"

@@ -38,9 +38,6 @@
  * This function can be used to write constant-time code by replacing branches
  * with bit operations using masks.
  *
- * This function is implemented without using comparison operators, as those
- * might be translated to branches by some compilers on some platforms.
- *
  * \param a     Pointer to the first buffer.
  * \param b     Pointer to the second buffer.
  * \param n     The number of bytes to compare in the buffer.
@@ -59,9 +56,6 @@ int mbedtls_cf_memcmp( const void *a,
  * This function can be used to write constant-time code by replacing branches
  * with bit operations using masks.
  *
- * This function is implemented without using comparison operators, as those
- * might be translated to branches by some compilers on some platforms.
- *
  * \param value     The value to analyze.
  *
  * \return          Zero if \p value is zero, otherwise all-bits-one.
@@ -74,9 +68,6 @@ unsigned mbedtls_cf_uint_mask( unsigned value );
  *
  * This function can be used to write constant-time code by replacing branches
  * with bit operations using masks.
- *
- * This function is implemented without using comparison operators, as those
- * might be translated to branches by some compilers on some platforms.
  *
  * \param value     The value to analyze.
  *
@@ -93,9 +84,6 @@ size_t mbedtls_cf_size_mask( size_t value );
  * This function can be used to write constant-time code by replacing branches
  * with bit operations using masks.
  *
- * This function is implemented without using comparison operators, as those
- * might be translated to branches by some compilers on some platforms.
- *
  * \param value     The value to analyze.
  *
  * \return          Zero if \p value is zero, otherwise all-bits-one.
@@ -110,9 +98,6 @@ mbedtls_mpi_uint mbedtls_cf_mpi_uint_mask( mbedtls_mpi_uint value );
  *
  * This function can be used to write constant-time code by replacing branches
  * with bit operations using masks.
- *
- * This function is implemented without using comparison operators, as those
- * might be translated to branches by some compilers on some platforms.
  *
  * \param x     The first value to analyze.
  * \param y     The second value to analyze.
@@ -129,9 +114,6 @@ size_t mbedtls_cf_size_mask_ge( size_t x,
  * This is equivalent to \p x == \p y, but is likely to be compiled
  * to code using bitwise operation rather than a branch.
  *
- * This function is implemented without using comparison operators, as those
- * might be translated to branches by some compilers on some platforms.
- *
  * \param x     The first value to analyze.
  * \param y     The second value to analyze.
  *
@@ -145,9 +127,6 @@ unsigned mbedtls_cf_size_bool_eq( size_t x,
  *
  * This is equivalent to \p x > \p y, but is likely to be compiled
  * to code using bitwise operation rather than a branch.
- *
- * This function is implemented without using comparison operators, as those
- * might be translated to branches by some compilers on some platforms.
  *
  * \param x     The first value to analyze.
  * \param y     The second value to analyze.
@@ -164,9 +143,6 @@ unsigned mbedtls_cf_size_gt( size_t x,
  * This is equivalent to \p x < \p y, but is likely to be compiled
  * to code using bitwise operation rather than a branch.
  *
- * This function is implemented without using comparison operators, as those
- * might be translated to branches by some compilers on some platforms.
- *
  * \param x     The first value to analyze.
  * \param y     The second value to analyze.
  *
@@ -181,9 +157,6 @@ unsigned mbedtls_cf_mpi_uint_lt( const mbedtls_mpi_uint x,
  *
  * This is equivalent to `condition ? if1 : if0`, but is likely to be compiled
  * to code using bitwise operation rather than a branch.
- *
- * This function is implemented without using comparison operators, as those
- * might be translated to branches by some compilers on some platforms.
  *
  * \param condition     Condition to test.
  * \param if1           Value to use if \p condition is nonzero.
@@ -200,9 +173,6 @@ unsigned mbedtls_cf_uint_if( unsigned condition,
  * This is equivalent to `condition ? if1 : if0`, but is likely to be compiled
  * to code using bitwise operation rather than a branch.
  *
- * This function is implemented without using comparison operators, as those
- * might be translated to branches by some compilers on some platforms.
- *
  * \param condition     Condition to test.
  * \param if1           Value to use if \p condition is nonzero.
  * \param if0           Value to use if \p condition is zero.
@@ -218,8 +188,6 @@ size_t mbedtls_cf_size_if( unsigned condition,
  * This is functionally equivalent to `condition ? if1 : if0` but uses only bit
  * operations in order to avoid branches.
  *
- * This function is implemented without using comparison operators, as those
- * might be translated to branches by some compilers on some platforms.
  *
  * \param condition     Condition to test.
  * \param if1           The first sign; must be either +1 or -1.
@@ -236,9 +204,6 @@ int mbedtls_cf_cond_select_sign( unsigned char condition,
  *
  * This is equivalent to `if ( condition ) dest = src`, but is likely
  * to be compiled to code using bitwise operation rather than a branch.
- *
- * This function is implemented without using comparison operators, as those
- * might be translated to branches by some compilers on some platforms.
  *
  * \param n             \p dest and \p src must be arrays of limbs of size n.
  * \param dest          The MPI to conditionally assign to. This must point
@@ -279,9 +244,6 @@ void mbedtls_cf_mem_move_to_left( void *start,
  *
  * This is equivalent to `if ( c1 == c2 ) memcpy(dst, src, len)`, but is likely
  * to be compiled to code using bitwise operation rather than a branch.
- *
- * This function is implemented without using comparison operators, as those
- * might be translated to branches by some compilers on some platforms.
  *
  * \param dest      The pointer to conditionally copy to.
  * \param src       The pointer to copy from.

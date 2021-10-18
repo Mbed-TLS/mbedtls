@@ -263,21 +263,21 @@ void mbedtls_cf_memcpy_if_eq( unsigned char *dest,
  * offset_secret, but only on \p offset_min, \p offset_max and \p len.
  * Functionally equivalent to memcpy(dst, src + offset_secret, len).
  *
- * \param dst           The destination buffer. This must point to a writable
+ * \param dest          The destination buffer. This must point to a writable
  *                      buffer of at least \p len bytes.
- * \param src_base      The base of the source buffer. This must point to a
+ * \param src           The base of the source buffer. This must point to a
  *                      readable buffer of at least \p offset_max + \p len
- *                      bytes.
- * \param offset_secret The offset in the source buffer from which to copy.
+ *                      bytes. Shouldn't overlap with \p dest.
+ * \param offset        The offset in the source buffer from which to copy.
  *                      This must be no less than \p offset_min and no greater
  *                      than \p offset_max.
- * \param offset_min    The minimal value of \p offset_secret.
- * \param offset_max    The maximal value of \p offset_secret.
+ * \param offset_min    The minimal value of \p offset.
+ * \param offset_max    The maximal value of \p offset.
  * \param len           The number of bytes to copy.
  */
-void mbedtls_cf_memcpy_offset( unsigned char *dst,
-                               const unsigned char *src_base,
-                               size_t offset_secret,
+void mbedtls_cf_memcpy_offset( unsigned char *dest,
+                               const unsigned char *src,
+                               size_t offset,
                                size_t offset_min,
                                size_t offset_max,
                                size_t len );
@@ -340,21 +340,21 @@ int mbedtls_cf_hmac( mbedtls_md_context_t *ctx,
  *                 hold the decryption of the particular ciphertext provided,
  *                 the function returns #MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE.
  *
+ * \param input          The input buffer for the unpadding operation.
  * \param ilen           The length of the ciphertext.
- * \param olen           The address at which to store the length of
- *                       the plaintext. This must not be \c NULL.
  * \param output         The buffer used to hold the plaintext. This must
  *                       be a writable buffer of length \p output_max_len Bytes.
  * \param output_max_len The length in Bytes of the output buffer \p output.
- * \param buf            The input buffer for the unpadding operation.
+ * \param olen           The address at which to store the length of
+ *                       the plaintext. This must not be \c NULL.
  *
  * \return         \c 0 on success.
  * \return         An \c MBEDTLS_ERR_RSA_XXX error code on failure.
  */
-int mbedtls_cf_rsaes_pkcs1_v15_unpadding( size_t ilen,
-                                          size_t *olen,
+int mbedtls_cf_rsaes_pkcs1_v15_unpadding( unsigned char *input,
+                                          size_t ilen,
                                           unsigned char *output,
                                           size_t output_max_len,
-                                          unsigned char *buf );
+                                          size_t *olen );
 
 #endif /* MBEDTLS_PKCS1_V15 && MBEDTLS_RSA_C && ! MBEDTLS_RSA_ALT */

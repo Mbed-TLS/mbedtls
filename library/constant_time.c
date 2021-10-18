@@ -310,19 +310,19 @@ void mbedtls_cf_memcpy_if_eq( unsigned char *dest,
         dest[i] = ( src[i] & mask ) | ( dest[i] & ~mask );
 }
 
-void mbedtls_cf_memcpy_offset( unsigned char *dst,
-                               const unsigned char *src_base,
-                               size_t offset_secret,
+void mbedtls_cf_memcpy_offset( unsigned char *dest,
+                               const unsigned char *src,
+                               size_t offset,
                                size_t offset_min,
                                size_t offset_max,
                                size_t len )
 {
-    size_t offset;
+    size_t offsetval;
 
-    for( offset = offset_min; offset <= offset_max; offset++ )
+    for( offsetval = offset_min; offsetval <= offset_max; offsetval++ )
     {
-        mbedtls_cf_memcpy_if_eq( dst, src_base + offset, len,
-                                 offset, offset_secret );
+        mbedtls_cf_memcpy_if_eq( dest, src + offsetval, len,
+                                 offsetval, offset );
     }
 }
 
@@ -563,11 +563,11 @@ int mbedtls_mpi_lt_mpi_ct( const mbedtls_mpi *X,
 
 #if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT)
 
-int mbedtls_cf_rsaes_pkcs1_v15_unpadding( size_t ilen,
-                                          size_t *olen,
+int mbedtls_cf_rsaes_pkcs1_v15_unpadding( unsigned char *input,
+                                          size_t ilen,
                                           unsigned char *output,
                                           size_t output_max_len,
-                                          unsigned char *buf )
+                                          size_t *olen )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t i, plaintext_max_size;
@@ -593,18 +593,18 @@ int mbedtls_cf_rsaes_pkcs1_v15_unpadding( size_t ilen,
 
     /* Check and get padding length in constant time and constant
      * memory trace. The first byte must be 0. */
-    bad |= buf[0];
+    bad |= input[0];
 
 
     /* Decode EME-PKCS1-v1_5 padding: 0x00 || 0x02 || PS || 0x00
-        * where PS must be at least 8 nonzero bytes. */
-    bad |= buf[1] ^ MBEDTLS_RSA_CRYPT;
+     * where PS must be at least 8 nonzero bytes. */
+    bad |= input[1] ^ MBEDTLS_RSA_CRYPT;
 
     /* Read the whole buffer. Set pad_done to nonzero if we find
-        * the 0x00 byte and remember the padding length in pad_count. */
+     * the 0x00 byte and remember the padding length in pad_count. */
     for( i = 2; i < ilen; i++ )
     {
-        pad_done  |= ((buf[i] | (unsigned char)-buf[i]) >> 7) ^ 1;
+        pad_done  |= ((input[i] | (unsigned char)-input[i]) >> 7) ^ 1;
         pad_count += ((pad_done | (unsigned char)-pad_done) >> 7) ^ 1;
     }
 
@@ -650,7 +650,7 @@ int mbedtls_cf_rsaes_pkcs1_v15_unpadding( size_t ilen,
      * through memory or cache access patterns. */
     bad = mbedtls_cf_uint_mask( bad | output_too_large );
     for( i = 11; i < ilen; i++ )
-        buf[i] &= ~bad;
+        input[i] &= ~bad;
 
     /* If the plaintext is too large, truncate it to the buffer size.
      * Copy anyway to avoid revealing the length through timing, because
@@ -666,7 +666,7 @@ int mbedtls_cf_rsaes_pkcs1_v15_unpadding( size_t ilen,
      * does not depend on the plaintext size. After this move, the
      * starting location of the plaintext is no longer sensitive
      * information. */
-    mbedtls_cf_mem_move_to_left( buf + ilen - plaintext_max_size,
+    mbedtls_cf_mem_move_to_left( input + ilen - plaintext_max_size,
                                  plaintext_max_size,
                                  plaintext_max_size - plaintext_size );
 
@@ -678,7 +678,7 @@ int mbedtls_cf_rsaes_pkcs1_v15_unpadding( size_t ilen,
      * length, validity of padding, success of the decryption, and other
      * secrets. */
     if( output_max_len != 0 )
-        memcpy( output, buf + ilen - plaintext_max_size, plaintext_max_size );
+        memcpy( output, input + ilen - plaintext_max_size, plaintext_max_size );
 
     /* Report the amount of data we copied to the output buffer. In case
      * of errors (bad padding or output too large), the value of *olen

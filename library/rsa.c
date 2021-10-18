@@ -1491,9 +1491,8 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
     if( ret != 0 )
         goto cleanup;
 
-    ret = mbedtls_cf_rsaes_pkcs1_v15_unpadding( ilen, olen, output,
-                                                output_max_len,
-                                                (unsigned char *) &buf );
+    ret = mbedtls_cf_rsaes_pkcs1_v15_unpadding( buf, ilen,
+                                                output, output_max_len, olen );
 
 cleanup:
     mbedtls_platform_zeroize( buf, sizeof( buf ) );

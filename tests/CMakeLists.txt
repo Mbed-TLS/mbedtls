@@ -25,10 +25,10 @@ if(DEV_MODE)
         WORKING_DIRECTORY
             ${CMAKE_CURRENT_SOURCE_DIR}/..
         OUTPUT_VARIABLE
-            TEST_SUITE_DATA_FILES)
+            test_suite_data_files)
     add_custom_command(
         OUTPUT
-            ${TEST_SUITE_DATA_FILES}
+            ${test_suite_data_files}
         WORKING_DIRECTORY
             ${CMAKE_CURRENT_SOURCE_DIR}/..
         COMMAND

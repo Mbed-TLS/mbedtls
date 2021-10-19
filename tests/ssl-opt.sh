@@ -867,14 +867,14 @@ analyze_test_commands() {
 # * $TIMES_LEFT: if nonzero, a RETRY outcome is allowed
 #
 # Outputs:
-# * $outcome: one of PASS/RETRY/FAIL
+# * $outcome: one of PASS/RETRY*/FAIL
 check_test_failure() {
     outcome=FAIL
 
     if [ $TIMES_LEFT -gt 0 ] &&
        grep '===CLIENT_TIMEOUT===' $CLI_OUT >/dev/null
     then
-        outcome=RETRY
+        outcome="RETRY(client-timeout)"
         return
     fi
 
@@ -939,14 +939,22 @@ check_test_failure() {
 
             "-S")
                 if grep -v '^==' $SRV_OUT | grep -v 'Serious error when reading debug info' | grep "$2" >/dev/null; then
-                    fail "pattern '$2' MUST NOT be present in the Server output"
+                    if [ "$2" = "resend" ] && [ $TIMES_LEFT -gt 0 ]; then
+                        outcome="RETRY(resend)"
+                    else
+                        fail "pattern '$2' MUST NOT be present in the Server output"
+                    fi
                     return
                 fi
                 ;;
 
             "-C")
                 if grep -v '^==' $CLI_OUT | grep -v 'Serious error when reading debug info' | grep "$2" >/dev/null; then
-                    fail "pattern '$2' MUST NOT be present in the Client output"
+                    if [ "$2" = "resend" ] && [ $TIMES_LEFT -gt 0 ]; then
+                        outcome="RETRY(resend)"
+                    else
+                        fail "pattern '$2' MUST NOT be present in the Client output"
+                    fi
                     return
                 fi
                 ;;
@@ -1129,7 +1137,7 @@ run_test() {
         check_test_failure "$@"
         case $outcome in
             PASS) break;;
-            RETRY) printf "RETRY ";;
+            RETRY*) printf "$outcome ";;
             FAIL) return;;
         esac
     done

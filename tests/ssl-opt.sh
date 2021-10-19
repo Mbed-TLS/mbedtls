@@ -656,11 +656,19 @@ analyze_test_commands() {
 # * $CLI_EXPECT: expected client return code
 # * $SRV_RET: server return code
 # * $CLI_OUT, $SRV_OUT, $PXY_OUT: files containing client/server/proxy logs
+# * $TIMES_LEFT: if nonzero, a RETRY outcome is allowed
 #
 # Outputs:
-# * $pass: set to 1 if no failures are detected, 0 otherwise
+# * $outcome: one of PASS/RETRY/FAIL
 check_test_failure() {
-    pass=0
+    outcome=FAIL
+
+    if [ $TIMES_LEFT -gt 0 ] &&
+       grep '===CLIENT_TIMEOUT===' $CLI_OUT >/dev/null
+    then
+        outcome=RETRY
+        return
+    fi
 
     # check if the client and server went at least to the handshake stage
     # (useful to avoid tests with only negative assertions and non-zero
@@ -784,7 +792,7 @@ check_test_failure() {
     fi
 
     # if we're here, everything is ok
-    pass=1
+    outcome=PASS
 }
 
 # Run the current test case: start the server and if applicable the proxy, run
@@ -894,19 +902,15 @@ run_test() {
 
         do_run_test_once
 
-        # retry only on timeouts
-        if grep '===CLIENT_TIMEOUT===' $CLI_OUT >/dev/null; then
-            printf "RETRY "
-        else
-            TIMES_LEFT=0
-        fi
+        check_test_failure "$@"
+        case $outcome in
+            PASS) break;;
+            RETRY) printf "RETRY ";;
+            FAIL) return;;
+        esac
     done
 
-    check_test_failure "$@"
-    if [ "$pass" -eq 0 ]; then
-        return
-    fi
-
+    # If we get this far, the test case passed.
     record_outcome "PASS"
     if [ "$PRESERVE_LOGS" -gt 0 ]; then
         mv $SRV_OUT o-srv-${TESTS}.log

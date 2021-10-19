@@ -2756,6 +2756,19 @@ component_test_zeroize () {
     unset gdb_disable_aslr
 }
 
+component_test_psa_compliance () {
+    msg "build: make, default config (out-of-box), libmbedcrypto.a only"
+    make library/libmbedcrypto.a
+
+    msg "unit test: test_psa_compliance.py"
+    ./tests/scripts/test_psa_compliance.py
+}
+
+support_test_psa_compliance () {
+    local ver=($(cmake --version | sed 's/cmake version //; y/./ /; q'))
+    [ "${ver[0]}" -eq 3 ] && [ "${ver[1]}" -ge 10 ]
+}
+
 component_check_python_files () {
     msg "Lint: Python scripts"
     tests/scripts/check-python-files.sh

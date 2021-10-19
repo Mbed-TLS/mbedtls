@@ -16,16 +16,17 @@ endif()
 # generated .data files will go there
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/suites)
 
+execute_process(
+    COMMAND
+        ${CMAKE_CURRENT_SOURCE_DIR}/../tests/scripts/generate_psa_tests.py
+        --list-for-cmake
+        --directory ${CMAKE_CURRENT_BINARY_DIR}/suites
+    WORKING_DIRECTORY
+        ${CMAKE_CURRENT_SOURCE_DIR}/..
+    OUTPUT_VARIABLE
+        test_suite_data_files)
+
 if(DEV_MODE)
-    execute_process(
-        COMMAND
-            ${CMAKE_CURRENT_SOURCE_DIR}/../tests/scripts/generate_psa_tests.py
-            --list-for-cmake
-            --directory ${CMAKE_CURRENT_BINARY_DIR}/suites
-        WORKING_DIRECTORY
-            ${CMAKE_CURRENT_SOURCE_DIR}/..
-        OUTPUT_VARIABLE
-            test_suite_data_files)
     add_custom_command(
         OUTPUT
             ${test_suite_data_files}
@@ -42,9 +43,9 @@ if(DEV_MODE)
             ${CMAKE_CURRENT_SOURCE_DIR}/../include/psa/crypto_extra.h
     )
 else()
-    link_to_source(suites/test_suite_psa_crypto_not_supported.generated.data)
-    link_to_source(suites/test_suite_psa_crypto_storage_format.current.data)
-    link_to_source(suites/test_suite_psa_crypto_storage_format.v0.data)
+    foreach(file ${test_suite_data_files})
+        link_to_source(${file})
+    endforeach()
 endif()
 
 # Test suites caught by SKIP_TEST_SUITES are built but not executed.

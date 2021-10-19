@@ -48,6 +48,30 @@ PSA generate ARC4 2048-bit not supported
 depends_on:!PSA_WANT_KEY_TYPE_ARC4
 generate_not_supported:PSA_KEY_TYPE_ARC4:2048
 
+PSA import ARIA 128-bit not supported
+depends_on:!PSA_WANT_KEY_TYPE_ARIA
+import_not_supported:PSA_KEY_TYPE_ARIA:"48657265006973206b6579a064617461"
+
+PSA generate ARIA 128-bit not supported
+depends_on:!PSA_WANT_KEY_TYPE_ARIA
+generate_not_supported:PSA_KEY_TYPE_ARIA:128
+
+PSA import ARIA 192-bit not supported
+depends_on:!PSA_WANT_KEY_TYPE_ARIA
+import_not_supported:PSA_KEY_TYPE_ARIA:"48657265006973206b6579a0646174614865726500697320"
+
+PSA generate ARIA 192-bit not supported
+depends_on:!PSA_WANT_KEY_TYPE_ARIA
+generate_not_supported:PSA_KEY_TYPE_ARIA:192
+
+PSA import ARIA 256-bit not supported
+depends_on:!PSA_WANT_KEY_TYPE_ARIA
+import_not_supported:PSA_KEY_TYPE_ARIA:"48657265006973206b6579a06461746148657265006973206b6579a064617461"
+
+PSA generate ARIA 256-bit not supported
+depends_on:!PSA_WANT_KEY_TYPE_ARIA
+generate_not_supported:PSA_KEY_TYPE_ARIA:256
+
 PSA import CAMELLIA 128-bit not supported
 depends_on:!PSA_WANT_KEY_TYPE_CAMELLIA
 import_not_supported:PSA_KEY_TYPE_CAMELLIA:"48657265006973206b6579a064617461"

@@ -795,68 +795,12 @@ skip_handshake_stage_check() {
     SKIP_HANDSHAKE_CHECK="YES"
 }
 
-# Usage: run_test name [-p proxy_cmd] srv_cmd cli_cmd cli_exit [option [...]]
-# Options:  -s pattern  pattern that must be present in server output
-#           -c pattern  pattern that must be present in client output
-#           -u pattern  lines after pattern must be unique in client output
-#           -f call shell function on client output
-#           -S pattern  pattern that must be absent in server output
-#           -C pattern  pattern that must be absent in client output
-#           -U pattern  lines after pattern must be unique in server output
-#           -F call shell function on server output
-#           -g call shell function on server and client output
-run_test() {
-    NAME="$1"
-    shift 1
-
-    if is_excluded "$NAME"; then
-        SKIP_NEXT="NO"
-        # There was no request to run the test, so don't record its outcome.
-        return
-    fi
-
-    print_name "$NAME"
-
-    # Do we only run numbered tests?
-    if [ -n "$RUN_TEST_NUMBER" ]; then
-        case ",$RUN_TEST_NUMBER," in
-            *",$TESTS,"*) :;;
-            *) SKIP_NEXT="YES";;
-        esac
-    fi
-
-    # does this test use a proxy?
-    if [ "X$1" = "X-p" ]; then
-        PXY_CMD="$2"
-        shift 2
-    else
-        PXY_CMD=""
-    fi
-
-    # get commands and client output
-    SRV_CMD="$1"
-    CLI_CMD="$2"
-    CLI_EXPECT="$3"
-    shift 3
-
-    # Check if test uses files
-    case "$SRV_CMD $CLI_CMD" in
-        *data_files/*)
-            requires_config_enabled MBEDTLS_FS_IO;;
-    esac
-
-    # If the client or serve requires a ciphersuite, check that it's enabled.
-    maybe_requires_ciphersuite_enabled "$SRV_CMD" "$@"
-    maybe_requires_ciphersuite_enabled "$CLI_CMD" "$@"
-
-    # should we skip?
-    if [ "X$SKIP_NEXT" = "XYES" ]; then
-        SKIP_NEXT="NO"
-        record_outcome "SKIP"
-        SKIPS=$(( $SKIPS + 1 ))
-        return
-    fi
-
+# Analyze the commands that will be used in a test.
+#
+# Analyze and possibly instrument $PXY_CMD, $CLI_CMD, $SRV_CMD to pass
+# extra arguments or go through wrappers.
+# Set $DTLS (0=TLS, 1=DTLS).
+analyze_test_commands() {
     # update DTLS variable
     detect_dtls "$SRV_CMD"
 
@@ -910,48 +854,21 @@ run_test() {
             CLI_CMD="valgrind --leak-check=full $CLI_CMD"
         fi
     fi
+}
 
-    TIMES_LEFT=2
-    while [ $TIMES_LEFT -gt 0 ]; do
-        TIMES_LEFT=$(( $TIMES_LEFT - 1 ))
-
-        # run the commands
-        if [ -n "$PXY_CMD" ]; then
-            printf "# %s\n%s\n" "$NAME" "$PXY_CMD" > $PXY_OUT
-            $PXY_CMD >> $PXY_OUT 2>&1 &
-            PXY_PID=$!
-            wait_proxy_start "$PXY_PORT" "$PXY_PID"
-        fi
-
-        check_osrv_dtls
-        printf '# %s\n%s\n' "$NAME" "$SRV_CMD" > $SRV_OUT
-        provide_input | $SRV_CMD >> $SRV_OUT 2>&1 &
-        SRV_PID=$!
-        wait_server_start "$SRV_PORT" "$SRV_PID"
-
-        printf '# %s\n%s\n' "$NAME" "$CLI_CMD" > $CLI_OUT
-        eval "$CLI_CMD" >> $CLI_OUT 2>&1 &
-        wait_client_done
-
-        sleep 0.05
-
-        # terminate the server (and the proxy)
-        kill $SRV_PID
-        wait $SRV_PID
-        SRV_RET=$?
-
-        if [ -n "$PXY_CMD" ]; then
-            kill $PXY_PID >/dev/null 2>&1
-            wait $PXY_PID
-        fi
-
-        # retry only on timeouts
-        if grep '===CLIENT_TIMEOUT===' $CLI_OUT >/dev/null; then
-            printf "RETRY "
-        else
-            TIMES_LEFT=0
-        fi
-    done
+# Check for failure conditions after a test case.
+#
+# Inputs from run_test:
+# * positional parameters: test options (see run_test documentation)
+# * $CLI_EXIT: client return code
+# * $CLI_EXPECT: expected client return code
+# * $SRV_RET: server return code
+# * $CLI_OUT, $SRV_OUT, $PXY_OUT: files containing client/server/proxy logs
+#
+# Outputs:
+# * $pass: set to 1 if no failures are detected, 0 otherwise
+check_test_failure() {
+    pass=0
 
     # check if the client and server went at least to the handshake stage
     # (useful to avoid tests with only negative assertions and non-zero
@@ -1085,6 +1002,120 @@ run_test() {
     fi
 
     # if we're here, everything is ok
+    pass=1
+}
+
+# Usage: run_test name [-p proxy_cmd] srv_cmd cli_cmd cli_exit [option [...]]
+# Options:  -s pattern  pattern that must be present in server output
+#           -c pattern  pattern that must be present in client output
+#           -u pattern  lines after pattern must be unique in client output
+#           -f call shell function on client output
+#           -S pattern  pattern that must be absent in server output
+#           -C pattern  pattern that must be absent in client output
+#           -U pattern  lines after pattern must be unique in server output
+#           -F call shell function on server output
+#           -g call shell function on server and client output
+run_test() {
+    NAME="$1"
+    shift 1
+
+    if is_excluded "$NAME"; then
+        SKIP_NEXT="NO"
+        # There was no request to run the test, so don't record its outcome.
+        return
+    fi
+
+    print_name "$NAME"
+
+    # Do we only run numbered tests?
+    if [ -n "$RUN_TEST_NUMBER" ]; then
+        case ",$RUN_TEST_NUMBER," in
+            *",$TESTS,"*) :;;
+            *) SKIP_NEXT="YES";;
+        esac
+    fi
+
+    # does this test use a proxy?
+    if [ "X$1" = "X-p" ]; then
+        PXY_CMD="$2"
+        shift 2
+    else
+        PXY_CMD=""
+    fi
+
+    # get commands and client output
+    SRV_CMD="$1"
+    CLI_CMD="$2"
+    CLI_EXPECT="$3"
+    shift 3
+
+    # Check if test uses files
+    case "$SRV_CMD $CLI_CMD" in
+        *data_files/*)
+            requires_config_enabled MBEDTLS_FS_IO;;
+    esac
+
+    # If the client or serve requires a ciphersuite, check that it's enabled.
+    maybe_requires_ciphersuite_enabled "$SRV_CMD" "$@"
+    maybe_requires_ciphersuite_enabled "$CLI_CMD" "$@"
+
+    # should we skip?
+    if [ "X$SKIP_NEXT" = "XYES" ]; then
+        SKIP_NEXT="NO"
+        record_outcome "SKIP"
+        SKIPS=$(( $SKIPS + 1 ))
+        return
+    fi
+
+    analyze_test_commands "$@"
+
+    TIMES_LEFT=2
+    while [ $TIMES_LEFT -gt 0 ]; do
+        TIMES_LEFT=$(( $TIMES_LEFT - 1 ))
+
+        # run the commands
+        if [ -n "$PXY_CMD" ]; then
+            printf "# %s\n%s\n" "$NAME" "$PXY_CMD" > $PXY_OUT
+            $PXY_CMD >> $PXY_OUT 2>&1 &
+            PXY_PID=$!
+            wait_proxy_start "$PXY_PORT" "$PXY_PID"
+        fi
+
+        check_osrv_dtls
+        printf '# %s\n%s\n' "$NAME" "$SRV_CMD" > $SRV_OUT
+        provide_input | $SRV_CMD >> $SRV_OUT 2>&1 &
+        SRV_PID=$!
+        wait_server_start "$SRV_PORT" "$SRV_PID"
+
+        printf '# %s\n%s\n' "$NAME" "$CLI_CMD" > $CLI_OUT
+        eval "$CLI_CMD" >> $CLI_OUT 2>&1 &
+        wait_client_done
+
+        sleep 0.05
+
+        # terminate the server (and the proxy)
+        kill $SRV_PID
+        wait $SRV_PID
+        SRV_RET=$?
+
+        if [ -n "$PXY_CMD" ]; then
+            kill $PXY_PID >/dev/null 2>&1
+            wait $PXY_PID
+        fi
+
+        # retry only on timeouts
+        if grep '===CLIENT_TIMEOUT===' $CLI_OUT >/dev/null; then
+            printf "RETRY "
+        else
+            TIMES_LEFT=0
+        fi
+    done
+
+    check_test_failure "$@"
+    if [ "$pass" -eq 0 ]; then
+        return
+    fi
+
     record_outcome "PASS"
     if [ "$PRESERVE_LOGS" -gt 0 ]; then
         mv $SRV_OUT o-srv-${TESTS}.log

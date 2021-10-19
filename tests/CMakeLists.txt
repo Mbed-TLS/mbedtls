@@ -24,12 +24,12 @@ execute_process(
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_SOURCE_DIR}/..
     OUTPUT_VARIABLE
-        test_suite_data_files)
+        generated_data_files)
 
 if(DEV_MODE)
     add_custom_command(
         OUTPUT
-            ${test_suite_data_files}
+            ${generated_data_files}
         WORKING_DIRECTORY
             ${CMAKE_CURRENT_SOURCE_DIR}/..
         COMMAND
@@ -43,7 +43,7 @@ if(DEV_MODE)
             ${CMAKE_CURRENT_SOURCE_DIR}/../include/psa/crypto_extra.h
     )
 else()
-    foreach(file ${test_suite_data_files})
+    foreach(file ${generated_data_files})
         link_to_source(${file})
     endforeach()
 endif()
@@ -62,9 +62,20 @@ function(add_test_suite suite_name)
         set(data_name ${suite_name})
     endif()
 
-    if(data_name STREQUAL "psa_crypto_not_supported.generated" OR
-       data_name STREQUAL "psa_crypto_storage_format.current" OR
-       data_name STREQUAL "psa_crypto_storage_format.v0")
+    # Get the test names of the tests with generated .data files
+    # from the generated_data_files list in parent scope.
+    set(generated_data_names "")
+    foreach(generated_data_file ${generated_data_files})
+        # Get the plain filename
+        get_filename_component(generated_data_name ${generated_data_file} NAME)
+        # Remove the ".data" extension
+        get_name_without_last_ext(generated_data_name ${generated_data_name})
+        # Remove leading "test_suite_"
+        string(SUBSTRING ${generated_data_name} 11 -1 generated_data_name)
+        list(APPEND generated_data_names ${generated_data_name})
+    endforeach()
+
+    if(";${generated_data_names};" MATCHES ";${data_name};")
         set(data_file
             ${CMAKE_CURRENT_BINARY_DIR}/suites/test_suite_${data_name}.data)
     else()

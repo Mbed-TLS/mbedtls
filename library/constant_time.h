@@ -17,6 +17,9 @@
  *  limitations under the License.
  */
 
+#ifndef MBEDTLS_CONSTANT_TIME_INTERNAL_H
+#define MBEDTLS_CONSTANT_TIME_INTERNAL_H
+
 #include "common.h"
 
 #if defined(MBEDTLS_BIGNUM_C)
@@ -305,3 +308,5 @@ int mbedtls_cf_rsaes_pkcs1_v15_unpadding( unsigned char *input,
                                           size_t *olen );
 
 #endif /* MBEDTLS_PKCS1_V15 && MBEDTLS_RSA_C && ! MBEDTLS_RSA_ALT */
+
+#endif /* MBEDTLS_CONSTANT_TIME_INTERNAL_H */

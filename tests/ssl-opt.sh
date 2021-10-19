@@ -520,7 +520,21 @@ if type lsof >/dev/null 2>/dev/null; then
             proto=TCP
         fi
         # Make a tight loop, server normally takes less than 1s to start.
-        while ! lsof -a -n -b -i "$proto:$1" -p "$2" >/dev/null 2>/dev/null; do
+        while true; do
+              SERVER_PIDS=$(lsof -a -n -b -i "$proto:$1" -F p | cut -c2-)
+              SERVER_FOUND=false
+              # When proxies are used, more than one PID can be listening on
+              # the same port. Each PID will be on its own line.
+              while read -r PID; do
+                  if [[ $PID == $2 ]]; then
+                      SERVER_FOUND=true
+                      break
+                  fi
+              done <<< "$SERVER_PIDS"
+
+              if ($SERVER_FOUND == true); then
+                  break
+              fi
               if [ $(( $(date +%s) - $START_TIME )) -gt $DOG_DELAY ]; then
                   echo "$3 START TIMEOUT"
                   echo "$3 START TIMEOUT" >> $4

@@ -41,6 +41,7 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/version.h"
 #include "constant_time.h"
+#include "mbedtls/constant_time.h"
 
 #include <string.h>
 

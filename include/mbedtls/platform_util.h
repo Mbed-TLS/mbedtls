@@ -50,6 +50,7 @@ MBEDTLS_DEPRECATED typedef int mbedtls_deprecated_numeric_constant_t;
 #define MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( VAL )       \
     ( (mbedtls_deprecated_numeric_constant_t) ( VAL ) )
 #else /* MBEDTLS_DEPRECATED_WARNING */
+#define MBEDTLS_DEPRECATED
 #define MBEDTLS_DEPRECATED_STRING_CONSTANT( VAL ) VAL
 #define MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( VAL ) VAL
 #endif /* MBEDTLS_DEPRECATED_WARNING */

@@ -37,7 +37,7 @@ use strict;
 my ($config_file, $query_config_format_file, $query_config_file);
 
 if( @ARGV ) {
-    die "Invalid number of arguments" if scalar @ARGV != 3;
+    die "Invalid number of arguments - usage: $0 [CONFIG_FILE TEMPLATE_FILE OUTPUT_FILE]" if scalar @ARGV != 3;
     ($config_file, $query_config_format_file, $query_config_file) = @ARGV;
 
     -f $config_file or die "No such file: $config_file";

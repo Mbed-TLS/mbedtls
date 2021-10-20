@@ -92,6 +92,8 @@ function(add_test_suite suite_name)
 
     add_custom_command(
         OUTPUT
+            # The output filename of generate_test_code.py is derived from the -d
+            # input argument.
             test_suite_${data_name}.c
         COMMAND
             ${MBEDTLS_PYTHON_EXECUTABLE}

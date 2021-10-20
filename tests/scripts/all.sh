@@ -1004,10 +1004,10 @@ component_test_ref_configs () {
     # However this doesn't work as the generation script expects a specific
     # format for mbedtls_config.h, which the other files don't follow. Also,
     # cmake can't know this, but re-generation is actually not necessary as
-    # the generated files only depend on the list of availabe options, not
+    # the generated files only depend on the list of available options, not
     # whether they're on or off. So, disable cmake's (over-sensitive here)
     # dependency resolution for generated files and just rely on them being
-    # present (thanks for pre_generate_files) by turning DEV_MODE off.
+    # present (thanks to pre_generate_files) by turning DEV_MODE off.
     CC=gcc cmake -D DEV_MODE=Off -D CMAKE_BUILD_TYPE:String=Asan .
     tests/scripts/test-ref-configs.pl
 }

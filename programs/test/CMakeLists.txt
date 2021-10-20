@@ -44,7 +44,7 @@ if(DEV_MODE)
             ${CMAKE_CURRENT_SOURCE_DIR}/../../include/mbedtls/mbedtls_config.h
             ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/data_files/query_config.fmt
     )
-    # this file will also be used in anoter directory, so create a target, see
+    # this file will also be used in another directory, so create a target, see
     # https://gitlab.kitware.com/cmake/community/-/wikis/FAQ#how-can-i-add-a-dependency-to-a-source-file-which-is-generated-in-a-subdirectory
     add_custom_target(generate_query_config_c
         DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/query_config.c)

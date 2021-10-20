@@ -50,7 +50,7 @@ if( @ARGV ) {
     unless( -f $config_file && -f $query_config_format_file ) {
         chdir '..' or die;
         -f $config_file && -f $query_config_format_file
-          or die "Without arguments, must be run from root or a subdirectory\n";
+          or die "No arguments supplied, must be run from project root or a first-level subdirectory\n";
     }
 }
 

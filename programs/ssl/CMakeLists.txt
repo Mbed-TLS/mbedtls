@@ -19,10 +19,10 @@ set(executables
 )
 
 if(DEV_MODE)
-    # Inform CMake the the following file will be generated as part of the build
+    # Inform CMake that the following file will be generated as part of the build
     # process, so it doesn't complain that it doesn't exist yet. Starting from
     # CMake 3.20, this will no longer be necessary as CMake will automatically
-    # propagate this information accross the tree, for now it's only visible
+    # propagate this information across the tree, for now it's only visible
     # inside the same directory, so we need to propagate manually.
     set_source_files_properties(
         ${CMAKE_CURRENT_BINARY_DIR}/../test/query_config.c

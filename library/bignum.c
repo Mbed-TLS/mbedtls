@@ -1951,7 +1951,7 @@ static void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi
      * so d[n] == 1 and we want to set A to the result of the subtraction
      * which is d - (2^biL)^n, i.e. the n least significant limbs of d.
      * This exactly corresponds to a conditional assignment. */
-    mbedtls_cf_mpi_uint_cond_assign( n, A->p, d, (unsigned char) d[n] );
+    mbedtls_ct_mpi_uint_cond_assign( n, A->p, d, (unsigned char) d[n] );
 }
 
 /*
@@ -1993,7 +1993,7 @@ static int mpi_select( mbedtls_mpi *R, const mbedtls_mpi *T, size_t T_size, size
     for( size_t i = 0; i < T_size; i++ )
     {
         MBEDTLS_MPI_CHK( mbedtls_mpi_safe_cond_assign( R, &T[i],
-                        (unsigned char) mbedtls_cf_size_bool_eq( i, idx ) ) );
+                        (unsigned char) mbedtls_ct_size_bool_eq( i, idx ) ) );
     }
 
 cleanup:

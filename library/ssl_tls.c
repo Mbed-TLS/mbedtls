@@ -3604,7 +3604,7 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_BAD_HS_FINISHED );
     }
 
-    if( mbedtls_cf_memcmp( ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl ),
+    if( mbedtls_ct_memcmp( ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl ),
                       buf, hash_len ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );

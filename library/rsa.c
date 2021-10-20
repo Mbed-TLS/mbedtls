@@ -1518,7 +1518,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
     if( ret != 0 )
         goto cleanup;
 
-    ret = mbedtls_cf_rsaes_pkcs1_v15_unpadding( mode, buf, ilen,
+    ret = mbedtls_ct_rsaes_pkcs1_v15_unpadding( mode, buf, ilen,
                                                 output, output_max_len, olen );
 
 cleanup:
@@ -1933,7 +1933,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
     MBEDTLS_MPI_CHK( mbedtls_rsa_private( ctx, f_rng, p_rng, sig, sig_try ) );
     MBEDTLS_MPI_CHK( mbedtls_rsa_public( ctx, sig_try, verif ) );
 
-    if( mbedtls_cf_memcmp( verif, sig, ctx->len ) != 0 )
+    if( mbedtls_ct_memcmp( verif, sig, ctx->len ) != 0 )
     {
         ret = MBEDTLS_ERR_RSA_PRIVATE_FAILED;
         goto cleanup;
@@ -2231,7 +2231,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
      * Compare
      */
 
-    if( ( ret = mbedtls_cf_memcmp( encoded, encoded_expected,
+    if( ( ret = mbedtls_ct_memcmp( encoded, encoded_expected,
                                               sig_len ) ) != 0 )
     {
         ret = MBEDTLS_ERR_RSA_VERIFY_FAILED;

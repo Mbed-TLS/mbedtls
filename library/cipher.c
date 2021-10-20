@@ -1139,7 +1139,7 @@ int mbedtls_cipher_check_tag( mbedtls_cipher_context_t *ctx,
         }
 
         /* Check the tag in "constant-time" */
-        if( mbedtls_cf_memcmp( tag, check_tag, tag_len ) != 0 )
+        if( mbedtls_ct_memcmp( tag, check_tag, tag_len ) != 0 )
             return( MBEDTLS_ERR_CIPHER_AUTH_FAILED );
 
         return( 0 );
@@ -1161,7 +1161,7 @@ int mbedtls_cipher_check_tag( mbedtls_cipher_context_t *ctx,
         }
 
         /* Check the tag in "constant-time" */
-        if( mbedtls_cf_memcmp( tag, check_tag, tag_len ) != 0 )
+        if( mbedtls_ct_memcmp( tag, check_tag, tag_len ) != 0 )
             return( MBEDTLS_ERR_CIPHER_AUTH_FAILED );
 
         return( 0 );

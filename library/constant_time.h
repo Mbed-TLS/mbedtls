@@ -236,9 +236,9 @@ void mbedtls_cf_memcpy_offset( unsigned char *dest,
  *                          This must be no less than \p min_data_len and no
  *                          greater than \p max_data_len.
  * \param min_data_len      The minimal length of the second part of the
- *                          message, read from /p data.
+ *                          message, read from \p data.
  * \param max_data_len      The maximal length of the second part of the
- *                          message, read from /p data.
+ *                          message, read from \p data.
  * \param output            The HMAC will be written here. This must point to
  *                          a writable buffer of sufficient size to hold the
  *                          HMAC value.

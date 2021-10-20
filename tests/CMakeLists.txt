@@ -16,15 +16,22 @@ endif()
 # generated .data files will go there
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/suites)
 
+# Get base names for generated files (starting at "suites/")
 execute_process(
     COMMAND
         ${CMAKE_CURRENT_SOURCE_DIR}/../tests/scripts/generate_psa_tests.py
         --list-for-cmake
-        --directory ${CMAKE_CURRENT_BINARY_DIR}/suites
+        --directory suites
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_SOURCE_DIR}/..
     OUTPUT_VARIABLE
-        generated_data_files)
+        base_generated_data_files)
+
+# Derive generated file paths in the build directory
+set(generated_data_files "")
+foreach(file ${base_generated_data_files})
+    list(APPEND generated_data_files ${CMAKE_CURRENT_BINARY_DIR}/${file})
+endforeach()
 
 if(DEV_MODE)
     add_custom_command(
@@ -43,7 +50,7 @@ if(DEV_MODE)
             ${CMAKE_CURRENT_SOURCE_DIR}/../include/psa/crypto_extra.h
     )
 else()
-    foreach(file ${generated_data_files})
+    foreach(file ${base_generated_data_files})
         link_to_source(${file})
     endforeach()
 endif()

@@ -27,7 +27,7 @@ if(TEST_CPP)
     target_link_libraries(cpp_dummy_build ${mbedcrypto_target})
 endif()
 
-if(DEV_MODE)
+if(GEN_FILES)
     find_package(Perl REQUIRED)
 
     add_custom_command(

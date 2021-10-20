@@ -18,7 +18,7 @@ set(executables
     ssl_server2
 )
 
-if(DEV_MODE)
+if(GEN_FILES)
     # Inform CMake that the following file will be generated as part of the build
     # process, so it doesn't complain that it doesn't exist yet. Starting from
     # CMake 3.20, this will no longer be necessary as CMake will automatically
@@ -42,7 +42,7 @@ foreach(exe IN LISTS executables)
     target_link_libraries(${exe} ${libs})
     target_include_directories(${exe} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../tests/include)
     if(exe STREQUAL "ssl_client2" OR exe STREQUAL "ssl_server2")
-        if(DEV_MODE)
+        if(GEN_FILES)
             add_dependencies(${exe} generate_query_config_c)
         endif()
         target_include_directories(${exe}

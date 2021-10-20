@@ -109,7 +109,7 @@ set(src_tls
     ssl_tls13_generic.c
 )
 
-if(DEV_MODE)
+if(GEN_FILES)
     find_package(Perl REQUIRED)
 
     file(GLOB error_headers ${CMAKE_CURRENT_SOURCE_DIR}/../include/mbedtls/*.h)

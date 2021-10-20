@@ -4,7 +4,7 @@ set(executables
     psa_constant_names
 )
 
-if(DEV_MODE)
+if(GEN_FILES)
     add_custom_command(
         OUTPUT
             ${CMAKE_CURRENT_BINARY_DIR}/psa_constant_names_generated.c
@@ -30,7 +30,7 @@ foreach(exe IN LISTS executables)
 endforeach()
 
 target_include_directories(psa_constant_names PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-if(DEV_MODE)
+if(GEN_FILES)
     add_custom_target(generate_psa_constant_names_generated_c
         DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/psa_constant_names_generated.c)
     add_dependencies(psa_constant_names generate_psa_constant_names_generated_c)

@@ -34,7 +34,7 @@ foreach(file ${base_generated_data_files})
     list(APPEND generated_data_files ${CMAKE_CURRENT_BINARY_DIR}/${file})
 endforeach()
 
-if(DEV_MODE)
+if(GEN_FILES)
     add_custom_command(
         OUTPUT
             ${generated_data_files}

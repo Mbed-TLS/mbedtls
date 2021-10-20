@@ -1007,8 +1007,8 @@ component_test_ref_configs () {
     # the generated files only depend on the list of available options, not
     # whether they're on or off. So, disable cmake's (over-sensitive here)
     # dependency resolution for generated files and just rely on them being
-    # present (thanks to pre_generate_files) by turning DEV_MODE off.
-    CC=gcc cmake -D DEV_MODE=Off -D CMAKE_BUILD_TYPE:String=Asan .
+    # present (thanks to pre_generate_files) by turning GEN_FILES off.
+    CC=gcc cmake -D GEN_FILES=Off -D CMAKE_BUILD_TYPE:String=Asan .
     tests/scripts/test-ref-configs.pl
 }
 

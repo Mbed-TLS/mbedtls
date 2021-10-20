@@ -1173,7 +1173,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
              *
              * Afterwards, we know that data + data_len is followed by at
              * least maclen Bytes, which justifies the call to
-             * mbedtls_cf_memcmp() below.
+             * mbedtls_ct_memcmp() below.
              *
              * Further, we still know that data_len > minlen */
             rec->data_len -= transform->maclen;
@@ -1196,7 +1196,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
                                    transform->maclen );
 
             /* Compare expected MAC with MAC at the end of the record. */
-            if( mbedtls_cf_memcmp( data + rec->data_len, mac_expect,
+            if( mbedtls_ct_memcmp( data + rec->data_len, mac_expect,
                                               transform->maclen ) != 0 )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "message mac does not match" ) );
@@ -1258,7 +1258,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
 
         if( auth_done == 1 )
         {
-            const size_t mask = mbedtls_cf_size_mask_ge(
+            const size_t mask = mbedtls_ct_size_mask_ge(
                                 rec->data_len,
                                 padlen + 1 );
             correct &= mask;
@@ -1278,7 +1278,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
             }
 #endif
 
-            const size_t mask = mbedtls_cf_size_mask_ge(
+            const size_t mask = mbedtls_ct_size_mask_ge(
                                 rec->data_len,
                                 transform->maclen + padlen + 1 );
             correct &= mask;
@@ -1312,18 +1312,18 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
             /* pad_count += (idx >= padding_idx) &&
                 *              (check[idx] == padlen - 1);
                 */
-            const size_t mask = mbedtls_cf_size_mask_ge( idx, padding_idx );
-            const size_t equal = mbedtls_cf_size_bool_eq( check[idx],
+            const size_t mask = mbedtls_ct_size_mask_ge( idx, padding_idx );
+            const size_t equal = mbedtls_ct_size_bool_eq( check[idx],
                                                           padlen - 1 );
             pad_count += mask & equal;
         }
-        correct &= mbedtls_cf_size_bool_eq( pad_count, padlen );
+        correct &= mbedtls_ct_size_bool_eq( pad_count, padlen );
 
 #if defined(MBEDTLS_SSL_DEBUG_ALL)
         if( padlen > 0 && correct == 0 )
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad padding byte detected" ) );
 #endif
-        padlen &= mbedtls_cf_size_mask( correct );
+        padlen &= mbedtls_ct_size_mask( correct );
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
@@ -1386,17 +1386,17 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
         const size_t max_len = rec->data_len + padlen;
         const size_t min_len = ( max_len > 256 ) ? max_len - 256 : 0;
 
-        ret = mbedtls_cf_hmac( &transform->md_ctx_dec,
+        ret = mbedtls_ct_hmac( &transform->md_ctx_dec,
                                add_data, add_data_len,
                                data, rec->data_len, min_len, max_len,
                                mac_expect );
         if( ret != 0 )
         {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cf_hmac", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ct_hmac", ret );
             return( ret );
         }
 
-        mbedtls_cf_memcpy_offset( mac_peer, data,
+        mbedtls_ct_memcpy_offset( mac_peer, data,
                                   rec->data_len,
                                   min_len, max_len,
                                   transform->maclen );
@@ -1407,7 +1407,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
         MBEDTLS_SSL_DEBUG_BUF( 4, "message  mac", mac_peer, transform->maclen );
 #endif
 
-        if( mbedtls_cf_memcmp( mac_peer, mac_expect,
+        if( mbedtls_ct_memcmp( mac_peer, mac_expect,
                                           transform->maclen ) != 0 )
         {
 #if defined(MBEDTLS_SSL_DEBUG_ALL)

@@ -1381,9 +1381,9 @@ static int ssl_parse_renegotiation_info( mbedtls_ssl_context *ssl,
         /* Check verify-data in constant-time. The length OTOH is no secret */
         if( len    != 1 + ssl->verify_data_len * 2 ||
             buf[0] !=     ssl->verify_data_len * 2 ||
-            mbedtls_cf_memcmp( buf + 1,
+            mbedtls_ct_memcmp( buf + 1,
                           ssl->own_verify_data, ssl->verify_data_len ) != 0 ||
-            mbedtls_cf_memcmp( buf + 1 + ssl->verify_data_len,
+            mbedtls_ct_memcmp( buf + 1 + ssl->verify_data_len,
                           ssl->peer_verify_data, ssl->verify_data_len ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "non-matching renegotiation info" ) );

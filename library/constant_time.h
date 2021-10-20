@@ -44,7 +44,7 @@
  *
  * \return          Zero if \p value is zero, otherwise all-bits-one.
  */
-unsigned mbedtls_cf_uint_mask( unsigned value );
+unsigned mbedtls_ct_uint_mask( unsigned value );
 
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
 
@@ -59,7 +59,7 @@ unsigned mbedtls_cf_uint_mask( unsigned value );
  *
  * \return          Zero if \p value is zero, otherwise all-bits-one.
  */
-size_t mbedtls_cf_size_mask( size_t value );
+size_t mbedtls_ct_size_mask( size_t value );
 
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
 
@@ -76,7 +76,7 @@ size_t mbedtls_cf_size_mask( size_t value );
  *
  * \return          Zero if \p value is zero, otherwise all-bits-one.
  */
-mbedtls_mpi_uint mbedtls_cf_mpi_uint_mask( mbedtls_mpi_uint value );
+mbedtls_mpi_uint mbedtls_ct_mpi_uint_mask( mbedtls_mpi_uint value );
 
 #endif /* MBEDTLS_BIGNUM_C */
 
@@ -95,7 +95,7 @@ mbedtls_mpi_uint mbedtls_cf_mpi_uint_mask( mbedtls_mpi_uint value );
  * \return      All-bits-one if \p x is greater or equal than \p y,
  *              otherwise zero.
  */
-size_t mbedtls_cf_size_mask_ge( size_t x,
+size_t mbedtls_ct_size_mask_ge( size_t x,
                                 size_t y );
 
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
@@ -111,7 +111,7 @@ size_t mbedtls_cf_size_mask_ge( size_t x,
  *
  * \return      1 if \p x equals to \p y, otherwise 0.
  */
-unsigned mbedtls_cf_size_bool_eq( size_t x,
+unsigned mbedtls_ct_size_bool_eq( size_t x,
                                   size_t y );
 
 #if defined(MBEDTLS_BIGNUM_C)
@@ -126,7 +126,7 @@ unsigned mbedtls_cf_size_bool_eq( size_t x,
  *
  * \return      1 if \p x is less than \p y, otherwise 0.
  */
-unsigned mbedtls_cf_mpi_uint_lt( const mbedtls_mpi_uint x,
+unsigned mbedtls_ct_mpi_uint_lt( const mbedtls_mpi_uint x,
                                  const mbedtls_mpi_uint y );
 
 #endif /* MBEDTLS_BIGNUM_C */
@@ -142,7 +142,7 @@ unsigned mbedtls_cf_mpi_uint_lt( const mbedtls_mpi_uint x,
  *
  * \return  \c if1 if \p condition is nonzero, otherwise \c if0.
  */
-unsigned mbedtls_cf_uint_if( unsigned condition,
+unsigned mbedtls_ct_uint_if( unsigned condition,
                              unsigned if1,
                              unsigned if0 );
 
@@ -160,7 +160,7 @@ unsigned mbedtls_cf_uint_if( unsigned condition,
  *                      initialized MPI.
  * \param condition     Condition to test, must be 0 or 1.
  */
-void mbedtls_cf_mpi_uint_cond_assign( size_t n,
+void mbedtls_ct_mpi_uint_cond_assign( size_t n,
                                       mbedtls_mpi_uint *dest,
                                       const mbedtls_mpi_uint *src,
                                       unsigned char condition );
@@ -180,7 +180,7 @@ void mbedtls_cf_mpi_uint_cond_assign( size_t n,
  * \param c1        The first value to analyze in the condition.
  * \param c2        The second value to analyze in the condition.
  */
-void mbedtls_cf_memcpy_if_eq( unsigned char *dest,
+void mbedtls_ct_memcpy_if_eq( unsigned char *dest,
                               const unsigned char *src,
                               size_t len,
                               size_t c1, size_t c2 );
@@ -204,7 +204,7 @@ void mbedtls_cf_memcpy_if_eq( unsigned char *dest,
  * \param offset_max    The maximal value of \p offset.
  * \param len           The number of bytes to copy.
  */
-void mbedtls_cf_memcpy_offset( unsigned char *dest,
+void mbedtls_ct_memcpy_offset( unsigned char *dest,
                                const unsigned char *src,
                                size_t offset,
                                size_t offset_min,
@@ -247,7 +247,7 @@ void mbedtls_cf_memcpy_offset( unsigned char *dest,
  * \retval #MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED
  *         The hardware accelerator failed.
  */
-int mbedtls_cf_hmac( mbedtls_md_context_t *ctx,
+int mbedtls_ct_hmac( mbedtls_md_context_t *ctx,
                      const unsigned char *add_data,
                      size_t add_data_len,
                      const unsigned char *data,
@@ -286,7 +286,7 @@ int mbedtls_cf_hmac( mbedtls_md_context_t *ctx,
  * \return      #MBEDTLS_ERR_RSA_INVALID_PADDING
  *              The input doesn't contain properly formatted padding.
  */
-int mbedtls_cf_rsaes_pkcs1_v15_unpadding( unsigned char *input,
+int mbedtls_ct_rsaes_pkcs1_v15_unpadding( unsigned char *input,
                                           size_t ilen,
                                           unsigned char *output,
                                           size_t output_max_len,

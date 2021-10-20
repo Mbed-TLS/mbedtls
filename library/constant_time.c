@@ -42,7 +42,7 @@
 
 #include <string.h>
 
-int mbedtls_cf_memcmp( const void *a,
+int mbedtls_ct_memcmp( const void *a,
                        const void *b,
                        size_t n )
 {
@@ -63,7 +63,7 @@ int mbedtls_cf_memcmp( const void *a,
     return( (int)diff );
 }
 
-unsigned mbedtls_cf_uint_mask( unsigned value )
+unsigned mbedtls_ct_uint_mask( unsigned value )
 {
     /* MSVC has a warning about unary minus on unsigned, but this is
      * well-defined and precisely what we want to do here */
@@ -79,7 +79,7 @@ unsigned mbedtls_cf_uint_mask( unsigned value )
 
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
 
-size_t mbedtls_cf_size_mask( size_t value )
+size_t mbedtls_ct_size_mask( size_t value )
 {
     /* MSVC has a warning about unary minus on unsigned integer types,
      * but this is well-defined and precisely what we want to do here. */
@@ -97,7 +97,7 @@ size_t mbedtls_cf_size_mask( size_t value )
 
 #if defined(MBEDTLS_BIGNUM_C)
 
-mbedtls_mpi_uint mbedtls_cf_mpi_uint_mask( mbedtls_mpi_uint value )
+mbedtls_mpi_uint mbedtls_ct_mpi_uint_mask( mbedtls_mpi_uint value )
 {
     /* MSVC has a warning about unary minus on unsigned, but this is
      * well-defined and precisely what we want to do here */
@@ -127,7 +127,7 @@ mbedtls_mpi_uint mbedtls_cf_mpi_uint_mask( mbedtls_mpi_uint value )
  *
  * \return      All-bits-one if \p x is less than \p y, otherwise zero.
  */
-static size_t mbedtls_cf_size_mask_lt( size_t x,
+static size_t mbedtls_ct_size_mask_lt( size_t x,
                                        size_t y )
 {
     /* This has the most significant bit set if and only if x < y */
@@ -137,20 +137,20 @@ static size_t mbedtls_cf_size_mask_lt( size_t x,
     const size_t sub1 = sub >> ( sizeof( sub ) * 8 - 1 );
 
     /* mask = (x < y) ? 0xff... : 0x00... */
-    const size_t mask = mbedtls_cf_size_mask( sub1 );
+    const size_t mask = mbedtls_ct_size_mask( sub1 );
 
     return( mask );
 }
 
-size_t mbedtls_cf_size_mask_ge( size_t x,
+size_t mbedtls_ct_size_mask_ge( size_t x,
                                 size_t y )
 {
-    return( ~mbedtls_cf_size_mask_lt( x, y ) );
+    return( ~mbedtls_ct_size_mask_lt( x, y ) );
 }
 
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
 
-unsigned mbedtls_cf_size_bool_eq( size_t x,
+unsigned mbedtls_ct_size_bool_eq( size_t x,
                                   size_t y )
 {
     /* diff = 0 if x == y, non-zero otherwise */
@@ -189,7 +189,7 @@ unsigned mbedtls_cf_size_bool_eq( size_t x,
  *
  * \return      1 if \p x greater than \p y, otherwise 0.
  */
-static unsigned mbedtls_cf_size_gt( size_t x,
+static unsigned mbedtls_ct_size_gt( size_t x,
                                     size_t y )
 {
     /* Return the sign bit (1 for negative) of (y - x). */
@@ -200,7 +200,7 @@ static unsigned mbedtls_cf_size_gt( size_t x,
 
 #if defined(MBEDTLS_BIGNUM_C)
 
-unsigned mbedtls_cf_mpi_uint_lt( const mbedtls_mpi_uint x,
+unsigned mbedtls_ct_mpi_uint_lt( const mbedtls_mpi_uint x,
                                  const mbedtls_mpi_uint y )
 {
     mbedtls_mpi_uint ret;
@@ -230,11 +230,11 @@ unsigned mbedtls_cf_mpi_uint_lt( const mbedtls_mpi_uint x,
 
 #endif /* MBEDTLS_BIGNUM_C */
 
-unsigned mbedtls_cf_uint_if( unsigned condition,
+unsigned mbedtls_ct_uint_if( unsigned condition,
                              unsigned if1,
                              unsigned if0 )
 {
-    unsigned mask = mbedtls_cf_uint_mask( condition );
+    unsigned mask = mbedtls_ct_uint_mask( condition );
     return( ( mask & if1 ) | (~mask & if0 ) );
 }
 
@@ -254,7 +254,7 @@ unsigned mbedtls_cf_uint_if( unsigned condition,
  *
  * \return  \c if1 if \p condition is nonzero, otherwise \c if0.
  * */
-static int mbedtls_cf_cond_select_sign( unsigned char condition,
+static int mbedtls_ct_cond_select_sign( unsigned char condition,
                                         int if1,
                                         int if0 )
 {
@@ -274,7 +274,7 @@ static int mbedtls_cf_cond_select_sign( unsigned char condition,
     return( (int) ur - 1 );
 }
 
-void mbedtls_cf_mpi_uint_cond_assign( size_t n,
+void mbedtls_ct_mpi_uint_cond_assign( size_t n,
                                       mbedtls_mpi_uint *dest,
                                       const mbedtls_mpi_uint *src,
                                       unsigned char condition )
@@ -305,7 +305,7 @@ void mbedtls_cf_mpi_uint_cond_assign( size_t n,
 
 /** Shift some data towards the left inside a buffer.
  *
- * `mbedtls_cf_mem_move_to_left(start, total, offset)` is functionally
+ * `mbedtls_ct_mem_move_to_left(start, total, offset)` is functionally
  * equivalent to
  * ```
  * memmove(start, start + offset, total - offset);
@@ -319,7 +319,7 @@ void mbedtls_cf_mpi_uint_cond_assign( size_t n,
  * \param total     Total size of the buffer.
  * \param offset    Offset from which to copy \p total - \p offset bytes.
  */
-static void mbedtls_cf_mem_move_to_left( void *start,
+static void mbedtls_ct_mem_move_to_left( void *start,
                                          size_t total,
                                          size_t offset )
 {
@@ -329,7 +329,7 @@ static void mbedtls_cf_mem_move_to_left( void *start,
         return;
     for( i = 0; i < total; i++ )
     {
-        unsigned no_op = mbedtls_cf_size_gt( total - offset, i );
+        unsigned no_op = mbedtls_ct_size_gt( total - offset, i );
         /* The first `total - offset` passes are a no-op. The last
          * `offset` passes shift the data one byte to the left and
          * zero out the last byte. */
@@ -337,9 +337,9 @@ static void mbedtls_cf_mem_move_to_left( void *start,
         {
             unsigned char current = buf[n];
             unsigned char next = buf[n+1];
-            buf[n] = mbedtls_cf_uint_if( no_op, current, next );
+            buf[n] = mbedtls_ct_uint_if( no_op, current, next );
         }
-        buf[total-1] = mbedtls_cf_uint_if( no_op, buf[total-1], 0 );
+        buf[total-1] = mbedtls_ct_uint_if( no_op, buf[total-1], 0 );
     }
 }
 
@@ -347,22 +347,22 @@ static void mbedtls_cf_mem_move_to_left( void *start,
 
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
 
-void mbedtls_cf_memcpy_if_eq( unsigned char *dest,
+void mbedtls_ct_memcpy_if_eq( unsigned char *dest,
                               const unsigned char *src,
                               size_t len,
                               size_t c1,
                               size_t c2 )
 {
     /* mask = c1 == c2 ? 0xff : 0x00 */
-    const size_t equal = mbedtls_cf_size_bool_eq( c1, c2 );
-    const unsigned char mask = (unsigned char) mbedtls_cf_size_mask( equal );
+    const size_t equal = mbedtls_ct_size_bool_eq( c1, c2 );
+    const unsigned char mask = (unsigned char) mbedtls_ct_size_mask( equal );
 
     /* dest[i] = c1 == c2 ? src[i] : dest[i] */
     for( size_t i = 0; i < len; i++ )
         dest[i] = ( src[i] & mask ) | ( dest[i] & ~mask );
 }
 
-void mbedtls_cf_memcpy_offset( unsigned char *dest,
+void mbedtls_ct_memcpy_offset( unsigned char *dest,
                                const unsigned char *src,
                                size_t offset,
                                size_t offset_min,
@@ -373,12 +373,12 @@ void mbedtls_cf_memcpy_offset( unsigned char *dest,
 
     for( offsetval = offset_min; offsetval <= offset_max; offsetval++ )
     {
-        mbedtls_cf_memcpy_if_eq( dest, src + offsetval, len,
+        mbedtls_ct_memcpy_if_eq( dest, src + offsetval, len,
                                  offsetval, offset );
     }
 }
 
-int mbedtls_cf_hmac( mbedtls_md_context_t *ctx,
+int mbedtls_ct_hmac( mbedtls_md_context_t *ctx,
                      const unsigned char *add_data,
                      size_t add_data_len,
                      const unsigned char *data,
@@ -436,7 +436,7 @@ int mbedtls_cf_hmac( mbedtls_md_context_t *ctx,
         MD_CHK( mbedtls_md_clone( &aux, ctx ) );
         MD_CHK( mbedtls_md_finish( &aux, aux_out ) );
         /* Keep only the correct inner_hash in the output buffer */
-        mbedtls_cf_memcpy_if_eq( output, aux_out, hash_size,
+        mbedtls_ct_memcpy_if_eq( output, aux_out, hash_size,
                                  offset, data_len_secret );
 
         if( offset < max_data_len )
@@ -485,13 +485,13 @@ int mbedtls_mpi_safe_cond_assign( mbedtls_mpi *X,
     MPI_VALIDATE_RET( Y != NULL );
 
     /* all-bits 1 if assign is 1, all-bits 0 if assign is 0 */
-    limb_mask = mbedtls_cf_mpi_uint_mask( assign );;
+    limb_mask = mbedtls_ct_mpi_uint_mask( assign );;
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, Y->n ) );
 
-    X->s = mbedtls_cf_cond_select_sign( assign, Y->s, X->s );
+    X->s = mbedtls_ct_cond_select_sign( assign, Y->s, X->s );
 
-    mbedtls_cf_mpi_uint_cond_assign( Y->n, X->p, Y->p, assign );
+    mbedtls_ct_mpi_uint_cond_assign( Y->n, X->p, Y->p, assign );
 
     for( i = Y->n; i < X->n; i++ )
         X->p[i] &= ~limb_mask;
@@ -521,14 +521,14 @@ int mbedtls_mpi_safe_cond_swap( mbedtls_mpi *X,
         return( 0 );
 
     /* all-bits 1 if swap is 1, all-bits 0 if swap is 0 */
-    limb_mask = mbedtls_cf_mpi_uint_mask( swap );
+    limb_mask = mbedtls_ct_mpi_uint_mask( swap );
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, Y->n ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( Y, X->n ) );
 
     s = X->s;
-    X->s = mbedtls_cf_cond_select_sign( swap, Y->s, X->s );
-    Y->s = mbedtls_cf_cond_select_sign( swap, s, Y->s );
+    X->s = mbedtls_ct_cond_select_sign( swap, Y->s, X->s );
+    Y->s = mbedtls_ct_cond_select_sign( swap, s, Y->s );
 
 
     for( i = 0; i < X->n; i++ )
@@ -590,7 +590,7 @@ int mbedtls_mpi_lt_mpi_ct( const mbedtls_mpi *X,
          * Again even if we can make a decision, we just mark the result and
          * the fact that we are done and continue looping.
          */
-        cond = mbedtls_cf_mpi_uint_lt( Y->p[i - 1], X->p[i - 1] );
+        cond = mbedtls_ct_mpi_uint_lt( Y->p[i - 1], X->p[i - 1] );
         *ret |= cond & ( 1 - done ) & X_is_negative;
         done |= cond;
 
@@ -601,7 +601,7 @@ int mbedtls_mpi_lt_mpi_ct( const mbedtls_mpi *X,
          * Again even if we can make a decision, we just mark the result and
          * the fact that we are done and continue looping.
          */
-        cond = mbedtls_cf_mpi_uint_lt( X->p[i - 1], Y->p[i - 1] );
+        cond = mbedtls_ct_mpi_uint_lt( X->p[i - 1], Y->p[i - 1] );
         *ret |= cond & ( 1 - done ) & ( 1 - X_is_negative );
         done |= cond;
     }
@@ -613,7 +613,7 @@ int mbedtls_mpi_lt_mpi_ct( const mbedtls_mpi *X,
 
 #if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT)
 
-int mbedtls_cf_rsaes_pkcs1_v15_unpadding( unsigned char *input,
+int mbedtls_ct_rsaes_pkcs1_v15_unpadding( unsigned char *input,
                                           size_t ilen,
                                           unsigned char *output,
                                           size_t output_max_len,
@@ -660,10 +660,10 @@ int mbedtls_cf_rsaes_pkcs1_v15_unpadding( unsigned char *input,
 
 
     /* If pad_done is still zero, there's no data, only unfinished padding. */
-    bad |= mbedtls_cf_uint_if( pad_done, 0, 1 );
+    bad |= mbedtls_ct_uint_if( pad_done, 0, 1 );
 
     /* There must be at least 8 bytes of padding. */
-    bad |= mbedtls_cf_size_gt( 8, pad_count );
+    bad |= mbedtls_ct_size_gt( 8, pad_count );
 
     /* If the padding is valid, set plaintext_size to the number of
      * remaining bytes after stripping the padding. If the padding
@@ -672,13 +672,13 @@ int mbedtls_cf_rsaes_pkcs1_v15_unpadding( unsigned char *input,
      * buffer. Do it without branches to avoid leaking the padding
      * validity through timing. RSA keys are small enough that all the
      * size_t values involved fit in unsigned int. */
-    plaintext_size = mbedtls_cf_uint_if(
+    plaintext_size = mbedtls_ct_uint_if(
                         bad, (unsigned) plaintext_max_size,
                         (unsigned) ( ilen - pad_count - 3 ) );
 
     /* Set output_too_large to 0 if the plaintext fits in the output
      * buffer and to 1 otherwise. */
-    output_too_large = mbedtls_cf_size_gt( plaintext_size,
+    output_too_large = mbedtls_ct_size_gt( plaintext_size,
                                            plaintext_max_size );
 
     /* Set ret without branches to avoid timing attacks. Return:
@@ -686,9 +686,9 @@ int mbedtls_cf_rsaes_pkcs1_v15_unpadding( unsigned char *input,
      * - OUTPUT_TOO_LARGE if the padding is good but the decrypted
      *   plaintext does not fit in the output buffer.
      * - 0 if the padding is correct. */
-    ret = - (int) mbedtls_cf_uint_if(
+    ret = - (int) mbedtls_ct_uint_if(
                     bad, - MBEDTLS_ERR_RSA_INVALID_PADDING,
-                    mbedtls_cf_uint_if( output_too_large,
+                    mbedtls_ct_uint_if( output_too_large,
                                         - MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE,
                                         0 ) );
 
@@ -698,7 +698,7 @@ int mbedtls_cf_rsaes_pkcs1_v15_unpadding( unsigned char *input,
      * from the same buffer whether the padding is good or not to
      * avoid leaking the padding validity through overall timing or
      * through memory or cache access patterns. */
-    bad = mbedtls_cf_uint_mask( bad | output_too_large );
+    bad = mbedtls_ct_uint_mask( bad | output_too_large );
     for( i = 11; i < ilen; i++ )
         input[i] &= ~bad;
 
@@ -706,7 +706,7 @@ int mbedtls_cf_rsaes_pkcs1_v15_unpadding( unsigned char *input,
      * Copy anyway to avoid revealing the length through timing, because
      * revealing the length is as bad as revealing the padding validity
      * for a Bleichenbacher attack. */
-    plaintext_size = mbedtls_cf_uint_if( output_too_large,
+    plaintext_size = mbedtls_ct_uint_if( output_too_large,
                                          (unsigned) plaintext_max_size,
                                          (unsigned) plaintext_size );
 
@@ -716,7 +716,7 @@ int mbedtls_cf_rsaes_pkcs1_v15_unpadding( unsigned char *input,
      * does not depend on the plaintext size. After this move, the
      * starting location of the plaintext is no longer sensitive
      * information. */
-    mbedtls_cf_mem_move_to_left( input + ilen - plaintext_max_size,
+    mbedtls_ct_mem_move_to_left( input + ilen - plaintext_max_size,
                                  plaintext_max_size,
                                  plaintext_max_size - plaintext_size );
 

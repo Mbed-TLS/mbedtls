@@ -229,8 +229,7 @@ def test_case_for_key_generation(
         key_type: str, bits: int,
         dependencies: List[str],
         *args: str,
-        result: str = '',
-        param_descr: str = ''
+        result: str = ''
 ) -> test_case.TestCase:
     """Return one test case exercising a key generation.
     """
@@ -238,7 +237,7 @@ def test_case_for_key_generation(
     tc = test_case.TestCase()
     short_key_type = re.sub(r'PSA_(KEY_TYPE|ECC_FAMILY)_', r'', key_type)
     tc.set_description('PSA {} {}-bit'
-                       .format( short_key_type, bits))
+                       .format(short_key_type, bits))
     tc.set_dependencies(dependencies)
     tc.set_function('generate_key')
     tc.set_arguments([key_type] + list(args))
@@ -252,11 +251,12 @@ class KeyGenerate:
     def __init__(self, info: Information) -> None:
         self.constructors = info.constructors
 
+    ECC_KEY_TYPES = ('PSA_KEY_TYPE_ECC_KEY_PAIR',
+                     'PSA_KEY_TYPE_ECC_PUBLIC_KEY')
+
+    @staticmethod
     def test_cases_for_key_type_key_generation(
-            self,
-            kt: crypto_knowledge.KeyType,
-            param: Optional[int] = None,
-            param_descr: str = '',
+            kt: crypto_knowledge.KeyType
     ) -> Iterator[test_case.TestCase]:
         """Return test cases exercising key generation.
 
@@ -279,12 +279,8 @@ class KeyGenerate:
                 kt.expression, bits,
                 finish_family_dependencies(generate_dependencies, bits),
                 str(bits),
-                result,
-                param_descr=param_descr
+                result
             )
-
-    ECC_KEY_TYPES = ('PSA_KEY_TYPE_ECC_KEY_PAIR',
-                     'PSA_KEY_TYPE_ECC_PUBLIC_KEY')
 
     def test_cases_for_key_generation(self) -> Iterator[test_case.TestCase]:
         """Generate test cases that exercise the generation of keys."""
@@ -296,11 +292,7 @@ class KeyGenerate:
         for curve_family in sorted(self.constructors.ecc_curves):
             for constr in self.ECC_KEY_TYPES:
                 kt = crypto_knowledge.KeyType(constr, [curve_family])
-                yield from self.test_cases_for_key_type_key_generation(
-                    kt, param_descr='type')
-                yield from self.test_cases_for_key_type_key_generation(
-                    kt, 0, param_descr='curve')
-
+                yield from self.test_cases_for_key_type_key_generation(kt)
 
 class StorageKey(psa_storage.Key):
     """Representation of a key for storage format testing."""

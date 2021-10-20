@@ -19,6 +19,7 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/suites)
 # Get base names for generated files (starting at "suites/")
 execute_process(
     COMMAND
+        ${MBEDTLS_PYTHON_EXECUTABLE}
         ${CMAKE_CURRENT_SOURCE_DIR}/../tests/scripts/generate_psa_tests.py
         --list-for-cmake
         --directory suites

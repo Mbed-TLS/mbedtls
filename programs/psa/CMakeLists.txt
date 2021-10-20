@@ -9,7 +9,7 @@ if(DEV_MODE)
         OUTPUT
             ${CMAKE_CURRENT_BINARY_DIR}/psa_constant_names_generated.c
         COMMAND
-            ${PYTHON}
+            ${MBEDTLS_PYTHON_EXECUTABLE}
                 ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/generate_psa_constants.py
                 ${CMAKE_CURRENT_BINARY_DIR}
         WORKING_DIRECTORY

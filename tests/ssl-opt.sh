@@ -444,6 +444,32 @@ record_outcome() {
     echo "$1"
 }
 
+# True if the presence of the given pattern in a log definitely indicates
+# that the test has failed. False if the presence is inconclusive.
+#
+# Inputs:
+# * $1: pattern found in the logs
+# * $TIMES_LEFT: >0 if retrying is an option
+#
+# Outputs:
+# * $outcome: set to a retry reason if the pattern is inconclusive,
+#             unchanged otherwise.
+# * Return value: 1 if the pattern is inconclusive,
+#                 0 if the failure is definitive.
+log_pattern_presence_is_conclusive() {
+    # If we've run out of attempts, then don't retry no matter what.
+    if [ $TIMES_LEFT -eq 0 ]; then
+        return 0
+    fi
+    case $1 in
+        "resend")
+            # An undesired resend may have been caused by the OS dropping or
+            # delaying a packet at an inopportune time.
+            outcome="RETRY(resend)"
+            return 1;;
+    esac
+}
+
 # fail <message>
 fail() {
     record_outcome "FAIL" "$1"
@@ -727,9 +753,7 @@ check_test_failure() {
 
             "-S")
                 if grep -v '^==' $SRV_OUT | grep -v 'Serious error when reading debug info' | grep "$2" >/dev/null; then
-                    if [ "$2" = "resend" ] && [ $TIMES_LEFT -gt 0 ]; then
-                        outcome="RETRY(resend)"
-                    else
+                    if log_pattern_presence_is_conclusive "$2"; then
                         fail "pattern '$2' MUST NOT be present in the Server output"
                     fi
                     return
@@ -738,9 +762,7 @@ check_test_failure() {
 
             "-C")
                 if grep -v '^==' $CLI_OUT | grep -v 'Serious error when reading debug info' | grep "$2" >/dev/null; then
-                    if [ "$2" = "resend" ] && [ $TIMES_LEFT -gt 0 ]; then
-                        outcome="RETRY(resend)"
-                    else
+                    if log_pattern_presence_is_conclusive "$2"; then
                         fail "pattern '$2' MUST NOT be present in the Client output"
                     fi
                     return

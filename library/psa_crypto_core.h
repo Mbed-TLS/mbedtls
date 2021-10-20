@@ -23,6 +23,10 @@
 
 #include "mbedtls/build_info.h"
 
+#if defined(MBEDTLS_THREADING_C)
+#include "mbedtls/threading.h"
+#endif
+
 #include "psa/crypto.h"
 #include "psa/crypto_se_driver.h"
 
@@ -77,7 +81,23 @@ typedef struct
      *   another thread.
      */
     size_t lock_count;
-
+#if defined(MBEDTLS_THREADING_C)
+    /* This mutex guards the access to key slot data.
+     * Please note that the global slots mutex, mbedtls_psa_slots_mutex,
+     * should not be locked after a key slot lock is locked, as it might
+     * lead to deadlocks:
+     * the call patterns used by the psa code involve locking
+     * mbedtls_psa_slots_mutex before (if at all) locking a particular
+     * slot mutex.
+     * The slot mutexes are used as follows:
+     *     - Initialized in psa_initialize_key_slots.
+     *     - Locked in psa_lock_key_slot( ) and before each call
+     *       to psa_wipe_key_slot( ).
+     *     - Unlocked in psa_unlock_key_slot( ) and in psa_wipe_key_slot( ).
+     *     - Freed in psa_wipe_all_key_slots.
+     */
+    mbedtls_threading_mutex_t mutex;
+#endif
     /* Dynamically allocated key data buffer.
      * Format as specified in psa_export_key(). */
     struct key_data
@@ -186,6 +206,10 @@ static inline psa_key_slot_number_t psa_key_slot_get_slot_number(
 /** Completely wipe a slot in memory, including its policy.
  *
  * Persistent storage is not affected.
+ *
+ * \note Please note that, if MBEDTLS_THREADING_C is enabled,
+ *       the appropriate slot mutex should be locked before
+ *       calling this function.
  *
  * \param[in,out] slot  The key slot to wipe.
  *

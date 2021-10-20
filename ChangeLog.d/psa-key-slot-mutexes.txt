@@ -1,0 +1,4 @@
+Changes
+   * Introduce key slot mutexes and a global key slot data mutex when using
+   MBEDTLS_THREADING_C. For additional requirements regarding mutex locking
+   order, please see psa_key_slot_t in psa_crypto_core.h.

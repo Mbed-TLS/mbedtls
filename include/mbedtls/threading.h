@@ -98,7 +98,9 @@ extern int (*mbedtls_mutex_unlock)( mbedtls_threading_mutex_t *mutex );
 #if defined(MBEDTLS_FS_IO)
 extern mbedtls_threading_mutex_t mbedtls_threading_readdir_mutex;
 #endif
-
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+extern mbedtls_threading_mutex_t mbedtls_psa_slots_mutex;
+#endif
 #if defined(MBEDTLS_HAVE_TIME_DATE) && !defined(MBEDTLS_PLATFORM_GMTIME_R_ALT)
 /* This mutex may or may not be used in the default definition of
  * mbedtls_platform_gmtime_r(), but in order to determine that,

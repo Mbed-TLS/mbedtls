@@ -1002,7 +1002,14 @@ psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot )
     /* At this point, key material and other type-specific content has
      * been wiped. Clear remaining metadata. We can call memset and not
      * zeroize because the metadata is not particularly sensitive. */
-    memset( slot, 0, sizeof( *slot ) );
+    memset( &slot->attr, 0, sizeof( slot->attr ) );
+    memset( &slot->lock_count, 0, sizeof( slot->lock_count ) );
+    memset( &slot->key, 0, sizeof( slot->key ) );
+
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_unlock( &slot->mutex );
+#endif
+
     return( status );
 }
 
@@ -1574,11 +1581,25 @@ static psa_status_t psa_start_key_creation(
     if( status != PSA_SUCCESS )
         return( status );
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
     status = psa_get_empty_key_slot( &volatile_key_id, p_slot );
     if( status != PSA_SUCCESS )
+    {
+#if defined(MBEDTLS_THREADING_C)
+        if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+            return( PSA_ERROR_BAD_STATE );
+#endif
         return( status );
+    }
     slot = *p_slot;
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
     /* We're storing the declared bit-size of the key. It's up to each
      * creation mechanism to verify that this information is correct.
      * It's automatically correct for mechanisms that use the bit-size as

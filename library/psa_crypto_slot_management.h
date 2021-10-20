@@ -114,6 +114,9 @@ void psa_wipe_all_key_slots( void );
  * the responsibility of the caller to unlock the key slot when it does not
  * access it anymore.
  *
+ * \note Please note that, if MBEDTLS_THREADING_C is enabled,
+ *       mbedtls_psa_slots_mutex should be locked before calling this function.
+ *
  * \param[out] volatile_key_id   On success, volatile key identifier
  *                               associated to the returned slot.
  * \param[out] p_slot            On success, a pointer to the slot.
@@ -129,6 +132,10 @@ psa_status_t psa_get_empty_key_slot( psa_key_id_t *volatile_key_id,
  *
  * This function increments the key slot lock counter by one.
  *
+ * \note Please note that, if MBEDTLS_THREADING_C is enabled,
+ *       the appropriate slot mutex should be locked before
+ *       calling this function.
+ *
  * \param[in] slot  The key slot.
  *
  * \retval #PSA_SUCCESS
@@ -142,6 +149,10 @@ static inline psa_status_t psa_lock_key_slot( psa_key_slot_t *slot )
     if( slot->lock_count >= SIZE_MAX )
         return( PSA_ERROR_CORRUPTION_DETECTED );
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &slot->mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
     slot->lock_count++;
 
     return( PSA_SUCCESS );
@@ -154,6 +165,10 @@ static inline psa_status_t psa_lock_key_slot( psa_key_slot_t *slot )
  * \note To ease the handling of errors in retrieving a key slot
  *       a NULL input pointer is valid, and the function returns
  *       successfully without doing anything in that case.
+ *
+ * \note Please note that, if MBEDTLS_THREADING_C is enabled,
+ *       the appropriate slot mutex should be locked before
+ *       calling this function.
  *
  * \param[in] slot  The key slot.
  * \retval #PSA_SUCCESS

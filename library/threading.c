@@ -152,6 +152,9 @@ void mbedtls_threading_set_alt( void (*mutex_init)( mbedtls_threading_mutex_t * 
 #if defined(MBEDTLS_FS_IO)
     mbedtls_mutex_init( &mbedtls_threading_readdir_mutex );
 #endif
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+    mbedtls_mutex_init( &mbedtls_psa_slots_mutex );
+#endif
 #if defined(THREADING_USE_GMTIME)
     mbedtls_mutex_init( &mbedtls_threading_gmtime_mutex );
 #endif
@@ -164,6 +167,9 @@ void mbedtls_threading_free_alt( void )
 {
 #if defined(MBEDTLS_FS_IO)
     mbedtls_mutex_free( &mbedtls_threading_readdir_mutex );
+#endif
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+    mbedtls_mutex_free( &mbedtls_psa_slots_mutex );
 #endif
 #if defined(THREADING_USE_GMTIME)
     mbedtls_mutex_free( &mbedtls_threading_gmtime_mutex );
@@ -179,6 +185,16 @@ void mbedtls_threading_free_alt( void )
 #endif
 #if defined(MBEDTLS_FS_IO)
 mbedtls_threading_mutex_t mbedtls_threading_readdir_mutex MUTEX_INIT;
+#endif
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+/*
+ * psa_crypto_slot_management.c global data mutex.
+ * this mutex  should not be locked after a key slot lock is locked, as it
+ * might lead to deadlocks:
+ * the call patterns used by the psa code involve locking
+ * mbedtls_psa_slots_mutex before (if at all) locking a particular slot mutex.
+ */
+mbedtls_threading_mutex_t mbedtls_psa_slots_mutex MUTEX_INIT;
 #endif
 #if defined(THREADING_USE_GMTIME)
 mbedtls_threading_mutex_t mbedtls_threading_gmtime_mutex MUTEX_INIT;

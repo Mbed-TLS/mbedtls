@@ -4881,3 +4881,72 @@ exit:
 
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_C:!MBEDTLS_DEPRECATED_REMOVED:!MBEDTLS_DEPRECATED_WARNING:MBEDTLS_ECP_DP_SECP192R1_ENABLED:MBEDTLS_ECP_DP_SECP224R1_ENABLED:MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+void conf_curve()
+{
+
+    mbedtls_ecp_group_id curve_list[] = { MBEDTLS_ECP_DP_SECP192R1,
+                                          MBEDTLS_ECP_DP_SECP224R1,
+                                          MBEDTLS_ECP_DP_SECP256R1,
+                                          MBEDTLS_ECP_DP_NONE };
+    mbedtls_ecp_group_id iana_tls_group_list[] = { MBEDTLS_SSL_IANA_TLS_GROUP_SECP192R1,
+                                         MBEDTLS_SSL_IANA_TLS_GROUP_SECP224R1,
+                                         MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
+                                         MBEDTLS_SSL_IANA_TLS_GROUP_NONE };
+
+    mbedtls_ssl_config conf;
+    mbedtls_ssl_config_init( &conf );
+
+    mbedtls_ssl_conf_max_version( &conf, 3, 3 );
+    mbedtls_ssl_conf_min_version( &conf, 3, 3 );
+    mbedtls_ssl_conf_curves( &conf, curve_list );
+
+    mbedtls_ssl_context ssl;
+    mbedtls_ssl_init( &ssl );
+    mbedtls_ssl_setup( &ssl, &conf );
+
+    TEST_ASSERT( ssl.handshake != NULL && ssl.handshake->group_list != NULL );
+    TEST_ASSERT( ssl.conf != NULL && ssl.conf->group_list == NULL );
+
+    TEST_EQUAL( ssl.handshake->group_list[ARRAY_LENGTH( iana_tls_group_list ) - 1], MBEDTLS_SSL_IANA_TLS_GROUP_NONE );
+
+    for( size_t i = 0; i < ARRAY_LENGTH( iana_tls_group_list ); i++ )
+        TEST_EQUAL( iana_tls_group_list[i], ssl.handshake->group_list[i] );
+
+    mbedtls_ssl_free( &ssl );
+    mbedtls_ssl_config_free( &conf );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_DEPRECATED_REMOVED */
+void conf_group()
+{
+    uint16_t iana_tls_group_list[] = { MBEDTLS_SSL_IANA_TLS_GROUP_SECP192R1,
+                             MBEDTLS_SSL_IANA_TLS_GROUP_SECP224R1,
+                             MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
+                             MBEDTLS_SSL_IANA_TLS_GROUP_NONE };
+
+    mbedtls_ssl_config conf;
+    mbedtls_ssl_config_init( &conf );
+
+    mbedtls_ssl_conf_max_version( &conf, 3, 3 );
+    mbedtls_ssl_conf_min_version( &conf, 3, 3 );
+
+    mbedtls_ssl_conf_groups( &conf, iana_tls_group_list );
+
+    mbedtls_ssl_context ssl;
+    mbedtls_ssl_init( &ssl );
+    mbedtls_ssl_setup( &ssl, &conf );
+
+    TEST_ASSERT( ssl.conf != NULL && ssl.conf->group_list != NULL );
+
+    TEST_EQUAL( ssl.conf->group_list[ARRAY_LENGTH( iana_tls_group_list ) - 1], MBEDTLS_SSL_IANA_TLS_GROUP_NONE );
+
+    for( size_t i = 0; i < ARRAY_LENGTH( iana_tls_group_list ); i++ )
+         TEST_EQUAL( iana_tls_group_list[i], ssl.conf->group_list[i] );
+
+    mbedtls_ssl_free( &ssl );
+    mbedtls_ssl_config_free( &conf );
+}
+/* END_CASE */

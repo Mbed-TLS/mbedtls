@@ -46,6 +46,8 @@
  */
 unsigned mbedtls_cf_uint_mask( unsigned value );
 
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
+
 /** Turn a value into a mask:
  * - if \p value == 0, return the all-bits 0 mask, aka 0
  * - otherwise, return the all-bits 1 mask, aka (size_t) -1
@@ -58,6 +60,8 @@ unsigned mbedtls_cf_uint_mask( unsigned value );
  * \return          Zero if \p value is zero, otherwise all-bits-one.
  */
 size_t mbedtls_cf_size_mask( size_t value );
+
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
 
 #if defined(MBEDTLS_BIGNUM_C)
 

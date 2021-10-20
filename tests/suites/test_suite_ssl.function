@@ -10,7 +10,7 @@
 
 #include <psa/crypto.h>
 
-#include <constant_time.h>
+#include <constant_time_internal.h>
 
 #include <test/constant_flow.h>
 

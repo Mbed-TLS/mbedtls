@@ -40,7 +40,7 @@
 #include "mbedtls/error.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/version.h"
-#include "constant_time.h"
+#include "constant_time_internal.h"
 #include "mbedtls/constant_time.h"
 
 #include <string.h>

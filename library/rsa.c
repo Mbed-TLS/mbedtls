@@ -44,7 +44,7 @@
 #include "mbedtls/oid.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
-#include "constant_time.h"
+#include "constant_time_internal.h"
 #include "mbedtls/constant_time.h"
 
 #include <string.h>

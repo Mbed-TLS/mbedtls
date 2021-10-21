@@ -1427,7 +1427,7 @@ static int ssl_tls13_process_encrypted_extensions( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse encrypted extensions" ) );
 
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls1_3_fetch_handshake_msg( ssl,
-                                             MBEDTLS_SSL_HS_ENCRYPTED_EXTENSION,
+                                             MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS,
                                              &buf, &buf_len ) );
 
     /* Process the message contents */
@@ -1435,7 +1435,7 @@ static int ssl_tls13_process_encrypted_extensions( mbedtls_ssl_context *ssl )
         ssl_tls13_parse_encrypted_extensions( ssl, buf, buf + buf_len ) );
 
     mbedtls_ssl_tls1_3_add_hs_msg_to_checksum(
-        ssl, MBEDTLS_SSL_HS_ENCRYPTED_EXTENSION, buf, buf_len );
+        ssl, MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS, buf, buf_len );
 
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_postprocess_encrypted_extensions( ssl ) );
 

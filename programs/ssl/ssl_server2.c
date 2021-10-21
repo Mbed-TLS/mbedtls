@@ -202,7 +202,7 @@ int main( void )
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_X509_CRT_PARSE_C)
 #define USAGE_KEY_OPAQUE \
-    "    key_opaque=%%d       Handle your private key as if it were opaque\n" \
+    "    key_opaque=%%d       Handle your private keys as if they were opaque\n" \
     "                        default: 0 (disabled)\n"
 #else
 #define USAGE_KEY_OPAQUE ""
@@ -1320,8 +1320,9 @@ int main( int argc, char *argv[] )
     mbedtls_pk_context pkey;
     mbedtls_x509_crt srvcert2;
     mbedtls_pk_context pkey2;
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_key_id_t key_slot = 0; /* invalid key slot */
+    psa_key_id_t key_slot2 = 0; /* invalid key slot */
 #endif
     int key_cert_init = 0, key_cert_init2 = 0;
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
@@ -2519,24 +2520,39 @@ int main( int argc, char *argv[] )
                             (unsigned int) -ret );
             goto exit;
         }
+        key_cert_init2 = 2;
+#endif /* MBEDTLS_ECDSA_C */
+    }
+
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( opt.key_opaque != 0 )
     {
-        if( ( ret = mbedtls_pk_wrap_as_opaque( &pkey2, &key_slot,
-                                               PSA_ALG_SHA_256 ) ) != 0 )
+        if ( mbedtls_pk_get_type( &pkey ) == MBEDTLS_PK_ECKEY )
         {
-            mbedtls_printf( " failed\n  !  "
-                            "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n", (unsigned int)  -ret );
-            goto exit;
+            if( ( ret = mbedtls_pk_wrap_as_opaque( &pkey, &key_slot,
+                                                PSA_ALG_SHA_256 ) ) != 0 )
+            {
+                mbedtls_printf( " failed\n  !  "
+                                "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n", (unsigned int)  -ret );
+                goto exit;
+            }
+        }
+
+        if ( mbedtls_pk_get_type( &pkey2 ) == MBEDTLS_PK_ECKEY )
+        {
+            if( ( ret = mbedtls_pk_wrap_as_opaque( &pkey2, &key_slot2,
+                                                PSA_ALG_SHA_256 ) ) != 0 )
+            {
+                mbedtls_printf( " failed\n  !  "
+                                "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n", (unsigned int)  -ret );
+                goto exit;
+            }
         }
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-        key_cert_init2 = 2;
-#endif /* MBEDTLS_ECDSA_C */
 #endif /* MBEDTLS_CERTS_C */
-    }
 
-    mbedtls_printf( " ok (key type: %s)\n", mbedtls_pk_get_name( &pkey2 ) );
+    mbedtls_printf( " ok (key types: %s - %s)\n", mbedtls_pk_get_name( &pkey ), mbedtls_pk_get_name( &pkey2 ) );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_FS_IO)
@@ -4031,6 +4047,10 @@ exit:
     mbedtls_pk_free( &pkey );
     mbedtls_x509_crt_free( &srvcert2 );
     mbedtls_pk_free( &pkey2 );
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_destroy_key( key_slot );
+    psa_destroy_key( key_slot2 );
+#endif
 #endif
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_FS_IO)

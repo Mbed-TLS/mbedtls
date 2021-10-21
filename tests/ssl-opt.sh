@@ -1643,7 +1643,7 @@ run_test    "Opaque key for server authentication" \
              key_file=data_files/server5.key" \
             0 \
             -c "Verifying peer X.509 certificate... ok" \
-            -s "key type: Opaque" \
+            -s "key types: RSA - Opaque" \
             -S "error" \
             -C "error"
 
@@ -1659,7 +1659,7 @@ run_test    "Opaque key for client/server authentication" \
             0 \
             -c "key type: Opaque" \
             -c "Verifying peer X.509 certificate... ok" \
-            -s "key type: Opaque" \
+            -s "key types: RSA - Opaque" \
             -s "Verifying peer X.509 certificate... ok" \
             -S "error" \
             -C "error"

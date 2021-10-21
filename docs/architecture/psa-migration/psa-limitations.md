@@ -122,7 +122,7 @@ value from the signature parameters is used.
 In Mbed TLS, RSA-PSS parameters can be parsed and displayed for various
 objects (certificates, CRLs, CSRs). During parsing, the following properties
 are enforced:
-- (the extra "trailer field" parameter must has its default value)
+- (the extra "trailer field" parameter must have its default value)
 - the mask generation function is MGF1
 - encoding hash = message hashing algorithm (may differ from MGF1 hash)
 
@@ -147,6 +147,8 @@ triple-check that.)
 
 It is unclear what parameters people use in practice.
 
+TODO: look at what OpenSSL and GnuTLS do by default?
+
 ### Use in TLS
 
 In TLS 1.2 (or lower), RSA-PSS signatures are never used, except via X.509.
@@ -170,16 +172,113 @@ length would give an attacker any advantage, but this must be triple-checked
 
 ### Current testing - X509
 
-TODO: look at the parameters used by the various test files
+TODO: look at hex testing (do we have negative testing of bad trailer field?)
 
-- server9.crt
-    -HASH
-    -badsign
-    -defaults
-    -bad-saltlen
-    -bad-mgfhash
-- crl-rsa-pss-HASH.pem
-- server9.req.HASH
+All test files use the default trailer field of 0xBC. Files with "bad" in the
+name are expected to be invalid and rejected in tests.
+
+**Test certificates:**
+
+server9-bad-mgfhash.crt (announcing mgf1(sha224), signed with another mgf)
+         Hash Algorithm: sha256
+         Mask Algorithm: mgf1 with sha224
+          Salt Length: 0xDE
+server9-bad-saltlen.crt (announcing saltlen = 0xDE, signed with another len)
+         Hash Algorithm: sha256
+         Mask Algorithm: mgf1 with sha256
+          Salt Length: 0xDE
+server9-badsign.crt (one bit flipped in the signature)
+         Hash Algorithm: sha1 (default)
+         Mask Algorithm: mgf1 with sha1 (default)
+          Salt Length: 0xEA
+server9-defaults.crt
+         Hash Algorithm: sha1 (default)
+         Mask Algorithm: mgf1 with sha1 (default)
+          Salt Length: 0x14 (default)
+server9-sha224.crt
+         Hash Algorithm: sha224
+         Mask Algorithm: mgf1 with sha224
+          Salt Length: 0xE2
+server9-sha256.crt
+         Hash Algorithm: sha256
+         Mask Algorithm: mgf1 with sha256
+          Salt Length: 0xDE
+server9-sha384.crt
+         Hash Algorithm: sha384
+         Mask Algorithm: mgf1 with sha384
+          Salt Length: 0xCE
+server9-sha512.crt
+         Hash Algorithm: sha512
+         Mask Algorithm: mgf1 with sha512
+          Salt Length: 0xBE
+server9-with-ca.crt
+         Hash Algorithm: sha1 (default)
+         Mask Algorithm: mgf1 with sha1 (default)
+          Salt Length: 0xEA
+server9.crt
+         Hash Algorithm: sha1 (default)
+         Mask Algorithm: mgf1 with sha1 (default)
+          Salt Length: 0xEA
+
+These certificates are signed with a 2048-bit key. It appears that they are
+all using saltlen = keylen - hashlen - 2, except for server9-defaults which is
+using saltlen = hashlen.
+
+**Test CRLs:**
+
+crl-rsa-pss-sha1-badsign.pem
+         Hash Algorithm: sha1 (default)
+         Mask Algorithm: mgf1 with sha1 (default)
+          Salt Length: 0xEA
+crl-rsa-pss-sha1.pem
+         Hash Algorithm: sha1 (default)
+         Mask Algorithm: mgf1 with sha1 (default)
+          Salt Length: 0xEA
+crl-rsa-pss-sha224.pem
+         Hash Algorithm: sha224
+         Mask Algorithm: mgf1 with sha224
+          Salt Length: 0xE2
+crl-rsa-pss-sha256.pem
+         Hash Algorithm: sha256
+         Mask Algorithm: mgf1 with sha256
+          Salt Length: 0xDE
+crl-rsa-pss-sha384.pem
+         Hash Algorithm: sha384
+         Mask Algorithm: mgf1 with sha384
+          Salt Length: 0xCE
+crl-rsa-pss-sha512.pem
+         Hash Algorithm: sha512
+         Mask Algorithm: mgf1 with sha512
+          Salt Length: 0xBE
+
+These CRLs are signed with a 2048-bit key. It appears that they are
+all using saltlen = keylen - hashlen - 2.
+
+**Test CSRs:**
+
+server9.req.sha1
+         Hash Algorithm: sha1 (default)
+         Mask Algorithm: mgf1 with sha1 (default)
+          Salt Length: 0x6A
+server9.req.sha224
+         Hash Algorithm: sha224
+         Mask Algorithm: mgf1 with sha224
+          Salt Length: 0x62
+server9.req.sha256
+         Hash Algorithm: sha256
+         Mask Algorithm: mgf1 with sha256
+          Salt Length: 0x5E
+server9.req.sha384
+         Hash Algorithm: sha384
+         Mask Algorithm: mgf1 with sha384
+          Salt Length: 0x4E
+server9.req.sha512
+         Hash Algorithm: sha512
+         Mask Algorithm: mgf1 with sha512
+          Salt Length: 0x3E
+
+These CSRss are signed with a 2048-bit key. It appears that they are
+all using saltlen = keylen - hashlen - 2.
 
 ### Possible course of actions
 

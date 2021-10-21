@@ -634,14 +634,6 @@ run_test() {
         esac
     fi
 
-    # should we skip?
-    if [ "X$SKIP_NEXT" = "XYES" ]; then
-        SKIP_NEXT="NO"
-        echo "SKIP"
-        SKIPS=$(( $SKIPS + 1 ))
-        return
-    fi
-
     # does this test use a proxy?
     if [ "X$1" = "X-p" ]; then
         PXY_CMD="$2"

@@ -31,7 +31,7 @@ import subprocess
 import sys
 
 class CodeSizeComparison:
-    """compare code size between two Git revisions"""
+    """Compare code size between two Git revisions."""
 
     def __init__(self, old_revision, new_revision, result_dir):
         """
@@ -58,16 +58,22 @@ class CodeSizeComparison:
         if not all(os.path.isdir(d) for d in ["include", "library", "tests"]):
             raise Exception("Must be run from Mbed TLS root")
 
+    @staticmethod
+    def validate_revision(revision):
+        result = subprocess.run(["git", "cat-file", "-e", revision], check=False)
+        return result.returncode
+
     def _create_git_worktree(self, revision):
         """Make a separate worktree for revision.
         Do not modify the current worktree."""
 
-        if revision == "head":
+        if revision == "HEAD":
             print("Using current work directory.")
             git_worktree_path = self.repo_path
         else:
             print("Creating git worktree for", revision)
-            git_worktree_path = os.path.join(self.repo_path, "temp-" + revision)
+            rev_dirname = revision.replace("/", "_")
+            git_worktree_path = os.path.join(self.repo_path, "temp-" + rev_dirname)
             subprocess.check_output(
                 [self.git_command, "worktree", "add", "--detach",
                  git_worktree_path, revision], cwd=self.repo_path,
@@ -87,7 +93,7 @@ class CodeSizeComparison:
     def _gen_code_size_csv(self, revision, git_worktree_path):
         """Generate code size csv file."""
 
-        csv_fname = revision + ".csv"
+        csv_fname = revision.replace("/", "_") + ".csv"
         print("Measuring code size for", revision)
         result = subprocess.check_output(
             ["size library/*.o"], cwd=git_worktree_path, shell=True
@@ -112,8 +118,8 @@ class CodeSizeComparison:
         """Generate code size csv file for the specified git revision."""
 
         # Check if the corresponding record exists
-        csv_fname = revision + ".csv"
-        if (revision != "head") and \
+        csv_fname = revision.replace("/", "_") + ".csv"
+        if (revision != "HEAD") and \
            os.path.exists(os.path.join(self.csv_dir, csv_fname)):
             print("Code size csv file for", revision, "already exists.")
         else:
@@ -125,14 +131,17 @@ class CodeSizeComparison:
     def compare_code_size(self):
         """Generate results of the size changes between two revisions,
         old and new. Measured code size results of these two revisions
-        must be available"""
+        must be available."""
 
-        old_file = open(os.path.join(self.csv_dir, self.old_rev + ".csv"), "r")
-        new_file = open(os.path.join(self.csv_dir, self.new_rev + ".csv"), "r")
-        res_file = open(os.path.join(self.result_dir, "compare-" + self.old_rev
-                                     + "-" + self.new_rev + ".csv"), "w")
+        old_file = open(os.path.join(self.csv_dir, \
+                        self.old_rev.replace("/", "_") + ".csv"), "r")
+        new_file = open(os.path.join(self.csv_dir, \
+                        self.new_rev.replace("/", "_") + ".csv"), "r")
+        res_file = open(os.path.join(self.result_dir, \
+                        "compare-" + self.old_rev.replace("/", "_") + "-" \
+                        + self.new_rev.replace("/", "_") + ".csv"), "w")
         res_file.write("file_name, this_size, old_size, change, change %\n")
-        print("Generate comparision results.")
+        print("Generating comparision results.")
 
         old_ds = {}
         for line in old_file.readlines()[1:]:
@@ -159,7 +168,7 @@ class CodeSizeComparison:
                                this_size, old_size, change, float(change_pct)))
             else:
                 res_file.write("{}, {}\n".format(fname, this_size))
-        return 1
+        return 0
 
     def get_comparision_results(self):
         """Compare size of library/*.o between self.old_rev and self.new_rev,
@@ -169,7 +178,7 @@ class CodeSizeComparison:
         self._get_code_size_for_rev(self.new_rev)
         return self.compare_code_size()
 
-def run_main():
+def main():
     parser = argparse.ArgumentParser(
         description=(
             """This script is for comparing the size of the library files
@@ -185,11 +194,11 @@ def run_main():
               default is comparison",
     )
     parser.add_argument(
-        "-o", "--old-rev", type=str, help="old revision for comparison",
+        "-o", "--old-rev", type=str, help="old revision for comparison.(prefer commit ID)",
         required=True,
     )
     parser.add_argument(
-        "-n", "--new-rev", type=str, default="head",
+        "-n", "--new-rev", type=str, default="HEAD",
         help="new revision for comparison, default is current work directory."
     )
     comp_args = parser.parse_args()
@@ -198,8 +207,16 @@ def run_main():
         print("Error: {} is not a directory".format(comp_args.result_dir))
         parser.exit()
 
+    validate_result = CodeSizeComparison.validate_revision(comp_args.old_rev)
+    if validate_result != 0:
+        sys.exit(validate_result)
     old_revision = comp_args.old_rev
+
+    validate_result = CodeSizeComparison.validate_revision(comp_args.new_rev)
+    if validate_result != 0:
+        sys.exit(validate_result)
     new_revision = comp_args.new_rev
+
     result_dir = comp_args.result_dir
     size_compare = CodeSizeComparison(old_revision, new_revision, result_dir)
     return_code = size_compare.get_comparision_results()
@@ -207,4 +224,4 @@ def run_main():
 
 
 if __name__ == "__main__":
-    run_main()
+    main()

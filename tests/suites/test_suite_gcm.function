@@ -438,7 +438,7 @@ void gcm_update_output_buffer_too_small( int cipher_id, int mode,
 {
     mbedtls_gcm_context ctx;
     uint8_t *output = NULL;
-    size_t olen;
+    size_t olen = 0;
     size_t output_len = input->len - 1;
 
     mbedtls_gcm_init( &ctx );
@@ -446,7 +446,6 @@ void gcm_update_output_buffer_too_small( int cipher_id, int mode,
     TEST_EQUAL( 0, mbedtls_gcm_starts( &ctx, mode, iv->x, iv->len ) );
 
     ASSERT_ALLOC( output, output_len );
-    olen = 0xdeadbeef;
     TEST_EQUAL( MBEDTLS_ERR_GCM_BUFFER_TOO_SMALL, mbedtls_gcm_update( &ctx, input->x, input->len, output, output_len, &olen ) );
 
 exit:

@@ -439,9 +439,14 @@ print_name() {
 
 }
 
+# Trivial function for compatibility with later Mbed TLS versions
+record_outcome() {
+    echo "$1"
+}
+
 # fail <message>
 fail() {
-    echo "FAIL"
+    record_outcome "FAIL" "$1"
     echo "  ! $1"
 
     mv $SRV_OUT o-srv-${TESTS}.log
@@ -657,7 +662,7 @@ run_test() {
     # should we skip?
     if [ "X$SKIP_NEXT" = "XYES" ]; then
         SKIP_NEXT="NO"
-        echo "SKIP"
+        record_outcome "SKIP"
         SKIPS=$(( $SKIPS + 1 ))
         return
     fi
@@ -856,7 +861,7 @@ run_test() {
     fi
 
     # if we're here, everything is ok
-    echo "PASS"
+    record_outcome "PASS"
     if [ "$PRESERVE_LOGS" -gt 0 ]; then
         mv $SRV_OUT o-srv-${TESTS}.log
         mv $CLI_OUT o-cli-${TESTS}.log

@@ -96,7 +96,7 @@ def hack_dependencies_not_implemented(dependencies: List[str]) -> None:
     if _implemented_dependencies is None:
         _implemented_dependencies = \
             read_implemented_dependencies('include/psa/crypto_config.h')
-    if not all(dep.lstrip('!') in _implemented_dependencies
+    if not all((dep.lstrip('!') in _implemented_dependencies or 'PSA_WANT' not in dep)
                for dep in dependencies):
         dependencies.append('DEPENDENCY_NOT_IMPLEMENTED_YET')
 
@@ -260,8 +260,11 @@ class KeyGenerate:
     ECC_KEY_TYPES = ('PSA_KEY_TYPE_ECC_KEY_PAIR',
                      'PSA_KEY_TYPE_ECC_PUBLIC_KEY')
 
-    @staticmethod
+    RSA_KEY_TYPES = ('PSA_KEY_TYPE_RSA_KEY_PAIR',
+                     'PSA_KEY_TYPE_RSA_PUBLIC_KEY')
+
     def test_cases_for_key_type_key_generation(
+            self,
             kt: crypto_knowledge.KeyType
     ) -> Iterator[test_case.TestCase]:
         """Return test cases exercising key generation.
@@ -280,6 +283,8 @@ class KeyGenerate:
             result = 'PSA_ERROR_INVALID_ARGUMENT'
         else:
             generate_dependencies = import_dependencies
+            if kt.name in self.RSA_KEY_TYPES:
+                generate_dependencies.append("MBEDTLS_GENPRIME")
         for bits in kt.sizes_to_test():
             yield test_case_for_key_generation(
                 kt.expression, bits,

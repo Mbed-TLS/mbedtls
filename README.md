@@ -67,6 +67,7 @@ If you are cross-compiling, you must set the `CC` environment variable to a C co
 Any of the following methods are available to generate the configuration-independent files:
 
 * If not cross-compiling, running `make` with any target, or just `make`, will automatically generate required files.
+* On non-Windows systems, when not cross-compiling, CMake will generate the required files automatically.
 * Run `make generated_files` to generate all the configuration-independent files.
 * On Unix/POSIX systems, run `tests/scripts/check-generated-files.sh -u` to generate all the configuration-independent files.
 * On Windows, run `scripts\make_generated_files.bat` to generate all the configuration-independent files.

@@ -39,6 +39,7 @@
 #if defined(MBEDTLS_DHM_C)
 #include "mbedtls/dhm.h"
 #endif
+
 /* Adding guard for MBEDTLS_ECDSA_C to ensure no compile errors due
  * to guards also being in ssl_srv.c and ssl_cli.c. There is a gap
  * in functionality that access to ecdh_ctx structure is needed for
@@ -1050,13 +1051,15 @@ typedef void mbedtls_ssl_async_cancel_t( mbedtls_ssl_context *ssl );
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED &&
           !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
 typedef struct
 {
     unsigned char client_application_traffic_secret_N[ MBEDTLS_MD_MAX_SIZE ];
     unsigned char server_application_traffic_secret_N[ MBEDTLS_MD_MAX_SIZE ];
     unsigned char exporter_master_secret             [ MBEDTLS_MD_MAX_SIZE ];
     unsigned char resumption_master_secret           [ MBEDTLS_MD_MAX_SIZE ];
-} mbedtls_ssl_tls1_3_application_secrets;
+} mbedtls_ssl_tls13_application_secrets;
+#endif
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
 
@@ -1122,7 +1125,9 @@ struct mbedtls_ssl_session
      * to be studied whether one of them can be removed. */
     unsigned char MBEDTLS_PRIVATE(minor_ver);    /*!< The TLS version used in the session. */
 
-    mbedtls_ssl_tls1_3_application_secrets MBEDTLS_PRIVATE(app_secrets);
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+    mbedtls_ssl_tls13_application_secrets MBEDTLS_PRIVATE(app_secrets);
+#endif
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)

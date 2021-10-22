@@ -344,7 +344,7 @@ int mbedtls_ssl_tls1_3_derive_application_secrets(
           mbedtls_md_type_t md_type,
           unsigned char const *master_secret,
           unsigned char const *transcript, size_t transcript_len,
-          mbedtls_ssl_tls1_3_application_secrets *derived );
+          mbedtls_ssl_tls13_application_secrets *derived );
 
 /**
  * \brief Derive TLS 1.3 resumption master secret from the master secret.
@@ -374,7 +374,7 @@ int mbedtls_ssl_tls1_3_derive_resumption_master_secret(
           mbedtls_md_type_t md_type,
           unsigned char const *application_secret,
           unsigned char const *transcript, size_t transcript_len,
-          mbedtls_ssl_tls1_3_application_secrets *derived );
+          mbedtls_ssl_tls13_application_secrets *derived );
 
 /**
  * \brief Compute the next secret in the TLS 1.3 key schedule
@@ -625,7 +625,7 @@ int mbedtls_ssl_tls1_3_generate_application_keys(
  * \returns    \c 0 on success.
  * \returns    A negative error code on failure.
  */
-int mbedtls_ssl_tls1_3_calc_finished( mbedtls_ssl_context *ssl,
+int mbedtls_ssl_tls1_3_calculate_expected_finished( mbedtls_ssl_context *ssl,
                                       unsigned char *dst,
                                       size_t dst_len,
                                       size_t *actual_len,

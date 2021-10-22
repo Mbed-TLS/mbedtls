@@ -870,7 +870,7 @@ int mbedtls_ssl_tls13_finished_in_process( mbedtls_ssl_context* ssl )
     unsigned char *buf;
     size_t buflen;
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse finished" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse server finished_in_process" ) );
 
     /* Preprocessing step: Compute handshake digest */
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_finished_in_preprocess( ssl ) );
@@ -885,7 +885,7 @@ int mbedtls_ssl_tls13_finished_in_process( mbedtls_ssl_context* ssl )
 
 cleanup:
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse finished" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse server finished_in_process" ) );
     return( ret );
 }
 
@@ -893,14 +893,14 @@ static int ssl_tls13_finished_in_preprocess( mbedtls_ssl_context* ssl )
 {
     int ret;
 
-    ret = mbedtls_ssl_tls1_3_calc_finished( ssl,
+    ret = mbedtls_ssl_tls1_3_calculate_expected_finished( ssl,
                     ssl->handshake->state_local.finished_in.digest,
                     sizeof( ssl->handshake->state_local.finished_in.digest ),
                     &ssl->handshake->state_local.finished_in.digest_len,
                     ssl->conf->endpoint ^ 1 );
     if( ret != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls1_3_calc_finished", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls1_3_calculate_expected_finished", ret );
         return( ret );
     }
 

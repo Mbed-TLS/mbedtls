@@ -469,7 +469,7 @@ int mbedtls_ssl_tls1_3_derive_application_secrets(
           mbedtls_md_type_t md_type,
           unsigned char const *application_secret,
           unsigned char const *transcript, size_t transcript_len,
-          mbedtls_ssl_tls1_3_application_secrets *derived )
+          mbedtls_ssl_tls13_application_secrets *derived )
 {
     int ret;
     mbedtls_md_info_t const * const md_info = mbedtls_md_info_from_type( md_type );
@@ -539,7 +539,7 @@ int mbedtls_ssl_tls1_3_derive_resumption_master_secret(
           mbedtls_md_type_t md_type,
           unsigned char const *application_secret,
           unsigned char const *transcript, size_t transcript_len,
-          mbedtls_ssl_tls1_3_application_secrets *derived )
+          mbedtls_ssl_tls13_application_secrets *derived )
 {
     int ret;
     mbedtls_md_info_t const * const md_info = mbedtls_md_info_from_type( md_type );
@@ -643,13 +643,13 @@ exit:
     return( ret );
 }
 
-int mbedtls_ssl_tls1_3_calc_finished( mbedtls_ssl_context* ssl,
+int mbedtls_ssl_tls1_3_calculate_expected_finished( mbedtls_ssl_context* ssl,
                                       unsigned char* dst,
                                       size_t dst_len,
                                       size_t *actual_len,
                                       int from )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     unsigned char transcript[MBEDTLS_MD_MAX_SIZE];
     size_t transcript_len;
@@ -660,7 +660,7 @@ int mbedtls_ssl_tls1_3_calc_finished( mbedtls_ssl_context* ssl,
     const mbedtls_md_info_t* const md = mbedtls_md_info_from_type( md_type );
     size_t const md_size = mbedtls_md_get_size( md );
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> mbedtls_ssl_tls1_3_calc_finished" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> mbedtls_ssl_tls1_3_calculate_expected_finished" ) );
 
     if( dst_len < md_size )
         return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
@@ -686,7 +686,7 @@ int mbedtls_ssl_tls1_3_calc_finished( mbedtls_ssl_context* ssl,
     *actual_len = md_size;
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "verify_data for finished message", dst, md_size );
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= mbedtls_ssl_tls1_3_calc_finished" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= mbedtls_ssl_tls1_3_calculate_expected_finished" ) );
     return( 0 );
 }
 
@@ -1111,10 +1111,10 @@ int mbedtls_ssl_tls1_3_generate_application_keys(
                                         mbedtls_ssl_context *ssl,
                                         mbedtls_ssl_key_set *traffic_keys )
 {
-    int ret = 0;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     /* Address at which to store the application secrets */
-    mbedtls_ssl_tls1_3_application_secrets * const app_secrets =
+    mbedtls_ssl_tls13_application_secrets * const app_secrets =
         &ssl->session_negotiate->app_secrets;
 
     /* Holding the transcript up to and including the ServerFinished */

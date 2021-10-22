@@ -3862,7 +3862,7 @@ void ssl_tls1_3_derive_application_secrets( int hash_alg,
                                           data_t *server_expected,
                                           data_t *exporter_expected )
 {
-    mbedtls_ssl_tls1_3_application_secrets secrets;
+    mbedtls_ssl_tls13_application_secrets secrets;
 
     /* Double-check that we've passed sane parameters. */
     mbedtls_md_type_t md_type = (mbedtls_md_type_t) hash_alg;
@@ -3894,7 +3894,7 @@ void ssl_tls1_3_derive_resumption_secrets( int hash_alg,
                                            data_t *transcript,
                                            data_t *resumption_expected )
 {
-    mbedtls_ssl_tls1_3_application_secrets secrets;
+    mbedtls_ssl_tls13_application_secrets secrets;
 
     /* Double-check that we've passed sane parameters. */
     mbedtls_md_type_t md_type = (mbedtls_md_type_t) hash_alg;

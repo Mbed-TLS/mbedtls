@@ -38,7 +38,7 @@ void generate_key( int key_type, int bits, int result)
     // Verify attributes of the created key on success
     if (_result == PSA_SUCCESS)
     {
-        psa_key_attributes_t key_attributes = {0};
+        psa_key_attributes_t key_attributes = PSA_KEY_ATTRIBUTES_INIT;
         PSA_ASSERT( psa_get_key_attributes( key_id, &key_attributes ) );
         TEST_EQUAL( psa_get_key_lifetime( &key_attributes ), 0 );
         TEST_EQUAL( psa_get_key_usage_flags( &key_attributes ), 0 );

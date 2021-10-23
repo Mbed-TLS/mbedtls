@@ -46,7 +46,7 @@ Mbed TLS releases are available in the [public GitHub repository](https://github
 ### Building the Mbed TLS library
 
 **Prerequisites to building the library with the provided makefiles:**
-* CMake.
+* GNU Make.
 * A C toolchain (compiler, linker, archiver).
 * Python 3 to generate the test code.
 * Perl to run the tests.
@@ -893,13 +893,13 @@ Mbed TLS provides a simple way to generate a key or key pair.
     mbedtls_psa_crypto_free();
 ```
 
-### Reading a X.509 certificate
+### Managing an X.509 certificate
 
 Example code is available under the programs/x509 directory.
 
 ### Establishing a TLS connection
 
-Example code is available under the program/ssl directory.
+Example code is available under the programs/ssl directory.
 
 ### More about the PSA Crypto API
 

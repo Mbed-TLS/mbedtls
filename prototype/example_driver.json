@@ -1,0 +1,56 @@
+{
+"drivers":[
+{
+    "prefix":       "sli_se",
+    "type":         "transparent",
+    "headers":      ["sli_se_transparent_types.h", "sli_se_transparent_functions.h"],
+    "capabilities": [
+        {
+            "_comment":     "This driver needs to have its init function called upon psa_crypto_init() before use",
+            "depend_on":    "(CONFIG_TRANSPARENT_THIS) && (CONFIG_TRANSPARENT_THAT)",
+            "entry_points": ["init"]
+        },
+        {
+            "_comment":     "The SLI SE transparent driver supports import/export_public/generate for ECC keys",
+            "depend_on":    "(CONFIG_TRANSPARENT_THIS) && (CONFIG_TRANSPARENT_THAT)",
+            "entry_points": ["import_key", "export_public_key"]
+        },
+        {
+            "_comment":     "The SLI SE transparent driver supports hashing w/ fallback",
+            "depend_on":    "(CONFIG_TRANSPARENT_THIS) && (CONFIG_TRANSPARENT_THAT)",
+            "entry_points": ["hash_compute", "hash_multipart"],
+            "algorithms":   ["PSA_ALG_SHA_1",
+                             "PSA_ALG_SHA_224",
+                             "PSA_ALG_SHA_256",
+                             "PSA_ALG_SHA_384",
+                             "PSA_ALG_SHA_512"],
+            "fallback": true
+        }
+    ]
+},
+{
+    "prefix":       "sli_se",
+    "type":         "opaque",
+    "location":     1,
+    "headers":      ["sli_se_opaque_types.h", "sli_se_opaque_functions.h"],
+    "capabilities": [
+        {
+            "_comment":     "This driver needs to have its init function called upon psa_crypto_init() before use",
+            "entry_points": ["init"]
+        },
+        {
+            "_comment":     "This driver has both MAC single-shot and multipart support for AES-128/AES-192 and AES-256",
+            "entry_points": ["mac_compute"],
+            "algorithms":   ["PSA_ALG_CBC_MAC",
+                             "PSA_ALG_CMAC"],
+            "key_types":    ["PSA_KEY_TYPE_AES"]
+        },
+        {
+            "_comment":     "The SLI SE opaque driver needs to support import/export/generate of all opaque keys",
+            "depend_on":    "(CONFIG_OPAQUE_THIS) && (CONFIG_OPAQUE_THAT)",
+            "entry_points": ["import_key", "export_public_key", "get_builtin_key"]
+        }
+     ]
+}
+]
+}

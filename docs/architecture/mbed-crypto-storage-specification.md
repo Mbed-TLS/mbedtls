@@ -5,7 +5,7 @@ This document specifies how Mbed TLS uses storage.
 Key storage was originally introduced in a product called Mbed Crypto, which was re-distributed via Mbed TLS and has since been merged into Mbed TLS.
 This document contains historical information both from before and after this merge.
 
-Mbed TLS may be upgraded on an existing device with the storage preserved. Therefore:
+Mbed Crypto may be upgraded on an existing device with the storage preserved. Therefore:
 
 1. Any change may break existing installations and may require an upgrade path.
 1. This document retains historical information about all past released versions. Do not remove information from this document unless it has always been incorrect or it is about a version that you are sure was never released.

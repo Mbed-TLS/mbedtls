@@ -2844,15 +2844,21 @@ component_test_zeroize () {
 
 component_test_psa_compliance () {
     msg "build: make, default config (out-of-box), libmbedcrypto.a only"
-    make library/libmbedcrypto.a
+    make -C library libmbedcrypto.a
 
     msg "unit test: test_psa_compliance.py"
     ./tests/scripts/test_psa_compliance.py
 }
 
 support_test_psa_compliance () {
-    local ver=($(cmake --version | sed 's/cmake version //; y/./ /; q'))
-    [ "${ver[0]}" -eq 3 ] && [ "${ver[1]}" -ge 10 ]
+    ver="$(cmake --version)"
+    ver="${ver#cmake version }"
+    ver_major="${ver%%.*}"
+
+    ver="${ver#*.}"
+    ver_minor="${ver%%.*}"
+
+    [ "$ver_major" -eq 3 ] && [ "$ver_minor" -ge 10 ]
 }
 
 component_check_python_files () {

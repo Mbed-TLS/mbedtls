@@ -910,7 +910,6 @@ int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
     /*
      * Export client handshake traffic secret
      */
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
     if( ssl->f_export_keys != NULL )
     {
         ssl->f_export_keys( ssl->p_export_keys,
@@ -929,7 +928,6 @@ int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
                 handshake->randbytes,
                 MBEDTLS_SSL_TLS_PRF_NONE /* TODO: FIX! */ );
     }
-#endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
     ret = mbedtls_ssl_tls1_3_make_traffic_keys( md_type,
                             tls13_hs_secrets->client_handshake_traffic_secret,

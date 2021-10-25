@@ -231,7 +231,7 @@ static void ssl_tls13_create_verify_structure( unsigned char *transcript_hash,
                                                size_t *verify_buffer_len,
                                                int from )
 {
-    size_t idx = 0;
+    size_t idx;
 
     /* RFC 8446, Section 4.4.3:
      *
@@ -245,8 +245,8 @@ static void ssl_tls13_create_verify_structure( unsigned char *transcript_hash,
     uint8_t const verify_padding_val = 0x20;
     size_t const verify_padding_len = 64;
 
-    memset( verify_buffer + idx, verify_padding_val, verify_padding_len );
-    idx += verify_padding_len;
+    memset( verify_buffer, verify_padding_val, verify_padding_len );
+    idx = verify_padding_len;
 
     if( from == MBEDTLS_SSL_IS_CLIENT )
     {
@@ -290,10 +290,10 @@ static void ssl_tls13_create_verify_structure( unsigned char *transcript_hash,
  *   (64 + 33 + 1 + 48 bytes)
  *
  */
-#define SSL_VERIFY_STRUCT_MAX_SIZE  ( 64 +                 \
-                                      33 +                 \
-                                       1 +                 \
-                                      MBEDTLS_MD_MAX_SIZE  \
+#define SSL_VERIFY_STRUCT_MAX_SIZE  ( 64 +                          \
+                                      33 +                          \
+                                       1 +                          \
+                                      MBEDTLS_TLS1_3_MD_MAX_SIZE    \
                                     )
 /* Coordinate: Check whether a certificate verify message is expected.
  * Returns a negative value on failure, and otherwise
@@ -530,6 +530,10 @@ int mbedtls_ssl_tls13_process_certificate_verify( mbedtls_ssl_context *ssl )
         unsigned char *buf;
         size_t buf_len;
 
+        MBEDTLS_SSL_PROC_CHK(
+            mbedtls_ssl_tls1_3_fetch_handshake_msg( ssl,
+                    MBEDTLS_SSL_HS_CERTIFICATE_VERIFY, &buf, &buf_len ) );
+
         /* Need to calculate the hash of the transcript first
          * before reading the message since otherwise it gets
          * included in the transcript
@@ -554,10 +558,6 @@ int mbedtls_ssl_tls13_process_certificate_verify( mbedtls_ssl_context *ssl )
                                            verify_buffer,
                                            &verify_buffer_len,
                                            !ssl->conf->endpoint );
-
-        MBEDTLS_SSL_PROC_CHK(
-            mbedtls_ssl_tls1_3_fetch_handshake_msg( ssl,
-                    MBEDTLS_SSL_HS_CERTIFICATE_VERIFY, &buf, &buf_len ) );
 
         /* Process the message contents */
         MBEDTLS_SSL_PROC_CHK(

@@ -1185,28 +1185,6 @@ int mbedtls_ssl_tls1_3_generate_application_keys(
                            app_secrets->server_application_traffic_secret_N,
                            md_size );
 
-    /*
-     * Export client/server application traffic secret 0
-     */
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
-    if( ssl->f_export_keys != NULL )
-    {
-        ssl->f_export_keys( ssl->p_export_keys,
-                MBEDTLS_SSL_KEY_EXPORT_TLS13_CLIENT_APPLICATION_TRAFFIC_SECRET,
-                app_secrets->client_application_traffic_secret_N, md_size,
-                ssl->handshake->randbytes + 32,
-                ssl->handshake->randbytes,
-                MBEDTLS_SSL_TLS_PRF_NONE /* TODO: FIX! */ );
-
-        ssl->f_export_keys( ssl->p_export_keys,
-                MBEDTLS_SSL_KEY_EXPORT_TLS13_SERVER_APPLICATION_TRAFFIC_SECRET,
-                app_secrets->server_application_traffic_secret_N, md_size,
-                ssl->handshake->randbytes + 32,
-                ssl->handshake->randbytes,
-                MBEDTLS_SSL_TLS_PRF_NONE /* TODO: FIX! */ );
-    }
-#endif /* MBEDTLS_SSL_EXPORT_KEYS */
-
     MBEDTLS_SSL_DEBUG_BUF( 4, "client application_write_key:",
                               traffic_keys->client_write_key, keylen );
     MBEDTLS_SSL_DEBUG_BUF( 4, "server application write key",

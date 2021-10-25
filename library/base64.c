@@ -49,7 +49,7 @@ unsigned char mbedtls_base64_mask_of_range( unsigned char low,
 {
     /* low_mask is: 0 if low <= c, 0x...ff if low > c */
     unsigned low_mask = ( (unsigned) c - low ) >> 8;
-    /* high_mask is: 0 if c <= high, 0x...ff if high > c */
+    /* high_mask is: 0 if c <= high, 0x...ff if c > high */
     unsigned high_mask = ( (unsigned) high - c ) >> 8;
     return( ~( low_mask | high_mask ) & 0xff );
 }

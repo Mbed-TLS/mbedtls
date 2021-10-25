@@ -295,29 +295,7 @@ static void ssl_tls13_create_verify_structure( unsigned char *transcript_hash,
                                        1 +                          \
                                       MBEDTLS_TLS1_3_MD_MAX_SIZE    \
                                     )
-/* Coordinate: Check whether a certificate verify message is expected.
- * Returns a negative value on failure, and otherwise
- * - SSL_CERTIFICATE_VERIFY_SKIP
- * - SSL_CERTIFICATE_VERIFY_READ
- * to indicate if the CertificateVerify message should be present or not.
- */
-#define SSL_CERTIFICATE_VERIFY_SKIP 0
-#define SSL_CERTIFICATE_VERIFY_READ 1
-static int ssl_tls13_process_certificate_verify_coordinate(
-                                    mbedtls_ssl_context *ssl )
-{
-    if( mbedtls_ssl_tls1_3_some_psk_enabled( ssl ) )
-        return( SSL_CERTIFICATE_VERIFY_SKIP );
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-    if( ssl->session_negotiate->peer_cert == NULL )
-        return( SSL_CERTIFICATE_VERIFY_SKIP );
-    return( SSL_CERTIFICATE_VERIFY_READ );
-#else
-    MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-    return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
-}
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 static int ssl_tls13_sig_alg_is_offered( mbedtls_ssl_context *ssl, uint16_t sig_alg )
@@ -493,77 +471,71 @@ static int ssl_tls13_process_certificate_verify_parse( mbedtls_ssl_context *ssl,
 
 int mbedtls_ssl_tls13_process_certificate_verify( mbedtls_ssl_context *ssl )
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    /* Coordination step */
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    unsigned char verify_buffer[SSL_VERIFY_STRUCT_MAX_SIZE];
+    size_t verify_buffer_len;
+    unsigned char transcript[MBEDTLS_TLS1_3_MD_MAX_SIZE];
+    size_t transcript_len;
+    unsigned char *buf;
+    size_t buf_len;
+
+    if( mbedtls_ssl_tls1_3_some_psk_enabled( ssl ) )
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+
+    if( ssl->session_negotiate->peer_cert == NULL )
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+
+
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate verify" ) );
 
-    MBEDTLS_SSL_PROC_CHK_NEG( ssl_tls13_process_certificate_verify_coordinate( ssl ) );
+    MBEDTLS_SSL_PROC_CHK(
+        mbedtls_ssl_tls1_3_fetch_handshake_msg( ssl,
+                MBEDTLS_SSL_HS_CERTIFICATE_VERIFY, &buf, &buf_len ) );
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED) // TBD: double-check
-    if( ret == SSL_CERTIFICATE_VERIFY_READ )
+    /* Need to calculate the hash of the transcript first
+        * before reading the message since otherwise it gets
+        * included in the transcript
+        */
+    ret = mbedtls_ssl_get_handshake_transcript( ssl,
+                            ssl->handshake->ciphersuite_info->mac,
+                            transcript, sizeof( transcript ),
+                            &transcript_len );
+    if( ret != 0 )
     {
-        unsigned char verify_buffer[SSL_VERIFY_STRUCT_MAX_SIZE];
-        size_t verify_buffer_len;
-        unsigned char transcript[MBEDTLS_TLS1_3_MD_MAX_SIZE];
-        size_t transcript_len;
-        unsigned char *buf;
-        size_t buf_len;
-
-        MBEDTLS_SSL_PROC_CHK(
-            mbedtls_ssl_tls1_3_fetch_handshake_msg( ssl,
-                    MBEDTLS_SSL_HS_CERTIFICATE_VERIFY, &buf, &buf_len ) );
-
-        /* Need to calculate the hash of the transcript first
-         * before reading the message since otherwise it gets
-         * included in the transcript
-         */
-        ret = mbedtls_ssl_get_handshake_transcript( ssl,
-                               ssl->handshake->ciphersuite_info->mac,
-                               transcript, sizeof( transcript ),
-                               &transcript_len );
-        if( ret != 0 )
-        {
-            MBEDTLS_SSL_PEND_FATAL_ALERT(
-                MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR,
-                MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-            return( ret );
-        }
-
-        MBEDTLS_SSL_DEBUG_BUF( 3, "handshake hash", transcript, transcript_len );
-
-        /* Create verify structure */
-        ssl_tls13_create_verify_structure( transcript,
-                                           transcript_len,
-                                           verify_buffer,
-                                           &verify_buffer_len,
-                                           !ssl->conf->endpoint );
-
-        /* Process the message contents */
-        MBEDTLS_SSL_PROC_CHK(
-            ssl_tls13_process_certificate_verify_parse( ssl,
-                buf, buf + buf_len, verify_buffer, verify_buffer_len ) );
-
-        mbedtls_ssl_tls1_3_add_hs_msg_to_checksum( ssl,
-                            MBEDTLS_SSL_HS_CERTIFICATE_VERIFY, buf, buf_len );
-    }
-    else
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
-    if( ret == SSL_CERTIFICATE_VERIFY_SKIP )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate verify" ) );
-    }
-    else
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        MBEDTLS_SSL_PEND_FATAL_ALERT(
+            MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR,
+            MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        return( ret );
     }
 
+    MBEDTLS_SSL_DEBUG_BUF( 3, "handshake hash", transcript, transcript_len );
+
+    /* Create verify structure */
+    ssl_tls13_create_verify_structure( transcript,
+                                        transcript_len,
+                                        verify_buffer,
+                                        &verify_buffer_len,
+                                        !ssl->conf->endpoint );
+
+    /* Process the message contents */
+    MBEDTLS_SSL_PROC_CHK(
+        ssl_tls13_process_certificate_verify_parse( ssl,
+            buf, buf + buf_len, verify_buffer, verify_buffer_len ) );
+
+    mbedtls_ssl_tls1_3_add_hs_msg_to_checksum( ssl,
+                        MBEDTLS_SSL_HS_CERTIFICATE_VERIFY, buf, buf_len );
 
 cleanup:
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate verify" ) );
     return( ret );
+#else
+    ((void) ssl);
+    MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+    return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 }
 
 /*

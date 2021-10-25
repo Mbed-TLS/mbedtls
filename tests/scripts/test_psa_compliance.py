@@ -58,7 +58,7 @@ def main():
     expected_failures = []
     unexpected_failures = []
     for line in proc.stdout:
-        print(line[:-1])
+        print(line, end='')
         match = test_re.match(line)
         if match is not None:
             if match.group(1) is not None:

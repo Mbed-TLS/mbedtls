@@ -432,51 +432,21 @@ static int ssl_tls13_process_certificate_verify_parse( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SHA256_C)
         case MBEDTLS_MD_SHA256:
             verify_hash_len = 32;
-            if( ( ret = mbedtls_sha256( verify_buffer,
-                                        verify_buffer_len,
-                                        verify_hash,
-                                        0 ) ) != 0 )
-            {
-                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_sha256", ret );
-                MBEDTLS_SSL_PEND_FATAL_ALERT(
-                    MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT,
-                    MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-                return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-            }
+            ret = mbedtls_sha256( verify_buffer, verify_buffer_len, verify_hash, 0 );
             break;
 #endif /* MBEDTLS_SHA256_C */
 
 #if defined(MBEDTLS_SHA384_C)
         case MBEDTLS_MD_SHA384:
             verify_hash_len = 48;
-            if( ( ret = mbedtls_sha512( verify_buffer,
-                                        verify_buffer_len,
-                                        verify_hash,
-                                        1 ) ) != 0 )
-            {
-                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_sha384", ret );
-                MBEDTLS_SSL_PEND_FATAL_ALERT(
-                    MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT,
-                    MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-                return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-            }
+            ret = mbedtls_sha512( verify_buffer, verify_buffer_len, verify_hash, 1 );
             break;
 #endif /* MBEDTLS_SHA384_C */
 
 #if defined(MBEDTLS_SHA512_C)
         case MBEDTLS_MD_SHA512:
             verify_hash_len = 64;
-            if( ( ret = mbedtls_sha512( verify_buffer,
-                                        verify_buffer_len,
-                                        verify_hash,
-                                        0 ) ) != 0 )
-            {
-                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_sha512", ret );
-                MBEDTLS_SSL_PEND_FATAL_ALERT(
-                    MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT,
-                    MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-                return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-            }
+            ret = mbedtls_sha512( verify_buffer, verify_buffer_len, verify_hash, 0 );
             break;
 #endif /* MBEDTLS_SHA512_C */
 
@@ -485,6 +455,15 @@ static int ssl_tls13_process_certificate_verify_parse( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_PEND_FATAL_ALERT(
                     MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT,
                     MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+    }
+
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "hash computation error", ret );
+        MBEDTLS_SSL_PEND_FATAL_ALERT(
+                        MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT,
+                        MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
         return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }
 

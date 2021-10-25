@@ -1071,7 +1071,8 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
     }
     p += 2;
 
-    /* ...
+    /* From RFC8446, page 27.
+     * ...
      * Random random;
      * ...
      * with Random defined as:

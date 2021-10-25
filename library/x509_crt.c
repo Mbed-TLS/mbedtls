@@ -3034,8 +3034,7 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_x509_parse_ipv4( const char *h, size_t hlen,
  *  - [in] h: colon-separated hextet ipv6 address, e.g. "2001:0db8:0000:0000:0000:ff00:0042:8329".
  *      Must be NUL-terminated.
  *  - [in] hlen: length of the string at h.
- *  - [out] addr: pointer to a char array with at least 16 bytes allocated.
- *      Will be populated the bytes of the parsed IP address if return value is 0.
+ *  - [out] addr: buffer of at least 16 bytes to hold the parsed IP address when the return value is 0.
  *      Only valid when return value is 0, may contain garbage otherwise!
  *
  * Return value:
@@ -3147,7 +3146,6 @@ static int x509_crt_check_cn( const mbedtls_x509_buf *name,
         return( 0 );
     }
 
-
     return( -1 );
 }
 
@@ -3157,13 +3155,13 @@ static int x509_crt_check_ip( const mbedtls_x509_buf *name,
     unsigned char ip[16];
 
     if ( name->len == 4 &&
-            mbedtls_x509_parse_ipv4( cn, cn_len, ip ) == 0 &&
+         mbedtls_x509_parse_ipv4( cn, cn_len, ip ) == 0 &&
          memcmp( ip, name->p, name->len ) == 0 )
     {
         return( 0 );
     }
     else if ( name->len == 16 &&
-            mbedtls_x509_parse_ipv6( cn, cn_len, ip ) == 0 &&
+              mbedtls_x509_parse_ipv6( cn, cn_len, ip ) == 0 &&
               memcmp( ip, name->p, name->len ) == 0 )
     {
         return( 0 );

@@ -51,7 +51,7 @@ Mbed TLS releases are available in the [public GitHub repository](https://github
 * Python 3 to generate the test code.
 * Perl to run the tests.
 
-If you have a C compiler such as GCC or Clang, create a new directory (eg 'build') and run `cmake <path to source>` from that directory. Run `make` from the build directory to build the library, a set of unit tests and some sample programs.
+If you have a C compiler such as GCC or Clang, just run `make` in the top-level directory to build the library, a set of unit tests and some sample programs.
 
 To select a different compiler, set the `CC` variable to the name or path of the compiler and linker (default: `cc`) and set `AR` to a compatible archiver (default: `ar`); for example:
 ```

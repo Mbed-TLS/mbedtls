@@ -52,7 +52,7 @@ def main():
     proc = subprocess.Popen(['./psa-arch-tests-crypto'],
                             bufsize=1, stdout=subprocess.PIPE, universal_newlines=True)
 
-    test_re = re.compile('^TEST(?:: ([0-9]*)| RESULT: FAILED)')
+    test_re = re.compile('^TEST(?:: ([0-9]*)| RESULT: (FAILED|PASSED))')
     test = -1
     unexpected_successes = set(EXPECTED_FAILURES)
     expected_failures = []
@@ -63,12 +63,16 @@ def main():
         if match is not None:
             if match.group(1) is not None:
                 test = int(match.group(1))
-            else:
+            elif match.group(2) == 'FAILED':
                 try:
                     unexpected_successes.remove(test)
                     expected_failures.append(test)
+                    print('Expected failure, ignoring')
                 except KeyError:
                     unexpected_failures.append(test)
+                    print('ERROR: Unexpected failure')
+            elif test in unexpected_successes:
+                print('ERROR: Unexpected success')
     proc.wait()
 
     print()

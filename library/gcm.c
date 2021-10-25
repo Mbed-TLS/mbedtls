@@ -431,7 +431,7 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
     unsigned char ectr[16];
 
     if( output_size < input_length )
-        return( MBEDTLS_ERR_GCM_BAD_INPUT );
+        return( MBEDTLS_ERR_GCM_BUFFER_TOO_SMALL );
     GCM_VALIDATE_RET( output_length != NULL );
     *output_length = input_length;
 

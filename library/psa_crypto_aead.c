@@ -510,9 +510,6 @@ psa_status_t mbedtls_psa_aead_update(
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
     if( operation->alg == PSA_ALG_GCM )
     {
-        if( output_size < input_length )
-            return( PSA_ERROR_BUFFER_TOO_SMALL );
-
         status =  mbedtls_to_psa_error(
             mbedtls_gcm_update( &operation->ctx.gcm,
                                 input, input_length,
@@ -567,9 +564,6 @@ psa_status_t mbedtls_psa_aead_finish(
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
     if( operation->alg == PSA_ALG_GCM )
     {
-        if( ciphertext_size < 15 )
-            return( PSA_ERROR_BUFFER_TOO_SMALL );
-
         status =  mbedtls_to_psa_error(
             mbedtls_gcm_finish( &operation->ctx.gcm,
                                 ciphertext, ciphertext_size, ciphertext_length,

@@ -16,9 +16,8 @@ PSA_ARCH_TESTS_REF = 'crypto1.0-3.0'
 def main():
     mbedtls_dir = os.getcwd()
 
-    mbedcrypto_lib = 'library/libmbedcrypto.a'
-    if not os.path.exists(mbedcrypto_lib):
-        subprocess.check_call(['make', mbedcrypto_lib])
+    if not os.path.exists('library/libmbedcrypto.a'):
+        subprocess.check_call(['make', '-C', 'library', 'libmbedcrypto.a'])
 
     psa_arch_tests_dir = 'psa-arch-tests'
     try:

@@ -1037,7 +1037,7 @@ static int ssl_finished_out_write( mbedtls_ssl_context *ssl,
 static int ssl_finished_out_postprocess( mbedtls_ssl_context *ssl );
 
 
-int mbedtls_ssl_tls1_3_finished_out_process( mbedtls_ssl_context *ssl )
+int mbedtls_ssl_tls13_finished_out_process( mbedtls_ssl_context *ssl )
 {
     int ret;
     unsigned char *buf;
@@ -1076,7 +1076,7 @@ static int ssl_finished_out_prepare( mbedtls_ssl_context *ssl )
     int ret;
 
     /* Compute transcript of handshake up to now. */
-    ret = mbedtls_ssl_tls1_3_calc_finished( ssl,
+    ret = mbedtls_ssl_tls1_3_calculate_expected_finished( ssl,
                     ssl->handshake->state_local.finished_out.digest,
                     sizeof( ssl->handshake->state_local.finished_out.digest ),
                     &ssl->handshake->state_local.finished_out.digest_len,

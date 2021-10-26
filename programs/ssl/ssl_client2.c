@@ -19,6 +19,11 @@
 
 #include "ssl_test_lib.h"
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#define SKIP_LIBRARY_HEADERS
+#include "test/psa_crypto_helpers.h"
+#endif
+
 #if defined(MBEDTLS_SSL_TEST_IMPOSSIBLE)
 int main( void )
 {
@@ -3041,7 +3046,15 @@ exit:
 #endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
+
     mbedtls_psa_crypto_free( );
+    const char* message = mbedtls_test_helper_is_psa_leaking();
+    if( message )
+    {
+        if( ret == 0 )
+            ret = 1;
+        mbedtls_printf( "PSA memory leak detected: %s\n",  message);
+    }
 #endif
 
 #if defined(MBEDTLS_TEST_HOOKS)

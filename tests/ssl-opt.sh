@@ -1435,12 +1435,15 @@ requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SHA256_C
 run_test    "Opaque key for client authentication" \
-            "$P_SRV auth_mode=required" \
+            "$P_SRV auth_mode=required crt_file=data_files/server5.crt \
+             key_file=data_files/server5.key" \
             "$P_CLI key_opaque=1 crt_file=data_files/server5.crt \
              key_file=data_files/server5.key" \
             0 \
             -c "key type: Opaque" \
+            -c "Ciphersuite is TLS-ECDHE-ECDSA" \
             -s "Verifying peer X.509 certificate... ok" \
+            -s "Ciphersuite is TLS-ECDHE-ECDSA" \
             -S "error" \
             -C "error"
 
@@ -1450,12 +1453,15 @@ requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SHA256_C
 run_test    "Opaque key for server authentication" \
-            "$P_SRV auth_mode=required key_opaque=1" \
+            "$P_SRV auth_mode=required key_opaque=1 crt_file=data_files/server5.crt \
+             key_file=data_files/server5.key" \
             "$P_CLI crt_file=data_files/server5.crt \
              key_file=data_files/server5.key" \
             0 \
             -c "Verifying peer X.509 certificate... ok" \
-            -s "key types: RSA - Opaque" \
+            -c "Ciphersuite is TLS-ECDHE-ECDSA" \
+            -s "key types: Opaque - invalid PK" \
+            -s "Ciphersuite is TLS-ECDHE-ECDSA" \
             -S "error" \
             -C "error"
 
@@ -1465,14 +1471,17 @@ requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SHA256_C
 run_test    "Opaque key for client/server authentication" \
-            "$P_SRV auth_mode=required key_opaque=1" \
+            "$P_SRV auth_mode=required key_opaque=1 crt_file=data_files/server5.crt \
+             key_file=data_files/server5.key" \
             "$P_CLI key_opaque=1 crt_file=data_files/server5.crt \
              key_file=data_files/server5.key" \
             0 \
             -c "key type: Opaque" \
             -c "Verifying peer X.509 certificate... ok" \
-            -s "key types: RSA - Opaque" \
+            -c "Ciphersuite is TLS-ECDHE-ECDSA" \
+            -s "key types: Opaque - invalid PK" \
             -s "Verifying peer X.509 certificate... ok" \
+            -s "Ciphersuite is TLS-ECDHE-ECDSA" \
             -S "error" \
             -C "error"
 

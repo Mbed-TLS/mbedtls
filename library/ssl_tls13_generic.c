@@ -546,14 +546,13 @@ int mbedtls_ssl_tls13_process_certificate( mbedtls_ssl_context *ssl )
     mbedtls_ssl_tls1_3_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_CERTIFICATE,
                                                buf, buf_len );
 
-#else
-    MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-    return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
-
 cleanup:
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate" ) );
+#else
+    MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+    ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
     return( ret );
 }
 

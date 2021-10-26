@@ -469,7 +469,7 @@ int mbedtls_ssl_tls1_3_derive_application_secrets(
           mbedtls_md_type_t md_type,
           unsigned char const *application_secret,
           unsigned char const *transcript, size_t transcript_len,
-          mbedtls_ssl_tls13_application_secrets *derived )
+          mbedtls_ssl_tls1_3_application_secrets *derived )
 {
     int ret;
     mbedtls_md_info_t const * const md_info = mbedtls_md_info_from_type( md_type );
@@ -539,7 +539,7 @@ int mbedtls_ssl_tls1_3_derive_resumption_master_secret(
           mbedtls_md_type_t md_type,
           unsigned char const *application_secret,
           unsigned char const *transcript, size_t transcript_len,
-          mbedtls_ssl_tls13_application_secrets *derived )
+          mbedtls_ssl_tls1_3_application_secrets *derived )
 {
     int ret;
     mbedtls_md_info_t const * const md_info = mbedtls_md_info_from_type( md_type );
@@ -1114,7 +1114,7 @@ int mbedtls_ssl_tls1_3_generate_application_keys(
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     /* Address at which to store the application secrets */
-    mbedtls_ssl_tls13_application_secrets * const app_secrets =
+    mbedtls_ssl_tls1_3_application_secrets * const app_secrets =
         &ssl->session_negotiate->app_secrets;
 
     /* Holding the transcript up to and including the ServerFinished */

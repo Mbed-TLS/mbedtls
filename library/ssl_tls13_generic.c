@@ -226,63 +226,8 @@ int mbedtls_ssl_tls13_write_sig_alg_ext( mbedtls_ssl_context *ssl,
  */
 
 /*
- * Overview
- */
-
-/* Main state-handling entry point; orchestrates the other functions. */
-int mbedtls_ssl_tls13_process_certificate( mbedtls_ssl_context *ssl );
-
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
-/* Parse certificate chain send by the server. */
-static int ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
-                                        const unsigned char *buf,
-                                        const unsigned char *end );
-/* Validate certificate chain sent by the server. */
-static int ssl_tls13_validate_certificate( mbedtls_ssl_context *ssl );
-
-#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
-
-/* Update the state after handling the incoming certificate message. */
-static int ssl_tls13_process_certificate_postprocess( mbedtls_ssl_context *ssl );
-
-/*
  * Implementation
  */
-
-int mbedtls_ssl_tls13_process_certificate( mbedtls_ssl_context *ssl )
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate" ) );
-
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
-    unsigned char *buf;
-    size_t buf_len;
-
-    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls1_3_fetch_handshake_msg(
-                          ssl, MBEDTLS_SSL_HS_CERTIFICATE,
-                          &buf, &buf_len ) );
-
-    /* Parse the certificate chain sent by the peer. */
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_parse_certificate( ssl, buf, buf + buf_len ) );
-    /* Validate the certificate chain and set the verification results. */
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_validate_certificate( ssl ) );
-
-    mbedtls_ssl_tls1_3_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_CERTIFICATE,
-                                               buf, buf_len );
-
-#else
-    MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-    return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
-
-    /* Update state */
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_process_certificate_postprocess( ssl ) );
-
-cleanup:
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate" ) );
-    return( ret );
-}
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
@@ -312,6 +257,8 @@ cleanup:
  * } Certificate;
  *
  */
+
+/* Parse certificate chain send by the server. */
 static int ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
                                         const unsigned char *buf,
                                         const unsigned char *end )
@@ -325,11 +272,13 @@ static int ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 4 );
     certificate_request_context_len = p[0];
     certificate_list_len = ( p[1] << 16 ) | ( p[2] << 8 ) | p[3];
+    p += 4;
 
     /* In theory, the certificate list can be up to 2^24 Bytes, but we don't
      * support anything beyond 2^16 = 64K.
      */
-    if( certificate_request_context_len != 0 )
+    if( ( certificate_request_context_len != 0 ) ||
+        ( certificate_list_len >= 0x10000 ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
         MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
@@ -356,13 +305,12 @@ static int ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
 
     mbedtls_x509_crt_init( ssl->session_negotiate->peer_cert );
 
-    p += 4;
     certificate_list_end = p + certificate_list_len;
-    while ( p < certificate_list_end )
+    while( p < certificate_list_end )
     {
         size_t cert_data_len, extensions_len;
 
-        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 3 );
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, certificate_list_end, 3 );
         cert_data_len = ( ( size_t )p[0] << 16 ) |
                         ( ( size_t )p[1] << 8  ) |
                         ( ( size_t )p[2]       );
@@ -374,14 +322,14 @@ static int ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
          * clear why we need that though.
          */
         if( ( cert_data_len < 128 ) || ( cert_data_len >= 0x10000 ) )
-	{
+        {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad Certificate message" ) );
             MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
                                           MBEDTLS_ERR_SSL_DECODE_ERROR );
             return( MBEDTLS_ERR_SSL_DECODE_ERROR );
         }
 
-        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, certificate_list_end, cert_data_len);
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, certificate_list_end, cert_data_len );
         ret = mbedtls_x509_crt_parse_der( ssl->session_negotiate->peer_cert,
                                           p, cert_data_len );
 
@@ -419,7 +367,7 @@ static int ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, certificate_list_end, 2 );
         extensions_len = MBEDTLS_GET_UINT16_BE( p, 0 );
         p += 2;
-        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, certificate_list_end, extensions_len);
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, certificate_list_end, extensions_len );
         p += extensions_len;
     }
 
@@ -451,6 +399,7 @@ static int ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+/* Validate certificate chain sent by the server. */
 static int ssl_tls13_validate_certificate( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
@@ -576,10 +525,36 @@ static int ssl_tls13_validate_certificate( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
 
-static int ssl_tls13_process_certificate_postprocess( mbedtls_ssl_context *ssl )
+int mbedtls_ssl_tls13_process_certificate( mbedtls_ssl_context *ssl )
 {
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CERTIFICATE_VERIFY );
-    return( 0 );
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate" ) );
+
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
+    unsigned char *buf;
+    size_t buf_len;
+
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls1_3_fetch_handshake_msg(
+                          ssl, MBEDTLS_SSL_HS_CERTIFICATE,
+                          &buf, &buf_len ) );
+
+    /* Parse the certificate chain sent by the peer. */
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_parse_certificate( ssl, buf, buf + buf_len ) );
+    /* Validate the certificate chain and set the verification results. */
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_validate_certificate( ssl ) );
+
+    mbedtls_ssl_tls1_3_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_CERTIFICATE,
+                                               buf, buf_len );
+
+#else
+    MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+    return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
+
+cleanup:
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate" ) );
+    return( ret );
 }
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */

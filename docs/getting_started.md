@@ -59,7 +59,8 @@ make CC=arm-linux-gnueabi-gcc AR=arm-linux-gnueabi-ar
 ```
 The provided makefiles pass options to the compiler that assume a GCC-like command line syntax. To use a different compiler, you may need to pass different values for `CFLAGS`, `WARNINGS_CFLAGS` and `LDFLAGS`.
 
-To run the unit tests on the host machine, run `make test` from the build directory. If you are cross-compiling, copy the test executable and the associated datax-file from the `tests` directory to the target machine.
+To build and run the unit tests on the host machine, run `make test` from the top-level directory.
+If cross-compiling, copy the `test_*` executable(s) and the associated `.datax` file(s) from the `tests` directory to the target machine.
 
 ### Using the Mbed TLS library
 

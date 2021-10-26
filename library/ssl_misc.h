@@ -309,6 +309,9 @@
 
 #define MBEDTLS_TLS1_3_MD_MAX_SIZE         MBEDTLS_MD_MAX_SIZE
 
+#define MBEDTLS_CLIENT_HELLO_RANDOM_LEN 32
+#define MBEDTLS_SERVER_HELLO_RANDOM_LEN 32
+
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 /**
  * \brief          Return the maximum fragment length (payload, in bytes) for
@@ -715,7 +718,9 @@ struct mbedtls_ssl_handshake_params
 
     size_t pmslen;                      /*!<  premaster length        */
 
-    unsigned char randbytes[64];        /*!<  random bytes            */
+    unsigned char randbytes[MBEDTLS_CLIENT_HELLO_RANDOM_LEN +
+                            MBEDTLS_SERVER_HELLO_RANDOM_LEN];
+                                        /*!<  random bytes            */
     unsigned char premaster[MBEDTLS_PREMASTER_SIZE];
                                         /*!<  premaster secret        */
 
@@ -880,7 +885,9 @@ struct mbedtls_ssl_transform
     /* We need the Hello random bytes in order to re-derive keys from the
      * Master Secret and other session info,
      * see ssl_tls12_populate_transform() */
-    unsigned char randbytes[64]; /*!< ServerHello.random+ClientHello.random */
+    unsigned char randbytes[MBEDTLS_SERVER_HELLO_RANDOM_LEN +
+                            MBEDTLS_CLIENT_HELLO_RANDOM_LEN];
+                            /*!< ServerHello.random+ClientHello.random */
 #endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
 };
 

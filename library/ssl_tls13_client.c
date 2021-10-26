@@ -35,9 +35,6 @@
 #include "ecdh_misc.h"
 #include "ssl_tls13_keys.h"
 
-#define CLIENT_HELLO_RANDOM_LEN 32
-#define SERVER_HELLO_RANDOM_LEN 32
-
 /* Write extensions */
 
 /*
@@ -709,11 +706,11 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
     p += 2;
 
     /* Write the random bytes ( random ).*/
-    MBEDTLS_SSL_CHK_BUF_PTR( p, end, CLIENT_HELLO_RANDOM_LEN );
-    memcpy( p, ssl->handshake->randbytes, CLIENT_HELLO_RANDOM_LEN );
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, MBEDTLS_CLIENT_HELLO_RANDOM_LEN );
+    memcpy( p, ssl->handshake->randbytes, MBEDTLS_CLIENT_HELLO_RANDOM_LEN );
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, random bytes",
-                           p, CLIENT_HELLO_RANDOM_LEN );
-    p += CLIENT_HELLO_RANDOM_LEN;
+                           p, MBEDTLS_CLIENT_HELLO_RANDOM_LEN );
+    p += MBEDTLS_CLIENT_HELLO_RANDOM_LEN;
 
     /*
      * Write legacy_session_id
@@ -834,7 +831,7 @@ static int ssl_tls13_prepare_client_hello( mbedtls_ssl_context *ssl )
 
     if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng,
                                   ssl->handshake->randbytes,
-                                  CLIENT_HELLO_RANDOM_LEN ) ) != 0 )
+                                  MBEDTLS_CLIENT_HELLO_RANDOM_LEN ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "f_rng", ret );
         return( ret );
@@ -894,7 +891,7 @@ static int ssl_server_hello_is_hrr( mbedtls_ssl_context *ssl,
                                     const unsigned char *buf,
                                     const unsigned char *end )
 {
-    static const unsigned char magic_hrr_string[SERVER_HELLO_RANDOM_LEN] =
+    static const unsigned char magic_hrr_string[MBEDTLS_SERVER_HELLO_RANDOM_LEN] =
         { 0xCF, 0x21, 0xAD, 0x74, 0xE5, 0x9A, 0x61, 0x11,
           0xBE, 0x1D, 0x8C, 0x02, 0x1E, 0x65, 0xB8, 0x91,
           0xC2, 0xA2, 0x11, 0x16, 0x7A, 0xBB, 0x8C, 0x5E,
@@ -1045,12 +1042,12 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
      * Check there is space for minimal fields
      *
      * - legacy_version             ( 2 bytes)
-     * - random                     (SERVER_HELLO_RANDOM_LEN bytes)
+     * - random                     (MBEDTLS_SERVER_HELLO_RANDOM_LEN bytes)
      * - legacy_session_id_echo     ( 1 byte ), minimum size
      * - cipher_suite               ( 2 bytes)
      * - legacy_compression_method  ( 1 byte )
      */
-    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, SERVER_HELLO_RANDOM_LEN + 6 );
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, MBEDTLS_SERVER_HELLO_RANDOM_LEN + 6 );
 
     MBEDTLS_SSL_DEBUG_BUF( 4, "server hello", p, end - p );
     MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, version", p, 2 );
@@ -1071,18 +1068,17 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
     }
     p += 2;
 
-    /* From RFC8446, page 27.
-     * ...
+    /* ...
      * Random random;
      * ...
      * with Random defined as:
-     * opaque Random[32];
+     * opaque Random[MBEDTLS_SERVER_HELLO_RANDOM_LEN];
      */
-    memcpy( ssl->handshake->randbytes + CLIENT_HELLO_RANDOM_LEN, p,
-            SERVER_HELLO_RANDOM_LEN );
+    memcpy( &ssl->handshake->randbytes[MBEDTLS_CLIENT_HELLO_RANDOM_LEN], p,
+            MBEDTLS_SERVER_HELLO_RANDOM_LEN );
     MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, random bytes",
-                           p, SERVER_HELLO_RANDOM_LEN );
-    p += SERVER_HELLO_RANDOM_LEN;
+                           p, MBEDTLS_SERVER_HELLO_RANDOM_LEN );
+    p += MBEDTLS_SERVER_HELLO_RANDOM_LEN;
 
     /* ...
      * opaque legacy_session_id_echo<0..32>;

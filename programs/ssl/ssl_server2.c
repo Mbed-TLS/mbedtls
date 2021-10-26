@@ -2530,7 +2530,7 @@ int main( int argc, char *argv[] )
         if ( mbedtls_pk_get_type( &pkey ) == MBEDTLS_PK_ECKEY )
         {
             if( ( ret = mbedtls_pk_wrap_as_opaque( &pkey, &key_slot,
-                                                PSA_ALG_SHA_256 ) ) != 0 )
+                                                PSA_ALG_ANY_HASH ) ) != 0 )
             {
                 mbedtls_printf( " failed\n  !  "
                                 "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n", (unsigned int)  -ret );
@@ -2541,7 +2541,7 @@ int main( int argc, char *argv[] )
         if ( mbedtls_pk_get_type( &pkey2 ) == MBEDTLS_PK_ECKEY )
         {
             if( ( ret = mbedtls_pk_wrap_as_opaque( &pkey2, &key_slot2,
-                                                PSA_ALG_SHA_256 ) ) != 0 )
+                                                PSA_ALG_ANY_HASH ) ) != 0 )
             {
                 mbedtls_printf( " failed\n  !  "
                                 "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n", (unsigned int)  -ret );

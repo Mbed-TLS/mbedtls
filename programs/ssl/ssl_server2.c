@@ -65,6 +65,11 @@ int main( void )
 #include <windows.h>
 #endif
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#define SKIP_LIBRARY_HEADERS
+#include "test/psa_crypto_helpers.h"
+#endif
+
 /* Size of memory to be allocated for the heap, when using the library's memory
  * management and MBEDTLS_MEMORY_BUFFER_ALLOC_C is enabled. */
 #define MEMORY_HEAP_SIZE        120000
@@ -4027,6 +4032,13 @@ exit:
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_psa_crypto_free( );
+    const char* message = mbedtls_test_helper_is_psa_leaking();
+    if( message )
+    {
+        if( ret == 0 )
+            ret = 1;
+        mbedtls_printf( "PSA memory leak detected: %s\n",  message);
+    }
 #endif
 
 #if defined(MBEDTLS_TEST_HOOKS)

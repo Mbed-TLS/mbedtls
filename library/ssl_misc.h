@@ -307,9 +307,10 @@
       + ( MBEDTLS_SSL_CID_OUT_LEN_MAX ) )
 #endif
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
 #define MBEDTLS_TLS1_3_MD_MAX_SIZE         MBEDTLS_MD_MAX_SIZE
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+
+#define MBEDTLS_CLIENT_HELLO_RANDOM_LEN 32
+#define MBEDTLS_SERVER_HELLO_RANDOM_LEN 32
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 /**
@@ -508,6 +509,27 @@ struct mbedtls_ssl_key_set
 };
 typedef struct mbedtls_ssl_key_set mbedtls_ssl_key_set;
 
+typedef struct
+{
+    unsigned char binder_key                  [ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
+    unsigned char client_early_traffic_secret [ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
+    unsigned char early_exporter_master_secret[ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
+} mbedtls_ssl_tls1_3_early_secrets;
+
+typedef struct
+{
+    unsigned char client_handshake_traffic_secret[ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
+    unsigned char server_handshake_traffic_secret[ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
+} mbedtls_ssl_tls1_3_handshake_secrets;
+
+typedef struct
+{
+    unsigned char client_application_traffic_secret_N[ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
+    unsigned char server_application_traffic_secret_N[ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
+    unsigned char exporter_master_secret             [ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
+    unsigned char resumption_master_secret           [ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
+} mbedtls_ssl_tls1_3_application_secrets;
+
 /*
  * This structure contains the parameters only needed during handshake.
  */
@@ -696,7 +718,9 @@ struct mbedtls_ssl_handshake_params
 
     size_t pmslen;                      /*!<  premaster length        */
 
-    unsigned char randbytes[64];        /*!<  random bytes            */
+    unsigned char randbytes[MBEDTLS_CLIENT_HELLO_RANDOM_LEN +
+                            MBEDTLS_SERVER_HELLO_RANDOM_LEN];
+                                        /*!<  random bytes            */
     unsigned char premaster[MBEDTLS_PREMASTER_SIZE];
                                         /*!<  premaster secret        */
 
@@ -715,6 +739,8 @@ struct mbedtls_ssl_handshake_params
         unsigned char handshake[MBEDTLS_TLS1_3_MD_MAX_SIZE];
         unsigned char app      [MBEDTLS_TLS1_3_MD_MAX_SIZE];
     } tls1_3_master_secrets;
+
+    mbedtls_ssl_tls1_3_handshake_secrets tls13_hs_secrets;
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
@@ -859,7 +885,9 @@ struct mbedtls_ssl_transform
     /* We need the Hello random bytes in order to re-derive keys from the
      * Master Secret and other session info,
      * see ssl_tls12_populate_transform() */
-    unsigned char randbytes[64]; /*!< ServerHello.random+ClientHello.random */
+    unsigned char randbytes[MBEDTLS_SERVER_HELLO_RANDOM_LEN +
+                            MBEDTLS_CLIENT_HELLO_RANDOM_LEN];
+                            /*!< ServerHello.random+ClientHello.random */
 #endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
 };
 

@@ -8806,9 +8806,10 @@ run_test    "TLS1.3: handshake dispatch test: tls1_3 only" \
 
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS1.3: Test client hello msg work - openssl" \
             "$O_NEXT_SRV -tls1_3 -msg" \
-            "$P_CLI debug_level=2 min_version=tls1_3 max_version=tls1_3" \
+            "$P_CLI debug_level=3 min_version=tls1_3 max_version=tls1_3" \
             1 \
             -c "SSL - The requested feature is not available" \
             -s "ServerHello"                \
@@ -8823,13 +8824,18 @@ run_test    "TLS1.3: Test client hello msg work - openssl" \
             -c "tls1_3 client state: 20"    \
             -c "tls1_3 client state: 11"    \
             -c "tls1_3 client state: 14"    \
-            -c "tls1_3 client state: 15"
+            -c "tls1_3 client state: 15"    \
+            -c "<= ssl_tls1_3_process_server_hello" \
+            -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
+            -c "ECDH curve: x25519"         \
+            -c "=> ssl_tls1_3_process_server_hello"
 
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS1.3: Test client hello msg work - gnutls" \
             "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 --debug=4" \
-            "$P_CLI debug_level=2 min_version=tls1_3 max_version=tls1_3" \
+            "$P_CLI debug_level=3 min_version=tls1_3 max_version=tls1_3" \
             1 \
             -c "SSL - The requested feature is not available" \
             -s "SERVER HELLO was queued"    \
@@ -8844,7 +8850,12 @@ run_test    "TLS1.3: Test client hello msg work - gnutls" \
             -c "tls1_3 client state: 20"    \
             -c "tls1_3 client state: 11"    \
             -c "tls1_3 client state: 14"    \
-            -c "tls1_3 client state: 15"
+            -c "tls1_3 client state: 15"    \
+            -c "<= ssl_tls1_3_process_server_hello" \
+            -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
+            -c "ECDH curve: x25519"         \
+            -c "=> ssl_tls1_3_process_server_hello"
+
 
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_MEMORY_DEBUG

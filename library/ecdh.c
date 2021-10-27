@@ -806,6 +806,60 @@ int mbedtls_ecdh_setup_no_everest( mbedtls_ecdh_context *ctx,
 #endif
 }
 
+static int ecdh_tls13_read_public_internal( mbedtls_ecdh_context_mbed *ctx,
+                                            const unsigned char *buf,
+                                            size_t buf_len )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    const unsigned char *p = buf;
+    size_t data_len;
+
+    if( buf_len < 3 )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+    data_len = MBEDTLS_GET_UINT16_BE( p, 0 );
+    p += 2;
+
+    if( data_len < 1 || data_len != ( buf_len - 2 ) )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+    if( ( ret = mbedtls_ecp_point_read_binary( &ctx->grp,
+                                               &ctx->Qp, p, data_len ) ) != 0)
+    {
+        return( ret );
+    }
+
+    return( 0 );
+}
+
+/*
+ * Parse and import the client's TLS 1.3 public value
+ */
+int mbedtls_ecdh_tls13_read_public( mbedtls_ecdh_context *ctx,
+                                    const unsigned char *buf,
+                                    size_t buf_len )
+{
+    ECDH_VALIDATE_RET( ctx != NULL );
+    ECDH_VALIDATE_RET( buf != NULL );
+
+#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
+    return( ecdh_tls13_read_public_internal( ctx, buf, buf_len ) );
+#else
+    switch( ctx->var )
+    {
+#if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
+        case MBEDTLS_ECDH_VARIANT_EVEREST:
+            return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
+#endif
+        case MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0:
+            return( ecdh_tls13_read_public_internal( &ctx->ctx.mbed_ecdh,
+                                                     buf, buf_len ) );
+        default:
+            return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+#endif
+}
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 #endif /* MBEDTLS_ECDH_C */

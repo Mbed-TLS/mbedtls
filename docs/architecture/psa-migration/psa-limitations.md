@@ -63,14 +63,16 @@ RSA-PSS signatures are defined by PKCS#1 v2, re-published as RFC 8017
 
 As standardized, the signature scheme takes several parameters, in addition to
 the hash algorithm potentially used to hash the message being signed:
-- a hash algorithm use for the encoding function
+- a hash algorithm used for the encoding function
 - a mask generation function
   - most commonly MGF1, which in turn is parametrized by a hash algorithm
 - a salt length
+- a trailer field - this is universally 0xBC as far as I've seen
 
 Both the existing `mbedtls_` API and the PSA API support only MGF1 as the
-generation function, but there are discrepancy in handling the salt length and
-which of the various hash algorithms can differ from each other.
+generation function (and only 0xBC as the trailer field), but there are
+discrepancies in handling the salt length and which of the various hash
+algorithms can differ from each other.
 
 ### API comparison
 
@@ -100,11 +102,11 @@ which of the various hash algorithms can differ from each other.
 - PSA:
   - algorithm specification:
     - hash alg used for message hashing, encoding and MGF1
-    - salt length cannot be specified
+    - salt length can be either "standard" (== hashlen) or "any"
   - signature generation:
     - salt length: always using the maximum legal value
   - verification:
-    - salt length: any valid length accepted
+    - salt length: either == hashlen, or any depending on algorithm
 
 The RSA/PK API is in principle more flexible than the PSA Crypto API. The
 following sub-sections study whether and how this matters in practice.
@@ -122,7 +124,7 @@ value from the signature parameters is used.
 In Mbed TLS, RSA-PSS parameters can be parsed and displayed for various
 objects (certificates, CRLs, CSRs). During parsing, the following properties
 are enforced:
-- (the extra "trailer field" parameter must have its default value)
+- the extra "trailer field" parameter must have its default value
 - the mask generation function is MGF1
 - encoding hash = message hashing algorithm (may differ from MGF1 hash)
 
@@ -135,19 +137,12 @@ The verification is done using `mbedtls_pk_verify_ext()`.
 Note: since X.509 parsing ensures that message hash = encoding hash, and
 `mbedtls_pk_verify_ext()` use encoding hash = mgf1 hash, it looks like all
 three hash algorithms must be equal, which would be good news as it would
-match a limitation of the PSA API. (TODO: double-check that.)
+match a limitation of the PSA API.
 
-Also, since we only use signature verification, the fact that PSA accepts any
-valid salt length means that no valid certificate would be wrongly rejected;
-however it means that signatures that don't match the announced salt length
-would be incorrectly accepted. At first glance, it looks like this doesn't
-allow an attacker to forge certificates, so this might be acceptable in
-practice, while not fully implementing all the checks in the standard. (TODO:
-triple-check that.)
-
-It is unclear what parameters people use in practice.
-
-TODO: look at what OpenSSL and GnuTLS do by default?
+It is unclear what parameters people use in practice. It looks like by default
+OpenSSL picks saltlen = keylen - hashlen - 2 (tested with openssl 1.1.1f).
+The `certool` command provided by GnuTLS seems to be picking saltlen = hashlen
+by default (tested with GnuTLS 3.6.13).
 
 ### Use in TLS
 
@@ -166,16 +161,16 @@ In both cases, it specifies that:
 When signing, the salt length picked by PSA is the one required by TLS 1.3
 (unless the key is unreasonably small).
 
-When verifying signatures, again is doesn't look like accepting any salt
-length would give an attacker any advantage, but this must be triple-checked
-(TODO).
+When verifying signatures, PSA will by default enforce the salt len is the one
+required by TLS 1.3.
 
 ### Current testing - X509
 
-TODO: look at hex testing (do we have negative testing of bad trailer field?)
+All test files use the default trailer field of 0xBC, as enforced by our
+parser. (There's a negative test for that using the
+`x509_parse_rsassa_pss_params` test function and hex data.)
 
-All test files use the default trailer field of 0xBC. Files with "bad" in the
-name are expected to be invalid and rejected in tests.
+Files with "bad" in the name are expected to be invalid and rejected in tests.
 
 **Test certificates:**
 
@@ -280,9 +275,22 @@ server9.req.sha512
 These CSRss are signed with a 2048-bit key. It appears that they are
 all using saltlen = keylen - hashlen - 2.
 
-### Possible course of actions
+### Possible courses of action
 
-TODO - once the previous section has been completed
+There's no question about what to do with TLS (any version); the only question
+is about X.509 signature verification. Options include:
+
+1. Doing all verifications with `PSA_ALG_RSA_PSS_ANY_SALT` - while this
+   wouldn't cause a concrete security issue, this would be non-compliant.
+2. Doing verifications with `PSA_ALG_RSA_PSS` when we're lucky and the encoded
+   saltlen happens to match hashlen, and falling back to `ANY_SALT` otherwise.
+Same issue as with the previous point, except more contained.
+3. Reject all certificates with saltlen != hashlen. This includes all
+   certificates generate with OpenSSL using the default parameters, so it's
+probably not acceptable.
+4. Request an extension to the PSA Crypto API and use one of the above options
+   in the meantime. Such an extension seems inconvenient and not motivated by
+strong security arguments, so it's unclear whether it would be accepted.
 
 Limitations relevant for G2 (isolation of long-term secrets)
 ============================================================

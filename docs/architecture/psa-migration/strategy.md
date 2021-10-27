@@ -6,21 +6,21 @@ Goals
 
 Several benefits are expected from migrating to PSA Crypto:
 
-G1. Take advantage of the PSA Crypto driver interface.
+G1. Use PSA Crypto drivers when available.
 G2. Allow isolation of long-term secrets (for example, private keys).
 G3. Allow isolation of short-term secrets (for example, TLS sesssion keys).
 G4. Have a clean, unified API for Crypto (retire the legacy API).
+G5. Code size: compile out our implementation when a driver is available.
 
 Currently, some parts of (G1) and (G2) are implemented when
 `MBEDTLS_USE_PSA_CRYPTO` is enabled. For (G2) to take effect, the application
 needs to be changed to use new APIs.
 
 Generally speaking, the numbering above doesn't mean that each goal requires
-the preceding ones to be completed - for example it would be possible to
-start or even complete (G4) before (G3) is even started. However, (G2) and (G3)
-require operations to be done via the PSA Crypto API, which is mostly what (G1)
-is about. Also, we can't retire the legacy API (G4) until we no longer rely on
-it, which again is mostly (G1).
+the preceding ones to be completed, for example G2-G5 could be done in any
+order; however they all either depend on G1 or are just much more convenient
+if G1 is done before (note that this is not a dependency on G1 being complete,
+it's more like each bit of G2-G5 is helped by some speficic bit in G1).
 
 So, a solid intermediate goal would be to complete (G1) when
 `MBEDTLS_USA_PSA_CRYPTO` is enabled - that is, all crypto operations in X.509

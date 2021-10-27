@@ -37,17 +37,87 @@ We currently have two compile-time options that are relevant to the migration:
   controls usage of PSA Crypto APIs to perform operations in X.509 and TLS
 (G1 above), as well as the availability of some new APIs (G2 above).
 
-The reason why `MBEDTLS_USE_PSA_CRYPTO` is optional, and disabled by default,
-is mostly to avoid introducing a hard (or even default) dependency of X509 and
-TLS and `MBEDTLS_PSA_CRYPTO_C`. This is mostly reasons of code size, and
-historically concerns about the maturity of the PSA code (which we might want
-to re-evaluate).
+The reasons why `MBEDTLS_USE_PSA_CRYPTO` is optional and disabled by default
+are:
+- it's incompatible with `MBEDTLS_ECP_RESTARTABLE`, `MBEDTLS_PSA_CRYPTO_CONFIG` and `MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER`;
+- to avoid a hard/default dependency of X509 and TLS and
+  `MBEDTLS_PSA_CRYPTO_C`, mostly reasons of code size, and historically
+concerns about the maturity of the PSA code (which we might want to
+re-evaluate).
 
 The downside of this approach is that until we feel ready to make
 `MBDEDTLS_USE_PSA_CRYPTO` non-optional (always enabled), we have to maintain
 two versions of some parts of the code: one using PSA, the other using the
 legacy APIs. However, see next section for strategies that can lower that
-cost.
+cost. The rest of this section explains the reasons for the
+incompatibilities mentioned above.
+
+### `MBEDTLS_ECP_RESTARTABLE`
+
+Currently this option controls not only the presence of restartable APIs in
+the crypto library, but also their use in the TLS and X.509 layers. Since PSA
+Crypto does not support restartable operations, there's a clear conflict: the
+TLS and X.509 layers can't both use only PSA APIs and get restartable
+behaviour.
+
+Supporting this in PSA is on our roadmap (it's been requested). But it's way
+below generalizing support for `MBEDTLS_USE_PSA_CRYPTO` for “mainstream” use
+cases on our priority list. So in the medium term `MBEDTLS_ECP_RESTARTABLE` is
+incompatible with `MBEDTLS_USE_PSA_CRYPTO`.
+
+Note: it is possible to make the options compatible at build time simply by
+deciding that when `USE_PSA_CRYPTO` is enabled, then `MBEDTLS_ECP_RESTARTABLE`
+cease to have any effect on X.509 and TLS: it simply controls the presence of
+the APIs in libmbedcrypto. (Or we could split `ECP_RESTARTABLE` into several
+options to achieve a similar effect.) This would allow people to use
+restartable ECC in non-TLS, non-X509 code (for example firmware verification)
+with a build that also uses PSA for TLS and X509), if there is an interest for
+that.
+
+### `MBEDTLS_PSA_CRYPTO_CONFIG`
+
+X509 and TLS code use `MBEDTLS_xxx` macros to decide whether an algorithm is
+supported. This doesn't make `MBEDTLS_USE_PSA_CRYPTO` incompatible with
+`MBEDTLS_PSA_CRYPTO_CONFIG` per se, but it makes it incompatible with most
+useful uses of `MBEDTLS_PSA_CRYPTO_CONFIG`. The point of
+`MBEDTLS_PSA_CRYPTO_CONFIG` is to be able to build a library with support for
+an algorithm through a PSA driver only, without building the software
+implementation of that algorithm. But then the TLS code would consider the
+algorithm unavailable.
+
+This is tracked in https://github.com/ARMmbed/mbedtls/issues/3674 and
+https://github.com/ARMmbed/mbedtls/issues/3677. But now that I look at it with
+fresh eyes, I don't think the approach we were planning to use would actually
+works. This needs more design effort.
+
+This is something we need to support eventually, and several partners want it.
+I don't know what the priority is for `MBEDTLS_USE_PSA_CRYPTO` between
+improving driver support and covering more of the protocol. It seems to me
+that it'll be less work overall to first implement a good architecture for
+`MBEDTLS_USE_PSA_CRYPTO + MBEDTLS_PSA_CRYPTO_CONFIG` and then extend to more
+protocol featues, because implementing that architecture will require changes
+to the existing code and the less code there is at this point the better,
+whereas extending to more procotol features will require the same amount of
+work either way.
+
+### `MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER`
+
+When `MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER` is enabled, the library is
+built for use with an RPC server that dispatches PSA crypto function calls
+from multiple clients. In such a build, all the `psa_xxx` functions that take
+would normally take a `psa_key_id_t` as argument instead take a structure
+containing both the key id and the client id. And so if e.g. a TLS function
+calls `psa_import_key`, it would have to pass this structure, not just the
+`psa_key_id_t` key id.
+
+A solution is to use `mbedtls_svc_key_id_t` throughout instead of
+`psa_key_id_t`, and use similar abstractions to define values. That's what we
+do in unit tests of PSA crypto itself to support both cases. That abstraction
+is more confusing to readers, so the less we use it the better.
+
+I don't think supporting TLS and an RPC interface in the same build is an
+important use case (I don't remember anyone requesting it). So I propose to
+ignore it in the design: we just don't intend to support it.
 
 Taking advantage of the existing abstractions layers - or not
 =============================================================

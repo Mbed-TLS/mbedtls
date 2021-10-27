@@ -425,7 +425,7 @@ int mbedtls_cipher_set_iv( mbedtls_cipher_context_t *ctx,
 #endif
 
 #if defined(MBEDTLS_CCM_C)
-    if( MBEDTLS_MODE_CCM == ctx->cipher_info->mode )
+    if( MBEDTLS_MODE_CCM_STAR_NO_TAG == ctx->cipher_info->mode )
     {
         int set_lengths_result;
         int ccm_star_mode;
@@ -586,7 +586,7 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
 #endif
 
 #if defined(MBEDTLS_CCM_C)
-    if( ctx->cipher_info->mode == MBEDTLS_MODE_CCM )
+    if( ctx->cipher_info->mode == MBEDTLS_MODE_CCM_STAR_NO_TAG )
     {
         return( mbedtls_ccm_update( (mbedtls_ccm_context *) ctx->cipher_ctx,
                                     input, ilen,
@@ -981,7 +981,7 @@ int mbedtls_cipher_finish( mbedtls_cipher_context_t *ctx,
         MBEDTLS_MODE_OFB == ctx->cipher_info->mode ||
         MBEDTLS_MODE_CTR == ctx->cipher_info->mode ||
         MBEDTLS_MODE_GCM == ctx->cipher_info->mode ||
-        MBEDTLS_MODE_CCM == ctx->cipher_info->mode ||
+        MBEDTLS_MODE_CCM_STAR_NO_TAG == ctx->cipher_info->mode ||
         MBEDTLS_MODE_XTS == ctx->cipher_info->mode ||
         MBEDTLS_MODE_STREAM == ctx->cipher_info->mode )
     {

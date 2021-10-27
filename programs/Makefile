@@ -106,6 +106,7 @@ APPS = \
 	x509/cert_req$(EXEXT) \
 	x509/cert_write$(EXEXT) \
 	x509/crl_app$(EXEXT) \
+	x509/load_roots$(EXEXT) \
 	x509/req_app$(EXEXT) \
 # End of APPS
 
@@ -356,6 +357,10 @@ x509/crl_app$(EXEXT): x509/crl_app.c $(DEP)
 x509/cert_req$(EXEXT): x509/cert_req.c $(DEP)
 	echo "  CC    x509/cert_req.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/cert_req.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+x509/load_roots$(EXEXT): x509/load_roots.c $(DEP)
+	echo "  CC    x509/load_roots.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/load_roots.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 x509/req_app$(EXEXT): x509/req_app.c $(DEP)
 	echo "  CC    x509/req_app.c"

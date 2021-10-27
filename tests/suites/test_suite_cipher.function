@@ -343,7 +343,7 @@ exit:
 void enc_dec_buf( int cipher_id, char * cipher_string, int key_len,
                   int length_val, int pad_mode )
 {
-    size_t length = length_val, outlen, total_len, i, block_size;
+    size_t length = length_val, outlen, total_len, i, block_size, iv_len;
     unsigned char key[64];
     unsigned char iv[16];
     unsigned char ad[13];
@@ -401,8 +401,14 @@ void enc_dec_buf( int cipher_id, char * cipher_string, int key_len,
     memset( decbuf, 0, sizeof( decbuf ) );
     memset( tag, 0, sizeof( tag ) );
 
-    TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx_dec, iv, sizeof( iv ) ) );
-    TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx_enc, iv, sizeof( iv ) ) );
+    if( NULL != strstr( cipher_info->name, "CCM*-NO-TAG") )
+        iv_len = 13; /* For CCM, IV length is expected to be between 7 and 13 bytes.
+                      * For CCM*-NO-TAG, IV length must be exactly 13 bytes long. */
+    else
+        iv_len = sizeof(iv);
+
+    TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx_dec, iv, iv_len ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx_enc, iv, iv_len ) );
 
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_dec ) );
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_enc ) );
@@ -597,6 +603,7 @@ void enc_dec_buf_multipart( int cipher_id, int key_len, int first_length_val,
     size_t second_length = second_length_val;
     size_t length = first_length + second_length;
     size_t block_size;
+    size_t iv_len;
     unsigned char key[32];
     unsigned char iv[16];
 
@@ -641,8 +648,14 @@ void enc_dec_buf_multipart( int cipher_id, int key_len, int first_length_val,
     (void) pad_mode;
 #endif /* MBEDTLS_CIPHER_MODE_WITH_PADDING */
 
-    TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx_dec, iv, 16 ) );
-    TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx_enc, iv, 16 ) );
+    if( NULL != strstr( cipher_info->name, "CCM*-NO-TAG") )
+        iv_len = 13; /* For CCM, IV length is expected to be between 7 and 13 bytes.
+                      * For CCM*-NO-TAG, IV length must be exactly 13 bytes long. */
+    else
+        iv_len = sizeof(iv);
+
+    TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx_dec, iv, iv_len ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx_enc, iv, iv_len ) );
 
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_dec ) );
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_enc ) );

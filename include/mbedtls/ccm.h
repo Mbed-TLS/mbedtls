@@ -208,7 +208,6 @@ int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
  *                  at least \p ad_len Bytes.
  * \param ad_len    The length of additional data in Bytes.
  *                  This must be less than 2^16 - 2^8.
- *                  For tag length = 0, AD length can be 0.
  * \param input     The buffer holding the input data. If \p length is greater
  *                  than zero, \p input must be a readable buffer of at least
  *                  that length.
@@ -291,7 +290,6 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
  *                  at least that \p ad_len Bytes.
  * \param ad_len    The length of additional data in Bytes.
  *                  This must be less than 2^16 - 2^8.
- *                  For tag length = 0, AD length can be 0.
  * \param input     The buffer holding the input data. If \p length is greater
  *                  than zero, \p input must be a readable buffer of at least
  *                  that length.

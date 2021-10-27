@@ -36,7 +36,7 @@ hash_algorithm:PSA_ALG_SHA_512:64
 
 MAC: HMAC-MD2
 depends_on:PSA_WANT_ALG_HMAC:PSA_WANT_ALG_MD2
-hmac_algorithm:PSA_ALG_HMAC( PSA_ALG_MD2 ):16:64
+hmac_algorithm:PSA_ALG_HMAC( PSA_ALG_MD2 ):16:16
 
 MAC: HMAC-MD4
 depends_on:PSA_WANT_ALG_HMAC:PSA_WANT_ALG_MD4

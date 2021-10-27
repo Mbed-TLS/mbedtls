@@ -156,8 +156,8 @@ crypto API.
 This strategy is currently used for ECDSA signature verification in the PK
 layer, and could be extended to all operations in the PK layer.
 
-This strategy is not very well suited to the Cipher and MD layers, as the PSA
-implementation is currently done on top of those layers.
+This strategy is not very well suited to the Cipher layer, as the PSA
+implementation is currently done on top of that layer.
 
 Replace calls for each operation
 --------------------------------
@@ -184,6 +184,9 @@ Opt-in use of PSA from the abstraction layer
 - Downside: when the context is typically set up by the application, requires
   changes in application code.
 
+This strategy is not useful when no context is used, for example with the
+one-shot function `mbedtls_md()`.
+
 There are two variants of this strategy: one where using the new setup
 function also allows for key isolation (the key is only held by PSA,
 supporting both G1 and G2 in that area), and one without isolation (the key is
@@ -206,6 +209,16 @@ Note: for private key operations in the PK layer, both the "silent" and the
 support for key isolation, but at the (unavoidable) code of change in
 application code, while the other requires no application change to get
 support for drivers, but fails to provide isolation support.
+
+Summary
+-------
+
+Stategies currently used with each abstraction layer:
+
+- PK (for G1): silently call PSA
+- PK (for G2): opt-in use of PSA (new key type)
+- Cipher (G1): opt-in use of PSA (new setup function)
+- MD (G1): replace calls at each call site
 
 Migrating away from the legacy API
 ==================================

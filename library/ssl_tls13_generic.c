@@ -271,7 +271,7 @@ static int ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 4 );
     certificate_request_context_len = p[0];
-    certificate_list_len = ( p[1] << 16 ) | ( p[2] << 8 ) | p[3];
+    certificate_list_len = MBEDTLS_GET_UINT24_BE( p, 0 );
     p += 4;
 
     /* In theory, the certificate list can be up to 2^24 Bytes, but we don't

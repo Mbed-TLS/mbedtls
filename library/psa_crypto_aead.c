@@ -444,7 +444,6 @@ psa_status_t mbedtls_psa_aead_set_lengths(
     size_t ad_length,
     size_t plaintext_length )
 {
-
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
     if( operation->alg == PSA_ALG_CCM )
     {

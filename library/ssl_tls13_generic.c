@@ -503,7 +503,7 @@ static int ssl_tls13_validate_certificate( mbedtls_ssl_context *ssl )
     if( verify_result != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "! Certificate verification flags %08x",
-                                    verify_result ) );
+                                    (unsigned int) verify_result ) );
     }
     else
     {

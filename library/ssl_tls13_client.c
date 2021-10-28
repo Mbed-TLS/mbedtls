@@ -1609,26 +1609,6 @@ static int ssl_tls1_3_process_server_finished( mbedtls_ssl_context *ssl )
 }
 
 /*
- * Handler for MBEDTLS_SSL_CLIENT_CERTIFICATE
- */
-static int ssl_tls1_3_write_client_certificate( mbedtls_ssl_context *ssl )
-{
-    MBEDTLS_SSL_DEBUG_MSG( 1, ( "%s hasn't been implemented", __func__ ) );
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY );
-    return( 0 );
-}
-
-/*
- * Handler for MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY
- */
-static int ssl_tls1_3_write_client_certificate_verify( mbedtls_ssl_context *ssl )
-{
-    MBEDTLS_SSL_DEBUG_MSG( 1, ( "%s hasn't been implemented", __func__ ) );
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_FINISHED );
-    return( 0 );
-}
-
-/*
  * Handler for MBEDTLS_SSL_CLIENT_FINISHED
  */
 static int ssl_tls1_3_write_client_finished( mbedtls_ssl_context *ssl )
@@ -1699,14 +1679,6 @@ int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl )
 
         case MBEDTLS_SSL_SERVER_FINISHED:
             ret = ssl_tls1_3_process_server_finished( ssl );
-            break;
-
-        case MBEDTLS_SSL_CLIENT_CERTIFICATE:
-            ret = ssl_tls1_3_write_client_certificate( ssl );
-            break;
-
-        case MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY:
-            ret = ssl_tls1_3_write_client_certificate_verify( ssl );
             break;
 
         case MBEDTLS_SSL_CLIENT_FINISHED:

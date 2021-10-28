@@ -945,7 +945,7 @@ static int ssl_tls13_finished_in_postprocess_cli( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
     mbedtls_ssl_key_set traffic_keys;
-    mbedtls_ssl_transform *transform_application;
+    mbedtls_ssl_transform *transform_application = NULL;
 
     ret = mbedtls_ssl_tls13_key_schedule_stage_application( ssl );
     if( ret != 0 )
@@ -986,18 +986,18 @@ static int ssl_tls13_finished_in_postprocess_cli( mbedtls_ssl_context *ssl )
 
     ssl->transform_application = transform_application;
 
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_END_OF_EARLY_DATA );
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_FINISHED );
 
 cleanup:
 
     mbedtls_platform_zeroize( &traffic_keys, sizeof(mbedtls_ssl_key_set) );
-	if( ret != 0)
-	{
-	    mbedtls_free( transform_application );
-	    MBEDTLS_SSL_PEND_FATAL_ALERT(
-	                MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
-	                MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-	}
+    if( ret != 0)
+    {
+        mbedtls_free( transform_application );
+        MBEDTLS_SSL_PEND_FATAL_ALERT(
+                MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
+                MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+    }
     return( ret );
 }
 

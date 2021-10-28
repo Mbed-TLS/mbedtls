@@ -46,6 +46,11 @@ option(ENABLE_PROGRAMS "Build mbed TLS programs." ON)
 
 option(UNSAFE_BUILD "Allow unsafe builds. These builds ARE NOT SECURE." OFF)
 option(MBEDTLS_FATAL_WARNINGS "Compiler warnings treated as errors" ON)
+if(WIN32)
+    option(GEN_FILES "Generate the auto-generated files as needed" OFF)
+else()
+    option(GEN_FILES "Generate the auto-generated files as needed" ON)
+endif()
 
 string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER_ID}")
 string(REGEX MATCH "GNU" CMAKE_COMPILER_IS_GNU "${CMAKE_C_COMPILER_ID}")
@@ -134,6 +139,22 @@ function(link_to_source base_name)
         endif()
     endif()
 endfunction(link_to_source)
+
+# Get the filename without the final extension (i.e. convert "a.b.c" to "a.b")
+function(get_name_without_last_ext dest_var full_name)
+    # Split into a list on '.' (but a cmake list is just a ';'-separated string)
+    string(REPLACE "." ";" ext_parts "${full_name}")
+    # Remove the last item if there are more than one
+    list(LENGTH ext_parts ext_parts_len)
+    if (${ext_parts_len} GREATER "1")
+        math(EXPR ext_parts_last_item "${ext_parts_len} - 1")
+        list(REMOVE_AT ext_parts ${ext_parts_last_item})
+    endif()
+    # Convert back to a string by replacing separators with '.'
+    string(REPLACE ";" "." no_ext_name "${ext_parts}")
+    # Copy into the desired variable
+    set(${dest_var} ${no_ext_name} PARENT_SCOPE)
+endfunction(get_name_without_last_ext)
 
 string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER_ID}")
 

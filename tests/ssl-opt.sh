@@ -8808,7 +8808,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS1.3: Test client hello msg work - openssl" \
-            "$O_NEXT_SRV -tls1_3 -msg" \
+            "$O_NEXT_SRV -tls1_3 -msg -no_middlebox" \
             "$P_CLI debug_level=3 min_version=tls1_3 max_version=tls1_3" \
             1 \
             -c "SSL - The requested feature is not available" \
@@ -8828,13 +8828,14 @@ run_test    "TLS1.3: Test client hello msg work - openssl" \
             -c "<= ssl_tls1_3_process_server_hello" \
             -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
             -c "ECDH curve: x25519"         \
-            -c "=> ssl_tls1_3_process_server_hello"
+            -c "=> ssl_tls1_3_process_server_hello" \
+            -c "<= parse encrypted extensions"
 
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS1.3: Test client hello msg work - gnutls" \
-            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3 --debug=4" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:%DISABLE_TLS13_COMPAT_MODE --debug=4" \
             "$P_CLI debug_level=3 min_version=tls1_3 max_version=tls1_3" \
             1 \
             -c "SSL - The requested feature is not available" \
@@ -8854,8 +8855,8 @@ run_test    "TLS1.3: Test client hello msg work - gnutls" \
             -c "<= ssl_tls1_3_process_server_hello" \
             -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
             -c "ECDH curve: x25519"         \
-            -c "=> ssl_tls1_3_process_server_hello"
-
+            -c "=> ssl_tls1_3_process_server_hello" \
+            -c "<= parse encrypted extensions"
 
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_MEMORY_DEBUG

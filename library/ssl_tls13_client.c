@@ -1395,11 +1395,134 @@ cleanup:
 }
 
 /*
- * Handler for MBEDTLS_SSL_ENCRYPTED_EXTENSIONS
+ *
+ * EncryptedExtensions message
+ *
+ * The EncryptedExtensions message contains any extensions which
+ * should be protected, i.e., any which are not needed to establish
+ * the cryptographic context.
  */
-static int ssl_tls1_3_process_encrypted_extensions( mbedtls_ssl_context *ssl )
+
+/*
+ * Overview
+ */
+
+/* Main entry point; orchestrates the other functions */
+static int ssl_tls13_process_encrypted_extensions( mbedtls_ssl_context *ssl );
+
+static int ssl_tls13_parse_encrypted_extensions( mbedtls_ssl_context *ssl,
+                                                 const unsigned char *buf,
+                                                 const unsigned char *end );
+static int ssl_tls13_postprocess_encrypted_extensions( mbedtls_ssl_context *ssl );
+
+/*
+ * Handler for  MBEDTLS_SSL_ENCRYPTED_EXTENSIONS
+ */
+static int ssl_tls13_process_encrypted_extensions( mbedtls_ssl_context *ssl )
 {
-    MBEDTLS_SSL_DEBUG_MSG( 1, ( "%s hasn't been implemented", __func__ ) );
+    int ret;
+    unsigned char *buf;
+    size_t buf_len;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse encrypted extensions" ) );
+
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls1_3_fetch_handshake_msg( ssl,
+                                             MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS,
+                                             &buf, &buf_len ) );
+
+    /* Process the message contents */
+    MBEDTLS_SSL_PROC_CHK(
+        ssl_tls13_parse_encrypted_extensions( ssl, buf, buf + buf_len ) );
+
+    mbedtls_ssl_tls1_3_add_hs_msg_to_checksum(
+        ssl, MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS, buf, buf_len );
+
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_postprocess_encrypted_extensions( ssl ) );
+
+cleanup:
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse encrypted extensions" ) );
+    return( ret );
+
+}
+
+/* Parse EncryptedExtensions message
+ * struct {
+ *     Extension extensions<0..2^16-1>;
+ * } EncryptedExtensions;
+ */
+static int ssl_tls13_parse_encrypted_extensions( mbedtls_ssl_context *ssl,
+                                                 const unsigned char *buf,
+                                                 const unsigned char *end )
+{
+    int ret = 0;
+    size_t extensions_len;
+    const unsigned char *p = buf;
+    const unsigned char *extensions_end;
+
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2 );
+    extensions_len = MBEDTLS_GET_UINT16_BE( p, 0 );
+    p += 2;
+
+    MBEDTLS_SSL_DEBUG_BUF( 3, "encrypted extensions", p, extensions_len );
+    extensions_end = p + extensions_len;
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, extensions_len );
+
+    while( p < extensions_end )
+    {
+        unsigned int extension_type;
+        size_t extension_data_len;
+
+        /*
+         * struct {
+         *     ExtensionType extension_type; (2 bytes)
+         *     opaque extension_data<0..2^16-1>;
+         * } Extension;
+         */
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, extensions_end, 4 );
+        extension_type = MBEDTLS_GET_UINT16_BE( p, 0 );
+        extension_data_len = MBEDTLS_GET_UINT16_BE( p, 2 );
+        p += 4;
+
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, extensions_end, extension_data_len );
+
+        /* The client MUST check EncryptedExtensions for the
+         * presence of any forbidden extensions and if any are found MUST abort
+         * the handshake with an "unsupported_extension" alert.
+         */
+        switch( extension_type )
+        {
+
+            case MBEDTLS_TLS_EXT_SUPPORTED_GROUPS:
+                MBEDTLS_SSL_DEBUG_MSG( 3, ( "found extensions supported groups" ) );
+                break;
+
+            default:
+                MBEDTLS_SSL_DEBUG_MSG(
+                    3, ( "unsupported extension found: %u ", extension_type) );
+                MBEDTLS_SSL_PEND_FATAL_ALERT(
+                    MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT,   \
+                    MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION );
+                return ( MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION );
+        }
+
+        p += extension_data_len;
+    }
+
+    /* Check that we consumed all the message. */
+    if( p != end )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "EncryptedExtension lengths misaligned" ) );
+        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,   \
+                                      MBEDTLS_ERR_SSL_DECODE_ERROR );
+        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
+    }
+
+    return( ret );
+}
+
+static int ssl_tls13_postprocess_encrypted_extensions( mbedtls_ssl_context *ssl )
+{
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CERTIFICATE_REQUEST );
     return( 0 );
 }
@@ -1516,7 +1639,7 @@ int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl )
             break;
 
         case MBEDTLS_SSL_ENCRYPTED_EXTENSIONS:
-            ret = ssl_tls1_3_process_encrypted_extensions( ssl );
+            ret = ssl_tls13_process_encrypted_extensions( ssl );
             break;
 
         case MBEDTLS_SSL_CERTIFICATE_REQUEST:

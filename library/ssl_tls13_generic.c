@@ -405,6 +405,7 @@ static int ssl_tls13_validate_certificate( mbedtls_ssl_context *ssl )
     int ret = 0;
     mbedtls_x509_crt *ca_chain;
     mbedtls_x509_crl *ca_crl;
+    uint32_t verify_result = 0;
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     if( ssl->handshake->sni_ca_chain != NULL )
@@ -427,7 +428,7 @@ static int ssl_tls13_validate_certificate( mbedtls_ssl_context *ssl )
         ca_chain, ca_crl,
         ssl->conf->cert_profile,
         ssl->hostname,
-        &ssl->session_negotiate->verify_result,
+        &verify_result,
         ssl->conf->f_vrfy, ssl->conf->p_vrfy );
 
     if( ret != 0 )
@@ -447,7 +448,7 @@ static int ssl_tls13_validate_certificate( mbedtls_ssl_context *ssl )
         if( mbedtls_pk_can_do( pk, MBEDTLS_PK_ECKEY ) &&
             mbedtls_ssl_check_curve( ssl, mbedtls_pk_ec( *pk )->grp.id ) != 0 )
         {
-            ssl->session_negotiate->verify_result |= MBEDTLS_X509_BADCERT_BAD_KEY;
+            verify_result |= MBEDTLS_X509_BADCERT_BAD_KEY;
 
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate ( EC key curve )" ) );
             if( ret == 0 )
@@ -459,7 +460,7 @@ static int ssl_tls13_validate_certificate( mbedtls_ssl_context *ssl )
     if( mbedtls_ssl_check_cert_usage( ssl->session_negotiate->peer_cert,
                                       ssl->handshake->ciphersuite_info,
                                       !ssl->conf->endpoint,
-                                      &ssl->session_negotiate->verify_result ) != 0 )
+                                      &verify_result ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate ( usage extensions )" ) );
         if( ret == 0 )
@@ -478,35 +479,31 @@ static int ssl_tls13_validate_certificate( mbedtls_ssl_context *ssl )
         /* The certificate may have been rejected for several reasons.
            Pick one and send the corresponding alert. Which alert to send
            may be a subject of debate in some cases. */
-        if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_OTHER )
+        if( verify_result & MBEDTLS_X509_BADCERT_OTHER )
             MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ACCESS_DENIED, ret );
-        else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_CN_MISMATCH )
+        else if( verify_result & MBEDTLS_X509_BADCERT_CN_MISMATCH )
             MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_BAD_CERT, ret );
-        else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_KEY_USAGE )
+        else if( ( verify_result & MBEDTLS_X509_BADCERT_KEY_USAGE ) ||
+                 ( verify_result & MBEDTLS_X509_BADCERT_EXT_KEY_USAGE ) ||
+                 ( verify_result & MBEDTLS_X509_BADCERT_NS_CERT_TYPE ) ||
+                 ( verify_result & MBEDTLS_X509_BADCERT_BAD_PK ) ||
+                 ( verify_result & MBEDTLS_X509_BADCERT_BAD_KEY ) )
             MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT, ret );
-        else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_EXT_KEY_USAGE )
-            MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT, ret );
-        else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_NS_CERT_TYPE )
-            MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT, ret );
-        else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_BAD_PK )
-            MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT, ret );
-        else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_BAD_KEY )
-            MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT, ret );
-        else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_EXPIRED )
+        else if( verify_result & MBEDTLS_X509_BADCERT_EXPIRED )
             MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_CERT_EXPIRED, ret );
-        else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_REVOKED )
+        else if( verify_result & MBEDTLS_X509_BADCERT_REVOKED )
             MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_CERT_REVOKED, ret );
-        else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_NOT_TRUSTED )
+        else if( verify_result & MBEDTLS_X509_BADCERT_NOT_TRUSTED )
             MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNKNOWN_CA, ret );
         else
             MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_CERT_UNKNOWN, ret );
     }
 
 #if defined(MBEDTLS_DEBUG_C)
-    if( ssl->session_negotiate->verify_result != 0 )
+    if( verify_result != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "! Certificate verification flags %08x",
-                                    (unsigned int) ssl->session_negotiate->verify_result ) );
+                                    verify_result ) );
     }
     else
     {
@@ -514,6 +511,7 @@ static int ssl_tls13_validate_certificate( mbedtls_ssl_context *ssl )
     }
 #endif /* MBEDTLS_DEBUG_C */
 
+    ssl->session_negotiate->verify_result = verify_result;
     return( ret );
 }
 #else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */

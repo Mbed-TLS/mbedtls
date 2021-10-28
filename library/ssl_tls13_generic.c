@@ -952,7 +952,7 @@ static int ssl_tls13_finished_in_postprocess_cli( mbedtls_ssl_context *ssl )
     {
         MBEDTLS_SSL_DEBUG_RET( 1,
            "mbedtls_ssl_tls13_key_schedule_stage_application", ret );
-        return( ret );
+        goto cleanup;
     }
 
     ret = mbedtls_ssl_tls1_3_generate_application_keys(
@@ -961,13 +961,16 @@ static int ssl_tls13_finished_in_postprocess_cli( mbedtls_ssl_context *ssl )
     {
         MBEDTLS_SSL_DEBUG_RET( 1,
             "mbedtls_ssl_tls1_3_generate_application_keys", ret );
-        return( ret );
+        goto cleanup;
     }
 
     transform_application =
         mbedtls_calloc( 1, sizeof( mbedtls_ssl_transform ) );
     if( transform_application == NULL )
-        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+    {
+        ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
+        goto cleanup;
+    }
 
     ret = mbedtls_ssl_tls13_populate_transform(
                                     transform_application,
@@ -978,13 +981,24 @@ static int ssl_tls13_finished_in_postprocess_cli( mbedtls_ssl_context *ssl )
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_populate_transform", ret );
-        return( ret );
+        goto cleanup;
     }
 
     ssl->transform_application = transform_application;
 
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_END_OF_EARLY_DATA );
-    return( 0 );
+
+cleanup:
+
+    mbedtls_platform_zeroize( &traffic_keys, sizeof(mbedtls_ssl_key_set) );
+	if( ret != 0)
+	{
+	    mbedtls_free( transform_application );
+	    MBEDTLS_SSL_PEND_FATAL_ALERT(
+	                MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
+	                MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+	}
+    return( ret );
 }
 
 static int ssl_tls13_finished_in_postprocess( mbedtls_ssl_context* ssl )

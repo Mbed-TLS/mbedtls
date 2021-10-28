@@ -567,7 +567,7 @@ int mbedtls_ssl_tls1_3_derive_resumption_master_secret(
 int mbedtls_ssl_tls13_key_schedule_stage_application(
     mbedtls_ssl_context *ssl )
 {
-    int ret = 0;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_md_type_t const md_type = ssl->handshake->ciphersuite_info->mac;
 #if defined(MBEDTLS_DEBUG_C)
     mbedtls_md_info_t const * const md_info = mbedtls_md_info_from_type( md_type );
@@ -671,7 +671,7 @@ int mbedtls_ssl_tls1_3_calculate_expected_finished( mbedtls_ssl_context* ssl,
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_get_handshake_transcript", ret );
-        return( ret );
+        goto exit;
     }
     MBEDTLS_SSL_DEBUG_BUF( 4, "handshake hash", transcript, transcript_len );
 
@@ -682,12 +682,16 @@ int mbedtls_ssl_tls1_3_calculate_expected_finished( mbedtls_ssl_context* ssl,
 
     ret = ssl_tls1_3_calc_finished_core( md_type, base_key, transcript, dst );
     if( ret != 0 )
-        return( ret );
+        goto exit;
     *actual_len = md_size;
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "verify_data for finished message", dst, md_size );
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= mbedtls_ssl_tls1_3_calculate_expected_finished" ) );
-    return( 0 );
+
+exit:
+
+    mbedtls_platform_zeroize( transcript, sizeof( transcript) );
+    return( ret );
 }
 
 int mbedtls_ssl_tls1_3_create_psk_binder( mbedtls_ssl_context *ssl,
@@ -1199,14 +1203,6 @@ int mbedtls_ssl_tls1_3_generate_application_keys(
  cleanup:
 
     mbedtls_platform_zeroize( transcript, sizeof(transcript) );
-    mbedtls_platform_zeroize( traffic_keys->client_write_key,
-                              sizeof(traffic_keys->client_write_key)  );
-    mbedtls_platform_zeroize( traffic_keys->server_write_key,
-                              sizeof(traffic_keys->server_write_key)  );
-    mbedtls_platform_zeroize( traffic_keys->client_write_iv,
-                              sizeof(traffic_keys->client_write_iv)  );
-    mbedtls_platform_zeroize( traffic_keys->server_write_iv,
-                              sizeof(traffic_keys->server_write_iv)  );
     return( ret );
 }
 

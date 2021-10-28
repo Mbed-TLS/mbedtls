@@ -522,14 +522,6 @@ typedef struct
     unsigned char server_handshake_traffic_secret[ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
 } mbedtls_ssl_tls1_3_handshake_secrets;
 
-typedef struct
-{
-    unsigned char client_application_traffic_secret_N[ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
-    unsigned char server_application_traffic_secret_N[ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
-    unsigned char exporter_master_secret             [ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
-    unsigned char resumption_master_secret           [ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
-} mbedtls_ssl_tls1_3_application_secrets;
-
 /*
  * This structure contains the parameters only needed during handshake.
  */

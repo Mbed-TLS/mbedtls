@@ -676,9 +676,9 @@ int mbedtls_ssl_tls1_3_calculate_expected_finished( mbedtls_ssl_context* ssl,
     MBEDTLS_SSL_DEBUG_BUF( 4, "handshake hash", transcript, transcript_len );
 
     if( from == MBEDTLS_SSL_IS_CLIENT )
-        base_key = ssl->handshake->tls1_3_hs_secrets.client_handshake_traffic_secret;
+        base_key = ssl->handshake->tls13_hs_secrets.client_handshake_traffic_secret;
     else
-        base_key = ssl->handshake->tls1_3_hs_secrets.server_handshake_traffic_secret;
+        base_key = ssl->handshake->tls13_hs_secrets.server_handshake_traffic_secret;
 
     ret = ssl_tls1_3_calc_finished_core( md_type, base_key, transcript, dst );
     if( ret != 0 )

@@ -1501,7 +1501,7 @@ static int ssl_tls13_parse_encrypted_extensions( mbedtls_ssl_context *ssl,
                 MBEDTLS_SSL_DEBUG_MSG(
                     3, ( "unsupported extension found: %u ", extension_type) );
                 MBEDTLS_SSL_PEND_FATAL_ALERT(
-                    MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT,   \
+                    MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT,
                     MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION );
                 return ( MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION );
         }
@@ -1513,7 +1513,7 @@ static int ssl_tls13_parse_encrypted_extensions( mbedtls_ssl_context *ssl,
     if( p != end )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "EncryptedExtension lengths misaligned" ) );
-        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,   \
+        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
                                       MBEDTLS_ERR_SSL_DECODE_ERROR );
         return( MBEDTLS_ERR_SSL_DECODE_ERROR );
     }
@@ -1523,17 +1523,44 @@ static int ssl_tls13_parse_encrypted_extensions( mbedtls_ssl_context *ssl,
 
 static int ssl_tls13_postprocess_encrypted_extensions( mbedtls_ssl_context *ssl )
 {
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CERTIFICATE_REQUEST );
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+    if( mbedtls_ssl_tls1_3_some_psk_enabled( ssl ) )
+        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_FINISHED );
+    else
+        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CERTIFICATE_REQUEST );
+#else
+    ((void) ssl);
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_FINISHED );
+#endif
     return( 0 );
 }
 
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 /*
  * Handler for  MBEDTLS_SSL_CERTIFICATE_REQUEST
  */
-static int ssl_tls1_3_process_certificate_request( mbedtls_ssl_context *ssl )
+static int ssl_tls13_process_certificate_request( mbedtls_ssl_context *ssl )
 {
-    MBEDTLS_SSL_DEBUG_MSG( 1, ( "%s hasn't been implemented", __func__ ) );
+    int ret = mbedtls_ssl_read_record( ssl, 0 );
+
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
+        return( ret );
+    }
+
+    if( ( ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE ) &&
+        ( ssl->in_msg[0] == MBEDTLS_SSL_HS_CERTIFICATE_REQUEST ) )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "CertificateRequest not supported" ) );
+        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
+                                      MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+    }
+
+    ssl->keep_current_message = 1;
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_CERTIFICATE );
+
     return( 0 );
 }
 
@@ -1542,7 +1569,12 @@ static int ssl_tls1_3_process_certificate_request( mbedtls_ssl_context *ssl )
  */
 static int ssl_tls1_3_process_server_certificate( mbedtls_ssl_context *ssl )
 {
-    MBEDTLS_SSL_DEBUG_MSG( 1, ( "%s hasn't been implemented", __func__ ) );
+    int ret;
+
+    ret = mbedtls_ssl_tls13_process_certificate( ssl );
+    if( ret != 0 )
+        return( ret );
+
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CERTIFICATE_VERIFY );
     return( 0 );
 }
@@ -1556,7 +1588,7 @@ static int ssl_tls1_3_process_certificate_verify( mbedtls_ssl_context *ssl )
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_FINISHED );
     return( 0 );
 }
-
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 /*
  * Handler for MBEDTLS_SSL_SERVER_FINISHED
  */
@@ -1642,8 +1674,9 @@ int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl )
             ret = ssl_tls13_process_encrypted_extensions( ssl );
             break;
 
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
         case MBEDTLS_SSL_CERTIFICATE_REQUEST:
-            ret = ssl_tls1_3_process_certificate_request( ssl );
+            ret = ssl_tls13_process_certificate_request( ssl );
             break;
 
         case MBEDTLS_SSL_SERVER_CERTIFICATE:
@@ -1653,6 +1686,7 @@ int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl )
         case MBEDTLS_SSL_CERTIFICATE_VERIFY:
             ret = ssl_tls1_3_process_certificate_verify( ssl );
             break;
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
         case MBEDTLS_SSL_SERVER_FINISHED:
             ret = ssl_tls1_3_process_server_finished( ssl );

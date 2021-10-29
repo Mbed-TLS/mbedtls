@@ -1527,7 +1527,7 @@ static int ssl_tls13_postprocess_encrypted_extensions( mbedtls_ssl_context *ssl 
     if( mbedtls_ssl_tls1_3_some_psk_enabled( ssl ) )
         mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_FINISHED );
     else
-        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_CERTIFICATE );
+        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CERTIFICATE_REQUEST );
 #else
     ((void) ssl);
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_FINISHED );
@@ -1536,6 +1536,34 @@ static int ssl_tls13_postprocess_encrypted_extensions( mbedtls_ssl_context *ssl 
 }
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+/*
+ * Handler for  MBEDTLS_SSL_CERTIFICATE_REQUEST
+ */
+static int ssl_tls13_process_certificate_request( mbedtls_ssl_context *ssl )
+{
+    int ret = mbedtls_ssl_read_record( ssl, 0 );
+
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
+        return( ret );
+    }
+
+    if( ( ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE ) &&
+        ( ssl->in_msg[0] == MBEDTLS_SSL_HS_CERTIFICATE_REQUEST ) )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "CertificateRequest not supported" ) );
+        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
+                                      MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+    }
+
+    ssl->keep_current_message = 1;
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_CERTIFICATE );
+
+    return( 0 );
+}
+
 /*
  * Handler for MBEDTLS_SSL_SERVER_CERTIFICATE
  */
@@ -1647,6 +1675,10 @@ int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl )
             break;
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+        case MBEDTLS_SSL_CERTIFICATE_REQUEST:
+            ret = ssl_tls13_process_certificate_request( ssl );
+            break;
+
         case MBEDTLS_SSL_SERVER_CERTIFICATE:
             ret = ssl_tls1_3_process_server_certificate( ssl );
             break;

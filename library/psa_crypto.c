@@ -448,6 +448,12 @@ psa_status_t psa_validate_unstructured_key_bit_size( psa_key_type_t type,
                 return( PSA_ERROR_INVALID_ARGUMENT );
             break;
 #endif
+#if defined(PSA_WANT_KEY_TYPE_ARIA)
+        case PSA_KEY_TYPE_ARIA:
+            if( bits != 128 && bits != 192 && bits != 256 )
+                return( PSA_ERROR_INVALID_ARGUMENT );
+            break;
+#endif
 #if defined(PSA_WANT_KEY_TYPE_CAMELLIA)
         case PSA_KEY_TYPE_CAMELLIA:
             if( bits != 128 && bits != 192 && bits != 256 )

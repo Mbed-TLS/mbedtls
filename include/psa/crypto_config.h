@@ -111,6 +111,7 @@
 #define PSA_WANT_KEY_TYPE_DERIVE                1
 #define PSA_WANT_KEY_TYPE_HMAC                  1
 #define PSA_WANT_KEY_TYPE_AES                   1
+#define PSA_WANT_KEY_TYPE_ARIA                  1
 #define PSA_WANT_KEY_TYPE_CAMELLIA              1
 #define PSA_WANT_KEY_TYPE_CHACHA20              1
 #define PSA_WANT_KEY_TYPE_DES                   1

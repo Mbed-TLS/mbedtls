@@ -8831,6 +8831,7 @@ run_test    "TLS1.3: Test client hello msg work - openssl" \
             -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
             -c "ECDH curve: x25519"         \
             -c "=> ssl_tls1_3_process_server_hello" \
+            -c "Certificate verification flags clear" \
             -c "<= parse encrypted extensions"
 
 requires_gnutls_tls1_3
@@ -8860,6 +8861,7 @@ run_test    "TLS1.3: Test client hello msg work - gnutls" \
             -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
             -c "ECDH curve: x25519"         \
             -c "=> ssl_tls1_3_process_server_hello" \
+            -c "Certificate verification flags clear" \
             -c "<= parse encrypted extensions"
 
 # Test heap memory usage after handshake

@@ -115,6 +115,9 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
         case PSA_KEY_TYPE_AES:
             cipher_id_tmp = MBEDTLS_CIPHER_ID_AES;
             break;
+        case PSA_KEY_TYPE_ARIA:
+            cipher_id_tmp = MBEDTLS_CIPHER_ID_ARIA;
+            break;
         case PSA_KEY_TYPE_DES:
             /* key_bits is 64 for Single-DES, 128 for two-key Triple-DES,
              * and 192 for three-key Triple-DES. */

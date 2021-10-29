@@ -232,6 +232,27 @@ class PSAMacroCollector(PSAMacroEnumerator):
         self.key_types_from_group = {} #type: Dict[str, str]
         self.algorithms_from_hash = {} #type: Dict[str, str]
 
+    @staticmethod
+    def algorithm_tester(name: str) -> str:
+        """The predicate for whether an algorithm is built from the given constructor.
+
+        The given name must be the name of an algorithm constructor of the
+        form ``PSA_ALG_xxx`` which is used as ``PSA_ALG_xxx(yyy)`` to build
+        an algorithm value. Return the corresponding predicate macro which
+        is used as ``predicate(alg)`` to test whether ``alg`` can be built
+        as ``PSA_ALG_xxx(yyy)``. The predicate is usually called
+        ``PSA_ALG_IS_xxx``.
+        """
+        prefix = 'PSA_ALG_'
+        assert name.startswith(prefix)
+        midfix = 'IS_'
+        suffix = name[len(prefix):]
+        if suffix in ['DSA', 'ECDSA']:
+            midfix += 'RANDOMIZED_'
+        elif suffix == 'RSA_PSS':
+            suffix += '_STANDARD_SALT'
+        return prefix + midfix + suffix
+
     def record_algorithm_subtype(self, name: str, expansion: str) -> None:
         """Record the subtype of an algorithm constructor.
 
@@ -307,12 +328,7 @@ class PSAMacroCollector(PSAMacroEnumerator):
             self.algorithms.add(name)
             self.record_algorithm_subtype(name, expansion)
         elif name.startswith('PSA_ALG_') and parameter == 'hash_alg':
-            if name in ['PSA_ALG_DSA', 'PSA_ALG_ECDSA']:
-                # A naming irregularity
-                tester = name[:8] + 'IS_RANDOMIZED_' + name[8:]
-            else:
-                tester = name[:8] + 'IS_' + name[8:]
-            self.algorithms_from_hash[name] = tester
+            self.algorithms_from_hash[name] = self.algorithm_tester(name)
         elif name.startswith('PSA_KEY_USAGE_') and not parameter:
             self.key_usage_flags.add(name)
         else:

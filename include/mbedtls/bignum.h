@@ -109,6 +109,7 @@
 #define MBEDTLS_LN_2_DIV_LN_10_SCALE100                 332
 #define MBEDTLS_MPI_RW_BUFFER_SIZE             ( ((MBEDTLS_MPI_MAX_BITS_SCALE100 + MBEDTLS_LN_2_DIV_LN_10_SCALE100 - 1) / MBEDTLS_LN_2_DIV_LN_10_SCALE100) + 10 + 6 )
 
+#if !defined(MBEDTLS_BIGNUM_ALT)
 /*
  * Define the base integer type, architecture-wise.
  *
@@ -1010,6 +1011,9 @@ typedef enum {
 int mbedtls_mpi_gen_prime( mbedtls_mpi *X, size_t nbits, int flags,
                    int (*f_rng)(void *, unsigned char *, size_t),
                    void *p_rng );
+#else /* MBEDTLS_BIGNUM_ALT */
+#include "bignum_alt.h"
+#endif /* MBEDTLS_BIGNUM_ALT */
 
 #if defined(MBEDTLS_SELF_TEST)
 

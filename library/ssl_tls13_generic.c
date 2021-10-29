@@ -311,9 +311,7 @@ static int ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
         size_t cert_data_len, extensions_len;
 
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, certificate_list_end, 3 );
-        cert_data_len = ( ( size_t )p[0] << 16 ) |
-                        ( ( size_t )p[1] << 8  ) |
-                        ( ( size_t )p[2]       );
+        cert_data_len = MBEDTLS_GET_UINT24_BE( p, 0 );
         p += 3;
 
         /* In theory, the CRT can be up to 2^24 Bytes, but we don't support
@@ -483,11 +481,11 @@ static int ssl_tls13_validate_certificate( mbedtls_ssl_context *ssl )
             MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ACCESS_DENIED, ret );
         else if( verify_result & MBEDTLS_X509_BADCERT_CN_MISMATCH )
             MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_BAD_CERT, ret );
-        else if( ( verify_result & MBEDTLS_X509_BADCERT_KEY_USAGE ) ||
-                 ( verify_result & MBEDTLS_X509_BADCERT_EXT_KEY_USAGE ) ||
-                 ( verify_result & MBEDTLS_X509_BADCERT_NS_CERT_TYPE ) ||
-                 ( verify_result & MBEDTLS_X509_BADCERT_BAD_PK ) ||
-                 ( verify_result & MBEDTLS_X509_BADCERT_BAD_KEY ) )
+        else if( verify_result & ( MBEDTLS_X509_BADCERT_KEY_USAGE |
+                                   MBEDTLS_X509_BADCERT_EXT_KEY_USAGE |
+                                   MBEDTLS_X509_BADCERT_NS_CERT_TYPE |
+                                   MBEDTLS_X509_BADCERT_BAD_PK |
+                                   MBEDTLS_X509_BADCERT_BAD_KEY ) )
             MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT, ret );
         else if( verify_result & MBEDTLS_X509_BADCERT_EXPIRED )
             MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_CERT_EXPIRED, ret );

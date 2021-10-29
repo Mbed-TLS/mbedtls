@@ -1572,7 +1572,7 @@ static int ssl_tls1_3_process_server_certificate( mbedtls_ssl_context *ssl )
     int ret;
 
     ret = mbedtls_ssl_tls13_process_certificate( ssl );
-    if( ret != 0)
+    if( ret != 0 )
         return( ret );
 
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CERTIFICATE_VERIFY );

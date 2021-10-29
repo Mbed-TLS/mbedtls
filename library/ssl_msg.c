@@ -2560,9 +2560,15 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
 #endif
         /* Skip writing the record content type to after the encryption,
          * as it may change when using the CID extension. */
-
-        mbedtls_ssl_write_version( ssl->major_ver, ssl->minor_ver,
-                           ssl->conf->transport, ssl->out_hdr + 1 );
+        int minor_ver = ssl->minor_ver;
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+        /* TLS 1.3 still uses the TLS 1.3 version identifier
+        * for backwards compatibility. */
+        if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+            minor_ver = MBEDTLS_SSL_MINOR_VERSION_3;
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+        mbedtls_ssl_write_version( ssl->major_ver, minor_ver,
+                                   ssl->conf->transport, ssl->out_hdr + 1 );
 
         memcpy( ssl->out_ctr, ssl->cur_out_ctr, MBEDTLS_SSL_SEQUENCE_NUMBER_LEN );
         MBEDTLS_PUT_UINT16_BE( len, ssl->out_len, 0);
@@ -2577,7 +2583,7 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
             rec.data_offset = ssl->out_msg - rec.buf;
 
             memcpy( &rec.ctr[0], ssl->out_ctr, sizeof( rec.ctr ) );
-            mbedtls_ssl_write_version( ssl->major_ver, ssl->minor_ver,
+            mbedtls_ssl_write_version( ssl->major_ver, minor_ver,
                                        ssl->conf->transport, rec.ver );
             rec.type = ssl->out_msgtype;
 
@@ -5619,6 +5625,7 @@ static void ssl_buffering_free_slot( mbedtls_ssl_context *ssl,
 void mbedtls_ssl_write_version( int major, int minor, int transport,
                         unsigned char ver[2] )
 {
+
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {

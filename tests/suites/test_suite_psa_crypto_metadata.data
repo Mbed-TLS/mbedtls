@@ -204,7 +204,11 @@ asymmetric_signature_algorithm:PSA_ALG_RSA_PKCS1V15_SIGN( PSA_ALG_SHA_256 ):ALG_
 
 Asymmetric signature: RSA PSS SHA-256
 depends_on:PSA_WANT_ALG_RSA_PSS:PSA_WANT_ALG_SHA_256
-asymmetric_signature_algorithm:PSA_ALG_RSA_PSS( PSA_ALG_SHA_256 ):ALG_IS_RSA_PSS | ALG_IS_HASH_AND_SIGN
+asymmetric_signature_algorithm:PSA_ALG_RSA_PSS( PSA_ALG_SHA_256 ):ALG_IS_RSA_PSS | ALG_IS_RSA_PSS_STANDARD_SALT | ALG_IS_HASH_AND_SIGN
+
+Asymmetric signature: RSA PSS-any-salt SHA-256
+depends_on:PSA_WANT_ALG_RSA_PSS:PSA_WANT_ALG_SHA_256
+asymmetric_signature_algorithm:PSA_ALG_RSA_PSS_ANY_SALT( PSA_ALG_SHA_256 ):ALG_IS_RSA_PSS | ALG_IS_RSA_PSS_ANY_SALT | ALG_IS_HASH_AND_SIGN
 
 Asymmetric signature: randomized ECDSA (no hashing)
 depends_on:PSA_WANT_ALG_ECDSA
@@ -236,7 +240,11 @@ asymmetric_signature_wildcard:PSA_ALG_RSA_PKCS1V15_SIGN( PSA_ALG_ANY_HASH ):ALG_
 
 Asymmetric signature: RSA PSS with wildcard hash
 depends_on:PSA_WANT_ALG_RSA_PSS
-asymmetric_signature_wildcard:PSA_ALG_RSA_PSS( PSA_ALG_ANY_HASH ):ALG_IS_RSA_PSS
+asymmetric_signature_wildcard:PSA_ALG_RSA_PSS( PSA_ALG_ANY_HASH ):ALG_IS_RSA_PSS | ALG_IS_RSA_PSS_STANDARD_SALT
+
+Asymmetric signature: RSA PSS-any-salt with wildcard hash
+depends_on:PSA_WANT_ALG_RSA_PSS
+asymmetric_signature_wildcard:PSA_ALG_RSA_PSS_ANY_SALT( PSA_ALG_ANY_HASH ):ALG_IS_RSA_PSS | ALG_IS_RSA_PSS_ANY_SALT
 
 Asymmetric signature: randomized ECDSA with wildcard hash
 depends_on:PSA_WANT_ALG_ECDSA

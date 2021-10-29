@@ -954,7 +954,7 @@ component_test_psa_crypto_client () {
 component_test_zlib_make() {
     msg "build: zlib enabled, make"
     scripts/config.py set MBEDTLS_ZLIB_SUPPORT
-    make ZLIB=1 CFLAGS='-Werror -O1'
+    make ZLIB=1 CFLAGS='-Werror -O2'
 
     msg "test: main suites (zlib, make)"
     make test
@@ -977,7 +977,7 @@ EOF
 component_test_zlib_cmake() {
     msg "build: zlib enabled, cmake"
     scripts/config.py set MBEDTLS_ZLIB_SUPPORT
-    cmake -D ENABLE_ZLIB_SUPPORT=On -D CMAKE_BUILD_TYPE:String=Check .
+    cmake -D ENABLE_ZLIB_SUPPORT=On -D CMAKE_BUILD_TYPE:String=Release .
     make
 
     msg "test: main suites (zlib, cmake)"
@@ -1375,7 +1375,7 @@ component_test_psa_collect_statuses () {
 component_test_full_cmake_clang () {
     msg "build: cmake, full config, clang" # ~ 50s
     scripts/config.py full
-    CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check -D ENABLE_TESTING=On .
+    CC=clang cmake -D CMAKE_BUILD_TYPE:String=Release -D ENABLE_TESTING=On .
     make
 
     msg "test: main suites (full config, clang)" # ~ 5s
@@ -2085,7 +2085,8 @@ component_build_no_std_function () {
     scripts/config.py set MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
     scripts/config.py unset MBEDTLS_ENTROPY_NV_SEED
     scripts/config.py unset MBEDTLS_PLATFORM_NV_SEED_ALT
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -Os'
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Check .
+    make
 }
 
 component_build_no_ssl_srv () {
@@ -2118,7 +2119,7 @@ component_test_memory_buffer_allocator_backtrace () {
     scripts/config.py set MBEDTLS_PLATFORM_MEMORY
     scripts/config.py set MBEDTLS_MEMORY_BACKTRACE
     scripts/config.py set MBEDTLS_MEMORY_DEBUG
-    CC=gcc cmake .
+    CC=gcc cmake -DCMAKE_BUILD_TYPE:String=Release .
     make
 
     msg "test: MBEDTLS_MEMORY_BUFFER_ALLOC_C and MBEDTLS_MEMORY_BACKTRACE"
@@ -2129,7 +2130,7 @@ component_test_memory_buffer_allocator () {
     msg "build: default config with memory buffer allocator"
     scripts/config.py set MBEDTLS_MEMORY_BUFFER_ALLOC_C
     scripts/config.py set MBEDTLS_PLATFORM_MEMORY
-    CC=gcc cmake .
+    CC=gcc cmake -DCMAKE_BUILD_TYPE:String=Release .
     make
 
     msg "test: MBEDTLS_MEMORY_BUFFER_ALLOC_C"
@@ -2244,7 +2245,7 @@ component_test_ssl_alloc_buffer_and_mfl () {
     scripts/config.py set MBEDTLS_MEMORY_DEBUG
     scripts/config.py set MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
     scripts/config.py set MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH
-    CC=gcc cmake .
+    CC=gcc cmake -DCMAKE_BUILD_TYPE:String=Release .
     make
 
     msg "test: MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH, MBEDTLS_MEMORY_BUFFER_ALLOC_C, MBEDTLS_MEMORY_DEBUG and MBEDTLS_SSL_MAX_FRAGMENT_LENGTH"
@@ -2287,7 +2288,7 @@ component_test_null_entropy () {
 component_test_no_date_time () {
     msg "build: default config without MBEDTLS_HAVE_TIME_DATE"
     scripts/config.py unset MBEDTLS_HAVE_TIME_DATE
-    CC=gcc cmake
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Check .
     make
 
     msg "test: !MBEDTLS_HAVE_TIME_DATE - main suites"
@@ -2468,7 +2469,8 @@ component_build_mbedtls_config_file () {
 }
 
 component_test_m32_o0 () {
-    # Build once with -O0, to compile out the i386 specific inline assembly
+    # Build without optimization, so as to use portable C code (in a 32-bit
+    # build) and not the i386-specific inline assembly.
     msg "build: i386, make, gcc -O0 (ASan build)" # ~ 30s
     scripts/config.py full
     make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O0" LDFLAGS="-m32 $ASAN_CFLAGS"
@@ -2483,19 +2485,20 @@ support_test_m32_o0 () {
     esac
 }
 
-component_test_m32_o1 () {
-    # Build again with -O1, to compile in the i386 specific inline assembly
-    msg "build: i386, make, gcc -O1 (ASan build)" # ~ 30s
+component_test_m32_o2 () {
+    # Build with optimization, to use the i386 specific inline assembly
+    # and go faster for tests.
+    msg "build: i386, make, gcc -O2 (ASan build)" # ~ 30s
     scripts/config.py full
-    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O1" LDFLAGS="-m32 $ASAN_CFLAGS"
+    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O2" LDFLAGS="-m32 $ASAN_CFLAGS"
 
-    msg "test: i386, make, gcc -O1 (ASan build)"
+    msg "test: i386, make, gcc -O2 (ASan build)"
     make test
 
-    msg "test ssl-opt.sh, i386, make, gcc-O1"
+    msg "test ssl-opt.sh, i386, make, gcc-O2"
     tests/ssl-opt.sh
 }
-support_test_m32_o1 () {
+support_test_m32_o2 () {
     support_test_m32_o0 "$@"
 }
 
@@ -2777,7 +2780,7 @@ component_test_cmake_out_of_source () {
     MBEDTLS_ROOT_DIR="$PWD"
     mkdir "$OUT_OF_SOURCE_DIR"
     cd "$OUT_OF_SOURCE_DIR"
-    cmake "$MBEDTLS_ROOT_DIR"
+    cmake -D CMAKE_BUILD_TYPE:String=Check "$MBEDTLS_ROOT_DIR"
     make
 
     msg "test: cmake 'out-of-source' build"

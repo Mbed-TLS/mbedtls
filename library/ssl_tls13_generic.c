@@ -341,8 +341,7 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
      * certificates and decides to abort the handshake, then it MUST abort the handshake
      * with an appropriate certificate-related alert (by default, "unsupported_certificate").
      *
-     * Check if algorithm is an offered signature algorithm. Send `unsupported_certificate`
-     * alert message on failure.
+     * Check if algorithm is an offered signature algorithm.
      */
     if( ! ssl_tls13_sig_alg_is_offered( ssl, algorithm ) )
     {
@@ -350,10 +349,7 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Received signature algorithm(%04x) is not "
                                     "offered.",
                                     ( unsigned int ) algorithm ) );
-        MBEDTLS_SSL_PEND_FATAL_ALERT(
-            MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT,
-            MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+        goto error;
     }
 
     /* We currently only support ECDSA-based signatures */
@@ -373,10 +369,7 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
             break;
         default:
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "Certificate Verify: Unknown signature algorithm." ) );
-            MBEDTLS_SSL_PEND_FATAL_ALERT(
-                MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT,
-                MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-            return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+            goto error;
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "Certificate Verify: Signature algorithm ( %04x )",
@@ -388,10 +381,7 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
     if( !mbedtls_pk_can_do( &ssl->session_negotiate->peer_cert->pk, sig_alg ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "signature algorithm doesn't match cert key" ) );
-        MBEDTLS_SSL_PEND_FATAL_ALERT(
-            MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT,
-            MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+        goto error;
     }
 
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2 );
@@ -431,10 +421,7 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "hash computation error", ret );
-        MBEDTLS_SSL_PEND_FATAL_ALERT(
-                        MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT,
-                        MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+        goto error;
     }
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "verify hash", verify_hash, verify_hash_len );
@@ -442,21 +429,22 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
     if( ( ret = mbedtls_pk_verify_ext( sig_alg, NULL,
                                        &ssl->session_negotiate->peer_cert->pk,
                                        md_alg, verify_hash, verify_hash_len,
-                                       p, signature_len ) ) != 0 )
+                                       p, signature_len ) ) == 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_verify_ext", ret );
-
-        /* RFC 8446 section 4.4.3
-         *
-         * If the verification fails, the receiver MUST terminate the handshake
-         * with a "decrypt_error" alert.
-         */
-        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECRYPT_ERROR, ret );
-
-        return( ret );
+        return( 0 );
     }
+    MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_verify_ext", ret );
 
-    return( 0 );
+error:
+    /* RFC 8446 section 4.4.3
+     *
+     * If the verification fails, the receiver MUST terminate the handshake
+     * with a "decrypt_error" alert.
+    */
+    MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECRYPT_ERROR,
+                                  MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+    return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 

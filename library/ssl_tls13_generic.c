@@ -221,14 +221,14 @@ int mbedtls_ssl_tls13_write_sig_alg_ext( mbedtls_ssl_context *ssl,
 /*
  * STATE HANDLING: Read CertificateVerify
  */
-/* Macro to express the length of the verify structure length.
+/* Macro to express the maximum length of the verify structure.
  *
  * The structure is computed per TLS 1.3 specification as:
  *   - 64 bytes of octet 32,
  *   - 33 bytes for the context string
  *        (which is either "TLS 1.3, client CertificateVerify"
  *         or "TLS 1.3, server CertificateVerify"),
- *   - 1 byte for the octet 0x0, which servers as a separator,
+ *   - 1 byte for the octet 0x0, which serves as a separator,
  *   - 32 or 48 bytes for the Transcript-Hash(Handshake Context, Certificate)
  *     (depending on the size of the transcript_hash)
  *
@@ -252,7 +252,7 @@ int mbedtls_ssl_tls13_write_sig_alg_ext( mbedtls_ssl_context *ssl,
  * The caller has to ensure that the buffer has size at least
  * SSL_VERIFY_STRUCT_MAX_SIZE bytes.
  */
-static void ssl_tls13_create_verify_structure( unsigned char *transcript_hash,
+static void ssl_tls13_create_verify_structure( const unsigned char *transcript_hash,
                                                size_t transcript_hash_len,
                                                unsigned char *verify_buffer,
                                                size_t *verify_buffer_len,
@@ -291,23 +291,24 @@ static void ssl_tls13_create_verify_structure( unsigned char *transcript_hash,
     *verify_buffer_len = idx;
 }
 
-static int ssl_tls13_sig_alg_is_offered( mbedtls_ssl_context *ssl, uint16_t sig_alg )
+static int ssl_tls13_sig_alg_is_offered( const mbedtls_ssl_context *ssl,
+                                         uint16_t sig_alg )
 {
     const uint16_t *tls13_sig_alg = ssl->conf->tls13_sig_algs;
 
-    for( ; *tls13_sig_alg !=MBEDTLS_TLS13_SIG_NONE ; tls13_sig_alg++ )
+    for( ; *tls13_sig_alg != MBEDTLS_TLS13_SIG_NONE ; tls13_sig_alg++ )
     {
         if( *tls13_sig_alg == sig_alg )
-            return 1;
+            return( 1 );
     }
-    return 0;
+    return( 0 );
 }
 
 static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
-                                                       const unsigned char *buf,
-                                                       const unsigned char *end,
-                                                       const unsigned char *verify_buffer,
-                                                       size_t verify_buffer_len )
+                                               const unsigned char *buf,
+                                               const unsigned char *end,
+                                               const unsigned char *verify_buffer,
+                                               size_t verify_buffer_len )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const unsigned char *p = buf;
@@ -315,7 +316,7 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
     size_t signature_len;
     mbedtls_pk_type_t sig_alg;
     mbedtls_md_type_t md_alg;
-    unsigned char verify_hash[MBEDTLS_TLS1_3_MD_MAX_SIZE];
+    unsigned char verify_hash[MBEDTLS_MD_MAX_SIZE];
     size_t verify_hash_len;
 
     /*
@@ -340,7 +341,7 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
      * certificates and decides to abort the handshake, then it MUST abort the handshake
      * with an appropriate certificate-related alert (by default, "unsupported_certificate").
      *
-     * Check if algorithm in offered signature algorithms. Send `unsupported_certificate`
+     * Check if algorithm is an offered signature algorithm. Send `unsupported_certificate`
      * alert message on failure.
      */
     if( ! ssl_tls13_sig_alg_is_offered( ssl, algorithm ) )
@@ -352,7 +353,7 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_PEND_FATAL_ALERT(
             MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT,
             MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-        return MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
+        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }
 
     /* We currently only support ECDSA-based signatures */
@@ -441,7 +442,7 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
     if( ( ret = mbedtls_pk_verify_ext( sig_alg, NULL,
                                        &ssl->session_negotiate->peer_cert->pk,
                                        md_alg, verify_hash, verify_hash_len,
-                                       buf, signature_len ) ) != 0 )
+                                       p, signature_len ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_verify_ext", ret );
 
@@ -455,7 +456,7 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
         return( ret );
     }
 
-    return( ret );
+    return( 0 );
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 

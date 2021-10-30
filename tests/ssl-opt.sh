@@ -8832,7 +8832,8 @@ run_test    "TLS1.3: Test client hello msg work - openssl" \
             -c "ECDH curve: x25519"         \
             -c "=> ssl_tls1_3_process_server_hello" \
             -c "<= parse encrypted extensions"      \
-            -c "Certificate verification flags clear"
+            -c "Certificate verification flags clear" \
+            -c "<= parse certificate verify"
 
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -8862,7 +8863,8 @@ run_test    "TLS1.3: Test client hello msg work - gnutls" \
             -c "ECDH curve: x25519"         \
             -c "=> ssl_tls1_3_process_server_hello" \
             -c "<= parse encrypted extensions"      \
-            -c "Certificate verification flags clear"
+            -c "Certificate verification flags clear" \
+            -c "<= parse certificate verify"
 
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_MEMORY_DEBUG

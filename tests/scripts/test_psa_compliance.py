@@ -42,10 +42,7 @@ def main():
         subprocess.check_call(['make', '-C', 'library', 'libmbedcrypto.a'])
 
     psa_arch_tests_dir = 'psa-arch-tests'
-    try:
-        os.mkdir(psa_arch_tests_dir)
-    except FileExistsError:
-        pass
+    os.makedirs(psa_arch_tests_dir, exist_ok=True)
     try:
         os.chdir(psa_arch_tests_dir)
 

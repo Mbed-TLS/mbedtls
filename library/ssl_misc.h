@@ -542,6 +542,11 @@ struct mbedtls_ssl_handshake_params
     int tls1_3_kex_modes; /*!< key exchange modes for TLS 1.3 */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+    const uint16_t *group_list;
+    unsigned char group_list_heap_allocated;
+#endif
+
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     mbedtls_ssl_sig_hash_set_t hash_algs;             /*!<  Set of suitable sig-hash pairs */
@@ -1593,17 +1598,17 @@ static inline int mbedtls_ssl_conf_is_hybrid_tls12_tls13( const mbedtls_ssl_conf
  */
 static inline int mbedtls_ssl_tls13_named_group_is_ecdhe( uint16_t named_group )
 {
-    return( named_group == MBEDTLS_SSL_TLS13_NAMED_GROUP_SECP256R1 ||
-            named_group == MBEDTLS_SSL_TLS13_NAMED_GROUP_SECP384R1 ||
-            named_group == MBEDTLS_SSL_TLS13_NAMED_GROUP_SECP521R1 ||
-            named_group == MBEDTLS_SSL_TLS13_NAMED_GROUP_X25519    ||
-            named_group == MBEDTLS_SSL_TLS13_NAMED_GROUP_X448 );
+    return( named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1 ||
+            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1 ||
+            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP521R1 ||
+            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_X25519    ||
+            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_X448 );
 }
 
 static inline int mbedtls_ssl_tls13_named_group_is_dhe( uint16_t named_group )
 {
-    return( named_group >= MBEDTLS_SSL_TLS13_NAMED_GROUP_FFDHE2048 &&
-            named_group <= MBEDTLS_SSL_TLS13_NAMED_GROUP_FFDHE8192 );
+    return( named_group >= MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048 &&
+            named_group <= MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192 );
 }
 
 static inline void mbedtls_ssl_handshake_set_state( mbedtls_ssl_context *ssl,
@@ -1671,5 +1676,28 @@ int mbedtls_ssl_get_handshake_transcript( mbedtls_ssl_context *ssl,
                                           unsigned char *dst,
                                           size_t dst_len,
                                           size_t *olen );
+
+/*
+ * Return supported groups.
+ *
+ * In future, invocations can be changed to ssl->conf->group_list
+ * when mbedtls_ssl_conf_curves() is deleted.
+ *
+ * ssl->handshake->group_list is either a translation of curve_list to IANA TLS group
+ * identifiers when mbedtls_ssl_conf_curves() has been used, or a pointer to
+ * ssl->conf->group_list when mbedtls_ssl_conf_groups() has been more recently invoked.
+ *
+ */
+static inline const void *mbedtls_ssl_get_groups( const mbedtls_ssl_context *ssl )
+{
+    #if defined(MBEDTLS_DEPRECATED_REMOVED) || !defined(MBEDTLS_ECP_C)
+    return( ssl->conf->group_list );
+    #else
+    if( ( ssl->handshake != NULL ) && ( ssl->handshake->group_list != NULL ) )
+        return( ssl->handshake->group_list );
+    else
+        return( ssl->conf->group_list );
+    #endif
+}
 
 #endif /* ssl_misc.h */

@@ -21,6 +21,7 @@
  */
 #ifndef MBEDTLS_SSL_H
 #define MBEDTLS_SSL_H
+#include "mbedtls/platform_util.h"
 #include "mbedtls/private_access.h"
 
 #include "mbedtls/build_info.h"
@@ -187,18 +188,28 @@
  *     } NamedGroup;
  *
  */
+
 /* Elliptic Curve Groups (ECDHE) */
-#define MBEDTLS_SSL_TLS13_NAMED_GROUP_SECP256R1     0x0017
-#define MBEDTLS_SSL_TLS13_NAMED_GROUP_SECP384R1     0x0018
-#define MBEDTLS_SSL_TLS13_NAMED_GROUP_SECP521R1     0x0019
-#define MBEDTLS_SSL_TLS13_NAMED_GROUP_X25519        0x001D
-#define MBEDTLS_SSL_TLS13_NAMED_GROUP_X448          0x001E
+#define MBEDTLS_SSL_IANA_TLS_GROUP_NONE               0
+#define MBEDTLS_SSL_IANA_TLS_GROUP_SECP192K1     0x0012
+#define MBEDTLS_SSL_IANA_TLS_GROUP_SECP192R1     0x0013
+#define MBEDTLS_SSL_IANA_TLS_GROUP_SECP224K1     0x0014
+#define MBEDTLS_SSL_IANA_TLS_GROUP_SECP224R1     0x0015
+#define MBEDTLS_SSL_IANA_TLS_GROUP_SECP256K1     0x0016
+#define MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1     0x0017
+#define MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1     0x0018
+#define MBEDTLS_SSL_IANA_TLS_GROUP_SECP521R1     0x0019
+#define MBEDTLS_SSL_IANA_TLS_GROUP_BP256R1       0x001A
+#define MBEDTLS_SSL_IANA_TLS_GROUP_BP384R1       0x001B
+#define MBEDTLS_SSL_IANA_TLS_GROUP_BP512R1       0x001C
+#define MBEDTLS_SSL_IANA_TLS_GROUP_X25519        0x001D
+#define MBEDTLS_SSL_IANA_TLS_GROUP_X448          0x001E
 /* Finite Field Groups (DHE) */
-#define MBEDTLS_SSL_TLS13_NAMED_GROUP_FFDHE2048     0x0100
-#define MBEDTLS_SSL_TLS13_NAMED_GROUP_FFDHE3072     0x0101
-#define MBEDTLS_SSL_TLS13_NAMED_GROUP_FFDHE4096     0x0102
-#define MBEDTLS_SSL_TLS13_NAMED_GROUP_FFDHE6144     0x0103
-#define MBEDTLS_SSL_TLS13_NAMED_GROUP_FFDHE8192     0x0104
+#define MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048     0x0100
+#define MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072     0x0101
+#define MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096     0x0102
+#define MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144     0x0103
+#define MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192     0x0104
 
 /*
  * TLS 1.3 Key Exchange Modes
@@ -1283,9 +1294,11 @@ struct mbedtls_ssl_config
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 #endif
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_DEPRECATED_REMOVED)
     const mbedtls_ecp_group_id *MBEDTLS_PRIVATE(curve_list); /*!< allowed curves             */
 #endif
+
+    const uint16_t *MBEDTLS_PRIVATE(group_list);     /*!< allowed IANA NamedGroups */
 
 #if defined(MBEDTLS_DHM_C)
     mbedtls_mpi MBEDTLS_PRIVATE(dhm_P);              /*!< prime modulus for DHM              */
@@ -3143,6 +3156,7 @@ void mbedtls_ssl_conf_dhm_min_bitlen( mbedtls_ssl_config *conf,
 #endif /* MBEDTLS_DHM_C && MBEDTLS_SSL_CLI_C */
 
 #if defined(MBEDTLS_ECP_C)
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /**
  * \brief          Set the allowed curves in order of preference.
  *
@@ -3155,6 +3169,8 @@ void mbedtls_ssl_conf_dhm_min_bitlen( mbedtls_ssl_config *conf,
  *
  *                 Both sides: limits the set of curves accepted for use in
  *                 ECDHE and in the peer's end-entity certificate.
+ *
+ * \deprecated     Superseeded by mbedtls_ssl_conf_groups().
  *
  * \note           This has no influence on which curves are allowed inside the
  *                 certificate chains, see \c mbedtls_ssl_conf_cert_profile()
@@ -3182,9 +3198,50 @@ void mbedtls_ssl_conf_dhm_min_bitlen( mbedtls_ssl_config *conf,
  * \param curves   Ordered list of allowed curves,
  *                 terminated by MBEDTLS_ECP_DP_NONE.
  */
-void mbedtls_ssl_conf_curves( mbedtls_ssl_config *conf,
-                              const mbedtls_ecp_group_id *curves );
+void MBEDTLS_DEPRECATED mbedtls_ssl_conf_curves( mbedtls_ssl_config *conf,
+                                                 const mbedtls_ecp_group_id *curves );
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_ECP_C */
+
+/**
+ * \brief          Set the allowed groups in order of preference.
+ *
+ *                 On server: This only affects the choice of key agreement mechanism
+ *
+ *                 On client: this affects the list of groups offered for any
+ *                 use. The server can override our preference order.
+ *
+ *                 Both sides: limits the set of groups accepted for use in
+ *                 key sharing.
+ *
+ * \note           This function replaces the deprecated mbedtls_ssl_conf_curves(),
+ *                 which only allows ECP curves to be configured.
+ *
+ * \note           The most recent invocation of either mbedtls_ssl_conf_curves()
+ *                 or mbedtls_ssl_conf_groups() nullifies all previous invocations
+ *                 of both.
+ *
+ * \note           This list should be ordered by decreasing preference
+ *                 (preferred group first).
+ *
+ * \note           When this function is not called, a default list is used,
+ *                 consisting of all supported curves at 255 bits and above,
+ *                 and all supported finite fields at 2048 bits and above.
+ *                 The order favors groups with the lowest resource usage.
+ *
+ * \note           New minor versions of Mbed TLS will not remove items
+ *                 from the default list unless serious security concerns require it.
+ *                 New minor versions of Mbed TLS may change the order in
+ *                 keeping with the general principle of favoring the lowest
+ *                 resource usage.
+ *
+ * \param conf     SSL configuration
+ * \param groups   List of allowed groups ordered by preference, terminated by 0.
+ *                 Must contain valid IANA NamedGroup IDs (provided via either an integer
+ *                 or using MBEDTLS_TLS13_NAMED_GROUP_XXX macros).
+ */
+void mbedtls_ssl_conf_groups( mbedtls_ssl_config *conf,
+                              const uint16_t *groups );
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 /**

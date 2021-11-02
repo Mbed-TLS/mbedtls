@@ -3073,6 +3073,52 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
     }
 #endif
 
+/*
+ * curve_list is translated to IANA TLS group identifiers here because
+ * mbedtls_ssl_conf_curves returns void and so can't return
+ * any error codes.
+ */
+#if defined(MBEDTLS_ECP_C)
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+    /* Heap allocate and translate curve_list from internal to IANA group ids */
+    if ( ssl->conf->curve_list != NULL )
+    {
+        size_t length;
+        const mbedtls_ecp_group_id *curve_list = ssl->conf->curve_list;
+
+        for( length = 0;  ( curve_list[length] != MBEDTLS_ECP_DP_NONE ) &&
+                          ( length < MBEDTLS_ECP_DP_MAX ); length++ ) {}
+
+        /* Leave room for zero termination */
+        uint16_t *group_list = mbedtls_calloc( length + 1, sizeof(uint16_t) );
+        if ( group_list == NULL )
+            return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+
+        for( size_t i = 0; i < length; i++ )
+        {
+            const mbedtls_ecp_curve_info *info =
+                        mbedtls_ecp_curve_info_from_grp_id( curve_list[i] );
+            if ( info == NULL )
+            {
+                mbedtls_free( group_list );
+                return( MBEDTLS_ERR_SSL_BAD_CONFIG );
+            }
+            group_list[i] = info->tls_id;
+        }
+
+        group_list[length] = 0;
+
+        ssl->handshake->group_list = group_list;
+        ssl->handshake->group_list_heap_allocated = 1;
+    }
+    else
+    {
+        ssl->handshake->group_list = ssl->conf->group_list;
+        ssl->handshake->group_list_heap_allocated = 0;
+    }
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
+#endif /* MBEDTLS_ECP_C */
+
     return( 0 );
 }
 
@@ -3928,15 +3974,35 @@ void mbedtls_ssl_conf_sig_algs( mbedtls_ssl_config *conf,
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_ECP_C)
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /*
  * Set the allowed elliptic curves
+ *
+ * mbedtls_ssl_setup() takes the provided list
+ * and translates it to a list of IANA TLS group identifiers,
+ * stored in ssl->handshake->group_list.
+ *
  */
 void mbedtls_ssl_conf_curves( mbedtls_ssl_config *conf,
                              const mbedtls_ecp_group_id *curve_list )
 {
     conf->curve_list = curve_list;
+    conf->group_list = NULL;
 }
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_ECP_C */
+
+/*
+ * Set the allowed groups
+ */
+void mbedtls_ssl_conf_groups( mbedtls_ssl_config *conf,
+                              const uint16_t *group_list )
+{
+#if defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_DEPRECATED_REMOVED)
+    conf->curve_list = NULL;
+#endif
+    conf->group_list = group_list;
+}
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 int mbedtls_ssl_set_hostname( mbedtls_ssl_context *ssl, const char *hostname )
@@ -5379,6 +5445,14 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
     if( handshake == NULL )
         return;
 
+#if defined(MBEDTLS_ECP_C)
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+    if ( ssl->handshake->group_list_heap_allocated )
+        mbedtls_free( (void*) handshake->group_list );
+    handshake->group_list = NULL;
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
+#endif /* MBEDTLS_ECP_C */
+
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     if( ssl->conf->f_async_cancel != NULL && handshake->async_in_progress != 0 )
     {
@@ -6233,41 +6307,39 @@ static int ssl_preset_default_hashes[] = {
 };
 #endif
 
-#if defined(MBEDTLS_ECP_C)
 /* The selection should be the same as mbedtls_x509_crt_profile_default in
  * x509_crt.c, plus Montgomery curves for ECDHE. Here, the order matters:
  * curves with a lower resource usage come first.
  * See the documentation of mbedtls_ssl_conf_curves() for what we promise
  * about this list.
  */
-static mbedtls_ecp_group_id ssl_preset_default_curves[] = {
+static uint16_t ssl_preset_default_groups[] = {
 #if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
-    MBEDTLS_ECP_DP_CURVE25519,
+    MBEDTLS_SSL_IANA_TLS_GROUP_X25519,
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
-    MBEDTLS_ECP_DP_SECP256R1,
+    MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
-    MBEDTLS_ECP_DP_SECP384R1,
+    MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1,
 #endif
 #if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
-    MBEDTLS_ECP_DP_CURVE448,
+    MBEDTLS_SSL_IANA_TLS_GROUP_X448,
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
-    MBEDTLS_ECP_DP_SECP521R1,
+    MBEDTLS_SSL_IANA_TLS_GROUP_SECP521R1,
 #endif
 #if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)
-    MBEDTLS_ECP_DP_BP256R1,
+    MBEDTLS_SSL_IANA_TLS_GROUP_BP256R1,
 #endif
 #if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)
-    MBEDTLS_ECP_DP_BP384R1,
+    MBEDTLS_SSL_IANA_TLS_GROUP_BP384R1,
 #endif
 #if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
-    MBEDTLS_ECP_DP_BP512R1,
+    MBEDTLS_SSL_IANA_TLS_GROUP_BP512R1,
 #endif
-    MBEDTLS_ECP_DP_NONE
+    MBEDTLS_SSL_IANA_TLS_GROUP_NONE
 };
-#endif
 
 static int ssl_preset_suiteb_ciphersuites[] = {
     MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
@@ -6314,17 +6386,15 @@ static uint16_t ssl_preset_suiteb_sig_algs[] = {
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 #endif
 
-#if defined(MBEDTLS_ECP_C)
-static mbedtls_ecp_group_id ssl_preset_suiteb_curves[] = {
+static uint16_t ssl_preset_suiteb_groups[] = {
 #if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
-    MBEDTLS_ECP_DP_SECP256R1,
+    MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
 #endif
 #if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
-    MBEDTLS_ECP_DP_SECP384R1,
+    MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1,
 #endif
-    MBEDTLS_ECP_DP_NONE
+    MBEDTLS_SSL_IANA_TLS_GROUP_NONE
 };
-#endif
 
 /*
  * Load default in mbedtls_ssl_config
@@ -6438,9 +6508,10 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 #endif
 
-#if defined(MBEDTLS_ECP_C)
-            conf->curve_list = ssl_preset_suiteb_curves;
+#if defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_DEPRECATED_REMOVED)
+            conf->curve_list = NULL;
 #endif
+            conf->group_list = ssl_preset_suiteb_groups;
             break;
 
         /*
@@ -6475,9 +6546,10 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
-#if defined(MBEDTLS_ECP_C)
-            conf->curve_list = ssl_preset_default_curves;
+#if defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_DEPRECATED_REMOVED)
+            conf->curve_list = NULL;
 #endif
+            conf->group_list = ssl_preset_default_groups;
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_CLI_C)
             conf->dhm_min_bitlen = 1024;
@@ -6701,14 +6773,17 @@ unsigned char mbedtls_ssl_hash_from_md_alg( int md )
  */
 int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id )
 {
-    const mbedtls_ecp_group_id *gid;
+    const uint16_t *group_list = mbedtls_ssl_get_groups( ssl );
 
-    if( ssl->conf->curve_list == NULL )
+    if( group_list == NULL )
         return( -1 );
+    uint16_t tls_id = mbedtls_ecp_curve_info_from_grp_id(grp_id)->tls_id;
 
-    for( gid = ssl->conf->curve_list; *gid != MBEDTLS_ECP_DP_NONE; gid++ )
-        if( *gid == grp_id )
+    for( ; *group_list != 0; group_list++ )
+    {
+        if( *group_list == tls_id )
             return( 0 );
+    }
 
     return( -1 );
 }

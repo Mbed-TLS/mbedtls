@@ -78,6 +78,7 @@ typedef struct
      */
     size_t lock_count;
 
+    uint64_t key_id;
     /* Dynamically allocated key data buffer.
      * Format as specified in psa_export_key(). */
     struct key_data
@@ -87,6 +88,7 @@ typedef struct
     } key;
 } psa_key_slot_t;
 
+#define PSA_KEY_SLOT_UNUSED 0
 /* A mask of key attribute flags used only internally.
  * Currently there aren't any. */
 #define PSA_KA_MASK_INTERNAL_ONLY (     \

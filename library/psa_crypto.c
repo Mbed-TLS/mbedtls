@@ -979,6 +979,7 @@ psa_status_t psa_remove_key_data_from_memory( psa_key_slot_t *slot )
     mbedtls_free( slot->key.data );
     slot->key.data = NULL;
     slot->key.bytes = 0;
+    slot->key_id = PSA_KEY_SLOT_UNUSED;
 
     return( PSA_SUCCESS );
 }
@@ -987,6 +988,7 @@ psa_status_t psa_remove_key_data_from_memory( psa_key_slot_t *slot )
  * Persistent storage is not affected. */
 psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot )
 {
+    psa_status_t rnd_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t status = psa_remove_key_data_from_memory( slot );
 
    /*
@@ -1012,6 +1014,16 @@ psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot )
      * been wiped. Clear remaining metadata. We can call memset and not
      * zeroize because the metadata is not particularly sensitive. */
     memset( slot, 0, sizeof( *slot ) );
+
+    do
+    {
+        rnd_status = psa_generate_random( (uint8_t *) &slot->key_id,
+                                          sizeof(slot->key_id) );
+    } while ( slot->key_id == PSA_KEY_SLOT_UNUSED && rnd_status == PSA_SUCCESS );
+
+    if( status == PSA_SUCCESS )
+        status = rnd_status;
+
     return( status );
 }
 
@@ -4071,6 +4083,8 @@ static psa_status_t psa_aead_setup( psa_aead_operation_t *operation,
         goto exit;
 
     operation->key_type = psa_get_key_type( &attributes );
+    operation->associated_key_id = slot->key_id;
+    operation->key_id = key;
 
 exit:
     unlock_status = psa_unlock_key_slot( slot );
@@ -4270,6 +4284,7 @@ psa_status_t psa_aead_update_ad( psa_aead_operation_t *operation,
                                  size_t input_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_slot_t *slot;
 
     if( operation->id == 0 )
     {
@@ -4294,6 +4309,21 @@ psa_status_t psa_aead_update_ad( psa_aead_operation_t *operation,
         operation->ad_remaining -= input_length;
     }
 
+
+    status = psa_get_and_lock_key_slot( operation->key_id, &slot );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    if( operation->associated_key_id != slot->key_id )
+    {
+        status = PSA_ERROR_INVALID_HANDLE;
+        psa_unlock_key_slot( slot );
+        goto exit;
+    }
+    status = psa_unlock_key_slot( slot );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
     status = psa_driver_wrapper_aead_update_ad( operation, input,
                                                 input_length );
 
@@ -4316,6 +4346,7 @@ psa_status_t psa_aead_update( psa_aead_operation_t *operation,
                               size_t *output_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_slot_t *slot;
 
     *output_length = 0;
 
@@ -4350,6 +4381,20 @@ psa_status_t psa_aead_update( psa_aead_operation_t *operation,
 
         operation->body_remaining -= input_length;
     }
+
+    status = psa_get_and_lock_key_slot( operation->key_id, &slot );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    if( operation->associated_key_id != slot->key_id )
+    {
+        status = PSA_ERROR_INVALID_HANDLE;
+        psa_unlock_key_slot( slot );
+        goto exit;
+    }
+    status = psa_unlock_key_slot( slot );
+    if( status != PSA_SUCCESS )
+        goto exit;
 
     status = psa_driver_wrapper_aead_update( operation, input, input_length,
                                              output, output_size,
@@ -4386,6 +4431,7 @@ psa_status_t psa_aead_finish( psa_aead_operation_t *operation,
                               size_t *tag_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_slot_t *slot;
 
     *ciphertext_length = 0;
     *tag_length = tag_size;
@@ -4399,6 +4445,20 @@ psa_status_t psa_aead_finish( psa_aead_operation_t *operation,
         status = PSA_ERROR_BAD_STATE;
         goto exit;
     }
+
+    status = psa_get_and_lock_key_slot( operation->key_id, &slot );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    if( operation->associated_key_id != slot->key_id )
+    {
+        status = PSA_ERROR_INVALID_HANDLE;
+        psa_unlock_key_slot( slot );
+        goto exit;
+    }
+    status = psa_unlock_key_slot( slot );
+    if( status != PSA_SUCCESS )
+        goto exit;
 
     status = psa_driver_wrapper_aead_finish( operation, ciphertext,
                                              ciphertext_size,
@@ -4434,6 +4494,7 @@ psa_status_t psa_aead_verify( psa_aead_operation_t *operation,
                               size_t tag_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_slot_t *slot;
 
     *plaintext_length = 0;
 
@@ -4446,6 +4507,20 @@ psa_status_t psa_aead_verify( psa_aead_operation_t *operation,
         status = PSA_ERROR_BAD_STATE;
         goto exit;
     }
+
+    status = psa_get_and_lock_key_slot( operation->key_id, &slot );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    if( operation->associated_key_id != slot->key_id )
+    {
+        status = PSA_ERROR_INVALID_HANDLE;
+        psa_unlock_key_slot( slot );
+        goto exit;
+    }
+    status = psa_unlock_key_slot( slot );
+    if( status != PSA_SUCCESS )
+        goto exit;
 
     status = psa_driver_wrapper_aead_verify( operation, plaintext,
                                              plaintext_size,

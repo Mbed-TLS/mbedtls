@@ -203,7 +203,8 @@ class NotSupported:
                 # supported or not depending on implementation capabilities,
                 # only generate the test case once.
                 continue
-                # Public key cannot be generated
+                # For public key we expect that key generation fails with
+                # INVALID_ARGUMENT. It is handled by KeyGenerate class.
             if not kt.name.endswith('_PUBLIC_KEY'):
                 yield test_case_for_key_type_not_supported(
                     'generate', kt.expression, bits,
@@ -246,8 +247,7 @@ def test_case_for_key_generation(
                        .format(short_key_type, bits))
     tc.set_dependencies(dependencies)
     tc.set_function('generate_key')
-    tc.set_arguments([key_type] + list(args))
-    tc.set_result(result)
+    tc.set_arguments([key_type] + list(args) + [result])
 
     return tc
 
@@ -260,11 +260,8 @@ class KeyGenerate:
     ECC_KEY_TYPES = ('PSA_KEY_TYPE_ECC_KEY_PAIR',
                      'PSA_KEY_TYPE_ECC_PUBLIC_KEY')
 
-    RSA_KEY_TYPES = ('PSA_KEY_TYPE_RSA_KEY_PAIR',
-                     'PSA_KEY_TYPE_RSA_PUBLIC_KEY')
-
+    @staticmethod
     def test_cases_for_key_type_key_generation(
-            self,
             kt: crypto_knowledge.KeyType
     ) -> Iterator[test_case.TestCase]:
         """Return test cases exercising key generation.
@@ -279,11 +276,14 @@ class KeyGenerate:
             import_dependencies += [psa_want_symbol(sym)
                                     for i, sym in enumerate(kt.params)]
         if kt.name.endswith('_PUBLIC_KEY'):
+            # The library checks whether the key type is a public key generically,
+            # before it reaches a point where it needs support for the specific key
+            # type, so it returns INVALID_ARGUMENT for unsupported public key types.
             generate_dependencies = []
             result = 'PSA_ERROR_INVALID_ARGUMENT'
         else:
             generate_dependencies = import_dependencies
-            if kt.name in self.RSA_KEY_TYPES:
+            if kt.name == 'PSA_KEY_TYPE_RSA_KEY_PAIR':
                 generate_dependencies.append("MBEDTLS_GENPRIME")
         for bits in kt.sizes_to_test():
             yield test_case_for_key_generation(

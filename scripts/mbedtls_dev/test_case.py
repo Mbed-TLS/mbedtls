@@ -42,7 +42,6 @@ class TestCase:
         self.dependencies = [] #type: List[str]
         self.function = None #type: Optional[str]
         self.arguments = [] #type: List[str]
-        self.result = '' #type: str
 
     def add_comment(self, *lines: str) -> None:
         self.comments += lines
@@ -58,9 +57,6 @@ class TestCase:
 
     def set_arguments(self, arguments: List[str]) -> None:
         self.arguments = arguments
-
-    def set_result(self, result: str) -> None:
-        self.result = result
 
     def check_completeness(self) -> None:
         if self.description is None:
@@ -86,10 +82,6 @@ class TestCase:
         if self.dependencies:
             out.write('depends_on:' + ':'.join(self.dependencies) + '\n')
         out.write(self.function + ':' + ':'.join(self.arguments))
-        if self.result:
-            out.write(':' + self.result + '\n')
-        else:
-            out.write('\n')
 
 def write_data_file(filename: str,
                     test_cases: Iterable[TestCase],

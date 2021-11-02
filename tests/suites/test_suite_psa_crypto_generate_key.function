@@ -13,41 +13,36 @@
  */
 
 /* BEGIN_CASE */
-void generate_key( int key_type, int bits, int result)
+void generate_key( int key_type_arg, int bits_arg, int expected_status_arg)
 {
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     mbedtls_svc_key_id_t key_id = INVALID_KEY_ID;
 
     // key lifetiem, usage flags, algorithm are irrelevant for this test
-    psa_key_lifetime_t _key_life_time = (psa_key_lifetime_t) 0;
-    psa_key_usage_t _key_usage_flags = (psa_key_usage_t) 0;
-    psa_algorithm_t _key_algorithm = (psa_algorithm_t) 0;
-    psa_key_type_t _key_type = (psa_key_type_t) key_type;
-    size_t _key_bits = (size_t) bits;
-    psa_status_t _result = (psa_status_t) result;
+    psa_key_type_t key_type = key_type_arg;
+    size_t bits = bits_arg;
+    psa_status_t expected_status = expected_status_arg;
 
     PSA_ASSERT( psa_crypto_init( ) );
-    psa_set_key_lifetime( &attributes, _key_life_time );
-    psa_set_key_usage_flags( &attributes, _key_usage_flags );
-    psa_set_key_algorithm( &attributes, _key_algorithm );
-    psa_set_key_type( &attributes, _key_type );
-    psa_set_key_bits( &attributes, _key_bits );
+    psa_set_key_type( &attributes, key_type );
+    psa_set_key_bits( &attributes, bits );
     TEST_EQUAL( psa_generate_key( &attributes, &key_id ),
-                _result );
+                expected_status );
 
     // Verify attributes of the created key on success
-    if (_result == PSA_SUCCESS)
+    if ( expected_status == PSA_SUCCESS )
     {
-        psa_key_attributes_t key_attributes = PSA_KEY_ATTRIBUTES_INIT;
-        PSA_ASSERT( psa_get_key_attributes( key_id, &key_attributes ) );
-        TEST_EQUAL( psa_get_key_lifetime( &key_attributes ), 0 );
-        TEST_EQUAL( psa_get_key_usage_flags( &key_attributes ), 0 );
-        TEST_EQUAL( psa_get_key_algorithm( &key_attributes ), 0 );
-        TEST_EQUAL( psa_get_key_type( &key_attributes ), _key_type );
-        TEST_EQUAL( psa_get_key_bits( &key_attributes ), _key_bits );
+        psa_reset_key_attributes(&attributes);
+        PSA_ASSERT( psa_get_key_attributes( key_id, &attributes ) );
+        TEST_EQUAL( psa_get_key_lifetime( &attributes ), PSA_KEY_LIFETIME_VOLATILE );
+        TEST_EQUAL( psa_get_key_usage_flags( &attributes ), 0 );
+        TEST_EQUAL( psa_get_key_algorithm( &attributes ), 0 );
+        TEST_EQUAL( psa_get_key_type( &attributes ), key_type );
+        TEST_EQUAL( psa_get_key_bits( &attributes ), bits );
     }
 
 exit:
+    psa_reset_key_attributes(&attributes);
     psa_destroy_key( key_id );
     PSA_DONE( );
 }

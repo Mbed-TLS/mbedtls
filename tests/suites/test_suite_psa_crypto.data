@@ -1911,6 +1911,7 @@ PSA symmetric encrypt: AES-CBC-nopad, input too short
 depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
 cipher_encrypt_fail:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee223":PSA_ERROR_INVALID_ARGUMENT
 
+PSA symmetric encrypt: AES-ECB, 0 bytes, good
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
 cipher_encrypt_alg_without_iv:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":""
 

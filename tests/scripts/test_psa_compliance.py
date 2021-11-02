@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-#pylint: disable=missing-module-docstring
+"""Run the PSA Cryto API compliance test suite.
+Clone the repo and check out the commit specified by PSA_ARCH_TEST_REPO and PSA_ARCH_TEST_REF,
+then complie and run the test suite.
+Known defects in either the test suite or mbedtls - identified by their test number - are ignored,
+while unexpected failures AND successes are reported as errors,
+to help keep the list of known defects as up to date as possible.
+"""
 import os
 import re
 import shutil
@@ -90,8 +96,8 @@ def main():
     if unexpected_successes or unexpected_failures:
         if unexpected_successes:
             print('Unexpected successes encountered.')
-            #pylint: disable=line-too-long
-            print('Please remove the corresponding tests from EXPECTED_FAILURES in tests/scripts/compliance_test.py')
+            print('Please remove the corresponding tests from '
+                  'EXPECTED_FAILURES in tests/scripts/compliance_test.py')
             print()
         print('FAILED')
         sys.exit(1)

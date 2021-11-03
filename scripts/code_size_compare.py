@@ -58,8 +58,8 @@ class CodeSizeComparison:
 
     @staticmethod
     def validate_revision(revision):
-        result = subprocess.run(["git", "rev-parse", "--verify", revision],
-                                check=False, stdout=subprocess.PIPE)
+        result = subprocess.check_output(["git", "rev-parse", "--verify",
+                                          revision + "^{commit}"], shell=False)
         return result
 
     def _create_git_worktree(self, revision):
@@ -208,15 +208,11 @@ def main():
         parser.exit()
 
     validate_res = CodeSizeComparison.validate_revision(comp_args.old_rev)
-    if validate_res.returncode != 0:
-        sys.exit(validate_res.returncode)
-    old_revision = validate_res.stdout.decode().replace("\n", "")
+    old_revision = validate_res.decode().replace("\n", "")
 
     if comp_args.new_rev is not None:
         validate_res = CodeSizeComparison.validate_revision(comp_args.new_rev)
-        if validate_res.returncode != 0:
-            sys.exit(validate_res.returncode)
-        new_revision = validate_res.stdout.decode().replace("\n", "")
+        new_revision = validate_res.decode().replace("\n", "")
     else:
         new_revision = "current"
 

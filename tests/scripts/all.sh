@@ -2851,6 +2851,7 @@ component_test_psa_compliance () {
 }
 
 support_test_psa_compliance () {
+    # psa-compliance-tests only supports CMake >= 3.10.0
     ver="$(cmake --version)"
     ver="${ver#cmake version }"
     ver_major="${ver%%.*}"

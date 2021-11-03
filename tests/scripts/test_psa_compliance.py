@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Run the PSA Cryto API compliance test suite.
 Clone the repo and check out the commit specified by PSA_ARCH_TEST_REPO and PSA_ARCH_TEST_REF,
-then complie and run the test suite.
+then complie and run the test suite. The clone is stored at <Mbed TLS root>/psa-arch-tests.
 Known defects in either the test suite or mbedtls - identified by their test number - are ignored,
 while unexpected failures AND successes are reported as errors,
 to help keep the list of known defects as up to date as possible.
@@ -46,6 +46,7 @@ def main():
     try:
         os.chdir(psa_arch_tests_dir)
 
+        # Reuse existing local clone
         subprocess.check_call(['git', 'init'])
         subprocess.check_call(['git', 'fetch', PSA_ARCH_TESTS_REPO, PSA_ARCH_TESTS_REF])
         subprocess.check_call(['git', 'checkout', 'FETCH_HEAD'])
@@ -117,7 +118,6 @@ def main():
             print('FAILED')
             return 1
         else:
-            shutil.rmtree(psa_arch_tests_dir)
             print('SUCCESS')
             return 0
     finally:

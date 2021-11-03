@@ -171,7 +171,7 @@ void mbedtls_ct_mpi_uint_cond_assign( size_t n,
 
 /** Conditional memcpy without branches.
  *
- * This is equivalent to `if ( c1 == c2 ) memcpy(dst, src, len)`, but is likely
+ * This is equivalent to `if ( c1 == c2 ) memcpy(dest, src, len)`, but is likely
  * to be compiled to code using bitwise operation rather than a branch.
  *
  * \param dest      The pointer to conditionally copy to.

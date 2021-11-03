@@ -1620,7 +1620,7 @@ static int ssl_tls1_3_process_server_finished( mbedtls_ssl_context *ssl )
  */
 static int ssl_tls13_write_client_finished( mbedtls_ssl_context *ssl )
 {
-    return ( mbedtls_ssl_tls13_finished_out_process( ssl ) );
+    return ( mbedtls_ssl_tls13_process_finished_out( ssl ) );
 }
 
 /*

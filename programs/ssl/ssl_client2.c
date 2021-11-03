@@ -3049,6 +3049,10 @@ exit:
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED &&
           MBEDTLS_USE_PSA_CRYPTO */
 
+    mbedtls_ssl_session_free( &saved_session );
+    mbedtls_ssl_free( &ssl );
+    mbedtls_ssl_config_free( &conf );
+
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     const char* message = mbedtls_test_helper_is_psa_leaking();
     if( message )
@@ -3066,9 +3070,6 @@ exit:
     mbedtls_psa_crypto_free( );
 #endif
 
-    mbedtls_ssl_session_free( &saved_session );
-    mbedtls_ssl_free( &ssl );
-    mbedtls_ssl_config_free( &conf );
     rng_free( &rng );
     if( session_data != NULL )
         mbedtls_platform_zeroize( session_data, session_data_len );

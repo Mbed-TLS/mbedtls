@@ -29,6 +29,7 @@
 #include <psa/crypto.h>
 
 #include <test/asn1_helpers.h>
+#include <psa_crypto_slot_management.h>
 #include <test/psa_crypto_helpers.h>
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)

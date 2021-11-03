@@ -22,7 +22,6 @@
 #include "ssl_test_lib.h"
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-#define SKIP_LIBRARY_HEADERS
 #include "test/psa_crypto_helpers.h"
 #endif
 

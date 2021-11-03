@@ -775,20 +775,6 @@ struct mbedtls_ssl_handshake_params
 
 #endif /* MBEDTLS_SSL_CLI_C */
 
-        /* Incoming CertificateVerify */
-        struct
-        {
-            unsigned char verify_buffer[ 64 + 33 + 1 + MBEDTLS_MD_MAX_SIZE ];
-            size_t verify_buffer_len;
-        } certificate_verify_in;
-
-        /* Outgoing CertificateVerify */
-        struct
-        {
-            unsigned char handshake_hash[ MBEDTLS_MD_MAX_SIZE ];
-            size_t handshake_hash_len;
-        } certificate_verify_out;
-
     } state_local;
 
     /* End of state-local variables. */
@@ -1236,11 +1222,8 @@ static inline int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
 int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush );
 int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl );
 
-int mbedtls_ssl_read_certificate_process(mbedtls_ssl_context *ssl);
-int mbedtls_ssl_write_certificate_process(mbedtls_ssl_context *ssl);
-
-int mbedtls_ssl_tls13_finished_in_process( mbedtls_ssl_context *ssl );
-int mbedtls_ssl_tls13_finished_out_process( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_tls13_process_finished_in( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_tls13_process_finished_out( mbedtls_ssl_context *ssl );
 
 int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl );

@@ -626,9 +626,9 @@ int mbedtls_ssl_tls1_3_generate_application_keys(
  * \returns    A negative error code on failure.
  */
 int mbedtls_ssl_tls1_3_calculate_expected_finished( mbedtls_ssl_context *ssl,
-                                      unsigned char *dst,
-                                      size_t dst_len,
-                                      size_t *actual_len,
-                                      int from );
+                                                    unsigned char *dst,
+                                                    size_t dst_len,
+                                                    size_t *actual_len,
+                                                    int from );
 
 #endif /* MBEDTLS_SSL_TLS1_3_KEYS_H */

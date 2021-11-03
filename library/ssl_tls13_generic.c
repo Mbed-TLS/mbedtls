@@ -983,8 +983,6 @@ static int ssl_tls13_postprocess_finished_in_cli( mbedtls_ssl_context *ssl )
 
     ssl->transform_application = transform_application;
 
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_FINISHED );
-
 cleanup:
 
     mbedtls_platform_zeroize( &traffic_keys, sizeof(mbedtls_ssl_key_set) );

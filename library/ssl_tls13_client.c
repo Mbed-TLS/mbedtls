@@ -1605,7 +1605,14 @@ static int ssl_tls1_3_process_certificate_verify( mbedtls_ssl_context *ssl )
  */
 static int ssl_tls1_3_process_server_finished( mbedtls_ssl_context *ssl )
 {
-    return ( mbedtls_ssl_tls13_process_finished_in( ssl ) );
+    int ret;
+
+    ret = mbedtls_ssl_tls13_process_finished_in( ssl );
+    if( ret != 0 )
+        return( ret );
+
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_FINISHED );
+    return( 0 );
 }
 
 /*

@@ -18,7 +18,7 @@
  */
 
  /*
- * The following functiona are implemented without using comparison operators, as those
+ * The following functions are implemented without using comparison operators, as those
  * might be translated to branches by some compilers on some platforms.
  */
 
@@ -240,7 +240,7 @@ unsigned mbedtls_ct_uint_if( unsigned condition,
 
 #if defined(MBEDTLS_BIGNUM_C)
 
-/** Select between two sign values witout branches.
+/** Select between two sign values without branches.
  *
  * This is functionally equivalent to `condition ? if1 : if0` but uses only bit
  * operations in order to avoid branches.
@@ -258,7 +258,7 @@ static int mbedtls_ct_cond_select_sign( unsigned char condition,
                                         int if1,
                                         int if0 )
 {
-    /* In order to avoid questions about what we can reasonnably assume about
+    /* In order to avoid questions about what we can reasonably assume about
      * the representations of signed integers, move everything to unsigned
      * by taking advantage of the fact that if1 and if0 are either +1 or -1. */
     unsigned uif1 = if1 + 1;

@@ -25,7 +25,7 @@
 
 /** Constant-time buffer comparison without branches.
  *
- * This is equivalent to the standard memncmp function, but is likely to be
+ * This is equivalent to the standard memcmp function, but is likely to be
  * compiled to code using bitwise operation rather than a branch.
  *
  * This function can be used to write constant-time code by replacing branches

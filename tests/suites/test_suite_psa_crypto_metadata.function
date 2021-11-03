@@ -123,6 +123,8 @@ void algorithm_classification( psa_algorithm_t alg, unsigned flags )
     TEST_CLASSIFICATION_MACRO( 1, ALG_IS_STREAM_CIPHER, alg, flags );
     TEST_CLASSIFICATION_MACRO( 1, ALG_IS_RSA_PKCS1V15_SIGN, alg, flags );
     TEST_CLASSIFICATION_MACRO( 1, ALG_IS_RSA_PSS, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_RSA_PSS_ANY_SALT, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_RSA_PSS_STANDARD_SALT, alg, flags );
     TEST_CLASSIFICATION_MACRO( 1, ALG_IS_DSA, alg, flags );
     TEST_CLASSIFICATION_MACRO( PSA_ALG_IS_DSA( alg ),
                                ALG_DSA_IS_DETERMINISTIC, alg, flags );
@@ -143,6 +145,8 @@ void algorithm_classification( psa_algorithm_t alg, unsigned flags )
     TEST_CLASSIFICATION_MACRO( 1, ALG_IS_FFDH, alg, flags );
     TEST_CLASSIFICATION_MACRO( 1, ALG_IS_RAW_KEY_AGREEMENT, alg, flags );
     TEST_CLASSIFICATION_MACRO( 1, ALG_IS_AEAD_ON_BLOCK_CIPHER, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_TLS12_PRF, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_TLS12_PSK_TO_MS, alg, flags );
     TEST_EQUAL( classification_flags_tested, ALG_FLAG_MASK_PLUS_ONE - 1 );
 exit: ;
 }
@@ -157,6 +161,7 @@ void key_type_classification( psa_key_type_t type, unsigned flags )
     TEST_CLASSIFICATION_MACRO( 1, KEY_TYPE_IS_PUBLIC_KEY, type, flags );
     TEST_CLASSIFICATION_MACRO( 1, KEY_TYPE_IS_KEY_PAIR, type, flags );
     TEST_CLASSIFICATION_MACRO( 1, KEY_TYPE_IS_RSA, type, flags );
+    TEST_CLASSIFICATION_MACRO( 1, KEY_TYPE_IS_DSA, type, flags );
     TEST_CLASSIFICATION_MACRO( 1, KEY_TYPE_IS_ECC, type, flags );
     TEST_CLASSIFICATION_MACRO( 1, KEY_TYPE_IS_DH, type, flags );
     TEST_EQUAL( classification_flags_tested, KEY_TYPE_FLAG_MASK_PLUS_ONE - 1 );

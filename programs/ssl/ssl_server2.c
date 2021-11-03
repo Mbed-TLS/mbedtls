@@ -3985,10 +3985,6 @@ exit:
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED &&
           MBEDTLS_USE_PSA_CRYPTO */
 
-    mbedtls_ssl_free( &ssl );
-    mbedtls_ssl_config_free( &conf );
-    rng_free( &rng );
-
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_free( &cache );
 #endif
@@ -3999,16 +3995,7 @@ exit:
     mbedtls_ssl_cookie_free( &cookie_ctx );
 #endif
 
-    mbedtls_free( buf );
-
-#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
-    if( context_buf != NULL )
-        mbedtls_platform_zeroize( context_buf, context_buf_len );
-    mbedtls_free( context_buf );
-#endif
-
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    mbedtls_psa_crypto_free( );
     const char* message = mbedtls_test_helper_is_psa_leaking();
     if( message )
     {
@@ -4016,6 +4003,25 @@ exit:
             ret = 1;
         mbedtls_printf( "PSA memory leak detected: %s\n",  message);
     }
+#endif
+
+    /* For builds with MBEDTLS_TEST_USE_PSA_CRYPTO_RNG psa crypto
+     * resources are freed by rng_free(). */
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && \
+    !defined(MBEDTLS_TEST_USE_PSA_CRYPTO_RNG)
+    mbedtls_psa_crypto_free( );
+#endif
+
+    mbedtls_ssl_free( &ssl );
+    mbedtls_ssl_config_free( &conf );
+    rng_free( &rng );
+
+    mbedtls_free( buf );
+
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+    if( context_buf != NULL )
+        mbedtls_platform_zeroize( context_buf, context_buf_len );
+    mbedtls_free( context_buf );
 #endif
 
 #if defined(MBEDTLS_TEST_HOOKS)

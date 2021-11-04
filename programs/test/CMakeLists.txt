@@ -27,6 +27,12 @@ if(TEST_CPP)
     target_link_libraries(cpp_dummy_build ${mbedcrypto_target})
 endif()
 
+if(USE_SHARED_MBEDTLS_LIBRARY)
+    add_executable(dlopen "dlopen.c")
+    target_include_directories(dlopen PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../include)
+    target_link_libraries(dlopen "-ldl")
+endif()
+
 if(GEN_FILES)
     find_package(Perl REQUIRED)
 

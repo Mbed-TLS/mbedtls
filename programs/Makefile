@@ -18,6 +18,12 @@ LOCAL_LDFLAGS = ${MBEDTLS_TEST_OBJS} 		\
 		-lmbedx509$(SHARED_SUFFIX)	\
 		-lmbedcrypto$(SHARED_SUFFIX)
 
+ifeq ($(shell uname -s),Linux)
+DLOPEN_LDFLAGS ?= -ldl
+else
+DLOPEN_LDFLAGS ?=
+endif
+
 include ../3rdparty/Makefile.inc
 LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
 
@@ -328,7 +334,7 @@ test/dlopen$(EXEXT): test/dlopen.c $(DEP)
 # Do not link any test objects (that would bring in a static dependency on
 # libmbedcrypto at least). Do not link with libmbed* (that would defeat the
 # purpose of testing dynamic loading).
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/dlopen.c $(LDFLAGS) -ldl -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/dlopen.c $(LDFLAGS) $(DLOPEN_LDFLAGS) -o $@
 endif
 
 test/query_config.o: test/query_config.c test/query_config.h $(DEP)

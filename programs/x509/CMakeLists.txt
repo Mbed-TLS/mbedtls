@@ -7,6 +7,7 @@ set(executables
     cert_req
     cert_write
     crl_app
+    load_roots
     req_app
 )
 

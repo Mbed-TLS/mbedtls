@@ -67,6 +67,7 @@ If you are cross-compiling, you must set the `CC` environment variable to a C co
 Any of the following methods are available to generate the configuration-independent files:
 
 * If not cross-compiling, running `make` with any target, or just `make`, will automatically generate required files.
+* On non-Windows systems, when not cross-compiling, CMake will generate the required files automatically.
 * Run `make generated_files` to generate all the configuration-independent files.
 * On Unix/POSIX systems, run `tests/scripts/check-generated-files.sh -u` to generate all the configuration-independent files.
 * On Windows, run `scripts\make_generated_files.bat` to generate all the configuration-independent files.
@@ -298,3 +299,10 @@ Contributing
 ------------
 
 We gratefully accept bug reports and contributions from the community. Please see the [contributing guidelines](CONTRIBUTING.md) for details on how to do this.
+
+Contact
+-------
+
+* To report a security vulnerability in Mbed TLS, please email <mbed-tls-security@lists.trustedfirmware.org>. For more information, see [`SECURITY.md`](SECURITY.md).
+* To report a bug or request a feature in Mbed TLS, please [file an issue on GitHub](https://github.com/ARMmbed/mbedtls/issues/new/choose).
+* Please see [`SUPPORT.md`](SUPPORT.md) for other channels for discussion and support about Mbed TLS.

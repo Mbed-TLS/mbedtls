@@ -80,6 +80,7 @@ int main( void )
 #define DFL_CA_PATH             ""
 #define DFL_CRT_FILE            ""
 #define DFL_KEY_FILE            ""
+#define DFL_KEY_OPAQUE          0
 #define DFL_KEY_PWD             ""
 #define DFL_CRT_FILE2           ""
 #define DFL_KEY_FILE2           ""
@@ -200,6 +201,13 @@ int main( void )
 #else
 #define USAGE_IO ""
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_X509_CRT_PARSE_C)
+#define USAGE_KEY_OPAQUE \
+    "    key_opaque=%%d       Handle your private keys as if they were opaque\n" \
+    "                        default: 0 (disabled)\n"
+#else
+#define USAGE_KEY_OPAQUE ""
+#endif
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
 #define USAGE_SSL_ASYNC \
@@ -278,7 +286,6 @@ int main( void )
 #define USAGE_TICKETS ""
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
 #define USAGE_EAP_TLS                                       \
     "    eap_tls=%%d          default: 0 (disabled)\n"
 #define USAGE_NSS_KEYLOG                                    \
@@ -299,12 +306,6 @@ int main( void )
 #else /* MBEDTLS_SSL_DTLS_SRTP */
 #define USAGE_SRTP ""
 #endif
-#else /* MBEDTLS_SSL_EXPORT_KEYS */
-#define USAGE_EAP_TLS ""
-#define USAGE_NSS_KEYLOG ""
-#define USAGE_NSS_KEYLOG_FILE ""
-#define USAGE_SRTP ""
-#endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 #if defined(MBEDTLS_SSL_CACHE_C)
 #define USAGE_CACHE                                             \
@@ -483,6 +484,7 @@ int main( void )
     "    cert_req_ca_list=%%d default: 1 (send ca list)\n"  \
     "                        options: 1 (send ca list), 0 (don't send)\n" \
     USAGE_IO                                                \
+    USAGE_KEY_OPAQUE                                        \
     "\n"                                                    \
     USAGE_PSK                                               \
     USAGE_CA_CALLBACK                                       \
@@ -567,6 +569,7 @@ struct options
     const char *ca_path;        /* the path with the CA certificate(s) reside */
     const char *crt_file;       /* the file with the server certificate     */
     const char *key_file;       /* the file with the server key             */
+    int key_opaque;             /* handle private key as if it were opaque  */
     const char *key_pwd;        /* the password for the server key          */
     const char *crt_file2;      /* the file with the 2nd server certificate */
     const char *key_file2;      /* the file with the 2nd server key         */
@@ -1315,6 +1318,10 @@ int main( int argc, char *argv[] )
     mbedtls_pk_context pkey;
     mbedtls_x509_crt srvcert2;
     mbedtls_pk_context pkey2;
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_key_id_t key_slot = 0; /* invalid key slot */
+    psa_key_id_t key_slot2 = 0; /* invalid key slot */
+#endif
     int key_cert_init = 0, key_cert_init2 = 0;
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     ssl_async_key_context_t ssl_async_keys;
@@ -1333,7 +1340,7 @@ int main( int argc, char *argv[] )
     sni_entry *sni_info = NULL;
 #endif
 #if defined(MBEDTLS_ECP_C)
-    mbedtls_ecp_group_id curve_list[CURVE_LIST_SIZE];
+    uint16_t group_list[CURVE_LIST_SIZE];
     const mbedtls_ecp_curve_info * curve_cur;
 #endif
 #if defined(MBEDTLS_SSL_ALPN)
@@ -1365,7 +1372,6 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_status_t status;
 #endif
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
     unsigned char eap_tls_keymaterial[16];
     unsigned char eap_tls_iv[8];
     const char* eap_tls_label = "client EAP encryption";
@@ -1383,7 +1389,6 @@ int main( int argc, char *argv[] )
          MBEDTLS_TLS_SRTP_UNSET
      };
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
-#endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     mbedtls_memory_buffer_alloc_init( alloc_buf, sizeof(alloc_buf) );
@@ -1491,6 +1496,7 @@ int main( int argc, char *argv[] )
     opt.ca_path             = DFL_CA_PATH;
     opt.crt_file            = DFL_CRT_FILE;
     opt.key_file            = DFL_KEY_FILE;
+    opt.key_opaque          = DFL_KEY_OPAQUE;
     opt.key_pwd             = DFL_KEY_PWD;
     opt.crt_file2           = DFL_CRT_FILE2;
     opt.key_file2           = DFL_KEY_FILE2;
@@ -1622,6 +1628,10 @@ int main( int argc, char *argv[] )
             opt.key_file = q;
         else if( strcmp( p, "key_pwd" ) == 0 )
             opt.key_pwd = q;
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_X509_CRT_PARSE_C)
+        else if( strcmp( p, "key_opaque" ) == 0 )
+            opt.key_opaque = atoi( q );
+#endif
         else if( strcmp( p, "crt_file2" ) == 0 )
             opt.crt_file2 = q;
         else if( strcmp( p, "key_file2" ) == 0 )
@@ -2186,7 +2196,7 @@ int main( int argc, char *argv[] )
 
         if( strcmp( p, "none" ) == 0 )
         {
-            curve_list[0] = MBEDTLS_ECP_DP_NONE;
+            group_list[0] = 0;
         }
         else if( strcmp( p, "default" ) != 0 )
         {
@@ -2203,7 +2213,7 @@ int main( int argc, char *argv[] )
 
                 if( ( curve_cur = mbedtls_ecp_curve_info_from_name( q ) ) != NULL )
                 {
-                    curve_list[i++] = curve_cur->grp_id;
+                    group_list[i++] = curve_cur->tls_id;
                 }
                 else
                 {
@@ -2229,7 +2239,7 @@ int main( int argc, char *argv[] )
                 goto exit;
             }
 
-            curve_list[i] = MBEDTLS_ECP_DP_NONE;
+            group_list[i] = 0;
         }
     }
 #endif /* MBEDTLS_ECP_C */
@@ -2477,7 +2487,34 @@ int main( int argc, char *argv[] )
 #endif /* MBEDTLS_ECDSA_C */
     }
 
-    mbedtls_printf( " ok\n" );
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( opt.key_opaque != 0 )
+    {
+        if ( mbedtls_pk_get_type( &pkey ) == MBEDTLS_PK_ECKEY )
+        {
+            if( ( ret = mbedtls_pk_wrap_as_opaque( &pkey, &key_slot,
+                                                PSA_ALG_ANY_HASH ) ) != 0 )
+            {
+                mbedtls_printf( " failed\n  !  "
+                                "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n", (unsigned int)  -ret );
+                goto exit;
+            }
+        }
+
+        if ( mbedtls_pk_get_type( &pkey2 ) == MBEDTLS_PK_ECKEY )
+        {
+            if( ( ret = mbedtls_pk_wrap_as_opaque( &pkey2, &key_slot2,
+                                                PSA_ALG_ANY_HASH ) ) != 0 )
+            {
+                mbedtls_printf( " failed\n  !  "
+                                "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n", (unsigned int)  -ret );
+                goto exit;
+            }
+        }
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+    mbedtls_printf( " ok (key types: %s - %s)\n", mbedtls_pk_get_name( &pkey ), mbedtls_pk_get_name( &pkey2 ) );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_FS_IO)
@@ -2866,7 +2903,7 @@ int main( int argc, char *argv[] )
     if( opt.curves != NULL &&
         strcmp( opt.curves, "default" ) != 0 )
     {
-        mbedtls_ssl_conf_curves( &conf, curve_list );
+        mbedtls_ssl_conf_groups( &conf, group_list );
     }
 #endif
 
@@ -2966,7 +3003,6 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
     if( opt.eap_tls != 0 )
     {
         mbedtls_ssl_set_export_keys_cb( &ssl, eap_tls_key_derivation,
@@ -2985,7 +3021,6 @@ int main( int argc, char *argv[] )
                                         &dtls_srtp_keying );
     }
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
-#endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
     io_ctx.ssl = &ssl;
     io_ctx.net = &client_fd;
@@ -3251,7 +3286,6 @@ handshake:
 #endif /* MBEDTLS_X509_REMOVE_INFO */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
     if( opt.eap_tls != 0 )
     {
         size_t j = 0;
@@ -3369,7 +3403,6 @@ handshake:
         }
     }
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
-#endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     ret = report_cid_usage( &ssl, "initial handshake" );
@@ -3923,6 +3956,10 @@ exit:
     mbedtls_pk_free( &pkey );
     mbedtls_x509_crt_free( &srvcert2 );
     mbedtls_pk_free( &pkey2 );
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_destroy_key( key_slot );
+    psa_destroy_key( key_slot2 );
+#endif
 #endif
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     for( i = 0; (size_t) i < ssl_async_keys.slots_used; i++ )

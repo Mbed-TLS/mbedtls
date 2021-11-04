@@ -1,0 +1,5 @@
+Bugfix
+   * Don't use the obsolete header path sys/fcntl.h in unit tests.
+     These header files cause compilation errors in musl.
+     Fixes #4969.
+

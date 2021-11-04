@@ -307,6 +307,11 @@
       + ( MBEDTLS_SSL_CID_OUT_LEN_MAX ) )
 #endif
 
+#define MBEDTLS_TLS1_3_MD_MAX_SIZE         MBEDTLS_MD_MAX_SIZE
+
+#define MBEDTLS_CLIENT_HELLO_RANDOM_LEN 32
+#define MBEDTLS_SERVER_HELLO_RANDOM_LEN 32
+
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 /**
  * \brief          Return the maximum fragment length (payload, in bytes) for
@@ -409,6 +414,32 @@ static inline int mbedtls_ssl_chk_buf_ptr( const uint8_t *cur,
         }                                                                \
     } while( 0 )
 
+/**
+ * \brief        This macro checks if the remaining length in an input buffer is
+ *               greater or equal than a needed length. If it is not the case, it
+ *               returns #MBEDTLS_ERR_SSL_DECODE_ERROR error and pends a
+ *               #MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR alert message.
+ *
+ *               This is a function-like macro. It is guaranteed to evaluate each
+ *               argument exactly once.
+ *
+ * \param cur    Pointer to the current position in the buffer.
+ * \param end    Pointer to one past the end of the buffer.
+ * \param need   Needed length in bytes.
+ *
+ */
+#define MBEDTLS_SSL_CHK_BUF_READ_PTR( cur, end, need )                          \
+    do {                                                                        \
+        if( mbedtls_ssl_chk_buf_ptr( ( cur ), ( end ), ( need ) ) != 0 )        \
+        {                                                                       \
+            MBEDTLS_SSL_DEBUG_MSG( 1,                                           \
+                                   ( "missing input data in %s", __func__ ) );  \
+            MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,   \
+                                          MBEDTLS_ERR_SSL_DECODE_ERROR );       \
+            return( MBEDTLS_ERR_SSL_DECODE_ERROR );                             \
+        }                                                                       \
+    } while( 0 )
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -478,6 +509,27 @@ struct mbedtls_ssl_key_set
 };
 typedef struct mbedtls_ssl_key_set mbedtls_ssl_key_set;
 
+typedef struct
+{
+    unsigned char binder_key                  [ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
+    unsigned char client_early_traffic_secret [ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
+    unsigned char early_exporter_master_secret[ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
+} mbedtls_ssl_tls1_3_early_secrets;
+
+typedef struct
+{
+    unsigned char client_handshake_traffic_secret[ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
+    unsigned char server_handshake_traffic_secret[ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
+} mbedtls_ssl_tls1_3_handshake_secrets;
+
+typedef struct
+{
+    unsigned char client_application_traffic_secret_N[ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
+    unsigned char server_application_traffic_secret_N[ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
+    unsigned char exporter_master_secret             [ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
+    unsigned char resumption_master_secret           [ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
+} mbedtls_ssl_tls1_3_application_secrets;
+
 /*
  * This structure contains the parameters only needed during handshake.
  */
@@ -486,6 +538,14 @@ struct mbedtls_ssl_handshake_params
     /*
      * Handshake specific crypto variables
      */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+    int tls1_3_kex_modes; /*!< key exchange modes for TLS 1.3 */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+    const uint16_t *group_list;
+    unsigned char group_list_heap_allocated;
+#endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
@@ -573,8 +633,8 @@ struct mbedtls_ssl_handshake_params
                                               flight being received          */
     mbedtls_ssl_transform *alt_transform_out;   /*!<  Alternative transform for
                                               resending messages             */
-    unsigned char alt_out_ctr[8];       /*!<  Alternative record epoch/counter
-                                              for resending messages         */
+    unsigned char alt_out_ctr[MBEDTLS_SSL_SEQUENCE_NUMBER_LEN]; /*!<  Alternative record epoch/counter
+                                                                      for resending messages         */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     /* The state of CID configuration in this handshake. */
@@ -649,11 +709,23 @@ struct mbedtls_ssl_handshake_params
     void (*calc_finished)(mbedtls_ssl_context *, unsigned char *, int);
     mbedtls_ssl_tls_prf_cb *tls_prf;
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+    uint16_t offered_group_id; /* The NamedGroup value for the group
+                                * that is being used for ephemeral
+                                * key exchange.
+                                *
+                                * On the client: Defaults to the first
+                                * entry in the client's group list,
+                                * but can be overwritten by the HRR. */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+
     mbedtls_ssl_ciphersuite_t const *ciphersuite_info;
 
     size_t pmslen;                      /*!<  premaster length        */
 
-    unsigned char randbytes[64];        /*!<  random bytes            */
+    unsigned char randbytes[MBEDTLS_CLIENT_HELLO_RANDOM_LEN +
+                            MBEDTLS_SERVER_HELLO_RANDOM_LEN];
+                                        /*!<  random bytes            */
     unsigned char premaster[MBEDTLS_PREMASTER_SIZE];
                                         /*!<  premaster secret        */
 
@@ -665,6 +737,15 @@ struct mbedtls_ssl_handshake_params
     int extensions_present;             /*!< extension presence; Each bitfield
                                              represents an extension and defined
                                              as \c MBEDTLS_SSL_EXT_XXX */
+
+    union
+    {
+        unsigned char early    [MBEDTLS_TLS1_3_MD_MAX_SIZE];
+        unsigned char handshake[MBEDTLS_TLS1_3_MD_MAX_SIZE];
+        unsigned char app      [MBEDTLS_TLS1_3_MD_MAX_SIZE];
+    } tls1_3_master_secrets;
+
+    mbedtls_ssl_tls1_3_handshake_secrets tls13_hs_secrets;
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
@@ -809,7 +890,9 @@ struct mbedtls_ssl_transform
     /* We need the Hello random bytes in order to re-derive keys from the
      * Master Secret and other session info,
      * see ssl_tls12_populate_transform() */
-    unsigned char randbytes[64]; /*!< ServerHello.random+ClientHello.random */
+    unsigned char randbytes[MBEDTLS_SERVER_HELLO_RANDOM_LEN +
+                            MBEDTLS_CLIENT_HELLO_RANDOM_LEN];
+                            /*!< ServerHello.random+ClientHello.random */
 #endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
 };
 
@@ -856,14 +939,14 @@ static inline int mbedtls_ssl_transform_uses_aead(
 
 typedef struct
 {
-    uint8_t ctr[8];         /* In TLS:  The implicit record sequence number.
-                             * In DTLS: The 2-byte epoch followed by
-                             *          the 6-byte sequence number.
-                             * This is stored as a raw big endian byte array
-                             * as opposed to a uint64_t because we rarely
-                             * need to perform arithmetic on this, but do
-                             * need it as a Byte array for the purpose of
-                             * MAC computations.                             */
+    uint8_t ctr[MBEDTLS_SSL_SEQUENCE_NUMBER_LEN];  /* In TLS:  The implicit record sequence number.
+                                                    * In DTLS: The 2-byte epoch followed by
+                                                    *          the 6-byte sequence number.
+                                                    * This is stored as a raw big endian byte array
+                                                    * as opposed to a uint64_t because we rarely
+                                                    * need to perform arithmetic on this, but do
+                                                    * need it as a Byte array for the purpose of
+                                                    * MAC computations.                             */
     uint8_t type;           /* The record content type.                      */
     uint8_t ver[2];         /* SSL/TLS version as present on the wire.
                              * Convert to internal presentation of versions
@@ -945,6 +1028,14 @@ void mbedtls_ssl_transform_free( mbedtls_ssl_transform *transform );
  * \param ssl       SSL context
  */
 void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl );
+
+/* set inbound transform of ssl context */
+void mbedtls_ssl_set_inbound_transform( mbedtls_ssl_context *ssl,
+                                        mbedtls_ssl_transform *transform );
+
+/* set outbound transform of ssl context */
+void mbedtls_ssl_set_outbound_transform( mbedtls_ssl_context *ssl,
+                                         mbedtls_ssl_transform *transform );
 
 int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl );
@@ -1332,6 +1423,22 @@ void mbedtls_ssl_update_in_pointers( mbedtls_ssl_context *ssl );
 
 int mbedtls_ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial );
 
+/*
+ * Send pending alert
+ */
+int mbedtls_ssl_handle_pending_alert( mbedtls_ssl_context *ssl );
+
+/*
+ * Set pending fatal alert flag.
+ */
+void mbedtls_ssl_pend_fatal_alert( mbedtls_ssl_context *ssl,
+                                   unsigned char alert_type,
+                                   int alert_reason );
+
+/* Alias of mbedtls_ssl_pend_fatal_alert */
+#define MBEDTLS_SSL_PEND_FATAL_ALERT( type, user_return_value )         \
+            mbedtls_ssl_pend_fatal_alert( ssl, type, user_return_value )
+
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
 void mbedtls_ssl_dtls_replay_reset( mbedtls_ssl_context *ssl );
 #endif
@@ -1347,6 +1454,96 @@ size_t mbedtls_ssl_get_current_mtu( const mbedtls_ssl_context *ssl );
 void mbedtls_ssl_buffering_free( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_flight_free( mbedtls_ssl_flight_item *flight );
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+
+/*
+ * Helper functions around key exchange modes.
+ */
+static inline unsigned mbedtls_ssl_conf_tls13_check_kex_modes( mbedtls_ssl_context *ssl,
+                                                               int kex_mode_mask )
+{
+    return( ( ssl->conf->tls13_kex_modes & kex_mode_mask ) != 0 );
+}
+
+static inline int mbedtls_ssl_conf_tls13_psk_enabled( mbedtls_ssl_context *ssl )
+{
+    return( mbedtls_ssl_conf_tls13_check_kex_modes( ssl,
+                   MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK ) );
+}
+
+static inline int mbedtls_ssl_conf_tls13_psk_ephemeral_enabled( mbedtls_ssl_context *ssl )
+{
+    return( mbedtls_ssl_conf_tls13_check_kex_modes( ssl,
+                   MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_EPHEMERAL ) );
+}
+
+static inline int mbedtls_ssl_conf_tls13_ephemeral_enabled( mbedtls_ssl_context *ssl )
+{
+    return( mbedtls_ssl_conf_tls13_check_kex_modes( ssl,
+                   MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_EPHEMERAL ) );
+}
+
+static inline int mbedtls_ssl_conf_tls13_some_ephemeral_enabled( mbedtls_ssl_context *ssl )
+{
+    return( mbedtls_ssl_conf_tls13_check_kex_modes( ssl,
+                   MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_EPHEMERAL_ALL ) );
+}
+
+static inline int mbedtls_ssl_conf_tls13_some_psk_enabled( mbedtls_ssl_context *ssl )
+{
+    return( mbedtls_ssl_conf_tls13_check_kex_modes( ssl,
+                   MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_ALL ) );
+}
+
+/**
+ * Given a list of key exchange modes, check if at least one of them is
+ * supported.
+ *
+ * \param[in] ssl  SSL context
+ * \param kex_modes_mask  Mask of the key exchange modes to check
+ *
+ * \return 0 if at least one of the key exchange modes is supported,
+ *         !=0 otherwise.
+ */
+static inline unsigned mbedtls_ssl_tls1_3_check_kex_modes( mbedtls_ssl_context *ssl,
+                                                           int kex_modes_mask )
+{
+    return( ( ssl->handshake->tls1_3_kex_modes & kex_modes_mask ) == 0 );
+}
+
+static inline int mbedtls_ssl_tls1_3_psk_enabled( mbedtls_ssl_context *ssl )
+{
+    return( ! mbedtls_ssl_tls1_3_check_kex_modes( ssl,
+                   MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK ) );
+}
+
+static inline int mbedtls_ssl_tls1_3_psk_ephemeral_enabled(
+                                                    mbedtls_ssl_context *ssl )
+{
+    return( ! mbedtls_ssl_tls1_3_check_kex_modes( ssl,
+                   MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_EPHEMERAL ) );
+}
+
+static inline int mbedtls_ssl_tls1_3_ephemeral_enabled( mbedtls_ssl_context *ssl )
+{
+    return( ! mbedtls_ssl_tls1_3_check_kex_modes( ssl,
+                   MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_EPHEMERAL ) );
+}
+
+static inline int mbedtls_ssl_tls1_3_some_ephemeral_enabled( mbedtls_ssl_context *ssl )
+{
+    return( ! mbedtls_ssl_tls1_3_check_kex_modes( ssl,
+                   MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_EPHEMERAL_ALL ) );
+}
+
+static inline int mbedtls_ssl_tls1_3_some_psk_enabled( mbedtls_ssl_context *ssl )
+{
+    return( ! mbedtls_ssl_tls1_3_check_kex_modes( ssl,
+                   MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_ALL ) );
+}
+
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 /**
  * ssl utils functions for checking configuration.
@@ -1396,11 +1593,37 @@ static inline int mbedtls_ssl_conf_is_hybrid_tls12_tls13( const mbedtls_ssl_conf
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
 
+/*
+ * Helper functions for NamedGroup.
+ */
+static inline int mbedtls_ssl_tls13_named_group_is_ecdhe( uint16_t named_group )
+{
+    return( named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1 ||
+            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1 ||
+            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP521R1 ||
+            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_X25519    ||
+            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_X448 );
+}
+
+static inline int mbedtls_ssl_tls13_named_group_is_dhe( uint16_t named_group )
+{
+    return( named_group >= MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048 &&
+            named_group <= MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192 );
+}
+
 static inline void mbedtls_ssl_handshake_set_state( mbedtls_ssl_context *ssl,
                                                     mbedtls_ssl_states state )
 {
     ssl->state = ( int ) state;
 }
+
+/*
+ * Fetch TLS 1.3 handshake message header
+ */
+int mbedtls_ssl_tls1_3_fetch_handshake_msg( mbedtls_ssl_context *ssl,
+                                            unsigned hs_type,
+                                            unsigned char **buf,
+                                            size_t *buf_len );
 
 /*
  * Write TLS 1.3 handshake message header
@@ -1409,18 +1632,30 @@ int mbedtls_ssl_tls13_start_handshake_msg( mbedtls_ssl_context *ssl,
                                            unsigned hs_type,
                                            unsigned char **buf,
                                            size_t *buflen );
+
+/*
+ * Handler of TLS 1.3 server certificate message
+ */
+int mbedtls_ssl_tls13_process_certificate( mbedtls_ssl_context *ssl );
+
 /*
  * Write TLS 1.3 handshake message tail
  */
 int mbedtls_ssl_tls13_finish_handshake_msg( mbedtls_ssl_context *ssl,
                                             size_t buf_len,
                                             size_t msg_len );
-/*
- * Update checksum with handshake header
- */
+
 void mbedtls_ssl_tls13_add_hs_hdr_to_checksum( mbedtls_ssl_context *ssl,
                                                unsigned hs_type,
                                                size_t total_hs_len );
+
+/*
+ * Update checksum of handshake messages.
+ */
+void mbedtls_ssl_tls1_3_add_hs_msg_to_checksum( mbedtls_ssl_context *ssl,
+                                                unsigned hs_type,
+                                                unsigned char const *msg,
+                                                size_t msg_len );
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 /*
@@ -1430,8 +1665,39 @@ int mbedtls_ssl_tls13_write_sig_alg_ext( mbedtls_ssl_context *ssl,
                                          unsigned char *buf,
                                          unsigned char *end,
                                          size_t *olen);
+
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+
+/* Get handshake transcript */
+int mbedtls_ssl_get_handshake_transcript( mbedtls_ssl_context *ssl,
+                                          const mbedtls_md_type_t md,
+                                          unsigned char *dst,
+                                          size_t dst_len,
+                                          size_t *olen );
+
+/*
+ * Return supported groups.
+ *
+ * In future, invocations can be changed to ssl->conf->group_list
+ * when mbedtls_ssl_conf_curves() is deleted.
+ *
+ * ssl->handshake->group_list is either a translation of curve_list to IANA TLS group
+ * identifiers when mbedtls_ssl_conf_curves() has been used, or a pointer to
+ * ssl->conf->group_list when mbedtls_ssl_conf_groups() has been more recently invoked.
+ *
+ */
+static inline const void *mbedtls_ssl_get_groups( const mbedtls_ssl_context *ssl )
+{
+    #if defined(MBEDTLS_DEPRECATED_REMOVED) || !defined(MBEDTLS_ECP_C)
+    return( ssl->conf->group_list );
+    #else
+    if( ( ssl->handshake != NULL ) && ( ssl->handshake->group_list != NULL ) )
+        return( ssl->handshake->group_list );
+    else
+        return( ssl->conf->group_list );
+    #endif
+}
 
 #endif /* ssl_misc.h */

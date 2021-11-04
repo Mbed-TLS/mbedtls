@@ -552,6 +552,32 @@ record_outcome() {
     fi
 }
 
+# True if the presence of the given pattern in a log definitely indicates
+# that the test has failed. False if the presence is inconclusive.
+#
+# Inputs:
+# * $1: pattern found in the logs
+# * $TIMES_LEFT: >0 if retrying is an option
+#
+# Outputs:
+# * $outcome: set to a retry reason if the pattern is inconclusive,
+#             unchanged otherwise.
+# * Return value: 1 if the pattern is inconclusive,
+#                 0 if the failure is definitive.
+log_pattern_presence_is_conclusive() {
+    # If we've run out of attempts, then don't retry no matter what.
+    if [ $TIMES_LEFT -eq 0 ]; then
+        return 0
+    fi
+    case $1 in
+        "resend")
+            # An undesired resend may have been caused by the OS dropping or
+            # delaying a packet at an inopportune time.
+            outcome="RETRY(resend)"
+            return 1;;
+    esac
+}
+
 # fail <message>
 fail() {
     record_outcome "FAIL" "$1"
@@ -626,6 +652,8 @@ has_mem_err() {
 # Wait for process $2 named $3 to be listening on port $1. Print error to $4.
 if type lsof >/dev/null 2>/dev/null; then
     wait_app_start() {
+        newline='
+'
         START_TIME=$(date +%s)
         if [ "$DTLS" -eq 1 ]; then
             proto=UDP
@@ -633,7 +661,15 @@ if type lsof >/dev/null 2>/dev/null; then
             proto=TCP
         fi
         # Make a tight loop, server normally takes less than 1s to start.
-        while ! lsof -a -n -b -i "$proto:$1" -p "$2" >/dev/null 2>/dev/null; do
+        while true; do
+              SERVER_PIDS=$(lsof -a -n -b -i "$proto:$1" -F p)
+              # When we use a proxy, it will be listening on the same port we
+              # are checking for as well as the server and lsof will list both.
+              # If multiple PIDs are returned, each one will be on a separate
+              # line, each prepended with 'p'.
+             case ${newline}${SERVER_PIDS}${newline} in
+                  *${newline}p${2}${newline}*) break;;
+              esac
               if [ $(( $(date +%s) - $START_TIME )) -gt $DOG_DELAY ]; then
                   echo "$3 START TIMEOUT"
                   echo "$3 START TIMEOUT" >> $4
@@ -753,7 +789,7 @@ wait_client_done() {
 # check if the given command uses dtls and sets global variable DTLS
 detect_dtls() {
     case "$1" in
-        *dtls=1*|-dtls|-u) DTLS=1;;
+        *dtls=1*|*-dtls*|*-u*) DTLS=1;;
         *) DTLS=0;;
     esac
 }
@@ -793,6 +829,271 @@ find_in_both() {
 SKIP_HANDSHAKE_CHECK="NO"
 skip_handshake_stage_check() {
     SKIP_HANDSHAKE_CHECK="YES"
+}
+
+# Analyze the commands that will be used in a test.
+#
+# Analyze and possibly instrument $PXY_CMD, $CLI_CMD, $SRV_CMD to pass
+# extra arguments or go through wrappers.
+# Set $DTLS (0=TLS, 1=DTLS).
+analyze_test_commands() {
+    # update DTLS variable
+    detect_dtls "$SRV_CMD"
+
+    # if the test uses DTLS but no custom proxy, add a simple proxy
+    # as it provides timing info that's useful to debug failures
+    if [ -z "$PXY_CMD" ] && [ "$DTLS" -eq 1 ]; then
+        PXY_CMD="$P_PXY"
+        case " $SRV_CMD " in
+            *' server_addr=::1 '*)
+                PXY_CMD="$PXY_CMD server_addr=::1 listen_addr=::1";;
+        esac
+    fi
+
+    # update CMD_IS_GNUTLS variable
+    is_gnutls "$SRV_CMD"
+
+    # if the server uses gnutls but doesn't set priority, explicitly
+    # set the default priority
+    if [ "$CMD_IS_GNUTLS" -eq 1 ]; then
+        case "$SRV_CMD" in
+              *--priority*) :;;
+              *) SRV_CMD="$SRV_CMD --priority=NORMAL";;
+        esac
+    fi
+
+    # update CMD_IS_GNUTLS variable
+    is_gnutls "$CLI_CMD"
+
+    # if the client uses gnutls but doesn't set priority, explicitly
+    # set the default priority
+    if [ "$CMD_IS_GNUTLS" -eq 1 ]; then
+        case "$CLI_CMD" in
+              *--priority*) :;;
+              *) CLI_CMD="$CLI_CMD --priority=NORMAL";;
+        esac
+    fi
+
+    # fix client port
+    if [ -n "$PXY_CMD" ]; then
+        CLI_CMD=$( echo "$CLI_CMD" | sed s/+SRV_PORT/$PXY_PORT/g )
+    else
+        CLI_CMD=$( echo "$CLI_CMD" | sed s/+SRV_PORT/$SRV_PORT/g )
+    fi
+
+    # prepend valgrind to our commands if active
+    if [ "$MEMCHECK" -gt 0 ]; then
+        if is_polar "$SRV_CMD"; then
+            SRV_CMD="valgrind --leak-check=full $SRV_CMD"
+        fi
+        if is_polar "$CLI_CMD"; then
+            CLI_CMD="valgrind --leak-check=full $CLI_CMD"
+        fi
+    fi
+}
+
+# Check for failure conditions after a test case.
+#
+# Inputs from run_test:
+# * positional parameters: test options (see run_test documentation)
+# * $CLI_EXIT: client return code
+# * $CLI_EXPECT: expected client return code
+# * $SRV_RET: server return code
+# * $CLI_OUT, $SRV_OUT, $PXY_OUT: files containing client/server/proxy logs
+# * $TIMES_LEFT: if nonzero, a RETRY outcome is allowed
+#
+# Outputs:
+# * $outcome: one of PASS/RETRY*/FAIL
+check_test_failure() {
+    outcome=FAIL
+
+    if [ $TIMES_LEFT -gt 0 ] &&
+       grep '===CLIENT_TIMEOUT===' $CLI_OUT >/dev/null
+    then
+        outcome="RETRY(client-timeout)"
+        return
+    fi
+
+    # check if the client and server went at least to the handshake stage
+    # (useful to avoid tests with only negative assertions and non-zero
+    # expected client exit to incorrectly succeed in case of catastrophic
+    # failure)
+    if [ "X$SKIP_HANDSHAKE_CHECK" != "XYES" ]
+    then
+        if is_polar "$SRV_CMD"; then
+            if grep "Performing the SSL/TLS handshake" $SRV_OUT >/dev/null; then :;
+            else
+                fail "server or client failed to reach handshake stage"
+                return
+            fi
+        fi
+        if is_polar "$CLI_CMD"; then
+            if grep "Performing the SSL/TLS handshake" $CLI_OUT >/dev/null; then :;
+            else
+                fail "server or client failed to reach handshake stage"
+                return
+            fi
+        fi
+    fi
+
+    SKIP_HANDSHAKE_CHECK="NO"
+    # Check server exit code (only for Mbed TLS: GnuTLS and OpenSSL don't
+    # exit with status 0 when interrupted by a signal, and we don't really
+    # care anyway), in case e.g. the server reports a memory leak.
+    if [ $SRV_RET != 0 ] && is_polar "$SRV_CMD"; then
+        fail "Server exited with status $SRV_RET"
+        return
+    fi
+
+    # check client exit code
+    if [ \( "$CLI_EXPECT" = 0 -a "$CLI_EXIT" != 0 \) -o \
+         \( "$CLI_EXPECT" != 0 -a "$CLI_EXIT" = 0 \) ]
+    then
+        fail "bad client exit code (expected $CLI_EXPECT, got $CLI_EXIT)"
+        return
+    fi
+
+    # check other assertions
+    # lines beginning with == are added by valgrind, ignore them
+    # lines with 'Serious error when reading debug info', are valgrind issues as well
+    while [ $# -gt 0 ]
+    do
+        case $1 in
+            "-s")
+                if grep -v '^==' $SRV_OUT | grep -v 'Serious error when reading debug info' | grep "$2" >/dev/null; then :; else
+                    fail "pattern '$2' MUST be present in the Server output"
+                    return
+                fi
+                ;;
+
+            "-c")
+                if grep -v '^==' $CLI_OUT | grep -v 'Serious error when reading debug info' | grep "$2" >/dev/null; then :; else
+                    fail "pattern '$2' MUST be present in the Client output"
+                    return
+                fi
+                ;;
+
+            "-S")
+                if grep -v '^==' $SRV_OUT | grep -v 'Serious error when reading debug info' | grep "$2" >/dev/null; then
+                    if log_pattern_presence_is_conclusive "$2"; then
+                        fail "pattern '$2' MUST NOT be present in the Server output"
+                    fi
+                    return
+                fi
+                ;;
+
+            "-C")
+                if grep -v '^==' $CLI_OUT | grep -v 'Serious error when reading debug info' | grep "$2" >/dev/null; then
+                    if log_pattern_presence_is_conclusive "$2"; then
+                        fail "pattern '$2' MUST NOT be present in the Client output"
+                    fi
+                    return
+                fi
+                ;;
+
+                # The filtering in the following two options (-u and -U) do the following
+                #   - ignore valgrind output
+                #   - filter out everything but lines right after the pattern occurrences
+                #   - keep one of each non-unique line
+                #   - count how many lines remain
+                # A line with '--' will remain in the result from previous outputs, so the number of lines in the result will be 1
+                # if there were no duplicates.
+            "-U")
+                if [ $(grep -v '^==' $SRV_OUT | grep -v 'Serious error when reading debug info' | grep -A1 "$2" | grep -v "$2" | sort | uniq -d | wc -l) -gt 1 ]; then
+                    fail "lines following pattern '$2' must be unique in Server output"
+                    return
+                fi
+                ;;
+
+            "-u")
+                if [ $(grep -v '^==' $CLI_OUT | grep -v 'Serious error when reading debug info' | grep -A1 "$2" | grep -v "$2" | sort | uniq -d | wc -l) -gt 1 ]; then
+                    fail "lines following pattern '$2' must be unique in Client output"
+                    return
+                fi
+                ;;
+            "-F")
+                if ! $2 "$SRV_OUT"; then
+                    fail "function call to '$2' failed on Server output"
+                    return
+                fi
+                ;;
+            "-f")
+                if ! $2 "$CLI_OUT"; then
+                    fail "function call to '$2' failed on Client output"
+                    return
+                fi
+                ;;
+            "-g")
+                if ! eval "$2 '$SRV_OUT' '$CLI_OUT'"; then
+                    fail "function call to '$2' failed on Server and Client output"
+                    return
+                fi
+                ;;
+
+            *)
+                echo "Unknown test: $1" >&2
+                exit 1
+        esac
+        shift 2
+    done
+
+    # check valgrind's results
+    if [ "$MEMCHECK" -gt 0 ]; then
+        if is_polar "$SRV_CMD" && has_mem_err $SRV_OUT; then
+            fail "Server has memory errors"
+            return
+        fi
+        if is_polar "$CLI_CMD" && has_mem_err $CLI_OUT; then
+            fail "Client has memory errors"
+            return
+        fi
+    fi
+
+    # if we're here, everything is ok
+    outcome=PASS
+}
+
+# Run the current test case: start the server and if applicable the proxy, run
+# the client, wait for all processes to finish or time out.
+#
+# Inputs:
+# * $NAME: test case name
+# * $CLI_CMD, $SRV_CMD, $PXY_CMD: commands to run
+# * $CLI_OUT, $SRV_OUT, $PXY_OUT: files to contain client/server/proxy logs
+#
+# Outputs:
+# * $CLI_EXIT: client return code
+# * $SRV_RET: server return code
+do_run_test_once() {
+    # run the commands
+    if [ -n "$PXY_CMD" ]; then
+        printf "# %s\n%s\n" "$NAME" "$PXY_CMD" > $PXY_OUT
+        $PXY_CMD >> $PXY_OUT 2>&1 &
+        PXY_PID=$!
+        wait_proxy_start "$PXY_PORT" "$PXY_PID"
+    fi
+
+    check_osrv_dtls
+    printf '# %s\n%s\n' "$NAME" "$SRV_CMD" > $SRV_OUT
+    provide_input | $SRV_CMD >> $SRV_OUT 2>&1 &
+    SRV_PID=$!
+    wait_server_start "$SRV_PORT" "$SRV_PID"
+
+    printf '# %s\n%s\n' "$NAME" "$CLI_CMD" > $CLI_OUT
+    eval "$CLI_CMD" >> $CLI_OUT 2>&1 &
+    wait_client_done
+
+    sleep 0.05
+
+    # terminate the server (and the proxy)
+    kill $SRV_PID
+    wait $SRV_PID
+    SRV_RET=$?
+
+    if [ -n "$PXY_CMD" ]; then
+        kill $PXY_PID >/dev/null 2>&1
+        wait $PXY_PID
+    fi
 }
 
 # Usage: run_test name [-p proxy_cmd] srv_cmd cli_cmd cli_exit [option [...]]
@@ -857,234 +1158,23 @@ run_test() {
         return
     fi
 
-    # update DTLS variable
-    detect_dtls "$SRV_CMD"
-
-    # if the test uses DTLS but no custom proxy, add a simple proxy
-    # as it provides timing info that's useful to debug failures
-    if [ -z "$PXY_CMD" ] && [ "$DTLS" -eq 1 ]; then
-        PXY_CMD="$P_PXY"
-        case " $SRV_CMD " in
-            *' server_addr=::1 '*)
-                PXY_CMD="$PXY_CMD server_addr=::1 listen_addr=::1";;
-        esac
-    fi
-
-    # update CMD_IS_GNUTLS variable
-    is_gnutls "$SRV_CMD"
-
-    # if the server uses gnutls but doesn't set priority, explicitly
-    # set the default priority
-    if [ "$CMD_IS_GNUTLS" -eq 1 ]; then
-        case "$SRV_CMD" in
-              *--priority*) :;;
-              *) SRV_CMD="$SRV_CMD --priority=NORMAL";;
-        esac
-    fi
-
-    # update CMD_IS_GNUTLS variable
-    is_gnutls "$CLI_CMD"
-
-    # if the client uses gnutls but doesn't set priority, explicitly
-    # set the default priority
-    if [ "$CMD_IS_GNUTLS" -eq 1 ]; then
-        case "$CLI_CMD" in
-              *--priority*) :;;
-              *) CLI_CMD="$CLI_CMD --priority=NORMAL";;
-        esac
-    fi
-
-    # fix client port
-    if [ -n "$PXY_CMD" ]; then
-        CLI_CMD=$( echo "$CLI_CMD" | sed s/+SRV_PORT/$PXY_PORT/g )
-    else
-        CLI_CMD=$( echo "$CLI_CMD" | sed s/+SRV_PORT/$SRV_PORT/g )
-    fi
-
-    # prepend valgrind to our commands if active
-    if [ "$MEMCHECK" -gt 0 ]; then
-        if is_polar "$SRV_CMD"; then
-            SRV_CMD="valgrind --leak-check=full $SRV_CMD"
-        fi
-        if is_polar "$CLI_CMD"; then
-            CLI_CMD="valgrind --leak-check=full $CLI_CMD"
-        fi
-    fi
+    analyze_test_commands "$@"
 
     TIMES_LEFT=2
     while [ $TIMES_LEFT -gt 0 ]; do
         TIMES_LEFT=$(( $TIMES_LEFT - 1 ))
 
-        # run the commands
-        if [ -n "$PXY_CMD" ]; then
-            printf "# %s\n%s\n" "$NAME" "$PXY_CMD" > $PXY_OUT
-            $PXY_CMD >> $PXY_OUT 2>&1 &
-            PXY_PID=$!
-            wait_proxy_start "$PXY_PORT" "$PXY_PID"
-        fi
+        do_run_test_once
 
-        check_osrv_dtls
-        printf '# %s\n%s\n' "$NAME" "$SRV_CMD" > $SRV_OUT
-        provide_input | $SRV_CMD >> $SRV_OUT 2>&1 &
-        SRV_PID=$!
-        wait_server_start "$SRV_PORT" "$SRV_PID"
-
-        printf '# %s\n%s\n' "$NAME" "$CLI_CMD" > $CLI_OUT
-        eval "$CLI_CMD" >> $CLI_OUT 2>&1 &
-        wait_client_done
-
-        sleep 0.05
-
-        # terminate the server (and the proxy)
-        kill $SRV_PID
-        wait $SRV_PID
-        SRV_RET=$?
-
-        if [ -n "$PXY_CMD" ]; then
-            kill $PXY_PID >/dev/null 2>&1
-            wait $PXY_PID
-        fi
-
-        # retry only on timeouts
-        if grep '===CLIENT_TIMEOUT===' $CLI_OUT >/dev/null; then
-            printf "RETRY "
-        else
-            TIMES_LEFT=0
-        fi
-    done
-
-    # check if the client and server went at least to the handshake stage
-    # (useful to avoid tests with only negative assertions and non-zero
-    # expected client exit to incorrectly succeed in case of catastrophic
-    # failure)
-    if [ "X$SKIP_HANDSHAKE_CHECK" != "XYES" ]
-    then
-        if is_polar "$SRV_CMD"; then
-            if grep "Performing the SSL/TLS handshake" $SRV_OUT >/dev/null; then :;
-            else
-                fail "server or client failed to reach handshake stage"
-                return
-            fi
-        fi
-        if is_polar "$CLI_CMD"; then
-            if grep "Performing the SSL/TLS handshake" $CLI_OUT >/dev/null; then :;
-            else
-                fail "server or client failed to reach handshake stage"
-                return
-            fi
-        fi
-    fi
-
-    SKIP_HANDSHAKE_CHECK="NO"
-    # Check server exit code (only for Mbed TLS: GnuTLS and OpenSSL don't
-    # exit with status 0 when interrupted by a signal, and we don't really
-    # care anyway), in case e.g. the server reports a memory leak.
-    if [ $SRV_RET != 0 ] && is_polar "$SRV_CMD"; then
-        fail "Server exited with status $SRV_RET"
-        return
-    fi
-
-    # check client exit code
-    if [ \( "$CLI_EXPECT" = 0 -a "$CLI_EXIT" != 0 \) -o \
-         \( "$CLI_EXPECT" != 0 -a "$CLI_EXIT" = 0 \) ]
-    then
-        fail "bad client exit code (expected $CLI_EXPECT, got $CLI_EXIT)"
-        return
-    fi
-
-    # check other assertions
-    # lines beginning with == are added by valgrind, ignore them
-    # lines with 'Serious error when reading debug info', are valgrind issues as well
-    while [ $# -gt 0 ]
-    do
-        case $1 in
-            "-s")
-                if grep -v '^==' $SRV_OUT | grep -v 'Serious error when reading debug info' | grep "$2" >/dev/null; then :; else
-                    fail "pattern '$2' MUST be present in the Server output"
-                    return
-                fi
-                ;;
-
-            "-c")
-                if grep -v '^==' $CLI_OUT | grep -v 'Serious error when reading debug info' | grep "$2" >/dev/null; then :; else
-                    fail "pattern '$2' MUST be present in the Client output"
-                    return
-                fi
-                ;;
-
-            "-S")
-                if grep -v '^==' $SRV_OUT | grep -v 'Serious error when reading debug info' | grep "$2" >/dev/null; then
-                    fail "pattern '$2' MUST NOT be present in the Server output"
-                    return
-                fi
-                ;;
-
-            "-C")
-                if grep -v '^==' $CLI_OUT | grep -v 'Serious error when reading debug info' | grep "$2" >/dev/null; then
-                    fail "pattern '$2' MUST NOT be present in the Client output"
-                    return
-                fi
-                ;;
-
-                # The filtering in the following two options (-u and -U) do the following
-                #   - ignore valgrind output
-                #   - filter out everything but lines right after the pattern occurrences
-                #   - keep one of each non-unique line
-                #   - count how many lines remain
-                # A line with '--' will remain in the result from previous outputs, so the number of lines in the result will be 1
-                # if there were no duplicates.
-            "-U")
-                if [ $(grep -v '^==' $SRV_OUT | grep -v 'Serious error when reading debug info' | grep -A1 "$2" | grep -v "$2" | sort | uniq -d | wc -l) -gt 1 ]; then
-                    fail "lines following pattern '$2' must be unique in Server output"
-                    return
-                fi
-                ;;
-
-            "-u")
-                if [ $(grep -v '^==' $CLI_OUT | grep -v 'Serious error when reading debug info' | grep -A1 "$2" | grep -v "$2" | sort | uniq -d | wc -l) -gt 1 ]; then
-                    fail "lines following pattern '$2' must be unique in Client output"
-                    return
-                fi
-                ;;
-            "-F")
-                if ! $2 "$SRV_OUT"; then
-                    fail "function call to '$2' failed on Server output"
-                    return
-                fi
-                ;;
-            "-f")
-                if ! $2 "$CLI_OUT"; then
-                    fail "function call to '$2' failed on Client output"
-                    return
-                fi
-                ;;
-            "-g")
-                if ! eval "$2 '$SRV_OUT' '$CLI_OUT'"; then
-                    fail "function call to '$2' failed on Server and Client output"
-                    return
-                fi
-                ;;
-
-            *)
-                echo "Unknown test: $1" >&2
-                exit 1
+        check_test_failure "$@"
+        case $outcome in
+            PASS) break;;
+            RETRY*) printf "$outcome ";;
+            FAIL) return;;
         esac
-        shift 2
     done
 
-    # check valgrind's results
-    if [ "$MEMCHECK" -gt 0 ]; then
-        if is_polar "$SRV_CMD" && has_mem_err $SRV_OUT; then
-            fail "Server has memory errors"
-            return
-        fi
-        if is_polar "$CLI_CMD" && has_mem_err $CLI_OUT; then
-            fail "Client has memory errors"
-            return
-        fi
-    fi
-
-    # if we're here, everything is ok
+    # If we get this far, the test case passed.
     record_outcome "PASS"
     if [ "$PRESERVE_LOGS" -gt 0 ]; then
         mv $SRV_OUT o-srv-${TESTS}.log
@@ -1309,17 +1399,24 @@ SRV_DELAY_SECONDS=0
 
 # fix commands to use this port, force IPv4 while at it
 # +SRV_PORT will be replaced by either $SRV_PORT or $PXY_PORT later
+# Note: Using 'localhost' rather than 127.0.0.1 here is unwise, as on many
+# machines that will resolve to ::1, and we don't want ipv6 here.
 P_SRV="$P_SRV server_addr=127.0.0.1 server_port=$SRV_PORT"
 P_CLI="$P_CLI server_addr=127.0.0.1 server_port=+SRV_PORT"
 P_PXY="$P_PXY server_addr=127.0.0.1 server_port=$SRV_PORT listen_addr=127.0.0.1 listen_port=$PXY_PORT ${SEED:+"seed=$SEED"}"
 O_SRV="$O_SRV -accept $SRV_PORT"
-O_CLI="$O_CLI -connect localhost:+SRV_PORT"
+O_CLI="$O_CLI -connect 127.0.0.1:+SRV_PORT"
 G_SRV="$G_SRV -p $SRV_PORT"
 G_CLI="$G_CLI -p +SRV_PORT"
 
 if [ -n "${OPENSSL_LEGACY:-}" ]; then
     O_LEGACY_SRV="$O_LEGACY_SRV -accept $SRV_PORT -dhparam data_files/dhparams.pem"
-    O_LEGACY_CLI="$O_LEGACY_CLI -connect localhost:+SRV_PORT"
+    O_LEGACY_CLI="$O_LEGACY_CLI -connect 127.0.0.1:+SRV_PORT"
+fi
+
+if [ -n "${OPENSSL_NEXT:-}" ]; then
+    O_NEXT_SRV="$O_NEXT_SRV -accept $SRV_PORT"
+    O_NEXT_CLI="$O_NEXT_CLI -connect 127.0.0.1:+SRV_PORT"
 fi
 
 if [ -n "${GNUTLS_NEXT_SERV:-}" ]; then
@@ -1430,12 +1527,53 @@ requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SHA256_C
 run_test    "Opaque key for client authentication" \
-            "$P_SRV auth_mode=required" \
+            "$P_SRV auth_mode=required crt_file=data_files/server5.crt \
+             key_file=data_files/server5.key" \
             "$P_CLI key_opaque=1 crt_file=data_files/server5.crt \
              key_file=data_files/server5.key" \
             0 \
             -c "key type: Opaque" \
+            -c "Ciphersuite is TLS-ECDHE-ECDSA" \
             -s "Verifying peer X.509 certificate... ok" \
+            -s "Ciphersuite is TLS-ECDHE-ECDSA" \
+            -S "error" \
+            -C "error"
+
+# Test using an opaque private key for server authentication
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_SHA256_C
+run_test    "Opaque key for server authentication" \
+            "$P_SRV auth_mode=required key_opaque=1 crt_file=data_files/server5.crt \
+             key_file=data_files/server5.key" \
+            "$P_CLI crt_file=data_files/server5.crt \
+             key_file=data_files/server5.key" \
+            0 \
+            -c "Verifying peer X.509 certificate... ok" \
+            -c "Ciphersuite is TLS-ECDHE-ECDSA" \
+            -s "key types: Opaque - invalid PK" \
+            -s "Ciphersuite is TLS-ECDHE-ECDSA" \
+            -S "error" \
+            -C "error"
+
+# Test using an opaque private key for client/server authentication
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_SHA256_C
+run_test    "Opaque key for client/server authentication" \
+            "$P_SRV auth_mode=required key_opaque=1 crt_file=data_files/server5.crt \
+             key_file=data_files/server5.key" \
+            "$P_CLI key_opaque=1 crt_file=data_files/server5.crt \
+             key_file=data_files/server5.key" \
+            0 \
+            -c "key type: Opaque" \
+            -c "Verifying peer X.509 certificate... ok" \
+            -c "Ciphersuite is TLS-ECDHE-ECDSA" \
+            -s "key types: Opaque - invalid PK" \
+            -s "Verifying peer X.509 certificate... ok" \
+            -s "Ciphersuite is TLS-ECDHE-ECDSA" \
             -S "error" \
             -C "error"
 
@@ -2689,10 +2827,13 @@ run_test    "Session resume using tickets, DTLS: openssl server" \
             -c "parse new session ticket" \
             -c "a session has been resumed"
 
+# For reasons that aren't fully understood, this test randomly fails with high
+# probability with OpenSSL 1.0.2g on the CI, see #5012.
+requires_openssl_next
 run_test    "Session resume using tickets, DTLS: openssl client" \
             "$P_SRV dtls=1 debug_level=3 tickets=1" \
-            "( $O_CLI -dtls -sess_out $SESSION; \
-               $O_CLI -dtls -sess_in $SESSION; \
+            "( $O_NEXT_CLI -dtls -sess_out $SESSION; \
+               $O_NEXT_CLI -dtls -sess_in $SESSION; \
                rm -f $SESSION )" \
             0 \
             -s "found session ticket extension" \
@@ -2889,10 +3030,13 @@ run_test    "Session resume using cache, DTLS: session copy" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+# For reasons that aren't fully understood, this test randomly fails with high
+# probability with OpenSSL 1.0.2g on the CI, see #5012.
+requires_openssl_next
 run_test    "Session resume using cache, DTLS: openssl client" \
             "$P_SRV dtls=1 debug_level=3 tickets=0" \
-            "( $O_CLI -dtls -sess_out $SESSION; \
-               $O_CLI -dtls -sess_in $SESSION; \
+            "( $O_NEXT_CLI -dtls -sess_out $SESSION; \
+               $O_NEXT_CLI -dtls -sess_in $SESSION; \
                rm -f $SESSION )" \
             0 \
             -s "found session ticket extension" \
@@ -8608,7 +8752,6 @@ run_test    "DTLS proxy: 3d, gnutls server, fragmentation, nbio" \
             -s "Extra-header:" \
             -c "Extra-header:"
 
-requires_config_enabled MBEDTLS_SSL_EXPORT_KEYS
 run_test    "export keys functionality" \
             "$P_SRV eap_tls=1 debug_level=3" \
             "$P_CLI eap_tls=1 debug_level=3" \
@@ -8620,6 +8763,7 @@ run_test    "export keys functionality" \
 
 # openssl feature tests: check if tls1.3 exists.
 requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 run_test    "TLS1.3: Test openssl tls1_3 feature" \
             "$O_NEXT_SRV -tls1_3 -msg" \
             "$O_NEXT_CLI -tls1_3 -msg" \
@@ -8631,8 +8775,9 @@ run_test    "TLS1.3: Test openssl tls1_3 feature" \
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 run_test    "TLS1.3: Test gnutls tls1_3 feature" \
-            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE --disable-client-cert " \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
             0 \
             -s "Version: TLS1.3" \
@@ -8655,11 +8800,69 @@ run_test    "TLS1.3: Not supported version check: tls1_2 and tls1_3" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 run_test    "TLS1.3: handshake dispatch test: tls1_3 only" \
-            "$P_SRV min_version=tls1_3 max_version=tls1_3" \
-            "$P_CLI min_version=tls1_3 max_version=tls1_3" \
+            "$P_SRV debug_level=2 min_version=tls1_3 max_version=tls1_3" \
+            "$P_CLI debug_level=2 min_version=tls1_3 max_version=tls1_3" \
             1 \
-            -s "SSL - The requested feature is not available" \
-            -c "SSL - The requested feature is not available"
+            -s "tls1_3 server state: 0"     \
+            -c "tls1_3 client state: 0"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "TLS1.3: Test client hello msg work - openssl" \
+            "$O_NEXT_SRV -tls1_3 -msg -no_middlebox" \
+            "$P_CLI debug_level=3 min_version=tls1_3 max_version=tls1_3" \
+            1 \
+            -c "SSL - The requested feature is not available" \
+            -s "ServerHello"                \
+            -c "tls1_3 client state: 0"     \
+            -c "tls1_3 client state: 2"     \
+            -c "tls1_3 client state: 19"    \
+            -c "tls1_3 client state: 5"     \
+            -c "tls1_3 client state: 3"     \
+            -c "tls1_3 client state: 9"     \
+            -c "tls1_3 client state: 13"    \
+            -c "tls1_3 client state: 7"     \
+            -c "tls1_3 client state: 20"    \
+            -c "tls1_3 client state: 11"    \
+            -c "tls1_3 client state: 14"    \
+            -c "tls1_3 client state: 15"    \
+            -c "<= ssl_tls1_3_process_server_hello" \
+            -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
+            -c "ECDH curve: x25519"         \
+            -c "=> ssl_tls1_3_process_server_hello" \
+            -c "Certificate verification flags clear" \
+            -c "<= parse encrypted extensions"
+
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "TLS1.3: Test client hello msg work - gnutls" \
+            "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE --disable-client-cert" \
+            "$P_CLI debug_level=3 min_version=tls1_3 max_version=tls1_3" \
+            1 \
+            -c "SSL - The requested feature is not available" \
+            -s "SERVER HELLO was queued"    \
+            -c "tls1_3 client state: 0"     \
+            -c "tls1_3 client state: 2"     \
+            -c "tls1_3 client state: 19"    \
+            -c "tls1_3 client state: 5"     \
+            -c "tls1_3 client state: 3"     \
+            -c "tls1_3 client state: 9"     \
+            -c "tls1_3 client state: 13"    \
+            -c "tls1_3 client state: 7"     \
+            -c "tls1_3 client state: 20"    \
+            -c "tls1_3 client state: 11"    \
+            -c "tls1_3 client state: 14"    \
+            -c "tls1_3 client state: 15"    \
+            -c "<= ssl_tls1_3_process_server_hello" \
+            -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
+            -c "ECDH curve: x25519"         \
+            -c "=> ssl_tls1_3_process_server_hello" \
+            -c "Certificate verification flags clear" \
+            -c "<= parse encrypted extensions"
 
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_MEMORY_DEBUG

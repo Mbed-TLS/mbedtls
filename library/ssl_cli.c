@@ -309,27 +309,32 @@ static int ssl_write_supported_elliptic_curves_ext( mbedtls_ssl_context *ssl,
     unsigned char *elliptic_curve_list = p + 6;
     size_t elliptic_curve_len = 0;
     const mbedtls_ecp_curve_info *info;
-    const mbedtls_ecp_group_id *grp_id;
-
+    const uint16_t *group_list = mbedtls_ssl_get_groups( ssl );
     *olen = 0;
+
+    /* Check there is room for header */
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 6 );
 
     MBEDTLS_SSL_DEBUG_MSG( 3,
         ( "client hello, adding supported_elliptic_curves extension" ) );
 
-    if( ssl->conf->curve_list == NULL )
+    if( group_list == NULL )
         return( MBEDTLS_ERR_SSL_BAD_CONFIG );
 
-    for( grp_id = ssl->conf->curve_list;
-         *grp_id != MBEDTLS_ECP_DP_NONE;
-         grp_id++ )
+    for( ; *group_list != 0; group_list++ )
     {
-        info = mbedtls_ecp_curve_info_from_grp_id( *grp_id );
+        info = mbedtls_ecp_curve_info_from_tls_id( *group_list );
         if( info == NULL )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1,
                 ( "invalid curve in ssl configuration" ) );
             return( MBEDTLS_ERR_SSL_BAD_CONFIG );
         }
+
+        /* Check there is room for another curve */
+        MBEDTLS_SSL_CHK_BUF_PTR( elliptic_curve_list, end, elliptic_curve_len + 2 );
+
+        MBEDTLS_PUT_UINT16_BE( *group_list, elliptic_curve_list, elliptic_curve_len );
         elliptic_curve_len += 2;
 
         if( elliptic_curve_len > MBEDTLS_SSL_MAX_CURVE_LIST_LEN )
@@ -343,19 +348,6 @@ static int ssl_write_supported_elliptic_curves_ext( mbedtls_ssl_context *ssl,
     /* Empty elliptic curve list, this is a configuration error. */
     if( elliptic_curve_len == 0 )
         return( MBEDTLS_ERR_SSL_BAD_CONFIG );
-
-    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 6 + elliptic_curve_len );
-
-    elliptic_curve_len = 0;
-
-    for( grp_id = ssl->conf->curve_list;
-         *grp_id != MBEDTLS_ECP_DP_NONE;
-         grp_id++ )
-    {
-        info = mbedtls_ecp_curve_info_from_grp_id( *grp_id );
-        elliptic_curve_list[elliptic_curve_len++] = MBEDTLS_BYTE_1( info->tls_id );
-        elliptic_curve_list[elliptic_curve_len++] = MBEDTLS_BYTE_0( info->tls_id );
-    }
 
     MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SUPPORTED_ELLIPTIC_CURVES, p, 0 );
     p += 2;

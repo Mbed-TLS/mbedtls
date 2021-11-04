@@ -1,0 +1,5 @@
+Bugfix
+   * Fix missing constraints on x86_64 and aarch64 assembly code
+     for bignum multiplication that broke some bignum operations with
+     (at least) Clang 12.
+     Fixes #4116, #4786, #4917, #4962.

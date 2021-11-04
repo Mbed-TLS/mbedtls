@@ -207,7 +207,6 @@ int main( void )
 #define USAGE_TICKETS ""
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
 #define USAGE_EAP_TLS                                       \
     "    eap_tls=%%d          default: 0 (disabled)\n"
 #define USAGE_NSS_KEYLOG                                    \
@@ -230,12 +229,6 @@ int main( void )
 #else /* MBEDTLS_SSL_DTLS_SRTP */
 #define USAGE_SRTP ""
 #endif
-#else /* MBEDTLS_SSL_EXPORT_KEYS */
-#define USAGE_EAP_TLS ""
-#define USAGE_NSS_KEYLOG ""
-#define USAGE_NSS_KEYLOG_FILE ""
-#define USAGE_SRTP ""
-#endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 #define USAGE_MAX_FRAG_LEN                                      \
@@ -685,7 +678,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_ECP_C)
-    mbedtls_ecp_group_id curve_list[CURVE_LIST_SIZE];
+    uint16_t group_list[CURVE_LIST_SIZE];
     const mbedtls_ecp_curve_info *curve_cur;
 #endif
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
@@ -729,7 +722,6 @@ int main( int argc, char *argv[] )
     unsigned char *context_buf = NULL;
     size_t context_buf_len;
 #endif
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
     unsigned char eap_tls_keymaterial[16];
     unsigned char eap_tls_iv[8];
     const char* eap_tls_label = "client EAP encryption";
@@ -747,7 +739,6 @@ int main( int argc, char *argv[] )
         MBEDTLS_TLS_SRTP_UNSET
     };
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
-#endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     mbedtls_memory_buffer_alloc_init( alloc_buf, sizeof(alloc_buf) );
@@ -1461,7 +1452,7 @@ int main( int argc, char *argv[] )
 
         if( strcmp( p, "none" ) == 0 )
         {
-            curve_list[0] = MBEDTLS_ECP_DP_NONE;
+            group_list[0] = 0;
         }
         else if( strcmp( p, "default" ) != 0 )
         {
@@ -1478,7 +1469,7 @@ int main( int argc, char *argv[] )
 
                 if( ( curve_cur = mbedtls_ecp_curve_info_from_name( q ) ) != NULL )
                 {
-                    curve_list[i++] = curve_cur->grp_id;
+                    group_list[i++] = curve_cur->tls_id;
                 }
                 else
                 {
@@ -1504,7 +1495,7 @@ int main( int argc, char *argv[] )
                 goto exit;
             }
 
-            curve_list[i] = MBEDTLS_ECP_DP_NONE;
+            group_list[i] = 0;
         }
     }
 #endif /* MBEDTLS_ECP_C */
@@ -1692,7 +1683,7 @@ int main( int argc, char *argv[] )
     if( opt.key_opaque != 0 )
     {
         if( ( ret = mbedtls_pk_wrap_as_opaque( &pkey, &key_slot,
-                                               PSA_ALG_SHA_256 ) ) != 0 )
+                                               PSA_ALG_ANY_HASH ) ) != 0 )
         {
             mbedtls_printf( " failed\n  !  "
                             "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n", (unsigned int)  -ret );
@@ -1898,7 +1889,7 @@ int main( int argc, char *argv[] )
     if( opt.curves != NULL &&
         strcmp( opt.curves, "default" ) != 0 )
     {
-        mbedtls_ssl_conf_curves( &conf, curve_list );
+        mbedtls_ssl_conf_groups( &conf, group_list );
     }
 #endif
 
@@ -1962,7 +1953,6 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
     if( opt.eap_tls != 0 )
     {
         mbedtls_ssl_set_export_keys_cb( &ssl, eap_tls_key_derivation,
@@ -1981,7 +1971,6 @@ int main( int argc, char *argv[] )
                                         &dtls_srtp_keying );
     }
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
-#endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     if( ( ret = mbedtls_ssl_set_hostname( &ssl, opt.server_name ) ) != 0 )
@@ -2169,7 +2158,6 @@ int main( int argc, char *argv[] )
     }
 #endif
 
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
     if( opt.eap_tls != 0  )
     {
         size_t j = 0;
@@ -2286,7 +2274,6 @@ int main( int argc, char *argv[] )
         }
     }
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
-#endif /* MBEDTLS_SSL_EXPORT_KEYS */
     if( opt.reconnect != 0 )
     {
         mbedtls_printf("  . Saving session for reuse..." );

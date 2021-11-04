@@ -155,8 +155,30 @@ def test_case_for_key_type_not_supported(
     tc.set_arguments([key_type] + list(args))
     return tc
 
+def test_case_for_key_type_invalid_argument(
+        verb: str, key_type: str, bits: int,
+        dependencies: List[str],
+        *args: str,
+        param_descr: str = ''
+) -> test_case.TestCase:
+    """Return one test case exercising a key creation method
+    for an invalid argument when key is public.
+    """
+    hack_dependencies_not_implemented(dependencies)
+    tc = test_case.TestCase()
+    short_key_type = re.sub(r'PSA_(KEY_TYPE|ECC_FAMILY)_', r'', key_type)
+    adverb = 'not' if dependencies else 'never'
+    if param_descr:
+        adverb = param_descr + ' ' + adverb
+    tc.set_description('PSA {} {} {}-bit invalid argument'
+                       .format(verb, short_key_type, bits))
+    tc.set_function(verb + '_invalid_argument')
+    tc.set_dependencies(dependencies)
+    tc.set_arguments([key_type] + list(args))
+    return tc
+
 class NotSupported:
-    """Generate test cases for when something is not supported."""
+    """Generate test cases for when something is not supported or argument is inavlid."""
 
     def __init__(self, info: Information) -> None:
         self.constructors = info.constructors
@@ -171,11 +193,13 @@ class NotSupported:
             param: Optional[int] = None,
             param_descr: str = '',
     ) -> Iterator[test_case.TestCase]:
-        """Return test cases exercising key creation when the given type is unsupported.
+        """Return test cases exercising key creation when the given type is unsupported
+        or argument is invalid.
 
         If param is present and not None, emit test cases conditioned on this
         parameter not being supported. If it is absent or None, emit test cases
-        conditioned on the base type not being supported.
+        conditioned on the base type not being supported. If key is public emit test
+        case for invalid argument.
         """
         if kt.name in self.ALWAYS_SUPPORTED:
             # Don't generate test cases for key types that are always supported.
@@ -203,12 +227,20 @@ class NotSupported:
                 # supported or not depending on implementation capabilities,
                 # only generate the test case once.
                 continue
-            yield test_case_for_key_type_not_supported(
-                'generate', kt.expression, bits,
-                finish_family_dependencies(generate_dependencies, bits),
-                str(bits),
-                param_descr=param_descr,
-            )
+            if kt.name.endswith('_PUBLIC_KEY'):
+                yield test_case_for_key_type_invalid_argument(
+                    'generate', kt.expression, bits,
+                    finish_family_dependencies(generate_dependencies, bits),
+                    str(bits),
+                    param_descr=param_descr,
+                )
+            else:
+                yield test_case_for_key_type_not_supported(
+                    'generate', kt.expression, bits,
+                    finish_family_dependencies(generate_dependencies, bits),
+                    str(bits),
+                    param_descr=param_descr,
+                )
             # To be added: derive
 
     ECC_KEY_TYPES = ('PSA_KEY_TYPE_ECC_KEY_PAIR',
@@ -228,7 +260,6 @@ class NotSupported:
                     kt, param_descr='type')
                 yield from self.test_cases_for_key_type_not_supported(
                     kt, 0, param_descr='curve')
-
 
 class StorageKey(psa_storage.Key):
     """Representation of a key for storage format testing."""
@@ -668,6 +699,10 @@ def main(args):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--list', action='store_true',
                         help='List available targets and exit')
+    parser.add_argument('--list-for-cmake', action='store_true',
+                        help='Print \';\'-separated list of available targets and exit')
+    parser.add_argument('--directory', metavar='DIR',
+                        help='Output directory (default: tests/suites)')
     parser.add_argument('targets', nargs='*', metavar='TARGET',
                         help='Target file to generate (default: all; "-": none)')
     options = parser.parse_args(args)
@@ -676,6 +711,11 @@ def main(args):
     if options.list:
         for name in sorted(generator.TARGETS):
             print(generator.filename_for(name))
+        return
+    # List in a cmake list format (i.e. ';'-separated)
+    if options.list_for_cmake:
+        print(';'.join(generator.filename_for(name)
+                       for name in sorted(generator.TARGETS)), end='')
         return
     if options.targets:
         # Allow "-" as a special case so you can run

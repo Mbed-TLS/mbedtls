@@ -3682,6 +3682,7 @@ psa_status_t psa_key_derivation_output_bytes(
  *   The following key types defined in this specification follow this scheme:
  *
  *     - #PSA_KEY_TYPE_AES;
+ *     - #PSA_KEY_TYPE_ARIA;
  *     - #PSA_KEY_TYPE_CAMELLIA;
  *     - #PSA_KEY_TYPE_DERIVE;
  *     - #PSA_KEY_TYPE_HMAC;

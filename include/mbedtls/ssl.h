@@ -21,6 +21,7 @@
  */
 #ifndef MBEDTLS_SSL_H
 #define MBEDTLS_SSL_H
+#include "mbedtls/platform_util.h"
 #include "mbedtls/private_access.h"
 
 #include "mbedtls/build_info.h"
@@ -168,6 +169,47 @@
 #define MBEDTLS_ERR_SSL_VERSION_MISMATCH                  -0x5F00
 /** Invalid value in SSL config */
 #define MBEDTLS_ERR_SSL_BAD_CONFIG                        -0x5E80
+
+/*
+ * TLS 1.3 NamedGroup values
+ *
+ * From RF 8446
+ *    enum {
+ *         // Elliptic Curve Groups (ECDHE)
+ *         secp256r1(0x0017), secp384r1(0x0018), secp521r1(0x0019),
+ *         x25519(0x001D), x448(0x001E),
+ *         // Finite Field Groups (DHE)
+ *         ffdhe2048(0x0100), ffdhe3072(0x0101), ffdhe4096(0x0102),
+ *         ffdhe6144(0x0103), ffdhe8192(0x0104),
+ *         // Reserved Code Points
+ *         ffdhe_private_use(0x01FC..0x01FF),
+ *         ecdhe_private_use(0xFE00..0xFEFF),
+ *         (0xFFFF)
+ *     } NamedGroup;
+ *
+ */
+
+/* Elliptic Curve Groups (ECDHE) */
+#define MBEDTLS_SSL_IANA_TLS_GROUP_NONE               0
+#define MBEDTLS_SSL_IANA_TLS_GROUP_SECP192K1     0x0012
+#define MBEDTLS_SSL_IANA_TLS_GROUP_SECP192R1     0x0013
+#define MBEDTLS_SSL_IANA_TLS_GROUP_SECP224K1     0x0014
+#define MBEDTLS_SSL_IANA_TLS_GROUP_SECP224R1     0x0015
+#define MBEDTLS_SSL_IANA_TLS_GROUP_SECP256K1     0x0016
+#define MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1     0x0017
+#define MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1     0x0018
+#define MBEDTLS_SSL_IANA_TLS_GROUP_SECP521R1     0x0019
+#define MBEDTLS_SSL_IANA_TLS_GROUP_BP256R1       0x001A
+#define MBEDTLS_SSL_IANA_TLS_GROUP_BP384R1       0x001B
+#define MBEDTLS_SSL_IANA_TLS_GROUP_BP512R1       0x001C
+#define MBEDTLS_SSL_IANA_TLS_GROUP_X25519        0x001D
+#define MBEDTLS_SSL_IANA_TLS_GROUP_X448          0x001E
+/* Finite Field Groups (DHE) */
+#define MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048     0x0100
+#define MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE3072     0x0101
+#define MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE4096     0x0102
+#define MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE6144     0x0103
+#define MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192     0x0104
 
 /*
  * TLS 1.3 Key Exchange Modes
@@ -455,6 +497,7 @@
 #define MBEDTLS_SSL_HS_SERVER_HELLO             2
 #define MBEDTLS_SSL_HS_HELLO_VERIFY_REQUEST     3
 #define MBEDTLS_SSL_HS_NEW_SESSION_TICKET       4
+#define MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS     8 // NEW IN TLS 1.3
 #define MBEDTLS_SSL_HS_CERTIFICATE             11
 #define MBEDTLS_SSL_HS_SERVER_KEY_EXCHANGE     12
 #define MBEDTLS_SSL_HS_CERTIFICATE_REQUEST     13
@@ -562,6 +605,9 @@ union mbedtls_ssl_premaster_secret
 
 #define MBEDTLS_PREMASTER_SIZE     sizeof( union mbedtls_ssl_premaster_secret )
 
+/* Length in number of bytes of the TLS sequence number */
+#define MBEDTLS_SSL_SEQUENCE_NUMBER_LEN 8
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -592,6 +638,7 @@ typedef enum
     MBEDTLS_SSL_SERVER_HELLO_VERIFY_REQUEST_SENT,
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
     MBEDTLS_SSL_ENCRYPTED_EXTENSIONS,
+    MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY,
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 }
 mbedtls_ssl_states;
@@ -1108,7 +1155,6 @@ typedef enum
 }
 mbedtls_tls_prf_types;
 
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
 typedef enum
 {
     MBEDTLS_SSL_KEY_EXPORT_TLS12_MASTER_SECRET = 0,
@@ -1144,7 +1190,6 @@ typedef void mbedtls_ssl_export_keys_t( void *p_expkey,
                                         const unsigned char client_random[32],
                                         const unsigned char server_random[32],
                                         mbedtls_tls_prf_types tls_prf_type );
-#endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 /**
  * SSL/TLS configuration to be shared between mbedtls_ssl_context structures.
@@ -1249,9 +1294,11 @@ struct mbedtls_ssl_config
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 #endif
 
-#if defined(MBEDTLS_ECP_C)
+#if defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_DEPRECATED_REMOVED)
     const mbedtls_ecp_group_id *MBEDTLS_PRIVATE(curve_list); /*!< allowed curves             */
 #endif
+
+    const uint16_t *MBEDTLS_PRIVATE(group_list);     /*!< allowed IANA NamedGroups */
 
 #if defined(MBEDTLS_DHM_C)
     mbedtls_mpi MBEDTLS_PRIVATE(dhm_P);              /*!< prime modulus for DHM              */
@@ -1495,6 +1542,19 @@ struct mbedtls_ssl_context
     int MBEDTLS_PRIVATE(keep_current_message);   /*!< drop or reuse current message
                                      on next call to record layer? */
 
+    /* The following three variables indicate if and, if yes,
+     * what kind of alert is pending to be sent.
+     */
+    unsigned char MBEDTLS_PRIVATE(send_alert);   /*!< Determines if a fatal alert
+                                                should be sent. Values:
+                                                - \c 0 , no alert is to be sent.
+                                                - \c 1 , alert is to be sent. */
+    unsigned char MBEDTLS_PRIVATE(alert_type);   /*!< Type of alert if send_alert
+                                                 != 0 */
+    int MBEDTLS_PRIVATE(alert_reason);           /*!< The error code to be returned
+                                                 to the user once the fatal alert
+                                                 has been sent. */
+
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     uint8_t MBEDTLS_PRIVATE(disable_datagram_packing);  /*!< Disable packing multiple records
                                         *   within a single datagram.  */
@@ -1521,7 +1581,7 @@ struct mbedtls_ssl_context
     size_t MBEDTLS_PRIVATE(out_buf_len);         /*!< length of output buffer          */
 #endif
 
-    unsigned char MBEDTLS_PRIVATE(cur_out_ctr)[8]; /*!<  Outgoing record sequence  number. */
+    unsigned char MBEDTLS_PRIVATE(cur_out_ctr)[MBEDTLS_SSL_SEQUENCE_NUMBER_LEN]; /*!<  Outgoing record sequence  number. */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     uint16_t MBEDTLS_PRIVATE(mtu);               /*!< path mtu, used to fragment outgoing messages */
@@ -1586,11 +1646,9 @@ struct mbedtls_ssl_context
                             *   and #MBEDTLS_SSL_CID_DISABLED. */
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
     /** Callback to export key block and master secret                      */
     mbedtls_ssl_export_keys_t *MBEDTLS_PRIVATE(f_export_keys);
     void *MBEDTLS_PRIVATE(p_export_keys);            /*!< context for key export callback    */
-#endif
 };
 
 /**
@@ -2163,7 +2221,6 @@ void mbedtls_ssl_conf_session_tickets_cb( mbedtls_ssl_config *conf,
         void *p_ticket );
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_SRV_C */
 
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
 /**
  * \brief   Configure a key export callback.
  *          (Default: none.)
@@ -2185,7 +2242,6 @@ void mbedtls_ssl_conf_session_tickets_cb( mbedtls_ssl_config *conf,
 void mbedtls_ssl_set_export_keys_cb( mbedtls_ssl_context *ssl,
                                      mbedtls_ssl_export_keys_t *f_export_keys,
                                      void *p_export_keys );
-#endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
 /**
@@ -3100,6 +3156,7 @@ void mbedtls_ssl_conf_dhm_min_bitlen( mbedtls_ssl_config *conf,
 #endif /* MBEDTLS_DHM_C && MBEDTLS_SSL_CLI_C */
 
 #if defined(MBEDTLS_ECP_C)
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /**
  * \brief          Set the allowed curves in order of preference.
  *
@@ -3112,6 +3169,8 @@ void mbedtls_ssl_conf_dhm_min_bitlen( mbedtls_ssl_config *conf,
  *
  *                 Both sides: limits the set of curves accepted for use in
  *                 ECDHE and in the peer's end-entity certificate.
+ *
+ * \deprecated     Superseeded by mbedtls_ssl_conf_groups().
  *
  * \note           This has no influence on which curves are allowed inside the
  *                 certificate chains, see \c mbedtls_ssl_conf_cert_profile()
@@ -3139,9 +3198,50 @@ void mbedtls_ssl_conf_dhm_min_bitlen( mbedtls_ssl_config *conf,
  * \param curves   Ordered list of allowed curves,
  *                 terminated by MBEDTLS_ECP_DP_NONE.
  */
-void mbedtls_ssl_conf_curves( mbedtls_ssl_config *conf,
-                              const mbedtls_ecp_group_id *curves );
+void MBEDTLS_DEPRECATED mbedtls_ssl_conf_curves( mbedtls_ssl_config *conf,
+                                                 const mbedtls_ecp_group_id *curves );
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_ECP_C */
+
+/**
+ * \brief          Set the allowed groups in order of preference.
+ *
+ *                 On server: This only affects the choice of key agreement mechanism
+ *
+ *                 On client: this affects the list of groups offered for any
+ *                 use. The server can override our preference order.
+ *
+ *                 Both sides: limits the set of groups accepted for use in
+ *                 key sharing.
+ *
+ * \note           This function replaces the deprecated mbedtls_ssl_conf_curves(),
+ *                 which only allows ECP curves to be configured.
+ *
+ * \note           The most recent invocation of either mbedtls_ssl_conf_curves()
+ *                 or mbedtls_ssl_conf_groups() nullifies all previous invocations
+ *                 of both.
+ *
+ * \note           This list should be ordered by decreasing preference
+ *                 (preferred group first).
+ *
+ * \note           When this function is not called, a default list is used,
+ *                 consisting of all supported curves at 255 bits and above,
+ *                 and all supported finite fields at 2048 bits and above.
+ *                 The order favors groups with the lowest resource usage.
+ *
+ * \note           New minor versions of Mbed TLS will not remove items
+ *                 from the default list unless serious security concerns require it.
+ *                 New minor versions of Mbed TLS may change the order in
+ *                 keeping with the general principle of favoring the lowest
+ *                 resource usage.
+ *
+ * \param conf     SSL configuration
+ * \param groups   List of allowed groups ordered by preference, terminated by 0.
+ *                 Must contain valid IANA NamedGroup IDs (provided via either an integer
+ *                 or using MBEDTLS_TLS13_NAMED_GROUP_XXX macros).
+ */
+void mbedtls_ssl_conf_groups( mbedtls_ssl_config *conf,
+                              const uint16_t *groups );
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 /**

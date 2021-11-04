@@ -43,18 +43,30 @@ extern "C" {
 /**
  * Certificate revocation list entry.
  * Contains the CA-specific serial numbers and revocation dates.
+ *
+ * Some fields of this structure are publicly readable. Do not modify
+ * them except via Mbed TLS library functions: the effect of modifying
+ * those fields or the data that those fields points to is unspecified.
  */
 typedef struct mbedtls_x509_crl_entry
 {
-    mbedtls_x509_buf MBEDTLS_PRIVATE(raw);
+    /** Direct access to the whole entry inside the containing buffer. */
+    mbedtls_x509_buf raw;
+    /** The serial number of the revoked certificate. */
+    mbedtls_x509_buf serial;
+    /** The revocation date of this entry. */
+    mbedtls_x509_time revocation_date;
+    /** Direct access to the list of CRL entry extensions
+     * (an ASN.1 constructed sequence).
+     *
+     * If there are no extensions, `entry_ext.len == 0` and
+     * `entry_ext.p == NULL`. */
+    mbedtls_x509_buf entry_ext;
 
-    mbedtls_x509_buf MBEDTLS_PRIVATE(serial);
-
-    mbedtls_x509_time MBEDTLS_PRIVATE(revocation_date);
-
-    mbedtls_x509_buf MBEDTLS_PRIVATE(entry_ext);
-
-    struct mbedtls_x509_crl_entry *MBEDTLS_PRIVATE(next);
+    /** Next element in the linked list of entries.
+     * \p NULL indicates the end of the list.
+     * Do not modify this field directly. */
+    struct mbedtls_x509_crl_entry *next;
 }
 mbedtls_x509_crl_entry;
 
@@ -64,22 +76,22 @@ mbedtls_x509_crl_entry;
  */
 typedef struct mbedtls_x509_crl
 {
-    mbedtls_x509_buf MBEDTLS_PRIVATE(raw);           /**< The raw certificate data (DER). */
-    mbedtls_x509_buf MBEDTLS_PRIVATE(tbs);           /**< The raw certificate body (DER). The part that is To Be Signed. */
+    mbedtls_x509_buf raw;           /**< The raw certificate data (DER). */
+    mbedtls_x509_buf tbs;           /**< The raw certificate body (DER). The part that is To Be Signed. */
 
-    int MBEDTLS_PRIVATE(version);            /**< CRL version (1=v1, 2=v2) */
-    mbedtls_x509_buf MBEDTLS_PRIVATE(sig_oid);       /**< CRL signature type identifier */
+    int version;            /**< CRL version (1=v1, 2=v2) */
+    mbedtls_x509_buf sig_oid;       /**< CRL signature type identifier */
 
-    mbedtls_x509_buf MBEDTLS_PRIVATE(issuer_raw);    /**< The raw issuer data (DER). */
+    mbedtls_x509_buf issuer_raw;    /**< The raw issuer data (DER). */
 
-    mbedtls_x509_name MBEDTLS_PRIVATE(issuer);       /**< The parsed issuer data (named information object). */
+    mbedtls_x509_name issuer;       /**< The parsed issuer data (named information object). */
 
-    mbedtls_x509_time MBEDTLS_PRIVATE(this_update);
-    mbedtls_x509_time MBEDTLS_PRIVATE(next_update);
+    mbedtls_x509_time this_update;
+    mbedtls_x509_time next_update;
 
-    mbedtls_x509_crl_entry MBEDTLS_PRIVATE(entry);   /**< The CRL entries containing the certificate revocation times for this CA. */
+    mbedtls_x509_crl_entry entry;   /**< The CRL entries containing the certificate revocation times for this CA. */
 
-    mbedtls_x509_buf MBEDTLS_PRIVATE(crl_ext);
+    mbedtls_x509_buf crl_ext;
 
     mbedtls_x509_buf MBEDTLS_PRIVATE(sig_oid2);
     mbedtls_x509_buf MBEDTLS_PRIVATE(sig);
@@ -87,7 +99,10 @@ typedef struct mbedtls_x509_crl
     mbedtls_pk_type_t MBEDTLS_PRIVATE(sig_pk);           /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. MBEDTLS_PK_RSA */
     void *MBEDTLS_PRIVATE(sig_opts);             /**< Signature options to be passed to mbedtls_pk_verify_ext(), e.g. for RSASSA-PSS */
 
-    struct mbedtls_x509_crl *MBEDTLS_PRIVATE(next);
+    /** Next element in the linked list of CRL.
+     * \p NULL indicates the end of the list.
+     * Do not modify this field directly. */
+    struct mbedtls_x509_crl *next;
 }
 mbedtls_x509_crl;
 

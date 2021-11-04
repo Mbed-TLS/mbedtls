@@ -27,7 +27,8 @@ if(TEST_CPP)
     target_link_libraries(cpp_dummy_build ${mbedcrypto_target})
 endif()
 
-if(USE_SHARED_MBEDTLS_LIBRARY)
+if(USE_SHARED_MBEDTLS_LIBRARY AND
+   NOT ${CMAKE_SYSTEM_NAME} MATCHES "[Ww][Ii][Nn]")
     add_executable(dlopen "dlopen.c")
     target_include_directories(dlopen PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../include)
     if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")

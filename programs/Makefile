@@ -61,6 +61,18 @@ else
 PYTHON ?= $(shell if type python3 >/dev/null 2>/dev/null; then echo python3; else echo python; fi)
 endif
 
+# Only build the dlopen test in shared library builds, and not when building
+# for Windows.
+ifdef BUILD_DLOPEN
+# Don't override the value
+else ifdef WINDOWS_BUILD
+BUILD_DLOPEN =
+else ifdef SHARED
+BUILD_DLOPEN = y
+else
+BUILD_DLOPEN =
+endif
+
 ## The following assignment is the list of base names of applications that
 ## will be built on Windows. Extra Linux/Unix/POSIX-only applications can
 ## be declared by appending with `APPS += ...` afterwards.
@@ -124,7 +136,7 @@ ifdef PTHREAD
 APPS +=	ssl/ssl_pthread_server
 endif
 
-ifdef SHARED
+ifdef BUILD_DLOPEN
 APPS +=	test/dlopen
 endif
 
@@ -354,7 +366,7 @@ test/cpp_dummy_build$(EXEXT): test/cpp_dummy_build.cpp $(DEP)
 	echo "  CXX   test/cpp_dummy_build.cpp"
 	$(CXX) $(LOCAL_CXXFLAGS) $(CXXFLAGS) test/cpp_dummy_build.cpp   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-ifdef SHARED
+ifdef BUILD_DLOPEN
 test/dlopen$(EXEXT): test/dlopen.c $(DEP)
 	echo "  CC    test/dlopen.c"
 # Do not link any test objects (that would bring in a static dependency on

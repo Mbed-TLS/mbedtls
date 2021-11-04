@@ -61,6 +61,18 @@ ifdef ZLIB
 LOCAL_LDFLAGS += -lz
 endif
 
+# Only build the dlopen test in shared library builds, and not when building
+# for Windows.
+ifdef BUILD_DLOPEN
+# Don't override the value
+else ifdef WINDOWS_BUILD
+BUILD_DLOPEN =
+else ifdef SHARED
+BUILD_DLOPEN = y
+else
+BUILD_DLOPEN =
+endif
+
 APPS = \
 	aes/crypt_and_hash$(EXEXT) \
 	hash/generic_sum$(EXEXT) \
@@ -120,7 +132,7 @@ ifdef PTHREAD
 APPS +=	ssl/ssl_pthread_server$(EXEXT)
 endif
 
-ifdef SHARED
+ifdef BUILD_DLOPEN
 APPS +=	test/dlopen
 endif
 
@@ -328,7 +340,7 @@ test/cpp_dummy_build$(EXEXT): test/cpp_dummy_build.cpp $(DEP)
 	echo "  CXX   test/cpp_dummy_build.cpp"
 	$(CXX) $(LOCAL_CXXFLAGS) $(CXXFLAGS) test/cpp_dummy_build.cpp   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-ifdef SHARED
+ifdef BUILD_DLOPEN
 test/dlopen$(EXEXT): test/dlopen.c $(DEP)
 	echo "  CC    test/dlopen.c"
 # Do not link any test objects (that would bring in a static dependency on

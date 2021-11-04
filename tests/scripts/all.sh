@@ -2423,6 +2423,7 @@ component_test_make_shared () {
     msg "build/test: make shared" # ~ 40s
     make SHARED=1 all check
     ldd programs/util/strerror | grep libmbedcrypto
+    programs/test/dlopen_demo.sh
 }
 
 component_test_cmake_shared () {
@@ -2431,6 +2432,7 @@ component_test_cmake_shared () {
     make
     ldd programs/util/strerror | grep libmbedcrypto
     make test
+    programs/test/dlopen_demo.sh
 }
 
 test_build_opt () {

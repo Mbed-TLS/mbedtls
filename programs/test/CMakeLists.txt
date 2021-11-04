@@ -35,6 +35,12 @@ if(TEST_CPP)
     target_link_libraries(cpp_dummy_build ${mbedcrypto_target})
 endif()
 
+if(USE_SHARED_MBEDTLS_LIBRARY)
+    add_executable(dlopen "dlopen.c")
+    target_include_directories(dlopen PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../include)
+    target_link_libraries(dlopen "-ldl")
+endif()
+
 foreach(exe IN LISTS executables_libs executables_mbedcrypto)
     set(extra_sources "")
     if(exe STREQUAL "query_compile_time_config")

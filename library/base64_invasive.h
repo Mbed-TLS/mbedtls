@@ -52,4 +52,4 @@ unsigned char mbedtls_base64_enc_char( unsigned char val );
 signed char mbedtls_base64_dec_value( unsigned char c );
 #endif /* MBEDTLS_TEST_HOOKS */
 
-#endif /* MBEDTLS_SSL_INVASIVE_H */
+#endif /* MBEDTLS_BASE64_INVASIVE_H */

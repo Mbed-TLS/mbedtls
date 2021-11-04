@@ -41,7 +41,7 @@ massif-*
 # Generated documentation:
 /apidoc
 
-# PSA Crypto compliance test repo, cloned by test_psa_complaince.py
+# PSA Crypto compliance test repo, cloned by test_psa_compliance.py
 /psa-arch-tests
 
 # Editor navigation files:

@@ -1037,6 +1037,13 @@ void mbedtls_ssl_set_inbound_transform( mbedtls_ssl_context *ssl,
 void mbedtls_ssl_set_outbound_transform( mbedtls_ssl_context *ssl,
                                          mbedtls_ssl_transform *transform );
 
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+int mbedtls_ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
+                                    unsigned char *buf,
+                                    const unsigned char *end,
+                                    size_t *olen );
+#endif
+
 int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl );

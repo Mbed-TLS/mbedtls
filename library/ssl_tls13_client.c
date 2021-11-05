@@ -798,6 +798,14 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
 
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    /* Write server name extention */
+    ret = mbedtls_ssl_write_hostname_ext( ssl, p, end, &output_len );
+    if( ret != 0 )
+        return( ret );
+    p += output_len;
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
+
     /* Add more extensions here */
 
     /* Write the length of the list of extensions. */

@@ -156,6 +156,15 @@ static int ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
 
     return( 0 );
 }
+
+int mbedtls_ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
+                                    unsigned char *buf,
+                                    const unsigned char *end,
+                                    size_t *olen )
+{
+    return ssl_write_hostname_ext( ssl, buf, end, olen );
+}
+
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)

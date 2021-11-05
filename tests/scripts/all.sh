@@ -2571,6 +2571,9 @@ component_test_tls13_experimental () {
     make test
     msg "ssl-opt.sh (TLS 1.3 experimental)"
     if_build_succeeded tests/ssl-opt.sh
+
+    msg "compat-tls13.sh (TLS 1.3 experimental)"
+    if_build_succeeded tests/compat-tls13.sh
 }
 
 component_test_tls13_experimental_with_padding () {

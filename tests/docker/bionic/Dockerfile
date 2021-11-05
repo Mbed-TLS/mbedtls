@@ -163,4 +163,4 @@ ENV GNUTLS_NEXT_SERV=/usr/local/gnutls-3.7.2/bin/gnutls-serv
 
 RUN pip3 install --no-cache-dir \
     mbed-host-tests \
-    mock
+    mock psutil

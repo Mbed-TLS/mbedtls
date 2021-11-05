@@ -8833,7 +8833,9 @@ run_test    "TLS1.3: Test client hello msg work - openssl" \
             -c "=> ssl_tls1_3_process_server_hello" \
             -c "<= parse encrypted extensions"      \
             -c "Certificate verification flags clear" \
-            -c "<= parse certificate verify"
+            -c "=> parse certificate verify"          \
+            -c "<= parse certificate verify"          \
+            -c "mbedtls_ssl_tls13_process_certificate_verify() returned 0"
 
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -8864,7 +8866,9 @@ run_test    "TLS1.3: Test client hello msg work - gnutls" \
             -c "=> ssl_tls1_3_process_server_hello" \
             -c "<= parse encrypted extensions"      \
             -c "Certificate verification flags clear" \
-            -c "<= parse certificate verify"
+            -c "=> parse certificate verify"          \
+            -c "<= parse certificate verify"          \
+            -c "mbedtls_ssl_tls13_process_certificate_verify() returned 0"
 
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_MEMORY_DEBUG

@@ -852,7 +852,7 @@ cleanup:
  */
 
 static int ssl_tls13_preprocess_finished_in( mbedtls_ssl_context *ssl );
-static int ssl_tls13_postprocess_finished_in( mbedtls_ssl_context *ssl );
+static int ssl_tls13_finalize_finished_in( mbedtls_ssl_context *ssl );
 static int ssl_tls13_parse_finished_in( mbedtls_ssl_context *ssl,
                                         const unsigned char *buf,
                                         size_t buflen );
@@ -867,7 +867,7 @@ int mbedtls_ssl_tls13_process_finished_in( mbedtls_ssl_context *ssl )
     unsigned char *buf;
     size_t buflen;
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse server finished_in_process" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse finished_in" ) );
 
     /* Preprocessing step: Compute handshake digest */
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_preprocess_finished_in( ssl ) );
@@ -878,11 +878,11 @@ int mbedtls_ssl_tls13_process_finished_in( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_parse_finished_in( ssl, buf, buflen ) );
     mbedtls_ssl_tls1_3_add_hs_msg_to_checksum(
         ssl, MBEDTLS_SSL_HS_FINISHED, buf, buflen );
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_postprocess_finished_in( ssl ) );
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_finished_in( ssl ) );
 
 cleanup:
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse server finished_in_process" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse finished_in" ) );
     return( ret );
 }
 
@@ -938,7 +938,7 @@ static int ssl_tls13_parse_finished_in( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
-static int ssl_tls13_postprocess_finished_in_cli( mbedtls_ssl_context *ssl )
+static int ssl_tls13_finalize_finished_in_cli( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
     mbedtls_ssl_key_set traffic_keys;
@@ -996,12 +996,12 @@ cleanup:
     return( ret );
 }
 
-static int ssl_tls13_postprocess_finished_in( mbedtls_ssl_context* ssl )
+static int ssl_tls13_finalize_finished_in( mbedtls_ssl_context* ssl )
 {
 
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
-        return( ssl_tls13_postprocess_finished_in_cli( ssl ) );
+        return( ssl_tls13_finalize_finished_in_cli( ssl ) );
     }
 
     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );

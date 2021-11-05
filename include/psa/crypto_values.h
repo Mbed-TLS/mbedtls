@@ -847,6 +847,9 @@
     (PSA_ALG_IS_KEY_DERIVATION(alg) &&              \
      (alg) & PSA_ALG_KEY_DERIVATION_STRETCHING_FLAG)
 
+/** An invalid algorithm identifier value. */
+#define PSA_ALG_NONE                            ((psa_algorithm_t)0)
+
 #define PSA_ALG_HASH_MASK                       ((psa_algorithm_t)0x000000ff)
 /** MD5 */
 #define PSA_ALG_MD5                             ((psa_algorithm_t)0x02000003)
@@ -1589,20 +1592,24 @@
  * file. */
 #define PSA_ALG_IS_VENDOR_HASH_AND_SIGN(alg) 0
 
-/** Whether the specified algorithm is a hash-and-sign algorithm.
+/** Whether the specified algorithm is a signature algorithm that can be used
+ * with psa_sign_hash() and psa_verify_hash().
  *
- * Hash-and-sign algorithms are asymmetric (public-key) signature algorithms
- * structured in two parts: first the calculation of a hash in a way that
- * does not depend on the key, then the calculation of a signature from the
- * hash value and the key.
+ * This encompasses all strict hash-and-sign algorithms categorized by
+ * PSA_ALG_IS_HASH_AND_SIGN(), as well as algorithms that follow the
+ * paradigm more loosely:
+ * - #PSA_ALG_RSA_PKCS1V15_SIGN_RAW (expects its input to be an encoded hash)
+ * - #PSA_ALG_ECDSA_ANY (doesn't specify what kind of hash the input is)
  *
- * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ * \param alg An algorithm identifier (value of type psa_algorithm_t).
  *
- * \return 1 if \p alg is a hash-and-sign algorithm, 0 otherwise.
- *         This macro may return either 0 or 1 if \p alg is not a supported
- *         algorithm identifier.
+ * \return 1 if alg is a signature algorithm that can be used to sign a
+ *         hash. 0 if alg is a signature algorithm that can only be used
+ *         to sign a message. 0 if alg is not a signature algorithm.
+ *         This macro can return either 0 or 1 if alg is not a
+ *         supported algorithm identifier.
  */
-#define PSA_ALG_IS_HASH_AND_SIGN(alg)                                   \
+#define PSA_ALG_IS_SIGN_HASH(alg)                                       \
     (PSA_ALG_IS_RSA_PSS(alg) || PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg) ||    \
      PSA_ALG_IS_ECDSA(alg) || PSA_ALG_IS_HASH_EDDSA(alg) ||             \
      PSA_ALG_IS_VENDOR_HASH_AND_SIGN(alg))
@@ -1619,7 +1626,37 @@
  *         supported algorithm identifier.
  */
 #define PSA_ALG_IS_SIGN_MESSAGE(alg)                                    \
-    (PSA_ALG_IS_HASH_AND_SIGN(alg) || (alg) == PSA_ALG_PURE_EDDSA )
+    (PSA_ALG_IS_SIGN_HASH(alg) || (alg) == PSA_ALG_PURE_EDDSA )
+
+/** Whether the specified algorithm is a hash-and-sign algorithm.
+ *
+ * Hash-and-sign algorithms are asymmetric (public-key) signature algorithms
+ * structured in two parts: first the calculation of a hash in a way that
+ * does not depend on the key, then the calculation of a signature from the
+ * hash value and the key. Hash-and-sign algorithms encode the hash
+ * used for the hashing step, and you can call #PSA_ALG_SIGN_GET_HASH
+ * to extract this algorithm.
+ *
+ * Thus, for a hash-and-sign algorithm,
+ * `psa_sign_message(key, alg, input, ...)` is equivalent to
+ * ```
+ * psa_hash_compute(PSA_ALG_SIGN_GET_HASH(alg), input, ..., hash, ...);
+ * psa_sign_hash(key, alg, hash, ..., signature, ...);
+ * ```
+ * Most usefully, separating the hash from the signature allows the hash
+ * to be calculated in multiple steps with psa_hash_setup(), psa_hash_update()
+ * and psa_hash_finish(). Likewise psa_verify_message() is equivalent to
+ * calculating the hash and then calling psa_verify_hash().
+ *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
+ * \return 1 if \p alg is a hash-and-sign algorithm, 0 otherwise.
+ *         This macro may return either 0 or 1 if \p alg is not a supported
+ *         algorithm identifier.
+ */
+#define PSA_ALG_IS_HASH_AND_SIGN(alg)                                   \
+    (PSA_ALG_IS_SIGN_HASH(alg) &&                                       \
+     ((alg) & PSA_ALG_HASH_MASK) != 0)
 
 /** Get the hash used by a hash-and-sign signature algorithm.
  *
@@ -1641,7 +1678,6 @@
  */
 #define PSA_ALG_SIGN_GET_HASH(alg)                                     \
     (PSA_ALG_IS_HASH_AND_SIGN(alg) ?                                   \
-     ((alg) & PSA_ALG_HASH_MASK) == 0 ? /*"raw" algorithm*/ 0 :        \
      ((alg) & PSA_ALG_HASH_MASK) | PSA_ALG_CATEGORY_HASH :             \
      0)
 
@@ -2132,6 +2168,9 @@
 
 #define PSA_KEY_LOCATION_VENDOR_FLAG            ((psa_key_location_t)0x800000)
 
+/** The null key identifier.
+ */
+#define PSA_KEY_ID_NULL                         ((psa_key_id_t)0)
 /** The minimum value for a key identifier chosen by the application.
  */
 #define PSA_KEY_ID_USER_MIN                     ((psa_key_id_t)0x00000001)

@@ -1422,7 +1422,7 @@ void asymmetric_signature_key_policy( int policy_usage_arg,
     else
         TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
 
-    if( PSA_ALG_IS_HASH_AND_SIGN( exercise_alg ) &&
+    if( PSA_ALG_IS_SIGN_HASH( exercise_alg ) &&
         PSA_ALG_IS_HASH( PSA_ALG_SIGN_GET_HASH( exercise_alg ) ) )
     {
         status = psa_sign_message( key, exercise_alg,

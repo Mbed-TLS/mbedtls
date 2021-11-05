@@ -623,8 +623,8 @@ static psa_algorithm_t psa_key_policy_algorithm_intersection(
         return( alg1 );
     /* If the policies are from the same hash-and-sign family, check
      * if one is a wildcard. If so the other has the specific algorithm. */
-    if( PSA_ALG_IS_HASH_AND_SIGN( alg1 ) &&
-        PSA_ALG_IS_HASH_AND_SIGN( alg2 ) &&
+    if( PSA_ALG_IS_SIGN_HASH( alg1 ) &&
+        PSA_ALG_IS_SIGN_HASH( alg2 ) &&
         ( alg1 & ~PSA_ALG_HASH_MASK ) == ( alg2 & ~PSA_ALG_HASH_MASK ) )
     {
         if( PSA_ALG_SIGN_GET_HASH( alg1 ) == PSA_ALG_ANY_HASH )
@@ -726,7 +726,7 @@ static int psa_key_algorithm_permits( psa_key_type_t key_type,
     /* If policy_alg is a hash-and-sign with a wildcard for the hash,
      * and requested_alg is the same hash-and-sign family with any hash,
      * then requested_alg is compliant with policy_alg. */
-    if( PSA_ALG_IS_HASH_AND_SIGN( requested_alg ) &&
+    if( PSA_ALG_IS_SIGN_HASH( requested_alg ) &&
         PSA_ALG_SIGN_GET_HASH( policy_alg ) == PSA_ALG_ANY_HASH )
     {
         return( ( policy_alg & ~PSA_ALG_HASH_MASK ) ==
@@ -2644,7 +2644,7 @@ static psa_status_t psa_sign_verify_check_alg( int input_is_message,
         if( ! PSA_ALG_IS_SIGN_MESSAGE( alg ) )
             return( PSA_ERROR_INVALID_ARGUMENT );
 
-        if ( PSA_ALG_IS_HASH_AND_SIGN( alg ) )
+        if ( PSA_ALG_IS_SIGN_HASH( alg ) )
         {
             if( ! PSA_ALG_IS_HASH( PSA_ALG_SIGN_GET_HASH( alg ) ) )
                 return( PSA_ERROR_INVALID_ARGUMENT );
@@ -2652,7 +2652,7 @@ static psa_status_t psa_sign_verify_check_alg( int input_is_message,
     }
     else
     {
-        if( ! PSA_ALG_IS_HASH_AND_SIGN( alg ) )
+        if( ! PSA_ALG_IS_SIGN_HASH( alg ) )
             return( PSA_ERROR_INVALID_ARGUMENT );
     }
 
@@ -2802,7 +2802,7 @@ psa_status_t psa_sign_message_builtin(
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    if ( PSA_ALG_IS_HASH_AND_SIGN( alg ) )
+    if ( PSA_ALG_IS_SIGN_HASH( alg ) )
     {
         size_t hash_length;
         uint8_t hash[PSA_HASH_MAX_SIZE];
@@ -2849,7 +2849,7 @@ psa_status_t psa_verify_message_builtin(
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    if ( PSA_ALG_IS_HASH_AND_SIGN( alg ) )
+    if ( PSA_ALG_IS_SIGN_HASH( alg ) )
     {
         size_t hash_length;
         uint8_t hash[PSA_HASH_MAX_SIZE];

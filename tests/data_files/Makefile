@@ -1087,6 +1087,43 @@ cert_md5.crt: cert_md5.csr
 	$(MBEDTLS_CERT_WRITE) request_file=$< serial=6 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20000101121212 not_after=20300101121212 md=MD5 version=3 output_file=$@
 all_final += cert_md5.crt
 
+# TLSv1.3 test certificates
+ecdsa_secp256r1_sha256.key: ec_256_prv.pem
+	ln -s $< $@
+ecdsa_secp256r1_sha256.csr: ecdsa_secp256r1_sha256.key
+	$(OPENSSL) req -new -subj "/C=NL/O=PolarSSL/CN=localhost" \
+					-key $< -out $@
+all_intermediate += ecdsa_secp256r1_sha256.csr
+ecdsa_secp256r1_sha256.crt: ecdsa_secp256r1_sha256.csr
+	$(OPENSSL) x509 -req -CA $(test_ca_crt_file_ec) -CAkey $(test_ca_key_file_ec) \
+				-set_serial 77 -days 3653 -sha256 -in $< -out $@
+all_final += ecdsa_secp256r1_sha256.crt ecdsa_secp256r1_sha256.key
+tls13_certs: ecdsa_secp256r1_sha256.crt ecdsa_secp256r1_sha256.key
+
+ecdsa_secp384r1_sha384.key: ec_384_prv.pem
+	ln -s $< $@
+ecdsa_secp384r1_sha384.csr: ecdsa_secp384r1_sha384.key
+	$(OPENSSL) req -new -subj "/C=NL/O=PolarSSL/CN=localhost" \
+					-key $< -out $@
+all_intermediate += ecdsa_secp384r1_sha384.csr
+ecdsa_secp384r1_sha384.crt: ecdsa_secp384r1_sha384.csr
+	$(OPENSSL) x509 -req -CA $(test_ca_crt_file_ec) -CAkey $(test_ca_key_file_ec) \
+				-set_serial 77 -days 3653 -sha384 -in $< -out $@
+all_final += ecdsa_secp384r1_sha384.crt ecdsa_secp384r1_sha384.key
+tls13_certs: ecdsa_secp384r1_sha384.crt ecdsa_secp384r1_sha384.key
+
+ecdsa_secp521r1_sha512.key: ec_521_prv.pem
+	ln -s $< $@
+ecdsa_secp521r1_sha512.csr: ecdsa_secp521r1_sha512.key
+	$(OPENSSL) req -new -subj "/C=NL/O=PolarSSL/CN=localhost" \
+					-key $< -out $@
+all_intermediate += ecdsa_secp521r1_sha512.csr
+ecdsa_secp521r1_sha512.crt: ecdsa_secp521r1_sha512.csr
+	$(OPENSSL) x509 -req -CA $(test_ca_crt_file_ec) -CAkey $(test_ca_key_file_ec) \
+				-set_serial 77 -days 3653 -sha512 -in $< -out $@
+all_final += ecdsa_secp521r1_sha512.crt ecdsa_secp521r1_sha512.key
+tls13_certs: ecdsa_secp521r1_sha512.crt ecdsa_secp521r1_sha512.key
+
 ################################################################
 #### Diffie-Hellman parameters
 ################################################################

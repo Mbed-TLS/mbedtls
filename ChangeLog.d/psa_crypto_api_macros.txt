@@ -1,0 +1,11 @@
+Features
+   * Add missing PSA macros declared by PSA Crypto API 1.0.0:
+     PSA_ALG_IS_SIGN_HASH, PSA_ALG_NONE, PSA_HASH_BLOCK_LENGTH, PSA_KEY_ID_NULL.
+
+Bugfix
+   * The existing predicate macro name PSA_ALG_IS_HASH_AND_SIGN is now reserved
+     for algorithm values that fully encode the hashing step, as per the PSA
+     Crypto API specification. This excludes PSA_ALG_RSA_PKCS1V15_SIGN_RAW and
+     PSA_ALG_ECDSA_ANY. The new predicate macro PSA_ALG_IS_SIGN_HASH covers
+     all algorithms that can be used with psa_{sign,verify}_hash(), including
+     these two.

@@ -1,0 +1,3 @@
+Bugfix
+   * Fix issue in Makefile on Linux with SHARED=1, that caused shared libraries
+     not to list other shared libraries they need.

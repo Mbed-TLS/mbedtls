@@ -508,6 +508,41 @@ static inline const char *mbedtls_cipher_info_get_name(
 }
 
 /**
+ * \brief       This function returns the size of the IV or nonce
+ *              for the cipher info structure, in bytes.
+ *
+ * \param info  The cipher info structure. This may be \c NULL.
+ *
+ * \return      The recommended IV size.
+ * \return      \c 0 for ciphers not using an IV or a nonce.
+ */
+static inline int mbedtls_cipher_info_get_iv_size(
+    const mbedtls_cipher_info_t *info )
+{
+    if( info == NULL )
+        return( 0 );
+
+    return( (int) info->MBEDTLS_PRIVATE(iv_size) );
+}
+
+/**
+ * \brief        This function returns the block size of the given
+ *               cipher info structure.
+ *
+ * \param info   The cipher info structure. This may be \c NULL.
+ *
+ * \return       The block size of the cipher.
+ */
+static inline unsigned int mbedtls_cipher_info_get_block_size(
+    const mbedtls_cipher_info_t *info )
+{
+    if( info == NULL )
+        return( 0 );
+
+    return( info->MBEDTLS_PRIVATE(block_size) );
+}
+
+/**
  * \brief               This function initializes a \p cipher_context as NONE.
  *
  * \param ctx           The context to be initialized. This must not be \c NULL.

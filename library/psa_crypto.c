@@ -103,9 +103,9 @@ static int key_type_is_raw_bytes( psa_key_type_t type )
 
 typedef struct
 {
-    mbedtls_psa_random_context_t rng;
     unsigned initialized : 1;
     unsigned rng_state : 2;
+    mbedtls_psa_random_context_t rng;
 } psa_global_data_t;
 
 static psa_global_data_t global_data;

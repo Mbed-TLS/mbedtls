@@ -56,7 +56,50 @@ The following functions modify a slot's usage state:
 * `psa_close_key`: reads `slot->lock_count`; calls `psa_get_and_lock_key_slot_in_memory`, `psa_wipe_key_slot` and `psa_unlock_key_slot`.
 * `psa_purge_key`: reads `slot->lock_count`; calls `psa_get_and_lock_key_slot_in_memory`, `psa_wipe_key_slot` and `psa_unlock_key_slot`.
 
-TODO: modification of `slot->attr.id`, `slot->attr.type`.
+**slot->attr access:**
+`psa_crypto_core.h`:
+* `psa_key_slot_set_flags` - writes to attr.flags
+* `psa_key_slot_set_bits_in_flags` - writes to attr.flags
+* `psa_key_slot_clear_bits` - writes to attr.flags
+* `psa_is_key_slot_occupied` - reads attr.type
+* `psa_key_slot_get_flags` - reads attr.flags
+
+`psa_crypto_slot_management.c`:
+* `psa_get_and_lock_key_slot_in_memory` - reads attr.id
+* `psa_get_empty_key_slot` - reads attr.lifetime
+* `psa_load_persistent_key_into_slot` - passes attr pointer to psa_load_persistent_key
+* `psa_load_persistent_key` - reads attr.id and passes pointer to psa_parse_key_data_from_storage
+* `psa_parse_key_data_from_storage` - writes to many attributes
+* `psa_get_and_lock_key_slot` - writes to attr.id, attr.lifetime, and attr.policy.usage
+* `psa_purge_key` - reads attr.lifetime, calls psa_wipe_key_slot
+* `mbedtls_psa_get_stats` - reads attr.lifetime, attr.id
+
+`psa_crypto.c`:
+* `psa_get_and_lock_key_slot_with_policy` - reads attr.type, attr.policy.
+* `psa_get_and_lock_transparent_key_slot_with_policy` - reads attr.lifetime
+* `psa_destroy_key` - reads attr.lifetime, attr.id
+* `psa_get_key_attributes` - copies all publicly available attributes of a key
+* `psa_export_key` - copies attributes
+* `psa_export_public_key` - reads attr.type, copies attributes
+* `psa_start_key_creation` - writes to the whole attr structure 
+* `psa_validate_optional_attributes` - reads attr.type, attr.bits
+* `psa_import_key` - reads attr.bits
+* `psa_copy_key` - reads attr.bits, attr.type, attr.lifetime, attr.policy
+* `psa_mac_setup` - copies whole attr structure
+* `psa_mac_compute_internal` - copies whole attr structure
+* `psa_verify_internal` - copies whole attr structure
+* `psa_sign_internal` - copies whole attr structure, reads attr.type
+* `psa_assymmetric_encrypt` - reads attr.type
+* `psa_assymetric_decrypt` - reads attr.type
+* `psa_cipher_setup` - copies whole attr structure, reads attr.type
+* `psa_cipher_encrypt` - copies whole attr structure, reads attr.type
+* `psa_cipher_decrypt` - copies whole attr structure, reads attr.type
+* `psa_aead_encrypt` - copies whole attr structure
+* `psa_aead_decrypt` - copies whole attr structure
+* `psa_aead_setup` - copies whole attr structure
+* `psa_generate_derived_key_internal` - reads attr.type, writes to and reads from attr.bits, copies whole attr structure
+* `psa_key_derivation_input_key` - reads attr.type
+* `psa_key_agreement_raw_internal` - reads attr.type and attr.bits
 
 TODO: change `psa_is_key_slot_occupied` to checking the id?
 
@@ -67,6 +110,34 @@ Other than what is used to determine the [“key slot state”](#key-slot-state)
 * Modification during key creation (between `psa_start_key_creation` and `psa_finish_key_creation` or `psa_fail_key_creation`).
 * Destruction in `psa_wipe_key_slot`.
 * Read in many functions, between calls to `psa_lock_key_slot` and `psa_unlock_key_slot`.
+
+**slot->key access:** 
+* `psa_allocate_buffer_to_slot` - allocates key.data, sets key.bytes;
+* `psa_copy_key_material_into_slot` - writes to key.data
+* `psa_remove_key_data_from_memory` - writes and reads to/from key data
+* `psa_get_key_attributes` - reads from key data
+* `psa_export_key` - passes key data to psa_driver_wrapper_export_key
+* `psa_export_public_key` - passes key data to psa_driver_wrapper_export_public_key
+* `psa_finish_key_creation` - passes key data to psa_save_persistent_key
+* `psa_validate_optional_attributes` - passes key data and bytes to mbedtls_psa_rsa_load_representation
+* `psa_import_key` - passes key data to psa_driver_wrapper_import_key
+* `psa_copy_key` - passes key data to psa_driver_wrapper_copy_key, psa_copy_key_material_into_slot
+* `psa_mac_setup` - passes key data to psa_driver_wrapper_mac_sign_setup, psa_driver_wrapper_mac_verify_setup
+* `psa_mac_compute_internal` - passes key data to psa_driver_wrapper_mac_compute
+* `psa_sign_internal` - passes key data to psa_driver_wrapper_sign_message, psa_driver_wrapper_sign_hash
+* `psa_verify_internal` - passes key data to psa_driver_wrapper_verify_message, psa_driver_wrapper_verify_hash
+* `psa_asymmetric_encrypt` - passes key data to mbedtls_psa_rsa_load_representation
+* `psa_asymmetric_decrypt` - passes key data to mbedtls_psa_rsa_load_representation
+* `psa_cipher_setup ` - passes key data to psa_driver_wrapper_cipher_encrypt_setup and psa_driver_wrapper_cipher_decrypt_setup
+* `psa_cipher_encrypt` - passes key data to psa_driver_wrapper_cipher_encrypt
+* `psa_cipher_decrypt` - passes key data to psa_driver_wrapper_cipher_decrypt
+* `psa_aead_encrypt` - passes key data to psa_driver_wrapper_aead_encrypt
+* `psa_aead_decrypt` - passes key data to psa_driver_wrapper_aead_decrypt
+* `psa_aead_setup` - passes key data to psa_driver_wrapper_aead_encrypt_setup and psa_driver_wrapper_aead_decrypt_setup
+* `psa_generate_derived_key_internal` - passes key data to psa_driver_wrapper_import_key
+* `psa_key_derivation_input_key` - passes key data to psa_key_derivation_input_internal
+* `psa_key_agreement_raw_internal` - passes key data to mbedtls_psa_ecp_load_representation
+* `psa_generate_key` - passes key data to psa_driver_wrapper_generate_key
 
 ### Random generator
 

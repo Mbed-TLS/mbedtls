@@ -2562,8 +2562,8 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
          * as it may change when using the CID extension. */
         int minor_ver = ssl->minor_ver;
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
-        /* TLS 1.3 still uses the TLS 1.3 version identifier
-        * for backwards compatibility. */
+        /* TLS 1.3 still uses the TLS 1.2 version identifier
+         * for backwards compatibility. */
         if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
             minor_ver = MBEDTLS_SSL_MINOR_VERSION_3;
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */

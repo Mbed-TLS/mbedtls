@@ -1169,7 +1169,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     if( ( ret = mbedtls_ssl_write_hostname_ext( ssl, p + 2 + ext_len,
-                                        end, &olen ) ) != 0 )
+                                                end, &olen ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_hostname_ext", ret );
         return( ret );

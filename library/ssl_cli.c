@@ -89,10 +89,10 @@ static int ssl_conf_has_static_raw_psk( mbedtls_ssl_config const *conf )
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-static int ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
-                                   unsigned char *buf,
-                                   const unsigned char *end,
-                                   size_t *olen )
+int mbedtls_ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
+                                    unsigned char *buf,
+                                    const unsigned char *end,
+                                    size_t *olen )
 {
     unsigned char *p = buf;
     size_t hostname_len;
@@ -156,15 +156,6 @@ static int ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
 
     return( 0 );
 }
-
-int mbedtls_ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
-                                    unsigned char *buf,
-                                    const unsigned char *end,
-                                    size_t *olen )
-{
-    return ssl_write_hostname_ext( ssl, buf, end, olen );
-}
-
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)

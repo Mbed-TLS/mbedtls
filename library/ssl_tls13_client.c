@@ -799,7 +799,7 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-    /* Write server name extention */
+    /* Write server name extension */
     ret = mbedtls_ssl_write_hostname_ext( ssl, p, end, &output_len );
     if( ret != 0 )
         return( ret );

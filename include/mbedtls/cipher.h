@@ -543,6 +543,42 @@ static inline unsigned int mbedtls_cipher_info_get_block_size(
 }
 
 /**
+ * \brief        This function returns a non-zero value if the key length for
+ *               the given cipher is variable.
+ *
+ * \param info   The cipher info structure. This may be \c NULL.
+ *
+ * \return       Non-zero if the key length is variable, \c 0 otherwise.
+ * \return       \c 0 if the given pointer is \c NULL.
+ */
+static inline int mbedtls_cipher_info_has_variable_key_bitlen(
+    const mbedtls_cipher_info_t *info )
+{
+    if( info == NULL )
+        return( 0 );
+
+    return( info->MBEDTLS_PRIVATE(flags) & MBEDTLS_CIPHER_VARIABLE_KEY_LEN );
+}
+
+/**
+ * \brief        This function returns a non-zero value if the IV size for
+ *               the given cipher is variable.
+ *
+ * \param info   The cipher info structure. This may be \c NULL.
+ *
+ * \return       Non-zero if the IV size is variable, \c 0 otherwise.
+ * \return       \c 0 if the given pointer is \c NULL.
+ */
+static inline int mbedtls_cipher_info_has_variable_iv_size(
+    const mbedtls_cipher_info_t *info )
+{
+    if( info == NULL )
+        return( 0 );
+
+    return( info->MBEDTLS_PRIVATE(flags) & MBEDTLS_CIPHER_VARIABLE_IV_LEN );
+}
+
+/**
  * \brief               This function initializes a \p cipher_context as NONE.
  *
  * \param ctx           The context to be initialized. This must not be \c NULL.

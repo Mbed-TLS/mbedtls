@@ -593,13 +593,6 @@ int mbedtls_ssl_tls13_key_schedule_stage_application( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
-int mbedtls_ssl_tls1_3_generate_resumption_master_secret(
-    mbedtls_ssl_context *ssl )
-{
-    ((void) ssl);
-    return( 0 );
-}
-
 static int ssl_tls1_3_calc_finished_core( mbedtls_md_type_t md_type,
                                           unsigned char const *base_key,
                                           unsigned char const *transcript,

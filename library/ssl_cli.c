@@ -1168,10 +1168,10 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-    if( ( ret = ssl_write_hostname_ext( ssl, p + 2 + ext_len,
+    if( ( ret = mbedtls_ssl_write_hostname_ext( ssl, p + 2 + ext_len,
                                         end, &olen ) ) != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_hostname_ext", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_hostname_ext", ret );
         return( ret );
     }
     ext_len += olen;

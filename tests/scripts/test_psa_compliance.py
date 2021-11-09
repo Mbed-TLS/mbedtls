@@ -33,11 +33,6 @@ import sys
 # Test number 2xx corresponds to the files in the folder
 # psa-arch-tests/api-tests/dev_apis/crypto/test_c0xx
 EXPECTED_FAILURES = {
-    # psa_aead_[encrypt/decrypt]() returns PSA_ERROR_NOT_SUPPORTED instead of
-    # PSA_ERROR_INVALID_ARGUMENT when called with an invalid nonce.
-    # - Tracked in issue #5144
-    224, 225,
-
     # Multipart CCM is not supported.
     # - Tracked in issue #3721
     252, 253, 254, 255, 256, 257, 258, 259, 261,

@@ -847,69 +847,37 @@ cleanup:
 
 /*
  *
- * STATE HANDLING: Incoming Finished
- * Overview
+ * STATE HANDLING: Incoming Finished message.
  */
-
-static int ssl_tls13_preprocess_finished_in( mbedtls_ssl_context *ssl );
-static int ssl_tls13_finalize_finished_in( mbedtls_ssl_context *ssl );
-static int ssl_tls13_parse_finished_in( mbedtls_ssl_context *ssl,
-                                        const unsigned char *buf,
-                                        size_t buflen );
-
 /*
  * Implementation
  */
 
-int mbedtls_ssl_tls13_process_finished_in( mbedtls_ssl_context *ssl )
-{
-    int ret = 0;
-    unsigned char *buf;
-    size_t buflen;
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse finished_in" ) );
-
-    /* Preprocessing step: Compute handshake digest */
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_preprocess_finished_in( ssl ) );
-
-    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls1_3_fetch_handshake_msg( ssl,
-                                              MBEDTLS_SSL_HS_FINISHED,
-                                              &buf, &buflen ) );
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_parse_finished_in( ssl, buf, buflen ) );
-    mbedtls_ssl_tls1_3_add_hs_msg_to_checksum(
-        ssl, MBEDTLS_SSL_HS_FINISHED, buf, buflen );
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_finished_in( ssl ) );
-
-cleanup:
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse finished_in" ) );
-    return( ret );
-}
-
-static int ssl_tls13_preprocess_finished_in( mbedtls_ssl_context *ssl )
+static int ssl_tls13_prepare_finished_in( mbedtls_ssl_context *ssl )
 {
     int ret;
 
-    ret = mbedtls_ssl_tls1_3_calculate_expected_finished( ssl,
+    ret = mbedtls_ssl_tls13_calculate_verify_data( ssl,
                     ssl->handshake->state_local.finished_in.digest,
                     sizeof( ssl->handshake->state_local.finished_in.digest ),
                     &ssl->handshake->state_local.finished_in.digest_len,
-                    ssl->conf->endpoint ^ 1 );
+                    ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT ?
+                    MBEDTLS_SSL_IS_SERVER : MBEDTLS_SSL_IS_CLIENT );
     if( ret != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls1_3_calculate_expected_finished", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_calculate_verify_data", ret );
         return( ret );
     }
 
     return( 0 );
 }
 
-static int ssl_tls13_parse_finished_in( mbedtls_ssl_context *ssl,
-                                        const unsigned char *buf,
-                                        size_t buflen )
+static int ssl_tls13_parse_finished_message( mbedtls_ssl_context *ssl,
+                                             const unsigned char *buf,
+                                             const unsigned char *end )
 {
     /* Structural validation */
-    if( buflen != ssl->handshake->state_local.finished_in.digest_len )
+    if( (size_t)( end - buf ) != ssl->handshake->state_local.finished_in.digest_len )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
 
@@ -918,10 +886,10 @@ static int ssl_tls13_parse_finished_in( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_DECODE_ERROR );
     }
 
-    MBEDTLS_SSL_DEBUG_BUF( 4, "Hash (self-computed):",
+    MBEDTLS_SSL_DEBUG_BUF( 4, "verify_data (self-computed):",
                            ssl->handshake->state_local.finished_in.digest,
                            ssl->handshake->state_local.finished_in.digest_len );
-    MBEDTLS_SSL_DEBUG_BUF( 4, "Hash (received message):", buf,
+    MBEDTLS_SSL_DEBUG_BUF( 4, "verify_data (received message):", buf,
                            ssl->handshake->state_local.finished_in.digest_len );
 
     /* Semantic validation */
@@ -938,7 +906,7 @@ static int ssl_tls13_parse_finished_in( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
-static int ssl_tls13_finalize_finished_in_cli( mbedtls_ssl_context *ssl )
+static int ssl_tls13_finalize_server_finished_message( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
     mbedtls_ssl_key_set traffic_keys;
@@ -985,8 +953,8 @@ static int ssl_tls13_finalize_finished_in_cli( mbedtls_ssl_context *ssl )
 
 cleanup:
 
-    mbedtls_platform_zeroize( &traffic_keys, sizeof(mbedtls_ssl_key_set) );
-    if( ret != 0)
+    mbedtls_platform_zeroize( &traffic_keys, sizeof( mbedtls_ssl_key_set ) );
+    if( ret != 0 )
     {
         mbedtls_free( transform_application );
         MBEDTLS_SSL_PEND_FATAL_ALERT(
@@ -996,16 +964,42 @@ cleanup:
     return( ret );
 }
 
-static int ssl_tls13_finalize_finished_in( mbedtls_ssl_context* ssl )
+static int ssl_tls13_finalize_finished_message( mbedtls_ssl_context* ssl )
 {
 
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
-        return( ssl_tls13_finalize_finished_in_cli( ssl ) );
+        return( ssl_tls13_finalize_server_finished_message( ssl ) );
     }
 
     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 }
+
+int mbedtls_ssl_tls13_process_finished_message( mbedtls_ssl_context *ssl )
+{
+    int ret = 0;
+    unsigned char *buf;
+    size_t buflen;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse finished_in" ) );
+
+    /* Preprocessing step: Compute handshake digest */
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_prepare_finished_in( ssl ) );
+
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls1_3_fetch_handshake_msg( ssl,
+                                              MBEDTLS_SSL_HS_FINISHED,
+                                              &buf, &buflen ) );
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_parse_finished_message( ssl, buf, buf + buflen ) );
+    mbedtls_ssl_tls1_3_add_hs_msg_to_checksum(
+        ssl, MBEDTLS_SSL_HS_FINISHED, buf, buflen );
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_finished_message( ssl ) );
+
+cleanup:
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse finished_in" ) );
+    return( ret );
+}
+
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 

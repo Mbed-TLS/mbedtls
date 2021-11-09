@@ -1607,7 +1607,7 @@ static int ssl_tls1_3_process_server_finished( mbedtls_ssl_context *ssl )
 {
     int ret;
 
-    ret = mbedtls_ssl_tls13_process_finished_in( ssl );
+    ret = mbedtls_ssl_tls13_process_finished_message( ssl );
     if( ret != 0 )
         return( ret );
 

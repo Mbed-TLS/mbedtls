@@ -307,8 +307,6 @@
       + ( MBEDTLS_SSL_CID_OUT_LEN_MAX ) )
 #endif
 
-#define MBEDTLS_TLS1_3_MD_MAX_SIZE         MBEDTLS_MD_MAX_SIZE
-
 #define MBEDTLS_CLIENT_HELLO_RANDOM_LEN 32
 #define MBEDTLS_SERVER_HELLO_RANDOM_LEN 32
 
@@ -724,7 +722,7 @@ struct mbedtls_ssl_handshake_params
 
             /* Buffer holding digest of the handshake up to
              * but excluding the outgoing finished message. */
-            unsigned char digest[MBEDTLS_MD_MAX_SIZE];
+            unsigned char digest[MBEDTLS_TLS1_3_MD_MAX_SIZE];
             size_t digest_len;
         } finished_out;
 
@@ -733,47 +731,9 @@ struct mbedtls_ssl_handshake_params
         {
             /* Buffer holding digest of the handshake up to but
              * excluding the peer's incoming finished message. */
-            unsigned char digest[MBEDTLS_MD_MAX_SIZE];
+            unsigned char digest[MBEDTLS_TLS1_3_MD_MAX_SIZE];
             size_t digest_len;
         } finished_in;
-
-#if defined(MBEDTLS_SSL_CLI_C)
-
-        /* Client, incoming ServerKeyExchange */
-        struct
-        {
-            uint8_t preparation_done;
-        } srv_key_exchange;
-
-        /* Client, incoming ServerHello */
-        struct
-        {
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-            int renego_info_seen;
-#else
-            int dummy;
-#endif
-        } srv_hello_in;
-
-        /* Client, outgoing ClientKeyExchange */
-        struct
-        {
-            uint8_t preparation_done;
-        } cli_key_exch_out;
-
-        /* Client, outgoing Certificate Verify */
-        struct
-        {
-            uint8_t preparation_done;
-        } crt_vrfy_out;
-
-        /* Client, outgoing ClientHello */
-        struct
-        {
-            uint8_t preparation_done;
-        }  cli_hello_out;
-
-#endif /* MBEDTLS_SSL_CLI_C */
 
     } state_local;
 
@@ -1222,7 +1182,7 @@ static inline int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
 int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush );
 int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl );
 
-int mbedtls_ssl_tls13_process_finished_in( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_tls13_process_finished_message( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_tls13_process_finished_out( mbedtls_ssl_context *ssl );
 
 int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl );

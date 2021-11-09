@@ -605,16 +605,17 @@ int mbedtls_ssl_tls1_3_generate_application_keys(
     mbedtls_ssl_context* ssl, mbedtls_ssl_key_set *traffic_keys );
 
 /**
- * \brief Calculate content of TLS 1.3 Finished message.
+ * \brief Calculate the verify_data value for the client or server TLS 1.3
+ * Finished message.
  *
  * \param ssl  The SSL context to operate on. This must be in
  *             key schedule stage \c Handshake, see
  *             mbedtls_ssl_tls13_key_schedule_stage_application().
- * \param dst        The address at which to write the Finished content.
+ * \param dst        The address at which to write the verify_data value.
  * \param dst_len    The size of \p dst in bytes.
  * \param actual_len The address at which to store the amount of data
  *                   actually written to \p dst upon success.
- * \param from       The endpoint the Finished message originates from:
+ * \param from       The message to calculate the `verify_data` for:
  *                   - #MBEDTLS_SSL_IS_CLIENT for the Client's Finished message
  *                   - #MBEDTLS_SSL_IS_SERVER for the Server's Finished message
  *
@@ -625,7 +626,7 @@ int mbedtls_ssl_tls1_3_generate_application_keys(
  * \returns    \c 0 on success.
  * \returns    A negative error code on failure.
  */
-int mbedtls_ssl_tls1_3_calculate_expected_finished( mbedtls_ssl_context *ssl,
+int mbedtls_ssl_tls13_calculate_verify_data( mbedtls_ssl_context *ssl,
                                                     unsigned char *dst,
                                                     size_t dst_len,
                                                     size_t *actual_len,

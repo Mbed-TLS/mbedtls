@@ -643,7 +643,7 @@ exit:
     return( ret );
 }
 
-int mbedtls_ssl_tls1_3_calculate_expected_finished( mbedtls_ssl_context* ssl,
+int mbedtls_ssl_tls13_calculate_verify_data( mbedtls_ssl_context* ssl,
                                       unsigned char* dst,
                                       size_t dst_len,
                                       size_t *actual_len,
@@ -660,7 +660,7 @@ int mbedtls_ssl_tls1_3_calculate_expected_finished( mbedtls_ssl_context* ssl,
     const mbedtls_md_info_t* const md = mbedtls_md_info_from_type( md_type );
     size_t const md_size = mbedtls_md_get_size( md );
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> mbedtls_ssl_tls1_3_calculate_expected_finished" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> mbedtls_ssl_tls13_calculate_verify_data" ) );
 
     if( dst_len < md_size )
         return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
@@ -686,7 +686,7 @@ int mbedtls_ssl_tls1_3_calculate_expected_finished( mbedtls_ssl_context* ssl,
     *actual_len = md_size;
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "verify_data for finished message", dst, md_size );
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= mbedtls_ssl_tls1_3_calculate_expected_finished" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= mbedtls_ssl_tls13_calculate_verify_data" ) );
 
 exit:
 

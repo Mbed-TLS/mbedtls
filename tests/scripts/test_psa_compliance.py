@@ -29,10 +29,18 @@ import subprocess
 import sys
 
 EXPECTED_FAILURES = {
-    216, 221, 224, 225, 248, 249, 252, 253, 254, 255, 256, 257, 258, 259, 260, 261, 262, 263
+    221, 224, 225, 252, 253, 254, 255, 256, 257, 258, 259, 261, 262, 263
 }
-PSA_ARCH_TESTS_REPO = 'https://github.com/ronald-cron-arm/psa-arch-tests.git'
-PSA_ARCH_TESTS_REF = 'crypto1.0-3.0'
+
+# We currently use a fork of ARM-software/psa-arch-tests, with a couple of downstream patches
+# that allow it to build with MbedTLS 3, and fixes a couple of issues in the compliance test suite.
+# These fixes allow the tests numbered 216, 248 and 249 to complete successfully.
+#
+# Once all the fixes are upstreamed, this fork should be replaced with an upstream commit/tag.
+#
+# Web URL: https://github.com/bensze01/psa-arch-tests/tree/fixes-for-mbedtls-3
+PSA_ARCH_TESTS_REPO = 'https://github.com/bensze01/psa-arch-tests.git'
+PSA_ARCH_TESTS_REF = 'fixes-for-mbedtls-3'
 
 #pylint: disable=too-many-branches,too-many-statements
 def main():

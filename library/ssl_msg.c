@@ -5625,7 +5625,6 @@ static void ssl_buffering_free_slot( mbedtls_ssl_context *ssl,
 void mbedtls_ssl_write_version( int major, int minor, int transport,
                         unsigned char ver[2] )
 {
-
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {

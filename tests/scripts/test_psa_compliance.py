@@ -28,8 +28,28 @@ import shutil
 import subprocess
 import sys
 
+# PSA Compliance tests we expect to fail due to known defects in Mbed TLS (or the test suite)
+# The test numbers correspond to the numbers used by the console output of the test suite.
+# Test number 2xx corresponds to the files in the folder
+# psa-arch-tests/api-tests/dev_apis/crypto/test_c0xx
 EXPECTED_FAILURES = {
-    221, 224, 225, 252, 253, 254, 255, 256, 257, 258, 259, 261, 262, 263
+    # psa_key_derivation_output_key() returns PSA_ERROR_NOT_PERMITTED instead of
+    # PSA_ERROR_BAD_STATE when called after the operation was aborted.
+    # - Tracked in issue #5143
+    221,
+
+    # psa_aead_[encrypt/decrypt]() returns PSA_ERROR_NOT_SUPPORTED instead of
+    # PSA_ERROR_INVALID_ARGUMENT when called with an invalid nonce.
+    # - Tracked in issue #5144
+    224, 225,
+
+    # Multipart CCM is not supported.
+    # - Tracked in issue #3721
+    252, 253, 254, 255, 256, 257, 258, 259, 261,
+
+    # psa_hash_suspend() and psa_hash_resume() are not supported.
+    # - Tracked in issue #3274
+    262, 263
 }
 
 # We currently use a fork of ARM-software/psa-arch-tests, with a couple of downstream patches

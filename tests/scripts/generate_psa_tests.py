@@ -88,7 +88,9 @@ def read_implemented_dependencies(filename: str) -> FrozenSet[str]:
     return frozenset(symbol
                      for line in open(filename)
                      for symbol in re.findall(r'\bPSA_WANT_\w+\b', line))
+_implemented_dependencies = None #type: Optional[FrozenSet[str]] #pylint: disable=invalid-name
 def hack_dependencies_not_implemented(dependencies: List[str]) -> None:
+    global _implemented_dependencies #pylint: disable=global-statement,invalid-name
     if _implemented_dependencies is None:
         _implemented_dependencies = \
             read_implemented_dependencies('include/psa/crypto_config.h')

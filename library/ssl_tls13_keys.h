@@ -615,7 +615,7 @@ int mbedtls_ssl_tls1_3_generate_application_keys(
  * \param dst_len    The size of \p dst in bytes.
  * \param actual_len The address at which to store the amount of data
  *                   actually written to \p dst upon success.
- * \param from       The message to calculate the `verify_data` for:
+ * \param which      The message to calculate the `verify_data` for:
  *                   - #MBEDTLS_SSL_IS_CLIENT for the Client's Finished message
  *                   - #MBEDTLS_SSL_IS_SERVER for the Server's Finished message
  *
@@ -627,9 +627,9 @@ int mbedtls_ssl_tls1_3_generate_application_keys(
  * \returns    A negative error code on failure.
  */
 int mbedtls_ssl_tls13_calculate_verify_data( mbedtls_ssl_context *ssl,
-                                                    unsigned char *dst,
-                                                    size_t dst_len,
-                                                    size_t *actual_len,
-                                                    int from );
+                                             unsigned char *dst,
+                                             size_t dst_len,
+                                             size_t *actual_len,
+                                             int which );
 
 #endif /* MBEDTLS_SSL_TLS1_3_KEYS_H */

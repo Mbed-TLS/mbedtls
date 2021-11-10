@@ -644,14 +644,14 @@ exit:
 }
 
 int mbedtls_ssl_tls13_calculate_verify_data( mbedtls_ssl_context* ssl,
-                                      unsigned char* dst,
-                                      size_t dst_len,
-                                      size_t *actual_len,
-                                      int from )
+                                             unsigned char* dst,
+                                             size_t dst_len,
+                                             size_t *actual_len,
+                                             int from )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    unsigned char transcript[MBEDTLS_MD_MAX_SIZE];
+    unsigned char transcript[MBEDTLS_TLS1_3_MD_MAX_SIZE];
     size_t transcript_len;
 
     unsigned char const *base_key = NULL;

@@ -3595,7 +3595,12 @@ psa_status_t psa_cipher_decrypt( mbedtls_svc_key_id_t key,
       .core = slot->attr
     };
 
-    if( input_length < PSA_CIPHER_IV_LENGTH( slot->attr.type, alg ) )
+    if( alg == PSA_ALG_CCM_STAR_NO_TAG && input_length < PSA_BLOCK_CIPHER_BLOCK_LENGTH( slot->attr.type ) )
+    {
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto exit;
+    }
+    else if ( input_length < PSA_CIPHER_IV_LENGTH( slot->attr.type, alg ) )
     {
         status = PSA_ERROR_INVALID_ARGUMENT;
         goto exit;

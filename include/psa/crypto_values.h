@@ -1202,6 +1202,17 @@
  */
 #define PSA_ALG_CCM                             ((psa_algorithm_t)0x05500100)
 
+/** The CCM* cipher mode without authentication.
+ *
+ * This is CCM* as specified in IEEE 802.15.4 §7, with a tag length of 0.
+ * For CCM* with a nonzero tag length, use the AEAD algorithm #PSA_ALG_CCM.
+ *
+ * The underlying block cipher is determined by the key type.
+ *
+ * Currently only 13-byte long IV's are supported.
+ */
+#define PSA_ALG_CCM_STAR_NO_TAG                 ((psa_algorithm_t)0x04c01300)
+
 /** The GCM authenticated encryption algorithm.
  *
  * The underlying block cipher is determined by the key type.

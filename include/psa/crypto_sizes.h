@@ -991,7 +991,8 @@
          (alg) == PSA_ALG_CBC_PKCS7) ? PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) : \
      (key_type) == PSA_KEY_TYPE_CHACHA20 && \
          (alg) == PSA_ALG_STREAM_CIPHER ? 12 : \
-     0)
+         (alg) == PSA_ALG_CCM_STAR_NO_TAG ? 13 : \
+         0)
 
 /** The maximum IV size for all supported cipher algorithms, in bytes.
  *

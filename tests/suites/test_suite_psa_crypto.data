@@ -1963,6 +1963,10 @@ PSA symmetric encrypt validation: 3-key 3DES-CBC-nopad, 8 bytes, good
 depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_DES
 cipher_encrypt_validation:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce31323437383b3d3e":"eda4011239bc3ac9"
 
+PSA symmetric encrypt validation: CCM*-no-tag, 15 bytes, good
+depends_on:PSA_WANT_ALG_CCM:PSA_WANT_KEY_TYPE_AES
+cipher_encrypt_validation:PSA_ALG_CCM_STAR_NO_TAG:PSA_KEY_TYPE_AES:"d24a3d3dde8c84830280cb87abad0bb3":"6bc1bee22e409f96e93d7e11739317"
+
 PSA symmetric encrypt multipart: AES-ECB, 0 bytes, good
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
 cipher_encrypt_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"":"":0:0:0:"":PSA_SUCCESS
@@ -2023,6 +2027,10 @@ PSA symmetric encrypt multipart: 3-key 3DES-ECB, 8 bytes, good
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_DES
 cipher_encrypt_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce31323437383b3d3e":"":"c78e2b38139610e3":8:8:0:"817ca7d69b80d86a":PSA_SUCCESS
 
+PSA symmetric encrypt multipart: CCM*-no-tag, AES, 24 bytes, good
+depends_on:PSA_WANT_ALG_CCM:PSA_WANT_KEY_TYPE_AES
+cipher_encrypt_multipart:PSA_ALG_CCM_STAR_NO_TAG:PSA_KEY_TYPE_AES:"d24a3d3dde8c84830280cb87abad0bb3":"f1100035bb24a8d26004e0e24b":"7c86135ed9c2a515aaae0e9a208133897269220f30870006":10:10:14:"1faeb0ee2ca2cd52f0aa3966578344f24e69b742c4ab37ab":PSA_SUCCESS
+
 PSA cipher decrypt: without initialization
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
 cipher_decrypt_fail:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"":"":"":PSA_ERROR_BAD_STATE
@@ -2054,6 +2062,10 @@ cipher_decrypt_fail:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf
 PSA symmetric decrypt: AES-CBC-nopad, input too short (5 bytes)
 depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
 cipher_decrypt_fail:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee223":PSA_ERROR_INVALID_ARGUMENT
+
+PSA symetric decrypt: CCM*-no-tag, input too short (15 bytes)
+depends_on:MBEDTLS_AES_C
+cipher_decrypt_fail:PSA_ALG_CCM_STAR_NO_TAG:PSA_KEY_TYPE_AES:"19ebfde2d5468ba0a3031bde629b11fd":"5a8aa485c316e9":"2a2a2a2a2a2a2a2a":PSA_ERROR_INVALID_ARGUMENT
 
 PSA symmetric decrypt: AES-ECB, 0 bytes, good
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
@@ -2102,6 +2114,10 @@ cipher_decrypt:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7
 PSA symmetric decrypt: 3-key 3DES-ECB, 8 bytes, good
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_DES
 cipher_decrypt:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce31323437383b3d3e":"":"817ca7d69b80d86a":"c78e2b38139610e3"
+
+PSA symmetric decrypt: CCM*-no-tag, NIST DVPT AES-128 #15
+depends_on:PSA_WANT_ALG_CCM:PSA_WANT_KEY_TYPE_AES
+cipher_decrypt:PSA_ALG_CCM_STAR_NO_TAG:PSA_KEY_TYPE_AES:"90929a4b0ac65b350ad1591611fe4829":"5a8aa485c316e9403aff859fbb":"4bfe4e35784f0a65b545477e5e2f4bae0e1e6fa717eaf2cb":"a16a2e741f1cd9717285b6d882c1fc53655e9773761ad697"
 
 PSA symmetric decrypt multipart: AES-ECB, 0 bytes, good
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
@@ -2163,6 +2179,10 @@ PSA symmetric decrypt multipart: 3-key 3DES-ECB, 8 bytes, good
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_DES
 cipher_decrypt_multipart:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_DES:"01020407080b0d0ec1c2c4c7c8cbcdce31323437383b3d3e":"":"817ca7d69b80d86a":8:8:0:"c78e2b38139610e3":PSA_SUCCESS
 
+PSA symmetric decrypt multipart: CCM*-no-tag, 24 bytes, good
+depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_DES
+cipher_decrypt_multipart:PSA_ALG_CCM_STAR_NO_TAG:PSA_KEY_TYPE_AES:"197afb02ffbd8f699dacae87094d5243":"5a8aa485c316e9403aff859fbb":"4a550134f94455979ec4bf89ad2bd80d25a77ae94e456134":10:10:14:"a16a2e741f1cd9717285b6d882c1fc53655e9773761ad697":PSA_SUCCESS
+
 PSA symmetric encrypt/decrypt: AES-ECB, 16 bytes, good
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES
 cipher_verify_output:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a"
@@ -2182,6 +2202,22 @@ cipher_verify_output:PSA_ALG_CBC_PKCS7:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158
 PSA symmetric encrypt/decrypt: AES-CTR
 depends_on:PSA_WANT_ALG_CTR:PSA_WANT_KEY_TYPE_AES
 cipher_verify_output:PSA_ALG_CTR:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a"
+
+PSA symmetric encrypt/decrypt: CCM*-no-tag, AES
+depends_on:PSA_WANT_ALG_CCM:PSA_WANT_KEY_TYPE_AES
+cipher_verify_output:PSA_ALG_CCM_STAR_NO_TAG:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a"
+
+CCM*-no-tag encrypt, iv_length = 14, bad
+depends_on:PSA_WANT_ALG_CCM:PSA_WANT_KEY_TYPE_AES
+cipher_encrypt_validate_iv_length:PSA_ALG_CCM_STAR_NO_TAG:PSA_KEY_TYPE_AES:"90929a4b0ac65b350ad1591611fe4829":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":14:PSA_ERROR_INVALID_ARGUMENT
+
+CCM*-no-tag encrypt, iv_length = 13, good
+depends_on:PSA_WANT_ALG_CCM:PSA_WANT_KEY_TYPE_AES
+cipher_encrypt_validate_iv_length:PSA_ALG_CCM_STAR_NO_TAG:PSA_KEY_TYPE_AES:"90929a4b0ac65b350ad1591611fe4829":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":13:PSA_SUCCESS
+
+CCM*-no-tag encrypt, iv_length = 12, bad
+depends_on:PSA_WANT_ALG_CCM:PSA_WANT_KEY_TYPE_AES
+cipher_encrypt_validate_iv_length:PSA_ALG_CCM_STAR_NO_TAG:PSA_KEY_TYPE_AES:"90929a4b0ac65b350ad1591611fe4829":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":12:PSA_ERROR_INVALID_ARGUMENT
 
 PSA symmetric encryption multipart: AES-ECB, 16+16 bytes
 depends_on:PSA_WANT_ALG_ECB_NO_PADDING:PSA_WANT_KEY_TYPE_AES

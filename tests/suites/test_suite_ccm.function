@@ -232,6 +232,31 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void mbedtls_ccm_star_no_tag( int cipher_id, int mode, data_t * key,
+                              data_t * msg, data_t * iv, data_t * result )
+{
+    mbedtls_ccm_context ctx;
+    uint8_t *output = NULL;
+    size_t olen;
+
+    mbedtls_ccm_init( &ctx );
+    TEST_EQUAL( mbedtls_ccm_setkey( &ctx, cipher_id, key->x, key->len * 8 ), 0 );
+    TEST_EQUAL( 0, mbedtls_ccm_starts( &ctx, mode, iv->x, iv->len ) );
+    TEST_EQUAL( 0, mbedtls_ccm_set_lengths( &ctx, 0, msg->len, 0 ) );
+
+    ASSERT_ALLOC( output, msg->len );
+    TEST_EQUAL( 0, mbedtls_ccm_update( &ctx, msg->x, msg->len, output, msg->len, &olen ) );
+    TEST_EQUAL( result->len, olen );
+    ASSERT_COMPARE( output, olen, result->x, result->len );
+
+    TEST_EQUAL( 0, mbedtls_ccm_finish( &ctx, NULL, 0 ) );
+exit:
+    mbedtls_free(output);
+    mbedtls_ccm_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mbedtls_ccm_auth_decrypt( int cipher_id, data_t * key,
                                data_t * msg, data_t * iv,
                                data_t * add, int expected_tag_len, int result,

@@ -92,6 +92,9 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
             case PSA_ALG_CBC_PKCS7:
                 mode = MBEDTLS_MODE_CBC;
                 break;
+            case PSA_ALG_CCM_STAR_NO_TAG:
+                mode = MBEDTLS_MODE_CCM_STAR_NO_TAG;
+                break;
             case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, 0 ):
                 mode = MBEDTLS_MODE_CCM;
                 break;

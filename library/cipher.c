@@ -424,6 +424,31 @@ int mbedtls_cipher_set_iv( mbedtls_cipher_context_t *ctx,
     }
 #endif
 
+#if defined(MBEDTLS_CCM_C)
+    if( MBEDTLS_MODE_CCM_STAR_NO_TAG == ctx->cipher_info->mode )
+    {
+        int set_lengths_result;
+        int ccm_star_mode;
+
+        set_lengths_result = mbedtls_ccm_set_lengths(
+                                (mbedtls_ccm_context *) ctx->cipher_ctx,
+                                0, 0, 0 );
+        if( set_lengths_result != 0 )
+            return set_lengths_result;
+
+        if( ctx->operation == MBEDTLS_DECRYPT )
+            ccm_star_mode = MBEDTLS_CCM_STAR_DECRYPT;
+        else if( ctx->operation == MBEDTLS_ENCRYPT )
+            ccm_star_mode = MBEDTLS_CCM_STAR_ENCRYPT;
+        else
+            return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
+
+        return( mbedtls_ccm_starts( (mbedtls_ccm_context *) ctx->cipher_ctx,
+                                    ccm_star_mode,
+                                    iv, iv_len ) );
+    }
+#endif
+
     if ( actual_iv_size != 0 )
     {
         memcpy( ctx->iv, iv, actual_iv_size );
@@ -555,6 +580,15 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
     if( ctx->cipher_info->mode == MBEDTLS_MODE_GCM )
     {
         return( mbedtls_gcm_update( (mbedtls_gcm_context *) ctx->cipher_ctx,
+                                    input, ilen,
+                                    output, ilen, olen ) );
+    }
+#endif
+
+#if defined(MBEDTLS_CCM_C)
+    if( ctx->cipher_info->mode == MBEDTLS_MODE_CCM_STAR_NO_TAG )
+    {
+        return( mbedtls_ccm_update( (mbedtls_ccm_context *) ctx->cipher_ctx,
                                     input, ilen,
                                     output, ilen, olen ) );
     }
@@ -947,6 +981,7 @@ int mbedtls_cipher_finish( mbedtls_cipher_context_t *ctx,
         MBEDTLS_MODE_OFB == ctx->cipher_info->mode ||
         MBEDTLS_MODE_CTR == ctx->cipher_info->mode ||
         MBEDTLS_MODE_GCM == ctx->cipher_info->mode ||
+        MBEDTLS_MODE_CCM_STAR_NO_TAG == ctx->cipher_info->mode ||
         MBEDTLS_MODE_XTS == ctx->cipher_info->mode ||
         MBEDTLS_MODE_STREAM == ctx->cipher_info->mode )
     {

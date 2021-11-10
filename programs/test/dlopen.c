@@ -55,7 +55,9 @@
 
 int main( void )
 {
+#if defined(MBEDTLS_MD_C) || defined(MBEDTLS_SSL_TLS_C)
     unsigned n;
+#endif
 
 #if defined(MBEDTLS_SSL_TLS_C)
     void *tls_so = dlopen( TLS_SO_FILENAME, RTLD_NOW );

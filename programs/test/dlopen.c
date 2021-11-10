@@ -68,7 +68,8 @@ int main( void )
     const int *ciphersuites = ssl_list_ciphersuites( );
     for( n = 0; ciphersuites[n] != 0; n++ )
         /* nothing to do, we're just counting */;
-    mbedtls_printf( "%u ciphersuites\n", n );
+    mbedtls_printf( "dlopen(%s): %u ciphersuites\n",
+                    TLS_SO_FILENAME, n );
     dlclose( tls_so );
     CHECK_DLERROR( "dlclose", TLS_SO_FILENAME );
 #endif  /* MBEDTLS_SSL_TLS_C */
@@ -79,8 +80,8 @@ int main( void )
     const mbedtls_x509_crt_profile *profile =
         dlsym( x509_so, "mbedtls_x509_crt_profile_default" );
     CHECK_DLERROR( "dlsym", "mbedtls_x509_crt_profile_default" );
-    mbedtls_printf( "Allowed md mask: %08x\n",
-                    (unsigned) profile->allowed_mds );
+    mbedtls_printf( "dlopen(%s): Allowed md mask: %08x\n",
+                    X509_SO_FILENAME, (unsigned) profile->allowed_mds );
     dlclose( x509_so );
     CHECK_DLERROR( "dlclose", X509_SO_FILENAME );
 #endif  /* MBEDTLS_X509_CRT_PARSE_C */
@@ -94,7 +95,8 @@ int main( void )
     const int *mds = md_list( );
     for( n = 0; mds[n] != 0; n++ )
         /* nothing to do, we're just counting */;
-    mbedtls_printf( "%u hashes\n", n );
+    mbedtls_printf( "dlopen(%s): %u hashes\n",
+                    CRYPTO_SO_FILENAME, n );
     dlclose( crypto_so );
     CHECK_DLERROR( "dlclose", CRYPTO_SO_FILENAME );
 #endif  /* MBEDTLS_MD_C */

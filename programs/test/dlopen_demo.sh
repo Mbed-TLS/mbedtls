@@ -41,4 +41,6 @@ else
 fi
 export DYLD_LIBRARY_PATH
 
+echo "Running dynamic loading test program: $program"
+echo "Loading libraries from: $library_dir"
 "$program"

@@ -3932,9 +3932,35 @@ exit:
     mbedtls_net_free( &client_fd );
     mbedtls_net_free( &listen_fd );
 
-#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_FS_IO)
-    mbedtls_dhm_free( &dhm );
+    mbedtls_ssl_free( &ssl );
+    mbedtls_ssl_config_free( &conf );
+
+#if defined(MBEDTLS_SSL_CACHE_C)
+    mbedtls_ssl_cache_free( &cache );
 #endif
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    mbedtls_ssl_ticket_free( &ticket_ctx );
+#endif
+#if defined(MBEDTLS_SSL_COOKIE_C)
+    mbedtls_ssl_cookie_free( &cookie_ctx );
+#endif
+
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+    if( context_buf != NULL )
+        mbedtls_platform_zeroize( context_buf, context_buf_len );
+    mbedtls_free( context_buf );
+#endif
+
+#if defined(SNI_OPTION)
+    sni_free( sni_info );
+#endif
+
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+    ret = psk_free( psk_info );
+    if( ( ret != 0 ) && ( opt.query_config_mode == DFL_QUERY_CONFIG_MODE ) )
+        mbedtls_printf( "Failed to list of opaque PSKs - error was %d\n", ret );
+#endif
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_x509_crt_free( &cacert );
     mbedtls_x509_crt_free( &srvcert );
@@ -3942,6 +3968,11 @@ exit:
     mbedtls_x509_crt_free( &srvcert2 );
     mbedtls_pk_free( &pkey2 );
 #endif
+
+#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_FS_IO)
+    mbedtls_dhm_free( &dhm );
+#endif
+
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     for( i = 0; (size_t) i < ssl_async_keys.slots_used; i++ )
     {
@@ -3952,17 +3983,6 @@ exit:
             ssl_async_keys.slots[i].pk = NULL;
         }
     }
-#endif
-#if defined(SNI_OPTION)
-    sni_free( sni_info );
-#endif
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
-    ret = psk_free( psk_info );
-    if( ( ret != 0 ) && ( opt.query_config_mode == DFL_QUERY_CONFIG_MODE ) )
-        mbedtls_printf( "Failed to list of opaque PSKs - error was %d\n", ret );
-#endif
-#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_FS_IO)
-    mbedtls_dhm_free( &dhm );
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED) && \
@@ -3984,16 +4004,6 @@ exit:
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED &&
           MBEDTLS_USE_PSA_CRYPTO */
 
-#if defined(MBEDTLS_SSL_CACHE_C)
-    mbedtls_ssl_cache_free( &cache );
-#endif
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    mbedtls_ssl_ticket_free( &ticket_ctx );
-#endif
-#if defined(MBEDTLS_SSL_COOKIE_C)
-    mbedtls_ssl_cookie_free( &cookie_ctx );
-#endif
-
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     const char* message = mbedtls_test_helper_is_psa_leaking();
     if( message )
@@ -4011,17 +4021,9 @@ exit:
     mbedtls_psa_crypto_free( );
 #endif
 
-    mbedtls_ssl_free( &ssl );
-    mbedtls_ssl_config_free( &conf );
     rng_free( &rng );
 
     mbedtls_free( buf );
-
-#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
-    if( context_buf != NULL )
-        mbedtls_platform_zeroize( context_buf, context_buf_len );
-    mbedtls_free( context_buf );
-#endif
 
 #if defined(MBEDTLS_TEST_HOOKS)
     /* Let test hooks detect errors such as resource leaks.

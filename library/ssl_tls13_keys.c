@@ -1111,7 +1111,7 @@ int mbedtls_ssl_tls13_key_schedule_stage_handshake( mbedtls_ssl_context *ssl )
 /* Generate application traffic keys since any records following a 1-RTT Finished message
  * MUST be encrypted under the application traffic key.
  */
-int mbedtls_ssl_tls1_3_generate_application_keys(
+int mbedtls_ssl_tls13_generate_application_keys(
                                         mbedtls_ssl_context *ssl,
                                         mbedtls_ssl_key_set *traffic_keys )
 {

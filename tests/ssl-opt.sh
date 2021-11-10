@@ -8820,9 +8820,7 @@ run_test    "TLS1.3: Test client hello msg work - openssl" \
             -c "tls1_3 client state: 19"    \
             -c "tls1_3 client state: 5"     \
             -c "tls1_3 client state: 3"     \
-            -c "tls1_3 client state: 9"     \
             -c "tls1_3 client state: 13"    \
-            -c "tls1_3 client state: 7"     \
             -c "tls1_3 client state: 20"    \
             -c "tls1_3 client state: 11"    \
             -c "tls1_3 client state: 14"    \
@@ -8835,7 +8833,8 @@ run_test    "TLS1.3: Test client hello msg work - openssl" \
             -c "Certificate verification flags clear" \
             -c "=> parse certificate verify"          \
             -c "<= parse certificate verify"          \
-            -c "mbedtls_ssl_tls13_process_certificate_verify() returned 0"
+            -c "mbedtls_ssl_tls13_process_certificate_verify() returned 0" \
+            -c "<= parse finished message"
 
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -8853,9 +8852,7 @@ run_test    "TLS1.3: Test client hello msg work - gnutls" \
             -c "tls1_3 client state: 19"    \
             -c "tls1_3 client state: 5"     \
             -c "tls1_3 client state: 3"     \
-            -c "tls1_3 client state: 9"     \
             -c "tls1_3 client state: 13"    \
-            -c "tls1_3 client state: 7"     \
             -c "tls1_3 client state: 20"    \
             -c "tls1_3 client state: 11"    \
             -c "tls1_3 client state: 14"    \
@@ -8868,7 +8865,9 @@ run_test    "TLS1.3: Test client hello msg work - gnutls" \
             -c "Certificate verification flags clear" \
             -c "=> parse certificate verify"          \
             -c "<= parse certificate verify"          \
-            -c "mbedtls_ssl_tls13_process_certificate_verify() returned 0"
+            -c "mbedtls_ssl_tls13_process_certificate_verify() returned 0" \
+            -c "<= parse finished message"
+
 
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_MEMORY_DEBUG

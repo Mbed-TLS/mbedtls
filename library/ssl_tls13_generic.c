@@ -920,12 +920,12 @@ static int ssl_tls13_postprocess_server_finished_message( mbedtls_ssl_context *s
         goto cleanup;
     }
 
-    ret = mbedtls_ssl_tls1_3_generate_application_keys(
+    ret = mbedtls_ssl_tls13_generate_application_keys(
         ssl, &traffic_keys );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1,
-            "mbedtls_ssl_tls1_3_generate_application_keys", ret );
+            "mbedtls_ssl_tls13_generate_application_keys", ret );
         goto cleanup;
     }
 
@@ -981,7 +981,7 @@ int mbedtls_ssl_tls13_process_finished_message( mbedtls_ssl_context *ssl )
     unsigned char *buf;
     size_t buflen;
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse finished_in" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse finished message" ) );
 
     /* Preprocessing step: Compute handshake digest */
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_preprocess_finished_message( ssl ) );
@@ -996,7 +996,7 @@ int mbedtls_ssl_tls13_process_finished_message( mbedtls_ssl_context *ssl )
 
 cleanup:
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse finished_in" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse finished message" ) );
     return( ret );
 }
 

@@ -53,15 +53,15 @@ EXPECTED_FAILURES = {
 }
 
 # We currently use a fork of ARM-software/psa-arch-tests, with a couple of downstream patches
-# that allow it to build with MbedTLS 3, and fixes a couple of issues in the compliance test suite.
+# that allow it to build with Mbed TLS 2, and fixes a couple of issues in the compliance test suite.
 # These fixes allow the tests numbered 216, 248 and 249 to complete successfully.
 #
 # Once all the fixes are upstreamed, this fork should be replaced with an upstream commit/tag.
 # - Tracked in issue #5145
 #
-# Web URL: https://github.com/bensze01/psa-arch-tests/tree/fixes-for-mbedtls-3
+# Web URL: https://github.com/bensze01/psa-arch-tests/tree/fixes-for-mbedtls-2
 PSA_ARCH_TESTS_REPO = 'https://github.com/bensze01/psa-arch-tests.git'
-PSA_ARCH_TESTS_REF = 'fixes-for-mbedtls-3'
+PSA_ARCH_TESTS_REF = 'fixes-for-mbedtls-2'
 
 #pylint: disable=too-many-branches,too-many-statements
 def main():

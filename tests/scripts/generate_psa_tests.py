@@ -96,7 +96,7 @@ def hack_dependencies_not_implemented(dependencies: List[str]) -> None:
     if _implemented_dependencies is None:
         _implemented_dependencies = \
             read_implemented_dependencies('include/psa/crypto_config.h')
-    if not all(dep.lstrip('!') in _implemented_dependencies
+    if not all((dep.lstrip('!') in _implemented_dependencies or 'PSA_WANT' not in dep)
                for dep in dependencies):
         dependencies.append('DEPENDENCY_NOT_IMPLEMENTED_YET')
 
@@ -155,30 +155,8 @@ def test_case_for_key_type_not_supported(
     tc.set_arguments([key_type] + list(args))
     return tc
 
-def test_case_for_key_type_invalid_argument(
-        verb: str, key_type: str, bits: int,
-        dependencies: List[str],
-        *args: str,
-        param_descr: str = ''
-) -> test_case.TestCase:
-    """Return one test case exercising a key creation method
-    for an invalid argument when key is public.
-    """
-    hack_dependencies_not_implemented(dependencies)
-    tc = test_case.TestCase()
-    short_key_type = re.sub(r'PSA_(KEY_TYPE|ECC_FAMILY)_', r'', key_type)
-    adverb = 'not' if dependencies else 'never'
-    if param_descr:
-        adverb = param_descr + ' ' + adverb
-    tc.set_description('PSA {} {} {}-bit invalid argument'
-                       .format(verb, short_key_type, bits))
-    tc.set_function(verb + '_invalid_argument')
-    tc.set_dependencies(dependencies)
-    tc.set_arguments([key_type] + list(args))
-    return tc
-
 class NotSupported:
-    """Generate test cases for when something is not supported or argument is inavlid."""
+    """Generate test cases for when something is not supported."""
 
     def __init__(self, info: Information) -> None:
         self.constructors = info.constructors
@@ -193,13 +171,11 @@ class NotSupported:
             param: Optional[int] = None,
             param_descr: str = '',
     ) -> Iterator[test_case.TestCase]:
-        """Return test cases exercising key creation when the given type is unsupported
-        or argument is invalid.
+        """Return test cases exercising key creation when the given type is unsupported.
 
         If param is present and not None, emit test cases conditioned on this
         parameter not being supported. If it is absent or None, emit test cases
-        conditioned on the base type not being supported. If key is public emit test
-        case for invalid argument.
+        conditioned on the base type not being supported.
         """
         if kt.name in self.ALWAYS_SUPPORTED:
             # Don't generate test cases for key types that are always supported.
@@ -227,14 +203,9 @@ class NotSupported:
                 # supported or not depending on implementation capabilities,
                 # only generate the test case once.
                 continue
-            if kt.name.endswith('_PUBLIC_KEY'):
-                yield test_case_for_key_type_invalid_argument(
-                    'generate', kt.expression, bits,
-                    finish_family_dependencies(generate_dependencies, bits),
-                    str(bits),
-                    param_descr=param_descr,
-                )
-            else:
+                # For public key we expect that key generation fails with
+                # INVALID_ARGUMENT. It is handled by KeyGenerate class.
+            if not kt.name.endswith('_PUBLIC_KEY'):
                 yield test_case_for_key_type_not_supported(
                     'generate', kt.expression, bits,
                     finish_family_dependencies(generate_dependencies, bits),
@@ -260,6 +231,79 @@ class NotSupported:
                     kt, param_descr='type')
                 yield from self.test_cases_for_key_type_not_supported(
                     kt, 0, param_descr='curve')
+
+def test_case_for_key_generation(
+        key_type: str, bits: int,
+        dependencies: List[str],
+        *args: str,
+        result: str = ''
+) -> test_case.TestCase:
+    """Return one test case exercising a key generation.
+    """
+    hack_dependencies_not_implemented(dependencies)
+    tc = test_case.TestCase()
+    short_key_type = re.sub(r'PSA_(KEY_TYPE|ECC_FAMILY)_', r'', key_type)
+    tc.set_description('PSA {} {}-bit'
+                       .format(short_key_type, bits))
+    tc.set_dependencies(dependencies)
+    tc.set_function('generate_key')
+    tc.set_arguments([key_type] + list(args) + [result])
+
+    return tc
+
+class KeyGenerate:
+    """Generate positive and negative (invalid argument) test cases for key generation."""
+
+    def __init__(self, info: Information) -> None:
+        self.constructors = info.constructors
+
+    ECC_KEY_TYPES = ('PSA_KEY_TYPE_ECC_KEY_PAIR',
+                     'PSA_KEY_TYPE_ECC_PUBLIC_KEY')
+
+    @staticmethod
+    def test_cases_for_key_type_key_generation(
+            kt: crypto_knowledge.KeyType
+    ) -> Iterator[test_case.TestCase]:
+        """Return test cases exercising key generation.
+
+        All key types can be generated except for public keys. For public key
+        PSA_ERROR_INVALID_ARGUMENT status is expected.
+        """
+        result = 'PSA_SUCCESS'
+
+        import_dependencies = [psa_want_symbol(kt.name)]
+        if kt.params is not None:
+            import_dependencies += [psa_want_symbol(sym)
+                                    for i, sym in enumerate(kt.params)]
+        if kt.name.endswith('_PUBLIC_KEY'):
+            # The library checks whether the key type is a public key generically,
+            # before it reaches a point where it needs support for the specific key
+            # type, so it returns INVALID_ARGUMENT for unsupported public key types.
+            generate_dependencies = []
+            result = 'PSA_ERROR_INVALID_ARGUMENT'
+        else:
+            generate_dependencies = import_dependencies
+            if kt.name == 'PSA_KEY_TYPE_RSA_KEY_PAIR':
+                generate_dependencies.append("MBEDTLS_GENPRIME")
+        for bits in kt.sizes_to_test():
+            yield test_case_for_key_generation(
+                kt.expression, bits,
+                finish_family_dependencies(generate_dependencies, bits),
+                str(bits),
+                result
+            )
+
+    def test_cases_for_key_generation(self) -> Iterator[test_case.TestCase]:
+        """Generate test cases that exercise the generation of keys."""
+        for key_type in sorted(self.constructors.key_types):
+            if key_type in self.ECC_KEY_TYPES:
+                continue
+            kt = crypto_knowledge.KeyType(key_type)
+            yield from self.test_cases_for_key_type_key_generation(kt)
+        for curve_family in sorted(self.constructors.ecc_curves):
+            for constr in self.ECC_KEY_TYPES:
+                kt = crypto_knowledge.KeyType(constr, [curve_family])
+                yield from self.test_cases_for_key_type_key_generation(kt)
 
 class StorageKey(psa_storage.Key):
     """Representation of a key for storage format testing."""
@@ -682,6 +726,8 @@ class TestGenerator:
         test_case.write_data_file(filename, test_cases)
 
     TARGETS = {
+        'test_suite_psa_crypto_generate_key.generated':
+        lambda info: KeyGenerate(info).test_cases_for_key_generation(),
         'test_suite_psa_crypto_not_supported.generated':
         lambda info: NotSupported(info).test_cases_for_not_supported(),
         'test_suite_psa_crypto_storage_format.current':

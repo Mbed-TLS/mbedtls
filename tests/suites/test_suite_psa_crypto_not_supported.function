@@ -50,22 +50,3 @@ exit:
     PSA_DONE( );
 }
 /* END_CASE */
-
-/* BEGIN_CASE */
-void generate_invalid_argument( int key_type, int bits )
-{
-    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    mbedtls_svc_key_id_t key_id = INVALID_KEY_ID;
-
-    PSA_ASSERT( psa_crypto_init( ) );
-    psa_set_key_type( &attributes, key_type );
-    psa_set_key_bits( &attributes, bits );
-    TEST_EQUAL( psa_generate_key( &attributes, &key_id ),
-                PSA_ERROR_INVALID_ARGUMENT );
-    TEST_ASSERT( mbedtls_svc_key_id_equal( key_id, MBEDTLS_SVC_KEY_ID_INIT ) );
-
-exit:
-    psa_destroy_key( key_id );
-    PSA_DONE( );
-}
-/* END_CASE */

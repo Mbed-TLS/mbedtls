@@ -95,6 +95,7 @@ def main():
                      '-DTARGET=tgt_dev_apis_stdc',
                      '-DTOOLCHAIN=HOST_GCC',
                      '-DSUITE=CRYPTO',
+                     '-DMISSING_CRYPTO_1_0=1',
                      '-DPSA_CRYPTO_LIB_FILENAME={}/library/libmbedcrypto.a'.format(mbedtls_dir),
                      '-DPSA_INCLUDE_PATHS={}/include'.format(mbedtls_dir)
         ])

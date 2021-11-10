@@ -729,6 +729,8 @@ struct mbedtls_ssl_handshake_params
         /* Incoming Finished message */
         struct
         {
+            uint8_t preparation_done;
+
             /* Buffer holding digest of the handshake up to but
              * excluding the peer's incoming finished message. */
             unsigned char digest[MBEDTLS_TLS1_3_MD_MAX_SIZE];

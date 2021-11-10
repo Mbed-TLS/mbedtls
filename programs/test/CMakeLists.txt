@@ -39,9 +39,7 @@ if(USE_SHARED_MBEDTLS_LIBRARY AND
    NOT ${CMAKE_SYSTEM_NAME} MATCHES "[Ww][Ii][Nn]")
     add_executable(dlopen "dlopen.c")
     target_include_directories(dlopen PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../include)
-    if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-        target_link_libraries(dlopen "-ldl")
-    endif()
+    target_link_libraries(dlopen ${CMAKE_DL_LIBS})
 endif()
 
 foreach(exe IN LISTS executables_libs executables_mbedcrypto)

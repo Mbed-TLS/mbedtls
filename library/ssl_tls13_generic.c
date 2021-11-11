@@ -1020,54 +1020,9 @@ cleanup:
  * STATE HANDLING: Write and send Finished message.
  *
  */
-
 /*
- * Overview
+ * Implement
  */
-
-/* Main entry point: orchestrates the other functions */
-
-static int ssl_tls13_prepare_finished_message( mbedtls_ssl_context *ssl );
-static int ssl_tls13_write_finished_message_body( mbedtls_ssl_context *ssl,
-                                   unsigned char *buf,
-                                   unsigned char *end,
-                                   size_t *olen );
-static int ssl_tls13_finalize_finished_message( mbedtls_ssl_context *ssl );
-
-
-int mbedtls_ssl_tls13_write_finished_message( mbedtls_ssl_context *ssl )
-{
-    int ret;
-    unsigned char *buf;
-    size_t buf_len, msg_len;
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write finished message" ) );
-
-    if( !ssl->handshake->state_local.finished_out.preparation_done )
-    {
-        MBEDTLS_SSL_PROC_CHK( ssl_tls13_prepare_finished_message( ssl ) );
-        ssl->handshake->state_local.finished_out.preparation_done = 1;
-    }
-
-    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_start_handshake_msg( ssl,
-                         MBEDTLS_SSL_HS_FINISHED, &buf, &buf_len ) );
-
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_write_finished_message_body(
-                              ssl, buf, buf + buf_len, &msg_len ) );
-
-    mbedtls_ssl_tls1_3_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_FINISHED,
-                                               buf, msg_len );
-
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_finished_message( ssl ) );
-    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_finish_handshake_msg( ssl,
-                                              buf_len, msg_len ) );
-    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_flush_output( ssl ) );
-
-cleanup:
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write finished message" ) );
-    return( ret );
-}
 
 static int ssl_tls13_prepare_finished_message( mbedtls_ssl_context *ssl )
 {
@@ -1095,7 +1050,6 @@ static int ssl_tls13_finalize_finished_message( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_CLI_C)
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
-        /* Compute resumption_master_secret */
         ((void) ssl);
 
         mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_FLUSH_BUFFERS );
@@ -1112,9 +1066,9 @@ static int ssl_tls13_finalize_finished_message( mbedtls_ssl_context *ssl )
 }
 
 static int ssl_tls13_write_finished_message_body( mbedtls_ssl_context *ssl,
-                                   unsigned char *buf,
-                                   unsigned char *end,
-                                   size_t *olen )
+                                                  unsigned char *buf,
+                                                  unsigned char *end,
+                                                  size_t *olen )
 {
     size_t verify_data_len = ssl->handshake->state_local.finished_out.digest_len;
 
@@ -1125,6 +1079,41 @@ static int ssl_tls13_write_finished_message_body( mbedtls_ssl_context *ssl,
 
     *olen = verify_data_len;
     return( 0 );
+}
+
+/* Main entry point: orchestrates the other functions */
+int mbedtls_ssl_tls13_write_finished_message( mbedtls_ssl_context *ssl )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    unsigned char *buf;
+    size_t buf_len, msg_len;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write finished message" ) );
+
+    if( !ssl->handshake->state_local.finished_out.preparation_done )
+    {
+        MBEDTLS_SSL_PROC_CHK( ssl_tls13_prepare_finished_message( ssl ) );
+        ssl->handshake->state_local.finished_out.preparation_done = 1;
+    }
+
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_start_handshake_msg( ssl,
+                              MBEDTLS_SSL_HS_FINISHED, &buf, &buf_len ) );
+
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_write_finished_message_body(
+                              ssl, buf, buf + buf_len, &msg_len ) );
+
+    mbedtls_ssl_tls1_3_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_FINISHED,
+                                               buf, msg_len );
+
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_finished_message( ssl ) );
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_finish_handshake_msg( ssl,
+                                              buf_len, msg_len ) );
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_flush_output( ssl ) );
+
+cleanup:
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write finished message" ) );
+    return( ret );
 }
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */

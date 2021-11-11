@@ -2843,7 +2843,8 @@ component_test_zeroize () {
 }
 
 component_test_psa_compliance () {
-    msg "build: make, default config (out-of-box), libmbedcrypto.a only"
+    msg "build: make, default config + CMAC, libmbedcrypto.a only"
+    scripts/config.py set MBEDTLS_CMAC_C
     make -C library libmbedcrypto.a
 
     msg "unit test: test_psa_compliance.py"

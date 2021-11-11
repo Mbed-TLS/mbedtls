@@ -8820,8 +8820,8 @@ run_test    "TLS1.3: Test client hello msg work - openssl" \
             -c "tls1_3 client state: 19"    \
             -c "tls1_3 client state: 5"     \
             -c "tls1_3 client state: 3"     \
+            -c "tls1_3 client state: 9"     \
             -c "tls1_3 client state: 13"    \
-            -c "tls1_3 client state: 20"    \
             -c "tls1_3 client state: 11"    \
             -c "tls1_3 client state: 14"    \
             -c "tls1_3 client state: 15"    \
@@ -8852,8 +8852,8 @@ run_test    "TLS1.3: Test client hello msg work - gnutls" \
             -c "tls1_3 client state: 19"    \
             -c "tls1_3 client state: 5"     \
             -c "tls1_3 client state: 3"     \
+            -c "tls1_3 client state: 9"     \
             -c "tls1_3 client state: 13"    \
-            -c "tls1_3 client state: 20"    \
             -c "tls1_3 client state: 11"    \
             -c "tls1_3 client state: 14"    \
             -c "tls1_3 client state: 15"    \

@@ -876,8 +876,17 @@ static int ssl_tls13_parse_finished_message( mbedtls_ssl_context *ssl,
                                              const unsigned char *buf,
                                              const unsigned char *end )
 {
+    /*
+     * struct {
+     * opaque verify_data[Hash.length];
+     * } Finished;
+     */
+    const unsigned char *expected_verify_data =
+        ssl->handshake->state_local.finished_in.digest;
+    size_t expected_verify_data_len =
+        ssl->handshake->state_local.finished_in.digest_len;
     /* Structural validation */
-    if( (size_t)( end - buf ) != ssl->handshake->state_local.finished_in.digest_len )
+    if( (size_t)( end - buf ) != expected_verify_data_len )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
 
@@ -887,19 +896,19 @@ static int ssl_tls13_parse_finished_message( mbedtls_ssl_context *ssl,
     }
 
     MBEDTLS_SSL_DEBUG_BUF( 4, "verify_data (self-computed):",
-                           ssl->handshake->state_local.finished_in.digest,
-                           ssl->handshake->state_local.finished_in.digest_len );
+                           expected_verify_data,
+                           expected_verify_data_len );
     MBEDTLS_SSL_DEBUG_BUF( 4, "verify_data (received message):", buf,
-                           ssl->handshake->state_local.finished_in.digest_len );
+                           expected_verify_data_len );
 
     /* Semantic validation */
     if( mbedtls_ssl_safer_memcmp( buf,
-                   ssl->handshake->state_local.finished_in.digest,
-                   ssl->handshake->state_local.finished_in.digest_len ) != 0 )
+                                  expected_verify_data,
+                                  expected_verify_data_len ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
 
-        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
+        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECRYPT_ERROR,
                               MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
         return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }
@@ -908,7 +917,7 @@ static int ssl_tls13_parse_finished_message( mbedtls_ssl_context *ssl,
 
 static int ssl_tls13_postprocess_server_finished_message( mbedtls_ssl_context *ssl )
 {
-    int ret = 0;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ssl_key_set traffic_keys;
     mbedtls_ssl_transform *transform_application = NULL;
 
@@ -920,8 +929,7 @@ static int ssl_tls13_postprocess_server_finished_message( mbedtls_ssl_context *s
         goto cleanup;
     }
 
-    ret = mbedtls_ssl_tls13_generate_application_keys(
-        ssl, &traffic_keys );
+    ret = mbedtls_ssl_tls13_generate_application_keys( ssl, &traffic_keys );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1,
@@ -953,7 +961,7 @@ static int ssl_tls13_postprocess_server_finished_message( mbedtls_ssl_context *s
 
 cleanup:
 
-    mbedtls_platform_zeroize( &traffic_keys, sizeof( mbedtls_ssl_key_set ) );
+    mbedtls_platform_zeroize( &traffic_keys, sizeof( traffic_keys ) );
     if( ret != 0 )
     {
         mbedtls_free( transform_application );
@@ -977,7 +985,7 @@ static int ssl_tls13_postprocess_finished_message( mbedtls_ssl_context* ssl )
 
 int mbedtls_ssl_tls13_process_finished_message( mbedtls_ssl_context *ssl )
 {
-    int ret = 0;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *buf;
     size_t buflen;
 

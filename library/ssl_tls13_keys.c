@@ -564,8 +564,7 @@ int mbedtls_ssl_tls1_3_derive_resumption_master_secret(
     return( 0 );
 }
 
-int mbedtls_ssl_tls13_key_schedule_stage_application(
-    mbedtls_ssl_context *ssl )
+int mbedtls_ssl_tls13_key_schedule_stage_application( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;

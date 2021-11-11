@@ -586,8 +586,7 @@ int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
  * \returns    \c 0 on success.
  * \returns    A negative error code on failure.
  */
-int mbedtls_ssl_tls13_key_schedule_stage_application(
-    mbedtls_ssl_context *ssl );
+int mbedtls_ssl_tls13_key_schedule_stage_application( mbedtls_ssl_context *ssl );
 
 /**
  * \brief Compute TLS 1.3 application traffic keys.

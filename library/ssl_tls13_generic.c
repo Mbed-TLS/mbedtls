@@ -915,7 +915,6 @@ static int ssl_tls13_parse_finished_message( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
-
 #if defined(MBEDTLS_SSL_CLI_C)
 static int ssl_tls13_postprocess_server_finished_message( mbedtls_ssl_context *ssl )
 {

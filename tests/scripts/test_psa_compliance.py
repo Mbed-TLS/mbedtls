@@ -38,9 +38,8 @@ EXPECTED_FAILURES = {
     # - Tracked in issue #5143
     221,
 
-    # Multipart CCM is not supported.
-    # - Tracked in issue #3721
-    252, 253, 254, 255, 256, 257, 258, 259, 261,
+    # Multipart AEAD is not supported in Mbed TLS 2.x.
+    252, 253, 254, 255, 256, 257, 258, 259, 260, 261,
 
     # psa_hash_suspend() and psa_hash_resume() are not supported.
     # - Tracked in issue #3274

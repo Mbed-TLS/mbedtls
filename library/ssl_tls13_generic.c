@@ -862,7 +862,7 @@ static int ssl_tls13_preprocess_finished_message( mbedtls_ssl_context *ssl )
                     sizeof( ssl->handshake->state_local.finished_in.digest ),
                     &ssl->handshake->state_local.finished_in.digest_len,
                     ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT ?
-                    MBEDTLS_SSL_IS_SERVER : MBEDTLS_SSL_IS_CLIENT );
+                        MBEDTLS_SSL_IS_SERVER : MBEDTLS_SSL_IS_CLIENT );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_calculate_verify_data", ret );
@@ -878,7 +878,7 @@ static int ssl_tls13_parse_finished_message( mbedtls_ssl_context *ssl,
 {
     /*
      * struct {
-     * opaque verify_data[Hash.length];
+     *     opaque verify_data[Hash.length];
      * } Finished;
      */
     const unsigned char *expected_verify_data =
@@ -891,7 +891,7 @@ static int ssl_tls13_parse_finished_message( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
 
         MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
-                              MBEDTLS_ERR_SSL_DECODE_ERROR );
+                                      MBEDTLS_ERR_SSL_DECODE_ERROR );
         return( MBEDTLS_ERR_SSL_DECODE_ERROR );
     }
 
@@ -909,12 +909,14 @@ static int ssl_tls13_parse_finished_message( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
 
         MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECRYPT_ERROR,
-                              MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+                                      MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
         return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }
     return( 0 );
 }
 
+
+#if defined(MBEDTLS_SSL_CLI_C)
 static int ssl_tls13_postprocess_server_finished_message( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -971,14 +973,19 @@ cleanup:
     }
     return( ret );
 }
+#endif /* MBEDTLS_SSL_CLI_C */
 
 static int ssl_tls13_postprocess_finished_message( mbedtls_ssl_context* ssl )
 {
 
+#if defined(MBEDTLS_SSL_CLI_C)
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
         return( ssl_tls13_postprocess_server_finished_message( ssl ) );
     }
+#else
+    ((void) ssl);
+#endif /* MBEDTLS_SSL_CLI_C */
 
     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 }

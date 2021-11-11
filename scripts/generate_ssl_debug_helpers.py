@@ -44,7 +44,7 @@ def remove_c_comments(string):
 class CondDirectiveNotMatch(Exception):
     pass
 
-def preprocesse_c_source_code(source, *classes):
+def preprocess_c_source_code(source, *classes):
     """
         Simple preprocessor for C source code.
 
@@ -281,7 +281,7 @@ def generate_ssl_debug_helpers(target_dir):
 
     definitions = dict()
     prototypes = dict()
-    for start, instance in preprocesse_c_source_code(source_code, EnumDefinition):
+    for start, instance in preprocess_c_source_code(source_code, EnumDefinition):
         if start in definitions:
             continue
         if isinstance(instance, EnumDefinition):

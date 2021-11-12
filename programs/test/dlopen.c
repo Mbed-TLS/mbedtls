@@ -34,9 +34,15 @@
 #include "mbedtls/x509_crt.h"
 #endif
 
-#define CRYPTO_SO_FILENAME "libmbedcrypto.so"
-#define X509_SO_FILENAME "libmbedx509.so"
-#define TLS_SO_FILENAME "libmbedtls.so"
+#if defined(__APPLE__)
+#define SO_SUFFIX ".dylib"
+#else
+#define SO_SUFFIX ".so"
+#endif
+
+#define CRYPTO_SO_FILENAME "libmbedcrypto" SO_SUFFIX
+#define X509_SO_FILENAME "libmbedx509" SO_SUFFIX
+#define TLS_SO_FILENAME "libmbedtls" SO_SUFFIX
 
 #include <dlfcn.h>
 

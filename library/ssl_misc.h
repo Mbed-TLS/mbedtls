@@ -307,8 +307,6 @@
       + ( MBEDTLS_SSL_CID_OUT_LEN_MAX ) )
 #endif
 
-#define MBEDTLS_TLS1_3_MD_MAX_SIZE         MBEDTLS_MD_MAX_SIZE
-
 #define MBEDTLS_CLIENT_HELLO_RANDOM_LEN 32
 #define MBEDTLS_SERVER_HELLO_RANDOM_LEN 32
 
@@ -522,14 +520,6 @@ typedef struct
     unsigned char server_handshake_traffic_secret[ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
 } mbedtls_ssl_tls1_3_handshake_secrets;
 
-typedef struct
-{
-    unsigned char client_application_traffic_secret_N[ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
-    unsigned char server_application_traffic_secret_N[ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
-    unsigned char exporter_master_secret             [ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
-    unsigned char resumption_master_secret           [ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
-} mbedtls_ssl_tls1_3_application_secrets;
-
 /*
  * This structure contains the parameters only needed during handshake.
  */
@@ -718,6 +708,38 @@ struct mbedtls_ssl_handshake_params
                                 * entry in the client's group list,
                                 * but can be overwritten by the HRR. */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+
+    /*
+     * State-local variables used during the processing
+     * of a specific handshake state.
+     */
+    union
+    {
+        /* Outgoing Finished message */
+        struct
+        {
+            uint8_t preparation_done;
+
+            /* Buffer holding digest of the handshake up to
+             * but excluding the outgoing finished message. */
+            unsigned char digest[MBEDTLS_TLS1_3_MD_MAX_SIZE];
+            size_t digest_len;
+        } finished_out;
+
+        /* Incoming Finished message */
+        struct
+        {
+            uint8_t preparation_done;
+
+            /* Buffer holding digest of the handshake up to but
+             * excluding the peer's incoming finished message. */
+            unsigned char digest[MBEDTLS_TLS1_3_MD_MAX_SIZE];
+            size_t digest_len;
+        } finished_in;
+
+    } state_local;
+
+    /* End of state-local variables. */
 
     mbedtls_ssl_ciphersuite_t const *ciphersuite_info;
 
@@ -1161,6 +1183,8 @@ static inline int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
 
 int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush );
 int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl );
+
+int mbedtls_ssl_tls13_process_finished_message( mbedtls_ssl_context *ssl );
 
 int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl );

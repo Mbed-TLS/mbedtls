@@ -35,10 +35,10 @@
 #include "ssl_misc.h"
 #include "ssl_tls13_keys.h"
 
-int mbedtls_ssl_tls1_3_fetch_handshake_msg( mbedtls_ssl_context *ssl,
-                                            unsigned hs_type,
-                                            unsigned char **buf,
-                                            size_t *buflen )
+int mbedtls_ssl_tls13_fetch_handshake_msg( mbedtls_ssl_context *ssl,
+                                           unsigned hs_type,
+                                           unsigned char **buf,
+                                           size_t *buflen )
 {
     int ret;
 
@@ -111,10 +111,10 @@ cleanup:
     return( ret );
 }
 
-void mbedtls_ssl_tls1_3_add_hs_msg_to_checksum( mbedtls_ssl_context *ssl,
-                                                unsigned hs_type,
-                                                unsigned char const *msg,
-                                                size_t msg_len )
+void mbedtls_ssl_tls13_add_hs_msg_to_checksum( mbedtls_ssl_context *ssl,
+                                               unsigned hs_type,
+                                               unsigned char const *msg,
+                                               size_t msg_len )
 {
     mbedtls_ssl_tls13_add_hs_hdr_to_checksum( ssl, hs_type, msg_len );
     ssl->handshake->update_checksum( ssl, msg, msg_len );
@@ -190,7 +190,7 @@ int mbedtls_ssl_tls13_write_sig_alg_ext( mbedtls_ssl_context *ssl,
      */
     supported_sig_alg_ptr = p;
     for( const uint16_t *sig_alg = ssl->conf->tls13_sig_algs;
-         *sig_alg != MBEDTLS_TLS13_SIG_NONE; sig_alg++ )
+         *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
     {
         MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
         MBEDTLS_PUT_UINT16_BE( *sig_alg, p, 0 );
@@ -298,7 +298,7 @@ static int ssl_tls13_sig_alg_is_offered( const mbedtls_ssl_context *ssl,
 {
     const uint16_t *tls13_sig_alg = ssl->conf->tls13_sig_algs;
 
-    for( ; *tls13_sig_alg != MBEDTLS_TLS13_SIG_NONE ; tls13_sig_alg++ )
+    for( ; *tls13_sig_alg != MBEDTLS_TLS1_3_SIG_NONE ; tls13_sig_alg++ )
     {
         if( *tls13_sig_alg == sig_alg )
             return( 1 );
@@ -362,15 +362,15 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
     /* We currently only support ECDSA-based signatures */
     switch( algorithm )
     {
-        case MBEDTLS_TLS13_SIG_ECDSA_SECP256R1_SHA256:
+        case MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256:
             md_alg = MBEDTLS_MD_SHA256;
             sig_alg = MBEDTLS_PK_ECDSA;
             break;
-        case MBEDTLS_TLS13_SIG_ECDSA_SECP384R1_SHA384:
+        case MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384:
             md_alg = MBEDTLS_MD_SHA384;
             sig_alg = MBEDTLS_PK_ECDSA;
             break;
-        case MBEDTLS_TLS13_SIG_ECDSA_SECP521R1_SHA512:
+        case MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512:
             md_alg = MBEDTLS_MD_SHA512;
             sig_alg = MBEDTLS_PK_ECDSA;
             break;
@@ -490,7 +490,7 @@ int mbedtls_ssl_tls13_process_certificate_verify( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate verify" ) );
 
     MBEDTLS_SSL_PROC_CHK(
-        mbedtls_ssl_tls1_3_fetch_handshake_msg( ssl,
+        mbedtls_ssl_tls13_fetch_handshake_msg( ssl,
                 MBEDTLS_SSL_HS_CERTIFICATE_VERIFY, &buf, &buf_len ) );
 
     /* Need to calculate the hash of the transcript first
@@ -524,7 +524,7 @@ int mbedtls_ssl_tls13_process_certificate_verify( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_parse_certificate_verify( ssl, buf,
                             buf + buf_len, verify_buffer, verify_buffer_len ) );
 
-    mbedtls_ssl_tls1_3_add_hs_msg_to_checksum( ssl,
+    mbedtls_ssl_tls13_add_hs_msg_to_checksum( ssl,
                         MBEDTLS_SSL_HS_CERTIFICATE_VERIFY, buf, buf_len );
 
 cleanup:
@@ -850,7 +850,7 @@ int mbedtls_ssl_tls13_process_certificate( mbedtls_ssl_context *ssl )
     unsigned char *buf;
     size_t buf_len;
 
-    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls1_3_fetch_handshake_msg(
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_fetch_handshake_msg(
                           ssl, MBEDTLS_SSL_HS_CERTIFICATE,
                           &buf, &buf_len ) );
 
@@ -859,8 +859,8 @@ int mbedtls_ssl_tls13_process_certificate( mbedtls_ssl_context *ssl )
     /* Validate the certificate chain and set the verification results. */
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_validate_certificate( ssl ) );
 
-    mbedtls_ssl_tls1_3_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_CERTIFICATE,
-                                               buf, buf_len );
+    mbedtls_ssl_tls13_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_CERTIFICATE,
+                                              buf, buf_len );
 
 cleanup:
 
@@ -1027,11 +1027,11 @@ int mbedtls_ssl_tls13_process_finished_message( mbedtls_ssl_context *ssl )
     /* Preprocessing step: Compute handshake digest */
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_preprocess_finished_message( ssl ) );
 
-    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls1_3_fetch_handshake_msg( ssl,
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_fetch_handshake_msg( ssl,
                                               MBEDTLS_SSL_HS_FINISHED,
                                               &buf, &buflen ) );
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_parse_finished_message( ssl, buf, buf + buflen ) );
-    mbedtls_ssl_tls1_3_add_hs_msg_to_checksum(
+    mbedtls_ssl_tls13_add_hs_msg_to_checksum(
         ssl, MBEDTLS_SSL_HS_FINISHED, buf, buflen );
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_postprocess_finished_message( ssl ) );
 
@@ -1115,8 +1115,8 @@ int mbedtls_ssl_tls13_write_finished_message( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_write_finished_message_body(
                               ssl, buf, buf + buf_len, &msg_len ) );
 
-    mbedtls_ssl_tls1_3_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_FINISHED,
-                                               buf, msg_len );
+    mbedtls_ssl_tls13_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_FINISHED,
+                                              buf, msg_len );
 
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_finished_message( ssl ) );
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_finish_handshake_msg( ssl,

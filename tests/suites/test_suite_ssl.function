@@ -3670,12 +3670,12 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
-void ssl_tls1_3_hkdf_expand_label( int hash_alg,
-                                   data_t *secret,
-                                   int label_idx,
-                                   data_t *ctx,
-                                   int desired_length,
-                                   data_t *expected )
+void ssl_tls13_hkdf_expand_label( int hash_alg,
+                                  data_t *secret,
+                                  int label_idx,
+                                  data_t *ctx,
+                                  int desired_length,
+                                  data_t *expected )
 {
     unsigned char dst[ 100 ];
 
@@ -3684,8 +3684,8 @@ void ssl_tls1_3_hkdf_expand_label( int hash_alg,
 #define MBEDTLS_SSL_TLS1_3_LABEL( name, string )                        \
     if( label_idx == (int) tls1_3_label_ ## name )                      \
     {                                                                   \
-        lbl = mbedtls_ssl_tls1_3_labels.name;                           \
-        lbl_len = sizeof( mbedtls_ssl_tls1_3_labels.name );             \
+        lbl = mbedtls_ssl_tls13_labels.name;                           \
+        lbl_len = sizeof( mbedtls_ssl_tls13_labels.name );             \
     }
 MBEDTLS_SSL_TLS1_3_LABEL_LIST
 #undef MBEDTLS_SSL_TLS1_3_LABEL
@@ -3695,7 +3695,7 @@ MBEDTLS_SSL_TLS1_3_LABEL_LIST
     TEST_ASSERT( (size_t) desired_length <= sizeof(dst) );
     TEST_ASSERT( (size_t) desired_length == expected->len );
 
-    TEST_ASSERT( mbedtls_ssl_tls1_3_hkdf_expand_label(
+    TEST_ASSERT( mbedtls_ssl_tls13_hkdf_expand_label(
                       (mbedtls_md_type_t) hash_alg,
                       secret->x, secret->len,
                       lbl, lbl_len,
@@ -3708,15 +3708,15 @@ MBEDTLS_SSL_TLS1_3_LABEL_LIST
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
-void ssl_tls1_3_traffic_key_generation( int hash_alg,
-                                        data_t *server_secret,
-                                        data_t *client_secret,
-                                        int desired_iv_len,
-                                        int desired_key_len,
-                                        data_t *expected_server_write_key,
-                                        data_t *expected_server_write_iv,
-                                        data_t *expected_client_write_key,
-                                        data_t *expected_client_write_iv )
+void ssl_tls13_traffic_key_generation( int hash_alg,
+                                       data_t *server_secret,
+                                       data_t *client_secret,
+                                       int desired_iv_len,
+                                       int desired_key_len,
+                                       data_t *expected_server_write_key,
+                                       data_t *expected_server_write_iv,
+                                       data_t *expected_client_write_key,
+                                       data_t *expected_client_write_iv )
 {
     mbedtls_ssl_key_set keys;
 
@@ -3727,7 +3727,7 @@ void ssl_tls1_3_traffic_key_generation( int hash_alg,
     TEST_ASSERT( expected_client_write_key->len == expected_server_write_key->len &&
                  expected_client_write_key->len == (size_t) desired_key_len );
 
-    TEST_ASSERT( mbedtls_ssl_tls1_3_make_traffic_keys(
+    TEST_ASSERT( mbedtls_ssl_tls13_make_traffic_keys(
                      (mbedtls_md_type_t) hash_alg,
                      client_secret->x,
                      server_secret->x,
@@ -3755,13 +3755,13 @@ void ssl_tls1_3_traffic_key_generation( int hash_alg,
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
-void ssl_tls1_3_derive_secret( int hash_alg,
-                               data_t *secret,
-                               int label_idx,
-                               data_t *ctx,
-                               int desired_length,
-                               int already_hashed,
-                               data_t *expected )
+void ssl_tls13_derive_secret( int hash_alg,
+                              data_t *secret,
+                              int label_idx,
+                              data_t *ctx,
+                              int desired_length,
+                              int already_hashed,
+                              data_t *expected )
 {
     unsigned char dst[ 100 ];
 
@@ -3770,8 +3770,8 @@ void ssl_tls1_3_derive_secret( int hash_alg,
 #define MBEDTLS_SSL_TLS1_3_LABEL( name, string )                        \
     if( label_idx == (int) tls1_3_label_ ## name )                      \
     {                                                                   \
-        lbl = mbedtls_ssl_tls1_3_labels.name;                           \
-        lbl_len = sizeof( mbedtls_ssl_tls1_3_labels.name );             \
+        lbl = mbedtls_ssl_tls13_labels.name;                           \
+        lbl_len = sizeof( mbedtls_ssl_tls13_labels.name );             \
     }
 MBEDTLS_SSL_TLS1_3_LABEL_LIST
 #undef MBEDTLS_SSL_TLS1_3_LABEL
@@ -3781,7 +3781,7 @@ MBEDTLS_SSL_TLS1_3_LABEL_LIST
     TEST_ASSERT( (size_t) desired_length <= sizeof(dst) );
     TEST_ASSERT( (size_t) desired_length == expected->len );
 
-    TEST_ASSERT( mbedtls_ssl_tls1_3_derive_secret(
+    TEST_ASSERT( mbedtls_ssl_tls13_derive_secret(
                       (mbedtls_md_type_t) hash_alg,
                       secret->x, secret->len,
                       lbl, lbl_len,
@@ -3795,13 +3795,13 @@ MBEDTLS_SSL_TLS1_3_LABEL_LIST
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
-void ssl_tls1_3_derive_early_secrets( int hash_alg,
-                                      data_t *secret,
-                                      data_t *transcript,
-                                      data_t *traffic_expected,
-                                      data_t *exporter_expected )
+void ssl_tls13_derive_early_secrets( int hash_alg,
+                                     data_t *secret,
+                                     data_t *transcript,
+                                     data_t *traffic_expected,
+                                     data_t *exporter_expected )
 {
-    mbedtls_ssl_tls1_3_early_secrets secrets;
+    mbedtls_ssl_tls13_early_secrets secrets;
 
     /* Double-check that we've passed sane parameters. */
     mbedtls_md_type_t md_type = (mbedtls_md_type_t) hash_alg;
@@ -3813,7 +3813,7 @@ void ssl_tls1_3_derive_early_secrets( int hash_alg,
                  traffic_expected->len == md_size  &&
                  exporter_expected->len == md_size );
 
-    TEST_ASSERT( mbedtls_ssl_tls1_3_derive_early_secrets(
+    TEST_ASSERT( mbedtls_ssl_tls13_derive_early_secrets(
                      md_type, secret->x, transcript->x, transcript->len,
                      &secrets ) == 0 );
 
@@ -3825,13 +3825,13 @@ void ssl_tls1_3_derive_early_secrets( int hash_alg,
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
-void ssl_tls1_3_derive_handshake_secrets( int hash_alg,
-                                          data_t *secret,
-                                          data_t *transcript,
-                                          data_t *client_expected,
-                                          data_t *server_expected )
+void ssl_tls13_derive_handshake_secrets( int hash_alg,
+                                         data_t *secret,
+                                         data_t *transcript,
+                                         data_t *client_expected,
+                                         data_t *server_expected )
 {
-    mbedtls_ssl_tls1_3_handshake_secrets secrets;
+    mbedtls_ssl_tls13_handshake_secrets secrets;
 
     /* Double-check that we've passed sane parameters. */
     mbedtls_md_type_t md_type = (mbedtls_md_type_t) hash_alg;
@@ -3843,7 +3843,7 @@ void ssl_tls1_3_derive_handshake_secrets( int hash_alg,
                  client_expected->len == md_size   &&
                  server_expected->len == md_size );
 
-    TEST_ASSERT( mbedtls_ssl_tls1_3_derive_handshake_secrets(
+    TEST_ASSERT( mbedtls_ssl_tls13_derive_handshake_secrets(
                      md_type, secret->x, transcript->x, transcript->len,
                      &secrets ) == 0 );
 
@@ -3855,14 +3855,14 @@ void ssl_tls1_3_derive_handshake_secrets( int hash_alg,
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
-void ssl_tls1_3_derive_application_secrets( int hash_alg,
-                                          data_t *secret,
-                                          data_t *transcript,
-                                          data_t *client_expected,
-                                          data_t *server_expected,
-                                          data_t *exporter_expected )
+void ssl_tls13_derive_application_secrets( int hash_alg,
+                                           data_t *secret,
+                                           data_t *transcript,
+                                           data_t *client_expected,
+                                           data_t *server_expected,
+                                           data_t *exporter_expected )
 {
-    mbedtls_ssl_tls1_3_application_secrets secrets;
+    mbedtls_ssl_tls13_application_secrets secrets;
 
     /* Double-check that we've passed sane parameters. */
     mbedtls_md_type_t md_type = (mbedtls_md_type_t) hash_alg;
@@ -3875,7 +3875,7 @@ void ssl_tls1_3_derive_application_secrets( int hash_alg,
                  server_expected->len == md_size   &&
                  exporter_expected->len == md_size );
 
-    TEST_ASSERT( mbedtls_ssl_tls1_3_derive_application_secrets(
+    TEST_ASSERT( mbedtls_ssl_tls13_derive_application_secrets(
                      md_type, secret->x, transcript->x, transcript->len,
                      &secrets ) == 0 );
 
@@ -3889,12 +3889,12 @@ void ssl_tls1_3_derive_application_secrets( int hash_alg,
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
-void ssl_tls1_3_derive_resumption_secrets( int hash_alg,
-                                           data_t *secret,
-                                           data_t *transcript,
-                                           data_t *resumption_expected )
+void ssl_tls13_derive_resumption_secrets( int hash_alg,
+                                          data_t *secret,
+                                          data_t *transcript,
+                                          data_t *resumption_expected )
 {
-    mbedtls_ssl_tls1_3_application_secrets secrets;
+    mbedtls_ssl_tls13_application_secrets secrets;
 
     /* Double-check that we've passed sane parameters. */
     mbedtls_md_type_t md_type = (mbedtls_md_type_t) hash_alg;
@@ -3905,7 +3905,7 @@ void ssl_tls1_3_derive_resumption_secrets( int hash_alg,
                  transcript->len == md_size          &&
                  resumption_expected->len == md_size );
 
-    TEST_ASSERT( mbedtls_ssl_tls1_3_derive_resumption_master_secret(
+    TEST_ASSERT( mbedtls_ssl_tls13_derive_resumption_master_secret(
                      md_type, secret->x, transcript->x, transcript->len,
                      &secrets ) == 0 );
 
@@ -3915,11 +3915,11 @@ void ssl_tls1_3_derive_resumption_secrets( int hash_alg,
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
-void ssl_tls1_3_create_psk_binder( int hash_alg,
-                                   data_t *psk,
-                                   int psk_type,
-                                   data_t *transcript,
-                                   data_t *binder_expected )
+void ssl_tls13_create_psk_binder( int hash_alg,
+                                  data_t *psk,
+                                  int psk_type,
+                                  data_t *transcript,
+                                  data_t *binder_expected )
 {
     unsigned char binder[ MBEDTLS_MD_MAX_SIZE ];
 
@@ -3931,7 +3931,7 @@ void ssl_tls1_3_create_psk_binder( int hash_alg,
                  transcript->len == md_size      &&
                  binder_expected->len == md_size );
 
-    TEST_ASSERT( mbedtls_ssl_tls1_3_create_psk_binder(
+    TEST_ASSERT( mbedtls_ssl_tls13_create_psk_binder(
                      NULL, /* SSL context for debugging only */
                      md_type,
                      psk->x, psk->len,
@@ -3945,16 +3945,16 @@ void ssl_tls1_3_create_psk_binder( int hash_alg,
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
-void ssl_tls1_3_record_protection( int ciphersuite,
-                                   int endpoint,
-                                   int ctr,
-                                   int padding_used,
-                                   data_t *server_write_key,
-                                   data_t *server_write_iv,
-                                   data_t *client_write_key,
-                                   data_t *client_write_iv,
-                                   data_t *plaintext,
-                                   data_t *ciphertext )
+void ssl_tls13_record_protection( int ciphersuite,
+                                  int endpoint,
+                                  int ctr,
+                                  int padding_used,
+                                  data_t *server_write_key,
+                                  data_t *server_write_iv,
+                                  data_t *client_write_key,
+                                  data_t *client_write_iv,
+                                  data_t *plaintext,
+                                  data_t *ciphertext )
 {
     mbedtls_ssl_key_set keys;
     mbedtls_ssl_transform transform_send;
@@ -4043,14 +4043,14 @@ void ssl_tls1_3_record_protection( int ciphersuite,
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
-void ssl_tls1_3_key_evolution( int hash_alg,
-                               data_t *secret,
-                               data_t *input,
-                               data_t *expected )
+void ssl_tls13_key_evolution( int hash_alg,
+                              data_t *secret,
+                              data_t *input,
+                              data_t *expected )
 {
     unsigned char secret_new[ MBEDTLS_MD_MAX_SIZE ];
 
-    TEST_ASSERT( mbedtls_ssl_tls1_3_evolve_secret(
+    TEST_ASSERT( mbedtls_ssl_tls13_evolve_secret(
                       (mbedtls_md_type_t) hash_alg,
                       secret->len ? secret->x : NULL,
                       input->len ? input->x : NULL, input->len,

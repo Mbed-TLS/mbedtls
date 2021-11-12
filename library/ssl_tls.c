@@ -3574,7 +3574,7 @@ void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
 void mbedtls_ssl_conf_tls13_key_exchange_modes( mbedtls_ssl_config *conf,
                                                 const int kex_modes )
 {
-    conf->tls13_kex_modes = kex_modes & MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_ALL;
+    conf->tls13_kex_modes = kex_modes & MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_ALL;
 }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
@@ -6362,13 +6362,13 @@ static uint16_t ssl_preset_default_sig_algs[] = {
     /* ECDSA algorithms */
 #if defined(MBEDTLS_ECDSA_C)
 #if defined(MBEDTLS_SHA256_C) && defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
-    MBEDTLS_TLS13_SIG_ECDSA_SECP256R1_SHA256,
+    MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256,
 #endif /* MBEDTLS_SHA256_C && MBEDTLS_ECP_DP_SECP256R1_ENABLED */
 #if defined(MBEDTLS_SHA512_C) && defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
-    MBEDTLS_TLS13_SIG_ECDSA_SECP384R1_SHA384,
+    MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384,
 #endif /* MBEDTLS_SHA512_C && MBEDTLS_ECP_DP_SECP384R1_ENABLED */
 #if defined(MBEDTLS_SHA512_C) && defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
-    MBEDTLS_TLS13_SIG_ECDSA_SECP521R1_SHA512,
+    MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512,
 #endif /* MBEDTLS_SHA512_C && MBEDTLS_ECP_DP_SECP521R1_ENABLED */
 #endif /* MBEDTLS_ECDSA_C */
 
@@ -6385,10 +6385,10 @@ static uint16_t ssl_preset_suiteb_sig_algs[] = {
     /* ECDSA algorithms */
 #if defined(MBEDTLS_ECDSA_C)
 #if defined(MBEDTLS_SHA256_C) && defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
-    MBEDTLS_TLS13_SIG_ECDSA_SECP256R1_SHA256,
+    MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256,
 #endif /* MBEDTLS_SHA256_C && MBEDTLS_ECP_DP_SECP256R1_ENABLED */
 #if defined(MBEDTLS_SHA512_C) && defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
-    MBEDTLS_TLS13_SIG_ECDSA_SECP384R1_SHA384,
+    MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384,
 #endif /* MBEDTLS_SHA512_C && MBEDTLS_ECP_DP_SECP384R1_ENABLED */
 #endif /* MBEDTLS_ECDSA_C */
 
@@ -6495,7 +6495,7 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
     /*
      * Allow all TLS 1.3 key exchange modes by default.
      */
-    conf->tls13_kex_modes = MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_ALL;
+    conf->tls13_kex_modes = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_ALL;
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
     /*

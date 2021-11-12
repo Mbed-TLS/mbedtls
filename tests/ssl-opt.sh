@@ -8829,10 +8829,10 @@ run_test    "TLS1.3: minimal feature sets - openssl" \
             -c "tls1_3 client state: 11"    \
             -c "tls1_3 client state: 14"    \
             -c "tls1_3 client state: 15"    \
-            -c "<= ssl_tls1_3_process_server_hello" \
+            -c "<= ssl_tls13_process_server_hello" \
             -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
             -c "ECDH curve: x25519"         \
-            -c "=> ssl_tls1_3_process_server_hello" \
+            -c "=> ssl_tls13_process_server_hello" \
             -c "<= parse encrypted extensions"      \
             -c "Certificate verification flags clear" \
             -c "=> parse certificate verify"          \
@@ -8877,10 +8877,10 @@ run_test    "TLS1.3: minimal feature sets - gnutls" \
             -c "tls1_3 client state: 11"    \
             -c "tls1_3 client state: 14"    \
             -c "tls1_3 client state: 15"    \
-            -c "<= ssl_tls1_3_process_server_hello" \
+            -c "<= ssl_tls13_process_server_hello" \
             -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
             -c "ECDH curve: x25519"         \
-            -c "=> ssl_tls1_3_process_server_hello" \
+            -c "=> ssl_tls13_process_server_hello" \
             -c "<= parse encrypted extensions"      \
             -c "Certificate verification flags clear" \
             -c "=> parse certificate verify"          \

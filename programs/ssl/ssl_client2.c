@@ -69,7 +69,7 @@ int main( void )
 #define DFL_ECJPAKE_PW          NULL
 #define DFL_EC_MAX_OPS          -1
 #define DFL_FORCE_CIPHER        0
-#define DFL_TLS13_KEX_MODES     MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_ALL
+#define DFL_TLS1_3_KEX_MODES    MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_ALL
 #define DFL_RENEGOTIATION       MBEDTLS_SSL_RENEGOTIATION_DISABLED
 #define DFL_ALLOW_LEGACY        -2
 #define DFL_RENEGOTIATE         0
@@ -344,11 +344,11 @@ int main( void )
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
-#define USAGE_TLS13_KEY_EXCHANGE_MODES \
+#define USAGE_TLS1_3_KEY_EXCHANGE_MODES \
     "    tls13_kex_modes=%%s   default: all\n"     \
     "                          options: psk, psk_ephemeral, ephemeral, ephemeral_all, psk_all, all\n"
 #else
-#define USAGE_TLS13_KEY_EXCHANGE_MODES ""
+#define USAGE_TLS1_3_KEY_EXCHANGE_MODES ""
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 /* USAGE is arbitrarily split to stay under the portable string literal
@@ -427,7 +427,7 @@ int main( void )
     "                        options: tls1_2, dtls1_2" TLS1_3_VERSION_OPTIONS \
     "\n\n"                                                                    \
     "    force_ciphersuite=<name>    default: all enabled\n"                  \
-    USAGE_TLS13_KEY_EXCHANGE_MODES                                            \
+    USAGE_TLS1_3_KEY_EXCHANGE_MODES                                            \
     "    query_config=<name>         return 0 if the specified\n"             \
     "                                configuration macro is defined and 1\n"  \
     "                                otherwise. The expansion of the macro\n" \
@@ -841,7 +841,7 @@ int main( int argc, char *argv[] )
     opt.ec_max_ops          = DFL_EC_MAX_OPS;
     opt.force_ciphersuite[0]= DFL_FORCE_CIPHER;
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
-    opt.tls13_kex_modes     = DFL_TLS13_KEX_MODES;
+    opt.tls13_kex_modes     = DFL_TLS1_3_KEX_MODES;
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
     opt.renegotiation       = DFL_RENEGOTIATION;
     opt.allow_legacy        = DFL_ALLOW_LEGACY;
@@ -1112,17 +1112,17 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "tls13_kex_modes" ) == 0 )
         {
             if( strcmp( q, "psk" ) == 0 )
-                opt.tls13_kex_modes = MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK;
+                opt.tls13_kex_modes = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK;
             else if( strcmp(q, "psk_ephemeral" ) == 0 )
-                opt.tls13_kex_modes = MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_EPHEMERAL;
+                opt.tls13_kex_modes = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL;
             else if( strcmp(q, "ephemeral" ) == 0 )
-                opt.tls13_kex_modes = MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_EPHEMERAL;
+                opt.tls13_kex_modes = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL;
             else if( strcmp(q, "ephemeral_all" ) == 0 )
-                opt.tls13_kex_modes = MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_EPHEMERAL_ALL;
+                opt.tls13_kex_modes = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ALL;
             else if( strcmp( q, "psk_all" ) == 0 )
-                opt.tls13_kex_modes = MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_ALL;
+                opt.tls13_kex_modes = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL;
             else if( strcmp( q, "all" ) == 0 )
-                opt.tls13_kex_modes = MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_ALL;
+                opt.tls13_kex_modes = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_ALL;
             else goto usage;
         }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
@@ -1511,7 +1511,7 @@ int main( int argc, char *argv[] )
         p = (char *) opt.sig_algs;
         i = 0;
 
-        /* Leave room for a final MBEDTLS_TLS13_SIG_NONE in signature algorithm list (sig_alg_list). */
+        /* Leave room for a final MBEDTLS_TLS1_3_SIG_NONE in signature algorithm list (sig_alg_list). */
         while( i < SIG_ALG_LIST_SIZE - 1 && *p != '\0' )
         {
             q = p;
@@ -1524,15 +1524,15 @@ int main( int argc, char *argv[] )
 
             if( strcmp( q, "ecdsa_secp256r1_sha256" ) == 0 )
             {
-                sig_alg_list[i++] = MBEDTLS_TLS13_SIG_ECDSA_SECP256R1_SHA256;
+                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256;
             }
             else if( strcmp( q, "ecdsa_secp384r1_sha384" ) == 0 )
             {
-                sig_alg_list[i++] = MBEDTLS_TLS13_SIG_ECDSA_SECP384R1_SHA384;
+                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384;
             }
             else if( strcmp( q, "ecdsa_secp521r1_sha512" ) == 0 )
             {
-                sig_alg_list[i++] = MBEDTLS_TLS13_SIG_ECDSA_SECP521R1_SHA512;
+                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512;
             }
             else if( strcmp( q, "rsa_pss_rsae_sha256" ) == 0 )
             {
@@ -1563,7 +1563,7 @@ int main( int argc, char *argv[] )
             goto exit;
         }
 
-        sig_alg_list[i] = MBEDTLS_TLS13_SIG_NONE;
+        sig_alg_list[i] = MBEDTLS_TLS1_3_SIG_NONE;
     }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL &&
           MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */

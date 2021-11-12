@@ -1257,17 +1257,17 @@ static int ssl_tls13_finalize_server_hello( mbedtls_ssl_context *ssl )
     {
         /* Only the pre_shared_key extension was received */
         case MBEDTLS_SSL_EXT_PRE_SHARED_KEY:
-            handshake->tls1_3_kex_modes = MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK;
+            handshake->tls1_3_kex_modes = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK;
             break;
 
         /* Only the key_share extension was received */
         case MBEDTLS_SSL_EXT_KEY_SHARE:
-            handshake->tls1_3_kex_modes = MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_EPHEMERAL;
+            handshake->tls1_3_kex_modes = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL;
             break;
 
         /* Both the pre_shared_key and key_share extensions were received */
         case ( MBEDTLS_SSL_EXT_PRE_SHARED_KEY | MBEDTLS_SSL_EXT_KEY_SHARE ):
-            handshake->tls1_3_kex_modes = MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_EPHEMERAL;
+            handshake->tls1_3_kex_modes = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL;
             break;
 
         /* Neither pre_shared_key nor key_share extension was received */
@@ -1282,10 +1282,10 @@ static int ssl_tls13_finalize_server_hello( mbedtls_ssl_context *ssl )
      * TODO: We don't have to do this in case we offered 0-RTT and the
      *       server accepted it. In this case, we could skip generating
      *       the early secret. */
-    ret = mbedtls_ssl_tls1_3_key_schedule_stage_early( ssl );
+    ret = mbedtls_ssl_tls13_key_schedule_stage_early( ssl );
     if( ret != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls1_3_key_schedule_stage_early_data",
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_key_schedule_stage_early_data",
                                ret );
         goto cleanup;
     }
@@ -1294,7 +1294,7 @@ static int ssl_tls13_finalize_server_hello( mbedtls_ssl_context *ssl )
     ret = mbedtls_ssl_tls13_key_schedule_stage_handshake( ssl );
     if( ret != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls1_3_derive_master_secret", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_derive_master_secret", ret );
         goto cleanup;
     }
 
@@ -1355,7 +1355,7 @@ cleanup:
  * Wait and parse ServerHello handshake message.
  * Handler for MBEDTLS_SSL_SERVER_HELLO
  */
-static int ssl_tls1_3_process_server_hello( mbedtls_ssl_context *ssl )
+static int ssl_tls13_process_server_hello( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *buf;
@@ -1381,9 +1381,9 @@ static int ssl_tls1_3_process_server_hello( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_PROC_CHK( ssl_tls13_parse_server_hello( ssl, buf,
                                                             buf + buf_len ) );
 
-        mbedtls_ssl_tls1_3_add_hs_msg_to_checksum( ssl,
-                                                   MBEDTLS_SSL_HS_SERVER_HELLO,
-                                                   buf, buf_len );
+        mbedtls_ssl_tls13_add_hs_msg_to_checksum( ssl,
+                                                  MBEDTLS_SSL_HS_SERVER_HELLO,
+                                                  buf, buf_len );
 
         MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_server_hello( ssl ) );
     }
@@ -1432,7 +1432,7 @@ static int ssl_tls13_process_encrypted_extensions( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse encrypted extensions" ) );
 
-    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls1_3_fetch_handshake_msg( ssl,
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_fetch_handshake_msg( ssl,
                                              MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS,
                                              &buf, &buf_len ) );
 
@@ -1440,7 +1440,7 @@ static int ssl_tls13_process_encrypted_extensions( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_PROC_CHK(
         ssl_tls13_parse_encrypted_extensions( ssl, buf, buf + buf_len ) );
 
-    mbedtls_ssl_tls1_3_add_hs_msg_to_checksum(
+    mbedtls_ssl_tls13_add_hs_msg_to_checksum(
         ssl, MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS, buf, buf_len );
 
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_postprocess_encrypted_extensions( ssl ) );
@@ -1530,7 +1530,7 @@ static int ssl_tls13_parse_encrypted_extensions( mbedtls_ssl_context *ssl,
 static int ssl_tls13_postprocess_encrypted_extensions( mbedtls_ssl_context *ssl )
 {
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-    if( mbedtls_ssl_tls1_3_some_psk_enabled( ssl ) )
+    if( mbedtls_ssl_tls13_some_psk_enabled( ssl ) )
         mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_FINISHED );
     else
         mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CERTIFICATE_REQUEST );
@@ -1573,7 +1573,7 @@ static int ssl_tls13_process_certificate_request( mbedtls_ssl_context *ssl )
 /*
  * Handler for MBEDTLS_SSL_SERVER_CERTIFICATE
  */
-static int ssl_tls1_3_process_server_certificate( mbedtls_ssl_context *ssl )
+static int ssl_tls13_process_server_certificate( mbedtls_ssl_context *ssl )
 {
     int ret;
 
@@ -1588,7 +1588,7 @@ static int ssl_tls1_3_process_server_certificate( mbedtls_ssl_context *ssl )
 /*
  * Handler for MBEDTLS_SSL_CERTIFICATE_VERIFY
  */
-static int ssl_tls1_3_process_certificate_verify( mbedtls_ssl_context *ssl )
+static int ssl_tls13_process_certificate_verify( mbedtls_ssl_context *ssl )
 {
     int ret;
 
@@ -1603,7 +1603,7 @@ static int ssl_tls1_3_process_certificate_verify( mbedtls_ssl_context *ssl )
 /*
  * Handler for MBEDTLS_SSL_SERVER_FINISHED
  */
-static int ssl_tls1_3_process_server_finished( mbedtls_ssl_context *ssl )
+static int ssl_tls13_process_server_finished( mbedtls_ssl_context *ssl )
 {
     int ret;
 
@@ -1634,7 +1634,7 @@ static int ssl_tls13_write_client_finished( mbedtls_ssl_context *ssl )
 /*
  * Handler for MBEDTLS_SSL_FLUSH_BUFFERS
  */
-static int ssl_tls1_3_flush_buffers( mbedtls_ssl_context *ssl )
+static int ssl_tls13_flush_buffers( mbedtls_ssl_context *ssl )
 {
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "handshake: done" ) );
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_HANDSHAKE_WRAPUP );
@@ -1644,7 +1644,7 @@ static int ssl_tls1_3_flush_buffers( mbedtls_ssl_context *ssl )
 /*
  * Handler for MBEDTLS_SSL_HANDSHAKE_WRAPUP
  */
-static int ssl_tls1_3_handshake_wrapup( mbedtls_ssl_context *ssl )
+static int ssl_tls13_handshake_wrapup( mbedtls_ssl_context *ssl )
 {
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "Switch to application keys for inbound traffic" ) );
     mbedtls_ssl_set_inbound_transform ( ssl, ssl->transform_application );
@@ -1676,7 +1676,7 @@ int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl )
             break;
 
         case MBEDTLS_SSL_SERVER_HELLO:
-            ret = ssl_tls1_3_process_server_hello( ssl );
+            ret = ssl_tls13_process_server_hello( ssl );
             break;
 
         case MBEDTLS_SSL_ENCRYPTED_EXTENSIONS:
@@ -1689,16 +1689,16 @@ int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl )
             break;
 
         case MBEDTLS_SSL_SERVER_CERTIFICATE:
-            ret = ssl_tls1_3_process_server_certificate( ssl );
+            ret = ssl_tls13_process_server_certificate( ssl );
             break;
 
         case MBEDTLS_SSL_CERTIFICATE_VERIFY:
-            ret = ssl_tls1_3_process_certificate_verify( ssl );
+            ret = ssl_tls13_process_certificate_verify( ssl );
             break;
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
         case MBEDTLS_SSL_SERVER_FINISHED:
-            ret = ssl_tls1_3_process_server_finished( ssl );
+            ret = ssl_tls13_process_server_finished( ssl );
             break;
 
         case MBEDTLS_SSL_CLIENT_FINISHED:
@@ -1706,11 +1706,11 @@ int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl )
             break;
 
         case MBEDTLS_SSL_FLUSH_BUFFERS:
-            ret = ssl_tls1_3_flush_buffers( ssl );
+            ret = ssl_tls13_flush_buffers( ssl );
             break;
 
         case MBEDTLS_SSL_HANDSHAKE_WRAPUP:
-            ret = ssl_tls1_3_handshake_wrapup( ssl );
+            ret = ssl_tls13_handshake_wrapup( ssl );
             break;
 
         default:

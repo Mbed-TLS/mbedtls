@@ -116,6 +116,8 @@ typedef struct
  *
  * A key slot is occupied iff the key type is nonzero. This works because
  * no valid key can have 0 as its key type.
+ * Please note that, when using MBEDTLS_THREADING_C, the key slot mutex
+ * should be locked to perform this operation.
  *
  * \param[in] slot      The key slot to test.
  *
@@ -129,6 +131,8 @@ static inline int psa_is_key_slot_occupied( const psa_key_slot_t *slot )
 /** Test whether a key slot is locked.
  *
  * A key slot is locked iff its lock counter is strictly greater than 0.
+ * Please note that, when using MBEDTLS_THREADING_C, the key slot mutex
+ * should be locked to perform this operation.
  *
  * \param[in] slot  The key slot to test.
  *
@@ -140,6 +144,9 @@ static inline int psa_is_key_slot_locked( const psa_key_slot_t *slot )
 }
 
 /** Retrieve flags from psa_key_slot_t::attr::core::flags.
+ *
+ * Please note that, when using MBEDTLS_THREADING_C, the key slot mutex
+ * should be locked to perform this operation.
  *
  * \param[in] slot      The key slot to query.
  * \param mask          The mask of bits to extract.
@@ -155,6 +162,9 @@ static inline uint16_t psa_key_slot_get_flags( const psa_key_slot_t *slot,
 
 /** Set flags in psa_key_slot_t::attr::core::flags.
  *
+ * Please note that, when using MBEDTLS_THREADING_C, the key slot mutex
+ * should be locked to perform this operation.
+ *
  * \param[in,out] slot  The key slot to modify.
  * \param mask          The mask of bits to modify.
  * \param value         The new value of the selected bits.
@@ -169,6 +179,8 @@ static inline void psa_key_slot_set_flags( psa_key_slot_t *slot,
 
 /** Turn on flags in psa_key_slot_t::attr::core::flags.
  *
+ * Please note that, when using MBEDTLS_THREADING_C, the key slot mutex
+ * should be locked to perform this operation.
  * \param[in,out] slot  The key slot to modify.
  * \param mask          The mask of bits to set.
  */
@@ -179,6 +191,9 @@ static inline void psa_key_slot_set_bits_in_flags( psa_key_slot_t *slot,
 }
 
 /** Turn off flags in psa_key_slot_t::attr::core::flags.
+ *
+ * Please note that, when using MBEDTLS_THREADING_C, the key slot mutex
+ * should be locked to perform this operation.
  *
  * \param[in,out] slot  The key slot to modify.
  * \param mask          The mask of bits to clear.

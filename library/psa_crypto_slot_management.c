@@ -132,6 +132,10 @@ static psa_status_t psa_get_and_lock_key_slot_in_memory(
     {
         slot = &global_data.key_slots[ key_id - PSA_KEY_ID_VOLATILE_MIN ];
 
+        /* Lock the slot preemptively to read slot->attr.id */
+        status = psa_lock_key_slot( slot );
+        if( status != PSA_SUCCESS )
+            return status;
         /*
          * Check if both the PSA key identifier key_id and the owner
          * identifier of key match those of the key slot.
@@ -140,8 +144,15 @@ static psa_status_t psa_get_and_lock_key_slot_in_memory(
          * is equal to zero. This is an invalid value for a PSA key identifier
          * and thus cannot be equal to the valid PSA key identifier key_id.
          */
+
+
         status = mbedtls_svc_key_id_equal( key, slot->attr.id ) ?
                  PSA_SUCCESS : PSA_ERROR_DOES_NOT_EXIST;
+        if( status != PSA_SUCCESS )
+        {
+            psa_unlock_key_slot( slot );
+            return status;
+        }
     }
     else
     {
@@ -151,8 +162,17 @@ static psa_status_t psa_get_and_lock_key_slot_in_memory(
         for( slot_idx = 0; slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT; slot_idx++ )
         {
             slot = &global_data.key_slots[ slot_idx ];
+            /* Lock the slot preemptively to read slot->attr.id */
+            status = psa_lock_key_slot( slot );
+
             if( mbedtls_svc_key_id_equal( key, slot->attr.id ) )
                 break;
+            else
+            {
+                status = psa_unlock_key_slot( slot );
+                if( status != PSA_SUCCESS )
+                    return status;
+            }
         }
         status = ( slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT ) ?
                  PSA_SUCCESS : PSA_ERROR_DOES_NOT_EXIST;
@@ -160,9 +180,7 @@ static psa_status_t psa_get_and_lock_key_slot_in_memory(
 
     if( status == PSA_SUCCESS )
     {
-        status = psa_lock_key_slot( slot );
-        if( status == PSA_SUCCESS )
-            *p_slot = slot;
+        *p_slot = slot;
     }
 
     return( status );
@@ -216,6 +234,9 @@ void psa_wipe_all_key_slots( void )
 #endif
         slot->lock_count = 1;
         (void) psa_wipe_key_slot( slot );
+#if defined(MBEDTLS_THREADING_C)
+        (void) mbedtls_mutex_unlock( &slot->mutex );
+#endif
 
 #if defined(MBEDTLS_THREADING_C)
         mbedtls_mutex_free( &slot->mutex );
@@ -245,40 +266,61 @@ psa_status_t psa_get_empty_key_slot( psa_key_id_t *volatile_key_id,
     for( slot_idx = 0; slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT; slot_idx++ )
     {
         psa_key_slot_t *slot = &global_data.key_slots[ slot_idx ];
+
+        /* Lock the slot preemptively to read slot->attr. */
+        status = psa_lock_key_slot( slot );
+        if( status != PSA_SUCCESS )
+            goto error;
+
         if( ! psa_is_key_slot_occupied( slot ) )
         {
             selected_slot = slot;
             break;
         }
 
+        /* One slot->lock_count comes from the call above.
+         * Check if it is unused otherwise. */
         if( ( unlocked_persistent_key_slot == NULL ) &&
             ( ! PSA_KEY_LIFETIME_IS_VOLATILE( slot->attr.lifetime ) ) &&
-            ( ! psa_is_key_slot_locked( slot ) ) )
+            (  slot->lock_count <  2 ) )
+        {
             unlocked_persistent_key_slot = slot;
+        }
+        else
+        {
+            status = psa_unlock_key_slot( slot );
+            if( status != PSA_SUCCESS )
+                goto error;
+        }
     }
 
+    /* If an unlocked persistent key slot was found, but there'a also
+     * an unused key slot - release the lock on the persistent key slot. */
+    if( ( selected_slot != NULL ) && ( unlocked_persistent_key_slot != NULL))
+    {
+        status = psa_unlock_key_slot( unlocked_persistent_key_slot );
+        if( status != PSA_SUCCESS )
+            goto error;
+    }
     /*
      * If there is no unused key slot and there is at least one unlocked key
      * slot containing the description of a persistent key, recycle the first
      * such key slot we encountered. If we later need to operate on the
      * persistent key we are evicting now, we will reload its description from
-     * storage.
-     */
+     * storage. */
     if( ( selected_slot == NULL ) &&
         ( unlocked_persistent_key_slot != NULL ) )
     {
         selected_slot = unlocked_persistent_key_slot;
-        MUTEX_LOCK_CHECK( &selected_slot->mutex );
-        selected_slot->lock_count = 1;
         psa_wipe_key_slot( selected_slot );
+        /* The slot remains locked even though it is wiped.
+         * This happens so that there is no window for an other thread to
+         * lock it in the meantime. Update the lock count accordingly. */
+        selected_slot->lock_count = 1;
     }
 
     if( selected_slot != NULL )
     {
-       status = psa_lock_key_slot( selected_slot );
-       if( status != PSA_SUCCESS )
-           goto error;
-
         *volatile_key_id = PSA_KEY_ID_VOLATILE_MIN +
             ( (psa_key_id_t)( selected_slot - global_data.key_slots ) );
         *p_slot = selected_slot;
@@ -458,6 +500,9 @@ psa_status_t psa_get_and_lock_key_slot( mbedtls_svc_key_id_t key,
     if( status != PSA_SUCCESS )
     {
         psa_wipe_key_slot( *p_slot );
+#if defined(MBEDTLS_THREADING_C)
+        mbedtls_mutex_unlock( &(*p_slot)->mutex );
+#endif
         if( status == PSA_ERROR_DOES_NOT_EXIST )
             status = PSA_ERROR_INVALID_HANDLE;
     }
@@ -599,7 +644,12 @@ psa_status_t psa_close_key( psa_key_handle_t handle )
     }
 
     if( slot->lock_count <= 1 )
+    {
         status = psa_wipe_key_slot( slot );
+#if defined(MBEDTLS_THREADING_C)
+        mbedtls_mutex_unlock( &slot->mutex );
+#endif
+    }
     else
         status = psa_unlock_key_slot( slot );
 
@@ -623,7 +673,12 @@ psa_status_t psa_purge_key( mbedtls_svc_key_id_t key )
 
     if( ( ! PSA_KEY_LIFETIME_IS_VOLATILE( slot->attr.lifetime ) ) &&
         ( slot->lock_count <= 1 ) )
+    {
         status = psa_wipe_key_slot( slot );
+#if defined(MBEDTLS_THREADING_C)
+        mbedtls_mutex_unlock( &slot->mutex );
+#endif
+    }
     else
         status = psa_unlock_key_slot( slot );
 
@@ -641,7 +696,14 @@ void mbedtls_psa_get_stats( mbedtls_psa_stats_t *stats )
 #endif
     for( slot_idx = 0; slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT; slot_idx++ )
     {
-        const psa_key_slot_t *slot = &global_data.key_slots[ slot_idx ];
+        psa_key_slot_t *slot = &global_data.key_slots[ slot_idx ];
+/*
+ * Normally, this would be used, but sometimes mbedtls_psa_get_stats is called
+ * after PSA_DONE( ), which in turn deinitializes mutexes.
+#if defined(MBEDTLS_THREADING_C)
+        mbedtls_mutex_lock( &slot->mutex );
+#endif
+*/
         if( psa_is_key_slot_locked( slot ) )
         {
             ++stats->locked_slots;
@@ -649,6 +711,13 @@ void mbedtls_psa_get_stats( mbedtls_psa_stats_t *stats )
         if( ! psa_is_key_slot_occupied( slot ) )
         {
             ++stats->empty_slots;
+            /*
+ * Normally, this would be used, but sometimes mbedtls_psa_get_stats is called
+ * after PSA_DONE( ), which in turn deinitializes mutexes.
+#if defined(MBEDTLS_THREADING_C)
+            mbedtls_mutex_unlock( &slot->mutex );
+#endif
+*/
             continue;
         }
         if( PSA_KEY_LIFETIME_IS_VOLATILE( slot->attr.lifetime ) )
@@ -668,6 +737,13 @@ void mbedtls_psa_get_stats( mbedtls_psa_stats_t *stats )
             if( id > stats->max_open_external_key_id )
                 stats->max_open_external_key_id = id;
         }
+/*
+ * Normally, this would be used, but sometimes mbedtls_psa_get_stats is called
+ * after PSA_DONE( ), which in turn deinitializes mutexes.
+#if defined(MBEDTLS_THREADING_C)
+        mbedtls_mutex_unlock( &slot->mutex );
+#endif
+*/
     }
 #if defined(MBEDTLS_THREADING_C)
     (void) mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex );

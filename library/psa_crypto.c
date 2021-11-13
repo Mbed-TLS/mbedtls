@@ -1006,10 +1006,6 @@ psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot )
     memset( &slot->lock_count, 0, sizeof( slot->lock_count ) );
     memset( &slot->key, 0, sizeof( slot->key ) );
 
-#if defined(MBEDTLS_THREADING_C)
-    mbedtls_mutex_unlock( &slot->mutex );
-#endif
-
     return( status );
 }
 
@@ -1126,6 +1122,11 @@ exit:
     /* Prioritize CORRUPTION_DETECTED from wiping over a storage error */
     if( status != PSA_SUCCESS )
         overall_status = status;
+#if defined(MBEDTLS_THREADING_C)
+    status = mbedtls_mutex_unlock( &slot->mutex );
+    if( status != PSA_SUCCESS )
+        overall_status = status;
+#endif
     return( overall_status );
 }
 
@@ -1818,6 +1819,9 @@ static void psa_fail_key_creation( psa_key_slot_t *slot,
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
     psa_wipe_key_slot( slot );
+#if defined(MBEDTLS_THREADING_C)
+    mbedtls_mutex_unlock( &slot->mutex );
+#endif
 }
 
 /** Validate optional attributes during key creation.

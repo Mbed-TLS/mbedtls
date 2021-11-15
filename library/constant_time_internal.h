@@ -171,6 +171,8 @@ void mbedtls_ct_mpi_uint_cond_assign( size_t n,
 
 unsigned char mbedtls_ct_base64_enc_char( unsigned char val );
 
+signed char mbedtls_ct_base64_dec_value( unsigned char c );
+
 #endif /* MBEDTLS_BASE64_C */
 
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)

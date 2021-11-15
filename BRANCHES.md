@@ -62,7 +62,7 @@ had to break ABI compatibility in an LTS branch, but we occasionally had to
 increase code size for a security fix.)
 
 For contributors, see the [Backwards Compatibility section of
-CONTRIBUTING](CONTRIBUTING.md#cackwords-compatibility).
+CONTRIBUTING](CONTRIBUTING.md#backwards-compatibility).
 
 ## Current Branches
 

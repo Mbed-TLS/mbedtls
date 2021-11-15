@@ -1081,6 +1081,8 @@ int mbedtls_ssl_tls13_write_finished_message( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write finished message" ) );
 
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_prepare_finished_message( ssl ) );
+
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_start_handshake_msg( ssl,
                               MBEDTLS_SSL_HS_FINISHED, &buf, &buf_len ) );
 

@@ -1109,11 +1109,10 @@ void mbedtls_ssl_tls13_handshake_wrapup( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "=> handshake wrapup" ) );
 
     /*
-     * Free the previous session and switch in the current one
+     * Free the previous session and switch to the current one.
      */
     if( ssl->session )
     {
-
         mbedtls_ssl_session_free( ssl->session );
         mbedtls_free( ssl->session );
     }

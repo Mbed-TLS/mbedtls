@@ -8832,7 +8832,8 @@ run_test    "TLS1.3: minimal feature sets - openssl" \
             -c "=> parse certificate verify"          \
             -c "<= parse certificate verify"          \
             -c "mbedtls_ssl_tls13_process_certificate_verify() returned 0" \
-            -c "<= parse finished message"
+            -c "<= parse finished message" \
+            -c "HTTP/1.0 200 ok"
 
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -8863,7 +8864,8 @@ run_test    "TLS1.3: minimal feature sets - gnutls" \
             -c "=> parse certificate verify"          \
             -c "<= parse certificate verify"          \
             -c "mbedtls_ssl_tls13_process_certificate_verify() returned 0" \
-            -c "<= parse finished message"
+            -c "<= parse finished message" \
+            -c "HTTP/1.0 200 OK"
 
 
 # Test heap memory usage after handshake

@@ -3658,7 +3658,9 @@ static psa_status_t psa_aead_check_nonce_length( psa_algorithm_t alg,
         case PSA_ALG_CHACHA20_POLY1305:
             if( nonce_length == 12 )
                 return( PSA_SUCCESS );
-            return( PSA_ERROR_NOT_SUPPORTED );
+            else if( nonce_length == 8 )
+                return( PSA_ERROR_NOT_SUPPORTED );
+            break;
 #endif /* PSA_WANT_ALG_CHACHA20_POLY1305 */
         default:
             return( PSA_ERROR_NOT_SUPPORTED );

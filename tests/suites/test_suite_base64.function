@@ -1,6 +1,8 @@
 /* BEGIN_HEADER */
 #include "mbedtls/base64.h"
 #include "base64_invasive.h"
+#include "constant_time_internal.h"
+#include "constant_time_invasive.h"
 #include <test/constant_flow.h>
 
 #if defined(MBEDTLS_TEST_HOOKS)

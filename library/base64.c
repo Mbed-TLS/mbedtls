@@ -38,22 +38,6 @@
 
 #define BASE64_SIZE_T_MAX   ( (size_t) -1 ) /* SIZE_T_MAX is not standard */
 
-/* Return 0xff if low <= c <= high, 0 otherwise.
- *
- * Constant flow with respect to c.
- */
-MBEDTLS_STATIC_TESTABLE
-unsigned char mbedtls_ct_uchar_mask_of_range( unsigned char low,
-                                              unsigned char high,
-                                              unsigned char c )
-{
-    /* low_mask is: 0 if low <= c, 0x...ff if low > c */
-    unsigned low_mask = ( (unsigned) c - low ) >> 8;
-    /* high_mask is: 0 if c <= high, 0x...ff if c > high */
-    unsigned high_mask = ( (unsigned) high - c ) >> 8;
-    return( ~( low_mask | high_mask ) & 0xff );
-}
-
 /* Given a value in the range 0..63, return the corresponding Base64 digit.
  * The implementation assumes that letters are consecutive (e.g. ASCII
  * but not EBCDIC).

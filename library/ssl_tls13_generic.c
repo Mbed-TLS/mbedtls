@@ -1046,21 +1046,8 @@ static int ssl_tls13_prepare_finished_message( mbedtls_ssl_context *ssl )
 
 static int ssl_tls13_finalize_finished_message( mbedtls_ssl_context *ssl )
 {
-
-#if defined(MBEDTLS_SSL_CLI_C)
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
-    {
-        ((void) ssl);
-
-        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_FLUSH_BUFFERS );
-    }
-    else
-#endif /* MBEDTLS_SSL_CLI_C */
-    {
-        ((void) ssl);
-        /* Should never happen */
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-    }
+    // TODO: Add back resumption keys calculation after MVP.
+    ((void) ssl);
 
     return( 0 );
 }
@@ -1071,7 +1058,11 @@ static int ssl_tls13_write_finished_message_body( mbedtls_ssl_context *ssl,
                                                   size_t *olen )
 {
     size_t verify_data_len = ssl->handshake->state_local.finished_out.digest_len;
-
+    /*
+     * struct {
+     *     opaque verify_data[Hash.length];
+     * } Finished;
+     */
     MBEDTLS_SSL_CHK_BUF_PTR( buf, end, verify_data_len );
 
     memcpy( buf, ssl->handshake->state_local.finished_out.digest,
@@ -1089,12 +1080,6 @@ int mbedtls_ssl_tls13_write_finished_message( mbedtls_ssl_context *ssl )
     size_t buf_len, msg_len;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write finished message" ) );
-
-    if( !ssl->handshake->state_local.finished_out.preparation_done )
-    {
-        MBEDTLS_SSL_PROC_CHK( ssl_tls13_prepare_finished_message( ssl ) );
-        ssl->handshake->state_local.finished_out.preparation_done = 1;
-    }
 
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_start_handshake_msg( ssl,
                               MBEDTLS_SSL_HS_FINISHED, &buf, &buf_len ) );

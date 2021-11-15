@@ -1620,7 +1620,14 @@ static int ssl_tls1_3_process_server_finished( mbedtls_ssl_context *ssl )
  */
 static int ssl_tls13_write_client_finished( mbedtls_ssl_context *ssl )
 {
-    return ( mbedtls_ssl_tls13_write_finished_message( ssl ) );
+    int ret;
+
+    ret = mbedtls_ssl_tls13_write_finished_message( ssl );
+    if( ret != 0 )
+        return( ret );
+
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_FLUSH_BUFFERS );
+    return( 0 );
 }
 
 /*

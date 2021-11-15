@@ -72,6 +72,7 @@
 #include "mbedtls/bn_mul.h"
 #include "mbedtls/platform_util.h"
 
+#include <limits.h>
 #include <string.h>
 
 #if defined(MBEDTLS_PLATFORM_C)

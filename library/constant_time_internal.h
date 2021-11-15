@@ -167,6 +167,12 @@ void mbedtls_ct_mpi_uint_cond_assign( size_t n,
 
 #endif /* MBEDTLS_BIGNUM_C */
 
+#if defined(MBEDTLS_BASE64_C)
+
+unsigned char mbedtls_ct_base64_enc_char( unsigned char val );
+
+#endif /* MBEDTLS_BASE64_C */
+
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
 
 /** Conditional memcpy without branches.

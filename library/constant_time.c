@@ -324,6 +324,28 @@ void mbedtls_ct_mpi_uint_cond_assign( size_t n,
 
 #endif /* MBEDTLS_BIGNUM_C */
 
+#if defined(MBEDTLS_BASE64_C)
+
+/* Given a value in the range 0..63, return the corresponding Base64 digit.
+ * The implementation assumes that letters are consecutive (e.g. ASCII
+ * but not EBCDIC).
+ */
+unsigned char mbedtls_ct_base64_enc_char( unsigned char val )
+{
+    unsigned char digit = 0;
+    /* For each range of values, if val is in that range, mask digit with
+     * the corresponding value. Since val can only be in a single range,
+     * only at most one masking will change digit. */
+    digit |= mbedtls_ct_uchar_mask_of_range(  0, 25, val ) & ( 'A' + val );
+    digit |= mbedtls_ct_uchar_mask_of_range( 26, 51, val ) & ( 'a' + val - 26 );
+    digit |= mbedtls_ct_uchar_mask_of_range( 52, 61, val ) & ( '0' + val - 52 );
+    digit |= mbedtls_ct_uchar_mask_of_range( 62, 62, val ) & '+';
+    digit |= mbedtls_ct_uchar_mask_of_range( 63, 63, val ) & '/';
+    return( digit );
+}
+
+#endif /* MBEDTLS_BASE64_C */
+
 #if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT)
 
 /** Shift some data towards the left inside a buffer.

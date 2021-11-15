@@ -40,6 +40,10 @@
 #include "mbedtls/rsa.h"
 #endif
 
+#if defined(MBEDTLS_BASE64_C)
+#include "constant_time_invasive.h"
+#endif
+
 #include <string.h>
 
 int mbedtls_ct_memcmp( const void *a,
@@ -149,6 +153,25 @@ size_t mbedtls_ct_size_mask_ge( size_t x,
 }
 
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
+
+#if defined(MBEDTLS_BASE64_C)
+
+/* Return 0xff if low <= c <= high, 0 otherwise.
+ *
+ * Constant flow with respect to c.
+ */
+unsigned char mbedtls_ct_uchar_mask_of_range( unsigned char low,
+                                              unsigned char high,
+                                              unsigned char c )
+{
+    /* low_mask is: 0 if low <= c, 0x...ff if low > c */
+    unsigned low_mask = ( (unsigned) c - low ) >> 8;
+    /* high_mask is: 0 if c <= high, 0x...ff if c > high */
+    unsigned high_mask = ( (unsigned) high - c ) >> 8;
+    return( ~( low_mask | high_mask ) & 0xff );
+}
+
+#endif /* MBEDTLS_BASE64_C */
 
 unsigned mbedtls_ct_size_bool_eq( size_t x,
                                   size_t y )

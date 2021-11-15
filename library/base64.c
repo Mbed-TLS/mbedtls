@@ -23,6 +23,7 @@
 
 #include "mbedtls/base64.h"
 #include "base64_invasive.h"
+#include "constant_time_internal.h"
 
 #include <stdint.h>
 
@@ -37,25 +38,6 @@
 #endif /* MBEDTLS_SELF_TEST */
 
 #define BASE64_SIZE_T_MAX   ( (size_t) -1 ) /* SIZE_T_MAX is not standard */
-
-/* Given a value in the range 0..63, return the corresponding Base64 digit.
- * The implementation assumes that letters are consecutive (e.g. ASCII
- * but not EBCDIC).
- */
-MBEDTLS_STATIC_TESTABLE
-unsigned char mbedtls_ct_base64_enc_char( unsigned char val )
-{
-    unsigned char digit = 0;
-    /* For each range of values, if val is in that range, mask digit with
-     * the corresponding value. Since val can only be in a single range,
-     * only at most one masking will change digit. */
-    digit |= mbedtls_ct_uchar_mask_of_range(  0, 25, val ) & ( 'A' + val );
-    digit |= mbedtls_ct_uchar_mask_of_range( 26, 51, val ) & ( 'a' + val - 26 );
-    digit |= mbedtls_ct_uchar_mask_of_range( 52, 61, val ) & ( '0' + val - 52 );
-    digit |= mbedtls_ct_uchar_mask_of_range( 62, 62, val ) & '+';
-    digit |= mbedtls_ct_uchar_mask_of_range( 63, 63, val ) & '/';
-    return( digit );
-}
 
 /*
  * Encode a buffer into base64 format

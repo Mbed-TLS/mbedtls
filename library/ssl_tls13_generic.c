@@ -1037,7 +1037,7 @@ static int ssl_tls13_prepare_finished_message( mbedtls_ssl_context *ssl )
 
     if( ret != 0 )
     {
-         MBEDTLS_SSL_DEBUG_RET( 1, "calc_finished failed", ret );
+         MBEDTLS_SSL_DEBUG_RET( 1, "calculate_verify_data failed", ret );
         return( ret );
     }
 

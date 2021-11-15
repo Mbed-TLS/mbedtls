@@ -33,15 +33,15 @@
  *
  * Constant flow with respect to c.
  */
-unsigned char mbedtls_base64_mask_of_range( unsigned char low,
-                                            unsigned char high,
-                                            unsigned char c );
+unsigned char mbedtls_ct_uchar_mask_of_range( unsigned char low,
+                                              unsigned char high,
+                                              unsigned char c );
 
 /* Given a value in the range 0..63, return the corresponding Base64 digit.
  *
  * Operates in constant time (no branches or memory access depending on val).
  */
-unsigned char mbedtls_base64_enc_char( unsigned char val );
+unsigned char mbedtls_ct_base64_enc_char( unsigned char val );
 
 /* Given a Base64 digit, return its value.
  * If c is not a Base64 digit ('A'..'Z', 'a'..'z', '0'..'9', '+' or '/'),
@@ -49,7 +49,7 @@ unsigned char mbedtls_base64_enc_char( unsigned char val );
  *
  * Operates in constant time (no branches or memory access depending on c).
  */
-signed char mbedtls_base64_dec_value( unsigned char c );
+signed char mbedtls_ct_base64_dec_value( unsigned char c );
 #endif /* MBEDTLS_TEST_HOOKS */
 
 #endif /* MBEDTLS_BASE64_INVASIVE_H */

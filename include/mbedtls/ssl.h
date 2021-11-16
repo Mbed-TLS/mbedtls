@@ -1032,56 +1032,58 @@ struct mbedtls_ssl_config
     unsigned char min_minor_ver;    /*!< min. minor version used            */
 
     /*
-     * Flags (bitfields)
+     * Flags (could be bit-fields to save RAM, but separate bytes make
+     * the code smaller on architectures with an instruction for direct
+     * byte access).
      */
 
-    unsigned int endpoint : 1;      /*!< 0: client, 1: server               */
-    unsigned int transport : 1;     /*!< stream (TLS) or datagram (DTLS)    */
-    unsigned int authmode : 2;      /*!< MBEDTLS_SSL_VERIFY_XXX             */
+    uint8_t endpoint /*bool*/;      /*!< 0: client, 1: server               */
+    uint8_t transport /*bool*/;     /*!< stream (TLS) or datagram (DTLS)    */
+    uint8_t authmode /*2 bits*/;    /*!< MBEDTLS_SSL_VERIFY_XXX             */
     /* needed even with renego disabled for LEGACY_BREAK_HANDSHAKE          */
-    unsigned int allow_legacy_renegotiation : 2 ; /*!< MBEDTLS_LEGACY_XXX   */
+    uint8_t allow_legacy_renegotiation /*2 bits*/; /*!< MBEDTLS_LEGACY_XXX  */
 #if defined(MBEDTLS_ARC4_C)
-    unsigned int arc4_disabled : 1; /*!< blacklist RC4 ciphersuites?        */
+    uint8_t arc4_disabled /*bool*/; /*!< blacklist RC4 ciphersuites?        */
 #endif
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    unsigned int mfl_code : 3;      /*!< desired fragment length            */
+    uint8_t mfl_code /*3 bits*/;    /*!< desired fragment length            */
 #endif
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
-    unsigned int encrypt_then_mac : 1 ; /*!< negotiate encrypt-then-mac?    */
+    uint8_t encrypt_then_mac /*bool*/;  /*!< negotiate encrypt-then-mac?    */
 #endif
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
-    unsigned int extended_ms : 1;   /*!< negotiate extended master secret?  */
+    uint8_t extended_ms /*bool*/;   /*!< negotiate extended master secret?  */
 #endif
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
-    unsigned int anti_replay : 1;   /*!< detect and prevent replay?         */
+    uint8_t anti_replay /*bool*/;   /*!< detect and prevent replay?         */
 #endif
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
-    unsigned int cbc_record_splitting : 1;  /*!< do cbc record splitting    */
+    uint8_t cbc_record_splitting /*bool*/;  /*!< do cbc record splitting    */
 #endif
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
-    unsigned int disable_renegotiation : 1; /*!< disable renegotiation?     */
+    uint8_t disable_renegotiation /*bool*/; /*!< disable renegotiation?     */
 #endif
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
-    unsigned int trunc_hmac : 1;    /*!< negotiate truncated hmac?          */
+    uint8_t trunc_hmac /*bool*/;    /*!< negotiate truncated hmac?          */
 #endif
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    unsigned int session_tickets : 1;   /*!< use session tickets?           */
+    uint8_t session_tickets /*bool*/;   /*!< use session tickets?           */
 #endif
 #if defined(MBEDTLS_SSL_FALLBACK_SCSV) && defined(MBEDTLS_SSL_CLI_C)
-    unsigned int fallback : 1;      /*!< is this a fallback?                */
+    uint8_t fallback /*bool*/;      /*!< is this a fallback?                */
 #endif
 #if defined(MBEDTLS_SSL_SRV_C)
-    unsigned int cert_req_ca_list : 1;  /*!< enable sending CA list in
+    uint8_t cert_req_ca_list /*bool*/;  /*!< enable sending CA list in
                                           Certificate Request messages?     */
 #endif
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-    unsigned int ignore_unexpected_cid : 1; /*!< Determines whether DTLS
+    uint8_t ignore_unexpected_cid /*bool*/; /*!< Determines whether DTLS
                                              *   record with unexpected CID
                                              *   should lead to failure.    */
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
-    unsigned int dtls_srtp_mki_support : 1; /* support having mki_value
-                                               in the use_srtp extension     */
+    uint8_t dtls_srtp_mki_support /*bool*/; /*!< support having mki_value
+                                                 in the use_srtp extension? */
 #endif
 
     /*

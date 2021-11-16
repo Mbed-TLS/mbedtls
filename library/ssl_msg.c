@@ -1561,7 +1561,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
                                    mac_expect );
             if( ret != 0 )
             {
-                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_cf_hmac", ret );
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ct_hmac", ret );
                 return( ret );
             }
 

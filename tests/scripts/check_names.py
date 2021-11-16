@@ -457,6 +457,105 @@ class CodeParser():
 
         return enum_consts
 
+    IDENTIFIER_REGEX = re.compile(
+        # Match " something(a" or " *something(a". Functions.
+        # Assumptions:
+        # - function definition from return type to one of its arguments is
+        #   all on one line
+        # - function definition line only contains alphanumeric, asterisk,
+        #   underscore, and open bracket
+        r".* \**(\w+) *\( *\w|"
+        # Match "(*something)(".
+        r".*\( *\* *(\w+) *\) *\(|"
+        # Match names of named data structures.
+        r"(?:typedef +)?(?:struct|union|enum) +(\w+)(?: *{)?$|"
+        # Match names of typedef instances, after closing bracket.
+        r"}? *(\w+)[;[].*"
+    )
+    # The regex below is indented for clarity.
+    EXCLUSION_LINES = re.compile(
+        r"^("
+            r"extern +\"C\"|" # pylint: disable=bad-continuation
+            r"(typedef +)?(struct|union|enum)( *{)?$|"
+            r"} *;?$|"
+            r"$|"
+            r"//|"
+            r"#"
+        r")"
+    )
+
+    def parse_identifiers_in_file(self, header_file, identifiers):
+        """
+        Parse all lines of a header where a function/enum/struct/union/typedef
+        identifier is declared, based on some regex and heuristics. Highly
+        dependent on formatting style.
+
+        Append found matches to the list ``identifiers``.
+        """
+
+        with open(header_file, "r", encoding="utf-8") as header:
+            in_block_comment = False
+            # The previous line variable is used for concatenating lines
+            # when identifiers are formatted and spread across multiple
+            # lines.
+            previous_line = ""
+
+            for line_no, line in enumerate(header):
+                # Terminate current comment?
+                if in_block_comment:
+                    line = re.sub(r".*?\*/", r"", line, 1)
+                    in_block_comment = False
+                # Remove full comments and string literals
+                line = re.sub(r'/\*.*?\*/|(")(?:[^\\\"]|\\.)*"',
+                              lambda s: '""' if s.group(1) else ' ',
+                              line)
+                # Start an unfinished comment?
+                m = re.match(r"/\*", line)
+                if m:
+                    in_block_comment = True
+                    line = line[:m.end(0)]
+
+                if self.EXCLUSION_LINES.search(line):
+                    previous_line = ""
+                    continue
+
+                # If the line contains only space-separated alphanumeric
+                # characters (or underscore, asterisk, or, open bracket),
+                # and nothing else, high chance it's a declaration that
+                # continues on the next line
+                if re.search(r"^([\w\*\(]+\s+)+$", line):
+                    previous_line += line
+                    continue
+
+                # If previous line seemed to start an unfinished declaration
+                # (as above), concat and treat them as one.
+                if previous_line:
+                    line = previous_line.strip() + " " + line.strip() + "\n"
+                    previous_line = ""
+
+                # Skip parsing if line has a space in front = heuristic to
+                # skip function argument lines (highly subject to formatting
+                # changes)
+                if line[0] == " ":
+                    continue
+
+                identifier = self.IDENTIFIER_REGEX.search(line)
+
+                if not identifier:
+                    continue
+
+                # Find the group that matched, and append it
+                for group in identifier.groups():
+                    if not group:
+                        continue
+
+                    identifiers.append(Match(
+                        header_file,
+                        line,
+                        line_no,
+                        identifier.span(),
+                        group))
+
     def parse_identifiers(self, include, exclude=None):
         """
         Parse all lines of a header where a function/enum/struct/union/typedef
@@ -469,100 +568,13 @@ class CodeParser():
 
         Returns a List of Match objects with identifiers.
         """
-        identifier_regex = re.compile(
-            # Match " something(a" or " *something(a". Functions.
-            # Assumptions:
-            # - function definition from return type to one of its arguments is
-            #   all on one line
-            # - function definition line only contains alphanumeric, asterisk,
-            #   underscore, and open bracket
-            r".* \**(\w+) *\( *\w|"
-            # Match "(*something)(".
-            r".*\( *\* *(\w+) *\) *\(|"
-            # Match names of named data structures.
-            r"(?:typedef +)?(?:struct|union|enum) +(\w+)(?: *{)?$|"
-            # Match names of typedef instances, after closing bracket.
-            r"}? *(\w+)[;[].*"
-        )
-        # The regex below is indented for clarity.
-        exclusion_lines = re.compile(
-            r"^("
-                r"extern +\"C\"|" # pylint: disable=bad-continuation
-                r"(typedef +)?(struct|union|enum)( *{)?$|"
-                r"} *;?$|"
-                r"$|"
-                r"//|"
-                r"#"
-            r")"
-        )
 
         files = self.get_files(include, exclude)
         self.log.debug("Looking for identifiers in {} files".format(len(files)))
 
         identifiers = []
         for header_file in files:
-            with open(header_file, "r", encoding="utf-8") as header:
-                in_block_comment = False
-                # The previous line variable is used for concatenating lines
-                # when identifiers are formatted and spread across multiple
-                # lines.
-                previous_line = ""
-
-                for line_no, line in enumerate(header):
-                    # Terminate current comment?
-                    if in_block_comment:
-                        line = re.sub(r".*?\*/", r"", line, 1)
-                        in_block_comment = False
-                    # Remove full comments and string literals
-                    line = re.sub(r'/\*.*?\*/|(")(?:[^\\\"]|\\.)*"',
-                                  lambda s: '""' if s.group(1) else ' ',
-                                  line)
-                    # Start an unfinished comment?
-                    m = re.match(r"/\*", line)
-                    if m:
-                        in_block_comment = True
-                        line = line[:m.end(0)]
-
-                    if exclusion_lines.search(line):
-                        previous_line = ""
-                        continue
-
-                    # If the line contains only space-separated alphanumeric
-                    # characters (or underscore, asterisk, or, open bracket),
-                    # and nothing else, high chance it's a declaration that
-                    # continues on the next line
-                    if re.search(r"^([\w\*\(]+\s+)+$", line):
-                        previous_line += line
-                        continue
-
-                    # If previous line seemed to start an unfinished declaration
-                    # (as above), concat and treat them as one.
-                    if previous_line:
-                        line = previous_line.strip() + " " + line.strip() + "\n"
-                        previous_line = ""
-
-                    # Skip parsing if line has a space in front = heuristic to
-                    # skip function argument lines (highly subject to formatting
-                    # changes)
-                    if line[0] == " ":
-                        continue
-
-                    identifier = identifier_regex.search(line)
-
-                    if not identifier:
-                        continue
-
-                    # Find the group that matched, and append it
-                    for group in identifier.groups():
-                        if not group:
-                            continue
-
-                        identifiers.append(Match(
-                            header_file,
-                            line,
-                            line_no,
-                            identifier.span(),
-                            group))
+            self.parse_identifiers_in_file(header_file, identifiers)
 
         return identifiers
 

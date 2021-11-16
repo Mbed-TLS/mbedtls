@@ -430,10 +430,58 @@ struct mbedtls_ssl_handshake_params
      * Handshake specific crypto variables
      */
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
+    uint8_t max_major_ver;              /*!< max. major version client*/
+    uint8_t max_minor_ver;              /*!< max. minor version client*/
+    uint8_t resume;                     /*!<  session resume indicator*/
+    uint8_t cli_exts;                   /*!< client extension presence*/
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C) &&        \
+    defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    uint8_t sni_authmode;               /*!< authmode from SNI callback     */
+#endif
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    uint8_t new_session_ticket;         /*!< use NewSessionTicket?    */
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+
+#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
+    uint8_t extended_ms;                /*!< use Extended Master Secret? */
+#endif
+
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
+    uint8_t async_in_progress;          /*!< an asynchronous operation is in progress */
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    unsigned char retransmit_state;     /*!<  Retransmission state           */
+#endif
+
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+    uint8_t ecrs_enabled;               /*!< Handshake supports EC restart? */
+    enum { /* this complements ssl->state with info on intra-state operations */
+        ssl_ecrs_none = 0,              /*!< nothing going on (yet)         */
+        ssl_ecrs_crt_verify,            /*!< Certificate: crt_verify()      */
+        ssl_ecrs_ske_start_processing,  /*!< ServerKeyExchange: pk_verify() */
+        ssl_ecrs_cke_ecdh_calc_secret,  /*!< ClientKeyExchange: ECDH step 2 */
+        ssl_ecrs_crt_vrfy_sign,         /*!< CertificateVerify: pk_sign()   */
+    } ecrs_state;                       /*!< current (or last) operation    */
+    mbedtls_x509_crt *ecrs_peer_cert;   /*!< The peer's CRT chain.          */
+    size_t ecrs_n;                      /*!< place for saving a length      */
+#endif
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) &&                \
     defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     mbedtls_ssl_sig_hash_set_t hash_algs;             /*!<  Set of suitable sig-hash pairs */
 #endif
+
+    size_t pmslen;                      /*!<  premaster length        */
+
+    mbedtls_ssl_ciphersuite_t const *ciphersuite_info;
+
+    void (*update_checksum)(mbedtls_ssl_context *, const unsigned char *, size_t);
+    void (*calc_verify)(const mbedtls_ssl_context *, unsigned char *, size_t *);
+    void (*calc_finished)(mbedtls_ssl_context *, unsigned char *, int);
+    mbedtls_ssl_tls_prf_cb *tls_prf;
 
 #if defined(MBEDTLS_DHM_C)
     mbedtls_dhm_context dhm_ctx;                /*!<  DHM key exchange        */
@@ -480,7 +528,6 @@ struct mbedtls_ssl_handshake_params
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_ssl_key_cert *key_cert;     /*!< chosen key/cert pair (server)  */
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-    uint8_t sni_authmode;               /*!< authmode from SNI callback     */
     mbedtls_ssl_key_cert *sni_key_cert; /*!< key/cert list from SNI         */
     mbedtls_x509_crt *sni_ca_chain;     /*!< trusted CAs from SNI callback  */
     mbedtls_x509_crl *sni_ca_crl;       /*!< trusted CAs CRLs from SNI      */
@@ -489,16 +536,6 @@ struct mbedtls_ssl_handshake_params
 
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
     mbedtls_x509_crt_restart_ctx ecrs_ctx;  /*!< restart context            */
-    uint8_t ecrs_enabled;               /*!< Handshake supports EC restart? */
-    enum { /* this complements ssl->state with info on intra-state operations */
-        ssl_ecrs_none = 0,              /*!< nothing going on (yet)         */
-        ssl_ecrs_crt_verify,            /*!< Certificate: crt_verify()      */
-        ssl_ecrs_ske_start_processing,  /*!< ServerKeyExchange: pk_verify() */
-        ssl_ecrs_cke_ecdh_calc_secret,  /*!< ClientKeyExchange: ECDH step 2 */
-        ssl_ecrs_crt_vrfy_sign,         /*!< CertificateVerify: pk_sign()   */
-    } ecrs_state;                       /*!< current (or last) operation    */
-    mbedtls_x509_crt *ecrs_peer_cert;   /*!< The peer's CRT chain.          */
-    size_t ecrs_n;                      /*!< place for saving a length      */
 #endif
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C) &&        \
@@ -507,38 +544,6 @@ struct mbedtls_ssl_handshake_params
 #endif /* MBEDTLS_X509_CRT_PARSE_C && !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    unsigned int out_msg_seq;           /*!<  Outgoing handshake sequence number */
-    unsigned int in_msg_seq;            /*!<  Incoming handshake sequence number */
-
-    unsigned char *verify_cookie;       /*!<  Cli: HelloVerifyRequest cookie
-                                              Srv: unused                    */
-    unsigned char verify_cookie_len;    /*!<  Cli: cookie length
-                                              Srv: flag for sending a cookie */
-
-    uint32_t retransmit_timeout;        /*!<  Current value of timeout       */
-    unsigned char retransmit_state;     /*!<  Retransmission state           */
-    mbedtls_ssl_flight_item *flight;    /*!<  Current outgoing flight        */
-    mbedtls_ssl_flight_item *cur_msg;   /*!<  Current message in flight      */
-    unsigned char *cur_msg_p;           /*!<  Position in current message    */
-    unsigned int in_flight_start_seq;   /*!<  Minimum message sequence in the
-                                              flight being received          */
-    mbedtls_ssl_transform *alt_transform_out;   /*!<  Alternative transform for
-                                              resending messages             */
-    unsigned char alt_out_ctr[8];       /*!<  Alternative record epoch/counter
-                                              for resending messages         */
-
-#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-    /* The state of CID configuration in this handshake. */
-
-    uint8_t cid_in_use; /*!< This indicates whether the use of the CID extension
-                         *   has been negotiated. Possible values are
-                         *   #MBEDTLS_SSL_CID_ENABLED and
-                         *   #MBEDTLS_SSL_CID_DISABLED. */
-    unsigned char peer_cid[ MBEDTLS_SSL_CID_OUT_LEN_MAX ]; /*! The peer's CID */
-    uint8_t peer_cid_len;                                  /*!< The length of
-                                                            *   \c peer_cid.  */
-#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
-
     struct
     {
         size_t total_bytes_buffered; /*!< Cumulative size of heap allocated
@@ -564,6 +569,37 @@ struct mbedtls_ssl_handshake_params
         } future_record;
 
     } buffering;
+
+    unsigned int out_msg_seq;           /*!<  Outgoing handshake sequence number */
+    unsigned int in_msg_seq;            /*!<  Incoming handshake sequence number */
+
+    unsigned char *verify_cookie;       /*!<  Cli: HelloVerifyRequest cookie
+                                              Srv: unused                    */
+    unsigned char verify_cookie_len;    /*!<  Cli: cookie length
+                                              Srv: flag for sending a cookie */
+
+    uint32_t retransmit_timeout;        /*!<  Current value of timeout       */
+    mbedtls_ssl_flight_item *flight;    /*!<  Current outgoing flight        */
+    mbedtls_ssl_flight_item *cur_msg;   /*!<  Current message in flight      */
+    unsigned char *cur_msg_p;           /*!<  Position in current message    */
+    unsigned int in_flight_start_seq;   /*!<  Minimum message sequence in the
+                                              flight being received          */
+    mbedtls_ssl_transform *alt_transform_out;   /*!<  Alternative transform for
+                                              resending messages             */
+    unsigned char alt_out_ctr[8];       /*!<  Alternative record epoch/counter
+                                              for resending messages         */
+
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+    /* The state of CID configuration in this handshake. */
+
+    uint8_t cid_in_use; /*!< This indicates whether the use of the CID extension
+                         *   has been negotiated. Possible values are
+                         *   #MBEDTLS_SSL_CID_ENABLED and
+                         *   #MBEDTLS_SSL_CID_DISABLED. */
+    unsigned char peer_cid[ MBEDTLS_SSL_CID_OUT_LEN_MAX ]; /*! The peer's CID */
+    uint8_t peer_cid_len;                                  /*!< The length of
+                                                            *   \c peer_cid.  */
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
     uint16_t mtu;                       /*!<  Handshake mtu, used to fragment outgoing messages */
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
@@ -593,35 +629,9 @@ struct mbedtls_ssl_handshake_params
 #endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-    void (*update_checksum)(mbedtls_ssl_context *, const unsigned char *, size_t);
-    void (*calc_verify)(const mbedtls_ssl_context *, unsigned char *, size_t *);
-    void (*calc_finished)(mbedtls_ssl_context *, unsigned char *, int);
-    mbedtls_ssl_tls_prf_cb *tls_prf;
-
-    mbedtls_ssl_ciphersuite_t const *ciphersuite_info;
-
-    size_t pmslen;                      /*!<  premaster length        */
-
     unsigned char randbytes[64];        /*!<  random bytes            */
     unsigned char premaster[MBEDTLS_PREMASTER_SIZE];
                                         /*!<  premaster secret        */
-
-    uint8_t max_major_ver;              /*!< max. major version client*/
-    uint8_t max_minor_ver;              /*!< max. minor version client*/
-    uint8_t resume;                     /*!<  session resume indicator*/
-    uint8_t cli_exts;                   /*!< client extension presence*/
-
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    uint8_t new_session_ticket;         /*!< use NewSessionTicket?    */
-#endif /* MBEDTLS_SSL_SESSION_TICKETS */
-
-#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
-    uint8_t extended_ms;                /*!< use Extended Master Secret? */
-#endif
-
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
-    uint8_t async_in_progress;          /*!< an asynchronous operation is in progress */
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     /** Asynchronous operation context. This field is meant for use by the

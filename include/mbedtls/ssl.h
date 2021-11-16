@@ -1221,47 +1221,49 @@ struct mbedtls_ssl_config
     unsigned char MBEDTLS_PRIVATE(min_minor_ver);    /*!< min. minor version used            */
 
     /*
-     * Flags (bitfields)
+     * Flags (could be bit-fields to save RAM, but separate bytes make
+     * the code smaller on architectures with an instruction for direct
+     * byte access).
      */
 
-    unsigned int MBEDTLS_PRIVATE(endpoint) : 1;      /*!< 0: client, 1: server               */
-    unsigned int MBEDTLS_PRIVATE(transport) : 1;     /*!< stream (TLS) or datagram (DTLS)    */
-    unsigned int MBEDTLS_PRIVATE(authmode) : 2;      /*!< MBEDTLS_SSL_VERIFY_XXX             */
+    uint8_t MBEDTLS_PRIVATE(endpoint);      /*!< 0: client, 1: server               */
+    uint8_t MBEDTLS_PRIVATE(transport);     /*!< stream (TLS) or datagram (DTLS)    */
+    uint8_t MBEDTLS_PRIVATE(authmode);      /*!< MBEDTLS_SSL_VERIFY_XXX             */
     /* needed even with renego disabled for LEGACY_BREAK_HANDSHAKE          */
-    unsigned int MBEDTLS_PRIVATE(allow_legacy_renegotiation) : 2 ; /*!< MBEDTLS_LEGACY_XXX   */
+    uint8_t MBEDTLS_PRIVATE(allow_legacy_renegotiation); /*!< MBEDTLS_LEGACY_XXX   */
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    unsigned int MBEDTLS_PRIVATE(mfl_code) : 3;      /*!< desired fragment length            */
+    uint8_t MBEDTLS_PRIVATE(mfl_code);      /*!< desired fragment length            */
 #endif
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
-    unsigned int MBEDTLS_PRIVATE(encrypt_then_mac) : 1 ; /*!< negotiate encrypt-then-mac?    */
+    uint8_t MBEDTLS_PRIVATE(encrypt_then_mac); /*!< negotiate encrypt-then-mac?    */
 #endif
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
-    unsigned int MBEDTLS_PRIVATE(extended_ms) : 1;   /*!< negotiate extended master secret?  */
+    uint8_t MBEDTLS_PRIVATE(extended_ms);   /*!< negotiate extended master secret?  */
 #endif
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
-    unsigned int MBEDTLS_PRIVATE(anti_replay) : 1;   /*!< detect and prevent replay?         */
+    uint8_t MBEDTLS_PRIVATE(anti_replay);   /*!< detect and prevent replay?         */
 #endif
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
-    unsigned int MBEDTLS_PRIVATE(disable_renegotiation) : 1; /*!< disable renegotiation?     */
+    uint8_t MBEDTLS_PRIVATE(disable_renegotiation); /*!< disable renegotiation?     */
 #endif
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    unsigned int MBEDTLS_PRIVATE(session_tickets) : 1;   /*!< use session tickets?           */
+    uint8_t MBEDTLS_PRIVATE(session_tickets);   /*!< use session tickets?           */
 #endif
 #if defined(MBEDTLS_SSL_SRV_C)
-    unsigned int MBEDTLS_PRIVATE(cert_req_ca_list) : 1;  /*!< enable sending CA list in
-                                          Certificate Request messages?     */
-    unsigned int MBEDTLS_PRIVATE(respect_cli_pref) : 1;  /*!< pick the ciphersuite according to
-                                          the client's preferences rather
-                                          than ours                         */
+    uint8_t MBEDTLS_PRIVATE(cert_req_ca_list);  /*!< enable sending CA list in
+                                                     Certificate Request messages? */
+    uint8_t MBEDTLS_PRIVATE(respect_cli_pref);  /*!< pick the ciphersuite according to
+                                                     the client's preferences rather
+                                                     than ours */
 #endif
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-    unsigned int MBEDTLS_PRIVATE(ignore_unexpected_cid) : 1; /*!< Determines whether DTLS
-                                             *   record with unexpected CID
-                                             *   should lead to failure.    */
+    uint8_t MBEDTLS_PRIVATE(ignore_unexpected_cid); /*!< Determines whether DTLS
+                                                     *   record with unexpected CID
+                                                     *   should lead to failure. */
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
-    unsigned int MBEDTLS_PRIVATE(dtls_srtp_mki_support) : 1; /* support having mki_value
-                                               in the use_srtp extension     */
+    uint8_t MBEDTLS_PRIVATE(dtls_srtp_mki_support); /* support having mki_value
+                                                       in the use_srtp extension */
 #endif
 
     /*

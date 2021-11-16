@@ -509,18 +509,19 @@ class CodeParser():
                 previous_line = ""
 
                 for line_no, line in enumerate(header):
-                    # Skip parsing this line if a block comment ends on it,
-                    # but don't skip if it has just started -- there is a chance
-                    # it ends on the same line.
-                    if re.search(r"/\*", line):
-                        in_block_comment = not in_block_comment
-                    if re.search(r"\*/", line):
-                        in_block_comment = not in_block_comment
-                        continue
-
+                    # Terminate current comment?
                     if in_block_comment:
-                        previous_line = ""
-                        continue
+                        line = re.sub(r".*?\*/", r"", line, 1)
+                        in_block_comment = False
+                    # Remove full comments and string literals
+                    line = re.sub(r'/\*.*?\*/|(")(?:[^\\\"]|\\.)*"',
+                                  lambda s: '""' if s.group(1) else ' ',
+                                  line)
+                    # Start an unfinished comment?
+                    m = re.match(r"/\*", line)
+                    if m:
+                        in_block_comment = True
+                        line = line[:m.end(0)]
 
                     if exclusion_lines.search(line):
                         previous_line = ""

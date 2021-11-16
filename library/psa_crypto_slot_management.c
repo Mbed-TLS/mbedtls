@@ -34,6 +34,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "mbedtls/threading.h"
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
@@ -148,17 +149,24 @@ static psa_status_t psa_get_and_lock_key_slot_in_memory(
 
 psa_status_t psa_initialize_key_slots( void )
 {
-    /* Nothing to do: program startup and psa_wipe_all_key_slots() both
-     * guarantee that the key slots are initialized to all-zero, which
-     * means that all the key slots are in a valid, empty state. */
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
     global_data.key_slots_initialized = 1;
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
     return( PSA_SUCCESS );
 }
 
 void psa_wipe_all_key_slots( void )
 {
     size_t slot_idx;
-
+#if defined(MBEDTLS_THREADING_C)
+    (void) mbedtls_mutex_lock( &mbedtls_psa_slots_mutex );
+#endif
     for( slot_idx = 0; slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT; slot_idx++ )
     {
         psa_key_slot_t *slot = &global_data.key_slots[ slot_idx ];
@@ -166,6 +174,9 @@ void psa_wipe_all_key_slots( void )
         (void) psa_wipe_key_slot( slot );
     }
     global_data.key_slots_initialized = 0;
+#if defined(MBEDTLS_THREADING_C)
+    (void) mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex );
+#endif
 }
 
 psa_status_t psa_get_empty_key_slot( psa_key_id_t *volatile_key_id,
@@ -484,6 +495,11 @@ psa_status_t psa_open_key( mbedtls_svc_key_id_t key, psa_key_handle_t *handle )
     psa_status_t status;
     psa_key_slot_t *slot;
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
+
     status = psa_get_and_lock_key_slot( key, &slot );
     if( status != PSA_SUCCESS )
     {
@@ -491,12 +507,20 @@ psa_status_t psa_open_key( mbedtls_svc_key_id_t key, psa_key_handle_t *handle )
         if( status == PSA_ERROR_INVALID_HANDLE )
             status = PSA_ERROR_DOES_NOT_EXIST;
 
+#if defined(MBEDTLS_THREADING_C)
+        if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+            return( PSA_ERROR_BAD_STATE );
+#endif
         return( status );
     }
 
     *handle = key;
-
-    return( psa_unlock_key_slot( slot ) );
+    status = psa_unlock_key_slot( slot );
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
+    return( status );
 
 #else /* MBEDTLS_PSA_CRYPTO_STORAGE_C || MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
     (void) key;
@@ -513,18 +537,36 @@ psa_status_t psa_close_key( psa_key_handle_t handle )
     if( psa_key_handle_is_null( handle ) )
         return( PSA_SUCCESS );
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
+
     status = psa_get_and_lock_key_slot_in_memory( handle, &slot );
     if( status != PSA_SUCCESS )
     {
         if( status == PSA_ERROR_DOES_NOT_EXIST )
             status = PSA_ERROR_INVALID_HANDLE;
-
+#if defined(MBEDTLS_THREADING_C)
+        if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+            return( PSA_ERROR_BAD_STATE );
+#endif
         return( status );
     }
     if( slot->lock_count <= 1 )
-        return( psa_wipe_key_slot( slot ) );
+    {
+        status = psa_wipe_key_slot( slot );
+    }
     else
-        return( psa_unlock_key_slot( slot ) );
+    {
+        status = psa_unlock_key_slot( slot );
+    }
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
+    return( status );
 }
 
 psa_status_t psa_purge_key( mbedtls_svc_key_id_t key )
@@ -532,15 +574,36 @@ psa_status_t psa_purge_key( mbedtls_svc_key_id_t key )
     psa_status_t status;
     psa_key_slot_t *slot;
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
+
     status = psa_get_and_lock_key_slot_in_memory( key, &slot );
     if( status != PSA_SUCCESS )
+    {
+#if defined(MBEDTLS_THREADING_C)
+        if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+            return( PSA_ERROR_BAD_STATE );
+#endif
         return( status );
+    }
 
     if( ( ! PSA_KEY_LIFETIME_IS_VOLATILE( slot->attr.lifetime ) ) &&
         ( slot->lock_count <= 1 ) )
-        return( psa_wipe_key_slot( slot ) );
+    {
+        status = psa_wipe_key_slot( slot );
+    }
     else
-        return( psa_unlock_key_slot( slot ) );
+    {
+        status = psa_unlock_key_slot( slot );
+    }
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
+    return( status );
 }
 
 void mbedtls_psa_get_stats( mbedtls_psa_stats_t *stats )
@@ -549,6 +612,9 @@ void mbedtls_psa_get_stats( mbedtls_psa_stats_t *stats )
 
     memset( stats, 0, sizeof( *stats ) );
 
+#if defined(MBEDTLS_THREADING_C)
+    (void) mbedtls_mutex_lock( &mbedtls_psa_slots_mutex );
+#endif
     for( slot_idx = 0; slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT; slot_idx++ )
     {
         const psa_key_slot_t *slot = &global_data.key_slots[ slot_idx ];
@@ -579,6 +645,9 @@ void mbedtls_psa_get_stats( mbedtls_psa_stats_t *stats )
                 stats->max_open_external_key_id = id;
         }
     }
+#if defined(MBEDTLS_THREADING_C)
+    (void) mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex );
+#endif
 }
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

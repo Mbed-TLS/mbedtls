@@ -84,6 +84,7 @@
 #include "mbedtls/sha1.h"
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
+#include "mbedtls/threading.h"
 
 #define ARRAY_LENGTH( array ) ( sizeof( array ) / sizeof( *( array ) ) )
 
@@ -1026,6 +1027,10 @@ psa_status_t psa_destroy_key( mbedtls_svc_key_id_t key )
     if( mbedtls_svc_key_id_is_null( key ) )
         return( PSA_SUCCESS );
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
     /*
      * Get the description of the key in a key slot. In case of a persistent
      * key, this will load the key description from persistent memory if not
@@ -1035,7 +1040,13 @@ psa_status_t psa_destroy_key( mbedtls_svc_key_id_t key )
      */
     status = psa_get_and_lock_key_slot( key, &slot );
     if( status != PSA_SUCCESS )
+    {
+#if defined(MBEDTLS_THREADING_C)
+        if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+            return( PSA_ERROR_BAD_STATE );
+#endif
         return( status );
+    }
 
     /*
      * If the key slot containing the key description is under access by the
@@ -1046,8 +1057,12 @@ psa_status_t psa_destroy_key( mbedtls_svc_key_id_t key )
      */
     if( slot->lock_count > 1 )
     {
-       psa_unlock_key_slot( slot );
-       return( PSA_ERROR_GENERIC_ERROR );
+        psa_unlock_key_slot( slot );
+#if defined(MBEDTLS_THREADING_C)
+        if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+            return( PSA_ERROR_BAD_STATE );
+#endif
+        return( PSA_ERROR_GENERIC_ERROR );
     }
 
     if( PSA_KEY_LIFETIME_IS_READ_ONLY( slot->attr.lifetime ) )
@@ -1127,6 +1142,11 @@ exit:
     /* Prioritize CORRUPTION_DETECTED from wiping over a storage error */
     if( status != PSA_SUCCESS )
         overall_status = status;
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
     return( overall_status );
 }
 
@@ -1185,9 +1205,20 @@ psa_status_t psa_get_key_attributes( mbedtls_svc_key_id_t key,
 
     psa_reset_key_attributes( attributes );
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
+
     status = psa_get_and_lock_key_slot_with_policy( key, &slot, 0, 0 );
     if( status != PSA_SUCCESS )
+    {
+#if defined(MBEDTLS_THREADING_C)
+        if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+            return( PSA_ERROR_BAD_STATE );
+#endif
         return( status );
+    }
 
     attributes->core = slot->attr;
     attributes->core.flags &= ( MBEDTLS_PSA_KA_MASK_EXTERNAL_ONLY |
@@ -1238,6 +1269,11 @@ psa_status_t psa_get_key_attributes( mbedtls_svc_key_id_t key,
         psa_reset_key_attributes( attributes );
 
     unlock_status = psa_unlock_key_slot( slot );
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
 
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );
 }
@@ -1317,6 +1353,11 @@ psa_status_t psa_export_key( mbedtls_svc_key_id_t key,
      * unlikely to be accepted anywhere. */
     *data_length = 0;
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
+
     /* Export requires the EXPORT flag. There is an exception for public keys,
      * which don't require any flag, but
      * psa_get_and_lock_key_slot_with_policy() takes care of this.
@@ -1324,7 +1365,13 @@ psa_status_t psa_export_key( mbedtls_svc_key_id_t key,
     status = psa_get_and_lock_key_slot_with_policy( key, &slot,
                                                     PSA_KEY_USAGE_EXPORT, 0 );
     if( status != PSA_SUCCESS )
+    {
+#if defined(MBEDTLS_THREADING_C)
+        if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+            return( PSA_ERROR_BAD_STATE );
+#endif
         return( status );
+    }
 
     psa_key_attributes_t attributes = {
         .core = slot->attr
@@ -1334,6 +1381,11 @@ psa_status_t psa_export_key( mbedtls_svc_key_id_t key,
                  data, data_size, data_length );
 
     unlock_status = psa_unlock_key_slot( slot );
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
 
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );
 }
@@ -1421,10 +1473,21 @@ psa_status_t psa_export_public_key( mbedtls_svc_key_id_t key,
      * unlikely to be accepted anywhere. */
     *data_length = 0;
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
+
     /* Exporting a public key doesn't require a usage flag. */
     status = psa_get_and_lock_key_slot_with_policy( key, &slot, 0, 0 );
     if( status != PSA_SUCCESS )
+    {
+#if defined(MBEDTLS_THREADING_C)
+        if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+            return( PSA_ERROR_BAD_STATE );
+#endif
         return( status );
+    }
 
     if( ! PSA_KEY_TYPE_IS_ASYMMETRIC( slot->attr.type ) )
     {
@@ -1441,6 +1504,11 @@ psa_status_t psa_export_public_key( mbedtls_svc_key_id_t key,
 
 exit:
     unlock_status = psa_unlock_key_slot( slot );
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
 
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );
 }
@@ -1905,6 +1973,11 @@ psa_status_t psa_import_key( const psa_key_attributes_t *attributes,
     if( data_length > SIZE_MAX / 8 )
         return( PSA_ERROR_NOT_SUPPORTED );
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
+
     status = psa_start_key_creation( PSA_KEY_CREATION_IMPORT, attributes,
                                      &slot, &driver );
     if( status != PSA_SUCCESS )
@@ -1961,6 +2034,10 @@ exit:
     if( status != PSA_SUCCESS )
         psa_fail_key_creation( slot, driver );
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
     return( status );
 }
 
@@ -2012,6 +2089,11 @@ psa_status_t psa_copy_key( mbedtls_svc_key_id_t source_key,
     size_t storage_size = 0;
 
     *target_key = MBEDTLS_SVC_KEY_ID_INIT;
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
 
     status = psa_get_and_lock_key_slot_with_policy(
                  source_key, &source_slot, PSA_KEY_USAGE_COPY, 0 );
@@ -2096,6 +2178,10 @@ exit:
 
     unlock_status = psa_unlock_key_slot( source_slot );
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );
 }
 
@@ -2340,6 +2426,10 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot = NULL;
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
     /* A context must be freshly initialized before it can be set up. */
     if( operation->id != 0 )
     {
@@ -2388,6 +2478,11 @@ exit:
         psa_mac_abort( operation );
 
     unlock_status = psa_unlock_key_slot( slot );
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
 
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );
 }
@@ -2534,6 +2629,11 @@ static psa_status_t psa_mac_compute_internal( mbedtls_svc_key_id_t key,
     psa_key_slot_t *slot;
     uint8_t operation_mac_size = 0;
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
+
     status = psa_get_and_lock_key_slot_with_policy(
                  key,
                  &slot,
@@ -2580,6 +2680,11 @@ exit:
         memset( &mac[operation_mac_size], '!', mac_size - operation_mac_size );
 
     unlock_status = psa_unlock_key_slot( slot );
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
 
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );
 }
@@ -2685,6 +2790,11 @@ static psa_status_t psa_sign_internal( mbedtls_svc_key_id_t key,
     if( signature_size == 0 )
         return( PSA_ERROR_BUFFER_TOO_SMALL );
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
+
     status = psa_get_and_lock_key_slot_with_policy(
                 key, &slot,
                 input_is_message ? PSA_KEY_USAGE_SIGN_MESSAGE :
@@ -2736,6 +2846,11 @@ exit:
 
     unlock_status = psa_unlock_key_slot( slot );
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
+
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );
 }
 
@@ -2755,6 +2870,11 @@ static psa_status_t psa_verify_internal( mbedtls_svc_key_id_t key,
     if( status != PSA_SUCCESS )
         return status;
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
+
     status = psa_get_and_lock_key_slot_with_policy(
                 key, &slot,
                 input_is_message ? PSA_KEY_USAGE_VERIFY_MESSAGE :
@@ -2762,7 +2882,13 @@ static psa_status_t psa_verify_internal( mbedtls_svc_key_id_t key,
                 alg );
 
     if( status != PSA_SUCCESS )
+    {
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
         return( status );
+    }
 
     psa_key_attributes_t attributes = {
       .core = slot->attr
@@ -2784,6 +2910,11 @@ static psa_status_t psa_verify_internal( mbedtls_svc_key_id_t key,
     }
 
     unlock_status = psa_unlock_key_slot( slot );
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
 
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );
 
@@ -3060,10 +3191,21 @@ psa_status_t psa_asymmetric_encrypt( mbedtls_svc_key_id_t key,
     if( ! PSA_ALG_IS_RSA_OAEP( alg ) && salt_length != 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
+
     status = psa_get_and_lock_transparent_key_slot_with_policy(
                  key, &slot, PSA_KEY_USAGE_ENCRYPT, alg );
     if( status != PSA_SUCCESS )
+    {
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
         return( status );
+    }
     if( ! ( PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->attr.type ) ||
             PSA_KEY_TYPE_IS_KEY_PAIR( slot->attr.type ) ) )
     {
@@ -3141,6 +3283,11 @@ rsa_exit:
 exit:
     unlock_status = psa_unlock_key_slot( slot );
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
+
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );
 }
 
@@ -3169,10 +3316,21 @@ psa_status_t psa_asymmetric_decrypt( mbedtls_svc_key_id_t key,
     if( ! PSA_ALG_IS_RSA_OAEP( alg ) && salt_length != 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
+
     status = psa_get_and_lock_transparent_key_slot_with_policy(
                  key, &slot, PSA_KEY_USAGE_DECRYPT, alg );
     if( status != PSA_SUCCESS )
+    {
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
         return( status );
+    }
     if( ! PSA_KEY_TYPE_IS_KEY_PAIR( slot->attr.type ) )
     {
         status = PSA_ERROR_INVALID_ARGUMENT;
@@ -3249,6 +3407,11 @@ rsa_exit:
 exit:
     unlock_status = psa_unlock_key_slot( slot );
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
+
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );
 }
 
@@ -3269,6 +3432,11 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     psa_key_usage_t usage = ( cipher_operation == MBEDTLS_ENCRYPT ?
                               PSA_KEY_USAGE_ENCRYPT :
                               PSA_KEY_USAGE_DECRYPT );
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
 
     /* A context must be freshly initialized before it can be set up. */
     if( operation->id != 0 )
@@ -3321,6 +3489,11 @@ exit:
         psa_cipher_abort( operation );
 
     unlock_status = psa_unlock_key_slot( slot );
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
 
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );
 }
@@ -3531,11 +3704,22 @@ psa_status_t psa_cipher_encrypt( mbedtls_svc_key_id_t key,
     if( ! PSA_ALG_IS_CIPHER( alg ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
+
     status = psa_get_and_lock_key_slot_with_policy( key, &slot,
                                                     PSA_KEY_USAGE_ENCRYPT,
                                                     alg );
     if( status != PSA_SUCCESS )
+    {
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
         return( status );
+    }
 
     psa_key_attributes_t attributes = {
       .core = slot->attr
@@ -3565,6 +3749,10 @@ psa_status_t psa_cipher_encrypt( mbedtls_svc_key_id_t key,
 exit:
     unlock_status = psa_unlock_key_slot( slot );
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );
 }
 
@@ -3585,11 +3773,22 @@ psa_status_t psa_cipher_decrypt( mbedtls_svc_key_id_t key,
     if( ! PSA_ALG_IS_CIPHER( alg ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
+
     status = psa_get_and_lock_key_slot_with_policy( key, &slot,
                                                     PSA_KEY_USAGE_DECRYPT,
                                                     alg );
     if( status != PSA_SUCCESS )
+    {
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
         return( status );
+    }
 
     psa_key_attributes_t attributes = {
       .core = slot->attr
@@ -3613,6 +3812,11 @@ psa_status_t psa_cipher_decrypt( mbedtls_svc_key_id_t key,
 
 exit:
     unlock_status = psa_unlock_key_slot( slot );
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
 
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );
 }
@@ -3687,10 +3891,21 @@ psa_status_t psa_aead_encrypt( mbedtls_svc_key_id_t key,
     if( !PSA_ALG_IS_AEAD( alg ) || PSA_ALG_IS_WILDCARD( alg ) )
         return( PSA_ERROR_NOT_SUPPORTED );
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
+
     status = psa_get_and_lock_key_slot_with_policy(
                  key, &slot, PSA_KEY_USAGE_ENCRYPT, alg );
     if( status != PSA_SUCCESS )
+    {
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
         return( status );
+    }
 
     psa_key_attributes_t attributes = {
       .core = slot->attr
@@ -3714,6 +3929,10 @@ psa_status_t psa_aead_encrypt( mbedtls_svc_key_id_t key,
 exit:
     psa_unlock_key_slot( slot );
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
     return( status );
 }
 
@@ -3737,10 +3956,21 @@ psa_status_t psa_aead_decrypt( mbedtls_svc_key_id_t key,
     if( !PSA_ALG_IS_AEAD( alg ) || PSA_ALG_IS_WILDCARD( alg ) )
         return( PSA_ERROR_NOT_SUPPORTED );
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
+
     status = psa_get_and_lock_key_slot_with_policy(
                  key, &slot, PSA_KEY_USAGE_DECRYPT, alg );
     if( status != PSA_SUCCESS )
+    {
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
         return( status );
+    }
 
     psa_key_attributes_t attributes = {
       .core = slot->attr
@@ -3764,6 +3994,10 @@ psa_status_t psa_aead_decrypt( mbedtls_svc_key_id_t key,
 exit:
     psa_unlock_key_slot( slot );
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
     return( status );
 }
 
@@ -3777,6 +4011,11 @@ static psa_status_t psa_aead_setup( psa_aead_operation_t *operation,
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot = NULL;
     psa_key_usage_t key_usage = 0;
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
 
     if( !PSA_ALG_IS_AEAD( alg ) || PSA_ALG_IS_WILDCARD( alg ) )
     {
@@ -3830,6 +4069,11 @@ static psa_status_t psa_aead_setup( psa_aead_operation_t *operation,
 
 exit:
     unlock_status = psa_unlock_key_slot( slot );
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
 
     if( status == PSA_SUCCESS )
     {
@@ -4766,6 +5010,10 @@ psa_status_t psa_key_derivation_output_key( const psa_key_attributes_t *attribut
     if( ! operation->can_output_key )
         return( PSA_ERROR_NOT_PERMITTED );
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
     status = psa_start_key_creation( PSA_KEY_CREATION_DERIVE, attributes,
                                      &slot, &driver );
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
@@ -4786,6 +5034,10 @@ psa_status_t psa_key_derivation_output_key( const psa_key_attributes_t *attribut
     if( status != PSA_SUCCESS )
         psa_fail_key_creation( slot, driver );
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
     return( status );
 }
 
@@ -5196,11 +5448,20 @@ psa_status_t psa_key_derivation_input_key(
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
+
     status = psa_get_and_lock_transparent_key_slot_with_policy(
                  key, &slot, PSA_KEY_USAGE_DERIVE, operation->alg );
     if( status != PSA_SUCCESS )
     {
         psa_key_derivation_abort( operation );
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
         return( status );
     }
 
@@ -5215,6 +5476,11 @@ psa_status_t psa_key_derivation_input_key(
                                                 slot->key.bytes );
 
     unlock_status = psa_unlock_key_slot( slot );
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
 
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );
 }
@@ -5373,10 +5639,22 @@ psa_status_t psa_key_derivation_key_agreement( psa_key_derivation_operation_t *o
 
     if( ! PSA_ALG_IS_KEY_AGREEMENT( operation->alg ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
+
     status = psa_get_and_lock_transparent_key_slot_with_policy(
                  private_key, &slot, PSA_KEY_USAGE_DERIVE, operation->alg );
     if( status != PSA_SUCCESS )
+    {
+#if defined(MBEDTLS_THREADING_C)
+        if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+            return( PSA_ERROR_BAD_STATE );
+#endif
         return( status );
+    }
     status = psa_key_agreement_internal( operation, step,
                                          slot,
                                          peer_key, peer_key_length );
@@ -5392,6 +5670,10 @@ psa_status_t psa_key_derivation_key_agreement( psa_key_derivation_operation_t *o
 
     unlock_status = psa_unlock_key_slot( slot );
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );
 }
 
@@ -5406,6 +5688,11 @@ psa_status_t psa_raw_key_agreement( psa_algorithm_t alg,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot = NULL;
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
 
     if( ! PSA_ALG_IS_KEY_AGREEMENT( alg ) )
     {
@@ -5437,6 +5724,11 @@ exit:
     }
 
     unlock_status = psa_unlock_key_slot( slot );
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
 
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );
 }
@@ -5721,6 +6013,11 @@ psa_status_t psa_generate_key( const psa_key_attributes_t *attributes,
     if( PSA_KEY_TYPE_IS_PUBLIC_KEY(attributes->core.type) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
+
     status = psa_start_key_creation( PSA_KEY_CREATION_GENERATE, attributes,
                                      &slot, &driver );
     if( status != PSA_SUCCESS )
@@ -5768,6 +6065,11 @@ exit:
         status = psa_finish_key_creation( slot, driver, key );
     if( status != PSA_SUCCESS )
         psa_fail_key_creation( slot, driver );
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
 
     return( status );
 }

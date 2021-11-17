@@ -457,6 +457,36 @@ class CodeParser():
 
         return enum_consts
 
+    def strip_comments_and_literals(self, line, in_block_comment):
+        """Strip comments and string literals from line.
+
+        Continuation lines are not supported.
+
+        If in_block_comment is true, assume that the line starts inside a
+        block comment.
+
+        Return updated values of (line, in_block_comment) where:
+        * Comments in line have been replaced by a space (or nothing at the
+          start or end of the line).
+        * String contents have been removed.
+        * in_block_comment indicates whether the line ends inside a block
+          comment that continues on the next line.
+        """
+        # Terminate current comment?
+        if in_block_comment:
+            line = re.sub(r".*?\*/", r"", line, 1)
+            in_block_comment = False
+        # Remove full comments and string literals
+        line = re.sub(r'/\*.*?\*/|(")(?:[^\\\"]|\\.)*"',
+                      lambda s: '""' if s.group(1) else ' ',
+                      line)
+        # Start an unfinished comment?
+        m = re.match(r"/\*", line)
+        if m:
+            in_block_comment = True
+            line = line[:m.end(0)]
+        return line, in_block_comment
+
     IDENTIFIER_REGEX = re.compile('|'.join([
         # Match " something(a" or " *something(a". Functions.
         # Assumptions:
@@ -499,19 +529,8 @@ class CodeParser():
             previous_line = ""
 
             for line_no, line in enumerate(header):
-                # Terminate current comment?
-                if in_block_comment:
-                    line = re.sub(r".*?\*/", r"", line, 1)
-                    in_block_comment = False
-                # Remove full comments and string literals
-                line = re.sub(r'/\*.*?\*/|(")(?:[^\\\"]|\\.)*"',
-                              lambda s: '""' if s.group(1) else ' ',
-                              line)
-                # Start an unfinished comment?
-                m = re.match(r"/\*", line)
-                if m:
-                    in_block_comment = True
-                    line = line[:m.end(0)]
+                line, in_block_comment = \
+                    self.strip_comments_and_literals(line, in_block_comment)
 
                 if self.EXCLUSION_LINES.match(line):
                     previous_line = ""

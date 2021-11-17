@@ -457,32 +457,30 @@ class CodeParser():
 
         return enum_consts
 
-    IDENTIFIER_REGEX = re.compile(
+    IDENTIFIER_REGEX = re.compile('|'.join([
         # Match " something(a" or " *something(a". Functions.
         # Assumptions:
         # - function definition from return type to one of its arguments is
         #   all on one line
         # - function definition line only contains alphanumeric, asterisk,
         #   underscore, and open bracket
-        r".* \**(\w+) *\( *\w|"
+        r".* \**(\w+) *\( *\w",
         # Match "(*something)(".
-        r".*\( *\* *(\w+) *\) *\(|"
+        r".*\( *\* *(\w+) *\) *\(",
         # Match names of named data structures.
-        r"(?:typedef +)?(?:struct|union|enum) +(\w+)(?: *{)?$|"
+        r"(?:typedef +)?(?:struct|union|enum) +(\w+)(?: *{)?$",
         # Match names of typedef instances, after closing bracket.
-        r"}? *(\w+)[;[].*"
-    )
+        r"}? *(\w+)[;[].*",
+    ]))
     # The regex below is indented for clarity.
-    EXCLUSION_LINES = re.compile(
-        r"^("
-            r"extern +\"C\"|" # pylint: disable=bad-continuation
-            r"(typedef +)?(struct|union|enum)( *{)?$|"
-            r"} *;?$|"
-            r"$|"
-            r"//|"
-            r"#"
-        r")"
-    )
+    EXCLUSION_LINES = re.compile("|".join([
+        r"extern +\"C\"",
+        r"(typedef +)?(struct|union|enum)( *{)?$",
+        r"} *;?$",
+        r"$",
+        r"//",
+        r"#",
+    ]))
 
     def parse_identifiers_in_file(self, header_file, identifiers):
         """
@@ -515,7 +513,7 @@ class CodeParser():
                     in_block_comment = True
                     line = line[:m.end(0)]
 
-                if self.EXCLUSION_LINES.search(line):
+                if self.EXCLUSION_LINES.match(line):
                     previous_line = ""
                     continue
 

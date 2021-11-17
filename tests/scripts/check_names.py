@@ -457,6 +457,12 @@ class CodeParser():
 
         return enum_consts
 
+    IGNORED_CHUNK_REGEX = re.compile('|'.join([
+        r'/\*.*?\*/', # block comment entirely on one line
+        r'//.*', # line comment
+        r'(?P<string>")(?:[^\\\"]|\\.)*"', # string literal
+    ]))
+
     def strip_comments_and_literals(self, line, in_block_comment):
         """Strip comments and string literals from line.
 
@@ -476,15 +482,21 @@ class CodeParser():
         if in_block_comment:
             line = re.sub(r".*?\*/", r"", line, 1)
             in_block_comment = False
-        # Remove full comments and string literals
-        line = re.sub(r'/\*.*?\*/|(")(?:[^\\\"]|\\.)*"',
-                      lambda s: '""' if s.group(1) else ' ',
+
+        # Remove full comments and string literals.
+        # Do it all together to handle cases like "/*" correctly.
+        # Note that continuation lines are not supported.
+        line = re.sub(self.IGNORED_CHUNK_REGEX,
+                      lambda s: '""' if s.group('string') else ' ',
                       line)
+
         # Start an unfinished comment?
+        # (If `/*` was part of a complete comment, it's already been removed.)
         m = re.match(r"/\*", line)
         if m:
             in_block_comment = True
             line = line[:m.end(0)]
+
         return line, in_block_comment
 
     IDENTIFIER_REGEX = re.compile('|'.join([

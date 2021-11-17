@@ -2027,6 +2027,7 @@ psa_status_t psa_copy_key( mbedtls_svc_key_id_t source_key,
     psa_key_attributes_t actual_attributes = *specified_attributes;
     psa_se_drv_table_entry_t *driver = NULL;
     size_t storage_size = 0;
+    int unlock_slot = 1;
 
     *target_key = MBEDTLS_SVC_KEY_ID_INIT;
 
@@ -2048,17 +2049,33 @@ psa_status_t psa_copy_key( mbedtls_svc_key_id_t source_key,
     actual_attributes.core.bits = source_slot->attr.bits;
     actual_attributes.core.type = source_slot->attr.type;
 
-
     status = psa_restrict_key_policy( source_slot->attr.type,
                                       &actual_attributes.core.policy,
                                       &source_slot->attr.policy );
     if( status != PSA_SUCCESS )
         goto exit;
+    /* This unlock is a temporary hack. psa_start_key_creation iterates over
+     * the key slots to find an empty one, and if the source slot is already
+     * locked, a double lock will happen. The following unlock
+     * is not a solution to the problem, as a different thread might lock
+     * the slot in the meantime and destroy the key, violating the integrity.
+     */
+    status = psa_unlock_key_slot( source_slot );
+    if( status != PSA_SUCCESS )
+        goto exit;
 
+    unlock_slot = 0;
     status = psa_start_key_creation( PSA_KEY_CREATION_COPY, &actual_attributes,
                                      &target_slot, &driver );
     if( status != PSA_SUCCESS )
         goto exit;
+
+    status = psa_get_and_lock_key_slot_with_policy(
+                 source_key, &source_slot, PSA_KEY_USAGE_COPY, 0 );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    unlock_slot = 1;
     if( PSA_KEY_LIFETIME_GET_LOCATION( target_slot->attr.lifetime ) !=
         PSA_KEY_LIFETIME_GET_LOCATION( source_slot->attr.lifetime ) )
     {
@@ -2110,9 +2127,14 @@ psa_status_t psa_copy_key( mbedtls_svc_key_id_t source_key,
 exit:
     if( status != PSA_SUCCESS )
         psa_fail_key_creation( target_slot, driver );
-
-    unlock_status = psa_unlock_key_slot( source_slot );
-
+    if( unlock_slot )
+    {
+    	unlock_status = psa_unlock_key_slot( source_slot );
+    }
+    else
+    {
+    	unlock_status = PSA_SUCCESS;
+    }
     return( ( status == PSA_SUCCESS ) ? unlock_status : status );
 }
 

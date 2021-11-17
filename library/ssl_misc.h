@@ -1069,24 +1069,6 @@ int mbedtls_ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
 int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl );
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
-
-void mbedtls_ssl_tls13_handshake_wrapup( mbedtls_ssl_context *ssl );
-
-/**
- * \brief           TLS 1.3 client side state machine entry
- *
- * \param ssl       SSL context
- */
-int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl );
-
-/**
- * \brief           TLS 1.3 server side state machine entry
- *
- * \param ssl       SSL context
- */
-int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl );
-#endif
 
 int mbedtls_ssl_send_fatal_handshake_failure( mbedtls_ssl_context *ssl );
 
@@ -1186,9 +1168,6 @@ static inline int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
 
 int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush );
 int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl );
-
-int mbedtls_ssl_tls13_process_finished_message( mbedtls_ssl_context *ssl );
-int mbedtls_ssl_tls13_write_finished_message( mbedtls_ssl_context *ssl );
 
 int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl );
@@ -1490,7 +1469,72 @@ void mbedtls_ssl_buffering_free( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_flight_free( mbedtls_ssl_flight_item *flight );
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
+/**
+ * ssl utils functions for checking configuration.
+ */
+
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+static inline int mbedtls_ssl_conf_is_tls13_only( const mbedtls_ssl_config *conf )
+{
+    if( conf->min_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
+        conf->max_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
+        conf->min_minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 &&
+        conf->max_minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+    {
+        return( 1 );
+    }
+    return( 0 );
+}
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+static inline int mbedtls_ssl_conf_is_tls12_only( const mbedtls_ssl_config *conf )
+{
+    if( conf->min_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
+        conf->max_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
+        conf->min_minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 &&
+        conf->max_minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+    {
+        return( 1 );
+    }
+    return( 0 );
+}
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+static inline int mbedtls_ssl_conf_is_hybrid_tls12_tls13( const mbedtls_ssl_config *conf )
+{
+    if( conf->min_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
+        conf->max_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
+        conf->min_minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 &&
+        conf->max_minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+    {
+        return( 1 );
+    }
+    return( 0 );
+}
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL*/
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+
+int mbedtls_ssl_tls13_process_finished_message( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_tls13_write_finished_message( mbedtls_ssl_context *ssl );
+void mbedtls_ssl_tls13_handshake_wrapup( mbedtls_ssl_context *ssl );
+
+/**
+ * \brief           TLS 1.3 client side state machine entry
+ *
+ * \param ssl       SSL context
+ */
+int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl );
+
+/**
+ * \brief           TLS 1.3 server side state machine entry
+ *
+ * \param ssl       SSL context
+ */
+int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl );
+
 
 /*
  * Helper functions around key exchange modes.
@@ -1577,56 +1621,6 @@ static inline int mbedtls_ssl_tls1_3_some_psk_enabled( mbedtls_ssl_context *ssl 
     return( ! mbedtls_ssl_tls1_3_check_kex_modes( ssl,
                    MBEDTLS_SSL_TLS13_KEY_EXCHANGE_MODE_PSK_ALL ) );
 }
-
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
-
-/**
- * ssl utils functions for checking configuration.
- */
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
-static inline int mbedtls_ssl_conf_is_tls13_only( const mbedtls_ssl_config *conf )
-{
-    if( conf->min_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-        conf->max_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-        conf->min_minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 &&
-        conf->max_minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
-    {
-        return( 1 );
-    }
-    return( 0 );
-}
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-static inline int mbedtls_ssl_conf_is_tls12_only( const mbedtls_ssl_config *conf )
-{
-    if( conf->min_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-        conf->max_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-        conf->min_minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 &&
-        conf->max_minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
-    {
-        return( 1 );
-    }
-    return( 0 );
-}
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
-static inline int mbedtls_ssl_conf_is_hybrid_tls12_tls13( const mbedtls_ssl_config *conf )
-{
-    if( conf->min_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-        conf->max_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-        conf->min_minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 &&
-        conf->max_minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
-    {
-        return( 1 );
-    }
-    return( 0 );
-}
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL*/
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
 
 /*
  * Helper functions for NamedGroup.

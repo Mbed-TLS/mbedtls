@@ -537,7 +537,7 @@ class CodeParser():
                     continue
 
                 # If the line contains only space-separated alphanumeric
-                # characters (or underscore, asterisk, or, open bracket),
+                # characters (or underscore, asterisk, or open parenthesis),
                 # and nothing else, high chance it's a declaration that
                 # continues on the next line
                 if re.search(r"^([\w\*\(]+\s+)+$", line):

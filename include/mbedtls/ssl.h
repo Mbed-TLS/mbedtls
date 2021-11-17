@@ -1087,7 +1087,7 @@ struct mbedtls_ssl_config
 #endif
 
     /*
-     * Numerical settings (int then char)
+     * Numerical settings (int or larger)
      */
 
     uint32_t read_timeout;          /*!< timeout for mbedtls_ssl_read (ms)  */

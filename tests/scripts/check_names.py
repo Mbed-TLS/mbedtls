@@ -478,10 +478,15 @@ class CodeParser():
         * in_block_comment indicates whether the line ends inside a block
           comment that continues on the next line.
         """
-        # Terminate current comment?
+
+        # Terminate current multiline comment?
         if in_block_comment:
-            line = re.sub(r".*?\*/", r"", line, 1)
-            in_block_comment = False
+            m = re.search(r"\*/", line)
+            if m:
+                in_block_comment = False
+                line = line[m.end(0):]
+            else:
+                return '', True
 
         # Remove full comments and string literals.
         # Do it all together to handle cases like "/*" correctly.
@@ -492,10 +497,10 @@ class CodeParser():
 
         # Start an unfinished comment?
         # (If `/*` was part of a complete comment, it's already been removed.)
-        m = re.match(r"/\*", line)
+        m = re.search(r"/\*", line)
         if m:
             in_block_comment = True
-            line = line[:m.end(0)]
+            line = line[:m.start(0)]
 
         return line, in_block_comment
 

@@ -1,0 +1,3 @@
+Changes
+   * Indicate in the error returned if the nonce length used with
+     ChaCha20-Poly1305 is invalid, and not just unsupported.

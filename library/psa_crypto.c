@@ -4763,6 +4763,9 @@ psa_status_t psa_key_derivation_output_key( const psa_key_attributes_t *attribut
     if( psa_get_key_bits( attributes ) == 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
+    if( operation->alg == PSA_ALG_NONE )
+        return( PSA_ERROR_BAD_STATE );
+
     if( ! operation->can_output_key )
         return( PSA_ERROR_NOT_PERMITTED );
 

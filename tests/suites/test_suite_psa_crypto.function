@@ -5934,7 +5934,7 @@ void derive_input( int alg_arg,
     if( output_key_type != PSA_KEY_TYPE_NONE )
     {
         psa_reset_key_attributes( &attributes );
-        psa_set_key_type( &attributes, PSA_KEY_TYPE_RAW_DATA );
+        psa_set_key_type( &attributes, output_key_type );
         psa_set_key_bits( &attributes, 8 );
         actual_output_status =
             psa_key_derivation_output_key( &attributes, &operation,

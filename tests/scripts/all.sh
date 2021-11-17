@@ -2769,6 +2769,26 @@ component_test_zeroize () {
     unset gdb_disable_aslr
 }
 
+component_test_psa_compliance () {
+    msg "build: make, default config (out-of-box), libmbedcrypto.a only"
+    make -C library libmbedcrypto.a
+
+    msg "unit test: test_psa_compliance.py"
+    ./tests/scripts/test_psa_compliance.py
+}
+
+support_test_psa_compliance () {
+    # psa-compliance-tests only supports CMake >= 3.10.0
+    ver="$(cmake --version)"
+    ver="${ver#cmake version }"
+    ver_major="${ver%%.*}"
+
+    ver="${ver#*.}"
+    ver_minor="${ver%%.*}"
+
+    [ "$ver_major" -eq 3 ] && [ "$ver_minor" -ge 10 ]
+}
+
 component_check_python_files () {
     msg "Lint: Python scripts"
     tests/scripts/check-python-files.sh

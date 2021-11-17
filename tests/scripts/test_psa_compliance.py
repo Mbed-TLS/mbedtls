@@ -33,11 +33,6 @@ import sys
 # Test number 2xx corresponds to the files in the folder
 # psa-arch-tests/api-tests/dev_apis/crypto/test_c0xx
 EXPECTED_FAILURES = {
-    # psa_key_derivation_output_key() returns PSA_ERROR_NOT_PERMITTED instead of
-    # PSA_ERROR_BAD_STATE when called after the operation was aborted.
-    # - Tracked in issue #5143
-    221,
-
     # psa_aead_[encrypt/decrypt]() returns PSA_ERROR_NOT_SUPPORTED instead of
     # PSA_ERROR_INVALID_ARGUMENT when called with an invalid nonce.
     # - Tracked in issue #5144

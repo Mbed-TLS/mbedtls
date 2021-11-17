@@ -1328,7 +1328,6 @@ static int ssl_tls13_finalize_server_hello( mbedtls_ssl_context *ssl )
 
     handshake->transform_handshake = transform_handshake;
     mbedtls_ssl_set_inbound_transform( ssl, transform_handshake );
-    mbedtls_ssl_set_outbound_transform( ssl, ssl->handshake->transform_handshake );
 
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "Switch to handshake keys for inbound traffic" ) );
     ssl->session_in = ssl->session_negotiate;
@@ -1612,6 +1611,7 @@ static int ssl_tls1_3_process_server_finished( mbedtls_ssl_context *ssl )
     if( ret != 0 )
         return( ret );
 
+    mbedtls_ssl_set_outbound_transform( ssl, ssl->handshake->transform_handshake );
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_FINISHED );
     return( 0 );
 }

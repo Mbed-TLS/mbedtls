@@ -38,7 +38,7 @@
 int mbedtls_ssl_tls13_fetch_handshake_msg( mbedtls_ssl_context *ssl,
                                            unsigned hs_type,
                                            unsigned char **buf,
-                                           size_t *buflen )
+                                           size_t *buf_len )
 {
     int ret;
 
@@ -65,8 +65,8 @@ int mbedtls_ssl_tls13_fetch_handshake_msg( mbedtls_ssl_context *ssl,
      *    uint24 length;
      *    ...
      */
-    *buf    = ssl->in_msg   + 4;
-    *buflen = ssl->in_hslen - 4;
+    *buf = ssl->in_msg   + 4;
+    *buf_len = ssl->in_hslen - 4;
 
 cleanup:
 
@@ -99,12 +99,12 @@ int mbedtls_ssl_tls13_finish_handshake_msg( mbedtls_ssl_context *ssl,
                                             size_t msg_len )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t msg_len_with_header;
+    size_t msg_with_header_len;
     ((void) buf_len);
 
     /* Add reserved 4 bytes for handshake header */
-    msg_len_with_header = msg_len + 4;
-    ssl->out_msglen = msg_len_with_header;
+    msg_with_header_len = msg_len + 4;
+    ssl->out_msglen = msg_with_header_len;
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_write_handshake_msg_ext( ssl, 0 ) );
 
 cleanup:
@@ -160,8 +160,8 @@ int mbedtls_ssl_tls13_write_sig_alg_ext( mbedtls_ssl_context *ssl,
                                          size_t *olen )
 {
     unsigned char *p = buf;
-    unsigned char *supported_sig_alg_ptr; /* Start of supported_signature_algorithms */
-    size_t supported_sig_alg_len = 0;     /* Length of supported_signature_algorithms */
+    unsigned char *supported_sig_alg; /* Start of supported_signature_algorithms */
+    size_t supported_sig_alg_len = 0; /* Length of supported_signature_algorithms */
 
     *olen = 0;
 
@@ -188,7 +188,7 @@ int mbedtls_ssl_tls13_write_sig_alg_ext( mbedtls_ssl_context *ssl,
     /*
      * Write supported_signature_algorithms
      */
-    supported_sig_alg_ptr = p;
+    supported_sig_alg = p;
     for( const uint16_t *sig_alg = ssl->conf->tls13_sig_algs;
          *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
     {
@@ -199,7 +199,7 @@ int mbedtls_ssl_tls13_write_sig_alg_ext( mbedtls_ssl_context *ssl,
     }
 
     /* Length of supported_signature_algorithms */
-    supported_sig_alg_len = p - supported_sig_alg_ptr;
+    supported_sig_alg_len = p - supported_sig_alg;
     if( supported_sig_alg_len == 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "No signature algorithms defined." ) );
@@ -1020,7 +1020,7 @@ int mbedtls_ssl_tls13_process_finished_message( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *buf;
-    size_t buflen;
+    size_t buf_len;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse finished message" ) );
 
@@ -1029,10 +1029,10 @@ int mbedtls_ssl_tls13_process_finished_message( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_fetch_handshake_msg( ssl,
                                               MBEDTLS_SSL_HS_FINISHED,
-                                              &buf, &buflen ) );
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_parse_finished_message( ssl, buf, buf + buflen ) );
+                                              &buf, &buf_len ) );
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_parse_finished_message( ssl, buf, buf + buf_len ) );
     mbedtls_ssl_tls13_add_hs_msg_to_checksum(
-        ssl, MBEDTLS_SSL_HS_FINISHED, buf, buflen );
+        ssl, MBEDTLS_SSL_HS_FINISHED, buf, buf_len );
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_postprocess_finished_message( ssl ) );
 
 cleanup:

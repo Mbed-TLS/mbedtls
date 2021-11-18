@@ -152,9 +152,9 @@ static int ssl_tls13_write_named_group_list_ecdhe( mbedtls_ssl_context *ssl,
 
     for ( ; *group_list != 0; group_list++ )
     {
-        const mbedtls_ecp_curve_info *info;
-        info = mbedtls_ecp_curve_info_from_tls_id( *group_list );
-        if( info == NULL )
+        const mbedtls_ecp_curve_info *curve_info;
+        curve_info = mbedtls_ecp_curve_info_from_tls_id( *group_list );
+        if( curve_info == NULL )
             continue;
 
         if( !mbedtls_ssl_tls13_named_group_is_ecdhe( *group_list ) )
@@ -165,7 +165,7 @@ static int ssl_tls13_write_named_group_list_ecdhe( mbedtls_ssl_context *ssl,
         p += 2;
 
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "NamedGroup: %s ( %x )",
-                                    info->name, *group_list ) );
+                                    curve_info->name, *group_list ) );
     }
 
     *olen = p - buf;
@@ -205,8 +205,8 @@ static int ssl_tls13_write_supported_groups_ext( mbedtls_ssl_context *ssl,
                                                  size_t *olen )
 {
     unsigned char *p = buf ;
-    unsigned char *named_group_list_ptr; /* Start of named_group_list */
-    size_t named_group_list_len;         /* Length of named_group_list */
+    unsigned char *named_group_list; /* Start of named_group_list */
+    size_t named_group_list_len;     /* Length of named_group_list */
     size_t output_len = 0;
     int ret_ecdhe, ret_dhe;
 
@@ -218,14 +218,14 @@ static int ssl_tls13_write_supported_groups_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding supported_groups extension" ) );
 
     /* Check if we have space for header and length fields:
-     * - extension_type         (2 bytes)
-     * - extension_data_length  (2 bytes)
+     * - extension_type            (2 bytes)
+     * - extension_data_length     (2 bytes)
      * - named_group_list_length   (2 bytes)
      */
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 6 );
     p += 6;
 
-    named_group_list_ptr = p;
+    named_group_list = p;
     ret_ecdhe = ssl_tls13_write_named_group_list_ecdhe( ssl, p, end, &output_len );
     if( ret_ecdhe != 0 )
     {
@@ -248,7 +248,7 @@ static int ssl_tls13_write_supported_groups_ext( mbedtls_ssl_context *ssl,
     }
 
     /* Length of named_group_list*/
-    named_group_list_len = p - named_group_list_ptr;
+    named_group_list_len = p - named_group_list;
     if( named_group_list_len == 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "No group available." ) );
@@ -327,9 +327,9 @@ static int ssl_tls13_get_default_group_id( mbedtls_ssl_context *ssl,
 
     for ( ; *group_list != 0; group_list++ )
     {
-        const mbedtls_ecp_curve_info *info;
-        info = mbedtls_ecp_curve_info_from_tls_id( *group_list );
-        if( info != NULL &&
+        const mbedtls_ecp_curve_info *curve_info;
+        curve_info = mbedtls_ecp_curve_info_from_tls_id( *group_list );
+        if( curve_info != NULL &&
             mbedtls_ssl_tls13_named_group_is_ecdhe( *group_list ) )
         {
             *group_id = *group_list;
@@ -368,8 +368,8 @@ static int ssl_tls13_write_key_share_ext( mbedtls_ssl_context *ssl,
                                           size_t *olen )
 {
     unsigned char *p = buf;
-    unsigned char *client_shares_ptr; /* Start of client_shares */
-    size_t client_shares_len;         /* Length of client_shares */
+    unsigned char *client_shares; /* Start of client_shares */
+    size_t client_shares_len;     /* Length of client_shares */
     uint16_t group_id;
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
 
@@ -405,12 +405,12 @@ static int ssl_tls13_write_key_share_ext( mbedtls_ssl_context *ssl,
      * type of KEM, and dispatch to the corresponding crypto. And
      * only one key share entry is allowed.
      */
-    client_shares_ptr = p;
+    client_shares = p;
 #if defined(MBEDTLS_ECDH_C)
     if( mbedtls_ssl_tls13_named_group_is_ecdhe( group_id ) )
     {
         /* Pointer to group */
-        unsigned char *group_ptr = p;
+        unsigned char *group = p;
         /* Length of key_exchange */
         size_t key_exchange_len;
 
@@ -428,9 +428,9 @@ static int ssl_tls13_write_key_share_ext( mbedtls_ssl_context *ssl,
             return( ret );
 
         /* Write group */
-        MBEDTLS_PUT_UINT16_BE( group_id, group_ptr, 0 );
+        MBEDTLS_PUT_UINT16_BE( group_id, group, 0 );
         /* Write key_exchange_length */
-        MBEDTLS_PUT_UINT16_BE( key_exchange_len, group_ptr, 2 );
+        MBEDTLS_PUT_UINT16_BE( key_exchange_len, group, 2 );
     }
     else
 #endif /* MBEDTLS_ECDH_C */
@@ -442,7 +442,7 @@ static int ssl_tls13_write_key_share_ext( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 
     /* Length of client_shares */
-    client_shares_len = p - client_shares_ptr;
+    client_shares_len = p - client_shares;
     if( client_shares_len == 0)
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "No key share defined." ) );
@@ -604,7 +604,7 @@ static int ssl_tls13_write_client_hello_cipher_suites(
 {
     unsigned char *p = buf;
     const int *ciphersuite_list;
-    unsigned char *cipher_suites_ptr; /* Start of the cipher_suites list */
+    unsigned char *cipher_suites; /* Start of the cipher_suites list */
     size_t cipher_suites_len;
 
     *olen = 0 ;
@@ -624,7 +624,7 @@ static int ssl_tls13_write_client_hello_cipher_suites(
     p += 2;
 
     /* Write cipher_suites */
-    cipher_suites_ptr = p;
+    cipher_suites = p;
     for ( size_t i = 0; ciphersuite_list[i] != 0; i++ )
     {
         int cipher_suite = ciphersuite_list[i];
@@ -648,7 +648,7 @@ static int ssl_tls13_write_client_hello_cipher_suites(
     }
 
     /* Write the cipher_suites length in number of bytes */
-    cipher_suites_len = p - cipher_suites_ptr;
+    cipher_suites_len = p - cipher_suites;
     MBEDTLS_PUT_UINT16_BE( cipher_suites_len, buf, 0 );
     MBEDTLS_SSL_DEBUG_MSG( 3,
                            ( "client hello, got %" MBEDTLS_PRINTF_SIZET " cipher suites",
@@ -679,9 +679,9 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
 {
 
     int ret;
-    unsigned char *extensions_len_ptr; /* Pointer to extensions length */
-    size_t output_len;                 /* Length of buffer used by function */
-    size_t extensions_len;             /* Length of the list of extensions*/
+    unsigned char *p_extensions_len; /* Pointer to extensions length */
+    size_t output_len;               /* Length of buffer used by function */
+    size_t extensions_len;           /* Length of the list of extensions*/
 
     /* Buffer management */
     unsigned char *p = buf;
@@ -749,7 +749,7 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
 
     /* First write extensions, then the total length */
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
-    extensions_len_ptr = p;
+    p_extensions_len = p;
     p += 2;
 
     /* Write supported_versions extension
@@ -809,11 +809,11 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
     /* Add more extensions here */
 
     /* Write the length of the list of extensions. */
-    extensions_len = p - extensions_len_ptr - 2;
-    MBEDTLS_PUT_UINT16_BE( extensions_len, extensions_len_ptr, 0 );
+    extensions_len = p - p_extensions_len - 2;
+    MBEDTLS_PUT_UINT16_BE( extensions_len, p_extensions_len, 0 );
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, total extension length: %" MBEDTLS_PRINTF_SIZET ,
                                 extensions_len ) );
-    MBEDTLS_SSL_DEBUG_BUF( 3, "client hello extensions", extensions_len_ptr, extensions_len );
+    MBEDTLS_SSL_DEBUG_BUF( 3, "client hello extensions", p_extensions_len, extensions_len );
 
     *olen = p - buf;
     return( 0 );

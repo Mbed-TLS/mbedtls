@@ -189,10 +189,6 @@ mbedtls_threading_mutex_t mbedtls_threading_readdir_mutex MUTEX_INIT;
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 /*
  * psa_crypto_slot_management.c global data mutex.
- * this mutex  should not be locked after a key slot lock is locked, as it
- * might lead to deadlocks:
- * the call patterns used by the psa code involve locking
- * mbedtls_psa_slots_mutex before (if at all) locking a particular slot mutex.
  */
 mbedtls_threading_mutex_t mbedtls_psa_slots_mutex MUTEX_INIT;
 #endif

@@ -20,7 +20,9 @@
 import argparse
 import os
 import re
+import subprocess
 import sys
+import tempfile
 import typing
 
 from typing import List
@@ -74,12 +76,18 @@ class Requirements:
 
     def install(self) -> None:
         """Call pip to install the requirements."""
-        if not self.requirements:
-            return
-        ret = os.spawnl(os.P_WAIT, sys.executable, 'python', '-m', 'pip',
-                        'install', *self.requirements)
-        if ret != 0:
-            sys.exit(ret)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # This is more complicated than it needs to be for the sake
+            # of Windows. Use a temporary file rather than the command line
+            # to avoid quoting issues. Use a temporary directory rather
+            # than NamedTemporaryFile because with a NamedTemporaryFile on
+            # Windows, the subprocess can't open the file because this process
+            # has an exclusive lock on it.
+            req_file_name = os.path.join(temp_dir, 'requirements.txt')
+            with open(req_file_name, 'w') as req_file:
+                self.write(req_file)
+            subprocess.check_call([sys.executable, '-m', 'pip',
+                                   'install', '-r', req_file_name])
 
 
 def main() -> None:

@@ -4849,6 +4849,10 @@ static void psa_des_set_key_parity( uint8_t *data, size_t data_size )
 * - [SP800-56A] §5.6.1.2.2 or FIPS Publication 186-4: Digital Signature
 *   Standard (DSS) [FIPS186-4] §B.4.2 for elliptic curve keys.
 */
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) || \
+    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) || \
+    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY)
 static psa_status_t psa_generate_derived_ecc_key_helper(
     psa_key_slot_t *slot,
     size_t bits,
@@ -4865,7 +4869,7 @@ static psa_status_t psa_generate_derived_ecc_key_helper(
     mbedtls_mpi_init( &k );
     mbedtls_mpi_init( &N );
     mbedtls_mpi_init( &diff_N_2 );
-    
+
     psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY(
                                 slot->attr.type );
     mbedtls_ecp_group_id grp_id =
@@ -4941,6 +4945,7 @@ cleanup:
     mbedtls_mpi_free( &diff_N_2 );
     return( ret );
 }
+#endif
 
 static psa_status_t psa_generate_derived_key_internal(
     psa_key_slot_t *slot,
@@ -4948,13 +4953,17 @@ static psa_status_t psa_generate_derived_key_internal(
     psa_key_derivation_operation_t *operation )
 {
     uint8_t *data = NULL;
-    unsigned key_err = 0;
     size_t bytes = PSA_BITS_TO_BYTES( bits );
     size_t storage_size = bytes;
     psa_status_t status;
 
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) || \
+    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) || \
+    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY)
     if ( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
     {
+        unsigned key_err = 0;
 gen_ecc_key:
         status = psa_generate_derived_ecc_key_helper(slot, bits, operation, &data, &key_err);
         if( status != PSA_SUCCESS )
@@ -4962,7 +4971,9 @@ gen_ecc_key:
         /* Key has been created, but it doesn't meet criteria. */
         if (key_err)
             goto gen_ecc_key;
-    } else {
+    } else
+#endif
+    {
         if( ! key_type_is_raw_bytes( slot->attr.type ) )
             return( PSA_ERROR_INVALID_ARGUMENT );
         if( bits % 8 != 0 )

@@ -4872,6 +4872,7 @@ static psa_status_t psa_generate_derived_ecc_key_helper(
         mbedtls_ecc_group_of_psa( curve, bits, 0 );
 
     mbedtls_ecp_group ecp_group;
+    mbedtls_ecp_group_init( &ecp_group );
 
     if( ( status = mbedtls_ecp_group_load( &ecp_group, grp_id ) ) != 0 )
     {
@@ -4880,12 +4881,12 @@ static psa_status_t psa_generate_derived_ecc_key_helper(
     }
 
     /* N is the boundary of the private key domain. */
-    N = ecp_group.N;
+    MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &N, &ecp_group.N ) );
     /* Let m be the bit size of N. */
     size_t m = ecp_group.nbits;
 
     size_t m_bytes = PSA_BITS_TO_BYTES( m );
-    if (*data != NULL)
+    if (*data == NULL)
         *data = mbedtls_calloc( 1, m_bytes );
     if( *data == NULL )
     {

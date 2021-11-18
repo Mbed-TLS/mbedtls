@@ -62,6 +62,7 @@ guess_config_name() {
 : ${MBEDTLS_TEST_PLATFORM:="$(uname -s | tr -c \\n0-9A-Za-z _)-$(uname -m | tr -c \\n0-9A-Za-z _)"}
 
 O_SRV="$OPENSSL_CMD s_server -www -cert data_files/server5.crt -key data_files/server5.key"
+O_SRV_RSA="$OPENSSL_CMD s_server -www -cert data_files/server2.crt -key data_files/server2.key"
 O_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_CMD s_client"
 G_SRV="$GNUTLS_SERV --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key"
 G_CLI="echo 'GET / HTTP/1.0' | $GNUTLS_CLI --x509cafile data_files/test-ca_cat12.crt"
@@ -87,6 +88,7 @@ fi
 
 if [ -n "${GNUTLS_NEXT_SERV:-}" ]; then
     G_NEXT_SRV="$GNUTLS_NEXT_SERV --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key"
+    G_NEXT_SRV_RSA="$GNUTLS_NEXT_SERV --x509certfile data_files/server2.crt --x509keyfile data_files/server2.key"
 else
     G_NEXT_SRV=false
 fi
@@ -264,7 +266,7 @@ requires_config_value_equals() {
 # Space-separated list of ciphersuites supported by this build of
 # Mbed TLS.
 P_CIPHERSUITES=" $($P_CLI --help 2>/dev/null |
-                   grep TLS- |
+                   grep 'TLS-\|TLS1-3' |
                    tr -s ' \n' ' ')"
 requires_ciphersuite_enabled() {
     case $P_CIPHERSUITES in
@@ -1405,6 +1407,7 @@ P_SRV="$P_SRV server_addr=127.0.0.1 server_port=$SRV_PORT"
 P_CLI="$P_CLI server_addr=127.0.0.1 server_port=+SRV_PORT"
 P_PXY="$P_PXY server_addr=127.0.0.1 server_port=$SRV_PORT listen_addr=127.0.0.1 listen_port=$PXY_PORT ${SEED:+"seed=$SEED"}"
 O_SRV="$O_SRV -accept $SRV_PORT"
+O_SRV_RSA="$O_SRV_RSA -accept $SRV_PORT"
 O_CLI="$O_CLI -connect 127.0.0.1:+SRV_PORT"
 G_SRV="$G_SRV -p $SRV_PORT"
 G_CLI="$G_CLI -p +SRV_PORT"
@@ -1421,6 +1424,7 @@ fi
 
 if [ -n "${GNUTLS_NEXT_SERV:-}" ]; then
     G_NEXT_SRV="$G_NEXT_SRV -p $SRV_PORT"
+    G_NEXT_SRV_RSA="$G_NEXT_SRV_RSA -p $SRV_PORT"
 fi
 
 if [ -n "${GNUTLS_NEXT_CLI:-}" ]; then
@@ -8835,12 +8839,13 @@ run_test    "TLS1.3: minimal feature sets - openssl" \
             -c "<= parse finished message" \
             -c "HTTP/1.0 200 ok"
 
-requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
-requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
-run_test    "TLS1.3: Test client hello msg work - openssl" \
-            "$O_NEXT_SRV -tls1_3 -msg -no_middlebox" \
-            "$P_CLI debug_level=3 min_version=tls1_3 max_version=tls1_3 force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-GCM-SHA256 curves=secp256r1" \
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
+run_test    "TLS 1.3 m->O AES_128_GCM_SHA256      , RSA_PSS_RSAE_SHA256" \
+            "$O_SRV_RSA -ciphersuites TLS_AES_128_GCM_SHA256 -tls1_3 -msg -no_middlebox -num_tickets 0" \
+            "$P_CLI debug_level=4 force_version=tls1_3 server_name=localhost force_ciphersuite=TLS1-3-AES-128-GCM-SHA256" \
             1 \
             -c "SSL - The requested feature is not available" \
             -s "ServerHello"                \
@@ -8851,19 +8856,20 @@ run_test    "TLS1.3: Test client hello msg work - openssl" \
             -c "tls1_3 client state: 3"     \
             -c "tls1_3 client state: 9"     \
             -c "tls1_3 client state: 13"    \
-            -c "tls1_3 client state: 7"     \
-            -c "tls1_3 client state: 20"    \
             -c "tls1_3 client state: 11"    \
             -c "tls1_3 client state: 14"    \
             -c "tls1_3 client state: 15"    \
             -c "<= ssl_tls1_3_process_server_hello" \
-            -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
+            -c "ECDH curve: x25519" \
             -c "=> ssl_tls1_3_process_server_hello" \
             -c "<= parse encrypted extensions"      \
+            -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
+            -c "Certificate Verify: Signature algorithm ( 0804 )" \
             -c "Certificate verification flags clear" \
             -c "=> parse certificate verify"          \
             -c "<= parse certificate verify"          \
-            -c "mbedtls_ssl_tls13_process_certificate_verify() returned 0"
+            -c "mbedtls_ssl_tls13_process_certificate_verify() returned 0" \
+            -c "<= parse finished message"
 
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -8897,6 +8903,43 @@ run_test    "TLS1.3: minimal feature sets - gnutls" \
             -c "<= parse finished message" \
             -c "HTTP/1.0 200 OK"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
+requires_gnutls_next
+run_test    "TLS 1.3 m->G AES_128_GCM_SHA256      , RSA_PSS_RSAE_SHA256" \
+            "$G_NEXT_SRV_RSA --disable-client-cert --priority=NORMAL:+CIPHER-ALL:+SHA256:+GROUP-SECP256R1:+ECDHE-ECDSA:+AEAD:+SIGN-RSA-PSS-RSAE-SHA256:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+            "$P_CLI debug_level=4 force_version=tls1_3 server_name=localhost force_ciphersuite=TLS1-3-AES-128-GCM-SHA256" \
+            1 \
+            -c "SSL - The requested feature is not available" \
+            -c "tls1_3 client state: 0"     \
+            -c "tls1_3 client state: 2"     \
+            -c "tls1_3 client state: 19"    \
+            -c "tls1_3 client state: 5"     \
+            -c "tls1_3 client state: 3"     \
+            -c "tls1_3 client state: 9"     \
+            -c "tls1_3 client state: 13"    \
+            -c "tls1_3 client state: 11"    \
+            -c "tls1_3 client state: 14"    \
+            -c "tls1_3 client state: 15"    \
+            -c "<= ssl_tls1_3_process_server_hello" \
+            -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
+            -s "Ephemeral EC Diffie-Hellman parameters" \
+            -s "Version: TLS1.3" \
+            -s "Cipher: AES-128-GCM" \
+            -S "Client Signature:" \
+            -s "Server Signature: RSA-PSS-RSAE-SHA256" \
+            -c "ECDH curve: x25519"         \
+            -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
+            -c "Certificate Verify: Signature algorithm ( 0804 )" \
+            -c "=> ssl_tls1_3_process_server_hello" \
+            -c "<= parse encrypted extensions"      \
+            -c "Certificate verification flags clear" \
+            -c "=> parse certificate verify"          \
+            -c "<= parse certificate verify"          \
+            -c "mbedtls_ssl_tls13_process_certificate_verify() returned 0" \
+            -c "<= parse finished message"
 
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_MEMORY_DEBUG

@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
-"""Report on structure types defined in Mbed TLS headers.
+"""Report on structure types defined in C source files.
 
 This script uses the clang python bindings (``pip3 install --user clang``).
+
+This script only works on code that compiles. If there are any errors,
+this script will just return garbage data (typically missing fields, or
+having 0 values everywhere). The most common cause of failure is missing
+include directories, either for the code you're analyzing or for the
+standard library when cross-compiling.
 """
 
 # Copyright The Mbed TLS Contributors
@@ -30,6 +36,14 @@ from clang.cindex import Cursor, SourceLocation, TranslationUnit
 from clang.cindex import CursorKind, TypeKind
 
 from mbedtls_dev import typing_util
+
+
+class SanityCheck(Exception):
+    def __init__(self, msg: str) -> None:
+        super().__init__('Sanity check failed: ' + msg +
+                         '\nThis likely indicates a compilation error.' +
+                         '\nMaybe a missing include directory (-I)?')
+
 
 
 class FieldInfo:
@@ -164,6 +178,21 @@ class Ast:
             return
         self.fields[structure_type][field_name].record_use(node)
 
+    def sanity_checks(self) -> None:
+        """If the data looks wrong, raise a `SanityCheck` exception."""
+        for type_name in sorted(self.fields):
+            for field in self.fields[type_name].values():
+                if field.offset == -1:
+                    raise SanityCheck('Could not determine offset of {}.{}. '
+                                      .format(type_name, field))
+
+    def run_analysis(self, files: List[str],
+                     sanity_checks: bool = True) -> None:
+        self.read_field_definitions(files)
+        self.read_field_usage(files)
+        if sanity_checks:
+            self.sanity_checks()
+
     def read_field_usage(self, filenames: List[str]) -> None:
         """Parse field usage in the given C source files."""
         self.load(*filenames)
@@ -187,16 +216,19 @@ class Ast:
             field.uses(), field.score()
         ))
 
-    def report_fields(self, out: typing_util.Writable) -> None:
+    def report_fields(self, out: typing_util.Writable,
+                      header=False) -> None:
         """Print information about fields of structures defined by the library."""
+        if header:
+            out.write('field,size,align,offset,uses,score\n')
         for type_name in sorted(self.fields):
             for field in self.fields[type_name].values():
                 self.report_field(out, type_name + '.', field)
 
-    def run_analysis(self, files) -> None:
-        self.read_field_definitions(files)
-        self.read_field_usage(files)
-        self.report_fields(sys.stdout)
+    def report(self, options, out: typing_util.Writable) -> None:
+        """Report what this script has to report."""
+        self.report_fields(out,
+                           header=options.csv_header)
 
 
 def main():
@@ -211,13 +243,20 @@ def main():
                         action='append',
                         default=[],
                         help="Directory to add to the header include path")
+    parser.add_argument('--no-csv-header',
+                        dest='csv_header', default=True, action='store_false',
+                        help="Omit the CSV header from the output")
+    parser.add_argument('--no-sanity-checks',
+                        dest='sanity_checks', default=True, action='store_false',
+                        help="Omit sanity checks, print output even if it's suspicious")
     parser.add_argument('--target', '-t',
                         help="Target triple to build for (default: native build)")
     parser.add_argument('files', metavar='FILE', nargs='*',
                         help="Source files to analyze")
     options = parser.parse_args()
     ast = Ast(options)
-    ast.run_analysis(options.files)
+    ast.run_analysis(options.files, sanity_checks=options.sanity_checks)
+    ast.report(options, sys.stdout)
 
 if __name__ == '__main__':
     main()

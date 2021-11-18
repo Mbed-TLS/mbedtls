@@ -57,12 +57,12 @@ extern "C" {
  *                   for cipher-based and mbedtls_md-based PBE's
  *
  * \param pbe_params an ASN1 buffer containing the pkcs-12 PbeParams structure
- * \param mode       either MBEDTLS_PKCS12_PBE_ENCRYPT or
- *                   MBEDTLS_PKCS12_PBE_DECRYPT
+ * \param mode       either #MBEDTLS_PKCS12_PBE_ENCRYPT or
+ *                   #MBEDTLS_PKCS12_PBE_DECRYPT
  * \param cipher_type the cipher used
  * \param md_type    the mbedtls_md used
- * \param pwd        Latin1-encoded password used (may be NULL if no password is
- *                   used, but not if pwdlen is non-zero)
+ * \param pwd        Latin1-encoded password used. This may only be \c NULL when
+ *                   pwdlen is 0. No \c NULL terminator should be used.
  * \param pwdlen     length of the password (may be 0)
  * \param input      the input data
  * \param len        data length
@@ -83,20 +83,24 @@ int mbedtls_pkcs12_pbe( mbedtls_asn1_buf *pbe_params, int mode,
  *                   to produce pseudo-random bits for a particular "purpose".
  *
  *                   Depending on the given id, this function can produce an
- *                   encryption/decryption key, an nitialization vector or an
+ *                   encryption/decryption key, an initialization vector or an
  *                   integrity key.
  *
  * \param data       buffer to store the derived data in
  * \param datalen    length of buffer to fill
- * \param pwd        Null terminated BMPString password to use (may be NULL if
- *                   no password is used, but not if pwdlen is non-zero)
- * \param pwdlen     length of the password (may be 0)
- * \param salt       salt buffer to use
- * \param saltlen    length of the salt
+ * \param pwd        The password to use. For compliance with PKCS#12 §B.1, this
+ *                   should be a BMPString, i.e. a Unicode string where each
+ *                   character is encoded as 2 bytes in big-endian order, with
+ *                   no byte order mark and with a null terminator (i.e. the
+ *                   last two bytes should be 0x00 0x00).
+ * \param pwdlen     length of the password (may be 0).
+ * \param salt       Salt buffer to use This may only be \c NULL when
+ *                   saltlen is 0.
+ * \param saltlen    length of the salt (may be zero)
  * \param mbedtls_md mbedtls_md type to use during the derivation
  * \param id         id that describes the purpose (can be
- *                   MBEDTLS_PKCS12_DERIVE_KEY, MBEDTLS_PKCS12_DERIVE_IV or
- *                   MBEDTLS_PKCS12_DERIVE_MAC_KEY)
+ *                   #MBEDTLS_PKCS12_DERIVE_KEY, #MBEDTLS_PKCS12_DERIVE_IV or
+ *                   #MBEDTLS_PKCS12_DERIVE_MAC_KEY)
  * \param iterations number of iterations
  *
  * \return          0 if successful, or a MD, BIGNUM type error.

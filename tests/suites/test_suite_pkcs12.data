@@ -1,0 +1,33 @@
+Pkcs12 derive key : Zero length password and hash
+depends_on:MBEDTLS_ASN1_PARSE_C:MBEDTLS_MD5_C
+pkcs12_derive_key_test:MBEDTLS_MD_MD5:48:"":1:"":1:3:0
+
+Pkcs12 derive key: NULL password and hash
+depends_on:MBEDTLS_ASN1_PARSE_C:MBEDTLS_MD5_C
+pkcs12_derive_key_test:MBEDTLS_MD_MD5:48:"":0:"":0:3:0
+
+Pkcs12 derive key: Zero length password
+depends_on:MBEDTLS_ASN1_PARSE_C:MBEDTLS_MD5_C
+pkcs12_derive_key_test:MBEDTLS_MD_MD5:48:"":1:"0123456789abcdef":1:3:0
+
+Pkcs12 derive key: NULL password
+depends_on:MBEDTLS_ASN1_PARSE_C:MBEDTLS_MD5_C
+pkcs12_derive_key_test:MBEDTLS_MD_MD5:48:"":0:"0123456789abcdef":1:3:0
+
+Pkcs12 derive key: Invalid length NULL password
+depends_on:MBEDTLS_ASN1_PARSE_C:MBEDTLS_MD5_C
+pkcs12_derive_key_test:MBEDTLS_MD_MD5:48:"0123456789abcdef":2:"0123456789abcdef":1:3:MBEDTLS_ERR_PKCS12_BAD_INPUT_DATA
+
+Pkcs12 derive key: Zero length hash
+depends_on:MBEDTLS_ASN1_PARSE_C:MBEDTLS_MD5_C
+pkcs12_derive_key_test:MBEDTLS_MD_MD5:48:"0123456789abcdef":1:"":1:3:0
+
+Pkcs12 derive key: NULL hash
+depends_on:MBEDTLS_ASN1_PARSE_C:MBEDTLS_MD5_C
+pkcs12_derive_key_test:MBEDTLS_MD_MD5:48:"0123456789abcdef":1:"":0:3:0
+
+Pkcs12 derive key: Invalid length NULL hash
+depends_on:MBEDTLS_ASN1_PARSE_C:MBEDTLS_MD5_C
+pkcs12_derive_key_test:MBEDTLS_MD_MD5:48:"0123456789abcdef":1:"0123456789abcdef":2:3:MBEDTLS_ERR_PKCS12_BAD_INPUT_DATA
+
+

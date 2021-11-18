@@ -274,8 +274,6 @@ static void pkcs12_fill_buffer( unsigned char *data, size_t data_len,
             data_len -= use_len;
         }
     }
-    else
-        memset( data, 0, data_len );
 }
 
 int mbedtls_pkcs12_derivation( unsigned char *data, size_t datalen,
@@ -288,9 +286,12 @@ int mbedtls_pkcs12_derivation( unsigned char *data, size_t datalen,
 
     unsigned char diversifier[128];
     unsigned char salt_block[128], pwd_block[128], hash_block[128];
+    unsigned char empty_string[2] = { 0, 0 };
     unsigned char hash_output[MBEDTLS_MD_MAX_SIZE];
     unsigned char *p;
     unsigned char c;
+    int           use_password = 0;
+    int           use_salt = 0;
 
     size_t hlen, use_len, v, i;
 
@@ -303,6 +304,12 @@ int mbedtls_pkcs12_derivation( unsigned char *data, size_t datalen,
 
     if( pwd == NULL && pwdlen != 0 )
         return( MBEDTLS_ERR_PKCS12_BAD_INPUT_DATA );
+
+    if( salt == NULL && saltlen != 0 )
+        return( MBEDTLS_ERR_PKCS12_BAD_INPUT_DATA );
+
+    use_password = ( pwd && pwdlen != 0 );
+    use_salt = ( salt && saltlen != 0 );
 
     md_info = mbedtls_md_info_from_type( md_type );
     if( md_info == NULL )
@@ -321,8 +328,15 @@ int mbedtls_pkcs12_derivation( unsigned char *data, size_t datalen,
 
     memset( diversifier, (unsigned char) id, v );
 
-    pkcs12_fill_buffer( salt_block, v, salt, saltlen );
-    pkcs12_fill_buffer( pwd_block,  v, pwd,  pwdlen  );
+    if( use_salt != 0 )
+    {
+        pkcs12_fill_buffer( salt_block, v, salt, saltlen );
+    }
+
+    if( use_password != 0 )
+    {
+        pkcs12_fill_buffer( pwd_block,  v, pwd,  pwdlen  );
+    }
 
     p = data;
     while( datalen > 0 )
@@ -334,11 +348,29 @@ int mbedtls_pkcs12_derivation( unsigned char *data, size_t datalen,
         if( ( ret = mbedtls_md_update( &md_ctx, diversifier, v ) ) != 0 )
             goto exit;
 
-        if( ( ret = mbedtls_md_update( &md_ctx, salt_block, v ) ) != 0 )
-            goto exit;
+        if( use_salt != 0 )
+        {
+            if( ( ret = mbedtls_md_update( &md_ctx, salt_block, v )) != 0 )
+                goto exit;
+        }
+        else
+        {
+            if( ( ret = mbedtls_md_update( &md_ctx, empty_string,
+                                           sizeof( empty_string ) )) != 0 )
+                goto exit;
+        }
 
-        if( ( ret = mbedtls_md_update( &md_ctx, pwd_block, v ) ) != 0 )
-            goto exit;
+        if( use_password != 0)
+        {
+            if( ( ret = mbedtls_md_update( &md_ctx, pwd_block, v )) != 0 )
+                goto exit;
+        }
+        else
+        {
+            if( ( ret = mbedtls_md_update( &md_ctx, empty_string,
+                                           sizeof( empty_string ) )) != 0 )
+                goto exit;
+        }
 
         if( ( ret = mbedtls_md_finish( &md_ctx, hash_output ) ) != 0 )
             goto exit;
@@ -366,22 +398,28 @@ int mbedtls_pkcs12_derivation( unsigned char *data, size_t datalen,
             if( ++hash_block[i - 1] != 0 )
                 break;
 
-        // salt_block += B
-        c = 0;
-        for( i = v; i > 0; i-- )
+        if( use_salt != 0 )
         {
-            j = salt_block[i - 1] + hash_block[i - 1] + c;
+            // salt_block += B
+            c = 0;
+            for( i = v; i > 0; i-- )
+            {
+                j = salt_block[i - 1] + hash_block[i - 1] + c;
             c = (unsigned char) (j >> 8);
             salt_block[i - 1] = j & 0xFF;
+            }
         }
 
-        // pwd_block  += B
-        c = 0;
-        for( i = v; i > 0; i-- )
+        if( use_password != 0 )
         {
-            j = pwd_block[i - 1] + hash_block[i - 1] + c;
+            // pwd_block  += B
+            c = 0;
+            for( i = v; i > 0; i-- )
+            {
+                j = pwd_block[i - 1] + hash_block[i - 1] + c;
             c = (unsigned char) (j >> 8);
             pwd_block[i - 1] = j & 0xFF;
+            }
         }
     }
 

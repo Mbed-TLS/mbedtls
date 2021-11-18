@@ -224,7 +224,16 @@ psa_status_t mbedtls_psa_aead_encrypt(
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
     if( operation.core_alg == PSA_ALG_CHACHA20_POLY1305 )
     {
-        if( nonce_length != 12 || operation.tag_length != 16 )
+        if( nonce_length != 12 )
+        {
+            if( nonce_length == 8 )
+                status = PSA_ERROR_NOT_SUPPORTED;
+            else
+                status = PSA_ERROR_INVALID_ARGUMENT;
+            goto exit;
+        }
+
+        if( operation.tag_length != 16 )
         {
             status = PSA_ERROR_NOT_SUPPORTED;
             goto exit;
@@ -331,7 +340,16 @@ psa_status_t mbedtls_psa_aead_decrypt(
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
     if( operation.core_alg == PSA_ALG_CHACHA20_POLY1305 )
     {
-        if( nonce_length != 12 || operation.tag_length != 16 )
+        if( nonce_length != 12 )
+        {
+            if( nonce_length == 8 )
+                status = PSA_ERROR_NOT_SUPPORTED;
+            else
+                status = PSA_ERROR_INVALID_ARGUMENT;
+            goto exit;
+        }
+
+        if( operation.tag_length != 16 )
         {
             status = PSA_ERROR_NOT_SUPPORTED;
             goto exit;

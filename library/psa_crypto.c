@@ -324,15 +324,11 @@ psa_status_t mbedtls_to_psa_error( int ret )
 /* Key management */
 /****************************************************************/
 
-/* For now the MBEDTLS_PSA_ACCEL_ guards are also used here since the
- * current test driver in key_management.c is using this function
- * when accelerators are used for ECC key pair and public key.
- * Once that dependency is resolved these guards can be removed.
- */
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) || \
-    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) || \
-    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY)
+    defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
 mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_family_t curve,
                                                size_t bits,
                                                int bits_is_sloppy )
@@ -428,9 +424,10 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_family_t curve,
     return( MBEDTLS_ECP_DP_NONE );
 }
 #endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
-        * defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) ||
-        * defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) ||
-        * defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY) */
+          defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) ||
+          defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+          defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ||
+          defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH) */
 
 psa_status_t psa_validate_unstructured_key_bit_size( psa_key_type_t type,
                                                      size_t bits )

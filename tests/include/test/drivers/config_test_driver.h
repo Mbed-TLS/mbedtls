@@ -1,11 +1,9 @@
-/**
- * \file config.h
- *
- * \brief Configuration options (set of defines)
- *
- *  This set of compile-time options may be used to enable
- *  or disable features selectively, and reduce the global
- *  memory footprint.
+/*
+ * Mbed TLS configuration for PSA test driver libraries. It includes:
+ * . the minimum set of modules needed by the PSA core.
+ * . the Mbed TLS configuration options that may need to be additionally
+ *   enabled for the purpose of a specific test.
+ * . the PSA configuration file for the Mbed TLS library and its test drivers.
  */
 /*
  *  Copyright The Mbed TLS Contributors

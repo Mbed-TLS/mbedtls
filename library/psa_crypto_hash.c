@@ -74,8 +74,6 @@ const mbedtls_md_info_t *mbedtls_md_info_from_psa( psa_algorithm_t alg )
         * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) ||
         * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) */
 
-/* Implement the PSA driver hash interface on top of mbed TLS if either the
- * software driver or the test driver requires it. */
 #if defined(MBEDTLS_PSA_BUILTIN_HASH)
 psa_status_t mbedtls_psa_hash_abort(
     mbedtls_psa_hash_operation_t *operation )

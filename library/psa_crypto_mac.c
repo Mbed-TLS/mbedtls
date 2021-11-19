@@ -189,8 +189,6 @@ exit:
 }
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CMAC */
 
-/* Implement the PSA driver MAC interface on top of mbed TLS if either the
- * software driver or the test driver requires it. */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC)
 

@@ -1,7 +1,9 @@
 /**
- * \file psa/crypto_config.h
- * \brief PSA crypto configuration options (set of defines)
- *
+ * This file is intended to be used to build PSA test driver libraries. It is
+ * intended to be appended by the test build system to the crypto_config.h file
+ * of the Mbed TLS library the test library will be linked to. It mirrors the
+ * PSA_ACCEL_* macros defining the cryptographic operations the test library
+ * supports.
  */
 
 #if defined(PSA_WANT_ALG_CBC_NO_PADDING)

@@ -4911,7 +4911,7 @@ static psa_status_t psa_generate_derived_ecc_key_helper(
          * (8 * ceiling(m/8) - m) bits of the first byte in
          * the string to zero.
          */
-        uint8_t clear_bit_count = ( 8 * m_bytes - m );
+        uint8_t clear_bit_count = (uint8_t) ( 8 * m_bytes - m );
         uint8_t clear_bit_mask = ( ( 1 << clear_bit_count ) - 1 );
         clear_bit_mask = ~( clear_bit_mask << ( 8 - clear_bit_count ) );
         *data[0] = ( *data[0] & clear_bit_mask );

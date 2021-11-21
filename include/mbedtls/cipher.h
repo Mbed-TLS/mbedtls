@@ -516,13 +516,13 @@ static inline const char *mbedtls_cipher_info_get_name(
  * \return      The recommended IV size.
  * \return      \c 0 for ciphers not using an IV or a nonce.
  */
-static inline int mbedtls_cipher_info_get_iv_size(
+static inline size_t mbedtls_cipher_info_get_iv_size(
     const mbedtls_cipher_info_t *info )
 {
     if( info == NULL )
         return( 0 );
 
-    return( (int) info->MBEDTLS_PRIVATE(iv_size) );
+    return( (size_t) info->MBEDTLS_PRIVATE(iv_size) );
 }
 
 /**
@@ -533,13 +533,13 @@ static inline int mbedtls_cipher_info_get_iv_size(
  *
  * \return       The block size of the cipher.
  */
-static inline unsigned int mbedtls_cipher_info_get_block_size(
+static inline size_t mbedtls_cipher_info_get_block_size(
     const mbedtls_cipher_info_t *info )
 {
     if( info == NULL )
         return( 0 );
 
-    return( info->MBEDTLS_PRIVATE(block_size) );
+    return( (size_t) info->MBEDTLS_PRIVATE(block_size) );
 }
 
 /**

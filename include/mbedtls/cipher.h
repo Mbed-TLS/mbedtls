@@ -527,11 +527,13 @@ static inline size_t mbedtls_cipher_info_get_iv_size(
 
 /**
  * \brief        This function returns the block size of the given
- *               cipher info structure.
+ *               cipher info structure in bytes.
  *
  * \param info   The cipher info structure. This may be \c NULL.
  *
  * \return       The block size of the cipher.
+ * \return       \c 1 if the cipher is a stream cipher.
+ * \return       \c 0 if \p info is \c NULL.
  */
 static inline size_t mbedtls_cipher_info_get_block_size(
     const mbedtls_cipher_info_t *info )
@@ -654,11 +656,13 @@ int mbedtls_cipher_setup_psa( mbedtls_cipher_context_t *ctx,
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 /**
- * \brief        This function returns the block size of the given cipher.
+ * \brief        This function returns the block size of the given cipher
+ *               in bytes.
  *
- * \param ctx    The context of the cipher. This must be initialized.
+ * \param ctx    The context of the cipher.
  *
  * \return       The block size of the underlying cipher.
+ * \return       \c 1 if the cipher is a stream cipher.
  * \return       \c 0 if \p ctx has not been initialized.
  */
 static inline unsigned int mbedtls_cipher_get_block_size(

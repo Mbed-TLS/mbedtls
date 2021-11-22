@@ -254,6 +254,7 @@ int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
     size_t i;
     const unsigned char *p;
     size_t use_len, olen = 0;
+    uint64_t iv_bits;
 
     GCM_VALIDATE_RET( ctx != NULL );
     GCM_VALIDATE_RET( iv != NULL );
@@ -278,7 +279,8 @@ int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
     else
     {
         memset( work_buf, 0x00, 16 );
-        MBEDTLS_PUT_UINT32_BE( iv_len * 8, work_buf, 12 );
+        iv_bits = (uint64_t)iv_len * 8;
+        MBEDTLS_PUT_UINT64_BE( iv_bits, work_buf, 8 );
 
         p = iv;
         while( iv_len > 0 )

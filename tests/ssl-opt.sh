@@ -8847,8 +8847,7 @@ requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test    "TLS 1.3 m->O AES_128_GCM_SHA256      , RSA_PSS_RSAE_SHA256" \
             "$O_SRV_RSA -ciphersuites TLS_AES_128_GCM_SHA256 -tls1_3 -msg -no_middlebox -num_tickets 0" \
             "$P_CLI debug_level=4 force_version=tls1_3 server_name=localhost force_ciphersuite=TLS1-3-AES-128-GCM-SHA256" \
-            1 \
-            -c "SSL - The requested feature is not available" \
+            0 \
             -s "ServerHello"                \
             -c "tls1_3 client state: 0"     \
             -c "tls1_3 client state: 2"     \
@@ -8870,7 +8869,8 @@ run_test    "TLS 1.3 m->O AES_128_GCM_SHA256      , RSA_PSS_RSAE_SHA256" \
             -c "=> parse certificate verify"          \
             -c "<= parse certificate verify"          \
             -c "mbedtls_ssl_tls13_process_certificate_verify() returned 0" \
-            -c "<= parse finished message"
+            -c "<= parse finished message" \
+            -c "HTTP/1.0 200 ok"
 
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -8912,8 +8912,7 @@ requires_gnutls_next
 run_test    "TLS 1.3 m->G AES_128_GCM_SHA256      , RSA_PSS_RSAE_SHA256" \
             "$G_NEXT_SRV_RSA --disable-client-cert --priority=NORMAL:+CIPHER-ALL:+SHA256:+GROUP-SECP256R1:+ECDHE-ECDSA:+AEAD:+SIGN-RSA-PSS-RSAE-SHA256:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
             "$P_CLI debug_level=4 force_version=tls1_3 server_name=localhost force_ciphersuite=TLS1-3-AES-128-GCM-SHA256" \
-            1 \
-            -c "SSL - The requested feature is not available" \
+            0 \
             -c "tls1_3 client state: 0"     \
             -c "tls1_3 client state: 2"     \
             -c "tls1_3 client state: 19"    \
@@ -8940,7 +8939,8 @@ run_test    "TLS 1.3 m->G AES_128_GCM_SHA256      , RSA_PSS_RSAE_SHA256" \
             -c "=> parse certificate verify"          \
             -c "<= parse certificate verify"          \
             -c "mbedtls_ssl_tls13_process_certificate_verify() returned 0" \
-            -c "<= parse finished message"
+            -c "<= parse finished message" \
+            -c "HTTP/1.0 200 OK"
 
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_MEMORY_DEBUG

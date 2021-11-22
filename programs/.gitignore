@@ -39,6 +39,7 @@ pkey/rsa_sign_pss
 pkey/rsa_verify
 pkey/rsa_verify_pss
 psa/crypto_examples
+psa/hmac_md_psa
 psa/key_ladder_demo
 psa/psa_constant_names
 random/gen_entropy

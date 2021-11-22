@@ -567,24 +567,6 @@ static int my_verify( void *data, mbedtls_x509_crt *crt,
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-#if defined(MBEDTLS_ECP_C) && defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
-static uint16_t ssl_tls13_sig_algs_for_test[] = {
-#if defined(MBEDTLS_SHA256_C) && defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
-    MBEDTLS_TLS13_SIG_ECDSA_SECP256R1_SHA256,
-#endif
-#if defined(MBEDTLS_SHA512_C) && defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
-    MBEDTLS_TLS13_SIG_ECDSA_SECP384R1_SHA384,
-#endif
-#if defined(MBEDTLS_SHA512_C) && defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
-    MBEDTLS_TLS13_SIG_ECDSA_SECP521R1_SHA512,
-#endif
-#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
-    MBEDTLS_TLS13_SIG_RSA_PSS_RSAE_SHA256,
-#endif
-    MBEDTLS_TLS13_SIG_NONE
-};
-#endif /* MBEDTLS_ECP_C && MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
-
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 int report_cid_usage( mbedtls_ssl_context *ssl,
                       const char *additional_description )
@@ -1748,10 +1730,6 @@ int main( int argc, char *argv[] )
 
     memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL) && defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-    mbedtls_ssl_conf_sig_algs( &conf, ssl_tls13_sig_algs_for_test );
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL && MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     if( opt.cid_enabled == 1 || opt.cid_enabled_renego == 1 )

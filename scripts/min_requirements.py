@@ -25,7 +25,7 @@ import sys
 import tempfile
 import typing
 
-from typing import List
+from typing import List, Optional
 from mbedtls_dev import typing_util
 
 def pylint_doesn_t_notice_that_certain_types_are_used_in_annotations(
@@ -74,8 +74,16 @@ class Requirements:
         for req in self.requirements:
             out.write(req + '\n')
 
-    def install(self) -> None:
+    def install(
+            self,
+            pip_general_options: Optional[List[str]] = None,
+            pip_install_options: Optional[List[str]] = None,
+    ) -> None:
         """Call pip to install the requirements."""
+        if pip_general_options is None:
+            pip_general_options = []
+        if pip_install_options is None:
+            pip_install_options = []
         with tempfile.TemporaryDirectory() as temp_dir:
             # This is more complicated than it needs to be for the sake
             # of Windows. Use a temporary file rather than the command line
@@ -86,8 +94,10 @@ class Requirements:
             req_file_name = os.path.join(temp_dir, 'requirements.txt')
             with open(req_file_name, 'w') as req_file:
                 self.write(req_file)
-            subprocess.check_call([sys.executable, '-m', 'pip',
-                                   'install', '-r', req_file_name])
+            subprocess.check_call([sys.executable, '-m', 'pip'] +
+                                  pip_general_options +
+                                  ['install'] + pip_install_options +
+                                  ['-r', req_file_name])
 
 
 def main() -> None:
@@ -96,9 +106,20 @@ def main() -> None:
     parser.add_argument('--no-act', '-n',
                         action='store_true',
                         help="Don't act, just print what will be done")
+    parser.add_argument('--pip-install-option',
+                        action='append', dest='pip_install_options',
+                        help="Pass this option to pip install")
+    parser.add_argument('--pip-option',
+                        action='append', dest='pip_general_options',
+                        help="Pass this general option to pip")
+    parser.add_argument('--user',
+                        action='append_const', dest='pip_install_options',
+                        const='--user',
+                        help="Install to the Python user install directory"
+                             " (short for --pip-install-option --user)")
     parser.add_argument('files', nargs='*', metavar='FILE',
                         help="Requirement files"
-                             "(default: requirements.txt in the script's directory)")
+                             " (default: requirements.txt in the script's directory)")
     options = parser.parse_args()
     if not options.files:
         options.files = [os.path.join(os.path.dirname(__file__),
@@ -108,7 +129,8 @@ def main() -> None:
         reqs.add_file(filename)
     reqs.write(sys.stdout)
     if not options.no_act:
-        reqs.install()
+        reqs.install(pip_general_options=options.pip_general_options,
+                     pip_install_options=options.pip_install_options)
 
 if __name__ == '__main__':
     main()

@@ -376,11 +376,16 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
             break;
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
         case MBEDTLS_TLS13_SIG_RSA_PSS_RSAE_SHA256:
-            MBEDTLS_SSL_DEBUG_MSG( 4, ( "Certificate Verify: using RSA" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 4, ( "Certificate Verify: using RSA PSS" ) );
             md_alg = MBEDTLS_MD_SHA256;
             sig_alg = MBEDTLS_PK_RSASSA_PSS;
             break;
 #endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
+        case MBEDTLS_TLS13_SIG_RSA_PKCS1_SHA256:
+            MBEDTLS_SSL_DEBUG_MSG( 4, ( "Certificate Verify: using RSA PKCS1 V1.5" ) );
+            md_alg = MBEDTLS_MD_SHA256;
+            sig_alg = MBEDTLS_PK_RSA;
+            break;
         default:
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "Certificate Verify: Unknown signature algorithm." ) );
             goto error;

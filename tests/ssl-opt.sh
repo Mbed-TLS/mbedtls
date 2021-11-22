@@ -8907,6 +8907,44 @@ run_test    "TLS 1.3 m->G AES_128_GCM_SHA256      , RSA_PSS_RSAE_SHA256" \
             -c "mbedtls_ssl_tls13_process_certificate_verify() returned 0" \
             -c "HTTP/1.0 200 OK"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
+requires_gnutls_next
+run_test    "TLS 1.3 m->G AES_128_GCM_SHA256      , RSA_PKCSV15_SHA256" \
+            "$G_NEXT_SRV_RSA --disable-client-cert --priority=NORMAL:+CIPHER-ALL:+SHA256:+GROUP-SECP256R1:+ECDHE-ECDSA:+AEAD:+SIGN-RSA-SHA256:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+            "$P_CLI debug_level=4 force_version=tls1_3 server_name=localhost force_ciphersuite=TLS1-3-AES-128-GCM-SHA256" \
+            0 \
+            -c "tls1_3 client state: 0"     \
+            -c "tls1_3 client state: 2"     \
+            -c "tls1_3 client state: 19"    \
+            -c "tls1_3 client state: 5"     \
+            -c "tls1_3 client state: 3"     \
+            -c "tls1_3 client state: 9"     \
+            -c "tls1_3 client state: 13"    \
+            -c "tls1_3 client state: 11"    \
+            -c "tls1_3 client state: 14"    \
+            -c "tls1_3 client state: 15"    \
+            -c "<= ssl_tls1_3_process_server_hello" \
+            -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
+            -s "Ephemeral EC Diffie-Hellman parameters" \
+            -s "Version: TLS1.3" \
+            -s "Cipher: AES-128-GCM" \
+            -S "Client Signature:" \
+            -s "Server Signature: RSA-PSS-RSAE-SHA256" \
+            -c "ECDH curve: x25519"         \
+            -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
+            -c "Certificate Verify: Signature algorithm ( 0804 )" \
+            -c "=> ssl_tls1_3_process_server_hello" \
+            -c "<= parse encrypted extensions"      \
+            -c "Certificate verification flags clear" \
+            -c "=> parse certificate verify"          \
+            -c "<= parse certificate verify"          \
+            -c "mbedtls_ssl_tls13_process_certificate_verify() returned 0" \
+            -c "<= parse finished message" \
+            -c "HTTP/1.0 200 OK"
+
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_MEMORY_DEBUG
 requires_config_enabled MBEDTLS_MEMORY_BUFFER_ALLOC_C

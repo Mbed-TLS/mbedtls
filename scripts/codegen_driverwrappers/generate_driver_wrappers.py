@@ -8,7 +8,8 @@ import jinja2
 def render(tpl_path):
     path, filename = os.path.split(tpl_path)
     return jinja2.Environment(
-        loader=jinja2.FileSystemLoader(path or './')
+        loader=jinja2.FileSystemLoader(path or './'),
+        keep_trailing_newline=True,
     ).get_template(filename).render()
 
 n = len(sys.argv)

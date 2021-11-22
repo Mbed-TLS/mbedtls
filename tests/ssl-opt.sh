@@ -91,6 +91,7 @@ if [ -n "${GNUTLS_NEXT_SERV:-}" ]; then
     G_NEXT_SRV_RSA="$GNUTLS_NEXT_SERV --x509certfile data_files/server2.crt --x509keyfile data_files/server2.key"
 else
     G_NEXT_SRV=false
+    G_NEXT_SRV_RSA=false
 fi
 
 if [ -n "${GNUTLS_NEXT_CLI:-}" ]; then

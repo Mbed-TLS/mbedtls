@@ -23,6 +23,11 @@ endif
 # CFLAGS += -D_BSD_EXTENSION
 
 PERL ?= perl
+ifdef WINDOWS
+PYTHON ?= python
+else
+PYTHON ?= $(shell if type python3 >/dev/null 2>/dev/null; then echo python3; else echo python; fi)
+endif
 
 # if were running on Windows build for Windows
 ifdef WINDOWS

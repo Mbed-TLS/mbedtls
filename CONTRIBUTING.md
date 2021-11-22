@@ -52,8 +52,7 @@ It would be highly appreciated if contributions are backported to LTS branches i
 The list of maintained branches can be found in the [Current Branches section
 of BRANCHES.md](BRANCHES.md#current-branches).
 
-Currently maintained LTS branches are:
-1. [mbedtls-2.7](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.7)
+The only currently maintained LTS branch is:
 1. [mbedtls-2.16](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.16)
 
 

@@ -62,7 +62,6 @@ guess_config_name() {
 : ${MBEDTLS_TEST_PLATFORM:="$(uname -s | tr -c \\n0-9A-Za-z _)-$(uname -m | tr -c \\n0-9A-Za-z _)"}
 
 O_SRV="$OPENSSL_CMD s_server -www -cert data_files/server5.crt -key data_files/server5.key"
-O_SRV_RSA="$OPENSSL_CMD s_server -www -cert data_files/server2.crt -key data_files/server2.key"
 O_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_CMD s_client"
 G_SRV="$GNUTLS_SERV --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key"
 G_CLI="echo 'GET / HTTP/1.0' | $GNUTLS_CLI --x509cafile data_files/test-ca_cat12.crt"
@@ -80,9 +79,11 @@ fi
 
 if [ -n "${OPENSSL_NEXT:-}" ]; then
     O_NEXT_SRV="$OPENSSL_NEXT s_server -www -cert data_files/server5.crt -key data_files/server5.key"
+    O_NEXT_SRV_RSA="$OPENSSL_NEXT s_server -www -cert data_files/server2.crt -key data_files/server2.key"
     O_NEXT_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_NEXT s_client"
 else
     O_NEXT_SRV=false
+    O_NEXT_SRV_RSA=false
     O_NEXT_CLI=false
 fi
 
@@ -1408,7 +1409,6 @@ P_SRV="$P_SRV server_addr=127.0.0.1 server_port=$SRV_PORT"
 P_CLI="$P_CLI server_addr=127.0.0.1 server_port=+SRV_PORT"
 P_PXY="$P_PXY server_addr=127.0.0.1 server_port=$SRV_PORT listen_addr=127.0.0.1 listen_port=$PXY_PORT ${SEED:+"seed=$SEED"}"
 O_SRV="$O_SRV -accept $SRV_PORT"
-O_SRV_RSA="$O_SRV_RSA -accept $SRV_PORT"
 O_CLI="$O_CLI -connect 127.0.0.1:+SRV_PORT"
 G_SRV="$G_SRV -p $SRV_PORT"
 G_CLI="$G_CLI -p +SRV_PORT"
@@ -1420,6 +1420,7 @@ fi
 
 if [ -n "${OPENSSL_NEXT:-}" ]; then
     O_NEXT_SRV="$O_NEXT_SRV -accept $SRV_PORT"
+    O_NEXT_SRV_RSA="$O_NEXT_SRV -accept $SRV_PORT"
     O_NEXT_CLI="$O_NEXT_CLI -connect 127.0.0.1:+SRV_PORT"
 fi
 
@@ -8840,12 +8841,13 @@ run_test    "TLS1.3: minimal feature sets - openssl" \
             -c "<= parse finished message" \
             -c "HTTP/1.0 200 ok"
 
+requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test    "TLS 1.3 m->O AES_128_GCM_SHA256      , RSA_PSS_RSAE_SHA256" \
-            "$O_SRV_RSA -ciphersuites TLS_AES_128_GCM_SHA256 -tls1_3 -msg -no_middlebox -num_tickets 0" \
+            "$O_NEXT_SRV_RSA -ciphersuites TLS_AES_128_GCM_SHA256 -tls1_3 -msg -no_middlebox -num_tickets 0" \
             "$P_CLI debug_level=4 force_version=tls1_3 server_name=localhost force_ciphersuite=TLS1-3-AES-128-GCM-SHA256" \
             0 \
             -s "ServerHello"                \

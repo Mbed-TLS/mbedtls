@@ -8999,6 +8999,31 @@ run_test    "TLS1.3: CertificateRequest check - gnutls" \
             1 \
             -c "CertificateRequest not supported"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_openssl_tls1_3
+run_test    "TLS1.3: HelloRetryRequest check - openssl" \
+            "$O_NEXT_SRV -ciphersuites TLS_AES_256_GCM_SHA384  -sigalgs ecdsa_secp256r1_sha256 -groups P-256 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+            "$P_CLI debug_level=4 force_version=tls1_3" \
+            1 \
+            -c "received HelloRetryRequest message" \
+            -c "HRR not supported" \
+            -c "Last error was: -0x6E00 - SSL - The handshake negotiation failed"
+
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "TLS1.3: HelloRetryRequest check - gnutls" \
+            "$G_NEXT_SRV -d 4 --priority=NONE:+GROUP-SECP256R1:+AES-256-GCM:+SHA384:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+            "$P_CLI debug_level=4 force_version=tls1_3" \
+            1 \
+            -c "received HelloRetryRequest message" \
+            -c "HRR not supported" \
+            -c "Last error was: -0x6E00 - SSL - The handshake negotiation failed" \
+            -s "HELLO RETRY REQUEST was queued"
+
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_MEMORY_DEBUG
 requires_config_enabled MBEDTLS_MEMORY_BUFFER_ALLOC_C

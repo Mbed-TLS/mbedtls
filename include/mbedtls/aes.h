@@ -538,10 +538,6 @@ int mbedtls_aes_crypt_ofb( mbedtls_aes_context *ctx,
  * \brief      This function performs an AES-CTR encryption or decryption
  *             operation.
  *
- *             This function performs the operation defined in the \p mode
- *             parameter (encrypt/decrypt), on the input data buffer
- *             defined in the \p input parameter.
- *
  *             Due to the nature of CTR, you must use the same key schedule
  *             for both encryption and decryption operations. Therefore, you
  *             must use the context initialized with mbedtls_aes_setkey_enc()

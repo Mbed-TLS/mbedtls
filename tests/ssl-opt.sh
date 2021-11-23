@@ -8846,6 +8846,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
+requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS 1.3 m->O AES_128_GCM_SHA256      , RSA_PSS_RSAE_SHA256" \
             "$O_NEXT_SRV_RSA -ciphersuites TLS_AES_128_GCM_SHA256 -tls1_3 -msg -no_middlebox -num_tickets 0" \
             "$P_CLI debug_level=4 force_version=tls1_3 server_name=localhost force_ciphersuite=TLS1-3-AES-128-GCM-SHA256" \
@@ -8888,10 +8889,13 @@ run_test    "TLS1.3: minimal feature sets - gnutls" \
             -c "<= parse finished message" \
             -c "HTTP/1.0 200 OK"
 
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
+requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_gnutls_next
 run_test    "TLS 1.3 m->G AES_128_GCM_SHA256      , RSA_PSS_RSAE_SHA256" \
             "$G_NEXT_SRV_RSA --disable-client-cert --priority=NORMAL:+CIPHER-ALL:+SHA256:+GROUP-SECP256R1:+ECDHE-ECDSA:+AEAD:+SIGN-RSA-PSS-RSAE-SHA256:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \

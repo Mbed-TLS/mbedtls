@@ -2613,8 +2613,6 @@ component_test_tls13_experimental_with_everest () {
 component_test_tls13_experimental_with_rsa () {
     msg "default config with MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL enabled, with rsa"
     scripts/config.py   set MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
-    scripts/config.py unset MBEDTLS_SSL_USE_MPS
-    scripts/config.py unset MBEDTLS_SSL_SRV_C
     scripts/config.py   set MBEDTLS_SSL_CLI_C
     scripts/config.py   set MBEDTLS_RSA_C
     scripts/config.py   set MBEDTLS_X509_RSASSA_PSS_SUPPORT

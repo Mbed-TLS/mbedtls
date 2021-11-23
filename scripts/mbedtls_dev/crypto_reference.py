@@ -43,6 +43,7 @@ import Cryptodome.Hash.SHA3_256
 import Cryptodome.Hash.SHA3_384
 import Cryptodome.Hash.SHA3_512
 import Cryptodome.Protocol.KDF
+import Cryptodome.PublicKey.ECC
 
 from mbedtls_dev import crypto_knowledge
 
@@ -236,3 +237,74 @@ class KeyDerivation:
         self.offset += length
         return output
 
+    def output_ecc_weierstrass(self, order: int) -> bytes:
+        """Return an ECC private key on a curve of the given order.
+
+        Follow the derivation method specified in the PSA Cryptography API
+        specification version 1.1.0.
+        """
+        m = len(bin(order)) - 2
+        length = (m + 7) // 8
+        k = order
+        while k > order - 2:
+            string = self.output_bytes(length)
+            k = int(string.hex(), 16)
+            k &= (1 << m) - 1
+        k += 1
+        hexdigits = hex(k)[2:].rjust(2 * length, '0')
+        return bytes.fromhex(hexdigits)
+
+    def output_ecc_montgomery(self, bits: int) -> bytes:
+        """Return an ECC private key on a Montgomery curve of the given bit-size.
+
+        Follow the derivation method specified in the PSA Cryptography API
+        specification version 1.1.0, which is decodeScalarNnn from RFC 7748 §5.
+        """
+        length = (bits + 7) // 8
+        string = self.output_bytes(length)
+        first_byte = string[0]
+        last_byte = string[-1]
+        if bits == 255: # Curve25519
+            first_byte &= 248
+            last_byte &= 127
+            last_byte |= 64
+        elif bits == 448: # Curve448
+            first_byte &= 252
+            last_byte |= 128
+        else:
+            raise NotImplementedError
+        return bytes([first_byte]) + string[1:-1] + bytes([last_byte])
+
+    @staticmethod
+    def curve_order(family: str, bits: int) -> int:
+        if family == 'PSA_ECC_FAMILY_SECP_R1':
+            curves = PublicKey.ECC._curves #pylint: disable=protected-access
+            curve = curves['secp{}r1'.format(bits)]
+            return int(curve.order)
+        else:
+            raise NotImplementedError
+
+    def output_key(self, kt: crypto_knowledge.KeyType, bits: int) -> bytes:
+        """Retrieve (more) bytes of output from the key derivation as a key.
+
+        Return the representation of the (private) key.
+
+        Similar to psa_key_derivation_output_key().
+        """
+        if kt.name.endswith('_PUBLIC_KEY'):
+            raise InvalidArgument('Cannot derive a public key')
+        if kt.name == 'PSA_KEY_TYPE_RSA_KEY_PAIR':
+            raise NotSupported('Cannot derive an RSA Key')
+        if kt.name == 'PSA_KEY_TYPE_ECC_KEY_PAIR':
+            assert kt.params is not None and len(kt.params) == 1
+            family = kt.params[0]
+            if family == 'PSA_ECC_FAMILY_MONTGOMERY':
+                return self.output_ecc_montgomery(bits)
+            else:
+                order = self.curve_order(family, bits)
+                return self.output_ecc_weierstrass(order)
+        else:
+            # Assume a symmetric key
+            if bits % 8 != 0:
+                raise InvalidArgument('Invalid bit-size (not a multiple of 8)')
+            return self.output_bytes(bits // 8)

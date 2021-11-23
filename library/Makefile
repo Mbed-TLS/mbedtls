@@ -319,11 +319,12 @@ version_features.c:
 	echo "  Gen   $@"
 	$(PERL) ../scripts/generate_features.pl
 
-psa_crypto_driver_wrappers.c: ../scripts/codegen_driverwrappers/generate_driver_wrappers.py
+psa_crypto_driver_wrappers.c: ../scripts/generate_driver_wrappers.py
+psa_crypto_driver_wrappers.c: ../scripts/data_files/driver_templates/psa_crypto_driver_wrappers.conf
 psa_crypto_driver_wrappers.c:
 	echo "  Gen   $@"
-	$(PYTHON) ../scripts/codegen_driverwrappers/generate_driver_wrappers.py \
-                  "../scripts/codegen_driverwrappers/psa_crypto_driver_wrappers.conf" \
+	$(PYTHON) ../scripts/generate_driver_wrappers.py \
+                  "../scripts/data_files/driver_templates/psa_crypto_driver_wrappers.conf" \
                   "psa_crypto_driver_wrappers.c"
 
 clean:

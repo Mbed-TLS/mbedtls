@@ -3,8 +3,8 @@
 @rem Perl and Python 3 must be on the PATH.
 @rem psa_crypto_driver_wrappers.c needs to be generated prior to
 @rem generate_visualc_files.pl being invoked.
-python scripts/codegen_driverwrappers/generate_driver_wrappers.py ^
-       "scripts/codegen_driverwrappers/psa_crypto_driver_wrappers.conf" ^
+python scripts/generate_driver_wrappers.py ^
+       "scripts/data_files/driver_templates/psa_crypto_driver_wrappers.conf" ^
        "library/psa_crypto_driver_wrappers.c" || exit /b 1
 perl scripts\generate_errors.pl || exit /b 1
 perl scripts\generate_query_config.pl || exit /b 1

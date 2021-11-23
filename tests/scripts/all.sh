@@ -2610,6 +2610,22 @@ component_test_tls13_experimental_with_everest () {
     if_build_succeeded tests/ssl-opt.sh
 }
 
+component_test_tls13_experimental_with_rsa () {
+    msg "default config with MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL enabled, with rsa"
+    scripts/config.py   set MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+    scripts/config.py unset MBEDTLS_SSL_USE_MPS
+    scripts/config.py unset MBEDTLS_SSL_SRV_C
+    scripts/config.py   set MBEDTLS_SSL_CLI_C
+    scripts/config.py   set MBEDTLS_RSA_C
+    scripts/config.py   set MBEDTLS_X509_RSASSA_PSS_SUPPORT
+    cmake CC=gcc CMAKE_BUILD_TYPE=ASanDbg .
+    make
+    msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL enabled, with rsa"
+    make test
+    msg "ssl-opt.sh (TLS 1.3 experimental)"
+    if_build_succeeded tests/ssl-opt.sh -f "TLS 1.3"
+}
+
 component_build_mingw () {
     msg "build: Windows cross build - mingw64, make (Link Library)" # ~ 30s
     make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 lib programs

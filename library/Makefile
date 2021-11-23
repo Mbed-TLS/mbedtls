@@ -324,8 +324,7 @@ psa_crypto_driver_wrappers.c: ../scripts/data_files/driver_templates/psa_crypto_
 psa_crypto_driver_wrappers.c:
 	echo "  Gen   $@"
 	$(PYTHON) ../scripts/generate_driver_wrappers.py \
-                  "../scripts/data_files/driver_templates/psa_crypto_driver_wrappers.conf" \
-                  "psa_crypto_driver_wrappers.c"
+                  "../"
 
 clean:
 ifndef WINDOWS

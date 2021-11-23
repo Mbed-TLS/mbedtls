@@ -157,10 +157,26 @@ if(GEN_FILES)
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/generate_ssl_debug_helpers.py
             ${error_headers}
     )
+
+    add_custom_command(
+        OUTPUT
+            ${CMAKE_CURRENT_BINARY_DIR}/psa_crypto_driver_wrappers.c
+        COMMAND
+            ${MBEDTLS_PYTHON_EXECUTABLE}
+                ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/generate_driver_wrappers.py
+                ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/data_files/driver_templates/psa_crypto_driver_wrappers.conf
+                ${CMAKE_CURRENT_BINARY_DIR}/psa_crypto_driver_wrappers.c
+        DEPENDS
+            ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/generate_driver_wrappers.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/data_files/driver_templates/psa_crypto_driver_wrappers.conf
+    )
+
+
 else()
     link_to_source(error.c)
     link_to_source(version_features.c)
     link_to_source(ssl_debug_helpers_generated.c)
+    link_to_source(psa_crypto_driver_wrappers.c)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCC)

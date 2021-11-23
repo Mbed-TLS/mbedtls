@@ -1,28 +1,35 @@
 #!/usr/bin/env python3
+"""This script is required for the auto generation of the
+   psa_crypto_driver_wrappers.c file"""
 
 import sys
-import json
 import os
 import jinja2
 
-def render(tpl_path):
-    path, filename = os.path.split(tpl_path)
-    return jinja2.Environment(
-        loader=jinja2.FileSystemLoader(path or './'),
-        keep_trailing_newline=True,
-    ).get_template(filename).render()
+def render(template_path: str) -> str:
+    environment = jinja2.Environment(
+        loader=jinja2.FileSystemLoader(os.path.dirname(template_path)),
+        keep_trailing_newline=True)
+    template = environment.get_template(os.path.basename(template_path))
+    return template.render()
 
-n = len(sys.argv)
-if ( n != 3 ):
-    sys.exit("The template file name and output file name are expected as arguments")
-# set template file name, output file name
-driver_wrapper_template_filename = sys.argv[1]
-driver_wrapper_output_filename = sys.argv[2]
+N = len(sys.argv)
+if N != 2:
+# This is the Root directory.
+    ROOT_DIR = ""
+else:
+# Set the root based on the argument passed.
+    ROOT_DIR = sys.argv[1]
 
-# render the template
-result = render(driver_wrapper_template_filename)
+# Set template file name, output file name from the root directory
+DRIVER_WRAPPER_TEMPLATE_FILENAME = ROOT_DIR +\
+    "scripts/data_files/driver_templates/psa_crypto_driver_wrappers.conf"
+DRIVER_WRAPPER_OUTPUT_FILENAME = ROOT_DIR + "library/psa_crypto_driver_wrappers.c"
 
-# write output to file
-outFile = open(driver_wrapper_output_filename,"w")
-outFile.write(result)
-outFile.close()
+# Render the template
+RESULT = render(DRIVER_WRAPPER_TEMPLATE_FILENAME)
+
+# Write output to file
+OUT_FILE = open(DRIVER_WRAPPER_OUTPUT_FILENAME, "w")
+OUT_FILE.write(RESULT)
+OUT_FILE.close()

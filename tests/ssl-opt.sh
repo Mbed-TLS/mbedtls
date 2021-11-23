@@ -8902,6 +8902,7 @@ run_test    "TLS 1.3 m->G AES_128_GCM_SHA256      , RSA_PSS_RSAE_SHA256" \
             "$P_CLI debug_level=4 force_version=tls1_3 server_name=localhost force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 allow_sha1=0" \
             0 \
             -c "ECDH curve: x25519"         \
+            -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
             -c "Certificate Verify: Signature algorithm ( 0804 )" \
             -c "mbedtls_ssl_tls13_process_certificate_verify() returned 0" \
             -c "HTTP/1.0 200 OK"

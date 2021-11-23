@@ -61,21 +61,21 @@ struct mbedtls_ssl_tls13_labels_struct const mbedtls_ssl_tls13_labels =
  *                   255 Bytes, so we require `desired_length` to be at most
  *                   255. This allows us to save a few Bytes of code by
  *                   hardcoding the writing of the high bytes.
- * - (label, llen): label + label length, without "tls13 " prefix
- *                  The label length MUST be less than or equal to
- *                  MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_LABEL_LEN
- *                  It is the caller's responsibility to ensure this.
- *                  All (label, label length) pairs used in TLS 1.3
- *                  can be obtained via MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN().
- * - (ctx, clen): context + context length
- *                The context length MUST be less than or equal to
- *                MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_CONTEXT_LEN
- *                It is the caller's responsibility to ensure this.
+ * - (label, label_len): label + label length, without "tls13 " prefix
+ *                       The label length MUST be less than or equal to
+ *                       MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_LABEL_LEN
+ *                       It is the caller's responsibility to ensure this.
+ *                       All (label, label length) pairs used in TLS 1.3
+ *                       can be obtained via MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN().
+ * - (ctx, ctx_len): context + context length
+ *                   The context length MUST be less than or equal to
+ *                   MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_CONTEXT_LEN
+ *                   It is the caller's responsibility to ensure this.
  * - dst: Target buffer for HkdfLabel structure,
  *        This MUST be a writable buffer of size
  *        at least SSL_TLS1_3_KEY_SCHEDULE_MAX_HKDF_LABEL_LEN Bytes.
- * - dlen: Pointer at which to store the actual length of
- *         the HkdfLabel structure on success.
+ * - dst_len: Pointer at which to store the actual length of
+ *            the HkdfLabel structure on success.
  */
 
 static const char tls1_3_label_prefix[6] = "tls13 ";

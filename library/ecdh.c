@@ -731,7 +731,8 @@ int mbedtls_ecdh_calc_secret( mbedtls_ecdh_context *ctx, size_t *olen,
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
 
 static int ecdh_tls13_make_params_internal( mbedtls_ecdh_context_mbed *ctx,
-                size_t *olen, int point_format, unsigned char *buf, size_t blen,
+                                            size_t *olen, int point_format,
+                                        unsigned char *buf, size_t buf_len,
                 int ( *f_rng )( void *, unsigned char *, size_t), void *p_rng )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -744,7 +745,7 @@ static int ecdh_tls13_make_params_internal( mbedtls_ecdh_context_mbed *ctx,
         return( ret );
 
     ret = mbedtls_ecp_point_write_binary( &ctx->grp, &ctx->Q, point_format,
-                                          olen, buf, blen );
+                                          olen, buf, buf_len );
     if( ret != 0 )
         return( ret );
 
@@ -752,7 +753,7 @@ static int ecdh_tls13_make_params_internal( mbedtls_ecdh_context_mbed *ctx,
 }
 
 int mbedtls_ecdh_tls13_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
-                            unsigned char *buf, size_t blen,
+                            unsigned char *buf, size_t buf_len,
                             int ( *f_rng )( void *, unsigned char *, size_t ),
                             void *p_rng )
 {
@@ -769,7 +770,7 @@ int mbedtls_ecdh_tls13_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
 
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
     return( ecdh_tls13_make_params_internal( ctx, olen, ctx->point_format,
-                                             buf, blen, f_rng, p_rng ) );
+                                             buf, buf_len, f_rng, p_rng ) );
 #else
     switch( ctx->var )
     {
@@ -779,7 +780,7 @@ int mbedtls_ecdh_tls13_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
 #endif
         case MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0:
             return( ecdh_tls13_make_params_internal( &ctx->ctx.mbed_ecdh, olen,
-                                               ctx->point_format, buf, blen,
+                                               ctx->point_format, buf, buf_len,
                                                f_rng, p_rng ) );
         default:
             return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;

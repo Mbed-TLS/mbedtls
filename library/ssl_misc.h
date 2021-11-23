@@ -1640,7 +1640,7 @@ int mbedtls_ssl_tls13_fetch_handshake_msg( mbedtls_ssl_context *ssl,
 int mbedtls_ssl_tls13_start_handshake_msg( mbedtls_ssl_context *ssl,
                                            unsigned hs_type,
                                            unsigned char **buf,
-                                           size_t *buflen );
+                                           size_t *buf_len );
 
 /*
  * Handler of TLS 1.3 server certificate message

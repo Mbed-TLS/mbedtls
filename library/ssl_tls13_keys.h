@@ -85,38 +85,38 @@ extern const struct mbedtls_ssl_tls13_labels_struct mbedtls_ssl_tls13_labels;
 #define MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_EXPANSION_LEN 255
 
 /**
- * \brief           The \c HKDF-Expand-Label function from
- *                  the TLS 1.3 standard RFC 8446.
+ * \brief            The \c HKDF-Expand-Label function from
+ *                   the TLS 1.3 standard RFC 8446.
  *
  * <tt>
- *                  HKDF-Expand-Label( Secret, Label, Context, Length ) =
+ *                   HKDF-Expand-Label( Secret, Label, Context, Length ) =
  *                       HKDF-Expand( Secret, HkdfLabel, Length )
  * </tt>
  *
- * \param hash_alg  The identifier for the hash algorithm to use.
- * \param secret    The \c Secret argument to \c HKDF-Expand-Label.
- *                  This must be a readable buffer of length \p slen Bytes.
- * \param slen      The length of \p secret in Bytes.
- * \param label     The \c Label argument to \c HKDF-Expand-Label.
- *                  This must be a readable buffer of length \p llen Bytes.
- * \param llen      The length of \p label in Bytes.
- * \param ctx       The \c Context argument to \c HKDF-Expand-Label.
- *                  This must be a readable buffer of length \p clen Bytes.
- * \param clen      The length of \p context in Bytes.
- * \param buf       The destination buffer to hold the expanded secret.
- *                  This must be a writable buffer of length \p blen Bytes.
- * \param blen      The desired size of the expanded secret in Bytes.
+ * \param hash_alg   The identifier for the hash algorithm to use.
+ * \param secret     The \c Secret argument to \c HKDF-Expand-Label.
+ *                   This must be a readable buffer of length \p slen Bytes.
+ * \param secret_len The length of \p secret in Bytes.
+ * \param label      The \c Label argument to \c HKDF-Expand-Label.
+ *                   This must be a readable buffer of length \p llen Bytes.
+ * \param label_len  The length of \p label in Bytes.
+ * \param ctx        The \c Context argument to \c HKDF-Expand-Label.
+ *                   This must be a readable buffer of length \p clen Bytes.
+ * \param ctx_len    The length of \p context in Bytes.
+ * \param buf        The destination buffer to hold the expanded secret.
+ *                   This must be a writable buffer of length \p blen Bytes.
+ * \param buf_len    The desired size of the expanded secret in Bytes.
  *
- * \returns         \c 0 on success.
- * \return          A negative error code on failure.
+ * \returns          \c 0 on success.
+ * \return           A negative error code on failure.
  */
 
 int mbedtls_ssl_tls13_hkdf_expand_label(
                      mbedtls_md_type_t hash_alg,
-                     const unsigned char *secret, size_t slen,
-                     const unsigned char *label, size_t llen,
-                     const unsigned char *ctx, size_t clen,
-                     unsigned char *buf, size_t blen );
+                     const unsigned char *secret, size_t secret_len,
+                     const unsigned char *label, size_t label_len,
+                     const unsigned char *ctx, size_t ctx_len,
+                     unsigned char *buf, size_t buf_len );
 
 /**
  * \brief           This function is part of the TLS 1.3 key schedule.
@@ -136,7 +136,7 @@ int mbedtls_ssl_tls13_hkdf_expand_label(
  *                      This must be a readable buffer of size \p slen Bytes
  * \param server_secret The server traffic secret.
  *                      This must be a readable buffer of size \p slen Bytes
- * \param slen          Length of the secrets \p client_secret and
+ * \param secret_len    Length of the secrets \p client_secret and
  *                      \p server_secret in Bytes.
  * \param key_len       The desired length of the key to be extracted in Bytes.
  * \param iv_len        The desired length of the IV to be extracted in Bytes.
@@ -150,8 +150,8 @@ int mbedtls_ssl_tls13_hkdf_expand_label(
 int mbedtls_ssl_tls13_make_traffic_keys(
                      mbedtls_md_type_t hash_alg,
                      const unsigned char *client_secret,
-                     const unsigned char *server_secret,
-                     size_t slen, size_t key_len, size_t iv_len,
+                     const unsigned char *server_secret, size_t secret_len,
+                     size_t key_len, size_t iv_len,
                      mbedtls_ssl_key_set *keys );
 
 
@@ -172,14 +172,14 @@ int mbedtls_ssl_tls13_make_traffic_keys(
  *                   applications of HKDF.
  * \param secret     The \c Secret argument to the \c Derive-Secret function.
  *                   This must be a readable buffer of length \p slen Bytes.
- * \param slen       The length of \p secret in Bytes.
+ * \param secret_len The length of \p secret in Bytes.
  * \param label      The \c Label argument to the \c Derive-Secret function.
  *                   This must be a readable buffer of length \p llen Bytes.
- * \param llen       The length of \p label in Bytes.
+ * \param label_len  The length of \p label in Bytes.
  * \param ctx        The hash of the \c Messages argument to the
  *                   \c Derive-Secret function, or the \c Messages argument
  *                   itself, depending on \p context_already_hashed.
- * \param clen       The length of \p hash.
+ * \param ctx_len    The length of \p hash.
  * \param ctx_hashed This indicates whether the \p ctx contains the hash of
  *                   the \c Messages argument in the application of the
  *                   \c Derive-Secret function
@@ -190,18 +190,18 @@ int mbedtls_ssl_tls13_make_traffic_keys(
  * \param dstbuf     The target buffer to write the output of
  *                   \c Derive-Secret to. This must be a writable buffer of
  *                   size \p buflen Bytes.
- * \param buflen     The length of \p dstbuf in Bytes.
+ * \param dstbuf_len The length of \p dstbuf in Bytes.
  *
  * \returns        \c 0 on success.
  * \returns        A negative error code on failure.
  */
 int mbedtls_ssl_tls13_derive_secret(
                    mbedtls_md_type_t hash_alg,
-                   const unsigned char *secret, size_t slen,
-                   const unsigned char *label, size_t llen,
-                   const unsigned char *ctx, size_t clen,
+                   const unsigned char *secret, size_t secret_len,
+                   const unsigned char *label, size_t label_len,
+                   const unsigned char *ctx, size_t ctx_len,
                    int ctx_hashed,
-                   unsigned char *dstbuf, size_t buflen );
+                   unsigned char *dstbuf, size_t dstbuf_len );
 
 /**
  * \brief Derive TLS 1.3 early data key material from early secret.

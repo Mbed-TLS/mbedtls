@@ -79,7 +79,7 @@ fi
 
 if [ -n "${OPENSSL_NEXT:-}" ]; then
     O_NEXT_SRV="$OPENSSL_NEXT s_server -www -cert data_files/server5.crt -key data_files/server5.key"
-    O_NEXT_SRV_RSA="$OPENSSL_NEXT s_server -www -cert data_files/server2.crt -key data_files/server2.key"
+    O_NEXT_SRV_RSA="$OPENSSL_NEXT s_server -www -cert data_files/server2-sha256.crt -key data_files/server2.key"
     O_NEXT_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_NEXT s_client"
 else
     O_NEXT_SRV=false
@@ -89,7 +89,7 @@ fi
 
 if [ -n "${GNUTLS_NEXT_SERV:-}" ]; then
     G_NEXT_SRV="$GNUTLS_NEXT_SERV --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key"
-    G_NEXT_SRV_RSA="$GNUTLS_NEXT_SERV --x509certfile data_files/server2.crt --x509keyfile data_files/server2.key"
+    G_NEXT_SRV_RSA="$GNUTLS_NEXT_SERV --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key"
 else
     G_NEXT_SRV=false
     G_NEXT_SRV_RSA=false

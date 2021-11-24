@@ -51,18 +51,27 @@ static inline psa_key_type_t mbedtls_psa_translate_cipher_type(
         case MBEDTLS_CIPHER_AES_128_CCM:
         case MBEDTLS_CIPHER_AES_192_CCM:
         case MBEDTLS_CIPHER_AES_256_CCM:
+        case MBEDTLS_CIPHER_AES_128_CCM_STAR_NO_TAG:
+        case MBEDTLS_CIPHER_AES_192_CCM_STAR_NO_TAG:
+        case MBEDTLS_CIPHER_AES_256_CCM_STAR_NO_TAG:
         case MBEDTLS_CIPHER_AES_128_GCM:
         case MBEDTLS_CIPHER_AES_192_GCM:
         case MBEDTLS_CIPHER_AES_256_GCM:
         case MBEDTLS_CIPHER_AES_128_CBC:
         case MBEDTLS_CIPHER_AES_192_CBC:
         case MBEDTLS_CIPHER_AES_256_CBC:
+        case MBEDTLS_CIPHER_AES_128_ECB:
+        case MBEDTLS_CIPHER_AES_192_ECB:
+        case MBEDTLS_CIPHER_AES_256_ECB:
             return( PSA_KEY_TYPE_AES );
 
         /* ARIA not yet supported in PSA. */
         /* case MBEDTLS_CIPHER_ARIA_128_CCM:
            case MBEDTLS_CIPHER_ARIA_192_CCM:
            case MBEDTLS_CIPHER_ARIA_256_CCM:
+           case MBEDTLS_CIPHER_ARIA_128_CCM_STAR_NO_TAG:
+           case MBEDTLS_CIPHER_ARIA_192_CCM_STAR_NO_TAG:
+           case MBEDTLS_CIPHER_ARIA_256_CCM_STAR_NO_TAG:
            case MBEDTLS_CIPHER_ARIA_128_GCM:
            case MBEDTLS_CIPHER_ARIA_192_GCM:
            case MBEDTLS_CIPHER_ARIA_256_GCM:
@@ -87,6 +96,8 @@ static inline psa_algorithm_t mbedtls_psa_translate_cipher_mode(
             return( PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_GCM, taglen ) );
         case MBEDTLS_MODE_CCM:
             return( PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, taglen ) );
+        case MBEDTLS_MODE_CCM_STAR_NO_TAG:
+            return PSA_ALG_CCM_STAR_NO_TAG;
         case MBEDTLS_MODE_CBC:
             if( taglen == 0 )
                 return( PSA_ALG_CBC_NO_PADDING );
@@ -369,7 +380,7 @@ static inline psa_key_type_t mbedtls_psa_parse_tls_ecc_group(
     if( curve_info == NULL )
         return( 0 );
     return( PSA_KEY_TYPE_ECC_KEY_PAIR(
-                mbedtls_ecc_group_to_psa( curve_info->MBEDTLS_PRIVATE(grp_id), bits ) ) );
+                mbedtls_ecc_group_to_psa( curve_info->grp_id, bits ) ) );
 }
 #endif /* MBEDTLS_ECP_C */
 

@@ -521,6 +521,29 @@
 //#define MBEDTLS_CAMELLIA_SMALL_MEMORY
 
 /**
+ * \def MBEDTLS_CHECK_RETURN_WARNING
+ *
+ * If this macro is defined, emit a compile-time warning if application code
+ * calls a function without checking its return value, but the return value
+ * should generally be checked in portable applications.
+ *
+ * This is only supported on platforms where #MBEDTLS_CHECK_RETURN is
+ * implemented. Otherwise this option has no effect.
+ *
+ * Uncomment to get warnings on using fallible functions without checking
+ * their return value.
+ *
+ * \note  This feature is a work in progress.
+ *        Warnings will be added to more functions in the future.
+ *
+ * \note  A few functions are considered critical, and ignoring the return
+ *        value of these functions will trigger a warning even if this
+ *        macro is not defined. To completely disable return value check
+ *        warnings, define #MBEDTLS_CHECK_RETURN with an empty expansion.
+ */
+//#define MBEDTLS_CHECK_RETURN_WARNING
+
+/**
  * \def MBEDTLS_CIPHER_MODE_CBC
  *
  * Enable Cipher Block Chaining mode (CBC) for symmetric ciphers.
@@ -1599,16 +1622,6 @@
 #define MBEDTLS_SSL_SESSION_TICKETS
 
 /**
- * \def MBEDTLS_SSL_EXPORT_KEYS
- *
- * Enable support for exporting key block and master secret.
- * This is required for certain users of TLS, e.g. EAP-TLS.
- *
- * Comment this macro to disable support for key export
- */
-#define MBEDTLS_SSL_EXPORT_KEYS
-
-/**
  * \def MBEDTLS_SSL_SERVER_NAME_INDICATION
  *
  * Enable support for RFC 6066 server name indication (SNI) in SSL.
@@ -1718,15 +1731,13 @@
  * will still continue to work as usual, so enabling this option should not
  * break backwards compatibility.
  *
- * \warning The PSA Crypto API is in beta stage. While you're welcome to
- * experiment using it, incompatible API changes are still possible, and some
- * parts may not have reached the same quality as the rest of Mbed TLS yet.
+ * \note See docs/use-psa-crypto.md for a complete description of what this
+ * option currently does, and of parts that are not affected by it so far.
  *
- * \warning This option enables new Mbed TLS APIs that are dependent on the
- * PSA Crypto API, so can't come with the same stability guarantees as the
- * rest of the Mbed TLS APIs. You're welcome to experiment with them, but for
- * now, access to these APIs is opt-in (via enabling the present option), in
- * order to clearly differentiate them from the stable Mbed TLS APIs.
+ * \warning This option enables new Mbed TLS APIs which are currently
+ * considered experimental and may change in incompatible ways at any time.
+ * That is, the APIs enabled by this option are not covered by the usual
+ * promises of API stability.
  *
  * Requires: MBEDTLS_PSA_CRYPTO_C.
  *
@@ -2592,10 +2603,6 @@
  *
  * Enable the Platform Security Architecture cryptography API.
  *
- * \warning The PSA Crypto API is still beta status. While you're welcome to
- * experiment using it, incompatible API changes are still possible, and some
- * parts may not have reached the same quality as the rest of Mbed TLS yet.
- *
  * Module:  library/psa_crypto.c
  *
  * Requires: either MBEDTLS_CTR_DRBG_C and MBEDTLS_ENTROPY_C,
@@ -3073,6 +3080,29 @@
 //#define MBEDTLS_PLATFORM_NV_SEED_READ_MACRO   mbedtls_platform_std_nv_seed_read /**< Default nv_seed_read function to use, can be undefined */
 //#define MBEDTLS_PLATFORM_NV_SEED_WRITE_MACRO  mbedtls_platform_std_nv_seed_write /**< Default nv_seed_write function to use, can be undefined */
 
+/** \def MBEDTLS_CHECK_RETURN
+ *
+ * This macro is used at the beginning of the declaration of a function
+ * to indicate that its return value should be checked. It should
+ * instruct the compiler to emit a warning or an error if the function
+ * is called without checking its return value.
+ *
+ * There is a default implementation for popular compilers in platform_util.h.
+ * You can override the default implementation by defining your own here.
+ *
+ * If the implementation here is empty, this will effectively disable the
+ * checking of functions' return values.
+ */
+//#define MBEDTLS_CHECK_RETURN __attribute__((__warn_unused_result__))
+
+/** \def MBEDTLS_IGNORE_RETURN
+ *
+ * This macro requires one argument, which should be a C function call.
+ * If that function call would cause a #MBEDTLS_CHECK_RETURN warning, this
+ * warning is suppressed.
+ */
+//#define MBEDTLS_IGNORE_RETURN( result ) ((void) !(result))
+
 /* PSA options */
 /**
  * Use HMAC_DRBG with the specified hash algorithm for HMAC_DRBG for the
@@ -3179,7 +3209,7 @@
  * Maximum number of heap-allocated bytes for the purpose of
  * DTLS handshake message reassembly and future message buffering.
  *
- * This should be at least 9/8 * MBEDTLSSL_IN_CONTENT_LEN
+ * This should be at least 9/8 * MBEDTLS_SSL_IN_CONTENT_LEN
  * to account for a reassembled handshake message of maximum size,
  * together with its reassembly bitmap.
  *
@@ -3193,6 +3223,17 @@
 
 //#define MBEDTLS_PSK_MAX_LEN               32 /**< Max size of TLS pre-shared keys, in bytes (default 256 bits) */
 //#define MBEDTLS_SSL_COOKIE_TIMEOUT        60 /**< Default expiration delay of DTLS cookies, in seconds if HAVE_TIME, or in number of cookies issued */
+
+/** \def MBEDTLS_TLS_EXT_CID
+ *
+ * At the time of writing, the CID extension has not been assigned its
+ * final value. Set this configuration option to make Mbed TLS use a
+ * different value.
+ *
+ * A future minor revision of Mbed TLS may change the default value of
+ * this option to match evolving standards and usage.
+ */
+//#define MBEDTLS_TLS_EXT_CID                        254
 
 /**
  * Complete list of ciphersuites to use, in order of preference.

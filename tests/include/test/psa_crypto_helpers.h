@@ -28,7 +28,6 @@
 #include "test/psa_helpers.h"
 
 #include <psa/crypto.h>
-#include <psa_crypto_slot_management.h>
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "mbedtls/psa_util.h"

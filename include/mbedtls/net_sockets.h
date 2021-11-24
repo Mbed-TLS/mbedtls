@@ -94,7 +94,13 @@ extern "C" {
  */
 typedef struct mbedtls_net_context
 {
-    int MBEDTLS_PRIVATE(fd);             /**< The underlying file descriptor                 */
+    /** The underlying file descriptor.
+     *
+     * This field is only guaranteed to be present on POSIX/Unix-like platforms.
+     * On other platforms, it may have a different type, have a different
+     * meaning, or be absent altogether.
+     */
+    int fd;
 }
 mbedtls_net_context;
 

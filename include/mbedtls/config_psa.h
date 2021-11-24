@@ -56,6 +56,12 @@ extern "C" {
 #define PSA_WANT_ALG_RSA_PKCS1V15_SIGN_RAW PSA_WANT_ALG_RSA_PKCS1V15_SIGN
 #endif
 
+#if defined(PSA_WANT_ALG_RSA_PSS_ANY_SALT) && !defined(PSA_WANT_ALG_RSA_PSS)
+#define PSA_WANT_ALG_RSA_PSS PSA_WANT_ALG_RSA_PSS_ANY_SALT
+#elif !defined(PSA_WANT_ALG_RSA_PSS_ANY_SALT) && defined(PSA_WANT_ALG_RSA_PSS)
+#define PSA_WANT_ALG_RSA_PSS_ANY_SALT PSA_WANT_ALG_RSA_PSS
+#endif
+
 
 
 /****************************************************************/
@@ -267,6 +273,18 @@ extern "C" {
 #endif /* PSA_HAVE_SOFT_KEY_TYPE_AES || PSA_HAVE_SOFT_BLOCK_MODE */
 #endif /* PSA_WANT_KEY_TYPE_AES */
 
+#if defined(PSA_WANT_KEY_TYPE_ARIA)
+#if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ARIA)
+#define PSA_HAVE_SOFT_KEY_TYPE_ARIA 1
+#endif /* !MBEDTLS_PSA_ACCEL_KEY_TYPE_ARIA */
+#if defined(PSA_HAVE_SOFT_KEY_TYPE_ARIA) || \
+    defined(PSA_HAVE_SOFT_BLOCK_MODE) || \
+    defined(PSA_HAVE_SOFT_BLOCK_AEAD)
+#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ARIA 1
+#define MBEDTLS_ARIA_C
+#endif /* PSA_HAVE_SOFT_KEY_TYPE_ARIA || PSA_HAVE_SOFT_BLOCK_MODE */
+#endif /* PSA_WANT_KEY_TYPE_ARIA */
+
 #if defined(PSA_WANT_KEY_TYPE_CAMELLIA)
 #if !defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_CAMELLIA)
 #define PSA_HAVE_SOFT_KEY_TYPE_CAMELLIA 1
@@ -301,6 +319,7 @@ extern "C" {
  * PSA_HAVE_SOFT_BLOCK_CIPHER, which can be used in any of these
  * situations. */
 #if defined(PSA_HAVE_SOFT_KEY_TYPE_AES) || \
+    defined(PSA_HAVE_SOFT_KEY_TYPE_ARIA) || \
     defined(PSA_HAVE_SOFT_KEY_TYPE_DES) || \
     defined(PSA_HAVE_SOFT_KEY_TYPE_CAMELLIA)
 #define PSA_HAVE_SOFT_BLOCK_CIPHER 1
@@ -381,6 +400,7 @@ extern "C" {
 #if defined(PSA_WANT_ALG_CCM)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_CCM) || \
     defined(PSA_HAVE_SOFT_KEY_TYPE_AES) || \
+    defined(PSA_HAVE_SOFT_KEY_TYPE_ARIA) || \
     defined(PSA_HAVE_SOFT_KEY_TYPE_CAMELLIA)
 #define MBEDTLS_PSA_BUILTIN_ALG_CCM 1
 #define MBEDTLS_CCM_C
@@ -390,6 +410,7 @@ extern "C" {
 #if defined(PSA_WANT_ALG_GCM)
 #if !defined(MBEDTLS_PSA_ACCEL_ALG_GCM) || \
     defined(PSA_HAVE_SOFT_KEY_TYPE_AES) || \
+    defined(PSA_HAVE_SOFT_KEY_TYPE_ARIA) || \
     defined(PSA_HAVE_SOFT_KEY_TYPE_CAMELLIA)
 #define MBEDTLS_PSA_BUILTIN_ALG_GCM 1
 #define MBEDTLS_GCM_C
@@ -586,7 +607,7 @@ extern "C" {
 #define MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN 1
 #define PSA_WANT_ALG_RSA_PKCS1V15_SIGN 1
 #define PSA_WANT_ALG_RSA_PKCS1V15_SIGN_RAW 1
-#endif /* MBEDTLSS_PKCS1_V15 */
+#endif /* MBEDTLS_PKCS1_V15 */
 #if defined(MBEDTLS_PKCS1_V21)
 #define MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP 1
 #define PSA_WANT_ALG_RSA_OAEP 1
@@ -629,6 +650,11 @@ extern "C" {
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_AES 1
 #endif
 
+#if defined(MBEDTLS_ARIA_C)
+#define PSA_WANT_KEY_TYPE_ARIA 1
+#define MBEDTLS_PSA_BUILTIN_KEY_TYPE_ARIA 1
+#endif
+
 #if defined(MBEDTLS_CAMELLIA_C)
 #define PSA_WANT_KEY_TYPE_CAMELLIA 1
 #define MBEDTLS_PSA_BUILTIN_KEY_TYPE_CAMELLIA 1
@@ -660,7 +686,7 @@ extern "C" {
 #endif
 
 #if defined(MBEDTLS_AES_C) || defined(MBEDTLS_DES_C) || \
-    defined(MBEDTLS_CAMELLIA_C)
+    defined(MBEDTLS_ARIA_C) || defined(MBEDTLS_CAMELLIA_C)
 #define MBEDTLS_PSA_BUILTIN_ALG_ECB_NO_PADDING 1
 #define PSA_WANT_ALG_ECB_NO_PADDING 1
 #endif

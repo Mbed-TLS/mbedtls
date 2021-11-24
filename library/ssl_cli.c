@@ -90,10 +90,10 @@ static int ssl_conf_has_static_raw_psk( mbedtls_ssl_config const *conf )
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-static int ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
-                                   unsigned char *buf,
-                                   const unsigned char *end,
-                                   size_t *olen )
+int mbedtls_ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
+                                    unsigned char *buf,
+                                    const unsigned char *end,
+                                    size_t *olen )
 {
     unsigned char *p = buf;
     size_t hostname_len;
@@ -137,18 +137,19 @@ static int ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
      * } ServerNameList;
      *
      */
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SERVERNAME >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SERVERNAME      ) & 0xFF );
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SERVERNAME, p, 0 );
+    p += 2;
 
-    *p++ = (unsigned char)( ( (hostname_len + 5) >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( (hostname_len + 5)      ) & 0xFF );
+    MBEDTLS_PUT_UINT16_BE( hostname_len + 5, p, 0 );
+    p += 2;
 
-    *p++ = (unsigned char)( ( (hostname_len + 3) >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( (hostname_len + 3)      ) & 0xFF );
+    MBEDTLS_PUT_UINT16_BE( hostname_len + 3, p, 0 );
+    p += 2;
 
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SERVERNAME_HOSTNAME ) & 0xFF );
-    *p++ = (unsigned char)( ( hostname_len >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( hostname_len      ) & 0xFF );
+    *p++ = MBEDTLS_BYTE_0( MBEDTLS_TLS_EXT_SERVERNAME_HOSTNAME );
+
+    MBEDTLS_PUT_UINT16_BE( hostname_len, p, 0 );
+    p += 2;
 
     memcpy( p, ssl->hostname, hostname_len );
 
@@ -182,14 +183,12 @@ static int ssl_write_renegotiation_ext( mbedtls_ssl_context *ssl,
     /*
      * Secure renegotiation
      */
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_RENEGOTIATION_INFO >> 8 )
-                            & 0xFF );
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_RENEGOTIATION_INFO      )
-                            & 0xFF );
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_RENEGOTIATION_INFO, p, 0 );
+    p += 2;
 
     *p++ = 0x00;
-    *p++ = ( ssl->verify_data_len + 1 ) & 0xFF;
-    *p++ = ssl->verify_data_len & 0xFF;
+    *p++ = MBEDTLS_BYTE_0( ssl->verify_data_len + 1 );
+    *p++ = MBEDTLS_BYTE_0( ssl->verify_data_len );
 
     memcpy( p, ssl->own_verify_data, ssl->verify_data_len );
 
@@ -284,14 +283,14 @@ static int ssl_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
      * SignatureAndHashAlgorithm
      *   supported_signature_algorithms<2..2^16-2>;
      */
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SIG_ALG >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SIG_ALG      ) & 0xFF );
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SIG_ALG, p, 0 );
+    p += 2;
 
-    *p++ = (unsigned char)( ( ( sig_alg_len + 2 ) >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( ( sig_alg_len + 2 )      ) & 0xFF );
+    MBEDTLS_PUT_UINT16_BE( sig_alg_len + 2, p, 0 );
+    p += 2;
 
-    *p++ = (unsigned char)( ( sig_alg_len >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( sig_alg_len      ) & 0xFF );
+    MBEDTLS_PUT_UINT16_BE( sig_alg_len, p, 0 );
+    p += 2;
 
     *olen = 6 + sig_alg_len;
 
@@ -311,27 +310,32 @@ static int ssl_write_supported_elliptic_curves_ext( mbedtls_ssl_context *ssl,
     unsigned char *elliptic_curve_list = p + 6;
     size_t elliptic_curve_len = 0;
     const mbedtls_ecp_curve_info *info;
-    const mbedtls_ecp_group_id *grp_id;
-
+    const uint16_t *group_list = mbedtls_ssl_get_groups( ssl );
     *olen = 0;
+
+    /* Check there is room for header */
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 6 );
 
     MBEDTLS_SSL_DEBUG_MSG( 3,
         ( "client hello, adding supported_elliptic_curves extension" ) );
 
-    if( ssl->conf->curve_list == NULL )
+    if( group_list == NULL )
         return( MBEDTLS_ERR_SSL_BAD_CONFIG );
 
-    for( grp_id = ssl->conf->curve_list;
-         *grp_id != MBEDTLS_ECP_DP_NONE;
-         grp_id++ )
+    for( ; *group_list != 0; group_list++ )
     {
-        info = mbedtls_ecp_curve_info_from_grp_id( *grp_id );
+        info = mbedtls_ecp_curve_info_from_tls_id( *group_list );
         if( info == NULL )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1,
                 ( "invalid curve in ssl configuration" ) );
             return( MBEDTLS_ERR_SSL_BAD_CONFIG );
         }
+
+        /* Check there is room for another curve */
+        MBEDTLS_SSL_CHK_BUF_PTR( elliptic_curve_list, end, elliptic_curve_len + 2 );
+
+        MBEDTLS_PUT_UINT16_BE( *group_list, elliptic_curve_list, elliptic_curve_len );
         elliptic_curve_len += 2;
 
         if( elliptic_curve_len > MBEDTLS_SSL_MAX_CURVE_LIST_LEN )
@@ -346,29 +350,14 @@ static int ssl_write_supported_elliptic_curves_ext( mbedtls_ssl_context *ssl,
     if( elliptic_curve_len == 0 )
         return( MBEDTLS_ERR_SSL_BAD_CONFIG );
 
-    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 6 + elliptic_curve_len );
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SUPPORTED_ELLIPTIC_CURVES, p, 0 );
+    p += 2;
 
-    elliptic_curve_len = 0;
+    MBEDTLS_PUT_UINT16_BE( elliptic_curve_len + 2, p, 0 );
+    p += 2;
 
-    for( grp_id = ssl->conf->curve_list;
-         *grp_id != MBEDTLS_ECP_DP_NONE;
-         grp_id++ )
-    {
-        info = mbedtls_ecp_curve_info_from_grp_id( *grp_id );
-        elliptic_curve_list[elliptic_curve_len++] = info->tls_id >> 8;
-        elliptic_curve_list[elliptic_curve_len++] = info->tls_id & 0xFF;
-    }
-
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SUPPORTED_ELLIPTIC_CURVES >> 8 )
-                            & 0xFF );
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SUPPORTED_ELLIPTIC_CURVES      )
-                            & 0xFF );
-
-    *p++ = (unsigned char)( ( ( elliptic_curve_len + 2 ) >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( ( elliptic_curve_len + 2 )      ) & 0xFF );
-
-    *p++ = (unsigned char)( ( ( elliptic_curve_len     ) >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( ( elliptic_curve_len     )      ) & 0xFF );
+    MBEDTLS_PUT_UINT16_BE( elliptic_curve_len, p, 0 );
+    p += 2;
 
     *olen = 6 + elliptic_curve_len;
 
@@ -389,10 +378,8 @@ static int ssl_write_supported_point_formats_ext( mbedtls_ssl_context *ssl,
         ( "client hello, adding supported_point_formats extension" ) );
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 6 );
 
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SUPPORTED_POINT_FORMATS >> 8 )
-                            & 0xFF );
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SUPPORTED_POINT_FORMATS      )
-                            & 0xFF );
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SUPPORTED_POINT_FORMATS, p, 0 );
+    p += 2;
 
     *p++ = 0x00;
     *p++ = 2;
@@ -428,8 +415,8 @@ static int ssl_write_ecjpake_kkpp_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 4 );
 
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_ECJPAKE_KKPP >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_ECJPAKE_KKPP      ) & 0xFF );
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_ECJPAKE_KKPP, p, 0 );
+    p += 2;
 
     /*
      * We may need to send ClientHello multiple times for Hello verification.
@@ -471,8 +458,8 @@ static int ssl_write_ecjpake_kkpp_ext( mbedtls_ssl_context *ssl,
         memcpy( p + 2, ssl->handshake->ecjpake_cache, kkpp_len );
     }
 
-    *p++ = (unsigned char)( ( kkpp_len >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( kkpp_len      ) & 0xFF );
+    MBEDTLS_PUT_UINT16_BE( kkpp_len, p, 0 );
+    p += 2;
 
     *olen = kkpp_len + 4;
 
@@ -511,11 +498,11 @@ static int ssl_write_cid_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, (unsigned)( ssl->own_cid_len + 5 ) );
 
     /* Add extension ID + size */
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_CID >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_CID      ) & 0xFF );
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_CID, p, 0 );
+    p += 2;
     ext_len = (size_t) ssl->own_cid_len + 1;
-    *p++ = (unsigned char)( ( ext_len >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( ext_len      ) & 0xFF );
+    MBEDTLS_PUT_UINT16_BE( ext_len, p, 0 );
+    p += 2;
 
     *p++ = (uint8_t) ssl->own_cid_len;
     memcpy( p, ssl->own_cid, ssl->own_cid_len );
@@ -544,10 +531,8 @@ static int ssl_write_max_fragment_length_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 5 );
 
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_MAX_FRAGMENT_LENGTH >> 8 )
-                            & 0xFF );
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_MAX_FRAGMENT_LENGTH      )
-                            & 0xFF );
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_MAX_FRAGMENT_LENGTH, p, 0 );
+    p += 2;
 
     *p++ = 0x00;
     *p++ = 1;
@@ -578,8 +563,8 @@ static int ssl_write_encrypt_then_mac_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 4 );
 
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_ENCRYPT_THEN_MAC >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_ENCRYPT_THEN_MAC      ) & 0xFF );
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_ENCRYPT_THEN_MAC, p, 0 );
+    p += 2;
 
     *p++ = 0x00;
     *p++ = 0x00;
@@ -608,10 +593,8 @@ static int ssl_write_extended_ms_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 4 );
 
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_EXTENDED_MASTER_SECRET >> 8 )
-                            & 0xFF );
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_EXTENDED_MASTER_SECRET      )
-                            & 0xFF );
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_EXTENDED_MASTER_SECRET, p, 0 );
+    p += 2;
 
     *p++ = 0x00;
     *p++ = 0x00;
@@ -642,11 +625,11 @@ static int ssl_write_session_ticket_ext( mbedtls_ssl_context *ssl,
     /* The addition is safe here since the ticket length is 16 bit. */
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 4 + tlen );
 
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SESSION_TICKET >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_SESSION_TICKET      ) & 0xFF );
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SESSION_TICKET, p, 0 );
+    p += 2;
 
-    *p++ = (unsigned char)( ( tlen >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( tlen      ) & 0xFF );
+    MBEDTLS_PUT_UINT16_BE( tlen, p, 0 );
+    p += 2;
 
     *olen = 4;
 
@@ -686,8 +669,8 @@ static int ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 6 + alpnlen );
 
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_ALPN >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_ALPN      ) & 0xFF );
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_ALPN, p, 0 );
+    p += 2;
 
     /*
      * opaque ProtocolName<1..2^8-1>;
@@ -714,12 +697,10 @@ static int ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
     *olen = p - buf;
 
     /* List length = olen - 2 (ext_type) - 2 (ext_len) - 2 (list_len) */
-    buf[4] = (unsigned char)( ( ( *olen - 6 ) >> 8 ) & 0xFF );
-    buf[5] = (unsigned char)( ( ( *olen - 6 )      ) & 0xFF );
+    MBEDTLS_PUT_UINT16_BE( *olen - 6, buf, 4 );
 
     /* Extension length = olen - 2 (ext_type) - 2 (ext_len) */
-    buf[2] = (unsigned char)( ( ( *olen - 4 ) >> 8 ) & 0xFF );
-    buf[3] = (unsigned char)( ( ( *olen - 4 )      ) & 0xFF );
+    MBEDTLS_PUT_UINT16_BE( *olen - 4, buf, 2 );
 
     return( 0 );
 }
@@ -771,12 +752,11 @@ static int ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
      */
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, ext_len + 4 );
 
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_USE_SRTP >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_USE_SRTP      ) & 0xFF );
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_USE_SRTP, p, 0 );
+    p += 2;
 
-
-    *p++ = (unsigned char)( ( ( ext_len & 0xFF00 ) >> 8 ) & 0xFF );
-    *p++ = (unsigned char)( ext_len & 0xFF );
+    MBEDTLS_PUT_UINT16_BE( ext_len, p, 0 );
+    p += 2;
 
     /* protection profile length: 2*(ssl->conf->dtls_srtp_profile_list_len) */
     /* micro-optimization:
@@ -787,8 +767,7 @@ static int ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
      *                        >> 8 ) & 0xFF );
      */
     *p++ = 0;
-    *p++ = (unsigned char)( ( 2 * ssl->conf->dtls_srtp_profile_list_len )
-                            & 0xFF );
+    *p++ = MBEDTLS_BYTE_0( 2 * ssl->conf->dtls_srtp_profile_list_len );
 
     for( protection_profiles_index=0;
          protection_profiles_index < ssl->conf->dtls_srtp_profile_list_len;
@@ -800,8 +779,8 @@ static int ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "ssl_write_use_srtp_ext, add profile: %04x",
                                         profile_value ) );
-            *p++ = ( ( profile_value >> 8 ) & 0xFF );
-            *p++ = ( profile_value & 0xFF );
+            MBEDTLS_PUT_UINT16_BE( profile_value, p, 0 );
+            p += 2;
         }
         else
         {
@@ -869,10 +848,8 @@ static int ssl_generate_random( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_HAVE_TIME)
     t = mbedtls_time( NULL );
-    *p++ = (unsigned char)( t >> 24 );
-    *p++ = (unsigned char)( t >> 16 );
-    *p++ = (unsigned char)( t >>  8 );
-    *p++ = (unsigned char)( t       );
+    MBEDTLS_PUT_UINT32_BE( t, p, 0 );
+    p += 4;
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, current time: %" MBEDTLS_PRINTF_LONGLONG,
                                 (long long) t ) );
@@ -1155,8 +1132,8 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
 
         n++;
-        *p++ = (unsigned char)( ciphersuites[i] >> 8 );
-        *p++ = (unsigned char)( ciphersuites[i]      );
+        MBEDTLS_PUT_UINT16_BE( ciphersuites[i], p, 0 );
+        p += 2;
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 3,
@@ -1171,8 +1148,8 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "adding EMPTY_RENEGOTIATION_INFO_SCSV" ) );
         MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
-        *p++ = (unsigned char)( MBEDTLS_SSL_EMPTY_RENEGOTIATION_INFO >> 8 );
-        *p++ = (unsigned char)( MBEDTLS_SSL_EMPTY_RENEGOTIATION_INFO      );
+        MBEDTLS_PUT_UINT16_BE( MBEDTLS_SSL_EMPTY_RENEGOTIATION_INFO, p, 0 );
+        p += 2;
         n++;
     }
 
@@ -1192,10 +1169,10 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-    if( ( ret = ssl_write_hostname_ext( ssl, p + 2 + ext_len,
-                                        end, &olen ) ) != 0 )
+    if( ( ret = mbedtls_ssl_write_hostname_ext( ssl, p + 2 + ext_len,
+                                                end, &olen ) ) != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_hostname_ext", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_hostname_ext", ret );
         return( ret );
     }
     ext_len += olen;
@@ -1335,9 +1312,8 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     {
         /* No need to check for space here, because the extension
          * writing functions already took care of that. */
-        *p++ = (unsigned char)( ( ext_len >> 8 ) & 0xFF );
-        *p++ = (unsigned char)( ( ext_len      ) & 0xFF );
-        p += ext_len;
+        MBEDTLS_PUT_UINT16_BE( ext_len, p, 0 );
+        p += 2 + ext_len;
     }
 
     ssl->out_msglen  = p - buf;
@@ -2757,8 +2733,7 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( len_bytes == 2 )
     {
-        ssl->out_msg[offset+0] = (unsigned char)( *olen >> 8 );
-        ssl->out_msg[offset+1] = (unsigned char)( *olen      );
+        MBEDTLS_PUT_UINT16_BE( *olen, ssl->out_msg, offset );
         *olen += 2;
     }
 #endif
@@ -3515,8 +3490,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
          */
         content_len = mbedtls_dhm_get_len( &ssl->handshake->dhm_ctx );
 
-        ssl->out_msg[4] = (unsigned char)( content_len >> 8 );
-        ssl->out_msg[5] = (unsigned char)( content_len      );
+        MBEDTLS_PUT_UINT16_BE( content_len, ssl->out_msg, 4 );
         header_len = 6;
 
         ret = mbedtls_dhm_make_public( &ssl->handshake->dhm_ctx,
@@ -3731,8 +3705,8 @@ ecdh_calc_secret:
             return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
         }
 
-        ssl->out_msg[header_len++] = (unsigned char)( content_len >> 8 );
-        ssl->out_msg[header_len++] = (unsigned char)( content_len      );
+        ssl->out_msg[header_len++] = MBEDTLS_BYTE_1( content_len );
+        ssl->out_msg[header_len++] = MBEDTLS_BYTE_0( content_len );
 
         memcpy( ssl->out_msg + header_len,
                 ssl->conf->psk_identity,
@@ -3783,8 +3757,8 @@ ecdh_calc_secret:
                 return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
             }
 
-            ssl->out_msg[header_len++] = (unsigned char)( content_len >> 8 );
-            ssl->out_msg[header_len++] = (unsigned char)( content_len      );
+            ssl->out_msg[header_len++] = MBEDTLS_BYTE_1( content_len );
+            ssl->out_msg[header_len++] = MBEDTLS_BYTE_0( content_len );
 
             ret = mbedtls_dhm_make_public( &ssl->handshake->dhm_ctx,
                     (int) mbedtls_dhm_get_len( &ssl->handshake->dhm_ctx ),
@@ -4066,8 +4040,7 @@ sign:
         return( ret );
     }
 
-    ssl->out_msg[4 + offset] = (unsigned char)( n >> 8 );
-    ssl->out_msg[5 + offset] = (unsigned char)( n      );
+    MBEDTLS_PUT_UINT16_BE( n, ssl->out_msg, offset + 4 );
 
     ssl->out_msglen  = 6 + n + offset;
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
@@ -4211,22 +4184,7 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
 
-    if( ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER || ssl->handshake == NULL )
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "client state: %d", ssl->state ) );
-
-    if( ( ret = mbedtls_ssl_flush_output( ssl ) ) != 0 )
-        return( ret );
-
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
-        ssl->handshake->retransmit_state == MBEDTLS_SSL_RETRANS_SENDING )
-    {
-        if( ( ret = mbedtls_ssl_flight_transmit( ssl ) ) != 0 )
-            return( ret );
-    }
-#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
     /* Change state now, so that it is right in mbedtls_ssl_read_record(), used
      * by DTLS for dropping out-of-sequence ChangeCipherSpec records */

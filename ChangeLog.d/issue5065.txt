@@ -1,0 +1,3 @@
+Bugfix
+   * Fix compile-time or run-time errors in PSA
+     AEAD functions when ChachaPoly is disabled. Fixes #5065.

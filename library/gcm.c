@@ -59,29 +59,6 @@
     MBEDTLS_INTERNAL_VALIDATE( cond )
 
 /*
- * 32-bit integer manipulation macros (big endian)
- */
-#ifndef GET_UINT32_BE
-#define GET_UINT32_BE(n,b,i)                            \
-{                                                       \
-    (n) = ( (uint32_t) (b)[(i)    ] << 24 )             \
-        | ( (uint32_t) (b)[(i) + 1] << 16 )             \
-        | ( (uint32_t) (b)[(i) + 2] <<  8 )             \
-        | ( (uint32_t) (b)[(i) + 3]       );            \
-}
-#endif
-
-#ifndef PUT_UINT32_BE
-#define PUT_UINT32_BE(n,b,i)                            \
-{                                                       \
-    (b)[(i)    ] = (unsigned char) ( (n) >> 24 );       \
-    (b)[(i) + 1] = (unsigned char) ( (n) >> 16 );       \
-    (b)[(i) + 2] = (unsigned char) ( (n) >>  8 );       \
-    (b)[(i) + 3] = (unsigned char) ( (n)       );       \
-}
-#endif
-
-/*
  * Initialize a context
  */
 void mbedtls_gcm_init( mbedtls_gcm_context *ctx )
@@ -111,12 +88,12 @@ static int gcm_gen_table( mbedtls_gcm_context *ctx )
         return( ret );
 
     /* pack h as two 64-bits ints, big-endian */
-    GET_UINT32_BE( hi, h,  0  );
-    GET_UINT32_BE( lo, h,  4  );
+    hi = MBEDTLS_GET_UINT32_BE( h,  0  );
+    lo = MBEDTLS_GET_UINT32_BE( h,  4  );
     vh = (uint64_t) hi << 32 | lo;
 
-    GET_UINT32_BE( hi, h,  8  );
-    GET_UINT32_BE( lo, h,  12 );
+    hi = MBEDTLS_GET_UINT32_BE( h,  8  );
+    lo = MBEDTLS_GET_UINT32_BE( h,  12 );
     vl = (uint64_t) hi << 32 | lo;
 
     /* 8 = 1000 corresponds to 1 in GF(2^128) */
@@ -223,10 +200,10 @@ static void gcm_mult( mbedtls_gcm_context *ctx, const unsigned char x[16],
     if( mbedtls_aesni_has_support( MBEDTLS_AESNI_CLMUL ) ) {
         unsigned char h[16];
 
-        PUT_UINT32_BE( ctx->HH[8] >> 32, h,  0 );
-        PUT_UINT32_BE( ctx->HH[8],       h,  4 );
-        PUT_UINT32_BE( ctx->HL[8] >> 32, h,  8 );
-        PUT_UINT32_BE( ctx->HL[8],       h, 12 );
+        MBEDTLS_PUT_UINT32_BE( ctx->HH[8] >> 32, h,  0 );
+        MBEDTLS_PUT_UINT32_BE( ctx->HH[8],       h,  4 );
+        MBEDTLS_PUT_UINT32_BE( ctx->HL[8] >> 32, h,  8 );
+        MBEDTLS_PUT_UINT32_BE( ctx->HL[8],       h, 12 );
 
         mbedtls_aesni_gcm_mult( output, x, h );
         return;
@@ -262,10 +239,10 @@ static void gcm_mult( mbedtls_gcm_context *ctx, const unsigned char x[16],
         zl ^= ctx->HL[hi];
     }
 
-    PUT_UINT32_BE( zh >> 32, output, 0 );
-    PUT_UINT32_BE( zh, output, 4 );
-    PUT_UINT32_BE( zl >> 32, output, 8 );
-    PUT_UINT32_BE( zl, output, 12 );
+    MBEDTLS_PUT_UINT32_BE( zh >> 32, output, 0 );
+    MBEDTLS_PUT_UINT32_BE( zh, output, 4 );
+    MBEDTLS_PUT_UINT32_BE( zl >> 32, output, 8 );
+    MBEDTLS_PUT_UINT32_BE( zl, output, 12 );
 }
 
 int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
@@ -277,6 +254,7 @@ int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
     size_t i;
     const unsigned char *p;
     size_t use_len, olen = 0;
+    uint64_t iv_bits;
 
     GCM_VALIDATE_RET( ctx != NULL );
     GCM_VALIDATE_RET( iv != NULL );
@@ -301,7 +279,8 @@ int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
     else
     {
         memset( work_buf, 0x00, 16 );
-        PUT_UINT32_BE( iv_len * 8, work_buf, 12 );
+        iv_bits = (uint64_t)iv_len * 8;
+        MBEDTLS_PUT_UINT64_BE( iv_bits, work_buf, 8 );
 
         p = iv;
         while( iv_len > 0 )
@@ -454,7 +433,7 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
     unsigned char ectr[16];
 
     if( output_size < input_length )
-        return( MBEDTLS_ERR_GCM_BAD_INPUT );
+        return( MBEDTLS_ERR_GCM_BUFFER_TOO_SMALL );
     GCM_VALIDATE_RET( output_length != NULL );
     *output_length = input_length;
 
@@ -569,10 +548,10 @@ int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
     {
         memset( work_buf, 0x00, 16 );
 
-        PUT_UINT32_BE( ( orig_add_len >> 32 ), work_buf, 0  );
-        PUT_UINT32_BE( ( orig_add_len       ), work_buf, 4  );
-        PUT_UINT32_BE( ( orig_len     >> 32 ), work_buf, 8  );
-        PUT_UINT32_BE( ( orig_len           ), work_buf, 12 );
+        MBEDTLS_PUT_UINT32_BE( ( orig_add_len >> 32 ), work_buf, 0  );
+        MBEDTLS_PUT_UINT32_BE( ( orig_add_len       ), work_buf, 4  );
+        MBEDTLS_PUT_UINT32_BE( ( orig_len     >> 32 ), work_buf, 8  );
+        MBEDTLS_PUT_UINT32_BE( ( orig_len           ), work_buf, 12 );
 
         for( i = 0; i < 16; i++ )
             ctx->buf[i] ^= work_buf[i];

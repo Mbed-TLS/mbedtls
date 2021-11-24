@@ -22,25 +22,29 @@
 #define ALG_IS_STREAM_CIPHER            ( 1u << 3 )
 #define ALG_IS_RSA_PKCS1V15_SIGN        ( 1u << 4 )
 #define ALG_IS_RSA_PSS                  ( 1u << 5 )
-#define ALG_IS_DSA                      ( 1u << 6 )
-#define ALG_DSA_IS_DETERMINISTIC        ( 1u << 7 )
-#define ALG_IS_DETERMINISTIC_DSA        ( 1u << 8 )
-#define ALG_IS_RANDOMIZED_DSA           ( 1u << 9 )
-#define ALG_IS_ECDSA                    ( 1u << 10 )
-#define ALG_ECDSA_IS_DETERMINISTIC      ( 1u << 11 )
-#define ALG_IS_DETERMINISTIC_ECDSA      ( 1u << 12 )
-#define ALG_IS_RANDOMIZED_ECDSA         ( 1u << 13 )
-#define ALG_IS_HASH_EDDSA               ( 1u << 14 )
-#define ALG_IS_HASH_AND_SIGN            ( 1u << 15 )
-#define ALG_IS_RSA_OAEP                 ( 1u << 16 )
-#define ALG_IS_HKDF                     ( 1u << 17 )
-#define ALG_IS_FFDH                     ( 1u << 18 )
-#define ALG_IS_ECDH                     ( 1u << 19 )
-#define ALG_IS_WILDCARD                 ( 1u << 20 )
-#define ALG_IS_RAW_KEY_AGREEMENT        ( 1u << 21 )
-#define ALG_IS_AEAD_ON_BLOCK_CIPHER     ( 1u << 22 )
-#define ALG_IS_TLS12_PRF                ( 1u << 23 )
-#define ALG_IS_TLS12_PSK_TO_MS          ( 1u << 24 )
+#define ALG_IS_RSA_PSS_ANY_SALT         ( 1u << 6 )
+#define ALG_IS_RSA_PSS_STANDARD_SALT    ( 1u << 7 )
+#define ALG_IS_DSA                      ( 1u << 8 )
+#define ALG_DSA_IS_DETERMINISTIC        ( 1u << 9 )
+#define ALG_IS_DETERMINISTIC_DSA        ( 1u << 10 )
+#define ALG_IS_RANDOMIZED_DSA           ( 1u << 11 )
+#define ALG_IS_ECDSA                    ( 1u << 12 )
+#define ALG_ECDSA_IS_DETERMINISTIC      ( 1u << 13 )
+#define ALG_IS_DETERMINISTIC_ECDSA      ( 1u << 14 )
+#define ALG_IS_RANDOMIZED_ECDSA         ( 1u << 15 )
+#define ALG_IS_HASH_EDDSA               ( 1u << 16 )
+#define ALG_IS_SIGN_HASH                ( 1u << 17 )
+#define ALG_IS_HASH_AND_SIGN            ( 1u << 18 )
+#define ALG_IS_RSA_OAEP                 ( 1u << 19 )
+#define ALG_IS_HKDF                     ( 1u << 20 )
+#define ALG_IS_FFDH                     ( 1u << 21 )
+#define ALG_IS_ECDH                     ( 1u << 22 )
+#define ALG_IS_WILDCARD                 ( 1u << 23 )
+#define ALG_IS_RAW_KEY_AGREEMENT        ( 1u << 24 )
+#define ALG_IS_AEAD_ON_BLOCK_CIPHER     ( 1u << 25 )
+#define ALG_IS_TLS12_PRF                ( 1u << 26 )
+#define ALG_IS_TLS12_PSK_TO_MS          ( 1u << 27 )
+#define ALG_FLAG_MASK_PLUS_ONE          ( 1u << 28 ) /* must be last! */
 
 /* Flags for key type classification macros. There is a flag for every
  * key type classification macro PSA_KEY_TYPE_IS_xxx except for some that
@@ -49,26 +53,43 @@
 #define KEY_TYPE_IS_VENDOR_DEFINED      ( 1u << 0 )
 #define KEY_TYPE_IS_UNSTRUCTURED        ( 1u << 1 )
 #define KEY_TYPE_IS_PUBLIC_KEY          ( 1u << 2 )
-#define KEY_TYPE_IS_KEY_PAIR             ( 1u << 3 )
+#define KEY_TYPE_IS_KEY_PAIR            ( 1u << 3 )
 #define KEY_TYPE_IS_RSA                 ( 1u << 4 )
 #define KEY_TYPE_IS_DSA                 ( 1u << 5 )
 #define KEY_TYPE_IS_ECC                 ( 1u << 6 )
 #define KEY_TYPE_IS_DH                  ( 1u << 7 )
+#define KEY_TYPE_FLAG_MASK_PLUS_ONE     ( 1u << 8 ) /* must be last! */
 
 /* Flags for lifetime classification macros. There is a flag for every
  * lifetime classification macro PSA_KEY_LIFETIME_IS_xxx. The name of the
  * flag is the name of the classification macro without the PSA_ prefix. */
 #define KEY_LIFETIME_IS_VOLATILE        ( 1u << 0 )
 #define KEY_LIFETIME_IS_READ_ONLY       ( 1u << 1 )
+#define KEY_LIFETIME_FLAG_MASK_PLUS_ONE ( 1u << 2 ) /* must be last! */
 
-#define TEST_CLASSIFICATION_MACRO( flag, alg, flags ) \
-    do                                                \
-    {                                                 \
-        if( ( flags ) & ( flag ) )                    \
-            TEST_ASSERT( PSA_##flag( alg ) );         \
-        else                                          \
-            TEST_ASSERT( ! PSA_##flag( alg ) );       \
-    }                                                 \
+/* Check that in the value of flags, the bit flag (which should be a macro
+ * expanding to a number of the form 1 << k) is set if and only if
+ * PSA_##flag(alg) is true.
+ *
+ * Only perform this check if cond is true. Typically cond is 1, but it can
+ * be different if the value of the flag bit is only specified under specific
+ * conditions.
+ *
+ * Unconditionally mask flag into the ambient variable
+ * classification_flags_tested.
+ */
+#define TEST_CLASSIFICATION_MACRO( cond, flag, alg, flags )     \
+    do                                                          \
+    {                                                           \
+        if( cond )                                              \
+        {                                                       \
+            if( ( flags ) & ( flag ) )                          \
+                TEST_ASSERT( PSA_##flag( alg ) );               \
+            else                                                \
+                TEST_ASSERT( ! PSA_##flag( alg ) );             \
+        }                                                       \
+        classification_flags_tested |= ( flag );                \
+    }                                                           \
     while( 0 )
 
 /* Check the parity of value.
@@ -95,44 +116,55 @@ int has_even_parity( uint32_t value )
 
 void algorithm_classification( psa_algorithm_t alg, unsigned flags )
 {
-    TEST_CLASSIFICATION_MACRO( ALG_IS_VENDOR_DEFINED, alg, flags );
-    TEST_CLASSIFICATION_MACRO( ALG_IS_HMAC, alg, flags );
-    TEST_CLASSIFICATION_MACRO( ALG_IS_BLOCK_CIPHER_MAC, alg, flags );
-    TEST_CLASSIFICATION_MACRO( ALG_IS_STREAM_CIPHER, alg, flags );
-    TEST_CLASSIFICATION_MACRO( ALG_IS_RSA_PKCS1V15_SIGN, alg, flags );
-    TEST_CLASSIFICATION_MACRO( ALG_IS_RSA_PSS, alg, flags );
-    TEST_CLASSIFICATION_MACRO( ALG_IS_DSA, alg, flags );
-    if ( PSA_ALG_IS_DSA( alg ) )
-        TEST_CLASSIFICATION_MACRO( ALG_DSA_IS_DETERMINISTIC, alg, flags );
-    TEST_CLASSIFICATION_MACRO( ALG_IS_DETERMINISTIC_DSA, alg, flags );
-    TEST_CLASSIFICATION_MACRO( ALG_IS_RANDOMIZED_DSA, alg, flags );
-    TEST_CLASSIFICATION_MACRO( ALG_IS_ECDSA, alg, flags );
-    if ( PSA_ALG_IS_ECDSA( alg ) )
-        TEST_CLASSIFICATION_MACRO( ALG_ECDSA_IS_DETERMINISTIC, alg, flags );
-    TEST_CLASSIFICATION_MACRO( ALG_IS_DETERMINISTIC_ECDSA, alg, flags );
-    TEST_CLASSIFICATION_MACRO( ALG_IS_RANDOMIZED_ECDSA, alg, flags );
-    TEST_CLASSIFICATION_MACRO( ALG_IS_HASH_EDDSA, alg, flags );
-    TEST_CLASSIFICATION_MACRO( ALG_IS_HASH_AND_SIGN, alg, flags );
-    TEST_CLASSIFICATION_MACRO( ALG_IS_RSA_OAEP, alg, flags );
-    TEST_CLASSIFICATION_MACRO( ALG_IS_HKDF, alg, flags );
-    TEST_CLASSIFICATION_MACRO( ALG_IS_WILDCARD, alg, flags );
-    TEST_CLASSIFICATION_MACRO( ALG_IS_ECDH, alg, flags );
-    TEST_CLASSIFICATION_MACRO( ALG_IS_FFDH, alg, flags );
-    TEST_CLASSIFICATION_MACRO( ALG_IS_RAW_KEY_AGREEMENT, alg, flags );
-    TEST_CLASSIFICATION_MACRO( ALG_IS_AEAD_ON_BLOCK_CIPHER, alg, flags );
+    unsigned classification_flags_tested = 0;
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_VENDOR_DEFINED, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_HMAC, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_BLOCK_CIPHER_MAC, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_STREAM_CIPHER, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_RSA_PKCS1V15_SIGN, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_RSA_PSS, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_RSA_PSS_ANY_SALT, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_RSA_PSS_STANDARD_SALT, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_DSA, alg, flags );
+    TEST_CLASSIFICATION_MACRO( PSA_ALG_IS_DSA( alg ),
+                               ALG_DSA_IS_DETERMINISTIC, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_DETERMINISTIC_DSA, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_RANDOMIZED_DSA, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_ECDSA, alg, flags );
+    TEST_CLASSIFICATION_MACRO( PSA_ALG_IS_ECDSA( alg ),
+                               ALG_ECDSA_IS_DETERMINISTIC, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_DETERMINISTIC_ECDSA, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_RANDOMIZED_ECDSA, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_HASH_EDDSA, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_SIGN_HASH, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_HASH_AND_SIGN, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_RSA_OAEP, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_HKDF, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_WILDCARD, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_ECDH, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_FFDH, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_RAW_KEY_AGREEMENT, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_AEAD_ON_BLOCK_CIPHER, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_TLS12_PRF, alg, flags );
+    TEST_CLASSIFICATION_MACRO( 1, ALG_IS_TLS12_PSK_TO_MS, alg, flags );
+    TEST_EQUAL( classification_flags_tested, ALG_FLAG_MASK_PLUS_ONE - 1 );
 exit: ;
 }
 
 void key_type_classification( psa_key_type_t type, unsigned flags )
 {
+    unsigned classification_flags_tested = 0;
+
     /* Macros tested based on the test case parameter */
-    TEST_CLASSIFICATION_MACRO( KEY_TYPE_IS_VENDOR_DEFINED, type, flags );
-    TEST_CLASSIFICATION_MACRO( KEY_TYPE_IS_UNSTRUCTURED, type, flags );
-    TEST_CLASSIFICATION_MACRO( KEY_TYPE_IS_PUBLIC_KEY, type, flags );
-    TEST_CLASSIFICATION_MACRO( KEY_TYPE_IS_KEY_PAIR, type, flags );
-    TEST_CLASSIFICATION_MACRO( KEY_TYPE_IS_RSA, type, flags );
-    TEST_CLASSIFICATION_MACRO( KEY_TYPE_IS_ECC, type, flags );
-    TEST_CLASSIFICATION_MACRO( KEY_TYPE_IS_DH, type, flags );
+    TEST_CLASSIFICATION_MACRO( 1, KEY_TYPE_IS_VENDOR_DEFINED, type, flags );
+    TEST_CLASSIFICATION_MACRO( 1, KEY_TYPE_IS_UNSTRUCTURED, type, flags );
+    TEST_CLASSIFICATION_MACRO( 1, KEY_TYPE_IS_PUBLIC_KEY, type, flags );
+    TEST_CLASSIFICATION_MACRO( 1, KEY_TYPE_IS_KEY_PAIR, type, flags );
+    TEST_CLASSIFICATION_MACRO( 1, KEY_TYPE_IS_RSA, type, flags );
+    TEST_CLASSIFICATION_MACRO( 1, KEY_TYPE_IS_DSA, type, flags );
+    TEST_CLASSIFICATION_MACRO( 1, KEY_TYPE_IS_ECC, type, flags );
+    TEST_CLASSIFICATION_MACRO( 1, KEY_TYPE_IS_DH, type, flags );
+    TEST_EQUAL( classification_flags_tested, KEY_TYPE_FLAG_MASK_PLUS_ONE - 1 );
 
     /* Macros with derived semantics */
     TEST_EQUAL( PSA_KEY_TYPE_IS_ASYMMETRIC( type ),
@@ -351,6 +383,7 @@ void hmac_algorithm( int alg_arg,
     TEST_ASSERT( PSA_ALG_IS_HASH( hash_alg ) );
     TEST_EQUAL( PSA_ALG_HMAC( hash_alg ), alg );
 
+    TEST_ASSERT( block_size == PSA_HASH_BLOCK_LENGTH( alg ) );
     TEST_ASSERT( block_size <= PSA_HMAC_MAX_HASH_BLOCK_SIZE );
 
     test_mac_algorithm( alg_arg, ALG_IS_HMAC, length,
@@ -487,7 +520,9 @@ void asymmetric_signature_algorithm( int alg_arg, int classification_flags )
 /* BEGIN_CASE */
 void asymmetric_signature_wildcard( int alg_arg, int classification_flags )
 {
-    classification_flags |= ALG_IS_HASH_AND_SIGN | ALG_IS_WILDCARD;
+    classification_flags |= ALG_IS_WILDCARD;
+    classification_flags |= ALG_IS_SIGN_HASH;
+    classification_flags |= ALG_IS_HASH_AND_SIGN;
     test_asymmetric_signature_algorithm( alg_arg, classification_flags );
     /* Any failure of this test function comes from
      * asymmetric_signature_algorithm. Pacify -Werror=unused-label. */
@@ -691,9 +726,12 @@ void lifetime( int lifetime_arg, int classification_flags,
     psa_key_persistence_t persistence = persistence_arg;
     psa_key_location_t location = location_arg;
     unsigned flags = classification_flags;
+    unsigned classification_flags_tested = 0;
 
-    TEST_CLASSIFICATION_MACRO( KEY_LIFETIME_IS_VOLATILE, lifetime, flags );
-    TEST_CLASSIFICATION_MACRO( KEY_LIFETIME_IS_READ_ONLY, lifetime, flags );
+    TEST_CLASSIFICATION_MACRO( 1, KEY_LIFETIME_IS_VOLATILE, lifetime, flags );
+    TEST_CLASSIFICATION_MACRO( 1, KEY_LIFETIME_IS_READ_ONLY, lifetime, flags );
+    TEST_EQUAL( classification_flags_tested,
+                KEY_LIFETIME_FLAG_MASK_PLUS_ONE - 1 );
 
     TEST_EQUAL( PSA_KEY_LIFETIME_GET_PERSISTENCE( lifetime ), persistence );
     TEST_EQUAL( PSA_KEY_LIFETIME_GET_LOCATION( lifetime ), location );

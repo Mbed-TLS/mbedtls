@@ -45,6 +45,8 @@
 #define MBEDTLS_ERR_GCM_AUTH_FAILED                       -0x0012
 /** Bad input parameters to function. */
 #define MBEDTLS_ERR_GCM_BAD_INPUT                         -0x0014
+/** An output buffer is too small. */
+#define MBEDTLS_ERR_GCM_BUFFER_TOO_SMALL                  -0x0016
 
 #ifdef __cplusplus
 extern "C" {

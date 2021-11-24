@@ -110,6 +110,7 @@ APPS = \
 	x509/cert_req \
 	x509/cert_write \
 	x509/crl_app \
+	x509/load_roots \
 	x509/req_app \
 # End of APPS
 
@@ -335,6 +336,10 @@ test/benchmark$(EXEXT): test/benchmark.c $(DEP)
 	echo "  CC    test/benchmark.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/benchmark.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
+test/cpp_dummy_build.cpp: test/generate_cpp_dummy_build.sh
+	echo "  Gen   test/cpp_dummy_build.cpp"
+	test/generate_cpp_dummy_build.sh
+
 test/cpp_dummy_build$(EXEXT): test/cpp_dummy_build.cpp $(DEP)
 	echo "  CXX   test/cpp_dummy_build.cpp"
 	$(CXX) $(LOCAL_CXXFLAGS) $(CXXFLAGS) test/cpp_dummy_build.cpp   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
@@ -383,6 +388,10 @@ x509/cert_req$(EXEXT): x509/cert_req.c $(DEP)
 	echo "  CC    x509/cert_req.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/cert_req.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
+x509/load_roots$(EXEXT): x509/load_roots.c $(DEP)
+	echo "  CC    x509/load_roots.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/load_roots.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
 x509/req_app$(EXEXT): x509/req_app.c $(DEP)
 	echo "  CC    x509/req_app.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/req_app.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
@@ -395,10 +404,11 @@ clean:
 ifndef WINDOWS
 	rm -f $(EXES)
 	-rm -f ssl/ssl_pthread_server$(EXEXT)
-	-rm -f test/cpp_dummy_build$(EXEXT)
+	-rm -f test/cpp_dummy_build.cpp test/cpp_dummy_build$(EXEXT)
 else
 	if exist *.o del /Q /F *.o
 	if exist *.exe del /Q /F *.exe
+	if exist test\cpp_dummy_build.cpp del /Q /F test\cpp_dummy_build.cpp
 endif
 	$(MAKE) -C fuzz clean
 

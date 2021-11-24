@@ -224,10 +224,10 @@
         "adcq   %%rdx, %%rcx\n"             \
         "addq   $8, %%rdi\n"
 
-#define MULADDC_STOP                        \
-        : "+c" (c), "+D" (d), "+S" (s)      \
-        : "b" (b)                           \
-        : "rax", "rdx", "r8"                \
+#define MULADDC_STOP                                                 \
+        : "+c" (c), "+D" (d), "+S" (s), "+m" (*(uint64_t (*)[16]) d) \
+        : "b" (b), "m" (*(const uint64_t (*)[16]) s)                 \
+        : "rax", "rdx", "r8"                                         \
     );
 
 #endif /* AMD64 */
@@ -240,18 +240,18 @@
 #define MULADDC_CORE                \
         "ldr x4, [%2], #8   \n\t"   \
         "ldr x5, [%1]       \n\t"   \
-        "mul x6, x4, %3     \n\t"   \
-        "umulh x7, x4, %3   \n\t"   \
+        "mul x6, x4, %4     \n\t"   \
+        "umulh x7, x4, %4   \n\t"   \
         "adds x5, x5, x6    \n\t"   \
         "adc x7, x7, xzr    \n\t"   \
         "adds x5, x5, %0    \n\t"   \
         "adc %0, x7, xzr    \n\t"   \
         "str x5, [%1], #8   \n\t"
 
-#define MULADDC_STOP                        \
-         : "+r" (c),  "+r" (d), "+r" (s)    \
-         : "r" (b)                          \
-         : "x4", "x5", "x6", "x7", "cc"     \
+#define MULADDC_STOP                                                    \
+         : "+r" (c),  "+r" (d), "+r" (s), "+m" (*(uint64_t (*)[16]) d)  \
+         : "r" (b), "m" (*(const uint64_t (*)[16]) s)                   \
+         : "x4", "x5", "x6", "x7", "cc"                                 \
     );
 
 #endif /* Aarch64 */

@@ -28,6 +28,7 @@
 #if defined(MBEDTLS_DES_C)
 
 #include "mbedtls/des.h"
+#include "mbedtls/error.h"
 #include "mbedtls/platform_util.h"
 
 #include <string.h>
@@ -42,29 +43,6 @@
 #endif /* MBEDTLS_SELF_TEST */
 
 #if !defined(MBEDTLS_DES_ALT)
-
-/*
- * 32-bit integer manipulation macros (big endian)
- */
-#ifndef GET_UINT32_BE
-#define GET_UINT32_BE(n,b,i)                            \
-{                                                       \
-    (n) = ( (uint32_t) (b)[(i)    ] << 24 )             \
-        | ( (uint32_t) (b)[(i) + 1] << 16 )             \
-        | ( (uint32_t) (b)[(i) + 2] <<  8 )             \
-        | ( (uint32_t) (b)[(i) + 3]       );            \
-}
-#endif
-
-#ifndef PUT_UINT32_BE
-#define PUT_UINT32_BE(n,b,i)                            \
-{                                                       \
-    (b)[(i)    ] = (unsigned char) ( (n) >> 24 );       \
-    (b)[(i) + 1] = (unsigned char) ( (n) >> 16 );       \
-    (b)[(i) + 2] = (unsigned char) ( (n) >>  8 );       \
-    (b)[(i) + 3] = (unsigned char) ( (n)       );       \
-}
-#endif
 
 /*
  * Expanded DES S-boxes
@@ -423,8 +401,8 @@ void mbedtls_des_setkey( uint32_t SK[32], const unsigned char key[MBEDTLS_DES_KE
     int i;
     uint32_t X, Y, T;
 
-    GET_UINT32_BE( X, key, 0 );
-    GET_UINT32_BE( Y, key, 4 );
+    X = MBEDTLS_GET_UINT32_BE( key, 0 );
+    Y = MBEDTLS_GET_UINT32_BE( key, 4 );
 
     /*
      * Permuted Choice 1
@@ -633,8 +611,8 @@ int mbedtls_des_crypt_ecb( mbedtls_des_context *ctx,
 
     SK = ctx->sk;
 
-    GET_UINT32_BE( X, input, 0 );
-    GET_UINT32_BE( Y, input, 4 );
+    X = MBEDTLS_GET_UINT32_BE( input, 0 );
+    Y = MBEDTLS_GET_UINT32_BE( input, 4 );
 
     DES_IP( X, Y );
 
@@ -646,8 +624,8 @@ int mbedtls_des_crypt_ecb( mbedtls_des_context *ctx,
 
     DES_FP( Y, X );
 
-    PUT_UINT32_BE( Y, output, 0 );
-    PUT_UINT32_BE( X, output, 4 );
+    MBEDTLS_PUT_UINT32_BE( Y, output, 0 );
+    MBEDTLS_PUT_UINT32_BE( X, output, 4 );
 
     return( 0 );
 }
@@ -665,6 +643,7 @@ int mbedtls_des_crypt_cbc( mbedtls_des_context *ctx,
                     unsigned char *output )
 {
     int i;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char temp[8];
 
     if( length % 8 )
@@ -677,7 +656,9 @@ int mbedtls_des_crypt_cbc( mbedtls_des_context *ctx,
             for( i = 0; i < 8; i++ )
                 output[i] = (unsigned char)( input[i] ^ iv[i] );
 
-            mbedtls_des_crypt_ecb( ctx, output, output );
+            ret = mbedtls_des_crypt_ecb( ctx, output, output );
+            if( ret != 0 )
+                goto exit;
             memcpy( iv, output, 8 );
 
             input  += 8;
@@ -690,7 +671,9 @@ int mbedtls_des_crypt_cbc( mbedtls_des_context *ctx,
         while( length > 0 )
         {
             memcpy( temp, input, 8 );
-            mbedtls_des_crypt_ecb( ctx, input, output );
+            ret = mbedtls_des_crypt_ecb( ctx, input, output );
+            if( ret != 0 )
+                goto exit;
 
             for( i = 0; i < 8; i++ )
                 output[i] = (unsigned char)( output[i] ^ iv[i] );
@@ -702,8 +685,10 @@ int mbedtls_des_crypt_cbc( mbedtls_des_context *ctx,
             length -= 8;
         }
     }
+    ret = 0;
 
-    return( 0 );
+exit:
+    return( ret );
 }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
@@ -720,8 +705,8 @@ int mbedtls_des3_crypt_ecb( mbedtls_des3_context *ctx,
 
     SK = ctx->sk;
 
-    GET_UINT32_BE( X, input, 0 );
-    GET_UINT32_BE( Y, input, 4 );
+    X = MBEDTLS_GET_UINT32_BE( input, 0 );
+    Y = MBEDTLS_GET_UINT32_BE( input, 4 );
 
     DES_IP( X, Y );
 
@@ -745,8 +730,8 @@ int mbedtls_des3_crypt_ecb( mbedtls_des3_context *ctx,
 
     DES_FP( Y, X );
 
-    PUT_UINT32_BE( Y, output, 0 );
-    PUT_UINT32_BE( X, output, 4 );
+    MBEDTLS_PUT_UINT32_BE( Y, output, 0 );
+    MBEDTLS_PUT_UINT32_BE( X, output, 4 );
 
     return( 0 );
 }
@@ -764,6 +749,7 @@ int mbedtls_des3_crypt_cbc( mbedtls_des3_context *ctx,
                      unsigned char *output )
 {
     int i;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char temp[8];
 
     if( length % 8 )
@@ -776,7 +762,9 @@ int mbedtls_des3_crypt_cbc( mbedtls_des3_context *ctx,
             for( i = 0; i < 8; i++ )
                 output[i] = (unsigned char)( input[i] ^ iv[i] );
 
-            mbedtls_des3_crypt_ecb( ctx, output, output );
+            ret = mbedtls_des3_crypt_ecb( ctx, output, output );
+            if( ret != 0 )
+                goto exit;
             memcpy( iv, output, 8 );
 
             input  += 8;
@@ -789,7 +777,9 @@ int mbedtls_des3_crypt_cbc( mbedtls_des3_context *ctx,
         while( length > 0 )
         {
             memcpy( temp, input, 8 );
-            mbedtls_des3_crypt_ecb( ctx, input, output );
+            ret = mbedtls_des3_crypt_ecb( ctx, input, output );
+            if( ret != 0 )
+                goto exit;
 
             for( i = 0; i < 8; i++ )
                 output[i] = (unsigned char)( output[i] ^ iv[i] );
@@ -801,8 +791,10 @@ int mbedtls_des3_crypt_cbc( mbedtls_des3_context *ctx,
             length -= 8;
         }
     }
+    ret = 0;
 
-    return( 0 );
+exit:
+    return( ret );
 }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
@@ -895,39 +887,43 @@ int mbedtls_des_self_test( int verbose )
         switch( i )
         {
         case 0:
-            mbedtls_des_setkey_dec( &ctx, des3_test_keys );
+            ret = mbedtls_des_setkey_dec( &ctx, des3_test_keys );
             break;
 
         case 1:
-            mbedtls_des_setkey_enc( &ctx, des3_test_keys );
+            ret = mbedtls_des_setkey_enc( &ctx, des3_test_keys );
             break;
 
         case 2:
-            mbedtls_des3_set2key_dec( &ctx3, des3_test_keys );
+            ret = mbedtls_des3_set2key_dec( &ctx3, des3_test_keys );
             break;
 
         case 3:
-            mbedtls_des3_set2key_enc( &ctx3, des3_test_keys );
+            ret = mbedtls_des3_set2key_enc( &ctx3, des3_test_keys );
             break;
 
         case 4:
-            mbedtls_des3_set3key_dec( &ctx3, des3_test_keys );
+            ret = mbedtls_des3_set3key_dec( &ctx3, des3_test_keys );
             break;
 
         case 5:
-            mbedtls_des3_set3key_enc( &ctx3, des3_test_keys );
+            ret = mbedtls_des3_set3key_enc( &ctx3, des3_test_keys );
             break;
 
         default:
             return( 1 );
         }
+        if( ret != 0 )
+            goto exit;
 
         for( j = 0; j < 100; j++ )
         {
             if( u == 0 )
-                mbedtls_des_crypt_ecb( &ctx, buf, buf );
+                ret = mbedtls_des_crypt_ecb( &ctx, buf, buf );
             else
-                mbedtls_des3_crypt_ecb( &ctx3, buf, buf );
+                ret = mbedtls_des3_crypt_ecb( &ctx3, buf, buf );
+            if( ret != 0 )
+                goto exit;
         }
 
         if( ( v == MBEDTLS_DES_DECRYPT &&
@@ -970,41 +966,45 @@ int mbedtls_des_self_test( int verbose )
         switch( i )
         {
         case 0:
-            mbedtls_des_setkey_dec( &ctx, des3_test_keys );
+            ret = mbedtls_des_setkey_dec( &ctx, des3_test_keys );
             break;
 
         case 1:
-            mbedtls_des_setkey_enc( &ctx, des3_test_keys );
+            ret = mbedtls_des_setkey_enc( &ctx, des3_test_keys );
             break;
 
         case 2:
-            mbedtls_des3_set2key_dec( &ctx3, des3_test_keys );
+            ret = mbedtls_des3_set2key_dec( &ctx3, des3_test_keys );
             break;
 
         case 3:
-            mbedtls_des3_set2key_enc( &ctx3, des3_test_keys );
+            ret = mbedtls_des3_set2key_enc( &ctx3, des3_test_keys );
             break;
 
         case 4:
-            mbedtls_des3_set3key_dec( &ctx3, des3_test_keys );
+            ret = mbedtls_des3_set3key_dec( &ctx3, des3_test_keys );
             break;
 
         case 5:
-            mbedtls_des3_set3key_enc( &ctx3, des3_test_keys );
+            ret = mbedtls_des3_set3key_enc( &ctx3, des3_test_keys );
             break;
 
         default:
             return( 1 );
         }
+        if( ret != 0 )
+            goto exit;
 
         if( v == MBEDTLS_DES_DECRYPT )
         {
             for( j = 0; j < 100; j++ )
             {
                 if( u == 0 )
-                    mbedtls_des_crypt_cbc( &ctx, v, 8, iv, buf, buf );
+                    ret = mbedtls_des_crypt_cbc( &ctx, v, 8, iv, buf, buf );
                 else
-                    mbedtls_des3_crypt_cbc( &ctx3, v, 8, iv, buf, buf );
+                    ret = mbedtls_des3_crypt_cbc( &ctx3, v, 8, iv, buf, buf );
+                if( ret != 0 )
+                    goto exit;
             }
         }
         else
@@ -1014,9 +1014,11 @@ int mbedtls_des_self_test( int verbose )
                 unsigned char tmp[8];
 
                 if( u == 0 )
-                    mbedtls_des_crypt_cbc( &ctx, v, 8, iv, buf, buf );
+                    ret = mbedtls_des_crypt_cbc( &ctx, v, 8, iv, buf, buf );
                 else
-                    mbedtls_des3_crypt_cbc( &ctx3, v, 8, iv, buf, buf );
+                    ret = mbedtls_des3_crypt_cbc( &ctx3, v, 8, iv, buf, buf );
+                if( ret != 0 )
+                    goto exit;
 
                 memcpy( tmp, prv, 8 );
                 memcpy( prv, buf, 8 );
@@ -1050,6 +1052,8 @@ exit:
     mbedtls_des_free( &ctx );
     mbedtls_des3_free( &ctx3 );
 
+    if( ret != 0 )
+        ret = 1;
     return( ret );
 }
 

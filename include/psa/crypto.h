@@ -2990,7 +2990,9 @@ psa_status_t psa_verify_message( mbedtls_svc_key_id_t key,
  * \param key                   Identifier of the key to use for the operation.
  *                              It must be an asymmetric key pair. The key must
  *                              allow the usage #PSA_KEY_USAGE_SIGN_HASH.
- * \param alg                   A signature algorithm that is compatible with
+ * \param alg                   A signature algorithm (PSA_ALG_XXX
+ *                              value such that #PSA_ALG_IS_SIGN_HASH(\p alg)
+ *                              is true), that is compatible with
  *                              the type of \p key.
  * \param[in] hash              The hash or message to sign.
  * \param hash_length           Size of the \p hash buffer in bytes.
@@ -3043,7 +3045,9 @@ psa_status_t psa_sign_hash(mbedtls_svc_key_id_t key,
  *                          must be a public key or an asymmetric key pair. The
  *                          key must allow the usage
  *                          #PSA_KEY_USAGE_VERIFY_HASH.
- * \param alg               A signature algorithm that is compatible with
+ * \param alg               A signature algorithm (PSA_ALG_XXX
+ *                          value such that #PSA_ALG_IS_SIGN_HASH(\p alg)
+ *                          is true), that is compatible with
  *                          the type of \p key.
  * \param[in] hash          The hash or message whose signature is to be
  *                          verified.
@@ -3682,6 +3686,7 @@ psa_status_t psa_key_derivation_output_bytes(
  *   The following key types defined in this specification follow this scheme:
  *
  *     - #PSA_KEY_TYPE_AES;
+ *     - #PSA_KEY_TYPE_ARIA;
  *     - #PSA_KEY_TYPE_CAMELLIA;
  *     - #PSA_KEY_TYPE_DERIVE;
  *     - #PSA_KEY_TYPE_HMAC;

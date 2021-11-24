@@ -124,7 +124,7 @@ int main( int argc, char *argv[] )
         while( *list )
         {
             cipher_info = mbedtls_cipher_info_from_type( *list );
-            mbedtls_printf( "  %s\n", cipher_info->MBEDTLS_PRIVATE(name) );
+            mbedtls_printf( "  %s\n", mbedtls_cipher_info_get_name( cipher_info ) );
             list++;
         }
 
@@ -309,7 +309,9 @@ int main( int argc, char *argv[] )
 
         }
 
-        if( mbedtls_cipher_setkey( &cipher_ctx, digest, cipher_info->MBEDTLS_PRIVATE(key_bitlen),
+        if( mbedtls_cipher_setkey( &cipher_ctx,
+                                   digest,
+                                   (int) mbedtls_cipher_info_get_key_bitlen( cipher_info ),
                            MBEDTLS_ENCRYPT ) != 0 )
         {
             mbedtls_fprintf( stderr, "mbedtls_cipher_setkey() returned error\n");
@@ -408,7 +410,7 @@ int main( int argc, char *argv[] )
         /*
          * Check the file size.
          */
-        if( cipher_info->MBEDTLS_PRIVATE(mode) != MBEDTLS_MODE_GCM &&
+        if( mbedtls_cipher_info_get_mode( cipher_info ) != MBEDTLS_MODE_GCM &&
             ( ( filesize - mbedtls_md_get_size( md_info ) ) %
                 mbedtls_cipher_get_block_size( &cipher_ctx ) ) != 0 )
         {
@@ -448,7 +450,9 @@ int main( int argc, char *argv[] )
             mbedtls_md_finish( &md_ctx, digest );
         }
 
-        if( mbedtls_cipher_setkey( &cipher_ctx, digest, cipher_info->MBEDTLS_PRIVATE(key_bitlen),
+        if( mbedtls_cipher_setkey( &cipher_ctx,
+                                   digest,
+                                   (int) mbedtls_cipher_info_get_key_bitlen( cipher_info ),
                            MBEDTLS_DECRYPT ) != 0 )
         {
             mbedtls_fprintf( stderr, "mbedtls_cipher_setkey() returned error\n" );

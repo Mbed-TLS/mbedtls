@@ -96,7 +96,7 @@ def hack_dependencies_not_implemented(dependencies: List[str]) -> None:
     if _implemented_dependencies is None:
         _implemented_dependencies = \
             read_implemented_dependencies('include/psa/crypto_config.h')
-    if not all(dep.lstrip('!') in _implemented_dependencies
+    if not all((dep.lstrip('!') in _implemented_dependencies or 'PSA_WANT' not in dep)
                for dep in dependencies):
         dependencies.append('DEPENDENCY_NOT_IMPLEMENTED_YET')
 
@@ -203,12 +203,15 @@ class NotSupported:
                 # supported or not depending on implementation capabilities,
                 # only generate the test case once.
                 continue
-            yield test_case_for_key_type_not_supported(
-                'generate', kt.expression, bits,
-                finish_family_dependencies(generate_dependencies, bits),
-                str(bits),
-                param_descr=param_descr,
-            )
+                # For public key we expect that key generation fails with
+                # INVALID_ARGUMENT. It is handled by KeyGenerate class.
+            if not kt.name.endswith('_PUBLIC_KEY'):
+                yield test_case_for_key_type_not_supported(
+                    'generate', kt.expression, bits,
+                    finish_family_dependencies(generate_dependencies, bits),
+                    str(bits),
+                    param_descr=param_descr,
+                )
             # To be added: derive
 
     ECC_KEY_TYPES = ('PSA_KEY_TYPE_ECC_KEY_PAIR',
@@ -229,6 +232,78 @@ class NotSupported:
                 yield from self.test_cases_for_key_type_not_supported(
                     kt, 0, param_descr='curve')
 
+def test_case_for_key_generation(
+        key_type: str, bits: int,
+        dependencies: List[str],
+        *args: str,
+        result: str = ''
+) -> test_case.TestCase:
+    """Return one test case exercising a key generation.
+    """
+    hack_dependencies_not_implemented(dependencies)
+    tc = test_case.TestCase()
+    short_key_type = re.sub(r'PSA_(KEY_TYPE|ECC_FAMILY)_', r'', key_type)
+    tc.set_description('PSA {} {}-bit'
+                       .format(short_key_type, bits))
+    tc.set_dependencies(dependencies)
+    tc.set_function('generate_key')
+    tc.set_arguments([key_type] + list(args) + [result])
+
+    return tc
+
+class KeyGenerate:
+    """Generate positive and negative (invalid argument) test cases for key generation."""
+
+    def __init__(self, info: Information) -> None:
+        self.constructors = info.constructors
+
+    ECC_KEY_TYPES = ('PSA_KEY_TYPE_ECC_KEY_PAIR',
+                     'PSA_KEY_TYPE_ECC_PUBLIC_KEY')
+
+    @staticmethod
+    def test_cases_for_key_type_key_generation(
+            kt: crypto_knowledge.KeyType
+    ) -> Iterator[test_case.TestCase]:
+        """Return test cases exercising key generation.
+
+        All key types can be generated except for public keys. For public key
+        PSA_ERROR_INVALID_ARGUMENT status is expected.
+        """
+        result = 'PSA_SUCCESS'
+
+        import_dependencies = [psa_want_symbol(kt.name)]
+        if kt.params is not None:
+            import_dependencies += [psa_want_symbol(sym)
+                                    for i, sym in enumerate(kt.params)]
+        if kt.name.endswith('_PUBLIC_KEY'):
+            # The library checks whether the key type is a public key generically,
+            # before it reaches a point where it needs support for the specific key
+            # type, so it returns INVALID_ARGUMENT for unsupported public key types.
+            generate_dependencies = []
+            result = 'PSA_ERROR_INVALID_ARGUMENT'
+        else:
+            generate_dependencies = import_dependencies
+            if kt.name == 'PSA_KEY_TYPE_RSA_KEY_PAIR':
+                generate_dependencies.append("MBEDTLS_GENPRIME")
+        for bits in kt.sizes_to_test():
+            yield test_case_for_key_generation(
+                kt.expression, bits,
+                finish_family_dependencies(generate_dependencies, bits),
+                str(bits),
+                result
+            )
+
+    def test_cases_for_key_generation(self) -> Iterator[test_case.TestCase]:
+        """Generate test cases that exercise the generation of keys."""
+        for key_type in sorted(self.constructors.key_types):
+            if key_type in self.ECC_KEY_TYPES:
+                continue
+            kt = crypto_knowledge.KeyType(key_type)
+            yield from self.test_cases_for_key_type_key_generation(kt)
+        for curve_family in sorted(self.constructors.ecc_curves):
+            for constr in self.ECC_KEY_TYPES:
+                kt = crypto_knowledge.KeyType(constr, [curve_family])
+                yield from self.test_cases_for_key_type_key_generation(kt)
 
 class StorageKey(psa_storage.Key):
     """Representation of a key for storage format testing."""
@@ -651,6 +726,8 @@ class TestGenerator:
         test_case.write_data_file(filename, test_cases)
 
     TARGETS = {
+        'test_suite_psa_crypto_generate_key.generated':
+        lambda info: KeyGenerate(info).test_cases_for_key_generation(),
         'test_suite_psa_crypto_not_supported.generated':
         lambda info: NotSupported(info).test_cases_for_not_supported(),
         'test_suite_psa_crypto_storage_format.current':
@@ -668,6 +745,10 @@ def main(args):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--list', action='store_true',
                         help='List available targets and exit')
+    parser.add_argument('--list-for-cmake', action='store_true',
+                        help='Print \';\'-separated list of available targets and exit')
+    parser.add_argument('--directory', metavar='DIR',
+                        help='Output directory (default: tests/suites)')
     parser.add_argument('targets', nargs='*', metavar='TARGET',
                         help='Target file to generate (default: all; "-": none)')
     options = parser.parse_args(args)
@@ -676,6 +757,11 @@ def main(args):
     if options.list:
         for name in sorted(generator.TARGETS):
             print(generator.filename_for(name))
+        return
+    # List in a cmake list format (i.e. ';'-separated)
+    if options.list_for_cmake:
+        print(';'.join(generator.filename_for(name)
+                       for name in sorted(generator.TARGETS)), end='')
         return
     if options.targets:
         # Allow "-" as a special case so you can run

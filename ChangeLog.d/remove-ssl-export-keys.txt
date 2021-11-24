@@ -1,0 +1,5 @@
+Changes
+   * Remove MBEDTLS_SSL_EXPORT_KEYS, making it always on and increasing the
+     code size by about 80B on an M0 build. This option only gated an ability
+     to set a callback, but was deemed unnecessary as it was yet another define
+     to remember when writing tests, or test configurations. Fixes #4653.

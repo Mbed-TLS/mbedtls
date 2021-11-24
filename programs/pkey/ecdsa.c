@@ -51,7 +51,7 @@
 #define ECPARAMS    MBEDTLS_ECP_DP_SECP192R1
 
 #if !defined(ECPARAMS)
-#define ECPARAMS    mbedtls_ecp_curve_list()->MBEDTLS_PRIVATE(grp_id)
+#define ECPARAMS    mbedtls_ecp_curve_list()->grp_id
 #endif
 
 #if !defined(MBEDTLS_ECDSA_C) || !defined(MBEDTLS_SHA256_C) || \

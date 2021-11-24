@@ -186,6 +186,10 @@ typedef struct mbedtls_pk_debug_item
 
 /**
  * \brief           Public key information and operations
+ *
+ * \note        The library does not support custom pk info structures,
+ *              only built-in structures returned by
+ *              mbedtls_cipher_info_from_type().
  */
 typedef struct mbedtls_pk_info_t mbedtls_pk_info_t;
 

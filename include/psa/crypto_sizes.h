@@ -79,6 +79,38 @@
         PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA3_512 ? 64 :       \
         0)
 
+/** The input block size of a hash algorithm, in bytes.
+ *
+ * Hash algorithms process their input data in blocks. Hash operations will
+ * retain any partial blocks until they have enough input to fill the block or
+ * until the operation is finished.
+ * This affects the output from psa_hash_suspend().
+ *
+ * \param alg   A hash algorithm (\c PSA_ALG_XXX value such that
+ *              PSA_ALG_IS_HASH(\p alg) is true).
+ *
+ * \return      The block size in bytes for the specified hash algorithm.
+ *              If the hash algorithm is not recognized, return 0.
+ *              An implementation can return either 0 or the correct size for a
+ *              hash algorithm that it recognizes, but does not support.
+ */
+#define PSA_HASH_BLOCK_LENGTH(alg)                                  \
+    (                                                               \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_MD5 ? 64 :            \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_RIPEMD160 ? 64 :      \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA_1 ? 64 :          \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA_224 ? 64 :        \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA_256 ? 64 :        \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA_384 ? 128 :       \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA_512 ? 128 :       \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA_512_224 ? 128 :   \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA_512_256 ? 128 :   \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA3_224 ? 144 :      \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA3_256 ? 136 :      \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA3_384 ? 104 :      \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA3_512 ? 72 :       \
+        0)
+
 /** \def PSA_HASH_MAX_SIZE
  *
  * Maximum size of a hash.
@@ -959,7 +991,8 @@
          (alg) == PSA_ALG_CBC_PKCS7) ? PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) : \
      (key_type) == PSA_KEY_TYPE_CHACHA20 && \
          (alg) == PSA_ALG_STREAM_CIPHER ? 12 : \
-     0)
+         (alg) == PSA_ALG_CCM_STAR_NO_TAG ? 13 : \
+         0)
 
 /** The maximum IV size for all supported cipher algorithms, in bytes.
  *

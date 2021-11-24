@@ -5,6 +5,9 @@ CFLAGS	?= -O2
 WARNING_CFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
 LDFLAGS ?=
 
+# Set this to -v to see the details of failing test cases
+TEST_FLAGS ?= $(if $(filter-out 0 OFF Off off NO No no FALSE False false N n,$(CTEST_OUTPUT_ON_FAILURE)),-v,)
+
 default: all
 
 # Include public header files from ../include, test-specific header files
@@ -170,7 +173,7 @@ $(BINARIES): %$(EXEXT): %.c $(MBEDLIBS) $(TEST_OBJS_DEPS) $(MBEDTLS_TEST_OBJS)
 
 clean:
 ifndef WINDOWS
-	rm -rf $(BINARIES) *.c *.datax TESTS
+	rm -rf $(BINARIES) *.c *.datax
 	rm -f src/*.o src/drivers/*.o src/libmbed*
 	rm -f include/test/instrument_record_status.h
 else
@@ -181,9 +184,6 @@ else
 	if exist src/drivers/*.o del /Q /F src/drivers/*.o
 	if exist src/libmbed* del /Q /F src/libmed*
 	if exist include/test/instrument_record_status.h del /Q /F include/test/instrument_record_status.h
-ifneq ($(wildcard TESTS/.*),)
-	rmdir /Q /S TESTS
-endif
 endif
 
 neat: clean
@@ -195,43 +195,9 @@ endif
 
 # Test suites caught by SKIP_TEST_SUITES are built but not executed.
 check: $(BINARIES)
-	perl scripts/run-test-suites.pl --skip=$(SKIP_TEST_SUITES)
+	perl scripts/run-test-suites.pl $(TEST_FLAGS) --skip=$(SKIP_TEST_SUITES)
 
 test: check
-
-# Create separate targets for generating embedded tests.
-EMBEDDED_TESTS := $(addprefix embedded_,$(APPS))
-
-# Generate test code for target.
-
-.SECONDEXPANSION:
-$(EMBEDDED_TESTS): embedded_%: suites/$$(firstword $$(subst ., ,$$*)).function suites/%.data scripts/generate_test_code.py suites/helpers.function suites/main_test.function suites/target_test.function
-	echo "  Gen  ./TESTS/mbedtls/$*/$*.c"
-	$(PYTHON) scripts/generate_test_code.py -f suites/$(firstword $(subst ., ,$*)).function \
-		-d suites/$*.data \
-		-t suites/main_test.function \
-		-p suites/target_test.function \
-		-s suites  \
-		--helpers-file suites/helpers.function \
-		-o ./TESTS/mbedtls/$*
-
-generate-target-tests: $(EMBEDDED_TESTS)
-
-define copy_header_to_target
-TESTS/mbedtls/$(1)/$(2): include/test/$(2)
-	echo "  Copy ./$$@"
-ifndef WINDOWS
-	mkdir -p $$(@D)
-	cp $$< $$@
-else
-	mkdir $$(@D)
-	copy $$< $$@
-endif
-
-endef
-$(foreach app, $(APPS), $(foreach file, $(notdir $(wildcard include/test/*.h)), \
-	$(eval $(call copy_header_to_target,$(app),$(file)))))
-$(addprefix embedded_,$(filter test_suite_psa_%, $(APPS))): embedded_%: $(patsubst TESTS/mbedtls/%, include/test/%, $(wildcard include/test/*. include/test/*/*.h))
 
 ifdef RECORD_PSA_STATUS_COVERAGE_LOG
 include/test/instrument_record_status.h: ../include/psa/crypto.h Makefile

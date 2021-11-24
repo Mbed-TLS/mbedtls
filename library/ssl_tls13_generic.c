@@ -1148,6 +1148,76 @@ void mbedtls_ssl_tls13_handshake_wrapup( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "<= handshake wrapup" ) );
 }
 
+/*
+ *
+ * STATE HANDLING: Write ChangeCipherSpec
+ *
+ */
+#if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
+
+static int ssl_tls13_write_change_cipher_spec_body( mbedtls_ssl_context *ssl,
+                                                    unsigned char *buf,
+                                                    unsigned char *end,
+                                                    size_t *olen )
+{
+    ((void) ssl);
+
+    MBEDTLS_SSL_CHK_BUF_PTR( buf, end, 1 );
+    buf[0] = 1;
+    *olen = 1;
+
+    return( 0 );
+}
+
+static int ssl_tls13_finalize_change_cipher_spec( mbedtls_ssl_context *ssl )
+{
+#if defined(MBEDTLS_SSL_SRV_C)
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+#endif /* MBEDTLS_SSL_SRV_C */
+
+#if defined(MBEDTLS_SSL_CLI_C)
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
+    {
+        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_FINISHED );
+    }
+#endif /* MBEDTLS_SSL_CLI_C */
+
+    return( 0 );
+}
+
+int mbedtls_ssl_tls13_write_change_cipher_spec( mbedtls_ssl_context *ssl )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write change cipher spec" ) );
+
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_flush_output( ssl ) );
+
+    /* Write CCS message */
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_write_change_cipher_spec_body(
+                              ssl, ssl->out_msg,
+                              ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN,
+                              &ssl->out_msglen ) );
+
+    ssl->out_msgtype = MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC;
+
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_change_cipher_spec( ssl ) );
+
+    /* Dispatch message */
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_write_record( ssl, 1 ) );
+
+cleanup:
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write change cipher spec" ) );
+    return( ret );
+}
+
+#endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 #endif /* MBEDTLS_SSL_TLS_C */

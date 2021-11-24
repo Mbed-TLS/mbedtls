@@ -2236,8 +2236,8 @@ exit:
 void ssl_mock_sanity( )
 {
     enum { MSGLEN = 105 };
-    unsigned char message[MSGLEN];
-    unsigned char received[MSGLEN];
+    unsigned char message[MSGLEN] = { 0 };
+    unsigned char received[MSGLEN] = { 0 };
     mbedtls_mock_socket socket;
 
     mbedtls_mock_socket_init( &socket );

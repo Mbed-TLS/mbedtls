@@ -86,6 +86,20 @@
 #include "mbedtls/config_psa.h"
 #endif
 
+/*
+ * Auto-enable use of PSA in PK, X.509 and TLS.
+ *
+ * This is partially a temporary measure; most code is TLS and X.509 is soon
+ * going to be using PSA unconditionally. Some code in PK is going to depend
+ * on PSA_CRYPTO_C rather than USE_PSA_CRYPTO and incompatibilities with
+ * ECP_RESTARTABLE are going to be resolved.
+ */
+#if defined(MBEDTLS_PSA_CRYPTO_C) && \
+    !defined(MBEDTLS_ECP_RESTARTABLE) && \
+    !defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
+#define MBEDTLS_USE_PSA_CRYPTO
+#endif
+
 #include "mbedtls/check_config.h"
 
 #endif /* MBEDTLS_BUILD_INFO_H */

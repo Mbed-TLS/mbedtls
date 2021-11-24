@@ -74,6 +74,14 @@
 #include MBEDTLS_USER_CONFIG_FILE
 #endif
 
+/*
+ * Auto-enable PSA so that PK, X.509 and TLS can use it.
+ * (X.509 depends on PK, so we don't need to check it.)
+ */
+#if defined(MBEDTLS_PK_C) || defined(MBEDTLS_SSL_TLS_C)
+#define MBEDTLS_PSA_CRYPTO_C
+#endif
+
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
 #include "mbedtls/config_psa.h"
 #endif

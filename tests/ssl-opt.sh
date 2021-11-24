@@ -78,7 +78,7 @@ else
 fi
 
 if [ -n "${OPENSSL_NEXT:-}" ]; then
-    O_NEXT_SRV="$OPENSSL_NEXT s_server -www -cert data_files/server7.crt -key data_files/server7.key"
+    O_NEXT_SRV="$OPENSSL_NEXT s_server -www -cert data_files/server5.crt -key data_files/server5.key"
     O_NEXT_SRV_RSA="$OPENSSL_NEXT s_server -www -cert data_files/server2-sha256.crt -key data_files/server2.key"
     O_NEXT_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_NEXT s_client"
 else

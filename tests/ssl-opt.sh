@@ -8916,12 +8916,7 @@ run_test    "TLS 1.3 m->G AES_128_GCM_SHA256      , RSA_PKCSV15_SHA256" \
             "$G_NEXT_SRV_RSA --disable-client-cert --priority=NORMAL:+CIPHER-ALL:+SHA256:+GROUP-SECP256R1:+ECDHE-ECDSA:+AEAD:+SIGN-RSA-SHA256:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
             "$P_CLI debug_level=4 force_version=tls1_3 server_name=localhost force_ciphersuite=TLS1-3-AES-128-GCM-SHA256" \
             0 \
-            -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
             -s "Ephemeral EC Diffie-Hellman parameters" \
-            -s "Version: TLS1.3" \
-            -s "Cipher: AES-128-GCM" \
-            -S "Client Signature:" \
-            -s "Server Signature: RSA-PSS-RSAE-SHA256" \
             -c "ECDH curve: x25519"         \
             -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
             -c "Certificate Verify: Signature algorithm ( 0804 )" \

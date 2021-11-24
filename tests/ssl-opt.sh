@@ -8911,6 +8911,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
+requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_gnutls_next
 run_test    "TLS 1.3 m->G AES_128_GCM_SHA256      , RSA_PKCSV15_SHA256" \
             "$G_NEXT_SRV_RSA --disable-client-cert --priority=NORMAL:+CIPHER-ALL:+SHA256:+GROUP-SECP256R1:+ECDHE-ECDSA:+AEAD:+SIGN-RSA-SHA256:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \

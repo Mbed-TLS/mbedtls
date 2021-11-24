@@ -169,7 +169,7 @@ void mbedtls_ct_mpi_uint_cond_assign( size_t n,
 
 #if defined(MBEDTLS_BASE64_C)
 
-unsigned char mbedtls_ct_base64_enc_char( unsigned char val );
+unsigned char mbedtls_ct_base64_enc_char( unsigned char value );
 
 signed char mbedtls_ct_base64_dec_value( unsigned char c );
 

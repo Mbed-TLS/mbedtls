@@ -331,17 +331,17 @@ void mbedtls_ct_mpi_uint_cond_assign( size_t n,
  * The implementation assumes that letters are consecutive (e.g. ASCII
  * but not EBCDIC).
  */
-unsigned char mbedtls_ct_base64_enc_char( unsigned char val )
+unsigned char mbedtls_ct_base64_enc_char( unsigned char value )
 {
     unsigned char digit = 0;
-    /* For each range of values, if val is in that range, mask digit with
-     * the corresponding value. Since val can only be in a single range,
+    /* For each range of values, if value is in that range, mask digit with
+     * the corresponding value. Since value can only be in a single range,
      * only at most one masking will change digit. */
-    digit |= mbedtls_ct_uchar_mask_of_range(  0, 25, val ) & ( 'A' + val );
-    digit |= mbedtls_ct_uchar_mask_of_range( 26, 51, val ) & ( 'a' + val - 26 );
-    digit |= mbedtls_ct_uchar_mask_of_range( 52, 61, val ) & ( '0' + val - 52 );
-    digit |= mbedtls_ct_uchar_mask_of_range( 62, 62, val ) & '+';
-    digit |= mbedtls_ct_uchar_mask_of_range( 63, 63, val ) & '/';
+    digit |= mbedtls_ct_uchar_mask_of_range(  0, 25, value ) & ( 'A' + value );
+    digit |= mbedtls_ct_uchar_mask_of_range( 26, 51, value ) & ( 'a' + value - 26 );
+    digit |= mbedtls_ct_uchar_mask_of_range( 52, 61, value ) & ( '0' + value - 52 );
+    digit |= mbedtls_ct_uchar_mask_of_range( 62, 62, value ) & '+';
+    digit |= mbedtls_ct_uchar_mask_of_range( 63, 63, value ) & '/';
     return( digit );
 }
 

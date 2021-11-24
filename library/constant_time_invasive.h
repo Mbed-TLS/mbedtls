@@ -31,9 +31,16 @@
 
 #if defined(MBEDTLS_TEST_HOOKS)
 
-/* Return 0xff if low <= c <= high, 0 otherwise.
+/** Turn a value into a mask:
+ * - if \p low <= \p c <= \p high,
+ *   return the all-bits 1 mask, aka (unsigned) -1
+ * - otherwise, return the all-bits 0 mask, aka 0
  *
- * Constant flow with respect to c.
+ * \param low   The value to analyze.
+ * \param high  The value to analyze.
+ * \param c     The value to analyze.
+ *
+ * \return      All-bits-one if \p low <= \p c <= \p high, otherwise zero.
  */
 unsigned char mbedtls_ct_uchar_mask_of_range( unsigned char low,
                                               unsigned char high,

@@ -112,7 +112,7 @@ class PsaCrypto(Common):
             crypto_reference.HashAlgorithm.from_psa(m.group(1))
         )
         # Parse the output key type
-        m = re.match(r'(\w+)\(([\w,]*)\)?', key_type)
+        m = re.match(r'(\w+)(?:\(([\w,]*)\))?', key_type)
         if not m:
             raise TypeError('PSA key type', key_type)
         params = None if m.group(2) is None else m.group(2).split(',')

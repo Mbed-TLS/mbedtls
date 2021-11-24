@@ -80,18 +80,22 @@ fi
 if [ -n "${OPENSSL_NEXT:-}" ]; then
     O_NEXT_SRV="$OPENSSL_NEXT s_server -www -cert data_files/server5.crt -key data_files/server5.key"
     O_NEXT_SRV_RSA="$OPENSSL_NEXT s_server -www -cert data_files/server2-sha256.crt -key data_files/server2.key"
+    O_NEXT_SRV_NO_CERT="$OPENSSL_NEXT s_server -www "
     O_NEXT_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_NEXT s_client"
 else
     O_NEXT_SRV=false
     O_NEXT_SRV_RSA=false
+    O_NEXT_SRV_NO_CERT=false
     O_NEXT_CLI=false
 fi
 
 if [ -n "${GNUTLS_NEXT_SERV:-}" ]; then
     G_NEXT_SRV="$GNUTLS_NEXT_SERV --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key"
     G_NEXT_SRV_RSA="$GNUTLS_NEXT_SERV --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key"
+    G_NEXT_SRV_NO_CERT="$GNUTLS_NEXT_SERV"
 else
     G_NEXT_SRV=false
+    G_NEXT_SRV_NO_CERT=false
     G_NEXT_SRV_RSA=false
 fi
 
@@ -1289,6 +1293,26 @@ run_tests_memory_after_hanshake()
     run_test_memory_after_hanshake_with_mfl 512 "$MEMORY_USAGE_MFL_16K"
 }
 
+run_test_tls13_compat()
+{
+    for server in $(scripts/generate_tls13_compat_tests.py --list-servers)
+    do
+        for client in $(scripts/generate_tls13_compat_tests.py --list-clients)
+        do
+            for cipher in $(scripts/generate_tls13_compat_tests.py --list-ciphers)
+            do
+                for sig_alg in $(scripts/generate_tls13_compat_tests.py --list-sig-algs)
+                do
+                    for named_group in $(scripts/generate_tls13_compat_tests.py --list-named-groups)
+                    do
+                        eval "$(scripts/generate_tls13_compat_tests.py $server $client $cipher $sig_alg $named_group)"
+                    done
+                done
+            done
+        done
+    done
+}
+
 cleanup() {
     rm -f $CLI_OUT $SRV_OUT $PXY_OUT $SESSION
     rm -f context_srv.txt
@@ -1421,12 +1445,14 @@ fi
 if [ -n "${OPENSSL_NEXT:-}" ]; then
     O_NEXT_SRV="$O_NEXT_SRV -accept $SRV_PORT"
     O_NEXT_SRV_RSA="$O_NEXT_SRV_RSA -accept $SRV_PORT"
+    O_NEXT_SRV_NO_CERT="$O_NEXT_SRV_NO_CERT -accept $SRV_PORT"
     O_NEXT_CLI="$O_NEXT_CLI -connect 127.0.0.1:+SRV_PORT"
 fi
 
 if [ -n "${GNUTLS_NEXT_SERV:-}" ]; then
     G_NEXT_SRV="$G_NEXT_SRV -p $SRV_PORT"
     G_NEXT_SRV_RSA="$G_NEXT_SRV_RSA -p $SRV_PORT"
+    G_NEXT_SRV_NO_CERT="$G_NEXT_SRV_NO_CERT -p $SRV_PORT"
 fi
 
 if [ -n "${GNUTLS_NEXT_CLI:-}" ]; then
@@ -9023,6 +9049,8 @@ run_test    "TLS1.3: HelloRetryRequest check - gnutls" \
             -c "HRR not supported" \
             -c "Last error was: -0x6E00 - SSL - The handshake negotiation failed" \
             -s "HELLO RETRY REQUEST was queued"
+
+run_test_tls13_compat
 
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_MEMORY_DEBUG

@@ -36,6 +36,7 @@
 #include "ssl_misc.h"
 #include "mbedtls/error.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/constant_time.h"
 
 #include <string.h>
 
@@ -223,7 +224,7 @@ int mbedtls_ssl_cookie_check( void *p_ctx,
     if( ret != 0 )
         return( ret );
 
-    if( mbedtls_ssl_safer_memcmp( cookie + 4, ref_hmac, sizeof( ref_hmac ) ) != 0 )
+    if( mbedtls_ct_memcmp( cookie + 4, ref_hmac, sizeof( ref_hmac ) ) != 0 )
         return( -1 );
 
 #if defined(MBEDTLS_HAVE_TIME)

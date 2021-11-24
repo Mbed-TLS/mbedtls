@@ -34,6 +34,7 @@
 #include "mbedtls/nist_kw.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
+#include "mbedtls/constant_time.h"
 
 #include <stdint.h>
 #include <string.h>
@@ -51,26 +52,6 @@
 
 #define KW_SEMIBLOCK_LENGTH    8
 #define MIN_SEMIBLOCKS_COUNT   3
-
-/* constant-time buffer comparison */
-static inline unsigned char mbedtls_nist_kw_safer_memcmp( const void *a, const void *b, size_t n )
-{
-    size_t i;
-    volatile const unsigned char *A = (volatile const unsigned char *) a;
-    volatile const unsigned char *B = (volatile const unsigned char *) b;
-    volatile unsigned char diff = 0;
-
-    for( i = 0; i < n; i++ )
-    {
-        /* Read volatile data in order before computing diff.
-         * This avoids IAR compiler warning:
-         * 'the order of volatile accesses is undefined ..' */
-        unsigned char x = A[i], y = B[i];
-        diff |= x ^ y;
-    }
-
-    return( diff );
-}
 
 /*! The 64-bit default integrity check value (ICV) for KW mode. */
 static const unsigned char NIST_KW_ICV1[] = {0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6};
@@ -398,7 +379,7 @@ int mbedtls_nist_kw_unwrap( mbedtls_nist_kw_context *ctx,
             goto cleanup;
 
         /* Check ICV in "constant-time" */
-        diff = mbedtls_nist_kw_safer_memcmp( NIST_KW_ICV1, A, KW_SEMIBLOCK_LENGTH );
+        diff = mbedtls_ct_memcmp( NIST_KW_ICV1, A, KW_SEMIBLOCK_LENGTH );
 
         if( diff != 0 )
         {
@@ -447,7 +428,7 @@ int mbedtls_nist_kw_unwrap( mbedtls_nist_kw_context *ctx,
         }
 
         /* Check ICV in "constant-time" */
-        diff = mbedtls_nist_kw_safer_memcmp( NIST_KW_ICV2, A, KW_SEMIBLOCK_LENGTH / 2 );
+        diff = mbedtls_ct_memcmp( NIST_KW_ICV2, A, KW_SEMIBLOCK_LENGTH / 2 );
 
         if( diff != 0 )
         {

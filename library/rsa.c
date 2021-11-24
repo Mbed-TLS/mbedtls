@@ -44,6 +44,8 @@
 #include "mbedtls/oid.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
+#include "constant_time_internal.h"
+#include "mbedtls/constant_time.h"
 
 #include <string.h>
 
@@ -71,22 +73,6 @@
     MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_RSA_BAD_INPUT_DATA )
 #define RSA_VALIDATE( cond )                                           \
     MBEDTLS_INTERNAL_VALIDATE( cond )
-
-#if defined(MBEDTLS_PKCS1_V15)
-/* constant-time buffer comparison */
-static inline int mbedtls_safer_memcmp( const void *a, const void *b, size_t n )
-{
-    size_t i;
-    const unsigned char *A = (const unsigned char *) a;
-    const unsigned char *B = (const unsigned char *) b;
-    unsigned char diff = 0;
-
-    for( i = 0; i < n; i++ )
-        diff |= A[i] ^ B[i];
-
-    return( diff );
-}
-#endif /* MBEDTLS_PKCS1_V15 */
 
 int mbedtls_rsa_import( mbedtls_rsa_context *ctx,
                         const mbedtls_mpi *N,
@@ -1473,97 +1459,6 @@ cleanup:
 #endif /* MBEDTLS_PKCS1_V21 */
 
 #if defined(MBEDTLS_PKCS1_V15)
-/** Turn zero-or-nonzero into zero-or-all-bits-one, without branches.
- *
- * \param value     The value to analyze.
- * \return          Zero if \p value is zero, otherwise all-bits-one.
- */
-static unsigned all_or_nothing_int( unsigned value )
-{
-    /* MSVC has a warning about unary minus on unsigned, but this is
-     * well-defined and precisely what we want to do here */
-#if defined(_MSC_VER)
-#pragma warning( push )
-#pragma warning( disable : 4146 )
-#endif
-    return( - ( ( value | - value ) >> ( sizeof( value ) * 8 - 1 ) ) );
-#if defined(_MSC_VER)
-#pragma warning( pop )
-#endif
-}
-
-/** Check whether a size is out of bounds, without branches.
- *
- * This is equivalent to `size > max`, but is likely to be compiled to
- * to code using bitwise operation rather than a branch.
- *
- * \param size      Size to check.
- * \param max       Maximum desired value for \p size.
- * \return          \c 0 if `size <= max`.
- * \return          \c 1 if `size > max`.
- */
-static unsigned size_greater_than( size_t size, size_t max )
-{
-    /* Return the sign bit (1 for negative) of (max - size). */
-    return( ( max - size ) >> ( sizeof( size_t ) * 8 - 1 ) );
-}
-
-/** Choose between two integer values, without branches.
- *
- * This is equivalent to `cond ? if1 : if0`, but is likely to be compiled
- * to code using bitwise operation rather than a branch.
- *
- * \param cond      Condition to test.
- * \param if1       Value to use if \p cond is nonzero.
- * \param if0       Value to use if \p cond is zero.
- * \return          \c if1 if \p cond is nonzero, otherwise \c if0.
- */
-static unsigned if_int( unsigned cond, unsigned if1, unsigned if0 )
-{
-    unsigned mask = all_or_nothing_int( cond );
-    return( ( mask & if1 ) | (~mask & if0 ) );
-}
-
-/** Shift some data towards the left inside a buffer without leaking
- * the length of the data through side channels.
- *
- * `mem_move_to_left(start, total, offset)` is functionally equivalent to
- * ```
- * memmove(start, start + offset, total - offset);
- * memset(start + offset, 0, total - offset);
- * ```
- * but it strives to use a memory access pattern (and thus total timing)
- * that does not depend on \p offset. This timing independence comes at
- * the expense of performance.
- *
- * \param start     Pointer to the start of the buffer.
- * \param total     Total size of the buffer.
- * \param offset    Offset from which to copy \p total - \p offset bytes.
- */
-static void mem_move_to_left( void *start,
-                              size_t total,
-                              size_t offset )
-{
-    volatile unsigned char *buf = start;
-    size_t i, n;
-    if( total == 0 )
-        return;
-    for( i = 0; i < total; i++ )
-    {
-        unsigned no_op = size_greater_than( total - offset, i );
-        /* The first `total - offset` passes are a no-op. The last
-         * `offset` passes shift the data one byte to the left and
-         * zero out the last byte. */
-        for( n = 0; n < total - 1; n++ )
-        {
-            unsigned char current = buf[n];
-            unsigned char next = buf[n+1];
-            buf[n] = if_int( no_op, current, next );
-        }
-        buf[total-1] = if_int( no_op, buf[total-1], 0 );
-    }
-}
-
 /*
  * Implementation of the PKCS#1 v2.1 RSAES-PKCS1-V1_5-DECRYPT function
  */
@@ -1576,23 +1471,8 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
                                  size_t output_max_len )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t ilen, i, plaintext_max_size;
+    size_t ilen;
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
-    /* The following variables take sensitive values: their value must
-     * not leak into the observable behavior of the function other than
-     * the designated outputs (output, olen, return value). Otherwise
-     * this would open the execution of the function to
-     * side-channel-based variants of the Bleichenbacher padding oracle
-     * attack. Potential side channels include overall timing, memory
-     * access patterns (especially visible to an adversary who has access
-     * to a shared memory cache), and branches (especially visible to
-     * an adversary who has access to a shared code cache or to a shared
-     * branch predictor). */
-    size_t pad_count = 0;
-    unsigned bad = 0;
-    unsigned char pad_done = 0;
-    size_t plaintext_size = 0;
-    unsigned output_too_large;
 
     RSA_VALIDATE_RET( ctx != NULL );
     RSA_VALIDATE_RET( output_max_len == 0 || output != NULL );
@@ -1600,9 +1480,6 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
     RSA_VALIDATE_RET( olen != NULL );
 
     ilen = ctx->len;
-    plaintext_max_size = ( output_max_len > ilen - 11 ?
-                           ilen - 11 :
-                           output_max_len );
 
     if( ctx->padding != MBEDTLS_RSA_PKCS_V15 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
@@ -1615,98 +1492,8 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
     if( ret != 0 )
         goto cleanup;
 
-    /* Check and get padding length in constant time and constant
-     * memory trace. The first byte must be 0. */
-    bad |= buf[0];
-
-
-    /* Decode EME-PKCS1-v1_5 padding: 0x00 || 0x02 || PS || 0x00
-        * where PS must be at least 8 nonzero bytes. */
-    bad |= buf[1] ^ MBEDTLS_RSA_CRYPT;
-
-    /* Read the whole buffer. Set pad_done to nonzero if we find
-        * the 0x00 byte and remember the padding length in pad_count. */
-    for( i = 2; i < ilen; i++ )
-    {
-        pad_done  |= ((buf[i] | (unsigned char)-buf[i]) >> 7) ^ 1;
-        pad_count += ((pad_done | (unsigned char)-pad_done) >> 7) ^ 1;
-    }
-
-
-    /* If pad_done is still zero, there's no data, only unfinished padding. */
-    bad |= if_int( pad_done, 0, 1 );
-
-    /* There must be at least 8 bytes of padding. */
-    bad |= size_greater_than( 8, pad_count );
-
-    /* If the padding is valid, set plaintext_size to the number of
-     * remaining bytes after stripping the padding. If the padding
-     * is invalid, avoid leaking this fact through the size of the
-     * output: use the maximum message size that fits in the output
-     * buffer. Do it without branches to avoid leaking the padding
-     * validity through timing. RSA keys are small enough that all the
-     * size_t values involved fit in unsigned int. */
-    plaintext_size = if_int( bad,
-                             (unsigned) plaintext_max_size,
-                             (unsigned) ( ilen - pad_count - 3 ) );
-
-    /* Set output_too_large to 0 if the plaintext fits in the output
-     * buffer and to 1 otherwise. */
-    output_too_large = size_greater_than( plaintext_size,
-                                          plaintext_max_size );
-
-    /* Set ret without branches to avoid timing attacks. Return:
-     * - INVALID_PADDING if the padding is bad (bad != 0).
-     * - OUTPUT_TOO_LARGE if the padding is good but the decrypted
-     *   plaintext does not fit in the output buffer.
-     * - 0 if the padding is correct. */
-    ret = - (int) if_int( bad, - MBEDTLS_ERR_RSA_INVALID_PADDING,
-                  if_int( output_too_large, - MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE,
-                          0 ) );
-
-    /* If the padding is bad or the plaintext is too large, zero the
-     * data that we're about to copy to the output buffer.
-     * We need to copy the same amount of data
-     * from the same buffer whether the padding is good or not to
-     * avoid leaking the padding validity through overall timing or
-     * through memory or cache access patterns. */
-    bad = all_or_nothing_int( bad | output_too_large );
-    for( i = 11; i < ilen; i++ )
-        buf[i] &= ~bad;
-
-    /* If the plaintext is too large, truncate it to the buffer size.
-     * Copy anyway to avoid revealing the length through timing, because
-     * revealing the length is as bad as revealing the padding validity
-     * for a Bleichenbacher attack. */
-    plaintext_size = if_int( output_too_large,
-                             (unsigned) plaintext_max_size,
-                             (unsigned) plaintext_size );
-
-    /* Move the plaintext to the leftmost position where it can start in
-     * the working buffer, i.e. make it start plaintext_max_size from
-     * the end of the buffer. Do this with a memory access trace that
-     * does not depend on the plaintext size. After this move, the
-     * starting location of the plaintext is no longer sensitive
-     * information. */
-    mem_move_to_left( buf + ilen - plaintext_max_size,
-                      plaintext_max_size,
-                      plaintext_max_size - plaintext_size );
-
-    /* Finally copy the decrypted plaintext plus trailing zeros into the output
-     * buffer. If output_max_len is 0, then output may be an invalid pointer
-     * and the result of memcpy() would be undefined; prevent undefined
-     * behavior making sure to depend only on output_max_len (the size of the
-     * user-provided output buffer), which is independent from plaintext
-     * length, validity of padding, success of the decryption, and other
-     * secrets. */
-    if( output_max_len != 0 )
-        memcpy( output, buf + ilen - plaintext_max_size, plaintext_max_size );
-
-    /* Report the amount of data we copied to the output buffer. In case
-     * of errors (bad padding or output too large), the value of *olen
-     * when this function returns is not specified. Making it equivalent
-     * to the good case limits the risks of leaking the padding validity. */
-    *olen = plaintext_size;
+    ret = mbedtls_ct_rsaes_pkcs1_v15_unpadding( buf, ilen,
+                                                output, output_max_len, olen );
 
 cleanup:
     mbedtls_platform_zeroize( buf, sizeof( buf ) );
@@ -2100,7 +1887,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
     MBEDTLS_MPI_CHK( mbedtls_rsa_private( ctx, f_rng, p_rng, sig, sig_try ) );
     MBEDTLS_MPI_CHK( mbedtls_rsa_public( ctx, sig_try, verif ) );
 
-    if( mbedtls_safer_memcmp( verif, sig, ctx->len ) != 0 )
+    if( mbedtls_ct_memcmp( verif, sig, ctx->len ) != 0 )
     {
         ret = MBEDTLS_ERR_RSA_PRIVATE_FAILED;
         goto cleanup;
@@ -2372,8 +2159,8 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
      * Compare
      */
 
-    if( ( ret = mbedtls_safer_memcmp( encoded, encoded_expected,
-                                      sig_len ) ) != 0 )
+    if( ( ret = mbedtls_ct_memcmp( encoded, encoded_expected,
+                                              sig_len ) ) != 0 )
     {
         ret = MBEDTLS_ERR_RSA_VERIFY_FAILED;
         goto cleanup;

@@ -40,8 +40,8 @@
 #include "mbedtls/error.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/version.h"
-
-#include "ssl_invasive.h"
+#include "constant_time_internal.h"
+#include "mbedtls/constant_time.h"
 
 #include <string.h>
 
@@ -961,242 +961,6 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
-#if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
-/*
- * Turn a bit into a mask:
- * - if bit == 1, return the all-bits 1 mask, aka (size_t) -1
- * - if bit == 0, return the all-bits 0 mask, aka 0
- *
- * This function can be used to write constant-time code by replacing branches
- * with bit operations using masks.
- *
- * This function is implemented without using comparison operators, as those
- * might be translated to branches by some compilers on some platforms.
- */
-static size_t mbedtls_ssl_cf_mask_from_bit( size_t bit )
-{
-    /* MSVC has a warning about unary minus on unsigned integer types,
-     * but this is well-defined and precisely what we want to do here. */
-#if defined(_MSC_VER)
-#pragma warning( push )
-#pragma warning( disable : 4146 )
-#endif
-    return -bit;
-#if defined(_MSC_VER)
-#pragma warning( pop )
-#endif
-}
-
-/*
- * Constant-flow mask generation for "less than" comparison:
- * - if x < y,  return all bits 1, that is (size_t) -1
- * - otherwise, return all bits 0, that is 0
- *
- * This function can be used to write constant-time code by replacing branches
- * with bit operations using masks.
- *
- * This function is implemented without using comparison operators, as those
- * might be translated to branches by some compilers on some platforms.
- */
-static size_t mbedtls_ssl_cf_mask_lt( size_t x, size_t y )
-{
-    /* This has the most significant bit set if and only if x < y */
-    const size_t sub = x - y;
-
-    /* sub1 = (x < y) ? 1 : 0 */
-    const size_t sub1 = sub >> ( sizeof( sub ) * 8 - 1 );
-
-    /* mask = (x < y) ? 0xff... : 0x00... */
-    const size_t mask = mbedtls_ssl_cf_mask_from_bit( sub1 );
-
-    return( mask );
-}
-
-/*
- * Constant-flow mask generation for "greater or equal" comparison:
- * - if x >= y, return all bits 1, that is (size_t) -1
- * - otherwise, return all bits 0, that is 0
- *
- * This function can be used to write constant-time code by replacing branches
- * with bit operations using masks.
- *
- * This function is implemented without using comparison operators, as those
- * might be translated to branches by some compilers on some platforms.
- */
-static size_t mbedtls_ssl_cf_mask_ge( size_t x, size_t y )
-{
-    return( ~mbedtls_ssl_cf_mask_lt( x, y ) );
-}
-
-/*
- * Constant-flow boolean "equal" comparison:
- * return x == y
- *
- * This function can be used to write constant-time code by replacing branches
- * with bit operations - it can be used in conjunction with
- * mbedtls_ssl_cf_mask_from_bit().
- *
- * This function is implemented without using comparison operators, as those
- * might be translated to branches by some compilers on some platforms.
- */
-static size_t mbedtls_ssl_cf_bool_eq( size_t x, size_t y )
-{
-    /* diff = 0 if x == y, non-zero otherwise */
-    const size_t diff = x ^ y;
-
-    /* MSVC has a warning about unary minus on unsigned integer types,
-     * but this is well-defined and precisely what we want to do here. */
-#if defined(_MSC_VER)
-#pragma warning( push )
-#pragma warning( disable : 4146 )
-#endif
-
-    /* diff_msb's most significant bit is equal to x != y */
-    const size_t diff_msb = ( diff | -diff );
-
-#if defined(_MSC_VER)
-#pragma warning( pop )
-#endif
-
-    /* diff1 = (x != y) ? 1 : 0 */
-    const size_t diff1 = diff_msb >> ( sizeof( diff_msb ) * 8 - 1 );
-
-    return( 1 ^ diff1 );
-}
-
-/*
- * Constant-flow conditional memcpy:
- *  - if c1 == c2, equivalent to memcpy(dst, src, len),
- *  - otherwise, a no-op,
- * but with execution flow independent of the values of c1 and c2.
- *
- * This function is implemented without using comparison operators, as those
- * might be translated to branches by some compilers on some platforms.
- */
-static void mbedtls_ssl_cf_memcpy_if_eq( unsigned char *dst,
-                                         const unsigned char *src,
-                                         size_t len,
-                                         size_t c1, size_t c2 )
-{
-    /* mask = c1 == c2 ? 0xff : 0x00 */
-    const size_t equal = mbedtls_ssl_cf_bool_eq( c1, c2 );
-    const unsigned char mask = (unsigned char) mbedtls_ssl_cf_mask_from_bit( equal );
-
-    /* dst[i] = c1 == c2 ? src[i] : dst[i] */
-    for( size_t i = 0; i < len; i++ )
-        dst[i] = ( src[i] & mask ) | ( dst[i] & ~mask );
-}
-
-/*
- * Compute HMAC of variable-length data with constant flow.
- *
- * Only works with MD-5, SHA-1, SHA-256 and SHA-384.
- * (Otherwise, computation of block_size needs to be adapted.)
- */
-MBEDTLS_STATIC_TESTABLE int mbedtls_ssl_cf_hmac(
-        mbedtls_md_context_t *ctx,
-        const unsigned char *add_data, size_t add_data_len,
-        const unsigned char *data, size_t data_len_secret,
-        size_t min_data_len, size_t max_data_len,
-        unsigned char *output )
-{
-    /*
-     * This function breaks the HMAC abstraction and uses the md_clone()
-     * extension to the MD API in order to get constant-flow behaviour.
-     *
-     * HMAC(msg) is defined as HASH(okey + HASH(ikey + msg)) where + means
-     * concatenation, and okey/ikey are the XOR of the key with some fixed bit
-     * patterns (see RFC 2104, sec. 2), which are stored in ctx->hmac_ctx.
-     *
-     * We'll first compute inner_hash = HASH(ikey + msg) by hashing up to
-     * minlen, then cloning the context, and for each byte up to maxlen
-     * finishing up the hash computation, keeping only the correct result.
-     *
-     * Then we only need to compute HASH(okey + inner_hash) and we're done.
-     */
-    const mbedtls_md_type_t md_alg = mbedtls_md_get_type( ctx->md_info );
-    /* TLS 1.2 only supports SHA-384, SHA-256, SHA-1, MD-5,
-     * all of which have the same block size except SHA-384. */
-    const size_t block_size = md_alg == MBEDTLS_MD_SHA384 ? 128 : 64;
-    const unsigned char * const ikey = ctx->hmac_ctx;
-    const unsigned char * const okey = ikey + block_size;
-    const size_t hash_size = mbedtls_md_get_size( ctx->md_info );
-
-    unsigned char aux_out[MBEDTLS_MD_MAX_SIZE];
-    mbedtls_md_context_t aux;
-    size_t offset;
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
-    mbedtls_md_init( &aux );
-
-#define MD_CHK( func_call ) \
-    do {                    \
-        ret = (func_call);  \
-        if( ret != 0 )      \
-            goto cleanup;   \
-    } while( 0 )
-
-    MD_CHK( mbedtls_md_setup( &aux, ctx->md_info, 0 ) );
-
-    /* After hmac_start() of hmac_reset(), ikey has already been hashed,
-     * so we can start directly with the message */
-    MD_CHK( mbedtls_md_update( ctx, add_data, add_data_len ) );
-    MD_CHK( mbedtls_md_update( ctx, data, min_data_len ) );
-
-    /* For each possible length, compute the hash up to that point */
-    for( offset = min_data_len; offset <= max_data_len; offset++ )
-    {
-        MD_CHK( mbedtls_md_clone( &aux, ctx ) );
-        MD_CHK( mbedtls_md_finish( &aux, aux_out ) );
-        /* Keep only the correct inner_hash in the output buffer */
-        mbedtls_ssl_cf_memcpy_if_eq( output, aux_out, hash_size,
-                                     offset, data_len_secret );
-
-        if( offset < max_data_len )
-            MD_CHK( mbedtls_md_update( ctx, data + offset, 1 ) );
-    }
-
-    /* The context needs to finish() before it starts() again */
-    MD_CHK( mbedtls_md_finish( ctx, aux_out ) );
-
-    /* Now compute HASH(okey + inner_hash) */
-    MD_CHK( mbedtls_md_starts( ctx ) );
-    MD_CHK( mbedtls_md_update( ctx, okey, block_size ) );
-    MD_CHK( mbedtls_md_update( ctx, output, hash_size ) );
-    MD_CHK( mbedtls_md_finish( ctx, output ) );
-
-    /* Done, get ready for next time */
-    MD_CHK( mbedtls_md_hmac_reset( ctx ) );
-
-#undef MD_CHK
-
-cleanup:
-    mbedtls_md_free( &aux );
-    return( ret );
-}
-
-/*
- * Constant-flow memcpy from variable position in buffer.
- * - functionally equivalent to memcpy(dst, src + offset_secret, len)
- * - but with execution flow independent from the value of offset_secret.
- */
-MBEDTLS_STATIC_TESTABLE void mbedtls_ssl_cf_memcpy_offset(
-                                   unsigned char *dst,
-                                   const unsigned char *src_base,
-                                   size_t offset_secret,
-                                   size_t offset_min, size_t offset_max,
-                                   size_t len )
-{
-    size_t offset;
-
-    for( offset = offset_min; offset <= offset_max; offset++ )
-    {
-        mbedtls_ssl_cf_memcpy_if_eq( dst, src_base + offset, len,
-                                     offset, offset_secret );
-    }
-}
-#endif /* MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
-
 int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
                              mbedtls_ssl_transform *transform,
                              mbedtls_record *rec )
@@ -1434,7 +1198,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
              *
              * Afterwards, we know that data + data_len is followed by at
              * least maclen Bytes, which justifies the call to
-             * mbedtls_ssl_safer_memcmp() below.
+             * mbedtls_ct_memcmp() below.
              *
              * Further, we still know that data_len > minlen */
             rec->data_len -= transform->maclen;
@@ -1458,8 +1222,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
                                    transform->maclen );
 
             /* Compare expected MAC with MAC at the end of the record. */
-            if( mbedtls_ssl_safer_memcmp( data + rec->data_len, mac_expect,
-                                          transform->maclen ) != 0 )
+            if( mbedtls_ct_memcmp( data + rec->data_len, mac_expect,
+                                              transform->maclen ) != 0 )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "message mac does not match" ) );
                 return( MBEDTLS_ERR_SSL_INVALID_MAC );
@@ -1520,7 +1284,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
 
         if( auth_done == 1 )
         {
-            const size_t mask = mbedtls_ssl_cf_mask_ge(
+            const size_t mask = mbedtls_ct_size_mask_ge(
                                 rec->data_len,
                                 padlen + 1 );
             correct &= mask;
@@ -1540,7 +1304,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
             }
 #endif
 
-            const size_t mask = mbedtls_ssl_cf_mask_ge(
+            const size_t mask = mbedtls_ct_size_mask_ge(
                                 rec->data_len,
                                 transform->maclen + padlen + 1 );
             correct &= mask;
@@ -1574,18 +1338,18 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
             /* pad_count += (idx >= padding_idx) &&
                 *              (check[idx] == padlen - 1);
                 */
-            const size_t mask = mbedtls_ssl_cf_mask_ge( idx, padding_idx );
-            const size_t equal = mbedtls_ssl_cf_bool_eq( check[idx],
-                                                            padlen - 1 );
+            const size_t mask = mbedtls_ct_size_mask_ge( idx, padding_idx );
+            const size_t equal = mbedtls_ct_size_bool_eq( check[idx],
+                                                          padlen - 1 );
             pad_count += mask & equal;
         }
-        correct &= mbedtls_ssl_cf_bool_eq( pad_count, padlen );
+        correct &= mbedtls_ct_size_bool_eq( pad_count, padlen );
 
 #if defined(MBEDTLS_SSL_DEBUG_ALL)
         if( padlen > 0 && correct == 0 )
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad padding byte detected" ) );
 #endif
-        padlen &= mbedtls_ssl_cf_mask_from_bit( correct );
+        padlen &= mbedtls_ct_size_mask( correct );
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
@@ -1649,20 +1413,20 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
         const size_t max_len = rec->data_len + padlen;
         const size_t min_len = ( max_len > 256 ) ? max_len - 256 : 0;
 
-        ret = mbedtls_ssl_cf_hmac( &transform->md_ctx_dec,
-                                    add_data, add_data_len,
-                                    data, rec->data_len, min_len, max_len,
-                                    mac_expect );
+        ret = mbedtls_ct_hmac( &transform->md_ctx_dec,
+                               add_data, add_data_len,
+                               data, rec->data_len, min_len, max_len,
+                               mac_expect );
         if( ret != 0 )
         {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_cf_hmac", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ct_hmac", ret );
             return( ret );
         }
 
-        mbedtls_ssl_cf_memcpy_offset( mac_peer, data,
-                                        rec->data_len,
-                                        min_len, max_len,
-                                        transform->maclen );
+        mbedtls_ct_memcpy_offset( mac_peer, data,
+                                  rec->data_len,
+                                  min_len, max_len,
+                                  transform->maclen );
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #if defined(MBEDTLS_SSL_DEBUG_ALL)
@@ -1670,8 +1434,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
         MBEDTLS_SSL_DEBUG_BUF( 4, "message  mac", mac_peer, transform->maclen );
 #endif
 
-        if( mbedtls_ssl_safer_memcmp( mac_peer, mac_expect,
-                                      transform->maclen ) != 0 )
+        if( mbedtls_ct_memcmp( mac_peer, mac_expect,
+                                          transform->maclen ) != 0 )
         {
 #if defined(MBEDTLS_SSL_DEBUG_ALL)
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "message mac does not match" ) );

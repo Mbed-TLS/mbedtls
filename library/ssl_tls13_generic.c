@@ -29,6 +29,7 @@
 #include "mbedtls/debug.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/platform.h"
+#include "mbedtls/constant_time.h"
 #include <string.h>
 
 #include "ssl_misc.h"
@@ -903,9 +904,9 @@ static int ssl_tls13_parse_finished_message( mbedtls_ssl_context *ssl,
                            expected_verify_data_len );
 
     /* Semantic validation */
-    if( mbedtls_ssl_safer_memcmp( buf,
-                                  expected_verify_data,
-                                  expected_verify_data_len ) != 0 )
+    if( mbedtls_ct_memcmp( buf,
+                           expected_verify_data,
+                           expected_verify_data_len ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
 

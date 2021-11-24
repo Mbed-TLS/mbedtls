@@ -327,10 +327,6 @@ void mbedtls_ct_mpi_uint_cond_assign( size_t n,
 
 #if defined(MBEDTLS_BASE64_C)
 
-/* Given a value in the range 0..63, return the corresponding Base64 digit.
- * The implementation assumes that letters are consecutive (e.g. ASCII
- * but not EBCDIC).
- */
 unsigned char mbedtls_ct_base64_enc_char( unsigned char value )
 {
     unsigned char digit = 0;
@@ -345,17 +341,6 @@ unsigned char mbedtls_ct_base64_enc_char( unsigned char value )
     return( digit );
 }
 
-/* Given a Base64 digit, return its value.
- * If c is not a Base64 digit ('A'..'Z', 'a'..'z', '0'..'9', '+' or '/'),
- * return -1.
- *
- * The implementation assumes that letters are consecutive (e.g. ASCII
- * but not EBCDIC).
- *
- * The implementation is constant-flow (no branch or memory access depending
- * on the value of c) unless the compiler inlines and optimizes a specific
- * access.
- */
 signed char mbedtls_ct_base64_dec_value( unsigned char c )
 {
     unsigned char val = 0;

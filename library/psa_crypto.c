@@ -27,6 +27,7 @@
 #endif
 
 #include "psa/crypto.h"
+#include "psa/crypto_values.h"
 
 #include "psa_crypto_cipher.h"
 #include "psa_crypto_core.h"
@@ -4825,7 +4826,8 @@ static void psa_des_set_key_parity( uint8_t *data, size_t data_size )
 #endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES */
 
 /*
-* ECC key types require the generation of a private key which is an integer
+* ECC keys on a Weierstrass elliptic curve require the generation
+* of a private key which is an integer
 * in the range [1, N - 1], where N is the boundary of the private key domain:
 * N is the prime p for Diffie-Hellman, or the order of the
 * curve’s base point for ECC.
@@ -4961,7 +4963,8 @@ static psa_status_t psa_generate_derived_key_internal(
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) || \
     defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) || \
     defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY)
-    if ( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
+    if ( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) &&
+         PSA_KEY_TYPE_ECC_GET_FAMILY( slot->attr.type ) != PSA_ECC_FAMILY_MONTGOMERY )
     {
         unsigned key_err = 0;
 gen_ecc_key:

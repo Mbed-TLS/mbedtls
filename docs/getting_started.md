@@ -76,7 +76,7 @@ void import_a_key(const uint8_t *key, size_t key_len)
 {
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_id_t key;
+    psa_key_id_t key_id;
 
     printf("Import an AES key...\t");
     fflush(stdout);
@@ -95,7 +95,7 @@ void import_a_key(const uint8_t *key, size_t key_len)
     psa_set_key_bits(&attributes, 128);
 
     /* Import the key */
-    status = psa_import_key(&attributes, key, key_len, &key);
+    status = psa_import_key(&attributes, key, key_len, &key_id);
     if (status != PSA_SUCCESS) {
         printf("Failed to import key\n");
         return;
@@ -106,7 +106,7 @@ void import_a_key(const uint8_t *key, size_t key_len)
     psa_reset_key_attributes(&attributes);
 
     /* Destroy the key */
-    psa_destroy_key(key);
+    psa_destroy_key(key_id);
 
     mbedtls_psa_crypto_free();
 }
@@ -135,7 +135,7 @@ void sign_a_message_using_rsa(const uint8_t *key, size_t key_len)
                         0xa9, 0xe8, 0xcc, 0xac, 0xd0, 0xf6, 0x54, 0x5c};
     uint8_t signature[PSA_SIGNATURE_MAX_SIZE] = {0};
     size_t signature_length;
-    psa_key_id_t key;
+    psa_key_id_t key_id;
 
     printf("Sign a message...\t");
     fflush(stdout);
@@ -154,14 +154,14 @@ void sign_a_message_using_rsa(const uint8_t *key, size_t key_len)
     psa_set_key_bits(&attributes, 1024);
 
     /* Import the key */
-    status = psa_import_key(&attributes, key, key_len, &key);
+    status = psa_import_key(&attributes, key, key_len, &key_id);
     if (status != PSA_SUCCESS) {
         printf("Failed to import key\n");
         return;
     }
 
     /* Sign message using the key */
-    status = psa_sign_hash(key, PSA_ALG_RSA_PKCS1V15_SIGN_RAW,
+    status = psa_sign_hash(key_id, PSA_ALG_RSA_PKCS1V15_SIGN_RAW,
                            hash, sizeof(hash),
                            signature, sizeof(signature),
                            &signature_length);
@@ -176,7 +176,7 @@ void sign_a_message_using_rsa(const uint8_t *key, size_t key_len)
     psa_reset_key_attributes(&attributes);
 
     /* Destroy the key */
-    psa_destroy_key(key);
+    psa_destroy_key(key_id);
 
     mbedtls_psa_crypto_free();
 }
@@ -213,7 +213,7 @@ void encrypt_with_symmetric_ciphers(const uint8_t *key, size_t key_len)
     size_t iv_len;
     uint8_t output[block_size];
     size_t output_len;
-    psa_key_id_t key;
+    psa_key_id_t key_id;
     psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
 
     printf("Encrypt with cipher...\t");
@@ -232,7 +232,7 @@ void encrypt_with_symmetric_ciphers(const uint8_t *key, size_t key_len)
     psa_set_key_algorithm(&attributes, alg);
     psa_set_key_type(&attributes, PSA_KEY_TYPE_AES);
     psa_set_key_bits(&attributes, 128);
-    status = psa_import_key(&attributes, key, key_len, &key);
+    status = psa_import_key(&attributes, key, key_len, &key_id);
     if (status != PSA_SUCCESS) {
         printf("Failed to import a key\n");
         return;
@@ -240,7 +240,7 @@ void encrypt_with_symmetric_ciphers(const uint8_t *key, size_t key_len)
     psa_reset_key_attributes(&attributes);
 
     /* Encrypt the plaintext */
-    status = psa_cipher_encrypt_setup(&operation, key, alg);
+    status = psa_cipher_encrypt_setup(&operation, key_id, alg);
     if (status != PSA_SUCCESS) {
         printf("Failed to begin cipher operation\n");
         return;
@@ -268,7 +268,7 @@ void encrypt_with_symmetric_ciphers(const uint8_t *key, size_t key_len)
     psa_cipher_abort(&operation);
 
     /* Destroy the key */
-    psa_destroy_key(key);
+    psa_destroy_key(key_id);
 
     mbedtls_psa_crypto_free();
 }
@@ -298,7 +298,7 @@ void decrypt_with_symmetric_ciphers(const uint8_t *key, size_t key_len)
     uint8_t iv[block_size] = ENCRYPTED_WITH_IV;
     uint8_t output[block_size];
     size_t output_len;
-    psa_key_id_t key;
+    psa_key_id_t key_id;
 
     printf("Decrypt with cipher...\t");
     fflush(stdout);
@@ -316,7 +316,7 @@ void decrypt_with_symmetric_ciphers(const uint8_t *key, size_t key_len)
     psa_set_key_algorithm(&attributes, alg);
     psa_set_key_type(&attributes, PSA_KEY_TYPE_AES);
     psa_set_key_bits(&attributes, 128);
-    status = psa_import_key(&attributes, key, key_len, &key);
+    status = psa_import_key(&attributes, key, key_len, &key_id);
     if (status != PSA_SUCCESS) {
         printf("Failed to import a key\n");
         return;
@@ -324,7 +324,7 @@ void decrypt_with_symmetric_ciphers(const uint8_t *key, size_t key_len)
     psa_reset_key_attributes(&attributes);
 
     /* Decrypt the ciphertext */
-    status = psa_cipher_decrypt_setup(&operation, key, alg);
+    status = psa_cipher_decrypt_setup(&operation, key_id, alg);
     if (status != PSA_SUCCESS) {
         printf("Failed to begin cipher operation\n");
         return;
@@ -352,7 +352,7 @@ void decrypt_with_symmetric_ciphers(const uint8_t *key, size_t key_len)
     psa_cipher_abort(&operation);
 
     /* Destroy the key */
-    psa_destroy_key(key);
+    psa_destroy_key(key_id);
 
     mbedtls_psa_crypto_free();
 }
@@ -702,7 +702,7 @@ This example shows how to authenticate and encrypt a message:
     size_t output_length = 0;
     size_t tag_length = 16;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_id_t key;
+    psa_key_id_t key_id;
 
     printf("Authenticate encrypt...\t");
     fflush(stdout);
@@ -726,11 +726,11 @@ This example shows how to authenticate and encrypt a message:
     psa_set_key_algorithm(&attributes, PSA_ALG_CCM);
     psa_set_key_type(&attributes, PSA_KEY_TYPE_AES);
     psa_set_key_bits(&attributes, 128);
-    status = psa_import_key(&attributes, key, sizeof(key), &key);
+    status = psa_import_key(&attributes, key, sizeof(key), &key_id);
     psa_reset_key_attributes(&attributes);
 
     /* Authenticate and encrypt */
-    status = psa_aead_encrypt(key, PSA_ALG_CCM,
+    status = psa_aead_encrypt(key_id, PSA_ALG_CCM,
                               nonce, sizeof(nonce),
                               additional_data, sizeof(additional_data),
                               input_data, sizeof(input_data),
@@ -747,7 +747,7 @@ This example shows how to authenticate and encrypt a message:
     free(output_data);
 
     /* Destroy the key */
-    psa_destroy_key(key);
+    psa_destroy_key(key_id);
 
     mbedtls_psa_crypto_free();
 ```
@@ -773,7 +773,7 @@ This example shows how to authenticate and decrypt a message:
     size_t output_size = 0;
     size_t output_length = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_id_t key;
+    psa_key_id_t key_id;
 
     printf("Authenticate decrypt...\t");
     fflush(stdout);
@@ -797,7 +797,7 @@ This example shows how to authenticate and decrypt a message:
     psa_set_key_algorithm(&attributes, PSA_ALG_CCM);
     psa_set_key_type(&attributes, PSA_KEY_TYPE_AES);
     psa_set_key_bits(&attributes, 128);
-    status = psa_import_key(&attributes, key_data, sizeof(key_data), &key);
+    status = psa_import_key(&attributes, key_data, sizeof(key_data), &key_id);
     if (status != PSA_SUCCESS) {
         printf("Failed to import a key\n");
         return;
@@ -805,7 +805,7 @@ This example shows how to authenticate and decrypt a message:
     psa_reset_key_attributes(&attributes);
 
     /* Authenticate and decrypt */
-    status = psa_aead_decrypt(key, PSA_ALG_CCM,
+    status = psa_aead_decrypt(key_id, PSA_ALG_CCM,
                               nonce, sizeof(nonce),
                               additional_data, sizeof(additional_data),
                               input_data, sizeof(input_data),
@@ -822,7 +822,7 @@ This example shows how to authenticate and decrypt a message:
     free(output_data);
 
     /* Destroy the key */
-    psa_destroy_key(key);
+    psa_destroy_key(key_id);
 
     mbedtls_psa_crypto_free();
 ```
@@ -848,7 +848,7 @@ Mbed Crypto provides a simple way to generate a key or key pair.
     size_t exported_length = 0;
     static uint8_t exported[PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(key_bits)];
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_id_t key;
+    psa_key_id_t key_id;
 
     printf("Generate a key pair...\t");
     fflush(stdout);
@@ -867,14 +867,14 @@ Mbed Crypto provides a simple way to generate a key or key pair.
     psa_set_key_type(&attributes,
                      PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1));
     psa_set_key_bits(&attributes, key_bits);
-    status = psa_generate_key(&attributes, &key);
+    status = psa_generate_key(&attributes, &key_id);
     if (status != PSA_SUCCESS) {
         printf("Failed to generate key\n");
         return;
     }
     psa_reset_key_attributes(&attributes);
 
-    status = psa_export_public_key(key, exported, sizeof(exported),
+    status = psa_export_public_key(key_id, exported, sizeof(exported),
                                    &exported_length);
     if (status != PSA_SUCCESS) {
         printf("Failed to export public key %ld\n", status);
@@ -884,7 +884,7 @@ Mbed Crypto provides a simple way to generate a key or key pair.
     printf("Exported a public key\n");
 
     /* Destroy the key */
-    psa_destroy_key(key);
+    psa_destroy_key(key_id);
 
     mbedtls_psa_crypto_free();
 ```

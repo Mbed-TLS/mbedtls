@@ -1,0 +1,3 @@
+Bugfix
+   * Fix an uninitialized variable warning in test_suite_ssl.function with GCC
+     version 11.

@@ -38,9 +38,17 @@ CERTIFICATES = {
     'ecdsa_secp521r1_sha512': (
         'data_files/ecdsa_secp521r1_sha512.crt',
         'data_files/ecdsa_secp521r1_sha512.key'),
+    'rsa_pss_rsae_sha256': (
+        'data_files/server2-sha256.crt', 'data_files/server2.key'
+    )
 }
 
-CAFILE = 'data_files/test-ca2.crt'
+CAFILE = {
+    'ecdsa_secp256r1_sha256': 'data_files/test-ca2.crt',
+    'ecdsa_secp384r1_sha384': 'data_files/test-ca2.crt',
+    'ecdsa_secp521r1_sha512': 'data_files/test-ca2.crt',
+    'rsa_pss_rsae_sha256': 'data_files/test-ca_cat12.crt'
+}
 
 CIPHER_SUITE_IANA_VALUE = {
     "TLS_AES_128_GCM_SHA256": 0x1301,
@@ -54,6 +62,7 @@ SIG_ALG_IANA_VALUE = {
     "ecdsa_secp256r1_sha256": 0x0403,
     "ecdsa_secp384r1_sha384": 0x0503,
     "ecdsa_secp521r1_sha512": 0x0603,
+    'rsa_pss_rsae_sha256': 0x0804,
 }
 
 NAMED_GROUP_IANA_VALUE = {
@@ -75,6 +84,7 @@ class TLSProgram(metaclass=abc.ABCMeta):
     """
     Base class for generate server/client command.
     """
+
     def __init__(self, ciphersuite, signature_algorithm, named_group):
         self._cipher = ciphersuite
         self._sig_alg = signature_algorithm
@@ -125,28 +135,6 @@ class OpenSSLServ(TLSProgram):
         self.certificates = []
         super().__init__(ciphersuite, signature_algorithm, named_group)
 
-    CIPHER_SUITE = {
-        'TLS_AES_256_GCM_SHA384': [
-            'AES-256-GCM',
-            'SHA384',
-            'AEAD'],
-        'TLS_AES_128_GCM_SHA256': [
-            'AES-128-GCM',
-            'SHA256',
-            'AEAD'],
-        'TLS_CHACHA20_POLY1305_SHA256': [
-            'CHACHA20-POLY1305',
-            'SHA256',
-            'AEAD'],
-        'TLS_AES_128_CCM_SHA256': [
-            'AES-128-CCM',
-            'SHA256',
-            'AEAD'],
-        'TLS_AES_128_CCM_8_SHA256': [
-            'AES-128-CCM-8',
-            'SHA256',
-            'AEAD']}
-
     def add_ciphersuites(self, *ciphersuites):
         self.ciphersuites.extend(ciphersuites)
 
@@ -186,7 +174,7 @@ class OpenSSLServ(TLSProgram):
         return ["requires_openssl_tls1_3"]
 
     def post_checks(self):
-        return []
+        return ['-c "HTTP/1.0 200 ok"']
 
 
 class GnuTLSServ(TLSProgram):
@@ -228,7 +216,8 @@ class GnuTLSServ(TLSProgram):
     SIGNATURE_ALGORITHM = {
         'ecdsa_secp256r1_sha256': ['SIGN-ECDSA-SECP256R1-SHA256'],
         'ecdsa_secp521r1_sha512': ['SIGN-ECDSA-SECP521R1-SHA512'],
-        'ecdsa_secp384r1_sha384': ['SIGN-ECDSA-SECP384R1-SHA384']}
+        'ecdsa_secp384r1_sha384': ['SIGN-ECDSA-SECP384R1-SHA384'],
+        'rsa_pss_rsae_sha256': ['SIGN-RSA-PSS-RSAE-SHA256']}
 
     def add_signature_algorithms(self, *signature_algorithms):
         for sig_alg in signature_algorithms:
@@ -253,7 +242,7 @@ class GnuTLSServ(TLSProgram):
                 "requires_gnutls_next_disable_tls13_compat", ]
 
     def post_checks(self):
-        return super().post_checks()
+        return ['-c "HTTP/1.0 200 OK"']
 
     def cmd(self):
         ret = [
@@ -278,6 +267,7 @@ class MbedTLSCli(TLSProgram):
     """
     Generate test commands for mbedTLS client.
     """
+
     def __init__(self, ciphersuite, signature_algorithm, named_group):
         self.ciphersuites = []
         self.certificates = []
@@ -314,8 +304,15 @@ class MbedTLSCli(TLSProgram):
             self.named_groups.append(named_group)
 
     def pre_checks(self):
-        return ['requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL',
-                'requires_config_disabled MBEDTLS_USE_PSA_CRYPTO']
+
+        ret = ['requires_config_enabled MBEDTLS_DEBUG_C',
+               'requires_config_enabled MBEDTLS_SSL_CLI_C',
+               'requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL',
+               'requires_config_disabled MBEDTLS_USE_PSA_CRYPTO']
+        if 'rsa_pss_rsae_sha256' in self.signature_algorithms:
+            ret.append(
+                'requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT')
+        return ret
 
     def post_checks(self):
 
@@ -333,7 +330,7 @@ class MbedTLSCli(TLSProgram):
         ret += [
             'server_addr=127.0.0.1 server_port=$SRV_PORT',
             'debug_level=4 force_version=tls1_3']
-        ret += ['ca_file={CAFILE}'.format(CAFILE=CAFILE)]
+        ret += ['ca_file={CAFILE}'.format(CAFILE=CAFILE[self._sig_alg])]
         self.ciphersuites = list(set(self.ciphersuites))
         cipher = ','.join(self.ciphersuites)
         if cipher:
@@ -353,7 +350,7 @@ SERVER_CLS = {'OpenSSL': OpenSSLServ, 'GnuTLS': GnuTLSServ}
 CLIENT_CLS = {'mbedTLS': MbedTLSCli}
 
 
-def generate_compat_test(server=None, client=None, cipher=None, # pylint: disable=unused-argument
+def generate_compat_test(server=None, client=None, cipher=None,  # pylint: disable=unused-argument
                          sig_alg=None, named_group=None, **kwargs):
     """
     Generate test case with `ssl-opt.sh` format.
@@ -371,6 +368,8 @@ def generate_compat_test(server=None, client=None, cipher=None, # pylint: disabl
     cmd = prefix.join(cmd)
     print('\n'.join(server.pre_checks() + client.pre_checks() + [cmd]))
     return 0
+
+
 def main():
     parser = argparse.ArgumentParser()
 
@@ -407,7 +406,7 @@ def main():
 
     args = parser.parse_args()
     if args.list_ciphers or args.list_sig_algs or args.list_named_groups \
-        or args.list_servers or args.list_clients:
+            or args.list_servers or args.list_clients:
         if args.list_ciphers:
             print(*CIPHER_SUITE_IANA_VALUE.keys())
         if args.list_sig_algs:
@@ -420,6 +419,7 @@ def main():
             print(*CLIENT_CLS.keys())
         return 0
     return generate_compat_test(**vars(args))
+
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -154,7 +154,9 @@ mbedtls_time_t dummy_constant_time( mbedtls_time_t* time );
  * perspective: either PSA is preferred for TLS (both for crypto and for
  * random generation) or it isn't.
  */
+#if !defined(MBEDTLS_TEST_USE_PSA_CRYPTO_RNG)
 #define MBEDTLS_TEST_USE_PSA_CRYPTO_RNG
+#endif
 #endif
 
 /** A context for random number generation (RNG).

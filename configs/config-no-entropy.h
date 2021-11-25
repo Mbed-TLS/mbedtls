@@ -63,9 +63,9 @@
 #define MBEDTLS_MD_C
 #define MBEDTLS_OID_C
 #define MBEDTLS_PEM_PARSE_C
-#define MBEDTLS_PK_C
-#define MBEDTLS_PK_PARSE_C
-#define MBEDTLS_PK_WRITE_C
+//#define MBEDTLS_PK_C
+//#define MBEDTLS_PK_PARSE_C
+//#define MBEDTLS_PK_WRITE_C
 #define MBEDTLS_PLATFORM_C
 #define MBEDTLS_RSA_C
 /* The library does not currently support enabling SHA-224 without SHA-256.
@@ -76,9 +76,9 @@
 #define MBEDTLS_SHA384_C
 #define MBEDTLS_SHA512_C
 #define MBEDTLS_VERSION_C
-#define MBEDTLS_X509_USE_C
-#define MBEDTLS_X509_CRT_PARSE_C
-#define MBEDTLS_X509_CRL_PARSE_C
+//#define MBEDTLS_X509_USE_C
+//#define MBEDTLS_X509_CRT_PARSE_C
+//#define MBEDTLS_X509_CRL_PARSE_C
 //#define MBEDTLS_CMAC_C
 
 /* Miscellaneous options */

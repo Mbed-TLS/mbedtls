@@ -119,6 +119,102 @@ int (*mbedtls_mutex_unlock)( mbedtls_threading_mutex_t * ) = threading_mutex_unl
 
 #endif /* MBEDTLS_THREADING_PTHREAD */
 
+void mbedtls_rwlock_init( mbedtls_threading_rwlock_t *lock )
+{
+    if( lock == NULL || lock->is_valid )
+        return;
+
+    mbedtls_mutex_init( &lock->readers_mutex );
+    mbedtls_mutex_init( &lock->writer_mutex );
+    lock->num_readers = 0;
+    if( lock->readers_mutex.is_valid && lock->writer_mutex.is_valid )
+        lock->is_valid = 1;
+}
+
+void mbedtls_rwlock_free( mbedtls_threading_rwlock_t *lock )
+{
+    if( lock == NULL || ! lock->is_valid )
+        return;
+
+    mbedtls_mutex_free( &lock->readers_mutex );
+    mbedtls_mutex_free( &lock->writer_mutex );
+    lock->is_valid = 0;
+}
+
+int mbedtls_rwlock_lock_reader( mbedtls_threading_rwlock_t *lock )
+{
+    int status = MBEDTLS_ERR_THREADING_MUTEX_ERROR;
+
+    if( lock == NULL )
+        return (MBEDTLS_ERR_THREADING_BAD_INPUT_DATA);
+    if( !lock->is_valid )
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+
+    if( (status = mbedtls_mutex_lock( &lock->readers_mutex ) != 0 ))
+        return status;
+
+    lock->num_readers++;
+    if( lock->num_readers == 1 )
+    {
+        if( (status = mbedtls_mutex_lock( &lock->writer_mutex ) != 0 ))
+        {
+            lock->num_readers--;
+            mbedtls_mutex_unlock( &lock->readers_mutex );
+            return status;
+        }
+    }
+    status = mbedtls_mutex_unlock( &lock->readers_mutex );
+
+    return status;
+}
+
+int mbedtls_rwlock_unlock_reader( mbedtls_threading_rwlock_t *lock )
+{
+    int status = MBEDTLS_ERR_THREADING_MUTEX_ERROR;
+
+    if( lock == NULL )
+        return (MBEDTLS_ERR_THREADING_BAD_INPUT_DATA);
+    if( !lock->is_valid )
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+
+    if( (status = mbedtls_mutex_lock( &lock->readers_mutex ) != 0 ))
+        return status;
+
+    lock->num_readers--;
+    if( lock->num_readers == 0 )
+    {
+        if( (status = mbedtls_mutex_unlock( &lock->writer_mutex ) != 0 ))
+        {
+            lock->num_readers++;
+            mbedtls_mutex_unlock( &lock->readers_mutex );
+            return status;
+        }
+    }
+    status = mbedtls_mutex_unlock( &lock->readers_mutex );
+
+    return status;
+}
+
+int mbedtls_rwlock_lock_writer( mbedtls_threading_rwlock_t *lock )
+{
+    if( lock == NULL )
+        return (MBEDTLS_ERR_THREADING_BAD_INPUT_DATA);
+    if( !lock->is_valid )
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+
+    return( mbedtls_mutex_lock( &lock->writer_mutex ) );
+}
+
+int mbedtls_rwlock_unlock_writer( mbedtls_threading_rwlock_t *lock )
+{
+    if( lock == NULL )
+        return (MBEDTLS_ERR_THREADING_BAD_INPUT_DATA);
+    if( !lock->is_valid )
+        return (MBEDTLS_ERR_THREADING_MUTEX_ERROR);
+
+    return( mbedtls_mutex_unlock( &lock->writer_mutex ) );
+}
+
 #if defined(MBEDTLS_THREADING_ALT)
 static int threading_mutex_fail( mbedtls_threading_mutex_t *mutex )
 {
@@ -155,6 +251,9 @@ void mbedtls_threading_set_alt( void (*mutex_init)( mbedtls_threading_mutex_t * 
 #if defined(THREADING_USE_GMTIME)
     mbedtls_mutex_init( &mbedtls_threading_gmtime_mutex );
 #endif
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+    mbedtls_rwlock_init( &mbedtls_psa_slots_lock );
+#endif
 }
 
 /*
@@ -167,6 +266,9 @@ void mbedtls_threading_free_alt( void )
 #endif
 #if defined(THREADING_USE_GMTIME)
     mbedtls_mutex_free( &mbedtls_threading_gmtime_mutex );
+#endif
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+    mbedtls_rwlock_free( &mbedtls_psa_slots_lock );
 #endif
 }
 #endif /* MBEDTLS_THREADING_ALT */
@@ -183,5 +285,7 @@ mbedtls_threading_mutex_t mbedtls_threading_readdir_mutex MUTEX_INIT;
 #if defined(THREADING_USE_GMTIME)
 mbedtls_threading_mutex_t mbedtls_threading_gmtime_mutex MUTEX_INIT;
 #endif
-
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+mbedtls_threading_rwlock_t mbedtls_psa_slots_lock;
+#endif
 #endif /* MBEDTLS_THREADING_C */

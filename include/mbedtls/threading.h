@@ -46,6 +46,15 @@ typedef struct mbedtls_threading_mutex_t
      * API of Mbed TLS and may change without notice. */
     char MBEDTLS_PRIVATE(is_valid);
 } mbedtls_threading_mutex_t;
+
+typedef struct mbedtls_threading_rwlock_t
+{
+    uint16_t num_readers;
+    mbedtls_threading_mutex_t readers_mutex;
+    mbedtls_threading_mutex_t writer_mutex;
+    char MBEDTLS_PRIVATE(is_valid);
+} mbedtls_threading_rwlock_t;
+
 #endif
 
 #if defined(MBEDTLS_THREADING_ALT)
@@ -92,11 +101,22 @@ extern void (*mbedtls_mutex_free)( mbedtls_threading_mutex_t *mutex );
 extern int (*mbedtls_mutex_lock)( mbedtls_threading_mutex_t *mutex );
 extern int (*mbedtls_mutex_unlock)( mbedtls_threading_mutex_t *mutex );
 
+void mbedtls_rwlock_init( mbedtls_threading_rwlock_t *lock );
+void mbedtls_rwlock_free( mbedtls_threading_rwlock_t *lock );
+int mbedtls_rwlock_lock_reader( mbedtls_threading_rwlock_t *lock );
+int mbedtls_rwlock_lock_writer( mbedtls_threading_rwlock_t *lock );
+int mbedtls_rwlock_unlock_reader( mbedtls_threading_rwlock_t *lock );
+int mbedtls_rwlock_unlock_writer( mbedtls_threading_rwlock_t *lock );
+
 /*
  * Global mutexes
  */
 #if defined(MBEDTLS_FS_IO)
 extern mbedtls_threading_mutex_t mbedtls_threading_readdir_mutex;
+#endif
+
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+extern mbedtls_threading_rwlock_t mbedtls_psa_slots_lock;
 #endif
 
 #if defined(MBEDTLS_HAVE_TIME_DATE) && !defined(MBEDTLS_PLATFORM_GMTIME_R_ALT)

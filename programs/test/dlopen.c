@@ -17,7 +17,11 @@
  *  limitations under the License.
  */
 
+#if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
+#else
+#include MBEDTLS_CONFIG_FILE
+#endif
 
 #include "mbedtls/platform.h"
 #if !defined(MBEDTLS_PLATFORM_C)

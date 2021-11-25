@@ -6374,11 +6374,11 @@ static uint16_t ssl_preset_default_sig_algs[] = {
 
     /* RSA algorithms */
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
-    MBEDTLS_TLS13_SIG_RSA_PSS_RSAE_SHA256,
+    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256,
 #endif
     MBEDTLS_TLS13_SIG_RSA_PKCS1_SHA256,
 
-    MBEDTLS_TLS13_SIG_NONE
+    MBEDTLS_TLS1_3_SIG_NONE
 };
 
 static uint16_t ssl_preset_suiteb_sig_algs[] = {
@@ -6394,11 +6394,11 @@ static uint16_t ssl_preset_suiteb_sig_algs[] = {
 
     /* RSA algorithms */
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
-    MBEDTLS_TLS13_SIG_RSA_PSS_RSAE_SHA256,
+    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256,
 #endif
     MBEDTLS_TLS13_SIG_RSA_PKCS1_SHA256,
 
-    MBEDTLS_TLS13_SIG_NONE
+    MBEDTLS_TLS1_3_SIG_NONE
 };
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 #endif

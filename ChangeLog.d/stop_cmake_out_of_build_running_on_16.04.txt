@@ -1,0 +1,4 @@
+Bugfix
+   * Prevent CMake out of source tests from running on Ubuntu 16.04, as this can
+     cause failures due to race conditions with generated files.
+

@@ -4855,7 +4855,7 @@ static void psa_des_set_key_parity( uint8_t *data, size_t data_size )
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) || \
     defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) || \
     defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY)
-static psa_status_t psa_generate_derived_ecc_key_helper(
+static psa_status_t psa_generate_derived_ecc_key_weierstrass_helper(
     psa_key_slot_t *slot,
     size_t bits,
     psa_key_derivation_operation_t *operation,
@@ -4963,17 +4963,61 @@ static psa_status_t psa_generate_derived_key_internal(
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) || \
     defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) || \
     defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY)
-    if ( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) &&
-         PSA_KEY_TYPE_ECC_GET_FAMILY( slot->attr.type ) != PSA_ECC_FAMILY_MONTGOMERY )
+    if ( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
     {
-        unsigned key_err = 0;
+        if ( PSA_KEY_TYPE_ECC_GET_FAMILY( slot->attr.type ) != PSA_ECC_FAMILY_MONTGOMERY )
+        {
+            /* Weierstrass elliptic curve */
+            unsigned key_err = 0;
 gen_ecc_key:
-        status = psa_generate_derived_ecc_key_helper(slot, bits, operation, &data, &key_err);
-        if( status != PSA_SUCCESS )
-            goto exit;
-        /* Key has been created, but it doesn't meet criteria. */
-        if (key_err)
-            goto gen_ecc_key;
+            status = psa_generate_derived_ecc_key_weierstrass_helper(slot, bits, operation, &data, &key_err);
+            if( status != PSA_SUCCESS )
+                goto exit;
+            /* Key has been created, but it doesn't meet criteria. */
+            if (key_err)
+                goto gen_ecc_key;
+        } else
+        {
+            /* Montgomery elliptic curve */
+            size_t output_length;
+            switch( bits )
+            {
+                case 255:
+                    output_length = 32;
+                    break;
+                case 448:
+                    output_length = 56;
+                    break;
+                default:
+                    return( PSA_ERROR_INVALID_ARGUMENT );
+                    break;
+            }
+
+            data = mbedtls_calloc( 1, bytes );
+            if( data == NULL )
+                return( PSA_ERROR_INSUFFICIENT_MEMORY );
+
+            status = psa_key_derivation_output_bytes( operation, data, output_length );
+
+            if( status != PSA_SUCCESS )
+                goto exit;
+
+            switch( bits )
+            {
+                case 255:
+                    data[0] &= 248;
+                    data[31] &= 127;
+                    data[31] |= 64;
+                    break;
+                case 448:
+                    data[0] &= 252;
+                    data[55] |= 128;
+                    break;
+                default:
+                    /* already handled */
+                    break;
+            }
+        }
     } else
 #endif
     {

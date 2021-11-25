@@ -186,7 +186,7 @@ typedef struct
 {
     uint8_t *MBEDTLS_PRIVATE(info);
     size_t MBEDTLS_PRIVATE(info_length);
-    psa_mac_operation_t MBEDTLS_PRIVATE(hmac);
+    struct psa_mac_operation_s MBEDTLS_PRIVATE(hmac);
     uint8_t MBEDTLS_PRIVATE(prk)[PSA_HASH_MAX_SIZE];
     uint8_t MBEDTLS_PRIVATE(output_block)[PSA_HASH_MAX_SIZE];
 #if PSA_HASH_MAX_SIZE > 0xff

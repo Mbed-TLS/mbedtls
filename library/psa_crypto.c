@@ -385,13 +385,6 @@ psa_status_t mbedtls_to_psa_error( int ret )
 /* Key management */
 /****************************************************************/
 
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-static inline int psa_key_slot_is_external( const psa_key_slot_t *slot )
-{
-    return( psa_key_lifetime_is_external( slot->attr.lifetime ) );
-}
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
-
 /* For now the MBEDTLS_PSA_ACCEL_ guards are also used here since the
  * current test driver in key_management.c is using this function
  * when accelerators are used for ECC key pair and public key.
@@ -1019,16 +1012,16 @@ error:
 /** Get a key slot containing a transparent key and lock it.
  *
  * A transparent key is a key for which the key material is directly
- * available, as opposed to a key in a secure element.
+ * available, as opposed to a key in a secure element and/or to be used
+ * by a secure element.
  *
- * This is a temporary function to use instead of
- * psa_get_and_lock_key_slot_with_policy() until secure element support is
- * fully implemented.
+ * This is a temporary function that may be used instead of
+ * psa_get_and_lock_key_slot_with_policy() when there is no opaque key support
+ * for a cryptographic operation.
  *
  * On success, the returned key slot is locked. It is the responsibility of the
  * caller to unlock the key slot when it does not access it anymore.
  */
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
 static psa_status_t psa_get_and_lock_transparent_key_slot_with_policy(
     mbedtls_svc_key_id_t key,
     psa_key_slot_t **p_slot,
@@ -1040,7 +1033,7 @@ static psa_status_t psa_get_and_lock_transparent_key_slot_with_policy(
     if( status != PSA_SUCCESS )
         return( status );
 
-    if( psa_key_slot_is_external( *p_slot ) )
+    if( psa_key_lifetime_is_external( (*p_slot)->attr.lifetime ) )
     {
         psa_unlock_key_slot( *p_slot );
         *p_slot = NULL;
@@ -1049,11 +1042,6 @@ static psa_status_t psa_get_and_lock_transparent_key_slot_with_policy(
 
     return( PSA_SUCCESS );
 }
-#else /* MBEDTLS_PSA_CRYPTO_SE_C */
-/* With no secure element support, all keys are transparent. */
-#define psa_get_and_lock_transparent_key_slot_with_policy( key, p_slot, usage, alg )   \
-    psa_get_and_lock_key_slot_with_policy( key, p_slot, usage, alg )
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
 psa_status_t psa_remove_key_data_from_memory( psa_key_slot_t *slot )
 {
@@ -1282,7 +1270,7 @@ psa_status_t psa_get_key_attributes( mbedtls_svc_key_id_t key,
                                 MBEDTLS_PSA_KA_MASK_DUAL_USE );
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    if( psa_key_slot_is_external( slot ) )
+    if( psa_get_se_driver_entry( slot->attr.lifetime ) != NULL )
         psa_set_key_slot_number( attributes,
                                  psa_key_slot_get_slot_number( slot ) );
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
@@ -1293,14 +1281,11 @@ psa_status_t psa_get_key_attributes( mbedtls_svc_key_id_t key,
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_RSA_PUBLIC_KEY)
         case PSA_KEY_TYPE_RSA_KEY_PAIR:
         case PSA_KEY_TYPE_RSA_PUBLIC_KEY:
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
             /* TODO: reporting the public exponent for opaque keys
              * is not yet implemented.
              * https://github.com/ARMmbed/mbed-crypto/issues/216
              */
-            if( psa_key_slot_is_external( slot ) )
-                break;
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+            if( ! psa_key_lifetime_is_external( slot->attr.lifetime ) )
             {
                 mbedtls_rsa_context *rsa = NULL;
 

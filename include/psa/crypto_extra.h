@@ -30,6 +30,7 @@
 
 #include "mbedtls/platform_util.h"
 
+#include "crypto_types.h"
 #include "crypto_compat.h"
 
 #ifdef __cplusplus

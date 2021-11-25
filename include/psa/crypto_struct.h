@@ -184,7 +184,7 @@ typedef struct
     unsigned int info_set : 1;
     uint8_t output_block[PSA_HASH_MAX_SIZE];
     uint8_t prk[PSA_HASH_MAX_SIZE];
-    psa_mac_operation_t hmac;
+    struct psa_mac_operation_s hmac;
 } psa_hkdf_key_derivation_t;
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF */
 

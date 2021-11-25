@@ -60,6 +60,9 @@ class FieldInfo:
         # first byte.
         self.offset = node.get_field_offsetof() // 8
 
+    def name(self) -> str:
+        return self.node.spelling
+
     def record_use(self, _node: Cursor) -> None:
         self.lexical_uses += 1
 
@@ -178,20 +181,39 @@ class Ast:
             return
         self.fields[structure_type][field_name].record_use(node)
 
-    def sanity_checks(self) -> None:
-        """If the data looks wrong, raise a `SanityCheck` exception."""
+    def sanity_check_failed(self, log: Optional[typing_util.Writable],
+                            fmt: str, *args, **kwargs) -> None:
+        #pylint: disable=no-self-use,no-else-raise
+        msg = fmt.format(*args, **kwargs)
+        if log is None:
+            raise SanityCheck(msg)
+        else:
+            log.write('Warning: ' + msg + '\n')
+
+    def sanity_checks(self, log: Optional[typing_util.Writable]) -> None:
+        """If the data looks wrong, signal it.
+
+        If `log` is `None`, signaling means to raise an exception explaining
+        the first failure encountered. Otherwise signaling means calling
+        `log.write` with a message for each failure.
+        """
         for type_name in sorted(self.fields):
             for field in self.fields[type_name].values():
                 if field.offset == -1:
-                    raise SanityCheck('Could not determine offset of {}.{}. '
-                                      .format(type_name, field))
+                    self.sanity_check_failed(
+                        log,
+                        'Could not determine offset of {}.{}.',
+                        type_name, field.name())
 
     def run_analysis(self, files: List[str],
-                     sanity_checks: bool = True) -> None:
+                     log: Optional[typing_util.Writable] = None) -> None:
+        """Run analyses on the specified files.
+
+        Pass `log` to `sanity_checks`.
+        """
         self.read_field_definitions(files)
         self.read_field_usage(files)
-        if sanity_checks:
-            self.sanity_checks()
+        self.sanity_checks(log)
 
     def read_field_usage(self, filenames: List[str]) -> None:
         """Parse field usage in the given C source files."""
@@ -248,14 +270,18 @@ def main():
                         help="Omit the CSV header from the output")
     parser.add_argument('--no-sanity-checks',
                         dest='sanity_checks', default=True, action='store_false',
-                        help="Omit sanity checks, print output even if it's suspicious")
+                        help="Bypass sanity checks, print output even if it's suspicious")
     parser.add_argument('--target', '-t',
                         help="Target triple to build for (default: native build)")
     parser.add_argument('files', metavar='FILE', nargs='*',
                         help="Source files to analyze")
     options = parser.parse_args()
     ast = Ast(options)
-    ast.run_analysis(options.files, sanity_checks=options.sanity_checks)
+    if options.sanity_checks:
+        sanity_log = None
+    else:
+        sanity_log = sys.stderr
+    ast.run_analysis(options.files, log=sanity_log)
     ast.report(options, sys.stdout)
 
 if __name__ == '__main__':

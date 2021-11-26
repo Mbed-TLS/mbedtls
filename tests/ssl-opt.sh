@@ -1289,11 +1289,6 @@ run_tests_memory_after_hanshake()
     run_test_memory_after_hanshake_with_mfl 512 "$MEMORY_USAGE_MFL_16K"
 }
 
-run_test_tls13_compat()
-{
-    eval "$(scripts/generate_tls13_compat_tests.py -a)"
-}
-
 cleanup() {
     rm -f $CLI_OUT $SRV_OUT $PXY_OUT $SESSION
     rm -f context_srv.txt
@@ -8995,7 +8990,7 @@ run_test    "TLS1.3: HelloRetryRequest check - gnutls" \
             -c "Last error was: -0x6E00 - SSL - The handshake negotiation failed" \
             -s "HELLO RETRY REQUEST was queued"
 
-run_test_tls13_compat
+. opt-testcases/tls13-compat.sh
 
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_MEMORY_DEBUG

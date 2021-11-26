@@ -1540,7 +1540,7 @@ int main( int argc, char *argv[] )
             }
             else if( strcmp( q, "rsa_pkcs1_sha256" ) == 0 )
             {
-                sig_alg_list[i++] = MBEDTLS_TLS13_SIG_RSA_PKCS1_SHA256;
+                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256;
             }
             else
             {

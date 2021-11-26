@@ -569,6 +569,68 @@ psa_status_t psa_get_key_domain_parameters(
 
 /**@}*/
 
+#if defined(MBEDTLS_PSA_CRYPTO_OPERATION_RNG)
+/** \defgroup psa_custom_rng Operations with a custom RNG
+ * @{
+ *
+ * \note The functions in this section are experimental and may change or
+ *       disappear without notice.
+ *
+ * \note The functions in this section are reproducible for a given build
+ *       of Mbed TLS: if you call the function with the same parameters,
+ *       and the calls to the RNG function return the same data each time,
+ *       then the function produces the same output. This guarantee is only
+ *       valid for a given build of the library on a given architecture.
+ *       The output may change based on compilation options, library
+ *       revisions and processor architecture.
+ *
+ * \note The functions in this section do not support keys in secure elements.
+ *
+ * \note The functions in this section do not support accelerator drivers.
+ */
+
+/* TODO: This type is duplicated from mbedtls/psa_util.h. Including
+ * mbedtls/psa_util.h here doesn't work because that header includes
+ * psa/crypto_extra.h indirectly, and the recursive header inclusion leads
+ * to types being used before they're defined. */
+typedef int mbedtls_f_rng_t( void *p_rng, unsigned char *output, size_t output_size );
+
+/** Asymmetric signature with a custom random generator.
+ *
+ * This function is similar to psa_sign_hash(), but it uses the specified
+ * RNG instead of the PSA RNG. The same RNG is used both for randomized output
+ * and for blinding if relevant.
+ *
+ * \param key                   Identifier of the key to use for the operation.
+ *                              It must be an asymmetric key pair. The key must
+ *                              allow the usage #PSA_KEY_USAGE_SIGN_HASH.
+ * \param alg                   A signature algorithm (PSA_ALG_XXX
+ *                              value such that #PSA_ALG_IS_SIGN_HASH(\p alg)
+ *                              is true), that is compatible with
+ *                              the type of \p key.
+ * \param[in] hash              The hash or message to sign.
+ * \param hash_length           Size of the \p hash buffer in bytes.
+ * \param[out] signature        Buffer where the signature is to be written.
+ * \param signature_size        Size of the \p signature buffer in bytes.
+ * \param[out] signature_length On success, the number of bytes
+ *                              that make up the returned signature value.
+ *
+ * \return A PSA error code, like psa_sign_hash().
+ */
+psa_status_t psa_sign_hash_custom_rng(mbedtls_svc_key_id_t key,
+                                      psa_algorithm_t alg,
+                                      const uint8_t *hash,
+                                      size_t hash_length,
+                                      uint8_t *signature,
+                                      size_t signature_size,
+                                      size_t *signature_length,
+                                      mbedtls_f_rng_t *f_rng,
+                                      void *p_rng);
+
+/**@}*/
+
+#endif /* MBEDTLS_PSA_CRYPTO_OPERATION_RNG */
+
 /** \defgroup psa_tls_helpers TLS helper functions
  * @{
  */

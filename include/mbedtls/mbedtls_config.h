@@ -1073,6 +1073,17 @@
  */
 //#define MBEDTLS_ENTROPY_NV_SEED
 
+/* MBEDTLS_PSA_CRYPTO_OPERATION_RNG
+ *
+ * Enable PSA operation functions that use a custom RNG.
+ *
+ * This is intended for unusual scenarios, such as tests for which a
+ * reproducible result is desired.
+ *
+ * This option is experimental and may be removed without notice.
+ */
+//#define MBEDTLS_PSA_CRYPTO_OPERATION_RNG
+
 /* MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
  *
  * Enable key identifiers that encode a key owner identifier.

@@ -377,7 +377,8 @@ static psa_status_t rsa_sign_hash(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer, size_t key_buffer_size,
     psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
-    uint8_t *signature, size_t signature_size, size_t *signature_length )
+    uint8_t *signature, size_t signature_size, size_t *signature_length,
+    mbedtls_f_rng_t *f_rng, void *p_rng )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     mbedtls_rsa_context *rsa = NULL;
@@ -401,6 +402,12 @@ static psa_status_t rsa_sign_hash(
         goto exit;
     }
 
+    if( f_rng == NULL )
+    {
+        f_rng = mbedtls_psa_get_random;
+        p_rng = MBEDTLS_PSA_RANDOM_STATE;
+    }
+
 #if defined(BUILTIN_ALG_RSA_PKCS1V15_SIGN)
     if( PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) )
     {
@@ -409,8 +416,7 @@ static psa_status_t rsa_sign_hash(
         if( ret == 0 )
         {
             ret = mbedtls_rsa_pkcs1_sign( rsa,
-                                          mbedtls_psa_get_random,
-                                          MBEDTLS_PSA_RANDOM_STATE,
+                                          f_rng, p_rng,
                                           md_alg,
                                           (unsigned int) hash_length,
                                           hash,
@@ -427,8 +433,7 @@ static psa_status_t rsa_sign_hash(
         if( ret == 0 )
         {
             ret = mbedtls_rsa_rsassa_pss_sign( rsa,
-                                               mbedtls_psa_get_random,
-                                               MBEDTLS_PSA_RANDOM_STATE,
+                                               f_rng, p_rng,
                                                MBEDTLS_MD_NONE,
                                                (unsigned int) hash_length,
                                                hash,
@@ -608,8 +613,26 @@ psa_status_t mbedtls_psa_rsa_sign_hash(
                 attributes,
                 key_buffer, key_buffer_size,
                 alg, hash, hash_length,
-                signature, signature_size, signature_length ) );
+                signature, signature_size, signature_length,
+                NULL, NULL ) );
 }
+
+#if defined(MBEDTLS_PSA_CRYPTO_OPERATION_RNG)
+psa_status_t mbedtls_psa_rsa_sign_hash_custom_rng(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
+    uint8_t *signature, size_t signature_size, size_t *signature_length,
+    mbedtls_f_rng_t *f_rng, void *p_rng )
+{
+    return( rsa_sign_hash(
+                attributes,
+                key_buffer, key_buffer_size,
+                alg, hash, hash_length,
+                signature, signature_size, signature_length,
+                f_rng, p_rng ) );
+}
+#endif /* MBEDTLS_PSA_CRYPTO_OPERATION_RNG */
 
 psa_status_t mbedtls_psa_rsa_verify_hash(
     const psa_key_attributes_t *attributes,

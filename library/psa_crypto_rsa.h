@@ -176,6 +176,13 @@ psa_status_t mbedtls_psa_rsa_sign_hash(
     psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
     uint8_t *signature, size_t signature_size, size_t *signature_length );
 
+psa_status_t mbedtls_psa_rsa_sign_hash_custom_rng(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    psa_algorithm_t alg, const uint8_t *hash, size_t hash_length,
+    uint8_t *signature, size_t signature_size, size_t *signature_length,
+    mbedtls_f_rng_t *f_rng, void *p_rng );
+
 /**
  * \brief Verify the signature a hash or short message using a public RSA key.
  *

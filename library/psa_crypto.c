@@ -2636,6 +2636,73 @@ exit:
 /* Asymmetric cryptography */
 /****************************************************************/
 
+#if defined(MBEDTLS_PSA_CRYPTO_OPERATION_RNG)
+static psa_status_t mbedtls_psa_sign_hash_custom_rng(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer, size_t key_buffer_size,
+    psa_algorithm_t alg,
+    const uint8_t * hash, size_t hash_length,
+    uint8_t * signature, size_t signature_size, size_t * signature_length,
+    mbedtls_f_rng_t *f_rng, void *p_rng )
+{
+    if( psa_key_lifetime_is_external( attributes->core.lifetime ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    if( attributes->core.type == PSA_KEY_TYPE_RSA_KEY_PAIR )
+    {
+        if( PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) ||
+            PSA_ALG_IS_RSA_PSS( alg) )
+        {
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS)
+            return( mbedtls_psa_rsa_sign_hash_custom_rng(
+                        attributes,
+                        key_buffer, key_buffer_size,
+                        alg, hash, hash_length,
+                        signature, signature_size, signature_length,
+                        f_rng, p_rng ) );
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) */
+        }
+        else
+        {
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        }
+    }
+    else
+    if( PSA_KEY_TYPE_IS_ECC( attributes->core.type ) )
+    {
+        if( PSA_ALG_IS_ECDSA( alg ) )
+        {
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
+            return( mbedtls_psa_ecdsa_sign_hash_custom_rng(
+                        attributes,
+                        key_buffer, key_buffer_size,
+                        alg, hash, hash_length,
+                        signature, signature_size, signature_length,
+                        f_rng, p_rng ) );
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) */
+        }
+        else
+        {
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        }
+    }
+
+    (void)key_buffer;
+    (void)key_buffer_size;
+    (void)hash;
+    (void)hash_length;
+    (void)signature;
+    (void)signature_size;
+    (void)signature_length;
+
+    return( PSA_ERROR_NOT_SUPPORTED );
+}
+#endif /* MBEDTLS_PSA_CRYPTO_OPERATION_RNG */
+
 static psa_status_t psa_sign_verify_check_alg( int input_is_message,
                                                psa_algorithm_t alg )
 {
@@ -2666,7 +2733,9 @@ static psa_status_t psa_sign_internal( mbedtls_svc_key_id_t key,
                                        size_t input_length,
                                        uint8_t * signature,
                                        size_t signature_size,
-                                       size_t * signature_length )
+                                       size_t * signature_length,
+                                       mbedtls_f_rng_t *f_rng,
+                                       void *p_rng )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
@@ -2704,6 +2773,25 @@ static psa_status_t psa_sign_internal( mbedtls_svc_key_id_t key,
       .core = slot->attr
     };
 
+#if defined(MBEDTLS_PSA_CRYPTO_OPERATION_RNG)
+    if( f_rng != NULL )
+    {
+        if( input_is_message )
+        {
+            status = PSA_ERROR_NOT_SUPPORTED;
+            goto exit;
+        }
+        status = mbedtls_psa_sign_hash_custom_rng(
+            &attributes, slot->key.data, slot->key.bytes,
+            alg, input, input_length,
+            signature, signature_size, signature_length,
+            f_rng, p_rng );
+    }
+    else
+#else /* MBEDTLS_PSA_CRYPTO_OPERATION_RNG */
+    (void) f_rng;
+    (void) p_rng;
+#endif /* MBEDTLS_PSA_CRYPTO_OPERATION_RNG */
     if( input_is_message )
     {
         status = psa_driver_wrapper_sign_message(
@@ -2834,7 +2922,8 @@ psa_status_t psa_sign_message( mbedtls_svc_key_id_t key,
 {
     return psa_sign_internal(
         key, 1, alg, input, input_length,
-        signature, signature_size, signature_length );
+        signature, signature_size, signature_length,
+        NULL, NULL );
 }
 
 psa_status_t psa_verify_message_builtin(
@@ -2951,7 +3040,8 @@ psa_status_t psa_sign_hash( mbedtls_svc_key_id_t key,
 {
     return psa_sign_internal(
         key, 0, alg, hash, hash_length,
-        signature, signature_size, signature_length );
+        signature, signature_size, signature_length,
+        NULL, NULL );
 }
 
 psa_status_t psa_verify_hash_builtin(
@@ -3022,6 +3112,27 @@ psa_status_t psa_verify_hash( mbedtls_svc_key_id_t key,
         key, 0, alg, hash, hash_length,
         signature, signature_length );
 }
+
+#if defined(MBEDTLS_PSA_CRYPTO_OPERATION_RNG)
+psa_status_t psa_sign_hash_custom_rng( mbedtls_svc_key_id_t key,
+                                       psa_algorithm_t alg,
+                                       const uint8_t *hash,
+                                       size_t hash_length,
+                                       uint8_t *signature,
+                                       size_t signature_size,
+                                       size_t *signature_length,
+                                       mbedtls_f_rng_t *f_rng,
+                                       void *p_rng )
+{
+    /* As of Mbed TLS 3.0, all signature mechanisms require a RNG for
+     * blinding, even the ones for which the result is deterministic. */
+    if( f_rng == NULL )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    return( psa_sign_internal( key, 0, alg, hash, hash_length,
+                               signature, signature_size, signature_length,
+                               f_rng, p_rng ) );
+}
+#endif  /* MBEDTLS_PSA_CRYPTO_OPERATION_RNG */
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP)
 static int psa_rsa_oaep_set_padding_mode( psa_algorithm_t alg,

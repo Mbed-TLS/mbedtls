@@ -160,6 +160,7 @@ size_t mbedtls_ct_size_mask_ge( size_t x,
  *
  * Constant flow with respect to c.
  */
+MBEDTLS_STATIC_TESTABLE
 unsigned char mbedtls_ct_uchar_mask_of_range( unsigned char low,
                                               unsigned char high,
                                               unsigned char c )

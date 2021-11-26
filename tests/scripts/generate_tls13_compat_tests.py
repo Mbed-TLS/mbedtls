@@ -210,8 +210,8 @@ class GnuTLSServ(TLSProgram):
             'AEAD']}
 
     def add_ciphersuites(self, *ciphersuites):
-        for cihpersuite in ciphersuites:
-            self.priority_strings.extend(self.CIPHER_SUITE[cihpersuite])
+        for ciphersuite in ciphersuites:
+            self.priority_strings.extend(self.CIPHER_SUITE[ciphersuite])
 
     SIGNATURE_ALGORITHM = {
         'ecdsa_secp256r1_sha256': ['SIGN-ECDSA-SECP256R1-SHA256'],
@@ -284,8 +284,8 @@ class MbedTLSCli(TLSProgram):
         'TLS_AES_128_CCM_8_SHA256': 'TLS1-3-AES-128-CCM-8-SHA256'}
 
     def add_ciphersuites(self, *ciphersuites):
-        for cihpersuite in ciphersuites:
-            self.ciphersuites.append(self.CIPHER_SUITE[cihpersuite])
+        for ciphersuite in ciphersuites:
+            self.ciphersuites.append(self.CIPHER_SUITE[ciphersuite])
 
     def add_signature_algorithms(self, *signature_algorithms):
         for sig_alg in signature_algorithms:

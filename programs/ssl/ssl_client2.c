@@ -1538,6 +1538,10 @@ int main( int argc, char *argv[] )
             {
                 sig_alg_list[i++] = MBEDTLS_TLS13_SIG_RSA_PSS_RSAE_SHA256;
             }
+            else if( strcmp( q, "rsa_pkcs1_sha256" ) == 0 )
+            {
+                sig_alg_list[i++] = MBEDTLS_TLS13_SIG_RSA_PKCS1_SHA256;
+            }
             else
             {
                 mbedtls_printf( "unknown signature algorithm %s\n", q );
@@ -1546,6 +1550,7 @@ int main( int argc, char *argv[] )
                 mbedtls_printf( "ecdsa_secp384r1_sha384 " );
                 mbedtls_printf( "ecdsa_secp521r1_sha512 " );
                 mbedtls_printf( "rsa_pss_rsae_sha256 " );
+                mbedtls_printf( "rsa_pkcs1_sha256 " );
                 mbedtls_printf( "\n" );
                 goto exit;
             }

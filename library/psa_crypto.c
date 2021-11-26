@@ -4949,6 +4949,10 @@ cleanup:
 }
 #endif
 
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) || \
+    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) || \
+    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY)
 static psa_status_t psa_generate_derived_ecc_key_weierstrass_check_config(
     psa_ecc_family_t curve,
     size_t bits)
@@ -4992,6 +4996,7 @@ static psa_status_t psa_generate_derived_ecc_key_weierstrass_check_config(
     }
     return PSA_SUCCESS;
 }
+#endif
 
 static psa_status_t psa_generate_derived_key_internal(
     psa_key_slot_t *slot,

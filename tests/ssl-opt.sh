@@ -1291,22 +1291,7 @@ run_tests_memory_after_hanshake()
 
 run_test_tls13_compat()
 {
-    for server in $(scripts/generate_tls13_compat_tests.py --list-servers)
-    do
-        for client in $(scripts/generate_tls13_compat_tests.py --list-clients)
-        do
-            for cipher in $(scripts/generate_tls13_compat_tests.py --list-ciphers)
-            do
-                for sig_alg in $(scripts/generate_tls13_compat_tests.py --list-sig-algs)
-                do
-                    for named_group in $(scripts/generate_tls13_compat_tests.py --list-named-groups)
-                    do
-                        eval "$(scripts/generate_tls13_compat_tests.py $server $client $cipher $sig_alg $named_group)"
-                    done
-                done
-            done
-        done
-    done
+    eval "$(scripts/generate_tls13_compat_tests.py -a)"
 }
 
 cleanup() {

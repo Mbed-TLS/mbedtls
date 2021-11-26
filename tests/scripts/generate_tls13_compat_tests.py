@@ -25,6 +25,7 @@ Generate TLSv1.3 Compat test cases
 import sys
 import abc
 import argparse
+import itertools
 
 # pylint: disable=useless-super-delegation
 
@@ -373,6 +374,9 @@ def generate_compat_test(server=None, client=None, cipher=None,  # pylint: disab
 def main():
     parser = argparse.ArgumentParser()
 
+    parser.add_argument('-a', '--generate-all-tls13-compat-tests', action='store_true',
+                        default=False, help='Generate all available tls13 compat tests')
+
     parser.add_argument('--list-ciphers', action='store_true',
                         default=False, help='List supported ciphersuites')
 
@@ -405,6 +409,15 @@ def main():
                         help='Choose cipher suite for test')
 
     args = parser.parse_args()
+    if args.generate_all_tls13_compat_tests:
+        for i in itertools.product(CIPHER_SUITE_IANA_VALUE.keys(), SIG_ALG_IANA_VALUE.keys(),
+                                   NAMED_GROUP_IANA_VALUE.keys(), SERVER_CLS.keys(),
+                                   CLIENT_CLS.keys()):
+            generate_compat_test(
+                **dict(zip(['cipher', 'sig_alg', 'named_group', 'server', 'client'], i)))
+            print()
+        return 0
+
     if args.list_ciphers or args.list_sig_algs or args.list_named_groups \
             or args.list_servers or args.list_clients:
         if args.list_ciphers:

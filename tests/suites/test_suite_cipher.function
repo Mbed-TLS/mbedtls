@@ -18,8 +18,7 @@
 static int check_cipher_info( mbedtls_cipher_type_t type,
                               const mbedtls_cipher_info_t *info )
 {
-    size_t key_bitlen;
-    int block_size, iv_size;
+    size_t key_bitlen, block_size, iv_size;
 
     TEST_ASSERT( info != NULL );
     TEST_EQUAL( type, mbedtls_cipher_info_get_type( info ) );

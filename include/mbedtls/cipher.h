@@ -515,6 +515,7 @@ static inline const char *mbedtls_cipher_info_get_name(
  *
  * \return      The recommended IV size.
  * \return      \c 0 for ciphers not using an IV or a nonce.
+ * \return      \c 0 if \p info is \c NULL.
  */
 static inline size_t mbedtls_cipher_info_get_iv_size(
     const mbedtls_cipher_info_t *info )

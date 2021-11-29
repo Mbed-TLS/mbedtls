@@ -4309,6 +4309,10 @@ psa_status_t psa_aead_update_ad( psa_aead_operation_t *operation,
         operation->ad_remaining -= input_length;
     }
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_rwlock_lock_reader( &mbedtls_psa_slots_lock ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
 
     status = psa_get_and_lock_key_slot( operation->key_id, &slot );
     if( status != PSA_SUCCESS )
@@ -4332,6 +4336,10 @@ exit:
         operation->ad_started = 1;
     else
         psa_aead_abort( operation );
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_rwlock_unlock_reader( &mbedtls_psa_slots_lock ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
 
     return( status );
 }
@@ -4382,6 +4390,11 @@ psa_status_t psa_aead_update( psa_aead_operation_t *operation,
         operation->body_remaining -= input_length;
     }
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_rwlock_lock_reader( &mbedtls_psa_slots_lock ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
+
     status = psa_get_and_lock_key_slot( operation->key_id, &slot );
     if( status != PSA_SUCCESS )
         goto exit;
@@ -4405,6 +4418,11 @@ exit:
         operation->body_started = 1;
     else
         psa_aead_abort( operation );
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_rwlock_unlock_reader( &mbedtls_psa_slots_lock ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
 
     return( status );
 }
@@ -4435,6 +4453,11 @@ psa_status_t psa_aead_finish( psa_aead_operation_t *operation,
 
     *ciphertext_length = 0;
     *tag_length = tag_size;
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_rwlock_lock_reader( &mbedtls_psa_slots_lock ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
 
     status = psa_aead_final_checks( operation );
     if( status != PSA_SUCCESS )
@@ -4481,6 +4504,11 @@ exit:
 
     psa_aead_abort( operation );
 
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_rwlock_unlock_reader( &mbedtls_psa_slots_lock ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
+
     return( status );
 }
 
@@ -4497,6 +4525,11 @@ psa_status_t psa_aead_verify( psa_aead_operation_t *operation,
     psa_key_slot_t *slot;
 
     *plaintext_length = 0;
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_rwlock_lock_reader( &mbedtls_psa_slots_lock ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
 
     status = psa_aead_final_checks( operation );
     if( status != PSA_SUCCESS )
@@ -4529,6 +4562,11 @@ psa_status_t psa_aead_verify( psa_aead_operation_t *operation,
 
 exit:
     psa_aead_abort( operation );
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_rwlock_unlock_reader( &mbedtls_psa_slots_lock ) != 0 )
+        return( PSA_ERROR_BAD_STATE );
+#endif
 
     return( status );
 }

@@ -587,7 +587,7 @@ struct mbedtls_ssl_handshake_params
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_ssl_key_cert *key_cert;     /*!< chosen key/cert pair (server)  */
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-    int sni_authmode;                   /*!< authmode from SNI callback     */
+    uint8_t sni_authmode;               /*!< authmode from SNI callback     */
     mbedtls_ssl_key_cert *sni_key_cert; /*!< key/cert list from SNI         */
     mbedtls_x509_crt *sni_ca_chain;     /*!< trusted CAs from SNI callback  */
     mbedtls_x509_crl *sni_ca_crl;       /*!< trusted CAs CRLs from SNI      */
@@ -595,7 +595,7 @@ struct mbedtls_ssl_handshake_params
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
-    int ecrs_enabled;                   /*!< Handshake supports EC restart? */
+    uint8_t ecrs_enabled;               /*!< Handshake supports EC restart? */
     mbedtls_x509_crt_restart_ctx ecrs_ctx;  /*!< restart context            */
     enum { /* this complements ssl->state with info on intra-state operations */
         ssl_ecrs_none = 0,              /*!< nothing going on (yet)         */
@@ -759,10 +759,10 @@ struct mbedtls_ssl_handshake_params
     unsigned char premaster[MBEDTLS_PREMASTER_SIZE];
                                         /*!<  premaster secret        */
 
-    int resume;                         /*!<  session resume indicator*/
-    int max_major_ver;                  /*!< max. major version client*/
-    int max_minor_ver;                  /*!< max. minor version client*/
-    int cli_exts;                       /*!< client extension presence*/
+    uint8_t max_major_ver;              /*!< max. major version client*/
+    uint8_t max_minor_ver;              /*!< max. minor version client*/
+    uint8_t resume;                     /*!<  session resume indicator*/
+    uint8_t cli_exts;                   /*!< client extension presence*/
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
     int extensions_present;             /*!< extension presence; Each bitfield
                                              represents an extension and defined
@@ -779,15 +779,15 @@ struct mbedtls_ssl_handshake_params
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    int new_session_ticket;             /*!< use NewSessionTicket?    */
+    uint8_t new_session_ticket;         /*!< use NewSessionTicket?    */
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
-    int extended_ms;                    /*!< use Extended Master Secret? */
+    uint8_t extended_ms;                /*!< use Extended Master Secret? */
 #endif
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
-    unsigned int async_in_progress : 1; /*!< an asynchronous operation is in progress */
+    uint8_t async_in_progress; /*!< an asynchronous operation is in progress */
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)

@@ -40,7 +40,7 @@ def main(args):
     options.suite = re.sub(r'\Atest_suite_', '', options.suite)
     suite_class = SUITE_CLASSES[options.suite]
     for num, line in enumerate(sys.stdin, 1):
-        if re.match(r'\w+:\S', line):
+        if re.match(r'(?!depends_on:)\w+:\S', line):
             try:
                 tc = suite_class(line)
             except:

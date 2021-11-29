@@ -8989,8 +8989,10 @@ run_test    "TLS1.3: HelloRetryRequest check - gnutls" \
             -c "HRR not supported" \
             -c "Last error was: -0x6E00 - SSL - The handshake negotiation failed" \
             -s "HELLO RETRY REQUEST was queued"
-
-. opt-testcases/tls13-compat.sh
+for i in $(ls opt-testcases/*.sh)
+do
+    . $i
+done
 
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_MEMORY_DEBUG

@@ -111,7 +111,8 @@ class PsaCrypto(Common):
             crypto_reference.KeyDerivationBaseAlgorithm.HKDF,
             crypto_reference.HashAlgorithm.from_psa(m.group(1))
         )
-        # Parse the output key type
+        # Parse the output key type (something like "PSA_FOO" or
+        # "PSA_FOO(arg1,arg2)"; spaces were removed above).
         m = re.match(r'(\w+)(?:\(([\w,]*)\))?', key_type)
         if not m:
             raise TypeError('PSA key type', key_type)

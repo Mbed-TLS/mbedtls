@@ -40,6 +40,10 @@ def main(args):
     options.suite = re.sub(r'\Atest_suite_', '', options.suite)
     suite_class = SUITE_CLASSES[options.suite]
     for num, line in enumerate(sys.stdin, 1):
+        # Match lines with test case data ("function_name:argument1:...").
+        # Skip "depends_on:" lines. Skip comments and typical description
+        # lines (which technically can start with "some_word:more stuff",
+        # but typically would have a space after the colon).
         if re.match(r'(?!depends_on:)\w+:\S', line):
             try:
                 tc = suite_class(line)

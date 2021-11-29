@@ -243,13 +243,25 @@ class KeyDerivation:
         Follow the derivation method specified in the PSA Cryptography API
         specification version 1.1.0.
         """
-        m = len(bin(order)) - 2
+        # In comments, "1." through "5." are steps in the PSA specification.
+        # The code has them slightly out of order.
+        m = len(bin(order)) - 2 # bit-size of N (order)
         length = (m + 7) // 8
         k = order
+        # 4. If k > N - 2, discard the result and return to step 1.
         while k > order - 2:
+            # 1. Draw a byte string of length ceiling(m/8) bytes.
             string = self.output_bytes(length)
+            # 3. Convert the string to integer k by decoding it as a
+            # big-endian byte string.
             k = int(string.hex(), 16)
+            # 2. If m is not a multiple of 8, set the most significant
+            # (8 * ceiling(m/8) - m) bits of the first byte in the string
+            # to zero. We do this after conversion because it's more
+            # convenient in Python, where the masking requires a conversion
+            # to integer anyway.
             k &= (1 << m) - 1
+        # 5. Output k + 1 as the private key.
         k += 1
         hexdigits = hex(k)[2:].rjust(2 * length, '0')
         return bytes.fromhex(hexdigits)

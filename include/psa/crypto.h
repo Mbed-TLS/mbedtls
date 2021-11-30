@@ -153,10 +153,10 @@ static void psa_set_key_id( psa_key_attributes_t *attributes,
  * the owner of a key.
  *
  * \param[out] attributes  The attribute structure to write to.
- * \param owner_id         The key owner identifier.
+ * \param owner            The key owner identifier.
  */
 static void mbedtls_set_key_owner_id( psa_key_attributes_t *attributes,
-                                      mbedtls_key_owner_id_t owner_id );
+                                      mbedtls_key_owner_id_t owner );
 #endif
 
 /** Set the location of a persistent key.

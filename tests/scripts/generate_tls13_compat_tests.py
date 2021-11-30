@@ -23,6 +23,7 @@ Generate TLSv1.3 Compat test cases
 """
 
 import sys
+import os
 import abc
 import argparse
 import itertools
@@ -31,14 +32,14 @@ import itertools
 
 CERTIFICATES = {
     'ecdsa_secp256r1_sha256': (
-        'data_files/ecdsa_secp256r1_sha256.crt',
-        'data_files/ecdsa_secp256r1_sha256.key'),
+        'data_files/ecdsa_secp256r1.crt',
+        'data_files/ecdsa_secp256r1.key'),
     'ecdsa_secp384r1_sha384': (
-        'data_files/ecdsa_secp384r1_sha384.crt',
-        'data_files/ecdsa_secp384r1_sha384.key'),
+        'data_files/ecdsa_secp384r1.crt',
+        'data_files/ecdsa_secp384r1.key'),
     'ecdsa_secp521r1_sha512': (
-        'data_files/ecdsa_secp521r1_sha512.crt',
-        'data_files/ecdsa_secp521r1_sha512.key'),
+        'data_files/ecdsa_secp521r1.crt',
+        'data_files/ecdsa_secp521r1.key'),
     'rsa_pss_rsae_sha256': (
         'data_files/server2-sha256.crt', 'data_files/server2.key'
     )
@@ -256,7 +257,7 @@ class GnuTLSServ(TLSProgram):
             ret += ['--x509certfile {cert} --x509keyfile {key}'.format(
                 cert=cert, key=key)]
         priority_strings = ':+'.join(['NONE'] +
-                                     list(set(self.priority_strings)) +
+                                     list(sorted(self.priority_strings)) +
                                      ['VERS-TLS1.3'])
         priority_strings += ':%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE'
         ret += ['--priority={priority_strings}'.format(
@@ -357,7 +358,7 @@ def generate_compat_test(server=None, client=None, cipher=None,  # pylint: disab
     """
     Generate test case with `ssl-opt.sh` format.
     """
-    name = 'TLS1.3 {client[0]}->{server[0]}: {cipher},{named_group},{sig_alg}'.format(
+    name = 'TLS 1.3 {client[0]}->{server[0]}: {cipher},{named_group},{sig_alg}'.format(
         client=client, server=server, cipher=cipher, sig_alg=sig_alg, named_group=named_group)
     server = SERVER_CLS[server](cipher, sig_alg, named_group)
     client = CLIENT_CLS[client](cipher, sig_alg, named_group)
@@ -402,6 +403,9 @@ SSL_OUTPUT_HEADER = '''#!/bin/sh
 
 
 def main():
+    """
+    Main function of this program
+    """
     parser = argparse.ArgumentParser()
 
     parser.add_argument('-o', '--output', nargs='?',
@@ -453,8 +457,9 @@ def main():
     if args.generate_all_tls13_compat_tests:
         if args.output:
             with open(args.output, 'w', encoding="utf-8") as f:
-                f.write(SSL_OUTPUT_HEADER.format(filename=args.output))
+                f.write(SSL_OUTPUT_HEADER.format(filename=os.path.basename(args.output)))
                 f.write('\n\n'.join(get_all_test_cases()))
+                f.write('\n')
         else:
             print('\n'.join(get_all_test_cases()))
         return 0

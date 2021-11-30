@@ -1088,41 +1088,42 @@ cert_md5.crt: cert_md5.csr
 all_final += cert_md5.crt
 
 # TLSv1.3 test certificates
-ecdsa_secp256r1_sha256.key: ec_256_prv.pem
+ecdsa_secp256r1.key: ec_256_prv.pem
 	ln -s $< $@
-ecdsa_secp256r1_sha256.csr: ecdsa_secp256r1_sha256.key
-	$(OPENSSL) req -new -subj "/C=NL/O=PolarSSL/CN=localhost" \
-					-key $< -out $@
-all_intermediate += ecdsa_secp256r1_sha256.csr
-ecdsa_secp256r1_sha256.crt: ecdsa_secp256r1_sha256.csr
-	$(OPENSSL) x509 -req -CA $(test_ca_crt_file_ec) -CAkey $(test_ca_key_file_ec) \
-				-set_serial 77 -days 3653 -sha256 -in $< -out $@
-all_final += ecdsa_secp256r1_sha256.crt ecdsa_secp256r1_sha256.key
-tls13_certs: ecdsa_secp256r1_sha256.crt ecdsa_secp256r1_sha256.key
 
-ecdsa_secp384r1_sha384.key: ec_384_prv.pem
-	ln -s $< $@
-ecdsa_secp384r1_sha384.csr: ecdsa_secp384r1_sha384.key
+ecdsa_secp256r1.csr: ecdsa_secp256r1.key
 	$(OPENSSL) req -new -subj "/C=NL/O=PolarSSL/CN=localhost" \
 					-key $< -out $@
-all_intermediate += ecdsa_secp384r1_sha384.csr
-ecdsa_secp384r1_sha384.crt: ecdsa_secp384r1_sha384.csr
+all_intermediate += ecdsa_secp256r1.csr
+ecdsa_secp256r1.crt: ecdsa_secp256r1.csr
 	$(OPENSSL) x509 -req -CA $(test_ca_crt_file_ec) -CAkey $(test_ca_key_file_ec) \
 				-set_serial 77 -days 3653 -sha384 -in $< -out $@
-all_final += ecdsa_secp384r1_sha384.crt ecdsa_secp384r1_sha384.key
-tls13_certs: ecdsa_secp384r1_sha384.crt ecdsa_secp384r1_sha384.key
+all_final += ecdsa_secp256r1.crt ecdsa_secp256r1.key
+tls13_certs: ecdsa_secp256r1.crt ecdsa_secp256r1.key
 
-ecdsa_secp521r1_sha512.key: ec_521_prv.pem
+ecdsa_secp384r1.key: ec_384_prv.pem
 	ln -s $< $@
-ecdsa_secp521r1_sha512.csr: ecdsa_secp521r1_sha512.key
+ecdsa_secp384r1.csr: ecdsa_secp384r1.key
 	$(OPENSSL) req -new -subj "/C=NL/O=PolarSSL/CN=localhost" \
 					-key $< -out $@
-all_intermediate += ecdsa_secp521r1_sha512.csr
-ecdsa_secp521r1_sha512.crt: ecdsa_secp521r1_sha512.csr
+all_intermediate += ecdsa_secp384r1.csr
+ecdsa_secp384r1.crt: ecdsa_secp384r1.csr
 	$(OPENSSL) x509 -req -CA $(test_ca_crt_file_ec) -CAkey $(test_ca_key_file_ec) \
-				-set_serial 77 -days 3653 -sha512 -in $< -out $@
-all_final += ecdsa_secp521r1_sha512.crt ecdsa_secp521r1_sha512.key
-tls13_certs: ecdsa_secp521r1_sha512.crt ecdsa_secp521r1_sha512.key
+				-set_serial 77 -days 3653 -sha384 -in $< -out $@
+all_final += ecdsa_secp384r1.crt ecdsa_secp384r1.key
+tls13_certs: ecdsa_secp384r1.crt ecdsa_secp384r1.key
+
+ecdsa_secp521r1.key: ec_521_prv.pem
+	ln -s $< $@
+ecdsa_secp521r1.csr: ecdsa_secp521r1.key
+	$(OPENSSL) req -new -subj "/C=NL/O=PolarSSL/CN=localhost" \
+					-key $< -out $@
+all_intermediate += ecdsa_secp521r1.csr
+ecdsa_secp521r1.crt: ecdsa_secp521r1.csr
+	$(OPENSSL) x509 -req -CA $(test_ca_crt_file_ec) -CAkey $(test_ca_key_file_ec) \
+				-set_serial 77 -days 3653 -sha384 -in $< -out $@
+all_final += ecdsa_secp521r1.crt ecdsa_secp521r1.key
+tls13_certs: ecdsa_secp521r1.crt ecdsa_secp521r1.key
 
 ################################################################
 #### Diffie-Hellman parameters

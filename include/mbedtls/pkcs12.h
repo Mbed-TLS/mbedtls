@@ -62,7 +62,7 @@ extern "C" {
  * \param cipher_type the cipher used
  * \param md_type    the mbedtls_md used
  * \param pwd        Latin1-encoded password used. This may only be \c NULL when
- *                   pwdlen is 0. No \c NULL terminator should be used.
+ *                   \p pwdlen is 0. No null terminator should be used.
  * \param pwdlen     length of the password (may be 0)
  * \param input      the input data
  * \param len        data length
@@ -95,7 +95,7 @@ int mbedtls_pkcs12_pbe( mbedtls_asn1_buf *pbe_params, int mode,
  *                   last two bytes should be 0x00 0x00).
  * \param pwdlen     length of the password (may be 0).
  * \param salt       Salt buffer to use This may only be \c NULL when
- *                   saltlen is 0.
+ *                   \p saltlen is 0.
  * \param saltlen    length of the salt (may be zero)
  * \param mbedtls_md mbedtls_md type to use during the derivation
  * \param id         id that describes the purpose (can be

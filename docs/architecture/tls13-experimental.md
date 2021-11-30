@@ -134,22 +134,22 @@ MVP definition
   (1) This is just for comparison.
 
   (2) The MVP sends only one shared secret corresponding to the configured
-	  preferred group. This could, however end up with connection failure if the
-	  server does not support our preferred curve, as we have yet to implement
-	  HelloRetryRequest. The preferred group is the group of the first curve in
-	  the list of allowed curves as defined by the configuration. The list of
-	  mandatory-to-implement groups (in absence of an application profile
-	  standard specifying otherwise) as defined in section 9.1 of the
-	  specification gives the preferred order as follows: `secp256r1`, `x25519`,
-	  `secp384r1` and finally `secp521r1`. If we could therefore fix the use of
-	  `secp256r1`, then we would be guaranteed that the server supported it,
-	  however our current curve preference order puts `x25519` before
-	  `secp256r1` and changing this for only TLS1.3 would be potentially
-	  difficult (we have no desire to change TLS1.2 behaviour). The likelyhood
-	  of finding a server that doesn't support `x25519` is quite low and indeed
-	  the end user could themselves change the order of preference of curves
-	  using the `mbedtls_ssl_conf_curves()` API if they wished to do so, so we
-	  are leaving the current preference order intact.
+      preferred group. This could, however end up with connection failure if the
+      server does not support our preferred curve, as we have yet to implement
+      HelloRetryRequest. The preferred group is the group of the first curve in
+      the list of allowed curves as defined by the configuration. The list of
+      mandatory-to-implement groups (in absence of an application profile
+      standard specifying otherwise) as defined in section 9.1 of the
+      specification gives the preferred order as follows: `secp256r1`, `x25519`,
+      `secp384r1` and finally `secp521r1`. If we could therefore fix the use of
+      `secp256r1`, then we would be guaranteed that the server supported it,
+      however our current curve preference order puts `x25519` before
+      `secp256r1` and changing this for only TLS1.3 would be potentially
+      difficult (we have no desire to change TLS1.2 behaviour). The likelyhood
+      of finding a server that doesn't support `x25519` is quite low and indeed
+      the end user could themselves change the order of preference of curves
+      using the `mbedtls_ssl_conf_curves()` API if they wished to do so, so we
+      are leaving the current preference order intact.
 
   (3) The MVP proposes only TLS 1.3 and does not support version negotiation.
       Out-of-protocol fallback is supported though if the Mbed TLS library

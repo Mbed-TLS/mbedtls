@@ -1435,7 +1435,7 @@ component_build_crypto_full () {
 component_build_crypto_baremetal () {
   msg "build: make, crypto only, baremetal config"
   scripts/config.py crypto_baremetal
-  make CFLAGS="-O1 -Werror -I$(pwd)/tests/include/baremetal-override/"
+  make CFLAGS="-O1 -Werror -I$PWD/tests/include/baremetal-override/"
   are_empty_libraries library/libmbedx509.* library/libmbedtls.*
 }
 support_build_crypto_baremetal () {
@@ -1445,7 +1445,7 @@ support_build_crypto_baremetal () {
 component_build_baremetal () {
   msg "build: make, baremetal config"
   scripts/config.py baremetal
-  make CFLAGS="-O1 -Werror -I$(pwd)/tests/include/baremetal-override/"
+  make CFLAGS="-O1 -Werror -I$PWD/tests/include/baremetal-override/"
 }
 support_build_baremetal () {
     # Older Glibc versions include time.h from other headers such as stdlib.h,

@@ -9032,7 +9032,7 @@ requires_config_disabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
-run_test    "TLS 1.3: client and server do not support middlebox compatibility" \
+run_test    "TLS 1.3 m->O both peers do not support middlebox compatibility" \
             "$O_NEXT_SRV -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
             "$P_CLI debug_level=3 min_version=tls13 max_version=tls13" \
             0 \
@@ -9044,8 +9044,35 @@ requires_config_disabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
-run_test    "TLS 1.3: client does not support middlebox compatibility but server does" \
+run_test    "TLS 1.3 m->O server with middlebox compat support, not client" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
+            "$P_CLI debug_level=3 min_version=tls13 max_version=tls13" \
+            1 \
+            -c "ChangeCipherSpec invalid in TLS 1.3 without compatibility mode"
+
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_disabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "TLS 1.3 m->G both peers do not support middlebox compatibility" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE --disable-client-cert" \
+            "$P_CLI debug_level=3 min_version=tls13 max_version=tls13" \
+            0 \
+            -c "HTTP/1.0 200 OK"
+
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_disabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "TLS 1.3 m->G server with middlebox compat support, not client" \
+            "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS --disable-client-cert" \
             "$P_CLI debug_level=3 min_version=tls13 max_version=tls13" \
             1 \
             -c "ChangeCipherSpec invalid in TLS 1.3 without compatibility mode"

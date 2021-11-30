@@ -11,7 +11,7 @@ typedef enum
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_ASN1_PARSE_C:MBEDTLS_PKCS12_C
+ * depends_on:MBEDTLS_PKCS12_C
  * END_DEPENDENCIES
  */
 

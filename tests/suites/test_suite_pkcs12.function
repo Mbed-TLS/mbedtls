@@ -16,10 +16,10 @@ typedef enum
  */
 
 /* BEGIN_CASE */
-void pkcs12_derive_key_test( int md_type, int key_size_arg,
-                             data_t *password_arg, int password_usage,
-                             data_t *salt_arg, int salt_usage,
-                             int iterations, int expected_status )
+void pkcs12_derive_key( int md_type, int key_size_arg,
+                        data_t *password_arg, int password_usage,
+                        data_t *salt_arg, int salt_usage,
+                        int iterations, int expected_status )
 
 {
    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;

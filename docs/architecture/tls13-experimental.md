@@ -145,7 +145,7 @@ MVP definition
       `secp256r1`, then we would be guaranteed that the server supported it,
       however our current curve preference order puts `x25519` before
       `secp256r1` and changing this for only TLS1.3 would be potentially
-      difficult (we have no desire to change TLS1.2 behaviour). The likelyhood
+      difficult (we have no desire to change TLS1.2 behaviour). The likelihood
       of finding a server that doesn't support `x25519` is quite low and indeed
       the end user could themselves change the order of preference of curves
       using the `mbedtls_ssl_conf_curves()` API if they wished to do so, so we

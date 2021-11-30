@@ -42,8 +42,6 @@ RUN apt-get update \
     doxygen \
     gcc-arm-none-eabi \
     gcc-mingw-w64-i686 \
-    gcc-multilib \
-    g++-multilib \
     gdb \
     git \
     graphviz \
@@ -58,6 +56,15 @@ RUN apt-get update \
     libgmp-dev \
     m4 \
     pkg-config \
+    debhelper \
+    autotools-dev \
+    # gcc/g++-multilib is not available in aarch64
+    && ( [ `uname -m` != x86_64 ] \
+         || \
+            ( set -e ; \
+              apt-get -y install gcc-multilib g++-multilib \
+            ) \
+       ) \
     && rm -rf /var/lib/apt/lists/*
 
 # Build a static, legacy openssl from sources with sslv3 enabled
@@ -97,6 +104,12 @@ ENV OPENSSL_NEXT=/usr/local/openssl-1.1.1a/bin/openssl
 RUN cd /tmp \
     && wget https://ftp.gnu.org/gnu/nettle/nettle-2.7.1.tar.gz -qO- | tar xz \
     && cd nettle-2.7.1 \
+    && ( [ `uname -m` != aarch64 ] \
+         || ( set -e ; \
+              wget https://launchpad.net/~ubuntu-security-proposed/+archive/ubuntu/ppa/+sourcefiles/nettle/2.7.1-1ubuntu0.2/nettle_2.7.1-1ubuntu0.2.debian.tar.gz -qO- | tar xz; \
+              dpkg-buildpackage -us -uc -b -Tconfig.status; \
+            ) \
+       ) \
     && ./configure --disable-documentation \
     && make ${MAKEFLAGS_PARALLEL} \
     && make install \

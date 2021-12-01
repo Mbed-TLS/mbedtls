@@ -84,24 +84,27 @@ class TLSProgram(metaclass=abc.ABCMeta):
     """
 
     def __init__(self, ciphersuite, signature_algorithm, named_group):
-        self._cipher = ciphersuite
-        self._sig_alg = signature_algorithm
-        self._named_group = named_group
+        self._ciphers = []
+        self._sig_algs = []
+        self._named_groups = []
         self.add_ciphersuites(ciphersuite)
         self.add_named_groups(named_group)
         self.add_signature_algorithms(signature_algorithm)
 
-    @abc.abstractmethod
+    # add_ciphersuites should not override by sub class
     def add_ciphersuites(self, *ciphersuites):
-        pass
+        self._ciphers.extend(
+            [cipher for cipher in ciphersuites if cipher not in self._ciphers])
 
-    @abc.abstractmethod
+    # add_signature_algorithms should not override by sub class
     def add_signature_algorithms(self, *signature_algorithms):
-        pass
+        self._sig_algs.extend(
+            [sig_alg for sig_alg in signature_algorithms if sig_alg not in self._sig_algs])
 
-    @abc.abstractmethod
+    # add_signature_algorithms should not override by sub class
     def add_named_groups(self, *named_groups):
-        pass
+        self._named_groups.extend(
+            [named_group for named_group in named_groups if named_group not in self._named_groups])
 
     @abc.abstractmethod
     def pre_checks(self):
@@ -120,26 +123,6 @@ class OpenSSLServ(TLSProgram):
     """
     Generate test commands for OpenSSL server.
     """
-    program = '$OPENSSL_NEXT'
-
-    def __init__(
-            self,
-            ciphersuite,
-            signature_algorithm,
-            named_group):
-        self.ciphersuites = []
-        self.named_groups = []
-        self.signature_algorithms = []
-        self.certificates = []
-        super().__init__(ciphersuite, signature_algorithm, named_group)
-
-    def add_ciphersuites(self, *ciphersuites):
-        self.ciphersuites.extend(ciphersuites)
-
-    def add_signature_algorithms(self, *signature_algorithms):
-        self.signature_algorithms.extend(signature_algorithms)
-        for sig_alg in signature_algorithms:
-            self.certificates.append(CERTIFICATES[sig_alg])
 
     NAMED_GROUP = {
         'secp256r1': 'P-256',
@@ -149,20 +132,15 @@ class OpenSSLServ(TLSProgram):
         'x448': 'X448',
     }
 
-    def add_named_groups(self, *named_groups):
-        for named_group in named_groups:
-            self.named_groups.append(self.NAMED_GROUP[named_group])
-
     def cmd(self):
         ret = ['$O_NEXT_SRV_NO_CERT']
-        for i in self.certificates:
-            print(i)
-        for _, cert, key in self.certificates:
+        for _, cert, key in map(lambda sig_alg: CERTIFICATES[sig_alg], self._sig_algs):
             ret += ['-cert {cert} -key {key}'.format(cert=cert, key=key)]
         ret += ['-accept $SRV_PORT']
-        ciphersuites = ','.join(self.ciphersuites)
-        signature_algorithms = ','.join(self.signature_algorithms)
-        named_groups = ','.join(self.named_groups)
+        ciphersuites = ','.join(self._ciphers)
+        signature_algorithms = ','.join(self._sig_algs)
+        named_groups = ','.join(
+            map(lambda named_group: self.NAMED_GROUP[named_group], self._named_groups))
         ret += ["-ciphersuites {ciphersuites}".format(ciphersuites=ciphersuites),
                 "-sigalgs {signature_algorithms}".format(
                     signature_algorithms=signature_algorithms),
@@ -181,11 +159,6 @@ class GnuTLSServ(TLSProgram):
     """
     Generate test commands for GnuTLS server.
     """
-
-    def __init__(self, ciphersuite, signature_algorithm, named_group):
-        self.priority_strings = []
-        self.certificates = []
-        super().__init__(ciphersuite, signature_algorithm, named_group)
 
     CIPHER_SUITE = {
         'TLS_AES_256_GCM_SHA384': [
@@ -209,20 +182,11 @@ class GnuTLSServ(TLSProgram):
             'SHA256',
             'AEAD']}
 
-    def add_ciphersuites(self, *ciphersuites):
-        for ciphersuite in ciphersuites:
-            self.priority_strings.extend(self.CIPHER_SUITE[ciphersuite])
-
     SIGNATURE_ALGORITHM = {
         'ecdsa_secp256r1_sha256': ['SIGN-ECDSA-SECP256R1-SHA256'],
         'ecdsa_secp521r1_sha512': ['SIGN-ECDSA-SECP521R1-SHA512'],
         'ecdsa_secp384r1_sha384': ['SIGN-ECDSA-SECP384R1-SHA384'],
         'rsa_pss_rsae_sha256': ['SIGN-RSA-PSS-RSAE-SHA256']}
-
-    def add_signature_algorithms(self, *signature_algorithms):
-        for sig_alg in signature_algorithms:
-            self.priority_strings.extend(self.SIGNATURE_ALGORITHM[sig_alg])
-            self.certificates.append(CERTIFICATES[sig_alg])
 
     NAMED_GROUP = {
         'secp256r1': ['GROUP-SECP256R1'],
@@ -231,10 +195,6 @@ class GnuTLSServ(TLSProgram):
         'x25519': ['GROUP-X25519'],
         'x448': ['GROUP-X448'],
     }
-
-    def add_named_groups(self, *named_groups):
-        for named_group in named_groups:
-            self.priority_strings.extend(self.NAMED_GROUP[named_group])
 
     def pre_checks(self):
         return ["requires_gnutls_tls1_3",
@@ -245,20 +205,32 @@ class GnuTLSServ(TLSProgram):
         return ['-c "HTTP/1.0 200 OK"']
 
     def cmd(self):
-        ret = [
-            '$G_NEXT_SRV_NO_CERT',
-            '--http',
-            '--disable-client-cert',
-            '--debug=4']
-        for _, cert, key in self.certificates:
+        ret = ['$G_NEXT_SRV_NO_CERT', '--http',
+               '--disable-client-cert', '--debug=4']
+
+        for _, cert, key in map(lambda sig_alg: CERTIFICATES[sig_alg], self._sig_algs):
             ret += ['--x509certfile {cert} --x509keyfile {key}'.format(
                 cert=cert, key=key)]
-        priority_strings = ':+'.join(['NONE'] +
-                                     list(sorted(self.priority_strings)) +
-                                     ['VERS-TLS1.3'])
-        priority_strings += ':%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE'
-        ret += ['--priority={priority_strings}'.format(
-            priority_strings=priority_strings)]
+
+        priority_string_list = []
+
+        def update_priority_string_list(items, map_table):
+            for item in items:
+                for i in map_table[item]:
+                    if i not in priority_string_list:
+                        yield i
+        priority_string_list.extend(update_priority_string_list(
+            self._sig_algs, self.SIGNATURE_ALGORITHM))
+        priority_string_list.extend(
+            update_priority_string_list(self._ciphers, self.CIPHER_SUITE))
+        priority_string_list.extend(update_priority_string_list(
+            self._named_groups, self.NAMED_GROUP))
+        priority_string_list = ['NONE'] + sorted(priority_string_list) + ['VERS-TLS1.3']
+
+        priority_string = ':+'.join(priority_string_list)
+        priority_string += ':%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE'
+        ret += ['--priority={priority_string}'.format(
+            priority_string=priority_string)]
         ret = ' '.join(ret)
         return ret
 
@@ -268,14 +240,6 @@ class MbedTLSCli(TLSProgram):
     Generate test commands for mbedTLS client.
     """
 
-    def __init__(self, ciphersuite, signature_algorithm, named_group):
-        self.ciphersuites = []
-        self.certificates = []
-        self.signature_algorithms = []
-        self.named_groups = []
-        self.needed_named_groups = []
-        super().__init__(ciphersuite, signature_algorithm, named_group)
-
     CIPHER_SUITE = {
         'TLS_AES_256_GCM_SHA384': 'TLS1-3-AES-256-GCM-SHA384',
         'TLS_AES_128_GCM_SHA256': 'TLS1-3-AES-128-GCM-SHA256',
@@ -283,68 +247,53 @@ class MbedTLSCli(TLSProgram):
         'TLS_AES_128_CCM_SHA256': 'TLS1-3-AES-128-CCM-SHA256',
         'TLS_AES_128_CCM_8_SHA256': 'TLS1-3-AES-128-CCM-8-SHA256'}
 
-    def add_ciphersuites(self, *ciphersuites):
-        for ciphersuite in ciphersuites:
-            self.ciphersuites.append(self.CIPHER_SUITE[ciphersuite])
+    def cmd(self):
+        ret = ['$P_CLI']
+        ret += ['server_addr=127.0.0.1', 'server_port=$SRV_PORT',
+                'debug_level=4', 'force_version=tls1_3']
+        ret += ['ca_file={cafile}'.format(
+            cafile=CERTIFICATES[self._sig_algs[0]].cafile)]
 
-    def add_signature_algorithms(self, *signature_algorithms):
-        for sig_alg in signature_algorithms:
-            self.signature_algorithms.append(sig_alg)
-            if sig_alg == 'ecdsa_secp256r1_sha256':
-                self.needed_named_groups.append('secp256r1')
-            elif sig_alg == 'ecdsa_secp521r1_sha512':
-                self.needed_named_groups.append('secp521r1')
-            elif sig_alg == 'ecdsa_secp384r1_sha384':
-                self.needed_named_groups.append('secp384r1')
+        if self._ciphers:
+            ciphers = ','.join(
+                map(lambda cipher: self.CIPHER_SUITE[cipher], self._ciphers))
+            ret += ["force_ciphersuite={ciphers}".format(ciphers=ciphers)]
 
-            self.certificates.append(CERTIFICATES[sig_alg])
+        if self._sig_algs:
+            ret += ['sig_algs={sig_algs}'.format(
+                sig_algs=','.join(self._sig_algs))]
+            for sig_alg in self._sig_algs:
+                if sig_alg in ('ecdsa_secp256r1_sha256',
+                               'ecdsa_secp384r1_sha384',
+                               'ecdsa_secp521r1_sha512'):
+                    self.add_named_groups(sig_alg.split('_')[1])
 
-    def add_named_groups(self, *named_groups):
-        for named_group in named_groups:
-            self.named_groups.append(named_group)
+        if self._named_groups:
+            named_groups = ','.join(self._named_groups)
+            ret += ["curves={named_groups}".format(named_groups=named_groups)]
+
+        ret = ' '.join(ret)
+        return ret
 
     def pre_checks(self):
-
         ret = ['requires_config_enabled MBEDTLS_DEBUG_C',
                'requires_config_enabled MBEDTLS_SSL_CLI_C',
                'requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL',
                'requires_config_disabled MBEDTLS_USE_PSA_CRYPTO']
-        if 'rsa_pss_rsae_sha256' in self.signature_algorithms:
+        if 'rsa_pss_rsae_sha256' in self._sig_algs:
             ret.append(
                 'requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT')
         return ret
 
     def post_checks(self):
-
-        check_strings = ["ECDH curve: {group}".format(group=self._named_group),
+        check_strings = ["ECDH curve: {group}".format(group=self._named_groups[0]),
                          "server hello, chosen ciphersuite: ( {:04x} ) - {}".format(
-                             CIPHER_SUITE_IANA_VALUE[self._cipher],
-                             self.CIPHER_SUITE[self._cipher]),
+                             CIPHER_SUITE_IANA_VALUE[self._ciphers[0]],
+                             self.CIPHER_SUITE[self._ciphers[0]]),
                          "Certificate Verify: Signature algorithm ( {:04x} )".format(
-                             SIG_ALG_IANA_VALUE[self._sig_alg]),
+                             SIG_ALG_IANA_VALUE[self._sig_algs[0]]),
                          "Verifying peer X.509 certificate... ok", ]
         return ['-c "{}"'.format(i) for i in check_strings]
-
-    def cmd(self):
-        ret = ['$P_CLI']
-        ret += [
-            'server_addr=127.0.0.1 server_port=$SRV_PORT',
-            'debug_level=4 force_version=tls1_3']
-        ret += ['ca_file={cafile}'.format(
-            cafile=CERTIFICATES[self._sig_alg].cafile)]
-        self.ciphersuites = list(set(self.ciphersuites))
-        cipher = ','.join(self.ciphersuites)
-        if cipher:
-            ret += ["force_ciphersuite={cipher}".format(cipher=cipher)]
-        self.named_groups = remove_duplicates(
-            self.named_groups + self.needed_named_groups)
-        group = ','.join(self.named_groups)
-        if group:
-            ret += ["curves={group}".format(group=group)]
-        sig_alg = ','.join(self.signature_algorithms)
-        ret += ['sig_algs={sig_alg}'.format(sig_alg=sig_alg)]
-        ret = ' '.join(ret)
-        return ret
 
 
 SERVER_CLASSES = {'OpenSSL': OpenSSLServ, 'GnuTLS': GnuTLSServ}

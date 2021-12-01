@@ -442,6 +442,8 @@ void enc_dec_buf( int cipher_id, char * cipher_string, int key_len,
     if( NULL != strstr( cipher_info->name, "CCM*-NO-TAG") )
         iv_len = 13; /* For CCM, IV length is expected to be between 7 and 13 bytes.
                       * For CCM*-NO-TAG, IV length must be exactly 13 bytes long. */
+    else if( cipher_info->type == MBEDTLS_CIPHER_CHACHA20 )
+        iv_len = 12;
     else
         iv_len = sizeof(iv);
 
@@ -689,6 +691,8 @@ void enc_dec_buf_multipart( int cipher_id, int key_len, int first_length_val,
     if( NULL != strstr( cipher_info->name, "CCM*-NO-TAG") )
         iv_len = 13; /* For CCM, IV length is expected to be between 7 and 13 bytes.
                       * For CCM*-NO-TAG, IV length must be exactly 13 bytes long. */
+    else if( cipher_info->type == MBEDTLS_CIPHER_CHACHA20 )
+        iv_len = 12;
     else
         iv_len = sizeof(iv);
 
@@ -1128,5 +1132,42 @@ void check_padding( int pad_mode, data_t * input, int ret, int dlen_check
     TEST_ASSERT( ret == ctx.get_padding( input->x, input->len, &dlen ) );
     if( 0 == ret )
         TEST_ASSERT( dlen == (size_t) dlen_check );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void check_iv( int cipher_id, char * cipher_string,
+               int iv_len_val, int ret )
+{
+    size_t iv_len = iv_len_val;
+    unsigned char iv[16];
+
+    const mbedtls_cipher_info_t *cipher_info;
+    mbedtls_cipher_context_t ctx_dec;
+    mbedtls_cipher_context_t ctx_enc;
+
+    /*
+     * Prepare contexts
+     */
+    mbedtls_cipher_init( &ctx_dec );
+    mbedtls_cipher_init( &ctx_enc );
+
+    /* Check and get info structures */
+    cipher_info = mbedtls_cipher_info_from_type( cipher_id );
+    TEST_ASSERT( NULL != cipher_info );
+    TEST_ASSERT( mbedtls_cipher_info_from_string( cipher_string ) == cipher_info );
+    TEST_ASSERT( strcmp( mbedtls_cipher_info_get_name( cipher_info ),
+                         cipher_string ) == 0 );
+
+    /* Initialise enc and dec contexts */
+    TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx_dec, cipher_info ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx_enc, cipher_info ) );
+
+    TEST_ASSERT( ret == mbedtls_cipher_set_iv( &ctx_dec, iv, iv_len ) );
+    TEST_ASSERT( ret == mbedtls_cipher_set_iv( &ctx_enc, iv, iv_len ) );
+
+exit:
+    mbedtls_cipher_free( &ctx_dec );
+    mbedtls_cipher_free( &ctx_enc );
 }
 /* END_CASE */

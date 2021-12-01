@@ -151,6 +151,8 @@ static psa_status_t psa_aead_setup(
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
 
         default:
+            (void) status;
+            (void) key_buffer;
             return( PSA_ERROR_NOT_SUPPORTED );
     }
 
@@ -252,6 +254,11 @@ psa_status_t mbedtls_psa_aead_encrypt(
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
     {
         (void) tag;
+        (void) nonce;
+        (void) nonce_length;
+        (void) additional_data;
+        (void) additional_data_length;
+        (void) plaintext;
         return( PSA_ERROR_NOT_SUPPORTED );
     }
 
@@ -367,6 +374,11 @@ psa_status_t mbedtls_psa_aead_decrypt(
     else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
     {
+        (void) nonce;
+        (void) nonce_length;
+        (void) additional_data;
+        (void) additional_data_length;
+        (void) plaintext;
         return( PSA_ERROR_NOT_SUPPORTED );
     }
 

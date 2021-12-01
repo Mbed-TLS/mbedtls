@@ -442,7 +442,8 @@ void enc_dec_buf( int cipher_id, char * cipher_string, int key_len,
     if( NULL != strstr( cipher_info->name, "CCM*-NO-TAG") )
         iv_len = 13; /* For CCM, IV length is expected to be between 7 and 13 bytes.
                       * For CCM*-NO-TAG, IV length must be exactly 13 bytes long. */
-    else if( cipher_info->type == MBEDTLS_CIPHER_CHACHA20 )
+    else if( cipher_info->type == MBEDTLS_CIPHER_CHACHA20 ||
+             cipher_info->type == MBEDTLS_CIPHER_CHACHA20_POLY1305 )
         iv_len = 12;
     else
         iv_len = sizeof(iv);
@@ -571,6 +572,7 @@ void dec_empty_buf( int cipher,
 {
     unsigned char key[32];
     unsigned char iv[16];
+    size_t iv_len = sizeof(iv);
 
     mbedtls_cipher_context_t ctx_dec;
     const mbedtls_cipher_info_t *cipher_info;
@@ -591,6 +593,11 @@ void dec_empty_buf( int cipher,
     /* Initialise context */
     cipher_info = mbedtls_cipher_info_from_type( cipher );
     TEST_ASSERT( NULL != cipher_info);
+
+    if( cipher_info->type == MBEDTLS_CIPHER_CHACHA20 ||
+        cipher_info->type == MBEDTLS_CIPHER_CHACHA20_POLY1305 )
+        iv_len = 12;
+
     TEST_ASSERT( sizeof(key) * 8 >= cipher_info->key_bitlen );
 
     TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx_dec, cipher_info ) );
@@ -599,7 +606,7 @@ void dec_empty_buf( int cipher,
                                              key, cipher_info->key_bitlen,
                                              MBEDTLS_DECRYPT ) );
 
-    TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx_dec, iv, 16 ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx_dec, iv, iv_len ) );
 
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_dec ) );
 
@@ -691,7 +698,8 @@ void enc_dec_buf_multipart( int cipher_id, int key_len, int first_length_val,
     if( NULL != strstr( cipher_info->name, "CCM*-NO-TAG") )
         iv_len = 13; /* For CCM, IV length is expected to be between 7 and 13 bytes.
                       * For CCM*-NO-TAG, IV length must be exactly 13 bytes long. */
-    else if( cipher_info->type == MBEDTLS_CIPHER_CHACHA20 )
+    else if( cipher_info->type == MBEDTLS_CIPHER_CHACHA20 ||
+             cipher_info->type == MBEDTLS_CIPHER_CHACHA20_POLY1305 )
         iv_len = 12;
     else
         iv_len = sizeof(iv);

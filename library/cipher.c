@@ -399,6 +399,11 @@ int mbedtls_cipher_set_iv( mbedtls_cipher_context_t *ctx,
             return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
         }
     }
+#if defined(MBEDTLS_CHACHAPOLY_C)
+    if ( ctx->cipher_info->type == MBEDTLS_CIPHER_CHACHA20_POLY1305 &&
+         iv_len != 12 )
+        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+#endif
 #endif
 
 #if defined(MBEDTLS_GCM_C)

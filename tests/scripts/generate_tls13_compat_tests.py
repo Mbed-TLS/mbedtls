@@ -27,30 +27,25 @@ import os
 import abc
 import argparse
 import itertools
-
+from collections import namedtuple
 # pylint: disable=useless-super-delegation
 
+# define certificates configuration entry
+Certificate = namedtuple("Certificate", ['cafile', 'certfile', 'keyfile'])
+# define the certificate parameters for signature algorithms
 CERTIFICATES = {
-    'ecdsa_secp256r1_sha256': (
-        'data_files/ecdsa_secp256r1.crt',
-        'data_files/ecdsa_secp256r1.key'),
-    'ecdsa_secp384r1_sha384': (
-        'data_files/ecdsa_secp384r1.crt',
-        'data_files/ecdsa_secp384r1.key'),
-    'ecdsa_secp521r1_sha512': (
-        'data_files/ecdsa_secp521r1.crt',
-        'data_files/ecdsa_secp521r1.key'),
-    'rsa_pss_rsae_sha256': (
-        'data_files/server2-sha256.crt', 'data_files/server2.key'
-    )
-}
-
-
-CAFILE = {
-    'ecdsa_secp256r1_sha256': 'data_files/test-ca2.crt',
-    'ecdsa_secp384r1_sha384': 'data_files/test-ca2.crt',
-    'ecdsa_secp521r1_sha512': 'data_files/test-ca2.crt',
-    'rsa_pss_rsae_sha256': 'data_files/test-ca_cat12.crt'
+    'ecdsa_secp256r1_sha256': Certificate('data_files/test-ca2.crt',
+                                          'data_files/ecdsa_secp256r1.crt',
+                                          'data_files/ecdsa_secp256r1.key'),
+    'ecdsa_secp384r1_sha384': Certificate('data_files/test-ca2.crt',
+                                          'data_files/ecdsa_secp384r1.crt',
+                                          'data_files/ecdsa_secp384r1.key'),
+    'ecdsa_secp521r1_sha512': Certificate('data_files/test-ca2.crt',
+                                          'data_files/ecdsa_secp521r1.crt',
+                                          'data_files/ecdsa_secp521r1.key'),
+    'rsa_pss_rsae_sha256': Certificate('data_files/test-ca_cat12.crt',
+                                       'data_files/server2-sha256.crt', 'data_files/server2.key'
+                                       )
 }
 
 CIPHER_SUITE_IANA_VALUE = {
@@ -160,7 +155,9 @@ class OpenSSLServ(TLSProgram):
 
     def cmd(self):
         ret = ['$O_NEXT_SRV_NO_CERT']
-        for cert, key in self.certificates:
+        for i in self.certificates:
+            print(i)
+        for _, cert, key in self.certificates:
             ret += ['-cert {cert} -key {key}'.format(cert=cert, key=key)]
         ret += ['-accept $SRV_PORT']
         ciphersuites = ','.join(self.ciphersuites)
@@ -253,7 +250,7 @@ class GnuTLSServ(TLSProgram):
             '--http',
             '--disable-client-cert',
             '--debug=4']
-        for cert, key in self.certificates:
+        for _, cert, key in self.certificates:
             ret += ['--x509certfile {cert} --x509keyfile {key}'.format(
                 cert=cert, key=key)]
         priority_strings = ':+'.join(['NONE'] +
@@ -333,7 +330,8 @@ class MbedTLSCli(TLSProgram):
         ret += [
             'server_addr=127.0.0.1 server_port=$SRV_PORT',
             'debug_level=4 force_version=tls1_3']
-        ret += ['ca_file={CAFILE}'.format(CAFILE=CAFILE[self._sig_alg])]
+        ret += ['ca_file={cafile}'.format(
+            cafile=CERTIFICATES[self._sig_alg].cafile)]
         self.ciphersuites = list(set(self.ciphersuites))
         cipher = ','.join(self.ciphersuites)
         if cipher:
@@ -479,8 +477,8 @@ def main():
             print(*CLIENT_CLASSES.keys())
         return 0
 
-    print(generate_compat_test(server=args.server, client=args.client,
-          sig_alg=args.sig_alg, cipher=args.cipher, named_group=args.named_group))
+    print(generate_compat_test(server=args.server, client=args.client, sig_alg=args.sig_alg,
+                               cipher=args.cipher, named_group=args.named_group))
     return 0
 
 

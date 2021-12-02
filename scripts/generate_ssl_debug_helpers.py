@@ -48,10 +48,10 @@ def preprocess_c_source_code(source, *classes):
     """
         Simple preprocessor for C source code.
 
-        Only processs condition directives without expanding them.
-        Yield object accodring to the classes input. Most match firstly
+        Only processses condition directives without expanding them.
+        Yield object according to the classes input. Most match firstly
 
-        If there are directive pair does not match, raise CondDirectiveNotMatch.
+        If the directive pair does not match , raise CondDirectiveNotMatch.
 
         Assume source code does not include comments and compile pass.
 
@@ -129,7 +129,7 @@ class EnumDefinition:
     """
         Generate helper functions around enumeration.
 
-        Currently, it generate tranlation function from enum value to string.
+        Currently, it generate translation function from enum value to string.
         Enum definition looks like:
         [typedef] enum [prefix name] { [body] } [suffix name];
 

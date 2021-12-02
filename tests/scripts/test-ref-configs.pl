@@ -29,12 +29,12 @@ use strict;
 
 my %configs = (
     'config-ccm-psk-tls1_2.h' => {
-        'compat' => '-m tls1_2 -f \'^TLS-PSK-WITH-AES-...-CCM-8\'',
+        'compat' => '-m tls12 -f \'^TLS-PSK-WITH-AES-...-CCM-8\'',
     },
     'config-no-entropy.h' => {
     },
     'config-suite-b.h' => {
-        'compat' => "-m tls1_2 -f 'ECDHE-ECDSA.*AES.*GCM' -p mbedTLS",
+        'compat' => "-m tls12 -f 'ECDHE-ECDSA.*AES.*GCM' -p mbedTLS",
     },
     'config-symmetric-only.h' => {
     },

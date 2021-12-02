@@ -302,7 +302,7 @@ ssl_debug_helpers_generated.c: ../scripts/generate_ssl_debug_helpers.py
 ssl_debug_helpers_generated.c: $(filter-out %config%,$(wildcard ../include/mbedtls/*.h))
 ssl_debug_helpers_generated.c:
 	echo "  Gen   $@"
-	$(PYTHON) ../scripts/generate_ssl_debug_helpers.py
+	$(PYTHON) ../scripts/generate_ssl_debug_helpers.py --mbedtls-root .. .
 
 version_features.c: ../scripts/generate_features.pl
 version_features.c: ../scripts/data_files/version_features.fmt

@@ -244,6 +244,14 @@ static void pkcs12_fill_buffer( unsigned char *data, size_t data_len,
             data_len -= use_len;
         }
     }
+    else
+    {
+        /* If either of the above are not true then clearly there is nothing
+         * that this function can do. The function should *not* be called
+         * under either of those circumstances, as you could end up with an
+         * incorrect output but for safety's sake, leaving the check in as
+         * otherwise we could end up with memory corruption.*/
+    }
 }
 
 int mbedtls_pkcs12_derivation( unsigned char *data, size_t datalen,

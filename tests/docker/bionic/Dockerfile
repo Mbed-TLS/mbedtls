@@ -160,5 +160,3 @@ RUN cd /tmp \
 
 ENV GNUTLS_NEXT_CLI=/usr/local/gnutls-3.7.2/bin/gnutls-cli
 ENV GNUTLS_NEXT_SERV=/usr/local/gnutls-3.7.2/bin/gnutls-serv
-
-RUN scripts/min_requirements.py

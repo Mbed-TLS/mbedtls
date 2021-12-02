@@ -4914,10 +4914,8 @@ static psa_status_t psa_generate_derived_ecc_key_weierstrass_helper(
          * (8 * ceiling(m/8) - m) bits of the first byte in
          * the string to zero.
          */
-        uint8_t clear_bit_count = (uint8_t) ( 8 * m_bytes - m );
-        uint8_t clear_bit_mask = ( ( 1 << clear_bit_count ) - 1 );
-        clear_bit_mask = ~( clear_bit_mask << ( 8 - clear_bit_count ) );
-        *data[0] = ( *data[0] & clear_bit_mask );
+        uint8_t clear_bit_mask = (1 << (m % 8)) - 1;
+        *data[0] &= clear_bit_mask;
     }
 
     /* 3. Convert the string to integer k by decoding it as a

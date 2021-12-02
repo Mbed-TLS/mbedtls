@@ -78,7 +78,7 @@ struct mbedtls_ssl_tls13_labels_struct const mbedtls_ssl_tls13_labels =
  *            the HkdfLabel structure on success.
  */
 
-static const char tls1_3_label_prefix[6] = "tls13 ";
+static const char tls13_label_prefix[6] = "tls13 ";
 
 #define SSL_TLS1_3_KEY_SCHEDULE_HKDF_LABEL_LEN( label_len, context_len ) \
     (   2                  /* expansion length           */ \
@@ -89,7 +89,7 @@ static const char tls1_3_label_prefix[6] = "tls13 ";
 
 #define SSL_TLS1_3_KEY_SCHEDULE_MAX_HKDF_LABEL_LEN                      \
     SSL_TLS1_3_KEY_SCHEDULE_HKDF_LABEL_LEN(                             \
-                     sizeof(tls1_3_label_prefix) +                      \
+                     sizeof(tls13_label_prefix) +                       \
                      MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_LABEL_LEN,     \
                      MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_CONTEXT_LEN )
 
@@ -100,7 +100,7 @@ static void ssl_tls13_hkdf_encode_label(
                             unsigned char *dst, size_t *dst_len )
 {
     size_t total_label_len =
-        sizeof(tls1_3_label_prefix) + label_len;
+        sizeof(tls13_label_prefix) + label_len;
     size_t total_hkdf_lbl_len =
         SSL_TLS1_3_KEY_SCHEDULE_HKDF_LABEL_LEN( total_label_len, ctx_len );
 
@@ -119,8 +119,8 @@ static void ssl_tls13_hkdf_encode_label(
 
     /* Add label incl. prefix */
     *p++ = MBEDTLS_BYTE_0( total_label_len );
-    memcpy( p, tls1_3_label_prefix, sizeof(tls1_3_label_prefix) );
-    p += sizeof(tls1_3_label_prefix);
+    memcpy( p, tls13_label_prefix, sizeof(tls13_label_prefix) );
+    p += sizeof(tls13_label_prefix);
     memcpy( p, label, label_len );
     p += label_len;
 
@@ -578,9 +578,9 @@ int mbedtls_ssl_tls13_key_schedule_stage_application( mbedtls_ssl_context *ssl )
      * Compute MasterSecret
      */
     ret = mbedtls_ssl_tls13_evolve_secret( md_type,
-                    handshake->tls1_3_master_secrets.handshake,
+                    handshake->tls13_master_secrets.handshake,
                     NULL, 0,
-                    handshake->tls1_3_master_secrets.app );
+                    handshake->tls13_master_secrets.app );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_evolve_secret", ret );
@@ -588,7 +588,7 @@ int mbedtls_ssl_tls13_key_schedule_stage_application( mbedtls_ssl_context *ssl )
     }
 
     MBEDTLS_SSL_DEBUG_BUF( 4, "Master secret",
-             handshake->tls1_3_master_secrets.app, md_size );
+             handshake->tls13_master_secrets.app, md_size );
 
     return( 0 );
 }
@@ -918,7 +918,7 @@ int mbedtls_ssl_tls13_key_schedule_stage_early( mbedtls_ssl_context *ssl )
     md_type = handshake->ciphersuite_info->mac;
 
     ret = mbedtls_ssl_tls13_evolve_secret( md_type, NULL, NULL, 0,
-                                           handshake->tls1_3_master_secrets.early );
+                                           handshake->tls13_master_secrets.early );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_evolve_secret", ret );
@@ -972,7 +972,7 @@ int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
     }
 
     ret = mbedtls_ssl_tls13_derive_handshake_secrets( md_type,
-                                    handshake->tls1_3_master_secrets.handshake,
+                                    handshake->tls13_master_secrets.handshake,
                                     transcript, transcript_len, tls13_hs_secrets );
     if( ret != 0 )
     {
@@ -1091,9 +1091,9 @@ int mbedtls_ssl_tls13_key_schedule_stage_handshake( mbedtls_ssl_context *ssl )
      * Compute the Handshake Secret
      */
     ret = mbedtls_ssl_tls13_evolve_secret( md_type,
-                                           handshake->tls1_3_master_secrets.early,
+                                           handshake->tls13_master_secrets.early,
                                            ecdhe, ephemeral_len,
-                                           handshake->tls1_3_master_secrets.handshake );
+                                           handshake->tls13_master_secrets.handshake );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_evolve_secret", ret );
@@ -1101,7 +1101,7 @@ int mbedtls_ssl_tls13_key_schedule_stage_handshake( mbedtls_ssl_context *ssl )
     }
 
     MBEDTLS_SSL_DEBUG_BUF( 4, "Handshake secret",
-                           handshake->tls1_3_master_secrets.handshake, md_size );
+                           handshake->tls13_master_secrets.handshake, md_size );
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED)
     mbedtls_platform_zeroize( ecdhe, sizeof( ecdhe ) );
@@ -1161,7 +1161,7 @@ int mbedtls_ssl_tls13_generate_application_keys(
     /* Compute application secrets from master secret and transcript hash. */
 
     ret = mbedtls_ssl_tls13_derive_application_secrets( md_type,
-                                   handshake->tls1_3_master_secrets.app,
+                                   handshake->tls13_master_secrets.app,
                                    transcript, transcript_len,
                                    app_secrets );
     if( ret != 0 )

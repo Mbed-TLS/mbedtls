@@ -95,16 +95,18 @@ extern const struct mbedtls_ssl_tls13_labels_struct mbedtls_ssl_tls13_labels;
  *
  * \param hash_alg   The identifier for the hash algorithm to use.
  * \param secret     The \c Secret argument to \c HKDF-Expand-Label.
- *                   This must be a readable buffer of length \p slen Bytes.
+ *                   This must be a readable buffer of length
+ *                   \p secret_len Bytes.
  * \param secret_len The length of \p secret in Bytes.
  * \param label      The \c Label argument to \c HKDF-Expand-Label.
- *                   This must be a readable buffer of length \p llen Bytes.
+ *                   This must be a readable buffer of length
+ *                   \p label_len Bytes.
  * \param label_len  The length of \p label in Bytes.
  * \param ctx        The \c Context argument to \c HKDF-Expand-Label.
- *                   This must be a readable buffer of length \p clen Bytes.
+ *                   This must be a readable buffer of length \p ctx_len Bytes.
  * \param ctx_len    The length of \p context in Bytes.
  * \param buf        The destination buffer to hold the expanded secret.
- *                   This must be a writable buffer of length \p blen Bytes.
+ *                   This must be a writable buffer of length \p buf_len Bytes.
  * \param buf_len    The desired size of the expanded secret in Bytes.
  *
  * \returns          \c 0 on success.
@@ -133,9 +135,11 @@ int mbedtls_ssl_tls13_hkdf_expand_label(
  * \param hash_alg      The identifier for the hash algorithm to be used
  *                      for the HKDF-based expansion of the secret.
  * \param client_secret The client traffic secret.
- *                      This must be a readable buffer of size \p slen Bytes
+ *                      This must be a readable buffer of size
+ *                      \p secret_len Bytes
  * \param server_secret The server traffic secret.
- *                      This must be a readable buffer of size \p slen Bytes
+ *                      This must be a readable buffer of size
+ *                      \p secret_len Bytes
  * \param secret_len    Length of the secrets \p client_secret and
  *                      \p server_secret in Bytes.
  * \param key_len       The desired length of the key to be extracted in Bytes.
@@ -171,15 +175,17 @@ int mbedtls_ssl_tls13_make_traffic_keys(
  * \param hash_alg   The identifier for the hash function used for the
  *                   applications of HKDF.
  * \param secret     The \c Secret argument to the \c Derive-Secret function.
- *                   This must be a readable buffer of length \p slen Bytes.
+ *                   This must be a readable buffer of length
+ *                   \p secret_len Bytes.
  * \param secret_len The length of \p secret in Bytes.
  * \param label      The \c Label argument to the \c Derive-Secret function.
- *                   This must be a readable buffer of length \p llen Bytes.
+ *                   This must be a readable buffer of length
+ *                   \p label_len Bytes.
  * \param label_len  The length of \p label in Bytes.
  * \param ctx        The hash of the \c Messages argument to the
  *                   \c Derive-Secret function, or the \c Messages argument
- *                   itself, depending on \p context_already_hashed.
- * \param ctx_len    The length of \p hash.
+ *                   itself, depending on \p ctx_hashed.
+ * \param ctx_len    The length of \p ctx in Bytes.
  * \param ctx_hashed This indicates whether the \p ctx contains the hash of
  *                   the \c Messages argument in the application of the
  *                   \c Derive-Secret function
@@ -189,7 +195,7 @@ int mbedtls_ssl_tls13_make_traffic_keys(
  *                   (value MBEDTLS_SSL_TLS1_3_CONTEXT_UNHASHED).
  * \param dstbuf     The target buffer to write the output of
  *                   \c Derive-Secret to. This must be a writable buffer of
- *                   size \p buflen Bytes.
+ *                   size \p dtsbuf_len Bytes.
  * \param dstbuf_len The length of \p dstbuf in Bytes.
  *
  * \returns        \c 0 on success.

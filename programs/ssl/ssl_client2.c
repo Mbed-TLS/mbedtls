@@ -409,25 +409,25 @@ int main( void )
     USAGE_ETM                                               \
     USAGE_REPRODUCIBLE                                      \
     USAGE_CURVES                                            \
-    USAGE_SIG_ALGS                                         \
+    USAGE_SIG_ALGS                                          \
     USAGE_DHMLEN                                            \
     "\n"
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
-#define TLS1_3_VERSION_OPTIONS  ", tls1_3"
+#define TLS1_3_VERSION_OPTIONS  ", tls13"
 #else /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 #define TLS1_3_VERSION_OPTIONS  ""
 #endif /* !MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 #define USAGE4 \
     "    allow_sha1=%%d       default: 0\n"                                   \
-    "    min_version=%%s      default: (library default: tls1_2)\n"           \
-    "    max_version=%%s      default: (library default: tls1_2)\n"           \
+    "    min_version=%%s      default: (library default: tls12)\n"            \
+    "    max_version=%%s      default: (library default: tls12)\n"            \
     "    force_version=%%s    default: \"\" (none)\n"                         \
-    "                        options: tls1_2, dtls1_2" TLS1_3_VERSION_OPTIONS \
+    "                         options: tls12, dtls12" TLS1_3_VERSION_OPTIONS  \
     "\n\n"                                                                    \
     "    force_ciphersuite=<name>    default: all enabled\n"                  \
-    USAGE_TLS1_3_KEY_EXCHANGE_MODES                                            \
+    USAGE_TLS1_3_KEY_EXCHANGE_MODES                                           \
     "    query_config=<name>         return 0 if the specified\n"             \
     "                                configuration macro is defined and 1\n"  \
     "                                otherwise. The expansion of the macro\n" \
@@ -1128,11 +1128,11 @@ int main( int argc, char *argv[] )
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
         else if( strcmp( p, "min_version" ) == 0 )
         {
-            if( strcmp( q, "tls1_2" ) == 0 ||
-                     strcmp( q, "dtls1_2" ) == 0 )
+            if( strcmp( q, "tls12" ) == 0 ||
+                     strcmp( q, "dtls12" ) == 0 )
                 opt.min_version = MBEDTLS_SSL_MINOR_VERSION_3;
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
-            else if( strcmp( q, "tls1_3" ) == 0 )
+            else if( strcmp( q, "tls13" ) == 0 )
                 opt.min_version = MBEDTLS_SSL_MINOR_VERSION_4;
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
             else
@@ -1140,11 +1140,11 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "max_version" ) == 0 )
         {
-            if( strcmp( q, "tls1_2" ) == 0 ||
-                     strcmp( q, "dtls1_2" ) == 0 )
+            if( strcmp( q, "tls12" ) == 0 ||
+                     strcmp( q, "dtls12" ) == 0 )
                 opt.max_version = MBEDTLS_SSL_MINOR_VERSION_3;
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
-            else if( strcmp( q, "tls1_3" ) == 0 )
+            else if( strcmp( q, "tls13" ) == 0 )
                 opt.max_version = MBEDTLS_SSL_MINOR_VERSION_4;
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
             else
@@ -1161,19 +1161,19 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "force_version" ) == 0 )
         {
-            if( strcmp( q, "tls1_2" ) == 0 )
+            if( strcmp( q, "tls12" ) == 0 )
             {
                 opt.min_version = MBEDTLS_SSL_MINOR_VERSION_3;
                 opt.max_version = MBEDTLS_SSL_MINOR_VERSION_3;
             }
-            else if( strcmp( q, "dtls1_2" ) == 0 )
+            else if( strcmp( q, "dtls12" ) == 0 )
             {
                 opt.min_version = MBEDTLS_SSL_MINOR_VERSION_3;
                 opt.max_version = MBEDTLS_SSL_MINOR_VERSION_3;
                 opt.transport = MBEDTLS_SSL_TRANSPORT_DATAGRAM;
             }
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
-            else if( strcmp( q, "tls1_3" ) == 0 )
+            else if( strcmp( q, "tls13" ) == 0 )
             {
                 opt.min_version = MBEDTLS_SSL_MINOR_VERSION_4;
                 opt.max_version = MBEDTLS_SSL_MINOR_VERSION_4;

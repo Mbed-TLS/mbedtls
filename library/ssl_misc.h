@@ -529,7 +529,7 @@ struct mbedtls_ssl_handshake_params
      * Handshake specific crypto variables
      */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
-    int tls1_3_kex_modes; /*!< key exchange modes for TLS 1.3 */
+    int tls13_kex_modes; /*!< key exchange modes for TLS 1.3 */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
@@ -765,7 +765,7 @@ struct mbedtls_ssl_handshake_params
         unsigned char early    [MBEDTLS_TLS1_3_MD_MAX_SIZE];
         unsigned char handshake[MBEDTLS_TLS1_3_MD_MAX_SIZE];
         unsigned char app      [MBEDTLS_TLS1_3_MD_MAX_SIZE];
-    } tls1_3_master_secrets;
+    } tls13_master_secrets;
 
     mbedtls_ssl_tls13_handshake_secrets tls13_hs_secrets;
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
@@ -1568,7 +1568,7 @@ static inline int mbedtls_ssl_conf_tls13_some_psk_enabled( mbedtls_ssl_context *
 static inline unsigned mbedtls_ssl_tls13_check_kex_modes( mbedtls_ssl_context *ssl,
                                                           int kex_modes_mask )
 {
-    return( ( ssl->handshake->tls1_3_kex_modes & kex_modes_mask ) == 0 );
+    return( ( ssl->handshake->tls13_kex_modes & kex_modes_mask ) == 0 );
 }
 
 static inline int mbedtls_ssl_tls13_psk_enabled( mbedtls_ssl_context *ssl )
@@ -1678,7 +1678,7 @@ void mbedtls_ssl_tls13_add_hs_msg_to_checksum( mbedtls_ssl_context *ssl,
 int mbedtls_ssl_tls13_write_sig_alg_ext( mbedtls_ssl_context *ssl,
                                          unsigned char *buf,
                                          unsigned char *end,
-                                         size_t *olen);
+                                         size_t *out_len);
 
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 

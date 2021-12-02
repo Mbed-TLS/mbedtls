@@ -5332,14 +5332,14 @@ void mbedtls_ssl_set_inbound_transform( mbedtls_ssl_context *ssl,
                                         mbedtls_ssl_transform *transform )
 {
     ssl->transform_in = transform;
-    memset( ssl->in_ctr, 0, MBEDTLS_SSL_SEQUENCE_NUMBER_LEN );
+    mbedtls_platform_zeroize( ssl->in_ctr, MBEDTLS_SSL_SEQUENCE_NUMBER_LEN );
 }
 
 void mbedtls_ssl_set_outbound_transform( mbedtls_ssl_context *ssl,
                                          mbedtls_ssl_transform *transform )
 {
     ssl->transform_out = transform;
-    memset( ssl->cur_out_ctr, 0, sizeof( ssl->cur_out_ctr ) );
+    mbedtls_platform_zeroize( ssl->cur_out_ctr, sizeof( ssl->cur_out_ctr ) );
 }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)

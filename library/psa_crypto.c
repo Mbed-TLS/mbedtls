@@ -4860,7 +4860,7 @@ static psa_status_t psa_generate_derived_ecc_key_weierstrass_helper(
     size_t bits,
     psa_key_derivation_operation_t *operation,
     uint8_t **data,
-    unsigned *error)
+    unsigned *key_out_of_range)
 {
     mbedtls_mpi N;
     mbedtls_mpi k;
@@ -4931,7 +4931,7 @@ static psa_status_t psa_generate_derived_ecc_key_weierstrass_helper(
      */
     MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &diff_N_2, &N, 2) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &k, diff_N_2.n ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_lt_mpi_ct( &diff_N_2, &k, error ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_lt_mpi_ct( &diff_N_2, &k, key_out_of_range ) );
 
     /* 5. Output k + 1 as the private key. */
     MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( &k, &k, 1));
@@ -4969,14 +4969,13 @@ static psa_status_t psa_generate_derived_key_internal(
         if ( PSA_KEY_TYPE_ECC_GET_FAMILY( slot->attr.type ) != PSA_ECC_FAMILY_MONTGOMERY )
         {
             /* Weierstrass elliptic curve */
-            unsigned key_err = 0;
-gen_ecc_key:
-            status = psa_generate_derived_ecc_key_weierstrass_helper(slot, bits, operation, &data, &key_err);
-            if( status != PSA_SUCCESS )
-                goto exit;
-            /* Key has been created, but it doesn't meet criteria. */
-            if (key_err)
-                goto gen_ecc_key;
+            unsigned key_out_of_range = 0;
+            do
+            {
+                status = psa_generate_derived_ecc_key_weierstrass_helper(slot, bits, operation, &data, &key_out_of_range);
+                if( status != PSA_SUCCESS )
+                    goto exit;
+            } while ( key_out_of_range );
         }
         else
         {

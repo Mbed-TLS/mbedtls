@@ -322,7 +322,7 @@ def main():
     parser.add_argument('--mbedtls-root', nargs='?', default=build_tree.guess_mbedtls_root(),
                         help='root directory of mbedtls source code')
     parser.add_argument('output_directory', nargs='?',
-                        default=sys.stdout, help='source/header files location')
+                        default='library', help='source/header files location')
 
     args = parser.parse_args()
 

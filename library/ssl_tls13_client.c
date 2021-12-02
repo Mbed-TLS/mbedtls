@@ -1646,6 +1646,11 @@ static int ssl_tls13_flush_buffers( mbedtls_ssl_context *ssl )
  */
 static int ssl_tls13_handshake_wrapup( mbedtls_ssl_context *ssl )
 {
+    mbedtls_platform_zeroize( &ssl->handshake->tls1_3_master_secrets,
+                              sizeof(ssl->handshake->tls1_3_master_secrets));
+    mbedtls_platform_zeroize( &ssl->handshake->tls13_hs_secrets,
+                              sizeof(ssl->handshake->tls13_hs_secrets));
+
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "Switch to application keys for inbound traffic" ) );
     mbedtls_ssl_set_inbound_transform ( ssl, ssl->transform_application );
 

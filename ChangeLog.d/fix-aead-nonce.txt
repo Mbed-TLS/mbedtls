@@ -1,0 +1,5 @@
+Security
+   * In psa_aead_generate_nonce(), do not read back from the output buffer.
+     This fixes a potential policy bypass or decryption oracle vulnerability
+     if the output buffer is in memory that is shared with an untrusted
+     application.

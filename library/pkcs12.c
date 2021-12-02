@@ -264,7 +264,6 @@ int mbedtls_pkcs12_derivation( unsigned char *data, size_t datalen,
 
     unsigned char diversifier[128];
     unsigned char salt_block[128], pwd_block[128], hash_block[128];
-    unsigned char empty_string[2] = { 0, 0 };
     unsigned char hash_output[MBEDTLS_MD_MAX_SIZE];
     unsigned char *p;
     unsigned char c;
@@ -331,22 +330,10 @@ int mbedtls_pkcs12_derivation( unsigned char *data, size_t datalen,
             if( ( ret = mbedtls_md_update( &md_ctx, salt_block, v )) != 0 )
                 goto exit;
         }
-        else
-        {
-            if( ( ret = mbedtls_md_update( &md_ctx, empty_string,
-                                           sizeof( empty_string ) )) != 0 )
-                goto exit;
-        }
 
         if( use_password != 0)
         {
             if( ( ret = mbedtls_md_update( &md_ctx, pwd_block, v )) != 0 )
-                goto exit;
-        }
-        else
-        {
-            if( ( ret = mbedtls_md_update( &md_ctx, empty_string,
-                                           sizeof( empty_string ) )) != 0 )
                 goto exit;
         }
 

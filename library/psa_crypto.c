@@ -4877,6 +4877,12 @@ static psa_status_t psa_generate_derived_ecc_key_weierstrass_helper(
     mbedtls_ecp_group_id grp_id =
         mbedtls_ecc_group_of_psa( curve, bits, 0 );
 
+    if( grp_id == MBEDTLS_ECP_DP_NONE )
+    {
+        ret = PSA_ERROR_INVALID_ARGUMENT;
+        goto cleanup;
+    }
+
     mbedtls_ecp_group ecp_group;
     mbedtls_ecp_group_init( &ecp_group );
 
@@ -4949,55 +4955,6 @@ cleanup:
 }
 #endif
 
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
-    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) || \
-    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) || \
-    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY)
-static psa_status_t psa_generate_derived_ecc_key_weierstrass_check_config(
-    psa_ecc_family_t curve,
-    size_t bits)
-{
-    switch (curve)
-    {
-        case ( PSA_ECC_FAMILY_SECP_K1 ):
-            if (bits != 192 && bits != 225 && bits != 256)
-                return ( PSA_ERROR_INVALID_ARGUMENT );
-        break;
-        case ( PSA_ECC_FAMILY_SECP_R1 ):
-            if (bits != 192 && bits != 224 && bits != 256 && bits != 384 && bits != 521)
-                return ( PSA_ERROR_INVALID_ARGUMENT );
-            break;
-        case ( PSA_ECC_FAMILY_SECP_R2 ):
-            if (bits != 160)
-                return ( PSA_ERROR_INVALID_ARGUMENT );
-            break;
-        case ( PSA_ECC_FAMILY_SECT_K1 ):
-            if (bits != 163 && bits != 233 && bits != 239 && bits != 283 && bits != 409 && bits != 571)
-                return ( PSA_ERROR_INVALID_ARGUMENT );
-            break;
-        case ( PSA_ECC_FAMILY_SECT_R1 ):
-            if (bits != 163 && bits != 233 && bits != 283 && bits != 409 && bits != 571)
-                return ( PSA_ERROR_INVALID_ARGUMENT );
-            break;
-        case ( PSA_ECC_FAMILY_SECT_R2  ):
-            if (bits != 163)
-                return ( PSA_ERROR_INVALID_ARGUMENT );
-            break;
-        case ( PSA_ECC_FAMILY_BRAINPOOL_P_R1 ):
-            if (bits != 160 && bits != 192 && bits != 224 && bits != 256 && bits != 320 && bits != 384 && bits != 512)
-                return ( PSA_ERROR_INVALID_ARGUMENT );
-            break;
-/*
-        case ( PSA_ECC_FAMILY_FRP ):
-            if (bits != 256)
-                return ( PSA_ERROR_INVALID_ARGUMENT ) ;
-            break;
-*/
-    }
-    return PSA_SUCCESS;
-}
-#endif
-
 static psa_status_t psa_generate_derived_key_internal(
     psa_key_slot_t *slot,
     size_t bits,
@@ -5018,11 +4975,6 @@ static psa_status_t psa_generate_derived_key_internal(
         {
             /* Weierstrass elliptic curve */
             unsigned key_err = 0;
-            status = psa_generate_derived_ecc_key_weierstrass_check_config(
-                PSA_KEY_TYPE_ECC_GET_FAMILY( slot->attr.type ),
-                bits );
-            if ( status != PSA_SUCCESS )
-                return status;
 gen_ecc_key:
             status = psa_generate_derived_ecc_key_weierstrass_helper(slot, bits, operation, &data, &key_err);
             if( status != PSA_SUCCESS )

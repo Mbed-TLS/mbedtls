@@ -4865,8 +4865,9 @@ static psa_status_t psa_generate_derived_ecc_key_weierstrass_helper(
     mbedtls_mpi N;
     mbedtls_mpi k;
     mbedtls_mpi diff_N_2;
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    psa_status_t status;
+    /* ret variable is used by MBEDTLS_MPI_CHK macro */
+    int ret = 0;
+    psa_status_t status = PSA_SUCCESS;
 
     mbedtls_mpi_init( &k );
     mbedtls_mpi_init( &N );
@@ -4879,18 +4880,15 @@ static psa_status_t psa_generate_derived_ecc_key_weierstrass_helper(
 
     if( grp_id == MBEDTLS_ECP_DP_NONE )
     {
-        ret = PSA_ERROR_INVALID_ARGUMENT;
+        status = PSA_ERROR_INVALID_ARGUMENT;
         goto cleanup;
     }
 
     mbedtls_ecp_group ecp_group;
     mbedtls_ecp_group_init( &ecp_group );
 
-    if( ( status = mbedtls_ecp_group_load( &ecp_group, grp_id ) ) != 0 )
-    {
-        ret = status;
+    if( ( status = mbedtls_to_psa_error( mbedtls_ecp_group_load( &ecp_group, grp_id ) ) ) != 0 )
         goto cleanup;
-    }
 
     /* N is the boundary of the private key domain. */
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &N, &ecp_group.N ) );
@@ -4902,15 +4900,12 @@ static psa_status_t psa_generate_derived_ecc_key_weierstrass_helper(
         *data = mbedtls_calloc( 1, m_bytes );
     if( *data == NULL )
     {
-        ret = PSA_ERROR_INSUFFICIENT_MEMORY;
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto cleanup;
     }
     /* 1. Draw a byte string of length ceiling(m/8) bytes. */
     if ( ( status = psa_key_derivation_output_bytes( operation, *data, m_bytes ) ) != 0 )
-    {
-        ret = status;
         goto cleanup;
-    }
 
     /* 2. If m is not a multiple of 8 */
     if (m % 8)
@@ -4941,17 +4936,17 @@ static psa_status_t psa_generate_derived_ecc_key_weierstrass_helper(
     /* 5. Output k + 1 as the private key. */
     MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( &k, &k, 1));
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &k, *data, m_bytes) );
-
-    ret = 0;
 cleanup:
-    if (ret) {
+    if( ret )
+        status = mbedtls_to_psa_error( ret );
+    if (status) {
         mbedtls_free( *data );
         *data = NULL;
     }
     mbedtls_mpi_free( &k );
     mbedtls_mpi_free( &N );
     mbedtls_mpi_free( &diff_N_2 );
-    return( ret );
+    return( status );
 }
 #endif
 

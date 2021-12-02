@@ -965,6 +965,9 @@ static int ssl_tls13_postprocess_server_finished_message( mbedtls_ssl_context *s
         goto cleanup;
     }
 
+    /* randbytes is not used again */
+    mbedtls_platform_zeroize( ssl->handshake->randbytes,
+                              sizeof( ssl->handshake->randbytes ) );
     transform_application =
         mbedtls_calloc( 1, sizeof( mbedtls_ssl_transform ) );
     if( transform_application == NULL )

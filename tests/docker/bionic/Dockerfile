@@ -60,6 +60,10 @@ RUN apt-get update \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
+# Jinja2 is required for driver dispatch code generation.
+RUN python3 -m pip install \
+    jinja2==2.10.1 types-jinja2
+
 # Build a static, legacy openssl from sources with sslv3 enabled
 # Based on https://gist.github.com/bmaupin/8caca3a1e8c3c5686141 (build-openssl.sh)
 # Note: openssl-1.0.2 and earlier has known build issues with parallel make.

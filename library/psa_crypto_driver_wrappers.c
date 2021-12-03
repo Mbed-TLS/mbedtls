@@ -1130,6 +1130,7 @@ psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
         default:
             /* Key is declared with a lifetime not known to us */
             (void)status;
+            (void)operation;
             (void)key_buffer;
             (void)key_buffer_size;
             (void)alg;

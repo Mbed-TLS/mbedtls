@@ -18,7 +18,7 @@
 static int check_cipher_info( mbedtls_cipher_type_t type,
                               const mbedtls_cipher_info_t *info )
 {
-    size_t key_bitlen;
+    size_t key_bitlen, block_size, iv_size;
 
     TEST_ASSERT( info != NULL );
     TEST_EQUAL( type, mbedtls_cipher_info_get_type( info ) );
@@ -33,8 +33,14 @@ static int check_cipher_info( mbedtls_cipher_type_t type,
     TEST_ASSERT( mbedtls_cipher_info_from_string( info->name ) == info );
 
     key_bitlen = mbedtls_cipher_info_get_key_bitlen( info );
+    block_size = mbedtls_cipher_info_get_block_size( info );
+    iv_size = mbedtls_cipher_info_get_iv_size( info );
     if( info->type == MBEDTLS_CIPHER_NULL )
+    {
         TEST_ASSERT( key_bitlen == 0 );
+        TEST_ASSERT( block_size == 1 );
+        TEST_ASSERT( iv_size == 0 );
+    }
     else if( info->mode == MBEDTLS_MODE_XTS )
     {
         TEST_ASSERT( key_bitlen == 256 ||
@@ -44,20 +50,51 @@ static int check_cipher_info( mbedtls_cipher_type_t type,
     else if( ! strncmp( info->name, "DES-EDE3-", 9 ) )
     {
         TEST_ASSERT( key_bitlen == 192 );
+        TEST_ASSERT( ! mbedtls_cipher_info_has_variable_key_bitlen( info ) );
+        TEST_ASSERT( block_size == 8 );
     }
     else if( ! strncmp( info->name, "DES-EDE-", 8 ) )
     {
         TEST_ASSERT( key_bitlen == 128 );
+        TEST_ASSERT( ! mbedtls_cipher_info_has_variable_key_bitlen( info ) );
+        TEST_ASSERT( block_size == 8 );
     }
     else if( ! strncmp( info->name, "DES-", 4 ) )
     {
         TEST_ASSERT( key_bitlen == 64 );
+        TEST_ASSERT( ! mbedtls_cipher_info_has_variable_key_bitlen( info ) );
+        TEST_ASSERT( block_size == 8 );
+    }
+    else if( ! strncmp( info->name, "AES", 3 ) )
+    {
+        TEST_ASSERT( key_bitlen == 128 ||
+                     key_bitlen == 192 ||
+                     key_bitlen == 256 );
+        TEST_ASSERT( ! mbedtls_cipher_info_has_variable_key_bitlen( info ) );
+        TEST_ASSERT( block_size == 16 );
     }
     else
     {
         TEST_ASSERT( key_bitlen == 128 ||
                      key_bitlen == 192 ||
                      key_bitlen == 256 );
+    }
+
+    if( strstr( info->name, "-ECB" ) != NULL )
+    {
+        TEST_ASSERT( iv_size == 0 );
+        TEST_ASSERT( ! mbedtls_cipher_info_has_variable_iv_size( info ) );
+    }
+    else if( strstr( info->name, "-CBC" ) != NULL ||
+             strstr( info->name, "-CTR" ) != NULL )
+    {
+        TEST_ASSERT( iv_size == block_size );
+        TEST_ASSERT( ! mbedtls_cipher_info_has_variable_iv_size( info ) );
+    }
+    else if( strstr( info->name, "-GCM" ) != NULL )
+    {
+        TEST_ASSERT( iv_size == block_size - 4 );
+        TEST_ASSERT( mbedtls_cipher_info_has_variable_iv_size( info ) );
     }
 
     return( 1 );

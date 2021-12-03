@@ -508,6 +508,80 @@ static inline const char *mbedtls_cipher_info_get_name(
 }
 
 /**
+ * \brief       This function returns the size of the IV or nonce
+ *              for the cipher info structure, in bytes.
+ *
+ * \param info  The cipher info structure. This may be \c NULL.
+ *
+ * \return      The recommended IV size.
+ * \return      \c 0 for ciphers not using an IV or a nonce.
+ * \return      \c 0 if \p info is \c NULL.
+ */
+static inline size_t mbedtls_cipher_info_get_iv_size(
+    const mbedtls_cipher_info_t *info )
+{
+    if( info == NULL )
+        return( 0 );
+
+    return( (size_t) info->MBEDTLS_PRIVATE(iv_size) );
+}
+
+/**
+ * \brief        This function returns the block size of the given
+ *               cipher info structure in bytes.
+ *
+ * \param info   The cipher info structure. This may be \c NULL.
+ *
+ * \return       The block size of the cipher.
+ * \return       \c 1 if the cipher is a stream cipher.
+ * \return       \c 0 if \p info is \c NULL.
+ */
+static inline size_t mbedtls_cipher_info_get_block_size(
+    const mbedtls_cipher_info_t *info )
+{
+    if( info == NULL )
+        return( 0 );
+
+    return( (size_t) info->MBEDTLS_PRIVATE(block_size) );
+}
+
+/**
+ * \brief        This function returns a non-zero value if the key length for
+ *               the given cipher is variable.
+ *
+ * \param info   The cipher info structure. This may be \c NULL.
+ *
+ * \return       Non-zero if the key length is variable, \c 0 otherwise.
+ * \return       \c 0 if the given pointer is \c NULL.
+ */
+static inline int mbedtls_cipher_info_has_variable_key_bitlen(
+    const mbedtls_cipher_info_t *info )
+{
+    if( info == NULL )
+        return( 0 );
+
+    return( info->MBEDTLS_PRIVATE(flags) & MBEDTLS_CIPHER_VARIABLE_KEY_LEN );
+}
+
+/**
+ * \brief        This function returns a non-zero value if the IV size for
+ *               the given cipher is variable.
+ *
+ * \param info   The cipher info structure. This may be \c NULL.
+ *
+ * \return       Non-zero if the IV size is variable, \c 0 otherwise.
+ * \return       \c 0 if the given pointer is \c NULL.
+ */
+static inline int mbedtls_cipher_info_has_variable_iv_size(
+    const mbedtls_cipher_info_t *info )
+{
+    if( info == NULL )
+        return( 0 );
+
+    return( info->MBEDTLS_PRIVATE(flags) & MBEDTLS_CIPHER_VARIABLE_IV_LEN );
+}
+
+/**
  * \brief               This function initializes a \p cipher_context as NONE.
  *
  * \param ctx           The context to be initialized. This must not be \c NULL.
@@ -583,11 +657,13 @@ int mbedtls_cipher_setup_psa( mbedtls_cipher_context_t *ctx,
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 /**
- * \brief        This function returns the block size of the given cipher.
+ * \brief        This function returns the block size of the given cipher
+ *               in bytes.
  *
- * \param ctx    The context of the cipher. This must be initialized.
+ * \param ctx    The context of the cipher.
  *
  * \return       The block size of the underlying cipher.
+ * \return       \c 1 if the cipher is a stream cipher.
  * \return       \c 0 if \p ctx has not been initialized.
  */
 static inline unsigned int mbedtls_cipher_get_block_size(

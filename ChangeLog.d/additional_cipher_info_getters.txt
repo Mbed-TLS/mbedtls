@@ -1,0 +1,3 @@
+Features
+   * Add functions to get the IV and block size from cipher_info structs.
+   * Add functions to check if a cipher supports variable IV or key size.

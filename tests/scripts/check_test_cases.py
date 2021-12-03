@@ -96,20 +96,30 @@ state may override this method.
                                            data_file_name, line_number, line)
                 in_paragraph = True
 
-    def walk_ssl_opt_sh(self, file_name):
-        """Iterate over the test cases in ssl-opt.sh or a file with a similar format."""
+    def walk_ssl_opt_sh(self, ssl_opt_sh):
+        """Iterate over the test cases in ssl-opt.sh and opt-testcases/* or files
+with similar format and structure."""
         descriptions = self.new_per_file_state() # pylint: disable=assignment-from-none
-        with open(file_name, 'rb') as file_contents:
-            for line_number, line in enumerate(file_contents, 1):
-                # Assume that all run_test calls have the same simple form
-                # with the test description entirely on the same line as the
-                # function name.
-                m = re.match(br'\s*run_test\s+"((?:[^\\"]|\\.)*)"', line)
-                if not m:
-                    continue
-                description = m.group(1)
-                self.process_test_case(descriptions,
-                                       file_name, line_number, description)
+
+        def walk_ssl_opt_sh_file(file_name):
+            with open(file_name, 'rb') as file_contents:
+                for line_number, line in enumerate(file_contents, 1):
+                    # Assume that all run_test calls have the same simple form
+                    # with the test description entirely on the same line as the
+                    # function name.
+                    m = re.match(br'\s*run_test\s+"((?:[^\\"]|\\.)*)"', line)
+                    if not m:
+                        continue
+                    description = m.group(1)
+                    self.process_test_case(descriptions, file_name, line_number, description)
+
+        walk_ssl_opt_sh_file(ssl_opt_sh)
+
+        directory = os.path.dirname(ssl_opt_sh)
+        for ssl_opt_file_name in glob.glob(os.path.join(directory,
+                                                        'opt-testcases',
+                                                        '*.sh')):
+            walk_ssl_opt_sh_file(ssl_opt_file_name)
 
     @staticmethod
     def collect_test_directories():
@@ -133,9 +143,6 @@ state may override this method.
             ssl_opt_sh = os.path.join(directory, 'ssl-opt.sh')
             if os.path.exists(ssl_opt_sh):
                 self.walk_ssl_opt_sh(ssl_opt_sh)
-            for ssl_opt_file_name in glob.glob(os.path.join(directory, 'opt-testcases',
-                                                            '*.sh')):
-                self.walk_ssl_opt_sh(ssl_opt_file_name)
 
 class TestDescriptions(TestDescriptionExplorer):
     """Collect the available test cases."""
@@ -171,6 +178,32 @@ class DescriptionChecker(TestDescriptionExplorer):
         """Dictionary mapping descriptions to their line number."""
         return {}
 
+    def walk_ssl_opt_sh(self, ssl_opt_sh):
+        descriptions = self.new_per_file_state() # pylint: disable=assignment-from-none
+
+        def walk_ssl_opt_sh_file(file_name):
+            with open(file_name, 'rb') as file_contents:
+                for line_number, line in enumerate(file_contents, 1):
+                    # Assume that all run_test calls have the same simple form
+                    # with the test description entirely on the same line as the
+                    # function name.
+                    m = re.match(br'\s*run_test\s+"((?:[^\\"]|\\.)*)"', line)
+                    if not m:
+                        continue
+                    description = m.group(1)
+                    self.process_test_case(descriptions, file_name, line_number, description)
+
+        walk_ssl_opt_sh_file(ssl_opt_sh)
+
+        for file_name, line in descriptions.values():
+            self.results.error(file_name, line, '`run_test` is not allowed in `{}`', file_name)
+
+        directory = os.path.dirname(ssl_opt_sh)
+        for ssl_opt_file_name in glob.glob(os.path.join(directory,
+                                                        'opt-testcases',
+                                                        '*.sh')):
+            walk_ssl_opt_sh_file(ssl_opt_file_name)
+
     def process_test_case(self, per_file_state,
                           file_name, line_number, description):
         """Check test case descriptions for errors."""
@@ -178,8 +211,8 @@ class DescriptionChecker(TestDescriptionExplorer):
         seen = per_file_state
         if description in seen:
             results.error(file_name, line_number,
-                          'Duplicate description (also line {})',
-                          seen[description])
+                          'Duplicate description (also {}:{})',
+                          *seen[description])
             return
         if re.search(br'[\t;]', description):
             results.error(file_name, line_number,
@@ -192,7 +225,7 @@ class DescriptionChecker(TestDescriptionExplorer):
             results.warning(file_name, line_number,
                             'Test description too long ({} > 66)',
                             len(description))
-        seen[description] = line_number
+        seen[description] = (file_name, line_number)
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)

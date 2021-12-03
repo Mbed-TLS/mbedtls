@@ -1,0 +1,10 @@
+# Python package requirements for driver implementers.
+
+# Use the version of Jinja that's in Ubuntu 20.04.
+# See https://github.com/ARMmbed/mbedtls/pull/5067#discussion_r738794607 .
+# Note that Jinja 3.0 drops support for Python 3.5, so we need to support
+# Jinja 2.x as long as we're still using Python 3.5 anywhere.
+Jinja2 >= 2.10.1
+# Jinja2 >=2.10, <<3.0 needs a separate package for type annotations
+types-Jinja2
+

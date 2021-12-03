@@ -8770,7 +8770,7 @@ run_test    "export keys functionality" \
 # openssl feature tests: check if tls1.3 exists.
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
-run_test    "TLS1.3: Test openssl tls1_3 feature" \
+run_test    "TLS 1.3: Test openssl tls1_3 feature" \
             "$O_NEXT_SRV -tls1_3 -msg" \
             "$O_NEXT_CLI -tls1_3 -msg" \
             0 \
@@ -8782,7 +8782,7 @@ requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
-run_test    "TLS1.3: Test gnutls tls1_3 feature" \
+run_test    "TLS 1.3: Test gnutls tls1_3 feature" \
             "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE --disable-client-cert " \
             "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
             0 \
@@ -8794,7 +8794,7 @@ run_test    "TLS1.3: Test gnutls tls1_3 feature" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 skip_handshake_stage_check
-run_test    "TLS1.3: Not supported version check: tls12 and tls13" \
+run_test    "TLS 1.3: Not supported version check: tls12 and tls13" \
             "$P_SRV debug_level=1 min_version=tls12 max_version=tls13" \
             "$P_CLI debug_level=1 min_version=tls12 max_version=tls13" \
             1 \
@@ -8805,7 +8805,7 @@ run_test    "TLS1.3: Not supported version check: tls12 and tls13" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
-run_test    "TLS1.3: handshake dispatch test: tls13 only" \
+run_test    "TLS 1.3: handshake dispatch test: tls13 only" \
             "$P_SRV debug_level=2 min_version=tls13 max_version=tls13" \
             "$P_CLI debug_level=2 min_version=tls13 max_version=tls13" \
             1 \
@@ -8815,7 +8815,7 @@ run_test    "TLS1.3: handshake dispatch test: tls13 only" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
-run_test    "TLS1.3: minimal feature sets - openssl" \
+run_test    "TLS 1.3: minimal feature sets - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
             "$P_CLI debug_level=3 min_version=tls13 max_version=tls13" \
             0 \
@@ -8846,7 +8846,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
-run_test    "TLS1.3: minimal feature sets - gnutls" \
+run_test    "TLS 1.3: minimal feature sets - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE --disable-client-cert" \
             "$P_CLI debug_level=3 min_version=tls13 max_version=tls13" \
             0 \
@@ -8876,7 +8876,7 @@ run_test    "TLS1.3: minimal feature sets - gnutls" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 skip_handshake_stage_check
 requires_gnutls_tls1_3
-run_test    "TLS1.3:Not supported version check:gnutls: srv max TLS 1.0" \
+run_test    "TLS 1.3:Not supported version check:gnutls: srv max TLS 1.0" \
             "$G_NEXT_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0 -d 4" \
             "$P_CLI min_version=tls1_3 max_version=tls1_3 debug_level=4" \
             1 \
@@ -8888,7 +8888,7 @@ run_test    "TLS1.3:Not supported version check:gnutls: srv max TLS 1.0" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 skip_handshake_stage_check
 requires_gnutls_tls1_3
-run_test    "TLS1.3:Not supported version check:gnutls: srv max TLS 1.1" \
+run_test    "TLS 1.3:Not supported version check:gnutls: srv max TLS 1.1" \
             "$G_NEXT_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.1 -d 4" \
             "$P_CLI min_version=tls1_3 max_version=tls1_3 debug_level=4" \
             1 \
@@ -8900,7 +8900,7 @@ run_test    "TLS1.3:Not supported version check:gnutls: srv max TLS 1.1" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 skip_handshake_stage_check
 requires_gnutls_tls1_3
-run_test    "TLS1.3:Not supported version check:gnutls: srv max TLS 1.2" \
+run_test    "TLS 1.3:Not supported version check:gnutls: srv max TLS 1.2" \
             "$G_NEXT_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.2 -d 4" \
             "$P_CLI min_version=tls1_3 max_version=tls1_3 debug_level=4" \
             1 \
@@ -8912,7 +8912,7 @@ run_test    "TLS1.3:Not supported version check:gnutls: srv max TLS 1.2" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 skip_handshake_stage_check
 requires_openssl_next
-run_test    "TLS1.3:Not supported version check:openssl: srv max TLS 1.0" \
+run_test    "TLS 1.3:Not supported version check:openssl: srv max TLS 1.0" \
             "$O_NEXT_SRV -msg -tls1" \
             "$P_CLI min_version=tls1_3 max_version=tls1_3 debug_level=4" \
             1 \
@@ -8924,7 +8924,7 @@ run_test    "TLS1.3:Not supported version check:openssl: srv max TLS 1.0" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 skip_handshake_stage_check
 requires_openssl_next
-run_test    "TLS1.3:Not supported version check:openssl: srv max TLS 1.1" \
+run_test    "TLS 1.3:Not supported version check:openssl: srv max TLS 1.1" \
             "$O_NEXT_SRV -msg -tls1_1" \
             "$P_CLI min_version=tls1_3 max_version=tls1_3 debug_level=4" \
             1 \
@@ -8936,7 +8936,7 @@ run_test    "TLS1.3:Not supported version check:openssl: srv max TLS 1.1" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 skip_handshake_stage_check
 requires_openssl_next
-run_test    "TLS1.3:Not supported version check:openssl: srv max TLS 1.2" \
+run_test    "TLS 1.3:Not supported version check:openssl: srv max TLS 1.2" \
             "$O_NEXT_SRV -msg -tls1_2" \
             "$P_CLI min_version=tls1_3 max_version=tls1_3 debug_level=4" \
             1 \
@@ -8948,7 +8948,7 @@ run_test    "TLS1.3:Not supported version check:openssl: srv max TLS 1.2" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
-run_test    "TLS1.3: CertificateRequest check - openssl" \
+run_test    "TLS 1.3: CertificateRequest check - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10" \
             "$P_CLI debug_level=4 force_version=tls1_3 " \
             1 \
@@ -8959,7 +8959,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
-run_test    "TLS1.3: CertificateRequest check - gnutls" \
+run_test    "TLS 1.3: CertificateRequest check - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
             "$P_CLI debug_level=3 min_version=tls1_3 max_version=tls1_3" \
             1 \
@@ -8968,7 +8968,7 @@ run_test    "TLS1.3: CertificateRequest check - gnutls" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_openssl_tls1_3
-run_test    "TLS1.3: HelloRetryRequest check - openssl" \
+run_test    "TLS 1.3: HelloRetryRequest check - openssl" \
             "$O_NEXT_SRV -ciphersuites TLS_AES_256_GCM_SHA384  -sigalgs ecdsa_secp256r1_sha256 -groups P-256 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
             "$P_CLI debug_level=4 force_version=tls1_3" \
             1 \
@@ -8981,7 +8981,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
-run_test    "TLS1.3: HelloRetryRequest check - gnutls" \
+run_test    "TLS 1.3: HelloRetryRequest check - gnutls" \
             "$G_NEXT_SRV -d 4 --priority=NONE:+GROUP-SECP256R1:+AES-256-GCM:+SHA384:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
             "$P_CLI debug_level=4 force_version=tls1_3" \
             1 \

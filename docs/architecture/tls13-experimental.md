@@ -142,7 +142,7 @@ MVP definition
       `secp384r1` and finally `secp521r1`. Note that, in the absence of an
       application profile standard specifying otherwise, section 9.1 of the
       specification rather promotes curve `secp256r1` to be supported over
-      curve `x25519`. The MVP would, hoewever, rather keep the preference order
+      curve `x25519`. The MVP would, however, rather keep the preference order
       currently promoted by Mbed TLS as this applies to TLS 1.2 as well, and
       changing the order only for TLS1.3 would be potentially difficult.
       In the unlikely event a server does not support curve `x25519` but does

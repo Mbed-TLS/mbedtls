@@ -71,13 +71,6 @@ NAMED_GROUP_IANA_VALUE = {
     'x448': 0x1e,
 }
 
-
-def remove_duplicates(seq):
-    seen = set()
-    seen_add = seen.add
-    return [x for x in seq if not (x in seen or seen_add(x))]
-
-
 class TLSProgram(metaclass=abc.ABCMeta):
     """
     Base class for generate server/client command.

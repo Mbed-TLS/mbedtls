@@ -99,6 +99,7 @@ class Requirements:
                                   ['install'] + pip_install_options +
                                   ['-r', req_file_name])
 
+DEFAULT_REQUIREMENTS_FILE = 'ci.requirements.txt'
 
 def main() -> None:
     """Command line entry point."""
@@ -119,11 +120,12 @@ def main() -> None:
                              " (short for --pip-install-option --user)")
     parser.add_argument('files', nargs='*', metavar='FILE',
                         help="Requirement files"
-                             " (default: requirements.txt in the script's directory)")
+                             " (default: {} in the script's directory)" \
+                             .format(DEFAULT_REQUIREMENTS_FILE))
     options = parser.parse_args()
     if not options.files:
         options.files = [os.path.join(os.path.dirname(__file__),
-                                      'ci.requirements.txt')]
+                                      DEFAULT_REQUIREMENTS_FILE)]
     reqs = Requirements()
     for filename in options.files:
         reqs.add_file(filename)

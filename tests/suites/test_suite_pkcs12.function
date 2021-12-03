@@ -1,5 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/pkcs12.h"
+#include "common.h"
 
 typedef enum
 {
@@ -18,7 +19,8 @@ typedef enum
 void pkcs12_derive_key( int md_type, int key_size_arg,
                         data_t *password_arg, int password_usage,
                         data_t *salt_arg, int salt_usage,
-                        int iterations, int expected_status )
+                        int iterations,
+                        data_t* expected_output, int expected_status )
 
 {
    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -53,6 +55,12 @@ void pkcs12_derive_key( int md_type, int key_size_arg,
                                     iterations );
 
    TEST_EQUAL( ret, expected_status );
+
+   if( expected_status == 0 )
+   {
+      ASSERT_COMPARE( expected_output->x, expected_output->len,
+                      output_data, key_size );
+   }
 
 exit:
    mbedtls_free( output_data );

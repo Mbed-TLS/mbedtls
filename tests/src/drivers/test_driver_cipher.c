@@ -148,9 +148,6 @@ psa_status_t mbedtls_test_transparent_cipher_abort(
 {
     mbedtls_test_driver_cipher_hooks.hits++;
 
-    if( operation->alg == 0 )
-        return( PSA_SUCCESS );
-
     mbedtls_transparent_test_driver_cipher_abort( operation );
 
     /* Wiping the entire struct here, instead of member-by-member. This is

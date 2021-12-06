@@ -1496,6 +1496,111 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void mac_verify_multipart( int key_type_arg,
+                           data_t *key_data,
+                           int alg_arg,
+                           data_t *input,
+                           data_t *expected_mac,
+                           int fragments_count,
+                           int forced_status_arg )
+{
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
+    psa_status_t forced_status = forced_status_arg;
+    uint8_t *input_x = input->x;
+    mbedtls_test_driver_mac_hooks = mbedtls_test_driver_mac_hooks_init();
+
+    TEST_ASSERT( expected_mac->len <= PSA_MAC_MAX_SIZE );
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_HASH );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, key_type );
+
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &key ) );
+
+    mbedtls_test_driver_mac_hooks.forced_status = forced_status;
+
+    /*
+     * Verify the MAC, multi-part case.
+     */
+    status = psa_mac_verify_setup( &operation, key, alg );
+    TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 1 );
+
+    if( forced_status == PSA_SUCCESS ||
+        forced_status == PSA_ERROR_NOT_SUPPORTED )
+    {
+        PSA_ASSERT( status );
+    }
+    else
+        TEST_EQUAL( forced_status, status );
+
+    if ( fragments_count )
+    {
+        TEST_ASSERT( ( input->len / fragments_count ) > 0 );
+    }
+
+    for ( int i = 0; i < fragments_count; i++)
+    {
+        int fragment_size = input->len / fragments_count;
+        if ( i == fragments_count - 1 )
+            fragment_size += ( input->len % fragments_count );
+
+        status = psa_mac_update( &operation,
+                                input_x, fragment_size );
+        if( forced_status == PSA_SUCCESS )
+            TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 2 + i );
+        else
+            TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 1 );
+
+        if( forced_status == PSA_SUCCESS ||
+            forced_status == PSA_ERROR_NOT_SUPPORTED )
+        {
+            PSA_ASSERT( status );
+        }
+        else
+            TEST_EQUAL( PSA_ERROR_BAD_STATE, status );
+        input_x += fragment_size;
+    }
+
+    status = psa_mac_verify_finish( &operation,
+                                    expected_mac->x,
+                                    expected_mac->len );
+    if( forced_status == PSA_SUCCESS )
+        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 3 + fragments_count );
+    else
+        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 1 );
+
+    if( forced_status == PSA_SUCCESS ||
+        forced_status == PSA_ERROR_NOT_SUPPORTED )
+    {
+        PSA_ASSERT( status );
+    }
+    else
+        TEST_EQUAL( PSA_ERROR_BAD_STATE, status );
+
+
+    PSA_ASSERT( psa_mac_abort( &operation ) );
+    if( forced_status == PSA_SUCCESS )
+        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 3 + fragments_count );
+    else
+        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 1 );
+
+exit:
+    psa_mac_abort( &operation );
+    psa_destroy_key( key );
+    PSA_DONE( );
+    mbedtls_test_driver_mac_hooks = mbedtls_test_driver_mac_hooks_init();
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:PSA_CRYPTO_DRIVER_TEST:MBEDTLS_PSA_CRYPTO_DRIVERS:MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
 void builtin_key_export( int builtin_key_id_arg,
                          int builtin_key_type_arg,

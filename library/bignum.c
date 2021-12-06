@@ -43,6 +43,7 @@
 #include "mbedtls/error.h"
 #include "constant_time_internal.h"
 
+#include <limits.h>
 #include <string.h>
 
 #if defined(MBEDTLS_PLATFORM_C)

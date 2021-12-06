@@ -1433,61 +1433,8 @@ void mac_verify( int key_type_arg,
     else
         TEST_EQUAL( forced_status, status );
 
-    mbedtls_test_driver_mac_hooks = mbedtls_test_driver_mac_hooks_init();
-    mbedtls_test_driver_mac_hooks.forced_status = forced_status;
-
-    /*
-     * Verify the MAC, multi-part case.
-     */
-    status = psa_mac_verify_setup( &operation, key, alg );
-    TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 1 );
-
-    if( forced_status == PSA_SUCCESS ||
-        forced_status == PSA_ERROR_NOT_SUPPORTED )
-    {
-        PSA_ASSERT( status );
-    }
-    else
-        TEST_EQUAL( forced_status, status );
-
-    status = psa_mac_update( &operation,
-                             input->x, input->len );
-    if( forced_status == PSA_SUCCESS )
-        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 2 );
-    else
-        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 1 );
-
-    if( forced_status == PSA_SUCCESS ||
-        forced_status == PSA_ERROR_NOT_SUPPORTED )
-    {
-        PSA_ASSERT( status );
-    }
-    else
-        TEST_EQUAL( PSA_ERROR_BAD_STATE, status );
-
-    status = psa_mac_verify_finish( &operation,
-                                    expected_mac->x,
-                                    expected_mac->len );
-    if( forced_status == PSA_SUCCESS )
-        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 4 );
-    else
-        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 1 );
-
-    if( forced_status == PSA_SUCCESS ||
-        forced_status == PSA_ERROR_NOT_SUPPORTED )
-    {
-        PSA_ASSERT( status );
-    }
-    else
-        TEST_EQUAL( PSA_ERROR_BAD_STATE, status );
-
-
     PSA_ASSERT( psa_mac_abort( &operation ) );
-    if( forced_status == PSA_SUCCESS )
-        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 4 );
-    else
-        TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 1 );
-
+    TEST_EQUAL( mbedtls_test_driver_mac_hooks.hits, 1 );
 exit:
     psa_mac_abort( &operation );
     psa_destroy_key( key );

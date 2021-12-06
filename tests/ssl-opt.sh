@@ -1194,8 +1194,8 @@ run_test() {
 run_test_psa() {
     requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
     run_test    "PSA-supported ciphersuite: $1" \
-                "$P_SRV debug_level=3 force_version=tls1_2" \
-                "$P_CLI debug_level=3 force_version=tls1_2 force_ciphersuite=$1" \
+                "$P_SRV debug_level=3 force_version=tls12" \
+                "$P_CLI debug_level=3 force_version=tls12 force_ciphersuite=$1" \
                 0 \
                 -c "Successfully setup PSA-based decryption cipher context" \
                 -c "Successfully setup PSA-based encryption cipher context" \
@@ -1217,8 +1217,8 @@ run_test_psa() {
 run_test_psa_force_curve() {
     requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
     run_test    "PSA - ECDH with $1" \
-                "$P_SRV debug_level=4 force_version=tls1_2 curves=$1" \
-                "$P_CLI debug_level=4 force_version=tls1_2 force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-GCM-SHA256 curves=$1" \
+                "$P_SRV debug_level=4 force_version=tls12 curves=$1" \
+                "$P_CLI debug_level=4 force_version=tls12 force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-GCM-SHA256 curves=$1" \
                 0 \
                 -c "Successfully setup PSA-based decryption cipher context" \
                 -c "Successfully setup PSA-based encryption cipher context" \
@@ -1250,8 +1250,8 @@ run_test_memory_after_hanshake_with_mfl()
     MEMORY_USAGE_LIMIT="$(( ( MEMORY_USAGE_LIMIT * 110 ) / 100 ))"
 
     run_test    "Handshake memory usage (MFL $1)" \
-                "$P_SRV debug_level=3 auth_mode=required force_version=tls1_2" \
-                "$P_CLI debug_level=3 force_version=tls1_2 \
+                "$P_SRV debug_level=3 auth_mode=required force_version=tls12" \
+                "$P_CLI debug_level=3 force_version=tls12 \
                     crt_file=data_files/server5.crt key_file=data_files/server5.key \
                     force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM max_frag_len=$1" \
                 0 \
@@ -1269,8 +1269,8 @@ run_tests_memory_after_hanshake()
     # first test with default MFU is to get reference memory usage
     MEMORY_USAGE_MFL_16K=0
     run_test    "Handshake memory usage initial (MFL 16384 - default)" \
-                "$P_SRV debug_level=3 auth_mode=required force_version=tls1_2" \
-                "$P_CLI debug_level=3 force_version=tls1_2 \
+                "$P_SRV debug_level=3 auth_mode=required force_version=tls12" \
+                "$P_CLI debug_level=3 force_version=tls12 \
                     crt_file=data_files/server5.crt key_file=data_files/server5.key \
                     force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM" \
                 0 \
@@ -2681,7 +2681,7 @@ run_test    "Encrypt then MAC, DTLS: disabled, empty application data record" \
 run_test    "CBC Record splitting: TLS 1.2, no splitting" \
             "$P_SRV" \
             "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
-             request_size=123 force_version=tls1_2" \
+             request_size=123 force_version=tls12" \
             0 \
             -s "Read from client: 123 bytes read" \
             -S "Read from client: 1 bytes read" \
@@ -4517,7 +4517,7 @@ run_test    "Certificate hash: client TLS 1.2 -> SHA-2" \
                     key_file=data_files/server5.key \
                     crt_file2=data_files/server5-sha1.crt \
                     key_file2=data_files/server5.key" \
-            "$P_CLI force_version=tls1_2" \
+            "$P_CLI force_version=tls12" \
             0 \
             -c "signed using.*ECDSA with SHA256" \
             -C "signed using.*ECDSA with SHA1"
@@ -5490,7 +5490,7 @@ run_test    "PSK callback: psk, no callback" \
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: opaque psk on client, no callback" \
             "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo" \
-            "$P_CLI extended_ms=0 debug_level=1 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
+            "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=foo psk=abc123 psk_opaque=1" \
             0 \
             -c "skip PMS generation for opaque PSK"\
@@ -5504,7 +5504,7 @@ run_test    "PSK callback: opaque psk on client, no callback" \
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: opaque psk on client, no callback, SHA-384" \
             "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo" \
-            "$P_CLI extended_ms=0 debug_level=1 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 \
+            "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 \
             psk_identity=foo psk=abc123 psk_opaque=1" \
             0 \
             -c "skip PMS generation for opaque PSK"\
@@ -5518,7 +5518,7 @@ run_test    "PSK callback: opaque psk on client, no callback, SHA-384" \
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: opaque psk on client, no callback, EMS" \
             "$P_SRV extended_ms=1 debug_level=3 psk=abc123 psk_identity=foo" \
-            "$P_CLI extended_ms=1 debug_level=3 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
+            "$P_CLI extended_ms=1 debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=foo psk=abc123 psk_opaque=1" \
             0 \
             -c "skip PMS generation for opaque PSK"\
@@ -5532,7 +5532,7 @@ run_test    "PSK callback: opaque psk on client, no callback, EMS" \
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: opaque psk on client, no callback, SHA-384, EMS" \
             "$P_SRV extended_ms=1 debug_level=3 psk=abc123 psk_identity=foo" \
-            "$P_CLI extended_ms=1 debug_level=3 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 \
+            "$P_CLI extended_ms=1 debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 \
             psk_identity=foo psk=abc123 psk_opaque=1" \
             0 \
             -c "skip PMS generation for opaque PSK"\
@@ -5545,8 +5545,8 @@ run_test    "PSK callback: opaque psk on client, no callback, SHA-384, EMS" \
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw psk on client, static opaque on server, no callback" \
-            "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
-            "$P_CLI extended_ms=0 debug_level=1 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
+            "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
+            "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=foo psk=abc123" \
             0 \
             -C "skip PMS generation for opaque PSK"\
@@ -5559,8 +5559,8 @@ run_test    "PSK callback: raw psk on client, static opaque on server, no callba
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw psk on client, static opaque on server, no callback, SHA-384" \
-            "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384" \
-            "$P_CLI extended_ms=0 debug_level=1 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 \
+            "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384" \
+            "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 \
             psk_identity=foo psk=abc123" \
             0 \
             -C "skip PMS generation for opaque PSK"\
@@ -5573,9 +5573,9 @@ run_test    "PSK callback: raw psk on client, static opaque on server, no callba
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw psk on client, static opaque on server, no callback, EMS" \
-            "$P_SRV debug_level=3 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls1_2 \
+            "$P_SRV debug_level=3 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA extended_ms=1" \
-            "$P_CLI debug_level=3 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
+            "$P_CLI debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=foo psk=abc123 extended_ms=1" \
             0 \
             -c "session hash for extended master secret"\
@@ -5588,9 +5588,9 @@ run_test    "PSK callback: raw psk on client, static opaque on server, no callba
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw psk on client, static opaque on server, no callback, EMS, SHA384" \
-            "$P_SRV debug_level=3 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls1_2 \
+            "$P_SRV debug_level=3 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 extended_ms=1" \
-            "$P_CLI debug_level=3 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 \
+            "$P_CLI debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 \
             psk_identity=foo psk=abc123 extended_ms=1" \
             0 \
             -c "session hash for extended master secret"\
@@ -5603,8 +5603,8 @@ run_test    "PSK callback: raw psk on client, static opaque on server, no callba
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw psk on client, no static PSK on server, opaque PSK from callback" \
-            "$P_SRV extended_ms=0 debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
-            "$P_CLI extended_ms=0 debug_level=3 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
+            "$P_SRV extended_ms=0 debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
+            "$P_CLI extended_ms=0 debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=def psk=beef" \
             0 \
             -C "skip PMS generation for opaque PSK"\
@@ -5617,8 +5617,8 @@ run_test    "PSK callback: raw psk on client, no static PSK on server, opaque PS
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw psk on client, no static PSK on server, opaque PSK from callback, SHA-384" \
-            "$P_SRV extended_ms=0 debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384" \
-            "$P_CLI extended_ms=0 debug_level=3 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 \
+            "$P_SRV extended_ms=0 debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384" \
+            "$P_CLI extended_ms=0 debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 \
             psk_identity=def psk=beef" \
             0 \
             -C "skip PMS generation for opaque PSK"\
@@ -5631,9 +5631,9 @@ run_test    "PSK callback: raw psk on client, no static PSK on server, opaque PS
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw psk on client, no static PSK on server, opaque PSK from callback, EMS" \
-            "$P_SRV debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls1_2 \
+            "$P_SRV debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA extended_ms=1" \
-            "$P_CLI debug_level=3 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
+            "$P_CLI debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=abc psk=dead extended_ms=1" \
             0 \
             -c "session hash for extended master secret"\
@@ -5646,9 +5646,9 @@ run_test    "PSK callback: raw psk on client, no static PSK on server, opaque PS
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw psk on client, no static PSK on server, opaque PSK from callback, EMS, SHA384" \
-            "$P_SRV debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls1_2 \
+            "$P_SRV debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 \
             force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 extended_ms=1" \
-            "$P_CLI debug_level=3 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 \
+            "$P_CLI debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-256-CBC-SHA384 \
             psk_identity=abc psk=dead extended_ms=1" \
             0 \
             -c "session hash for extended master secret"\
@@ -5661,8 +5661,8 @@ run_test    "PSK callback: raw psk on client, no static PSK on server, opaque PS
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw psk on client, mismatching static raw PSK on server, opaque PSK from callback" \
-            "$P_SRV extended_ms=0 psk_identity=foo psk=abc123 debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
-            "$P_CLI extended_ms=0 debug_level=3 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
+            "$P_SRV extended_ms=0 psk_identity=foo psk=abc123 debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
+            "$P_CLI extended_ms=0 debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=def psk=beef" \
             0 \
             -C "skip PMS generation for opaque PSK"\
@@ -5675,8 +5675,8 @@ run_test    "PSK callback: raw psk on client, mismatching static raw PSK on serv
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw psk on client, mismatching static opaque PSK on server, opaque PSK from callback" \
-            "$P_SRV extended_ms=0 psk_opaque=1 psk_identity=foo psk=abc123 debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
-            "$P_CLI extended_ms=0 debug_level=3 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
+            "$P_SRV extended_ms=0 psk_opaque=1 psk_identity=foo psk=abc123 debug_level=3 psk_list=abc,dead,def,beef psk_list_opaque=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
+            "$P_CLI extended_ms=0 debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=def psk=beef" \
             0 \
             -C "skip PMS generation for opaque PSK"\
@@ -5689,8 +5689,8 @@ run_test    "PSK callback: raw psk on client, mismatching static opaque PSK on s
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw psk on client, mismatching static opaque PSK on server, raw PSK from callback" \
-            "$P_SRV extended_ms=0 psk_opaque=1 psk_identity=foo psk=abc123 debug_level=3 psk_list=abc,dead,def,beef min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
-            "$P_CLI extended_ms=0 debug_level=3 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
+            "$P_SRV extended_ms=0 psk_opaque=1 psk_identity=foo psk=abc123 debug_level=3 psk_list=abc,dead,def,beef min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
+            "$P_CLI extended_ms=0 debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=def psk=beef" \
             0 \
             -C "skip PMS generation for opaque PSK"\
@@ -5702,8 +5702,8 @@ run_test    "PSK callback: raw psk on client, mismatching static opaque PSK on s
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw psk on client, id-matching but wrong raw PSK on server, opaque PSK from callback" \
-            "$P_SRV extended_ms=0 psk_opaque=1 psk_identity=def psk=abc123 debug_level=3 psk_list=abc,dead,def,beef min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
-            "$P_CLI extended_ms=0 debug_level=3 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
+            "$P_SRV extended_ms=0 psk_opaque=1 psk_identity=def psk=abc123 debug_level=3 psk_list=abc,dead,def,beef min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
+            "$P_CLI extended_ms=0 debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=def psk=beef" \
             0 \
             -C "skip PMS generation for opaque PSK"\
@@ -5715,8 +5715,8 @@ run_test    "PSK callback: raw psk on client, id-matching but wrong raw PSK on s
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "PSK callback: raw psk on client, matching opaque PSK on server, wrong opaque PSK from callback" \
-            "$P_SRV extended_ms=0 psk_opaque=1 psk_identity=def psk=beef debug_level=3 psk_list=abc,dead,def,abc123 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
-            "$P_CLI extended_ms=0 debug_level=3 min_version=tls1_2 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
+            "$P_SRV extended_ms=0 psk_opaque=1 psk_identity=def psk=beef debug_level=3 psk_list=abc,dead,def,abc123 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
+            "$P_CLI extended_ms=0 debug_level=3 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \
             psk_identity=def psk=beef" \
             1 \
             -s "SSL - Verification of the message MAC failed"
@@ -5896,35 +5896,35 @@ run_test    "mbedtls_ssl_get_bytes_avail: extra data" \
 
 run_test    "Small client packet TLS 1.2 BlockCipher" \
             "$P_SRV" \
-            "$P_CLI request_size=1 force_version=tls1_2 \
+            "$P_CLI request_size=1 force_version=tls12 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
             -s "Read from client: 1 bytes read"
 
 run_test    "Small client packet TLS 1.2 BlockCipher, without EtM" \
             "$P_SRV" \
-            "$P_CLI request_size=1 force_version=tls1_2 \
+            "$P_CLI request_size=1 force_version=tls12 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA etm=0" \
             0 \
             -s "Read from client: 1 bytes read"
 
 run_test    "Small client packet TLS 1.2 BlockCipher larger MAC" \
             "$P_SRV" \
-            "$P_CLI request_size=1 force_version=tls1_2 \
+            "$P_CLI request_size=1 force_version=tls12 \
              force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA384" \
             0 \
             -s "Read from client: 1 bytes read"
 
 run_test    "Small client packet TLS 1.2 AEAD" \
             "$P_SRV" \
-            "$P_CLI request_size=1 force_version=tls1_2 \
+            "$P_CLI request_size=1 force_version=tls12 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CCM" \
             0 \
             -s "Read from client: 1 bytes read"
 
 run_test    "Small client packet TLS 1.2 AEAD shorter tag" \
             "$P_SRV" \
-            "$P_CLI request_size=1 force_version=tls1_2 \
+            "$P_CLI request_size=1 force_version=tls12 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CCM-8" \
             0 \
             -s "Read from client: 1 bytes read"
@@ -5933,7 +5933,7 @@ run_test    "Small client packet TLS 1.2 AEAD shorter tag" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 run_test    "Small client packet DTLS 1.2" \
-            "$P_SRV dtls=1 force_version=dtls1_2" \
+            "$P_SRV dtls=1 force_version=dtls12" \
             "$P_CLI dtls=1 request_size=1 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
@@ -5941,7 +5941,7 @@ run_test    "Small client packet DTLS 1.2" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 run_test    "Small client packet DTLS 1.2, without EtM" \
-            "$P_SRV dtls=1 force_version=dtls1_2 etm=0" \
+            "$P_SRV dtls=1 force_version=dtls12 etm=0" \
             "$P_CLI dtls=1 request_size=1 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
@@ -5951,35 +5951,35 @@ run_test    "Small client packet DTLS 1.2, without EtM" \
 
 run_test    "Small server packet TLS 1.2 BlockCipher" \
             "$P_SRV response_size=1" \
-            "$P_CLI force_version=tls1_2 \
+            "$P_CLI force_version=tls12 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
             -c "Read from server: 1 bytes read"
 
 run_test    "Small server packet TLS 1.2 BlockCipher, without EtM" \
             "$P_SRV response_size=1" \
-            "$P_CLI force_version=tls1_2 \
+            "$P_CLI force_version=tls12 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA etm=0" \
             0 \
             -c "Read from server: 1 bytes read"
 
 run_test    "Small server packet TLS 1.2 BlockCipher larger MAC" \
             "$P_SRV response_size=1" \
-            "$P_CLI force_version=tls1_2 \
+            "$P_CLI force_version=tls12 \
              force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA384" \
             0 \
             -c "Read from server: 1 bytes read"
 
 run_test    "Small server packet TLS 1.2 AEAD" \
             "$P_SRV response_size=1" \
-            "$P_CLI force_version=tls1_2 \
+            "$P_CLI force_version=tls12 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CCM" \
             0 \
             -c "Read from server: 1 bytes read"
 
 run_test    "Small server packet TLS 1.2 AEAD shorter tag" \
             "$P_SRV response_size=1" \
-            "$P_CLI force_version=tls1_2 \
+            "$P_CLI force_version=tls12 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CCM-8" \
             0 \
             -c "Read from server: 1 bytes read"
@@ -5988,7 +5988,7 @@ run_test    "Small server packet TLS 1.2 AEAD shorter tag" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 run_test    "Small server packet DTLS 1.2" \
-            "$P_SRV dtls=1 response_size=1 force_version=dtls1_2" \
+            "$P_SRV dtls=1 response_size=1 force_version=dtls12" \
             "$P_CLI dtls=1 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
@@ -5996,7 +5996,7 @@ run_test    "Small server packet DTLS 1.2" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 run_test    "Small server packet DTLS 1.2, without EtM" \
-            "$P_SRV dtls=1 response_size=1 force_version=dtls1_2 etm=0" \
+            "$P_SRV dtls=1 response_size=1 force_version=dtls12 etm=0" \
             "$P_CLI dtls=1 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
@@ -6011,7 +6011,7 @@ fragments_for_write() {
 
 run_test    "Large client packet TLS 1.2 BlockCipher" \
             "$P_SRV" \
-            "$P_CLI request_size=16384 force_version=tls1_2 \
+            "$P_CLI request_size=16384 force_version=tls12 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
             -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
@@ -6019,14 +6019,14 @@ run_test    "Large client packet TLS 1.2 BlockCipher" \
 
 run_test    "Large client packet TLS 1.2 BlockCipher, without EtM" \
             "$P_SRV" \
-            "$P_CLI request_size=16384 force_version=tls1_2 etm=0 \
+            "$P_CLI request_size=16384 force_version=tls12 etm=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
             -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large client packet TLS 1.2 BlockCipher larger MAC" \
             "$P_SRV" \
-            "$P_CLI request_size=16384 force_version=tls1_2 \
+            "$P_CLI request_size=16384 force_version=tls12 \
              force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA384" \
             0 \
             -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
@@ -6034,7 +6034,7 @@ run_test    "Large client packet TLS 1.2 BlockCipher larger MAC" \
 
 run_test    "Large client packet TLS 1.2 AEAD" \
             "$P_SRV" \
-            "$P_CLI request_size=16384 force_version=tls1_2 \
+            "$P_CLI request_size=16384 force_version=tls12 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CCM" \
             0 \
             -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
@@ -6042,7 +6042,7 @@ run_test    "Large client packet TLS 1.2 AEAD" \
 
 run_test    "Large client packet TLS 1.2 AEAD shorter tag" \
             "$P_SRV" \
-            "$P_CLI request_size=16384 force_version=tls1_2 \
+            "$P_CLI request_size=16384 force_version=tls12 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CCM-8" \
             0 \
             -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
@@ -6051,14 +6051,14 @@ run_test    "Large client packet TLS 1.2 AEAD shorter tag" \
 # The tests below fail when the server's OUT_CONTENT_LEN is less than 16384.
 run_test    "Large server packet TLS 1.2 BlockCipher" \
             "$P_SRV response_size=16384" \
-            "$P_CLI force_version=tls1_2 \
+            "$P_CLI force_version=tls12 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
             -c "Read from server: 16384 bytes read"
 
 run_test    "Large server packet TLS 1.2 BlockCipher, without EtM" \
             "$P_SRV response_size=16384" \
-            "$P_CLI force_version=tls1_2 etm=0 \
+            "$P_CLI force_version=tls12 etm=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
             -s "16384 bytes written in 1 fragments" \
@@ -6066,14 +6066,14 @@ run_test    "Large server packet TLS 1.2 BlockCipher, without EtM" \
 
 run_test    "Large server packet TLS 1.2 BlockCipher larger MAC" \
             "$P_SRV response_size=16384" \
-            "$P_CLI force_version=tls1_2 \
+            "$P_CLI force_version=tls12 \
              force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA384" \
             0 \
             -c "Read from server: 16384 bytes read"
 
 run_test    "Large server packet TLS 1.2 BlockCipher, without EtM, truncated MAC" \
             "$P_SRV response_size=16384 trunc_hmac=1" \
-            "$P_CLI force_version=tls1_2 \
+            "$P_CLI force_version=tls12 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1 etm=0" \
             0 \
             -s "16384 bytes written in 1 fragments" \
@@ -6081,14 +6081,14 @@ run_test    "Large server packet TLS 1.2 BlockCipher, without EtM, truncated MAC
 
 run_test    "Large server packet TLS 1.2 AEAD" \
             "$P_SRV response_size=16384" \
-            "$P_CLI force_version=tls1_2 \
+            "$P_CLI force_version=tls12 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CCM" \
             0 \
             -c "Read from server: 16384 bytes read"
 
 run_test    "Large server packet TLS 1.2 AEAD shorter tag" \
             "$P_SRV response_size=16384" \
-            "$P_CLI force_version=tls1_2 \
+            "$P_CLI force_version=tls12 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CCM-8" \
             0 \
             -c "Read from server: 16384 bytes read"
@@ -7572,7 +7572,7 @@ run_test    "DTLS fragmenting: gnutls server, DTLS 1.2" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
-             mtu=512 force_version=dtls1_2" \
+             mtu=512 force_version=dtls12" \
             0 \
             -c "fragmenting handshake message" \
             -C "error"
@@ -7595,7 +7595,7 @@ run_test    "DTLS fragmenting: gnutls client, DTLS 1.2" \
             "$P_SRV dtls=1 debug_level=2 \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
-             mtu=512 force_version=dtls1_2" \
+             mtu=512 force_version=dtls12" \
             "$G_CLI -u --insecure 127.0.0.1" \
             0 \
             -s "fragmenting handshake message"
@@ -7610,7 +7610,7 @@ run_test    "DTLS fragmenting: openssl server, DTLS 1.2" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
-             mtu=512 force_version=dtls1_2" \
+             mtu=512 force_version=dtls12" \
             0 \
             -c "fragmenting handshake message" \
             -C "error"
@@ -7624,7 +7624,7 @@ run_test    "DTLS fragmenting: openssl client, DTLS 1.2" \
             "$P_SRV dtls=1 debug_level=2 \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
-             mtu=512 force_version=dtls1_2" \
+             mtu=512 force_version=dtls12" \
             "$O_CLI -dtls1_2" \
             0 \
             -s "fragmenting handshake message"
@@ -7646,7 +7646,7 @@ run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.2" \
             "$P_CLI dgram_packing=0 dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
-             hs_timeout=250-60000 mtu=512 force_version=dtls1_2" \
+             hs_timeout=250-60000 mtu=512 force_version=dtls12" \
             0 \
             -c "fragmenting handshake message" \
             -C "error"
@@ -7663,7 +7663,7 @@ run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.2" \
             "$P_SRV dtls=1 debug_level=2 \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
-             hs_timeout=250-60000 mtu=512 force_version=dtls1_2" \
+             hs_timeout=250-60000 mtu=512 force_version=dtls12" \
            "$G_NEXT_CLI -u --insecure 127.0.0.1" \
             0 \
             -s "fragmenting handshake message"
@@ -7686,7 +7686,7 @@ run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.2" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
-             hs_timeout=250-60000 mtu=512 force_version=dtls1_2" \
+             hs_timeout=250-60000 mtu=512 force_version=dtls12" \
             0 \
             -c "fragmenting handshake message" \
             -C "error"
@@ -7703,7 +7703,7 @@ run_test    "DTLS fragmenting: 3d, openssl client, DTLS 1.2" \
             "$P_SRV dtls=1 debug_level=2 \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
-             hs_timeout=250-60000 mtu=512 force_version=dtls1_2" \
+             hs_timeout=250-60000 mtu=512 force_version=dtls12" \
             "$O_CLI -dtls1_2" \
             0 \
             -s "fragmenting handshake message"
@@ -8794,9 +8794,9 @@ run_test    "TLS1.3: Test gnutls tls1_3 feature" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 skip_handshake_stage_check
-run_test    "TLS1.3: Not supported version check: tls1_2 and tls1_3" \
-            "$P_SRV debug_level=1 min_version=tls1_2 max_version=tls1_3" \
-            "$P_CLI debug_level=1 min_version=tls1_2 max_version=tls1_3" \
+run_test    "TLS1.3: Not supported version check: tls12 and tls13" \
+            "$P_SRV debug_level=1 min_version=tls12 max_version=tls13" \
+            "$P_CLI debug_level=1 min_version=tls12 max_version=tls13" \
             1 \
             -s "SSL - The requested feature is not available" \
             -c "SSL - The requested feature is not available" \
@@ -8805,34 +8805,34 @@ run_test    "TLS1.3: Not supported version check: tls1_2 and tls1_3" \
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
-run_test    "TLS1.3: handshake dispatch test: tls1_3 only" \
-            "$P_SRV debug_level=2 min_version=tls1_3 max_version=tls1_3" \
-            "$P_CLI debug_level=2 min_version=tls1_3 max_version=tls1_3" \
+run_test    "TLS1.3: handshake dispatch test: tls13 only" \
+            "$P_SRV debug_level=2 min_version=tls13 max_version=tls13" \
+            "$P_CLI debug_level=2 min_version=tls13 max_version=tls13" \
             1 \
-            -s "tls1_3 server state: 0"     \
-            -c "tls1_3 client state: 0"
+            -s "tls13 server state: 0"     \
+            -c "tls13 client state: 0"
 
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS1.3: minimal feature sets - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
-            "$P_CLI debug_level=3 min_version=tls1_3 max_version=tls1_3" \
+            "$P_CLI debug_level=3 min_version=tls13 max_version=tls13" \
             0 \
-            -c "tls1_3 client state: 0"     \
-            -c "tls1_3 client state: 2"     \
-            -c "tls1_3 client state: 19"    \
-            -c "tls1_3 client state: 5"     \
-            -c "tls1_3 client state: 3"     \
-            -c "tls1_3 client state: 9"     \
-            -c "tls1_3 client state: 13"    \
-            -c "tls1_3 client state: 11"    \
-            -c "tls1_3 client state: 14"    \
-            -c "tls1_3 client state: 15"    \
-            -c "<= ssl_tls1_3_process_server_hello" \
+            -c "tls13 client state: 0"     \
+            -c "tls13 client state: 2"     \
+            -c "tls13 client state: 19"    \
+            -c "tls13 client state: 5"     \
+            -c "tls13 client state: 3"     \
+            -c "tls13 client state: 9"     \
+            -c "tls13 client state: 13"    \
+            -c "tls13 client state: 11"    \
+            -c "tls13 client state: 14"    \
+            -c "tls13 client state: 15"    \
+            -c "<= ssl_tls13_process_server_hello" \
             -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
             -c "ECDH curve: x25519"         \
-            -c "=> ssl_tls1_3_process_server_hello" \
+            -c "=> ssl_tls13_process_server_hello" \
             -c "<= parse encrypted extensions"      \
             -c "Certificate verification flags clear" \
             -c "=> parse certificate verify"          \
@@ -8849,7 +8849,7 @@ requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS 1.3 m->O AES_128_GCM_SHA256      , RSA_PSS_RSAE_SHA256" \
             "$O_NEXT_SRV_RSA -ciphersuites TLS_AES_128_GCM_SHA256 -tls1_3 -msg -no_middlebox -num_tickets 0" \
-            "$P_CLI debug_level=4 force_version=tls1_3 server_name=localhost force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 allow_sha1=0" \
+            "$P_CLI debug_level=4 force_version=tls13 server_name=localhost force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 allow_sha1=0" \
             0 \
             -c "ECDH curve: x25519" \
             -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
@@ -8864,23 +8864,23 @@ requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS1.3: minimal feature sets - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE --disable-client-cert" \
-            "$P_CLI debug_level=3 min_version=tls1_3 max_version=tls1_3" \
+            "$P_CLI debug_level=3 min_version=tls13 max_version=tls13" \
             0 \
-            -s "SERVER HELLO was queued"    \
-            -c "tls1_3 client state: 0"     \
-            -c "tls1_3 client state: 2"     \
-            -c "tls1_3 client state: 19"    \
-            -c "tls1_3 client state: 5"     \
-            -c "tls1_3 client state: 3"     \
-            -c "tls1_3 client state: 9"     \
-            -c "tls1_3 client state: 13"    \
-            -c "tls1_3 client state: 11"    \
-            -c "tls1_3 client state: 14"    \
-            -c "tls1_3 client state: 15"    \
-            -c "<= ssl_tls1_3_process_server_hello" \
+            -s "SERVER HELLO was queued"   \
+            -c "tls13 client state: 0"     \
+            -c "tls13 client state: 2"     \
+            -c "tls13 client state: 19"    \
+            -c "tls13 client state: 5"     \
+            -c "tls13 client state: 3"     \
+            -c "tls13 client state: 9"     \
+            -c "tls13 client state: 13"    \
+            -c "tls13 client state: 11"    \
+            -c "tls13 client state: 14"    \
+            -c "tls13 client state: 15"    \
+            -c "<= ssl_tls13_process_server_hello" \
             -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
             -c "ECDH curve: x25519"         \
-            -c "=> ssl_tls1_3_process_server_hello" \
+            -c "=> ssl_tls13_process_server_hello" \
             -c "<= parse encrypted extensions"      \
             -c "Certificate verification flags clear" \
             -c "=> parse certificate verify"          \
@@ -8899,7 +8899,7 @@ requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_gnutls_next
 run_test    "TLS 1.3 m->G AES_128_GCM_SHA256      , RSA_PSS_RSAE_SHA256" \
             "$G_NEXT_SRV_RSA --disable-client-cert --priority=NORMAL:+CIPHER-ALL:+SHA256:+GROUP-SECP256R1:+ECDHE-ECDSA:+AEAD:+SIGN-RSA-PSS-RSAE-SHA256:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
-            "$P_CLI debug_level=4 force_version=tls1_3 server_name=localhost force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 allow_sha1=0" \
+            "$P_CLI debug_level=4 force_version=tls13 server_name=localhost force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 allow_sha1=0" \
             0 \
             -c "ECDH curve: x25519"         \
             -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \

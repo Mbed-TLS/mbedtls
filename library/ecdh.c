@@ -731,7 +731,8 @@ int mbedtls_ecdh_calc_secret( mbedtls_ecdh_context *ctx, size_t *olen,
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
 
 static int ecdh_tls13_make_params_internal( mbedtls_ecdh_context_mbed *ctx,
-                size_t *olen, int point_format, unsigned char *buf, size_t blen,
+                                            size_t *out_len, int point_format,
+                                            unsigned char *buf, size_t buf_len,
                 int ( *f_rng )( void *, unsigned char *, size_t), void *p_rng )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -744,20 +745,20 @@ static int ecdh_tls13_make_params_internal( mbedtls_ecdh_context_mbed *ctx,
         return( ret );
 
     ret = mbedtls_ecp_point_write_binary( &ctx->grp, &ctx->Q, point_format,
-                                          olen, buf, blen );
+                                          out_len, buf, buf_len );
     if( ret != 0 )
         return( ret );
 
     return( 0 );
 }
 
-int mbedtls_ecdh_tls13_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
-                            unsigned char *buf, size_t blen,
+int mbedtls_ecdh_tls13_make_params( mbedtls_ecdh_context *ctx, size_t *out_len,
+                            unsigned char *buf, size_t buf_len,
                             int ( *f_rng )( void *, unsigned char *, size_t ),
                             void *p_rng )
 {
     ECDH_VALIDATE_RET( ctx != NULL );
-    ECDH_VALIDATE_RET( olen != NULL );
+    ECDH_VALIDATE_RET( out_len != NULL );
     ECDH_VALIDATE_RET( buf != NULL );
     ECDH_VALIDATE_RET( f_rng != NULL );
 
@@ -768,8 +769,8 @@ int mbedtls_ecdh_tls13_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
 #endif
 
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
-    return( ecdh_tls13_make_params_internal( ctx, olen, ctx->point_format,
-                                             buf, blen, f_rng, p_rng ) );
+    return( ecdh_tls13_make_params_internal( ctx, out_len, ctx->point_format,
+                                             buf, buf_len, f_rng, p_rng ) );
 #else
     switch( ctx->var )
     {
@@ -778,9 +779,9 @@ int mbedtls_ecdh_tls13_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
             return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
 #endif
         case MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0:
-            return( ecdh_tls13_make_params_internal( &ctx->ctx.mbed_ecdh, olen,
-                                               ctx->point_format, buf, blen,
-                                               f_rng, p_rng ) );
+            return( ecdh_tls13_make_params_internal( &ctx->ctx.mbed_ecdh,
+                                               out_len, ctx->point_format,
+                                               buf, buf_len, f_rng, p_rng ) );
         default:
             return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }

@@ -20,7 +20,7 @@
 #define MBEDTLS_SSL_TLS1_3_KEYS_H
 
 /* This requires MBEDTLS_SSL_TLS1_3_LABEL( idx, name, string ) to be defined at
- * the point of use. See e.g. the definition of mbedtls_ssl_tls1_3_labels_union
+ * the point of use. See e.g. the definition of mbedtls_ssl_tls13_labels_union
  * below. */
 #define MBEDTLS_SSL_TLS1_3_LABEL_LIST                                             \
     MBEDTLS_SSL_TLS1_3_LABEL( finished    , "finished"                          ) \
@@ -47,27 +47,27 @@
 #define MBEDTLS_SSL_TLS1_3_LABEL( name, string )       \
     const unsigned char name    [ sizeof(string) - 1 ];
 
-union mbedtls_ssl_tls1_3_labels_union
+union mbedtls_ssl_tls13_labels_union
 {
     MBEDTLS_SSL_TLS1_3_LABEL_LIST
 };
-struct mbedtls_ssl_tls1_3_labels_struct
+struct mbedtls_ssl_tls13_labels_struct
 {
     MBEDTLS_SSL_TLS1_3_LABEL_LIST
 };
 #undef MBEDTLS_SSL_TLS1_3_LABEL
 
-extern const struct mbedtls_ssl_tls1_3_labels_struct mbedtls_ssl_tls1_3_labels;
+extern const struct mbedtls_ssl_tls13_labels_struct mbedtls_ssl_tls13_labels;
 
 #define MBEDTLS_SSL_TLS1_3_LBL_LEN( LABEL )  \
-    sizeof(mbedtls_ssl_tls1_3_labels.LABEL)
+    sizeof(mbedtls_ssl_tls13_labels.LABEL)
 
 #define MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( LABEL )  \
-    mbedtls_ssl_tls1_3_labels.LABEL,              \
+    mbedtls_ssl_tls13_labels.LABEL,              \
     MBEDTLS_SSL_TLS1_3_LBL_LEN( LABEL )
 
 #define MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_LABEL_LEN  \
-    sizeof( union mbedtls_ssl_tls1_3_labels_union )
+    sizeof( union mbedtls_ssl_tls13_labels_union )
 
 /* The maximum length of HKDF contexts used in the TLS 1.3 standard.
  * Since contexts are always hashes of message transcripts, this can
@@ -79,44 +79,46 @@ extern const struct mbedtls_ssl_tls1_3_labels_struct mbedtls_ssl_tls1_3_labels;
  * by HKDF-Expand-Label.
  *
  * Warning: If this ever needs to be increased, the implementation
- * ssl_tls1_3_hkdf_encode_label() in ssl_tls13_keys.c needs to be
+ * ssl_tls13_hkdf_encode_label() in ssl_tls13_keys.c needs to be
  * adjusted since it currently assumes that HKDF key expansion
  * is never used with more than 255 Bytes of output. */
 #define MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_EXPANSION_LEN 255
 
 /**
- * \brief           The \c HKDF-Expand-Label function from
- *                  the TLS 1.3 standard RFC 8446.
+ * \brief            The \c HKDF-Expand-Label function from
+ *                   the TLS 1.3 standard RFC 8446.
  *
  * <tt>
- *                  HKDF-Expand-Label( Secret, Label, Context, Length ) =
+ *                   HKDF-Expand-Label( Secret, Label, Context, Length ) =
  *                       HKDF-Expand( Secret, HkdfLabel, Length )
  * </tt>
  *
- * \param hash_alg  The identifier for the hash algorithm to use.
- * \param secret    The \c Secret argument to \c HKDF-Expand-Label.
- *                  This must be a readable buffer of length \p slen Bytes.
- * \param slen      The length of \p secret in Bytes.
- * \param label     The \c Label argument to \c HKDF-Expand-Label.
- *                  This must be a readable buffer of length \p llen Bytes.
- * \param llen      The length of \p label in Bytes.
- * \param ctx       The \c Context argument to \c HKDF-Expand-Label.
- *                  This must be a readable buffer of length \p clen Bytes.
- * \param clen      The length of \p context in Bytes.
- * \param buf       The destination buffer to hold the expanded secret.
- *                  This must be a writable buffer of length \p blen Bytes.
- * \param blen      The desired size of the expanded secret in Bytes.
+ * \param hash_alg   The identifier for the hash algorithm to use.
+ * \param secret     The \c Secret argument to \c HKDF-Expand-Label.
+ *                   This must be a readable buffer of length
+ *                   \p secret_len Bytes.
+ * \param secret_len The length of \p secret in Bytes.
+ * \param label      The \c Label argument to \c HKDF-Expand-Label.
+ *                   This must be a readable buffer of length
+ *                   \p label_len Bytes.
+ * \param label_len  The length of \p label in Bytes.
+ * \param ctx        The \c Context argument to \c HKDF-Expand-Label.
+ *                   This must be a readable buffer of length \p ctx_len Bytes.
+ * \param ctx_len    The length of \p context in Bytes.
+ * \param buf        The destination buffer to hold the expanded secret.
+ *                   This must be a writable buffer of length \p buf_len Bytes.
+ * \param buf_len    The desired size of the expanded secret in Bytes.
  *
- * \returns         \c 0 on success.
- * \return          A negative error code on failure.
+ * \returns          \c 0 on success.
+ * \return           A negative error code on failure.
  */
 
-int mbedtls_ssl_tls1_3_hkdf_expand_label(
+int mbedtls_ssl_tls13_hkdf_expand_label(
                      mbedtls_md_type_t hash_alg,
-                     const unsigned char *secret, size_t slen,
-                     const unsigned char *label, size_t llen,
-                     const unsigned char *ctx, size_t clen,
-                     unsigned char *buf, size_t blen );
+                     const unsigned char *secret, size_t secret_len,
+                     const unsigned char *label, size_t label_len,
+                     const unsigned char *ctx, size_t ctx_len,
+                     unsigned char *buf, size_t buf_len );
 
 /**
  * \brief           This function is part of the TLS 1.3 key schedule.
@@ -133,10 +135,12 @@ int mbedtls_ssl_tls1_3_hkdf_expand_label(
  * \param hash_alg      The identifier for the hash algorithm to be used
  *                      for the HKDF-based expansion of the secret.
  * \param client_secret The client traffic secret.
- *                      This must be a readable buffer of size \p slen Bytes
+ *                      This must be a readable buffer of size
+ *                      \p secret_len Bytes
  * \param server_secret The server traffic secret.
- *                      This must be a readable buffer of size \p slen Bytes
- * \param slen          Length of the secrets \p client_secret and
+ *                      This must be a readable buffer of size
+ *                      \p secret_len Bytes
+ * \param secret_len    Length of the secrets \p client_secret and
  *                      \p server_secret in Bytes.
  * \param key_len       The desired length of the key to be extracted in Bytes.
  * \param iv_len        The desired length of the IV to be extracted in Bytes.
@@ -147,11 +151,11 @@ int mbedtls_ssl_tls1_3_hkdf_expand_label(
  * \returns             A negative error code on failure.
  */
 
-int mbedtls_ssl_tls1_3_make_traffic_keys(
+int mbedtls_ssl_tls13_make_traffic_keys(
                      mbedtls_md_type_t hash_alg,
                      const unsigned char *client_secret,
-                     const unsigned char *server_secret,
-                     size_t slen, size_t key_len, size_t iv_len,
+                     const unsigned char *server_secret, size_t secret_len,
+                     size_t key_len, size_t iv_len,
                      mbedtls_ssl_key_set *keys );
 
 
@@ -171,15 +175,17 @@ int mbedtls_ssl_tls1_3_make_traffic_keys(
  * \param hash_alg   The identifier for the hash function used for the
  *                   applications of HKDF.
  * \param secret     The \c Secret argument to the \c Derive-Secret function.
- *                   This must be a readable buffer of length \p slen Bytes.
- * \param slen       The length of \p secret in Bytes.
+ *                   This must be a readable buffer of length
+ *                   \p secret_len Bytes.
+ * \param secret_len The length of \p secret in Bytes.
  * \param label      The \c Label argument to the \c Derive-Secret function.
- *                   This must be a readable buffer of length \p llen Bytes.
- * \param llen       The length of \p label in Bytes.
+ *                   This must be a readable buffer of length
+ *                   \p label_len Bytes.
+ * \param label_len  The length of \p label in Bytes.
  * \param ctx        The hash of the \c Messages argument to the
  *                   \c Derive-Secret function, or the \c Messages argument
- *                   itself, depending on \p context_already_hashed.
- * \param clen       The length of \p hash.
+ *                   itself, depending on \p ctx_hashed.
+ * \param ctx_len    The length of \p ctx in Bytes.
  * \param ctx_hashed This indicates whether the \p ctx contains the hash of
  *                   the \c Messages argument in the application of the
  *                   \c Derive-Secret function
@@ -189,24 +195,24 @@ int mbedtls_ssl_tls1_3_make_traffic_keys(
  *                   (value MBEDTLS_SSL_TLS1_3_CONTEXT_UNHASHED).
  * \param dstbuf     The target buffer to write the output of
  *                   \c Derive-Secret to. This must be a writable buffer of
- *                   size \p buflen Bytes.
- * \param buflen     The length of \p dstbuf in Bytes.
+ *                   size \p dtsbuf_len Bytes.
+ * \param dstbuf_len The length of \p dstbuf in Bytes.
  *
  * \returns        \c 0 on success.
  * \returns        A negative error code on failure.
  */
-int mbedtls_ssl_tls1_3_derive_secret(
+int mbedtls_ssl_tls13_derive_secret(
                    mbedtls_md_type_t hash_alg,
-                   const unsigned char *secret, size_t slen,
-                   const unsigned char *label, size_t llen,
-                   const unsigned char *ctx, size_t clen,
+                   const unsigned char *secret, size_t secret_len,
+                   const unsigned char *label, size_t label_len,
+                   const unsigned char *ctx, size_t ctx_len,
                    int ctx_hashed,
-                   unsigned char *dstbuf, size_t buflen );
+                   unsigned char *dstbuf, size_t dstbuf_len );
 
 /**
  * \brief Derive TLS 1.3 early data key material from early secret.
  *
- *        This is a small wrapper invoking mbedtls_ssl_tls1_3_derive_secret()
+ *        This is a small wrapper invoking mbedtls_ssl_tls13_derive_secret()
  *        with the appropriate labels.
  *
  * <tt>
@@ -223,11 +229,11 @@ int mbedtls_ssl_tls1_3_derive_secret(
  *
  * \note  To obtain the actual key and IV for the early data traffic,
  *        the client secret derived by this function need to be
- *        further processed by mbedtls_ssl_tls1_3_make_traffic_keys().
+ *        further processed by mbedtls_ssl_tls13_make_traffic_keys().
  *
  * \note  The binder key, which is also generated from the early secret,
  *        is omitted here. Its calculation is part of the separate routine
- *        mbedtls_ssl_tls1_3_create_psk_binder().
+ *        mbedtls_ssl_tls13_create_psk_binder().
  *
  * \param md_type      The hash algorithm associated with the PSK for which
  *                     early data key material is being derived.
@@ -245,16 +251,16 @@ int mbedtls_ssl_tls1_3_derive_secret(
  * \returns        \c 0 on success.
  * \returns        A negative error code on failure.
  */
-int mbedtls_ssl_tls1_3_derive_early_secrets(
+int mbedtls_ssl_tls13_derive_early_secrets(
           mbedtls_md_type_t md_type,
           unsigned char const *early_secret,
           unsigned char const *transcript, size_t transcript_len,
-          mbedtls_ssl_tls1_3_early_secrets *derived );
+          mbedtls_ssl_tls13_early_secrets *derived );
 
 /**
  * \brief Derive TLS 1.3 handshake key material from the handshake secret.
  *
- *        This is a small wrapper invoking mbedtls_ssl_tls1_3_derive_secret()
+ *        This is a small wrapper invoking mbedtls_ssl_tls13_derive_secret()
  *        with the appropriate labels from the standard.
  *
  * <tt>
@@ -272,7 +278,7 @@ int mbedtls_ssl_tls1_3_derive_early_secrets(
  *
  * \note  To obtain the actual key and IV for the encrypted handshake traffic,
  *        the client and server secret derived by this function need to be
- *        further processed by mbedtls_ssl_tls1_3_make_traffic_keys().
+ *        further processed by mbedtls_ssl_tls13_make_traffic_keys().
  *
  * \param md_type           The hash algorithm associated with the ciphersuite
  *                          that's being used for the connection.
@@ -290,16 +296,16 @@ int mbedtls_ssl_tls1_3_derive_early_secrets(
  * \returns        \c 0 on success.
  * \returns        A negative error code on failure.
  */
-int mbedtls_ssl_tls1_3_derive_handshake_secrets(
+int mbedtls_ssl_tls13_derive_handshake_secrets(
           mbedtls_md_type_t md_type,
           unsigned char const *handshake_secret,
           unsigned char const *transcript, size_t transcript_len,
-          mbedtls_ssl_tls1_3_handshake_secrets *derived );
+          mbedtls_ssl_tls13_handshake_secrets *derived );
 
 /**
  * \brief Derive TLS 1.3 application key material from the master secret.
  *
- *        This is a small wrapper invoking mbedtls_ssl_tls1_3_derive_secret()
+ *        This is a small wrapper invoking mbedtls_ssl_tls13_derive_secret()
  *        with the appropriate labels from the standard.
  *
  * <tt>
@@ -321,7 +327,7 @@ int mbedtls_ssl_tls1_3_derive_handshake_secrets(
  *
  * \note  To obtain the actual key and IV for the (0-th) application traffic,
  *        the client and server secret derived by this function need to be
- *        further processed by mbedtls_ssl_tls1_3_make_traffic_keys().
+ *        further processed by mbedtls_ssl_tls13_make_traffic_keys().
  *
  * \param md_type           The hash algorithm associated with the ciphersuite
  *                          that's being used for the connection.
@@ -340,16 +346,16 @@ int mbedtls_ssl_tls1_3_derive_handshake_secrets(
  * \returns        \c 0 on success.
  * \returns        A negative error code on failure.
  */
-int mbedtls_ssl_tls1_3_derive_application_secrets(
+int mbedtls_ssl_tls13_derive_application_secrets(
           mbedtls_md_type_t md_type,
           unsigned char const *master_secret,
           unsigned char const *transcript, size_t transcript_len,
-          mbedtls_ssl_tls1_3_application_secrets *derived );
+          mbedtls_ssl_tls13_application_secrets *derived );
 
 /**
  * \brief Derive TLS 1.3 resumption master secret from the master secret.
  *
- *        This is a small wrapper invoking mbedtls_ssl_tls1_3_derive_secret()
+ *        This is a small wrapper invoking mbedtls_ssl_tls13_derive_secret()
  *        with the appropriate labels from the standard.
  *
  * \param md_type           The hash algorithm used in the application for which
@@ -370,11 +376,11 @@ int mbedtls_ssl_tls1_3_derive_application_secrets(
  * \returns        \c 0 on success.
  * \returns        A negative error code on failure.
  */
-int mbedtls_ssl_tls1_3_derive_resumption_master_secret(
+int mbedtls_ssl_tls13_derive_resumption_master_secret(
           mbedtls_md_type_t md_type,
           unsigned char const *application_secret,
           unsigned char const *transcript, size_t transcript_len,
-          mbedtls_ssl_tls1_3_application_secrets *derived );
+          mbedtls_ssl_tls13_application_secrets *derived );
 
 /**
  * \brief Compute the next secret in the TLS 1.3 key schedule
@@ -406,7 +412,7 @@ int mbedtls_ssl_tls1_3_derive_resumption_master_secret(
  *
  * Each of the three secrets in turn is the basis for further
  * key derivations, such as the derivation of traffic keys and IVs;
- * see e.g. mbedtls_ssl_tls1_3_make_traffic_keys().
+ * see e.g. mbedtls_ssl_tls13_make_traffic_keys().
  *
  * This function implements one step in this evolution of secrets:
  *
@@ -443,7 +449,7 @@ int mbedtls_ssl_tls1_3_derive_resumption_master_secret(
  * \returns           A negative error code on failure.
  */
 
-int mbedtls_ssl_tls1_3_evolve_secret(
+int mbedtls_ssl_tls13_evolve_secret(
                    mbedtls_md_type_t hash_alg,
                    const unsigned char *secret_old,
                    const unsigned char *input, size_t input_len,
@@ -475,7 +481,7 @@ int mbedtls_ssl_tls1_3_evolve_secret(
  * \returns           \c 0 on success.
  * \returns           A negative error code on failure.
  */
-int mbedtls_ssl_tls1_3_create_psk_binder( mbedtls_ssl_context *ssl,
+int mbedtls_ssl_tls13_create_psk_binder( mbedtls_ssl_context *ssl,
                                const mbedtls_md_type_t md_type,
                                unsigned char const *psk, size_t psk_len,
                                int psk_type,
@@ -520,7 +526,7 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
  *
  *   Early -> Handshake -> Application
  *
- * Small wrappers around mbedtls_ssl_tls1_3_evolve_secret().
+ * Small wrappers around mbedtls_ssl_tls13_evolve_secret().
  */
 
 /**
@@ -535,7 +541,7 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
  * \returns    \c 0 on success.
  * \returns    A negative error code on failure.
  */
-int mbedtls_ssl_tls1_3_key_schedule_stage_early( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_tls13_key_schedule_stage_early( mbedtls_ssl_context *ssl );
 
 /**
  * \brief Transition into handshake stage of TLS 1.3 key schedule.

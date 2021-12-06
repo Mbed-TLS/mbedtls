@@ -243,7 +243,7 @@ class MbedTLSCli(TLSProgram):
     def cmd(self):
         ret = ['$P_CLI']
         ret += ['server_addr=127.0.0.1', 'server_port=$SRV_PORT',
-                'debug_level=4', 'force_version=tls1_3']
+                'debug_level=4', 'force_version=tls13']
         ret += ['ca_file={cafile}'.format(
             cafile=CERTIFICATES[self._sig_algs[0]].cafile)]
 

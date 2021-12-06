@@ -159,6 +159,8 @@ struct psa_aead_operation_s
      * any driver (i.e. none of the driver contexts are active). */
     unsigned int MBEDTLS_PRIVATE(id);
 
+    uint64_t MBEDTLS_PRIVATE(associated_key_id);
+    mbedtls_svc_key_id_t MBEDTLS_PRIVATE(key_id);
     psa_algorithm_t MBEDTLS_PRIVATE(alg);
     psa_key_type_t MBEDTLS_PRIVATE(key_type);
 
@@ -174,7 +176,7 @@ struct psa_aead_operation_s
     psa_driver_aead_context_t MBEDTLS_PRIVATE(ctx);
 };
 
-#define PSA_AEAD_OPERATION_INIT {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0}}
+#define PSA_AEAD_OPERATION_INIT {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0}}
 static inline struct psa_aead_operation_s psa_aead_operation_init( void )
 {
     const struct psa_aead_operation_s v = PSA_AEAD_OPERATION_INIT;

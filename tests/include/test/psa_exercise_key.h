@@ -60,11 +60,7 @@
  * part of another algorithm like a signature algorithm and the hashing is
  * completed through an Mbed TLS hash API, not the PSA one.
  */
-#if defined(MBEDTLS_MD2_C)
-#define KNOWN_MBEDTLS_SUPPORTED_HASH_ALG PSA_ALG_MD2
-#elif defined(MBEDTLS_MD4_C)
-#define KNOWN_MBEDTLS_SUPPORTED_HASH_ALG PSA_ALG_MD4
-#elif defined(MBEDTLS_MD5_C)
+#if defined(MBEDTLS_MD5_C)
 #define KNOWN_MBEDTLS_SUPPORTED_HASH_ALG PSA_ALG_MD5
 /* MBEDTLS_RIPEMD160_C omitted. This is necessary for the sake of
  * exercise_signature_key() because Mbed TLS doesn't support RIPEMD160

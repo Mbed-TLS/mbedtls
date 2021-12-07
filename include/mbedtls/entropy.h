@@ -157,7 +157,7 @@ typedef struct mbedtls_entropy_context
                               * -1 after free. */
 #if defined(MBEDTLS_ENTROPY_SHA512_ACCUMULATOR)
     mbedtls_sha512_context  accumulator;
-#else
+#elif defined(MBEDTLS_ENTROPY_SHA256_ACCUMULATOR)
     mbedtls_sha256_context  accumulator;
 #endif
     int             source_count; /* Number of entries used in source. */

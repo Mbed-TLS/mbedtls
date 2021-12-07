@@ -1,0 +1,3 @@
+Bugfix
+   * Fix the build when no SHA2 module is included. Fixes #4930.
+   * Fix the build when only the bignum module is included. Fixes #4929.

@@ -38,9 +38,13 @@ typedef struct {
     /* Count the amount of times one of the key management driver functions
      * is called. */
     unsigned long hits;
+    /* Record the source of the function call. */
+    psa_key_location_t source;
 } mbedtls_test_driver_key_management_hooks_t;
 
-#define MBEDTLS_TEST_DRIVER_KEY_MANAGEMENT_INIT { NULL, 0, PSA_SUCCESS, 0 }
+/* 0x800000 is a vendor-specific location, unused by the PSA, overwritten
+ * in tests that expect a different value. */
+#define MBEDTLS_TEST_DRIVER_KEY_MANAGEMENT_INIT { NULL, 0, PSA_SUCCESS, 0, 0x800000 }
 static inline mbedtls_test_driver_key_management_hooks_t
     mbedtls_test_driver_key_management_hooks_init( void )
 {

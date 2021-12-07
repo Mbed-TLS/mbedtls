@@ -39,6 +39,14 @@ else()
     project("mbed TLS" C)
 endif()
 
+# Determine if mbed TLS is being built as a subproject using add_subdirectory()
+if(NOT DEFINED MBEDTLS_AS_SUBPROJECT)
+  set(MBEDTLS_AS_SUBPROJECT ON)
+  if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    set(MBEDTLS_AS_SUBPROJECT OFF)
+  endif()
+endif()
+
 # Set the project root directory.
 set(MBEDTLS_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -51,6 +59,8 @@ if(WIN32)
 else()
     option(GEN_FILES "Generate the auto-generated files as needed" ON)
 endif()
+
+option(DISABLE_PACKAGE_CONFIG_AND_INSTALL "Disable package configuration, target export and installation" ${MBEDTLS_AS_SUBPROJECT})
 
 string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER_ID}")
 string(REGEX MATCH "GNU" CMAKE_COMPILER_IS_GNU "${CMAKE_C_COMPILER_ID}")
@@ -325,36 +335,38 @@ if(ENABLE_TESTING)
     endif()
 endif()
 
-configure_package_config_file(
-    "cmake/MbedTLSConfig.cmake.in"
-    "cmake/MbedTLSConfig.cmake"
-        INSTALL_DESTINATION "cmake")
+if(NOT DISABLE_PACKAGE_CONFIG_AND_INSTALL)
+    configure_package_config_file(
+        "cmake/MbedTLSConfig.cmake.in"
+        "cmake/MbedTLSConfig.cmake"
+            INSTALL_DESTINATION "cmake")
 
-write_basic_package_version_file(
-    "cmake/MbedTLSConfigVersion.cmake"
-        COMPATIBILITY SameMajorVersion
-        VERSION 3.0.0)
+    write_basic_package_version_file(
+        "cmake/MbedTLSConfigVersion.cmake"
+            COMPATIBILITY SameMajorVersion
+            VERSION 3.0.0)
 
-install(
-    FILES "${CMAKE_CURRENT_BINARY_DIR}/cmake/MbedTLSConfig.cmake"
-          "${CMAKE_CURRENT_BINARY_DIR}/cmake/MbedTLSConfigVersion.cmake"
-    DESTINATION "cmake")
+    install(
+        FILES "${CMAKE_CURRENT_BINARY_DIR}/cmake/MbedTLSConfig.cmake"
+              "${CMAKE_CURRENT_BINARY_DIR}/cmake/MbedTLSConfigVersion.cmake"
+        DESTINATION "cmake")
 
-export(
-    EXPORT MbedTLSTargets
-    NAMESPACE MbedTLS::
-    FILE "cmake/MbedTLSTargets.cmake")
+    export(
+        EXPORT MbedTLSTargets
+        NAMESPACE MbedTLS::
+        FILE "cmake/MbedTLSTargets.cmake")
 
-install(
-    EXPORT MbedTLSTargets
-    NAMESPACE MbedTLS::
-    DESTINATION "cmake"
-    FILE "MbedTLSTargets.cmake")
+    install(
+        EXPORT MbedTLSTargets
+        NAMESPACE MbedTLS::
+        DESTINATION "cmake"
+        FILE "MbedTLSTargets.cmake")
 
-if(CMAKE_VERSION VERSION_GREATER 3.15 OR CMAKE_VERSION VERSION_EQUAL 3.15)
-    # Do not export the package by default
-    cmake_policy(SET CMP0090 NEW)
+    if(CMAKE_VERSION VERSION_GREATER 3.15 OR CMAKE_VERSION VERSION_EQUAL 3.15)
+        # Do not export the package by default
+        cmake_policy(SET CMP0090 NEW)
 
-    # Make this package visible to the system
-    export(PACKAGE MbedTLS)
+        # Make this package visible to the system
+        export(PACKAGE MbedTLS)
+    endif()
 endif()

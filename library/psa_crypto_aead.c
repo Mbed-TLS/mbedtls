@@ -52,7 +52,7 @@ static psa_status_t psa_aead_setup(
     size_t full_tag_length = 0;
 
     ( void ) key_buffer_size;
-
+    ( void ) status;
     key_bits = attributes->core.bits;
 
     cipher_info = mbedtls_cipher_info_from_psa( alg,

@@ -3893,10 +3893,6 @@ psa_status_t psa_aead_generate_nonce( psa_aead_operation_t *operation,
         goto exit;
     }
 
-#if defined(assert)
-    assert( required_nonce_size <= sizeof( local_nonce ) );
-#endif
-
     status = psa_generate_random( local_nonce, required_nonce_size );
     if( status != PSA_SUCCESS )
         goto exit;

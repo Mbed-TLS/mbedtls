@@ -66,6 +66,11 @@ size_t mbedtls_test_opaque_size_function(
 extern mbedtls_test_driver_key_management_hooks_t
     mbedtls_test_driver_key_management_hooks;
 
+psa_status_t mbedtls_test_transparent_init( void );
+void mbedtls_test_transparent_free( void );
+psa_status_t mbedtls_test_opaque_init( void );
+void mbedtls_test_opaque_free( void );
+
 psa_status_t mbedtls_test_transparent_generate_key(
     const psa_key_attributes_t *attributes,
     uint8_t *key, size_t key_size, size_t *key_length );
@@ -119,7 +124,6 @@ psa_status_t mbedtls_test_opaque_copy_key(
     uint8_t *target_key_buffer,
     size_t target_key_buffer_size,
     size_t *target_key_buffer_length);
-
 
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_TEST_DRIVERS_KEY_MANAGEMENT_H */

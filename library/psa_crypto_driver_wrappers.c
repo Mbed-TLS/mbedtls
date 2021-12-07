@@ -67,6 +67,44 @@
 #include "psa_crypto_se.h"
 #endif
 
+psa_status_t psa_driver_wrapper_init( void )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    status = psa_init_all_se_drivers( );
+    if( status != PSA_SUCCESS )
+        return( status );
+#endif
+
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+    status = mbedtls_test_transparent_init( );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    status = mbedtls_test_opaque_init( );
+    if( status != PSA_SUCCESS )
+        return( status );
+#endif
+
+    (void) status;
+    return( PSA_SUCCESS );
+}
+
+void psa_driver_wrapper_free( void )
+{
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    /* Unregister all secure element drivers, so that we restart from
+     * a pristine state. */
+    psa_unregister_all_se_drivers( );
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+
+#if defined(PSA_CRYPTO_DRIVER_TEST)
+    mbedtls_test_transparent_free( );
+    mbedtls_test_opaque_free( );
+#endif
+}
+
 /* Start delegation functions */
 psa_status_t psa_driver_wrapper_sign_message(
     const psa_key_attributes_t *attributes,
@@ -1059,6 +1097,7 @@ psa_status_t psa_driver_wrapper_cipher_encrypt_setup(
         default:
             /* Key is declared with a lifetime not known to us */
             (void)status;
+            (void)operation;
             (void)key_buffer;
             (void)key_buffer_size;
             (void)alg;
@@ -1130,6 +1169,7 @@ psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
         default:
             /* Key is declared with a lifetime not known to us */
             (void)status;
+            (void)operation;
             (void)key_buffer;
             (void)key_buffer_size;
             (void)alg;
@@ -2076,6 +2116,7 @@ psa_status_t psa_driver_wrapper_mac_sign_setup(
         default:
             /* Key is declared with a lifetime not known to us */
             (void) status;
+            (void) operation;
             (void) key_buffer;
             (void) key_buffer_size;
             (void) alg;
@@ -2147,6 +2188,7 @@ psa_status_t psa_driver_wrapper_mac_verify_setup(
         default:
             /* Key is declared with a lifetime not known to us */
             (void) status;
+            (void) operation;
             (void) key_buffer;
             (void) key_buffer_size;
             (void) alg;

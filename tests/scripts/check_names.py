@@ -779,7 +779,8 @@ class NameChecker():
             match.name
             for match
             in self.parse_result["macros"] + self.parse_result["enum_consts"]}
-        typo_exclusion = re.compile(r"XXX|__|_$|^MBEDTLS_.*CONFIG_FILE$")
+        typo_exclusion = re.compile(r"XXX|__|_$|^MBEDTLS_.*CONFIG_FILE$|"
+                                    r"MBEDTLS_TEST_LIBTESTDRIVER*")
 
         for name_match in self.parse_result["mbed_words"]:
             found = name_match.name in all_caps_names

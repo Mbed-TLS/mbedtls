@@ -52,6 +52,30 @@
 #undef KNOWN_SUPPORTED_HASH_ALG
 #endif
 
+/** \def KNOWN_MBEDTLS_SUPPORTED_HASH_ALG
+ *
+ * A hash algorithm that is known to be supported by Mbed TLS APIs.
+ *
+ * This is used in some smoke tests where the hash algorithm is used as
+ * part of another algorithm like a signature algorithm and the hashing is
+ * completed through an Mbed TLS hash API, not the PSA one.
+ */
+#if defined(MBEDTLS_MD5_C)
+#define KNOWN_MBEDTLS_SUPPORTED_HASH_ALG PSA_ALG_MD5
+/* MBEDTLS_RIPEMD160_C omitted. This is necessary for the sake of
+ * exercise_signature_key() because Mbed TLS doesn't support RIPEMD160
+ * in RSA PKCS#1v1.5 signatures. A RIPEMD160-only configuration would be
+ * implausible anyway. */
+#elif defined(MBEDTLS_SHA1_C)
+#define KNOWN_MBEDTLS_SUPPORTED_HASH_ALG PSA_ALG_SHA_1
+#elif defined(MBEDTLS_SHA256_C)
+#define KNOWN_MBEDTLS_SUPPORTED_HASH_ALG PSA_ALG_SHA_256
+#elif defined(MBEDTLS_SHA512_C)
+#define KNOWN_MBEDTLS_SUPPORTED_HASH_ALG PSA_ALG_SHA_512
+#else
+#undef KNOWN_MBEDLTS_SUPPORTED_HASH_ALG
+#endif
+
 /** \def KNOWN_SUPPORTED_BLOCK_CIPHER
  *
  * A block cipher that is known to be supported.

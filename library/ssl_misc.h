@@ -591,6 +591,11 @@ struct mbedtls_ssl_handshake_params
     int tls13_kex_modes; /*!< key exchange modes for TLS 1.3 */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
+#if defined(MBEDTLS_SSL_CLI_C)
+    /*!<  Number of Hello Retry Request messages received from the server.  */
+    int hello_retry_requests_received;
+#endif /* MBEDTLS_SSL_CLI_C */
+
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     mbedtls_ssl_sig_hash_set_t hash_algs;             /*!<  Set of suitable sig-hash pairs */
@@ -1442,6 +1447,8 @@ void mbedtls_ssl_update_out_pointers( mbedtls_ssl_context *ssl,
 void mbedtls_ssl_update_in_pointers( mbedtls_ssl_context *ssl );
 
 int mbedtls_ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial );
+void mbedtls_ssl_tls13_session_reset_msg_layer( mbedtls_ssl_context *ssl,
+                                                int partial );
 
 /*
  * Send pending alert
@@ -1720,6 +1727,8 @@ void mbedtls_ssl_tls13_add_hs_msg_to_checksum( mbedtls_ssl_context *ssl,
                                                unsigned hs_type,
                                                unsigned char const *msg,
                                                size_t msg_len );
+
+int mbedtls_ssl_reset_transcript_for_hrr( mbedtls_ssl_context *ssl );
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 

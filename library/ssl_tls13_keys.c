@@ -1225,7 +1225,9 @@ int mbedtls_ssl_tls13_generate_application_keys(
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= derive application traffic keys" ) );
 
  cleanup:
-
+    /* randbytes is not used again */
+    mbedtls_platform_zeroize( ssl->handshake->randbytes,
+                              sizeof( ssl->handshake->randbytes ) );
     mbedtls_platform_zeroize( transcript, sizeof( transcript ) );
     return( ret );
 }

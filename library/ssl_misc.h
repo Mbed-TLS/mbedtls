@@ -558,7 +558,6 @@ struct mbedtls_ssl_handshake_params
 
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
     uint8_t ecrs_enabled;               /*!< Handshake supports EC restart? */
-    mbedtls_x509_crt_restart_ctx ecrs_ctx;  /*!< restart context            */
     enum { /* this complements ssl->state with info on intra-state operations */
         ssl_ecrs_none = 0,              /*!< nothing going on (yet)         */
         ssl_ecrs_crt_verify,            /*!< Certificate: crt_verify()      */
@@ -636,6 +635,10 @@ struct mbedtls_ssl_handshake_params
     unsigned char *psk;                 /*!<  PSK from the callback         */
     size_t psk_len;                     /*!<  Length of PSK from callback   */
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+
+#if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
+    mbedtls_x509_crt_restart_ctx ecrs_ctx;  /*!< restart context            */
+#endif
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_ssl_key_cert *key_cert;     /*!< chosen key/cert pair (server)  */

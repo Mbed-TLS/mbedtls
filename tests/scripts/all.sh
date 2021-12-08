@@ -1531,6 +1531,7 @@ component_test_no_use_psa_crypto_full_cmake_asan() {
     scripts/config.py set MBEDTLS_ECP_RESTARTABLE  # not using PSA, so enable restartable ECC
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
     scripts/config.py unset MBEDTLS_PSA_ITS_FILE_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C

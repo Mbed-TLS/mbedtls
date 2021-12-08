@@ -1,0 +1,4 @@
+Changes
+   * Return PSA_ERROR_INVALID_ARGUMENT if the algorithm passed to singleshot
+     AEAD functions is not an AEAD algorithm. This aligns them with the
+     multipart functions, and the PSA Crypto API 1.1 spec.

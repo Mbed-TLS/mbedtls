@@ -3719,6 +3719,13 @@ static psa_status_t psa_aead_check_nonce_length( psa_algorithm_t alg,
     return( PSA_ERROR_INVALID_ARGUMENT );
 }
 
+static psa_status_t psa_aead_initial_checks( psa_algorithm_t alg ) {
+    if( !PSA_ALG_IS_AEAD( alg ) || PSA_ALG_IS_WILDCARD( alg ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    return( PSA_SUCCESS );
+}
+
 psa_status_t psa_aead_encrypt( mbedtls_svc_key_id_t key,
                                psa_algorithm_t alg,
                                const uint8_t *nonce,
@@ -3736,8 +3743,9 @@ psa_status_t psa_aead_encrypt( mbedtls_svc_key_id_t key,
 
     *ciphertext_length = 0;
 
-    if( !PSA_ALG_IS_AEAD( alg ) || PSA_ALG_IS_WILDCARD( alg ) )
-        return( PSA_ERROR_NOT_SUPPORTED );
+    status = psa_aead_initial_checks( alg );
+    if( status != PSA_SUCCESS )
+        return( status );
 
     status = psa_get_and_lock_key_slot_with_policy(
                  key, &slot, PSA_KEY_USAGE_ENCRYPT, alg );
@@ -3786,8 +3794,9 @@ psa_status_t psa_aead_decrypt( mbedtls_svc_key_id_t key,
 
     *plaintext_length = 0;
 
-    if( !PSA_ALG_IS_AEAD( alg ) || PSA_ALG_IS_WILDCARD( alg ) )
-        return( PSA_ERROR_NOT_SUPPORTED );
+    status = psa_aead_initial_checks( alg );
+    if( status != PSA_SUCCESS )
+        return( status );
 
     status = psa_get_and_lock_key_slot_with_policy(
                  key, &slot, PSA_KEY_USAGE_DECRYPT, alg );
@@ -3830,11 +3839,9 @@ static psa_status_t psa_aead_setup( psa_aead_operation_t *operation,
     psa_key_slot_t *slot = NULL;
     psa_key_usage_t key_usage = 0;
 
-    if( !PSA_ALG_IS_AEAD( alg ) || PSA_ALG_IS_WILDCARD( alg ) )
-    {
-        status = PSA_ERROR_INVALID_ARGUMENT;
+    status = psa_aead_initial_checks( alg );
+    if( status != PSA_SUCCESS )
         goto exit;
-    }
 
     if( operation->id != 0 )
     {

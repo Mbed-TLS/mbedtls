@@ -4423,7 +4423,10 @@ void aead_multipart_verify( int key_type_arg, data_t *key_data,
     if( status != PSA_SUCCESS )
     {
         /* Invalid tag lengths are detected in CCM at this point, as they
-         * would be written into the first block. */
+         * would be written into the first block. They should really be
+         * detected in psa_aead_encrypt/decrypt_setup, and will be fixed
+         * to do so in the future, until that point, this is a
+         * workaround.*/
         TEST_EQUAL( status, expected_status );
         goto exit;
     }

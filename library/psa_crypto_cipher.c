@@ -472,6 +472,8 @@ static psa_status_t cipher_encrypt( const psa_key_attributes_t *attributes,
                                     const uint8_t *key_buffer,
                                     size_t key_buffer_size,
                                     psa_algorithm_t alg,
+                                    const uint8_t *iv,
+                                    size_t iv_length,
                                     const uint8_t *input,
                                     size_t input_length,
                                     uint8_t *output,
@@ -480,38 +482,32 @@ static psa_status_t cipher_encrypt( const psa_key_attributes_t *attributes,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     mbedtls_psa_cipher_operation_t operation = MBEDTLS_PSA_CIPHER_OPERATION_INIT;
-    size_t olength, accumulated_length;
+    size_t update_output_length, finish_output_length;
 
     status = cipher_encrypt_setup( &operation, attributes,
                                    key_buffer, key_buffer_size, alg );
     if( status != PSA_SUCCESS )
         goto exit;
 
-    accumulated_length = 0;
-    if( operation.iv_length > 0 )
+    if( iv_length > 0 )
     {
-        status = cipher_set_iv( &operation, output, operation.iv_length );
+        status = cipher_set_iv( &operation, iv, iv_length );
         if( status != PSA_SUCCESS )
             goto exit;
-
-        accumulated_length = operation.iv_length;
     }
 
     status = cipher_update( &operation, input, input_length,
-                            output + operation.iv_length,
-                            output_size - operation.iv_length,
-                            &olength );
+                            output, output_size, &update_output_length );
     if( status != PSA_SUCCESS )
         goto exit;
 
-    accumulated_length += olength;
-
-    status = cipher_finish( &operation, output + accumulated_length,
-                            output_size - accumulated_length, &olength );
+    status = cipher_finish( &operation, output + update_output_length,
+                            output_size - update_output_length,
+                            &finish_output_length );
     if( status != PSA_SUCCESS )
         goto exit;
 
-    *output_length = accumulated_length + olength;
+    *output_length = update_output_length + finish_output_length;
 
 exit:
     if( status == PSA_SUCCESS )
@@ -627,6 +623,8 @@ psa_status_t mbedtls_psa_cipher_encrypt( const psa_key_attributes_t *attributes,
                                          const uint8_t *key_buffer,
                                          size_t key_buffer_size,
                                          psa_algorithm_t alg,
+                                         const uint8_t *iv,
+                                         size_t iv_length,
                                          const uint8_t *input,
                                          size_t input_length,
                                          uint8_t *output,
@@ -634,7 +632,7 @@ psa_status_t mbedtls_psa_cipher_encrypt( const psa_key_attributes_t *attributes,
                                          size_t *output_length )
 {
     return( cipher_encrypt( attributes, key_buffer, key_buffer_size,
-                            alg, input, input_length,
+                            alg, iv, iv_length, input, input_length,
                             output, output_size, output_length ) );
 }
 
@@ -713,6 +711,8 @@ psa_status_t mbedtls_transparent_test_driver_cipher_encrypt(
     const uint8_t *key_buffer,
     size_t key_buffer_size,
     psa_algorithm_t alg,
+    const uint8_t *iv,
+    size_t iv_length,
     const uint8_t *input,
     size_t input_length,
     uint8_t *output,
@@ -720,7 +720,7 @@ psa_status_t mbedtls_transparent_test_driver_cipher_encrypt(
     size_t *output_length )
 {
     return( cipher_encrypt( attributes, key_buffer, key_buffer_size,
-                            alg, input, input_length,
+                            alg, iv, iv_length, input, input_length,
                             output, output_size, output_length ) );
 }
 

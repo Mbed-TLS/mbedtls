@@ -40,6 +40,8 @@ psa_status_t mbedtls_test_transparent_cipher_encrypt(
     const uint8_t *key_buffer,
     size_t key_buffer_size,
     psa_algorithm_t alg,
+    const uint8_t *iv,
+    size_t iv_length,
     const uint8_t *input,
     size_t input_length,
     uint8_t *output,
@@ -64,11 +66,9 @@ psa_status_t mbedtls_test_transparent_cipher_encrypt(
     if( mbedtls_test_driver_cipher_hooks.forced_status != PSA_SUCCESS )
         return( mbedtls_test_driver_cipher_hooks.forced_status );
 
-    psa_generate_random( output, PSA_CIPHER_IV_LENGTH( attributes->core.type, alg ) );
-
     return( mbedtls_transparent_test_driver_cipher_encrypt(
                 attributes, key_buffer, key_buffer_size,
-                alg, input, input_length,
+                alg, iv, iv_length, input, input_length,
                 output, output_size, output_length ) );
 }
 
@@ -242,6 +242,7 @@ psa_status_t mbedtls_test_opaque_cipher_encrypt(
     const psa_key_attributes_t *attributes,
     const uint8_t *key, size_t key_length,
     psa_algorithm_t alg,
+    const uint8_t *iv, size_t iv_length,
     const uint8_t *input, size_t input_length,
     uint8_t *output, size_t output_size, size_t *output_length)
 {
@@ -249,6 +250,8 @@ psa_status_t mbedtls_test_opaque_cipher_encrypt(
     (void) key;
     (void) key_length;
     (void) alg;
+    (void) iv;
+    (void) iv_length;
     (void) input;
     (void) input_length;
     (void) output;

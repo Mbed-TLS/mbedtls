@@ -581,9 +581,9 @@ struct mbedtls_ssl_handshake_params
     /*
      * Handshake specific crypto variables
      */
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     int tls13_kex_modes; /*!< key exchange modes for TLS 1.3 */
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
@@ -715,12 +715,12 @@ struct mbedtls_ssl_handshake_params
     uint16_t mtu;                       /*!<  Handshake mtu, used to fragment outgoing messages */
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     /*! TLS 1.3 transforms for 0-RTT and encrypted handshake messages.
      *  Those pointers own the transforms they reference. */
     mbedtls_ssl_transform *transform_handshake;
     mbedtls_ssl_transform *transform_earlydata;
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
     /*
      * Checksum contexts
@@ -742,7 +742,7 @@ struct mbedtls_ssl_handshake_params
 #endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     uint16_t offered_group_id; /* The NamedGroup value for the group
                                 * that is being used for ephemeral
                                 * key exchange.
@@ -750,7 +750,7 @@ struct mbedtls_ssl_handshake_params
                                 * On the client: Defaults to the first
                                 * entry in the client's group list,
                                 * but can be overwritten by the HRR. */
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
     /*
      * State-local variables used during the processing
@@ -790,7 +790,7 @@ struct mbedtls_ssl_handshake_params
     unsigned char premaster[MBEDTLS_PREMASTER_SIZE];
                                         /*!<  premaster secret        */
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     int extensions_present;             /*!< extension presence; Each bitfield
                                              represents an extension and defined
                                              as \c MBEDTLS_SSL_EXT_XXX */
@@ -803,7 +803,7 @@ struct mbedtls_ssl_handshake_params
     } tls13_master_secrets;
 
     mbedtls_ssl_tls13_handshake_secrets tls13_hs_secrets;
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     /** Asynchronous operation context. This field is meant for use by the
@@ -1477,7 +1477,7 @@ void mbedtls_ssl_flight_free( mbedtls_ssl_flight_item *flight );
  * ssl utils functions for checking configuration.
  */
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 static inline int mbedtls_ssl_conf_is_tls13_only( const mbedtls_ssl_config *conf )
 {
     if( conf->min_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
@@ -1489,7 +1489,7 @@ static inline int mbedtls_ssl_conf_is_tls13_only( const mbedtls_ssl_config *conf
     }
     return( 0 );
 }
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 static inline int mbedtls_ssl_conf_is_tls12_only( const mbedtls_ssl_config *conf )
@@ -1505,7 +1505,7 @@ static inline int mbedtls_ssl_conf_is_tls12_only( const mbedtls_ssl_config *conf
 }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
 static inline int mbedtls_ssl_conf_is_hybrid_tls12_tls13( const mbedtls_ssl_config *conf )
 {
     if( conf->min_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
@@ -1517,9 +1517,9 @@ static inline int mbedtls_ssl_conf_is_hybrid_tls12_tls13( const mbedtls_ssl_conf
     }
     return( 0 );
 }
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL*/
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_SSL_PROTO_TLS1_3 */
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 
 int mbedtls_ssl_tls13_process_finished_message( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_tls13_write_finished_message( mbedtls_ssl_context *ssl );
@@ -1711,7 +1711,7 @@ int mbedtls_ssl_tls13_write_sig_alg_ext( mbedtls_ssl_context *ssl,
 
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 /* Get handshake transcript */
 int mbedtls_ssl_get_handshake_transcript( mbedtls_ssl_context *ssl,

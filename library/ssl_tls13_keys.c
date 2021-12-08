@@ -19,7 +19,7 @@
 
 #include "common.h"
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 
 #include <stdint.h>
 #include <string.h>
@@ -1248,4 +1248,4 @@ int mbedtls_ssl_tls13_generate_application_keys(
     return( ret );
 }
 
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */

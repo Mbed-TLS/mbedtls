@@ -250,7 +250,7 @@
  */
 #define MBEDTLS_SSL_MAJOR_VERSION_3             3
 #define MBEDTLS_SSL_MINOR_VERSION_3             3   /*!< TLS v1.2 */
-#define MBEDTLS_SSL_MINOR_VERSION_4             4   /*!< TLS v1.3 (experimental) */
+#define MBEDTLS_SSL_MINOR_VERSION_4             4   /*!< TLS v1.3 */
 
 #define MBEDTLS_SSL_TRANSPORT_STREAM            0   /*!< TLS      */
 #define MBEDTLS_SSL_TRANSPORT_DATAGRAM          1   /*!< DTLS     */
@@ -638,13 +638,13 @@ typedef enum
     MBEDTLS_SSL_HANDSHAKE_OVER,
     MBEDTLS_SSL_SERVER_NEW_SESSION_TICKET,
     MBEDTLS_SSL_SERVER_HELLO_VERIFY_REQUEST_SENT,
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     MBEDTLS_SSL_ENCRYPTED_EXTENSIONS,
     MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY,
 #if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
     MBEDTLS_SSL_CLIENT_CCS_AFTER_SERVER_FINISHED,
 #endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 }
 mbedtls_ssl_states;
 
@@ -1154,7 +1154,7 @@ struct mbedtls_ssl_session
     int MBEDTLS_PRIVATE(encrypt_then_mac);       /*!< flag for EtM activation                */
 #endif
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     mbedtls_ssl_tls13_application_secrets MBEDTLS_PRIVATE(app_secrets);
 #endif
 };
@@ -1175,14 +1175,14 @@ mbedtls_tls_prf_types;
 typedef enum
 {
     MBEDTLS_SSL_KEY_EXPORT_TLS12_MASTER_SECRET = 0,
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     MBEDTLS_SSL_KEY_EXPORT_TLS1_3_CLIENT_EARLY_SECRET,
     MBEDTLS_SSL_KEY_EXPORT_TLS1_3_EARLY_EXPORTER_SECRET,
     MBEDTLS_SSL_KEY_EXPORT_TLS1_3_CLIENT_HANDSHAKE_TRAFFIC_SECRET,
     MBEDTLS_SSL_KEY_EXPORT_TLS1_3_SERVER_HANDSHAKE_TRAFFIC_SECRET,
     MBEDTLS_SSL_KEY_EXPORT_TLS1_3_CLIENT_APPLICATION_TRAFFIC_SECRET,
     MBEDTLS_SSL_KEY_EXPORT_TLS1_3_SERVER_APPLICATION_TRAFFIC_SECRET,
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 } mbedtls_ssl_key_export_type;
 
 /**
@@ -1277,10 +1277,10 @@ struct mbedtls_ssl_config
     /** Allowed ciphersuites for (D)TLS 1.2 (0-terminated)                  */
     const int *MBEDTLS_PRIVATE(ciphersuite_list);
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     /** Allowed TLS 1.3 key exchange modes.                                 */
     int MBEDTLS_PRIVATE(tls13_kex_modes);
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
     /** Callback for printing debug output                                  */
     void (*MBEDTLS_PRIVATE(f_dbg))(void *, int, const char *, int, const char *);
@@ -1361,9 +1361,9 @@ struct mbedtls_ssl_config
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     const int *MBEDTLS_PRIVATE(sig_hashes);          /*!< allowed signature hashes           */
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     const uint16_t *MBEDTLS_PRIVATE(tls13_sig_algs); /*!< allowed signature algorithms for TLS 1.3 */
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 #endif
 
 #if defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_DEPRECATED_REMOVED)
@@ -1511,11 +1511,11 @@ struct mbedtls_ssl_context
                                                                   *    This pointer owns the transform
                                                                   *    it references.                  */
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     /*! The application data transform in TLS 1.3.
      *  This pointer owns the transform it references. */
     mbedtls_ssl_transform *MBEDTLS_PRIVATE(transform_application);
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
     /*
      * Timers
@@ -2753,7 +2753,7 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
 void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
                                     const int *ciphersuites );
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 /**
  * \brief Set the supported key exchange modes for TLS 1.3 connections.
  *
@@ -2798,7 +2798,7 @@ void mbedtls_ssl_conf_ciphersuites( mbedtls_ssl_config *conf,
 
 void mbedtls_ssl_conf_tls13_key_exchange_modes( mbedtls_ssl_config* conf,
                                                 const int kex_modes );
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
 #define MBEDTLS_SSL_UNEXPECTED_CID_IGNORE 0
@@ -3299,7 +3299,7 @@ void mbedtls_ssl_conf_groups( mbedtls_ssl_config *conf,
 void mbedtls_ssl_conf_sig_hashes( mbedtls_ssl_config *conf,
                                   const int *hashes );
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 /**
  * \brief          Configure allowed signature algorithms for use in TLS 1.3
  *
@@ -3311,7 +3311,7 @@ void mbedtls_ssl_conf_sig_hashes( mbedtls_ssl_config *conf,
  */
 void mbedtls_ssl_conf_sig_algs( mbedtls_ssl_config *conf,
                                 const uint16_t* sig_algs );
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)

@@ -28,7 +28,7 @@
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
@@ -46,7 +46,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
@@ -62,7 +62,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp256r1,ecdsa_secp256r1_sha256"
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
@@ -80,7 +80,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
@@ -96,7 +96,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp384r1,ecdsa_secp256r1_sha256"
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
@@ -114,7 +114,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
@@ -130,7 +130,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp521r1,ecdsa_secp256r1_sha256"
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,x25519,ecdsa_secp256r1_sha256" \
@@ -148,7 +148,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,x25519,ecdsa_secp256r1_sha256" \
@@ -164,7 +164,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,x25519,ecdsa_secp256r1_sha256" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,x448,ecdsa_secp256r1_sha256" \
@@ -182,7 +182,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,x448,ecdsa_secp256r1_sha256" \
@@ -198,7 +198,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,x448,ecdsa_secp256r1_sha256" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
@@ -216,7 +216,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
@@ -232,7 +232,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp256r1,ecdsa_secp384r1_sha384"
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
@@ -250,7 +250,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
@@ -266,7 +266,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp384r1,ecdsa_secp384r1_sha384"
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
@@ -284,7 +284,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
@@ -300,7 +300,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp521r1,ecdsa_secp384r1_sha384"
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,x25519,ecdsa_secp384r1_sha384" \
@@ -318,7 +318,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,x25519,ecdsa_secp384r1_sha384" \
@@ -334,7 +334,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,x25519,ecdsa_secp384r1_sha384" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,x448,ecdsa_secp384r1_sha384" \
@@ -352,7 +352,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,x448,ecdsa_secp384r1_sha384" \
@@ -368,7 +368,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,x448,ecdsa_secp384r1_sha384" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
@@ -386,7 +386,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
@@ -402,7 +402,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp256r1,ecdsa_secp521r1_sha512"
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
@@ -420,7 +420,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
@@ -436,7 +436,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp384r1,ecdsa_secp521r1_sha512"
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
@@ -454,7 +454,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
@@ -470,7 +470,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp521r1,ecdsa_secp521r1_sha512"
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,x25519,ecdsa_secp521r1_sha512" \
@@ -488,7 +488,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,x25519,ecdsa_secp521r1_sha512" \
@@ -504,7 +504,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,x25519,ecdsa_secp521r1_sha512" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,x448,ecdsa_secp521r1_sha512" \
@@ -522,7 +522,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,x448,ecdsa_secp521r1_sha512" \
@@ -538,7 +538,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,x448,ecdsa_secp521r1_sha512" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -557,7 +557,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -574,7 +574,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp256r1,rsa_pss_rsae_sha256" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -593,7 +593,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -610,7 +610,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp384r1,rsa_pss_rsae_sha256" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -629,7 +629,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -646,7 +646,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp521r1,rsa_pss_rsae_sha256" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -665,7 +665,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -682,7 +682,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,x25519,rsa_pss_rsae_sha256" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -701,7 +701,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -718,7 +718,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,x448,rsa_pss_rsae_sha256" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,secp256r1,ecdsa_secp256r1_sha256" \
@@ -736,7 +736,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp256r1,ecdsa_secp256r1_sha256" \
@@ -752,7 +752,7 @@ run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp256r1,ecdsa_secp256r1_sha256"
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,secp384r1,ecdsa_secp256r1_sha256" \
@@ -770,7 +770,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp384r1,ecdsa_secp256r1_sha256" \
@@ -786,7 +786,7 @@ run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp384r1,ecdsa_secp256r1_sha256"
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,secp521r1,ecdsa_secp256r1_sha256" \
@@ -804,7 +804,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp521r1,ecdsa_secp256r1_sha256" \
@@ -820,7 +820,7 @@ run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp521r1,ecdsa_secp256r1_sha256"
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,x25519,ecdsa_secp256r1_sha256" \
@@ -838,7 +838,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,x25519,ecdsa_secp256r1_sha256" \
@@ -854,7 +854,7 @@ run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,x25519,ecdsa_secp256r1_sha256" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,x448,ecdsa_secp256r1_sha256" \
@@ -872,7 +872,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,x448,ecdsa_secp256r1_sha256" \
@@ -888,7 +888,7 @@ run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,x448,ecdsa_secp256r1_sha256" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,secp256r1,ecdsa_secp384r1_sha384" \
@@ -906,7 +906,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp256r1,ecdsa_secp384r1_sha384" \
@@ -922,7 +922,7 @@ run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp256r1,ecdsa_secp384r1_sha384"
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,secp384r1,ecdsa_secp384r1_sha384" \
@@ -940,7 +940,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp384r1,ecdsa_secp384r1_sha384" \
@@ -956,7 +956,7 @@ run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp384r1,ecdsa_secp384r1_sha384"
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,secp521r1,ecdsa_secp384r1_sha384" \
@@ -974,7 +974,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp521r1,ecdsa_secp384r1_sha384" \
@@ -990,7 +990,7 @@ run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp521r1,ecdsa_secp384r1_sha384"
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,x25519,ecdsa_secp384r1_sha384" \
@@ -1008,7 +1008,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,x25519,ecdsa_secp384r1_sha384" \
@@ -1024,7 +1024,7 @@ run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,x25519,ecdsa_secp384r1_sha384" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,x448,ecdsa_secp384r1_sha384" \
@@ -1042,7 +1042,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,x448,ecdsa_secp384r1_sha384" \
@@ -1058,7 +1058,7 @@ run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,x448,ecdsa_secp384r1_sha384" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,secp256r1,ecdsa_secp521r1_sha512" \
@@ -1076,7 +1076,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp256r1,ecdsa_secp521r1_sha512" \
@@ -1092,7 +1092,7 @@ run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp256r1,ecdsa_secp521r1_sha512"
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,secp384r1,ecdsa_secp521r1_sha512" \
@@ -1110,7 +1110,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp384r1,ecdsa_secp521r1_sha512" \
@@ -1126,7 +1126,7 @@ run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp384r1,ecdsa_secp521r1_sha512"
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,secp521r1,ecdsa_secp521r1_sha512" \
@@ -1144,7 +1144,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp521r1,ecdsa_secp521r1_sha512" \
@@ -1160,7 +1160,7 @@ run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp521r1,ecdsa_secp521r1_sha512"
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,x25519,ecdsa_secp521r1_sha512" \
@@ -1178,7 +1178,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,x25519,ecdsa_secp521r1_sha512" \
@@ -1194,7 +1194,7 @@ run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,x25519,ecdsa_secp521r1_sha512" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,x448,ecdsa_secp521r1_sha512" \
@@ -1212,7 +1212,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,x448,ecdsa_secp521r1_sha512" \
@@ -1228,7 +1228,7 @@ run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,x448,ecdsa_secp521r1_sha512" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -1247,7 +1247,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -1264,7 +1264,7 @@ run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp256r1,rsa_pss_rsae_sha256" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -1283,7 +1283,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -1300,7 +1300,7 @@ run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp384r1,rsa_pss_rsae_sha256" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -1319,7 +1319,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -1336,7 +1336,7 @@ run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp521r1,rsa_pss_rsae_sha256" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -1355,7 +1355,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -1372,7 +1372,7 @@ run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,x25519,rsa_pss_rsae_sha256" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -1391,7 +1391,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -1408,7 +1408,7 @@ run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,x448,rsa_pss_rsae_sha256" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
@@ -1426,7 +1426,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
@@ -1442,7 +1442,7 @@ run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp256r1_s
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
@@ -1460,7 +1460,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
@@ -1476,7 +1476,7 @@ run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp256r1_s
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
@@ -1494,7 +1494,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
@@ -1510,7 +1510,7 @@ run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp256r1_s
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp256r1_sha256" \
@@ -1528,7 +1528,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp256r1_sha256" \
@@ -1544,7 +1544,7 @@ run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp256r1_sha2
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,x448,ecdsa_secp256r1_sha256" \
@@ -1562,7 +1562,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,x448,ecdsa_secp256r1_sha256" \
@@ -1578,7 +1578,7 @@ run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,x448,ecdsa_secp256r1_sha256
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
@@ -1596,7 +1596,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
@@ -1612,7 +1612,7 @@ run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp384r1_s
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
@@ -1630,7 +1630,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
@@ -1646,7 +1646,7 @@ run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp384r1_s
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
@@ -1664,7 +1664,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
@@ -1680,7 +1680,7 @@ run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp384r1_s
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp384r1_sha384" \
@@ -1698,7 +1698,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp384r1_sha384" \
@@ -1714,7 +1714,7 @@ run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp384r1_sha3
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,x448,ecdsa_secp384r1_sha384" \
@@ -1732,7 +1732,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,x448,ecdsa_secp384r1_sha384" \
@@ -1748,7 +1748,7 @@ run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,x448,ecdsa_secp384r1_sha384
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
@@ -1766,7 +1766,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
@@ -1782,7 +1782,7 @@ run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp521r1_s
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
@@ -1800,7 +1800,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
@@ -1816,7 +1816,7 @@ run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp521r1_s
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
@@ -1834,7 +1834,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
@@ -1850,7 +1850,7 @@ run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp521r1_s
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp521r1_sha512" \
@@ -1868,7 +1868,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp521r1_sha512" \
@@ -1884,7 +1884,7 @@ run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp521r1_sha5
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,x448,ecdsa_secp521r1_sha512" \
@@ -1902,7 +1902,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,x448,ecdsa_secp521r1_sha512" \
@@ -1918,7 +1918,7 @@ run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,x448,ecdsa_secp521r1_sha512
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -1937,7 +1937,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -1954,7 +1954,7 @@ run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp256r1,rsa_pss_rsae_sha2
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -1973,7 +1973,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -1990,7 +1990,7 @@ run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp384r1,rsa_pss_rsae_sha2
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -2009,7 +2009,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -2026,7 +2026,7 @@ run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp521r1,rsa_pss_rsae_sha2
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -2045,7 +2045,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -2062,7 +2062,7 @@ run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,x25519,rsa_pss_rsae_sha256"
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -2081,7 +2081,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -2098,7 +2098,7 @@ run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,x448,rsa_pss_rsae_sha256" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
@@ -2116,7 +2116,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
@@ -2132,7 +2132,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp256r1,ecdsa_secp256r1_sha256"
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
@@ -2150,7 +2150,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
@@ -2166,7 +2166,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp384r1,ecdsa_secp256r1_sha256"
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
@@ -2184,7 +2184,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
@@ -2200,7 +2200,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp521r1,ecdsa_secp256r1_sha256"
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,x25519,ecdsa_secp256r1_sha256" \
@@ -2218,7 +2218,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,x25519,ecdsa_secp256r1_sha256" \
@@ -2234,7 +2234,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,x25519,ecdsa_secp256r1_sha256" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,x448,ecdsa_secp256r1_sha256" \
@@ -2252,7 +2252,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,x448,ecdsa_secp256r1_sha256" \
@@ -2268,7 +2268,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,x448,ecdsa_secp256r1_sha256" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
@@ -2286,7 +2286,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
@@ -2302,7 +2302,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp256r1,ecdsa_secp384r1_sha384"
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
@@ -2320,7 +2320,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
@@ -2336,7 +2336,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp384r1,ecdsa_secp384r1_sha384"
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
@@ -2354,7 +2354,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
@@ -2370,7 +2370,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp521r1,ecdsa_secp384r1_sha384"
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,x25519,ecdsa_secp384r1_sha384" \
@@ -2388,7 +2388,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,x25519,ecdsa_secp384r1_sha384" \
@@ -2404,7 +2404,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,x25519,ecdsa_secp384r1_sha384" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,x448,ecdsa_secp384r1_sha384" \
@@ -2422,7 +2422,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,x448,ecdsa_secp384r1_sha384" \
@@ -2438,7 +2438,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,x448,ecdsa_secp384r1_sha384" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
@@ -2456,7 +2456,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
@@ -2472,7 +2472,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp256r1,ecdsa_secp521r1_sha512"
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
@@ -2490,7 +2490,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
@@ -2506,7 +2506,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp384r1,ecdsa_secp521r1_sha512"
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
@@ -2524,7 +2524,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
@@ -2540,7 +2540,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp521r1,ecdsa_secp521r1_sha512"
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,x25519,ecdsa_secp521r1_sha512" \
@@ -2558,7 +2558,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,x25519,ecdsa_secp521r1_sha512" \
@@ -2574,7 +2574,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,x25519,ecdsa_secp521r1_sha512" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,x448,ecdsa_secp521r1_sha512" \
@@ -2592,7 +2592,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,x448,ecdsa_secp521r1_sha512" \
@@ -2608,7 +2608,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,x448,ecdsa_secp521r1_sha512" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -2627,7 +2627,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -2644,7 +2644,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp256r1,rsa_pss_rsae_sha256" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -2663,7 +2663,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -2680,7 +2680,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp384r1,rsa_pss_rsae_sha256" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -2699,7 +2699,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -2716,7 +2716,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp521r1,rsa_pss_rsae_sha256" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -2735,7 +2735,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -2752,7 +2752,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,x25519,rsa_pss_rsae_sha256" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -2771,7 +2771,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -2788,7 +2788,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,x448,rsa_pss_rsae_sha256" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
@@ -2806,7 +2806,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
@@ -2822,7 +2822,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp256r1_sha25
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
@@ -2840,7 +2840,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
@@ -2856,7 +2856,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp256r1_sha25
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
@@ -2874,7 +2874,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
@@ -2890,7 +2890,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp256r1_sha25
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,x25519,ecdsa_secp256r1_sha256" \
@@ -2908,7 +2908,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,x25519,ecdsa_secp256r1_sha256" \
@@ -2924,7 +2924,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,x25519,ecdsa_secp256r1_sha256" 
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,x448,ecdsa_secp256r1_sha256" \
@@ -2942,7 +2942,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,x448,ecdsa_secp256r1_sha256" \
@@ -2958,7 +2958,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,x448,ecdsa_secp256r1_sha256" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
@@ -2976,7 +2976,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
@@ -2992,7 +2992,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp384r1_sha38
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
@@ -3010,7 +3010,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
@@ -3026,7 +3026,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp384r1_sha38
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
@@ -3044,7 +3044,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
@@ -3060,7 +3060,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp384r1_sha38
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,x25519,ecdsa_secp384r1_sha384" \
@@ -3078,7 +3078,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,x25519,ecdsa_secp384r1_sha384" \
@@ -3094,7 +3094,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,x25519,ecdsa_secp384r1_sha384" 
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,x448,ecdsa_secp384r1_sha384" \
@@ -3112,7 +3112,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,x448,ecdsa_secp384r1_sha384" \
@@ -3128,7 +3128,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,x448,ecdsa_secp384r1_sha384" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
@@ -3146,7 +3146,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
@@ -3162,7 +3162,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp521r1_sha51
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
@@ -3180,7 +3180,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
@@ -3196,7 +3196,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp521r1_sha51
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
@@ -3214,7 +3214,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
@@ -3230,7 +3230,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp521r1_sha51
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,x25519,ecdsa_secp521r1_sha512" \
@@ -3248,7 +3248,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,x25519,ecdsa_secp521r1_sha512" \
@@ -3264,7 +3264,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,x25519,ecdsa_secp521r1_sha512" 
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,x448,ecdsa_secp521r1_sha512" \
@@ -3282,7 +3282,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,x448,ecdsa_secp521r1_sha512" \
@@ -3298,7 +3298,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,x448,ecdsa_secp521r1_sha512" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -3317,7 +3317,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -3334,7 +3334,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp256r1,rsa_pss_rsae_sha256" 
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -3353,7 +3353,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -3370,7 +3370,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp384r1,rsa_pss_rsae_sha256" 
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -3389,7 +3389,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -3406,7 +3406,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp521r1,rsa_pss_rsae_sha256" 
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -3425,7 +3425,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -3442,7 +3442,7 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,x25519,rsa_pss_rsae_sha256" \
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
@@ -3461,7 +3461,7 @@ requires_gnutls_next_no_ticket
 requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT

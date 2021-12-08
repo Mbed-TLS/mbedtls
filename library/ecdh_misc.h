@@ -27,7 +27,7 @@
 
 #if defined(MBEDTLS_ECDH_C)
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 
 /*
  * Setup context without Everest
@@ -50,7 +50,7 @@ int mbedtls_ecdh_tls13_read_public( mbedtls_ecdh_context *ctx,
                                     const unsigned char *buf,
                                     size_t buf_len );
 
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #endif /* MBEDTLS_ECDH_C */
 

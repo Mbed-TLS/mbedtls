@@ -552,6 +552,10 @@ struct mbedtls_ssl_handshake_params
     unsigned char retransmit_state;     /*!<  Retransmission state           */
 #endif
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+    unsigned char group_list_heap_allocated;
+#endif
+
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
     uint8_t ecrs_enabled;               /*!< Handshake supports EC restart? */
     mbedtls_x509_crt_restart_ctx ecrs_ctx;  /*!< restart context            */
@@ -585,6 +589,10 @@ struct mbedtls_ssl_handshake_params
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     mbedtls_ssl_sig_hash_set_t hash_algs;             /*!<  Set of suitable sig-hash pairs */
+#endif
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+    const uint16_t *group_list;
 #endif
 
 #if defined(MBEDTLS_DHM_C)
@@ -802,11 +810,6 @@ struct mbedtls_ssl_handshake_params
      * The library does not use it internally. */
     void *user_async_ctx;
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
-
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-    const uint16_t *group_list;
-    unsigned char group_list_heap_allocated;
-#endif
 };
 
 typedef struct mbedtls_ssl_hs_buffer mbedtls_ssl_hs_buffer;

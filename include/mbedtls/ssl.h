@@ -1227,12 +1227,13 @@ struct mbedtls_ssl_config
      */
 
     uint8_t MBEDTLS_PRIVATE(endpoint);      /*!< 0: client, 1: server               */
-    uint8_t MBEDTLS_PRIVATE(transport);     /*!< stream (TLS) or datagram (DTLS)    */
+    uint8_t MBEDTLS_PRIVATE(transport);     /*!< 0: stream (TLS), 1: datagram (DTLS)    */
     uint8_t MBEDTLS_PRIVATE(authmode);      /*!< MBEDTLS_SSL_VERIFY_XXX             */
     /* needed even with renego disabled for LEGACY_BREAK_HANDSHAKE          */
     uint8_t MBEDTLS_PRIVATE(allow_legacy_renegotiation); /*!< MBEDTLS_LEGACY_XXX   */
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    uint8_t MBEDTLS_PRIVATE(mfl_code);      /*!< desired fragment length            */
+    uint8_t MBEDTLS_PRIVATE(mfl_code);      /*!< desired fragment length indicator
+                                                 (MBEDTLS_SSL_MAX_FRAG_LEN_XXX) */
 #endif
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     uint8_t MBEDTLS_PRIVATE(encrypt_then_mac); /*!< negotiate encrypt-then-mac?    */
@@ -1254,16 +1255,16 @@ struct mbedtls_ssl_config
                                                      Certificate Request messages? */
     uint8_t MBEDTLS_PRIVATE(respect_cli_pref);  /*!< pick the ciphersuite according to
                                                      the client's preferences rather
-                                                     than ours */
+                                                     than ours? */
 #endif
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-    uint8_t MBEDTLS_PRIVATE(ignore_unexpected_cid); /*!< Determines whether DTLS
-                                                     *   record with unexpected CID
-                                                     *   should lead to failure. */
+    uint8_t MBEDTLS_PRIVATE(ignore_unexpected_cid); /*!< Should DTLS record with
+                                                     *   unexpected CID
+                                                     *   lead to failure? */
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
     uint8_t MBEDTLS_PRIVATE(dtls_srtp_mki_support); /* support having mki_value
-                                                       in the use_srtp extension */
+                                                       in the use_srtp extension? */
 #endif
 
     /*

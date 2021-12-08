@@ -1646,8 +1646,7 @@ static int ssl_tls13_flush_buffers( mbedtls_ssl_context *ssl )
  */
 static int ssl_tls13_handshake_wrapup( mbedtls_ssl_context *ssl )
 {
-    mbedtls_platform_zeroize( &ssl->handshake->tls13_master_secrets,
-                              sizeof(ssl->handshake->tls13_master_secrets));
+
     mbedtls_platform_zeroize( &ssl->handshake->tls13_hs_secrets,
                               sizeof(ssl->handshake->tls13_hs_secrets));
 

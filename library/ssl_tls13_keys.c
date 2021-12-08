@@ -1164,6 +1164,9 @@ int mbedtls_ssl_tls13_generate_application_keys(
                                    handshake->tls13_master_secrets.app,
                                    transcript, transcript_len,
                                    app_secrets );
+    /* Erase master secrets*/
+    mbedtls_platform_zeroize( &ssl->handshake->tls13_master_secrets,
+                              sizeof(ssl->handshake->tls13_master_secrets));
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1,

@@ -252,6 +252,15 @@ Mbed TLS can be ported to many different architectures, OS's and platforms. Befo
 -   [What external dependencies does Mbed TLS rely on?](https://tls.mbed.org/kb/development/what-external-dependencies-does-mbedtls-rely-on)
 -   [How do I configure Mbed TLS](https://tls.mbed.org/kb/compiling-and-building/how-do-i-configure-mbedtls)
 
+Mbed TLS is mostly written in portable C99; however, it has a few platform requirements that go beyond the standard, but are met by most modern architectures:
+
+- bytes must be 8 bits
+- all-bits-zero must be a valid representation of the NULL pointer
+- signed integers must be represented using two's complement
+- integers must not have padding bits in their representation
+- `int` and `size_t` must be at least 32 bits wide
+- the types `uint8_t`, `uint16_t`, `uint32_t` and their signed equivalents must be available.
+
 PSA cryptography API
 --------------------
 

@@ -20,6 +20,7 @@
 #define MBEDTLS_ALLOW_PRIVATE_ACCESS
 
 #include "mbedtls/build_info.h"
+#include "mbedtls/debug.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -161,6 +162,7 @@ void printf_dbg( const char *str, ... )
     }
 }
 
+MBEDTLS_PRINTF_ATTRIBUTE( 1, 2 )
 void printf_err( const char *str, ... )
 {
     va_list args;
@@ -467,7 +469,8 @@ size_t read_next_b64_code( uint8_t **b64, size_t *max_len )
             }
             else if( len > *max_len )
             {
-                printf_err( "The code found is too large by %u bytes.\n", len - *max_len );
+                printf_err( "The code found is too large by %" MBEDTLS_PRINTF_SIZET " bytes.\n",
+                            len - *max_len );
                 len = pad = 0;
             }
             else if( len % 4 != 0 )

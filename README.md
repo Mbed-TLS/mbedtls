@@ -255,7 +255,7 @@ Mbed TLS can be ported to many different architectures, OS's and platforms. Befo
 Mbed TLS is mostly written in portable C99; however, it has a few platform requirements that go beyond the standard, but are met by most modern architectures:
 
 - Bytes must be 8 bits.
-- `all-bits-zero` must be a valid representation of a null pointer.
+- All-bits-zero must be a valid representation of a null pointer.
 - Signed integers must be represented using two's complement.
 - `int` and `size_t` must be at least 32 bits wide.
 - The types `uint8_t`, `uint16_t`, `uint32_t` and their signed equivalents must be available.

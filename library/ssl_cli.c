@@ -2366,9 +2366,16 @@ static int ssl_parse_server_ecdh_params_psa( mbedtls_ssl_context *ssl,
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
     /*
-     * Parse ECC group
+     * struct {
+     *     ECParameters curve_params;
+     *     ECPoint      public;
+     * } ServerECDHParams;
+     *
+     *  1       curve_type (must be named curve)
+     *  2..3    NamedCurve
+     *  4       ECPoint.len
+     *  5+      ECPoint contents
      */
-
     if( end - *p < 4 )
         return( MBEDTLS_ERR_SSL_DECODE_ERROR );
 

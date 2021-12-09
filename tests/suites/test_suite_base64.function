@@ -1,6 +1,7 @@
 /* BEGIN_HEADER */
 #include "mbedtls/base64.h"
-#include "base64_invasive.h"
+#include "constant_time_internal.h"
+#include "constant_time_invasive.h"
 #include <test/constant_flow.h>
 
 #if defined(MBEDTLS_TEST_HOOKS)
@@ -24,7 +25,7 @@ void mask_of_range( int low_arg, int high_arg )
     {
         mbedtls_test_set_step( c );
         TEST_CF_SECRET( &c, sizeof( c ) );
-        unsigned char m = mbedtls_base64_mask_of_range( low, high, c );
+        unsigned char m = mbedtls_ct_uchar_mask_of_range( low, high, c );
         TEST_CF_PUBLIC( &c, sizeof( c ) );
         TEST_CF_PUBLIC( &m, sizeof( m ) );
         if( low <= c && c <= high )
@@ -42,7 +43,7 @@ void enc_chars( )
     {
         mbedtls_test_set_step( value );
         TEST_CF_SECRET( &value, sizeof( value ) );
-        unsigned char digit = mbedtls_base64_enc_char( value );
+        unsigned char digit = mbedtls_ct_base64_enc_char( value );
         TEST_CF_PUBLIC( &value, sizeof( value ) );
         TEST_CF_PUBLIC( &digit, sizeof( digit ) );
         TEST_EQUAL( digit, base64_digits[value] );
@@ -66,7 +67,7 @@ void dec_chars( )
         else
             expected = p - base64_digits;
         TEST_CF_SECRET( &c, sizeof( c ) );
-        signed char actual = mbedtls_base64_dec_value( c );
+        signed char actual = mbedtls_ct_base64_dec_value( c );
         TEST_CF_PUBLIC( &c, sizeof( c ) );
         TEST_CF_PUBLIC( &actual, sizeof( actual ) );
         TEST_EQUAL( actual, expected );

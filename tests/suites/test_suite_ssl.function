@@ -4332,7 +4332,7 @@ void ssl_session_serialize_version_check( int corrupt_major,
                                       corrupt_config == 1 };
 
     mbedtls_ssl_session_init( &session );
-    ssl_populate_session_tls12( &session, 0, NULL );
+    TEST_ASSERT( ssl_populate_session_tls12( &session, 0, NULL ) == 0 );
 
     /* Infer length of serialized session. */
     TEST_ASSERT( mbedtls_ssl_session_save( &session,
@@ -4904,7 +4904,7 @@ void conf_curve()
 
     mbedtls_ssl_context ssl;
     mbedtls_ssl_init( &ssl );
-    mbedtls_ssl_setup( &ssl, &conf );
+    TEST_ASSERT( mbedtls_ssl_setup( &ssl, &conf ) == 0 );
 
     TEST_ASSERT( ssl.handshake != NULL && ssl.handshake->group_list != NULL );
     TEST_ASSERT( ssl.conf != NULL && ssl.conf->group_list == NULL );
@@ -4937,7 +4937,7 @@ void conf_group()
 
     mbedtls_ssl_context ssl;
     mbedtls_ssl_init( &ssl );
-    mbedtls_ssl_setup( &ssl, &conf );
+    TEST_ASSERT( mbedtls_ssl_setup( &ssl, &conf ) == 0 );
 
     TEST_ASSERT( ssl.conf != NULL && ssl.conf->group_list != NULL );
 

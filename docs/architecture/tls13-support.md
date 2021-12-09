@@ -1,22 +1,18 @@
-TLS 1.3 Experimental Developments
-=================================
+TLS 1.3 support
+===============
 
 Overview
 --------
 
-Mbed TLS doesn't support the TLS 1.3 protocol yet, but a prototype is in development.
-Stable parts of this prototype that can be independently tested are being successively
-upstreamed under the guard of the following macro:
+Mbed TLS provides a minimum viable implementation of the TLS 1.3 protocol
+defined in the "MVP definition" section below. The TLS 1.3 support enablement
+is controlled by the MBEDTLS_SSL_PROTO_TLS1_3 configuration option.
 
-```
-MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
-```
-
-This macro will likely be renamed to `MBEDTLS_SSL_PROTO_TLS1_3` once a minimal viable
-implementation of the TLS 1.3 protocol is available.
-
-See the [documentation of `MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL`](../../include/mbedtls/mbedtls_config.h)
-for more information.
+The development of the TLS 1.3 protocol is based on the TLS 1.3 prototype
+located at https://github.com/hannestschofenig/mbedtls. The prototype is
+itself based on a version of the development branch that we aim to keep as
+recent as possible (ideally the head) by merging regularly commits of the
+development branch into the prototype.
 
 Status
 ------

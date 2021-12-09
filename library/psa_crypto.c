@@ -3073,80 +3073,14 @@ psa_status_t psa_asymmetric_encrypt( mbedtls_svc_key_id_t key,
         goto exit;
     }
 
-    if( PSA_KEY_TYPE_IS_RSA( slot->attr.type ) )
-    {
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP)
-        mbedtls_rsa_context *rsa = NULL;
-        status = mbedtls_psa_rsa_load_representation( slot->attr.type,
-                                                      slot->key.data,
-                                                      slot->key.bytes,
-                                                      &rsa );
-        if( status != PSA_SUCCESS )
-            goto rsa_exit;
+    psa_key_attributes_t attributes = {
+      .core = slot->attr
+    };
 
-        if( output_size < mbedtls_rsa_get_len( rsa ) )
-        {
-            status = PSA_ERROR_BUFFER_TOO_SMALL;
-            goto rsa_exit;
-        }
-#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) ||
-        * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) */
-        if( alg == PSA_ALG_RSA_PKCS1V15_CRYPT )
-        {
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT)
-            status = mbedtls_to_psa_error(
-                    mbedtls_rsa_pkcs1_encrypt( rsa,
-                                               mbedtls_psa_get_random,
-                                               MBEDTLS_PSA_RANDOM_STATE,
-                                               input_length,
-                                               input,
-                                               output ) );
-#else
-            status = PSA_ERROR_NOT_SUPPORTED;
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT */
-        }
-        else
-        if( PSA_ALG_IS_RSA_OAEP( alg ) )
-        {
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP)
-            status = mbedtls_to_psa_error(
-                         psa_rsa_oaep_set_padding_mode( alg, rsa ) );
-            if( status != PSA_SUCCESS )
-                goto rsa_exit;
-
-            status = mbedtls_to_psa_error(
-                mbedtls_rsa_rsaes_oaep_encrypt( rsa,
-                                                mbedtls_psa_get_random,
-                                                MBEDTLS_PSA_RANDOM_STATE,
-                                                salt, salt_length,
-                                                input_length,
-                                                input,
-                                                output ) );
-#else
-            status = PSA_ERROR_NOT_SUPPORTED;
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP */
-        }
-        else
-        {
-            status = PSA_ERROR_INVALID_ARGUMENT;
-        }
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP)
-rsa_exit:
-        if( status == PSA_SUCCESS )
-            *output_length = mbedtls_rsa_get_len( rsa );
-
-        mbedtls_rsa_free( rsa );
-        mbedtls_free( rsa );
-#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) ||
-        * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) */
-    }
-    else
-    {
-        status = PSA_ERROR_NOT_SUPPORTED;
-    }
-
+    status = psa_driver_wrapper_asymmetric_encrypt(
+        &attributes, slot->key.data, slot->key.bytes,
+        alg, input, input_length, salt, salt_length,
+        output, output_size, output_length );
 exit:
     unlock_status = psa_unlock_key_slot( slot );
 

@@ -8814,9 +8814,10 @@ run_test    "TLS 1.3: handshake dispatch test: tls13 only" \
 
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS 1.3: minimal feature sets - openssl" \
-            "$O_NEXT_SRV -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+            "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
             "$P_CLI debug_level=3 min_version=tls13 max_version=tls13" \
             0 \
             -c "tls13 client state: 0"     \
@@ -8843,11 +8844,11 @@ run_test    "TLS 1.3: minimal feature sets - openssl" \
 
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
-requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS 1.3: minimal feature sets - gnutls" \
-            "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE --disable-client-cert" \
+            "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS --disable-client-cert" \
             "$P_CLI debug_level=3 min_version=tls13 max_version=tls13" \
             0 \
             -s "SERVER HELLO was queued"   \
@@ -8874,6 +8875,7 @@ run_test    "TLS 1.3: minimal feature sets - gnutls" \
             -c "HTTP/1.0 200 OK"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 skip_handshake_stage_check
 requires_gnutls_tls1_3
 run_test    "TLS 1.3:Not supported version check:gnutls: srv max TLS 1.0" \
@@ -8886,6 +8888,7 @@ run_test    "TLS 1.3:Not supported version check:gnutls: srv max TLS 1.0" \
             -C "Protocol is TLSv1.0"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 skip_handshake_stage_check
 requires_gnutls_tls1_3
 run_test    "TLS 1.3:Not supported version check:gnutls: srv max TLS 1.1" \
@@ -8898,6 +8901,7 @@ run_test    "TLS 1.3:Not supported version check:gnutls: srv max TLS 1.1" \
             -C "Protocol is TLSv1.1"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 skip_handshake_stage_check
 requires_gnutls_tls1_3
 run_test    "TLS 1.3:Not supported version check:gnutls: srv max TLS 1.2" \
@@ -8910,6 +8914,7 @@ run_test    "TLS 1.3:Not supported version check:gnutls: srv max TLS 1.2" \
             -C "Protocol is TLSv1.2"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 skip_handshake_stage_check
 requires_openssl_next
 run_test    "TLS 1.3:Not supported version check:openssl: srv max TLS 1.0" \
@@ -8922,6 +8927,7 @@ run_test    "TLS 1.3:Not supported version check:openssl: srv max TLS 1.0" \
             -C "Protocol  : TLSv1.0"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 skip_handshake_stage_check
 requires_openssl_next
 run_test    "TLS 1.3:Not supported version check:openssl: srv max TLS 1.1" \
@@ -8934,6 +8940,7 @@ run_test    "TLS 1.3:Not supported version check:openssl: srv max TLS 1.1" \
             -C "Protocol  : TLSv1.1"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 skip_handshake_stage_check
 requires_openssl_next
 run_test    "TLS 1.3:Not supported version check:openssl: srv max TLS 1.2" \
@@ -8947,29 +8954,31 @@ run_test    "TLS 1.3:Not supported version check:openssl: srv max TLS 1.2" \
 
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS 1.3: CertificateRequest check - openssl" \
-            "$O_NEXT_SRV -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10" \
+            "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10" \
             "$P_CLI debug_level=4 force_version=tls13 " \
             1 \
             -c "CertificateRequest not supported"
 
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
-requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS 1.3: CertificateRequest check - gnutls" \
-            "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+            "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS" \
             "$P_CLI debug_level=3 min_version=tls13 max_version=tls13" \
             1 \
             -c "CertificateRequest not supported"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_openssl_tls1_3
 run_test    "TLS 1.3: HelloRetryRequest check - openssl" \
-            "$O_NEXT_SRV -ciphersuites TLS_AES_256_GCM_SHA384  -sigalgs ecdsa_secp256r1_sha256 -groups P-256 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+            "$O_NEXT_SRV -ciphersuites TLS_AES_256_GCM_SHA384  -sigalgs ecdsa_secp256r1_sha256 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
             "$P_CLI debug_level=4 force_version=tls13" \
             1 \
             -c "received HelloRetryRequest message" \
@@ -8978,21 +8987,42 @@ run_test    "TLS 1.3: HelloRetryRequest check - openssl" \
 
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
-requires_gnutls_next_disable_tls13_compat
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS 1.3: HelloRetryRequest check - gnutls" \
-            "$G_NEXT_SRV -d 4 --priority=NONE:+GROUP-SECP256R1:+AES-256-GCM:+SHA384:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+            "$G_NEXT_SRV -d 4 --priority=NONE:+GROUP-SECP256R1:+AES-256-GCM:+SHA384:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
             "$P_CLI debug_level=4 force_version=tls13" \
             1 \
             -c "received HelloRetryRequest message" \
             -c "HRR not supported" \
             -c "Last error was: -0x6E00 - SSL - The handshake negotiation failed" \
             -s "HELLO RETRY REQUEST was queued"
+
 for i in $(ls opt-testcases/*.sh)
 do
     . $i
 done
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_disabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "TLS 1.3: client and server do not support middlebox compatibility" \
+            "$O_NEXT_SRV -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+            "$P_CLI debug_level=3 min_version=tls13 max_version=tls13" \
+            0 \
+            -c "HTTP/1.0 200 ok"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+requires_config_disabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "TLS 1.3: client does not support middlebox compatibility but server does" \
+            "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
+            "$P_CLI debug_level=3 min_version=tls13 max_version=tls13" \
+            1 \
+            -c "ChangeCipherSpec invalid in TLS 1.3 without compatibility mode"
 
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_MEMORY_DEBUG

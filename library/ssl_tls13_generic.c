@@ -1063,7 +1063,7 @@ static int ssl_tls13_prepare_finished_message( mbedtls_ssl_context *ssl )
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
         mbedtls_platform_zeroize( &ssl->handshake->tls13_hs_secrets,
-                                  sizeof(ssl->handshake->tls13_hs_secrets));
+                                  sizeof( ssl->handshake->tls13_hs_secrets ) );
     }
     if( ret != 0 )
     {

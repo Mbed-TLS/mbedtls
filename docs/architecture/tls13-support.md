@@ -12,7 +12,8 @@ The development of the TLS 1.3 protocol is based on the TLS 1.3 prototype
 located at https://github.com/hannestschofenig/mbedtls. The prototype is
 itself based on a version of the development branch that we aim to keep as
 recent as possible (ideally the head) by merging regularly commits of the
-development branch into the prototype.
+development branch into the prototype. The section "Prototype upstreaming
+status" below describes what remains to be upstreamed.
 
 
 MVP definition
@@ -179,35 +180,19 @@ MVP definition
     message ...
 
 
-Status
-------
+Prototype upstreaming status
+----------------------------
 
-The following lists which parts of the TLS 1.3 prototype have already been upstreamed
-together with their level of testing:
+The following gives an hint of which parts of the TLS 1.3 prototype remain
+to be upstreamed:
 
-* TLS 1.3 record protection mechanisms
+- Ephemeral only handshake on client side: client authentication,
+  HelloRetryRequest support, version negotiation.
 
-  The record protection routines `mbedtls_ssl_{encrypt|decrypt}_buf()` have been extended
-  to support the modified TLS 1.3 record protection mechanism, including modified computation
-  of AAD, IV, and the introduction of a flexible padding.
+- Ephemeral only handshake server side.
 
-  Those record protection routines have unit tests in `test_suite_ssl` alongside the
-  tests for the other record protection routines.
-
-  TODO: Add some test vectors from RFC 8448.
-
-- The HKDF key derivation function on which the TLS 1.3 key schedule is based,
-  is already present as an independent module controlled by `MBEDTLS_HKDF_C`
-  independently of the development of the TLS 1.3 prototype.
-
-- The TLS 1.3-specific HKDF-based key derivation functions (see RFC 8446):
-  * HKDF-Expand-Label
-  * Derive-Secret
-  - Secret evolution
-  * The traffic {Key,IV} generation from secret
-  Those functions are implemented in `library/ssl_tls13_keys.c` and
-  tested in `test_suite_ssl` using test vectors from RFC 8448 and
-  https://tls13.ulfheim.net/.
+- Pre-shared keys, session resumption and 0-RTT data (both client and server
+  side).
 
 - New TLS Message Processing Stack (MPS)
 

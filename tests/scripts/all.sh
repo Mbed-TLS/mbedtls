@@ -1015,7 +1015,7 @@ component_test_sslv3 () {
     make test
 
     msg "build: SSLv3 - compat.sh (ASan build)" # ~ 6 min
-    tests/compat.sh -m 'tls1 tls1_1 tls1_2 dtls1 dtls1_2'
+    tests/compat.sh -m 'tls1 tls1_1 tls12 dtls1 dtls12'
     env OPENSSL_CMD="$OPENSSL_LEGACY" tests/compat.sh -m 'ssl3'
 
     msg "build: SSLv3 - ssl-opt.sh (ASan build)" # ~ 6 min
@@ -1092,7 +1092,7 @@ component_test_no_ctr_drbg_classic () {
     tests/ssl-opt.sh -f 'Default\|SSL async private.*delay=\|tickets enabled on server'
 
     msg "test: Full minus CTR_DRBG, classic crypto - compat.sh (subset)"
-    tests/compat.sh -m tls1_2 -t 'ECDSA PSK' -V NO -p OpenSSL
+    tests/compat.sh -m tls12 -t 'ECDSA PSK' -V NO -p OpenSSL
 }
 
 component_test_no_ctr_drbg_use_psa () {
@@ -1114,7 +1114,7 @@ component_test_no_ctr_drbg_use_psa () {
     tests/ssl-opt.sh -f 'Default\|SSL async private.*delay=\|tickets enabled on server'
 
     msg "test: Full minus CTR_DRBG, USE_PSA_CRYPTO - compat.sh (subset)"
-    tests/compat.sh -m tls1_2 -t 'ECDSA PSK' -V NO -p OpenSSL
+    tests/compat.sh -m tls12 -t 'ECDSA PSK' -V NO -p OpenSSL
 }
 
 component_test_no_hmac_drbg_classic () {
@@ -1141,7 +1141,7 @@ component_test_no_hmac_drbg_classic () {
     # To save time, only test one protocol version, since this part of
     # the protocol is identical in (D)TLS up to 1.2.
     msg "test: Full minus HMAC_DRBG, classic crypto - compat.sh (ECDSA)"
-    tests/compat.sh -m tls1_2 -t 'ECDSA'
+    tests/compat.sh -m tls12 -t 'ECDSA'
 }
 
 component_test_no_hmac_drbg_use_psa () {
@@ -1168,7 +1168,7 @@ component_test_no_hmac_drbg_use_psa () {
     # To save time, only test one protocol version, since this part of
     # the protocol is identical in (D)TLS up to 1.2.
     msg "test: Full minus HMAC_DRBG, USE_PSA_CRYPTO - compat.sh (ECDSA)"
-    tests/compat.sh -m tls1_2 -t 'ECDSA'
+    tests/compat.sh -m tls12 -t 'ECDSA'
 }
 
 component_test_psa_external_rng_no_drbg_classic () {

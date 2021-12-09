@@ -40,6 +40,10 @@
 #include "mbedtls/rsa.h"
 #endif
 
+#if defined(MBEDTLS_BASE64_C)
+#include "constant_time_invasive.h"
+#endif
+
 #include <string.h>
 
 int mbedtls_ct_memcmp( const void *a,
@@ -149,6 +153,26 @@ size_t mbedtls_ct_size_mask_ge( size_t x,
 }
 
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
+
+#if defined(MBEDTLS_BASE64_C)
+
+/* Return 0xff if low <= c <= high, 0 otherwise.
+ *
+ * Constant flow with respect to c.
+ */
+MBEDTLS_STATIC_TESTABLE
+unsigned char mbedtls_ct_uchar_mask_of_range( unsigned char low,
+                                              unsigned char high,
+                                              unsigned char c )
+{
+    /* low_mask is: 0 if low <= c, 0x...ff if low > c */
+    unsigned low_mask = ( (unsigned) c - low ) >> 8;
+    /* high_mask is: 0 if c <= high, 0x...ff if c > high */
+    unsigned high_mask = ( (unsigned) high - c ) >> 8;
+    return( ~( low_mask | high_mask ) & 0xff );
+}
+
+#endif /* MBEDTLS_BASE64_C */
 
 unsigned mbedtls_ct_size_bool_eq( size_t x,
                                   size_t y )
@@ -300,6 +324,41 @@ void mbedtls_ct_mpi_uint_cond_assign( size_t n,
 }
 
 #endif /* MBEDTLS_BIGNUM_C */
+
+#if defined(MBEDTLS_BASE64_C)
+
+unsigned char mbedtls_ct_base64_enc_char( unsigned char value )
+{
+    unsigned char digit = 0;
+    /* For each range of values, if value is in that range, mask digit with
+     * the corresponding value. Since value can only be in a single range,
+     * only at most one masking will change digit. */
+    digit |= mbedtls_ct_uchar_mask_of_range(  0, 25, value ) & ( 'A' + value );
+    digit |= mbedtls_ct_uchar_mask_of_range( 26, 51, value ) & ( 'a' + value - 26 );
+    digit |= mbedtls_ct_uchar_mask_of_range( 52, 61, value ) & ( '0' + value - 52 );
+    digit |= mbedtls_ct_uchar_mask_of_range( 62, 62, value ) & '+';
+    digit |= mbedtls_ct_uchar_mask_of_range( 63, 63, value ) & '/';
+    return( digit );
+}
+
+signed char mbedtls_ct_base64_dec_value( unsigned char c )
+{
+    unsigned char val = 0;
+    /* For each range of digits, if c is in that range, mask val with
+     * the corresponding value. Since c can only be in a single range,
+     * only at most one masking will change val. Set val to one plus
+     * the desired value so that it stays 0 if c is in none of the ranges. */
+    val |= mbedtls_ct_uchar_mask_of_range( 'A', 'Z', c ) & ( c - 'A' +  0 + 1 );
+    val |= mbedtls_ct_uchar_mask_of_range( 'a', 'z', c ) & ( c - 'a' + 26 + 1 );
+    val |= mbedtls_ct_uchar_mask_of_range( '0', '9', c ) & ( c - '0' + 52 + 1 );
+    val |= mbedtls_ct_uchar_mask_of_range( '+', '+', c ) & ( c - '+' + 62 + 1 );
+    val |= mbedtls_ct_uchar_mask_of_range( '/', '/', c ) & ( c - '/' + 63 + 1 );
+    /* At this point, val is 0 if c is an invalid digit and v+1 if c is
+     * a digit with the value v. */
+    return( val - 1 );
+}
+
+#endif /* MBEDTLS_BASE64_C */
 
 #if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_RSA_ALT)
 

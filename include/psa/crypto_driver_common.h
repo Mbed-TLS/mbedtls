@@ -42,6 +42,9 @@
  * of these types. */
 #include "crypto_types.h"
 #include "crypto_values.h"
+/* Include size definitions which are used to size some arrays in operation
+ * structures. */
+#include <psa/crypto_sizes.h>
 
 /** For encrypt-decrypt functions, whether the operation is an encryption
  * or a decryption. */

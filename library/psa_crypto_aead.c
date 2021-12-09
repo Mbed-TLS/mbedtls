@@ -32,6 +32,8 @@
 
 typedef struct
 {
+    psa_algorithm_t core_alg;
+    uint8_t tag_length;
     union
     {
         unsigned dummy; /* Make the union non-empty even with no supported algorithms. */
@@ -45,11 +47,9 @@ typedef struct
         mbedtls_chachapoly_context chachapoly;
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305 */
     } ctx;
-    psa_algorithm_t core_alg;
-    uint8_t tag_length;
 } aead_operation_t;
 
-#define AEAD_OPERATION_INIT {{0}, 0, 0}
+#define AEAD_OPERATION_INIT {0, 0, {0}}
 
 static void psa_aead_abort_internal( aead_operation_t *operation )
 {

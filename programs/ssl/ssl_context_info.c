@@ -219,7 +219,13 @@ void parse_arguments( int argc, char *argv[] )
                 error_exit();
             }
 
-            if( ( b64_file = fopen( argv[i], "r" ) ) == NULL )
+            if( NULL != b64_file )
+            {
+                printf_err( "Cannot specify more than one file with -f\n" );
+                error_exit( );
+            }
+
+            if( ( b64_file = fopen( argv[i], "r" )) == NULL )
             {
                 printf_err( "Cannot find file \"%s\"\n", argv[i] );
                 error_exit();

@@ -3894,6 +3894,15 @@ psa_status_t psa_aead_generate_nonce( psa_aead_operation_t *operation,
         goto exit;
     }
 
+    /* For CCM, this size may not be correct according to the PSA
+     * specification. The PSA Crypto 1.0.1 specification states:
+     *
+     * CCM encodes the plaintext length pLen in L octets, with L the smallest
+     * integer >= 2 where pLen < 2^(8L). The nonce length is then 15 - L bytes.
+     *
+     * However this restriction that L has to be the smallest integer is not
+     * applied in practice, and it is not implementable here since the
+     * plaintext length may or may not be known at this time. */
     required_nonce_size = PSA_AEAD_NONCE_LENGTH( operation->key_type,
                                                  operation->alg );
     if( nonce_size < required_nonce_size )
@@ -4056,6 +4065,13 @@ psa_status_t psa_aead_update_ad( psa_aead_operation_t *operation,
 
         operation->ad_remaining -= input_length;
     }
+#if defined(PSA_WANT_ALG_CCM)
+    else if( operation->alg == PSA_ALG_CCM )
+    {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+#endif /* PSA_WANT_ALG_CCM */
 
     status = psa_driver_wrapper_aead_update_ad( operation, input,
                                                 input_length );
@@ -4113,6 +4129,13 @@ psa_status_t psa_aead_update( psa_aead_operation_t *operation,
 
         operation->body_remaining -= input_length;
     }
+#if defined(PSA_WANT_ALG_CCM)
+    else if( operation->alg == PSA_ALG_CCM )
+    {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+#endif /* PSA_WANT_ALG_CCM */
 
     status = psa_driver_wrapper_aead_update( operation, input, input_length,
                                              output, output_size,

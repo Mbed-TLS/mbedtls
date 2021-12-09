@@ -4073,12 +4073,13 @@ void aead_multipart_generate_nonce( int key_type_arg, data_t *key_data,
         TEST_EQUAL( actual_nonce_length, PSA_AEAD_NONCE_LENGTH( key_type,
                                                                 alg ) );
 
-    TEST_ASSERT( actual_nonce_length < PSA_AEAD_NONCE_MAX_SIZE );
+    TEST_ASSERT( actual_nonce_length <= PSA_AEAD_NONCE_MAX_SIZE );
 
     if( expected_status == PSA_SUCCESS )
     {
-
         /* Ensure we can still complete operation. */
+        PSA_ASSERT( psa_aead_set_lengths( &operation, additional_data->len,
+                                          input_data->len ) );
 
         PSA_ASSERT( psa_aead_update_ad( &operation, additional_data->x,
                                         additional_data->len ) );
@@ -4191,6 +4192,8 @@ void aead_multipart_set_nonce( int key_type_arg, data_t *key_data,
     if( expected_status == PSA_SUCCESS )
     {
         /* Ensure we can still complete operation. */
+        PSA_ASSERT( psa_aead_set_lengths( &operation, additional_data->len,
+                                          input_data->len ) );
 
         PSA_ASSERT( psa_aead_update_ad( &operation, additional_data->x,
                                         additional_data->len ) );
@@ -4268,6 +4271,9 @@ void aead_multipart_update_buffer_test( int key_type_arg, data_t *key_data,
     }
 
     PSA_ASSERT( status );
+
+    PSA_ASSERT( psa_aead_set_lengths( &operation, additional_data->len,
+                                      input_data->len ) );
 
     PSA_ASSERT( psa_aead_set_nonce( &operation, nonce->x, nonce->len ) );
 
@@ -4357,6 +4363,9 @@ void aead_multipart_finish_buffer_test( int key_type_arg, data_t *key_data,
 
     PSA_ASSERT( psa_aead_set_nonce( &operation, nonce->x, nonce->len ) );
 
+    PSA_ASSERT( psa_aead_set_lengths( &operation, additional_data->len,
+                                      input_data->len ) );
+
     PSA_ASSERT( psa_aead_update_ad( &operation, additional_data->x,
                                     additional_data->len ) );
 
@@ -4441,6 +4450,20 @@ void aead_multipart_verify( int key_type_arg, data_t *key_data,
     PSA_ASSERT( status );
 
     PSA_ASSERT( psa_aead_set_nonce( &operation, nonce->x, nonce->len ) );
+
+    status = psa_aead_set_lengths( &operation, additional_data->len,
+                                      input_data->len );
+
+    if( status != PSA_SUCCESS )
+    {
+        /* Invalid tag lengths are detected in CCM at this point, as they
+         * would be written into the first block. They should really be
+         * detected in psa_aead_encrypt/decrypt_setup, and will be fixed
+         * to do so in the future, until that point, this is a
+         * workaround.*/
+        TEST_EQUAL( status, expected_status );
+        goto exit;
+    }
 
     PSA_ASSERT( psa_aead_update_ad( &operation, additional_data->x,
                                     additional_data->len ) );

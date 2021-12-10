@@ -5,3 +5,6 @@ Bugfix
      This does not concern the implementation provided with Mbed TLS,
      where this function cannot fail, or full-module replacements with
      MBEDTLS_AES_ALT or MBEDTLS_DES_ALT. Reported by Armelle Duboc in #1092.
+   * Some failures of HMAC operations were ignored. These failures could only
+     happen with an alternative implementation of the underlying hash module.
+

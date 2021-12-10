@@ -488,7 +488,7 @@ New deprecations
      deprecated.
    * PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH and PSA_ALG_AEAD_WITH_TAG_LENGTH
      have been renamed, and the old names deprecated.
-   * Signed magnitude and one's complement representations for signed integers are
+   * Sign-magnitude and one's complement representations for signed integers are
      not supported. Two's complement is the only supported representation.
 
 Features

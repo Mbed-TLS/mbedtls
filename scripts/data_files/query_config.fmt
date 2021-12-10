@@ -99,6 +99,10 @@
 #define MACRO_NAME_TO_STR(macro)                                        \
     mbedtls_printf( "%s", strlen( #macro "" ) > 0 ? #macro "\n" : "" )
 
+#define STRINGIFY(macro)  #macro
+#define OUTPUT_MACRO_NAME_VALUE(macro) mbedtls_printf( #macro "%s\n",   \
+    ( STRINGIFY(macro) "" )[0] != 0 ? "=" STRINGIFY(macro) : "" )
+
 #if defined(_MSC_VER)
 /*
  * Visual Studio throws the warning 4003 because many Mbed TLS feature macros
@@ -118,6 +122,10 @@ CHECK_CONFIG    /* If the symbol is not found, return an error */
     return( 1 );
 }
 
+void list_config( void )
+{
+    LIST_CONFIG
+}
 #if defined(_MSC_VER)
 #pragma warning(pop)
 #endif /* _MSC_VER */

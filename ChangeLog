@@ -489,8 +489,7 @@ New deprecations
    * PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH and PSA_ALG_AEAD_WITH_TAG_LENGTH
      have been renamed, and the old names deprecated.
    * Signed magnitude and one's complement implementations for signed integers are
-     are now officially not supported. Two's Complement is the only supported
-     implementation going forward.
+     not supported. Two's complement is the only supported implementation.
 
 Features
    * The PSA crypto subsystem can now use HMAC_DRBG instead of CTR_DRBG.

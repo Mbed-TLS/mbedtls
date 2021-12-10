@@ -77,6 +77,7 @@ set(src_crypto
     sha1.c
     sha256.c
     sha512.c
+    ssl_debug_helpers_generated.c
     threading.c
     timing.c
     version.c
@@ -143,9 +144,23 @@ if(GEN_FILES)
             ${CMAKE_CURRENT_SOURCE_DIR}/../include/mbedtls/mbedtls_config.h
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/data_files/version_features.fmt
     )
+
+    add_custom_command(
+        OUTPUT
+            ${CMAKE_CURRENT_BINARY_DIR}/ssl_debug_helpers_generated.c
+        COMMAND
+            ${MBEDTLS_PYTHON_EXECUTABLE}
+                ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/generate_ssl_debug_helpers.py
+                --mbedtls-root ${CMAKE_CURRENT_SOURCE_DIR}/..
+                ${CMAKE_CURRENT_BINARY_DIR}
+        DEPENDS
+            ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/generate_ssl_debug_helpers.py
+            ${error_headers}
+    )
 else()
     link_to_source(error.c)
     link_to_source(version_features.c)
+    link_to_source(ssl_debug_helpers_generated.c)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCC)

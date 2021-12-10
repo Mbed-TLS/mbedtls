@@ -34,6 +34,7 @@
 #include "ssl_misc.h"
 #include "ecdh_misc.h"
 #include "ssl_tls13_keys.h"
+#include "ssl_debug_helpers_generated.h"
 
 /* Write extensions */
 
@@ -1717,7 +1718,9 @@ int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "tls13 client state: %d", ssl->state ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "tls13 client state: %s(%d)",
+                                mbedtls_ssl_states_str( ssl->state ),
+                                ssl->state ) );
 
     switch( ssl->state )
     {

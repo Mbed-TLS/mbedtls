@@ -598,10 +598,15 @@
 #error "MBEDTLS_SSL_PROTO_TLS1_2 defined, but not all prerequisites"
 #endif
 
+/*
+ * HKDF is mandatory for TLS 1.3.
+ * Otherwise support for at least one ciphersuite mandates either SHA_256 or
+ * SHA_384.
+ */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
-    ( ( !defined(MBEDTLS_HKDF_C) && !defined(MBEDTLS_SHA256_C) && \
-        !defined(MBEDTLS_SHA512_C) ) \
-      || ( !defined(MBEDTLS_PSA_CRYPTO_C) ) )
+    ( ( !defined(MBEDTLS_HKDF_C) ) || \
+      ( !defined(MBEDTLS_SHA256_C) && !defined(MBEDTLS_SHA384_C) ) || \
+      ( !defined(MBEDTLS_PSA_CRYPTO_C) ) )
 #error "MBEDTLS_SSL_PROTO_TLS1_3 defined, but not all prerequisites"
 #endif
 

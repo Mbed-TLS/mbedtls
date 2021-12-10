@@ -488,8 +488,6 @@ New deprecations
      deprecated.
    * PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH and PSA_ALG_AEAD_WITH_TAG_LENGTH
      have been renamed, and the old names deprecated.
-   * Sign-magnitude and one's complement representations for signed integers are
-     not supported. Two's complement is the only supported representation.
 
 Features
    * The PSA crypto subsystem can now use HMAC_DRBG instead of CTR_DRBG.
@@ -596,6 +594,8 @@ API changes
 Requirement changes
    * Update the minimum required CMake version to 2.8.12.  This silences a
      warning on CMake 3.19.0. #3801
+   * Sign-magnitude and one's complement representations for signed integers are
+     not supported. Two's complement is the only supported representation.
 
 New deprecations
    * PSA_ALG_CHACHA20 and PSA_ALG_ARC4 have been deprecated.

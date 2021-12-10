@@ -47,9 +47,10 @@ def guess_mbedtls_root():
     Return the first possible mbedTLS root directory
     """
     dirs = set({})
-    for i in inspect.stack():
-        path = os.path.dirname(i.filename)
-        for d in ['.', os.path.pardir, os.path.join(*([os.path.pardir]*2))]:
+    for frame in inspect.stack():
+        path = os.path.dirname(frame.filename)
+        for d in ['.', os.path.pardir] \
+                 + [os.path.join(*([os.path.pardir]*i)) for i in range(2, 10)]:
             d = os.path.abspath(os.path.join(path, d))
             if d in dirs:
                 continue

@@ -281,6 +281,7 @@ def generate_ssl_debug_helpers(output_directory, mbedtls_root):
     """
         Generate functions of debug helps
     """
+    mbedtls_root = os.path.abspath(mbedtls_root or build_tree.guess_mbedtls_root())
     with open(os.path.join(mbedtls_root, 'include/mbedtls/ssl.h')) as f:
         source_code = remove_c_comments(f.read())
 
@@ -319,7 +320,7 @@ def main():
     Command line entry
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('--mbedtls-root', nargs='?', default=build_tree.guess_mbedtls_root(),
+    parser.add_argument('--mbedtls-root', nargs='?', default=None,
                         help='root directory of mbedtls source code')
     parser.add_argument('output_directory', nargs='?',
                         default='library', help='source/header files location')

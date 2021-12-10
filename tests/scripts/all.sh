@@ -1531,6 +1531,7 @@ component_test_no_use_psa_crypto_full_cmake_asan() {
     scripts/config.py set MBEDTLS_ECP_RESTARTABLE  # not using PSA, so enable restartable ECC
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     scripts/config.py unset MBEDTLS_PSA_ITS_FILE_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
@@ -1866,8 +1867,8 @@ component_build_psa_accel_alg_hkdf() {
     scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
     scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py unset MBEDTLS_HKDF_C
-    # Make sure to unset TLS1_3_EXPERIMENTAL since it requires HKDF_C and will not build properly without it.
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+    # Make sure to unset TLS1_3 since it requires HKDF_C and will not build properly without it.
+    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_3
     # Need to define the correct symbol and include the test driver header path in order to build with the test driver
     make CC=gcc CFLAGS="$ASAN_CFLAGS -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_PSA_ACCEL_ALG_HKDF -I../tests/include -O2" LDFLAGS="$ASAN_CFLAGS"
 }
@@ -2723,69 +2724,69 @@ component_build_armcc () {
     armc6_build_test "--target=aarch64-arm-none-eabi -march=armv8.2-a"
 }
 
-component_test_tls13_experimental () {
-    msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL enabled, without padding"
-    scripts/config.py set MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+component_test_tls13 () {
+    msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, without padding"
+    scripts/config.py set MBEDTLS_SSL_PROTO_TLS1_3
     scripts/config.py set MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
     scripts/config.py set MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY 1
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
-    msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL enabled, without padding"
+    msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, without padding"
     make test
-    msg "ssl-opt.sh (TLS 1.3 experimental)"
+    msg "ssl-opt.sh (TLS 1.3)"
     if_build_succeeded tests/ssl-opt.sh
 }
 
-component_test_tls13_experimental_no_compatibility_mode () {
-    msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL enabled, without padding"
-    scripts/config.py set   MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+component_test_tls13_no_compatibility_mode () {
+    msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, without padding"
+    scripts/config.py set   MBEDTLS_SSL_PROTO_TLS1_3
     scripts/config.py unset MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
     scripts/config.py set   MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY 1
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
-    msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL enabled, without padding"
+    msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, without padding"
     make test
-    msg "ssl-opt.sh (TLS 1.3 experimental)"
+    msg "ssl-opt.sh (TLS 1.3 no compatibility mode)"
     if_build_succeeded tests/ssl-opt.sh
 }
 
-component_test_tls13_experimental_with_padding () {
-    msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL enabled, with padding"
-    scripts/config.py set MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+component_test_tls13_with_padding () {
+    msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, with padding"
+    scripts/config.py set MBEDTLS_SSL_PROTO_TLS1_3
     scripts/config.py set MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
     scripts/config.py set MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY 16
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
-    msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL enabled, with padding"
+    msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, with padding"
     make test
-    msg "ssl-opt.sh (TLS 1.3 experimental)"
+    msg "ssl-opt.sh (TLS 1.3 with padding)"
     if_build_succeeded tests/ssl-opt.sh
 }
 
-component_test_tls13_experimental_with_ecp_restartable () {
-    msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL enabled, with ecp_restartable"
-    scripts/config.py set MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+component_test_tls13_with_ecp_restartable () {
+    msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, with ecp_restartable"
+    scripts/config.py set MBEDTLS_SSL_PROTO_TLS1_3
     scripts/config.py set MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
     scripts/config.py set MBEDTLS_ECP_RESTARTABLE
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
-    msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL enabled, with ecp_restartable"
+    msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, with ecp_restartable"
     make test
-    msg "ssl-opt.sh (TLS 1.3 experimental)"
+    msg "ssl-opt.sh (TLS 1.3 with ecp_restartable)"
     if_build_succeeded tests/ssl-opt.sh
 }
 
-component_test_tls13_experimental_with_everest () {
-    msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL enabled, with Everest"
-    scripts/config.py set MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
+component_test_tls13_with_everest () {
+    msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, with Everest"
+    scripts/config.py set MBEDTLS_SSL_PROTO_TLS1_3
     scripts/config.py set MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
     scripts/config.py set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
     scripts/config.py unset MBEDTLS_ECP_RESTARTABLE
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
-    msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL enabled, with Everest"
+    msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, with Everest"
     make test
-    msg "ssl-opt.sh (TLS 1.3 experimental)"
+    msg "ssl-opt.sh (TLS 1.3 with everest)"
     if_build_succeeded tests/ssl-opt.sh
 }
 

@@ -1089,7 +1089,7 @@ all_final += cert_md5.crt
 
 # TLSv1.3 test certificates
 ecdsa_secp256r1.key: ec_256_prv.pem
-	ln -s $< $@
+	cp $< $@
 
 ecdsa_secp256r1.csr: ecdsa_secp256r1.key
 	$(OPENSSL) req -new -subj "/C=NL/O=PolarSSL/CN=localhost" \
@@ -1102,7 +1102,7 @@ all_final += ecdsa_secp256r1.crt ecdsa_secp256r1.key
 tls13_certs: ecdsa_secp256r1.crt ecdsa_secp256r1.key
 
 ecdsa_secp384r1.key: ec_384_prv.pem
-	ln -s $< $@
+	cp $< $@
 ecdsa_secp384r1.csr: ecdsa_secp384r1.key
 	$(OPENSSL) req -new -subj "/C=NL/O=PolarSSL/CN=localhost" \
 					-key $< -out $@
@@ -1114,7 +1114,7 @@ all_final += ecdsa_secp384r1.crt ecdsa_secp384r1.key
 tls13_certs: ecdsa_secp384r1.crt ecdsa_secp384r1.key
 
 ecdsa_secp521r1.key: ec_521_prv.pem
-	ln -s $< $@
+	cp $< $@
 ecdsa_secp521r1.csr: ecdsa_secp521r1.key
 	$(OPENSSL) req -new -subj "/C=NL/O=PolarSSL/CN=localhost" \
 					-key $< -out $@

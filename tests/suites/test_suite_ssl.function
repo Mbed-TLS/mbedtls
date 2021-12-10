@@ -1323,14 +1323,14 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
     {
         case MBEDTLS_MODE_GCM:
         case MBEDTLS_MODE_CCM:
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
             if( ver == MBEDTLS_SSL_MINOR_VERSION_4 )
             {
                 t_out->fixed_ivlen = 12;
                 t_in->fixed_ivlen  = 12;
             }
             else
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
             {
                 t_out->fixed_ivlen = 4;
                 t_in->fixed_ivlen = 4;
@@ -3254,7 +3254,7 @@ void ssl_crypt_record( int cipher_type, int hash_id,
         }
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
         if( t_enc->minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
         {
             /* TLS 1.3 hides the real content type and
@@ -3262,7 +3262,7 @@ void ssl_crypt_record( int cipher_type, int hash_id,
              * for protected records. Double-check this. */
             TEST_ASSERT( rec.type == MBEDTLS_SSL_MSG_APPLICATION_DATA );
         }
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
         /* Decrypt record with t_dec */
         ret = mbedtls_ssl_decrypt_buf( &ssl, t_dec, &rec );
@@ -3418,7 +3418,7 @@ void ssl_crypt_record_small( int cipher_type, int hash_id,
             }
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
             if( t_enc->minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
             {
                 /* TLS 1.3 hides the real content type and
@@ -3426,7 +3426,7 @@ void ssl_crypt_record_small( int cipher_type, int hash_id,
                  * for protected records. Double-check this. */
                 TEST_ASSERT( rec.type == MBEDTLS_SSL_MSG_APPLICATION_DATA );
             }
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
             /* Decrypt record with t_dec */
             TEST_ASSERT( mbedtls_ssl_decrypt_buf( &ssl, t_dec, &rec ) == 0 );
@@ -3669,7 +3669,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3 */
 void ssl_tls13_hkdf_expand_label( int hash_alg,
                                   data_t *secret,
                                   int label_idx,
@@ -3707,7 +3707,7 @@ MBEDTLS_SSL_TLS1_3_LABEL_LIST
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3 */
 void ssl_tls13_traffic_key_generation( int hash_alg,
                                        data_t *server_secret,
                                        data_t *client_secret,
@@ -3754,7 +3754,7 @@ void ssl_tls13_traffic_key_generation( int hash_alg,
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3 */
 void ssl_tls13_derive_secret( int hash_alg,
                               data_t *secret,
                               int label_idx,
@@ -3794,7 +3794,7 @@ MBEDTLS_SSL_TLS1_3_LABEL_LIST
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3 */
 void ssl_tls13_derive_early_secrets( int hash_alg,
                                      data_t *secret,
                                      data_t *transcript,
@@ -3824,7 +3824,7 @@ void ssl_tls13_derive_early_secrets( int hash_alg,
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3 */
 void ssl_tls13_derive_handshake_secrets( int hash_alg,
                                          data_t *secret,
                                          data_t *transcript,
@@ -3854,7 +3854,7 @@ void ssl_tls13_derive_handshake_secrets( int hash_alg,
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3 */
 void ssl_tls13_derive_application_secrets( int hash_alg,
                                            data_t *secret,
                                            data_t *transcript,
@@ -3888,7 +3888,7 @@ void ssl_tls13_derive_application_secrets( int hash_alg,
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3 */
 void ssl_tls13_derive_resumption_secrets( int hash_alg,
                                           data_t *secret,
                                           data_t *transcript,
@@ -3914,7 +3914,7 @@ void ssl_tls13_derive_resumption_secrets( int hash_alg,
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3 */
 void ssl_tls13_create_psk_binder( int hash_alg,
                                   data_t *psk,
                                   int psk_type,
@@ -3944,7 +3944,7 @@ void ssl_tls13_create_psk_binder( int hash_alg,
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3 */
 void ssl_tls13_record_protection( int ciphersuite,
                                   int endpoint,
                                   int ctr,
@@ -4042,7 +4042,7 @@ void ssl_tls13_record_protection( int ciphersuite,
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3 */
 void ssl_tls13_key_evolution( int hash_alg,
                               data_t *secret,
                               data_t *input,

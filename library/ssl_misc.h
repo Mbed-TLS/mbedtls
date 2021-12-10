@@ -1681,7 +1681,6 @@ int mbedtls_ssl_tls13_process_certificate_verify( mbedtls_ssl_context *ssl );
  */
 int mbedtls_ssl_tls13_write_change_cipher_spec( mbedtls_ssl_context *ssl );
 
-
 /*
  * Write TLS 1.3 handshake message tail
  */

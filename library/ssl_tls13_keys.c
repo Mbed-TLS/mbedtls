@@ -658,6 +658,14 @@ int mbedtls_ssl_tls13_calculate_verify_data( mbedtls_ssl_context* ssl,
     size_t base_key_len = 0;
     mbedtls_ssl_tls13_handshake_secrets *tls13_hs_secrets =
                                             &ssl->handshake->tls13_hs_secrets;
+
+    mbedtls_md_type_t const md_type = ssl->handshake->ciphersuite_info->mac;
+    const mbedtls_md_info_t* const md_info =
+                                   mbedtls_md_info_from_type( md_type );
+    size_t const md_size = mbedtls_md_get_size( md_info );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> mbedtls_ssl_tls13_calculate_verify_data" ) );
+
     if( from == MBEDTLS_SSL_IS_CLIENT )
     {
         base_key = tls13_hs_secrets->client_handshake_traffic_secret;
@@ -668,13 +676,6 @@ int mbedtls_ssl_tls13_calculate_verify_data( mbedtls_ssl_context* ssl,
         base_key = tls13_hs_secrets->server_handshake_traffic_secret;
         base_key_len = sizeof( tls13_hs_secrets->server_handshake_traffic_secret );
     }
-
-    mbedtls_md_type_t const md_type = ssl->handshake->ciphersuite_info->mac;
-    const mbedtls_md_info_t* const md_info =
-                                   mbedtls_md_info_from_type( md_type );
-    size_t const md_size = mbedtls_md_get_size( md_info );
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> mbedtls_ssl_tls13_calculate_verify_data" ) );
 
     if( dst_len < md_size )
     {

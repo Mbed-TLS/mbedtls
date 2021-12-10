@@ -191,7 +191,7 @@ esac
 # testing. Skip non-boolean options (with something other than spaces
 # and a comment after "#define SYMBOL"). The variable contains a
 # space-separated list of symbols.
-CONFIGS_ENABLED="$($P_QUERY -l)"
+CONFIGS_ENABLED=" $(echo `$P_QUERY -l` )"
 # Skip next test; use this macro to skip tests which are legitimate
 # in theory and expected to be re-introduced at some point, but
 # aren't expected to succeed at the moment due to problems outside

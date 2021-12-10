@@ -76,13 +76,14 @@ class TLSProgram(metaclass=abc.ABCMeta):
     Base class for generate server/client command.
     """
 
-    def __init__(self, ciphersuite, signature_algorithm, named_group):
+    def __init__(self, ciphersuite, signature_algorithm, named_group, compat_mode=True):
         self._ciphers = []
         self._sig_algs = []
         self._named_groups = []
         self.add_ciphersuites(ciphersuite)
         self.add_named_groups(named_group)
         self.add_signature_algorithms(signature_algorithm)
+        self._compat_mode = compat_mode
 
     # add_ciphersuites should not override by sub class
     def add_ciphersuites(self, *ciphersuites):
@@ -139,6 +140,9 @@ class OpenSSLServ(TLSProgram):
                     signature_algorithms=signature_algorithms),
                 "-groups {named_groups}".format(named_groups=named_groups)]
         ret += ['-msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache']
+        if not self._compat_mode:
+            ret += ['-no_middlebox']
+
         return ' '.join(ret)
 
     def pre_checks(self):
@@ -222,6 +226,9 @@ class GnuTLSServ(TLSProgram):
 
         priority_string = ':+'.join(priority_string_list)
         priority_string += ':%NO_TICKETS'
+        if not self._compat_mode:
+            priority_string += [':%DISABLE_TLS13_COMPAT_MODE']
+
         ret += ['--priority={priority_string}'.format(
             priority_string=priority_string)]
         ret = ' '.join(ret)
@@ -272,8 +279,11 @@ class MbedTLSCli(TLSProgram):
         ret = ['requires_config_enabled MBEDTLS_DEBUG_C',
                'requires_config_enabled MBEDTLS_SSL_CLI_C',
                'requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL',
-               'requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE',
                'requires_config_disabled MBEDTLS_USE_PSA_CRYPTO']
+
+        if self._compat_mode:
+            ret += ['requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE']
+
         if 'rsa_pss_rsae_sha256' in self._sig_algs:
             ret.append(
                 'requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT')

@@ -8877,7 +8877,6 @@ run_test    "TLS 1.3: minimal feature sets - gnutls" \
             -c "HTTP/1.0 200 OK"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 skip_handshake_stage_check
@@ -8892,7 +8891,6 @@ run_test    "TLS 1.3:Not supported version check:gnutls: srv max TLS 1.0" \
             -C "Protocol is TLSv1.0"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 skip_handshake_stage_check
@@ -8907,7 +8905,6 @@ run_test    "TLS 1.3:Not supported version check:gnutls: srv max TLS 1.1" \
             -C "Protocol is TLSv1.1"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 skip_handshake_stage_check
@@ -8922,7 +8919,6 @@ run_test    "TLS 1.3:Not supported version check:gnutls: srv max TLS 1.2" \
             -C "Protocol is TLSv1.2"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 skip_handshake_stage_check
@@ -8937,7 +8933,6 @@ run_test    "TLS 1.3:Not supported version check:openssl: srv max TLS 1.0" \
             -C "Protocol  : TLSv1.0"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 skip_handshake_stage_check
@@ -8952,7 +8947,6 @@ run_test    "TLS 1.3:Not supported version check:openssl: srv max TLS 1.1" \
             -C "Protocol  : TLSv1.1"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 skip_handshake_stage_check

@@ -5,6 +5,8 @@ Bugfix
      This does not concern the implementation provided with Mbed TLS,
      where this function cannot fail, or full-module replacements with
      MBEDTLS_AES_ALT or MBEDTLS_DES_ALT. Reported by Armelle Duboc in #1092.
+   * Some failures of HMAC operations were ignored. These failures could only
+     happen with an alternative implementation of the underlying hash module.
 
 Features
    * Warn if errors from certain functions are ignored. This is currently
@@ -13,5 +15,5 @@ Features
      (where supported) for critical functions where ignoring the return
      value is almost always a bug. Enable the new configuration option
      MBEDTLS_CHECK_RETURN_WARNING to get warnings for other functions. This
-     is currently implemented in the AES and DES modules, and will be extended
-     to other modules in the future.
+     is currently implemented in the AES, DES and md modules, and will be
+     extended to other modules in the future.

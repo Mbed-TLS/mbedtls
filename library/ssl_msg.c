@@ -665,16 +665,25 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         }
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
         unsigned char mac[MBEDTLS_SSL_MAC_ADD];
+        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
         ssl_extract_add_data_from_record( add_data, &add_data_len, rec,
                                           transform->minor_ver,
                                           transform->taglen );
 
-        mbedtls_md_hmac_update( &transform->md_ctx_enc, add_data,
-                                add_data_len );
-        mbedtls_md_hmac_update( &transform->md_ctx_enc, data, rec->data_len );
-        mbedtls_md_hmac_finish( &transform->md_ctx_enc, mac );
-        mbedtls_md_hmac_reset( &transform->md_ctx_enc );
+        ret = mbedtls_md_hmac_update( &transform->md_ctx_enc, add_data,
+                                      add_data_len );
+        if( ret != 0 )
+            goto hmac_failed_etm_disabled;
+        ret = mbedtls_md_hmac_update( &transform->md_ctx_enc, data, rec->data_len );
+        if( ret != 0 )
+            goto hmac_failed_etm_disabled;
+        ret = mbedtls_md_hmac_finish( &transform->md_ctx_enc, mac );
+        if( ret != 0 )
+            goto hmac_failed_etm_disabled;
+        ret = mbedtls_md_hmac_reset( &transform->md_ctx_enc );
+        if( ret != 0 )
+            goto hmac_failed_etm_disabled;
 
         memcpy( data + rec->data_len, mac, transform->maclen );
 #endif
@@ -685,7 +694,14 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         rec->data_len += transform->maclen;
         post_avail -= transform->maclen;
         auth_done++;
+
+    hmac_failed_etm_disabled:
         mbedtls_platform_zeroize( mac, transform->maclen );
+        if( ret != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_md_hmac_xxx", ret );
+            return( ret );
+        }
     }
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
 
@@ -928,19 +944,34 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
             MBEDTLS_SSL_DEBUG_BUF( 4, "MAC'd meta-data", add_data,
                                    add_data_len );
 
-            mbedtls_md_hmac_update( &transform->md_ctx_enc, add_data,
-                                    add_data_len );
-            mbedtls_md_hmac_update( &transform->md_ctx_enc,
-                                    data, rec->data_len );
-            mbedtls_md_hmac_finish( &transform->md_ctx_enc, mac );
-            mbedtls_md_hmac_reset( &transform->md_ctx_enc );
+            ret = mbedtls_md_hmac_update( &transform->md_ctx_enc, add_data,
+                                          add_data_len );
+            if( ret != 0 )
+                goto hmac_failed_etm_enabled;
+            ret = mbedtls_md_hmac_update( &transform->md_ctx_enc,
+                                          data, rec->data_len );
+            if( ret != 0 )
+                goto hmac_failed_etm_enabled;
+            ret = mbedtls_md_hmac_finish( &transform->md_ctx_enc, mac );
+            if( ret != 0 )
+                goto hmac_failed_etm_enabled;
+            ret = mbedtls_md_hmac_reset( &transform->md_ctx_enc );
+            if( ret != 0 )
+                goto hmac_failed_etm_enabled;
 
             memcpy( data + rec->data_len, mac, transform->maclen );
 
             rec->data_len += transform->maclen;
             post_avail -= transform->maclen;
             auth_done++;
+
+        hmac_failed_etm_enabled:
             mbedtls_platform_zeroize( mac, transform->maclen );
+            if( ret != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "HMAC calculation failed", ret );
+                return( ret );
+            }
         }
 #endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */
     }
@@ -1211,12 +1242,20 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
             /* Calculate expected MAC. */
             MBEDTLS_SSL_DEBUG_BUF( 4, "MAC'd meta-data", add_data,
                                    add_data_len );
-            mbedtls_md_hmac_update( &transform->md_ctx_dec, add_data,
-                                    add_data_len );
-            mbedtls_md_hmac_update( &transform->md_ctx_dec,
+            ret = mbedtls_md_hmac_update( &transform->md_ctx_dec, add_data,
+                                          add_data_len );
+            if( ret != 0 )
+                goto hmac_failed_etm_enabled;
+            ret = mbedtls_md_hmac_update( &transform->md_ctx_dec,
                                     data, rec->data_len );
-            mbedtls_md_hmac_finish( &transform->md_ctx_dec, mac_expect );
-            mbedtls_md_hmac_reset( &transform->md_ctx_dec );
+            if( ret != 0 )
+                goto hmac_failed_etm_enabled;
+            ret = mbedtls_md_hmac_finish( &transform->md_ctx_dec, mac_expect );
+            if( ret != 0 )
+                goto hmac_failed_etm_enabled;
+            ret = mbedtls_md_hmac_reset( &transform->md_ctx_dec );
+            if( ret != 0 )
+                goto hmac_failed_etm_enabled;
 
             MBEDTLS_SSL_DEBUG_BUF( 4, "message  mac", data + rec->data_len,
                                    transform->maclen );
@@ -1224,7 +1263,6 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
                                    transform->maclen );
 
             /* Compare expected MAC with MAC at the end of the record. */
-            ret = 0;
             if( mbedtls_ct_memcmp( data + rec->data_len, mac_expect,
                                               transform->maclen ) != 0 )
             {
@@ -1237,7 +1275,11 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
         hmac_failed_etm_enabled:
             mbedtls_platform_zeroize( mac_expect, transform->maclen );
             if( ret != 0 )
+            {
+                if( ret != MBEDTLS_ERR_SSL_INVALID_MAC )
+                    MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_hmac_xxx", ret );
                 return( ret );
+            }
         }
 #endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */
 

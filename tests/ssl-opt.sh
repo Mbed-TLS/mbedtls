@@ -8817,7 +8817,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS 1.3: minimal feature sets - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
-            "$P_CLI debug_level=3 min_version=tls1_3 max_version=tls1_3" \
+            "$P_CLI debug_level=3 min_version=tls13 max_version=tls13" \
             0 \
             -c "tls13 client state: MBEDTLS_SSL_HELLO_REQUEST(0)"               \
             -c "tls13 client state: MBEDTLS_SSL_SERVER_HELLO(2)"                \
@@ -8829,7 +8829,7 @@ run_test    "TLS 1.3: minimal feature sets - openssl" \
             -c "tls13 client state: MBEDTLS_SSL_CLIENT_FINISHED(11)"            \
             -c "tls13 client state: MBEDTLS_SSL_FLUSH_BUFFERS(14)"              \
             -c "tls13 client state: MBEDTLS_SSL_HANDSHAKE_WRAPUP(15)"           \
-            -c "<= ssl_tls1_3_process_server_hello" \
+            -c "<= ssl_tls13_process_server_hello" \
             -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
             -c "ECDH curve: x25519"         \
             -c "=> ssl_tls13_process_server_hello" \
@@ -8848,7 +8848,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS 1.3: minimal feature sets - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE --disable-client-cert" \
-            "$P_CLI debug_level=3 min_version=tls1_3 max_version=tls1_3" \
+            "$P_CLI debug_level=3 min_version=tls13 max_version=tls13" \
             0 \
             -s "SERVER HELLO was queued"    \
             -c "tls13 client state: MBEDTLS_SSL_HELLO_REQUEST(0)"               \
@@ -8861,7 +8861,7 @@ run_test    "TLS 1.3: minimal feature sets - gnutls" \
             -c "tls13 client state: MBEDTLS_SSL_CLIENT_FINISHED(11)"            \
             -c "tls13 client state: MBEDTLS_SSL_FLUSH_BUFFERS(14)"              \
             -c "tls13 client state: MBEDTLS_SSL_HANDSHAKE_WRAPUP(15)"           \
-            -c "<= ssl_tls1_3_process_server_hello" \
+            -c "<= ssl_tls13_process_server_hello" \
             -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
             -c "ECDH curve: x25519"         \
             -c "=> ssl_tls13_process_server_hello" \

@@ -99,9 +99,9 @@
 #define MACRO_NAME_TO_STR(macro)                                        \
     mbedtls_printf( "%s", strlen( #macro "" ) > 0 ? #macro "\n" : "" )
 
-#define NAME_TO_STR(macro)  #macro
+#define STRINGIFY(macro)  #macro
 #define OUTPUT_MACRO_NAME_VALUE(macro) mbedtls_printf( #macro "%s\n",   \
-    strlen( NAME_TO_STR(macro) "") > 0 ? "=" NAME_TO_STR(macro) : "" )
+    STRINGIFY(macro)[0] != 0 ? "=" STRINGIFY(macro) : "" )
 
 #if defined(_MSC_VER)
 /*

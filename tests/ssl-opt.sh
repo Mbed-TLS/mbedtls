@@ -207,8 +207,7 @@ skip_next_test() {
 # skip next test if the flag is not enabled in mbedtls_config.h
 requires_config_enabled() {
     case $CONFIGS_ENABLED in
-        *" $1 "*) :;;
-        *" $1="*) :;;
+        *" $1"[\ =]*) :;;
         *) SKIP_NEXT="YES";;
     esac
 }
@@ -216,8 +215,7 @@ requires_config_enabled() {
 # skip next test if the flag is enabled in mbedtls_config.h
 requires_config_disabled() {
     case $CONFIGS_ENABLED in
-        *" $1 "*) SKIP_NEXT="YES";;
-        *" $1="*) SKIP_NEXT="YES";;
+        *" $1"[\ =]*) SKIP_NEXT="YES";;
     esac
 }
 

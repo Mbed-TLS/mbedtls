@@ -1343,6 +1343,7 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
      * error
      */
 #if defined(MBEDTLS_PKCS12_C) || defined(MBEDTLS_PKCS5_C)
+    if( pwdlen != 0 )
     {
         unsigned char *key_copy;
 

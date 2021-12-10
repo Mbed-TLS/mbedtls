@@ -183,8 +183,8 @@ MVP definition
 Prototype upstreaming status
 ----------------------------
 
-The following gives an hint of which parts of the TLS 1.3 prototype remain
-to be upstreamed:
+The following summarizes which parts of the TLS 1.3 prototype remain to be
+upstreamed:
 
 - Ephemeral only handshake on client side: client authentication,
   HelloRetryRequest support, version negotiation.

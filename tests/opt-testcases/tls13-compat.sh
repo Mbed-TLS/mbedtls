@@ -30,8 +30,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-256 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -47,8 +48,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-SECP256R1:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-SECP256R1:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -62,8 +64,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-384 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp384r1,secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -79,8 +82,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-SECP384R1:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-SECP384R1:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp384r1,secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -94,8 +98,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-521 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp521r1,secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -111,8 +116,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-SECP521R1:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-SECP521R1:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp521r1,secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -126,8 +132,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,x25519,ecdsa_secp256r1_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups X25519 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=x25519,secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -143,8 +150,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,x25519,ecdsa_secp256r1_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-X25519:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-X25519:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=x25519,secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -158,8 +166,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,x448,ecdsa_secp256r1_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups X448 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=x448,secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -175,8 +184,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,x448,ecdsa_secp256r1_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-X448:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-X448:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=x448,secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -190,8 +200,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-256 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp256r1,secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -207,8 +218,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-SECP256R1:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-SECP256R1:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp256r1,secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -222,8 +234,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-384 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -239,8 +252,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-SECP384R1:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-SECP384R1:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -254,8 +268,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-521 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp521r1,secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -271,8 +286,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-SECP521R1:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-SECP521R1:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp521r1,secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -286,8 +302,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,x25519,ecdsa_secp384r1_sha384" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups X25519 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=x25519,secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -303,8 +320,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,x25519,ecdsa_secp384r1_sha384" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-X25519:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-X25519:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=x25519,secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -318,8 +336,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,x448,ecdsa_secp384r1_sha384" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups X448 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=x448,secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -335,8 +354,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,x448,ecdsa_secp384r1_sha384" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-X448:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-X448:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=x448,secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -350,8 +370,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-256 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp256r1,secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -367,8 +388,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-SECP256R1:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-SECP256R1:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp256r1,secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -382,8 +404,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-384 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp384r1,secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -399,8 +422,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-SECP384R1:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-SECP384R1:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp384r1,secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -414,8 +438,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-521 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -431,8 +456,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-SECP521R1:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-SECP521R1:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -446,8 +472,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,x25519,ecdsa_secp521r1_sha512" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups X25519 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=x25519,secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -463,8 +490,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,x25519,ecdsa_secp521r1_sha512" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-X25519:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-X25519:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=x25519,secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -478,8 +506,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,x448,ecdsa_secp521r1_sha512" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups X448 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=x448,secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -495,8 +524,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,x448,ecdsa_secp521r1_sha512" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-X448:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-X448:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=x448,secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -510,9 +540,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,secp256r1,rsa_pss_rsae_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups P-256 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -528,9 +559,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp256r1,rsa_pss_rsae_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-SECP256R1:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-SECP256R1:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -544,9 +576,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,secp384r1,rsa_pss_rsae_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups P-384 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -562,9 +595,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp384r1,rsa_pss_rsae_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-SECP384R1:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-SECP384R1:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -578,9 +612,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,secp521r1,rsa_pss_rsae_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups P-521 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -596,9 +631,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,secp521r1,rsa_pss_rsae_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-SECP521R1:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-SECP521R1:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -612,9 +648,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,x25519,rsa_pss_rsae_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups X25519 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=x25519" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -630,9 +667,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,x25519,rsa_pss_rsae_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-X25519:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-X25519:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=x25519" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -646,9 +684,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: TLS_AES_128_GCM_SHA256,x448,rsa_pss_rsae_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups X448 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_GCM_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=x448" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -664,9 +703,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: TLS_AES_128_GCM_SHA256,x448,rsa_pss_rsae_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-X448:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-GCM:+GROUP-X448:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=x448" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -680,8 +720,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,secp256r1,ecdsa_secp256r1_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp256r1_sha256 -groups P-256 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp256r1_sha256 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp256r1_sha256 curves=secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -697,8 +738,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp256r1,ecdsa_secp256r1_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-SECP256R1:+SHA384:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-SECP256R1:+SHA384:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp256r1_sha256 curves=secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -712,8 +754,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,secp384r1,ecdsa_secp256r1_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp256r1_sha256 -groups P-384 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp256r1_sha256 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp256r1_sha256 curves=secp384r1,secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -729,8 +772,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp384r1,ecdsa_secp256r1_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-SECP384R1:+SHA384:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-SECP384R1:+SHA384:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp256r1_sha256 curves=secp384r1,secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -744,8 +788,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,secp521r1,ecdsa_secp256r1_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp256r1_sha256 -groups P-521 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp256r1_sha256 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp256r1_sha256 curves=secp521r1,secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -761,8 +806,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp521r1,ecdsa_secp256r1_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-SECP521R1:+SHA384:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-SECP521R1:+SHA384:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp256r1_sha256 curves=secp521r1,secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -776,8 +822,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,x25519,ecdsa_secp256r1_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp256r1_sha256 -groups X25519 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp256r1_sha256 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp256r1_sha256 curves=x25519,secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -793,8 +840,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,x25519,ecdsa_secp256r1_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-X25519:+SHA384:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-X25519:+SHA384:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp256r1_sha256 curves=x25519,secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -808,8 +856,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,x448,ecdsa_secp256r1_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp256r1_sha256 -groups X448 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp256r1_sha256 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp256r1_sha256 curves=x448,secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -825,8 +874,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,x448,ecdsa_secp256r1_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-X448:+SHA384:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-X448:+SHA384:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp256r1_sha256 curves=x448,secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -840,8 +890,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,secp256r1,ecdsa_secp384r1_sha384" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp384r1_sha384 -groups P-256 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp384r1_sha384 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp384r1_sha384 curves=secp256r1,secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -857,8 +908,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp256r1,ecdsa_secp384r1_sha384" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-SECP256R1:+SHA384:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-SECP256R1:+SHA384:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp384r1_sha384 curves=secp256r1,secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -872,8 +924,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,secp384r1,ecdsa_secp384r1_sha384" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp384r1_sha384 -groups P-384 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp384r1_sha384 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp384r1_sha384 curves=secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -889,8 +942,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp384r1,ecdsa_secp384r1_sha384" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-SECP384R1:+SHA384:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-SECP384R1:+SHA384:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp384r1_sha384 curves=secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -904,8 +958,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,secp521r1,ecdsa_secp384r1_sha384" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp384r1_sha384 -groups P-521 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp384r1_sha384 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp384r1_sha384 curves=secp521r1,secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -921,8 +976,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp521r1,ecdsa_secp384r1_sha384" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-SECP521R1:+SHA384:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-SECP521R1:+SHA384:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp384r1_sha384 curves=secp521r1,secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -936,8 +992,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,x25519,ecdsa_secp384r1_sha384" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp384r1_sha384 -groups X25519 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp384r1_sha384 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp384r1_sha384 curves=x25519,secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -953,8 +1010,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,x25519,ecdsa_secp384r1_sha384" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-X25519:+SHA384:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-X25519:+SHA384:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp384r1_sha384 curves=x25519,secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -968,8 +1026,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,x448,ecdsa_secp384r1_sha384" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp384r1_sha384 -groups X448 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp384r1_sha384 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp384r1_sha384 curves=x448,secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -985,8 +1044,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,x448,ecdsa_secp384r1_sha384" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-X448:+SHA384:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-X448:+SHA384:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp384r1_sha384 curves=x448,secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1000,8 +1060,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,secp256r1,ecdsa_secp521r1_sha512" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp521r1_sha512 -groups P-256 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp521r1_sha512 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp521r1_sha512 curves=secp256r1,secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1017,8 +1078,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp256r1,ecdsa_secp521r1_sha512" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-SECP256R1:+SHA384:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-SECP256R1:+SHA384:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp521r1_sha512 curves=secp256r1,secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1032,8 +1094,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,secp384r1,ecdsa_secp521r1_sha512" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp521r1_sha512 -groups P-384 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp521r1_sha512 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp521r1_sha512 curves=secp384r1,secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1049,8 +1112,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp384r1,ecdsa_secp521r1_sha512" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-SECP384R1:+SHA384:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-SECP384R1:+SHA384:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp521r1_sha512 curves=secp384r1,secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1064,8 +1128,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,secp521r1,ecdsa_secp521r1_sha512" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp521r1_sha512 -groups P-521 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp521r1_sha512 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp521r1_sha512 curves=secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1081,8 +1146,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp521r1,ecdsa_secp521r1_sha512" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-SECP521R1:+SHA384:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-SECP521R1:+SHA384:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp521r1_sha512 curves=secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1096,8 +1162,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,x25519,ecdsa_secp521r1_sha512" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp521r1_sha512 -groups X25519 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp521r1_sha512 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp521r1_sha512 curves=x25519,secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1113,8 +1180,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,x25519,ecdsa_secp521r1_sha512" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-X25519:+SHA384:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-X25519:+SHA384:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp521r1_sha512 curves=x25519,secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1128,8 +1196,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,x448,ecdsa_secp521r1_sha512" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp521r1_sha512 -groups X448 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs ecdsa_secp521r1_sha512 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp521r1_sha512 curves=x448,secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1145,8 +1214,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,x448,ecdsa_secp521r1_sha512" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-X448:+SHA384:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-X448:+SHA384:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=ecdsa_secp521r1_sha512 curves=x448,secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1160,9 +1230,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,secp256r1,rsa_pss_rsae_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs rsa_pss_rsae_sha256 -groups P-256 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs rsa_pss_rsae_sha256 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=rsa_pss_rsae_sha256 curves=secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1178,9 +1249,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp256r1,rsa_pss_rsae_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-SECP256R1:+SHA384:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-SECP256R1:+SHA384:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=rsa_pss_rsae_sha256 curves=secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1194,9 +1266,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,secp384r1,rsa_pss_rsae_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs rsa_pss_rsae_sha256 -groups P-384 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs rsa_pss_rsae_sha256 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=rsa_pss_rsae_sha256 curves=secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1212,9 +1285,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp384r1,rsa_pss_rsae_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-SECP384R1:+SHA384:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-SECP384R1:+SHA384:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=rsa_pss_rsae_sha256 curves=secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1228,9 +1302,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,secp521r1,rsa_pss_rsae_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs rsa_pss_rsae_sha256 -groups P-521 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs rsa_pss_rsae_sha256 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=rsa_pss_rsae_sha256 curves=secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1246,9 +1321,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,secp521r1,rsa_pss_rsae_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-SECP521R1:+SHA384:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-SECP521R1:+SHA384:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=rsa_pss_rsae_sha256 curves=secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1262,9 +1338,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,x25519,rsa_pss_rsae_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs rsa_pss_rsae_sha256 -groups X25519 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs rsa_pss_rsae_sha256 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=rsa_pss_rsae_sha256 curves=x25519" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1280,9 +1357,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,x25519,rsa_pss_rsae_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-X25519:+SHA384:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-X25519:+SHA384:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=rsa_pss_rsae_sha256 curves=x25519" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1296,9 +1374,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: TLS_AES_256_GCM_SHA384,x448,rsa_pss_rsae_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs rsa_pss_rsae_sha256 -groups X448 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_256_GCM_SHA384 -sigalgs rsa_pss_rsae_sha256 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=rsa_pss_rsae_sha256 curves=x448" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1314,9 +1393,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: TLS_AES_256_GCM_SHA384,x448,rsa_pss_rsae_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-X448:+SHA384:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-256-GCM:+GROUP-X448:+SHA384:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-256-GCM-SHA384 sig_algs=rsa_pss_rsae_sha256 curves=x448" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1330,8 +1410,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-256 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1347,8 +1428,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-SECP256R1:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-SECP256R1:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1362,8 +1444,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-384 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp384r1,secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1379,8 +1462,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-SECP384R1:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-SECP384R1:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp384r1,secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1394,8 +1478,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-521 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp521r1,secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1411,8 +1496,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-SECP521R1:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-SECP521R1:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp521r1,secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1426,8 +1512,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp256r1_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups X25519 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=x25519,secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1443,8 +1530,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp256r1_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-X25519:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-X25519:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=x25519,secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1458,8 +1546,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,x448,ecdsa_secp256r1_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups X448 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=x448,secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1475,8 +1564,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,x448,ecdsa_secp256r1_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-X448:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-X448:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=x448,secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1490,8 +1580,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-256 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp256r1,secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1507,8 +1598,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-SECP256R1:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-SECP256R1:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp256r1,secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1522,8 +1614,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-384 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1539,8 +1632,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-SECP384R1:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-SECP384R1:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1554,8 +1648,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-521 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp521r1,secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1571,8 +1666,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-SECP521R1:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-SECP521R1:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp521r1,secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1586,8 +1682,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp384r1_sha384" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups X25519 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=x25519,secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1603,8 +1700,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp384r1_sha384" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-X25519:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-X25519:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=x25519,secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1618,8 +1716,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,x448,ecdsa_secp384r1_sha384" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups X448 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=x448,secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1635,8 +1734,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,x448,ecdsa_secp384r1_sha384" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-X448:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-X448:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=x448,secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1650,8 +1750,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-256 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp256r1,secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1667,8 +1768,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-SECP256R1:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-SECP256R1:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp256r1,secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1682,8 +1784,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-384 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp384r1,secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1699,8 +1802,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-SECP384R1:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-SECP384R1:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp384r1,secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1714,8 +1818,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-521 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1731,8 +1836,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-SECP521R1:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-SECP521R1:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1746,8 +1852,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp521r1_sha512" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups X25519 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=x25519,secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1763,8 +1870,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,x25519,ecdsa_secp521r1_sha512" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-X25519:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-X25519:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=x25519,secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1778,8 +1886,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,x448,ecdsa_secp521r1_sha512" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups X448 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=x448,secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1795,8 +1904,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,x448,ecdsa_secp521r1_sha512" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-X448:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-X448:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=x448,secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1810,9 +1920,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,secp256r1,rsa_pss_rsae_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups P-256 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1828,9 +1939,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp256r1,rsa_pss_rsae_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-SECP256R1:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-SECP256R1:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1844,9 +1956,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,secp384r1,rsa_pss_rsae_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups P-384 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1862,9 +1975,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp384r1,rsa_pss_rsae_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-SECP384R1:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-SECP384R1:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1878,9 +1992,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,secp521r1,rsa_pss_rsae_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups P-521 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1896,9 +2011,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,secp521r1,rsa_pss_rsae_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-SECP521R1:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-SECP521R1:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1912,9 +2028,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,x25519,rsa_pss_rsae_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups X25519 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=x25519" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1930,9 +2047,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,x25519,rsa_pss_rsae_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-X25519:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-X25519:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=x25519" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1946,9 +2064,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: TLS_CHACHA20_POLY1305_SHA256,x448,rsa_pss_rsae_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups X448 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=x448" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1964,9 +2083,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: TLS_CHACHA20_POLY1305_SHA256,x448,rsa_pss_rsae_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-X448:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+CHACHA20-POLY1305:+GROUP-X448:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-CHACHA20-POLY1305-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=x448" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -1980,8 +2100,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-256 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -1997,8 +2118,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-SECP256R1:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-SECP256R1:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2012,8 +2134,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-384 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp384r1,secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2029,8 +2152,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-SECP384R1:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-SECP384R1:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp384r1,secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2044,8 +2168,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-521 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp521r1,secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2061,8 +2186,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-SECP521R1:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-SECP521R1:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp521r1,secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2076,8 +2202,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,x25519,ecdsa_secp256r1_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups X25519 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=x25519,secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2093,8 +2220,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,x25519,ecdsa_secp256r1_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-X25519:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-X25519:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=x25519,secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2108,8 +2236,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,x448,ecdsa_secp256r1_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups X448 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=x448,secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2125,8 +2254,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,x448,ecdsa_secp256r1_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-X448:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-X448:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=x448,secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2140,8 +2270,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-256 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp256r1,secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2157,8 +2288,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-SECP256R1:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-SECP256R1:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp256r1,secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2172,8 +2304,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-384 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2189,8 +2322,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-SECP384R1:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-SECP384R1:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2204,8 +2338,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-521 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp521r1,secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2221,8 +2356,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-SECP521R1:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-SECP521R1:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp521r1,secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2236,8 +2372,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,x25519,ecdsa_secp384r1_sha384" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups X25519 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=x25519,secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2253,8 +2390,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,x25519,ecdsa_secp384r1_sha384" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-X25519:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-X25519:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=x25519,secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2268,8 +2406,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,x448,ecdsa_secp384r1_sha384" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups X448 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=x448,secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2285,8 +2424,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,x448,ecdsa_secp384r1_sha384" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-X448:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-X448:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=x448,secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2300,8 +2440,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-256 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp256r1,secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2317,8 +2458,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-SECP256R1:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-SECP256R1:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp256r1,secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2332,8 +2474,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-384 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp384r1,secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2349,8 +2492,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-SECP384R1:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-SECP384R1:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp384r1,secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2364,8 +2508,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-521 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2381,8 +2526,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-SECP521R1:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-SECP521R1:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2396,8 +2542,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,x25519,ecdsa_secp521r1_sha512" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups X25519 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=x25519,secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2413,8 +2560,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,x25519,ecdsa_secp521r1_sha512" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-X25519:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-X25519:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=x25519,secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2428,8 +2576,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,x448,ecdsa_secp521r1_sha512" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups X448 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=x448,secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2445,8 +2594,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,x448,ecdsa_secp521r1_sha512" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-X448:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-X448:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=x448,secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2460,9 +2610,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,secp256r1,rsa_pss_rsae_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups P-256 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2478,9 +2629,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp256r1,rsa_pss_rsae_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-SECP256R1:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-SECP256R1:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2494,9 +2646,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,secp384r1,rsa_pss_rsae_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups P-384 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2512,9 +2665,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp384r1,rsa_pss_rsae_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-SECP384R1:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-SECP384R1:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2528,9 +2682,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,secp521r1,rsa_pss_rsae_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups P-521 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2546,9 +2701,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,secp521r1,rsa_pss_rsae_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-SECP521R1:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-SECP521R1:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2562,9 +2718,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,x25519,rsa_pss_rsae_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups X25519 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=x25519" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2580,9 +2737,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,x25519,rsa_pss_rsae_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-X25519:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-X25519:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=x25519" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2596,9 +2754,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_SHA256,x448,rsa_pss_rsae_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups X448 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=x448" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2614,9 +2773,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_SHA256,x448,rsa_pss_rsae_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-X448:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-CCM:+GROUP-X448:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-CCM-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=x448" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2630,8 +2790,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-256 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2647,8 +2808,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp256r1_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-SECP256R1:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-SECP256R1:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2662,8 +2824,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-384 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp384r1,secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2679,8 +2842,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp256r1_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-SECP384R1:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-SECP384R1:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp384r1,secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2694,8 +2858,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-521 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp521r1,secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2711,8 +2876,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp256r1_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-SECP521R1:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-SECP521R1:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=secp521r1,secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2726,8 +2892,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,x25519,ecdsa_secp256r1_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups X25519 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=x25519,secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2743,8 +2910,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,x25519,ecdsa_secp256r1_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-X25519:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-X25519:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=x25519,secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2758,8 +2926,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,x448,ecdsa_secp256r1_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups X448 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp256r1_sha256 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=x448,secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2775,8 +2944,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,x448,ecdsa_secp256r1_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-X448:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-X448:+SHA256:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp256r1_sha256 curves=x448,secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2790,8 +2960,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-256 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp256r1,secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2807,8 +2978,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp384r1_sha384" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-SECP256R1:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-SECP256R1:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp256r1,secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2822,8 +2994,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-384 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2839,8 +3012,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp384r1_sha384" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-SECP384R1:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-SECP384R1:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2854,8 +3028,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-521 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp521r1,secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2871,8 +3046,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp384r1_sha384" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-SECP521R1:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-SECP521R1:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=secp521r1,secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2886,8 +3062,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,x25519,ecdsa_secp384r1_sha384" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups X25519 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=x25519,secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2903,8 +3080,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,x25519,ecdsa_secp384r1_sha384" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-X25519:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-X25519:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=x25519,secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2918,8 +3096,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,x448,ecdsa_secp384r1_sha384" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups X448 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp384r1.crt -key data_files/ecdsa_secp384r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp384r1_sha384 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=x448,secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2935,8 +3114,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,x448,ecdsa_secp384r1_sha384" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-X448:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp384r1.crt --x509keyfile data_files/ecdsa_secp384r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-X448:+SHA256:+SIGN-ECDSA-SECP384R1-SHA384:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp384r1_sha384 curves=x448,secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2950,8 +3130,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-256 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp256r1,secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2967,8 +3148,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp256r1,ecdsa_secp521r1_sha512" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-SECP256R1:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-SECP256R1:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp256r1,secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -2982,8 +3164,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-384 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp384r1,secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -2999,8 +3182,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp384r1,ecdsa_secp521r1_sha512" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-SECP384R1:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-SECP384R1:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp384r1,secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -3014,8 +3198,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-521 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -3031,8 +3216,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp521r1,ecdsa_secp521r1_sha512" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-SECP521R1:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-SECP521R1:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -3046,8 +3232,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,x25519,ecdsa_secp521r1_sha512" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups X25519 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=x25519,secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -3063,8 +3250,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,x25519,ecdsa_secp521r1_sha512" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-X25519:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-X25519:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=x25519,secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -3078,8 +3266,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,x448,ecdsa_secp521r1_sha512" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups X448 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp521r1.crt -key data_files/ecdsa_secp521r1.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs ecdsa_secp521r1_sha512 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=x448,secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -3095,8 +3284,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,x448,ecdsa_secp521r1_sha512" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-X448:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp521r1.crt --x509keyfile data_files/ecdsa_secp521r1.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-X448:+SHA256:+SIGN-ECDSA-SECP521R1-SHA512:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=ecdsa_secp521r1_sha512 curves=x448,secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -3110,9 +3300,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,secp256r1,rsa_pss_rsae_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups P-256 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=secp256r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -3128,9 +3319,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp256r1,rsa_pss_rsae_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-SECP256R1:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-SECP256R1:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=secp256r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -3144,9 +3336,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,secp384r1,rsa_pss_rsae_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups P-384 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=secp384r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -3162,9 +3355,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp384r1,rsa_pss_rsae_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-SECP384R1:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-SECP384R1:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=secp384r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -3178,9 +3372,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,secp521r1,rsa_pss_rsae_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups P-521 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=secp521r1" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -3196,9 +3391,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,secp521r1,rsa_pss_rsae_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-SECP521R1:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-SECP521R1:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=secp521r1" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -3212,9 +3408,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,x25519,rsa_pss_rsae_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups X25519 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=x25519" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -3230,9 +3427,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,x25519,rsa_pss_rsae_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-X25519:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-X25519:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=x25519" \
          0 \
          -c "HTTP/1.0 200 OK" \
@@ -3246,9 +3444,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->O: TLS_AES_128_CCM_8_SHA256,x448,rsa_pss_rsae_sha256" \
-         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups X448 -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key -accept $SRV_PORT -ciphersuites TLS_AES_128_CCM_8_SHA256 -sigalgs rsa_pss_rsae_sha256 -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=x448" \
          0 \
          -c "HTTP/1.0 200 ok" \
@@ -3264,9 +3463,10 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT
 run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,x448,rsa_pss_rsae_sha256" \
-         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-X448:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key --priority=NONE:+AEAD:+AES-128-CCM-8:+GROUP-X448:+SHA256:+SIGN-RSA-PSS-RSAE-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
          "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca_cat12.crt force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256 sig_algs=rsa_pss_rsae_sha256 curves=x448" \
          0 \
          -c "HTTP/1.0 200 OK" \

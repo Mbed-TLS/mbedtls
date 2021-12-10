@@ -3335,6 +3335,20 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_BUF( 4, "input record from network",
                            rec->buf, rec->buf_len );
 
+    /*
+     * In TLS 1.3, always treat ChangeCipherSpec records
+     * as unencrypted. The only thing we do with them is
+     * check the length and content and ignore them.
+     */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+    if( ssl->transform_in != NULL &&
+        ssl->transform_in->minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+    {
+        if( rec->type == MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC )
+            done = 1;
+    }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
+
     if( !done && ssl->transform_in != NULL )
     {
         unsigned char const old_msg_type = rec->type;
@@ -4385,6 +4399,21 @@ int mbedtls_ssl_handle_message_type( mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_SSL_EARLY_MESSAGE );
         }
 #endif
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL)
+        if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+        {
+#if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
+            MBEDTLS_SSL_DEBUG_MSG( 1,
+                ( "Ignore ChangeCipherSpec in TLS 1.3 compatibility mode" ) );
+            return( MBEDTLS_ERR_SSL_CONTINUE_PROCESSING );
+#else
+            MBEDTLS_SSL_DEBUG_MSG( 1,
+                ( "ChangeCipherSpec invalid in TLS 1.3 without compatibility mode" ) );
+            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
+#endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
+        }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3_EXPERIMENTAL */
     }
 
     if( ssl->in_msgtype == MBEDTLS_SSL_MSG_ALERT )

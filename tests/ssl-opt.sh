@@ -50,6 +50,7 @@ fi
 : ${GNUTLS_CLI:=gnutls-cli}
 : ${GNUTLS_SERV:=gnutls-serv}
 : ${PERL:=perl}
+: ${SUBDIRECTORY:=opt-testcases}
 
 guess_config_name() {
     if git diff --quiet ../include/mbedtls/mbedtls_config.h 2>/dev/null; then
@@ -9281,10 +9282,14 @@ run_test    "TLS 1.3: HelloRetryRequest check, ciphersuite TLS_AES_256_GCM_SHA38
             -c "tls13 client state: MBEDTLS_SSL_CLIENT_HELLO" \
             -c "HTTP/1.0 200 OK"
 
-for i in $(ls opt-testcases/*.sh)
-do
-    . $i
-done
+SUB_TESTCASE_FILES=$([ -d $SUBDIRECTORY ] && (find  $SUBDIRECTORY -name \*.sh | sort ))
+if [ -n "${SUB_TESTCASE_FILES}" ]
+then
+    for i in ${SUB_TESTCASE_FILES}
+    do
+        . $i
+    done
+fi
 
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3

@@ -1146,7 +1146,10 @@ int mbedtls_cipher_check_tag( mbedtls_cipher_context_t *ctx,
 
         /* Check the tag in "constant-time" */
         if( mbedtls_ct_memcmp( tag, check_tag, tag_len ) != 0 )
+        {
             ret = MBEDTLS_ERR_CIPHER_AUTH_FAILED;
+            goto exit;
+        }
     }
 #endif /* MBEDTLS_GCM_C */
 
@@ -1166,10 +1169,14 @@ int mbedtls_cipher_check_tag( mbedtls_cipher_context_t *ctx,
 
         /* Check the tag in "constant-time" */
         if( mbedtls_ct_memcmp( tag, check_tag, tag_len ) != 0 )
+        {
             ret = MBEDTLS_ERR_CIPHER_AUTH_FAILED;
+            goto exit;
+        }
     }
 #endif /* MBEDTLS_CHACHAPOLY_C */
 
+exit:
     mbedtls_platform_zeroize( check_tag, tag_len );
     return( ret );
 }

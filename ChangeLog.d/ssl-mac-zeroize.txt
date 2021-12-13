@@ -1,5 +1,0 @@
-Security
-   * Zeroize intermediate variables used to calculate the MAC in CBC cipher
-     suites. This hardens the library in case stack memory leaks through a
-     memory disclosure vulnerabilty, which could formerly have allowed a
-     man-in-the-middle to inject fake ciphertext into a DTLS connection.

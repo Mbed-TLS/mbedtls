@@ -2874,7 +2874,7 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
 int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    unsigned int hash_len;
+    unsigned int hash_len = 12;
     unsigned char buf[SSL_MAX_HASH_LEN];
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse finished" ) );
@@ -2895,8 +2895,6 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
         ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
         goto exit;
     }
-
-    hash_len = 12;
 
     if( ssl->in_msg[0] != MBEDTLS_SSL_HS_FINISHED  )
     {

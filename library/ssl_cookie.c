@@ -217,15 +217,20 @@ int mbedtls_ssl_cookie_check( void *p_ctx,
 
 #if defined(MBEDTLS_THREADING_C)
     if( mbedtls_mutex_unlock( &ctx->mutex ) != 0 )
-        return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_SSL_INTERNAL_ERROR,
-                MBEDTLS_ERR_THREADING_MUTEX_ERROR ) );
+    {
+        ret = MBEDTLS_ERROR_ADD( MBEDTLS_ERR_SSL_INTERNAL_ERROR,
+                                 MBEDTLS_ERR_THREADING_MUTEX_ERROR );
+    }
 #endif
 
     if( ret != 0 )
-        return( ret );
+        goto exit;
 
     if( mbedtls_ct_memcmp( cookie + 4, ref_hmac, sizeof( ref_hmac ) ) != 0 )
-        return( -1 );
+    {
+        ret = -1;
+        goto exit;
+    }
 
 #if defined(MBEDTLS_HAVE_TIME)
     cur_time = (unsigned long) mbedtls_time( NULL );
@@ -239,8 +244,13 @@ int mbedtls_ssl_cookie_check( void *p_ctx,
                   ( (unsigned long) cookie[3]       );
 
     if( ctx->timeout != 0 && cur_time - cookie_time > ctx->timeout )
-        return( -1 );
+    {
+        ret = -1;
+        goto exit;
+    }
 
-    return( 0 );
+exit:
+    mbedtls_platform_zeroize( ref_hmac, sizeof( ref_hmac ) );
+    return( ret );
 }
 #endif /* MBEDTLS_SSL_COOKIE_C */

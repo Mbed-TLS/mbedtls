@@ -1438,6 +1438,11 @@ SKIP_NEXT="NO"
 
 trap cleanup INT TERM HUP
 
+# ssl_opt_inspect:reserve_vars:MAX_CONTENT_LEN MAX_IN_LEN MAX_OUT_LEN SUBDIRECTORY
+# ssl_opt_inspect:reserve_funcs:run_test_psa run_test_psa_force_curve
+# ssl_opt_inspect:reserve_funcs:run_test_memory_after_hanshake_with_mfl
+# ssl_opt_inspect:reserve_funcs:run_tests_memory_after_hanshake
+
 # Basic test
 
 # Checks that:

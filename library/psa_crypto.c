@@ -2210,6 +2210,7 @@ psa_status_t psa_hash_verify( psa_hash_operation_t *operation,
         status = PSA_ERROR_INVALID_SIGNATURE;
 
 exit:
+    mbedtls_platform_zeroize( actual_hash, sizeof( actual_hash ) );
     if( status != PSA_SUCCESS )
         psa_hash_abort(operation);
 
@@ -2244,12 +2245,18 @@ psa_status_t psa_hash_compare( psa_algorithm_t alg,
                             actual_hash, sizeof(actual_hash),
                             &actual_hash_length );
     if( status != PSA_SUCCESS )
-        return( status );
+        goto exit;
     if( actual_hash_length != hash_length )
-        return( PSA_ERROR_INVALID_SIGNATURE );
+    {
+        status = PSA_ERROR_INVALID_SIGNATURE;
+        goto exit;
+    }
     if( mbedtls_psa_safer_memcmp( hash, actual_hash, actual_hash_length ) != 0 )
-        return( PSA_ERROR_INVALID_SIGNATURE );
-    return( PSA_SUCCESS );
+        status = PSA_ERROR_INVALID_SIGNATURE;
+
+exit:
+    mbedtls_platform_zeroize( actual_hash, sizeof( actual_hash ) );
+    return( status );
 }
 
 psa_status_t psa_hash_clone( const psa_hash_operation_t *source_operation,

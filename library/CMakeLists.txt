@@ -147,6 +147,7 @@ if(GEN_FILES)
 
     add_custom_command(
         OUTPUT
+            ${CMAKE_CURRENT_BINARY_DIR}/ssl_debug_helpers_generated.h
             ${CMAKE_CURRENT_BINARY_DIR}/ssl_debug_helpers_generated.c
         COMMAND
             ${MBEDTLS_PYTHON_EXECUTABLE}
@@ -161,6 +162,7 @@ else()
     link_to_source(error.c)
     link_to_source(version_features.c)
     link_to_source(ssl_debug_helpers_generated.c)
+    link_to_source(ssl_debug_helpers_generated.h)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCC)

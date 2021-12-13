@@ -1,0 +1,6 @@
+Security
+   * Zeroize several intermediate variables used to calculate the expected
+     value when verifying a MAC or AEAD tag. This hardens the library in
+     case the value leaks through a memory disclosure vulnerability. For
+     example, a memory disclosure vulnerability could have allowed a
+     man-in-the-middle to inject fake ciphertext into a DTLS connection.

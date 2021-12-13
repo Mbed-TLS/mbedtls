@@ -650,4 +650,107 @@ rsa_exit:
     return status;
 }
 
+psa_status_t mbedtls_psa_asymmetric_decrypt( const psa_key_attributes_t *attributes,
+                                             const uint8_t *key_buffer,
+                                             size_t key_buffer_size,
+                                             psa_algorithm_t alg,
+                                             const uint8_t *input,
+                                             size_t input_length,
+                                             const uint8_t *salt,
+                                             size_t salt_length,
+                                             uint8_t *output,
+                                             size_t output_size,
+                                             size_t *output_length )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    (void) key_buffer;
+    (void) key_buffer_size;
+    (void) input;
+    (void) input_length;
+    (void) salt;
+    (void) salt_length;
+    (void) output;
+    (void) output_size;
+    (void) output_length;
+
+    *output_length = 0;
+
+    if( attributes->core.type == PSA_KEY_TYPE_RSA_KEY_PAIR )
+    {
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP)
+        mbedtls_rsa_context *rsa = NULL;
+        status = mbedtls_psa_rsa_load_representation( attributes->core.type,
+                                                      key_buffer,
+                                                      key_buffer_size,
+                                                      &rsa );
+        if( status != PSA_SUCCESS )
+            goto rsa_exit;
+
+        if( input_length != mbedtls_rsa_get_len( rsa ) )
+        {
+            status = PSA_ERROR_INVALID_ARGUMENT;
+            goto rsa_exit;
+        }
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) */
+
+        if( alg == PSA_ALG_RSA_PKCS1V15_CRYPT )
+        {
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT)
+            status = mbedtls_to_psa_error(
+                mbedtls_rsa_pkcs1_decrypt( rsa,
+                                           mbedtls_psa_get_random,
+                                           MBEDTLS_PSA_RANDOM_STATE,
+                                           output_length,
+                                           input,
+                                           output,
+                                           output_size ) );
+#else
+            status = PSA_ERROR_NOT_SUPPORTED;
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT */
+        }
+        else
+        if( PSA_ALG_IS_RSA_OAEP( alg ) )
+        {
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP)
+            status = mbedtls_to_psa_error(
+                         psa_rsa_oaep_set_padding_mode( alg, rsa ) );
+            if( status != PSA_SUCCESS )
+                goto rsa_exit;
+
+            status = mbedtls_to_psa_error(
+                mbedtls_rsa_rsaes_oaep_decrypt( rsa,
+                                                mbedtls_psa_get_random,
+                                                MBEDTLS_PSA_RANDOM_STATE,
+                                                salt, salt_length,
+                                                output_length,
+                                                input,
+                                                output,
+                                                output_size ) );
+#else
+            status = PSA_ERROR_NOT_SUPPORTED;
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP */
+        }
+        else
+        {
+            status = PSA_ERROR_INVALID_ARGUMENT;
+        }
+
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP)
+rsa_exit:
+        mbedtls_rsa_free( rsa );
+        mbedtls_free( rsa );
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) */
+    }
+    else
+    {
+        status = PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    return status;
+}
+
 #endif /* MBEDTLS_PSA_CRYPTO_C */

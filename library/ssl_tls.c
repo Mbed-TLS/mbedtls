@@ -6816,7 +6816,7 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
     if( ( ret = mbedtls_ssl_read_record( ssl, 1 ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
-        return( ret );
+        goto exit;
     }
 
     if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE )
@@ -6824,7 +6824,8 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE );
-        return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
+        ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
+        goto exit;
     }
 
     /* There is currently no ciphersuite using another length with TLS 1.2 */
@@ -6841,7 +6842,8 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
-        return( MBEDTLS_ERR_SSL_BAD_HS_FINISHED );
+        ret = MBEDTLS_ERR_SSL_BAD_HS_FINISHED;
+        goto exit;
     }
 
     if( mbedtls_ssl_safer_memcmp( ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl ),
@@ -6850,7 +6852,8 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_DECRYPT_ERROR );
-        return( MBEDTLS_ERR_SSL_BAD_HS_FINISHED );
+        ret = MBEDTLS_ERR_SSL_BAD_HS_FINISHED;
+        goto exit;
     }
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
@@ -6879,7 +6882,9 @@ int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse finished" ) );
 
-    return( 0 );
+exit:
+    mbedtls_platform_zeroize( buf, hash_len );
+    return( ret );
 }
 
 static void ssl_handshake_params_init( mbedtls_ssl_handshake_params *handshake )

@@ -24,11 +24,22 @@ class GenerateTestCases(Thread):
         super().__init__()
         self._generator=_SSLOptExtractor(file_path)
         self._result=None
+        self._exception = None
         self.start()
     def run(self):
-        self._result=set(self._generator.extract_test_cases())
+        try:
+            self._result=set()
+            for case in self._generator.extract_test_cases():
+                # _new = {case}
+                assert case not in self._result, (case, {case} & self._result)
+                self._result.add(case)
+        except Exception as e:
+            self._exception=e
+
     def __call__(self):
         self.join()
+        if self._exception :
+            raise Exception from self._exception
         return self._result
 
 generators=[(i,GenerateTestCases(i)) for i in sys.argv[1:]]
@@ -36,8 +47,4 @@ generators=[(i,GenerateTestCases(i)) for i in sys.argv[1:]]
 base_file, base_result = generators[0][0],generators[0][1]()
 for k, r in generators[1:]:
     result = r()
-    # result = r() - base_result
-    print('{} - {} = {}'.format(k,base_file,result - base_result))
-    print('{} - {} = {}'.format(base_file,k,base_result - result))
-
     assert result == base_result, '{} - {} = {}'.format(k,base_file,result)

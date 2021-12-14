@@ -126,12 +126,12 @@ fi
 read MAJOR MINOR PATCH <<<$(IFS="."; echo $VERSION)
 VERSION_NR="$( printf "0x%02X%02X%02X00" $MAJOR $MINOR $PATCH )"
 cat include/mbedtls/build_info.h |                                    \
-    sed -e "s/_VERSION_MAJOR .\{1,\}/_VERSION_MAJOR  $MAJOR/" |    \
-    sed -e "s/_VERSION_MINOR .\{1,\}/_VERSION_MINOR  $MINOR/" |    \
-    sed -e "s/_VERSION_PATCH .\{1,\}/_VERSION_PATCH  $PATCH/" |    \
-    sed -e "s/_VERSION_NUMBER .\{1,\}/_VERSION_NUMBER         $VERSION_NR/" |    \
-    sed -e "s/_VERSION_STRING .\{1,\}/_VERSION_STRING         \"$VERSION\"/" |    \
-    sed -e "s/_VERSION_STRING_FULL .\{1,\}/_VERSION_STRING_FULL    \"mbed TLS $VERSION\"/" \
+    sed -e "s/\(# *define  *[A-Z]*_VERSION\)_MAJOR .\{1,\}/\1_MAJOR  $MAJOR/" |    \
+    sed -e "s/\(# *define  *[A-Z]*_VERSION\)_MINOR .\{1,\}/\1_MINOR  $MINOR/" |    \
+    sed -e "s/\(# *define  *[A-Z]*_VERSION\)_PATCH .\{1,\}/\1_PATCH  $PATCH/" |    \
+    sed -e "s/\(# *define  *[A-Z]*_VERSION\)_NUMBER .\{1,\}/\1_NUMBER         $VERSION_NR/" |    \
+    sed -e "s/\(# *define  *[A-Z]*_VERSION\)_STRING .\{1,\}/\1_STRING         \"$VERSION\"/" |    \
+    sed -e "s/\(# *define  *[A-Z]*_VERSION\)_STRING_FULL .\{1,\}/\1_STRING_FULL    \"mbed TLS $VERSION\"/" \
     > tmp
 mv tmp include/mbedtls/build_info.h
 

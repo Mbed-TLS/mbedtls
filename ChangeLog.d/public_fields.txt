@@ -1,0 +1,5 @@
+API changes
+   * Declare a number of structure fields as public: the fields of
+     mbedtls_ecp_curve_info, the fields describing the result of ASN.1 and
+     X.509 parsing, and finally the field fd of mbedtls_net_context on
+     POSIX/Unix-like platforms.

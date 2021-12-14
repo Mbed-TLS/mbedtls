@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# tls13-compat.sh
+# 31-tls13-compat.sh
 #
 # Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0

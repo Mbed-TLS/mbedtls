@@ -9112,7 +9112,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 skip_handshake_stage_check
 requires_gnutls_tls1_3
-run_test    "TLS 1.3:Not supported version check:gnutls: srv max TLS 1.0" \
+run_test    "TLS 1.3: Not supported version check:gnutls: srv max TLS 1.0" \
             "$G_NEXT_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0 -d 4" \
             "$P_CLI min_version=tls13 max_version=tls13 debug_level=4" \
             1 \
@@ -9126,7 +9126,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 skip_handshake_stage_check
 requires_gnutls_tls1_3
-run_test    "TLS 1.3:Not supported version check:gnutls: srv max TLS 1.1" \
+run_test    "TLS 1.3: Not supported version check:gnutls: srv max TLS 1.1" \
             "$G_NEXT_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.1 -d 4" \
             "$P_CLI min_version=tls13 max_version=tls13 debug_level=4" \
             1 \
@@ -9140,7 +9140,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 skip_handshake_stage_check
 requires_gnutls_tls1_3
-run_test    "TLS 1.3:Not supported version check:gnutls: srv max TLS 1.2" \
+run_test    "TLS 1.3: Not supported version check:gnutls: srv max TLS 1.2" \
             "$G_NEXT_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.2 -d 4" \
             "$P_CLI min_version=tls13 max_version=tls13 debug_level=4" \
             1 \
@@ -9154,7 +9154,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 skip_handshake_stage_check
 requires_openssl_next
-run_test    "TLS 1.3:Not supported version check:openssl: srv max TLS 1.0" \
+run_test    "TLS 1.3: Not supported version check:openssl: srv max TLS 1.0" \
             "$O_NEXT_SRV -msg -tls1" \
             "$P_CLI min_version=tls13 max_version=tls13 debug_level=4" \
             1 \
@@ -9168,7 +9168,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 skip_handshake_stage_check
 requires_openssl_next
-run_test    "TLS 1.3:Not supported version check:openssl: srv max TLS 1.1" \
+run_test    "TLS 1.3: Not supported version check:openssl: srv max TLS 1.1" \
             "$O_NEXT_SRV -msg -tls1_1" \
             "$P_CLI min_version=tls13 max_version=tls13 debug_level=4" \
             1 \
@@ -9182,7 +9182,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 skip_handshake_stage_check
 requires_openssl_next
-run_test    "TLS 1.3:Not supported version check:openssl: srv max TLS 1.2" \
+run_test    "TLS 1.3: Not supported version check:openssl: srv max TLS 1.2" \
             "$O_NEXT_SRV -msg -tls1_2" \
             "$P_CLI min_version=tls13 max_version=tls13 debug_level=4" \
             1 \

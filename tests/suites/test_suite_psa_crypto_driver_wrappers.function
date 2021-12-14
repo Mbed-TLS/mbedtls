@@ -1784,3 +1784,126 @@ exit:
     mbedtls_test_driver_hash_hooks = mbedtls_test_driver_hash_hooks_init();
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void asymmetric_encrypt_decrypt( data_t *key_data,
+                                 data_t *input_data,
+                                 data_t *label,
+                                 data_t *fake_output_encrypt,
+                                 data_t *fake_output_decrypt,
+                                 int forced_status_encrypt_arg,
+                                 int forced_status_decrypt_arg,
+                                 int expected_status_encrypt_arg,
+                                 int expected_status_decrypt_arg )
+{
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_type_t key_type = PSA_KEY_TYPE_RSA_KEY_PAIR;
+    psa_algorithm_t alg = PSA_ALG_RSA_PKCS1V15_CRYPT;
+    size_t key_bits;
+    unsigned char *output = NULL;
+    size_t output_size;
+    size_t output_length = ~0;
+    unsigned char *output2 = NULL;
+    size_t output2_size;
+    size_t output2_length = ~0;
+    psa_status_t forced_status_encrypt = forced_status_encrypt_arg;
+    psa_status_t forced_status_decrypt = forced_status_decrypt_arg;
+    psa_status_t expected_status_encrypt = expected_status_encrypt_arg;
+    psa_status_t expected_status_decrypt = expected_status_decrypt_arg;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+    mbedtls_test_driver_rsa_hooks = mbedtls_test_driver_rsa_hooks_init();
+
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, key_type );
+
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &key ) );
+
+    /* Determine the maximum ciphertext length */
+    PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
+    key_bits = psa_get_key_bits( &attributes );
+
+    mbedtls_test_driver_rsa_hooks.forced_status = forced_status_encrypt;
+    if ( fake_output_encrypt->len > 0 )
+    {
+        mbedtls_test_driver_rsa_hooks.forced_output = fake_output_encrypt->x;
+        mbedtls_test_driver_rsa_hooks.forced_output_length = fake_output_encrypt->len;
+        output_size = fake_output_encrypt->len;
+        ASSERT_ALLOC( output, output_size );
+    }
+    else
+    {
+        output_size = PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE( key_type, key_bits, alg );
+        TEST_ASSERT( output_size <= PSA_ASYMMETRIC_ENCRYPT_OUTPUT_MAX_SIZE );
+        ASSERT_ALLOC( output, output_size );
+    }
+
+    /* We test encryption by checking that encrypt-then-decrypt gives back
+     * the original plaintext because of the non-optional random
+     * part of encryption process which prevents using fixed vectors. */
+    TEST_EQUAL( psa_asymmetric_encrypt( key, alg,
+                                        input_data->x, input_data->len,
+                                        label->x, label->len,
+                                        output, output_size,
+                                        &output_length ), expected_status_encrypt );
+    /* We don't know what ciphertext length to expect, but check that
+     * it looks sensible. */
+    TEST_ASSERT( output_length <= output_size );
+    
+    if ( expected_status_encrypt == PSA_SUCCESS )
+    {
+        if ( fake_output_encrypt->len > 0 )
+            ASSERT_COMPARE( fake_output_encrypt->x, fake_output_encrypt->len,
+                        output, output_length );
+        else
+        {
+            mbedtls_test_driver_rsa_hooks.forced_status = forced_status_decrypt;
+            if ( fake_output_decrypt->len > 0 )
+            {
+                mbedtls_test_driver_rsa_hooks.forced_output = fake_output_decrypt->x;
+                mbedtls_test_driver_rsa_hooks.forced_output_length = fake_output_decrypt->len;
+                output2_size = fake_output_decrypt->len;
+                ASSERT_ALLOC( output2, output2_size );
+            }
+            else
+            {
+                output2_size = input_data->len;
+                TEST_ASSERT( output2_size <=
+                            PSA_ASYMMETRIC_DECRYPT_OUTPUT_SIZE( key_type, key_bits, alg ) );
+                TEST_ASSERT( output2_size <= PSA_ASYMMETRIC_DECRYPT_OUTPUT_MAX_SIZE );
+                ASSERT_ALLOC( output2, output2_size );
+            }
+
+            TEST_EQUAL( psa_asymmetric_decrypt( key, alg,
+                                                output, output_length,
+                                                label->x, label->len,
+                                                output2, output2_size,
+                                                &output2_length ), expected_status_decrypt );
+            if ( expected_status_decrypt == PSA_SUCCESS )
+            {
+                if ( fake_output_decrypt->len > 0 )
+                    ASSERT_COMPARE( fake_output_decrypt->x, fake_output_decrypt->len,
+                                output2, output2_length );
+                else
+                    ASSERT_COMPARE( input_data->x, input_data->len,
+                                    output2, output2_length );
+            }
+        }
+    }
+
+exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
+    psa_reset_key_attributes( &attributes );
+
+    psa_destroy_key( key );
+    mbedtls_free( output );
+    mbedtls_free( output2 );
+    PSA_DONE( );
+}
+/* END_CASE */

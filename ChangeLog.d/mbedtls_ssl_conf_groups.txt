@@ -1,0 +1,7 @@
+API changes
+   * You can configure groups for a TLS key exchange with the new function
+     mbedtls_ssl_conf_groups(). It extends mbedtls_ssl_conf_curves().
+
+New deprecations
+   * Deprecate mbedtls_ssl_conf_curves() in favor of the more generic
+     mbedtls_ssl_conf_groups().

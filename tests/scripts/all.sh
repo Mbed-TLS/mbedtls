@@ -933,6 +933,9 @@ component_test_full_cmake_gcc_asan () {
 
     msg "test: context-info.sh (full config, ASan build)" # ~ 15 sec
     tests/context-info.sh
+
+    msg "test: Refactor ssl-opt is same with ssl-opt"
+    PYTHONPATH=tests/scripts/ python3 -m ssl_opt tests/ssl-opt.sh tests/ssl-opt-refactor.sh
 }
 
 component_test_psa_crypto_key_id_encodes_owner () {

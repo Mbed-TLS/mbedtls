@@ -1,4 +1,4 @@
-Bugfix
+Security
    * Fix a double-free that happened after mbedtls_ssl_set_session() or
      mbedtls_ssl_get_session() failed with MBEDTLS_ERR_SSL_ALLOC_FAILED
      (out of memory). After that, calling mbedtls_ssl_session_free()

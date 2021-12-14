@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.16.12 branch released 2021-12-17
 
 Security
    * Zeroize several intermediate variables used to calculate the expected

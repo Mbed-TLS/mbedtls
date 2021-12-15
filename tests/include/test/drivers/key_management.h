@@ -56,6 +56,11 @@ static inline mbedtls_test_driver_key_management_hooks_t
 extern mbedtls_test_driver_key_management_hooks_t
     mbedtls_test_driver_key_management_hooks;
 
+psa_status_t mbedtls_test_transparent_init( void );
+void mbedtls_test_transparent_free( void );
+psa_status_t mbedtls_test_opaque_init( void );
+void mbedtls_test_opaque_free( void );
+
 psa_status_t mbedtls_test_transparent_generate_key(
     const psa_key_attributes_t *attributes,
     uint8_t *key, size_t key_size, size_t *key_length );

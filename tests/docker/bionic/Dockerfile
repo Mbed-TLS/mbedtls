@@ -160,7 +160,3 @@ RUN cd /tmp \
 
 ENV GNUTLS_NEXT_CLI=/usr/local/gnutls-3.6.5/bin/gnutls-cli
 ENV GNUTLS_NEXT_SERV=/usr/local/gnutls-3.6.5/bin/gnutls-serv
-
-RUN pip3 install --no-cache-dir \
-    mbed-host-tests \
-    mock

@@ -39,7 +39,7 @@ LOCAL_CFLAGS += -fPIC -fpic
 endif
 endif
 
-SOEXT_TLS=so.13
+SOEXT_TLS=so.14
 SOEXT_X509=so.1
 SOEXT_CRYPTO=so.7
 

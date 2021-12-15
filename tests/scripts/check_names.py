@@ -457,6 +457,139 @@ class CodeParser():
 
         return enum_consts
 
+    IGNORED_CHUNK_REGEX = re.compile('|'.join([
+        r'/\*.*?\*/', # block comment entirely on one line
+        r'//.*', # line comment
+        r'(?P<string>")(?:[^\\\"]|\\.)*"', # string literal
+    ]))
+
+    def strip_comments_and_literals(self, line, in_block_comment):
+        """Strip comments and string literals from line.
+
+        Continuation lines are not supported.
+
+        If in_block_comment is true, assume that the line starts inside a
+        block comment.
+
+        Return updated values of (line, in_block_comment) where:
+        * Comments in line have been replaced by a space (or nothing at the
+          start or end of the line).
+        * String contents have been removed.
+        * in_block_comment indicates whether the line ends inside a block
+          comment that continues on the next line.
+        """
+
+        # Terminate current multiline comment?
+        if in_block_comment:
+            m = re.search(r"\*/", line)
+            if m:
+                in_block_comment = False
+                line = line[m.end(0):]
+            else:
+                return '', True
+
+        # Remove full comments and string literals.
+        # Do it all together to handle cases like "/*" correctly.
+        # Note that continuation lines are not supported.
+        line = re.sub(self.IGNORED_CHUNK_REGEX,
+                      lambda s: '""' if s.group('string') else ' ',
+                      line)
+
+        # Start an unfinished comment?
+        # (If `/*` was part of a complete comment, it's already been removed.)
+        m = re.search(r"/\*", line)
+        if m:
+            in_block_comment = True
+            line = line[:m.start(0)]
+
+        return line, in_block_comment
+
+    IDENTIFIER_REGEX = re.compile('|'.join([
+        # Match " something(a" or " *something(a". Functions.
+        # Assumptions:
+        # - function definition from return type to one of its arguments is
+        #   all on one line
+        # - function definition line only contains alphanumeric, asterisk,
+        #   underscore, and open bracket
+        r".* \**(\w+) *\( *\w",
+        # Match "(*something)(".
+        r".*\( *\* *(\w+) *\) *\(",
+        # Match names of named data structures.
+        r"(?:typedef +)?(?:struct|union|enum) +(\w+)(?: *{)?$",
+        # Match names of typedef instances, after closing bracket.
+        r"}? *(\w+)[;[].*",
+    ]))
+    # The regex below is indented for clarity.
+    EXCLUSION_LINES = re.compile("|".join([
+        r"extern +\"C\"",
+        r"(typedef +)?(struct|union|enum)( *{)?$",
+        r"} *;?$",
+        r"$",
+        r"//",
+        r"#",
+    ]))
+
+    def parse_identifiers_in_file(self, header_file, identifiers):
+        """
+        Parse all lines of a header where a function/enum/struct/union/typedef
+        identifier is declared, based on some regex and heuristics. Highly
+        dependent on formatting style.
+
+        Append found matches to the list ``identifiers``.
+        """
+
+        with open(header_file, "r", encoding="utf-8") as header:
+            in_block_comment = False
+            # The previous line variable is used for concatenating lines
+            # when identifiers are formatted and spread across multiple
+            # lines.
+            previous_line = ""
+
+            for line_no, line in enumerate(header):
+                line, in_block_comment = \
+                    self.strip_comments_and_literals(line, in_block_comment)
+
+                if self.EXCLUSION_LINES.match(line):
+                    previous_line = ""
+                    continue
+
+                # If the line contains only space-separated alphanumeric
+                # characters (or underscore, asterisk, or open parenthesis),
+                # and nothing else, high chance it's a declaration that
+                # continues on the next line
+                if re.search(r"^([\w\*\(]+\s+)+$", line):
+                    previous_line += line
+                    continue
+
+                # If previous line seemed to start an unfinished declaration
+                # (as above), concat and treat them as one.
+                if previous_line:
+                    line = previous_line.strip() + " " + line.strip() + "\n"
+                    previous_line = ""
+
+                # Skip parsing if line has a space in front = heuristic to
+                # skip function argument lines (highly subject to formatting
+                # changes)
+                if line[0] == " ":
+                    continue
+
+                identifier = self.IDENTIFIER_REGEX.search(line)
+
+                if not identifier:
+                    continue
+
+                # Find the group that matched, and append it
+                for group in identifier.groups():
+                    if not group:
+                        continue
+
+                    identifiers.append(Match(
+                        header_file,
+                        line,
+                        line_no,
+                        identifier.span(),
+                        group))
+
     def parse_identifiers(self, include, exclude=None):
         """
         Parse all lines of a header where a function/enum/struct/union/typedef
@@ -469,99 +602,13 @@ class CodeParser():
 
         Returns a List of Match objects with identifiers.
         """
-        identifier_regex = re.compile(
-            # Match " something(a" or " *something(a". Functions.
-            # Assumptions:
-            # - function definition from return type to one of its arguments is
-            #   all on one line
-            # - function definition line only contains alphanumeric, asterisk,
-            #   underscore, and open bracket
-            r".* \**(\w+) *\( *\w|"
-            # Match "(*something)(".
-            r".*\( *\* *(\w+) *\) *\(|"
-            # Match names of named data structures.
-            r"(?:typedef +)?(?:struct|union|enum) +(\w+)(?: *{)?$|"
-            # Match names of typedef instances, after closing bracket.
-            r"}? *(\w+)[;[].*"
-        )
-        # The regex below is indented for clarity.
-        exclusion_lines = re.compile(
-            r"^("
-                r"extern +\"C\"|" # pylint: disable=bad-continuation
-                r"(typedef +)?(struct|union|enum)( *{)?$|"
-                r"} *;?$|"
-                r"$|"
-                r"//|"
-                r"#"
-            r")"
-        )
 
         files = self.get_files(include, exclude)
         self.log.debug("Looking for identifiers in {} files".format(len(files)))
 
         identifiers = []
         for header_file in files:
-            with open(header_file, "r", encoding="utf-8") as header:
-                in_block_comment = False
-                # The previous line variable is used for concatenating lines
-                # when identifiers are formatted and spread across multiple
-                # lines.
-                previous_line = ""
-
-                for line_no, line in enumerate(header):
-                    # Skip parsing this line if a block comment ends on it,
-                    # but don't skip if it has just started -- there is a chance
-                    # it ends on the same line.
-                    if re.search(r"/\*", line):
-                        in_block_comment = not in_block_comment
-                    if re.search(r"\*/", line):
-                        in_block_comment = not in_block_comment
-                        continue
-
-                    if in_block_comment:
-                        previous_line = ""
-                        continue
-
-                    if exclusion_lines.search(line):
-                        previous_line = ""
-                        continue
-
-                    # If the line contains only space-separated alphanumeric
-                    # characters (or underscore, asterisk, or, open bracket),
-                    # and nothing else, high chance it's a declaration that
-                    # continues on the next line
-                    if re.search(r"^([\w\*\(]+\s+)+$", line):
-                        previous_line += line
-                        continue
-
-                    # If previous line seemed to start an unfinished declaration
-                    # (as above), concat and treat them as one.
-                    if previous_line:
-                        line = previous_line.strip() + " " + line.strip() + "\n"
-                        previous_line = ""
-
-                    # Skip parsing if line has a space in front = heuristic to
-                    # skip function argument lines (highly subject to formatting
-                    # changes)
-                    if line[0] == " ":
-                        continue
-
-                    identifier = identifier_regex.search(line)
-
-                    if not identifier:
-                        continue
-
-                    # Find the group that matched, and append it
-                    for group in identifier.groups():
-                        if not group:
-                            continue
-
-                        identifiers.append(Match(
-                            header_file,
-                            line,
-                            line_no,
-                            identifier.span(),
-                            group))
+            self.parse_identifiers_in_file(header_file, identifiers)
 
         return identifiers
 
@@ -779,7 +826,8 @@ class NameChecker():
             match.name
             for match
             in self.parse_result["macros"] + self.parse_result["enum_consts"]}
-        typo_exclusion = re.compile(r"XXX|__|_$|^MBEDTLS_.*CONFIG_FILE$")
+        typo_exclusion = re.compile(r"XXX|__|_$|^MBEDTLS_.*CONFIG_FILE$|"
+                                    r"MBEDTLS_TEST_LIBTESTDRIVER*")
 
         for name_match in self.parse_result["mbed_words"]:
             found = name_match.name in all_caps_names

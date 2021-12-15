@@ -74,7 +74,7 @@ psa_status_t mbedtls_test_transparent_hash_finish(
     size_t *hash_length );
 
 psa_status_t mbedtls_test_transparent_hash_abort(
-    mbedtls_psa_hash_operation_t *operation );
+    mbedtls_transparent_test_driver_hash_operation_t *operation );
 
 #endif /* PSA_CRYPTO_DRIVER_TEST */
 #endif /* PSA_CRYPTO_TEST_DRIVERS_HASH_H */

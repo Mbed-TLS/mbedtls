@@ -13,3 +13,5 @@ include/test/instrument_record_status.h
 src/*.o
 src/drivers/*.o
 src/libmbed*
+
+libtestdriver1/*

@@ -65,25 +65,27 @@ typedef struct
     union
     {
         unsigned dummy; /* Make the union non-empty even with no supported algorithms. */
-#if defined(MBEDTLS_MD2_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_MD2)
         mbedtls_md2_context md2;
 #endif
-#if defined(MBEDTLS_MD4_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_MD4)
         mbedtls_md4_context md4;
 #endif
-#if defined(MBEDTLS_MD5_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_MD5)
         mbedtls_md5_context md5;
 #endif
-#if defined(MBEDTLS_RIPEMD160_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_RIPEMD160)
         mbedtls_ripemd160_context ripemd160;
 #endif
-#if defined(MBEDTLS_SHA1_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_1)
         mbedtls_sha1_context sha1;
 #endif
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_256) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_224)
         mbedtls_sha256_context sha256;
 #endif
-#if defined(MBEDTLS_SHA512_C)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_512) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_384)
         mbedtls_sha512_context sha512;
 #endif
     } ctx;
@@ -120,30 +122,5 @@ typedef struct {
 } mbedtls_psa_cipher_operation_t;
 
 #define MBEDTLS_PSA_CIPHER_OPERATION_INIT {0, 0, 0, {0}}
-
-/*
- * BEYOND THIS POINT, TEST DRIVER DECLARATIONS ONLY.
- */
-#if defined(PSA_CRYPTO_DRIVER_TEST)
-
-typedef mbedtls_psa_hash_operation_t mbedtls_transparent_test_driver_hash_operation_t;
-
-#define MBEDTLS_TRANSPARENT_TEST_DRIVER_HASH_OPERATION_INIT MBEDTLS_PSA_HASH_OPERATION_INIT
-
-typedef mbedtls_psa_cipher_operation_t
-        mbedtls_transparent_test_driver_cipher_operation_t;
-
-typedef struct {
-    unsigned int initialised : 1;
-    mbedtls_transparent_test_driver_cipher_operation_t ctx;
-} mbedtls_opaque_test_driver_cipher_operation_t;
-
-#define MBEDTLS_TRANSPARENT_TEST_DRIVER_CIPHER_OPERATION_INIT \
-     MBEDTLS_PSA_CIPHER_OPERATION_INIT
-
-#define MBEDTLS_OPAQUE_TEST_DRIVER_CIPHER_OPERATION_INIT \
-     { 0, MBEDTLS_TRANSPARENT_TEST_DRIVER_CIPHER_OPERATION_INIT }
-
-#endif /* PSA_CRYPTO_DRIVER_TEST */
 
 #endif /* PSA_CRYPTO_BUILTIN_PRIMITIVES_H */

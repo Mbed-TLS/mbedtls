@@ -102,8 +102,9 @@ void cipher_invalid_param_unconditional( )
     (void)valid_mode; /* In some configurations this is unused */
 
     mbedtls_cipher_init( &valid_ctx );
-    mbedtls_cipher_setup( &valid_ctx, valid_info );
     mbedtls_cipher_init( &invalid_ctx );
+
+    TEST_ASSERT( mbedtls_cipher_setup( &valid_ctx, valid_info ) == 0 );
 
     /* mbedtls_cipher_setup() */
     TEST_ASSERT( mbedtls_cipher_setup( &valid_ctx, NULL ) ==

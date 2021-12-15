@@ -312,7 +312,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_ECC_SECP_R1_256 */
+/* BEGIN_CASE */
 void validate_key( int force_status_arg,
                    int key_type_arg,
                    data_t *key_input,
@@ -348,7 +348,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_ECC_SECP_R1_256 */
+/* BEGIN_CASE */
 void export_key( int force_status_arg,
                  data_t *fake_output,
                  int key_in_type_arg,

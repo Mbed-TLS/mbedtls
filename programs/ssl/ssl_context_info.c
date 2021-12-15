@@ -22,6 +22,7 @@
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
+#include "mbedtls/debug.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -164,6 +165,7 @@ void printf_dbg( const char *str, ... )
     }
 }
 
+MBEDTLS_PRINTF_ATTRIBUTE( 1, 2 )
 void printf_err( const char *str, ... )
 {
     va_list args;
@@ -222,7 +224,13 @@ void parse_arguments( int argc, char *argv[] )
                 error_exit();
             }
 
-            if( ( b64_file = fopen( argv[i], "r" ) ) == NULL )
+            if( NULL != b64_file )
+            {
+                printf_err( "Cannot specify more than one file with -f\n" );
+                error_exit( );
+            }
+
+            if( ( b64_file = fopen( argv[i], "r" )) == NULL )
             {
                 printf_err( "Cannot find file \"%s\"\n", argv[i] );
                 error_exit();
@@ -464,7 +472,8 @@ size_t read_next_b64_code( uint8_t **b64, size_t *max_len )
             }
             else if( len > *max_len )
             {
-                printf_err( "The code found is too large by %u bytes.\n", len - *max_len );
+                printf_err( "The code found is too large by %" MBEDTLS_PRINTF_SIZET " bytes.\n",
+                            len - *max_len );
                 len = pad = 0;
             }
             else if( len % 4 != 0 )

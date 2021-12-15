@@ -242,7 +242,7 @@ OUTPUT_C_TEMPLATE = '''\
 
 #if defined(MBEDTLS_DEBUG_C)
 
-#include "ssl_debug_helpers_generated.h"
+#include "ssl_debug_helpers.h"
 
 {functions}
 

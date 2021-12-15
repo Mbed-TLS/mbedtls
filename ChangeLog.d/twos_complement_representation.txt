@@ -1,3 +1,0 @@
-Requirement changes
-   * Sign-magnitude and one's complement representations for signed integers are
-     not supported. Two's complement is the only supported representation.

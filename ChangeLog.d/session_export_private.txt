@@ -1,5 +1,0 @@
-Changes
-    * Explicitly mark the fields mbedtls_ssl_session.exported and
-      mbedtls_ssl_config.respect_cli_pref as private. This was an
-      oversight during the run-up to the release of Mbed TLS 3.0.
-      The fields were never intended to be public.

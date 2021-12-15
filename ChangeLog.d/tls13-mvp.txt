@@ -1,7 +1,0 @@
-Features
-   * Mbed TLS provides a minimum viable implementation of the TLS 1.3
-     protocol. See docs/architecture/tls13-support.md for the definition of
-     the TLS 1.3 Minimum Viable Product (MVP). The MBEDTLS_SSL_PROTO_TLS1_3
-     configuration option controls the enablement of the support. The APIs
-     mbedtls_ssl_conf_min_version() and mbedtls_ssl_conf_max_version() allow
-     to select the 1.3 version of the protocol to establish a TLS connection.

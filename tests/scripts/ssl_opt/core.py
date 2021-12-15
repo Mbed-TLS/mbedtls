@@ -20,19 +20,13 @@ Core Structure and utils for ssl-opt test
 
 """
 
-import stringcase
-from subprocess import check_output
 import os
 import re
-
-
-def debug(*args, **kwargs):
-    print(*args, **kwargs)
-
+from subprocess import check_output
+from .utils import name_to_class_case, name_to_function_case
 
 MBEDTLS_SOURCE_ROOT = os.getenv('MBEDTLS_SOURCE_ROOT', os.path.abspath('.'))
 MBEDTLS_BINARY_ROOT = os.getenv('MBEDTLS_BINARY_ROOT', MBEDTLS_SOURCE_ROOT)
-
 
 class CommandNotImplementedError(NotImplementedError):
     pass
@@ -92,13 +86,13 @@ def class_factory(name, methods={}, attributes={}, BaseClass=PreCheck):
         def func(self, *args, **kwargs):
             return v(self, *args, **kwargs)
         attributes.update({k: func})
-    newclass = type(stringcase.pascalcase(name), (BaseClass,), attributes)
+    newclass = type(name_to_class_case(name), (BaseClass,), attributes)
     return newclass
 
 
 def command(cls):
     assert type(cls) is type
-    snakecase_name = stringcase.snakecase(cls.__name__)
+    snakecase_name = name_to_function_case(cls.__name__)
     setattr(cls, '_command_', snakecase_name)
     CMD_CLASS_MAP[snakecase_name] = cls
     return cls
@@ -107,7 +101,7 @@ def command(cls):
 def pre_check(func=None):
     def __call__(self, option):
         return func(*self._args, option=option, filename=self._filename, lineno=self._lineno)
-    cls = type(stringcase.pascalcase(func.__name__), (PreCheck,),
+    cls = type(name_to_class_case(func.__name__), (PreCheck,),
                {'__call__': __call__, '_command_': func.__name__})
     return command(cls)
 

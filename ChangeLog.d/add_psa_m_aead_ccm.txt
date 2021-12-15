@@ -1,3 +1,0 @@
-Features
-   * Add the internal implementation of and support for CCM to the PSA multipart
-     AEAD interface.

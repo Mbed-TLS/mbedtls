@@ -1,5 +1,0 @@
-Bugfix
-   * The key usage flags PSA_KEY_USAGE_SIGN_MESSAGE now allows the MAC
-     operations psa_mac_compute() and psa_mac_sign_setup().
-   * The key usage flags PSA_KEY_USAGE_VERIFY_MESSAGE now allows the MAC
-     operations psa_mac_verify() and psa_mac_verify_setup().

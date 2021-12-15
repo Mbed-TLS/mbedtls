@@ -1,5 +1,0 @@
-API changes
-   * Some fields of mbedtls_ssl_session and mbedtls_ssl_config are in a
-     different order. This only affects applications that define such
-     structures directly or serialize them.
-

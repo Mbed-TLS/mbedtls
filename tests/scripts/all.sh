@@ -2485,6 +2485,18 @@ component_build_mbedtls_config_file () {
     rm -f full_config.h
 }
 
+component_build_mbedtls_psa_crypto_config_file () {
+    msg "build: make with MBEDTLS_PSA_CRYPTO_CONFIG_FILE" # ~40s
+    # Use the full config so as to catch a maximum of places where
+    # the check of MBEDTLS_PSA_CRYPTO_CONFIG_FILE might be missing.
+    scripts/config.py full
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+    sed 's!"check_config.h"!"mbedtls/check_config.h"!' <"$CRYPTO_CONFIG_H" >full_config.h
+    echo '#error "MBEDTLS_PSA_CRYPTO_CONFIG_FILE is not working"' >"$CRYPTO_CONFIG_H"
+    make CFLAGS="-I '$PWD' -DMBEDTLS_PSA_CRYPTO_CONFIG_FILE='\"full_config.h\"'"
+    rm -f full_config.h
+}
+
 component_test_m32_o0 () {
     # Build without optimization, so as to use portable C code (in a 32-bit
     # build) and not the i386-specific inline assembly.

@@ -31,7 +31,11 @@
 #define MBEDTLS_CONFIG_PSA_H
 
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+#if !defined(MBEDTLS_PSA_CRYPTO_CONFIG_FILE)
 #include "psa/crypto_config.h"
+#else
+#include MBEDTLS_PSA_CRYPTO_CONFIG_FILE
+#endif
 #endif /* defined(MBEDTLS_PSA_CRYPTO_CONFIG) */
 
 #ifdef __cplusplus

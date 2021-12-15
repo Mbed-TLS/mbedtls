@@ -1725,12 +1725,12 @@ support_test_cmake_out_of_source () {
 
     # Attempt to parse lsb-release to find out distribution and version. If not
     # found this should fail safe (test is supported).
-    if [[ -f /etc/lsb-release ]]; then
+    if [ -f /etc/lsb-release ]; then
 
         while read -r lsb_line; do
             case "$lsb_line" in
-                "DISTRIB_ID"*) distrib_id=${lsb_line/#DISTRIB_ID=};;
-                "DISTRIB_RELEASE"*) distrib_ver=${lsb_line/#DISTRIB_RELEASE=};;
+                "DISTRIB_ID"*) distrib_id=${lsb_line#DISTRIB_ID=};;
+                "DISTRIB_RELEASE"*) distrib_ver=${lsb_line#DISTRIB_RELEASE=};;
             esac
         done < /etc/lsb-release
 

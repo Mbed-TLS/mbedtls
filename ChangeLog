@@ -1,5 +1,60 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.16.12 branch released 2021-12-17
+
+Security
+   * Zeroize several intermediate variables used to calculate the expected
+     value when verifying a MAC or AEAD tag. This hardens the library in
+     case the value leaks through a memory disclosure vulnerability. For
+     example, a memory disclosure vulnerability could have allowed a
+     man-in-the-middle to inject fake ciphertext into a DTLS connection.
+   * Fix a double-free that happened after mbedtls_ssl_set_session() or
+     mbedtls_ssl_get_session() failed with MBEDTLS_ERR_SSL_ALLOC_FAILED
+     (out of memory). After that, calling mbedtls_ssl_session_free()
+     and mbedtls_ssl_free() would cause an internal session buffer to
+     be free()'d twice.
+
+Bugfix
+   * Stop using reserved identifiers as local variables. Fixes #4630.
+   * The GNU makefiles invoke python3 in preference to python except on Windows.
+     The check was accidentally not performed when cross-compiling for Windows
+     on Linux. Fix this. Fixes #4774.
+   * Mark basic constraints critical as appropriate. Note that the previous
+     entry for this fix in the 2.16.10 changelog was in error, and it was not
+     included in the 2.16.10 release as was stated.
+     Make 'mbedtls_x509write_crt_set_basic_constraints' consistent with RFC
+     5280 4.2.1.9 which says: "Conforming CAs MUST include this extension in
+     all CA certificates that contain public keys used to validate digital
+     signatures on certificates and MUST mark the extension as critical in
+     such certificates." Previous to this change, the extension was always
+     marked as non-critical. This was fixed by #4044.
+   * Fix missing constraints on x86_64 assembly code for bignum multiplication
+     that broke some bignum operations with (at least) Clang 12.
+     Fixes #4116, #4786, #4917.
+   * Failures of alternative implementations of AES or DES single-block
+     functions enabled with MBEDTLS_AES_ENCRYPT_ALT, MBEDTLS_AES_DECRYPT_ALT,
+     MBEDTLS_DES_CRYPT_ECB_ALT or MBEDTLS_DES3_CRYPT_ECB_ALT were ignored.
+     This does not concern the implementation provided with Mbed TLS,
+     where this function cannot fail, or full-module replacements with
+     MBEDTLS_AES_ALT or MBEDTLS_DES_ALT. Reported by Armelle Duboc in #1092.
+   * Some failures of HMAC operations were ignored. These failures could only
+     happen with an alternative implementation of the underlying hash module.
+   * Fix the build of sample programs when neither MBEDTLS_ERROR_C nor
+     MBEDTLS_ERROR_STRERROR_DUMMY is enabled.
+   * Fix a bug in mbedtls_gcm_starts() when the bit length of the iv
+     exceeds 2^32. Fixes #4884.
+   * Fix the build when no SHA2 module is included. Fixes #4930.
+   * Fix the build when only the bignum module is included. Fixes #4929.
+   * Fix a potential invalid pointer dereference and infinite loop bugs in
+     pkcs12 functions when the password is empty. Fix the documentation to
+     better describe the inputs to these functions and their possible values.
+     Fixes #5136.
+
+Changes
+   * Improve the performance of base64 constant-flow code. The result is still
+     slower than the original non-constant-flow implementation, but much faster
+     than the previous constant-flow implementation. Fixes #4814.
+
 = mbed TLS 2.16.11 branch released 2021-07-07
 
 Security

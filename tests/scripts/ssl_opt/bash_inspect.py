@@ -91,10 +91,10 @@ class _SSLOptExtractor:
                                + r'|([f]\ (?P<func>\w+))'
                                + r')$', re.M)
             for m in regex.finditer(run_bash_script(script + '\ndeclare -p;declare -F', cwd=self.working_dir)):
-                if m['var']:
-                    variables |= {m['var'], }
-                if m['func']:
-                    functions |= {m['func'], }
+                if m.group('var'):
+                    variables |= {m.group('var'), }
+                if m.group('func'):
+                    functions |= {m.group('func'), }
             return functions, variables
 
         regex = re.compile(r'(# ssl_opt_inspect:reserve_vars:(?P<vars>.*?)\n)'
@@ -102,10 +102,10 @@ class _SSLOptExtractor:
         reserve_variables = set({})
         reserve_functions = set({})
         for m in regex.finditer(self._header):
-            if m['vars']:
+            if m.group('vars'):
                 reserve_variables |= set(m.group('vars').strip().split())
-            if m['funcs']:
-                reserve_functions |= set(m['funcs'].strip().split())
+            if m.group('funcs'):
+                reserve_functions |= set(m.group('funcs').strip().split())
         basic_functions, basic_variables = get_definitions('')
         end_functions, end_variables = get_definitions(self._header)
         functions = end_functions - basic_functions - reserve_functions

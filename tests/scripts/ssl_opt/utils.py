@@ -28,10 +28,10 @@ def name_to_class_case(name : str):
     """
     assert re.match(r'[a-z_][a-z0-9_]*', name), "{} is not snake case"
     def replacer(match):
-        if match['leading']:
-            return match['leading'].upper()
-        if match['div']:
-            return match['div'][1].upper()
+        if match.group('leading'):
+            return match.group('leading').upper()
+        if match.group('div'):
+            return match.group('div')[1].upper()
     return re.sub(r'(?P<leading>^_?[a-z])|(?P<div>_[a-z])', replacer, name)
 
 def name_to_function_case(name : str):
@@ -40,10 +40,10 @@ def name_to_function_case(name : str):
     """
     assert re.match(r'[A-Z_]\w*', name), "{} is not pascal case"
     def replacer(match):
-        if match['leading']:
-            return match['leading'].lower()
-        if match['div']:
-            return '_' + match['div'].lower()
+        if match.group('leading'):
+            return match.group('leading').lower()
+        if match.group('div'):
+            return '_' + match.group('div').lower()
     return re.sub(r'(?P<leading>^_?[A-Z])|(?P<div>[A-Z])', replacer, name)
 
 class TestNameConversion(unittest.TestCase):

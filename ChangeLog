@@ -41,8 +41,8 @@ Bugfix
      happen with an alternative implementation of the underlying hash module.
    * Fix the build of sample programs when neither MBEDTLS_ERROR_C nor
      MBEDTLS_ERROR_STRERROR_DUMMY is enabled.
-   * Fix a bug in mbedtls_gcm_starts() when bits of iv are longer than 2^32.
-     Fixes #4884.
+   * Fix a bug in mbedtls_gcm_starts() when the bit length of the iv
+     exceeds 2^32. Fixes #4884.
    * Fix the build when no SHA2 module is included. Fixes #4930.
    * Fix the build when only the bignum module is included. Fixes #4929.
    * Fix a potential invalid pointer dereference and infinite loop bugs in

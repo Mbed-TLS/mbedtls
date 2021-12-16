@@ -1,6 +1,9 @@
-/*
- *  TLS 1.3 server-side functions
+/**
+ * \file ssl_debug_helpers.h
  *
+ * \brief Automatically generated helper functions for debugging
+ */
+/*
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
@@ -15,29 +18,27 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
-*/
+ */
+
+#ifndef MBEDTLS_SSL_DEBUG_HELPERS_H
+#define MBEDTLS_SSL_DEBUG_HELPERS_H
 
 #include "common.h"
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#if defined(MBEDTLS_DEBUG_C)
 
-#if defined(MBEDTLS_SSL_SRV_C)
-
-#include "mbedtls/debug.h"
-
+#include "mbedtls/ssl.h"
 #include "ssl_misc.h"
-#include "ssl_debug_helpers.h"
 
-int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
-{
-    ((void) ssl);
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "tls13 server state: %s(%d)",
-                                mbedtls_ssl_states_str( ssl->state ),
-                                ssl->state ) );
 
-    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
-}
+const char *mbedtls_ssl_states_str( mbedtls_ssl_states in );
 
-#endif /* MBEDTLS_SSL_SRV_C */
+const char *mbedtls_tls_prf_types_str( mbedtls_tls_prf_types in );
 
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+const char *mbedtls_ssl_key_export_type_str( mbedtls_ssl_key_export_type in );
+
+
+
+#endif /* MBEDTLS_DEBUG_C */
+
+#endif /* SSL_DEBUG_HELPERS_H */

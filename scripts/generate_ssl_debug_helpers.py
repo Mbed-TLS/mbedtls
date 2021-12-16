@@ -188,7 +188,7 @@ class EnumDefinition:
     def span(self):
         return self._span
 
-    def generate_tranlation_function(self):
+    def generate_translation_function(self):
         """
             Generate function for translating value to string
         """
@@ -287,7 +287,7 @@ def generate_ssl_debug_helpers(output_directory, mbedtls_root):
         if start in definitions:
             continue
         if isinstance(instance, EnumDefinition):
-            definition = instance.generate_tranlation_function()
+            definition = instance.generate_translation_function()
         else:
             definition = instance
         definitions[start] = definition

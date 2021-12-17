@@ -57,6 +57,7 @@ psa_status_t mbedtls_test_transparent_cipher_encrypt(
     const psa_key_attributes_t *attributes,
     const uint8_t *key, size_t key_length,
     psa_algorithm_t alg,
+    const uint8_t *iv, size_t iv_length,
     const uint8_t *input, size_t input_length,
     uint8_t *output, size_t output_size, size_t *output_length);
 
@@ -102,6 +103,7 @@ psa_status_t mbedtls_test_opaque_cipher_encrypt(
     const psa_key_attributes_t *attributes,
     const uint8_t *key, size_t key_length,
     psa_algorithm_t alg,
+    const uint8_t *iv, size_t iv_length,
     const uint8_t *input, size_t input_length,
     uint8_t *output, size_t output_size, size_t *output_length);
 

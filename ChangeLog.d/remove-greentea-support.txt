@@ -1,3 +1,0 @@
-Removals
-   * Remove the partial support for running unit tests via Greentea on Mbed OS,
-     which had been unmaintained since 2018.

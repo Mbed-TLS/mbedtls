@@ -1,4 +1,0 @@
-Changes
-   * Improve the performance of base64 constant-flow code. The result is still
-     slower than the original non-constant-flow implementation, but much faster
-     than the previous constant-flow implementation. Fixes #4814.

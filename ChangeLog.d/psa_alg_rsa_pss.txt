@@ -1,5 +1,0 @@
-Bugfix
-   * Fix PSA_ALG_RSA_PSS verification accepting an arbitrary salt length.
-     This algorithm now accepts only the same salt length for verification
-     that it produces when signing, as documented. Use the new algorithm
-     PSA_ALG_RSA_PSS_ANY_SALT to accept any salt length. Fixes #4946.

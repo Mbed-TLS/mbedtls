@@ -204,10 +204,8 @@ static int ssl_write_renegotiation_ext( mbedtls_ssl_context *ssl,
  */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-static int ssl_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
-                                               unsigned char *buf,
-                                               const unsigned char *end,
-                                               size_t *olen )
+static int ssl_write_sig_alg_ext( mbedtls_ssl_context *ssl, unsigned char *buf,
+                                  const unsigned char *end, size_t *olen )
 {
     unsigned char *p = buf;
     size_t sig_alg_len = 0;
@@ -1131,10 +1129,10 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-    if( ( ret = ssl_write_signature_algorithms_ext( ssl, p + 2 + ext_len,
-                                                    end, &olen ) ) != 0 )
+    if( ( ret = ssl_write_sig_alg_ext( ssl, p + 2 + ext_len,
+                                       end, &olen ) ) != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_signature_algorithms_ext", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_sig_algs_ext", ret );
         return( ret );
     }
     ext_len += olen;

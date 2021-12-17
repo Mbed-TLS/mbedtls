@@ -301,6 +301,10 @@ static int ssl_session_copy( mbedtls_ssl_session *dst, const mbedtls_ssl_session
     mbedtls_ssl_session_free( dst );
     memcpy( dst, src, sizeof( mbedtls_ssl_session ) );
 
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
+    dst->ticket = NULL;
+#endif
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     if( src->peer_cert != NULL )
     {

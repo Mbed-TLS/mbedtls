@@ -344,7 +344,7 @@ if(NOT DISABLE_PACKAGE_CONFIG_AND_INSTALL)
     write_basic_package_version_file(
         "cmake/MbedTLSConfigVersion.cmake"
             COMPATIBILITY SameMajorVersion
-            VERSION 3.0.0)
+            VERSION 3.1.0)
 
     install(
         FILES "${CMAKE_CURRENT_BINARY_DIR}/cmake/MbedTLSConfig.cmake"

@@ -1,4 +1,0 @@
-Bugfix
-   * Fix a bug in mbedtls_gcm_starts() when bits of iv are longer than 2^32.
-   * Fix #4884.
-

@@ -1,5 +1,184 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 3.1.0 branch released 2021-12-17
+
+API changes
+   * New error code for GCM: MBEDTLS_ERR_GCM_BUFFER_TOO_SMALL.
+     Alternative GCM implementations are expected to verify
+     the length of the provided output buffers and to return the
+     MBEDTLS_ERR_GCM_BUFFER_TOO_SMALL in case the buffer length is too small.
+   * You can configure groups for a TLS key exchange with the new function
+     mbedtls_ssl_conf_groups(). It extends mbedtls_ssl_conf_curves().
+   * Declare a number of structure fields as public: the fields of
+     mbedtls_ecp_curve_info, the fields describing the result of ASN.1 and
+     X.509 parsing, and finally the field fd of mbedtls_net_context on
+     POSIX/Unix-like platforms.
+
+Requirement changes
+   * Sign-magnitude and one's complement representations for signed integers are
+     not supported. Two's complement is the only supported representation.
+
+New deprecations
+   * Deprecate mbedtls_ssl_conf_curves() in favor of the more generic
+     mbedtls_ssl_conf_groups().
+
+Removals
+   * Remove the partial support for running unit tests via Greentea on Mbed OS,
+     which had been unmaintained since 2018.
+
+Features
+   * Enable support for Curve448 via the PSA API. Contributed by
+     Archana Madhavan in #4626. Fixes #3399 and #4249.
+   * The identifier of the CID TLS extension can be configured by defining
+     MBEDTLS_TLS_EXT_CID at compile time.
+   * Implement the PSA multipart AEAD interface, currently supporting
+     ChaChaPoly and GCM.
+   * Warn if errors from certain functions are ignored. This is currently
+     supported on GCC-like compilers and on MSVC and can be configured through
+     the macro MBEDTLS_CHECK_RETURN. The warnings are always enabled
+     (where supported) for critical functions where ignoring the return
+     value is almost always a bug. Enable the new configuration option
+     MBEDTLS_CHECK_RETURN_WARNING to get warnings for other functions. This
+     is currently implemented in the AES, DES and md modules, and will be
+     extended to other modules in the future.
+   * Add missing PSA macros declared by PSA Crypto API 1.0.0:
+     PSA_ALG_IS_SIGN_HASH, PSA_ALG_NONE, PSA_HASH_BLOCK_LENGTH, PSA_KEY_ID_NULL.
+   * Add support for CCM*-no-tag cipher to the PSA.
+     Currently only 13-byte long IV's are supported.
+     For decryption a minimum of 16-byte long input is expected.
+     These restrictions may be subject to change.
+   * Add new API mbedtls_ct_memcmp for constant time buffer comparison.
+   * Add functions to get the IV and block size from cipher_info structs.
+   * Add functions to check if a cipher supports variable IV or key size.
+   * Add the internal implementation of and support for CCM to the PSA multipart
+     AEAD interface.
+   * Mbed TLS provides a minimum viable implementation of the TLS 1.3
+     protocol. See docs/architecture/tls13-support.md for the definition of
+     the TLS 1.3 Minimum Viable Product (MVP). The MBEDTLS_SSL_PROTO_TLS1_3
+     configuration option controls the enablement of the support. The APIs
+     mbedtls_ssl_conf_min_version() and mbedtls_ssl_conf_max_version() allow
+     to select the 1.3 version of the protocol to establish a TLS connection.
+   * Add PSA API definition for ARIA.
+
+Security
+   * Zeroize several intermediate variables used to calculate the expected
+     value when verifying a MAC or AEAD tag. This hardens the library in
+     case the value leaks through a memory disclosure vulnerability. For
+     example, a memory disclosure vulnerability could have allowed a
+     man-in-the-middle to inject fake ciphertext into a DTLS connection.
+   * In psa_aead_generate_nonce(), do not read back from the output buffer.
+     This fixes a potential policy bypass or decryption oracle vulnerability
+     if the output buffer is in memory that is shared with an untrusted
+     application.
+   * In psa_cipher_generate_iv() and psa_cipher_encrypt(), do not read back
+     from the output buffer. This fixes a potential policy bypass or decryption
+     oracle vulnerability if the output buffer is in memory that is shared with
+     an untrusted application.
+   * Fix a double-free that happened after mbedtls_ssl_set_session() or
+     mbedtls_ssl_get_session() failed with MBEDTLS_ERR_SSL_ALLOC_FAILED
+     (out of memory). After that, calling mbedtls_ssl_session_free()
+     and mbedtls_ssl_free() would cause an internal session buffer to
+     be free()'d twice.
+
+Bugfix
+   * Stop using reserved identifiers as local variables. Fixes #4630.
+   * The GNU makefiles invoke python3 in preference to python except on Windows.
+     The check was accidentally not performed when cross-compiling for Windows
+     on Linux. Fix this. Fixes #4774.
+   * Prevent divide by zero if either of PSA_CIPHER_ENCRYPT_OUTPUT_SIZE() or
+     PSA_CIPHER_UPDATE_OUTPUT_SIZE() were called using an asymmetric key type.
+   * Fix a parameter set but unused in psa_crypto_cipher.c. Fixes #4935.
+   * Don't use the obsolete header path sys/fcntl.h in unit tests.
+     These header files cause compilation errors in musl.
+     Fixes #4969.
+   * Fix missing constraints on x86_64 and aarch64 assembly code
+     for bignum multiplication that broke some bignum operations with
+     (at least) Clang 12.
+     Fixes #4116, #4786, #4917, #4962.
+   * Fix mbedtls_cipher_crypt: AES-ECB when MBEDTLS_USE_PSA_CRYPTO is enabled.
+   * Failures of alternative implementations of AES or DES single-block
+     functions enabled with MBEDTLS_AES_ENCRYPT_ALT, MBEDTLS_AES_DECRYPT_ALT,
+     MBEDTLS_DES_CRYPT_ECB_ALT or MBEDTLS_DES3_CRYPT_ECB_ALT were ignored.
+     This does not concern the implementation provided with Mbed TLS,
+     where this function cannot fail, or full-module replacements with
+     MBEDTLS_AES_ALT or MBEDTLS_DES_ALT. Reported by Armelle Duboc in #1092.
+   * Some failures of HMAC operations were ignored. These failures could only
+     happen with an alternative implementation of the underlying hash module.
+   * Fix the error returned by psa_generate_key() for a public key. Fixes #4551.
+   * Fix compile-time or run-time errors in PSA
+     AEAD functions when ChachaPoly is disabled. Fixes #5065.
+   * Remove PSA'a AEAD finish/verify output buffer limitation for GCM.
+     The requirement of minimum 15 bytes for output buffer in
+     psa_aead_finish() and psa_aead_verify() does not apply to the built-in
+     implementation of GCM.
+   * Move GCM's update output buffer length verification from PSA AEAD to
+     the built-in implementation of the GCM.
+     The requirement for output buffer size to be equal or greater then
+     input buffer size is valid only for the built-in implementation of GCM.
+     Alternative GCM implementations can process whole blocks only.
+   * Fix the build of sample programs when neither MBEDTLS_ERROR_C nor
+     MBEDTLS_ERROR_STRERROR_DUMMY is enabled.
+   * Fix PSA_ALG_RSA_PSS verification accepting an arbitrary salt length.
+     This algorithm now accepts only the same salt length for verification
+     that it produces when signing, as documented. Use the new algorithm
+     PSA_ALG_RSA_PSS_ANY_SALT to accept any salt length. Fixes #4946.
+   * The existing predicate macro name PSA_ALG_IS_HASH_AND_SIGN is now reserved
+     for algorithm values that fully encode the hashing step, as per the PSA
+     Crypto API specification. This excludes PSA_ALG_RSA_PKCS1V15_SIGN_RAW and
+     PSA_ALG_ECDSA_ANY. The new predicate macro PSA_ALG_IS_SIGN_HASH covers
+     all algorithms that can be used with psa_{sign,verify}_hash(), including
+     these two.
+   * Fix issue in Makefile on Linux with SHARED=1, that caused shared libraries
+     not to list other shared libraries they need.
+   * Fix a bug in mbedtls_gcm_starts() when the bit length of the iv
+     exceeds 2^32. Fixes #4884.
+   * Fix an uninitialized variable warning in test_suite_ssl.function with GCC
+     version 11.
+   * Fix the build when no SHA2 module is included. Fixes #4930.
+   * Fix the build when only the bignum module is included. Fixes #4929.
+   * Fix a potential invalid pointer dereference and infinite loop bugs in
+     pkcs12 functions when the password is empty. Fix the documentation to
+     better describe the inputs to these functions and their possible values.
+     Fixes #5136.
+   * The key usage flags PSA_KEY_USAGE_SIGN_MESSAGE now allows the MAC
+     operations psa_mac_compute() and psa_mac_sign_setup().
+   * The key usage flags PSA_KEY_USAGE_VERIFY_MESSAGE now allows the MAC
+     operations psa_mac_verify() and psa_mac_verify_setup().
+
+Changes
+    * Explicitly mark the fields mbedtls_ssl_session.exported and
+      mbedtls_ssl_config.respect_cli_pref as private. This was an
+      oversight during the run-up to the release of Mbed TLS 3.0.
+      The fields were never intended to be public.
+   * Implement multi-part CCM API.
+     The multi-part functions: mbedtls_ccm_starts(), mbedtls_ccm_set_lengths(),
+     mbedtls_ccm_update_ad(), mbedtls_ccm_update(), mbedtls_ccm_finish()
+     were introduced in mbedTLS 3.0 release, however their implementation was
+     postponed until now.
+     Implemented functions support chunked data input for both CCM and CCM*
+     algorithms.
+   * Remove MBEDTLS_SSL_EXPORT_KEYS, making it always on and increasing the
+     code size by about 80B on an M0 build. This option only gated an ability
+     to set a callback, but was deemed unnecessary as it was yet another define
+     to remember when writing tests, or test configurations. Fixes #4653.
+   * Improve the performance of base64 constant-flow code. The result is still
+     slower than the original non-constant-flow implementation, but much faster
+     than the previous constant-flow implementation. Fixes #4814.
+   * Ignore plaintext/ciphertext lengths for CCM*-no-tag operations.
+     For CCM* encryption/decryption without authentication, input
+     length will be ignored.
+   * Indicate in the error returned if the nonce length used with
+     ChaCha20-Poly1305 is invalid, and not just unsupported.
+   * The mbedcrypto library includes a new source code module constant_time.c,
+     containing various functions meant to resist timing side channel attacks.
+     This module does not have a separate configuration option, and functions
+     from this module will be included in the build as required. Currently
+     most of the interface of this module is private and may change at any
+     time.
+   * The generated configuration-independent files are now automatically
+     generated by the CMake build system on Unix-like systems. This is not
+     yet supported when cross-compiling.
+
 = Mbed TLS 3.0.0 branch released 2021-07-07
 
 API changes

@@ -323,7 +323,7 @@ psa_crypto_driver_wrappers.c: ../scripts/generate_driver_wrappers.py
 psa_crypto_driver_wrappers.c: ../scripts/data_files/driver_templates/psa_crypto_driver_wrappers.c.jinja
 psa_crypto_driver_wrappers.c:
 	echo "  Gen   $@"
-	$(PYTHON) ../scripts/generate_driver_wrappers.py --mbedtls-root .. .
+	$(PYTHON) ../scripts/generate_driver_wrappers.py
 
 clean:
 ifndef WINDOWS

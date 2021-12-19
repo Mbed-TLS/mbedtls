@@ -49,19 +49,22 @@ def generate_driver_wrapper_file(mbedtls_root: str, output_dir: str) -> None:
 
     with open(os.path.join(output_dir, "psa_crypto_driver_wrappers.c"), 'w') as out_file:
         out_file.write(result)
-        out_file.close()
 
 def main() -> int:
     """
     Main with command line arguments.
     """
+    def_arg_mbedtls_root = build_tree.guess_mbedtls_root()
+    def_arg_output_dir = os.path.join(def_arg_mbedtls_root, 'library')
+
     parser = argparse.ArgumentParser()
-    parser.add_argument('--mbedtls-root', nargs='?', default=None,
+    parser.add_argument('--mbedtls-root', nargs='?', default=def_arg_mbedtls_root,
                         help='root directory of mbedtls source code')
     parser.add_argument('output_directory', nargs='?',
-                        default='library', help='output file\'s location')
+                        default=def_arg_output_dir, help='output file\'s location')
     args = parser.parse_args()
-    mbedtls_root = os.path.abspath(args.mbedtls_root or build_tree.guess_mbedtls_root())
+
+    mbedtls_root = os.path.abspath(args.mbedtls_root)
     output_directory = args.output_directory
 
     generate_driver_wrapper_file(mbedtls_root, output_directory)

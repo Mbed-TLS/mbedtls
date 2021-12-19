@@ -164,7 +164,6 @@ if(GEN_FILES)
         COMMAND
             ${MBEDTLS_PYTHON_EXECUTABLE}
                 ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/generate_driver_wrappers.py
-                --mbedtls-root ${CMAKE_CURRENT_SOURCE_DIR}/..
                 ${CMAKE_CURRENT_BINARY_DIR}
         DEPENDS
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/generate_driver_wrappers.py

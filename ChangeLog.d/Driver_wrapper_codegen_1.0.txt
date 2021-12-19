@@ -1,0 +1,6 @@
+Features
+   * Add support for driver wrapper codegen 1.0. This autogenerates
+     the file library/psa_crypto_driver_wrappers.c. Rev 1.0 does not
+     support any additional templating. For further info on how to
+     patch into the psa_crypto_driver_wrappers.c refer
+     docs/proposed/psa-driver-wrappers-codegen-migration-guide.md

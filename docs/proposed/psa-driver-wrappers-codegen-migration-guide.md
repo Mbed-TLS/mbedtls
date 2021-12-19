@@ -29,4 +29,4 @@ While that is the larger goal, for version 1.0 here's what's changed
 
 (1) psa_crypto_driver_wrappers.c will from this point on be auto generated.
 (2) The auto generation is based on the template file at scripts/data_files/driver_templates/psa_crypto_driver_wrappers.c.jinja.
-(3) So while all driver wrapper templating support is yet to come in, the library user will need to patch into the template file as needed.
+(3) So while all driver wrapper templating support is yet to come in, the library user will need to patch into the template file as needed, this could be read as replacing the template file with the current psa_crypto_driver_wrappers.c file maintained by the library user.

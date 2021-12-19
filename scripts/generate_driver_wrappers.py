@@ -1,35 +1,72 @@
 #!/usr/bin/env python3
-"""This script is required for the auto generation of the
-   psa_crypto_driver_wrappers.c file"""
+"""Generate library/psa_crypto_driver_wrappers.c
+
+   This module is invoked by the build sripts to auto generate the
+   psa_crypto_driver_wrappers.c based on template files in
+   script/data_files/driver_templates/.
+"""
+# Copyright The Mbed TLS Contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import sys
 import os
+import argparse
 import jinja2
+from mbedtls_dev import build_tree
 
 def render(template_path: str) -> str:
+    """
+    Render template from the input file.
+    """
     environment = jinja2.Environment(
         loader=jinja2.FileSystemLoader(os.path.dirname(template_path)),
         keep_trailing_newline=True)
     template = environment.get_template(os.path.basename(template_path))
+
     return template.render()
 
-N = len(sys.argv)
-if N != 2:
-# This is the Root directory.
-    ROOT_DIR = ""
-else:
-# Set the root based on the argument passed.
-    ROOT_DIR = sys.argv[1]
+def generate_driver_wrapper_file(mbedtls_root: str, output_dir: str) -> None:
+    """
+    Generate the file psa_crypto_driver_wrapper.c.
+    """
+    driver_wrapper_template_filename = \
+        os.path.join(mbedtls_root, 
+        "scripts/data_files/driver_templates/psa_crypto_driver_wrappers.conf")
 
-# Set template file name, output file name from the root directory
-DRIVER_WRAPPER_TEMPLATE_FILENAME = ROOT_DIR +\
-    "scripts/data_files/driver_templates/psa_crypto_driver_wrappers.conf"
-DRIVER_WRAPPER_OUTPUT_FILENAME = ROOT_DIR + "library/psa_crypto_driver_wrappers.c"
+    result = render(driver_wrapper_template_filename)
 
-# Render the template
-RESULT = render(DRIVER_WRAPPER_TEMPLATE_FILENAME)
+    with open(os.path.join(output_dir, "psa_crypto_driver_wrappers.c"), 'w') as out_file:
+        out_file.write(result)
+        out_file.close()
 
-# Write output to file
-OUT_FILE = open(DRIVER_WRAPPER_OUTPUT_FILENAME, "w")
-OUT_FILE.write(RESULT)
-OUT_FILE.close()
+def main() -> int:
+    """
+    Main with command line arguments.
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--mbedtls-root', nargs='?', default=None,
+                        help='root directory of mbedtls source code')
+    parser.add_argument('output_directory', nargs='?',
+                        default='library', help='output file\'s location')
+    args = parser.parse_args()
+    mbedtls_root = os.path.abspath(args.mbedtls_root or build_tree.guess_mbedtls_root())
+    output_directory = args.output_directory
+
+    generate_driver_wrapper_file(mbedtls_root, output_directory)
+
+    return 0
+
+if __name__ == '__main__':
+    sys.exit(main())

@@ -320,7 +320,7 @@ version_features.c:
 	$(PERL) ../scripts/generate_features.pl
 
 psa_crypto_driver_wrappers.c: ../scripts/generate_driver_wrappers.py
-psa_crypto_driver_wrappers.c: ../scripts/data_files/driver_templates/psa_crypto_driver_wrappers.conf
+psa_crypto_driver_wrappers.c: ../scripts/data_files/driver_templates/psa_crypto_driver_wrappers.c.jinja
 psa_crypto_driver_wrappers.c:
 	echo "  Gen   $@"
 	$(PYTHON) ../scripts/generate_driver_wrappers.py --mbedtls-root .. .

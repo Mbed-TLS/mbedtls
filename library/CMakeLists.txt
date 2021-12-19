@@ -168,7 +168,7 @@ if(GEN_FILES)
                 ${CMAKE_CURRENT_BINARY_DIR}
         DEPENDS
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/generate_driver_wrappers.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/data_files/driver_templates/psa_crypto_driver_wrappers.conf
+            ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/data_files/driver_templates/psa_crypto_driver_wrappers.c.jinja
     )
 
 

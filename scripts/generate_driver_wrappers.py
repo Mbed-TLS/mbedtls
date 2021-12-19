@@ -42,8 +42,8 @@ def generate_driver_wrapper_file(mbedtls_root: str, output_dir: str) -> None:
     Generate the file psa_crypto_driver_wrapper.c.
     """
     driver_wrapper_template_filename = \
-        os.path.join(mbedtls_root, 
-        "scripts/data_files/driver_templates/psa_crypto_driver_wrappers.conf")
+        os.path.join(mbedtls_root, \
+        "scripts/data_files/driver_templates/psa_crypto_driver_wrappers.c.jinja")
 
     result = render(driver_wrapper_template_filename)
 

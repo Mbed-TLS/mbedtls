@@ -7236,7 +7236,7 @@ static int ssl_check_group_type( const mbedtls_ssl_config *conf,
 
 int mbedtls_ssl_write_supported_groups_ext( mbedtls_ssl_context *ssl,
                                             unsigned char *buf,
-                                            unsigned char *end,
+                                            const unsigned char *end,
                                             size_t *out_len )
 {
     unsigned char *p = buf ;

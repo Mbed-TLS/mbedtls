@@ -1756,7 +1756,7 @@ static inline int mbedtls_ssl_tls13_named_group_is_dhe( uint16_t named_group )
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 int mbedtls_ssl_write_supported_groups_ext( mbedtls_ssl_context *ssl,
                                             unsigned char *buf,
-                                            unsigned char *end,
+                                            const unsigned char *end,
                                             size_t *out_len );
 
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */

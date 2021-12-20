@@ -317,7 +317,7 @@ static int ssl_parse_signature_algorithms_ext( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
-static int ssl_parse_supported_elliptic_curves( mbedtls_ssl_context *ssl,
+static int ssl_parse_supported_groups_ext( mbedtls_ssl_context *ssl,
                                                 const unsigned char *buf,
                                                 size_t len )
 {
@@ -1646,10 +1646,10 @@ read_record_header:
 
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
-            case MBEDTLS_TLS_EXT_SUPPORTED_ELLIPTIC_CURVES:
+            case MBEDTLS_TLS_EXT_SUPPORTED_GROUPS:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found supported elliptic curves extension" ) );
 
-                ret = ssl_parse_supported_elliptic_curves( ssl, ext + 4, ext_size );
+                ret = ssl_parse_supported_groups_ext( ssl, ext + 4, ext_size );
                 if( ret != 0 )
                     return( ret );
                 break;

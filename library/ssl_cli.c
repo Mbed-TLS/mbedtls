@@ -302,10 +302,10 @@ static int ssl_write_signature_algorithms_ext( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
-static int ssl_write_supported_elliptic_curves_ext( mbedtls_ssl_context *ssl,
-                                                    unsigned char *buf,
-                                                    const unsigned char *end,
-                                                    size_t *olen )
+static int ssl_write_supported_groups_ext( mbedtls_ssl_context *ssl,
+                                           unsigned char *buf,
+                                           const unsigned char *end,
+                                           size_t *olen )
 {
     unsigned char *p = buf;
     unsigned char *elliptic_curve_list = p + 6;
@@ -351,7 +351,7 @@ static int ssl_write_supported_elliptic_curves_ext( mbedtls_ssl_context *ssl,
     if( elliptic_curve_len == 0 )
         return( MBEDTLS_ERR_SSL_BAD_CONFIG );
 
-    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SUPPORTED_ELLIPTIC_CURVES, p, 0 );
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SUPPORTED_GROUPS, p, 0 );
     p += 2;
 
     MBEDTLS_PUT_UINT16_BE( elliptic_curve_len + 2, p, 0 );
@@ -1206,10 +1206,10 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     if( uses_ec )
     {
-        if( ( ret = ssl_write_supported_elliptic_curves_ext( ssl, p + 2 + ext_len,
-                                                             end, &olen ) ) != 0 )
+        if( ( ret = ssl_write_supported_groups_ext( ssl, p + 2 + ext_len,
+                                                    end, &olen ) ) != 0 )
         {
-            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_supported_elliptic_curves_ext", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_supported_groups_ext", ret );
             return( ret );
         }
         ext_len += olen;

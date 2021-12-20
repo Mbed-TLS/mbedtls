@@ -1852,7 +1852,7 @@ void asymmetric_encrypt_decrypt( data_t *key_data,
     /* We don't know what ciphertext length to expect, but check that
      * it looks sensible. */
     TEST_ASSERT( output_length <= output_size );
-    
+
     if ( expected_status_encrypt == PSA_SUCCESS )
     {
         if ( fake_output_encrypt->len > 0 )

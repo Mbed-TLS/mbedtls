@@ -4632,6 +4632,9 @@ int mbedtls_ssl_conf_dh_param_bin( mbedtls_ssl_config *conf,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
+    mbedtls_mpi_free( &conf->dhm_P );
+    mbedtls_mpi_free( &conf->dhm_G );
+
     if( ( ret = mbedtls_mpi_read_binary( &conf->dhm_P, dhm_P, P_len ) ) != 0 ||
         ( ret = mbedtls_mpi_read_binary( &conf->dhm_G, dhm_G, G_len ) ) != 0 )
     {
@@ -4646,6 +4649,9 @@ int mbedtls_ssl_conf_dh_param_bin( mbedtls_ssl_config *conf,
 int mbedtls_ssl_conf_dh_param_ctx( mbedtls_ssl_config *conf, mbedtls_dhm_context *dhm_ctx )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    mbedtls_mpi_free( &conf->dhm_P );
+    mbedtls_mpi_free( &conf->dhm_G );
 
     if( ( ret = mbedtls_mpi_copy( &conf->dhm_P, &dhm_ctx->P ) ) != 0 ||
         ( ret = mbedtls_mpi_copy( &conf->dhm_G, &dhm_ctx->G ) ) != 0 )

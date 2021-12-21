@@ -475,7 +475,7 @@ static int pk_use_ecparams( const mbedtls_asn1_buf *params, mbedtls_ecp_group *g
     }
 
     /*
-     * grp may already be initilialized; if so, make sure IDs match
+     * grp may already be initialized; if so, make sure IDs match
      */
     if( grp->id != MBEDTLS_ECP_DP_NONE && grp->id != grp_id )
         return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT );
@@ -808,7 +808,7 @@ static int pk_parse_key_pkcs1_der( mbedtls_rsa_context *rsa,
        goto cleanup;
 
 #else
-    /* Verify existance of the CRT params */
+    /* Verify existence of the CRT params */
     if( ( ret = asn1_get_nonzero_mpi( &p, end, &T ) ) != 0 ||
         ( ret = asn1_get_nonzero_mpi( &p, end, &T ) ) != 0 ||
         ( ret = asn1_get_nonzero_mpi( &p, end, &T ) ) != 0 )

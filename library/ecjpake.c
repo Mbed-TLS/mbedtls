@@ -449,7 +449,7 @@ cleanup:
 
 /*
  * Read a ECJPAKEKeyKPPairList (7.4.2.3) and check proofs
- * Ouputs: verified peer public keys Xa, Xb
+ * Outputs: verified peer public keys Xa, Xb
  */
 static int ecjpake_kkpp_read( const mbedtls_md_info_t *md_info,
                               const mbedtls_ecp_group *grp,

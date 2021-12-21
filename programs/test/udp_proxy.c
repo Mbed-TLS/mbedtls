@@ -1,5 +1,5 @@
 /*
- *  UDP proxy: emulate an unreliable UDP connexion for DTLS testing
+ *  UDP proxy: emulate an unreliable UDP connection for DTLS testing
  *
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0

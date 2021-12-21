@@ -37,7 +37,7 @@
 #include <string.h>
 
 /*
- * Initialze context
+ * Initialize context
  */
 void mbedtls_ssl_ticket_init( mbedtls_ssl_ticket_context *ctx )
 {

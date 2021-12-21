@@ -79,7 +79,7 @@ int mbedtls_ssl_tls13_start_handshake_msg( mbedtls_ssl_context *ssl,
                                            size_t *buf_len )
 {
     /*
-     * Reserve 4 bytes for hanshake header. ( Section 4,RFC 8446 )
+     * Reserve 4 bytes for handshake header. ( Section 4,RFC 8446 )
      *    ...
      *    HandshakeType msg_type;
      *    uint24 length;

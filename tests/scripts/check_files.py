@@ -187,7 +187,7 @@ class ShebangIssueTracker(FileIssueTracker):
     # Allow either /bin/sh, /bin/bash, or /usr/bin/env.
     # Allow at most one argument (this is a Linux limitation).
     # For sh and bash, the argument if present must be options.
-    # For env, the argument must be the base name of the interpeter.
+    # For env, the argument must be the base name of the interpreter.
     _shebang_re = re.compile(rb'^#! ?(?:/bin/(bash|sh)(?: -[^\n ]*)?'
                              rb'|/usr/bin/env ([^\n /]+))$')
     _extensions = {

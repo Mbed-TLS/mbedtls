@@ -89,8 +89,8 @@ List of certificates:
     _int-ca.crt: S7 + I1
     _int-ca_ca2.crt: S7 + I1 + 2
     _all_space.crt: S7 + I1 both with misplaced spaces (invalid PEM)
-    _pem_space.crt: S7 with misplace space (invalid PEM) + I1
-    _trailing_space.crt: S7 + I1 both with trainling space (valid PEM)
+    _pem_space.crt: S7 with misplaced space (invalid PEM) + I1
+    _trailing_space.crt: S7 + I1 both with trailing space (valid PEM)
     _spurious_int-ca.crt: S7 + I2(spurious) + I1
 - server8*.crt: I2 R L: RSA signed by EC signed by RSA (P1 for _int-ca2)
 - server9*.crt: 1 R C* L P1*: signed using RSASSA-PSS

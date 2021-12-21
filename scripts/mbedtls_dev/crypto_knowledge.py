@@ -151,5 +151,5 @@ class KeyType:
            signitute type.
 
         """
-        # This is just temporaly solution for the implicit usage flags.
+        # This is just temporary solution for the implicit usage flags.
         return re.match(self.KEY_TYPE_FOR_SIGNATURE[usage], self.name) is not None

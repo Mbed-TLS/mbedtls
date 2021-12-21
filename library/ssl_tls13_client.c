@@ -118,7 +118,7 @@ static int ssl_tls13_parse_supported_versions_ext( mbedtls_ssl_context *ssl,
 /*
  * Functions for writing supported_groups extension.
  *
- * Stucture of supported_groups:
+ * Structure of supported_groups:
  *      enum {
  *          secp256r1(0x0017), secp384r1(0x0018), secp521r1(0x0019),
  *          x25519(0x001D), x448(0x001E),

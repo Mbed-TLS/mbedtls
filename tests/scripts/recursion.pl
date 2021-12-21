@@ -4,7 +4,7 @@
 # (Multiple recursion where a() calls b() which calls a() not covered.)
 #
 # When the recursion depth might depend on data controlled by the attacker in
-# an unbounded way, those functions should use interation instead.
+# an unbounded way, those functions should use iteration instead.
 #
 # Typical usage: scripts/recursion.pl library/*.c
 #

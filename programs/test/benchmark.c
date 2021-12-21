@@ -180,7 +180,7 @@ do {                                                                    \
  *      awk '{print length+2}' | sort -rn | head -n1
  *
  * This computes the maximum length of a title +2 (because we appends "/s").
- * (If the value is too small, the only consequence is poor alignement.) */
+ * (If the value is too small, the only consequence is poor alignment.) */
 #define TITLE_SPACE 16
 
 #define MEMORY_MEASURE_INIT                                             \

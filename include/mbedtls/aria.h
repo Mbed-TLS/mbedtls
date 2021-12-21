@@ -41,7 +41,7 @@
 #define MBEDTLS_ARIA_DECRYPT     0 /**< ARIA decryption. */
 
 #define MBEDTLS_ARIA_BLOCKSIZE   16 /**< ARIA block size in bytes. */
-#define MBEDTLS_ARIA_MAX_ROUNDS  16 /**< Maxiumum number of rounds in ARIA. */
+#define MBEDTLS_ARIA_MAX_ROUNDS  16 /**< Maximum number of rounds in ARIA. */
 #define MBEDTLS_ARIA_MAX_KEYSIZE 32 /**< Maximum size of an ARIA key in bytes. */
 
 /** Bad input data. */

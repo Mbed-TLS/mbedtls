@@ -175,7 +175,7 @@ psa_status_t mbedtls_psa_hash_update(
  * This function calculates the hash of the message formed by concatenating
  * the inputs passed to preceding calls to mbedtls_psa_hash_update().
  *
- * When this function returns successfuly, the operation becomes inactive.
+ * When this function returns successfully, the operation becomes inactive.
  * If this function returns an error status, the operation enters an error
  * state and must be aborted by calling mbedtls_psa_hash_abort().
  *

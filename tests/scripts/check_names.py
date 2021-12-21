@@ -813,7 +813,7 @@ class NameChecker():
 
     def check_for_typos(self):
         """
-        Perform a check that all words in the soure code beginning with MBED are
+        Perform a check that all words in the source code beginning with MBED are
         either defined as macros, or as enum constants.
         Assumes parse_names_in_source() was called before this.
 

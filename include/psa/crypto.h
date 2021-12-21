@@ -1032,7 +1032,7 @@ psa_status_t psa_hash_update(psa_hash_operation_t *operation,
  * This function calculates the hash of the message formed by concatenating
  * the inputs passed to preceding calls to psa_hash_update().
  *
- * When this function returns successfuly, the operation becomes inactive.
+ * When this function returns successfully, the operation becomes inactive.
  * If this function returns an error status, the operation enters an error
  * state and must be aborted by calling psa_hash_abort().
  *
@@ -1083,7 +1083,7 @@ psa_status_t psa_hash_finish(psa_hash_operation_t *operation,
  * compares the calculated hash with the expected hash passed as a
  * parameter to this function.
  *
- * When this function returns successfuly, the operation becomes inactive.
+ * When this function returns successfully, the operation becomes inactive.
  * If this function returns an error status, the operation enters an error
  * state and must be aborted by calling psa_hash_abort().
  *
@@ -1474,7 +1474,7 @@ psa_status_t psa_mac_update(psa_mac_operation_t *operation,
  * This function calculates the MAC of the message formed by concatenating
  * the inputs passed to preceding calls to psa_mac_update().
  *
- * When this function returns successfuly, the operation becomes inactive.
+ * When this function returns successfully, the operation becomes inactive.
  * If this function returns an error status, the operation enters an error
  * state and must be aborted by calling psa_mac_abort().
  *
@@ -1528,7 +1528,7 @@ psa_status_t psa_mac_sign_finish(psa_mac_operation_t *operation,
  * compares the calculated MAC with the expected MAC passed as a
  * parameter to this function.
  *
- * When this function returns successfuly, the operation becomes inactive.
+ * When this function returns successfully, the operation becomes inactive.
  * If this function returns an error status, the operation enters an error
  * state and must be aborted by calling psa_mac_abort().
  *
@@ -1993,7 +1993,7 @@ psa_status_t psa_cipher_update(psa_cipher_operation_t *operation,
  * formed by concatenating the inputs passed to preceding calls to
  * psa_cipher_update().
  *
- * When this function returns successfuly, the operation becomes inactive.
+ * When this function returns successfully, the operation becomes inactive.
  * If this function returns an error status, the operation enters an error
  * state and must be aborted by calling psa_cipher_abort().
  *
@@ -2668,7 +2668,7 @@ psa_status_t psa_aead_update(psa_aead_operation_t *operation,
  *   preceding calls to psa_aead_update().
  * - \p tag contains the authentication tag.
  *
- * When this function returns successfuly, the operation becomes inactive.
+ * When this function returns successfully, the operation becomes inactive.
  * If this function returns an error status, the operation enters an error
  * state and must be aborted by calling psa_aead_abort().
  *
@@ -2760,7 +2760,7 @@ psa_status_t psa_aead_finish(psa_aead_operation_t *operation,
  * plaintext and reports success. If the authentication tag is not correct,
  * this function returns #PSA_ERROR_INVALID_SIGNATURE.
  *
- * When this function returns successfuly, the operation becomes inactive.
+ * When this function returns successfully, the operation becomes inactive.
  * If this function returns an error status, the operation enters an error
  * state and must be aborted by calling psa_aead_abort().
  *
@@ -3060,7 +3060,7 @@ psa_status_t psa_sign_hash(mbedtls_svc_key_id_t key,
  * \retval #PSA_ERROR_INVALID_HANDLE
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_SIGNATURE
- *         The calculation was perfomed successfully, but the passed
+ *         The calculation was performed successfully, but the passed
  *         signature is not a valid signature.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
@@ -3084,7 +3084,7 @@ psa_status_t psa_verify_hash(mbedtls_svc_key_id_t key,
 /**
  * \brief Encrypt a short message with a public key.
  *
- * \param key                   Identifer of the key to use for the operation.
+ * \param key                   Identifier of the key to use for the operation.
  *                              It must be a public key or an asymmetric key
  *                              pair. It must allow the usage
  *                              #PSA_KEY_USAGE_ENCRYPT.

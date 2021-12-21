@@ -1,4 +1,4 @@
-Check compiletime library version
+Check compile time library version
 check_compiletime_version:"3.1.0"
 
 Check runtime library version

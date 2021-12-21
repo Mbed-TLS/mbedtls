@@ -179,7 +179,7 @@ do {                                                                    \
  *
  * This computes the maximum length of a title +3, because we appends "/s" and
  * want at least one space. (If the value is too small, the only consequence
- * is poor alignement.) */
+ * is poor alignment.) */
 #define TITLE_SPACE 17
 
 #define MEMORY_MEASURE_INIT                                             \

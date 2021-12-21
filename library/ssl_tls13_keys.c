@@ -1110,7 +1110,7 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
     transform->tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
 
     /* We add the true record content type (1 Byte) to the plaintext and
-     * then pad to the configured granularity. The mimimum length of the
+     * then pad to the configured granularity. The minimum length of the
      * type-extended and padded plaintext is therefore the padding
      * granularity. */
     transform->minlen =
@@ -1425,7 +1425,7 @@ int mbedtls_ssl_tls13_generate_application_keys(
     hash_alg = mbedtls_psa_translate_md( handshake->ciphersuite_info->mac );
     hash_len = PSA_HASH_LENGTH( hash_alg );
 
-    /* Compute current handshake transcript. It's the caller's responsiblity
+    /* Compute current handshake transcript. It's the caller's responsibility
      * to call this at the right time, that is, after the ServerFinished. */
 
     ret = mbedtls_ssl_get_handshake_transcript( ssl, md_type,

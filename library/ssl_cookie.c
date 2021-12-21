@@ -62,7 +62,7 @@
 
 /*
  * Cookies are formed of a 4-bytes timestamp (or serial number) and
- * an HMAC of timestemp and client ID.
+ * an HMAC of timestamp and client ID.
  */
 #define COOKIE_LEN      ( 4 + COOKIE_HMAC_LEN )
 

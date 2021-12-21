@@ -37,7 +37,7 @@ class CodeSizeComparison:
         """
         old_revision: revision to compare against
         new_revision:
-        result_dir: directory for comparision result
+        result_dir: directory for comparison result
         """
         self.repo_path = "."
         self.result_dir = os.path.abspath(result_dir)
@@ -140,7 +140,7 @@ class CodeSizeComparison:
                                      + "-" + self.new_rev + ".csv"), "w")
 
         res_file.write("file_name, this_size, old_size, change, change %\n")
-        print("Generating comparision results.")
+        print("Generating comparison results.")
 
         old_ds = {}
         for line in old_file.readlines()[1:]:
@@ -199,7 +199,7 @@ def main():
     parser.add_argument(
         "-n", "--new-rev", type=str, default=None,
         help="new revision for comparison, default is the current work \
-              directory, including uncommited changes."
+              directory, including uncommitted changes."
     )
     comp_args = parser.parse_args()
 

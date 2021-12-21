@@ -90,7 +90,7 @@ int mbedtls_ssl_cookie_setup( mbedtls_ssl_cookie_ctx *ctx,
  * \brief          Set expiration delay for cookies
  *                 (Default MBEDTLS_SSL_COOKIE_TIMEOUT)
  *
- * \param ctx      Cookie contex
+ * \param ctx      Cookie context
  * \param delay    Delay, in seconds if HAVE_TIME, or in number of cookies
  *                 issued in the meantime.
  *                 0 to disable expiration (NOT recommended)

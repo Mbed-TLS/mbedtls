@@ -913,7 +913,7 @@ static psa_status_t psa_get_and_lock_key_slot_with_policy(
         goto error;
     }
 
-    /* Enforce that the usage policy permits the requested algortihm. */
+    /* Enforce that the usage policy permits the requested algorithm. */
     if( alg != 0 )
     {
         status = psa_key_policy_permits( &slot->attr.policy,

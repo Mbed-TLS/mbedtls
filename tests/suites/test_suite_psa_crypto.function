@@ -834,7 +834,7 @@ void import_large_key( int type_arg, int byte_size_arg,
     size_t n;
 
     /* Skip the test case if the target running the test cannot
-     * accomodate large keys due to heap size constraints */
+     * accommodate large keys due to heap size constraints */
     ASSERT_ALLOC_WEAK( buffer, buffer_size );
     memset( buffer, 'K', byte_size );
 
@@ -1198,7 +1198,7 @@ void key_attributes_init( )
     /* Test each valid way of initializing the object, except for `= {0}`, as
      * Clang 5 complains when `-Wmissing-field-initializers` is used, even
      * though it's OK by the C standard. We could test for this, but we'd need
-     * to supress the Clang warning for the test. */
+     * to suppress the Clang warning for the test. */
     psa_key_attributes_t func = psa_key_attributes_init( );
     psa_key_attributes_t init = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_attributes_t zero;
@@ -1989,7 +1989,7 @@ void hash_operation_init( )
     /* Test each valid way of initializing the object, except for `= {0}`, as
      * Clang 5 complains when `-Wmissing-field-initializers` is used, even
      * though it's OK by the C standard. We could test for this, but we'd need
-     * to supress the Clang warning for the test. */
+     * to suppress the Clang warning for the test. */
     psa_hash_operation_t func = psa_hash_operation_init( );
     psa_hash_operation_t init = PSA_HASH_OPERATION_INIT;
     psa_hash_operation_t zero;
@@ -2518,7 +2518,7 @@ void mac_operation_init( )
     /* Test each valid way of initializing the object, except for `= {0}`, as
      * Clang 5 complains when `-Wmissing-field-initializers` is used, even
      * though it's OK by the C standard. We could test for this, but we'd need
-     * to supress the Clang warning for the test. */
+     * to suppress the Clang warning for the test. */
     psa_mac_operation_t func = psa_mac_operation_init( );
     psa_mac_operation_t init = PSA_MAC_OPERATION_INIT;
     psa_mac_operation_t zero;
@@ -2941,7 +2941,7 @@ void cipher_operation_init( )
     /* Test each valid way of initializing the object, except for `= {0}`, as
      * Clang 5 complains when `-Wmissing-field-initializers` is used, even
      * though it's OK by the C standard. We could test for this, but we'd need
-     * to supress the Clang warning for the test. */
+     * to suppress the Clang warning for the test. */
     psa_cipher_operation_t func = psa_cipher_operation_init( );
     psa_cipher_operation_t init = PSA_CIPHER_OPERATION_INIT;
     psa_cipher_operation_t zero;
@@ -5964,7 +5964,7 @@ void sign_hash_deterministic( int key_type_arg, data_t *key_data,
     PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
     key_bits = psa_get_key_bits( &attributes );
 
-    /* Allocate a buffer which has the size advertized by the
+    /* Allocate a buffer which has the size advertised by the
      * library. */
     signature_size = PSA_SIGN_OUTPUT_SIZE( key_type,
                                                       key_bits, alg );
@@ -6063,7 +6063,7 @@ void sign_verify_hash( int key_type_arg, data_t *key_data,
     PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
     key_bits = psa_get_key_bits( &attributes );
 
-    /* Allocate a buffer which has the size advertized by the
+    /* Allocate a buffer which has the size advertised by the
      * library. */
     signature_size = PSA_SIGN_OUTPUT_SIZE( key_type,
                                                       key_bits, alg );
@@ -6697,7 +6697,7 @@ void key_derivation_init( )
     /* Test each valid way of initializing the object, except for `= {0}`, as
      * Clang 5 complains when `-Wmissing-field-initializers` is used, even
      * though it's OK by the C standard. We could test for this, but we'd need
-     * to supress the Clang warning for the test. */
+     * to suppress the Clang warning for the test. */
     size_t capacity;
     psa_key_derivation_operation_t func = psa_key_derivation_operation_init( );
     psa_key_derivation_operation_t init = PSA_KEY_DERIVATION_OPERATION_INIT;
@@ -7617,7 +7617,7 @@ void key_agreement_capacity( int alg_arg,
                                                     NULL, 0 ) );
     }
 
-    /* Test the advertized capacity. */
+    /* Test the advertised capacity. */
     PSA_ASSERT( psa_key_derivation_get_capacity(
                     &operation, &actual_capacity ) );
     TEST_EQUAL( actual_capacity, (size_t) expected_capacity_arg );

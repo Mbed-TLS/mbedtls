@@ -4580,7 +4580,7 @@ run_test    "Renegotiation: DTLS, gnutls server, client-initiated" \
             -C "error" \
             -s "Extra-header:"
 
-# Test for the "secure renegotation" extension only (no actual renegotiation)
+# Test for the "secure renegotiation" extension only (no actual renegotiation)
 
 requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
@@ -5317,7 +5317,7 @@ run_test    "Authentication, CA callback: client max_int chain, server required"
             -s "use CA callback for X.509 CRT verification" \
             -S "X509 - A fatal error occurred"
 
-# Tests for certificate selection based on SHA verson
+# Tests for certificate selection based on SHA version
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
 run_test    "Certificate hash: client TLS 1.2 -> SHA-2" \
@@ -9068,7 +9068,7 @@ run_test    "DTLS fragmenting: gnutls server, DTLS 1.2" \
 # certificate obtained from the server. Here, however, it
 # connects to 127.0.0.1 while our test certificates use 'localhost'
 # as the server name in the certificate. This will make the
-# certifiate validation fail, but passing --insecure makes
+# certificate validation fail, but passing --insecure makes
 # GnuTLS continue the connection nonetheless.
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C

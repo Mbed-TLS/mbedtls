@@ -1080,7 +1080,7 @@ void pk_rsa_alt(  )
     memset( ciph, 0, sizeof ciph );
     memset( test, 0, sizeof test );
 
-    /* Initiliaze PK RSA context with random key */
+    /* Initialize PK RSA context with random key */
     TEST_ASSERT( mbedtls_pk_setup( &rsa,
                               mbedtls_pk_info_from_type( MBEDTLS_PK_RSA ) ) == 0 );
     TEST_ASSERT( pk_genkey( &rsa, RSA_KEY_SIZE ) == 0 );

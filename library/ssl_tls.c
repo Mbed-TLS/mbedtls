@@ -3429,7 +3429,7 @@ void mbedtls_ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl )
     ssl->handshake = NULL;
 
     /*
-     * Free the previous transform and swith in the current one
+     * Free the previous transform and switch in the current one
      */
     if( ssl->transform )
     {

@@ -1583,7 +1583,7 @@ read_record_header:
      * Handshake layer:
      *     0  .   0   handshake type
      *     1  .   3   handshake length
-     *     4  .   5   DTLS only: message seqence number
+     *     4  .   5   DTLS only: message sequence number
      *     6  .   8   DTLS only: fragment offset
      *     9  .  11   DTLS only: fragment length
      */
@@ -4208,7 +4208,7 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
         }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        /* For opaque PSKs, we perform the PSK-to-MS derivation atomatically
+        /* For opaque PSKs, we perform the PSK-to-MS derivation automatically
          * and skip the intermediate PMS. */
         if( ssl_use_opaque_psk( ssl ) == 1 )
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "skip PMS generation for opaque PSK" ) );

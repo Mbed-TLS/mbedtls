@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the PSA Cryto API compliance test suite.
+"""Run the PSA Crypto API compliance test suite.
 Clone the repo and check out the commit specified by PSA_ARCH_TEST_REPO and PSA_ARCH_TEST_REF,
 then complie and run the test suite. The clone is stored at <Mbed TLS root>/psa-arch-tests.
 Known defects in either the test suite or mbedtls - identified by their test number - are ignored,

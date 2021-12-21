@@ -67,7 +67,7 @@ int main( int argc, char** argv )
 
     if( argc != 2 )
     {
-        mbedtls_printf( "This program takes exactly 1 agument\n" );
+        mbedtls_printf( "This program takes exactly 1 argument\n" );
         usage();
         mbedtls_exit( exit_code );
     }

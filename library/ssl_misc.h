@@ -1735,7 +1735,7 @@ static inline int mbedtls_ssl_named_group_is_ecdhe( uint16_t named_group )
      * RFC 4492 section 5.1.1
      */
     return( named_group >= MBEDTLS_SSL_IANA_TLS_GROUP_SECT163K1 &&
-            named_group <= MBEDTLS_SSL_IANA_TLS_GROUP_SECP521R1 );
+            named_group < MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048 );
 }
 
 static inline int mbedtls_ssl_tls13_named_group_is_ecdhe( uint16_t named_group )

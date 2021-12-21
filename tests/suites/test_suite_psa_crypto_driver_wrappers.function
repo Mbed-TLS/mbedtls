@@ -215,19 +215,24 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECDSA:PSA_WANT_KEY_TYPE_ECC_KEY_PAIR:PSA_WANT_ECC_SECP_R1_256:PSA_WANT_ALG_SHA_256 */
-void ecdsa_verify_message( int force_status_arg,
-                           int register_public_key,
-                           data_t *key_input,
-                           data_t *data_input,
-                           data_t *signature_input,
-                           int expected_status_arg )
+/* BEGIN_CASE */
+void verify_message( int key_type_arg,
+                     int key_type_public_arg,
+                     int alg_arg,
+                     int force_status_arg,
+                     int register_public_key,
+                     data_t *key_input,
+                     data_t *data_input,
+                     data_t *signature_input,
+                     int expected_status_arg )
 {
     psa_status_t force_status = force_status_arg;
     psa_status_t expected_status = expected_status_arg;
+    psa_algorithm_t alg = alg_arg;
+    psa_key_type_t key_type = key_type_arg;
+    psa_key_type_t key_type_public = key_type_public_arg;
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_algorithm_t alg = PSA_ALG_ECDSA( PSA_ALG_SHA_256 );
     psa_status_t actual_status;
     mbedtls_test_driver_signature_verify_hooks =
         mbedtls_test_driver_signature_hooks_init();
@@ -235,8 +240,7 @@ void ecdsa_verify_message( int force_status_arg,
     PSA_ASSERT( psa_crypto_init( ) );
     if( register_public_key )
     {
-        psa_set_key_type( &attributes,
-                      PSA_KEY_TYPE_ECC_PUBLIC_KEY( PSA_ECC_FAMILY_SECP_R1 ) );
+        psa_set_key_type( &attributes, key_type_public );
         psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_MESSAGE );
         psa_set_key_algorithm( &attributes, alg );
         psa_import_key( &attributes,
@@ -245,8 +249,7 @@ void ecdsa_verify_message( int force_status_arg,
     }
     else
     {
-        psa_set_key_type( &attributes,
-                      PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 ) );
+        psa_set_key_type( &attributes, key_type );
         psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_MESSAGE );
         psa_set_key_algorithm( &attributes, alg );
         psa_import_key( &attributes,

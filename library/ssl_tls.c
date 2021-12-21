@@ -7189,7 +7189,9 @@ int mbedtls_ssl_get_handshake_transcript( mbedtls_ssl_context *ssl,
 }
 #endif /* !MBEDTLS_USE_PSA_CRYPTO */
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED) || \
+    defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 /*
  * Functions for writing supported_groups extension.
  *
@@ -7214,7 +7216,7 @@ int mbedtls_ssl_get_handshake_transcript( mbedtls_ssl_context *ssl,
 static int ssl_check_group_type( const mbedtls_ssl_config *conf,
                                  const uint16_t group )
 {
-#if defined(MBEDTLS_ECDH_C)
+#if defined(MBEDTLS_ECP_C)
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( mbedtls_ssl_conf_is_tls12_only( conf )
         && mbedtls_ssl_named_group_is_ecdhe( group ) )
@@ -7226,8 +7228,10 @@ static int ssl_check_group_type( const mbedtls_ssl_config *conf,
         && mbedtls_ssl_tls13_named_group_is_ecdhe( group ) )
         return( SSL_GROUP_IS_ECDHE );
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
-
+#else
+    ((void) conf);
 #endif /* MBEDTLS_ECDH_C */
+
     if( mbedtls_ssl_tls13_named_group_is_dhe( group ) )
         return( SSL_GROUP_IS_DHE );
 
@@ -7267,10 +7271,12 @@ int mbedtls_ssl_write_supported_groups_ext( mbedtls_ssl_context *ssl,
 
     for ( ; *group_list != 0; group_list++ )
     {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ("got supported group(%04x)",*group_list));
         int group_type = ssl_check_group_type( ssl->conf, *group_list );
         if( group_type == SSL_GROUP_IS_UNSUPPORTED )
             continue;
-#if defined(MBEDTLS_ECDH_C)
+        MBEDTLS_SSL_DEBUG_MSG( 1, ("add supported group(%04x)",*group_list));
+#if defined(MBEDTLS_ECP_C)
         if( group_type == SSL_GROUP_IS_ECDHE )
         {
             const mbedtls_ecp_curve_info *curve_info;
@@ -7320,6 +7326,8 @@ int mbedtls_ssl_write_supported_groups_ext( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED ||
+          MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C ||
+          MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #endif /* MBEDTLS_SSL_TLS_C */

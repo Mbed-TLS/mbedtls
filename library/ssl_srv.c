@@ -2793,27 +2793,32 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
      */
     if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
     {
-        const int *cur;
-
         /*
          * Supported signature algorithms
          */
-        for( cur = mbedtls_ssl_conf_get_sig_algs( ssl->conf );
-             *cur != MBEDTLS_MD_NONE; cur++ )
+        for( const uint16_t *sig_alg = mbedtls_ssl_conf_get_sig_algs( ssl->conf );
+             *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
         {
-            unsigned char hash = mbedtls_ssl_hash_from_md_alg( *cur );
+            /* High byte is hash */
+            unsigned char hash = ( *sig_alg >> 8 ) & 0xff;
+            unsigned char sig = ( *sig_alg ) & 0xff;
 
             if( MBEDTLS_SSL_HASH_NONE == hash || mbedtls_ssl_set_calc_verify_md( ssl, hash ) )
                 continue;
+#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_ECDSA_C)
+            if( sig != MBEDTLS_SSL_SIG_RSA && sig != MBEDTLS_SSL_SIG_ECDSA )
+                continue;
+#elif defined(MBEDTLS_RSA_C)
+            if( sig != MBEDTLS_SSL_SIG_RSA )
+                continue;
+#elif defined(MBEDTLS_ECDSA_C)
+            if( sig != MBEDTLS_SSL_SIG_ECDSA )
+                continue;
+#endif
 
-#if defined(MBEDTLS_RSA_C)
-            p[2 + sa_len++] = hash;
-            p[2 + sa_len++] = MBEDTLS_SSL_SIG_RSA;
-#endif
-#if defined(MBEDTLS_ECDSA_C)
-            p[2 + sa_len++] = hash;
-            p[2 + sa_len++] = MBEDTLS_SSL_SIG_ECDSA;
-#endif
+            MBEDTLS_PUT_UINT16_BE( *sig_alg, p, sa_len );
+            sa_len += 2;
+
         }
 
         MBEDTLS_PUT_UINT16_BE( sa_len, p, 0 );

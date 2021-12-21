@@ -1823,7 +1823,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void asymmetric_encrypt_decrypt( data_t *key_data,
+void asymmetric_encrypt_decrypt( int alg_arg,
+                                 data_t *key_data,
                                  data_t *input_data,
                                  data_t *label,
                                  data_t *fake_output_encrypt,
@@ -1835,7 +1836,7 @@ void asymmetric_encrypt_decrypt( data_t *key_data,
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t key_type = PSA_KEY_TYPE_RSA_KEY_PAIR;
-    psa_algorithm_t alg = PSA_ALG_RSA_PKCS1V15_CRYPT;
+    psa_algorithm_t alg = alg_arg;
     size_t key_bits;
     unsigned char *output = NULL;
     size_t output_size;

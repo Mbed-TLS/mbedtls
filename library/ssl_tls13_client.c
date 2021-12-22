@@ -135,6 +135,7 @@ static int ssl_tls13_parse_supported_versions_ext( mbedtls_ssl_context *ssl,
  *  } KeyShare;
  */
 
+#if defined(MBEDTLS_ECDH_C)
 static int ssl_reset_ecdhe_share( mbedtls_ssl_context *ssl )
 {
     mbedtls_ecdh_free( &ssl->handshake->ecdh_ctx );
@@ -156,6 +157,13 @@ static int ssl_reset_key_share( mbedtls_ssl_context *ssl )
 
     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 }
+#else
+static int ssl_reset_key_share( mbedtls_ssl_context *ssl )
+{
+    ((void) ssl);
+    return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+}
+#endif /* MBEDTLS_ECDH_C */
 
 /*
  * Functions for writing key_share extension.
@@ -1445,7 +1453,7 @@ static int ssl_hrr_parse( mbedtls_ssl_context *ssl,
             case MBEDTLS_TLS_EXT_KEY_SHARE:
             {
                 /* Variables for parsing the key_share */
-                const mbedtls_ecp_group_id* grp_id;
+                const uint16_t* grp_id;
                 const mbedtls_ecp_curve_info *curve_info = NULL;
                 int tls_id;
                 int found = 0;
@@ -1460,13 +1468,14 @@ static int ssl_hrr_parse( mbedtls_ssl_context *ssl,
                  * MUST first verify that the selected_group field corresponds to a
                  * group which was provided in the "supported_groups" extension in the
                  * original ClientHello.
-                 * The supported_group was based on the info in ssl->conf->curve_list.
+                 * The supported_group was based on the info in ssl->conf->group_list.
                  *
                  * If the server provided a key share that was not sent in the ClientHello
-                 * then the client MUST abort the handshake with an "illegal_parameter" alert. */
-                for( grp_id = ssl->conf->curve_list; *grp_id != MBEDTLS_ECP_DP_NONE; grp_id++ )
+                 * then the client MUST abort the handshake with an "illegal_parameter" alert.
+                 */
+                for( grp_id = ssl->conf->group_list; *grp_id != MBEDTLS_ECP_DP_NONE; grp_id++ )
                 {
-                    curve_info = mbedtls_ecp_curve_info_from_grp_id( *grp_id );
+                    curve_info = mbedtls_ecp_curve_info_from_tls_id( *grp_id );
                     if( curve_info == NULL || curve_info->tls_id != tls_id )
                         continue;
 
@@ -1480,7 +1489,8 @@ static int ssl_hrr_parse( mbedtls_ssl_context *ssl,
                  * extension in the original ClientHello. If the server sent an
                  * HRR message with a key share already provided in the
                  * ClientHello then the client MUST abort the handshake with
-                 * an "illegal_parameter" alert. */
+                 * an "illegal_parameter" alert.
+                 */
                 if( found == 0 || tls_id == ssl->handshake->offered_group_id )
                 {
                     MBEDTLS_SSL_DEBUG_MSG( 1, ( "Invalid key share in HRR" ) );
@@ -1513,7 +1523,9 @@ static int ssl_hrr_parse( mbedtls_ssl_context *ssl,
 
 static int ssl_hrr_postprocess( mbedtls_ssl_context *ssl )
 {
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
     if( ssl->handshake->hello_retry_requests_received > 0 )
     {
@@ -1545,9 +1557,11 @@ static int ssl_hrr_postprocess( mbedtls_ssl_context *ssl )
      * key share writing, we can confine this to the case where the server
      * requested a different share.
      */
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     ret = ssl_reset_key_share( ssl );
     if( ret != 0 )
         return( ret );
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
     return( 0 );
 }
@@ -1840,8 +1854,6 @@ static int ssl_tls13_write_change_cipher_spec( mbedtls_ssl_context *ssl )
     if( ret != 0 )
         return( ret );
 
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_FINISHED );
-
     return( 0 );
 }
 #endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
@@ -1952,6 +1964,7 @@ int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl )
          */
 #if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
         case MBEDTLS_SSL_CLIENT_CCS_AFTER_SERVER_FINISHED:
+        case MBEDTLS_SSL_CLIENT_CCS_BEFORE_2ND_CLIENT_HELLO:
             ret = ssl_tls13_write_change_cipher_spec( ssl );
             break;
 #endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */

@@ -209,7 +209,7 @@ static int ssl_write_sig_alg_ext( mbedtls_ssl_context *ssl, unsigned char *buf,
 {
     unsigned char *p = buf;
     size_t sig_alg_len = 0;
-    const int *md;
+    const int *md = mbedtls_ssl_conf_get_sig_algs( ssl->conf );
 
 #if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECDSA_C)
     unsigned char *sig_alg_list = buf + 6;
@@ -223,10 +223,10 @@ static int ssl_write_sig_alg_ext( mbedtls_ssl_context *ssl, unsigned char *buf,
     MBEDTLS_SSL_DEBUG_MSG( 3,
         ( "client hello, adding signature_algorithms extension" ) );
 
-    if( ssl->conf->sig_hashes == NULL )
+    if( md == NULL )
         return( MBEDTLS_ERR_SSL_BAD_CONFIG );
 
-    for( md = ssl->conf->sig_hashes; *md != MBEDTLS_MD_NONE; md++ )
+    for( ; *md != MBEDTLS_MD_NONE; md++ )
     {
 #if defined(MBEDTLS_ECDSA_C)
         sig_alg_len += 2;
@@ -253,7 +253,8 @@ static int ssl_write_sig_alg_ext( mbedtls_ssl_context *ssl, unsigned char *buf,
      */
     sig_alg_len = 0;
 
-    for( md = ssl->conf->sig_hashes; *md != MBEDTLS_MD_NONE; md++ )
+    for( md = mbedtls_ssl_conf_get_sig_algs( ssl->conf );
+         *md != MBEDTLS_MD_NONE; md++ )
     {
 #if defined(MBEDTLS_ECDSA_C)
         sig_alg_list[sig_alg_len++] = mbedtls_ssl_hash_from_md_alg( *md );

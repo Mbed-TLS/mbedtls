@@ -6858,12 +6858,12 @@ int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_i
 int mbedtls_ssl_check_sig_hash( const mbedtls_ssl_context *ssl,
                                 mbedtls_md_type_t md )
 {
-    const int *cur;
+    const int *cur = mbedtls_ssl_conf_get_sig_algs( ssl->conf );
 
-    if( ssl->conf->sig_hashes == NULL )
+    if( cur == NULL )
         return( -1 );
 
-    for( cur = ssl->conf->sig_hashes; *cur != MBEDTLS_MD_NONE; cur++ )
+    for( ; *cur != MBEDTLS_MD_NONE; cur++ )
         if( *cur == (int) md )
             return( 0 );
 

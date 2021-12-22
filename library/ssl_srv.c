@@ -2798,7 +2798,8 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
         /*
          * Supported signature algorithms
          */
-        for( cur = ssl->conf->sig_hashes; *cur != MBEDTLS_MD_NONE; cur++ )
+        for( cur = mbedtls_ssl_conf_get_sig_algs( ssl->conf );
+             *cur != MBEDTLS_MD_NONE; cur++ )
         {
             unsigned char hash = mbedtls_ssl_hash_from_md_alg( *cur );
 

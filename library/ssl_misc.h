@@ -1812,5 +1812,28 @@ int mbedtls_ssl_write_supported_groups_ext( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED ||
           MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C ||
           MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
+/*
+ * Return supported sig_algs.
+ */
+static inline const void *mbedtls_ssl_conf_get_sig_algs(
+                                                const mbedtls_ssl_config *conf )
+{
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    if( mbedtls_ssl_conf_is_tls12_only( conf ))
+        return( conf->sig_hashes );
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    if( mbedtls_ssl_conf_is_tls13_only( conf ))
+        return( conf->tls13_sig_algs );
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+
+    ((void) conf);
+    return NULL;
+}
 
 #endif /* ssl_misc.h */

@@ -24,6 +24,7 @@
 #include "mbedtls/rsa.h"
 #include "psa_crypto_rsa.h"
 #include "string.h"
+#include "test/drivers/asym.h"
 
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
 #include "libtestdriver1/library/psa_crypto_rsa_crypto.h"

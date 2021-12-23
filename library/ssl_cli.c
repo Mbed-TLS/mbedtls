@@ -21,6 +21,8 @@
 
 #if defined(MBEDTLS_SSL_CLI_C)
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
@@ -89,76 +91,6 @@ static int ssl_conf_has_static_raw_psk( mbedtls_ssl_config const *conf )
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
-
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-int mbedtls_ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
-                                    unsigned char *buf,
-                                    const unsigned char *end,
-                                    size_t *olen )
-{
-    unsigned char *p = buf;
-    size_t hostname_len;
-
-    *olen = 0;
-
-    if( ssl->hostname == NULL )
-        return( 0 );
-
-    MBEDTLS_SSL_DEBUG_MSG( 3,
-        ( "client hello, adding server name extension: %s",
-          ssl->hostname ) );
-
-    hostname_len = strlen( ssl->hostname );
-
-    MBEDTLS_SSL_CHK_BUF_PTR( p, end, hostname_len + 9 );
-
-    /*
-     * Sect. 3, RFC 6066 (TLS Extensions Definitions)
-     *
-     * In order to provide any of the server names, clients MAY include an
-     * extension of type "server_name" in the (extended) client hello. The
-     * "extension_data" field of this extension SHALL contain
-     * "ServerNameList" where:
-     *
-     * struct {
-     *     NameType name_type;
-     *     select (name_type) {
-     *         case host_name: HostName;
-     *     } name;
-     * } ServerName;
-     *
-     * enum {
-     *     host_name(0), (255)
-     * } NameType;
-     *
-     * opaque HostName<1..2^16-1>;
-     *
-     * struct {
-     *     ServerName server_name_list<1..2^16-1>
-     * } ServerNameList;
-     *
-     */
-    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SERVERNAME, p, 0 );
-    p += 2;
-
-    MBEDTLS_PUT_UINT16_BE( hostname_len + 5, p, 0 );
-    p += 2;
-
-    MBEDTLS_PUT_UINT16_BE( hostname_len + 3, p, 0 );
-    p += 2;
-
-    *p++ = MBEDTLS_BYTE_0( MBEDTLS_TLS_EXT_SERVERNAME_HOSTNAME );
-
-    MBEDTLS_PUT_UINT16_BE( hostname_len, p, 0 );
-    p += 2;
-
-    memcpy( p, ssl->hostname, hostname_len );
-
-    *olen = hostname_len + 9;
-
-    return( 0 );
-}
-#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
 static int ssl_write_renegotiation_ext( mbedtls_ssl_context *ssl,
@@ -1028,8 +960,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     ext_len += olen;
 #endif
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
-    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     if( ( ret = mbedtls_ssl_write_sig_alg_ext( ssl, p + 2 + ext_len,
                                                end, &olen ) ) != 0 )
     {
@@ -1037,7 +968,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
         return( ret );
     }
     ext_len += olen;
-#endif
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
@@ -2573,13 +2504,11 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
         return( ret );
     }
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( len_bytes == 2 )
     {
         MBEDTLS_PUT_UINT16_BE( *olen, ssl->out_msg, offset );
         *olen += 2;
     }
-#endif
 
 #if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     /* We don't need the peer's public key anymore. Free it. */
@@ -2590,7 +2519,6 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_KEY_EXCHANGE_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED */
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                       \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
@@ -2655,7 +2583,6 @@ static int ssl_parse_signature_algorithm( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
@@ -2931,10 +2858,8 @@ start_processing:
 #endif
         mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
         mbedtls_pk_type_t pk_alg = MBEDTLS_PK_NONE;
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
         unsigned char *params = ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl );
         size_t params_len = p - params;
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
         void *rs_ctx = NULL;
 
         mbedtls_pk_context * peer_pk;
@@ -2942,7 +2867,6 @@ start_processing:
         /*
          * Handle the digitally-signed structure
          */
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
         if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
         {
             if( ssl_parse_signature_algorithm( ssl, &p, end,
@@ -2970,7 +2894,6 @@ start_processing:
             }
         }
         else
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
@@ -3007,7 +2930,6 @@ start_processing:
         /*
          * Compute the hash that has been signed
          */
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
         if( md_alg != MBEDTLS_MD_NONE )
         {
             ret = mbedtls_ssl_get_key_exchange_md_tls1_2( ssl, hash, &hashlen,
@@ -3017,7 +2939,6 @@ start_processing:
                 return( ret );
         }
         else
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
@@ -3213,7 +3134,6 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
     }
 
     /* supported_signature_algorithms */
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
     {
         size_t sig_alg_len =
@@ -3259,7 +3179,6 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
 
         n += 2 + sig_alg_len;
     }
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
     /* certificate_authorities */
     dn_len = ( ( buf[mbedtls_ssl_hs_hdr_len( ssl ) + 1 + n] <<  8 )
@@ -3818,7 +3737,6 @@ sign:
 
     ssl->handshake->calc_verify( ssl, hash, &hashlen );
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
     {
         /*
@@ -3854,7 +3772,6 @@ sign:
         offset = 2;
     }
     else
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
@@ -4138,4 +4055,7 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
 
     return( ret );
 }
+
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
 #endif /* MBEDTLS_SSL_CLI_C */

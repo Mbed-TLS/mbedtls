@@ -632,6 +632,7 @@ static mbedtls_tls_prf_types tls_prf_get_type( mbedtls_ssl_tls_prf_cb *tls_prf )
     else
 #endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+    ((void) tls_prf);
     return( MBEDTLS_SSL_TLS_PRF_NONE );
 }
 
@@ -1121,8 +1122,11 @@ static int ssl_set_handshake_prfs( mbedtls_ssl_handshake_params *handshake,
                                    int minor_ver,
                                    mbedtls_md_type_t hash )
 {
-#if !defined(MBEDTLS_SSL_PROTO_TLS1_2) || !defined(MBEDTLS_SHA384_C)
+#if !defined(MBEDTLS_SSL_PROTO_TLS1_2) || \
+    !( defined(MBEDTLS_SHA384_C) || defined(MBEDTLS_SHA256_C) )
     (void) hash;
+    (void) handshake;
+    (void) minor_ver;
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
@@ -2001,9 +2005,8 @@ static int ssl_srv_check_client_no_crt_notification( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "TLSv1 client has no certificate" ) );
         return( 0 );
     }
-
-    return( -1 );
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+    return( -1 );
 }
 #endif /* MBEDTLS_SSL_SRV_C */
 
@@ -2458,6 +2461,7 @@ void mbedtls_ssl_optimize_checksum( mbedtls_ssl_context *ssl,
 
 void mbedtls_ssl_reset_checksum( mbedtls_ssl_context *ssl )
 {
+    ((void) ssl);
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_SHA256_C)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -2481,6 +2485,9 @@ void mbedtls_ssl_reset_checksum( mbedtls_ssl_context *ssl )
 static void ssl_update_checksum_start( mbedtls_ssl_context *ssl,
                                        const unsigned char *buf, size_t len )
 {
+    ((void) ssl);
+    ((void) buf);
+    ((void) len);
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_SHA256_C)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -5198,6 +5205,7 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
     return( ssl_session_save( session, 0, buf, buf_len, olen ) );
 }
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 /*
  * Deserialize session, see mbedtls_ssl_session_save() for format.
  *
@@ -5402,6 +5410,7 @@ static int ssl_session_load_tls12( mbedtls_ssl_session *session,
 
     return( 0 );
 }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 static int ssl_session_load( mbedtls_ssl_session *session,
                              unsigned char omit_header,
@@ -6212,6 +6221,10 @@ typedef int (*tls_prf_fn)( const unsigned char *secret, size_t slen,
                            unsigned char *dstbuf, size_t dlen );
 static tls_prf_fn ssl_tls12prf_from_cs( int ciphersuite_id )
 {
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+/* TODO: This function has some problem when
+    !MBEDTLS_SHA384_C && !MBEDTLS_SHA256_C && MBEDTLS_SHA512_C
+*/
 #if defined(MBEDTLS_SHA384_C)
     const mbedtls_ssl_ciphersuite_t * const ciphersuite_info =
          mbedtls_ssl_ciphersuite_from_id( ciphersuite_id );
@@ -6222,6 +6235,11 @@ static tls_prf_fn ssl_tls12prf_from_cs( int ciphersuite_id )
     (void) ciphersuite_id;
 #endif
     return( tls_prf_sha256 );
+#else
+    ((void) ciphersuite_id);
+    return NULL;
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
 }
 
 /*
@@ -7593,16 +7611,21 @@ int mbedtls_ssl_get_handshake_transcript( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SHA384_C)
     case MBEDTLS_MD_SHA384:
         return( ssl_get_handshake_transcript_sha384( ssl, dst, dst_len, olen ) );
-#endif /* MBEDTLS_SHA384_C */
+#endif /* MBEDTLS_SHA384_C && MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #if defined(MBEDTLS_SHA256_C)
     case MBEDTLS_MD_SHA256:
         return( ssl_get_handshake_transcript_sha256( ssl, dst, dst_len, olen ) );
-#endif /* MBEDTLS_SHA256_C */
+#endif /* MBEDTLS_SHA256_C && MBEDTLS_SSL_PROTO_TLS1_2*/
 
     default:
         break;
     }
+    ((void) ssl);
+    ((void) md);
+    ((void) dst);
+    ((void) dst_len);
+    ((void) olen);
     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 }
 

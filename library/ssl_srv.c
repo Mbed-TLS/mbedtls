@@ -2956,9 +2956,11 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
         ssl->handshake->ciphersuite_info;
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PFS_ENABLED)
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_SERVER_SIGNATURE_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_SERVER_SIGNATURE_ENABLED) && \
+    defined(MBEDTLS_SSL_PROTO_TLS1_2)
     unsigned char *dig_signed = NULL;
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_SERVER_SIGNATURE_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_SERVER_SIGNATURE_ENABLED &&
+          MBEDTLS_SSL_PROTO_TLS1_2 */
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PFS_ENABLED */
 
     (void) ciphersuite_info; /* unused in some configurations */
@@ -3064,7 +3066,8 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
             return( ret );
         }
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_SERVER_SIGNATURE_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_SERVER_SIGNATURE_ENABLED) && \
+    defined(MBEDTLS_SSL_PROTO_TLS1_2)
         dig_signed = ssl->out_msg + ssl->out_msglen;
 #endif
 
@@ -3130,7 +3133,8 @@ curve_matching_done:
             return( ret );
         }
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_SERVER_SIGNATURE_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_SERVER_SIGNATURE_ENABLED) && \
+    defined(MBEDTLS_SSL_PROTO_TLS1_2)
         dig_signed = ssl->out_msg + ssl->out_msglen;
 #endif
 
@@ -3150,7 +3154,9 @@ curve_matching_done:
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_SERVER_SIGNATURE_ENABLED)
     if( mbedtls_ssl_ciphersuite_uses_server_signature( ciphersuite_info ) )
     {
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
         size_t dig_signed_len = ssl->out_msg + ssl->out_msglen - dig_signed;
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
         size_t hashlen = 0;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         unsigned char hash[PSA_HASH_MAX_SIZE];
@@ -3165,7 +3171,7 @@ curve_matching_done:
          *      to choose appropriate hash.
          */
 
-        mbedtls_md_type_t md_alg;
+        mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
         mbedtls_pk_type_t sig_alg =

@@ -2931,8 +2931,10 @@ start_processing:
 #endif
         mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
         mbedtls_pk_type_t pk_alg = MBEDTLS_PK_NONE;
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
         unsigned char *params = ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl );
         size_t params_len = p - params;
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
         void *rs_ctx = NULL;
 
         mbedtls_pk_context * peer_pk;

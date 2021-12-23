@@ -9039,7 +9039,6 @@ run_test    "TLS 1.3: Not supported version check: tls12 and tls13" \
             -s "Hybrid TLS 1.2 + TLS 1.3 configurations are not yet supported" \
             -c "Hybrid TLS 1.2 + TLS 1.3 configurations are not yet supported"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 run_test    "TLS 1.3: handshake dispatch test: tls13 only" \
             "$P_SRV debug_level=2 min_version=tls13 max_version=tls13" \

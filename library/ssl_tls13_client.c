@@ -1415,10 +1415,9 @@ static int ssl_tls13_process_certificate_request( mbedtls_ssl_context *ssl )
     if( ( ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE ) &&
         ( ssl->in_msg[0] == MBEDTLS_SSL_HS_CERTIFICATE_REQUEST ) )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "CertificateRequest not supported" ) );
-        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
-                                      MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+        ret = mbedtls_ssl_tls13_process_certificate_request( ssl );
+        if( ret != 0 )
+            return( ret );
     }
 
     ssl->keep_current_message = 1;

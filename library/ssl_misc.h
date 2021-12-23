@@ -556,6 +556,13 @@ struct mbedtls_ssl_handshake_params
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     unsigned char retransmit_state;     /*!<  Retransmission state           */
 #endif
+    /*
+     * Handshake specific crypto variables
+     */
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    int recv_sig_schemes_list[MBEDTLS_PK_SIGNATURE_MAX_SIZE];
+                                    /*!<  Received signature algorithms */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
     unsigned char group_list_heap_allocated;
@@ -801,6 +808,12 @@ struct mbedtls_ssl_handshake_params
     int extensions_present;             /*!< extension presence; Each bitfield
                                              represents an extension and defined
                                              as \c MBEDTLS_SSL_EXT_XXX */
+
+#if defined(MBEDTLS_ECDSA_C)
+    unsigned char cert_req_ctx_len;     /*!< certificate request context
+                                             length */
+    unsigned char* cert_req_ctx;        /*!< certificate request context */
+#endif
 
     union
     {
@@ -1686,6 +1699,11 @@ int mbedtls_ssl_tls13_start_handshake_msg( mbedtls_ssl_context *ssl,
                                            unsigned hs_type,
                                            unsigned char **buf,
                                            size_t *buf_len );
+
+/*
+ * Handler of TLS 1.3 server certificate request message
+ */
+int mbedtls_ssl_tls13_process_certificate_request( mbedtls_ssl_context *ssl );
 
 /*
  * Handler of TLS 1.3 server certificate message

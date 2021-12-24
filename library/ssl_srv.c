@@ -318,8 +318,8 @@ static int ssl_parse_signature_algorithms_ext( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 static int ssl_parse_supported_groups_ext( mbedtls_ssl_context *ssl,
-                                                const unsigned char *buf,
-                                                size_t len )
+                                           const unsigned char *buf,
+                                           size_t len )
 {
     size_t list_size, our_size;
     const unsigned char *p;

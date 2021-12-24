@@ -1,0 +1,13 @@
+[{
+    "prefix":       "mbedtls_test",
+    "type":         "transparent",
+    "headers":      ["test/drivers/test_driver.h"],
+    "capabilities": [
+        {
+            "_comment":     "The mbedTLS transparent driver supports import key/export key/export_public key",
+            "depend_on":    "defined(PSA_CRYPTO_DRIVER_TEST)",
+            "entry_points": ["import_key", "export_key", "export_public_key"],
+            "fallback":     true
+        }
+    ]
+}]

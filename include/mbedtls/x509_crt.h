@@ -955,8 +955,8 @@ void mbedtls_x509_crt_restart_free( mbedtls_x509_crt_restart_ctx *ctx );
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-/* \} name */
-/* \} addtogroup x509_module */
+/** \} name Structures and functions for parsing and writing X.509 certificates */
+/** \} addtogroup x509_module */
 
 #if defined(MBEDTLS_X509_CRT_WRITE_C)
 /**

@@ -256,7 +256,7 @@
  */
 //#define MBEDTLS_DEPRECATED_REMOVED
 
-/* \} name SECTION: System support */
+/** \} name SECTION: System support */
 
 /**
  * \name SECTION: mbed TLS feature support
@@ -1829,7 +1829,7 @@
  * Comment this macro to disallow using RSASSA-PSS in certificates.
  */
 #define MBEDTLS_X509_RSASSA_PSS_SUPPORT
-/* \} name SECTION: mbed TLS feature support */
+/** \} name SECTION: mbed TLS feature support */
 
 /**
  * \name SECTION: mbed TLS modules
@@ -3021,7 +3021,7 @@
  */
 #define MBEDTLS_X509_CSR_WRITE_C
 
-/* \} name SECTION: mbed TLS modules */
+/** \} name SECTION: mbed TLS modules */
 
 /**
  * \name SECTION: Module configuration options
@@ -3319,4 +3319,4 @@
  */
 //#define MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
 
-/* \} name SECTION: Customisation configuration options */
+/** \} name SECTION: Customisation configuration options */

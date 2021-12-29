@@ -118,7 +118,7 @@
 
 #if defined(MBEDTLS_HAVE_SSE2)
 
-#define MULADDC_HUIT                            \
+#define MULADDC_FAST8                            \
         "movd     %%ecx,     %%mm1      \n\t"   \
         "movd     %%ebx,     %%mm0      \n\t"   \
         "movd     (%%edi),   %%mm3      \n\t"   \
@@ -284,7 +284,7 @@
         : "d0", "d1", "d2", "d3", "d4", "a2", "a3"  \
     );
 
-#define MULADDC_HUIT                        \
+#define MULADDC_FAST8                        \
         "movel  %%a2@+,  %%d1       \n\t"   \
         "mulul  %%d2,    %%d4:%%d1  \n\t"   \
         "addxl  %%d3,    %%d1       \n\t"   \
@@ -843,7 +843,7 @@
 
 #define EMIT __asm _emit
 
-#define MULADDC_HUIT                            \
+#define MULADDC_FAST8                            \
     EMIT 0x0F  EMIT 0x6E  EMIT 0xC9             \
     EMIT 0x0F  EMIT 0x6E  EMIT 0xC3             \
     EMIT 0x0F  EMIT 0x6E  EMIT 0x1F             \

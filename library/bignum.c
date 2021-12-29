@@ -1405,26 +1405,33 @@ void mpi_mul_hlp( size_t i,
      *
      * Also, on 32-bit platforms, 256-bit numbers are 8 limbs, and this is a
      * common size for ECC, widely used on constrained platforms.
+     *
+     * Use optimized 8/4/2-times version if available.
      */
-#if defined(MULADDC_FAST8)
-    for( ; i >= 8; i -= 8 )
-    {
-        MULADDC_INIT
-        MULADDC_FAST8
-        MULADDC_STOP
-    }
-#else /* MULADDC_FAST8 */
-    for( ; i >= 8; i -= 8 )
-    {
-        MULADDC_INIT
-        MULADDC_CORE   MULADDC_CORE
-        MULADDC_CORE   MULADDC_CORE
+#if defined(MULADDC_FAST2)
+#define MULADDC_2   MULADDC_FAST2
+#else
+#define MULADDC_2   MULADDC_CORE MULADDC_CORE
+#endif
 
-        MULADDC_CORE   MULADDC_CORE
-        MULADDC_CORE   MULADDC_CORE
+#if defined(MULADDC_FAST4)
+#define MULADDC_4   MULADDC_FAST4
+#else
+#define MULADDC_4   MULADDC_2 MULADDC_2
+#endif
+
+#if defined(MULADDC_FAST8)
+#define MULADDC_8   MULADDC_FAST8
+#else
+#define MULADDC_8   MULADDC_4 MULADDC_4
+#endif
+
+    for( ; i >= 8; i -= 8 )
+    {
+        MULADDC_INIT
+        MULADDC_8
         MULADDC_STOP
     }
-#endif /* MULADDC_FAST8 */
 
     for( ; i > 0; i-- )
     {

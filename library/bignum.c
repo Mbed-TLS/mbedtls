@@ -1394,6 +1394,18 @@ void mpi_mul_hlp( size_t i,
 {
     mbedtls_mpi_uint c = 0, t = 0;
 
+    /*
+     * Unroll 8 times; this provides a reasonable compromise across platforms.
+     *
+     * Unrolling less hurts performance of FFDH/RSA on some platforms (for
+     * example, unrolling 4 rather than 8 times decreases perfomance by around
+     * 12% on Cortex-M4 cores). Unrolling more increase the code size linearly
+     * (for example, unrolling 16 rather than 8 times would increase the code
+     * size by around 250 bytes on Cortex-M0).
+     *
+     * Also, on 32-bit platforms, 256-bit numbers are 8 limbs, and this is a
+     * common size for ECC, widely used on constrained platforms.
+     */
 #if defined(MULADDC_HUIT)
     for( ; i >= 8; i -= 8 )
     {
@@ -1401,29 +1413,7 @@ void mpi_mul_hlp( size_t i,
         MULADDC_HUIT
         MULADDC_STOP
     }
-
-    for( ; i > 0; i-- )
-    {
-        MULADDC_INIT
-        MULADDC_CORE
-        MULADDC_STOP
-    }
 #else /* MULADDC_HUIT */
-    for( ; i >= 16; i -= 16 )
-    {
-        MULADDC_INIT
-        MULADDC_CORE   MULADDC_CORE
-        MULADDC_CORE   MULADDC_CORE
-        MULADDC_CORE   MULADDC_CORE
-        MULADDC_CORE   MULADDC_CORE
-
-        MULADDC_CORE   MULADDC_CORE
-        MULADDC_CORE   MULADDC_CORE
-        MULADDC_CORE   MULADDC_CORE
-        MULADDC_CORE   MULADDC_CORE
-        MULADDC_STOP
-    }
-
     for( ; i >= 8; i -= 8 )
     {
         MULADDC_INIT
@@ -1434,6 +1424,7 @@ void mpi_mul_hlp( size_t i,
         MULADDC_CORE   MULADDC_CORE
         MULADDC_STOP
     }
+#endif /* MULADDC_HUIT */
 
     for( ; i > 0; i-- )
     {
@@ -1441,7 +1432,6 @@ void mpi_mul_hlp( size_t i,
         MULADDC_CORE
         MULADDC_STOP
     }
-#endif /* MULADDC_HUIT */
 
     t++;
 

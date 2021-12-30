@@ -252,7 +252,6 @@ typedef struct mbedtls_x509_time
 mbedtls_x509_time;
 
 /** \} name Structures for parsing X.509 certificates, CRLs and CSRs */
-/** \} addtogroup x509_module */
 
 /**
  * \brief          Store the certificate DN in printable form into buf;
@@ -307,6 +306,8 @@ int mbedtls_x509_time_is_past( const mbedtls_x509_time *to );
  *                 0 otherwise.
  */
 int mbedtls_x509_time_is_future( const mbedtls_x509_time *from );
+
+/** \} addtogroup x509_module */
 
 /*
  * Internal module functions. You probably do not want to use these unless you

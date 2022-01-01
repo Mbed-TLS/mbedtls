@@ -1138,6 +1138,19 @@ cleanup:
     return( ret );
 }
 
+static inline int mbedtls_mpi_mul_int_mod( const mbedtls_ecp_group *grp,
+                                           mbedtls_mpi *X,
+                                           const mbedtls_mpi *A,
+                                           mbedtls_mpi_uint c )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_int( X, A, c ) );
+    MOD_ADD( *X );
+cleanup:
+    return( ret );
+}
+
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED) && \
     !( defined(MBEDTLS_ECP_NO_FALLBACK) && \
        defined(MBEDTLS_ECP_DOUBLE_JAC_ALT) && \
@@ -1372,17 +1385,17 @@ static int ecp_double_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     if( grp->A.p == NULL )
     {
         /* M = 3(X + Z^2)(X - Z^2) */
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &S,  &P->Z,  &P->Z   ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_add_mod( grp, &T,  &P->X,  &S      ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mod( grp, &U,  &P->X,  &S      ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &S,  &T,     &U      ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_int( &M,  &S,     3       ) ); MOD_ADD( M );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod(     grp, &S,  &P->Z,  &P->Z   ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_add_mod(     grp, &T,  &P->X,  &S      ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mod(     grp, &U,  &P->X,  &S      ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod(     grp, &S,  &T,     &U      ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_int_mod( grp, &M,  &S,     3       ) );
     }
     else
     {
         /* M = 3.X^2 */
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &S,  &P->X,  &P->X   ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_int( &M,  &S,     3       ) ); MOD_ADD( M );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod    ( grp, &S,  &P->X,  &P->X   ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_int_mod( grp, &M,  &S,     3       ) );
 
         /* Optimize away for "koblitz" curves with A = 0 */
         if( mbedtls_mpi_cmp_int( &grp->A, 0 ) != 0 )

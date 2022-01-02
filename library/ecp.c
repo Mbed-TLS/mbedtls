@@ -1194,30 +1194,25 @@ static int ecp_normalize_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *p
     return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
 #else
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    mbedtls_mpi Zi, ZZi;
-    mbedtls_mpi_init( &Zi ); mbedtls_mpi_init( &ZZi );
+    mbedtls_mpi T;
+    mbedtls_mpi_init( &T );
 
-    /*
-     * X = X / Z^2  mod p
-     */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( &Zi,      &pt->Z,     &grp->P ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &ZZi,     &Zi,        &Zi     ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &pt->X,   &pt->X,     &ZZi    ) );
+    /* T   <-          1 / Z   */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( &T,     &pt->Z, &grp->P ) );
+    /* Y'  <- Y*T    = Y / Z   */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &pt->Y, &pt->Y, &T ) );
+    /* T   <- T^2    = 1 / Z^2 */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &T,     &T,     &T ) );
+    /* X   <- X  * T = X / Z^2 */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &pt->X, &pt->X, &T ) );
+    /* Y'' <- Y' * T = Y / Z^3 */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &pt->Y, &pt->Y, &T ) );
 
-    /*
-     * Y = Y / Z^3  mod p
-     */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &pt->Y,   &pt->Y,     &ZZi    ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &pt->Y,   &pt->Y,     &Zi     ) );
-
-    /*
-     * Z = 1
-     */
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->Z, 1 ) );
 
 cleanup:
 
-    mbedtls_mpi_free( &Zi ); mbedtls_mpi_free( &ZZi );
+    mbedtls_mpi_free( &T );
 
     return( ret );
 #endif /* !defined(MBEDTLS_ECP_NO_FALLBACK) || !defined(MBEDTLS_ECP_NORMALIZE_JAC_ALT) */

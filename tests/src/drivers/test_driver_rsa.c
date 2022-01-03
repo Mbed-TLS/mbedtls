@@ -27,7 +27,7 @@
 #include "test/drivers/asym.h"
 
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
-#include "libtestdriver1/library/psa_crypto_rsa_crypto.h"
+#include "libtestdriver1/library/psa_crypto_rsa.h"
 #endif
 
 mbedtls_test_driver_rsa_hooks_t mbedtls_test_driver_rsa_hooks =

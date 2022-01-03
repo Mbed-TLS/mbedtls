@@ -940,9 +940,8 @@ component_test_full_cmake_gcc_asan () {
 }
 
 component_test_psa_crypto_key_id_encodes_owner () {
-    msg "build: full config - USE_PSA_CRYPTO + PSA_CRYPTO_KEY_ID_ENCODES_OWNER, cmake, gcc, ASan"
+    msg "build: full config + PSA_CRYPTO_KEY_ID_ENCODES_OWNER, cmake, gcc, ASan"
     scripts/config.py full
-    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py set MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
@@ -960,9 +959,8 @@ check_renamed_symbols () {
 }
 
 component_build_psa_crypto_spm () {
-    msg "build: full config - USE_PSA_CRYPTO + PSA_CRYPTO_KEY_ID_ENCODES_OWNER + PSA_CRYPTO_SPM, make, gcc"
+    msg "build: full config + PSA_CRYPTO_KEY_ID_ENCODES_OWNER + PSA_CRYPTO_SPM, make, gcc"
     scripts/config.py full
-    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py unset MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS
     scripts/config.py set MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
     scripts/config.py set MBEDTLS_PSA_CRYPTO_SPM

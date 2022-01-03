@@ -4815,13 +4815,15 @@ void test_multiple_psks_opaque( int mode )
     unsigned char psk0_raw[10] = { 0 };
     unsigned char psk0_raw_identity[] = { 'f', 'o', 'o' };
 
-    psa_key_id_t psk0_opaque = (psa_key_id_t) 1;
+    mbedtls_svc_key_id_t psk0_opaque = mbedtls_svc_key_id_make( 0x1, (psa_key_id_t) 1 );
+
     unsigned char psk0_opaque_identity[] = { 'f', 'o', 'o' };
 
     unsigned char psk1_raw[10] = { 0 };
     unsigned char psk1_raw_identity[] = { 'b', 'a', 'r' };
 
-    psa_key_id_t psk1_opaque = (psa_key_id_t) 2;
+    mbedtls_svc_key_id_t psk1_opaque = mbedtls_svc_key_id_make( 0x1, (psa_key_id_t) 2 );
+
     unsigned char psk1_opaque_identity[] = { 'b', 'a', 'r' };
 
     mbedtls_ssl_config conf;

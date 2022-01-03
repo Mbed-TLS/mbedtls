@@ -333,7 +333,7 @@ static void handle_buffer_resizing( mbedtls_ssl_context *ssl, int downsizing,
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 
 static psa_status_t setup_psa_key_derivation( psa_key_derivation_operation_t* derivation,
-                                              psa_key_id_t key,
+                                              mbedtls_svc_key_id_t key,
                                               psa_algorithm_t alg,
                                               const unsigned char* seed, size_t seed_length,
                                               const unsigned char* label, size_t label_length,
@@ -393,7 +393,7 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
 {
     psa_status_t status;
     psa_algorithm_t alg;
-    psa_key_id_t master_key = MBEDTLS_SVC_KEY_ID_INIT;
+    mbedtls_svc_key_id_t master_key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_derivation_operation_t derivation =
         PSA_KEY_DERIVATION_OPERATION_INIT;
 
@@ -1223,7 +1223,7 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
         /* Perform PSK-to-MS expansion in a single step. */
         psa_status_t status;
         psa_algorithm_t alg;
-        psa_key_id_t psk;
+        mbedtls_svc_key_id_t psk;
         psa_key_derivation_operation_t derivation =
             PSA_KEY_DERIVATION_OPERATION_INIT;
         mbedtls_md_type_t hash_alg = handshake->ciphersuite_info->mac;
@@ -3890,7 +3890,7 @@ int mbedtls_ssl_set_hs_psk( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 int mbedtls_ssl_conf_psk_opaque( mbedtls_ssl_config *conf,
-                                 psa_key_id_t psk,
+                                 mbedtls_svc_key_id_t psk,
                                  const unsigned char *psk_identity,
                                  size_t psk_identity_len )
 {
@@ -3915,7 +3915,7 @@ int mbedtls_ssl_conf_psk_opaque( mbedtls_ssl_config *conf,
 }
 
 int mbedtls_ssl_set_hs_psk_opaque( mbedtls_ssl_context *ssl,
-                                   psa_key_id_t psk )
+                                   mbedtls_svc_key_id_t psk )
 {
     if( ( mbedtls_svc_key_id_is_null( psk ) ) ||
         ( ssl->handshake == NULL ) )

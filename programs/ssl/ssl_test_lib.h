@@ -52,14 +52,12 @@
 #endif
 
 #if !defined(MBEDTLS_NET_C) ||                              \
-    !defined(MBEDTLS_SSL_TLS_C) ||                          \
-    defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
-#define MBEDTLS_SSL_TEST_IMPOSSIBLE                             \
-    "MBEDTLS_NET_C and/or "                                     \
-    "MBEDTLS_SSL_TLS_C not defined, "                           \
-    "and/or MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined.\n"
+    !defined(MBEDTLS_SSL_TLS_C)
+#define MBEDTLS_SSL_TEST_IMPOSSIBLE                         \
+    "MBEDTLS_NET_C and/or "                                 \
+    "MBEDTLS_SSL_TLS_C not defined."
 #elif !defined(HAVE_RNG)
-#define MBEDTLS_SSL_TEST_IMPOSSIBLE             \
+#define MBEDTLS_SSL_TEST_IMPOSSIBLE                         \
     "No random generator is available.\n"
 #else
 #undef MBEDTLS_SSL_TEST_IMPOSSIBLE

@@ -2402,22 +2402,22 @@ static int ecp_double_add_mxz( const mbedtls_ecp_group *grp,
     mbedtls_mpi_init( &D ); mbedtls_mpi_init( &DA ); mbedtls_mpi_init( &CB );
 
     MPI_ECP_ADD( &A,    &P->X,   &P->Z );
-    MPI_ECP_SQR( &AA,   &A             );
     MPI_ECP_SUB( &B,    &P->X,   &P->Z );
-    MPI_ECP_SQR( &BB,   &B             );
-    MPI_ECP_SUB( &E,    &AA,     &BB   );
     MPI_ECP_ADD( &C,    &Q->X,   &Q->Z );
     MPI_ECP_SUB( &D,    &Q->X,   &Q->Z );
-    MPI_ECP_MUL( &DA,   &D,      &A    );
-    MPI_ECP_MUL( &CB,   &C,      &B    );
+    MPI_ECP_MUL( &DA,   &D,      &A    ); /* D no longer needed */
+    MPI_ECP_MUL( &CB,   &C,      &B    ); /* C no longer needed */
+    MPI_ECP_SQR( &AA,   &A             ); /* A no longer needed */
+    MPI_ECP_SQR( &BB,   &B             ); /* B no longer needed */
+    MPI_ECP_MUL( &R->X, &AA,     &BB   );
+    MPI_ECP_SUB( &E,    &AA,     &BB   ); /* AA no longer needed */
+    MPI_ECP_MUL( &R->Z, &grp->A, &E    );
+    MPI_ECP_ADD( &R->Z, &BB,     &R->Z ); /* BB no longer needed */
     MPI_ECP_ADD( &S->X, &DA,     &CB   );
     MPI_ECP_SQR( &S->X, &S->X          );
     MPI_ECP_SUB( &S->Z, &DA,     &CB   );
     MPI_ECP_SQR( &S->Z, &S->Z          );
     MPI_ECP_MUL( &S->Z, d,       &S->Z );
-    MPI_ECP_MUL( &R->X, &AA,     &BB   );
-    MPI_ECP_MUL( &R->Z, &grp->A, &E    );
-    MPI_ECP_ADD( &R->Z, &BB,     &R->Z );
     MPI_ECP_MUL( &R->Z, &E,      &R->Z );
 
 cleanup:

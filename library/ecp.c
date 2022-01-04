@@ -1499,7 +1499,8 @@ cleanup:
  * Cost: 1A := 8M + 3S
  */
 static int ecp_add_mixed( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
-                          const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q )
+                          const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q,
+                          mbedtls_mpi tmp[4] )
 {
 #if defined(MBEDTLS_SELF_TEST)
     add_count++;
@@ -1514,7 +1515,6 @@ static int ecp_add_mixed( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
 #else
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    mbedtls_mpi tmp[4];
 
     /* NOTE: Aliasing between input and output is allowed, so one has to make
      *       sure that at the point X,Y,Z are written, {P,Q}->{X,Y,Z} are no
@@ -1537,11 +1537,6 @@ static int ecp_add_mixed( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
      */
     if( Q->Z.p != NULL && mbedtls_mpi_cmp_int( &Q->Z, 1 ) != 0 )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-
-    mbedtls_mpi_init( &tmp[0] );
-    mbedtls_mpi_init( &tmp[1] );
-    mbedtls_mpi_init( &tmp[2] );
-    mbedtls_mpi_init( &tmp[3] );
 
     MPI_ECP_SQR( &tmp[0], &P->Z         );
     MPI_ECP_MUL( &tmp[1], &tmp[0], &P->Z );
@@ -1585,11 +1580,6 @@ static int ecp_add_mixed( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     MPI_ECP_SUB( Y,     &tmp[2],     &tmp[3] );
 
 cleanup:
-
-    mbedtls_mpi_free( &tmp[0] );
-    mbedtls_mpi_free( &tmp[1] );
-    mbedtls_mpi_free( &tmp[2] );
-    mbedtls_mpi_free( &tmp[3] );
 
     return( ret );
 #endif /* !defined(MBEDTLS_ECP_NO_FALLBACK) || !defined(MBEDTLS_ECP_ADD_MIXED_ALT) */
@@ -1872,7 +1862,7 @@ add:
     {
         j = i;
         while( j-- )
-            MBEDTLS_MPI_CHK( ecp_add_mixed( grp, &T[i + j], &T[j], &T[i] ) );
+            MBEDTLS_MPI_CHK( ecp_add_mixed( grp, &T[i + j], &T[j], &T[i], tmp ) );
     }
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
@@ -2001,7 +1991,7 @@ static int ecp_mul_comb_core( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R
 
         MBEDTLS_MPI_CHK( ecp_double_jac( grp, R, R, tmp ) );
         MBEDTLS_MPI_CHK( ecp_select_comb( grp, &Txi, T, T_size, x[i] ) );
-        MBEDTLS_MPI_CHK( ecp_add_mixed( grp, R, R, &Txi ) );
+        MBEDTLS_MPI_CHK( ecp_add_mixed( grp, R, R, &Txi, tmp ) );
     }
 
 cleanup:
@@ -2735,6 +2725,7 @@ int mbedtls_ecp_muladd_restartable(
     mbedtls_ecp_point mP;
     mbedtls_ecp_point *pmP = &mP;
     mbedtls_ecp_point *pR = R;
+    mbedtls_mpi tmp[4];
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
     char is_grp_capable = 0;
 #endif
@@ -2749,6 +2740,11 @@ int mbedtls_ecp_muladd_restartable(
         return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
 
     mbedtls_ecp_point_init( &mP );
+
+    mbedtls_mpi_init( &tmp[0] );
+    mbedtls_mpi_init( &tmp[1] );
+    mbedtls_mpi_init( &tmp[2] );
+    mbedtls_mpi_init( &tmp[3] );
 
     ECP_RS_ENTER( ma );
 
@@ -2790,7 +2786,7 @@ mul2:
 add:
 #endif
     MBEDTLS_ECP_BUDGET( MBEDTLS_ECP_OPS_ADD );
-    MBEDTLS_MPI_CHK( ecp_add_mixed( grp, pR, pmP, pR ) );
+    MBEDTLS_MPI_CHK( ecp_add_mixed( grp, pR, pmP, pR, tmp ) );
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->ma != NULL )
         rs_ctx->ma->state = ecp_rsma_norm;
@@ -2806,6 +2802,12 @@ norm:
 #endif
 
 cleanup:
+
+    mbedtls_mpi_free( &tmp[0] );
+    mbedtls_mpi_free( &tmp[1] );
+    mbedtls_mpi_free( &tmp[2] );
+    mbedtls_mpi_free( &tmp[3] );
+
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
     if( is_grp_capable )
         mbedtls_internal_ecp_free( grp );

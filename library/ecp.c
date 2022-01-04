@@ -1279,7 +1279,7 @@ static int ecp_normalize_jac_many( const mbedtls_ecp_group *grp,
 #else
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t i;
-    mbedtls_mpi *c, u, Zi, ZZi;
+    mbedtls_mpi *c, u, Zi;
 
     if( ( c = mbedtls_calloc( T_size, sizeof( mbedtls_mpi ) ) ) == NULL )
         return( MBEDTLS_ERR_ECP_ALLOC_FAILED );
@@ -1287,7 +1287,7 @@ static int ecp_normalize_jac_many( const mbedtls_ecp_group *grp,
     for( i = 0; i < T_size; i++ )
         mbedtls_mpi_init( &c[i] );
 
-    mbedtls_mpi_init( &u ); mbedtls_mpi_init( &Zi ); mbedtls_mpi_init( &ZZi );
+    mbedtls_mpi_init( &u ); mbedtls_mpi_init( &Zi );
 
     /*
      * c[i] = Z_0 * ... * Z_i
@@ -1322,10 +1322,10 @@ static int ecp_normalize_jac_many( const mbedtls_ecp_group *grp,
         /*
          * proceed as in normalize()
          */
-        MPI_ECP_MUL( &ZZi,     &Zi,      &Zi  );
-        MPI_ECP_MUL( &T[i]->X, &T[i]->X, &ZZi );
-        MPI_ECP_MUL( &T[i]->Y, &T[i]->Y, &ZZi );
-        MPI_ECP_MUL( &T[i]->Y, &T[i]->Y, &Zi  );
+        MPI_ECP_MUL( &T[i]->Y, &T[i]->Y, &Zi );
+        MPI_ECP_MUL( &Zi,      &Zi,      &Zi );
+        MPI_ECP_MUL( &T[i]->X, &T[i]->X, &Zi );
+        MPI_ECP_MUL( &T[i]->Y, &T[i]->Y, &Zi );
 
         /*
          * Post-precessing: reclaim some memory by shrinking coordinates
@@ -1343,7 +1343,7 @@ static int ecp_normalize_jac_many( const mbedtls_ecp_group *grp,
 
 cleanup:
 
-    mbedtls_mpi_free( &u ); mbedtls_mpi_free( &Zi ); mbedtls_mpi_free( &ZZi );
+    mbedtls_mpi_free( &u ); mbedtls_mpi_free( &Zi );
     for( i = 0; i < T_size; i++ )
         mbedtls_mpi_free( &c[i] );
     mbedtls_free( c );

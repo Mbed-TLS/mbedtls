@@ -1194,6 +1194,9 @@ cleanup:
 #define MPI_ECP_MUL( X, A, B )                                      \
     MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, X, A, B ) )
 
+#define MPI_ECP_SQR( X, A )                                         \
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, X, A, A ) )
+
 #define MPI_ECP_MUL_INT( X, A, c )                                  \
     MBEDTLS_MPI_CHK( mbedtls_mpi_mul_int_mod( grp, X, A, c ) )
 
@@ -1238,7 +1241,7 @@ static int ecp_normalize_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *p
 
     MPI_ECP_INV( &T,       &pt->Z );          /* T   <-          1 / Z   */
     MPI_ECP_MUL( &pt->Y,   &pt->Y,     &T );  /* Y'  <- Y*T    = Y / Z   */
-    MPI_ECP_MUL( &T,       &T,         &T );  /* T   <- T^2    = 1 / Z^2 */
+    MPI_ECP_SQR( &T,       &T             );  /* T   <- T^2    = 1 / Z^2 */
     MPI_ECP_MUL( &pt->X,   &pt->X,     &T );  /* X   <- X  * T = X / Z^2 */
     MPI_ECP_MUL( &pt->Y,   &pt->Y,     &T );  /* Y'' <- Y' * T = Y / Z^3 */
 
@@ -1330,7 +1333,7 @@ static int ecp_normalize_jac_many( const mbedtls_ecp_group *grp,
 
         /* Now t holds 1 / Z_i; normalize as in ecp_normalize_jac() */
         MPI_ECP_MUL( &T[i]->Y, &T[i]->Y, &t );
-        MPI_ECP_MUL( &t,       &t,       &t );
+        MPI_ECP_SQR( &t,       &t           );
         MPI_ECP_MUL( &T[i]->X, &T[i]->X, &t );
         MPI_ECP_MUL( &T[i]->Y, &T[i]->Y, &t );
 
@@ -1422,7 +1425,7 @@ static int ecp_double_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     if( grp->A.p == NULL )
     {
         /* M = 3(X + Z^2)(X - Z^2) */
-        MPI_ECP_MUL(     &S,  &P->Z,  &P->Z   );
+        MPI_ECP_SQR(     &S,  &P->Z           );
         MPI_ECP_ADD(     &T,  &P->X,  &S      );
         MPI_ECP_SUB(     &U,  &P->X,  &S      );
         MPI_ECP_MUL(     &S,  &T,     &U      );
@@ -1431,34 +1434,34 @@ static int ecp_double_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     else
     {
         /* M = 3.X^2 */
-        MPI_ECP_MUL(     &S,  &P->X,  &P->X   );
-        MPI_ECP_MUL_INT( &M,  &S,     3       );
+        MPI_ECP_SQR(     &S,  &P->X  );
+        MPI_ECP_MUL_INT( &M,  &S,  3 );
 
         /* Optimize away for "koblitz" curves with A = 0 */
         if( mbedtls_mpi_cmp_int( &grp->A, 0 ) != 0 )
         {
             /* M += A.Z^4 */
-            MPI_ECP_MUL( &S,  &P->Z,  &P->Z   );
-            MPI_ECP_MUL( &T,  &S,     &S      );
+            MPI_ECP_SQR( &S,  &P->Z           );
+            MPI_ECP_SQR( &T,  &S              );
             MPI_ECP_MUL( &S,  &T,     &grp->A );
             MPI_ECP_ADD( &M,  &M,     &S      );
         }
     }
 
     /* S = 4.X.Y^2 */
-    MPI_ECP_MUL(     &T,  &P->Y,  &P->Y   );
-    MPI_ECP_SHIFT_L( &T,  1               );
-    MPI_ECP_MUL(     &S,  &P->X,  &T      );
-    MPI_ECP_SHIFT_L( &S,  1               );
+    MPI_ECP_SQR(     &T,  &P->Y     );
+    MPI_ECP_SHIFT_L( &T,  1         );
+    MPI_ECP_MUL(     &S,  &P->X, &T );
+    MPI_ECP_SHIFT_L( &S,  1         );
 
     /* U = 8.Y^4 */
-    MPI_ECP_MUL(     &U,  &T,     &T      );
-    MPI_ECP_SHIFT_L( &U,  1               );
+    MPI_ECP_SQR(     &U,  &T );
+    MPI_ECP_SHIFT_L( &U,  1  );
 
     /* T = M^2 - 2.S */
-    MPI_ECP_MUL( &T,  &M,     &M      );
-    MPI_ECP_SUB( &T,  &T,     &S      );
-    MPI_ECP_SUB( &T,  &T,     &S      );
+    MPI_ECP_SQR( &T,  &M     );
+    MPI_ECP_SUB( &T,  &T, &S );
+    MPI_ECP_SUB( &T,  &T, &S );
 
     /* S = M(S - T) - U */
     MPI_ECP_SUB( &S,  &S,     &T      );
@@ -1540,7 +1543,7 @@ static int ecp_add_mixed( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 
     mbedtls_mpi_init( &T1 ); mbedtls_mpi_init( &T2 ); mbedtls_mpi_init( &T3 ); mbedtls_mpi_init( &T4 );
 
-    MPI_ECP_MUL( &T1,  &P->Z,  &P->Z );
+    MPI_ECP_SQR( &T1,  &P->Z         );
     MPI_ECP_MUL( &T2,  &T1,    &P->Z );
     MPI_ECP_MUL( &T1,  &T1,    &Q->X );
     MPI_ECP_MUL( &T2,  &T2,    &Q->Y );
@@ -1564,7 +1567,7 @@ static int ecp_add_mixed( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 
     /* {P,Q}->Z no longer used, so OK to write to Z even if there's aliasing. */
     MPI_ECP_MUL( Z,    &P->Z,  &T1   );
-    MPI_ECP_MUL( &T3,  &T1,    &T1   );
+    MPI_ECP_SQR( &T3,  &T1           );
     MPI_ECP_MUL( &T4,  &T3,    &T1   );
     MPI_ECP_MUL( &T3,  &T3,    &P->X );
 
@@ -1572,7 +1575,7 @@ static int ecp_add_mixed( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     MPI_ECP_SHIFT_L( &T1, 1 );
 
     /* {P,Q}->X no longer used, so OK to write to X even if there's aliasing. */
-    MPI_ECP_MUL( X,    &T2,    &T2   );
+    MPI_ECP_SQR( X,    &T2           );
     MPI_ECP_SUB( X,    X,      &T1   );
     MPI_ECP_SUB( X,    X,      &T4   );
     MPI_ECP_SUB( &T3,  &T3,    X     );
@@ -1619,7 +1622,7 @@ static int ecp_randomize_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *p
     MPI_ECP_MUL( &pt->Z,   &pt->Z,     &l  );
 
     /* X = l^2 * X */
-    MPI_ECP_MUL( &ll,      &l,         &l  );
+    MPI_ECP_SQR( &ll,      &l              );
     MPI_ECP_MUL( &pt->X,   &pt->X,     &ll );
 
     /* Y = l^3 * Y */
@@ -2397,18 +2400,18 @@ static int ecp_double_add_mxz( const mbedtls_ecp_group *grp,
     mbedtls_mpi_init( &D ); mbedtls_mpi_init( &DA ); mbedtls_mpi_init( &CB );
 
     MPI_ECP_ADD( &A,    &P->X,   &P->Z );
-    MPI_ECP_MUL( &AA,   &A,      &A    );
+    MPI_ECP_SQR( &AA,   &A             );
     MPI_ECP_SUB( &B,    &P->X,   &P->Z );
-    MPI_ECP_MUL( &BB,   &B,      &B    );
+    MPI_ECP_SQR( &BB,   &B             );
     MPI_ECP_SUB( &E,    &AA,     &BB   );
     MPI_ECP_ADD( &C,    &Q->X,   &Q->Z );
     MPI_ECP_SUB( &D,    &Q->X,   &Q->Z );
     MPI_ECP_MUL( &DA,   &D,      &A    );
     MPI_ECP_MUL( &CB,   &C,      &B    );
     MPI_ECP_ADD( &S->X, &DA,     &CB   );
-    MPI_ECP_MUL( &S->X, &S->X,   &S->X );
+    MPI_ECP_SQR( &S->X, &S->X          );
     MPI_ECP_SUB( &S->Z, &DA,     &CB   );
-    MPI_ECP_MUL( &S->Z, &S->Z,   &S->Z );
+    MPI_ECP_SQR( &S->Z, &S->Z          );
     MPI_ECP_MUL( &S->Z, d,       &S->Z );
     MPI_ECP_MUL( &R->X, &AA,     &BB   );
     MPI_ECP_MUL( &R->Z, &grp->A, &E    );
@@ -2622,8 +2625,8 @@ static int ecp_check_pubkey_sw( const mbedtls_ecp_group *grp, const mbedtls_ecp_
      * YY = Y^2
      * RHS = X (X^2 + A) + B = X^3 + A X + B
      */
-    MPI_ECP_MUL( &YY,  &pt->Y, &pt->Y  );
-    MPI_ECP_MUL( &RHS, &pt->X, &pt->X  );
+    MPI_ECP_SQR( &YY,  &pt->Y );
+    MPI_ECP_SQR( &RHS, &pt->X );
 
     /* Special case for A = -3 */
     if( grp->A.p == NULL )

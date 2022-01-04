@@ -499,30 +499,6 @@ static int myrand( void *rng_state, unsigned char *output, size_t len )
         }                                                               \
     }
 
-/*
- * Clear some memory that was used to prepare the context
- */
-#if defined(MBEDTLS_ECP_C)
-void ecp_clear_precomputed( mbedtls_ecp_group *grp )
-{
-    if( grp->T != NULL
-#if MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
-        && grp->T_size != 0
-#endif
-    )
-    {
-        size_t i;
-        for( i = 0; i < grp->T_size; i++ )
-            mbedtls_ecp_point_free( &grp->T[i] );
-        mbedtls_free( grp->T );
-    }
-    grp->T = NULL;
-    grp->T_size = 0;
-}
-#else
-#define ecp_clear_precomputed( g )
-#endif
-
 #if defined(MBEDTLS_ECP_C)
 static int set_ecp_curve( const char *string, mbedtls_ecp_curve_info *curve )
 {
@@ -1092,7 +1068,6 @@ int main( int argc, char *argv[] )
 
             if( mbedtls_ecdsa_genkey( &ecdsa, curve_info->grp_id, myrand, NULL ) != 0 )
                 mbedtls_exit( 1 );
-            ecp_clear_precomputed( &ecdsa.grp );
 
             mbedtls_snprintf( title, sizeof( title ), "ECDSA-%s",
                                               curve_info->name );
@@ -1118,7 +1093,6 @@ int main( int argc, char *argv[] )
             {
                 mbedtls_exit( 1 );
             }
-            ecp_clear_precomputed( &ecdsa.grp );
 
             mbedtls_snprintf( title, sizeof( title ), "ECDSA-%s",
                                               curve_info->name );
@@ -1176,7 +1150,6 @@ int main( int argc, char *argv[] )
             CHECK_AND_CONTINUE( mbedtls_ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
                                                     myrand, NULL ) );
             CHECK_AND_CONTINUE( mbedtls_ecp_copy( &ecdh.Qp, &ecdh.Q ) );
-            ecp_clear_precomputed( &ecdh.grp );
 
             mbedtls_snprintf( title, sizeof( title ), "ECDHE-%s",
                                               curve_info->name );
@@ -1226,7 +1199,6 @@ int main( int argc, char *argv[] )
             CHECK_AND_CONTINUE( mbedtls_ecp_copy( &ecdh.Qp, &ecdh.Q ) );
             CHECK_AND_CONTINUE( mbedtls_ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
                                   myrand, NULL ) );
-            ecp_clear_precomputed( &ecdh.grp );
 
             mbedtls_snprintf( title, sizeof( title ), "ECDH-%s",
                                               curve_info->name );

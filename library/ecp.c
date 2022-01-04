@@ -1508,6 +1508,10 @@ static int ecp_add_mixed( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 #else
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_mpi T1, T2, T3, T4;
+
+    /* NOTE: Aliasing between input and output is allowed, so one has to make
+     *       sure that at the point X,Y,Z are written, {P,Q}->{X,Y,Z} are no
+     *       longer read from. */
     mbedtls_mpi * const X = &R->X;
     mbedtls_mpi * const Y = &R->Y;
     mbedtls_mpi * const Z = &R->Z;
@@ -1551,6 +1555,7 @@ static int ecp_add_mixed( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         }
     }
 
+    /* {P,Q}->Z no longer used, so OK to write to Z even if there's aliasing. */
     MPI_ECP_MUL( Z,    &P->Z,  &T1   );
     MPI_ECP_MUL( &T3,  &T1,    &T1   );
     MPI_ECP_MUL( &T4,  &T3,    &T1   );
@@ -1559,12 +1564,14 @@ static int ecp_add_mixed( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     MPI_ECP_MOV( &T1, &T3 );
     MPI_ECP_SHIFT_L( &T1, 1 );
 
+    /* {P,Q}->X no longer used, so OK to write to X even if there's aliasing. */
     MPI_ECP_MUL( X,    &T2,    &T2   );
     MPI_ECP_SUB( X,    X,      &T1   );
     MPI_ECP_SUB( X,    X,      &T4   );
     MPI_ECP_SUB( &T3,  &T3,    X     );
     MPI_ECP_MUL( &T3,  &T3,    &T2   );
     MPI_ECP_MUL( &T4,  &T4,    &P->Y );
+    /* {P,Q}->Y no longer used, so OK to write to Y even if there's aliasing. */
     MPI_ECP_SUB( Y,    &T3,    &T4   );
 
 cleanup:

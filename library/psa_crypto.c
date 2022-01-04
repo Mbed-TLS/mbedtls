@@ -4966,7 +4966,8 @@ static psa_status_t psa_generate_derived_key_internal(
     defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
     if ( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
     {
-        if ( PSA_KEY_TYPE_ECC_GET_FAMILY( slot->attr.type ) != PSA_ECC_FAMILY_MONTGOMERY )
+        psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY( slot->attr.type );
+        if ( curve != PSA_ECC_FAMILY_MONTGOMERY )
         {
             /* Weierstrass elliptic curve */
             unsigned key_out_of_range = 0;

@@ -344,6 +344,9 @@ mbedtls_ecp_group;
 #endif
 
 #define MBEDTLS_ECP_MAX_BYTES    ( ( MBEDTLS_ECP_MAX_BITS + 7 ) / 8 )
+#define MBEDTLS_ECP_MAX_LIMBS                                            \
+    ( ( MBEDTLS_ECP_MAX_BYTES + sizeof(mbedtls_mpi_uint) - 1 )           \
+      / sizeof(mbedtls_mpi_uint) )
 #define MBEDTLS_ECP_MAX_PT_LEN   ( 2 * MBEDTLS_ECP_MAX_BYTES + 1 )
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)

@@ -522,6 +522,18 @@ void mbedtls_memory_buffer_alloc_status( void )
     }
 }
 
+void mbedtls_memory_buffer_alloc_count_get( size_t *alloc_count, size_t *free_count )
+{
+    *alloc_count = heap.alloc_count;
+    *free_count = heap.free_count;
+}
+
+void mbedtls_memory_buffer_alloc_count_reset( void )
+{
+    heap.alloc_count = 0;
+    heap.free_count = 0;
+}
+
 void mbedtls_memory_buffer_alloc_max_get( size_t *max_used, size_t *max_blocks )
 {
     *max_used   = heap.maximum_used;

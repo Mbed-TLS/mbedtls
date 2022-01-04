@@ -1611,26 +1611,28 @@ static int ecp_randomize_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *p
     return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
 #else
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    mbedtls_mpi l, ll;
+    mbedtls_mpi l;
 
-    mbedtls_mpi_init( &l ); mbedtls_mpi_init( &ll );
+    mbedtls_mpi_init( &l );
 
     /* Generate l such that 1 < l < p */
     MBEDTLS_MPI_CHK( mbedtls_mpi_random( &l, 2, &grp->P, f_rng, p_rng ) );
 
     /* Z = l * Z */
-    MPI_ECP_MUL( &pt->Z,   &pt->Z,     &l  );
+    MPI_ECP_MUL( &pt->Z,   &pt->Z,     &l );
+
+    /* Y = l * Z */
+    MPI_ECP_MUL( &pt->Y,   &pt->Y,     &l );
 
     /* X = l^2 * X */
-    MPI_ECP_SQR( &ll,      &l              );
-    MPI_ECP_MUL( &pt->X,   &pt->X,     &ll );
+    MPI_ECP_SQR( &l,       &l             );
+    MPI_ECP_MUL( &pt->X,   &pt->X,     &l );
 
     /* Y = l^3 * Y */
-    MPI_ECP_MUL( &ll,      &ll,        &l  );
-    MPI_ECP_MUL( &pt->Y,   &pt->Y,     &ll );
+    MPI_ECP_MUL( &pt->Y,   &pt->Y,     &l );
 
 cleanup:
-    mbedtls_mpi_free( &l ); mbedtls_mpi_free( &ll );
+    mbedtls_mpi_free( &l );
 
     if( ret == MBEDTLS_ERR_MPI_NOT_ACCEPTABLE )
         ret = MBEDTLS_ERR_ECP_RANDOM_FAILED;

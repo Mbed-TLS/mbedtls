@@ -643,6 +643,10 @@ int main( int argc, char *argv[] )
     memset( buf, 0xAA, sizeof( buf ) );
     memset( tmp, 0xBB, sizeof( tmp ) );
 
+    /* Avoid "unused static function" warning in configurations without
+     * symmetric crypto. */
+    (void) mbedtls_timing_hardclock( );
+
 #if defined(MBEDTLS_MD5_C)
     if( todo.md5 )
         TIME_AND_TSC( "MD5", mbedtls_md5( buf, BUFSIZE, tmp ) );

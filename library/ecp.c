@@ -2395,35 +2395,39 @@ static int ecp_double_add_mxz( const mbedtls_ecp_group *grp,
     return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
 #else
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    mbedtls_mpi A, AA, B, BB, E, C, D, DA, CB;
 
-    mbedtls_mpi_init( &A ); mbedtls_mpi_init( &AA ); mbedtls_mpi_init( &B );
-    mbedtls_mpi_init( &BB ); mbedtls_mpi_init( &E ); mbedtls_mpi_init( &C );
-    mbedtls_mpi_init( &D ); mbedtls_mpi_init( &DA ); mbedtls_mpi_init( &CB );
+    mbedtls_mpi T0,T1,T2,T3;
 
-    MPI_ECP_ADD( &A,    &P->X,   &P->Z );
-    MPI_ECP_SUB( &B,    &P->X,   &P->Z );
-    MPI_ECP_ADD( &C,    &Q->X,   &Q->Z );
-    MPI_ECP_SUB( &D,    &Q->X,   &Q->Z );
-    MPI_ECP_MUL( &DA,   &D,      &A    ); /* D no longer needed */
-    MPI_ECP_MUL( &CB,   &C,      &B    ); /* C no longer needed */
-    MPI_ECP_SQR( &AA,   &A             ); /* A no longer needed */
-    MPI_ECP_SQR( &BB,   &B             ); /* B no longer needed */
-    MPI_ECP_MUL( &R->X, &AA,     &BB   );
-    MPI_ECP_SUB( &E,    &AA,     &BB   ); /* AA no longer needed */
-    MPI_ECP_MUL( &R->Z, &grp->A, &E    );
-    MPI_ECP_ADD( &R->Z, &BB,     &R->Z ); /* BB no longer needed */
-    MPI_ECP_ADD( &S->X, &DA,     &CB   );
+    mbedtls_mpi_init( &T0 );
+    mbedtls_mpi_init( &T1 );
+    mbedtls_mpi_init( &T2 );
+    mbedtls_mpi_init( &T3 );
+
+    MPI_ECP_ADD( &T0,   &P->X,   &P->Z );
+    MPI_ECP_SUB( &T1,   &P->X,   &P->Z );
+    MPI_ECP_ADD( &T2,   &Q->X,   &Q->Z );
+    MPI_ECP_SUB( &T3,   &Q->X,   &Q->Z );
+    MPI_ECP_MUL( &T3,   &T3,     &T0   );
+    MPI_ECP_MUL( &T2,   &T2,     &T1   );
+    MPI_ECP_SQR( &T0,   &T0            );
+    MPI_ECP_SQR( &T1,   &T1            );
+    MPI_ECP_MUL( &R->X, &T0,     &T1   );
+    MPI_ECP_SUB( &T0,   &T0,     &T1   );
+    MPI_ECP_MUL( &R->Z, &grp->A, &T0   );
+    MPI_ECP_ADD( &R->Z, &T1,     &R->Z );
+    MPI_ECP_ADD( &S->X, &T3,     &T2   );
     MPI_ECP_SQR( &S->X, &S->X          );
-    MPI_ECP_SUB( &S->Z, &DA,     &CB   );
+    MPI_ECP_SUB( &S->Z, &T3,     &T2   );
     MPI_ECP_SQR( &S->Z, &S->Z          );
     MPI_ECP_MUL( &S->Z, d,       &S->Z );
-    MPI_ECP_MUL( &R->Z, &E,      &R->Z );
+    MPI_ECP_MUL( &R->Z, &T0,     &R->Z );
 
 cleanup:
-    mbedtls_mpi_free( &A ); mbedtls_mpi_free( &AA ); mbedtls_mpi_free( &B );
-    mbedtls_mpi_free( &BB ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &C );
-    mbedtls_mpi_free( &D ); mbedtls_mpi_free( &DA ); mbedtls_mpi_free( &CB );
+
+    mbedtls_mpi_free( &T0 );
+    mbedtls_mpi_free( &T1 );
+    mbedtls_mpi_free( &T2 );
+    mbedtls_mpi_free( &T3 );
 
     return( ret );
 #endif /* !defined(MBEDTLS_ECP_NO_FALLBACK) || !defined(MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT) */

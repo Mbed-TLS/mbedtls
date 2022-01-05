@@ -177,11 +177,12 @@ do {                                                                    \
  * Updated manually as the output of the following command:
  *
  *  sed -n 's/.*[T]IME_PUBLIC.*"\(.*\)",/\1/p' programs/test/benchmark.c |
- *      awk '{print length+2}' | sort -rn | head -n1
+ *      awk '{print length+3}' | sort -rn | head -n1
  *
- * This computes the maximum length of a title +2 (because we appends "/s").
- * (If the value is too small, the only consequence is poor alignement.) */
-#define TITLE_SPACE 16
+ * This computes the maximum length of a title +3, because we appends "/s" and
+ * want at least one space. (If the value is too small, the only consequence
+ * is poor alignement.) */
+#define TITLE_SPACE 17
 
 #define MEMORY_MEASURE_INIT                                             \
     size_t max_used, max_blocks, max_bytes;                             \

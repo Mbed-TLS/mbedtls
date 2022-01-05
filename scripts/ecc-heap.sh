@@ -68,7 +68,10 @@ cat << EOF >$CONFIG_H
 #define MBEDTLS_ECP_DP_SECP521R1_ENABLED
 #define MBEDTLS_ECP_DP_CURVE25519_ENABLED
 
-//#define MBEDTLS_ECP_WINDOW_SIZE            6
+#define MBEDTLS_HAVE_ASM // just make things a bit faster
+#define MBEDTLS_ECP_NIST_OPTIM // faster and less allocations
+
+//#define MBEDTLS_ECP_WINDOW_SIZE            4
 //#define MBEDTLS_ECP_FIXED_POINT_OPTIM      1
 EOF
 

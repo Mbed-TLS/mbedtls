@@ -167,14 +167,16 @@ struct mbedtls_ecp_restart_mul
 /*
  * Init restart_mul sub-context
  */
-static void ecp_restart_rsm_init( mbedtls_ecp_restart_mul_ctx *ctx )
-{
-    mbedtls_ecp_point_init( &ctx->R );
-    ctx->i = 0;
-    ctx->T = NULL;
-    ctx->T_size = 0;
-    ctx->state = ecp_rsm_init;
-}
+#define ecp_restart_rsm_init(ctx)               \
+    do                                          \
+    {                                           \
+        mbedtls_ecp_point_init( &ctx->R );      \
+        ctx->i = 0;                             \
+        ctx->T = NULL;                          \
+        ctx->T_size = 0;                        \
+        ctx->state = ecp_rsm_init;              \
+        ECP_POINT_GROW_SINGLE(&(ctx)->R);       \
+    } while( 0 )
 
 /*
  * Free the components of a restart_mul sub-context
@@ -194,8 +196,6 @@ static void ecp_restart_rsm_free( mbedtls_ecp_restart_mul_ctx *ctx )
             mbedtls_ecp_point_free( ctx->T + i );
         mbedtls_free( ctx->T );
     }
-
-    ecp_restart_rsm_init( ctx );
 }
 
 /*
@@ -216,12 +216,17 @@ struct mbedtls_ecp_restart_muladd
 /*
  * Init restart_muladd sub-context
  */
-static void ecp_restart_ma_init( mbedtls_ecp_restart_muladd_ctx *ctx )
-{
-    mbedtls_ecp_point_init( &ctx->mP );
-    mbedtls_ecp_point_init( &ctx->R );
-    ctx->state = ecp_rsma_mul1;
-}
+
+#define ecp_restart_ma_init( ctx )                  \
+    do                                              \
+    {                                               \
+        mbedtls_ecp_point_init( &ctx->mP );         \
+        mbedtls_ecp_point_init( &ctx->R );          \
+        ctx->state = ecp_rsma_mul1;                 \
+                                                    \
+        ECP_POINT_GROW_SINGLE( &ctx->mP );          \
+        ECP_POINT_GROW_SINGLE( &ctx->R );           \
+    } while( 0 )
 
 /*
  * Free the components of a restart_muladd sub-context
@@ -233,8 +238,6 @@ static void ecp_restart_ma_free( mbedtls_ecp_restart_muladd_ctx *ctx )
 
     mbedtls_ecp_point_free( &ctx->mP );
     mbedtls_ecp_point_free( &ctx->R );
-
-    ecp_restart_ma_init( ctx );
 }
 
 /*
@@ -2163,9 +2166,6 @@ static int ecp_mul_comb_core( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R
     mbedtls_ecp_point_init( &Txi );
     mpi_init_many( tmp, sizeof( tmp ) / sizeof( mbedtls_mpi ) );
 
-    ECP_POINT_GROW_SINGLE( &Txi );
-    MPI_ECP_GROW_SINGLE_MANY( tmp, sizeof( tmp ) / sizeof( mbedtls_mpi ) );
-
 #if !defined(MBEDTLS_ECP_RESTARTABLE)
     (void) rs_ctx;
 #endif
@@ -2189,6 +2189,18 @@ static int ecp_mul_comb_core( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R
     {
         /* Start with a non-zero point and randomize its coordinates */
         i = d;
+    }
+
+    /* Initialize temporaries after initialization of i. Otherwise, the
+     * compiler warns that i might be used uninitialized in the cleanup
+     * section (which can not actually happen, since we do not return
+     * MBEDTLS_ERR_ECP_IN_PROGRESS from the initialization functions,
+     * but the compiler cannot know this). */
+    ECP_POINT_GROW_SINGLE( &Txi );
+    MPI_ECP_GROW_SINGLE_MANY( tmp, sizeof( tmp ) / sizeof( mbedtls_mpi ) );
+
+    if( i == d)
+    {
         MBEDTLS_MPI_CHK( ecp_select_comb( grp, R, T, T_size, x[i] ) );
         if( f_rng != 0 )
             MBEDTLS_MPI_CHK( ecp_randomize_jac( grp, R, f_rng, p_rng ) );

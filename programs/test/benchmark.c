@@ -629,7 +629,7 @@ int main( int argc, char *argv[] )
 
     /* Avoid "unused static function" warning in configurations without
      * symmetric crypto. */
-    (void) mbedtls_timing_hardclock( );
+    (void) mbedtls_timing_hardclock;
 
 #if defined(MBEDTLS_MD5_C)
     if( todo.md5 )

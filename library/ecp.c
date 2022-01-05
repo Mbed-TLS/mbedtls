@@ -1927,6 +1927,8 @@ static int ecp_select_comb( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     /* Safely invert result if i is "negative" */
     MBEDTLS_MPI_CHK( ecp_safe_invert_jac( grp, R, i >> 7 ) );
 
+    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &R->Z, 1 ) );
+
 cleanup:
     return( ret );
 }
@@ -1979,7 +1981,6 @@ static int ecp_mul_comb_core( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R
         /* Start with a non-zero point and randomize its coordinates */
         i = d;
         MBEDTLS_MPI_CHK( ecp_select_comb( grp, R, T, T_size, x[i] ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &R->Z, 1 ) );
         if( f_rng != 0 )
             MBEDTLS_MPI_CHK( ecp_randomize_jac( grp, R, f_rng, p_rng ) );
     }

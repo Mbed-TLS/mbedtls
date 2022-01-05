@@ -186,12 +186,12 @@ do {                                                                    \
 #define MEMORY_MEASURE_INIT                                             \
     size_t max_used, max_blocks, max_bytes;                             \
     size_t prv_used, prv_blocks;                                        \
-    size_t alloc_cnt, free_cnt;                                         \
+    size_t alloc_cnt, free_cnt, prv_alloc, prv_free;                    \
     mbedtls_memory_buffer_alloc_cur_get( &prv_used, &prv_blocks );      \
     mbedtls_memory_buffer_alloc_max_reset( );
 
 #define MEMORY_MEASURE_RESET                                            \
-    mbedtls_memory_buffer_alloc_count_reset( );
+    mbedtls_memory_buffer_alloc_count_get( &prv_alloc, &prv_free );
 
 #define MEMORY_MEASURE_PRINT( title_len )                               \
     mbedtls_memory_buffer_alloc_max_get( &max_used, &max_blocks );      \
@@ -202,7 +202,8 @@ do {                                                                    \
     max_blocks -= prv_blocks;                                           \
     max_bytes = max_used + MEM_BLOCK_OVERHEAD * max_blocks;             \
     mbedtls_printf( "%6u heap bytes, %6u allocs",                       \
-                    (unsigned) max_bytes, (unsigned) alloc_cnt );
+                    (unsigned) max_bytes,                               \
+                    (unsigned)( alloc_cnt - prv_alloc ) );
 
 #else
 #define MEMORY_MEASURE_INIT

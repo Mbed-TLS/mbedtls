@@ -57,6 +57,8 @@ cat << EOF >$CONFIG_H
 #define MBEDTLS_ASN1_PARSE_C
 #define MBEDTLS_ASN1_WRITE_C
 #define MBEDTLS_ECDSA_C
+#define MBEDTLS_SHA256_C // ECDSA benchmark needs it
+#define MBEDTLS_SHA224_C // SHA256 requires this for now
 #define MBEDTLS_ECDH_C
 
 #define MBEDTLS_ECP_DP_SECP192R1_ENABLED
@@ -77,7 +79,7 @@ for F in 0 1; do
         make benchmark >/dev/null 2>&1
         echo "fixed point optim = $F, max window size = $W"
         echo "--------------------------------------------"
-        programs/test/benchmark
+        programs/test/benchmark ecdh ecdsa
     done
 done
 

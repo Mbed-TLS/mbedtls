@@ -290,7 +290,8 @@ libmbedcrypto.dll: $(OBJS_CRYPTO)
 .PHONY: generated_files
 GENERATED_FILES = \
 	error.c version_features.c \
-	ssl_debug_helpers_generated.c
+	ssl_debug_helpers_generated.c \
+        psa_crypto_driver_wrappers.c
 generated_files: $(GENERATED_FILES)
 
 error.c: ../scripts/generate_errors.pl
@@ -317,6 +318,12 @@ version_features.c: ../scripts/data_files/version_features.fmt
 version_features.c:
 	echo "  Gen   $@"
 	$(PERL) ../scripts/generate_features.pl
+
+psa_crypto_driver_wrappers.c: ../scripts/generate_driver_wrappers.py
+psa_crypto_driver_wrappers.c: ../scripts/data_files/driver_templates/psa_crypto_driver_wrappers.c.jinja
+psa_crypto_driver_wrappers.c:
+	echo "  Gen   $@"
+	$(PYTHON) ../scripts/generate_driver_wrappers.py
 
 clean:
 ifndef WINDOWS

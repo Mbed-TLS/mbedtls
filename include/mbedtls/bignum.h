@@ -188,9 +188,17 @@ extern "C" {
  */
 typedef struct mbedtls_mpi
 {
-    int MBEDTLS_PRIVATE(s);              /*!<  Sign: -1 if the mpi is negative, 1 otherwise */
-    size_t MBEDTLS_PRIVATE(n);           /*!<  total # of limbs  */
-    mbedtls_mpi_uint *MBEDTLS_PRIVATE(p);          /*!<  pointer to limbs  */
+    signed   char MBEDTLS_PRIVATE(s);         /*!<  Sign: -1 if the mpi is negative, 1 otherwise        */
+    unsigned char MBEDTLS_PRIVATE(external);  /*!< Indicates whether p was allocated by the MPI module. */
+    unsigned char MBEDTLS_PRIVATE(keepdata);  /*!< Indicates whether the data buffer should be zeroized
+                                               *   when freeing the MPI. Set to \c 1 if the data buffer
+                                               *   is read-only, or when the data is stilll used after
+                                               *   the MPI has been freed.                               */
+    unsigned char MBEDTLS_PRIVATE(fixedbuf);   /*!< Indicates whether \p p may be resized.               */
+                                               /* Invariants:
+                                                * - keepdata ==> external ==> fixedbuf */
+    size_t MBEDTLS_PRIVATE(n);            /*!<  total # of limbs  */
+    mbedtls_mpi_uint *MBEDTLS_PRIVATE(p); /*!<  pointer to limbs  */
 }
 mbedtls_mpi;
 

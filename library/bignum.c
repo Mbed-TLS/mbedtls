@@ -88,6 +88,9 @@ void mbedtls_mpi_init( mbedtls_mpi *X )
     MPI_VALIDATE( X != NULL );
 
     X->s = 1;
+    X->fixedbuf = 0;
+    X->external = 0;
+    X->keepdata = 0;
     X->n = 0;
     X->p = NULL;
 }
@@ -102,13 +105,18 @@ void mbedtls_mpi_free( mbedtls_mpi *X )
 
     if( X->p != NULL )
     {
-        mbedtls_mpi_zeroize( X->p, X->n );
-        mbedtls_free( X->p );
+        if( !X->keepdata )
+            mbedtls_mpi_zeroize( X->p, X->n );
+        if( !X->external )
+            mbedtls_free( X->p );
     }
 
     X->s = 1;
     X->n = 0;
     X->p = NULL;
+    X->fixedbuf = 0;
+    X->external = 0;
+    X->keepdata = 0;
 }
 
 /*
@@ -124,6 +132,9 @@ int mbedtls_mpi_grow( mbedtls_mpi *X, size_t nblimbs )
 
     if( X->n < nblimbs )
     {
+        if( X->fixedbuf )
+            return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+
         if( ( p = (mbedtls_mpi_uint*)mbedtls_calloc( nblimbs, ciL ) ) == NULL )
             return( MBEDTLS_ERR_MPI_ALLOC_FAILED );
 
@@ -166,6 +177,9 @@ int mbedtls_mpi_shrink( mbedtls_mpi *X, size_t nblimbs )
 
     if( i < nblimbs )
         i = nblimbs;
+
+    if( X->fixedbuf )
+        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
     if( ( p = (mbedtls_mpi_uint*)mbedtls_calloc( i, ciL ) ) == NULL )
         return( MBEDTLS_ERR_MPI_ALLOC_FAILED );

@@ -1239,6 +1239,17 @@ cleanup:
                                                        nonzero & cond ) ); \
     } while( 0 )
 
+#define MPI_ECP_NEG( X ) MPI_ECP_COND_NEG( (X), 1 )
+
+#define MPI_ECP_VALID( X )                      \
+    ( (X)->p != NULL )
+
+#define MPI_ECP_COND_ASSIGN( X, Y, cond )       \
+    MBEDTLS_MPI_CHK( mbedtls_mpi_safe_cond_assign( (X), (Y), (cond) ) )
+
+#define MPI_ECP_COND_SWAP( X, Y, cond )       \
+    MBEDTLS_MPI_CHK( mbedtls_mpi_safe_cond_swap( (X), (Y), (cond) ) )
+
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
 /*
  * For curves in short Weierstrass form, we do all the internal operations in
@@ -1550,16 +1561,16 @@ static int ecp_add_mixed( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     /*
      * Trivial cases: P == 0 or Q == 0 (case 1)
      */
-    if( mbedtls_mpi_cmp_int( &P->Z, 0 ) == 0 )
+    if( MPI_ECP_CMP_INT( &P->Z, 0 ) == 0 )
         return( mbedtls_ecp_copy( R, Q ) );
 
-    if( Q->Z.p != NULL && mbedtls_mpi_cmp_int( &Q->Z, 0 ) == 0 )
+    if( MPI_ECP_VALID( &Q->Z ) && MPI_ECP_CMP_INT( &Q->Z, 0 ) == 0 )
         return( mbedtls_ecp_copy( R, P ) );
 
     /*
      * Make sure Q coordinates are normalized
      */
-    if( Q->Z.p != NULL && mbedtls_mpi_cmp_int( &Q->Z, 1 ) != 0 )
+    if( MPI_ECP_VALID( &Q->Z ) && MPI_ECP_CMP_INT( &Q->Z, 1 ) != 0 )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     MPI_ECP_SQR( &tmp[0], &P->Z         );
@@ -1944,8 +1955,8 @@ static int ecp_select_comb( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     /* Read the whole table to thwart cache-based timing attacks */
     for( j = 0; j < T_size; j++ )
     {
-        MBEDTLS_MPI_CHK( mbedtls_mpi_safe_cond_assign( &R->X, &T[j].X, j == ii ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_safe_cond_assign( &R->Y, &T[j].Y, j == ii ) );
+        MPI_ECP_COND_ASSIGN( &R->X, &T[j].X, j == ii );
+        MPI_ECP_COND_ASSIGN( &R->Y, &T[j].Y, j == ii );
     }
 
     /* Safely invert result if i is "negative" */
@@ -2229,8 +2240,8 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 
     /* Is P the base point ? */
 #if MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
-    p_eq_g = ( mbedtls_mpi_cmp_mpi( &P->Y, &grp->G.Y ) == 0 &&
-               mbedtls_mpi_cmp_mpi( &P->X, &grp->G.X ) == 0 );
+    p_eq_g = ( MPI_ECP_CMP( &P->Y, &grp->G.Y ) == 0 &&
+               MPI_ECP_CMP( &P->X, &grp->G.X ) == 0 );
 #else
     p_eq_g = 0;
 #endif
@@ -2515,11 +2526,11 @@ static int ecp_mul_mxz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
          *  else   double_add( R, RP, R, RP )
          * but using safe conditional swaps to avoid leaks
          */
-        MBEDTLS_MPI_CHK( mbedtls_mpi_safe_cond_swap( &R->X, &RP.X, b ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_safe_cond_swap( &R->Z, &RP.Z, b ) );
+        MPI_ECP_COND_SWAP( &R->X, &RP.X, b );
+        MPI_ECP_COND_SWAP( &R->Z, &RP.Z, b );
         MBEDTLS_MPI_CHK( ecp_double_add_mxz( grp, R, &RP, R, &RP, &PX, tmp ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_safe_cond_swap( &R->X, &RP.X, b ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_safe_cond_swap( &R->Z, &RP.Z, b ) );
+        MPI_ECP_COND_SWAP( &R->X, &RP.X, b );
+        MPI_ECP_COND_SWAP( &R->Z, &RP.Z, b );
     }
 
     /*
@@ -2711,6 +2722,8 @@ static int mbedtls_ecp_mul_shortcuts( mbedtls_ecp_group *grp,
                                       mbedtls_ecp_restart_ctx *rs_ctx )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_mpi tmp;
+    mbedtls_mpi_init( &tmp );
 
     if( mbedtls_mpi_cmp_int( m, 0 ) == 0 )
     {
@@ -2723,8 +2736,7 @@ static int mbedtls_ecp_mul_shortcuts( mbedtls_ecp_group *grp,
     else if( mbedtls_mpi_cmp_int( m, -1 ) == 0 )
     {
         MBEDTLS_MPI_CHK( mbedtls_ecp_copy( R, P ) );
-        if( mbedtls_mpi_cmp_int( &R->Y, 0 ) != 0 )
-            MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &R->Y, &grp->P, &R->Y ) );
+        MPI_ECP_NEG( &R->Y );
     }
     else
     {
@@ -2733,6 +2745,8 @@ static int mbedtls_ecp_mul_shortcuts( mbedtls_ecp_group *grp,
     }
 
 cleanup:
+    mbedtls_mpi_free( &tmp );
+
     return( ret );
 }
 

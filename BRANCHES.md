@@ -1,6 +1,6 @@
 # Maintained branches
 
-At any point in time, we have a number of maintained branches consisting of:
+At any point in time, we have a number of maintained branches, currently consisting of:
 
 - The [`master`](https://github.com/ARMmbed/mbedtls/tree/master) branch:
   this always contains the latest release, including all publicly available
@@ -9,11 +9,18 @@ At any point in time, we have a number of maintained branches consisting of:
   this is where the current major version of Mbed TLS (version 3.x) is being
   prepared. It has API changes that make it incompatible with Mbed TLS 2.x,
   as well as all the new features and bug fixes and security fixes.
-- The [`development_2.x`](https://github.com/ARMmbed/mbedtls/tree/development_2.x) branch:
-  this branch retains the API of Mbed TLS 2.x, and has a subset of the
-  features added after Mbed TLS 2.26.0 and bug fixes and security fixes.
-- One or more long-time support (LTS) branches:
-  these only get bug fixes and security fixes.
+- One or more long-time support (LTS) branches: these only get bug fixes and
+  security fixes. Currently, the only supported LTS branch is:
+  [`mbedtls-2.28`](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.28).
+- For a short time we also have the previous LTS, which has recently ended its
+  support period,
+  [`mbedtls-2.16`](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.16).
+  This branch will move into the `archive` namespace around the time of
+  the next release.
+
+We retain a number of historical branches, whose names are prefixed by `archive/`,
+such as [`archive/mbedtls-2.7`](https://github.com/ARMmbed/mbedtls/tree/archive/mbedtls-2.7).
+These branches will not receive any changes or updates.
 
 We use [Semantic Versioning](https://semver.org/). In particular, we maintain
 API compatibility in the `master` branch across minor version changes (e.g.
@@ -70,9 +77,8 @@ The following branches are currently maintained:
 
 - [master](https://github.com/ARMmbed/mbedtls/tree/master)
 - [`development`](https://github.com/ARMmbed/mbedtls/)
-- [`development_2.x`](https://github.com/ARMmbed/mbedtls/tree/development_2.x)
-- [`mbedtls-2.16`](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.16)
- maintained until at least the end of 2021, see
-  <https://tls.mbed.org/tech-updates/blog/announcing-lts-branch-mbedtls-2.16>
+- [`mbedtls-2.28`](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.28)
+ maintained until at least the end of 2024, see
+  <https://github.com/ARMmbed/mbedtls/releases/tag/v2.28.0>.
 
 Users are urged to always use the latest version of a maintained branch.

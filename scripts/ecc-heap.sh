@@ -61,12 +61,19 @@ cat << EOF >$CONFIG_H
 #define MBEDTLS_SHA224_C // SHA256 requires this for now
 #define MBEDTLS_ECDH_C
 
-#define MBEDTLS_ECP_DP_SECP192R1_ENABLED
-#define MBEDTLS_ECP_DP_SECP224R1_ENABLED
+// NIST curves >= 256 bits
 #define MBEDTLS_ECP_DP_SECP256R1_ENABLED
 #define MBEDTLS_ECP_DP_SECP384R1_ENABLED
 #define MBEDTLS_ECP_DP_SECP521R1_ENABLED
+// SECP "koblitz-like" curve >= 256 bits
+#define MBEDTLS_ECP_DP_SECP256K1_ENABLED
+// Brainpool curves (no specialised "mod p" routine)
+#define MBEDTLS_ECP_DP_BP256R1_ENABLED
+#define MBEDTLS_ECP_DP_BP384R1_ENABLED
+#define MBEDTLS_ECP_DP_BP512R1_ENABLED
+// Montgomery curves
 #define MBEDTLS_ECP_DP_CURVE25519_ENABLED
+#define MBEDTLS_ECP_DP_CURVE448_ENABLED
 
 #define MBEDTLS_HAVE_ASM // just make things a bit faster
 #define MBEDTLS_ECP_NIST_OPTIM // faster and less allocations
@@ -76,7 +83,7 @@ cat << EOF >$CONFIG_H
 EOF
 
 for F in 0 1; do
-    for W in 2 3 4 5 6; do
+    for W in 2 3 4; do
         scripts/config.py set MBEDTLS_ECP_WINDOW_SIZE $W
         scripts/config.py set MBEDTLS_ECP_FIXED_POINT_OPTIM $F
         make benchmark >/dev/null 2>&1

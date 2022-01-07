@@ -196,6 +196,9 @@ class DescriptionChecker(TestDescriptionExplorer):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--list-all',
+                        action='store_true',
+                        help='List all test cases, without doing checks')
     parser.add_argument('--quiet', '-q',
                         action='store_true',
                         help='Hide warnings')
@@ -203,6 +206,10 @@ def main():
                         action='store_false', dest='quiet',
                         help='Show warnings (default: on; undoes --quiet)')
     options = parser.parse_args()
+    if options.list_all:
+        descriptions = collect_available_test_cases()
+        sys.stdout.write('\n'.join(descriptions + ['']))
+        return
     results = Results(options)
     checker = DescriptionChecker(results)
     checker.walk_all()

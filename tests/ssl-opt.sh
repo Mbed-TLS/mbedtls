@@ -9013,7 +9013,7 @@ run_test    "TLS 1.3: HelloRetryRequest check - gnutls" \
             -c "Last error was: -0x6E00 - SSL - The handshake negotiation failed" \
             -s "HELLO RETRY REQUEST was queued"
 
-for i in $(ls opt-testcases/*.sh)
+for i in opt-testcases/*.sh
 do
     . $i
 done

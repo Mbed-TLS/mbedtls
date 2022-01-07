@@ -84,6 +84,7 @@ APPS = \
 	pkey/rsa_sign_pss \
 	pkey/rsa_verify \
 	pkey/rsa_verify_pss \
+	psa/aead_cipher_psa \
 	psa/crypto_examples \
 	psa/hmac_md_psa \
 	psa/key_ladder_demo \
@@ -261,6 +262,10 @@ pkey/rsa_decrypt$(EXEXT): pkey/rsa_decrypt.c $(DEP)
 pkey/rsa_encrypt$(EXEXT): pkey/rsa_encrypt.c $(DEP)
 	echo "  CC    pkey/rsa_encrypt.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_encrypt.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+psa/aead_cipher_psa$(EXEXT): psa/aead_cipher_psa.c $(DEP)
+	echo "  CC    psa/aead_cipher_psa.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/aead_cipher_psa.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 psa/crypto_examples$(EXEXT): psa/crypto_examples.c $(DEP)
 	echo "  CC    psa/crypto_examples.c"

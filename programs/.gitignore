@@ -38,6 +38,7 @@ pkey/rsa_sign
 pkey/rsa_sign_pss
 pkey/rsa_verify
 pkey/rsa_verify_pss
+psa/aead_cipher_psa
 psa/crypto_examples
 psa/hmac_md_psa
 psa/key_ladder_demo

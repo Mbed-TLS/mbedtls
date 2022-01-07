@@ -134,6 +134,26 @@ state may override this method.
             if os.path.exists(ssl_opt_sh):
                 self.walk_ssl_opt_sh(ssl_opt_sh)
 
+class TestDescriptions(TestDescriptionExplorer):
+    """Collect the available test cases."""
+
+    def __init__(self):
+        super().__init__()
+        self.descriptions = set()
+
+    def process_test_case(self, _per_file_state,
+                          file_name, _line_number, description):
+        """Record an available test case."""
+        base_name = re.sub(r'\.[^.]*$', '', re.sub(r'.*/', '', file_name))
+        key = ';'.join([base_name, description.decode('utf-8')])
+        self.descriptions.add(key)
+
+def collect_available_test_cases():
+    """Collect the available test cases."""
+    explorer = TestDescriptions()
+    explorer.walk_all()
+    return sorted(explorer.descriptions)
+
 class DescriptionChecker(TestDescriptionExplorer):
     """Check all test case descriptions.
 

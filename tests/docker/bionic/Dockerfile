@@ -60,13 +60,10 @@ RUN apt-get update \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-# Jinja2 is required for driver dispatch code generation.
+# Jinja2 and jsonschema is required for driver dispatch code generation.
 RUN python3 -m pip install \
-    jinja2==2.10.1 types-jinja2
-
-
-RUN python3 -m pip install \
-    jsonschema
+    jinja2==2.10.1 types-jinja2 \
+    jsonschema==3.2.0 types-jsonschema
 
 # Build a static, legacy openssl from sources with sslv3 enabled
 # Based on https://gist.github.com/bmaupin/8caca3a1e8c3c5686141 (build-openssl.sh)

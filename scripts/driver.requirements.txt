@@ -13,4 +13,6 @@ markupsafe < 2.1
 Jinja2 >= 2.10.1
 # Jinja2 >=2.10, <3.0 needs a separate package for type annotations
 types-Jinja2
-
+# jsonschema > 3.2.0 is not compatible with Python 3.5, force 3.2.0
+jsonschema >= 3.2.0
+types-jsonschema

@@ -1,6 +1,7 @@
-[{
+{
     "prefix":       "mbedtls_test",
     "type":         "transparent",
+    "dependency":   "defined(PSA_CRYPTO_DRIVER_TEST)",
     "headers":      ["test/drivers/test_driver.h"],
     "capabilities": [
         {
@@ -18,4 +19,4 @@
         }
 
     ]
-}]
+}

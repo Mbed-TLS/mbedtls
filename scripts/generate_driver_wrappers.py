@@ -23,6 +23,8 @@
 import sys
 import os
 import json
+from jsonschema import validate
+from typing import Tuple
 import argparse
 import jinja2
 from mbedtls_dev import build_tree
@@ -51,26 +53,48 @@ def generate_driver_wrapper_file(template_dir: str, output_dir: str, driver_json
     with open(os.path.join(output_dir, "psa_crypto_driver_wrappers.c"), 'w') as out_file:
         out_file.write(result)
 
-def validate_mergedjson(merged_driverjson: list) -> int:
-    """
-    Validate the merged Driver JSON for errors that we can catch early
-    """
-    return 0
 
-
-def merge_driverjsonfiles(json_directory: str, jsondriverlistName: str) -> list:
+def validate_json(driverjson_data: list, driverschema: list) -> bool:
     """
-    Merge driver JSON files into a single ordered JSON.
+    Validate the Driver JSON against schema
+    """
+    try:
+        validate(instance = driverjson_data, schema = driverschema)
+    except jsonschema.exceptions.ValidationError as err:
+        print(err)
+        err = "The driver JSON data is InValid"
+        return False
+
+    message = "The driver JSON data is Valid"
+    return True
+
+def merge_driverjsonfiles(mbedtls_root: str, json_directory: str, jsondriverlistName: str) -> Tuple[bool,list]:
+    """
+    Merge driver JSON files into a single ordered JSON after validation.
     """
     result = list()
     driverlist = list()
+    with open(os.path.join(mbedtls_root, 'scripts/data_files/driver_jsons/driver_transparent_schema.json'), 'r') as file:
+        transparent_driver_schema = json.load(file)
+    with open(os.path.join(mbedtls_root, 'scripts/data_files/driver_jsons/driver_opaque_schema.json'), 'r') as file:
+        opaque_driver_schema = json.load(file)
+
     with open(os.path.join(json_directory, jsondriverlistName), 'r') as driverlistfile:
         driverlist = json.load(driverlistfile)
     for file_name in driverlist:
         with open(os.path.join(json_directory, file_name), 'r') as infile:
-            result.extend(json.load(infile))
-
-    return result
+            json_data = json.load(infile)
+            if json_data['type'] == 'transparent':
+                ret = validate_json(json_data, transparent_driver_schema)
+            elif json_data['type'] == 'opaque':
+                ret = validate_json(json_data, opaque_driver_schema)
+            else:
+                ret = False
+                print("Unknown Driver type")
+            if ret == False:
+                return ret, []
+            result.append(json_data)
+    return True, result
 
 
 def main() -> int:
@@ -99,12 +123,9 @@ def main() -> int:
     json_directory     = args.json_dir
 
     # load list of driver jsons from driverlist.json
-    merged_driverjson = merge_driverjsonfiles(json_directory, 'driverlist.json')
-    ret = validate_mergedjson(merged_driverjson)
-    if ret == 1:
-        print("Validation failed ")
+    ret, merged_driverjson = merge_driverjsonfiles(mbedtls_root, json_directory, 'driverlist.json')
+    if ret == False:
         return 1
-
     generate_driver_wrapper_file(template_directory, output_directory, merged_driverjson)
 
     return 0

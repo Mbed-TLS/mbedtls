@@ -39,9 +39,13 @@
 #if defined(MBEDTLS_PSA_CRYPTO_DRIVERS)
 {% for driver in drivers -%}
 /* Headers for {{driver.prefix}} {{driver.type}} driver */
+{% if driver.dependency is defined -%}
+#if {{ driver.dependency }}
+{% endif -%}
 {% for header in driver.headers -%}
 #include "{{ header }}"
 {% endfor %}
+#endif
 {% endfor %}
 #endif /* MBEDTLS_PSA_CRYPTO_DRIVERS */
 /* END-driver headers */

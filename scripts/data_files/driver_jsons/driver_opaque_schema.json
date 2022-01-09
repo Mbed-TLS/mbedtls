@@ -1,0 +1,112 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "prefix": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "dependency": {
+      "type": "string"
+    },
+    "headers": {
+      "type": "array",
+      "items": [
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "capabilities": {
+      "type": "array",
+      "items": [
+        {
+          "type": "object",
+          "properties": {
+            "_comment": {
+              "type": "string"
+            },
+            "depend_on": {
+              "type": "string"
+            },
+            "entry_points": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "required": [
+            "_comment",
+            "depend_on",
+            "entry_points"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "_comment": {
+              "type": "string"
+            },
+            "depend_on": {
+              "type": "string"
+            },
+            "entry_points": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "name": {
+              "type": "object",
+              "properties": {
+                "copy_key": {
+                  "type": "string"
+                },
+                "get_builtin_key": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "copy_key",
+                "get_builtin_key"
+              ]
+            }
+          },
+          "required": [
+            "_comment",
+            "depend_on",
+            "entry_points",
+            "name"
+          ]
+        }
+      ]
+    }
+  },
+  "required": [
+    "prefix",
+    "type",
+    "location",
+    "dependency",
+    "headers",
+    "capabilities"
+  ]
+}

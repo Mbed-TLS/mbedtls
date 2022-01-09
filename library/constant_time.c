@@ -412,12 +412,13 @@ void mbedtls_ct_memcpy_if_eq( unsigned char *dest,
                               size_t c1,
                               size_t c2 )
 {
+    size_t i;
     /* mask = c1 == c2 ? 0xff : 0x00 */
     const size_t equal = mbedtls_ct_size_bool_eq( c1, c2 );
     const unsigned char mask = (unsigned char) mbedtls_ct_size_mask( equal );
 
     /* dest[i] = c1 == c2 ? src[i] : dest[i] */
-    for( size_t i = 0; i < len; i++ )
+    for( i = 0; i < len; i++ )
         dest[i] = ( src[i] & mask ) | ( dest[i] & ~mask );
 }
 

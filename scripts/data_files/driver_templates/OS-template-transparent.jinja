@@ -2,7 +2,11 @@
 {% for capability in driver.capabilities if entry_point in capability.entry_points -%}
 #if ({% if capability.depend_on is defined -%}{{ capability.depend_on }} {% else -%} {{ 1 }} {% endif %})
 {%- filter indent(width = nest_indent) %}
+{% if capability.name is defined and entry_point in capability.name.keys() -%}
+status = {{ capability.name[entry_point]}}({{entry_point_attributes(driver) | indent(20)}});
+{% else -%}
 status = {{driver.prefix}}_{{driver.type}}_{{entry_point}}({{entry_point_attributes(driver) | indent(20)}});
+{% endif -%}
 
 if( status != PSA_ERROR_NOT_SUPPORTED )
     return( status );

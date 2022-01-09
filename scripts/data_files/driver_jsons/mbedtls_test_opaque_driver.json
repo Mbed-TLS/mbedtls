@@ -12,7 +12,8 @@
         {
             "_comment":     "The mbedTLS opaque driver supports copy key/ get builtin key",
             "depend_on":    "defined(PSA_CRYPTO_DRIVER_TEST)",
-            "entry_points": ["copy_key","get_builtin_key"]
+            "entry_points": ["copy_key","get_builtin_key"],
+            "name":         {"copy_key":"mbedtls_test_opaque_copy_key", "get_builtin_key":"mbedtls_test_opaque_get_builtin_key"}
         }
      ]
 }]

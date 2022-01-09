@@ -3,7 +3,11 @@
 #if ({% if capability.depend_on is defined -%}{{ capability.depend_on }} {% else -%} {{ 1 }} {% endif %})
 {%- filter indent(width = nest_indent) %}
 case {{ driver.location }}:
+    {% if capability.name is defined and entry_point in capability.name.keys() -%}
+    return({{ capability.name[entry_point]}}({{entry_point_attributes(driver) | indent(20)}}));
+    {% else -%}
     return({{driver.prefix}}_{{driver.type}}_{{entry_point}}({{entry_point_attributes(driver) | indent(20)}}));
+    {% endif -%}
 {% endfilter -%}
 #endif
 {% endfor %}

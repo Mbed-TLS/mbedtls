@@ -1334,7 +1334,7 @@ static int ecp_normalize_jac_many( const mbedtls_ecp_group *grp,
     mbedtls_mpi_init( &t );
 
     /*
-     * c[i] = Z_0 * ... * Z_i
+     * c[i] = Z_0 * ... * Z_i,   i = 0,..,n := T_size-1
      */
     MPI_ECP_MOV( &c[0], &T[0]->Z );
     for( i = 1; i < T_size; i++ )
@@ -1458,7 +1458,7 @@ static int ecp_double_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     /* Special case for A = -3 */
     if( grp->A.p == NULL )
     {
-        /* M = 3(X + Z^2)(X - Z^2) */
+        /* tmp[0] <- M = 3(X + Z^2)(X - Z^2) */
         MPI_ECP_SQR(     &tmp[1],  &P->Z                );
         MPI_ECP_ADD(     &tmp[2],  &P->X,  &tmp[1]      );
         MPI_ECP_SUB(     &tmp[3],  &P->X,  &tmp[1]      );
@@ -1467,7 +1467,7 @@ static int ecp_double_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     }
     else
     {
-        /* M = 3.X^2 */
+        /* tmp[0] <- M = 3.X^2 + A.Z^4 */
         MPI_ECP_SQR(     &tmp[1],  &P->X  );
         MPI_ECP_MUL_INT( &tmp[0],  &tmp[1],  3 );
 
@@ -1482,30 +1482,31 @@ static int ecp_double_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         }
     }
 
-    /* S = 4.X.Y^2 */
+    /* tmp[1] <- S = 4.X.Y^2 */
     MPI_ECP_SQR(     &tmp[2],  &P->Y     );
     MPI_ECP_SHIFT_L( &tmp[2],  1         );
     MPI_ECP_MUL(     &tmp[1],  &P->X, &tmp[2] );
     MPI_ECP_SHIFT_L( &tmp[1],  1         );
 
-    /* U = 8.Y^4 */
+    /* tmp[3] <- U = 8.Y^4 */
     MPI_ECP_SQR(     &tmp[3],  &tmp[2] );
     MPI_ECP_SHIFT_L( &tmp[3],  1       );
 
-    /* T = M^2 - 2.S */
+    /* tmp[2] <- T = M^2 - 2.S */
     MPI_ECP_SQR( &tmp[2],  &tmp[0]     );
     MPI_ECP_SUB( &tmp[2],  &tmp[2], &tmp[1] );
     MPI_ECP_SUB( &tmp[2],  &tmp[2], &tmp[1] );
 
-    /* S = M(S - T) - U */
+    /* tmp[1] <- S = M(S - T) - U */
     MPI_ECP_SUB( &tmp[1],  &tmp[1],     &tmp[2] );
     MPI_ECP_MUL( &tmp[1],  &tmp[1],     &tmp[0] );
     MPI_ECP_SUB( &tmp[1],  &tmp[1],     &tmp[3] );
 
-    /* U = 2.Y.Z */
+    /* tmp[3] <- U = 2.Y.Z */
     MPI_ECP_MUL(     &tmp[3],  &P->Y,  &P->Z   );
     MPI_ECP_SHIFT_L( &tmp[3],  1               );
 
+    /* Store results */
     MPI_ECP_MOV( &R->X, &tmp[2] );
     MPI_ECP_MOV( &R->Y, &tmp[1] );
     MPI_ECP_MOV( &R->Z, &tmp[3] );
@@ -1521,6 +1522,10 @@ cleanup:
  *
  * The coordinates of Q must be normalized (= affine),
  * but those of P don't need to. R is not normalized.
+ *
+ * P,Q,R may alias, but only at the level of EC points: they must be either
+ * equal as pointers, or disjoint (including the coordinate data buffers).
+ * Fine-grained aliasing at the level of coordinates is not supported.
  *
  * Special cases: (1) P or Q is zero, (2) R is zero, (3) P == Q.
  * None of these cases can happen as intermediate step in ecp_mul_comb():
@@ -1648,17 +1653,17 @@ static int ecp_randomize_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *p
     /* Generate l such that 1 < l < p */
     MPI_ECP_RAND( &l );
 
-    /* Z = l * Z */
+    /* Z' = l * Z */
     MPI_ECP_MUL( &pt->Z,   &pt->Z,     &l );
 
-    /* Y = l * Z */
+    /* Y' = l * Y */
     MPI_ECP_MUL( &pt->Y,   &pt->Y,     &l );
 
-    /* X = l^2 * X */
+    /* X' = l^2 * X */
     MPI_ECP_SQR( &l,       &l             );
     MPI_ECP_MUL( &pt->X,   &pt->X,     &l );
 
-    /* Y = l^3 * Y */
+    /* Y'' = l^2 * Y' = l^3 * Y */
     MPI_ECP_MUL( &pt->Y,   &pt->Y,     &l );
 
 cleanup:
@@ -1872,8 +1877,11 @@ dbl:
 norm_dbl:
 #endif
     /*
-     * Normalize current elements in T. As T has holes,
-     * use an auxiliary array of pointers to elements in T.
+     * Normalize current elements in T to allow them to be used in
+     * ecp_add_mixed() below, which requires one normalized input.
+     *
+     * As T has holes, use an auxiliary array of pointers to elements in T.
+     *
      */
     j = 0;
     for( i = 1; i < T_size; i <<= 1 )
@@ -2459,24 +2467,24 @@ static int ecp_double_add_mxz( const mbedtls_ecp_group *grp,
 #else
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    MPI_ECP_ADD( &T[0], &P->X,   &P->Z );
-    MPI_ECP_SUB( &T[1], &P->X,   &P->Z );
-    MPI_ECP_ADD( &T[2], &Q->X,   &Q->Z );
-    MPI_ECP_SUB( &T[3], &Q->X,   &Q->Z );
-    MPI_ECP_MUL( &T[3], &T[3],   &T[0] );
-    MPI_ECP_MUL( &T[2], &T[2],   &T[1] );
-    MPI_ECP_SQR( &T[0], &T[0]          );
-    MPI_ECP_SQR( &T[1], &T[1]          );
-    MPI_ECP_MUL( &R->X, &T[0],   &T[1] );
-    MPI_ECP_SUB( &T[0], &T[0],   &T[1] );
-    MPI_ECP_MUL( &R->Z, &grp->A, &T[0] );
-    MPI_ECP_ADD( &R->Z, &T[1],   &R->Z );
-    MPI_ECP_ADD( &S->X, &T[3],   &T[2] );
-    MPI_ECP_SQR( &S->X, &S->X          );
-    MPI_ECP_SUB( &S->Z, &T[3],   &T[2] );
-    MPI_ECP_SQR( &S->Z, &S->Z          );
-    MPI_ECP_MUL( &S->Z, d,       &S->Z );
-    MPI_ECP_MUL( &R->Z, &T[0],   &R->Z );
+    MPI_ECP_ADD( &T[0], &P->X,   &P->Z ); /* Pp := PX + PZ                    */
+    MPI_ECP_SUB( &T[1], &P->X,   &P->Z ); /* Pm := PX - PZ                    */
+    MPI_ECP_ADD( &T[2], &Q->X,   &Q->Z ); /* Qp := QX + XZ                    */
+    MPI_ECP_SUB( &T[3], &Q->X,   &Q->Z ); /* Qm := QX - QZ                    */
+    MPI_ECP_MUL( &T[3], &T[3],   &T[0] ); /* Qm * Pp                          */
+    MPI_ECP_MUL( &T[2], &T[2],   &T[1] ); /* Qp * Pm                          */
+    MPI_ECP_SQR( &T[0], &T[0]          ); /* Pp^2                             */
+    MPI_ECP_SQR( &T[1], &T[1]          ); /* Pm^2                             */
+    MPI_ECP_MUL( &R->X, &T[0],   &T[1] ); /* Pp^2 * Pm^2                      */
+    MPI_ECP_SUB( &T[0], &T[0],   &T[1] ); /* Pp^2 - Pm^2                      */
+    MPI_ECP_MUL( &R->Z, &grp->A, &T[0] ); /* A * (Pp^2 - Pm^2)                */
+    MPI_ECP_ADD( &R->Z, &T[1],   &R->Z ); /* [ A * (Pp^2-Pm^2) ] + Pm^2       */
+    MPI_ECP_ADD( &S->X, &T[3],   &T[2] ); /* Qm*Pp + Qp*Pm                    */
+    MPI_ECP_SQR( &S->X, &S->X          ); /* (Qm*Pp + Qp*Pm)^2                */
+    MPI_ECP_SUB( &S->Z, &T[3],   &T[2] ); /* Qm*Pp - Qp*Pm                    */
+    MPI_ECP_SQR( &S->Z, &S->Z          ); /* (Qm*Pp - Qp*Pm)^2                */
+    MPI_ECP_MUL( &S->Z, d,       &S->Z ); /* d * ( Qm*Pp - Qp*Pm )^2          */
+    MPI_ECP_MUL( &R->Z, &T[0],   &R->Z ); /* [A*(Pp^2-Pm^2)+Pm^2]*(Pp^2-Pm^2) */
 
 cleanup:
 

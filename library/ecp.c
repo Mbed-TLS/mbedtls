@@ -1386,7 +1386,8 @@ static int ecp_normalize_jac_many( const mbedtls_ecp_group *grp,
          */
         MBEDTLS_MPI_CHK( mbedtls_mpi_shrink( &T[i]->X, grp->P.n ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_shrink( &T[i]->Y, grp->P.n ) );
-        mbedtls_mpi_free( &T[i]->Z );
+
+        MPI_ECP_LSET( &T[i]->Z, 1 );
 
         if( i == 0 )
             break;
@@ -1529,8 +1530,6 @@ cleanup:
  *   due to the choice of precomputed points in the modified comb method.
  * So branches for these cases do not leak secret information.
  *
- * We accept Q->Z being unset (saving memory in tables) as meaning 1.
- *
  * Cost: 1A := 8M + 3S
  */
 static int ecp_add_mixed( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
@@ -1558,19 +1557,22 @@ static int ecp_add_mixed( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     mbedtls_mpi * const Y = &R->Y;
     mbedtls_mpi * const Z = &R->Z;
 
+    if( !MPI_ECP_VALID( &Q->Z ) )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
     /*
      * Trivial cases: P == 0 or Q == 0 (case 1)
      */
     if( MPI_ECP_CMP_INT( &P->Z, 0 ) == 0 )
         return( mbedtls_ecp_copy( R, Q ) );
 
-    if( MPI_ECP_VALID( &Q->Z ) && MPI_ECP_CMP_INT( &Q->Z, 0 ) == 0 )
+    if( MPI_ECP_CMP_INT( &Q->Z, 0 ) == 0 )
         return( mbedtls_ecp_copy( R, P ) );
 
     /*
      * Make sure Q coordinates are normalized
      */
-    if( MPI_ECP_VALID( &Q->Z ) && MPI_ECP_CMP_INT( &Q->Z, 1 ) != 0 )
+    if( MPI_ECP_CMP_INT( &Q->Z, 1 ) != 0 )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     MPI_ECP_SQR( &tmp[0], &P->Z         );
@@ -1917,6 +1919,14 @@ norm_add:
     MBEDTLS_ECP_BUDGET( MBEDTLS_ECP_OPS_INV + 6 * j - 2 );
 
     MBEDTLS_MPI_CHK( ecp_normalize_jac_many( grp, TT, j ) );
+
+    /* Free Z coordinate (=1 after normalization) to save RAM.
+     * This makes T[i] invalid as mbedtls_ecp_points, but this is OK
+     * since from this point onwards, they are only accessed indirectly
+     * via the getter function ecp_select_comb() which does set the
+     * target's Z coordinate to 1. */
+    for( i = 0; i < T_size; i++ )
+        mbedtls_mpi_free( &T[i].Z );
 
 cleanup:
 

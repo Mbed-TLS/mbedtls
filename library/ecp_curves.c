@@ -5238,11 +5238,13 @@ static int ecp_mod_p255( mbedtls_mpi *N )
 
     /* Helper references for top part of N */
     mbedtls_mpi_uint * const NT_p = N->p + P255_WIDTH;
-    const size_t NT_n = N->n - P255_WIDTH;
+    size_t NT_n = N->n - P255_WIDTH;
     if( N->n <= P255_WIDTH )
         return( 0 );
+
+    /* TODO: This truncation needs some justification */
     if( NT_n > P255_WIDTH )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+        NT_n = P255_WIDTH;
 
     /* Split N as N + 2^256 M */
     memcpy( Mp,   NT_p, sizeof( mbedtls_mpi_uint ) * NT_n );
@@ -5292,9 +5294,11 @@ static int ecp_mod_p448( mbedtls_mpi *N )
     /* M = A1 */
     M.s = 1;
     M.n = N->n - ( P448_WIDTH );
+
+    /* TODO: This truncation needs some justification */
     if( M.n > P448_WIDTH )
-        /* Shouldn't be called with N larger than 2^896! */
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+        M.n = P448_WIDTH;
+
     M.p = Mp;
     memset( Mp, 0, sizeof( Mp ) );
     memcpy( Mp, N->p + P448_WIDTH, M.n * sizeof( mbedtls_mpi_uint ) );

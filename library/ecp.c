@@ -354,6 +354,63 @@ static void mpi_free_many( mbedtls_mpi *arr, size_t size )
         mbedtls_mpi_free( arr++ );
 }
 
+/* Grow an MPI to the size of the ECP modulus.
+ * To be used for EC point coordinates and local MPIs. */
+static inline int mpi_ecp_grow_single( const mbedtls_ecp_group *grp, mbedtls_mpi *X )
+{
+    return( mbedtls_mpi_grow( X, grp->P.n ) );
+}
+
+/* Grow an MPI to twice the size of the ECP modulus.
+ * Used for results of operations like modular multiplications
+ * which temporarily widen the output. */
+static inline int mpi_ecp_grow_double( const mbedtls_ecp_group *grp, mbedtls_mpi *X )
+{
+    return( mbedtls_mpi_grow( X, 2 * grp->P.n + 1 ) );
+}
+
+/* Grow an MPI to the size of the ECP modulus.
+ * To be used for EC point coordinates and local MPIs. */
+static int mpi_ecp_grow_single_many( const mbedtls_ecp_group *grp,
+                                     mbedtls_mpi *X, size_t size )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    while( size-- )
+        MBEDTLS_MPI_CHK( mpi_ecp_grow_single( grp, X++ ) );
+
+cleanup:
+    return( ret );
+}
+
+#define MPI_ECP_GROW_SINGLE_GRP( GRP, X )                               \
+    MBEDTLS_MPI_CHK( mpi_ecp_grow_single( (GRP), (X) ) )
+
+#define MPI_ECP_GROW_DOUBLE_GRP( GRP, X )                               \
+    MBEDTLS_MPI_CHK( mpi_ecp_grow_double( (GRP), (X) ) )
+
+#define ECP_POINT_GROW_SINGLE_GRP(GRP,P)                                \
+   do {                                                                 \
+        MBEDTLS_MPI_CHK( mpi_ecp_grow_single( (GRP), &(P)->X ) );       \
+        MBEDTLS_MPI_CHK( mpi_ecp_grow_single( (GRP), &(P)->Y ) );       \
+        MBEDTLS_MPI_CHK( mpi_ecp_grow_single( (GRP), &(P)->Z ) );       \
+   } while( 0 )
+
+#define MPI_ECP_GROW_SINGLE_MANY_GRP( GRP, X, N )                       \
+    MBEDTLS_MPI_CHK( mpi_ecp_grow_single_many( (GRP), (X), (N) ) )
+
+#define MPI_ECP_GROW_SINGLE( X )                                        \
+    MPI_ECP_GROW_SINGLE_GRP( grp, X )
+
+#define ECP_POINT_GROW_SINGLE(P)                                        \
+    ECP_POINT_GROW_SINGLE_GRP(grp, (P) )
+
+#define MPI_ECP_GROW_DOUBLE( X )                                        \
+    MBEDTLS_MPI_CHK( mpi_ecp_grow_double( grp, (X) ) )
+
+#define MPI_ECP_GROW_SINGLE_MANY( X, N )                                \
+    MPI_ECP_GROW_SINGLE_MANY_GRP( grp, (X), (N) )
+
 /*
  * List of supported curves:
  *  - internal ID
@@ -1322,6 +1379,8 @@ static int ecp_normalize_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *p
     mbedtls_mpi T;
     mbedtls_mpi_init( &T );
 
+    MPI_ECP_GROW_SINGLE( &T  );
+
     MPI_ECP_INV( &T,       &pt->Z );          /* T   <-          1 / Z   */
     MPI_ECP_MUL( &pt->Y,   &pt->Y,     &T );  /* Y'  <- Y*T    = Y / Z   */
     MPI_ECP_SQR( &T,       &T             );  /* T   <- T^2    = 1 / Z^2 */
@@ -1373,6 +1432,10 @@ static int ecp_normalize_jac_many( const mbedtls_ecp_group *grp,
     mbedtls_mpi_init( &t );
 
     mpi_init_many( c, T_size );
+
+    MPI_ECP_GROW_SINGLE_MANY( c, T_size );
+    MPI_ECP_GROW_SINGLE( &t );
+
     /*
      * c[i] = Z_0 * ... * Z_i,   i = 0,..,n := T_size-1
      */
@@ -1674,6 +1737,7 @@ static int ecp_randomize_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *p
     mbedtls_mpi l;
 
     mbedtls_mpi_init( &l );
+    MPI_ECP_GROW_SINGLE( &l );
 
     /* Generate l such that 1 < l < p */
     MPI_ECP_RAND( &l );
@@ -1838,6 +1902,8 @@ static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
     mbedtls_mpi tmp[4];
 
     mpi_init_many( tmp, sizeof( tmp ) / sizeof( mbedtls_mpi ) );
+
+    MPI_ECP_GROW_SINGLE_MANY( tmp, sizeof( tmp ) / sizeof( mbedtls_mpi ) );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->rsm != NULL )
@@ -2025,6 +2091,9 @@ static int ecp_mul_comb_core( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R
 
     mbedtls_ecp_point_init( &Txi );
     mpi_init_many( tmp, sizeof( tmp ) / sizeof( mbedtls_mpi ) );
+
+    ECP_POINT_GROW_SINGLE( &Txi );
+    MPI_ECP_GROW_SINGLE_MANY( tmp, sizeof( tmp ) / sizeof( mbedtls_mpi ) );
 
 #if !defined(MBEDTLS_ECP_RESTARTABLE)
     (void) rs_ctx;
@@ -2313,7 +2382,10 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         }
 
         for( i = 0; i < T_size; i++ )
+        {
             mbedtls_ecp_point_init( &T[i] );
+            ECP_POINT_GROW_SINGLE( &T[i] );
+        }
 
         T_ok = 0;
     }
@@ -2433,6 +2505,8 @@ static int ecp_randomize_mxz( const mbedtls_ecp_group *grp, mbedtls_ecp_point *P
     mbedtls_mpi l;
     mbedtls_mpi_init( &l );
 
+    MPI_ECP_GROW_SINGLE( &l );
+
     /* Generate l such that 1 < l < p */
     MPI_ECP_RAND( &l );
 
@@ -2523,6 +2597,10 @@ static int ecp_mul_mxz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 
     mpi_init_many( tmp, sizeof( tmp ) / sizeof( mbedtls_mpi ) );
 
+    MPI_ECP_GROW_SINGLE( &PX );
+    ECP_POINT_GROW_SINGLE( &RP );
+    MPI_ECP_GROW_SINGLE_MANY( tmp, sizeof( tmp ) / sizeof( mbedtls_mpi ) );
+
     if( f_rng == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
@@ -2598,6 +2676,10 @@ static int ecp_mul_restartable_internal( mbedtls_ecp_group *grp, mbedtls_ecp_poi
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
     char is_grp_capable = 0;
 #endif
+
+    /* Ensure that MPI for intermediate results of modular
+     * multiplications and reductions is of expected size. */
+    MPI_ECP_GROW_DOUBLE( &grp->tmp_dbl );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     /* reset ops count for this call if top-level */
@@ -2702,6 +2784,9 @@ static int ecp_check_pubkey_sw( const mbedtls_ecp_group *grp, const mbedtls_ecp_
 
     mbedtls_mpi_init( &YY ); mbedtls_mpi_init( &RHS );
 
+    MPI_ECP_GROW_SINGLE( &YY );
+    MPI_ECP_GROW_SINGLE( &RHS );
+
     /*
      * YY = Y^2
      * RHS = X (X^2 + A) + B = X^3 + A X + B
@@ -2800,6 +2885,9 @@ int mbedtls_ecp_muladd_restartable(
 
     mbedtls_ecp_point_init( &mP );
     mpi_init_many( tmp, sizeof( tmp ) / sizeof( mbedtls_mpi ) );
+
+    ECP_POINT_GROW_SINGLE( &mP );
+    MPI_ECP_GROW_SINGLE_MANY( tmp, sizeof( tmp ) / sizeof( mbedtls_mpi ) );
 
     ECP_RS_ENTER( ma );
 
@@ -3350,6 +3438,7 @@ int mbedtls_ecp_check_pub_priv(
 
     /* mbedtls_ecp_mul() needs a non-const group... */
     mbedtls_ecp_group_copy( &grp, &prv->grp );
+    ECP_POINT_GROW_SINGLE_GRP( &grp, &Q );
 
     /* Also checks d is valid */
     MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &grp, &Q, &prv->d, &prv->grp.G, f_rng, p_rng ) );

@@ -354,6 +354,20 @@ static void mpi_free_many( mbedtls_mpi *arr, size_t size )
         mbedtls_mpi_free( arr++ );
 }
 
+static inline int mpi_ecp_is_single_width( const mbedtls_ecp_group *grp,
+                                           const mbedtls_mpi *X )
+{
+    return( X->n == grp->P.n );
+}
+
+static int ecp_point_is_single_width( mbedtls_ecp_group const *grp,
+                                      mbedtls_ecp_point const *pt )
+{
+    return( mpi_ecp_is_single_width( grp, &pt->X ) &&
+            mpi_ecp_is_single_width( grp, &pt->Y ) &&
+            mpi_ecp_is_single_width( grp, &pt->Z ) );
+}
+
 /* Grow an MPI to the size of the ECP modulus.
  * To be used for EC point coordinates and local MPIs. */
 static inline int mpi_ecp_grow_single( const mbedtls_ecp_group *grp, mbedtls_mpi *X )
@@ -383,6 +397,19 @@ cleanup:
     return( ret );
 }
 
+static int ecp_point_grow_single( mbedtls_ecp_group const *grp,
+                                  mbedtls_ecp_point *pt )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    MBEDTLS_MPI_CHK( mpi_ecp_grow_single( grp, &pt->X ) );
+    MBEDTLS_MPI_CHK( mpi_ecp_grow_single( grp, &pt->Y ) );
+    MBEDTLS_MPI_CHK( mpi_ecp_grow_single( grp, &pt->Z ) );
+
+cleanup:
+    return( ret );
+}
+
 #define MPI_ECP_GROW_SINGLE_GRP( GRP, X )                               \
     MBEDTLS_MPI_CHK( mpi_ecp_grow_single( (GRP), (X) ) )
 
@@ -390,17 +417,13 @@ cleanup:
     MBEDTLS_MPI_CHK( mpi_ecp_grow_double( (GRP), (X) ) )
 
 #define ECP_POINT_GROW_SINGLE_GRP(GRP,P)                                \
-   do {                                                                 \
-        MBEDTLS_MPI_CHK( mpi_ecp_grow_single( (GRP), &(P)->X ) );       \
-        MBEDTLS_MPI_CHK( mpi_ecp_grow_single( (GRP), &(P)->Y ) );       \
-        MBEDTLS_MPI_CHK( mpi_ecp_grow_single( (GRP), &(P)->Z ) );       \
-   } while( 0 )
+    MBEDTLS_MPI_CHK( ecp_point_grow_single( (GRP), (P) ) )
 
 #define MPI_ECP_GROW_SINGLE_MANY_GRP( GRP, X, N )                       \
     MBEDTLS_MPI_CHK( mpi_ecp_grow_single_many( (GRP), (X), (N) ) )
 
 #define MPI_ECP_GROW_SINGLE( X )                                        \
-    MPI_ECP_GROW_SINGLE_GRP( grp, X )
+    MPI_ECP_GROW_SINGLE_GRP( grp, (X) )
 
 #define ECP_POINT_GROW_SINGLE(P)                                        \
     ECP_POINT_GROW_SINGLE_GRP(grp, (P) )
@@ -410,6 +433,54 @@ cleanup:
 
 #define MPI_ECP_GROW_SINGLE_MANY( X, N )                                \
     MPI_ECP_GROW_SINGLE_MANY_GRP( grp, (X), (N) )
+
+static int ecp_setup_internal_input(
+    mbedtls_ecp_group const *grp,
+    mbedtls_ecp_point *new,
+    mbedtls_ecp_point const *old )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    MBEDTLS_MPI_CHK( ecp_point_grow_single( grp, new ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_copy( new, old ) );
+
+    /* This fails if the input had an oversized coordinate. */
+    if( !ecp_point_is_single_width( grp, new ) )
+    {
+        ret = MBEDTLS_ERR_ECP_INVALID_KEY;
+        goto cleanup;
+    }
+
+cleanup:
+    return( ret );
+}
+
+static int ecp_setup_internal_output(
+    mbedtls_ecp_group const *grp,
+    mbedtls_ecp_point *new )
+{
+    mbedtls_ecp_point_free( new );
+    return( ecp_point_grow_single( grp, new ) );
+}
+
+#define ECP_INTERNAL_INPUT_TMP(x) x ## _tmp
+#define ECP_INTERNAL_INPUT(x)  (& ECP_INTERNAL_INPUT_TMP(x))
+#define ECP_DECL_INTERNAL_INPUT(x)                                      \
+    mbedtls_ecp_point ECP_INTERNAL_INPUT_TMP(x);                        \
+    mbedtls_ecp_point_init( ECP_INTERNAL_INPUT(x) )
+
+#define ECP_SETUP_INTERNAL_INPUT(x)                                     \
+    MBEDTLS_MPI_CHK( ecp_setup_internal_input( grp,                     \
+                         ECP_INTERNAL_INPUT(x), x ) )
+#define ECP_FREE_INTERNAL_INPUT(x)                                      \
+    mbedtls_ecp_point_free( ECP_INTERNAL_INPUT(x) )
+
+#define ECP_INTERNAL_OUTPUT(x) x
+#define ECP_DECL_INTERNAL_OUTPUT(x) do {} while( 0 )
+#define ECP_SETUP_INTERNAL_OUTPUT(x)                                    \
+    MBEDTLS_MPI_CHK( ecp_setup_internal_output( grp,                    \
+                             ECP_INTERNAL_OUTPUT(x) ) )
+#define ECP_RESTORE_INTERNAL_OUTPUT(x) do {} while( 0 )
 
 /*
  * List of supported curves:
@@ -2673,6 +2744,9 @@ static int ecp_mul_restartable_internal( mbedtls_ecp_group *grp, mbedtls_ecp_poi
              mbedtls_ecp_restart_ctx *rs_ctx )
 {
     int ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    ECP_DECL_INTERNAL_INPUT(P);
+    ECP_DECL_INTERNAL_OUTPUT(R);
+
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
     char is_grp_capable = 0;
 #endif
@@ -2707,17 +2781,25 @@ static int ecp_mul_restartable_internal( mbedtls_ecp_group *grp, mbedtls_ecp_poi
         MBEDTLS_MPI_CHK( mbedtls_ecp_check_pubkey( grp, P ) );
     }
 
+    ECP_SETUP_INTERNAL_INPUT(P);
+    ECP_SETUP_INTERNAL_OUTPUT(R);
+
     ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
 #if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
     if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_MONTGOMERY )
-        MBEDTLS_MPI_CHK( ecp_mul_mxz( grp, R, m, P, f_rng, p_rng ) );
+        MBEDTLS_MPI_CHK( ecp_mul_mxz( grp, ECP_INTERNAL_OUTPUT(R), m,
+                                      ECP_INTERNAL_INPUT(P), f_rng, p_rng ) );
 #endif
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
     if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS )
-        MBEDTLS_MPI_CHK( ecp_mul_comb( grp, R, m, P, f_rng, p_rng, rs_ctx ) );
+        MBEDTLS_MPI_CHK( ecp_mul_comb( grp, ECP_INTERNAL_OUTPUT(R), m,
+                                       ECP_INTERNAL_INPUT(P), f_rng, p_rng, rs_ctx ) );
 #endif
 
 cleanup:
+
+    ECP_FREE_INTERNAL_INPUT(P);
+    ECP_RESTORE_INTERNAL_OUTPUT(R);
 
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
     if( is_grp_capable )
@@ -2740,15 +2822,35 @@ int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
              mbedtls_ecp_restart_ctx *rs_ctx )
 {
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    ECP_DECL_INTERNAL_INPUT(P);
+    ECP_DECL_INTERNAL_OUTPUT(R);
+
     ECP_VALIDATE_RET( grp != NULL );
     ECP_VALIDATE_RET( R   != NULL );
     ECP_VALIDATE_RET( m   != NULL );
     ECP_VALIDATE_RET( P   != NULL );
 
     if( f_rng == NULL )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+    {
+        ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+        goto cleanup;
+    }
 
-    return( ecp_mul_restartable_internal( grp, R, m, P, f_rng, p_rng, rs_ctx ) );
+    ECP_SETUP_INTERNAL_INPUT(P);
+    ECP_SETUP_INTERNAL_OUTPUT(R);
+
+    MBEDTLS_MPI_CHK( ecp_mul_restartable_internal( grp,
+                                                   ECP_INTERNAL_OUTPUT(R), m,
+                                                   ECP_INTERNAL_INPUT(P),
+                                                   f_rng, p_rng, rs_ctx ) );
+
+cleanup:
+
+    ECP_FREE_INTERNAL_INPUT(P);
+    ECP_RESTORE_INTERNAL_OUTPUT(R);
+    return( ret );
 }
 
 /*
@@ -2774,15 +2876,20 @@ static int ecp_check_pubkey_sw( const mbedtls_ecp_group *grp, const mbedtls_ecp_
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_mpi YY, RHS;
+    ECP_DECL_INTERNAL_INPUT(pt);
 
     /* pt coordinates must be normalized for our checks */
     if( mbedtls_mpi_cmp_int( &pt->X, 0 ) < 0 ||
         mbedtls_mpi_cmp_int( &pt->Y, 0 ) < 0 ||
         mbedtls_mpi_cmp_mpi( &pt->X, &grp->P ) >= 0 ||
         mbedtls_mpi_cmp_mpi( &pt->Y, &grp->P ) >= 0 )
+    {
         return( MBEDTLS_ERR_ECP_INVALID_KEY );
+    }
 
     mbedtls_mpi_init( &YY ); mbedtls_mpi_init( &RHS );
+
+    ECP_SETUP_INTERNAL_INPUT(pt);
 
     MPI_ECP_GROW_SINGLE( &YY );
     MPI_ECP_GROW_SINGLE( &RHS );
@@ -2791,8 +2898,8 @@ static int ecp_check_pubkey_sw( const mbedtls_ecp_group *grp, const mbedtls_ecp_
      * YY = Y^2
      * RHS = X (X^2 + A) + B = X^3 + A X + B
      */
-    MPI_ECP_SQR( &YY,  &pt->Y );
-    MPI_ECP_SQR( &RHS, &pt->X );
+    MPI_ECP_SQR( &YY,  &ECP_INTERNAL_INPUT(pt)->Y );
+    MPI_ECP_SQR( &RHS, &ECP_INTERNAL_INPUT(pt)->X );
 
     /* Special case for A = -3 */
     if( grp->A.p == NULL )
@@ -2804,7 +2911,7 @@ static int ecp_check_pubkey_sw( const mbedtls_ecp_group *grp, const mbedtls_ecp_
         MPI_ECP_ADD( &RHS, &RHS, &grp->A );
     }
 
-    MPI_ECP_MUL( &RHS, &RHS, &pt->X  );
+    MPI_ECP_MUL( &RHS, &RHS, &ECP_INTERNAL_INPUT(pt)->X  );
     MPI_ECP_ADD( &RHS, &RHS, &grp->B );
 
     if( MPI_ECP_CMP( &YY, &RHS ) != 0 )
@@ -2813,6 +2920,8 @@ static int ecp_check_pubkey_sw( const mbedtls_ecp_group *grp, const mbedtls_ecp_
 cleanup:
 
     mbedtls_mpi_free( &YY ); mbedtls_mpi_free( &RHS );
+
+    ECP_FREE_INTERNAL_INPUT(pt);
 
     return( ret );
 }
@@ -2866,13 +2975,19 @@ int mbedtls_ecp_muladd_restartable(
              mbedtls_ecp_restart_ctx *rs_ctx )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    ECP_DECL_INTERNAL_INPUT(P);
+    ECP_DECL_INTERNAL_INPUT(Q);
+    ECP_DECL_INTERNAL_OUTPUT(R);
+
     mbedtls_ecp_point mP;
     mbedtls_ecp_point *pmP = &mP;
-    mbedtls_ecp_point *pR = R;
+    mbedtls_ecp_point *pR = ECP_INTERNAL_OUTPUT(R);
     mbedtls_mpi tmp[4];
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
     char is_grp_capable = 0;
 #endif
+
     ECP_VALIDATE_RET( grp != NULL );
     ECP_VALIDATE_RET( R   != NULL );
     ECP_VALIDATE_RET( m   != NULL );
@@ -2888,6 +3003,10 @@ int mbedtls_ecp_muladd_restartable(
 
     ECP_POINT_GROW_SINGLE( &mP );
     MPI_ECP_GROW_SINGLE_MANY( tmp, sizeof( tmp ) / sizeof( mbedtls_mpi ) );
+
+    ECP_SETUP_INTERNAL_INPUT(P);
+    ECP_SETUP_INTERNAL_INPUT(Q);
+    ECP_SETUP_INTERNAL_OUTPUT(R);
 
     ECP_RS_ENTER( ma );
 
@@ -2908,14 +3027,17 @@ int mbedtls_ecp_muladd_restartable(
     }
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul_shortcuts( grp, pmP, m, P, rs_ctx ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul_shortcuts( grp, pmP, m,
+                                                ECP_INTERNAL_INPUT(P),
+                                                rs_ctx ) );
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->ma != NULL )
         rs_ctx->ma->state = ecp_rsma_mul2;
 
 mul2:
 #endif
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul_shortcuts( grp, pR,  n, Q, rs_ctx ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul_shortcuts( grp, pR,  n,
+                                                ECP_INTERNAL_INPUT(Q), rs_ctx ) );
 
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
     if( ( is_grp_capable = mbedtls_internal_ecp_grp_capable( grp ) ) )
@@ -2947,6 +3069,10 @@ norm:
 cleanup:
 
     mpi_free_many( tmp, sizeof( tmp ) / sizeof( mbedtls_mpi ) );
+
+    ECP_FREE_INTERNAL_INPUT(P);
+    ECP_FREE_INTERNAL_INPUT(Q);
+    ECP_RESTORE_INTERNAL_OUTPUT(R);
 
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
     if( is_grp_capable )

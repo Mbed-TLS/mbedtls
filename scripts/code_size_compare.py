@@ -34,7 +34,7 @@ class CodeSizeComparison:
     """Compare code size between two Git revisions."""
 
     def __init__(self, old_revision, new_revision, result_dir,
-                 config=None, symbols=False):
+                 config=None, symbols=False, buildtag=None):
         """
         old_revision: revision to compare against
         new_revision:
@@ -53,6 +53,7 @@ class CodeSizeComparison:
         self.make_command = "make"
         self.symbols = symbols
         self.config = config
+        self.buildtag = buildtag
         self.git_worktrees = []
 
     def __del__(self):
@@ -63,6 +64,12 @@ class CodeSizeComparison:
     def check_repo_path():
         if not all(os.path.isdir(d) for d in ["include", "library", "tests"]):
             raise Exception("Must be run from Mbed TLS root")
+
+    def get_file_stem(self, revision):
+        if self.buildtag:
+            return revision + "_" + self.buildtag
+        else:
+            return revision
 
     @staticmethod
     def validate_revision(revision):
@@ -107,7 +114,7 @@ class CodeSizeComparison:
     def _gen_code_size_csv(self, revision, git_worktree_path):
         """Generate compilation-unit level code size csv file."""
 
-        csv_fname = revision + ".csv"
+        csv_fname = self.get_file_stem(revision) + ".csv"
         if revision == "current":
             print("Measuring code size in current work directory.")
         else:
@@ -124,7 +131,7 @@ class CodeSizeComparison:
     def _gen_code_size_csv_details(self, revision, git_worktree_path):
         """Generate symbol-level code size csv file"""
 
-        csv_fname = revision + "_symbols.csv"
+        csv_fname = self.get_file_stem(revision) + "_symbols.csv"
         if revision == "current":
             print("Measuring code size in current work directory.")
         else:
@@ -169,7 +176,8 @@ class CodeSizeComparison:
         """Generate code size csv file for the specified git revision."""
 
         # Check if the corresponding record exists
-        csv_fname = revision + ".csv"
+        csv_fname = self.get_file_stem(revision) + ".csv"
+
         if (revision != "current") and \
            os.path.exists(os.path.join(self.csv_dir, csv_fname)):
             print("Code size csv file for", revision, "already exists.")
@@ -185,10 +193,13 @@ class CodeSizeComparison:
         old and new. Measured code size results of these two revisions
         must be available."""
 
-        old_file = open(os.path.join(self.csv_dir, self.old_rev + ".csv"), "r")
-        new_file = open(os.path.join(self.csv_dir, self.new_rev + ".csv"), "r")
-        res_file = open(os.path.join(self.result_dir, "compare-" + self.old_rev
-                                     + "-" + self.new_rev + ".csv"), "w")
+        old_stem = self.get_file_stem(self.old_rev)
+        new_stem = self.get_file_stem(self.new_rev)
+
+        old_file = open(os.path.join(self.csv_dir, old_stem + ".csv"), "r")
+        new_file = open(os.path.join(self.csv_dir, new_stem + ".csv"), "r")
+        res_file = open(os.path.join(self.result_dir, "compare-" + old_stem
+                                     + "-" + new_stem + ".csv"), "w")
 
         res_file.write("file_name, this_size, old_size, change, change %\n")
         print("Generating comparision results.")
@@ -262,6 +273,12 @@ def main():
         help="config to use for measurements; must be a valid argument to ./scripts/config.py"
     )
 
+    parser.add_argument(
+        "-t", "--tag", type=str, default=None,
+        help="a string to attach to the emitted CSV file(s) indicating " +
+        "the build type (e.g. CC, CFLAGS, Config)"
+    )
+
     comp_args = parser.parse_args()
 
     if os.path.isfile(comp_args.result_dir):
@@ -280,7 +297,8 @@ def main():
     result_dir = comp_args.result_dir
     size_compare = CodeSizeComparison(old_revision, new_revision, result_dir,
                                       config=comp_args.config,
-                                      symbols=comp_args.symbols)
+                                      symbols=comp_args.symbols,
+                                      buildtag=comp_args.tag)
     return_code = size_compare.get_comparision_results()
     sys.exit(return_code)
 

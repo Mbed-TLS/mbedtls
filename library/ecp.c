@@ -554,6 +554,8 @@ void mbedtls_ecp_group_init( mbedtls_ecp_group *grp )
     grp->t_data = NULL;
     grp->T = NULL;
     grp->T_size = 0;
+
+    mbedtls_mpi_init( &grp->tmp_dbl );
 }
 
 /*
@@ -618,6 +620,8 @@ void mbedtls_ecp_group_free( mbedtls_ecp_group *grp )
             mbedtls_ecp_point_free( &grp->T[i] );
         mbedtls_free( grp->T );
     }
+
+    mbedtls_mpi_free( &grp->tmp_dbl );
 
     mbedtls_platform_zeroize( grp, sizeof( mbedtls_ecp_group ) );
 }
@@ -1035,12 +1039,16 @@ int mbedtls_ecp_tls_write_group( const mbedtls_ecp_group *grp, size_t *olen,
  *
  * This function is in the critial loop for mbedtls_ecp_mul, so pay attention to perf.
  */
-static int ecp_modp( mbedtls_mpi *N, const mbedtls_ecp_group *grp )
+static int ecp_modp( mbedtls_mpi *dst, mbedtls_mpi *N, const mbedtls_ecp_group *grp )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     if( grp->modp == NULL )
-        return( mbedtls_mpi_mod_mpi( N, N, &grp->P ) );
+    {
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( N, N, &grp->P ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_copy( dst, N ) );
+        return( 0 );
+    }
 
     /* N->s < 0 is a much faster test, which fails only if N is 0 */
     if( ( N->s < 0 && mbedtls_mpi_cmp_int( N, 0 ) != 0 ) ||
@@ -1058,6 +1066,8 @@ static int ecp_modp( mbedtls_mpi *N, const mbedtls_ecp_group *grp )
     while( mbedtls_mpi_cmp_mpi( N, &grp->P ) >= 0 )
         /* we known P, N and the result are positive */
         MBEDTLS_MPI_CHK( mbedtls_mpi_sub_abs( N, N, &grp->P ) );
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_copy( dst, N ) );
 
 cleanup:
     return( ret );
@@ -1082,10 +1092,10 @@ cleanup:
 #define INC_MUL_COUNT
 #endif
 
-#define MOD_MUL( N )                                                    \
+#define MOD_MUL( dst, src )                                             \
     do                                                                  \
     {                                                                   \
-        MBEDTLS_MPI_CHK( ecp_modp( &(N), grp ) );                       \
+        MBEDTLS_MPI_CHK( ecp_modp( (dst), (src), grp ) );               \
         INC_MUL_COUNT                                                   \
     } while( 0 )
 
@@ -1095,8 +1105,10 @@ static inline int mbedtls_mpi_mul_mod( const mbedtls_ecp_group *grp,
                                        const mbedtls_mpi *B )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( X, A, B ) );
-    MOD_MUL( *X );
+    mbedtls_mpi * const tmp = (mbedtls_mpi*) &grp->tmp_dbl;
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( tmp, A, B ) );
+    MOD_MUL( X, tmp );
 cleanup:
     return( ret );
 }
@@ -1105,10 +1117,11 @@ cleanup:
  * Reduce a mbedtls_mpi mod p in-place, to use after mbedtls_mpi_sub_mpi
  * N->s < 0 is a very fast test, which fails only if N is 0
  */
-#define MOD_SUB( N )                                                          \
+#define MOD_SUB( dst, N )                                                     \
     do {                                                                      \
-        while( (N)->s < 0 && mbedtls_mpi_cmp_int( (N), 0 ) != 0 )             \
-            MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( (N), (N), &grp->P ) );      \
+        while( (N)->s < 0 && mbedtls_mpi_cmp_int( (N), 0 ) != 0 )         \
+            MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( (N), (N), &grp->P ) );  \
+        MBEDTLS_MPI_CHK( mbedtls_mpi_copy( (dst), (N) ) );              \
     } while( 0 )
 
 #if ( defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED) && \
@@ -1124,8 +1137,10 @@ static inline int mbedtls_mpi_sub_mod( const mbedtls_ecp_group *grp,
                                        const mbedtls_mpi *B )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( X, A, B ) );
-    MOD_SUB( X );
+    mbedtls_mpi * const tmp = (mbedtls_mpi*) &grp->tmp_dbl;
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( tmp, A, B ) );
+    MOD_SUB( X, tmp );
 cleanup:
     return( ret );
 }
@@ -1136,9 +1151,12 @@ cleanup:
  * We known P, N and the result are positive, so sub_abs is correct, and
  * a bit faster.
  */
-#define MOD_ADD( N )                                                   \
-    while( mbedtls_mpi_cmp_mpi( (N), &grp->P ) >= 0 )                  \
-        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_abs( (N), (N), &grp->P ) )
+#define MOD_ADD( dst, N )                                                 \
+    do {                                                                  \
+        while( mbedtls_mpi_cmp_mpi( (N), &grp->P ) >= 0 )                 \
+            MBEDTLS_MPI_CHK( mbedtls_mpi_sub_abs( (N), (N), &grp->P ) );  \
+        MBEDTLS_MPI_CHK( mbedtls_mpi_copy( (dst), (N) ) );                \
+    } while( 0 )
 
 static inline int mbedtls_mpi_add_mod( const mbedtls_ecp_group *grp,
                                        mbedtls_mpi *X,
@@ -1146,8 +1164,10 @@ static inline int mbedtls_mpi_add_mod( const mbedtls_ecp_group *grp,
                                        const mbedtls_mpi *B )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( X, A, B ) );
-    MOD_ADD( X );
+    mbedtls_mpi * const tmp = (mbedtls_mpi*) &grp->tmp_dbl;
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( tmp, A, B ) );
+    MOD_ADD( X, tmp );
 cleanup:
     return( ret );
 }
@@ -1158,9 +1178,10 @@ static inline int mbedtls_mpi_mul_int_mod( const mbedtls_ecp_group *grp,
                                            mbedtls_mpi_uint c )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_mpi * const tmp = (mbedtls_mpi*) &grp->tmp_dbl;
 
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_int( X, A, c ) );
-    MOD_ADD( X );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_int( tmp, A, c ) );
+    MOD_ADD( X, tmp );
 cleanup:
     return( ret );
 }
@@ -1171,9 +1192,10 @@ static inline int mbedtls_mpi_sub_int_mod( const mbedtls_ecp_group *grp,
                                            mbedtls_mpi_uint c )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_mpi * const tmp = (mbedtls_mpi*) &grp->tmp_dbl;
 
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( X, A, c ) );
-    MOD_SUB( X );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( tmp, A, c ) );
+    MOD_SUB( X, tmp );
 cleanup:
     return( ret );
 }
@@ -1190,8 +1212,11 @@ static inline int mbedtls_mpi_shift_l_mod( const mbedtls_ecp_group *grp,
                                            size_t count )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( X, count ) );
-    MOD_ADD( X );
+    mbedtls_mpi * const tmp = (mbedtls_mpi*) &grp->tmp_dbl;
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_copy( tmp, X ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( tmp, count ) );
+    MOD_ADD( X, tmp );
 cleanup:
     return( ret );
 }
@@ -1218,8 +1243,12 @@ cleanup:
 #define MPI_ECP_MUL_INT( X, A, c )                                              \
     MBEDTLS_MPI_CHK( mbedtls_mpi_mul_int_mod( grp, X, A, c ) )
 
-#define MPI_ECP_INV( dst, src )                                                 \
-    MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( (dst), (src), &grp->P ) )
+#define MPI_ECP_INV( dst, src )                                                \
+    do {                                                                       \
+        mbedtls_mpi * const tmp = (mbedtls_mpi*) &grp->tmp_dbl;                \
+        MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( tmp, (src), &grp->P ) );         \
+        MBEDTLS_MPI_CHK( mbedtls_mpi_copy( (dst), tmp ) );                     \
+    } while( 0 )
 
 #define MPI_ECP_MOV( X, A )                                                     \
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( X, A ) )
@@ -1246,8 +1275,9 @@ cleanup:
     do                                                                     \
     {                                                                      \
         unsigned char nonzero = mbedtls_mpi_cmp_int( (X), 0 ) != 0;        \
-        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &tmp, &grp->P, (X) ) );      \
-        MBEDTLS_MPI_CHK( mbedtls_mpi_safe_cond_assign( (X), &tmp,          \
+        mbedtls_mpi * const tmp = (mbedtls_mpi*) &grp->tmp_dbl;            \
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( tmp, &grp->P, (X) ) );       \
+        MBEDTLS_MPI_CHK( mbedtls_mpi_safe_cond_assign( (X), tmp,           \
                                                        nonzero & cond ) ); \
     } while( 0 )
 
@@ -1388,15 +1418,6 @@ static int ecp_normalize_jac_many( const mbedtls_ecp_group *grp,
         MPI_ECP_MUL( &T[i]->X, &T[i]->X, &t );
         MPI_ECP_MUL( &T[i]->Y, &T[i]->Y, &t );
 
-        /*
-         * Post-precessing: reclaim some memory by shrinking coordinates
-         * - not storing Z (always 1)
-         * - shrinking other coordinates, but still keeping the same number of
-         *   limbs as P, as otherwise it will too likely be regrown too fast.
-         */
-        MBEDTLS_MPI_CHK( mbedtls_mpi_shrink( &T[i]->X, grp->P.n ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_shrink( &T[i]->Y, grp->P.n ) );
-
         MPI_ECP_LSET( &T[i]->Z, 1 );
 
         if( i == 0 )
@@ -1422,13 +1443,8 @@ static int ecp_safe_invert_jac( const mbedtls_ecp_group *grp,
                             unsigned char inv )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    mbedtls_mpi tmp;
-    mbedtls_mpi_init( &tmp );
-
     MPI_ECP_COND_NEG( &Q->Y, inv );
-
 cleanup:
-    mbedtls_mpi_free( &tmp );
     return( ret );
 }
 
@@ -2520,7 +2536,7 @@ static int ecp_mul_mxz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     mbedtls_mpi_free( &R->Y );
 
     /* RP.X might be sligtly larger than P, so reduce it */
-    MOD_ADD( &RP.X );
+    MOD_ADD( &RP.X, &RP.X );
 
     /* Randomize coordinates of the starting point */
     MBEDTLS_MPI_CHK( ecp_randomize_mxz( grp, &RP, f_rng, p_rng ) );
@@ -2729,8 +2745,6 @@ static int mbedtls_ecp_mul_shortcuts( mbedtls_ecp_group *grp,
                                       mbedtls_ecp_restart_ctx *rs_ctx )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    mbedtls_mpi tmp;
-    mbedtls_mpi_init( &tmp );
 
     if( mbedtls_mpi_cmp_int( m, 0 ) == 0 )
     {
@@ -2752,7 +2766,6 @@ static int mbedtls_ecp_mul_shortcuts( mbedtls_ecp_group *grp,
     }
 
 cleanup:
-    mbedtls_mpi_free( &tmp );
 
     return( ret );
 }

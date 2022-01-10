@@ -60,6 +60,11 @@ RUN apt-get update \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
+# The following packages are required for validating Python files.
+# The version of Pylint is set to 2.4.4 to match CI.
+RUN python3 -m pip install \
+    packaging mypy pylint==2.4.4
+
 # Jinja2 and jsonschema is required for driver dispatch code generation.
 RUN python3 -m pip install \
     jinja2==2.10.1 types-jinja2 \

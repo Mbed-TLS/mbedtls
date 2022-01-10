@@ -34,7 +34,7 @@ class CodeSizeComparison:
     """Compare code size between two Git revisions."""
 
     def __init__(self, old_revision, new_revision, result_dir,
-                 config=None):
+                 config=None, symbols=False):
         """
         old_revision: revision to compare against
         new_revision:
@@ -51,6 +51,7 @@ class CodeSizeComparison:
         self.new_rev = new_revision
         self.git_command = "git"
         self.make_command = "make"
+        self.symbols = symbols
         self.config = config
         self.git_worktrees = []
 
@@ -104,7 +105,7 @@ class CodeSizeComparison:
         )
 
     def _gen_code_size_csv(self, revision, git_worktree_path):
-        """Generate code size csv file."""
+        """Generate compilation-unit level code size csv file."""
 
         csv_fname = revision + ".csv"
         if revision == "current":
@@ -119,6 +120,40 @@ class CodeSizeComparison:
         for line in size_text.splitlines()[1:]:
             data = line.split()
             csv_file.write("{}, {}\n".format(data[5], data[3]))
+
+    def _gen_code_size_csv_details(self, revision, git_worktree_path):
+        """Generate symbol-level code size csv file"""
+
+        csv_fname = revision + "_symbols.csv"
+        if revision == "current":
+            print("Measuring code size in current work directory.")
+        else:
+            print("Measuring code size for", revision)
+        result = subprocess.check_output(
+            ["nm library/*.a --size-sort"], cwd=git_worktree_path, shell=True
+        )
+        size_text = result.decode()
+        csv_file = open(os.path.join(self.csv_dir, csv_fname), "w")
+
+        cur_obj = None
+
+        for line in size_text.splitlines()[1:]:
+
+            # nm output groups symbols by object file and prefixes
+            # the corresponding list with "OBJFILE.o"
+            if len(line) > 3 and line[-3:] == ".o:":
+                cur_obj = line[:-1]
+            if cur_obj is None:
+                continue
+
+            # nm output format: size, type, name
+            data = line.split()
+
+            if len(data) < 3:
+                continue
+
+            csv_file.write("{size:<20} {symbol:<50} {objfile:<20} {ty}\n".format(
+                objfile=cur_obj+",", symbol=data[2]+",", size=data[0]+",", ty=data[1]))
 
     def _remove_worktree(self, git_worktree_path):
         """Remove temporary worktree."""
@@ -142,6 +177,8 @@ class CodeSizeComparison:
             git_worktree_path = self._create_git_worktree(revision)
             self._build_libraries(git_worktree_path)
             self._gen_code_size_csv(revision, git_worktree_path)
+            if self.symbols:
+                self._gen_code_size_csv_details(revision, git_worktree_path)
 
     def compare_code_size(self):
         """Generate results of the size changes between two revisions,
@@ -216,6 +253,11 @@ def main():
               directory, including uncommited changes."
     )
     parser.add_argument(
+        "-s", "--symbols", default=False, action="store_true",
+        help="emit code size statistics per symbol"
+    )
+
+    parser.add_argument(
         "-c", "--config", type=str, default=None,
         help="config to use for measurements; must be a valid argument to ./scripts/config.py"
     )
@@ -237,7 +279,8 @@ def main():
 
     result_dir = comp_args.result_dir
     size_compare = CodeSizeComparison(old_revision, new_revision, result_dir,
-                                      config=comp_args.config)
+                                      config=comp_args.config,
+                                      symbols=comp_args.symbols)
     return_code = size_compare.get_comparision_results()
     sys.exit(return_code)
 

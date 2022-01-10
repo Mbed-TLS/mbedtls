@@ -50,6 +50,11 @@ class CodeSizeComparison:
         self.new_rev = new_revision
         self.git_command = "git"
         self.make_command = "make"
+        self.git_worktrees = []
+
+    def __del__(self):
+        for git_worktree_path in self.git_worktrees:
+            self._remove_worktree(git_worktree_path)
 
     @staticmethod
     def check_repo_path():
@@ -77,6 +82,9 @@ class CodeSizeComparison:
                  git_worktree_path, revision], cwd=self.repo_path,
                 stderr=subprocess.STDOUT
             )
+
+            self.git_worktrees.append(git_worktree_path)
+
         return git_worktree_path
 
     def _build_libraries(self, git_worktree_path):
@@ -127,7 +135,6 @@ class CodeSizeComparison:
             git_worktree_path = self._create_git_worktree(revision)
             self._build_libraries(git_worktree_path)
             self._gen_code_size_csv(revision, git_worktree_path)
-            self._remove_worktree(git_worktree_path)
 
     def compare_code_size(self):
         """Generate results of the size changes between two revisions,

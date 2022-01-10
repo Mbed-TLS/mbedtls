@@ -342,13 +342,13 @@ int mbedtls_ecp_check_budget( const mbedtls_ecp_group *grp,
 
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
-static void mpi_init_many( mbedtls_mpi *arr, unsigned size )
+static void mpi_init_many( mbedtls_mpi *arr, size_t size )
 {
     while( size-- )
         mbedtls_mpi_init( arr++ );
 }
 
-static void mpi_free_many( mbedtls_mpi *arr, unsigned size )
+static void mpi_free_many( mbedtls_mpi *arr, size_t size )
 {
     while( size-- )
         mbedtls_mpi_free( arr++ );
@@ -1340,11 +1340,9 @@ static int ecp_normalize_jac_many( const mbedtls_ecp_group *grp,
     if( ( c = mbedtls_calloc( T_size, sizeof( mbedtls_mpi ) ) ) == NULL )
         return( MBEDTLS_ERR_ECP_ALLOC_FAILED );
 
-    for( i = 0; i < T_size; i++ )
-        mbedtls_mpi_init( &c[i] );
-
     mbedtls_mpi_init( &t );
 
+    mpi_init_many( c, T_size );
     /*
      * c[i] = Z_0 * ... * Z_i,   i = 0,..,n := T_size-1
      */
@@ -1408,8 +1406,7 @@ static int ecp_normalize_jac_many( const mbedtls_ecp_group *grp,
 cleanup:
 
     mbedtls_mpi_free( &t );
-    for( i = 0; i < T_size; i++ )
-        mbedtls_mpi_free( &c[i] );
+    mpi_free_many( c, T_size );
     mbedtls_free( c );
 
     return( ret );

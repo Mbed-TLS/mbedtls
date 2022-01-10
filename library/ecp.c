@@ -342,6 +342,18 @@ int mbedtls_ecp_check_budget( const mbedtls_ecp_group *grp,
 
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
+static void mpi_init_many( mbedtls_mpi *arr, unsigned size )
+{
+    while( size-- )
+        mbedtls_mpi_init( arr++ );
+}
+
+static void mpi_free_many( mbedtls_mpi *arr, unsigned size )
+{
+    while( size-- )
+        mbedtls_mpi_free( arr++ );
+}
+
 /*
  * List of supported curves:
  *  - internal ID
@@ -1812,10 +1824,7 @@ static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
 
     mbedtls_mpi tmp[4];
 
-    mbedtls_mpi_init( &tmp[0] );
-    mbedtls_mpi_init( &tmp[1] );
-    mbedtls_mpi_init( &tmp[2] );
-    mbedtls_mpi_init( &tmp[3] );
+    mpi_init_many( tmp, sizeof( tmp ) / sizeof( mbedtls_mpi ) );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->rsm != NULL )
@@ -1938,10 +1947,7 @@ norm_add:
 
 cleanup:
 
-    mbedtls_mpi_free( &tmp[0] );
-    mbedtls_mpi_free( &tmp[1] );
-    mbedtls_mpi_free( &tmp[2] );
-    mbedtls_mpi_free( &tmp[3] );
+    mpi_free_many( tmp, sizeof( tmp ) / sizeof( mbedtls_mpi ) );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->rsm != NULL &&
@@ -2005,10 +2011,7 @@ static int ecp_mul_comb_core( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R
     size_t i;
 
     mbedtls_ecp_point_init( &Txi );
-    mbedtls_mpi_init( &tmp[0] );
-    mbedtls_mpi_init( &tmp[1] );
-    mbedtls_mpi_init( &tmp[2] );
-    mbedtls_mpi_init( &tmp[3] );
+    mpi_init_many( tmp, sizeof( tmp ) / sizeof( mbedtls_mpi ) );
 
 #if !defined(MBEDTLS_ECP_RESTARTABLE)
     (void) rs_ctx;
@@ -2051,11 +2054,7 @@ static int ecp_mul_comb_core( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R
 cleanup:
 
     mbedtls_ecp_point_free( &Txi );
-
-    mbedtls_mpi_free( &tmp[0] );
-    mbedtls_mpi_free( &tmp[1] );
-    mbedtls_mpi_free( &tmp[2] );
-    mbedtls_mpi_free( &tmp[3] );
+    mpi_free_many( tmp, sizeof( tmp ) / sizeof( mbedtls_mpi ) );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->rsm != NULL &&
@@ -2509,10 +2508,7 @@ static int ecp_mul_mxz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     mbedtls_mpi tmp[4];
     mbedtls_ecp_point_init( &RP ); mbedtls_mpi_init( &PX );
 
-    mbedtls_mpi_init( &tmp[0] );
-    mbedtls_mpi_init( &tmp[1] );
-    mbedtls_mpi_init( &tmp[2] );
-    mbedtls_mpi_init( &tmp[3] );
+    mpi_init_many( tmp, sizeof( tmp ) / sizeof( mbedtls_mpi ) );
 
     if( f_rng == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
@@ -2568,11 +2564,7 @@ static int ecp_mul_mxz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 cleanup:
     mbedtls_ecp_point_free( &RP ); mbedtls_mpi_free( &PX );
 
-    mbedtls_mpi_free( &tmp[0] );
-    mbedtls_mpi_free( &tmp[1] );
-    mbedtls_mpi_free( &tmp[2] );
-    mbedtls_mpi_free( &tmp[3] );
-
+    mpi_free_many( tmp, sizeof( tmp ) / sizeof( mbedtls_mpi ) );
     return( ret );
 }
 
@@ -2797,11 +2789,7 @@ int mbedtls_ecp_muladd_restartable(
         return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
 
     mbedtls_ecp_point_init( &mP );
-
-    mbedtls_mpi_init( &tmp[0] );
-    mbedtls_mpi_init( &tmp[1] );
-    mbedtls_mpi_init( &tmp[2] );
-    mbedtls_mpi_init( &tmp[3] );
+    mpi_init_many( tmp, sizeof( tmp ) / sizeof( mbedtls_mpi ) );
 
     ECP_RS_ENTER( ma );
 
@@ -2860,10 +2848,7 @@ norm:
 
 cleanup:
 
-    mbedtls_mpi_free( &tmp[0] );
-    mbedtls_mpi_free( &tmp[1] );
-    mbedtls_mpi_free( &tmp[2] );
-    mbedtls_mpi_free( &tmp[3] );
+    mpi_free_many( tmp, sizeof( tmp ) / sizeof( mbedtls_mpi ) );
 
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
     if( is_grp_capable )

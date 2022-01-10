@@ -33,7 +33,8 @@ import sys
 class CodeSizeComparison:
     """Compare code size between two Git revisions."""
 
-    def __init__(self, old_revision, new_revision, result_dir):
+    def __init__(self, old_revision, new_revision, result_dir,
+                 config=None):
         """
         old_revision: revision to compare against
         new_revision:
@@ -50,6 +51,7 @@ class CodeSizeComparison:
         self.new_rev = new_revision
         self.git_command = "git"
         self.make_command = "make"
+        self.config = config
         self.git_worktrees = []
 
     def __del__(self):
@@ -90,6 +92,11 @@ class CodeSizeComparison:
     def _build_libraries(self, git_worktree_path):
         """Build libraries in the specified worktree."""
 
+        if self.config:
+            subprocess.check_output(
+                ["./scripts/config.py", self.config],
+                cwd=git_worktree_path, stderr=subprocess.STDOUT
+            )
         my_environment = os.environ.copy()
         subprocess.check_output(
             [self.make_command, "-j", "lib"], env=my_environment,
@@ -208,6 +215,11 @@ def main():
         help="new revision for comparison, default is the current work \
               directory, including uncommited changes."
     )
+    parser.add_argument(
+        "-c", "--config", type=str, default=None,
+        help="config to use for measurements; must be a valid argument to ./scripts/config.py"
+    )
+
     comp_args = parser.parse_args()
 
     if os.path.isfile(comp_args.result_dir):
@@ -224,7 +236,8 @@ def main():
         new_revision = "current"
 
     result_dir = comp_args.result_dir
-    size_compare = CodeSizeComparison(old_revision, new_revision, result_dir)
+    size_compare = CodeSizeComparison(old_revision, new_revision, result_dir,
+                                      config=comp_args.config)
     return_code = size_compare.get_comparision_results()
     sys.exit(return_code)
 

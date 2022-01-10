@@ -1258,6 +1258,22 @@ static inline psa_key_id_t mbedtls_ssl_get_opaque_psk(
 
     return( MBEDTLS_SVC_KEY_ID_INIT );
 }
+
+/* Corresponding PSA algorithm for MBEDTLS_CIPHER_NULL */
+#define MBEDTLS_SSL_NULL_CIPHER 0x04000000
+
+/**
+ * Translate mbedtls cipher type/mode pair to psa: algorithm, key type and
+ * key size.
+ *
+ * Return PSA_SUCCESS on success or PSA_ERROR_NOT_SUPPORTED if
+ * conversion is not supported.
+ */
+psa_status_t mbedtls_cipher_to_psa( mbedtls_cipher_type_t mbedtls_cipher_type,
+                                    size_t taglen,
+                                    psa_algorithm_t *alg,
+                                    psa_key_type_t *key_type,
+                                    size_t *key_size );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */

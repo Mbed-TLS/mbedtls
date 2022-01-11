@@ -7239,11 +7239,7 @@ int mbedtls_ssl_write_supported_groups_ext( mbedtls_ssl_context *ssl,
     const uint16_t *group_list = mbedtls_ssl_get_groups( ssl );
 
     *out_len = 0;
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    if( mbedtls_ssl_conf_is_tls13_only( ssl->conf )
-        && !mbedtls_ssl_conf_tls13_some_ephemeral_enabled( ssl ) )
-        return( 0 );
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding supported_groups extension" ) );
 
     /* Check if we have space for header and length fields:

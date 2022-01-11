@@ -7294,7 +7294,7 @@ int mbedtls_ssl_write_supported_groups_ext( mbedtls_ssl_context *ssl,
             continue;
         }
 
-        MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2);
+        MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
         MBEDTLS_PUT_UINT16_BE( *group_list, p, 0 );
         p += 2;
 
@@ -7315,7 +7315,8 @@ int mbedtls_ssl_write_supported_groups_ext( mbedtls_ssl_context *ssl,
     /* Write length of named_group_list */
     MBEDTLS_PUT_UINT16_BE( named_group_list_len, buf, 4 );
 
-    MBEDTLS_SSL_DEBUG_BUF( 3, "Supported groups extension", buf + 4, named_group_list_len + 2 );
+    MBEDTLS_SSL_DEBUG_BUF( 3, "Supported groups extension",
+                           buf + 4, named_group_list_len + 2 );
 
     *out_len = p - buf;
 

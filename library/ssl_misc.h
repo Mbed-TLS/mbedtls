@@ -1489,6 +1489,7 @@ static inline int mbedtls_ssl_conf_is_tls13_only( const mbedtls_ssl_config *conf
     }
     return( 0 );
 }
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
@@ -1503,7 +1504,42 @@ static inline int mbedtls_ssl_conf_is_tls12_only( const mbedtls_ssl_config *conf
     }
     return( 0 );
 }
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
+static inline int mbedtls_ssl_conf_is_tls13_enabled( const mbedtls_ssl_config *conf )
+{
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    if( conf->min_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
+        conf->max_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
+        conf->min_minor_ver <= MBEDTLS_SSL_MINOR_VERSION_4 &&
+        conf->max_minor_ver >= MBEDTLS_SSL_MINOR_VERSION_4 )
+    {
+        return( 1 );
+    }
+    return( 0 );
+#else
+    ((void) conf);
+    return( 0 );
+#endif
+}
+
+static inline int mbedtls_ssl_conf_is_tls12_enabled( const mbedtls_ssl_config *conf )
+{
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    if( conf->min_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
+        conf->max_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
+        conf->min_minor_ver <= MBEDTLS_SSL_MINOR_VERSION_3 &&
+        conf->max_minor_ver >= MBEDTLS_SSL_MINOR_VERSION_3 )
+    {
+        return( 1 );
+    }
+    return( 0 );
+#else
+    ((void) conf);
+    return( 0 );
+#endif
+}
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
 static inline int mbedtls_ssl_conf_is_hybrid_tls12_tls13( const mbedtls_ssl_config *conf )
@@ -1729,13 +1765,24 @@ static inline const void *mbedtls_ssl_get_groups( const mbedtls_ssl_context *ssl
 /*
  * Helper functions for NamedGroup.
  */
-static inline int mbedtls_ssl_named_group_is_ecdhe( uint16_t named_group )
+static inline int mbedtls_ssl_tls12_named_group_is_ecdhe( uint16_t named_group )
 {
     /*
-     * RFC 4492 section 5.1.1
+     * RFC 8422 section 5.1.1
      */
-    return( named_group >= MBEDTLS_SSL_IANA_TLS_GROUP_SECT163K1 &&
-            named_group < MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE2048 );
+    return( named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP192K1 ||
+            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP192R1 ||
+            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP224K1 ||
+            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP224R1 ||
+            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP256K1 ||
+            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1 ||
+            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1 ||
+            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP521R1 ||
+            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_BP256R1   ||
+            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_BP384R1   ||
+            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_BP512R1   ||
+            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_X25519    ||
+            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_X448 );
 }
 
 static inline int mbedtls_ssl_tls13_named_group_is_ecdhe( uint16_t named_group )

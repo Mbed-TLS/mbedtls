@@ -7221,10 +7221,7 @@ int mbedtls_ssl_get_handshake_transcript( mbedtls_ssl_context *ssl,
  *      NamedCurve named_curve_list<2..2^16-1>
  *  } NamedCurveList;
  *
- * RFC8422 and RFC8446 share simillar structure and same extension id. The function
- * only check if the curve/group is supported by library. It does not need check
- * the IANA values. ECP module should check if the group/curve is deprecated or
- * supported.
+ * RFC8422 and RFC8446 share simillar structure and same extension id.
  *
  * DHE groups hasn't been supported yet.
  */
@@ -7260,16 +7257,22 @@ int mbedtls_ssl_write_supported_groups_ext( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG( 1, ("got supported group(%04x)",*group_list));
 
 #if defined(MBEDTLS_ECP_C)
-        const mbedtls_ecp_curve_info *curve_info;
-        curve_info = mbedtls_ecp_curve_info_from_tls_id( *group_list );
-        if( curve_info != NULL )
+        if( ( mbedtls_ssl_conf_is_tls13_enabled(ssl->conf) &&
+              mbedtls_ssl_tls13_named_group_is_ecdhe( *group_list ) ) ||
+            ( mbedtls_ssl_conf_is_tls12_enabled(ssl->conf) &&
+              mbedtls_ssl_tls12_named_group_is_ecdhe( *group_list ) ) )
         {
-            MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
-            MBEDTLS_PUT_UINT16_BE( *group_list, p, 0 );
-            p += 2;
-            MBEDTLS_SSL_DEBUG_MSG( 3, ( "NamedGroup: %s ( %x )",
-                                   curve_info->name, *group_list ) );
-            continue;
+            const mbedtls_ecp_curve_info *curve_info;
+            curve_info = mbedtls_ecp_curve_info_from_tls_id( *group_list );
+            if( curve_info != NULL )
+            {
+                MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
+                MBEDTLS_PUT_UINT16_BE( *group_list, p, 0 );
+                p += 2;
+                MBEDTLS_SSL_DEBUG_MSG( 3, ( "NamedGroup: %s ( %x )",
+                                    curve_info->name, *group_list ) );
+                continue;
+            }
         }
 #endif /* MBEDTLS_ECP_C */
         /* Add DHE groups here */

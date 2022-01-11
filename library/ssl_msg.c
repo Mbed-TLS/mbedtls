@@ -5404,6 +5404,11 @@ void mbedtls_ssl_transform_free( mbedtls_ssl_transform *transform )
     mbedtls_cipher_free( &transform->cipher_ctx_enc );
     mbedtls_cipher_free( &transform->cipher_ctx_dec );
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_destroy_key( &transform->psa_key_enc );
+    psa_destroy_key( &transform->psa_key_dec );
+#endif
+
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
     mbedtls_md_free( &transform->md_ctx_enc );
     mbedtls_md_free( &transform->md_ctx_dec );

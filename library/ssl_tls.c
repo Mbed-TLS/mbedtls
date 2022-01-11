@@ -3021,6 +3021,11 @@ void mbedtls_ssl_transform_init( mbedtls_ssl_transform *transform )
     mbedtls_cipher_init( &transform->cipher_ctx_enc );
     mbedtls_cipher_init( &transform->cipher_ctx_dec );
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    transform->psa_key_enc = MBEDTLS_SVC_KEY_ID_INIT;
+    transform->psa_key_dec = MBEDTLS_SVC_KEY_ID_INIT;
+#endif
+
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
     mbedtls_md_init( &transform->md_ctx_enc );
     mbedtls_md_init( &transform->md_ctx_dec );

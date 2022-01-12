@@ -262,24 +262,34 @@ int send_cb( void *ctx, unsigned char const *buf, size_t len )
 }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-int ssl_sig_hashes_for_test[] = {
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_RSA_C)
+#define MBEDTLS_SSL_SIG_ALG( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_ECDSA), \
+                                    (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA),
+#elif defined(MBEDTLS_ECDSA_C)
+#define MBEDTLS_SSL_SIG_ALG( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_ECDSA),
+#elif defined(MBEDTLS_RSA_C)
+#define MBEDTLS_SSL_SIG_ALG( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA),
+#else
+#define MBEDTLS_SSL_SIG_ALG( hash )
+#endif
+uint16_t ssl_sig_algs_for_test[] = {
 #if defined(MBEDTLS_SHA512_C)
-    MBEDTLS_MD_SHA512,
+    MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA512 )
 #endif
 #if defined(MBEDTLS_SHA384_C)
-    MBEDTLS_MD_SHA384,
+    MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA384 )
 #endif
 #if defined(MBEDTLS_SHA256_C)
-    MBEDTLS_MD_SHA256,
+    MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA256 )
 #endif
 #if defined(MBEDTLS_SHA224_C)
-    MBEDTLS_MD_SHA224,
+    MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA224 )
 #endif
 #if defined(MBEDTLS_SHA1_C)
     /* Allow SHA-1 as we use it extensively in tests. */
-    MBEDTLS_MD_SHA1,
+    MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA1 )
 #endif
-    MBEDTLS_MD_NONE
+    MBEDTLS_TLS1_3_SIG_NONE
 };
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 

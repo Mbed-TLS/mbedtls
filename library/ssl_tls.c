@@ -6403,6 +6403,16 @@ void mbedtls_ssl_config_init( mbedtls_ssl_config *conf )
 }
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_RSA_C)
+#define MBEDTLS_SSL_SIG_ALG( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_ECDSA), \
+                                    (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA),
+#elif defined(MBEDTLS_ECDSA_C)
+#define MBEDTLS_SSL_SIG_ALG( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_ECDSA),
+#elif defined(MBEDTLS_RSA_C)
+#define MBEDTLS_SSL_SIG_ALG( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA),
+#else
+#define MBEDTLS_SSL_SIG_ALG( hash )
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_RSA_C */
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /* The selection should be the same as mbedtls_x509_crt_profile_default in
  * x509_crt.c. Here, the order matters. Currently we favor stronger hashes,
@@ -6478,6 +6488,17 @@ static int ssl_preset_suiteb_hashes[] = {
 #endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
 static uint16_t ssl_preset_default_sig_algs[] = {
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SHA512_C)
+    MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA512 )
+#endif
+#if defined(MBEDTLS_SHA384_C)
+    MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA384 )
+#endif
+#if defined(MBEDTLS_SHA256_C)
+    MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA256 )
+#endif
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 
     /* ECDSA algorithms */
@@ -6504,6 +6525,14 @@ static uint16_t ssl_preset_default_sig_algs[] = {
 };
 
 static uint16_t ssl_preset_suiteb_sig_algs[] = {
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SHA384_C)
+    MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA384 )
+#endif
+#if defined(MBEDTLS_SHA256_C)
+    MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA256 )
+#endif
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     /* ECDSA algorithms */

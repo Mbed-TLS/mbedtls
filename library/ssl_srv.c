@@ -2796,8 +2796,11 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
         /*
          * Supported signature algorithms
          */
-        for( const uint16_t *sig_alg = mbedtls_ssl_conf_get_sig_algs( ssl->conf );
-             *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
+        const uint16_t *sig_alg = mbedtls_ssl_get_sig_algs( ssl );
+        if( sig_alg == NULL )
+            return( MBEDTLS_ERR_SSL_BAD_CONFIG );
+
+        for( ; *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
         {
             /* High byte is hash */
             unsigned char hash = ( *sig_alg >> 8 ) & 0xff;

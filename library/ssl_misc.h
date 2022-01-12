@@ -1815,24 +1815,17 @@ int mbedtls_ssl_write_supported_groups_ext( mbedtls_ssl_context *ssl,
 /*
  * Return supported sig_algs.
  */
-static inline const void *mbedtls_ssl_conf_get_sig_algs(
-                                                const mbedtls_ssl_config *conf )
+static inline const void *mbedtls_ssl_get_sig_algs( const mbedtls_ssl_context *ssl )
 {
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    if( mbedtls_ssl_conf_is_tls12_enabled( conf ))
-        return( conf->sig_hashes );
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    if( mbedtls_ssl_conf_is_tls13_enabled( conf ))
-        return( conf->sig_algs );
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
-
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+    if( ssl->handshake != NULL && ssl->handshake->sig_algs != NULL )
+        return( ssl->handshake->sig_algs );
+#endif
+    return( ssl->conf->sig_algs );
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
-    ((void) conf);
+    ((void) ssl);
     return NULL;
 }
 

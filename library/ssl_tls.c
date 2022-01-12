@@ -3187,14 +3187,14 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
             unsigned char hash = mbedtls_ssl_hash_from_md_alg( *md );
             if( hash == MBEDTLS_SSL_HASH_NONE )
                 continue;
-    #if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C)
             *p = (( hash << 8 ) | MBEDTLS_SSL_SIG_ECDSA);
             p++;
-    #endif
-    #if defined(MBEDTLS_RSA_C)
+#endif
+#if defined(MBEDTLS_RSA_C)
             *p = (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA);
             p++;
-    #endif
+#endif
         }
         *p = MBEDTLS_TLS1_3_SIG_NONE;
         ssl->handshake->sig_algs_heap_allocated = 1;
@@ -4055,7 +4055,6 @@ void mbedtls_ssl_conf_sig_hashes( mbedtls_ssl_config *conf,
                                   const int *hashes )
 {
     conf->sig_hashes = hashes;
-    conf->sig_algs = NULL;
 }
 #endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
@@ -6478,8 +6477,9 @@ static int ssl_preset_suiteb_hashes[] = {
 };
 #endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 static uint16_t ssl_preset_default_sig_algs[] = {
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+
     /* ECDSA algorithms */
 #if defined(MBEDTLS_ECDSA_C)
 #if defined(MBEDTLS_SHA256_C) && defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
@@ -6498,11 +6498,14 @@ static uint16_t ssl_preset_default_sig_algs[] = {
     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256,
 #endif
     MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256,
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
     MBEDTLS_TLS1_3_SIG_NONE
 };
 
 static uint16_t ssl_preset_suiteb_sig_algs[] = {
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     /* ECDSA algorithms */
 #if defined(MBEDTLS_ECDSA_C)
 #if defined(MBEDTLS_SHA256_C) && defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
@@ -6518,10 +6521,10 @@ static uint16_t ssl_preset_suiteb_sig_algs[] = {
     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256,
 #endif
     MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256,
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
     MBEDTLS_TLS1_3_SIG_NONE
 };
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 #endif
 
 static uint16_t ssl_preset_suiteb_groups[] = {
@@ -6936,7 +6939,7 @@ int mbedtls_ssl_check_sig_hash( const mbedtls_ssl_context *ssl,
                                 mbedtls_md_type_t md )
 {
 
-    const uint16_t *sig_alg = mbedtls_ssl_conf_get_sig_algs( ssl->conf );
+    const uint16_t *sig_alg = mbedtls_ssl_get_sig_algs( ssl );
     if( sig_alg == NULL )
         return( -1 );
 
@@ -7450,8 +7453,11 @@ int mbedtls_ssl_write_sig_alg_ext( mbedtls_ssl_context *ssl, unsigned char *buf,
      * Write supported_signature_algorithms
      */
     supported_sig_alg = p;
-    for( const uint16_t *sig_alg = mbedtls_ssl_conf_get_sig_algs( ssl->conf );
-         *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
+    const uint16_t *sig_alg = mbedtls_ssl_get_sig_algs( ssl );
+    if( sig_alg == NULL )
+        return( MBEDTLS_ERR_SSL_BAD_CONFIG );
+
+    for( ; *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
     {
         MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
         MBEDTLS_PUT_UINT16_BE( *sig_alg, p, 0 );

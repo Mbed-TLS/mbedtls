@@ -7252,14 +7252,14 @@ int mbedtls_ssl_write_supported_groups_ext( mbedtls_ssl_context *ssl,
     if( group_list == NULL )
         return( MBEDTLS_ERR_SSL_BAD_CONFIG );
 
-    for ( ; *group_list != 0; group_list++ )
+    for( ; *group_list != 0; group_list++ )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ("got supported group(%04x)",*group_list));
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "got supported group(%04x)", *group_list ) );
 
 #if defined(MBEDTLS_ECP_C)
-        if( ( mbedtls_ssl_conf_is_tls13_enabled(ssl->conf) &&
+        if( ( mbedtls_ssl_conf_is_tls13_enabled( ssl->conf ) &&
               mbedtls_ssl_tls13_named_group_is_ecdhe( *group_list ) ) ||
-            ( mbedtls_ssl_conf_is_tls12_enabled(ssl->conf) &&
+            ( mbedtls_ssl_conf_is_tls12_enabled( ssl->conf ) &&
               mbedtls_ssl_tls12_named_group_is_ecdhe( *group_list ) ) )
         {
             const mbedtls_ecp_curve_info *curve_info;
@@ -7279,7 +7279,7 @@ int mbedtls_ssl_write_supported_groups_ext( mbedtls_ssl_context *ssl,
 
     }
 
-    /* Length of named_group_list*/
+    /* Length of named_group_list */
     named_group_list_len = p - named_group_list;
     if( named_group_list_len == 0 )
     {

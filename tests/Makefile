@@ -191,7 +191,7 @@ neat: clean
 ifndef WINDOWS
 	rm -f $(GENERATED_FILES)
 else
-	for %f in ($(subst /,\,$(GENERATED_FILES))) if exist %f del /Q /F %f
+	for %%f in ($(subst /,\,$(GENERATED_FILES))) do if exist %%f del /Q /F %%f
 endif
 
 # Test suites caught by SKIP_TEST_SUITES are built but not executed.

@@ -665,6 +665,21 @@ typedef int ssl_tls_prf_t(const unsigned char *, size_t, const char *,
                           const unsigned char *, size_t,
                           unsigned char *, size_t);
 
+static int psa_status_to_mbedtls( psa_status_t status )
+{
+    switch( status )
+    {
+        case PSA_SUCCESS:
+            return( 0 );
+        case PSA_ERROR_INSUFFICIENT_MEMORY:
+            return( MBEDTLS_ERR_CIPHER_ALLOC_FAILED );
+        case PSA_ERROR_NOT_SUPPORTED:
+            return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+        default:
+            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+    }
+}
+
 /*
  * Populate a transform structure with session keys and all the other
  * necessary information.
@@ -1088,7 +1103,8 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
                                  &key_type,
                                  &key_bits ) ) != PSA_SUCCESS )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_to_psa", status );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_to_psa", psa_status_to_mbedtls( status ) );
+        ret = psa_status_to_mbedtls( status );
         goto end;
     }
 
@@ -1102,7 +1118,8 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
                              PSA_BITS_TO_BYTES( key_bits ),
                              &transform->psa_key_enc ) ) != PSA_SUCCESS )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "psa_import_key", status );
+        MBEDTLS_SSL_DEBUG_RET( 1, "psa_import_key", psa_status_to_mbedtls( status ) );
+        ret = psa_status_to_mbedtls( status );
         goto end;
     }
     if( ( status = psa_import_key( &attributes,
@@ -1110,7 +1127,8 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
                              PSA_BITS_TO_BYTES( key_bits ),
                              &transform->psa_key_dec ) ) != PSA_SUCCESS )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "psa_import_key", status );
+        MBEDTLS_SSL_DEBUG_RET( 1, "psa_import_key", psa_status_to_mbedtls( status ) );
+        ret = psa_status_to_mbedtls( status );
         goto end;
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */

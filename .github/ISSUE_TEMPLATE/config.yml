@@ -4,5 +4,5 @@ contact_links:
       url: mailto:mbed-tls-security@lists.trustedfirmware.org
       about: Report a security vulnerability.
     - name: Mbed TLS mailing list
-      url: https://lists.trustedfirmware.org/mailman/listinfo/mbed-tls
+      url: https://lists.trustedfirmware.org/mailman3/lists/mbed-tls.lists.trustedfirmware.org
       about: Mbed TLS community support and general discussion.

@@ -4366,6 +4366,19 @@ const char *mbedtls_ssl_get_ciphersuite( const mbedtls_ssl_context *ssl )
     return mbedtls_ssl_get_ciphersuite_name( ssl->session->ciphersuite );
 }
 
+const mbedtls_cipher_info_t *mbedtls_ssl_get_cipher_info( const mbedtls_ssl_context *ssl )
+{
+    if( ssl == NULL || ssl->session == NULL )
+        return( NULL );
+
+    const mbedtls_ssl_ciphersuite_t * const ciphersuite_info =
+      mbedtls_ssl_ciphersuite_from_id( ssl->session->ciphersuite );
+    if( ciphersuite_info == NULL )
+        return( NULL );
+
+    return( mbedtls_cipher_info_from_type( ciphersuite_info->cipher ) );
+}
+
 const char *mbedtls_ssl_get_version( const mbedtls_ssl_context *ssl )
 {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)

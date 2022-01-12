@@ -1,0 +1,2 @@
+Features
+   * Add mbedtls_ssl_get_cipher_info() accessor.

@@ -3898,6 +3898,15 @@ uint32_t mbedtls_ssl_get_verify_result( const mbedtls_ssl_context *ssl );
 const char *mbedtls_ssl_get_ciphersuite( const mbedtls_ssl_context *ssl );
 
 /**
+ * \brief          Return the current cipher information
+ *
+ * \param ssl      SSL context
+ *
+ * \return         a cipher information structure
+ */
+const mbedtls_cipher_info_t *mbedtls_ssl_get_cipher_info( const mbedtls_ssl_context *ssl );
+
+/**
  * \brief          Return the current TLS version
  *
  * \param ssl      SSL context

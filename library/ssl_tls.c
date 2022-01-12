@@ -7193,9 +7193,11 @@ int mbedtls_ssl_get_handshake_transcript( mbedtls_ssl_context *ssl,
     defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 /*
- * Functions for writing supported_groups extension.
+ * Function for writing a supported groups (TLS 1.3) or supported elliptic
+ * curves (TLS 1.2) extension.
  *
- * Stucture of supported_groups from RFC8446:
+ * The "extension_data" field of a supported groups extension contains a
+ * "NamedGroupList" value (TLS 1.3 RFC8446):
  *      enum {
  *          secp256r1(0x0017), secp384r1(0x0018), secp521r1(0x0019),
  *          x25519(0x001D), x448(0x001E),
@@ -7208,7 +7210,9 @@ int mbedtls_ssl_get_handshake_transcript( mbedtls_ssl_context *ssl,
  *      struct {
  *          NamedGroup named_group_list<2..2^16-1>;
  *      } NamedGroupList;
- * From RFC8422:
+ *
+ * The "extension_data" field of a supported elliptic curves extension contains
+ * a "NamedCurveList" value (TLS 1.2 RFC 8422):
  * enum {
  *      deprecated(1..22),
  *      secp256r1 (23), secp384r1 (24), secp521r1 (25),
@@ -7221,9 +7225,11 @@ int mbedtls_ssl_get_handshake_transcript( mbedtls_ssl_context *ssl,
  *      NamedCurve named_curve_list<2..2^16-1>
  *  } NamedCurveList;
  *
- * RFC8422 and RFC8446 share simillar structure and same extension id.
+ * The TLS 1.3 supported groups extension was defined to be a compatible
+ * generalization of the TLS 1.2 supported elliptic curves extension. They both
+ * share the same extension identifier.
  *
- * DHE groups hasn't been supported yet.
+ * DHE groups are not supported yet.
  */
 int mbedtls_ssl_write_supported_groups_ext( mbedtls_ssl_context *ssl,
                                             unsigned char *buf,
@@ -7264,15 +7270,13 @@ int mbedtls_ssl_write_supported_groups_ext( mbedtls_ssl_context *ssl,
         {
             const mbedtls_ecp_curve_info *curve_info;
             curve_info = mbedtls_ecp_curve_info_from_tls_id( *group_list );
-            if( curve_info != NULL )
-            {
-                MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
-                MBEDTLS_PUT_UINT16_BE( *group_list, p, 0 );
-                p += 2;
-                MBEDTLS_SSL_DEBUG_MSG( 3, ( "NamedGroup: %s ( %x )",
-                                    curve_info->name, *group_list ) );
+            if( curve_info == NULL )
                 continue;
-            }
+            MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
+            MBEDTLS_PUT_UINT16_BE( *group_list, p, 0 );
+            p += 2;
+            MBEDTLS_SSL_DEBUG_MSG( 3, ( "NamedGroup: %s ( %x )",
+                                curve_info->name, *group_list ) );
         }
 #endif /* MBEDTLS_ECP_C */
         /* Add DHE groups here */

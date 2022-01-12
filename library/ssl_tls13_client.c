@@ -613,12 +613,11 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
     p += output_len;
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-    /* Write supported_groups extension
-     *
-     * It is REQUIRED for ECDHE cipher_suites.
+
+    /*
+     * Add the extensions related to (EC)DHE ephemeral key establishment only if
+     * enabled as per the configuration.
      */
-    /* Skip the extensions on the client if all allowed key exchanges
-     * are PSK-based. */
     if( mbedtls_ssl_conf_tls13_some_ephemeral_enabled( ssl ) )
     {
         ret = mbedtls_ssl_write_supported_groups_ext( ssl, p, end, &output_len );
@@ -626,26 +625,11 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
             return( ret );
         p += output_len;
 
-        /* Write key_share extension
-        *
-        * We need to send the key shares under three conditions:
-        * 1) A certificate-based ciphersuite is being offered. In this case
-        *    supported_groups and supported_signature extensions have been
-        *    successfully added.
-        * 2) A PSK-based ciphersuite with ECDHE is offered. In this case the
-        *    psk_key_exchange_modes has been added as the last extension.
-        * 3) Or, in case all ciphers are supported ( which includes #1 and #2
-        *    from above )
-        */
         ret = ssl_tls13_write_key_share_ext( ssl, p, end, &output_len );
         if( ret != 0 )
             return( ret );
         p += output_len;
 
-        /* Write signature_algorithms extension
-        *
-        * It is REQUIRED for certificate authenticated cipher_suites.
-        */
         ret = mbedtls_ssl_tls13_write_sig_alg_ext( ssl, p, end, &output_len );
         if( ret != 0 )
             return( ret );

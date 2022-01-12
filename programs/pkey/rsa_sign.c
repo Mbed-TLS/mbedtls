@@ -46,6 +46,8 @@ int main( void )
 
 #include "mbedtls/rsa.h"
 #include "mbedtls/md.h"
+#include "mbedtls/entropy.h"
+#include "mbedtls/ctr_drbg.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -62,6 +64,22 @@ int main( int argc, char *argv[] )
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
     char filename[512];
     mbedtls_mpi N, P, Q, D, E, DP, DQ, QP;
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
+    const char *pers = "rsa_sign";
+
+    mbedtls_ctr_drbg_init(&ctr_drbg);
+    mbedtls_entropy_init(&entropy);
+
+    ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func,
+        &entropy, (const unsigned char *)pers,
+        strlen(pers));
+    if (ret != 0)
+    {
+        mbedtls_printf(" failed\n  ! mbedtls_ctr_drbg_seed returned %d\n",
+            ret);
+        goto exit;
+    }
 
     mbedtls_rsa_init( &rsa );
 
@@ -142,8 +160,8 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    if( ( ret = mbedtls_rsa_pkcs1_sign( &rsa, NULL, NULL, MBEDTLS_MD_SHA256,
-                                32, hash, buf ) ) != 0 )
+    if( ( ret = mbedtls_rsa_pkcs1_sign( &rsa, mbedtls_ctr_drbg_random, &ctr_drbg,
+                    MBEDTLS_MD_SHA256, 32, hash, buf ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_rsa_pkcs1_sign returned -0x%0x\n\n", (unsigned int) -ret );
         goto exit;
@@ -176,6 +194,9 @@ exit:
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
     mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );
     mbedtls_mpi_free( &DQ ); mbedtls_mpi_free( &QP );
+
+    mbedtls_ctr_drbg_free(&ctr_drbg);
+    mbedtls_entropy_free(&entropy);
 
 #if defined(_WIN32)
     mbedtls_printf( "  + Press Enter to exit this program.\n" );

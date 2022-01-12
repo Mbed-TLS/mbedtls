@@ -284,12 +284,12 @@ static void ssl_tls13_create_verify_structure( const unsigned char *transcript_h
 }
 
 static int ssl_tls13_sig_alg_is_offered( const mbedtls_ssl_context *ssl,
-                                         uint16_t received_sig_alg )
+                                         uint16_t proposed_sig_alg )
 {
     for( const uint16_t *sig_alg = mbedtls_ssl_conf_get_sig_algs( ssl->conf );
          *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
     {
-        if( *sig_alg == received_sig_alg )
+        if( *sig_alg == proposed_sig_alg )
             return( 1 );
     }
     return( 0 );

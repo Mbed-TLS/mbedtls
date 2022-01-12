@@ -1821,12 +1821,12 @@ static inline const void *mbedtls_ssl_conf_get_sig_algs(
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    if( mbedtls_ssl_conf_is_tls12_only( conf ))
+    if( mbedtls_ssl_conf_is_tls12_enabled( conf ))
         return( conf->sig_hashes );
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    if( mbedtls_ssl_conf_is_tls13_only( conf ))
+    if( mbedtls_ssl_conf_is_tls13_enabled( conf ))
         return( conf->tls13_sig_algs );
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 

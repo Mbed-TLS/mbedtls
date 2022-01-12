@@ -1133,7 +1133,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     if( ( ret = ssl_write_sig_alg_ext( ssl, p + 2 + ext_len,
                                        end, &olen ) ) != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_sig_algs_ext", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_sig_alg_ext", ret );
         return( ret );
     }
     ext_len += olen;

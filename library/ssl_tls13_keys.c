@@ -31,10 +31,6 @@
 #include "ssl_misc.h"
 #include "ssl_tls13_keys.h"
 
-/* Convert key bits to byte size */
-#define KEY_BYTES( bits ) ( ( (size_t) bits + 7 ) / 8 )
-
-
 #define MBEDTLS_SSL_TLS1_3_LABEL( name, string )       \
     .name = string,
 
@@ -937,7 +933,7 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
 
     if( ( status = psa_import_key( &attributes,
                              key_enc,
-                             KEY_BYTES( key_bits ),
+                             PSA_BITS_TO_BYTES( key_bits ),
                              &transform->psa_key_enc ) ) != PSA_SUCCESS )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "psa_import_key", status );
@@ -945,7 +941,7 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
     }
     if( ( status = psa_import_key( &attributes,
                              key_dec,
-                             KEY_BYTES( key_bits ),
+                             PSA_BITS_TO_BYTES( key_bits ),
                              &transform->psa_key_dec ) ) != PSA_SUCCESS )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "psa_import_key", status );

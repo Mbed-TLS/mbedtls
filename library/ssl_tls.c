@@ -52,9 +52,6 @@
 #include "mbedtls/oid.h"
 #endif
 
-/* Convert key bits to byte size */
-#define KEY_BYTES( bits ) ( ( (size_t) bits + 7 ) / 8 )
-
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
@@ -1102,7 +1099,7 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
 
     if( ( status = psa_import_key( &attributes,
                              key1,
-                             KEY_BYTES( key_bits ),
+                             PSA_BITS_TO_BYTES( key_bits ),
                              &transform->psa_key_enc ) ) != PSA_SUCCESS )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "psa_import_key", status );
@@ -1110,7 +1107,7 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
     }
     if( ( status = psa_import_key( &attributes,
                              key2,
-                             KEY_BYTES( key_bits ),
+                             PSA_BITS_TO_BYTES( key_bits ),
                              &transform->psa_key_dec ) ) != PSA_SUCCESS )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "psa_import_key", status );

@@ -1,0 +1,4 @@
+Changes
+   * Add the command line parameter ticket_aead to the ssl_server2 example
+     application which allows to provide the method for the session ticket
+     protection.

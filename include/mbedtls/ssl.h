@@ -1359,11 +1359,11 @@ struct mbedtls_ssl_config
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-    const int *MBEDTLS_PRIVATE(sig_hashes);          /*!< allowed signature hashes           */
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    const uint16_t *MBEDTLS_PRIVATE(tls13_sig_algs); /*!< allowed signature algorithms for TLS 1.3 */
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+    const int *MBEDTLS_PRIVATE(sig_hashes);         /*!< allowed signature hashes           */
+#endif
+    const uint16_t *MBEDTLS_PRIVATE(sig_algs);      /*!< allowed signature algorithms       */
 #endif
 
 #if defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_DEPRECATED_REMOVED)
@@ -3267,6 +3267,7 @@ void mbedtls_ssl_conf_groups( mbedtls_ssl_config *conf,
                               const uint16_t *groups );
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /**
  * \brief          Set the allowed hashes for signatures during the handshake.
  *
@@ -3296,8 +3297,9 @@ void mbedtls_ssl_conf_groups( mbedtls_ssl_config *conf,
  * \param hashes   Ordered list of allowed signature hashes,
  *                 terminated by \c MBEDTLS_MD_NONE.
  */
-void mbedtls_ssl_conf_sig_hashes( mbedtls_ssl_config *conf,
+void MBEDTLS_DEPRECATED mbedtls_ssl_conf_sig_hashes( mbedtls_ssl_config *conf,
                                   const int *hashes );
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 /**

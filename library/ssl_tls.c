@@ -3150,6 +3150,62 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_ECP_C */
 
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+    /* Heap allocate and translate curve_list from internal to IANA group ids */
+    if ( mbedtls_ssl_conf_is_tls12_enabled( ssl->conf ) &&
+         ssl->conf->sig_hashes != NULL )
+    {
+        const int *md;
+        const int *sig_hashes = ssl->conf->sig_hashes;
+        size_t sig_algs_len = 0;
+        uint16_t *p;
+
+        for( md = sig_hashes; *md != MBEDTLS_MD_NONE; md++ )
+        {
+            if( mbedtls_ssl_hash_from_md_alg( *md ) == MBEDTLS_SSL_HASH_NONE )
+                continue;
+    #if defined(MBEDTLS_ECDSA_C)
+            sig_algs_len++;
+    #endif
+    #if defined(MBEDTLS_RSA_C)
+            sig_algs_len++;
+    #endif
+        }
+
+        if( sig_algs_len == 0 )
+            return( MBEDTLS_ERR_SSL_BAD_CONFIG );
+
+        ssl->handshake->sig_algs = mbedtls_calloc( sig_algs_len + 1,
+                                                   sizeof( uint16_t ) );
+        if( ssl->handshake->sig_algs == NULL )
+            return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+
+        p = (uint16_t *)ssl->handshake->sig_algs;
+        for( md = sig_hashes; *md != MBEDTLS_MD_NONE; md++ )
+        {
+            unsigned char hash = mbedtls_ssl_hash_from_md_alg( *md );
+            if( hash == MBEDTLS_SSL_HASH_NONE )
+                continue;
+    #if defined(MBEDTLS_ECDSA_C)
+            *p = (( hash << 8 ) | MBEDTLS_SSL_SIG_ECDSA);
+            p++;
+    #endif
+    #if defined(MBEDTLS_RSA_C)
+            *p = (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA);
+            p++;
+    #endif
+        }
+        *p = MBEDTLS_TLS1_3_SIG_NONE;
+        ssl->handshake->sig_algs_heap_allocated = 1;
+    }
+    else
+    {
+        ssl->handshake->sig_algs = ssl->conf->sig_algs;
+        ssl->handshake->sig_algs_heap_allocated = 0;
+    }
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
     return( 0 );
 }
 
@@ -3991,6 +4047,7 @@ void mbedtls_ssl_conf_dhm_min_bitlen( mbedtls_ssl_config *conf,
 #endif /* MBEDTLS_DHM_C && MBEDTLS_SSL_CLI_C */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /*
  * Set allowed/preferred hashes for handshake signatures
  */
@@ -3998,16 +4055,19 @@ void mbedtls_ssl_conf_sig_hashes( mbedtls_ssl_config *conf,
                                   const int *hashes )
 {
     conf->sig_hashes = hashes;
+    conf->sig_algs = NULL;
 }
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-/* Configure allowed signature algorithms for use in TLS 1.3 */
+/* Configure allowed signature algorithms for handshake */
 void mbedtls_ssl_conf_sig_algs( mbedtls_ssl_config *conf,
                                 const uint16_t* sig_algs )
 {
-    conf->tls13_sig_algs = sig_algs;
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+    conf->sig_hashes = NULL;
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
+    conf->sig_algs = sig_algs;
 }
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_ECP_C)
@@ -5498,6 +5558,15 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_ECP_C */
 
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+    if ( ssl->handshake->sig_algs_heap_allocated )
+        mbedtls_free( (void*) handshake->sig_algs );
+    handshake->sig_algs = NULL;
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
+
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     if( ssl->conf->f_async_cancel != NULL && handshake->async_in_progress != 0 )
     {
@@ -6335,6 +6404,7 @@ void mbedtls_ssl_config_init( mbedtls_ssl_config *conf )
 }
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /* The selection should be the same as mbedtls_x509_crt_profile_default in
  * x509_crt.c. Here, the order matters. Currently we favor stronger hashes,
  * for no fundamental reason.
@@ -6352,7 +6422,8 @@ static int ssl_preset_default_hashes[] = {
 #endif
     MBEDTLS_MD_NONE
 };
-#endif
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 /* The selection should be the same as mbedtls_x509_crt_profile_default in
  * x509_crt.c, plus Montgomery curves for ECDHE. Here, the order matters:
@@ -6395,11 +6466,17 @@ static int ssl_preset_suiteb_ciphersuites[] = {
 };
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 static int ssl_preset_suiteb_hashes[] = {
-    MBEDTLS_MD_SHA256,
+#if defined(MBEDTLS_SHA384_C)
     MBEDTLS_MD_SHA384,
+#endif
+#if defined(MBEDTLS_SHA256_C)
+    MBEDTLS_MD_SHA256,
+#endif
     MBEDTLS_MD_NONE
 };
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 static uint16_t ssl_preset_default_sig_algs[] = {
@@ -6563,10 +6640,10 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
             conf->sig_hashes = ssl_preset_suiteb_hashes;
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-            conf->tls13_sig_algs = ssl_preset_suiteb_sig_algs;
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
+            conf->sig_algs = ssl_preset_suiteb_sig_algs;
 #endif
 
 #if defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_DEPRECATED_REMOVED)
@@ -6601,10 +6678,10 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
             conf->sig_hashes = ssl_preset_default_hashes;
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-            conf->tls13_sig_algs = ssl_preset_default_sig_algs;
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
+            conf->sig_algs = ssl_preset_default_sig_algs;
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_DEPRECATED_REMOVED)
@@ -7331,5 +7408,80 @@ int mbedtls_ssl_write_supported_groups_ext( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED ||
           MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C ||
           MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
+
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+/*
+ * mbedtls_ssl_tls13_write_sig_alg_ext( )
+ *
+ * enum {
+ *    ....
+ *   ecdsa_secp256r1_sha256( 0x0403 ),
+ *   ecdsa_secp384r1_sha384( 0x0503 ),
+ *   ecdsa_secp521r1_sha512( 0x0603 ),
+ *    ....
+ * } SignatureScheme;
+ *
+ * struct {
+ *    SignatureScheme supported_signature_algorithms<2..2^16-2>;
+ * } SignatureSchemeList;
+ *
+ * Only if we handle at least one key exchange that needs signatures.
+ */
+int mbedtls_ssl_write_sig_alg_ext( mbedtls_ssl_context *ssl, unsigned char *buf,
+                                   const unsigned char *end, size_t *out_len )
+{
+    unsigned char *p = buf;
+    unsigned char *supported_sig_alg; /* Start of supported_signature_algorithms */
+    size_t supported_sig_alg_len = 0; /* Length of supported_signature_algorithms */
+
+    *out_len = 0;
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "adding signature_algorithms extension" ) );
+
+    /* Check if we have space for header and length field:
+     * - extension_type         (2 bytes)
+     * - extension_data_length  (2 bytes)
+     * - supported_signature_algorithms_length   (2 bytes)
+     */
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 6 );
+    p += 6;
+
+    /*
+     * Write supported_signature_algorithms
+     */
+    supported_sig_alg = p;
+    for( const uint16_t *sig_alg = mbedtls_ssl_conf_get_sig_algs( ssl->conf );
+         *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
+    {
+        MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
+        MBEDTLS_PUT_UINT16_BE( *sig_alg, p, 0 );
+        p += 2;
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "signature scheme [%x]", *sig_alg ) );
+    }
+
+    /* Length of supported_signature_algorithms */
+    supported_sig_alg_len = p - supported_sig_alg;
+    if( supported_sig_alg_len == 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "No signature algorithms defined." ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+
+    /* Write extension_type */
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SIG_ALG, buf, 0 );
+    /* Write extension_data_length */
+    MBEDTLS_PUT_UINT16_BE( supported_sig_alg_len + 2, buf, 2 );
+    /* Write length of supported_signature_algorithms */
+    MBEDTLS_PUT_UINT16_BE( supported_sig_alg_len, buf, 4 );
+
+    /* Output the total length of signature algorithms extension. */
+    *out_len = p - buf;
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    ssl->handshake->extensions_present |= MBEDTLS_SSL_EXT_SIG_ALG;
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+    return( 0 );
+}
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #endif /* MBEDTLS_SSL_TLS_C */

@@ -199,85 +199,6 @@ static int ssl_write_renegotiation_ext( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
-/*
- * Only if we handle at least one key exchange that needs signatures.
- */
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
-    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-
-static int ssl_write_sig_alg_ext( mbedtls_ssl_context *ssl, unsigned char *buf,
-                                  const unsigned char *end, size_t *out_len )
-{
-    unsigned char *p = buf;
-    unsigned char *supported_sig_alg; /* Start of supported_signature_algorithms */
-    size_t supported_sig_alg_len = 0; /* Length of supported_signature_algorithms */
-
-    *out_len = 0;
-
-    /*
-     * enum {
-     *     none(0), md5(1), sha1(2), sha224(3), sha256(4), sha384(5),
-     *     sha512(6), (255)
-     * } HashAlgorithm;
-     *
-     * enum { anonymous(0), rsa(1), dsa(2), ecdsa(3), (255) }
-     *   SignatureAlgorithm;
-     *
-     * struct {
-     *     HashAlgorithm hash;
-     *     SignatureAlgorithm signature;
-     * } SignatureAndHashAlgorithm;
-     *
-     * SignatureAndHashAlgorithm
-     *   supported_signature_algorithms<2..2^16-2>;
-     */
-
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "adding signature_algorithms extension" ) );
-
-    /* Check if we have space for header and length field:
-     * - extension_type         (2 bytes)
-     * - extension_data_length  (2 bytes)
-     * - supported_signature_algorithms_length   (2 bytes)
-     */
-    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 6 );
-    p += 6;
-
-    /*
-     * Write supported_signature_algorithms
-     */
-    supported_sig_alg = p;
-    for( const uint16_t *sig_alg = mbedtls_ssl_conf_get_sig_algs( ssl->conf );
-         *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
-    {
-        MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
-        MBEDTLS_PUT_UINT16_BE( *sig_alg, p, 0 );
-        p += 2;
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "signature scheme [%x]", *sig_alg ) );
-    }
-
-    /* Length of supported_signature_algorithms */
-    supported_sig_alg_len = p - supported_sig_alg;
-    if( supported_sig_alg_len == 0 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "No signature algorithms defined." ) );
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-    }
-
-    /* Write extension_type */
-    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SIG_ALG, buf, 0 );
-    /* Write extension_data_length */
-    MBEDTLS_PUT_UINT16_BE( supported_sig_alg_len + 2, buf, 2 );
-    /* Write length of supported_signature_algorithms */
-    MBEDTLS_PUT_UINT16_BE( supported_sig_alg_len, buf, 4 );
-
-    /* Output the total length of signature algorithms extension. */
-    *out_len = p - buf;
-
-    return( 0 );
-}
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 &&
-          MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
-
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 
@@ -1109,10 +1030,10 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-    if( ( ret = ssl_write_sig_alg_ext( ssl, p + 2 + ext_len,
-                                       end, &olen ) ) != 0 )
+    if( ( ret = mbedtls_ssl_write_sig_alg_ext( ssl, p + 2 + ext_len,
+                                               end, &olen ) ) != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_sig_alg_ext", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_sig_alg_ext", ret );
         return( ret );
     }
     ext_len += olen;

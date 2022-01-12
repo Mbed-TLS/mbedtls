@@ -554,6 +554,7 @@ struct mbedtls_ssl_handshake_params
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
     unsigned char group_list_heap_allocated;
+    unsigned char sig_algs_heap_allocated;
 #endif
 
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
@@ -592,6 +593,7 @@ struct mbedtls_ssl_handshake_params
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
     const uint16_t *group_list;
+    const uint16_t *sig_algs;
 #endif
 
 #if defined(MBEDTLS_DHM_C)
@@ -1719,18 +1721,16 @@ void mbedtls_ssl_tls13_add_hs_msg_to_checksum( mbedtls_ssl_context *ssl,
                                                unsigned char const *msg,
                                                size_t msg_len );
 
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 /*
- * Write TLS 1.3 Signature Algorithm extension
+ * Write Signature Algorithm extension
  */
-int mbedtls_ssl_tls13_write_sig_alg_ext( mbedtls_ssl_context *ssl,
-                                         unsigned char *buf,
-                                         unsigned char *end,
-                                         size_t *out_len);
+int mbedtls_ssl_write_sig_alg_ext( mbedtls_ssl_context *ssl, unsigned char *buf,
+                                   const unsigned char *end, size_t *out_len);
 
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
-
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 /* Get handshake transcript */
 int mbedtls_ssl_get_handshake_transcript( mbedtls_ssl_context *ssl,
@@ -1827,7 +1827,7 @@ static inline const void *mbedtls_ssl_conf_get_sig_algs(
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     if( mbedtls_ssl_conf_is_tls13_enabled( conf ))
-        return( conf->tls13_sig_algs );
+        return( conf->sig_algs );
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */

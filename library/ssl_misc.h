@@ -1770,27 +1770,28 @@ static inline int mbedtls_ssl_tls12_named_group_is_ecdhe( uint16_t named_group )
     /*
      * RFC 8422 section 5.1.1
      */
-    return( named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP192K1 ||
+    return( named_group == MBEDTLS_SSL_IANA_TLS_GROUP_X25519    ||
+            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_BP256R1   ||
+            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_BP384R1   ||
+            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_BP512R1   ||
+            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_X448      ||
+            /* Below deprected curves should be removed with notice to users */
+            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP192K1 ||
             named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP192R1 ||
             named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP224K1 ||
             named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP224R1 ||
             named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP256K1 ||
             named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1 ||
             named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1 ||
-            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP521R1 ||
-            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_BP256R1   ||
-            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_BP384R1   ||
-            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_BP512R1   ||
-            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_X25519    ||
-            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_X448 );
+            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP521R1 );
 }
 
 static inline int mbedtls_ssl_tls13_named_group_is_ecdhe( uint16_t named_group )
 {
-    return( named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1 ||
+    return( named_group == MBEDTLS_SSL_IANA_TLS_GROUP_X25519    ||
+            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1 ||
             named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP384R1 ||
             named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP521R1 ||
-            named_group == MBEDTLS_SSL_IANA_TLS_GROUP_X25519    ||
             named_group == MBEDTLS_SSL_IANA_TLS_GROUP_X448 );
 }
 

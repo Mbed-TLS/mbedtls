@@ -3,13 +3,6 @@
 
 #include "ecp_invasive.h"
 
-#if defined(MBEDTLS_TEST_HOOKS) &&                  \
-    ( defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) ||  \
-      defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) ||  \
-      defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED) )
-#define HAVE_FIX_NEGATIVE
-#endif
-
 #define ECP_PF_UNKNOWN     -1
 
 #define ECP_PT_RESET( x )           \
@@ -938,36 +931,6 @@ void mbedtls_ecp_read_key( int grp_id, data_t* in_key, int expected, int canonic
 exit:
     mbedtls_ecp_keypair_free( &key );
     mbedtls_ecp_keypair_free( &key2 );
-}
-/* END_CASE */
-
-/* BEGIN_CASE depends_on:HAVE_FIX_NEGATIVE */
-void fix_negative( data_t *N_bin, int c, int bits )
-{
-    mbedtls_mpi C, M, N;
-
-    mbedtls_mpi_init( &C );
-    mbedtls_mpi_init( &M );
-    mbedtls_mpi_init( &N );
-
-    /* C = - c * 2^bits (positive since c is negative) */
-    TEST_EQUAL( 0, mbedtls_mpi_lset( &C, -c ) );
-    TEST_EQUAL( 0, mbedtls_mpi_shift_l( &C, bits ) );
-
-    TEST_EQUAL( 0, mbedtls_mpi_read_binary( &N, N_bin->x, N_bin->len ) );
-    TEST_EQUAL( 0, mbedtls_mpi_grow( &N, C.n ) );
-
-    /* M = N - C = - ( C - N ) (expected result of fix_negative) */
-    TEST_EQUAL( 0, mbedtls_mpi_sub_mpi( &M, &N, &C ) );
-
-    mbedtls_ecp_fix_negative( &N, c, bits );
-
-    TEST_EQUAL( 0, mbedtls_mpi_cmp_mpi( &N, &M ) );
-
-exit:
-    mbedtls_mpi_free( &C );
-    mbedtls_mpi_free( &M );
-    mbedtls_mpi_free( &N );
 }
 /* END_CASE */
 

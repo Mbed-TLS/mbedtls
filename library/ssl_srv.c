@@ -318,9 +318,43 @@ static int ssl_parse_signature_algorithms_ext( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
 /*
+ * Function for parsing a supported groups (TLS 1.3) or supported elliptic
+ * curves (TLS 1.2) extension.
+ *
+ * The "extension_data" field of a supported groups extension contains a
+ * "NamedGroupList" value (TLS 1.3 RFC8446):
+ *      enum {
+ *          secp256r1(0x0017), secp384r1(0x0018), secp521r1(0x0019),
+ *          x25519(0x001D), x448(0x001E),
+ *          ffdhe2048(0x0100), ffdhe3072(0x0101), ffdhe4096(0x0102),
+ *          ffdhe6144(0x0103), ffdhe8192(0x0104),
+ *          ffdhe_private_use(0x01FC..0x01FF),
+ *          ecdhe_private_use(0xFE00..0xFEFF),
+ *          (0xFFFF)
+ *      } NamedGroup;
+ *      struct {
+ *          NamedGroup named_group_list<2..2^16-1>;
+ *      } NamedGroupList;
+ *
+ * The "extension_data" field of a supported elliptic curves extension contains
+ * a "NamedCurveList" value (TLS 1.2 RFC 8422):
+ * enum {
+ *      deprecated(1..22),
+ *      secp256r1 (23), secp384r1 (24), secp521r1 (25),
+ *      x25519(29), x448(30),
+ *      reserved (0xFE00..0xFEFF),
+ *      deprecated(0xFF01..0xFF02),
+ *      (0xFFFF)
+ *  } NamedCurve;
+ * struct {
+ *      NamedCurve named_curve_list<2..2^16-1>
+ *  } NamedCurveList;
+ *
  * The TLS 1.3 supported groups extension was defined to be a compatible
  * generalization of the TLS 1.2 supported elliptic curves extension. They both
  * share the same extension identifier.
+ *
+ * DHE groups are not supported yet.
  */
 static int ssl_parse_supported_groups_ext( mbedtls_ssl_context *ssl,
                                            const unsigned char *buf,

@@ -1,6 +1,16 @@
 
 # Also see "include/mbedtls/mbedtls_config.h"
 
+# If we are the top level Makefile, call the one in the root dir instead
+ifeq ($(words $(MAKEFILE_LIST)),1)
+.SILENT:
+.PHONY: all
+all:
+	$(MAKE) -C .. $(patsubst %,library/%,$(or $(MAKECMDGOALS),all))
+
+$(filter-out all,$(MAKECMDGOALS)): all
+else
+
 CFLAGS	?= -O2
 WARNING_CFLAGS ?=  -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
 LDFLAGS ?=
@@ -149,7 +159,9 @@ OBJS_CRYPTO= \
 	     version_features.o \
 	     # This line is intentionally left blank
 
-include ../3rdparty/Makefile.inc
+OBJS_CRYPTO := $(patsubst %,library/%,$(OBJS_CRYPTO))
+
+include 3rdparty/Makefile.inc
 LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
 OBJS_CRYPTO+=$(THIRDPARTY_CRYPTO_OBJECTS)
 
@@ -162,6 +174,8 @@ OBJS_X509= \
 	   x509write_crt.o \
 	   x509write_csr.o \
 	   # This line is intentionally left blank
+
+OBJS_X509 := $(patsubst %,library/%,$(OBJS_X509))
 
 OBJS_TLS= \
 	  debug.o \
@@ -180,30 +194,32 @@ OBJS_TLS= \
 	  ssl_tls13_generic.o \
 	  # This line is intentionally left blank
 
-.SILENT:
+OBJS_TLS := $(patsubst %,library/%,$(OBJS_TLS))
 
-.PHONY: all static shared clean
+.PHONY: library/all library/static library/shared library/clean
+
+library/% $(THIRDPARTY_CRYPTO_OBJECTS): BUILD_DIR = library
 
 ifndef SHARED
-all: static
+library/all: library/static
 else
-all: shared static
+library/all: library/shared library/static
 endif
 
-static: libmbedcrypto.a libmbedx509.a libmbedtls.a
+library/static: library/libmbedcrypto.a library/libmbedx509.a library/libmbedtls.a
 
-shared: libmbedcrypto.$(DLEXT) libmbedx509.$(DLEXT) libmbedtls.$(DLEXT)
+library/shared: library/libmbedcrypto.$(DLEXT) library/libmbedx509.$(DLEXT) library/libmbedtls.$(DLEXT)
 
 # Windows builds under Mingw can fail if make tries to create archives in the same
 # directory at the same time - see https://bugs.launchpad.net/gcc-arm-embedded/+bug/1848002.
 # This forces builds of the .a files to be serialised.
 ifdef WINDOWS
-libmbedtls.a: | libmbedx509.a
-libmbedx509.a: | libmbedcrypto.a
+library/libmbedtls.a: | library/libmbedx509.a
+library/libmbedx509.a: | library/libmbedcrypto.a
 endif
 
 # tls
-libmbedtls.a: $(OBJS_TLS)
+library/libmbedtls.a: $(OBJS_TLS)
 	echo "  AR    $@"
 	$(AR) $(ARFLAGS) $@ $(OBJS_TLS)
 ifdef APPLE_BUILD
@@ -213,24 +229,24 @@ ifneq ($(APPLE_BUILD),0)
 endif
 endif
 
-libmbedtls.$(SOEXT_TLS): $(OBJS_TLS) libmbedx509.so
+library/libmbedtls.$(SOEXT_TLS): $(OBJS_TLS) library/libmbedx509.so
 	echo "  LD    $@"
-	$(CC) -shared -Wl,-soname,$@ -o $@ $(OBJS_TLS) -L. -lmbedx509 -lmbedcrypto $(LOCAL_LDFLAGS) $(LDFLAGS)
+	cd $(BUILD_DIR) && $(CC) -shared -Wl,-soname,$(@F) -o $(abspath $@) $(abspath $(OBJS_TLS)) -L. -lmbedx509 -lmbedcrypto $(LOCAL_LDFLAGS) $(LDFLAGS)
 
-libmbedtls.so: libmbedtls.$(SOEXT_TLS)
-	echo "  LN    $@ -> $<"
-	ln -sf $< $@
+library/libmbedtls.so: library/libmbedtls.$(SOEXT_TLS)
+	echo "  LN    $@ -> $(<F)"
+	ln -sf $(<F) $@
 
-libmbedtls.dylib: $(OBJS_TLS) libmbedx509.dylib
+library/libmbedtls.dylib: $(OBJS_TLS) library/libmbedx509.dylib
 	echo "  LD    $@"
-	$(CC) -dynamiclib -o $@ $(OBJS_TLS) -L. -lmbedx509 -lmbedcrypto $(LOCAL_LDFLAGS) $(LDFLAGS)
+	cd $(BUILD_DIR) && $(CC) -dynamiclib -o $(abspath $@) $(abspath $(OBJS_TLS)) -L. -lmbedx509 -lmbedcrypto $(LOCAL_LDFLAGS) $(LDFLAGS)
 
-libmbedtls.dll: $(OBJS_TLS) libmbedx509.dll
+library/libmbedtls.dll: $(OBJS_TLS) library/libmbedx509.dll
 	echo "  LD    $@"
-	$(CC) -shared -Wl,-soname,$@ -Wl,--out-implib,$@.a -o $@ $(OBJS_TLS) -lws2_32 -lwinmm -lgdi32 -L. -lmbedx509 -lmbedcrypto -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
+	cd $(BUILD_DIR) && $(CC) -shared -Wl,-soname,$(@F) -Wl,--out-implib,$(abspath $@).a -o $(abspath $@) $(abspath $(OBJS_TLS)) -lws2_32 -lwinmm -lgdi32 -L. -lmbedx509 -lmbedcrypto -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
 
 # x509
-libmbedx509.a: $(OBJS_X509)
+library/libmbedx509.a: $(OBJS_X509)
 	echo "  AR    $@"
 	$(AR) $(ARFLAGS) $@ $(OBJS_X509)
 ifdef APPLE_BUILD
@@ -240,24 +256,24 @@ ifneq ($(APPLE_BUILD),0)
 endif
 endif
 
-libmbedx509.$(SOEXT_X509): $(OBJS_X509) libmbedcrypto.so
+library/libmbedx509.$(SOEXT_X509): $(OBJS_X509) library/libmbedcrypto.so
 	echo "  LD    $@"
-	$(CC) -shared -Wl,-soname,$@ -o $@ $(OBJS_X509) -L. -lmbedcrypto $(LOCAL_LDFLAGS) $(LDFLAGS)
+	cd $(BUILD_DIR) && $(CC) -shared -Wl,-soname,$(@F) -o $(abspath $@) $(abspath $(OBJS_X509)) -L. -lmbedcrypto $(LOCAL_LDFLAGS) $(LDFLAGS)
 
-libmbedx509.so: libmbedx509.$(SOEXT_X509)
-	echo "  LN    $@ -> $<"
-	ln -sf $< $@
+library/libmbedx509.so: library/libmbedx509.$(SOEXT_X509)
+	echo "  LN    $@ -> $(<F)"
+	ln -sf $(<F) $@
 
-libmbedx509.dylib: $(OBJS_X509) libmbedcrypto.dylib
+library/libmbedx509.dylib: $(OBJS_X509) library/libmbedcrypto.dylib
 	echo "  LD    $@"
-	$(CC) -dynamiclib -o $@ $(OBJS_X509) -L. -lmbedcrypto  $(LOCAL_LDFLAGS) $(LDFLAGS)
+	cd $(BUILD_DIR) && $(CC) -dynamiclib -o $(abspath $@) $(abspath $(OBJS_X509)) -L. -lmbedcrypto  $(LOCAL_LDFLAGS) $(LDFLAGS)
 
-libmbedx509.dll: $(OBJS_X509) libmbedcrypto.dll
+library/libmbedx509.dll: $(OBJS_X509) library/libmbedcrypto.dll
 	echo "  LD    $@"
-	$(CC) -shared -Wl,-soname,$@ -Wl,--out-implib,$@.a -o $@ $(OBJS_X509) -lws2_32 -lwinmm -lgdi32 -L. -lmbedcrypto -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
+	cd $(BUILD_DIR) && $(CC) -shared -Wl,-soname,$(@F) -Wl,--out-implib,$(abspath $@).a -o $(abspath $@) $(abspath $(OBJS_X509)) -lws2_32 -lwinmm -lgdi32 -L. -lmbedcrypto -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
 
 # crypto
-libmbedcrypto.a: $(OBJS_CRYPTO)
+library/libmbedcrypto.a: $(OBJS_CRYPTO)
 	echo "  AR    $@"
 	$(AR) $(ARFLAGS) $@ $(OBJS_CRYPTO)
 ifdef APPLE_BUILD
@@ -267,77 +283,78 @@ ifneq ($(APPLE_BUILD),0)
 endif
 endif
 
-libmbedcrypto.$(SOEXT_CRYPTO): $(OBJS_CRYPTO)
+library/libmbedcrypto.$(SOEXT_CRYPTO): $(OBJS_CRYPTO)
 	echo "  LD    $@"
-	$(CC) -shared -Wl,-soname,$@ -o $@ $(OBJS_CRYPTO) $(LOCAL_LDFLAGS) $(LDFLAGS)
+	cd $(BUILD_DIR) && $(CC) -shared -Wl,-soname,$(@F) -o $(abspath $@) $(abspath $(OBJS_CRYPTO)) $(LOCAL_LDFLAGS) $(LDFLAGS)
 
-libmbedcrypto.so: libmbedcrypto.$(SOEXT_CRYPTO)
-	echo "  LN    $@ -> $<"
-	ln -sf $< $@
+library/libmbedcrypto.so: library/libmbedcrypto.$(SOEXT_CRYPTO)
+	echo "  LN    $@ -> $(<F)"
+	ln -sf $(<F) $@
 
-libmbedcrypto.dylib: $(OBJS_CRYPTO)
+library/libmbedcrypto.dylib: $(OBJS_CRYPTO)
 	echo "  LD    $@"
-	$(CC) -dynamiclib -o $@ $(OBJS_CRYPTO) $(LOCAL_LDFLAGS) $(LDFLAGS)
+	cd $(BUILD_DIR) && $(CC) -dynamiclib -o $(abspath $@) $(abspath $(OBJS_CRYPTO)) $(LOCAL_LDFLAGS) $(LDFLAGS)
 
-libmbedcrypto.dll: $(OBJS_CRYPTO)
+library/libmbedcrypto.dll: $(OBJS_CRYPTO)
 	echo "  LD    $@"
-	$(CC) -shared -Wl,-soname,$@ -Wl,--out-implib,$@.a -o $@ $(OBJS_CRYPTO) -lws2_32 -lwinmm -lgdi32 -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
+	cd $(BUILD_DIR) && $(CC) -shared -Wl,-soname,$(@F) -Wl,--out-implib,$(abspath $@).a -o $(abspath $@) $(abspath $(OBJS_CRYPTO)) -lws2_32 -lwinmm -lgdi32 -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
 
 .c.o:
 	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
+	cd $(BUILD_DIR) && $(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $(abspath $@) -c $(abspath $<)
 
-.PHONY: generated_files
+.PHONY: library/generated_files
 GENERATED_FILES = \
 	error.c version_features.c \
 	ssl_debug_helpers_generated.c \
         psa_crypto_driver_wrappers.c
-generated_files: $(GENERATED_FILES)
+GENERATED_FILES := $(patsubst %,library/%,$(GENERATED_FILES))
 
-error.c: ../scripts/generate_errors.pl
-error.c: ../scripts/data_files/error.fmt
-error.c: $(filter-out %config%,$(wildcard ../include/mbedtls/*.h))
-error.c:
+library/generated_files: $(GENERATED_FILES)
+
+library/error.c: scripts/generate_errors.pl
+library/error.c: scripts/data_files/error.fmt
+library/error.c: $(filter-out library/%config%,$(wildcard include/mbedtls/*.h))
+library/error.c:
 	echo "  Gen   $@"
-	$(PERL) ../scripts/generate_errors.pl
+	$(PERL) scripts/generate_errors.pl
 
-ssl_debug_helpers_generated.c: ../scripts/generate_ssl_debug_helpers.py
-ssl_debug_helpers_generated.c: $(filter-out %config%,$(wildcard ../include/mbedtls/*.h))
-ssl_debug_helpers_generated.c:
+library/ssl_debug_helpers_generated.c: scripts/generate_ssl_debug_helpers.py
+library/ssl_debug_helpers_generated.c: $(filter-out library/%config%,$(wildcard include/mbedtls/*.h))
+library/ssl_debug_helpers_generated.c:
 	echo "  Gen   $@"
-	$(PYTHON) ../scripts/generate_ssl_debug_helpers.py --mbedtls-root .. .
+	$(PYTHON) scripts/generate_ssl_debug_helpers.py --mbedtls-root . library
 
-version_features.c: ../scripts/generate_features.pl
-version_features.c: ../scripts/data_files/version_features.fmt
+library/version_features.c: scripts/generate_features.pl
+library/version_features.c: scripts/data_files/version_features.fmt
 ## The generated file only depends on the options that are present in mbedtls_config.h,
 ## not on which options are set. To avoid regenerating this file all the time
 ## when switching between configurations, don't declare mbedtls_config.h as a
 ## dependency. Remove this file from your working tree if you've just added or
 ## removed an option in mbedtls_config.h.
-#version_features.c: ../include/mbedtls/mbedtls_config.h
-version_features.c:
+#library/version_features.c: include/mbedtls/mbedtls_config.h
+library/version_features.c:
 	echo "  Gen   $@"
-	$(PERL) ../scripts/generate_features.pl
+	$(PERL) scripts/generate_features.pl
 
-psa_crypto_driver_wrappers.c: ../scripts/generate_driver_wrappers.py
-psa_crypto_driver_wrappers.c: ../scripts/data_files/driver_templates/psa_crypto_driver_wrappers.c.jinja
-psa_crypto_driver_wrappers.c:
+library/psa_crypto_driver_wrappers.c: scripts/generate_driver_wrappers.py
+library/psa_crypto_driver_wrappers.c: scripts/data_files/driver_templates/psa_crypto_driver_wrappers.c.jinja
+library/psa_crypto_driver_wrappers.c:
 	echo "  Gen   $@"
-	$(PYTHON) ../scripts/generate_driver_wrappers.py
+	$(PYTHON) scripts/generate_driver_wrappers.py
 
-clean:
+library/clean:
 ifndef WINDOWS
-	rm -f *.o libmbed*
+	rm -f library/*.o library/libmbed*
 	rm -f $(THIRDPARTY_CRYPTO_OBJECTS)
 else
-	if exist *.o del /Q /F *.o
-	if exist libmbed* del /Q /F libmbed*
-	del /Q /F del_errors_out_if_the_file_list_is_empty_but_not_if_a_file_does_not_exist $(subst /,\,$(THIRDPARTY_CRYPTO_OBJECTS))
+	for %%f in (library\*.o library\libmbed* $(subst /,\,$(THIRDPARTY_CRYPTO_OBJECTS))) do if exist %%f del /Q /F %%f
 endif
 
-neat: clean
+library/neat: library/clean
 ifndef WINDOWS
 	rm -f $(GENERATED_FILES)
 else
 	for %%f in ($(subst /,\,$(GENERATED_FILES))) do if exist %%f del /Q /F %%f
+endif
 endif

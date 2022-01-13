@@ -217,6 +217,7 @@ libtestdriver1.a:
 	# Copy the library and fake a 3rdparty Makefile include.
 	rm -Rf ./libtestdriver1
 	mkdir ./libtestdriver1
+	cp -f ../Makefile ./libtestdriver1
 	cp -Rf ../library ./libtestdriver1
 	cp -Rf ../include ./libtestdriver1
 	cp -Rf ../scripts ./libtestdriver1

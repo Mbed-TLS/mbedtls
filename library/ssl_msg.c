@@ -711,10 +711,45 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
     {
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         size_t olen;
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        psa_status_t status;
+        size_t part_len;
+        psa_cipher_operation_t cipher_op = PSA_CIPHER_OPERATION_INIT;
+
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "before encrypt: msglen = %" MBEDTLS_PRINTF_SIZET ", "
                                     "including %d bytes of padding",
                                     rec->data_len, 0 ) );
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        status = psa_cipher_encrypt_setup( &cipher_op,
+                                     transform->psa_key_enc, transform->psa_alg );
+
+        if( status != PSA_SUCCESS )
+            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+
+        status = psa_cipher_set_iv( &cipher_op, transform->iv_enc, transform->ivlen );
+
+        if( status != PSA_SUCCESS )
+            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+
+        status = psa_cipher_update( &cipher_op,
+                                    data, rec->data_len,
+                                    data, rec->data_len, &olen );
+
+        if( status != PSA_SUCCESS )
+            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+
+        status = psa_cipher_finish( &cipher_op,
+                                    data + olen, rec->data_len - olen,
+                                    &part_len );
+
+        if( status != PSA_SUCCESS )
+            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+
+        olen += part_len;
+#else
         if( ( ret = mbedtls_cipher_crypt( &transform->cipher_ctx_enc,
                                    transform->iv_enc, transform->ivlen,
                                    data, rec->data_len,
@@ -723,6 +758,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_crypt", ret );
             return( ret );
         }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
         if( rec->data_len != olen )
         {
@@ -746,6 +782,11 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         size_t dynamic_iv_len;
         int dynamic_iv_is_explicit =
             ssl_transform_aead_dynamic_iv_is_explicit( transform );
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        psa_status_t status;
+        psa_cipher_operation_t cipher_op = PSA_CIPHER_OPERATION_INIT;
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
 
         /* Check that there's space for the authentication tag. */
         if( post_avail < transform->taglen )
@@ -797,7 +838,18 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         /*
          * Encrypt and authenticate
          */
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        status = psa_aead_encrypt( transform->psa_key_enc,
+                               transform->psa_alg,
+                               iv, transform->ivlen,
+                               add_data, add_data_len,
+                               data, rec->data_len,
+                               data, rec->buf_len - (data - rec->buf),
+                               &rec->data_len );
 
+        if( status != PSA_SUCCESS )
+            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+#else
         if( ( ret = mbedtls_cipher_auth_encrypt_ext( &transform->cipher_ctx_enc,
                    iv, transform->ivlen,
                    add_data, add_data_len,
@@ -809,6 +861,8 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_auth_encrypt_ext", ret );
             return( ret );
         }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
         MBEDTLS_SSL_DEBUG_BUF( 4, "after encrypt: tag",
                                data + rec->data_len - transform->taglen,
                                transform->taglen );
@@ -841,6 +895,11 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         size_t padlen, i;
         size_t olen;
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        psa_status_t status;
+        size_t part_len;
+        psa_cipher_operation_t cipher_op = PSA_CIPHER_OPERATION_INIT;
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
         /* Currently we're always using minimal padding
          * (up to 255 bytes would be allowed). */
@@ -894,6 +953,34 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
                             rec->data_len, transform->ivlen,
                             padlen + 1 ) );
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        status = psa_cipher_encrypt_setup( &cipher_op,
+                                     transform->psa_key_enc, transform->psa_alg );
+
+        if( status != PSA_SUCCESS )
+            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+
+        status = psa_cipher_set_iv( &cipher_op, transform->iv_enc, transform->ivlen );
+
+        if( status != PSA_SUCCESS )
+            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+
+        status = psa_cipher_update( &cipher_op,
+                                    data, rec->data_len,
+                                    data, rec->data_len, &olen );
+
+        if( status != PSA_SUCCESS )
+            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+
+        status = psa_cipher_finish( &cipher_op,
+                                    data + olen, rec->data_len - olen,
+                                    &part_len );
+
+        if( status != PSA_SUCCESS )
+            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+
+        olen += part_len;
+#else
         if( ( ret = mbedtls_cipher_crypt( &transform->cipher_ctx_enc,
                                    transform->iv_enc,
                                    transform->ivlen,
@@ -903,6 +990,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_crypt", ret );
             return( ret );
         }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
         if( rec->data_len != olen )
         {

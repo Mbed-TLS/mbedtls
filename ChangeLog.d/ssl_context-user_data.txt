@@ -1,3 +1,5 @@
 Features
    * The structures mbedtls_ssl_config and mbedtls_ssl_context have an
      extra field user_data which is reserved for the application.
+   * Add an accessor function to get the configuration associated with
+     an SSL context.

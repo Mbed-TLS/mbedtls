@@ -1851,6 +1851,22 @@ void mbedtls_ssl_conf_dbg( mbedtls_ssl_config *conf,
                   void  *p_dbg );
 
 /**
+ * \brief          Return the SSL configuration structure associated
+ *                 with the given SSL context.
+ *
+ * \note           The pointer returned by this function is guaranteed to
+ *                 remain valid until the context is freed.
+ *
+ * \param ssl      The SSL context to query.
+ * \return         Pointer to the SSL configuration associated with \p ssl.
+ */
+static inline const mbedtls_ssl_config *mbedtls_ssl_context_get_config(
+    const mbedtls_ssl_context *ssl )
+{
+    return( ssl->MBEDTLS_PRIVATE( conf ) );
+}
+
+/**
  * \brief          Set the underlying BIO callbacks for write, read and
  *                 read-with-timeout.
  *

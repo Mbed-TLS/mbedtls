@@ -1829,4 +1829,17 @@ static inline const void *mbedtls_ssl_get_sig_algs( const mbedtls_ssl_context *s
     return NULL;
 }
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
+    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_RSA_C)
+#define MBEDTLS_SSL_SIG_ALG( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_ECDSA), \
+                                    (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA),
+#elif defined(MBEDTLS_ECDSA_C)
+#define MBEDTLS_SSL_SIG_ALG( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_ECDSA),
+#elif defined(MBEDTLS_RSA_C)
+#define MBEDTLS_SSL_SIG_ALG( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA),
+#else
+#define MBEDTLS_SSL_SIG_ALG( hash )
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_RSA_C */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 #endif /* ssl_misc.h */

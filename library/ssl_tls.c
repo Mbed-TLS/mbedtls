@@ -669,6 +669,7 @@ typedef int ssl_tls_prf_t(const unsigned char *, size_t, const char *,
                           const unsigned char *, size_t,
                           unsigned char *, size_t);
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
 static int psa_status_to_mbedtls( psa_status_t status )
 {
     switch( status )
@@ -683,6 +684,7 @@ static int psa_status_to_mbedtls( psa_status_t status )
             return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
     }
 }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 /*
  * Populate a transform structure with session keys and all the other

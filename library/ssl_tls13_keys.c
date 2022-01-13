@@ -795,6 +795,7 @@ exit:
     return( ret );
 }
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
 static int psa_status_to_mbedtls( psa_status_t status )
 {
     switch( status )
@@ -809,6 +810,7 @@ static int psa_status_to_mbedtls( psa_status_t status )
             return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
     }
 }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
                                           int endpoint,

@@ -709,14 +709,15 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_STREAM)
     if( mode == MBEDTLS_MODE_STREAM )
     {
-        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         size_t olen;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         psa_status_t status;
         size_t part_len;
         psa_cipher_operation_t cipher_op = PSA_CIPHER_OPERATION_INIT;
 
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#else /* MBEDTLS_USE_PSA_CRYPTO */
+        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+#endif
 
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "before encrypt: msglen = %" MBEDTLS_PRINTF_SIZET ", "
                                     "including %d bytes of padding",
@@ -776,7 +777,6 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         mode == MBEDTLS_MODE_CCM ||
         mode == MBEDTLS_MODE_CHACHAPOLY )
     {
-        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         unsigned char iv[12];
         unsigned char *dynamic_iv;
         size_t dynamic_iv_len;
@@ -784,6 +784,8 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
             ssl_transform_aead_dynamic_iv_is_explicit( transform );
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         psa_status_t status;
+#else
+        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 

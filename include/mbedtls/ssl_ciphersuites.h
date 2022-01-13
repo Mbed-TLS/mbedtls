@@ -394,6 +394,13 @@ mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_alg( const mbedtls_ssl_ciphers
 int mbedtls_ssl_ciphersuite_uses_ec( const mbedtls_ssl_ciphersuite_t *info );
 int mbedtls_ssl_ciphersuite_uses_psk( const mbedtls_ssl_ciphersuite_t *info );
 
+static inline const char *mbedtls_ssl_ciphersuite_get_name( const mbedtls_ssl_ciphersuite_t *info )
+{
+    return info->MBEDTLS_PRIVATE(name);
+}
+
+size_t mbedtls_ssl_ciphersuite_get_cipher_key_bitlen( const mbedtls_ssl_ciphersuite_t *info );
+
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PFS_ENABLED)
 static inline int mbedtls_ssl_ciphersuite_has_pfs( const mbedtls_ssl_ciphersuite_t *info )
 {

@@ -2241,7 +2241,8 @@ const char *mbedtls_ssl_get_version( const mbedtls_ssl_context *ssl )
     {
         case MBEDTLS_SSL_MINOR_VERSION_3:
             return( "TLSv1.2" );
-
+        case MBEDTLS_SSL_MINOR_VERSION_4:
+            return( "TLSv1.3" );
         default:
             return( "unknown" );
     }

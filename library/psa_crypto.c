@@ -3719,7 +3719,8 @@ static psa_status_t psa_aead_check_nonce_length( psa_algorithm_t alg,
     return( PSA_ERROR_INVALID_ARGUMENT );
 }
 
-static psa_status_t psa_aead_check_algorithm( psa_algorithm_t alg ) {
+static psa_status_t psa_aead_check_algorithm( psa_algorithm_t alg )
+{
     if( !PSA_ALG_IS_AEAD( alg ) || PSA_ALG_IS_WILDCARD( alg ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 

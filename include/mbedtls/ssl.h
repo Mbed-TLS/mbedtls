@@ -1161,6 +1161,14 @@ struct mbedtls_ssl_session
 #endif
 };
 
+/** Human-friendly representation of the (D)TLS protocol version. */
+typedef enum
+{
+    MBEDTLS_SSL_VERSION_UNKNOWN, /*!< Context not in use or version not yet negotiated. */
+    MBEDTLS_SSL_VERSION_1_2,     /*!< (D)TLS 1.2 */
+    MBEDTLS_SSL_VERSION_1_3,     /*!< (D)TLS 1.3 */
+} mbedtls_ssl_protocol_version;
+
 /*
  * Identifiers for PRFs used in various versions of TLS.
  */
@@ -3932,6 +3940,17 @@ int mbedtls_ssl_get_ciphersuite_id_from_ssl( const mbedtls_ssl_context *ssl );
  * \return         a string containing the ciphersuite name
  */
 const char *mbedtls_ssl_get_ciphersuite( const mbedtls_ssl_context *ssl );
+
+
+/**
+ * \brief          Return the (D)TLS protocol version negotiated in the
+ *                 given connection.
+ *
+ * \param ssl      The SSL context to query.
+ * \return         The negotiated protocol version.
+ */
+mbedtls_ssl_protocol_version mbedtls_ssl_get_version_number(
+    const mbedtls_ssl_context *ssl );
 
 /**
  * \brief          Return the current TLS version

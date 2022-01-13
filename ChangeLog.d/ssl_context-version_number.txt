@@ -1,0 +1,3 @@
+Features
+   * Add a function to access the TLS version from a context in a form that's
+     easy to compare. Fixes #5407.

@@ -2206,6 +2206,21 @@ const char *mbedtls_ssl_get_ciphersuite( const mbedtls_ssl_context *ssl )
     return mbedtls_ssl_get_ciphersuite_name( ssl->session->ciphersuite );
 }
 
+mbedtls_ssl_protocol_version mbedtls_ssl_get_version_number(
+    const mbedtls_ssl_context *ssl )
+{
+    /* For major_ver, only 3 is supported, so skip checking it. */
+    switch( ssl->minor_ver )
+    {
+        case MBEDTLS_SSL_MINOR_VERSION_3:
+            return( MBEDTLS_SSL_VERSION_1_2 );
+        case MBEDTLS_SSL_MINOR_VERSION_4:
+            return( MBEDTLS_SSL_VERSION_1_3 );
+        default:
+            return( MBEDTLS_SSL_VERSION_UNKNOWN );
+    }
+}
+
 const char *mbedtls_ssl_get_version( const mbedtls_ssl_context *ssl )
 {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)

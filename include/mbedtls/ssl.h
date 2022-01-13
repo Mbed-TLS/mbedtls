@@ -1448,6 +1448,13 @@ struct mbedtls_ssl_config
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_CLI_C)
     unsigned int MBEDTLS_PRIVATE(dhm_min_bitlen);    /*!< min. bit length of the DHM prime   */
 #endif
+
+    /** User data pointer or handle.
+     *
+     * The library sets this to \p 0 when creating a context and does not
+     * access it afterwards.
+     */
+    uintptr_t user_data;
 };
 
 struct mbedtls_ssl_context
@@ -1669,6 +1676,13 @@ struct mbedtls_ssl_context
     /** Callback to export key block and master secret                      */
     mbedtls_ssl_export_keys_t *MBEDTLS_PRIVATE(f_export_keys);
     void *MBEDTLS_PRIVATE(p_export_keys);            /*!< context for key export callback    */
+
+    /** User data pointer or handle.
+     *
+     * The library sets this to \p 0 when creating a context and does not
+     * access it afterwards.
+     */
+    uintptr_t user_data;
 };
 
 /**

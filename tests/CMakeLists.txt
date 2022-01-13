@@ -50,6 +50,12 @@ if(GEN_FILES)
             ${CMAKE_CURRENT_SOURCE_DIR}/../include/psa/crypto_values.h
             ${CMAKE_CURRENT_SOURCE_DIR}/../include/psa/crypto_extra.h
     )
+    # CMake generate sub-makefile for each target and call it in subprocess. Without
+    # this command, cmake will generate ruler in each sub makefile. As a result,
+    # they will conflict under parllel build.
+    # With this line, only 4 sub-makefiles include above command, that reduces
+    # conflict risk.
+    add_custom_target(test_suite_generated_data DEPENDS ${generated_data_files})
 else()
     foreach(file ${base_generated_data_files})
         link_to_source(${file})

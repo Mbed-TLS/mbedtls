@@ -571,8 +571,9 @@ void dec_empty_buf( int cipher,
                     int expected_finish_ret )
 {
     unsigned char key[32];
-    unsigned char iv[16];
-    size_t iv_len = sizeof(iv);
+
+    unsigned char *iv = NULL;
+    size_t iv_len = 16;
 
     mbedtls_cipher_context_t ctx_dec;
     const mbedtls_cipher_info_t *cipher_info;
@@ -583,7 +584,6 @@ void dec_empty_buf( int cipher,
     size_t outlen = 0;
 
     memset( key, 0, 32 );
-    memset( iv , 0, 16 );
 
     mbedtls_cipher_init( &ctx_dec );
 
@@ -597,6 +597,9 @@ void dec_empty_buf( int cipher,
     if( cipher_info->type == MBEDTLS_CIPHER_CHACHA20 ||
         cipher_info->type == MBEDTLS_CIPHER_CHACHA20_POLY1305 )
         iv_len = 12;
+
+    ASSERT_ALLOC( iv, iv_len );
+    memset( iv , 0, iv_len );
 
     TEST_ASSERT( sizeof(key) * 8 >= cipher_info->key_bitlen );
 
@@ -636,6 +639,7 @@ void dec_empty_buf( int cipher,
     TEST_ASSERT( 0 == outlen );
 
 exit:
+    mbedtls_free( iv );
     mbedtls_cipher_free( &ctx_dec );
 }
 /* END_CASE */

@@ -142,7 +142,7 @@ static int ssl_reset_ecdhe_share( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
-static int ssl_reset_key_share( mbedtls_ssl_context *ssl )
+static int ssl_tls13_reset_key_share( mbedtls_ssl_context *ssl )
 {
     uint16_t group_id = ssl->handshake->offered_group_id;
     if( group_id == 0 )
@@ -158,7 +158,7 @@ static int ssl_reset_key_share( mbedtls_ssl_context *ssl )
     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 }
 #else
-static int ssl_reset_key_share( mbedtls_ssl_context *ssl )
+static int ssl_tls13_reset_key_share( mbedtls_ssl_context *ssl )
 {
     ((void) ssl);
     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
@@ -426,7 +426,6 @@ static int ssl_tls13_hrr_check_key_share_ext( mbedtls_ssl_context *ssl,
                                               const unsigned char *end )
 {
     /* Variables for parsing the key_share */
-    const uint16_t* grp_id;
     const mbedtls_ecp_curve_info *curve_info = NULL;
     const unsigned char *p = buf;
     int tls_id;
@@ -933,6 +932,21 @@ static int ssl_tls13_server_hello_coordinate( mbedtls_ssl_context *ssl,
             break;
         case SSL_SERVER_HELLO_COORDINATE_HRR:
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "received HelloRetryRequest message" ) );
+             /* If a client receives a second
+              * HelloRetryRequest in the same connection (i.e., where the ClientHello
+              * was itself in response to a HelloRetryRequest), it MUST abort the
+              * handshake with an "unexpected_message" alert.
+              */
+            if( ssl->handshake->hello_retry_requests_received > 0 )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "Multiple HRRs received" ) );
+                MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE,
+                                    MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
+                return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
+            }
+
+            ssl->handshake->hello_retry_requests_received++;
+
             break;
     }
 
@@ -1358,21 +1372,11 @@ cleanup:
     return( ret );
 }
 
-static int ssl_hrr_postprocess( mbedtls_ssl_context *ssl )
+static int ssl_tls13_finalize_hrr( mbedtls_ssl_context *ssl )
 {
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
-
-    if( ssl->handshake->hello_retry_requests_received > 0 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Multiple HRRs received" ) );
-        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                      MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
-        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-    }
-
-    ssl->handshake->hello_retry_requests_received++;
 
 #if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
     /* If not offering early data, the client sends a dummy CCS record
@@ -1395,7 +1399,7 @@ static int ssl_hrr_postprocess( mbedtls_ssl_context *ssl )
      * requested a different share.
      */
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-    ret = ssl_reset_key_share( ssl );
+    ret = ssl_tls13_reset_key_share( ssl );
     if( ret != 0 )
         return( ret );
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
@@ -1424,12 +1428,16 @@ static int ssl_tls13_process_server_hello( mbedtls_ssl_context *ssl )
     ssl->major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
     ssl->handshake->extensions_present = MBEDTLS_SSL_EXT_NONE;
 
-    hrr = ssl_tls13_server_hello_coordinate( ssl, &buf, &buf_len );
+    ret = ssl_tls13_server_hello_coordinate( ssl, &buf, &buf_len );
+    if( ret != SSL_SERVER_HELLO_COORDINATE_HELLO &&
+        ret != SSL_SERVER_HELLO_COORDINATE_HRR )
+        goto cleanup;
+    else
+        hrr = ret;
     /* Parsing step
      * We know what message to expect by now and call
      * the respective parsing function.
      */
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( " hrr = %d ", hrr ) );
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_parse_server_hello( ssl, buf,
                                                         buf + buf_len,
                                                         hrr ) );
@@ -1446,7 +1454,7 @@ static int ssl_tls13_process_server_hello( mbedtls_ssl_context *ssl )
     }
     else if( hrr == SSL_SERVER_HELLO_COORDINATE_HRR )
     {
-        MBEDTLS_SSL_PROC_CHK( ssl_hrr_postprocess( ssl ) );
+        MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_hrr( ssl ) );
     }
 
 cleanup:

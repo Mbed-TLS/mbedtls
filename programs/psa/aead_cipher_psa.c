@@ -88,7 +88,7 @@ void print_out( const char *title, unsigned char *out, size_t len )
     do {                    \
         ret = code;         \
         if( ret != 0 ) {    \
-            printf( "%s:%03d: ret = -0x%04x\n", __func__, __LINE__, -ret ); \
+            printf( "%s:%03d: ret = -0x%04x\n", __func__, __LINE__, (unsigned) -ret ); \
             goto exit;      \
         }                   \
     } while( 0 )

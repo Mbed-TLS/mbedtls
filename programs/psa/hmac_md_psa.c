@@ -159,7 +159,7 @@ int main(void)
     printf( "MD\n" );
     int ret = md();
     if( ret != 0 )
-        printf( "ret = %d (-0x%04x)\n", ret, -ret );
+        printf( "ret = %d (-0x%04x)\n", ret, (unsigned) -ret );
 
     psa_status_t status = psa_crypto_init();
     if( status != PSA_SUCCESS )

@@ -95,6 +95,7 @@ set(src_x509
     x509_crl.c
     x509_crt.c
     x509_csr.c
+    x509_info.c
     x509write_crt.c
     x509write_csr.c
 )

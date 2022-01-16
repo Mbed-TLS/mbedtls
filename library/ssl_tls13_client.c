@@ -1645,6 +1645,7 @@ int mbedtls_ssl_tls13_process_certificate_request( mbedtls_ssl_context *ssl )
     if( ret == SSL_CERTIFICATE_REQUEST_SKIP )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate request" ) );
+        ret = 0;
     }
     else
     {
@@ -1677,12 +1678,12 @@ static int ssl_tls13_process_certificate_request( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
         return( ret );
     }
+    ssl->keep_current_message = 1;
 
     ret = mbedtls_ssl_tls13_process_certificate_request( ssl );
     if( ret != 0 )
         return( ret );
 
-    ssl->keep_current_message = 1;
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_CERTIFICATE );
 
     return( 0 );

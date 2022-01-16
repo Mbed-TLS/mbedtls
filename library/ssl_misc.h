@@ -809,10 +809,9 @@ struct mbedtls_ssl_handshake_params
                                              represents an extension and defined
                                              as \c MBEDTLS_SSL_EXT_XXX */
 
-#if defined(MBEDTLS_ECDSA_C)
-    unsigned char cert_req_ctx_len;     /*!< certificate request context
-                                             length */
-    unsigned char* cert_req_ctx;        /*!< certificate request context */
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+    unsigned char certificate_request_context_len;
+    unsigned char *certificate_request_context;
 #endif
 
     union

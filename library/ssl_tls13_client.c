@@ -438,6 +438,7 @@ static int ssl_tls13_hrr_check_key_share_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_BUF( 3, "key_share extension", p, end - buf );
 
     /* Read selected_group */
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2 );
     tls_id = MBEDTLS_GET_UINT16_BE( p, 0 );
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "selected_group ( %d )", tls_id ) );
 

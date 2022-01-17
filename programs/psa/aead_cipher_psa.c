@@ -90,7 +90,7 @@ void print_out( const char *title, unsigned char *out, size_t len )
     do {                    \
         ret = code;         \
         if( ret != 0 ) {    \
-            printf( "%s:%03d: ret = -0x%04x\n", __func__, __LINE__, (unsigned) -ret ); \
+            printf( "%03d: ret = -0x%04x\n", __LINE__, (unsigned) -ret ); \
             goto exit;      \
         }                   \
     } while( 0 )
@@ -210,7 +210,7 @@ exit:
     do {                \
         status = code;     \
         if( status != PSA_SUCCESS ) { \
-            printf( "%s:%03d: status = %d\n", __func__, __LINE__, status ); \
+            printf( "%03d: status = %d\n", __LINE__, status ); \
             goto exit;  \
         } \
     } while( 0 )

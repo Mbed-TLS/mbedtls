@@ -50,18 +50,18 @@ if(GEN_FILES)
             ${CMAKE_CURRENT_SOURCE_DIR}/../include/psa/crypto_values.h
             ${CMAKE_CURRENT_SOURCE_DIR}/../include/psa/crypto_extra.h
     )
-    # CMake generate sub-makefile for each target and call it in subprocess. Without
-    # this command, cmake will generate ruler in each sub makefile. As a result,
-    # they will conflict under parllel build.
-    # With this line, only 4 sub-makefiles include above command, that reduces
-    # conflict risk.
-    add_custom_target(test_suite_generated_data DEPENDS ${generated_data_files})
+
 else()
     foreach(file ${base_generated_data_files})
         link_to_source(${file})
     endforeach()
 endif()
-
+# CMake generate sub-makefile for each target and call it in subprocess. Without
+# this command, cmake will generate ruler in each sub makefile. As a result,
+# they will conflict under parllel build.
+# With this line, only 4 sub-makefiles include above command, that reduces
+# conflict risk.
+add_custom_target(test_suite_generated_data DEPENDS ${generated_data_files})
 # Test suites caught by SKIP_TEST_SUITES are built but not executed.
 # "foo" as a skip pattern skips "test_suite_foo" and "test_suite_foo.bar"
 # but not "test_suite_foobar".
@@ -125,6 +125,7 @@ function(add_test_suite suite_name)
     )
 
     add_executable(test_suite_${data_name} test_suite_${data_name}.c $<TARGET_OBJECTS:mbedtls_test>)
+    add_dependencies(test_suite_${data_name} test_suite_generated_data)
     target_link_libraries(test_suite_${data_name} ${libs})
     # Include test-specific header files from ./include and private header
     # files (used by some invasive tests) from ../library. Public header

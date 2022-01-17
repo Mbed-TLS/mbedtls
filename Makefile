@@ -182,4 +182,4 @@ cscope.in.out cscope.po.out cscope.out: $(C_SOURCE_FILES)
 	cscope -bq -u -Iinclude -Ilibrary $(patsubst %,-I%,$(wildcard 3rdparty/*/include)) -Itests/include $(C_SOURCE_FILES)
 .PHONY: cscope global
 
-include library/Makefile
+include library/Makefile.inc

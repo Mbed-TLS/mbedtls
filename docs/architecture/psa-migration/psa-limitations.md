@@ -292,6 +292,33 @@ probably not acceptable.
    in the meantime. Such an extension seems inconvenient and not motivated by
 strong security arguments, so it's unclear whether it would be accepted.
 
+HKDF: Expand not exposed on its own (TLS 1.3)
+---------------------------------------------
+
+The HKDF function uses and Extract-then-Expand approch, that is:
+
+        HKDF(x, ...) = HKDF-Expand(HKDF-Extract(x, ...), ...)
+
+Only the full HKDF function is safe in general, however there are cases when
+one case safely use the individual Extract and Expand; the TLS 1.3 key
+schedule does so. Specifically, looking at the [hierarchy of secrets][13hs]
+is seems that Expand and Extract are always chained, so that this hierarchy
+can be implemented using only the full HKDF. However, looking at the
+derivation of traffic keys (7.3) and the update mechanism (7.2) it appears
+that calls to HKDF-Expand are iterated without any intermediated call to
+HKDF-Extract : that is, the traffic keys are computed as
+
+        HKDF-Expand(HKDF-Expand(HKDF-Extract(...)))
+
+(with possibly more than two Expands in a row with update).
+
+[13hs]: https://datatracker.ietf.org/doc/html/rfc8446#page-93
+
+In the short term (early 2022), we'll work around that by re-implementing HKDF
+in `ssl_tls13_keys.c` based on the `psa_mac_` APIs (for HMAC).
+
+In the long term, it is desirable to extend the PSA API.
+
 Limitations relevant for G2 (isolation of long-term secrets)
 ============================================================
 
@@ -329,3 +356,16 @@ of RSA decryption would be still checking that is has the correct format:
 48 bytes, the first two matching the TLS version - note that this is timing
 sensitive.)
 
+HKDF: Expand not exposed on its own (TLS 1.3)
+---------------------------------------------
+
+See the section with the same namw in the G1 part above for background.
+
+The work-around mentioned there works well enough just for acceleration, but
+is not sufficient for key isolation or generally proper key management (it
+requires marking keys are usable for HMAC while they should only be used for
+key derivation).
+
+The obvious long-term solution is to make HKDF-Expand available as a new KDF
+(in addition to the full HKDF) in PSA (with appropriate warnings in the
+documentation).

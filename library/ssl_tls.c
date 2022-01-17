@@ -3152,6 +3152,7 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     /* Heap allocate and translate sig_hashes from internal hash identifiers to
        signature algorithms IANA identifiers.  */
     if ( mbedtls_ssl_conf_is_tls12_only( ssl->conf ) &&
@@ -3159,7 +3160,7 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
     {
         const int *md;
         const int *sig_hashes = ssl->conf->sig_hashes;
-        size_t sig_algs_len = 0;
+        size_t sig_algs_len = sizeof( uint16_t );
         uint16_t *p;
 
         for( md = sig_hashes; *md != MBEDTLS_MD_NONE; md++ )
@@ -3167,18 +3168,17 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
             if( mbedtls_ssl_hash_from_md_alg( *md ) == MBEDTLS_SSL_HASH_NONE )
                 continue;
     #if defined(MBEDTLS_ECDSA_C)
-            sig_algs_len++;
+            sig_algs_len += sizeof( uint16_t );
     #endif
     #if defined(MBEDTLS_RSA_C)
-            sig_algs_len++;
+            sig_algs_len += sizeof( uint16_t );
     #endif
         }
 
-        if( sig_algs_len == 0 )
+        if( sig_algs_len == sizeof( uint16_t ) )
             return( MBEDTLS_ERR_SSL_BAD_CONFIG );
 
-        ssl->handshake->sig_algs = mbedtls_calloc( sig_algs_len + 1,
-                                                   sizeof( uint16_t ) );
+        ssl->handshake->sig_algs = mbedtls_calloc( 1, sig_algs_len );
         if( ssl->handshake->sig_algs == NULL )
             return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
 
@@ -3201,6 +3201,7 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
         ssl->handshake->sig_algs_heap_allocated = 1;
     }
     else
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
     {
         ssl->handshake->sig_algs = ssl->conf->sig_algs;
         ssl->handshake->sig_algs_heap_allocated = 0;

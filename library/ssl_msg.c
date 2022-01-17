@@ -724,32 +724,38 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
                                     rec->data_len, 0 ) );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        status = psa_cipher_encrypt_setup( &cipher_op,
-                                     transform->psa_key_enc, transform->psa_alg );
+        /* Skip psa encryption for null cipher */
+        if ( transform->psa_alg != MBEDTLS_SSL_NULL_CIPHER )
+        {
+            status = psa_cipher_encrypt_setup( &cipher_op,
+                                        transform->psa_key_enc, transform->psa_alg );
 
-        if( status != PSA_SUCCESS )
-            return( psa_status_to_mbedtls( status ) );
+            if( status != PSA_SUCCESS )
+                return( psa_status_to_mbedtls( status ) );
 
-        status = psa_cipher_set_iv( &cipher_op, transform->iv_enc, transform->ivlen );
+            status = psa_cipher_set_iv( &cipher_op, transform->iv_enc, transform->ivlen );
 
-        if( status != PSA_SUCCESS )
-            return( psa_status_to_mbedtls( status ) );
+            if( status != PSA_SUCCESS )
+                return( psa_status_to_mbedtls( status ) );
 
-        status = psa_cipher_update( &cipher_op,
-                                    data, rec->data_len,
-                                    data, rec->data_len, &olen );
+            status = psa_cipher_update( &cipher_op,
+                                        data, rec->data_len,
+                                        data, rec->data_len, &olen );
 
-        if( status != PSA_SUCCESS )
-            return( psa_status_to_mbedtls( status ) );
+            if( status != PSA_SUCCESS )
+                return( psa_status_to_mbedtls( status ) );
 
-        status = psa_cipher_finish( &cipher_op,
-                                    data + olen, rec->data_len - olen,
-                                    &part_len );
+            status = psa_cipher_finish( &cipher_op,
+                                        data + olen, rec->data_len - olen,
+                                        &part_len );
 
-        if( status != PSA_SUCCESS )
-            return( psa_status_to_mbedtls( status ) );
+            if( status != PSA_SUCCESS )
+                return( psa_status_to_mbedtls( status ) );
 
-        olen += part_len;
+            olen += part_len;
+        } else {
+            olen = rec->data_len;
+        }
 #else
         if( ( ret = mbedtls_cipher_crypt( &transform->cipher_ctx_enc,
                                    transform->iv_enc, transform->ivlen,
@@ -956,7 +962,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         status = psa_cipher_encrypt_setup( &cipher_op,
-                                     transform->psa_key_enc, transform->psa_alg );
+                                    transform->psa_key_enc, transform->psa_alg );
 
         if( status != PSA_SUCCESS )
             return( psa_status_to_mbedtls( status ) );
@@ -1135,32 +1141,38 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        status = psa_cipher_decrypt_setup( &cipher_op,
-                                     transform->psa_key_dec, transform->psa_alg );
+        /* Skip psa decryption for null cipher */
+        if ( transform->psa_alg != MBEDTLS_SSL_NULL_CIPHER )
+        {
+            status = psa_cipher_decrypt_setup( &cipher_op,
+                                        transform->psa_key_dec, transform->psa_alg );
 
-        if( status != PSA_SUCCESS )
-            return( psa_status_to_mbedtls( status ) );
+            if( status != PSA_SUCCESS )
+                return( psa_status_to_mbedtls( status ) );
 
-        status = psa_cipher_set_iv( &cipher_op, transform->iv_dec, transform->ivlen );
+            status = psa_cipher_set_iv( &cipher_op, transform->iv_dec, transform->ivlen );
 
-        if( status != PSA_SUCCESS )
-            return( psa_status_to_mbedtls( status ) );
+            if( status != PSA_SUCCESS )
+                return( psa_status_to_mbedtls( status ) );
 
-        status = psa_cipher_update( &cipher_op,
-                                    data, rec->data_len,
-                                    data, rec->data_len, &olen );
+            status = psa_cipher_update( &cipher_op,
+                                        data, rec->data_len,
+                                        data, rec->data_len, &olen );
 
-        if( status != PSA_SUCCESS )
-            return( psa_status_to_mbedtls( status ) );
+            if( status != PSA_SUCCESS )
+                return( psa_status_to_mbedtls( status ) );
 
-        status = psa_cipher_finish( &cipher_op,
-                                    data + olen, rec->data_len - olen,
-                                    &part_len );
+            status = psa_cipher_finish( &cipher_op,
+                                        data + olen, rec->data_len - olen,
+                                        &part_len );
 
-        if( status != PSA_SUCCESS )
-            return( psa_status_to_mbedtls( status ) );
+            if( status != PSA_SUCCESS )
+                return( psa_status_to_mbedtls( status ) );
 
-        olen += part_len;
+            olen += part_len;
+        } else {
+            olen = rec->data_len;
+        }
 #else
 
         if( ( ret = mbedtls_cipher_crypt( &transform->cipher_ctx_dec,
@@ -1460,7 +1472,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         status = psa_cipher_decrypt_setup( &cipher_op,
-                                     transform->psa_key_dec, transform->psa_alg );
+                                    transform->psa_key_dec, transform->psa_alg );
 
         if( status != PSA_SUCCESS )
             return( psa_status_to_mbedtls( status ) );

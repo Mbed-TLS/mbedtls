@@ -1021,8 +1021,7 @@ static int ssl_tls13_cipher_suite_is_offered( mbedtls_ssl_context *ssl,
  */
 static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
                                          const unsigned char *buf,
-                                         const unsigned char *end,
-                                         int hrr )
+                                         const unsigned char *end)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const unsigned char *p = buf;
@@ -1166,6 +1165,9 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
     {
         unsigned int extension_type;
         size_t extension_data_len;
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+        int hrr;
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, extensions_end, 4 );
         extension_type = MBEDTLS_GET_UINT16_BE( p, 0 );
@@ -1224,13 +1226,16 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
             case MBEDTLS_TLS_EXT_KEY_SHARE:
+                hrr = ssl_server_hello_is_hrr( ssl, buf, end );
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found key_shares extension" ) );
-                if( hrr )
+                if( hrr == SSL_SERVER_HELLO_COORDINATE_HRR )
                     ret = ssl_tls13_hrr_check_key_share_ext( ssl,
                                             p, p + extension_data_len );
-                else
+                else if( hrr == SSL_SERVER_HELLO_COORDINATE_HELLO )
                     ret = ssl_tls13_parse_key_share_ext( ssl,
                                             p, p + extension_data_len );
+                else
+                    ret = hrr;
                 if( ret != 0 )
                 {
                     MBEDTLS_SSL_DEBUG_RET( 1,
@@ -1440,8 +1445,7 @@ static int ssl_tls13_process_server_hello( mbedtls_ssl_context *ssl )
      * the respective parsing function.
      */
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_parse_server_hello( ssl, buf,
-                                                        buf + buf_len,
-                                                        hrr ) );
+                                                        buf + buf_len ) );
     if( hrr == SSL_SERVER_HELLO_COORDINATE_HRR )
         MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_reset_transcript_for_hrr( ssl ) );
 

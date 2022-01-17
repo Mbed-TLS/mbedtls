@@ -728,26 +728,26 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
                                      transform->psa_key_enc, transform->psa_alg );
 
         if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+            return( psa_status_to_mbedtls( status ) );
 
         status = psa_cipher_set_iv( &cipher_op, transform->iv_enc, transform->ivlen );
 
         if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+            return( psa_status_to_mbedtls( status ) );
 
         status = psa_cipher_update( &cipher_op,
                                     data, rec->data_len,
                                     data, rec->data_len, &olen );
 
         if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+            return( psa_status_to_mbedtls( status ) );
 
         status = psa_cipher_finish( &cipher_op,
                                     data + olen, rec->data_len - olen,
                                     &part_len );
 
         if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+            return( psa_status_to_mbedtls( status ) );
 
         olen += part_len;
 #else
@@ -849,7 +849,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
                                &rec->data_len );
 
         if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+            return( psa_status_to_mbedtls( status ) );
 #else
         if( ( ret = mbedtls_cipher_auth_encrypt_ext( &transform->cipher_ctx_enc,
                    iv, transform->ivlen,
@@ -959,26 +959,26 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
                                      transform->psa_key_enc, transform->psa_alg );
 
         if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+            return( psa_status_to_mbedtls( status ) );
 
         status = psa_cipher_set_iv( &cipher_op, transform->iv_enc, transform->ivlen );
 
         if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+            return( psa_status_to_mbedtls( status ) );
 
         status = psa_cipher_update( &cipher_op,
                                     data, rec->data_len,
                                     data, rec->data_len, &olen );
 
         if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+            return( psa_status_to_mbedtls( status ) );
 
         status = psa_cipher_finish( &cipher_op,
                                     data + olen, rec->data_len - olen,
                                     &part_len );
 
         if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+            return( psa_status_to_mbedtls( status ) );
 
         olen += part_len;
 #else
@@ -1139,26 +1139,26 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
                                      transform->psa_key_dec, transform->psa_alg );
 
         if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+            return( psa_status_to_mbedtls( status ) );
 
         status = psa_cipher_set_iv( &cipher_op, transform->iv_dec, transform->ivlen );
 
         if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+            return( psa_status_to_mbedtls( status ) );
 
         status = psa_cipher_update( &cipher_op,
                                     data, rec->data_len,
                                     data, rec->data_len, &olen );
 
         if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+            return( psa_status_to_mbedtls( status ) );
 
         status = psa_cipher_finish( &cipher_op,
                                     data + olen, rec->data_len - olen,
                                     &part_len );
 
         if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+            return( psa_status_to_mbedtls( status ) );
 
         olen += part_len;
 #else
@@ -1280,7 +1280,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
                                &rec->data_len );
 
         if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+            return( psa_status_to_mbedtls( status ) );
 #else
         if( ( ret = mbedtls_cipher_auth_decrypt_ext( &transform->cipher_ctx_dec,
                   iv, transform->ivlen,
@@ -1463,26 +1463,26 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
                                      transform->psa_key_dec, transform->psa_alg );
 
         if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+            return( psa_status_to_mbedtls( status ) );
 
         status = psa_cipher_set_iv( &cipher_op, transform->iv_dec, transform->ivlen );
 
         if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+            return( psa_status_to_mbedtls( status ) );
 
         status = psa_cipher_update( &cipher_op,
                                     data, rec->data_len,
                                     data, rec->data_len, &olen );
 
         if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+            return( psa_status_to_mbedtls( status ) );
 
         status = psa_cipher_finish( &cipher_op,
                                     data + olen, rec->data_len - olen,
                                     &part_len );
 
         if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+            return( psa_status_to_mbedtls( status ) );
 
         olen += part_len;
 #else

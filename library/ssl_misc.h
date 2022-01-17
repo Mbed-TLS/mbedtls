@@ -1728,7 +1728,7 @@ void mbedtls_ssl_tls13_add_hs_msg_to_checksum( mbedtls_ssl_context *ssl,
  * Write Signature Algorithm extension
  */
 int mbedtls_ssl_write_sig_alg_ext( mbedtls_ssl_context *ssl, unsigned char *buf,
-                                   const unsigned char *end, size_t *out_len);
+                                   const unsigned char *end, size_t *out_len );
 
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
@@ -1813,9 +1813,18 @@ int mbedtls_ssl_write_supported_groups_ext( mbedtls_ssl_context *ssl,
           MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C ||
           MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 /*
- * Return supported sig_algs.
+ * Return supported signature algorithms.
+ *
+ * In future, invocations can be changed to ssl->conf->sig_algs when
+ * mbedtls_ssl_conf_sig_hashes() is deleted.
+ *
+ * ssl->handshake->sig_algs is either a translation of sig_hases to IANA TLS group
+ * identifiers when mbedtls_ssl_conf_sig_hashes() has been used, or a pointer to
+ * ssl->conf->sig_algs when mbedtls_ssl_conf_sig_algs() has been more recently
+ * invoked.
  */
-static inline const void *mbedtls_ssl_get_sig_algs( const mbedtls_ssl_context *ssl )
+static inline const void *mbedtls_ssl_get_sig_algs(
+                                                const mbedtls_ssl_context *ssl )
 {
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
@@ -1826,7 +1835,7 @@ static inline const void *mbedtls_ssl_get_sig_algs( const mbedtls_ssl_context *s
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
     ((void) ssl);
-    return NULL;
+    return( NULL );
 }
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \

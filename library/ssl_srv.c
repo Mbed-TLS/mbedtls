@@ -2803,10 +2803,10 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
         for( ; *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
         {
             /* High byte is hash */
-            unsigned char hash = ( *sig_alg >> 8 ) & 0xff;
-            unsigned char sig = ( *sig_alg ) & 0xff;
+            unsigned char hash = MBEDTLS_BYTE_1( *sig_alg );
+            unsigned char sig = MBEDTLS_BYTE_0( *sig_alg );
 
-            if( MBEDTLS_SSL_HASH_NONE == hash || mbedtls_ssl_set_calc_verify_md( ssl, hash ) )
+            if( mbedtls_ssl_set_calc_verify_md( ssl, hash ) )
                 continue;
 #if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_ECDSA_C)
             if( sig != MBEDTLS_SSL_SIG_RSA && sig != MBEDTLS_SSL_SIG_ECDSA )

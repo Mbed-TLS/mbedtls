@@ -3298,7 +3298,7 @@ void mbedtls_ssl_conf_groups( mbedtls_ssl_config *conf,
  *                 terminated by \c MBEDTLS_MD_NONE.
  */
 void MBEDTLS_DEPRECATED mbedtls_ssl_conf_sig_hashes( mbedtls_ssl_config *conf,
-                                  const int *hashes );
+                                                     const int *hashes );
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
 
 /**

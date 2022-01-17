@@ -932,7 +932,7 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
         return( psa_status_to_mbedtls( status ) );
     }
 
-    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT );
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT );
     psa_set_key_algorithm( &attributes, alg );
 
     transform->psa_alg = alg;
@@ -945,6 +945,9 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
         MBEDTLS_SSL_DEBUG_RET( 1, "psa_import_key", psa_status_to_mbedtls( status ) );
         return( psa_status_to_mbedtls( status ) );
     }
+
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DECRYPT );
+
     if( ( status = psa_import_key( &attributes,
                              key_dec,
                              PSA_BITS_TO_BYTES( key_bits ),

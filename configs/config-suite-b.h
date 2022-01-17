@@ -109,6 +109,11 @@
  */
 #define MBEDTLS_SSL_MAX_CONTENT_LEN             1024
 
+/* These defines are present so that the config modifying scripts can enable
+ * them during tests/scripts/test-ref-configs.pl */
+//#define MBEDTLS_USE_PSA_CRYPTO
+//#define MBEDTLS_PSA_CRYPTO_C
+
 #include "mbedtls/check_config.h"
 
 #endif /* MBEDTLS_CONFIG_H */

@@ -900,6 +900,27 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
         return( ret );
     }
 
+    /*
+     * Setup other fields in SSL transform
+     */
+
+    if( ( ciphersuite_info->flags & MBEDTLS_CIPHERSUITE_SHORT_TAG ) != 0 )
+        transform->taglen  = 8;
+    else
+        transform->taglen  = 16;
+
+    transform->ivlen       = traffic_keys->iv_len;
+    transform->maclen      = 0;
+    transform->fixed_ivlen = transform->ivlen;
+    transform->minor_ver   = MBEDTLS_SSL_MINOR_VERSION_4;
+
+    /* We add the true record content type (1 Byte) to the plaintext and
+     * then pad to the configured granularity. The mimimum length of the
+     * type-extended and padded plaintext is therefore the padding
+     * granularity. */
+    transform->minlen =
+        transform->taglen + MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY;
+
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( ( status = mbedtls_cipher_to_psa( cipher_info->type,
                                  transform->taglen,
@@ -933,27 +954,6 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
         return( psa_status_to_mbedtls( status ) );
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-
-    /*
-     * Setup other fields in SSL transform
-     */
-
-    if( ( ciphersuite_info->flags & MBEDTLS_CIPHERSUITE_SHORT_TAG ) != 0 )
-        transform->taglen  = 8;
-    else
-        transform->taglen  = 16;
-
-    transform->ivlen       = traffic_keys->iv_len;
-    transform->maclen      = 0;
-    transform->fixed_ivlen = transform->ivlen;
-    transform->minor_ver   = MBEDTLS_SSL_MINOR_VERSION_4;
-
-    /* We add the true record content type (1 Byte) to the plaintext and
-     * then pad to the configured granularity. The mimimum length of the
-     * type-extended and padded plaintext is therefore the padding
-     * granularity. */
-    transform->minlen =
-        transform->taglen + MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY;
 
     return( 0 );
 }

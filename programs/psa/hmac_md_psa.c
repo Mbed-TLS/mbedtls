@@ -34,10 +34,12 @@
 
 #include "mbedtls/build_info.h"
 
-#if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(MBEDTLS_MD_C)
+#if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(MBEDTLS_MD_C) || \
+    defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 int main( void )
 {
-    printf( "MBEDTLS_PSA_CRYPTO_C and/or MBEDTLS_MD_C not defined.\r\n" );
+    printf( "MBEDTLS_PSA_CRYPTO_C and/or MBEDTLS_MD_C not defined, "
+            "and/or MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined\r\n" );
     return( 0 );
 }
 #else /* MBEDTLS_PSA_CRYPTO_C && MBEDTLS_MD_C */

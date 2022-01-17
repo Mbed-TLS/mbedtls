@@ -30,16 +30,20 @@ use strict;
 my %configs = (
     'config-ccm-psk-tls1_2.h' => {
         'compat' => '-m tls12 -f \'^TLS-PSK-WITH-AES-...-CCM-8\'',
+        'test_again_with_use_psa' => 1
     },
     'config-no-entropy.h' => {
     },
     'config-suite-b.h' => {
         'compat' => "-m tls12 -f 'ECDHE-ECDSA.*AES.*GCM' -p mbedTLS",
+        'test_again_with_use_psa' => 1,
     },
     'config-symmetric-only.h' => {
+        'test_again_with_use_psa' => 0, # Uses PSA by default, no need to test it twice
     },
     'config-thread.h' => {
         'opt' => '-f ECJPAKE.*nolog',
+        'test_again_with_use_psa' => 1,
     },
 );
 
@@ -79,17 +83,32 @@ if (!-e "tests/seedfile" || -s "tests/seedfile" < 64) {
     close SEEDFILE or die;
 }
 
-while( my ($conf, $data) = each %configs ) {
+sub perform_test {
+    my $conf = $_[0];
+    my $data = $_[1];
+    my $test_with_psa = $_[2];
+
     system( "cp $config_h.bak $config_h" ) and die;
     system( "make clean" ) and die;
 
     print "\n******************************************\n";
     print "* Testing configuration: $conf\n";
+    if ( $test_with_psa )
+    {
+        print "* ENABLING MBEDTLS_PSA_CRYPTO_C and MBEDTLS_USE_PSA_CRYPTO \n";
+    }
     print "******************************************\n";
+
     $ENV{MBEDTLS_TEST_CONFIGURATION} = $conf;
 
     system( "cp configs/$conf $config_h" )
         and abort "Failed to activate $conf\n";
+
+    if ( $test_with_psa )
+    {
+        system( "scripts/config.py set MBEDTLS_PSA_CRYPTO_C" );
+        system( "scripts/config.py set MBEDTLS_USE_PSA_CRYPTO" );
+    }
 
     system( "CFLAGS='-Os -Werror -Wall -Wextra' make" ) and abort "Failed to build: $conf\n";
     system( "make test" ) and abort "Failed test suite: $conf\n";
@@ -117,6 +136,15 @@ while( my ($conf, $data) = each %configs ) {
     {
         print "\nskipping ssl-opt.sh\n";
     }
+}
+
+while( my ($conf, $data) = each %configs ) {
+    my $test_with_psa = $data->{'test_again_with_use_psa'};
+    if ( $test_with_psa )
+    {
+        perform_test( $conf, $data, $test_with_psa );
+    }
+    perform_test( $conf, $data, 0 );
 }
 
 system( "mv $config_h.bak $config_h" ) and warn "$config_h not restored\n";

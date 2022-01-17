@@ -1309,6 +1309,28 @@ psa_status_t mbedtls_cipher_to_psa( mbedtls_cipher_type_t mbedtls_cipher_type,
                                     psa_algorithm_t *alg,
                                     psa_key_type_t *key_type,
                                     size_t *key_size );
+
+/**
+ * \brief       Convert given PSA status to mbedtls error code.
+ *
+ * \param  status      [in] given PSA status
+ *
+ * \return             corresponding mbedtls error code
+ */
+static inline int psa_status_to_mbedtls( psa_status_t status )
+{
+    switch( status )
+    {
+        case PSA_SUCCESS:
+            return( 0 );
+        case PSA_ERROR_INSUFFICIENT_MEMORY:
+            return( MBEDTLS_ERR_CIPHER_ALLOC_FAILED );
+        case PSA_ERROR_NOT_SUPPORTED:
+            return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+        default:
+            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+    }
+}
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */

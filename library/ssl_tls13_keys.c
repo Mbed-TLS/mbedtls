@@ -795,23 +795,6 @@ exit:
     return( ret );
 }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-static int psa_status_to_mbedtls( psa_status_t status )
-{
-    switch( status )
-    {
-        case PSA_SUCCESS:
-            return( 0 );
-        case PSA_ERROR_INSUFFICIENT_MEMORY:
-            return( MBEDTLS_ERR_CIPHER_ALLOC_FAILED );
-        case PSA_ERROR_NOT_SUPPORTED:
-            return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
-        default:
-            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
-    }
-}
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-
 int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
                                           int endpoint,
                                           int ciphersuite,

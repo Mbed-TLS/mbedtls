@@ -338,36 +338,6 @@ static inline int mbedtls_psa_get_ecc_oid_from_id(
 #endif /* MBEDTLS_ECP_DP_BP512R1_ENABLED */
 
 
-/* Translations for PK layer */
-
-static inline int mbedtls_psa_err_translate_pk( psa_status_t status )
-{
-    switch( status )
-    {
-        case PSA_SUCCESS:
-            return( 0 );
-        case PSA_ERROR_NOT_SUPPORTED:
-            return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
-        case PSA_ERROR_INSUFFICIENT_MEMORY:
-            return( MBEDTLS_ERR_PK_ALLOC_FAILED );
-        case PSA_ERROR_INSUFFICIENT_ENTROPY:
-            return( MBEDTLS_ERR_ECP_RANDOM_FAILED );
-        case PSA_ERROR_BAD_STATE:
-            return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
-        /* All other failures */
-        case PSA_ERROR_COMMUNICATION_FAILURE:
-        case PSA_ERROR_HARDWARE_FAILURE:
-        case PSA_ERROR_CORRUPTION_DETECTED:
-            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
-        default: /* We return the same as for the 'other failures',
-                  * but list them separately nonetheless to indicate
-                  * which failure conditions we have considered. */
-            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
-    }
-}
-
-/* Translations for ECC */
-
 /* This function transforms an ECC group identifier from
  * https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-8
  * into a PSA ECC group identifier. */
@@ -421,6 +391,34 @@ static inline int mbedtls_psa_tls_ecpoint_to_psa_ec( unsigned char const *src,
     memcpy( dst, src, srclen );
     *olen = srclen;
     return( 0 );
+}
+
+/* Translations for PK layer */
+
+static inline int mbedtls_psa_err_translate_pk( psa_status_t status )
+{
+    switch( status )
+    {
+        case PSA_SUCCESS:
+            return( 0 );
+        case PSA_ERROR_NOT_SUPPORTED:
+            return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
+        case PSA_ERROR_INSUFFICIENT_MEMORY:
+            return( MBEDTLS_ERR_PK_ALLOC_FAILED );
+        case PSA_ERROR_INSUFFICIENT_ENTROPY:
+            return( MBEDTLS_ERR_ECP_RANDOM_FAILED );
+        case PSA_ERROR_BAD_STATE:
+            return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+        /* All other failures */
+        case PSA_ERROR_COMMUNICATION_FAILURE:
+        case PSA_ERROR_HARDWARE_FAILURE:
+        case PSA_ERROR_CORRUPTION_DETECTED:
+            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+        default: /* We return the same as for the 'other failures',
+                  * but list them separately nonetheless to indicate
+                  * which failure conditions we have considered. */
+            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+    }
 }
 
 #endif /* MBEDTLS_USE_PSA_CRYPTO */

@@ -1455,6 +1455,7 @@ static int ssl_tls13_parse_signature_algorithms_ext( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
 
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 /*
  *
  * STATE HANDLING: CertificateRequest
@@ -1478,10 +1479,9 @@ static int ssl_tls13_parse_signature_algorithms_ext( mbedtls_ssl_context *ssl,
 /*
  * Implementation
  */
-
 static int ssl_tls13_certificate_request_coordinate( mbedtls_ssl_context *ssl )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     if( mbedtls_ssl_tls13_psk_enabled( ssl ) )
     {
@@ -1511,6 +1511,7 @@ static int ssl_tls13_certificate_request_coordinate( mbedtls_ssl_context *ssl )
 
     return( SSL_CERTIFICATE_REQUEST_SKIP );
 }
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
 /*
@@ -1609,19 +1610,18 @@ static int ssl_tls13_parse_certificate_request( mbedtls_ssl_context *ssl,
     ssl->client_auth = 1;
     return( 0 );
 }
-#endif /* ( MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ) */
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
 
-/* Main entry point; orchestrates the other functions */
-int mbedtls_ssl_tls13_process_certificate_request( mbedtls_ssl_context *ssl )
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+/*
+ * Handler for  MBEDTLS_SSL_CERTIFICATE_REQUEST
+ */
+static int ssl_tls13_process_certificate_request( mbedtls_ssl_context *ssl )
 {
-    int ret = 0;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate request" ) );
 
-    /* Coordination step
-     * - Fetch record
-     * - Make sure it's either a CertificateRequest or a ServerHelloDone
-     */
     MBEDTLS_SSL_PROC_CHK_NEG( ssl_tls13_certificate_request_coordinate( ssl ) );
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
@@ -1656,6 +1656,8 @@ int mbedtls_ssl_tls13_process_certificate_request( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "got %s certificate request",
                                 ssl->client_auth ? "a" : "no" ) );
 
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_CERTIFICATE );
+
 cleanup:
 
     /* In the MPS one would close the read-port here to
@@ -1663,30 +1665,6 @@ cleanup:
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate request" ) );
     return( ret );
-}
-
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-/*
- * Handler for  MBEDTLS_SSL_CERTIFICATE_REQUEST
- */
-static int ssl_tls13_process_certificate_request( mbedtls_ssl_context *ssl )
-{
-    int ret = mbedtls_ssl_read_record( ssl, 0 );
-
-    if( ret != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
-        return( ret );
-    }
-    ssl->keep_current_message = 1;
-
-    ret = mbedtls_ssl_tls13_process_certificate_request( ssl );
-    if( ret != 0 )
-        return( ret );
-
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_CERTIFICATE );
-
-    return( 0 );
 }
 
 /*

@@ -277,25 +277,6 @@ static inline psa_key_type_t mbedtls_psa_parse_tls_ecc_group(
 }
 #endif /* MBEDTLS_ECP_C */
 
-/* This function takes a buffer holding an ECPoint structure
- * (as contained in a TLS ServerKeyExchange message for ECDHE
- * exchanges) and converts it into a format that the PSA key
- * agreement API understands.
- */
-static inline int mbedtls_psa_tls_ecpoint_to_psa_ec( unsigned char const *src,
-                                                     size_t srclen,
-                                                     unsigned char *dst,
-                                                     size_t dstlen,
-                                                     size_t *olen )
-{
-    if( srclen > dstlen )
-        return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
-
-    memcpy( dst, src, srclen );
-    *olen = srclen;
-    return( 0 );
-}
-
 /* Translations for PK layer */
 
 static inline int mbedtls_psa_err_translate_pk( psa_status_t status )

@@ -2398,24 +2398,18 @@ static int ssl_parse_server_ecdh_params_psa( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
     handshake->ecdh_bits = (uint16_t) ecdh_bits;
 
-    /*
-     * Put peer's ECDH public key in the format understood by PSA.
-     */
-
+    /* Keep a copy of the peer's public key */
     ecpoint_len = *(*p)++;
     if( (size_t)( end - *p ) < ecpoint_len )
         return( MBEDTLS_ERR_SSL_DECODE_ERROR );
 
-    if( mbedtls_psa_tls_ecpoint_to_psa_ec(
-                                    *p, ecpoint_len,
-                                    handshake->ecdh_psa_peerkey,
-                                    sizeof( handshake->ecdh_psa_peerkey ),
-                                    &handshake->ecdh_psa_peerkey_len ) != 0 )
-    {
-        return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-    }
+    if( ecpoint_len > sizeof( handshake->ecdh_psa_peerkey ) )
+        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
 
+    memcpy( handshake->ecdh_psa_peerkey, *p, ecpoint_len );
+    handshake->ecdh_psa_peerkey_len = ecpoint_len;
     *p += ecpoint_len;
+
     return( 0 );
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO &&

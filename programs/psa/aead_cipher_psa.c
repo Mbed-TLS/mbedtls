@@ -141,7 +141,7 @@ static void cipher_info( const mbedtls_cipher_context_t *ctx, size_t tag_len )
                          : mode == MBEDTLS_MODE_CHACHAPOLY ? "ChachaPoly"
                          : "???";
 
-    printf( "cipher: %s, %d, %s, %zu\n", ciph, key_bits, mode_str, tag_len );
+    printf( "cipher: %s, %d, %s, %u\n", ciph, key_bits, mode_str, (unsigned) tag_len );
 }
 
 static int cipher_encrypt( mbedtls_cipher_context_t *ctx, size_t tag_len,
@@ -272,7 +272,8 @@ static void aead_info( psa_key_id_t key, psa_algorithm_t alg )
                          : base_alg == PSA_ALG_CHACHA20_POLY1305 ? "ChachaPoly"
                          : "???";
 
-    printf( "aead  : %s, %zu, %s, %zu\n", type_str, key_bits, base_str, tag_len );
+    printf( "aead  : %s, %u, %s, %u\n",
+            type_str, (unsigned) key_bits, base_str, (unsigned) tag_len );
 }
 
 static int aead_encrypt( psa_key_id_t key, psa_algorithm_t alg,

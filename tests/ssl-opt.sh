@@ -9217,10 +9217,10 @@ requires_openssl_tls1_3
 run_test    "TLS 1.3: HelloRetryRequest check - openssl" \
             "$O_NEXT_SRV -ciphersuites TLS_AES_256_GCM_SHA384  -sigalgs ecdsa_secp256r1_sha256 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
             "$P_CLI debug_level=4 force_version=tls13" \
-            1 \
+            0 \
             -c "received HelloRetryRequest message" \
             -c "tls13 client state: MBEDTLS_SSL_CLIENT_HELLO(1)" \
-            -c "Last error was: -0x7180 - SSL - Verification of the message MAC failed"
+            -c "HTTP/1.0 200 ok"
 
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -9235,7 +9235,7 @@ run_test    "TLS 1.3: HelloRetryRequest check - gnutls" \
             1 \
             -c "received HelloRetryRequest message" \
             -c "tls13 client state: MBEDTLS_SSL_CLIENT_HELLO(1)" \
-            -c "Last error was: -0x7180 - SSL - Verification of the message MAC failed" \
+            -c "Last error was: -0x6E00 - SSL - The handshake negotiation failed" \
             -s "HELLO RETRY REQUEST was queued"
 
 for i in $(ls opt-testcases/*.sh)

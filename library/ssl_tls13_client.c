@@ -136,7 +136,7 @@ static int ssl_tls13_parse_supported_versions_ext( mbedtls_ssl_context *ssl,
  */
 
 #if defined(MBEDTLS_ECDH_C)
-static int ssl_reset_ecdhe_share( mbedtls_ssl_context *ssl )
+static int ssl_tls13_reset_ecdhe_share( mbedtls_ssl_context *ssl )
 {
     mbedtls_ecdh_free( &ssl->handshake->ecdh_ctx );
     return( 0 );
@@ -149,7 +149,7 @@ static int ssl_tls13_reset_key_share( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 
     if( mbedtls_ssl_tls13_named_group_is_ecdhe( group_id ) )
-        return( ssl_reset_ecdhe_share( ssl ) );
+        return( ssl_tls13_reset_ecdhe_share( ssl ) );
     else if( 0 /* other KEMs? */ )
     {
         /* Do something */
@@ -421,7 +421,7 @@ static int ssl_tls13_read_public_ecdhe_share( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_ECDH_C */
 
-static int ssl_tls13_hrr_check_key_share_ext( mbedtls_ssl_context *ssl,
+static int ssl_tls13_parse_hrr_key_share_ext( mbedtls_ssl_context *ssl,
                                               const unsigned char *buf,
                                               const unsigned char *end )
 {
@@ -451,7 +451,7 @@ static int ssl_tls13_hrr_check_key_share_ext( mbedtls_ssl_context *ssl,
      * If the server provided a key share that was not sent in the ClientHello
      * then the client MUST abort the handshake with an "illegal_parameter" alert.
      */
-    for ( ; *group_list != 0; group_list++ )
+    for( ; *group_list != 0; group_list++ )
     {
         curve_info = mbedtls_ecp_curve_info_from_tls_id( *group_list );
         if( curve_info == NULL || curve_info->tls_id != tls_id )
@@ -938,7 +938,7 @@ static int ssl_tls13_server_hello_coordinate( mbedtls_ssl_context *ssl,
               * was itself in response to a HelloRetryRequest), it MUST abort the
               * handshake with an "unexpected_message" alert.
               */
-            if( ssl->handshake->hello_retry_requests_received > 0 )
+            if( ssl->handshake->hello_retry_request_count > 0 )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "Multiple HRRs received" ) );
                 MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE,
@@ -946,7 +946,7 @@ static int ssl_tls13_server_hello_coordinate( mbedtls_ssl_context *ssl,
                 return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
             }
 
-            ssl->handshake->hello_retry_requests_received++;
+            ssl->handshake->hello_retry_request_count++;
 
             break;
     }
@@ -1021,7 +1021,8 @@ static int ssl_tls13_cipher_suite_is_offered( mbedtls_ssl_context *ssl,
  */
 static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
                                          const unsigned char *buf,
-                                         const unsigned char *end)
+                                         const unsigned char *end,
+                                         int is_hrr )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const unsigned char *p = buf;
@@ -1165,9 +1166,6 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
     {
         unsigned int extension_type;
         size_t extension_data_len;
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-        int hrr;
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, extensions_end, 4 );
         extension_type = MBEDTLS_GET_UINT16_BE( p, 0 );
@@ -1180,6 +1178,14 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
         {
 #if defined(MBEDTLS_SSL_COOKIE_C)
             case MBEDTLS_TLS_EXT_COOKIE:
+
+                if( !is_hrr )
+                {
+                    MBEDTLS_SSL_PEND_FATAL_ALERT(
+                        MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT,
+                        MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION );
+                    return( MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION );
+                }
 
                 /* Retrieve length field of cookie */
                 MBEDTLS_SSL_CHK_BUF_READ_PTR( p, extensions_end, 2 );
@@ -1226,16 +1232,15 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
             case MBEDTLS_TLS_EXT_KEY_SHARE:
-                hrr = ssl_server_hello_is_hrr( ssl, buf, end );
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found key_shares extension" ) );
-                if( hrr == SSL_SERVER_HELLO_COORDINATE_HRR )
-                    ret = ssl_tls13_hrr_check_key_share_ext( ssl,
+                if( is_hrr == SSL_SERVER_HELLO_COORDINATE_HRR )
+                    ret = ssl_tls13_parse_hrr_key_share_ext( ssl,
                                             p, p + extension_data_len );
-                else if( hrr == SSL_SERVER_HELLO_COORDINATE_HELLO )
+                else if( is_hrr == SSL_SERVER_HELLO_COORDINATE_HELLO )
                     ret = ssl_tls13_parse_key_share_ext( ssl,
                                             p, p + extension_data_len );
                 else
-                    ret = hrr;
+                    ret = is_hrr;
                 if( ret != 0 )
                 {
                     MBEDTLS_SSL_DEBUG_RET( 1,
@@ -1422,7 +1427,7 @@ static int ssl_tls13_process_server_hello( mbedtls_ssl_context *ssl )
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *buf = NULL;
     size_t buf_len = 0;
-    int hrr = -1;
+    int is_hrr = -1;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> %s", __func__ ) );
 
@@ -1435,32 +1440,28 @@ static int ssl_tls13_process_server_hello( mbedtls_ssl_context *ssl )
     ssl->handshake->extensions_present = MBEDTLS_SSL_EXT_NONE;
 
     ret = ssl_tls13_server_hello_coordinate( ssl, &buf, &buf_len );
-    if( ret != SSL_SERVER_HELLO_COORDINATE_HELLO &&
-        ret != SSL_SERVER_HELLO_COORDINATE_HRR )
+    if( ret < 0 )
         goto cleanup;
     else
-        hrr = ret;
+        is_hrr = ( ret == SSL_SERVER_HELLO_COORDINATE_HRR );
     /* Parsing step
      * We know what message to expect by now and call
      * the respective parsing function.
      */
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_parse_server_hello( ssl, buf,
-                                                        buf + buf_len ) );
-    if( hrr == SSL_SERVER_HELLO_COORDINATE_HRR )
+                                                        buf + buf_len,
+                                                        is_hrr ) );
+    if( is_hrr )
         MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_reset_transcript_for_hrr( ssl ) );
 
     mbedtls_ssl_tls13_add_hs_msg_to_checksum( ssl,
                                               MBEDTLS_SSL_HS_SERVER_HELLO,
                                               buf, buf_len );
 
-    if( hrr == SSL_SERVER_HELLO_COORDINATE_HELLO )
-    {
-        MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_server_hello( ssl ) );
-    }
-    else if( hrr == SSL_SERVER_HELLO_COORDINATE_HRR )
-    {
+    if( is_hrr )
         MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_hrr( ssl ) );
-    }
+    else
+        MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_server_hello( ssl ) );
 
 cleanup:
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= %s", __func__ ) );

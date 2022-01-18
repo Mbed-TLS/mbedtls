@@ -7630,9 +7630,9 @@ static int ssl_hash_transcript_core( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 
     ret = mbedtls_ssl_get_handshake_transcript( ssl, md,
-                                          transcript + 4,
-                                          len - 4,
-                                          &hash_size );
+                                                transcript + 4,
+                                                len - 4,
+                                                &hash_size );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 4, "mbedtls_ssl_get_handshake_transcript", ret );
@@ -7689,7 +7689,7 @@ int mbedtls_ssl_reset_transcript_for_hrr( mbedtls_ssl_context *ssl )
     ssl_update_checksum_sha256( ssl, hash_transcript, hash_olen );
 #endif /* MBEDTLS_SHA256_C */
 
-#if defined(MBEDTLS_SHA512_C)
+#if defined(MBEDTLS_SHA384_C)
     ret = ssl_hash_transcript_core( ssl, MBEDTLS_MD_SHA384,
                                     hash_transcript,
                                     sizeof( hash_transcript ),
@@ -7701,7 +7701,15 @@ int mbedtls_ssl_reset_transcript_for_hrr( mbedtls_ssl_context *ssl )
     }
     MBEDTLS_SSL_DEBUG_BUF( 4, "Truncated SHA-384 handshake transcript",
                            hash_transcript, hash_olen );
-#endif /* MBEDTLS_SHA512_C */
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_hash_abort( &ssl->handshake->fin_sha384_psa );
+    psa_hash_setup( &ssl->handshake->fin_sha384_psa, PSA_ALG_SHA_384 );
+#else
+    mbedtls_sha512_starts( &ssl->handshake->fin_sha512, 1 );
+#endif
+    ssl_update_checksum_sha384( ssl, hash_transcript, hash_olen );
+#endif /* MBEDTLS_SHA384_C */
 
     return( ret );
 }

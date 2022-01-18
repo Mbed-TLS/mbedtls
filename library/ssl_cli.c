@@ -3379,11 +3379,6 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
 
         mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
-        unsigned char own_pubkey[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
-        size_t own_pubkey_len;
-        unsigned char *own_pubkey_ecpoint;
-        size_t own_pubkey_ecpoint_len;
-
         header_len = 4;
 
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Perform PSA-based ECDH computation." ) );
@@ -3411,27 +3406,22 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         if( status != PSA_SUCCESS )
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
 
-        /* Export the public part of the ECDH private key from PSA
-         * and convert it to ECPoint format used in ClientKeyExchange. */
+        /* Export the public part of the ECDH private key from PSA.
+         * The export format is an ECPoint structre as expected by TLS,
+         * but we just need to add a length byte before that. */
+        unsigned char *own_pubkey = ssl->out_msg + header_len + 1;
+        unsigned char *end = ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN;
+        size_t own_pubkey_max_len = (size_t)( end - own_pubkey );
+        size_t own_pubkey_len;
+
         status = psa_export_public_key( handshake->ecdh_psa_privkey,
-                                        own_pubkey, sizeof( own_pubkey ),
+                                        own_pubkey, own_pubkey_max_len,
                                         &own_pubkey_len );
         if( status != PSA_SUCCESS )
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
 
-        if( mbedtls_psa_tls_psa_ec_to_ecpoint( own_pubkey,
-                                               own_pubkey_len,
-                                               &own_pubkey_ecpoint,
-                                               &own_pubkey_ecpoint_len ) != 0 )
-        {
-            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-        }
-
-        /* Copy ECPoint structure to outgoing message buffer. */
-        ssl->out_msg[header_len] = (unsigned char) own_pubkey_ecpoint_len;
-        memcpy( ssl->out_msg + header_len + 1,
-                own_pubkey_ecpoint, own_pubkey_ecpoint_len );
-        content_len = own_pubkey_ecpoint_len + 1;
+        ssl->out_msg[header_len] = (unsigned char) own_pubkey_len;
+        content_len = own_pubkey_len + 1;
 
         /* The ECDH secret is the premaster secret used for key derivation. */
 

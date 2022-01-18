@@ -277,26 +277,6 @@ static inline psa_key_type_t mbedtls_psa_parse_tls_ecc_group(
 }
 #endif /* MBEDTLS_ECP_C */
 
-/* This function takes a buffer holding an EC public key
- * exported through psa_export_public_key(), and converts
- * it into an ECPoint structure to be put into a ClientKeyExchange
- * message in an ECDHE exchange.
- *
- * Both the present and the foreseeable future format of EC public keys
- * used by PSA have the ECPoint structure contained in the exported key
- * as a subbuffer, and the function merely selects this subbuffer instead
- * of making a copy.
- */
-static inline int mbedtls_psa_tls_psa_ec_to_ecpoint( unsigned char *src,
-                                                     size_t srclen,
-                                                     unsigned char **dst,
-                                                     size_t *dstlen )
-{
-    *dst = src;
-    *dstlen = srclen;
-    return( 0 );
-}
-
 /* This function takes a buffer holding an ECPoint structure
  * (as contained in a TLS ServerKeyExchange message for ECDHE
  * exchanges) and converts it into a format that the PSA key

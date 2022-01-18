@@ -258,85 +258,8 @@ static inline int mbedtls_psa_get_ecc_oid_from_id(
     return( -1 );
 }
 
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH 1
-
-#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 192 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 192 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_SECP192R1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 224 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 224 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_SECP224R1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 384 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 384 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_SECP384R1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 521 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 521 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_SECP521R1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 192 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 192 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_SECP192K1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 224 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 224 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_SECP224K1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_SECP256K1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_BP256R1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 384 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 384 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_BP384R1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 512 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 512 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_BP512R1_ENABLED */
-
+#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH \
+    PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE( PSA_VENDOR_ECC_MAX_CURVE_BITS )
 
 /* This function transforms an ECC group identifier from
  * https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-8

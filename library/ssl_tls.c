@@ -7054,18 +7054,16 @@ unsigned char mbedtls_ssl_hash_from_md_alg( int md )
     }
 }
 
-#if defined(MBEDTLS_ECP_C)
 /*
  * Check if a curve proposed by the peer is in our list.
  * Return 0 if we're willing to use it, -1 otherwise.
  */
-int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id )
+int mbedtls_ssl_check_curve_tls_id( const mbedtls_ssl_context *ssl, uint16_t tls_id )
 {
     const uint16_t *group_list = mbedtls_ssl_get_groups( ssl );
 
     if( group_list == NULL )
         return( -1 );
-    uint16_t tls_id = mbedtls_ecp_curve_info_from_grp_id(grp_id)->tls_id;
 
     for( ; *group_list != 0; group_list++ )
     {
@@ -7074,6 +7072,16 @@ int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_i
     }
 
     return( -1 );
+}
+
+#if defined(MBEDTLS_ECP_C)
+/*
+ * Same as mbedtls_ssl_check_curve_tls_id() but with a mbedtls_ecp_group_id.
+ */
+int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id )
+{
+    uint16_t tls_id = mbedtls_ecp_curve_info_from_grp_id(grp_id)->tls_id;
+    return mbedtls_ssl_check_curve_tls_id( ssl, tls_id );
 }
 #endif /* MBEDTLS_ECP_C */
 

@@ -198,7 +198,7 @@ int mbedtls_pk_write_pubkey( unsigned char **p, unsigned char *start,
     if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_OPAQUE )
     {
         size_t buffer_size;
-        psa_key_id_t* key_id = (psa_key_id_t*) key->pk_ctx;
+        mbedtls_svc_key_id_t* key_id = (mbedtls_svc_key_id_t*) key->pk_ctx;
 
         if ( *p < start )
             return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
@@ -265,11 +265,11 @@ int mbedtls_pk_write_pubkey_der( const mbedtls_pk_context *key, unsigned char *b
     {
         psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
         psa_key_type_t key_type;
-        psa_key_id_t key_id;
+        mbedtls_svc_key_id_t key_id;
         psa_ecc_family_t curve;
         size_t bits;
 
-        key_id = *((psa_key_id_t*) key->pk_ctx );
+        key_id = *((mbedtls_svc_key_id_t*) key->pk_ctx );
         if( PSA_SUCCESS != psa_get_key_attributes( key_id, &attributes ) )
             return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
         key_type = psa_get_key_type( &attributes );

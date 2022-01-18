@@ -849,7 +849,7 @@ struct _psk_entry
     size_t key_len;
     unsigned char key[MBEDTLS_PSK_MAX_LEN];
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_key_id_t slot;
+    mbedtls_svc_key_id_t slot;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
     psk_entry *next;
 };
@@ -865,9 +865,9 @@ int psk_free( psk_entry *head )
     {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         psa_status_t status;
-        psa_key_id_t const slot = head->slot;
+        mbedtls_svc_key_id_t const slot = head->slot;
 
-        if( slot != 0 )
+        if( MBEDTLS_SVC_KEY_ID_GET_KEY_ID( slot ) != 0 )
         {
             status = psa_destroy_key( slot );
             if( status != PSA_SUCCESS )
@@ -940,7 +940,7 @@ int psk_callback( void *p_info, mbedtls_ssl_context *ssl,
             memcmp( name, cur->name, name_len ) == 0 )
         {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-            if( cur->slot != 0 )
+            if( MBEDTLS_SVC_KEY_ID_GET_KEY_ID( cur->slot ) != 0 )
                 return( mbedtls_ssl_set_hs_psk_opaque( ssl, cur->slot ) );
             else
 #endif
@@ -1208,7 +1208,7 @@ static void ssl_async_cancel( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-static psa_status_t psa_setup_psk_key_slot( psa_key_id_t *slot,
+static psa_status_t psa_setup_psk_key_slot( mbedtls_svc_key_id_t *slot,
                                             psa_algorithm_t alg,
                                             unsigned char *psk,
                                             size_t psk_len )
@@ -1291,7 +1291,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_algorithm_t alg = 0;
-    psa_key_id_t psk_slot = 0;
+    mbedtls_svc_key_id_t psk_slot = MBEDTLS_SVC_KEY_ID_INIT;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
     unsigned char psk[MBEDTLS_PSK_MAX_LEN];
     size_t psk_len = 0;
@@ -1323,8 +1323,8 @@ int main( int argc, char *argv[] )
     mbedtls_x509_crt srvcert2;
     mbedtls_pk_context pkey2;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_key_id_t key_slot = 0; /* invalid key slot */
-    psa_key_id_t key_slot2 = 0; /* invalid key slot */
+    mbedtls_svc_key_id_t key_slot = MBEDTLS_SVC_KEY_ID_INIT; /* invalid key slot */
+    mbedtls_svc_key_id_t key_slot2 = MBEDTLS_SVC_KEY_ID_INIT; /* invalid key slot */
 #endif
     int key_cert_init = 0, key_cert_init2 = 0;
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
@@ -4018,7 +4018,8 @@ exit:
             ( opt.query_config_mode == DFL_QUERY_CONFIG_MODE ) )
         {
             mbedtls_printf( "Failed to destroy key slot %u - error was %d",
-                            (unsigned) psk_slot, (int) status );
+                            (unsigned) MBEDTLS_SVC_KEY_ID_GET_KEY_ID( psk_slot ),
+                            (int) status );
         }
     }
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED &&

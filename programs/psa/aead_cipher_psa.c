@@ -123,7 +123,7 @@ static int cipher_prepare( const char *info,
     CHK( mbedtls_cipher_setup( ctx,
                                mbedtls_cipher_info_from_type( type ) ) );
 
-    size_t key_len = mbedtls_cipher_get_key_bitlen( ctx );
+    int key_len = mbedtls_cipher_get_key_bitlen( ctx );
     CHK( mbedtls_cipher_setkey( ctx, key_bytes, key_len, MBEDTLS_ENCRYPT ) );
 
 exit:

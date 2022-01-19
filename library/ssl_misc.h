@@ -256,8 +256,11 @@
         : ( MBEDTLS_SSL_IN_CONTENT_LEN )                             \
         )
 
-/* Maximum size in bytes of list in sig-hash algorithm ext., RFC 5246 */
-#define MBEDTLS_SSL_MAX_SIG_HASH_ALG_LIST_LEN  65534
+/* Maximum size in bytes of list in signature algorithms ext., RFC 5246/8446 */
+#define MBEDTLS_SSL_MAX_SIG_ALG_LIST_LEN       65534
+
+/* Minimue size in bytes of list in signature algorithms ext., RFC 5246/8446 */
+#define MBEDTLS_SSL_MIN_SIG_ALG_LIST_LEN       2
 
 /* Maximum size in bytes of list in supported elliptic curve ext., RFC 4492 */
 #define MBEDTLS_SSL_MAX_CURVE_LIST_LEN         65535

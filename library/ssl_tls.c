@@ -3160,7 +3160,7 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
     {
         const int *md;
         const int *sig_hashes = ssl->conf->sig_hashes;
-        size_t sig_algs_len = sizeof( uint16_t );
+        size_t sig_algs_len = 0;
         uint16_t *p;
 
         for( md = sig_hashes; *md != MBEDTLS_MD_NONE; md++ )
@@ -3175,10 +3175,13 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
     #endif
         }
 
-        if( sig_algs_len == sizeof( uint16_t ) )
+        if( sig_algs_len < MBEDTLS_SSL_MIN_SIG_ALG_LIST_LEN ||
+            sig_algs_len > MBEDTLS_SSL_MAX_SIG_ALG_LIST_LEN )
+        {
             return( MBEDTLS_ERR_SSL_BAD_CONFIG );
+        }
 
-        ssl->handshake->sig_algs = mbedtls_calloc( 1, sig_algs_len );
+        ssl->handshake->sig_algs = mbedtls_calloc( 1, sig_algs_len + 2 );
         if( ssl->handshake->sig_algs == NULL )
             return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
 

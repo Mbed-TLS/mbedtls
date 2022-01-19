@@ -38,10 +38,6 @@
 
 #include <string.h>
 
-#if defined(MBEDTLS_X509_REMOVE_INFO)
-#include <stdio.h>
-#endif
-
 #if !defined(MBEDTLS_X509_REMOVE_INFO)
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C) \
@@ -67,6 +63,36 @@
 #include <stdlib.h>
 #define mbedtls_snprintf   snprintf
 #endif
+
+#define mbedtls_allpcpy_lim( p, lim, str ) \
+        mbedtls_mempcpy_lim( (p), (lim), (str), sizeof(str) - 1 )
+
+/*__attribute__((__noinline__))*//*(XXX: should use where supported)*/
+/*__attribute__((__nonnull__))*//*(XXX: should use where supported)*/
+static char *mbedtls_x509_time_str( char *dst, const char *lim, const mbedtls_x509_time *tm );
+
+/*__attribute__((__noinline__))*//*(XXX: should use where supported)*/
+/*__attribute__((__nonnull__))*//*(XXX: should use where supported)*/
+static intptr_t mbedtls_strterm( char *buf, char *p, const char *lim );
+
+/*__attribute__((__noinline__))*//*(XXX: should use where supported)*/
+/*__attribute__((__nonnull__))*//*(XXX: should use where supported)*/
+/*__attribute__((__returns_nonnull__))*//*(XXX: should use where supported)*/
+static char *mbedtls_strpcpy_lim( char *dst, const char *lim, const char *src );
+
+/*__attribute__((__noinline__))*//*(XXX: should use where supported)*/
+/*__attribute__((__nonnull__))*//*(XXX: should use where supported)*/
+/*__attribute__((__returns_nonnull__))*//*(XXX: should use where supported)*/
+static char *mbedtls_mempcpy_lim( char *dst, const char *lim, const void *src, size_t len );
+
+/*__attribute__((__noinline__))*//*(XXX: should use where supported)*/
+/*__attribute__((__nonnull__))*//*(XXX: should use where supported)*/
+static char *mbedtls_strhex_lim( char *dst, const char *lim, const unsigned char *src, size_t len );
+
+/*__attribute__((__noinline__))*//*(XXX: should use where supported)*/
+/*__attribute__((__nonnull__))*//*(XXX: should use where supported)*/
+/*__attribute__((__returns_nonnull__))*//*(XXX: should use where supported)*/
+static char *mbedtls_itoa_lim( char *dst, const char *lim, int i );
 
 #endif /* MBEDTLS_X509_*_PARSE_C */
 
@@ -124,78 +150,134 @@ int mbedtls_x509_sig_alg_gets( char *buf, size_t size, const mbedtls_x509_buf *s
                        mbedtls_pk_type_t pk_alg, mbedtls_md_type_t md_alg,
                        const void *sig_opts )
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    char *p = buf;
-    size_t n = size;
-    const char *desc = NULL;
-
-    ret = mbedtls_oid_get_sig_alg_desc( sig_oid, &desc );
-    if( ret != 0 )
-        ret = mbedtls_snprintf( p, n, "???"  );
-    else
-        ret = mbedtls_snprintf( p, n, "%s", desc );
-    MBEDTLS_X509_SAFE_SNPRINTF;
+    const char *desc;
+    if( 0 != mbedtls_oid_get_sig_alg_desc( sig_oid, &desc ) )
+        desc = "???";
 
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
     if( pk_alg == MBEDTLS_PK_RSASSA_PSS )
     {
         const mbedtls_pk_rsassa_pss_options *pss_opts;
+        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
         pss_opts = (const mbedtls_pk_rsassa_pss_options *) sig_opts;
 
         const char *name = md_type_to_string ( md_alg );
         const char *mgf_name = md_type_to_string ( pss_opts->mgf1_hash_id );
 
-        ret = mbedtls_snprintf( p, n, " (%s, MGF1-%s, 0x%02X)",
+      #if 1
+        ret = mbedtls_snprintf( buf, size, "%s (%s, MGF1-%s, 0x%02X)", desc,
                               name ? name : "???",
                               mgf_name ? mgf_name : "???",
                               (unsigned int) pss_opts->expected_salt_len );
-        MBEDTLS_X509_SAFE_SNPRINTF;
+        if( ret < 0 || (size_t) ret >= size )
+            return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
+        return( ret );
+      #else  /*(alternate w/o snprintf; probably not worth extra code size)*/
+        char *p = buf;
+        const char * const lim = buf + size;
+        p = mbedtls_strpcpy_lim( p, lim, desc );
+        p = mbedtls_allpcpy_lim( p, lim, " (" );
+        desc = name ? name : "???";
+        p = mbedtls_strpcpy_lim( p, lim, desc );
+        p = mbedtls_allpcpy_lim( p, lim, ", MGF1-" );
+        desc = mgf_name ? mgf_name : "???";
+        p = mbedtls_strpcpy_lim( p, lim, desc );
+        {
+            static const char hex_chars_uc[] = "0123456789ABCDEF";
+            char xbuf[16] = ", 0x"; /* large enough for ", 0x00000000)" */
+            char *x = xbuf+4;
+            const unsigned int salt = (unsigned int)pss_opts->expected_salt_len;
+            for( int bits = 32; bits; )
+            {
+                unsigned int u = 0xFF & ( salt >> ( bits -= 8 ) );
+                if( u == 0 || bits >= 16 ) continue;
+                *x++ = hex_chars_uc[ 0x0F & ( u >> 4 ) ];
+                *x++ = hex_chars_uc[ 0x0F & u ];
+            }
+            *x++ = ')';
+            p = mbedtls_mempcpy_lim( p, lim, xbuf, (size_t)( x - xbuf ) );
+        }
+        return( (int)mbedtls_strterm( buf, p, lim ) );
+      #endif
     }
 #else
     ((void) pk_alg);
     ((void) md_alg);
     ((void) sig_opts);
 #endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
-
-    return( (int)( size - n ) );
+    {
+        char *p = mbedtls_strpcpy_lim( buf, buf + size, desc );
+        return( (int)mbedtls_strterm( buf, p, buf + size ) );
+    }
 }
 
 #endif /* MBEDTLS_X509_USE_C */
 
 
+#if defined(MBEDTLS_X509_CRT_PARSE_C) \
+ || defined(MBEDTLS_X509_CSR_PARSE_C)
+static char *x509_info_pk_key_size( char * const buf, const char * const lim,
+                                    const mbedtls_pk_context *pk, size_t pad )
+{
+  #if 1
+    char *p = buf;
+    size_t n;
+
+    /* "RSA" "EC" "EC_DH" "ECDSA" "RSA-alt" "Opaque" */
+    p = mbedtls_strpcpy_lim( p, lim, mbedtls_pk_get_name( pk ) );
+    p = mbedtls_allpcpy_lim( p, lim, " key size" );
+    n = (size_t)( p - buf );
+    if( n < pad ) /*(caller value for pad must not exceed "   " length below)*/
+        p = mbedtls_mempcpy_lim( p, lim, "                  ", pad - n );
+    p = mbedtls_allpcpy_lim( p, lim, ": " );
+    p = mbedtls_itoa_lim( p, lim, (int) mbedtls_pk_get_bitlen( pk ) );
+    p = mbedtls_allpcpy_lim( p, lim, " bits" );
+
+    return( p );
+  #else
+    static const char spaces[] = "         ";
+    const char *name = mbedtls_pk_get_name( pk );
+    size_t n = strlen( name );
+    int ret;
+
+    pad = ( pad > n + 9 ? pad - n + 9 : 0 ); /* " key size " is 9 chars */
+    /*assert( pad < sizeof(spaces) );*//*(expecting input param of 14 or 18)*/
+    n = (size_t)( lim - buf );
+    ret = snprintf( buf, n, "%s key size%s: %d bits",
+                    name, spaces + sizeof( spaces ) - 1 - pad,
+                    (int) mbedtls_pk_get_bitlen( pk ) );
+    return( buf + ( ( ret >= 0 && (size_t)ret < n ) ? (size_t)ret : n ) );
+  #endif
+}
+#endif /* MBEDTLS_X509_CRT_PARSE_C || MBEDTLS_X509_CSR_PARSE_C */
+
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 
-static int x509_info_subject_alt_name( char **buf, size_t *size,
-                                       const mbedtls_x509_sequence
-                                                    *subject_alt_name,
-                                       const char *prefix )
+static char *x509_info_subject_alt_name( char *buf, size_t size,
+                                         const mbedtls_x509_sequence
+                                                      *subject_alt_name,
+                                         const char *prefix, const size_t plen )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t i;
-    size_t n = *size;
-    char *p = *buf;
-    const mbedtls_x509_sequence *cur = subject_alt_name;
+    char *p = buf;
+    char * const lim = buf + size;
+    const mbedtls_x509_sequence *cur;
     mbedtls_x509_subject_alternative_name san;
-    int parse_ret;
 
-    while( cur != NULL )
+    for( cur = subject_alt_name; cur != NULL; cur = cur->next )
     {
+        p = mbedtls_mempcpy_lim( p, lim, prefix, plen );
+
         memset( &san, 0, sizeof( san ) );
-        parse_ret = mbedtls_x509_parse_subject_alt_name( &cur->buf, &san );
-        if( parse_ret != 0 )
+        ret = mbedtls_x509_parse_subject_alt_name( &cur->buf, &san );
+        if( ret != 0 )
         {
-            if( parse_ret == MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE )
-            {
-                ret = mbedtls_snprintf( p, n, "\n%s    <unsupported>", prefix );
-                MBEDTLS_X509_SAFE_SNPRINTF;
-            }
+            if( ret == MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE )
+                p = mbedtls_allpcpy_lim( p, lim, "    <unsupported>" );
             else
-            {
-                ret = mbedtls_snprintf( p, n, "\n%s    <malformed>", prefix );
-                MBEDTLS_X509_SAFE_SNPRINTF;
-            }
-            cur = cur->next;
+                p = mbedtls_allpcpy_lim( p, lim, "    <malformed>" );
             continue;
         }
 
@@ -208,90 +290,66 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
             {
                 mbedtls_x509_san_other_name *other_name = &san.san.other_name;
 
-                ret = mbedtls_snprintf( p, n, "\n%s    otherName :", prefix );
-                MBEDTLS_X509_SAFE_SNPRINTF;
+                p = mbedtls_allpcpy_lim( p, lim, "    otherName :" );
 
                 if( MBEDTLS_OID_CMP( MBEDTLS_OID_ON_HW_MODULE_NAME,
                                      &other_name->value.hardware_module_name.oid ) != 0 )
                 {
-                    ret = mbedtls_snprintf( p, n, "\n%s        hardware module name :", prefix );
-                    MBEDTLS_X509_SAFE_SNPRINTF;
-                    ret = mbedtls_snprintf( p, n, "\n%s            hardware type          : ", prefix );
-                    MBEDTLS_X509_SAFE_SNPRINTF;
+                    p = mbedtls_mempcpy_lim( p, lim, prefix, plen );
+                    p = mbedtls_allpcpy_lim( p, lim,
+                          "        hardware module name :" );
+                    p = mbedtls_mempcpy_lim( p, lim, prefix, plen );
+                    p = mbedtls_allpcpy_lim( p, lim,
+                          "            hardware type          : " );
+                    ret = mbedtls_oid_get_numeric_string( p, (size_t)( lim - p ),
+                            &other_name->value.hardware_module_name.oid );
+                    p = ( ret >= 0 ) ? p + ret : lim;
 
-                    ret = mbedtls_oid_get_numeric_string( p, n, &other_name->value.hardware_module_name.oid );
-                    MBEDTLS_X509_SAFE_SNPRINTF;
-
-                    ret = mbedtls_snprintf( p, n, "\n%s            hardware serial number : ", prefix );
-                    MBEDTLS_X509_SAFE_SNPRINTF;
-
-                    for( i = 0; i < other_name->value.hardware_module_name.val.len; i++ )
-                    {
-                        ret = mbedtls_snprintf( p, n, "%02X", other_name->value.hardware_module_name.val.p[i] );
-                        MBEDTLS_X509_SAFE_SNPRINTF;
-                    }
-
+                    p = mbedtls_mempcpy_lim( p, lim, prefix, plen );
+                    p = mbedtls_allpcpy_lim( p, lim,
+                          "            hardware serial number : " );
+                    p = mbedtls_strhex_lim( p, lim,
+                          other_name->value.hardware_module_name.val.p,
+                          other_name->value.hardware_module_name.val.len );
                 }/* MBEDTLS_OID_ON_HW_MODULE_NAME */
+                break;
             }
-            break;
 
             /*
              * dNSName
              */
             case MBEDTLS_X509_SAN_DNS_NAME:
-            {
-                ret = mbedtls_snprintf( p, n, "\n%s    dNSName : ", prefix );
-                MBEDTLS_X509_SAFE_SNPRINTF;
-                if( san.san.unstructured_name.len >= n )
-                {
-                    *p = '\0';
-                    return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
-                }
-
-                memcpy( p, san.san.unstructured_name.p, san.san.unstructured_name.len );
-                p += san.san.unstructured_name.len;
-                n -= san.san.unstructured_name.len;
-            }
-            break;
+                p = mbedtls_allpcpy_lim( p, lim, "    dNSName : " );
+                p = mbedtls_mempcpy_lim( p, lim,
+                                         san.san.unstructured_name.p,
+                                         san.san.unstructured_name.len );
+                break;
 
             /*
              * Type not supported, skip item.
              */
             default:
-                ret = mbedtls_snprintf( p, n, "\n%s    <unsupported>", prefix );
-                MBEDTLS_X509_SAFE_SNPRINTF;
+                p = mbedtls_allpcpy_lim( p, lim, "    <unsupported>" );
                 break;
         }
-
-        cur = cur->next;
     }
 
-    *p = '\0';
-
-    *size = n;
-    *buf = p;
-
-    return( 0 );
+    return( p );
 }
 
-#define PRINT_ITEM(i)                           \
-    {                                           \
-        ret = mbedtls_snprintf( p, n, "%s" i, sep );    \
-        MBEDTLS_X509_SAFE_SNPRINTF;                        \
-        sep = ", ";                             \
-    }
+/*__attribute__((__noinline__))*//*(XXX: should use where supported)*/
+/*__attribute__((__nonnull__))*//*(XXX: should use where supported)*/
+/*__attribute__((__returns_nonnull__))*//*(XXX: should use where supported)*/
+static char *x509_append_item( char *p, const char *lim, const char *buf, const char *item );
 
-#define CERT_TYPE(type,name)                    \
-    if( ns_cert_type & (type) )                 \
-        PRINT_ITEM( name );
-
-static int x509_info_cert_type( char **buf, size_t *size,
-                                unsigned char ns_cert_type )
+static char *x509_info_cert_type( char * const buf, const char * const lim,
+                                  unsigned char ns_cert_type )
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t n = *size;
-    char *p = *buf;
-    const char *sep = "";
+    char *p = buf;
+
+    #define CERT_TYPE(type,name)                    \
+        if( ns_cert_type & (type) )                 \
+            p = x509_append_item( p, lim, buf, name );
 
     CERT_TYPE( MBEDTLS_X509_NS_CERT_TYPE_SSL_CLIENT,         "SSL Client" );
     CERT_TYPE( MBEDTLS_X509_NS_CERT_TYPE_SSL_SERVER,         "SSL Server" );
@@ -302,23 +360,17 @@ static int x509_info_cert_type( char **buf, size_t *size,
     CERT_TYPE( MBEDTLS_X509_NS_CERT_TYPE_EMAIL_CA,           "Email CA" );
     CERT_TYPE( MBEDTLS_X509_NS_CERT_TYPE_OBJECT_SIGNING_CA,  "Object Signing CA" );
 
-    *size = n;
-    *buf = p;
-
-    return( 0 );
+    return( p );
 }
 
-#define KEY_USAGE(code,name)    \
-    if( key_usage & (code) )    \
-        PRINT_ITEM( name );
-
-static int x509_info_key_usage( char **buf, size_t *size,
-                                unsigned int key_usage )
+static char *x509_info_key_usage( char * const buf, const char * const lim,
+                                  unsigned int key_usage )
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t n = *size;
-    char *p = *buf;
-    const char *sep = "";
+    char *p = buf;
+
+    #define KEY_USAGE(code,name)    \
+        if( key_usage & (code) )    \
+            p = x509_append_item( p, lim, buf, name );
 
     KEY_USAGE( MBEDTLS_X509_KU_DIGITAL_SIGNATURE,    "Digital Signature" );
     KEY_USAGE( MBEDTLS_X509_KU_NON_REPUDIATION,      "Non Repudiation" );
@@ -330,145 +382,112 @@ static int x509_info_key_usage( char **buf, size_t *size,
     KEY_USAGE( MBEDTLS_X509_KU_ENCIPHER_ONLY,        "Encipher Only" );
     KEY_USAGE( MBEDTLS_X509_KU_DECIPHER_ONLY,        "Decipher Only" );
 
-    *size = n;
-    *buf = p;
-
-    return( 0 );
+    return( p );
 }
 
-static int x509_info_ext_key_usage( char **buf, size_t *size,
-                                    const mbedtls_x509_sequence *extended_key_usage )
+static char *x509_info_ext_key_usage( char * const buf, const char * const lim,
+                                      const mbedtls_x509_sequence *extended_key_usage )
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const char *desc;
-    size_t n = *size;
-    char *p = *buf;
-    const mbedtls_x509_sequence *cur = extended_key_usage;
-    const char *sep = "";
+    char *p = buf;
+    const mbedtls_x509_sequence *cur;
 
-    while( cur != NULL )
+    for( cur = extended_key_usage; cur != NULL; cur = cur->next )
     {
         if( mbedtls_oid_get_extended_key_usage( &cur->buf, &desc ) != 0 )
             desc = "???";
-
-        ret = mbedtls_snprintf( p, n, "%s%s", sep, desc );
-        MBEDTLS_X509_SAFE_SNPRINTF;
-
-        sep = ", ";
-
-        cur = cur->next;
+        p = x509_append_item( p, lim, buf, desc );
     }
 
-    *size = n;
-    *buf = p;
-
-    return( 0 );
+    return( p );
 }
 
-static int x509_info_cert_policies( char **buf, size_t *size,
-                                    const mbedtls_x509_sequence *certificate_policies )
+static char *x509_info_cert_policies( char * const buf, const char * const lim,
+                                      const mbedtls_x509_sequence *certificate_policies )
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const char *desc;
-    size_t n = *size;
-    char *p = *buf;
-    const mbedtls_x509_sequence *cur = certificate_policies;
-    const char *sep = "";
+    char *p = buf;
+    const mbedtls_x509_sequence *cur;
 
-    while( cur != NULL )
+    for( cur = certificate_policies; cur != NULL; cur = cur->next )
     {
         if( mbedtls_oid_get_certificate_policies( &cur->buf, &desc ) != 0 )
             desc = "???";
-
-        ret = mbedtls_snprintf( p, n, "%s%s", sep, desc );
-        MBEDTLS_X509_SAFE_SNPRINTF;
-
-        sep = ", ";
-
-        cur = cur->next;
+        p = x509_append_item( p, lim, buf, desc );
     }
 
-    *size = n;
-    *buf = p;
+    return( p );
+}
 
-    return( 0 );
+/*__attribute__((__noinline__))*//*(XXX: should use where supported)*/
+/*__attribute__((__nonnull__))*//*(XXX: should use where supported)*/
+/*__attribute__((__returns_nonnull__))*//*(XXX: should use where supported)*/
+static char *x509_append_item( char *p, const char *lim, const char *buf, const char *item )
+{
+    if( p != buf )
+        p = mbedtls_allpcpy_lim( p, lim, ", " );
+    return mbedtls_strpcpy_lim( p, lim, item );
 }
 
 /*
  * Return an informational string about the certificate.
  */
-#define BEFORE_COLON    18
-#define BC              "18"
 int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
-                   const mbedtls_x509_crt *crt )
+                           const mbedtls_x509_crt *crt )
 {
+    char *p = buf;
+    char * const lim = buf + size;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t n;
-    char *p;
-    char key_size_str[BEFORE_COLON];
-
-    p = buf;
-    n = size;
+    size_t plen = 1;
+    char pre[64] = "\n";
 
     if( NULL == crt )
     {
-        ret = mbedtls_snprintf( p, n, "\nCertificate is uninitialised!\n" );
-        MBEDTLS_X509_SAFE_SNPRINTF;
-
-        return( (int) ( size - n ) );
+        p = mbedtls_allpcpy_lim( p, lim, "\nCertificate is uninitialised!\n" );
+        return (int)mbedtls_strterm( buf, p, lim );
     }
 
-    ret = mbedtls_snprintf( p, n, "%scert. version     : %d\n",
-                               prefix, crt->version );
-    MBEDTLS_X509_SAFE_SNPRINTF;
-    ret = mbedtls_snprintf( p, n, "%sserial number     : ",
-                               prefix );
-    MBEDTLS_X509_SAFE_SNPRINTF;
+    if (*prefix)
+        plen = (size_t)
+          ( mbedtls_strpcpy_lim( pre + 1, pre + sizeof(pre), prefix ) - pre );
+    prefix = pre;
 
-    ret = mbedtls_x509_serial_gets( p, n, &crt->serial );
-    MBEDTLS_X509_SAFE_SNPRINTF;
+    p = mbedtls_mempcpy_lim( p, lim, prefix + 1, plen - 1 );
+    p = mbedtls_allpcpy_lim( p, lim, "cert. version     : " );
+    p = mbedtls_itoa_lim( p, lim, crt->version );
 
-    ret = mbedtls_snprintf( p, n, "\n%sissuer name       : ", prefix );
-    MBEDTLS_X509_SAFE_SNPRINTF;
-    ret = mbedtls_x509_dn_gets( p, n, &crt->issuer  );
-    MBEDTLS_X509_SAFE_SNPRINTF;
+    p = mbedtls_mempcpy_lim( p, lim, prefix, plen );
+    p = mbedtls_allpcpy_lim( p, lim, "serial number     : " );
+    ret = mbedtls_x509_serial_gets( p, (size_t)( lim - p ), &crt->serial );
+    p = ( ret >= 0 ) ? p + ret : lim;
 
-    ret = mbedtls_snprintf( p, n, "\n%ssubject name      : ", prefix );
-    MBEDTLS_X509_SAFE_SNPRINTF;
-    ret = mbedtls_x509_dn_gets( p, n, &crt->subject );
-    MBEDTLS_X509_SAFE_SNPRINTF;
+    p = mbedtls_mempcpy_lim( p, lim, prefix, plen );
+    p = mbedtls_allpcpy_lim( p, lim, "issuer name       : " );
+    ret = mbedtls_x509_dn_gets( p, (size_t)( lim - p ), &crt->issuer  );
+    p = ( ret >= 0 ) ? p + ret : lim;
 
-    ret = mbedtls_snprintf( p, n, "\n%sissued  on        : " \
-                   "%04d-%02d-%02d %02d:%02d:%02d", prefix,
-                   crt->valid_from.year, crt->valid_from.mon,
-                   crt->valid_from.day,  crt->valid_from.hour,
-                   crt->valid_from.min,  crt->valid_from.sec );
-    MBEDTLS_X509_SAFE_SNPRINTF;
+    p = mbedtls_mempcpy_lim( p, lim, prefix, plen );
+    p = mbedtls_allpcpy_lim( p, lim, "subject name      : " );
+    ret = mbedtls_x509_dn_gets( p, (size_t)( lim - p ), &crt->subject );
+    p = ( ret >= 0 ) ? p + ret : lim;
 
-    ret = mbedtls_snprintf( p, n, "\n%sexpires on        : " \
-                   "%04d-%02d-%02d %02d:%02d:%02d", prefix,
-                   crt->valid_to.year, crt->valid_to.mon,
-                   crt->valid_to.day,  crt->valid_to.hour,
-                   crt->valid_to.min,  crt->valid_to.sec );
-    MBEDTLS_X509_SAFE_SNPRINTF;
+    p = mbedtls_mempcpy_lim( p, lim, prefix, plen );
+    p = mbedtls_allpcpy_lim( p, lim, "issued  on        : " );
+    p = mbedtls_x509_time_str( p, lim, &crt->valid_from );
 
-    ret = mbedtls_snprintf( p, n, "\n%ssigned using      : ", prefix );
-    MBEDTLS_X509_SAFE_SNPRINTF;
+    p = mbedtls_mempcpy_lim( p, lim, prefix, plen );
+    p = mbedtls_allpcpy_lim( p, lim, "expires on        : " );
+    p = mbedtls_x509_time_str( p, lim, &crt->valid_to );
 
-    ret = mbedtls_x509_sig_alg_gets( p, n, &crt->sig_oid, crt->sig_pk,
-                             crt->sig_md, crt->sig_opts );
-    MBEDTLS_X509_SAFE_SNPRINTF;
+    p = mbedtls_mempcpy_lim( p, lim, prefix, plen );
+    p = mbedtls_allpcpy_lim( p, lim, "signed using      : " );
+    ret = mbedtls_x509_sig_alg_gets( p, (size_t)( lim - p ),
+                                     &crt->sig_oid, crt->sig_pk,
+                                     crt->sig_md, crt->sig_opts );
+    p = ( ret >= 0 ) ? p + ret : lim;
 
-    /* Key size */
-    if( ( ret = mbedtls_x509_key_size_helper( key_size_str, BEFORE_COLON,
-                                      mbedtls_pk_get_name( &crt->pk ) ) ) != 0 )
-    {
-        return( ret );
-    }
-
-    ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: %d bits", prefix, key_size_str,
-                          (int) mbedtls_pk_get_bitlen( &crt->pk ) );
-    MBEDTLS_X509_SAFE_SNPRINTF;
+    p = mbedtls_mempcpy_lim( p, lim, prefix, plen );
+    p = x509_info_pk_key_size( p, lim, &crt->pk, 18 );
 
     /*
      * Optional extensions
@@ -476,110 +495,99 @@ int mbedtls_x509_crt_info( char *buf, size_t size, const char *prefix,
 
     if( crt->ext_types & MBEDTLS_X509_EXT_BASIC_CONSTRAINTS )
     {
-        ret = mbedtls_snprintf( p, n, "\n%sbasic constraints : CA=%s", prefix,
-                        crt->ca_istrue ? "true" : "false" );
-        MBEDTLS_X509_SAFE_SNPRINTF;
+        p = mbedtls_mempcpy_lim( p, lim, prefix, plen );
+        if( crt->ca_istrue )
+            p = mbedtls_allpcpy_lim( p, lim, "basic constraints : CA=true" );
+        else
+            p = mbedtls_allpcpy_lim( p, lim, "basic constraints : CA=false" );
 
         if( crt->max_pathlen > 0 )
         {
-            ret = mbedtls_snprintf( p, n, ", max_pathlen=%d", crt->max_pathlen - 1 );
-            MBEDTLS_X509_SAFE_SNPRINTF;
+            p = mbedtls_allpcpy_lim( p, lim, ", max_pathlen=" );
+            p = mbedtls_itoa_lim( p, lim, crt->max_pathlen - 1 );
         }
     }
 
     if( crt->ext_types & MBEDTLS_X509_EXT_SUBJECT_ALT_NAME )
     {
-        ret = mbedtls_snprintf( p, n, "\n%ssubject alt name  :", prefix );
-        MBEDTLS_X509_SAFE_SNPRINTF;
-
-        if( ( ret = x509_info_subject_alt_name( &p, &n,
-                                                &crt->subject_alt_names,
-                                                prefix ) ) != 0 )
-            return( ret );
+        p = mbedtls_mempcpy_lim( p, lim, prefix, plen );
+        p = mbedtls_allpcpy_lim( p, lim, "subject alt name  :" );
+        p = x509_info_subject_alt_name( p, (size_t)( lim - p ),
+                                        &crt->subject_alt_names,
+                                        prefix, plen );
     }
 
     if( crt->ext_types & MBEDTLS_X509_EXT_NS_CERT_TYPE )
     {
-        ret = mbedtls_snprintf( p, n, "\n%scert. type        : ", prefix );
-        MBEDTLS_X509_SAFE_SNPRINTF;
-
-        if( ( ret = x509_info_cert_type( &p, &n, crt->ns_cert_type ) ) != 0 )
-            return( ret );
+        p = mbedtls_mempcpy_lim( p, lim, prefix, plen );
+        p = mbedtls_allpcpy_lim( p, lim, "cert. type        : " );
+        p = x509_info_cert_type( p, lim, crt->ns_cert_type );
     }
 
     if( crt->ext_types & MBEDTLS_X509_EXT_KEY_USAGE )
     {
-        ret = mbedtls_snprintf( p, n, "\n%skey usage         : ", prefix );
-        MBEDTLS_X509_SAFE_SNPRINTF;
-
-        if( ( ret = x509_info_key_usage( &p, &n, crt->key_usage ) ) != 0 )
-            return( ret );
+        p = mbedtls_mempcpy_lim( p, lim, prefix, plen );
+        p = mbedtls_allpcpy_lim( p, lim, "key usage         : " );
+        p = x509_info_key_usage( p, lim, crt->key_usage );
     }
 
     if( crt->ext_types & MBEDTLS_X509_EXT_EXTENDED_KEY_USAGE )
     {
-        ret = mbedtls_snprintf( p, n, "\n%sext key usage     : ", prefix );
-        MBEDTLS_X509_SAFE_SNPRINTF;
-
-        if( ( ret = x509_info_ext_key_usage( &p, &n,
-                                             &crt->ext_key_usage ) ) != 0 )
-            return( ret );
+        p = mbedtls_mempcpy_lim( p, lim, prefix, plen );
+        p = mbedtls_allpcpy_lim( p, lim, "ext key usage     : " );
+        p = x509_info_ext_key_usage( p, lim, &crt->ext_key_usage );
     }
 
     if( crt->ext_types & MBEDTLS_OID_X509_EXT_CERTIFICATE_POLICIES )
     {
-        ret = mbedtls_snprintf( p, n, "\n%scertificate policies : ", prefix );
-        MBEDTLS_X509_SAFE_SNPRINTF;
-
-        if( ( ret = x509_info_cert_policies( &p, &n,
-                                             &crt->certificate_policies ) ) != 0 )
-            return( ret );
+        p = mbedtls_mempcpy_lim( p, lim, prefix, plen );
+        p = mbedtls_allpcpy_lim( p, lim, "certificate policies : " );
+        p = x509_info_cert_policies( p, lim, &crt->certificate_policies );
     }
 
-    ret = mbedtls_snprintf( p, n, "\n" );
-    MBEDTLS_X509_SAFE_SNPRINTF;
-
-    return( (int) ( size - n ) );
+    p = mbedtls_mempcpy_lim( p, lim, "\n", 1 );
+    return (int)mbedtls_strterm( buf, p, lim );
 }
 
-struct x509_crt_verify_string {
-    int code;
-    const char *string;
-};
-
-#define X509_CRT_ERROR_INFO( err, err_str, info ) { err, info },
-static const struct x509_crt_verify_string x509_crt_verify_strings[] = {
-    MBEDTLS_X509_CRT_ERROR_INFO_LIST
-    { 0, NULL }
-};
-#undef X509_CRT_ERROR_INFO
-
 int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
-                          uint32_t flags )
+                                  uint32_t flags )
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    struct x509_crt_verify_string {
+        int code;
+        const char *string;
+    };
+
+    #define X509_CRT_ERROR_INFO( err, err_str, info ) { err, info },
+    static const struct x509_crt_verify_string x509_crt_verify_strings[] = {
+        MBEDTLS_X509_CRT_ERROR_INFO_LIST
+        { 0, NULL }
+    };
+    #undef X509_CRT_ERROR_INFO
+
     const struct x509_crt_verify_string *cur;
     char *p = buf;
-    size_t n = size;
+    char * const lim = buf + size;
+    const size_t plen = strlen( prefix );
 
     for( cur = x509_crt_verify_strings; cur->string != NULL ; cur++ )
     {
         if( ( flags & cur->code ) == 0 )
             continue;
-
-        ret = mbedtls_snprintf( p, n, "%s%s\n", prefix, cur->string );
-        MBEDTLS_X509_SAFE_SNPRINTF;
         flags ^= cur->code;
+
+        p = mbedtls_mempcpy_lim( p, lim, prefix, plen );
+        p = mbedtls_strpcpy_lim( p, lim, cur->string );
+        p = mbedtls_mempcpy_lim( p, lim, "\n", 1 );
     }
 
     if( flags != 0 )
     {
-        ret = mbedtls_snprintf( p, n, "%sUnknown reason "
-                                       "(this should not happen)\n", prefix );
-        MBEDTLS_X509_SAFE_SNPRINTF;
+        p = mbedtls_mempcpy_lim( p, lim, prefix, plen );
+        p = mbedtls_allpcpy_lim( p, lim,
+              "Unknown reason (this should not happen)\n" );
     }
 
-    return( (int) ( size - n ) );
+    return (int)mbedtls_strterm( buf, p, lim );
 }
 
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
@@ -587,51 +595,44 @@ int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
 
 #if defined(MBEDTLS_X509_CSR_PARSE_C)
 
-#undef BEFORE_COLON
-#undef BC
-#define BEFORE_COLON    14
-#define BC              "14"
 /*
  * Return an informational string about the CSR.
  */
 int mbedtls_x509_csr_info( char *buf, size_t size, const char *prefix,
-                   const mbedtls_x509_csr *csr )
+                           const mbedtls_x509_csr *csr )
 {
+    char *p = buf;
+    char * const lim = buf + size;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t n;
-    char *p;
-    char key_size_str[BEFORE_COLON];
+    size_t plen = 1;
+    char pre[64] = "\n";
 
-    p = buf;
-    n = size;
+    if (*prefix)
+        plen = (size_t)
+          ( mbedtls_strpcpy_lim( pre + 1, pre + sizeof(pre), prefix ) - pre );
+    prefix = pre;
 
-    ret = mbedtls_snprintf( p, n, "%sCSR version   : %d",
-                               prefix, csr->version );
-    MBEDTLS_X509_SAFE_SNPRINTF;
+    p = mbedtls_mempcpy_lim( p, lim, prefix + 1, plen - 1 );
+    p = mbedtls_allpcpy_lim( p, lim, "CSR version   : " );
+    p = mbedtls_itoa_lim( p, lim, csr->version );
 
-    ret = mbedtls_snprintf( p, n, "\n%ssubject name  : ", prefix );
-    MBEDTLS_X509_SAFE_SNPRINTF;
-    ret = mbedtls_x509_dn_gets( p, n, &csr->subject );
-    MBEDTLS_X509_SAFE_SNPRINTF;
+    p = mbedtls_mempcpy_lim( p, lim, prefix, plen );
+    p = mbedtls_allpcpy_lim( p, lim, "subject name  : " );
+    ret = mbedtls_x509_dn_gets( p, (size_t)( lim - p ), &csr->subject );
+    p = ( ret >= 0 ) ? p + ret : lim;
 
-    ret = mbedtls_snprintf( p, n, "\n%ssigned using  : ", prefix );
-    MBEDTLS_X509_SAFE_SNPRINTF;
+    p = mbedtls_mempcpy_lim( p, lim, prefix, plen );
+    p = mbedtls_allpcpy_lim( p, lim, "signed using  : " );
+    ret = mbedtls_x509_sig_alg_gets( p, (size_t)( lim - p ),
+                                     &csr->sig_oid, csr->sig_pk,
+                                     csr->sig_md, csr->sig_opts );
+    p = ( ret >= 0 ) ? p + ret : lim;
 
-    ret = mbedtls_x509_sig_alg_gets( p, n, &csr->sig_oid, csr->sig_pk, csr->sig_md,
-                             csr->sig_opts );
-    MBEDTLS_X509_SAFE_SNPRINTF;
+    p = mbedtls_mempcpy_lim( p, lim, prefix, plen );
+    p = x509_info_pk_key_size( p, lim, &csr->pk, 14 );
 
-    if( ( ret = mbedtls_x509_key_size_helper( key_size_str, BEFORE_COLON,
-                                      mbedtls_pk_get_name( &csr->pk ) ) ) != 0 )
-    {
-        return( ret );
-    }
-
-    ret = mbedtls_snprintf( p, n, "\n%s%-" BC "s: %d bits\n", prefix, key_size_str,
-                          (int) mbedtls_pk_get_bitlen( &csr->pk ) );
-    MBEDTLS_X509_SAFE_SNPRINTF;
-
-    return( (int) ( size - n ) );
+    p = mbedtls_mempcpy_lim( p, lim, "\n", 1 );
+    return (int)mbedtls_strterm( buf, p, lim );
 }
 
 #endif /* MBEDTLS_X509_CSR_PARSE_C */
@@ -643,78 +644,166 @@ int mbedtls_x509_csr_info( char *buf, size_t size, const char *prefix,
  * Return an informational string about the CRL.
  */
 int mbedtls_x509_crl_info( char *buf, size_t size, const char *prefix,
-                   const mbedtls_x509_crl *crl )
+                           const mbedtls_x509_crl *crl )
 {
+    char *p = buf;
+    char * const lim = buf + size;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t n;
-    char *p;
     const mbedtls_x509_crl_entry *entry;
+    size_t plen = 1;
+    char pre[64] = "\n";
 
-    p = buf;
-    n = size;
+    if (*prefix)
+        plen = (size_t)
+          ( mbedtls_strpcpy_lim( pre + 1, pre + sizeof(pre), prefix ) - pre );
+    prefix = pre;
 
-    ret = mbedtls_snprintf( p, n, "%sCRL version   : %d",
-                               prefix, crl->version );
-    MBEDTLS_X509_SAFE_SNPRINTF;
+    p = mbedtls_mempcpy_lim( p, lim, prefix + 1, plen - 1 );
+    p = mbedtls_allpcpy_lim( p, lim, "CRL version   : " );
+    p = mbedtls_itoa_lim( p, lim, crl->version );
 
-    ret = mbedtls_snprintf( p, n, "\n%sissuer name   : ", prefix );
-    MBEDTLS_X509_SAFE_SNPRINTF;
-    ret = mbedtls_x509_dn_gets( p, n, &crl->issuer );
-    MBEDTLS_X509_SAFE_SNPRINTF;
+    p = mbedtls_mempcpy_lim( p, lim, prefix, plen );
+    p = mbedtls_allpcpy_lim( p, lim, "issuer name   : " );
+    ret = mbedtls_x509_dn_gets( p, (size_t)( lim - p ), &crl->issuer  );
+    p = ( ret >= 0 ) ? p + ret : lim;
 
-    ret = mbedtls_snprintf( p, n, "\n%sthis update   : " \
-                   "%04d-%02d-%02d %02d:%02d:%02d", prefix,
-                   crl->this_update.year, crl->this_update.mon,
-                   crl->this_update.day,  crl->this_update.hour,
-                   crl->this_update.min,  crl->this_update.sec );
-    MBEDTLS_X509_SAFE_SNPRINTF;
+    p = mbedtls_mempcpy_lim( p, lim, prefix, plen );
+    p = mbedtls_allpcpy_lim( p, lim, "this update   : " );
+    p = mbedtls_x509_time_str( p, lim, &crl->this_update );
 
-    ret = mbedtls_snprintf( p, n, "\n%snext update   : " \
-                   "%04d-%02d-%02d %02d:%02d:%02d", prefix,
-                   crl->next_update.year, crl->next_update.mon,
-                   crl->next_update.day,  crl->next_update.hour,
-                   crl->next_update.min,  crl->next_update.sec );
-    MBEDTLS_X509_SAFE_SNPRINTF;
+    p = mbedtls_mempcpy_lim( p, lim, prefix, plen );
+    p = mbedtls_allpcpy_lim( p, lim, "next update   : " );
+    p = mbedtls_x509_time_str( p, lim, &crl->next_update );
+
+    p = mbedtls_mempcpy_lim( p, lim, prefix, plen );
+    p = mbedtls_allpcpy_lim( p, lim, "Revoked certificates:" );
 
     entry = &crl->entry;
-
-    ret = mbedtls_snprintf( p, n, "\n%sRevoked certificates:",
-                               prefix );
-    MBEDTLS_X509_SAFE_SNPRINTF;
-
     while( entry != NULL && entry->raw.len != 0 )
     {
-        ret = mbedtls_snprintf( p, n, "\n%sserial number: ",
-                               prefix );
-        MBEDTLS_X509_SAFE_SNPRINTF;
+        p = mbedtls_mempcpy_lim( p, lim, prefix, plen );
+        p = mbedtls_allpcpy_lim( p, lim, "serial number: " );
+        ret = mbedtls_x509_serial_gets( p, (size_t)( lim - p ),
+                                        &entry->serial );
+        p = ( ret >= 0 ) ? p + ret : lim;
 
-        ret = mbedtls_x509_serial_gets( p, n, &entry->serial );
-        MBEDTLS_X509_SAFE_SNPRINTF;
-
-        ret = mbedtls_snprintf( p, n, " revocation date: " \
-                   "%04d-%02d-%02d %02d:%02d:%02d",
-                   entry->revocation_date.year, entry->revocation_date.mon,
-                   entry->revocation_date.day,  entry->revocation_date.hour,
-                   entry->revocation_date.min,  entry->revocation_date.sec );
-        MBEDTLS_X509_SAFE_SNPRINTF;
+        p = mbedtls_allpcpy_lim( p, lim, " revocation date: " );
+        p = mbedtls_x509_time_str( p, lim, &entry->revocation_date );
 
         entry = entry->next;
     }
 
-    ret = mbedtls_snprintf( p, n, "\n%ssigned using  : ", prefix );
-    MBEDTLS_X509_SAFE_SNPRINTF;
+    p = mbedtls_mempcpy_lim( p, lim, prefix, plen );
+    p = mbedtls_allpcpy_lim( p, lim, "signed using  : " );
+    ret = mbedtls_x509_sig_alg_gets( p, (size_t)( lim - p ),
+                                     &crl->sig_oid, crl->sig_pk,
+                                     crl->sig_md, crl->sig_opts );
+    p = ( ret >= 0 ) ? p + ret : lim;
 
-    ret = mbedtls_x509_sig_alg_gets( p, n, &crl->sig_oid, crl->sig_pk, crl->sig_md,
-                             crl->sig_opts );
-    MBEDTLS_X509_SAFE_SNPRINTF;
-
-    ret = mbedtls_snprintf( p, n, "\n" );
-    MBEDTLS_X509_SAFE_SNPRINTF;
-
-    return( (int) ( size - n ) );
+    p = mbedtls_mempcpy_lim( p, lim, "\n", 1 );
+    return (int)mbedtls_strterm( buf, p, lim );
 }
 
 #endif /* MBEDTLS_X509_CRL_PARSE_C */
+
+
+#if defined(MBEDTLS_X509_USE_C)
+
+/* funcs placed near bottom of file to avoid inlining in older compilers */
+
+/*__attribute__((__noinline__))*//*(XXX: should use where supported)*/
+/*__attribute__((__nonnull__))*//*(XXX: should use where supported)*/
+static char *mbedtls_x509_time_str( char *dst, const char *lim,
+                                    const mbedtls_x509_time *tm )
+{
+    size_t n = (size_t)(lim - dst);
+    int ret = mbedtls_snprintf( dst, n, "%04d-%02d-%02d %02d:%02d:%02d",
+                                tm->year, tm->mon, tm->day,
+                                tm->hour, tm->min, tm->sec );
+    return( ( ret >= 0 && (size_t)ret < n ) ? dst + ret : dst + n );
+}
+
+/*__attribute__((__noinline__))*//*(XXX: should use where supported)*/
+/*__attribute__((__nonnull__))*//*(XXX: should use where supported)*/
+static intptr_t mbedtls_strterm( char *buf, char *p, const char *lim )
+{
+    if( p < lim )
+    {
+        p[0] = '\0';
+        return( (intptr_t)( p - buf ) );
+    }
+    else
+    {
+        if( p != buf )
+            p[-1] = '\0';
+        return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
+    }
+}
+
+/*__attribute__((__noinline__))*//*(XXX: should use where supported)*/
+/*__attribute__((__nonnull__))*//*(XXX: should use where supported)*/
+/*__attribute__((__returns_nonnull__))*//*(XXX: should use where supported)*/
+static char *mbedtls_strpcpy_lim( char *dst, const char *lim, const char *src )
+{
+    return mbedtls_mempcpy_lim( dst, lim, src, strlen( src ) );
+}
+
+/*
+ * Append to dst up to len bytes from src, limited by lim (dst + dst_sz)
+ * Note: like mempcpy(), this function does not '\0' terminate string.
+ * Caller may call this function repeatedly, passing in dst as the return value
+ * from a prior invocation, even if lim has been reached.  Before using result,
+ * caller must detect truncated string by checking if return value == lim.
+ * Final length of string (not '\0' terminated) is return value - original dst
+ * and may be '\0' terminated by final_dst[(final_dst <= lim ? 0 : -1)] = '\0'
+ */
+/*__attribute__((__noinline__))*//*(XXX: should use where supported)*/
+/*__attribute__((__nonnull__))*//*(XXX: should use where supported)*/
+/*__attribute__((__returns_nonnull__))*//*(XXX: should use where supported)*/
+static char *mbedtls_mempcpy_lim( char *dst, const char *lim,
+                                  const void *src, size_t len )
+{
+    if( len > (size_t)( lim - dst ) )
+        len = lim - dst;
+  #ifdef HAVE_MEMPCPY
+    return mempcpy( dst, src, len );
+  #else
+    memcpy( dst, src, len );
+    return( dst + len );
+  #endif
+}
+
+/*__attribute__((__noinline__))*//*(XXX: should use where supported)*/
+/*__attribute__((__nonnull__))*//*(XXX: should use where supported)*/
+static char *mbedtls_strhex_lim( char *dst, const char *lim,
+                                 const unsigned char *src, size_t len )
+{
+    len <<= 1;
+    if( len > (size_t)( lim - dst ) )
+        len = lim - dst;
+    for( size_t i = 0; i < len; i += 2 )
+    {
+        static const char hex_chars_uc[] = "0123456789ABCDEF";
+        uint8_t u = src[( i >> 1 )];
+        dst[i] = hex_chars_uc[( u >> 4 ) & 0xF ];
+        if( i + 1 < len )
+            dst[i+1] = hex_chars_uc[( u & 0xF )];
+    }
+    return( dst + len );
+}
+
+/*__attribute__((__noinline__))*//*(XXX: should use where supported)*/
+/*__attribute__((__nonnull__))*//*(XXX: should use where supported)*/
+/*__attribute__((__returns_nonnull__))*//*(XXX: should use where supported)*/
+static char *mbedtls_itoa_lim( char *dst, const char *lim, int i )
+{
+    /* XXX: custom itoa() might be faster, but would increase code size */
+    const size_t n = (size_t)( lim - dst );
+    const int ret = mbedtls_snprintf( dst, n, "%d", i );
+    return( dst + ( ( ret >= 0 && (size_t)ret < n ) ? (size_t)ret : n ) );
+}
+
+#endif /* MBEDTLS_X509_USE_C */
 
 #endif /* MBEDTLS_X509_REMOVE_INFO */
 
@@ -727,67 +816,61 @@ int mbedtls_x509_crl_info( char *buf, size_t size, const char *prefix,
  */
 int mbedtls_x509_dn_gets( char *buf, size_t size, const mbedtls_x509_name *dn )
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t i, j, n;
-    unsigned char c, merge = 0;
-    const mbedtls_x509_name *name;
-    const char *short_name = NULL;
-    char s[MBEDTLS_X509_MAX_DN_NAME_SIZE], *p;
+    size_t n = 0, plen = 0, klen;
+    const char *short_name;
 
-    memset( s, 0, sizeof( s ) );
-
-    name = dn;
-    p = buf;
-    n = size;
-
-    while( name != NULL )
+    for ( const mbedtls_x509_name *rdn = dn; rdn != NULL; rdn = rdn->next )
     {
-        if( !name->oid.p )
-        {
-            name = name->next;
+        if( !rdn->oid.p )
             continue;
+
+        if( 0 != mbedtls_oid_get_attr_short_name( &rdn->oid, &short_name ) )
+            short_name = "??";
+        klen = strlen( short_name );
+
+        /*(space check for: prefix + 'short_name=val' + '\0')*/
+        if( plen + klen + 1 + rdn->val.len + 1 > size - n )
+        {
+            if( size )
+                buf[n] = '\0';
+            return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
         }
 
-        if( name != dn )
+        if( plen )
         {
-            ret = mbedtls_snprintf( p, n, merge ? " + " : ", " );
-            MBEDTLS_X509_SAFE_SNPRINTF;
+            memcpy( buf+n, plen == 2 ? ", " : " + ", plen );
+            n += plen;
         }
 
-        ret = mbedtls_oid_get_attr_short_name( &name->oid, &short_name );
+        memcpy( buf+n, short_name, klen );
+        n += klen;
+        buf[n++] = '=';
 
-        if( ret == 0 )
-            ret = mbedtls_snprintf( p, n, "%s=", short_name );
-        else
-            ret = mbedtls_snprintf( p, n, "\?\?=" );
-        MBEDTLS_X509_SAFE_SNPRINTF;
-
-        for( i = 0, j = 0; i < name->val.len; i++, j++ )
+        for( size_t i = 0; i < rdn->val.len; ++i )
         {
-            if( j >= sizeof( s ) - 1 )
-                return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
-
-            c = name->val.p[i];
-            // Special characters requiring escaping, RFC 1779
-            if( c && strchr( ",=+<>#;\"\\", c ) )
+            unsigned int c = rdn->val.p[i];
+            if( c - 32 >= 127 - 32 )
+                c = '?';
+            else if( memchr( "\"#+,;<=>\\", (int)c,
+                             sizeof( "\"#+,;<=>\\" ) - 1 ) )
             {
-                if( j + 1 >= sizeof( s ) - 1 )
+                /* Special characters requiring escaping, RFC 1779 */
+                if( rdn->val.len - i + 2 > size - n )
+                {
+                    buf[n] = '\0';
                     return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
-                s[j++] = '\\';
+                }
+                buf[n++] = '\\';
             }
-            if( c < 32 || c >= 127 )
-                 s[j] = '?';
-            else s[j] = c;
+            buf[n++] = c;
         }
-        s[j] = '\0';
-        ret = mbedtls_snprintf( p, n, "%s", s );
-        MBEDTLS_X509_SAFE_SNPRINTF;
 
-        merge = name->next_merged;
-        name = name->next;
+        plen = rdn->next_merged ? 3 : 2; /*(" + " or ", ")*/
     }
 
-    return( (int) ( size - n ) );
+    if( size )
+        buf[n] = '\0';
+    return( (int)n );
 }
 
 /*
@@ -796,48 +879,78 @@ int mbedtls_x509_dn_gets( char *buf, size_t size, const mbedtls_x509_name *dn )
  */
 int mbedtls_x509_serial_gets( char *buf, size_t size, const mbedtls_x509_buf *serial )
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t i, n, nr;
-    char *p;
+    char xbuf[100]; /* large enough for (2 x 32) nibbles + 31 ':' */
+    char *x = xbuf;
+    const int nr = ( serial->len <= 32 ) ? (int)serial->len : 28;
 
-    p = buf;
-    n = size;
+    int i = 0; /* skip leading 0's per Distinguished Encoding Rules (DER) */
+    while( i < nr && serial->p[i] == 0 ) ++i;
+    if( i == nr ) --i;
 
-    nr = ( serial->len <= 32 )
-        ? serial->len  : 28;
-
-    for( i = 0; i < nr; i++ )
+    for( ;; )
     {
-        if( i == 0 && nr > 1 && serial->p[i] == 0x0 )
-            continue;
+        static const char hex_chars_uc[] = "0123456789ABCDEF";
+        unsigned int u = serial->p[i];
+        *x++ = hex_chars_uc[ 0x0F & ( u >> 4 ) ];
+        *x++ = hex_chars_uc[ 0x0F & u ];
 
-        ret = mbedtls_snprintf( p, n, "%02X%s",
-                serial->p[i], ( i < nr - 1 ) ? ":" : "" );
-        MBEDTLS_X509_SAFE_SNPRINTF;
+        if( ++i < nr )
+            *x++ = ':';
+        else
+            break;
     }
 
-    if( nr != serial->len )
+    if( (size_t)nr != serial->len )
     {
-        ret = mbedtls_snprintf( p, n, "...." );
-        MBEDTLS_X509_SAFE_SNPRINTF;
+        memcpy( x, "....", 4 );
+        x += 4;
     }
 
-    return( (int) ( size - n ) );
+    {
+      #if 0 /*(limit use of mbedtls_*pcpy_lim() to !MBEDTLS_X509_REMOVE_INFO)*/
+        const char * const lim = buf + size;
+        char *p = mbedtls_mempcpy_lim( buf, lim, xbuf, (size_t)( x - xbuf ) );
+        return( (int)mbedtls_strterm( buf, p, lim ) );
+      #else
+        const size_t xlen = (size_t)( x - xbuf );
+        if( size )
+        {
+            const size_t len = xlen < size ? xlen : size - 1;
+            memcpy( buf, xbuf, len );
+            buf[len] = '\0';
+        }
+        return( xlen < size ) ? (int)xlen : MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
+      #endif
+    }
 }
 
+#if defined(MBEDTLS_X509_REMOVE_INFO)
+#if defined(MBEDTLS_PLATFORM_C)
+#include "mbedtls/platform.h"
+#else
+#include <stdio.h>
+#define mbedtls_snprintf   snprintf
+#endif
+#endif
 /*
  * Helper for writing "RSA key size", "EC key size", etc
  */
 int mbedtls_x509_key_size_helper( char *buf, size_t buf_size, const char *name )
 {
+    /* XXX: unused func; deprecate */
+  #if 0 /*(limit use of mbedtls_*pcpy_lim() to !MBEDTLS_X509_REMOVE_INFO)*/
     char *p = buf;
-    size_t n = buf_size;
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
-    ret = mbedtls_snprintf( p, n, "%s key size", name );
-    MBEDTLS_X509_SAFE_SNPRINTF;
-
+    const char * const lim = buf + buf_size;
+    p = mbedtls_strpcpy_lim( p, lim, name );
+    p = mbedtls_allpcpy_lim( p, lim, " key size" );
+    int ret = (int)mbedtls_strterm( buf, p, lim );
+    return ( ( ret >= 0 ) ? 0 : ret );
+  #else
+    int ret = mbedtls_snprintf(buf, buf_size, "%s key size", name);
+    if( ret < 0 || (size_t) ret >= buf_size )
+        return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
     return( 0 );
+  #endif
 }
 
 #endif /* MBEDTLS_X509_USE_C */

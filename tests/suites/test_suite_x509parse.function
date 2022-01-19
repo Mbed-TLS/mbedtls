@@ -209,27 +209,23 @@ int verify_print( void *data, mbedtls_x509_crt *crt, int certificate_depth, uint
 {
     int ret;
     verify_print_context *ctx = (verify_print_context *) data;
-    char *p = ctx->p;
     size_t n = ctx->buf + sizeof( ctx->buf ) - ctx->p;
-    ((void) flags);
+    char serial[512];
+    char subject[512];
 
-    ret = mbedtls_snprintf( p, n, "depth %d - serial ", certificate_depth );
-    MBEDTLS_X509_SAFE_SNPRINTF;
+    ret = mbedtls_x509_serial_gets( serial, sizeof(serial), &crt->serial );
+    if( ret < 0 ) return ret;
 
-    ret = mbedtls_x509_serial_gets( p, n, &crt->serial );
-    MBEDTLS_X509_SAFE_SNPRINTF;
+    ret = mbedtls_x509_dn_gets( subject, sizeof(subject), &crt->subject );
+    if( ret < 0 ) return ret;
 
-    ret = mbedtls_snprintf( p, n, " - subject " );
-    MBEDTLS_X509_SAFE_SNPRINTF;
+    ret = mbedtls_snprintf( ctx->p, n,
+            "depth %d - serial %s - subject %s - flags 0x%08x\n",
+            certificate_depth, serial, subject, *flags);
+    if( ret < 0 || (size_t) ret >= n )
+        return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
 
-    ret = mbedtls_x509_dn_gets( p, n, &crt->subject );
-    MBEDTLS_X509_SAFE_SNPRINTF;
-
-    ret = mbedtls_snprintf( p, n, " - flags 0x%08x\n", *flags );
-    MBEDTLS_X509_SAFE_SNPRINTF;
-
-    ctx->p = p;
-
+    ctx->p += ret;
     return( 0 );
 }
 
@@ -237,52 +233,49 @@ int verify_parse_san( mbedtls_x509_subject_alternative_name *san,
                       char **buf, size_t *size )
 {
     int ret;
-    size_t i;
-    char *p = *buf;
-    size_t n = *size;
-
-    ret = mbedtls_snprintf( p, n, "type : %d", san->type );
-    MBEDTLS_X509_SAFE_SNPRINTF;
 
     switch( san->type )
     {
-        case( MBEDTLS_X509_SAN_OTHER_NAME ):
-            ret = mbedtls_snprintf( p, n, "\notherName :");
-            MBEDTLS_X509_SAFE_SNPRINTF;
+       case( MBEDTLS_X509_SAN_OTHER_NAME ):
 
-            if( MBEDTLS_OID_CMP( MBEDTLS_OID_ON_HW_MODULE_NAME,
-                     &san->san.other_name.value.hardware_module_name.oid ) != 0 )
+           if( MBEDTLS_OID_CMP( MBEDTLS_OID_ON_HW_MODULE_NAME,
+                    &san->san.other_name.value.hardware_module_name.oid ) != 0 )
+           {
+               char oid[256];
+               ret = mbedtls_oid_get_numeric_string( oid, sizeof(oid),
+                          &san->san.other_name.value.hardware_module_name.oid );
+               if( ret < 0 ) return ret;
+
+               /*(note: does not match string format in library/x509_crt.c)*/
+               ret = mbedtls_snprintf( *buf, *size,
+                       "type : %d\notherName :"
+                       " hardware module name :"
+                       " hardware type : %s, hardware serial number : ",
+                       san->type, oid);
+               if( ret < 0 )
+                   break;
+               char *p = *buf + ret;
+               ret += san->san.other_name.value.hardware_module_name.val.len * 2 + 1;
+               if( (size_t) ret >= *size )
+                   break;
+               for( size_t i = 0; i < san->san.other_name.value.hardware_module_name.val.len; i++ )
+               {
+                   mbedtls_snprintf( p, 3, "%02X", san->san.other_name.value.hardware_module_name.val.p[i] );
+                   p += 2;
+               }
+               *p = '\n';
+            }
+            else
             {
-                ret = mbedtls_snprintf( p, n, " hardware module name :" );
-                MBEDTLS_X509_SAFE_SNPRINTF;
-                ret = mbedtls_snprintf( p, n, " hardware type : " );
-                MBEDTLS_X509_SAFE_SNPRINTF;
-
-                ret = mbedtls_oid_get_numeric_string( p, n,
-                           &san->san.other_name.value.hardware_module_name.oid );
-                MBEDTLS_X509_SAFE_SNPRINTF;
-
-                ret = mbedtls_snprintf( p, n, ", hardware serial number : " );
-                MBEDTLS_X509_SAFE_SNPRINTF;
-
-                for( i = 0; i < san->san.other_name.value.hardware_module_name.val.len; i++ )
-                {
-                    ret = mbedtls_snprintf( p, n, "%02X", san->san.other_name.value.hardware_module_name.val.p[i] );
-                    MBEDTLS_X509_SAFE_SNPRINTF;
-                }
+               ret = mbedtls_snprintf( *buf, *size, "type : %d\notherName :\n",
+                                       san->type );
             }
         break;/* MBEDTLS_OID_ON_HW_MODULE_NAME */
         case(  MBEDTLS_X509_SAN_DNS_NAME ):
-            ret = mbedtls_snprintf( p, n, "\ndNSName : " );
-            MBEDTLS_X509_SAFE_SNPRINTF;
-            if( san->san.unstructured_name.len >= n )
-            {
-                *p = '\0';
-                return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
-            }
-            n -= san->san.unstructured_name.len;
-            for( i = 0; i < san->san.unstructured_name.len; i++ )
-                *p++ = san->san.unstructured_name.p[i];
+            ret = mbedtls_snprintf( *buf, *size, "type : %d\ndNSName : %.*s\n",
+                                    san->type,
+                                    (int)san->san.unstructured_name.len,
+                                    san->san.unstructured_name.p );
         break;/* MBEDTLS_X509_SAN_DNS_NAME */
 
         default:
@@ -291,12 +284,11 @@ int verify_parse_san( mbedtls_x509_subject_alternative_name *san,
          */
         return( -1 );
     }
-    ret = mbedtls_snprintf( p, n, "\n" );
-    MBEDTLS_X509_SAFE_SNPRINTF;
 
-    *size = n;
-    *buf = p;
-
+    if( ret < 0 || (size_t) ret >= *size )
+        return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
+    *size -= ret;
+    *buf += ret;
     return( 0 );
 }
 

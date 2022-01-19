@@ -1283,11 +1283,6 @@ int mbedtls_ssl_set_calc_verify_md( mbedtls_ssl_context *ssl, int md );
 int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id );
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-int mbedtls_ssl_check_sig_hash( const mbedtls_ssl_context *ssl,
-                                mbedtls_md_type_t md );
-#endif
-
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
 static inline mbedtls_ssl_srtp_profile mbedtls_ssl_check_srtp_profile_value
                                                     ( const uint16_t srtp_profile_value )

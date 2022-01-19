@@ -1447,8 +1447,8 @@ void mbedtls_ssl_update_out_pointers( mbedtls_ssl_context *ssl,
 void mbedtls_ssl_update_in_pointers( mbedtls_ssl_context *ssl );
 
 int mbedtls_ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial );
-void mbedtls_ssl_tls13_session_reset_msg_layer( mbedtls_ssl_context *ssl,
-                                                int partial );
+void mbedtls_ssl_session_reset_msg_layer( mbedtls_ssl_context *ssl,
+                                          int partial );
 
 /*
  * Send pending alert

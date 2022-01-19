@@ -136,12 +136,6 @@ static int ssl_tls13_parse_supported_versions_ext( mbedtls_ssl_context *ssl,
  */
 
 #if defined(MBEDTLS_ECDH_C)
-static int ssl_tls13_reset_ecdhe_share( mbedtls_ssl_context *ssl )
-{
-    mbedtls_ecdh_free( &ssl->handshake->ecdh_ctx );
-    return( 0 );
-}
-
 static int ssl_tls13_reset_key_share( mbedtls_ssl_context *ssl )
 {
     uint16_t group_id = ssl->handshake->offered_group_id;
@@ -149,7 +143,10 @@ static int ssl_tls13_reset_key_share( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 
     if( mbedtls_ssl_tls13_named_group_is_ecdhe( group_id ) )
-        return( ssl_tls13_reset_ecdhe_share( ssl ) );
+    {
+        mbedtls_ecdh_free( &ssl->handshake->ecdh_ctx );
+        return( 0 );
+    }
     else if( 0 /* other KEMs? */ )
     {
         /* Do something */
@@ -425,7 +422,6 @@ static int ssl_tls13_parse_hrr_key_share_ext( mbedtls_ssl_context *ssl,
                                               const unsigned char *buf,
                                               const unsigned char *end )
 {
-    /* Variables for parsing the key_share */
     const mbedtls_ecp_curve_info *curve_info = NULL;
     const unsigned char *p = buf;
     int tls_id;
@@ -1030,7 +1026,7 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
     const unsigned char *extensions_end;
     uint16_t cipher_suite;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
-    int supported_versions_exist = 0;
+    int supported_versions_ext_found = 0;
 #if defined(MBEDTLS_SSL_COOKIE_C)
     size_t cookie_len;
     unsigned char *cookie;
@@ -1228,7 +1224,7 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_COOKIE_C */
 
             case MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS:
-                supported_versions_exist = 1;
+                supported_versions_ext_found = 1;
                 MBEDTLS_SSL_DEBUG_MSG( 3,
                             ( "found supported_versions extension" ) );
 
@@ -1282,9 +1278,9 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
         p += extension_data_len;
     }
 
-    if( !supported_versions_exist )
+    if( !supported_versions_ext_found )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "supported_versions not exist" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "supported_versions not found" ) );
         MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
                                       MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
         return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
@@ -1424,14 +1420,12 @@ static int ssl_tls13_finalize_hrr( mbedtls_ssl_context *ssl )
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_HELLO );
 #endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
 
-    mbedtls_ssl_tls13_session_reset_msg_layer( ssl, 0 );
+    mbedtls_ssl_session_reset_msg_layer( ssl, 0 );
 
-    /* Reset everything that's going to be re-generated in the new ClientHello.
-     *
-     * Currently, we're always resetting the key share, even if the server
-     * was fine with it. Once we have separated key share generation from
-     * key share writing, we can confine this to the case where the server
-     * requested a different share.
+    /*
+     * We are going to re-generate a shared secret corresponding to the group selected by the server,
+     * which is different from the group for which we generated a shared secret in the first client
+     * hello.  Thus, reset the shared secret.
      */
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     ret = ssl_tls13_reset_key_share( ssl );
@@ -1451,7 +1445,7 @@ static int ssl_tls13_process_server_hello( mbedtls_ssl_context *ssl )
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *buf = NULL;
     size_t buf_len = 0;
-    int is_hrr = -1;
+    int is_hrr = 0;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> %s", __func__ ) );
 
@@ -1488,7 +1482,7 @@ static int ssl_tls13_process_server_hello( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_server_hello( ssl ) );
 
 cleanup:
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= %s", __func__ ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= %s:is_hrr = %d", __func__, is_hrr ) );
     return( ret );
 }
 

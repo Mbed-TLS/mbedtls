@@ -34,6 +34,11 @@
 
 #include "ssl_misc.h"
 #include "ssl_tls13_keys.h"
+#include "psa/crypto_types.h"
+#include "psa/crypto_sizes.h"
+#include "psa/crypto_values.h"
+#include "psa/crypto.h"
+#include "psa_crypto_hash.h"
 
 int mbedtls_ssl_tls13_fetch_handshake_msg( mbedtls_ssl_context *ssl,
                                            unsigned hs_type,
@@ -300,18 +305,21 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
                                                const unsigned char *buf,
                                                const unsigned char *end,
                                                const unsigned char *verify_buffer,
-                                               size_t verify_buffer_len )
-{
+                                               size_t verify_buffer_len ) {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     const unsigned char *p = buf;
     uint16_t algorithm;
     size_t signature_len;
     mbedtls_pk_type_t sig_alg;
-    mbedtls_md_type_t md_alg;
-    unsigned char verify_hash[MBEDTLS_MD_MAX_SIZE];
+    psa_algorithm_t hash_alg;
+
+
+    unsigned char verify_hash[PSA_HASH_MAX_SIZE];
     size_t verify_hash_len;
 
     void const *options = NULL;
+
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
     mbedtls_pk_rsassa_pss_options rsassa_pss_options;
 #endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
@@ -327,47 +335,45 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
     p += 2;
 
     /* RFC 8446 section 4.4.3
-     *
-     * If the CertificateVerify message is sent by a server, the signature algorithm
-     * MUST be one offered in the client's "signature_algorithms" extension unless
-     * no valid certificate chain can be produced without unsupported algorithms
-     *
-     * RFC 8446 section 4.4.2.2
-     *
-     * If the client cannot construct an acceptable chain using the provided
-     * certificates and decides to abort the handshake, then it MUST abort the handshake
-     * with an appropriate certificate-related alert (by default, "unsupported_certificate").
-     *
-     * Check if algorithm is an offered signature algorithm.
-     */
-    if( ! ssl_tls13_sig_alg_is_offered( ssl, algorithm ) )
-    {
+    *
+    * If the CertificateVerify message is sent by a server, the signature algorithm
+    * MUST be one offered in the client's "signature_algorithms" extension unless
+    * no valid certificate chain can be produced without unsupported algorithms
+    *
+    * RFC 8446 section 4.4.2.2
+    *
+    * If the client cannot construct an acceptable chain using the provided
+    * certificates and decides to abort the handshake, then it MUST abort the handshake
+    * with an appropriate certificate-related alert (by default, "unsupported_certificate").
+    *
+    * Check if algorithm is an offered signature algorithm.
+    */
+    if( ! ssl_tls13_sig_alg_is_offered( ssl, algorithm ) ){
         /* algorithm not in offered signature algorithms list */
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Received signature algorithm(%04x) is not "
                                     "offered.",
-                                    ( unsigned int ) algorithm ) );
+                ( unsigned int ) algorithm ) );
         goto error;
     }
 
     /* We currently only support ECDSA-based signatures */
-    switch( algorithm )
-    {
+    switch( algorithm ){
         case MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256:
-            md_alg = MBEDTLS_MD_SHA256;
+            hash_alg = PSA_ALG_SHA_256;
             sig_alg = MBEDTLS_PK_ECDSA;
             break;
         case MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384:
-            md_alg = MBEDTLS_MD_SHA384;
+            hash_alg = PSA_ALG_SHA_384;
             sig_alg = MBEDTLS_PK_ECDSA;
             break;
         case MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512:
-            md_alg = MBEDTLS_MD_SHA512;
+            hash_alg = PSA_ALG_SHA_512;
             sig_alg = MBEDTLS_PK_ECDSA;
             break;
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
             MBEDTLS_SSL_DEBUG_MSG( 4, ( "Certificate Verify: using RSA PSS" ) );
-            md_alg = MBEDTLS_MD_SHA256;
+            hash_alg = PSA_ALG_SHA_256;
             sig_alg = MBEDTLS_PK_RSASSA_PSS;
             break;
 #endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
@@ -377,7 +383,7 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "Certificate Verify: Signature algorithm ( %04x )",
-                                ( unsigned int ) algorithm ) );
+            ( unsigned int ) algorithm ) );
 
     /*
      * Check the certificate's key type matches the signature alg
@@ -394,50 +400,54 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, signature_len );
 
     /* Hash verify buffer with indicated hash function */
-    switch( md_alg )
-    {
+    switch( hash_alg ){
 #if defined(MBEDTLS_SHA256_C)
-        case MBEDTLS_MD_SHA256:
-            verify_hash_len = 32;
-            ret = mbedtls_sha256( verify_buffer, verify_buffer_len, verify_hash, 0 );
+        case PSA_ALG_SHA_256:
             break;
 #endif /* MBEDTLS_SHA256_C */
 
 #if defined(MBEDTLS_SHA384_C)
-        case MBEDTLS_MD_SHA384:
-            verify_hash_len = 48;
-            ret = mbedtls_sha512( verify_buffer, verify_buffer_len, verify_hash, 1 );
+        case PSA_ALG_SHA_384:
             break;
 #endif /* MBEDTLS_SHA384_C */
 
 #if defined(MBEDTLS_SHA512_C)
-        case MBEDTLS_MD_SHA512:
-            verify_hash_len = 64;
-            ret = mbedtls_sha512( verify_buffer, verify_buffer_len, verify_hash, 0 );
+        case PSA_ALG_SHA_512:
             break;
 #endif /* MBEDTLS_SHA512_C */
 
+
         default:
-            ret = MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
+            status = PSA_ERROR_NOT_SUPPORTED;
+            goto error;
             break;
     }
-
-    if( ret != 0 )
+    status = psa_hash_compute( hash_alg,
+                               verify_buffer,
+                               verify_buffer_len,
+                               verify_hash,
+                               PSA_HASH_LENGTH(hash_alg),
+                               &verify_hash_len );
+    if( ( status != PSA_SUCCESS )
+        || ( verify_hash_len != PSA_HASH_LENGTH( hash_alg ) ) )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "hash computation error", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "hash computation PSA error", status );
         goto error;
     }
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "verify hash", verify_hash, verify_hash_len );
+
+    const mbedtls_md_info_t* md_info;
+    if( ( md_info = mbedtls_md_info_from_psa( hash_alg ) ) == NULL )
+    {
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+    mbedtls_md_type_t md_alg = mbedtls_md_get_type( md_info );
+
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
     if( sig_alg == MBEDTLS_PK_RSASSA_PSS )
     {
-        const mbedtls_md_info_t* md_info;
         rsassa_pss_options.mgf1_hash_id = md_alg;
-        if( ( md_info = mbedtls_md_info_from_type( md_alg ) ) == NULL )
-        {
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-        }
         rsassa_pss_options.expected_salt_len = mbedtls_md_get_size( md_info );
         options = (const void*) &rsassa_pss_options;
     }
@@ -452,7 +462,7 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
     }
     MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_verify_ext", ret );
 
-error:
+    error:
     /* RFC 8446 section 4.4.3
      *
      * If the verification fails, the receiver MUST terminate the handshake
@@ -464,6 +474,7 @@ error:
 
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+
 
 int mbedtls_ssl_tls13_process_certificate_verify( mbedtls_ssl_context *ssl )
 {

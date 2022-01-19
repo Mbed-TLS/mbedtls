@@ -50,6 +50,8 @@
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 #include "mbedtls/oid.h"
+#include "psa_crypto_hash.h"
+
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -7100,12 +7102,48 @@ int mbedtls_ssl_get_handshake_transcript( mbedtls_ssl_context *ssl,
                                           size_t dst_len,
                                           size_t *olen )
 {
-    ((void) ssl);
-    ((void) md);
-    ((void) dst);
-    ((void) dst_len);
-    *olen = 0;
-    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE);
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_hash_operation_t operation;
+    operation = psa_hash_operation_init();
+    size_t sha_len = 0;
+
+    switch( mbedtls_psa_translate_md( md ) )
+    {
+#if defined(MBEDTLS_SHA384_C)
+        case PSA_ALG_SHA_384:
+            sha_len = 48;
+            status = psa_hash_clone( &ssl->handshake->fin_sha384_psa,
+                                     &operation);
+            break;
+#endif /* MBEDTLS_SHA384_C */
+
+#if defined(MBEDTLS_SHA256_C)
+        case PSA_ALG_SHA_256:
+            sha_len = 32;
+            status = psa_hash_clone( &ssl->handshake->fin_sha256_psa,
+                                     &operation);
+            break;
+#endif /* MBEDTLS_SHA256_C */
+
+        default:
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+    if( status != PSA_SUCCESS )
+    {
+        return( status );
+    }
+    if( dst_len < sha_len ) {
+        return (MBEDTLS_ERR_SSL_INTERNAL_ERROR);
+    }
+
+    status = psa_hash_finish( &operation,dst, dst_len, olen );
+
+    if( *olen != sha_len )
+    {
+        return (MBEDTLS_ERR_SSL_INTERNAL_ERROR);
+    }
+
+    return( status );
 }
 #else /* MBEDTLS_USE_PSA_CRYPTO */
 

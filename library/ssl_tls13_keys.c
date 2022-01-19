@@ -30,6 +30,8 @@
 
 #include "ssl_misc.h"
 #include "ssl_tls13_keys.h"
+#include "psa/crypto.h"
+#include "psa_crypto_hash.h"
 
 #define MBEDTLS_SSL_TLS1_3_LABEL( name, string )       \
     .name = string,
@@ -244,32 +246,38 @@ int mbedtls_ssl_tls13_make_traffic_keys(
 }
 
 int mbedtls_ssl_tls13_derive_secret(
-                   mbedtls_md_type_t hash_alg,
+                   mbedtls_md_type_t alg,
                    const unsigned char *secret, size_t secret_len,
                    const unsigned char *label, size_t label_len,
                    const unsigned char *ctx, size_t ctx_len,
                    int ctx_hashed,
                    unsigned char *dstbuf, size_t dstbuf_len )
 {
-    int ret;
-    unsigned char hashed_context[ MBEDTLS_MD_MAX_SIZE ];
+    psa_algorithm_t hash_alg;
+    hash_alg = mbedtls_psa_translate_md( alg );
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    unsigned char hashed_context[ PSA_HASH_MAX_SIZE ]; //MBEDTLS_MD_MAX_SIZE
+    size_t hash_len;
 
-    const mbedtls_md_info_t *md_info;
-    md_info = mbedtls_md_info_from_type( hash_alg );
-    if( md_info == NULL )
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-
-    if( ctx_hashed == MBEDTLS_SSL_TLS1_3_CONTEXT_UNHASHED )
-    {
-        ret = mbedtls_md( md_info, ctx, ctx_len, hashed_context );
-        if( ret != 0 )
-            return( ret );
-        ctx_len = mbedtls_md_get_size( md_info );
-    }
-    else
-    {
-        if( ctx_len > sizeof(hashed_context) )
+    if( ctx_hashed == MBEDTLS_SSL_TLS1_3_CONTEXT_UNHASHED ){
+        status = psa_hash_compute( hash_alg,
+                                   ctx,
+                                   ctx_len,
+                                   hashed_context,
+                                   PSA_HASH_MAX_SIZE,
+                                   &hash_len );
+        if( status != PSA_SUCCESS )
         {
+            return( status );
+        }
+        if( hash_len != PSA_HASH_LENGTH( hash_alg ) )
+        {
+            return( PSA_ERROR_GENERIC_ERROR );
+        }
+        ctx_len = hash_len;
+    }
+    else{
+        if( ctx_len > sizeof(hashed_context) ){
             /* This should never happen since this function is internal
              * and the code sets `ctx_hashed` correctly.
              * Let's double-check nonetheless to not run at the risk
@@ -280,7 +288,7 @@ int mbedtls_ssl_tls13_derive_secret(
         memcpy( hashed_context, ctx, ctx_len );
     }
 
-    return( mbedtls_ssl_tls13_hkdf_expand_label( hash_alg,
+    return( mbedtls_ssl_tls13_hkdf_expand_label( alg,
                                                  secret, secret_len,
                                                  label, label_len,
                                                  hashed_context, ctx_len,

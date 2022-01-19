@@ -661,7 +661,6 @@ static int x509_get_subject_alt_name( unsigned char **p,
     while( *p < end )
     {
         mbedtls_x509_subject_alternative_name dummy_san_buf;
-        memset( &dummy_san_buf, 0, sizeof( dummy_san_buf ) );
 
         tag = **p;
         (*p)++;
@@ -1783,7 +1782,6 @@ static int x509_get_other_name( const mbedtls_x509_buf *subject_alt_name,
 int mbedtls_x509_parse_subject_alt_name( const mbedtls_x509_buf *san_buf,
                                          mbedtls_x509_subject_alternative_name *san )
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     switch( san_buf->tag &
             ( MBEDTLS_ASN1_TAG_CLASS_MASK |
               MBEDTLS_ASN1_TAG_VALUE_MASK ) )
@@ -1793,17 +1791,8 @@ int mbedtls_x509_parse_subject_alt_name( const mbedtls_x509_buf *san_buf,
          */
         case( MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_X509_SAN_OTHER_NAME ):
         {
-            mbedtls_x509_san_other_name other_name;
-
-            ret = x509_get_other_name( san_buf, &other_name );
-            if( ret != 0 )
-                return( ret );
-
-            memset( san, 0, sizeof( mbedtls_x509_subject_alternative_name ) );
             san->type = MBEDTLS_X509_SAN_OTHER_NAME;
-            memcpy( &san->san.other_name,
-                    &other_name, sizeof( other_name ) );
-
+            return x509_get_other_name( san_buf, &san->san.other_name );
         }
         break;
 
@@ -1812,12 +1801,8 @@ int mbedtls_x509_parse_subject_alt_name( const mbedtls_x509_buf *san_buf,
          */
         case( MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_X509_SAN_DNS_NAME ):
         {
-            memset( san, 0, sizeof( mbedtls_x509_subject_alternative_name ) );
             san->type = MBEDTLS_X509_SAN_DNS_NAME;
-
-            memcpy( &san->san.unstructured_name,
-                    san_buf, sizeof( *san_buf ) );
-
+            san->san.unstructured_name = *san_buf; /* copy mbedtls_x509_buf */
         }
         break;
 

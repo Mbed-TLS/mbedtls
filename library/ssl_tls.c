@@ -4052,7 +4052,7 @@ void mbedtls_ssl_conf_dhm_min_bitlen( mbedtls_ssl_config *conf,
 #endif /* MBEDTLS_DHM_C && MBEDTLS_SSL_CLI_C */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if !defined(MBEDTLS_DEPRECATED_REMOVED) && defined(MBEDTLS_SSL_PROTO_TLS1_2)
 /*
  * Set allowed/preferred hashes for handshake signatures
  */
@@ -4061,7 +4061,7 @@ void mbedtls_ssl_conf_sig_hashes( mbedtls_ssl_config *conf,
 {
     conf->sig_hashes = hashes;
 }
-#endif /* !MBEDTLS_DEPRECATED_REMOVED */
+#endif /* !MBEDTLS_DEPRECATED_REMOVED && MBEDTLS_SSL_PROTO_TLS1_2 */
 
 /* Configure allowed signature algorithms for handshake */
 void mbedtls_ssl_conf_sig_algs( mbedtls_ssl_config *conf,
@@ -7434,21 +7434,45 @@ int mbedtls_ssl_write_supported_groups_ext( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 /*
- * mbedtls_ssl_tls13_write_sig_alg_ext( )
+ * Function for writing a signature algorithm extension.
  *
- * enum {
- *    ....
- *   ecdsa_secp256r1_sha256( 0x0403 ),
- *   ecdsa_secp384r1_sha384( 0x0503 ),
- *   ecdsa_secp521r1_sha512( 0x0603 ),
- *    ....
- * } SignatureScheme;
+ * The `exitension_data` field of signature algorithm contains `SignatureSchemeList`
+ * value (TLS 1.3 RFC8446):
+ *      enum {
+ *         ....
+ *        ecdsa_secp256r1_sha256( 0x0403 ),
+ *        ecdsa_secp384r1_sha384( 0x0503 ),
+ *        ecdsa_secp521r1_sha512( 0x0603 ),
+ *         ....
+ *      } SignatureScheme;
  *
- * struct {
- *    SignatureScheme supported_signature_algorithms<2..2^16-2>;
- * } SignatureSchemeList;
+ *      struct {
+ *         SignatureScheme supported_signature_algorithms<2..2^16-2>;
+ *      } SignatureSchemeList;
  *
- * Only if we handle at least one key exchange that needs signatures.
+ * The `exitension_data` field of signature algorithm contains
+ * `SignatureAndHashAlgorithm` value (TLS 1.2 RFC5246):
+ *      enum {
+ *          none(0), md5(1), sha1(2), sha224(3), sha256(4), sha384(5),
+ *          sha512(6), (255)
+ *      } HashAlgorithm;
+ *
+ *      enum { anonymous(0), rsa(1), dsa(2), ecdsa(3), (255) }
+ *        SignatureAlgorithm;
+ *
+ *      struct {
+ *          HashAlgorithm hash;
+ *          SignatureAlgorithm signature;
+ *      } SignatureAndHashAlgorithm;
+ *
+ *      SignatureAndHashAlgorithm
+ *        supported_signature_algorithms<2..2^16-2>;
+ *
+ * The TLS 1.3 signature algorithm extension was defined to be a compatible
+ * generalization of the TLS 1.2 signature algorithm extension.
+ * `SignatureAndHashAlgorithm` field of TLS 1.2 can be represented by
+ * `SignatureScheme` field of TLS 1.3
+ *
  */
 int mbedtls_ssl_write_sig_alg_ext( mbedtls_ssl_context *ssl, unsigned char *buf,
                                    const unsigned char *end, size_t *out_len )

@@ -3267,7 +3267,7 @@ void mbedtls_ssl_conf_groups( mbedtls_ssl_config *conf,
                               const uint16_t *groups );
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if !defined(MBEDTLS_DEPRECATED_REMOVED) && defined(MBEDTLS_SSL_PROTO_TLS1_2)
 /**
  * \brief          Set the allowed hashes for signatures during the handshake.
  *
@@ -3299,7 +3299,7 @@ void mbedtls_ssl_conf_groups( mbedtls_ssl_config *conf,
  */
 void MBEDTLS_DEPRECATED mbedtls_ssl_conf_sig_hashes( mbedtls_ssl_config *conf,
                                                      const int *hashes );
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
+#endif /* !MBEDTLS_DEPRECATED_REMOVED && MBEDTLS_SSL_PROTO_TLS1_2 */
 
 /**
  * \brief          Configure allowed signature algorithms for use in TLS 1.3

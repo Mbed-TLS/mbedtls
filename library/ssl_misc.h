@@ -1821,10 +1821,11 @@ int mbedtls_ssl_write_supported_groups_ext( mbedtls_ssl_context *ssl,
  * In future, invocations can be changed to ssl->conf->sig_algs when
  * mbedtls_ssl_conf_sig_hashes() is deleted.
  *
- * ssl->handshake->sig_algs is either a translation of sig_hases to IANA TLS group
- * identifiers when mbedtls_ssl_conf_sig_hashes() has been used, or a pointer to
- * ssl->conf->sig_algs when mbedtls_ssl_conf_sig_algs() has been more recently
- * invoked.
+ * ssl->handshake->sig_algs is either a translation of sig_hashes to IANA TLS
+ * signature algorithm identifiers when mbedtls_ssl_conf_sig_hashes() has been
+ * used, or a pointer to ssl->conf->sig_algs when mbedtls_ssl_conf_sig_algs() has
+ * been more recently invoked.
+ *
  */
 static inline const void *mbedtls_ssl_get_sig_algs(
                                                 const mbedtls_ssl_context *ssl )

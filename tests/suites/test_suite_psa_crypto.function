@@ -4810,7 +4810,7 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     psa_aead_abort( &operation );
 
-    /* Test for generating nonce after calling set lengths with UINT32_MAX length */
+    /* Test for generating nonce after calling set lengths with UINT32_MAX ad_data length */
 
     PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
 
@@ -4835,7 +4835,7 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     psa_aead_abort( &operation );
 
-    /* Test for generating nonce after calling set lengths with SIZE_MAX length */
+    /* Test for generating nonce after calling set lengths with SIZE_MAX ad_data length */
 #if SIZE_MAX > UINT32_MAX
     PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
 
@@ -4861,7 +4861,7 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
     psa_aead_abort( &operation );
 #endif
 
-    /* Test for calling set lengths with a length too long, after generating nonce */
+    /* Test for calling set lengths with a UINT32_MAX ad_data length, after generating nonce */
 
     PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
 
@@ -4938,7 +4938,7 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
     psa_aead_abort( &operation );
 #endif
 
-    /* Test for calling set lengths with an ad_data length too long, after setting nonce */
+    /* Test for calling set lengths with an ad_data length of UINT32_MAX, after setting nonce */
 
     PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
 
@@ -4958,7 +4958,7 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     psa_aead_abort( &operation );
 
-    /* Test for setting nonce after calling set lengths with SIZE_MAX plaintext length */
+    /* Test for setting nonce after calling set lengths with plaintext length of SIZE_MAX */
 #if SIZE_MAX > UINT32_MAX
     PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
 
@@ -4979,7 +4979,7 @@ void aead_multipart_state_test( int key_type_arg, data_t *key_data,
 
     psa_aead_abort( &operation );
 
-    /* Test for calling set lengths with an plaintext length too long, after setting nonce */
+    /* Test for calling set lengths with an plaintext length of SIZE_MAX, after setting nonce */
     PSA_ASSERT( psa_aead_encrypt_setup( &operation, key, alg ) );
 
     PSA_ASSERT( psa_aead_set_nonce( &operation, nonce->x, nonce->len ) );

@@ -801,7 +801,9 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
                                           mbedtls_ssl_key_set const *traffic_keys,
                                           mbedtls_ssl_context *ssl /* DEBUG ONLY */ )
 {
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
     int ret;
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
     mbedtls_cipher_info_t const *cipher_info;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
     unsigned char const *key_enc;
@@ -838,10 +840,10 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
     /*
      * Setup cipher contexts in target transform
      */
-
     if( ( ret = mbedtls_cipher_setup( &transform->cipher_ctx_enc,
                                       cipher_info ) ) != 0 )
     {
@@ -855,6 +857,7 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setup", ret );
         return( ret );
     }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_SSL_SRV_C)
     if( endpoint == MBEDTLS_SSL_IS_SERVER )
@@ -884,6 +887,7 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
     memcpy( transform->iv_enc, iv_enc, traffic_keys->iv_len );
     memcpy( transform->iv_dec, iv_dec, traffic_keys->iv_len );
 
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
     if( ( ret = mbedtls_cipher_setkey( &transform->cipher_ctx_enc,
                                        key_enc, cipher_info->key_bitlen,
                                        MBEDTLS_ENCRYPT ) ) != 0 )
@@ -899,6 +903,7 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setkey", ret );
         return( ret );
     }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     /*
      * Setup other fields in SSL transform
@@ -922,6 +927,9 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
         transform->taglen + MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY;
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
+    /*
+     * Setup psa keys and alg
+     */
     if( ( status = mbedtls_cipher_to_psa( cipher_info->type,
                                  transform->taglen,
                                  &alg,
@@ -934,6 +942,7 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
 
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT );
     psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, key_type );
 
     transform->psa_alg = alg;
 

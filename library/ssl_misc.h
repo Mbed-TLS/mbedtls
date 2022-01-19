@@ -937,14 +937,15 @@ struct mbedtls_ssl_transform
 
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
 
-    mbedtls_cipher_context_t cipher_ctx_enc;    /*!<  encryption context      */
-    mbedtls_cipher_context_t cipher_ctx_dec;    /*!<  decryption context      */
     int minor_ver;
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_svc_key_id_t psa_key_enc;           /*!<  psa encryption key      */
     mbedtls_svc_key_id_t psa_key_dec;           /*!<  psa decryption key      */
     psa_algorithm_t psa_alg;                    /*!<  psa algorithm           */
+#else
+    mbedtls_cipher_context_t cipher_ctx_enc;    /*!<  encryption context      */
+    mbedtls_cipher_context_t cipher_ctx_dec;    /*!<  decryption context      */
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)

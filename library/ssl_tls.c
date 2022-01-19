@@ -705,9 +705,6 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
                                    const mbedtls_ssl_context *ssl )
 {
     int ret = 0;
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    int psa_fallthrough;
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
     unsigned char keyblk[256];
     unsigned char *key1;
     unsigned char *key2;
@@ -1012,80 +1009,6 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
     }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    ret = mbedtls_cipher_setup_psa( &transform->cipher_ctx_enc,
-                                    cipher_info, transform->taglen );
-    if( ret != 0 && ret != MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setup_psa", ret );
-        goto end;
-    }
-
-    if( ret == 0 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "Successfully setup PSA-based encryption cipher context" ) );
-        psa_fallthrough = 0;
-    }
-    else
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Failed to setup PSA-based cipher context for record encryption - fall through to default setup." ) );
-        psa_fallthrough = 1;
-    }
-
-    if( psa_fallthrough == 1 )
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-    if( ( ret = mbedtls_cipher_setup( &transform->cipher_ctx_enc,
-                                 cipher_info ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setup", ret );
-        goto end;
-    }
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    ret = mbedtls_cipher_setup_psa( &transform->cipher_ctx_dec,
-                                    cipher_info, transform->taglen );
-    if( ret != 0 && ret != MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setup_psa", ret );
-        goto end;
-    }
-
-    if( ret == 0 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "Successfully setup PSA-based decryption cipher context" ) );
-        psa_fallthrough = 0;
-    }
-    else
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Failed to setup PSA-based cipher context for record decryption - fall through to default setup." ) );
-        psa_fallthrough = 1;
-    }
-
-    if( psa_fallthrough == 1 )
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-    if( ( ret = mbedtls_cipher_setup( &transform->cipher_ctx_dec,
-                                 cipher_info ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setup", ret );
-        goto end;
-    }
-
-    if( ( ret = mbedtls_cipher_setkey( &transform->cipher_ctx_enc, key1,
-                               (int) mbedtls_cipher_info_get_key_bitlen( cipher_info ),
-                               MBEDTLS_ENCRYPT ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setkey", ret );
-        goto end;
-    }
-
-    if( ( ret = mbedtls_cipher_setkey( &transform->cipher_ctx_dec, key2,
-                               (int) mbedtls_cipher_info_get_key_bitlen( cipher_info ),
-                               MBEDTLS_DECRYPT ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setkey", ret );
-        goto end;
-    }
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( ( status = mbedtls_cipher_to_psa( cipher_info->type,
                                  transform->taglen,
                                  &alg,
@@ -1099,6 +1022,7 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
 
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT );
     psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, key_type );
 
     transform->psa_alg = alg;
 
@@ -1123,7 +1047,36 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
         MBEDTLS_SSL_DEBUG_RET( 1, "psa_import_key", ret );
         goto end;
     }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#else
+    if( ( ret = mbedtls_cipher_setup( &transform->cipher_ctx_enc,
+                                 cipher_info ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setup", ret );
+        goto end;
+    }
+
+    if( ( ret = mbedtls_cipher_setup( &transform->cipher_ctx_dec,
+                                 cipher_info ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setup", ret );
+        goto end;
+    }
+
+    if( ( ret = mbedtls_cipher_setkey( &transform->cipher_ctx_enc, key1,
+                               (int) mbedtls_cipher_info_get_key_bitlen( cipher_info ),
+                               MBEDTLS_ENCRYPT ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setkey", ret );
+        goto end;
+    }
+
+    if( ( ret = mbedtls_cipher_setkey( &transform->cipher_ctx_dec, key2,
+                               (int) mbedtls_cipher_info_get_key_bitlen( cipher_info ),
+                               MBEDTLS_DECRYPT ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setkey", ret );
+        goto end;
+    }
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
     if( mbedtls_cipher_info_get_mode( cipher_info ) == MBEDTLS_MODE_CBC )
@@ -1143,7 +1096,7 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
         }
     }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
-
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 end:
     mbedtls_platform_zeroize( keyblk, sizeof( keyblk ) );
@@ -3070,12 +3023,12 @@ void mbedtls_ssl_transform_init( mbedtls_ssl_transform *transform )
 {
     memset( transform, 0, sizeof(mbedtls_ssl_transform) );
 
-    mbedtls_cipher_init( &transform->cipher_ctx_enc );
-    mbedtls_cipher_init( &transform->cipher_ctx_dec );
-
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     transform->psa_key_enc = MBEDTLS_SVC_KEY_ID_INIT;
     transform->psa_key_dec = MBEDTLS_SVC_KEY_ID_INIT;
+#else
+    mbedtls_cipher_init( &transform->cipher_ctx_enc );
+    mbedtls_cipher_init( &transform->cipher_ctx_dec );
 #endif
 
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)

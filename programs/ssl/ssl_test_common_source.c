@@ -338,28 +338,44 @@ int x509_crt_verify_info(char *buf, size_t size, const char *prefix,
     return mbedtls_x509_crt_verify_info(buf, size, prefix, flags);
 
 #else /* !MBEDTLS_X509_REMOVE_INFO */
+    struct x509_crt_verify_string {
+        int code;
+        const char *string;
+    };
+    #define X509_CRT_ERROR_INFO(err, err_str, info) { err, info },
+    static const struct x509_crt_verify_string x509_crt_verify_strings[] = {
+        MBEDTLS_X509_CRT_ERROR_INFO_LIST
+        { 0, NULL }
+    };
+    #undef X509_CRT_ERROR_INFO
     int ret;
-    char *p = buf;
-    size_t n = size;
+    size_t n = 0;
 
-#define X509_CRT_ERROR_INFO(err, err_str, info)                      \
-    if ((flags & err) != 0)                                         \
-    {                                                                  \
-        ret = mbedtls_snprintf(p, n, "%s%s\n", prefix, info);        \
-        MBEDTLS_X509_SAFE_SNPRINTF;                                    \
-        flags ^= err;                                                  \
+    const struct x509_crt_verify_string *cur;
+    for (cur = x509_crt_verify_strings; cur->string != NULL; cur++) {
+        if ((flags & cur->code) == 0) {
+            continue;
+        }
+        flags ^= cur->code;
+
+        ret = mbedtls_snprintf(buf + n, size - n, "%s%s\n",
+                               prefix, cur->string);
+        if (ret < 0 || (size_t) ret >= size - n) {
+            return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
+        }
+        n += ret;
     }
-
-    MBEDTLS_X509_CRT_ERROR_INFO_LIST
-#undef X509_CRT_ERROR_INFO
 
     if (flags != 0) {
-        ret = mbedtls_snprintf(p, n, "%sUnknown reason "
-                                     "(this should not happen)\n", prefix);
-        MBEDTLS_X509_SAFE_SNPRINTF;
+        ret = mbedtls_snprintf(buf + n, size - n,
+                               "%sUnknown reason (this should not happen)\n", prefix);
+        if (ret < 0 || (size_t) ret >= size - n) {
+            return MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
+        }
+        n += ret;
     }
 
-    return (int) (size - n);
+    return (int) n;
 #endif /* MBEDTLS_X509_REMOVE_INFO */
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */

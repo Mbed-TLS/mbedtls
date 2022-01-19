@@ -271,7 +271,6 @@ static char *x509_info_subject_alt_name(char *buf, size_t size,
     for (cur = subject_alt_name; cur != NULL; cur = cur->next) {
         p = mbedtls_mempcpy_lim(p, lim, prefix, plen);
 
-        memset(&san, 0, sizeof(san));
         ret = mbedtls_x509_parse_subject_alt_name(&cur->buf, &san);
         if (ret != 0) {
             if (ret == MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE) {

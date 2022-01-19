@@ -1009,14 +1009,14 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
     }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if( ( status = mbedtls_cipher_to_psa( cipher_info->type,
+    if( ( status = tls_mbedtls_cipher_to_psa( cipher_info->type,
                                  transform->taglen,
                                  &alg,
                                  &key_type,
                                  &key_bits ) ) != PSA_SUCCESS )
     {
         ret = psa_status_to_mbedtls( status );
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_to_psa", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "tls_mbedtls_cipher_to_psa", ret );
         goto end;
     }
 
@@ -4012,7 +4012,7 @@ int mbedtls_ssl_conf_psk_opaque( mbedtls_ssl_config *conf,
     return( ret );
 }
 
-psa_status_t mbedtls_cipher_to_psa( mbedtls_cipher_type_t mbedtls_cipher_type,
+psa_status_t tls_mbedtls_cipher_to_psa( mbedtls_cipher_type_t mbedtls_cipher_type,
                                     size_t taglen,
                                     psa_algorithm_t *alg,
                                     psa_key_type_t *key_type,

@@ -930,13 +930,13 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
     /*
      * Setup psa keys and alg
      */
-    if( ( status = mbedtls_cipher_to_psa( cipher_info->type,
+    if( ( status = tls_mbedtls_cipher_to_psa( cipher_info->type,
                                  transform->taglen,
                                  &alg,
                                  &key_type,
                                  &key_bits ) ) != PSA_SUCCESS )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_to_psa", psa_status_to_mbedtls( status ) );
+        MBEDTLS_SSL_DEBUG_RET( 1, "tls_mbedtls_cipher_to_psa", psa_status_to_mbedtls( status ) );
         return( psa_status_to_mbedtls( status ) );
     }
 

@@ -34,12 +34,12 @@
 
 #if !defined(MBEDTLS_BIGNUM_C) || !defined(MBEDTLS_RSA_C) ||  \
     !defined(MBEDTLS_SHA256_C) || !defined(MBEDTLS_MD_C) || \
-    !defined(MBEDTLS_FS_IO)
+    !defined(MBEDTLS_FS_IO) || !defined(MBEDTLS_CTR_DRBG_C)
 int main( void )
 {
     mbedtls_printf("MBEDTLS_BIGNUM_C and/or MBEDTLS_RSA_C and/or "
-            "MBEDTLS_MD_C and/or "
-            "MBEDTLS_SHA256_C and/or MBEDTLS_FS_IO not defined.\n");
+            "MBEDTLS_MD_C and/or MBEDTLS_SHA256_C and/or "
+            "MBEDTLS_FS_IO and/or MBEDTLS_CTR_DRBG_C not defined.\n");
     mbedtls_exit( 0 );
 }
 #else

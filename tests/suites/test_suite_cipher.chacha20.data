@@ -1,5 +1,5 @@
 Decrypt empty buffer
-depends_on:MBEDTLS_CHACHAPOLY_C
+depends_on:MBEDTLS_CHACHA20_C
 dec_empty_buf:MBEDTLS_CIPHER_CHACHA20:0:0
 
 Chacha20 RFC 7539 Test Vector #1

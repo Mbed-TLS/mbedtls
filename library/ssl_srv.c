@@ -296,7 +296,8 @@ static int ssl_parse_sig_alg_ext( mbedtls_ssl_context *ssl,
             continue;
         }
 
-        if( mbedtls_ssl_check_sig_hash( ssl, md_cur ) == 0 )
+        if( mbedtls_ssl_sig_alg_is_offered(
+                ssl, MBEDTLS_GET_UINT16_BE( p, 0 ) ) )
         {
             mbedtls_ssl_sig_hash_set_add( &ssl->handshake->hash_algs, sig_cur, md_cur );
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello v3, signature_algorithm ext:"

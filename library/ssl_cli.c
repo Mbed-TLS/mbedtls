@@ -2595,7 +2595,6 @@ static int ssl_parse_signature_algorithm( mbedtls_ssl_context *ssl,
                                           mbedtls_md_type_t *md_alg,
                                           mbedtls_pk_type_t *pk_alg )
 {
-    ((void) ssl);
     *md_alg = MBEDTLS_MD_NONE;
     *pk_alg = MBEDTLS_PK_NONE;
 
@@ -2631,9 +2630,9 @@ static int ssl_parse_signature_algorithm( mbedtls_ssl_context *ssl,
     }
 
     /*
-     * Check if the hash is acceptable
+     * Check if the signature algorithm is acceptable
      */
-    if( mbedtls_ssl_check_sig_hash( ssl, *md_alg ) != 0 )
+    if( !mbedtls_ssl_sig_alg_is_offered( ssl, MBEDTLS_GET_UINT16_BE( *p, 0 ) ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1,
             ( "server used HashAlgorithm %d that was not offered", *(p)[0] ) );

@@ -1845,6 +1845,23 @@ static inline const void *mbedtls_ssl_get_sig_algs(
 }
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+
+static inline int mbedtls_ssl_sig_alg_is_offered( const mbedtls_ssl_context *ssl,
+                                                  uint16_t proposed_sig_alg )
+{
+    const uint16_t *sig_alg = mbedtls_ssl_get_sig_algs( ssl );
+    if( sig_alg == NULL )
+        return( 0 );
+
+    for( ; *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
+    {
+        if( *sig_alg == proposed_sig_alg )
+            return( 1 );
+    }
+    return( 0 );
+}
+
+
 static inline int mbedtls_ssl_sig_alg_is_supported(
                                                 const mbedtls_ssl_context *ssl,
                                                 const uint16_t sig_alg )

@@ -209,21 +209,6 @@ static void ssl_tls13_create_verify_structure( const unsigned char *transcript_h
     *verify_buffer_len = idx;
 }
 
-static int ssl_tls13_sig_alg_is_offered( const mbedtls_ssl_context *ssl,
-                                         uint16_t proposed_sig_alg )
-{
-    const uint16_t *sig_alg = mbedtls_ssl_get_sig_algs( ssl );
-    if( sig_alg == NULL )
-        return( 0 );
-
-    for( ; *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
-    {
-        if( *sig_alg == proposed_sig_alg )
-            return( 1 );
-    }
-    return( 0 );
-}
-
 static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
                                                const unsigned char *buf,
                                                const unsigned char *end,
@@ -268,7 +253,7 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
      *
      * Check if algorithm is an offered signature algorithm.
      */
-    if( ! ssl_tls13_sig_alg_is_offered( ssl, algorithm ) )
+    if( ! mbedtls_ssl_sig_alg_is_offered( ssl, algorithm ) )
     {
         /* algorithm not in offered signature algorithms list */
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Received signature algorithm(%04x) is not "

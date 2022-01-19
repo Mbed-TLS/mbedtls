@@ -56,6 +56,8 @@
 #include "mbedtls/psa_util.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
+#include "common.h"
+
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)
 #define inline __inline
@@ -1842,6 +1844,127 @@ static inline const void *mbedtls_ssl_get_sig_algs(
     return( NULL );
 }
 
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+static inline int mbedtls_ssl_sig_alg_is_supported(
+                                                const mbedtls_ssl_context *ssl,
+                                                const uint16_t sig_alg )
+{
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3)
+    {
+        /* High byte is hash */
+        unsigned char hash = MBEDTLS_BYTE_1( sig_alg );
+        unsigned char sig = MBEDTLS_BYTE_0( sig_alg );
+
+        switch( hash )
+        {
+        #if defined(MBEDTLS_MD5_C)
+            case MBEDTLS_SSL_HASH_MD5:
+                break;
+        #endif
+        #if defined(MBEDTLS_SHA1_C)
+            case MBEDTLS_SSL_HASH_SHA1:
+                break;
+        #endif
+        #if defined(MBEDTLS_SHA224_C)
+            case MBEDTLS_SSL_HASH_SHA224:
+                break;
+        #endif
+        #if defined(MBEDTLS_SHA256_C)
+            case MBEDTLS_SSL_HASH_SHA256:
+                break;
+        #endif
+        #if defined(MBEDTLS_SHA384_C)
+            case MBEDTLS_SSL_HASH_SHA384:
+                break;
+        #endif
+        #if defined(MBEDTLS_SHA512_C)
+            case MBEDTLS_SSL_HASH_SHA512:
+                break;
+        #endif
+
+            default:
+                return( 0 );
+        }
+
+        switch( sig )
+        {
+        #if defined(MBEDTLS_RSA_C)
+            case MBEDTLS_SSL_SIG_RSA:
+                break;
+        #endif
+
+        #if defined(MBEDTLS_ECDSA_C)
+            case MBEDTLS_SSL_SIG_ECDSA:
+                break;
+        #endif
+
+        default:
+            return( 0 );
+        }
+
+        return( 1 );
+    }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_4)
+    {
+        switch( sig_alg )
+        {
+        #if defined(MBEDTLS_SHA256_C) && \
+            defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) && \
+            defined(MBEDTLS_ECDSA_C)
+            case MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256:
+                break;
+        #endif /* MBEDTLS_SHA256_C &&
+                  MBEDTLS_ECP_DP_SECP256R1_ENABLED &&
+                  MBEDTLS_ECDSA_C */
+
+        #if defined(MBEDTLS_SHA384_C) && \
+            defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED) && \
+            defined(MBEDTLS_ECDSA_C)
+            case MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384:
+                break;
+        #endif /* MBEDTLS_SHA384_C &&
+                  MBEDTLS_ECP_DP_SECP384R1_ENABLED &&
+                  MBEDTLS_ECDSA_C */
+
+        #if defined(MBEDTLS_SHA512_C) && \
+            defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED) && \
+            defined(MBEDTLS_ECDSA_C)
+            case MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512:
+                break;
+        #endif /* MBEDTLS_SHA512_C &&
+                  MBEDTLS_ECP_DP_SECP521R1_ENABLED &&
+                  MBEDTLS_ECDSA_C */
+
+        #if defined(MBEDTLS_SHA256_C) && \
+            defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
+            case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
+                break;
+        #endif /* MBEDTLS_SHA256_C &&
+                  MBEDTLS_X509_RSASSA_PSS_SUPPORT */
+
+        #if defined(MBEDTLS_SHA256_C) && defined(MBEDTLS_RSA_C)
+            case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256:
+                break;
+        #endif /* MBEDTLS_SHA256_C && MBEDTLS_RSA_C*/
+
+            default:
+                return( 0 );
+        }
+
+        return( 1 );
+    }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+    ((void) ssl);
+    ((void) sig_alg);
+    return( 0 );
+}
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_RSA_C)
@@ -1855,4 +1978,5 @@ static inline const void *mbedtls_ssl_get_sig_algs(
 #define MBEDTLS_SSL_SIG_ALG( hash )
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_RSA_C */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+
 #endif /* ssl_misc.h */

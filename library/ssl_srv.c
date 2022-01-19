@@ -2802,26 +2802,15 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 
         for( ; *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
         {
-            /* High byte is hash */
             unsigned char hash = MBEDTLS_BYTE_1( *sig_alg );
-            unsigned char sig = MBEDTLS_BYTE_0( *sig_alg );
 
             if( mbedtls_ssl_set_calc_verify_md( ssl, hash ) )
                 continue;
-#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_ECDSA_C)
-            if( sig != MBEDTLS_SSL_SIG_RSA && sig != MBEDTLS_SSL_SIG_ECDSA )
+            if( ! mbedtls_ssl_sig_alg_is_supported( ssl, *sig_alg ) )
                 continue;
-#elif defined(MBEDTLS_RSA_C)
-            if( sig != MBEDTLS_SSL_SIG_RSA )
-                continue;
-#elif defined(MBEDTLS_ECDSA_C)
-            if( sig != MBEDTLS_SSL_SIG_ECDSA )
-                continue;
-#endif
 
             MBEDTLS_PUT_UINT16_BE( *sig_alg, p, sa_len );
             sa_len += 2;
-
         }
 
         MBEDTLS_PUT_UINT16_BE( sa_len, p, 0 );

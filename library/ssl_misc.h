@@ -261,7 +261,7 @@
 /* Maximum size in bytes of list in signature algorithms ext., RFC 5246/8446 */
 #define MBEDTLS_SSL_MAX_SIG_ALG_LIST_LEN       65534
 
-/* Minimue size in bytes of list in signature algorithms ext., RFC 5246/8446 */
+/* Minimum size in bytes of list in signature algorithms ext., RFC 5246/8446 */
 #define MBEDTLS_SSL_MIN_SIG_ALG_LIST_LEN       2
 
 /* Maximum size in bytes of list in supported elliptic curve ext., RFC 4492 */

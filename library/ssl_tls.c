@@ -7411,7 +7411,7 @@ int mbedtls_ssl_write_supported_groups_ext( mbedtls_ssl_context *ssl,
 /*
  * Function for writing a signature algorithm extension.
  *
- * The `exitension_data` field of signature algorithm contains `SignatureSchemeList`
+ * The `extension_data` field of signature algorithm contains  a `SignatureSchemeList`
  * value (TLS 1.3 RFC8446):
  *      enum {
  *         ....
@@ -7425,8 +7425,8 @@ int mbedtls_ssl_write_supported_groups_ext( mbedtls_ssl_context *ssl,
  *         SignatureScheme supported_signature_algorithms<2..2^16-2>;
  *      } SignatureSchemeList;
  *
- * The `exitension_data` field of signature algorithm contains
- * `SignatureAndHashAlgorithm` value (TLS 1.2 RFC5246):
+ * The `extension_data` field of signature algorithm contains a `SignatureAndHashAlgorithm`
+ * value (TLS 1.2 RFC5246):
  *      enum {
  *          none(0), md5(1), sha1(2), sha224(3), sha256(4), sha384(5),
  *          sha512(6), (255)

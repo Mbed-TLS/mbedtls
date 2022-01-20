@@ -10,7 +10,7 @@ endforeach()
 
 target_include_directories(psa_constant_names PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
-set_property(TARGET hpke_app APPEND PROPERTY SOURCES windows_getopt.c )
+set_property(TARGET hpke_app APPEND PROPERTY SOURCES)
 	
 install(TARGETS ${executables}
         DESTINATION "bin"

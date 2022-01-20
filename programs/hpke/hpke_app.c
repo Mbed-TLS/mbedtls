@@ -43,12 +43,6 @@
 #define mbedtls_free      free
 #endif
 
-#if defined(_WIN32) || defined(_WIN64)
-#include "windows_getopt.h"
-#else
-#include <getopt.h>
-#endif
-
 #include <ctype.h>
 #include "mbedtls/pk.h"
 #include "mbedtls/hpke.h"
@@ -56,64 +50,41 @@
 /* biggest/default buffer we use */
 #define HPKE_MAXSIZE (2*1024)
 
-static int verbose=0; ///< global var for verbosity
+#define DFL_OPERATION_ENCRYPT         1
+#define DFL_OPERATION_DECRYPT         0
 
-static void usage( char *prog, const char *errmsg )
-{
-    if( errmsg )
-    {
-        fprintf(stderr,"\nError! %s\n\n",errmsg);
-    }
-    fprintf(stderr,"HPKE (draft-irtf-cfrg-hpke) tester, options are:\n");
-    fprintf(stderr,"Encryption:\n");
-    fprintf(stderr,"\tUsage: %s -e -P public [-p private] [-a aad] [-I info] -k pkE \n",prog);
-    fprintf(stderr,"\t\t\t-i input -o output\n");
-    fprintf(stderr,"\t\t\t[-m mode] [-c suite] [-s psk] [-n pskid]\n");
-    fprintf(stderr,"Decryption:\n");
-    fprintf(stderr,"\tUsage: %s -d -p private -k pkE [-P public] [-a aad] [-I info]\n",prog);
-    fprintf(stderr,"\t\t\t-i input -o output\n");
-    fprintf(stderr,"\t\t\t[-m mode] [-c suite] [-s psk] [-n pskid]\n");
-    fprintf(stderr,"Options:\n");
-    fprintf(stderr,"\t-a additional authenticated data file name or actual value\n");
-    fprintf(stderr,"\t-c specify ciphersuite\n");
-    fprintf(stderr,"\t-d decrypt\n");
-    fprintf(stderr,"\t-e encrypt\n");
-    fprintf(stderr,"\t-k ephemeral public key (pkE)\n");
-    fprintf(stderr,"\t-h help\n");
-    fprintf(stderr,"\t-I additional info to bind to key - file name or actual value\n");
-    fprintf(stderr,"\t-i input file name or actual value (stdin if not specified)\n");
-    fprintf(stderr,"\t-P public key file name or base64 or ascii-hex encoded value\n");
-    fprintf(stderr,"\t-p private key file name or base64 or ascii-hex encoded value\n");
-    fprintf(stderr,"\t-m mode (a number or one of: %s,%s,%s or %s)\n",
-            HPKE_MODESTR_BASE,HPKE_MODESTR_PSK,HPKE_MODESTR_AUTH,HPKE_MODESTR_PSKAUTH);
-    fprintf(stderr,"\t-n PSK id string\n");
-    fprintf(stderr,"\t-o output file name (output to stdout if not specified) \n");
-    fprintf(stderr,"\t-s psk file name or base64 or ascii-hex encoded value\n");
-    fprintf(stderr,"\t-v verbose output\n");
-    fprintf(stderr,"\n");
-    fprintf(stderr,"Notes:\n");
-    fprintf(stderr,"- Sometimes base64 or ascii-hex decoding might work when you\n");
-    fprintf(stderr,"  don't want it to (sorry about that;-)\n");
-    fprintf(stderr,"- If a PSK mode is used, both pskid \"-n\" and psk \"-s\" MUST\n");
-    fprintf(stderr,"  be supplied\n");
-    fprintf(stderr,"- For %s or %s modes, provide both public and private keys\n",
-            HPKE_MODESTR_AUTH,HPKE_MODESTR_PSKAUTH);
-    fprintf(stderr,"- Ciphersuites are specified using a comma-separated list of numbers\n");
-    fprintf(stderr,"  e.g. \"-c 0x20,1,3\" or a comma-separated list of strings from:\n");
-    fprintf(stderr,"      KEMs: %s, %s, %s, %s or %s\n",
-            HPKE_KEMSTR_P256, HPKE_KEMSTR_P384, HPKE_KEMSTR_P521, HPKE_KEMSTR_X25519, HPKE_KEMSTR_X448);
-    fprintf(stderr,"      KDFs: %s, %s or %s\n",
-            HPKE_KDFSTR_256, HPKE_KDFSTR_384, HPKE_KDFSTR_512);
-    fprintf(stderr,"      AEADs: %s, %s or %s\n",
-            HPKE_AEADSTR_AES128GCM, HPKE_AEADSTR_AES256GCM, HPKE_AEADSTR_CP);
-    fprintf(stderr,"  For example \"-c %s,%s,%s\" (the default)\n",
-            HPKE_KEMSTR_X25519, HPKE_KDFSTR_256, HPKE_AEADSTR_AES128GCM);
-    if (errmsg==NULL) {
-        exit(0);
-    } else {
-        exit(1);
-    }
-}
+#define USAGE \
+    "    HPKE test application                                                  \n" \
+    "                                                                           \n" \
+    " For encryption use the following parameters:                              \n" \
+    "    doing_enc=%%d        1 (encrypt)                                       \n" \
+    "    pkR_filename=%%s     File with the public key of the recipient         \n" \
+    "    input_filename=%%s   File with input-plaintext                         \n" \
+    "    output_filename=%%s  File to which the output will be written to       \n" \
+    "    pkE_filename=%%s     File to which the ephemeral PK will be written to \n" \
+    "    mode=%%s             HPKE mode (base, psk, auth, pskauth)              \n" \
+    "    suite=%%s            HPKE ciphersuite using a comma separated list     \n" \
+    "                         For example, '0x10,1,1' refers to                 \n" \
+    "                              KEM: P256                                    \n" \
+    "                              KDF: HKDF-SHA256                             \n" \
+    "                              AEAD: AES-128-GCM                            \n" \
+    "                                                                           \n" \
+    " For decryption use the following parameters:                              \n" \
+    "    doing_enc=%%d        0 (decrypt)                                       \n" \
+    "    skR_filename=%%s     File with own secret key                          \n" \
+    "    mode=%%s             HPKE mode (base, psk, auth, pskauth)              \n" \
+    "    suite=%%s            HPKE ciphersuite using a comma separated list     \n" \
+    "    pkE_filename=%%s     File with ephemeral public key                    \n" \
+    "    input_filename=%%s   File with input-ciphertext                        \n" \
+    "    output_filename=%%s  File to which the plaintext will be written to    \n" \
+    "                                                                           \n" \
+    " Optional parameters:                                                      \n" \
+    "    info_in=%%s          Additional info to bind to key                    \n" \
+    "                         (file name or actual value)                       \n" \
+    "    pskid=%%s            PSK id string                                     \n" \
+    "    psk_in=%%s           PSK file name or base64 or ascii-hex encoded value\n" \
+    "    aad_in=%%s           Additional authenticated data file name or value  \n" \
+"\n"
 
 /*
  * \brief strip out newlines from input
@@ -153,7 +124,7 @@ static int write_to_file( const char *outp, size_t outlen, unsigned char *outbuf
 
     if( err != 0 )
     {
-        fprintf(stderr, "Can't open (%s) - exiting\n", outp);
+        mbedtls_printf(  "Can't open (%s) - exiting\n", outp);
         return(EXIT_FAILURE);
     }
 #else
@@ -161,17 +132,14 @@ static int write_to_file( const char *outp, size_t outlen, unsigned char *outbuf
 
     if (!fp)
     {
-        fprintf(stderr, "Can't open (%s) - exiting\n", outp);
+        mbedtls_printf(  "Can't open (%s) - exiting\n", outp);
         return(EXIT_FAILURE);
     }
 #endif
 
     frv = fwrite( outbuf, 1, outlen, fp );
     
-    if( verbose )
-    {
-        fprintf(stderr,"wrote %lu bytes to file %s\n",(unsigned long) frv, outp);
-    }
+    mbedtls_printf( "wrote %lu bytes to file %s\n",(unsigned long) frv, outp);
     
     if( ferror(fp) )
     {
@@ -196,7 +164,7 @@ static int read_from_file( const char *inp, size_t *outlen, unsigned char **outb
 
     if (err != 0)
     {
-        fprintf(stderr, "Can't open (%s) - exiting\n", inp);
+        mbedtls_printf(  "Can't open (%s) - exiting\n", inp);
         return(EXIT_FAILURE);
     }
 #else
@@ -204,18 +172,15 @@ static int read_from_file( const char *inp, size_t *outlen, unsigned char **outb
 
     if( !fp )
     {
-        fprintf(stderr, "Can't open (%s) - exiting\n", inp);
+        mbedtls_printf(  "Can't open (%s) - exiting\n", inp);
         return( EXIT_FAILURE );
     }
 #endif /* _MSC_VER */
 
     toutlen = fread( tbuf, 1, HPKE_MAXSIZE, fp );
     
-    if( verbose )
-    {
-        fprintf( stderr, "got %lu bytes from file %s\n", (unsigned long) toutlen, inp );
-    }
-
+    fprintf( stderr, "got %lu bytes from file %s\n", (unsigned long) toutlen, inp );
+    
     if( ferror(fp) )
     {
         fclose( fp );
@@ -271,7 +236,7 @@ static int map_input(const char *inp, size_t *outlen, unsigned char **outbuf, in
     /* if no input, try stdin */
     if (!inp) {
         toutlen=fread(tbuf,1,HPKE_MAXSIZE,stdin);
-        if (verbose) fprintf(stderr,"got %lu bytes from stdin\n",(unsigned long)toutlen);
+        mbedtls_printf( "got %lu bytes from stdin\n",(unsigned long)toutlen);
         if (!feof(stdin)) return(__LINE__);
     } else {
         toutlen=strlen(inp);
@@ -292,11 +257,11 @@ static int map_input(const char *inp, size_t *outlen, unsigned char **outbuf, in
         {
             /* that worked - so read file up to max into buffer */
             toutlen=fread(tbuf,1,HPKE_MAXSIZE,fp);
-            if (verbose) fprintf(stderr,"got %lu bytes from file %s\n",(unsigned long)toutlen,inp);
+            mbedtls_printf( "got %lu bytes from file %s\n",(unsigned long)toutlen,inp);
             if (ferror(fp)) { fclose(fp); return(__LINE__); }
             fclose(fp);
         } else {
-            if (verbose) fprintf(stderr,"got %lu bytes direct from command line %s\n",
+            mbedtls_printf( "got %lu bytes direct from command line %s\n",
                             (unsigned long)toutlen,inp);
             memcpy(tbuf,inp,toutlen);
         }
@@ -311,7 +276,7 @@ static int map_input(const char *inp, size_t *outlen, unsigned char **outbuf, in
             int adr=hpke_ah_decode(toutlen,tbuf,outlen,outbuf);
             if (!adr) return(__LINE__);
             if (adr==1) {
-                if (verbose) fprintf(stderr,"ah_decode worked for %s - going with that\n",tbuf);
+                mbedtls_printf( "ah_decode worked for %s - going with that\n",tbuf);
                 return(1);
             }
         } 
@@ -323,9 +288,8 @@ static int map_input(const char *inp, size_t *outlen, unsigned char **outbuf, in
             res=mbedtls_base64_decode( *outbuf, toutlen, outlen,  (unsigned char *)tbuf, toutlen );
             
             if (res==0) {
-                if (verbose) 
-                    fprintf(stderr,"base64 decode ok for %s - using the %lu bytes that provided\n",
-                                tbuf,(unsigned long)*outlen);
+                mbedtls_printf( "base64 decode ok for %s - using the %lu bytes that provided\n",
+                           tbuf,(unsigned long)*outlen);
                 return(1);
             } else {
                 /* base64 decode failed so maybe the content was good as-is */
@@ -333,9 +297,9 @@ static int map_input(const char *inp, size_t *outlen, unsigned char **outbuf, in
                 *outbuf=NULL;
             }
         }
-        if (verbose) fprintf(stderr,"decodes failed for %s - going with original\n",tbuf);
+        mbedtls_printf( "decodes failed for %s - going with original\n",tbuf);
     } else {
-        if (verbose>1) fprintf(stderr,"going with original: %s\n",tbuf);
+        mbedtls_printf( "going with original: %s\n",tbuf);
     } 
     /* fallback to assuming input is good, as-is */
     /* Mbed TLS library requires a non-null-terminated string */
@@ -348,240 +312,221 @@ static int map_input(const char *inp, size_t *outlen, unsigned char **outbuf, in
     return(1);
 }
 
-/*!
- * \brief Example application demonstrating the use of HPKE encryption and decryption.
- * 
- * To encrypt and decrypt messages using this HPKE application the following steps are necessary. 
- * 
- * (A) Encryption
- * 
- * A.1. Create a private key
- * A.2. Convert the key into a format understood by the HPKE example application
- *      (which uses the PSA Crypto API)
- * A.3. Invoke the HPKE example application
- * 
- * 
- * A.1. Create a private key
- * 
- * It is necessary to create a public/private key pair for use by the recipient 
- * (called pkR and skR in the HPKE spec). The command to generate a private key using the 
- * OpenSSL tools with ECC with the NIST P256r1. Then, put the private key in the skR.pem file
- * (in a PEM encoding).
- * 
- * > openssl ecparam -name prime256v1 -genkey -noout -out skR.pem
- * 
- * A.2. Convert key
- * 
- * We need to convert the key from the PEM format into the raw key format required by the 
- * example program. We use the key_writer utility to create two files, one for the public 
- * key and another one for the private key. The public key will be used for encryption by 
- * the sender and the private key by the recipient (obviously) for decryption. 
- * The key_writer program is a separate utility, which can be found here: 
- * https://github.com/hannestschofenig/key_writer
- * 
- * Once compiled, create pkR and skR using the following commands:
- * 
- * > key_writer mode=private filename=skR.pem output_mode=public output_file=pkR.bin output_format=bin
- * > key_writer mode=private filename=skR.pem output_mode=private output_file=skR.bin output_format=bin
- *
- * A.3. Encrypt plaintext
- * 
- * Finally, we invoke the HPKE example application to encrypt data. The sender uses several command 
- * line arguments to pass the following information in, namely:
- *
- *  - Public key of the recipient (pkR)
- *  - Plaintext
- *  - Ciphersuite information
- *  - Authentication mode
- * 
- * As a result, the following output is produced:
- * 
- *  - Ciphertext
- *  - Ephemeral public key (pkE)
- * 
- * > echo "Hello World!" > hello.txt
- * > hpke_example -e -P pkR.bin -i hello.txt -k pkE.bin -o ciphertext -v -m base -c 0x10,1,1
- * 
- * Note: The parameter -c 0x10,1,1 refers to the following ciphersuite combination:
- *
- *  - KEM: P256
- *  - KDF: HKDF-SHA256
- *  - AEADs: AES-128-GCM
- * 
- * Normally, the sender would then transmit the ciphertext, and the pkE to the recipient.
- * We assume that the authentication mode and the ciphersuite are known to both parties a
- * priori or negotiated.
- * 
- * (B) Decryption
- * 
- * Now, we invoke the HPKE example application to decrypt the ciphertext.
- * The recipient takes the input together with its private key (skR) and re-creates the 
- * plaintext as follows: 
- * 
- * > hpke_example -d -p skR.bin -v -m base -c 0x10,1,1 -k pkE.bin -i ciphertext -o plaintext
- * 
- * If everything was configured correctly, then the recipient obtains the plaintext. 
- *
+/*
+ * global options
  */
-int main(int argc, char **argv)
+struct options
+{
+    int doing_enc;
+    char* pkE_filename;
+    char* pkR_filename;
+    char* skR_filename;
+    char* aad_in;
+    char* info_in;
+    char* input_filename;
+    char* output_filename;
+    int hpke_mode;
+    char* pskid;
+    char* psk_in;
+    char* suitestr;
+    hpke_suite_t hpke_suite;
+} opt;
+
+int main(int argc, char** argv)
 {
     // PSA-based Variable
     psa_status_t status;
-    int ret;
 
-    int doing_enc = -1;
-    char *pkE_filename=NULL;
-    char *pkR_filename=NULL;
-    char *skR_filename=NULL;
-    char *aad_in=NULL;
-    char *info_in=NULL;
-    char *input_filename=NULL;
-    char *output_filename=NULL;
-    char *modestr=NULL;
-    char *pskid=NULL;
-    char *psk_in=NULL;
-    char *suitestr=NULL;
+    // Return value
+    int ret = 0;
 
-    /* Buffers */
-    uint8_t *pkR = NULL;
+    // Loop index
+    int i;
+
+    // Buffers
+    uint8_t* pkR = NULL;
     size_t pkR_len;
-
-    uint8_t *plaintext = NULL;
+    uint8_t* plaintext = NULL;
     size_t plaintext_len;
+    uint8_t* ciphertext = NULL;
+    size_t ciphertext_len = 0;
 
-    uint8_t *ciphertext = NULL;
-    size_t ciphertext_len;
+    // Parsing of command line parameters
+    char* p, * q;
 
     // Variables for use with private key import
     psa_key_handle_t skR_handle = 0;
     psa_key_type_t type;
     psa_key_attributes_t attr_private_key = PSA_KEY_ATTRIBUTES_INIT;
 
-    size_t publen=0; unsigned char *pub=NULL;
-    size_t skR_len=0; unsigned char *skR=NULL;
-    size_t aadlen=0; unsigned char *aad=NULL;
-    size_t infolen=0; unsigned char *info=NULL;
-    size_t psklen=0; unsigned char *psk=NULL;
+    // Initializing input parameters
+    opt.doing_enc = DFL_OPERATION_ENCRYPT;
+    opt.pkE_filename = NULL;
+    opt.pkR_filename = NULL;
+    opt.skR_filename = NULL;
+    opt.aad_in = NULL;
+    opt.info_in = NULL;
+    opt.input_filename = NULL;
+    opt.output_filename = NULL;
+    opt.hpke_mode = HPKE_MODE_BASE;
+    opt.pskid = NULL;
+    opt.psk_in = NULL;
+    opt.suitestr = NULL;
+    opt.hpke_suite.kdf_id = HPKE_KDF_ID_HKDF_SHA256;
+    opt.hpke_suite.kem_id = HPKE_KEM_ID_P256;
+    opt.hpke_suite.aead_id = HPKE_AEAD_ID_AES_GCM_128;
 
-    int hpke_mode=HPKE_MODE_BASE;
-    hpke_suite_t hpke_suite = HPKE_SUITE_DEFAULT;
-    int opt;
-    
-    while((opt = getopt(argc, argv, "?c:ghedvP:p:a:I:i:m:n:k:o:s:")) != -1) 
+    size_t publen = 0; unsigned char* pub = NULL;
+    size_t skR_len = 0; unsigned char* skR = NULL;
+    size_t aadlen = 0; unsigned char* aad = NULL;
+    size_t infolen = 0; unsigned char* info = NULL;
+    size_t psklen = 0; unsigned char* psk = NULL;
+
+    if( argc == 1 )
     {
-        switch(opt) {
-            case '?': usage(argv[0], ("Unexpected option") ); break;
-            case 'a': aad_in=optarg; break;
-            case 'c': suitestr=optarg; break;
-            case 'd': doing_enc=0; break;
-            case 'e': doing_enc=1; break;
-            case 'h': usage(argv[0],NULL); break;
-            case 'I': info_in=optarg; break;
-            case 'i': input_filename=optarg; break;
-            case 'm': modestr=optarg; break;
-            case 'n': pskid=optarg; break;
-            case 'o': output_filename=optarg; break;
-            case 'P': pkR_filename=optarg; break;
-            case 'k': pkE_filename=optarg; break;
-            case 'p': skR_filename=optarg; break;
-            case 's': psk_in=optarg; break;
-            case 'v': verbose++; break;
-            default:
-                usage(argv[0],"unknown arg");
-        }
+    usage:
+        if( ret == 0 )
+            ret = 1;
+
+        mbedtls_printf( USAGE );
+        goto exit;
     }
 
-    // check command line args
-    if (modestr!=NULL) {
-        if (strlen(modestr)==strlen(HPKE_MODESTR_BASE) && 
-                !strncmp(modestr,HPKE_MODESTR_BASE,strlen(HPKE_MODESTR_BASE))) {
-            hpke_mode=HPKE_MODE_BASE;
-        } else if (strlen(modestr)==strlen(HPKE_MODESTR_PSK) && 
-                !strncmp(modestr,HPKE_MODESTR_PSK,strlen(HPKE_MODESTR_PSK))) {
-            hpke_mode=HPKE_MODE_PSK;
-        } else if (strlen(modestr)==strlen(HPKE_MODESTR_AUTH) && 
-                !strncmp(modestr,HPKE_MODESTR_AUTH,strlen(HPKE_MODESTR_AUTH))) {
-            hpke_mode=HPKE_MODE_AUTH;
-        } else if (strlen(modestr)==strlen(HPKE_MODESTR_PSKAUTH) && 
-                !strncmp(modestr,HPKE_MODESTR_PSKAUTH,strlen(HPKE_MODESTR_PSKAUTH))) {
-            hpke_mode=HPKE_MODE_PSKAUTH;
-        } else if (strlen(modestr)==1) {
-            switch(modestr[0]) {
-                case '0': hpke_mode=HPKE_MODE_BASE; break;
-                case '1': hpke_mode=HPKE_MODE_PSK; break;
-                case '2': hpke_mode=HPKE_MODE_AUTH; break;
-                case '3': hpke_mode=HPKE_MODE_PSKAUTH; break;
-                default: usage(argv[0],"unnkown mode");
+    for( i = 1; i < argc; i++ )
+    {
+        p = argv[i];
+        if( ( q = strchr( p, '=' ) ) == NULL )
+            goto usage;
+        *q++ = '\0';
+
+        if( strcmp( p, "aad_in" ) == 0 )
+            opt.aad_in = q;
+        else if( strcmp( p, "suite" ) == 0 )
+        {
+            if( hpke_str2suite( q, &opt.hpke_suite ) != 1 )
+            {
+                mbedtls_printf( "bad ciphersuite string\n" );
+                goto usage;
             }
-        } else {
-            usage(argv[0],"unkown mode");
         }
-    }
-
-    // Check encryption/decryption
-    if( doing_enc == -1)
-    {
-        usage(argv[0],"missing -d or -e configuration setting");
-    }
-    // Check ciphersuit
-    if( suitestr )
-    {
-        if( verbose )
+        else if(strcmp( p, "doing_enc" ) == 0 )
         {
-            fprintf( stderr, "Using ciphersuite %s\n", suitestr );
+            switch( atoi( q ) )
+            {
+            case DFL_OPERATION_DECRYPT:
+                opt.doing_enc = DFL_OPERATION_DECRYPT;
+                break;
+            case DFL_OPERATION_ENCRYPT:
+                opt.doing_enc = DFL_OPERATION_ENCRYPT;
+                break;
+            default:
+                mbedtls_printf( "invalid unknown operation (encryption/decryption)\n" );
+                goto usage;
+            }
         }
-
-        if (hpke_str2suite(suitestr,&hpke_suite)!=1)
+        else if( strcmp( p, "info_in" ) == 0)
+            opt.info_in = q;
+        else if( strcmp( p, "input_filename" ) == 0)
+            opt.input_filename = q;
+        else if( strcmp( p, "mode" ) == 0)
         {
-            usage(argv[0],"Bad ciphersuite string");
+            if( strcmp( q, HPKE_MODESTR_BASE ) == 0)
+                opt.hpke_mode = HPKE_MODE_BASE;
+            else if( strcmp( q, HPKE_MODESTR_PSK ) == 0)
+                opt.hpke_mode = HPKE_MODE_PSK;
+            else if( strcmp( q, HPKE_MODESTR_AUTH ) == 0)
+                opt.hpke_mode = HPKE_MODE_AUTH;
+            else if( strcmp( q, HPKE_MODESTR_PSKAUTH ) == 0)
+                opt.hpke_mode = HPKE_MODE_PSKAUTH;
+            else
+            {
+                mbedtls_printf( "unkown HPKE mode\n" );
+                goto usage;
+            }
         }
+        else if( strcmp( p, "pskid" ) == 0 )
+            opt.pskid = q;
+        else if( strcmp( p, "output_filename" ) == 0 )
+            opt.output_filename = q;
+        else if( strcmp( p, "pkR_filename" ) == 0 )
+            opt.pkR_filename = q;
+        else if( strcmp( p, "pkE_filename" ) == 0 )
+            opt.pkE_filename = q;
+        else if( strcmp( p, "skR_filename" ) == 0 )
+            opt.skR_filename = q;
+        else if( strcmp( p, "psk_in" ) == 0 )
+            opt.psk_in = q;
+        else
+            goto usage;
     }
 
-    if( aad_in && map_input( aad_in, &aadlen, &aad, 1 ) !=1 ) usage( argv[0], "bad -a value" );
-    if( info_in && map_input( info_in, &infolen, &info, 1 ) !=1 ) usage( argv[0], "bad -I value" );
+    if( opt.aad_in && map_input(opt.aad_in, &aadlen, &aad, 1) != 1)
+    {
+        mbedtls_printf("bad aad_in value\n");
+        goto usage;
+    }
+
+    if( opt.info_in && map_input( opt.info_in, &infolen, &info, 1 ) !=1 )
+    {
+        mbedtls_printf( "bad info_in value\n" );
+        goto usage;
+    }
 
     // Initialize the PSA
     status = psa_crypto_init( );
 
     if ( status != PSA_SUCCESS )
     {
-        fprintf( stderr, "Unable to initialize crypto (%d) - exiting\n", status );
-        return( EXIT_FAILURE );
+        mbedtls_printf( "Unable to initialize crypto (%d) - exiting\n", status );
+        ret = status;
+        goto exit;
     }
 
-    /* Encryption */
-    if( doing_enc == 1 )
+    // Encryption
+    if( opt.doing_enc == DFL_OPERATION_ENCRYPT )
     {
         size_t pkE_len = PSA_EXPORT_PUBLIC_KEY_MAX_SIZE;
-        uint8_t pkE[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE] = {0};
+        uint8_t pkE[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE] = { 0 };
 
-        if( psk_in && map_input( psk_in, &psklen, &psk, 1 ) !=1 ) usage( argv[0], "bad -s value" );
+        if( opt.psk_in && map_input( opt.psk_in, &psklen, &psk, 1 ) != 1 )
+        {
+            mbedtls_printf("bad psk_in value\n");
+            goto usage;
+        }
 
         // Load pkR
-        if( doing_enc && !pkR_filename ) usage( argv[0], "No recipient public key (\"-P\") provided" );
-
-        if( pkR_filename != NULL )
+        if( opt.doing_enc && !opt.pkR_filename )
         {
-            ret = read_from_file( pkR_filename, &pkR_len, &pkR );
+            mbedtls_printf( "no recipient public key (pkR_filename) provided\n" );
+            goto usage;
+        }
+
+        if( opt.pkR_filename != NULL )
+        {
+            ret = read_from_file( opt.pkR_filename, &pkR_len, &pkR );
 
             if( ret != 0 )
             {
-                if( verbose ) fprintf( stderr, "bad -P value: %s\n", pkR_filename );
-                return( EXIT_FAILURE );
+                mbedtls_printf( "bad pkR_filename value: %s\n", opt.pkR_filename );
+                goto usage;
             }
         }
 
         // Load plaintext
-        if( doing_enc && !input_filename ) usage( argv[0], "No plaintext file (\"-i\") provided" );
-
-        if( input_filename != NULL )
+        if( opt.doing_enc && !opt.input_filename )
         {
-            ret = read_from_file( input_filename, &plaintext_len, &plaintext );
+            mbedtls_printf( "No plaintext file (input_filename) provided\n" );
+            goto usage;
+        }
+
+        if( opt.input_filename != NULL )
+        {
+            ret = read_from_file( opt.input_filename, &plaintext_len, &plaintext );
 
             if( ret != 0 )
             {
-                if( verbose ) fprintf( stderr, "bad -i value: %s\n", input_filename );
-                return( EXIT_FAILURE );
+                mbedtls_printf( "bad -i value: %s\n", opt.input_filename );
+                goto usage;
             }
         }
 
@@ -591,12 +536,14 @@ int main(int argc, char **argv)
 
         if( ciphertext == NULL )
         {
-            return( EXIT_FAILURE );
+            mbedtls_printf( "not enough memory for ciphertext\n" );
+            ret = -1;
+            goto exit;
         }
 
-        ret = mbedtls_hpke_encrypt( hpke_mode,                     // HPKE mode
-                                    hpke_suite,                    // ciphersuite
-                                    pskid, psklen, psk,            // PSK
+        ret = mbedtls_hpke_encrypt( opt.hpke_mode,                 // HPKE mode
+                                    opt.hpke_suite,                // ciphersuite
+                                    opt.pskid, psklen, psk,        // PSK
                                     pkR_len, pkR,                  // pkR
                                     0,                             // skI
                                     plaintext_len, plaintext,      // input plaintext
@@ -608,89 +555,87 @@ int main(int argc, char **argv)
 
         if( ret != 0 )
         {
-            fprintf( stderr, "Error encrypting (%d) - exiting\n", ret );
-            exit( ret );
+            mbedtls_printf( "error encrypting (%d)\n", ret );
+            goto exit;
         }
 
         // Write ciphertext
-        ret = write_to_file( output_filename, ciphertext_len, ciphertext );
+        ret = write_to_file( opt.output_filename, ciphertext_len, ciphertext );
 
         if( ret != 0 )
         {
-            if( verbose ) fprintf( stderr, "Error writing pkE to %s\n", output_filename );
-            return( EXIT_FAILURE );
+            mbedtls_printf( "Error writing pkE to %s\n", opt.output_filename );
+            goto exit;
         }
 
         // Write ephemeral public key (pkE)
-        ret = write_to_file( pkE_filename, pkE_len, pkE );
+        ret = write_to_file( opt.pkE_filename, pkE_len, pkE );
 
         if( ret != 0 )
         {
-            if( verbose ) fprintf( stderr, "Error writing pkE to %s\n", pkE_filename );
-            return( EXIT_FAILURE );
+            mbedtls_printf( "Error writing pkE to %s\n", opt.pkE_filename );
+            goto exit;
         }
-
-        if( plaintext != NULL) mbedtls_free( plaintext );
-        if( pkR != NULL) mbedtls_free( pkR );
-        if( ciphertext != NULL) mbedtls_free( ciphertext );
     }
-    /* Decryption */
+    // Decryption
     else
     {
         uint8_t *pkE = NULL;
-        size_t pkE_len;
+        size_t pkE_len = 0;
 
         // Read skR
-        if( skR_filename == NULL )
+        if( opt.skR_filename == NULL )
         {
-            usage( argv[0], "No private key (\"-p\") provided" );
+            goto usage;
         }
         else
         {
-             ret = read_from_file( skR_filename, &skR_len, &skR );
+             ret = read_from_file( opt.skR_filename, &skR_len, &skR );
 
             if( ret != 0 )
             {
-                if( verbose ) fprintf( stderr, "bad -p value: %s\n", skR_filename );
-                return( EXIT_FAILURE );
+                mbedtls_printf( "bad skR_filename: %s\n", opt.skR_filename );
+                goto usage;
             }
 
         }
 
         // Read ciphertext
-        if( input_filename == NULL )
+        if( opt.input_filename == NULL )
         {
-            usage( argv[0], "No ciphertext file (\"-i\") provided" );
+            mbedtls_printf( "No ciphertext file (input_filename) provided\n" );
+            goto usage;
         }
         else
         {
-            ret = read_from_file( input_filename, &ciphertext_len, &ciphertext );
+            ret = read_from_file( opt.input_filename, &ciphertext_len, &ciphertext );
 
             if( ret != 0 )
             {
-                if( verbose ) fprintf( stderr, "bad -i value: %s\n", input_filename );
-                return( EXIT_FAILURE );
+                mbedtls_printf( "bad input_filename value: %s\n", opt.input_filename );
+                goto usage;
             }
         }
 
         // Read ephemeral public key (pkE)
-        if( pkE_filename == NULL )
+        if( opt.pkE_filename == NULL )
         {
-            usage( argv[0], "No ephemeral public key file (\"-k\") provided" );
+            mbedtls_printf( "No ephemeral public key file (pkE_filename) provided\n" );
+            goto usage;
         }
         else
         {
-            ret = read_from_file( pkE_filename, &pkE_len, &pkE );
+            ret = read_from_file( opt.pkE_filename, &pkE_len, &pkE );
 
             if( ret != 0 )
             {
-                if( verbose ) fprintf( stderr, "bad -i value: %s\n", pkE_filename );
-                return( EXIT_FAILURE );
+                mbedtls_printf( "bad pkE_filename value: %s\n", opt.pkE_filename );
+                goto usage;
             }
         }
 
-        /* Import private key */
-        switch( hpke_suite.kem_id )
+        // Import private key
+        switch( opt.hpke_suite.kem_id )
         {
             case HPKE_KEM_ID_P256:
             case HPKE_KEM_ID_P384:
@@ -700,11 +645,11 @@ int main(int argc, char **argv)
             case HPKE_KEM_ID_25519: // not implemented yet
             case HPKE_KEM_ID_448: // not implemented yet
             default:
-                fprintf( stderr, "Unsupported KEM (%d) - exiting\n", hpke_suite.kem_id );
-                return( EXIT_FAILURE );
+                mbedtls_printf( "Unsupported KEM (%d) - exiting\n", opt.hpke_suite.kem_id );
+                goto usage;
         }
 
-        /* Import private key */
+        // Import private key
         psa_set_key_usage_flags( &attr_private_key, PSA_KEY_USAGE_DERIVE );
         psa_set_key_algorithm( &attr_private_key, PSA_ALG_ECDH );
         psa_set_key_type( &attr_private_key, type );
@@ -715,10 +660,10 @@ int main(int argc, char **argv)
 
         if( status != PSA_SUCCESS )
         {
-            fprintf( stderr, "Error importing private key (%d) - exiting\n", status );
-            return( status );
+            mbedtls_printf( "Error importing private key (%d) - exiting\n", status );
+            ret = (int) status;
+            goto exit;
         }
-
 
         // Allocate memory for plaintext
         plaintext_len = ciphertext_len;
@@ -726,12 +671,12 @@ int main(int argc, char **argv)
 
         if( plaintext == NULL )
         {
-            return( EXIT_FAILURE );
+            goto exit;
         }
 
-        ret = mbedtls_hpke_decrypt( hpke_mode,                   // HPKE mode
-                                    hpke_suite,                  // ciphersuite
-                                    pskid, psklen, psk,          // PSK for authentication
+        ret = mbedtls_hpke_decrypt( opt.hpke_mode,               // HPKE mode
+                                    opt.hpke_suite,              // ciphersuite
+                                    opt.pskid, psklen, psk,      // PSK for authentication
                                     publen, pub,                 // pkS
                                     skR_handle,                  // skR handle
                                     pkE_len,                     // pkE_len
@@ -746,32 +691,34 @@ int main(int argc, char **argv)
 
         if( ret != 0 )
         {
-            fprintf( stderr, "Error decrypting (%d) - exiting\n", ret );
-            exit( ret );
+            mbedtls_printf( "Error decrypting (%d) - exiting\n", ret );
+            goto exit;
         }
         
         // Write plaintext
-        ret = write_to_file( output_filename, plaintext_len, plaintext );
+        ret = write_to_file( opt.output_filename, plaintext_len, plaintext );
         
         if( ret != 0 )
         {
-            fprintf( stderr, "Error writing %lu bytes of output to %s\n",
-                        (unsigned long) plaintext_len, output_filename );
-            exit( ret );
+            mbedtls_printf( "Error writing %lu bytes of output to %s\n",
+                        (unsigned long) plaintext_len, opt.output_filename );
+            goto exit;
         }
         
-        fprintf( stdout, "All worked: Recovered plain is %lu octets.\n", (unsigned long) plaintext_len );
+        mbedtls_printf( "Recovered plaintext is %lu octets.\n", (unsigned long) plaintext_len );
 
-        if( skR != NULL ) mbedtls_free( skR );
-        if( ciphertext != NULL ) mbedtls_free( ciphertext );
         if( pkE != NULL ) mbedtls_free( pkE );
-        if( plaintext != NULL ) mbedtls_free ( plaintext );
     }
-    
+
+exit:
+    if( ciphertext != NULL ) mbedtls_free( ciphertext );
     if( info != NULL ) mbedtls_free( info );
     if( aad != NULL ) mbedtls_free( aad );
     if( psk ) mbedtls_free( psk );
+    if( plaintext != NULL ) mbedtls_free( plaintext );
+    if( pkR != NULL ) mbedtls_free( pkR );
+    if( skR != NULL ) mbedtls_free( skR );
 
-    return( 0 );
+    return( ret );
 }
 

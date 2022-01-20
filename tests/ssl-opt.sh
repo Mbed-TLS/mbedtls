@@ -9194,6 +9194,7 @@ run_test    "TLS 1.3: CertificateRequest check - openssl" \
             "$P_CLI debug_level=4 force_version=tls13 " \
             1 \
             -c "=> parse certificate request" \
+            -c "got a certificate request" \
             -c "<= parse certificate request"
 
 requires_gnutls_tls1_3
@@ -9208,6 +9209,7 @@ run_test    "TLS 1.3: CertificateRequest check - gnutls" \
             "$P_CLI debug_level=3 min_version=tls13 max_version=tls13" \
             1 \
             -c "=> parse certificate request" \
+            -c "got a certificate request" \
             -c "<= parse certificate request"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3

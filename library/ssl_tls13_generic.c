@@ -220,6 +220,78 @@ int mbedtls_ssl_tls13_write_sig_alg_ext( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
+/* mbedtls_ssl_tls13_parse_sig_alg_ext()
+ *
+ * enum {
+ *    ....
+ *   ecdsa_secp256r1_sha256( 0x0403 ),
+ *   ecdsa_secp384r1_sha384( 0x0503 ),
+ *   ecdsa_secp521r1_sha512( 0x0603 ),
+ *    ....
+ * } SignatureScheme;
+ *
+ * struct {
+ *    SignatureScheme supported_signature_algorithms<2..2^16-2>;
+ * } SignatureSchemeList;
+ */
+int mbedtls_ssl_tls13_parse_sig_alg_ext( mbedtls_ssl_context *ssl,
+                                         const unsigned char *buf,
+                                         const unsigned char *end )
+{
+    const unsigned char *p = buf;
+    const uint16_t *sig_alg;
+    unsigned int signature_scheme; /* store received signature algorithm scheme */
+    uint32_t common_idx = 0; /* iterate through received signature schemes list */
+
+    /* skip 2 bytes of signature algorithms length */
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2 );
+    p += 2;
+
+    memset( ssl->handshake->sig_algs, 0, sizeof( ssl->handshake->sig_algs ) );
+
+    while( p < end && common_idx + 1 < MBEDTLS_PK_SIGNATURE_MAX_SIZE )
+    {
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2 );
+        signature_scheme = MBEDTLS_GET_UINT16_BE( p, 0 );
+        p += 2;
+
+        MBEDTLS_SSL_DEBUG_MSG( 4, ( "received signature algorithm: 0x%x",
+                                    signature_scheme ) );
+
+        for( sig_alg = ssl->conf->tls13_sig_algs;
+             *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
+        {
+            if( *sig_alg == signature_scheme )
+            {
+                ssl->handshake->sig_algs[common_idx] = signature_scheme;
+                common_idx++;
+                break;
+            }
+        }
+    }
+    /* Check that we consumed all the message. */
+    if( p != end )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1,
+            ( "Signature algorithms extension length misaligned" ) );
+        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
+                                      MBEDTLS_ERR_SSL_DECODE_ERROR );
+        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
+    }
+
+    if( common_idx == 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "no signature algorithm in common" ) );
+        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
+                                      MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+    }
+
+    ssl->handshake->sig_algs[common_idx] = MBEDTLS_TLS1_3_SIG_NONE;
+
+    return( 0 );
+}
+
 /*
  * STATE HANDLING: Read CertificateVerify
  */

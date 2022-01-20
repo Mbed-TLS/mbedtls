@@ -560,7 +560,7 @@ struct mbedtls_ssl_handshake_params
      * Handshake specific crypto variables
      */
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-    int recv_sig_schemes_list[MBEDTLS_PK_SIGNATURE_MAX_SIZE];
+    uint16_t sig_algs[MBEDTLS_PK_SIGNATURE_MAX_SIZE];
                                     /*!<  Received signature algorithms */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
@@ -1747,6 +1747,12 @@ void mbedtls_ssl_tls13_add_hs_msg_to_checksum( mbedtls_ssl_context *ssl,
 int mbedtls_ssl_write_sig_alg_ext( mbedtls_ssl_context *ssl, unsigned char *buf,
                                    const unsigned char *end, size_t *out_len );
 
+/*
+ * Parse TLS 1.3 Signature Algorithm extension
+ */
+int mbedtls_ssl_tls13_parse_sig_alg_ext( mbedtls_ssl_context *ssl,
+                                         const unsigned char *buf,
+                                         const unsigned char *end );
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 /* Get handshake transcript */

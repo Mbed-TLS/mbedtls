@@ -9231,14 +9231,13 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS 1.3: HelloRetryRequest check - gnutls" \
-            "$G_NEXT_SRV -d 4 --priority=NONE:+GROUP-SECP256R1:+AES-256-GCM:+SHA384:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS" \
+            "$G_NEXT_SRV -d 4 --priority=NONE:+GROUP-SECP256R1:+AES-256-GCM:+SHA384:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS --disable-client-cert" \
             "$P_CLI debug_level=4 force_version=tls13" \
-            1 \
+            0 \
             -c "received HelloRetryRequest message" \
             -c "<= ssl_tls13_process_server_hello:is_hrr = 1" \
             -c "tls13 client state: MBEDTLS_SSL_CLIENT_HELLO(1)" \
-            -c "Last error was: -0x6E00 - SSL - The handshake negotiation failed" \
-            -s "HELLO RETRY REQUEST was queued"
+            -c "HTTP/1.0 200 OK"
 
 for i in $(ls opt-testcases/*.sh)
 do

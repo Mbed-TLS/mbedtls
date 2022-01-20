@@ -1058,7 +1058,7 @@ void mbedtls_ssl_tls13_handshake_wrapup( mbedtls_ssl_context *ssl )
  */
 #if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
 
-static int ssl_write_change_cipher_spec_postprocess( mbedtls_ssl_context* ssl )
+static int ssl_tls13_finalize_change_cipher_spec( mbedtls_ssl_context* ssl )
 {
 
 #if defined(MBEDTLS_SSL_CLI_C)
@@ -1115,7 +1115,7 @@ int mbedtls_ssl_tls13_write_change_cipher_spec( mbedtls_ssl_context *ssl )
     ssl->out_msgtype = MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC;
 
     /* Update state */
-    MBEDTLS_SSL_PROC_CHK( ssl_write_change_cipher_spec_postprocess( ssl ) );
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_change_cipher_spec( ssl ) );
 
     /* Dispatch message */
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_write_record( ssl, 1 ) );

@@ -115,52 +115,27 @@ static int ssl_tls13_parse_supported_versions_ext( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 
-/*
- *  Key Shares Extension
- *
- *  enum {
- *    ... (0xFFFF)
- *  } NamedGroup;
- *
- *  struct {
- *    NamedGroup group;
- *    opaque key_exchange<1..2^16-1>;
- *  } KeyShareEntry;
- *
- *  struct {
- *    select(role) {
- *      case client:
- *        KeyShareEntry client_shares<0..2^16-1>;
- *    }
- *  } KeyShare;
- */
-
-#if defined(MBEDTLS_ECDH_C)
 static int ssl_tls13_reset_key_share( mbedtls_ssl_context *ssl )
 {
     uint16_t group_id = ssl->handshake->offered_group_id;
     if( group_id == 0 )
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 
+#if defined(MBEDTLS_ECDH_C)
     if( mbedtls_ssl_tls13_named_group_is_ecdhe( group_id ) )
     {
         mbedtls_ecdh_free( &ssl->handshake->ecdh_ctx );
         return( 0 );
     }
-    else if( 0 /* other KEMs? */ )
+    else
+#endif /* MBEDTLS_ECDH_C */
+    if( 0 /* other KEMs? */ )
     {
         /* Do something */
     }
 
     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 }
-#else
-static int ssl_tls13_reset_key_share( mbedtls_ssl_context *ssl )
-{
-    ((void) ssl);
-    return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-}
-#endif /* MBEDTLS_ECDH_C */
 
 /*
  * Functions for writing key_share extension.
@@ -475,7 +450,7 @@ static int ssl_tls13_parse_hrr_key_share_ext( mbedtls_ssl_context *ssl,
     }
 
     /* Remember server's preference for next ClientHello */
-    ssl->handshake->offered_group_id= tls_id;
+    ssl->handshake->offered_group_id = tls_id;
 
     return( 0 );
 }
@@ -906,20 +881,9 @@ static int ssl_tls13_server_hello_coordinate( mbedtls_ssl_context *ssl,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_read_record( ssl, 0 ) );
-
-    if( ( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE ) ||
-        ( ssl->in_msg[0] != MBEDTLS_SSL_HS_SERVER_HELLO ) )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "unexpected message" ) );
-
-        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE,
-                                      MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
-        return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
-    }
-
-    *buf = ssl->in_msg + 4;
-    *buf_len = ssl->in_hslen - 4;
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_fetch_handshake_msg( ssl,
+                                             MBEDTLS_SSL_HS_SERVER_HELLO,
+                                             buf, buf_len ) );
 
     ret = ssl_server_hello_is_hrr( ssl, *buf, *buf + *buf_len );
     switch( ret )
@@ -1022,6 +986,7 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const unsigned char *p = buf;
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
     size_t extensions_len;
     const unsigned char *extensions_end;
     uint16_t cipher_suite;
@@ -1070,7 +1035,7 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
      */
     if( !is_hrr )
     {
-        memcpy( &ssl->handshake->randbytes[MBEDTLS_CLIENT_HELLO_RANDOM_LEN], p,
+        memcpy( &handshake->randbytes[MBEDTLS_CLIENT_HELLO_RANDOM_LEN], p,
                 MBEDTLS_SERVER_HELLO_RANDOM_LEN );
         MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, random bytes",
                                p, MBEDTLS_SERVER_HELLO_RANDOM_LEN );
@@ -1099,32 +1064,34 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
     p += 2;
 
 
+    ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( cipher_suite );
     /*
      * Check whether this ciphersuite is supported and offered.
      * Via the force_ciphersuite version we may have instructed the client
      * to use a different ciphersuite.
      */
-    ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( cipher_suite );
     if( ciphersuite_info == NULL ||
         ssl_tls13_cipher_suite_is_offered( ssl, cipher_suite ) == 0 )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "ciphersuite(%04x) not found or not offered",
-                                    cipher_suite ) );
-
-        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
-                                      MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
-        return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+        ret = MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
     }
-
     /*
      * Check whether this ciphersuite is the same with what we received in HRR.
+     * If we received an HRR before and that the proposed selected
+     * ciphersuite in this server hello is not the same as the one
+     * proposed in the HRR, we abort the handshake and send an
+     * "illegal_parameter" alert.
      */
-    if( ( !is_hrr ) && ( ssl->handshake->hello_retry_request_count > 0 ) &&
-        ( cipher_suite != ssl->session_negotiate->ciphersuite ) )
+    else if( ( !is_hrr ) && ( handshake->hello_retry_request_count > 0 ) &&
+             ( cipher_suite != ssl->session_negotiate->ciphersuite ) )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "ciphersuite(%04x) not the one from HRR",
-                                    cipher_suite ) );
+        ret = MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
+    }
 
+    if( ret == MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "invalid ciphersuite(%04x) parameter",
+                                    cipher_suite ) );
         MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
                                       MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
         return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
@@ -1133,7 +1100,7 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
     /* Configure ciphersuites */
     mbedtls_ssl_optimize_checksum( ssl, ciphersuite_info );
 
-    ssl->handshake->ciphersuite_info = ciphersuite_info;
+    handshake->ciphersuite_info = ciphersuite_info;
     ssl->session_negotiate->ciphersuite = cipher_suite;
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, chosen ciphersuite: ( %04x ) - %s",
@@ -1208,9 +1175,9 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
                 MBEDTLS_SSL_CHK_BUF_READ_PTR( p, extensions_end, cookie_len + 2 );
                 MBEDTLS_SSL_DEBUG_BUF( 3, "cookie extension", cookie, cookie_len );
 
-                mbedtls_free( ssl->handshake->verify_cookie );
-                ssl->handshake->verify_cookie = mbedtls_calloc( 1, cookie_len );
-                if( ssl->handshake->verify_cookie == NULL )
+                mbedtls_free( handshake->verify_cookie );
+                handshake->verify_cookie = mbedtls_calloc( 1, cookie_len );
+                if( handshake->verify_cookie == NULL )
                 {
                     MBEDTLS_SSL_DEBUG_MSG( 1,
                             ( "alloc failed ( %" MBEDTLS_PRINTF_SIZET " bytes )",
@@ -1218,8 +1185,8 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
                     return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
                 }
 
-                memcpy( ssl->handshake->verify_cookie, cookie, cookie_len );
-                ssl->handshake->verify_cookie_len = (unsigned char) cookie_len;
+                memcpy( handshake->verify_cookie, cookie, cookie_len );
+                handshake->verify_cookie_len = (unsigned char) cookie_len;
                 break;
 #endif /* MBEDTLS_SSL_COOKIE_C */
 
@@ -1289,7 +1256,7 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
-static int ssl_tls13_finalize_server_hello( mbedtls_ssl_context *ssl )
+static int ssl_tls13_postprocess_server_hello( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ssl_key_set traffic_keys;
@@ -1403,11 +1370,10 @@ cleanup:
     return( ret );
 }
 
-static int ssl_tls13_finalize_hrr( mbedtls_ssl_context *ssl )
+static int ssl_tls13_postprocess_hrr( mbedtls_ssl_context *ssl )
 {
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
     /* If not offering early data, the client sends a dummy CCS record
@@ -1423,11 +1389,11 @@ static int ssl_tls13_finalize_hrr( mbedtls_ssl_context *ssl )
     mbedtls_ssl_session_reset_msg_layer( ssl, 0 );
 
     /*
-     * We are going to re-generate a shared secret corresponding to the group selected by the server,
-     * which is different from the group for which we generated a shared secret in the first client
-     * hello.  Thus, reset the shared secret.
+     * We are going to re-generate a shared secret corresponding to the group
+     * selected by the server, which is different from the group for which we
+     * generated a shared secret in the first client hello.
+     * Thus, reset the shared secret.
      */
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     ret = ssl_tls13_reset_key_share( ssl );
     if( ret != 0 )
         return( ret );
@@ -1477,9 +1443,9 @@ static int ssl_tls13_process_server_hello( mbedtls_ssl_context *ssl )
                                               buf, buf_len );
 
     if( is_hrr )
-        MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_hrr( ssl ) );
+        MBEDTLS_SSL_PROC_CHK( ssl_tls13_postprocess_hrr( ssl ) );
     else
-        MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_server_hello( ssl ) );
+        MBEDTLS_SSL_PROC_CHK( ssl_tls13_postprocess_server_hello( ssl ) );
 
 cleanup:
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= %s:is_hrr = %d", __func__, is_hrr ) );

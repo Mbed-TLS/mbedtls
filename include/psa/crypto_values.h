@@ -553,6 +553,9 @@
                         ((type) & PSA_KEY_TYPE_ECC_CURVE_MASK) : \
                         0))
 
+/** Check if the curve of given family is Weierstrass elliptic curve. */
+#define PSA_ECC_FAMILY_IS_WEIERSTRASS(family) ((family & 0xc0) == 0)
+
 /** SEC Koblitz curves over prime fields.
  *
  * This family comprises the following curves:

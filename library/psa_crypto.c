@@ -4853,25 +4853,24 @@ static void psa_des_set_key_parity( uint8_t *data, size_t data_size )
 */
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
+    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) || \
+    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY)
 static psa_status_t psa_generate_derived_ecc_key_weierstrass_helper(
     psa_key_slot_t *slot,
     size_t bits,
     psa_key_derivation_operation_t *operation,
-    uint8_t **data,
-    unsigned *key_out_of_range)
+    uint8_t **data
+    )
 {
-    mbedtls_mpi N;
+    unsigned key_out_of_range = 1;
     mbedtls_mpi k;
     mbedtls_mpi diff_N_2;
-    /* ret variable is used by MBEDTLS_MPI_CHK macro */
+    /* ret variable is initialized to 0 as it is
+       used only by MBEDTLS_MPI_CHK macro */
     int ret = 0;
-    psa_status_t status = PSA_SUCCESS;
+    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
 
     mbedtls_mpi_init( &k );
-    mbedtls_mpi_init( &N );
     mbedtls_mpi_init( &diff_N_2 );
 
     psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY(
@@ -4891,46 +4890,51 @@ static psa_status_t psa_generate_derived_ecc_key_weierstrass_helper(
     if( ( status = mbedtls_to_psa_error( mbedtls_ecp_group_load( &ecp_group, grp_id ) ) ) != 0 )
         goto cleanup;
 
-    /* N is the boundary of the private key domain. */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &N, &ecp_group.N ) );
+    /* N is the boundary of the private key domain (ecp_group.N). */
     /* Let m be the bit size of N. */
     size_t m = ecp_group.nbits;
 
     size_t m_bytes = PSA_BITS_TO_BYTES( m );
-    if (*data == NULL)
-        *data = mbedtls_calloc( 1, m_bytes );
+
+    /* Note: This function is always called with *data == NULL and it
+     * allocates memory for the data buffer. */
+    *data = mbedtls_calloc( 1, m_bytes );
     if( *data == NULL )
     {
         status = PSA_ERROR_INSUFFICIENT_MEMORY;
         goto cleanup;
     }
-    /* 1. Draw a byte string of length ceiling(m/8) bytes. */
-    if ( ( status = psa_key_derivation_output_bytes( operation, *data, m_bytes ) ) != 0 )
-        goto cleanup;
 
-    /* 2. If m is not a multiple of 8 */
-    if (m % 8)
+    while ( key_out_of_range )
     {
-        /* Set the most significant
-         * (8 * ceiling(m/8) - m) bits of the first byte in
-         * the string to zero.
-         */
-        uint8_t clear_bit_mask = (1 << (m % 8)) - 1;
-        *data[0] &= clear_bit_mask;
+        /* 1. Draw a byte string of length ceiling(m/8) bytes. */
+        if ( ( status = psa_key_derivation_output_bytes( operation, *data, m_bytes ) ) != 0 )
+            goto cleanup;
+
+        /* 2. If m is not a multiple of 8 */
+        if (m % 8)
+        {
+            /* Set the most significant
+            * (8 * ceiling(m/8) - m) bits of the first byte in
+            * the string to zero.
+            */
+            uint8_t clear_bit_mask = (1 << (m % 8)) - 1;
+            *data[0] &= clear_bit_mask;
+        }
+
+        /* 3. Convert the string to integer k by decoding it as a
+        *    big-endian byte string.
+        */
+        MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary( &k, *data, m_bytes));
+
+        /* 4. If k > N - 2, discard the result and return to step 1.
+        *    Result of comparison is returned. When it indicates error
+        *    then this fuction is called again.
+        */
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &diff_N_2, &ecp_group.N, 2) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &k, diff_N_2.n ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_lt_mpi_ct( &diff_N_2, &k, &key_out_of_range ) );
     }
-
-    /* 3. Convert the string to integer k by decoding it as a
-     *    big-endian byte string.
-     */
-    MBEDTLS_MPI_CHK(mbedtls_mpi_read_binary( &k, *data, m_bytes));
-
-    /* 4. If k > N - 2, discard the result and return to step 1.
-     *    Result of comparison is returned. When it indicates error
-     *    then this fuction is called again.
-     */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &diff_N_2, &N, 2) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &k, diff_N_2.n ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_lt_mpi_ct( &diff_N_2, &k, key_out_of_range ) );
 
     /* 5. Output k + 1 as the private key. */
     MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( &k, &k, 1));
@@ -4943,7 +4947,6 @@ cleanup:
         *data = NULL;
     }
     mbedtls_mpi_free( &k );
-    mbedtls_mpi_free( &N );
     mbedtls_mpi_free( &diff_N_2 );
     return( status );
 }
@@ -4961,22 +4964,17 @@ static psa_status_t psa_generate_derived_key_internal(
 
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
     defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
+    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_KEY_PAIR) || \
+    defined(MBEDTLS_PSA_ACCEL_KEY_TYPE_ECC_PUBLIC_KEY)
     if ( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
     {
         psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY( slot->attr.type );
-        if ( curve != PSA_ECC_FAMILY_MONTGOMERY )
+        if ( PSA_ECC_FAMILY_IS_WEIERSTRASS( curve ) )
         {
             /* Weierstrass elliptic curve */
-            unsigned key_out_of_range = 0;
-            do
-            {
-                status = psa_generate_derived_ecc_key_weierstrass_helper(slot, bits, operation, &data, &key_out_of_range);
-                if( status != PSA_SUCCESS )
-                    goto exit;
-            } while ( key_out_of_range );
+            status = psa_generate_derived_ecc_key_weierstrass_helper(slot, bits, operation, &data);
+            if( status != PSA_SUCCESS )
+                goto exit;
         }
         else
         {
@@ -5016,7 +5014,7 @@ static psa_status_t psa_generate_derived_key_internal(
                     data[55] |= 128;
                     break;
                 default:
-                    /* already handled */
+                    /* should never happen */
                     break;
             }
         }

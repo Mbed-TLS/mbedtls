@@ -1332,7 +1332,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
                                add_data, add_data_len,
                                data, rec->data_len + transform->taglen,
                                data, rec->buf_len - (data - rec->buf),
-                               &rec->data_len );
+                               &olen );
 
         if( status != PSA_SUCCESS )
             return( psa_status_to_mbedtls( status ) );

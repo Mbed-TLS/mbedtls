@@ -3161,27 +3161,34 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
         const int *md;
         const int *sig_hashes = ssl->conf->sig_hashes;
         size_t sig_algs_len = 0;
+        size_t sig_algs_len_per_hash = 0;
         uint16_t *p;
+
+#if defined(MBEDTLS_ECDSA_C)
+        sig_algs_len_per_hash += sizeof( uint16_t );
+#endif
+#if defined(MBEDTLS_RSA_C)
+        sig_algs_len_per_hash += sizeof( uint16_t );
+#endif
 
         for( md = sig_hashes; *md != MBEDTLS_MD_NONE; md++ )
         {
             if( mbedtls_ssl_hash_from_md_alg( *md ) == MBEDTLS_SSL_HASH_NONE )
                 continue;
-    #if defined(MBEDTLS_ECDSA_C)
-            sig_algs_len += sizeof( uint16_t );
-    #endif
-    #if defined(MBEDTLS_RSA_C)
-            sig_algs_len += sizeof( uint16_t );
-    #endif
+            if( sig_algs_len >
+                ( MBEDTLS_SSL_MAX_SIG_ALG_LIST_LEN - sig_algs_len_per_hash ) )
+            {
+                return( MBEDTLS_ERR_SSL_BAD_CONFIG );
+            }
+
+            sig_algs_len += sig_algs_len_per_hash;
         }
 
-        if( sig_algs_len < MBEDTLS_SSL_MIN_SIG_ALG_LIST_LEN ||
-            sig_algs_len > MBEDTLS_SSL_MAX_SIG_ALG_LIST_LEN )
-        {
+        if( sig_algs_len < MBEDTLS_SSL_MIN_SIG_ALG_LIST_LEN )
             return( MBEDTLS_ERR_SSL_BAD_CONFIG );
-        }
 
-        ssl->handshake->sig_algs = mbedtls_calloc( 1, sig_algs_len + 2 );
+        ssl->handshake->sig_algs = mbedtls_calloc( 1,
+                                            sig_algs_len + sizeof( uint16_t ) );
         if( ssl->handshake->sig_algs == NULL )
             return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
 

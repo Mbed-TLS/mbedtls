@@ -518,6 +518,40 @@ static int ssl_tls13_parse_key_share_ext( mbedtls_ssl_context *ssl,
 
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
+#if defined(MBEDTLS_SSL_COOKIE_C)
+static int ssl_tls13_parse_cookie_ext( mbedtls_ssl_context *ssl,
+                                       const unsigned char *buf,
+                                       const unsigned char *end )
+{
+    size_t cookie_len;
+    const unsigned char *p = buf;
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+
+    /* Retrieve length field of cookie */
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2 );
+    cookie_len = MBEDTLS_GET_UINT16_BE( p, 0 );
+    p += 2;
+
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, cookie_len );
+    MBEDTLS_SSL_DEBUG_BUF( 3, "cookie extension", p, cookie_len );
+
+    mbedtls_free( handshake->verify_cookie );
+    handshake->verify_cookie = mbedtls_calloc( 1, cookie_len );
+    if( handshake->verify_cookie == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1,
+                ( "alloc failed ( %" MBEDTLS_PRINTF_SIZET " bytes )",
+                  cookie_len ) );
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+    }
+
+    memcpy( handshake->verify_cookie, p, cookie_len );
+    handshake->verify_cookie_len = (unsigned char) cookie_len;
+
+    return( 0 );
+}
+#endif /* MBEDTLS_SSL_COOKIE_C */
+
 /* Write cipher_suites
  * CipherSuite cipher_suites<2..2^16-2>;
  */
@@ -1007,10 +1041,6 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
     uint16_t cipher_suite;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
     int supported_versions_ext_found = 0;
-#if defined(MBEDTLS_SSL_COOKIE_C)
-    size_t cookie_len;
-    unsigned char *cookie;
-#endif /* MBEDTLS_SSL_COOKIE_C */
 
     /*
      * Check there is space for minimal fields
@@ -1161,6 +1191,7 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
     {
         unsigned int extension_type;
         size_t extension_data_len;
+        const unsigned char *extension_data_end;
 
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, extensions_end, 4 );
         extension_type = MBEDTLS_GET_UINT16_BE( p, 0 );
@@ -1168,6 +1199,7 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
         p += 4;
 
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, extensions_end, extension_data_len );
+        extension_data_end = p + extension_data_len;
 
         switch( extension_type )
         {
@@ -1182,26 +1214,15 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
                     return( MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION );
                 }
 
-                /* Retrieve length field of cookie */
-                MBEDTLS_SSL_CHK_BUF_READ_PTR( p, extensions_end, 2 );
-                cookie_len = MBEDTLS_GET_UINT16_BE( p, 0 );
-                cookie = (unsigned char *) ( p + 2 );
-
-                MBEDTLS_SSL_CHK_BUF_READ_PTR( p, extensions_end, cookie_len + 2 );
-                MBEDTLS_SSL_DEBUG_BUF( 3, "cookie extension", cookie, cookie_len );
-
-                mbedtls_free( handshake->verify_cookie );
-                handshake->verify_cookie = mbedtls_calloc( 1, cookie_len );
-                if( handshake->verify_cookie == NULL )
+                ret = ssl_tls13_parse_cookie_ext( ssl,
+                                                  p, extension_data_end );
+                if( ret != 0 )
                 {
-                    MBEDTLS_SSL_DEBUG_MSG( 1,
-                            ( "alloc failed ( %" MBEDTLS_PRINTF_SIZET " bytes )",
-                              cookie_len ) );
-                    return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+                    MBEDTLS_SSL_DEBUG_RET( 1,
+                                           "ssl_tls13_parse_cookie_ext",
+                                           ret );
+                    return( ret );
                 }
-
-                memcpy( handshake->verify_cookie, cookie, cookie_len );
-                handshake->verify_cookie_len = (unsigned char) cookie_len;
                 break;
 #endif /* MBEDTLS_SSL_COOKIE_C */
 
@@ -1212,7 +1233,7 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
 
                 ret = ssl_tls13_parse_supported_versions_ext( ssl,
                                                               p,
-                                                              p + extension_data_len );
+                                                              extension_data_end );
                 if( ret != 0 )
                     return( ret );
                 break;
@@ -1231,10 +1252,10 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found key_shares extension" ) );
                 if( is_hrr )
                     ret = ssl_tls13_parse_hrr_key_share_ext( ssl,
-                                            p, p + extension_data_len );
+                                            p, extension_data_end );
                 else
                     ret = ssl_tls13_parse_key_share_ext( ssl,
-                                            p, p + extension_data_len );
+                                            p, extension_data_end );
                 if( ret != 0 )
                 {
                     MBEDTLS_SSL_DEBUG_RET( 1,
@@ -1412,6 +1433,8 @@ static int ssl_tls13_postprocess_hrr( mbedtls_ssl_context *ssl )
     ret = ssl_tls13_reset_key_share( ssl );
     if( ret != 0 )
         return( ret );
+#else
+    ((void) ssl);
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
     return( 0 );

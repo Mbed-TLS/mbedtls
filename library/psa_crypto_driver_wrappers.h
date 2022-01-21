@@ -226,6 +226,10 @@ psa_status_t psa_driver_wrapper_aead_decrypt(
     const uint8_t *ciphertext, size_t ciphertext_length,
     uint8_t *plaintext, size_t plaintext_size, size_t *plaintext_length );
 
+psa_status_t psa_driver_get_tag_len(
+    psa_aead_operation_t *operation,
+    uint8_t *tag_len );
+
 psa_status_t psa_driver_wrapper_aead_encrypt_setup(
     psa_aead_operation_t *operation,
     const psa_key_attributes_t *attributes,

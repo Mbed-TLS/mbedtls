@@ -1,5 +1,9 @@
 # Python package requirements for Mbed TLS testing.
 
+# Any package used by a script in this repository must be listed here
+# or in one of the included files. Normally there should be a minimum
+# version constraint; the CI will test with the minimum version.
+
 -r driver.requirements.txt
 
 # Use a known version of Pylint, because new versions tend to add warnings

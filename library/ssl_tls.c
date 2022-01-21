@@ -6556,9 +6556,11 @@ static int ssl_array_has_duplicated_entries( uint16_t * array )
         {
             if( array[i] == array[j] )
             {
+            #if defined(MBEDTLS_PLATFORM_C)
                 mbedtls_printf( " entry(%04x,%" MBEDTLS_PRINTF_SIZET
                                 ") is duplicated at %" MBEDTLS_PRINTF_SIZET "\n",
                                 array[i], j, i );
+            #endif
                 ret = -1;
             }
         }
@@ -6581,13 +6583,17 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #if defined(MBEDTLS_DEBUG_C) && defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     if( ssl_array_has_duplicated_entries( ssl_preset_suiteb_sig_algs ) )
     {
+    #if defined(MBEDTLS_PLATFORM_C)
         mbedtls_printf( "ssl_preset_suiteb_sig_algs has duplicated entries\n" );
+    #endif
         return( MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED );
     }
 
     if( ssl_array_has_duplicated_entries( ssl_preset_default_sig_algs ) )
     {
+    #if defined(MBEDTLS_PLATFORM_C)
         mbedtls_printf( "ssl_preset_default_sig_algs has duplicated entries\n" );
+    #endif
         return( MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED );
     }
 #endif /* MBEDTLS_DEBUG_C && MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */

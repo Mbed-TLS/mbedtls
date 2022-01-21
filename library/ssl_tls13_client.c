@@ -905,6 +905,21 @@ static int ssl_tls13_server_hello_coordinate( mbedtls_ssl_context *ssl,
                                     MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
                 return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
             }
+            /*
+             * Clients must abort the handshake with an "illegal_parameter"
+             * alert if the HelloRetryRequest would not result in any change
+             * in the ClientHello.
+             * In a PSK only key exchange that what we expect.
+             */
+            if( ! mbedtls_ssl_conf_tls13_some_ephemeral_enabled( ssl ) )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1,
+                            ( "Unexpected HRR in pure PSK key exchange." ) );
+                MBEDTLS_SSL_PEND_FATAL_ALERT(
+                            MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                            MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
+                return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+            }
 
             ssl->handshake->hello_retry_request_count++;
 

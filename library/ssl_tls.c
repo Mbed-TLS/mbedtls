@@ -3403,6 +3403,7 @@ error:
 void mbedtls_ssl_session_reset_msg_layer( mbedtls_ssl_context *ssl,
                                           int partial )
 {
+#if defined(MBEDTLS_SSL_LEGACY_MSG_LAYER_REQUIRED)
 #if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
     size_t in_buf_len = ssl->in_buf_len;
     size_t out_buf_len = ssl->out_buf_len;
@@ -3453,12 +3454,40 @@ void mbedtls_ssl_session_reset_msg_layer( mbedtls_ssl_context *ssl,
     mbedtls_ssl_dtls_replay_reset( ssl );
 #endif
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( ssl->transform )
     {
         mbedtls_ssl_transform_free( ssl->transform );
         mbedtls_free( ssl->transform );
         ssl->transform = NULL;
     }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
+#else
+    ((void) partial);
+#endif /* MBEDTLS_SSL_LEGACY_MSG_LAYER_REQUIRED */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    mbedtls_ssl_transform_free( ssl->transform_application );
+    mbedtls_free( ssl->transform_application );
+    ssl->transform_application = NULL;
+
+    if( ssl->handshake != NULL )
+    {
+        mbedtls_ssl_transform_free( ssl->handshake->transform_earlydata );
+        mbedtls_free( ssl->handshake->transform_earlydata );
+        ssl->handshake->transform_earlydata = NULL;
+
+        mbedtls_ssl_transform_free( ssl->handshake->transform_handshake );
+        mbedtls_free( ssl->handshake->transform_handshake );
+        ssl->handshake->transform_handshake = NULL;
+    }
+
+#if defined(MBEDTLS_ZERO_RTT) && defined(MBEDTLS_SSL_CLI_C)
+    ssl->early_data_buf = NULL;
+    ssl->early_data_len = 0;
+#endif /* MBEDTLS_ZERO_RTT && MBEDTLS_SSL_CLI_C */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 }
 
 int mbedtls_ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )

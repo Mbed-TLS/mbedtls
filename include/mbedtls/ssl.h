@@ -1462,7 +1462,7 @@ struct mbedtls_ssl_config
      * The library sets this to \p 0 when creating a context and does not
      * access it afterwards.
      */
-    uintptr_t user_data;
+    uintptr_t MBEDTLS_PRIVATE(user_data);
 };
 
 struct mbedtls_ssl_context
@@ -1690,7 +1690,7 @@ struct mbedtls_ssl_context
      * The library sets this to \p 0 when creating a context and does not
      * access it afterwards.
      */
-    uintptr_t user_data;
+    uintptr_t MBEDTLS_PRIVATE(user_data);
 };
 
 /**
@@ -2300,6 +2300,132 @@ void mbedtls_ssl_conf_session_tickets_cb( mbedtls_ssl_config *conf,
 void mbedtls_ssl_set_export_keys_cb( mbedtls_ssl_context *ssl,
                                      mbedtls_ssl_export_keys_t *f_export_keys,
                                      void *p_export_keys );
+
+/** \brief Set the user data in an SSL configuration to a pointer.
+ *
+ * You can retrieve this value later with mbedtls_ssl_conf_get_user_data_p().
+ *
+ * \note The library stores \c p without accessing it. It is the responsibility
+ *       of the caller to ensure that the pointer remains valid.
+ *
+ * \param conf           The SSL configuration context to modify.
+ * \param p              The new value of the user data.
+ */
+static inline void mbedtls_ssl_conf_set_user_data_p(
+    mbedtls_ssl_config *conf,
+    void *p )
+{
+    conf->MBEDTLS_PRIVATE(user_data) = (uintptr_t) p;
+}
+
+/** \brief Set the user data in an SSL configuration to an integer.
+ *
+ * You can retrieve this value later with mbedtls_ssl_conf_get_user_data_n().
+ *
+ * \param conf           The SSL configuration context to modify.
+ * \param n              The new value of the user data.
+ */
+static inline void mbedtls_ssl_conf_set_user_data_n(
+    mbedtls_ssl_config *conf,
+    uintptr_t n )
+{
+    conf->MBEDTLS_PRIVATE(user_data) = n;
+}
+
+/** \brief Retrieve the user data in an SSL configuration as a pointer.
+ *
+ * This is the value last set with mbedtls_ssl_conf_set_user_data_n(), or
+ * \c 0 if mbedtls_ssl_conf_set_user_data_n() has not previously been
+ * called. The value is undefined if mbedtls_ssl_conf_set_user_data_p() has
+ * been called without a subsequent call to mbedtls_ssl_conf_set_user_data_n().
+ *
+ * \param conf           The SSL configuration context to modify.
+ * \return               The current value of the user data.
+ */
+static inline void *mbedtls_ssl_conf_get_user_data_p(
+    mbedtls_ssl_config *conf )
+{
+    return( (void*) conf->MBEDTLS_PRIVATE(user_data) );
+}
+
+/** \brief Retrieve the user data in an SSL configuration as an integer.
+ *
+ * This is the value last set with mbedtls_ssl_conf_set_user_data_p(), or
+ * \c NULL if mbedtls_ssl_conf_set_user_data_p() has not previously been
+ * called. The value is undefined if mbedtls_ssl_conf_set_user_data_n() has
+ * been called without a subsequent call to mbedtls_ssl_conf_set_user_data_p().
+ *
+ * \param conf           The SSL configuration context to modify.
+ * \return               The current value of the user data.
+ */
+static inline uintptr_t mbedtls_ssl_conf_get_user_data_n(
+    mbedtls_ssl_config *conf )
+{
+    return( conf->MBEDTLS_PRIVATE(user_data) );
+}
+
+/** \brief Set the user data in an SSL context to a pointer.
+ *
+ * You can retrieve this value later with mbedtls_ssl_get_user_data_p().
+ *
+ * \note The library stores \c p without accessing it. It is the responsibility
+ *       of the caller to ensure that the pointer remains valid.
+ *
+ * \param ssl            The SSL context context to modify.
+ * \param p              The new value of the user data.
+ */
+static inline void mbedtls_ssl_set_user_data_p(
+    mbedtls_ssl_context *ssl,
+    void *p )
+{
+    ssl->MBEDTLS_PRIVATE(user_data) = (uintptr_t) p;
+}
+
+/** \brief Set the user data in an SSL context to an integer.
+ *
+ * You can retrieve this value later with mbedtls_ssl_get_user_data_n().
+ *
+ * \param ssl            The SSL context context to modify.
+ * \param n              The new value of the user data.
+ */
+static inline void mbedtls_ssl_set_user_data_n(
+    mbedtls_ssl_context *ssl,
+    uintptr_t n )
+{
+    ssl->MBEDTLS_PRIVATE(user_data) = n;
+}
+
+/** \brief Retrieve the user data in an SSL context as a pointer.
+ *
+ * This is the value last set with mbedtls_ssl_set_user_data_n(), or
+ * \c 0 if mbedtls_ssl_set_user_data_n() has not previously been
+ * called. The value is undefined if mbedtls_ssl_set_user_data_p() has
+ * been called without a subsequent call to mbedtls_ssl_set_user_data_n().
+ *
+ * \param ssl            The SSL context context to modify.
+ * \return               The current value of the user data.
+ */
+static inline void *mbedtls_ssl_get_user_data_p(
+    mbedtls_ssl_context *ssl )
+{
+    return( (void*) ssl->MBEDTLS_PRIVATE(user_data) );
+}
+
+/** \brief Retrieve the user data in an SSL context as an integer.
+ *
+ * This is the value last set with mbedtls_ssl_set_user_data_p(), or
+ * \c NULL if mbedtls_ssl_set_user_data_p() has not previously been
+ * called. The value is undefined if mbedtls_ssl_set_user_data_n() has
+ * been called without a subsequent call to mbedtls_ssl_set_user_data_p().
+ *
+ * \param ssl            The SSL context context to modify.
+ * \return               The current value of the user data.
+ */
+static inline uintptr_t mbedtls_ssl_get_user_data_n(
+    mbedtls_ssl_context *ssl )
+{
+    return( ssl->MBEDTLS_PRIVATE(user_data) );
+}
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
 /**

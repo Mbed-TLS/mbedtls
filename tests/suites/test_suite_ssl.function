@@ -886,6 +886,7 @@ int mbedtls_endpoint_init( mbedtls_endpoint *ep, int endpoint_type, int pk_alg,
                            mbedtls_test_message_queue *output_queue )
 {
     int ret = -1;
+    uintptr_t user_data_n;
 
     if( dtls_context != NULL && ( input_queue == NULL || output_queue == NULL ) )
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
@@ -904,6 +905,18 @@ int mbedtls_endpoint_init( mbedtls_endpoint *ep, int endpoint_type, int pk_alg,
         mbedtls_ctr_drbg_random,
         &( ep->ctr_drbg ) );
     mbedtls_entropy_init( &( ep->entropy ) );
+
+    TEST_ASSERT( mbedtls_ssl_conf_get_user_data_p( &ep->conf ) == NULL );
+    TEST_EQUAL( mbedtls_ssl_conf_get_user_data_n( &ep->conf ), 0 );
+    TEST_ASSERT( mbedtls_ssl_get_user_data_p( &ep->ssl ) == NULL );
+    TEST_EQUAL( mbedtls_ssl_get_user_data_n( &ep->ssl ), 0 );
+
+    (void) mbedtls_test_rnd_std_rand( NULL,
+                                      (void*) &user_data_n,
+                                      sizeof( user_data_n ) );
+    mbedtls_ssl_conf_set_user_data_n( &ep->conf, user_data_n );
+    mbedtls_ssl_set_user_data_n( &ep->ssl, user_data_n );
+
     if( dtls_context != NULL )
     {
         TEST_ASSERT( mbedtls_message_socket_setup( input_queue, output_queue,
@@ -953,6 +966,11 @@ int mbedtls_endpoint_init( mbedtls_endpoint *ep, int endpoint_type, int pk_alg,
 
     ret = mbedtls_endpoint_certificate_init( ep, pk_alg );
     TEST_ASSERT( ret == 0 );
+
+    TEST_EQUAL( mbedtls_ssl_conf_get_user_data_n( &ep->conf ), user_data_n );
+    mbedtls_ssl_conf_set_user_data_p( &ep->conf, ep );
+    TEST_EQUAL( mbedtls_ssl_get_user_data_n( &ep->ssl ), user_data_n );
+    mbedtls_ssl_set_user_data_p( &ep->ssl, ep );
 
 exit:
     return ret;
@@ -2193,6 +2211,11 @@ void perform_handshake( handshake_test_options* options )
 #endif /* MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH */
     }
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
+
+    TEST_ASSERT( mbedtls_ssl_conf_get_user_data_p( &client.conf ) == &client );
+    TEST_ASSERT( mbedtls_ssl_get_user_data_p( &client.ssl ) == &client );
+    TEST_ASSERT( mbedtls_ssl_conf_get_user_data_p( &server.conf ) == &server );
+    TEST_ASSERT( mbedtls_ssl_get_user_data_p( &server.ssl ) == &server );
 
 exit:
     mbedtls_endpoint_free( &client, options->dtls != 0 ? &client_context : NULL );

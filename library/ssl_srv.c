@@ -1805,13 +1805,14 @@ read_record_header:
     {
         uint16_t sig_algs[] = { MBEDTLS_SSL_SIG_ALG(MBEDTLS_SSL_HASH_SHA1) };
         mbedtls_md_type_t md_default = MBEDTLS_MD_NONE;
-        for( i = 0; i < sizeof(sig_algs)/sizeof(sig_algs[0]) ; i++ )
+        for( i = 0; i < sizeof( sig_algs ) / sizeof( sig_algs[0] ) ; i++ )
         {
             if( mbedtls_ssl_sig_alg_is_offered( ssl, sig_algs[ i ] ) )
                 md_default = MBEDTLS_MD_SHA1;
         }
 
-        mbedtls_ssl_sig_hash_set_const_hash( &ssl->handshake->hash_algs, md_default );
+        mbedtls_ssl_sig_hash_set_const_hash( &ssl->handshake->hash_algs,
+                                             md_default );
     }
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 &&

@@ -1871,30 +1871,35 @@ static inline int mbedtls_ssl_sig_alg_is_supported(
 
         switch( hash )
         {
-        #if defined(MBEDTLS_MD5_C)
+#if defined(MBEDTLS_MD5_C)
             case MBEDTLS_SSL_HASH_MD5:
                 break;
-        #endif
-        #if defined(MBEDTLS_SHA1_C)
+#endif
+
+#if defined(MBEDTLS_SHA1_C)
             case MBEDTLS_SSL_HASH_SHA1:
                 break;
-        #endif
-        #if defined(MBEDTLS_SHA224_C)
+#endif
+
+#if defined(MBEDTLS_SHA224_C)
             case MBEDTLS_SSL_HASH_SHA224:
                 break;
-        #endif
-        #if defined(MBEDTLS_SHA256_C)
+#endif
+
+#if defined(MBEDTLS_SHA256_C)
             case MBEDTLS_SSL_HASH_SHA256:
                 break;
-        #endif
-        #if defined(MBEDTLS_SHA384_C)
+#endif
+
+#if defined(MBEDTLS_SHA384_C)
             case MBEDTLS_SSL_HASH_SHA384:
                 break;
-        #endif
-        #if defined(MBEDTLS_SHA512_C)
+#endif
+
+#if defined(MBEDTLS_SHA512_C)
             case MBEDTLS_SSL_HASH_SHA512:
                 break;
-        #endif
+#endif
 
             default:
                 return( 0 );
@@ -1902,15 +1907,15 @@ static inline int mbedtls_ssl_sig_alg_is_supported(
 
         switch( sig )
         {
-        #if defined(MBEDTLS_RSA_C)
+#if defined(MBEDTLS_RSA_C)
             case MBEDTLS_SSL_SIG_RSA:
                 break;
-        #endif
+#endif
 
-        #if defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C)
             case MBEDTLS_SSL_SIG_ECDSA:
                 break;
-        #endif
+#endif
 
         default:
             return( 0 );
@@ -1925,44 +1930,44 @@ static inline int mbedtls_ssl_sig_alg_is_supported(
     {
         switch( sig_alg )
         {
-        #if defined(MBEDTLS_SHA256_C) && \
-            defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) && \
-            defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_SHA256_C) && \
+    defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) && \
+    defined(MBEDTLS_ECDSA_C)
             case MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256:
                 break;
-        #endif /* MBEDTLS_SHA256_C &&
-                  MBEDTLS_ECP_DP_SECP256R1_ENABLED &&
-                  MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_SHA256_C &&
+          MBEDTLS_ECP_DP_SECP256R1_ENABLED &&
+          MBEDTLS_ECDSA_C */
 
-        #if defined(MBEDTLS_SHA384_C) && \
-            defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED) && \
-            defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_SHA384_C) && \
+    defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED) && \
+    defined(MBEDTLS_ECDSA_C)
             case MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384:
                 break;
-        #endif /* MBEDTLS_SHA384_C &&
-                  MBEDTLS_ECP_DP_SECP384R1_ENABLED &&
-                  MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_SHA384_C &&
+          MBEDTLS_ECP_DP_SECP384R1_ENABLED &&
+          MBEDTLS_ECDSA_C */
 
-        #if defined(MBEDTLS_SHA512_C) && \
-            defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED) && \
-            defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_SHA512_C) && \
+    defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED) && \
+    defined(MBEDTLS_ECDSA_C)
             case MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512:
                 break;
-        #endif /* MBEDTLS_SHA512_C &&
-                  MBEDTLS_ECP_DP_SECP521R1_ENABLED &&
-                  MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_SHA512_C &&
+          MBEDTLS_ECP_DP_SECP521R1_ENABLED &&
+          MBEDTLS_ECDSA_C */
 
-        #if defined(MBEDTLS_SHA256_C) && \
-            defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
+#if defined(MBEDTLS_SHA256_C) && \
+    defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
             case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
                 break;
-        #endif /* MBEDTLS_SHA256_C &&
-                  MBEDTLS_X509_RSASSA_PSS_SUPPORT */
+#endif /* MBEDTLS_SHA256_C &&
+          MBEDTLS_X509_RSASSA_PSS_SUPPORT */
 
-        #if defined(MBEDTLS_SHA256_C) && defined(MBEDTLS_RSA_C)
+#if defined(MBEDTLS_SHA256_C) && defined(MBEDTLS_RSA_C)
             case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256:
                 break;
-        #endif /* MBEDTLS_SHA256_C && MBEDTLS_RSA_C*/
+#endif /* MBEDTLS_SHA256_C && MBEDTLS_RSA_C*/
 
             default:
                 return( 0 );

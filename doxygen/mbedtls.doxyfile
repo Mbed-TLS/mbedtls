@@ -1,14 +1,10 @@
-# Doxyfile 1.8.17
 PROJECT_NAME           = "mbed TLS v3.1.0"
 OUTPUT_DIRECTORY       = ../apidoc/
 FULL_PATH_NAMES        = NO
-TAB_SIZE               = 8
 OPTIMIZE_OUTPUT_FOR_C  = YES
 EXTRACT_ALL            = YES
 EXTRACT_PRIVATE        = YES
 EXTRACT_STATIC         = YES
-EXTRACT_LOCAL_METHODS  = YES
-EXTRACT_ANON_NSPACES   = YES
 CASE_SENSE_NAMES       = NO
 INPUT                  = ../include input
 FILE_PATTERNS          = *.h
@@ -22,23 +18,9 @@ HTML_OUTPUT            = .
 HTML_TIMESTAMP         = YES
 SEARCHENGINE           = NO
 GENERATE_LATEX         = NO
-COMPACT_LATEX          = YES
-PAPER_TYPE             = a4wide
 MACRO_EXPANSION        = YES
 EXPAND_ONLY_PREDEF     = YES
 INCLUDE_PATH           = ../include
-PREDEFINED             = WIN32 \
-                         NTLM \
-                         USE_LZO \
-                         ENABLE_FRAGMENT \
-                         P2MP \
-                         P2MP_SERVER \
-                         USE_CRYPTO \
-                         USE_SSL \
-                         ENABLE_PLUGIN \
-                         ENABLE_MANAGEMENT \
-                         ENABLE_OCC \
-                         HAVE_GETTIMEOFDAY
 EXPAND_AS_DEFINED      = MBEDTLS_PRIVATE
 CLASS_DIAGRAMS         = NO
 HAVE_DOT               = YES

@@ -1,4 +1,5 @@
-# Python packages that are only useful to Mbed TLS maintainers.
+# Python packages that are not used by any script in this repository,
+# but are likely to be useful to Mbed TLS maintainers.
 
 -r ci.requirements.txt
 

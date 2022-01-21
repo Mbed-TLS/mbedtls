@@ -1475,6 +1475,10 @@ struct mbedtls_ssl_config
      * access it afterwards.
      */
     mbedtls_ssl_user_data_t MBEDTLS_PRIVATE(user_data);
+
+#if defined(MBEDTLS_SSL_SRV_C)
+    int (*MBEDTLS_PRIVATE(f_cert_cb))(mbedtls_ssl_context *); /*!< certificate selection callback */
+#endif /* MBEDTLS_SSL_SRV_C */
 };
 
 struct mbedtls_ssl_context
@@ -2219,6 +2223,28 @@ void mbedtls_ssl_set_timer_cb( mbedtls_ssl_context *ssl,
                                void *p_timer,
                                mbedtls_ssl_set_timer_t *f_set_timer,
                                mbedtls_ssl_get_timer_t *f_get_timer );
+
+#if defined(MBEDTLS_SSL_SRV_C)
+/**
+ * \brief           Set the certificate selection callback (server-side only).
+ *
+ *                  If set, the callback is always called for each handshake,
+ *                  after `ClientHello` processing has finished.
+ *
+ *                  The callback has the following parameters:
+ *                  - \c mbedtls_ssl_context*: The SSL context to which
+ *                                             the operation applies.
+ *                  The return value of the callback is 0 if successful,
+ *                  or a specific MBEDTLS_ERR_XXX code, which will cause
+ *                  the handshake to be aborted.
+ *
+ * \param conf      The SSL configuration to register the callback with.
+ * \param f_cert_cb The callback for selecting server certificate after
+ *                  `ClientHello` processing has finished.
+ */
+void mbedtls_ssl_conf_cert_cb( mbedtls_ssl_config *conf,
+                               int (*f_cert_cb)(mbedtls_ssl_context *) );
+#endif /* MBEDTLS_SSL_SRV_C */
 
 /**
  * \brief           Callback type: generate and write session ticket

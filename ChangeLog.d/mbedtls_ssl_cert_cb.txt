@@ -1,0 +1,3 @@
+Features
+   * Add server certificate selection callback near end of Client Hello.
+     Register callback with mbedtls_ssl_conf_cert_cb().

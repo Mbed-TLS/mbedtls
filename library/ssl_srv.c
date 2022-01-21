@@ -1871,9 +1871,19 @@ read_record_header:
     }
 
     /*
+     * Server certification selection (after processing TLS extensions)
+     */
+    if( ssl->conf->f_cert_cb && ( ret = ssl->conf->f_cert_cb( ssl ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "f_cert_cb", ret );
+        return( ret );
+    }
+
+    /*
      * Search for a matching ciphersuite
      * (At the end because we need information from the EC-based extensions
-     * and certificate from the SNI callback triggered by the SNI extension.)
+     * and certificate from the SNI callback triggered by the SNI extension
+     * or certificate from server certificate selection callback.)
      */
     got_common_suite = 0;
     ciphersuites = ssl->conf->ciphersuite_list;

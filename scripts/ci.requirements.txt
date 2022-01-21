@@ -14,3 +14,7 @@ pylint == 2.4.4
 # Use the earliest version of mypy that works with our code base.
 # See https://github.com/ARMmbed/mbedtls/pull/3953 .
 mypy >= 0.780
+
+# For building some test vectors
+pycryptodomex
+pycryptodome-test-vectors

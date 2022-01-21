@@ -3403,7 +3403,6 @@ error:
 void mbedtls_ssl_session_reset_msg_layer( mbedtls_ssl_context *ssl,
                                           int partial )
 {
-#if defined(MBEDTLS_SSL_LEGACY_MSG_LAYER_REQUIRED)
 #if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
     size_t in_buf_len = ssl->in_buf_len;
     size_t out_buf_len = ssl->out_buf_len;
@@ -3463,10 +3462,6 @@ void mbedtls_ssl_session_reset_msg_layer( mbedtls_ssl_context *ssl,
     }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-#else
-    ((void) partial);
-#endif /* MBEDTLS_SSL_LEGACY_MSG_LAYER_REQUIRED */
-
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     mbedtls_ssl_transform_free( ssl->transform_application );
     mbedtls_free( ssl->transform_application );
@@ -3483,10 +3478,6 @@ void mbedtls_ssl_session_reset_msg_layer( mbedtls_ssl_context *ssl,
         ssl->handshake->transform_handshake = NULL;
     }
 
-#if defined(MBEDTLS_ZERO_RTT) && defined(MBEDTLS_SSL_CLI_C)
-    ssl->early_data_buf = NULL;
-    ssl->early_data_len = 0;
-#endif /* MBEDTLS_ZERO_RTT && MBEDTLS_SSL_CLI_C */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 }
 

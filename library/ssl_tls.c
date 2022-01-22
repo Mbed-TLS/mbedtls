@@ -6491,17 +6491,57 @@ static int ssl_preset_suiteb_hashes[] = {
 };
 #endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
-/* NOTICE: Make sure there are no duplicated entries when add new signature
- *         algorithms into ssl_preset_default_sig_algs
+/* NOTICE:
+ *   For ssl_preset_*_sig_algs and ssl_tls12_preset_*_sig_algs, below rulers
+ *   SHOULD be followed.
+ *   - No duplicated entries.
+ *   - Followup simillar order.
+ *   - ssl_tls12_* contains tls12_only mode data.
+ *   - ssl_preset_* contains non-tls12_only mode data, if possible, tls12_only data
+ *     should be at the beggining of table.
  */
 static uint16_t ssl_preset_default_sig_algs[] = {
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    /* RSA algorithms */
-#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
-    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256,
-#endif
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_SHA512_C) && \
+    defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
+    MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512,
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_SHA384_C &&
+          MBEDTLS_ECP_DP_SECP521R1_ENABLED */
+
+#if defined(MBEDTLS_RSA_C) &&  defined(MBEDTLS_SHA512_C)
+    MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512,
+#endif /* MBEDTLS_RSA_C && MBEDTLS_SHA512_C */
+
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_SHA384_C) && \
+    defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+    MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384,
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_SHA384_C &&
+          MBEDTLS_ECP_DP_SECP384R1_ENABLED */
+
+#if defined(MBEDTLS_RSA_C) &&  defined(MBEDTLS_SHA384_C)
+    MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384,
+#endif /* MBEDTLS_RSA_C && MBEDTLS_SHA384_C */
+
+#if defined(MBEDTLS_ECDSA_C) &&  defined(MBEDTLS_SHA256_C) && \
+    defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+    MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256,
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_SHA256_C &&
+          MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+
+#if defined(MBEDTLS_RSA_C) &&  defined(MBEDTLS_SHA256_C)
+    MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256,
+#endif /* MBEDTLS_RSA_C && MBEDTLS_SHA256_C */
+
+#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && defined(MBEDTLS_SHA256_C)
+    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256,
+#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT && MBEDTLS_SHA256_C */
+
+    MBEDTLS_TLS1_3_SIG_NONE
+};
+
+/* NOTICE: see above */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+static uint16_t ssl_tls12_preset_default_sig_algs[] = {
 #if defined(MBEDTLS_SHA512_C)
     MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA512 )
 #endif
@@ -6511,20 +6551,42 @@ static uint16_t ssl_preset_default_sig_algs[] = {
 #if defined(MBEDTLS_SHA256_C)
     MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA256 )
 #endif
+    MBEDTLS_TLS1_3_SIG_NONE
+};
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+/* NOTICE: see above */
+static uint16_t ssl_preset_suiteb_sig_algs[] = {
+
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_SHA384_C) && \
+    defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+    MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384,
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_SHA384_C &&
+          MBEDTLS_ECP_DP_SECP384R1_ENABLED */
+
+#if defined(MBEDTLS_RSA_C) &&  defined(MBEDTLS_SHA384_C)
+    MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384,
+#endif /* MBEDTLS_RSA_C && MBEDTLS_SHA384_C */
+
+#if defined(MBEDTLS_ECDSA_C) &&  defined(MBEDTLS_SHA256_C) && \
+    defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+    MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256,
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_SHA256_C &&
+          MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+
+#if defined(MBEDTLS_RSA_C) &&  defined(MBEDTLS_SHA256_C)
+    MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256,
+#endif /* MBEDTLS_RSA_C && MBEDTLS_SHA256_C */
+
+#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && defined(MBEDTLS_SHA256_C)
+    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256,
+#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT && MBEDTLS_SHA256_C */
 
     MBEDTLS_TLS1_3_SIG_NONE
 };
 
-/* NOTICE: Make sure there are no duplicated entries when add new signature
- *         algorithms into ssl_preset_suiteb_sig_algs
- */
-static uint16_t ssl_preset_suiteb_sig_algs[] = {
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
-    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256,
-#endif
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
-
+/* NOTICE: see above */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+static uint16_t ssl_tls12_preset_suiteb_sig_algs[] = {
 #if defined(MBEDTLS_SHA384_C)
     MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA384 )
 #endif
@@ -6533,6 +6595,8 @@ static uint16_t ssl_preset_suiteb_sig_algs[] = {
 #endif
     MBEDTLS_TLS1_3_SIG_NONE
 };
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 static uint16_t ssl_preset_suiteb_groups[] = {
@@ -6546,12 +6610,13 @@ static uint16_t ssl_preset_suiteb_groups[] = {
 };
 
 #if defined(MBEDTLS_DEBUG_C) && defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-/* Function for checking `ssl_preset_*_sig_algs` to make sure there are no duplicated
- * signature algorithm entries */
+/* Function for checking `ssl_preset_*_sig_algs` and `ssl_tls12_preset_*_sig_algs`
+ * to make sure there are no duplicated signature algorithm entries */
 static int ssl_array_has_duplicated_entries( uint16_t * array )
 {
     size_t i, j;
     int ret = 0;
+
     for( i = 1; array[i] != MBEDTLS_TLS1_3_SIG_NONE ; i++ )
     {
         for( j = 0 ; j < i; j++ )
@@ -6585,19 +6650,37 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #if defined(MBEDTLS_DEBUG_C) && defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     if( ssl_array_has_duplicated_entries( ssl_preset_suiteb_sig_algs ) )
     {
-    #if defined(MBEDTLS_PLATFORM_C)
+#if defined(MBEDTLS_PLATFORM_C)
         mbedtls_printf( "ssl_preset_suiteb_sig_algs has duplicated entries\n" );
-    #endif
+#endif
         return( MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED );
     }
 
     if( ssl_array_has_duplicated_entries( ssl_preset_default_sig_algs ) )
     {
-    #if defined(MBEDTLS_PLATFORM_C)
+#if defined(MBEDTLS_PLATFORM_C)
         mbedtls_printf( "ssl_preset_default_sig_algs has duplicated entries\n" );
-    #endif
+#endif
         return( MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED );
     }
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    if( ssl_array_has_duplicated_entries( ssl_tls12_preset_suiteb_sig_algs ) )
+    {
+#if defined(MBEDTLS_PLATFORM_C)
+        mbedtls_printf( "ssl_tls12_preset_suiteb_sig_algs has duplicated entries\n" );
+#endif
+        return( MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED );
+    }
+
+    if( ssl_array_has_duplicated_entries( ssl_tls12_preset_default_sig_algs ) )
+    {
+#if defined(MBEDTLS_PLATFORM_C)
+        mbedtls_printf( "ssl_tls12_preset_default_sig_algs has duplicated entries\n" );
+#endif
+        return( MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED );
+    }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 #endif /* MBEDTLS_DEBUG_C && MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
     /* Use the functions here so that they are covered in tests,
@@ -6699,7 +6782,12 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
             conf->sig_hashes = ssl_preset_suiteb_hashes;
 #endif /* !MBEDTLS_DEPRECATED_REMOVED */
-            conf->sig_algs = ssl_preset_suiteb_sig_algs;
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+            if( mbedtls_ssl_conf_is_tls12_only( conf ) )
+                conf->sig_algs = ssl_tls12_preset_suiteb_sig_algs;
+            else
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+                conf->sig_algs = ssl_preset_suiteb_sig_algs;
 #endif
 
 #if defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_DEPRECATED_REMOVED)
@@ -6737,7 +6825,12 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
             conf->sig_hashes = ssl_preset_default_hashes;
 #endif /* !MBEDTLS_DEPRECATED_REMOVED */
-            conf->sig_algs = ssl_preset_default_sig_algs;
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+            if( mbedtls_ssl_conf_is_tls12_only( conf ) )
+                conf->sig_algs = ssl_tls12_preset_default_sig_algs;
+            else
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+                conf->sig_algs = ssl_preset_default_sig_algs;
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_DEPRECATED_REMOVED)

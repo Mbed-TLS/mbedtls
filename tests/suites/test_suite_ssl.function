@@ -854,6 +854,15 @@ int mbedtls_endpoint_certificate_init( mbedtls_endpoint *ep, int pk_alg )
     ret = mbedtls_ssl_conf_own_cert( &( ep->conf ), &( cert->cert ),
                                      &( cert->pkey ) );
     TEST_ASSERT( ret == 0 );
+    TEST_ASSERT( ep->conf.key_cert != NULL );
+
+    ret = mbedtls_ssl_conf_own_cert( &( ep->conf ), NULL, NULL );
+    TEST_ASSERT( ret == 0 );
+    TEST_ASSERT( ep->conf.key_cert == NULL );
+
+    ret = mbedtls_ssl_conf_own_cert( &( ep->conf ), &( cert->cert ),
+                                     &( cert->pkey ) );
+    TEST_ASSERT( ret == 0 );
 
 exit:
     if( ret != 0 )

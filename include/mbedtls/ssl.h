@@ -3546,6 +3546,9 @@ int mbedtls_ssl_set_hostname( mbedtls_ssl_context *ssl, const char *hostname );
  * \note           Same as \c mbedtls_ssl_conf_own_cert() but for use within
  *                 the SNI callback.
  *
+ * \note           Passing null \c own_cert clears the certificate list for
+ *                 the current handshake.
+ *
  * \param ssl      SSL context
  * \param own_cert own public certificate chain
  * \param pk_key   own private key

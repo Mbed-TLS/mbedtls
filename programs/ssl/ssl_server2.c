@@ -3231,8 +3231,17 @@ handshake:
     }
     else /* ret == 0 */
     {
-        mbedtls_printf( " ok\n    [ Protocol is %s ]\n    [ Ciphersuite is %s ]\n",
-                mbedtls_ssl_get_version( &ssl ), mbedtls_ssl_get_ciphersuite( &ssl ) );
+        int suite_id = mbedtls_ssl_get_ciphersuite_id_from_ssl( &ssl );
+        const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
+        ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( suite_id );
+
+        mbedtls_printf( " ok\n    [ Protocol is %s ]\n"
+                             "    [ Ciphersuite is %s ]\n"
+                             "    [ Key size is %u ]\n",
+          mbedtls_ssl_get_version( &ssl ),
+          mbedtls_ssl_ciphersuite_get_name( ciphersuite_info ),
+          (unsigned int)
+            mbedtls_ssl_ciphersuite_get_cipher_key_bitlen( ciphersuite_info ) );
     }
 
     if( ( ret = mbedtls_ssl_get_record_expansion( &ssl ) ) >= 0 )

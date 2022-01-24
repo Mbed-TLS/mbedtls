@@ -1431,7 +1431,7 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    status = tls_mbedtls_cipher_to_psa( cipher_type,
+    status = mbedtls_ssl_cipher_to_psa( cipher_type,
                             t_in->taglen,
                             &alg,
                             &key_type,

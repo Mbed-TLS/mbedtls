@@ -120,6 +120,7 @@ int main( void )
 #define DFL_TRUNC_HMAC          -1
 #define DFL_TICKETS             MBEDTLS_SSL_SESSION_TICKETS_ENABLED
 #define DFL_TICKET_TIMEOUT      86400
+#define DFL_TICKET_AEAD         MBEDTLS_CIPHER_AES_256_GCM
 #define DFL_CACHE_MAX           -1
 #define DFL_CACHE_TIMEOUT       -1
 #define DFL_SNI                 NULL
@@ -285,7 +286,8 @@ int main( void )
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 #define USAGE_TICKETS                                       \
     "    tickets=%%d          default: 1 (enabled)\n"       \
-    "    ticket_timeout=%%d   default: 86400 (one day)\n"
+    "    ticket_timeout=%%d   default: 86400 (one day)\n"   \
+    "    ticket_aead=%%s      default: \"AES-256-GCM\"\n"
 #else
 #define USAGE_TICKETS ""
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
@@ -612,6 +614,7 @@ struct options
     int trunc_hmac;             /* accept truncated hmac?                   */
     int tickets;                /* enable / disable session tickets         */
     int ticket_timeout;         /* session ticket lifetime                  */
+    int ticket_aead;            /* session ticket protection                */
     int cache_max;              /* max number of session cache entries      */
     int cache_timeout;          /* expiration delay of session cache entries */
     char *sni;                  /* string describing sni information        */
@@ -1538,6 +1541,7 @@ int main( int argc, char *argv[] )
     opt.trunc_hmac          = DFL_TRUNC_HMAC;
     opt.tickets             = DFL_TICKETS;
     opt.ticket_timeout      = DFL_TICKET_TIMEOUT;
+    opt.ticket_aead         = DFL_TICKET_AEAD;
     opt.cache_max           = DFL_CACHE_MAX;
     opt.cache_timeout       = DFL_CACHE_TIMEOUT;
     opt.sni                 = DFL_SNI;
@@ -1914,6 +1918,14 @@ int main( int argc, char *argv[] )
             opt.ticket_timeout = atoi( q );
             if( opt.ticket_timeout < 0 )
                 goto usage;
+        }
+        else if( strcmp( p, "ticket_aead" ) == 0 )
+        {
+            const mbedtls_cipher_info_t *ci = mbedtls_cipher_info_from_string( q );
+
+            if( ci == NULL )
+                goto usage;
+            opt.ticket_aead = mbedtls_cipher_info_get_type( ci );
         }
         else if( strcmp( p, "cache_max" ) == 0 )
         {
@@ -2708,7 +2720,7 @@ int main( int argc, char *argv[] )
     {
         if( ( ret = mbedtls_ssl_ticket_setup( &ticket_ctx,
                         rng_get, &rng,
-                        MBEDTLS_CIPHER_AES_256_GCM,
+                        opt.ticket_aead,
                         opt.ticket_timeout ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_ticket_setup returned %d\n\n", ret );

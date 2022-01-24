@@ -5096,48 +5096,36 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
 
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    switch( transform->psa_alg )
+    if ( transform->psa_alg == PSA_ALG_IS_AEAD( transform->psa_alg ) ||
+         transform->psa_alg == MBEDTLS_SSL_NULL_CIPHER )
     {
-        case PSA_ALG_GCM:
-        case PSA_ALG_CHACHA20_POLY1305:
-        case MBEDTLS_SSL_NULL_CIPHER:
-            transform_expansion = transform->minlen;
-            break;
+        transform_expansion = transform->minlen;
+    }
+    else if ( transform->psa_alg )
+    {
+        (void) psa_get_key_attributes( transform->psa_key_enc, &attr );
+        key_type = psa_get_key_type( &attr );
 
-        case PSA_ALG_CBC_NO_PADDING:
-            (void) psa_get_key_attributes( transform->psa_key_enc, &attr );
-            key_type = psa_get_key_type( &attr );
+        block_size = PSA_BLOCK_CIPHER_BLOCK_LENGTH( key_type );
 
-            block_size = PSA_BLOCK_CIPHER_BLOCK_LENGTH( key_type );
+        /* Expansion due to the addition of the MAC. */
+        transform_expansion += transform->maclen;
 
-            /* Expansion due to the addition of the MAC. */
-            transform_expansion += transform->maclen;
+        /* Expansion due to the addition of CBC padding;
+            * Theoretically up to 256 bytes, but we never use
+            * more than the block size of the underlying cipher. */
+        transform_expansion += block_size;
 
-            /* Expansion due to the addition of CBC padding;
-             * Theoretically up to 256 bytes, but we never use
-             * more than the block size of the underlying cipher. */
-            transform_expansion += block_size;
-
-            /* For TLS 1.2 or higher, an explicit IV is added
-             * after the record header. */
+        /* For TLS 1.2 or higher, an explicit IV is added
+            * after the record header. */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-            transform_expansion += block_size;
+        transform_expansion += block_size;
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
-            break;
-
-        default:
-         /* Handle CCM case in default:
-            PSA_ALG_IS_AEAD( transform->psa_alg ) corresponds to
-            psa_alg == PSA_ALG_CCM || psa_alg == PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, 8 )
-            in tls context (TLS only uses the default taglen or 8) */
-            if ( PSA_ALG_IS_AEAD( transform->psa_alg ) )
-            {
-                transform_expansion = transform->minlen;
-                break;
-            }
-
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+    else
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 #else
     switch( mbedtls_cipher_get_cipher_mode( &transform->cipher_ctx_enc ) )

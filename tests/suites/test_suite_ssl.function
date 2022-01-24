@@ -1448,7 +1448,7 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
 
     if ( alg != MBEDTLS_SSL_NULL_CIPHER )
     {
-        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT );
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT );
         psa_set_key_algorithm( &attributes, alg );
         psa_set_key_type( &attributes, key_type );
 
@@ -1466,7 +1466,7 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
         status = psa_import_key( &attributes,
                         key1,
                         PSA_BITS_TO_BYTES( key_bits ),
-                        &t_in->psa_key_dec );
+                        &t_out->psa_key_enc );
 
         if ( status != PSA_SUCCESS)
         {
@@ -1474,10 +1474,12 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
             goto cleanup;
         }
 
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DECRYPT );
+
         status = psa_import_key( &attributes,
                         key1,
                         PSA_BITS_TO_BYTES( key_bits ),
-                        &t_out->psa_key_enc );
+                        &t_in->psa_key_dec );
 
         if ( status != PSA_SUCCESS)
         {

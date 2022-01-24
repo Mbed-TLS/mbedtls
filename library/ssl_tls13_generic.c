@@ -1128,37 +1128,6 @@ cleanup:
 
 #endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
 
-static int ssl_hash_transcript_core( mbedtls_ssl_context *ssl,
-                                     mbedtls_md_type_t md,
-                                     unsigned char *transcript,
-                                     size_t len,
-                                     size_t *olen )
-{
-    int ret;
-    size_t hash_size;
-
-    if( len < 4 )
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-
-    ret = mbedtls_ssl_get_handshake_transcript( ssl, md,
-                                                transcript + 4,
-                                                len - 4,
-                                                &hash_size );
-    if( ret != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 4, "mbedtls_ssl_get_handshake_transcript", ret );
-        return( ret );
-    }
-
-    transcript[0] = MBEDTLS_SSL_HS_MESSAGE_HASH;
-    transcript[1] = 0;
-    transcript[2] = 0;
-    transcript[3] = (unsigned char) hash_size;
-
-    *olen = 4 + hash_size;
-    return( 0 );
-}
-
 /* Reset SSL context and update hash for handling HRR.
  *
  * Replace Transcript-Hash(X) by
@@ -1174,27 +1143,35 @@ int mbedtls_ssl_reset_transcript_for_hrr( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char hash_transcript[ MBEDTLS_MD_MAX_SIZE + 4 ];
-    size_t hash_olen;
+    size_t hash_len;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
     uint16_t cipher_suite = ssl->session_negotiate->ciphersuite;
     ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( cipher_suite );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "Reset SSL session for HRR" ) );
 
+    ret = mbedtls_ssl_get_handshake_transcript( ssl, ciphersuite_info->mac,
+                                                hash_transcript + 4,
+                                                MBEDTLS_MD_MAX_SIZE,
+                                                &hash_len );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 4, "mbedtls_ssl_get_handshake_transcript", ret );
+        return( ret );
+    }
+
+    hash_transcript[0] = MBEDTLS_SSL_HS_MESSAGE_HASH;
+    hash_transcript[1] = 0;
+    hash_transcript[2] = 0;
+    hash_transcript[3] = (unsigned char) hash_len;
+
+    hash_len += 4;
+
     if( ciphersuite_info->mac == MBEDTLS_MD_SHA256 )
     {
 #if defined(MBEDTLS_SHA256_C)
-        ret = ssl_hash_transcript_core( ssl, MBEDTLS_MD_SHA256,
-                                        hash_transcript,
-                                        sizeof( hash_transcript ),
-                                        &hash_olen );
-        if( ret != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 4, "ssl_hash_transcript_core", ret );
-            return( ret );
-        }
         MBEDTLS_SSL_DEBUG_BUF( 4, "Truncated SHA-256 handshake transcript",
-                               hash_transcript, hash_olen );
+                               hash_transcript, hash_len );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         psa_hash_abort( &ssl->handshake->fin_sha256_psa );
@@ -1202,23 +1179,13 @@ int mbedtls_ssl_reset_transcript_for_hrr( mbedtls_ssl_context *ssl )
 #else
         mbedtls_sha256_starts( &ssl->handshake->fin_sha256, 0 );
 #endif
-    ssl->handshake->update_checksum( ssl, hash_transcript, hash_olen );
 #endif /* MBEDTLS_SHA256_C */
     }
     else if( ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
     {
 #if defined(MBEDTLS_SHA384_C)
-        ret = ssl_hash_transcript_core( ssl, MBEDTLS_MD_SHA384,
-                                        hash_transcript,
-                                        sizeof( hash_transcript ),
-                                        &hash_olen );
-        if( ret != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 4, "ssl_hash_transcript_core", ret );
-            return( ret );
-        }
         MBEDTLS_SSL_DEBUG_BUF( 4, "Truncated SHA-384 handshake transcript",
-                               hash_transcript, hash_olen );
+                               hash_transcript, hash_len );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         psa_hash_abort( &ssl->handshake->fin_sha384_psa );
@@ -1226,10 +1193,12 @@ int mbedtls_ssl_reset_transcript_for_hrr( mbedtls_ssl_context *ssl )
 #else
         mbedtls_sha512_starts( &ssl->handshake->fin_sha512, 1 );
 #endif
-    ssl->handshake->update_checksum( ssl, hash_transcript, hash_olen );
 #endif /* MBEDTLS_SHA384_C */
     }
 
+#if defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA384_C)
+    ssl->handshake->update_checksum( ssl, hash_transcript, hash_len );
+#endif /* MBEDTLS_SHA256_C || MBEDTLS_SHA384_C */
     return( ret );
 }
 

@@ -3541,6 +3541,27 @@ int mbedtls_ssl_set_hostname( mbedtls_ssl_context *ssl, const char *hostname );
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
 /**
+ * \brief          Retrieve SNI extension value for the current handshake.
+ *                 Available in \p f_cert_cb of \c mbedtls_ssl_conf_cert_cb(),
+ *                 this is the same value passed to \p f_sni callback of
+ *                 \c mbedtls_ssl_conf_sni() and may be used instead of
+ *                 \c mbedtls_ssl_conf_sni().
+ *
+ * \param ssl      SSL context
+ * \param name_len pointer into which to store length of returned value.
+ *                 0 if SNI extension is not present or not yet processed.
+ *
+ * \return         const pointer to SNI extension value.
+ *                 - value is valid only when called in \p f_cert_cb
+ *                   registered with \c mbedtls_ssl_conf_cert_cb().
+ *                 - value is NULL if SNI extension is not present.
+ *                 - value is not '\0'-terminated.  Use \c name_len for len.
+ *                 - value must not be freed.
+ */
+const unsigned char *mbedtls_ssl_get_hs_sni( mbedtls_ssl_context *ssl,
+                                             size_t *name_len );
+
+/**
  * \brief          Set own certificate and key for the current handshake
  *
  * \note           Same as \c mbedtls_ssl_conf_own_cert() but for use within

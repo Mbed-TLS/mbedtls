@@ -849,6 +849,11 @@ struct mbedtls_ssl_handshake_params
      * The library does not use it internally. */
     void *user_async_ctx;
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
+
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    const unsigned char *sni_name;      /*!< raw SNI                        */
+    size_t sni_name_len;                /*!< raw SNI len                    */
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 };
 
 typedef struct mbedtls_ssl_hs_buffer mbedtls_ssl_hs_buffer;

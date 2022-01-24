@@ -58,7 +58,7 @@
 /** Buffer too small when writing ASN.1 data structure. */
 #define MBEDTLS_ERR_ASN1_BUF_TOO_SMALL                    -0x006C
 
-/* \} name */
+/** \} name ASN1 Error codes */
 
 /**
  * \name DER constants
@@ -118,8 +118,7 @@
 #define MBEDTLS_ASN1_TAG_PC_MASK             0x20
 #define MBEDTLS_ASN1_TAG_VALUE_MASK          0x1F
 
-/* \} name */
-/* \} addtogroup asn1_module */
+/** \} name DER constants */
 
 /** Returns the size of the binary string, without the trailing \\0 */
 #define MBEDTLS_OID_SIZE(x) (sizeof(x) - 1)
@@ -625,6 +624,9 @@ void mbedtls_asn1_free_named_data( mbedtls_asn1_named_data *entry );
  *              sets \c *head to \c NULL.
  */
 void mbedtls_asn1_free_named_data_list( mbedtls_asn1_named_data **head );
+
+/** \} name Functions to parse ASN.1 data structures */
+/** \} addtogroup asn1_module */
 
 #ifdef __cplusplus
 }

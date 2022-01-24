@@ -28,14 +28,6 @@
 extern "C" {
 #endif
 
-/**
- * \name SECTION: Module settings
- *
- * The configuration options you can set for this module are in this section.
- * Either change them in mbedtls_config.h or define them on the compiler command line.
- * \{
- */
-
 /*
  * The time_t datatype
  */

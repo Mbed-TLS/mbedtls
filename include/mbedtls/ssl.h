@@ -3889,6 +3889,15 @@ size_t mbedtls_ssl_get_bytes_avail( const mbedtls_ssl_context *ssl );
 uint32_t mbedtls_ssl_get_verify_result( const mbedtls_ssl_context *ssl );
 
 /**
+ * \brief          Return the id of the current ciphersuite
+ *
+ * \param ssl      SSL context
+ *
+ * \return         a ciphersuite id
+ */
+int mbedtls_ssl_get_ciphersuite_id_from_ssl( const mbedtls_ssl_context *ssl );
+
+/**
  * \brief          Return the name of the current ciphersuite
  *
  * \param ssl      SSL context

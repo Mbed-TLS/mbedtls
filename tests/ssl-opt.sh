@@ -1475,6 +1475,20 @@ run_test    "TLS client auth: required" \
             0 \
             -s "Verifying peer X.509 certificate... ok"
 
+run_test    "key size: TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256" \
+            "$P_SRV" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256" \
+            0 \
+            -c "Ciphersuite is TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256" \
+            -c "Key size is 256"
+
+run_test    "key size: TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
+            "$P_SRV" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
+            0 \
+            -c "Ciphersuite is TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8" \
+            -c "Key size is 128"
+
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SHA256_C

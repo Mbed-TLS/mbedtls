@@ -2064,6 +2064,19 @@ int mbedtls_ssl_get_ciphersuite_id( const char *ciphersuite_name )
     return( cur->id );
 }
 
+size_t mbedtls_ssl_ciphersuite_get_cipher_key_bitlen( const mbedtls_ssl_ciphersuite_t *info )
+{
+#if defined(MBEDTLS_CIPHER_C)
+    const mbedtls_cipher_info_t * const cipher_info =
+      mbedtls_cipher_info_from_type( info->cipher );
+
+    return( mbedtls_cipher_info_get_key_bitlen( cipher_info ) );
+#else
+    (void)info;
+    return( 0 );
+#endif
+}
+
 #if defined(MBEDTLS_PK_C)
 mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_pk_alg( const mbedtls_ssl_ciphersuite_t *info )
 {

@@ -1,0 +1,3 @@
+Features
+   * Add accessor to obtain ciphersuite id from ssl context.
+   * Add accessors to get members from ciphersuite info.

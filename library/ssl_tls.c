@@ -4364,6 +4364,14 @@ uint32_t mbedtls_ssl_get_verify_result( const mbedtls_ssl_context *ssl )
     return( 0xFFFFFFFF );
 }
 
+int mbedtls_ssl_get_ciphersuite_id_from_ssl( const mbedtls_ssl_context *ssl )
+{
+    if( ssl == NULL || ssl->session == NULL )
+        return( 0 );
+
+    return( ssl->session->ciphersuite );
+}
+
 const char *mbedtls_ssl_get_ciphersuite( const mbedtls_ssl_context *ssl )
 {
     if( ssl == NULL || ssl->session == NULL )

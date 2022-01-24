@@ -3624,8 +3624,7 @@ void mbedtls_ssl_set_hs_authmode( mbedtls_ssl_context *ssl,
  *                 mbedtls_ssl_set_hs_ca_chain() as well as the client
  *                 authentication mode with \c mbedtls_ssl_set_hs_authmode(),
  *                 then must return 0. If no matching name is found, the
- *                 callback must either set a default cert, or
- *                 return non-zero to abort the handshake at this point.
+ *                 callback may return non-zero to abort the handshake.
  *
  * \param conf     SSL configuration
  * \param f_sni    verification function

@@ -32,14 +32,6 @@
 extern "C" {
 #endif
 
-/**
- * \name SECTION: Module settings
- *
- * The configuration options you can set for this module are in this section.
- * Either change them in config.h or define them on the compiler command line.
- * \{
- */
-
 /*
  * The time_t datatype
  */
@@ -77,5 +69,4 @@ int mbedtls_platform_set_time( mbedtls_time_t (*time_func)( mbedtls_time_t* time
 }
 #endif
 
-/** \} name SECTION: Module settings */
 #endif /* platform_time.h */

@@ -321,7 +321,7 @@
  */
 //#define MBEDTLS_CHECK_PARAMS_ASSERT
 
-/* \} name SECTION: System support */
+/** \} name SECTION: System support */
 
 /**
  * \name SECTION: mbed TLS feature support
@@ -2289,7 +2289,7 @@
  * Uncomment to enable use of ZLIB
  */
 //#define MBEDTLS_ZLIB_SUPPORT
-/* \} name SECTION: mbed TLS feature support */
+/** \} name SECTION: mbed TLS feature support */
 
 /**
  * \name SECTION: mbed TLS modules
@@ -3598,7 +3598,7 @@
  */
 #define MBEDTLS_XTEA_C
 
-/* \} name SECTION: mbed TLS modules */
+/** \} name SECTION: mbed TLS modules */
 
 /**
  * \name SECTION: Module configuration options
@@ -4002,7 +4002,7 @@
  */
 //#define MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
 
-/* \} name SECTION: Customisation configuration options */
+/** \} name SECTION: Customisation configuration options */
 
 /* Target and application specific configurations
  *

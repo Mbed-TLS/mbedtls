@@ -823,24 +823,56 @@ int sni_callback( void *p_info, mbedtls_ssl_context *ssl,
 {
     const sni_entry *cur = (const sni_entry *) p_info;
 
+    /* preserve behavior which checks for SNI match in sni_callback() for
+     * the benefits of tests using sni_callback(), even though the actual
+     * certificate assignment has moved to certificate selection callback
+     * in this application.  This exercises sni_callback and cert_callback
+     * even though real applications might choose to do this differently.
+     * Application might choose to save name and name_len in user_data for
+     * later use in certificate selection callback.
+     */
     while( cur != NULL )
     {
         if( name_len == strlen( cur->name ) &&
             memcmp( name, cur->name, name_len ) == 0 )
         {
-            if( cur->ca != NULL )
-                mbedtls_ssl_set_hs_ca_chain( ssl, cur->ca, cur->crl );
-
-            if( cur->authmode != DFL_AUTH_MODE )
-                mbedtls_ssl_set_hs_authmode( ssl, cur->authmode );
-
-            return( mbedtls_ssl_set_hs_own_cert( ssl, cur->cert, cur->key ) );
+            void *p;
+            *(const void **)&p = cur;
+            mbedtls_ssl_set_user_data_p( ssl, p );
+            return( 0 );
         }
 
         cur = cur->next;
     }
 
     return( -1 );
+}
+
+/*
+ * server certificate selection callback.
+ */
+int cert_callback( mbedtls_ssl_context *ssl )
+{
+    const sni_entry *cur = (sni_entry *) mbedtls_ssl_get_user_data_p( ssl );
+    if( cur != NULL )
+    {
+        /*(exercise mbedtls_ssl_get_hs_sni(); not otherwise used here)*/
+        size_t name_len;
+        const unsigned char *name = mbedtls_ssl_get_hs_sni( ssl, &name_len );
+        if( strlen( cur->name ) != name_len ||
+            memcmp( cur->name, name, name_len ) != 0 )
+            return( MBEDTLS_ERR_SSL_DECODE_ERROR );
+
+        if( cur->ca != NULL )
+            mbedtls_ssl_set_hs_ca_chain( ssl, cur->ca, cur->crl );
+
+        if( cur->authmode != DFL_AUTH_MODE )
+            mbedtls_ssl_set_hs_authmode( ssl, cur->authmode );
+
+        return( mbedtls_ssl_set_hs_own_cert( ssl, cur->cert, cur->key ) );
+    }
+
+    return( 0 );
 }
 
 #endif /* SNI_OPTION */
@@ -2923,6 +2955,7 @@ int main( int argc, char *argv[] )
     if( opt.sni != NULL )
     {
         mbedtls_ssl_conf_sni( &conf, sni_callback, sni_info );
+        mbedtls_ssl_conf_cert_cb( &conf, cert_callback );
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         if( opt.async_private_delay2 >= 0 )
         {

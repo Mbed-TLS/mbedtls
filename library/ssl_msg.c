@@ -793,12 +793,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
     defined(MBEDTLS_CCM_C) || \
     defined(MBEDTLS_CHACHAPOLY_C)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if ( transform->psa_alg == PSA_ALG_GCM ||
-         /* PSA_ALG_IS_AEAD( transform->psa_alg ) corresponds to
-            psa_alg == PSA_ALG_CCM || psa_alg == PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, 8 )
-            in tls context (TLS only uses the default taglen or 8) */
-         PSA_ALG_IS_AEAD( transform->psa_alg ) ||
-         transform->psa_alg == PSA_ALG_CHACHA20_POLY1305 )
+    if ( PSA_ALG_IS_AEAD( transform->psa_alg ) )
 #else
     if( mode == MBEDTLS_MODE_GCM ||
         mode == MBEDTLS_MODE_CCM ||
@@ -1233,12 +1228,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
     defined(MBEDTLS_CCM_C) || \
     defined(MBEDTLS_CHACHAPOLY_C)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if ( transform->psa_alg == PSA_ALG_GCM ||
-         /* PSA_ALG_IS_AEAD( transform->psa_alg ) corresponds to
-            psa_alg == PSA_ALG_CCM || psa_alg == PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, 8 )
-            in tls context (TLS only uses the default taglen or 8) */
-         PSA_ALG_IS_AEAD( transform->psa_alg ) ||
-         transform->psa_alg == PSA_ALG_CHACHA20_POLY1305 )
+    if ( PSA_ALG_IS_AEAD( transform->psa_alg ) )
 #else
     if( mode == MBEDTLS_MODE_GCM ||
         mode == MBEDTLS_MODE_CCM ||

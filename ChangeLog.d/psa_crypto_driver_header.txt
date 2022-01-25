@@ -1,0 +1,8 @@
+Features
+   * PSA crypto drivers should include the new header file psa/crypto_driver.h
+     instead of psa/crypto.h.
+
+New deprecations
+   * Including psa/crypto.h from driver code is deprecated. A future version
+     of Mbed TLS may stop supporting including psa/crypto.h from drivers and
+     may stop support calling some API functions from driver code.

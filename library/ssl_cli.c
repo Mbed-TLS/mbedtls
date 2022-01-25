@@ -2383,6 +2383,10 @@ static int ssl_parse_server_ecdh_params_psa( mbedtls_ssl_context *ssl,
     tls_id <<= 8;
     tls_id |= *(*p)++;
 
+    /* Check it's a curve we offered */
+    if( mbedtls_ssl_check_curve_tls_id( ssl, tls_id ) != 0 )
+        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+
     /* Convert EC group to PSA key type. */
     if( ( handshake->ecdh_psa_type =
           mbedtls_psa_parse_tls_ecc_group( tls_id, &ecdh_bits ) ) == 0 )

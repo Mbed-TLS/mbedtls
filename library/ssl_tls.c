@@ -6613,22 +6613,21 @@ static uint16_t ssl_preset_suiteb_groups[] = {
 #if defined(MBEDTLS_DEBUG_C) && defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 /* Function for checking `ssl_preset_*_sig_algs` and `ssl_tls12_preset_*_sig_algs`
  * to make sure there are no duplicated signature algorithm entries. */
-static int ssl_array_has_duplicated_entries( uint16_t * array )
+static int ssl_check_no_sig_alg_duplication( uint16_t * sig_algs )
 {
     size_t i, j;
     int ret = 0;
 
-    for( i = 1; array[i] != MBEDTLS_TLS1_3_SIG_NONE ; i++ )
+    for( i = 0; sig_algs[i] != MBEDTLS_TLS1_3_SIG_NONE; i++ )
     {
-        for( j = 0 ; j < i; j++ )
+        for( j = 0; j < i; j++ )
         {
-            if( array[i] == array[j] )
-            {
-                mbedtls_printf( " entry(%04x,%" MBEDTLS_PRINTF_SIZET
-                                ") is duplicated at %" MBEDTLS_PRINTF_SIZET "\n",
-                                array[i], j, i );
-                ret = -1;
-            }
+            if( sig_algs[i] != sig_algs[j] )
+                continue;
+            mbedtls_printf( " entry(%04x,%" MBEDTLS_PRINTF_SIZET
+                            ") is duplicated at %" MBEDTLS_PRINTF_SIZET "\n",
+                            sig_algs[i], j, i );
+            ret = -1;
         }
     }
     return( ret );
@@ -6647,26 +6646,26 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #endif
 
 #if defined(MBEDTLS_DEBUG_C) && defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-    if( ssl_array_has_duplicated_entries( ssl_preset_suiteb_sig_algs ) )
+    if( ssl_check_no_sig_alg_duplication( ssl_preset_suiteb_sig_algs ) )
     {
         mbedtls_printf( "ssl_preset_suiteb_sig_algs has duplicated entries\n" );
         return( MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED );
     }
 
-    if( ssl_array_has_duplicated_entries( ssl_preset_default_sig_algs ) )
+    if( ssl_check_no_sig_alg_duplication( ssl_preset_default_sig_algs ) )
     {
         mbedtls_printf( "ssl_preset_default_sig_algs has duplicated entries\n" );
         return( MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED );
     }
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    if( ssl_array_has_duplicated_entries( ssl_tls12_preset_suiteb_sig_algs ) )
+    if( ssl_check_no_sig_alg_duplication( ssl_tls12_preset_suiteb_sig_algs ) )
     {
         mbedtls_printf( "ssl_tls12_preset_suiteb_sig_algs has duplicated entries\n" );
         return( MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED );
     }
 
-    if( ssl_array_has_duplicated_entries( ssl_tls12_preset_default_sig_algs ) )
+    if( ssl_check_no_sig_alg_duplication( ssl_tls12_preset_default_sig_algs ) )
     {
         mbedtls_printf( "ssl_tls12_preset_default_sig_algs has duplicated entries\n" );
         return( MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED );

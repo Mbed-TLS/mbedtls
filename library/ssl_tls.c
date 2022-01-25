@@ -6492,13 +6492,12 @@ static int ssl_preset_suiteb_hashes[] = {
 #endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
 /* NOTICE:
- *   For ssl_preset_*_sig_algs and ssl_tls12_preset_*_sig_algs, below rulers
- *   SHOULD be followed.
- *   - No duplicated entries.
- *   - Followup simillar order.
- *   - ssl_tls12_* contains tls12_only mode data.
- *   - ssl_preset_* contains non-tls12_only mode data, if possible, tls12_only data
- *     should be at the beggining of table.
+ *   For ssl_preset_*_sig_algs and ssl_tls12_preset_*_sig_algs, the folloing
+ *   rules SHOULD be upheld.
+ *   - No duplicate entries.
+ *   - But if there is a good reason, do not change the order of the algorithms.
+ *   - ssl_tls12_present* is for TLS 1.2 use only.
+ *   - ssl_preset_* is for TLS 1.3 only or hybrid TLS 1.3/1.2 handshakes.
  */
 static uint16_t ssl_preset_default_sig_algs[] = {
 
@@ -6611,7 +6610,7 @@ static uint16_t ssl_preset_suiteb_groups[] = {
 
 #if defined(MBEDTLS_DEBUG_C) && defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 /* Function for checking `ssl_preset_*_sig_algs` and `ssl_tls12_preset_*_sig_algs`
- * to make sure there are no duplicated signature algorithm entries */
+ * to make sure there are no duplicated signature algorithm entries. */
 static int ssl_array_has_duplicated_entries( uint16_t * array )
 {
     size_t i, j;

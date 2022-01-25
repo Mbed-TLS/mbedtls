@@ -346,7 +346,7 @@ psa_status_t psa_crypto_driver_key_derivation_get_input_size(
 psa_status_t psa_crypto_driver_key_derivation_get_input_bytes(
     const psa_crypto_driver_key_derivation_inputs_t *inputs,
     psa_key_derivation_step_t step,
-    uint8_t *output, size_t output_size, size_t *output_length);
+    uint8_t *buffer, size_t buffer_size, size_t *buffer_length);
 psa_status_t psa_crypto_driver_key_derivation_get_input_key(
     const psa_crypto_driver_key_derivation_inputs_t *inputs,
     psa_key_derivation_step_t step,
@@ -365,13 +365,13 @@ These functions take the following parameters:
     * `psa_crypto_driver_key_derivation_get_input_size` and `psa_crypto_driver_key_derivation_get_input_bytes` for data inputs (steps that the application passes with `psa_key_derivation_input_bytes()` or `psa_key_derivation_input_key()`, excluding key inputs from the same secure element).
     * `psa_crypto_driver_key_derivation_get_input_key` for key inputs (steps that the application passes with `psa_key_derivation_input_key()`, only for secure element drivers receiving a key from the same secure element).
 * On a successful invocation of `psa_crypto_driver_key_derivation_get_input_size`, the core sets `*size` to the size of the desired input in bytes.
-* On a successful invocation of `psa_crypto_driver_key_derivation_get_input_bytes`, the core fills the first *N* bytes of `output` with the desired input and sets `*output_length` to *N*, where *N* is the length of the input in bytes. The value of `output_size` must be at least *N*, otherwise this function fails with the status `PSA_ERROR_BUFFER_TOO_SMALL`.
+* On a successful invocation of `psa_crypto_driver_key_derivation_get_input_bytes`, the core fills the first *N* bytes of `buffer` with the desired input and sets `*buffer_length` to *N*, where *N* is the length of the input in bytes. The value of `buffer_size` must be at least *N*, otherwise this function fails with the status `PSA_ERROR_BUFFER_TOO_SMALL`.
 * On a successful invocation of `psa_crypto_driver_key_derivation_get_input_key`, the core sets `*key_buffer` to a pointer to a buffer containing the key context and `*key_buffer_size` to the size of the key context in bytes. The key context buffer remains valid for the duration of the driver entry point. If the driver needs to access the key context after the current entry point returns, it must make a copy of the key context.
 * On a successful invocation of `psa_crypto_driver_key_derivation_get_input_integer`, the core sets `*value` to the value of the desired input.
 
 These functions can return the following statuses:
 
-* `PSA_SUCCESS`: the call succeeded and the desired value has been copied to the output parameter.
+* `PSA_SUCCESS`: the call succeeded and the desired value has been copied to the output parameter (`size`, `buffer`, `value` or `p_key_buffer`) and if applicable the size of the value has been writen to the applicable parameter (`buffer_length`, `key_buffer_size`).
 * `PSA_ERROR_INSUFFICIENT_DATA`: the driver called `psa_crypto_driver_key_derivation_get_input_key` on a data input step which is available as a bytes input, or the driver called ``psa_crypto_driver_key_derivation_get_input_size` or `psa_crypto_driver_key_derivation_get_input_bytes` on a data input step which is available as a key input. This is not a fatal error and the driver is expected to call the appropriate function(s) instead.
 * `PSA_ERROR_DOES_NOT_EXIST`: the input step, is valid for this particular algorithm, but it is not part of the initial inputs. This is not a fatal error. The driver will receive the input later as a [long input](#key-derivation-driver-extra-inputs).
 * `PSA_ERROR_INVALID_ARGUMENT`: the input step is not valid for this particular algorithm, or the type of the input step is not suitable for this function. This is not a fatal error and the driver can, for example, subsequently call the appropriate function on the same step.

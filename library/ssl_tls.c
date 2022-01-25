@@ -6588,11 +6588,11 @@ static uint16_t ssl_preset_suiteb_sig_algs[] = {
 /* NOTICE: see above */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 static uint16_t ssl_tls12_preset_suiteb_sig_algs[] = {
-#if defined(MBEDTLS_SHA384_C)
-    MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA384 )
-#endif
 #if defined(MBEDTLS_SHA256_C)
     MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA256 )
+#endif
+#if defined(MBEDTLS_SHA384_C)
+    MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA384 )
 #endif
     MBEDTLS_TLS1_3_SIG_NONE
 };

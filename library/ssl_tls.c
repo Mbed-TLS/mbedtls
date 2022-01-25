@@ -6494,7 +6494,7 @@ static int ssl_preset_suiteb_hashes[] = {
 #endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
 /* NOTICE:
- *   For ssl_preset_*_sig_algs and ssl_tls12_preset_*_sig_algs, the folloing
+ *   For ssl_preset_*_sig_algs and ssl_tls12_preset_*_sig_algs, the following
  *   rules SHOULD be upheld.
  *   - No duplicate entries.
  *   - But if there is a good reason, do not change the order of the algorithms.

@@ -120,7 +120,22 @@ MVP definition
   the three first ones in the list above are mandatory (see section 9.1 of the
   specification).
 
-- Supported versions: only TLS 1.3, version negotiation is not supported.
+- Supported versions:
+
+  - only TLS 1.3, version negotiation is not supported.
+
+  - TLS 1.3 and 1.2 can be disable/enable with build option. One of them MUST be
+    enabled. Supported build options:
+
+    | MBEDTLS_SSL_PROTO_TLS1_2 | MBEDTLS_SSL_PROTO_TLS1_3 |
+    | ------------------------ | ------------------------ |
+    | yes                      | no                       |
+    | no                       | yes                      |
+    | yes                      | yes                      |
+
+  - If both TLS 1.3 and TLS 1.2 are enabled, only one of them can be configured
+    enabled via `mbedtls_ssl_conf_{min,max}_version`. Otherwise, `mbedtls_ssl_setup`
+    will raise `MBEDTLS_ERR_SSL_BAD_CONFIG` error.
 
 - Compatibility with existing SSL/TLS build options:
 

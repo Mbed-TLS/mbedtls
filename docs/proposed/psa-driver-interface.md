@@ -44,7 +44,7 @@ The present specification was designed to fulfill the following high-level requi
 
 ### Deliverables for a driver
 
-To write a driver, you need to implement some functions with C linkage, and to declare these functions in a **driver description file**. The driver description file declares which functions the driver implements and what cryptographic mechanisms they support. If the driver description references custom types, macros or constants, you also need to provide C header files defining those elements.
+To write a driver, you need to implement some functions with C linkage (see [“Writing driver code”](#writing-driver-code)), and to declare these functions in a **driver description file**. The driver description file declares which functions the driver implements and what cryptographic mechanisms they support. If the driver description references custom types, macros or constants, you also need to provide C header files defining those elements.
 
 The concrete syntax for a driver description file is JSON. The structure of this JSON file is specified in the section [“Driver description syntax”](#driver-description-syntax).
 
@@ -827,6 +827,41 @@ This entry point may return the following status values:
 * Other error codes such as `PSA_ERROR_COMMUNICATION_FAILURE` or `PSA_ERROR_HARDWARE_FAILURE` indicate a transient or permanent error.
 
 The core will pass authorized requests to destroy a built-in key to the [`"destroy_key"`](#key-management-in-a-secure-element-with-storage) entry point if there is one. If built-in keys must not be destroyed, it is up to the driver to reject such requests.
+
+## Writing driver code
+
+A PSA Cryptography core implementation that supports drivers must accept drivers provided in the form of declarations in C99 and function code with C linkage. This section describes facilities that driver code written in C can use. Drivers do not need to be written in C; however, how to access the data structures specified by the PSA Cryptography API specification and by the PSA Cryptography driver interface specification in other languages is out of scope of the present specification.
+
+### C interfaces available to drivers
+
+PSA Cryptography core implementations may run on freestanding platforms that only implement a subset of the C standard library. The present specification does not require any minimal subset beyond from the existence of the `stdint.h` types used by the PSA Cryptography API.
+
+Driver code may access certain types and functions defined by the PSA Cryptography API, as well as types and functions defined by the present specification. These are declared in a header `psa/crypto_driver.h`. Thus driver code is expected to use
+```
+#include <psa/crypto_driver.h>
+```
+
+Including this header declares all the macros, types and functions in this specification, as well as a subset of PSA Cryptography API declarations listed [in the next section](#psa-cryptography-api-interfaces-available-to-drivers). This header file may include header files declared in the C standard or in the platform's standard library.
+
+### PSA Cryptography API interfaces always available to drivers
+
+The header file `<psa/crypto_driver.h>` declares at least the following subset of the PSA Cryptography API specification:
+
+* All numerical types and constants of that type. For example, `psa_status_t` and `PSA_SUCCESS` and `PSA_ERROR_xxx`; `psa_algorithm_t` and `PSA_ALG_SHA_256` and `PSA_ALG_HMAC`, etc.
+    * Exception: the type `psa_key_id_t` may be unavailable or have a different (possibly non-numeric) representation, and its accesors may be unavailable or have different prototypes.
+* Destructuring macros for numerical types. For example, `PSA_ALG_GET_HASH`, `PSA_ALG_IS_HASH`, etc.
+* Macros to calculate minimum buffer sizes. For example, `PSA_HASH_MAX_SIZE`, `PSA_AEAD_ENCRYPT_OUTPUT_SIZE`, etc.
+* The type `psa_key_attributes_t` (which must be a complete type) and its accessors (`PSA_KEY_ATTRIBUTES_INIT`, `psa_reset_key_attributes`, `psa_set_key_type`, `psa_get_key_type`, etc.).
+
+All the macros and functions listed in this section may be used in driver code, even when a driver entry point is not active.
+
+Note that while some types have the same name and semantics in the API specification and in the driver specification, a core implementation may expose different representations of these types to applications and to drivers. For example, implementations that can handle multiple client applications may use an internal representation of key attributes where the key identifier includes extra information about the client.
+
+Other symbols from the PSA Cryptography API specification are reserved. Core implementations may declare some of them, but they do not have to. Types names may be aliases for incomplete types.
+
+### Calling core cryptography
+
+TODO: how much must be supported?
 
 ## How to use drivers from an application
 

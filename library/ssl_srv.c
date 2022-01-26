@@ -239,9 +239,9 @@ static int ssl_parse_renegotiation_info( mbedtls_ssl_context *ssl,
  * This needs to be done at a later stage.
  *
  */
-static int ssl_parse_signature_algorithms_ext( mbedtls_ssl_context *ssl,
-                                               const unsigned char *buf,
-                                               size_t len )
+static int ssl_parse_sig_alg_ext( mbedtls_ssl_context *ssl,
+                                  const unsigned char *buf,
+                                  size_t len )
 {
     size_t sig_alg_list_size;
 
@@ -296,7 +296,8 @@ static int ssl_parse_signature_algorithms_ext( mbedtls_ssl_context *ssl,
             continue;
         }
 
-        if( mbedtls_ssl_check_sig_hash( ssl, md_cur ) == 0 )
+        if( mbedtls_ssl_sig_alg_is_offered(
+                ssl, MBEDTLS_GET_UINT16_BE( p, 0 ) ) )
         {
             mbedtls_ssl_sig_hash_set_add( &ssl->handshake->hash_algs, sig_cur, md_cur );
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello v3, signature_algorithm ext:"
@@ -1674,7 +1675,7 @@ read_record_header:
             case MBEDTLS_TLS_EXT_SIG_ALG:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found signature_algorithms extension" ) );
 
-                ret = ssl_parse_signature_algorithms_ext( ssl, ext + 4, ext_size );
+                ret = ssl_parse_sig_alg_ext( ssl, ext + 4, ext_size );
                 if( ret != 0 )
                     return( ret );
 
@@ -1802,12 +1803,16 @@ read_record_header:
      */
     if( sig_hash_alg_ext_present == 0 )
     {
-        mbedtls_md_type_t md_default = MBEDTLS_MD_SHA1;
+        uint16_t sig_algs[] = { MBEDTLS_SSL_SIG_ALG(MBEDTLS_SSL_HASH_SHA1) };
+        mbedtls_md_type_t md_default = MBEDTLS_MD_NONE;
+        for( i = 0; i < sizeof( sig_algs ) / sizeof( sig_algs[0] ) ; i++ )
+        {
+            if( mbedtls_ssl_sig_alg_is_offered( ssl, sig_algs[ i ] ) )
+                md_default = MBEDTLS_MD_SHA1;
+        }
 
-        if( mbedtls_ssl_check_sig_hash( ssl, md_default ) != 0 )
-            md_default = MBEDTLS_MD_NONE;
-
-        mbedtls_ssl_sig_hash_set_const_hash( &ssl->handshake->hash_algs, md_default );
+        mbedtls_ssl_sig_hash_set_const_hash( &ssl->handshake->hash_algs,
+                                             md_default );
     }
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 &&
@@ -2793,26 +2798,24 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
      */
     if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
     {
-        const int *cur;
-
         /*
          * Supported signature algorithms
          */
-        for( cur = ssl->conf->sig_hashes; *cur != MBEDTLS_MD_NONE; cur++ )
-        {
-            unsigned char hash = mbedtls_ssl_hash_from_md_alg( *cur );
+        const uint16_t *sig_alg = mbedtls_ssl_get_sig_algs( ssl );
+        if( sig_alg == NULL )
+            return( MBEDTLS_ERR_SSL_BAD_CONFIG );
 
-            if( MBEDTLS_SSL_HASH_NONE == hash || mbedtls_ssl_set_calc_verify_md( ssl, hash ) )
+        for( ; *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
+        {
+            unsigned char hash = MBEDTLS_BYTE_1( *sig_alg );
+
+            if( mbedtls_ssl_set_calc_verify_md( ssl, hash ) )
+                continue;
+            if( ! mbedtls_ssl_sig_alg_is_supported( ssl, *sig_alg ) )
                 continue;
 
-#if defined(MBEDTLS_RSA_C)
-            p[2 + sa_len++] = hash;
-            p[2 + sa_len++] = MBEDTLS_SSL_SIG_RSA;
-#endif
-#if defined(MBEDTLS_ECDSA_C)
-            p[2 + sa_len++] = hash;
-            p[2 + sa_len++] = MBEDTLS_SSL_SIG_ECDSA;
-#endif
+            MBEDTLS_PUT_UINT16_BE( *sig_alg, p, sa_len );
+            sa_len += 2;
         }
 
         MBEDTLS_PUT_UINT16_BE( sa_len, p, 0 );

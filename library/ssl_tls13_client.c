@@ -630,7 +630,7 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
             return( ret );
         p += output_len;
 
-        ret = mbedtls_ssl_tls13_write_sig_alg_ext( ssl, p, end, &output_len );
+        ret = mbedtls_ssl_write_sig_alg_ext( ssl, p, end, &output_len );
         if( ret != 0 )
             return( ret );
         p += output_len;

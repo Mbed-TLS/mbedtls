@@ -6503,11 +6503,11 @@ static int ssl_preset_suiteb_hashes[] = {
  */
 static uint16_t ssl_preset_default_sig_algs[] = {
 
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_SHA512_C) && \
-    defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
-    MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512,
-#endif /* MBEDTLS_ECDSA_C && MBEDTLS_SHA384_C &&
-          MBEDTLS_ECP_DP_SECP521R1_ENABLED */
+#if defined(MBEDTLS_ECDSA_C) &&  defined(MBEDTLS_SHA256_C) && \
+    defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+    MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256,
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_SHA256_C &&
+          MBEDTLS_ECP_DP_SECP256R1_ENABLED */
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_SHA384_C) && \
     defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
@@ -6515,11 +6515,11 @@ static uint16_t ssl_preset_default_sig_algs[] = {
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_SHA384_C &&
           MBEDTLS_ECP_DP_SECP384R1_ENABLED */
 
-#if defined(MBEDTLS_ECDSA_C) &&  defined(MBEDTLS_SHA256_C) && \
-    defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
-    MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256,
-#endif /* MBEDTLS_ECDSA_C && MBEDTLS_SHA256_C &&
-          MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_SHA512_C) && \
+    defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
+    MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512,
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_SHA384_C &&
+          MBEDTLS_ECP_DP_SECP521R1_ENABLED */
 
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && defined(MBEDTLS_SHA256_C)
     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256,
@@ -6549,7 +6549,6 @@ static uint16_t ssl_tls12_preset_default_sig_algs[] = {
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 /* NOTICE: see above */
 static uint16_t ssl_preset_suiteb_sig_algs[] = {
-
 
 #if defined(MBEDTLS_ECDSA_C) &&  defined(MBEDTLS_SHA256_C) && \
     defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)

@@ -267,6 +267,10 @@
 /* Maximum size in bytes of list in supported elliptic curve ext., RFC 4492 */
 #define MBEDTLS_SSL_MAX_CURVE_LIST_LEN         65535
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#define MBEDTLS_SIG_ALGS_SIZE                  20
+#endif
+
 /*
  * Check that we obey the standard's message size bounds
  */
@@ -556,13 +560,6 @@ struct mbedtls_ssl_handshake_params
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     unsigned char retransmit_state;     /*!<  Retransmission state           */
 #endif
-    /*
-     * Handshake specific crypto variables
-     */
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
-    uint16_t sig_algs[MBEDTLS_PK_SIGNATURE_MAX_SIZE];
-                                    /*!<  Received signature algorithms */
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
     unsigned char group_list_heap_allocated;

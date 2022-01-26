@@ -136,90 +136,6 @@ void mbedtls_ssl_tls13_add_hs_hdr_to_checksum( mbedtls_ssl_context *ssl,
 }
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-
-/*
- * mbedtls_ssl_tls13_write_sig_alg_ext( )
- *
- * enum {
- *    ....
- *   ecdsa_secp256r1_sha256( 0x0403 ),
- *   ecdsa_secp384r1_sha384( 0x0503 ),
- *   ecdsa_secp521r1_sha512( 0x0603 ),
- *    ....
- * } SignatureScheme;
- *
- * struct {
- *    SignatureScheme supported_signature_algorithms<2..2^16-2>;
- * } SignatureSchemeList;
- *
- * Only if we handle at least one key exchange that needs signatures.
- */
-int mbedtls_ssl_tls13_write_sig_alg_ext( mbedtls_ssl_context *ssl,
-                                         unsigned char *buf,
-                                         unsigned char *end,
-                                         size_t *out_len )
-{
-    unsigned char *p = buf;
-    unsigned char *supported_sig_alg; /* Start of supported_signature_algorithms */
-    size_t supported_sig_alg_len = 0; /* Length of supported_signature_algorithms */
-
-    *out_len = 0;
-
-    /* Skip the extension on the client if all allowed key exchanges
-     * are PSK-based. */
-#if defined(MBEDTLS_SSL_CLI_C)
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
-        !mbedtls_ssl_conf_tls13_some_ephemeral_enabled( ssl ) )
-    {
-        return( 0 );
-    }
-#endif /* MBEDTLS_SSL_CLI_C */
-
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "adding signature_algorithms extension" ) );
-
-    /* Check if we have space for header and length field:
-     * - extension_type         (2 bytes)
-     * - extension_data_length  (2 bytes)
-     * - supported_signature_algorithms_length   (2 bytes)
-     */
-    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 6 );
-    p += 6;
-
-    /*
-     * Write supported_signature_algorithms
-     */
-    supported_sig_alg = p;
-    for( const uint16_t *sig_alg = ssl->conf->tls13_sig_algs;
-         *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
-    {
-        MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
-        MBEDTLS_PUT_UINT16_BE( *sig_alg, p, 0 );
-        p += 2;
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "signature scheme [%x]", *sig_alg ) );
-    }
-
-    /* Length of supported_signature_algorithms */
-    supported_sig_alg_len = p - supported_sig_alg;
-    if( supported_sig_alg_len == 0 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "No signature algorithms defined." ) );
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-    }
-
-    /* Write extension_type */
-    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SIG_ALG, buf, 0 );
-    /* Write extension_data_length */
-    MBEDTLS_PUT_UINT16_BE( supported_sig_alg_len + 2, buf, 2 );
-    /* Write length of supported_signature_algorithms */
-    MBEDTLS_PUT_UINT16_BE( supported_sig_alg_len, buf, 4 );
-
-    /* Output the total length of signature algorithms extension. */
-    *out_len = p - buf;
-
-    ssl->handshake->extensions_present |= MBEDTLS_SSL_EXT_SIG_ALG;
-    return( 0 );
-}
-
 /* mbedtls_ssl_tls13_parse_sig_alg_ext()
  *
  * enum {
@@ -239,34 +155,37 @@ int mbedtls_ssl_tls13_parse_sig_alg_ext( mbedtls_ssl_context *ssl,
                                          const unsigned char *end )
 {
     const unsigned char *p = buf;
-    const uint16_t *sig_alg;
-    unsigned int signature_scheme; /* store received signature algorithm scheme */
+    size_t sig_algs_len = 0;
+    uint16_t *sig_algs;
+    const unsigned char *sig_algs_end;
+    uint16_t sig_alg;
     uint32_t common_idx = 0; /* iterate through received signature schemes list */
 
     /* skip 2 bytes of signature algorithms length */
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2 );
+    sig_algs_len = MBEDTLS_GET_UINT16_BE( p, 0 );
     p += 2;
 
-    memset( ssl->handshake->sig_algs, 0, sizeof( ssl->handshake->sig_algs ) );
+    sig_algs = mbedtls_calloc( MBEDTLS_SIG_ALGS_SIZE, sizeof( uint16_t ) );
+    if( sig_algs == NULL )
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
 
-    while( p < end && common_idx + 1 < MBEDTLS_PK_SIGNATURE_MAX_SIZE )
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, sig_algs_len );
+    sig_algs_end = p + sig_algs_len;
+    while( p < sig_algs_end && common_idx + 1 < MBEDTLS_SIG_ALGS_SIZE )
     {
-        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2 );
-        signature_scheme = MBEDTLS_GET_UINT16_BE( p, 0 );
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, sig_algs_end, 2 );
+        sig_alg = MBEDTLS_GET_UINT16_BE( p, 0 );
         p += 2;
 
         MBEDTLS_SSL_DEBUG_MSG( 4, ( "received signature algorithm: 0x%x",
-                                    signature_scheme ) );
+                                    sig_alg ) );
 
-        for( sig_alg = ssl->conf->tls13_sig_algs;
-             *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
+        if( mbedtls_ssl_sig_alg_is_offered( ssl, sig_alg ) &&
+            mbedtls_ssl_sig_alg_is_supported( ssl, sig_alg ) )
         {
-            if( *sig_alg == signature_scheme )
-            {
-                ssl->handshake->sig_algs[common_idx] = signature_scheme;
-                common_idx++;
-                break;
-            }
+            sig_algs[common_idx] = sig_alg;
+            common_idx += 1;
         }
     }
     /* Check that we consumed all the message. */
@@ -276,6 +195,7 @@ int mbedtls_ssl_tls13_parse_sig_alg_ext( mbedtls_ssl_context *ssl,
             ( "Signature algorithms extension length misaligned" ) );
         MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
                                       MBEDTLS_ERR_SSL_DECODE_ERROR );
+        mbedtls_free( sig_algs );
         return( MBEDTLS_ERR_SSL_DECODE_ERROR );
     }
 
@@ -284,11 +204,13 @@ int mbedtls_ssl_tls13_parse_sig_alg_ext( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "no signature algorithm in common" ) );
         MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
                                       MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+        mbedtls_free( sig_algs );
         return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }
 
-    ssl->handshake->sig_algs[common_idx] = MBEDTLS_TLS1_3_SIG_NONE;
-
+    sig_algs[common_idx] = MBEDTLS_TLS1_3_SIG_NONE;
+    ssl->handshake->sig_algs = sig_algs;
+    ssl->handshake->sig_algs_heap_allocated = 1;
     return( 0 );
 }
 

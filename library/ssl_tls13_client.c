@@ -1413,9 +1413,6 @@ static int ssl_tls13_postprocess_encrypted_extensions( mbedtls_ssl_context *ssl 
  * - SSL_CERTIFICATE_REQUEST_SKIP
  * indicating if a Certificate Request is expected or not.
  */
-/*
- * Implementation
- */
 static int ssl_tls13_certificate_request_coordinate( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -1433,15 +1430,8 @@ static int ssl_tls13_certificate_request_coordinate( mbedtls_ssl_context *ssl )
     }
     ssl->keep_current_message = 1;
 
-    if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
-        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE,
-                                      MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
-        return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
-    }
-
-    if( ssl->in_msg[0] == MBEDTLS_SSL_HS_CERTIFICATE_REQUEST )
+    if( ( ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE ) &&
+        ( ssl->in_msg[0] == MBEDTLS_SSL_HS_CERTIFICATE_REQUEST ) )
     {
         return( SSL_CERTIFICATE_REQUEST_EXPECT_REQUEST );
     }
@@ -1463,23 +1453,25 @@ static int ssl_tls13_parse_certificate_request( mbedtls_ssl_context *ssl,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const unsigned char *p = buf;
-    const unsigned char *extensions_end;
-    size_t extensions_len = 0;
     size_t certificate_request_context_len = 0;
-    uint32_t n_sig_alg_ext = 0;
-    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+    size_t extensions_len = 0;
+    const unsigned char *extensions_end;
+    unsigned char sig_alg_ext_found = 0;
 
-    /* Parse certificate_request_context */
+    /* ...
+     * opaque certificate_request_context<0..2^8-1>
+     * ...
+     */
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 1 );
     certificate_request_context_len = (size_t) p[0];
     p += 1;
 
-    /* store context ( if necessary ) */
     if( certificate_request_context_len > 0 )
     {
         MBEDTLS_SSL_DEBUG_BUF( 3, "Certificate Request Context",
                                p, certificate_request_context_len );
 
+        mbedtls_ssl_handshake_params *handshake = ssl->handshake;
         handshake->certificate_request_context =
                 mbedtls_calloc( 1, certificate_request_context_len);
         if( handshake->certificate_request_context == NULL )
@@ -1493,8 +1485,9 @@ static int ssl_tls13_parse_certificate_request( mbedtls_ssl_context *ssl,
         p += certificate_request_context_len;
     }
 
-    /*
-     * Parse extensions
+    /* ...
+     * Extension extensions<2..2^16-1>;
+     * ...
      */
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2 );
     extensions_len = MBEDTLS_GET_UINT16_BE( p, 0 );
@@ -1524,12 +1517,14 @@ static int ssl_tls13_parse_certificate_request( mbedtls_ssl_context *ssl,
                               p + extension_data_len );
                 if( ret != 0 )
                     return( ret );
-                n_sig_alg_ext += 1;
-                break;
-
-            case MBEDTLS_TLS_EXT_STATUS_REQUEST:
-                MBEDTLS_SSL_DEBUG_MSG( 3,
-                    ( "found status request extension ( ignoring )" ) );
+                if( ! sig_alg_ext_found )
+                    sig_alg_ext_found = 1;
+                else
+                {
+                    MBEDTLS_SSL_DEBUG_MSG( 3,
+                        ( "Duplicate signature algorithms extensions found" ) );
+                    goto error;
+                }
                 break;
 
             default:
@@ -1537,10 +1532,7 @@ static int ssl_tls13_parse_certificate_request( mbedtls_ssl_context *ssl,
                     3,
                     ( "unknown extension found: %u ( ignoring )",
                     extension_type ) );
-                MBEDTLS_SSL_PEND_FATAL_ALERT(
-                    MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT,
-                    MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION );
-                return( MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION );
+                break;
         }
         p += extension_data_len;
     }
@@ -1549,23 +1541,24 @@ static int ssl_tls13_parse_certificate_request( mbedtls_ssl_context *ssl,
     {
         MBEDTLS_SSL_DEBUG_MSG( 1,
             ( "Signature algorithms extension length misaligned" ) );
-        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
-                                      MBEDTLS_ERR_SSL_DECODE_ERROR );
-        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
+        goto error;
     }
     /* Check that we found signature algorithms extension */
-    if( n_sig_alg_ext == 0 )
+    if( ! sig_alg_ext_found )
     {
          MBEDTLS_SSL_DEBUG_MSG( 3,
-             ( "no signature algorithms extension was found" ) );
-         MBEDTLS_SSL_PEND_FATAL_ALERT(
-             MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT,
-             MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION );
-         return( MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION );
+             ( "no signature algorithms extension found" ) );
+         goto error;
     }
 
     ssl->client_auth = 1;
     return( 0 );
+
+error:
+    MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
+                                  MBEDTLS_ERR_SSL_DECODE_ERROR );
+    mbedtls_free( ssl->handshake->certificate_request_context );
+    return( MBEDTLS_ERR_SSL_DECODE_ERROR );
 }
 
 /*

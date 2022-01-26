@@ -526,7 +526,6 @@ static int ssl_tls13_parse_key_share_ext( mbedtls_ssl_context *ssl,
 
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
-#if defined(MBEDTLS_SSL_COOKIE_C)
 /*
  * ssl_tls13_parse_cookie_ext()
  *      Parse cookie extension in Hello Retry Request
@@ -559,7 +558,6 @@ static int ssl_tls13_parse_cookie_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, cookie_len );
     MBEDTLS_SSL_DEBUG_BUF( 3, "cookie extension", p, cookie_len );
 
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
     mbedtls_free( handshake->verify_cookie );
     handshake->verify_cookie = mbedtls_calloc( 1, cookie_len );
     if( handshake->verify_cookie == NULL )
@@ -572,11 +570,9 @@ static int ssl_tls13_parse_cookie_ext( mbedtls_ssl_context *ssl,
 
     memcpy( handshake->verify_cookie, p, cookie_len );
     handshake->verify_cookie_len = (unsigned char) cookie_len;
-#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
     return( 0 );
 }
-#endif /* MBEDTLS_SSL_COOKIE_C */
 
 /* Write cipher_suites
  * CipherSuite cipher_suites<2..2^16-2>;
@@ -1121,7 +1117,7 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
      */
     if( ssl_tls13_check_server_hello_session_id_echo( ssl, &p, end ) != 0 )
     {
-        fatal_alert = MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
+        fatal_alert = MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
         goto cleanup;
     }
 
@@ -1145,7 +1141,7 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
     if( ciphersuite_info == NULL ||
         ssl_tls13_cipher_suite_is_offered( ssl, cipher_suite ) == 0 )
     {
-        fatal_alert = MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
+        fatal_alert = MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
     }
     /*
      * If we received an HRR before and that the proposed selected
@@ -1156,10 +1152,10 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
     else if( ( !is_hrr ) && ( handshake->hello_retry_request_count > 0 ) &&
              ( cipher_suite != ssl->session_negotiate->ciphersuite ) )
     {
-        fatal_alert = MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
+        fatal_alert = MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
     }
 
-    if( fatal_alert == MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER )
+    if( fatal_alert == MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "invalid ciphersuite(%04x) parameter",
                                     cipher_suite ) );
@@ -1187,7 +1183,7 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
     if( p[0] != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad legacy compression method" ) );
-        fatal_alert = MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
+        fatal_alert = MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
         goto cleanup;
     }
     p++;
@@ -1226,19 +1222,11 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
 
         switch( extension_type )
         {
-#if defined(MBEDTLS_SSL_COOKIE_C)
             case MBEDTLS_TLS_EXT_COOKIE:
-                /*
-                 * Currently, we only support the cookies in DTLS 1.3.
-                 */
-#if !defined(MBEDTLS_SSL_PROTO_DTLS)
-                fatal_alert = MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION;
-                goto cleanup;
-#else
 
                 if( !is_hrr )
                 {
-                    fatal_alert = MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION;
+                    fatal_alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT;
                     goto cleanup;
                 }
 
@@ -1251,9 +1239,7 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
                                            ret );
                     goto cleanup;
                 }
-#endif /* MBEDTLS_SSL_PROTO_DTLS */
                 break;
-#endif /* MBEDTLS_SSL_COOKIE_C */
 
             case MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS:
                 supported_versions_ext_found = 1;
@@ -1271,7 +1257,7 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found pre_shared_key extension." ) );
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "pre_shared_key:Not supported yet" ) );
 
-                fatal_alert = MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION;
+                fatal_alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT;
                 goto cleanup;
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
@@ -1279,7 +1265,7 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found key_shares extension" ) );
                 if( ! mbedtls_ssl_conf_tls13_some_ephemeral_enabled( ssl ) )
                 {
-                    fatal_alert = MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION;
+                    fatal_alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT;
                     goto cleanup;
                 }
 
@@ -1305,7 +1291,7 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
                     ( "unknown extension found: %u ( ignoring )",
                       extension_type ) );
 
-                fatal_alert = MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION;
+                fatal_alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT;
                 goto cleanup;
         }
 
@@ -1315,19 +1301,19 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
     if( !supported_versions_ext_found )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "supported_versions not found" ) );
-        fatal_alert = MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER;
+        fatal_alert = MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
         goto cleanup;
     }
 
 cleanup:
 
-    if( fatal_alert & MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION )
+    if( fatal_alert == MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT )
     {
         MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT,
                                       MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION );
         ret = MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION;
     }
-    else if ( fatal_alert & MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER )
+    else if ( fatal_alert == MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER )
     {
         MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
                                       MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );

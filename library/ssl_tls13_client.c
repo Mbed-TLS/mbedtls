@@ -559,6 +559,7 @@ static int ssl_tls13_parse_cookie_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, cookie_len );
     MBEDTLS_SSL_DEBUG_BUF( 3, "cookie extension", p, cookie_len );
 
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
     mbedtls_free( handshake->verify_cookie );
     handshake->verify_cookie = mbedtls_calloc( 1, cookie_len );
     if( handshake->verify_cookie == NULL )
@@ -571,6 +572,7 @@ static int ssl_tls13_parse_cookie_ext( mbedtls_ssl_context *ssl,
 
     memcpy( handshake->verify_cookie, p, cookie_len );
     handshake->verify_cookie_len = (unsigned char) cookie_len;
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
     return( 0 );
 }
@@ -1226,6 +1228,13 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
         {
 #if defined(MBEDTLS_SSL_COOKIE_C)
             case MBEDTLS_TLS_EXT_COOKIE:
+                /*
+                 * Currently, we only support the cookies in DTLS 1.3.
+                 */
+#if !defined(MBEDTLS_SSL_PROTO_DTLS)
+                fatal_alert = MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION;
+                goto cleanup;
+#else
 
                 if( !is_hrr )
                 {
@@ -1242,6 +1251,7 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
                                            ret );
                     goto cleanup;
                 }
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
                 break;
 #endif /* MBEDTLS_SSL_COOKIE_C */
 

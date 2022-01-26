@@ -533,6 +533,13 @@ cleanup:
  * about whether the assignment was made or not.
  * (Leaking information about the respective sizes of X and Y is ok however.)
  */
+#if defined(_MSC_VER) && defined(_M_ARM64)
+/*
+ * MSVC miscompiles this function if it's inlined. See:
+ * https://developercommunity.visualstudio.com/t/c-compiler-miscompiles-part-of-mbedtls-library-on/1646989
+ */
+__declspec(noinline)
+#endif
 int mbedtls_mpi_safe_cond_assign( mbedtls_mpi *X,
                                   const mbedtls_mpi *Y,
                                   unsigned char assign )

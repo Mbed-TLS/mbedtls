@@ -1916,8 +1916,13 @@ static int ssl_tls13_process_server_finished( mbedtls_ssl_context *ssl )
         ssl,
         MBEDTLS_SSL_CLIENT_CCS_AFTER_SERVER_FINISHED );
 #else
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_FINISHED );
-#endif
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+    if( ssl->handshake->client_auth )
+        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE );
+    else
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_FINISHED );
+#endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
 
     return( 0 );
 }
@@ -1937,6 +1942,25 @@ static int ssl_tls13_write_change_cipher_spec( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 #endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
+
+/*
+ * Handler for MBEDTLS_SSL_CLIENT_CERTIFICATE
+ */
+static int ssl_tls13_write_client_certificate( mbedtls_ssl_context *ssl )
+{
+    mbedtls_ssl_set_outbound_transform( ssl, ssl->handshake->transform_handshake );
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY );
+    return( 0 );
+}
+
+/*
+ * Handler for MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY
+ */
+static int ssl_tls13_write_client_certificate_verify( mbedtls_ssl_context *ssl )
+{
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_FINISHED );
+    return( 0 );
+}
 
 /*
  * Handler for MBEDTLS_SSL_CLIENT_FINISHED
@@ -2026,6 +2050,15 @@ int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl )
         case MBEDTLS_SSL_SERVER_FINISHED:
             ret = ssl_tls13_process_server_finished( ssl );
             break;
+
+        case MBEDTLS_SSL_CLIENT_CERTIFICATE:
+            ret = ssl_tls13_write_client_certificate( ssl );
+            break;
+
+        case MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY:
+            ret = ssl_tls13_write_client_certificate_verify( ssl );
+            break;
+
 
         case MBEDTLS_SSL_CLIENT_FINISHED:
             ret = ssl_tls13_write_client_finished( ssl );

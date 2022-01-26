@@ -1142,7 +1142,18 @@ static int ssl_tls13_finalize_change_cipher_spec( mbedtls_ssl_context* ssl )
                 mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_HELLO );
                 break;
             case MBEDTLS_SSL_CLIENT_CCS_AFTER_SERVER_FINISHED:
-                mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_FINISHED );
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+                if( ssl->handshake->client_auth )
+                {
+                    mbedtls_ssl_handshake_set_state( ssl,
+                                            MBEDTLS_SSL_CLIENT_CERTIFICATE );
+                }
+                else
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+                {
+                    mbedtls_ssl_handshake_set_state( ssl,
+                                            MBEDTLS_SSL_CLIENT_FINISHED );
+                }
                 break;
             default:
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );

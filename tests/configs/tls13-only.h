@@ -21,17 +21,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+
 #undef MBEDTLS_SSL_ENCRYPT_THEN_MAC
-#endif
-
-#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
 #undef MBEDTLS_SSL_EXTENDED_MASTER_SECRET
-#endif
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #undef MBEDTLS_SSL_PROTO_TLS1_2
-#endif
 
 #if !defined(MBEDTLS_SSL_PROTO_TLS1_3)
 #define MBEDTLS_SSL_PROTO_TLS1_3
@@ -41,18 +34,7 @@
 #define MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 #endif
 
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
 #undef MBEDTLS_SSL_PROTO_DTLS
-#endif
-
-#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
 #undef MBEDTLS_SSL_DTLS_ANTI_REPLAY
-#endif
-
-#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
 #undef MBEDTLS_SSL_DTLS_HELLO_VERIFY
-#endif
-
-#if defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE)
 #undef MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE
-#endif

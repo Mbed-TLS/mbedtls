@@ -19,9 +19,7 @@
 
 #include "common.h"
 
-#if defined(MBEDTLS_SSL_TLS_C)
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#if defined(MBEDTLS_SSL_TLS_C) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
 
 #include <string.h>
 
@@ -1276,6 +1274,4 @@ int mbedtls_ssl_reset_transcript_for_hrr( mbedtls_ssl_context *ssl )
     return( ret );
 }
 
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
-
-#endif /* MBEDTLS_SSL_TLS_C */
+#endif /* MBEDTLS_SSL_TLS_C && MBEDTLS_SSL_PROTO_TLS1_3 */

@@ -19,9 +19,7 @@
 
 #include "common.h"
 
-#if defined(MBEDTLS_SSL_SRV_C)
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_PROTO_TLS1_2)
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -4408,6 +4406,4 @@ void mbedtls_ssl_conf_preference_order( mbedtls_ssl_config *conf, int order )
     conf->respect_cli_pref = order;
 }
 
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
-
-#endif /* MBEDTLS_SSL_SRV_C */
+#endif /* MBEDTLS_SSL_SRV_C && MBEDTLS_SSL_PROTO_TLS1_2 */

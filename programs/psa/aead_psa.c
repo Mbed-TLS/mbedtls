@@ -1,6 +1,8 @@
 /*
- * This is a simple example of multi-part AEAD computation using both the old
- * Cipher API and the new PSA API; its goal is to help migration to PSA Crypto.
+ * This is a simple example of multi-part AEAD computation using the PSA
+ * Crypto API. It comes with a companion program aead_non_psa.c, which does
+ * the same operations with the legacy Cipher API. The goal is that comparing the
+ * two programs will help people migrating to the PSA Crypto API.
  *
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
@@ -29,23 +31,22 @@
  * On the other hand, with PSA, the algorithms encodes the desired tag length;
  * with Cipher the desired tag length needs to be tracked separately.
  *
- * This program illustrates this by doing the same sequence of multi-part AEAD
- * computation with both APIs; looking at the two series of functions
- * cipher_xxx() and aead_xxx() side by side should make the differences and
- * similarities clear.
+ * This program and its compation aead_non_psa.c illustrate this by doing the
+ * same sequence of multi-part AEAD computation with both APIs; looking at the
+ * two side by side should make the differences and similarities clear.
  */
 
 #include <stdio.h>
 
 #include "mbedtls/build_info.h"
 
-#if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(MBEDTLS_CIPHER_C) || \
+#if !defined(MBEDTLS_PSA_CRYPTO_C) || \
     !defined(MBEDTLS_AES_C) || !defined(MBEDTLS_GCM_C) || \
     !defined(MBEDTLS_CHACHAPOLY_C) || \
     defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 int main( void )
 {
-    printf( "MBEDTLS_PSA_CRYPTO_C and/or MBEDTLS_MD_C and/or "
+    printf( "MBEDTLS_PSA_CRYPTO_C and/or "
             "MBEDTLS_AES_C and/or MBEDTLS_GCM_C and/or "
             "MBEDTLS_CHACHAPOLY_C not defined, and/or "
             "MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined\r\n" );
@@ -55,13 +56,12 @@ int main( void )
 
 #include <string.h>
 
-#include "mbedtls/cipher.h"
 #include "psa/crypto.h"
 
 /*
- * Common data and helper functions
+ * Dummy data and helper functions
  */
-const char usage[] = "Usage: aead_cipher_psa [aes128-gcm|aes256-gcm|aes128-gcm_8|chachapoly]";
+const char usage[] = "Usage: aead_psa [aes128-gcm|aes256-gcm|aes128-gcm_8|chachapoly]";
 
 const unsigned char iv1[12] = { 0x00 };
 const unsigned char add_data1[] = { 0x01, 0x02 };
@@ -86,131 +86,6 @@ void print_out( const char *title, unsigned char *out, size_t len )
         printf( " %02x", out[i] );
     printf( "\n" );
 }
-
-/*
- * Functions using the Cipher API
- */
-#define CHK( code )         \
-    do {                    \
-        ret = code;         \
-        if( ret != 0 ) {    \
-            printf( "%03d: ret = -0x%04x\n", __LINE__, (unsigned) -ret ); \
-            goto exit;      \
-        }                   \
-    } while( 0 )
-
-
-static int cipher_prepare( const char *info,
-                           mbedtls_cipher_context_t *ctx,
-                           size_t *tag_len )
-{
-    int ret;
-
-    mbedtls_cipher_type_t type;
-    if( strcmp( info, "aes128-gcm" ) == 0 ) {
-        type = MBEDTLS_CIPHER_AES_128_GCM;
-        *tag_len = 16;
-    } else if( strcmp( info, "aes256-gcm" ) == 0 ) {
-        type = MBEDTLS_CIPHER_AES_256_GCM;
-        *tag_len = 16;
-    } else if( strcmp( info, "aes128-gcm_8" ) == 0 ) {
-        type = MBEDTLS_CIPHER_AES_128_GCM;
-        *tag_len = 8;
-    } else if( strcmp( info, "chachapoly" ) == 0 ) {
-        type = MBEDTLS_CIPHER_CHACHA20_POLY1305;
-        *tag_len = 16;
-    } else {
-        puts( usage );
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
-    }
-
-    CHK( mbedtls_cipher_setup( ctx,
-                               mbedtls_cipher_info_from_type( type ) ) );
-
-    int key_len = mbedtls_cipher_get_key_bitlen( ctx );
-    CHK( mbedtls_cipher_setkey( ctx, key_bytes, key_len, MBEDTLS_ENCRYPT ) );
-
-exit:
-    return( ret );
-}
-
-static void cipher_info( const mbedtls_cipher_context_t *ctx, size_t tag_len )
-{
-    // no convenient way to get the cipher type (for example, AES)
-    const char *ciph = "???";
-    int key_bits = mbedtls_cipher_get_key_bitlen( ctx );
-    mbedtls_cipher_mode_t mode = mbedtls_cipher_get_cipher_mode( ctx );
-
-    const char *mode_str = mode == MBEDTLS_MODE_GCM ? "GCM"
-                         : mode == MBEDTLS_MODE_CHACHAPOLY ? "ChachaPoly"
-                         : "???";
-
-    printf( "cipher: %s, %d, %s, %u\n", ciph, key_bits, mode_str, (unsigned) tag_len );
-}
-
-static int cipher_encrypt( mbedtls_cipher_context_t *ctx, size_t tag_len,
-        const unsigned char *iv, size_t iv_len,
-        const unsigned char *ad, size_t ad_len,
-        const unsigned char *pa, size_t pa_len,
-        const unsigned char *pb, size_t pb_len )
-{
-    int ret;
-    size_t olen;
-    unsigned char out[msg_max_size + 16];
-    unsigned char *p = out;
-
-    CHK( mbedtls_cipher_set_iv( ctx, iv, iv_len ) );
-    CHK( mbedtls_cipher_reset( ctx ) );
-    CHK( mbedtls_cipher_update_ad( ctx, ad, ad_len ) );
-    CHK( mbedtls_cipher_update( ctx, pa, pa_len, p, &olen ) );
-    p += olen;
-    CHK( mbedtls_cipher_update( ctx, pb, pb_len, p, &olen ) );
-    p += olen;
-    CHK( mbedtls_cipher_finish( ctx, p, &olen ) );
-    p += olen;
-    CHK( mbedtls_cipher_write_tag( ctx, p, tag_len ) );
-    p += tag_len;
-
-    olen = p - out;
-    print_out( "cipher", out, olen );
-
-exit:
-    return( ret );
-}
-
-static int cipher( const char *info )
-{
-    int ret = 0;
-
-    mbedtls_cipher_context_t ctx;
-    size_t tag_len;
-
-    mbedtls_cipher_init( &ctx );
-
-    CHK( cipher_prepare( info, &ctx, &tag_len ) );
-
-    cipher_info( &ctx, tag_len );
-
-    CHK( cipher_encrypt( &ctx, tag_len,
-                         iv1, sizeof( iv1 ), add_data1, sizeof( add_data1 ),
-                         msg1_part1, sizeof( msg1_part1 ),
-                         msg1_part2, sizeof( msg1_part2 ) ) );
-    CHK( cipher_encrypt( &ctx, tag_len,
-                         iv2, sizeof( iv2 ), add_data2, sizeof( add_data2 ),
-                         msg2_part1, sizeof( msg2_part1 ),
-                         msg2_part2, sizeof( msg2_part2 ) ) );
-
-exit:
-    mbedtls_cipher_free( &ctx );
-
-    return( ret );
-}
-
-#undef CHK
-
-/*
- * Functions using the PSA Crypto API
- */
 
 #define CHK( code )     \
     do {                \
@@ -278,7 +153,7 @@ static void aead_info( psa_key_id_t key, psa_algorithm_t alg )
                          : base_alg == PSA_ALG_CHACHA20_POLY1305 ? "ChachaPoly"
                          : "???";
 
-    printf( "aead  : %s, %u, %s, %u\n",
+    printf( "%s, %u, %s, %u\n",
             type_str, (unsigned) key_bits, base_str, (unsigned) tag_len );
 }
 
@@ -310,7 +185,7 @@ static int aead_encrypt( psa_key_id_t key, psa_algorithm_t alg,
     p += olen_tag;
 
     olen = p - out;
-    print_out( "aead  ", out, olen );
+    print_out( "out", out, olen );
 
 exit:
     /* required on errors, harmless on success */
@@ -318,7 +193,7 @@ exit:
     return( status );
 }
 
-static psa_status_t aead( const char *info )
+static psa_status_t aead_demo( const char *info )
 {
     psa_status_t status;
 
@@ -344,8 +219,6 @@ exit:
     return( status );
 }
 
-#undef CHK
-
 /*
  * Main function
  */
@@ -357,10 +230,11 @@ int main( int argc, char **argv )
         return( 1 );
     }
 
-    psa_crypto_init();
+    psa_status_t status = psa_crypto_init();
+    if( status != PSA_SUCCESS )
+        printf( "psa init: %d\n", status );
 
-    cipher( argv[1] );
-    aead( argv[1] );
+    aead_demo( argv[1] );
 }
 
 #endif

@@ -1,5 +1,6 @@
 set(executables
-    aead_cipher_psa
+    aead_non_psa
+    aead_psa
     crypto_examples
     hmac_non_psa
     hmac_psa

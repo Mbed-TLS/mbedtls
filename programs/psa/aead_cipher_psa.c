@@ -61,7 +61,7 @@ int main( void )
 /*
  * Common data and helper functions
  */
-const char usage[] = "Usage: aead_cipher_psa [gcm128|gcm256|gcm128_8|chachapoly]";
+const char usage[] = "Usage: aead_cipher_psa [aes128-gcm|aes256-gcm|aes128-gcm_8|chachapoly]";
 
 const unsigned char iv1[12] = { 0x00 };
 const unsigned char ad1[] = { 0x01, 0x02 };
@@ -103,13 +103,13 @@ static int cipher_prepare( const char *info,
     int ret;
 
     mbedtls_cipher_type_t type;
-    if( strcmp( info, "gcm128" ) == 0 ) {
+    if( strcmp( info, "aes128-gcm" ) == 0 ) {
         type = MBEDTLS_CIPHER_AES_128_GCM;
         *tag_len = 16;
-    } else if( strcmp( info, "gcm256" ) == 0 ) {
+    } else if( strcmp( info, "aes256-gcm" ) == 0 ) {
         type = MBEDTLS_CIPHER_AES_256_GCM;
         *tag_len = 16;
-    } else if( strcmp( info, "gcm128_8" ) == 0 ) {
+    } else if( strcmp( info, "aes128-gcm_8" ) == 0 ) {
         type = MBEDTLS_CIPHER_AES_128_GCM;
         *tag_len = 8;
     } else if( strcmp( info, "chachapoly" ) == 0 ) {
@@ -223,15 +223,15 @@ static psa_status_t aead_prepare( const char *info,
 
     size_t key_bits;
     psa_key_type_t key_type;
-    if( strcmp( info, "gcm128" ) == 0 ) {
+    if( strcmp( info, "aes128-gcm" ) == 0 ) {
         *alg = PSA_ALG_GCM;
         key_bits = 128;
         key_type = PSA_KEY_TYPE_AES;
-    } else if( strcmp( info, "gcm256" ) == 0 ) {
+    } else if( strcmp( info, "aes256-gcm" ) == 0 ) {
         *alg = PSA_ALG_GCM;
         key_bits = 256;
         key_type = PSA_KEY_TYPE_AES;
-    } else if( strcmp( info, "gcm128_8" ) == 0 ) {
+    } else if( strcmp( info, "aes128-gcm_8" ) == 0 ) {
         *alg = PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_GCM, 8);
         key_bits = 128;
         key_type = PSA_KEY_TYPE_AES;

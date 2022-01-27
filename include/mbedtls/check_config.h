@@ -624,9 +624,9 @@
 #endif
 
 #if defined(MBEDTLS_PK_C) && defined(MBEDTLS_USE_PSA_CRYPTO) && \
-	!defined(MBEDTLS_PK_WRITE_C) && defined(MBEDTLS_ECDSA_C)
+    !defined(MBEDTLS_PK_WRITE_C) && defined(MBEDTLS_ECDSA_C)
 #error "MBEDTLS_PK_C in configuration with MBEDTLS_USE_PSA_CRYPTO and \
-	    MBEDTLS_ECDSA_C requires MBEDTLS_PK_WRITE_C to be defined."
+        MBEDTLS_ECDSA_C requires MBEDTLS_PK_WRITE_C to be defined."
 #endif
 
 #if defined(MBEDTLS_RSA_C) && ( !defined(MBEDTLS_BIGNUM_C) ||         \

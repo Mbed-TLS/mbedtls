@@ -5,11 +5,7 @@ CFLAGS	?= -O2
 WARNING_CFLAGS ?=  -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
 LDFLAGS ?=
 
-# Include ../include for public headers and . for private headers.
-# Note that . needs to be included explicitly for the sake of library
-# files that are not in the /library directory (which currently means
-# under /3rdparty).
-LOCAL_CFLAGS = $(WARNING_CFLAGS) -I. -I../include -D_FILE_OFFSET_BITS=64
+LOCAL_CFLAGS =
 LOCAL_LDFLAGS =
 
 ifdef DEBUG
@@ -36,14 +32,6 @@ WINDOWS_BUILD=1
 else ifeq ($(shell uname -s),Darwin)
 ifeq ($(AR),ar)
 APPLE_BUILD ?= 1
-endif
-endif
-
-# To compile as a shared library:
-ifdef SHARED
-# all code is position-indep with mingw, avoid warning about useless flag
-ifndef WINDOWS_BUILD
-LOCAL_CFLAGS += -fPIC -fpic
 endif
 endif
 
@@ -188,7 +176,23 @@ OBJS_TLS := $(patsubst %,library/%,$(OBJS_TLS))
 
 .PHONY: library/all library/static library/shared library/clean
 
-library/% $(THIRDPARTY_CRYPTO_OBJECTS): BUILD_DIR = library
+LOCAL = library/% $(THIRDPARTY_CRYPTO_OBJECTS)
+
+# Include ../include for public headers and . for private headers.
+# Note that . needs to be included explicitly for the sake of library
+# files that are not in the /library directory (which currently means
+# under /3rdparty).
+$(LOCAL): LOCAL_CFLAGS += $(WARNING_CFLAGS) -I. -I../include -D_FILE_OFFSET_BITS=64
+
+# To compile as a shared library:
+ifdef SHARED
+# all code is position-indep with mingw, avoid warning about useless flag
+ifndef WINDOWS_BUILD
+$(LOCAL): LOCAL_CFLAGS += -fPIC -fpic
+endif
+endif
+
+$(LOCAL): BUILD_DIR = library
 
 ifndef SHARED
 library/all: library/static

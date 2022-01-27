@@ -2105,6 +2105,8 @@ void perform_handshake( handshake_test_options* options )
                              mbedtls_mock_tcp_recv_msg,
                              NULL );
 
+        mbedtls_ssl_set_user_data_p( &server.ssl, &server );
+
 #if defined(MBEDTLS_TIMING_C)
         mbedtls_ssl_set_timer_cb( &server.ssl, &timer_server,
                                   mbedtls_timing_set_delay,

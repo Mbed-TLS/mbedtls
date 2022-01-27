@@ -1689,6 +1689,10 @@ struct mbedtls_ssl_context
      *
      * The library sets this to \p 0 when creating a context and does not
      * access it afterwards.
+     *
+     * \warning Serializing and restoring an SSL context with
+     *          mbedtls_ssl_context_save() and mbedtls_ssl_context_load()
+     *          does not currently restore the user data.
      */
     uintptr_t MBEDTLS_PRIVATE(user_data);
 };
@@ -4509,6 +4513,14 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl );
  *
  * \see            mbedtls_ssl_context_load()
  *
+ * \note           The serialized data only contains the data that is
+ *                 necessary to resume the connection: negotiated protocol
+ *                 options, session identifier, keys, etc.
+ *                 Loading a saved SSL context does not restore settings and
+ *                 state related to how the application accesses the context,
+ *                 such as configured callback functions, user data, pending
+ *                 incoming or outgoing data, etc.
+ *
  * \note           This feature is currently only available under certain
  *                 conditions, see the documentation of the return value
  *                 #MBEDTLS_ERR_SSL_BAD_INPUT_DATA for details.
@@ -4587,8 +4599,11 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
  *                 (unless they were already set before calling
  *                 mbedtls_ssl_session_reset() and the values are suitable for
  *                 the present connection). Specifically, you want to call
- *                 at least mbedtls_ssl_set_bio() and
- *                 mbedtls_ssl_set_timer_cb(). All other SSL setter functions
+ *                 at least mbedtls_ssl_set_bio(),
+ *                 mbedtls_ssl_set_timer_cb(), and
+ *                 mbedtls_ssl_set_user_data_n() or
+ *                 mbedtls_ssl_set_user_data_p() if they were set originally.
+ *                 All other SSL setter functions
  *                 are not necessary to call, either because they're only used
  *                 in handshakes, or because the setting is already saved. You
  *                 might choose to call them anyway, for example in order to

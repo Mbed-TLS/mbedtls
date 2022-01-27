@@ -33,7 +33,8 @@ my %configs = (
         'test_again_with_use_psa' => 1
     },
     'config-mini-tls1_1.h' => {
-        'compat' => '-m tls1_1 -f \'^DES-CBC3-SHA$\|^TLS-RSA-WITH-3DES-EDE-CBC-SHA$\'', #'
+        'compat' => '-m tls1_1 -f \'^DES-CBC3-SHA$\|^TLS-RSA-WITH-3DES-EDE-CBC-SHA$\'', #',
+        'test_again_with_use_psa' => 1
     },
     'config-no-entropy.h' => {
     },

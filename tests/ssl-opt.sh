@@ -9219,8 +9219,8 @@ run_test    "TLS 1.3: HelloRetryRequest check, ciphersuite TLS_AES_128_GCM_SHA25
             "$P_CLI debug_level=4 force_version=tls13" \
             0 \
             -c "received HelloRetryRequest message" \
-            -c "<= ssl_tls13_process_server_hello:is_hrr = 1" \
-            -c "tls13 client state: MBEDTLS_SSL_CLIENT_HELLO(1)" \
+            -c "<= ssl_tls13_process_server_hello ( HelloRetryRequest )" \
+            -c "tls13 client state: MBEDTLS_SSL_CLIENT_HELLO" \
             -c "HTTP/1.0 200 ok"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -9234,8 +9234,8 @@ run_test    "TLS 1.3: HelloRetryRequest check, ciphersuite TLS_AES_256_GCM_SHA38
             "$P_CLI debug_level=4 force_version=tls13" \
             0 \
             -c "received HelloRetryRequest message" \
-            -c "<= ssl_tls13_process_server_hello:is_hrr = 1" \
-            -c "tls13 client state: MBEDTLS_SSL_CLIENT_HELLO(1)" \
+            -c "<= ssl_tls13_process_server_hello ( HelloRetryRequest )" \
+            -c "tls13 client state: MBEDTLS_SSL_CLIENT_HELLO" \
             -c "HTTP/1.0 200 ok"
 
 requires_gnutls_tls1_3
@@ -9250,8 +9250,8 @@ run_test    "TLS 1.3: HelloRetryRequest check, ciphersuite TLS_AES_128_GCM_SHA25
             "$P_CLI debug_level=4 force_version=tls13" \
             0 \
             -c "received HelloRetryRequest message" \
-            -c "<= ssl_tls13_process_server_hello:is_hrr = 1" \
-            -c "tls13 client state: MBEDTLS_SSL_CLIENT_HELLO(1)" \
+            -c "<= ssl_tls13_process_server_hello ( HelloRetryRequest )" \
+            -c "tls13 client state: MBEDTLS_SSL_CLIENT_HELLO" \
             -c "HTTP/1.0 200 OK"
 
 requires_gnutls_tls1_3
@@ -9266,8 +9266,8 @@ run_test    "TLS 1.3: HelloRetryRequest check, ciphersuite TLS_AES_256_GCM_SHA38
             "$P_CLI debug_level=4 force_version=tls13" \
             0 \
             -c "received HelloRetryRequest message" \
-            -c "<= ssl_tls13_process_server_hello:is_hrr = 1" \
-            -c "tls13 client state: MBEDTLS_SSL_CLIENT_HELLO(1)" \
+            -c "<= ssl_tls13_process_server_hello ( HelloRetryRequest )" \
+            -c "tls13 client state: MBEDTLS_SSL_CLIENT_HELLO" \
             -c "HTTP/1.0 200 OK"
 
 for i in $(ls opt-testcases/*.sh)

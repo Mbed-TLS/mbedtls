@@ -1514,7 +1514,8 @@ static int ssl_tls13_process_server_hello( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_PROC_CHK( ssl_tls13_postprocess_server_hello( ssl ) );
 
 cleanup:
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= %s:is_hrr = %d", __func__, is_hrr ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= %s ( %s )", __func__,
+                                is_hrr?"HelloRetryRequest":"ServerHello" ) );
     return( ret );
 }
 

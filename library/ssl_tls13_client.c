@@ -688,6 +688,48 @@ static int ssl_tls13_parse_cookie_ext( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
+static int ssl_tls13_write_cookie_ext( mbedtls_ssl_context *ssl,
+                                       unsigned char* buf,
+                                       unsigned char* end,
+                                       size_t* olen )
+{
+    unsigned char *p = buf;
+
+    *olen = 0;
+
+    if( ssl->handshake->verify_cookie == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "no cookie to send; skip extension" ) );
+        return( 0 );
+    }
+
+    MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, cookie",
+                           ssl->handshake->verify_cookie,
+                           ssl->handshake->verify_cookie_len );
+
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
+    p += 2;
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, ssl->handshake->verify_cookie_len + 4 );
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding cookie extension" ) );
+
+    /* Extension Type */
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_COOKIE, p, 0 );
+
+    /* Extension Length */
+    MBEDTLS_PUT_UINT16_BE( ssl->handshake->verify_cookie_len + 2, p, 0 );
+
+    /* Cookie Length */
+    MBEDTLS_PUT_UINT16_BE( ssl->handshake->verify_cookie_len, p, 0 );
+
+    /* Cookie */
+    memcpy( p, ssl->handshake->verify_cookie, ssl->handshake->verify_cookie_len );
+
+    *olen = ssl->handshake->verify_cookie_len + 6;
+
+    return( 0 );
+}
+
 /* Write cipher_suites
  * CipherSuite cipher_suites<2..2^16-2>;
  */
@@ -872,6 +914,13 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
         return( ret );
     p += output_len;
 #endif /* MBEDTLS_SSL_ALPN */
+
+    /* For TLS / DTLS 1.3 we need to support the use of cookies
+     * ( if the server provided them ) */
+    ret = ssl_tls13_write_cookie_ext( ssl, p, end, &output_len );
+    if( ret != 0 )
+        return( ret );
+    p += output_len;
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 

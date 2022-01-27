@@ -1,40 +1,3 @@
-
-# Also see "include/mbedtls/mbedtls_config.h"
-
-CFLAGS	?= -O2
-WARNING_CFLAGS ?=  -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
-LDFLAGS ?=
-
-LOCAL_CFLAGS =
-LOCAL_LDFLAGS =
-
-ifdef DEBUG
-LOCAL_CFLAGS += -g3
-endif
-
-# MicroBlaze specific options:
-# CFLAGS += -mno-xl-soft-mul -mxl-barrel-shift
-
-# To compile on Plan9:
-# CFLAGS += -D_BSD_EXTENSION
-
-PERL ?= perl
-
-ifdef WINDOWS
-PYTHON ?= python
-else
-PYTHON ?= $(shell if type python3 >/dev/null 2>/dev/null; then echo python3; else echo python; fi)
-endif
-
-# if were running on Windows build for Windows
-ifdef WINDOWS
-WINDOWS_BUILD=1
-else ifeq ($(shell uname -s),Darwin)
-ifeq ($(AR),ar)
-APPLE_BUILD ?= 1
-endif
-endif
-
 SOEXT_TLS=so.17
 SOEXT_X509=so.4
 SOEXT_CRYPTO=so.11
@@ -49,17 +12,6 @@ ifneq ($(APPLE_BUILD),0)
 ARFLAGS = $(AR_DASH)Src
 RLFLAGS = -no_warning_for_no_symbols -c
 RL ?= ranlib
-endif
-endif
-
-DLEXT ?= so
-ifdef WINDOWS_BUILD
-# Windows shared library extension:
-DLEXT = dll
-else ifdef APPLE_BUILD
-ifneq ($(APPLE_BUILD),0)
-# Mac OS X shared library extension:
-DLEXT = dylib
 endif
 endif
 
@@ -292,10 +244,6 @@ library/libmbedcrypto.dylib: $(OBJS_CRYPTO)
 library/libmbedcrypto.dll: $(OBJS_CRYPTO)
 	echo "  LD    $@"
 	cd $(BUILD_DIR) && $(CC) -shared -Wl,-soname,$(@F) -Wl,--out-implib,$(abspath $@).a -o $(abspath $@) $(abspath $(OBJS_CRYPTO)) -lws2_32 -lwinmm -lgdi32 -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
-
-.c.o:
-	echo "  CC    $<"
-	cd $(BUILD_DIR) && $(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $(abspath $@) -c $(abspath $<)
 
 .PHONY: library/generated_files
 GENERATED_FILES = \

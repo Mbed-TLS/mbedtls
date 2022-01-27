@@ -1,6 +1,56 @@
 DESTDIR=/usr/local
 PREFIX=mbedtls_
+
+# Also see "include/mbedtls/mbedtls_config.h"
+
+CFLAGS ?= -O2
+WARNING_CFLAGS ?=  -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
+LDFLAGS ?=
+
+LOCAL_CFLAGS =
+LOCAL_LDFLAGS =
+
+ifdef DEBUG
+LOCAL_CFLAGS += -g3
+endif
+
+# MicroBlaze specific options:
+# CFLAGS += -mno-xl-soft-mul -mxl-barrel-shift
+
+# To compile on Plan9:
+# CFLAGS += -D_BSD_EXTENSION
+
+BUILD_DIR = .
+
 PERL ?= perl
+
+ifdef WINDOWS
+PYTHON ?= python
+else
+PYTHON ?= $(shell if type python3 >/dev/null 2>/dev/null; then echo python3; else echo python; fi)
+endif
+
+# if were running on Windows build for Windows
+ifdef WINDOWS
+WINDOWS_BUILD=1
+else ifeq ($(shell uname -s),Darwin)
+ifeq ($(AR),ar)
+APPLE_BUILD ?= 1
+endif
+endif
+
+DLEXT ?= so
+ifdef WINDOWS_BUILD
+# Windows shared library extension:
+DLEXT = dll
+else ifdef APPLE_BUILD
+ifneq ($(APPLE_BUILD),0)
+# Mac OS X shared library extension:
+DLEXT = dylib
+endif
+endif
+
+include 3rdparty/Makefile.inc
 
 .SILENT:
 
@@ -26,6 +76,10 @@ programs/%:
 	$(MAKE) -C programs $*
 tests/%:
 	$(MAKE) -C tests $*
+
+.c.o:
+	echo "  CC    $<"
+	cd $(BUILD_DIR) && $(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $(abspath $@) -c $(abspath $<)
 
 .PHONY: generated_files
 generated_files: library/generated_files

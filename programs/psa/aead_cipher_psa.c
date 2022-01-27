@@ -64,14 +64,14 @@ int main( void )
 const char usage[] = "Usage: aead_cipher_psa [aes128-gcm|aes256-gcm|aes128-gcm_8|chachapoly]";
 
 const unsigned char iv1[12] = { 0x00 };
-const unsigned char ad1[] = { 0x01, 0x02 };
-const unsigned char pa1[] = { 0x03, 0x04 };
-const unsigned char pb1[] = { 0x05, 0x06, 0x07 };
+const unsigned char add_data1[] = { 0x01, 0x02 };
+const unsigned char msg1_part1[] = { 0x03, 0x04 };
+const unsigned char msg1_part2[] = { 0x05, 0x06, 0x07 };
 
 const unsigned char iv2[12] = { 0x10 };
-const unsigned char ad2[] = { 0x11, 0x12 };
-const unsigned char pa2[] = { 0x13, 0x14 };
-const unsigned char pb2[] = { 0x15, 0x16, 0x17 };
+const unsigned char add_data2[] = { 0x11, 0x12 };
+const unsigned char msg2_part1[] = { 0x13, 0x14 };
+const unsigned char msg2_part2[] = { 0x15, 0x16, 0x17 };
 
 const unsigned char key_bytes[32] = { 0x2a };
 
@@ -188,11 +188,13 @@ static int cipher( const char *info )
     cipher_info( &ctx, tag_len );
 
     CHK( cipher_encrypt( &ctx, tag_len,
-                         iv1, sizeof( iv1 ), ad1, sizeof( ad1 ),
-                         pa1, sizeof( pa1 ), pb1, sizeof( pb1 ) ) );
+                         iv1, sizeof( iv1 ), add_data1, sizeof( add_data1 ),
+                         msg1_part1, sizeof( msg1_part1 ),
+                         msg1_part2, sizeof( msg1_part2 ) ) );
     CHK( cipher_encrypt( &ctx, tag_len,
-                         iv2, sizeof( iv2 ), ad2, sizeof( ad2 ),
-                         pa2, sizeof( pa2 ), pb2, sizeof( pb2 ) ) );
+                         iv2, sizeof( iv2 ), add_data2, sizeof( add_data2 ),
+                         msg2_part1, sizeof( msg2_part1 ),
+                         msg2_part2, sizeof( msg2_part2 ) ) );
 
 exit:
     mbedtls_cipher_free( &ctx );
@@ -321,11 +323,13 @@ static psa_status_t aead( const char *info )
     aead_info( key, alg );
 
     CHK( aead_encrypt( key, alg,
-                       iv1, sizeof( iv1 ), ad1, sizeof( ad1 ),
-                       pa1, sizeof( pa1 ), pb1, sizeof( pb1 ) ) );
+                       iv1, sizeof( iv1 ), add_data1, sizeof( add_data1 ),
+                       msg1_part1, sizeof( msg1_part1 ),
+                       msg1_part2, sizeof( msg1_part2 ) ) );
     CHK( aead_encrypt( key, alg,
-                       iv2, sizeof( iv2 ), ad2, sizeof( ad2 ),
-                       pa2, sizeof( pa2 ), pb2, sizeof( pb2 ) ) );
+                       iv2, sizeof( iv2 ), add_data2, sizeof( add_data2 ),
+                       msg2_part1, sizeof( msg2_part1 ),
+                       msg2_part2, sizeof( msg2_part2 ) ) );
 
 exit:
     return( status );

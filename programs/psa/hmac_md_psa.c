@@ -50,10 +50,10 @@ int main( void )
 /*
  * Dummy inputs for HMAC
  */
-const unsigned char part1[] = { 0x01, 0x02 };
-const unsigned char part2[] = { 0x03, 0x04 };
-const unsigned char part3[] = { 0x05, 0x05 };
-const unsigned char part4[] = { 0x06, 0x06 };
+const unsigned char msg1_part1[] = { 0x01, 0x02 };
+const unsigned char msg1_part2[] = { 0x03, 0x04 };
+const unsigned char msg2_part1[] = { 0x05, 0x05 };
+const unsigned char msg2_part2[] = { 0x06, 0x06 };
 
 const unsigned char key_bytes[32] = { 0 };
 
@@ -85,18 +85,18 @@ int md(void)
     CHK( mbedtls_md_setup( &ctx, mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 ), 1 ) );
     CHK( mbedtls_md_hmac_starts( &ctx, key_bytes, sizeof( key_bytes ) ) );
 
-    /* compute HMAC(key, part 1 | part 2) */
-    CHK( mbedtls_md_hmac_update( &ctx, part1, sizeof( part1 ) ) );
-    CHK( mbedtls_md_hmac_update( &ctx, part2, sizeof( part2 ) ) );
+    /* compute HMAC(key, msg1_part1 | msg1_part2) */
+    CHK( mbedtls_md_hmac_update( &ctx, msg1_part1, sizeof( msg1_part1 ) ) );
+    CHK( mbedtls_md_hmac_update( &ctx, msg1_part2, sizeof( msg1_part2 ) ) );
     CHK( mbedtls_md_hmac_finish( &ctx, out ) );
-    print_out( "12" );
+    print_out( "msg1" );
 
-    /* compute HMAC(key, part 3 | part 4) */
+    /* compute HMAC(key, msg2_part1 | msg2_part2) */
     CHK( mbedtls_md_hmac_reset( &ctx ) ); // prepare for new operation
-    CHK( mbedtls_md_hmac_update( &ctx, part3, sizeof( part3 ) ) );
-    CHK( mbedtls_md_hmac_update( &ctx, part4, sizeof( part4 ) ) );
+    CHK( mbedtls_md_hmac_update( &ctx, msg2_part1, sizeof( msg2_part1 ) ) );
+    CHK( mbedtls_md_hmac_update( &ctx, msg2_part2, sizeof( msg2_part2 ) ) );
     CHK( mbedtls_md_hmac_finish( &ctx, out ) );
-    print_out( "34" );
+    print_out( "msg2" );
 
 exit:
     mbedtls_md_free( &ctx );
@@ -134,19 +134,19 @@ psa_status_t mac(void)
     psa_mac_operation_t op = PSA_MAC_OPERATION_INIT;
     size_t out_len = 0;
 
-    /* compute HMAC(key, part 1 | part 2) */
+    /* compute HMAC(key, msg1_part1 | msg1_part2) */
     CHK( psa_mac_sign_setup( &op, key, alg ) );
-    CHK( psa_mac_update( &op, part1, sizeof( part1 ) ) );
-    CHK( psa_mac_update( &op, part2, sizeof( part2 ) ) );
+    CHK( psa_mac_update( &op, msg1_part1, sizeof( msg1_part1 ) ) );
+    CHK( psa_mac_update( &op, msg1_part2, sizeof( msg1_part2 ) ) );
     CHK( psa_mac_sign_finish( &op, out, sizeof( out ), &out_len ) );
-    print_out( "12" );
+    print_out( "msg1" );
 
-    /* compute HMAC(key, part 3 | part 4) */
+    /* compute HMAC(key, msg2_part1 | msg2_part2) */
     CHK( psa_mac_sign_setup( &op, key, alg ) );
-    CHK( psa_mac_update( &op, part3, sizeof( part3 ) ) );
-    CHK( psa_mac_update( &op, part4, sizeof( part4 ) ) );
+    CHK( psa_mac_update( &op, msg2_part1, sizeof( msg2_part1 ) ) );
+    CHK( psa_mac_update( &op, msg2_part2, sizeof( msg2_part2 ) ) );
     CHK( psa_mac_sign_finish( &op, out, sizeof( out ), &out_len ) );
-    print_out( "34" );
+    print_out( "msg2" );
 
 exit:
     psa_mac_abort( &op );

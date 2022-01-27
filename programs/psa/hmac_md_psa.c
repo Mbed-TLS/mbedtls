@@ -1,4 +1,7 @@
 /*
+ * This is a simple example of multi-part HMAC computation using both the old
+ * MD API and the new PSA API; its goal is to help migration to PSA Crypto.
+ *
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
@@ -16,9 +19,6 @@
  */
 
 /*
- * This is a simple example of multi-part HMAC computation using both the old
- * MD API and the new PSA API; its goal is to help migration to PSA Crypto.
- *
  * When in comes to multi-part HMAC operations, the `mbedtls_md_context`
  * serves a dual purpose (1) hold the key, and (2) save progress information
  * for the current operation. With PSA those roles are held by two disinct
@@ -26,7 +26,7 @@
  * multi-part progress.
  *
  * This program illustrates this by doing the same sequence of multi-part HMAC
- * computation with both APIs; looking at the two function md() and mac() side
+ * computation with both APIs; looking at the two functions md() and mac() side
  * by side should make the differences and similarities clear.
  */
 

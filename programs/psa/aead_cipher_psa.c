@@ -1,4 +1,7 @@
 /*
+ * This is a simple example of multi-part AEAD computation using both the old
+ * Cipher API and the new PSA API; its goal is to help migration to PSA Crypto.
+ *
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
@@ -16,15 +19,12 @@
  */
 
 /*
- * This is a simple example of multi-part AEAD computation using both the old
- * Cipher API and the new PSA API; its goal is to help migration to PSA Crypto.
- *
- * When in comes to multi-part HMAC operations, the `mbedtls_md_context`
- * serves a triple purpose (1) hold the key, (2) store the algorithm, and (3)
- * save progress information for the current operation. With PSA those roles
- * are held by disinct objects: (1) a psa_key_id_t to hold the key, a (2)
- * psa_algorithm_t to represent the algorithm, and (3) a psa_operation_t for
- * multi-part progress.
+ * When used with multi-part AEAD operations, the `mbedtls_cipher_context`
+ * serves a triple purpose (1) hold the key, (2) store the algorithm when no
+ * operation is active, and (3) save progress information for the current
+ * operation. With PSA those roles are held by disinct objects: (1) a
+ * psa_key_id_t to hold the key, a (2) psa_algorithm_t to represent the
+ * algorithm, and (3) a psa_operation_t for multi-part progress.
  *
  * On the other hand, with PSA, the algorithms encodes the desired tag length;
  * with Cipher the desired tag length needs to be tracked separately.

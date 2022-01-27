@@ -86,7 +86,8 @@ APPS = \
 	pkey/rsa_verify_pss \
 	psa/aead_cipher_psa \
 	psa/crypto_examples \
-	psa/hmac_md_psa \
+	psa/hmac_non_psa \
+	psa/hmac_psa \
 	psa/key_ladder_demo \
 	psa/psa_constant_names \
 	random/gen_entropy \
@@ -271,9 +272,13 @@ psa/crypto_examples$(EXEXT): psa/crypto_examples.c $(DEP)
 	echo "  CC    psa/crypto_examples.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/crypto_examples.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-psa/hmac_md_psa$(EXEXT): psa/hmac_md_psa.c $(DEP)
-	echo "  CC    psa/hmac_md_psa.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/hmac_md_psa.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+psa/hmac_non_psa$(EXEXT): psa/hmac_non_psa.c $(DEP)
+	echo "  CC    psa/hmac_non_psa.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/hmac_non_psa.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+psa/hmac_psa$(EXEXT): psa/hmac_psa.c $(DEP)
+	echo "  CC    psa/hmac_psa.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/hmac_psa.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 psa/key_ladder_demo$(EXEXT): psa/key_ladder_demo.c $(DEP)
 	echo "  CC    psa/key_ladder_demo.c"

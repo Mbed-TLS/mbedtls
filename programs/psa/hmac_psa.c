@@ -1,6 +1,8 @@
 /*
- * This is a simple example of multi-part HMAC computation using both the old
- * MD API and the new PSA API; its goal is to help migration to PSA Crypto.
+ * This is a simple example of multi-part HMAC computation using the PSA
+ * Crypto API. It comes with a companion program hmac_non_psa.c, which does
+ * the same operations with the legacy MD API. The goal is that comparing the
+ * two programs will help people migrating to the PSA Crypto API.
  *
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
@@ -25,26 +27,25 @@
  * objects: (1) a psa_key_id_t to hold the key, and (2) a psa_operation_t for
  * multi-part progress.
  *
- * This program illustrates this by doing the same sequence of multi-part HMAC
- * computation with both APIs; looking at the two functions md() and mac() side
- * by side should make the differences and similarities clear.
+ * This program and its companion hmac_non_psa.c illustrate this by doing the
+ * same sequence of multi-part HMAC computation with both APIs; looking at the
+ * two side by side should make the differences and similarities clear.
  */
 
 #include <stdio.h>
 
 #include "mbedtls/build_info.h"
 
-#if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(MBEDTLS_MD_C) || \
+#if !defined(MBEDTLS_PSA_CRYPTO_C) || \
     defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 int main( void )
 {
-    printf( "MBEDTLS_PSA_CRYPTO_C and/or MBEDTLS_MD_C not defined, "
+    printf( "MBEDTLS_PSA_CRYPTO_C not defined, "
             "and/or MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined\r\n" );
     return( 0 );
 }
-#else /* MBEDTLS_PSA_CRYPTO_C && MBEDTLS_MD_C */
+#else
 
-#include "mbedtls/md.h"
 #include "psa/crypto.h"
 
 /*
@@ -69,51 +70,12 @@ void print_out( const char *title )
 
 #define CHK( code )     \
     do {                \
-        ret = code;     \
-        if( ret != 0 )  \
-            goto exit;  \
-    } while( 0 )
-
-int md(void)
-{
-    int ret;
-    mbedtls_md_context_t ctx;
-
-    mbedtls_md_init( &ctx );
-
-    /* prepare context and load key */
-    CHK( mbedtls_md_setup( &ctx, mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 ), 1 ) );
-    CHK( mbedtls_md_hmac_starts( &ctx, key_bytes, sizeof( key_bytes ) ) );
-
-    /* compute HMAC(key, msg1_part1 | msg1_part2) */
-    CHK( mbedtls_md_hmac_update( &ctx, msg1_part1, sizeof( msg1_part1 ) ) );
-    CHK( mbedtls_md_hmac_update( &ctx, msg1_part2, sizeof( msg1_part2 ) ) );
-    CHK( mbedtls_md_hmac_finish( &ctx, out ) );
-    print_out( "msg1" );
-
-    /* compute HMAC(key, msg2_part1 | msg2_part2) */
-    CHK( mbedtls_md_hmac_reset( &ctx ) ); // prepare for new operation
-    CHK( mbedtls_md_hmac_update( &ctx, msg2_part1, sizeof( msg2_part1 ) ) );
-    CHK( mbedtls_md_hmac_update( &ctx, msg2_part2, sizeof( msg2_part2 ) ) );
-    CHK( mbedtls_md_hmac_finish( &ctx, out ) );
-    print_out( "msg2" );
-
-exit:
-    mbedtls_md_free( &ctx );
-
-    return( ret );
-}
-
-#undef CHK
-
-#define CHK( code )     \
-    do {                \
         status = code;     \
         if( status != PSA_SUCCESS )  \
             goto exit;  \
     } while( 0 )
 
-psa_status_t mac(void)
+psa_status_t hmac_demo(void)
 {
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -155,23 +117,15 @@ exit:
     return( status );
 }
 
-#undef CHK
-
 int main(void)
 {
-    printf( "MD\n" );
-    int ret = md();
-    if( ret != 0 )
-        printf( "ret = %d (-0x%04x)\n", ret, (unsigned) -ret );
-
     psa_status_t status = psa_crypto_init();
     if( status != PSA_SUCCESS )
         printf( "psa init: %d\n", status );
 
-    printf( "\nPSA\n" );
-    status = mac();
+    status = hmac_demo();
     if( status != PSA_SUCCESS )
-        printf( "psa mac: %d\n", status );
+        printf( "hmac_demo: %d\n", status );
 }
 
-#endif /* MBEDTLS_PSA_CRYPTO_C && MBEDTLS_MD_C */
+#endif

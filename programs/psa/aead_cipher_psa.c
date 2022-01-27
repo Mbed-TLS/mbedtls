@@ -311,7 +311,10 @@ static int aead_encrypt( psa_key_id_t key, psa_algorithm_t alg,
 
     olen = p - out;
     print_out( "aead  ", out, olen );
+
 exit:
+    /* required on errors, harmless on success */
+    psa_aead_abort( &op );
     return( status );
 }
 
@@ -336,6 +339,8 @@ static psa_status_t aead( const char *info )
                        msg2_part2, sizeof( msg2_part2 ) ) );
 
 exit:
+    psa_destroy_key( key );
+
     return( status );
 }
 

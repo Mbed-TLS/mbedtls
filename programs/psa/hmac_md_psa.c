@@ -150,6 +150,7 @@ psa_status_t mac(void)
 
 exit:
     psa_mac_abort( &op );
+    psa_destroy_key( key );
 
     return( status );
 }

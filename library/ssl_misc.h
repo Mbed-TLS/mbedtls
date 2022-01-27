@@ -694,9 +694,11 @@ struct mbedtls_ssl_handshake_params
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
     unsigned char *verify_cookie;       /*!<  Cli: HelloVerifyRequest cookie
-                                              Srv: unused                    */
-    unsigned char verify_cookie_len;    /*!<  Cli: cookie length
-                                              Srv: flag for sending a cookie */
+                                         *    for dtls / tls 1.3
+                                         *    Srv: unused                    */
+    unsigned char verify_cookie_len;    /*!<  Cli: cookie length for
+                                         *    dtls / tls 1.3
+                                         *    Srv: flag for sending a cookie */
 #endif /* MBEDTLS_SSL_PROTO_DTLS || MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)

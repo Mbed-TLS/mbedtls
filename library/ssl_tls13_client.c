@@ -559,6 +559,7 @@ static int ssl_tls13_parse_cookie_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_BUF( 3, "cookie extension", p, cookie_len );
 
     mbedtls_free( handshake->verify_cookie );
+    handshake->verify_cookie_len = 0;
     handshake->verify_cookie = mbedtls_calloc( 1, cookie_len );
     if( handshake->verify_cookie == NULL )
     {

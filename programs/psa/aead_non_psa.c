@@ -64,15 +64,13 @@ const unsigned char iv1[12] = { 0x00 };
 const unsigned char add_data1[] = { 0x01, 0x02 };
 const unsigned char msg1_part1[] = { 0x03, 0x04 };
 const unsigned char msg1_part2[] = { 0x05, 0x06, 0x07 };
-const size_t msg1_size = sizeof( msg1_part1 ) + sizeof( msg1_part2 );
 
 const unsigned char iv2[12] = { 0x10 };
 const unsigned char add_data2[] = { 0x11, 0x12 };
 const unsigned char msg2_part1[] = { 0x13, 0x14 };
 const unsigned char msg2_part2[] = { 0x15, 0x16, 0x17 };
-const size_t msg2_size = sizeof( msg2_part1 ) + sizeof( msg2_part2 );
 
-const size_t msg_max_size = msg1_size > msg2_size ? msg1_size : msg2_size;
+#define MSG_MAX_SIZE 5
 
 const unsigned char key_bytes[32] = { 0x2a };
 
@@ -149,7 +147,7 @@ static int aead_encrypt( mbedtls_cipher_context_t *ctx, size_t tag_len,
 {
     int ret;
     size_t olen;
-    unsigned char out[msg_max_size + 16];
+    unsigned char out[MSG_MAX_SIZE + 16];
     unsigned char *p = out;
 
     CHK( mbedtls_cipher_set_iv( ctx, iv, iv_len ) );

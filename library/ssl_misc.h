@@ -1736,6 +1736,11 @@ int mbedtls_ssl_tls13_start_handshake_msg( mbedtls_ssl_context *ssl,
 int mbedtls_ssl_tls13_process_certificate( mbedtls_ssl_context *ssl );
 
 /*
+ * Handler of TLS 1.3 write certificate message
+ */
+int mbedtls_ssl_tls13_write_certificate( mbedtls_ssl_context *ssl );
+
+/*
  * Generic handler of Certificate Verify
  */
 int mbedtls_ssl_tls13_process_certificate_verify( mbedtls_ssl_context *ssl );

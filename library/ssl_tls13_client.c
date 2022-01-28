@@ -1948,9 +1948,11 @@ static int ssl_tls13_write_change_cipher_spec( mbedtls_ssl_context *ssl )
  */
 static int ssl_tls13_write_client_certificate( mbedtls_ssl_context *ssl )
 {
+    MBEDTLS_SSL_DEBUG_MSG( 1,
+                  ( "Switch to handshake traffic keys for outbound traffic" ) );
     mbedtls_ssl_set_outbound_transform( ssl, ssl->handshake->transform_handshake );
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY );
-    return( 0 );
+
+    return( mbedtls_ssl_tls13_write_certificate( ssl ) );
 }
 
 /*

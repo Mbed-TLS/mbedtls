@@ -3137,12 +3137,13 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
     }
 
     ssl->state++;
-    ssl->client_auth = ( ssl->in_msg[0] == MBEDTLS_SSL_HS_CERTIFICATE_REQUEST );
+    ssl->handshake->client_auth =
+                    ( ssl->in_msg[0] == MBEDTLS_SSL_HS_CERTIFICATE_REQUEST );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "got %s certificate request",
-                        ssl->client_auth ? "a" : "no" ) );
+                        ssl->handshake->client_auth ? "a" : "no" ) );
 
-    if( ssl->client_auth == 0 )
+    if( ssl->handshake->client_auth == 0 )
     {
         /* Current message is probably the ServerHelloDone */
         ssl->keep_current_message = 1;
@@ -3794,7 +3795,8 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
         return( 0 );
     }
 
-    if( ssl->client_auth == 0 || mbedtls_ssl_own_cert( ssl ) == NULL )
+    if( ssl->handshake->client_auth == 0 ||
+        mbedtls_ssl_own_cert( ssl ) == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate verify" ) );
         ssl->state++;

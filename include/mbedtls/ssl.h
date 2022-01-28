@@ -1615,12 +1615,7 @@ struct mbedtls_ssl_context
     /*
      * PKI layer
      */
-#if defined(MBEDTLS_SSL_CLI_C)
-    int MBEDTLS_PRIVATE(client_auth);           /*!< used to check if CertificateRequest is
-                                                     received from server side. If
-                                                     CertificateReqeust is received, Certificate
-                                                     and CertificateVerify should be sent to server */
-#endif /* MBEDTLS_SSL_CLI_C */
+
     /*
      * User settings
      */

@@ -267,7 +267,7 @@
 /* Maximum size in bytes of list in supported elliptic curve ext., RFC 4492 */
 #define MBEDTLS_SSL_MAX_CURVE_LIST_LEN         65535
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
 #define MBEDTLS_RECEIVED_SIG_ALGS_SIZE         20
 #endif
 

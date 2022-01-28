@@ -155,26 +155,25 @@ int mbedtls_ssl_tls13_parse_sig_alg_ext( mbedtls_ssl_context *ssl,
                                          const unsigned char *end )
 {
     const unsigned char *p = buf;
-    size_t sig_algs_len = 0;
-    uint16_t *sig_algs;
-    const unsigned char *sig_algs_end;
+    size_t supported_sig_algs_len = 0;
+    const unsigned char *supported_sig_algs_end;
     uint16_t sig_alg;
     uint32_t common_idx = 0; /* iterate through received signature schemes list */
 
     /* skip 2 bytes of signature algorithms length */
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2 );
-    sig_algs_len = MBEDTLS_GET_UINT16_BE( p, 0 );
+    supported_sig_algs_len = MBEDTLS_GET_UINT16_BE( p, 0 );
     p += 2;
 
-    sig_algs = mbedtls_calloc( MBEDTLS_SIG_ALGS_SIZE, sizeof( uint16_t ) );
-    if( sig_algs == NULL )
-        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+    memset( ssl->handshake->received_sig_algs, 0,
+            sizeof( ssl->handshake->received_sig_algs) );
 
-    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, sig_algs_len );
-    sig_algs_end = p + sig_algs_len;
-    while( p < sig_algs_end && common_idx + 1 < MBEDTLS_SIG_ALGS_SIZE )
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, supported_sig_algs_len );
+    supported_sig_algs_end = p + supported_sig_algs_len;
+    while( p < supported_sig_algs_end &&
+           common_idx + 1 < MBEDTLS_RECEIVED_SIG_ALGS_SIZE )
     {
-        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, sig_algs_end, 2 );
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, supported_sig_algs_end, 2 );
         sig_alg = MBEDTLS_GET_UINT16_BE( p, 0 );
         p += 2;
 
@@ -184,7 +183,7 @@ int mbedtls_ssl_tls13_parse_sig_alg_ext( mbedtls_ssl_context *ssl,
         if( mbedtls_ssl_sig_alg_is_offered( ssl, sig_alg ) &&
             mbedtls_ssl_sig_alg_is_supported( ssl, sig_alg ) )
         {
-            sig_algs[common_idx] = sig_alg;
+            ssl->handshake->received_sig_algs[common_idx] = sig_alg;
             common_idx += 1;
         }
     }
@@ -195,7 +194,6 @@ int mbedtls_ssl_tls13_parse_sig_alg_ext( mbedtls_ssl_context *ssl,
             ( "Signature algorithms extension length misaligned" ) );
         MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
                                       MBEDTLS_ERR_SSL_DECODE_ERROR );
-        mbedtls_free( sig_algs );
         return( MBEDTLS_ERR_SSL_DECODE_ERROR );
     }
 
@@ -204,13 +202,10 @@ int mbedtls_ssl_tls13_parse_sig_alg_ext( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "no signature algorithm in common" ) );
         MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
                                       MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-        mbedtls_free( sig_algs );
         return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }
 
-    sig_algs[common_idx] = MBEDTLS_TLS1_3_SIG_NONE;
-    ssl->handshake->sig_algs = sig_algs;
-    ssl->handshake->sig_algs_heap_allocated = 1;
+    ssl->handshake->received_sig_algs[common_idx] = MBEDTLS_TLS1_3_SIG_NONE;
     return( 0 );
 }
 

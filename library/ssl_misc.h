@@ -268,7 +268,7 @@
 #define MBEDTLS_SSL_MAX_CURVE_LIST_LEN         65535
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-#define MBEDTLS_SIG_ALGS_SIZE                  20
+#define MBEDTLS_RECEIVED_SIG_ALGS_SIZE         20
 #endif
 
 /*
@@ -598,6 +598,10 @@ struct mbedtls_ssl_handshake_params
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     mbedtls_ssl_sig_hash_set_t hash_algs;             /*!<  Set of suitable sig-hash pairs */
+#endif
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    uint16_t received_sig_algs[MBEDTLS_RECEIVED_SIG_ALGS_SIZE];
 #endif
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)

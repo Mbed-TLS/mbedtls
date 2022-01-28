@@ -1010,16 +1010,16 @@ int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
                 MBEDTLS_SSL_KEY_EXPORT_TLS1_3_CLIENT_HANDSHAKE_TRAFFIC_SECRET,
                 tls13_hs_secrets->client_handshake_traffic_secret,
                 md_size,
-                handshake->randbytes + 32,
                 handshake->randbytes,
+                handshake->randbytes + MBEDTLS_CLIENT_HELLO_RANDOM_LEN,
                 MBEDTLS_SSL_TLS_PRF_NONE /* TODO: FIX! */ );
 
         ssl->f_export_keys( ssl->p_export_keys,
                 MBEDTLS_SSL_KEY_EXPORT_TLS1_3_SERVER_HANDSHAKE_TRAFFIC_SECRET,
                 tls13_hs_secrets->server_handshake_traffic_secret,
                 md_size,
-                handshake->randbytes + 32,
                 handshake->randbytes,
+                handshake->randbytes + MBEDTLS_CLIENT_HELLO_RANDOM_LEN,
                 MBEDTLS_SSL_TLS_PRF_NONE /* TODO: FIX! */ );
     }
 
@@ -1215,16 +1215,16 @@ int mbedtls_ssl_tls13_generate_application_keys(
         ssl->f_export_keys( ssl->p_export_keys,
                 MBEDTLS_SSL_KEY_EXPORT_TLS1_3_CLIENT_APPLICATION_TRAFFIC_SECRET,
                 app_secrets->client_application_traffic_secret_N, md_size,
-                handshake->randbytes + 32,
                 handshake->randbytes,
+                handshake->randbytes + MBEDTLS_CLIENT_HELLO_RANDOM_LEN,
                 MBEDTLS_SSL_TLS_PRF_NONE /* TODO: this should be replaced by
                                             a new constant for TLS 1.3! */ );
 
         ssl->f_export_keys( ssl->p_export_keys,
                 MBEDTLS_SSL_KEY_EXPORT_TLS1_3_SERVER_APPLICATION_TRAFFIC_SECRET,
                 app_secrets->server_application_traffic_secret_N, md_size,
-                handshake->randbytes + 32,
                 handshake->randbytes,
+                handshake->randbytes + MBEDTLS_CLIENT_HELLO_RANDOM_LEN,
                 MBEDTLS_SSL_TLS_PRF_NONE /* TODO: this should be replaced by
                                             a new constant for TLS 1.3! */ );
     }

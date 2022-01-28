@@ -629,6 +629,12 @@
         MBEDTLS_ECDSA_C requires MBEDTLS_PK_WRITE_C to be defined."
 #endif
 
+#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PKCS1_V15) && \
+    !defined(MBEDTLS_PK_WRITE_C) && defined(MBEDTLS_PSA_CRYPTO_C)
+#error "MBEDTLS_PSA_CRYPTO_C, MBEDTLS_RSA_C and  MBEDTLS_PKCS1_V15 defined, \
+        but not all prerequisites"
+#endif
+
 #if defined(MBEDTLS_RSA_C) && ( !defined(MBEDTLS_BIGNUM_C) ||         \
     !defined(MBEDTLS_OID_C) )
 #error "MBEDTLS_RSA_C defined, but not all prerequisites"

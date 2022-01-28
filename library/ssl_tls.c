@@ -1114,6 +1114,7 @@ end:
     return( ret );
 }
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 /*
  * Set appropriate PRF function and other SSL / TLS1.2 functions
  *
@@ -1128,12 +1129,6 @@ static int ssl_set_handshake_prfs( mbedtls_ssl_handshake_params *handshake,
                                    int minor_ver,
                                    mbedtls_md_type_t hash )
 {
-#if !defined(MBEDTLS_SSL_PROTO_TLS1_2) || !defined(MBEDTLS_SHA384_C)
-    (void) hash;
-    (void) minor_ver;
-    (void) handshake;
-#endif
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 
 #if defined(MBEDTLS_SHA384_C)
     if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 &&
@@ -1155,9 +1150,12 @@ static int ssl_set_handshake_prfs( mbedtls_ssl_handshake_params *handshake,
     else
 #endif
     {
+        (void) hash;
+        (void) minor_ver;
+        (void) handshake;
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2  */
+
 
     return( 0 );
 }
@@ -1371,7 +1369,6 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_SHA256_C)
 void ssl_calc_verify_tls_sha256( const mbedtls_ssl_context *ssl,
                                  unsigned char *hash,

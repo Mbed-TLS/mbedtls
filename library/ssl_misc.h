@@ -1140,7 +1140,10 @@ void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_send_fatal_handshake_failure( mbedtls_ssl_context *ssl );
 
 void mbedtls_ssl_reset_checksum( mbedtls_ssl_context *ssl );
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl );
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2  */
 
 int mbedtls_ssl_handle_message_type( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl );

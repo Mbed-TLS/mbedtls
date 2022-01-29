@@ -985,7 +985,7 @@ static int ssl_tls13_finalize_write_certificate( mbedtls_ssl_context* ssl )
     }
     else
 #endif /* MBEDTLS_SSL_CLI_C */
-
+    ((void) ssl);
     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 }
 
@@ -1049,7 +1049,7 @@ static int ssl_tls13_write_certificate_verify_coordinate(
     }
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
-
+#if defined(MBEDTLS_SSL_CLI_C)
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
         if( ssl->handshake->client_auth == 0 ||
@@ -1060,15 +1060,14 @@ static int ssl_tls13_write_certificate_verify_coordinate(
             return( SSL_WRITE_CERTIFICATE_VERIFY_SKIP );
         }
     }
+#endif /* MBEDTLS_SSL_CLI_C */
 
     if( crt == NULL &&
-        ssl->handshake->client_auth == 1 &&
         ssl->conf->authmode != MBEDTLS_SSL_VERIFY_NONE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no certificate" ) );
         return( MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED );
     }
-
     return( SSL_WRITE_CERTIFICATE_VERIFY_SEND );
 #else /* MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );

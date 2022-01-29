@@ -846,6 +846,7 @@ cleanup:
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
     return( ret );
 }
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 
 /*
  * STATE HANDLING: Output Certificate
@@ -862,7 +863,6 @@ cleanup:
 #define SSL_WRITE_CERTIFICATE_AVAILABLE  0
 #define SSL_WRITE_CERTIFICATE_SKIP       1
 
-
 static int ssl_tls13_write_certificate_coordinate( mbedtls_ssl_context* ssl )
 {
 
@@ -873,7 +873,6 @@ static int ssl_tls13_write_certificate_coordinate( mbedtls_ssl_context* ssl )
         return( SSL_WRITE_CERTIFICATE_SKIP );
     }
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 #if defined(MBEDTLS_SSL_CLI_C)
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
@@ -893,13 +892,9 @@ static int ssl_tls13_write_certificate_coordinate( mbedtls_ssl_context* ssl )
 #endif /* MBEDTLS_SSL_CLI_C */
 
     return( SSL_WRITE_CERTIFICATE_AVAILABLE );
-#else /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
-    MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-    return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-#endif /* !MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+
 }
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 static int ssl_tls13_write_certificate( mbedtls_ssl_context *ssl,
                                         unsigned char *buf,
                                         size_t buflen,
@@ -978,7 +973,6 @@ static int ssl_tls13_write_certificate( mbedtls_ssl_context *ssl,
 
     return( 0 );
 }
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 /* Update the state after handling the outgoing certificate message. */
 static int ssl_tls13_finalize_write_certificate( mbedtls_ssl_context* ssl )
@@ -1003,7 +997,6 @@ int mbedtls_ssl_tls13_write_certificate( mbedtls_ssl_context* ssl )
     /* Coordination: Check if we need to send a certificate. */
     MBEDTLS_SSL_PROC_CHK_NEG( ssl_tls13_write_certificate_coordinate( ssl ) );
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     if( ret == SSL_WRITE_CERTIFICATE_AVAILABLE )
     {
         unsigned char *buf;
@@ -1025,7 +1018,6 @@ int mbedtls_ssl_tls13_write_certificate( mbedtls_ssl_context* ssl )
                                   ssl, buf_len, msg_len ) );
     }
     else
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate" ) );
         MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_write_certificate( ssl ) );
@@ -1080,12 +1072,12 @@ static int ssl_tls13_write_certificate_verify_coordinate(
     return( SSL_WRITE_CERTIFICATE_VERIFY_SEND );
 #else /* MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+    ((void) crt);
     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 
 #endif /* !MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
 }
 
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
 static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context* ssl,
                                                     unsigned char* buf,
                                                     size_t buflen,
@@ -1105,8 +1097,6 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context* ssl,
     size_t handshake_hash_len;
     unsigned char *p;
     const mbedtls_md_info_t *md_info;
-    /* Verify whether we can use signature algorithm */
-    // int signature_scheme_client;
     unsigned char * const end = buf + buflen;
 
     p = buf;
@@ -1182,8 +1172,6 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context* ssl,
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
-    // signature_scheme_client = MBEDTLS_TLS1_3_SIG_NONE;
-
     if( !mbedtls_ssl_sig_alg_is_received( ssl, sig_alg ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
@@ -1223,7 +1211,6 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context* ssl,
     MBEDTLS_SSL_DEBUG_BUF( 3, "xverify hash", buf, *olen );
     return( ret );
 }
-#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
 
 static int ssl_tls13_finalize_certificate_verify( mbedtls_ssl_context* ssl )
 {
@@ -1278,6 +1265,8 @@ cleanup:
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write certificate verify" ) );
     return( ret );
 }
+
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 /*
  *

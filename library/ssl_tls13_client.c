@@ -1813,7 +1813,7 @@ static int ssl_tls13_parse_certificate_request( mbedtls_ssl_context *ssl,
         goto decode_error;
     }
 
-    ssl->client_auth = 1;
+    ssl->handshake->client_auth = 1;
     return( 0 );
 
 decode_error:
@@ -1861,7 +1861,7 @@ static int ssl_tls13_process_certificate_request( mbedtls_ssl_context *ssl )
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "got %s certificate request",
-                                ssl->client_auth ? "a" : "no" ) );
+                                ssl->handshake->client_auth ? "a" : "no" ) );
 
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_CERTIFICATE );
 

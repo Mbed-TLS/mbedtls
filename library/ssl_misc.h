@@ -1741,6 +1741,10 @@ int mbedtls_ssl_tls13_process_certificate( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_tls13_write_certificate( mbedtls_ssl_context *ssl );
 
 /*
+ * Handler of TLS 1.3 write certificate verify message
+ */
+int mbedtls_ssl_tls13_write_certificate_verify( mbedtls_ssl_context *ssl );
+/*
  * Generic handler of Certificate Verify
  */
 int mbedtls_ssl_tls13_process_certificate_verify( mbedtls_ssl_context *ssl );
@@ -1900,6 +1904,14 @@ static inline const void *mbedtls_ssl_get_sig_algs(
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 
+static inline int mbedtls_ssl_sig_alg_is_received( const mbedtls_ssl_context *ssl,
+                                                   uint16_t own_sig_alg )
+{
+    ((void) ssl);
+    ((void) own_sig_alg);
+    return( 1 );
+}
+
 static inline int mbedtls_ssl_sig_alg_is_offered( const mbedtls_ssl_context *ssl,
                                                   uint16_t proposed_sig_alg )
 {
@@ -1914,7 +1926,6 @@ static inline int mbedtls_ssl_sig_alg_is_offered( const mbedtls_ssl_context *ssl
     }
     return( 0 );
 }
-
 
 static inline int mbedtls_ssl_sig_alg_is_supported(
                                                 const mbedtls_ssl_context *ssl,

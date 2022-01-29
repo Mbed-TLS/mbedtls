@@ -1960,8 +1960,7 @@ static int ssl_tls13_write_client_certificate( mbedtls_ssl_context *ssl )
  */
 static int ssl_tls13_write_client_certificate_verify( mbedtls_ssl_context *ssl )
 {
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_FINISHED );
-    return( 0 );
+    return( mbedtls_ssl_tls13_write_certificate_verify( ssl ) );
 }
 
 /*

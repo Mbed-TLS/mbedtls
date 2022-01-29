@@ -1970,8 +1970,13 @@ static int ssl_tls13_write_client_finished( mbedtls_ssl_context *ssl )
 {
     int ret;
 
-    mbedtls_ssl_set_outbound_transform( ssl, ssl->handshake->transform_handshake );
-
+    if( !ssl->handshake->client_auth )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1,
+                  ( "Switch to handshake traffic keys for outbound traffic" ) );
+        mbedtls_ssl_set_outbound_transform( ssl,
+                                        ssl->handshake->transform_handshake );
+    }
     ret = mbedtls_ssl_tls13_write_finished_message( ssl );
     if( ret != 0 )
         return( ret );

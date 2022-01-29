@@ -9798,7 +9798,7 @@ run_test    "TLS 1.3: CertificateRequest check - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10" \
             "$P_CLI debug_level=4 force_version=tls13 crt_file=data_files/cli2.crt \
                     key_file=data_files/cli2.key" \
-            1 \
+            0 \
             -c "=> parse certificate request" \
             -c "got a certificate request" \
             -c "<= parse certificate request" \
@@ -9815,7 +9815,7 @@ run_test    "TLS 1.3: CertificateRequest check - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS" \
             "$P_CLI debug_level=3 min_version=tls13 max_version=tls13 crt_file=data_files/cli2.crt \
                     key_file=data_files/cli2.key" \
-            1 \
+            0 \
             -c "=> parse certificate request" \
             -c "got a certificate request" \
             -c "<= parse certificate request" \
@@ -9831,7 +9831,7 @@ run_test    "TLS 1.3: CertificateRequest check, no middlebox - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10 -no_middlebox" \
             "$P_CLI debug_level=4 force_version=tls13  crt_file=data_files/cli2.crt \
                     key_file=data_files/cli2.key" \
-            1 \
+            0 \
             -c "=> parse certificate request" \
             -c "got a certificate request" \
             -c "<= parse certificate request" \
@@ -9848,7 +9848,7 @@ run_test    "TLS 1.3: CertificateRequest check, no middlebox - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
             "$P_CLI debug_level=3 min_version=tls13 max_version=tls13 crt_file=data_files/cli2.crt \
                     key_file=data_files/cli2.key" \
-            1 \
+            0 \
             -c "=> parse certificate request" \
             -c "got a certificate request" \
             -c "<= parse certificate request" \

@@ -1911,9 +1911,16 @@ static inline const void *mbedtls_ssl_get_sig_algs(
 static inline int mbedtls_ssl_sig_alg_is_received( const mbedtls_ssl_context *ssl,
                                                    uint16_t own_sig_alg )
 {
-    ((void) ssl);
-    ((void) own_sig_alg);
-    return( 1 );
+    const uint16_t *sig_alg = ssl->handshake->received_sig_algs;
+    if( sig_alg == NULL )
+        return( 0 );
+
+    for( ; *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
+    {
+        if( *sig_alg == own_sig_alg )
+            return( 1 );
+    }
+    return( 0 );
 }
 
 static inline int mbedtls_ssl_sig_alg_is_offered( const mbedtls_ssl_context *ssl,

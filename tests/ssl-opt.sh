@@ -9822,6 +9822,41 @@ run_test    "TLS 1.3: CertificateRequest check - gnutls" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY"
 
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "TLS 1.3: CertificateRequest check, empty certificate - gnutls" \
+            "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE --verify-client-cert" \
+            "$P_CLI debug_level=3 min_version=tls13 max_version=tls13 crt_file=none \
+                    key_file=none" \
+            0 \
+            -c "=> parse certificate request" \
+            -c "got a certificate request" \
+            -c "<= parse certificate request" \
+            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
+            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
+            -c "<= write empty client certificate"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "TLS 1.3: CertificateRequest check, empty certificate - openssl" \
+            "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -verify 10 -no_middlebox" \
+            "$P_CLI debug_level=4 force_version=tls13 crt_file=none \
+                    key_file=none" \
+            0 \
+            -c "=> parse certificate request" \
+            -c "got a certificate request" \
+            -c "<= parse certificate request" \
+            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
+            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
+            -c "<= write empty client certificate"
+
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_DEBUG_C

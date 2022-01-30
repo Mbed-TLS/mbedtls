@@ -895,24 +895,43 @@ static int ssl_tls13_write_certificate_coordinate( mbedtls_ssl_context* ssl )
 
 }
 
-static int ssl_tls13_write_certificate( mbedtls_ssl_context *ssl,
-                                        unsigned char *buf,
-                                        size_t buflen,
-                                        size_t *olen )
+/*
+ *  enum {
+ *        X509(0),
+ *        RawPublicKey(2),
+ *        (255)
+ *    } CertificateType;
+ *
+ *    struct {
+ *        select (certificate_type) {
+ *            case RawPublicKey:
+ *              // From RFC 7250 ASN.1_subjectPublicKeyInfo
+ *              opaque ASN1_subjectPublicKeyInfo<1..2^24-1>;
+ *
+ *            case X509:
+ *              opaque cert_data<1..2^24-1>;
+ *        };
+ *        Extension extensions<0..2^16-1>;
+ *    } CertificateEntry;
+ *
+ *    struct {
+ *        opaque certificate_request_context<0..2^8-1>;
+ *        CertificateEntry certificate_list<0..2^24-1>;
+ *    } Certificate;
+ */
+static int ssl_tls13_write_certificate_body( mbedtls_ssl_context *ssl,
+                                             const unsigned char *buf,
+                                             unsigned char *end,
+                                             size_t *olen )
 {
-    size_t i=0, n, total_len;
     const mbedtls_x509_crt *crt = mbedtls_ssl_own_cert( ssl );
-    unsigned char *start;
+    unsigned char *p = (unsigned char *)buf;
+    unsigned char *certificate_list;
 
-    /* TODO: Add bounds checks! Only then remove the next line. */
-    ((void) buflen );
 
+    /* Write certificate_request_context */
     /* empty certificate_request_context with length 0 */
-    buf[i] = 0;
-    /* Skip length of certificate_request_context and
-     * the length of CertificateEntry
-     */
-    i += 1;
+    *p++ = 0;
 
 #if defined(MBEDTLS_SSL_CLI_C)
     /* If the server requests client authentication but no suitable
@@ -926,50 +945,43 @@ static int ssl_tls13_write_certificate( mbedtls_ssl_context *ssl,
         ( ( crt == NULL ) || ssl->conf->authmode == MBEDTLS_SSL_VERIFY_NONE ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write empty client certificate" ) );
-        buf[i] = 0;
-        buf[i + 1] = 0;
-        buf[i + 2] = 0;
-        i += 3;
-        *olen = i;
+        MBEDTLS_SSL_CHK_BUF_PTR( p, end, 3);
+        MBEDTLS_PUT_UINT24_BE( 0, p, 0);
+        p += 3;
+        *olen = p - buf;
         return( 0 );
     }
 #endif /* MBEDTLS_SSL_CLI_C */
 
-    start = &buf[i];
-    MBEDTLS_SSL_DEBUG_CRT( 3, "own certificate", crt );
+    certificate_list = p;
+    /* Reserve space for certificate_list_len */
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 3);
+    p += 3;
 
-    i += 3;
+    MBEDTLS_SSL_DEBUG_CRT( 3, "own certificate", crt );
 
     while ( crt != NULL )
     {
-        n = crt->raw.len;
-        if( n > buflen - 3 - i )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "certificate too large, %" MBEDTLS_PRINTF_SIZET " > %d",
-                                        i + 3 + n, MBEDTLS_SSL_OUT_CONTENT_LEN ) );
-            return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
-        }
+        size_t cert_data_len = crt->raw.len;
 
-        buf[i] = (unsigned char)( n >> 16 );
-        buf[i + 1] = (unsigned char)( n >> 8 );
-        buf[i + 2] = (unsigned char)( n );
+        MBEDTLS_SSL_CHK_BUF_PTR( p, end, cert_data_len + 3 + 2 );
+        MBEDTLS_PUT_UINT24_BE( cert_data_len, p, 0 );
+        p += 3;
 
-        i += 3; memcpy( buf + i, crt->raw.p, n );
-        i += n; crt = crt->next;
+        memcpy( p, crt->raw.p, cert_data_len );
+        p += cert_data_len;
+        crt = crt->next;
 
         /* Currently, we don't have any certificate extensions defined.
          * Hence, we are sending an empty extension with length zero.
          */
-        buf[i] = 0;
-        buf[i + 1] = 0;
-        i += 2;
+        MBEDTLS_PUT_UINT24_BE( 0, p, 0 );
+        p += 2;
     }
-    total_len = &buf[i] - start - 3;
-    *start++ = (unsigned char)( ( total_len ) >> 16 );
-    *start++ = (unsigned char)( ( total_len ) >> 8 );
-    *start++ = (unsigned char)( ( total_len ) );
 
-    *olen = i;
+    MBEDTLS_PUT_UINT24_BE( p - certificate_list - 3, certificate_list, 0);
+
+    *olen = p - buf;
 
     return( 0 );
 }
@@ -1005,8 +1017,10 @@ int mbedtls_ssl_tls13_write_certificate( mbedtls_ssl_context* ssl )
         MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_start_handshake_msg( ssl,
                    MBEDTLS_SSL_HS_CERTIFICATE, &buf, &buf_len ) );
 
-        MBEDTLS_SSL_PROC_CHK( ssl_tls13_write_certificate( ssl, buf, buf_len,
-                                                           &msg_len ) );
+        MBEDTLS_SSL_PROC_CHK( ssl_tls13_write_certificate_body( ssl,
+                                                                buf,
+                                                                buf + buf_len,
+                                                                &msg_len ) );
 
         mbedtls_ssl_tls13_add_hs_msg_to_checksum( ssl,
                                                   MBEDTLS_SSL_HS_CERTIFICATE,

@@ -3807,6 +3807,64 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_SSL_PROTO_TLS1_3 */
+void psa_hkdf_extract( int alg, char *hex_ikm_string,
+                       char *hex_salt_string, char *hex_prk_string )
+{
+    unsigned char *ikm = NULL;
+    unsigned char *salt = NULL;
+    unsigned char *prk = NULL;
+    unsigned char *output_prk = NULL;
+    size_t ikm_len, salt_len, prk_len, output_prk_len;
+
+    output_prk_len = PSA_HASH_LENGTH( alg );
+    output_prk = mbedtls_calloc( 1, output_prk_len );
+
+    ikm = mbedtls_test_unhexify_alloc( hex_ikm_string, &ikm_len );
+    salt = mbedtls_test_unhexify_alloc( hex_salt_string, &salt_len );
+    prk = mbedtls_test_unhexify_alloc( hex_prk_string, &prk_len );
+
+    PSA_ASSERT( psa_crypto_init() );
+    PSA_ASSERT( mbedtls_psa_hkdf_extract( alg, salt, salt_len,
+                                          ikm, ikm_len, output_prk ) );
+
+    ASSERT_COMPARE( output_prk, output_prk_len, prk, prk_len );
+
+exit:
+    mbedtls_free(ikm);
+    mbedtls_free(salt);
+    mbedtls_free(prk);
+    mbedtls_free(output_prk);
+
+    PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_SSL_PROTO_TLS1_3 */
+void psa_hkdf_extract_ret( int hash_len, int ret )
+{
+    int output_ret;
+    unsigned char *salt = NULL;
+    unsigned char *ikm = NULL;
+    unsigned char *prk = NULL;
+    size_t salt_len, ikm_len;
+
+    prk = mbedtls_calloc( PSA_MAC_MAX_SIZE, 1 );
+    salt_len = hash_len;
+    ikm_len = 0;
+
+    PSA_ASSERT( psa_crypto_init() );
+    output_ret = mbedtls_psa_hkdf_extract( 0, salt, salt_len,
+                                           ikm, ikm_len, prk );
+    TEST_ASSERT( output_ret == ret );
+
+exit:
+    mbedtls_free(prk);
+
+    PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_SSL_PROTO_TLS1_3 */
 void psa_hkdf_expand( int alg, char *hex_info_string,
                       char *hex_prk_string, char *hex_okm_string )
 {

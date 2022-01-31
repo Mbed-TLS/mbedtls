@@ -1439,7 +1439,7 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
 
     if ( status != PSA_SUCCESS)
     {
-        ret = psa_status_to_mbedtls( status );
+        ret = ssl_psa_status_to_mbedtls( status );
         goto cleanup;
     }
 
@@ -1459,7 +1459,7 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
 
         if ( status != PSA_SUCCESS)
         {
-            ret = psa_status_to_mbedtls( status );
+            ret = ssl_psa_status_to_mbedtls( status );
             goto cleanup;
         }
 
@@ -1470,7 +1470,7 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
 
         if ( status != PSA_SUCCESS)
         {
-            ret = psa_status_to_mbedtls( status );
+            ret = ssl_psa_status_to_mbedtls( status );
             goto cleanup;
         }
 
@@ -1483,7 +1483,7 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
 
         if ( status != PSA_SUCCESS)
         {
-            ret = psa_status_to_mbedtls( status );
+            ret = ssl_psa_status_to_mbedtls( status );
             goto cleanup;
         }
 
@@ -1494,7 +1494,7 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
 
         if ( status != PSA_SUCCESS)
         {
-            ret = psa_status_to_mbedtls( status );
+            ret = ssl_psa_status_to_mbedtls( status );
             goto cleanup;
         }
     }

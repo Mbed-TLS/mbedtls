@@ -2056,7 +2056,7 @@ psa_status_t mbedtls_ssl_cipher_to_psa( mbedtls_cipher_type_t mbedtls_cipher_typ
  *
  * \return             corresponding mbedtls error code
  */
-static inline int psa_status_to_mbedtls( psa_status_t status )
+static inline int ssl_psa_status_to_mbedtls( psa_status_t status )
 {
     switch( status )
     {
@@ -2066,6 +2066,8 @@ static inline int psa_status_to_mbedtls( psa_status_t status )
             return( MBEDTLS_ERR_CIPHER_ALLOC_FAILED );
         case PSA_ERROR_NOT_SUPPORTED:
             return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+        case PSA_ERROR_INVALID_SIGNATURE:
+            return( MBEDTLS_ERR_SSL_INVALID_MAC );
         default:
             return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
     }

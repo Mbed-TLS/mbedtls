@@ -533,9 +533,9 @@ cleanup:
  * about whether the assignment was made or not.
  * (Leaking information about the respective sizes of X and Y is ok however.)
  */
-#if defined(_MSC_VER) && defined(_M_ARM64)
+#if defined(_MSC_VER) && defined(_M_ARM64) && (_MSC_FULL_VER < 193131103)
 /*
- * MSVC miscompiles this function if it's inlined. See:
+ * MSVC miscompiles this function if it's inlined prior to Visual Studio 2022 version 17.1. See:
  * https://developercommunity.visualstudio.com/t/c-compiler-miscompiles-part-of-mbedtls-library-on/1646989
  */
 __declspec(noinline)

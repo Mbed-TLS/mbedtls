@@ -4,7 +4,7 @@
  * This program AEAD-encrypts a message, using the algorithm and key size
  * specified on the command line, using the multi-part API.
  *
- * It comes with a companion program aead_psa.c, which does the same
+ * It comes with a companion program psa/aead_demo.c, which does the same
  * operations with the PSA Crypto API. The goal is that comparing the two
  * programs will help people migrating to the PSA Crypto API.
  *
@@ -18,7 +18,7 @@
  * On the other hand, with PSA, the algorithms encodes the desired tag length;
  * with Cipher the desired tag length needs to be tracked separately.
  *
- * This program and its companion aead_psa.c illustrate this by doing the
+ * This program and its companion psa/aead_demo.c illustrate this by doing the
  * same sequence of multi-part AEAD computation with both APIs; looking at the
  * two side by side should make the differences and similarities clear.
  */
@@ -66,7 +66,7 @@ int main( void )
 
 /* The real program starts here. */
 
-const char usage[] = "Usage: aead_psa [aes128-gcm|aes256-gcm|aes128-gcm_8|chachapoly]";
+const char usage[] = "Usage: aead_demo [aes128-gcm|aes256-gcm|aes128-gcm_8|chachapoly]";
 
 /* Dummy data for encryption: IV/nonce, additional data, 2-part message */
 const unsigned char iv1[12] = { 0x00 };

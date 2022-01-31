@@ -62,6 +62,7 @@ endif
 ## make sure to check that it still works if you tweak the format here.
 APPS = \
 	aes/crypt_and_hash \
+	cipher/aead_demo \
 	hash/generic_sum \
 	hash/hello \
 	hash/hmac_demo \
@@ -85,8 +86,7 @@ APPS = \
 	pkey/rsa_sign_pss \
 	pkey/rsa_verify \
 	pkey/rsa_verify_pss \
-	psa/aead_non_psa \
-	psa/aead_psa \
+	psa/aead_demo \
 	psa/crypto_examples \
 	psa/hmac_demo \
 	psa/key_ladder_demo \
@@ -176,6 +176,10 @@ test/query_config.c:
 aes/crypt_and_hash$(EXEXT): aes/crypt_and_hash.c $(DEP)
 	echo "  CC    aes/crypt_and_hash.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) aes/crypt_and_hash.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+cipher/aead_demo$(EXEXT): cipher/aead_demo.c $(DEP)
+	echo "  CC    cipher/aead_demo.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) cipher/aead_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 hash/generic_sum$(EXEXT): hash/generic_sum.c $(DEP)
 	echo "  CC    hash/generic_sum.c"
@@ -269,13 +273,9 @@ pkey/rsa_encrypt$(EXEXT): pkey/rsa_encrypt.c $(DEP)
 	echo "  CC    pkey/rsa_encrypt.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_encrypt.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-psa/aead_non_psa$(EXEXT): psa/aead_non_psa.c $(DEP)
-	echo "  CC    psa/aead_non_psa.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/aead_non_psa.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-psa/aead_psa$(EXEXT): psa/aead_psa.c $(DEP)
-	echo "  CC    psa/aead_psa.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/aead_psa.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+psa/aead_demo$(EXEXT): psa/aead_demo.c $(DEP)
+	echo "  CC    psa/aead_demo.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/aead_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 psa/crypto_examples$(EXEXT): psa/crypto_examples.c $(DEP)
 	echo "  CC    psa/crypto_examples.c"

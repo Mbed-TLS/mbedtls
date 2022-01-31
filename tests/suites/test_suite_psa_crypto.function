@@ -506,7 +506,7 @@ static int aead_multipart_internal_func( int key_type_arg, data_t *key_data,
 
             if( output_data && output_part_length )
             {
-                memcpy( ( output_data + part_offset ), part_data,
+                memcpy( ( output_data + output_length ), part_data,
                         output_part_length );
             }
 

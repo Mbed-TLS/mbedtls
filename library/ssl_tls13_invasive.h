@@ -28,6 +28,11 @@
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 
+int mbedtls_psa_hkdf_extract( psa_algorithm_t alg,
+                              const unsigned char *salt, size_t salt_len,
+                              const unsigned char *ikm, size_t ikm_len,
+                              unsigned char *prk );
+
 /**
  *  \brief  Expand the supplied \p prk into several additional pseudorandom
  *          keys, which is the output of the HKDF.

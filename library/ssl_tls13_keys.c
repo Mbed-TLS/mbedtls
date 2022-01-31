@@ -139,6 +139,57 @@ static void ssl_tls13_hkdf_encode_label(
 #if defined( MBEDTLS_TEST_HOOKS )
 
 MBEDTLS_STATIC_TESTABLE
+int mbedtls_psa_hkdf_extract( psa_algorithm_t alg,
+                              const unsigned char *salt, size_t salt_len,
+                              const unsigned char *ikm, size_t ikm_len,
+                              unsigned char *prk )
+{
+    unsigned char null_salt[PSA_MAC_MAX_SIZE] = { '\0' };
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    size_t prk_len;
+    int ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+
+    if( salt == NULL || salt_len == 0 )
+    {
+        size_t hash_len;
+
+        if( salt_len != 0 )
+        {
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+        }
+
+        //hash_len = mbedtls_md_get_size( md );
+        hash_len = PSA_HASH_LENGTH( alg );
+
+        if( hash_len == 0 )
+        {
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+        }
+
+        salt = null_salt;
+        salt_len = hash_len;
+    }
+
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_MESSAGE );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, PSA_KEY_TYPE_HMAC );
+
+    ret = psa_import_key( &attributes, salt, salt_len, &key );
+    if( PSA_SUCCESS != ret )
+    {
+        goto cleanup;
+    }
+
+    ret = psa_mac_compute( key, alg, ikm, ikm_len, prk, PSA_HASH_LENGTH( alg ), &prk_len );
+
+cleanup:
+    psa_destroy_key( key );
+
+    return( ret );
+}
+
+MBEDTLS_STATIC_TESTABLE
 psa_status_t mbedtls_psa_hkdf_expand( psa_algorithm_t alg,
                                       const unsigned char *prk, size_t prk_len,
                                       const unsigned char *info, size_t info_len,

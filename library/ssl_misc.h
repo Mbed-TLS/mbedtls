@@ -2056,7 +2056,7 @@ psa_status_t mbedtls_ssl_cipher_to_psa( mbedtls_cipher_type_t mbedtls_cipher_typ
  *
  * \return             corresponding mbedtls error code
  */
-static inline int ssl_psa_status_to_mbedtls( psa_status_t status )
+static inline int psa_ssl_status_to_mbedtls( psa_status_t status )
 {
     switch( status )
     {

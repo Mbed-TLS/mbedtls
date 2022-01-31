@@ -15,6 +15,7 @@
 aes/crypt_and_hash
 hash/generic_sum
 hash/hello
+hash/hmac_demo
 hash/md5sum
 hash/sha1sum
 hash/sha2sum
@@ -41,8 +42,7 @@ pkey/rsa_verify_pss
 psa/aead_non_psa
 psa/aead_psa
 psa/crypto_examples
-psa/hmac_non_psa
-psa/hmac_psa
+psa/hmac_demo
 psa/key_ladder_demo
 psa/psa_constant_names
 random/gen_entropy

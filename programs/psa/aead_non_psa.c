@@ -1,8 +1,29 @@
-/*
- * This is a companion to aead_psa.c, doing the same operations with the
- * legacy Cipher API. The goal is that comparing the two programs will help people
- * migrating to the PSA Crypto API.
+/**
+ * Cipher API multi-part AEAD demonstration.
  *
+ * This program AEAD-encrypts a message, using the algorithm and key size
+ * specified on the command line, using the multi-part API.
+ *
+ * It comes with a companion program aead_psa.c, which does the same
+ * operations with the PSA Crypto API. The goal is that comparing the two
+ * programs will help people migrating to the PSA Crypto API.
+ *
+ * When used with multi-part AEAD operations, the `mbedtls_cipher_context`
+ * serves a triple purpose (1) hold the key, (2) store the algorithm when no
+ * operation is active, and (3) save progress information for the current
+ * operation. With PSA those roles are held by disinct objects: (1) a
+ * psa_key_id_t to hold the key, a (2) psa_algorithm_t to represent the
+ * algorithm, and (3) a psa_operation_t for multi-part progress.
+ *
+ * On the other hand, with PSA, the algorithms encodes the desired tag length;
+ * with Cipher the desired tag length needs to be tracked separately.
+ *
+ * This program and its companion aead_psa.c illustrate this by doing the
+ * same sequence of multi-part AEAD computation with both APIs; looking at the
+ * two side by side should make the differences and similarities clear.
+ */
+
+/*
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
@@ -19,26 +40,18 @@
  *  limitations under the License.
  */
 
-/*
- * When used with multi-part AEAD operations, the `mbedtls_cipher_context`
- * serves a triple purpose (1) hold the key, (2) store the algorithm when no
- * operation is active, and (3) save progress information for the current
- * operation. With PSA those roles are held by disinct objects: (1) a
- * psa_key_id_t to hold the key, a (2) psa_algorithm_t to represent the
- * algorithm, and (3) a psa_operation_t for multi-part progress.
- *
- * On the other hand, with PSA, the algorithms encodes the desired tag length;
- * with Cipher the desired tag length needs to be tracked separately.
- *
- * This program and its compation aead_psa.c illustrate this by doing the
- * same sequence of multi-part AEAD computation with both APIs; looking at the
- * two side by side should make the differences and similarities clear.
- */
-
-#include <stdio.h>
-
+/* First include Mbed TLS headers to get the Mbed TLS configuration and
+ * platform definitions that we'll use in this program. Also include
+ * standard C headers for functions we'll use here. */
 #include "mbedtls/build_info.h"
 
+#include "mbedtls/cipher.h"
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+/* If the build options we need are not enabled, compile a placeholder. */
 #if !defined(MBEDTLS_CIPHER_C) || \
     !defined(MBEDTLS_AES_C) || !defined(MBEDTLS_GCM_C) || \
     !defined(MBEDTLS_CHACHAPOLY_C)
@@ -51,52 +64,67 @@ int main( void )
 }
 #else
 
-#include <string.h>
+/* The real program starts here. */
 
-#include "mbedtls/cipher.h"
+const char usage[] = "Usage: aead_psa [aes128-gcm|aes256-gcm|aes128-gcm_8|chachapoly]";
 
-/*
- * Dummy data and helper functions
- */
-const char usage[] = "Usage: aead_non_psa [aes128-gcm|aes256-gcm|aes128-gcm_8|chachapoly]";
-
+/* Dummy data for encryption: IV/nonce, additional data, 2-part message */
 const unsigned char iv1[12] = { 0x00 };
 const unsigned char add_data1[] = { 0x01, 0x02 };
 const unsigned char msg1_part1[] = { 0x03, 0x04 };
 const unsigned char msg1_part2[] = { 0x05, 0x06, 0x07 };
 
+/* Dummy data (2nd message) */
 const unsigned char iv2[12] = { 0x10 };
 const unsigned char add_data2[] = { 0x11, 0x12 };
 const unsigned char msg2_part1[] = { 0x13, 0x14 };
 const unsigned char msg2_part2[] = { 0x15, 0x16, 0x17 };
 
+/* This must at least the sum of the length of the 2 parts for each message.
+ * This is a macro for the sake of compilers with insufficient C99 support. */
 #define MSG_MAX_SIZE 5
 
+/* Dummy key material - never do this in production!
+ * 32-byte is enough to all the key size supported by this program. */
 const unsigned char key_bytes[32] = { 0x2a };
 
-void print_out( const char *title, unsigned char *out, size_t len )
+/* Print the contents of a buffer in hex */
+void print_buf( const char *title, unsigned char *buf, size_t len )
 {
     printf( "%s:", title );
     for( size_t i = 0; i < len; i++ )
-        printf( " %02x", out[i] );
+        printf( " %02x", buf[i] );
     printf( "\n" );
 }
 
-#define CHK( code )         \
-    do {                    \
-        ret = code;         \
-        if( ret != 0 ) {    \
-            printf( "%03d: ret = -0x%04x\n", __LINE__, (unsigned) -ret ); \
-            goto exit;      \
-        }                   \
+/* Run an Mbed TLS function and bail out if it fails. */
+#define CHK( expr )                                             \
+    do                                                          \
+    {                                                           \
+        ret = ( expr );                                         \
+        if( ret != 0 )                                          \
+        {                                                       \
+            printf( "Error %d at line %d: %s\n",                \
+                    ret,                                        \
+                    __LINE__,                                   \
+                    #expr );                                    \
+            goto exit;                                          \
+        }                                                       \
     } while( 0 )
 
+/*
+ * Prepare encryption material:
+ * - interpret command-line argument
+ * - set up key
+ * - outputs: context and tag length, which together hold all the information
+ */
 static int aead_prepare( const char *info,
                            mbedtls_cipher_context_t *ctx,
                            size_t *tag_len )
 {
     int ret;
 
+    /* Convert arg to type + tag_len */
     mbedtls_cipher_type_t type;
     if( strcmp( info, "aes128-gcm" ) == 0 ) {
         type = MBEDTLS_CIPHER_AES_128_GCM;
@@ -115,9 +143,11 @@ static int aead_prepare( const char *info,
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
     }
 
+    /* Prepare context for the given type */
     CHK( mbedtls_cipher_setup( ctx,
                                mbedtls_cipher_info_from_type( type ) ) );
 
+    /* Import key */
     int key_len = mbedtls_cipher_get_key_bitlen( ctx );
     CHK( mbedtls_cipher_setkey( ctx, key_bytes, key_len, MBEDTLS_ENCRYPT ) );
 
@@ -125,9 +155,15 @@ exit:
     return( ret );
 }
 
+/*
+ * Print out some information.
+ *
+ * All of this information was present in the command line argument, but his
+ * function demonstrates how each piece can be recovered from (ctx, tag_len).
+ */
 static void aead_info( const mbedtls_cipher_context_t *ctx, size_t tag_len )
 {
-    // no convenient way to get the cipher type (for example, AES)
+    // no convenient way to get the just cipher type (for example, AES)
     const char *ciph = "???";
     int key_bits = mbedtls_cipher_get_key_bitlen( ctx );
     mbedtls_cipher_mode_t mode = mbedtls_cipher_get_cipher_mode( ctx );
@@ -139,6 +175,9 @@ static void aead_info( const mbedtls_cipher_context_t *ctx, size_t tag_len )
     printf( "cipher: %s, %d, %s, %u\n", ciph, key_bits, mode_str, (unsigned) tag_len );
 }
 
+/*
+ * Encrypt a 2-part message.
+ */
 static int aead_encrypt( mbedtls_cipher_context_t *ctx, size_t tag_len,
         const unsigned char *iv, size_t iv_len,
         const unsigned char *ad, size_t ad_len,
@@ -163,12 +202,15 @@ static int aead_encrypt( mbedtls_cipher_context_t *ctx, size_t tag_len,
     p += tag_len;
 
     olen = p - out;
-    print_out( "cipher", out, olen );
+    print_buf( "cipher", out, olen );
 
 exit:
     return( ret );
 }
 
+/*
+ * AEAD demo: set up key/alg, print out info, encrypt messages.
+ */
 static int aead_demo( const char *info )
 {
     int ret = 0;
@@ -203,13 +245,20 @@ exit:
  */
 int main( int argc, char **argv )
 {
+    /* Check usage */
     if( argc != 2 )
     {
         puts( usage );
         return( 1 );
     }
 
-    aead_demo( argv[1] );
+    int ret;
+
+    /* Run the demo */
+    CHK( aead_demo( argv[1] ) );
+
+exit:
+    return( ret == 0 ? EXIT_SUCCESS : EXIT_FAILURE );
 }
 
 #endif

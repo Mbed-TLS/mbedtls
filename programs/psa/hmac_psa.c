@@ -42,6 +42,8 @@
 
 #include "psa/crypto.h"
 
+#include "mbedtls/platform_util.h" // for mbedtls_platform_zeroize
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -68,15 +70,12 @@ const unsigned char msg2_part2[] = { 0x06, 0x06 };
  * This example program uses SHA-256, so a 32-byte key makes sense. */
 const unsigned char key_bytes[32] = { 0 };
 
-/* Buffer for the output - using SHA-256, so 32-byte output */
-unsigned char out[32];
-
-/* Print the contents of the output buffer in hex */
-void print_out( const char *title )
+/* Print the contents of a buffer in hex */
+void print_buf( const char *title, uint8_t *buf, size_t len )
 {
     printf( "%s:", title );
-    for( size_t i = 0; i < sizeof( out ); i++ )
-        printf( " %02x", out[i] );
+    for( size_t i = 0; i < len; i++ )
+        printf( " %02x", buf[i] );
     printf( "\n" );
 }
 
@@ -103,9 +102,14 @@ void print_out( const char *title )
 psa_status_t hmac_demo(void)
 {
     psa_status_t status;
+#define ALG PSA_ALG_HMAC(PSA_ALG_SHA_256)
+    const psa_algorithm_t alg = ALG;
+    // compilers with insufficient C99 support don't accept the const variable
+    // 'alg' here, so use a macro instead in order to pacify them
+    uint8_t out[PSA_MAC_LENGTH(PSA_KEY_TYPE_HMAC, 8 * sizeof( key_bytes ), ALG)];
+
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_id_t key = 0;
-    psa_algorithm_t alg = PSA_ALG_HMAC(PSA_ALG_SHA_256);
 
     /* prepare key */
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_MESSAGE );
@@ -126,18 +130,19 @@ psa_status_t hmac_demo(void)
     PSA_CHECK( psa_mac_update( &op, msg1_part1, sizeof( msg1_part1 ) ) );
     PSA_CHECK( psa_mac_update( &op, msg1_part2, sizeof( msg1_part2 ) ) );
     PSA_CHECK( psa_mac_sign_finish( &op, out, sizeof( out ), &out_len ) );
-    print_out( "msg1" );
+    print_buf( "msg1", out, sizeof( out ) );
 
     /* compute HMAC(key, msg2_part1 | msg2_part2) */
     PSA_CHECK( psa_mac_sign_setup( &op, key, alg ) );
     PSA_CHECK( psa_mac_update( &op, msg2_part1, sizeof( msg2_part1 ) ) );
     PSA_CHECK( psa_mac_update( &op, msg2_part2, sizeof( msg2_part2 ) ) );
     PSA_CHECK( psa_mac_sign_finish( &op, out, sizeof( out ), &out_len ) );
-    print_out( "msg2" );
+    print_buf( "msg2", out, sizeof( out ) );
 
 exit:
     psa_mac_abort( &op ); // needed on error, harmless on success
     psa_destroy_key( key );
+    mbedtls_platform_zeroize( out, sizeof( out ) );
 
     return( status );
 }

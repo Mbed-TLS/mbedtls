@@ -5096,7 +5096,10 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
 
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if ( transform->psa_alg == PSA_ALG_IS_AEAD( transform->psa_alg ) ||
+    if ( transform->psa_alg == PSA_ALG_GCM ||
+         transform->psa_alg == PSA_ALG_CCM ||
+         transform->psa_alg == PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, 8 ) ||
+         transform->psa_alg == PSA_ALG_CHACHA20_POLY1305 ||
          transform->psa_alg == MBEDTLS_SSL_NULL_CIPHER )
     {
         transform_expansion = transform->minlen;

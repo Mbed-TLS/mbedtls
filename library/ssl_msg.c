@@ -5101,7 +5101,7 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
     {
         transform_expansion = transform->minlen;
     }
-    else if ( transform->psa_alg )
+    else if ( transform->psa_alg == PSA_ALG_CBC_NO_PADDING )
     {
         (void) psa_get_key_attributes( transform->psa_key_enc, &attr );
         key_type = psa_get_key_type( &attr );

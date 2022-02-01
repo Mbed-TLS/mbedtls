@@ -108,21 +108,22 @@ int hmac_demo(void)
 
     /* prepare context and load key */
     // the last argument to setup is 1 to enable HMAC (not just hashing)
-    CHK( mbedtls_md_setup( &ctx, mbedtls_md_info_from_type( alg ), 1 ) );
+    const mbedtls_md_info_t *info = mbedtls_md_info_from_type( alg );
+    CHK( mbedtls_md_setup( &ctx, info, 1 ) );
     CHK( mbedtls_md_hmac_starts( &ctx, key_bytes, sizeof( key_bytes ) ) );
 
     /* compute HMAC(key, msg1_part1 | msg1_part2) */
     CHK( mbedtls_md_hmac_update( &ctx, msg1_part1, sizeof( msg1_part1 ) ) );
     CHK( mbedtls_md_hmac_update( &ctx, msg1_part2, sizeof( msg1_part2 ) ) );
     CHK( mbedtls_md_hmac_finish( &ctx, out ) );
-    print_buf( "msg1", out, sizeof( out ) );
+    print_buf( "msg1", out, mbedtls_md_get_size( info ) );
 
     /* compute HMAC(key, msg2_part1 | msg2_part2) */
     CHK( mbedtls_md_hmac_reset( &ctx ) ); // prepare for new operation
     CHK( mbedtls_md_hmac_update( &ctx, msg2_part1, sizeof( msg2_part1 ) ) );
     CHK( mbedtls_md_hmac_update( &ctx, msg2_part2, sizeof( msg2_part2 ) ) );
     CHK( mbedtls_md_hmac_finish( &ctx, out ) );
-    print_buf( "msg2", out, sizeof( out ) );
+    print_buf( "msg2", out, mbedtls_md_get_size( info ) );
 
 exit:
     mbedtls_md_free( &ctx );

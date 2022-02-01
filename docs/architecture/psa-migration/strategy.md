@@ -39,7 +39,10 @@ We currently have two compile-time options that are relevant to the migration:
 
 The reasons why `MBEDTLS_USE_PSA_CRYPTO` is optional and disabled by default
 are:
-- it's incompatible with `MBEDTLS_ECP_RESTARTABLE`, and `MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER`;
+- it's incompatible with `MBEDTLS_ECP_RESTARTABLE`;
+- historical: used to be incompatible
+  `MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER` (fixed early 2022, see
+    <https://github.com/ARMmbed/mbedtls/issues/5259>);
 - it does not work well with `MBEDTLS_PSA_CRYPTO_CONFIG` (could compile with
   both of them, but then `MBEDTLS_PSA_CRYPTO_CONFIG` won't have the desired
 effect)
@@ -47,10 +50,13 @@ effect)
   `MBEDTLS_PSA_CRYPTO_C`, for backards compatibility reasons:
   - when `MBEDTLS_PSA_CRYPTO_C` is enabled and used, applications need to call
     `psa_crypto_init()` before TLS/X.509 uses PSA functions
-  - `MBEDTLS_PSA_CRYPTO_C` has a hard depend on `MBEDTLS_ENTROPY_C` but it's
-    currently possible to compilte TLS and X.509 without `MBEDTLS_ENTROPY_C`.
+  - `MBEDTLS_PSA_CRYPTO_C` has a hard depend on `MBEDTLS_ENTROPY_C ||
+    MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG` but it's
+    currently possible to compilte TLS and X.509 without any of the options.
     Also, we can't just auto-enable `MBEDTLS_ENTROPY_C` as it doesn't build
-    out of the box on all platforms.
+    out of the box on all platforms, and even less
+    `MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG` as it requires a user-provided RNG
+    function.
 
 The downside of this approach is that until we feel ready to make
 `MBDEDTLS_USE_PSA_CRYPTO` non-optional (always enabled), we have to maintain
@@ -82,6 +88,8 @@ restartable behaviour was requested at run-time (in addition to enabling
 
 ### `MBEDTLS_PSA_CRYPTO_CONFIG`
 
+(This section taken from a comment by Gilles.)
+
 X509 and TLS code use `MBEDTLS_xxx` macros to decide whether an algorithm is
 supported. This doesn't make `MBEDTLS_USE_PSA_CRYPTO` incompatible with
 `MBEDTLS_PSA_CRYPTO_CONFIG` per se, but it makes it incompatible with most
@@ -105,22 +113,6 @@ protocol featues, because implementing that architecture will require changes
 to the existing code and the less code there is at this point the better,
 whereas extending to more procotol features will require the same amount of
 work either way.
-
-### `MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER`
-
-When `MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER` is enabled, the library is
-built for use with an RPC server that dispatches PSA crypto function calls
-from multiple clients. In such a build, all the `psa_xxx` functions that take
-would normally take a `psa_key_id_t` as argument instead take a structure
-containing both the key id and the client id. And so if e.g. a TLS function
-calls `psa_import_key`, it would have to pass this structure, not just the
-`psa_key_id_t` key id.
-
-A solution is to use `mbedtls_svc_key_id_t` throughout instead of
-`psa_key_id_t`, and use similar abstractions to define values.
-
-That's what we're implemementing in early 2022, see
-https://github.com/ARMmbed/mbedtls/issues/5259
 
 ### Backwars compatibility issues with making it always on
 

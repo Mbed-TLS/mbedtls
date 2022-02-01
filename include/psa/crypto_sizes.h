@@ -175,7 +175,7 @@
 #define PSA_AEAD_TAG_LENGTH(key_type, key_bits, alg)                        \
     (PSA_AEAD_NONCE_LENGTH(key_type, alg) != 0 ?                            \
      PSA_ALG_AEAD_GET_TAG_LENGTH(alg) :                                     \
-     ((void) (key_bits), 0))
+     0u & (key_bits))
 
 /** The maximum tag size for all supported AEAD algorithms, in bytes.
  *
@@ -275,7 +275,7 @@
     ((alg) & PSA_ALG_MAC_TRUNCATION_MASK ? PSA_MAC_TRUNCATED_LENGTH(alg) :        \
      PSA_ALG_IS_HMAC(alg) ? PSA_HASH_LENGTH(PSA_ALG_HMAC_GET_HASH(alg)) :         \
      PSA_ALG_IS_BLOCK_CIPHER_MAC(alg) ? PSA_BLOCK_CIPHER_BLOCK_LENGTH(key_type) : \
-     ((void) (key_type), (void) (key_bits), 0))
+     0u & (key_type) & (key_bits))
 
 /** The maximum size of the output of psa_aead_encrypt(), in bytes.
  *
@@ -590,9 +590,9 @@
  *         return value is unspecified.
  */
 #define PSA_SIGN_OUTPUT_SIZE(key_type, key_bits, alg)        \
-    (PSA_KEY_TYPE_IS_RSA(key_type) ? ((void) alg, PSA_BITS_TO_BYTES(key_bits)) : \
+    (PSA_KEY_TYPE_IS_RSA(key_type) ? PSA_BITS_TO_BYTES(key_bits) :      \
      PSA_KEY_TYPE_IS_ECC(key_type) ? PSA_ECDSA_SIGNATURE_SIZE(key_bits) : \
-     ((void) alg, 0))
+     0u & (alg))
 
 #define PSA_VENDOR_ECDSA_SIGNATURE_MAX_SIZE     \
     PSA_ECDSA_SIGNATURE_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)
@@ -636,8 +636,8 @@
  */
 #define PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE(key_type, key_bits, alg)     \
     (PSA_KEY_TYPE_IS_RSA(key_type) ?                                    \
-     ((void) alg, PSA_BITS_TO_BYTES(key_bits)) :                         \
-     0)
+     (PSA_BITS_TO_BYTES(key_bits)) :                                    \
+     0u & (alg))
 
 /** A sufficient output buffer size for psa_asymmetric_encrypt(), for any
  *  supported asymmetric encryption.

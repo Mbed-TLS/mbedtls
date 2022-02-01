@@ -9,9 +9,11 @@ General considerations
 ----------------------
 
 There needs to be at least one build in `all.sh` that enables
-`MBEDTLS_USE_PSA_CRYPTO` and runs the full battery of tests. Currently that's
+`MBEDTLS_USE_PSA_CRYPTO` and runs the full battery of tests; currently that's
 ensured by the fact that `scripts/config.py full` enables
-`MBEDTLS_USE_PSA_CRYPTO`.
+`MBEDTLS_USE_PSA_CRYPTO`. There needs to be at least one build with
+`MBEDTLS_USE_PSA_CRYPTO` disabled (as long as it's optional); currently that's
+ensured by the fact that it's disabled in the default config.
 
 Generally, code review is enough to ensure that PSA APIs are indeed used where
 they should be when `MBEDTLS_USE_PSA_CRYPTO` is enabled.
@@ -56,8 +58,9 @@ In that case, we want:
     (We should have something similar for
     `mbedtls_x509write_crt_set_issuer_key()`.)
 
-For some APIs, for example with `mbedtls_ssl_conf_psk_opaque()`, unit testing
-does not make sense, so we only have integration testing.
+For some APIs, for example with `mbedtls_ssl_conf_psk_opaque()`, testing in
+`test_suite_ssl` was historicaly not possible, so we only have testing in
+`ssl-opt.sh`.
 
 New APIs meant for internal use
 -------------------------------
@@ -89,7 +92,8 @@ For example, use of PSA to compute the TLS 1.2 PRF.
 
 Changes in this category rarely require specific testing, as everything should
 be already be covered by running the existing tests in a build with
-`MBEDTLS_USE_PSA_CRYPTO` enabled.
+`MBEDTLS_USE_PSA_CRYPTO` enabled; however we need to make sure the existing
+test have sufficient coveraged, and improve them if necessary.
 
 However, if additional logic is involved, or there are run-time decisions about
 whether to use the PSA or legacy code paths, specific tests might be in order.

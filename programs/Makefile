@@ -62,10 +62,10 @@ endif
 ## make sure to check that it still works if you tweak the format here.
 APPS = \
 	aes/crypt_and_hash \
-	cipher/aead_demo \
+	cipher/cipher_aead_demo \
 	hash/generic_sum \
 	hash/hello \
-	hash/hmac_demo \
+	hash/md_hmac_demo \
 	pkey/dh_client \
 	pkey/dh_genprime \
 	pkey/dh_server \
@@ -177,9 +177,9 @@ aes/crypt_and_hash$(EXEXT): aes/crypt_and_hash.c $(DEP)
 	echo "  CC    aes/crypt_and_hash.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) aes/crypt_and_hash.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-cipher/aead_demo$(EXEXT): cipher/aead_demo.c $(DEP)
-	echo "  CC    cipher/aead_demo.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) cipher/aead_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+cipher/cipher_aead_demo$(EXEXT): cipher/cipher_aead_demo.c $(DEP)
+	echo "  CC    cipher/cipher_aead_demo.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) cipher/cipher_aead_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 hash/generic_sum$(EXEXT): hash/generic_sum.c $(DEP)
 	echo "  CC    hash/generic_sum.c"
@@ -189,9 +189,9 @@ hash/hello$(EXEXT): hash/hello.c $(DEP)
 	echo "  CC    hash/hello.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) hash/hello.c       $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-hash/hmac_demo$(EXEXT): hash/hmac_demo.c $(DEP)
-	echo "  CC    hash/hmac_demo.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) hash/hmac_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+hash/md_hmac_demo$(EXEXT): hash/md_hmac_demo.c $(DEP)
+	echo "  CC    hash/md_hmac_demo.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) hash/md_hmac_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 pkey/dh_client$(EXEXT): pkey/dh_client.c $(DEP)
 	echo "  CC    pkey/dh_client.c"

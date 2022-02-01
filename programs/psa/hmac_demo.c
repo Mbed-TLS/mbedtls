@@ -3,7 +3,7 @@
  *
  * This programs computes the HMAC of two messages using the multi-part API.
  *
- * It comes with a companion program hash/hmac_demo.c, which does the same
+ * It comes with a companion program hash/md_hmac_demo.c, which does the same
  * operations with the legacy MD API. The goal is that comparing the two
  * programs will help people migrating to the PSA Crypto API.
  *
@@ -13,7 +13,7 @@
  * objects: (1) a psa_key_id_t to hold the key, and (2) a psa_operation_t for
  * multi-part progress.
  *
- * This program and its companion hash/hmac_demo.c illustrate this by doing the
+ * This program and its companion hash/md_hmac_demo.c illustrate this by doing the
  * same sequence of multi-part HMAC computation with both APIs; looking at the
  * two side by side should make the differences and similarities clear.
  */

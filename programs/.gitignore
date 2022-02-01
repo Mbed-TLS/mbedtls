@@ -13,10 +13,10 @@
 *.exe
 
 aes/crypt_and_hash
-cipher/aead_demo
+cipher/cipher_aead_demo
 hash/generic_sum
 hash/hello
-hash/hmac_demo
+hash/md_hmac_demo
 hash/md5sum
 hash/sha1sum
 hash/sha2sum

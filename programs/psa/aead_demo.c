@@ -4,7 +4,7 @@
  * This program AEAD-encrypts a message, using the algorithm and key size
  * specified on the command line, using the multi-part API.
  *
- * It comes with a companion program cipher/aead_demo.c, which does the same
+ * It comes with a companion program cipher/cipher_aead_demo.c, which does the same
  * operations with the legacy Cipher API. The goal is that comparing the two
  * programs will help people migrating to the PSA Crypto API.
  *
@@ -18,7 +18,7 @@
  * On the other hand, with PSA, the algorithms encodes the desired tag length;
  * with Cipher the desired tag length needs to be tracked separately.
  *
- * This program and its companion cipher/aead_demo.c illustrate this by doing the
+ * This program and its companion cipher/cipher_aead_demo.c illustrate this by doing the
  * same sequence of multi-part AEAD computation with both APIs; looking at the
  * two side by side should make the differences and similarities clear.
  */

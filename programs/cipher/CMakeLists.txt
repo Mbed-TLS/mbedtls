@@ -1,5 +1,5 @@
 set(executables
-    aead_demo
+    cipher_aead_demo
 )
 
 foreach(exe IN LISTS executables)

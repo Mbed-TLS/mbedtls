@@ -66,7 +66,7 @@ int main( void )
 
 /* The real program starts here. */
 
-const char usage[] = "Usage: aead_demo [aes128-gcm|aes256-gcm|aes128-gcm_8|chachapoly]";
+const char usage[] = "Usage: cipher_aead_demo [aes128-gcm|aes256-gcm|aes128-gcm_8|chachapoly]";
 
 /* Dummy data for encryption: IV/nonce, additional data, 2-part message */
 const unsigned char iv1[12] = { 0x00 };

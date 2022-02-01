@@ -1,0 +1,3 @@
+Bugfix
+   * Fix the implementation of some PSA buffer size macros that expanded
+     to non-constant expressions. Fixes #4320.

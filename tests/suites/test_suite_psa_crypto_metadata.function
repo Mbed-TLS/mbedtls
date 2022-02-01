@@ -735,3 +735,137 @@ void lifetime(int lifetime_arg, int classification_flags,
     TEST_EQUAL(PSA_KEY_LIFETIME_GET_LOCATION(lifetime), location);
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void constant_sizes()
+{
+    /* The goal of this test function is to verify that sizez macros
+     * are compile-time constants. If they aren't, the build will fail
+     * if the compiler doesn't accept variable-length arrays. */
+    /* Define each argument name as a compile-time constant. This can be
+     * almost anything since we don't care about the value. If you add one,
+     * don't forget to #undef it below. */
+#define alg 0
+#define bits 0
+#define block_size 1 // 0 would cause a division by zero
+#define bytes 0
+#define ciphertext_length 0
+#define curve_bits 0
+#define input_length 0
+#define key_bits 0
+#define key_type 0
+#define length 0
+#define plaintext_length 0
+    union all_sizes_must_be_constant {
+        /* For every size macro: unsigned char a_FOO[1 + FOO(...)].
+         * Add 1 so that the result is guaranteed to be nonzero (since we
+         * don't bother to pass "sensible" parameters to the size macros,
+         * most of the calls return 0).
+         */
+        // The fields of this union were generated with the following command:
+        //     sed -n 's/^ *# *define  *\([A-Z_a-z][0-9A-Z_a-z]*\)\(([^()]*)\).*/        unsigned char a_\1[1 + \1\2];/p' include/psa/crypto_sizes.h
+        unsigned char a_PSA_BYTES_TO_BITS[1 + PSA_BYTES_TO_BITS(bytes)];
+        unsigned char a_PSA_ROUND_UP_TO_MULTIPLE[1 + PSA_ROUND_UP_TO_MULTIPLE(block_size, length)];
+        unsigned char a_PSA_HASH_LENGTH[1 + PSA_HASH_LENGTH(alg)];
+        unsigned char a_PSA_HASH_BLOCK_LENGTH[1 + PSA_HASH_BLOCK_LENGTH(alg)];
+        unsigned char a_PSA_AEAD_TAG_LENGTH[1 + PSA_AEAD_TAG_LENGTH(key_type, key_bits, alg)];
+        unsigned char a_PSA_MAC_LENGTH[1 + PSA_MAC_LENGTH(key_type, key_bits, alg)];
+        unsigned char a_PSA_AEAD_ENCRYPT_OUTPUT_SIZE[1 +
+                                                     PSA_AEAD_ENCRYPT_OUTPUT_SIZE(key_type, alg,
+                                                                                  plaintext_length)];
+        unsigned char a_PSA_AEAD_ENCRYPT_OUTPUT_MAX_SIZE[1 +
+                                                         PSA_AEAD_ENCRYPT_OUTPUT_MAX_SIZE(
+                                                             plaintext_length)];
+        unsigned char a_PSA_AEAD_DECRYPT_OUTPUT_SIZE[1 +
+                                                     PSA_AEAD_DECRYPT_OUTPUT_SIZE(key_type, alg,
+                                                                                  ciphertext_length)
+        ];
+        unsigned char a_PSA_AEAD_DECRYPT_OUTPUT_MAX_SIZE[1 +
+                                                         PSA_AEAD_DECRYPT_OUTPUT_MAX_SIZE(
+                                                             ciphertext_length)];
+        unsigned char a_PSA_AEAD_NONCE_LENGTH[1 + PSA_AEAD_NONCE_LENGTH(key_type, alg)];
+        unsigned char a_PSA_AEAD_UPDATE_OUTPUT_SIZE[1 +
+                                                    PSA_AEAD_UPDATE_OUTPUT_SIZE(key_type, alg,
+                                                                                input_length)];
+        unsigned char a_PSA_AEAD_UPDATE_OUTPUT_MAX_SIZE[1 +
+                                                        PSA_AEAD_UPDATE_OUTPUT_MAX_SIZE(
+                                                            input_length)];
+        unsigned char a_PSA_AEAD_FINISH_OUTPUT_SIZE[1 + PSA_AEAD_FINISH_OUTPUT_SIZE(key_type, alg)];
+        unsigned char a_PSA_AEAD_VERIFY_OUTPUT_SIZE[1 + PSA_AEAD_VERIFY_OUTPUT_SIZE(key_type, alg)];
+        unsigned char a_PSA_RSA_MINIMUM_PADDING_SIZE[1 + PSA_RSA_MINIMUM_PADDING_SIZE(alg)];
+        unsigned char a_PSA_ECDSA_SIGNATURE_SIZE[1 + PSA_ECDSA_SIGNATURE_SIZE(curve_bits)];
+        unsigned char a_PSA_SIGN_OUTPUT_SIZE[1 + PSA_SIGN_OUTPUT_SIZE(key_type, key_bits, alg)];
+        unsigned char a_PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE[1 +
+                                                           PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE(
+                                                               key_type, key_bits, alg)];
+        unsigned char a_PSA_ASYMMETRIC_DECRYPT_OUTPUT_SIZE[1 +
+                                                           PSA_ASYMMETRIC_DECRYPT_OUTPUT_SIZE(
+                                                               key_type, key_bits, alg)];
+        unsigned char a_PSA_KEY_EXPORT_ASN[1 + PSA_KEY_EXPORT_ASN1_INTEGER_MAX_SIZE(bits)];
+        unsigned char a_PSA_KEY_EXPORT_RSA_PUBLIC_KEY_MAX_SIZE[1 +
+                                                               PSA_KEY_EXPORT_RSA_PUBLIC_KEY_MAX_SIZE(
+                                                                   key_bits)];
+        unsigned char a_PSA_KEY_EXPORT_RSA_KEY_PAIR_MAX_SIZE[1 +
+                                                             PSA_KEY_EXPORT_RSA_KEY_PAIR_MAX_SIZE(
+                                                                 key_bits)];
+        unsigned char a_PSA_KEY_EXPORT_DSA_PUBLIC_KEY_MAX_SIZE[1 +
+                                                               PSA_KEY_EXPORT_DSA_PUBLIC_KEY_MAX_SIZE(
+                                                                   key_bits)];
+        unsigned char a_PSA_KEY_EXPORT_DSA_KEY_PAIR_MAX_SIZE[1 +
+                                                             PSA_KEY_EXPORT_DSA_KEY_PAIR_MAX_SIZE(
+                                                                 key_bits)];
+        unsigned char a_PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE[1 +
+                                                               PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE(
+                                                                   key_bits)];
+        unsigned char a_PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE[1 +
+                                                             PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(
+                                                                 key_bits)];
+        unsigned char a_PSA_EXPORT_KEY_OUTPUT_SIZE[1 + PSA_EXPORT_KEY_OUTPUT_SIZE(key_type,
+                                                                                  key_bits)];
+        unsigned char a_PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE[1 +
+                                                          PSA_EXPORT_PUBLIC_KEY_OUTPUT_SIZE(
+                                                              key_type,
+                                                              key_bits)
+        ];
+        unsigned char a_PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE[1 +
+                                                          PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE(
+                                                              key_type,
+                                                              key_bits)
+        ];
+        unsigned char a_PSA_CIPHER_IV_LENGTH[1 + PSA_CIPHER_IV_LENGTH(key_type, alg)];
+        unsigned char a_PSA_CIPHER_ENCRYPT_OUTPUT_SIZE[1 +
+                                                       PSA_CIPHER_ENCRYPT_OUTPUT_SIZE(key_type, alg,
+                                                                                      input_length)];
+        unsigned char a_PSA_CIPHER_ENCRYPT_OUTPUT_MAX_SIZE[1 +
+                                                           PSA_CIPHER_ENCRYPT_OUTPUT_MAX_SIZE(
+                                                               input_length)];
+        unsigned char a_PSA_CIPHER_DECRYPT_OUTPUT_SIZE[1 +
+                                                       PSA_CIPHER_DECRYPT_OUTPUT_SIZE(key_type, alg,
+                                                                                      input_length)];
+        unsigned char a_PSA_CIPHER_DECRYPT_OUTPUT_MAX_SIZE[1 +
+                                                           PSA_CIPHER_DECRYPT_OUTPUT_MAX_SIZE(
+                                                               input_length)];
+        unsigned char a_PSA_CIPHER_UPDATE_OUTPUT_SIZE[1 +
+                                                      PSA_CIPHER_UPDATE_OUTPUT_SIZE(key_type, alg,
+                                                                                    input_length)];
+        unsigned char a_PSA_CIPHER_UPDATE_OUTPUT_MAX_SIZE[1 +
+                                                          PSA_CIPHER_UPDATE_OUTPUT_MAX_SIZE(
+                                                              input_length)];
+        unsigned char a_PSA_CIPHER_FINISH_OUTPUT_SIZE[1 +
+                                                      PSA_CIPHER_FINISH_OUTPUT_SIZE(key_type, alg)];
+    };
+#undef alg
+#undef bits
+#undef block_size
+#undef bytes
+#undef ciphertext_length
+#undef curve_bits
+#undef input_length
+#undef key_bits
+#undef key_type
+#undef length
+#undef plaintext_length
+    goto exit;
+
+}
+/* END_CASE */

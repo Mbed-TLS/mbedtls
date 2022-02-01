@@ -6378,7 +6378,7 @@ void signature_size(int type_arg,
 {
     psa_key_type_t type = type_arg;
     psa_algorithm_t alg = alg_arg;
-    size_t actual_size = PSA_SIGN_OUTPUT_SIZE(type, bits, alg);
+    size_t actual_size = PSA_SIGN_OUTPUT_SIZE(type, (size_t) bits, alg);
 
     TEST_EQUAL(actual_size, (size_t) expected_size_arg);
 

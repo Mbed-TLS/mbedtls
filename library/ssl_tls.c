@@ -1020,32 +1020,36 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
         goto end;
     }
 
-    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT );
-    psa_set_key_algorithm( &attributes, alg );
-    psa_set_key_type( &attributes, key_type );
-
     transform->psa_alg = alg;
 
-    if( ( status = psa_import_key( &attributes,
-                             key1,
-                             PSA_BITS_TO_BYTES( key_bits ),
-                             &transform->psa_key_enc ) ) != PSA_SUCCESS )
+    if ( alg != MBEDTLS_SSL_NULL_CIPHER )
     {
-        ret = psa_ssl_status_to_mbedtls( status );
-        MBEDTLS_SSL_DEBUG_RET( 1, "psa_import_key", ret );
-        goto end;
-    }
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT );
+        psa_set_key_algorithm( &attributes, alg );
+        psa_set_key_type( &attributes, key_type );
 
-    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DECRYPT );
+        if( ( status = psa_import_key( &attributes,
+                                key1,
+                                PSA_BITS_TO_BYTES( key_bits ),
+                                &transform->psa_key_enc ) ) != PSA_SUCCESS )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 3, "psa_import_key", (int)status );
+            ret = psa_ssl_status_to_mbedtls( status );
+            MBEDTLS_SSL_DEBUG_RET( 1, "psa_import_key", ret );
+            goto end;
+        }
 
-    if( ( status = psa_import_key( &attributes,
-                             key2,
-                             PSA_BITS_TO_BYTES( key_bits ),
-                             &transform->psa_key_dec ) ) != PSA_SUCCESS )
-    {
-        ret = psa_ssl_status_to_mbedtls( status );
-        MBEDTLS_SSL_DEBUG_RET( 1, "psa_import_key", ret );
-        goto end;
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DECRYPT );
+
+        if( ( status = psa_import_key( &attributes,
+                                key2,
+                                PSA_BITS_TO_BYTES( key_bits ),
+                                &transform->psa_key_dec ) ) != PSA_SUCCESS )
+        {
+            ret = psa_ssl_status_to_mbedtls( status );
+            MBEDTLS_SSL_DEBUG_RET( 1, "psa_import_key", ret );
+            goto end;
+        }
     }
 #else
     if( ( ret = mbedtls_cipher_setup( &transform->cipher_ctx_enc,

@@ -723,52 +723,20 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
 #endif
     {
         size_t olen;
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-        psa_status_t status;
-        size_t part_len;
-        psa_cipher_operation_t cipher_op = PSA_CIPHER_OPERATION_INIT;
-
-#else /* MBEDTLS_USE_PSA_CRYPTO */
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-#endif
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "before encrypt: msglen = %" MBEDTLS_PRINTF_SIZET ", "
                                     "including %d bytes of padding",
                                     rec->data_len, 0 ) );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        /* Skip psa encryption for null cipher */
-        if ( transform->psa_alg != MBEDTLS_SSL_NULL_CIPHER )
-        {
-            status = psa_cipher_encrypt_setup( &cipher_op,
-                                        transform->psa_key_enc, transform->psa_alg );
+    /* The only stream "cipher" we support is "NULL" */
+    if ( transform->psa_alg != MBEDTLS_SSL_NULL_CIPHER )
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 
-            if( status != PSA_SUCCESS )
-                return( psa_ssl_status_to_mbedtls( status ) );
-
-            status = psa_cipher_set_iv( &cipher_op, transform->iv_enc, transform->ivlen );
-
-            if( status != PSA_SUCCESS )
-                return( psa_ssl_status_to_mbedtls( status ) );
-
-            status = psa_cipher_update( &cipher_op,
-                                        data, rec->data_len,
-                                        data, rec->data_len, &olen );
-
-            if( status != PSA_SUCCESS )
-                return( psa_ssl_status_to_mbedtls( status ) );
-
-            status = psa_cipher_finish( &cipher_op,
-                                        data + olen, rec->data_len - olen,
-                                        &part_len );
-
-            if( status != PSA_SUCCESS )
-                return( psa_ssl_status_to_mbedtls( status ) );
-
-            olen += part_len;
-        } else {
-            olen = rec->data_len;
-        }
+    olen = rec->data_len;
 #else
         if( ( ret = mbedtls_cipher_crypt( &transform->cipher_ctx_enc,
                                    transform->iv_enc, transform->ivlen,
@@ -1116,7 +1084,10 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
 #if !defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_cipher_mode_t mode;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-    int ret, auth_done = 0;
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+    int ret;
+#endif
+    int auth_done = 0;
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
     size_t padlen = 0, correct = 1;
 #endif
@@ -1163,45 +1134,13 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
     {
         padlen = 0;
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-        psa_status_t status;
-        size_t part_len;
-        psa_cipher_operation_t cipher_op = PSA_CIPHER_OPERATION_INIT;
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        /* Skip psa decryption for null cipher */
-        if ( transform->psa_alg != MBEDTLS_SSL_NULL_CIPHER )
-        {
-            status = psa_cipher_decrypt_setup( &cipher_op,
-                                        transform->psa_key_dec, transform->psa_alg );
+    /* The only stream "cipher" we support is "NULL" */
+    if ( transform->psa_alg != MBEDTLS_SSL_NULL_CIPHER )
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 
-            if( status != PSA_SUCCESS )
-                return( psa_ssl_status_to_mbedtls( status ) );
-
-            status = psa_cipher_set_iv( &cipher_op, transform->iv_dec, transform->ivlen );
-
-            if( status != PSA_SUCCESS )
-                return( psa_ssl_status_to_mbedtls( status ) );
-
-            status = psa_cipher_update( &cipher_op,
-                                        data, rec->data_len,
-                                        data, rec->data_len, &olen );
-
-            if( status != PSA_SUCCESS )
-                return( psa_ssl_status_to_mbedtls( status ) );
-
-            status = psa_cipher_finish( &cipher_op,
-                                        data + olen, rec->data_len - olen,
-                                        &part_len );
-
-            if( status != PSA_SUCCESS )
-                return( psa_ssl_status_to_mbedtls( status ) );
-
-            olen += part_len;
-        } else {
-            olen = rec->data_len;
-        }
+    olen = rec->data_len;
 #else
 
         if( ( ret = mbedtls_cipher_crypt( &transform->cipher_ctx_dec,

@@ -1,7 +1,7 @@
 This document lists current limitations of the PSA Crypto API (as of version
 1.1) that may impact our ability to (1) use it for all crypto operations in
 TLS and X.509 and (2) support isolation of all long-term secrets in TLS (that
-is, goals G1 and G2 in [strategy.md][] in the same directory).
+is, goals G1 and G2 in [strategy.md](strategy.md) in the same directory).
 
 This is supposed to be a complete list, based on a exhaustive review of crypto
 operations done in TLS and X.509 code, but of course it's still possible that
@@ -20,8 +20,24 @@ implementation, would be non-trivial.
 Currently, `MBEDTLS_USE_PSA_CRYPTO` is simply incompatible with
 `MBEDTLS_ECP_RESTARTABLE`.
 
+Things that are in the API but not implemented yet
+--------------------------------------------------
+
+PSA Crypto has an API for FFDH, but it's not implemented in Mbed TLS yet.
+(Regarding FFDH, see the next section as well.) See issue [3261][ffdh] on
+github.
+
+[ffdh]: https://github.com/ARMmbed/mbedtls/issues/3261
+
+PSA Crypto has an experimental API for EC J-PAKE, but it's not implemented in
+Mbed TLS yet. See the [EC J-PAKE follow-up EPIC][ecjp] on github.
+
+[ecjp]: https://github.com/orgs/ARMmbed/projects/18#column-15836385
+
 Arbitrary parameters for FFDH
 -----------------------------
+
+(See also the first paragraph in the previous section.)
 
 Currently, the PSA Crypto API can only perform FFDH with a limited set of
 well-know parameters (some of them defined in the spec, but implementations
@@ -104,7 +120,7 @@ algorithms can differ from each other.
     - hash alg used for message hashing, encoding and MGF1
     - salt length can be either "standard" (== hashlen) or "any"
   - signature generation:
-    - salt length: always using the maximum legal value
+    - salt length: always using the maximum legal value and random salt
   - verification:
     - salt length: either == hashlen, or any depending on algorithm
 
@@ -142,7 +158,8 @@ match a limitation of the PSA API.
 It is unclear what parameters people use in practice. It looks like by default
 OpenSSL picks saltlen = keylen - hashlen - 2 (tested with openssl 1.1.1f).
 The `certool` command provided by GnuTLS seems to be picking saltlen = hashlen
-by default (tested with GnuTLS 3.6.13).
+by default (tested with GnuTLS 3.6.13). FIPS 186-4 recommends saltlen >=
+hashlen.
 
 ### Use in TLS
 
@@ -317,7 +334,8 @@ HKDF-Extract : that is, the traffic keys are computed as
 In the short term (early 2022), we'll work around that by re-implementing HKDF
 in `ssl_tls13_keys.c` based on the `psa_mac_` APIs (for HMAC).
 
-In the long term, it is desirable to extend the PSA API.
+In the long term, it is desirable to extend the PSA API. See
+https://github.com/ARM-software/psa-crypto-api/issues/539
 
 Limitations relevant for G2 (isolation of long-term secrets)
 ============================================================

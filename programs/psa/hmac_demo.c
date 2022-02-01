@@ -102,11 +102,10 @@ void print_buf( const char *title, uint8_t *buf, size_t len )
 psa_status_t hmac_demo(void)
 {
     psa_status_t status;
-#define ALG PSA_ALG_HMAC(PSA_ALG_SHA_256)
-    const psa_algorithm_t alg = ALG;
-    // compilers with insufficient C99 support don't accept the const variable
-    // 'alg' here, so use a macro instead in order to pacify them
-    uint8_t out[PSA_MAC_LENGTH(PSA_KEY_TYPE_HMAC, 8 * sizeof( key_bytes ), ALG)];
+    const psa_algorithm_t alg = PSA_ALG_HMAC(PSA_ALG_SHA_256);
+    uint8_t out[PSA_MAC_MAX_SIZE]; // safe but not optimal
+    /* PSA_MAC_LENGTH(PSA_KEY_TYPE_HMAC, 8 * sizeof( key_bytes ), alg)
+     * should work but see https://github.com/ARMmbed/mbedtls/issues/4320 */
 
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_id_t key = 0;
@@ -130,14 +129,14 @@ psa_status_t hmac_demo(void)
     PSA_CHECK( psa_mac_update( &op, msg1_part1, sizeof( msg1_part1 ) ) );
     PSA_CHECK( psa_mac_update( &op, msg1_part2, sizeof( msg1_part2 ) ) );
     PSA_CHECK( psa_mac_sign_finish( &op, out, sizeof( out ), &out_len ) );
-    print_buf( "msg1", out, sizeof( out ) );
+    print_buf( "msg1", out, out_len );
 
     /* compute HMAC(key, msg2_part1 | msg2_part2) */
     PSA_CHECK( psa_mac_sign_setup( &op, key, alg ) );
     PSA_CHECK( psa_mac_update( &op, msg2_part1, sizeof( msg2_part1 ) ) );
     PSA_CHECK( psa_mac_update( &op, msg2_part2, sizeof( msg2_part2 ) ) );
     PSA_CHECK( psa_mac_sign_finish( &op, out, sizeof( out ), &out_len ) );
-    print_buf( "msg2", out, sizeof( out ) );
+    print_buf( "msg2", out, out_len );
 
 exit:
     psa_mac_abort( &op ); // needed on error, harmless on success

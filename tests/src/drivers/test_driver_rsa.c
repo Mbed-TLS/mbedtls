@@ -116,7 +116,7 @@ psa_status_t mbedtls_test_transparent_asymmetric_decrypt(
 }
 
 /*
- * opaque versions, to do
+ * opaque versions - TODO
  */
 psa_status_t mbedtls_test_opaque_asymmetric_encrypt(
     const psa_key_attributes_t *attributes, const uint8_t *key,

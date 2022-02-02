@@ -84,6 +84,8 @@
     "    pskid=%%s            PSK id string                                     \n" \
     "    psk_in=%%s           PSK file name or base64 or ascii-hex encoded value\n" \
     "    aad_in=%%s           Additional authenticated data file name or value  \n" \
+    "    use_pkE_handle=%%s   Utilize handle to key                             \n" \
+    "                         (value != 0 means use key handle)                 \n" \
 "\n"
 
 /*
@@ -330,6 +332,7 @@ struct options
     char* psk_in;
     char* suitestr;
     hpke_suite_t hpke_suite;
+    int use_pkE_handle;
 } opt;
 
 int main(int argc, char** argv)
@@ -375,12 +378,18 @@ int main(int argc, char** argv)
     opt.hpke_suite.kdf_id = HPKE_KDF_ID_HKDF_SHA256;
     opt.hpke_suite.kem_id = HPKE_KEM_ID_P256;
     opt.hpke_suite.aead_id = HPKE_AEAD_ID_AES_GCM_128;
+    opt.use_pkE_handle = 0;
 
     size_t publen = 0; unsigned char* pub = NULL;
     size_t skR_len = 0; unsigned char* skR = NULL;
     size_t aadlen = 0; unsigned char* aad = NULL;
     size_t infolen = 0; unsigned char* info = NULL;
     size_t psklen = 0; unsigned char* psk = NULL;
+
+    // pkE handle
+    psa_key_attributes_t skE_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_handle_t skE_handle = 0;
+    size_t key_len;
 
     if( argc == 1 )
     {
@@ -422,6 +431,17 @@ int main(int argc, char** argv)
             default:
                 mbedtls_printf( "invalid unknown operation (encryption/decryption)\n" );
                 goto usage;
+            }
+        }
+        else if(strcmp( p, "use_pkE_handle" ) == 0 )
+        {
+            switch( atoi( q ) )
+            {
+            case 0:
+                opt.use_pkE_handle = 0;
+                break;
+            default:
+                opt.use_pkE_handle = 1;
             }
         }
         else if( strcmp( p, "info_in" ) == 0)
@@ -541,18 +561,67 @@ int main(int argc, char** argv)
             goto exit;
         }
 
-        ret = mbedtls_hpke_encrypt( opt.hpke_mode,                 // HPKE mode
-                                    opt.hpke_suite,                // ciphersuite
-                                    opt.pskid, psklen, psk,        // PSK
-                                    pkR_len, pkR,                  // pkR
-                                    0,                             // skI
-                                    plaintext_len, plaintext,      // input plaintext
-                                    aadlen, aad,                   // Additional data
-                                    infolen, info,                 // Info
-                                    NULL,                          // skE
-                                    &pkE_len, pkE,                 // pkE
-                                    &ciphertext_len, ciphertext ); // ciphertext
+        if( opt.use_pkE_handle != 0 )
+        {
+            switch( opt.hpke_suite.kem_id )
+            {
+                case HPKE_KEM_ID_P256:
+                    type = PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 );
+                    key_len = 256;
+                    break;
+                case HPKE_KEM_ID_P384:
+                    type = PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 );
+                    key_len = 384;
+                    break;
+                case HPKE_KEM_ID_P521:
+                    type = PSA_KEY_TYPE_ECC_KEY_PAIR( PSA_ECC_FAMILY_SECP_R1 );
+                    key_len = 521;
+                    break;
+                case HPKE_KEM_ID_25519: // not implemented yet
+                case HPKE_KEM_ID_448: // not implemented yet
+                default:
+                    mbedtls_printf( "Unsupported KEM (%d) - exiting\n", opt.hpke_suite.kem_id );
+                    goto usage;
+            }
 
+            /* Generate pkE/skE key pair */
+            psa_set_key_usage_flags( &skE_attributes, PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_EXPORT );
+            psa_set_key_algorithm( &skE_attributes, PSA_ALG_ECDH );
+            psa_set_key_type( &skE_attributes, type );
+            psa_set_key_bits( &skE_attributes, key_len );
+
+            status = psa_generate_key( &skE_attributes, &skE_handle );
+
+            if( status != PSA_SUCCESS )
+            {
+                return( EXIT_FAILURE );
+            }
+
+            ret = mbedtls_hpke_encrypt( opt.hpke_mode,                 // HPKE mode
+                                        opt.hpke_suite,                // ciphersuite
+                                        opt.pskid, psklen, psk,        // PSK
+                                        pkR_len, pkR,                  // pkR
+                                        0,                             // skI
+                                        plaintext_len, plaintext,      // input plaintext
+                                        aadlen, aad,                   // Additional data
+                                        infolen, info,                 // Info
+                                        skE_handle,                    // skE handle
+                                        NULL, NULL,                    // pkE
+                                        &ciphertext_len, ciphertext ); // ciphertext
+        } else
+        {
+            ret = mbedtls_hpke_encrypt( opt.hpke_mode,                 // HPKE mode
+                                        opt.hpke_suite,                // ciphersuite
+                                        opt.pskid, psklen, psk,        // PSK
+                                        pkR_len, pkR,                  // pkR
+                                        0,                             // skI
+                                        plaintext_len, plaintext,      // input plaintext
+                                        aadlen, aad,                   // Additional data
+                                        infolen, info,                 // Info
+                                        0,                             // skE handle
+                                        &pkE_len, pkE,                 // pkE
+                                        &ciphertext_len, ciphertext ); // ciphertext
+        }
         if( ret != 0 )
         {
             mbedtls_printf( "error encrypting (%d)\n", ret );
@@ -568,6 +637,22 @@ int main(int argc, char** argv)
             goto exit;
         }
 
+        if( opt.use_pkE_handle != 0 )
+        {
+            // Export pkE
+            status = psa_export_public_key( skE_handle,
+                                            pkE,
+                                            pkE_len,
+                                            &pkE_len
+                                          );
+
+            if( status != PSA_SUCCESS )
+            {
+                return( EXIT_FAILURE );
+            }
+
+
+        }
         // Write ephemeral public key (pkE)
         ret = write_to_file( opt.pkE_filename, pkE_len, pkE );
 
@@ -576,6 +661,7 @@ int main(int argc, char** argv)
             mbedtls_printf( "Error writing pkE to %s\n", opt.pkE_filename );
             goto exit;
         }
+
     }
     // Decryption
     else

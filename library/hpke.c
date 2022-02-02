@@ -820,7 +820,7 @@ static int hpke_do_kem( int encrypting,
 
     /* Produce ECDH key */
     status = psa_raw_key_agreement( PSA_ALG_ECDH,          // algorithm
-                                    own_key_handle,       // private key
+                                    own_key_handle,        // private key
                                     peer_public_key,       // peer public key
                                     peer_public_key_len,   // length of peer public key
                                     zz, sizeof( zz ),      // buffer to store derived key
@@ -1271,7 +1271,7 @@ static int hpke_enc_int( unsigned int mode, hpke_suite_t suite,
                          size_t clearlen, unsigned char *clear,
                          size_t aadlen, unsigned char *aad,
                          size_t infolen, unsigned char *info,
-                         psa_key_handle_t *ext_skE_handle,
+                         psa_key_handle_t ext_pkE_handle,
                          size_t *pkE_len, unsigned char *pkE,
                          size_t *cipherlen, unsigned char *cipher )
 
@@ -1303,6 +1303,10 @@ static int hpke_enc_int( unsigned int mode, hpke_suite_t suite,
     // Buffer for exporter
     size_t exporterlen = MBEDTLS_MD_MAX_SIZE;
     uint8_t exporter[MBEDTLS_MD_MAX_SIZE];
+
+    // Buffer for pkE
+    uint8_t pkE_tmp[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE] = { 0 };
+    size_t pkE_tmp_len = PSA_EXPORT_PUBLIC_KEY_MAX_SIZE;
 
     // Buffer for secret
     uint8_t buffer[MBEDTLS_MD_MAX_SIZE];
@@ -1348,13 +1352,13 @@ static int hpke_enc_int( unsigned int mode, hpke_suite_t suite,
     switch( suite.kem_id )
     {
         case HPKE_KEM_ID_P256:
-            key_len = 32;
+            key_len = 256;
             break;
         case HPKE_KEM_ID_P384:
-            key_len = 48;
+            key_len = 384;
             break;
         case HPKE_KEM_ID_P521:
-            key_len = 64;
+            key_len = 521;
             break;
         default:
             return( MBEDTLS_ERR_HPKE_BAD_INPUT_DATA );
@@ -1373,15 +1377,14 @@ static int hpke_enc_int( unsigned int mode, hpke_suite_t suite,
             return( MBEDTLS_ERR_HPKE_BAD_INPUT_DATA );
     }
 
-    if( ext_skE_handle == NULL )
+    if( ext_pkE_handle == 0 )
     {
-        /* step 1. generate or import sender's key pair: skE, pkE */
-        psa_set_key_usage_flags( &skE_attributes, PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_EXPORT);
+        /* generate key pair: skE, pkE */
+        psa_set_key_usage_flags( &skE_attributes, PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_EXPORT );
         psa_set_key_algorithm( &skE_attributes, PSA_ALG_ECDH );
         psa_set_key_type( &skE_attributes, type );
-        psa_set_key_bits( &skE_attributes, key_len * 8 );
+        psa_set_key_bits( &skE_attributes, key_len );
 
-        /* Generate skE key pair */
         status = psa_generate_key( &skE_attributes, &skE_handle );
 
         if( status != PSA_SUCCESS )
@@ -1389,30 +1392,29 @@ static int hpke_enc_int( unsigned int mode, hpke_suite_t suite,
             return( EXIT_FAILURE );
         }
     }
-    else
-    {
-        /* Not yet implemented */
-        return( EXIT_FAILURE );
-    }
 
-    status = psa_export_public_key( skE_handle,
-                                    pkE, *pkE_len,
-                                    pkE_len );
+    status = psa_export_public_key( (ext_pkE_handle == 0) ? skE_handle : ext_pkE_handle,
+                                    (ext_pkE_handle == 0) ? pkE : pkE_tmp,
+                                    (ext_pkE_handle == 0) ? *pkE_len : pkE_tmp_len,
+                                    (ext_pkE_handle == 0) ? pkE_len : &pkE_tmp_len
+                                  );
+
     if( status != PSA_SUCCESS )
     {
         return( EXIT_FAILURE );
     }
 
     /* Run DH KEM to get shared secret */
-    ret = hpke_do_kem( 1,                                   // 1 means encryption
-                       suite,                               // ciphersuite
-                       skE_handle,                          // skE handle
-                       *pkE_len, pkE,                       // pkE
-                       pkR_len, pkR,                        // pkR
-                       skS_handle,                          // skS handle
-                       pkS_len, pkS,                        // pkS
-                       &shared_secret, &shared_secretlen ); // shared secret
-                       
+    ret = hpke_do_kem( 1,                                                     // 1 means encryption
+                       suite,                                                 // ciphersuite
+                       (ext_pkE_handle == 0) ? skE_handle : ext_pkE_handle,   // skE handle
+                       (ext_pkE_handle == 0) ? *pkE_len : pkE_tmp_len,        // pkE length
+                       (ext_pkE_handle == 0) ? pkE : pkE_tmp,                 // pkE
+                       pkR_len, pkR,                                          // pkR
+                       skS_handle,                                            // skS handle
+                       pkS_len, pkS,                                          // pkS
+                       &shared_secret, &shared_secretlen );                   // shared secret
+
     if( ret != 0 )
     {
         return( MBEDTLS_ERR_HPKE_INTERNAL_ERROR );
@@ -1444,7 +1446,7 @@ static int hpke_enc_int( unsigned int mode, hpke_suite_t suite,
                                 MBEDTLS_SSL_HPKE_LBL_WITH_LEN( info_hash ),
                                 info, infolen,
                                 ks_context + 1 + halflen, &ks_contextlen );
-    
+
     if( ret != 0 )
     {
         goto error;
@@ -1459,7 +1461,7 @@ static int hpke_enc_int( unsigned int mode, hpke_suite_t suite,
                                 MBEDTLS_SSL_HPKE_LBL_WITH_LEN( psk_hash ),
                                 psk, psklen,
                                 psk_hash, &psk_hashlen );
-    
+
     if( ret != 0)
     {
         goto error;
@@ -1473,7 +1475,7 @@ static int hpke_enc_int( unsigned int mode, hpke_suite_t suite,
                                 MBEDTLS_SSL_HPKE_LBL_WITH_LEN( secret ),
                                 psk, psklen,
                                 secret, &secretlen );
-    
+
     if( ret != 0 )
     {
         goto error;
@@ -1487,7 +1489,7 @@ static int hpke_enc_int( unsigned int mode, hpke_suite_t suite,
                                MBEDTLS_SSL_HPKE_LBL_WITH_LEN( base_nonce ),
                                ks_context, ks_contextlen,
                                noncelen, nonce, &noncelen );
-    
+
     if( ret != 0 )
     {
         goto error;
@@ -1501,7 +1503,7 @@ static int hpke_enc_int( unsigned int mode, hpke_suite_t suite,
                                MBEDTLS_SSL_HPKE_LBL_WITH_LEN( key ),
                                ks_context, ks_contextlen,
                                keylen, key, &keylen );
-    
+
     if( ret != 0 )
     {
         goto error;
@@ -1545,12 +1547,10 @@ int mbedtls_hpke_encrypt( unsigned int mode, hpke_suite_t suite,
                           size_t clearlen, uint8_t *clear,
                           size_t aadlen, uint8_t *aad,
                           size_t infolen, uint8_t *info,
-                          psa_key_handle_t *ext_skE_handle,
+                          psa_key_handle_t ext_skE_handle,
                           size_t *pkE_len, uint8_t *pkE,
                           size_t *cipherlen, uint8_t *cipher )
 {
-    (void) ext_skE_handle;
-
     return hpke_enc_int( mode,                // HPKE mode
                          suite,               // ciphersuite
                          pskid, psklen, psk,  // PSK for authentication
@@ -1559,7 +1559,7 @@ int mbedtls_hpke_encrypt( unsigned int mode, hpke_suite_t suite,
                          clearlen, clear,     // plaintext
                          aadlen, aad,         // Additional data
                          infolen, info,       // Info
-                         NULL,                // skE handle
+                         ext_skE_handle,      // skE handle
                          pkE_len, pkE,        // pkE
                          cipherlen, cipher ); // ciphertext
 }

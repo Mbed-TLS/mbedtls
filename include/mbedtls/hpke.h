@@ -158,7 +158,7 @@ int mbedtls_hpke_encrypt( unsigned int mode, hpke_suite_t suite,
                           size_t clearlen, uint8_t *clear,
                           size_t aadlen, uint8_t *aad,
                           size_t infolen, uint8_t *info,
-                          psa_key_handle_t *ext_skE_handle,
+                          psa_key_handle_t ext_skE_handle,
                           size_t *pkE_len, uint8_t *pkE,
                           size_t *cipherlen, uint8_t *cipher );
 

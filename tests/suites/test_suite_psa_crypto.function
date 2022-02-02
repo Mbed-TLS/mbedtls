@@ -54,7 +54,7 @@ static int mem_is_char( void *buffer, unsigned char c, size_t size )
     }
     return( 1 );
 }
-
+#if defined(MBEDTLS_ASN1_WRITE_C)
 /* Write the ASN.1 INTEGER with the value 2^(bits-1)+x backwards from *p. */
 static int asn1_write_10x( unsigned char **p,
                            unsigned char *start,
@@ -138,6 +138,7 @@ static int construct_fake_rsa_key( unsigned char *buffer,
     }
     return( len );
 }
+#endif /* MBEDTLS_ASN1_WRITE_C */
 
 int exercise_mac_setup( psa_key_type_t key_type,
                         const unsigned char *key_bytes,
@@ -758,7 +759,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_ASN1_WRITE_C */
 void import_rsa_made_up( int bits_arg, int keypair, int expected_status_arg )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;

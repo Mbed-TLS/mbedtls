@@ -74,6 +74,9 @@
 #include MBEDTLS_USER_CONFIG_FILE
 #endif
 
+#if defined(MBEDTLS_PK_C) && defined(MBEDTLS_USE_PSA_CRYPTO)
+#define MBEDTLS_PK_WRITE_C
+#endif
 #if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
 #include "mbedtls/config_psa.h"
 #endif

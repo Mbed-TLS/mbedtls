@@ -606,3 +606,50 @@ exit:
     }
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CREATE_C:MBEDTLS_X509_USE_C */
+void mbedtls_x509_dn_gets( char * name, char * parsed_name, int result )
+{
+    int ret;
+    size_t len = 0;
+    mbedtls_asn1_named_data *names = NULL;
+    mbedtls_x509_name parsed;
+    unsigned char buf[1024], out[64], *c;
+
+    memset( &parsed, 0, sizeof( parsed ) );
+    memset( out, 0, sizeof( out ) );
+    memset( buf, 0, sizeof( buf ) );
+    c = buf + sizeof( buf );
+
+    ret = mbedtls_x509_string_to_names( &names, name );
+    TEST_ASSERT( ret == 0 );
+
+    ret = mbedtls_x509_write_names( &c, buf, names );
+    TEST_ASSERT( ret > 0 );
+
+    TEST_ASSERT( mbedtls_asn1_get_tag( &c, buf + sizeof( buf ), &len,
+                        MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) == 0 );
+    TEST_ASSERT( mbedtls_x509_get_name( &c, buf + sizeof( buf ), &parsed ) == 0 );
+
+    /*(to test multi-valued RDNs, always adjust first node to set next_merged)*/
+    parsed.next_merged = 1;
+
+    ret = mbedtls_x509_dn_gets( (char *) out, sizeof( out ), &parsed );
+    if( ret <= 0 )
+    {
+        TEST_ASSERT( ret == result );
+        goto exit;
+    }
+
+    TEST_ASSERT( strcmp( (char *) out, parsed_name ) == 0 );
+
+exit:
+    mbedtls_asn1_free_named_data_list( &names );
+    for( mbedtls_x509_name *parsed_cur = parsed.next; parsed_cur != 0; )
+    {
+        mbedtls_x509_name *parsed_prv = parsed_cur;
+        parsed_cur = parsed_cur->next;
+        mbedtls_free( parsed_prv );
+    }
+}
+/* END_CASE */

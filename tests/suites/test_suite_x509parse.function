@@ -752,17 +752,17 @@ exit:
 void mbedtls_x509_dn_gets_subject_replace( char * crt_file, char * new_subject_ou, char * result_str, int ret )
 {
     mbedtls_x509_crt   crt;
-    char buf[2000];
+    char buf[286];
     int res = 0;
 
     mbedtls_x509_crt_init( &crt );
-    memset( buf, 0, 2000 );
+    memset( buf, 0, sizeof( buf ) );
 
     TEST_ASSERT( mbedtls_x509_crt_parse_file( &crt, crt_file ) == 0 );
     crt.subject.next->val.p = (unsigned char *) new_subject_ou;
     crt.subject.next->val.len = strlen( new_subject_ou );
 
-    res =  mbedtls_x509_dn_gets( buf, 2000, &crt.subject );
+    res =  mbedtls_x509_dn_gets( buf, sizeof( buf ), &crt.subject );
 
     if ( ret != 0 )
     {

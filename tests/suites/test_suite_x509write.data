@@ -167,3 +167,9 @@ mbedtls_x509_string_to_names:"C=NL, O=Offspark\a Inc., OU=PolarSSL":"":MBEDTLS_E
 
 X509 String to Names #6 (Escape at end)
 mbedtls_x509_string_to_names:"C=NL, O=Offspark\":"":MBEDTLS_ERR_X509_INVALID_NAME
+
+X509 Names to String #1 (buf too small)
+mbedtls_x509_dn_gets:"C=NLextraextraextraextraextraextra, O=Offspark\, Inc., OU=PolarSSL":"":MBEDTLS_ERR_X509_BUFFER_TOO_SMALL
+
+X509 Names to String #2 (Multi-valued RDN) (first node is internally faked multi-value)
+mbedtls_x509_dn_gets:"C=NL,O=Offspark\, Inc., OU=PolarSSL":"C=NL + O=Offspark\, Inc., OU=PolarSSL":0

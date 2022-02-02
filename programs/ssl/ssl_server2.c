@@ -1186,6 +1186,7 @@ static void ssl_async_cancel( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
 static psa_status_t psa_setup_psk_key_slot( psa_key_id_t *slot,
                                             psa_algorithm_t alg,
                                             unsigned char *psk,
@@ -1208,6 +1209,7 @@ static psa_status_t psa_setup_psk_key_slot( psa_key_id_t *slot,
 
     return( PSA_SUCCESS );
 }
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
@@ -2112,6 +2114,7 @@ int main( int argc, char *argv[] )
         }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
         if( opt.psk_opaque != 0 || opt.psk_list_opaque != 0 )
         {
             /* Ensure that the chosen ciphersuite is PSK-only; we must know
@@ -2133,6 +2136,7 @@ int main( int argc, char *argv[] )
 #endif /* MBEDTLS_SHA512_C */
                 alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_256);
         }
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
     }
 

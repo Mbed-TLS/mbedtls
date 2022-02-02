@@ -2693,6 +2693,21 @@ static int ssl_prepare_handshake_step( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
+    /*
+     * We may have not been able to send to the peer all the handshake data
+     * that were written into the output buffer by the previous handshake step:
+     * the write to the network callback returned with the
+     * #MBEDTLS_ERR_SSL_WANT_WRITE error code.
+     * We proceed to the next handshake step only when all data from the
+     * previous one have been sent to the peer, thus we make sure that this is
+     * the case here by calling `mbedtls_ssl_flush_output()`. The function may
+     * return with the #MBEDTLS_ERR_SSL_WANT_WRITE error code in which case
+     * we have to wait before to go ahead.
+     * In the case of TLS 1.3, handshake step handlers do not send data to the
+     * peer. Data are only sent here and through
+     * `mbedtls_ssl_handle_pending_alert` in case an error that triggered an
+     * alert occured.
+     */
     if( ( ret = mbedtls_ssl_flush_output( ssl ) ) != 0 )
         return( ret );
 

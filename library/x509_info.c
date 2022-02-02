@@ -923,35 +923,4 @@ int mbedtls_x509_serial_gets( char *buf, size_t size, const mbedtls_x509_buf *se
     }
 }
 
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-#if defined(MBEDTLS_X509_REMOVE_INFO)
-#if defined(MBEDTLS_PLATFORM_C)
-#include "mbedtls/platform.h"
-#else
-#include <stdio.h>
-#define mbedtls_snprintf   snprintf
-#endif
-#endif
-/*
- * Helper for writing "RSA key size", "EC key size", etc
- */
-int mbedtls_x509_key_size_helper( char *buf, size_t buf_size, const char *name )
-{
-    /* XXX: unused func; deprecate */
-  #if 0 /*(limit use of mbedtls_*pcpy_lim() to !MBEDTLS_X509_REMOVE_INFO)*/
-    char *p = buf;
-    const char * const lim = buf + buf_size;
-    p = mbedtls_strpcpy_lim( p, lim, name );
-    p = mbedtls_allpcpy_lim( p, lim, " key size" );
-    int ret = (int)mbedtls_strterm( buf, p, lim );
-    return ( ( ret >= 0 ) ? 0 : ret );
-  #else
-    int ret = mbedtls_snprintf(buf, buf_size, "%s key size", name);
-    if( ret < 0 || (size_t) ret >= buf_size )
-        return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
-    return( 0 );
-  #endif
-}
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
-
 #endif /* MBEDTLS_X509_USE_C */

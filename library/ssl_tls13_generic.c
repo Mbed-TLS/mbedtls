@@ -1515,34 +1515,6 @@ void mbedtls_ssl_tls13_handshake_wrapup( mbedtls_ssl_context *ssl )
  *
  */
 #if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
-
-static int ssl_tls13_finalize_change_cipher_spec( mbedtls_ssl_context* ssl )
-{
-
-#if defined(MBEDTLS_SSL_CLI_C)
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
-    {
-        switch( ssl->state )
-        {
-            case MBEDTLS_SSL_CLIENT_CCS_BEFORE_2ND_CLIENT_HELLO:
-                mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_HELLO );
-                break;
-            case MBEDTLS_SSL_CLIENT_CCS_AFTER_SERVER_FINISHED:
-                mbedtls_ssl_handshake_set_state( ssl,
-                                                 MBEDTLS_SSL_CLIENT_CERTIFICATE );
-                break;
-            default:
-                MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-        }
-    }
-#else
-    ((void) ssl);
-#endif /* MBEDTLS_SSL_CLI_C */
-
-    return( 0 );
-}
-
 static int ssl_tls13_write_change_cipher_spec_body( mbedtls_ssl_context *ssl,
                                                     unsigned char *buf,
                                                     unsigned char *end,
@@ -1570,9 +1542,6 @@ int mbedtls_ssl_tls13_write_change_cipher_spec( mbedtls_ssl_context *ssl )
                               &ssl->out_msglen ) );
 
     ssl->out_msgtype = MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC;
-
-    /* Update state */
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_change_cipher_spec( ssl ) );
 
     /* Dispatch message */
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_write_record( ssl, 0 ) );

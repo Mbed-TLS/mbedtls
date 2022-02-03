@@ -4016,6 +4016,30 @@ int mbedtls_ssl_conf_psk_opaque( mbedtls_ssl_config *conf,
     return( ret );
 }
 
+int mbedtls_ssl_set_hs_psk_opaque( mbedtls_ssl_context *ssl,
+                                   mbedtls_svc_key_id_t psk )
+{
+    if( ( mbedtls_svc_key_id_is_null( psk ) ) ||
+        ( ssl->handshake == NULL ) )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    ssl_remove_psk( ssl );
+    ssl->handshake->psk_opaque = psk;
+    return( 0 );
+}
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+void mbedtls_ssl_conf_psk_cb( mbedtls_ssl_config *conf,
+                     int (*f_psk)(void *, mbedtls_ssl_context *, const unsigned char *,
+                     size_t),
+                     void *p_psk )
+{
+    conf->f_psk = f_psk;
+    conf->p_psk = p_psk;
+}
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
 psa_status_t mbedtls_ssl_cipher_to_psa( mbedtls_cipher_type_t mbedtls_cipher_type,
                                     size_t taglen,
                                     psa_algorithm_t *alg,
@@ -4160,29 +4184,7 @@ psa_status_t mbedtls_ssl_cipher_to_psa( mbedtls_cipher_type_t mbedtls_cipher_typ
 
     return PSA_SUCCESS;
 }
-
-int mbedtls_ssl_set_hs_psk_opaque( mbedtls_ssl_context *ssl,
-                                   mbedtls_svc_key_id_t psk )
-{
-    if( ( mbedtls_svc_key_id_is_null( psk ) ) ||
-        ( ssl->handshake == NULL ) )
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-
-    ssl_remove_psk( ssl );
-    ssl->handshake->psk_opaque = psk;
-    return( 0 );
-}
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-
-void mbedtls_ssl_conf_psk_cb( mbedtls_ssl_config *conf,
-                     int (*f_psk)(void *, mbedtls_ssl_context *, const unsigned char *,
-                     size_t),
-                     void *p_psk )
-{
-    conf->f_psk = f_psk;
-    conf->p_psk = p_psk;
-}
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
 int mbedtls_ssl_conf_dh_param_bin( mbedtls_ssl_config *conf,

@@ -846,7 +846,6 @@ component_test_default_out_of_box () {
     msg "build: make, default config (out-of-box)" # ~1min
     make
     # Disable fancy stuff
-    SAVE_MBEDTLS_TEST_OUTCOME_FILE="$MBEDTLS_TEST_OUTCOME_FILE"
     unset MBEDTLS_TEST_OUTCOME_FILE
 
     msg "test: main suites make, default config (out-of-box)" # ~10s
@@ -854,9 +853,6 @@ component_test_default_out_of_box () {
 
     msg "selftest: make, default config (out-of-box)" # ~10s
     programs/test/selftest
-
-    export MBEDTLS_TEST_OUTCOME_FILE="$SAVE_MBEDTLS_TEST_OUTCOME_FILE"
-    unset SAVE_MBEDTLS_TEST_OUTCOME_FILE
 }
 
 component_test_default_cmake_gcc_asan () {
@@ -1619,9 +1615,6 @@ component_test_psa_crypto_config_accel_ecdsa () {
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
     make CFLAGS="$ASAN_CFLAGS -O -Werror -I../tests/include -I../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
 
-    unset loc_accel_flags
-    unset loc_accel_list
-
     if_build_succeeded not grep mbedtls_ecdsa_ library/ecdsa.o
 
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDSA"
@@ -1705,9 +1698,6 @@ component_test_psa_crypto_config_accel_rsa_signature () {
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
     make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
 
-    unset loc_accel_flags
-    unset loc_accel_list
-
     if_build_succeeded not grep mbedtls_rsa_rsassa_pkcs1_v15_sign library/rsa.o
     if_build_succeeded not grep mbedtls_rsa_rsassa_pss_sign_ext library/rsa.o
 
@@ -1745,9 +1735,6 @@ component_test_psa_crypto_config_accel_hash () {
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
     make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
 
-    unset loc_accel_flags
-    unset loc_accel_list
-
     if_build_succeeded not grep mbedtls_sha512_init library/sha512.o
     if_build_succeeded not grep mbedtls_sha1_init library/sha1.o
 
@@ -1784,9 +1771,6 @@ component_test_psa_crypto_config_accel_cipher () {
 
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
     make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
-
-    unset loc_accel_flags
-    unset loc_accel_list
 
     if_build_succeeded not grep mbedtls_des* library/des.o
 
@@ -2576,7 +2560,6 @@ component_test_psa_crypto_drivers () {
     loc_cflags="${loc_cflags} -I../tests/include -O2"
 
     make CC=gcc CFLAGS="${loc_cflags}" LDFLAGS="$ASAN_CFLAGS"
-    unset loc_cflags
 
     msg "test: full + MBEDTLS_PSA_CRYPTO_DRIVERS"
     make test
@@ -3031,8 +3014,6 @@ component_test_zeroize () {
             make clean
         done
     done
-
-    unset gdb_disable_aslr
 }
 
 component_test_psa_compliance () {

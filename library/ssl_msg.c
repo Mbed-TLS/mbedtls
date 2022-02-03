@@ -5103,12 +5103,12 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
         transform_expansion += transform->maclen;
 
         /* Expansion due to the addition of CBC padding;
-            * Theoretically up to 256 bytes, but we never use
-            * more than the block size of the underlying cipher. */
+         * Theoretically up to 256 bytes, but we never use
+         * more than the block size of the underlying cipher. */
         transform_expansion += block_size;
 
         /* For TLS 1.2 or higher, an explicit IV is added
-            * after the record header. */
+         * after the record header. */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
         transform_expansion += block_size;
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */

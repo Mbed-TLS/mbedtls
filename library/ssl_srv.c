@@ -2058,7 +2058,8 @@ static void ssl_write_encrypt_then_mac_ext( mbedtls_ssl_context *ssl,
     if( ( suite = mbedtls_ssl_ciphersuite_from_id(
                     ssl->session_negotiate->ciphersuite ) ) == NULL ||
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        ( mbedtls_ssl_cipher_to_psa( suite->cipher, 0, &alg, &key_type, &key_bits ) != PSA_SUCCESS) ||
+        ( mbedtls_ssl_cipher_to_psa( suite->cipher, 0, &alg,
+                            &key_type, &key_bits ) != PSA_SUCCESS ) ||
         alg != PSA_ALG_CBC_NO_PADDING )
 #else
         ( cipher = mbedtls_cipher_info_from_type( suite->cipher ) ) == NULL ||

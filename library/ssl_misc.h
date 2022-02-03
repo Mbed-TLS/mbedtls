@@ -2035,8 +2035,9 @@ static inline int mbedtls_ssl_sig_alg_is_supported(
  *                                  0 - default tag length
  * \param  alg                 [out] corresponding PSA alg
  *                                   There is no corresponding PSA
- *                                   alg for MBEDTLS_SSL_NULL_CIPHER, so
- *                                   MBEDTLS_SSL_NULL_CIPHER is returned
+ *                                   alg for MBEDTLS_CIPHER_NULL, so
+ *                                   in this case MBEDTLS_SSL_NULL_CIPHER
+ *                                   is returned via this parameter
  * \param  key_type            [out] corresponding PSA key type
  * \param  key_size            [out] corresponding PSA key size
  *

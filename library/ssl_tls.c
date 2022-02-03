@@ -722,7 +722,7 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_algorithm_t alg;
     size_t key_bits;
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 #endif
 
 #if !defined(MBEDTLS_DEBUG_C) && \

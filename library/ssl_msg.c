@@ -774,7 +774,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         int dynamic_iv_is_explicit =
             ssl_transform_aead_dynamic_iv_is_explicit( transform );
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        psa_status_t status;
+        psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 #else
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
@@ -892,7 +892,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         size_t padlen, i;
         size_t olen;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        psa_status_t status;
+        psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
         size_t part_len;
         psa_cipher_operation_t cipher_op = PSA_CIPHER_OPERATION_INIT;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
@@ -1178,7 +1178,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
         unsigned char *dynamic_iv;
         size_t dynamic_iv_len;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        psa_status_t status;
+        psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
         /*
@@ -1302,7 +1302,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
     {
         size_t minlen = 0;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        psa_status_t status;
+        psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
         size_t part_len;
         psa_cipher_operation_t cipher_op = PSA_CIPHER_OPERATION_INIT;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */

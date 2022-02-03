@@ -1192,7 +1192,7 @@ static int psa_cipher_encrypt_helper( mbedtls_ssl_transform *transform,
                     const unsigned char *input, size_t ilen,
                     unsigned char *output, size_t *olen )
 {
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_cipher_operation_t cipher_op = PSA_CIPHER_OPERATION_INIT;
     size_t part_len;
 
@@ -1239,7 +1239,7 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_algorithm_t alg;
     size_t key_bits;
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 #endif
 
     size_t keylen, maclen, ivlen;

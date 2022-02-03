@@ -1,0 +1,2 @@
+Features
+   * Add mbedtls_ssl_ticket_rotate() for external ticket rotation.

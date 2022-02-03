@@ -122,6 +122,35 @@ static int ssl_ticket_update_keys( mbedtls_ssl_ticket_context *ctx )
 }
 
 /*
+ * Rotate active session ticket encryption key
+ */
+int mbedtls_ssl_ticket_rotate( mbedtls_ssl_ticket_context *ctx,
+    const unsigned char *name, size_t nlength,
+    const unsigned char *k, size_t klength,
+    uint32_t lifetime )
+{
+    const unsigned char idx = 1 - ctx->active;
+    mbedtls_ssl_ticket_key * const key = ctx->keys + idx;
+    const int bitlen = mbedtls_cipher_get_key_bitlen( &key->ctx );
+    int ret;
+    if( nlength < TICKET_KEY_NAME_BYTES || klength * 8 < (size_t)bitlen )
+        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+
+    /* With GCM and CCM, same context can encrypt & decrypt */
+    ret = mbedtls_cipher_setkey( &key->ctx, k, bitlen, MBEDTLS_ENCRYPT );
+    if( ret != 0 )
+        return( ret );
+
+    ctx->active = idx;
+    ctx->ticket_lifetime = lifetime;
+    memcpy( key->name, name, TICKET_KEY_NAME_BYTES );
+#if defined(MBEDTLS_HAVE_TIME)
+    key->generation_time = (uint32_t) mbedtls_time( NULL );
+#endif
+    return 0;
+}
+
+/*
  * Setup context for actual use
  */
 int mbedtls_ssl_ticket_setup( mbedtls_ssl_ticket_context *ctx,

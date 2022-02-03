@@ -261,13 +261,13 @@ psa_status_t mbedtls_test_transparent_import_key(
     size_t *key_buffer_length,
     size_t *bits)
 {
+    psa_key_type_t type = psa_get_key_type( attributes );
+
     ++mbedtls_test_driver_key_management_hooks.hits;
     mbedtls_test_driver_key_management_hooks.location = PSA_KEY_LOCATION_LOCAL_STORAGE;
 
     if( mbedtls_test_driver_key_management_hooks.forced_status != PSA_SUCCESS )
         return( mbedtls_test_driver_key_management_hooks.forced_status );
-
-    psa_key_type_t type = psa_get_key_type( attributes );
 
     if( PSA_KEY_TYPE_IS_ECC( type ) )
     {
@@ -329,17 +329,17 @@ psa_status_t mbedtls_test_opaque_import_key(
     size_t *key_buffer_length,
     size_t *bits)
 {
-    ++mbedtls_test_driver_key_management_hooks.hits;
-    mbedtls_test_driver_key_management_hooks.location = PSA_CRYPTO_TEST_DRIVER_LOCATION;
-
-    if( mbedtls_test_driver_key_management_hooks.forced_status != PSA_SUCCESS )
-        return( mbedtls_test_driver_key_management_hooks.forced_status );
-
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_type_t type = psa_get_key_type( attributes );
     /* This buffer will be used as an intermediate placeholder for
      * the clear key till we wrap it */
     uint8_t *key_buffer_temp;
+
+    ++mbedtls_test_driver_key_management_hooks.hits;
+    mbedtls_test_driver_key_management_hooks.location = PSA_CRYPTO_TEST_DRIVER_LOCATION;
+
+    if( mbedtls_test_driver_key_management_hooks.forced_status != PSA_SUCCESS )
+        return( mbedtls_test_driver_key_management_hooks.forced_status );
 
     key_buffer_temp = mbedtls_calloc( 1, key_buffer_size );
     if( key_buffer_temp == NULL )

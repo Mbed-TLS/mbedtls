@@ -2912,15 +2912,10 @@ component_test_cmake_out_of_source () {
 
 component_test_cmake_as_subdirectory () {
     msg "build: cmake 'as-subdirectory' build"
-    MBEDTLS_ROOT_DIR="$PWD"
-
     cd programs/test/cmake_subproject
     cmake .
     make
     ./cmake_subproject
-
-    cd "$MBEDTLS_ROOT_DIR"
-    unset MBEDTLS_ROOT_DIR
 }
 support_test_cmake_as_subdirectory () {
     support_test_cmake_out_of_source
@@ -2928,15 +2923,10 @@ support_test_cmake_as_subdirectory () {
 
 component_test_cmake_as_package () {
     msg "build: cmake 'as-package' build"
-    MBEDTLS_ROOT_DIR="$PWD"
-
     cd programs/test/cmake_package
     cmake .
     make
     ./cmake_package
-
-    cd "$MBEDTLS_ROOT_DIR"
-    unset MBEDTLS_ROOT_DIR
 }
 support_test_cmake_as_package () {
     support_test_cmake_out_of_source
@@ -2944,15 +2934,10 @@ support_test_cmake_as_package () {
 
 component_test_cmake_as_package_install () {
     msg "build: cmake 'as-installed-package' build"
-    MBEDTLS_ROOT_DIR="$PWD"
-
     cd programs/test/cmake_package_install
     cmake .
     make
     ./cmake_package_install
-
-    cd "$MBEDTLS_ROOT_DIR"
-    unset MBEDTLS_ROOT_DIR
 }
 support_test_cmake_as_package_install () {
     support_test_cmake_out_of_source

@@ -3006,6 +3006,9 @@ component_test_cmake_as_subdirectory () {
     cd "$MBEDTLS_ROOT_DIR"
     unset MBEDTLS_ROOT_DIR
 }
+support_test_cmake_as_subdirectory () {
+    support_test_cmake_out_of_source
+}
 
 component_test_zeroize () {
     # Test that the function mbedtls_platform_zeroize() is not optimized away by

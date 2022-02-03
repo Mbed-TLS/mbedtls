@@ -42,8 +42,10 @@ typedef struct {
     psa_key_location_t source;
 } mbedtls_test_driver_key_management_hooks_t;
 
-/* 0x800000 is a vendor-specific location, unused by the PSA, overwritten
- * in tests that expect a different value. */
+/* The location is initialized to the invalid value 0x800000. Invalid in the
+ * sense that no PSA specification will assign a meaning to this location
+ * (stated first in version 1.0.1 of the specification) and that it is not
+ * used as a location of an opaque test drivers. */
 #define MBEDTLS_TEST_DRIVER_KEY_MANAGEMENT_INIT { NULL, 0, PSA_SUCCESS, 0, 0x800000 }
 static inline mbedtls_test_driver_key_management_hooks_t
     mbedtls_test_driver_key_management_hooks_init( void )

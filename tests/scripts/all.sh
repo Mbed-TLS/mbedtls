@@ -1580,7 +1580,7 @@ component_test_psa_crypto_config_accel_ecdsa () {
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
     make CFLAGS="$ASAN_CFLAGS -O -Werror -I../tests/include -I../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
 
-    if_build_succeeded not grep mbedtls_ecdsa_ library/ecdsa.o
+    not grep mbedtls_ecdsa_ library/ecdsa.o
 
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDSA"
     make test
@@ -1659,8 +1659,8 @@ component_test_psa_crypto_config_accel_rsa_signature () {
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
     make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
 
-    if_build_succeeded not grep mbedtls_rsa_rsassa_pkcs1_v15_sign library/rsa.o
-    if_build_succeeded not grep mbedtls_rsa_rsassa_pss_sign_ext library/rsa.o
+    not grep mbedtls_rsa_rsassa_pkcs1_v15_sign library/rsa.o
+    not grep mbedtls_rsa_rsassa_pss_sign_ext library/rsa.o
 
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated RSA signature"
     make test
@@ -1695,8 +1695,8 @@ component_test_psa_crypto_config_accel_hash () {
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
     make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
 
-    if_build_succeeded not grep mbedtls_sha512_init library/sha512.o
-    if_build_succeeded not grep mbedtls_sha1_init library/sha1.o
+    not grep mbedtls_sha512_init library/sha512.o
+    not grep mbedtls_sha1_init library/sha1.o
 
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash"
     make test
@@ -1732,7 +1732,7 @@ component_test_psa_crypto_config_accel_cipher () {
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
     make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
 
-    if_build_succeeded not grep mbedtls_des* library/des.o
+    not grep mbedtls_des* library/des.o
 
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash"
     make test
@@ -2717,7 +2717,7 @@ component_test_tls13 () {
     msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, without padding"
     make test
     msg "ssl-opt.sh (TLS 1.3)"
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 }
 
 component_test_tls13_no_compatibility_mode () {
@@ -2730,7 +2730,7 @@ component_test_tls13_no_compatibility_mode () {
     msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, without padding"
     make test
     msg "ssl-opt.sh (TLS 1.3 no compatibility mode)"
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 }
 
 component_test_tls13_with_padding () {
@@ -2743,7 +2743,7 @@ component_test_tls13_with_padding () {
     msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, with padding"
     make test
     msg "ssl-opt.sh (TLS 1.3 with padding)"
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 }
 
 component_test_tls13_with_ecp_restartable () {
@@ -2756,7 +2756,7 @@ component_test_tls13_with_ecp_restartable () {
     msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, with ecp_restartable"
     make test
     msg "ssl-opt.sh (TLS 1.3 with ecp_restartable)"
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 }
 
 component_test_tls13_with_everest () {
@@ -2770,7 +2770,7 @@ component_test_tls13_with_everest () {
     msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, with Everest"
     make test
     msg "ssl-opt.sh (TLS 1.3 with everest)"
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 }
 
 component_build_mingw () {

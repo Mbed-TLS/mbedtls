@@ -703,7 +703,7 @@ exit:
 void enc_dec_buf( int cipher_id, char * cipher_string, int key_len,
                   int length_val, int pad_mode )
 {
-    size_t length = length_val, outlen, total_len, i, block_size;
+    size_t length = length_val, outlen, total_len, i, block_size, iv_len;
     unsigned char key[64];
     unsigned char iv[16];
     unsigned char ad[13];
@@ -759,8 +759,14 @@ void enc_dec_buf( int cipher_id, char * cipher_string, int key_len,
     memset( decbuf, 0, sizeof( decbuf ) );
     memset( tag, 0, sizeof( tag ) );
 
-    TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx_dec, iv, sizeof( iv ) ) );
-    TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx_enc, iv, sizeof( iv ) ) );
+    if( cipher_info->type == MBEDTLS_CIPHER_CHACHA20 ||
+        cipher_info->type == MBEDTLS_CIPHER_CHACHA20_POLY1305 )
+        iv_len = 12;
+    else
+        iv_len = sizeof(iv);
+
+    TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx_dec, iv, iv_len ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx_enc, iv, iv_len ) );
 
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_dec ) );
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_enc ) );
@@ -883,6 +889,7 @@ void dec_empty_buf( int cipher,
 {
     unsigned char key[32];
     unsigned char iv[16];
+    size_t iv_len = sizeof(iv);
 
     mbedtls_cipher_context_t ctx_dec;
     const mbedtls_cipher_info_t *cipher_info;
@@ -903,6 +910,11 @@ void dec_empty_buf( int cipher,
     /* Initialise context */
     cipher_info = mbedtls_cipher_info_from_type( cipher );
     TEST_ASSERT( NULL != cipher_info);
+
+    if( cipher_info->type == MBEDTLS_CIPHER_CHACHA20 ||
+        cipher_info->type == MBEDTLS_CIPHER_CHACHA20_POLY1305 )
+        iv_len = 12;
+
     TEST_ASSERT( sizeof(key) * 8 >= cipher_info->key_bitlen );
 
     TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx_dec, cipher_info ) );
@@ -911,7 +923,7 @@ void dec_empty_buf( int cipher,
                                              key, cipher_info->key_bitlen,
                                              MBEDTLS_DECRYPT ) );
 
-    TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx_dec, iv, 16 ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx_dec, iv, iv_len ) );
 
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_dec ) );
 
@@ -954,7 +966,7 @@ void enc_dec_buf_multipart( int cipher_id, int key_len, int first_length_val,
     size_t first_length = first_length_val;
     size_t second_length = second_length_val;
     size_t length = first_length + second_length;
-    size_t block_size;
+    size_t block_size, iv_len;
     unsigned char key[32];
     unsigned char iv[16];
 
@@ -999,8 +1011,14 @@ void enc_dec_buf_multipart( int cipher_id, int key_len, int first_length_val,
     (void) pad_mode;
 #endif /* MBEDTLS_CIPHER_MODE_WITH_PADDING */
 
-    TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx_dec, iv, 16 ) );
-    TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx_enc, iv, 16 ) );
+    if( cipher_info->type == MBEDTLS_CIPHER_CHACHA20 ||
+        cipher_info->type == MBEDTLS_CIPHER_CHACHA20_POLY1305 )
+        iv_len = 12;
+    else
+        iv_len = sizeof(iv);
+
+    TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx_dec, iv, iv_len ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx_enc, iv, iv_len ) );
 
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_dec ) );
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_enc ) );
@@ -1577,5 +1595,40 @@ void check_padding( int pad_mode, data_t * input, int ret, int dlen_check
     TEST_ASSERT( ret == ctx.get_padding( input->x, input->len, &dlen ) );
     if( 0 == ret )
         TEST_ASSERT( dlen == (size_t) dlen_check );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void check_iv( int cipher_id, char * cipher_string,
+               int iv_len_val, int ret )
+{
+    size_t iv_len = iv_len_val;
+    unsigned char iv[16];
+
+    const mbedtls_cipher_info_t *cipher_info;
+    mbedtls_cipher_context_t ctx_dec;
+    mbedtls_cipher_context_t ctx_enc;
+
+    /*
+     * Prepare contexts
+     */
+    mbedtls_cipher_init( &ctx_dec );
+    mbedtls_cipher_init( &ctx_enc );
+
+    /* Check and get info structures */
+    cipher_info = mbedtls_cipher_info_from_type( cipher_id );
+    TEST_ASSERT( NULL != cipher_info );
+    TEST_ASSERT( mbedtls_cipher_info_from_string( cipher_string ) == cipher_info );
+
+    /* Initialise enc and dec contexts */
+    TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx_dec, cipher_info ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx_enc, cipher_info ) );
+
+    TEST_ASSERT( ret == mbedtls_cipher_set_iv( &ctx_dec, iv, iv_len ) );
+    TEST_ASSERT( ret == mbedtls_cipher_set_iv( &ctx_enc, iv, iv_len ) );
+
+exit:
+    mbedtls_cipher_free( &ctx_dec );
+    mbedtls_cipher_free( &ctx_enc );
 }
 /* END_CASE */

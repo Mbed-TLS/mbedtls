@@ -38,8 +38,8 @@ typedef struct {
     /* Count the amount of times one of the key management driver functions
      * is called. */
     unsigned long hits;
-    /* Record the source of the function call. */
-    psa_key_location_t source;
+    /* Location of the last key management driver called to import a key. */
+    psa_key_location_t location;
 } mbedtls_test_driver_key_management_hooks_t;
 
 /* The location is initialized to the invalid value 0x800000. Invalid in the

@@ -348,7 +348,7 @@ void validate_key( int force_status_arg,
     actual_status = psa_import_key( &attributes, key_input->x, key_input->len, &key );
     TEST_EQUAL( mbedtls_test_driver_key_management_hooks.hits, 1 );
     TEST_EQUAL( actual_status, expected_status );
-    TEST_EQUAL( mbedtls_test_driver_key_management_hooks.source, location );
+    TEST_EQUAL( mbedtls_test_driver_key_management_hooks.location, location );
 exit:
     psa_reset_key_attributes( &attributes );
     psa_destroy_key( key );

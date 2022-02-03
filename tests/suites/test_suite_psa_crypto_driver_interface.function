@@ -1,0 +1,12 @@
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_PSA_CRYPTO_DRIVERS
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void basic_functionality( )
+{
+    if( ! mbedtls_test_psa_crypto_driver_basics( ) )
+        goto exit;
+}
+/* END_CASE */

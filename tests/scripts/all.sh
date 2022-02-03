@@ -2996,15 +2996,10 @@ component_test_cmake_out_of_source () {
 
 component_test_cmake_as_subdirectory () {
     msg "build: cmake 'as-subdirectory' build"
-    MBEDTLS_ROOT_DIR="$PWD"
-
     cd programs/test/cmake_subproject
     cmake .
     make
     ./cmake_subproject
-
-    cd "$MBEDTLS_ROOT_DIR"
-    unset MBEDTLS_ROOT_DIR
 }
 support_test_cmake_as_subdirectory () {
     support_test_cmake_out_of_source

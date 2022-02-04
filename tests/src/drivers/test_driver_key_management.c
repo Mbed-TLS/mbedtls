@@ -170,7 +170,7 @@ psa_status_t mbedtls_test_transparent_import_key(
     size_t *bits)
 {
     ++mbedtls_test_driver_key_management_hooks.hits;
-    mbedtls_test_driver_key_management_hooks.source = PSA_KEY_LOCATION_LOCAL_STORAGE;
+    mbedtls_test_driver_key_management_hooks.location = PSA_KEY_LOCATION_LOCAL_STORAGE;
 
     if( mbedtls_test_driver_key_management_hooks.forced_status != PSA_SUCCESS )
         return( mbedtls_test_driver_key_management_hooks.forced_status );

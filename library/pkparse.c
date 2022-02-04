@@ -1452,16 +1452,13 @@ int mbedtls_pk_parse_public_key( mbedtls_pk_context *ctx,
     if( ret == 0 )
     {
         p = pem.buf;
-        if( ( pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_RSA ) ) == NULL )
-            return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
+        pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_RSA );
 
-        if( ( ret = mbedtls_pk_setup( ctx, pk_info ) ) != 0 ) {
-            mbedtls_pem_free( &pem );
-            return( ret );
+        if( ( ret = mbedtls_pk_setup( ctx, pk_info ) ) != 0 ||
+            ( ret = pk_get_rsapubkey( &p, p + pem.buflen, mbedtls_pk_rsa( *ctx ) ) ) != 0 )
+        {
+                mbedtls_pk_free( ctx );
         }
-
-        if ( ( ret = pk_get_rsapubkey( &p, p + pem.buflen, mbedtls_pk_rsa( *ctx ) ) ) != 0 )
-            mbedtls_pk_free( ctx );
 
         mbedtls_pem_free( &pem );
         return( ret );

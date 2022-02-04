@@ -1,3 +1,3 @@
 Bugfix
-   * Fix memory leak if mbedtls_pk_parse_public_key() call is repeated with the
-     same context without reseting the context first. Fixes #5492.
+   * Fix memory leak in mbedtls_pk_parse_public_key() in low memory
+     conditions

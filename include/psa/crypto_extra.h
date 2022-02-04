@@ -181,12 +181,9 @@ static inline void psa_clear_key_slot_number(
  *         support registering a key.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The identifier in \p attributes is invalid, namely the identifier is
- *         not in the user range.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         not in the user range, or
  *         \p attributes specifies a lifetime which is not located
- *         in a secure element.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         No slot number is specified in \p attributes,
+ *         in a secure element, or no slot number is specified in \p attributes,
  *         or the specified slot number is not valid.
  * \retval #PSA_ERROR_NOT_PERMITTED
  *         The caller is not authorized to register the specified key slot.

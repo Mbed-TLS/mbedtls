@@ -40,12 +40,21 @@ void mbedtls_pem_read_buffer( char *header, char *footer, char *data,
     int ret;
     size_t use_len = 0;
     size_t pwd_len = strlen( pwd );
+    const unsigned char *der;
 
     mbedtls_pem_init( &ctx );
 
     ret = mbedtls_pem_read_buffer( &ctx, header, footer, (unsigned char *)data,
                 (unsigned char *)pwd, pwd_len, &use_len );
     TEST_ASSERT( ret == res );
+    if( ret != 0 )
+        goto exit;
+
+    /*(code coverage to exercise mbedtls_pem_get_der())*/
+    use_len = 0;
+    der = mbedtls_pem_get_der( &ctx, &use_len );
+    TEST_ASSERT( der == ctx.buf );
+    TEST_ASSERT( use_len == ctx.buflen );
 
 exit:
     mbedtls_pem_free( &ctx );

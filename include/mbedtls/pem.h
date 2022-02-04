@@ -104,6 +104,23 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
                      size_t pwdlen, size_t *use_len );
 
 /**
+ * \brief       Retrieve pointer to der data stored in \c mbedtls_pem_context.
+ *
+ * \param ctx       context to use
+ * \param derlen    destination for length of der data
+ *
+ * \return          const unsigned char * pointer to der data stored in
+ *                  \c mbedtls_pem_context.  Pointer is valid while
+ *                  \c mbedtls_pem_context is not further modified or freed.
+ */
+static inline const unsigned char *mbedtls_pem_get_der( mbedtls_pem_context *ctx, size_t *derlen )
+{
+    *derlen = ctx->MBEDTLS_PRIVATE(buflen);
+    return( ctx->MBEDTLS_PRIVATE(buf) );
+}
+
+
+/**
  * \brief       PEM context memory freeing
  *
  * \param ctx   context to be freed

@@ -33,6 +33,8 @@
 #include "mbedtls/error.h"
 
 #include "test/drivers/key_management.h"
+#include "test/drivers/test_driver.h"
+
 #include "test/random.h"
 
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
@@ -168,6 +170,7 @@ psa_status_t mbedtls_test_transparent_import_key(
     size_t *bits)
 {
     ++mbedtls_test_driver_key_management_hooks.hits;
+    mbedtls_test_driver_key_management_hooks.source = PSA_KEY_LOCATION_LOCAL_STORAGE;
 
     if( mbedtls_test_driver_key_management_hooks.forced_status != PSA_SUCCESS )
         return( mbedtls_test_driver_key_management_hooks.forced_status );

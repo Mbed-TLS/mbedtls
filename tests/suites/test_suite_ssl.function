@@ -3817,7 +3817,7 @@ void psa_hkdf_extract( int alg, char *hex_ikm_string,
     size_t ikm_len, salt_len, prk_len, output_prk_size, output_prk_len;
 
     output_prk_size = PSA_HASH_LENGTH( alg );
-    output_prk = mbedtls_calloc( 1, output_prk_size );
+    ASSERT_ALLOC( output_prk, output_prk_size );
 
     ikm = mbedtls_test_unhexify_alloc( hex_ikm_string, &ikm_len );
     salt = mbedtls_test_unhexify_alloc( hex_salt_string, &salt_len );
@@ -3850,8 +3850,8 @@ void psa_hkdf_extract_ret( int hash_len, int ret )
     unsigned char *prk = NULL;
     size_t salt_len, ikm_len, prk_len;
 
-    prk = mbedtls_calloc( PSA_MAC_MAX_SIZE, 1 );
     salt_len = hash_len;
+    ASSERT_ALLOC( prk, PSA_MAC_MAX_SIZE);
     ikm_len = 0;
     prk_len = 0;
 

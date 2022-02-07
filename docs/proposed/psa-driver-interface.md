@@ -60,6 +60,8 @@ How to provide the driver description file, the C header files and the object co
 
 The concrete syntax for a driver description file is JSON.
 
+In addition to the properties described here, any JSON object may have a property called `"_comment"` of type string, which will be ignored.
+
 #### Driver description list
 
 PSA Cryptography core implementations should support multiple drivers. The driver description files are passed to the implementation as an ordered list in an unspecified manner. This may be, for example, a list of file names passed on a command line, or a JSON list whose elements are individual driver descriptions.

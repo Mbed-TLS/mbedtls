@@ -1315,6 +1315,7 @@ void aead_key_policy( int policy_usage_arg,
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_aead_operation_t operation = PSA_AEAD_OPERATION_INIT;
     psa_key_usage_t policy_usage = policy_usage_arg;
     psa_status_t status;
     psa_status_t expected_status = expected_status_arg;
@@ -1340,6 +1341,7 @@ void aead_key_policy( int policy_usage_arg,
     TEST_EQUAL( policy_usage,
                 mbedtls_test_update_key_usage_flags( policy_usage ) );
 
+    /* Encrypt check, one-shot */
     status = psa_aead_encrypt( key, exercise_alg,
                                nonce, nonce_length,
                                NULL, 0,
@@ -1351,6 +1353,14 @@ void aead_key_policy( int policy_usage_arg,
     else
         TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
 
+    /* Encrypt check, multi-part */
+    status = psa_aead_encrypt_setup( &operation, key, exercise_alg );
+    if( ( policy_usage & PSA_KEY_USAGE_ENCRYPT ) != 0 )
+        TEST_EQUAL( status, expected_status );
+    else
+        TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
+
+    /* Decrypt check, one-shot */
     memset( tag, 0, sizeof( tag ) );
     status = psa_aead_decrypt( key, exercise_alg,
                                nonce, nonce_length,
@@ -1365,7 +1375,16 @@ void aead_key_policy( int policy_usage_arg,
     else
         TEST_EQUAL( status, expected_status );
 
+    /* Decrypt check, multi-part */
+    PSA_ASSERT( psa_aead_abort( &operation ) );
+    status = psa_aead_decrypt_setup( &operation, key, exercise_alg );
+    if( ( policy_usage & PSA_KEY_USAGE_DECRYPT ) == 0 )
+        TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
+    else
+        TEST_EQUAL( status, expected_status );
+
 exit:
+    PSA_ASSERT( psa_aead_abort( &operation ) );
     psa_destroy_key( key );
     PSA_DONE( );
 }

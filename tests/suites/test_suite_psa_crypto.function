@@ -1230,7 +1230,19 @@ void cipher_key_policy( int policy_usage_arg,
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     psa_key_usage_t policy_usage = policy_usage_arg;
+    size_t output_buffer_size = 0;
+    size_t input_buffer_size = 0;
+    size_t output_length = 0;
+    uint8_t *output = NULL;
+    uint8_t *input = NULL;
     psa_status_t status;
+
+    input_buffer_size = PSA_BLOCK_CIPHER_BLOCK_LENGTH( exercise_alg );
+    output_buffer_size = PSA_CIPHER_ENCRYPT_OUTPUT_SIZE( key_type, exercise_alg,
+                                                         input_buffer_size );
+
+    ASSERT_ALLOC( input, input_buffer_size );
+    ASSERT_ALLOC( output, output_buffer_size );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -1245,6 +1257,17 @@ void cipher_key_policy( int policy_usage_arg,
     TEST_EQUAL( policy_usage,
                 mbedtls_test_update_key_usage_flags( policy_usage ) );
 
+    /* Encrypt check, one-shot */
+    status = psa_cipher_encrypt( key, exercise_alg, input, input_buffer_size,
+                                 output, output_buffer_size,
+                                 &output_length);
+    if( policy_alg == exercise_alg &&
+        ( policy_usage & PSA_KEY_USAGE_ENCRYPT ) != 0 )
+        PSA_ASSERT( status );
+    else
+        TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
+
+    /* Encrypt check, multi-part */
     status = psa_cipher_encrypt_setup( &operation, key, exercise_alg );
     if( policy_alg == exercise_alg &&
         ( policy_usage & PSA_KEY_USAGE_ENCRYPT ) != 0 )
@@ -1253,6 +1276,17 @@ void cipher_key_policy( int policy_usage_arg,
         TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
     psa_cipher_abort( &operation );
 
+    /* Decrypt check, one-shot */
+    status = psa_cipher_decrypt( key, exercise_alg, output, output_buffer_size,
+                                 input, input_buffer_size,
+                                 &output_length);
+    if( policy_alg == exercise_alg &&
+        ( policy_usage & PSA_KEY_USAGE_DECRYPT ) != 0 )
+        PSA_ASSERT( status );
+    else
+        TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
+
+    /* Decrypt check, multi-part */
     status = psa_cipher_decrypt_setup( &operation, key, exercise_alg );
     if( policy_alg == exercise_alg &&
         ( policy_usage & PSA_KEY_USAGE_DECRYPT ) != 0 )
@@ -1262,6 +1296,8 @@ void cipher_key_policy( int policy_usage_arg,
 
 exit:
     psa_cipher_abort( &operation );
+    mbedtls_free( input );
+    mbedtls_free( output );
     psa_destroy_key( key );
     PSA_DONE( );
 }

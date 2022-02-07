@@ -40,6 +40,11 @@
 #include "mbedtls/pem.h"
 #endif /* MBEDTLS_PEM_WRITE_C */
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "psa/crypto.h"
+#include "mbedtls/psa_util.h"
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
 void mbedtls_x509write_crt_init( mbedtls_x509write_cert *ctx )
 {
     memset( ctx, 0, sizeof( mbedtls_x509write_cert ) );
@@ -169,6 +174,11 @@ int mbedtls_x509write_crt_set_basic_constraints( mbedtls_x509write_cert *ctx,
 #if defined(MBEDTLS_SHA1_C)
 int mbedtls_x509write_crt_set_subject_key_identifier( mbedtls_x509write_cert *ctx )
 {
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    size_t hash_length;
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE * 2 + 20]; /* tag, length + 2xMPI */
     unsigned char *c = buf + sizeof(buf);
@@ -178,10 +188,24 @@ int mbedtls_x509write_crt_set_subject_key_identifier( mbedtls_x509write_cert *ct
     MBEDTLS_ASN1_CHK_ADD( len,
                 mbedtls_pk_write_pubkey( &c, buf, ctx->subject_key ) );
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    status = psa_hash_compute( PSA_ALG_SHA_1,
+                               buf + sizeof( buf ) - len,
+                               len,
+                               buf + sizeof( buf ) - 20 ,
+                               PSA_HASH_LENGTH(PSA_ALG_SHA_1),
+                               &hash_length );
+    if( status != PSA_SUCCESS )
+    {
+        return( MBEDTLS_ERR_ERROR_GENERIC_ERROR );
+    }
+#else
     ret = mbedtls_sha1( buf + sizeof( buf ) - len, len,
-                            buf + sizeof( buf ) - 20 );
+                        buf + sizeof( buf ) - 20 );
     if( ret != 0 )
         return( ret );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
     c = buf + sizeof( buf ) - 20;
     len = 20;
 
@@ -197,6 +221,11 @@ int mbedtls_x509write_crt_set_subject_key_identifier( mbedtls_x509write_cert *ct
 
 int mbedtls_x509write_crt_set_authority_key_identifier( mbedtls_x509write_cert *ctx )
 {
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    size_t hash_length;
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE * 2 + 20]; /* tag, length + 2xMPI */
     unsigned char *c = buf + sizeof( buf );
@@ -205,11 +234,24 @@ int mbedtls_x509write_crt_set_authority_key_identifier( mbedtls_x509write_cert *
     memset( buf, 0, sizeof(buf) );
     MBEDTLS_ASN1_CHK_ADD( len,
                           mbedtls_pk_write_pubkey( &c, buf, ctx->issuer_key ) );
-
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    status = psa_hash_compute( PSA_ALG_SHA_1,
+                               buf + sizeof( buf ) - len,
+                               len,
+                               buf + sizeof( buf ) - 20 ,
+                               PSA_HASH_LENGTH(PSA_ALG_SHA_1),
+                               &hash_length );
+    if( status != PSA_SUCCESS )
+    {
+        return( MBEDTLS_ERR_ERROR_GENERIC_ERROR );
+    }
+#else
     ret = mbedtls_sha1( buf + sizeof( buf ) - len, len,
-                            buf + sizeof( buf ) - 20 );
+                        buf + sizeof( buf ) - 20 );
     if( ret != 0 )
         return( ret );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
     c = buf + sizeof( buf ) - 20;
     len = 20;
 
@@ -330,8 +372,16 @@ int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx,
     const char *sig_oid;
     size_t sig_oid_len = 0;
     unsigned char *c, *c2;
-    unsigned char hash[64];
     unsigned char sig[MBEDTLS_PK_SIGNATURE_MAX_SIZE];
+    size_t hash_length = 0;
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_algorithm_t psa_algorithm;
+    unsigned char hash[PSA_HASH_MAX_SIZE];
+#else
+    unsigned char hash[64];
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
     size_t sub_len = 0, pub_len = 0, sig_and_oid_len = 0, sig_len;
     size_t len = 0;
     mbedtls_pk_type_t pk_alg;
@@ -466,14 +516,30 @@ int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx,
      */
 
     /* Compute hash of CRT. */
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_algorithm = mbedtls_psa_translate_md( ctx->md_alg );
+
+    status = psa_hash_compute( psa_algorithm,
+                               c,
+                               len,
+                               hash,
+                               PSA_HASH_MAX_SIZE,
+                               &hash_length );
+    if( status != PSA_SUCCESS )
+    {
+        return MBEDTLS_ERR_ERROR_GENERIC_ERROR;
+    }
+#else
     if( ( ret = mbedtls_md( mbedtls_md_info_from_type( ctx->md_alg ), c,
                             len, hash ) ) != 0 )
     {
         return( ret );
     }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
 
     if( ( ret = mbedtls_pk_sign( ctx->issuer_key, ctx->md_alg,
-                                 hash, 0, sig, sizeof( sig ), &sig_len,
+                                 hash, hash_length, sig, sizeof( sig ), &sig_len,
                                  f_rng, p_rng ) ) != 0 )
     {
         return( ret );

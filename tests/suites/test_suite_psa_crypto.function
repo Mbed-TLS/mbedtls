@@ -3040,9 +3040,14 @@ void cipher_encrypt_fail( int alg_arg,
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     psa_status_t expected_status = expected_status_arg;
+    unsigned char iv[PSA_CIPHER_IV_MAX_SIZE] = {0};
+    size_t iv_size = PSA_CIPHER_IV_MAX_SIZE;
+    size_t iv_length = 0;
     unsigned char *output = NULL;
     size_t output_buffer_size = 0;
     size_t output_length = 0;
+    size_t function_output_length;
+    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     if ( PSA_ERROR_BAD_STATE != expected_status )
@@ -3061,12 +3066,48 @@ void cipher_encrypt_fail( int alg_arg,
                                     &key ) );
     }
 
+    /* Encrypt, one-shot */
     status = psa_cipher_encrypt( key, alg, input->x, input->len, output,
                                  output_buffer_size, &output_length );
 
     TEST_EQUAL( status, expected_status );
 
+    /* Encrypt, multi-part */
+    status = psa_cipher_encrypt_setup( &operation, key, alg );
+    if( status == PSA_SUCCESS )
+    {
+        if( alg != PSA_ALG_ECB_NO_PADDING )
+        {
+            PSA_ASSERT( psa_cipher_generate_iv( &operation,
+                        iv, iv_size,
+                        &iv_length ) );
+        }
+
+        status = psa_cipher_update( &operation, input->x, input->len,
+                                    output, output_buffer_size,
+                                    &function_output_length );
+        if( status == PSA_SUCCESS )
+        {
+            output_length += function_output_length;
+
+            status = psa_cipher_finish( &operation, output + output_length,
+                                        output_buffer_size - output_length,
+                                        &function_output_length );
+
+            TEST_EQUAL( status, expected_status );
+        }
+        else
+        {
+            TEST_EQUAL( status, expected_status );
+        }
+    }
+    else
+    {
+        TEST_EQUAL( status, expected_status );
+    }
+
 exit:
+    psa_cipher_abort( &operation );
     mbedtls_free( output );
     psa_destroy_key( key );
     PSA_DONE( );

@@ -34,7 +34,7 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_AES_C:MBEDTLS_DES_C:MBEDTLS_MD5_C:MBEDTLS_CIPHER_MODE_CBC */
 void mbedtls_pem_read_buffer( char *header, char *footer, char *data,
-                              char *pwd, int res )
+                              char *pwd, int res, data_t *out )
 {
     mbedtls_pem_context ctx;
     int ret;
@@ -50,11 +50,10 @@ void mbedtls_pem_read_buffer( char *header, char *footer, char *data,
     if( ret != 0 )
         goto exit;
 
-    /*(code coverage to exercise mbedtls_pem_get_der())*/
     use_len = 0;
     der = mbedtls_pem_get_der( &ctx, &use_len );
-    TEST_ASSERT( der == ctx.buf );
-    TEST_ASSERT( use_len == ctx.buflen );
+    TEST_EQUAL( use_len, out->len );
+    TEST_ASSERT( memcmp( out->x, der, out->len ) == 0 );
 
 exit:
     mbedtls_pem_free( &ctx );

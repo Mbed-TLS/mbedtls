@@ -8,7 +8,7 @@ Several benefits are expected from migrating to PSA Crypto:
 
 G1. Use PSA Crypto drivers when available.
 G2. Allow isolation of long-term secrets (for example, private keys).
-G3. Allow isolation of short-term secrets (for example, TLS sesssion keys).
+G3. Allow isolation of short-term secrets (for example, TLS session keys).
 G4. Have a clean, unified API for Crypto (retire the legacy API).
 G5. Code size: compile out our implementation when a driver is available.
 
@@ -20,7 +20,7 @@ Generally speaking, the numbering above doesn't mean that each goal requires
 the preceding ones to be completed, for example G2-G5 could be done in any
 order; however they all either depend on G1 or are just much more convenient
 if G1 is done before (note that this is not a dependency on G1 being complete,
-it's more like each bit of G2-G5 is helped by some speficic bit in G1).
+it's more like each bit of G2-G5 is helped by some specific bit in G1).
 
 So, a solid intermediate goal would be to complete (G1) when
 `MBEDTLS_USA_PSA_CRYPTO` is enabled - that is, all crypto operations in X.509
@@ -47,7 +47,7 @@ are:
   both of them, but then `MBEDTLS_PSA_CRYPTO_CONFIG` won't have the desired
 effect)
 - to avoid a hard/default dependency of TLS, X.509 and PK on
-  `MBEDTLS_PSA_CRYPTO_C`, for backards compatibility reasons:
+  `MBEDTLS_PSA_CRYPTO_C`, for backwards compatibility reasons:
   - when `MBEDTLS_PSA_CRYPTO_C` is enabled and used, applications need to call
     `psa_crypto_init()` before TLS/X.509 uses PSA functions
   - `MBEDTLS_PSA_CRYPTO_C` has a hard depend on `MBEDTLS_ENTROPY_C ||
@@ -109,12 +109,12 @@ I don't know what the priority is for `MBEDTLS_USE_PSA_CRYPTO` between
 improving driver support and covering more of the protocol. It seems to me
 that it'll be less work overall to first implement a good architecture for
 `MBEDTLS_USE_PSA_CRYPTO + MBEDTLS_PSA_CRYPTO_CONFIG` and then extend to more
-protocol featues, because implementing that architecture will require changes
+protocol features, because implementing that architecture will require changes
 to the existing code and the less code there is at this point the better,
-whereas extending to more procotol features will require the same amount of
+whereas extending to more protocol features will require the same amount of
 work either way.
 
-### Backwars compatibility issues with making it always on
+### Backwards compatibility issues with making it always on
 
 1. Existing applications may not be calling `psa_crypto_init()` before using
    TLS, X.509 or PK. We can try to work around that by calling (the relevant
@@ -223,7 +223,7 @@ one-shot function `mbedtls_md()`.
 There are two variants of this strategy: one where using the new setup
 function also allows for key isolation (the key is only held by PSA,
 supporting both G1 and G2 in that area), and one without isolation (the key is
-still stored outsde of PSA most of the time, supporting only G1).
+still stored outsede of PSA most of the time, supporting only G1).
 
 This strategy, with support for key isolation, is currently (end of 2021) used for ECDSA
 signature generation in the PK layer - see `mbedtls_pk_setup_opaque()`. This
@@ -249,7 +249,7 @@ support for drivers, but fails to provide isolation support.
 Summary
 -------
 
-Stategies currently used with each abstraction layer:
+Strategies currently used with each abstraction layer:
 
 - PK (for G1): silently call PSA
 - PK (for G2): opt-in use of PSA (new key type)
@@ -279,7 +279,7 @@ implemented of top of the concerned layers
 
 The most favourable case is if we can have a zero-cost abstraction (no
 runtime, RAM usage or code size penalty), for example just a bunch of
-`#define`s, essentialy mapping `mbedtls_` APIs to their `psa_` equivalent.
+`#define`s, essentially mapping `mbedtls_` APIs to their `psa_` equivalent.
 
 Unfortunately that's unlikely fully work. For example, the MD layer uses the
 same context type for hashes and HMACs, while the PSA API (rightfully) has
@@ -304,12 +304,12 @@ layers compared to the existing (no need to dispatch through function
 pointers, just call the corresponding PSA API).
 
 Since this would still represent a non-zero cost, not only in terms of code
-size, but also in terms of maintainance (testing, etc.) this would probably
+size, but also in terms of maintenance (testing, etc.) this would probably
 be a temporary solution: for example keep the compatibility layers in 4.0 (and
 make them optional), but remove them in 5.0.
 
 Again, this provides the most value to users if we can manage to keep the
-existing API unchanged. Their might be conflcits between this goal and that of
+existing API unchanged. Their might be conflicts between this goal and that of
 reducing the cost, and judgment calls may need to be made.
 
 Note: when it comes to holding public keys in the PK layer, depending on how
@@ -342,7 +342,7 @@ example identifiers for elliptic curves.
 Generally speaking, we would retire all of the low-level, non-generic modules,
 such as AES, SHA-256, RSA, DHM, ECDH, ECP, bignum, etc, without providing
 compatibility APIs for them. People would be encouraged to switch to the PSA
-API. (The compatiblity implementation of the existing PK, MD, Cipher APIs
+API. (The compatibility implementation of the existing PK, MD, Cipher APIs
 would mostly benefit people who already used those generic APis rather than
 the low-level, alg-specific ones.)
 
@@ -361,7 +361,7 @@ would need a way to easily extract the PSA key ID from the PK context.
 2. APIs the accept list of identifiers: for example
    `mbedtls_ssl_conf_curves()` taking a list of `mbedtls_ecp_group_id`s. This
 could be changed to accept a list of pairs (`psa_ecc_familiy_t`, size) but we
-should probably take this opportunity to move to a identifier independant from
+should probably take this opportunity to move to a identifier independent from
 the underlying crypto implementation and use TLS-specific identifiers instead
 (based on IANA values or custom enums), as is currently done in the new
 `mbedtls_ssl_conf_groups()` API, see #4859).

@@ -19,7 +19,7 @@ Generally, code review is enough to ensure that PSA APIs are indeed used where
 they should be when `MBEDTLS_USE_PSA_CRYPTO` is enabled.
 
 However, when it comes to TLS, we also have the option of using debug messages
-to confirm which code path is taken. This is generaly un-necessary, except when
+to confirm which code path is taken. This is generally unnecessary, except when
 a decision is made at run-time about whether to use the PSA or legacy code
 path. For example, for record protection, currently some ciphers are supported
 via PSA while some others aren't, with a run-time fallback. In this case, it's
@@ -59,7 +59,7 @@ In that case, we want:
     `mbedtls_x509write_crt_set_issuer_key()`.)
 
 For some APIs, for example with `mbedtls_ssl_conf_psk_opaque()`, testing in
-`test_suite_ssl` was historicaly not possible, so we only have testing in
+`test_suite_ssl` was historically not possible, so we only have testing in
 `ssl-opt.sh`.
 
 New APIs meant for internal use
@@ -93,7 +93,7 @@ For example, use of PSA to compute the TLS 1.2 PRF.
 Changes in this category rarely require specific testing, as everything should
 be already be covered by running the existing tests in a build with
 `MBEDTLS_USE_PSA_CRYPTO` enabled; however we need to make sure the existing
-test have sufficient coveraged, and improve them if necessary.
+test have sufficient coverage, and improve them if necessary.
 
 However, if additional logic is involved, or there are run-time decisions about
 whether to use the PSA or legacy code paths, specific tests might be in order.

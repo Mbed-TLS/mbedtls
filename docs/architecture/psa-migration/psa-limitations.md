@@ -381,7 +381,7 @@ sensitive.)
 HKDF: Expand not exposed on its own (TLS 1.3)
 ---------------------------------------------
 
-See the section with the same namw in the G1 part above for background.
+See the section with the same name in the G1 part above for background.
 
 The work-around mentioned there works well enough just for acceleration, but
 is not sufficient for key isolation or generally proper key management (it

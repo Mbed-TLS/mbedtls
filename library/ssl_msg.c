@@ -933,7 +933,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         if( status != PSA_SUCCESS )
         {
             ret = psa_ssl_status_to_mbedtls( status );
-            MBEDTLS_SSL_DEBUG_RET( 1, "psa_aead_encrypt", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "psa_cipher_encrypt_setup", ret );
             return( ret );
         }
 
@@ -942,7 +942,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         if( status != PSA_SUCCESS )
         {
             ret = psa_ssl_status_to_mbedtls( status );
-            MBEDTLS_SSL_DEBUG_RET( 1, "psa_aead_encrypt", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "psa_cipher_set_iv", ret );
             return( ret );
 
         }
@@ -954,7 +954,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         if( status != PSA_SUCCESS )
         {
             ret = psa_ssl_status_to_mbedtls( status );
-            MBEDTLS_SSL_DEBUG_RET( 1, "psa_aead_encrypt", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "psa_cipher_update", ret );
             return( ret );
 
         }
@@ -966,7 +966,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         if( status != PSA_SUCCESS )
         {
             ret = psa_ssl_status_to_mbedtls( status );
-            MBEDTLS_SSL_DEBUG_RET( 1, "psa_aead_encrypt", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "psa_cipher_finish", ret );
             return( ret );
 
         }
@@ -1239,7 +1239,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
         if( status != PSA_SUCCESS )
         {
             ret = psa_ssl_status_to_mbedtls( status );
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_decrypt_buf", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "psa_aead_decrypt", ret );
             return( ret );
         }
 #else
@@ -1430,7 +1430,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
         if( status != PSA_SUCCESS )
         {
             ret = psa_ssl_status_to_mbedtls( status );
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_decrypt_buf", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "psa_cipher_decrypt_setup", ret );
             return( ret );
         }
 
@@ -1439,7 +1439,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
         if( status != PSA_SUCCESS )
         {
             ret = psa_ssl_status_to_mbedtls( status );
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_decrypt_buf", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "psa_cipher_set_iv", ret );
             return( ret );
         }
 
@@ -1450,7 +1450,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
         if( status != PSA_SUCCESS )
         {
             ret = psa_ssl_status_to_mbedtls( status );
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_decrypt_buf", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "psa_cipher_update", ret );
             return( ret );
         }
 
@@ -1461,7 +1461,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
         if( status != PSA_SUCCESS )
         {
             ret = psa_ssl_status_to_mbedtls( status );
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_decrypt_buf", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "psa_cipher_finish", ret );
             return( ret );
         }
 

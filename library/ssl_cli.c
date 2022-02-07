@@ -2385,7 +2385,12 @@ static int ssl_parse_server_ecdh_params_psa( mbedtls_ssl_context *ssl,
 
     /* Check it's a curve we offered */
     if( mbedtls_ssl_check_curve_tls_id( ssl, tls_id ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2,
+            ( "bad server key exchange message (ECDHE curve): %u",
+              (unsigned) tls_id ) );
         return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+    }
 
     /* Convert EC group to PSA key type. */
     if( ( handshake->ecdh_psa_type =

@@ -118,11 +118,15 @@ algorithms can differ from each other.
 - PSA:
   - algorithm specification:
     - hash alg used for message hashing, encoding and MGF1
-    - salt length can be either "standard" (== hashlen) or "any"
+    - salt length can be either "standard" (<= hashlen, see note) or "any"
   - signature generation:
-    - salt length: always using the maximum legal value and random salt
+    - salt length: always <= hashlen (see note) and random salt
   - verification:
-    - salt length: either == hashlen, or any depending on algorithm
+    - salt length: either <= hashlen (see note), or any depending on algorithm
+
+Note: above, "<= hashlen" means that hashlen is used if possible, but if it
+doesn't fit because the key is too short, then the maximum lenght that fits is
+used.
 
 The RSA/PK API is in principle more flexible than the PSA Crypto API. The
 following sub-sections study whether and how this matters in practice.
@@ -158,7 +162,7 @@ match a limitation of the PSA API.
 It is unclear what parameters people use in practice. It looks like by default
 OpenSSL picks saltlen = keylen - hashlen - 2 (tested with openssl 1.1.1f).
 The `certool` command provided by GnuTLS seems to be picking saltlen = hashlen
-by default (tested with GnuTLS 3.6.13). FIPS 186-4 recommends saltlen >=
+by default (tested with GnuTLS 3.6.13). FIPS 186-4 recommends 0 <= saltlen <=
 hashlen.
 
 ### Use in TLS

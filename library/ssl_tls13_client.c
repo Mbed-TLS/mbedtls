@@ -689,9 +689,9 @@ static int ssl_tls13_parse_cookie_ext( mbedtls_ssl_context *ssl,
 }
 
 static int ssl_tls13_write_cookie_ext( mbedtls_ssl_context *ssl,
-                                       unsigned char* buf,
-                                       unsigned char* end,
-                                       size_t* olen )
+                                       unsigned char *buf,
+                                       unsigned char *end,
+                                       size_t *olen )
 {
     unsigned char *p = buf;
 
@@ -707,20 +707,14 @@ static int ssl_tls13_write_cookie_ext( mbedtls_ssl_context *ssl,
                            ssl->handshake->verify_cookie,
                            ssl->handshake->verify_cookie_len );
 
-    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
-    p += 2;
-    MBEDTLS_SSL_CHK_BUF_PTR( p, end, ssl->handshake->verify_cookie_len + 4 );
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, ssl->handshake->verify_cookie_len + 6 );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding cookie extension" ) );
 
-    /* Extension Type */
     MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_COOKIE, p, 0 );
-
-    /* Extension Length */
-    MBEDTLS_PUT_UINT16_BE( ssl->handshake->verify_cookie_len + 2, p, 0 );
-
-    /* Cookie Length */
-    MBEDTLS_PUT_UINT16_BE( ssl->handshake->verify_cookie_len, p, 0 );
+    MBEDTLS_PUT_UINT16_BE( ssl->handshake->verify_cookie_len + 2, p, 2 );
+    MBEDTLS_PUT_UINT16_BE( ssl->handshake->verify_cookie_len, p, 4 );
+    p += 6;
 
     /* Cookie */
     memcpy( p, ssl->handshake->verify_cookie, ssl->handshake->verify_cookie_len );
@@ -915,8 +909,9 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
     p += output_len;
 #endif /* MBEDTLS_SSL_ALPN */
 
-    /* For TLS / DTLS 1.3 we need to support the use of cookies
-     * ( if the server provided them ) */
+    /* Echo the cookie if the server provided one in its preceding
+     * HelloRetryRequest message.
+     */
     ret = ssl_tls13_write_cookie_ext( ssl, p, end, &output_len );
     if( ret != 0 )
         return( ret );

@@ -842,7 +842,6 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
             ret = psa_ssl_status_to_mbedtls( status );
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_encrypt_buf", ret );
             return( ret );
-
         }
 #else
         if( ( ret = mbedtls_cipher_auth_encrypt_ext( &transform->cipher_ctx_enc,
@@ -1292,7 +1291,6 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
             ret = psa_ssl_status_to_mbedtls( status );
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_decrypt_buf", ret );
             return( ret );
-
         }
 #else
         if( ( ret = mbedtls_cipher_auth_decrypt_ext( &transform->cipher_ctx_dec,
@@ -1484,7 +1482,6 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
             ret = psa_ssl_status_to_mbedtls( status );
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_decrypt_buf", ret );
             return( ret );
-
         }
 
         status = psa_cipher_set_iv( &cipher_op, transform->iv_dec, transform->ivlen );
@@ -1494,7 +1491,6 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
             ret = psa_ssl_status_to_mbedtls( status );
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_decrypt_buf", ret );
             return( ret );
-
         }
 
         status = psa_cipher_update( &cipher_op,
@@ -1506,7 +1502,6 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
             ret = psa_ssl_status_to_mbedtls( status );
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_decrypt_buf", ret );
             return( ret );
-
         }
 
         status = psa_cipher_finish( &cipher_op,
@@ -1518,7 +1513,6 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
             ret = psa_ssl_status_to_mbedtls( status );
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_decrypt_buf", ret );
             return( ret );
-
         }
 
         olen += part_len;

@@ -72,7 +72,7 @@ PSA Cryptography core implementations should support multiple drivers. The drive
 
 A driver description is a JSON object containing the following properties:
 
-* `"prefix"` (mandatory, string). This must be a valid prefix for a C identifier. All the types and functions provided by the driver have a name that starts with this prefix unless overridden with a `"name"` element in the applicable capability as described below.
+* `"prefix"` (mandatory, string). This must be a valid, non-empty prefix for a C identifier. All the types and functions provided by the driver have a name that starts with this prefix unless overridden with a `"name"` element in the applicable capability as described below.
 * `"type"` (mandatory, string). One of `"transparent"` or `"opaque"`.
 * `"headers"` (optional, array of strings). A list of header files. These header files must define the types, macros and constants referenced by the driver description. They may declare the entry point functions, but this is not required. They may include other PSA headers and standard headers of the platform. Whether they may include other headers is implementation-specific. If omitted, the list of headers is empty. The header files must be present at the specified location relative to a directory on the compiler's include path when compiling glue code between the core and the drivers.
 * `"capabilities"` (mandatory, array of [capabilities](#driver-description-capability)).

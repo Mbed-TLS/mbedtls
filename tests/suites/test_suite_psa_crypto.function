@@ -1948,11 +1948,12 @@ void hash_compute_compare( int alg_arg, data_t *input,
     psa_algorithm_t alg = alg_arg;
     uint8_t output[PSA_HASH_MAX_SIZE + 1];
     size_t output_length = INVALID_EXPORT_LENGTH;
+    psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
     size_t i;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
-    /* Compute with tight buffer */
+    /* Compute with tight buffer, one-shot */
     PSA_ASSERT( psa_hash_compute( alg, input->x, input->len,
                                   output, PSA_HASH_LENGTH( alg ),
                                   &output_length ) );
@@ -1960,7 +1961,17 @@ void hash_compute_compare( int alg_arg, data_t *input,
     ASSERT_COMPARE( output, output_length,
                     expected_output->x, expected_output->len );
 
-    /* Compute with larger buffer */
+    /* Compute with tight buffer, multi-part */
+    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    PSA_ASSERT( psa_hash_update( &operation, input->x, input->len ) );
+    PSA_ASSERT( psa_hash_finish( &operation, output,
+                                 PSA_HASH_LENGTH( alg ),
+                                 &output_length ) );
+    TEST_EQUAL( output_length, PSA_HASH_LENGTH( alg ) );
+    ASSERT_COMPARE( output, output_length,
+                    expected_output->x, expected_output->len );
+
+    /* Compute with larger buffer, one-shot */
     PSA_ASSERT( psa_hash_compute( alg, input->x, input->len,
                                   output, sizeof( output ),
                                   &output_length ) );
@@ -1968,18 +1979,45 @@ void hash_compute_compare( int alg_arg, data_t *input,
     ASSERT_COMPARE( output, output_length,
                     expected_output->x, expected_output->len );
 
-    /* Compare with correct hash */
+    /* Compute with larger buffer, multi-part */
+    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    PSA_ASSERT( psa_hash_update( &operation, input->x, input->len ) );
+    PSA_ASSERT( psa_hash_finish( &operation, output,
+                                 sizeof( output ), &output_length ) );
+    TEST_EQUAL( output_length, PSA_HASH_LENGTH( alg ) );
+    ASSERT_COMPARE( output, output_length,
+                    expected_output->x, expected_output->len );
+
+    /* Compare with correct hash, one-shot */
     PSA_ASSERT( psa_hash_compare( alg, input->x, input->len,
                                   output, output_length ) );
 
-    /* Compare with trailing garbage */
+    /* Compare with correct hash, multi-part */
+    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    PSA_ASSERT( psa_hash_update( &operation, input->x, input->len ) );
+    PSA_ASSERT( psa_hash_verify( &operation, output,
+                output_length ) );
+
+    /* Compare with trailing garbage, one-shot */
     TEST_EQUAL( psa_hash_compare( alg, input->x, input->len,
                                   output, output_length + 1 ),
                 PSA_ERROR_INVALID_SIGNATURE );
 
-    /* Compare with truncated hash */
+    /* Compare with trailing garbage, multi-part */
+    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    PSA_ASSERT( psa_hash_update( &operation, input->x, input->len ) );
+    TEST_EQUAL( psa_hash_verify( &operation, output, output_length + 1 ),
+                PSA_ERROR_INVALID_SIGNATURE );
+
+    /* Compare with truncated hash, one-shot */
     TEST_EQUAL( psa_hash_compare( alg, input->x, input->len,
                                   output, output_length - 1 ),
+                PSA_ERROR_INVALID_SIGNATURE );
+
+    /* Compare with truncated hash, multi-part */
+    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    PSA_ASSERT( psa_hash_update( &operation, input->x, input->len ) );
+    TEST_EQUAL( psa_hash_verify( &operation, output, output_length - 1 ),
                 PSA_ERROR_INVALID_SIGNATURE );
 
     /* Compare with corrupted value */
@@ -1987,13 +2025,23 @@ void hash_compute_compare( int alg_arg, data_t *input,
     {
         mbedtls_test_set_step( i );
         output[i] ^= 1;
+
+        /* One-shot */
         TEST_EQUAL( psa_hash_compare( alg, input->x, input->len,
                                       output, output_length ),
                     PSA_ERROR_INVALID_SIGNATURE );
+
+        /* Multi-Part */
+        PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+        PSA_ASSERT( psa_hash_update( &operation, input->x, input->len ) );
+        TEST_EQUAL( psa_hash_verify( &operation, output, output_length ),
+                    PSA_ERROR_INVALID_SIGNATURE );
+
         output[i] ^= 1;
     }
 
 exit:
+    PSA_ASSERT( psa_hash_abort( &operation ) );
     PSA_DONE( );
 }
 /* END_CASE */

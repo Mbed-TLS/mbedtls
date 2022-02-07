@@ -3832,10 +3832,10 @@ void psa_hkdf_extract( int alg, char *hex_ikm_string,
     ASSERT_COMPARE( output_prk, output_prk_len, prk, prk_len );
 
 exit:
-    mbedtls_free(ikm);
-    mbedtls_free(salt);
-    mbedtls_free(prk);
-    mbedtls_free(output_prk);
+    mbedtls_free( ikm );
+    mbedtls_free( salt );
+    mbedtls_free( prk );
+    mbedtls_free( output_prk );
 
     PSA_DONE( );
 }
@@ -3863,7 +3863,7 @@ void psa_hkdf_extract_ret( int hash_len, int ret )
     TEST_ASSERT( prk_len == 0 );
 
 exit:
-    mbedtls_free(prk);
+    mbedtls_free( prk );
 
     PSA_DONE( );
 }

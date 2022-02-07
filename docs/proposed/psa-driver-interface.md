@@ -62,6 +62,8 @@ The concrete syntax for a driver description file is JSON.
 
 In addition to the properties described here, any JSON object may have a property called `"_comment"` of type string, which will be ignored.
 
+PSA Cryptography core implementations may support additional properties. Such properties must use names consisting of the implementation's name, a slash, and additional characters. For example, the Yoyodyne implementation may use property names such as `"yoyodyne/foo"` and `"yoyodyne/widgets/girth"`.
+
 #### Driver description list
 
 PSA Cryptography core implementations should support multiple drivers. The driver description files are passed to the implementation as an ordered list in an unspecified manner. This may be, for example, a list of file names passed on a command line, or a JSON list whose elements are individual driver descriptions.

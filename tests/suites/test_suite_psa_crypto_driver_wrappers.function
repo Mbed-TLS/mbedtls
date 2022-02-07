@@ -314,10 +314,17 @@ exit:
 
 /* BEGIN_CASE */
 void validate_key( int force_status_arg,
+                   int location,
+                   int owner_id_arg,
+                   int id_arg,
                    int key_type_arg,
                    data_t *key_input,
                    int expected_status_arg )
 {
+    psa_key_lifetime_t lifetime =
+                              PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION( \
+                                  PSA_KEY_PERSISTENCE_DEFAULT, location);
+    mbedtls_svc_key_id_t id = mbedtls_svc_key_id_make( owner_id_arg, id_arg );
     psa_status_t force_status = force_status_arg;
     psa_status_t expected_status = expected_status_arg;
     psa_key_type_t key_type = key_type_arg;
@@ -327,8 +334,10 @@ void validate_key( int force_status_arg,
     mbedtls_test_driver_key_management_hooks =
         mbedtls_test_driver_key_management_hooks_init();
 
+    psa_set_key_id( &attributes, id );
     psa_set_key_type( &attributes,
                       key_type );
+    psa_set_key_lifetime( &attributes, lifetime );
     psa_set_key_bits( &attributes, 0 );
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_EXPORT );
 
@@ -339,6 +348,7 @@ void validate_key( int force_status_arg,
     actual_status = psa_import_key( &attributes, key_input->x, key_input->len, &key );
     TEST_EQUAL( mbedtls_test_driver_key_management_hooks.hits, 1 );
     TEST_EQUAL( actual_status, expected_status );
+    TEST_EQUAL( mbedtls_test_driver_key_management_hooks.location, location );
 exit:
     psa_reset_key_attributes( &attributes );
     psa_destroy_key( key );

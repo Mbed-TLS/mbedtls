@@ -883,7 +883,6 @@ component_test_default_out_of_box () {
     msg "build: make, default config (out-of-box)" # ~1min
     make
     # Disable fancy stuff
-    SAVE_MBEDTLS_TEST_OUTCOME_FILE="$MBEDTLS_TEST_OUTCOME_FILE"
     unset MBEDTLS_TEST_OUTCOME_FILE
 
     msg "test: main suites make, default config (out-of-box)" # ~10s
@@ -891,9 +890,6 @@ component_test_default_out_of_box () {
 
     msg "selftest: make, default config (out-of-box)" # ~10s
     programs/test/selftest
-
-    export MBEDTLS_TEST_OUTCOME_FILE="$SAVE_MBEDTLS_TEST_OUTCOME_FILE"
-    unset SAVE_MBEDTLS_TEST_OUTCOME_FILE
 }
 
 component_test_default_cmake_gcc_asan () {
@@ -1582,10 +1578,7 @@ component_test_psa_crypto_config_accel_ecdsa () {
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
     make CFLAGS="$ASAN_CFLAGS -O -Werror -I../tests/include -I../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
 
-    unset loc_accel_flags
-    unset loc_accel_list
-
-    if_build_succeeded not grep mbedtls_ecdsa_ library/ecdsa.o
+    not grep mbedtls_ecdsa_ library/ecdsa.o
 
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated ECDSA"
     make test
@@ -1664,11 +1657,8 @@ component_test_psa_crypto_config_accel_rsa_signature () {
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
     make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
 
-    unset loc_accel_flags
-    unset loc_accel_list
-
-    if_build_succeeded not grep mbedtls_rsa_rsassa_pkcs1_v15_sign library/rsa.o
-    if_build_succeeded not grep mbedtls_rsa_rsassa_pss_sign_ext library/rsa.o
+    not grep mbedtls_rsa_rsassa_pkcs1_v15_sign library/rsa.o
+    not grep mbedtls_rsa_rsassa_pss_sign_ext library/rsa.o
 
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated RSA signature"
     make test
@@ -1703,11 +1693,8 @@ component_test_psa_crypto_config_accel_hash () {
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
     make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
 
-    unset loc_accel_flags
-    unset loc_accel_list
-
-    if_build_succeeded not grep mbedtls_sha512_init library/sha512.o
-    if_build_succeeded not grep mbedtls_sha1_init library/sha1.o
+    not grep mbedtls_sha512_init library/sha512.o
+    not grep mbedtls_sha1_init library/sha1.o
 
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash"
     make test
@@ -1743,10 +1730,7 @@ component_test_psa_crypto_config_accel_cipher () {
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
     make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
 
-    unset loc_accel_flags
-    unset loc_accel_list
-
-    if_build_succeeded not grep mbedtls_des* library/des.o
+    not grep mbedtls_des* library/des.o
 
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash"
     make test
@@ -2426,7 +2410,6 @@ component_test_psa_crypto_drivers () {
     loc_cflags="${loc_cflags} -I../tests/include -O2"
 
     make CC=gcc CFLAGS="${loc_cflags}" LDFLAGS="$ASAN_CFLAGS"
-    unset loc_cflags
 
     msg "test: full + MBEDTLS_PSA_CRYPTO_DRIVERS"
     make test
@@ -2732,7 +2715,7 @@ component_test_tls13 () {
     msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, without padding"
     make test
     msg "ssl-opt.sh (TLS 1.3)"
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 }
 
 component_test_tls13_no_compatibility_mode () {
@@ -2745,7 +2728,7 @@ component_test_tls13_no_compatibility_mode () {
     msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, without padding"
     make test
     msg "ssl-opt.sh (TLS 1.3 no compatibility mode)"
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 }
 
 component_test_tls13_with_padding () {
@@ -2758,7 +2741,7 @@ component_test_tls13_with_padding () {
     msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, with padding"
     make test
     msg "ssl-opt.sh (TLS 1.3 with padding)"
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 }
 
 component_test_tls13_with_ecp_restartable () {
@@ -2771,7 +2754,7 @@ component_test_tls13_with_ecp_restartable () {
     msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, with ecp_restartable"
     make test
     msg "ssl-opt.sh (TLS 1.3 with ecp_restartable)"
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 }
 
 component_test_tls13_with_everest () {
@@ -2785,7 +2768,7 @@ component_test_tls13_with_everest () {
     msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, with Everest"
     make test
     msg "ssl-opt.sh (TLS 1.3 with everest)"
-    if_build_succeeded tests/ssl-opt.sh
+    tests/ssl-opt.sh
 }
 
 component_build_mingw () {
@@ -2910,41 +2893,35 @@ component_test_cmake_out_of_source () {
 
 component_test_cmake_as_subdirectory () {
     msg "build: cmake 'as-subdirectory' build"
-    MBEDTLS_ROOT_DIR="$PWD"
-
     cd programs/test/cmake_subproject
     cmake .
     make
     ./cmake_subproject
-
-    cd "$MBEDTLS_ROOT_DIR"
-    unset MBEDTLS_ROOT_DIR
+}
+support_test_cmake_as_subdirectory () {
+    support_test_cmake_out_of_source
 }
 
 component_test_cmake_as_package () {
     msg "build: cmake 'as-package' build"
-    MBEDTLS_ROOT_DIR="$PWD"
-
     cd programs/test/cmake_package
     cmake .
     make
     ./cmake_package
-
-    cd "$MBEDTLS_ROOT_DIR"
-    unset MBEDTLS_ROOT_DIR
+}
+support_test_cmake_as_package () {
+    support_test_cmake_out_of_source
 }
 
 component_test_cmake_as_package_install () {
     msg "build: cmake 'as-installed-package' build"
-    MBEDTLS_ROOT_DIR="$PWD"
-
     cd programs/test/cmake_package_install
     cmake .
     make
     ./cmake_package_install
-
-    cd "$MBEDTLS_ROOT_DIR"
-    unset MBEDTLS_ROOT_DIR
+}
+support_test_cmake_as_package_install () {
+    support_test_cmake_out_of_source
 }
 
 component_test_zeroize () {
@@ -2973,8 +2950,6 @@ component_test_zeroize () {
             make clean
         done
     done
-
-    unset gdb_disable_aslr
 }
 
 component_test_psa_compliance () {

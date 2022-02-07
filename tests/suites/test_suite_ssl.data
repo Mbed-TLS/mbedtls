@@ -4420,7 +4420,7 @@ SSL TLS 1.3 Key schedule: HKDF RFC5869 Test Vector #7 Extract
 depends_on:PSA_WANT_ALG_SHA_1
 psa_hkdf_extract:PSA_ALG_HMAC(PSA_ALG_SHA_1):"0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c":"":"2adccada18779e7c2077ad2eb19d3f3e731385dd"
 
-SSL TLS 1.3 Key schedule: HKDF extract fails with hash_len of 0
+SSL TLS 1.3 Key schedule: HKDF extract fails with wrong hash alg
 psa_hkdf_extract_ret:0:MBEDTLS_ERR_SSL_BAD_INPUT_DATA
 
 SSL TLS 1.3 Key schedule: HKDF RFC5869 Test Vector #1 Expand

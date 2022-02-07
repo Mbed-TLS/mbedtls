@@ -3842,7 +3842,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_SSL_PROTO_TLS1_3 */
-void psa_hkdf_extract_ret( int hash_len, int ret )
+void psa_hkdf_extract_ret( int alg, int ret )
 {
     int output_ret;
     unsigned char *salt = NULL;
@@ -3850,13 +3850,13 @@ void psa_hkdf_extract_ret( int hash_len, int ret )
     unsigned char *prk = NULL;
     size_t salt_len, ikm_len, prk_len;
 
-    salt_len = hash_len;
     ASSERT_ALLOC( prk, PSA_MAC_MAX_SIZE);
+    salt_len = 0;
     ikm_len = 0;
     prk_len = 0;
 
     PSA_ASSERT( psa_crypto_init() );
-    output_ret = mbedtls_psa_hkdf_extract( 0, salt, salt_len,
+    output_ret = mbedtls_psa_hkdf_extract( alg, salt, salt_len,
                                            ikm, ikm_len,
                                            prk, PSA_MAC_MAX_SIZE, &prk_len );
     TEST_ASSERT( output_ret == ret );

@@ -1852,6 +1852,7 @@ void hash_compute_fail( int alg_arg, data_t *input,
     uint8_t *output = NULL;
     size_t output_size = output_size_arg;
     size_t output_length = INVALID_EXPORT_LENGTH;
+    psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
     psa_status_t expected_status = expected_status_arg;
     psa_status_t status;
 
@@ -1859,12 +1860,38 @@ void hash_compute_fail( int alg_arg, data_t *input,
 
     PSA_ASSERT( psa_crypto_init( ) );
 
+    /* Hash Compute, one-shot */
     status = psa_hash_compute( alg, input->x, input->len,
                                output, output_size, &output_length );
     TEST_EQUAL( status, expected_status );
     TEST_ASSERT( output_length <= output_size );
 
+    /* Hash Compute, multi-part */
+    status = psa_hash_setup( &operation, alg );
+    if( status == PSA_SUCCESS )
+    {
+        status = psa_hash_update( &operation, input->x, input->len );
+        if( status == PSA_SUCCESS )
+        {
+            status = psa_hash_finish( &operation, output, output_size,
+                                      &output_length );
+            if( status == PSA_SUCCESS )
+                TEST_ASSERT( output_length <= output_size );
+            else
+                TEST_EQUAL( status, expected_status );
+        }
+        else
+        {
+            TEST_EQUAL( status, expected_status );
+        }
+    }
+    else
+    {
+        TEST_EQUAL( status, expected_status );
+    }
+
 exit:
+    PSA_ASSERT( psa_hash_abort( &operation ) );
     mbedtls_free( output );
     PSA_DONE( );
 }

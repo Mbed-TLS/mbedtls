@@ -722,37 +722,12 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
     if( mode == MBEDTLS_MODE_STREAM )
 #endif
     {
-        size_t olen;
-#if !defined(MBEDTLS_USE_PSA_CRYPTO)
-        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "before encrypt: msglen = %" MBEDTLS_PRINTF_SIZET ", "
                                     "including %d bytes of padding",
                                     rec->data_len, 0 ) );
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    /* The only stream "cipher" we support is "NULL" */
-    if ( transform->psa_alg != MBEDTLS_SSL_NULL_CIPHER )
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-
-    olen = rec->data_len;
-#else
-        if( ( ret = mbedtls_cipher_crypt( &transform->cipher_ctx_enc,
-                                   transform->iv_enc, transform->ivlen,
-                                   data, rec->data_len,
-                                   data, &olen ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_crypt", ret );
-            return( ret );
-        }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-
-        if( rec->data_len != olen )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-        }
+        /* The only supported stream cipher is "NULL",
+         * so there's nothing to do here.*/
     }
     else
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_STREAM */
@@ -1156,33 +1131,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
     if( mode == MBEDTLS_MODE_STREAM )
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
     {
-        padlen = 0;
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    /* The only stream "cipher" we support is "NULL" */
-    if ( transform->psa_alg != MBEDTLS_SSL_NULL_CIPHER )
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-
-    olen = rec->data_len;
-#else
-
-        if( ( ret = mbedtls_cipher_crypt( &transform->cipher_ctx_dec,
-                                   transform->iv_dec,
-                                   transform->ivlen,
-                                   data, rec->data_len,
-                                   data, &olen ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_crypt", ret );
-            return( ret );
-        }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-
-        if( rec->data_len != olen )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-        }
-
+        /* The only supported stream cipher is "NULL",
+         * so there's nothing to do here.*/
     }
     else
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_STREAM */

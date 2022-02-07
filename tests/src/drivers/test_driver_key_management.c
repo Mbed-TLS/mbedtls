@@ -33,6 +33,8 @@
 #include "mbedtls/error.h"
 
 #include "test/drivers/key_management.h"
+#include "test/drivers/test_driver.h"
+
 #include "test/random.h"
 
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
@@ -167,12 +169,13 @@ psa_status_t mbedtls_test_transparent_import_key(
     size_t *key_buffer_length,
     size_t *bits)
 {
+    psa_key_type_t type = psa_get_key_type( attributes );
+
     ++mbedtls_test_driver_key_management_hooks.hits;
+    mbedtls_test_driver_key_management_hooks.location = PSA_KEY_LOCATION_LOCAL_STORAGE;
 
     if( mbedtls_test_driver_key_management_hooks.forced_status != PSA_SUCCESS )
         return( mbedtls_test_driver_key_management_hooks.forced_status );
-
-    psa_key_type_t type = psa_get_key_type( attributes );
 
     if( PSA_KEY_TYPE_IS_ECC( type ) )
     {
@@ -229,14 +232,14 @@ psa_status_t mbedtls_test_opaque_export_key(
     const uint8_t *key, size_t key_length,
     uint8_t *data, size_t data_size, size_t *data_length )
 {
+    /* Assume this is a builtin key based on the key material length. */
+    psa_drv_slot_number_t slot_number = *( ( psa_drv_slot_number_t* ) key );
+
     if( key_length != sizeof( psa_drv_slot_number_t ) )
     {
         /* Test driver does not support generic opaque key handling yet. */
         return( PSA_ERROR_NOT_SUPPORTED );
     }
-
-    /* Assume this is a builtin key based on the key material length. */
-    psa_drv_slot_number_t slot_number = *( ( psa_drv_slot_number_t* ) key );
 
     switch( slot_number )
     {

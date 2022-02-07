@@ -139,16 +139,16 @@ static void ssl_tls13_hkdf_encode_label(
 #if defined( MBEDTLS_TEST_HOOKS )
 
 MBEDTLS_STATIC_TESTABLE
-int mbedtls_psa_hkdf_extract( psa_algorithm_t alg,
-                              const unsigned char *salt, size_t salt_len,
-                              const unsigned char *ikm, size_t ikm_len,
-                              unsigned char *prk )
+psa_status_t mbedtls_psa_hkdf_extract( psa_algorithm_t alg,
+                                       const unsigned char *salt, size_t salt_len,
+                                       const unsigned char *ikm, size_t ikm_len,
+                                       unsigned char *prk, size_t prk_size,
+                                       size_t *prk_len )
 {
     unsigned char null_salt[PSA_MAC_MAX_SIZE] = { '\0' };
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    size_t prk_len;
-    int ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    psa_status_t ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
 
     if( salt == NULL || salt_len == 0 )
     {
@@ -181,7 +181,7 @@ int mbedtls_psa_hkdf_extract( psa_algorithm_t alg,
         goto cleanup;
     }
 
-    ret = psa_mac_compute( key, alg, ikm, ikm_len, prk, PSA_HASH_LENGTH( alg ), &prk_len );
+    ret = psa_mac_compute( key, alg, ikm, ikm_len, prk, prk_size, prk_len );
 
 cleanup:
     psa_destroy_key( key );

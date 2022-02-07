@@ -3561,8 +3561,11 @@ void cipher_decrypt_fail( int alg_arg,
     unsigned char *input = NULL;
     size_t input_buffer_size = 0;
     unsigned char *output = NULL;
+    unsigned char *output_multi = NULL;
     size_t output_buffer_size = 0;
     size_t output_length = 0;
+    size_t function_output_length;
+    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     if ( PSA_ERROR_BAD_STATE != expected_status )
@@ -3589,13 +3592,65 @@ void cipher_decrypt_fail( int alg_arg,
     output_buffer_size = PSA_CIPHER_DECRYPT_OUTPUT_SIZE( key_type, alg, input_buffer_size );
     ASSERT_ALLOC( output, output_buffer_size );
 
+    /* Decrypt, one-short */
     status = psa_cipher_decrypt( key, alg, input, input_buffer_size, output,
                                  output_buffer_size, &output_length );
     TEST_EQUAL( status, expected_status );
 
+    /* Decrypt, multi-part */
+    status = psa_cipher_decrypt_setup( &operation, key, alg );
+    if( status == PSA_SUCCESS )
+    {
+        output_buffer_size = PSA_CIPHER_UPDATE_OUTPUT_SIZE( key_type, alg,
+                                                            input_arg->len ) +
+                             PSA_CIPHER_FINISH_OUTPUT_SIZE( key_type, alg );
+        ASSERT_ALLOC( output_multi, output_buffer_size );
+
+        if( iv->len > 0 )
+        {
+            status = psa_cipher_set_iv( &operation, iv->x, iv->len );
+
+            if( status != PSA_SUCCESS )
+                TEST_EQUAL( status, expected_status );
+        }
+
+        if( status == PSA_SUCCESS )
+        {
+            status = psa_cipher_update( &operation,
+                                        input_arg->x, input_arg->len,
+                                        output_multi, output_buffer_size,
+                                        &function_output_length );
+            if( status == PSA_SUCCESS )
+            {
+                output_length = function_output_length;
+
+                status = psa_cipher_finish( &operation,
+                                            output_multi + output_length,
+                                            output_buffer_size - output_length,
+                                            &function_output_length );
+
+                TEST_EQUAL( status, expected_status );
+            }
+            else
+            {
+                TEST_EQUAL( status, expected_status );
+            }
+        }
+        else
+        {
+            TEST_EQUAL( status, expected_status );
+        }
+    }
+    else
+    {
+        TEST_EQUAL( status, expected_status );
+    }
+
 exit:
+    psa_cipher_abort( &operation );
     mbedtls_free( input );
     mbedtls_free( output );
+    mbedtls_free( output_multi );
     psa_destroy_key( key );
     PSA_DONE( );
 }

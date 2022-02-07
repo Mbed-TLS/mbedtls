@@ -2064,7 +2064,7 @@ depends_on:PSA_WANT_ALG_CBC_NO_PADDING:PSA_WANT_KEY_TYPE_AES
 cipher_decrypt_fail:PSA_ALG_CBC_NO_PADDING:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a":"6bc1bee223":PSA_ERROR_INVALID_ARGUMENT
 
 PSA symetric decrypt: CCM*-no-tag, input too short (15 bytes)
-depends_on:MBEDTLS_AES_C
+depends_on:MBEDTLS_AES_C:MBEDTLS_CCM_C
 cipher_decrypt_fail:PSA_ALG_CCM_STAR_NO_TAG:PSA_KEY_TYPE_AES:"19ebfde2d5468ba0a3031bde629b11fd":"5a8aa485c316e9":"2a2a2a2a2a2a2a2a":PSA_ERROR_INVALID_ARGUMENT
 
 PSA symmetric decrypt: AES-ECB, 0 bytes, good

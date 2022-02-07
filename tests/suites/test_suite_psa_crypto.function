@@ -1155,6 +1155,25 @@ void mac_key_policy( int policy_usage_arg,
                                  mac, PSA_MAC_MAX_SIZE, &mac_len ),
                 expected_status_sign );
 
+    /* Calculate the MAC, multi-part case. */
+    PSA_ASSERT( psa_mac_abort( &operation ) );
+    status = psa_mac_sign_setup( &operation, key, exercise_alg );
+    if( status == PSA_SUCCESS )
+    {
+        status = psa_mac_update( &operation, input, 128 );
+        if( status == PSA_SUCCESS )
+            TEST_EQUAL( psa_mac_sign_finish( &operation, mac, PSA_MAC_MAX_SIZE,
+                                             &mac_len ),
+                        expected_status_sign );
+        else
+            TEST_EQUAL( status, expected_status_sign );
+    }
+    else
+    {
+        TEST_EQUAL( status, expected_status_sign );
+    }
+    PSA_ASSERT( psa_mac_abort( &operation ) );
+
     /* Verify correct MAC, one-shot case. */
     status = psa_mac_verify( key, exercise_alg, input, 128,
                                 mac, mac_len );
@@ -1163,6 +1182,29 @@ void mac_key_policy( int policy_usage_arg,
         TEST_EQUAL( status, PSA_ERROR_INVALID_SIGNATURE );
     else
         TEST_EQUAL( status, expected_status_verify );
+
+    /* Verify correct MAC, multi-part case. */
+    status = psa_mac_verify_setup( &operation, key, exercise_alg );
+    if( status == PSA_SUCCESS )
+    {
+        status = psa_mac_update( &operation, input, 128 );
+        if( status == PSA_SUCCESS )
+        {
+            status = psa_mac_verify_finish( &operation, mac, mac_len );
+            if( expected_status_sign != PSA_SUCCESS && expected_status_verify == PSA_SUCCESS )
+                TEST_EQUAL( status, PSA_ERROR_INVALID_SIGNATURE );
+            else
+                TEST_EQUAL( status, expected_status_verify );
+        }
+        else
+        {
+            TEST_EQUAL( status, expected_status_verify );
+        }
+    }
+    else
+    {
+        TEST_EQUAL( status, expected_status_verify );
+    }
 
     psa_mac_abort( &operation );
 

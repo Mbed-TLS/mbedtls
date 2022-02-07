@@ -159,7 +159,6 @@ psa_status_t mbedtls_psa_hkdf_extract( psa_algorithm_t alg,
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
         }
 
-        //hash_len = mbedtls_md_get_size( md );
         hash_len = PSA_HASH_LENGTH( alg );
 
         if( hash_len == 0 )

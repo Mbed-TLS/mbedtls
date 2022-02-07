@@ -2366,7 +2366,7 @@ static int ssl_parse_server_ecdh_params_psa( mbedtls_ssl_context *ssl,
      *     ECPoint      public;
      * } ServerECDHParams;
      *
-     *  1       curve_type (must be named curve)
+     *  1       curve_type (must be "named_curve")
      *  2..3    NamedCurve
      *  4       ECPoint.len
      *  5+      ECPoint contents

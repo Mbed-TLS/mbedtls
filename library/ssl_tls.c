@@ -7080,7 +7080,7 @@ int mbedtls_ssl_check_curve_tls_id( const mbedtls_ssl_context *ssl, uint16_t tls
  */
 int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id )
 {
-    uint16_t tls_id = mbedtls_ecp_curve_info_from_grp_id(grp_id)->tls_id;
+    uint16_t tls_id = mbedtls_ecp_curve_info_from_grp_id( grp_id )->tls_id;
     return mbedtls_ssl_check_curve_tls_id( ssl, tls_id );
 }
 #endif /* MBEDTLS_ECP_C */

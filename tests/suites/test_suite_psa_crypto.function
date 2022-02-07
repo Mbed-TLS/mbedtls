@@ -3145,6 +3145,7 @@ void cipher_encrypt_alg_without_iv( int alg_arg,
                                         &iv_length ),
                 PSA_ERROR_BAD_STATE );
 
+    /* Encrypt, one-shot */
     PSA_ASSERT( psa_cipher_encrypt( key, alg, input->x, input->len, output,
                                     output_buffer_size, &output_length ) );
     TEST_ASSERT( output_length <=
@@ -3154,7 +3155,24 @@ void cipher_encrypt_alg_without_iv( int alg_arg,
 
     ASSERT_COMPARE( expected_output->x, expected_output->len,
                     output, output_length );
+
+    /* Encrypt, multi-part */
+    PSA_ASSERT( psa_cipher_abort( &operation ) );
+    PSA_ASSERT( psa_cipher_encrypt_setup( &operation, key, alg ) );
+
+    PSA_ASSERT( psa_cipher_update( &operation, input->x, input->len,
+                                   output, output_buffer_size,
+                                   &output_length) );
+    TEST_ASSERT( output_length <=
+                 PSA_CIPHER_ENCRYPT_OUTPUT_SIZE( key_type, alg, input->len ) );
+    TEST_ASSERT( output_length <=
+                 PSA_CIPHER_ENCRYPT_OUTPUT_MAX_SIZE( input->len ) );
+
+    ASSERT_COMPARE( expected_output->x, expected_output->len,
+                    output, output_length );
+
 exit:
+    PSA_ASSERT( psa_cipher_abort( &operation ) );
     mbedtls_free( output );
     psa_destroy_key( key );
     PSA_DONE( );

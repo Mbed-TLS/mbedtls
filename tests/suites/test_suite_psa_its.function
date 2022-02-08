@@ -285,3 +285,16 @@ exit:
     cleanup( );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void set_fail( int uid_arg, data_t *data,
+               int expected_status )
+{
+    psa_storage_uid_t uid = uid_arg;
+    TEST_ASSERT( psa_its_set_wrap( uid, data->len, data->x, 0 ) ==
+                 (psa_status_t) expected_status );
+
+    exit:
+    cleanup( );
+}
+/* END_CASE */

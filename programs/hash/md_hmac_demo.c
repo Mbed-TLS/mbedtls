@@ -77,7 +77,9 @@ void print_buf( const char *title, unsigned char *buf, size_t len )
     printf( "\n" );
 }
 
-/* Run an Mbed TLS function and bail out if it fails. */
+/* Run an Mbed TLS function and bail out if it fails.
+ * A string description of the error code can be recovered with:
+ * programs/util/strerror <value> */
 #define CHK( expr )                                             \
     do                                                          \
     {                                                           \

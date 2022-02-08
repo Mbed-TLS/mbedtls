@@ -100,7 +100,9 @@ void print_buf( const char *title, uint8_t *buf, size_t len )
     printf( "\n" );
 }
 
-/* Run a PSA function and bail out if it fails. */
+/* Run a PSA function and bail out if it fails.
+ * The symbolic name of the error code can be recovered using:
+ * programs/psa/psa_consant_name status <value> */
 #define PSA_CHECK( expr )                                       \
     do                                                          \
     {                                                           \

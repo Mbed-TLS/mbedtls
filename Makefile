@@ -40,14 +40,27 @@ endif
 endif
 
 DLEXT ?= so
+EXEXT=
+SHARED_SUFFIX=
 ifdef WINDOWS_BUILD
 # Windows shared library extension:
 DLEXT = dll
+EXEXT=.exe
+LOCAL_LDFLAGS += -lws2_32
+ifdef SHARED
+SHARED_SUFFIX=.$(DLEXT)
+endif
 else ifdef APPLE_BUILD
 ifneq ($(APPLE_BUILD),0)
 # Mac OS X shared library extension:
 DLEXT = dylib
 endif
+endif
+
+ifndef SHARED
+MBEDLIBS=library/libmbedcrypto.a library/libmbedx509.a library/libmbedtls.a
+else
+MBEDLIBS=library/libmbedcrypto.$(DLEXT) library/libmbedx509.$(DLEXT) library/libmbedtls.$(DLEXT)
 endif
 
 include 3rdparty/Makefile.inc

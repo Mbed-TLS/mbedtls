@@ -11,10 +11,11 @@ tests/%: BUILD_DIR = tests
 # from ./include, and private header files (used by some invasive tests)
 # from ../library.
 tests/%: LOCAL_CFLAGS += $(WARNING_CFLAGS) -I./include -I../include -I../library -D_FILE_OFFSET_BITS=64
-tests/%: LOCAL_LDFLAGS += -L../library			\
+tests/%: LOCAL_LDFLAGS := -L../library		\
 		-lmbedtls$(SHARED_SUFFIX)	\
 		-lmbedx509$(SHARED_SUFFIX)	\
-		-lmbedcrypto$(SHARED_SUFFIX)
+		-lmbedcrypto$(SHARED_SUFFIX)	\
+		$(LOCAL_LDFLAGS)
 
 tests/%: LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
 
@@ -23,25 +24,8 @@ tests/%: LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
 # on non-POSIX platforms.
 tests/%: LOCAL_CFLAGS += -D_POSIX_C_SOURCE=200809L
 
-ifndef SHARED
-MBEDLIBS=library/libmbedcrypto.a library/libmbedx509.a library/libmbedtls.a
-else
-MBEDLIBS=library/libmbedcrypto.$(DLEXT) library/libmbedx509.$(DLEXT) library/libmbedtls.$(DLEXT)
-endif
-
 ifdef RECORD_PSA_STATUS_COVERAGE_LOG
 tests/%: LOCAL_CFLAGS += -Werror -DRECORD_PSA_STATUS_COVERAGE_LOG
-endif
-
-ifdef WINDOWS_BUILD
-EXEXT=.exe
-tests/%: LOCAL_LDFLAGS += -lws2_32
-ifdef SHARED
-SHARED_SUFFIX=.$(DLEXT)
-endif
-else
-EXEXT=
-SHARED_SUFFIX=
 endif
 
 .PHONY: tests/generated_files

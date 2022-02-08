@@ -189,7 +189,7 @@ library/libmbedtls.dylib: $(OBJS_TLS) library/libmbedx509.dylib
 
 library/libmbedtls.dll: $(OBJS_TLS) library/libmbedx509.dll
 	echo "  LD    $@"
-	cd $(BUILD_DIR) && $(CC) -shared -Wl,-soname,$(@F) -Wl,--out-implib,$(abspath $@).a -o $(abspath $@) $(abspath $(OBJS_TLS)) -lws2_32 -lwinmm -lgdi32 -L. -lmbedx509 -lmbedcrypto -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
+	cd $(BUILD_DIR) && $(CC) -shared -Wl,-soname,$(@F) -Wl,--out-implib,$(abspath $@).a -o $(abspath $@) $(abspath $(OBJS_TLS)) -lwinmm -lgdi32 -L. -lmbedx509 -lmbedcrypto -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
 
 # x509
 library/libmbedx509.a: $(OBJS_X509)
@@ -216,7 +216,7 @@ library/libmbedx509.dylib: $(OBJS_X509) library/libmbedcrypto.dylib
 
 library/libmbedx509.dll: $(OBJS_X509) library/libmbedcrypto.dll
 	echo "  LD    $@"
-	cd $(BUILD_DIR) && $(CC) -shared -Wl,-soname,$(@F) -Wl,--out-implib,$(abspath $@).a -o $(abspath $@) $(abspath $(OBJS_X509)) -lws2_32 -lwinmm -lgdi32 -L. -lmbedcrypto -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
+	cd $(BUILD_DIR) && $(CC) -shared -Wl,-soname,$(@F) -Wl,--out-implib,$(abspath $@).a -o $(abspath $@) $(abspath $(OBJS_X509)) -lwinmm -lgdi32 -L. -lmbedcrypto -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
 
 # crypto
 library/libmbedcrypto.a: $(OBJS_CRYPTO)
@@ -243,7 +243,7 @@ library/libmbedcrypto.dylib: $(OBJS_CRYPTO)
 
 library/libmbedcrypto.dll: $(OBJS_CRYPTO)
 	echo "  LD    $@"
-	cd $(BUILD_DIR) && $(CC) -shared -Wl,-soname,$(@F) -Wl,--out-implib,$(abspath $@).a -o $(abspath $@) $(abspath $(OBJS_CRYPTO)) -lws2_32 -lwinmm -lgdi32 -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
+	cd $(BUILD_DIR) && $(CC) -shared -Wl,-soname,$(@F) -Wl,--out-implib,$(abspath $@).a -o $(abspath $@) $(abspath $(OBJS_CRYPTO)) -lwinmm -lgdi32 -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
 
 .PHONY: library/generated_files
 GENERATED_FILES = \

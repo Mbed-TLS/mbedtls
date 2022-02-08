@@ -691,11 +691,11 @@ static int ssl_tls13_parse_cookie_ext( mbedtls_ssl_context *ssl,
 static int ssl_tls13_write_cookie_ext( mbedtls_ssl_context *ssl,
                                        unsigned char *buf,
                                        unsigned char *end,
-                                       size_t *olen )
+                                       size_t *out_len )
 {
     unsigned char *p = buf;
 
-    *olen = 0;
+    *out_len = 0;
 
     if( ssl->handshake->verify_cookie == NULL )
     {
@@ -719,7 +719,7 @@ static int ssl_tls13_write_cookie_ext( mbedtls_ssl_context *ssl,
     /* Cookie */
     memcpy( p, ssl->handshake->verify_cookie, ssl->handshake->verify_cookie_len );
 
-    *olen = ssl->handshake->verify_cookie_len + 6;
+    *out_len = ssl->handshake->verify_cookie_len + 6;
 
     return( 0 );
 }

@@ -3405,7 +3405,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
 
         /* Export the public part of the ECDH private key from PSA.
-         * The export format is an ECPoint structre as expected by TLS,
+         * The export format is an ECPoint structure as expected by TLS,
          * but we just need to add a length byte before that. */
         unsigned char *own_pubkey = ssl->out_msg + header_len + 1;
         unsigned char *end = ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN;

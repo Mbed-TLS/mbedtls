@@ -167,8 +167,9 @@ exit:
  */
 static void aead_info( const mbedtls_cipher_context_t *ctx, size_t tag_len )
 {
-    // no convenient way to get the just cipher type (for example, AES)
-    const char *ciph = "???";
+    mbedtls_cipher_type_t type = mbedtls_cipher_get_type( ctx );
+    const mbedtls_cipher_info_t *info = mbedtls_cipher_info_from_type( type );
+    const char *ciph = mbedtls_cipher_info_get_name( info );
     int key_bits = mbedtls_cipher_get_key_bitlen( ctx );
     mbedtls_cipher_mode_t mode = mbedtls_cipher_get_cipher_mode( ctx );
 

@@ -66,7 +66,8 @@ int main( void )
 
 /* The real program starts here. */
 
-const char usage[] = "Usage: cipher_aead_demo [aes128-gcm|aes256-gcm|aes128-gcm_8|chachapoly]";
+const char usage[] =
+"Usage: cipher_aead_demo [aes128-gcm|aes256-gcm|aes128-gcm_8|chachapoly]";
 
 /* Dummy data for encryption: IV/nonce, additional data, 2-part message */
 const unsigned char iv1[12] = { 0x00 };
@@ -175,7 +176,8 @@ static void aead_info( const mbedtls_cipher_context_t *ctx, size_t tag_len )
                          : mode == MBEDTLS_MODE_CHACHAPOLY ? "ChachaPoly"
                          : "???";
 
-    printf( "cipher: %s, %d, %s, %u\n", ciph, key_bits, mode_str, (unsigned) tag_len );
+    printf( "cipher: %s, %d, %s, %u\n",
+            ciph, key_bits, mode_str, (unsigned) tag_len );
 }
 
 /*

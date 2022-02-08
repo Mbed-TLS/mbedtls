@@ -13,9 +13,9 @@
  * objects: (1) a psa_key_id_t to hold the key, and (2) a psa_operation_t for
  * multi-part progress.
  *
- * This program and its companion hash/md_hmac_demo.c illustrate this by doing the
- * same sequence of multi-part HMAC computation with both APIs; looking at the
- * two side by side should make the differences and similarities clear.
+ * This program and its companion hash/md_hmac_demo.c illustrate this by doing
+ * the same sequence of multi-part HMAC computation with both APIs; looking at
+ * the two side by side should make the differences and similarities clear.
  */
 
 /*
@@ -118,7 +118,8 @@ psa_status_t hmac_demo(void)
     psa_set_key_type( &attributes, PSA_KEY_TYPE_HMAC );
     psa_set_key_bits( &attributes, 8 * sizeof( key_bytes ) ); // optional
 
-    status = psa_import_key( &attributes, key_bytes, sizeof( key_bytes ), &key );
+    status = psa_import_key( &attributes,
+                             key_bytes, sizeof( key_bytes ), &key );
     if( status != PSA_SUCCESS )
         return( status );
 

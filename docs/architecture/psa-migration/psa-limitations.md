@@ -125,7 +125,7 @@ algorithms can differ from each other.
     - salt length: either <= hashlen (see note), or any depending on algorithm
 
 Note: above, "<= hashlen" means that hashlen is used if possible, but if it
-doesn't fit because the key is too short, then the maximum lenght that fits is
+doesn't fit because the key is too short, then the maximum length that fits is
 used.
 
 The RSA/PK API is in principle more flexible than the PSA Crypto API. The

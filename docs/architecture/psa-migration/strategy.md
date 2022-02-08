@@ -47,7 +47,7 @@ are:
   both of them, but then `MBEDTLS_PSA_CRYPTO_CONFIG` won't have the desired
 effect)
 - to avoid a hard/default dependency of TLS, X.509 and PK on
-  `MBEDTLS_PSA_CRYPTO_C`, for backwards compatibility reasons:
+  `MBEDTLS_PSA_CRYPTO_C`, for backward compatibility reasons:
   - when `MBEDTLS_PSA_CRYPTO_C` is enabled and used, applications need to call
     `psa_crypto_init()` before TLS/X.509 uses PSA functions
   - `MBEDTLS_PSA_CRYPTO_C` has a hard depend on `MBEDTLS_ENTROPY_C ||
@@ -114,7 +114,7 @@ to the existing code and the less code there is at this point the better,
 whereas extending to more protocol features will require the same amount of
 work either way.
 
-### Backwards compatibility issues with making it always on
+### Backward compatibility issues with making it always on
 
 1. Existing applications may not be calling `psa_crypto_init()` before using
    TLS, X.509 or PK. We can try to work around that by calling (the relevant
@@ -223,7 +223,7 @@ one-shot function `mbedtls_md()`.
 There are two variants of this strategy: one where using the new setup
 function also allows for key isolation (the key is only held by PSA,
 supporting both G1 and G2 in that area), and one without isolation (the key is
-still stored outsede of PSA most of the time, supporting only G1).
+still stored outside of PSA most of the time, supporting only G1).
 
 This strategy, with support for key isolation, is currently (end of 2021) used for ECDSA
 signature generation in the PK layer - see `mbedtls_pk_setup_opaque()`. This

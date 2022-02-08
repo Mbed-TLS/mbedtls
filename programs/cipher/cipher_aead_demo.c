@@ -192,7 +192,8 @@ static int aead_encrypt( mbedtls_cipher_context_t *ctx, size_t tag_len,
 {
     int ret;
     size_t olen;
-    unsigned char out[MSG_MAX_SIZE + 16];
+#define MAX_TAG_LENGTH 16
+    unsigned char out[MSG_MAX_SIZE + MAX_TAG_LENGTH];
     unsigned char *p = out;
 
     CHK( mbedtls_cipher_set_iv( ctx, iv, iv_len ) );

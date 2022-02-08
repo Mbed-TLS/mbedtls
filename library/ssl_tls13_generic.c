@@ -166,12 +166,11 @@ int mbedtls_ssl_tls13_parse_sig_alg_ext( mbedtls_ssl_context *ssl,
     p += 2;
 
     memset( ssl->handshake->received_sig_algs, 0,
-            sizeof( ssl->handshake->received_sig_algs) );
+            sizeof(ssl->handshake->received_sig_algs) );
 
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, supported_sig_algs_len );
     supported_sig_algs_end = p + supported_sig_algs_len;
-    while( p < supported_sig_algs_end &&
-           common_idx + 1 < MBEDTLS_RECEIVED_SIG_ALGS_SIZE )
+    while( p < supported_sig_algs_end )
     {
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, supported_sig_algs_end, 2 );
         sig_alg = MBEDTLS_GET_UINT16_BE( p, 0 );
@@ -180,8 +179,11 @@ int mbedtls_ssl_tls13_parse_sig_alg_ext( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG( 4, ( "received signature algorithm: 0x%x",
                                     sig_alg ) );
 
-        if( mbedtls_ssl_sig_alg_is_offered( ssl, sig_alg ) &&
-            mbedtls_ssl_sig_alg_is_supported( ssl, sig_alg ) )
+        if( ! mbedtls_ssl_sig_alg_is_offered( ssl, sig_alg ) ||
+            ! mbedtls_ssl_sig_alg_is_supported( ssl, sig_alg ) )
+            continue;
+
+        if( common_idx + 1 < MBEDTLS_RECEIVED_SIG_ALGS_SIZE )
         {
             ssl->handshake->received_sig_algs[common_idx] = sig_alg;
             common_idx += 1;

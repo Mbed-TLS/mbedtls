@@ -267,9 +267,7 @@
 /* Maximum size in bytes of list in supported elliptic curve ext., RFC 4492 */
 #define MBEDTLS_SSL_MAX_CURVE_LIST_LEN         65535
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
 #define MBEDTLS_RECEIVED_SIG_ALGS_SIZE         20
-#endif
 
 /*
  * Check that we obey the standard's message size bounds
@@ -600,7 +598,8 @@ struct mbedtls_ssl_handshake_params
     mbedtls_ssl_sig_hash_set_t hash_algs;             /*!<  Set of suitable sig-hash pairs */
 #endif
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
+    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     uint16_t received_sig_algs[MBEDTLS_RECEIVED_SIG_ALGS_SIZE];
 #endif
 
@@ -1699,11 +1698,6 @@ int mbedtls_ssl_tls13_start_handshake_msg( mbedtls_ssl_context *ssl,
                                            unsigned hs_type,
                                            unsigned char **buf,
                                            size_t *buf_len );
-
-/*
- * Handler of TLS 1.3 server certificate request message
- */
-int mbedtls_ssl_tls13_process_certificate_request( mbedtls_ssl_context *ssl );
 
 /*
  * Handler of TLS 1.3 server certificate message

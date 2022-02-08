@@ -1523,11 +1523,7 @@ static int ssl_tls13_parse_certificate_request( mbedtls_ssl_context *ssl,
                 {
                     MBEDTLS_SSL_DEBUG_MSG( 3,
                         ( "Duplicate signature algorithms extensions found" ) );
-                    MBEDTLS_SSL_PEND_FATAL_ALERT(
-                        MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
-                        MBEDTLS_ERR_SSL_DECODE_ERROR );
-                    mbedtls_ssl_handshake_free( ssl );
-                    return( MBEDTLS_ERR_SSL_DECODE_ERROR );
+                    goto error;
                 }
                 break;
 
@@ -1544,11 +1540,8 @@ static int ssl_tls13_parse_certificate_request( mbedtls_ssl_context *ssl,
     if( p != end )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1,
-            ( "Signature algorithms extension length misaligned" ) );
-        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
-                                      MBEDTLS_ERR_SSL_DECODE_ERROR );
-        mbedtls_ssl_handshake_free( ssl );
-        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
+            ( "CertificateRequset misaligned" ) );
+        goto error;
     }
     /* Check that we found signature algorithms extension */
     if( ! sig_alg_ext_found )
@@ -1556,16 +1549,17 @@ static int ssl_tls13_parse_certificate_request( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG( 3,
             ( "no signature algorithms extension found" ) );
         MBEDTLS_SSL_DEBUG_MSG( 1,
-            ( "Signature algorithms extension length misaligned" ) );
-        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
-                                      MBEDTLS_ERR_SSL_DECODE_ERROR );
-        mbedtls_ssl_handshake_free( ssl );
-        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
-
+            ( "ssl_tls13_parse_certificate_request" ) );
+        goto error;
     }
 
     ssl->client_auth = 1;
     return( 0 );
+
+error:
+    MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
+                                  MBEDTLS_ERR_SSL_DECODE_ERROR );
+    return( MBEDTLS_ERR_SSL_DECODE_ERROR );
 }
 
 /*
@@ -1602,7 +1596,8 @@ static int ssl_tls13_process_certificate_request( mbedtls_ssl_context *ssl )
     else
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+        goto cleanup;
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "got %s certificate request",

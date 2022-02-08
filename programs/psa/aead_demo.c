@@ -197,8 +197,8 @@ static void aead_info( psa_key_id_t key, psa_algorithm_t alg )
 static int aead_encrypt( psa_key_id_t key, psa_algorithm_t alg,
         const unsigned char *iv, size_t iv_len,
         const unsigned char *ad, size_t ad_len,
-        const unsigned char *pa, size_t pa_len,
-        const unsigned char *pb, size_t pb_len )
+        const unsigned char *part1, size_t part1_len,
+        const unsigned char *part2, size_t part2_len )
 {
     psa_status_t status;
     size_t olen, olen_tag;
@@ -211,9 +211,9 @@ static int aead_encrypt( psa_key_id_t key, psa_algorithm_t alg,
 
     PSA_CHECK( psa_aead_set_nonce( &op, iv, iv_len ) );
     PSA_CHECK( psa_aead_update_ad( &op, ad, ad_len ) );
-    PSA_CHECK( psa_aead_update( &op, pa, pa_len, p, end - p, &olen ) );
+    PSA_CHECK( psa_aead_update( &op, part1, part1_len, p, end - p, &olen ) );
     p += olen;
-    PSA_CHECK( psa_aead_update( &op, pb, pb_len, p, end - p, &olen ) );
+    PSA_CHECK( psa_aead_update( &op, part2, part2_len, p, end - p, &olen ) );
     p += olen;
     PSA_CHECK( psa_aead_finish( &op, p, end - p, &olen,
                                tag, sizeof( tag ), &olen_tag ) );

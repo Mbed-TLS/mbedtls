@@ -181,8 +181,8 @@ static void aead_info( const mbedtls_cipher_context_t *ctx, size_t tag_len )
 static int aead_encrypt( mbedtls_cipher_context_t *ctx, size_t tag_len,
         const unsigned char *iv, size_t iv_len,
         const unsigned char *ad, size_t ad_len,
-        const unsigned char *pa, size_t pa_len,
-        const unsigned char *pb, size_t pb_len )
+        const unsigned char *part1, size_t part1_len,
+        const unsigned char *part2, size_t part2_len )
 {
     int ret;
     size_t olen;
@@ -192,9 +192,9 @@ static int aead_encrypt( mbedtls_cipher_context_t *ctx, size_t tag_len,
     CHK( mbedtls_cipher_set_iv( ctx, iv, iv_len ) );
     CHK( mbedtls_cipher_reset( ctx ) );
     CHK( mbedtls_cipher_update_ad( ctx, ad, ad_len ) );
-    CHK( mbedtls_cipher_update( ctx, pa, pa_len, p, &olen ) );
+    CHK( mbedtls_cipher_update( ctx, part1, part1_len, p, &olen ) );
     p += olen;
-    CHK( mbedtls_cipher_update( ctx, pb, pb_len, p, &olen ) );
+    CHK( mbedtls_cipher_update( ctx, part2, part2_len, p, &olen ) );
     p += olen;
     CHK( mbedtls_cipher_finish( ctx, p, &olen ) );
     p += olen;

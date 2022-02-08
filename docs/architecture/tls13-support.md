@@ -124,8 +124,9 @@ MVP definition
 
   - TLS 1.2 and TLS 1.3 but version negotiation is not supported.
 
-  - TLS 1.3 can be enabled in the build (MBEDTLS_SSL_PROTO_TLS1_3 configuration
-    option) without TLS 1.2 (MBEDTLS_SSL_PROTO_TLS1_2 configuration option).
+  - TLS 1.3 cannot be enabled in the build (MBEDTLS_SSL_PROTO_TLS1_3
+    configuration option) without TLS 1.2 (MBEDTLS_SSL_PROTO_TLS1_2 configuration
+    option).
 
   - TLS 1.2 can be enabled in the build independently of TLS 1.3.
 

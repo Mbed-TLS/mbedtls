@@ -705,9 +705,6 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
                                    const mbedtls_ssl_context *ssl )
 {
     int ret = 0;
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    int psa_fallthrough;
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
     unsigned char keyblk[256];
     unsigned char *key1;
     unsigned char *key2;
@@ -719,6 +716,14 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
     const mbedtls_cipher_info_t *cipher_info;
     const mbedtls_md_info_t *md_info;
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_key_type_t key_type;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_algorithm_t alg;
+    size_t key_bits;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+#endif
 
 #if !defined(MBEDTLS_DEBUG_C) && \
     !defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
@@ -1004,27 +1009,49 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
     }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    ret = mbedtls_cipher_setup_psa( &transform->cipher_ctx_enc,
-                                    cipher_info, transform->taglen );
-    if( ret != 0 && ret != MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE )
+    if( ( status = mbedtls_ssl_cipher_to_psa( cipher_info->type,
+                                 transform->taglen,
+                                 &alg,
+                                 &key_type,
+                                 &key_bits ) ) != PSA_SUCCESS )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setup_psa", ret );
+        ret = psa_ssl_status_to_mbedtls( status );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_cipher_to_psa", ret );
         goto end;
     }
 
-    if( ret == 0 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "Successfully setup PSA-based encryption cipher context" ) );
-        psa_fallthrough = 0;
-    }
-    else
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Failed to setup PSA-based cipher context for record encryption - fall through to default setup." ) );
-        psa_fallthrough = 1;
-    }
+    transform->psa_alg = alg;
 
-    if( psa_fallthrough == 1 )
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+    if ( alg != MBEDTLS_SSL_NULL_CIPHER )
+    {
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT );
+        psa_set_key_algorithm( &attributes, alg );
+        psa_set_key_type( &attributes, key_type );
+
+        if( ( status = psa_import_key( &attributes,
+                                key1,
+                                PSA_BITS_TO_BYTES( key_bits ),
+                                &transform->psa_key_enc ) ) != PSA_SUCCESS )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 3, "psa_import_key", (int)status );
+            ret = psa_ssl_status_to_mbedtls( status );
+            MBEDTLS_SSL_DEBUG_RET( 1, "psa_import_key", ret );
+            goto end;
+        }
+
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DECRYPT );
+
+        if( ( status = psa_import_key( &attributes,
+                                key2,
+                                PSA_BITS_TO_BYTES( key_bits ),
+                                &transform->psa_key_dec ) ) != PSA_SUCCESS )
+        {
+            ret = psa_ssl_status_to_mbedtls( status );
+            MBEDTLS_SSL_DEBUG_RET( 1, "psa_import_key", ret );
+            goto end;
+        }
+    }
+#else
     if( ( ret = mbedtls_cipher_setup( &transform->cipher_ctx_enc,
                                  cipher_info ) ) != 0 )
     {
@@ -1032,28 +1059,6 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
         goto end;
     }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    ret = mbedtls_cipher_setup_psa( &transform->cipher_ctx_dec,
-                                    cipher_info, transform->taglen );
-    if( ret != 0 && ret != MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setup_psa", ret );
-        goto end;
-    }
-
-    if( ret == 0 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "Successfully setup PSA-based decryption cipher context" ) );
-        psa_fallthrough = 0;
-    }
-    else
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Failed to setup PSA-based cipher context for record decryption - fall through to default setup." ) );
-        psa_fallthrough = 1;
-    }
-
-    if( psa_fallthrough == 1 )
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
     if( ( ret = mbedtls_cipher_setup( &transform->cipher_ctx_dec,
                                  cipher_info ) ) != 0 )
     {
@@ -1095,7 +1100,7 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
         }
     }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
-
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 end:
     mbedtls_platform_zeroize( keyblk, sizeof( keyblk ) );
@@ -3022,8 +3027,13 @@ void mbedtls_ssl_transform_init( mbedtls_ssl_transform *transform )
 {
     memset( transform, 0, sizeof(mbedtls_ssl_transform) );
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    transform->psa_key_enc = MBEDTLS_SVC_KEY_ID_INIT;
+    transform->psa_key_dec = MBEDTLS_SVC_KEY_ID_INIT;
+#else
     mbedtls_cipher_init( &transform->cipher_ctx_enc );
     mbedtls_cipher_init( &transform->cipher_ctx_dec );
+#endif
 
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
     mbedtls_md_init( &transform->md_ctx_enc );
@@ -4028,6 +4038,153 @@ void mbedtls_ssl_conf_psk_cb( mbedtls_ssl_config *conf,
     conf->p_psk = p_psk;
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+psa_status_t mbedtls_ssl_cipher_to_psa( mbedtls_cipher_type_t mbedtls_cipher_type,
+                                    size_t taglen,
+                                    psa_algorithm_t *alg,
+                                    psa_key_type_t *key_type,
+                                    size_t *key_size )
+{
+    switch ( mbedtls_cipher_type )
+    {
+        case MBEDTLS_CIPHER_AES_128_CBC:
+            *alg = PSA_ALG_CBC_NO_PADDING;
+            *key_type = PSA_KEY_TYPE_AES;
+            *key_size = 128;
+            break;
+        case MBEDTLS_CIPHER_AES_128_CCM:
+            *alg = taglen ? PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, taglen ) : PSA_ALG_CCM;
+            *key_type = PSA_KEY_TYPE_AES;
+            *key_size = 128;
+            break;
+        case MBEDTLS_CIPHER_AES_128_GCM:
+            *alg = PSA_ALG_GCM;
+            *key_type = PSA_KEY_TYPE_AES;
+            *key_size = 128;
+            break;
+        case MBEDTLS_CIPHER_AES_192_CCM:
+            *alg = taglen ? PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, taglen ) : PSA_ALG_CCM;
+            *key_type = PSA_KEY_TYPE_AES;
+            *key_size = 192;
+            break;
+        case MBEDTLS_CIPHER_AES_192_GCM:
+            *alg = PSA_ALG_GCM;
+            *key_type = PSA_KEY_TYPE_AES;
+            *key_size = 192;
+            break;
+        case MBEDTLS_CIPHER_AES_256_CBC:
+            *alg = PSA_ALG_CBC_NO_PADDING;
+            *key_type = PSA_KEY_TYPE_AES;
+            *key_size = 256;
+            break;
+        case MBEDTLS_CIPHER_AES_256_CCM:
+            *alg = taglen ? PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, taglen ) : PSA_ALG_CCM;
+            *key_type = PSA_KEY_TYPE_AES;
+            *key_size = 256;
+            break;
+        case MBEDTLS_CIPHER_AES_256_GCM:
+            *alg = PSA_ALG_GCM;
+            *key_type = PSA_KEY_TYPE_AES;
+            *key_size = 256;
+            break;
+        case MBEDTLS_CIPHER_ARIA_128_CBC:
+            *alg = PSA_ALG_CBC_NO_PADDING;
+            *key_type = PSA_KEY_TYPE_ARIA;
+            *key_size = 128;
+            break;
+        case MBEDTLS_CIPHER_ARIA_128_CCM:
+            *alg = taglen ? PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, taglen ) : PSA_ALG_CCM;
+            *key_type = PSA_KEY_TYPE_ARIA;
+            *key_size = 128;
+            break;
+        case MBEDTLS_CIPHER_ARIA_128_GCM:
+            *alg = PSA_ALG_GCM;
+            *key_type = PSA_KEY_TYPE_ARIA;
+            *key_size = 128;
+            break;
+        case MBEDTLS_CIPHER_ARIA_192_CCM:
+            *alg = taglen ? PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, taglen ) : PSA_ALG_CCM;
+            *key_type = PSA_KEY_TYPE_ARIA;
+            *key_size = 192;
+            break;
+        case MBEDTLS_CIPHER_ARIA_192_GCM:
+            *alg = PSA_ALG_GCM;
+            *key_type = PSA_KEY_TYPE_ARIA;
+            *key_size = 192;
+            break;
+        case MBEDTLS_CIPHER_ARIA_256_CBC:
+            *alg = PSA_ALG_CBC_NO_PADDING;
+            *key_type = PSA_KEY_TYPE_ARIA;
+            *key_size = 256;
+            break;
+        case MBEDTLS_CIPHER_ARIA_256_CCM:
+            *alg = taglen ? PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, taglen ) : PSA_ALG_CCM;
+            *key_type = PSA_KEY_TYPE_ARIA;
+            *key_size = 256;
+            break;
+        case MBEDTLS_CIPHER_ARIA_256_GCM:
+            *alg = PSA_ALG_GCM;
+            *key_type = PSA_KEY_TYPE_ARIA;
+            *key_size = 256;
+            break;
+        case MBEDTLS_CIPHER_CAMELLIA_128_CBC:
+            *alg = PSA_ALG_CBC_NO_PADDING;
+            *key_type = PSA_KEY_TYPE_CAMELLIA;
+            *key_size = 128;
+            break;
+        case MBEDTLS_CIPHER_CAMELLIA_128_CCM:
+            *alg = taglen ? PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, taglen ) : PSA_ALG_CCM;
+            *key_type = PSA_KEY_TYPE_CAMELLIA;
+            *key_size = 128;
+            break;
+        case MBEDTLS_CIPHER_CAMELLIA_128_GCM:
+            *alg = PSA_ALG_GCM;
+            *key_type = PSA_KEY_TYPE_CAMELLIA;
+            *key_size = 128;
+            break;
+        case MBEDTLS_CIPHER_CAMELLIA_192_CCM:
+            *alg = taglen ? PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, taglen ) : PSA_ALG_CCM;
+            *key_type = PSA_KEY_TYPE_CAMELLIA;
+            *key_size = 192;
+            break;
+        case MBEDTLS_CIPHER_CAMELLIA_192_GCM:
+            *alg = PSA_ALG_GCM;
+            *key_type = PSA_KEY_TYPE_CAMELLIA;
+            *key_size = 192;
+            break;
+        case MBEDTLS_CIPHER_CAMELLIA_256_CBC:
+            *alg = PSA_ALG_CBC_NO_PADDING;
+            *key_type = PSA_KEY_TYPE_CAMELLIA;
+            *key_size = 256;
+            break;
+        case MBEDTLS_CIPHER_CAMELLIA_256_CCM:
+            *alg = taglen ? PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, taglen ) : PSA_ALG_CCM;
+            *key_type = PSA_KEY_TYPE_CAMELLIA;
+            *key_size = 256;
+            break;
+        case MBEDTLS_CIPHER_CAMELLIA_256_GCM:
+            *alg = PSA_ALG_GCM;
+            *key_type = PSA_KEY_TYPE_CAMELLIA;
+            *key_size = 256;
+            break;
+        case MBEDTLS_CIPHER_CHACHA20_POLY1305:
+            *alg = PSA_ALG_CHACHA20_POLY1305;
+            *key_type = PSA_KEY_TYPE_CHACHA20;
+            *key_size = 256;
+            break;
+        case MBEDTLS_CIPHER_NULL:
+            *alg = MBEDTLS_SSL_NULL_CIPHER;
+            *key_type = 0;
+            *key_size = 0;
+            break;
+        default:
+            return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    return PSA_SUCCESS;
+}
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
 int mbedtls_ssl_conf_dh_param_bin( mbedtls_ssl_config *conf,

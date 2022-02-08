@@ -1186,6 +1186,47 @@ int psk_dummy_callback( void *p_info, mbedtls_ssl_context *ssl,
 #define SSL_CID_LEN_MIN MBEDTLS_SSL_CID_OUT_LEN_MAX
 #endif
 
+static int psa_cipher_encrypt_helper( mbedtls_ssl_transform *transform,
+                    const unsigned char *iv, size_t iv_len,
+                    const unsigned char *input, size_t ilen,
+                    unsigned char *output, size_t *olen )
+{
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_cipher_operation_t cipher_op = PSA_CIPHER_OPERATION_INIT;
+    size_t part_len;
+
+    status = psa_cipher_encrypt_setup( &cipher_op,
+                                transform->psa_key_enc, transform->psa_alg );
+
+    if( status != PSA_SUCCESS )
+        return( psa_ssl_status_to_mbedtls( status ) );
+
+    status = psa_cipher_set_iv( &cipher_op, iv, iv_len );
+
+    if( status != PSA_SUCCESS )
+        return( psa_ssl_status_to_mbedtls( status ) );
+
+    status = psa_cipher_update( &cipher_op,
+                        input, ilen, output, ilen, olen );
+
+    if( status != PSA_SUCCESS )
+        return( psa_ssl_status_to_mbedtls( status ) );
+
+    status = psa_cipher_finish( &cipher_op,
+                                output + *olen, ilen - *olen, &part_len );
+
+    if( status != PSA_SUCCESS )
+        return( psa_ssl_status_to_mbedtls( status ) );
+
+    *olen += part_len;
+    return( 0 );
+#else
+    return mbedtls_cipher_crypt( &transform->cipher_ctx_enc,
+                            iv, iv_len, input, ilen, output, olen );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+}
+
 static int build_transforms( mbedtls_ssl_transform *t_in,
                              mbedtls_ssl_transform *t_out,
                              int cipher_type, int hash_id,
@@ -1195,6 +1236,14 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
 {
     mbedtls_cipher_info_t const *cipher_info;
     int ret = 0;
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_key_type_t key_type;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_algorithm_t alg;
+    size_t key_bits;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+#endif
 
     size_t keylen, maclen, ivlen;
     unsigned char *key0 = NULL, *key1 = NULL;
@@ -1230,6 +1279,7 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
     memset( key0, 0x1, keylen );
     memset( key1, 0x2, keylen );
 
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
     /* Setup cipher contexts */
     CHK( mbedtls_cipher_setup( &t_in->cipher_ctx_enc,  cipher_info ) == 0 );
     CHK( mbedtls_cipher_setup( &t_in->cipher_ctx_dec,  cipher_info ) == 0 );
@@ -1258,6 +1308,7 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
                                 keylen << 3, MBEDTLS_ENCRYPT ) == 0 );
     CHK( mbedtls_cipher_setkey( &t_out->cipher_ctx_dec, key0,
                                 keylen << 3, MBEDTLS_DECRYPT ) == 0 );
+#endif
 
     /* Setup MAC contexts */
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
@@ -1419,6 +1470,76 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
     t_out->in_cid_len = cid1_len;
     t_out->out_cid_len = cid0_len;
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    status = mbedtls_ssl_cipher_to_psa( cipher_type,
+                            t_in->taglen,
+                            &alg,
+                            &key_type,
+                            &key_bits );
+
+    if ( status != PSA_SUCCESS )
+    {
+        ret = psa_ssl_status_to_mbedtls( status );
+        goto cleanup;
+    }
+
+    t_in->psa_alg = alg;
+    t_out->psa_alg = alg;
+
+    if ( alg != MBEDTLS_SSL_NULL_CIPHER )
+    {
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT );
+        psa_set_key_algorithm( &attributes, alg );
+        psa_set_key_type( &attributes, key_type );
+
+        status = psa_import_key( &attributes,
+                        key0,
+                        PSA_BITS_TO_BYTES( key_bits ),
+                        &t_in->psa_key_enc );
+
+        if ( status != PSA_SUCCESS )
+        {
+            ret = psa_ssl_status_to_mbedtls( status );
+            goto cleanup;
+        }
+
+        status = psa_import_key( &attributes,
+                        key1,
+                        PSA_BITS_TO_BYTES( key_bits ),
+                        &t_out->psa_key_enc );
+
+        if ( status != PSA_SUCCESS )
+        {
+            ret = psa_ssl_status_to_mbedtls( status );
+            goto cleanup;
+        }
+
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DECRYPT );
+
+        status = psa_import_key( &attributes,
+                        key1,
+                        PSA_BITS_TO_BYTES( key_bits ),
+                        &t_in->psa_key_dec );
+
+        if ( status != PSA_SUCCESS )
+        {
+            ret = psa_ssl_status_to_mbedtls( status );
+            goto cleanup;
+        }
+
+        status = psa_import_key( &attributes,
+                        key0,
+                        PSA_BITS_TO_BYTES( key_bits ),
+                        &t_out->psa_key_dec );
+
+        if ( status != PSA_SUCCESS )
+        {
+            ret = psa_ssl_status_to_mbedtls( status );
+            goto cleanup;
+        }
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 cleanup:
 
@@ -3178,13 +3299,17 @@ void ssl_crypt_record( int cipher_type, int hash_id,
     size_t const buflen = 512;
     mbedtls_record rec, rec_backup;
 
+    USE_PSA_INIT( );
+
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_transform_init( &t0 );
     mbedtls_ssl_transform_init( &t1 );
-    TEST_ASSERT( build_transforms( &t0, &t1, cipher_type, hash_id,
-                                   etm, tag_mode, ver,
-                                   (size_t) cid0_len,
-                                   (size_t) cid1_len ) == 0 );
+    ret = build_transforms( &t0, &t1, cipher_type, hash_id,
+                            etm, tag_mode, ver,
+                            (size_t) cid0_len,
+                            (size_t) cid1_len );
+
+    TEST_ASSERT( ret == 0 );
 
     TEST_ASSERT( ( buf = mbedtls_calloc( 1, buflen ) ) != NULL );
 
@@ -3288,6 +3413,7 @@ exit:
     mbedtls_ssl_transform_free( &t1 );
 
     mbedtls_free( buf );
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 
@@ -3334,13 +3460,17 @@ void ssl_crypt_record_small( int cipher_type, int hash_id,
     int seen_success; /* Indicates if in the current mode we've
                        * already seen a successful test. */
 
+    USE_PSA_INIT( );
+
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_transform_init( &t0 );
     mbedtls_ssl_transform_init( &t1 );
-    TEST_ASSERT( build_transforms( &t0, &t1, cipher_type, hash_id,
+    ret = build_transforms( &t0, &t1, cipher_type, hash_id,
                                    etm, tag_mode, ver,
                                    (size_t) cid0_len,
-                                   (size_t) cid1_len ) == 0 );
+                                   (size_t) cid1_len );
+
+    TEST_ASSERT( ret == 0 );
 
     TEST_ASSERT( ( buf = mbedtls_calloc( 1, buflen ) ) != NULL );
 
@@ -3454,6 +3584,7 @@ exit:
     mbedtls_ssl_transform_free( &t1 );
 
     mbedtls_free( buf );
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 
@@ -3487,17 +3618,22 @@ void ssl_decrypt_non_etm_cbc( int cipher_type, int hash_id, int trunc_hmac,
     unsigned char add_data[13];
     unsigned char mac[MBEDTLS_MD_MAX_SIZE];
     int exp_ret;
+    int ret;
     const unsigned char pad_max_len = 255; /* Per the standard */
+
+    USE_PSA_INIT( );
 
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_transform_init( &t0 );
     mbedtls_ssl_transform_init( &t1 );
 
     /* Set up transforms with dummy keys */
-    TEST_ASSERT( build_transforms( &t0, &t1, cipher_type, hash_id,
+    ret = build_transforms( &t0, &t1, cipher_type, hash_id,
                                    0, trunc_hmac,
                                    MBEDTLS_SSL_MINOR_VERSION_3,
-                                   0 , 0 ) == 0 );
+                                   0 , 0 );
+
+    TEST_ASSERT( ret == 0 );
 
     /* Determine padding/plaintext length */
     TEST_ASSERT( length_selector >= -2 && length_selector <= 255 );
@@ -3585,10 +3721,9 @@ void ssl_decrypt_non_etm_cbc( int cipher_type, int hash_id, int trunc_hmac,
     /*
      * Encrypt and decrypt the correct record, expecting success
      */
-    TEST_EQUAL( 0, mbedtls_cipher_crypt( &t0.cipher_ctx_enc,
-                                  t0.iv_enc, t0.ivlen,
-                                  rec.buf + rec.data_offset, rec.data_len,
-                                  rec.buf + rec.data_offset, &olen ) );
+    TEST_EQUAL( 0, psa_cipher_encrypt_helper(&t0, t0.iv_enc, t0.ivlen,
+                            rec.buf + rec.data_offset, rec.data_len,
+                            rec.buf + rec.data_offset, &olen ) );
     rec.data_offset -= t0.ivlen;
     rec.data_len    += t0.ivlen;
 
@@ -3611,10 +3746,9 @@ void ssl_decrypt_non_etm_cbc( int cipher_type, int hash_id, int trunc_hmac,
         rec.buf[i] ^= 0x01;
 
         /* Encrypt */
-        TEST_EQUAL( 0, mbedtls_cipher_crypt( &t0.cipher_ctx_enc,
-                                      t0.iv_enc, t0.ivlen,
-                                      rec.buf + rec.data_offset, rec.data_len,
-                                      rec.buf + rec.data_offset, &olen ) );
+        TEST_EQUAL( 0, psa_cipher_encrypt_helper(&t0, t0.iv_enc, t0.ivlen,
+                                rec.buf + rec.data_offset, rec.data_len,
+                                rec.buf + rec.data_offset, &olen ) );
         rec.data_offset -= t0.ivlen;
         rec.data_len    += t0.ivlen;
 
@@ -3648,10 +3782,9 @@ void ssl_decrypt_non_etm_cbc( int cipher_type, int hash_id, int trunc_hmac,
         memset( buf + buflen - padlen - 1, i, padlen + 1 );
 
         /* Encrypt */
-        TEST_EQUAL( 0, mbedtls_cipher_crypt( &t0.cipher_ctx_enc,
-                                      t0.iv_enc, t0.ivlen,
-                                      rec.buf + rec.data_offset, rec.data_len,
-                                      rec.buf + rec.data_offset, &olen ) );
+        TEST_EQUAL( 0, psa_cipher_encrypt_helper(&t0, t0.iv_enc, t0.ivlen,
+                                rec.buf + rec.data_offset, rec.data_len,
+                                rec.buf + rec.data_offset, &olen ) );
         rec.data_offset -= t0.ivlen;
         rec.data_len    += t0.ivlen;
 
@@ -3666,6 +3799,7 @@ exit:
     mbedtls_ssl_transform_free( &t1 );
     mbedtls_free( buf );
     mbedtls_free( buf_save );
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 
@@ -3964,6 +4098,8 @@ void ssl_tls13_record_protection( int ciphersuite,
     size_t buf_len;
     int other_endpoint;
 
+    USE_PSA_INIT( );
+
     TEST_ASSERT( endpoint == MBEDTLS_SSL_IS_CLIENT ||
                  endpoint == MBEDTLS_SSL_IS_SERVER );
 
@@ -4039,6 +4175,7 @@ void ssl_tls13_record_protection( int ciphersuite,
     mbedtls_free( buf );
     mbedtls_ssl_transform_free( &transform_send );
     mbedtls_ssl_transform_free( &transform_recv );
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 

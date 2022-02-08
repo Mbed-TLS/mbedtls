@@ -82,9 +82,10 @@ const unsigned char add_data2[] = { 0x11, 0x12 };
 const unsigned char msg2_part1[] = { 0x13, 0x14 };
 const unsigned char msg2_part2[] = { 0x15, 0x16, 0x17 };
 
-/* This must at least the sum of the length of the 2 parts for each message.
- * This is a macro for the sake of compilers with insufficient C99 support. */
-#define MSG_MAX_SIZE 5
+/* Maximum total size of the messages */
+#define MSG1_SIZE ( sizeof( msg1_part1 ) + sizeof( msg1_part2 ) )
+#define MSG2_SIZE ( sizeof( msg2_part1 ) + sizeof( msg2_part2 ) )
+#define MSG_MAX_SIZE ( MSG1_SIZE > MSG2_SIZE ? MSG1_SIZE : MSG2_SIZE )
 
 /* Dummy key material - never do this in production!
  * 32-byte is enough to all the key size supported by this program. */

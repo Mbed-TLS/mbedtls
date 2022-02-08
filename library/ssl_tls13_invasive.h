@@ -46,7 +46,7 @@
  *                         pseudorandom key in \p prk.
  *
  *  \return 0 on success.
- *  \return #MBEDTLS_ERR_HKDF_BAD_INPUT_DATA when the parameters are invalid.
+ *  \return #PSA_ERROR_INVALID_ARGUMENT when the parameters are invalid.
  *  \return An PSA_ERROR_* error for errors returned from the underlying
  *          PSA layer.
  */

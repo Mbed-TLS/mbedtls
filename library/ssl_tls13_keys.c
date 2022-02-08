@@ -148,7 +148,7 @@ psa_status_t mbedtls_psa_hkdf_extract( psa_algorithm_t alg,
     unsigned char null_salt[PSA_MAC_MAX_SIZE] = { '\0' };
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_status_t ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    psa_status_t ret = PSA_ERROR_CORRUPTION_DETECTED;
 
     if( salt == NULL || salt_len == 0 )
     {
@@ -156,14 +156,14 @@ psa_status_t mbedtls_psa_hkdf_extract( psa_algorithm_t alg,
 
         if( salt_len != 0 )
         {
-            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+            return( PSA_ERROR_INVALID_ARGUMENT );
         }
 
         hash_len = PSA_HASH_LENGTH( alg );
 
         if( hash_len == 0 )
         {
-            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+            return( PSA_ERROR_INVALID_ARGUMENT );
         }
 
         salt = null_salt;

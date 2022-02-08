@@ -770,7 +770,7 @@ struct mbedtls_ssl_handshake_params
 
 #if defined(MBEDTLS_SSL_CLI_C)
     uint8_t client_auth;       /*!< used to check if CertificateRequest has been
-                                    received from server side. If CertificateReqeust
+                                    received from server side. If CertificateRequest
                                     has been received, Certificate and CertificateVerify
                                     should be sent to server */
 #endif /* MBEDTLS_SSL_CLI_C */

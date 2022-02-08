@@ -230,4 +230,4 @@ cscope.in.out cscope.po.out cscope.out: $(C_SOURCE_FILES)
 .PHONY: cscope global
 
 include library/Makefile.inc
-include tests/Makefile
+include tests/Makefile.inc

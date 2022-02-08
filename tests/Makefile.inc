@@ -202,7 +202,7 @@ tests/libtestdriver1.a:
 	mkdir tests/libtestdriver1/3rdparty
 	touch tests/libtestdriver1/3rdparty/Makefile.inc
 	mkdir tests/libtestdriver1/tests
-	touch tests/libtestdriver1/tests/Makefile
+	touch tests/libtestdriver1/tests/Makefile.inc
 
 	# Set the test driver base (minimal) configuration.
 	cp tests/include/test/drivers/config_test_driver.h tests/libtestdriver1/include/mbedtls/mbedtls_config.h

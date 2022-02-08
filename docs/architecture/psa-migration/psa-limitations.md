@@ -162,7 +162,7 @@ match a limitation of the PSA API.
 It is unclear what parameters people use in practice. It looks like by default
 OpenSSL picks saltlen = keylen - hashlen - 2 (tested with openssl 1.1.1f).
 The `certool` command provided by GnuTLS seems to be picking saltlen = hashlen
-by default (tested with GnuTLS 3.6.13). FIPS 186-4 recommends 0 <= saltlen <=
+by default (tested with GnuTLS 3.6.13). FIPS 186-4 requires 0 <= saltlen <=
 hashlen.
 
 ### Use in TLS

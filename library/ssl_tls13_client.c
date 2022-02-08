@@ -713,7 +713,7 @@ static int ssl_tls13_write_cookie_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_COOKIE, p, 0 );
     MBEDTLS_PUT_UINT16_BE( ssl->handshake->verify_cookie_len + 2, p, 2 );
-    MBEDTLS_PUT_UINT16_BE( ssl->handshake->verify_cookie_len, p, 4 );
+    MBEDTLS_PUT_UINT16_BE( (size_t) ssl->handshake->verify_cookie_len, p, 4 );
     p += 6;
 
     /* Cookie */

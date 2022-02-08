@@ -1,12 +1,3 @@
-# If we are the top level Makefile, call the one in the root dir instead
-ifeq ($(words $(MAKEFILE_LIST)),1)
-.SILENT:
-.PHONY: all
-all:
-	$(MAKE) -C .. $(patsubst %,tests/%,$(or $(MAKECMDGOALS),all))
-
-$(filter-out all,$(MAKECMDGOALS)): all
-else
 # To compile on SunOS: add "-lsocket -lnsl" to LDFLAGS
 
 # Set this to -v to see the details of failing test cases
@@ -230,5 +221,4 @@ ifdef RECORD_PSA_STATUS_COVERAGE_LOG
 tests/include/test/instrument_record_status.h: include/psa/crypto.h tests/Makefile
 	echo "  Gen  $@"
 	sed <include/psa/crypto.h >$@ -n 's/^psa_status_t \([A-Za-z0-9_]*\)(.*/#define \1(...) RECORD_STATUS("\1", \1(__VA_ARGS__))/p'
-endif
 endif

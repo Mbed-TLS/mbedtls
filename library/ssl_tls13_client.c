@@ -659,7 +659,7 @@ static int ssl_tls13_parse_cookie_ext( mbedtls_ssl_context *ssl,
                                        const unsigned char *buf,
                                        const unsigned char *end )
 {
-    size_t cookie_len;
+    uint16_t cookie_len;
     const unsigned char *p = buf;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
@@ -672,18 +672,18 @@ static int ssl_tls13_parse_cookie_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_BUF( 3, "cookie extension", p, cookie_len );
 
     mbedtls_free( handshake->verify_cookie );
-    handshake->verify_cookie_len = 0;
+    handshake->hrr_cookie_len = 0;
     handshake->verify_cookie = mbedtls_calloc( 1, cookie_len );
     if( handshake->verify_cookie == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1,
-                ( "alloc failed ( %" MBEDTLS_PRINTF_SIZET " bytes )",
+                ( "alloc failed ( %ud bytes )",
                   cookie_len ) );
         return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
     }
 
     memcpy( handshake->verify_cookie, p, cookie_len );
-    handshake->verify_cookie_len = (unsigned char) cookie_len;
+    handshake->hrr_cookie_len = cookie_len;
 
     return( 0 );
 }
@@ -705,21 +705,21 @@ static int ssl_tls13_write_cookie_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, cookie",
                            ssl->handshake->verify_cookie,
-                           ssl->handshake->verify_cookie_len );
+                           ssl->handshake->hrr_cookie_len );
 
-    MBEDTLS_SSL_CHK_BUF_PTR( p, end, ssl->handshake->verify_cookie_len + 6 );
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, ssl->handshake->hrr_cookie_len + 6 );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding cookie extension" ) );
 
     MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_COOKIE, p, 0 );
-    MBEDTLS_PUT_UINT16_BE( ssl->handshake->verify_cookie_len + 2, p, 2 );
-    MBEDTLS_PUT_UINT16_BE( (size_t) ssl->handshake->verify_cookie_len, p, 4 );
+    MBEDTLS_PUT_UINT16_BE( ssl->handshake->hrr_cookie_len + 2, p, 2 );
+    MBEDTLS_PUT_UINT16_BE( ssl->handshake->hrr_cookie_len, p, 4 );
     p += 6;
 
     /* Cookie */
-    memcpy( p, ssl->handshake->verify_cookie, ssl->handshake->verify_cookie_len );
+    memcpy( p, ssl->handshake->verify_cookie, ssl->handshake->hrr_cookie_len );
 
-    *out_len = ssl->handshake->verify_cookie_len + 6;
+    *out_len = ssl->handshake->hrr_cookie_len + 6;
 
     return( 0 );
 }

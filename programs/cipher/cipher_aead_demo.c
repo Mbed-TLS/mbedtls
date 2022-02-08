@@ -177,7 +177,7 @@ static void aead_info( const mbedtls_cipher_context_t *ctx, size_t tag_len )
                          : mode == MBEDTLS_MODE_CHACHAPOLY ? "ChachaPoly"
                          : "???";
 
-    printf( "cipher: %s, %d, %s, %u\n",
+    printf( "%s, %d, %s, %u\n",
             ciph, key_bits, mode_str, (unsigned) tag_len );
 }
 
@@ -208,7 +208,7 @@ static int aead_encrypt( mbedtls_cipher_context_t *ctx, size_t tag_len,
     p += tag_len;
 
     olen = p - out;
-    print_buf( "cipher", out, olen );
+    print_buf( "out", out, olen );
 
 exit:
     return( ret );

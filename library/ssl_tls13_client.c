@@ -1468,6 +1468,7 @@ static int ssl_tls13_parse_certificate_request( mbedtls_ssl_context *ssl,
 
     if( certificate_request_context_len > 0 )
     {
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, certificate_request_context_len );
         MBEDTLS_SSL_DEBUG_BUF( 3, "Certificate Request Context",
                                p, certificate_request_context_len );
 
@@ -1479,7 +1480,6 @@ static int ssl_tls13_parse_certificate_request( mbedtls_ssl_context *ssl,
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
             return ( MBEDTLS_ERR_SSL_ALLOC_FAILED );
         }
-        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, certificate_request_context_len );
         memcpy( handshake->certificate_request_context, p,
                 certificate_request_context_len );
         p += certificate_request_context_len;
@@ -1523,7 +1523,7 @@ static int ssl_tls13_parse_certificate_request( mbedtls_ssl_context *ssl,
                 {
                     MBEDTLS_SSL_DEBUG_MSG( 3,
                         ( "Duplicate signature algorithms extensions found" ) );
-                    goto error;
+                    goto decode_error;
                 }
                 break;
 
@@ -1540,23 +1540,21 @@ static int ssl_tls13_parse_certificate_request( mbedtls_ssl_context *ssl,
     if( p != end )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1,
-            ( "CertificateRequset misaligned" ) );
-        goto error;
+            ( "CertificateRequest misaligned" ) );
+        goto decode_error;
     }
     /* Check that we found signature algorithms extension */
     if( ! sig_alg_ext_found )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3,
             ( "no signature algorithms extension found" ) );
-        MBEDTLS_SSL_DEBUG_MSG( 1,
-            ( "ssl_tls13_parse_certificate_request" ) );
-        goto error;
+        goto decode_error;
     }
 
     ssl->client_auth = 1;
     return( 0 );
 
-error:
+decode_error:
     MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
                                   MBEDTLS_ERR_SSL_DECODE_ERROR );
     return( MBEDTLS_ERR_SSL_DECODE_ERROR );

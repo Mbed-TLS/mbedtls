@@ -158,9 +158,8 @@ int mbedtls_ssl_tls13_parse_sig_alg_ext( mbedtls_ssl_context *ssl,
     size_t supported_sig_algs_len = 0;
     const unsigned char *supported_sig_algs_end;
     uint16_t sig_alg;
-    uint32_t common_idx = 0; /* iterate through received signature schemes list */
+    uint32_t common_idx = 0;
 
-    /* skip 2 bytes of signature algorithms length */
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2 );
     supported_sig_algs_len = MBEDTLS_GET_UINT16_BE( p, 0 );
     p += 2;

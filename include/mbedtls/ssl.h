@@ -1613,10 +1613,6 @@ struct mbedtls_ssl_context
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
     /*
-     * PKI layer
-     */
-
-    /*
      * User settings
      */
 #if defined(MBEDTLS_X509_CRT_PARSE_C)

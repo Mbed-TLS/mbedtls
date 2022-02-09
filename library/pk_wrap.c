@@ -212,6 +212,81 @@ static int rsa_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
                                     hash, sig ) );
 }
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+static int rsa_decrypt_wrap( void *ctx,
+                    const unsigned char *input, size_t ilen,
+                    unsigned char *output, size_t *olen, size_t osize,
+                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    mbedtls_rsa_context * rsa = (mbedtls_rsa_context *) ctx;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_status_t status;
+    mbedtls_pk_context key;
+    int key_len;
+    /* see RSA_PRV_DER_MAX_BYTES in pkwrite.c */
+    unsigned char buf[47 + 3 * MBEDTLS_MPI_MAX_SIZE + \
+                      5 * ( MBEDTLS_MPI_MAX_SIZE / 2 + MBEDTLS_MPI_MAX_SIZE % 2 )];
+    mbedtls_pk_info_t pk_info = mbedtls_rsa_info;
+    psa_algorithm_t psa_sig_md;
+
+    ((void) f_rng);
+    ((void) p_rng);
+
+#if !defined(MBEDTLS_RSA_ALT)
+    switch( rsa->padding )
+    {
+        case MBEDTLS_RSA_PKCS_V15:
+            psa_sig_md = PSA_ALG_RSA_PKCS1V15_CRYPT;
+            break;
+
+        default:
+            return( MBEDTLS_ERR_RSA_INVALID_PADDING );
+    }
+#else
+    psa_sig_md = PSA_ALG_RSA_PKCS1V15_CRYPT;
+#endif
+
+    if( ilen != mbedtls_rsa_get_len( rsa ) )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    /* mbedtls_pk_write_key_der() expects a full PK context;
+     * re-construct one to make it happy */
+    key.pk_info = &pk_info;
+    key.pk_ctx = ctx;
+    key_len = mbedtls_pk_write_key_der( &key, buf, sizeof( buf ) );
+    if( key_len <= 0 )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    psa_set_key_type( &attributes, PSA_KEY_TYPE_RSA_KEY_PAIR );
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DECRYPT );
+    psa_set_key_algorithm( &attributes, psa_sig_md );
+
+    status = psa_import_key( &attributes,
+                             buf + sizeof( buf ) - key_len, key_len,
+                             &key_id );
+    if( status != PSA_SUCCESS )
+    {
+        ret = mbedtls_psa_err_translate_pk( status );
+        goto cleanup;
+    }
+
+    status = psa_asymmetric_decrypt( key_id, psa_sig_md, input, ilen,
+                                     NULL, 0, output, osize, olen);
+    if( status != PSA_SUCCESS )
+    {
+        ret = mbedtls_psa_err_translate_pk( status );
+        goto cleanup;
+    }
+
+    ret = 0;
+
+cleanup:
+    psa_destroy_key( key_id );
+    return( ret );
+}
+#else
 static int rsa_decrypt_wrap( void *ctx,
                     const unsigned char *input, size_t ilen,
                     unsigned char *output, size_t *olen, size_t osize,
@@ -225,6 +300,7 @@ static int rsa_decrypt_wrap( void *ctx,
     return( mbedtls_rsa_pkcs1_decrypt( rsa, f_rng, p_rng,
                 olen, input, output, osize ) );
 }
+#endif
 
 static int rsa_encrypt_wrap( void *ctx,
                     const unsigned char *input, size_t ilen,

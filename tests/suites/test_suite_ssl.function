@@ -6,6 +6,7 @@
 #include <mbedtls/timing.h>
 #include <mbedtls/debug.h>
 #include <ssl_tls13_keys.h>
+#include <ssl_tls13_invasive.h>
 #include "test/certs.h"
 
 #include <psa/crypto.h>
@@ -3800,6 +3801,72 @@ exit:
     mbedtls_free( buf );
     mbedtls_free( buf_save );
     USE_PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_SSL_PROTO_TLS1_3 */
+void psa_hkdf_expand( int alg, char *hex_info_string,
+                      char *hex_prk_string, char *hex_okm_string )
+{
+    enum { OKM_LEN  = 1024 };
+    unsigned char *info = NULL;
+    unsigned char *prk = NULL;
+    unsigned char *okm = NULL;
+    unsigned char *output_okm = NULL;
+    size_t info_len, prk_len, okm_len;
+
+    ASSERT_ALLOC( output_okm, OKM_LEN );
+
+    prk = mbedtls_test_unhexify_alloc( hex_prk_string, &prk_len );
+    info = mbedtls_test_unhexify_alloc( hex_info_string, &info_len );
+    okm = mbedtls_test_unhexify_alloc( hex_okm_string, &okm_len );
+    TEST_ASSERT( prk_len == PSA_HASH_LENGTH( alg ) );
+    TEST_ASSERT( okm_len < OKM_LEN );
+
+    PSA_ASSERT( psa_crypto_init() );
+    PSA_ASSERT( mbedtls_psa_hkdf_expand( alg, prk, prk_len, info, info_len,
+                                         output_okm, OKM_LEN ) );
+
+    ASSERT_COMPARE( output_okm, okm_len, okm, okm_len );
+
+exit:
+    mbedtls_free(info);
+    mbedtls_free(prk);
+    mbedtls_free(okm);
+    mbedtls_free(output_okm);
+
+    PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_SSL_PROTO_TLS1_3 */
+void psa_hkdf_expand_ret( int alg, int prk_len, int okm_len, int ret )
+{
+    int output_ret;
+    unsigned char *info = NULL;
+    unsigned char *prk = NULL;
+    unsigned char *okm = NULL;
+    size_t info_len;
+
+    info_len = 0;
+
+    if (prk_len > 0)
+        ASSERT_ALLOC( prk, prk_len );
+
+    if (okm_len > 0)
+        ASSERT_ALLOC( okm, okm_len );
+
+    PSA_ASSERT( psa_crypto_init() );
+    output_ret = mbedtls_psa_hkdf_expand( alg, prk, prk_len,
+                                          info, info_len,
+                                          okm, okm_len );
+    TEST_ASSERT( output_ret == ret );
+
+exit:
+    mbedtls_free(prk);
+    mbedtls_free(okm);
+
+    PSA_DONE( );
 }
 /* END_CASE */
 

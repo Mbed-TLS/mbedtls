@@ -32,7 +32,10 @@
  *  \brief  Take the input keying material \p ikm and extract from it a
  *          fixed-length pseudorandom key \p prk.
  *
- *  \param       alg       A hash function.
+ *  \param       alg       The HMAC algorithm to use
+ *                         (\c #PSA_ALG_HMAC( PSA_ALG_XXX ) value such that
+ *                         PSA_ALG_XXX is a hash algorithm and
+ *                         #PSA_ALG_IS_HMAC(\p alg) is true).
  *  \param       salt      An optional salt value (a non-secret random value);
  *                         if the salt is not provided, a string of all zeros
  *                         of the length of the hash provided by \p alg is used

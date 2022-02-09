@@ -2752,9 +2752,8 @@ int main( int argc, char *argv[] )
          * (used for external synchronization of session ticket encryption keys)
          */
         if( opt.ticket_rotate ) {
-            #define MAX_KEY_BYTES 32    /* 256 bits *//* library/ssl_ticket.c */
-            unsigned char kbuf[MAX_KEY_BYTES];
-            unsigned char name[4]; /* match mbedtls_ssl_ticket_key name[4] */
+            unsigned char kbuf[MBEDTLS_SSL_TICKET_MAX_KEY_BYTES];
+            unsigned char name[MBEDTLS_SSL_TICKET_KEY_NAME_BYTES];
             if( ( ret = rng_get( &rng, name, sizeof( name ) ) ) != 0 ||
                 ( ret = rng_get( &rng, kbuf, sizeof( kbuf ) ) ) != 0 ||
                 ( ret = mbedtls_ssl_ticket_rotate( &ticket_ctx,

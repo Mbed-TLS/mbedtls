@@ -48,9 +48,9 @@ void mbedtls_ssl_ticket_init( mbedtls_ssl_ticket_context *ctx )
 #endif
 }
 
-#define MAX_KEY_BYTES 32    /* 256 bits */
+#define MAX_KEY_BYTES           MBEDTLS_SSL_TICKET_MAX_KEY_BYTES
 
-#define TICKET_KEY_NAME_BYTES    4
+#define TICKET_KEY_NAME_BYTES   MBEDTLS_SSL_TICKET_KEY_NAME_BYTES
 #define TICKET_IV_BYTES         12
 #define TICKET_CRYPT_LEN_BYTES   2
 #define TICKET_AUTH_TAG_BYTES   16

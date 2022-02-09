@@ -42,12 +42,16 @@
 extern "C" {
 #endif
 
+#define MBEDTLS_SSL_TICKET_MAX_KEY_BYTES 32          /*!< Max supported key length in bytes */
+#define MBEDTLS_SSL_TICKET_KEY_NAME_BYTES 4          /*!< key name length in bytes */
+
 /**
  * \brief   Information for session ticket protection
  */
 typedef struct mbedtls_ssl_ticket_key
 {
-    unsigned char MBEDTLS_PRIVATE(name)[4];          /*!< random key identifier              */
+    unsigned char MBEDTLS_PRIVATE(name)[MBEDTLS_SSL_TICKET_KEY_NAME_BYTES];
+                                                     /*!< random key identifier              */
     uint32_t MBEDTLS_PRIVATE(generation_time);       /*!< key generation timestamp (seconds) */
     mbedtls_cipher_context_t MBEDTLS_PRIVATE(ctx);   /*!< context for auth enc/decryption    */
 }

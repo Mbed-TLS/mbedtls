@@ -671,10 +671,10 @@ static int ssl_tls13_parse_cookie_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, cookie_len );
     MBEDTLS_SSL_DEBUG_BUF( 3, "cookie extension", p, cookie_len );
 
-    mbedtls_free( handshake->verify_cookie );
+    mbedtls_free( handshake->cookie );
     handshake->hrr_cookie_len = 0;
-    handshake->verify_cookie = mbedtls_calloc( 1, cookie_len );
-    if( handshake->verify_cookie == NULL )
+    handshake->cookie = mbedtls_calloc( 1, cookie_len );
+    if( handshake->cookie == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1,
                 ( "alloc failed ( %ud bytes )",
@@ -682,7 +682,7 @@ static int ssl_tls13_parse_cookie_ext( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
     }
 
-    memcpy( handshake->verify_cookie, p, cookie_len );
+    memcpy( handshake->cookie, p, cookie_len );
     handshake->hrr_cookie_len = cookie_len;
 
     return( 0 );
@@ -697,14 +697,14 @@ static int ssl_tls13_write_cookie_ext( mbedtls_ssl_context *ssl,
 
     *out_len = 0;
 
-    if( ssl->handshake->verify_cookie == NULL )
+    if( ssl->handshake->cookie == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "no cookie to send; skip extension" ) );
         return( 0 );
     }
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, cookie",
-                           ssl->handshake->verify_cookie,
+                           ssl->handshake->cookie,
                            ssl->handshake->hrr_cookie_len );
 
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, ssl->handshake->hrr_cookie_len + 6 );
@@ -717,7 +717,7 @@ static int ssl_tls13_write_cookie_ext( mbedtls_ssl_context *ssl,
     p += 6;
 
     /* Cookie */
-    memcpy( p, ssl->handshake->verify_cookie, ssl->handshake->hrr_cookie_len );
+    memcpy( p, ssl->handshake->cookie, ssl->handshake->hrr_cookie_len );
 
     *out_len = ssl->handshake->hrr_cookie_len + 6;
 

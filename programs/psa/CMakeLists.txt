@@ -1,5 +1,7 @@
 set(executables
+    aead_demo
     crypto_examples
+    hmac_demo
     key_ladder_demo
     psa_constant_names
 )

@@ -13,8 +13,10 @@
 *.exe
 
 aes/crypt_and_hash
+cipher/cipher_aead_demo
 hash/generic_sum
 hash/hello
+hash/md_hmac_demo
 hash/md5sum
 hash/sha1sum
 hash/sha2sum
@@ -38,7 +40,9 @@ pkey/rsa_sign
 pkey/rsa_sign_pss
 pkey/rsa_verify
 pkey/rsa_verify_pss
+psa/aead_demo
 psa/crypto_examples
+psa/hmac_demo
 psa/key_ladder_demo
 psa/psa_constant_names
 random/gen_entropy

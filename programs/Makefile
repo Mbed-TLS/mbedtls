@@ -80,8 +80,10 @@ endif
 ## make sure to check that it still works if you tweak the format here.
 APPS = \
 	aes/crypt_and_hash \
+	cipher/cipher_aead_demo \
 	hash/generic_sum \
 	hash/hello \
+	hash/md_hmac_demo \
 	pkey/dh_client \
 	pkey/dh_genprime \
 	pkey/dh_server \
@@ -102,7 +104,9 @@ APPS = \
 	pkey/rsa_sign_pss \
 	pkey/rsa_verify \
 	pkey/rsa_verify_pss \
+	psa/aead_demo \
 	psa/crypto_examples \
+	psa/hmac_demo \
 	psa/key_ladder_demo \
 	psa/psa_constant_names \
 	random/gen_entropy \
@@ -195,13 +199,21 @@ aes/crypt_and_hash$(EXEXT): aes/crypt_and_hash.c $(DEP)
 	echo "  CC    aes/crypt_and_hash.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) aes/crypt_and_hash.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-hash/hello$(EXEXT): hash/hello.c $(DEP)
-	echo "  CC    hash/hello.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) hash/hello.c       $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+cipher/cipher_aead_demo$(EXEXT): cipher/cipher_aead_demo.c $(DEP)
+	echo "  CC    cipher/cipher_aead_demo.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) cipher/cipher_aead_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 hash/generic_sum$(EXEXT): hash/generic_sum.c $(DEP)
 	echo "  CC    hash/generic_sum.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) hash/generic_sum.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+hash/hello$(EXEXT): hash/hello.c $(DEP)
+	echo "  CC    hash/hello.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) hash/hello.c       $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+hash/md_hmac_demo$(EXEXT): hash/md_hmac_demo.c $(DEP)
+	echo "  CC    hash/md_hmac_demo.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) hash/md_hmac_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 pkey/dh_client$(EXEXT): pkey/dh_client.c $(DEP)
 	echo "  CC    pkey/dh_client.c"
@@ -282,6 +294,18 @@ pkey/rsa_decrypt$(EXEXT): pkey/rsa_decrypt.c $(DEP)
 pkey/rsa_encrypt$(EXEXT): pkey/rsa_encrypt.c $(DEP)
 	echo "  CC    pkey/rsa_encrypt.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_encrypt.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+psa/aead_demo$(EXEXT): psa/aead_demo.c $(DEP)
+	echo "  CC    psa/aead_demo.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/aead_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+psa/crypto_examples$(EXEXT): psa/crypto_examples.c $(DEP)
+	echo "  CC    psa/crypto_examples.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/crypto_examples.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+psa/hmac_demo$(EXEXT): psa/hmac_demo.c $(DEP)
+	echo "  CC    psa/hmac_demo.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/hmac_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 psa/key_ladder_demo$(EXEXT): psa/key_ladder_demo.c $(DEP)
 	echo "  CC    psa/key_ladder_demo.c"
@@ -426,10 +450,6 @@ x509/load_roots$(EXEXT): x509/load_roots.c $(DEP)
 x509/req_app$(EXEXT): x509/req_app.c $(DEP)
 	echo "  CC    x509/req_app.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/req_app.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-psa/crypto_examples$(EXEXT): psa/crypto_examples.c $(DEP)
-	echo "  CC    psa/crypto_examples.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/crypto_examples.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 clean:
 ifndef WINDOWS

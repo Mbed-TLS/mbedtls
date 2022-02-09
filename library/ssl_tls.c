@@ -577,7 +577,7 @@ static int tls_prf_sha384( const unsigned char *secret, size_t slen,
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-static void ssl_update_checksum_start( mbedtls_ssl_context *, const unsigned char *, size_t );
+
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_SHA256_C)
 static void ssl_calc_verify_tls_sha256( const mbedtls_ssl_context *,unsigned char*, size_t * );
@@ -590,13 +590,15 @@ static void ssl_calc_finished_tls_sha384( mbedtls_ssl_context *, unsigned char *
 #endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
+static void ssl_update_checksum_start( mbedtls_ssl_context *, const unsigned char *, size_t );
+
 #if defined(MBEDTLS_SHA256_C)
 static void ssl_update_checksum_sha256( mbedtls_ssl_context *, const unsigned char *, size_t );
-#endif
+#endif /* MBEDTLS_SHA256_C */
 
 #if defined(MBEDTLS_SHA384_C)
 static void ssl_update_checksum_sha384( mbedtls_ssl_context *, const unsigned char *, size_t );
-#endif
+#endif /* MBEDTLS_SHA384_C */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED) && \
     defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -619,28 +621,6 @@ static int ssl_use_opaque_psk( mbedtls_ssl_context const *ssl )
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO &&
           MBEDTLS_KEY_EXCHANGE_PSK_ENABLED */
-
-static mbedtls_tls_prf_types tls_prf_get_type( mbedtls_ssl_tls_prf_cb *tls_prf )
-{
-    ((void) tls_prf);
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-#if defined(MBEDTLS_SHA384_C)
-    if( tls_prf == tls_prf_sha384 )
-    {
-        return( MBEDTLS_SSL_TLS_PRF_SHA384 );
-    }
-    else
-#endif
-#if defined(MBEDTLS_SHA256_C)
-    if( tls_prf == tls_prf_sha256 )
-    {
-        return( MBEDTLS_SSL_TLS_PRF_SHA256 );
-    }
-    else
-#endif
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
-    return( MBEDTLS_SSL_TLS_PRF_NONE );
-}
 
 int  mbedtls_ssl_tls_prf( const mbedtls_tls_prf_types prf,
                           const unsigned char *secret, size_t slen,
@@ -669,6 +649,30 @@ int  mbedtls_ssl_tls_prf( const mbedtls_tls_prf_types prf,
     }
 
     return( tls_prf( secret, slen, label, random, rlen, dstbuf, dlen ) );
+}
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) || \
+    defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+static mbedtls_tls_prf_types tls_prf_get_type( mbedtls_ssl_tls_prf_cb *tls_prf )
+{
+    ((void) tls_prf);
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SHA384_C)
+    if( tls_prf == tls_prf_sha384 )
+    {
+        return( MBEDTLS_SSL_TLS_PRF_SHA384 );
+    }
+    else
+#endif
+#if defined(MBEDTLS_SHA256_C)
+    if( tls_prf == tls_prf_sha256 )
+    {
+        return( MBEDTLS_SSL_TLS_PRF_SHA256 );
+    }
+    else
+#endif
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+    return( MBEDTLS_SSL_TLS_PRF_NONE );
 }
 
 /* Type for the TLS PRF */
@@ -1113,6 +1117,7 @@ end:
     mbedtls_platform_zeroize( keyblk, sizeof( keyblk ) );
     return( ret );
 }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 || MBEDTLS_SSL_CONTEXT_SERIALIZATION */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 static void ssl_clear_peer_cert( mbedtls_ssl_session *session )
@@ -6214,10 +6219,10 @@ static tls_prf_fn ssl_tls12prf_from_cs( int ciphersuite_id )
     (void) ciphersuite_id;
 #endif
     return( tls_prf_sha256 );
-#else
+#else /* MBEDTLS_SSL_PROTO_TLS1_2 */
     (void) ciphersuite_id;
     return( NULL );
-#endif
+#endif /* !MBEDTLS_SSL_PROTO_TLS1_2 */
 
 }
 

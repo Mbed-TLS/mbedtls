@@ -1186,6 +1186,7 @@ int psk_dummy_callback( void *p_info, mbedtls_ssl_context *ssl,
 #define SSL_CID_LEN_MIN MBEDTLS_SSL_CID_OUT_LEN_MAX
 #endif
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 static int psa_cipher_encrypt_helper( mbedtls_ssl_transform *transform,
                     const unsigned char *iv, size_t iv_len,
                     const unsigned char *input, size_t ilen,
@@ -1226,6 +1227,7 @@ static int psa_cipher_encrypt_helper( mbedtls_ssl_transform *transform,
                             iv, iv_len, input, ilen, output, olen );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 static int build_transforms( mbedtls_ssl_transform *t_in,
                              mbedtls_ssl_transform *t_out,
@@ -4198,7 +4200,7 @@ void ssl_tls13_key_evolution( int hash_alg,
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_2 */
 void ssl_tls_prf( int type, data_t * secret, data_t * random,
                   char *label, data_t *result_str, int exp_ret )
 {

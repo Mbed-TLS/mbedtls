@@ -59,10 +59,9 @@ this is supported on both sides, it's currently only tested client-side);
 - `mbedtls_x509write_csr_set_key()` to generate a CSR (certificate signature
   request).
 
-In the TLS and X.509 API, there are two other functions which accept a key or
-keypair as a PK context: `mbedtls_x509write_crt_set_subject_key()` and
-`mbedtls_x509write_crt_set_issuer_key()`. Use of opaque contexts here probably
-works but is so far untested.
+In the TLS and X.509 API, there's one other function which accepts a keypair
+as a PK context: `mbedtls_x509write_crt_set_issuer_key()`. Use of opaque
+contexts here probably works but is so far untested.
 
 ### PSA-held (opaque) keys for TLS pre-shared keys (PSK)
 

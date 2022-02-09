@@ -737,6 +737,106 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+static int pk_ecdsa_sig_asn1_from_psa( unsigned char *sig, size_t *sig_len,
+                                       size_t buf_len );
+
+static int find_ecdsa_private_key( unsigned char **buf, unsigned char *end, size_t *key_len)
+{
+    size_t len;
+    int ret;
+
+    if( ( ret = mbedtls_asn1_get_tag( buf, end, &len,
+                                      MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+        return( ret );
+
+    /* version */
+    if( ( ret = mbedtls_asn1_get_tag( buf, end, &len,
+                                      MBEDTLS_ASN1_INTEGER ) ) != 0 )
+        return( ret );
+
+    *buf += len;
+
+    /* privateKey */
+    if( ( ret = mbedtls_asn1_get_tag( buf, end, &len,
+                                      MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
+        return( ret );
+
+    *key_len = len;
+
+    return 0;
+}
+
+static int ecdsa_sign_wrap( void *ctx_arg, mbedtls_md_type_t md_alg,
+                   const unsigned char *hash, size_t hash_len,
+                   unsigned char *sig, size_t sig_size, size_t *sig_len,
+                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    mbedtls_ecdsa_context *ctx = ctx_arg;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_status_t status;
+    mbedtls_pk_context key;
+    size_t key_len;
+    /* see ECP_PRV_DER_MAX_BYTES in pkwrite.c */
+    unsigned char buf[29 + 3 * MBEDTLS_ECP_MAX_BYTES];
+    unsigned char *p;
+    mbedtls_pk_info_t pk_info = mbedtls_eckey_info;
+    psa_algorithm_t psa_sig_md = PSA_ALG_ECDSA( mbedtls_psa_translate_md( md_alg ) );
+    size_t curve_bits;
+    psa_ecc_family_t curve =
+        mbedtls_ecc_group_to_psa( ctx->grp.id, &curve_bits );
+    ((void) md_alg);
+
+    /* PSA has its own RNG */
+    ((void) f_rng);
+    ((void) p_rng);
+
+    if( curve == 0 )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    /* mbedtls_pk_write_key_der() expects a full PK context;
+     * re-construct one to make it happy */
+    key.pk_info = &pk_info;
+    key.pk_ctx = ctx;
+    key_len = mbedtls_pk_write_key_der( &key, buf, sizeof( buf ) );
+    if( key_len <= 0 )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    p = buf + sizeof( buf ) - key_len;
+    ret = find_ecdsa_private_key( &p, buf + sizeof( buf ), &key_len );
+    if( ret != 0 )
+        goto cleanup;
+
+    psa_set_key_type( &attributes, PSA_KEY_TYPE_ECC_KEY_PAIR( curve ) );
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_HASH );
+    psa_set_key_algorithm( &attributes, psa_sig_md );
+
+    status = psa_import_key( &attributes,
+                             p, key_len,
+                             &key_id );
+    if( status != PSA_SUCCESS )
+    {
+        ret = mbedtls_psa_err_translate_pk( status );
+        goto cleanup;
+    }
+
+    if( psa_sign_hash( key_id, psa_sig_md, hash, hash_len,
+                       sig, sig_size, sig_len)
+         != PSA_SUCCESS )
+    {
+         ret = MBEDTLS_ERR_ECP_VERIFY_FAILED;
+         goto cleanup;
+    }
+
+    ret = pk_ecdsa_sig_asn1_from_psa( sig, sig_len, sig_size );
+
+cleanup:
+    psa_destroy_key( key_id );
+    return( ret );
+}
+#else
 static int ecdsa_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
                    const unsigned char *hash, size_t hash_len,
                    unsigned char *sig, size_t sig_size, size_t *sig_len,
@@ -747,6 +847,7 @@ static int ecdsa_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
                                            sig, sig_size, sig_len,
                                            f_rng, p_rng ) );
 }
+#endif
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
 static int ecdsa_verify_rs_wrap( void *ctx, mbedtls_md_type_t md_alg,

@@ -1662,31 +1662,213 @@ static int ssl_tls13_postprocess_encrypted_extensions( mbedtls_ssl_context *ssl 
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 /*
- * Handler for  MBEDTLS_SSL_CERTIFICATE_REQUEST
+ *
+ * STATE HANDLING: CertificateRequest
+ *
  */
-static int ssl_tls13_process_certificate_request( mbedtls_ssl_context *ssl )
+#define SSL_CERTIFICATE_REQUEST_EXPECT_REQUEST 0
+#define SSL_CERTIFICATE_REQUEST_SKIP           1
+/* Coordination:
+ * Deals with the ambiguity of not knowing if a CertificateRequest
+ * will be sent. Returns a negative code on failure, or
+ * - SSL_CERTIFICATE_REQUEST_EXPECT_REQUEST
+ * - SSL_CERTIFICATE_REQUEST_SKIP
+ * indicating if a Certificate Request is expected or not.
+ */
+static int ssl_tls13_certificate_request_coordinate( mbedtls_ssl_context *ssl )
 {
-    int ret = mbedtls_ssl_read_record( ssl, 0 );
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    if( ret != 0 )
+    if( mbedtls_ssl_tls13_some_psk_enabled( ssl ) )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "<= skip parse certificate request" ) );
+        return( SSL_CERTIFICATE_REQUEST_SKIP );
+    }
+
+    if( ( ret = mbedtls_ssl_read_record( ssl, 0 ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
         return( ret );
     }
+    ssl->keep_current_message = 1;
 
     if( ( ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE ) &&
         ( ssl->in_msg[0] == MBEDTLS_SSL_HS_CERTIFICATE_REQUEST ) )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "CertificateRequest not supported" ) );
-        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
-                                      MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+        return( SSL_CERTIFICATE_REQUEST_EXPECT_REQUEST );
     }
 
-    ssl->keep_current_message = 1;
+    return( SSL_CERTIFICATE_REQUEST_SKIP );
+}
+
+/*
+ * ssl_tls13_parse_certificate_request()
+ *     Parse certificate request
+ * struct {
+ *   opaque certificate_request_context<0..2^8-1>;
+ *   Extension extensions<2..2^16-1>;
+ * } CertificateRequest;
+ */
+static int ssl_tls13_parse_certificate_request( mbedtls_ssl_context *ssl,
+                                                const unsigned char *buf,
+                                                const unsigned char *end )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    const unsigned char *p = buf;
+    size_t certificate_request_context_len = 0;
+    size_t extensions_len = 0;
+    const unsigned char *extensions_end;
+    unsigned char sig_alg_ext_found = 0;
+
+    /* ...
+     * opaque certificate_request_context<0..2^8-1>
+     * ...
+     */
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 1 );
+    certificate_request_context_len = (size_t) p[0];
+    p += 1;
+
+    if( certificate_request_context_len > 0 )
+    {
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, certificate_request_context_len );
+        MBEDTLS_SSL_DEBUG_BUF( 3, "Certificate Request Context",
+                               p, certificate_request_context_len );
+
+        mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+        handshake->certificate_request_context =
+                mbedtls_calloc( 1, certificate_request_context_len );
+        if( handshake->certificate_request_context == NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
+            return ( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+        }
+        memcpy( handshake->certificate_request_context, p,
+                certificate_request_context_len );
+        p += certificate_request_context_len;
+    }
+
+    /* ...
+     * Extension extensions<2..2^16-1>;
+     * ...
+     */
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2 );
+    extensions_len = MBEDTLS_GET_UINT16_BE( p, 0 );
+    p += 2;
+
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, extensions_len );
+    extensions_end = p + extensions_len;
+
+    while( p < extensions_end )
+    {
+        unsigned int extension_type;
+        size_t extension_data_len;
+
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, extensions_end, 4 );
+        extension_type = MBEDTLS_GET_UINT16_BE( p, 0 );
+        extension_data_len = MBEDTLS_GET_UINT16_BE( p, 2 );
+        p += 4;
+
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, extensions_end, extension_data_len );
+
+        switch( extension_type )
+        {
+            case MBEDTLS_TLS_EXT_SIG_ALG:
+                MBEDTLS_SSL_DEBUG_MSG( 3,
+                        ( "found signature algorithms extension" ) );
+                ret = mbedtls_ssl_tls13_parse_sig_alg_ext( ssl, p,
+                              p + extension_data_len );
+                if( ret != 0 )
+                    return( ret );
+                if( ! sig_alg_ext_found )
+                    sig_alg_ext_found = 1;
+                else
+                {
+                    MBEDTLS_SSL_DEBUG_MSG( 3,
+                        ( "Duplicate signature algorithms extensions found" ) );
+                    goto decode_error;
+                }
+                break;
+
+            default:
+                MBEDTLS_SSL_DEBUG_MSG(
+                    3,
+                    ( "unknown extension found: %u ( ignoring )",
+                    extension_type ) );
+                break;
+        }
+        p += extension_data_len;
+    }
+    /* Check that we consumed all the message. */
+    if( p != end )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1,
+            ( "CertificateRequest misaligned" ) );
+        goto decode_error;
+    }
+    /* Check that we found signature algorithms extension */
+    if( ! sig_alg_ext_found )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3,
+            ( "no signature algorithms extension found" ) );
+        goto decode_error;
+    }
+
+    ssl->client_auth = 1;
+    return( 0 );
+
+decode_error:
+    MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
+                                  MBEDTLS_ERR_SSL_DECODE_ERROR );
+    return( MBEDTLS_ERR_SSL_DECODE_ERROR );
+}
+
+/*
+ * Handler for  MBEDTLS_SSL_CERTIFICATE_REQUEST
+ */
+static int ssl_tls13_process_certificate_request( mbedtls_ssl_context *ssl )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate request" ) );
+
+    MBEDTLS_SSL_PROC_CHK_NEG( ssl_tls13_certificate_request_coordinate( ssl ) );
+
+    if( ret == SSL_CERTIFICATE_REQUEST_EXPECT_REQUEST )
+    {
+        unsigned char *buf;
+        size_t buf_len;
+
+        MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_fetch_handshake_msg( ssl,
+                                            MBEDTLS_SSL_HS_CERTIFICATE_REQUEST,
+                                            &buf, &buf_len ) );
+
+        MBEDTLS_SSL_PROC_CHK( ssl_tls13_parse_certificate_request( ssl,
+                                              buf, buf + buf_len ) );
+
+        mbedtls_ssl_tls13_add_hs_msg_to_checksum(
+                       ssl, MBEDTLS_SSL_HS_CERTIFICATE_REQUEST, buf, buf_len );
+    }
+    else if( ret == SSL_CERTIFICATE_REQUEST_SKIP )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate request" ) );
+        ret = 0;
+    }
+    else
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+        goto cleanup;
+    }
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "got %s certificate request",
+                                ssl->client_auth ? "a" : "no" ) );
+
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_CERTIFICATE );
 
-    return( 0 );
+cleanup:
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate request" ) );
+    return( ret );
 }
 
 /*

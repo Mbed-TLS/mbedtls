@@ -756,6 +756,8 @@ void pk_rsa_decrypt_test_vec( data_t * cipher, int mod, int radix_P,
     mbedtls_pk_context pk;
     size_t olen;
 
+    USE_PSA_INIT( );
+
     mbedtls_pk_init( &pk );
     mbedtls_mpi_init( &N ); mbedtls_mpi_init( &P );
     mbedtls_mpi_init( &Q ); mbedtls_mpi_init( &E );
@@ -794,6 +796,7 @@ exit:
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P );
     mbedtls_mpi_free( &Q ); mbedtls_mpi_free( &E );
     mbedtls_pk_free( &pk );
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 

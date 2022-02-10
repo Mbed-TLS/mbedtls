@@ -53,8 +53,8 @@ extension.
 
 In TLS 1.3 the situation will be simpler: named groups are the only
 option, so the current PSA Crypto API is a good match for that. (Not
-coincidentally, the groups used by RFC 7919 and TLS 1.3 are part those defined
-in the specification.)
+coincidentally, all the groups used by RFC 7919 and TLS 1.3 are included
+in the PSA specification.)
 
 There are several options here:
 

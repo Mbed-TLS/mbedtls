@@ -309,7 +309,7 @@ static int ssl_tls13_write_key_share_ext( mbedtls_ssl_context *ssl,
         /* Pointer to group */
         unsigned char *group = p;
         /* Length of key_exchange */
-        size_t key_exchange_len;
+        size_t key_exchange_len = 0;
 
         /* Check there is space for header of KeyShareEntry
          * - group                  (2 bytes)

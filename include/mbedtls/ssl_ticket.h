@@ -42,12 +42,16 @@
 extern "C" {
 #endif
 
+#define MBEDTLS_SSL_TICKET_MAX_KEY_BYTES 32          /*!< Max supported key length in bytes */
+#define MBEDTLS_SSL_TICKET_KEY_NAME_BYTES 4          /*!< key name length in bytes */
+
 /**
  * \brief   Information for session ticket protection
  */
 typedef struct mbedtls_ssl_ticket_key
 {
-    unsigned char MBEDTLS_PRIVATE(name)[4];          /*!< random key identifier              */
+    unsigned char MBEDTLS_PRIVATE(name)[MBEDTLS_SSL_TICKET_KEY_NAME_BYTES];
+                                                     /*!< random key identifier              */
     uint32_t MBEDTLS_PRIVATE(generation_time);       /*!< key generation timestamp (seconds) */
     mbedtls_cipher_context_t MBEDTLS_PRIVATE(ctx);   /*!< context for auth enc/decryption    */
 }
@@ -98,7 +102,7 @@ void mbedtls_ssl_ticket_init( mbedtls_ssl_ticket_context *ctx );
  *                  supported. Usually that means a 256-bit key.
  *
  * \note            The lifetime of the keys is twice the lifetime of tickets.
- *                  It is recommended to pick a reasonnable lifetime so as not
+ *                  It is recommended to pick a reasonable lifetime so as not
  *                  to negate the benefits of forward secrecy.
  *
  * \return          0 if successful,
@@ -107,6 +111,43 @@ void mbedtls_ssl_ticket_init( mbedtls_ssl_ticket_context *ctx );
 int mbedtls_ssl_ticket_setup( mbedtls_ssl_ticket_context *ctx,
     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
     mbedtls_cipher_type_t cipher,
+    uint32_t lifetime );
+
+/**
+ * \brief           Rotate session ticket encryption key to new specified key.
+ *                  Provides for external control of session ticket encryption
+ *                  key rotation, e.g. for synchronization between different
+ *                  machines.  If this function is not used, or if not called
+ *                  before ticket lifetime expires, then a new session ticket
+ *                  encryption key is generated internally in order to avoid
+ *                  unbounded session ticket encryption key lifetimes.
+ *
+ * \param ctx       Context to be set up
+ * \param name      Session ticket encryption key name
+ * \param nlength   Session ticket encryption key name length in bytes
+ * \param k         Session ticket encryption key
+ * \param klength   Session ticket encryption key length in bytes
+ * \param lifetime  Tickets lifetime in seconds
+ *                  Recommended value: 86400 (one day).
+ *
+ * \note            \c name and \c k are recommended to be cryptographically
+ *                  random data.
+ *
+ * \note            \c nlength must match sizeof( ctx->name )
+ *
+ * \note            \c klength must be sufficient for use by cipher specified
+ *                  to \c mbedtls_ssl_ticket_setup
+ *
+ * \note            The lifetime of the keys is twice the lifetime of tickets.
+ *                  It is recommended to pick a reasonable lifetime so as not
+ *                  to negate the benefits of forward secrecy.
+ *
+ * \return          0 if successful,
+ *                  or a specific MBEDTLS_ERR_XXX error code
+ */
+int mbedtls_ssl_ticket_rotate( mbedtls_ssl_ticket_context *ctx,
+    const unsigned char *name, size_t nlength,
+    const unsigned char *k, size_t klength,
     uint32_t lifetime );
 
 /**

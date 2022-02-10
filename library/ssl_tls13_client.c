@@ -387,25 +387,24 @@ static int ssl_tls13_read_public_ecdhe_share( mbedtls_ssl_context *ssl,
                                               size_t buf_len )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    uint8_t ecpoint_len;
+    uint8_t *p = (uint8_t*)buf;
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
-    ret = mbedtls_ecdh_tls13_read_public( &ssl->handshake->ecdh_ctx,
-                                          buf, buf_len );
-    if( ret != 0 )
+    /*
+     * Put peer's ECDH public key in the format understood by PSA.
+     */
+
+    ecpoint_len = *p++;
+    if( ( buf_len - 1 ) < ecpoint_len )
+        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
+
+    if ( ( ret = mbedtls_psa_tls_ecpoint_to_psa_ec( p,
+                     ecpoint_len, handshake->ecdh_psa_peerkey,
+                     sizeof( handshake->ecdh_psa_peerkey ),
+                     &handshake->ecdh_psa_peerkey_len ) ) != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ecdh_tls13_read_public" ), ret );
-
-        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
-                                      MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
-        return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
-    }
-
-    if( ssl_tls13_check_ecdh_params( ssl ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "ssl_tls13_check_ecdh_params() failed!" ) );
-
-        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
-                                      MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
-        return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+        return( ret );
     }
 
     return( 0 );

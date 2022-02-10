@@ -400,27 +400,20 @@ static int ssl_tls13_read_public_ecdhe_share( mbedtls_ssl_context *ssl,
                                               const unsigned char *buf,
                                               size_t buf_len )
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    uint8_t *p = (uint8_t*)buf;
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
-    ret = mbedtls_ecdh_tls13_read_public( &ssl->handshake->ecdh_ctx,
-                                          buf, buf_len );
-    if( ret != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ecdh_tls13_read_public" ), ret );
+    /* Get size of the TLS opaque key_exchange field of the KeyShareEntry struct. */
+    uint16_t peerkey_len = MBEDTLS_GET_UINT16_BE( p, 0 );
+    p += 2;
 
-        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
-                                      MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
-        return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
-    }
+    /* Check if key size is consistent with given buffer length. */
+    if ( peerkey_len > ( buf_len - 2 ) )
+        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
 
-    if( ssl_tls13_check_ecdh_params( ssl ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "ssl_tls13_check_ecdh_params() failed!" ) );
-
-        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
-                                      MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
-        return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
-    }
+    /* Store peer's ECDH public key. */
+    memcpy(handshake->ecdh_psa_peerkey, p, peerkey_len);
+    handshake->ecdh_psa_peerkey_len = peerkey_len;
 
     return( 0 );
 }
@@ -539,7 +532,16 @@ static int ssl_tls13_parse_key_share_ext( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_ECDH_C)
     if( mbedtls_ssl_tls13_named_group_is_ecdhe( group ) )
     {
-        /* Complete ECDHE key agreement */
+        const mbedtls_ecp_curve_info *curve_info =
+            mbedtls_ecp_curve_info_from_tls_id( group );
+        if( curve_info == NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Invalid TLS curve group id" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
+
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDH curve: %s", curve_info->name ) );
+
         ret = ssl_tls13_read_public_ecdhe_share( ssl, p, end - p );
         if( ret != 0 )
             return( ret );

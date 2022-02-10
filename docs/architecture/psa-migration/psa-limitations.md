@@ -40,11 +40,11 @@ Arbitrary parameters for FFDH
 (See also the first paragraph in the previous section.)
 
 Currently, the PSA Crypto API can only perform FFDH with a limited set of
-well-know parameters (some of them defined in the spec, but implementations
+well-known parameters (some of them defined in the spec, but implementations
 are free to extend that set).
 
 TLS 1.2 (and earlier) on the other hand have the server send explicit
-parameters (P and G) in is ServerKeyExchange message. This has been found to
+parameters (P and G) in its ServerKeyExchange message. This has been found to
 be suboptimal for security, as it is prohibitively hard for the client to
 verify the strength of these parameters. This led to the development of RFC
 7919 which allows use of named groups in TLS 1.2 - however as this is only an
@@ -155,7 +155,7 @@ When it comes to cryptographic operations, only two things are supported:
 The verification is done using `mbedtls_pk_verify_ext()`.
 
 Note: since X.509 parsing ensures that message hash = encoding hash, and
-`mbedtls_pk_verify_ext()` use encoding hash = mgf1 hash, it looks like all
+`mbedtls_pk_verify_ext()` uses encoding hash = mgf1 hash, it looks like all
 three hash algorithms must be equal, which would be good news as it would
 match a limitation of the PSA API.
 

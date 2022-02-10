@@ -38,6 +38,7 @@
 #endif /* !MBEDTLS_PLATFORM_C */
 
 #include "mbedtls/ssl.h"
+#include "ssl_client.h"
 #include "ssl_debug_helpers.h"
 #include "ssl_misc.h"
 #include "mbedtls/debug.h"
@@ -2828,15 +2829,28 @@ int mbedtls_ssl_handshake_step( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "client state: %s",
                                     mbedtls_ssl_states_str( ssl->state ) ) );
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-        if( mbedtls_ssl_conf_is_tls13_only( ssl->conf ) )
-            ret = mbedtls_ssl_tls13_handshake_client_step( ssl );
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+        switch( ssl->state )
+        {
+            case MBEDTLS_SSL_HELLO_REQUEST:
+                ssl->state = MBEDTLS_SSL_CLIENT_HELLO;
+                break;
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-        if( mbedtls_ssl_conf_is_tls12_only( ssl->conf ) )
-            ret = mbedtls_ssl_handshake_client_step( ssl );
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+            case MBEDTLS_SSL_CLIENT_HELLO:
+                ret = mbedtls_ssl_write_client_hello( ssl );
+                break;
+
+            default:
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
+                if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+                    ret = mbedtls_ssl_tls13_handshake_client_step( ssl );
+                else
+                    ret = mbedtls_ssl_handshake_client_step( ssl );
+#elif defined(MBEDTLS_SSL_PROTO_TLS1_2)
+                ret = mbedtls_ssl_handshake_client_step( ssl );
+#else
+                ret = mbedtls_ssl_tls13_handshake_client_step( ssl );
+#endif
+        }
     }
 #endif
 #if defined(MBEDTLS_SSL_SRV_C)

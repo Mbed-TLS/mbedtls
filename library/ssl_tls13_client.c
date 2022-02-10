@@ -710,6 +710,75 @@ int mbedtls_ssl_tls13_write_client_hello_exts( mbedtls_ssl_context *ssl,
 /*
  * Functions for parsing and processing Server Hello
  */
+static int ssl_tls13_is_supported_versions_ext_present(
+    mbedtls_ssl_context *ssl,
+    const unsigned char *buf,
+    const unsigned char *end )
+{
+    const unsigned char *p = buf;
+    size_t legacy_session_id_echo_len;
+    size_t extensions_len;
+    const unsigned char *extensions_end;
+
+    /*
+     * Check there is enough data to access the legacy_session_id_echo vector
+     * length.
+     * - legacy_version,         2 bytes
+     * - random                  MBEDTLS_SERVER_HELLO_RANDOM_LEN bytes
+     * - legacy_session_id_echo  1 byte
+     */
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, MBEDTLS_SERVER_HELLO_RANDOM_LEN + 3 );
+    p += MBEDTLS_SERVER_HELLO_RANDOM_LEN + 2;
+    legacy_session_id_echo_len = *p;
+
+    /*
+     * Jump to the extensions, jumping over:
+     * - legacy_session_id_echo     (legacy_session_id_echo_len + 1) bytes
+     * - cipher_suite               2 bytes
+     * - legacy_compression_method  1 byte
+     */
+     p += legacy_session_id_echo_len + 4;
+
+    /* Case of no extension */
+    if( p == end )
+        return( 0 );
+
+    /* ...
+     * Extension extensions<6..2^16-1>;
+     * ...
+     * struct {
+     *      ExtensionType extension_type; (2 bytes)
+     *      opaque extension_data<0..2^16-1>;
+     * } Extension;
+     */
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2 );
+    extensions_len = MBEDTLS_GET_UINT16_BE( p, 0 );
+    p += 2;
+
+    /* Check extensions do not go beyond the buffer of data. */
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, extensions_len );
+    extensions_end = p + extensions_len;
+
+    while( p < extensions_end )
+    {
+        unsigned int extension_type;
+        size_t extension_data_len;
+
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, extensions_end, 4 );
+        extension_type = MBEDTLS_GET_UINT16_BE( p, 0 );
+        extension_data_len = MBEDTLS_GET_UINT16_BE( p, 2 );
+        p += 4;
+
+        if( extension_type == MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS )
+            return( 1 );
+
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, extensions_end, extension_data_len );
+        p += extension_data_len;
+    }
+
+    return( 0 );
+}
+
 /* Returns a negative value on failure, and otherwise
  * - SSL_SERVER_HELLO_COORDINATE_HELLO or
  * - SSL_SERVER_HELLO_COORDINATE_HRR
@@ -755,8 +824,10 @@ static int ssl_server_hello_is_hrr( mbedtls_ssl_context *ssl,
 /* Fetch and preprocess
  * Returns a negative value on failure, and otherwise
  * - SSL_SERVER_HELLO_COORDINATE_HELLO or
- * - SSL_SERVER_HELLO_COORDINATE_HRR
+ * - SSL_SERVER_HELLO_COORDINATE_HRR or
+ * - SSL_SERVER_HELLO_COORDINATE_TLS1_2
  */
+#define SSL_SERVER_HELLO_COORDINATE_TLS1_2 2
 static int ssl_tls13_server_hello_coordinate( mbedtls_ssl_context *ssl,
                                               unsigned char **buf,
                                               size_t *buf_len )
@@ -766,6 +837,36 @@ static int ssl_tls13_server_hello_coordinate( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_fetch_handshake_msg( ssl,
                                              MBEDTLS_SSL_HS_SERVER_HELLO,
                                              buf, buf_len ) );
+
+    MBEDTLS_SSL_PROC_CHK_NEG( ssl_tls13_is_supported_versions_ext_present(
+                                  ssl, *buf, *buf + *buf_len ) );
+    if( ret == 0 )
+    {
+        /* If the supported versions extension is not present but we were
+         * expecting it, abort the handshake. Otherwise, switch to TLS 1.2
+         * handshake.
+         */
+        if( ssl->handshake->min_minor_ver > MBEDTLS_SSL_MINOR_VERSION_3 )
+        {
+            MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                                          MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+            return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+        }
+
+        ssl->keep_current_message = 1;
+        ssl->minor_ver = MBEDTLS_SSL_MINOR_VERSION_3;
+        mbedtls_ssl_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_SERVER_HELLO,
+                                            *buf, *buf_len );
+
+        if( mbedtls_ssl_conf_tls13_some_ephemeral_enabled( ssl ) )
+        {
+            ret = ssl_tls13_reset_key_share( ssl );
+            if( ret != 0 )
+                return( ret );
+        }
+
+        return( SSL_SERVER_HELLO_COORDINATE_TLS1_2 );
+    }
 
     ret = ssl_server_hello_is_hrr( ssl, *buf, *buf + *buf_len );
     switch( ret )
@@ -888,7 +989,6 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
     const unsigned char *extensions_end;
     uint16_t cipher_suite;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
-    int supported_versions_ext_found = 0;
     int fatal_alert = 0;
 
     /*
@@ -1068,10 +1168,6 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
                 break;
 
             case MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS:
-                supported_versions_ext_found = 1;
-                MBEDTLS_SSL_DEBUG_MSG( 3,
-                            ( "found supported_versions extension" ) );
-
                 ret = ssl_tls13_parse_supported_versions_ext( ssl,
                                                               p,
                                                               extension_data_end );
@@ -1120,13 +1216,6 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
         }
 
         p += extension_data_len;
-    }
-
-    if( !supported_versions_ext_found )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "supported_versions not found" ) );
-        fatal_alert = MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
-        goto cleanup;
     }
 
 cleanup:
@@ -1316,6 +1405,12 @@ static int ssl_tls13_process_server_hello( mbedtls_ssl_context *ssl )
         goto cleanup;
     else
         is_hrr = ( ret == SSL_SERVER_HELLO_COORDINATE_HRR );
+
+    if( ret == SSL_SERVER_HELLO_COORDINATE_TLS1_2 )
+    {
+        ret = 0;
+        goto cleanup;
+    }
 
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_parse_server_hello( ssl, buf,
                                                         buf + buf_len,

@@ -5593,8 +5593,10 @@ int mbedtls_ssl_read(mbedtls_ssl_context *ssl, unsigned char *buf, size_t len)
     n = (len < ssl->in_msglen)
         ? len : ssl->in_msglen;
 
-    memcpy(buf, ssl->in_offt, n);
-    ssl->in_msglen -= n;
+    if (buf) {
+        memcpy(buf, ssl->in_offt, n);
+        ssl->in_msglen -= n;
+    }
 
     /* Zeroising the plaintext buffer to erase unused application data
        from the memory. */

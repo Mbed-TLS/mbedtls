@@ -83,7 +83,8 @@ the hash algorithm potentially used to hash the message being signed:
 - a mask generation function
   - most commonly MGF1, which in turn is parametrized by a hash algorithm
 - a salt length
-- a trailer field - this is universally 0xBC as far as I've seen
+- a trailer field - the value is fixed to 0xBC by PKCS#1 v2.1, but was left
+  configurable in the original scheme; 0xBC is used everywhere in pratice.
 
 Both the existing `mbedtls_` API and the PSA API support only MGF1 as the
 generation function (and only 0xBC as the trailer field), but there are

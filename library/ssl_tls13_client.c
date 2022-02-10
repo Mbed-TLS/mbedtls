@@ -148,33 +148,67 @@ static int ssl_tls13_generate_and_write_ecdh_key_exchange(
                 unsigned char *end,
                 size_t *out_len )
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    const mbedtls_ecp_curve_info *curve_info =
-        mbedtls_ecp_curve_info_from_tls_id( named_group );
+        psa_status_t status = PSA_ERROR_GENERIC_ERROR;
+        int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
+        psa_key_attributes_t key_attributes;
+        unsigned char own_pubkey[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
+        size_t own_pubkey_len;
+        mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+        size_t ecdh_bits = 0;
 
-    if( curve_info == NULL )
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Perform PSA-based ECDH computation." ) );
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "offer curve %s", curve_info->name ) );
+        // --- Just for now --- !!!
+        psa_crypto_init();
 
-    if( ( ret = mbedtls_ecdh_setup_no_everest( &ssl->handshake->ecdh_ctx,
-                                               curve_info->grp_id ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_setup_no_everest", ret );
-        return( ret );
-    }
+        /* Convert EC group to PSA key type. */
+        if( ( handshake->ecdh_psa_type =
+            mbedtls_psa_parse_tls_ecc_group( named_group, &ecdh_bits ) ) == 0 )
+                return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
 
-    ret = mbedtls_ecdh_tls13_make_params( &ssl->handshake->ecdh_ctx, out_len,
-                                          buf, end - buf,
-                                          ssl->conf->f_rng, ssl->conf->p_rng );
-    if( ret != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_tls13_make_params", ret );
-        return( ret );
-    }
+        if( ecdh_bits > 0xffff )
+            return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+        ssl->handshake->ecdh_bits = (uint16_t) ecdh_bits;
 
-    MBEDTLS_SSL_DEBUG_ECDH( 3, &ssl->handshake->ecdh_ctx,
-                            MBEDTLS_DEBUG_ECDH_Q );
+        key_attributes = psa_key_attributes_init();
+        psa_set_key_usage_flags( &key_attributes, PSA_KEY_USAGE_DERIVE );
+        psa_set_key_algorithm( &key_attributes, PSA_ALG_ECDH );
+        psa_set_key_type( &key_attributes, handshake->ecdh_psa_type );
+        psa_set_key_bits( &key_attributes, handshake->ecdh_bits );
+
+        /* Generate ECDH private key. */
+        status = psa_generate_key( &key_attributes,
+                                   &handshake->ecdh_psa_privkey );
+        if( status != PSA_SUCCESS )
+        {
+            ret = psa_ssl_status_to_mbedtls( status );
+            MBEDTLS_SSL_DEBUG_RET( 1, "psa_generate_key", ret );
+            return( ret );
+
+        }
+
+        /* Export the public part of the ECDH private key from PSA. */
+        status = psa_export_public_key( handshake->ecdh_psa_privkey,
+                                        own_pubkey, sizeof( own_pubkey ),
+                                        &own_pubkey_len );
+        if( status != PSA_SUCCESS )
+        {
+            ret = psa_ssl_status_to_mbedtls( status );
+            MBEDTLS_SSL_DEBUG_RET( 1, "psa_export_public_key", ret );
+            return( ret );
+
+        }
+
+        if( own_pubkey_len > (size_t)( end - buf ) )
+        {
+             MBEDTLS_SSL_DEBUG_MSG( 1, ( "No space in the buffer for ECDH public key." ) );
+            return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+        }
+
+        *out_len = own_pubkey_len;
+
+        memcpy( buf, &own_pubkey, own_pubkey_len );
+
     return( 0 );
 }
 #endif /* MBEDTLS_ECDH_C */
@@ -283,8 +317,7 @@ static int ssl_tls13_write_key_share_ext( mbedtls_ssl_context *ssl,
          */
         MBEDTLS_SSL_CHK_BUF_PTR( p, end, 4 );
         p += 4;
-        ret = ssl_tls13_generate_and_write_ecdh_key_exchange( ssl, group_id,
-                                                              p, end,
+        ret = ssl_tls13_generate_and_write_ecdh_key_exchange( ssl, group_id, p, end,
                                                               &key_exchange_len );
         p += key_exchange_len;
         if( ret != 0 )

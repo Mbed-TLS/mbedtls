@@ -723,6 +723,7 @@ void pk_rsa_encrypt_test_vec( data_t * message, int mod, int radix_N,
     memset( &rnd_info,  0, sizeof( mbedtls_test_rnd_pseudo_info ) );
     memset( output,     0, sizeof( output ) );
 
+    USE_PSA_INIT( );
 
     mbedtls_pk_init( &pk );
     TEST_ASSERT( mbedtls_pk_setup( &pk, mbedtls_pk_info_from_type( MBEDTLS_PK_RSA ) ) == 0 );
@@ -740,6 +741,7 @@ void pk_rsa_encrypt_test_vec( data_t * message, int mod, int radix_N,
 
 exit:
     mbedtls_pk_free( &pk );
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 
@@ -881,6 +883,8 @@ void pk_rsa_alt(  )
     size_t sig_len, ciph_len, test_len;
     int ret = MBEDTLS_ERR_PK_TYPE_MISMATCH;
 
+    USE_PSA_INIT( );
+
     mbedtls_rsa_init( &raw );
     mbedtls_pk_init( &rsa ); mbedtls_pk_init( &alt );
 
@@ -945,6 +949,7 @@ void pk_rsa_alt(  )
 exit:
     mbedtls_rsa_free( &raw );
     mbedtls_pk_free( &rsa ); mbedtls_pk_free( &alt );
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 

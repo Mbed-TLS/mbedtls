@@ -9630,16 +9630,6 @@ run_test    "TLS 1.3: Test gnutls tls1_3 feature" \
             -c "Version: TLS1.3"
 
 # TLS1.3 test cases
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-skip_handshake_stage_check
-run_test    "TLS 1.3: Not supported version check: tls12 and tls13" \
-            "$P_SRV debug_level=1" \
-            "$P_CLI debug_level=1 min_version=tls12 max_version=tls13" \
-            1 \
-            -c "SSL - The requested feature is not available" \
-            -c "Hybrid TLS 1.2 + TLS 1.3 configurations are not yet supported"
-
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 skip_handshake_stage_check
 run_test    "TLS 1.3: No server support" \

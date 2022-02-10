@@ -694,32 +694,32 @@ static int ssl_tls13_write_cookie_ext( mbedtls_ssl_context *ssl,
                                        size_t *out_len )
 {
     unsigned char *p = buf;
-
     *out_len = 0;
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
-    if( ssl->handshake->cookie == NULL )
+    if( handshake->cookie == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "no cookie to send; skip extension" ) );
         return( 0 );
     }
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, cookie",
-                           ssl->handshake->cookie,
-                           ssl->handshake->hrr_cookie_len );
+                           handshake->cookie,
+                           handshake->hrr_cookie_len );
 
-    MBEDTLS_SSL_CHK_BUF_PTR( p, end, ssl->handshake->hrr_cookie_len + 6 );
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, handshake->hrr_cookie_len + 6 );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding cookie extension" ) );
 
     MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_COOKIE, p, 0 );
-    MBEDTLS_PUT_UINT16_BE( ssl->handshake->hrr_cookie_len + 2, p, 2 );
-    MBEDTLS_PUT_UINT16_BE( ssl->handshake->hrr_cookie_len, p, 4 );
+    MBEDTLS_PUT_UINT16_BE( handshake->hrr_cookie_len + 2, p, 2 );
+    MBEDTLS_PUT_UINT16_BE( handshake->hrr_cookie_len, p, 4 );
     p += 6;
 
     /* Cookie */
-    memcpy( p, ssl->handshake->cookie, ssl->handshake->hrr_cookie_len );
+    memcpy( p, handshake->cookie, handshake->hrr_cookie_len );
 
-    *out_len = ssl->handshake->hrr_cookie_len + 6;
+    *out_len = handshake->hrr_cookie_len + 6;
 
     return( 0 );
 }

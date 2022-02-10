@@ -49,6 +49,8 @@ static int ssl_tls13_write_supported_versions_ext( mbedtls_ssl_context *ssl,
                                                    size_t *out_len )
 {
     unsigned char *p = buf;
+    unsigned char versions_len = ( ssl->handshake->min_minor_ver <=
+                                   MBEDTLS_SSL_MINOR_VERSION_3 ) ? 4 : 2;
 
     *out_len = 0;
 
@@ -58,35 +60,37 @@ static int ssl_tls13_write_supported_versions_ext( mbedtls_ssl_context *ssl,
      * - extension_type         (2 bytes)
      * - extension_data_length  (2 bytes)
      * - versions_length        (1 byte )
-     * - versions               (2 bytes)
+     * - versions               (2 to 4 bytes)
      */
-    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 7 );
 
-    /* Write extension_type */
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 9 );
+
     MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS, p, 0 );
-
-    /* Write extension_data_length */
-    MBEDTLS_PUT_UINT16_BE( 3, p, 2 );
+    MBEDTLS_PUT_UINT16_BE( versions_len + 1, p, 2 );
     p += 4;
 
     /* Length of versions */
-    *p++ = 0x2;
+    *p++ = versions_len;
 
     /* Write values of supported versions.
-     *
      * They are defined by the configuration.
-     *
-     * Currently, only one version is advertised.
+     * Currently, we advertise only TLS 1.3 or both TLS 1.3 and TLS 1.2.
      */
-    mbedtls_ssl_write_version( ssl->conf->max_major_ver,
-                               ssl->conf->max_minor_ver,
-                               ssl->conf->transport, p );
+    mbedtls_ssl_write_version( MBEDTLS_SSL_MAJOR_VERSION_3,
+                               MBEDTLS_SSL_MINOR_VERSION_4,
+                               MBEDTLS_SSL_TRANSPORT_STREAM, p );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "supported version: [3:4]" ) );
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "supported version: [%d:%d]",
-                                ssl->conf->max_major_ver,
-                                ssl->conf->max_minor_ver ) );
 
-    *out_len = 7;
+    if( ssl->handshake->min_minor_ver <= MBEDTLS_SSL_MINOR_VERSION_3 )
+    {
+        mbedtls_ssl_write_version( MBEDTLS_SSL_MAJOR_VERSION_3,
+                                   MBEDTLS_SSL_MINOR_VERSION_3,
+                                   MBEDTLS_SSL_TRANSPORT_STREAM, p + 2 );
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "supported version: [3:3]" ) );
+    }
+
+    *out_len = 5 + versions_len;
 
     return( 0 );
 }

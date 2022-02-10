@@ -40,11 +40,11 @@ Arbitrary parameters for FFDH
 (See also the first paragraph in the previous section.)
 
 Currently, the PSA Crypto API can only perform FFDH with a limited set of
-well-know parameters (some of them defined in the spec, but implementations
+well-known parameters (some of them defined in the spec, but implementations
 are free to extend that set).
 
 TLS 1.2 (and earlier) on the other hand have the server send explicit
-parameters (P and G) in is ServerKeyExchange message. This has been found to
+parameters (P and G) in its ServerKeyExchange message. This has been found to
 be suboptimal for security, as it is prohibitively hard for the client to
 verify the strength of these parameters. This led to the development of RFC
 7919 which allows use of named groups in TLS 1.2 - however as this is only an
@@ -53,8 +53,8 @@ extension.
 
 In TLS 1.3 the situation will be simpler: named groups are the only
 option, so the current PSA Crypto API is a good match for that. (Not
-coincidentally, the groups used by RFC 7919 and TLS 1.3 are part those defined
-in the specification.)
+coincidentally, all the groups used by RFC 7919 and TLS 1.3 are included
+in the PSA specification.)
 
 There are several options here:
 
@@ -83,7 +83,8 @@ the hash algorithm potentially used to hash the message being signed:
 - a mask generation function
   - most commonly MGF1, which in turn is parametrized by a hash algorithm
 - a salt length
-- a trailer field - this is universally 0xBC as far as I've seen
+- a trailer field - the value is fixed to 0xBC by PKCS#1 v2.1, but was left
+  configurable in the original scheme; 0xBC is used everywhere in pratice.
 
 Both the existing `mbedtls_` API and the PSA API support only MGF1 as the
 generation function (and only 0xBC as the trailer field), but there are
@@ -155,7 +156,7 @@ When it comes to cryptographic operations, only two things are supported:
 The verification is done using `mbedtls_pk_verify_ext()`.
 
 Note: since X.509 parsing ensures that message hash = encoding hash, and
-`mbedtls_pk_verify_ext()` use encoding hash = mgf1 hash, it looks like all
+`mbedtls_pk_verify_ext()` uses encoding hash = mgf1 hash, it looks like all
 three hash algorithms must be equal, which would be good news as it would
 match a limitation of the PSA API.
 

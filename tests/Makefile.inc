@@ -36,8 +36,7 @@ GENERATED_DATA_FILES := $(shell \
 ifeq ($(GENERATED_DATA_FILES),FAILED)
 $(error "$(PYTHON) tests/scripts/generate_psa_tests.py --list" failed)
 endif
-GENERATED_FILES := $(GENERATED_DATA_FILES)
-tests/generated_files: $(GENERATED_FILES)
+tests/generated_files: $(GENERATED_DATA_FILES)
 
 # generate_psa_tests.py spends more time analyzing inputs than generating
 # outputs. Its inputs are the same no matter which files are being generated.
@@ -142,9 +141,9 @@ endif
 
 tests/neat: tests/clean
 ifndef WINDOWS
-	rm -f $(GENERATED_FILES)
+	rm -f $(GENERATED_DATA_FILES)
 else
-	for %%f in ($(subst /,\,$(GENERATED_FILES))) do if exist %%f del /Q /F %%f
+	for %%f in ($(subst /,\,$(GENERATED_DATA_FILES))) do if exist %%f del /Q /F %%f
 endif
 
 # Test suites caught by SKIP_TEST_SUITES are built but not executed.
@@ -178,6 +177,8 @@ tests/libtestdriver1.a:
 	touch tests/libtestdriver1/3rdparty/Makefile.inc
 	mkdir tests/libtestdriver1/tests
 	touch tests/libtestdriver1/tests/Makefile.inc
+	mkdir tests/libtestdriver1/programs
+	touch tests/libtestdriver1/programs/Makefile
 
 	# Set the test driver base (minimal) configuration.
 	cp tests/include/test/drivers/config_test_driver.h tests/libtestdriver1/include/mbedtls/mbedtls_config.h

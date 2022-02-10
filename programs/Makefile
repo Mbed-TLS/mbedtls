@@ -1,17 +1,22 @@
+# If we are the top level Makefile, call the one in the root dir instead
+ifeq ($(words $(MAKEFILE_LIST)),1)
+.SILENT:
+.PHONY: all
+all:
+	$(MAKE) -C .. $(patsubst %,programs/%,$(or $(MAKECMDGOALS),all))
 
+$(filter-out all,$(MAKECMDGOALS)): all
+else
 # To compile on SunOS: add "-lsocket -lnsl" to LDFLAGS
 
-CFLAGS	?= -O2
-WARNING_CFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
 WARNING_CXXFLAGS ?= -Wall -Wextra -Wformat=2 -Wno-format-nonliteral
-LDFLAGS ?=
 
-MBEDTLS_TEST_PATH:=../tests/src
+MBEDTLS_TEST_PATH:=tests/src
 MBEDTLS_TEST_OBJS:=$(patsubst %.c,%.o,$(wildcard ${MBEDTLS_TEST_PATH}/*.c ${MBEDTLS_TEST_PATH}/drivers/*.c))
 
-LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../tests/include -I../include -D_FILE_OFFSET_BITS=64
-LOCAL_CXXFLAGS = $(WARNING_CXXFLAGS) -I../include -I../tests/include -D_FILE_OFFSET_BITS=64
-LOCAL_LDFLAGS = ${MBEDTLS_TEST_OBJS} 		\
+programs/%: LOCAL_CFLAGS += $(WARNING_CFLAGS) -I../tests/include -I../include -D_FILE_OFFSET_BITS=64
+programs/%: LOCAL_CXXFLAGS += $(WARNING_CXXFLAGS) -I../include -I../tests/include -D_FILE_OFFSET_BITS=64
+programs/%: LOCAL_LDFLAGS := $(LOCAL_LDFLAGS)	\
 		-L../library 			\
 		-lmbedtls$(SHARED_SUFFIX)	\
 		-lmbedx509$(SHARED_SUFFIX)	\
@@ -23,43 +28,9 @@ else
 DLOPEN_LDFLAGS ?=
 endif
 
-include ../3rdparty/Makefile.inc
-LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
+programs/%: LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
 
-ifndef SHARED
-MBEDLIBS=../library/libmbedcrypto.a ../library/libmbedx509.a ../library/libmbedtls.a
-else
-MBEDLIBS=../library/libmbedcrypto.$(DLEXT) ../library/libmbedx509.$(DLEXT) ../library/libmbedtls.$(DLEXT)
-endif
 DEP=${MBEDLIBS} ${MBEDTLS_TEST_OBJS}
-
-ifdef DEBUG
-LOCAL_CFLAGS += -g3
-endif
-
-# if we're running on Windows, build for Windows
-ifdef WINDOWS
-WINDOWS_BUILD=1
-endif
-
-ifdef WINDOWS_BUILD
-DLEXT=dll
-EXEXT=.exe
-LOCAL_LDFLAGS += -lws2_32
-ifdef SHARED
-SHARED_SUFFIX=.$(DLEXT)
-endif
-else
-DLEXT ?= so
-EXEXT=
-SHARED_SUFFIX=
-endif
-
-ifdef WINDOWS
-PYTHON ?= python
-else
-PYTHON ?= $(shell if type python3 >/dev/null 2>/dev/null; then echo python3; else echo python; fi)
-endif
 
 # Only build the dlopen test in shared library builds, and not when building
 # for Windows.
@@ -148,114 +119,109 @@ ifdef TEST_CPP
 APPS += test/cpp_dummy_build
 endif
 
+APPS := $(addprefix programs/,$(APPS))
+
 EXES = $(patsubst %,%$(EXEXT),$(APPS))
 
 .SILENT:
 
-.PHONY: all clean list fuzz
+.PHONY: programs/all programs/clean programs/list programs/fuzz
 
-all: $(EXES)
+programs/%: BUILD_DIR = programs
+
+programs/all: $(EXES)
 ifndef WINDOWS
 # APPS doesn't include the fuzzing programs, which aren't "normal"
 # sample or test programs, and don't build with MSVC which is
 # warning about fopen
-all: fuzz
+programs/all: programs/fuzz
 endif
 
-fuzz: ${MBEDTLS_TEST_OBJS}
-	$(MAKE) -C fuzz THIRDPARTY_INCLUDES=$(THIRDPARTY_INCLUDES)
+programs/fuzz: $(MBEDTLS_TEST_OBJS)
+	$(MAKE) -C programs/fuzz THIRDPARTY_INCLUDES=$(THIRDPARTY_INCLUDES)
 
-$(MBEDLIBS):
-	$(MAKE) -C ../library
+.PHONY: programs/generated_files
+GENERATED_PROGRAM_FILES = programs/psa/psa_constant_names_generated.c programs/test/query_config.c
+programs/generated_files: $(GENERATED_PROGRAM_FILES)
 
-${MBEDTLS_TEST_OBJS}:
-	$(MAKE) -C ../tests mbedtls_test
-
-.PHONY: generated_files
-GENERATED_FILES = psa/psa_constant_names_generated.c test/query_config.c
-generated_files: $(GENERATED_FILES)
-
-psa/psa_constant_names_generated.c: ../scripts/generate_psa_constants.py
-psa/psa_constant_names_generated.c: ../include/psa/crypto_values.h
-psa/psa_constant_names_generated.c: ../include/psa/crypto_extra.h
-psa/psa_constant_names_generated.c: ../tests/suites/test_suite_psa_crypto_metadata.data
-psa/psa_constant_names_generated.c:
+programs/psa/psa_constant_names_generated.c: scripts/generate_psa_constants.py
+programs/psa/psa_constant_names_generated.c: include/psa/crypto_values.h
+programs/psa/psa_constant_names_generated.c: include/psa/crypto_extra.h
+programs/psa/psa_constant_names_generated.c: tests/suites/test_suite_psa_crypto_metadata.data
+programs/psa/psa_constant_names_generated.c:
 	echo "  Gen   $@"
-	$(PYTHON) ../scripts/generate_psa_constants.py
+	$(PYTHON) scripts/generate_psa_constants.py
 
-test/query_config.c: ../scripts/generate_query_config.pl
+programs/test/query_config.c: scripts/generate_query_config.pl
 ## The generated file only depends on the options that are present in mbedtls_config.h,
 ## not on which options are set. To avoid regenerating this file all the time
 ## when switching between configurations, don't declare mbedtls_config.h as a
 ## dependency. Remove this file from your working tree if you've just added or
 ## removed an option in mbedtls_config.h.
-#test/query_config.c: ../include/mbedtls/mbedtls_config.h
-test/query_config.c: ../scripts/data_files/query_config.fmt
-test/query_config.c:
+#programs/test/query_config.c: include/mbedtls/mbedtls_config.h
+programs/test/query_config.c: scripts/data_files/query_config.fmt
+programs/test/query_config.c:
 	echo "  Gen   $@"
-	$(PERL) ../scripts/generate_query_config.pl
-
-.c.o:
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -o $@ -c $<
+	$(PERL) scripts/generate_query_config.pl
 
 .cpp.o:
 	echo "  CXX   $<"
-	$(CXX) $(LOCAL_CXXFLAGS) $(CXXFLAGS) -o $@ -c $<
+	cd $(BUILD_DIR) && $(CXX) $(LOCAL_CXXFLAGS) $(CXXFLAGS) -o $(abspath $@) -c $(abspath $<)
 
-$(EXES): %$(EXEXT): %.o $(DEP)
+$(EXES): %$(EXEXT): %.o $(MBEDTLS_TEST_OBJS) $(MBEDLIBS)
 	echo "  LD    $@"
-	$(CC) $(filter-out $(DEP),$^) $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	cd $(BUILD_DIR) && $(CC) $(abspath $(filter %.o,$^)) $(LOCAL_LDFLAGS) $(LDFLAGS) -o $(abspath $@)
 
-psa/psa_constant_names.o: psa/psa_constant_names_generated.c
+programs/psa/psa_constant_names.o: programs/psa/psa_constant_names_generated.c
 
-SSL_TEST_OBJECTS = test/query_config.o ssl/ssl_test_lib.o
-SSL_TEST_DEPS = test/query_config.h \
-		ssl/ssl_test_lib.h \
-		ssl/ssl_test_common_source.c
+SSL_TEST_OBJECTS = programs/test/query_config.o programs/ssl/ssl_test_lib.o
+SSL_TEST_DEPS = programs/test/query_config.h \
+		programs/ssl/ssl_test_lib.h \
+		programs/ssl/ssl_test_common_source.c
 
-ssl/ssl_test_lib.o: ssl/ssl_test_lib.h
+programs/ssl/ssl_test_lib.o: programs/ssl/ssl_test_lib.h
 
-ssl/ssl_client2.o ssl/ssl_server2.o: $(SSL_TEST_DEPS)
-ssl/ssl_client2$(EXEXT) ssl/ssl_server2$(EXEXT): $(SSL_TEST_OBJECTS)
+programs/ssl/ssl_client2.o ssl/ssl_server2.o: $(SSL_TEST_DEPS)
+programs/ssl/ssl_client2$(EXEXT) programs/ssl/ssl_server2$(EXEXT): $(SSL_TEST_OBJECTS)
 
-ssl/ssl_context_info.o: test/query_config.h
-ssl/ssl_context_info$(EXEXT): test/query_config.o
+programs/ssl/ssl_context_info.o: programs/test/query_config.h
+programs/ssl/ssl_context_info$(EXEXT): programs/test/query_config.o
 
-test/cpp_dummy_build.cpp: test/generate_cpp_dummy_build.sh
+programs/test/cpp_dummy_build.cpp: programs/test/generate_cpp_dummy_build.sh
 	echo "  Gen   test/cpp_dummy_build.cpp"
-	test/generate_cpp_dummy_build.sh
+	programs/test/generate_cpp_dummy_build.sh
 
 # Do not link any test objects (that would bring in a static dependency on
 # libmbedcrypto at least). Do not link with libmbed* (that would defeat the
 # purpose of testing dynamic loading).
-test/dlopen$(EXEXT): LOCAL_LDFLAGS =
-test/dlopen$(EXEXT): LDFLAGS += $(DLOPEN_LDFLAGS)
+programs/test/dlopen$(EXEXT): LOCAL_LDFLAGS =
+programs/test/dlopen$(EXEXT): LDFLAGS += $(DLOPEN_LDFLAGS)
 
-test/query_config.o: test/query_config.h
+programs/test/query_config.o: programs/test/query_config.h
 
-test/query_compile_time_config.o: test/query_config.h
-test/query_compile_time_config$(EXEXT): test/query_config.o
+programs/test/query_compile_time_config.o: programs/test/query_config.h
+programs/test/query_compile_time_config$(EXEXT): programs/test/query_config.o
 
 CLEANOBJS := $(patsubst %,%*.o,$(sort $(dir $(APPS))))
-clean:
+programs/clean:
 ifndef WINDOWS
 	rm -f $(EXES) $(CLEANOBJS)
-	-rm -f ssl/ssl_pthread_server$(EXEXT)
-	-rm -f test/cpp_dummy_build.cpp test/cpp_dummy_build$(EXEXT)
-	-rm -f test/dlopen$(EXEXT)
+	-rm -f programs/ssl/ssl_pthread_server$(EXEXT)
+	-rm -f programs/test/cpp_dummy_build.cpp programs/test/cpp_dummy_build$(EXEXT)
+	-rm -f programs/test/dlopen$(EXEXT)
 else
 	for %%f in ($(subst /,\,$(CLEANOBJS) $(patsubst %o,%exe,$(CLEANOBJS)))) do del /Q /F %%f
-	if exist test\cpp_dummy_build.cpp del /Q /F test\cpp_dummy_build.cpp
+	if exist programs\test\cpp_dummy_build.cpp del /Q /F programs\test\cpp_dummy_build.cpp
 endif
-	$(MAKE) -C fuzz clean
+	$(MAKE) -C programs/fuzz clean
 
-neat: clean
+programs/neat: programs/clean
 ifndef WINDOWS
-	rm -f $(GENERATED_FILES)
+	rm -f $(GENERATED_PROGRAM_FILES)
 else
-	for %%f in ($(subst /,\,$(GENERATED_FILES))) do if exist %%f del /Q /F %%f
+	for %%f in ($(subst /,\,$(GENERATED_PROGRAM_FILES))) do if exist %%f del /Q /F %%f
 endif
 
-list:
+programs/list:
 	echo $(EXES)
+endif

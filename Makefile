@@ -74,17 +74,13 @@ all: programs tests
 
 no_test: programs
 
-programs: lib mbedtls_test
-	$(MAKE) -C programs
+programs: programs/all
 
 lib: library/all
 
 tests: tests/all
 
 mbedtls_test: tests/mbedtls_test
-
-programs/%:
-	$(MAKE) -C programs $*
 
 .c.o:
 	echo "  CC    $<"
@@ -169,16 +165,14 @@ ifndef WINDOWS
 
 endif
 
-clean: library/clean tests/clean clean_more_on_top
-	$(MAKE) -C programs clean
+clean: library/clean programs/clean tests/clean clean_more_on_top
 
 clean_more_on_top:
 ifndef WINDOWS
 	find . \( -name \*.gcno -o -name \*.gcda -o -name \*.info \) -exec rm {} +
 endif
 
-neat: library/neat tests/neat clean_more_on_top
-	$(MAKE) -C programs neat
+neat: library/neat programs/neat tests/neat clean_more_on_top
 ifndef WINDOWS
 	rm -f visualc/VS2010/*.vcxproj visualc/VS2010/mbedTLS.sln
 else
@@ -244,3 +238,4 @@ cscope.in.out cscope.po.out cscope.out: $(C_SOURCE_FILES)
 
 include library/Makefile.inc
 include tests/Makefile.inc
+include programs/Makefile

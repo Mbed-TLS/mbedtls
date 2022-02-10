@@ -246,13 +246,13 @@ library/libmbedcrypto.dll: $(OBJS_CRYPTO)
 	cd $(BUILD_DIR) && $(CC) -shared -Wl,-soname,$(@F) -Wl,--out-implib,$(abspath $@).a -o $(abspath $@) $(abspath $(OBJS_CRYPTO)) -lwinmm -lgdi32 -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
 
 .PHONY: library/generated_files
-GENERATED_FILES = \
+GENERATED_LIBRARY_FILES = \
 	error.c version_features.c \
 	ssl_debug_helpers_generated.c \
         psa_crypto_driver_wrappers.c
-GENERATED_FILES := $(patsubst %,library/%,$(GENERATED_FILES))
+GENERATED_LIBRARY_FILES := $(patsubst %,library/%,$(GENERATED_LIBRARY_FILES))
 
-library/generated_files: $(GENERATED_FILES)
+library/generated_files: $(GENERATED_LIBRARY_FILES)
 
 library/error.c: scripts/generate_errors.pl
 library/error.c: scripts/data_files/error.fmt
@@ -295,7 +295,7 @@ endif
 
 library/neat: library/clean
 ifndef WINDOWS
-	rm -f $(GENERATED_FILES)
+	rm -f $(GENERATED_LIBRARY_FILES)
 else
-	for %%f in ($(subst /,\,$(GENERATED_FILES))) do if exist %%f del /Q /F %%f
+	for %%f in ($(subst /,\,$(GENERATED_LIBRARY_FILES))) do if exist %%f del /Q /F %%f
 endif

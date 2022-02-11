@@ -1218,6 +1218,18 @@ typedef void mbedtls_ssl_export_keys_t( void *p_expkey,
                                         const unsigned char server_random[32],
                                         mbedtls_tls_prf_types tls_prf_type );
 
+/* A type for storing user data in a library structure.
+ *
+ * The representation of type may change in future versions of the library.
+ * Only the behaviors guaranteed by documented accessor functions are
+ * guaranteed to remain stable.
+ */
+typedef union
+{
+    uintptr_t n;                /* typically a handle to an associated object */
+    void *p;                    /* typically a pointer to extra data */
+} mbedtls_ssl_user_data_t;
+
 /**
  * SSL/TLS configuration to be shared between mbedtls_ssl_context structures.
  */
@@ -1462,7 +1474,7 @@ struct mbedtls_ssl_config
      * The library sets this to \p 0 when creating a context and does not
      * access it afterwards.
      */
-    uintptr_t MBEDTLS_PRIVATE(user_data);
+    mbedtls_ssl_user_data_t MBEDTLS_PRIVATE(user_data);
 };
 
 struct mbedtls_ssl_context
@@ -1694,7 +1706,7 @@ struct mbedtls_ssl_context
      *          mbedtls_ssl_context_save() and mbedtls_ssl_context_load()
      *          does not currently restore the user data.
      */
-    uintptr_t MBEDTLS_PRIVATE(user_data);
+    mbedtls_ssl_user_data_t MBEDTLS_PRIVATE(user_data);
 };
 
 /**
@@ -2319,7 +2331,7 @@ static inline void mbedtls_ssl_conf_set_user_data_p(
     mbedtls_ssl_config *conf,
     void *p )
 {
-    conf->MBEDTLS_PRIVATE(user_data) = (uintptr_t) p;
+    conf->MBEDTLS_PRIVATE(user_data).p = p;
 }
 
 /** \brief Set the user data in an SSL configuration to an integer.
@@ -2333,7 +2345,7 @@ static inline void mbedtls_ssl_conf_set_user_data_n(
     mbedtls_ssl_config *conf,
     uintptr_t n )
 {
-    conf->MBEDTLS_PRIVATE(user_data) = n;
+    conf->MBEDTLS_PRIVATE(user_data).n = n;
 }
 
 /** \brief Retrieve the user data in an SSL configuration as a pointer.
@@ -2349,7 +2361,7 @@ static inline void mbedtls_ssl_conf_set_user_data_n(
 static inline void *mbedtls_ssl_conf_get_user_data_p(
     mbedtls_ssl_config *conf )
 {
-    return( (void*) conf->MBEDTLS_PRIVATE(user_data) );
+    return( conf->MBEDTLS_PRIVATE(user_data).p );
 }
 
 /** \brief Retrieve the user data in an SSL configuration as an integer.
@@ -2365,7 +2377,7 @@ static inline void *mbedtls_ssl_conf_get_user_data_p(
 static inline uintptr_t mbedtls_ssl_conf_get_user_data_n(
     mbedtls_ssl_config *conf )
 {
-    return( conf->MBEDTLS_PRIVATE(user_data) );
+    return( conf->MBEDTLS_PRIVATE(user_data).n );
 }
 
 /** \brief Set the user data in an SSL context to a pointer.
@@ -2382,7 +2394,7 @@ static inline void mbedtls_ssl_set_user_data_p(
     mbedtls_ssl_context *ssl,
     void *p )
 {
-    ssl->MBEDTLS_PRIVATE(user_data) = (uintptr_t) p;
+    ssl->MBEDTLS_PRIVATE(user_data).p = p;
 }
 
 /** \brief Set the user data in an SSL context to an integer.
@@ -2396,7 +2408,7 @@ static inline void mbedtls_ssl_set_user_data_n(
     mbedtls_ssl_context *ssl,
     uintptr_t n )
 {
-    ssl->MBEDTLS_PRIVATE(user_data) = n;
+    ssl->MBEDTLS_PRIVATE(user_data).n = n;
 }
 
 /** \brief Retrieve the user data in an SSL context as a pointer.
@@ -2412,7 +2424,7 @@ static inline void mbedtls_ssl_set_user_data_n(
 static inline void *mbedtls_ssl_get_user_data_p(
     mbedtls_ssl_context *ssl )
 {
-    return( (void*) ssl->MBEDTLS_PRIVATE(user_data) );
+    return( ssl->MBEDTLS_PRIVATE(user_data).p );
 }
 
 /** \brief Retrieve the user data in an SSL context as an integer.
@@ -2428,7 +2440,7 @@ static inline void *mbedtls_ssl_get_user_data_p(
 static inline uintptr_t mbedtls_ssl_get_user_data_n(
     mbedtls_ssl_context *ssl )
 {
-    return( ssl->MBEDTLS_PRIVATE(user_data) );
+    return( ssl->MBEDTLS_PRIVATE(user_data).n );
 }
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)

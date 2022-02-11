@@ -4088,6 +4088,10 @@ const char *mbedtls_ssl_get_ciphersuite( const mbedtls_ssl_context *ssl );
  * \brief          Return the (D)TLS protocol version negotiated in the
  *                 given connection.
  *
+ * \note           If you call this function too early during the initial
+ *                 handshake, before the two sides have agreed on a version,
+ *                 this function returns #MBEDTLS_SSL_VERSION_UNKNOWN.
+ *
  * \param ssl      The SSL context to query.
  * \return         The negotiated protocol version.
  */

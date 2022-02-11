@@ -186,7 +186,7 @@ psa_status_t psa_its_set( psa_storage_uid_t uid,
 {
     if( uid == 0 )
     {
-        return (PSA_ERROR_INVALID_HANDLE);
+        return( PSA_ERROR_INVALID_HANDLE );
     }
 
     psa_status_t status = PSA_ERROR_STORAGE_FAILURE;

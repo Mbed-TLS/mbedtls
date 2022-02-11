@@ -9702,6 +9702,7 @@ run_test    "TLS 1.3: minimal feature sets - gnutls" \
             -c "<= parse certificate verify"          \
             -c "mbedtls_ssl_tls13_process_certificate_verify() returned 0" \
             -c "<= parse finished message" \
+            -c "Protocol is TLSv1.3" \
             -c "HTTP/1.0 200 OK"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3

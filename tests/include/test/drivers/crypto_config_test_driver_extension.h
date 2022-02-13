@@ -134,6 +134,14 @@
 #endif
 #endif
 
+#if defined(PSA_WANT_ALG_SM3)
+#if defined(MBEDTLS_PSA_ACCEL_ALG_SM3)
+#undef MBEDTLS_PSA_ACCEL_ALG_SM3
+#else
+#define MBEDTLS_PSA_ACCEL_ALG_SM3 1
+#endif
+#endif
+
 #if defined(PSA_WANT_ALG_XTS)
 #if defined(MBEDTLS_PSA_ACCEL_ALG_XTS)
 #undef MBEDTLS_PSA_ACCEL_ALG_XTS

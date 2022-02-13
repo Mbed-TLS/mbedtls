@@ -110,6 +110,7 @@
         PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA3_256 ? 136 :      \
         PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA3_384 ? 104 :      \
         PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA3_512 ? 72 :       \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SM3 ? 64 :            \
         0)
 
 /** \def PSA_HASH_MAX_SIZE

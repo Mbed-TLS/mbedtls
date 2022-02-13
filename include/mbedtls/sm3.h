@@ -24,11 +24,14 @@
 #ifndef MBEDTLS_SM3_H
 #define MBEDTLS_SM3_H
 
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
+//#if !defined(MBEDTLS_CONFIG_FILE)
+//#include "mbedtls/config.h"
+//#else
+//#include MBEDTLS_CONFIG_FILE
+//#endif
+
+#include "mbedtls/private_access.h"
+#include "mbedtls/build_info.h"
 
 #include <stddef.h>
 #include <stdint.h>

@@ -81,8 +81,8 @@ typedef struct
     defined(MBEDTLS_PSA_BUILTIN_ALG_SHA_384)
         mbedtls_sha512_context sha512;
 #endif
-#if defined(MBEDTLS_SM3_C)
-        mbedtls_sm3_context MBEDTLS_PRIVATE(sm3);
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_SM3)
+        mbedtls_sm3_context sm3;
 #endif
     } MBEDTLS_PRIVATE(ctx);
 } mbedtls_psa_hash_operation_t;

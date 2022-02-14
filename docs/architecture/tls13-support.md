@@ -164,7 +164,7 @@ MVP definition
   | MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED    | n/a     |
   | MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED     | n/a     |
   |                                          |         |
-  | MBEDTLS_USE_PSA_CRYPTO                   | no  (3) |
+  | MBEDTLS_USE_PSA_CRYPTO                   | no      |
 
   (1) Some support has already been upstreamed but it is incomplete.
   (2) Key exchange configuration options for TLS 1.3 will likely to be

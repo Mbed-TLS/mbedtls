@@ -236,9 +236,9 @@ int mbedtls_x509write_crt_set_authority_key_identifier( mbedtls_x509write_cert *
                           mbedtls_pk_write_pubkey( &c, buf, ctx->issuer_key ) );
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     status = psa_hash_compute( PSA_ALG_SHA_1,
-                               buf + sizeof( buf ) - len,
+                               buf + sizeof(buf) - len,
                                len,
-                               buf + sizeof( buf ) - 20 ,
+                               buf + sizeof(buf) - 20,
                                PSA_HASH_LENGTH(PSA_ALG_SHA_1),
                                &hash_length );
     if( status != PSA_SUCCESS )
@@ -523,7 +523,7 @@ int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx,
                                c,
                                len,
                                hash,
-                               PSA_HASH_MAX_SIZE,
+                               sizeof( hash ),
                                &hash_length );
     if( status != PSA_SUCCESS )
     {

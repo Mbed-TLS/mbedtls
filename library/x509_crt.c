@@ -47,7 +47,6 @@
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
-#include "psa/crypto_values.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_PLATFORM_C)
@@ -2382,7 +2381,8 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
         if(psa_hash_compute( psa_algorithm,
                              crl_list->tbs.p,
                              crl_list->tbs.len,
-                             hash,PSA_HASH_MAX_SIZE,
+                             hash,
+                             sizeof( hash ),
                              &hash_length ) != PSA_SUCCESS )
 #else
         md_info = mbedtls_md_info_from_type( crl_list->sig_md );
@@ -2460,7 +2460,7 @@ static int x509_crt_check_signature( const mbedtls_x509_crt *child,
                                child->tbs.p,
                                child->tbs.len,
                                hash,
-                               PSA_HASH_MAX_SIZE,
+                               sizeof( hash ),
                                &hash_len );
     if( status != PSA_SUCCESS )
     {

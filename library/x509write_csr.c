@@ -222,7 +222,7 @@ static int x509write_csr_der_internal( mbedtls_x509write_csr *ctx,
                           c,
                           len,
                           hash,
-                          PSA_HASH_MAX_SIZE,
+                          sizeof( hash ),
                           &hash_len ) != PSA_SUCCESS )
     {
         return ( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );

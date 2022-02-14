@@ -172,68 +172,36 @@ int mbedtls_x509write_crt_set_basic_constraints( mbedtls_x509write_cert *ctx,
 }
 
 #if defined(MBEDTLS_SHA1_C)
-int mbedtls_x509write_crt_set_subject_key_identifier( mbedtls_x509write_cert *ctx )
+static int mbedtls_x509write_crt_set_key_identifier( mbedtls_x509write_cert
+*ctx,
+                                              int is_ca,
+                                              unsigned char tag )
 {
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    size_t hash_length;
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE * 2 + 20]; /* tag, length + 2xMPI */
     unsigned char *c = buf + sizeof(buf);
     size_t len = 0;
-
-    memset( buf, 0, sizeof(buf) );
-    MBEDTLS_ASN1_CHK_ADD( len,
-                mbedtls_pk_write_pubkey( &c, buf, ctx->subject_key ) );
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    status = psa_hash_compute( PSA_ALG_SHA_1,
-                               buf + sizeof( buf ) - len,
-                               len,
-                               buf + sizeof( buf ) - 20 ,
-                               PSA_HASH_LENGTH(PSA_ALG_SHA_1),
-                               &hash_length );
-    if( status != PSA_SUCCESS )
-    {
-        return( MBEDTLS_ERR_ERROR_GENERIC_ERROR );
-    }
-#else
-    ret = mbedtls_sha1( buf + sizeof( buf ) - len, len,
-                        buf + sizeof( buf ) - 20 );
-    if( ret != 0 )
-        return( ret );
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-
-    c = buf + sizeof( buf ) - 20;
-    len = 20;
-
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, buf, len ) );
-    MBEDTLS_ASN1_CHK_ADD( len,
-            mbedtls_asn1_write_tag( &c, buf, MBEDTLS_ASN1_OCTET_STRING ) );
-
-    return mbedtls_x509write_crt_set_extension( ctx,
-                 MBEDTLS_OID_SUBJECT_KEY_IDENTIFIER,
-                 MBEDTLS_OID_SIZE( MBEDTLS_OID_SUBJECT_KEY_IDENTIFIER ),
-                 0, buf + sizeof(buf) - len, len );
-}
-
-int mbedtls_x509write_crt_set_authority_key_identifier( mbedtls_x509write_cert *ctx )
-{
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t hash_length;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    unsigned char buf[MBEDTLS_MPI_MAX_SIZE * 2 + 20]; /* tag, length + 2xMPI */
-    unsigned char *c = buf + sizeof( buf );
-    size_t len = 0;
-
     memset( buf, 0, sizeof(buf) );
-    MBEDTLS_ASN1_CHK_ADD( len,
-                          mbedtls_pk_write_pubkey( &c, buf, ctx->issuer_key ) );
+    if( is_ca )
+    {
+        MBEDTLS_ASN1_CHK_ADD( len,
+                              mbedtls_pk_write_pubkey( &c,
+                                                       buf,
+                                                       ctx->issuer_key ) );
+    }
+    else
+    {
+        MBEDTLS_ASN1_CHK_ADD( len,
+                              mbedtls_pk_write_pubkey( &c,
+                                                       buf,
+                                                       ctx->subject_key ) );
+    }
+
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     status = psa_hash_compute( PSA_ALG_SHA_1,
                                buf + sizeof(buf) - len,
@@ -257,18 +225,48 @@ int mbedtls_x509write_crt_set_authority_key_identifier( mbedtls_x509write_cert *
 
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, buf, len ) );
     MBEDTLS_ASN1_CHK_ADD( len,
-        mbedtls_asn1_write_tag( &c, buf, MBEDTLS_ASN1_CONTEXT_SPECIFIC | 0 ) );
+                          mbedtls_asn1_write_tag( &c, buf, tag ) );
 
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, buf, len ) );
-    MBEDTLS_ASN1_CHK_ADD( len,
-                          mbedtls_asn1_write_tag( &c, buf,
-                                                  MBEDTLS_ASN1_CONSTRUCTED |
-                                                  MBEDTLS_ASN1_SEQUENCE ) );
+    if( is_ca ) // writes AuthorityKeyIdentifier sequence
+    {
+        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, buf, len ));
+        MBEDTLS_ASN1_CHK_ADD( len,
+                              mbedtls_asn1_write_tag( &c,
+                                                      buf,
+                                                      MBEDTLS_ASN1_CONSTRUCTED |
+                                                      MBEDTLS_ASN1_SEQUENCE ) );
+        return mbedtls_x509write_crt_set_extension(
+                   ctx,
+                   MBEDTLS_OID_AUTHORITY_KEY_IDENTIFIER,
+                   MBEDTLS_OID_SIZE( MBEDTLS_OID_AUTHORITY_KEY_IDENTIFIER ),
+                   0,
+                   buf + sizeof( buf ) - len,
+                   len );
+    }
+    else
+    {
+        return mbedtls_x509write_crt_set_extension(
+                   ctx,
+                   MBEDTLS_OID_SUBJECT_KEY_IDENTIFIER,
+                   MBEDTLS_OID_SIZE( MBEDTLS_OID_SUBJECT_KEY_IDENTIFIER ),
+                   0,
+                   buf + sizeof( buf ) - len,
+                   len );
+    }
+}
 
-    return mbedtls_x509write_crt_set_extension(
-        ctx, MBEDTLS_OID_AUTHORITY_KEY_IDENTIFIER,
-        MBEDTLS_OID_SIZE( MBEDTLS_OID_AUTHORITY_KEY_IDENTIFIER ),
-        0, buf + sizeof( buf ) - len, len );
+int mbedtls_x509write_crt_set_subject_key_identifier( mbedtls_x509write_cert *ctx )
+{
+    return mbedtls_x509write_crt_set_key_identifier( ctx,
+                                                     0,
+                                                     MBEDTLS_ASN1_OCTET_STRING );
+}
+
+int mbedtls_x509write_crt_set_authority_key_identifier( mbedtls_x509write_cert *ctx )
+{
+    return mbedtls_x509write_crt_set_key_identifier( ctx,
+                                                     1,
+                                                     (MBEDTLS_ASN1_CONTEXT_SPECIFIC | 0) );
 }
 #endif /* MBEDTLS_SHA1_C */
 

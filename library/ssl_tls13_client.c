@@ -151,7 +151,6 @@ static int ssl_tls13_generate_and_write_ecdh_key_exchange(
         psa_status_t status = PSA_ERROR_GENERIC_ERROR;
         int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
         psa_key_attributes_t key_attributes;
-        unsigned char own_pubkey[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
         size_t own_pubkey_len;
         mbedtls_ssl_handshake_params *handshake = ssl->handshake;
         size_t ecdh_bits = 0;
@@ -186,7 +185,7 @@ static int ssl_tls13_generate_and_write_ecdh_key_exchange(
 
         /* Export the public part of the ECDH private key from PSA. */
         status = psa_export_public_key( handshake->ecdh_psa_privkey,
-                                        own_pubkey, sizeof( own_pubkey ),
+                                        buf, (size_t)( end - buf ),
                                         &own_pubkey_len );
         if( status != PSA_SUCCESS )
         {
@@ -203,8 +202,6 @@ static int ssl_tls13_generate_and_write_ecdh_key_exchange(
         }
 
         *out_len = own_pubkey_len;
-
-        memcpy( buf, &own_pubkey, own_pubkey_len );
 
     return( 0 );
 }
@@ -381,7 +378,7 @@ static int ssl_tls13_read_public_ecdhe_share( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_DECODE_ERROR );
 
     /* Store peer's ECDH public key. */
-    memcpy(handshake->ecdh_psa_peerkey, p, peerkey_len);
+    memcpy( handshake->ecdh_psa_peerkey, p, peerkey_len );
     handshake->ecdh_psa_peerkey_len = peerkey_len;
 
     return( 0 );

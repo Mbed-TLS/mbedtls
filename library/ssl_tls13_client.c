@@ -158,9 +158,6 @@ static int ssl_tls13_generate_and_write_ecdh_key_exchange(
 
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Perform PSA-based ECDH computation." ) );
 
-        // --- Just for now --- !!!
-        psa_crypto_init();
-
         /* Convert EC group to PSA key type. */
         if( ( handshake->ecdh_psa_type =
             mbedtls_psa_parse_tls_ecc_group( named_group, &ecdh_bits ) ) == 0 )

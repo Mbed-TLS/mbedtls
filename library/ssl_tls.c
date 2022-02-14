@@ -7326,6 +7326,18 @@ int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_i
 
     return( -1 );
 }
+
+/*
+ * Same as mbedtls_ssl_check_curve() but takes a TLS ID for the curve.
+ */
+int mbedtls_ssl_check_curve_tls_id( const mbedtls_ssl_context *ssl, uint16_t tls_id )
+{
+    const mbedtls_ecp_curve_info *curve_info =
+        mbedtls_ecp_curve_info_from_tls_id( tls_id );
+    if( curve_info == NULL )
+        return( -1 );
+    return( mbedtls_ssl_check_curve( ssl, curve_info->grp_id ) );
+}
 #endif /* MBEDTLS_ECP_C */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)

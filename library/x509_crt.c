@@ -2464,7 +2464,7 @@ static int x509_crt_check_signature( const mbedtls_x509_crt *child,
                                &hash_len );
     if( status != PSA_SUCCESS )
     {
-        return MBEDTLS_ERR_ERROR_GENERIC_ERROR;
+        return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
     }
 
 #endif /* MBEDTLS_USE_PSA_CRYPTO */

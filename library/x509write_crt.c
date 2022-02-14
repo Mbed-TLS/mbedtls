@@ -243,7 +243,7 @@ int mbedtls_x509write_crt_set_authority_key_identifier( mbedtls_x509write_cert *
                                &hash_length );
     if( status != PSA_SUCCESS )
     {
-        return( MBEDTLS_ERR_ERROR_GENERIC_ERROR );
+        return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
     }
 #else
     ret = mbedtls_sha1( buf + sizeof( buf ) - len, len,
@@ -527,7 +527,7 @@ int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx,
                                &hash_length );
     if( status != PSA_SUCCESS )
     {
-        return MBEDTLS_ERR_ERROR_GENERIC_ERROR;
+        return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
     }
 #else
     if( ( ret = mbedtls_md( mbedtls_md_info_from_type( ctx->md_alg ), c,

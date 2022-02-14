@@ -2384,6 +2384,11 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
                              hash,
                              sizeof( hash ),
                              &hash_length ) != PSA_SUCCESS )
+        {
+            /* Note: this can't happen except after an internal error */
+            flags |= MBEDTLS_X509_BADCRL_NOT_TRUSTED;
+            break;
+        }
 #else
         md_info = mbedtls_md_info_from_type( crl_list->sig_md );
         hash_length = mbedtls_md_get_size( md_info );
@@ -2391,12 +2396,13 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
                         crl_list->tbs.p,
                         crl_list->tbs.len,
                         hash ) != 0 )
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
         {
             /* Note: this can't happen except after an internal error */
             flags |= MBEDTLS_X509_BADCRL_NOT_TRUSTED;
             break;
         }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
 
         if( x509_profile_check_key( profile, &ca->pk ) != 0 )
             flags |= MBEDTLS_X509_BADCERT_BAD_KEY;

@@ -383,7 +383,7 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
         psa_algorithm_t psa_md_alg = mbedtls_psa_translate_md( md_alg );
         mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
         psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-        psa_algorithm_t psa_sig_md =
+        psa_algorithm_t psa_sig_alg =
             ( pss_opts->expected_salt_len == MBEDTLS_RSA_SALT_LEN_ANY ?
                                  PSA_ALG_RSA_PSS_ANY_SALT(psa_md_alg) :
                                  PSA_ALG_RSA_PSS(psa_md_alg) );
@@ -395,7 +395,7 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
 
         psa_set_key_type( &attributes, PSA_KEY_TYPE_RSA_PUBLIC_KEY );
         psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_HASH );
-        psa_set_key_algorithm( &attributes, psa_sig_md );
+        psa_set_key_algorithm( &attributes, psa_sig_alg );
 
         status = psa_import_key( &attributes,
                                  buf + sizeof( buf ) - key_len, key_len,
@@ -406,7 +406,7 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
             return( mbedtls_psa_err_translate_pk( status ) );
         }
 
-        status = psa_verify_hash( key_id, psa_sig_md, hash,
+        status = psa_verify_hash( key_id, psa_sig_alg, hash,
                                   hash_len, sig, sig_len );
         psa_destroy_key( key_id );
 
@@ -430,8 +430,9 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
 
         if( sig_len > mbedtls_pk_get_len( ctx ) )
             return( MBEDTLS_ERR_PK_SIG_LEN_MISMATCH );
+
+        return( 0 );
     }
-    return( 0 );
 #else
     return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
 #endif /* MBEDTLS_RSA_C && MBEDTLS_PKCS1_V21 */

@@ -3831,10 +3831,10 @@ void psa_hkdf_expand( int alg, char *hex_info_string,
     ASSERT_COMPARE( output_okm, okm_len, okm, okm_len );
 
 exit:
-    mbedtls_free(info);
-    mbedtls_free(prk);
-    mbedtls_free(okm);
-    mbedtls_free(output_okm);
+    mbedtls_free( info );
+    mbedtls_free( prk );
+    mbedtls_free( okm );
+    mbedtls_free( output_okm );
 
     PSA_DONE( );
 }
@@ -3865,8 +3865,8 @@ void psa_hkdf_expand_ret( int alg, int prk_len, int okm_len, int ret )
     TEST_ASSERT( output_ret == ret );
 
 exit:
-    mbedtls_free(prk);
-    mbedtls_free(okm);
+    mbedtls_free( prk );
+    mbedtls_free( okm );
 
     PSA_DONE( );
 }

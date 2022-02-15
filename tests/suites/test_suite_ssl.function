@@ -3815,6 +3815,8 @@ void psa_hkdf_expand( int alg, char *hex_info_string,
     unsigned char *output_okm = NULL;
     size_t info_len, prk_len, okm_len;
 
+    PSA_INIT( );
+
     ASSERT_ALLOC( output_okm, OKM_LEN );
 
     prk = mbedtls_test_unhexify_alloc( hex_prk_string, &prk_len );
@@ -3823,7 +3825,6 @@ void psa_hkdf_expand( int alg, char *hex_info_string,
     TEST_ASSERT( prk_len == PSA_HASH_LENGTH( alg ) );
     TEST_ASSERT( okm_len < OKM_LEN );
 
-    PSA_ASSERT( psa_crypto_init() );
     PSA_ASSERT( mbedtls_psa_hkdf_expand( alg, prk, prk_len, info, info_len,
                                          output_okm, OKM_LEN ) );
 
@@ -3848,6 +3849,8 @@ void psa_hkdf_expand_ret( int alg, int prk_len, int okm_len, int ret )
     unsigned char *okm = NULL;
     size_t info_len;
 
+    PSA_INIT( );
+
     info_len = 0;
 
     if (prk_len > 0)
@@ -3856,7 +3859,6 @@ void psa_hkdf_expand_ret( int alg, int prk_len, int okm_len, int ret )
     if (okm_len > 0)
         ASSERT_ALLOC( okm, okm_len );
 
-    PSA_ASSERT( psa_crypto_init() );
     output_ret = mbedtls_psa_hkdf_expand( alg, prk, prk_len,
                                           info, info_len,
                                           okm, okm_len );

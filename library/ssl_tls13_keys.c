@@ -153,6 +153,7 @@ psa_status_t mbedtls_psa_hkdf_expand( psa_algorithm_t alg,
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t destroy_status = PSA_ERROR_CORRUPTION_DETECTED;
     unsigned char t[PSA_MAC_MAX_SIZE];
 
     if( okm == NULL )
@@ -250,11 +251,13 @@ psa_status_t mbedtls_psa_hkdf_expand( psa_algorithm_t alg,
     }
 
 cleanup:
-    psa_destroy_key( key );
-    mbedtls_platform_zeroize( t, sizeof( t ) );
-    psa_mac_abort( &operation );
+    if( status != PSA_SUCCESS )
+        psa_mac_abort( &operation );
+    destroy_status = psa_destroy_key( key );
 
-    return( status );
+    mbedtls_platform_zeroize( t, sizeof( t ) );
+
+    return( ( status == PSA_SUCCESS ) ? destroy_status : status );
 }
 
 #endif /* MBEDTLS_TEST_HOOKS */

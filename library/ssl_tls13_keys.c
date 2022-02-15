@@ -152,7 +152,7 @@ psa_status_t mbedtls_psa_hkdf_expand( psa_algorithm_t alg,
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
-    psa_status_t ret = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     unsigned char t[PSA_MAC_MAX_SIZE];
 
     if( okm == NULL )
@@ -193,8 +193,8 @@ psa_status_t mbedtls_psa_hkdf_expand( psa_algorithm_t alg,
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, PSA_KEY_TYPE_HMAC );
 
-    ret = psa_import_key( &attributes, prk, prk_len, &key );
-    if( PSA_SUCCESS != ret )
+    status = psa_import_key( &attributes, prk, prk_len, &key );
+    if( status != PSA_SUCCESS )
     {
         goto cleanup;
     }
@@ -211,34 +211,34 @@ psa_status_t mbedtls_psa_hkdf_expand( psa_algorithm_t alg,
         unsigned char c = i & 0xff;
         size_t len;
 
-        ret = psa_mac_sign_setup( &operation, key, alg );
-        if( PSA_SUCCESS != ret )
+        status = psa_mac_sign_setup( &operation, key, alg );
+        if( status != PSA_SUCCESS )
         {
             goto cleanup;
         }
 
-        ret = psa_mac_update( &operation, t, t_len );
-        if( PSA_SUCCESS != ret )
+        status = psa_mac_update( &operation, t, t_len );
+        if( status != PSA_SUCCESS )
         {
             goto cleanup;
         }
 
-        ret = psa_mac_update( &operation, info, info_len );
-        if( PSA_SUCCESS != ret )
+        status = psa_mac_update( &operation, info, info_len );
+        if( status != PSA_SUCCESS )
         {
             goto cleanup;
         }
 
         /* The constant concatenated to the end of each T(n) is a single octet.
          * */
-        ret = psa_mac_update( &operation, &c, 1 );
-        if( PSA_SUCCESS != ret )
+        status = psa_mac_update( &operation, &c, 1 );
+        if( status != PSA_SUCCESS )
         {
             goto cleanup;
         }
 
-        ret = psa_mac_sign_finish( &operation, t, PSA_MAC_MAX_SIZE, &len );
-        if( PSA_SUCCESS != ret )
+        status = psa_mac_sign_finish( &operation, t, PSA_MAC_MAX_SIZE, &len );
+        if( status != PSA_SUCCESS )
         {
             goto cleanup;
         }
@@ -254,7 +254,7 @@ cleanup:
     mbedtls_platform_zeroize( t, sizeof( t ) );
     psa_mac_abort( &operation );
 
-    return( ret );
+    return( status );
 }
 
 #endif /* MBEDTLS_TEST_HOOKS */

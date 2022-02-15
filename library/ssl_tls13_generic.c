@@ -930,8 +930,17 @@ static int ssl_tls13_write_certificate_body( mbedtls_ssl_context *ssl,
 
 
     /* Write certificate_request_context */
-    /* empty certificate_request_context with length 0 */
-    *p++ = 0;
+    *p++ = ssl->handshake->certificate_request_context_len;
+    if( ssl->handshake->certificate_request_context_len > 0 )
+    {
+        MBEDTLS_SSL_CHK_BUF_PTR( p, end,
+                            ssl->handshake->certificate_request_context_len );
+        memcpy( p,
+                ssl->handshake->certificate_request_context,
+                ssl->handshake->certificate_request_context_len );
+        p += ssl->handshake->certificate_request_context_len;
+    }
+
 
     /* Reserve space for certificate_list_len */
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 3 );

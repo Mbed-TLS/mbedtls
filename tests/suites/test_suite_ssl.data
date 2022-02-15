@@ -104,111 +104,147 @@ Test mbedtls_endpoint sanity for the server
 mbedtls_endpoint_sanity:MBEDTLS_SSL_IS_SERVER
 
 Test moving clients handshake to state: HELLO_REQUEST
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_HELLO_REQUEST:1
 
 Test moving clients handshake to state: CLIENT_HELLO
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_CLIENT_HELLO:1
 
 Test moving clients handshake to state: SERVER_HELLO
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_SERVER_HELLO:1
 
 Test moving clients handshake to state: SERVER_CERTIFICATE
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_SERVER_CERTIFICATE:1
 
 Test moving clients handshake to state: SERVER_KEY_EXCHANGE
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_SERVER_KEY_EXCHANGE:1
 
 Test moving clients handshake to state: CERTIFICATE_REQUEST
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_CERTIFICATE_REQUEST:1
 
 Test moving clients handshake to state: SERVER_HELLO_DONE
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_SERVER_HELLO_DONE:1
 
 Test moving clients handshake to state: CLIENT_CERTIFICATE
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_CLIENT_CERTIFICATE:1
 
 Test moving clients handshake to state: CLIENT_KEY_EXCHANGE
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_CLIENT_KEY_EXCHANGE:1
 
 Test moving clients handshake to state: CERTIFICATE_VERIFY
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_CERTIFICATE_VERIFY:1
 
 Test moving clients handshake to state: CLIENT_CHANGE_CIPHER_SPEC
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC:1
 
 Test moving clients handshake to state: CLIENT_FINISHED
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_CLIENT_FINISHED:1
 
 Test moving clients handshake to state: SERVER_CHANGE_CIPHER_SPEC
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC:1
 
 Test moving clients handshake to state: SERVER_FINISHED
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_SERVER_FINISHED:1
 
 Test moving clients handshake to state: FLUSH_BUFFERS
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_FLUSH_BUFFERS:1
 
 Test moving clients handshake to state: HANDSHAKE_WRAPUP
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_HANDSHAKE_WRAPUP:1
 
 Test moving clients handshake to state: HANDSHAKE_OVER
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_HANDSHAKE_OVER:1
 
 Test moving servers handshake to state: HELLO_REQUEST
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_HELLO_REQUEST:1
 
 Test moving servers handshake to state: CLIENT_HELLO
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_CLIENT_HELLO:1
 
 Test moving servers handshake to state: SERVER_HELLO
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_SERVER_HELLO:1
 
 Test moving servers handshake to state: SERVER_CERTIFICATE
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_SERVER_CERTIFICATE:1
 
 Test moving servers handshake to state: SERVER_KEY_EXCHANGE
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_SERVER_KEY_EXCHANGE:1
 
 Test moving servers handshake to state: CERTIFICATE_REQUEST
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_CERTIFICATE_REQUEST:1
 
 Test moving servers handshake to state: SERVER_HELLO_DONE
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_SERVER_HELLO_DONE:1
 
 Test moving servers handshake to state: CLIENT_CERTIFICATE
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_CLIENT_CERTIFICATE:1
 
 Test moving servers handshake to state: CLIENT_KEY_EXCHANGE
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_CLIENT_KEY_EXCHANGE:1
 
 Test moving servers handshake to state: CERTIFICATE_VERIFY
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_CERTIFICATE_VERIFY:1
 
 Test moving servers handshake to state: CLIENT_CHANGE_CIPHER_SPEC
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC:1
 
 Test moving servers handshake to state: CLIENT_FINISHED
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_CLIENT_FINISHED:1
 
 Test moving servers handshake to state: SERVER_CHANGE_CIPHER_SPEC
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC:1
 
 Test moving servers handshake to state: SERVER_FINISHED
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_SERVER_FINISHED:1
 
 Test moving servers handshake to state: FLUSH_BUFFERS
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_FLUSH_BUFFERS:1
 
 Test moving servers handshake to state: HANDSHAKE_WRAPUP
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_HANDSHAKE_WRAPUP:1
 
 Test moving servers handshake to state: HANDSHAKE_OVER
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_HANDSHAKE_OVER:1
 
 Negative test moving clients ssl to state: VERIFY_REQUEST_SENT
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_SERVER_HELLO_VERIFY_REQUEST_SENT:0
 
 Negative test moving servers ssl to state: NEW_SESSION_TICKET
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_SERVER_NEW_SESSION_TICKET:0
 
 Handshake, tls1_2
@@ -272,9 +308,11 @@ depends_on:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SSL_PROTO_DTLS
 handshake_serialization
 
 DTLS Handshake fragmentation, MFL=512
+depends_on:MBEDTLS_SSL_PROTO_DTLS
 handshake_fragmentation:MBEDTLS_SSL_MAX_FRAG_LEN_512:1:1
 
 DTLS Handshake fragmentation, MFL=1024
+depends_on:MBEDTLS_SSL_PROTO_DTLS
 handshake_fragmentation:MBEDTLS_SSL_MAX_FRAG_LEN_1024:0:1
 
 Handshake min/max version check, all -> 1.2
@@ -619,15 +657,19 @@ SSL SET_HOSTNAME memory leak: call ssl_set_hostname twice
 ssl_set_hostname_twice:"server0":"server1"
 
 SSL session serialization: Wrong major version
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 ssl_session_serialize_version_check:1:0:0:0
 
 SSL session serialization: Wrong minor version
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 ssl_session_serialize_version_check:0:1:0:0
 
 SSL session serialization: Wrong patch version
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 ssl_session_serialize_version_check:0:0:1:0
 
 SSL session serialization: Wrong config
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 ssl_session_serialize_version_check:0:0:0:1
 
 Record crypt, AES-128-CBC, 1.2, SHA-384
@@ -4559,95 +4601,99 @@ depends_on:!MBEDTLS_SHA256_C
 ssl_tls_prf:MBEDTLS_SSL_TLS_PRF_SHA256:"1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef":"1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef":"test tls_prf label":"7f9998393198a02c8d731ccc2ef90b2c":MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE
 
 Session serialization, save-load: no ticket, no cert
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 ssl_serialize_session_save_load:0:""
 
 Session serialization, save-load: small ticket, no cert
-depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_PROTO_TLS1_2
 ssl_serialize_session_save_load:42:""
 
 Session serialization, save-load: large ticket, no cert
-depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_PROTO_TLS1_2
 ssl_serialize_session_save_load:1023:""
 
 Session serialization, save-load: no ticket, cert
-depends_on:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
+depends_on:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO:MBEDTLS_SSL_PROTO_TLS1_2
 ssl_serialize_session_save_load:0:"data_files/server5.crt"
 
 Session serialization, save-load: small ticket, cert
-depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO:MBEDTLS_SSL_PROTO_TLS1_2
 ssl_serialize_session_save_load:42:"data_files/server5.crt"
 
 Session serialization, save-load: large ticket, cert
-depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO:MBEDTLS_SSL_PROTO_TLS1_2
 ssl_serialize_session_save_load:1023:"data_files/server5.crt"
 
 Session serialization, load-save: no ticket, no cert
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 ssl_serialize_session_load_save:0:""
 
 Session serialization, load-save: small ticket, no cert
-depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_PROTO_TLS1_2
 ssl_serialize_session_load_save:42:""
 
 Session serialization, load-save: large ticket, no cert
-depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_PROTO_TLS1_2
 ssl_serialize_session_load_save:1023:""
 
 Session serialization, load-save: no ticket, cert
-depends_on:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
+depends_on:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO:MBEDTLS_SSL_PROTO_TLS1_2
 ssl_serialize_session_load_save:0:"data_files/server5.crt"
 
 Session serialization, load-save: small ticket, cert
-depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
 ssl_serialize_session_load_save:42:"data_files/server5.crt"
 
 Session serialization, load-save: large ticket, cert
-depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
 ssl_serialize_session_load_save:1023:"data_files/server5.crt"
 
 Session serialization, save buffer size: no ticket, no cert
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 ssl_serialize_session_save_buf_size:0:""
 
 Session serialization, save buffer size: small ticket, no cert
-depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_PROTO_TLS1_2
 ssl_serialize_session_save_buf_size:42:""
 
 Session serialization, save buffer size: large ticket, no cert
-depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_PROTO_TLS1_2
 ssl_serialize_session_save_buf_size:1023:""
 
 Session serialization, save buffer size: no ticket, cert
-depends_on:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
+depends_on:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO:MBEDTLS_SSL_PROTO_TLS1_2
 ssl_serialize_session_save_buf_size:0:"data_files/server5.crt"
 
 Session serialization, save buffer size: small ticket, cert
-depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
 ssl_serialize_session_save_buf_size:42:"data_files/server5.crt"
 
 Session serialization, save buffer size: large ticket, cert
-depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
 ssl_serialize_session_save_buf_size:1023:"data_files/server5.crt"
 
 Session serialization, load buffer size: no ticket, no cert
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 ssl_serialize_session_load_buf_size:0:""
 
 Session serialization, load buffer size: small ticket, no cert
-depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C
 ssl_serialize_session_load_buf_size:42:""
 
 Session serialization, load buffer size: large ticket, no cert
-depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C
 ssl_serialize_session_load_buf_size:1023:""
 
 Session serialization, load buffer size: no ticket, cert
-depends_on:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
 ssl_serialize_session_load_buf_size:0:"data_files/server5.crt"
 
 Session serialization, load buffer size: small ticket, cert
-depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
 ssl_serialize_session_load_buf_size:42:"data_files/server5.crt"
 
 Session serialization, load buffer size: large ticket, cert
-depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO
 ssl_serialize_session_load_buf_size:1023:"data_files/server5.crt"
 
 Constant-flow HMAC: MD5

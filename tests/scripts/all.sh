@@ -2709,6 +2709,9 @@ component_test_tls13_only () {
     msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3, without MBEDTLS_SSL_PROTO_TLS1_2"
     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
 
+    msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, without MBEDTLS_SSL_PROTO_TLS1_2"
+    if_build_succeeded make test
+
     msg "ssl-opt.sh (TLS 1.3)"
     if_build_succeeded tests/ssl-opt.sh
 }

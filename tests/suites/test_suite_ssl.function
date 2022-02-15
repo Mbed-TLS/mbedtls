@@ -5038,9 +5038,13 @@ void conf_curve()
 
     mbedtls_ssl_config conf;
     mbedtls_ssl_config_init( &conf );
-
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     mbedtls_ssl_conf_max_version( &conf, 3, 3 );
     mbedtls_ssl_conf_min_version( &conf, 3, 3 );
+#else
+    mbedtls_ssl_conf_max_version( &conf, 3, 4 );
+    mbedtls_ssl_conf_min_version( &conf, 3, 4 );
+#endif
     mbedtls_ssl_conf_curves( &conf, curve_list );
 
     mbedtls_ssl_context ssl;

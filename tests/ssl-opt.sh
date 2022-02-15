@@ -2815,6 +2815,7 @@ run_test    "Session resume using tickets: basic" \
             -s "a session has been resumed" \
             -c "a session has been resumed"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "Session resume using tickets: manual rotation" \
             "$P_SRV debug_level=3 tickets=1 ticket_rotate=1" \

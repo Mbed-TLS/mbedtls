@@ -543,16 +543,18 @@ print_name() {
 
 # record_outcome <outcome> [<failure-reason>]
 # The test name must be in $NAME.
+# Use $TEST_SUITE_NAME as the test suite name if set.
 record_outcome() {
     echo "$1"
     if [ -n "$MBEDTLS_TEST_OUTCOME_FILE" ]; then
         printf '%s;%s;%s;%s;%s;%s\n' \
                "$MBEDTLS_TEST_PLATFORM" "$MBEDTLS_TEST_CONFIGURATION" \
-               "ssl-opt" "$NAME" \
+               "${TEST_SUITE_NAME:-ssl-opt}" "$NAME" \
                "$1" "${2-}" \
                >>"$MBEDTLS_TEST_OUTCOME_FILE"
     fi
 }
+unset TEST_SUITE_NAME
 
 # True if the presence of the given pattern in a log definitely indicates
 # that the test has failed. False if the presence is inconclusive.
@@ -9281,10 +9283,13 @@ run_test    "TLS 1.3: HelloRetryRequest check, ciphersuite TLS_AES_256_GCM_SHA38
             -c "tls13 client state: MBEDTLS_SSL_CLIENT_HELLO" \
             -c "HTTP/1.0 200 OK"
 
-for i in $(ls opt-testcases/*.sh)
+for i in opt-testcases/*.sh
 do
-    . $i
+    TEST_SUITE_NAME=${i##*/}
+    TEST_SUITE_NAME=${TEST_SUITE_NAME%.*}
+    . "$i"
 done
+unset TEST_SUITE_NAME
 
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3

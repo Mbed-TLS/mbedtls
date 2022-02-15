@@ -1917,11 +1917,11 @@ static int ssl_tls13_process_server_finished( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_CLIENT_CCS_AFTER_SERVER_FINISHED );
 #else
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-    if( ssl->handshake->client_auth )
-        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE );
-    else
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE );
+#else
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_FINISHED );
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
-        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_FINISHED );
+
 #endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
 
     return( 0 );

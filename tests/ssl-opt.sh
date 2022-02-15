@@ -9874,7 +9874,6 @@ run_test    "TLS 1.3: CertificateRequest check, empty certificate - gnutls" \
             -c "got a certificate request" \
             -c "<= parse certificate request" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
-            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
             -c "<= write empty client certificate"
 
 requires_openssl_tls1_3
@@ -9891,7 +9890,6 @@ run_test    "TLS 1.3: CertificateRequest check, empty certificate - openssl" \
             -c "got a certificate request" \
             -c "<= parse certificate request" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
-            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
             -c "<= write empty client certificate"
 
 requires_openssl_tls1_3
@@ -9939,9 +9937,7 @@ run_test    "TLS 1.3: CertificateRequest check, no client certificate - openssl"
             0 \
             -c "=> parse certificate request" \
             -c "got no certificate request" \
-            -c "<= parse certificate request" \
-            -C "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
-            -C "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY"
+            -c "<= parse certificate request"
 
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -9956,9 +9952,7 @@ run_test    "TLS 1.3: CertificateRequest check, no client certificate - gnutls" 
             0 \
             -c "=> parse certificate request" \
             -c "got no certificate request" \
-            -c "<= parse certificate request" \
-            -C "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
-            -C "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY"
+            -c "<= parse certificate request"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE

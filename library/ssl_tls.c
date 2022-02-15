@@ -7509,7 +7509,7 @@ int mbedtls_ssl_get_handshake_transcript( mbedtls_ssl_context *ssl,
         goto exit;
 
 exit:
-    return( ( status == PSA_SUCCESS ) ? 0 : MBEDTLS_ERR_ERROR_GENERIC_ERROR );
+    return( psa_ssl_status_to_mbedtls( status ) );
 }
 #else /* MBEDTLS_USE_PSA_CRYPTO */
 

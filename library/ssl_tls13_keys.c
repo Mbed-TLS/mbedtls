@@ -167,6 +167,8 @@ psa_status_t mbedtls_psa_hkdf_extract( psa_algorithm_t alg,
             return( PSA_ERROR_INVALID_ARGUMENT );
         }
 
+        /* salt_len <= sizeof( salt ) because
+           PSA_HASH_LENGTH( alg ) <= PSA_MAC_MAX_SIZE. */
         salt = null_salt;
         salt_len = hash_len;
     }

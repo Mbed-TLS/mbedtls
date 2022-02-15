@@ -149,6 +149,7 @@ psa_status_t mbedtls_psa_hkdf_extract( psa_algorithm_t alg,
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t destroy_status = PSA_ERROR_CORRUPTION_DETECTED;
 
     if( salt == NULL || salt_len == 0 )
     {
@@ -183,9 +184,9 @@ psa_status_t mbedtls_psa_hkdf_extract( psa_algorithm_t alg,
     status = psa_mac_compute( key, alg, ikm, ikm_len, prk, prk_size, prk_len );
 
 cleanup:
-    psa_destroy_key( key );
+    destroy_status = psa_destroy_key( key );
 
-    return( status );
+    return( ( status == PSA_SUCCESS ) ? destroy_status : status );
 }
 
 MBEDTLS_STATIC_TESTABLE

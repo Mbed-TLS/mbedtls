@@ -2334,12 +2334,7 @@ static int ssl_check_server_ecdh_params( const mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDH curve: %s", curve_info->name ) );
 
-#if defined(MBEDTLS_ECP_C)
     if( mbedtls_ssl_check_curve( ssl, grp_id ) != 0 )
-#else
-    if( ssl->handshake->ecdh_ctx.grp.nbits < 163 ||
-        ssl->handshake->ecdh_ctx.grp.nbits > 521 )
-#endif
         return( -1 );
 
     MBEDTLS_SSL_DEBUG_ECDH( 3, &ssl->handshake->ecdh_ctx,
@@ -2366,9 +2361,16 @@ static int ssl_parse_server_ecdh_params_psa( mbedtls_ssl_context *ssl,
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
     /*
-     * Parse ECC group
+     * struct {
+     *     ECParameters curve_params;
+     *     ECPoint      public;
+     * } ServerECDHParams;
+     *
+     *  1       curve_type (must be "named_curve")
+     *  2..3    NamedCurve
+     *  4       ECPoint.len
+     *  5+      ECPoint contents
      */
-
     if( end - *p < 4 )
         return( MBEDTLS_ERR_SSL_DECODE_ERROR );
 
@@ -2381,6 +2383,15 @@ static int ssl_parse_server_ecdh_params_psa( mbedtls_ssl_context *ssl,
     tls_id <<= 8;
     tls_id |= *(*p)++;
 
+    /* Check it's a curve we offered */
+    if( mbedtls_ssl_check_curve_tls_id( ssl, tls_id ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2,
+            ( "bad server key exchange message (ECDHE curve): %u",
+              (unsigned) tls_id ) );
+        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+    }
+
     /* Convert EC group to PSA key type. */
     if( ( handshake->ecdh_psa_type =
           mbedtls_psa_parse_tls_ecc_group( tls_id, &ecdh_bits ) ) == 0 )
@@ -2391,24 +2402,18 @@ static int ssl_parse_server_ecdh_params_psa( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
     handshake->ecdh_bits = (uint16_t) ecdh_bits;
 
-    /*
-     * Put peer's ECDH public key in the format understood by PSA.
-     */
-
+    /* Keep a copy of the peer's public key */
     ecpoint_len = *(*p)++;
     if( (size_t)( end - *p ) < ecpoint_len )
         return( MBEDTLS_ERR_SSL_DECODE_ERROR );
 
-    if( mbedtls_psa_tls_ecpoint_to_psa_ec(
-                                    *p, ecpoint_len,
-                                    handshake->ecdh_psa_peerkey,
-                                    sizeof( handshake->ecdh_psa_peerkey ),
-                                    &handshake->ecdh_psa_peerkey_len ) != 0 )
-    {
-        return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-    }
+    if( ecpoint_len > sizeof( handshake->ecdh_psa_peerkey ) )
+        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
 
+    memcpy( handshake->ecdh_psa_peerkey, *p, ecpoint_len );
+    handshake->ecdh_psa_peerkey_len = ecpoint_len;
     *p += ecpoint_len;
+
     return( 0 );
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO &&
@@ -3373,11 +3378,6 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
 
         mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
-        unsigned char own_pubkey[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
-        size_t own_pubkey_len;
-        unsigned char *own_pubkey_ecpoint;
-        size_t own_pubkey_ecpoint_len;
-
         header_len = 4;
 
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Perform PSA-based ECDH computation." ) );
@@ -3405,27 +3405,22 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         if( status != PSA_SUCCESS )
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
 
-        /* Export the public part of the ECDH private key from PSA
-         * and convert it to ECPoint format used in ClientKeyExchange. */
+        /* Export the public part of the ECDH private key from PSA.
+         * The export format is an ECPoint structure as expected by TLS,
+         * but we just need to add a length byte before that. */
+        unsigned char *own_pubkey = ssl->out_msg + header_len + 1;
+        unsigned char *end = ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN;
+        size_t own_pubkey_max_len = (size_t)( end - own_pubkey );
+        size_t own_pubkey_len;
+
         status = psa_export_public_key( handshake->ecdh_psa_privkey,
-                                        own_pubkey, sizeof( own_pubkey ),
+                                        own_pubkey, own_pubkey_max_len,
                                         &own_pubkey_len );
         if( status != PSA_SUCCESS )
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
 
-        if( mbedtls_psa_tls_psa_ec_to_ecpoint( own_pubkey,
-                                               own_pubkey_len,
-                                               &own_pubkey_ecpoint,
-                                               &own_pubkey_ecpoint_len ) != 0 )
-        {
-            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-        }
-
-        /* Copy ECPoint structure to outgoing message buffer. */
-        ssl->out_msg[header_len] = (unsigned char) own_pubkey_ecpoint_len;
-        memcpy( ssl->out_msg + header_len + 1,
-                own_pubkey_ecpoint, own_pubkey_ecpoint_len );
-        content_len = own_pubkey_ecpoint_len + 1;
+        ssl->out_msg[header_len] = (unsigned char) own_pubkey_len;
+        content_len = own_pubkey_len + 1;
 
         /* The ECDH secret is the premaster secret used for key derivation. */
 

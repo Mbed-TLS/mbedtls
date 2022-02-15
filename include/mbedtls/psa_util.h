@@ -258,85 +258,24 @@ static inline int mbedtls_psa_get_ecc_oid_from_id(
     return( -1 );
 }
 
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH 1
+#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH \
+    PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE( PSA_VENDOR_ECC_MAX_CURVE_BITS )
 
-#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 192 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 192 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_SECP192R1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 224 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 224 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_SECP224R1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 384 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 384 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_SECP384R1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 521 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 521 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_SECP521R1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 192 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 192 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_SECP192K1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 224 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 224 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_SECP224K1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_SECP256K1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_BP256R1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 384 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 384 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_BP384R1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 512 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 512 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_BP512R1_ENABLED */
-
+/* This function transforms an ECC group identifier from
+ * https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-8
+ * into a PSA ECC group identifier. */
+#if defined(MBEDTLS_ECP_C)
+static inline psa_key_type_t mbedtls_psa_parse_tls_ecc_group(
+    uint16_t tls_ecc_grp_reg_id, size_t *bits )
+{
+    const mbedtls_ecp_curve_info *curve_info =
+        mbedtls_ecp_curve_info_from_tls_id( tls_ecc_grp_reg_id );
+    if( curve_info == NULL )
+        return( 0 );
+    return( PSA_KEY_TYPE_ECC_KEY_PAIR(
+                mbedtls_ecc_group_to_psa( curve_info->grp_id, bits ) ) );
+}
+#endif /* MBEDTLS_ECP_C */
 
 /* Translations for PK layer */
 
@@ -364,63 +303,6 @@ static inline int mbedtls_psa_err_translate_pk( psa_status_t status )
                   * which failure conditions we have considered. */
             return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
     }
-}
-
-/* Translations for ECC */
-
-/* This function transforms an ECC group identifier from
- * https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-8
- * into a PSA ECC group identifier. */
-#if defined(MBEDTLS_ECP_C)
-static inline psa_key_type_t mbedtls_psa_parse_tls_ecc_group(
-    uint16_t tls_ecc_grp_reg_id, size_t *bits )
-{
-    const mbedtls_ecp_curve_info *curve_info =
-        mbedtls_ecp_curve_info_from_tls_id( tls_ecc_grp_reg_id );
-    if( curve_info == NULL )
-        return( 0 );
-    return( PSA_KEY_TYPE_ECC_KEY_PAIR(
-                mbedtls_ecc_group_to_psa( curve_info->grp_id, bits ) ) );
-}
-#endif /* MBEDTLS_ECP_C */
-
-/* This function takes a buffer holding an EC public key
- * exported through psa_export_public_key(), and converts
- * it into an ECPoint structure to be put into a ClientKeyExchange
- * message in an ECDHE exchange.
- *
- * Both the present and the foreseeable future format of EC public keys
- * used by PSA have the ECPoint structure contained in the exported key
- * as a subbuffer, and the function merely selects this subbuffer instead
- * of making a copy.
- */
-static inline int mbedtls_psa_tls_psa_ec_to_ecpoint( unsigned char *src,
-                                                     size_t srclen,
-                                                     unsigned char **dst,
-                                                     size_t *dstlen )
-{
-    *dst = src;
-    *dstlen = srclen;
-    return( 0 );
-}
-
-/* This function takes a buffer holding an ECPoint structure
- * (as contained in a TLS ServerKeyExchange message for ECDHE
- * exchanges) and converts it into a format that the PSA key
- * agreement API understands.
- */
-static inline int mbedtls_psa_tls_ecpoint_to_psa_ec( unsigned char const *src,
-                                                     size_t srclen,
-                                                     unsigned char *dst,
-                                                     size_t dstlen,
-                                                     size_t *olen )
-{
-    if( srclen > dstlen )
-        return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
-
-    memcpy( dst, src, srclen );
-    *olen = srclen;
-    return( 0 );
 }
 
 #endif /* MBEDTLS_USE_PSA_CRYPTO */

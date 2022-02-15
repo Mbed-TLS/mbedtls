@@ -1,0 +1,7 @@
+Bugfix
+   * Fix a bug in (D)TLS curve negotiation: when MBEDTLS_USE_PSA_CRYPTO was
+     enabled and an ECDHE-ECDSA or ECDHE-RSA key exchange was used, the
+     client would fail to check that the curve selected by the server for
+     ECDHE was indeed one that was offered. As a result, the client would
+     accept any curve that it supported, even if that curve was not allowed
+     according to its configuration.

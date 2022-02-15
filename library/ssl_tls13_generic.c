@@ -30,6 +30,7 @@
 #include "mbedtls/constant_time.h"
 #include <string.h>
 
+#include "ecp_internal.h"
 #include "ssl_misc.h"
 #include "ssl_tls13_keys.h"
 #include "ssl_debug_helpers.h"
@@ -1509,6 +1510,44 @@ int mbedtls_ssl_reset_transcript_for_hrr( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SHA256_C || MBEDTLS_SHA384_C */
 
     return( ret );
+}
+
+#define ECDH_VALIDATE_RET( cond )    \
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_ECP_BAD_INPUT_DATA )
+
+static int ecdh_import_public_raw( mbedtls_ecdh_context_mbed *ctx,
+                                   const unsigned char *buf,
+                                   const unsigned char *end )
+{
+    return( mbedtls_ecp_point_read_binary( &ctx->grp, &ctx->Qp,
+                                           buf, end - buf ) );
+}
+
+int mbedtls_ecdh_import_public_raw( mbedtls_ecdh_context *ctx,
+                                    const unsigned char *buf,
+                                    const unsigned char *end )
+{
+    ECDH_VALIDATE_RET( ctx != NULL );
+    ECDH_VALIDATE_RET( buf != NULL );
+    ECDH_VALIDATE_RET( end != NULL );
+
+#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
+    return( ecdh_read_tls13_params_internal( ctx, buf, end ) );
+#else
+    switch( ctx->var )
+    {
+#if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
+        case MBEDTLS_ECDH_VARIANT_EVEREST:
+            return( everest_import_public_raw( &ctx->ctx.everest_ecdh,
+                                               buf, end) );
+#endif
+        case MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0:
+            return( ecdh_import_public_raw( &ctx->ctx.mbed_ecdh,
+                                            buf, end ) );
+        default:
+            return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+#endif
 }
 
 #endif /* MBEDTLS_SSL_TLS_C && MBEDTLS_SSL_PROTO_TLS1_3 */

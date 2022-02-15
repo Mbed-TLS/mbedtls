@@ -855,12 +855,12 @@ cleanup:
  * if it is available.
  * Returns a negative error code on failure ( such as no certificate
  * being available on the server ), and otherwise
- * SSL_WRITE_CERTIFICATE_AVAILABLE or
+ * SSL_WRITE_CERTIFICATE_SEND or
  * SSL_WRITE_CERTIFICATE_SKIP
  * indicating that a Certificate message should be written based
  * on the configured certificate, or whether it should be silently skipped.
  */
-#define SSL_WRITE_CERTIFICATE_AVAILABLE  0
+#define SSL_WRITE_CERTIFICATE_SEND       0
 #define SSL_WRITE_CERTIFICATE_SKIP       1
 
 static int ssl_tls13_write_certificate_coordinate( mbedtls_ssl_context* ssl )
@@ -891,7 +891,7 @@ static int ssl_tls13_write_certificate_coordinate( mbedtls_ssl_context* ssl )
     }
 #endif /* MBEDTLS_SSL_CLI_C */
 
-    return( SSL_WRITE_CERTIFICATE_AVAILABLE );
+    return( SSL_WRITE_CERTIFICATE_SEND );
 
 }
 
@@ -920,18 +920,23 @@ static int ssl_tls13_write_certificate_coordinate( mbedtls_ssl_context* ssl )
  *    } Certificate;
  */
 static int ssl_tls13_write_certificate_body( mbedtls_ssl_context *ssl,
-                                             const unsigned char *buf,
+                                             unsigned char *buf,
                                              unsigned char *end,
-                                             size_t *olen )
+                                             size_t *out_len )
 {
     const mbedtls_x509_crt *crt = mbedtls_ssl_own_cert( ssl );
-    unsigned char *p = (unsigned char *)buf;
+    unsigned char *p = buf;
     unsigned char *certificate_list;
 
 
     /* Write certificate_request_context */
     /* empty certificate_request_context with length 0 */
     *p++ = 0;
+
+    /* Reserve space for certificate_list_len */
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 3 );
+    certificate_list = p;
+    p += 3;
 
 #if defined(MBEDTLS_SSL_CLI_C)
     /* If the server requests client authentication but no suitable
@@ -941,22 +946,14 @@ static int ssl_tls13_write_certificate_body( mbedtls_ssl_context *ssl,
      *
      * authmode indicates whether the client configuration required authentication.
      */
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
-        ( ( crt == NULL ) || ssl->conf->authmode == MBEDTLS_SSL_VERIFY_NONE ) )
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT && crt == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write empty client certificate" ) );
-        MBEDTLS_SSL_CHK_BUF_PTR( p, end, 3);
-        MBEDTLS_PUT_UINT24_BE( 0, p, 0);
-        p += 3;
-        *olen = p - buf;
+        MBEDTLS_PUT_UINT24_BE( 0, certificate_list, 0 );
+        *out_len = p - buf;
         return( 0 );
     }
 #endif /* MBEDTLS_SSL_CLI_C */
-
-    certificate_list = p;
-    /* Reserve space for certificate_list_len */
-    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 3);
-    p += 3;
 
     MBEDTLS_SSL_DEBUG_CRT( 3, "own certificate", crt );
 
@@ -979,15 +976,14 @@ static int ssl_tls13_write_certificate_body( mbedtls_ssl_context *ssl,
         p += 2;
     }
 
-    MBEDTLS_PUT_UINT24_BE( p - certificate_list - 3, certificate_list, 0);
+    MBEDTLS_PUT_UINT24_BE( p - certificate_list - 3, certificate_list, 0 );
 
-    *olen = p - buf;
+    *out_len = p - buf;
 
     return( 0 );
 }
 
-/* Update the state after handling the outgoing certificate message. */
-static int ssl_tls13_finalize_write_certificate( mbedtls_ssl_context* ssl )
+static int ssl_tls13_finalize_write_certificate( mbedtls_ssl_context *ssl )
 {
 #if defined(MBEDTLS_SSL_CLI_C)
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
@@ -1001,7 +997,7 @@ static int ssl_tls13_finalize_write_certificate( mbedtls_ssl_context* ssl )
     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 }
 
-int mbedtls_ssl_tls13_write_certificate( mbedtls_ssl_context* ssl )
+int mbedtls_ssl_tls13_write_certificate( mbedtls_ssl_context *ssl )
 {
     int ret;
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate" ) );
@@ -1009,7 +1005,7 @@ int mbedtls_ssl_tls13_write_certificate( mbedtls_ssl_context* ssl )
     /* Coordination: Check if we need to send a certificate. */
     MBEDTLS_SSL_PROC_CHK_NEG( ssl_tls13_write_certificate_coordinate( ssl ) );
 
-    if( ret == SSL_WRITE_CERTIFICATE_AVAILABLE )
+    if( ret == SSL_WRITE_CERTIFICATE_SEND )
     {
         unsigned char *buf;
         size_t buf_len, msg_len;
@@ -1043,7 +1039,10 @@ cleanup:
     return( ret );
 }
 
-/* Coordinate: Check whether a certificate verify message should be sent.
+/*
+ * STATE HANDLING: Output Certificate Verify
+ */
+/* Coordinate: Check whether a Certificate Verify message should be sent.
  * Returns a negative value on failure, and otherwise
  * - SSL_WRITE_CERTIFICATE_VERIFY_SKIP
  * - SSL_WRITE_CERTIFICATE_VERIFY_SEND
@@ -1052,7 +1051,7 @@ cleanup:
 #define SSL_WRITE_CERTIFICATE_VERIFY_SKIP 0
 #define SSL_WRITE_CERTIFICATE_VERIFY_SEND 1
 static int ssl_tls13_write_certificate_verify_coordinate(
-                                                    mbedtls_ssl_context* ssl )
+                                                    mbedtls_ssl_context *ssl )
 {
     mbedtls_x509_crt *crt = mbedtls_ssl_own_cert( ssl );
 
@@ -1091,39 +1090,40 @@ static int ssl_tls13_write_certificate_verify_coordinate(
 #endif /* !MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
 }
 
-static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context* ssl,
-                                                    unsigned char* buf,
-                                                    size_t buflen,
-                                                    size_t* olen )
+static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
+                                                    unsigned char *buf,
+                                                    unsigned char *end,
+                                                    size_t *out_len )
 {
     int ret;
-    size_t n = 0;
-    unsigned char verify_buffer[ SSL_VERIFY_STRUCT_MAX_SIZE ];
-    size_t verify_buffer_len;
+    unsigned char *p = buf;
     mbedtls_pk_context *own_key;
-    size_t own_key_size;
-    unsigned int md_alg;
-    int sig_alg;
-    unsigned char verify_hash[ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
-    size_t verify_hash_len;
+
     unsigned char handshake_hash[ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
     size_t handshake_hash_len;
-    unsigned char *p;
+    unsigned char verify_buffer[ SSL_VERIFY_STRUCT_MAX_SIZE ];
+    size_t verify_buffer_len;
+    size_t own_key_size;
+    unsigned int md_alg;
+    int algorithm;
+    size_t signature_len = 0;
     const mbedtls_md_info_t *md_info;
-    unsigned char * const end = buf + buflen;
+    unsigned char verify_hash[ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
+    size_t verify_hash_len;
 
-    p = buf;
-    if( buflen < 2 + MBEDTLS_MD_MAX_SIZE )
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 + MBEDTLS_TLS1_3_MD_MAX_SIZE );
+
+    own_key = mbedtls_ssl_own_key( ssl );
+    if( own_key == NULL )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too short" ) );
-        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
     /*
      * Check whether the signature scheme corresponds to the key we are using
      */
-    if( mbedtls_ssl_sig_from_pk( mbedtls_ssl_own_key( ssl ) ) !=
-        MBEDTLS_SSL_SIG_ECDSA )
+    if( mbedtls_ssl_sig_from_pk( own_key ) != MBEDTLS_SSL_SIG_ECDSA )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1,
             ( "CertificateVerify: Only ECDSA signature algorithms are supported." ) );
@@ -1159,40 +1159,34 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context* ssl,
      */
 
     /* Determine size of key */
-    own_key = mbedtls_ssl_own_key( ssl );
-    if( own_key != NULL)
+    own_key_size = mbedtls_pk_get_bitlen( own_key );
+    switch( own_key_size )
     {
-        own_key_size = mbedtls_pk_get_bitlen( own_key );
-        switch( own_key_size )
-        {
-            case 256:
-                md_alg  = MBEDTLS_MD_SHA256;
-                sig_alg = MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256;
-                break;
-            case 384:
-                md_alg  = MBEDTLS_MD_SHA384;
-                sig_alg = MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384;
-                break;
-            default:
-                MBEDTLS_SSL_DEBUG_MSG( 3, ( "unknown key size: %" MBEDTLS_PRINTF_SIZET " bits",
-                               own_key_size ) );
-                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-        }
+        case 256:
+            md_alg  = MBEDTLS_MD_SHA256;
+            algorithm = MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256;
+            break;
+        case 384:
+            md_alg  = MBEDTLS_MD_SHA384;
+            algorithm = MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384;
+            break;
+        default:
+            MBEDTLS_SSL_DEBUG_MSG( 3,
+                                   ( "unknown key size: %" MBEDTLS_PRINTF_SIZET
+                                     " bits",
+                                     own_key_size ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
-    else
+
+
+    if( !mbedtls_ssl_sig_alg_is_received( ssl, algorithm ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
-    if( !mbedtls_ssl_sig_alg_is_received( ssl, sig_alg ) )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-    }
-
-    *(p++) = (unsigned char)( ( sig_alg >> 8 ) & 0xFF );
-    *(p++) = (unsigned char)( ( sig_alg >> 0 ) & 0xFF );
+    MBEDTLS_PUT_UINT16_BE( algorithm, p, 0 );
+    p += 2;
 
     /* Hash verify buffer with indicated hash function */
     md_info = mbedtls_md_info_from_type( md_alg );
@@ -1208,24 +1202,22 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context* ssl,
 
     if( ( ret = mbedtls_pk_sign( own_key, md_alg,
                                  verify_hash, verify_hash_len,
-                                 p + 2, (size_t)( end - ( p + 2 ) ), &n,
+                                 p + 2, (size_t)( end - ( p + 2 ) ), &signature_len,
                                  ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_sign", ret );
         return( ret );
     }
-    // unsigned char * x= p;
-    p[0] = (unsigned char)( n >> 8 );
-    p[1] = (unsigned char)( n >> 0 );
 
-    p += 2 + n;
+    MBEDTLS_PUT_UINT16_BE( signature_len, p, 0 );
+    p += 2 + signature_len;
 
-    *olen = (size_t)( p - buf );
-    MBEDTLS_SSL_DEBUG_BUF( 3, "xverify hash", buf, *olen );
+    *out_len = (size_t)( p - buf );
+
     return( ret );
 }
 
-static int ssl_tls13_finalize_certificate_verify( mbedtls_ssl_context* ssl )
+static int ssl_tls13_finalize_certificate_verify( mbedtls_ssl_context *ssl )
 {
 #if defined(MBEDTLS_SSL_CLI_C)
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
@@ -1241,7 +1233,7 @@ static int ssl_tls13_finalize_certificate_verify( mbedtls_ssl_context* ssl )
     return( 0 );
 }
 
-int mbedtls_ssl_tls13_write_certificate_verify( mbedtls_ssl_context* ssl )
+int mbedtls_ssl_tls13_write_certificate_verify( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate verify" ) );
@@ -1258,7 +1250,7 @@ int mbedtls_ssl_tls13_write_certificate_verify( mbedtls_ssl_context* ssl )
                    MBEDTLS_SSL_HS_CERTIFICATE_VERIFY, &buf, &buf_len ) );
 
         MBEDTLS_SSL_PROC_CHK( ssl_tls13_write_certificate_verify_body(
-                                  ssl, buf, buf_len, &msg_len ) );
+                                  ssl, buf, buf + buf_len, &msg_len ) );
 
         mbedtls_ssl_tls13_add_hs_msg_to_checksum(
             ssl, MBEDTLS_SSL_HS_CERTIFICATE_VERIFY, buf, msg_len );

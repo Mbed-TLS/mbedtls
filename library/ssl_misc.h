@@ -1737,12 +1737,12 @@ int mbedtls_ssl_tls13_process_certificate( mbedtls_ssl_context *ssl );
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 /*
- * Handler of TLS 1.3 write certificate message
+ * Handler of TLS 1.3 write Certificate message
  */
 int mbedtls_ssl_tls13_write_certificate( mbedtls_ssl_context *ssl );
 
 /*
- * Handler of TLS 1.3 write certificate verify message
+ * Handler of TLS 1.3 write Certificate Verify message
  */
 int mbedtls_ssl_tls13_write_certificate_verify( mbedtls_ssl_context *ssl );
 

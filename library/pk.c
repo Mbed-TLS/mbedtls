@@ -410,6 +410,9 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
                                   hash_len, sig, sig_len );
         psa_destroy_key( key_id );
 
+        if( status == PSA_SUCCESS && sig_len > mbedtls_pk_get_len( ctx ) )
+            return( MBEDTLS_ERR_PK_SIG_LEN_MISMATCH );
+
         return( status == PSA_ERROR_INVALID_SIGNATURE?
                               MBEDTLS_ERR_RSA_VERIFY_FAILED :
                               mbedtls_psa_err_translate_pk( status ) );

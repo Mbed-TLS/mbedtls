@@ -809,6 +809,14 @@ struct mbedtls_ssl_handshake_params
             size_t digest_len;
         } finished_in;
 
+#if defined(MBEDTLS_SSL_SRV_C)
+        /* Server, outgoing ClientKeyExchange */
+        struct
+        {
+            uint8_t preparation_done;
+        } encrypted_extensions_out;
+#endif /* MBEDTLS_SSL_SRV_C */
+
     } state_local;
 
     /* End of state-local variables. */

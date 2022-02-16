@@ -7,7 +7,9 @@ Thread safety of the PSA subsystem
 
 Code that is currently working must keep working. There can be an exception for code that uses features that are advertised as experimental; for example, it would be annoying but ok to add extra requirements for drivers.
 
-In particular, if you build with `MBEDTLS_PSA_CRYPTO_C` and `MBEDTLS_THREADING_C` and you either protect all PSA calls with a mutex, or only ever call PSA functions from a single thread, your application works.
+(In this section, “currently” means Mbed TLS releases without proper concurrency management: 3.0.0, 3.1.0, and any other subsequent 3.x version.)
+
+In particular, if you either protect all PSA calls with a mutex, or only ever call PSA functions from a single thread, your application currently works and must keep working. If your application currently builds and works with `MBEDTLS_PSA_CRYPTO_C` and `MBEDTLS_THREADING_C` enabled, it must keep building and working.
 
 As a consequence, we must not add a new platform requirement beyond mutexes for the base case. It would be ok to add new platform requirements if they're only needed for PSA drivers, or if they're only performance improvements.
 

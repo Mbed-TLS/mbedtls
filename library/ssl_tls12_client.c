@@ -681,6 +681,118 @@ static int ssl_validate_ciphersuite(
     return( 0 );
 }
 
+static int ssl_tls12_write_client_hello_exts( mbedtls_ssl_context *ssl,
+                                              unsigned char *buf,
+                                              const unsigned char *end,
+                                              int uses_ec,
+                                              size_t *out_len )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    unsigned char *p = buf;
+    size_t ext_len = 0;
+
+    (void) ssl;
+    (void) end;
+    (void) uses_ec;
+    (void) ret;
+    (void) ext_len;
+
+    *out_len = 0;
+
+    /* Note that TLS_EMPTY_RENEGOTIATION_INFO_SCSV is always added
+     * even if MBEDTLS_SSL_RENEGOTIATION is not defined. */
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    if( ( ret = ssl_write_renegotiation_ext( ssl, p, end, &ext_len ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_renegotiation_ext", ret );
+        return( ret );
+    }
+    p += ext_len;
+#endif
+
+#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+    if( uses_ec )
+    {
+        if( ( ret = ssl_write_supported_point_formats_ext( ssl, p, end,
+                                                           &ext_len ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_supported_point_formats_ext", ret );
+            return( ret );
+        }
+        p += ext_len;
+    }
+#endif
+
+#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+    if( ( ret = ssl_write_ecjpake_kkpp_ext( ssl, p, end, &ext_len ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_ecjpake_kkpp_ext", ret );
+        return( ret );
+    }
+    p += ext_len;
+#endif
+
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+    if( ( ret = ssl_write_cid_ext( ssl, p, end, &ext_len ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_cid_ext", ret );
+        return( ret );
+    }
+    p += ext_len;
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+    if( ( ret = ssl_write_max_fragment_length_ext( ssl, p, end,
+                                                   &ext_len ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_max_fragment_length_ext", ret );
+        return( ret );
+    }
+    p += ext_len;
+#endif
+
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+    if( ( ret = ssl_write_encrypt_then_mac_ext( ssl, p, end, &ext_len ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_encrypt_then_mac_ext", ret );
+        return( ret );
+    }
+    p += ext_len;
+#endif
+
+#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
+    if( ( ret = ssl_write_extended_ms_ext( ssl, p, end, &ext_len ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_extended_ms_ext", ret );
+        return( ret );
+    }
+    p += ext_len;
+#endif
+
+#if defined(MBEDTLS_SSL_DTLS_SRTP)
+    if( ( ret = ssl_write_use_srtp_ext( ssl, p, end, &ext_len ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_use_srtp_ext", ret );
+        return( ret );
+    }
+    p += ext_len;
+#endif
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    if( ( ret = ssl_write_session_ticket_ext( ssl, p, end, &ext_len ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_session_ticket_ext", ret );
+        return( ret );
+    }
+    p += ext_len;
+#endif
+
+    *out_len = p - buf;
+
+    return( 0 );
+}
+
 static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -692,10 +804,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
 
     const int *ciphersuites;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     int uses_ec = 0;
-#endif
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write client hello" ) );
 
@@ -946,13 +1055,10 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     ext_len += olen;
 #endif
 
-    /* Note that TLS_EMPTY_RENEGOTIATION_INFO_SCSV is always added
-     * even if MBEDTLS_SSL_RENEGOTIATION is not defined. */
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    if( ( ret = ssl_write_renegotiation_ext( ssl, p + 2 + ext_len,
-                                             end, &olen ) ) != 0 )
+#if defined(MBEDTLS_SSL_ALPN)
+    if( ( ret = ssl_write_alpn_ext( ssl, p + 2 + ext_len, end, &olen ) ) != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_renegotiation_ext", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_alpn_ext", ret );
         return( ret );
     }
     ext_len += olen;
@@ -979,101 +1085,18 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
             return( ret );
         }
         ext_len += olen;
-
-        if( ( ret = ssl_write_supported_point_formats_ext( ssl, p + 2 + ext_len,
-                                                           end, &olen ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_supported_point_formats_ext", ret );
-            return( ret );
-        }
-        ext_len += olen;
     }
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
-    if( ( ret = ssl_write_ecjpake_kkpp_ext( ssl, p + 2 + ext_len,
-                                            end, &olen ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_ecjpake_kkpp_ext", ret );
+    ret = ssl_tls12_write_client_hello_exts( ssl, p + 2 + ext_len, end, uses_ec,
+                                             &olen );
+    if( ret != 0 )
         return( ret );
-    }
     ext_len += olen;
-#endif
 
-#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-    if( ( ret = ssl_write_cid_ext( ssl, p + 2 + ext_len, end, &olen ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_cid_ext", ret );
-        return( ret );
-    }
-    ext_len += olen;
-#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
-
-#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    if( ( ret = ssl_write_max_fragment_length_ext( ssl, p + 2 + ext_len,
-                                                   end, &olen ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_max_fragment_length_ext", ret );
-        return( ret );
-    }
-    ext_len += olen;
-#endif
-
-#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
-    if( ( ret = ssl_write_encrypt_then_mac_ext( ssl, p + 2 + ext_len,
-                                                end, &olen ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_encrypt_then_mac_ext", ret );
-        return( ret );
-    }
-    ext_len += olen;
-#endif
-
-#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
-    if( ( ret = ssl_write_extended_ms_ext( ssl, p + 2 + ext_len,
-                                           end, &olen ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_extended_ms_ext", ret );
-        return( ret );
-    }
-    ext_len += olen;
-#endif
-
-#if defined(MBEDTLS_SSL_ALPN)
-    if( ( ret = ssl_write_alpn_ext( ssl, p + 2 + ext_len,
-                                    end, &olen ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_alpn_ext", ret );
-        return( ret );
-    }
-    ext_len += olen;
-#endif
-
-#if defined(MBEDTLS_SSL_DTLS_SRTP)
-    if( ( ret = ssl_write_use_srtp_ext( ssl, p + 2 + ext_len,
-                                        end, &olen ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_use_srtp_ext", ret );
-        return( ret );
-    }
-    ext_len += olen;
-#endif
-
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    if( ( ret = ssl_write_session_ticket_ext( ssl, p + 2 + ext_len,
-                                              end, &olen ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_session_ticket_ext", ret );
-        return( ret );
-    }
-    ext_len += olen;
-#endif
-
-    /* olen unused if all extensions are disabled */
-    ((void) olen);
-
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, total extension length: %" MBEDTLS_PRINTF_SIZET,
-                                ext_len ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3,
+        ( "client hello, total extension length: %" MBEDTLS_PRINTF_SIZET,
+          ext_len ) );
 
     if( ext_len > 0 )
     {

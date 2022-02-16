@@ -379,7 +379,9 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
         /* see RSA_PUB_DER_MAX_BYTES in pkwrite.c */
         unsigned char buf[ 38 + 2 * MBEDTLS_MPI_MAX_SIZE ];
         unsigned char *p;
-        int key_len, signature_length;
+        int key_len;
+        size_t signature_length;
+
         psa_algorithm_t psa_md_alg = mbedtls_psa_translate_md( md_alg );
         mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
         psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;

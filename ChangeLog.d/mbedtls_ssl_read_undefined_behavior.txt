@@ -1,0 +1,2 @@
+Bugfix
+   * Fixed undefined behavior in mbedtls_ssl_read if len argument is 0

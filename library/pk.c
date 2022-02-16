@@ -379,7 +379,7 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
         /* see RSA_PUB_DER_MAX_BYTES in pkwrite.c */
         unsigned char buf[ 38 + 2 * MBEDTLS_MPI_MAX_SIZE ];
         unsigned char *p;
-        int key_len;
+        int key_len, signature_length;
         psa_algorithm_t psa_md_alg = mbedtls_psa_translate_md( md_alg );
         mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
         psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
@@ -406,8 +406,15 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
             return( mbedtls_psa_err_translate_pk( status ) );
         }
 
+        /* This function requires returning MBEDTLS_ERR_PK_SIG_LEN_MISMATCH
+         * on a valid signature with trailing data in a buffer, but
+         * mbedtls_psa_rsa_verify_hash requires the sig_len to be exact,
+         * so for this reason the passed sig_len is overwritten. Smaller
+         * signature lengths should not be accepted for verification. */
+        signature_length = sig_len > mbedtls_pk_get_len( ctx ) ?
+                                     mbedtls_pk_get_len( ctx ) : sig_len;
         status = psa_verify_hash( key_id, psa_sig_alg, hash,
-                                  hash_len, sig, sig_len );
+                                  hash_len, sig, signature_length );
         psa_destroy_key( key_id );
 
         if( status == PSA_SUCCESS && sig_len > mbedtls_pk_get_len( ctx ) )

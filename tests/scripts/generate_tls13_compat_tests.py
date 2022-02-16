@@ -278,8 +278,7 @@ class MbedTLSCli(TLSProgram):
     def pre_checks(self):
         ret = ['requires_config_enabled MBEDTLS_DEBUG_C',
                'requires_config_enabled MBEDTLS_SSL_CLI_C',
-               'requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3',
-               'requires_config_disabled MBEDTLS_USE_PSA_CRYPTO']
+               'requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3']
 
         if self._compat_mode:
             ret += ['requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE']

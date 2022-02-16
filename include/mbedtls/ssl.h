@@ -3738,39 +3738,50 @@ void mbedtls_ssl_get_dtls_srtp_negotiation_result( const mbedtls_ssl_context *ss
 
 /**
  * \brief          Set the maximum supported version sent from the client side
- *                 and/or accepted at the server side
- *                 (Default: MBEDTLS_SSL_MAX_MAJOR_VERSION, MBEDTLS_SSL_MAX_MINOR_VERSION)
+ *                 and/or accepted at the server side.
+ *
+ *                 See also the documentation of mbedtls_ssl_conf_min_version().
  *
  * \note           This ignores ciphersuites from higher versions.
  *
- * \note           With DTLS, use MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
- *
- * \note           After the handhsake, you can call
- *                 mbedtls_ssl_get_version_number() to see what version was
- *                 negotiated.
- *
  * \param conf     SSL configuration
- * \param major    Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3 supported)
- * \param minor    Minor version number (only MBEDTLS_SSL_MINOR_VERSION_3 supported)
+ * \param major    Major version number (#MBEDTLS_SSL_MAJOR_VERSION_3)
+ * \param minor    Minor version number
+ *                 (#MBEDTLS_SSL_MINOR_VERSION_3 for (D)TLS 1.2,
+ *                 #MBEDTLS_SSL_MINOR_VERSION_4 for TLS 1.3)
  */
 void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int minor );
 
 /**
  * \brief          Set the minimum accepted SSL/TLS protocol version
- *                 (Default: TLS 1.2)
+ *
+ * \note           By default, all supported versions are accepted.
+ *                 Future versions of the library may disable older
+ *                 protocol versions by default if they become deprecated.
+ *
+ * \note           The following versions are supported (if enabled at
+ *                 compile time):
+ *                 - (D)TLS 1.2: \p major = #MBEDTLS_SSL_MAJOR_VERSION_3,
+ *                   \p minor = #MBEDTLS_SSL_MINOR_VERSION_3
+ *                 - TLS 1.3: \p major = #MBEDTLS_SSL_MAJOR_VERSION_3,
+ *                   \p minor = #MBEDTLS_SSL_MINOR_VERSION_4
+ *
+ *                 Note that the numbers in the constant names are the
+ *                 TLS internal protocol numbers, and the minor versions
+ *                 differ by one from the human-readable versions!
  *
  * \note           Input outside of the SSL_MAX_XXXXX_VERSION and
  *                 SSL_MIN_XXXXX_VERSION range is ignored.
  *
- * \note           With DTLS, use MBEDTLS_SSL_MINOR_VERSION_3 for DTLS 1.2
- *
- * \note           After the handhsake, you can call
+ * \note           After the handshake, you can call
  *                 mbedtls_ssl_get_version_number() to see what version was
  *                 negotiated.
  *
  * \param conf     SSL configuration
- * \param major    Major version number (only MBEDTLS_SSL_MAJOR_VERSION_3 supported)
- * \param minor    Minor version number (only MBEDTLS_SSL_MINOR_VERSION_3 supported)
+ * \param major    Major version number (#MBEDTLS_SSL_MAJOR_VERSION_3)
+ * \param minor    Minor version number
+ *                 (#MBEDTLS_SSL_MINOR_VERSION_3 for (D)TLS 1.2,
+ *                 #MBEDTLS_SSL_MINOR_VERSION_4 for TLS 1.3)
  */
 void mbedtls_ssl_conf_min_version( mbedtls_ssl_config *conf, int major, int minor );
 

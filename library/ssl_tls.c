@@ -1009,55 +1009,6 @@ static void ssl_update_checksum_sha384( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 
-#if defined(MBEDTLS_SHA384_C)
-void ssl_calc_verify_tls_sha384( const mbedtls_ssl_context *ssl,
-                                 unsigned char *hash,
-                                 size_t *hlen )
-{
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    size_t hash_size;
-    psa_status_t status;
-    psa_hash_operation_t sha384_psa = psa_hash_operation_init();
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> PSA calc verify sha384" ) );
-    status = psa_hash_clone( &ssl->handshake->fin_sha384_psa, &sha384_psa );
-    if( status != PSA_SUCCESS )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "PSA hash clone failed" ) );
-        return;
-    }
-
-    status = psa_hash_finish( &sha384_psa, hash, 48, &hash_size );
-    if( status != PSA_SUCCESS )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "PSA hash finish failed" ) );
-        return;
-    }
-
-    *hlen = 48;
-    MBEDTLS_SSL_DEBUG_BUF( 3, "PSA calculated verify result", hash, *hlen );
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= PSA calc verify" ) );
-#else
-    mbedtls_sha512_context sha512;
-
-    mbedtls_sha512_init( &sha512 );
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc verify sha384" ) );
-
-    mbedtls_sha512_clone( &sha512, &ssl->handshake->fin_sha512 );
-    mbedtls_sha512_finish( &sha512, hash );
-
-    *hlen = 48;
-
-    MBEDTLS_SSL_DEBUG_BUF( 3, "calculated verify result", hash, *hlen );
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
-
-    mbedtls_sha512_free( &sha512 );
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-    return;
-}
-#endif /* MBEDTLS_SHA384_C */
-
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
 int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exchange_type_t key_ex )
 {
@@ -7965,6 +7916,55 @@ void ssl_calc_verify_tls_sha256( const mbedtls_ssl_context *ssl,
     return;
 }
 #endif /* MBEDTLS_SHA256_C */
+
+#if defined(MBEDTLS_SHA384_C)
+void ssl_calc_verify_tls_sha384( const mbedtls_ssl_context *ssl,
+                                 unsigned char *hash,
+                                 size_t *hlen )
+{
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    size_t hash_size;
+    psa_status_t status;
+    psa_hash_operation_t sha384_psa = psa_hash_operation_init();
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> PSA calc verify sha384" ) );
+    status = psa_hash_clone( &ssl->handshake->fin_sha384_psa, &sha384_psa );
+    if( status != PSA_SUCCESS )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "PSA hash clone failed" ) );
+        return;
+    }
+
+    status = psa_hash_finish( &sha384_psa, hash, 48, &hash_size );
+    if( status != PSA_SUCCESS )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "PSA hash finish failed" ) );
+        return;
+    }
+
+    *hlen = 48;
+    MBEDTLS_SSL_DEBUG_BUF( 3, "PSA calculated verify result", hash, *hlen );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= PSA calc verify" ) );
+#else
+    mbedtls_sha512_context sha512;
+
+    mbedtls_sha512_init( &sha512 );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc verify sha384" ) );
+
+    mbedtls_sha512_clone( &sha512, &ssl->handshake->fin_sha512 );
+    mbedtls_sha512_finish( &sha512, hash );
+
+    *hlen = 48;
+
+    MBEDTLS_SSL_DEBUG_BUF( 3, "calculated verify result", hash, *hlen );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
+
+    mbedtls_sha512_free( &sha512 );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+    return;
+}
+#endif /* MBEDTLS_SHA384_C */
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 

@@ -1009,71 +1009,6 @@ static void ssl_update_checksum_sha384( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 
-void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
-{
-    int resume = ssl->handshake->resume;
-
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "=> handshake wrapup" ) );
-
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    if( ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS )
-    {
-        ssl->renego_status =  MBEDTLS_SSL_RENEGOTIATION_DONE;
-        ssl->renego_records_seen = 0;
-    }
-#endif
-
-    /*
-     * Free the previous session and switch in the current one
-     */
-    if( ssl->session )
-    {
-#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
-        /* RFC 7366 3.1: keep the EtM state */
-        ssl->session_negotiate->encrypt_then_mac =
-                  ssl->session->encrypt_then_mac;
-#endif
-
-        mbedtls_ssl_session_free( ssl->session );
-        mbedtls_free( ssl->session );
-    }
-    ssl->session = ssl->session_negotiate;
-    ssl->session_negotiate = NULL;
-
-    /*
-     * Add cache entry
-     */
-    if( ssl->conf->f_set_cache != NULL &&
-        ssl->session->id_len != 0 &&
-        resume == 0 )
-    {
-        if( ssl->conf->f_set_cache( ssl->conf->p_cache,
-                                    ssl->session->id,
-                                    ssl->session->id_len,
-                                    ssl->session ) != 0 )
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "cache did not store session" ) );
-    }
-
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
-        ssl->handshake->flight != NULL )
-    {
-        /* Cancel handshake timer */
-        mbedtls_ssl_set_timer( ssl, 0 );
-
-        /* Keep last flight around in case we need to resend it:
-         * we need the handshake and transform structures for that */
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "skip freeing handshake and transform" ) );
-    }
-    else
-#endif
-        mbedtls_ssl_handshake_wrapup_free_hs_transform( ssl );
-
-    ssl->state++;
-
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "<= handshake wrapup" ) );
-}
-
 int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
 {
     int ret, hash_len;
@@ -7967,6 +7902,72 @@ void mbedtls_ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl )
     ssl->transform_negotiate = NULL;
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "<= handshake wrapup: final free" ) );
+}
+
+
+void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
+{
+    int resume = ssl->handshake->resume;
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "=> handshake wrapup" ) );
+
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    if( ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS )
+    {
+        ssl->renego_status =  MBEDTLS_SSL_RENEGOTIATION_DONE;
+        ssl->renego_records_seen = 0;
+    }
+#endif
+
+    /*
+     * Free the previous session and switch in the current one
+     */
+    if( ssl->session )
+    {
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+        /* RFC 7366 3.1: keep the EtM state */
+        ssl->session_negotiate->encrypt_then_mac =
+                  ssl->session->encrypt_then_mac;
+#endif
+
+        mbedtls_ssl_session_free( ssl->session );
+        mbedtls_free( ssl->session );
+    }
+    ssl->session = ssl->session_negotiate;
+    ssl->session_negotiate = NULL;
+
+    /*
+     * Add cache entry
+     */
+    if( ssl->conf->f_set_cache != NULL &&
+        ssl->session->id_len != 0 &&
+        resume == 0 )
+    {
+        if( ssl->conf->f_set_cache( ssl->conf->p_cache,
+                                    ssl->session->id,
+                                    ssl->session->id_len,
+                                    ssl->session ) != 0 )
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "cache did not store session" ) );
+    }
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+        ssl->handshake->flight != NULL )
+    {
+        /* Cancel handshake timer */
+        mbedtls_ssl_set_timer( ssl, 0 );
+
+        /* Keep last flight around in case we need to resend it:
+         * we need the handshake and transform structures for that */
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "skip freeing handshake and transform" ) );
+    }
+    else
+#endif
+        mbedtls_ssl_handshake_wrapup_free_hs_transform( ssl );
+
+    ssl->state++;
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "<= handshake wrapup" ) );
 }
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */

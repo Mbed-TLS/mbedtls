@@ -334,6 +334,65 @@ static void handle_buffer_resizing( mbedtls_ssl_context *ssl, int downsizing,
 #endif /* MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+typedef int (*tls_prf_fn)( const unsigned char *secret, size_t slen,
+                           const char *label,
+                           const unsigned char *random, size_t rlen,
+                           unsigned char *dstbuf, size_t dlen );
+
+static tls_prf_fn ssl_tls12prf_from_cs( int ciphersuite_id );
+
+#endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
+
+/* Type for the TLS PRF */
+typedef int ssl_tls_prf_t(const unsigned char *, size_t, const char *,
+                          const unsigned char *, size_t,
+                          unsigned char *, size_t);
+
+static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
+                                   int ciphersuite,
+                                   const unsigned char master[48],
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC) && \
+    defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+                                   int encrypt_then_mac,
+#endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC &&
+          MBEDTLS_SSL_SOME_SUITES_USE_MAC */
+                                   ssl_tls_prf_t tls_prf,
+                                   const unsigned char randbytes[64],
+                                   int minor_ver,
+                                   unsigned endpoint,
+                                   const mbedtls_ssl_context *ssl );
+
+#if defined(MBEDTLS_SHA256_C)
+static int tls_prf_sha256( const unsigned char *secret, size_t slen,
+                           const char *label,
+                           const unsigned char *random, size_t rlen,
+                           unsigned char *dstbuf, size_t dlen );
+static void ssl_calc_verify_tls_sha256( const mbedtls_ssl_context *,unsigned char*, size_t * );
+static void ssl_calc_finished_tls_sha256( mbedtls_ssl_context *,unsigned char *, int );
+
+#endif /* MBEDTLS_SHA256_C */
+
+#if defined(MBEDTLS_SHA384_C)
+static int tls_prf_sha384( const unsigned char *secret, size_t slen,
+                           const char *label,
+                           const unsigned char *random, size_t rlen,
+                           unsigned char *dstbuf, size_t dlen );
+
+static void ssl_calc_verify_tls_sha384( const mbedtls_ssl_context *, unsigned char*, size_t * );
+static void ssl_calc_finished_tls_sha384( mbedtls_ssl_context *, unsigned char *, int );
+#endif /* MBEDTLS_SHA384_C */
+
+static size_t ssl_session_save_tls12( const mbedtls_ssl_session *session,
+                                      unsigned char *buf,
+                                      size_t buf_len );
+static int ssl_session_load_tls12( mbedtls_ssl_session *session,
+                                   const unsigned char *buf,
+                                   size_t len );
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 
 static psa_status_t setup_psa_key_derivation( psa_key_derivation_operation_t* derivation,
@@ -575,19 +634,6 @@ static int tls_prf_sha384( const unsigned char *secret, size_t slen,
 }
 #endif /* MBEDTLS_SHA384_C */
 
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
-
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-#if defined(MBEDTLS_SHA256_C)
-static void ssl_calc_verify_tls_sha256( const mbedtls_ssl_context *,unsigned char*, size_t * );
-static void ssl_calc_finished_tls_sha256( mbedtls_ssl_context *,unsigned char *, int );
-#endif
-
-#if defined(MBEDTLS_SHA384_C)
-static void ssl_calc_verify_tls_sha384( const mbedtls_ssl_context *, unsigned char*, size_t * );
-static void ssl_calc_finished_tls_sha384( mbedtls_ssl_context *, unsigned char *, int );
-#endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 static void ssl_update_checksum_start( mbedtls_ssl_context *, const unsigned char *, size_t );

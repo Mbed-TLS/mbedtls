@@ -4915,7 +4915,6 @@ int mbedtls_ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
-
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -5689,7 +5688,6 @@ int mbedtls_ssl_resend_hello_request( mbedtls_ssl_context *ssl )
 }
 #endif
 #endif /* MBEDTLS_SSL_SRV_C && MBEDTLS_SSL_RENEGOTIATION */
-
 
 /*
  * Handshake functions
@@ -6479,7 +6477,6 @@ exit:
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
-
 #if defined(MBEDTLS_SHA256_C)
 static void ssl_calc_finished_tls_sha256(
                 mbedtls_ssl_context *ssl, unsigned char *buf, int from )
@@ -6657,7 +6654,6 @@ void mbedtls_ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "<= handshake wrapup: final free" ) );
 }
-
 
 void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
 {

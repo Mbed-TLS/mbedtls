@@ -431,453 +431,6 @@ int  mbedtls_ssl_tls_prf( const mbedtls_tls_prf_types prf,
     return( tls_prf( secret, slen, label, random, rlen, dstbuf, dlen ) );
 }
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2) || \
-    defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
-
-/* Type for the TLS PRF */
-typedef int ssl_tls_prf_t(const unsigned char *, size_t, const char *,
-                          const unsigned char *, size_t,
-                          unsigned char *, size_t);
-
-/*
- * Populate a transform structure with session keys and all the other
- * necessary information.
- *
- * Parameters:
- * - [in/out]: transform: structure to populate
- *      [in] must be just initialised with mbedtls_ssl_transform_init()
- *      [out] fully populated, ready for use by mbedtls_ssl_{en,de}crypt_buf()
- * - [in] ciphersuite
- * - [in] master
- * - [in] encrypt_then_mac
- * - [in] compression
- * - [in] tls_prf: pointer to PRF to use for key derivation
- * - [in] randbytes: buffer holding ServerHello.random + ClientHello.random
- * - [in] minor_ver: SSL/TLS minor version
- * - [in] endpoint: client or server
- * - [in] ssl: used for:
- *        - ssl->conf->{f,p}_export_keys
- *      [in] optionally used for:
- *        - MBEDTLS_DEBUG_C: ssl->conf->{f,p}_dbg
- */
-static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
-                                   int ciphersuite,
-                                   const unsigned char master[48],
-#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC) && \
-    defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
-                                   int encrypt_then_mac,
-#endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC &&
-          MBEDTLS_SSL_SOME_SUITES_USE_MAC */
-                                   ssl_tls_prf_t tls_prf,
-                                   const unsigned char randbytes[64],
-                                   int minor_ver,
-                                   unsigned endpoint,
-                                   const mbedtls_ssl_context *ssl )
-{
-    int ret = 0;
-    unsigned char keyblk[256];
-    unsigned char *key1;
-    unsigned char *key2;
-    unsigned char *mac_enc;
-    unsigned char *mac_dec;
-    size_t mac_key_len = 0;
-    size_t iv_copy_len;
-    size_t keylen;
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
-    const mbedtls_cipher_info_t *cipher_info;
-    const mbedtls_md_info_t *md_info;
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_key_type_t key_type;
-    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_algorithm_t alg;
-    size_t key_bits;
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-#endif
-
-#if !defined(MBEDTLS_DEBUG_C) && \
-    !defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-    if( ssl->f_export_keys == NULL )
-    {
-        ssl = NULL; /* make sure we don't use it except for these cases */
-        (void) ssl;
-    }
-#endif
-
-    /*
-     * Some data just needs copying into the structure
-     */
-#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC) && \
-    defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
-    transform->encrypt_then_mac = encrypt_then_mac;
-#endif
-    transform->minor_ver = minor_ver;
-
-#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
-    memcpy( transform->randbytes, randbytes, sizeof( transform->randbytes ) );
-#endif
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
-    {
-        /* At the moment, we keep TLS <= 1.2 and TLS 1.3 transform
-         * generation separate. This should never happen. */
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-    }
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
-
-    /*
-     * Get various info structures
-     */
-    ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( ciphersuite );
-    if( ciphersuite_info == NULL )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "ciphersuite info for %d not found",
-                                    ciphersuite ) );
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-    }
-
-    cipher_info = mbedtls_cipher_info_from_type( ciphersuite_info->cipher );
-    if( cipher_info == NULL )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "cipher info for %u not found",
-                                    ciphersuite_info->cipher ) );
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-    }
-
-    md_info = mbedtls_md_info_from_type( ciphersuite_info->mac );
-    if( md_info == NULL )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "mbedtls_md info for %u not found",
-                            (unsigned) ciphersuite_info->mac ) );
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-    }
-
-#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-    /* Copy own and peer's CID if the use of the CID
-     * extension has been negotiated. */
-    if( ssl->handshake->cid_in_use == MBEDTLS_SSL_CID_ENABLED )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "Copy CIDs into SSL transform" ) );
-
-        transform->in_cid_len = ssl->own_cid_len;
-        memcpy( transform->in_cid, ssl->own_cid, ssl->own_cid_len );
-        MBEDTLS_SSL_DEBUG_BUF( 3, "Incoming CID", transform->in_cid,
-                               transform->in_cid_len );
-
-        transform->out_cid_len = ssl->handshake->peer_cid_len;
-        memcpy( transform->out_cid, ssl->handshake->peer_cid,
-                ssl->handshake->peer_cid_len );
-        MBEDTLS_SSL_DEBUG_BUF( 3, "Outgoing CID", transform->out_cid,
-                               transform->out_cid_len );
-    }
-#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
-
-    /*
-     * Compute key block using the PRF
-     */
-    ret = tls_prf( master, 48, "key expansion", randbytes, 64, keyblk, 256 );
-    if( ret != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "prf", ret );
-        return( ret );
-    }
-
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite = %s",
-                           mbedtls_ssl_get_ciphersuite_name( ciphersuite ) ) );
-    MBEDTLS_SSL_DEBUG_BUF( 3, "master secret", master, 48 );
-    MBEDTLS_SSL_DEBUG_BUF( 4, "random bytes", randbytes, 64 );
-    MBEDTLS_SSL_DEBUG_BUF( 4, "key block", keyblk, 256 );
-
-    /*
-     * Determine the appropriate key, IV and MAC length.
-     */
-
-    keylen = mbedtls_cipher_info_get_key_bitlen( cipher_info ) / 8;
-
-#if defined(MBEDTLS_GCM_C) ||                           \
-    defined(MBEDTLS_CCM_C) ||                           \
-    defined(MBEDTLS_CHACHAPOLY_C)
-    if( mbedtls_cipher_info_get_mode( cipher_info ) == MBEDTLS_MODE_GCM ||
-        mbedtls_cipher_info_get_mode( cipher_info ) == MBEDTLS_MODE_CCM ||
-        mbedtls_cipher_info_get_mode( cipher_info ) == MBEDTLS_MODE_CHACHAPOLY )
-    {
-        size_t explicit_ivlen;
-
-        transform->maclen = 0;
-        mac_key_len = 0;
-        transform->taglen =
-            ciphersuite_info->flags & MBEDTLS_CIPHERSUITE_SHORT_TAG ? 8 : 16;
-
-        /* All modes haves 96-bit IVs, but the length of the static parts vary
-         * with mode and version:
-         * - For GCM and CCM in TLS 1.2, there's a static IV of 4 Bytes
-         *   (to be concatenated with a dynamically chosen IV of 8 Bytes)
-         * - For ChaChaPoly in TLS 1.2, and all modes in TLS 1.3, there's
-         *   a static IV of 12 Bytes (to be XOR'ed with the 8 Byte record
-         *   sequence number).
-         */
-        transform->ivlen = 12;
-        if( mbedtls_cipher_info_get_mode( cipher_info ) == MBEDTLS_MODE_CHACHAPOLY )
-            transform->fixed_ivlen = 12;
-        else
-            transform->fixed_ivlen = 4;
-
-        /* Minimum length of encrypted record */
-        explicit_ivlen = transform->ivlen - transform->fixed_ivlen;
-        transform->minlen = explicit_ivlen + transform->taglen;
-    }
-    else
-#endif /* MBEDTLS_GCM_C || MBEDTLS_CCM_C || MBEDTLS_CHACHAPOLY_C */
-#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
-    if( mbedtls_cipher_info_get_mode( cipher_info ) == MBEDTLS_MODE_STREAM ||
-        mbedtls_cipher_info_get_mode( cipher_info ) == MBEDTLS_MODE_CBC )
-    {
-        /* Initialize HMAC contexts */
-        if( ( ret = mbedtls_md_setup( &transform->md_ctx_enc, md_info, 1 ) ) != 0 ||
-            ( ret = mbedtls_md_setup( &transform->md_ctx_dec, md_info, 1 ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_md_setup", ret );
-            goto end;
-        }
-
-        /* Get MAC length */
-        mac_key_len = mbedtls_md_get_size( md_info );
-        transform->maclen = mac_key_len;
-
-        /* IV length */
-        transform->ivlen = cipher_info->iv_size;
-
-        /* Minimum length */
-        if( mbedtls_cipher_info_get_mode( cipher_info ) == MBEDTLS_MODE_STREAM )
-            transform->minlen = transform->maclen;
-        else
-        {
-            /*
-             * GenericBlockCipher:
-             * 1. if EtM is in use: one block plus MAC
-             *    otherwise: * first multiple of blocklen greater than maclen
-             * 2. IV
-             */
-#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
-            if( encrypt_then_mac == MBEDTLS_SSL_ETM_ENABLED )
-            {
-                transform->minlen = transform->maclen
-                                  + cipher_info->block_size;
-            }
-            else
-#endif
-            {
-                transform->minlen = transform->maclen
-                                  + cipher_info->block_size
-                                  - transform->maclen % cipher_info->block_size;
-            }
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-            if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
-            {
-                transform->minlen += transform->ivlen;
-            }
-            else
-#endif
-            {
-                MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-                ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
-                goto end;
-            }
-        }
-    }
-    else
-#endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-    }
-
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "keylen: %u, minlen: %u, ivlen: %u, maclen: %u",
-                                (unsigned) keylen,
-                                (unsigned) transform->minlen,
-                                (unsigned) transform->ivlen,
-                                (unsigned) transform->maclen ) );
-
-    /*
-     * Finally setup the cipher contexts, IVs and MAC secrets.
-     */
-#if defined(MBEDTLS_SSL_CLI_C)
-    if( endpoint == MBEDTLS_SSL_IS_CLIENT )
-    {
-        key1 = keyblk + mac_key_len * 2;
-        key2 = keyblk + mac_key_len * 2 + keylen;
-
-        mac_enc = keyblk;
-        mac_dec = keyblk + mac_key_len;
-
-        /*
-         * This is not used in TLS v1.1.
-         */
-        iv_copy_len = ( transform->fixed_ivlen ) ?
-                            transform->fixed_ivlen : transform->ivlen;
-        memcpy( transform->iv_enc, key2 + keylen,  iv_copy_len );
-        memcpy( transform->iv_dec, key2 + keylen + iv_copy_len,
-                iv_copy_len );
-    }
-    else
-#endif /* MBEDTLS_SSL_CLI_C */
-#if defined(MBEDTLS_SSL_SRV_C)
-    if( endpoint == MBEDTLS_SSL_IS_SERVER )
-    {
-        key1 = keyblk + mac_key_len * 2 + keylen;
-        key2 = keyblk + mac_key_len * 2;
-
-        mac_enc = keyblk + mac_key_len;
-        mac_dec = keyblk;
-
-        /*
-         * This is not used in TLS v1.1.
-         */
-        iv_copy_len = ( transform->fixed_ivlen ) ?
-                            transform->fixed_ivlen : transform->ivlen;
-        memcpy( transform->iv_dec, key1 + keylen,  iv_copy_len );
-        memcpy( transform->iv_enc, key1 + keylen + iv_copy_len,
-                iv_copy_len );
-    }
-    else
-#endif /* MBEDTLS_SSL_SRV_C */
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
-        goto end;
-    }
-
-#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    /* For HMAC-based ciphersuites, initialize the HMAC transforms.
-       For AEAD-based ciphersuites, there is nothing to do here. */
-    if( mac_key_len != 0 )
-    {
-        ret = mbedtls_md_hmac_starts( &transform->md_ctx_enc, mac_enc, mac_key_len );
-        if( ret != 0 )
-            goto end;
-        ret = mbedtls_md_hmac_starts( &transform->md_ctx_dec, mac_dec, mac_key_len );
-        if( ret != 0 )
-            goto end;
-    }
-#endif
-#endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
-
-    ((void) mac_dec);
-    ((void) mac_enc);
-
-    if( ssl != NULL && ssl->f_export_keys != NULL )
-    {
-        ssl->f_export_keys( ssl->p_export_keys,
-                            MBEDTLS_SSL_KEY_EXPORT_TLS12_MASTER_SECRET,
-                            master, 48,
-                            randbytes + 32,
-                            randbytes,
-                            tls_prf_get_type( tls_prf ) );
-    }
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if( ( status = mbedtls_ssl_cipher_to_psa( cipher_info->type,
-                                 transform->taglen,
-                                 &alg,
-                                 &key_type,
-                                 &key_bits ) ) != PSA_SUCCESS )
-    {
-        ret = psa_ssl_status_to_mbedtls( status );
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_cipher_to_psa", ret );
-        goto end;
-    }
-
-    transform->psa_alg = alg;
-
-    if ( alg != MBEDTLS_SSL_NULL_CIPHER )
-    {
-        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT );
-        psa_set_key_algorithm( &attributes, alg );
-        psa_set_key_type( &attributes, key_type );
-
-        if( ( status = psa_import_key( &attributes,
-                                key1,
-                                PSA_BITS_TO_BYTES( key_bits ),
-                                &transform->psa_key_enc ) ) != PSA_SUCCESS )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 3, "psa_import_key", (int)status );
-            ret = psa_ssl_status_to_mbedtls( status );
-            MBEDTLS_SSL_DEBUG_RET( 1, "psa_import_key", ret );
-            goto end;
-        }
-
-        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DECRYPT );
-
-        if( ( status = psa_import_key( &attributes,
-                                key2,
-                                PSA_BITS_TO_BYTES( key_bits ),
-                                &transform->psa_key_dec ) ) != PSA_SUCCESS )
-        {
-            ret = psa_ssl_status_to_mbedtls( status );
-            MBEDTLS_SSL_DEBUG_RET( 1, "psa_import_key", ret );
-            goto end;
-        }
-    }
-#else
-    if( ( ret = mbedtls_cipher_setup( &transform->cipher_ctx_enc,
-                                 cipher_info ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setup", ret );
-        goto end;
-    }
-
-    if( ( ret = mbedtls_cipher_setup( &transform->cipher_ctx_dec,
-                                 cipher_info ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setup", ret );
-        goto end;
-    }
-
-    if( ( ret = mbedtls_cipher_setkey( &transform->cipher_ctx_enc, key1,
-                               (int) mbedtls_cipher_info_get_key_bitlen( cipher_info ),
-                               MBEDTLS_ENCRYPT ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setkey", ret );
-        goto end;
-    }
-
-    if( ( ret = mbedtls_cipher_setkey( &transform->cipher_ctx_dec, key2,
-                               (int) mbedtls_cipher_info_get_key_bitlen( cipher_info ),
-                               MBEDTLS_DECRYPT ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setkey", ret );
-        goto end;
-    }
-
-#if defined(MBEDTLS_CIPHER_MODE_CBC)
-    if( mbedtls_cipher_info_get_mode( cipher_info ) == MBEDTLS_MODE_CBC )
-    {
-        if( ( ret = mbedtls_cipher_set_padding_mode( &transform->cipher_ctx_enc,
-                                             MBEDTLS_PADDING_NONE ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_set_padding_mode", ret );
-            goto end;
-        }
-
-        if( ( ret = mbedtls_cipher_set_padding_mode( &transform->cipher_ctx_dec,
-                                             MBEDTLS_PADDING_NONE ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_set_padding_mode", ret );
-            goto end;
-        }
-    }
-#endif /* MBEDTLS_CIPHER_MODE_CBC */
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-
-end:
-    mbedtls_platform_zeroize( keyblk, sizeof( keyblk ) );
-    return( ret );
-}
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 || MBEDTLS_SSL_CONTEXT_SERIALIZATION */
-
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 static void ssl_clear_peer_cert( mbedtls_ssl_session *session )
 {
@@ -7955,6 +7508,444 @@ static mbedtls_tls_prf_types tls_prf_get_type( mbedtls_ssl_tls_prf_cb *tls_prf )
     else
 #endif
     return( MBEDTLS_SSL_TLS_PRF_NONE );
+}
+
+/*
+ * Populate a transform structure with session keys and all the other
+ * necessary information.
+ *
+ * Parameters:
+ * - [in/out]: transform: structure to populate
+ *      [in] must be just initialised with mbedtls_ssl_transform_init()
+ *      [out] fully populated, ready for use by mbedtls_ssl_{en,de}crypt_buf()
+ * - [in] ciphersuite
+ * - [in] master
+ * - [in] encrypt_then_mac
+ * - [in] compression
+ * - [in] tls_prf: pointer to PRF to use for key derivation
+ * - [in] randbytes: buffer holding ServerHello.random + ClientHello.random
+ * - [in] minor_ver: SSL/TLS minor version
+ * - [in] endpoint: client or server
+ * - [in] ssl: used for:
+ *        - ssl->conf->{f,p}_export_keys
+ *      [in] optionally used for:
+ *        - MBEDTLS_DEBUG_C: ssl->conf->{f,p}_dbg
+ */
+static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
+                                   int ciphersuite,
+                                   const unsigned char master[48],
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC) && \
+    defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+                                   int encrypt_then_mac,
+#endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC &&
+          MBEDTLS_SSL_SOME_SUITES_USE_MAC */
+                                   ssl_tls_prf_t tls_prf,
+                                   const unsigned char randbytes[64],
+                                   int minor_ver,
+                                   unsigned endpoint,
+                                   const mbedtls_ssl_context *ssl )
+{
+    int ret = 0;
+    unsigned char keyblk[256];
+    unsigned char *key1;
+    unsigned char *key2;
+    unsigned char *mac_enc;
+    unsigned char *mac_dec;
+    size_t mac_key_len = 0;
+    size_t iv_copy_len;
+    size_t keylen;
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
+    const mbedtls_cipher_info_t *cipher_info;
+    const mbedtls_md_info_t *md_info;
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_key_type_t key_type;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_algorithm_t alg;
+    size_t key_bits;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+#endif
+
+#if !defined(MBEDTLS_DEBUG_C) && \
+    !defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+    if( ssl->f_export_keys == NULL )
+    {
+        ssl = NULL; /* make sure we don't use it except for these cases */
+        (void) ssl;
+    }
+#endif
+
+    /*
+     * Some data just needs copying into the structure
+     */
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC) && \
+    defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
+    transform->encrypt_then_mac = encrypt_then_mac;
+#endif
+    transform->minor_ver = minor_ver;
+
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+    memcpy( transform->randbytes, randbytes, sizeof( transform->randbytes ) );
+#endif
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+    {
+        /* At the moment, we keep TLS <= 1.2 and TLS 1.3 transform
+         * generation separate. This should never happen. */
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+
+    /*
+     * Get various info structures
+     */
+    ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( ciphersuite );
+    if( ciphersuite_info == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "ciphersuite info for %d not found",
+                                    ciphersuite ) );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+    cipher_info = mbedtls_cipher_info_from_type( ciphersuite_info->cipher );
+    if( cipher_info == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "cipher info for %u not found",
+                                    ciphersuite_info->cipher ) );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+    md_info = mbedtls_md_info_from_type( ciphersuite_info->mac );
+    if( md_info == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "mbedtls_md info for %u not found",
+                            (unsigned) ciphersuite_info->mac ) );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+    /* Copy own and peer's CID if the use of the CID
+     * extension has been negotiated. */
+    if( ssl->handshake->cid_in_use == MBEDTLS_SSL_CID_ENABLED )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "Copy CIDs into SSL transform" ) );
+
+        transform->in_cid_len = ssl->own_cid_len;
+        memcpy( transform->in_cid, ssl->own_cid, ssl->own_cid_len );
+        MBEDTLS_SSL_DEBUG_BUF( 3, "Incoming CID", transform->in_cid,
+                               transform->in_cid_len );
+
+        transform->out_cid_len = ssl->handshake->peer_cid_len;
+        memcpy( transform->out_cid, ssl->handshake->peer_cid,
+                ssl->handshake->peer_cid_len );
+        MBEDTLS_SSL_DEBUG_BUF( 3, "Outgoing CID", transform->out_cid,
+                               transform->out_cid_len );
+    }
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+
+    /*
+     * Compute key block using the PRF
+     */
+    ret = tls_prf( master, 48, "key expansion", randbytes, 64, keyblk, 256 );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "prf", ret );
+        return( ret );
+    }
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite = %s",
+                           mbedtls_ssl_get_ciphersuite_name( ciphersuite ) ) );
+    MBEDTLS_SSL_DEBUG_BUF( 3, "master secret", master, 48 );
+    MBEDTLS_SSL_DEBUG_BUF( 4, "random bytes", randbytes, 64 );
+    MBEDTLS_SSL_DEBUG_BUF( 4, "key block", keyblk, 256 );
+
+    /*
+     * Determine the appropriate key, IV and MAC length.
+     */
+
+    keylen = mbedtls_cipher_info_get_key_bitlen( cipher_info ) / 8;
+
+#if defined(MBEDTLS_GCM_C) ||                           \
+    defined(MBEDTLS_CCM_C) ||                           \
+    defined(MBEDTLS_CHACHAPOLY_C)
+    if( mbedtls_cipher_info_get_mode( cipher_info ) == MBEDTLS_MODE_GCM ||
+        mbedtls_cipher_info_get_mode( cipher_info ) == MBEDTLS_MODE_CCM ||
+        mbedtls_cipher_info_get_mode( cipher_info ) == MBEDTLS_MODE_CHACHAPOLY )
+    {
+        size_t explicit_ivlen;
+
+        transform->maclen = 0;
+        mac_key_len = 0;
+        transform->taglen =
+            ciphersuite_info->flags & MBEDTLS_CIPHERSUITE_SHORT_TAG ? 8 : 16;
+
+        /* All modes haves 96-bit IVs, but the length of the static parts vary
+         * with mode and version:
+         * - For GCM and CCM in TLS 1.2, there's a static IV of 4 Bytes
+         *   (to be concatenated with a dynamically chosen IV of 8 Bytes)
+         * - For ChaChaPoly in TLS 1.2, and all modes in TLS 1.3, there's
+         *   a static IV of 12 Bytes (to be XOR'ed with the 8 Byte record
+         *   sequence number).
+         */
+        transform->ivlen = 12;
+        if( mbedtls_cipher_info_get_mode( cipher_info ) == MBEDTLS_MODE_CHACHAPOLY )
+            transform->fixed_ivlen = 12;
+        else
+            transform->fixed_ivlen = 4;
+
+        /* Minimum length of encrypted record */
+        explicit_ivlen = transform->ivlen - transform->fixed_ivlen;
+        transform->minlen = explicit_ivlen + transform->taglen;
+    }
+    else
+#endif /* MBEDTLS_GCM_C || MBEDTLS_CCM_C || MBEDTLS_CHACHAPOLY_C */
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
+    if( mbedtls_cipher_info_get_mode( cipher_info ) == MBEDTLS_MODE_STREAM ||
+        mbedtls_cipher_info_get_mode( cipher_info ) == MBEDTLS_MODE_CBC )
+    {
+        /* Initialize HMAC contexts */
+        if( ( ret = mbedtls_md_setup( &transform->md_ctx_enc, md_info, 1 ) ) != 0 ||
+            ( ret = mbedtls_md_setup( &transform->md_ctx_dec, md_info, 1 ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_md_setup", ret );
+            goto end;
+        }
+
+        /* Get MAC length */
+        mac_key_len = mbedtls_md_get_size( md_info );
+        transform->maclen = mac_key_len;
+
+        /* IV length */
+        transform->ivlen = cipher_info->iv_size;
+
+        /* Minimum length */
+        if( mbedtls_cipher_info_get_mode( cipher_info ) == MBEDTLS_MODE_STREAM )
+            transform->minlen = transform->maclen;
+        else
+        {
+            /*
+             * GenericBlockCipher:
+             * 1. if EtM is in use: one block plus MAC
+             *    otherwise: * first multiple of blocklen greater than maclen
+             * 2. IV
+             */
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+            if( encrypt_then_mac == MBEDTLS_SSL_ETM_ENABLED )
+            {
+                transform->minlen = transform->maclen
+                                  + cipher_info->block_size;
+            }
+            else
+#endif
+            {
+                transform->minlen = transform->maclen
+                                  + cipher_info->block_size
+                                  - transform->maclen % cipher_info->block_size;
+            }
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+            if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+            {
+                transform->minlen += transform->ivlen;
+            }
+            else
+#endif
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+                ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+                goto end;
+            }
+        }
+    }
+    else
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "keylen: %u, minlen: %u, ivlen: %u, maclen: %u",
+                                (unsigned) keylen,
+                                (unsigned) transform->minlen,
+                                (unsigned) transform->ivlen,
+                                (unsigned) transform->maclen ) );
+
+    /*
+     * Finally setup the cipher contexts, IVs and MAC secrets.
+     */
+#if defined(MBEDTLS_SSL_CLI_C)
+    if( endpoint == MBEDTLS_SSL_IS_CLIENT )
+    {
+        key1 = keyblk + mac_key_len * 2;
+        key2 = keyblk + mac_key_len * 2 + keylen;
+
+        mac_enc = keyblk;
+        mac_dec = keyblk + mac_key_len;
+
+        /*
+         * This is not used in TLS v1.1.
+         */
+        iv_copy_len = ( transform->fixed_ivlen ) ?
+                            transform->fixed_ivlen : transform->ivlen;
+        memcpy( transform->iv_enc, key2 + keylen,  iv_copy_len );
+        memcpy( transform->iv_dec, key2 + keylen + iv_copy_len,
+                iv_copy_len );
+    }
+    else
+#endif /* MBEDTLS_SSL_CLI_C */
+#if defined(MBEDTLS_SSL_SRV_C)
+    if( endpoint == MBEDTLS_SSL_IS_SERVER )
+    {
+        key1 = keyblk + mac_key_len * 2 + keylen;
+        key2 = keyblk + mac_key_len * 2;
+
+        mac_enc = keyblk + mac_key_len;
+        mac_dec = keyblk;
+
+        /*
+         * This is not used in TLS v1.1.
+         */
+        iv_copy_len = ( transform->fixed_ivlen ) ?
+                            transform->fixed_ivlen : transform->ivlen;
+        memcpy( transform->iv_dec, key1 + keylen,  iv_copy_len );
+        memcpy( transform->iv_enc, key1 + keylen + iv_copy_len,
+                iv_copy_len );
+    }
+    else
+#endif /* MBEDTLS_SSL_SRV_C */
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+        goto end;
+    }
+
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    /* For HMAC-based ciphersuites, initialize the HMAC transforms.
+       For AEAD-based ciphersuites, there is nothing to do here. */
+    if( mac_key_len != 0 )
+    {
+        ret = mbedtls_md_hmac_starts( &transform->md_ctx_enc, mac_enc, mac_key_len );
+        if( ret != 0 )
+            goto end;
+        ret = mbedtls_md_hmac_starts( &transform->md_ctx_dec, mac_dec, mac_key_len );
+        if( ret != 0 )
+            goto end;
+    }
+#endif
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
+
+    ((void) mac_dec);
+    ((void) mac_enc);
+
+    if( ssl != NULL && ssl->f_export_keys != NULL )
+    {
+        ssl->f_export_keys( ssl->p_export_keys,
+                            MBEDTLS_SSL_KEY_EXPORT_TLS12_MASTER_SECRET,
+                            master, 48,
+                            randbytes + 32,
+                            randbytes,
+                            tls_prf_get_type( tls_prf ) );
+    }
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( ( status = mbedtls_ssl_cipher_to_psa( cipher_info->type,
+                                 transform->taglen,
+                                 &alg,
+                                 &key_type,
+                                 &key_bits ) ) != PSA_SUCCESS )
+    {
+        ret = psa_ssl_status_to_mbedtls( status );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_cipher_to_psa", ret );
+        goto end;
+    }
+
+    transform->psa_alg = alg;
+
+    if ( alg != MBEDTLS_SSL_NULL_CIPHER )
+    {
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT );
+        psa_set_key_algorithm( &attributes, alg );
+        psa_set_key_type( &attributes, key_type );
+
+        if( ( status = psa_import_key( &attributes,
+                                key1,
+                                PSA_BITS_TO_BYTES( key_bits ),
+                                &transform->psa_key_enc ) ) != PSA_SUCCESS )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 3, "psa_import_key", (int)status );
+            ret = psa_ssl_status_to_mbedtls( status );
+            MBEDTLS_SSL_DEBUG_RET( 1, "psa_import_key", ret );
+            goto end;
+        }
+
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DECRYPT );
+
+        if( ( status = psa_import_key( &attributes,
+                                key2,
+                                PSA_BITS_TO_BYTES( key_bits ),
+                                &transform->psa_key_dec ) ) != PSA_SUCCESS )
+        {
+            ret = psa_ssl_status_to_mbedtls( status );
+            MBEDTLS_SSL_DEBUG_RET( 1, "psa_import_key", ret );
+            goto end;
+        }
+    }
+#else
+    if( ( ret = mbedtls_cipher_setup( &transform->cipher_ctx_enc,
+                                 cipher_info ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setup", ret );
+        goto end;
+    }
+
+    if( ( ret = mbedtls_cipher_setup( &transform->cipher_ctx_dec,
+                                 cipher_info ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setup", ret );
+        goto end;
+    }
+
+    if( ( ret = mbedtls_cipher_setkey( &transform->cipher_ctx_enc, key1,
+                               (int) mbedtls_cipher_info_get_key_bitlen( cipher_info ),
+                               MBEDTLS_ENCRYPT ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setkey", ret );
+        goto end;
+    }
+
+    if( ( ret = mbedtls_cipher_setkey( &transform->cipher_ctx_dec, key2,
+                               (int) mbedtls_cipher_info_get_key_bitlen( cipher_info ),
+                               MBEDTLS_DECRYPT ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setkey", ret );
+        goto end;
+    }
+
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+    if( mbedtls_cipher_info_get_mode( cipher_info ) == MBEDTLS_MODE_CBC )
+    {
+        if( ( ret = mbedtls_cipher_set_padding_mode( &transform->cipher_ctx_enc,
+                                             MBEDTLS_PADDING_NONE ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_set_padding_mode", ret );
+            goto end;
+        }
+
+        if( ( ret = mbedtls_cipher_set_padding_mode( &transform->cipher_ctx_dec,
+                                             MBEDTLS_PADDING_NONE ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_set_padding_mode", ret );
+            goto end;
+        }
+    }
+#endif /* MBEDTLS_CIPHER_MODE_CBC */
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+end:
+    mbedtls_platform_zeroize( keyblk, sizeof( keyblk ) );
+    return( ret );
 }
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */

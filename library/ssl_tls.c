@@ -402,28 +402,6 @@ static void ssl_update_checksum_sha256( mbedtls_ssl_context *, const unsigned ch
 static void ssl_update_checksum_sha384( mbedtls_ssl_context *, const unsigned char *, size_t );
 #endif /* MBEDTLS_SHA384_C */
 
-#if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED) && \
-    defined(MBEDTLS_USE_PSA_CRYPTO)
-static int ssl_use_opaque_psk( mbedtls_ssl_context const *ssl )
-{
-    if( ssl->conf->f_psk != NULL )
-    {
-        /* If we've used a callback to select the PSK,
-         * the static configuration is irrelevant. */
-        if( ! mbedtls_svc_key_id_is_null( ssl->handshake->psk_opaque ) )
-            return( 1 );
-
-        return( 0 );
-    }
-
-    if( ! mbedtls_svc_key_id_is_null( ssl->conf->psk_opaque ) )
-        return( 1 );
-
-    return( 0 );
-}
-#endif /* MBEDTLS_USE_PSA_CRYPTO &&
-          MBEDTLS_KEY_EXCHANGE_PSK_ENABLED */
-
 int  mbedtls_ssl_tls_prf( const mbedtls_tls_prf_types prf,
                           const unsigned char *secret, size_t slen,
                           const char *label,
@@ -7965,6 +7943,29 @@ static int ssl_set_handshake_prfs( mbedtls_ssl_handshake_params *handshake,
 
     return( 0 );
 }
+
+#if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED) && \
+    defined(MBEDTLS_USE_PSA_CRYPTO)
+static int ssl_use_opaque_psk( mbedtls_ssl_context const *ssl )
+{
+    if( ssl->conf->f_psk != NULL )
+    {
+        /* If we've used a callback to select the PSK,
+         * the static configuration is irrelevant. */
+        if( ! mbedtls_svc_key_id_is_null( ssl->handshake->psk_opaque ) )
+            return( 1 );
+
+        return( 0 );
+    }
+
+    if( ! mbedtls_svc_key_id_is_null( ssl->conf->psk_opaque ) )
+        return( 1 );
+
+    return( 0 );
+}
+#endif /* MBEDTLS_USE_PSA_CRYPTO &&
+          MBEDTLS_KEY_EXCHANGE_PSK_ENABLED */
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #endif /* MBEDTLS_SSL_TLS_C */

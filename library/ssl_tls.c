@@ -1009,37 +1009,6 @@ static void ssl_update_checksum_sha384( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 
-#if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_RENEGOTIATION)
-static int ssl_write_hello_request( mbedtls_ssl_context *ssl );
-
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-int mbedtls_ssl_resend_hello_request( mbedtls_ssl_context *ssl )
-{
-    /* If renegotiation is not enforced, retransmit until we would reach max
-     * timeout if we were using the usual handshake doubling scheme */
-    if( ssl->conf->renego_max_records < 0 )
-    {
-        uint32_t ratio = ssl->conf->hs_timeout_max / ssl->conf->hs_timeout_min + 1;
-        unsigned char doublings = 1;
-
-        while( ratio != 0 )
-        {
-            ++doublings;
-            ratio >>= 1;
-        }
-
-        if( ++ssl->renego_records_seen > doublings )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 2, ( "no longer retransmitting hello request" ) );
-            return( 0 );
-        }
-    }
-
-    return( ssl_write_hello_request( ssl ) );
-}
-#endif
-#endif /* MBEDTLS_SSL_SRV_C && MBEDTLS_SSL_RENEGOTIATION */
-
 /*
  * Handshake functions
  */
@@ -7965,6 +7934,37 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
     return( 0 );
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+
+#if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_RENEGOTIATION)
+static int ssl_write_hello_request( mbedtls_ssl_context *ssl );
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+int mbedtls_ssl_resend_hello_request( mbedtls_ssl_context *ssl )
+{
+    /* If renegotiation is not enforced, retransmit until we would reach max
+     * timeout if we were using the usual handshake doubling scheme */
+    if( ssl->conf->renego_max_records < 0 )
+    {
+        uint32_t ratio = ssl->conf->hs_timeout_max / ssl->conf->hs_timeout_min + 1;
+        unsigned char doublings = 1;
+
+        while( ratio != 0 )
+        {
+            ++doublings;
+            ratio >>= 1;
+        }
+
+        if( ++ssl->renego_records_seen > doublings )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "no longer retransmitting hello request" ) );
+            return( 0 );
+        }
+    }
+
+    return( ssl_write_hello_request( ssl ) );
+}
+#endif
+#endif /* MBEDTLS_SSL_SRV_C && MBEDTLS_SSL_RENEGOTIATION */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #endif /* MBEDTLS_SSL_TLS_C */

@@ -187,27 +187,19 @@ static int mbedtls_x509write_crt_set_key_identifier( mbedtls_x509write_cert
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     memset( buf, 0, sizeof(buf) );
-    if( is_ca )
-    {
-        MBEDTLS_ASN1_CHK_ADD( len,
-                              mbedtls_pk_write_pubkey( &c,
-                                                       buf,
-                                                       ctx->issuer_key ) );
-    }
-    else
-    {
-        MBEDTLS_ASN1_CHK_ADD( len,
-                              mbedtls_pk_write_pubkey( &c,
-                                                       buf,
-                                                       ctx->subject_key ) );
-    }
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_pk_write_pubkey( &c,
+                                                        buf,
+                                                        is_ca ?
+                                                          ctx->issuer_key :
+                                                          ctx->subject_key ) );
+
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     status = psa_hash_compute( PSA_ALG_SHA_1,
                                buf + sizeof(buf) - len,
                                len,
                                buf + sizeof(buf) - 20,
-                               PSA_HASH_LENGTH(PSA_ALG_SHA_1),
+                               20,
                                &hash_length );
     if( status != PSA_SUCCESS )
     {
@@ -235,24 +227,18 @@ static int mbedtls_x509write_crt_set_key_identifier( mbedtls_x509write_cert
                                                       buf,
                                                       MBEDTLS_ASN1_CONSTRUCTED |
                                                       MBEDTLS_ASN1_SEQUENCE ) );
-        return mbedtls_x509write_crt_set_extension(
+    }
+    return mbedtls_x509write_crt_set_extension(
                    ctx,
-                   MBEDTLS_OID_AUTHORITY_KEY_IDENTIFIER,
-                   MBEDTLS_OID_SIZE( MBEDTLS_OID_AUTHORITY_KEY_IDENTIFIER ),
+                   is_ca ? MBEDTLS_OID_AUTHORITY_KEY_IDENTIFIER :
+                               MBEDTLS_OID_SUBJECT_KEY_IDENTIFIER,
+                   is_ca ? MBEDTLS_OID_SIZE(
+                               MBEDTLS_OID_AUTHORITY_KEY_IDENTIFIER ) :
+                           MBEDTLS_OID_SIZE(
+                               MBEDTLS_OID_SUBJECT_KEY_IDENTIFIER ),
                    0,
                    buf + sizeof( buf ) - len,
                    len );
-    }
-    else
-    {
-        return mbedtls_x509write_crt_set_extension(
-                   ctx,
-                   MBEDTLS_OID_SUBJECT_KEY_IDENTIFIER,
-                   MBEDTLS_OID_SIZE( MBEDTLS_OID_SUBJECT_KEY_IDENTIFIER ),
-                   0,
-                   buf + sizeof( buf ) - len,
-                   len );
-    }
 }
 
 int mbedtls_x509write_crt_set_subject_key_identifier( mbedtls_x509write_cert *ctx )

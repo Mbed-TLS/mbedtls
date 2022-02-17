@@ -1009,31 +1009,6 @@ static void ssl_update_checksum_sha384( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 
-void mbedtls_ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl )
-{
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "=> handshake wrapup: final free" ) );
-
-    /*
-     * Free our handshake params
-     */
-    mbedtls_ssl_handshake_free( ssl );
-    mbedtls_free( ssl->handshake );
-    ssl->handshake = NULL;
-
-    /*
-     * Free the previous transform and swith in the current one
-     */
-    if( ssl->transform )
-    {
-        mbedtls_ssl_transform_free( ssl->transform );
-        mbedtls_free( ssl->transform );
-    }
-    ssl->transform = ssl->transform_negotiate;
-    ssl->transform_negotiate = NULL;
-
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "<= handshake wrapup: final free" ) );
-}
-
 void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
 {
     int resume = ssl->handshake->resume;
@@ -7968,6 +7943,31 @@ static void ssl_calc_finished_tls_sha384(
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
 #endif /* MBEDTLS_SHA384_C */
+
+void mbedtls_ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl )
+{
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "=> handshake wrapup: final free" ) );
+
+    /*
+     * Free our handshake params
+     */
+    mbedtls_ssl_handshake_free( ssl );
+    mbedtls_free( ssl->handshake );
+    ssl->handshake = NULL;
+
+    /*
+     * Free the previous transform and swith in the current one
+     */
+    if( ssl->transform )
+    {
+        mbedtls_ssl_transform_free( ssl->transform );
+        mbedtls_free( ssl->transform );
+    }
+    ssl->transform = ssl->transform_negotiate;
+    ssl->transform_negotiate = NULL;
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "<= handshake wrapup: final free" ) );
+}
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 

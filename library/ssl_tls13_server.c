@@ -22,7 +22,6 @@
 #if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
 
 #include "mbedtls/debug.h"
-#include "mbedtls/platform.h"
 
 #include "ssl_misc.h"
 #include "ssl_tls13_keys.h"
@@ -33,7 +32,13 @@
 #include "ecp_internal.h"
 #endif /* MBEDTLS_ECP_C */
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#if defined(MBEDTLS_PLATFORM_C)
+#include "mbedtls/platform.h"
+#else
+#include <stdlib.h>
+#define mbedtls_calloc    calloc
+#define mbedtls_free       free
+#endif /* MBEDTLS_PLATFORM_C */
 
 /* From RFC 8446:
  *   struct {
@@ -181,6 +186,7 @@ static int mbedtls_ssl_tls13_parse_supported_groups_ext(
 }
 #endif /* MBEDTLS_ECDH_C || ( MBEDTLS_ECDSA_C */
 
+#if ( defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) )
 /* TODO: Code for MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED missing */
 /*
  *  ssl_tls13_parse_key_shares_ext() verifies whether the information in the
@@ -627,7 +633,7 @@ static int ssl_client_hello_parse( mbedtls_ssl_context *ssl,
     /*
      * For TLS 1.3 we are not using compression.
      */
-    comp_len = buf[0];
+    comp_len = p[0];
     p++;
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, comp_len );
 
@@ -635,7 +641,7 @@ static int ssl_client_hello_parse( mbedtls_ssl_context *ssl,
                            p, comp_len );
 
     /* Determine whether we are indeed using null compression */
-    if( ( comp_len != 1 ) && ( p[1] == 0 ) )
+    if( ( comp_len != 1 ) && ( p[0] == 0 ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
         return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );

@@ -3502,7 +3502,7 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
     /* Read random bytes and populate structure */
     if( (size_t)( end - p ) < sizeof( ssl->transform->randbytes ) )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     ret = ssl_tls12_populate_transform( ssl->transform,
                   ssl->session->ciphersuite,
                   ssl->session->master,
@@ -3518,7 +3518,7 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
                   ssl );
     if( ret != 0 )
         return( ret );
-
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
     p += sizeof( ssl->transform->randbytes );
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)

@@ -1009,74 +1009,6 @@ static void ssl_update_checksum_sha384( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 
-int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    const mbedtls_ssl_ciphersuite_t * const ciphersuite_info =
-        ssl->handshake->ciphersuite_info;
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> derive keys" ) );
-
-    /* Set PRF, calc_verify and calc_finished function pointers */
-    ret = ssl_set_handshake_prfs( ssl->handshake,
-                                  ssl->minor_ver,
-                                  ciphersuite_info->mac );
-    if( ret != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_set_handshake_prfs", ret );
-        return( ret );
-    }
-
-    /* Compute master secret if needed */
-    ret = ssl_compute_master( ssl->handshake,
-                              ssl->session_negotiate->master,
-                              ssl );
-    if( ret != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_compute_master", ret );
-        return( ret );
-    }
-
-    /* Swap the client and server random values:
-     * - MS derivation wanted client+server (RFC 5246 8.1)
-     * - key derivation wants server+client (RFC 5246 6.3) */
-    {
-        unsigned char tmp[64];
-        memcpy( tmp, ssl->handshake->randbytes, 64 );
-        memcpy( ssl->handshake->randbytes, tmp + 32, 32 );
-        memcpy( ssl->handshake->randbytes + 32, tmp, 32 );
-        mbedtls_platform_zeroize( tmp, sizeof( tmp ) );
-    }
-
-    /* Populate transform structure */
-    ret = ssl_tls12_populate_transform( ssl->transform_negotiate,
-                                        ssl->session_negotiate->ciphersuite,
-                                        ssl->session_negotiate->master,
-#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC) && \
-    defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
-                                        ssl->session_negotiate->encrypt_then_mac,
-#endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC &&
-          MBEDTLS_SSL_SOME_SUITES_USE_MAC */
-                                        ssl->handshake->tls_prf,
-                                        ssl->handshake->randbytes,
-                                        ssl->minor_ver,
-                                        ssl->conf->endpoint,
-                                        ssl );
-    if( ret != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls12_populate_transform", ret );
-        return( ret );
-    }
-
-    /* We no longer need Server/ClientHello.random values */
-    mbedtls_platform_zeroize( ssl->handshake->randbytes,
-                      sizeof( ssl->handshake->randbytes ) );
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= derive keys" ) );
-
-    return( 0 );
-}
-
 #if defined(MBEDTLS_SHA256_C)
 void ssl_calc_verify_tls_sha256( const mbedtls_ssl_context *ssl,
                                  unsigned char *hash,
@@ -7966,6 +7898,73 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
     return( 0 );
 }
 
+int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    const mbedtls_ssl_ciphersuite_t * const ciphersuite_info =
+        ssl->handshake->ciphersuite_info;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> derive keys" ) );
+
+    /* Set PRF, calc_verify and calc_finished function pointers */
+    ret = ssl_set_handshake_prfs( ssl->handshake,
+                                  ssl->minor_ver,
+                                  ciphersuite_info->mac );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_set_handshake_prfs", ret );
+        return( ret );
+    }
+
+    /* Compute master secret if needed */
+    ret = ssl_compute_master( ssl->handshake,
+                              ssl->session_negotiate->master,
+                              ssl );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_compute_master", ret );
+        return( ret );
+    }
+
+    /* Swap the client and server random values:
+     * - MS derivation wanted client+server (RFC 5246 8.1)
+     * - key derivation wants server+client (RFC 5246 6.3) */
+    {
+        unsigned char tmp[64];
+        memcpy( tmp, ssl->handshake->randbytes, 64 );
+        memcpy( ssl->handshake->randbytes, tmp + 32, 32 );
+        memcpy( ssl->handshake->randbytes + 32, tmp, 32 );
+        mbedtls_platform_zeroize( tmp, sizeof( tmp ) );
+    }
+
+    /* Populate transform structure */
+    ret = ssl_tls12_populate_transform( ssl->transform_negotiate,
+                                        ssl->session_negotiate->ciphersuite,
+                                        ssl->session_negotiate->master,
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC) && \
+    defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+                                        ssl->session_negotiate->encrypt_then_mac,
+#endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC &&
+          MBEDTLS_SSL_SOME_SUITES_USE_MAC */
+                                        ssl->handshake->tls_prf,
+                                        ssl->handshake->randbytes,
+                                        ssl->minor_ver,
+                                        ssl->conf->endpoint,
+                                        ssl );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls12_populate_transform", ret );
+        return( ret );
+    }
+
+    /* We no longer need Server/ClientHello.random values */
+    mbedtls_platform_zeroize( ssl->handshake->randbytes,
+                      sizeof( ssl->handshake->randbytes ) );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= derive keys" ) );
+
+    return( 0 );
+}
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #endif /* MBEDTLS_SSL_TLS_C */

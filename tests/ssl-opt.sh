@@ -9805,43 +9805,6 @@ run_test    "TLS 1.3: CertificateRequest check - openssl" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY"
 
-requires_openssl_tls1_3
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
-run_test    "TLS 1.3: CertificateRequest, RSA not support - openssl" \
-            "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10" \
-            "$P_CLI debug_level=3 min_version=tls13 max_version=tls13 crt_file=data_files/cli-rsa-sha256.crt \
-                    key_file=data_files/cli-rsa.key" \
-            1 \
-            -c "=> parse certificate request" \
-            -c "got a certificate request" \
-            -c "<= parse certificate request" \
-            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
-            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
-            -c "Only ECDSA signature algorithms are supported."
-
-requires_gnutls_tls1_3
-requires_gnutls_next_no_ticket
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_config_enabled MBEDTLS_DEBUG_C
-requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
-run_test    "TLS 1.3: CertificateRequest, RSA not support - gnutls" \
-            "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS" \
-            "$P_CLI debug_level=3 min_version=tls13 max_version=tls13 crt_file=data_files/cli-rsa-sha256.crt \
-                    key_file=data_files/cli-rsa.key" \
-            1 \
-            -c "=> parse certificate request" \
-            -c "got a certificate request" \
-            -c "<= parse certificate request" \
-            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
-            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
-            -c "Only ECDSA signature algorithms are supported."
-
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -10027,6 +9990,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_RSA_C
 run_test    "TLS 1.3: CertificateRequest check, rsa_pss_rsae_sha256 - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10 -no_middlebox " \
             "$P_CLI debug_level=4 force_version=tls13 crt_file=data_files/cert_sha256.crt \
@@ -10044,6 +10008,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_RSA_C
 run_test    "TLS 1.3: CertificateRequest check, rsa_pss_rsae_sha256 - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
             "$P_CLI debug_level=3 force_version=tls13 crt_file=data_files/server2-sha256.crt \

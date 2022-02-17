@@ -230,8 +230,7 @@ psa_status_t mbedtls_psa_hkdf_expand( psa_algorithm_t alg,
             goto cleanup;
         }
 
-        /* The constant concatenated to the end of each T(n) is a single octet.
-         * */
+        /* The constant concatenated to the end of each T(n) is a single octet. */
         status = psa_mac_update( &operation, &c, 1 );
         if( status != PSA_SUCCESS )
         {

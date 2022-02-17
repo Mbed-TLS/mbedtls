@@ -429,7 +429,7 @@ int mbedtls_x509_time_is_future(const mbedtls_x509_time *from);
  * \param san_buf  The buffer holding the raw data item of the subject
  *                 alternative name.
  * \param san      The target structure to populate with the parsed presentation
- *                 of the subject alternative name encoded in \p san_raw.
+ *                 of the subject alternative name encoded in \p san_buf.
  *
  * \note           Supported GeneralName types, as defined in RFC 5280:
  *                 "rfc822Name", "dnsName", "directoryName",
@@ -439,7 +439,7 @@ int mbedtls_x509_time_is_future(const mbedtls_x509_time *from);
  * \note           This function should be called on a single raw data of
  *                 subject alternative name. For example, after successful
  *                 certificate parsing, one must iterate on every item in the
- *                 \p crt->subject_alt_names sequence, and pass it to
+ *                 \c crt->subject_alt_names sequence, and pass it to
  *                 this function.
  *
  * \warning        The target structure contains pointers to the raw data of the

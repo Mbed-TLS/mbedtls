@@ -1036,12 +1036,12 @@ typedef uint32_t psa_pake_primitive_t;
  *                      (value of type ::psa_pake_primitive_type_t).
  * \param pake_family   The family of the primitive
  *                      (the type and interpretation of this parameter depends
- *                      on \p type, for more information consult the
+ *                      on \p pake_type, for more information consult the
  *                      documentation of individual ::psa_pake_primitive_type_t
  *                      constants).
  * \param pake_bits     The bit-size of the primitive
  *                      (Value of type \c size_t. The interpretation
- *                      of this parameter depends on \p family, for more
+ *                      of this parameter depends on \p pake_family, for more
  *                      information consult the documentation of individual
  *                      ::psa_pake_primitive_type_t constants).
  *
@@ -1744,7 +1744,7 @@ psa_status_t psa_pake_input(psa_pake_operation_t *operation,
  *
  * When this function returns successfully, \p operation becomes inactive.
  * If this function returns an error status, both \p operation
- * and \p key_derivation operations enter an error state and must be aborted by
+ * and \c key_derivation operations enter an error state and must be aborted by
  * calling psa_pake_abort() and psa_key_derivation_abort() respectively.
  *
  * \param[in,out] operation    Active PAKE operation.

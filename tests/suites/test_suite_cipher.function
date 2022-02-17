@@ -1154,6 +1154,9 @@ void check_iv( int cipher_id, char * cipher_string,
     size_t iv_len = iv_len_val;
     unsigned char iv[16];
 
+    /* Initialise iv buffer */
+    memset( iv, 0, sizeof( iv ) );
+
     const mbedtls_cipher_info_t *cipher_info;
     mbedtls_cipher_context_t ctx_dec;
     mbedtls_cipher_context_t ctx_enc;

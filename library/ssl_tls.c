@@ -433,27 +433,6 @@ int  mbedtls_ssl_tls_prf( const mbedtls_tls_prf_types prf,
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) || \
     defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
-static mbedtls_tls_prf_types tls_prf_get_type( mbedtls_ssl_tls_prf_cb *tls_prf )
-{
-    ((void) tls_prf);
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-#if defined(MBEDTLS_SHA384_C)
-    if( tls_prf == tls_prf_sha384 )
-    {
-        return( MBEDTLS_SSL_TLS_PRF_SHA384 );
-    }
-    else
-#endif
-#if defined(MBEDTLS_SHA256_C)
-    if( tls_prf == tls_prf_sha256 )
-    {
-        return( MBEDTLS_SSL_TLS_PRF_SHA256 );
-    }
-    else
-#endif
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
-    return( MBEDTLS_SSL_TLS_PRF_NONE );
-}
 
 /* Type for the TLS PRF */
 typedef int ssl_tls_prf_t(const unsigned char *, size_t, const char *,
@@ -7957,6 +7936,27 @@ static tls_prf_fn ssl_tls12prf_from_cs( int ciphersuite_id )
     return( tls_prf_sha256 );
 }
 #endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
+
+static mbedtls_tls_prf_types tls_prf_get_type( mbedtls_ssl_tls_prf_cb *tls_prf )
+{
+    ((void) tls_prf);
+#if defined(MBEDTLS_SHA384_C)
+    if( tls_prf == tls_prf_sha384 )
+    {
+        return( MBEDTLS_SSL_TLS_PRF_SHA384 );
+    }
+    else
+#endif
+#if defined(MBEDTLS_SHA256_C)
+    if( tls_prf == tls_prf_sha256 )
+    {
+        return( MBEDTLS_SSL_TLS_PRF_SHA256 );
+    }
+    else
+#endif
+    return( MBEDTLS_SSL_TLS_PRF_NONE );
+}
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #endif /* MBEDTLS_SSL_TLS_C */

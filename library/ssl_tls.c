@@ -1030,50 +1030,6 @@ static void ssl_update_checksum_sha384( mbedtls_ssl_context *ssl,
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-/*
- * Set appropriate PRF function and other SSL / TLS1.2 functions
- *
- * Inputs:
- * - SSL/TLS minor version
- * - hash associated with the ciphersuite (only used by TLS 1.2)
- *
- * Outputs:
- * - the tls_prf, calc_verify and calc_finished members of handshake structure
- */
-static int ssl_set_handshake_prfs( mbedtls_ssl_handshake_params *handshake,
-                                   int minor_ver,
-                                   mbedtls_md_type_t hash )
-{
-
-#if defined(MBEDTLS_SHA384_C)
-    if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 &&
-        hash == MBEDTLS_MD_SHA384 )
-    {
-        handshake->tls_prf = tls_prf_sha384;
-        handshake->calc_verify = ssl_calc_verify_tls_sha384;
-        handshake->calc_finished = ssl_calc_finished_tls_sha384;
-    }
-    else
-#endif
-#if defined(MBEDTLS_SHA256_C)
-    if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
-    {
-        handshake->tls_prf = tls_prf_sha256;
-        handshake->calc_verify = ssl_calc_verify_tls_sha256;
-        handshake->calc_finished = ssl_calc_finished_tls_sha256;
-    }
-    else
-#endif
-    {
-        (void) hash;
-        (void) minor_ver;
-        (void) handshake;
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-    }
-
-
-    return( 0 );
-}
 
 /*
  * Compute master secret if needed
@@ -7966,6 +7922,49 @@ static int tls_prf_sha384( const unsigned char *secret, size_t slen,
 }
 #endif /* MBEDTLS_SHA384_C */
 
+/*
+ * Set appropriate PRF function and other SSL / TLS1.2 functions
+ *
+ * Inputs:
+ * - SSL/TLS minor version
+ * - hash associated with the ciphersuite (only used by TLS 1.2)
+ *
+ * Outputs:
+ * - the tls_prf, calc_verify and calc_finished members of handshake structure
+ */
+static int ssl_set_handshake_prfs( mbedtls_ssl_handshake_params *handshake,
+                                   int minor_ver,
+                                   mbedtls_md_type_t hash )
+{
+
+#if defined(MBEDTLS_SHA384_C)
+    if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 &&
+        hash == MBEDTLS_MD_SHA384 )
+    {
+        handshake->tls_prf = tls_prf_sha384;
+        handshake->calc_verify = ssl_calc_verify_tls_sha384;
+        handshake->calc_finished = ssl_calc_finished_tls_sha384;
+    }
+    else
+#endif
+#if defined(MBEDTLS_SHA256_C)
+    if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+    {
+        handshake->tls_prf = tls_prf_sha256;
+        handshake->calc_verify = ssl_calc_verify_tls_sha256;
+        handshake->calc_finished = ssl_calc_finished_tls_sha256;
+    }
+    else
+#endif
+    {
+        (void) hash;
+        (void) minor_ver;
+        (void) handshake;
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+
+    return( 0 );
+}
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #endif /* MBEDTLS_SSL_TLS_C */

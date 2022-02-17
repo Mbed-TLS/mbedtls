@@ -3848,6 +3848,8 @@ void psa_hkdf_expand_ret( int alg, int prk_len, int okm_len, int ret )
     unsigned char *prk = NULL;
     unsigned char *okm = NULL;
     size_t info_len;
+    size_t i;
+    mbedtls_svc_key_id_t *keys = NULL;
 
     PSA_INIT( );
 
@@ -3859,6 +3861,30 @@ void psa_hkdf_expand_ret( int alg, int prk_len, int okm_len, int ret )
     if( okm_len > 0 )
         ASSERT_ALLOC( okm, okm_len );
 
+    if( ret == PSA_ERROR_INSUFFICIENT_MEMORY )
+    {
+        psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+        /* Reserve all key slot to make the key import fail. */
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_MESSAGE );
+        psa_set_key_algorithm( &attributes, alg );
+        psa_set_key_type( &attributes, PSA_KEY_TYPE_HMAC );
+
+        ASSERT_ALLOC( keys, MBEDTLS_PSA_KEY_SLOT_COUNT );
+
+        for( i = 0; i < MBEDTLS_PSA_KEY_SLOT_COUNT; i++ )
+        {
+            /* Do not use the 0 value because it will be passed to
+               mbedtls_psa_hkdf_expand */
+            prk[0] = i + 1;
+            keys[i] = MBEDTLS_SVC_KEY_ID_INIT;
+            psa_import_key( &attributes, prk, prk_len, &keys[i] );
+        }
+
+        /* reset prk buffer */
+        prk[0] = 0;
+    }
+
     output_ret = mbedtls_psa_hkdf_expand( alg, prk, prk_len,
                                           info, info_len,
                                           okm, okm_len );
@@ -3867,6 +3893,14 @@ void psa_hkdf_expand_ret( int alg, int prk_len, int okm_len, int ret )
 exit:
     mbedtls_free( prk );
     mbedtls_free( okm );
+
+   if( ret == PSA_ERROR_INSUFFICIENT_MEMORY )
+   {
+        for( i = 0; i < MBEDTLS_PSA_KEY_SLOT_COUNT; i++ )
+            psa_destroy_key( keys[i] );
+
+        mbedtls_free( keys );
+   }
 
     PSA_DONE( );
 }

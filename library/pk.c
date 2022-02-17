@@ -371,7 +371,6 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
     pss_opts = (const mbedtls_pk_rsassa_pss_options *) options;
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_status_t status;
     if( pss_opts->mgf1_hash_id == md_alg &&
         ( (size_t) pss_opts->expected_salt_len == hash_len ||
             pss_opts->expected_salt_len  == MBEDTLS_RSA_SALT_LEN_ANY ) )
@@ -381,6 +380,8 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
         unsigned char *p;
         int key_len;
         size_t signature_length;
+        psa_status_t status = PSA_ERROR_DATA_CORRUPT;
+        psa_status_t destruction_status = PSA_ERROR_DATA_CORRUPT;
 
         psa_algorithm_t psa_md_alg = mbedtls_psa_translate_md( md_alg );
         mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
@@ -417,14 +418,18 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
                                      mbedtls_pk_get_len( ctx ) : sig_len;
         status = psa_verify_hash( key_id, psa_sig_alg, hash,
                                   hash_len, sig, signature_length );
-        psa_destroy_key( key_id );
+        destruction_status = psa_destroy_key( key_id );
 
         if( status == PSA_SUCCESS && sig_len > mbedtls_pk_get_len( ctx ) )
             return( MBEDTLS_ERR_PK_SIG_LEN_MISMATCH );
 
-        return( status == PSA_ERROR_INVALID_SIGNATURE?
-                              MBEDTLS_ERR_RSA_VERIFY_FAILED :
-                              mbedtls_psa_err_translate_pk( status ) );
+        if( status == PSA_ERROR_INVALID_SIGNATURE )
+            return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
+
+        if( status == PSA_SUCCESS )
+            status = destruction_status;
+
+        return( mbedtls_psa_err_translate_pk( status ) );
     }
     else
 #endif

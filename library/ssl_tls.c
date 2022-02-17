@@ -1009,115 +1009,6 @@ static void ssl_update_checksum_sha384( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 
-int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
-{
-    int ret, hash_len;
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write finished" ) );
-
-    mbedtls_ssl_update_out_pointers( ssl, ssl->transform_negotiate );
-
-    ssl->handshake->calc_finished( ssl, ssl->out_msg + 4, ssl->conf->endpoint );
-
-    /*
-     * RFC 5246 7.4.9 (Page 63) says 12 is the default length and ciphersuites
-     * may define some other value. Currently (early 2016), no defined
-     * ciphersuite does this (and this is unlikely to change as activity has
-     * moved to TLS 1.3 now) so we can keep the hardcoded 12 here.
-     */
-    hash_len = 12;
-
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    ssl->verify_data_len = hash_len;
-    memcpy( ssl->own_verify_data, ssl->out_msg + 4, hash_len );
-#endif
-
-    ssl->out_msglen  = 4 + hash_len;
-    ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
-    ssl->out_msg[0]  = MBEDTLS_SSL_HS_FINISHED;
-
-    /*
-     * In case of session resuming, invert the client and server
-     * ChangeCipherSpec messages order.
-     */
-    if( ssl->handshake->resume != 0 )
-    {
-#if defined(MBEDTLS_SSL_CLI_C)
-        if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
-            ssl->state = MBEDTLS_SSL_HANDSHAKE_WRAPUP;
-#endif
-#if defined(MBEDTLS_SSL_SRV_C)
-        if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
-            ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
-#endif
-    }
-    else
-        ssl->state++;
-
-    /*
-     * Switch to our negotiated transform and session parameters for outbound
-     * data.
-     */
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "switching to new transform spec for outbound data" ) );
-
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-    {
-        unsigned char i;
-
-        /* Remember current epoch settings for resending */
-        ssl->handshake->alt_transform_out = ssl->transform_out;
-        memcpy( ssl->handshake->alt_out_ctr, ssl->cur_out_ctr,
-                sizeof( ssl->handshake->alt_out_ctr ) );
-
-        /* Set sequence_number to zero */
-        memset( &ssl->cur_out_ctr[2], 0, sizeof( ssl->cur_out_ctr ) - 2 );
-
-
-        /* Increment epoch */
-        for( i = 2; i > 0; i-- )
-            if( ++ssl->cur_out_ctr[i - 1] != 0 )
-                break;
-
-        /* The loop goes to its end iff the counter is wrapping */
-        if( i == 0 )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "DTLS epoch would wrap" ) );
-            return( MBEDTLS_ERR_SSL_COUNTER_WRAPPING );
-        }
-    }
-    else
-#endif /* MBEDTLS_SSL_PROTO_DTLS */
-    memset( ssl->cur_out_ctr, 0, sizeof( ssl->cur_out_ctr ) );
-
-    ssl->transform_out = ssl->transform_negotiate;
-    ssl->session_out = ssl->session_negotiate;
-
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-        mbedtls_ssl_send_flight_completed( ssl );
-#endif
-
-    if( ( ret = mbedtls_ssl_write_handshake_msg( ssl ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_handshake_msg", ret );
-        return( ret );
-    }
-
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
-        ( ret = mbedtls_ssl_flight_transmit( ssl ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_flight_transmit", ret );
-        return( ret );
-    }
-#endif
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write finished" ) );
-
-    return( 0 );
-}
-
 #define SSL_MAX_HASH_LEN 12
 
 int mbedtls_ssl_parse_finished( mbedtls_ssl_context *ssl )
@@ -7968,6 +7859,115 @@ void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
     ssl->state++;
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "<= handshake wrapup" ) );
+}
+
+int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
+{
+    int ret, hash_len;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write finished" ) );
+
+    mbedtls_ssl_update_out_pointers( ssl, ssl->transform_negotiate );
+
+    ssl->handshake->calc_finished( ssl, ssl->out_msg + 4, ssl->conf->endpoint );
+
+    /*
+     * RFC 5246 7.4.9 (Page 63) says 12 is the default length and ciphersuites
+     * may define some other value. Currently (early 2016), no defined
+     * ciphersuite does this (and this is unlikely to change as activity has
+     * moved to TLS 1.3 now) so we can keep the hardcoded 12 here.
+     */
+    hash_len = 12;
+
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    ssl->verify_data_len = hash_len;
+    memcpy( ssl->own_verify_data, ssl->out_msg + 4, hash_len );
+#endif
+
+    ssl->out_msglen  = 4 + hash_len;
+    ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
+    ssl->out_msg[0]  = MBEDTLS_SSL_HS_FINISHED;
+
+    /*
+     * In case of session resuming, invert the client and server
+     * ChangeCipherSpec messages order.
+     */
+    if( ssl->handshake->resume != 0 )
+    {
+#if defined(MBEDTLS_SSL_CLI_C)
+        if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
+            ssl->state = MBEDTLS_SSL_HANDSHAKE_WRAPUP;
+#endif
+#if defined(MBEDTLS_SSL_SRV_C)
+        if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
+            ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
+#endif
+    }
+    else
+        ssl->state++;
+
+    /*
+     * Switch to our negotiated transform and session parameters for outbound
+     * data.
+     */
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "switching to new transform spec for outbound data" ) );
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    {
+        unsigned char i;
+
+        /* Remember current epoch settings for resending */
+        ssl->handshake->alt_transform_out = ssl->transform_out;
+        memcpy( ssl->handshake->alt_out_ctr, ssl->cur_out_ctr,
+                sizeof( ssl->handshake->alt_out_ctr ) );
+
+        /* Set sequence_number to zero */
+        memset( &ssl->cur_out_ctr[2], 0, sizeof( ssl->cur_out_ctr ) - 2 );
+
+
+        /* Increment epoch */
+        for( i = 2; i > 0; i-- )
+            if( ++ssl->cur_out_ctr[i - 1] != 0 )
+                break;
+
+        /* The loop goes to its end iff the counter is wrapping */
+        if( i == 0 )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "DTLS epoch would wrap" ) );
+            return( MBEDTLS_ERR_SSL_COUNTER_WRAPPING );
+        }
+    }
+    else
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+    memset( ssl->cur_out_ctr, 0, sizeof( ssl->cur_out_ctr ) );
+
+    ssl->transform_out = ssl->transform_negotiate;
+    ssl->session_out = ssl->session_negotiate;
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+        mbedtls_ssl_send_flight_completed( ssl );
+#endif
+
+    if( ( ret = mbedtls_ssl_write_handshake_msg( ssl ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_handshake_msg", ret );
+        return( ret );
+    }
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+        ( ret = mbedtls_ssl_flight_transmit( ssl ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_flight_transmit", ret );
+        return( ret );
+    }
+#endif
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write finished" ) );
+
+    return( 0 );
 }
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */

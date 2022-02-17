@@ -4243,34 +4243,6 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
 }
 
 /*
- * Helper to get TLS 1.2 PRF from ciphersuite
- * (Duplicates bits of logic from ssl_set_handshake_prfs().)
- */
-typedef int (*tls_prf_fn)( const unsigned char *secret, size_t slen,
-                           const char *label,
-                           const unsigned char *random, size_t rlen,
-                           unsigned char *dstbuf, size_t dlen );
-static tls_prf_fn ssl_tls12prf_from_cs( int ciphersuite_id )
-{
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-#if defined(MBEDTLS_SHA384_C)
-    const mbedtls_ssl_ciphersuite_t * const ciphersuite_info =
-         mbedtls_ssl_ciphersuite_from_id( ciphersuite_id );
-
-    if( ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
-        return( tls_prf_sha384 );
-#else
-    (void) ciphersuite_id;
-#endif
-    return( tls_prf_sha256 );
-#else /* MBEDTLS_SSL_PROTO_TLS1_2 */
-    (void) ciphersuite_id;
-    return( NULL );
-#endif /* !MBEDTLS_SSL_PROTO_TLS1_2 */
-
-}
-
-/*
  * Deserialize context, see mbedtls_ssl_context_save() for format.
  *
  * This internal version is wrapped by a public function that cleans up in
@@ -7966,6 +7938,25 @@ exit:
     return( ret );
 }
 
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
+/*
+ * Helper to get TLS 1.2 PRF from ciphersuite
+ * (Duplicates bits of logic from ssl_set_handshake_prfs().)
+ */
+static tls_prf_fn ssl_tls12prf_from_cs( int ciphersuite_id )
+{
+#if defined(MBEDTLS_SHA384_C)
+    const mbedtls_ssl_ciphersuite_t * const ciphersuite_info =
+         mbedtls_ssl_ciphersuite_from_id( ciphersuite_id );
+
+    if( ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
+        return( tls_prf_sha384 );
+#else
+    (void) ciphersuite_id;
+#endif
+    return( tls_prf_sha256 );
+}
+#endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #endif /* MBEDTLS_SSL_TLS_C */

@@ -1009,82 +1009,6 @@ static void ssl_update_checksum_sha384( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 
-#if defined(MBEDTLS_SHA384_C)
-
-static void ssl_calc_finished_tls_sha384(
-                mbedtls_ssl_context *ssl, unsigned char *buf, int from )
-{
-    int len = 12;
-    const char *sender;
-    unsigned char padbuf[48];
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    size_t hash_size;
-    psa_hash_operation_t sha384_psa = PSA_HASH_OPERATION_INIT;
-    psa_status_t status;
-#else
-    mbedtls_sha512_context sha512;
-#endif
-
-    mbedtls_ssl_session *session = ssl->session_negotiate;
-    if( !session )
-        session = ssl->session;
-
-    sender = ( from == MBEDTLS_SSL_IS_CLIENT )
-                ? "client finished"
-                : "server finished";
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    sha384_psa = psa_hash_operation_init();
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc PSA finished tls sha384" ) );
-
-    status = psa_hash_clone( &ssl->handshake->fin_sha384_psa, &sha384_psa );
-    if( status != PSA_SUCCESS )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "PSA hash clone failed" ) );
-        return;
-    }
-
-    status = psa_hash_finish( &sha384_psa, padbuf, sizeof( padbuf ), &hash_size );
-    if( status != PSA_SUCCESS )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "PSA hash finish failed" ) );
-        return;
-    }
-    MBEDTLS_SSL_DEBUG_BUF( 3, "PSA calculated padbuf", padbuf, 48 );
-#else
-    mbedtls_sha512_init( &sha512 );
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc  finished tls sha384" ) );
-
-    mbedtls_sha512_clone( &sha512, &ssl->handshake->fin_sha512 );
-
-    /*
-     * TLSv1.2:
-     *   hash = PRF( master, finished_label,
-     *               Hash( handshake ) )[0.11]
-     */
-
-#if !defined(MBEDTLS_SHA512_ALT)
-    MBEDTLS_SSL_DEBUG_BUF( 4, "finished sha512 state", (unsigned char *)
-                   sha512.state, sizeof( sha512.state ) );
-#endif
-    mbedtls_sha512_finish( &sha512, padbuf );
-
-    mbedtls_sha512_free( &sha512 );
-#endif
-
-    ssl->handshake->tls_prf( session->master, 48, sender,
-                             padbuf, 48, buf, len );
-
-    MBEDTLS_SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
-
-    mbedtls_platform_zeroize(  padbuf, sizeof( padbuf ) );
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
-}
-#endif /* MBEDTLS_SHA384_C */
-
 void mbedtls_ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl )
 {
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "=> handshake wrapup: final free" ) );
@@ -7967,6 +7891,83 @@ static void ssl_calc_finished_tls_sha256(
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
 #endif /* MBEDTLS_SHA256_C */
+
+
+#if defined(MBEDTLS_SHA384_C)
+
+static void ssl_calc_finished_tls_sha384(
+                mbedtls_ssl_context *ssl, unsigned char *buf, int from )
+{
+    int len = 12;
+    const char *sender;
+    unsigned char padbuf[48];
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    size_t hash_size;
+    psa_hash_operation_t sha384_psa = PSA_HASH_OPERATION_INIT;
+    psa_status_t status;
+#else
+    mbedtls_sha512_context sha512;
+#endif
+
+    mbedtls_ssl_session *session = ssl->session_negotiate;
+    if( !session )
+        session = ssl->session;
+
+    sender = ( from == MBEDTLS_SSL_IS_CLIENT )
+                ? "client finished"
+                : "server finished";
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    sha384_psa = psa_hash_operation_init();
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc PSA finished tls sha384" ) );
+
+    status = psa_hash_clone( &ssl->handshake->fin_sha384_psa, &sha384_psa );
+    if( status != PSA_SUCCESS )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "PSA hash clone failed" ) );
+        return;
+    }
+
+    status = psa_hash_finish( &sha384_psa, padbuf, sizeof( padbuf ), &hash_size );
+    if( status != PSA_SUCCESS )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "PSA hash finish failed" ) );
+        return;
+    }
+    MBEDTLS_SSL_DEBUG_BUF( 3, "PSA calculated padbuf", padbuf, 48 );
+#else
+    mbedtls_sha512_init( &sha512 );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc  finished tls sha384" ) );
+
+    mbedtls_sha512_clone( &sha512, &ssl->handshake->fin_sha512 );
+
+    /*
+     * TLSv1.2:
+     *   hash = PRF( master, finished_label,
+     *               Hash( handshake ) )[0.11]
+     */
+
+#if !defined(MBEDTLS_SHA512_ALT)
+    MBEDTLS_SSL_DEBUG_BUF( 4, "finished sha512 state", (unsigned char *)
+                   sha512.state, sizeof( sha512.state ) );
+#endif
+    mbedtls_sha512_finish( &sha512, padbuf );
+
+    mbedtls_sha512_free( &sha512 );
+#endif
+
+    ssl->handshake->tls_prf( session->master, 48, sender,
+                             padbuf, 48, buf, len );
+
+    MBEDTLS_SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
+
+    mbedtls_platform_zeroize(  padbuf, sizeof( padbuf ) );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
+}
+#endif /* MBEDTLS_SHA384_C */
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 

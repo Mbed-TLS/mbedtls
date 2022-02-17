@@ -7192,13 +7192,11 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
                                   - transform->maclen % cipher_info->block_size;
             }
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
             if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
             {
                 transform->minlen += transform->ivlen;
             }
             else
-#endif
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
                 ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
@@ -7269,7 +7267,6 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
     }
 
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     /* For HMAC-based ciphersuites, initialize the HMAC transforms.
        For AEAD-based ciphersuites, there is nothing to do here. */
     if( mac_key_len != 0 )
@@ -7281,7 +7278,6 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
         if( ret != 0 )
             goto end;
     }
-#endif
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
 
     ((void) mac_dec);

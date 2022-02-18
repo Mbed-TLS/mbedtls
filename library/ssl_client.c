@@ -219,14 +219,14 @@ static int ssl_write_client_hello_body( mbedtls_ssl_context *ssl,
     *out_len = 0;
 
     /*
-     * Write legacy_version
-     *    ProtocolVersion legacy_version = 0x0303;    // TLS v1.2
+     * Write client_version (TLS 1.2) or legacy_version (TLS 1.3)
      *
-     *  For TLS 1.3 we use the legacy version number {0x03, 0x03}
-     *  instead of the true version number.
+     * In all cases this is the TLS 1.2 version.
      */
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
-    MBEDTLS_PUT_UINT16_BE( 0x0303, p, 0 );
+    mbedtls_ssl_write_version( MBEDTLS_SSL_MAJOR_VERSION_3,
+                               MBEDTLS_SSL_MINOR_VERSION_3,
+                               ssl->conf->transport, p );
     p += 2;
 
     /* Write the random bytes ( random ).*/

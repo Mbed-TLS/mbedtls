@@ -9801,7 +9801,8 @@ run_test    "TLS 1.3: Client authentication, no client certificate - openssl" \
             -c "got a certificate request" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
             -s "TLS 1.3" \
-            -c "HTTP/1.0 200 ok"
+            -c "HTTP/1.0 200 ok" \
+            -c "Protocol is TLSv1.3"
 
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -9816,7 +9817,9 @@ run_test    "TLS 1.3: Client authentication, no client certificate - gnutls" \
             -c "got a certificate request" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE"\
             -s "Version: TLS1.3" \
-            -c "HTTP/1.0 200 OK"
+            -c "HTTP/1.0 200 OK" \
+            -c "Protocol is TLSv1.3"
+
 
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -9829,7 +9832,8 @@ run_test    "TLS 1.3: Client authentication, no server middlebox compatibility -
             0 \
             -c "got a certificate request" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
-            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY"
+            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
+            -c "Protocol is TLSv1.3"
 
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -9843,7 +9847,8 @@ run_test    "TLS 1.3: Client authentication, no server middlebox compatibility -
             0 \
             -c "got a certificate request" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
-            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY"
+            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
+            -c "Protocol is TLSv1.3"
 
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -9857,7 +9862,8 @@ run_test    "TLS 1.3: No client authentication, client has certificate - openssl
             0 \
             -c "got no certificate request" \
             -C "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
-            -C "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY"
+            -C "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
+            -c "Protocol is TLSv1.3"
 
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -9872,7 +9878,8 @@ run_test    "TLS 1.3: No client authentication, client has certificate- gnutls" 
             0 \
             -c "got no certificate request" \
             -C "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
-            -C "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY"
+            -C "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
+            -c "Protocol is TLSv1.3"
 
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -9885,7 +9892,8 @@ run_test    "TLS 1.3: Client authentication, ecdsa_secp256r1_sha256 - openssl" \
             0 \
             -c "got a certificate request" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
-            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY"
+            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
+            -c "Protocol is TLSv1.3"
 
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -9899,7 +9907,8 @@ run_test    "TLS 1.3: Client authentication, ecdsa_secp256r1_sha256 - gnutls" \
             0 \
             -c "got a certificate request" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
-            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY"
+            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
+            -c "Protocol is TLSv1.3"
 
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -9912,7 +9921,8 @@ run_test    "TLS 1.3: Client authentication, ecdsa_secp384r1_sha384 - openssl" \
             0 \
             -c "got a certificate request" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
-            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY"
+            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
+            -c "Protocol is TLSv1.3"
 
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -9926,7 +9936,8 @@ run_test    "TLS 1.3: Client authentication, ecdsa_secp384r1_sha384 - gnutls" \
             0 \
             -c "got a certificate request" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
-            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY"
+            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
+            -c "Protocol is TLSv1.3"
 
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -9939,7 +9950,8 @@ run_test    "TLS 1.3: Client authentication, ecdsa_secp521r1_sha512 - openssl" \
             0 \
             -c "got a certificate request" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
-            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY"
+            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
+            -c "Protocol is TLSv1.3"
 
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -9953,7 +9965,8 @@ run_test    "TLS 1.3: Client authentication, ecdsa_secp521r1_sha512 - gnutls" \
             0 \
             -c "got a certificate request" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
-            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY"
+            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
+            -c "Protocol is TLSv1.3"
 
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -9967,7 +9980,8 @@ run_test    "TLS 1.3: Client authentication, rsa_pss_rsae_sha256 - openssl" \
             0 \
             -c "got a certificate request" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
-            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY"
+            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
+            -c "Protocol is TLSv1.3"
 
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -9982,7 +9996,8 @@ run_test    "TLS 1.3: Client authentication, rsa_pss_rsae_sha256 - gnutls" \
             0 \
             -c "got a certificate request" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
-            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY"
+            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
+            -c "Protocol is TLSv1.3"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE

@@ -9827,7 +9827,6 @@ requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS 1.3: CertificateRequest check, empty certificate - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE --verify-client-cert" \
             "$P_CLI debug_level=3 min_version=tls13 max_version=tls13 crt_file=none \
@@ -9842,7 +9841,6 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS 1.3: CertificateRequest check, empty certificate - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -verify 10 -no_middlebox" \
             "$P_CLI debug_level=4 force_version=tls13 crt_file=none \
@@ -9857,7 +9855,6 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS 1.3: CertificateRequest check, no middlebox - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10 -no_middlebox" \
             "$P_CLI debug_level=4 force_version=tls13 crt_file=data_files/cli2.crt \
@@ -9874,7 +9871,6 @@ requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS 1.3: CertificateRequest check, no middlebox - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
             "$P_CLI debug_level=3 min_version=tls13 max_version=tls13 crt_file=data_files/cli2.crt \
@@ -9890,7 +9886,6 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS 1.3: CertificateRequest check, ecdsa_secp256r1_sha256 - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10 -no_middlebox" \
             "$P_CLI debug_level=4 force_version=tls13 crt_file=data_files/ecdsa_secp256r1.crt \
@@ -9907,7 +9902,6 @@ requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS 1.3: CertificateRequest check, ecdsa_secp256r1_sha256 - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
             "$P_CLI debug_level=3 force_version=tls13 crt_file=data_files/ecdsa_secp256r1.crt \
@@ -9923,7 +9917,6 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS 1.3: CertificateRequest check, ecdsa_secp384r1_sha384 - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10 -no_middlebox" \
             "$P_CLI debug_level=4 force_version=tls13 crt_file=data_files/ecdsa_secp384r1.crt \
@@ -9940,7 +9933,6 @@ requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS 1.3: CertificateRequest check, ecdsa_secp384r1_sha384 - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
             "$P_CLI debug_level=3 force_version=tls13 crt_file=data_files/ecdsa_secp384r1.crt \
@@ -9956,7 +9948,6 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS 1.3: CertificateRequest check, ecdsa_secp521r1_sha512 - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10 -no_middlebox" \
             "$P_CLI debug_level=4 force_version=tls13 crt_file=data_files/ecdsa_secp521r1.crt \
@@ -9973,7 +9964,6 @@ requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS 1.3: CertificateRequest check, ecdsa_secp521r1_sha512 - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
             "$P_CLI debug_level=3 force_version=tls13 crt_file=data_files/ecdsa_secp521r1.crt \
@@ -9989,7 +9979,6 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_RSA_C
 run_test    "TLS 1.3: CertificateRequest check, rsa_pss_rsae_sha256 - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10 -no_middlebox " \
@@ -10007,7 +9996,6 @@ requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_RSA_C
 run_test    "TLS 1.3: CertificateRequest check, rsa_pss_rsae_sha256 - gnutls" \
             "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
@@ -10024,7 +10012,6 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS 1.3: CertificateRequest check, no client certificate - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -no_middlebox" \
             "$P_CLI debug_level=4 force_version=tls13 crt_file=data_files/cli2.crt \
@@ -10039,7 +10026,6 @@ requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS 1.3: CertificateRequest check, no client certificate - gnutls" \
             "$G_NEXT_SRV --disable-client-cert --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
             "$P_CLI debug_level=3 min_version=tls13 max_version=tls13 crt_file=data_files/cli2.crt \

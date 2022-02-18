@@ -1125,6 +1125,12 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
                                            ( "unknown key size: %"
                                              MBEDTLS_PRINTF_SIZET " bits",
                                              own_key_size ) );
+                    MBEDTLS_SSL_DEBUG_MSG( 1,
+                        ( "signature algorithm not in "
+                            "received or offered list." ) );
+                    MBEDTLS_SSL_PEND_FATAL_ALERT(
+                                        MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                                        MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
                     return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
             }
             break;
@@ -1134,25 +1140,46 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
         case MBEDTLS_SSL_SIG_RSA:
             /* Determine the size of the key */
             own_key_size = mbedtls_pk_get_bitlen( own_key );
-            switch( own_key_size )
+            if( own_key_size <= 2048 &&
+                mbedtls_ssl_sig_alg_is_received( ssl,
+                                    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256 ) )
             {
-                case 2048:
-                    md_alg  = MBEDTLS_MD_SHA256;
-                    algorithm = MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256;
-                    break;
-                default:
-                    MBEDTLS_SSL_DEBUG_MSG( 3,
-                                           ( "unknown key size: %"
-                                             MBEDTLS_PRINTF_SIZET " bits",
-                                             own_key_size ) );
-                    return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+                md_alg  = MBEDTLS_MD_SHA256;
+                algorithm = MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256;
             }
+            else if( own_key_size <= 3072 &&
+                     mbedtls_ssl_sig_alg_is_received( ssl,
+                                    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384 ) )
+            {
+                md_alg  = MBEDTLS_MD_SHA384;
+                algorithm = MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384;
+            }
+            else if( own_key_size <= 4096 &&
+                     mbedtls_ssl_sig_alg_is_received( ssl,
+                                    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512 ) )
+            {
+                md_alg  = MBEDTLS_MD_SHA512;
+                algorithm = MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512;
+            }
+            else
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 3, ( "unknown key size: %"
+                                            MBEDTLS_PRINTF_SIZET " bits",
+                                            own_key_size ) );
+                MBEDTLS_SSL_DEBUG_MSG( 1,
+                    ( "signature algorithm not in received or offered list." ) );
+                MBEDTLS_SSL_PEND_FATAL_ALERT(
+                                        MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                                        MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+                return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+            }
+
             if( mbedtls_rsa_set_padding( mbedtls_pk_rsa( *own_key ),
                                          MBEDTLS_RSA_PKCS_V21,
                                          md_alg ) != 0 )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "Set RSA padding Fail" ) );
-                return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
             }
             break;
 #endif /* MBEDTLS_RSA_C && MBEDTLS_PKCS1_V21 */
@@ -1165,7 +1192,7 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
     if( !mbedtls_ssl_sig_alg_is_received( ssl, algorithm ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1,
-                               ( "signature algorithm not in received list." ) );
+                    ( "signature algorithm not in received or offered list." ) );
         MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
                                       MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
         return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );

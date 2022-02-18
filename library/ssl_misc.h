@@ -1653,6 +1653,20 @@ int mbedtls_ssl_tls13_write_finished_message( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_tls13_handshake_wrapup( mbedtls_ssl_context *ssl );
 
 /**
+ * \brief Given an SSL context and its associated configuration, write the TLS
+ *        1.3 specific extensions of the ClientHello message.
+ *
+ * \param[in]   ssl     SSL context
+ * \param[in]   buf     Base address of the buffer where to write the extensions
+ * \param[in]   end     End address of the buffer where to write the extensions
+ * \param[out]  out_len Length of the data written into the buffer \p buf
+ */
+int mbedtls_ssl_tls13_write_client_hello_exts( mbedtls_ssl_context *ssl,
+                                               unsigned char *buf,
+                                               unsigned char *end,
+                                               size_t *out_len );
+
+/**
  * \brief           TLS 1.3 client side state machine entry
  *
  * \param ssl       SSL context

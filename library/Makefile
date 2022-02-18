@@ -168,6 +168,7 @@ OBJS_TLS= \
 	  net_sockets.o \
 	  ssl_cache.o \
 	  ssl_ciphersuites.o \
+	  ssl_client.o \
 	  ssl_cookie.o \
 	  ssl_msg.o \
 	  ssl_ticket.o \

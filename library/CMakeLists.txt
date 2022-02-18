@@ -99,6 +99,7 @@ set(src_tls
     net_sockets.c
     ssl_cache.c
     ssl_ciphersuites.c
+    ssl_client.c
     ssl_cookie.c
     ssl_msg.c
     ssl_ticket.c

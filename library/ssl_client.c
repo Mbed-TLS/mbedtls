@@ -24,11 +24,21 @@
 #if defined(MBEDTLS_SSL_CLI_C)
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) || defined(MBEDTLS_SSL_PROTO_TLS1_2)
 
+#if defined(MBEDTLS_PLATFORM_C)
+#include "mbedtls/platform.h"
+#else
+#include <stdlib.h>
+#define mbedtls_calloc    calloc
+#define mbedtls_free      free
+#endif
+
 #include <string.h>
 
 #include "mbedtls/debug.h"
 #include "mbedtls/error.h"
-#include "mbedtls/platform.h"
+#if defined(MBEDTLS_HAVE_TIME)
+#include "mbedtls/platform_time.h"
+#endif
 
 #include "ssl_client.h"
 #include "ssl_misc.h"
@@ -229,7 +239,23 @@ static int ssl_write_client_hello_body( mbedtls_ssl_context *ssl,
                                ssl->conf->transport, p );
     p += 2;
 
-    /* Write the random bytes ( random ).*/
+    /* ...
+     * Random random;
+     * ...
+     *
+     * with for TLS 1.2
+     * struct {
+     *     uint32 gmt_unix_time;
+     *     opaque random_bytes[28];
+     * } Random;
+     *
+     * and for TLS 1.3
+     * opaque Random[32];
+     *
+     * The random bytes have been prepared by ssl_prepare_client_hello() into
+     * the ssl->handshake->randbytes buffer and are copied here into the
+     * output buffer.
+     */
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, MBEDTLS_CLIENT_HELLO_RANDOM_LEN );
     memcpy( p, ssl->handshake->randbytes, MBEDTLS_CLIENT_HELLO_RANDOM_LEN );
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, random bytes",
@@ -345,6 +371,43 @@ static int ssl_write_client_hello_body( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
+static int ssl_generate_random( mbedtls_ssl_context *ssl )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    unsigned char *randbytes = ssl->handshake->randbytes;
+    size_t gmt_unix_time_len = 0;
+
+    /*
+     * Generate the random bytes
+     *
+     * TLS 1.2 case:
+     * struct {
+     *     uint32 gmt_unix_time;
+     *     opaque random_bytes[28];
+     * } Random;
+     *
+     * TLS 1.3 case:
+     * opaque Random[32];
+     */
+    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+    {
+#if defined(MBEDTLS_HAVE_TIME)
+        mbedtls_time_t gmt_unix_time = mbedtls_time( NULL );
+        MBEDTLS_PUT_UINT32_BE( gmt_unix_time, randbytes, 0 );
+        gmt_unix_time_len = 4;
+
+        MBEDTLS_SSL_DEBUG_MSG( 3,
+            ( "client hello, current time: %" MBEDTLS_PRINTF_LONGLONG,
+               (long long) gmt_unix_time ) );
+#endif /* MBEDTLS_HAVE_TIME */
+    }
+
+    ret = ssl->conf->f_rng( ssl->conf->p_rng,
+                            randbytes + gmt_unix_time_len,
+                            MBEDTLS_CLIENT_HELLO_RANDOM_LEN - gmt_unix_time_len );
+    return( ret );
+}
+
 static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
 {
     int ret;
@@ -378,12 +441,22 @@ static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
         }
     }
 
-    if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng,
-                                  ssl->handshake->randbytes,
-                                  MBEDTLS_CLIENT_HELLO_RANDOM_LEN ) ) != 0 )
+    /*
+     * But when responding to a verify request where we MUST reuse the
+     * previoulsy generated random bytes (RFC 6347 4.2.1), generate the
+     * random bytes.
+     */
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ( ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM ) ||
+        ( ssl->handshake->cookie == NULL ) )
+#endif
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "f_rng", ret );
-        return( ret );
+        ret = ssl_generate_random( ssl );
+        if( ret != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "Random bytes generation failed", ret );
+            return( ret );
+        }
     }
 
 #if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)

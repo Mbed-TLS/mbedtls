@@ -2998,7 +2998,7 @@ MBEDTLS_STATIC_TESTABLE int mbedtls_x509_parse_ipv4( const char *h, size_t hlen,
     char *endp;
     unsigned long v;
 
-    if( !isdigit( (unsigned char)*h ) || *(h + hlen + 1) != '\0')
+    if( !isdigit( (unsigned char)*h ) || *(h + hlen) != '\0')
     {
         return( -1 );
     }

@@ -174,7 +174,7 @@ static int ssl_write_client_hello_cipher_suites(
 }
 
 /*
- * Structure of ClientHello message:
+ * Structure of the TLS 1.3 ClientHello message:
  *
  *    struct {
  *        ProtocolVersion legacy_version = 0x0303;    // TLS v1.2
@@ -184,6 +184,23 @@ static int ssl_write_client_hello_cipher_suites(
  *        opaque legacy_compression_methods<1..2^8-1>;
  *        Extension extensions<8..2^16-1>;
  *    } ClientHello;
+ *
+ * Structure of the (D)TLS 1.2 ClientHello message:
+ *
+ * struct {
+ *     ProtocolVersion client_version;
+ *     Random random;
+ *     SessionID session_id;
+ *     opaque cookie<0..2^8-1>; // DTLS 1.2 ONLY
+ *     CipherSuite cipher_suites<2..2^16-2>;
+ *     CompressionMethod compression_methods<1..2^8-1>;
+ *     select (extensions_present) {
+ *         case false:
+ *             struct {};
+ *         case true:
+ *             Extension extensions<0..2^16-1>;
+ *     };
+ * } ClientHello;
  */
 static int ssl_write_client_hello_body( mbedtls_ssl_context *ssl,
                                         unsigned char *buf,

@@ -805,6 +805,49 @@ static int ssl_tls13_write_client_hello_cipher_suites(
     return( 0 );
 }
 
+static int ssl_tls13_write_client_hello_exts( mbedtls_ssl_context *ssl,
+                                              unsigned char *buf,
+                                              unsigned char *end,
+                                              size_t *out_len )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    unsigned char *p = buf;
+    size_t ext_len;
+
+    *out_len = 0;
+
+    /* Write supported_versions extension
+     *
+     * Supported Versions Extension is mandatory with TLS 1.3.
+     */
+    ret = ssl_tls13_write_supported_versions_ext( ssl, p, end, &ext_len );
+    if( ret != 0 )
+        return( ret );
+    p += ext_len;
+
+    /* Echo the cookie if the server provided one in its preceding
+     * HelloRetryRequest message.
+     */
+    ret = ssl_tls13_write_cookie_ext( ssl, p, end, &ext_len );
+    if( ret != 0 )
+        return( ret );
+    p += ext_len;
+
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+    if( mbedtls_ssl_conf_tls13_some_ephemeral_enabled( ssl ) )
+    {
+        ret = ssl_tls13_write_key_share_ext( ssl, p, end, &ext_len );
+        if( ret != 0 )
+            return( ret );
+        p += ext_len;
+    }
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+
+    *out_len = p - buf;
+
+    return( 0 );
+}
+
 /*
  * Structure of ClientHello message:
  *
@@ -907,11 +950,7 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
     p_extensions_len = p;
     p += 2;
 
-    /* Write supported_versions extension
-     *
-     * Supported Versions Extension is mandatory with TLS 1.3.
-     */
-    ret = ssl_tls13_write_supported_versions_ext( ssl, p, end, &output_len );
+    ret = ssl_tls13_write_client_hello_exts( ssl, p, end, &output_len );
     if( ret != 0 )
         return( ret );
     p += output_len;
@@ -923,32 +962,17 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
     p += output_len;
 #endif /* MBEDTLS_SSL_ALPN */
 
-    /* Echo the cookie if the server provided one in its preceding
-     * HelloRetryRequest message.
-     */
-    ret = ssl_tls13_write_cookie_ext( ssl, p, end, &output_len );
-    if( ret != 0 )
-        return( ret );
-    p += output_len;
-
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-
-    /*
-     * Add the extensions related to (EC)DHE ephemeral key establishment only if
-     * enabled as per the configuration.
-     */
     if( mbedtls_ssl_conf_tls13_some_ephemeral_enabled( ssl ) )
     {
         ret = mbedtls_ssl_write_supported_groups_ext( ssl, p, end, &output_len );
         if( ret != 0 )
             return( ret );
         p += output_len;
+    }
 
-        ret = ssl_tls13_write_key_share_ext( ssl, p, end, &output_len );
-        if( ret != 0 )
-            return( ret );
-        p += output_len;
-
+    if( mbedtls_ssl_conf_tls13_ephemeral_enabled( ssl ) )
+    {
         ret = mbedtls_ssl_write_sig_alg_ext( ssl, p, end, &output_len );
         if( ret != 0 )
             return( ret );

@@ -282,15 +282,15 @@ int mbedtls_rsa_import_raw(mbedtls_rsa_context *ctx,
  * \brief          This function completes an RSA context from
  *                 a set of imported core parameters.
  *
- *                 To setup an RSA public key, precisely \p N and \p E
+ *                 To setup an RSA public key, precisely \c N and \c E
  *                 must have been imported.
  *
  *                 To setup an RSA private key, sufficient information must
  *                 be present for the other parameters to be derivable.
  *
  *                 The default implementation supports the following:
- *                 <ul><li>Derive \p P, \p Q from \p N, \p D, \p E.</li>
- *                 <li>Derive \p N, \p D from \p P, \p Q, \p E.</li></ul>
+ *                 <ul><li>Derive \c P, \c Q from \c N, \c D, \c E.</li>
+ *                 <li>Derive \c N, \c D from \c P, \c Q, \c E.</li></ul>
  *                 Alternative implementations need not support these.
  *
  *                 If this function runs successfully, it guarantees that

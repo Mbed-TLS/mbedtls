@@ -2601,6 +2601,12 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
     return( ssl_session_save( session, 0, buf, buf_len, olen ) );
 }
 
+/*
+ * Deserialize session, see mbedtls_ssl_session_save() for format.
+ *
+ * This internal version is wrapped by a public function that cleans up in
+ * case of error, and has an extra option omit_header.
+ */
 static int ssl_session_load( mbedtls_ssl_session *session,
                              unsigned char omit_header,
                              const unsigned char *buf,
@@ -7727,12 +7733,6 @@ static size_t ssl_session_save_tls12( const mbedtls_ssl_session *session,
     return( used );
 }
 
-/*
- * Deserialize session, see mbedtls_ssl_session_save() for format.
- *
- * This internal version is wrapped by a public function that cleans up in
- * case of error, and has an extra option omit_header.
- */
 static int ssl_session_load_tls12( mbedtls_ssl_session *session,
                                    const unsigned char *buf,
                                    size_t len )

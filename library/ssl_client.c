@@ -218,10 +218,6 @@ static int ssl_write_client_hello_body( mbedtls_ssl_context *ssl,
 
     *out_len = 0;
 
-    /* No validation needed here. It has been done by ssl_conf_check() */
-    ssl->major_ver = ssl->conf->min_major_ver;
-    ssl->minor_ver = ssl->conf->min_minor_ver;
-
     /*
      * Write legacy_version
      *    ProtocolVersion legacy_version = 0x0303;    // TLS v1.2
@@ -357,6 +353,29 @@ static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "no RNG provided" ) );
         return( MBEDTLS_ERR_SSL_NO_RNG );
+    }
+
+    /* Bet on the highest configured version if we are not in a TLS 1.2
+     * renegotiation or session resumption.
+     */
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    if( ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE )
+        ssl->handshake->min_minor_ver = ssl->minor_ver;
+    else
+#endif
+    {
+        ssl->major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
+
+        if( ssl->handshake->resume )
+        {
+             ssl->minor_ver = ssl->session_negotiate->minor_ver;
+             ssl->handshake->min_minor_ver = ssl->minor_ver;
+        }
+        else
+        {
+             ssl->minor_ver = ssl->conf->max_minor_ver;
+             ssl->handshake->min_minor_ver = ssl->conf->min_minor_ver;
+        }
     }
 
     if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng,

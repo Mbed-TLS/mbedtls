@@ -542,6 +542,9 @@ struct mbedtls_ssl_handshake_params
     uint8_t resume;                     /*!<  session resume indicator*/
     uint8_t cli_exts;                   /*!< client extension presence*/
 
+    /*!< Minimum minor version to be negotiated. */
+    unsigned char min_minor_ver;
+
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     uint8_t sni_authmode;               /*!< authmode from SNI callback     */
 #endif

@@ -863,7 +863,7 @@ cleanup:
 #define SSL_WRITE_CERTIFICATE_SEND  0
 #define SSL_WRITE_CERTIFICATE_SKIP  1
 
-static int ssl_tls13_write_certificate_coordinate( mbedtls_ssl_context* ssl )
+static int ssl_tls13_write_certificate_coordinate( mbedtls_ssl_context *ssl )
 {
 
     /* For PSK and ECDHE-PSK ciphersuites there is no certificate to exchange. */
@@ -926,22 +926,23 @@ static int ssl_tls13_write_certificate_body( mbedtls_ssl_context *ssl,
 {
     const mbedtls_x509_crt *crt = mbedtls_ssl_own_cert( ssl );
     unsigned char *p = buf;
-    unsigned char *certificate_list;
+    unsigned char *certificate_request_context =
+                                    ssl->handshake->certificate_request_context;
+    unsigned char certificate_request_context_len =
+                                ssl->handshake->certificate_request_context_len;
+    unsigned char *p_certificate_list_len;
 
 
     /* ...
      * opaque certificate_request_context<0..2^8-1>;
      * ...
      */
-    MBEDTLS_SSL_CHK_BUF_PTR( p, end,
-                        ssl->handshake->certificate_request_context_len + 1 );
-    *p++ = ssl->handshake->certificate_request_context_len;
-    if( ssl->handshake->certificate_request_context_len > 0 )
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, certificate_request_context_len + 1 );
+    *p++ = certificate_request_context_len;
+    if( certificate_request_context_len > 0 )
     {
-        memcpy( p,
-                ssl->handshake->certificate_request_context,
-                ssl->handshake->certificate_request_context_len );
-        p += ssl->handshake->certificate_request_context_len;
+        memcpy( p, certificate_request_context, certificate_request_context_len );
+        p += certificate_request_context_len;
     }
 
     /* ...
@@ -949,12 +950,12 @@ static int ssl_tls13_write_certificate_body( mbedtls_ssl_context *ssl,
      * ...
      */
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 3 );
-    certificate_list = p;
+    p_certificate_list_len = p;
     p += 3;
 
     MBEDTLS_SSL_DEBUG_CRT( 3, "own certificate", crt );
 
-    while ( crt != NULL )
+    while( crt != NULL )
     {
         size_t cert_data_len = crt->raw.len;
 
@@ -973,7 +974,8 @@ static int ssl_tls13_write_certificate_body( mbedtls_ssl_context *ssl,
         p += 2;
     }
 
-    MBEDTLS_PUT_UINT24_BE( p - certificate_list - 3, certificate_list, 0 );
+    MBEDTLS_PUT_UINT24_BE( p - p_certificate_list_len - 3,
+                           p_certificate_list_len, 0 );
 
     *out_len = p - buf;
 
@@ -1061,8 +1063,8 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
     size_t verify_buffer_len;
     unsigned char signature_type;
     size_t own_key_size;
-    unsigned int md_alg;
-    int algorithm;
+    mbedtls_md_type_t md_alg;
+    uint16_t algorithm;
     size_t signature_len = 0;
     const mbedtls_md_info_t *md_info;
     unsigned char verify_hash[ MBEDTLS_MD_MAX_SIZE ];
@@ -1075,7 +1077,6 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
-    /* Calculate the transcript hash */
     ret = mbedtls_ssl_get_handshake_transcript( ssl,
                                         ssl->handshake->ciphersuite_info->mac,
                                         handshake_hash,
@@ -1088,7 +1089,6 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
         handshake_hash,
         handshake_hash_len);
 
-    /* Create verify structure */
     ssl_tls13_create_verify_structure( handshake_hash, handshake_hash_len,
                                        verify_buffer, &verify_buffer_len,
                                        ssl->conf->endpoint );
@@ -1104,7 +1104,7 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
     {
 #if defined(MBEDTLS_ECDSA_C)
         case MBEDTLS_SSL_SIG_ECDSA:
-            /* Determine size of key */
+            /* Determine the size of the key */
             own_key_size = mbedtls_pk_get_bitlen( own_key );
             switch( own_key_size )
             {
@@ -1132,7 +1132,7 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PKCS1_V21)
         case MBEDTLS_SSL_SIG_RSA:
-            /* Determine size of key */
+            /* Determine the size of the key */
             own_key_size = mbedtls_pk_get_bitlen( own_key );
             switch( own_key_size )
             {

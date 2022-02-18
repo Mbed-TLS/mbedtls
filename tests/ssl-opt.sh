@@ -9861,7 +9861,7 @@ run_test    "TLS 1.3: No client authentication, client has certificate - openssl
                     key_file=data_files/cli2.key" \
             0 \
             -c "got no certificate request" \
-            -C "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
+            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
             -C "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
             -c "Protocol is TLSv1.3"
 
@@ -9871,13 +9871,13 @@ requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
-run_test    "TLS 1.3: No client authentication, client has certificate- gnutls" \
+run_test    "TLS 1.3: No client authentication, client has certificate - gnutls" \
             "$G_NEXT_SRV --disable-client-cert --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE" \
             "$P_CLI debug_level=3 min_version=tls13 max_version=tls13 crt_file=data_files/cli2.crt \
                     key_file=data_files/cli2.key" \
             0 \
             -c "got no certificate request" \
-            -C "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
+            -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
             -C "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
             -c "Protocol is TLSv1.3"
 

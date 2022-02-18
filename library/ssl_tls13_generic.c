@@ -1164,7 +1164,10 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
 
     if( !mbedtls_ssl_sig_alg_is_received( ssl, algorithm ) )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1,
+                               ( "signature algorithm not in received list." ) );
+        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                                      MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
         return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }
 

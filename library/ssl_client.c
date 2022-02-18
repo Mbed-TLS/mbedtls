@@ -38,7 +38,7 @@
 
 #if defined(MBEDTLS_SSL_ALPN)
 /*
- * ssl_tls13_write_alpn_ext()
+ * ssl_write_alpn_ext()
  *
  * Structure of the application_layer_protocol_negotiation extension in
  * ClientHello:
@@ -50,10 +50,10 @@
  * } ProtocolNameList;
  *
  */
-static int ssl_tls13_write_alpn_ext( mbedtls_ssl_context *ssl,
-                                     unsigned char *buf,
-                                     const unsigned char *end,
-                                     size_t *out_len )
+static int ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
+                               unsigned char *buf,
+                               const unsigned char *end,
+                               size_t *out_len )
 {
     unsigned char *p = buf;
 
@@ -109,7 +109,7 @@ static int ssl_tls13_write_alpn_ext( mbedtls_ssl_context *ssl,
 /* Write cipher_suites
  * CipherSuite cipher_suites<2..2^16-2>;
  */
-static int ssl_tls13_write_client_hello_cipher_suites(
+static int ssl_write_client_hello_cipher_suites(
             mbedtls_ssl_context *ssl,
             unsigned char *buf,
             unsigned char *end,
@@ -185,10 +185,10 @@ static int ssl_tls13_write_client_hello_cipher_suites(
  *        Extension extensions<8..2^16-1>;
  *    } ClientHello;
  */
-static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
-                                              unsigned char *buf,
-                                              unsigned char *end,
-                                              size_t *out_len )
+static int ssl_write_client_hello_body( mbedtls_ssl_context *ssl,
+                                        unsigned char *buf,
+                                        unsigned char *end,
+                                        size_t *out_len )
 {
 
     int ret;
@@ -250,7 +250,7 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
 
     /* Write cipher_suites */
-    ret = ssl_tls13_write_client_hello_cipher_suites( ssl, p, end, &output_len );
+    ret = ssl_write_client_hello_cipher_suites( ssl, p, end, &output_len );
     if( ret != 0 )
         return( ret );
     p += output_len;
@@ -285,7 +285,7 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
 #endif
 
 #if defined(MBEDTLS_SSL_ALPN)
-    ret = ssl_tls13_write_alpn_ext( ssl, p, end, &output_len );
+    ret = ssl_write_alpn_ext( ssl, p, end, &output_len );
     if( ret != 0 )
         return( ret );
     p += output_len;
@@ -332,7 +332,7 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
-static int ssl_tls13_prepare_client_hello( mbedtls_ssl_context *ssl )
+static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
 {
     int ret;
 
@@ -383,15 +383,15 @@ int mbedtls_ssl_write_client_hello( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write client hello" ) );
 
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_prepare_client_hello( ssl ) );
+    MBEDTLS_SSL_PROC_CHK( ssl_prepare_client_hello( ssl ) );
 
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_start_handshake_msg(
                                 ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
                                 &buf, &buf_len ) );
 
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_write_client_hello_body( ssl, buf,
-                                                             buf + buf_len,
-                                                             &msg_len ) );
+    MBEDTLS_SSL_PROC_CHK( ssl_write_client_hello_body( ssl, buf,
+                                                       buf + buf_len,
+                                                       &msg_len ) );
 
     mbedtls_ssl_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
                                         buf, msg_len );

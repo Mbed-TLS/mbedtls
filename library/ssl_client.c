@@ -119,10 +119,56 @@ static int ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
 /* Write cipher_suites
  * CipherSuite cipher_suites<2..2^16-2>;
  */
+/**
+ * \brief Validate cipher suite against config in SSL context.
+ *
+ * \param ssl         SSL context
+ * \param suite_info  Cipher suite to validate
+ *
+ * \return 0 if valid, else 1
+ */
+static int ssl_validate_ciphersuite(
+    const mbedtls_ssl_context *ssl,
+    const mbedtls_ssl_ciphersuite_t *suite_info )
+{
+    if( suite_info == NULL )
+        return( 1 );
+
+    if( ( suite_info->min_minor_ver > ssl->conf->max_minor_ver ) ||
+        ( suite_info->max_minor_ver < ssl->conf->min_minor_ver ) )
+        return( 1 );
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+            ( suite_info->flags & MBEDTLS_CIPHERSUITE_NODTLS ) )
+        return( 1 );
+#endif
+
+#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+    if( suite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE &&
+            mbedtls_ecjpake_check( &ssl->handshake->ecjpake_ctx ) != 0 )
+        return( 1 );
+#endif
+
+    /* Don't suggest PSK-based ciphersuite if no PSK is available. */
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+    if( mbedtls_ssl_ciphersuite_uses_psk( suite_info ) &&
+        mbedtls_ssl_conf_has_static_psk( ssl->conf ) == 0 )
+    {
+        return( 1 );
+    }
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
+    return( 0 );
+}
+
 static int ssl_write_client_hello_cipher_suites(
             mbedtls_ssl_context *ssl,
             unsigned char *buf,
             unsigned char *end,
+            int *tls12_uses_ec,
             size_t *out_len )
 {
     unsigned char *p = buf;
@@ -130,7 +176,8 @@ static int ssl_write_client_hello_cipher_suites(
     unsigned char *cipher_suites; /* Start of the cipher_suites list */
     size_t cipher_suites_len;
 
-    *out_len = 0 ;
+    *tls12_uses_ec = 0;
+    *out_len = 0;
 
     /*
      * Ciphersuite list
@@ -154,11 +201,15 @@ static int ssl_write_client_hello_cipher_suites(
         const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
 
         ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( cipher_suite );
-        if( ciphersuite_info == NULL )
+
+        if( ssl_validate_ciphersuite( ssl, ciphersuite_info ) )
             continue;
-        if( !( MBEDTLS_SSL_MINOR_VERSION_4 >= ciphersuite_info->min_minor_ver &&
-               MBEDTLS_SSL_MINOR_VERSION_4 <= ciphersuite_info->max_minor_ver ) )
-            continue;
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
+    ( defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
+      defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) )
+        *tls12_uses_ec |= mbedtls_ssl_ciphersuite_uses_ec( ciphersuite_info );
+#endif
 
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, add ciphersuite: %04x, %s",
                                     (unsigned int) cipher_suite,
@@ -167,6 +218,19 @@ static int ssl_write_client_hello_cipher_suites(
         /* Check there is space for the cipher suite identifier (2 bytes). */
         MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
         MBEDTLS_PUT_UINT16_BE( cipher_suite, p, 0 );
+        p += 2;
+    }
+
+    /*
+     * Add TLS_EMPTY_RENEGOTIATION_INFO_SCSV
+     */
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    if( ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE )
+#endif
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "adding EMPTY_RENEGOTIATION_INFO_SCSV" ) );
+        MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
+        MBEDTLS_PUT_UINT16_BE( MBEDTLS_SSL_EMPTY_RENEGOTIATION_INFO, p, 0 );
         p += 2;
     }
 
@@ -217,14 +281,13 @@ static int ssl_write_client_hello_body( mbedtls_ssl_context *ssl,
                                         unsigned char *end,
                                         size_t *out_len )
 {
-
     int ret;
+    unsigned char *p = buf;
+    int tls12_uses_ec = 0;
+
     unsigned char *p_extensions_len; /* Pointer to extensions length */
     size_t output_len;               /* Length of buffer used by function */
     size_t extensions_len;           /* Length of the list of extensions*/
-
-    /* Buffer management */
-    unsigned char *p = buf;
 
     *out_len = 0;
 
@@ -315,7 +378,9 @@ static int ssl_write_client_hello_body( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_SSL_PROTO_DTLS */
 
     /* Write cipher_suites */
-    ret = ssl_write_client_hello_cipher_suites( ssl, p, end, &output_len );
+    ret = ssl_write_client_hello_cipher_suites( ssl, p, end,
+                                                &tls12_uses_ec,
+                                                &output_len );
     if( ret != 0 )
         return( ret );
     p += output_len;

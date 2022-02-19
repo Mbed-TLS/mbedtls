@@ -53,7 +53,7 @@
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
-static int ssl_conf_has_static_psk( mbedtls_ssl_config const *conf )
+int mbedtls_ssl_conf_has_static_psk( mbedtls_ssl_config const *conf )
 {
     if( conf->psk_identity     == NULL ||
         conf->psk_identity_len == 0     )
@@ -672,7 +672,7 @@ static int ssl_validate_ciphersuite(
     /* Don't suggest PSK-based ciphersuite if no PSK is available. */
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
     if( mbedtls_ssl_ciphersuite_uses_psk( suite_info ) &&
-        ssl_conf_has_static_psk( ssl->conf ) == 0 )
+        mbedtls_ssl_conf_has_static_psk( ssl->conf ) == 0 )
     {
         return( 1 );
     }
@@ -3495,7 +3495,7 @@ ecdh_calc_secret:
         /*
          * opaque psk_identity<0..2^16-1>;
          */
-        if( ssl_conf_has_static_psk( ssl->conf ) == 0 )
+        if( mbedtls_ssl_conf_has_static_psk( ssl->conf ) == 0 )
         {
             /* We don't offer PSK suites if we don't have a PSK,
              * and we check that the server's choice is among the

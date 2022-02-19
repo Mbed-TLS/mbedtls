@@ -286,6 +286,34 @@ static int ssl_write_client_hello_body( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_BUF( 3, "session id", ssl->session_negotiate->id,
                               ssl->session_negotiate->id_len );
 
+    /* DTLS 1.2 ONLY
+     * ...
+     * opaque cookie<0..2^8-1>;
+     * ...
+     */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    {
+        unsigned char cookie_len = 0;
+
+        if( ssl->handshake->cookie != NULL )
+        {
+            MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, cookie",
+                                   ssl->handshake->cookie,
+                                   ssl->handshake->verify_cookie_len );
+            cookie_len = ssl->handshake->verify_cookie_len;
+        }
+
+        MBEDTLS_SSL_CHK_BUF_PTR( p, end, cookie_len + 1 );
+        *p++ = cookie_len;
+        if( cookie_len > 0 )
+        {
+            memcpy( p, ssl->handshake->cookie, cookie_len );
+            p += cookie_len;
+        }
+    }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_SSL_PROTO_DTLS */
+
     /* Write cipher_suites */
     ret = ssl_write_client_hello_cipher_suites( ssl, p, end, &output_len );
     if( ret != 0 )

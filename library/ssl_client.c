@@ -262,20 +262,22 @@ static int ssl_write_client_hello_body( mbedtls_ssl_context *ssl,
                            p, MBEDTLS_CLIENT_HELLO_RANDOM_LEN );
     p += MBEDTLS_CLIENT_HELLO_RANDOM_LEN;
 
-    /*
-     * Write legacy_session_id
+    /* TLS 1.2:
+     * ...
+     * SessionID session_id;
+     * ...
+     * with
+     * opaque SessionID<0..32>;
      *
-     * Versions of TLS before TLS 1.3 supported a "session resumption" feature
-     * which has been merged with pre-shared keys in this version. A client
-     * which has a cached session ID set by a pre-TLS 1.3 server SHOULD set
-     * this field to that value. In compatibility mode, this field MUST be
-     * non-empty, so a client not offering a pre-TLS 1.3 session MUST generate
-     * a new 32-byte value. This value need not be random but SHOULD be
-     * unpredictable to avoid implementations fixating on a specific value
-     * ( also known as ossification ). Otherwise, it MUST be set as a zero-length
-     * vector ( i.e., a zero-valued single byte length field ).
+     * TLS 1.3:
+     * ...
+     * opaque legacy_session_id<0..32>;
+     * ...
+     *
+     * The (legacy) session identifier bytes have been by
+     * ssl_prepare_client_hello() into the ssl->session_negotiate->id buffer
+     * and are copied here into the output buffer.
      */
-#if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, ssl->session_negotiate->id_len + 1 );
     *p++ = (unsigned char)ssl->session_negotiate->id_len;
     memcpy( p, ssl->session_negotiate->id, ssl->session_negotiate->id_len );
@@ -283,10 +285,6 @@ static int ssl_write_client_hello_body( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "session id", ssl->session_negotiate->id,
                               ssl->session_negotiate->id_len );
-#else
-    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 1 );
-    *p++ = 0; /* session id length set to zero */
-#endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
 
     /* Write cipher_suites */
     ret = ssl_write_client_hello_cipher_suites( ssl, p, end, &output_len );
@@ -411,6 +409,7 @@ static int ssl_generate_random( mbedtls_ssl_context *ssl )
 static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
 {
     int ret;
+    size_t session_id_len;
 
     if( ssl->conf->f_rng == NULL )
     {
@@ -459,23 +458,82 @@ static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
         }
     }
 
-#if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
     /*
-     * Create a session identifier for the purpose of middlebox compatibility
-     * only if one has not been created already.
+     * Prepare session identifier. But in the case of a TLS 1.2 session
+     * renegotiation or session resumption, the initial value of the session
+     * identifier length below is equal to zero.
      */
-    if( ssl->session_negotiate->id_len == 0 )
+    session_id_len = ssl->session_negotiate->id_len;
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
     {
-        /* Creating a session id with 32 byte length */
-        if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng,
-                                      ssl->session_negotiate->id, 32 ) ) != 0 )
+        if( session_id_len < 16 || session_id_len > 32 ||
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+            ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE ||
+#endif
+            ssl->handshake->resume == 0 )
         {
-            MBEDTLS_SSL_DEBUG_RET( 1, "creating session id failed", ret );
-            return( ret );
+            session_id_len = 0;
         }
-        ssl->session_negotiate->id_len = 32;
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    /*
+     * RFC 5077 section 3.4: "When presenting a ticket, the client MAY
+     * generate and include a Session ID in the TLS ClientHello."
+     */
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+        if( ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE )
+#endif
+        {
+            if( ( ssl->session_negotiate->ticket != NULL ) &&
+                ( ssl->session_negotiate->ticket_len != 0 ) )
+            {
+                session_id_len = 32;
+            }
+        }
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+    }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
+#if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
+    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+    {
+        /*
+         * Create a legacy session identifier for the purpose of middlebox
+         * compatibility only if one has not been created already, which is
+         * the case if we are here for the TLS 1.3 second ClientHello.
+         *
+         * Versions of TLS before TLS 1.3 supported a "session resumption"
+         * feature which has been merged with pre-shared keys in TLS 1.3
+         * version. A client which has a cached session ID set by a pre-TLS 1.3
+         * server SHOULD set this field to that value. In compatibility mode,
+         * this field MUST be non-empty, so a client not offering a pre-TLS 1.3
+         * session MUST generate a new 32-byte value. This value need not be
+         * random but SHOULD be unpredictable to avoid implementations fixating
+         * on a specific value (also known as ossification). Otherwise, it MUST
+         * be set as a zero-length vector ( i.e., a zero-valued single byte
+         * length field ).
+         */
+        session_id_len = 32;
     }
 #endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
+
+    if( session_id_len != ssl->session_negotiate->id_len )
+    {
+        ssl->session_negotiate->id_len = session_id_len;
+        if( session_id_len > 0 )
+        {
+            ret = ssl->conf->f_rng( ssl->conf->p_rng,
+                                    ssl->session_negotiate->id,
+                                    session_id_len );
+            if( ret != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "creating session id failed", ret );
+                return( ret );
+            }
+        }
+    }
 
     return( 0 );
 }

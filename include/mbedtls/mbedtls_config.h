@@ -2760,6 +2760,19 @@
 #define MBEDTLS_SHA256_C
 
 /**
+ * \def MBEDTLS_SHA512T256_C
+ *
+ * Enable the SHA-512/256 cryptographic hash algorithm.
+ *
+ * Requires: MBEDTLS_SHA512_C
+ *
+ * Module:  library/sha512.c
+ *
+ * Comment to disable SHA-512/256
+ */
+#define MBEDTLS_SHA512T256_C
+
+/**
  * \def MBEDTLS_SHA384_C
  *
  * Enable the SHA-384 cryptographic hash algorithm.

@@ -385,11 +385,15 @@ static int ssl_write_client_hello_body( mbedtls_ssl_context *ssl,
         return( ret );
     p += output_len;
 
-    /* Write legacy_compression_methods
+    /* Write legacy_compression_methods (TLS 1.3) or
+     * compression_methods (TLS 1.2)
      *
      * For every TLS 1.3 ClientHello, this vector MUST contain exactly
      * one byte set to zero, which corresponds to the 'null' compression
      * method in prior versions of TLS.
+     *
+     * For TLS 1.2 ClientHello, for security reasons we do not support
+     * compression anymore, thus also just the 'null' compression method.
      */
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
     *p++ = 1;

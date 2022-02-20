@@ -1098,6 +1098,25 @@ struct mbedtls_ssl_flight_item
 };
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+/**
+ * \brief Given an SSL context and its associated configuration, write the TLS
+ *        1.2 specific extensions of the ClientHello message.
+ *
+ * \param[in]   ssl     SSL context
+ * \param[in]   buf     Base address of the buffer where to write the extensions
+ * \param[in]   end     End address of the buffer where to write the extensions
+ * \param       uses_ec Whether one proposed ciphersuite uses an elliptic curve
+ *                      (<> 0) or not ( 0 ).
+ * \param[out]  out_len Length of the data written into the buffer \p buf
+ */
+int mbedtls_ssl_tls12_write_client_hello_exts( mbedtls_ssl_context *ssl,
+                                               unsigned char *buf,
+                                               const unsigned char *end,
+                                               int uses_ec,
+                                               size_t *out_len );
+#endif
+
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 

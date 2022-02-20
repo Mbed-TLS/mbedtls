@@ -681,11 +681,11 @@ static int ssl_validate_ciphersuite(
     return( 0 );
 }
 
-static int ssl_tls12_write_client_hello_exts( mbedtls_ssl_context *ssl,
-                                              unsigned char *buf,
-                                              const unsigned char *end,
-                                              int uses_ec,
-                                              size_t *out_len )
+int mbedtls_ssl_tls12_write_client_hello_exts( mbedtls_ssl_context *ssl,
+                                               unsigned char *buf,
+                                               const unsigned char *end,
+                                               int uses_ec,
+                                               size_t *out_len )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *p = buf;
@@ -1088,8 +1088,8 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     }
 #endif
 
-    ret = ssl_tls12_write_client_hello_exts( ssl, p + 2 + ext_len, end, uses_ec,
-                                             &olen );
+    ret = mbedtls_ssl_tls12_write_client_hello_exts( ssl, p + 2 + ext_len, end,
+                                                     uses_ec, &olen );
     if( ret != 0 )
         return( ret );
     ext_len += olen;

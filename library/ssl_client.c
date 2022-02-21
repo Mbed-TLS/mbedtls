@@ -712,12 +712,34 @@ int mbedtls_ssl_write_client_hello( mbedtls_ssl_context *ssl )
                                                        buf + buf_len,
                                                        &msg_len ) );
 
-    mbedtls_ssl_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
-                                        buf, msg_len );
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    {
+        ssl->out_msglen = msg_len + 4;
+        mbedtls_ssl_send_flight_completed( ssl );
 
-    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_finish_handshake_msg( ssl,
-                                                            buf_len,
-                                                            msg_len ) );
+        if( ( ret = mbedtls_ssl_write_handshake_msg( ssl ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_handshake_msg", ret );
+            return( ret );
+        }
+
+        if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+            ( ret = mbedtls_ssl_flight_transmit( ssl ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_flight_transmit", ret );
+            return( ret );
+        }
+    }
+    else
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_SSL_PROTO_DTLS */
+    {
+        mbedtls_ssl_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
+                                            buf, msg_len );
+        MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_finish_handshake_msg( ssl,
+                                                                buf_len,
+                                                                msg_len ) );
+    }
 
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_HELLO );
 

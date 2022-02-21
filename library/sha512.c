@@ -96,12 +96,14 @@ int mbedtls_sha512_starts( mbedtls_sha512_context *ctx, int is384_or_bits )
 {
     SHA512_VALIDATE_RET( ctx != NULL );
 #if defined(MBEDTLS_SHA384_C) && defined(MBEDTLS_SHA512T256_C)
-    if (is384_or_bits == 1) is384_or_bits = 384;
+    if ( is384_or_bits == 1 )
+        is384_or_bits = 384;
     SHA512_VALIDATE_RET( is384_or_bits == 0 || is384_or_bits == 256 || is384_or_bits == 384 );
 #elif defined(MBEDTLS_SHA512T256_C)
     SHA512_VALIDATE_RET( is384_or_bits == 0 || is384_or_bits == 256 );
 #elif defined(MBEDTLS_SHA384_C)
-    if (is384_or_bits == 1) is384_or_bits = 384;
+    if ( is384_or_bits == 1 )
+        is384_or_bits = 384;
     SHA512_VALIDATE_RET( is384_or_bits == 0 || is384_or_bits == 384 );
 #else
     SHA512_VALIDATE_RET( is384_or_bits == 0 );
@@ -464,12 +466,14 @@ int mbedtls_sha512( const unsigned char *input,
     mbedtls_sha512_context ctx;
 
 #if defined(MBEDTLS_SHA384_C) && defined(MBEDTLS_SHA512T256_C)
-    if (is384_or_bits == 1) is384_or_bits = 384;
+    if ( is384_or_bits == 1 )
+        is384_or_bits = 384;
     SHA512_VALIDATE_RET( is384_or_bits == 0 || is384_or_bits == 256 || is384_or_bits == 384 );
 #elif defined(MBEDTLS_SHA512T256_C)
     SHA512_VALIDATE_RET( is384_or_bits == 0 || is384_or_bits == 256 );
 #elif defined(MBEDTLS_SHA384_C)
-    if (is384_or_bits == 1) is384_or_bits = 384;
+    if ( is384_or_bits == 1 )
+        is384_or_bits = 384;
     SHA512_VALIDATE_RET( is384_or_bits == 0 || is384_or_bits == 384 );
 #else
     SHA512_VALIDATE_RET( is384_or_bits == 0 );

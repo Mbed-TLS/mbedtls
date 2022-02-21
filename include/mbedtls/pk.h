@@ -84,6 +84,10 @@
 extern "C" {
 #endif
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+int mbedtls_pk_psa_err_translate( psa_status_t status );
+#endif
+
 /**
  * \brief          Public key types
  */

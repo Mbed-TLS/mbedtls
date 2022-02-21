@@ -66,6 +66,33 @@
 #define mbedtls_free   free
 #endif
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "mbedtls/pk.h"
+#endif
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+int mbedtls_pk_rsa_psa_err_translate( psa_status_t status )
+{
+    switch( status )
+    {
+        case PSA_ERROR_NOT_PERMITTED:
+        case PSA_ERROR_INVALID_ARGUMENT:
+        case PSA_ERROR_INVALID_HANDLE:
+            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+        case PSA_ERROR_BUFFER_TOO_SMALL:
+            return( MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE );
+        case PSA_ERROR_INSUFFICIENT_ENTROPY:
+            return( MBEDTLS_ERR_RSA_RNG_FAILED );
+        case PSA_ERROR_INVALID_SIGNATURE:
+            return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
+        case PSA_ERROR_INVALID_PADDING:
+            return( MBEDTLS_ERR_RSA_INVALID_PADDING );
+        default:
+            return( mbedtls_pk_psa_err_translate( status ) );
+    }
+}
+#endif
+
 #if !defined(MBEDTLS_RSA_ALT)
 
 /* Parameter validation macros */

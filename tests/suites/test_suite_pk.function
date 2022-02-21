@@ -429,7 +429,8 @@ void pk_rsa_verify_ext_test_vec( data_t * message_str, int digest,
                                  int mod, int radix_N, char * input_N,
                                  int radix_E, char * input_E,
                                  data_t * result_str, int pk_type,
-                                 int mgf1_hash_id, int salt_len, int result )
+                                 int mgf1_hash_id, int salt_len, int sig_len,
+                                 int result )
 {
     unsigned char hash_result[MBEDTLS_MD_MAX_SIZE];
     mbedtls_rsa_context *rsa;
@@ -438,6 +439,7 @@ void pk_rsa_verify_ext_test_vec( data_t * message_str, int digest,
     void *options;
     size_t hash_len;
 
+    USE_PSA_INIT( );
     mbedtls_pk_init( &pk );
 
     memset( hash_result, 0x00, sizeof( hash_result ) );
@@ -477,10 +479,11 @@ void pk_rsa_verify_ext_test_vec( data_t * message_str, int digest,
 
     TEST_ASSERT( mbedtls_pk_verify_ext( pk_type, options, &pk,
                                 digest, hash_result, hash_len,
-                                result_str->x, mbedtls_pk_get_len( &pk ) ) == result );
+                                result_str->x, sig_len ) == result );
 
 exit:
     mbedtls_pk_free( &pk );
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 

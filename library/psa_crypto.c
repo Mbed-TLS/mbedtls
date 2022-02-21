@@ -4934,7 +4934,6 @@ static psa_status_t psa_generate_derived_ecc_key_weierstrass_helper(
         *    Result of comparison is returned. When it indicates error
         *    then this fuction is called again.
         */
-        MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &k, diff_N_2.n ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_lt_mpi_ct( &diff_N_2, &k, &key_out_of_range ) );
     }
 

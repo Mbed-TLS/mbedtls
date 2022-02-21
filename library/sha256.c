@@ -52,6 +52,11 @@
 #  if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT) && defined(__linux__)
 #    include <sys/auxv.h>
 #  endif
+#elif defined(_M_ARM64)
+#  if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT) || \
+      defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY)
+#    include <arm64_neon.h>
+#  endif
 #else
 #  undef MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY
 #  undef MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
@@ -71,6 +76,16 @@ static int mbedtls_a64_crypto_sha256_check_support( void )
 static int mbedtls_a64_crypto_sha256_check_support( void )
 {
     return( 1 );
+}
+#elif defined(_M_ARM64)
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include <processthreadsapi.h>
+
+static int mbedtls_a64_crypto_sha256_check_support( void )
+{
+    return( IsProcessorFeaturePresent( PF_ARM_V8_CRYPTO_INSTRUCTIONS_AVAILABLE ) ?
+            1 : 0 );
 }
 #elif defined(__unix__) && defined(SIG_SETMASK)
 /* Detection with SIGILL, setjmp() and longjmp() */

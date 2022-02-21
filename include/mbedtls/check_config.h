@@ -610,7 +610,8 @@
 #endif
 #endif
 
-#if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY) && !defined(__aarch64__)
+#if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY) && \
+    !defined(__aarch64__) && !defined(_M_ARM64)
 #error "MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY defined on non-Aarch64 system"
 #endif
 

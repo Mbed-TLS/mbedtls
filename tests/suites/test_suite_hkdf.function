@@ -78,7 +78,7 @@ void test_hkdf_expand( int md_alg, char *hex_info_string,
     const mbedtls_md_info_t *md = mbedtls_md_info_from_type( md_alg );
     TEST_ASSERT( md != NULL );
 
-    output_okm = mbedtls_calloc( OKM_LEN, 1 );
+    ASSERT_ALLOC( output_okm, OKM_LEN );
 
     prk = mbedtls_test_unhexify_alloc( hex_prk_string, &prk_len );
     info = mbedtls_test_unhexify_alloc( hex_info_string, &info_len );
@@ -143,10 +143,10 @@ void test_hkdf_expand_ret( int hash_len, int prk_len, int okm_len, int ret )
     info_len = 0;
 
     if (prk_len > 0)
-        prk = mbedtls_calloc( prk_len, 1 );
+        ASSERT_ALLOC( prk, prk_len );
 
     if (okm_len > 0)
-        okm = mbedtls_calloc( okm_len, 1 );
+        ASSERT_ALLOC( okm, okm_len );
 
     output_ret = mbedtls_hkdf_expand( &fake_md_info, prk, prk_len,
                                       info, info_len, okm, okm_len );

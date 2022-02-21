@@ -30,6 +30,9 @@
 
 #include "ssl_misc.h"
 #include "ssl_tls13_keys.h"
+#include "ssl_tls13_invasive.h"
+
+#include "psa/crypto.h"
 
 #define MBEDTLS_SSL_TLS1_3_LABEL( name, string )       \
     .name = string,
@@ -132,6 +135,131 @@ static void ssl_tls13_hkdf_encode_label(
     /* Return total length to the caller.  */
     *dst_len = total_hkdf_lbl_len;
 }
+
+#if defined( MBEDTLS_TEST_HOOKS )
+
+MBEDTLS_STATIC_TESTABLE
+psa_status_t mbedtls_psa_hkdf_expand( psa_algorithm_t alg,
+                                      const unsigned char *prk, size_t prk_len,
+                                      const unsigned char *info, size_t info_len,
+                                      unsigned char *okm, size_t okm_len )
+{
+    size_t hash_len;
+    size_t where = 0;
+    size_t n;
+    size_t t_len = 0;
+    size_t i;
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t destroy_status = PSA_ERROR_CORRUPTION_DETECTED;
+    unsigned char t[PSA_MAC_MAX_SIZE];
+
+    if( okm == NULL )
+    {
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+
+    hash_len = PSA_HASH_LENGTH( alg );
+
+    if( prk_len < hash_len || hash_len == 0 )
+    {
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+
+    if( info == NULL )
+    {
+        info = (const unsigned char *) "";
+        info_len = 0;
+    }
+
+    n = okm_len / hash_len;
+
+    if( okm_len % hash_len != 0 )
+    {
+        n++;
+    }
+
+    /*
+     * Per RFC 5869 Section 2.3, okm_len must not exceed
+     * 255 times the hash length
+     */
+    if( n > 255 )
+    {
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_MESSAGE );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, PSA_KEY_TYPE_HMAC );
+
+    status = psa_import_key( &attributes, prk, prk_len, &key );
+    if( status != PSA_SUCCESS )
+    {
+        goto cleanup;
+    }
+
+    memset( t, 0, hash_len );
+
+    /*
+     * Compute T = T(1) | T(2) | T(3) | ... | T(N)
+     * Where T(N) is defined in RFC 5869 Section 2.3
+     */
+    for( i = 1; i <= n; i++ )
+    {
+        size_t num_to_copy;
+        unsigned char c = i & 0xff;
+        size_t len;
+
+        status = psa_mac_sign_setup( &operation, key, alg );
+        if( status != PSA_SUCCESS )
+        {
+            goto cleanup;
+        }
+
+        status = psa_mac_update( &operation, t, t_len );
+        if( status != PSA_SUCCESS )
+        {
+            goto cleanup;
+        }
+
+        status = psa_mac_update( &operation, info, info_len );
+        if( status != PSA_SUCCESS )
+        {
+            goto cleanup;
+        }
+
+        /* The constant concatenated to the end of each T(n) is a single octet. */
+        status = psa_mac_update( &operation, &c, 1 );
+        if( status != PSA_SUCCESS )
+        {
+            goto cleanup;
+        }
+
+        status = psa_mac_sign_finish( &operation, t, PSA_MAC_MAX_SIZE, &len );
+        if( status != PSA_SUCCESS )
+        {
+            goto cleanup;
+        }
+
+        num_to_copy = i != n ? hash_len : okm_len - where;
+        memcpy( okm + where, t, num_to_copy );
+        where += hash_len;
+        t_len = hash_len;
+    }
+
+cleanup:
+    if( status != PSA_SUCCESS )
+        psa_mac_abort( &operation );
+    destroy_status = psa_destroy_key( key );
+
+    mbedtls_platform_zeroize( t, sizeof( t ) );
+
+    return( ( status == PSA_SUCCESS ) ? destroy_status : status );
+}
+
+#endif /* MBEDTLS_TEST_HOOKS */
 
 int mbedtls_ssl_tls13_hkdf_expand_label(
                      mbedtls_md_type_t hash_alg,

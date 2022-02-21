@@ -1,6 +1,11 @@
-/*
- *  TLS 1.3 server-side functions
+/* MBEDTLS_USER_CONFIG_FILE for testing.
+ * Only used for a few test configurations.
  *
+ * Typical usage (note multiple levels of quoting):
+ *     make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
+ */
+
+/*
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
  *
@@ -15,25 +20,15 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
-*/
+ */
 
-#include "common.h"
+#define MBEDTLS_SSL_PROTO_TLS1_3
+#define MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 
-#if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
-
-#include "mbedtls/debug.h"
-
-#include "ssl_misc.h"
-#include "ssl_debug_helpers.h"
-
-int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
-{
-    ((void) ssl);
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "tls13 server state: %s(%d)",
-                                mbedtls_ssl_states_str( ssl->state ),
-                                ssl->state ) );
-
-    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
-}
-
-#endif /* MBEDTLS_SSL_SRV_C && MBEDTLS_SSL_PROTO_TLS1_3 */
+#undef MBEDTLS_SSL_ENCRYPT_THEN_MAC
+#undef MBEDTLS_SSL_EXTENDED_MASTER_SECRET
+#undef MBEDTLS_SSL_PROTO_TLS1_2
+#undef MBEDTLS_SSL_PROTO_DTLS
+#undef MBEDTLS_SSL_DTLS_ANTI_REPLAY
+#undef MBEDTLS_SSL_DTLS_HELLO_VERIFY
+#undef MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE

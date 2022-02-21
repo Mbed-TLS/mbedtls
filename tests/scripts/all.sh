@@ -2705,6 +2705,17 @@ component_build_armcc () {
     armc6_build_test "--target=aarch64-arm-none-eabi -march=armv8.2-a"
 }
 
+component_test_tls13_only () {
+    msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3, without MBEDTLS_SSL_PROTO_TLS1_2"
+    make CFLAGS="'-DMBEDTLS_USER_CONFIG_FILE=\"../tests/configs/tls13-only.h\"'"
+
+    msg "test: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, without MBEDTLS_SSL_PROTO_TLS1_2"
+    if_build_succeeded make test
+
+    msg "ssl-opt.sh (TLS 1.3)"
+    if_build_succeeded tests/ssl-opt.sh
+}
+
 component_test_tls13 () {
     msg "build: default config with MBEDTLS_SSL_PROTO_TLS1_3 enabled, without padding"
     scripts/config.py set MBEDTLS_SSL_PROTO_TLS1_3

@@ -21,9 +21,7 @@
 
 #include "common.h"
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-
-#if defined(MBEDTLS_SSL_CLI_C)
+#if defined(MBEDTLS_SSL_CLI_C) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
 
 #include <string.h>
 
@@ -2059,6 +2057,6 @@ int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl )
     return( ret );
 }
 
-#endif /* MBEDTLS_SSL_CLI_C */
+#endif /* MBEDTLS_SSL_CLI_C && MBEDTLS_SSL_PROTO_TLS1_3 */
 
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+

@@ -440,7 +440,7 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
         if( status != PSA_SUCCESS )
         {
             psa_destroy_key( key_id );
-            return( mbedtls_psa_err_translate_pk( status ) );
+            return( mbedtls_pk_psa_err_translate( status ) );
         }
 
         /* This function requires returning MBEDTLS_ERR_PK_SIG_LEN_MISMATCH
@@ -457,13 +457,10 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
         if( status == PSA_SUCCESS && sig_len > mbedtls_pk_get_len( ctx ) )
             return( MBEDTLS_ERR_PK_SIG_LEN_MISMATCH );
 
-        if( status == PSA_ERROR_INVALID_SIGNATURE )
-            return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
-
         if( status == PSA_SUCCESS )
             status = destruction_status;
 
-        return( mbedtls_psa_err_translate_pk( status ) );
+        return( mbedtls_pk_rsa_psa_err_translate( status ) );
     }
     else
 #endif

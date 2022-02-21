@@ -596,7 +596,7 @@ static int ecdsa_verify_wrap( void *ctx_arg, mbedtls_md_type_t md_alg,
                              &key_id );
     if( status != PSA_SUCCESS )
     {
-        ret = mbedtls_psa_err_translate_pk( status );
+        ret = mbedtls_pk_psa_err_translate( status );
         goto cleanup;
     }
 
@@ -615,12 +615,12 @@ static int ecdsa_verify_wrap( void *ctx_arg, mbedtls_md_type_t md_alg,
         goto cleanup;
     }
 
-    if( psa_verify_hash( key_id, psa_sig_md,
-                         hash, hash_len,
-                         buf, 2 * signature_part_size )
-         != PSA_SUCCESS )
+    status = psa_verify_hash( key_id, psa_sig_md,
+                              hash, hash_len,
+                              buf, 2 * signature_part_size );
+    if( status != PSA_SUCCESS )
     {
-         ret = MBEDTLS_ERR_ECP_VERIFY_FAILED;
+         ret = mbedtls_pk_ecp_psa_err_translate( status );
          goto cleanup;
     }
 
@@ -1045,7 +1045,7 @@ static int pk_opaque_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
     status = psa_sign_hash( *key, alg, hash, hash_len,
                             sig, sig_size, sig_len );
     if( status != PSA_SUCCESS )
-        return( mbedtls_psa_err_translate_pk( status ) );
+        return( mbedtls_pk_ecp_psa_err_translate( status ) );
 
     /* transcode it to ASN.1 sequence */
     return( pk_ecdsa_sig_asn1_from_psa( sig, sig_len, sig_size ) );

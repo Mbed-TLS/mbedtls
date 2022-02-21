@@ -1,0 +1,6 @@
+Features
+   * The structures mbedtls_ssl_config and mbedtls_ssl_context now store
+     a piece of user data which is reserved for the application. The user
+     data can be either a pointer or an integer.
+   * Add an accessor function to get the configuration associated with
+     an SSL context.

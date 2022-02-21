@@ -886,6 +886,7 @@ int mbedtls_endpoint_init( mbedtls_endpoint *ep, int endpoint_type, int pk_alg,
                            mbedtls_test_message_queue *output_queue )
 {
     int ret = -1;
+    uintptr_t user_data_n;
 
     if( dtls_context != NULL && ( input_queue == NULL || output_queue == NULL ) )
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
@@ -904,6 +905,18 @@ int mbedtls_endpoint_init( mbedtls_endpoint *ep, int endpoint_type, int pk_alg,
         mbedtls_ctr_drbg_random,
         &( ep->ctr_drbg ) );
     mbedtls_entropy_init( &( ep->entropy ) );
+
+    TEST_ASSERT( mbedtls_ssl_conf_get_user_data_p( &ep->conf ) == NULL );
+    TEST_EQUAL( mbedtls_ssl_conf_get_user_data_n( &ep->conf ), 0 );
+    TEST_ASSERT( mbedtls_ssl_get_user_data_p( &ep->ssl ) == NULL );
+    TEST_EQUAL( mbedtls_ssl_get_user_data_n( &ep->ssl ), 0 );
+
+    (void) mbedtls_test_rnd_std_rand( NULL,
+                                      (void*) &user_data_n,
+                                      sizeof( user_data_n ) );
+    mbedtls_ssl_conf_set_user_data_n( &ep->conf, user_data_n );
+    mbedtls_ssl_set_user_data_n( &ep->ssl, user_data_n );
+
     if( dtls_context != NULL )
     {
         TEST_ASSERT( mbedtls_message_socket_setup( input_queue, output_queue,
@@ -953,6 +966,11 @@ int mbedtls_endpoint_init( mbedtls_endpoint *ep, int endpoint_type, int pk_alg,
 
     ret = mbedtls_endpoint_certificate_init( ep, pk_alg );
     TEST_ASSERT( ret == 0 );
+
+    TEST_EQUAL( mbedtls_ssl_conf_get_user_data_n( &ep->conf ), user_data_n );
+    mbedtls_ssl_conf_set_user_data_p( &ep->conf, ep );
+    TEST_EQUAL( mbedtls_ssl_get_user_data_n( &ep->ssl ), user_data_n );
+    mbedtls_ssl_set_user_data_p( &ep->ssl, ep );
 
 exit:
     return ret;
@@ -1793,6 +1811,45 @@ int exchange_data( mbedtls_ssl_context *ssl_1,
                                   ssl_2, 256, 1 );
 }
 
+int check_ssl_version( int expected_negotiated_version,
+                       const mbedtls_ssl_context *ssl )
+{
+    const char *version_string = mbedtls_ssl_get_version( ssl );
+    mbedtls_ssl_protocol_version version_number =
+        mbedtls_ssl_get_version_number( ssl );
+
+    TEST_EQUAL( ssl->major_ver, MBEDTLS_SSL_MAJOR_VERSION_3 );
+    TEST_EQUAL( ssl->minor_ver, expected_negotiated_version );
+
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    {
+        TEST_EQUAL( version_string[0], 'D' );
+        ++version_string;
+    }
+
+    switch( expected_negotiated_version )
+    {
+        case MBEDTLS_SSL_MINOR_VERSION_3:
+            TEST_EQUAL( version_number, MBEDTLS_SSL_VERSION_1_2 );
+            TEST_ASSERT( strcmp( version_string, "TLSv1.2" ) == 0 );
+            break;
+
+        case MBEDTLS_SSL_MINOR_VERSION_4:
+            TEST_EQUAL( version_number, MBEDTLS_SSL_VERSION_1_3 );
+            TEST_ASSERT( strcmp( version_string, "TLSv1.3" ) == 0 );
+            break;
+
+        default:
+            TEST_ASSERT( ! "Version check not implemented for this protocol version" );
+    }
+
+    return( 1 );
+
+exit:
+    return( 0 );
+}
+
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && \
     defined(MBEDTLS_ENTROPY_C) && \
     defined(MBEDTLS_CTR_DRBG_C)
@@ -1984,11 +2041,16 @@ void perform_handshake( handshake_test_options* options )
     TEST_ASSERT( client.ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER );
     TEST_ASSERT( server.ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER );
 
-    /* Check that we agree on the version... */
-    TEST_ASSERT( client.ssl.minor_ver == server.ssl.minor_ver );
+    /* Check that both sides have negotiated the expected version. */
+    mbedtls_test_set_step( 0 );
+    if( ! check_ssl_version( options->expected_negotiated_version,
+                             &client.ssl ) )
+        goto exit;
 
-    /* And check that the version negotiated is the expected one. */
-    TEST_EQUAL( client.ssl.minor_ver, options->expected_negotiated_version );
+    mbedtls_test_set_step( 1 );
+    if( ! check_ssl_version( options->expected_negotiated_version,
+                             &server.ssl ) )
+        goto exit;
 
 #if defined(MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH)
     if( options->resize_buffers != 0 )
@@ -2042,6 +2104,8 @@ void perform_handshake( handshake_test_options* options )
                              mbedtls_mock_tcp_send_msg,
                              mbedtls_mock_tcp_recv_msg,
                              NULL );
+
+        mbedtls_ssl_set_user_data_p( &server.ssl, &server );
 
 #if defined(MBEDTLS_TIMING_C)
         mbedtls_ssl_set_timer_cb( &server.ssl, &timer_server,
@@ -2149,6 +2213,11 @@ void perform_handshake( handshake_test_options* options )
 #endif /* MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH */
     }
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
+
+    TEST_ASSERT( mbedtls_ssl_conf_get_user_data_p( &client.conf ) == &client );
+    TEST_ASSERT( mbedtls_ssl_get_user_data_p( &client.ssl ) == &client );
+    TEST_ASSERT( mbedtls_ssl_conf_get_user_data_p( &server.conf ) == &server );
+    TEST_ASSERT( mbedtls_ssl_get_user_data_p( &server.ssl ) == &server );
 
 exit:
     mbedtls_endpoint_free( &client, options->dtls != 0 ? &client_context : NULL );

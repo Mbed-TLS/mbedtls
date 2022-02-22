@@ -1064,7 +1064,7 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
     unsigned char signature_type;
     size_t own_key_size;
     mbedtls_md_type_t md_alg;
-    uint16_t algorithm;
+    uint16_t algorithm = MBEDTLS_TLS1_3_SIG_NONE;
     size_t signature_len = 0;
     const mbedtls_md_info_t *md_info;
     unsigned char verify_hash[ MBEDTLS_MD_MAX_SIZE ];
@@ -1100,12 +1100,12 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
      *  } CertificateVerify;
      */
     signature_type = mbedtls_ssl_sig_from_pk( own_key );
+    /* Determine the size of the key */
+    own_key_size = mbedtls_pk_get_bitlen( own_key );
     switch( signature_type )
     {
 #if defined(MBEDTLS_ECDSA_C)
         case MBEDTLS_SSL_SIG_ECDSA:
-            /* Determine the size of the key */
-            own_key_size = mbedtls_pk_get_bitlen( own_key );
             switch( own_key_size )
             {
                 case 256:
@@ -1125,21 +1125,13 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
                                            ( "unknown key size: %"
                                              MBEDTLS_PRINTF_SIZET " bits",
                                              own_key_size ) );
-                    MBEDTLS_SSL_DEBUG_MSG( 1,
-                        ( "signature algorithm not in "
-                            "received or offered list." ) );
-                    MBEDTLS_SSL_PEND_FATAL_ALERT(
-                                        MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
-                                        MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-                    return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+                    break;
             }
             break;
 #endif /* MBEDTLS_ECDSA_C */
 
 #if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PKCS1_V21)
         case MBEDTLS_SSL_SIG_RSA:
-            /* Determine the size of the key */
-            own_key_size = mbedtls_pk_get_bitlen( own_key );
             if( own_key_size <= 2048 &&
                 mbedtls_ssl_sig_alg_is_received( ssl,
                                     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256 ) )
@@ -1166,12 +1158,7 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "unknown key size: %"
                                             MBEDTLS_PRINTF_SIZET " bits",
                                             own_key_size ) );
-                MBEDTLS_SSL_DEBUG_MSG( 1,
-                    ( "signature algorithm not in received or offered list." ) );
-                MBEDTLS_SSL_PEND_FATAL_ALERT(
-                                        MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
-                                        MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-                return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+                break;
             }
 
             if( mbedtls_rsa_set_padding( mbedtls_pk_rsa( *own_key ),
@@ -1189,7 +1176,8 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
             return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }
 
-    if( !mbedtls_ssl_sig_alg_is_received( ssl, algorithm ) )
+    if( algorithm == MBEDTLS_TLS1_3_SIG_NONE ||
+        ! mbedtls_ssl_sig_alg_is_received( ssl, algorithm ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1,
                     ( "signature algorithm not in received or offered list." ) );

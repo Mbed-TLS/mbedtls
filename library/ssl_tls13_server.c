@@ -886,7 +886,7 @@ static int ssl_client_hello_postprocess( mbedtls_ssl_context* ssl,
 {
     int ret = 0;
 
-    if( ssl->handshake->hello_retry_request_count == 0 &&
+    if( ssl->handshake->hello_retry_requests_sent == 0 &&
         ssl->conf->rr_config == MBEDTLS_SSL_FORCE_RR_CHECK_ON )
     {
         hrr_required = SSL_CLIENT_HELLO_HRR_REQUIRED;
@@ -946,7 +946,7 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
     {
         /* start state */
         case MBEDTLS_SSL_HELLO_REQUEST:
-            ssl->handshake->hello_retry_request_count = 0;
+            ssl->handshake->hello_retry_requests_sent = 0;
             mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_HELLO );
 
             break;

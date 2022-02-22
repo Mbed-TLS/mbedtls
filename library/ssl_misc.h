@@ -585,6 +585,10 @@ struct mbedtls_ssl_handshake_params
     /*!<  Number of Hello Retry Request messages received from the server.  */
     int hello_retry_request_count;
 #endif /* MBEDTLS_SSL_CLI_C */
+#if defined(MBEDTLS_SSL_SRV_C)
+    /*!<  Number of Hello Retry Request messages sent by the server.  */
+    int hello_retry_requests_sent;
+#endif /* MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)

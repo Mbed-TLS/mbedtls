@@ -812,7 +812,10 @@ void pk_rsa_encrypt_test_vec( data_t * message, int mod, int radix_N,
                             output, &olen, sizeof( output ),
                             mbedtls_test_rnd_pseudo_rand, &rnd_info ) == ret );
     TEST_ASSERT( olen == result->len );
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
+    // When using PSA crypto, RNG isn't controllable, so reference vector can't be used
     TEST_ASSERT( memcmp( output, result->x, olen ) == 0 );
+#endif
 
 exit:
     mbedtls_pk_free( &pk );

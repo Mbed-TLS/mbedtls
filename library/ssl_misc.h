@@ -2058,6 +2058,10 @@ static inline int mbedtls_ssl_sig_alg_is_supported(
     defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
             case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
                 break;
+            case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384:
+                break;
+            case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:
+                break;
 #endif /* MBEDTLS_SHA256_C &&
           MBEDTLS_X509_RSASSA_PSS_SUPPORT */
 

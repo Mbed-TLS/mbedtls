@@ -1542,6 +1542,14 @@ int main( int argc, char *argv[] )
             {
                 sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256;
             }
+            else if( strcmp( q, "rsa_pss_rsae_sha384" ) == 0 )
+            {
+                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384;
+            }
+            else if( strcmp( q, "rsa_pss_rsae_sha512" ) == 0 )
+            {
+                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512;
+            }
             else if( strcmp( q, "rsa_pkcs1_sha256" ) == 0 )
             {
                 sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256;
@@ -1554,6 +1562,8 @@ int main( int argc, char *argv[] )
                 mbedtls_printf( "ecdsa_secp384r1_sha384 " );
                 mbedtls_printf( "ecdsa_secp521r1_sha512 " );
                 mbedtls_printf( "rsa_pss_rsae_sha256 " );
+                mbedtls_printf( "rsa_pss_rsae_sha384 " );
+                mbedtls_printf( "rsa_pss_rsae_sha512 " );
                 mbedtls_printf( "rsa_pkcs1_sha256 " );
                 mbedtls_printf( "\n" );
                 goto exit;

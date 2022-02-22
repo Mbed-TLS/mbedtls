@@ -9984,7 +9984,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-run_test    "TLS 1.3: Client authentication, client algorithm not in server list - openssl" \
+run_test    "TLS 1.3: Client authentication, client alg not in server list - openssl" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -Verify 10
                 -sigalgs ecdsa_secp256r1_sha256" \
             "$P_CLI debug_level=4 force_version=tls13 crt_file=data_files/cert_sha256.crt \

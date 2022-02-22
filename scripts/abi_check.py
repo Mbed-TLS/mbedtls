@@ -11,11 +11,15 @@ is a small wrapper around the abi-compliance-checker and abi-dumper tools,
 applying them to compare the header and library files.
 
 For the storage format, this script compares the automatically generated
-storage tests, and complains if there is a reduction in coverage.
+storage tests and the manual read tests, and complains if there is a
+reduction in coverage. A change in test data will be signalled as a
+coverage reduction since the old test data is no longer present. A change in
+how test data is presented will be signalled as well; this would be a false
+positive.
 
-The results of the comparison are either formatted as HTML and stored at
-a configurable location, or are given as a brief list of problems.
-Returns 0 on success, 1 on ABI/API non-compliance, and 2 if there is an error
+The results of the API/ABI comparison are either formatted as HTML and stored
+at a configurable location, or are given as a brief list of problems.
+Returns 0 on success, 1 on non-compliance, and 2 if there is an error
 while running the script.
 """
 
@@ -34,6 +38,7 @@ while running the script.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import glob
 import os
 import re
 import sys
@@ -231,7 +236,11 @@ class AbiChecker:
         line = re.sub(r'\s+', r'', line)
         return line
 
-    def _read_storage_tests(self, directory, filename, storage_tests):
+    def _read_storage_tests(self,
+                            directory,
+                            filename,
+                            is_generated,
+                            storage_tests):
         """Record storage tests from the given file.
 
         Populate the storage_tests dictionary with test cases read from
@@ -255,6 +264,11 @@ class AbiChecker:
                 continue
             # We've reached a test case data line
             test_case_data = self._normalize_storage_test_case_data(line)
+            if not is_generated:
+                # In manual test data, only look at read tests.
+                function_name = test_case_data.split(':', 1)[0]
+                if 'read' not in function_name.split('_'):
+                    continue
             metadata = SimpleNamespace(
                 filename=filename,
                 line_number=line_number,
@@ -262,26 +276,44 @@ class AbiChecker:
             )
             storage_tests[test_case_data] = metadata
 
-    def _get_storage_format_tests(self, version, git_worktree_path):
-        """Generate and record the storage format tests for the specified git version.
-
-        The version must be checked out at git_worktree_path.
-        """
-        full_test_list = subprocess.check_output(
+    @staticmethod
+    def _list_generated_test_data_files(git_worktree_path):
+        """List the generated test data files."""
+        output = subprocess.check_output(
             ['tests/scripts/generate_psa_tests.py', '--list'],
             cwd=git_worktree_path,
         ).decode('ascii')
-        storage_test_list = [test_file
-                             for test_file in full_test_list.split()
-                             # If you change the following condition, update
-                             # generate_psa_tests.py accordingly.
-                             if 'storage_format' in test_file]
+        return [line for line in output.split('\n') if line]
+
+    def _get_storage_format_tests(self, version, git_worktree_path):
+        """Record the storage format tests for the specified git version.
+
+        The storage format tests are the test suite data files whose name
+        contains "storage_format".
+
+        The version must be checked out at git_worktree_path.
+
+        This function creates or updates the generated data files.
+        """
+        # Existing test data files. This may be missing some automatically
+        # generated files if they haven't been generated yet.
+        storage_data_files = set(glob.glob(
+            'tests/suites/test_suite_*storage_format*.data'
+        ))
+        # Discover and (re)generate automatically generated data files.
+        to_be_generated = set()
+        for filename in self._list_generated_test_data_files(git_worktree_path):
+            if 'storage_format' in filename:
+                storage_data_files.add(filename)
+                to_be_generated.add(filename)
         subprocess.check_call(
-            ['tests/scripts/generate_psa_tests.py'] + storage_test_list,
+            ['tests/scripts/generate_psa_tests.py'] + sorted(to_be_generated),
             cwd=git_worktree_path,
         )
-        for test_file in storage_test_list:
-            self._read_storage_tests(git_worktree_path, test_file,
+        for test_file in sorted(storage_data_files):
+            self._read_storage_tests(git_worktree_path,
+                                     test_file,
+                                     test_file in to_be_generated,
                                      version.storage_tests)
 
     def _cleanup_worktree(self, git_worktree_path):

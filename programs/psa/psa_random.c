@@ -7,7 +7,6 @@
 #include <stdlib.h>
 
 #include "mbedtls/entropy.h"
-#include "mbedtls/entropy_poll.h"
 
 #define BUFFER_SIZE 100
 

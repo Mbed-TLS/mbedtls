@@ -610,6 +610,10 @@ void mbedtls_ssl_transform_init( mbedtls_ssl_transform *transform )
 #endif
 
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    transform->psa_mac_enc = MBEDTLS_SVC_KEY_ID_INIT;
+    transform->psa_mac_dec = MBEDTLS_SVC_KEY_ID_INIT;
+#endif
     mbedtls_md_init( &transform->md_ctx_enc );
     mbedtls_md_init( &transform->md_ctx_dec );
 #endif

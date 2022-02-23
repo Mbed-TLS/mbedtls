@@ -1362,7 +1362,9 @@ struct mbedtls_ssl_config
     void *MBEDTLS_PRIVATE(p_psk);                    /*!< context for PSK callback           */
 #endif
 
-#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) && defined(MBEDTLS_SSL_SRV_C)
+#if (defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) ||                               \
+    (defined(MBEDTLS_SSL_COOKIE_C) && defined(MBEDTLS_SSL_PROTO_TLS1_3))) && \
+    defined(MBEDTLS_SSL_SRV_C)
     /** Callback to create & write a cookie for ClientHello veirifcation    */
     int (*MBEDTLS_PRIVATE(f_cookie_write))( void *, unsigned char **, unsigned char *,
                            const unsigned char *, size_t );
@@ -1703,7 +1705,9 @@ struct mbedtls_ssl_context
     /*
      * Information for DTLS hello verify
      */
-#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) && defined(MBEDTLS_SSL_SRV_C)
+#if (defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) ||                               \
+    (defined(MBEDTLS_SSL_COOKIE_C) && defined(MBEDTLS_SSL_PROTO_TLS1_3))) && \
+    defined(MBEDTLS_SSL_SRV_C)
     unsigned char  *MBEDTLS_PRIVATE(cli_id);         /*!<  transport-level ID of the client  */
     size_t          MBEDTLS_PRIVATE(cli_id_len);     /*!<  length of cli_id                  */
 #endif /* MBEDTLS_SSL_DTLS_HELLO_VERIFY && MBEDTLS_SSL_SRV_C */

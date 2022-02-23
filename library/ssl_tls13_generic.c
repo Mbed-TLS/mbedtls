@@ -1523,6 +1523,18 @@ static int ecdh_import_public_raw( mbedtls_ecdh_context_mbed *ctx,
                                            buf, end - buf ) );
 }
 
+#if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
+static int everest_import_public_raw( mbedtls_x25519_context *ctx,
+                        const unsigned char *buf, const unsigned char *end )
+{
+    if( end - buf != MBEDTLS_X25519_KEY_SIZE_BYTES )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+    memcpy( ctx->peer_point, buf, MBEDTLS_X25519_KEY_SIZE_BYTES );
+    return( 0 );
+}
+#endif /* MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED */
+
 int mbedtls_ecdh_import_public_raw( mbedtls_ecdh_context *ctx,
                                     const unsigned char *buf,
                                     const unsigned char *end )
@@ -1532,7 +1544,7 @@ int mbedtls_ecdh_import_public_raw( mbedtls_ecdh_context *ctx,
     ECDH_VALIDATE_RET( end != NULL );
 
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
-    return( ecdh_read_tls13_params_internal( ctx, buf, end ) );
+    return( ecdh_import_public_raw( ctx, buf, end ) );
 #else
     switch( ctx->var )
     {

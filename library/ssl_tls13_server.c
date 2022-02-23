@@ -276,11 +276,7 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
          * - Check if it's supported
          */
 
-        const mbedtls_ecp_curve_info *curve_info;
-        curve_info = mbedtls_ecp_curve_info_from_tls_id( their_group );
-        if( curve_info == NULL )
-            return( MBEDTLS_ECP_DP_NONE );
-        their_curve =  curve_info->grp_id;
+        their_curve = mbedtls_ecp_named_group_to_id( their_group );
         if( mbedtls_ssl_check_curve( ssl, their_curve ) != 0 )
             continue;
 
@@ -462,6 +458,8 @@ cleanup:
 
 static void ssl_debug_print_client_hello_exts( mbedtls_ssl_context *ssl )
 {
+    ((void) ssl);
+
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "Supported Extensions:" ) );
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "- KEY_SHARE_EXTENSION ( %s )",
                                 ( ( ssl->handshake->extensions_present & MBEDTLS_SSL_EXT_KEY_SHARE ) > 0 ) ?

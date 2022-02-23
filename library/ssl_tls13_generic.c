@@ -1062,13 +1062,17 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
     unsigned char verify_buffer[ SSL_VERIFY_STRUCT_MAX_SIZE ];
     size_t verify_buffer_len;
     unsigned char signature_type;
+#if defined(MBEDTLS_ECDSA_C)
     size_t own_key_size;
+#endif /* MBEDTLS_ECDSA_C */
     mbedtls_md_type_t md_alg;
     uint16_t algorithm = MBEDTLS_TLS1_3_SIG_NONE;
     size_t signature_len = 0;
     const mbedtls_md_info_t *md_info;
     unsigned char verify_hash[ MBEDTLS_MD_MAX_SIZE ];
     size_t verify_hash_len;
+
+    *out_len = 0;
 
     own_key = mbedtls_ssl_own_key( ssl );
     if( own_key == NULL )
@@ -1100,8 +1104,10 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
      *  } CertificateVerify;
      */
     signature_type = mbedtls_ssl_sig_from_pk( own_key );
+#if defined(MBEDTLS_ECDSA_C)
     /* Determine the size of the key */
     own_key_size = mbedtls_pk_get_bitlen( own_key );
+#endif /* MBEDTLS_ECDSA_C */
     switch( signature_type )
     {
 #if defined(MBEDTLS_ECDSA_C)

@@ -1349,6 +1349,41 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
         memset( md0, 0x5, maclen );
         memset( md1, 0x6, maclen );
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        alg = mbedtls_psa_translate_md( mbedtls_md_get_type( md_info ) );
+
+        CHK( alg != 0 );
+
+        t_out->psa_mac_alg = PSA_ALG_HMAC( alg );
+        t_in->psa_mac_alg = PSA_ALG_HMAC( alg );
+        t_in->psa_mac_enc = MBEDTLS_SVC_KEY_ID_INIT;
+        t_out->psa_mac_enc = MBEDTLS_SVC_KEY_ID_INIT;
+        t_in->psa_mac_dec = MBEDTLS_SVC_KEY_ID_INIT;
+        t_out->psa_mac_dec = MBEDTLS_SVC_KEY_ID_INIT;
+
+        psa_reset_key_attributes( &attributes );
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_MESSAGE );
+        psa_set_key_algorithm( &attributes, PSA_ALG_HMAC( alg ) );
+        psa_set_key_type( &attributes, PSA_KEY_TYPE_HMAC );
+
+        CHK( psa_import_key( &attributes,
+                             md0, maclen,
+                             &t_in->psa_mac_enc ) == PSA_SUCCESS );
+
+        CHK( psa_import_key( &attributes,
+                             md1, maclen,
+                             &t_out->psa_mac_enc ) == PSA_SUCCESS );
+
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_HASH );
+
+        CHK( psa_import_key( &attributes,
+                             md1, maclen,
+                             &t_in->psa_mac_dec ) == PSA_SUCCESS );
+
+        CHK( psa_import_key( &attributes,
+                             md0, maclen,
+                             &t_out->psa_mac_dec ) == PSA_SUCCESS );
+#endif
         CHK( mbedtls_md_setup( &t_out->md_ctx_enc, md_info, 1 ) == 0 );
         CHK( mbedtls_md_setup( &t_out->md_ctx_dec, md_info, 1 ) == 0 );
         CHK( mbedtls_md_setup( &t_in->md_ctx_enc,  md_info, 1 ) == 0 );
@@ -1510,6 +1545,7 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
 
     if ( alg != MBEDTLS_SSL_NULL_CIPHER )
     {
+        psa_reset_key_attributes( &attributes );
         psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT );
         psa_set_key_algorithm( &attributes, alg );
         psa_set_key_type( &attributes, key_type );

@@ -1493,10 +1493,6 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
                     t_out->maclen = maclen;
                     t_in->maclen = maclen;
                     break;
-                case 1: /* Partial tag */
-                    t_out->maclen = 10;
-                    t_in->maclen = 10;
-                    break;
                 default:
                     ret = 1;
                     goto cleanup;

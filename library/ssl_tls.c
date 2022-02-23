@@ -7293,6 +7293,42 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
        For AEAD-based ciphersuites, there is nothing to do here. */
     if( mac_key_len != 0 )
     {
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        alg = mbedtls_psa_translate_md( ciphersuite_info->mac );
+        if( alg == 0 )
+        {
+                ret = psa_ssl_status_to_mbedtls( PSA_ERROR_NOT_SUPPORTED );
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_md_type_to_psa", ret );
+                goto end;
+        }
+
+        transform->psa_mac_alg = PSA_ALG_HMAC( alg );
+
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_MESSAGE );
+        psa_set_key_algorithm( &attributes, PSA_ALG_HMAC( alg ) );
+        psa_set_key_type( &attributes, PSA_KEY_TYPE_HMAC );
+
+        if( ( status = psa_import_key( &attributes,
+                                       mac_enc, mac_key_len,
+                                       &transform->psa_mac_enc ) ) != PSA_SUCCESS )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 3, "psa_import_mac_key", (int)status );
+            ret = psa_ssl_status_to_mbedtls( status );
+            MBEDTLS_SSL_DEBUG_RET( 1, "psa_import_mac_key", ret );
+            goto end;
+        }
+
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_HASH );
+
+        if( ( status = psa_import_key( &attributes,
+                                       mac_dec, mac_key_len,
+                                       &transform->psa_mac_dec ) ) != PSA_SUCCESS )
+        {
+            ret = psa_ssl_status_to_mbedtls( status );
+            MBEDTLS_SSL_DEBUG_RET( 1, "psa_import_mac_key", ret );
+            goto end;
+        }
+#endif
         ret = mbedtls_md_hmac_starts( &transform->md_ctx_enc, mac_enc, mac_key_len );
         if( ret != 0 )
             goto end;

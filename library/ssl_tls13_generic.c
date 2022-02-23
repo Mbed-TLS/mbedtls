@@ -1130,50 +1130,10 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
             break;
 #endif /* MBEDTLS_ECDSA_C */
 
-#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PKCS1_V21)
-        case MBEDTLS_SSL_SIG_RSA:
-            if( own_key_size <= 2048 &&
-                mbedtls_ssl_sig_alg_is_received( ssl,
-                                    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256 ) )
-            {
-                md_alg  = MBEDTLS_MD_SHA256;
-                algorithm = MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256;
-            }
-            else if( own_key_size <= 3072 &&
-                     mbedtls_ssl_sig_alg_is_received( ssl,
-                                    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384 ) )
-            {
-                md_alg  = MBEDTLS_MD_SHA384;
-                algorithm = MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384;
-            }
-            else if( own_key_size <= 4096 &&
-                     mbedtls_ssl_sig_alg_is_received( ssl,
-                                    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512 ) )
-            {
-                md_alg  = MBEDTLS_MD_SHA512;
-                algorithm = MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512;
-            }
-            else
-            {
-                MBEDTLS_SSL_DEBUG_MSG( 3, ( "unknown key size: %"
-                                            MBEDTLS_PRINTF_SIZET " bits",
-                                            own_key_size ) );
-                break;
-            }
-
-            if( mbedtls_rsa_set_padding( mbedtls_pk_rsa( *own_key ),
-                                         MBEDTLS_RSA_PKCS_V21,
-                                         md_alg ) != 0 )
-            {
-                MBEDTLS_SSL_DEBUG_MSG( 1, ( "Set RSA padding Fail" ) );
-                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-            }
-            break;
-#endif /* MBEDTLS_RSA_C && MBEDTLS_PKCS1_V21 */
         default:
             MBEDTLS_SSL_DEBUG_MSG( 1,
                                    ( "unkown pk type : %d", signature_type ) );
-            return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+            break;
     }
 
     if( algorithm == MBEDTLS_TLS1_3_SIG_NONE ||

@@ -222,7 +222,7 @@ static int rsa_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
     if( sig_size < *sig_len )
         return( MBEDTLS_ERR_PK_BUFFER_TOO_SMALL );
 
-    /* mbedtls_pk_write_pubkey() expects a full PK context;
+    /* mbedtls_pk_write_key_der() expects a full PK context;
      * re-construct one to make it happy */
     key.pk_info = &pk_info;
     key.pk_ctx = ctx;

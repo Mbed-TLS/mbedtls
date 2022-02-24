@@ -536,6 +536,45 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 /**
+ * \brief           Make signature with options, including padding if relevant.
+ *
+ * \param type      Signature type (inc. possible padding type) to verify
+ * \param options   Pointer to type-specific options, or NULL
+ * \param ctx       The PK context to use. It must have been set up
+ *                  with a private key.
+ * \param md_alg    Hash algorithm used (see notes)
+ * \param hash      Hash of the message to sign
+ * \param hash_len  Hash length
+ * \param sig       Place to write the signature.
+ *                  It must have enough room for the signature.
+ *                  #MBEDTLS_PK_SIGNATURE_MAX_SIZE is always enough.
+ *                  You may use a smaller buffer if it is large enough
+ *                  given the key type.
+ * \param sig_size  The size of the \p sig buffer in bytes.
+ * \param sig_len   On successful return,
+ *                  the number of bytes written to \p sig.
+ * \param f_rng     RNG function, must not be \c NULL.
+ * \param p_rng     RNG parameter
+ *
+ * \return          0 on success, or a specific error code.
+ *
+ * \note            For RSA keys, the default padding type is PKCS#1 v1.5.
+ *                  There is no interface in the PK module to make RSASSA-PSS
+ *                  signatures yet.
+ *
+ * \note            For RSA, md_alg may be MBEDTLS_MD_NONE if hash_len != 0.
+ *                  For ECDSA, md_alg may never be MBEDTLS_MD_NONE.
+ *
+ * \note            For RSA, md_alg may be MBEDTLS_MD_NONE if hash_len != 0.
+ *                  For ECDSA, md_alg may never be MBEDTLS_MD_NONE.
+ */
+int mbedtls_pk_sign_ext( mbedtls_pk_type_t type, const void *options,
+             mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
+             const unsigned char *hash, size_t hash_len,
+             unsigned char *sig, size_t sig_size, size_t *sig_len,
+             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
+
+/**
  * \brief           Restartable version of \c mbedtls_pk_sign()
  *
  * \note            Performs the same job as \c mbedtls_pk_sign(), but can

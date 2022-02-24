@@ -276,7 +276,14 @@ static int rsa_decrypt_wrap( void *ctx,
                                      NULL, 0, output, osize, olen );
     if( status != PSA_SUCCESS )
     {
-        ret = mbedtls_psa_err_translate_pk( status );
+        if ( status == PSA_ERROR_INVALID_PADDING )
+        {
+            ret = MBEDTLS_ERR_RSA_INVALID_PADDING;
+        }
+        else
+        {
+            ret = mbedtls_psa_err_translate_pk( status );
+        }
         goto cleanup;
     }
 

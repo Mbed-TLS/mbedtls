@@ -239,7 +239,7 @@ static int rsa_encrypt_wrap( void *ctx,
     psa_status_t status;
     mbedtls_pk_context key;
     int key_len;
-    /* see RSA_PUR_DER_MAX_BYTES in pkwrite.c */
+    /* see RSA_PUB_DER_MAX_BYTES in pkwrite.c */
     unsigned char buf[38 + 2 * MBEDTLS_MPI_MAX_SIZE];
     mbedtls_pk_info_t pk_info = mbedtls_rsa_info;
     psa_algorithm_t psa_alg_md;
@@ -266,7 +266,7 @@ static int rsa_encrypt_wrap( void *ctx,
     if( *olen > osize )
         return( MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE );
 
-    /* mbedtls_pk_write_pubkey() expects a full PK context;
+    /* mbedtls_pk_write_pubkey_der() expects a full PK context;
      * re-construct one to make it happy */
     key.pk_info = &pk_info;
     key.pk_ctx = ctx;

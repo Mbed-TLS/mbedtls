@@ -15,6 +15,16 @@ int main( void )
     return( 0 );
 }
 #else
+
+
+static void print_bytestr(const uint8_t *bytes, size_t len)
+{
+    for(unsigned int idx=0; idx < len; idx++)
+    {
+        printf("%02X", bytes[idx]);
+    }
+}
+
 int main( void )
 {
     psa_status_t status;
@@ -24,7 +34,7 @@ int main( void )
     uint8_t decrypt[BUFFER_SIZE] = {0};
     const uint8_t plaintext[] = "Hello World!";
     const uint8_t key_bytes[32] = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-    unsigned char nonce[16] = {0};
+    uint8_t nonce[PSA_AEAD_NONCE_LENGTH(PSA_KEY_TYPE_AES, PSA_ALG_CCM)];
     size_t nonce_length = sizeof( nonce ); 
     size_t ciphertext_length;
     size_t plaintext_length;
@@ -69,7 +79,14 @@ int main( void )
         return( EXIT_FAILURE );
     }
 
-    printf( "AES-CCM encryption of '%s':\n", plaintext );
+    printf( "AES-CCM encryption:\n" );
+    printf( "- Plaintext: '%s':\n", plaintext );
+    printf( "- Key: " );
+    print_bytestr( key_bytes, sizeof( key_bytes ) );
+    printf( "\n- Nonce: " );
+    print_bytestr( nonce, nonce_length );
+    printf( "\n- No additional data\n" );
+    printf( "- Ciphertext:\n" );
 
     for( size_t j = 0; j < ciphertext_length; j++ )
     {

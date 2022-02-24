@@ -3292,7 +3292,8 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA ||
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA )
     {
-        psa_status_t status;
+        psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+        psa_status_t destruction_status = PSA_ERROR_CORRUPTION_DETECTED;
         psa_key_attributes_t key_attributes;
 
         mbedtls_ssl_handshake_params *handshake = ssl->handshake;
@@ -3336,7 +3337,11 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
                                         own_pubkey, own_pubkey_max_len,
                                         &own_pubkey_len );
         if( status != PSA_SUCCESS )
+        {
+            psa_destroy_key( handshake->ecdh_psa_privkey );
+            handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+        }
 
         ssl->out_msg[header_len] = (unsigned char) own_pubkey_len;
         content_len = own_pubkey_len + 1;
@@ -3351,13 +3356,12 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
                                         ssl->handshake->premaster,
                                         sizeof( ssl->handshake->premaster ),
                                         &ssl->handshake->pmslen );
-        if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
 
-        status = psa_destroy_key( handshake->ecdh_psa_privkey );
-        if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+        destruction_status = psa_destroy_key( handshake->ecdh_psa_privkey );
         handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
+
+        if( status != PSA_SUCCESS || destruction_status != PSA_SUCCESS )
+            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
     }
     else
 #endif /* MBEDTLS_USE_PSA_CRYPTO &&

@@ -716,7 +716,10 @@ static int ecdsa_verify_wrap( void *ctx_arg, mbedtls_md_type_t md_alg,
     ret = 0;
 
 cleanup:
-    psa_destroy_key( key_id );
+    status = psa_destroy_key( key_id );
+    if( ret == 0 && status != PSA_SUCCESS )
+        ret = mbedtls_psa_err_translate_pk( status );
+
     return( ret );
 }
 #else /* MBEDTLS_USE_PSA_CRYPTO */

@@ -283,7 +283,10 @@ static int rsa_decrypt_wrap( void *ctx,
     ret = 0;
 
 cleanup:
-    psa_destroy_key( key_id );
+    status = psa_destroy_key( key_id );
+    if( ret == 0 && status != PSA_SUCCESS )
+        ret = mbedtls_psa_err_translate_pk( status );
+
     return( ret );
 }
 #else

@@ -68,12 +68,12 @@
  * MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT if no detection mechanism found
  */
 #if defined(HWCAP_SHA2)
-static int mbedtls_a64_crypto_sha256_check_support( void )
+static int mbedtls_a64_crypto_sha256_determine_support( void )
 {
     return( ( getauxval( AT_HWCAP ) & HWCAP_SHA2 ) ? 1 : 0 );
 }
 #elif defined(__APPLE__)
-static int mbedtls_a64_crypto_sha256_check_support( void )
+static int mbedtls_a64_crypto_sha256_determine_support( void )
 {
     return( 1 );
 }
@@ -82,7 +82,7 @@ static int mbedtls_a64_crypto_sha256_check_support( void )
 #include <Windows.h>
 #include <processthreadsapi.h>
 
-static int mbedtls_a64_crypto_sha256_check_support( void )
+static int mbedtls_a64_crypto_sha256_determine_support( void )
 {
     return( IsProcessorFeaturePresent( PF_ARM_V8_CRYPTO_INSTRUCTIONS_AVAILABLE ) ?
             1 : 0 );
@@ -107,7 +107,7 @@ static void sigill_handler( int signal )
     longjmp( return_from_sigill, 1 );
 }
 
-static int mbedtls_a64_crypto_sha256_check_support( void )
+static int mbedtls_a64_crypto_sha256_determine_support( void )
 {
     struct sigaction old_action, new_action;
 
@@ -519,7 +519,7 @@ static int mbedtls_a64_crypto_sha256_has_support( void )
 
     if( !done )
     {
-        supported = mbedtls_a64_crypto_sha256_check_support();
+        supported = mbedtls_a64_crypto_sha256_determine_support();
         done = 1;
     }
 

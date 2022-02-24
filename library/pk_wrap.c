@@ -273,7 +273,7 @@ static int rsa_decrypt_wrap( void *ctx,
     }
 
     status = psa_asymmetric_decrypt( key_id, psa_sig_md, input, ilen,
-                                     NULL, 0, output, osize, olen);
+                                     NULL, 0, output, osize, olen );
     if( status != PSA_SUCCESS )
     {
         ret = mbedtls_psa_err_translate_pk( status );

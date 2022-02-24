@@ -25,7 +25,7 @@ int main( void )
     const uint8_t plaintext[] = "Hello World!";
     const uint8_t key_bytes[32] = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     unsigned char nonce[16] = {0};
-    size_t nonce_length = 13; 
+    size_t nonce_length = sizeof( nonce ); 
     size_t ciphertext_length;
     size_t plaintext_length;
 
@@ -46,6 +46,13 @@ int main( void )
     if( status != PSA_SUCCESS )
     {
         printf( "psa_import_key failed\n" );
+        return( EXIT_FAILURE );
+    }
+
+    status = psa_generate_random( nonce, nonce_length );
+    if( status != PSA_SUCCESS )
+    {
+        printf( "psa_generate_random failed\n" );
         return( EXIT_FAILURE );
     }
 

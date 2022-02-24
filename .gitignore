@@ -57,3 +57,6 @@ massif-*
 /TAGS
 /cscope*.out
 /tags
+
+# Bazel outputs
+bazel-*

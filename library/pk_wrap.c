@@ -254,7 +254,10 @@ static int rsa_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
     ret = 0;
 
 cleanup:
-    psa_destroy_key( key_id );
+    status = psa_destroy_key( key_id );
+    if( ret == 0 && status != PSA_SUCCESS )
+        ret = mbedtls_psa_err_translate_pk( status );
+
     return( ret );
 }
 #else

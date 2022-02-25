@@ -1152,6 +1152,16 @@ run_test() {
         requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
     fi
 
+    # Check more TLS protocol features.
+    case "$SRV_CMD $CLI_CMD" in
+        *[-_\ =]tickets=[^0]*)
+            requires_config_enabled MBEDTLS_SSL_TICKET_C;;
+    esac
+    case "$SRV_CMD $CLI_CMD" in
+        *[-_\ =]alpn=*)
+            requires_config_enabled MBEDTLS_SSL_ALPN;;
+    esac
+
     # If the client or serve requires a ciphersuite, check that it's enabled.
     maybe_requires_ciphersuite_enabled "$SRV_CMD" "$@"
     maybe_requires_ciphersuite_enabled "$CLI_CMD" "$@"

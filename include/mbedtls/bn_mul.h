@@ -568,10 +568,10 @@
         "addi  r3,   r3,   2    \n\t"   \
         "lhui  r9,   r3,   0    \n\t"   \
         "addi  r3,   r3,   2    \n\t"   \
-        "mul   r10,  r9,  r6    \n\t"   \
-        "mul   r11,  r8,  r7    \n\t"   \
-        "mul   r12,  r9,  r7    \n\t"   \
-        "mul   r13,  r8,  r6    \n\t"   \
+        "mul   r10,  r8,  r6    \n\t"   \
+        "mul   r12,  r8,  r7    \n\t"   \
+        "mul   r11,  r9,  r7    \n\t"   \
+        "mul   r13,  r9,  r6    \n\t"   \
         "bsrli  r8, r10,  16    \n\t"   \
         "bsrli  r9, r11,  16    \n\t"   \
         "add   r13, r13,  r8    \n\t"   \

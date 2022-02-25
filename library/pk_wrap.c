@@ -239,8 +239,7 @@ static int rsa_encrypt_wrap( void *ctx,
     psa_status_t status;
     mbedtls_pk_context key;
     int key_len;
-    /* see RSA_PUB_DER_MAX_BYTES in pkwrite.c */
-    unsigned char buf[38 + 2 * MBEDTLS_MPI_MAX_SIZE];
+    unsigned char buf[MBEDTLS_PK_RSA_PUB_DER_MAX_BYTES];
     mbedtls_pk_info_t pk_info = mbedtls_rsa_info;
     psa_algorithm_t psa_alg_md;
 

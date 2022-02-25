@@ -1,3 +1,40 @@
+/*
+ *  The example demonstrates a key derivation function using the PSA Crypto
+ *  API. In particular, the use of the HMAC-based Extract-and-Expand Key
+ *  Derivation Function (HKDF) is described, which is defined in [RFC5869].
+ *  HKDF is a popular key derivation algorithm used in modern cryptographic
+ *  protocols, such as TLS 1.3.
+ *
+ *  HKDF requires several inputs, namely
+ *   - input keying material (IKM),
+ *   - a salt, and
+ *   - an info string.
+ *
+ *  After calling the psa_key_derivation_setup(), the three inputs need to
+ *  be processed with psa_key_derivation_input_bytes() (for salt and info)
+ *  and psa_key_derivation_input_key() (for the IKM).
+ *  psa_key_derivation_output_bytes() then derives the output keying
+ *  material (OKM). Finally, the psa_key_derivation_abort() performs a
+ *  clean-up of the key derivation operation object.
+ *
+ *
+ *  Copyright The Mbed TLS Contributors
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may
+ *  not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+
 #include "psa/crypto.h"
 #include <string.h>
 #include <stdio.h>
@@ -38,8 +75,8 @@ int main( void )
                                      0xc5, 0xbf, 0x34, 0x00, 0x72, 0x08, 0xd5, 0xb8, 0x87, 0x18,
                                      0x58, 0x65 };
 
-    /* The output size of the HKDF function depends on the hash function used. 
-     * In our case we are using SHA256, which produces a 32 byte fingerprint.
+    /* The output size of the HKDF function depends on the hash function used.
+     * In our case we use SHA-256, which produces a 32 byte fingerprint.
      * Therefore, we allocate a buffer of 32 bytes to hold the output keying
      * material (OKM). 
      */

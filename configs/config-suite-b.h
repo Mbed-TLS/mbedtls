@@ -115,3 +115,8 @@
  * them during tests/scripts/test-ref-configs.pl */
 //#define MBEDTLS_USE_PSA_CRYPTO
 //#define MBEDTLS_PSA_CRYPTO_C
+
+/* Error messages and TLS debugging traces
+ * (huge code size increase, needed for tests/ssl-opt.sh) */
+//#define MBEDTLS_DEBUG_C
+//#define MBEDTLS_ERROR_C

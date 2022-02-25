@@ -567,14 +567,14 @@
         "bsrli r6,   r6, 16     \n\t"
 
 #define MULADDC_CORE                    \
-        "lhui  r8,   r3,   0    \n\t"   \
-        "addi  r3,   r3,   2    \n\t"   \
-        "lhui  r9,   r3,   0    \n\t"   \
-        "addi  r3,   r3,   2    \n\t"   \
-        "mul   r10,  r9,  r6    \n\t"   \
-        "mul   r11,  r8,  r7    \n\t"   \
-        "mul   r12,  r9,  r7    \n\t"   \
-        "mul   r13,  r8,  r6    \n\t"   \
+        "lwi   r9,   r3,   0    \n\t"   \
+        "andi  r8,   r9, 0xffff \n\t"   \
+        "bsrli r9,   r9,  16    \n\t"   \
+        "addi  r3,   r3,   4    \n\t"   \
+        "mul   r10,  r8,  r6    \n\t"   \
+        "mul   r12,  r8,  r7    \n\t"   \
+        "mul   r11,  r9,  r7    \n\t"   \
+        "mul   r13,  r9,  r6    \n\t"   \
         "bsrli  r8, r10,  16    \n\t"   \
         "bsrli  r9, r11,  16    \n\t"   \
         "add   r13, r13,  r8    \n\t"   \
@@ -582,14 +582,14 @@
         "bslli r10, r10,  16    \n\t"   \
         "bslli r11, r11,  16    \n\t"   \
         "add   r12, r12, r10    \n\t"   \
-        "addc  r13, r13,  r0    \n\t"   \
+        "addic r13, r13,   0    \n\t"   \
         "add   r12, r12, r11    \n\t"   \
-        "addc  r13, r13,  r0    \n\t"   \
-        "lwi   r10,  r4,   0    \n\t"   \
-        "add   r12, r12, r10    \n\t"   \
-        "addc  r13, r13,  r0    \n\t"   \
+        "addic r13, r13,   0    \n\t"   \
         "add   r12, r12,  r5    \n\t"   \
-        "addc   r5, r13,  r0    \n\t"   \
+        "addic r13, r13,   0    \n\t"   \
+        "lwi    r8,  r4,   0    \n\t"   \
+        "add   r12, r12,  r8    \n\t"   \
+        "addic  r5, r13,   0    \n\t"   \
         "swi   r12,  r4,   0    \n\t"   \
         "addi   r4,  r4,   4    \n\t"
 

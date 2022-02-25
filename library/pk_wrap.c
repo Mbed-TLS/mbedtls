@@ -204,9 +204,7 @@ static int rsa_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
     psa_status_t status;
     mbedtls_pk_context key;
     int key_len;
-    /* see RSA_PRV_DER_MAX_BYTES in pkwrite.c */
-    unsigned char buf[47 + 3 * MBEDTLS_MPI_MAX_SIZE + \
-                      5 * ( MBEDTLS_MPI_MAX_SIZE / 2 + MBEDTLS_MPI_MAX_SIZE % 2 )];
+    unsigned char buf[MBEDTLS_PK_RSA_PRV_DER_MAX_BYTES];
     mbedtls_pk_info_t pk_info = mbedtls_rsa_info;
     psa_algorithm_t psa_alg_md = PSA_ALG_RSA_PKCS1V15_SIGN( mbedtls_psa_translate_md( md_alg ) );
 

@@ -839,11 +839,7 @@ skip_handshake_stage_check() {
 #
 # Analyze and possibly instrument $PXY_CMD, $CLI_CMD, $SRV_CMD to pass
 # extra arguments or go through wrappers.
-# Set $DTLS (0=TLS, 1=DTLS).
 analyze_test_commands() {
-    # update DTLS variable
-    detect_dtls "$SRV_CMD"
-
     # if the test uses DTLS but no custom proxy, add a simple proxy
     # as it provides timing info that's useful to debug failures
     if [ -z "$PXY_CMD" ] && [ "$DTLS" -eq 1 ]; then
@@ -1149,6 +1145,12 @@ run_test() {
         *data_files/*)
             requires_config_enabled MBEDTLS_FS_IO;;
     esac
+
+    # Check if the test uses DTLS.
+    detect_dtls "$SRV_CMD"
+    if [ "$DTLS" -eq 1 ]; then
+        requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+    fi
 
     # If the client or serve requires a ciphersuite, check that it's enabled.
     maybe_requires_ciphersuite_enabled "$SRV_CMD" "$@"

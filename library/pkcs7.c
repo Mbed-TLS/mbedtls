@@ -289,7 +289,7 @@ static int pkcs7_get_signers_info_set( unsigned char **p, unsigned char *end,
 
     end_set = end_set_signer;
 
-    ret = mbedtls_asn1_get_int( p, end_set, &signers_set->version );
+    ret = pkcs7_get_version( p, end_set, &signers_set->version );
     if( ret != 0 )
         return( MBEDTLS_ERR_PKCS7_INVALID_SIGNER_INFO );
 

@@ -1,3 +1,38 @@
+/*
+ *  Example illustrating a key agreement, as found in many
+ *  Internet security protocols, such as TLS.
+ *
+ *  In this example an Elliptic Curve Diffie-Hellman (ECDH) exchange
+ *  is simulated. In security protocols like TLS this exchange is
+ *  executed between two parties, a client and a server. In this exampe
+ *  there is no protocol interaction and the operations excuted by the
+ *  client are shown.
+ *
+ *  The client, as shown in the code, performs the following steps: 
+ *    - Generate an ephemeral key pair
+ *    - Import the server public key
+ *    - Generate the ECDH-derived key using the server public key, and the
+ *      ephemeral private key using the ECDH algorithm with the help of
+ *      the psa_raw_key_agreement() API call.
+ *
+ *
+ *  Copyright The Mbed TLS Contributors
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may
+ *  not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+
 #include "psa/crypto.h"
 #include <string.h>
 #include <stdio.h>
@@ -51,7 +86,7 @@ int main( void )
     psa_set_key_type( &client_attributes, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1) );
     psa_set_key_bits( &client_attributes, 256 );
 
-    /* Generate client key */
+    /* Generate ephemeral key pair */
     status = psa_generate_key( &client_attributes, &client_key_handle );
     if( status != PSA_SUCCESS )
     {
@@ -80,6 +115,7 @@ int main( void )
     psa_set_key_algorithm( &server_attributes, PSA_ALG_ECDSA_ANY );
     psa_set_key_type( &server_attributes, PSA_KEY_TYPE_ECC_PUBLIC_KEY(PSA_ECC_FAMILY_SECP_R1) );
 
+    /* Import server public key */
     status = psa_import_key( &server_attributes, server_pk, sizeof( server_pk ), &server_key_handle );
     if( status != PSA_SUCCESS )
     {
@@ -116,8 +152,8 @@ int main( void )
         printf( "%02x ", server_pk[j] );
     }
     printf( "\n\n" );
-    
-    /* Produce ECDHE derived key */
+
+    /* Generate ECDHE derived key */
     status = psa_raw_key_agreement( PSA_ALG_ECDH,                       // algorithm
                                     client_key_handle,                  // client secret key
                                     server_pk, sizeof( server_pk ),     // server public key

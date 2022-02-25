@@ -1374,7 +1374,9 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
                              md1, maclen,
                              &t_out->psa_mac_enc ) == PSA_SUCCESS );
 
-        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_HASH );
+        /* mbedtls_ct_hmac() requires the key to be exportable */
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_EXPORT |
+                                              PSA_KEY_USAGE_VERIFY_HASH );
 
         CHK( psa_import_key( &attributes,
                              md1, maclen,

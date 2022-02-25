@@ -1681,13 +1681,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
     if( auth_done == 0 )
     {
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-        psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
-        psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-#else
         unsigned char mac_expect[MBEDTLS_SSL_MAC_ADD];
         unsigned char mac_peer[MBEDTLS_SSL_MAC_ADD];
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
         /* If the initial value of padlen was such that
          * data_len < maclen + padlen + 1, then padlen
@@ -1708,29 +1703,6 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
                                           transform->taglen );
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-        status = psa_mac_verify_setup( &operation, transform->psa_mac_dec,
-                                       transform->psa_mac_alg );
-        if( status != PSA_SUCCESS )
-            goto hmac_failed_etm_disabled;
-
-        status = psa_mac_update( &operation, add_data, add_data_len );
-        if( status != PSA_SUCCESS )
-            goto hmac_failed_etm_disabled;
-
-        status = psa_mac_update( &operation, data, rec->data_len );
-        if( status != PSA_SUCCESS )
-            goto hmac_failed_etm_disabled;
-
-        /* PSA psa_mac_verify_finish() is expected to make the best effort
-         * to ensure that the comparison between the actual MAC and the
-         * expected MAC is performed in constant time.
-         */
-        status = psa_mac_verify_finish( &operation, data + rec->data_len,
-                                        transform->maclen );
-        if( status != PSA_SUCCESS )
-            goto hmac_failed_etm_disabled;
-#else
         /*
             * The next two sizes are the minimum and maximum values of
             * data_len over all padlen values.
@@ -1744,10 +1716,18 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
         const size_t max_len = rec->data_len + padlen;
         const size_t min_len = ( max_len > 256 ) ? max_len - 256 : 0;
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        ret = mbedtls_ct_hmac( transform->psa_mac_dec,
+                               transform->psa_mac_alg,
+                               add_data, add_data_len,
+                               data, rec->data_len, min_len, max_len,
+                               mac_expect );
+#else
         ret = mbedtls_ct_hmac( &transform->md_ctx_dec,
                                add_data, add_data_len,
                                data, rec->data_len, min_len, max_len,
                                mac_expect );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
         if( ret != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ct_hmac", ret );
@@ -1758,10 +1738,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
                                   rec->data_len,
                                   min_len, max_len,
                                   transform->maclen );
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-#if !defined(MBEDTLS_USE_PSA_CRYPTO)
 #if defined(MBEDTLS_SSL_DEBUG_ALL)
         MBEDTLS_SSL_DEBUG_BUF( 4, "expected mac", mac_expect, transform->maclen );
         MBEDTLS_SSL_DEBUG_BUF( 4, "message  mac", mac_peer, transform->maclen );
@@ -1775,29 +1753,13 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
 #endif
             correct = 0;
         }
-#endif /* !MBEDTLS_USE_PSA_CRYPTO */
         auth_done++;
 
     hmac_failed_etm_disabled:
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-        psa_mac_abort( &operation );
-        if( status == PSA_ERROR_INVALID_SIGNATURE )
-        {
-#if defined(MBEDTLS_SSL_DEBUG_ALL)
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "message mac does not match" ) );
-#endif
-            correct = 0;
-        }
-        else if( status != PSA_SUCCESS )
-        {
-            return psa_ssl_status_to_mbedtls( status );
-        }
-#else
         mbedtls_platform_zeroize( mac_peer, transform->maclen );
         mbedtls_platform_zeroize( mac_expect, transform->maclen );
         if( ret != 0 )
             return( ret );
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
     }
 
     /*

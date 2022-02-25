@@ -7321,7 +7321,9 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
             goto end;
         }
 
-        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_HASH );
+        /* mbedtls_ct_hmac() requires the key to be exportable */
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_EXPORT |
+                                              PSA_KEY_USAGE_VERIFY_HASH );
 
         if( ( status = psa_import_key( &attributes,
                                        mac_dec, mac_key_len,

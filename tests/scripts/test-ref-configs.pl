@@ -32,6 +32,10 @@ my %configs = (
         'compat' => '-m tls12 -f \'^TLS-PSK-WITH-AES-...-CCM-8\'',
         'test_again_with_use_psa' => 1
     },
+    'config-ccm-psk-dtls1_2.h' => {
+        'compat' => '-m dtls12 -f \'^TLS-PSK-WITH-AES-...-CCM-8\'',
+        'test_again_with_use_psa' => 1
+    },
     'config-mini-tls1_1.h' => {
         'compat' => '-m tls1_1 -f \'^DES-CBC3-SHA$\|^TLS-RSA-WITH-3DES-EDE-CBC-SHA$\'', #',
         'test_again_with_use_psa' => 1

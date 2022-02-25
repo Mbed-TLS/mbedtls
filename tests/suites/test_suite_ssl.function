@@ -5020,8 +5020,15 @@ void ssl_cf_hmac( int hash )
      * Test the function mbedtls_ct_hmac() against a reference
      * implementation.
      */
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_algorithm_t alg;
+    psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
+#else
     mbedtls_md_context_t ctx, ref_ctx;
     const mbedtls_md_info_t *md_info;
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
     size_t out_len, block_size;
     size_t min_in_len, in_len, max_in_len, i;
     /* TLS additional data is 13 bytes (hence the "lucky 13" name) */
@@ -5031,6 +5038,20 @@ void ssl_cf_hmac( int hash )
     unsigned char *out = NULL;
     unsigned char rec_num = 0;
 
+    USE_PSA_INIT( );
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    alg = PSA_ALG_HMAC( mbedtls_psa_translate_md( hash ) );
+
+    out_len = PSA_HASH_LENGTH( alg );
+    block_size = PSA_HASH_BLOCK_LENGTH( alg );
+
+    /* mbedtls_ct_hmac() requires the key to be exportable */
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_EXPORT |
+                                          PSA_KEY_USAGE_VERIFY_HASH );
+    psa_set_key_algorithm( &attributes, PSA_ALG_HMAC( alg ) );
+    psa_set_key_type( &attributes, PSA_KEY_TYPE_HMAC );
+#else
     mbedtls_md_init( &ctx );
     mbedtls_md_init( &ref_ctx );
 
@@ -5039,10 +5060,18 @@ void ssl_cf_hmac( int hash )
     out_len = mbedtls_md_get_size( md_info );
     TEST_ASSERT( out_len != 0 );
     block_size = hash == MBEDTLS_MD_SHA384 ? 128 : 64;
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     /* Use allocated out buffer to catch overwrites */
     ASSERT_ALLOC( out, out_len );
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    /* Set up dummy key */
+    memset( ref_out, 42, sizeof( ref_out ) );
+    TEST_EQUAL( PSA_SUCCESS, psa_import_key( &attributes,
+                                             ref_out, out_len,
+                                             &key ) );
+#else
     /* Set up contexts with the given hash and a dummy key */
     TEST_EQUAL( 0, mbedtls_md_setup( &ctx, md_info, 1 ) );
     TEST_EQUAL( 0, mbedtls_md_setup( &ref_ctx, md_info, 1 ) );
@@ -5050,6 +5079,7 @@ void ssl_cf_hmac( int hash )
     TEST_EQUAL( 0, mbedtls_md_hmac_starts( &ctx, ref_out, out_len ) );
     TEST_EQUAL( 0, mbedtls_md_hmac_starts( &ref_ctx, ref_out, out_len ) );
     memset( ref_out, 0, sizeof( ref_out ) );
+#endif
 
     /*
      * Test all possible lengths up to a point. The difference between
@@ -5076,13 +5106,31 @@ void ssl_cf_hmac( int hash )
 
             /* Get the function's result */
             TEST_CF_SECRET( &in_len, sizeof( in_len ) );
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+            TEST_EQUAL( 0, mbedtls_ct_hmac( key, PSA_ALG_HMAC( alg ),
+                                            add_data, sizeof( add_data ),
+                                            data, in_len,
+                                            min_in_len, max_in_len,
+                                            out ) );
+#else
             TEST_EQUAL( 0, mbedtls_ct_hmac( &ctx, add_data, sizeof( add_data ),
                                             data, in_len,
                                             min_in_len, max_in_len,
                                             out ) );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
             TEST_CF_PUBLIC( &in_len, sizeof( in_len ) );
             TEST_CF_PUBLIC( out, out_len );
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+            TEST_EQUAL( PSA_SUCCESS, psa_mac_verify_setup( &operation,
+                                                           key, alg ) );
+            TEST_EQUAL( PSA_SUCCESS, psa_mac_update( &operation, add_data,
+                                                     sizeof( add_data ) ) );
+            TEST_EQUAL( PSA_SUCCESS, psa_mac_update( &operation,
+                                                     data, in_len ) );
+            TEST_EQUAL( PSA_SUCCESS, psa_mac_verify_finish( &operation,
+                                                            out, out_len ) );
+#else
             /* Compute the reference result */
             TEST_EQUAL( 0, mbedtls_md_hmac_update( &ref_ctx, add_data,
                                                    sizeof( add_data ) ) );
@@ -5092,6 +5140,7 @@ void ssl_cf_hmac( int hash )
 
             /* Compare */
             ASSERT_COMPARE( out, out_len, ref_out, out_len );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
         }
 
         mbedtls_free( data );
@@ -5099,11 +5148,18 @@ void ssl_cf_hmac( int hash )
     }
 
 exit:
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_mac_abort( &operation );
+    psa_destroy_key( key );
+#else
     mbedtls_md_free( &ref_ctx );
     mbedtls_md_free( &ctx );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     mbedtls_free( data );
     mbedtls_free( out );
+
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 

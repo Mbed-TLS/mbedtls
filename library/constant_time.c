@@ -437,6 +437,124 @@ void mbedtls_ct_memcpy_offset( unsigned char *dest,
     }
 }
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+int mbedtls_ct_hmac( mbedtls_svc_key_id_t key,
+                     psa_algorithm_t mac_alg,
+                     const unsigned char *add_data,
+                     size_t add_data_len,
+                     const unsigned char *data,
+                     size_t data_len_secret,
+                     size_t min_data_len,
+                     size_t max_data_len,
+                     unsigned char *output )
+{
+    /*
+     * This function breaks the HMAC abstraction and uses the psa_hash_clone()
+     * in order to get constant-flow behaviour.
+     *
+     * HMAC(msg) is defined as HASH(okey + HASH(ikey + msg)) where + means
+     * concatenation, and okey/ikey are the XOR of the key with some fixed bit
+     * patterns (see RFC 2104, sec. 2).
+     *
+     * We'll first compute ikey/okey, then inner_hash = HASH(ikey + msg) by
+     * hashing up to minlen, then cloning the context, and for each byte up
+     * to maxlen finishing up the hash computation, keeping only the
+     * correct result.
+     *
+     * Then we only need to compute HASH(okey + inner_hash) and we're done.
+     */
+    /* TLS 1.2 only supports SHA-384, SHA-256, SHA-1, MD-5,
+     * all of which have the same block size except SHA-384. */
+    psa_algorithm_t hash_alg = PSA_ALG_HMAC_GET_HASH( mac_alg );
+    const size_t block_size = PSA_HASH_BLOCK_LENGTH( hash_alg );
+    unsigned char ikey[MBEDTLS_MD_MAX_BLOCK_SIZE];
+    unsigned char okey[MBEDTLS_MD_MAX_BLOCK_SIZE];
+    const size_t hash_size = PSA_HASH_LENGTH( hash_alg );
+    psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
+    size_t hash_length;
+
+    unsigned char aux_out[MBEDTLS_MD_MAX_SIZE];
+    psa_hash_operation_t aux_operation = PSA_HASH_OPERATION_INIT;
+    size_t offset;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    unsigned char mac_key[MBEDTLS_MD_MAX_BLOCK_SIZE];
+    size_t mac_key_length;
+    size_t i;
+
+#define PSA_CHK( func_call )        \
+    do {                            \
+        status = (func_call);       \
+        if( status != PSA_SUCCESS ) \
+            goto cleanup;           \
+    } while( 0 )
+
+    /* Export MAC key */
+    PSA_CHK( psa_export_key( key, mac_key,
+                             MBEDTLS_MD_MAX_BLOCK_SIZE,
+                             &mac_key_length ) );
+
+    if( mac_key_length > block_size )
+    {
+        PSA_CHK( psa_hash_setup( &operation, hash_alg ) );
+        PSA_CHK( psa_hash_update( &operation, mac_key, mac_key_length ) );
+        PSA_CHK( psa_hash_finish( &operation, mac_key,
+                                  MBEDTLS_MD_MAX_BLOCK_SIZE, &mac_key_length ) );
+    }
+
+    /* Calculate ikey/okey */
+    memset( ikey, 0x36, block_size );
+    memset( okey, 0x5C, block_size );
+
+    for( i = 0; i < mac_key_length; i++ )
+    {
+        ikey[i] = (unsigned char)( ikey[i] ^ mac_key[i] );
+        okey[i] = (unsigned char)( okey[i] ^ mac_key[i] );
+    }
+
+    mbedtls_platform_zeroize( mac_key, MBEDTLS_MD_MAX_BLOCK_SIZE );
+
+    PSA_CHK( psa_hash_setup( &operation, hash_alg ) );
+
+    /* Now compute inner_hash = HASH(ikey + msg) */
+    PSA_CHK( psa_hash_update( &operation, ikey, block_size ) );
+    PSA_CHK( psa_hash_update( &operation, add_data, add_data_len ) );
+    PSA_CHK( psa_hash_update( &operation, data, min_data_len ) );
+
+    /* For each possible length, compute the hash up to that point */
+    for( offset = min_data_len; offset <= max_data_len; offset++ )
+    {
+        PSA_CHK( psa_hash_clone( &operation, &aux_operation ) );
+        PSA_CHK( psa_hash_finish( &aux_operation, aux_out,
+                                  MBEDTLS_MD_MAX_SIZE, &hash_length ) );
+        /* Keep only the correct inner_hash in the output buffer */
+        mbedtls_ct_memcpy_if_eq( output, aux_out, hash_size,
+                                 offset, data_len_secret );
+
+        if( offset < max_data_len )
+            PSA_CHK( psa_hash_update( &operation, data + offset, 1 ) );
+    }
+
+    /* The context needs to finish() before it starts() again */
+    PSA_CHK( psa_hash_abort( &operation ) );
+
+    /* Now compute HASH(okey + inner_hash) */
+    PSA_CHK( psa_hash_setup( &operation, hash_alg ) );
+    PSA_CHK( psa_hash_update( &operation, okey, block_size ) );
+    PSA_CHK( psa_hash_update( &operation, output, hash_size ) );
+    PSA_CHK( psa_hash_finish( &operation, output, hash_size, &hash_length ) );
+
+#undef PSA_CHK
+
+cleanup:
+    mbedtls_platform_zeroize( mac_key, MBEDTLS_MD_MAX_BLOCK_SIZE );
+    mbedtls_platform_zeroize( ikey, MBEDTLS_MD_MAX_BLOCK_SIZE );
+    mbedtls_platform_zeroize( okey, MBEDTLS_MD_MAX_BLOCK_SIZE );
+    psa_hash_abort( &operation );
+    psa_hash_abort( &aux_operation );
+    return( status == PSA_SUCCESS ? 0 : MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+}
+#else
 int mbedtls_ct_hmac( mbedtls_md_context_t *ctx,
                      const unsigned char *add_data,
                      size_t add_data_len,
@@ -520,6 +638,7 @@ cleanup:
     mbedtls_md_free( &aux );
     return( ret );
 }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
 

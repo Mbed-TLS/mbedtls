@@ -34,10 +34,16 @@ my %configs = (
     },
     'config-ccm-psk-dtls1_2.h' => {
         'compat' => '-m dtls12 -f \'^TLS-PSK-WITH-AES-...-CCM-8\'',
+        'opt' => ' ',
+        'opt_needs_debug' => 1,
         'test_again_with_use_psa' => 1
     },
     'config-mini-tls1_1.h' => {
         'compat' => '-m tls1_1 -f \'^DES-CBC3-SHA$\|^TLS-RSA-WITH-3DES-EDE-CBC-SHA$\'', #',
+        ## Skip ssl-opt testing for now because ssl-opt.sh is missing a lot
+        ## of requires_xxx so it would try to run tests that don't apply.
+        # 'opt' => ' ',
+        # 'opt_needs_debug' => 1,
         'test_again_with_use_psa' => 1
     },
     'config-no-entropy.h' => {
@@ -45,6 +51,8 @@ my %configs = (
     'config-suite-b.h' => {
         'compat' => "-m tls12 -f 'ECDHE-ECDSA.*AES.*GCM' -p mbedTLS",
         'test_again_with_use_psa' => 1,
+        'opt' => ' ',
+        'opt_needs_debug' => 1,
     },
     'config-symmetric-only.h' => {
         'test_again_with_use_psa' => 0, # Uses PSA by default, no need to test it twice
@@ -136,6 +144,15 @@ sub perform_test {
     my $opt = $data->{'opt'};
     if( $opt )
     {
+        if( $data->{'opt_needs_debug'} )
+        {
+            print "\nrebuilding with debug traces for ssl-opt\n";
+            system( "make clean" );
+            system( "scripts/config.py set MBEDTLS_DEBUG_C" );
+            system( "scripts/config.py set MBEDTLS_ERROR_C" );
+            system( "CFLAGS='-Os -Werror -Wall -Wextra' make" ) and abort "Failed to build: $conf +debug\n";
+        }
+
         print "\nrunning ssl-opt.sh $opt\n";
         system( "tests/ssl-opt.sh $opt" )
             and abort "Failed ssl-opt.sh: $conf\n";

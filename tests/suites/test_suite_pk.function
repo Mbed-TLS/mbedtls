@@ -783,46 +783,6 @@ exit:
 }
 /* END_CASE */
 
-
-/* BEGIN_CASE depends_on:MBEDTLS_RSA_C */
-void pk_rsa_encrypt_test_vec( data_t * message, int mod, int radix_N,
-                              char * input_N, int radix_E, char * input_E,
-                              data_t * result, int ret )
-{
-    unsigned char output[300];
-    mbedtls_test_rnd_pseudo_info rnd_info;
-    mbedtls_rsa_context *rsa;
-    mbedtls_pk_context pk;
-    size_t olen;
-
-    memset( &rnd_info,  0, sizeof( mbedtls_test_rnd_pseudo_info ) );
-    memset( output,     0, sizeof( output ) );
-
-    USE_PSA_INIT( );
-
-    mbedtls_pk_init( &pk );
-    TEST_ASSERT( mbedtls_pk_setup( &pk, mbedtls_pk_info_from_type( MBEDTLS_PK_RSA ) ) == 0 );
-    rsa = mbedtls_pk_rsa( pk );
-
-    rsa->len = mod / 8;
-    TEST_ASSERT( mbedtls_test_read_mpi( &rsa->N, radix_N, input_N ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &rsa->E, radix_E, input_E ) == 0 );
-
-    TEST_ASSERT( mbedtls_pk_encrypt( &pk, message->x, message->len,
-                            output, &olen, sizeof( output ),
-                            mbedtls_test_rnd_pseudo_rand, &rnd_info ) == ret );
-    TEST_ASSERT( olen == result->len );
-#if !defined(MBEDTLS_USE_PSA_CRYPTO)
-    // When using PSA crypto, RNG isn't controllable, so reference vector can't be used
-    TEST_ASSERT( memcmp( output, result->x, olen ) == 0 );
-#endif
-
-exit:
-    mbedtls_pk_free( &pk );
-    USE_PSA_DONE( );
-}
-/* END_CASE */
-
 /* BEGIN_CASE depends_on:MBEDTLS_RSA_C */
 void pk_rsa_decrypt_test_vec( data_t * cipher, int mod, int radix_P,
                               char * input_P, int radix_Q, char * input_Q,

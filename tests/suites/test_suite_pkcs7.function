@@ -10,11 +10,11 @@
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_PKCS7_C:MBEDTLS_FS_IO
+ * depends_on:MBEDTLS_PKCS7_C
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA256_C */
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_RSA_C */
 void pkcs7_parse( char *pkcs7_file )
 {
     unsigned char *pkcs7_buf = NULL;
@@ -37,7 +37,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C*/
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO */
 void pkcs7_parse_without_cert( char *pkcs7_file )
 {
     unsigned char *pkcs7_buf = NULL;
@@ -60,7 +60,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA256_C */
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_RSA_C */
 void pkcs7_parse_multiple_signers( char *pkcs7_file )
 {
     unsigned char *pkcs7_buf = NULL;
@@ -95,7 +95,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA256_C */
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_RSA_C */
 void pkcs7_parse_corrupted_cert( char *pkcs7_file )
 {
     unsigned char *pkcs7_buf = NULL;
@@ -118,7 +118,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA256_C */
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_RSA_C */
 void pkcs7_parse_corrupted_signer_info( char *pkcs7_file )
 {
     unsigned char *pkcs7_buf = NULL;
@@ -141,7 +141,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO */
 void pkcs7_parse_version( char *pkcs7_file )
 {
     unsigned char *pkcs7_buf = NULL;
@@ -164,7 +164,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO */
 void pkcs7_parse_content_oid( char *pkcs7_file )
 {
     unsigned char *pkcs7_buf = NULL;
@@ -186,7 +186,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_PKCS1_V15:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA256_C */
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C */
 void pkcs7_verify( char *pkcs7_file, char *crt, char *filetobesigned )
 {
     unsigned char *pkcs7_buf = NULL;
@@ -236,7 +236,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_PKCS1_V15:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA256_C */
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_SHA256_C */
 void pkcs7_verify_hash( char *pkcs7_file, char *crt, char *filetobesigned )
 {
     unsigned char *pkcs7_buf = NULL;
@@ -299,7 +299,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_PKCS1_V15:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA256_C */
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C */
 void pkcs7_verify_badcert( char *pkcs7_file, char *crt, char *filetobesigned )
 {
     unsigned char *pkcs7_buf = NULL;
@@ -349,7 +349,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_PKCS1_V15:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA256_C */
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C */
 void pkcs7_verify_tampered_data( char *pkcs7_file, char *crt, char *filetobesigned )
 {
     unsigned char *pkcs7_buf = NULL;
@@ -399,7 +399,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO */
 void pkcs7_parse_failure( char *pkcs7_file )
 {
     unsigned char *pkcs7_buf = NULL;

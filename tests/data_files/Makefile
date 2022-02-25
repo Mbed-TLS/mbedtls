@@ -1147,6 +1147,15 @@ pkcs7-rsa-sha256-2.crt:
 	cat pkcs7-rsa-sha256-2.crt pkcs7-rsa-sha256-2.key > pkcs7-rsa-sha256-2.pem
 all_final += pkcs7-rsa-sha256-2.crt
 
+# Convert signing certs to DER for testing PEM-free builds
+pkcs7-rsa-sha256-1.der: $(pkcs7_test_cert_1)
+	$(OPENSSL) x509 -in pkcs7-rsa-sha256-1.crt -out $@ -outform DER
+all_final += pkcs7-rsa-sha256-1.der
+
+pkcs7-rsa-sha256-2.der: $(pkcs7_test_cert_2)
+	$(OPENSSL) x509 -in pkcs7-rsa-sha256-2.crt -out $@ -outform DER
+all_final += pkcs7-rsa-sha256-2.der
+
 # pkcs7 signature file with CERT
 pkcs7_data_cert_signed_sha256.der: $(pkcs7_test_file) $(pkcs7_test_cert_1)
 	$(OPENSSL) smime -sign -binary -in pkcs7_data.bin -out $@ -md sha256 -signer pkcs7-rsa-sha256-1.pem -noattr -outform DER -out $@

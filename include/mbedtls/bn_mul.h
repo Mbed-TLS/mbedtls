@@ -564,10 +564,10 @@
         "bsrli r6,   r6, 16     \n\t"
 
 #define MULADDC_CORE                    \
-        "lhui  r8,   r3,   0    \n\t"   \
-        "addi  r3,   r3,   2    \n\t"   \
-        "lhui  r9,   r3,   0    \n\t"   \
-        "addi  r3,   r3,   2    \n\t"   \
+        "lwi   r9,   r3,   0    \n\t"   \
+        "andi  r8,   r9, 0xffff \n\t"   \
+        "bsrli r9,   r9,  16    \n\t"   \
+        "addi  r3,   r3,   4    \n\t"   \
         "mul   r10,  r8,  r6    \n\t"   \
         "mul   r12,  r8,  r7    \n\t"   \
         "mul   r11,  r9,  r7    \n\t"   \

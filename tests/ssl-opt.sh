@@ -6365,11 +6365,12 @@ run_test    "mbedtls_ssl_get_bytes_avail: no extra data" \
             0 \
             -s "Read from client: 100 bytes read$"
 
+requires_max_content_len 474
 run_test    "mbedtls_ssl_get_bytes_avail: extra data" \
             "$P_SRV" \
-            "$P_CLI request_size=500" \
+            "$P_CLI request_size=450" \
             0 \
-            -s "Read from client: 500 bytes read (.*+.*)"
+            -s "Read from client: 450 bytes read (.*+.*)"
 
 # Tests for small client packets
 

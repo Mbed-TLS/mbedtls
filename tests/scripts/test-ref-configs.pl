@@ -32,6 +32,10 @@ my %configs = (
         'compat' => '-m tls12 -f \'^TLS-PSK-WITH-AES-...-CCM-8\'',
         'test_again_with_use_psa' => 1
     },
+    'config-ccm-psk-dtls1_2.h' => {
+        'compat' => '-m dtls12 -f \'^TLS-PSK-WITH-AES-...-CCM-8\'',
+        'test_again_with_use_psa' => 1
+    },
     'config-no-entropy.h' => {
     },
     'config-suite-b.h' => {

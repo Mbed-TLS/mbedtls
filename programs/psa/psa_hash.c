@@ -1,3 +1,30 @@
+/*
+ *  Example computing a SHA-256 hash using the PSA Crypto API
+ *
+ *  The example computes the SHA-256 hash of a test string using the
+ *  one-shot API call psa_hash_compute() and the using multi-part
+ *  operation, which requires psa_hash_setup(), psa_hash_update() and
+ *  psa_hash_finish(). The multi-part operation is popular on embedded
+ *  devices where a rolling hash needs to be computed.
+ *
+ *
+ *  Copyright The Mbed TLS Contributors
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may
+ *  not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+
 #include "psa/crypto.h"
 #include <string.h>
 #include <stdio.h>
@@ -44,7 +71,7 @@ int main( void )
     }
 
 
-    // Compute hash using multi-part operation
+    /* Compute hash using multi-part operation */
 
     status = psa_hash_setup( &sha256_psa, PSA_ALG_SHA_256 );
     if( status != PSA_SUCCESS )
@@ -84,7 +111,7 @@ int main( void )
         printf( "Multi-part hash operation successful!\n");
     }
 
-    // Compute hash using one-shot function call
+    /* Compute hash using one-shot function call */
     memset( hash,0,sizeof( hash ) );
     hash_size = 0;
 
@@ -96,7 +123,7 @@ int main( void )
     {
         printf( "psa_hash_compute failed\n" );
         return( EXIT_FAILURE );
-    } 
+    }
 
     for( size_t j = 0; j < mbedtls_test_sha256_hash_len; j++ )
     {
@@ -106,9 +133,9 @@ int main( void )
             return( EXIT_FAILURE );
         }
     }
-    
+
     printf( "One-shot hash operation successful!\n\n");
-    
+
     printf( "The SHA-256( '%s' ) is:\n", buf );
 
     for( size_t j = 0; j < mbedtls_test_sha256_hash_len; j++ )

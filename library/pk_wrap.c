@@ -225,9 +225,7 @@ static int rsa_decrypt_wrap( void *ctx,
     psa_status_t status;
     mbedtls_pk_context key;
     int key_len;
-    /* see RSA_PRV_DER_MAX_BYTES in pkwrite.c */
-    unsigned char buf[47 + 3 * MBEDTLS_MPI_MAX_SIZE + \
-                      5 * ( MBEDTLS_MPI_MAX_SIZE / 2 + MBEDTLS_MPI_MAX_SIZE % 2 )];
+    unsigned char buf[MBEDTLS_PK_RSA_PRV_DER_MAX_BYTES];
     mbedtls_pk_info_t pk_info = mbedtls_rsa_info;
     psa_algorithm_t psa_sig_md;
 

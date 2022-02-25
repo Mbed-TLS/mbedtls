@@ -1997,17 +1997,9 @@ void asymmetric_decrypt( int alg_arg,
                                         &output_length ), expected_status_decrypt );
     if ( expected_status_decrypt == PSA_SUCCESS )
     {
-        if ( fake_output_decrypt->len > 0 )
-        {
-            TEST_EQUAL( output_length, fake_output_decrypt->len );
-            ASSERT_COMPARE( fake_output_decrypt->x, fake_output_decrypt->len,
-                        output, output_length );
-        } else
-        {
-            TEST_EQUAL( output_length, expected_output_data->len );
-            ASSERT_COMPARE( expected_output_data->x, expected_output_data->len,
-                        output, output_length );
-        }
+        TEST_EQUAL( output_length, expected_output_data->len );
+        ASSERT_COMPARE( expected_output_data->x, expected_output_data->len,
+                    output, output_length );
     }
 exit:
     /*

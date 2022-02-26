@@ -65,17 +65,14 @@ my %configs = (
 
 # If no config-name is provided, use all known configs.
 # Otherwise, use the provided names only.
+my @configs_to_test = sort keys %configs;
 if ($#ARGV >= 0) {
-    my %configs_ori = ( %configs );
-    %configs = ();
-
-    foreach my $conf_name (@ARGV) {
-        if( ! exists $configs_ori{$conf_name} ) {
+    foreach my $conf_name ( @ARGV ) {
+        if( ! exists $configs{$conf_name} ) {
             die "Unknown configuration: $conf_name\n";
-        } else {
-            $configs{$conf_name} = $configs_ori{$conf_name};
         }
     }
+    @configs_to_test = @ARGV;
 }
 
 -d 'library' && -d 'include' && -d 'tests' or die "Must be run from root\n";
@@ -163,13 +160,13 @@ sub perform_test {
     }
 }
 
-while( my ($conf, $data) = each %configs ) {
-    my $test_with_psa = $data->{'test_again_with_use_psa'};
+foreach my $conf ( @configs_to_test ) {
+    my $test_with_psa = $configs{$conf}{'test_again_with_use_psa'};
     if ( $test_with_psa )
     {
-        perform_test( $conf, $data, $test_with_psa );
+        perform_test( $conf, $configs{$conf}, $test_with_psa );
     }
-    perform_test( $conf, $data, 0 );
+    perform_test( $conf, $configs{$conf}, 0 );
 }
 
 system( "mv $config_h.bak $config_h" ) and warn "$config_h not restored\n";

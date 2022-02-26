@@ -1280,8 +1280,6 @@ run_test_psa() {
                 -c "calc PSA finished" \
                 -s "PSA calc verify" \
                 -s "calc PSA finished" \
-                -C "Failed to setup PSA-based cipher context"\
-                -S "Failed to setup PSA-based cipher context"\
                 -s "Protocol is TLSv1.2" \
                 -c "Perform PSA-based ECDH computation."\
                 -c "Perform PSA-based computation of digest of ServerKeyExchange" \
@@ -1300,8 +1298,6 @@ run_test_psa_force_curve() {
                 -c "calc PSA finished" \
                 -s "PSA calc verify" \
                 -s "calc PSA finished" \
-                -C "Failed to setup PSA-based cipher context"\
-                -S "Failed to setup PSA-based cipher context"\
                 -s "Protocol is TLSv1.2" \
                 -c "Perform PSA-based ECDH computation."\
                 -c "Perform PSA-based computation of digest of ServerKeyExchange" \

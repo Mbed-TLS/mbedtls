@@ -1,12 +1,15 @@
+{# One Shot function's dispatch code for transparent drivers.
+Expected inputs:
+* drivers: the list of driver descriptions.
+* entry_point: the name of the entry point that this function dispatches to.
+* entry_point_param(driver): the parameters to pass to the entry point.
+* nest_indent: number of extra spaces to indent the code to.
+-#}
 {% for driver in drivers if driver.type == "transparent" -%}
 {% for capability in driver.capabilities if entry_point in capability.entry_points -%}
-#if ({% if capability.depend_on is defined -%}{{ capability.depend_on }} {% else -%} {{ 1 }} {% endif %})
+#if ({% if capability['mbedtls/c_depend_on'] is defined -%}{{ capability['mbedtls/c_depend_on'] }} {% else -%} {{ 1 }} {% endif %})
 {%- filter indent(width = nest_indent) %}
-{% if capability.name is defined and entry_point in capability.name.keys() -%}
-status = {{ capability.name[entry_point]}}({{entry_point_attributes(driver) | indent(20)}});
-{% else -%}
-status = {{driver.prefix}}_{{driver.type}}_{{entry_point}}({{entry_point_attributes(driver) | indent(20)}});
-{% endif -%}
+status = {{ entry_point_name(capability, entry_point, driver) }}({{entry_point_param(driver) | indent(20)}});
 
 if( status != PSA_ERROR_NOT_SUPPORTED )
     return( status );

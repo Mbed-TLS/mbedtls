@@ -2,22 +2,27 @@
   "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
   "properties": {
-    "prefix": {
+    "_comment": {
       "type": "string"
+    },
+    "prefix": {
+      "type": "string",
+      "pattern": "^[A-Z_a-z][0-9A-Z_a-z]*$"
     },
     "type": {
-      "type": "string"
+      "type": "string",
+      "const": ["transparent"]
     },
-    "dependency": {
+    "mbedtls/h_depend_on": {
       "type": "string"
     },
     "headers": {
       "type": "array",
-      "items": [
-        {
+      "items": {
           "type": "string"
-        }
-      ]
+        },
+        "minItems": 1,
+        "uniqueItems": true
     },
     "capabilities": {
       "type": "array",
@@ -28,79 +33,46 @@
             "_comment": {
               "type": "string"
             },
-            "depend_on": {
+            "mbedtls/c_depend_on": {
               "type": "string"
             },
             "entry_points": {
               "type": "array",
-              "items": [
-                {
-                  "type": "string"
+              "items": {
+                  "type": "string",
+                  "enum": ["import_key", "export_key", "export_public_key",
+                          "copy_key", "get_builtin_key"]
                 },
-                {
-                  "type": "string"
-                }
-              ]
-            },
-            "fallback": {
-              "type": "boolean"
-            }
-          },
-          "required": [
-            "_comment",
-            "depend_on",
-            "entry_points",
-            "fallback"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "_comment": {
-              "type": "string"
-            },
-            "depend_on": {
-              "type": "string"
-            },
-            "entry_points": {
-              "type": "array",
-              "items": [
-                {
-                  "type": "string"
-                }
-              ]
-            },
-            "fallback": {
-              "type": "boolean"
+                "minItems": 1,
+                "uniqueItems": true
             },
             "name": {
               "type": "object",
-              "properties": {
-                "export_public_key": {
-                  "type": "string"
+              "patternProperties": {
+                "^[A-Z_a-z][0-9A-Z_a-z]*$": {
+                  "type": "string",
+                  "pattern": "^[A-Z_a-z][0-9A-Z_a-z]*$"
                 }
               },
-              "required": [
-                "export_public_key"
-              ]
+                "minItems": 1,
+                "uniqueItems": true
+            },
+            "fallback": {
+              "type": "boolean",
+              "default": "false"
             }
           },
           "required": [
-            "_comment",
-            "depend_on",
-            "entry_points",
-            "fallback",
-            "name"
+            "entry_points"
           ]
         }
-      ]
+      ],
+      "default": []
     }
   },
   "required": [
     "prefix",
     "type",
-    "dependency",
-    "headers",
     "capabilities"
   ]
 }

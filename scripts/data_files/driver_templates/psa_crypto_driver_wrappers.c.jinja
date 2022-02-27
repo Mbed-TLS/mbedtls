@@ -1,7 +1,7 @@
 /*
  *  Functions to delegate cryptographic operations to an available
  *  and appropriate accelerator.
- *  Warning: This file will be auto-generated in the future.
+ *  Warning: This file is now auto-generated.
  */
 /*  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
@@ -39,13 +39,15 @@
 #if defined(MBEDTLS_PSA_CRYPTO_DRIVERS)
 {% for driver in drivers -%}
 /* Headers for {{driver.prefix}} {{driver.type}} driver */
-{% if driver.dependency is defined -%}
-#if {{ driver.dependency }}
+{% if driver['mbedtls/h_depend_on'] is defined -%}
+#if {{ driver['mbedtls/h_depend_on'] }}
 {% endif -%}
 {% for header in driver.headers -%}
 #include "{{ header }}"
 {% endfor %}
+{% if driver['mbedtls/h_depend_on'] is defined -%}
 #endif
+{% endif -%}
 {% endfor %}
 #endif /* MBEDTLS_PSA_CRYPTO_DRIVERS */
 /* END-driver headers */
@@ -59,6 +61,16 @@
 #define {{(driver.prefix + "_" + driver.type + "_driver_id").upper()}} ({{ loop.index + 1 }})
 {% endfor %}
 /* END-driver id */
+
+/* BEGIN-Common Macro definitions */
+{% macro entry_point_name(capability, entry_point, driver) -%}
+    {% if capability.name is defined and entry_point in capability.name.keys() -%}
+    {{ capability.name[entry_point]}}
+    {% else -%}
+    {{driver.prefix}}_{{driver.type}}_{{entry_point}}
+    {% endif -%}
+{% endmacro %}
+/* END-Common Macro definitions */
 
 /* Support the 'old' SE interface when asked to */
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
@@ -595,7 +607,7 @@ psa_status_t psa_driver_wrapper_import_key(
     size_t *bits )
 {
 {% set entry_point = "import_key" -%}
-{% macro entry_point_attributes(driver) -%}
+{% macro entry_point_param(driver) -%}
 attributes,
 data,
 data_length,
@@ -677,7 +689,7 @@ psa_status_t psa_driver_wrapper_export_key(
 
 {
 {% set entry_point = "export_key" -%}
-{% macro entry_point_attributes(driver) -%}
+{% macro entry_point_param(driver) -%}
 attributes,
 key_buffer,
 key_buffer_size,
@@ -740,7 +752,7 @@ psa_status_t psa_driver_wrapper_export_public_key(
 
 {
 {% set entry_point = "export_public_key" -%}
-{% macro entry_point_attributes(driver) -%}
+{% macro entry_point_param(driver) -%}
 attributes,
 key_buffer,
 key_buffer_size,
@@ -812,7 +824,7 @@ psa_status_t psa_driver_wrapper_get_builtin_key(
     uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length )
 {
 {% set entry_point = "get_builtin_key" -%}
-{% macro entry_point_attributes(driver) -%}
+{% macro entry_point_param(driver) -%}
 slot_number,
 attributes,
 key_buffer,
@@ -845,7 +857,7 @@ psa_status_t psa_driver_wrapper_copy_key(
     size_t *target_key_buffer_length )
 {
 {% set entry_point = "copy_key" -%}
-{% macro entry_point_attributes(driver) -%}
+{% macro entry_point_param(driver) -%}
 attributes,
 source_key,
 source_key_length,

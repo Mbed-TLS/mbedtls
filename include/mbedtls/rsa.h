@@ -82,8 +82,7 @@ extern "C" {
 #endif
 
 #if !defined(MBEDTLS_RSA_ALT)
-// Regular implementation
-//
+/* Regular implementation */
 
 /**
  * \brief   The RSA context structure.

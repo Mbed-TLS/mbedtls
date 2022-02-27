@@ -779,47 +779,47 @@
 /* Reject attempts to enable options that have been removed and that could
  * cause a build to succeed but with features removed. */
 
-#if defined(MBEDTLS_HAVEGE_C) //no-check-names
+#if defined(MBEDTLS_HAVEGE_C) /*no-check-names*/
 #error "MBEDTLS_HAVEGE_C was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/2599"
 #endif
 
-#if defined(MBEDTLS_SSL_HW_RECORD_ACCEL) //no-check-names
+#if defined(MBEDTLS_SSL_HW_RECORD_ACCEL) /*no-check-names*/
 #error "MBEDTLS_SSL_HW_RECORD_ACCEL was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4031"
 #endif
 
-#if defined(MBEDTLS_SSL_PROTO_SSL3) //no-check-names
+#if defined(MBEDTLS_SSL_PROTO_SSL3) /*no-check-names*/
 #error "MBEDTLS_SSL_PROTO_SSL3 (SSL v3.0 support) was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4031"
 #endif
 
-#if defined(MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO) //no-check-names
+#if defined(MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO) /*no-check-names*/
 #error "MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO (SSL v2 ClientHello support) was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4031"
 #endif
 
-#if defined(MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT) //no-check-names
+#if defined(MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT) /*no-check-names*/
 #error "MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT (compatibility with the buggy implementation of truncated HMAC in Mbed TLS up to 2.7) was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4031"
 #endif
 
-#if defined(MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES) //no-check-names
+#if defined(MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES) /*no-check-names*/
 #error "MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES was removed in Mbed TLS 3.0. See the ChangeLog entry if you really need SHA-1-signed certificates."
 #endif
 
-#if defined(MBEDTLS_ZLIB_SUPPORT) //no-check-names
+#if defined(MBEDTLS_ZLIB_SUPPORT) /*no-check-names*/
 #error "MBEDTLS_ZLIB_SUPPORT was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4031"
 #endif
 
-#if defined(MBEDTLS_CHECK_PARAMS) //no-check-names
+#if defined(MBEDTLS_CHECK_PARAMS) /*no-check-names*/
 #error "MBEDTLS_CHECK_PARAMS was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4313"
 #endif
 
-#if defined(MBEDTLS_SSL_CID_PADDING_GRANULARITY) //no-check-names
+#if defined(MBEDTLS_SSL_CID_PADDING_GRANULARITY) /*no-check-names*/
 #error "MBEDTLS_SSL_CID_PADDING_GRANULARITY was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4335"
 #endif
 
-#if defined(MBEDTLS_SSL_TLS1_3_PADDING_GRANULARITY) //no-check-names
+#if defined(MBEDTLS_SSL_TLS1_3_PADDING_GRANULARITY) /*no-check-names*/
 #error "MBEDTLS_SSL_TLS1_3_PADDING_GRANULARITY was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4335"
 #endif
 
-#if defined(MBEDTLS_SSL_TRUNCATED_HMAC) //no-check-names
+#if defined(MBEDTLS_SSL_TRUNCATED_HMAC) /*no-check-names*/
 #error "MBEDTLS_SSL_TRUNCATED_HMAC was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4341"
 #endif
 

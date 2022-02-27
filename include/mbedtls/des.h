@@ -47,8 +47,7 @@ extern "C" {
 #endif
 
 #if !defined(MBEDTLS_DES_ALT)
-// Regular implementation
-//
+/* Regular implementation */
 
 /**
  * \brief          DES context structure

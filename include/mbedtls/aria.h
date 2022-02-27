@@ -55,8 +55,7 @@ extern "C" {
 #endif
 
 #if !defined(MBEDTLS_ARIA_ALT)
-// Regular implementation
-//
+/* Regular implementation */
 
 /**
  * \brief The ARIA context-type definition.

@@ -206,7 +206,7 @@ class Typo(Problem): # pylint: disable=too-few-public-methods
         return self.textwrapper.fill(
             "{0}:{1}: '{2}' looks like a typo. It was not found in any "
             "macros or any enums. If this is not a typo, put "
-            "//no-check-names after it."
+            "//no-check-names or /*no-check-names*/ after it."
             .format(self.match.filename, self.match.line_no, self.match.name)
         ) + "\n" + str(self.match)
 
@@ -383,6 +383,7 @@ class CodeParser():
         # Typos of TLS are common, hence the broader check below than MBEDTLS.
         mbed_regex = re.compile(r"\bMBED.+?_[A-Z0-9_]*")
         exclusions = re.compile(r"// *no-check-names|#error")
+        exclusions = re.compile(r"/\* *no-check-names|#error")
 
         files = self.get_files(include, exclude)
         self.log.debug("Looking for MBED words in {} files".format(len(files)))

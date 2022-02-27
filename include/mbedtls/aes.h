@@ -71,8 +71,7 @@ extern "C" {
 #endif
 
 #if !defined(MBEDTLS_AES_ALT)
-// Regular implementation
-//
+/* Regular implementation */
 
 /**
  * \brief The AES context-type definition.

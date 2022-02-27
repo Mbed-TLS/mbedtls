@@ -53,7 +53,7 @@
 /*
  * CBC-MAC is not yet supported via the PSA API in Mbed TLS.
  */
-//#define PSA_WANT_ALG_CBC_MAC                    1
+/*#define PSA_WANT_ALG_CBC_MAC                    1*/
 #define PSA_WANT_ALG_CBC_NO_PADDING             1
 #define PSA_WANT_ALG_CBC_PKCS7                  1
 #define PSA_WANT_ALG_CCM                        1
@@ -73,7 +73,7 @@
 #define PSA_WANT_ALG_OFB                        1
 /* PBKDF2-HMAC is not yet supported via the PSA API in Mbed TLS.
  * Note: when adding support, also adjust include/mbedtls/config_psa.h */
-//#define PSA_WANT_ALG_PBKDF2_HMAC                1
+/*#define PSA_WANT_ALG_PBKDF2_HMAC                1*/
 #define PSA_WANT_ALG_RIPEMD160                  1
 #define PSA_WANT_ALG_RSA_OAEP                   1
 #define PSA_WANT_ALG_RSA_PKCS1V15_CRYPT         1
@@ -100,7 +100,7 @@
  * (https://github.com/ARMmbed/mbedtls/issues/3541). Thus, do not enable it by
  * default.
  */
-//#define PSA_WANT_ECC_SECP_K1_224                1
+/*#define PSA_WANT_ECC_SECP_K1_224                1*/
 #define PSA_WANT_ECC_SECP_K1_256                1
 #define PSA_WANT_ECC_SECP_R1_192                1
 #define PSA_WANT_ECC_SECP_R1_224                1

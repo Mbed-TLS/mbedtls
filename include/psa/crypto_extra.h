@@ -182,12 +182,9 @@ static inline void psa_clear_key_slot_number(
  *         support registering a key.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The identifier in \p attributes is invalid, namely the identifier is
- *         not in the user range.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         not in the user range, or
  *         \p attributes specifies a lifetime which is not located
- *         in a secure element.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         No slot number is specified in \p attributes,
+ *         in a secure element, or no slot number is specified in \p attributes,
  *         or the specified slot number is not valid.
  * \retval #PSA_ERROR_NOT_PERMITTED
  *         The caller is not authorized to register the specified key slot.
@@ -1349,15 +1346,14 @@ static psa_pake_operation_t psa_pake_operation_init(void);
  *
  * \retval #PSA_SUCCESS
  *         Success.
- * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         The \p cipher_suite is not supported or is not valid.
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
+ *         The operation state is not valid, or
+ *         the library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
@@ -1386,18 +1382,17 @@ psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
  *
  * \retval #PSA_SUCCESS
  *         Success.
- * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must have been set up.)
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p key is not compatible with the algorithm or the cipher suite.
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_INVALID_HANDLE
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_STORAGE_FAILURE
  * \retval #PSA_ERROR_NOT_PERMITTED
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p key is not compatible with the algorithm or the cipher suite.
  * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
+ *         The operation state is not valid (it must have been set up.), or
+ *         the library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
@@ -1427,16 +1422,15 @@ psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
  *
  * \retval #PSA_SUCCESS
  *         Success.
- * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p user_id is NULL.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p user_id is NULL.
  * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
+ *         The operation state is not valid, or
+ *         the library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
@@ -1467,18 +1461,17 @@ psa_status_t psa_pake_set_user(psa_pake_operation_t *operation,
  *
  * \retval #PSA_SUCCESS
  *         Success.
- * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         The algorithm doesn't associate a second identity with the session.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p user_id is NULL.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p user_id is NULL.
  * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
+ *         The operation state is not valid, or the library has not
+ *         been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
@@ -1510,15 +1503,14 @@ psa_status_t psa_pake_set_peer(psa_pake_operation_t *operation,
  *
  * \retval #PSA_SUCCESS
  *         Success.
- * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         The \p side for this algorithm is not supported or is not valid.
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
+ *         The operation state is not valid, or
+ *         the library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
@@ -1556,9 +1548,6 @@ psa_status_t psa_pake_set_side(psa_pake_operation_t *operation,
  *
  * \retval #PSA_SUCCESS
  *         Success.
- * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must be active, but beyond that
- *         validity is specific to the algorithm).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p output buffer is too small.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -1567,7 +1556,9 @@ psa_status_t psa_pake_set_side(psa_pake_operation_t *operation,
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_STORAGE_FAILURE
  * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
+ *         The operation state is not valid (it must be active, but beyond that
+ *         validity is specific to the algorithm), or
+ *         the library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
@@ -1602,18 +1593,17 @@ psa_status_t psa_pake_output(psa_pake_operation_t *operation,
  *
  * \retval #PSA_SUCCESS
  *         Success.
- * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must be active, but beyond that
- *         validity is specific to the algorithm).
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The input is not valid for the algorithm, ciphersuite or \p step.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         The input is not valid for the algorithm, ciphersuite or \p step.
  * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
+ *         The operation state is not valid (it must be active, but beyond that
+ *         validity is specific to the algorithm), or
+ *         the library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
@@ -1657,14 +1647,6 @@ psa_status_t psa_pake_input(psa_pake_operation_t *operation,
  *
  * \retval #PSA_SUCCESS
  *         Success.
- * \retval #PSA_ERROR_BAD_STATE
- *         The PAKE operation state is not valid (it must be active, but beyond
- *         that validity is specific to the algorithm).
- * \retval #PSA_ERROR_BAD_STATE
- *         The state of \p output is not valid for
- *         the #PSA_KEY_DERIVATION_INPUT_SECRET step. This can happen if the
- *         step is out of order or the application has done this step already
- *         and it may not be repeated.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         #PSA_KEY_DERIVATION_INPUT_SECRET is not compatible with the output’s
  *         algorithm.
@@ -1674,7 +1656,13 @@ psa_status_t psa_pake_input(psa_pake_operation_t *operation,
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_STORAGE_FAILURE
  * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
+ *         The PAKE operation state is not valid (it must be active, but beyond
+ *         that validity is specific to the algorithm), or
+ *         the library has not been previously initialized by psa_crypto_init(),
+ *         or the state of \p output is not valid for
+ *         the #PSA_KEY_DERIVATION_INPUT_SECRET step. This can happen if the
+ *         step is out of order or the application has done this step already
+ *         and it may not be repeated.
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */

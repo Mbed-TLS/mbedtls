@@ -17,7 +17,7 @@
 
 # Purpose: check Python files for potential programming errors or maintenance
 # hurdles. Run pylint to detect some potential mistakes and enforce PEP8
-# coding standards. If available, run mypy to perform static type checking.
+# coding standards. Run mypy to perform static type checking.
 
 # We'll keep going on errors and report the status at the end.
 ret=0
@@ -72,12 +72,9 @@ $PYTHON -m pylint -j 2 scripts/mbedtls_dev/*.py scripts/*.py tests/scripts/*.py 
     ret=1
 }
 
-# Check types if mypy is available
-if can_mypy; then
-    echo
-    echo 'Running mypy ...'
-    $PYTHON -m mypy scripts/*.py tests/scripts/*.py ||
-      ret=1
-fi
+echo
+echo 'Running mypy ...'
+$PYTHON -m mypy scripts/*.py tests/scripts/*.py ||
+  ret=1
 
 exit $ret

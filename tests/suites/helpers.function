@@ -87,6 +87,7 @@ typedef struct data_tag
 #if !defined(MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES) && \
     ( !defined(MBEDTLS_NO_PLATFORM_ENTROPY) ||      \
         defined(MBEDTLS_ENTROPY_HARDWARE_ALT) ||    \
+        defined(MBEDTLS_ENTROPY_PSA)          ||    \
         defined(ENTROPY_NV_SEED) )
 #define ENTROPY_HAVE_STRONG
 #endif

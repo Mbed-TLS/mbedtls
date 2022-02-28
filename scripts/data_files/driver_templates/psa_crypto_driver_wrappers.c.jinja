@@ -2468,4 +2468,32 @@ psa_status_t psa_driver_wrapper_asymmetric_decrypt(
     }
 }
 
+/*
+ * Entropy collection
+ */
+struct psa_entropy_acc;
+
+psa_status_t psa_driver_collect_entropy( size_t sz, uint8_t *buf, struct psa_entropy_acc *acc )
+{
+    size_t estimate_bits = 0;
+    psa_status_t status = PSA_SUCCESS;
+
+{% if not entropydrivers %}
+    (void)sz;
+    (void)buf;
+    (void)acc;
+    (void)estimate_bits;
+{% endif %}
+{% for driver in entropydrivers %}
+    status = $driver(PSA_DRIVER_GET_ENTROPY_BLOCK, &estimate_bits, buf, sz);
+    if( status )
+        return status;
+    status = mbedtls_accumulate_psa_entropy(acc, estimate_bits, buf);
+    if( status )
+        return status;
+{% endfor %}
+
+    return status;
+}
+
 #endif /* MBEDTLS_PSA_CRYPTO_C */

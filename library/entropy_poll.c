@@ -38,6 +38,10 @@
 #if defined(MBEDTLS_ENTROPY_NV_SEED) || !defined(HAVE_SYSCTL_ARND)
 #include "mbedtls/platform.h"
 #endif
+#if defined(MBEDTLS_ENTROPY_PSA)
+#include "psa_crypto_core.h"
+#include "psa_crypto_driver_wrappers.h"
+#endif
 
 #if !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
 
@@ -213,6 +217,68 @@ int mbedtls_platform_entropy_poll( void *data,
 }
 #endif /* _WIN32 && !EFIX64 && !EFI32 */
 #endif /* !MBEDTLS_NO_PLATFORM_ENTROPY */
+
+#if defined(MBEDTLS_PSA_CRYPTO_DRIVERS) && defined(MBEDTLS_ENTROPY_PSA)
+psa_status_t mbedtls_accumulate_psa_entropy(struct psa_entropy_acc *acc,
+    size_t estimate_bits, uint8_t *p)
+{
+    int ret;
+
+#if defined(MBEDTLS_ENTROPY_SHA512_ACCUMULATOR)
+    ret = mbedtls_sha512_update( &acc->hashctxt, p, MBEDTLS_ENTROPY_BLOCK_SIZE );
+#else
+    ret = mbedtls_sha256_update( &acc->hashctxt, p, MBEDTLS_ENTROPY_BLOCK_SIZE );
+#endif
+    acc->estimate_bits += estimate_bits;
+
+    return mbedtls_to_psa_error( ret );
+}
+
+int mbedtls_psa_entropy_poll( void *data, unsigned char *output, size_t len,
+                           size_t *olen )
+{
+    struct psa_entropy_acc acc;
+    int ret;
+    uint8_t buf[MBEDTLS_ENTROPY_MAX_GATHER];
+
+    ((void) data);
+    *olen = 0;
+
+    acc.estimate_bits = 0;
+#if defined(MBEDTLS_ENTROPY_SHA512_ACCUMULATOR)
+    ret = mbedtls_sha512_starts( &acc.hashctxt, 0 );
+#else
+    ret = mbedtls_sha256_starts( &acc.hashctxt, 0 );
+#endif
+    if( ret )
+        goto cleanup;
+
+    ret = psa_driver_collect_entropy( MBEDTLS_ENTROPY_BLOCK_SIZE, buf, &acc );
+    if( ret != PSA_SUCCESS ) {
+        ret = MBEDTLS_ERR_ENTROPY_SOURCE_FAILED;
+        goto cleanup;
+    }
+
+#if defined(MBEDTLS_ENTROPY_SHA512_ACCUMULATOR)
+    ret = mbedtls_sha512_finish( &acc.hashctxt, buf );
+#else
+    ret = mbedtls_sha256_finish( &acc.hashctxt, buf );
+#endif
+    if( ret )
+        goto cleanup;
+
+    *olen = acc.estimate_bits / 8;
+    if ( *olen > len )
+        *olen = len;
+    memcpy(output, buf, *olen);
+
+cleanup:
+    mbedtls_platform_zeroize( buf, sizeof( buf ) );
+    mbedtls_platform_zeroize( &acc.hashctxt, sizeof( acc.hashctxt ) );
+
+    return ret;
+}
+#endif /* MBEDTLS_ENTROPY_PSA */
 
 #if defined(MBEDTLS_ENTROPY_NV_SEED)
 int mbedtls_nv_seed_poll( void *data,

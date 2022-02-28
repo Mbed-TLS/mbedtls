@@ -361,6 +361,26 @@ psa_status_t psa_driver_wrapper_asymmetric_decrypt(
     size_t output_size,
     size_t *output_length );
 
+/*
+ * Entropy entry points
+ */
+struct psa_entropy_acc {
+    unsigned int estimate_bits;
+#if defined(MBEDTLS_ENTROPY_SHA512_ACCUMULATOR)
+    mbedtls_sha512_context hashctxt;
+#elif defined(MBEDTLS_ENTROPY_SHA256_ACCUMULATOR)
+    mbedtls_sha256_context hashctxt;
+#endif
+};
+
+psa_status_t mbedtls_accumulate_psa_entropy(struct psa_entropy_acc *acc,
+    size_t estimate_bits, uint8_t *p);
+
+psa_status_t psa_driver_collect_entropy(
+    size_t sz,
+    uint8_t *buf,
+    struct psa_entropy_acc *acc );
+
 #endif /* PSA_CRYPTO_DRIVER_WRAPPERS_H */
 
 /* End of automatically generated file. */

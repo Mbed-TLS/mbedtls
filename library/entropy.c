@@ -78,6 +78,11 @@ void mbedtls_entropy_init( mbedtls_entropy_context *ctx )
                                 MBEDTLS_ENTROPY_MIN_HARDWARE,
                                 MBEDTLS_ENTROPY_SOURCE_STRONG );
 #endif
+#if defined(MBEDTLS_ENTROPY_PSA)
+    mbedtls_entropy_add_source( ctx, mbedtls_psa_entropy_poll, NULL,
+                                0,
+                                MBEDTLS_ENTROPY_SOURCE_STRONG );
+#endif
 #if defined(MBEDTLS_ENTROPY_NV_SEED)
     mbedtls_entropy_add_source( ctx, mbedtls_nv_seed_poll, NULL,
                                 MBEDTLS_ENTROPY_BLOCK_SIZE,

@@ -1191,6 +1191,17 @@
  */
 //#define MBEDTLS_PSA_CRYPTO_DRIVERS
 
+/** \def MBEDTLS_ENTROPY_PSA
+ *
+ * Enable support for entropy collection via the PSA crypto driver interface.
+ *
+ * Requires: MBEDTLS_PSA_CRYPTO_DRIVERS
+ *
+ * \warning This interface is experimental and may change or be removed
+ * without notice.
+ */
+//#define MBEDTLS_ENTROPY_PSA
+
 /** \def MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
  *
  * Make the PSA Crypto module use an external random generator provided

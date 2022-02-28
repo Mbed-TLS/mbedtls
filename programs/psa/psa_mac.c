@@ -1,3 +1,35 @@
+/*
+ *  Example illustrating a message authentication code (MAC) using
+ *  the PSA Crypto API.
+ *
+ *  The MAC computation using the PSA Crypto API is offered via a
+ *  single part MAC operation and via a multi-part MAC operations.
+ *
+ *  First, the single part MAC operation is demonstrated with the
+ *  use of the psa_mac_compute() or the psa_mac_verify() functions.
+ *  The latter function also compares the computed MAC against a
+ *  reference value.
+ *
+ *  The multi-part MAC operation requires a several API calls, namely
+ *  psa_mac_sign_setup(), psa_mac_update() and psa_mac_sign_finish().
+ *
+ *  Copyright The Mbed TLS Contributors
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may
+ *  not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+
 #include "psa/crypto.h"
 #include <string.h>
 #include <stdio.h>
@@ -13,6 +45,29 @@ int main( void )
     return( 0 );
 }
 #else
+
+
+/* constant-time buffer comparison */
+static inline int safer_memcmp( const void *a, const void *b, size_t n )
+{
+    size_t i;
+    volatile const unsigned char *A = (volatile const unsigned char *) a;
+    volatile const unsigned char *B = (volatile const unsigned char *) b;
+    volatile unsigned char diff = 0;
+
+    for( i = 0; i < n; i++ )
+    {
+        /* Read volatile data in order before computing diff.
+         * This avoids IAR compiler warning:
+         * 'the order of volatile accesses is undefined ..' */
+        unsigned char x = A[i], y = B[i];
+        diff |= x ^ y;
+    }
+
+    return( diff );
+}
+
+
 int main( void )
 {
     uint8_t input[] = "Hello World!";
@@ -20,10 +75,9 @@ int main( void )
     size_t mac_size_real = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_handle_t key_handle = 0;
-    uint8_t mac[32];
+    uint8_t mac[ PSA_MAC_MAX_SIZE ];
     psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
     const uint8_t key_bytes[16] = "kkkkkkkkkkkkkkkk";
-    uint8_t incorrect_mac = 0; 
     const uint8_t mbedtls_test_hmac_sha256[] = {
         0xae, 0x72, 0x34, 0x5a, 0x10, 0x36, 0xfb, 0x71,
         0x35, 0x3c, 0x7d, 0x6c, 0x81, 0x98, 0x52, 0x86,
@@ -37,9 +91,11 @@ int main( void )
         printf( "psa_crypto_init failed\n" );
         return( EXIT_FAILURE );
     }
-  
-    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_HASH );
-    psa_set_key_algorithm( &attributes, PSA_ALG_HMAC(PSA_ALG_SHA_256) );
+
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_MESSAGE |
+                                          PSA_KEY_USAGE_SIGN_HASH |
+                                          PSA_KEY_USAGE_SIGN_MESSAGE );
+    psa_set_key_algorithm( &attributes, PSA_ALG_HMAC( PSA_ALG_SHA_256 ) );
     psa_set_key_type( &attributes, PSA_KEY_TYPE_HMAC );
 
     status = psa_import_key( &attributes, key_bytes, sizeof( key_bytes ), &key_handle );
@@ -48,14 +104,85 @@ int main( void )
         printf( "psa_import_key failed\n" );
         return( EXIT_FAILURE );
     }
-    
-    status = psa_mac_sign_setup( &operation, key_handle, PSA_ALG_HMAC(PSA_ALG_SHA_256) );
+
+    /* Single-part MAC operation with psa_mac_compute() */
+    status = psa_mac_compute( key_handle,
+                              PSA_ALG_HMAC( PSA_ALG_SHA_256 ),
+                              input,
+                              sizeof( input ),
+                              mac,
+                              sizeof( mac ),
+                              &mac_size_real );
+    if( status != PSA_SUCCESS )
+    {
+        printf( "psa_mac_compute failed\n" );
+        return( EXIT_FAILURE );
+    }
+
+    printf( "HMAC-SHA-256(%s) with psa_mac_compute():\n", input );
+
+    for( size_t j = 0; j < mac_size_real; j++ )
+    {
+        if( j % 8 == 0 ) printf( "\n    " );
+        printf( "%02x ", mac[j] );
+    }
+
+    printf( "\n" );
+
+    if( safer_memcmp( mac,
+                      mbedtls_test_hmac_sha256,
+                      mac_size_real 
+                    ) != 0 )
+    {
+        printf( "\nMAC verified incorrectly!\n" );
+    }
+    else
+    {
+        printf( "\nMAC verified correctly!\n" );
+    }
+
+    psa_destroy_key( key_handle );
+
+    status = psa_import_key( &attributes, key_bytes, sizeof( key_bytes ), &key_handle );
+    if( status != PSA_SUCCESS )
+    {
+        printf( "psa_import_key failed\n" );
+        return( EXIT_FAILURE );
+    }
+
+    /* Single-part MAC operation with psa_mac_verify() */
+    status = psa_mac_verify( key_handle,
+                             PSA_ALG_HMAC( PSA_ALG_SHA_256 ),
+                             input,
+                             sizeof( input ),
+                             mbedtls_test_hmac_sha256,
+                             sizeof( mbedtls_test_hmac_sha256 ) );
+    if( status != PSA_SUCCESS )
+    {
+        printf( "psa_mac_verify failed\n" );
+        return( EXIT_FAILURE );
+    } else
+    {
+        printf( "psa_mac_verify passed successfully\n" );
+    }
+
+    psa_destroy_key( key_handle );
+
+    status = psa_import_key( &attributes, key_bytes, sizeof( key_bytes ), &key_handle );
+    if( status != PSA_SUCCESS )
+    {
+        printf( "psa_import_key failed\n" );
+        return( EXIT_FAILURE );
+    }
+
+    /* Multi-part MAC operation */
+    status = psa_mac_sign_setup( &operation, key_handle, PSA_ALG_HMAC( PSA_ALG_SHA_256 ) );
     if( status != PSA_SUCCESS )
     {
         printf( "psa_mac_sign_setup failed\n" );
         return( EXIT_FAILURE );
     }
- 
+
     status = psa_mac_update( &operation, input, sizeof( input ) );
     if( status != PSA_SUCCESS )
     {
@@ -70,27 +197,16 @@ int main( void )
         return( EXIT_FAILURE );
     }
 
-    printf( "HMAC-SHA-256(%s):\n", input );
-
-    for( size_t j = 0; j < mac_size_real; j++ )
+    if( safer_memcmp( mac,
+                      mbedtls_test_hmac_sha256,
+                      mac_size_real
+                    ) != 0 )
     {
-        if( j % 8 == 0 ) printf( "\n    " );
-        printf( "%02x ", mac[j] );
-        if( mac[j] != mbedtls_test_hmac_sha256[j] )
-        {
-            incorrect_mac = 1; 
-        }
-    }
-
-    printf( "\n" );
-
-    if( incorrect_mac == 1 )
-    {
-        printf( "\nMAC verified incorrectly!\n" );
+        printf( "MAC, calculated with multi-part MAC operation, verified incorrectly!\n" );
     }
     else
     {
-        printf( "\nMAC verified correctly!\n" );
+        printf( "MAC, calculated with multi-part MAC operation, verified correctly!\n" );
     }
 
     psa_destroy_key( key_handle );

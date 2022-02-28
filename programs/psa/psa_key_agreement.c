@@ -102,7 +102,7 @@ int main( void )
         return( EXIT_FAILURE );
     }
 
-    printf( "Client Public Key (%lu bytes):\n", client_pk_len );
+    printf( "Client Public Key (%zu bytes):\n", client_pk_len );
 
     for( size_t j = 0; j < client_pk_len; j++ )
     {
@@ -144,7 +144,7 @@ int main( void )
         return( EXIT_FAILURE );
     }
 
-    printf( "Server Public Key (%lu bytes):\n", sizeof( server_pk ) );
+    printf( "Server Public Key (%zu bytes):\n", sizeof( server_pk ) );
 
     for( size_t j = 0; j < sizeof( server_pk ); j++ )
     {
@@ -165,7 +165,7 @@ int main( void )
         return( EXIT_FAILURE );
     }
 
-    printf( "Derived Key (%lu bytes):\n", derived_key_len );
+    printf( "Derived Key (%zu bytes):\n", derived_key_len );
 
     for( size_t j = 0; j < derived_key_len; j++ )
     {

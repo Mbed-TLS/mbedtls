@@ -1,3 +1,34 @@
+/*
+ *  Example illustrating random number generation using the PSA 
+ *  Crypto API.
+ *
+ *  Random number generation is probably one of the simplest operation
+ *  from a developers point of view since only a single API call is needed,
+ *  namely psa_generate_random().
+ *
+ *  Unfortunately, many operating systems available for embedded systems do
+ *  not offer developers an integration with the required hardware randomness
+ *  source. Hence, an embedded developer needs to use the hooks offered by
+ *  the PSA Crypto API to integrate a hardware entropy source. This example
+ *  offers the skeleton of this integration with the C-processor directive
+ *  MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG.
+ *
+ *  Copyright The Mbed TLS Contributors
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may
+ *  not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 
 #include "mbedtls/build_info.h"
 

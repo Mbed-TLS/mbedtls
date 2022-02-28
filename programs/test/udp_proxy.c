@@ -58,7 +58,10 @@ int main( void )
 #include "mbedtls/ssl.h"
 #include "mbedtls/timing.h"
 
+#include <test/helpers.h>
+
 #include <string.h>
+#include <inttypes.h>
 
 /* For select() */
 #if (defined(_WIN32) || defined(_WIN32_WCE)) && !defined(EFIX64) && \
@@ -92,11 +95,32 @@ int main( void )
 #if defined(MBEDTLS_TIMING_C)
 #define USAGE_PACK                                                          \
     "    pack=%%d             default: 0     (don't pack)\n"                \
-    "                         options: t > 0 (pack for t milliseconds)\n"
+    "                        options: t > 0 (pack for t milliseconds)\n"
 #else
 #define USAGE_PACK
 #endif
-
+#define USAGE_MALFORM                                                       \
+    "    malform_mode=%%s     default: 0 (no data malformation)\n"          \
+    "                                 1 (perform a bitflip at a location)\n" \
+    "                                 2 (memset packet info with a pattern)\n" \
+    "    malform_length=%%d   default: 0 (no data malformation)\n"         \
+    "    malform_offset=%%d   default: 0 (start at the beginning of a packet)\n" \
+    "    malform_bit=%%d      default: 0 (bit to perform the bitflip on,\n" \
+    "                                   used only in mode 1)\n"            \
+    "    malform_packet_num=%%d default:0 (which packet to malform,\n"     \
+    "                                      zero means all)\n"               \
+    "    malform_message=%%s  Which message to malform. Acceptable values:\n"\
+    "                        HelloRequest, ClientHello, ServerHello,\n"     \
+    "                        HelloVerifyRequest, NewSessionTicket,\n"       \
+    "                        Certificate, ServerKeyExchange,\n"             \
+    "                        CertificateRequest, ServerHelloDone,\n"        \
+    "                        CertificateVerify, ClientKeyExchange,\n"       \
+    "                        Finished, ChangeCipherSpec, Alert,\n"          \
+    "                        ApplicationData, CID\n"                        \
+    "    malform_pattern=%%s  What pattern to use in mode 2, in hex. If\n"  \
+    "                        the pattern length is smaller than\n"          \
+    "                        malform_length - it will repeat. It cannot\n"  \
+    "                        be longer.\n"
 #define USAGE                                                               \
     "\n usage: udp_proxy param=<>...\n"                                     \
     "\n acceptable parameters:\n"                                           \
@@ -139,6 +163,7 @@ int main( void )
     "\n"                                                                    \
     "    seed=%%d             default: (use current time)\n"                \
     USAGE_PACK                                                              \
+    USAGE_MALFORM                                                           \
     "\n"
 
 /*
@@ -146,6 +171,9 @@ int main( void )
  */
 
 #define MAX_DELAYED_HS 10
+uint32_t malform_counter = 0;
+unsigned char *malform_pattern = NULL; /* Converted to binary from hex */
+size_t malform_pattern_len = 0;
 
 static struct options
 {
@@ -173,6 +201,24 @@ static struct options
     unsigned pack;              /* merge packets into single datagram for
                                  * at most \c merge milliseconds if > 0     */
     unsigned int seed;          /* seed for "random" events                 */
+
+    uint8_t malform_mode;       /* How to malform the data of a message:
+                                 *     0 - no malformation.
+                                 *     1 - bitflip.
+                                 *     2 - memset to a pattern.             */
+    uint32_t malform_offset;    /* byte offset to start packet malformation */
+    uint8_t  malform_bit;       /* bit offset within a byte to malform      */
+    uint32_t malform_length;    /* how much data to malform in bytes        */
+    char* malform_message;      /* which message to malform, a name as      */
+                                /* present in msg_type()                    */
+                                /* Options used in mode 2                   */
+    unsigned char* malform_pattern;/* Pattern to insert at an offset.
+                                 * If the pattern length is smaller than
+                                 * malform_length - it will repeat. It
+                                 * cannot be longer than it.                */
+    uint32_t malform_packet_num;/* which packet of a given message to
+                                 * malform. 0 - all. Currently only one
+                                 * packet or all can be malformed.          */
 } opt;
 
 static void exit_usage( const char *name, const char *value )
@@ -330,9 +376,76 @@ static void get_options( int argc, char *argv[] )
             if( opt.seed == 0 )
                 exit_usage( p, q );
         }
+        else if( strcmp( p, "malform_offset" ) == 0 )
+            opt.malform_offset = atoi( q );
+        else if( strcmp( p, "malform_length" ) == 0 )
+            opt.malform_length = atoi( q );
+        else if( strcmp( p, "malform_bit" ) == 0 )
+            opt.malform_bit = atoi( q );
+        else if( strcmp( p, "malform_mode" ) == 0 )
+            opt.malform_mode = atoi( q );
+        else if( strcmp( p, "malform_packet_num" ) == 0 )
+            opt.malform_packet_num = atoi( q );
+        else if( strcmp( p, "malform_message" ) == 0 )
+        {
+            size_t len;
+
+            len = strlen( q );
+            opt.malform_message = mbedtls_calloc( 1, len + 1 );
+            if( opt.malform_message == NULL )
+            {
+                mbedtls_printf( " Allocation failure\n" );
+                exit( 1 );
+            }
+            memcpy( opt.malform_message, q, len + 1 );
+        }
+        else if( strcmp( p, "malform_pattern" ) == 0 )
+        {
+            opt.malform_pattern = mbedtls_test_unhexify_alloc( q,
+                &malform_pattern_len );
+            if( opt.malform_pattern == NULL )
+            {
+                mbedtls_printf( " Allocation failure\n" );
+                exit( 1 );
+            }
+        }
         else
             exit_usage( p, NULL );
     }
+}
+
+static int validate_malformation_options()
+{
+    if( malform_pattern_len != 0 && opt.malform_length < malform_pattern_len )
+    {
+        mbedtls_printf( " Malformation pattern is longer"
+                        " than malform_pattern_len: %u > %u \n",
+                        (unsigned) malform_pattern_len,
+                        (unsigned) opt.malform_length );
+        return( 1 );
+    }
+    if( opt.malform_message == NULL && opt.malform_mode != 0 )
+    {
+        mbedtls_printf( " Malformation requested but no message specified.\n");
+        return( 1 );
+    }
+    if( opt.malform_mode == 0 && ( opt.malform_message != NULL ||
+                                   opt.malform_length != 0 ||
+                                   opt.malform_packet_num != 0 ||
+                                   opt.malform_pattern != NULL ) )
+    {
+        mbedtls_printf( " Malformation parameters specified but"
+                        " no mode chosen.\n");
+        return( 1 );
+    }
+    if( opt.malform_mode == 2 && ( malform_pattern_len == 0 ||
+                                   opt.malform_pattern == NULL ) )
+    {
+        mbedtls_printf( " Malformation by a pattern chosen but"
+                        " the pattern was not specified.\n");
+        return( 1 );
+    }
+    return( 0 );
 }
 
 static const char *msg_type( unsigned char *msg, size_t len )
@@ -533,6 +646,91 @@ void print_packet( const packet *p, const char *why )
     fflush( stdout );
 }
 
+#define DEBUG_BUF_SIZE      512
+static void debug_print_buf( const char *file, int line, const char *text,
+                      const unsigned char *buf, size_t len )
+{
+    char str[DEBUG_BUF_SIZE];
+    char txt[17];
+    size_t i, idx = 0;
+
+    mbedtls_snprintf( str + idx, sizeof( str ) - idx, "dumping '%s' (%u bytes)\n",
+              text, (unsigned int) len );
+
+    mbedtls_printf( "%s:%d:%s", file, line, str );
+
+    idx = 0;
+    memset( txt, 0, sizeof( txt ) );
+    for( i = 0; i < len; i++ )
+    {
+        if( i >= 4096 )
+            break;
+
+        if( i % 16 == 0 )
+        {
+            if( i > 0 )
+            {
+                mbedtls_snprintf( str + idx, sizeof( str ) - idx, "  %s\n", txt );
+                mbedtls_printf( "%s:%d:%s", file, line, str );
+
+                idx = 0;
+                memset( txt, 0, sizeof( txt ) );
+            }
+
+            idx += mbedtls_snprintf( str + idx, sizeof( str ) - idx, "%04x: ",
+                             (unsigned int) i );
+
+        }
+
+        idx += mbedtls_snprintf( str + idx, sizeof( str ) - idx, " %02x",
+                         (unsigned int) buf[i] );
+        txt[i % 16] = ( buf[i] > 31 && buf[i] < 127 ) ? buf[i] : '.' ;
+    }
+
+    if( len > 0 )
+    {
+        for( /* i = i */; i % 16 != 0; i++ )
+            idx += mbedtls_snprintf( str + idx, sizeof( str ) - idx, "   " );
+
+        mbedtls_snprintf( str + idx, sizeof( str ) - idx, "  %s\n", txt );
+        mbedtls_printf( "%s:%d:%s", file, line, str );
+    }
+}
+#define PRINT_DEBUG_BUF( text, buf, len )           \
+    debug_print_buf( __FILE__, __LINE__, text, buf, len )
+
+static int handle_message_malformation( packet* cur )
+{
+    if( strcmp( cur->type, opt.malform_message ) == 0 )
+    {
+        malform_counter++;
+        if( malform_counter == opt.malform_packet_num || opt.malform_packet_num == 0 )
+        {
+            if( opt.malform_mode == 1 )
+            {
+                for( uint32_t i = 0; i < opt.malform_length; i++ )
+                {
+                    cur->buf[opt.malform_offset + i] ^= (1 << opt.malform_bit);
+                }
+            }
+            else if( opt.malform_mode == 2 )
+            {
+                uint32_t copy_len = malform_pattern_len;
+                uint32_t left_len = opt.malform_length;
+                for( uint32_t i = 0; i < opt.malform_length; i+= malform_pattern_len )
+                {
+                    copy_len = ( left_len < malform_pattern_len ?
+                                     left_len : malform_pattern_len );
+                    memcpy( &cur->buf[opt.malform_offset + i],
+                                opt.malform_pattern, copy_len );
+                    left_len -= copy_len;
+                }
+            }
+            PRINT_DEBUG_BUF( "malformed packet", cur->buf, cur->len );
+        }
+    }
+    return 0;
+}
 /*
  * In order to test the server's behaviour when receiving a ClientHello after
  * the connection is established (this could be a hard reset from the client,
@@ -727,6 +925,9 @@ int handle_message( const char *way,
     cur.dst  = dst;
     print_packet( &cur, NULL );
 
+    if( opt.malform_mode )
+        handle_message_malformation( &cur );
+
     id = cur.len % sizeof( held );
 
     if( strcmp( way, "S <- C" ) == 0 )
@@ -825,6 +1026,9 @@ int main( int argc, char *argv[] )
     mbedtls_net_init( &server_fd );
 
     get_options( argc, argv );
+
+    if( validate_malformation_options() != 0 )
+        goto exit;
 
     /*
      * Decisions to drop/delay/duplicate packets are pseudo-random: dropping

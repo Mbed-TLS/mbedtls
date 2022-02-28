@@ -1,5 +1,5 @@
 /*
- *  Example illustrating random number generation using the PSA 
+ *  Example illustrating random number generation using the PSA
  *  Crypto API.
  *
  *  Random number generation is probably one of the simplest operation

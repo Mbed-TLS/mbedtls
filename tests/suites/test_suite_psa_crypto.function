@@ -589,6 +589,122 @@ exit:
     return( test_ok );
 }
 
+/*!
+ * \brief                           Internal Function for MAC multipart tests.
+ * \param key_type_arg              Type of key passed in
+ * \param key_data                  The encryption / decryption key data
+ * \param alg_arg                   The type of algorithm used
+ * \param input_data                Data to encrypt / decrypt
+ * \param data_part_len_arg         If not -1, the length of chunks to feed
+ *                                  the data in to be encrypted / decrypted. If
+ *                                  -1, no chunking
+ * \param expected_output           Expected output
+ * \param is_verify                 If non-zero this is an verify operation.
+ * \param do_zero_parts             If non-zero, interleave zero length chunks
+ *                                  with normal length chunks.
+ * \return int                      Zero on failure, non-zero on success.
+ */
+static int mac_multipart_internal_func( int key_type_arg, data_t *key_data,
+                                        int alg_arg,
+                                        data_t *input_data,
+                                        int data_part_len_arg,
+                                        data_t *expected_output,
+                                        int is_verify,
+                                        int do_zero_parts )
+{
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
+    unsigned char mac[PSA_MAC_MAX_SIZE];
+    size_t part_offset = 0;
+    size_t part_length = 0;
+    size_t data_part_len = 0;
+    size_t mac_len = 0;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
+
+    int test_ok = 0;
+    size_t part_count = 0;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    if( is_verify )
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_HASH );
+    else
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_HASH );
+
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, key_type );
+
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &key ) );
+
+    if( is_verify )
+        status = psa_mac_verify_setup( &operation, key, alg );
+    else
+        status = psa_mac_sign_setup( &operation, key, alg );
+
+    PSA_ASSERT( status );
+
+    if( data_part_len_arg != -1 )
+    {
+        /* Pass data in parts */
+        data_part_len = ( size_t ) data_part_len_arg;
+
+        for( part_offset = 0, part_count = 0;
+             part_offset < input_data->len;
+             part_offset += part_length, part_count++ )
+        {
+            if( do_zero_parts && ( part_count & 0x01 ) )
+            {
+                part_length = 0;
+            }
+            else if( ( input_data->len - part_offset ) < data_part_len )
+            {
+                part_length = ( input_data->len - part_offset );
+            }
+            else
+            {
+                part_length = data_part_len;
+            }
+
+            PSA_ASSERT( psa_mac_update( &operation,
+                                        ( input_data->x + part_offset ),
+                                        part_length ) );
+        }
+    }
+    else
+    {
+        /* Pass all data in one go. */
+        PSA_ASSERT( psa_mac_update( &operation, input_data->x,
+                                    input_data->len ) );
+    }
+
+    if( is_verify )
+    {
+        PSA_ASSERT( psa_mac_verify_finish( &operation, expected_output->x,
+                                           expected_output->len ) );
+    }
+    else
+    {
+        PSA_ASSERT( psa_mac_sign_finish( &operation, mac,
+                                         PSA_MAC_MAX_SIZE, &mac_len ) );
+
+        ASSERT_COMPARE( expected_output->x, expected_output->len,
+                        mac, mac_len );
+    }
+
+    test_ok = 1;
+
+exit:
+    psa_destroy_key( key );
+    psa_mac_abort( &operation );
+    PSA_DONE( );
+
+    return( test_ok );
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -2587,6 +2703,45 @@ void mac_bad_order( )
 
 exit:
     PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mac_sign_verify_multi( int key_type_arg,
+                            data_t *key_data,
+                            int alg_arg,
+                            data_t *input,
+                            int is_verify,
+                            data_t *expected_mac )
+{
+    size_t data_part_len = 0;
+
+    for( data_part_len = 1; data_part_len <= input->len; data_part_len++ )
+    {
+        /* Split data into length(data_part_len) parts. */
+        mbedtls_test_set_step( 2000 + data_part_len );
+
+        if( !mac_multipart_internal_func( key_type_arg, key_data,
+                                           alg_arg,
+                                           input, data_part_len,
+                                           expected_mac,
+                                           is_verify, 0 ) )
+            break;
+
+        /* length(0) part, length(data_part_len) part, length(0) part... */
+        mbedtls_test_set_step( 3000 + data_part_len );
+
+        if( !mac_multipart_internal_func( key_type_arg, key_data,
+                                           alg_arg,
+                                           input, data_part_len,
+                                           expected_mac,
+                                           is_verify, 1 ) )
+            break;
+    }
+
+    /* Goto is required to silence warnings about unused labels, as we
+     * don't actually do any test assertions in this function. */
+    goto exit;
 }
 /* END_CASE */
 

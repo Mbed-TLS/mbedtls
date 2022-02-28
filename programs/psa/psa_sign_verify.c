@@ -1,3 +1,32 @@
+/*
+ *  Example illustrating a digital signature operation using the PSA
+ *  Crypto API.
+ *
+ *  psa_sign_hash(), is an API call to sign an already-calculated hash
+ *  with a private key. Alternatively, psa_sign_message() offers a way
+ *  to to hash and sign a message in a single call. psa_sign_hash() is
+ *  used in this example.
+ *
+ *  psa_verify_hash() allows the recipient of a signature to verify
+ *  the message.
+ *
+ *  Copyright The Mbed TLS Contributors
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may
+ *  not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+
 #include "psa/crypto.h"
 #include <string.h>
 #include <stdio.h>
@@ -38,7 +67,7 @@ int main( void )
         printf( "psa_crypto_init failed\n" );
         return( EXIT_FAILURE );
     }
-  
+
     psa_set_key_usage_flags( &attributes,
                              PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH );
     psa_set_key_algorithm( &attributes, PSA_ALG_ECDSA(PSA_ALG_SHA_256) );
@@ -51,7 +80,7 @@ int main( void )
         return( EXIT_FAILURE );
     }
 
-    status = psa_sign_hash( key_handle,                     // key handle 
+    status = psa_sign_hash( key_handle,                     // key handle
                             PSA_ALG_ECDSA(PSA_ALG_SHA_256), // signature algorithm
                             hash, sizeof( hash ),           // hash of the message
                             signature, sizeof( signature ), // signature (as output)

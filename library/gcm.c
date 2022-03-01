@@ -409,7 +409,38 @@ static int gcm_mask( mbedtls_gcm_context *ctx,
         mbedtls_platform_zeroize( ectr, 16 );
         return( ret );
     }
-
+#if defined(MBEDTLS_HAVE_X86_64)
+    if( mbedtls_has_ssse3_support( ) && ( use_len == 16 ) )
+    {
+        switch( ctx->mode )
+        {
+        case MBEDTLS_GCM_DECRYPT:
+            asm( "movdqu     (%[buf]),   %%xmm0          \n\t" // load ctx->buf
+                 "movdqu     (%[input]), %%xmm1          \n\t" // load input
+                 "pxor       %%xmm1,     %%xmm0          \n\t" // ctx->buf ^= input
+                 "pxor       (%[ectr]),  %%xmm1          \n\t" // output = ectr ^ input
+                 "movdqu     %%xmm0,     (%[buf])        \n\t" // store ctx->buf
+                 "movdqu     %%xmm1,     (%[output])     \n\t" // store output
+                 :
+                 : [input] "r" (input), [buf] "r" (ctx->buf), [ectr] "r" (ectr), [output] "r" (output)
+                 : "memory", "cc", "xmm0", "xmm1" );
+            return( 0 );
+        case MBEDTLS_GCM_ENCRYPT:
+            asm( "movdqu     (%[input]), %%xmm0          \n\t" // load input
+                 "pxor       (%[ectr]),  %%xmm0          \n\t" // output = ectr ^ input
+                 "movdqu     %%xmm0,     (%[output])     \n\t" // store output
+                 "movdqu     (%[buf]),   %%xmm1          \n\t" // load ctx->buf
+                 "pxor       %%xmm0,     %%xmm1          \n\t" // buf ^= output
+                 "movdqu     %%xmm1,     (%[buf])        \n\t" // store ctx->buf
+                 :
+                 : [input] "r" (input), [buf] "r" (ctx->buf), [ectr] "r" (ectr), [output] "r" (output)
+                 : "memory", "cc", "xmm0", "xmm1" );
+            return( 0 );
+        default:
+            break;
+        }
+    }
+#endif
     for( i = 0; i < use_len; i++ )
     {
         if( ctx->mode == MBEDTLS_GCM_DECRYPT )

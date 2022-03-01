@@ -410,7 +410,7 @@ static int gcm_mask( mbedtls_gcm_context *ctx,
         return( ret );
     }
 #if defined(MBEDTLS_HAVE_X86_64)
-    if( mbedtls_has_ssse3_support( ) && ( use_len == 16 ) )
+    if( use_len == 16 )
     {
         switch( ctx->mode )
         {

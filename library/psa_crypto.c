@@ -5034,6 +5034,10 @@ static psa_status_t psa_generate_derived_key_internal(
     defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
+
+    if( PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->attr.type ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
     if ( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
     {
         psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY( slot->attr.type );
@@ -5070,7 +5074,7 @@ static psa_status_t psa_generate_derived_key_internal(
 #endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES */
     }
     else
-        return( PSA_ERROR_INVALID_ARGUMENT );
+        return( PSA_ERROR_NOT_SUPPORTED );
 
     slot->attr.bits = (psa_key_bits_t) bits;
     psa_key_attributes_t attributes = {

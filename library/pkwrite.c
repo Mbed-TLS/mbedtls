@@ -473,10 +473,12 @@ int mbedtls_pk_write_key_der( const mbedtls_pk_context *key, unsigned char *buf,
 #define PEM_BEGIN_PRIVATE_KEY_EC    "-----BEGIN EC PRIVATE KEY-----\n"
 #define PEM_END_PRIVATE_KEY_EC      "-----END EC PRIVATE KEY-----\n"
 
-#define PUB_DER_MAX_BYTES   ( RSA_PUB_DER_MAX_BYTES > ECP_PUB_DER_MAX_BYTES ? \
-                              RSA_PUB_DER_MAX_BYTES : ECP_PUB_DER_MAX_BYTES )
-#define PRV_DER_MAX_BYTES   ( RSA_PRV_DER_MAX_BYTES > ECP_PRV_DER_MAX_BYTES ? \
-                              RSA_PRV_DER_MAX_BYTES : ECP_PRV_DER_MAX_BYTES )
+#define PUB_DER_MAX_BYTES                                                   \
+    ( MBEDTLS_PK_RSA_PUB_DER_MAX_BYTES > MBEDTLS_PK_ECP_PUB_DER_MAX_BYTES ? \
+      MBEDTLS_PK_RSA_PUB_DER_MAX_BYTES : MBEDTLS_PK_ECP_PUB_DER_MAX_BYTES )
+#define PRV_DER_MAX_BYTES                                                   \
+    ( MBEDTLS_PK_RSA_PRV_DER_MAX_BYTES > MBEDTLS_PK_ECP_PRV_DER_MAX_BYTES ? \
+      MBEDTLS_PK_RSA_PRV_DER_MAX_BYTES : MBEDTLS_PK_ECP_PRV_DER_MAX_BYTES )
 
 int mbedtls_pk_write_pubkey_pem( const mbedtls_pk_context *key, unsigned char *buf, size_t size )
 {

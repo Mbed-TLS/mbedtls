@@ -744,7 +744,7 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
 static int pk_ecdsa_sig_asn1_from_psa( unsigned char *sig, size_t *sig_len,
                                        size_t buf_len );
 
-static int find_ecdsa_private_key( unsigned char **buf, unsigned char *end, size_t *key_len)
+static int find_ecdsa_private_key( unsigned char **buf, unsigned char *end, size_t *key_len )
 {
     size_t len;
     int ret;

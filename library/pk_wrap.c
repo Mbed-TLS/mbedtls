@@ -741,8 +741,87 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
+/*
+ * Simultaneously convert and move raw MPI from the beginning of a buffer
+ * to an ASN.1 MPI at the end of the buffer.
+ * See also mbedtls_asn1_write_mpi().
+ *
+ * p: pointer to the end of the output buffer
+ * start: start of the output buffer, and also of the mpi to write at the end
+ * n_len: length of the mpi to read from start
+ */
+static int asn1_write_mpibuf( unsigned char **p, unsigned char *start,
+                              size_t n_len )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t len = 0;
+
+    if( (size_t)( *p - start ) < n_len )
+        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+
+    len = n_len;
+    *p -= len;
+    memmove( *p, start, len );
+
+    /* ASN.1 DER encoding requires minimal length, so skip leading 0s.
+     * Neither r nor s should be 0, but as a failsafe measure, still detect
+     * that rather than overflowing the buffer in case of a PSA error. */
+    while( len > 0 && **p == 0x00 )
+    {
+        ++(*p);
+        --len;
+    }
+
+    /* this is only reached if the signature was invalid */
+    if( len == 0 )
+        return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+
+    /* if the msb is 1, ASN.1 requires that we prepend a 0.
+     * Neither r nor s can be 0, so we can assume len > 0 at all times. */
+    if( **p & 0x80 )
+    {
+        if( *p - start < 1 )
+            return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+
+        *--(*p) = 0x00;
+        len += 1;
+    }
+
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( p, start, len ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( p, start,
+                                                MBEDTLS_ASN1_INTEGER ) );
+
+    return( (int) len );
+}
+
+/* Transcode signature from PSA format to ASN.1 sequence.
+ * See ecdsa_signature_to_asn1 in ecdsa.c, but with byte buffers instead of
+ * MPIs, and in-place.
+ *
+ * [in/out] sig: the signature pre- and post-transcoding
+ * [in/out] sig_len: signature length pre- and post-transcoding
+ * [int] buf_len: the available size the in/out buffer
+ */
 static int pk_ecdsa_sig_asn1_from_psa( unsigned char *sig, size_t *sig_len,
-                                       size_t buf_len );
+                                       size_t buf_len )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t len = 0;
+    const size_t rs_len = *sig_len / 2;
+    unsigned char *p = sig + buf_len;
+
+    MBEDTLS_ASN1_CHK_ADD( len, asn1_write_mpibuf( &p, sig + rs_len, rs_len ) );
+    MBEDTLS_ASN1_CHK_ADD( len, asn1_write_mpibuf( &p, sig, rs_len ) );
+
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &p, sig, len ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &p, sig,
+                          MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) );
+
+    memmove( sig, p, len );
+    *sig_len = len;
+
+    return( 0 );
+}
 
 static int find_ecdsa_private_key( unsigned char **buf, unsigned char *end, size_t *key_len )
 {
@@ -1117,92 +1196,6 @@ static int pk_opaque_can_do( mbedtls_pk_type_t type )
     return( type == MBEDTLS_PK_ECKEY ||
             type == MBEDTLS_PK_ECDSA );
 }
-
-#if defined(MBEDTLS_ECDSA_C)
-
-/*
- * Simultaneously convert and move raw MPI from the beginning of a buffer
- * to an ASN.1 MPI at the end of the buffer.
- * See also mbedtls_asn1_write_mpi().
- *
- * p: pointer to the end of the output buffer
- * start: start of the output buffer, and also of the mpi to write at the end
- * n_len: length of the mpi to read from start
- */
-static int asn1_write_mpibuf( unsigned char **p, unsigned char *start,
-                              size_t n_len )
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t len = 0;
-
-    if( (size_t)( *p - start ) < n_len )
-        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
-
-    len = n_len;
-    *p -= len;
-    memmove( *p, start, len );
-
-    /* ASN.1 DER encoding requires minimal length, so skip leading 0s.
-     * Neither r nor s should be 0, but as a failsafe measure, still detect
-     * that rather than overflowing the buffer in case of a PSA error. */
-    while( len > 0 && **p == 0x00 )
-    {
-        ++(*p);
-        --len;
-    }
-
-    /* this is only reached if the signature was invalid */
-    if( len == 0 )
-        return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
-
-    /* if the msb is 1, ASN.1 requires that we prepend a 0.
-     * Neither r nor s can be 0, so we can assume len > 0 at all times. */
-    if( **p & 0x80 )
-    {
-        if( *p - start < 1 )
-            return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
-
-        *--(*p) = 0x00;
-        len += 1;
-    }
-
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( p, start, len ) );
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( p, start,
-                                                MBEDTLS_ASN1_INTEGER ) );
-
-    return( (int) len );
-}
-
-/* Transcode signature from PSA format to ASN.1 sequence.
- * See ecdsa_signature_to_asn1 in ecdsa.c, but with byte buffers instead of
- * MPIs, and in-place.
- *
- * [in/out] sig: the signature pre- and post-transcoding
- * [in/out] sig_len: signature length pre- and post-transcoding
- * [int] buf_len: the available size the in/out buffer
- */
-static int pk_ecdsa_sig_asn1_from_psa( unsigned char *sig, size_t *sig_len,
-                                       size_t buf_len )
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t len = 0;
-    const size_t rs_len = *sig_len / 2;
-    unsigned char *p = sig + buf_len;
-
-    MBEDTLS_ASN1_CHK_ADD( len, asn1_write_mpibuf( &p, sig + rs_len, rs_len ) );
-    MBEDTLS_ASN1_CHK_ADD( len, asn1_write_mpibuf( &p, sig, rs_len ) );
-
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &p, sig, len ) );
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &p, sig,
-                          MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) );
-
-    memmove( sig, p, len );
-    *sig_len = len;
-
-    return( 0 );
-}
-
-#endif /* MBEDTLS_ECDSA_C */
 
 static int pk_opaque_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
                    const unsigned char *hash, size_t hash_len,

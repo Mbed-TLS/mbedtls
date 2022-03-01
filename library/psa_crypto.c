@@ -4858,7 +4858,7 @@ static psa_status_t psa_generate_derived_ecc_key_weierstrass_helper(
     mbedtls_mpi k;
     mbedtls_mpi diff_N_2;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     mbedtls_mpi_init( &k );
     mbedtls_mpi_init( &diff_N_2 );
@@ -4962,7 +4962,7 @@ static psa_status_t psa_generate_derived_ecc_key_montgomery_helper(
     )
 {
     size_t output_length;
-    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     switch( bits )
     {
@@ -4999,7 +4999,7 @@ static psa_status_t psa_generate_derived_ecc_key_montgomery_helper(
             (*data)[55] |= 128;
             break;
         default:
-            /* should never happen */
+            return( PSA_ERROR_CORRUPTION_DETECTED );
             break;
     }
 
@@ -5015,7 +5015,7 @@ static psa_status_t psa_generate_derived_key_internal(
     uint8_t *data = NULL;
     size_t bytes = PSA_BITS_TO_BYTES( bits );
     size_t storage_size = bytes;
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR)
     if( PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->attr.type ) )

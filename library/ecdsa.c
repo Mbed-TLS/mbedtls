@@ -47,37 +47,11 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-#include "mbedtls/pk.h"
-#endif
-
 /* Parameter validation macros based on platform_util.h */
 #define ECDSA_VALIDATE_RET( cond )    \
     MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_ECP_BAD_INPUT_DATA )
 #define ECDSA_VALIDATE( cond )        \
     MBEDTLS_INTERNAL_VALIDATE( cond )
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-int mbedtls_pk_ecp_psa_err_translate( psa_status_t status )
-{
-    switch( status )
-    {
-        case PSA_ERROR_NOT_PERMITTED:
-        case PSA_ERROR_INVALID_ARGUMENT:
-            return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-        case PSA_ERROR_INVALID_HANDLE:
-            return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
-        case PSA_ERROR_BUFFER_TOO_SMALL:
-            return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
-        case PSA_ERROR_INSUFFICIENT_ENTROPY:
-            return( MBEDTLS_ERR_ECP_RANDOM_FAILED );
-        case PSA_ERROR_INVALID_SIGNATURE:
-            return( MBEDTLS_ERR_ECP_VERIFY_FAILED );
-        default:
-            return( mbedtls_pk_psa_err_translate( status ) );
-    }
-}
-#endif
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
 

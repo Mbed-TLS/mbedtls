@@ -5017,10 +5017,10 @@ static psa_status_t psa_generate_derived_key_internal(
     size_t storage_size = bytes;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR)
     if( PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->attr.type ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR)
     if ( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
     {
         psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY( slot->attr.type );

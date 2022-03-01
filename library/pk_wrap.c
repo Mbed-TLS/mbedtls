@@ -861,8 +861,7 @@ static int ecdsa_sign_wrap( void *ctx_arg, mbedtls_md_type_t md_alg,
     psa_status_t status;
     mbedtls_pk_context key;
     size_t key_len;
-    /* see ECP_PRV_DER_MAX_BYTES in pkwrite.c */
-    unsigned char buf[29 + 3 * MBEDTLS_ECP_MAX_BYTES];
+    unsigned char buf[MBEDTLS_PK_ECP_PRV_DER_MAX_BYTES];
     unsigned char *p;
     mbedtls_pk_info_t pk_info = mbedtls_eckey_info;
     psa_algorithm_t psa_sig_md = PSA_ALG_ECDSA( mbedtls_psa_translate_md( md_alg ) );

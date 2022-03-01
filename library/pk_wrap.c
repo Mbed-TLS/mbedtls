@@ -176,8 +176,7 @@ static int rsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     psa_status_t status;
     mbedtls_pk_context key;
     int key_len;
-    /* see RSA_PUR_DER_MAX_BYTES in pkwrite.c */
-    unsigned char buf[38 + 2 * MBEDTLS_MPI_MAX_SIZE];
+    unsigned char buf[MBEDTLS_PK_RSA_PUB_DER_MAX_BYTES];
     mbedtls_pk_info_t pk_info = mbedtls_rsa_info;
     psa_algorithm_t psa_alg_md = PSA_ALG_RSA_PKCS1V15_SIGN( mbedtls_psa_translate_md( md_alg ) );
     size_t rsa_len = mbedtls_rsa_get_len( rsa );

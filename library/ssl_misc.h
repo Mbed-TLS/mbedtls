@@ -1735,6 +1735,19 @@ int mbedtls_ssl_tls13_start_handshake_msg( mbedtls_ssl_context *ssl,
  */
 int mbedtls_ssl_tls13_process_certificate( mbedtls_ssl_context *ssl );
 
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+/*
+ * Handler of TLS 1.3 write Certificate message
+ */
+int mbedtls_ssl_tls13_write_certificate( mbedtls_ssl_context *ssl );
+
+/*
+ * Handler of TLS 1.3 write Certificate Verify message
+ */
+int mbedtls_ssl_tls13_write_certificate_verify( mbedtls_ssl_context *ssl );
+
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+
 /*
  * Generic handler of Certificate Verify
  */
@@ -1893,7 +1906,25 @@ static inline const void *mbedtls_ssl_get_sig_algs(
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 }
 
+
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+static inline int mbedtls_ssl_sig_alg_is_received( const mbedtls_ssl_context *ssl,
+                                                   uint16_t own_sig_alg )
+{
+    const uint16_t *sig_alg = ssl->handshake->received_sig_algs;
+    if( sig_alg == NULL )
+        return( 0 );
+
+    for( ; *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
+    {
+        if( *sig_alg == own_sig_alg )
+            return( 1 );
+    }
+    return( 0 );
+}
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 static inline int mbedtls_ssl_sig_alg_is_offered( const mbedtls_ssl_context *ssl,
                                                   uint16_t proposed_sig_alg )
@@ -1909,7 +1940,6 @@ static inline int mbedtls_ssl_sig_alg_is_offered( const mbedtls_ssl_context *ssl
     }
     return( 0 );
 }
-
 
 static inline int mbedtls_ssl_sig_alg_is_supported(
                                                 const mbedtls_ssl_context *ssl,

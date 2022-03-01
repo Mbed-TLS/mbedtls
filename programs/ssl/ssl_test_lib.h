@@ -133,7 +133,7 @@ void my_debug( void *ctx, int level,
 mbedtls_time_t dummy_constant_time( mbedtls_time_t* time );
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_TEST_USE_PSA_CRYPTO_RNG)
 /* If MBEDTLS_TEST_USE_PSA_CRYPTO_RNG is defined, the SSL test programs will use
  * mbedtls_psa_get_random() rather than entropy+DRBG as a random generator.
  *

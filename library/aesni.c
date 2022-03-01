@@ -66,7 +66,7 @@ int mbedtls_aesni_has_support( unsigned int what )
 /*
  * SSSE3 support detection routine
  */
-int mbedtls_has_ssse3_support( void )
+int mbedtls_ssse3_has_support( void )
 {
     static int done = 0;
     static unsigned int c = 0;
@@ -163,7 +163,7 @@ void mbedtls_aesni_gcm_mult( unsigned char c[16],
                      const unsigned char a[16],
                      const unsigned char b[16] )
 {
-    if( mbedtls_has_ssse3_support( ) )
+    if( mbedtls_ssse3_has_support( ) )
     {
         static const unsigned char mask[16] = { 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 };
         asm( "movdqu (%0), %%xmm0               \n\t" // a1:a0

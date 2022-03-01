@@ -66,7 +66,7 @@ int mbedtls_aesni_has_support( unsigned int what );
  *
  * \return         1 if CPU has support for the feature, 0 otherwise
  */
-int mbedtls_has_ssse3_support( void );
+int mbedtls_ssse3_has_support( void );
 
 /**
  * \brief          Internal AES-NI AES-ECB block encryption and decryption

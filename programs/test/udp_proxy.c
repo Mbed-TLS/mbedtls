@@ -73,7 +73,9 @@ int main( void )
 #endif
 #endif /* _MSC_VER */
 #else /* ( _WIN32 || _WIN32_WCE ) && !EFIX64 && !EFI32 */
+#if defined(MBEDTLS_HAVE_TIME)
 #include <sys/time.h>
+#endif
 #include <sys/types.h>
 #include <unistd.h>
 #endif /* ( _WIN32 || _WIN32_WCE ) && !EFIX64 && !EFI32 */

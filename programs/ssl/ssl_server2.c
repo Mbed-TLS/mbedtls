@@ -317,10 +317,16 @@ int main( void )
 
 #if defined(MBEDTLS_SSL_CACHE_C)
 #define USAGE_CACHE                                             \
-    "    cache_max=%%d        default: cache default (50)\n"    \
+    "    cache_max=%%d        default: cache default (50)\n"
+#if defined(MBEDTLS_HAVE_TIME)
+#define USAGE_CACHE_TIME \
     "    cache_timeout=%%d    default: cache default (1d)\n"
 #else
+#define USAGE_CACHE_TIME ""
+#endif
+#else
 #define USAGE_CACHE ""
+#define USAGE_CACHE_TIME ""
 #endif /* MBEDTLS_SSL_CACHE_C */
 
 #if defined(SNI_OPTION)
@@ -509,6 +515,7 @@ int main( void )
     USAGE_NSS_KEYLOG                                        \
     USAGE_NSS_KEYLOG_FILE                                   \
     USAGE_CACHE                                             \
+    USAGE_CACHE_TIME                                        \
     USAGE_MAX_FRAG_LEN                                      \
     USAGE_ALPN                                              \
     USAGE_EMS                                               \
@@ -619,7 +626,9 @@ struct options
     int ticket_timeout;         /* session ticket lifetime                  */
     int ticket_aead;            /* session ticket protection                */
     int cache_max;              /* max number of session cache entries      */
-    int cache_timeout;          /* expiration delay of session cache entries */
+#if defined(MBEDTLS_HAVE_TIME)
+    int cache_timeout;          /* expiration delay of session cache entries*/
+#endif
     char *sni;                  /* string describing sni information        */
     const char *curves;         /* list of supported elliptic curves        */
     const char *sig_algs;       /* supported TLS 1.3 signature algorithms   */
@@ -1549,7 +1558,9 @@ int main( int argc, char *argv[] )
     opt.ticket_timeout      = DFL_TICKET_TIMEOUT;
     opt.ticket_aead         = DFL_TICKET_AEAD;
     opt.cache_max           = DFL_CACHE_MAX;
+#if defined(MBEDTLS_HAVE_TIME)
     opt.cache_timeout       = DFL_CACHE_TIMEOUT;
+#endif
     opt.sni                 = DFL_SNI;
     opt.alpn_string         = DFL_ALPN_STRING;
     opt.curves              = DFL_CURVES;
@@ -1945,12 +1956,14 @@ int main( int argc, char *argv[] )
             if( opt.cache_max < 0 )
                 goto usage;
         }
+#if defined(MBEDTLS_HAVE_TIME)
         else if( strcmp( p, "cache_timeout" ) == 0 )
         {
             opt.cache_timeout = atoi( q );
             if( opt.cache_timeout < 0 )
                 goto usage;
         }
+#endif
         else if( strcmp( p, "cookies" ) == 0 )
         {
             opt.cookies = atoi( q );

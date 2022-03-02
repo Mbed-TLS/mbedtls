@@ -53,6 +53,8 @@ void md_null_args(  )
     TEST_ASSERT( mbedtls_md_get_name( NULL ) == NULL );
 
     TEST_ASSERT( mbedtls_md_info_from_string( NULL ) == NULL );
+    TEST_ASSERT( mbedtls_md_info_from_ctx( NULL ) == NULL );
+    TEST_ASSERT( mbedtls_md_info_from_ctx( &ctx ) == NULL );
 
     TEST_ASSERT( mbedtls_md_setup( &ctx, NULL, 0 ) == MBEDTLS_ERR_MD_BAD_INPUT_DATA );
     TEST_ASSERT( mbedtls_md_setup( NULL, info, 0 ) == MBEDTLS_ERR_MD_BAD_INPUT_DATA );
@@ -202,6 +204,8 @@ void md_text_multi( char * text_md_name, char * text_src_string,
     TEST_ASSERT( md_info != NULL );
     TEST_ASSERT ( 0 == mbedtls_md_setup( &ctx, md_info, 0 ) );
     TEST_ASSERT ( 0 == mbedtls_md_setup( &ctx_copy, md_info, 0 ) );
+    TEST_ASSERT ( mbedtls_md_info_from_ctx( &ctx ) == md_info );
+    TEST_ASSERT ( mbedtls_md_info_from_ctx( &ctx_copy ) == md_info );
 
     TEST_ASSERT ( 0 == mbedtls_md_starts( &ctx ) );
     TEST_ASSERT ( ctx.md_ctx != NULL );
@@ -249,6 +253,8 @@ void md_hex_multi( char * text_md_name, data_t * src_str, data_t * hash )
     TEST_ASSERT( md_info != NULL );
     TEST_ASSERT ( 0 == mbedtls_md_setup( &ctx, md_info, 0 ) );
     TEST_ASSERT ( 0 == mbedtls_md_setup( &ctx_copy, md_info, 0 ) );
+    TEST_ASSERT ( mbedtls_md_info_from_ctx( &ctx ) == md_info );
+    TEST_ASSERT ( mbedtls_md_info_from_ctx( &ctx_copy ) == md_info );
 
     halfway = src_str->len / 2;
 
@@ -321,6 +327,7 @@ void md_hmac_multi( char * text_md_name, int trunc_size, data_t * key_str,
     md_info = mbedtls_md_info_from_string( md_name );
     TEST_ASSERT( md_info != NULL );
     TEST_ASSERT ( 0 == mbedtls_md_setup( &ctx, md_info, 1 ) );
+    TEST_ASSERT ( mbedtls_md_info_from_ctx( &ctx ) == md_info );
 
     halfway = src_str->len / 2;
 

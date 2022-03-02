@@ -32,6 +32,10 @@
 #include "mbedtls/ecp.h"
 #endif
 
+#if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECP_C)
+#include "pkwrite.h"
+#endif
+
 #if defined(MBEDTLS_ECDSA_C)
 #include "mbedtls/ecdsa.h"
 #endif
@@ -564,8 +568,7 @@ static int ecdsa_verify_wrap( void *ctx_arg, mbedtls_md_type_t md_alg,
     psa_status_t status;
     mbedtls_pk_context key;
     int key_len;
-    /* see ECP_PUB_DER_MAX_BYTES in pkwrite.c */
-    unsigned char buf[30 + 2 * MBEDTLS_ECP_MAX_BYTES];
+    unsigned char buf[MBEDTLS_PK_ECP_PUB_DER_MAX_BYTES];
     unsigned char *p;
     mbedtls_pk_info_t pk_info = mbedtls_eckey_info;
     psa_algorithm_t psa_sig_md = PSA_ALG_ECDSA_ANY;

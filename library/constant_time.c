@@ -550,6 +550,7 @@ cleanup:
     mbedtls_platform_zeroize( mac_key, MBEDTLS_MD_MAX_BLOCK_SIZE );
     mbedtls_platform_zeroize( ikey, MBEDTLS_MD_MAX_BLOCK_SIZE );
     mbedtls_platform_zeroize( okey, MBEDTLS_MD_MAX_BLOCK_SIZE );
+    mbedtls_platform_zeroize( aux_out, MBEDTLS_MD_MAX_SIZE );
     psa_hash_abort( &operation );
     psa_hash_abort( &aux_operation );
     return( status == PSA_SUCCESS ? 0 : MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );

@@ -1,0 +1,2 @@
+Changes
+   * Assume source files are in UTF-8 when using MSVC with CMake.

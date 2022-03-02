@@ -7300,7 +7300,7 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
         alg = mbedtls_psa_translate_md( ciphersuite_info->mac );
         if( alg == 0 )
         {
-                ret = psa_ssl_status_to_mbedtls( PSA_ERROR_NOT_SUPPORTED );
+                ret = MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
                 MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_md_type_to_psa", ret );
                 goto end;
         }

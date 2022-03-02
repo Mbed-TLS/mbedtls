@@ -7315,7 +7315,6 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
                                        mac_enc, mac_key_len,
                                        &transform->psa_mac_enc ) ) != PSA_SUCCESS )
         {
-            MBEDTLS_SSL_DEBUG_RET( 3, "psa_import_mac_key", (int)status );
             ret = psa_ssl_status_to_mbedtls( status );
             MBEDTLS_SSL_DEBUG_RET( 1, "psa_import_mac_key", ret );
             goto end;

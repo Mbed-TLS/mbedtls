@@ -56,11 +56,11 @@ else()
         link_to_source(${file})
     endforeach()
 endif()
-# CMake generate sub-makefile for each target and call it in subprocess. Without
-# this command, cmake will generate ruler in each sub makefile. As a result,
-# they will conflict under parllel build.
-# With this line, only 4 sub-makefiles include above command, that reduces
-# conflict risk.
+# CMake generates sub-makefiles for each target and calls them in subprocesses.
+# Without this command, cmake will generate rules in each sub-makefile. As a result,
+# they can cause race conditions in parallel builds.
+# With this line, only 4 sub-makefiles include the above command, that reduces
+# the risk of a race.
 add_custom_target(test_suite_generated_data DEPENDS ${generated_data_files})
 # Test suites caught by SKIP_TEST_SUITES are built but not executed.
 # "foo" as a skip pattern skips "test_suite_foo" and "test_suite_foo.bar"

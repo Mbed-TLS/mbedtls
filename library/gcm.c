@@ -413,7 +413,7 @@ static int gcm_mask( mbedtls_gcm_context *ctx,
         mbedtls_platform_zeroize( ectr, 16 );
         return( ret );
     }
-#if defined(MBEDTLS_HAVE_X86_64)
+#if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
     if( use_len == 16 )
     {
         switch( ctx->mode )

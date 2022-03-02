@@ -730,14 +730,13 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
     hmac_failed_etm_disabled:
         mbedtls_platform_zeroize( mac, transform->maclen );
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        psa_mac_abort( &operation );
-        if( status != PSA_SUCCESS )
-        {
+        ret = psa_ssl_status_to_mbedtls( status );
+        status = psa_mac_abort( &operation );
+        if( ret == 0 && status != PSA_SUCCESS )
             ret = psa_ssl_status_to_mbedtls( status );
-#else
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
         if( ret != 0 )
         {
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_md_hmac_xxx", ret );
             return( ret );
         }
@@ -1102,14 +1101,13 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
         hmac_failed_etm_enabled:
             mbedtls_platform_zeroize( mac, transform->maclen );
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-            psa_mac_abort( &operation );
-            if( status != PSA_SUCCESS )
-            {
+            ret = psa_ssl_status_to_mbedtls( status );
+            status = psa_mac_abort( &operation );
+            if( ret == 0 && status != PSA_SUCCESS )
                 ret = psa_ssl_status_to_mbedtls( status );
-#else
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
             if( ret != 0 )
             {
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
                 MBEDTLS_SSL_DEBUG_RET( 1, "HMAC calculation failed", ret );
                 return( ret );
             }
@@ -1473,15 +1471,15 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
 
         hmac_failed_etm_enabled:
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-            psa_mac_abort( &operation );
-            if( status != PSA_SUCCESS )
-            {
+            ret = psa_ssl_status_to_mbedtls( status );
+            status = psa_mac_abort( &operation );
+            if( ret == 0 && status != PSA_SUCCESS )
                 ret = psa_ssl_status_to_mbedtls( status );
 #else
             mbedtls_platform_zeroize( mac_expect, transform->maclen );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
             if( ret != 0 )
             {
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
                 if( ret != MBEDTLS_ERR_SSL_INVALID_MAC )
                     MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_hmac_xxx", ret );
                 return( ret );

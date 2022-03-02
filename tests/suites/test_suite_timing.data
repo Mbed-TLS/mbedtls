@@ -1,8 +1,11 @@
 Timing: get timer
+depends_on:MBEDTLS_HAVE_TIME
 timing_get_timer:
 
 Timing: delay 0ms
+depends_on:MBEDTLS_HAVE_TIME
 timing_delay:0:
 
 Timing: delay 100ms
+depends_on:MBEDTLS_HAVE_TIME
 timing_delay:100:

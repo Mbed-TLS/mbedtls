@@ -188,7 +188,7 @@ void mbedtls_aesni_gcm_mult( unsigned char c[16],
              "pslldq $8, %%xmm3                 \n\t" // e0+f0:0
              "pxor %%xmm4, %%xmm2               \n\t" // d1:d0+e1+f1
              "pxor %%xmm3, %%xmm1               \n\t" // c1+e0+f1:c0
-             
+
              /*
               * Now shift the result one bit to the left,
               * taking advantage of [CLMUL-WP] eq 27 (p. 20)
@@ -206,7 +206,7 @@ void mbedtls_aesni_gcm_mult( unsigned char c[16],
              "por %%xmm3, %%xmm1                \n\t" // r1<<1|r0>>63:r0<<1
              "por %%xmm4, %%xmm2                \n\t" // r3<<1|r2>>62:r2<<1
              "por %%xmm5, %%xmm2                \n\t" // r3<<1|r2>>62:r2<<1|r1>>63
-             
+
              /*
               * Now reduce modulo the GCM polynomial x^128 + x^7 + x^2 + x + 1
               * using [CLMUL-WP] algorithm 5 (p. 20).
@@ -219,13 +219,13 @@ void mbedtls_aesni_gcm_mult( unsigned char c[16],
              "psllq $63, %%xmm3                 \n\t" // x1<<63:x0<<63 = stuff:a
              "psllq $62, %%xmm4                 \n\t" // x1<<62:x0<<62 = stuff:b
              "psllq $57, %%xmm5                 \n\t" // x1<<57:x0<<57 = stuff:c
-             
+
              /* Step 2 (2) */
              "pxor %%xmm4, %%xmm3               \n\t" // stuff:a+b
              "pxor %%xmm5, %%xmm3               \n\t" // stuff:a+b+c
              "pslldq $8, %%xmm3                 \n\t" // a+b+c:0
              "pxor %%xmm3, %%xmm1               \n\t" // x1+a+b+c:x0 = d:x0
-             
+
              /* Steps 3 and 4 */
              "movdqa %%xmm1,%%xmm0              \n\t" // d:x0
              "movdqa %%xmm1,%%xmm4              \n\t" // same
@@ -249,7 +249,7 @@ void mbedtls_aesni_gcm_mult( unsigned char c[16],
              "pxor %%xmm3, %%xmm0               \n\t" // e1+f1+g1:e0+f0+g0
              "pxor %%xmm1, %%xmm0               \n\t" // h1:h0
              "pxor %%xmm2, %%xmm0               \n\t" // x3+h1:x2+h0
-             
+
              "pshufb %%xmm6, %%xmm0             \n\t" // reverse output
              "movdqu %%xmm0, (%2)               \n\t" // done
              :

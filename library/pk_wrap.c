@@ -178,7 +178,8 @@ static int rsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     int key_len;
     unsigned char buf[MBEDTLS_PK_RSA_PUB_DER_MAX_BYTES];
     mbedtls_pk_info_t pk_info = mbedtls_rsa_info;
-    psa_algorithm_t psa_alg_md = PSA_ALG_RSA_PKCS1V15_SIGN( mbedtls_psa_translate_md( md_alg ) );
+    psa_algorithm_t psa_alg_md =
+        PSA_ALG_RSA_PKCS1V15_SIGN( mbedtls_psa_translate_md( md_alg ) );
     size_t rsa_len = mbedtls_rsa_get_len( rsa );
 
 #if SIZE_MAX > UINT_MAX

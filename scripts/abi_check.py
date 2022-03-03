@@ -480,7 +480,8 @@ class AbiChecker:
         """Generate a report of ABI differences
         between self.old_rev and self.new_rev."""
         self.check_repo_path()
-        self.check_abi_tools_are_installed()
+        if self.check_api or self.check_abi:
+            self.check_abi_tools_are_installed()
         self._get_abi_dump_for_ref(self.old_version)
         self._get_abi_dump_for_ref(self.new_version)
         return self.get_abi_compatibility_report()

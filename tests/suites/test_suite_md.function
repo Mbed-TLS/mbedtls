@@ -16,6 +16,7 @@ void mbedtls_md_process(  )
     unsigned char buf[150];
 
     mbedtls_md_init( &ctx );
+    memset( buf, 0, sizeof( buf ) );
 
     /*
      * Very minimal testing of mbedtls_md_process, just make sure the various

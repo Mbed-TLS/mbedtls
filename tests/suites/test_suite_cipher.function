@@ -1148,11 +1148,14 @@ void check_padding( int pad_mode, data_t * input, int ret, int dlen_check
 /* END_CASE */
 
 /* BEGIN_CASE */
-void check_iv( int cipher_id, char * cipher_string,
+void iv_len_validity( int cipher_id, char * cipher_string,
                int iv_len_val, int ret )
 {
     size_t iv_len = iv_len_val;
     unsigned char iv[16];
+
+    /* Initialise iv buffer */
+    memset( iv, 0, sizeof( iv ) );
 
     const mbedtls_cipher_info_t *cipher_info;
     mbedtls_cipher_context_t ctx_dec;

@@ -32,6 +32,8 @@
 #endif
 #endif
 
+#include "mbedtls/gcm.h"
+
 #include "aesni.h"
 
 #include <string.h>
@@ -381,6 +383,45 @@ void mbedtls_aesni_inverse_key( unsigned char *invkey,
              : "memory", "xmm0" );
 
     memcpy( ik, fk, 16 );
+}
+
+/*
+ * Fast calculate and apply the encryption mask.
+ */
+int mbedtls_aesni_fast_gcm_xor( int mode,
+                                unsigned char buf[16],
+                                unsigned char ectr[16],
+                                const unsigned char input[16],
+                                unsigned char output[16] )
+{
+    switch( mode )
+    {
+    case MBEDTLS_GCM_DECRYPT:
+        asm( "movdqu     (%[buf]),   %%xmm0          \n\t" // load ctx->buf
+             "movdqu     (%[input]), %%xmm1          \n\t" // load input
+             "pxor       %%xmm1,     %%xmm0          \n\t" // ctx->buf ^= input
+             "pxor       (%[ectr]),  %%xmm1          \n\t" // output = ectr ^ input
+             "movdqu     %%xmm0,     (%[buf])        \n\t" // store ctx->buf
+             "movdqu     %%xmm1,     (%[output])     \n\t" // store output
+             :
+             : [input] "r" (input), [buf] "r" (buf), [ectr] "r" (ectr), [output] "r" (output)
+             : "memory", "cc", "xmm0", "xmm1" );
+        break;
+    case MBEDTLS_GCM_ENCRYPT:
+        asm( "movdqu     (%[input]), %%xmm0          \n\t" // load input
+             "pxor       (%[ectr]),  %%xmm0          \n\t" // output = ectr ^ input
+             "movdqu     %%xmm0,     (%[output])     \n\t" // store output
+             "movdqu     (%[buf]),   %%xmm1          \n\t" // load ctx->buf
+             "pxor       %%xmm0,     %%xmm1          \n\t" // buf ^= output
+             "movdqu     %%xmm1,     (%[buf])        \n\t" // store ctx->buf
+             :
+             : [input] "r" (input), [buf] "r" (buf), [ectr] "r" (ectr), [output] "r" (output)
+             : "memory", "cc", "xmm0", "xmm1" );
+        break;
+    default:
+        break;
+    }
+    return( 0 );
 }
 
 /*

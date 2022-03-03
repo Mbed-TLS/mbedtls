@@ -87,6 +87,26 @@ int mbedtls_aesni_crypt_ecb( mbedtls_aes_context *ctx,
                              unsigned char output[16] );
 
 /**
+ * \brief          Internal AES-NI fast calculate and apply the encryption mask
+ *
+ * \note           This function is only for internal use by other library
+ *                 functions; you must not call it directly.
+ *
+ * \param mode     MBEDTLS_AES_ENCRYPT or MBEDTLS_AES_DECRYPT
+ * \param input    16-byte AES ctx buf
+ * \param input    16-byte ectr block
+ * \param input    16-byte input block
+ * \param output   16-byte output block
+ *
+ * \return         0 on success (cannot fail)
+ */
+int mbedtls_aesni_fast_gcm_xor( int mode,
+                                unsigned char buf[16],
+                                unsigned char ectr[16],
+                                const unsigned char input[16],
+                                unsigned char output[16] );
+
+/**
  * \brief          Internal GCM multiplication: c = a * b in GF(2^128)
  *
  * \note           This function is only for internal use by other library

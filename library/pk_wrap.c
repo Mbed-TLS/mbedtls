@@ -266,7 +266,7 @@ static int rsa_decrypt_wrap( void *ctx,
                              &key_id );
     if( status != PSA_SUCCESS )
     {
-        ret = mbedtls_psa_err_translate_pk( status );
+        ret = mbedtls_pk_error_from_psa( status );
         goto cleanup;
     }
 
@@ -274,14 +274,7 @@ static int rsa_decrypt_wrap( void *ctx,
                                      NULL, 0, output, osize, olen );
     if( status != PSA_SUCCESS )
     {
-        if ( status == PSA_ERROR_INVALID_PADDING )
-        {
-            ret = MBEDTLS_ERR_RSA_INVALID_PADDING;
-        }
-        else
-        {
-            ret = mbedtls_psa_err_translate_pk( status );
-        }
+        ret = mbedtls_pk_error_from_psa_rsa( status );
         goto cleanup;
     }
 
@@ -290,7 +283,7 @@ static int rsa_decrypt_wrap( void *ctx,
 cleanup:
     status = psa_destroy_key( key_id );
     if( ret == 0 && status != PSA_SUCCESS )
-        ret = mbedtls_psa_err_translate_pk( status );
+        ret = mbedtls_pk_error_from_psa( status );
 
     return( ret );
 }

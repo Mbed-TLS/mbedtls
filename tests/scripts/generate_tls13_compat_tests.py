@@ -70,17 +70,6 @@ NAMED_GROUP_IANA_VALUE = {
     'x448': 0x1e,
 }
 
-SERVER_NAMED_GROUP_IANA_VALUE = {
-    'secp256r1': 0x17,
-    'secp384r1': 0x18,
-    'secp521r1': 0x19,
-    'x448': 0x1e,
-}
-
-CLIENT_NAMED_GROUP_IANA_VALUE = {
-    'x25519': 0x1d,
-}
-
 class TLSProgram(metaclass=abc.ABCMeta):
     """
     Base class for generate server/client command.
@@ -363,8 +352,8 @@ class MbedTLSCli(TLSProgram):
 
     def post_hrr_checks(self):
         check_strings = ["server hello, chosen ciphersuite: ( {:04x} ) - {}".format(
-                             CIPHER_SUITE_IANA_VALUE[self._ciphers[0]],
-                             self.CIPHER_SUITE[self._ciphers[0]]),
+                            CIPHER_SUITE_IANA_VALUE[self._ciphers[0]],
+                            self.CIPHER_SUITE[self._ciphers[0]]),
                          "Certificate Verify: Signature algorithm ( {:04x} )".format(
                              SIG_ALG_IANA_VALUE[self._sig_algs[0]]),
                          "<= ssl_tls13_process_server_hello ( HelloRetryRequest )",
@@ -401,12 +390,15 @@ def generate_compat_test(server=None, client=None, cipher=None, sig_alg=None, na
     cmd = prefix.join(cmd)
     return '\n'.join(server_object.pre_checks() + client_object.pre_checks() + [cmd])
 
-def generate_compat_hrr_test(server=None, client=None, cipher=None, sig_alg=None, client_named_group=None, server_named_group=None):
+def generate_compat_hrr_test(server=None, client=None, cipher=None, sig_alg=None,
+                             client_named_group=None, server_named_group=None):
     """
     Generate test case with `ssl-opt.sh` format.
     """
-    name = 'TLS 1.3 {client[0]}->{server[0]}: {cipher},{named_group},{sig_alg}, force hrr'.format(
-        client=client, server=server, cipher=cipher, sig_alg=sig_alg, named_group=server_named_group)
+    name = 'TLS 1.3 {client[0]}->{server[0]}: {cipher},{server_named_group},\
+            {client_named_group},{sig_alg}, force hrr'.format(
+        client=client, server=server, cipher=cipher, sig_alg=sig_alg,
+        server_named_group=server_named_group, client_named_group=client_named_group)
     server_object = SERVER_CLASSES[server](cipher, sig_alg, server_named_group)
     client_object = CLIENT_CLASSES[client](cipher, sig_alg, client_named_group, True)
 
@@ -495,14 +487,6 @@ def main():
                         default=list(NAMED_GROUP_IANA_VALUE.keys())[0],
                         help='Choose cipher suite for test')
 
-    parser.add_argument('client_named_group', choices=CLIENT_NAMED_GROUP_IANA_VALUE.keys(), nargs='?',
-                        default=list(CLIENT_NAMED_GROUP_IANA_VALUE.keys())[0],
-                        help='Choose cipher suite for test')
-
-    parser.add_argument('server_named_group', choices=SERVER_NAMED_GROUP_IANA_VALUE.keys(), nargs='?',
-                        default=list(SERVER_NAMED_GROUP_IANA_VALUE.keys())[0],
-                        help='Choose cipher suite for test')
-
     args = parser.parse_args()
 
     def get_all_test_cases():
@@ -519,8 +503,8 @@ def main():
     def get_hrr_test_cases():
         for cipher, sig_alg, client_named_group, server_named_group, server, client in \
             itertools.product(CIPHER_SUITE_IANA_VALUE.keys(), SIG_ALG_IANA_VALUE.keys(),
-                              NAMED_GROUP_IANA_VALUE.keys(),NAMED_GROUP_IANA_VALUE.keys(), SERVER_CLASSES.keys(),
-                              CLIENT_CLASSES.keys()):
+                              NAMED_GROUP_IANA_VALUE.keys(),NAMED_GROUP_IANA_VALUE.keys(),
+                              SERVER_CLASSES.keys(), CLIENT_CLASSES.keys()):
             if client_named_group != server_named_group:
                 yield generate_compat_hrr_test(cipher=cipher, sig_alg=sig_alg,
                                                client_named_group=client_named_group,

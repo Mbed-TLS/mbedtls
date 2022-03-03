@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 """
-Purpose
-
 This script compares the interfaces of two versions of Mbed TLS, looking
 for backward incompatibilities between two different Git revisions within
 an Mbed TLS repository. It must be run from the root of a Git working tree.
@@ -21,6 +19,8 @@ The results of the API/ABI comparison are either formatted as HTML and stored
 at a configurable location, or are given as a brief list of problems.
 Returns 0 on success, 1 on non-compliance, and 2 if there is an error
 while running the script.
+
+You must run this test from an Mbed TLS root.
 """
 
 # Copyright The Mbed TLS Contributors
@@ -490,17 +490,7 @@ class AbiChecker:
 def run_main():
     try:
         parser = argparse.ArgumentParser(
-            description=(
-                """This script is a small wrapper around the
-                abi-compliance-checker and abi-dumper tools, applying them
-                to compare the ABI and API of the library files from two
-                different Git revisions within an Mbed TLS repository.
-                The results of the comparison are either formatted as HTML and
-                stored at a configurable location, or are given as a brief list
-                of problems. Returns 0 on success, 1 on ABI/API non-compliance,
-                and 2 if there is an error while running the script.
-                Note: must be run from Mbed TLS root."""
-            )
+            description=__doc__
         )
         parser.add_argument(
             "-v", "--verbose", action="store_true",

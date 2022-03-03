@@ -207,7 +207,7 @@ static int rsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
                              &key_id );
     if( status != PSA_SUCCESS )
     {
-        ret = mbedtls_psa_err_translate_pk( status );
+        ret = mbedtls_pk_error_from_psa( status );
         goto cleanup;
     }
 
@@ -215,14 +215,7 @@ static int rsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
                               sig, sig_len );
     if( status != PSA_SUCCESS )
     {
-        if ( status == PSA_ERROR_INVALID_SIGNATURE )
-        {
-            ret = MBEDTLS_ERR_RSA_VERIFY_FAILED;
-        }
-        else
-        {
-            ret = mbedtls_psa_err_translate_pk( status );
-        }
+        ret = mbedtls_pk_error_from_psa_rsa( status );
         goto cleanup;
     }
     ret = 0;
@@ -230,7 +223,7 @@ static int rsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
 cleanup:
     status = psa_destroy_key( key_id );
     if( ret == 0 && status != PSA_SUCCESS )
-        ret = mbedtls_psa_err_translate_pk( status );
+        ret = mbedtls_pk_error_from_psa( status );
 
     return( ret );
 }

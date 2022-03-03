@@ -718,7 +718,7 @@ static int ecdsa_verify_wrap( void *ctx_arg, mbedtls_md_type_t md_alg,
 cleanup:
     status = psa_destroy_key( key_id );
     if( ret == 0 && status != PSA_SUCCESS )
-        ret = mbedtls_psa_err_translate_pk( status );
+        ret = mbedtls_pk_error_from_psa( status );
 
     return( ret );
 }
@@ -902,15 +902,15 @@ static int ecdsa_sign_wrap( void *ctx_arg, mbedtls_md_type_t md_alg,
                              &key_id );
     if( status != PSA_SUCCESS )
     {
-        ret = mbedtls_psa_err_translate_pk( status );
+        ret = mbedtls_pk_error_from_psa( status );
         goto cleanup;
     }
 
-    if( psa_sign_hash( key_id, psa_sig_md, hash, hash_len,
-                       sig, sig_size, sig_len)
-         != PSA_SUCCESS )
+    status = psa_sign_hash( key_id, psa_sig_md, hash, hash_len,
+                            sig, sig_size, sig_len );
+    if( status != PSA_SUCCESS )
     {
-         ret = MBEDTLS_ERR_ECP_VERIFY_FAILED;
+         ret = mbedtls_pk_error_from_psa_ecdca( status );
          goto cleanup;
     }
 
@@ -919,7 +919,7 @@ static int ecdsa_sign_wrap( void *ctx_arg, mbedtls_md_type_t md_alg,
 cleanup:
     status = psa_destroy_key( key_id );
     if( ret == 0 && status != PSA_SUCCESS )
-        ret = mbedtls_psa_err_translate_pk( status );
+        ret = mbedtls_pk_error_from_psa( status );
 
     return( ret );
 }

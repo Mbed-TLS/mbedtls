@@ -2721,21 +2721,21 @@ void mac_sign_verify_multi( int key_type_arg,
         /* Split data into length(data_part_len) parts. */
         mbedtls_test_set_step( 2000 + data_part_len );
 
-        if( !mac_multipart_internal_func( key_type_arg, key_data,
-                                           alg_arg,
-                                           input, data_part_len,
-                                           expected_mac,
-                                           is_verify, 0 ) )
+        if( mac_multipart_internal_func( key_type_arg, key_data,
+                                         alg_arg,
+                                         input, data_part_len,
+                                         expected_mac,
+                                         is_verify, 0 ) == 0 )
             break;
 
         /* length(0) part, length(data_part_len) part, length(0) part... */
         mbedtls_test_set_step( 3000 + data_part_len );
 
-        if( !mac_multipart_internal_func( key_type_arg, key_data,
-                                           alg_arg,
-                                           input, data_part_len,
-                                           expected_mac,
-                                           is_verify, 1 ) )
+        if( mac_multipart_internal_func( key_type_arg, key_data,
+                                         alg_arg,
+                                         input, data_part_len,
+                                         expected_mac,
+                                         is_verify, 1 ) == 0 )
             break;
     }
 

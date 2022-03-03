@@ -215,9 +215,9 @@ static int rsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
                               sig, sig_len );
     if( status != PSA_SUCCESS )
     {
-        if ( status == PSA_ERROR_INVALID_PADDING )
+        if ( status == PSA_ERROR_INVALID_SIGNATURE )
         {
-            ret = MBEDTLS_ERR_RSA_INVALID_PADDING;
+            ret = MBEDTLS_ERR_RSA_VERIFY_FAILED;
         }
         else
         {

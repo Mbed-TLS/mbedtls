@@ -750,7 +750,8 @@ void pk_rsa_encrypt_decrypt_test( data_t * message, int mod, int radix_P,
 
     /* init pk-rsa context */
     mbedtls_pk_free( &pk );
-    TEST_ASSERT( mbedtls_pk_setup( &pk, mbedtls_pk_info_from_type( MBEDTLS_PK_RSA ) ) == 0 );
+    TEST_ASSERT( mbedtls_pk_setup( &pk,
+                    mbedtls_pk_info_from_type( MBEDTLS_PK_RSA ) ) == 0 );
     rsa = mbedtls_pk_rsa( pk );
 
     /* load public key */

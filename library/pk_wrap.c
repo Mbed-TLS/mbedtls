@@ -823,13 +823,15 @@ static int pk_ecdsa_sig_asn1_from_psa( unsigned char *sig, size_t *sig_len,
     return( 0 );
 }
 
-static int find_ecdsa_private_key( unsigned char **buf, unsigned char *end, size_t *key_len )
+static int find_ecdsa_private_key( unsigned char **buf, unsigned char *end,
+                                   size_t *key_len )
 {
     size_t len;
     int ret;
 
     if( ( ret = mbedtls_asn1_get_tag( buf, end, &len,
-                                      MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+                                      MBEDTLS_ASN1_CONSTRUCTED |
+                                      MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
         return( ret );
 
     /* version */
@@ -864,7 +866,8 @@ static int ecdsa_sign_wrap( void *ctx_arg, mbedtls_md_type_t md_alg,
     unsigned char buf[MBEDTLS_PK_ECP_PRV_DER_MAX_BYTES];
     unsigned char *p;
     mbedtls_pk_info_t pk_info = mbedtls_eckey_info;
-    psa_algorithm_t psa_sig_md = PSA_ALG_ECDSA( mbedtls_psa_translate_md( md_alg ) );
+    psa_algorithm_t psa_sig_md =
+        PSA_ALG_ECDSA( mbedtls_psa_translate_md( md_alg ) );
     size_t curve_bits;
     psa_ecc_family_t curve =
         mbedtls_ecc_group_to_psa( ctx->grp.id, &curve_bits );

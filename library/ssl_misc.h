@@ -717,7 +717,7 @@ struct mbedtls_ssl_handshake_params
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 #if defined(MBEDTLS_SSL_CLI_C) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
     uint16_t hrr_cookie_len;            /*!<  HelloRetryRequest cookie length */
-#endif /* MBEDTLS_SSL_CLI_C || MBEDTLS_SSL_PROTO_TLS1_3 */
+#endif /* MBEDTLS_SSL_CLI_C && MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     unsigned int out_msg_seq;           /*!<  Outgoing handshake sequence number */

@@ -524,8 +524,8 @@ static int ssl_write_client_hello_body( mbedtls_ssl_context *ssl,
         {
             MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, cookie",
                                    handshake->cookie,
-                                   handshake->verify_cookie_len );
-            cookie_len = handshake->verify_cookie_len;
+                                   handshake->cookie_len );
+            cookie_len = handshake->cookie_len;
         }
 
         MBEDTLS_SSL_CHK_BUF_PTR( p, end, cookie_len + 1 );

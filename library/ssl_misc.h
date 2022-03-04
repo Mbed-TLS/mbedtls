@@ -846,19 +846,33 @@ struct mbedtls_ssl_handshake_params
     } buffering;
 
 #if defined(MBEDTLS_SSL_CLI_C) && \
-    ( defined(MBEDTLS_SSL_PROTO_DTLS) || defined(MBEDTLS_SSL_PROTO_TLS1_3) )
-    unsigned char *cookie;              /*!<  HelloVerifyRequest cookie for DTLS
-                                         *    HelloRetryRequest cookie for TLS 1.3 */
+    ( defined(MBEDTLS_SSL_PROTO_DTLS) || \
+      defined(MBEDTLS_SSL_PROTO_TLS1_3) )
+    unsigned char *cookie;              /*!< HelloVerifyRequest cookie for DTLS
+                                         *   HelloRetryRequest cookie for TLS 1.3 */
+#if !defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    /* RFC 6347 page 15
+       ...
+       opaque cookie<0..2^8-1>;
+       ...
+     */
+    uint8_t cookie_len;
+#else
+    /* RFC 8446 page 39
+       ...
+       opaque cookie<0..2^16-1>;
+       ...
+       If TLS1_3 is enabled, the max length is 2^16 - 1
+     */
+    uint16_t cookie_len;                /*!< DTLS: HelloVerifyRequest cookie length
+                                         *   TLS1_3: HelloRetryRequest cookie length */
+#endif
 #endif /* MBEDTLS_SSL_CLI_C &&
-          ( MBEDTLS_SSL_PROTO_DTLS || MBEDTLS_SSL_PROTO_TLS1_3 ) */
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    unsigned char verify_cookie_len;    /*!<  Cli: HelloVerifyRequest cookie
-                                         *    length
-                                         *    Srv: flag for sending a cookie */
-#endif /* MBEDTLS_SSL_PROTO_DTLS */
-#if defined(MBEDTLS_SSL_CLI_C) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    uint16_t hrr_cookie_len;            /*!<  HelloRetryRequest cookie length */
-#endif /* MBEDTLS_SSL_CLI_C && MBEDTLS_SSL_PROTO_TLS1_3 */
+          ( MBEDTLS_SSL_PROTO_DTLS ||
+            MBEDTLS_SSL_PROTO_TLS1_3 ) */
+#if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_PROTO_DTLS)
+    unsigned char cookie_verify_result; /*!< Srv: flag for sending a cookie */
+#endif /* MBEDTLS_SSL_SRV_C && MBEDTLS_SSL_PROTO_DTLS */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     unsigned int out_msg_seq;           /*!<  Outgoing handshake sequence number */

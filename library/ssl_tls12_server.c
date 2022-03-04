@@ -1274,12 +1274,12 @@ read_record_header:
                                      ssl->cli_id, ssl->cli_id_len ) != 0 )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 2, ( "cookie verification failed" ) );
-                ssl->handshake->verify_cookie_len = 1;
+                ssl->handshake->cookie_verify_result = 1;
             }
             else
             {
                 MBEDTLS_SSL_DEBUG_MSG( 2, ( "cookie verification passed" ) );
-                ssl->handshake->verify_cookie_len = 0;
+                ssl->handshake->cookie_verify_result = 0;
             }
         }
         else
@@ -2244,7 +2244,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
-        ssl->handshake->verify_cookie_len != 0 )
+        ssl->handshake->cookie_verify_result != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "client hello was not authenticated" ) );
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write server hello" ) );

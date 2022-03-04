@@ -107,9 +107,33 @@ int mbedtls_ssl_cookie_setup( mbedtls_ssl_cookie_ctx *ctx,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char key[COOKIE_MD_OUTLEN];
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_algorithm_t alg;
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     if( ( ret = f_rng( p_rng, key, sizeof( key ) ) ) != 0 )
         return( ret );
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    alg = mbedtls_psa_translate_md( COOKIE_MD );
+    if( alg == 0 )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    ctx->psa_hmac_alg = PSA_ALG_HMAC( alg );
+
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_MESSAGE );
+    psa_set_key_algorithm( &attributes, PSA_ALG_HMAC( alg ) );
+    psa_set_key_type( &attributes, PSA_KEY_TYPE_HMAC );
+
+    if( ( status = psa_import_key( &attributes,
+                                   key, sizeof( key ),
+                                   &ctx->psa_hmac ) ) != PSA_SUCCESS )
+    {
+        return psa_ssl_status_to_mbedtls( status );
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     ret = mbedtls_md_setup( &ctx->hmac_ctx, mbedtls_md_info_from_type( COOKIE_MD ), 1 );
     if( ret != 0 )

@@ -509,6 +509,6 @@ extern mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state;
 
 #endif /* !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) */
 
-#endif /* MBEDTLS_PSA_CRYPTO_C */
+#endif /* defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3) */
 
 #endif /* MBEDTLS_PSA_UTIL_H */

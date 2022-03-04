@@ -65,9 +65,11 @@ typedef struct mbedtls_ssl_cookie_ctx
     unsigned long   MBEDTLS_PRIVATE(timeout);    /*!< timeout delay, in seconds if HAVE_TIME,
                                      or in number of tickets issued */
 
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_threading_mutex_t MBEDTLS_PRIVATE(mutex);
 #endif
+#endif /* !MBEDTLS_USE_PSA_CRYPTO */
 } mbedtls_ssl_cookie_ctx;
 
 /**

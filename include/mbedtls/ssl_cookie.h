@@ -56,8 +56,9 @@ typedef struct mbedtls_ssl_cookie_ctx
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_svc_key_id_t    MBEDTLS_PRIVATE(psa_hmac);   /*!< key id for the HMAC portion   */
     psa_algorithm_t         MBEDTLS_PRIVATE(psa_hmac_alg);  /*!< key algorithm for the HMAC portion   */
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#else
     mbedtls_md_context_t    MBEDTLS_PRIVATE(hmac_ctx);   /*!< context for the HMAC portion   */
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 #if !defined(MBEDTLS_HAVE_TIME)
     unsigned long   MBEDTLS_PRIVATE(serial);     /*!< serial number for expiration   */
 #endif

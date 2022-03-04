@@ -70,8 +70,9 @@ void mbedtls_ssl_cookie_init( mbedtls_ssl_cookie_ctx *ctx )
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     ctx->psa_hmac = MBEDTLS_SVC_KEY_ID_INIT;
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#else
     mbedtls_md_init( &ctx->hmac_ctx );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 #if !defined(MBEDTLS_HAVE_TIME)
     ctx->serial = 0;
 #endif
@@ -91,8 +92,9 @@ void mbedtls_ssl_cookie_free( mbedtls_ssl_cookie_ctx *ctx )
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_destroy_key( ctx->psa_hmac );
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#else
     mbedtls_md_free( &ctx->hmac_ctx );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_free( &ctx->mutex );

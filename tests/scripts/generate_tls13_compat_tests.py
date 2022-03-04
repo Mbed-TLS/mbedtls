@@ -350,6 +350,7 @@ class MbedTLSCli(TLSProgram):
         check_strings.append("Verifying peer X.509 certificate... ok")
         return ['-c "{}"'.format(i) for i in check_strings]
 
+    # pylint: disable=C0330
     def post_hrr_checks(self):
         check_strings = ["server hello, chosen ciphersuite: ( {:04x} ) - {}".format(
                             CIPHER_SUITE_IANA_VALUE[self._ciphers[0]],
@@ -390,15 +391,16 @@ def generate_compat_test(server=None, client=None, cipher=None, sig_alg=None, na
     cmd = prefix.join(cmd)
     return '\n'.join(server_object.pre_checks() + client_object.pre_checks() + [cmd])
 
+# pylint: disable=too-many-arguments,C0330
 def generate_compat_hrr_test(server=None, client=None, cipher=None, sig_alg=None,
                              client_named_group=None, server_named_group=None):
     """
     Generate test case with `ssl-opt.sh` format.
     """
-    name = 'TLS 1.3 {client[0]}->{server[0]}: {cipher},{server_named_group},\
-            {client_named_group},{sig_alg}, force hrr'.format(
-        client=client, server=server, cipher=cipher, sig_alg=sig_alg,
-        server_named_group=server_named_group, client_named_group=client_named_group)
+    name = 'TLS 1.3 {client[0]}->{server[0]}: {cipher},{server_named_group},'.format(
+            client=client, server=server, cipher=cipher, server_named_group=server_named_group)
+    name += '{client_named_group},{sig_alg}, force hrr'.format(
+            client_named_group=client_named_group, sig_alg=sig_alg)
     server_object = SERVER_CLASSES[server](cipher, sig_alg, server_named_group)
     client_object = CLIENT_CLASSES[client](cipher, sig_alg, client_named_group, True)
 
@@ -441,6 +443,7 @@ SSL_OUTPUT_HEADER = '''#!/bin/sh
 '''
 
 
+# pylint: disable=too-many-branches
 def main():
     """
     Main function of this program
@@ -503,7 +506,7 @@ def main():
     def get_hrr_test_cases():
         for cipher, sig_alg, client_named_group, server_named_group, server, client in \
             itertools.product(CIPHER_SUITE_IANA_VALUE.keys(), SIG_ALG_IANA_VALUE.keys(),
-                              NAMED_GROUP_IANA_VALUE.keys(),NAMED_GROUP_IANA_VALUE.keys(),
+                              NAMED_GROUP_IANA_VALUE.keys(), NAMED_GROUP_IANA_VALUE.keys(),
                               SERVER_CLASSES.keys(), CLIENT_CLASSES.keys()):
             if client_named_group != server_named_group:
                 yield generate_compat_hrr_test(cipher=cipher, sig_alg=sig_alg,

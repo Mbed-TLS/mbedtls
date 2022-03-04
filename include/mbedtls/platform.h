@@ -136,6 +136,17 @@ extern void *mbedtls_calloc( size_t n, size_t size );
 extern void mbedtls_free( void *ptr );
 
 /**
+ * \brief               This function gets the memory-management
+ *                      functions used by the library, during runtime.
+ *
+ * \param calloc_func   The \c calloc function implementation pointer.
+ * \param free_func     The \c free function implementation pointer.
+ *
+ * \return              \c 0.
+ */
+int mbedtls_platform_get_calloc_free( void * (**calloc_func)( size_t, size_t ),
+                              void (**free_func)( void * ) );
+/**
  * \brief               This function dynamically sets the memory-management
  *                      functions used by the library, during runtime.
  *

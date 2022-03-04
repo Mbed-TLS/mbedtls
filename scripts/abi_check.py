@@ -10,9 +10,9 @@ applying them to compare the header and library files.
 
 For the storage format, this script compares the automatically generated
 storage tests and the manual read tests, and complains if there is a
-reduction in coverage. A change in test data will be signalled as a
+reduction in coverage. A change in test data will be signaled as a
 coverage reduction since the old test data is no longer present. A change in
-how test data is presented will be signalled as well; this would be a false
+how test data is presented will be signaled as well; this would be a false
 positive.
 
 The results of the API/ABI comparison are either formatted as HTML and stored
@@ -65,7 +65,7 @@ class AbiChecker:
         configuration.report_dir: directory for output files
         configuration.keep_all_reports: if false, delete old reports
         configuration.brief: if true, output shorter report to stdout
-        configuration.check_api: if true, compare ABIs
+        configuration.check_abi: if true, compare ABIs
         configuration.check_api: if true, compare APIs
         configuration.check_storage: if true, compare storage format tests
         configuration.skip_file: path to file containing symbols and types to skip

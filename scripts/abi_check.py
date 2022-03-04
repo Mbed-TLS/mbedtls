@@ -249,32 +249,33 @@ class AbiChecker:
         at_paragraph_start = True
         description = None
         full_path = os.path.join(directory, filename)
-        for line_number, line in enumerate(open(full_path), 1):
-            line = line.strip()
-            if not line:
-                at_paragraph_start = True
-                continue
-            if line.startswith('#'):
-                continue
-            if at_paragraph_start:
-                description = line.strip()
-                at_paragraph_start = False
-                continue
-            if line.startswith('depends_on:'):
-                continue
-            # We've reached a test case data line
-            test_case_data = self._normalize_storage_test_case_data(line)
-            if not is_generated:
-                # In manual test data, only look at read tests.
-                function_name = test_case_data.split(':', 1)[0]
-                if 'read' not in function_name.split('_'):
+        with open(full_path) as fd:
+            for line_number, line in enumerate(fd, 1):
+                line = line.strip()
+                if not line:
+                    at_paragraph_start = True
                     continue
-            metadata = SimpleNamespace(
-                filename=filename,
-                line_number=line_number,
-                description=description
-            )
-            storage_tests[test_case_data] = metadata
+                if line.startswith('#'):
+                    continue
+                if at_paragraph_start:
+                    description = line.strip()
+                    at_paragraph_start = False
+                    continue
+                if line.startswith('depends_on:'):
+                    continue
+                # We've reached a test case data line
+                test_case_data = self._normalize_storage_test_case_data(line)
+                if not is_generated:
+                    # In manual test data, only look at read tests.
+                    function_name = test_case_data.split(':', 1)[0]
+                    if 'read' not in function_name.split('_'):
+                        continue
+                metadata = SimpleNamespace(
+                    filename=filename,
+                    line_number=line_number,
+                    description=description
+                )
+                storage_tests[test_case_data] = metadata
 
     @staticmethod
     def _list_generated_test_data_files(git_worktree_path):

@@ -56,18 +56,19 @@ class Requirements:
         * Comments (``#`` at the beginning of the line or after whitespace).
         * ``-r FILENAME`` to include another file.
         """
-        for line in open(filename):
-            line = line.strip()
-            line = re.sub(r'(\A|\s+)#.*', r'', line)
-            if not line:
-                continue
-            m = re.match(r'-r\s+', line)
-            if m:
-                nested_file = os.path.join(os.path.dirname(filename),
-                                           line[m.end(0):])
-                self.add_file(nested_file)
-                continue
-            self.requirements.append(self.adjust_requirement(line))
+        with open(filename) as fd:
+            for line in fd:
+                line = line.strip()
+                line = re.sub(r'(\A|\s+)#.*', r'', line)
+                if not line:
+                    continue
+                m = re.match(r'-r\s+', line)
+                if m:
+                    nested_file = os.path.join(os.path.dirname(filename),
+                                               line[m.end(0):])
+                    self.add_file(nested_file)
+                    continue
+                self.requirements.append(self.adjust_requirement(line))
 
     def write(self, out: typing_util.Writable) -> None:
         """List the gathered requirements."""

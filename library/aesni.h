@@ -93,8 +93,8 @@ int mbedtls_aesni_crypt_ecb( mbedtls_aes_context *ctx,
  *                 functions; you must not call it directly.
  *
  * \param mode     MBEDTLS_AES_ENCRYPT or MBEDTLS_AES_DECRYPT
- * \param input    16-byte AES ctx buf
- * \param input    16-byte ectr block
+ * \param buf      16-byte AES ctx buf
+ * \param ectr     16-byte ectr block
  * \param input    16-byte input block
  * \param output   16-byte output block
  *

@@ -172,8 +172,7 @@ int mbedtls_x509write_crt_set_basic_constraints( mbedtls_x509write_cert *ctx,
 }
 
 #if defined(MBEDTLS_SHA1_C)
-static int mbedtls_x509write_crt_set_key_identifier( mbedtls_x509write_cert
-*ctx,
+static int mbedtls_x509write_crt_set_key_identifier( mbedtls_x509write_cert *ctx,
                                               int is_ca,
                                               unsigned char tag )
 {
@@ -230,15 +229,15 @@ static int mbedtls_x509write_crt_set_key_identifier( mbedtls_x509write_cert
     }
 
     if( is_ca )
-        return mbedtls_x509write_crt_set_extension( ctx,
+        return( mbedtls_x509write_crt_set_extension( ctx,
                 MBEDTLS_OID_AUTHORITY_KEY_IDENTIFIER,
                 MBEDTLS_OID_SIZE( MBEDTLS_OID_AUTHORITY_KEY_IDENTIFIER ),
-                0, buf + sizeof(buf) - len, len );
-
-    return mbedtls_x509write_crt_set_extension( ctx,
-            MBEDTLS_OID_SUBJECT_KEY_IDENTIFIER,
-            MBEDTLS_OID_SIZE( MBEDTLS_OID_SUBJECT_KEY_IDENTIFIER ),
-            0, buf + sizeof(buf) - len, len );
+                0, buf + sizeof(buf) - len, len ) );
+    else
+        return( mbedtls_x509write_crt_set_extension( ctx,
+                MBEDTLS_OID_SUBJECT_KEY_IDENTIFIER,
+                MBEDTLS_OID_SIZE( MBEDTLS_OID_SUBJECT_KEY_IDENTIFIER ),
+                0, buf + sizeof(buf) - len, len ) );
 }
 
 int mbedtls_x509write_crt_set_subject_key_identifier( mbedtls_x509write_cert *ctx )

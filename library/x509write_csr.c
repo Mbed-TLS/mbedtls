@@ -225,7 +225,7 @@ static int x509write_csr_der_internal( mbedtls_x509write_csr *ctx,
                           sizeof( hash ),
                           &hash_len ) != PSA_SUCCESS )
     {
-        return ( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+        return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
     }
 #else /* MBEDTLS_USE_PSA_CRYPTO */
     ret = mbedtls_md( mbedtls_md_info_from_type( ctx->md_alg ), c, len, hash );

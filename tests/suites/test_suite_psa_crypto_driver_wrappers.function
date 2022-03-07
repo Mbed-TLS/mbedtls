@@ -2025,3 +2025,105 @@ exit:
     PSA_DONE( );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void asymmetric_encrypt( int alg_arg,
+                         data_t *key_data,
+                         data_t *key_modulus,
+                         data_t *key_exponent,
+                         data_t *input_data,
+                         data_t *label,
+                         data_t *expected_output_data,
+                         data_t *fake_output_encrypt,
+                         int forced_status_encrypt_arg,
+                         int expected_status_encrypt_arg )
+{
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_type_t key_type = PSA_KEY_TYPE_RSA_PUBLIC_KEY;
+    psa_algorithm_t alg = alg_arg;
+    unsigned char *output = NULL;
+    size_t output_size;
+    size_t output_length = ~0;
+    psa_status_t forced_status_encrypt = forced_status_encrypt_arg;
+    psa_status_t expected_status_encrypt = expected_status_encrypt_arg;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    (void)expected_output_data;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+    mbedtls_test_driver_asymmetric_encryption_hooks =
+        mbedtls_test_driver_asymmetric_encryption_hooks_init();
+
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, key_type );
+
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &key ) );
+
+    mbedtls_test_driver_asymmetric_encryption_hooks.forced_status =
+        forced_status_encrypt;
+
+    if ( fake_output_encrypt->len > 0 )
+    {
+        mbedtls_test_driver_asymmetric_encryption_hooks.forced_output =
+            fake_output_encrypt->x;
+        mbedtls_test_driver_asymmetric_encryption_hooks.forced_output_length =
+            fake_output_encrypt->len;
+        output_size = fake_output_encrypt->len;
+        ASSERT_ALLOC( output, output_size );
+    }
+    else
+    {
+        output_size = key_data->len; // ???
+        ASSERT_ALLOC( output, output_size );
+    }
+
+    TEST_EQUAL( psa_asymmetric_encrypt( key, alg,
+                                        input_data->x, input_data->len,
+                                        label->x, label->len,
+                                        output, output_size,
+                                        &output_length ), expected_status_encrypt );
+    if ( expected_status_encrypt == PSA_SUCCESS )
+    {
+        mbedtls_mpi N, E, A, X;
+        mbedtls_mpi_init( &N );
+        mbedtls_mpi_init( &E );
+        mbedtls_mpi_init( &A );
+        mbedtls_mpi_init( &X );
+
+        TEST_ASSERT( mbedtls_mpi_read_binary( &N, key_modulus->x, key_modulus->len ) == 0 );
+        TEST_ASSERT( mbedtls_mpi_read_binary( &E, key_exponent->x, key_exponent->len ) == 0 );
+        TEST_ASSERT( mbedtls_mpi_read_binary( &A, output, output_length ) == 0 );
+
+        TEST_ASSERT( mbedtls_mpi_exp_mod( &X, &A, &E, &N, NULL ) == 0 );
+
+        TEST_ASSERT( mbedtls_mpi_write_binary( &X, output, output_size ) == 0 );
+
+        mbedtls_fprintf( stderr, "\nInput: " );
+        for( size_t i = 0; i < input_data->len; i++ ){
+            if( input_data->x[i] < 16) mbedtls_fprintf( stderr, "%x", 0 );
+                mbedtls_fprintf( stderr, "%x", input_data->x[i] );
+        }
+        mbedtls_fprintf( stderr, "\n" );
+
+        mbedtls_fprintf( stderr, "\nOutput: " );
+        for( size_t i = 0; i < output_size; i++ ){
+            if( output[i] < 16) mbedtls_fprintf( stderr, "%x", 0 );
+                mbedtls_fprintf( stderr, "%x", output[i] );
+        }
+        mbedtls_fprintf( stderr, "\n" );
+
+        TEST_EQUAL( output_length, key_data->len );        
+    }
+exit:
+    /*
+     * Key attributes may have been returned by psa_get_key_attributes()
+     * thus reset them as required.
+     */
+    psa_reset_key_attributes( &attributes );
+
+    psa_destroy_key( key );
+    mbedtls_free( output );
+    PSA_DONE( );
+}
+/* END_CASE */

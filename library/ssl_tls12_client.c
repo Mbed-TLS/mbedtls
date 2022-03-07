@@ -2531,12 +2531,6 @@ static int ssl_parse_signature_algorithm( mbedtls_ssl_context *ssl,
     *md_alg = MBEDTLS_MD_NONE;
     *pk_alg = MBEDTLS_PK_NONE;
 
-    /* Only in TLS 1.2 */
-    if( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 )
-    {
-        return( 0 );
-    }
-
     if( (*p) + 2 > end )
         return( MBEDTLS_ERR_SSL_DECODE_ERROR );
 
@@ -2903,36 +2897,28 @@ start_processing:
         /*
          * Handle the digitally-signed structure
          */
-        if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+        if( ssl_parse_signature_algorithm( ssl, &p, end,
+                                           &md_alg, &pk_alg ) != 0 )
         {
-            if( ssl_parse_signature_algorithm( ssl, &p, end,
-                                               &md_alg, &pk_alg ) != 0 )
-            {
-                MBEDTLS_SSL_DEBUG_MSG( 1,
-                    ( "bad server key exchange message" ) );
-                mbedtls_ssl_send_alert_message(
-                    ssl,
-                    MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                    MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
-                return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
-            }
-
-            if( pk_alg !=
-                mbedtls_ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info ) )
-            {
-                MBEDTLS_SSL_DEBUG_MSG( 1,
-                    ( "bad server key exchange message" ) );
-                mbedtls_ssl_send_alert_message(
-                    ssl,
-                    MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                    MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
-                return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
-            }
+            MBEDTLS_SSL_DEBUG_MSG( 1,
+                ( "bad server key exchange message" ) );
+            mbedtls_ssl_send_alert_message(
+                ssl,
+                MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
+            return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
         }
-        else
+
+        if( pk_alg !=
+            mbedtls_ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info ) )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+            MBEDTLS_SSL_DEBUG_MSG( 1,
+                ( "bad server key exchange message" ) );
+            mbedtls_ssl_send_alert_message(
+                ssl,
+                MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
+            return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
         }
 
         /*
@@ -3074,6 +3060,10 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
     size_t cert_type_len = 0, dn_len = 0;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
         ssl->handshake->ciphersuite_info;
+    size_t sig_alg_len;
+#if defined(MBEDTLS_DEBUG_C)
+        unsigned char *sig_alg;
+#endif
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate request" ) );
 
@@ -3170,51 +3160,42 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
     }
 
     /* supported_signature_algorithms */
-    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+    sig_alg_len = ( ( buf[mbedtls_ssl_hs_hdr_len( ssl ) + 1 + n] <<  8 )
+                  | ( buf[mbedtls_ssl_hs_hdr_len( ssl ) + 2 + n]   ) );
+
+    /*
+     * The furthest access in buf is in the loop few lines below:
+     *     sig_alg[i + 1],
+     * where:
+     *     sig_alg = buf + ...hdr_len + 3 + n,
+     *     max(i) = sig_alg_len - 1.
+     * Therefore the furthest access is:
+     *     buf[...hdr_len + 3 + n + sig_alg_len - 1 + 1],
+     * which reduces to:
+     *     buf[...hdr_len + 3 + n + sig_alg_len],
+     * which is one less than we need the buf to be.
+     */
+    if( ssl->in_hslen <= mbedtls_ssl_hs_hdr_len( ssl ) + 3 + n + sig_alg_len )
     {
-        size_t sig_alg_len =
-            ( ( buf[mbedtls_ssl_hs_hdr_len( ssl ) + 1 + n] <<  8 )
-              | ( buf[mbedtls_ssl_hs_hdr_len( ssl ) + 2 + n]   ) );
-#if defined(MBEDTLS_DEBUG_C)
-        unsigned char* sig_alg;
-        size_t i;
-#endif
-
-        /*
-         * The furthest access in buf is in the loop few lines below:
-         *     sig_alg[i + 1],
-         * where:
-         *     sig_alg = buf + ...hdr_len + 3 + n,
-         *     max(i) = sig_alg_len - 1.
-         * Therefore the furthest access is:
-         *     buf[...hdr_len + 3 + n + sig_alg_len - 1 + 1],
-         * which reduces to:
-         *     buf[...hdr_len + 3 + n + sig_alg_len],
-         * which is one less than we need the buf to be.
-         */
-        if( ssl->in_hslen <= mbedtls_ssl_hs_hdr_len( ssl )
-                                + 3 + n + sig_alg_len )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
-            mbedtls_ssl_send_alert_message(
-                ssl,
-                MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
-            return( MBEDTLS_ERR_SSL_DECODE_ERROR );
-        }
-
-#if defined(MBEDTLS_DEBUG_C)
-        sig_alg = buf + mbedtls_ssl_hs_hdr_len( ssl ) + 3 + n;
-        for( i = 0; i < sig_alg_len; i += 2 )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 3,
-                ( "Supported Signature Algorithm found: %d,%d",
-                  sig_alg[i], sig_alg[i + 1]  ) );
-        }
-#endif
-
-        n += 2 + sig_alg_len;
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
+        mbedtls_ssl_send_alert_message(
+            ssl,
+            MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+            MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
+        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
     }
+
+#if defined(MBEDTLS_DEBUG_C)
+    sig_alg = buf + mbedtls_ssl_hs_hdr_len( ssl ) + 3 + n;
+    for( size_t i = 0; i < sig_alg_len; i += 2 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3,
+            ( "Supported Signature Algorithm found: %d,%d",
+              sig_alg[i], sig_alg[i + 1]  ) );
+    }
+#endif
+
+    n += 2 + sig_alg_len;
 
     /* certificate_authorities */
     dn_len = ( ( buf[mbedtls_ssl_hs_hdr_len( ssl ) + 1 + n] <<  8 )
@@ -3612,7 +3593,6 @@ ecdh_calc_secret:
 #if defined(MBEDTLS_USE_PSA_CRYPTO) &&          \
     defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
         if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK &&
-            ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 &&
             ssl_conf_has_static_raw_psk( ssl->conf ) == 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1,
@@ -3783,45 +3763,37 @@ sign:
 
     ssl->handshake->calc_verify( ssl, hash, &hashlen );
 
-    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+    /*
+     * digitally-signed struct {
+     *     opaque handshake_messages[handshake_messages_length];
+     * };
+     *
+     * Taking shortcut here. We assume that the server always allows the
+     * PRF Hash function and has sent it in the allowed signature
+     * algorithms list received in the Certificate Request message.
+     *
+     * Until we encounter a server that does not, we will take this
+     * shortcut.
+     *
+     * Reason: Otherwise we should have running hashes for SHA512 and
+     *         SHA224 in order to satisfy 'weird' needs from the server
+     *         side.
+     */
+    if( ssl->handshake->ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
     {
-        /*
-         * digitally-signed struct {
-         *     opaque handshake_messages[handshake_messages_length];
-         * };
-         *
-         * Taking shortcut here. We assume that the server always allows the
-         * PRF Hash function and has sent it in the allowed signature
-         * algorithms list received in the Certificate Request message.
-         *
-         * Until we encounter a server that does not, we will take this
-         * shortcut.
-         *
-         * Reason: Otherwise we should have running hashes for SHA512 and
-         *         SHA224 in order to satisfy 'weird' needs from the server
-         *         side.
-         */
-        if( ssl->handshake->ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
-        {
-            md_alg = MBEDTLS_MD_SHA384;
-            ssl->out_msg[4] = MBEDTLS_SSL_HASH_SHA384;
-        }
-        else
-        {
-            md_alg = MBEDTLS_MD_SHA256;
-            ssl->out_msg[4] = MBEDTLS_SSL_HASH_SHA256;
-        }
-        ssl->out_msg[5] = mbedtls_ssl_sig_from_pk( mbedtls_ssl_own_key( ssl ) );
-
-        /* Info from md_alg will be used instead */
-        hashlen = 0;
-        offset = 2;
+        md_alg = MBEDTLS_MD_SHA384;
+        ssl->out_msg[4] = MBEDTLS_SSL_HASH_SHA384;
     }
     else
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        md_alg = MBEDTLS_MD_SHA256;
+        ssl->out_msg[4] = MBEDTLS_SSL_HASH_SHA256;
     }
+    ssl->out_msg[5] = mbedtls_ssl_sig_from_pk( mbedtls_ssl_own_key( ssl ) );
+
+    /* Info from md_alg will be used instead */
+    hashlen = 0;
+    offset = 2;
 
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
     if( ssl->handshake->ecrs_enabled )

@@ -5264,7 +5264,7 @@ static int ssl_use_opaque_psk( mbedtls_ssl_context const *ssl )
  * [in] ssl: optionally used for debugging, EMS and PSA-PSK
  *      debug: conf->f_dbg, conf->p_dbg
  *      EMS: passed to calc_verify (debug + session_negotiate)
- *      PSA-PSA: minor_ver, conf
+ *      PSA-PSA: conf
  */
 static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
                                unsigned char *master,
@@ -5325,7 +5325,6 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
 #if defined(MBEDTLS_USE_PSA_CRYPTO) &&          \
     defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
     if( handshake->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK &&
-        ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 &&
         ssl_use_opaque_psk( ssl ) == 1 )
     {
         /* Perform PSK-to-MS expansion in a single step. */

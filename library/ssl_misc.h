@@ -623,9 +623,9 @@ struct mbedtls_ssl_handshake_params
 #endif
 
 /* Adding guard for MBEDTLS_ECDSA_C to ensure no compile errors due
- * to guards also being in ssl_srv.c and ssl_cli.c. There is a gap
- * in functionality that access to ecdh_ctx structure is needed for
- * MBEDTLS_ECDSA_C which does not seem correct.
+ * to guards in client and server code. There is a gap in functionality that
+ * access to ecdh_ctx structure is needed for MBEDTLS_ECDSA_C which does not
+ * seem correct.
  */
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C)
     mbedtls_ecdh_context ecdh_ctx;              /*!<  ECDH key exchange       */

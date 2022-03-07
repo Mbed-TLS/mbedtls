@@ -168,12 +168,12 @@ OBJS_TLS= \
 	  net_sockets.o \
 	  ssl_cache.o \
 	  ssl_ciphersuites.o \
-	  ssl_cli.o \
 	  ssl_cookie.o \
 	  ssl_msg.o \
-	  ssl_srv.o \
 	  ssl_ticket.o \
 	  ssl_tls.o \
+	  ssl_tls12_client.o \
+	  ssl_tls12_server.o \
 	  ssl_tls13_keys.o \
 	  ssl_tls13_client.o \
 	  ssl_tls13_server.o \

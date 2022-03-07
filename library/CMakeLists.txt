@@ -99,12 +99,12 @@ set(src_tls
     net_sockets.c
     ssl_cache.c
     ssl_ciphersuites.c
-    ssl_cli.c
     ssl_cookie.c
     ssl_msg.c
-    ssl_srv.c
     ssl_ticket.c
     ssl_tls.c
+    ssl_tls12_client.c
+    ssl_tls12_server.c
     ssl_tls13_keys.c
     ssl_tls13_server.c
     ssl_tls13_client.c

@@ -1851,7 +1851,8 @@ void asymmetric_encrypt_decrypt( int alg_arg,
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     PSA_ASSERT( psa_crypto_init( ) );
-    mbedtls_test_driver_rsa_hooks = mbedtls_test_driver_rsa_hooks_init();
+    mbedtls_test_driver_asymmetric_encryption_hooks =
+        mbedtls_test_driver_asymmetric_encryption_hooks_init();
 
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT );
     psa_set_key_algorithm( &attributes, alg );
@@ -1864,11 +1865,14 @@ void asymmetric_encrypt_decrypt( int alg_arg,
     PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
     key_bits = psa_get_key_bits( &attributes );
 
-    mbedtls_test_driver_rsa_hooks.forced_status = forced_status_encrypt;
+    mbedtls_test_driver_asymmetric_encryption_hooks.forced_status =
+        forced_status_encrypt;
     if ( fake_output_encrypt->len > 0 )
     {
-        mbedtls_test_driver_rsa_hooks.forced_output = fake_output_encrypt->x;
-        mbedtls_test_driver_rsa_hooks.forced_output_length = fake_output_encrypt->len;
+        mbedtls_test_driver_asymmetric_encryption_hooks.forced_output =
+            fake_output_encrypt->x;
+        mbedtls_test_driver_asymmetric_encryption_hooks.forced_output_length =
+            fake_output_encrypt->len;
         output_size = fake_output_encrypt->len;
         ASSERT_ALLOC( output, output_size );
     }
@@ -1895,14 +1899,17 @@ void asymmetric_encrypt_decrypt( int alg_arg,
     {
         if ( fake_output_encrypt->len > 0 )
             ASSERT_COMPARE( fake_output_encrypt->x, fake_output_encrypt->len,
-                        output, output_length );
+                output, output_length );
         else
         {
-            mbedtls_test_driver_rsa_hooks.forced_status = forced_status_decrypt;
+            mbedtls_test_driver_asymmetric_encryption_hooks.forced_status =
+                forced_status_decrypt;
             if ( fake_output_decrypt->len > 0 )
             {
-                mbedtls_test_driver_rsa_hooks.forced_output = fake_output_decrypt->x;
-                mbedtls_test_driver_rsa_hooks.forced_output_length = fake_output_decrypt->len;
+                mbedtls_test_driver_asymmetric_encryption_hooks.forced_output =
+                    fake_output_decrypt->x;
+                mbedtls_test_driver_asymmetric_encryption_hooks.forced_output_length =
+                    fake_output_decrypt->len;
                 output2_size = fake_output_decrypt->len;
                 ASSERT_ALLOC( output2, output2_size );
             }
@@ -1924,10 +1931,10 @@ void asymmetric_encrypt_decrypt( int alg_arg,
             {
                 if ( fake_output_decrypt->len > 0 )
                     ASSERT_COMPARE( fake_output_decrypt->x, fake_output_decrypt->len,
-                                output2, output2_length );
+                        output2, output2_length );
                 else
                     ASSERT_COMPARE( input_data->x, input_data->len,
-                                    output2, output2_length );
+                        output2, output2_length );
             }
         }
     }
@@ -1967,7 +1974,8 @@ void asymmetric_decrypt( int alg_arg,
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     PSA_ASSERT( psa_crypto_init( ) );
-    mbedtls_test_driver_rsa_hooks = mbedtls_test_driver_rsa_hooks_init();
+    mbedtls_test_driver_asymmetric_encryption_hooks =
+        mbedtls_test_driver_asymmetric_encryption_hooks_init();
 
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DECRYPT );
     psa_set_key_algorithm( &attributes, alg );
@@ -1976,11 +1984,15 @@ void asymmetric_decrypt( int alg_arg,
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &key ) );
 
-    mbedtls_test_driver_rsa_hooks.forced_status = forced_status_decrypt;
+    mbedtls_test_driver_asymmetric_encryption_hooks.forced_status =
+        forced_status_decrypt;
+
     if ( fake_output_decrypt->len > 0 )
     {
-        mbedtls_test_driver_rsa_hooks.forced_output = fake_output_decrypt->x;
-        mbedtls_test_driver_rsa_hooks.forced_output_length = fake_output_decrypt->len;
+        mbedtls_test_driver_asymmetric_encryption_hooks.forced_output =
+            fake_output_decrypt->x;
+        mbedtls_test_driver_asymmetric_encryption_hooks.forced_output_length =
+            fake_output_decrypt->len;
         output_size = fake_output_decrypt->len;
         ASSERT_ALLOC( output, output_size );
     }
@@ -1999,7 +2011,7 @@ void asymmetric_decrypt( int alg_arg,
     {
         TEST_EQUAL( output_length, expected_output_data->len );
         ASSERT_COMPARE( expected_output_data->x, expected_output_data->len,
-                    output, output_length );
+            output, output_length );
     }
 exit:
     /*

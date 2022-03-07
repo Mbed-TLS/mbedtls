@@ -1,5 +1,5 @@
 /*
- * Test driver for hash driver entry points.
+ * Test driver for asymmetric encryption.
  */
 /*  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
@@ -17,8 +17,8 @@
  *  limitations under the License.
  */
 
-#ifndef PSA_CRYPTO_TEST_DRIVERS_ASYM_H
-#define PSA_CRYPTO_TEST_DRIVERS_ASYM_H
+#ifndef PSA_CRYPTO_TEST_DRIVERS_ASYMMETRIC_ENCRYPTION_H
+#define PSA_CRYPTO_TEST_DRIVERS_ASYMMETRIC_ENCRYPTION_H
 
 #include "mbedtls/build_info.h"
 
@@ -33,20 +33,23 @@ typedef struct {
     /* If not PSA_SUCCESS, return this error code instead of processing the
      * function call. */
     psa_status_t forced_status;
-    /* Count the amount of times one of the rsa driver functions is called. */
+    /* Count the amount of times one of the asymmetric_encryption driver 
+       functions is called. */
     unsigned long hits;
-} mbedtls_test_driver_rsa_hooks_t;
+} mbedtls_test_driver_asymmetric_encryption_hooks_t;
 
-#define MBEDTLS_TEST_DRIVER_RSA_INIT { NULL, 0, PSA_SUCCESS, 0 }
+#define MBEDTLS_TEST_DRIVER_ASYMMETRIC_ENCRYPTION_INIT { NULL, 0, PSA_SUCCESS, 0 }
 
-static inline mbedtls_test_driver_rsa_hooks_t
-     mbedtls_test_driver_rsa_hooks_init( void )
+static inline mbedtls_test_driver_asymmetric_encryption_hooks_t
+     mbedtls_test_driver_asymmetric_encryption_hooks_init( void )
 {
-    const mbedtls_test_driver_rsa_hooks_t v = MBEDTLS_TEST_DRIVER_RSA_INIT;
+    const mbedtls_test_driver_asymmetric_encryption_hooks_t v =
+        MBEDTLS_TEST_DRIVER_ASYMMETRIC_ENCRYPTION_INIT;
     return( v );
 }
 
-extern mbedtls_test_driver_rsa_hooks_t mbedtls_test_driver_rsa_hooks;
+extern mbedtls_test_driver_asymmetric_encryption_hooks_t 
+    mbedtls_test_driver_asymmetric_encryption_hooks;
 
 psa_status_t mbedtls_test_transparent_asymmetric_encrypt(
     const psa_key_attributes_t *attributes, const uint8_t *key_buffer,
@@ -73,4 +76,4 @@ psa_status_t mbedtls_test_opaque_asymmetric_decrypt(
     uint8_t *output, size_t output_size, size_t *output_length );
 
 #endif /* PSA_CRYPTO_DRIVER_TEST */
-#endif /* PSA_CRYPTO_TEST_DRIVERS_ASYM_H */
+#endif /* PSA_CRYPTO_TEST_DRIVERS_ASYMMETRIC_ENCRYPTION_H */

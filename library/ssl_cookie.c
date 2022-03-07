@@ -121,10 +121,11 @@ int mbedtls_ssl_cookie_setup( mbedtls_ssl_cookie_ctx *ctx,
     if( alg == 0 )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    ctx->psa_hmac_alg = PSA_ALG_HMAC( alg );
+    ctx->psa_hmac_alg = PSA_ALG_TRUNCATED_MAC( PSA_ALG_HMAC( alg ),
+                                               COOKIE_HMAC_LEN );
 
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_MESSAGE );
-    psa_set_key_algorithm( &attributes, PSA_ALG_HMAC( alg ) );
+    psa_set_key_algorithm( &attributes, ctx->psa_hmac_alg );
     psa_set_key_type( &attributes, PSA_KEY_TYPE_HMAC );
     psa_set_key_bits( &attributes, PSA_BYTES_TO_BITS( COOKIE_MD_OUTLEN ) );
 

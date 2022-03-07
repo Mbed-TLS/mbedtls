@@ -627,7 +627,7 @@ static int mac_multipart_internal_func( int key_type_arg, data_t *key_data,
     int test_ok = 0;
     size_t part_count = 0;
 
-    PSA_ASSERT( psa_crypto_init( ) );
+    PSA_INIT( );
 
     if( is_verify )
         psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_HASH );

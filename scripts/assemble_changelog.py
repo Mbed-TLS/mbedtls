@@ -407,14 +407,15 @@ def check_output(generated_output_file, main_input_file, merged_files):
     is also present in an output file. This is not perfect but good enough
     for now.
     """
-    generated_output = set(open(generated_output_file, 'r', encoding='utf-8'))
-    for line in open(main_input_file, 'r', encoding='utf-8'):
-        if line not in generated_output:
-            raise LostContent('original file', line)
-    for merged_file in merged_files:
-        for line in open(merged_file, 'r', encoding='utf-8'):
+    with open(generated_output_file, 'r', encoding='utf-8') as fd:
+        generated_output = set(fd)
+        for line in open(main_input_file, 'r', encoding='utf-8'):
             if line not in generated_output:
-                raise LostContent(merged_file, line)
+                raise LostContent('original file', line)
+        for merged_file in merged_files:
+            for line in open(merged_file, 'r', encoding='utf-8'):
+                if line not in generated_output:
+                    raise LostContent(merged_file, line)
 
 def finish_output(changelog, output_file, input_file, merged_files):
     """Write the changelog to the output file.

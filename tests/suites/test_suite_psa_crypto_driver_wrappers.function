@@ -1,5 +1,78 @@
 /* BEGIN_HEADER */
 #include "test/drivers/test_driver.h"
+
+#if defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY)
+/* Sanity checks on the output of RSA encryption.
+ *
+ * \param modulus               Key modulus. Must not have leading zeros.
+ * \param private_exponent      Key private exponent.
+ * \param alg                   An RSA algorithm.
+ * \param input_data            The input plaintext.
+ * \param buf                   The ciphertext produced by the driver.
+ * \param length                Length of \p buf in bytes.
+ */
+static int sanity_check_rsa_encryption_result(
+    psa_algorithm_t alg,
+    const data_t *modulus, const data_t *private_exponent,
+    const data_t *input_data,
+    uint8_t *buf, size_t length )
+{
+#if defined(MBEDTLS_BIGNUM_C)
+    mbedtls_mpi N, D, C, X;
+    mbedtls_mpi_init( &N );
+    mbedtls_mpi_init( &D );
+    mbedtls_mpi_init( &C );
+    mbedtls_mpi_init( &X );
+#endif /* MBEDTLS_BIGNUM_C */
+
+    int ok = 0;
+
+    TEST_ASSERT( length == modulus->len );
+
+#if defined(MBEDTLS_BIGNUM_C)
+    /* Perform the private key operation */
+    TEST_ASSERT( mbedtls_mpi_read_binary( &N, modulus->x, modulus->len ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_binary( &D,
+                                          private_exponent->x,
+                                          private_exponent->len ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_binary( &C, buf, length ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_exp_mod( &X, &C, &D, &N, NULL ) == 0 );
+
+    /* Sanity checks on the padded plaintext */
+    TEST_ASSERT( mbedtls_mpi_write_binary( &X, buf, length ) == 0 );
+
+    if( alg == PSA_ALG_RSA_PKCS1V15_CRYPT )
+    {
+        TEST_ASSERT( length > input_data->len + 2 );
+        TEST_EQUAL( buf[0], 0x00 );
+        TEST_EQUAL( buf[1], 0x02 );
+        TEST_EQUAL( buf[length - input_data->len - 1], 0x00 );
+        ASSERT_COMPARE( buf + length - input_data->len, input_data->len,
+                        input_data->x, input_data->len );
+    }
+    else if( PSA_ALG_IS_RSA_OAEP( alg ) )
+    {
+        TEST_EQUAL( buf[0], 0x00 );
+        /* The rest is too hard to check */
+    }
+    else
+    {
+        TEST_ASSERT( ! "Encryption result sanity check not implemented for RSA algorithm" );
+    }
+#endif /* MBEDTLS_BIGNUM_C */
+
+    ok = 1;
+
+exit:
+#if defined(MBEDTLS_BIGNUM_C)
+    mbedtls_mpi_free( &N );
+    mbedtls_mpi_free( &D );
+    mbedtls_mpi_free( &C );
+    mbedtls_mpi_free( &X );
+#endif /* MBEDTLS_BIGNUM_C */
+    return( ok );
+}
+#endif
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -2029,11 +2102,10 @@ exit:
 /* BEGIN_CASE */
 void asymmetric_encrypt( int alg_arg,
                          data_t *key_data,
-                         data_t *key_modulus,
-                         data_t *key_exponent,
+                         data_t *modulus,
+                         data_t *private_exponent,
                          data_t *input_data,
                          data_t *label,
-                         data_t *expected_output_data,
                          data_t *fake_output_encrypt,
                          int forced_status_encrypt_arg,
                          int expected_status_encrypt_arg )
@@ -2047,7 +2119,6 @@ void asymmetric_encrypt( int alg_arg,
     psa_status_t forced_status_encrypt = forced_status_encrypt_arg;
     psa_status_t expected_status_encrypt = expected_status_encrypt_arg;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    (void)expected_output_data;
 
     PSA_ASSERT( psa_crypto_init( ) );
     mbedtls_test_driver_asymmetric_encryption_hooks =
@@ -2059,6 +2130,9 @@ void asymmetric_encrypt( int alg_arg,
 
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &key ) );
+
+    PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
+    size_t key_bits = psa_get_key_bits( &attributes );
 
     mbedtls_test_driver_asymmetric_encryption_hooks.forced_status =
         forced_status_encrypt;
@@ -2074,7 +2148,7 @@ void asymmetric_encrypt( int alg_arg,
     }
     else
     {
-        output_size = key_data->len; // ???
+        output_size = PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE( key_type, key_bits, alg );
         ASSERT_ALLOC( output, output_size );
     }
 
@@ -2085,35 +2159,23 @@ void asymmetric_encrypt( int alg_arg,
                                         &output_length ), expected_status_encrypt );
     if ( expected_status_encrypt == PSA_SUCCESS )
     {
-        mbedtls_mpi N, E, A, X;
-        mbedtls_mpi_init( &N );
-        mbedtls_mpi_init( &E );
-        mbedtls_mpi_init( &A );
-        mbedtls_mpi_init( &X );
-
-        TEST_ASSERT( mbedtls_mpi_read_binary( &N, key_modulus->x, key_modulus->len ) == 0 );
-        TEST_ASSERT( mbedtls_mpi_read_binary( &E, key_exponent->x, key_exponent->len ) == 0 );
-        TEST_ASSERT( mbedtls_mpi_read_binary( &A, output, output_length ) == 0 );
-
-        TEST_ASSERT( mbedtls_mpi_exp_mod( &X, &A, &E, &N, NULL ) == 0 );
-
-        TEST_ASSERT( mbedtls_mpi_write_binary( &X, output, output_size ) == 0 );
-
-        mbedtls_fprintf( stderr, "\nInput: " );
-        for( size_t i = 0; i < input_data->len; i++ ){
-            if( input_data->x[i] < 16) mbedtls_fprintf( stderr, "%x", 0 );
-                mbedtls_fprintf( stderr, "%x", input_data->x[i] );
+        /* Perform sanity checks on the output */
+#if PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
+        if( PSA_KEY_TYPE_IS_RSA( key_type ) )
+        {
+            if( ! sanity_check_rsa_encryption_result(
+                    alg, modulus, private_exponent,
+                    input_data,
+                    output, output_length ) )
+                goto exit;
         }
-        mbedtls_fprintf( stderr, "\n" );
-
-        mbedtls_fprintf( stderr, "\nOutput: " );
-        for( size_t i = 0; i < output_size; i++ ){
-            if( output[i] < 16) mbedtls_fprintf( stderr, "%x", 0 );
-                mbedtls_fprintf( stderr, "%x", output[i] );
+#endif
+        else
+        {
+            (void) modulus;
+            (void) private_exponent;
+            TEST_ASSERT( ! "Encryption sanity checks not implemented for this key type" );
         }
-        mbedtls_fprintf( stderr, "\n" );
-
-        TEST_EQUAL( output_length, key_data->len );        
     }
 exit:
     /*

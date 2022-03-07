@@ -589,6 +589,122 @@ exit:
     return( test_ok );
 }
 
+/*!
+ * \brief                           Internal Function for MAC multipart tests.
+ * \param key_type_arg              Type of key passed in
+ * \param key_data                  The encryption / decryption key data
+ * \param alg_arg                   The type of algorithm used
+ * \param input_data                Data to encrypt / decrypt
+ * \param data_part_len_arg         If not -1, the length of chunks to feed
+ *                                  the data in to be encrypted / decrypted. If
+ *                                  -1, no chunking
+ * \param expected_output           Expected output
+ * \param is_verify                 If non-zero this is an verify operation.
+ * \param do_zero_parts             If non-zero, interleave zero length chunks
+ *                                  with normal length chunks.
+ * \return int                      Zero on failure, non-zero on success.
+ */
+static int mac_multipart_internal_func( int key_type_arg, data_t *key_data,
+                                        int alg_arg,
+                                        data_t *input_data,
+                                        int data_part_len_arg,
+                                        data_t *expected_output,
+                                        int is_verify,
+                                        int do_zero_parts )
+{
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
+    unsigned char mac[PSA_MAC_MAX_SIZE];
+    size_t part_offset = 0;
+    size_t part_length = 0;
+    size_t data_part_len = 0;
+    size_t mac_len = 0;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
+
+    int test_ok = 0;
+    size_t part_count = 0;
+
+    PSA_INIT( );
+
+    if( is_verify )
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_HASH );
+    else
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_HASH );
+
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, key_type );
+
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &key ) );
+
+    if( is_verify )
+        status = psa_mac_verify_setup( &operation, key, alg );
+    else
+        status = psa_mac_sign_setup( &operation, key, alg );
+
+    PSA_ASSERT( status );
+
+    if( data_part_len_arg != -1 )
+    {
+        /* Pass data in parts */
+        data_part_len = ( size_t ) data_part_len_arg;
+
+        for( part_offset = 0, part_count = 0;
+             part_offset < input_data->len;
+             part_offset += part_length, part_count++ )
+        {
+            if( do_zero_parts && ( part_count & 0x01 ) )
+            {
+                part_length = 0;
+            }
+            else if( ( input_data->len - part_offset ) < data_part_len )
+            {
+                part_length = ( input_data->len - part_offset );
+            }
+            else
+            {
+                part_length = data_part_len;
+            }
+
+            PSA_ASSERT( psa_mac_update( &operation,
+                                        ( input_data->x + part_offset ),
+                                        part_length ) );
+        }
+    }
+    else
+    {
+        /* Pass all data in one go. */
+        PSA_ASSERT( psa_mac_update( &operation, input_data->x,
+                                    input_data->len ) );
+    }
+
+    if( is_verify )
+    {
+        PSA_ASSERT( psa_mac_verify_finish( &operation, expected_output->x,
+                                           expected_output->len ) );
+    }
+    else
+    {
+        PSA_ASSERT( psa_mac_sign_finish( &operation, mac,
+                                         PSA_MAC_MAX_SIZE, &mac_len ) );
+
+        ASSERT_COMPARE( expected_output->x, expected_output->len,
+                        mac, mac_len );
+    }
+
+    test_ok = 1;
+
+exit:
+    psa_destroy_key( key );
+    psa_mac_abort( &operation );
+    PSA_DONE( );
+
+    return( test_ok );
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -1155,6 +1271,25 @@ void mac_key_policy( int policy_usage_arg,
                                  mac, PSA_MAC_MAX_SIZE, &mac_len ),
                 expected_status_sign );
 
+    /* Calculate the MAC, multi-part case. */
+    PSA_ASSERT( psa_mac_abort( &operation ) );
+    status = psa_mac_sign_setup( &operation, key, exercise_alg );
+    if( status == PSA_SUCCESS )
+    {
+        status = psa_mac_update( &operation, input, 128 );
+        if( status == PSA_SUCCESS )
+            TEST_EQUAL( psa_mac_sign_finish( &operation, mac, PSA_MAC_MAX_SIZE,
+                                             &mac_len ),
+                        expected_status_sign );
+        else
+            TEST_EQUAL( status, expected_status_sign );
+    }
+    else
+    {
+        TEST_EQUAL( status, expected_status_sign );
+    }
+    PSA_ASSERT( psa_mac_abort( &operation ) );
+
     /* Verify correct MAC, one-shot case. */
     status = psa_mac_verify( key, exercise_alg, input, 128,
                                 mac, mac_len );
@@ -1163,6 +1298,29 @@ void mac_key_policy( int policy_usage_arg,
         TEST_EQUAL( status, PSA_ERROR_INVALID_SIGNATURE );
     else
         TEST_EQUAL( status, expected_status_verify );
+
+    /* Verify correct MAC, multi-part case. */
+    status = psa_mac_verify_setup( &operation, key, exercise_alg );
+    if( status == PSA_SUCCESS )
+    {
+        status = psa_mac_update( &operation, input, 128 );
+        if( status == PSA_SUCCESS )
+        {
+            status = psa_mac_verify_finish( &operation, mac, mac_len );
+            if( expected_status_sign != PSA_SUCCESS && expected_status_verify == PSA_SUCCESS )
+                TEST_EQUAL( status, PSA_ERROR_INVALID_SIGNATURE );
+            else
+                TEST_EQUAL( status, expected_status_verify );
+        }
+        else
+        {
+            TEST_EQUAL( status, expected_status_verify );
+        }
+    }
+    else
+    {
+        TEST_EQUAL( status, expected_status_verify );
+    }
 
     psa_mac_abort( &operation );
 
@@ -1188,7 +1346,19 @@ void cipher_key_policy( int policy_usage_arg,
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     psa_key_usage_t policy_usage = policy_usage_arg;
+    size_t output_buffer_size = 0;
+    size_t input_buffer_size = 0;
+    size_t output_length = 0;
+    uint8_t *output = NULL;
+    uint8_t *input = NULL;
     psa_status_t status;
+
+    input_buffer_size = PSA_BLOCK_CIPHER_BLOCK_LENGTH( exercise_alg );
+    output_buffer_size = PSA_CIPHER_ENCRYPT_OUTPUT_SIZE( key_type, exercise_alg,
+                                                         input_buffer_size );
+
+    ASSERT_ALLOC( input, input_buffer_size );
+    ASSERT_ALLOC( output, output_buffer_size );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -1203,6 +1373,17 @@ void cipher_key_policy( int policy_usage_arg,
     TEST_EQUAL( policy_usage,
                 mbedtls_test_update_key_usage_flags( policy_usage ) );
 
+    /* Encrypt check, one-shot */
+    status = psa_cipher_encrypt( key, exercise_alg, input, input_buffer_size,
+                                 output, output_buffer_size,
+                                 &output_length);
+    if( policy_alg == exercise_alg &&
+        ( policy_usage & PSA_KEY_USAGE_ENCRYPT ) != 0 )
+        PSA_ASSERT( status );
+    else
+        TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
+
+    /* Encrypt check, multi-part */
     status = psa_cipher_encrypt_setup( &operation, key, exercise_alg );
     if( policy_alg == exercise_alg &&
         ( policy_usage & PSA_KEY_USAGE_ENCRYPT ) != 0 )
@@ -1211,6 +1392,17 @@ void cipher_key_policy( int policy_usage_arg,
         TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
     psa_cipher_abort( &operation );
 
+    /* Decrypt check, one-shot */
+    status = psa_cipher_decrypt( key, exercise_alg, output, output_buffer_size,
+                                 input, input_buffer_size,
+                                 &output_length);
+    if( policy_alg == exercise_alg &&
+        ( policy_usage & PSA_KEY_USAGE_DECRYPT ) != 0 )
+        PSA_ASSERT( status );
+    else
+        TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
+
+    /* Decrypt check, multi-part */
     status = psa_cipher_decrypt_setup( &operation, key, exercise_alg );
     if( policy_alg == exercise_alg &&
         ( policy_usage & PSA_KEY_USAGE_DECRYPT ) != 0 )
@@ -1220,6 +1412,8 @@ void cipher_key_policy( int policy_usage_arg,
 
 exit:
     psa_cipher_abort( &operation );
+    mbedtls_free( input );
+    mbedtls_free( output );
     psa_destroy_key( key );
     PSA_DONE( );
 }
@@ -1237,6 +1431,7 @@ void aead_key_policy( int policy_usage_arg,
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_aead_operation_t operation = PSA_AEAD_OPERATION_INIT;
     psa_key_usage_t policy_usage = policy_usage_arg;
     psa_status_t status;
     psa_status_t expected_status = expected_status_arg;
@@ -1262,6 +1457,7 @@ void aead_key_policy( int policy_usage_arg,
     TEST_EQUAL( policy_usage,
                 mbedtls_test_update_key_usage_flags( policy_usage ) );
 
+    /* Encrypt check, one-shot */
     status = psa_aead_encrypt( key, exercise_alg,
                                nonce, nonce_length,
                                NULL, 0,
@@ -1273,6 +1469,14 @@ void aead_key_policy( int policy_usage_arg,
     else
         TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
 
+    /* Encrypt check, multi-part */
+    status = psa_aead_encrypt_setup( &operation, key, exercise_alg );
+    if( ( policy_usage & PSA_KEY_USAGE_ENCRYPT ) != 0 )
+        TEST_EQUAL( status, expected_status );
+    else
+        TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
+
+    /* Decrypt check, one-shot */
     memset( tag, 0, sizeof( tag ) );
     status = psa_aead_decrypt( key, exercise_alg,
                                nonce, nonce_length,
@@ -1287,7 +1491,16 @@ void aead_key_policy( int policy_usage_arg,
     else
         TEST_EQUAL( status, expected_status );
 
+    /* Decrypt check, multi-part */
+    PSA_ASSERT( psa_aead_abort( &operation ) );
+    status = psa_aead_decrypt_setup( &operation, key, exercise_alg );
+    if( ( policy_usage & PSA_KEY_USAGE_DECRYPT ) == 0 )
+        TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
+    else
+        TEST_EQUAL( status, expected_status );
+
 exit:
+    PSA_ASSERT( psa_aead_abort( &operation ) );
     psa_destroy_key( key );
     PSA_DONE( );
 }
@@ -1803,12 +2016,24 @@ void hash_setup( int alg_arg,
                  int expected_status_arg )
 {
     psa_algorithm_t alg = alg_arg;
+    uint8_t *output = NULL;
+    size_t output_size = 0;
+    size_t output_length = 0;
     psa_status_t expected_status = expected_status_arg;
     psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
     psa_status_t status;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
+    /* Hash Setup, one-shot */
+    output_size = PSA_HASH_LENGTH( alg );
+    ASSERT_ALLOC( output, output_size );
+
+    status = psa_hash_compute( alg, NULL, 0,
+                               output, output_size, &output_length );
+    TEST_EQUAL( status, expected_status );
+
+    /* Hash Setup, multi-part */
     status = psa_hash_setup( &operation, alg );
     TEST_EQUAL( status, expected_status );
 
@@ -1827,6 +2052,7 @@ void hash_setup( int alg_arg,
 #endif
 
 exit:
+    mbedtls_free( output );
     PSA_DONE( );
 }
 /* END_CASE */
@@ -1839,6 +2065,7 @@ void hash_compute_fail( int alg_arg, data_t *input,
     uint8_t *output = NULL;
     size_t output_size = output_size_arg;
     size_t output_length = INVALID_EXPORT_LENGTH;
+    psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
     psa_status_t expected_status = expected_status_arg;
     psa_status_t status;
 
@@ -1846,12 +2073,38 @@ void hash_compute_fail( int alg_arg, data_t *input,
 
     PSA_ASSERT( psa_crypto_init( ) );
 
+    /* Hash Compute, one-shot */
     status = psa_hash_compute( alg, input->x, input->len,
                                output, output_size, &output_length );
     TEST_EQUAL( status, expected_status );
     TEST_ASSERT( output_length <= output_size );
 
+    /* Hash Compute, multi-part */
+    status = psa_hash_setup( &operation, alg );
+    if( status == PSA_SUCCESS )
+    {
+        status = psa_hash_update( &operation, input->x, input->len );
+        if( status == PSA_SUCCESS )
+        {
+            status = psa_hash_finish( &operation, output, output_size,
+                                      &output_length );
+            if( status == PSA_SUCCESS )
+                TEST_ASSERT( output_length <= output_size );
+            else
+                TEST_EQUAL( status, expected_status );
+        }
+        else
+        {
+            TEST_EQUAL( status, expected_status );
+        }
+    }
+    else
+    {
+        TEST_EQUAL( status, expected_status );
+    }
+
 exit:
+    PSA_ASSERT( psa_hash_abort( &operation ) );
     mbedtls_free( output );
     PSA_DONE( );
 }
@@ -1864,15 +2117,39 @@ void hash_compare_fail( int alg_arg, data_t *input,
 {
     psa_algorithm_t alg = alg_arg;
     psa_status_t expected_status = expected_status_arg;
+    psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
     psa_status_t status;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
+    /* Hash Compare, one-shot */
     status = psa_hash_compare( alg, input->x, input->len,
                                reference_hash->x, reference_hash->len );
     TEST_EQUAL( status, expected_status );
 
+    /* Hash Compare, multi-part */
+    status = psa_hash_setup( &operation, alg );
+    if( status == PSA_SUCCESS )
+    {
+        status = psa_hash_update( &operation, input->x, input->len );
+        if( status == PSA_SUCCESS )
+        {
+            status = psa_hash_verify( &operation, reference_hash->x,
+                                      reference_hash->len );
+            TEST_EQUAL( status, expected_status );
+        }
+        else
+        {
+            TEST_EQUAL( status, expected_status );
+        }
+    }
+    else
+    {
+        TEST_EQUAL( status, expected_status );
+    }
+
 exit:
+    PSA_ASSERT( psa_hash_abort( &operation ) );
     PSA_DONE( );
 }
 /* END_CASE */
@@ -1884,11 +2161,12 @@ void hash_compute_compare( int alg_arg, data_t *input,
     psa_algorithm_t alg = alg_arg;
     uint8_t output[PSA_HASH_MAX_SIZE + 1];
     size_t output_length = INVALID_EXPORT_LENGTH;
+    psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
     size_t i;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
-    /* Compute with tight buffer */
+    /* Compute with tight buffer, one-shot */
     PSA_ASSERT( psa_hash_compute( alg, input->x, input->len,
                                   output, PSA_HASH_LENGTH( alg ),
                                   &output_length ) );
@@ -1896,7 +2174,17 @@ void hash_compute_compare( int alg_arg, data_t *input,
     ASSERT_COMPARE( output, output_length,
                     expected_output->x, expected_output->len );
 
-    /* Compute with larger buffer */
+    /* Compute with tight buffer, multi-part */
+    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    PSA_ASSERT( psa_hash_update( &operation, input->x, input->len ) );
+    PSA_ASSERT( psa_hash_finish( &operation, output,
+                                 PSA_HASH_LENGTH( alg ),
+                                 &output_length ) );
+    TEST_EQUAL( output_length, PSA_HASH_LENGTH( alg ) );
+    ASSERT_COMPARE( output, output_length,
+                    expected_output->x, expected_output->len );
+
+    /* Compute with larger buffer, one-shot */
     PSA_ASSERT( psa_hash_compute( alg, input->x, input->len,
                                   output, sizeof( output ),
                                   &output_length ) );
@@ -1904,18 +2192,45 @@ void hash_compute_compare( int alg_arg, data_t *input,
     ASSERT_COMPARE( output, output_length,
                     expected_output->x, expected_output->len );
 
-    /* Compare with correct hash */
+    /* Compute with larger buffer, multi-part */
+    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    PSA_ASSERT( psa_hash_update( &operation, input->x, input->len ) );
+    PSA_ASSERT( psa_hash_finish( &operation, output,
+                                 sizeof( output ), &output_length ) );
+    TEST_EQUAL( output_length, PSA_HASH_LENGTH( alg ) );
+    ASSERT_COMPARE( output, output_length,
+                    expected_output->x, expected_output->len );
+
+    /* Compare with correct hash, one-shot */
     PSA_ASSERT( psa_hash_compare( alg, input->x, input->len,
                                   output, output_length ) );
 
-    /* Compare with trailing garbage */
+    /* Compare with correct hash, multi-part */
+    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    PSA_ASSERT( psa_hash_update( &operation, input->x, input->len ) );
+    PSA_ASSERT( psa_hash_verify( &operation, output,
+                output_length ) );
+
+    /* Compare with trailing garbage, one-shot */
     TEST_EQUAL( psa_hash_compare( alg, input->x, input->len,
                                   output, output_length + 1 ),
                 PSA_ERROR_INVALID_SIGNATURE );
 
-    /* Compare with truncated hash */
+    /* Compare with trailing garbage, multi-part */
+    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    PSA_ASSERT( psa_hash_update( &operation, input->x, input->len ) );
+    TEST_EQUAL( psa_hash_verify( &operation, output, output_length + 1 ),
+                PSA_ERROR_INVALID_SIGNATURE );
+
+    /* Compare with truncated hash, one-shot */
     TEST_EQUAL( psa_hash_compare( alg, input->x, input->len,
                                   output, output_length - 1 ),
+                PSA_ERROR_INVALID_SIGNATURE );
+
+    /* Compare with truncated hash, multi-part */
+    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    PSA_ASSERT( psa_hash_update( &operation, input->x, input->len ) );
+    TEST_EQUAL( psa_hash_verify( &operation, output, output_length - 1 ),
                 PSA_ERROR_INVALID_SIGNATURE );
 
     /* Compare with corrupted value */
@@ -1923,13 +2238,23 @@ void hash_compute_compare( int alg_arg, data_t *input,
     {
         mbedtls_test_set_step( i );
         output[i] ^= 1;
+
+        /* One-shot */
         TEST_EQUAL( psa_hash_compare( alg, input->x, input->len,
                                       output, output_length ),
                     PSA_ERROR_INVALID_SIGNATURE );
+
+        /* Multi-Part */
+        PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+        PSA_ASSERT( psa_hash_update( &operation, input->x, input->len ) );
+        TEST_EQUAL( psa_hash_verify( &operation, output, output_length ),
+                    PSA_ERROR_INVALID_SIGNATURE );
+
         output[i] ^= 1;
     }
 
 exit:
+    PSA_ASSERT( psa_hash_abort( &operation ) );
     PSA_DONE( );
 }
 /* END_CASE */
@@ -2378,6 +2703,45 @@ void mac_bad_order( )
 
 exit:
     PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mac_sign_verify_multi( int key_type_arg,
+                            data_t *key_data,
+                            int alg_arg,
+                            data_t *input,
+                            int is_verify,
+                            data_t *expected_mac )
+{
+    size_t data_part_len = 0;
+
+    for( data_part_len = 1; data_part_len <= input->len; data_part_len++ )
+    {
+        /* Split data into length(data_part_len) parts. */
+        mbedtls_test_set_step( 2000 + data_part_len );
+
+        if( mac_multipart_internal_func( key_type_arg, key_data,
+                                         alg_arg,
+                                         input, data_part_len,
+                                         expected_mac,
+                                         is_verify, 0 ) == 0 )
+            break;
+
+        /* length(0) part, length(data_part_len) part, length(0) part... */
+        mbedtls_test_set_step( 3000 + data_part_len );
+
+        if( mac_multipart_internal_func( key_type_arg, key_data,
+                                         alg_arg,
+                                         input, data_part_len,
+                                         expected_mac,
+                                         is_verify, 1 ) == 0 )
+            break;
+    }
+
+    /* Goto is required to silence warnings about unused labels, as we
+     * don't actually do any test assertions in this function. */
+    goto exit;
 }
 /* END_CASE */
 
@@ -2831,9 +3195,14 @@ void cipher_encrypt_fail( int alg_arg,
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     psa_status_t expected_status = expected_status_arg;
+    unsigned char iv[PSA_CIPHER_IV_MAX_SIZE] = {0};
+    size_t iv_size = PSA_CIPHER_IV_MAX_SIZE;
+    size_t iv_length = 0;
     unsigned char *output = NULL;
     size_t output_buffer_size = 0;
     size_t output_length = 0;
+    size_t function_output_length;
+    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     if ( PSA_ERROR_BAD_STATE != expected_status )
@@ -2852,12 +3221,48 @@ void cipher_encrypt_fail( int alg_arg,
                                     &key ) );
     }
 
+    /* Encrypt, one-shot */
     status = psa_cipher_encrypt( key, alg, input->x, input->len, output,
                                  output_buffer_size, &output_length );
 
     TEST_EQUAL( status, expected_status );
 
+    /* Encrypt, multi-part */
+    status = psa_cipher_encrypt_setup( &operation, key, alg );
+    if( status == PSA_SUCCESS )
+    {
+        if( alg != PSA_ALG_ECB_NO_PADDING )
+        {
+            PSA_ASSERT( psa_cipher_generate_iv( &operation,
+                        iv, iv_size,
+                        &iv_length ) );
+        }
+
+        status = psa_cipher_update( &operation, input->x, input->len,
+                                    output, output_buffer_size,
+                                    &function_output_length );
+        if( status == PSA_SUCCESS )
+        {
+            output_length += function_output_length;
+
+            status = psa_cipher_finish( &operation, output + output_length,
+                                        output_buffer_size - output_length,
+                                        &function_output_length );
+
+            TEST_EQUAL( status, expected_status );
+        }
+        else
+        {
+            TEST_EQUAL( status, expected_status );
+        }
+    }
+    else
+    {
+        TEST_EQUAL( status, expected_status );
+    }
+
 exit:
+    psa_cipher_abort( &operation );
     mbedtls_free( output );
     psa_destroy_key( key );
     PSA_DONE( );
@@ -2936,6 +3341,7 @@ void cipher_encrypt_alg_without_iv( int alg_arg,
                                         &iv_length ),
                 PSA_ERROR_BAD_STATE );
 
+    /* Encrypt, one-shot */
     PSA_ASSERT( psa_cipher_encrypt( key, alg, input->x, input->len, output,
                                     output_buffer_size, &output_length ) );
     TEST_ASSERT( output_length <=
@@ -2945,7 +3351,24 @@ void cipher_encrypt_alg_without_iv( int alg_arg,
 
     ASSERT_COMPARE( expected_output->x, expected_output->len,
                     output, output_length );
+
+    /* Encrypt, multi-part */
+    PSA_ASSERT( psa_cipher_abort( &operation ) );
+    PSA_ASSERT( psa_cipher_encrypt_setup( &operation, key, alg ) );
+
+    PSA_ASSERT( psa_cipher_update( &operation, input->x, input->len,
+                                   output, output_buffer_size,
+                                   &output_length) );
+    TEST_ASSERT( output_length <=
+                 PSA_CIPHER_ENCRYPT_OUTPUT_SIZE( key_type, alg, input->len ) );
+    TEST_ASSERT( output_length <=
+                 PSA_CIPHER_ENCRYPT_OUTPUT_MAX_SIZE( input->len ) );
+
+    ASSERT_COMPARE( expected_output->x, expected_output->len,
+                    output, output_length );
+
 exit:
+    PSA_ASSERT( psa_cipher_abort( &operation ) );
     mbedtls_free( output );
     psa_destroy_key( key );
     PSA_DONE( );
@@ -3293,8 +3716,11 @@ void cipher_decrypt_fail( int alg_arg,
     unsigned char *input = NULL;
     size_t input_buffer_size = 0;
     unsigned char *output = NULL;
+    unsigned char *output_multi = NULL;
     size_t output_buffer_size = 0;
     size_t output_length = 0;
+    size_t function_output_length;
+    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     if ( PSA_ERROR_BAD_STATE != expected_status )
@@ -3321,13 +3747,65 @@ void cipher_decrypt_fail( int alg_arg,
     output_buffer_size = PSA_CIPHER_DECRYPT_OUTPUT_SIZE( key_type, alg, input_buffer_size );
     ASSERT_ALLOC( output, output_buffer_size );
 
+    /* Decrypt, one-short */
     status = psa_cipher_decrypt( key, alg, input, input_buffer_size, output,
                                  output_buffer_size, &output_length );
     TEST_EQUAL( status, expected_status );
 
+    /* Decrypt, multi-part */
+    status = psa_cipher_decrypt_setup( &operation, key, alg );
+    if( status == PSA_SUCCESS )
+    {
+        output_buffer_size = PSA_CIPHER_UPDATE_OUTPUT_SIZE( key_type, alg,
+                                                            input_arg->len ) +
+                             PSA_CIPHER_FINISH_OUTPUT_SIZE( key_type, alg );
+        ASSERT_ALLOC( output_multi, output_buffer_size );
+
+        if( iv->len > 0 )
+        {
+            status = psa_cipher_set_iv( &operation, iv->x, iv->len );
+
+            if( status != PSA_SUCCESS )
+                TEST_EQUAL( status, expected_status );
+        }
+
+        if( status == PSA_SUCCESS )
+        {
+            status = psa_cipher_update( &operation,
+                                        input_arg->x, input_arg->len,
+                                        output_multi, output_buffer_size,
+                                        &function_output_length );
+            if( status == PSA_SUCCESS )
+            {
+                output_length = function_output_length;
+
+                status = psa_cipher_finish( &operation,
+                                            output_multi + output_length,
+                                            output_buffer_size - output_length,
+                                            &function_output_length );
+
+                TEST_EQUAL( status, expected_status );
+            }
+            else
+            {
+                TEST_EQUAL( status, expected_status );
+            }
+        }
+        else
+        {
+            TEST_EQUAL( status, expected_status );
+        }
+    }
+    else
+    {
+        TEST_EQUAL( status, expected_status );
+    }
+
 exit:
+    psa_cipher_abort( &operation );
     mbedtls_free( input );
     mbedtls_free( output );
+    mbedtls_free( output_multi );
     psa_destroy_key( key );
     PSA_DONE( );
 }

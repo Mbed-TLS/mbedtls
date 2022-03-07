@@ -4517,37 +4517,6 @@ int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-int mbedtls_ssl_set_calc_verify_md( mbedtls_ssl_context *ssl, int md )
-{
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    if( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 )
-        return( -1 );
-
-    switch( md )
-    {
-#if defined(MBEDTLS_SHA384_C)
-        case MBEDTLS_SSL_HASH_SHA384:
-            ssl->handshake->calc_verify = ssl_calc_verify_tls_sha384;
-            break;
-#endif
-#if defined(MBEDTLS_SHA256_C)
-        case MBEDTLS_SSL_HASH_SHA256:
-            ssl->handshake->calc_verify = ssl_calc_verify_tls_sha256;
-            break;
-#endif
-        default:
-            return( -1 );
-    }
-
-    return 0;
-#else /* !MBEDTLS_SSL_PROTO_TLS1_2 */
-    (void) ssl;
-    (void) md;
-
-    return( -1 );
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
-}
-
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 int mbedtls_ssl_get_handshake_transcript( mbedtls_ssl_context *ssl,
                                           const mbedtls_md_type_t md,
@@ -5489,6 +5458,37 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= derive keys" ) );
 
     return( 0 );
+}
+
+int mbedtls_ssl_set_calc_verify_md( mbedtls_ssl_context *ssl, int md )
+{
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    if( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 )
+        return( -1 );
+
+    switch( md )
+    {
+#if defined(MBEDTLS_SHA384_C)
+        case MBEDTLS_SSL_HASH_SHA384:
+            ssl->handshake->calc_verify = ssl_calc_verify_tls_sha384;
+            break;
+#endif
+#if defined(MBEDTLS_SHA256_C)
+        case MBEDTLS_SSL_HASH_SHA256:
+            ssl->handshake->calc_verify = ssl_calc_verify_tls_sha256;
+            break;
+#endif
+        default:
+            return( -1 );
+    }
+
+    return 0;
+#else /* !MBEDTLS_SSL_PROTO_TLS1_2 */
+    (void) ssl;
+    (void) md;
+
+    return( -1 );
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 }
 
 #if defined(MBEDTLS_SHA256_C)

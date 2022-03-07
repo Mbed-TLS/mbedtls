@@ -1336,7 +1336,10 @@ mbedtls_pk_type_t mbedtls_ssl_pk_alg_from_sig( unsigned char sig );
 
 mbedtls_md_type_t mbedtls_ssl_md_alg_from_hash( unsigned char hash );
 unsigned char mbedtls_ssl_hash_from_md_alg( int md );
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 int mbedtls_ssl_set_calc_verify_md( mbedtls_ssl_context *ssl, int md );
+#endif
 
 int mbedtls_ssl_check_curve_tls_id( const mbedtls_ssl_context *ssl, uint16_t tls_id );
 #if defined(MBEDTLS_ECP_C)

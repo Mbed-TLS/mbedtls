@@ -26,6 +26,7 @@
 #if defined(MBEDTLS_SM3_C)
 
 #include "mbedtls/sm3.h"
+#include "sm3_internal.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 

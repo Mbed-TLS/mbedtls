@@ -24,12 +24,6 @@
 #ifndef MBEDTLS_SM3_H
 #define MBEDTLS_SM3_H
 
-//#if !defined(MBEDTLS_CONFIG_FILE)
-//#include "mbedtls/config.h"
-//#else
-//#include MBEDTLS_CONFIG_FILE
-//#endif
-
 #include "mbedtls/private_access.h"
 #include "mbedtls/build_info.h"
 
@@ -127,21 +121,6 @@ int mbedtls_sm3_update_ret( mbedtls_sm3_context *ctx,
  */
 int mbedtls_sm3_finish_ret( mbedtls_sm3_context *ctx,
                             unsigned char output[32] );
-
-/**
- * \brief          This function processes a single data block within
- *                 the ongoing SM3 computation. This function is for
- *                 internal use only.
- *
- * \param ctx      The SM3 context. This must be initialized.
- * \param data     The buffer holding one block of data. This must
- *                 be a readable buffer of length \c 64 Bytes.
- *
- * \return         \c 0 on success.
- * \return         A negative error code on failure.
- */
-int mbedtls_internal_sm3_process( mbedtls_sm3_context *ctx,
-                                  const unsigned char data[64] );
 
 /**
  * \brief          This function calculates the SM3 checksum of a buffer.

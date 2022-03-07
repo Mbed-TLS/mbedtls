@@ -1011,23 +1011,6 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
         }
 #endif
 
-        /*
-         * Try to select a SHA-1 certificate for pre-1.2 clients, but still
-         * present them a SHA-higher cert rather than failing if it's the only
-         * one we got that satisfies the other conditions.
-         */
-        if( ssl->minor_ver < MBEDTLS_SSL_MINOR_VERSION_3 &&
-            cur->cert->sig_md != MBEDTLS_MD_SHA1 )
-        {
-            if( fallback == NULL )
-                fallback = cur;
-            {
-                MBEDTLS_SSL_DEBUG_MSG( 3, ( "certificate not preferred: "
-                                    "sha-2 with pre-TLS 1.2 client" ) );
-            continue;
-            }
-        }
-
         /* If we get there, we got a winner */
         break;
     }

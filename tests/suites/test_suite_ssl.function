@@ -876,7 +876,8 @@ exit:
 int mbedtls_endpoint_init( mbedtls_endpoint *ep, int endpoint_type, int pk_alg,
                            mbedtls_test_message_socket_context *dtls_context,
                            mbedtls_test_message_queue *input_queue,
-                           mbedtls_test_message_queue *output_queue )
+                           mbedtls_test_message_queue *output_queue,
+                           const mbedtls_ecp_group_id *curves )
 {
     int ret = -1;
 
@@ -935,6 +936,9 @@ int mbedtls_endpoint_init( mbedtls_endpoint *ep, int endpoint_type, int pk_alg,
                                            MBEDTLS_SSL_TRANSPORT_STREAM,
                                        MBEDTLS_SSL_PRESET_DEFAULT );
     TEST_ASSERT( ret == 0 );
+
+    if( curves != NULL )
+        mbedtls_ssl_conf_curves( &(ep->conf), curves );
 
     ret = mbedtls_ssl_setup( &( ep->ssl ), &( ep->conf ) );
     TEST_ASSERT( ret == 0 );
@@ -1712,7 +1716,7 @@ void perform_handshake( handshake_test_options* options )
         TEST_ASSERT( mbedtls_endpoint_init( &client, MBEDTLS_SSL_IS_CLIENT,
                                             options->pk_alg, &client_context,
                                             &client_queue,
-                                            &server_queue ) == 0 );
+                                            &server_queue, NULL ) == 0 );
 #if defined(MBEDTLS_TIMING_C)
         mbedtls_ssl_set_timer_cb( &client.ssl, &timer_client,
                                   mbedtls_timing_set_delay,
@@ -1723,7 +1727,7 @@ void perform_handshake( handshake_test_options* options )
     {
         TEST_ASSERT( mbedtls_endpoint_init( &client, MBEDTLS_SSL_IS_CLIENT,
                                             options->pk_alg, NULL, NULL,
-                                            NULL ) == 0 );
+                                            NULL, NULL ) == 0 );
     }
 
     if( options->client_min_version != TEST_SSL_MINOR_VERSION_NONE )
@@ -1758,7 +1762,7 @@ void perform_handshake( handshake_test_options* options )
         TEST_ASSERT( mbedtls_endpoint_init( &server, MBEDTLS_SSL_IS_SERVER,
                                             options->pk_alg, &server_context,
                                             &server_queue,
-                                            &client_queue) == 0 );
+                                            &client_queue, NULL ) == 0 );
 #if defined(MBEDTLS_TIMING_C)
         mbedtls_ssl_set_timer_cb( &server.ssl, &timer_server,
                                   mbedtls_timing_set_delay,
@@ -1768,7 +1772,8 @@ void perform_handshake( handshake_test_options* options )
     else
     {
         TEST_ASSERT( mbedtls_endpoint_init( &server, MBEDTLS_SSL_IS_SERVER,
-                                            options->pk_alg, NULL, NULL, NULL ) == 0 );
+                                            options->pk_alg, NULL, NULL,
+                                            NULL, NULL ) == 0 );
     }
 
     mbedtls_ssl_conf_authmode( &server.conf, options->srv_auth_mode );
@@ -4154,14 +4159,14 @@ void mbedtls_endpoint_sanity( int endpoint_type )
     int ret = -1;
 
     ret = mbedtls_endpoint_init( NULL, endpoint_type, MBEDTLS_PK_RSA,
-                                 NULL, NULL, NULL );
+                                 NULL, NULL, NULL, NULL );
     TEST_ASSERT( MBEDTLS_ERR_SSL_BAD_INPUT_DATA == ret );
 
     ret = mbedtls_endpoint_certificate_init( NULL, MBEDTLS_PK_RSA );
     TEST_ASSERT( MBEDTLS_ERR_SSL_BAD_INPUT_DATA == ret );
 
     ret = mbedtls_endpoint_init( &ep, endpoint_type, MBEDTLS_PK_RSA,
-                                 NULL, NULL, NULL );
+                                 NULL, NULL, NULL, NULL );
     TEST_ASSERT( ret == 0 );
 
 exit:
@@ -4177,13 +4182,13 @@ void move_handshake_to_state(int endpoint_type, int state, int need_pass)
     int ret = -1;
 
     ret = mbedtls_endpoint_init( &base_ep, endpoint_type, MBEDTLS_PK_RSA,
-                                 NULL, NULL, NULL );
+                                 NULL, NULL, NULL, NULL );
     TEST_ASSERT( ret == 0 );
 
     ret = mbedtls_endpoint_init( &second_ep,
                             ( endpoint_type == MBEDTLS_SSL_IS_SERVER ) ?
                             MBEDTLS_SSL_IS_CLIENT : MBEDTLS_SSL_IS_SERVER,
-                                 MBEDTLS_PK_RSA, NULL, NULL, NULL );
+                                 MBEDTLS_PK_RSA, NULL, NULL, NULL, NULL );
     TEST_ASSERT( ret == 0 );
 
     ret = mbedtls_mock_socket_connect( &(base_ep.socket),

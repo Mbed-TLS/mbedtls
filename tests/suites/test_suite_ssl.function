@@ -5604,7 +5604,8 @@ void raw_key_agreement_fail( )
 #if defined(MBEDTLS_TIMING_C)
     mbedtls_timing_delay_context timer_client, timer_server;
 #endif
-    uint16_t iana_tls_group_list[] = { MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1 };
+    uint16_t iana_tls_group_list[] = { MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1,
+                                       MBEDTLS_SSL_IANA_TLS_GROUP_NONE };
 
     mbedtls_test_message_queue server_queue, client_queue;
     mbedtls_test_message_socket_context server_context, client_context;

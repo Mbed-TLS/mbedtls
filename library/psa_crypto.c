@@ -4909,14 +4909,14 @@ static psa_status_t psa_generate_derived_ecc_key_weierstrass_helper(
         goto cleanup;
     }
 
-    while ( key_out_of_range )
+    while( key_out_of_range )
     {
         /* 1. Draw a byte string of length ceiling(m/8) bytes. */
-        if ( ( status = psa_key_derivation_output_bytes( operation, *data, m_bytes ) ) != 0 )
+        if( ( status = psa_key_derivation_output_bytes( operation, *data, m_bytes ) ) != 0 )
             goto cleanup;
 
         /* 2. If m is not a multiple of 8 */
-        if ( m % 8 != 0 )
+        if( m % 8 != 0 )
         {
             /* Set the most significant
              * (8 * ceiling(m/8) - m) bits of the first byte in
@@ -4944,7 +4944,7 @@ static psa_status_t psa_generate_derived_ecc_key_weierstrass_helper(
 cleanup:
     if( ret != 0 )
         status = mbedtls_to_psa_error( ret );
-    if ( status != PSA_SUCCESS  ) {
+    if( status != PSA_SUCCESS  ) {
         mbedtls_free( *data );
         *data = NULL;
     }
@@ -5041,10 +5041,10 @@ static psa_status_t psa_generate_derived_key_internal(
     defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
-    if ( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
+    if( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
     {
         psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY( slot->attr.type );
-        if ( PSA_ECC_FAMILY_IS_WEIERSTRASS( curve ) )
+        if( PSA_ECC_FAMILY_IS_WEIERSTRASS( curve ) )
         {
             /* Weierstrass elliptic curve */
             status = psa_generate_derived_ecc_key_weierstrass_helper( slot, bits, operation, &data );

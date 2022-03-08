@@ -9705,6 +9705,76 @@ run_test    "TLS 1.3: minimal feature sets - gnutls" \
             -c "Protocol is TLSv1.3" \
             -c "HTTP/1.0 200 OK"
 
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_ALPN
+requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "TLS 1.3: alpn - openssl" \
+            "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache -alpn h2" \
+            "$P_CLI debug_level=3 min_version=tls13 max_version=tls13 alpn=h2" \
+            0 \
+            -c "tls13 client state: MBEDTLS_SSL_HELLO_REQUEST"               \
+            -c "tls13 client state: MBEDTLS_SSL_SERVER_HELLO"                \
+            -c "tls13 client state: MBEDTLS_SSL_ENCRYPTED_EXTENSIONS"       \
+            -c "tls13 client state: MBEDTLS_SSL_CERTIFICATE_REQUEST"         \
+            -c "tls13 client state: MBEDTLS_SSL_SERVER_CERTIFICATE"          \
+            -c "tls13 client state: MBEDTLS_SSL_CERTIFICATE_VERIFY"          \
+            -c "tls13 client state: MBEDTLS_SSL_SERVER_FINISHED"            \
+            -c "tls13 client state: MBEDTLS_SSL_CLIENT_FINISHED"            \
+            -c "tls13 client state: MBEDTLS_SSL_FLUSH_BUFFERS"              \
+            -c "tls13 client state: MBEDTLS_SSL_HANDSHAKE_WRAPUP"           \
+            -c "<= ssl_tls13_process_server_hello" \
+            -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
+            -c "ECDH curve: x25519"         \
+            -c "=> ssl_tls13_process_server_hello" \
+            -c "<= parse encrypted extensions"      \
+            -c "Certificate verification flags clear" \
+            -c "=> parse certificate verify"          \
+            -c "<= parse certificate verify"          \
+            -c "mbedtls_ssl_tls13_process_certificate_verify() returned 0" \
+            -c "<= parse finished message" \
+            -c "HTTP/1.0 200 ok" \
+            -c "Application Layer Protocol is h2"
+
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_ALPN
+requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "TLS 1.3: alpn - gnutls" \
+            "$G_NEXT_SRV --debug=4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS --disable-client-cert --alpn=h2" \
+            "$P_CLI debug_level=3 min_version=tls13 max_version=tls13 alpn=h2" \
+            0 \
+            -s "SERVER HELLO was queued"    \
+            -c "tls13 client state: MBEDTLS_SSL_HELLO_REQUEST"               \
+            -c "tls13 client state: MBEDTLS_SSL_SERVER_HELLO"                \
+            -c "tls13 client state: MBEDTLS_SSL_ENCRYPTED_EXTENSIONS"       \
+            -c "tls13 client state: MBEDTLS_SSL_CERTIFICATE_REQUEST"         \
+            -c "tls13 client state: MBEDTLS_SSL_SERVER_CERTIFICATE"          \
+            -c "tls13 client state: MBEDTLS_SSL_CERTIFICATE_VERIFY"          \
+            -c "tls13 client state: MBEDTLS_SSL_SERVER_FINISHED"            \
+            -c "tls13 client state: MBEDTLS_SSL_CLIENT_FINISHED"            \
+            -c "tls13 client state: MBEDTLS_SSL_FLUSH_BUFFERS"              \
+            -c "tls13 client state: MBEDTLS_SSL_HANDSHAKE_WRAPUP"           \
+            -c "<= ssl_tls13_process_server_hello" \
+            -c "server hello, chosen ciphersuite: ( 1301 ) - TLS1-3-AES-128-GCM-SHA256" \
+            -c "ECDH curve: x25519"         \
+            -c "=> ssl_tls13_process_server_hello" \
+            -c "<= parse encrypted extensions"      \
+            -c "Certificate verification flags clear" \
+            -c "=> parse certificate verify"          \
+            -c "<= parse certificate verify"          \
+            -c "mbedtls_ssl_tls13_process_certificate_verify() returned 0" \
+            -c "<= parse finished message" \
+            -c "HTTP/1.0 200 OK" \
+            -c "Application Layer Protocol is h2"
+
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C

@@ -2695,8 +2695,8 @@ static int ssl_prepare_handshake_step( mbedtls_ssl_context *ssl )
 
     /*
      * We may have not been able to send to the peer all the handshake data
-     * that were written into the output buffer by the previous handshake step:
-     * the write to the network callback returned with the
+     * that were written into the output buffer by the previous handshake step,
+     * if the write to the network callback returned with the
      * #MBEDTLS_ERR_SSL_WANT_WRITE error code.
      * We proceed to the next handshake step only when all data from the
      * previous one have been sent to the peer, thus we make sure that this is

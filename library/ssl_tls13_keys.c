@@ -1244,10 +1244,11 @@ exit:
 int mbedtls_ssl_tls13_key_schedule_stage_handshake( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED) && defined(MBEDTLS_ECDH_C)
+    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED && MBEDTLS_ECDH_C */
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
     mbedtls_md_type_t const md_type = handshake->ciphersuite_info->mac;
-    size_t ephemeral_len = 0;
-    unsigned char ecdhe[MBEDTLS_ECP_MAX_BYTES];
 #if defined(MBEDTLS_DEBUG_C)
     mbedtls_md_info_t const * const md_info = mbedtls_md_info_from_type( md_type );
     size_t const md_size = mbedtls_md_get_size( md_info );
@@ -1264,15 +1265,28 @@ int mbedtls_ssl_tls13_key_schedule_stage_handshake( mbedtls_ssl_context *ssl )
         if( mbedtls_ssl_tls13_named_group_is_ecdhe( handshake->offered_group_id ) )
         {
 #if defined(MBEDTLS_ECDH_C)
-            ret = mbedtls_ecdh_calc_secret( &handshake->ecdh_ctx,
-                                            &ephemeral_len, ecdhe, sizeof( ecdhe ),
-                                            ssl->conf->f_rng,
-                                            ssl->conf->p_rng );
-            if( ret != 0 )
-            {
-                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_calc_secret", ret );
-                return( ret );
-            }
+        /* Compute ECDH shared secret. */
+        status = psa_raw_key_agreement(
+                    PSA_ALG_ECDH, handshake->ecdh_psa_privkey,
+                    handshake->ecdh_psa_peerkey, handshake->ecdh_psa_peerkey_len,
+                    handshake->premaster, sizeof( handshake->premaster ),
+                    &handshake->pmslen );
+        if( status != PSA_SUCCESS )
+        {
+            ret = psa_ssl_status_to_mbedtls( status );
+            MBEDTLS_SSL_DEBUG_RET( 1, "psa_raw_key_agreement", ret );
+            return( ret );
+        }
+
+        status = psa_destroy_key( handshake->ecdh_psa_privkey );
+        if( status != PSA_SUCCESS )
+        {
+            ret = psa_ssl_status_to_mbedtls( status );
+            MBEDTLS_SSL_DEBUG_RET( 1, "psa_destroy_key", ret );
+            return( ret );
+        }
+
+        handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
 #endif /* MBEDTLS_ECDH_C */
         }
         else if( mbedtls_ssl_tls13_named_group_is_dhe( handshake->offered_group_id ) )
@@ -1290,7 +1304,7 @@ int mbedtls_ssl_tls13_key_schedule_stage_handshake( mbedtls_ssl_context *ssl )
      */
     ret = mbedtls_ssl_tls13_evolve_secret( md_type,
                                            handshake->tls13_master_secrets.early,
-                                           ecdhe, ephemeral_len,
+                                           handshake->premaster, handshake->pmslen,
                                            handshake->tls13_master_secrets.handshake );
     if( ret != 0 )
     {
@@ -1302,7 +1316,7 @@ int mbedtls_ssl_tls13_key_schedule_stage_handshake( mbedtls_ssl_context *ssl )
                            handshake->tls13_master_secrets.handshake, md_size );
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED)
-    mbedtls_platform_zeroize( ecdhe, sizeof( ecdhe ) );
+    mbedtls_platform_zeroize( handshake->premaster, sizeof( handshake->premaster ) );
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED */
     return( 0 );
 }

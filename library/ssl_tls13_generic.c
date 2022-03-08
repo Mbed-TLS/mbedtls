@@ -1612,6 +1612,7 @@ int mbedtls_ssl_reset_transcript_for_hrr( mbedtls_ssl_context *ssl )
     size_t hash_len;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
     uint16_t cipher_suite = ssl->session_negotiate->ciphersuite;
+    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( cipher_suite );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "Reset SSL session for HRR" ) );
@@ -1665,6 +1666,19 @@ int mbedtls_ssl_reset_transcript_for_hrr( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA384_C)
     ssl->handshake->update_checksum( ssl, hash_transcript, hash_len );
 #endif /* MBEDTLS_SHA256_C || MBEDTLS_SHA384_C */
+
+    /* Destroy generated private key. */
+    status = psa_destroy_key( ssl->handshake->ecdh_psa_privkey );
+
+    if( status != PSA_SUCCESS )
+    {
+        ret = psa_ssl_status_to_mbedtls( status );
+        MBEDTLS_SSL_DEBUG_RET( 1, "psa_destroy_key", ret );
+        return( ret );
+    }
+
+    ssl->handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
+
     return( ret );
 }
 

@@ -33,7 +33,7 @@ typedef struct {
     /* If not PSA_SUCCESS, return this error code instead of processing the
      * function call. */
     psa_status_t forced_status;
-    /* Count the amount of times one of the asymmetric_encryption driver 
+    /* Count the amount of times one of the asymmetric_encryption driver
        functions is called. */
     unsigned long hits;
 } mbedtls_test_driver_asymmetric_encryption_hooks_t;
@@ -48,7 +48,7 @@ static inline mbedtls_test_driver_asymmetric_encryption_hooks_t
     return( v );
 }
 
-extern mbedtls_test_driver_asymmetric_encryption_hooks_t 
+extern mbedtls_test_driver_asymmetric_encryption_hooks_t
     mbedtls_test_driver_asymmetric_encryption_hooks;
 
 psa_status_t mbedtls_test_transparent_asymmetric_encrypt(

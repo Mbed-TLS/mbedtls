@@ -3360,3 +3360,6 @@ timing_final_delay_accessor
 
 Sanity test cid functions
 cid_sanity:
+
+Raw key agreement fail
+raw_key_agreement_fail:

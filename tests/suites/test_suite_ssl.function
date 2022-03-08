@@ -5595,3 +5595,78 @@ void cid_sanity( )
 /* END_CASE */
 
 
+
+/* BEGIN_CASE depends_on:MBEDTLS_USE_PSA_CRYPTO */
+void raw_key_agreement_fail( )
+{
+    enum { BUFFSIZE = 17000 };
+    mbedtls_endpoint client, server;
+    mbedtls_psa_stats_t stats;
+
+#if defined(MBEDTLS_TIMING_C)
+    mbedtls_timing_delay_context timer_client, timer_server;
+#endif
+    uint16_t iana_tls_group_list[] = { MBEDTLS_SSL_IANA_TLS_GROUP_SECP256R1 };
+
+    mbedtls_test_message_queue server_queue, client_queue;
+    mbedtls_test_message_socket_context server_context, client_context;
+
+    mbedtls_message_socket_init( &server_context );
+    mbedtls_message_socket_init( &client_context );
+
+    USE_PSA_INIT( );
+
+    /* Client side, force SECP256R1 to make one key bitflip fail
+     * the raw key agreement. Flipping one bit with a Weierstrass
+     * curve (as opposed to a Montgomery curve) has a high chance of
+     * making it invalid. */
+    TEST_ASSERT( mbedtls_endpoint_init( &client, MBEDTLS_SSL_IS_CLIENT,
+                                        MBEDTLS_PK_RSA, &client_context,
+                                        &client_queue,
+                                        &server_queue, iana_tls_group_list ) == 0 );
+#if defined(MBEDTLS_TIMING_C)
+    mbedtls_ssl_set_timer_cb( &client.ssl, &timer_client,
+                              mbedtls_timing_set_delay,
+                              mbedtls_timing_get_delay );
+#endif
+
+    /* Server side */
+    TEST_ASSERT( mbedtls_endpoint_init( &server, MBEDTLS_SSL_IS_SERVER,
+                                        MBEDTLS_PK_RSA, &server_context,
+                                        &server_queue,
+                                        &client_queue, NULL ) == 0 );
+#if defined(MBEDTLS_TIMING_C)
+    mbedtls_ssl_set_timer_cb( &server.ssl, &timer_server,
+                              mbedtls_timing_set_delay,
+                              mbedtls_timing_get_delay );
+#endif
+
+    TEST_ASSERT( mbedtls_mock_socket_connect( &(client.socket),
+                                              &(server.socket),
+                                              BUFFSIZE ) == 0 );
+
+    TEST_ASSERT( mbedtls_move_handshake_to_state( &(client.ssl),
+                                                  &(server.ssl),
+                                                  MBEDTLS_SSL_CLIENT_KEY_EXCHANGE )
+                 ==  0 );
+
+    /* Force a simulated bitflip in the server key. to make the
+     * raw key agreement in ssl_write_client_key_exchange fail. */
+    (client.ssl).handshake->ecdh_psa_peerkey[5] ^= 0x02;
+
+    TEST_ASSERT( mbedtls_move_handshake_to_state( &(client.ssl),
+                                                  &(server.ssl),
+                                                  MBEDTLS_SSL_HANDSHAKE_OVER )
+                 !=  0 );
+
+    mbedtls_psa_get_stats( &stats );
+
+    /* Make sure that the key slot is destroyed properly in case of failure. */
+    TEST_ASSERT( stats.empty_slots == MBEDTLS_PSA_KEY_SLOT_COUNT );
+
+exit:
+    mbedtls_endpoint_free( &client, &client_context );
+    mbedtls_endpoint_free( &server, &server_context );
+    USE_PSA_DONE( );
+}
+/* END_CASE */

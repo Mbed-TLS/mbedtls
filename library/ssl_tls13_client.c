@@ -1917,12 +1917,7 @@ static int ssl_tls13_process_server_finished( mbedtls_ssl_context *ssl )
         ssl,
         MBEDTLS_SSL_CLIENT_CCS_AFTER_SERVER_FINISHED );
 #else
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE );
-#else
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_FINISHED );
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
-
 #endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
 
     return( 0 );
@@ -1944,7 +1939,6 @@ static int ssl_tls13_write_change_cipher_spec( mbedtls_ssl_context *ssl )
 }
 #endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 /*
  * Handler for MBEDTLS_SSL_CLIENT_CERTIFICATE
  */
@@ -1954,9 +1948,14 @@ static int ssl_tls13_write_client_certificate( mbedtls_ssl_context *ssl )
                   ( "Switch to handshake traffic keys for outbound traffic" ) );
     mbedtls_ssl_set_outbound_transform( ssl, ssl->handshake->transform_handshake );
 
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     return( mbedtls_ssl_tls13_write_certificate( ssl ) );
+#else
+    return( 0 );
+#endif
 }
 
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 /*
  * Handler for MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY
  */
@@ -1973,13 +1972,6 @@ static int ssl_tls13_write_client_finished( mbedtls_ssl_context *ssl )
 {
     int ret;
 
-    if( !ssl->handshake->client_auth )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1,
-                  ( "Switch to handshake traffic keys for outbound traffic" ) );
-        mbedtls_ssl_set_outbound_transform( ssl,
-                                        ssl->handshake->transform_handshake );
-    }
     ret = mbedtls_ssl_tls13_write_finished_message( ssl );
     if( ret != 0 )
         return( ret );
@@ -2060,11 +2052,11 @@ int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl )
             ret = ssl_tls13_process_server_finished( ssl );
             break;
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
         case MBEDTLS_SSL_CLIENT_CERTIFICATE:
             ret = ssl_tls13_write_client_certificate( ssl );
             break;
 
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
         case MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY:
             ret = ssl_tls13_write_client_certificate_verify( ssl );
             break;

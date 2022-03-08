@@ -2159,22 +2159,31 @@ void asymmetric_encrypt( int alg_arg,
                                         &output_length ), expected_status_encrypt );
     if ( expected_status_encrypt == PSA_SUCCESS )
     {
-        /* Perform sanity checks on the output */
-#if PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
-        if( PSA_KEY_TYPE_IS_RSA( key_type ) )
+        if( fake_output_encrypt->len > 0 )
         {
-            if( ! sanity_check_rsa_encryption_result(
-                    alg, modulus, private_exponent,
-                    input_data,
-                    output, output_length ) )
-                goto exit;
+            TEST_EQUAL( fake_output_encrypt->len, output_length );
+            ASSERT_COMPARE( fake_output_encrypt->x, fake_output_encrypt->len,
+                     output, output_length );
         }
-#endif
         else
         {
-            (void) modulus;
-            (void) private_exponent;
-            TEST_ASSERT( ! "Encryption sanity checks not implemented for this key type" );
+            /* Perform sanity checks on the output */
+#if PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
+            if( PSA_KEY_TYPE_IS_RSA( key_type ) )
+            {
+                if( ! sanity_check_rsa_encryption_result(
+                        alg, modulus, private_exponent,
+                        input_data,
+                        output, output_length ) )
+                    goto exit;
+            }
+            else
+#endif
+            {
+                (void) modulus;
+                (void) private_exponent;
+                TEST_ASSERT( ! "Encryption sanity checks not implemented for this key type" );
+            }
         }
     }
 exit:

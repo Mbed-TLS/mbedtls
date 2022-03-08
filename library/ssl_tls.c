@@ -38,6 +38,7 @@
 #endif /* !MBEDTLS_PLATFORM_C */
 
 #include "mbedtls/ssl.h"
+#include "ssl_debug_helpers.h"
 #include "ssl_misc.h"
 #include "mbedtls/debug.h"
 #include "mbedtls/error.h"
@@ -2819,6 +2820,9 @@ int mbedtls_ssl_handshake_step( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_CLI_C)
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "client state: %s",
+                                    mbedtls_ssl_states_str( ssl->state ) ) );
+
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
         if( mbedtls_ssl_conf_is_tls13_only( ssl->conf ) )
             ret = mbedtls_ssl_tls13_handshake_client_step( ssl );

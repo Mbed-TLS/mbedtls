@@ -7055,12 +7055,15 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
     size_t keylen;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
     const mbedtls_cipher_info_t *cipher_info;
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
     const mbedtls_md_info_t *md_info;
+#endif /* !MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_key_type_t key_type;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_algorithm_t alg;
+    psa_algorithm_t mac_alg = 0;
     size_t key_bits;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 #endif
@@ -7115,6 +7118,15 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    mac_alg = mbedtls_psa_translate_md( ciphersuite_info->mac );
+    if( mac_alg == 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "mbedtls_psa_translate_md for %u not found",
+                            (unsigned) ciphersuite_info->mac ) );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
+#else
     md_info = mbedtls_md_info_from_type( ciphersuite_info->mac );
     if( md_info == NULL )
     {
@@ -7122,6 +7134,7 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
                             (unsigned) ciphersuite_info->mac ) );
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     /* Copy own and peer's CID if the use of the CID
@@ -7203,7 +7216,10 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
     if( mbedtls_cipher_info_get_mode( cipher_info ) == MBEDTLS_MODE_STREAM ||
         mbedtls_cipher_info_get_mode( cipher_info ) == MBEDTLS_MODE_CBC )
     {
-#if !defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        /* Get MAC length */
+        mac_key_len = PSA_HASH_LENGTH(mac_alg);
+#else
         /* Initialize HMAC contexts */
         if( ( ret = mbedtls_md_setup( &transform->md_ctx_enc, md_info, 1 ) ) != 0 ||
             ( ret = mbedtls_md_setup( &transform->md_ctx_dec, md_info, 1 ) ) != 0 )
@@ -7211,10 +7227,10 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_md_setup", ret );
             goto end;
         }
-#endif /* !MBEDTLS_USE_PSA_CRYPTO */
 
         /* Get MAC length */
         mac_key_len = mbedtls_md_get_size( md_info );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
         transform->maclen = mac_key_len;
 
         /* IV length */
@@ -7429,18 +7445,10 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
     if( mac_key_len != 0 )
     {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        alg = mbedtls_psa_translate_md( ciphersuite_info->mac );
-        if( alg == 0 )
-        {
-                ret = MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_md_type_to_psa", ret );
-                goto end;
-        }
-
-        transform->psa_mac_alg = PSA_ALG_HMAC( alg );
+        transform->psa_mac_alg = PSA_ALG_HMAC( mac_alg );
 
         psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_MESSAGE );
-        psa_set_key_algorithm( &attributes, PSA_ALG_HMAC( alg ) );
+        psa_set_key_algorithm( &attributes, PSA_ALG_HMAC( mac_alg ) );
         psa_set_key_type( &attributes, PSA_KEY_TYPE_HMAC );
 
         if( ( status = psa_import_key( &attributes,

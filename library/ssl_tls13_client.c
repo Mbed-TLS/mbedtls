@@ -1928,10 +1928,15 @@ static int ssl_tls13_write_client_certificate( mbedtls_ssl_context *ssl )
     mbedtls_ssl_set_outbound_transform( ssl, ssl->handshake->transform_handshake );
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-    return( mbedtls_ssl_tls13_write_certificate( ssl ) );
-#else
-    return( 0 );
+    if( ssl->handshake->client_auth )
+        return( mbedtls_ssl_tls13_write_certificate( ssl ) );
+
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_FINISHED );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "No certificate message to send." ) );
 #endif
+
+    return( 0 );
 }
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)

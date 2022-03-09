@@ -934,27 +934,6 @@ static int ssl_tls13_write_certificate_body( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
-static int ssl_tls13_finalize_write_certificate( mbedtls_ssl_context *ssl )
-{
-#if defined(MBEDTLS_SSL_CLI_C)
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
-    {
-        const mbedtls_x509_crt *crt = mbedtls_ssl_own_cert( ssl );
-        if( ssl->handshake->client_auth && crt != NULL )
-        {
-            mbedtls_ssl_handshake_set_state( ssl,
-                                        MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY );
-        }
-        else
-            mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_FINISHED );
-        return( 0 );
-    }
-    else
-#endif /* MBEDTLS_SSL_CLI_C */
-    ((void) ssl);
-    return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-}
-
 int mbedtls_ssl_tls13_write_certificate( mbedtls_ssl_context *ssl )
 {
     int ret;
@@ -976,7 +955,6 @@ int mbedtls_ssl_tls13_write_certificate( mbedtls_ssl_context *ssl )
                                               buf,
                                               msg_len );
 
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_write_certificate( ssl ) );
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_finish_handshake_msg(
                               ssl, buf_len, msg_len ) );
 cleanup:

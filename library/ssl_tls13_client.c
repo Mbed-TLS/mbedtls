@@ -1923,18 +1923,35 @@ static int ssl_tls13_process_server_finished( mbedtls_ssl_context *ssl )
  */
 static int ssl_tls13_write_client_certificate( mbedtls_ssl_context *ssl )
 {
+    int non_empty_certificate_msg = 0;
+
     MBEDTLS_SSL_DEBUG_MSG( 1,
                   ( "Switch to handshake traffic keys for outbound traffic" ) );
     mbedtls_ssl_set_outbound_transform( ssl, ssl->handshake->transform_handshake );
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     if( ssl->handshake->client_auth )
-        return( mbedtls_ssl_tls13_write_certificate( ssl ) );
+    {
+        int ret = mbedtls_ssl_tls13_write_certificate( ssl );
+        if( ret != 0 )
+            return( ret );
 
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_FINISHED );
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "No certificate message to send." ) );
+        if( mbedtls_ssl_own_cert( ssl ) != NULL )
+            non_empty_certificate_msg = 1;
+    }
+    else
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "No certificate message to send." ) );
+    }
 #endif
+
+   if( non_empty_certificate_msg )
+   {
+        mbedtls_ssl_handshake_set_state( ssl,
+                                         MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY );
+   }
+   else
+        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_FINISHED );
 
     return( 0 );
 }

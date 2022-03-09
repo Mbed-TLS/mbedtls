@@ -2854,7 +2854,69 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED */
 
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) || \
+#if defined(MBEDTLS_USE_PSA_CRYPTO) &&                      \
+        ( defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) || \
+          defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED) )
+static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    unsigned char buf[MBEDTLS_ECP_MAX_BYTES];
+    psa_key_attributes_t key_attributes;
+    size_t ecdh_bits = 0;
+    size_t key_len;
+
+    if( ! mbedtls_pk_can_do( mbedtls_ssl_own_key( ssl ), MBEDTLS_PK_ECKEY ) )
+    {
+        return( MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH );
+    }
+
+    mbedtls_ecp_keypair *key =
+            mbedtls_pk_ec( *mbedtls_ssl_own_key( ssl ) );
+
+    if( key == NULL )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+    /* Convert EC group to PSA key type. */
+    if( ( ssl->handshake->ecdh_psa_type =
+                mbedtls_ecc_group_to_psa( key->grp.id,
+                                          &ecdh_bits ) ) == 0 )
+    {
+        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+    }
+
+    if( ecdh_bits > 0xffff )
+        return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+
+    ssl->handshake->ecdh_bits = (uint16_t) ecdh_bits;
+
+    key_attributes = psa_key_attributes_init();
+    psa_set_key_usage_flags( &key_attributes, PSA_KEY_USAGE_DERIVE );
+    psa_set_key_algorithm( &key_attributes, PSA_ALG_ECDH );
+    psa_set_key_type( &key_attributes,
+            PSA_KEY_TYPE_ECC_KEY_PAIR( ssl->handshake->ecdh_psa_type ) );
+    psa_set_key_bits( &key_attributes, ssl->handshake->ecdh_bits );
+
+    key_len = ( key->grp.pbits + 7 ) / 8;
+    ret = mbedtls_ecp_write_key( key, buf, key_len );
+    if( ret != 0 )
+        goto cleanup;
+
+    status = psa_import_key( &key_attributes, buf, key_len,
+                             &ssl->handshake->ecdh_psa_privkey );
+    if( status != PSA_SUCCESS ) {
+        ret = psa_ssl_status_to_mbedtls( status );
+        goto cleanup;
+    }
+
+    ret = 0;
+
+cleanup:
+    memset( buf, 0, sizeof( buf ) );
+
+    return( ret );
+}
+#elif defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
 static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
 {
@@ -3838,9 +3900,13 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED */
 #if defined(MBEDTLS_USE_PSA_CRYPTO) &&                           \
         ( defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||     \
-          defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) )
+          defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||   \
+          defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||      \
+          defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED) )
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA )
+        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA ||
+        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDH_RSA ||
+        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA )
     {
         size_t data_len = (size_t)( *p++ );
         size_t buf_len = (size_t)( end - p );
@@ -3896,7 +3962,9 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
     else
 #endif /* MBEDTLS_USE_PSA_CRYPTO &&
             ( MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
-              MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ) */
+              MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
+              MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED ||
+              MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED ) */
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||                      \

@@ -113,7 +113,10 @@ static int ssl_tls13_parse_supported_versions_ext( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_ALPN)
 /*
- * ssl_tls13_write_alpn_ext( ) structure:
+ * ssl_tls13_write_alpn_ext()
+ *
+ * Structure of the application_layer_protocol_negotiation extension in
+ * ClientHello:
  *
  * opaque ProtocolName<1..2^8-1>;
  *
@@ -123,15 +126,13 @@ static int ssl_tls13_parse_supported_versions_ext( mbedtls_ssl_context *ssl,
  *
  */
 static int ssl_tls13_write_alpn_ext( mbedtls_ssl_context *ssl,
-                               unsigned char *buf,
-                               const unsigned char *end,
-                               size_t *olen )
+                                     unsigned char *buf,
+                                     const unsigned char *end,
+                                     size_t *out_len )
 {
     unsigned char *p = buf;
-    size_t protocol_name_len;
-    const char **cur;
 
-    *olen = 0;
+    *out_len = 0;
 
     if( ssl->conf->alpn_list == NULL )
         return( 0 );
@@ -154,26 +155,27 @@ static int ssl_tls13_write_alpn_ext( mbedtls_ssl_context *ssl,
      *     ProtocolName protocol_name_list<2..2^16-1>
      * } ProtocolNameList;
      */
-    for( cur = ssl->conf->alpn_list; *cur != NULL; cur++ )
+    for( const char **cur = ssl->conf->alpn_list; *cur != NULL; cur++ )
     {
         /*
          * mbedtls_ssl_conf_set_alpn_protocols() checked that the length of
          * protocol names is less than 255.
          */
-        protocol_name_len = strlen( *cur );
+        size_t protocol_name_len = strlen( *cur );
+
         MBEDTLS_SSL_CHK_BUF_PTR( p, end, 1 + protocol_name_len );
         *p++ = (unsigned char)protocol_name_len;
         memcpy( p, *cur, protocol_name_len );
         p += protocol_name_len;
     }
 
-    *olen = p - buf;
+    *out_len = p - buf;
 
-    /* List length = olen - 2 (ext_type) - 2 (ext_len) - 2 (list_len) */
-    MBEDTLS_PUT_UINT16_BE( *olen - 6, buf, 4 );
+    /* List length = *out_len - 2 (ext_type) - 2 (ext_len) - 2 (list_len) */
+    MBEDTLS_PUT_UINT16_BE( *out_len - 6, buf, 4 );
 
-    /* Extension length = olen - 2 (ext_type) - 2 (ext_len) */
-    MBEDTLS_PUT_UINT16_BE( *olen - 4, buf, 2 );
+    /* Extension length = *out_len - 2 (ext_type) - 2 (ext_len) */
+    MBEDTLS_PUT_UINT16_BE( *out_len - 4, buf, 2 );
 
     return( 0 );
 }

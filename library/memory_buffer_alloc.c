@@ -79,6 +79,8 @@ typedef struct
 }
 buffer_alloc_ctx;
 
+static void * (*previous_calloc)(size_t, size_t);
+static void (*previous_free)(void *);
 static buffer_alloc_ctx heap;
 
 #if defined(MBEDTLS_MEMORY_DEBUG)
@@ -568,6 +570,7 @@ void mbedtls_memory_buffer_alloc_init( unsigned char *buf, size_t len )
 {
     memset( &heap, 0, sizeof( buffer_alloc_ctx ) );
 
+    mbedtls_platform_get_calloc_free( &previous_calloc, &previous_free );
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_init( &heap.mutex );
     mbedtls_platform_set_calloc_free( buffer_alloc_calloc_mutexed,
@@ -601,6 +604,11 @@ void mbedtls_memory_buffer_alloc_init( unsigned char *buf, size_t len )
 
 void mbedtls_memory_buffer_alloc_free( void )
 {
+    if ( previous_calloc != NULL && previous_free != NULL )
+    {
+        mbedtls_platform_set_calloc_free( previous_calloc, previous_free );
+        previous_calloc = previous_free = NULL;
+    }
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_free( &heap.mutex );
 #endif

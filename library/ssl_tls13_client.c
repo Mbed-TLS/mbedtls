@@ -128,7 +128,7 @@ static int ssl_tls13_write_alpn_ext( mbedtls_ssl_context *ssl,
                                size_t *olen )
 {
     unsigned char *p = buf;
-    size_t alpnlen = 0;
+    size_t protocol_name_len;
     const char **cur;
 
     *olen = 0;
@@ -138,13 +138,14 @@ static int ssl_tls13_write_alpn_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, adding alpn extension" ) );
 
-    for( cur = ssl->conf->alpn_list; *cur != NULL; cur++ )
-        alpnlen += strlen( *cur ) + 1;
 
-    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 6 + alpnlen );
-
+    /* Check we have enough space for the extension type (2 bytes), the
+     * extension length (2 bytes) and the protocol_name_list length (2 bytes).
+     */
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 6 );
     MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_ALPN, p, 0 );
-    p += 2;
+    /* Skip writing extension and list length for now */
+    p += 6;
 
     /*
      * opaque ProtocolName<1..2^8-1>;
@@ -153,19 +154,17 @@ static int ssl_tls13_write_alpn_ext( mbedtls_ssl_context *ssl,
      *     ProtocolName protocol_name_list<2..2^16-1>
      * } ProtocolNameList;
      */
-
-    /* Skip writing extension and list length for now */
-    p += 4;
-
     for( cur = ssl->conf->alpn_list; *cur != NULL; cur++ )
     {
         /*
          * mbedtls_ssl_conf_set_alpn_protocols() checked that the length of
          * protocol names is less than 255.
          */
-        *p = (unsigned char)strlen( *cur );
-        memcpy( p + 1, *cur, *p );
-        p += 1 + *p;
+        protocol_name_len = strlen( *cur );
+        MBEDTLS_SSL_CHK_BUF_PTR( p, end, 1 + protocol_name_len );
+        *p++ = (unsigned char)protocol_name_len;
+        memcpy( p, *cur, protocol_name_len );
+        p += protocol_name_len;
     }
 
     *olen = p - buf;

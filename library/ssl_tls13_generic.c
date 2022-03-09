@@ -1106,22 +1106,6 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
     return( ret );
 }
 
-static int ssl_tls13_finalize_certificate_verify( mbedtls_ssl_context *ssl )
-{
-#if defined(MBEDTLS_SSL_CLI_C)
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
-    {
-        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_FINISHED );
-    }
-    else
-#endif /* MBEDTLS_SSL_CLI_C */
-    {
-        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_FINISHED );
-    }
-
-    return( 0 );
-}
-
 int mbedtls_ssl_tls13_write_certificate_verify( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
@@ -1138,8 +1122,6 @@ int mbedtls_ssl_tls13_write_certificate_verify( mbedtls_ssl_context *ssl )
 
     mbedtls_ssl_tls13_add_hs_msg_to_checksum(
         ssl, MBEDTLS_SSL_HS_CERTIFICATE_VERIFY, buf, msg_len );
-    /* Update state */
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_certificate_verify( ssl ) );
 
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_finish_handshake_msg(
                                 ssl, buf_len, msg_len ) );

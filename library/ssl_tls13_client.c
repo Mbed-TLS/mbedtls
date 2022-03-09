@@ -1962,7 +1962,12 @@ static int ssl_tls13_write_client_certificate( mbedtls_ssl_context *ssl )
  */
 static int ssl_tls13_write_client_certificate_verify( mbedtls_ssl_context *ssl )
 {
-    return( mbedtls_ssl_tls13_write_certificate_verify( ssl ) );
+    int ret = mbedtls_ssl_tls13_write_certificate_verify( ssl );
+
+    if( ret == 0 )
+        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_FINISHED );
+
+    return( ret );
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 

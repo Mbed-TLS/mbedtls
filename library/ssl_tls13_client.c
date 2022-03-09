@@ -942,18 +942,22 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
 
     /* Write extensions */
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     /* Keeping track of the included extensions */
     ssl->handshake->extensions_present = MBEDTLS_SSL_EXT_NONE;
+#endif
 
     /* First write extensions, then the total length */
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
     p_extensions_len = p;
     p += 2;
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     ret = ssl_tls13_write_client_hello_exts( ssl, p, end, &output_len );
     if( ret != 0 )
         return( ret );
     p += output_len;
+#endif
 
 #if defined(MBEDTLS_SSL_ALPN)
     ret = ssl_tls13_write_alpn_ext( ssl, p, end, &output_len );
@@ -962,6 +966,7 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
     p += output_len;
 #endif /* MBEDTLS_SSL_ALPN */
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     if( mbedtls_ssl_conf_tls13_some_ephemeral_enabled( ssl ) )
     {
@@ -979,6 +984,7 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
         p += output_len;
     }
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     /* Write server name extension */

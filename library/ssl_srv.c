@@ -3107,6 +3107,89 @@ curve_matching_done:
             return( ret );
         }
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        psa_status_t status = PSA_ERROR_GENERIC_ERROR;
+        psa_key_attributes_t key_attributes;
+        mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+        size_t ecdh_bits = 0;
+        uint8_t *p = ssl->out_msg + ssl->out_msglen;
+        const size_t header_size = 4; // curve_type, namedcurve, data length
+        const size_t data_length_size = 1;
+
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Perform PSA-based ECDH computation." ) );
+
+        /* Convert EC group to PSA key type. */
+        if( ( handshake->ecdh_psa_type =
+                PSA_KEY_TYPE_ECC_KEY_PAIR( mbedtls_ecc_group_to_psa(
+                     (*curve)->grp_id, &ecdh_bits ) ) ) == 0 )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Could not convert ECC group to PSA." ) );
+            return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+        }
+
+        if( ecdh_bits > 0xffff )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Invalid ecdh_bits." ) );
+            return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+        }
+        handshake->ecdh_bits = (uint16_t) ecdh_bits;
+
+        key_attributes = psa_key_attributes_init();
+        psa_set_key_usage_flags( &key_attributes, PSA_KEY_USAGE_DERIVE );
+        psa_set_key_algorithm( &key_attributes, PSA_ALG_ECDH );
+        psa_set_key_type( &key_attributes, handshake->ecdh_psa_type );
+        psa_set_key_bits( &key_attributes, handshake->ecdh_bits );
+
+        /*
+         * ECParameters curve_params
+         *
+         * First byte is curve_type, always named_curve
+         */
+        *p++ = MBEDTLS_ECP_TLS_NAMED_CURVE;
+
+        /*
+         * Next two bytes are the namedcurve value
+         */
+        MBEDTLS_PUT_UINT16_BE( (*curve)->tls_id, p, 0 );
+        p += 2;
+
+        /* Generate ECDH private key. */
+        status = psa_generate_key( &key_attributes,
+                                   &handshake->ecdh_psa_privkey );
+        if( status != PSA_SUCCESS )
+        {
+            ret = psa_ssl_status_to_mbedtls( status );
+            MBEDTLS_SSL_DEBUG_RET( 1, "psa_generate_key", ret );
+            return( ret );
+        }
+
+        /*
+         * ECPoint  public
+         *
+         * First byte is data length.
+         * It will be filled later. p holds now the data length location.
+         */
+
+        /* Export the public part of the ECDH private key from PSA.
+         * Make one byte space for the length.
+         */
+        status = psa_export_public_key( handshake->ecdh_psa_privkey,
+                    p + data_length_size,
+                    (size_t)( MBEDTLS_SSL_OUT_CONTENT_LEN - ssl->out_msglen - header_size ),
+                    &len );
+        if( status != PSA_SUCCESS )
+        {
+            ret = psa_ssl_status_to_mbedtls( status );
+            MBEDTLS_SSL_DEBUG_RET( 1, "psa_export_public_key", ret );
+            return( ret );
+        }
+
+        /* Store the length of the exported public key. */
+        *p = (uint8_t) len;
+
+        /* Determine full message length. */
+        len += header_size;
+#else
         if( ( ret = mbedtls_ecdh_make_params(
                   &ssl->handshake->ecdh_ctx, &len,
                   ssl->out_msg + ssl->out_msglen,
@@ -3116,6 +3199,7 @@ curve_matching_done:
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_make_params", ret );
             return( ret );
         }
+#endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_SERVER_SIGNATURE_ENABLED)
         dig_signed = ssl->out_msg + ssl->out_msglen;

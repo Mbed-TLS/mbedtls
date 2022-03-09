@@ -903,7 +903,7 @@ static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
     p += output_len;
 
 #if defined(MBEDTLS_SSL_ALPN)
-    ssl_tls13_write_alpn_ext( ssl, p, end, &output_len );
+    ret = ssl_tls13_write_alpn_ext( ssl, p, end, &output_len );
     if( ret != 0 )
         return( ret );
     p += output_len;

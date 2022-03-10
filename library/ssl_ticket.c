@@ -166,7 +166,7 @@ int mbedtls_ssl_ticket_setup( mbedtls_ssl_ticket_context *ctx,
 
     ctx->ticket_lifetime = lifetime;
 
-    cipher_info = mbedtls_cipher_info_from_type( cipher);
+    cipher_info = mbedtls_cipher_info_from_type( cipher );
 
     if( mbedtls_cipher_info_get_mode( cipher_info ) != MBEDTLS_MODE_GCM &&
         mbedtls_cipher_info_get_mode( cipher_info ) != MBEDTLS_MODE_CCM )

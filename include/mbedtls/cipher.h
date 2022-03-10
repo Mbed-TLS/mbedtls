@@ -844,6 +844,12 @@ int mbedtls_cipher_set_padding_mode( mbedtls_cipher_context_t *ctx,
  * \note            Some ciphers do not use IVs nor nonce. For these
  *                  ciphers, this function has no effect.
  *
+ * \note            For #MBEDTLS_CIPHER_CHACHA20, the nonce length must
+ *                  be 12, and the initial counter value is 0.
+ *
+ * \note            For #MBEDTLS_CIPHER_CHACHA20_POLY1305, the nonce length
+ *                  must be 12.
+ *
  * \param ctx       The generic cipher context. This must be initialized and
  *                  bound to a cipher information structure.
  * \param iv        The IV to use, or NONCE_COUNTER for CTR-mode ciphers. This

@@ -601,6 +601,10 @@
 #error "MBEDTLS_X509_RSASSA_PSS_SUPPORT defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_SHA512T256_C) && !defined(MBEDTLS_SHA512_C)
+#error "MBEDTLS_SHA512T256_C defined without MBEDTLS_SHA512_C"
+#endif
+
 #if defined(MBEDTLS_SHA384_C) && !defined(MBEDTLS_SHA512_C)
 #error "MBEDTLS_SHA384_C defined without MBEDTLS_SHA512_C"
 #endif

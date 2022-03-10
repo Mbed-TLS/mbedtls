@@ -92,19 +92,27 @@ void mbedtls_sha512_clone( mbedtls_sha512_context *dst,
 /*
  * SHA-512 context setup
  */
-int mbedtls_sha512_starts( mbedtls_sha512_context *ctx, int is384 )
+int mbedtls_sha512_starts( mbedtls_sha512_context *ctx, int is384_or_bits )
 {
     SHA512_VALIDATE_RET( ctx != NULL );
-#if defined(MBEDTLS_SHA384_C)
-    SHA512_VALIDATE_RET( is384 == 0 || is384 == 1 );
+#if defined(MBEDTLS_SHA384_C) && defined(MBEDTLS_SHA512T256_C)
+    if ( is384_or_bits == 1 )
+        is384_or_bits = 384;
+    SHA512_VALIDATE_RET( is384_or_bits == 0 || is384_or_bits == 256 || is384_or_bits == 384 );
+#elif defined(MBEDTLS_SHA512T256_C)
+    SHA512_VALIDATE_RET( is384_or_bits == 0 || is384_or_bits == 256 );
+#elif defined(MBEDTLS_SHA384_C)
+    if ( is384_or_bits == 1 )
+        is384_or_bits = 384;
+    SHA512_VALIDATE_RET( is384_or_bits == 0 || is384_or_bits == 384 );
 #else
-    SHA512_VALIDATE_RET( is384 == 0 );
+    SHA512_VALIDATE_RET( is384_or_bits == 0 );
 #endif
 
     ctx->total[0] = 0;
     ctx->total[1] = 0;
 
-    if( is384 == 0 )
+    if( is384_or_bits == 0 )
     {
         /* SHA-512 */
         ctx->state[0] = UL64(0x6A09E667F3BCC908);
@@ -118,23 +126,46 @@ int mbedtls_sha512_starts( mbedtls_sha512_context *ctx, int is384 )
     }
     else
     {
-#if !defined(MBEDTLS_SHA384_C)
+#if !defined(MBEDTLS_SHA384_C) && !defined(MBEDTLS_SHA512T256_C)
         return( MBEDTLS_ERR_SHA512_BAD_INPUT_DATA );
 #else
-        /* SHA-384 */
-        ctx->state[0] = UL64(0xCBBB9D5DC1059ED8);
-        ctx->state[1] = UL64(0x629A292A367CD507);
-        ctx->state[2] = UL64(0x9159015A3070DD17);
-        ctx->state[3] = UL64(0x152FECD8F70E5939);
-        ctx->state[4] = UL64(0x67332667FFC00B31);
-        ctx->state[5] = UL64(0x8EB44A8768581511);
-        ctx->state[6] = UL64(0xDB0C2E0D64F98FA7);
-        ctx->state[7] = UL64(0x47B5481DBEFA4FA4);
-#endif /* MBEDTLS_SHA384_C */
+        if (is384_or_bits == 256)
+        {
+            /* SHA-512/256 */
+#if !defined(MBEDTLS_SHA512T256_C)
+            return( MBEDTLS_ERR_SHA512_BAD_INPUT_DATA );
+#else
+            ctx->state[0] = UL64(0x22312194FC2BF72C);
+            ctx->state[1] = UL64(0x9F555FA3C84C64C2);
+            ctx->state[2] = UL64(0x2393B86B6F53B151);
+            ctx->state[3] = UL64(0x963877195940EABD);
+            ctx->state[4] = UL64(0x96283EE2A88EFFE3);
+            ctx->state[5] = UL64(0xBE5E1E2553863992);
+            ctx->state[6] = UL64(0x2B0199FC2C85B8AA);
+            ctx->state[7] = UL64(0x0EB72DDC81C52CA2);
+#endif
+        }
+        else
+        {
+            /* SHA-384 */
+#if !defined(MBEDTLS_SHA384_C)
+            return( MBEDTLS_ERR_SHA512_BAD_INPUT_DATA );
+#else
+            ctx->state[0] = UL64(0xCBBB9D5DC1059ED8);
+            ctx->state[1] = UL64(0x629A292A367CD507);
+            ctx->state[2] = UL64(0x9159015A3070DD17);
+            ctx->state[3] = UL64(0x152FECD8F70E5939);
+            ctx->state[4] = UL64(0x67332667FFC00B31);
+            ctx->state[5] = UL64(0x8EB44A8768581511);
+            ctx->state[6] = UL64(0xDB0C2E0D64F98FA7);
+            ctx->state[7] = UL64(0x47B5481DBEFA4FA4);
+#endif
+        }
+#endif /* MBEDTLS_SHA384_C || MBEDTLS_SHA512T256_C */
     }
 
-#if defined(MBEDTLS_SHA384_C)
-    ctx->is384 = is384;
+#if defined(MBEDTLS_SHA384_C) || defined(MBEDTLS_SHA512T256_C)
+    ctx->output_bits = is384_or_bits ? is384_or_bits : 512;
 #endif
 
     return( 0 );
@@ -401,11 +432,17 @@ int mbedtls_sha512_finish( mbedtls_sha512_context *ctx,
     sha512_put_uint64_be( ctx->state[1], output,  8 );
     sha512_put_uint64_be( ctx->state[2], output, 16 );
     sha512_put_uint64_be( ctx->state[3], output, 24 );
-    sha512_put_uint64_be( ctx->state[4], output, 32 );
-    sha512_put_uint64_be( ctx->state[5], output, 40 );
 
-#if defined(MBEDTLS_SHA384_C)
-    if( ctx->is384 == 0 )
+#if defined(MBEDTLS_SHA384_C) || defined(MBEDTLS_SHA512T256_C)
+    if( ctx->output_bits > 256 )
+#endif
+    {
+        sha512_put_uint64_be( ctx->state[4], output, 32 );
+        sha512_put_uint64_be( ctx->state[5], output, 40 );
+    }
+
+#if defined(MBEDTLS_SHA384_C) || defined(MBEDTLS_SHA512T256_C)
+    if( ctx->output_bits > 384 )
 #endif
     {
         sha512_put_uint64_be( ctx->state[6], output, 48 );
@@ -423,22 +460,30 @@ int mbedtls_sha512_finish( mbedtls_sha512_context *ctx,
 int mbedtls_sha512( const unsigned char *input,
                     size_t ilen,
                     unsigned char *output,
-                    int is384 )
+                    int is384_or_bits )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_sha512_context ctx;
 
-#if defined(MBEDTLS_SHA384_C)
-    SHA512_VALIDATE_RET( is384 == 0 || is384 == 1 );
+#if defined(MBEDTLS_SHA384_C) && defined(MBEDTLS_SHA512T256_C)
+    if ( is384_or_bits == 1 )
+        is384_or_bits = 384;
+    SHA512_VALIDATE_RET( is384_or_bits == 0 || is384_or_bits == 256 || is384_or_bits == 384 );
+#elif defined(MBEDTLS_SHA512T256_C)
+    SHA512_VALIDATE_RET( is384_or_bits == 0 || is384_or_bits == 256 );
+#elif defined(MBEDTLS_SHA384_C)
+    if ( is384_or_bits == 1 )
+        is384_or_bits = 384;
+    SHA512_VALIDATE_RET( is384_or_bits == 0 || is384_or_bits == 384 );
 #else
-    SHA512_VALIDATE_RET( is384 == 0 );
+    SHA512_VALIDATE_RET( is384_or_bits == 0 );
 #endif
     SHA512_VALIDATE_RET( ilen == 0 || input != NULL );
     SHA512_VALIDATE_RET( (unsigned char *)output != NULL );
 
     mbedtls_sha512_init( &ctx );
 
-    if( ( ret = mbedtls_sha512_starts( &ctx, is384 ) ) != 0 )
+    if( ( ret = mbedtls_sha512_starts( &ctx, is384_or_bits ) ) != 0 )
         goto exit;
 
     if( ( ret = mbedtls_sha512_update( &ctx, input, ilen ) ) != 0 )
@@ -472,6 +517,25 @@ static const size_t sha512_test_buflen[3] =
 
 static const unsigned char sha512_test_sum[][64] =
 {
+#if defined(MBEDTLS_SHA512T256_C)
+    /*
+     * SHA-512/256 test vectors
+     */
+    { 0x53, 0x04, 0x8E, 0x26, 0x81, 0x94, 0x1E, 0xF9,
+      0x9B, 0x2E, 0x29, 0xB7, 0x6B, 0x4C, 0x7D, 0xAB,
+      0xE4, 0xC2, 0xD0, 0xC6, 0x34, 0xFC, 0x6D, 0x46,
+      0xE0, 0xE2, 0xF1, 0x31, 0x07, 0xE7, 0xAF, 0x23 },
+    { 0x39, 0x28, 0xE1, 0x84, 0xFB, 0x86, 0x90, 0xF8,
+      0x40, 0xDA, 0x39, 0x88, 0x12, 0x1D, 0x31, 0xBE,
+      0x65, 0xCB, 0x9D, 0x3E, 0xF8, 0x3E, 0xE6, 0x14,
+      0x6F, 0xEA, 0xC8, 0x61, 0xE1, 0x9B, 0x56, 0x3A },
+    { 0x9A, 0x59, 0xA0, 0x52, 0x93, 0x01, 0x87, 0xA9,
+      0x70, 0x38, 0xCA, 0xE6, 0x92, 0xF3, 0x07, 0x08,
+      0xAA, 0x64, 0x91, 0x92, 0x3E, 0xF5, 0x19, 0x43,
+      0x94, 0xDC, 0x68, 0xD5, 0x6C, 0x74, 0xFB, 0x21 },
+
+#endif /* MBEDTLS_SHA512T256_C */
+
 #if defined(MBEDTLS_SHA384_C)
     /*
      * SHA-384 test vectors
@@ -536,6 +600,9 @@ int mbedtls_sha512_self_test( int verbose )
     unsigned char *buf;
     unsigned char sha512sum[64];
     mbedtls_sha512_context ctx;
+#if defined(MBEDTLS_SHA512T256_C)
+    int bits;
+#endif
 
     buf = mbedtls_calloc( 1024, sizeof(unsigned char) );
     if( NULL == buf )
@@ -551,14 +618,22 @@ int mbedtls_sha512_self_test( int verbose )
     for( i = 0; i < (int) ARRAY_LENGTH(sha512_test_sum); i++ )
     {
         j = i % 3;
-#if defined(MBEDTLS_SHA384_C)
+#if defined(MBEDTLS_SHA512T256_C) && defined(MBEDTLS_SHA384_C)
+        k = ( i < 3 ) ? 256 : ( ( i < 6 ) ? 384 : 0 );
+#elif defined(MBEDTLS_SHA512T256_C)
+        k = ( i < 3 ) ? 256 : 0;
+#elif defined(MBEDTLS_SHA384_C)
         k = i < 3;
 #else
         k = 0;
 #endif
 
         if( verbose != 0 )
+#if defined(MBEDTLS_SHA512T256_C)
+            mbedtls_printf( "  SHA-%s test #%d: ", ( k == 0 ) ? "512" : ( ( k == 256 ) ? "512/256" : "384" ), j + 1 );
+#else
             mbedtls_printf( "  SHA-%d test #%d: ", 512 - k * 128, j + 1 );
+#endif
 
         if( ( ret = mbedtls_sha512_starts( &ctx, k ) ) != 0 )
             goto fail;
@@ -585,7 +660,17 @@ int mbedtls_sha512_self_test( int verbose )
         if( ( ret = mbedtls_sha512_finish( &ctx, sha512sum ) ) != 0 )
             goto fail;
 
-        if( memcmp( sha512sum, sha512_test_sum[i], 64 - k * 16 ) != 0 )
+#if defined(MBEDTLS_SHA512T256_C)
+        bits = k;
+        if ( bits == 0 )
+            bits = 512;
+        if ( bits == 1 )
+            bits = 384;
+#define VERIFY_BYTE_COUNT ( bits / 8 )
+#else
+#define VERIFY_BYTE_COUNT ( 64 - k * 16 )
+#endif
+        if( memcmp( sha512sum, sha512_test_sum[i], VERIFY_BYTE_COUNT ) != 0 )
         {
             ret = 1;
             goto fail;

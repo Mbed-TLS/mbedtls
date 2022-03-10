@@ -82,6 +82,9 @@
  * by default. */
 #define MBEDTLS_SHA224_C
 #define MBEDTLS_SHA256_C
+/* The library does not currently support enabling SHA-384 or SHA-512/256
+ * without SHA-512. */
+#define MBEDTLS_SHA512T256_C
 #define MBEDTLS_SHA384_C
 #define MBEDTLS_SHA512_C
 //#define MBEDTLS_THREADING_C

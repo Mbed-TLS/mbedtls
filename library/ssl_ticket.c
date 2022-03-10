@@ -73,6 +73,10 @@ static int ssl_ticket_gen_key( mbedtls_ssl_ticket_context *ctx,
     unsigned char buf[MAX_KEY_BYTES];
     mbedtls_ssl_ticket_key *key = ctx->keys + index;
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+#endif
+
 #if defined(MBEDTLS_HAVE_TIME)
     key->generation_time = (uint32_t) mbedtls_time( NULL );
 #endif
@@ -83,10 +87,27 @@ static int ssl_ticket_gen_key( mbedtls_ssl_ticket_context *ctx,
     if( ( ret = ctx->f_rng( ctx->p_rng, buf, sizeof( buf ) ) ) != 0 )
         return( ret );
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+
+    psa_set_key_usage_flags( &attributes,
+                             PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT );
+    psa_set_key_algorithm( &attributes, key->alg );
+    psa_set_key_type( &attributes, key->key_type );
+    psa_set_key_bits( &attributes, key->key_bits );
+
+    ret = psa_ssl_status_to_mbedtls(
+            psa_import_key( &attributes, buf,
+                            PSA_BITS_TO_BYTES( key->key_bits ),
+                            &key->key ) );
+
+#else
+
     /* With GCM and CCM, same context can encrypt & decrypt */
     ret = mbedtls_cipher_setkey( &key->ctx, buf,
                                  mbedtls_cipher_get_key_bitlen( &key->ctx ),
                                  MBEDTLS_ENCRYPT );
+
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     mbedtls_platform_zeroize( buf, sizeof( buf ) );
 
@@ -106,6 +127,10 @@ static int ssl_ticket_update_keys( mbedtls_ssl_ticket_context *ctx )
         uint32_t current_time = (uint32_t) mbedtls_time( NULL );
         uint32_t key_time = ctx->keys[ctx->active].generation_time;
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+#endif
+
         if( current_time >= key_time &&
             current_time - key_time < ctx->ticket_lifetime )
         {
@@ -113,6 +138,14 @@ static int ssl_ticket_update_keys( mbedtls_ssl_ticket_context *ctx )
         }
 
         ctx->active = 1 - ctx->active;
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+
+        if( ( ret = psa_ssl_status_to_mbedtls(
+                        psa_destroy_key( ctx->keys[ctx->active].key ) ) ) != 0 )
+            return( ret );
+
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
         return( ssl_ticket_gen_key( ctx, ctx->active ) );
     }
@@ -131,15 +164,43 @@ int mbedtls_ssl_ticket_rotate( mbedtls_ssl_ticket_context *ctx,
 {
     const unsigned char idx = 1 - ctx->active;
     mbedtls_ssl_ticket_key * const key = ctx->keys + idx;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    const int bitlen = key->key_bits;
+#else
     const int bitlen = mbedtls_cipher_get_key_bitlen( &key->ctx );
-    int ret;
+#endif
+
     if( nlength < TICKET_KEY_NAME_BYTES || klength * 8 < (size_t)bitlen )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
-    /* With GCM and CCM, same context can encrypt & decrypt */
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+
+    if( ( ret = psa_ssl_status_to_mbedtls(
+                    psa_destroy_key( key->key ) ) ) != 0 )
+        return( ret );
+
+    psa_set_key_usage_flags( &attributes,
+                             PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT );
+    psa_set_key_algorithm( &attributes, key->alg );
+    psa_set_key_type( &attributes, key->key_type );
+    psa_set_key_bits( &attributes, key->key_bits );
+
+    if( ( ret = psa_ssl_status_to_mbedtls(
+                    psa_import_key( &attributes, k,
+                                    PSA_BITS_TO_BYTES( key->key_bits ),
+                                    &key->key ) ) ) != 0 )
+        return( ret );
+
+#else
+
     ret = mbedtls_cipher_setkey( &key->ctx, k, bitlen, MBEDTLS_ENCRYPT );
     if( ret != 0 )
         return( ret );
+
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     ctx->active = idx;
     ctx->ticket_lifetime = lifetime;
@@ -161,6 +222,12 @@ int mbedtls_ssl_ticket_setup( mbedtls_ssl_ticket_context *ctx,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const mbedtls_cipher_info_t *cipher_info;
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_algorithm_t alg;
+    psa_key_type_t key_type;
+    size_t key_bits;
+#endif
+
     ctx->f_rng = f_rng;
     ctx->p_rng = p_rng;
 
@@ -178,26 +245,28 @@ int mbedtls_ssl_ticket_setup( mbedtls_ssl_ticket_context *ctx,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    ret = mbedtls_cipher_setup_psa( &ctx->keys[0].ctx,
-                                    cipher_info, TICKET_AUTH_TAG_BYTES );
-    if( ret != 0 && ret != MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE )
-        return( ret );
-    /* We don't yet expect to support all ciphers through PSA,
-     * so allow fallback to ordinary mbedtls_cipher_setup(). */
-    if( ret == MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE )
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+    if( mbedtls_ssl_cipher_to_psa( cipher_info->type, TICKET_AUTH_TAG_BYTES,
+                                   &alg, &key_type, &key_bits ) != PSA_SUCCESS )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    ctx->keys[0].alg = alg;
+    ctx->keys[0].key_type = key_type;
+    ctx->keys[0].key_bits = key_bits;
+
+    ctx->keys[1].alg = alg;
+    ctx->keys[1].key_type = key_type;
+    ctx->keys[1].key_bits = key_bits;
+
+#else
+
     if( ( ret = mbedtls_cipher_setup( &ctx->keys[0].ctx, cipher_info ) ) != 0 )
         return( ret );
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    ret = mbedtls_cipher_setup_psa( &ctx->keys[1].ctx,
-                                    cipher_info, TICKET_AUTH_TAG_BYTES );
-    if( ret != 0 && ret != MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE )
-        return( ret );
-    if( ret == MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE )
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
     if( ( ret = mbedtls_cipher_setup( &ctx->keys[1].ctx, cipher_info ) ) != 0 )
         return( ret );
+
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     if( ( ret = ssl_ticket_gen_key( ctx, 0 ) ) != 0 ||
         ( ret = ssl_ticket_gen_key( ctx, 1 ) ) != 0 )
@@ -275,6 +344,13 @@ int mbedtls_ssl_ticket_write( void *p_ticket,
     MBEDTLS_PUT_UINT16_BE( clear_len, state_len_bytes, 0 );
 
     /* Encrypt and authenticate */
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( ( ret = psa_ssl_status_to_mbedtls(
+                    psa_aead_encrypt( key->key, key->alg, iv, TICKET_IV_BYTES,
+                                      key_name, TICKET_ADD_DATA_LEN,
+                                      state, clear_len,
+                                      state, end - state, &ciph_len ) ) ) != 0 )
+#else
     if( ( ret = mbedtls_cipher_auth_encrypt_ext( &key->ctx,
                     iv, TICKET_IV_BYTES,
                     /* Additional data: key name, IV and length */
@@ -282,9 +358,11 @@ int mbedtls_ssl_ticket_write( void *p_ticket,
                     state, clear_len,
                     state, end - state, &ciph_len,
                     TICKET_AUTH_TAG_BYTES ) ) != 0 )
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
     {
         goto cleanup;
     }
+
     if( ciph_len != clear_len + TICKET_AUTH_TAG_BYTES )
     {
         ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
@@ -367,6 +445,13 @@ int mbedtls_ssl_ticket_parse( void *p_ticket,
     }
 
     /* Decrypt and authenticate */
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( ( ret = psa_ssl_status_to_mbedtls(
+                    psa_aead_decrypt( key->key, key->alg, iv, TICKET_IV_BYTES,
+                                      key_name, TICKET_ADD_DATA_LEN,
+                                      ticket, enc_len + TICKET_AUTH_TAG_BYTES,
+                                      ticket, enc_len, &clear_len ) ) ) != 0 )
+#else
     if( ( ret = mbedtls_cipher_auth_decrypt_ext( &key->ctx,
                     iv, TICKET_IV_BYTES,
                     /* Additional data: key name, IV and length */
@@ -374,6 +459,7 @@ int mbedtls_ssl_ticket_parse( void *p_ticket,
                     ticket, enc_len + TICKET_AUTH_TAG_BYTES,
                     ticket, enc_len, &clear_len,
                     TICKET_AUTH_TAG_BYTES ) ) != 0 )
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
     {
         if( ret == MBEDTLS_ERR_CIPHER_AUTH_FAILED )
             ret = MBEDTLS_ERR_SSL_INVALID_MAC;
@@ -418,8 +504,17 @@ cleanup:
  */
 void mbedtls_ssl_ticket_free( mbedtls_ssl_ticket_context *ctx )
 {
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+
+    psa_destroy_key( ctx->keys[0].key );
+    psa_destroy_key( ctx->keys[1].key );
+
+#else
+
     mbedtls_cipher_free( &ctx->keys[0].ctx );
     mbedtls_cipher_free( &ctx->keys[1].ctx );
+
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_free( &ctx->mutex );

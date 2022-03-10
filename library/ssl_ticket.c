@@ -236,7 +236,8 @@ int mbedtls_ssl_ticket_setup( mbedtls_ssl_ticket_context *ctx,
     cipher_info = mbedtls_cipher_info_from_type( cipher );
 
     if( mbedtls_cipher_info_get_mode( cipher_info ) != MBEDTLS_MODE_GCM &&
-        mbedtls_cipher_info_get_mode( cipher_info ) != MBEDTLS_MODE_CCM )
+        mbedtls_cipher_info_get_mode( cipher_info ) != MBEDTLS_MODE_CCM &&
+        mbedtls_cipher_info_get_mode( cipher_info ) != MBEDTLS_MODE_CHACHAPOLY )
     {
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }

@@ -332,6 +332,35 @@ psa_status_t psa_driver_wrapper_mac_verify_finish(
 psa_status_t psa_driver_wrapper_mac_abort(
     psa_mac_operation_t *operation );
 
+/*
+ * Asymmetric cryptography
+ */
+psa_status_t psa_driver_wrapper_asymmetric_encrypt(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer,
+    size_t key_buffer_size,
+    psa_algorithm_t alg,
+    const uint8_t *input,
+    size_t input_length,
+    const uint8_t *salt,
+    size_t salt_length,
+    uint8_t *output,
+    size_t output_size,
+    size_t *output_length );
+
+psa_status_t psa_driver_wrapper_asymmetric_decrypt(
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer,
+    size_t key_buffer_size,
+    psa_algorithm_t alg,
+    const uint8_t *input,
+    size_t input_length,
+    const uint8_t *salt,
+    size_t salt_length,
+    uint8_t *output,
+    size_t output_size,
+    size_t *output_length );
+
 #endif /* PSA_CRYPTO_DRIVER_WRAPPERS_H */
 
 /* End of automatically generated file. */

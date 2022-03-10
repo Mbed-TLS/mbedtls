@@ -1233,6 +1233,14 @@ void mbedtls_ssl_set_timer_cb( mbedtls_ssl_context *ssl,
 }
 
 #if defined(MBEDTLS_SSL_SRV_C)
+void mbedtls_ssl_conf_cert_cb( mbedtls_ssl_config *conf,
+                               int (*f_cert_cb)(mbedtls_ssl_context *) )
+{
+    conf->f_cert_cb = f_cert_cb;
+}
+#endif /* MBEDTLS_SSL_SRV_C */
+
+#if defined(MBEDTLS_SSL_SRV_C)
 void mbedtls_ssl_conf_session_cache( mbedtls_ssl_config *conf,
                                      void *p_cache,
                                      mbedtls_ssl_cache_get_t *f_get_cache,
@@ -1291,12 +1299,32 @@ void mbedtls_ssl_conf_cert_profile( mbedtls_ssl_config *conf,
     conf->cert_profile = profile;
 }
 
+static void ssl_key_cert_free( mbedtls_ssl_key_cert *key_cert )
+{
+    mbedtls_ssl_key_cert *cur = key_cert, *next;
+
+    while( cur != NULL )
+    {
+        next = cur->next;
+        mbedtls_free( cur );
+        cur = next;
+    }
+}
+
 /* Append a new keycert entry to a (possibly empty) list */
 static int ssl_append_key_cert( mbedtls_ssl_key_cert **head,
                                 mbedtls_x509_crt *cert,
                                 mbedtls_pk_context *key )
 {
     mbedtls_ssl_key_cert *new_cert;
+
+    if( cert == NULL )
+    {
+        /* Free list if cert is null */
+        ssl_key_cert_free( *head );
+        *head = NULL;
+        return( 0 );
+    }
 
     new_cert = mbedtls_calloc( 1, sizeof( mbedtls_ssl_key_cert ) );
     if( new_cert == NULL )
@@ -1306,7 +1334,7 @@ static int ssl_append_key_cert( mbedtls_ssl_key_cert **head,
     new_cert->key  = key;
     new_cert->next = NULL;
 
-    /* Update head is the list was null, else add to the end */
+    /* Update head if the list was null, else add to the end */
     if( *head == NULL )
     {
         *head = new_cert;
@@ -1361,6 +1389,13 @@ void mbedtls_ssl_conf_ca_cb( mbedtls_ssl_config *conf,
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+const unsigned char *mbedtls_ssl_get_hs_sni( mbedtls_ssl_context *ssl,
+                                             size_t *name_len )
+{
+    *name_len = ssl->handshake->sni_name_len;
+    return( ssl->handshake->sni_name );
+}
+
 int mbedtls_ssl_set_hs_own_cert( mbedtls_ssl_context *ssl,
                                  mbedtls_x509_crt *own_cert,
                                  mbedtls_pk_context *pk_key )
@@ -2941,20 +2976,6 @@ int mbedtls_ssl_renegotiate( mbedtls_ssl_context *ssl )
 }
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
-static void ssl_key_cert_free( mbedtls_ssl_key_cert *key_cert )
-{
-    mbedtls_ssl_key_cert *cur = key_cert, *next;
-
-    while( cur != NULL )
-    {
-        next = cur->next;
-        mbedtls_free( cur );
-        cur = next;
-    }
-}
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
-
 void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
@@ -3042,17 +3063,7 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
      * Free only the linked list wrapper, not the keys themselves
      * since the belong to the SNI callback
      */
-    if( handshake->sni_key_cert != NULL )
-    {
-        mbedtls_ssl_key_cert *cur = handshake->sni_key_cert, *next;
-
-        while( cur != NULL )
-        {
-            next = cur->next;
-            mbedtls_free( cur );
-            cur = next;
-        }
-    }
+    ssl_key_cert_free( handshake->sni_key_cert );
 #endif /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)

@@ -1,0 +1,7 @@
+Features
+   * Add server certificate selection callback near end of Client Hello.
+     Register callback with mbedtls_ssl_conf_cert_cb().
+   * Provide mechanism to reset handshake cert list by calling
+     mbedtls_ssl_set_hs_own_cert() with NULL value for own_cert param.
+   * Add accessor mbedtls_ssl_get_hs_sni() to retrieve SNI from within
+     cert callback (mbedtls_ssl_conf_cert_cb()) during handshake.

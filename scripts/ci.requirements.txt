@@ -1,5 +1,9 @@
 # Python package requirements for Mbed TLS testing.
 
+# Any package used by a script in this repository must be listed here
+# or in one of the included files. Normally there should be a minimum
+# version constraint; the CI will test with the minimum version.
+
 -r driver.requirements.txt
 
 # Use a known version of Pylint, because new versions tend to add warnings
@@ -10,3 +14,7 @@ pylint == 2.4.4
 # Use the earliest version of mypy that works with our code base.
 # See https://github.com/ARMmbed/mbedtls/pull/3953 .
 mypy >= 0.780
+
+# For building some test vectors
+pycryptodomex
+pycryptodome-test-vectors

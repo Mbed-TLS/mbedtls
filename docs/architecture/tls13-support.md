@@ -388,10 +388,10 @@ General coding rules:
 
     Example:
     ```
-    int mbedtls_ssl_tls13_start_handshake_msg( mbedtls_ssl_context *ssl,
-                                               unsigned hs_type,
-                                               unsigned char **buf,
-                                               size_t *buf_len );
+    int mbedtls_ssl_start_handshake_msg( mbedtls_ssl_context *ssl,
+                                         unsigned hs_type,
+                                         unsigned char **buf,
+                                         size_t *buf_len );
     ```
 
   - When a function's parameters span several lines, group related parameters
@@ -400,12 +400,12 @@ General coding rules:
     For example, prefer:
 
     ```
-    mbedtls_ssl_tls13_start_handshake_msg( ssl, hs_type,
-                                           buf, buf_len );
+    mbedtls_ssl_start_handshake_msg( ssl, hs_type,
+                                     buf, buf_len );
     ```
     over
     ```
-    mbedtls_ssl_tls13_start_handshake_msg( ssl, hs_type, buf,
-                                           buf_len );
+    mbedtls_ssl_start_handshake_msg( ssl, hs_type, buf,
+                                     buf_len );
     ```
     even if it fits.

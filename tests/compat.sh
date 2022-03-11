@@ -217,7 +217,7 @@ filter_ciphersuites()
     # supports from the s_server help. (The s_client help isn't
     # accurate as of 1.0.2g: it supports DTLS 1.2 but doesn't list it.
     # But the s_server help seems to be accurate.)
-    if ! $OPENSSL_CMD s_server -help 2>&1 | grep -q "^ *-$MODE "; then
+    if ! $OPENSSL_CMD s_server -help 2>&1 | grep -q "^ *-$O_MODE "; then
         M_CIPHERS=""
         O_CIPHERS=""
     fi
@@ -631,12 +631,15 @@ add_mbedtls_ciphersuites()
 
 setup_arguments()
 {
+    O_MODE=""
     G_MODE=""
     case "$MODE" in
         "tls12")
+            O_MODE="tls1_2"
             G_PRIO_MODE="+VERS-TLS1.2"
             ;;
         "dtls12")
+            O_MODE="dtls1_2"
             G_PRIO_MODE="+VERS-DTLS1.2"
             G_MODE="-u"
             ;;
@@ -653,7 +656,7 @@ setup_arguments()
     fi
 
     M_SERVER_ARGS="server_port=$PORT server_addr=0.0.0.0 force_version=$MODE"
-    O_SERVER_ARGS="-accept $PORT -cipher NULL,ALL -$MODE"
+    O_SERVER_ARGS="-accept $PORT -cipher NULL,ALL -$O_MODE"
     G_SERVER_ARGS="-p $PORT --http $G_MODE"
     G_SERVER_PRIO="NORMAL:${G_PRIO_CCM}+NULL:+MD5:+PSK:+DHE-PSK:+ECDHE-PSK:+SHA256:+SHA384:+RSA-PSK:-VERS-TLS-ALL:$G_PRIO_MODE"
 
@@ -678,7 +681,7 @@ setup_arguments()
     fi
 
     M_CLIENT_ARGS="server_port=$PORT server_addr=127.0.0.1 force_version=$MODE"
-    O_CLIENT_ARGS="-connect localhost:$PORT -$MODE"
+    O_CLIENT_ARGS="-connect localhost:$PORT -$O_MODE"
     G_CLIENT_ARGS="-p $PORT --debug 3 $G_MODE"
     G_CLIENT_PRIO="NONE:$G_PRIO_MODE:+COMP-NULL:+CURVE-ALL:+SIGN-ALL"
 

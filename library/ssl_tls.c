@@ -4223,9 +4223,10 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
          * NSA Suite B
          */
         case MBEDTLS_SSL_PRESET_SUITEB:
-            conf->min_major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
-            conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_3; /* TLS 1.2 */
+            conf->min_major_ver = MBEDTLS_SSL_MIN_MAJOR_VERSION;
             conf->max_major_ver = MBEDTLS_SSL_MAX_MAJOR_VERSION;
+
+            conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_3; /* TLS 1.2 */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
             /* Hybrid TLS 1.2/1.3 is not supported yet */
             conf->max_minor_ver = MBEDTLS_SSL_MINOR_VERSION_3;
@@ -4261,15 +4262,13 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
          * Default
          */
         default:
-            conf->min_major_ver = ( MBEDTLS_SSL_MIN_MAJOR_VERSION >
-                                    MBEDTLS_SSL_MIN_VALID_MAJOR_VERSION ) ?
-                                    MBEDTLS_SSL_MIN_MAJOR_VERSION :
-                                    MBEDTLS_SSL_MIN_VALID_MAJOR_VERSION;
+            conf->min_major_ver = MBEDTLS_SSL_MIN_MAJOR_VERSION;
+            conf->max_major_ver = MBEDTLS_SSL_MAX_MAJOR_VERSION;
+
             conf->min_minor_ver = ( MBEDTLS_SSL_MIN_MINOR_VERSION >
                                     MBEDTLS_SSL_MIN_VALID_MINOR_VERSION ) ?
                                     MBEDTLS_SSL_MIN_MINOR_VERSION :
                                     MBEDTLS_SSL_MIN_VALID_MINOR_VERSION;
-            conf->max_major_ver = MBEDTLS_SSL_MAX_MAJOR_VERSION;
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
             /* Hybrid TLS 1.2/1.3 is not supported yet */
             conf->max_minor_ver = MBEDTLS_SSL_MINOR_VERSION_3;

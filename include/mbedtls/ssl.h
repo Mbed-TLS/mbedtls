@@ -2024,6 +2024,40 @@ int mbedtls_ssl_set_cid( mbedtls_ssl_context *ssl,
                          size_t own_cid_len );
 
 /**
+ * \brief              Get information about our request for usage of the CID
+ *                     extension in the current connection.
+ *
+ * \param ssl          The SSL context to query.
+ * \param enabled      The address at which to store whether the CID extension
+ *                     is requested to be used or not. If the CID is
+ *                     requested, `*enabled` is set to
+ *                     MBEDTLS_SSL_CID_ENABLED; otherwise, it is set to
+ *                     MBEDTLS_SSL_CID_DISABLED.
+ * \param own_cid      The address of the buffer in which to store our own
+ *                     CID (if the CID extension is requested). This may be
+ *                     \c NULL in case the value of our CID isn't needed. If
+ *                     it is not \c NULL, \p own_cid_len must not be \c NULL.
+ * \param own_cid_len  The address at which to store the size of our own CID
+ *                     (if the CID extension is requested). This is also the
+ *                     number of Bytes in \p own_cid that have been written.
+ *                     This may be \c NULL in case the length of our own CID
+ *                     isn't needed. If it is \c NULL, \p own_cid must be
+ *                     \c NULL, too.
+ *
+ *\note                If we are requesting an empty CID this function sets
+ *                     `*enabled` to #MBEDTLS_SSL_CID_DISABLED (the rationale
+ *                     for this is that the resulting outcome is the
+ *                     same as if the CID extensions wasn't requested).
+ *
+ * \return            \c 0 on success.
+ * \return            A negative error code on failure.
+ */
+int mbedtls_ssl_get_own_cid( mbedtls_ssl_context *ssl,
+                            int *enabled,
+                            unsigned char own_cid[MBEDTLS_SSL_CID_OUT_LEN_MAX],
+                            size_t *own_cid_len );
+
+/**
  * \brief              Get information about the use of the CID extension
  *                     in the current connection.
  *

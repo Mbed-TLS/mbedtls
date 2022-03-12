@@ -536,10 +536,9 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 /**
- * \brief           Make signature with options, including padding if relevant.
+ * \brief           Make signature with input pk type. not the type of \p ctx .
  *
- * \param type      Signature type (inc. possible padding type) to verify
- * \param options   Pointer to type-specific options, or NULL
+ * \param pk_type   Signature type.
  * \param ctx       The PK context to use. It must have been set up
  *                  with a private key.
  * \param md_alg    Hash algorithm used (see notes)
@@ -558,9 +557,9 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
  *
  * \return          0 on success, or a specific error code.
  *
- * \note            For RSA keys, the default padding type is PKCS#1 v1.5.
- *                  There is no interface in the PK module to make RSASSA-PSS
- *                  signatures yet.
+ * \note            For RSA keys, the padding type depends on the value of the
+ *                  \p pk_type parameter: MBEDTLS_PK_RSA for PKCS#1 v1.5, and
+ *                  MBEDTLS_PK_RSASSA_PSS for PKCS#1 v2.1 with any salt.
  *
  * \note            For RSA, md_alg may be MBEDTLS_MD_NONE if hash_len != 0.
  *                  For ECDSA, md_alg may never be MBEDTLS_MD_NONE.
@@ -568,11 +567,13 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
  * \note            For RSA, md_alg may be MBEDTLS_MD_NONE if hash_len != 0.
  *                  For ECDSA, md_alg may never be MBEDTLS_MD_NONE.
  */
-int mbedtls_pk_sign_ext( mbedtls_pk_type_t type, const void *options,
-             mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
-             const unsigned char *hash, size_t hash_len,
-             unsigned char *sig, size_t sig_size, size_t *sig_len,
-             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
+int mbedtls_pk_sign_ext( mbedtls_pk_type_t type,
+                         mbedtls_pk_context *ctx,
+                         mbedtls_md_type_t md_alg,
+                         const unsigned char *hash, size_t hash_len,
+                         unsigned char *sig, size_t sig_size, size_t *sig_len,
+                         int (*f_rng)(void *, unsigned char *, size_t),
+                         void *p_rng );
 
 /**
  * \brief           Restartable version of \c mbedtls_pk_sign()

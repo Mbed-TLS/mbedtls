@@ -521,11 +521,13 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
 /*
  * Make a signature with options
  */
-int mbedtls_pk_sign_ext( mbedtls_pk_type_t type, const void *options,
-             mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
-             const unsigned char *hash, size_t hash_len,
-             unsigned char *sig, size_t sig_size, size_t *sig_len,
-             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+int mbedtls_pk_sign_ext( mbedtls_pk_type_t type,
+                         mbedtls_pk_context *ctx,
+                         mbedtls_md_type_t md_alg,
+                         const unsigned char *hash, size_t hash_len,
+                         unsigned char *sig, size_t sig_size, size_t *sig_len,
+                         int (*f_rng)(void *, unsigned char *, size_t),
+                         void *p_rng )
 {
     PK_VALIDATE_RET( ctx != NULL );
     PK_VALIDATE_RET( ( md_alg == MBEDTLS_MD_NONE && hash_len == 0 ) ||
@@ -541,10 +543,6 @@ int mbedtls_pk_sign_ext( mbedtls_pk_type_t type, const void *options,
 
     if( type != MBEDTLS_PK_RSASSA_PSS )
     {
-        /* General case: no options */
-        if( options != NULL )
-            return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
-
         return( mbedtls_pk_sign_restartable( ctx, md_alg, hash, hash_len,
                                              sig, sig_size, sig_len,
                                              f_rng, p_rng, NULL ) );
@@ -552,17 +550,12 @@ int mbedtls_pk_sign_ext( mbedtls_pk_type_t type, const void *options,
 
 #if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PKCS1_V21)
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    const mbedtls_pk_rsassa_pss_options *pss_opts;
 
 #if SIZE_MAX > UINT_MAX
     if( md_alg == MBEDTLS_MD_NONE && UINT_MAX < hash_len )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 #endif /* SIZE_MAX > UINT_MAX */
 
-    if( options == NULL )
-        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
-
-    pss_opts = (const mbedtls_pk_rsassa_pss_options *) options;
     if( sig_size < mbedtls_pk_get_len( ctx ) )
         return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
 
@@ -578,7 +571,7 @@ int mbedtls_pk_sign_ext( mbedtls_pk_type_t type, const void *options,
                                            f_rng, p_rng,
                                            md_alg,
                                            (unsigned int) hash_len,
-                                           hash,pss_opts->expected_salt_len,
+                                           hash,MBEDTLS_RSA_SALT_LEN_ANY,
                                            sig
                                          );
     return( ret );

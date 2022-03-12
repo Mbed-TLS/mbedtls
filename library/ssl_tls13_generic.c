@@ -1060,10 +1060,8 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
     unsigned char verify_buffer[ SSL_VERIFY_STRUCT_MAX_SIZE ];
     size_t verify_buffer_len;
     mbedtls_pk_type_t pk_type = MBEDTLS_PK_NONE;
-    const void *options = NULL;
     mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
     uint16_t algorithm = MBEDTLS_TLS1_3_SIG_NONE;
-    mbedtls_pk_rsassa_pss_options pss_opts;
     size_t signature_len = 0;
     const mbedtls_md_info_t *md_info;
     unsigned char verify_hash[ MBEDTLS_MD_MAX_SIZE ];
@@ -1134,20 +1132,14 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
     case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
         md_alg = MBEDTLS_MD_SHA256;
-        pss_opts.expected_salt_len = MBEDTLS_RSA_SALT_LEN_ANY;
-        options = &pss_opts;
         pk_type = MBEDTLS_PK_RSASSA_PSS;
         break;
     case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384:
         md_alg = MBEDTLS_MD_SHA384;
-        pss_opts.expected_salt_len = MBEDTLS_RSA_SALT_LEN_ANY;
-        options = &pss_opts;
         pk_type = MBEDTLS_PK_RSASSA_PSS;
         break;
     case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:
         md_alg = MBEDTLS_MD_SHA512;
-        pss_opts.expected_salt_len = MBEDTLS_RSA_SALT_LEN_ANY;
-        options = &pss_opts;
         pk_type = MBEDTLS_PK_RSASSA_PSS;
         break;
 #endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
@@ -1173,8 +1165,8 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
     verify_hash_len = mbedtls_md_get_size( md_info );
     MBEDTLS_SSL_DEBUG_BUF( 3, "verify hash", verify_hash, verify_hash_len );
 
-    if( ( ret = mbedtls_pk_sign_ext( pk_type, options,
-                        own_key, md_alg, verify_hash, verify_hash_len,
+    if( ( ret = mbedtls_pk_sign_ext( pk_type, own_key,
+                        md_alg, verify_hash, verify_hash_len,
                         p + 2, (size_t)( end - ( p + 2 ) ), &signature_len,
                         ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
     {

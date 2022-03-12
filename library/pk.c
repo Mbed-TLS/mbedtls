@@ -522,7 +522,7 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
 /*
  * Make a signature with options
  */
-int mbedtls_pk_sign_ext( mbedtls_pk_type_t type,
+int mbedtls_pk_sign_ext( mbedtls_pk_type_t pk_type,
                          mbedtls_pk_context *ctx,
                          mbedtls_md_type_t md_alg,
                          const unsigned char *hash, size_t hash_len,
@@ -536,10 +536,10 @@ int mbedtls_pk_sign_ext( mbedtls_pk_type_t type,
     if( ctx->pk_info == NULL )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
-    if( ! mbedtls_pk_can_do( ctx, type ) )
+    if( ! mbedtls_pk_can_do( ctx, pk_type ) )
         return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
 
-    if( type != MBEDTLS_PK_RSASSA_PSS )
+    if( pk_type != MBEDTLS_PK_RSASSA_PSS )
     {
         return( mbedtls_pk_sign( ctx, md_alg, hash, hash_len,
                                  sig, sig_size, sig_len, f_rng, p_rng ) );

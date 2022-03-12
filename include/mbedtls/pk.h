@@ -568,7 +568,7 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
  * \note            For RSA, md_alg may be MBEDTLS_MD_NONE if hash_len != 0.
  *                  For ECDSA, md_alg may never be MBEDTLS_MD_NONE.
  */
-int mbedtls_pk_sign_ext( mbedtls_pk_type_t type,
+int mbedtls_pk_sign_ext( mbedtls_pk_type_t pk_type,
                          mbedtls_pk_context *ctx,
                          mbedtls_md_type_t md_alg,
                          const unsigned char *hash, size_t hash_len,

@@ -145,6 +145,15 @@ int mbedtls_pk_error_from_psa_ecdca( psa_status_t status );
 #if defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY)
 int mbedtls_pk_error_from_psa_rsa( psa_status_t status );
 #endif
-#endif
+
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+int mbedtls_pk_psa_sign_ext( psa_algorithm_t psa_alg_md, void *ctx,
+                             const unsigned char *hash, size_t hash_len,
+                             unsigned char *sig, size_t sig_size,
+                             size_t *sig_len );
+
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #endif /* MBEDTLS_PK_WRAP_H */

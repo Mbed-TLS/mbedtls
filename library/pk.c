@@ -518,6 +518,7 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
                                          f_rng, p_rng, NULL ) );
 }
 
+#if defined(MBEDTLS_PSA_CRYPTO_C)
 /*
  * Make a signature with options
  */
@@ -529,12 +530,9 @@ int mbedtls_pk_sign_ext( mbedtls_pk_type_t type,
                          int (*f_rng)(void *, unsigned char *, size_t),
                          void *p_rng )
 {
-    PK_VALIDATE_RET( ctx != NULL );
-    PK_VALIDATE_RET( ( md_alg == MBEDTLS_MD_NONE && hash_len == 0 ) ||
-                     hash != NULL );
-    PK_VALIDATE_RET( sig != NULL );
 
     *sig_len = 0;
+
     if( ctx->pk_info == NULL )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
@@ -543,43 +541,22 @@ int mbedtls_pk_sign_ext( mbedtls_pk_type_t type,
 
     if( type != MBEDTLS_PK_RSASSA_PSS )
     {
-        return( mbedtls_pk_sign_restartable( ctx, md_alg, hash, hash_len,
-                                             sig, sig_size, sig_len,
-                                             f_rng, p_rng, NULL ) );
+        return( mbedtls_pk_sign( ctx, md_alg, hash, hash_len,
+                                 sig, sig_size, sig_len, f_rng, p_rng ) );
     }
 
-#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PKCS1_V21)
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && defined(MBEDTLS_USE_PSA_CRYPTO)
 
-#if SIZE_MAX > UINT_MAX
-    if( md_alg == MBEDTLS_MD_NONE && UINT_MAX < hash_len )
-        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
-#endif /* SIZE_MAX > UINT_MAX */
-
-    if( sig_size < mbedtls_pk_get_len( ctx ) )
-        return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
-
-    if( mbedtls_rsa_set_padding( mbedtls_pk_rsa( *ctx ),
-                                 MBEDTLS_RSA_PKCS_V21,
-                                 md_alg ) != 0 )
-    {
-        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
-    }
-
-    *sig_len = mbedtls_pk_get_len( ctx );
-    ret = mbedtls_rsa_rsassa_pss_sign_ext( mbedtls_pk_rsa( *ctx ),
-                                           f_rng, p_rng,
-                                           md_alg,
-                                           (unsigned int) hash_len,
-                                           hash,MBEDTLS_RSA_SALT_LEN_ANY,
-                                           sig
-                                         );
-    return( ret );
-#else
+    return( mbedtls_pk_psa_sign_ext( PSA_ALG_RSA_PSS_ANY_SALT(
+                                        mbedtls_psa_translate_md( md_alg ) ),
+                                     ctx->pk_ctx, hash, hash_len,
+                                     sig, sig_size, sig_len ) );
+#else /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
     return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
-#endif /* MBEDTLS_RSA_C && MBEDTLS_PKCS1_V21 */
+#endif /* !MBEDTLS_X509_RSASSA_PSS_SUPPORT */
 
 }
+#endif /* MBEDTLS_PSA_CRYPTO_C */
 
 /*
  * Decrypt message

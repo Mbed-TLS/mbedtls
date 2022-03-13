@@ -30,7 +30,9 @@ import jinja2
 from mbedtls_dev import build_tree
 
 JSONSchema = NewType('JSONSchema', object)
-Driver = NewType('Driver', object)
+# The Driver is an Object, but practically it's indexable and can called a dictionary to
+# keep MyPy happy till MyPy comes with a more composite type for JsonObjects.
+Driver = NewType('Driver', dict)
 
 def render(template_path: str, driver_jsoncontext: list) -> str:
     """
@@ -63,7 +65,6 @@ def validate_json(driverjson_data: Driver, driverschema_list: dict) -> bool:
     Validate the Driver JSON against an appropriate schema
     the schema passed could be that matching an opaque/ transparent driver.
     """
-
     driver_type = driverjson_data["type"]
     driver_prefix = driverjson_data["prefix"]
     try:

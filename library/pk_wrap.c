@@ -281,6 +281,7 @@ static int rsa_decrypt_wrap( void *ctx,
     ret = 0;
 
 cleanup:
+    mbedtls_platform_zeroize( buf, sizeof( buf ) );
     status = psa_destroy_key( key_id );
     if( ret == 0 && status != PSA_SUCCESS )
         ret = mbedtls_pk_error_from_psa( status );

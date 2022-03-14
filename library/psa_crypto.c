@@ -27,6 +27,7 @@
 #endif
 
 #include "psa/crypto.h"
+#include "psa/crypto_values.h"
 
 #include "psa_crypto_cipher.h"
 #include "psa_crypto_core.h"
@@ -4680,6 +4681,204 @@ static void psa_des_set_key_parity( uint8_t *data, size_t data_size )
 }
 #endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES */
 
+/*
+* ECC keys on a Weierstrass elliptic curve require the generation
+* of a private key which is an integer
+* in the range [1, N - 1], where N is the boundary of the private key domain:
+* N is the prime p for Diffie-Hellman, or the order of the
+* curve’s base point for ECC.
+*
+* Let m be the bit size of N, such that 2^m > N >= 2^(m-1).
+* This function generates the private key using the following process:
+*
+* 1. Draw a byte string of length ceiling(m/8) bytes.
+* 2. If m is not a multiple of 8, set the most significant
+*    (8 * ceiling(m/8) - m) bits of the first byte in the string to zero.
+* 3. Convert the string to integer k by decoding it as a big-endian byte string.
+* 4. If k > N - 2, discard the result and return to step 1.
+* 5. Output k + 1 as the private key.
+*
+* This method allows compliance to NIST standards, specifically the methods titled
+* Key-Pair Generation by Testing Candidates in the following publications:
+* - NIST Special Publication 800-56A: Recommendation for Pair-Wise Key-Establishment
+*   Schemes Using Discrete Logarithm Cryptography [SP800-56A] §5.6.1.1.4 for
+*   Diffie-Hellman keys.
+*
+* - [SP800-56A] §5.6.1.2.2 or FIPS Publication 186-4: Digital Signature
+*   Standard (DSS) [FIPS186-4] §B.4.2 for elliptic curve keys.
+*
+* Note: Function allocates memory for *data buffer, so given *data should be
+*       always NULL.
+*/
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
+static psa_status_t psa_generate_derived_ecc_key_weierstrass_helper(
+    psa_key_slot_t *slot,
+    size_t bits,
+    psa_key_derivation_operation_t *operation,
+    uint8_t **data
+    )
+{
+    unsigned key_out_of_range = 1;
+    mbedtls_mpi k;
+    mbedtls_mpi diff_N_2;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    mbedtls_mpi_init( &k );
+    mbedtls_mpi_init( &diff_N_2 );
+
+    psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY(
+                                slot->attr.type );
+    mbedtls_ecp_group_id grp_id =
+        mbedtls_ecc_group_of_psa( curve, bits, 0 );
+
+    if( grp_id == MBEDTLS_ECP_DP_NONE )
+    {
+        ret = MBEDTLS_ERR_ASN1_INVALID_DATA;
+        goto cleanup;
+    }
+
+    mbedtls_ecp_group ecp_group;
+    mbedtls_ecp_group_init( &ecp_group );
+
+    MBEDTLS_MPI_CHK( mbedtls_ecp_group_load( &ecp_group, grp_id ) );
+
+    /* N is the boundary of the private key domain (ecp_group.N). */
+    /* Let m be the bit size of N. */
+    size_t m = ecp_group.nbits;
+
+    size_t m_bytes = PSA_BITS_TO_BYTES( m );
+
+    /* Calculate N - 2 - it will be needed later. */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &diff_N_2, &ecp_group.N, 2 ) );
+
+    /* Note: This function is always called with *data == NULL and it
+     * allocates memory for the data buffer. */
+    *data = mbedtls_calloc( 1, m_bytes );
+    if( *data == NULL )
+    {
+        ret = MBEDTLS_ERR_ASN1_ALLOC_FAILED;
+        goto cleanup;
+    }
+
+    while( key_out_of_range )
+    {
+        /* 1. Draw a byte string of length ceiling(m/8) bytes. */
+        if( ( status = psa_key_derivation_output_bytes( operation, *data, m_bytes ) ) != 0 )
+            goto cleanup;
+
+        /* 2. If m is not a multiple of 8 */
+        if( m % 8 != 0 )
+        {
+            /* Set the most significant
+             * (8 * ceiling(m/8) - m) bits of the first byte in
+             * the string to zero.
+             */
+            uint8_t clear_bit_mask = ( 1 << ( m % 8 ) ) - 1;
+            (*data)[0] &= clear_bit_mask;
+        }
+
+        /* 3. Convert the string to integer k by decoding it as a
+        *    big-endian byte string.
+        */
+        MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &k, *data, m_bytes ) );
+
+        /* 4. If k > N - 2, discard the result and return to step 1.
+        *    Result of comparison is returned. When it indicates error
+        *    then this fuction is called again.
+        */
+        MBEDTLS_MPI_CHK( mbedtls_mpi_lt_mpi_ct( &diff_N_2, &k, &key_out_of_range ) );
+    }
+
+    /* 5. Output k + 1 as the private key. */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( &k, &k, 1 ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &k, *data, m_bytes ) );
+cleanup:
+    if( ret != 0 )
+        status = mbedtls_to_psa_error( ret );
+    if( status != PSA_SUCCESS  ) {
+        mbedtls_free( *data );
+        *data = NULL;
+    }
+    mbedtls_mpi_free( &k );
+    mbedtls_mpi_free( &diff_N_2 );
+    return( status );
+}
+
+/* ECC keys on a Montgomery elliptic curve draws a byte string whose length
+ * is determined by the curve, and sets the mandatory bits accordingly. That is:
+ *
+ * - Curve25519 (PSA_ECC_FAMILY_MONTGOMERY, 255 bits):
+ *   draw a 32-byte string and process it as specified in
+ *   Elliptic Curves for Security [RFC7748] §5.
+ *
+ * - Curve448 (PSA_ECC_FAMILY_MONTGOMERY, 448 bits):
+ *   draw a 56-byte string and process it as specified in [RFC7748] §5.
+ *
+ * Note: Function allocates memory for *data buffer, so given *data should be
+ *       always NULL.
+ */
+
+static psa_status_t psa_generate_derived_ecc_key_montgomery_helper(
+    size_t bits,
+    psa_key_derivation_operation_t *operation,
+    uint8_t **data
+    )
+{
+    size_t output_length;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    switch( bits )
+    {
+        case 255:
+            output_length = 32;
+            break;
+        case 448:
+            output_length = 56;
+            break;
+        default:
+            return( PSA_ERROR_INVALID_ARGUMENT );
+            break;
+    }
+
+    *data = mbedtls_calloc( 1, output_length );
+
+    if( *data == NULL )
+        return( PSA_ERROR_INSUFFICIENT_MEMORY );
+
+    status = psa_key_derivation_output_bytes( operation, *data, output_length );
+
+    if( status != PSA_SUCCESS )
+        return status;
+
+    switch( bits )
+    {
+        case 255:
+            (*data)[0] &= 248;
+            (*data)[31] &= 127;
+            (*data)[31] |= 64;
+            break;
+        case 448:
+            (*data)[0] &= 252;
+            (*data)[55] |= 128;
+            break;
+        default:
+            return( PSA_ERROR_CORRUPTION_DETECTED );
+            break;
+    }
+
+    return status;
+}
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
+          defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) ||
+          defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+          defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ||
+          defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH) */
+
 static psa_status_t psa_generate_derived_key_internal(
     psa_key_slot_t *slot,
     size_t bits,
@@ -4688,23 +4887,57 @@ static psa_status_t psa_generate_derived_key_internal(
     uint8_t *data = NULL;
     size_t bytes = PSA_BITS_TO_BYTES( bits );
     size_t storage_size = bytes;
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    if( ! key_type_is_raw_bytes( slot->attr.type ) )
+    if( PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->attr.type ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
-    if( bits % 8 != 0 )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-    data = mbedtls_calloc( 1, bytes );
-    if( data == NULL )
-        return( PSA_ERROR_INSUFFICIENT_MEMORY );
 
-    status = psa_key_derivation_output_bytes( operation, data, bytes );
-    if( status != PSA_SUCCESS )
-        goto exit;
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) || \
+    defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
+    if( PSA_KEY_TYPE_IS_ECC( slot->attr.type ) )
+    {
+        psa_ecc_family_t curve = PSA_KEY_TYPE_ECC_GET_FAMILY( slot->attr.type );
+        if( PSA_ECC_FAMILY_IS_WEIERSTRASS( curve ) )
+        {
+            /* Weierstrass elliptic curve */
+            status = psa_generate_derived_ecc_key_weierstrass_helper( slot, bits, operation, &data );
+            if( status != PSA_SUCCESS )
+                goto exit;
+        }
+        else
+        {
+            /* Montgomery elliptic curve */
+            status = psa_generate_derived_ecc_key_montgomery_helper( bits, operation, &data );
+            if( status != PSA_SUCCESS )
+                goto exit;
+        }
+    } else
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_KEY_PAIR) ||
+          defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ECC_PUBLIC_KEY) ||
+          defined(MBEDTLS_PSA_BUILTIN_ALG_ECDSA) ||
+          defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) ||
+          defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH) */
+    if( key_type_is_raw_bytes( slot->attr.type ) )
+    {
+        if( bits % 8 != 0 )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        data = mbedtls_calloc( 1, bytes );
+        if( data == NULL )
+            return( PSA_ERROR_INSUFFICIENT_MEMORY );
+
+        status = psa_key_derivation_output_bytes( operation, data, bytes );
+        if( status != PSA_SUCCESS )
+            goto exit;
 #if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES)
-    if( slot->attr.type == PSA_KEY_TYPE_DES )
-        psa_des_set_key_parity( data, bytes );
-#endif /* MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES */
+        if( slot->attr.type == PSA_KEY_TYPE_DES )
+            psa_des_set_key_parity( data, bytes );
+#endif /* defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES) */
+    }
+    else
+        return( PSA_ERROR_NOT_SUPPORTED );
 
     slot->attr.bits = (psa_key_bits_t) bits;
     psa_key_attributes_t attributes = {

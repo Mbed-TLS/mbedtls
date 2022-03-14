@@ -7233,6 +7233,65 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void derive_key_type( int alg_arg,
+                      data_t *key_data,
+                      data_t *input1,
+                      data_t *input2,
+                      int key_type_arg, int bits_arg,
+                      data_t *expected_export )
+{
+    mbedtls_svc_key_id_t base_key = MBEDTLS_SVC_KEY_ID_INIT;
+    mbedtls_svc_key_id_t derived_key = MBEDTLS_SVC_KEY_ID_INIT;
+    const psa_algorithm_t alg = alg_arg;
+    const psa_key_type_t key_type = key_type_arg;
+    const size_t bits = bits_arg;
+    psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
+    const size_t export_buffer_size =
+        PSA_EXPORT_KEY_OUTPUT_SIZE( key_type, bits );
+    uint8_t *export_buffer = NULL;
+    psa_key_attributes_t base_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_attributes_t derived_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    size_t export_length;
+
+    ASSERT_ALLOC( export_buffer, export_buffer_size );
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    psa_set_key_usage_flags( &base_attributes, PSA_KEY_USAGE_DERIVE );
+    psa_set_key_algorithm( &base_attributes, alg );
+    psa_set_key_type( &base_attributes, PSA_KEY_TYPE_DERIVE );
+    PSA_ASSERT( psa_import_key( &base_attributes, key_data->x, key_data->len,
+                                &base_key ) );
+
+    if( mbedtls_test_psa_setup_key_derivation_wrap(
+            &operation, base_key, alg,
+            input1->x, input1->len,
+            input2->x, input2->len,
+            PSA_KEY_DERIVATION_UNLIMITED_CAPACITY ) == 0 )
+        goto exit;
+
+    psa_set_key_usage_flags( &derived_attributes, PSA_KEY_USAGE_EXPORT );
+    psa_set_key_algorithm( &derived_attributes, 0 );
+    psa_set_key_type( &derived_attributes, key_type );
+    psa_set_key_bits( &derived_attributes, bits );
+    PSA_ASSERT( psa_key_derivation_output_key( &derived_attributes, &operation,
+                                               &derived_key ) );
+
+    PSA_ASSERT( psa_export_key( derived_key,
+                                export_buffer, export_buffer_size,
+                                &export_length ) );
+    ASSERT_COMPARE( export_buffer, export_length,
+                    expected_export->x, expected_export->len );
+
+exit:
+    mbedtls_free( export_buffer );
+    psa_key_derivation_abort( &operation );
+    psa_destroy_key( base_key );
+    psa_destroy_key( derived_key );
+    PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void derive_key( int alg_arg,
                  data_t *key_data, data_t *input1, data_t *input2,
                  int type_arg, int bits_arg,

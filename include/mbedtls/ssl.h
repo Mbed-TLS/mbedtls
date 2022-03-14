@@ -1099,6 +1099,14 @@ mbedtls_dtls_srtp_info;
 
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 
+/** Human-friendly representation of the (D)TLS protocol version. */
+typedef enum
+{
+    MBEDTLS_SSL_VERSION_UNKNOWN, /*!< Context not in use or version not yet negotiated. */
+    MBEDTLS_SSL_VERSION_TLS1_2 = 0x0303, /*!< (D)TLS 1.2 */
+    MBEDTLS_SSL_VERSION_TLS1_3 = 0x0304, /*!< (D)TLS 1.3 */
+} mbedtls_ssl_protocol_version;
+
 /*
  * This structure is used for storing current session data.
  *
@@ -1160,14 +1168,6 @@ struct mbedtls_ssl_session
     mbedtls_ssl_tls13_application_secrets MBEDTLS_PRIVATE(app_secrets);
 #endif
 };
-
-/** Human-friendly representation of the (D)TLS protocol version. */
-typedef enum
-{
-    MBEDTLS_SSL_VERSION_UNKNOWN, /*!< Context not in use or version not yet negotiated. */
-    MBEDTLS_SSL_VERSION_1_2,     /*!< (D)TLS 1.2 */
-    MBEDTLS_SSL_VERSION_1_3,     /*!< (D)TLS 1.3 */
-} mbedtls_ssl_protocol_version;
 
 /*
  * Identifiers for PRFs used in various versions of TLS.

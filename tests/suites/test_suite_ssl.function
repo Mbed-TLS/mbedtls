@@ -1879,12 +1879,12 @@ int check_ssl_version( int expected_negotiated_version,
     switch( expected_negotiated_version )
     {
         case MBEDTLS_SSL_MINOR_VERSION_3:
-            TEST_EQUAL( version_number, MBEDTLS_SSL_VERSION_1_2 );
+            TEST_EQUAL( version_number, MBEDTLS_SSL_VERSION_TLS1_2 );
             TEST_ASSERT( strcmp( version_string, "TLSv1.2" ) == 0 );
             break;
 
         case MBEDTLS_SSL_MINOR_VERSION_4:
-            TEST_EQUAL( version_number, MBEDTLS_SSL_VERSION_1_3 );
+            TEST_EQUAL( version_number, MBEDTLS_SSL_VERSION_TLS1_3 );
             TEST_ASSERT( strcmp( version_string, "TLSv1.3" ) == 0 );
             break;
 

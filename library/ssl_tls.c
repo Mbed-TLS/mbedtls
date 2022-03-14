@@ -2328,9 +2328,9 @@ mbedtls_ssl_protocol_version mbedtls_ssl_get_version_number(
     switch( ssl->minor_ver )
     {
         case MBEDTLS_SSL_MINOR_VERSION_3:
-            return( MBEDTLS_SSL_VERSION_1_2 );
+            return( MBEDTLS_SSL_VERSION_TLS1_2 );
         case MBEDTLS_SSL_MINOR_VERSION_4:
-            return( MBEDTLS_SSL_VERSION_1_3 );
+            return( MBEDTLS_SSL_VERSION_TLS1_3 );
         default:
             return( MBEDTLS_SSL_VERSION_UNKNOWN );
     }

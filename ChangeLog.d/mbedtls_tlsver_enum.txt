@@ -1,0 +1,2 @@
+Features
+   * Unify internal/external TLS protocol version enums

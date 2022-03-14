@@ -382,7 +382,8 @@ static int ssl_parse_inner_plaintext( unsigned char const *content,
 static void ssl_extract_add_data_from_record( unsigned char* add_data,
                                               size_t *add_data_len,
                                               mbedtls_record *rec,
-                                              unsigned minor_ver,
+                                              mbedtls_ssl_protocol_version
+                                                tls_version,
                                               size_t taglen )
 {
     /* Quoting RFC 5246 (TLS 1.2):
@@ -421,7 +422,7 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
     size_t ad_len_field = rec->data_len;
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+    if( tls_version == MBEDTLS_SSL_VERSION_TLS1_3 )
     {
         /* In TLS 1.3, the AAD contains the length of the TLSCiphertext,
          * which differs from the length of the TLSInnerPlaintext
@@ -431,7 +432,7 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
     else
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
     {
-        ((void) minor_ver);
+        ((void) tls_version);
         ((void) taglen);
         memcpy( cur, rec->ctr, sizeof( rec->ctr ) );
         cur += sizeof( rec->ctr );
@@ -596,7 +597,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
      * is hence no risk of double-addition of the inner plaintext.
      */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    if( transform->minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+    if( transform->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 )
     {
         size_t padding =
             ssl_compute_padding_length( rec->data_len,
@@ -680,7 +681,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
         ssl_extract_add_data_from_record( add_data, &add_data_len, rec,
-                                          transform->minor_ver,
+                                          transform->tls_version,
                                           transform->taglen );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -817,7 +818,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
          * This depends on the TLS version.
          */
         ssl_extract_add_data_from_record( add_data, &add_data_len, rec,
-                                          transform->minor_ver,
+                                          transform->tls_version,
                                           transform->taglen );
 
         MBEDTLS_SSL_DEBUG_BUF( 4, "IV used (internal)",
@@ -1050,7 +1051,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
             }
 
             ssl_extract_add_data_from_record( add_data, &add_data_len,
-                                              rec, transform->minor_ver,
+                                              rec, transform->tls_version,
                                               transform->taglen );
 
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "using encrypt then mac" ) );
@@ -1270,7 +1271,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
          * This depends on the TLS version.
          */
         ssl_extract_add_data_from_record( add_data, &add_data_len, rec,
-                                          transform->minor_ver,
+                                          transform->tls_version,
                                           transform->taglen );
         MBEDTLS_SSL_DEBUG_BUF( 4, "additional data used for AEAD",
                                add_data, add_data_len );
@@ -1412,7 +1413,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
              * Further, we still know that data_len > minlen */
             rec->data_len -= transform->maclen;
             ssl_extract_add_data_from_record( add_data, &add_data_len, rec,
-                                              transform->minor_ver,
+                                              transform->tls_version,
                                               transform->taglen );
 
             /* Calculate expected MAC. */
@@ -1697,7 +1698,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
          */
         rec->data_len -= transform->maclen;
         ssl_extract_add_data_from_record( add_data, &add_data_len, rec,
-                                          transform->minor_ver,
+                                          transform->tls_version,
                                           transform->taglen );
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
@@ -1775,7 +1776,7 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
     }
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    if( transform->minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+    if( transform->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 )
     {
         /* Remove inner padding and infer true content type. */
         ret = ssl_parse_inner_plaintext( data, &rec->data_len,
@@ -3692,7 +3693,7 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl,
      */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     if( ssl->transform_in != NULL &&
-        ssl->transform_in->minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+        ssl->transform_in->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 )
     {
         if( rec->type == MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC )
             done = 1;
@@ -4967,7 +4968,8 @@ int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl )
 static size_t ssl_transform_get_explicit_iv_len(
                         mbedtls_ssl_transform const *transform )
 {
-    if( transform->minor_ver < MBEDTLS_SSL_MINOR_VERSION_3 )
+    /* XXX: obsolete test? (earlier vers no longer supported?) */
+    if( transform->tls_version < MBEDTLS_SSL_VERSION_TLS1_2 )
         return( 0 );
 
     return( transform->ivlen - transform->fixed_ivlen );

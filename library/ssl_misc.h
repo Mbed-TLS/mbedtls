@@ -947,7 +947,7 @@ typedef struct mbedtls_ssl_hs_buffer mbedtls_ssl_hs_buffer;
  *   and indicates the length of the static part of the IV which is
  *   constant throughout the communication, and which is stored in
  *   the first fixed_ivlen bytes of the iv_{enc/dec} arrays.
- * - minor_ver denotes the SSL/TLS version
+ * - tls_version denotes the 2-byte TLS version
  * - For stream/CBC transformations, maclen denotes the length of the
  *   authentication tag, while taglen is unused and 0.
  * - For AEAD transformations, taglen denotes the length of the
@@ -988,7 +988,7 @@ struct mbedtls_ssl_transform
 
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
 
-    int minor_ver;
+    mbedtls_ssl_protocol_version tls_version;
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_svc_key_id_t psa_key_enc;           /*!<  psa encryption key      */

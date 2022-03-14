@@ -1261,7 +1261,8 @@ static int psa_cipher_encrypt_helper( mbedtls_ssl_transform *transform,
 static int build_transforms( mbedtls_ssl_transform *t_in,
                              mbedtls_ssl_transform *t_out,
                              int cipher_type, int hash_id,
-                             int etm, int tag_mode, int ver,
+                             int etm, int tag_mode,
+                             mbedtls_ssl_protocol_version tls_version,
                              size_t cid0_len,
                              size_t cid1_len )
 {
@@ -1438,8 +1439,8 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
     ((void) etm);
 #endif
 
-    t_out->minor_ver = ver;
-    t_in->minor_ver = ver;
+    t_out->tls_version = tls_version;
+    t_in->tls_version = tls_version;
     t_out->ivlen = ivlen;
     t_in->ivlen = ivlen;
 
@@ -1448,7 +1449,7 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
         case MBEDTLS_MODE_GCM:
         case MBEDTLS_MODE_CCM:
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-            if( ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+            if( tls_version == MBEDTLS_SSL_VERSION_TLS1_3 )
             {
                 t_out->fixed_ivlen = 12;
                 t_in->fixed_ivlen  = 12;
@@ -3425,6 +3426,7 @@ void ssl_crypt_record( int cipher_type, int hash_id,
 
     USE_PSA_INIT( );
 
+    ver |= 0x0300; /*(or substitute in tests)*/
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_transform_init( &t0 );
     mbedtls_ssl_transform_init( &t1 );
@@ -3504,7 +3506,7 @@ void ssl_crypt_record( int cipher_type, int hash_id,
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-        if( t_enc->minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+        if( t_enc->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 )
         {
             /* TLS 1.3 hides the real content type and
              * always uses Application Data as the content type
@@ -3586,6 +3588,7 @@ void ssl_crypt_record_small( int cipher_type, int hash_id,
 
     USE_PSA_INIT( );
 
+    ver |= 0x0300; /*(or substitute in tests)*/
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_transform_init( &t0 );
     mbedtls_ssl_transform_init( &t1 );
@@ -3673,7 +3676,7 @@ void ssl_crypt_record_small( int cipher_type, int hash_id,
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-            if( t_enc->minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+            if( t_enc->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 )
             {
                 /* TLS 1.3 hides the real content type and
                  * always uses Application Data as the content type
@@ -3758,7 +3761,7 @@ void ssl_decrypt_non_etm_cbc( int cipher_type, int hash_id, int trunc_hmac,
     /* Set up transforms with dummy keys */
     ret = build_transforms( &t0, &t1, cipher_type, hash_id,
                                    0, trunc_hmac,
-                                   MBEDTLS_SSL_MINOR_VERSION_3,
+                                   MBEDTLS_SSL_VERSION_TLS1_2,
                                    0 , 0 );
 
     TEST_ASSERT( ret == 0 );

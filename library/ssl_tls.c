@@ -390,7 +390,7 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
           MBEDTLS_SSL_SOME_SUITES_USE_MAC */
                                    ssl_tls_prf_t tls_prf,
                                    const unsigned char randbytes[64],
-                                   int minor_ver,
+                                   mbedtls_ssl_protocol_version tls_version,
                                    unsigned endpoint,
                                    const mbedtls_ssl_context *ssl );
 
@@ -3660,7 +3660,7 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
           MBEDTLS_SSL_SOME_SUITES_USE_MAC */
                   ssl_tls12prf_from_cs( ssl->session->ciphersuite ),
                   p, /* currently pointing to randbytes */
-                  MBEDTLS_SSL_MINOR_VERSION_3, /* (D)TLS 1.2 is forced */
+                  MBEDTLS_SSL_VERSION_TLS1_2, /* (D)TLS 1.2 is forced */
                   ssl->conf->endpoint,
                   ssl );
     if( ret != 0 )
@@ -5253,7 +5253,9 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
           MBEDTLS_SSL_SOME_SUITES_USE_MAC */
                                         ssl->handshake->tls_prf,
                                         ssl->handshake->randbytes,
-                                        ssl->minor_ver,
+                                        ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_4
+                                          ? MBEDTLS_SSL_VERSION_TLS1_3
+                                          : MBEDTLS_SSL_VERSION_TLS1_2,
                                         ssl->conf->endpoint,
                                         ssl );
     if( ret != 0 )
@@ -6826,7 +6828,7 @@ static mbedtls_tls_prf_types tls_prf_get_type( mbedtls_ssl_tls_prf_cb *tls_prf )
  * - [in] compression
  * - [in] tls_prf: pointer to PRF to use for key derivation
  * - [in] randbytes: buffer holding ServerHello.random + ClientHello.random
- * - [in] minor_ver: SSL/TLS minor version
+ * - [in] tls_version: TLS version
  * - [in] endpoint: client or server
  * - [in] ssl: used for:
  *        - ssl->conf->{f,p}_export_keys
@@ -6843,7 +6845,7 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
           MBEDTLS_SSL_SOME_SUITES_USE_MAC */
                                    ssl_tls_prf_t tls_prf,
                                    const unsigned char randbytes[64],
-                                   int minor_ver,
+                                   mbedtls_ssl_protocol_version tls_version,
                                    unsigned endpoint,
                                    const mbedtls_ssl_context *ssl )
 {
@@ -6887,14 +6889,14 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
     defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
     transform->encrypt_then_mac = encrypt_then_mac;
 #endif
-    transform->minor_ver = minor_ver;
+    transform->tls_version = tls_version;
 
 #if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
     memcpy( transform->randbytes, randbytes, sizeof( transform->randbytes ) );
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+    if( tls_version == MBEDTLS_SSL_VERSION_TLS1_3 )
     {
         /* At the moment, we keep TLS <= 1.2 and TLS 1.3 transform
          * generation separate. This should never happen. */
@@ -7064,7 +7066,7 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
                                   - transform->maclen % cipher_info->block_size;
             }
 
-            if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+            if( tls_version == MBEDTLS_SSL_VERSION_TLS1_2 )
             {
                 transform->minlen += transform->ivlen;
             }

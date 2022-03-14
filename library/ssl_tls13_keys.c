@@ -1106,7 +1106,7 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
     transform->ivlen       = traffic_keys->iv_len;
     transform->maclen      = 0;
     transform->fixed_ivlen = transform->ivlen;
-    transform->minor_ver   = MBEDTLS_SSL_MINOR_VERSION_4;
+    transform->tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
 
     /* We add the true record content type (1 Byte) to the plaintext and
      * then pad to the configured granularity. The mimimum length of the

@@ -97,25 +97,27 @@ if (!-e "tests/seedfile" || -s "tests/seedfile" < 64) {
 }
 
 sub perform_test {
-    my $conf = $_[0];
+    my $conf_file = $_[0];
     my $data = $_[1];
     my $test_with_psa = $_[2];
+
+    my $conf_name = $conf_file;
+    if ( $test_with_psa )
+    {
+        $conf_name .= "+PSA";
+    }
 
     system( "cp $config_h.bak $config_h" ) and die;
     system( "make clean" ) and die;
 
     print "\n******************************************\n";
-    print "* Testing configuration: $conf\n";
-    if ( $test_with_psa )
-    {
-        print "* ENABLING MBEDTLS_PSA_CRYPTO_C and MBEDTLS_USE_PSA_CRYPTO \n";
-    }
+    print "* Testing configuration: $conf_name\n";
     print "******************************************\n";
 
-    $ENV{MBEDTLS_TEST_CONFIGURATION} = $conf;
+    $ENV{MBEDTLS_TEST_CONFIGURATION} = $conf_name;
 
-    system( "cp configs/$conf $config_h" )
-        and abort "Failed to activate $conf\n";
+    system( "cp configs/$conf_file $config_h" )
+        and abort "Failed to activate $conf_file\n";
 
     if ( $test_with_psa )
     {
@@ -123,19 +125,19 @@ sub perform_test {
         system( "scripts/config.py set MBEDTLS_USE_PSA_CRYPTO" );
     }
 
-    system( "CFLAGS='-Os -Werror -Wall -Wextra' make" ) and abort "Failed to build: $conf\n";
-    system( "make test" ) and abort "Failed test suite: $conf\n";
+    system( "CFLAGS='-Os -Werror -Wall -Wextra' make" ) and abort "Failed to build: $conf_name\n";
+    system( "make test" ) and abort "Failed test suite: $conf_name\n";
 
     my $compat = $data->{'compat'};
     if( $compat )
     {
-        print "\nrunning compat.sh $compat\n";
+        print "\nrunning compat.sh $compat ($conf_name)\n";
         system( "tests/compat.sh $compat" )
-            and abort "Failed compat.sh: $conf\n";
+            and abort "Failed compat.sh: $conf_name\n";
     }
     else
     {
-        print "\nskipping compat.sh\n";
+        print "\nskipping compat.sh ($conf_name)\n";
     }
 
     my $opt = $data->{'opt'};
@@ -143,20 +145,22 @@ sub perform_test {
     {
         if( $data->{'opt_needs_debug'} )
         {
-            print "\nrebuilding with debug traces for ssl-opt\n";
+            print "\nrebuilding with debug traces for ssl-opt ($conf_name)\n";
+            $conf_name .= '+DEBUG';
+            $ENV{MBEDTLS_TEST_CONFIGURATION} = $conf_name;
             system( "make clean" );
             system( "scripts/config.py set MBEDTLS_DEBUG_C" );
             system( "scripts/config.py set MBEDTLS_ERROR_C" );
-            system( "CFLAGS='-Os -Werror -Wall -Wextra' make" ) and abort "Failed to build: $conf +debug\n";
+            system( "CFLAGS='-Os -Werror -Wall -Wextra' make" ) and abort "Failed to build: $conf_name\n";
         }
 
-        print "\nrunning ssl-opt.sh $opt\n";
+        print "\nrunning ssl-opt.sh $opt ($conf_name)\n";
         system( "tests/ssl-opt.sh $opt" )
-            and abort "Failed ssl-opt.sh: $conf\n";
+            and abort "Failed ssl-opt.sh: $conf_name\n";
     }
     else
     {
-        print "\nskipping ssl-opt.sh\n";
+        print "\nskipping ssl-opt.sh ($conf_name)\n";
     }
 }
 

@@ -133,34 +133,34 @@ def main() -> int:
     returns 1 when read_driver_descriptions returns False
     """
     def_arg_mbedtls_root = build_tree.guess_mbedtls_root()
-    def_arg_output_dir = os.path.join(def_arg_mbedtls_root, 'library')
-    def_arg_template_dir = os.path.join(def_arg_mbedtls_root,
-                                        'scripts',
-                                        'data_files',
-                                        'driver_templates')
-    def_arg_json_dir = os.path.join(def_arg_mbedtls_root,
-                                    'scripts',
-                                    'data_files',
-                                    'driver_jsons')
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--mbedtls-root', nargs='?', default=def_arg_mbedtls_root,
                         help='root directory of mbedtls source code')
-    parser.add_argument('--template-dir', nargs='?', default=def_arg_template_dir,
+    parser.add_argument('--template-dir', nargs='?',
                         help='root directory of mbedtls source code')
-    parser.add_argument('--json-dir', nargs='?', default=def_arg_json_dir,
+    parser.add_argument('--json-dir', nargs='?',
                         help='root directory of mbedtls source code')
-    parser.add_argument('output-directory', nargs='?',
-                        default=def_arg_output_dir, help='output file\'s location')
+    parser.add_argument('output_directory', nargs='?',
+                        help='output file\'s location')
     args = parser.parse_args()
 
     mbedtls_root = os.path.abspath(args.mbedtls_root)
-    output_directory = def_arg_output_dir
     if args.template_dir is None:
-        args.template_dir = os.path.join(args.mbedtls_root, def_arg_template_dir)
-    template_directory = args.template_dir
+        args.template_dir = os.path.join(mbedtls_root,
+                                         'scripts',
+                                         'data_files',
+                                         'driver_templates')
     if args.json_dir is None:
-        args.json_dir = os.path.join(args.mbedtls_root, def_arg_json_dir)
+        args.json_dir = os.path.join(mbedtls_root,
+                                     'scripts',
+                                     'data_files',
+                                     'driver_jsons')
+    if args.output_directory is None:
+        args.output_directory = os.path.join(mbedtls_root, 'library')
+
+    output_directory = args.output_directory
+    template_directory = args.template_dir
     json_directory = args.json_dir
 
     # Read and validate list of driver jsons from driverlist.json

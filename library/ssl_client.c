@@ -416,15 +416,16 @@ static int ssl_write_sig_alg_ext( mbedtls_ssl_context *ssl, unsigned char *buf,
 int mbedtls_ssl_validate_ciphersuite(
     const mbedtls_ssl_context *ssl,
     const mbedtls_ssl_ciphersuite_t *suite_info,
-    int min_minor_ver, int max_minor_ver )
+    mbedtls_ssl_protocol_version min_tls_version,
+    mbedtls_ssl_protocol_version max_tls_version )
 {
     (void) ssl;
 
     if( suite_info == NULL )
         return( -1 );
 
-    if( ( suite_info->min_minor_ver > max_minor_ver ) ||
-        ( suite_info->max_minor_ver < min_minor_ver ) )
+    if( ( suite_info->min_tls_version > max_tls_version ) ||
+        ( suite_info->max_tls_version < min_tls_version ) )
     {
         return( -1 );
     }
@@ -492,8 +493,8 @@ static int ssl_write_client_hello_cipher_suites(
         ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( cipher_suite );
 
         if( mbedtls_ssl_validate_ciphersuite( ssl, ciphersuite_info,
-                                              ssl->handshake->min_minor_ver,
-                                              ssl->minor_ver ) != 0 )
+                                              0x0300 | ssl->handshake->min_minor_ver,
+                                              ssl->tls_version ) != 0 )
             continue;
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
@@ -586,13 +587,13 @@ static int ssl_write_client_hello_body( mbedtls_ssl_context *ssl,
     unsigned char propose_tls12 =
         ( handshake->min_minor_ver <= MBEDTLS_SSL_MINOR_VERSION_3 )
         &&
-        ( MBEDTLS_SSL_MINOR_VERSION_3 <= ssl->minor_ver );
+        ( MBEDTLS_SSL_VERSION_TLS1_2 <= ssl->tls_version );
 #endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     unsigned char propose_tls13 =
         ( handshake->min_minor_ver <= MBEDTLS_SSL_MINOR_VERSION_4 )
         &&
-        ( MBEDTLS_SSL_MINOR_VERSION_4 <= ssl->minor_ver );
+        ( MBEDTLS_SSL_VERSION_TLS1_3 <= ssl->tls_version );
 #endif
 
     /*
@@ -816,7 +817,7 @@ static int ssl_generate_random( mbedtls_ssl_context *ssl )
      * TLS 1.3 case:
      * opaque Random[32];
      */
-    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+    if( ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_2 )
     {
 #if defined(MBEDTLS_HAVE_TIME)
         mbedtls_time_t gmt_unix_time = mbedtls_time( NULL );
@@ -851,20 +852,18 @@ static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
      */
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     if( ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE )
-        ssl->handshake->min_minor_ver = ssl->minor_ver;
+        ssl->handshake->min_minor_ver = ssl->tls_version & 0xFF;
     else
 #endif
     {
-        ssl->major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
-
         if( ssl->handshake->resume )
         {
-             ssl->minor_ver = ssl->session_negotiate->tls_version & 0xFF;
-             ssl->handshake->min_minor_ver = ssl->minor_ver;
+             ssl->tls_version = ssl->session_negotiate->tls_version;
+             ssl->handshake->min_minor_ver = ssl->tls_version & 0xFF;
         }
         else
         {
-             ssl->minor_ver = ssl->conf->max_tls_version & 0xFF;
+             ssl->tls_version = ssl->conf->max_tls_version;
              ssl->handshake->min_minor_ver = ssl->conf->min_tls_version & 0xFF;
         }
     }
@@ -896,7 +895,7 @@ static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
     session_id_len = ssl->session_negotiate->id_len;
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+    if( ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_2 )
     {
         if( session_id_len < 16 || session_id_len > 32 ||
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
@@ -927,7 +926,7 @@ static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
-    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+    if( ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 )
     {
         /*
          * Create a legacy session identifier for the purpose of middlebox

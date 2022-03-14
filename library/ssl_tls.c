@@ -2319,42 +2319,26 @@ const char *mbedtls_ssl_get_ciphersuite( const mbedtls_ssl_context *ssl )
     return mbedtls_ssl_get_ciphersuite_name( ssl->session->ciphersuite );
 }
 
-mbedtls_ssl_protocol_version mbedtls_ssl_get_version_number(
-    const mbedtls_ssl_context *ssl )
-{
-    /* For major_ver, only 3 is supported, so skip checking it. */
-    switch( ssl->minor_ver )
-    {
-        case MBEDTLS_SSL_MINOR_VERSION_3:
-            return( MBEDTLS_SSL_VERSION_TLS1_2 );
-        case MBEDTLS_SSL_MINOR_VERSION_4:
-            return( MBEDTLS_SSL_VERSION_TLS1_3 );
-        default:
-            return( MBEDTLS_SSL_VERSION_UNKNOWN );
-    }
-}
-
 const char *mbedtls_ssl_get_version( const mbedtls_ssl_context *ssl )
 {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
-        switch( ssl->minor_ver )
+        switch( ssl->tls_version )
         {
-            case MBEDTLS_SSL_MINOR_VERSION_3:
+            case MBEDTLS_SSL_VERSION_TLS1_2:
                 return( "DTLSv1.2" );
-
             default:
                 return( "unknown (DTLS)" );
         }
     }
 #endif
 
-    switch( ssl->minor_ver )
+    switch( ssl->tls_version )
     {
-        case MBEDTLS_SSL_MINOR_VERSION_3:
+        case MBEDTLS_SSL_VERSION_TLS1_2:
             return( "TLSv1.2" );
-        case MBEDTLS_SSL_MINOR_VERSION_4:
+        case MBEDTLS_SSL_VERSION_TLS1_3:
             return( "TLSv1.3" );
         default:
             return( "unknown" );
@@ -2874,7 +2858,7 @@ int mbedtls_ssl_handshake_step( mbedtls_ssl_context *ssl )
 
             default:
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
-                if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+                if( ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 )
                     ret = mbedtls_ssl_tls13_handshake_client_step( ssl );
                 else
                     ret = mbedtls_ssl_handshake_client_step( ssl );
@@ -3381,12 +3365,7 @@ int mbedtls_ssl_context_save( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
     /* Version must be 1.2 */
-    if( ssl->major_ver != MBEDTLS_SSL_MAJOR_VERSION_3 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Only version 1.2 supported" ) );
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-    }
-    if( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 )
+    if( ssl->tls_version != MBEDTLS_SSL_VERSION_TLS1_2 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Only version 1.2 supported" ) );
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
@@ -3782,9 +3761,7 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
      * mbedtls_ssl_reset(), so we only need to set the remaining ones.
      */
     ssl->state = MBEDTLS_SSL_HANDSHAKE_OVER;
-
-    ssl->major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
-    ssl->minor_ver = MBEDTLS_SSL_MINOR_VERSION_3;
+    ssl->tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
 
     /* Adjust pointers for header fields of outgoing records to
      * the given transform, accounting for explicit IV and CID. */
@@ -5228,9 +5205,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
           MBEDTLS_SSL_SOME_SUITES_USE_MAC */
                                         ssl->handshake->tls_prf,
                                         ssl->handshake->randbytes,
-                                        ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_4
-                                          ? MBEDTLS_SSL_VERSION_TLS1_3
-                                          : MBEDTLS_SSL_VERSION_TLS1_2,
+                                        ssl->tls_version,
                                         ssl->conf->endpoint,
                                         ssl );
     if( ret != 0 )

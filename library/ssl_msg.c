@@ -2675,14 +2675,14 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, int force_flush )
 #endif
         /* Skip writing the record content type to after the encryption,
          * as it may change when using the CID extension. */
-        int minor_ver = ssl->minor_ver;
+        mbedtls_ssl_protocol_version tls_ver = ssl->tls_version;
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
         /* TLS 1.3 still uses the TLS 1.2 version identifier
          * for backwards compatibility. */
-        if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
-            minor_ver = MBEDTLS_SSL_MINOR_VERSION_3;
+        if( tls_ver == MBEDTLS_SSL_VERSION_TLS1_3 )
+            tls_ver = MBEDTLS_SSL_VERSION_TLS1_2;
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
-        mbedtls_ssl_write_version( ssl->major_ver, minor_ver,
+        mbedtls_ssl_write_version( tls_ver >> 8, tls_ver & 0xFF,
                                    ssl->conf->transport, ssl->out_hdr + 1 );
 
         memcpy( ssl->out_ctr, ssl->cur_out_ctr, MBEDTLS_SSL_SEQUENCE_NUMBER_LEN );
@@ -2698,7 +2698,7 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, int force_flush )
             rec.data_offset = ssl->out_msg - rec.buf;
 
             memcpy( &rec.ctr[0], ssl->out_ctr, sizeof( rec.ctr ) );
-            mbedtls_ssl_write_version( ssl->major_ver, minor_ver,
+            mbedtls_ssl_write_version( tls_ver >> 8, tls_ver & 0xFF,
                                        ssl->conf->transport, rec.ver );
             rec.type = ssl->out_msgtype;
 
@@ -3535,15 +3535,9 @@ static int ssl_parse_record_header( mbedtls_ssl_context const *ssl,
                               ssl->conf->transport,
                               &rec->ver[0] );
 
-    if( major_ver != ssl->major_ver )
+    if( ( ( major_ver << 8 ) | minor_ver ) > ssl->conf->max_tls_version )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "major version mismatch" ) );
-        return( MBEDTLS_ERR_SSL_INVALID_RECORD );
-    }
-
-    if( minor_ver > ( ssl->conf->max_tls_version & 0xFF ) )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "minor version mismatch" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "TLS version mismatch" ) );
         return( MBEDTLS_ERR_SSL_INVALID_RECORD );
     }
 
@@ -3749,7 +3743,7 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl,
         if( rec->data_len == 0 )
         {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-            if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3
+            if( ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_2
                 && rec->type != MBEDTLS_SSL_MSG_APPLICATION_DATA )
             {
                 /* TLS v1.2 explicitly disallows zero-length messages which are not application data */
@@ -4752,7 +4746,7 @@ int mbedtls_ssl_handle_message_type( mbedtls_ssl_context *ssl )
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-        if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+        if( ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 )
         {
 #if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
             MBEDTLS_SSL_DEBUG_MSG( 1,

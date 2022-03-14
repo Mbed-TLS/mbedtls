@@ -1212,6 +1212,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 #endif
     int handshake_failure = 0;
     const mbedtls_ssl_ciphersuite_t *suite_info;
+    int major_ver, minor_ver;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse server hello" ) );
 
@@ -1297,19 +1298,18 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     buf += mbedtls_ssl_hs_hdr_len( ssl );
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, version", buf + 0, 2 );
-    mbedtls_ssl_read_version( &ssl->major_ver, &ssl->minor_ver,
+    mbedtls_ssl_read_version( &major_ver, &minor_ver,
                       ssl->conf->transport, buf + 0 );
-    ssl->session_negotiate->tls_version = 0x0300 | ssl->minor_ver;
+    ssl->tls_version = ( major_ver << 8 ) | minor_ver;
+    ssl->session_negotiate->tls_version = ssl->tls_version;
 
-    if( ( ( ssl->major_ver << 8 ) | ssl->minor_ver )
-          < ssl->conf->min_tls_version ||
-        ( ( ssl->major_ver << 8 ) | ssl->minor_ver )
-          > ssl->conf->max_tls_version )
+    if( ssl->tls_version < ssl->conf->min_tls_version ||
+        ssl->tls_version > ssl->conf->max_tls_version )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1,
             ( "server version out of bounds -  min: [0x%x], server: [0x%x], max: [0x%x]",
               (unsigned)ssl->conf->min_tls_version,
-              (unsigned)( ( ssl->major_ver << 8 ) | ssl->minor_ver ),
+              (unsigned)ssl->tls_version,
               (unsigned)ssl->conf->max_tls_version ) );
 
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
@@ -1472,8 +1472,8 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 
     suite_info = mbedtls_ssl_ciphersuite_from_id(
         ssl->session_negotiate->ciphersuite );
-    if( mbedtls_ssl_validate_ciphersuite( ssl, suite_info, ssl->minor_ver,
-                                          ssl->minor_ver ) != 0 )
+    if( mbedtls_ssl_validate_ciphersuite( ssl, suite_info, ssl->tls_version,
+                                          ssl->tls_version ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
         mbedtls_ssl_send_alert_message(
@@ -1488,7 +1488,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
     if( suite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA &&
-        ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+        ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_2 )
     {
         ssl->handshake->ecrs_enabled = 1;
     }

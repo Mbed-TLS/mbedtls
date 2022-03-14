@@ -1129,7 +1129,7 @@ struct mbedtls_ssl_session
     /*!< TLS version negotiated in the session. Used if and when renegotiating
      *   or resuming a session instead of the configured minor TLS version.
      */
-    unsigned char MBEDTLS_PRIVATE(tls_version);
+    uint16_t MBEDTLS_PRIVATE(tls_version);
 
 #if defined(MBEDTLS_HAVE_TIME)
     mbedtls_time_t MBEDTLS_PRIVATE(start);       /*!< starting time      */
@@ -1493,24 +1493,23 @@ struct mbedtls_ssl_context
                                   renego_max_records is < 0           */
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
-    /*!< Equal to MBEDTLS_SSL_MAJOR_VERSION_3 */
-    int MBEDTLS_PRIVATE(major_ver);
+    int MBEDTLS_PRIVATE(major_ver_OBSOLETE);     /*!< (should no longer be used)                */
 
-    /*!< Server: Negotiated minor version.
-     *   Client: Maximum minor version to be negotiated, then negotiated minor
+    /*!< Server: Negotiated TLS protocol version.
+     *   Client: Maximum TLS version to be negotiated, then negotiated TLS
      *           version.
      *
-     *   It is initialized as the maximum minor version to be negotiated in the
+     *   It is initialized as the maximum TLS version to be negotiated in the
      *   ClientHello writing preparation stage and used throughout the
      *   ClientHello writing. For a fresh handshake not linked to any previous
-     *   handshake, it is initialized to the configured maximum minor version
+     *   handshake, it is initialized to the configured maximum TLS version
      *   to be negotiated. When renegotiating or resuming a session, it is
-     *   initialized to the previously negotiated minor version.
+     *   initialized to the previously negotiated TLS version.
      *
-     *   Updated to the negotiated minor version as soon as the ServerHello is
+     *   Updated to the negotiated TLS version as soon as the ServerHello is
      *   received.
      */
-    int MBEDTLS_PRIVATE(minor_ver);
+    mbedtls_ssl_protocol_version MBEDTLS_PRIVATE(tls_version);
 
     unsigned MBEDTLS_PRIVATE(badmac_seen);       /*!< records with a bad MAC received    */
 
@@ -4243,8 +4242,11 @@ const char *mbedtls_ssl_get_ciphersuite( const mbedtls_ssl_context *ssl );
  * \param ssl      The SSL context to query.
  * \return         The negotiated protocol version.
  */
-mbedtls_ssl_protocol_version mbedtls_ssl_get_version_number(
-    const mbedtls_ssl_context *ssl );
+static inline mbedtls_ssl_protocol_version mbedtls_ssl_get_version_number(
+    const mbedtls_ssl_context *ssl )
+{
+    return ssl->MBEDTLS_PRIVATE(tls_version);
+}
 
 /**
  * \brief          Return the current TLS version

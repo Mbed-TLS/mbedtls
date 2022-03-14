@@ -869,7 +869,7 @@ static int ssl_tls13_server_hello_coordinate( mbedtls_ssl_context *ssl,
         }
 
         ssl->keep_current_message = 1;
-        ssl->minor_ver = MBEDTLS_SSL_MINOR_VERSION_3;
+        ssl->tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
         mbedtls_ssl_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_SERVER_HELLO,
                                             *buf, *buf_len );
 
@@ -1077,8 +1077,9 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
     /*
      * Check whether this ciphersuite is valid and offered.
      */
-    if( ( mbedtls_ssl_validate_ciphersuite(
-            ssl, ciphersuite_info, ssl->minor_ver, ssl->minor_ver ) != 0 ) ||
+    if( ( mbedtls_ssl_validate_ciphersuite( ssl, ciphersuite_info,
+                                            ssl->tls_version,
+                                            ssl->tls_version ) != 0 ) ||
         !ssl_tls13_cipher_suite_is_offered( ssl, cipher_suite ) )
     {
         fatal_alert = MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
@@ -1411,7 +1412,6 @@ static int ssl_tls13_process_server_hello( mbedtls_ssl_context *ssl )
      * - Make sure it's either a ServerHello or a HRR.
      * - Switch processing routine in case of HRR
      */
-    ssl->major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
     ssl->handshake->extensions_present = MBEDTLS_SSL_EXT_NONE;
 
     ret = ssl_tls13_server_hello_coordinate( ssl, &buf, &buf_len );

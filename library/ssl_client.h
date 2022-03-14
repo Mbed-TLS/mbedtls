@@ -31,17 +31,18 @@
 /**
  * \brief Validate cipher suite against config in SSL context.
  *
- * \param ssl            SSL context
- * \param suite_info     Cipher suite to validate
- * \param min_minor_ver  Minimal minor version to accept a cipher suite
- * \param max_minor_ver  Maximal minor version to accept a cipher suite
+ * \param ssl              SSL context
+ * \param suite_info       Cipher suite to validate
+ * \param min_tls_version  Minimal TLS version to accept a cipher suite
+ * \param max_tls_version  Maximal TLS version to accept a cipher suite
  *
  * \return 0 if valid, negative value otherwise.
  */
 int mbedtls_ssl_validate_ciphersuite(
     const mbedtls_ssl_context *ssl,
     const mbedtls_ssl_ciphersuite_t *suite_info,
-    int min_minor_ver, int max_minor_ver );
+    mbedtls_ssl_protocol_version min_tls_version,
+    mbedtls_ssl_protocol_version max_tls_version );
 
 int mbedtls_ssl_write_client_hello( mbedtls_ssl_context *ssl );
 

@@ -1372,14 +1372,14 @@ int main( int argc, char *argv[] )
             mbedtls_ssl_ciphersuite_from_id( opt.force_ciphersuite[0] );
 
         if( opt.max_version != -1 &&
-            ciphersuite_info->min_minor_ver > opt.max_version )
+            ( ciphersuite_info->min_tls_version & 0xFF ) > opt.max_version )
         {
             mbedtls_printf( "forced ciphersuite not allowed with this protocol version\n" );
             ret = 2;
             goto usage;
         }
         if( opt.min_version != -1 &&
-            ciphersuite_info->max_minor_ver < opt.min_version )
+            ( ciphersuite_info->max_tls_version & 0xFF ) < opt.min_version )
         {
             mbedtls_printf( "forced ciphersuite not allowed with this protocol version\n" );
             ret = 2;
@@ -1389,13 +1389,13 @@ int main( int argc, char *argv[] )
         /* If the server selects a version that's not supported by
          * this suite, then there will be no common ciphersuite... */
         if( opt.max_version == -1 ||
-            opt.max_version > ciphersuite_info->max_minor_ver )
+            opt.max_version > ( ciphersuite_info->max_tls_version & 0xFF ) )
         {
-            opt.max_version = ciphersuite_info->max_minor_ver;
+            opt.max_version = ( ciphersuite_info->max_tls_version & 0xFF );
         }
-        if( opt.min_version < ciphersuite_info->min_minor_ver )
+        if( opt.min_version < ( ciphersuite_info->min_tls_version & 0xFF ) )
         {
-            opt.min_version = ciphersuite_info->min_minor_ver;
+            opt.min_version = ( ciphersuite_info->min_tls_version & 0xFF );
             /* DTLS starts with TLS 1.2 */
             if( opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
                 opt.min_version < MBEDTLS_SSL_MINOR_VERSION_3 )

@@ -1054,8 +1054,8 @@ static int ssl_ciphersuite_match( mbedtls_ssl_context *ssl, int suite_id,
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "trying ciphersuite: %#04x (%s)",
                                 (unsigned int) suite_id, suite_info->name ) );
 
-    if( suite_info->min_minor_ver > ssl->minor_ver ||
-        suite_info->max_minor_ver < ssl->minor_ver )
+    if( suite_info->min_tls_version > ssl->tls_version ||
+        suite_info->max_tls_version < ssl->tls_version )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: version" ) );
         return( 0 );
@@ -1405,12 +1405,11 @@ read_record_header:
      */
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, version", buf, 2 );
 
-    mbedtls_ssl_read_version( &ssl->major_ver, &ssl->minor_ver,
-                      ssl->conf->transport, buf );
-    ssl->session_negotiate->tls_version = 0x0300 | ssl->minor_ver;
+    mbedtls_ssl_read_version( &major, &minor, ssl->conf->transport, buf );
+    ssl->tls_version = ( major << 8 ) | minor;
+    ssl->session_negotiate->tls_version = ssl->tls_version;
 
-    if( ( ssl->major_ver != MBEDTLS_SSL_MAJOR_VERSION_3 ) ||
-        ( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 ) )
+    if( ssl->tls_version != MBEDTLS_SSL_VERSION_TLS1_2 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "server only supports TLS 1.2" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
@@ -2355,8 +2354,8 @@ static int ssl_write_hello_verify_request( mbedtls_ssl_context *ssl )
 
     /* The RFC is not clear on this point, but sending the actual negotiated
      * version looks like the most interoperable thing to do. */
-    mbedtls_ssl_write_version( ssl->major_ver, ssl->minor_ver,
-                       ssl->conf->transport, p );
+    mbedtls_ssl_write_version( ssl->tls_version >> 8, ssl->tls_version & 0xFF,
+                               ssl->conf->transport, p );
     MBEDTLS_SSL_DEBUG_BUF( 3, "server version", p, 2 );
     p += 2;
 
@@ -2495,8 +2494,8 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
     buf = ssl->out_msg;
     p = buf + 4;
 
-    mbedtls_ssl_write_version( ssl->major_ver, ssl->minor_ver,
-                       ssl->conf->transport, p );
+    mbedtls_ssl_write_version( ssl->tls_version >> 8, ssl->tls_version & 0xFF,
+                               ssl->conf->transport, p );
     p += 2;
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, chosen version: [%d:%d]",

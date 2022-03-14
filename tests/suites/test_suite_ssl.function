@@ -1179,16 +1179,16 @@ void set_ciphersuite( mbedtls_ssl_config *conf, const char *cipher,
         mbedtls_ssl_ciphersuite_from_id( forced_ciphersuite[0] );
 
     TEST_ASSERT( ciphersuite_info != NULL );
-    TEST_ASSERT( ciphersuite_info->min_minor_ver <= ( conf->max_tls_version & 0xFF ) );
-    TEST_ASSERT( ciphersuite_info->max_minor_ver >= ( conf->min_tls_version & 0xFF ) );
+    TEST_ASSERT( ciphersuite_info->min_tls_version <= conf->max_tls_version );
+    TEST_ASSERT( ciphersuite_info->max_tls_version >= conf->min_tls_version );
 
-    if( conf->max_tls_version > ( 0x0300 | ciphersuite_info->max_minor_ver ) )
+    if( conf->max_tls_version > ciphersuite_info->max_tls_version )
     {
-        conf->max_tls_version = 0x0300 | ciphersuite_info->max_minor_ver;
+        conf->max_tls_version = ciphersuite_info->max_tls_version;
     }
-    if( conf->min_tls_version < ( 0x0300 | ciphersuite_info->min_minor_ver ) )
+    if( conf->min_tls_version < ciphersuite_info->min_tls_version )
     {
-        conf->min_tls_version = 0x0300 | ciphersuite_info->min_minor_ver;
+        conf->min_tls_version = ciphersuite_info->min_tls_version;
     }
 
     mbedtls_ssl_conf_ciphersuites( conf, forced_ciphersuite );
@@ -1868,8 +1868,7 @@ int check_ssl_version( int expected_negotiated_version,
     mbedtls_ssl_protocol_version version_number =
         mbedtls_ssl_get_version_number( ssl );
 
-    TEST_EQUAL( ssl->major_ver, MBEDTLS_SSL_MAJOR_VERSION_3 );
-    TEST_EQUAL( ssl->minor_ver, expected_negotiated_version );
+    TEST_EQUAL( ssl->tls_version, ( 0x0300 | expected_negotiated_version ) );
 
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {

@@ -363,22 +363,23 @@ typedef struct mbedtls_ssl_ciphersuite_t mbedtls_ssl_ciphersuite_t;
 
 /**
  * \brief   This structure is used for storing ciphersuite information
+ *
+ * \note    members are defined using integral types instead of enums
+ *          in order to pack structure and reduce memory usage by internal
+ *          \c ciphersuite_definitions[]
  */
 struct mbedtls_ssl_ciphersuite_t
 {
     int MBEDTLS_PRIVATE(id);
     const char * MBEDTLS_PRIVATE(name);
 
-    mbedtls_cipher_type_t MBEDTLS_PRIVATE(cipher);
-    mbedtls_md_type_t MBEDTLS_PRIVATE(mac);
-    mbedtls_key_exchange_type_t MBEDTLS_PRIVATE(key_exchange);
+    uint8_t MBEDTLS_PRIVATE(cipher);           /* mbedtls_cipher_type_t */
+    uint8_t MBEDTLS_PRIVATE(mac);              /* mbedtls_md_type_t */
+    uint8_t MBEDTLS_PRIVATE(key_exchange);     /* mbedtls_key_exchange_type_t */
+    uint8_t MBEDTLS_PRIVATE(flags);
 
-    int MBEDTLS_PRIVATE(min_major_ver);
-    int MBEDTLS_PRIVATE(min_minor_ver);
-    int MBEDTLS_PRIVATE(max_major_ver);
-    int MBEDTLS_PRIVATE(max_minor_ver);
-
-    unsigned char MBEDTLS_PRIVATE(flags);
+    uint16_t MBEDTLS_PRIVATE(min_tls_version); /* mbedtls_ssl_protocol_version */
+    uint16_t MBEDTLS_PRIVATE(max_tls_version); /* mbedtls_ssl_protocol_version */
 };
 
 const int *mbedtls_ssl_list_ciphersuites( void );

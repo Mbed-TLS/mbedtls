@@ -2047,7 +2047,7 @@ static inline int mbedtls_ssl_sig_alg_is_supported(
 {
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3)
+    if( ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_2 )
     {
         /* High byte is hash */
         unsigned char hash = MBEDTLS_BYTE_1( sig_alg );
@@ -2110,7 +2110,7 @@ static inline int mbedtls_ssl_sig_alg_is_supported(
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_4)
+    if( ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 )
     {
         mbedtls_pk_type_t pk_type;
         mbedtls_md_type_t md_alg;

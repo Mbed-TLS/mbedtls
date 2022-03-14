@@ -773,20 +773,20 @@ static int ssl_tls13_certificate_request_coordinate( mbedtls_ssl_context *ssl )
  * } CertificateRequest;
  *
  */
-static int ssl_tls13_write_certificate_request( mbedtls_ssl_context *ssl,
-                                                unsigned char *buf,
-                                                const unsigned char *end,
-                                                size_t *out_len )
+static int ssl_tls13_write_certificate_request_body( mbedtls_ssl_context *ssl,
+                                                     unsigned char *buf,
+                                                     const unsigned char *end,
+                                                     size_t *out_len )
 {
-    int ret;
-    size_t ext_size = 0;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t extensions_len = 0;
     unsigned char *p = buf;
 
     *out_len = 0;
 
     /* Check if we have enough space:
      * - certificate_request_context (1 byte)
-     * - extensions                  (2 bytes)
+     * - extensions length           (2 bytes)
      */
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 3 );
 
@@ -804,20 +804,20 @@ static int ssl_tls13_write_certificate_request( mbedtls_ssl_context *ssl,
      * Write extensions
      */
     /* The extensions must contain the signature_algorithms. */
-    ret = mbedtls_ssl_write_sig_alg_ext( ssl, p + 2, end, &ext_size );
+    ret = mbedtls_ssl_write_sig_alg_ext( ssl, p + 2, end, &extensions_len );
     if( ret != 0 )
         return( ret );
 
     /* length field for all extensions */
-    MBEDTLS_PUT_UINT16_BE( ext_size, p, 0 );
-    p += 2 + ext_size;
+    MBEDTLS_PUT_UINT16_BE( extensions_len, p, 0 );
+    p += 2 + extensions_len;
 
     *out_len = p - buf;
 
-    return( ret );
+    return( 0 );
 }
 
-static int ssl_tls13_process_certificate_request( mbedtls_ssl_context *ssl )
+static int ssl_tls13_write_certificate_request( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
@@ -833,14 +833,12 @@ static int ssl_tls13_process_certificate_request( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_start_handshake_msg( ssl,
                 MBEDTLS_SSL_HS_CERTIFICATE_REQUEST, &buf, &buf_len ) );
 
-        MBEDTLS_SSL_PROC_CHK( ssl_tls13_write_certificate_request(
+        MBEDTLS_SSL_PROC_CHK( ssl_tls13_write_certificate_request_body(
                                   ssl, buf, buf + buf_len, &msg_len ) );
 
         mbedtls_ssl_tls13_add_hs_msg_to_checksum(
             ssl, MBEDTLS_SSL_HS_CERTIFICATE_REQUEST, buf, msg_len );
 
-        /* TODO: Logically this should come at the end, but the non-MPS msg
-         *       layer impl'n of mbedtls_ssl_tls13_finish_handshake_msg() can fail. */
         MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_finish_handshake_msg(
                                   ssl, buf_len, msg_len ) );
     }
@@ -1331,7 +1329,7 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
         case MBEDTLS_SSL_CERTIFICATE_REQUEST:
-            ret = ssl_tls13_process_certificate_request( ssl );
+            ret = ssl_tls13_write_certificate_request( ssl );
             break;
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 

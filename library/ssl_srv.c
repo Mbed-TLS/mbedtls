@@ -3181,6 +3181,8 @@ curve_matching_done:
         {
             ret = psa_ssl_status_to_mbedtls( status );
             MBEDTLS_SSL_DEBUG_RET( 1, "psa_export_public_key", ret );
+            (void) psa_destroy_key( handshake->ecdh_psa_privkey );
+            handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
             return( ret );
         }
 
@@ -3919,6 +3921,8 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
             {
                 ret = psa_ssl_status_to_mbedtls( status );
                 MBEDTLS_SSL_DEBUG_RET( 1, "psa_raw_key_agreement", ret );
+                (void) psa_destroy_key( handshake->ecdh_psa_privkey );
+                handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
                 return( ret );
             }
 

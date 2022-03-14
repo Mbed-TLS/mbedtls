@@ -1498,6 +1498,9 @@ component_build_module_alt () {
     # The SpecifiedECDomain parsing code accesses mbedtls_ecp_group fields
     # directly and assumes the implementation works with partial groups.
     scripts/config.py unset MBEDTLS_PK_PARSE_EC_EXTENDED
+    # MBEDTLS_SHA256_*ALT can't be used with MBEDTLS_SHA256_USE_A64_CRYPTO_*
+    scripts/config.py unset MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT
+    scripts/config.py unset MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY
     # Enable all MBEDTLS_XXX_ALT for whole modules. Do not enable
     # MBEDTLS_XXX_YYY_ALT which are for single functions.
     scripts/config.py set-all 'MBEDTLS_([A-Z0-9]*|NIST_KW)_ALT'
@@ -2702,7 +2705,7 @@ component_build_armcc () {
     armc6_build_test "--target=arm-arm-none-eabi -march=armv8-m.main"
 
     # ARM Compiler 6 - Target ARMv8-A - AArch64
-    armc6_build_test "--target=aarch64-arm-none-eabi -march=armv8.2-a"
+    armc6_build_test "--target=aarch64-arm-none-eabi -march=armv8.2-a+crypto"
 }
 
 component_test_tls13_only () {

@@ -198,6 +198,7 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_PSA_CRYPTO_SPM', # platform dependency (PSA SPM)
     'MBEDTLS_PSA_INJECT_ENTROPY', # build dependency (hook functions)
     'MBEDTLS_RSA_NO_CRT', # influences the use of RSA in X.509 and TLS
+    'MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY', # interacts with *_USE_A64_CRYPTO_ONLY
     'MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN', # build dependency (clang+memsan)
     'MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND', # build dependency (valgrind headers)
     'MBEDTLS_X509_REMOVE_INFO', # removes a feature

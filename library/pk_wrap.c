@@ -917,6 +917,7 @@ static int ecdsa_sign_wrap( void *ctx_arg, mbedtls_md_type_t md_alg,
     ret = pk_ecdsa_sig_asn1_from_psa( sig, sig_len, sig_size );
 
 cleanup:
+    mbedtls_platform_zeroize( buf, sizeof( buf ) );
     status = psa_destroy_key( key_id );
     if( ret == 0 && status != PSA_SUCCESS )
         ret = mbedtls_pk_error_from_psa( status );

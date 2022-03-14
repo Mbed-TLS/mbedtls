@@ -1218,6 +1218,25 @@ typedef void mbedtls_ssl_export_keys_t( void *p_expkey,
                                         const unsigned char server_random[32],
                                         mbedtls_tls_prf_types tls_prf_type );
 
+#if defined(MBEDTLS_SSL_SRV_C)
+/**
+ * \brief           Callback type: generic handshake callback
+ *
+ * \note            Callbacks may use user_data funcs to set/get app user data.
+ *                  See \c mbedtls_ssl_get_user_data_p()
+ *                      \c mbedtls_ssl_get_user_data_n()
+ *                      \c mbedtls_ssl_conf_get_user_data_p()
+ *                      \c mbedtls_ssl_conf_get_user_data_n()
+ *
+ * \param ssl       \c mbedtls_ssl_context on which the callback is run
+ *
+ * \return          The return value of the callback is 0 if successful,
+ *                  or a specific MBEDTLS_ERR_XXX code, which will cause
+ *                  the handshake to be aborted.
+ */
+typedef int (*mbedtls_ssl_hs_cb_t)( mbedtls_ssl_context *ssl );
+#endif
+
 /* A type for storing user data in a library structure.
  *
  * The representation of type may change in future versions of the library.
@@ -1477,7 +1496,7 @@ struct mbedtls_ssl_config
     mbedtls_ssl_user_data_t MBEDTLS_PRIVATE(user_data);
 
 #if defined(MBEDTLS_SSL_SRV_C)
-    int (*MBEDTLS_PRIVATE(f_cert_cb))(mbedtls_ssl_context *); /*!< certificate selection callback */
+    mbedtls_ssl_hs_cb_t MBEDTLS_PRIVATE(f_cert_cb);  /*!< certificate selection callback */
 #endif /* MBEDTLS_SSL_SRV_C */
 };
 
@@ -2278,19 +2297,15 @@ void mbedtls_ssl_set_timer_cb( mbedtls_ssl_context *ssl,
  *                  If set, the callback is always called for each handshake,
  *                  after `ClientHello` processing has finished.
  *
- *                  The callback has the following parameters:
- *                  - \c mbedtls_ssl_context*: The SSL context to which
- *                                             the operation applies.
- *                  The return value of the callback is 0 if successful,
- *                  or a specific MBEDTLS_ERR_XXX code, which will cause
- *                  the handshake to be aborted.
- *
  * \param conf      The SSL configuration to register the callback with.
  * \param f_cert_cb The callback for selecting server certificate after
  *                  `ClientHello` processing has finished.
  */
-void mbedtls_ssl_conf_cert_cb( mbedtls_ssl_config *conf,
-                               int (*f_cert_cb)(mbedtls_ssl_context *) );
+static inline void mbedtls_ssl_conf_cert_cb( mbedtls_ssl_config *conf,
+                                             mbedtls_ssl_hs_cb_t f_cert_cb )
+{
+    conf->MBEDTLS_PRIVATE(f_cert_cb) = f_cert_cb;
+}
 #endif /* MBEDTLS_SSL_SRV_C */
 
 /**

@@ -1,0 +1,4 @@
+Features
+   * Introduce mbedtls_ssl_hs_cb_t typedef for use with
+     mbedtls_ssl_conf_cert_cb() and perhaps future callbacks
+     during TLS handshake.

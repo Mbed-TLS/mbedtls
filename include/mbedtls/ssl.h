@@ -1126,11 +1126,10 @@ struct mbedtls_ssl_session
 
     unsigned char MBEDTLS_PRIVATE(exported);
 
-    /*!< Minor version negotiated in the session. Used if and when
-     *   renegotiating or resuming a session instead of the configured minor
-     *   version.
+    /*!< TLS version negotiated in the session. Used if and when renegotiating
+     *   or resuming a session instead of the configured minor TLS version.
      */
-    unsigned char MBEDTLS_PRIVATE(minor_ver);
+    unsigned char MBEDTLS_PRIVATE(tls_version);
 
 #if defined(MBEDTLS_HAVE_TIME)
     mbedtls_time_t MBEDTLS_PRIVATE(start);       /*!< starting time      */

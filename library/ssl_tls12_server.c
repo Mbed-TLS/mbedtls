@@ -1407,7 +1407,7 @@ read_record_header:
 
     mbedtls_ssl_read_version( &ssl->major_ver, &ssl->minor_ver,
                       ssl->conf->transport, buf );
-    ssl->session_negotiate->minor_ver = ssl->minor_ver;
+    ssl->session_negotiate->tls_version = 0x0300 | ssl->minor_ver;
 
     if( ( ssl->major_ver != MBEDTLS_SSL_MAJOR_VERSION_3 ) ||
         ( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 ) )

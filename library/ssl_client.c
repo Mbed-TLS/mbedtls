@@ -859,7 +859,7 @@ static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
 
         if( ssl->handshake->resume )
         {
-             ssl->minor_ver = ssl->session_negotiate->minor_ver;
+             ssl->minor_ver = ssl->session_negotiate->tls_version & 0xFF;
              ssl->handshake->min_minor_ver = ssl->minor_ver;
         }
         else

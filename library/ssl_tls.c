@@ -2650,12 +2650,12 @@ static unsigned char ssl_serialized_session_header[] = {
  *                                 // configuration options which influence
  *                                 // the structure of mbedtls_ssl_session.
  *
- *    uint8_t minor_ver;           // Protocol-version. Possible values:
- *                                 // - TLS 1.2 (MBEDTLS_SSL_MINOR_VERSION_3)
+ *    uint8_t minor_ver;           // Protocol minor version. Possible values:
+ *                                 // - TLS 1.2 (3)
  *
- *    select (serialized_session.minor_ver) {
+ *    select (serialized_session.tls_version) {
  *
- *      case MBEDTLS_SSL_MINOR_VERSION_3: // TLS 1.2
+ *      case MBEDTLS_SSL_VERSION_TLS1_2:
  *        serialized_session_tls12 data;
  *
  *   };
@@ -2695,14 +2695,14 @@ static int ssl_session_save( const mbedtls_ssl_session *session,
     used += 1;
     if( used <= buf_len )
     {
-        *p++ = session->minor_ver;
+        *p++ = MBEDTLS_BYTE_0( session->tls_version );
     }
 
     /* Forward to version-specific serialization routine. */
-    switch( session->minor_ver )
+    switch( session->tls_version )
     {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    case MBEDTLS_SSL_MINOR_VERSION_3:
+    case MBEDTLS_SSL_VERSION_TLS1_2:
     {
         size_t remaining_len = used <= buf_len ? buf_len - used : 0;
         used += ssl_session_save_tls12( session, p, remaining_len );
@@ -2768,13 +2768,13 @@ static int ssl_session_load( mbedtls_ssl_session *session,
      */
     if( 1 > (size_t)( end - p ) )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-    session->minor_ver = *p++;
+    session->tls_version = 0x0300 | *p++;
 
     /* Dispatch according to TLS version. */
-    switch( session->minor_ver )
+    switch( session->tls_version )
     {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    case MBEDTLS_SSL_MINOR_VERSION_3: /* TLS 1.2 */
+    case MBEDTLS_SSL_VERSION_TLS1_2:
     {
         size_t remaining_len = ( end - p );
         return( ssl_session_load_tls12( session, p, remaining_len ) );

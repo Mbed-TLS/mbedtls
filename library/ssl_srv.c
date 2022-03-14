@@ -3119,17 +3119,12 @@ curve_matching_done:
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Perform PSA-based ECDH computation." ) );
 
         /* Convert EC group to PSA key type. */
-        if( ( handshake->ecdh_psa_type =
-                PSA_KEY_TYPE_ECC_KEY_PAIR( mbedtls_ecc_group_to_psa(
-                     (*curve)->grp_id, &ecdh_bits ) ) ) == 0 )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Could not convert ECC group to PSA." ) );
-            return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-        }
+        handshake->ecdh_psa_type = mbedtls_psa_parse_tls_ecc_group(
+                     (*curve)->tls_id, &ecdh_bits );
 
-        if( ecdh_bits > 0xffff )
+        if( handshake->ecdh_psa_type == 0 || ecdh_bits > 0xffff )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Invalid ecdh_bits." ) );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Invalid ecc group parse." ) );
             return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
         }
         handshake->ecdh_bits = (uint16_t) ecdh_bits;

@@ -864,8 +864,8 @@ static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
         }
         else
         {
-             ssl->minor_ver = ssl->conf->max_minor_ver;
-             ssl->handshake->min_minor_ver = ssl->conf->min_minor_ver;
+             ssl->minor_ver = ssl->conf->max_tls_version & 0xFF;
+             ssl->handshake->min_minor_ver = ssl->conf->min_tls_version & 0xFF;
         }
     }
 

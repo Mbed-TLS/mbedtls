@@ -1155,8 +1155,7 @@ static int ssl_parse_hello_verify_request( mbedtls_ssl_context *ssl )
      */
     if( major_ver < MBEDTLS_SSL_MAJOR_VERSION_3 ||
         minor_ver < MBEDTLS_SSL_MINOR_VERSION_2 ||
-        major_ver > ssl->conf->max_major_ver  ||
-        minor_ver > ssl->conf->max_minor_ver  )
+        ( ( major_ver << 8 ) | minor_ver ) > ssl->conf->max_tls_version )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server version" ) );
 
@@ -1302,18 +1301,16 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
                       ssl->conf->transport, buf + 0 );
     ssl->session_negotiate->tls_version = 0x0300 | ssl->minor_ver;
 
-    if( ssl->major_ver < ssl->conf->min_major_ver ||
-        ssl->minor_ver < ssl->conf->min_minor_ver ||
-        ssl->major_ver > ssl->conf->max_major_ver ||
-        ssl->minor_ver > ssl->conf->max_minor_ver )
+    if( ( ( ssl->major_ver << 8 ) | ssl->minor_ver )
+          < ssl->conf->min_tls_version ||
+        ( ( ssl->major_ver << 8 ) | ssl->minor_ver )
+          > ssl->conf->max_tls_version )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1,
-            ( "server version out of bounds -  min: [%d:%d], server: [%d:%d], max: [%d:%d]",
-              ssl->conf->min_major_ver,
-              ssl->conf->min_minor_ver,
-              ssl->major_ver, ssl->minor_ver,
-              ssl->conf->max_major_ver,
-              ssl->conf->max_minor_ver ) );
+            ( "server version out of bounds -  min: [0x%x], server: [0x%x], max: [0x%x]",
+              (unsigned)ssl->conf->min_tls_version,
+              (unsigned)( ( ssl->major_ver << 8 ) | ssl->minor_ver ),
+              (unsigned)ssl->conf->max_tls_version ) );
 
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                      MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION );

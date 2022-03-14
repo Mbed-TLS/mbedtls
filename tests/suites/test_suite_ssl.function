@@ -1179,16 +1179,16 @@ void set_ciphersuite( mbedtls_ssl_config *conf, const char *cipher,
         mbedtls_ssl_ciphersuite_from_id( forced_ciphersuite[0] );
 
     TEST_ASSERT( ciphersuite_info != NULL );
-    TEST_ASSERT( ciphersuite_info->min_minor_ver <= conf->max_minor_ver );
-    TEST_ASSERT( ciphersuite_info->max_minor_ver >= conf->min_minor_ver );
+    TEST_ASSERT( ciphersuite_info->min_minor_ver <= ( conf->max_tls_version & 0xFF ) );
+    TEST_ASSERT( ciphersuite_info->max_minor_ver >= ( conf->min_tls_version & 0xFF ) );
 
-    if( conf->max_minor_ver > ciphersuite_info->max_minor_ver )
+    if( conf->max_tls_version > ( 0x0300 | ciphersuite_info->max_minor_ver ) )
     {
-        conf->max_minor_ver = ciphersuite_info->max_minor_ver;
+        conf->max_tls_version = 0x0300 | ciphersuite_info->max_minor_ver;
     }
-    if( conf->min_minor_ver < ciphersuite_info->min_minor_ver )
+    if( conf->min_tls_version < ( 0x0300 | ciphersuite_info->min_minor_ver ) )
     {
-        conf->min_minor_ver = ciphersuite_info->min_minor_ver;
+        conf->min_tls_version = 0x0300 | ciphersuite_info->min_minor_ver;
     }
 
     mbedtls_ssl_conf_ciphersuites( conf, forced_ciphersuite );

@@ -1239,10 +1239,8 @@ struct mbedtls_ssl_config
      * so that elements tend to be in the 128-element direct access window
      * on Arm Thumb, which reduces the code size. */
 
-    unsigned char MBEDTLS_PRIVATE(max_major_ver);    /*!< max. major version used            */
-    unsigned char MBEDTLS_PRIVATE(max_minor_ver);    /*!< max. minor version used            */
-    unsigned char MBEDTLS_PRIVATE(min_major_ver);    /*!< min. major version used            */
-    unsigned char MBEDTLS_PRIVATE(min_minor_ver);    /*!< min. minor version used            */
+    uint16_t MBEDTLS_PRIVATE(max_tls_version);  /*!< max. TLS version used          */
+    uint16_t MBEDTLS_PRIVATE(min_tls_version);  /*!< min. TLS version used          */
 
     /*
      * Flags (could be bit-fields to save RAM, but separate bytes make
@@ -3848,6 +3846,24 @@ void mbedtls_ssl_get_dtls_srtp_negotiation_result( const mbedtls_ssl_context *ss
 void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int minor );
 
 /**
+ * \brief          Set the maximum supported version sent from the client side
+ *                 and/or accepted at the server side.
+ *
+ * \note           After the handshake, you can call
+ *                 mbedtls_ssl_get_version_number() to see what version was
+ *                 negotiated.
+ *
+ * \param conf         SSL configuration
+ * \param tls_version  TLS protocol version number (\p mbedtls_ssl_protocol_version)
+ *                     (#MBEDTLS_SSL_VERSION_UNKNOWN is not valid)
+ */
+static inline void mbedtls_ssl_conf_max_tls_version( mbedtls_ssl_config *conf,
+                                     mbedtls_ssl_protocol_version tls_version )
+{
+    conf->MBEDTLS_PRIVATE(max_tls_version) = tls_version;
+}
+
+/**
  * \brief          Set the minimum accepted SSL/TLS protocol version
  *
  * \note           By default, all supported versions are accepted.
@@ -3879,6 +3895,24 @@ void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int mino
  *                 #MBEDTLS_SSL_MINOR_VERSION_4 for TLS 1.3)
  */
 void mbedtls_ssl_conf_min_version( mbedtls_ssl_config *conf, int major, int minor );
+
+/**
+ * \brief          Set the minimum supported version sent from the client side
+ *                 and/or accepted at the server side.
+ *
+ * \note           After the handshake, you can call
+ *                 mbedtls_ssl_get_version_number() to see what version was
+ *                 negotiated.
+ *
+ * \param conf         SSL configuration
+ * \param tls_version  TLS protocol version number (\p mbedtls_ssl_protocol_version)
+ *                     (#MBEDTLS_SSL_VERSION_UNKNOWN is not valid)
+ */
+static inline void mbedtls_ssl_conf_min_tls_version( mbedtls_ssl_config *conf,
+                                     mbedtls_ssl_protocol_version tls_version )
+{
+    conf->MBEDTLS_PRIVATE(min_tls_version) = tls_version;
+}
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
 /**

@@ -3541,7 +3541,7 @@ static int ssl_parse_record_header( mbedtls_ssl_context const *ssl,
         return( MBEDTLS_ERR_SSL_INVALID_RECORD );
     }
 
-    if( minor_ver > ssl->conf->max_minor_ver )
+    if( minor_ver > ( ssl->conf->max_tls_version & 0xFF ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "minor version mismatch" ) );
         return( MBEDTLS_ERR_SSL_INVALID_RECORD );

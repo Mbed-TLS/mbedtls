@@ -2155,14 +2155,12 @@ void mbedtls_ssl_get_dtls_srtp_negotiation_result( const mbedtls_ssl_context *ss
 
 void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int minor )
 {
-    conf->max_major_ver = major;
-    conf->max_minor_ver = minor;
+    conf->max_tls_version = (major << 8) | minor;
 }
 
 void mbedtls_ssl_conf_min_version( mbedtls_ssl_config *conf, int major, int minor )
 {
-    conf->min_major_ver = major;
-    conf->min_minor_ver = minor;
+    conf->min_tls_version = (major << 8) | minor;
 }
 
 #if defined(MBEDTLS_SSL_SRV_C)
@@ -3577,10 +3575,8 @@ static int ssl_context_load( mbedtls_ssl_context *ssl,
      * least check it matches the requirements for serializing.
      */
     if( ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM ||
-        ssl->conf->max_major_ver < MBEDTLS_SSL_MAJOR_VERSION_3 ||
-        ssl->conf->min_major_ver > MBEDTLS_SSL_MAJOR_VERSION_3 ||
-        ssl->conf->max_minor_ver < MBEDTLS_SSL_MINOR_VERSION_3 ||
-        ssl->conf->min_minor_ver > MBEDTLS_SSL_MINOR_VERSION_3 ||
+        ssl->conf->max_tls_version < MBEDTLS_SSL_VERSION_TLS1_2 ||
+        ssl->conf->min_tls_version > MBEDTLS_SSL_VERSION_TLS1_2 ||
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
         ssl->conf->disable_renegotiation != MBEDTLS_SSL_RENEGOTIATION_DISABLED ||
 #endif
@@ -4250,6 +4246,32 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
     conf->tls13_kex_modes = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_ALL;
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
+    if( ( endpoint == MBEDTLS_SSL_IS_SERVER ) ||
+        ( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM ) )
+    {
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+        conf->min_tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
+        conf->max_tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
+#else
+        return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+#endif
+    }
+    else
+    {
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
+        conf->min_tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
+        conf->max_tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
+#elif defined(MBEDTLS_SSL_PROTO_TLS1_3)
+        conf->min_tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
+        conf->max_tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
+#elif defined(MBEDTLS_SSL_PROTO_TLS1_2)
+        conf->min_tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
+        conf->max_tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
+#else
+        return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+#endif
+    }
+
     /*
      * Preset-specific defaults
      */
@@ -4259,30 +4281,7 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
          * NSA Suite B
          */
         case MBEDTLS_SSL_PRESET_SUITEB:
-            conf->min_major_ver = MBEDTLS_SSL_MIN_MAJOR_VERSION;
-            conf->max_major_ver = MBEDTLS_SSL_MAX_MAJOR_VERSION;
 
-            if( ( endpoint == MBEDTLS_SSL_IS_SERVER ) ||
-                ( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM ) )
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-            {
-                conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_3;
-                conf->max_minor_ver = MBEDTLS_SSL_MINOR_VERSION_3;
-            }
-#else
-            {
-                conf->min_major_ver = 0;
-                conf->max_major_ver = 0;
-                conf->min_minor_ver = 0;
-                conf->max_minor_ver = 0;
-                return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
-            }
-#endif
-            else
-            {
-                conf->min_minor_ver = MBEDTLS_SSL_MIN_MINOR_VERSION;
-                conf->max_minor_ver = MBEDTLS_SSL_MAX_MINOR_VERSION;
-            }
             conf->ciphersuite_list = ssl_preset_suiteb_ciphersuites;
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -4311,30 +4310,6 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
          * Default
          */
         default:
-            conf->min_major_ver = MBEDTLS_SSL_MIN_MAJOR_VERSION;
-            conf->max_major_ver = MBEDTLS_SSL_MAX_MAJOR_VERSION;
-
-            if( ( endpoint == MBEDTLS_SSL_IS_SERVER ) ||
-                ( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM ) )
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-            {
-                conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_3;
-                conf->max_minor_ver = MBEDTLS_SSL_MINOR_VERSION_3;
-            }
-#else
-            {
-                conf->min_major_ver = 0;
-                conf->max_major_ver = 0;
-                conf->min_minor_ver = 0;
-                conf->max_minor_ver = 0;
-                return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
-            }
-#endif
-            else
-            {
-                conf->min_minor_ver = MBEDTLS_SSL_MIN_MINOR_VERSION;
-                conf->max_minor_ver = MBEDTLS_SSL_MAX_MINOR_VERSION;
-            }
 
             conf->ciphersuite_list = mbedtls_ssl_list_ciphersuites();
 

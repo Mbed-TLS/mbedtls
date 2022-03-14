@@ -1601,14 +1601,8 @@ void mbedtls_ssl_flight_free( mbedtls_ssl_flight_item *flight );
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 static inline int mbedtls_ssl_conf_is_tls13_only( const mbedtls_ssl_config *conf )
 {
-    if( conf->min_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-        conf->max_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-        conf->min_minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 &&
-        conf->max_minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
-    {
-        return( 1 );
-    }
-    return( 0 );
+    return( conf->min_tls_version == MBEDTLS_SSL_VERSION_TLS1_3 &&
+            conf->max_tls_version == MBEDTLS_SSL_VERSION_TLS1_3 );
 }
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
@@ -1616,14 +1610,8 @@ static inline int mbedtls_ssl_conf_is_tls13_only( const mbedtls_ssl_config *conf
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 static inline int mbedtls_ssl_conf_is_tls12_only( const mbedtls_ssl_config *conf )
 {
-    if( conf->min_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-        conf->max_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-        conf->min_minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 &&
-        conf->max_minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
-    {
-        return( 1 );
-    }
-    return( 0 );
+    return( conf->min_tls_version == MBEDTLS_SSL_VERSION_TLS1_2 &&
+            conf->max_tls_version == MBEDTLS_SSL_VERSION_TLS1_2 );
 }
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
@@ -1631,14 +1619,8 @@ static inline int mbedtls_ssl_conf_is_tls12_only( const mbedtls_ssl_config *conf
 static inline int mbedtls_ssl_conf_is_tls13_enabled( const mbedtls_ssl_config *conf )
 {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    if( conf->min_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-        conf->max_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-        conf->min_minor_ver <= MBEDTLS_SSL_MINOR_VERSION_4 &&
-        conf->max_minor_ver >= MBEDTLS_SSL_MINOR_VERSION_4 )
-    {
-        return( 1 );
-    }
-    return( 0 );
+    return( conf->min_tls_version <= MBEDTLS_SSL_VERSION_TLS1_3 &&
+            conf->max_tls_version >= MBEDTLS_SSL_VERSION_TLS1_3 );
 #else
     ((void) conf);
     return( 0 );
@@ -1648,14 +1630,8 @@ static inline int mbedtls_ssl_conf_is_tls13_enabled( const mbedtls_ssl_config *c
 static inline int mbedtls_ssl_conf_is_tls12_enabled( const mbedtls_ssl_config *conf )
 {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    if( conf->min_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-        conf->max_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-        conf->min_minor_ver <= MBEDTLS_SSL_MINOR_VERSION_3 &&
-        conf->max_minor_ver >= MBEDTLS_SSL_MINOR_VERSION_3 )
-    {
-        return( 1 );
-    }
-    return( 0 );
+    return( conf->min_tls_version <= MBEDTLS_SSL_VERSION_TLS1_2 &&
+            conf->max_tls_version >= MBEDTLS_SSL_VERSION_TLS1_2 );
 #else
     ((void) conf);
     return( 0 );
@@ -1665,14 +1641,8 @@ static inline int mbedtls_ssl_conf_is_tls12_enabled( const mbedtls_ssl_config *c
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
 static inline int mbedtls_ssl_conf_is_hybrid_tls12_tls13( const mbedtls_ssl_config *conf )
 {
-    if( conf->min_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-        conf->max_major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-        conf->min_minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 &&
-        conf->max_minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
-    {
-        return( 1 );
-    }
-    return( 0 );
+    return( conf->min_tls_version == MBEDTLS_SSL_VERSION_TLS1_2 &&
+            conf->max_tls_version == MBEDTLS_SSL_VERSION_TLS1_3 );
 }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_SSL_PROTO_TLS1_3 */
 

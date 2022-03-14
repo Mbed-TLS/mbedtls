@@ -3173,10 +3173,12 @@ curve_matching_done:
         /* Export the public part of the ECDH private key from PSA.
          * Make one byte space for the length.
          */
+        unsigned char *own_pubkey = p + data_length_size;
+        size_t own_pubkey_max_len = (size_t)( MBEDTLS_SSL_OUT_CONTENT_LEN
+                                     - ssl->out_msglen - header_size );
+
         status = psa_export_public_key( handshake->ecdh_psa_privkey,
-                    p + data_length_size,
-                    (size_t)( MBEDTLS_SSL_OUT_CONTENT_LEN - ssl->out_msglen - header_size ),
-                    &len );
+                    own_pubkey, own_pubkey_max_len, &len );
         if( status != PSA_SUCCESS )
         {
             ret = psa_ssl_status_to_mbedtls( status );

@@ -2682,8 +2682,8 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, int force_flush )
         if( tls_ver == MBEDTLS_SSL_VERSION_TLS1_3 )
             tls_ver = MBEDTLS_SSL_VERSION_TLS1_2;
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
-        mbedtls_ssl_write_version( tls_ver >> 8, tls_ver & 0xFF,
-                                   ssl->conf->transport, ssl->out_hdr + 1 );
+        mbedtls_ssl_write_version( ssl->out_hdr + 1, ssl->conf->transport,
+                                   tls_ver );
 
         memcpy( ssl->out_ctr, ssl->cur_out_ctr, MBEDTLS_SSL_SEQUENCE_NUMBER_LEN );
         MBEDTLS_PUT_UINT16_BE( len, ssl->out_len, 0);
@@ -2698,8 +2698,7 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, int force_flush )
             rec.data_offset = ssl->out_msg - rec.buf;
 
             memcpy( &rec.ctr[0], ssl->out_ctr, sizeof( rec.ctr ) );
-            mbedtls_ssl_write_version( tls_ver >> 8, tls_ver & 0xFF,
-                                       ssl->conf->transport, rec.ver );
+            mbedtls_ssl_write_version( rec.ver, ssl->conf->transport, tls_ver );
             rec.type = ssl->out_msgtype;
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
@@ -3421,7 +3420,7 @@ static int ssl_parse_record_header( mbedtls_ssl_context const *ssl,
                                     size_t len,
                                     mbedtls_record *rec )
 {
-    int major_ver, minor_ver;
+    mbedtls_ssl_protocol_version tls_version;
 
     size_t const rec_hdr_type_offset    = 0;
     size_t const rec_hdr_type_len       = 1;
@@ -3531,11 +3530,10 @@ static int ssl_parse_record_header( mbedtls_ssl_context const *ssl,
 
     rec->ver[0] = buf[ rec_hdr_version_offset + 0 ];
     rec->ver[1] = buf[ rec_hdr_version_offset + 1 ];
-    mbedtls_ssl_read_version( &major_ver, &minor_ver,
-                              ssl->conf->transport,
-                              &rec->ver[0] );
+    tls_version = mbedtls_ssl_read_version( buf + rec_hdr_version_offset,
+                                            ssl->conf->transport );
 
-    if( ( ( major_ver << 8 ) | minor_ver ) > ssl->conf->max_tls_version )
+    if( tls_version > ssl->conf->max_tls_version )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "TLS version mismatch" ) );
         return( MBEDTLS_ERR_SSL_INVALID_RECORD );
@@ -3569,9 +3567,8 @@ static int ssl_parse_record_header( mbedtls_ssl_context const *ssl,
     MBEDTLS_SSL_DEBUG_BUF( 4, "input record header", buf, rec->data_offset );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "input record: msgtype = %u, "
-                                "version = [%d:%d], msglen = %" MBEDTLS_PRINTF_SIZET,
-                                rec->type,
-                                major_ver, minor_ver, rec->data_len ) );
+                                "version = [0x%x], msglen = %" MBEDTLS_PRINTF_SIZET,
+                                rec->type, (unsigned)tls_version, rec->data_len ) );
 
     rec->buf     = buf;
     rec->buf_len = rec->data_offset + rec->data_len;
@@ -5810,51 +5807,35 @@ static void ssl_buffering_free_slot( mbedtls_ssl_context *ssl,
  * and, for DTLS, to/from TLS equivalent.
  *
  * For TLS this is the identity.
- * For DTLS, use 1's complement (v -> 255 - v, and then map as follows:
+ * For DTLS, map as follows, then use 1's complement (v -> ~v):
  * 1.x <-> 3.x+1    for x != 0 (DTLS 1.2 based on TLS 1.2)
+ *                  DTLS 1.0 is stored as TLS 1.1 internally
  */
-void mbedtls_ssl_write_version( int major, int minor, int transport,
-                        unsigned char ver[2] )
+void mbedtls_ssl_write_version( unsigned char version[2], int transport,
+                                mbedtls_ssl_protocol_version tls_version )
 {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-    {
-        if( minor == MBEDTLS_SSL_MINOR_VERSION_2 )
-            --minor; /* DTLS 1.0 stored as TLS 1.1 internally */
-
-        ver[0] = (unsigned char)( 255 - ( major - 2 ) );
-        ver[1] = (unsigned char)( 255 - ( minor - 1 ) );
-    }
-    else
+        tls_version =
+          ~( tls_version - ( tls_version == 0x0302 ? 0x0202 : 0x0201 ) );
 #else
     ((void) transport);
 #endif
-    {
-        ver[0] = (unsigned char) major;
-        ver[1] = (unsigned char) minor;
-    }
+    MBEDTLS_PUT_UINT16_BE( tls_version, version, 0 );
 }
 
-void mbedtls_ssl_read_version( int *major, int *minor, int transport,
-                       const unsigned char ver[2] )
+uint16_t mbedtls_ssl_read_version( const unsigned char version[2],
+                                   int transport )
 {
+    uint16_t tls_version = MBEDTLS_GET_UINT16_BE( version, 0 );
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-    {
-        *major = 255 - ver[0] + 2;
-        *minor = 255 - ver[1] + 1;
-
-        if( *minor == MBEDTLS_SSL_MINOR_VERSION_1 )
-            ++*minor; /* DTLS 1.0 stored as TLS 1.1 internally */
-    }
-    else
+        tls_version =
+          ~( tls_version - ( tls_version == 0xfeff ? 0x0202 : 0x0201 ) );
 #else
     ((void) transport);
 #endif
-    {
-        *major = ver[0];
-        *minor = ver[1];
-    }
+    return tls_version;
 }
 
 /*

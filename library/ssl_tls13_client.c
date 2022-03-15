@@ -75,17 +75,15 @@ static int ssl_tls13_write_supported_versions_ext( mbedtls_ssl_context *ssl,
      * They are defined by the configuration.
      * Currently, we advertise only TLS 1.3 or both TLS 1.3 and TLS 1.2.
      */
-    mbedtls_ssl_write_version( MBEDTLS_SSL_MAJOR_VERSION_3,
-                               MBEDTLS_SSL_MINOR_VERSION_4,
-                               MBEDTLS_SSL_TRANSPORT_STREAM, p );
+    mbedtls_ssl_write_version( p, MBEDTLS_SSL_TRANSPORT_STREAM,
+                               MBEDTLS_SSL_VERSION_TLS1_3 );
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "supported version: [3:4]" ) );
 
 
     if( ssl->handshake->min_minor_ver <= MBEDTLS_SSL_MINOR_VERSION_3 )
     {
-        mbedtls_ssl_write_version( MBEDTLS_SSL_MAJOR_VERSION_3,
-                                   MBEDTLS_SSL_MINOR_VERSION_3,
-                                   MBEDTLS_SSL_TRANSPORT_STREAM, p + 2 );
+        mbedtls_ssl_write_version( p + 2, MBEDTLS_SSL_TRANSPORT_STREAM,
+                                   MBEDTLS_SSL_VERSION_TLS1_2 );
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "supported version: [3:3]" ) );
     }
 
@@ -101,8 +99,8 @@ static int ssl_tls13_parse_supported_versions_ext( mbedtls_ssl_context *ssl,
     ((void) ssl);
 
     MBEDTLS_SSL_CHK_BUF_READ_PTR( buf, end, 2 );
-    if( buf[0] != MBEDTLS_SSL_MAJOR_VERSION_3 ||
-        buf[1] != MBEDTLS_SSL_MINOR_VERSION_4 )
+    if( mbedtls_ssl_read_version( buf, ssl->conf->transport ) !=
+          MBEDTLS_SSL_VERSION_TLS1_3 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "unexpected version" ) );
 
@@ -1026,8 +1024,8 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
      * with ProtocolVersion defined as:
      * uint16 ProtocolVersion;
      */
-    if( !( p[0] == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-           p[1] == MBEDTLS_SSL_MINOR_VERSION_3 ) )
+    if( mbedtls_ssl_read_version( p, ssl->conf->transport ) !=
+          MBEDTLS_SSL_VERSION_TLS1_2 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Unsupported version of TLS." ) );
         MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION,

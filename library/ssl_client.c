@@ -602,9 +602,8 @@ static int ssl_write_client_hello_body( mbedtls_ssl_context *ssl,
      * In all cases this is the TLS 1.2 version.
      */
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
-    mbedtls_ssl_write_version( MBEDTLS_SSL_MAJOR_VERSION_3,
-                               MBEDTLS_SSL_MINOR_VERSION_3,
-                               ssl->conf->transport, p );
+    mbedtls_ssl_write_version( p, ssl->conf->transport,
+                               MBEDTLS_SSL_VERSION_TLS1_2 );
     p += 2;
 
     /* ...

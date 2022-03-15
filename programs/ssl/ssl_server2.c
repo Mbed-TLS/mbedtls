@@ -1845,10 +1845,10 @@ int main( int argc, char *argv[] )
         {
             if( strcmp( q, "tls12" ) == 0 ||
                      strcmp( q, "dtls12" ) == 0 )
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_3;
+                opt.min_version = MBEDTLS_SSL_VERSION_TLS1_2;
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
             else if( strcmp( q, "tls13" ) == 0 )
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_4;
+                opt.min_version = MBEDTLS_SSL_VERSION_TLS1_3;
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
             else
                 goto usage;
@@ -1857,10 +1857,10 @@ int main( int argc, char *argv[] )
         {
             if( strcmp( q, "tls12" ) == 0 ||
                      strcmp( q, "dtls12" ) == 0 )
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_3;
+                opt.max_version = MBEDTLS_SSL_VERSION_TLS1_2;
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
             else if( strcmp( q, "tls13" ) == 0 )
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_4;
+                opt.max_version = MBEDTLS_SSL_VERSION_TLS1_3;
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
             else
                 goto usage;
@@ -1878,20 +1878,20 @@ int main( int argc, char *argv[] )
         {
             if( strcmp( q, "tls12" ) == 0 )
             {
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_3;
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_3;
+                opt.min_version = MBEDTLS_SSL_VERSION_TLS1_2;
+                opt.max_version = MBEDTLS_SSL_VERSION_TLS1_2;
             }
             else if( strcmp( q, "dtls12" ) == 0 )
             {
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_3;
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_3;
+                opt.min_version = MBEDTLS_SSL_VERSION_TLS1_2;
+                opt.max_version = MBEDTLS_SSL_VERSION_TLS1_2;
                 opt.transport = MBEDTLS_SSL_TRANSPORT_DATAGRAM;
             }
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
             else if( strcmp( q, "tls13" ) == 0 )
             {
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_4;
-                opt.max_version = MBEDTLS_SSL_MINOR_VERSION_4;
+                opt.min_version = MBEDTLS_SSL_VERSION_TLS1_3;
+                opt.max_version = MBEDTLS_SSL_VERSION_TLS1_3;
             }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
             else
@@ -2164,14 +2164,14 @@ int main( int argc, char *argv[] )
             mbedtls_ssl_ciphersuite_from_id( opt.force_ciphersuite[0] );
 
         if( opt.max_version != -1 &&
-            ( ciphersuite_info->min_tls_version & 0xFF ) > opt.max_version )
+            ciphersuite_info->min_tls_version > opt.max_version )
         {
             mbedtls_printf( "forced ciphersuite not allowed with this protocol version\n" );
             ret = 2;
             goto usage;
         }
         if( opt.min_version != -1 &&
-            ( ciphersuite_info->max_tls_version & 0xFF ) < opt.min_version )
+            ciphersuite_info->max_tls_version < opt.min_version )
         {
             mbedtls_printf( "forced ciphersuite not allowed with this protocol version\n" );
             ret = 2;
@@ -2181,13 +2181,13 @@ int main( int argc, char *argv[] )
         /* If we select a version that's not supported by
          * this suite, then there will be no common ciphersuite... */
         if( opt.max_version == -1 ||
-            opt.max_version > ( ciphersuite_info->max_tls_version & 0xFF ) )
+            opt.max_version > ciphersuite_info->max_tls_version )
         {
-            opt.max_version = ( ciphersuite_info->max_tls_version & 0xFF );
+            opt.max_version = ciphersuite_info->max_tls_version;
         }
-        if( opt.min_version < ( ciphersuite_info->min_tls_version & 0xFF ) )
+        if( opt.min_version < ciphersuite_info->min_tls_version )
         {
-            opt.min_version = ( ciphersuite_info->min_tls_version & 0xFF );
+            opt.min_version = ciphersuite_info->min_tls_version;
         }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -2198,7 +2198,7 @@ int main( int argc, char *argv[] )
              * the ciphersuite in advance to set the correct policy for the
              * PSK key slot. This limitation might go away in the future. */
             if( ciphersuite_info->key_exchange != MBEDTLS_KEY_EXCHANGE_PSK ||
-                opt.min_version != MBEDTLS_SSL_MINOR_VERSION_3 )
+                opt.min_version != MBEDTLS_SSL_VERSION_TLS1_2 )
             {
                 mbedtls_printf( "opaque PSKs are only supported in conjunction with forcing TLS 1.2 and a PSK-only ciphersuite through the 'force_ciphersuite' option.\n" );
                 ret = 2;
@@ -3086,10 +3086,10 @@ int main( int argc, char *argv[] )
 #endif
 
     if( opt.min_version != DFL_MIN_VERSION )
-        mbedtls_ssl_conf_min_version( &conf, MBEDTLS_SSL_MAJOR_VERSION_3, opt.min_version );
+        mbedtls_ssl_conf_min_tls_version( &conf, opt.min_version );
 
     if( opt.max_version != DFL_MIN_VERSION )
-        mbedtls_ssl_conf_max_version( &conf, MBEDTLS_SSL_MAJOR_VERSION_3, opt.max_version );
+        mbedtls_ssl_conf_max_tls_version( &conf, opt.max_version );
 
     if( ( ret = mbedtls_ssl_setup( &ssl, &conf ) ) != 0 )
     {

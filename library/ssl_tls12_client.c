@@ -1121,7 +1121,7 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
 static int ssl_parse_hello_verify_request( mbedtls_ssl_context *ssl )
 {
     const unsigned char *p = ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl );
-    int major_ver, minor_ver;
+    mbedtls_ssl_protocol_version tls_version;
     unsigned char cookie_len;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse hello verify request" ) );
@@ -1146,16 +1146,15 @@ static int ssl_parse_hello_verify_request( mbedtls_ssl_context *ssl )
      * } HelloVerifyRequest;
      */
     MBEDTLS_SSL_DEBUG_BUF( 3, "server version", p, 2 );
-    mbedtls_ssl_read_version( &major_ver, &minor_ver, ssl->conf->transport, p );
+    tls_version = mbedtls_ssl_read_version( p, ssl->conf->transport );
     p += 2;
 
     /*
      * Since the RFC is not clear on this point, accept DTLS 1.0 (TLS 1.1)
-     * even is lower than our min version.
+     * even if lower than our min version.
      */
-    if( major_ver < MBEDTLS_SSL_MAJOR_VERSION_3 ||
-        minor_ver < MBEDTLS_SSL_MINOR_VERSION_2 ||
-        ( ( major_ver << 8 ) | minor_ver ) > ssl->conf->max_tls_version )
+    if( tls_version < 0x0302 || /* TLSv1.1 */
+        tls_version > ssl->conf->max_tls_version )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server version" ) );
 
@@ -1212,7 +1211,6 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 #endif
     int handshake_failure = 0;
     const mbedtls_ssl_ciphersuite_t *suite_info;
-    int major_ver, minor_ver;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse server hello" ) );
 
@@ -1297,10 +1295,8 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
      */
     buf += mbedtls_ssl_hs_hdr_len( ssl );
 
-    MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, version", buf + 0, 2 );
-    mbedtls_ssl_read_version( &major_ver, &minor_ver,
-                      ssl->conf->transport, buf + 0 );
-    ssl->tls_version = ( major_ver << 8 ) | minor_ver;
+    MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, version", buf, 2 );
+    ssl->tls_version = mbedtls_ssl_read_version( buf, ssl->conf->transport );
     ssl->session_negotiate->tls_version = ssl->tls_version;
 
     if( ssl->tls_version < ssl->conf->min_tls_version ||
@@ -1988,9 +1984,8 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
      *      opaque random[46];
      *  } PreMasterSecret;
      */
-    mbedtls_ssl_write_version( MBEDTLS_SSL_MAJOR_VERSION_3,
-                               MBEDTLS_SSL_MINOR_VERSION_3,
-                               ssl->conf->transport, p );
+    mbedtls_ssl_write_version( p, ssl->conf->transport,
+                               MBEDTLS_SSL_VERSION_TLS1_2 );
 
     if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng, p + 2, 46 ) ) != 0 )
     {

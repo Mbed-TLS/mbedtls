@@ -240,10 +240,20 @@ void sign_fail( int key_type_arg, data_t *key_data,
                                 output, sizeof( output ), &length ) );
     if( ! private_only )
     {
+        /* Determine a plausible signature size to avoid an INVALID_SIGNATURE
+         * error based on this. */
+        PSA_ASSERT( psa_get_key_attributes( key_id, &attributes ) );
+        size_t key_bits = psa_get_key_bits( &attributes );
+        size_t output_length = sizeof( output );
+        if( PSA_KEY_TYPE_IS_RSA( key_type ) )
+            output_length = PSA_BITS_TO_BYTES( key_bits );
+        else if( PSA_KEY_TYPE_IS_ECC( key_type ) )
+            output_length = 2 * PSA_BITS_TO_BYTES( key_bits );
+        TEST_ASSERT( output_length <= sizeof( output ) );
         TEST_STATUS( expected_status,
                      psa_verify_hash( key_id, alg,
                                       input, sizeof( input ),
-                                      output, sizeof( output ) ) );
+                                      output, output_length ) );
     }
 
 exit:

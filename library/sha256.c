@@ -49,8 +49,15 @@
       defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY)
 #    include <arm_neon.h>
 #  endif
-#  if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT) && defined(__linux__)
-#    include <sys/auxv.h>
+#  if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT)
+#    if defined(__unix__)
+#      if defined(__linux__)
+         /* Our preferred method of detection is getauxval() */
+#        include <sys/auxv.h>
+#      endif
+       /* Use SIGILL on Unix, and fall back to it on Linux */
+#      include <signal.h>
+#    endif
 #  endif
 #elif defined(_M_ARM64)
 #  if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT) || \
@@ -272,10 +279,10 @@ static size_t mbedtls_internal_sha256_process_many_a64_crypto(
         uint32x4_t abcd_orig = abcd;
         uint32x4_t efgh_orig = efgh;
 
-        uint32x4_t sched0 = vld1q_u32( (const uint32_t *)( msg + 16 * 0 ) );
-        uint32x4_t sched1 = vld1q_u32( (const uint32_t *)( msg + 16 * 1 ) );
-        uint32x4_t sched2 = vld1q_u32( (const uint32_t *)( msg + 16 * 2 ) );
-        uint32x4_t sched3 = vld1q_u32( (const uint32_t *)( msg + 16 * 3 ) );
+        uint32x4_t sched0 = (uint32x4_t) vld1q_u8( msg + 16 * 0 );
+        uint32x4_t sched1 = (uint32x4_t) vld1q_u8( msg + 16 * 1 );
+        uint32x4_t sched2 = (uint32x4_t) vld1q_u8( msg + 16 * 2 );
+        uint32x4_t sched3 = (uint32x4_t) vld1q_u8( msg + 16 * 3 );
 
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__  /* Will be true if not defined */
                                                /* Untested on BE */

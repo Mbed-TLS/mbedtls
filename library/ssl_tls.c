@@ -4226,14 +4226,26 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
             conf->min_major_ver = MBEDTLS_SSL_MIN_MAJOR_VERSION;
             conf->max_major_ver = MBEDTLS_SSL_MAX_MAJOR_VERSION;
 
-            conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_3; /* TLS 1.2 */
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
-            /* Hybrid TLS 1.2/1.3 is not supported yet */
-            conf->max_minor_ver = MBEDTLS_SSL_MINOR_VERSION_3;
+            if( ( endpoint == MBEDTLS_SSL_IS_SERVER ) ||
+                ( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM ) )
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+            {
+                conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_3;
+                conf->max_minor_ver = MBEDTLS_SSL_MINOR_VERSION_3;
+            }
 #else
-            conf->max_minor_ver = MBEDTLS_SSL_MAX_MINOR_VERSION;
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_SSL_PROTO_TLS1_3 */
-
+            {
+                conf->min_major_ver = 0;
+                conf->max_major_ver = 0;
+                conf->min_minor_ver = 0;
+                conf->max_minor_ver = 0;
+            }
+#endif
+            else
+            {
+                conf->min_minor_ver = MBEDTLS_SSL_MIN_MINOR_VERSION;
+                conf->max_minor_ver = MBEDTLS_SSL_MAX_MINOR_VERSION;
+            }
             conf->ciphersuite_list = ssl_preset_suiteb_ciphersuites;
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -4265,21 +4277,27 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
             conf->min_major_ver = MBEDTLS_SSL_MIN_MAJOR_VERSION;
             conf->max_major_ver = MBEDTLS_SSL_MAX_MAJOR_VERSION;
 
-            conf->min_minor_ver = ( MBEDTLS_SSL_MIN_MINOR_VERSION >
-                                    MBEDTLS_SSL_MIN_VALID_MINOR_VERSION ) ?
-                                    MBEDTLS_SSL_MIN_MINOR_VERSION :
-                                    MBEDTLS_SSL_MIN_VALID_MINOR_VERSION;
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
-            /* Hybrid TLS 1.2/1.3 is not supported yet */
-            conf->max_minor_ver = MBEDTLS_SSL_MINOR_VERSION_3;
-#else
-            conf->max_minor_ver = MBEDTLS_SSL_MAX_MINOR_VERSION;
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_SSL_PROTO_TLS1_3 */
-
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-            if( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+            if( ( endpoint == MBEDTLS_SSL_IS_SERVER ) ||
+                ( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM ) )
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+            {
                 conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_3;
+                conf->max_minor_ver = MBEDTLS_SSL_MINOR_VERSION_3;
+            }
+#else
+            {
+                conf->min_major_ver = 0;
+                conf->max_major_ver = 0;
+                conf->min_minor_ver = 0;
+                conf->max_minor_ver = 0;
+            }
 #endif
+            else
+            {
+                conf->min_minor_ver = MBEDTLS_SSL_MIN_MINOR_VERSION;
+                conf->max_minor_ver = MBEDTLS_SSL_MAX_MINOR_VERSION;
+            }
+
             conf->ciphersuite_list = mbedtls_ssl_list_ciphersuites();
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)

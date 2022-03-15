@@ -3111,8 +3111,8 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
     mbedtls_ssl_buffering_free( ssl );
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-#if defined(MBEDTLS_ECDH_C) &&                  \
-    defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_ECDH_C) && \
+    ( defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3) )
     psa_destroy_key( handshake->ecdh_psa_privkey );
 #endif /* MBEDTLS_ECDH_C && MBEDTLS_USE_PSA_CRYPTO */
 

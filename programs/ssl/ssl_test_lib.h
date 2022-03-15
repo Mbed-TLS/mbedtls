@@ -129,7 +129,9 @@ void my_debug( void *ctx, int level,
                const char *file, int line,
                const char *str );
 
+#if defined(MBEDTLS_HAVE_TIME)
 mbedtls_time_t dummy_constant_time( mbedtls_time_t* time );
+#endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 /* If MBEDTLS_TEST_USE_PSA_CRYPTO_RNG is defined, the SSL test programs will use

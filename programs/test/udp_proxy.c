@@ -32,9 +32,11 @@
 #else
 #include <stdio.h>
 #include <stdlib.h>
+#if defined(MBEDTLS_HAVE_TIME)
 #include <time.h>
 #define mbedtls_time            time
 #define mbedtls_time_t          time_t
+#endif
 #define mbedtls_printf          printf
 #define mbedtls_calloc          calloc
 #define mbedtls_free            free
@@ -71,7 +73,9 @@ int main( void )
 #endif
 #endif /* _MSC_VER */
 #else /* ( _WIN32 || _WIN32_WCE ) && !EFIX64 && !EFI32 */
+#if defined(MBEDTLS_HAVE_TIME)
 #include <sys/time.h>
+#endif
 #include <sys/types.h>
 #include <unistd.h>
 #endif /* ( _WIN32 || _WIN32_WCE ) && !EFIX64 && !EFI32 */
@@ -821,6 +825,7 @@ int main( int argc, char *argv[] )
 
     get_options( argc, argv );
 
+#if defined(MBEDTLS_HAVE_TIME)
     /*
      * Decisions to drop/delay/duplicate packets are pseudo-random: dropping
      * exactly 1 in N packets would lead to problems when a flight has exactly
@@ -831,11 +836,12 @@ int main( int argc, char *argv[] )
      */
     if( opt.seed == 0 )
     {
-        opt.seed = (unsigned int) time( NULL );
+        opt.seed = (unsigned int) mbedtls_time( NULL );
         mbedtls_printf( "  . Pseudo-random seed: %u\n", opt.seed );
     }
 
     srand( opt.seed );
+#endif /* MBEDTLS_HAVE_TIME */
 
     /*
      * 0. "Connect" to the server

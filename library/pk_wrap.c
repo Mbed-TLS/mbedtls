@@ -1493,13 +1493,18 @@ static size_t pk_opaque_get_bitlen( const void *ctx )
     return( bits );
 }
 
-static int pk_opaque_can_do( mbedtls_pk_type_t type )
+static int pk_opaque_ecdsa_can_do( mbedtls_pk_type_t type )
 {
-    /* For now opaque PSA keys can only wrap ECC keypairs,
+    /* For now ECDSA opaque PSA keys can only wrap ECC keypairs,
      * as checked by setup_psa().
      * Also, ECKEY_DH does not really make sense with the current API. */
     return( type == MBEDTLS_PK_ECKEY ||
             type == MBEDTLS_PK_ECDSA );
+}
+
+static int pk_opaque_rsa_can_do( mbedtls_pk_type_t type )
+{
+    return( type == MBEDTLS_PK_RSA );
 }
 
 static int pk_opaque_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
@@ -1521,7 +1526,19 @@ static int pk_opaque_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
 #else /* !MBEDTLS_ECDSA_C */
     const mbedtls_svc_key_id_t *key = (const mbedtls_svc_key_id_t *) ctx;
     psa_algorithm_t alg = PSA_ALG_ECDSA( mbedtls_psa_translate_md( md_alg ) );
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_type_t type;
     psa_status_t status;
+
+    status = psa_get_key_attributes( *key, &attributes );
+    if( status != PSA_SUCCESS )
+        return( mbedtls_pk_error_from_psa_ecdca( status ) );
+
+    type = psa_get_key_type( &attributes );
+    psa_reset_key_attributes( &attributes );
+
+    if( ! PSA_KEY_TYPE_IS_ECC_KEY_PAIR( type ) )
+        return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
 
     /* PSA has its own RNG */
     (void) f_rng;
@@ -1538,11 +1555,34 @@ static int pk_opaque_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
 #endif /* !MBEDTLS_ECDSA_C */
 }
 
-const mbedtls_pk_info_t mbedtls_pk_opaque_info = {
+const mbedtls_pk_info_t mbedtls_pk_ecdsa_opaque_info = {
     MBEDTLS_PK_OPAQUE,
     "Opaque",
     pk_opaque_get_bitlen,
-    pk_opaque_can_do,
+    pk_opaque_ecdsa_can_do,
+    NULL, /* verify - will be done later */
+    pk_opaque_sign_wrap,
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+    NULL, /* restartable verify - not relevant */
+    NULL, /* restartable sign - not relevant */
+#endif
+    NULL, /* decrypt - will be done later */
+    NULL, /* encrypt - will be done later */
+    NULL, /* check_pair - could be done later or left NULL */
+    pk_opaque_alloc_wrap,
+    pk_opaque_free_wrap,
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+    NULL, /* restart alloc - not relevant */
+    NULL, /* restart free - not relevant */
+#endif
+    NULL, /* debug - could be done later, or even left NULL */
+};
+
+const mbedtls_pk_info_t mbedtls_pk_rsa_opaque_info = {
+    MBEDTLS_PK_OPAQUE,
+    "Opaque",
+    pk_opaque_get_bitlen,
+    pk_opaque_rsa_can_do,
     NULL, /* verify - will be done later */
     pk_opaque_sign_wrap,
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)

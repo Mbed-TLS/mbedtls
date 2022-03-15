@@ -1,0 +1,2 @@
+Features
+   * A64 crypto extension support for SHA-512

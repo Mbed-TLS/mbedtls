@@ -1415,28 +1415,14 @@ read_record_header:
                       ssl->conf->transport, buf );
     ssl->session_negotiate->minor_ver = ssl->minor_ver;
 
-    ssl->handshake->max_major_ver = ssl->major_ver;
-    ssl->handshake->max_minor_ver = ssl->minor_ver;
-
-    if( ssl->major_ver < ssl->conf->min_major_ver ||
-        ssl->minor_ver < ssl->conf->min_minor_ver )
+    if( ( ssl->major_ver != MBEDTLS_SSL_MAJOR_VERSION_3 ) ||
+        ( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 ) )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "client only supports ssl smaller than minimum"
-                            " [%d:%d] < [%d:%d]",
-                            ssl->major_ver, ssl->minor_ver,
-                            ssl->conf->min_major_ver, ssl->conf->min_minor_ver ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "server only supports TLS 1.2" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                      MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION );
         return( MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION );
     }
-
-    if( ssl->major_ver > ssl->conf->max_major_ver )
-    {
-        ssl->major_ver = ssl->conf->max_major_ver;
-        ssl->minor_ver = ssl->conf->max_minor_ver;
-    }
-    else if( ssl->minor_ver > ssl->conf->max_minor_ver )
-        ssl->minor_ver = ssl->conf->max_minor_ver;
 
     /*
      * Save client random (inc. Unix time)
@@ -3660,8 +3646,8 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
         return( ret );
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
-    mbedtls_ssl_write_version( ssl->handshake->max_major_ver,
-                               ssl->handshake->max_minor_ver,
+    mbedtls_ssl_write_version( MBEDTLS_SSL_MAJOR_VERSION_3,
+                               MBEDTLS_SSL_MINOR_VERSION_3,
                                ssl->conf->transport, ver );
 
     /* Avoid data-dependent branches while checking for invalid

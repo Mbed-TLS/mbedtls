@@ -4959,10 +4959,6 @@ int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl )
 static size_t ssl_transform_get_explicit_iv_len(
                         mbedtls_ssl_transform const *transform )
 {
-    /* XXX: obsolete test? (earlier vers no longer supported?) */
-    if( transform->tls_version < MBEDTLS_SSL_VERSION_TLS1_2 )
-        return( 0 );
-
     return( transform->ivlen - transform->fixed_ivlen );
 }
 

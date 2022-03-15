@@ -951,7 +951,7 @@ static int ssl_check_key_curve( mbedtls_pk_context *pk,
 static int ssl_pick_cert( mbedtls_ssl_context *ssl,
                           const mbedtls_ssl_ciphersuite_t * ciphersuite_info )
 {
-    mbedtls_ssl_key_cert *cur, *list, *fallback = NULL;
+    mbedtls_ssl_key_cert *cur, *list;
     mbedtls_pk_type_t pk_alg =
         mbedtls_ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
     uint32_t flags;
@@ -1014,9 +1014,6 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
         /* If we get there, we got a winner */
         break;
     }
-
-    if( cur == NULL )
-        cur = fallback;
 
     /* Do not update ssl->handshake->key_cert unless there is a match */
     if( cur != NULL )

@@ -101,6 +101,7 @@ Test mbedtls_endpoint sanity for the client
 mbedtls_endpoint_sanity:MBEDTLS_SSL_IS_CLIENT
 
 Test mbedtls_endpoint sanity for the server
+depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 mbedtls_endpoint_sanity:MBEDTLS_SSL_IS_SERVER
 
 Test moving clients handshake to state: HELLO_REQUEST

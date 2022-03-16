@@ -3624,6 +3624,38 @@
  * \{
  */
 
+/* Meta configuration */
+/**
+ * \def MBEDTLS_CONFIG_FILE
+ *
+ * If defined, this is a header which will be included instead of
+ * `"mbedtls/mbedtls_config.h"`.
+ * This header file specifies the compile-time configuration of Mbed TLS.
+ *
+ * This macro is expanded after an `#include` directive. This is a popular but
+ * non-standard feature of the C language, so this feature is only available
+ * with compilers that perform macro expansion on an `#include` line.
+ *
+ * The value of this symbol is typically a path in double quotes, relative
+ * to a directory on the include search pah.
+ */
+//#define MBEDTLS_CONFIG_FILE "mbedtls/mbedtls_config.h"
+
+/**
+ * \def MBEDTLS_USER_CONFIG_FILE
+ *
+ * If defined, this is a header which will be included after
+ * `"mbedtls/mbedtls_config.h"` or #MBEDTLS_CONFIG_FILE.
+ *
+ * This macro is expanded after an `#include` directive. This is a popular but
+ * non-standard feature of the C language, so this feature is only available
+ * with compilers that perform macro expansion on an `#include` line.
+ *
+ * The value of this symbol is typically a path in double quotes, relative
+ * to a directory on the include search pah.
+ */
+//#define MBEDTLS_USER_CONFIG_FILE "/dev/null"
+
 /* MPI / BIGNUM options */
 //#define MBEDTLS_MPI_WINDOW_SIZE            6 /**< Maximum window size used. */
 //#define MBEDTLS_MPI_MAX_SIZE            1024 /**< Maximum number of bytes for usable MPIs. */

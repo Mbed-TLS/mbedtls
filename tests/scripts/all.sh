@@ -3111,7 +3111,7 @@ run_component () {
     local dd_cmd
     dd_cmd=(dd if=/dev/urandom of=./tests/seedfile bs=64 count=1)
     case $OSTYPE in
-        linux*|freebsd*|openbsd*|darwin*) dd_cmd+=(status=none)
+        linux*|freebsd*|openbsd*) dd_cmd+=(status=none)
     esac
     "${dd_cmd[@]}"
 

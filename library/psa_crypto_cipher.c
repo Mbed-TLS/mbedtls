@@ -47,36 +47,56 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
     {
         switch( alg )
         {
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_STREAM_CIPHER)
             case PSA_ALG_STREAM_CIPHER:
                 mode = MBEDTLS_MODE_STREAM;
                 break;
+#endif
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CTR)
             case PSA_ALG_CTR:
                 mode = MBEDTLS_MODE_CTR;
                 break;
+#endif
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CFB)
             case PSA_ALG_CFB:
                 mode = MBEDTLS_MODE_CFB;
                 break;
+#endif
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_OFB)
             case PSA_ALG_OFB:
                 mode = MBEDTLS_MODE_OFB;
                 break;
+#endif
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECB_NO_PADDING)
             case PSA_ALG_ECB_NO_PADDING:
                 mode = MBEDTLS_MODE_ECB;
                 break;
+#endif
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_NO_PADDING)
             case PSA_ALG_CBC_NO_PADDING:
                 mode = MBEDTLS_MODE_CBC;
                 break;
+#endif
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CBC_PKCS7)
             case PSA_ALG_CBC_PKCS7:
                 mode = MBEDTLS_MODE_CBC;
                 break;
+#endif
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CCM)
             case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, 0 ):
                 mode = MBEDTLS_MODE_CCM;
                 break;
+#endif
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_GCM)
             case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_GCM, 0 ):
                 mode = MBEDTLS_MODE_GCM;
                 break;
+#endif
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CHACHA20_POLY1305)
             case PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CHACHA20_POLY1305, 0 ):
                 mode = MBEDTLS_MODE_CHACHAPOLY;
                 break;
+#endif
             default:
                 return( NULL );
         }
@@ -88,12 +108,17 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
 
     switch( key_type )
     {
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_AES)
         case PSA_KEY_TYPE_AES:
             cipher_id_tmp = MBEDTLS_CIPHER_ID_AES;
             break;
+#endif
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ARIA)
         case PSA_KEY_TYPE_ARIA:
             cipher_id_tmp = MBEDTLS_CIPHER_ID_ARIA;
             break;
+#endif
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_DES)
         case PSA_KEY_TYPE_DES:
             /* key_bits is 64 for Single-DES, 128 for two-key Triple-DES,
              * and 192 for three-key Triple-DES. */
@@ -107,15 +132,22 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
             if( key_bits == 128 )
                 key_bits = 192;
             break;
+#endif
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_CAMELLIA)
         case PSA_KEY_TYPE_CAMELLIA:
             cipher_id_tmp = MBEDTLS_CIPHER_ID_CAMELLIA;
             break;
+#endif
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_ARC4)
         case PSA_KEY_TYPE_ARC4:
             cipher_id_tmp = MBEDTLS_CIPHER_ID_ARC4;
             break;
+#endif
+#if defined(MBEDTLS_PSA_BUILTIN_KEY_TYPE_CHACHA20)
         case PSA_KEY_TYPE_CHACHA20:
             cipher_id_tmp = MBEDTLS_CIPHER_ID_CHACHA20;
             break;
+#endif
         default:
             return( NULL );
     }
@@ -239,6 +271,7 @@ psa_status_t mbedtls_psa_cipher_set_iv(
                                        iv, iv_length ) ) );
 }
 
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECB_NO_PADDING)
 /** Process input for which the algorithm is set to ECB mode.
  *
  * This requires manual processing, since the PSA API is defined as being
@@ -342,6 +375,7 @@ static psa_status_t psa_cipher_update_ecb(
 exit:
     return( status );
 }
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_ECB_NO_PADDING */
 
 psa_status_t mbedtls_psa_cipher_update(
     mbedtls_psa_cipher_operation_t *operation,
@@ -369,6 +403,7 @@ psa_status_t mbedtls_psa_cipher_update(
     if( output_size < expected_output_size )
         return( PSA_ERROR_BUFFER_TOO_SMALL );
 
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECB_NO_PADDING)
     if( operation->alg == PSA_ALG_ECB_NO_PADDING )
     {
         /* mbedtls_cipher_update has an API inconsistency: it will only
@@ -381,6 +416,7 @@ psa_status_t mbedtls_psa_cipher_update(
                                         output_length );
     }
     else
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_ECB_NO_PADDING */
     {
         status = mbedtls_to_psa_error(
             mbedtls_cipher_update( &operation->ctx.cipher, input,

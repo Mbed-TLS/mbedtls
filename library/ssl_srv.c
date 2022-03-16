@@ -3109,7 +3109,8 @@ curve_matching_done:
             mbedtls_ssl_handshake_params *handshake = ssl->handshake;
             size_t ecdh_bits = 0;
             uint8_t *p = ssl->out_msg + ssl->out_msglen;
-            const size_t header_size = 4; // curve_type, namedcurve, data length
+            const size_t header_size = 4; // curve_type(1), namedcurve(2),
+                                          // data length(1)
             const size_t data_length_size = 1;
 
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "Perform PSA-based ECDH computation." ) );

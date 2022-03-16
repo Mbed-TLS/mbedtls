@@ -870,7 +870,6 @@ static int ecdsa_sign_wrap( void *ctx_arg, mbedtls_md_type_t md_alg,
     size_t curve_bits;
     psa_ecc_family_t curve =
         mbedtls_ecc_group_to_psa( ctx->grp.id, &curve_bits );
-    ((void) md_alg);
 
     /* PSA has its own RNG */
     ((void) f_rng);

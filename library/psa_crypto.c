@@ -2333,6 +2333,20 @@ static psa_status_t psa_mac_finalize_alg_and_key_validation(
         return( PSA_ERROR_INVALID_ARGUMENT );
     }
 
+    if( *mac_size > PSA_MAC_MAX_SIZE )
+    {
+        /* PSA_MAC_LENGTH returns the correct length even for a MAC algorithm
+         * that is disabled in the compile-time configuration. The result can
+         * therefore be larger than PSA_MAC_MAX_SIZE, which does take the
+         * configuration into account. In this case, force a return of
+         * PSA_ERROR_NOT_SUPPORTED here. Otherwise psa_mac_verify(), or
+         * psa_mac_compute(mac_size=PSA_MAC_MAX_SIZE), would return
+         * PSA_ERROR_BUFFER_TOO_SMALL for an unsupported algorithm whose MAC size
+         * is larger than PSA_MAC_MAX_SIZE, which is misleading and which breaks
+         * systematically generated tests. */
+        return( PSA_ERROR_NOT_SUPPORTED );
+    }
+
     return( PSA_SUCCESS );
 }
 

@@ -241,23 +241,13 @@ static int rsa_encrypt_wrap( void *ctx,
     int key_len;
     unsigned char buf[MBEDTLS_PK_RSA_PUB_DER_MAX_BYTES];
     mbedtls_pk_info_t pk_info = mbedtls_rsa_info;
-    psa_algorithm_t psa_alg_md;
 
     ((void) f_rng);
     ((void) p_rng);
 
 #if !defined(MBEDTLS_RSA_ALT)
-    switch( rsa->padding )
-    {
-        case MBEDTLS_RSA_PKCS_V15:
-            psa_alg_md = PSA_ALG_RSA_PKCS1V15_CRYPT;
-            break;
-
-        default:
-            return( MBEDTLS_ERR_RSA_INVALID_PADDING );
-    }
-#else
-    psa_alg_md = PSA_ALG_RSA_PKCS1V15_CRYPT;
+    if( rsa->padding != MBEDTLS_RSA_PKCS_V15 )
+        return( MBEDTLS_ERR_RSA_INVALID_PADDING );
 #endif
 
     *olen = mbedtls_rsa_get_len( rsa );
@@ -274,7 +264,7 @@ static int rsa_encrypt_wrap( void *ctx,
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT );
-    psa_set_key_algorithm( &attributes, psa_alg_md );
+    psa_set_key_algorithm( &attributes, PSA_ALG_RSA_PKCS1V15_CRYPT );
     psa_set_key_type( &attributes, PSA_KEY_TYPE_RSA_PUBLIC_KEY );
 
     status = psa_import_key( &attributes,
@@ -286,8 +276,10 @@ static int rsa_encrypt_wrap( void *ctx,
         goto cleanup;
     }
 
-    status = psa_asymmetric_encrypt( key_id, psa_alg_md, input, ilen,
-                                     NULL, 0, output, osize, olen);
+    status = psa_asymmetric_encrypt( key_id, PSA_ALG_RSA_PKCS1V15_CRYPT,
+                                     input, ilen,
+                                     NULL, 0,
+                                     output, osize, olen );
     if( status != PSA_SUCCESS )
     {
         ret = mbedtls_pk_error_from_psa_rsa( status );

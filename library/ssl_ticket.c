@@ -124,7 +124,7 @@ static int ssl_ticket_update_keys( mbedtls_ssl_ticket_context *ctx )
         uint32_t key_time = ctx->keys[ctx->active].generation_time;
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+        psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 #endif
 
         if( current_time >= key_time &&
@@ -136,9 +136,10 @@ static int ssl_ticket_update_keys( mbedtls_ssl_ticket_context *ctx )
         ctx->active = 1 - ctx->active;
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        if( ( ret = psa_ssl_status_to_mbedtls(
-                        psa_destroy_key( ctx->keys[ctx->active].key ) ) ) != 0 )
-            return( ret );
+        if( ( status = psa_destroy_key( ctx->keys[ctx->active].key ) ) != PSA_SUCCESS )
+        {
+            return psa_ssl_status_to_mbedtls( ret );
+        }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
         return( ssl_ticket_gen_key( ctx, ctx->active ) );
@@ -161,6 +162,7 @@ int mbedtls_ssl_ticket_rotate( mbedtls_ssl_ticket_context *ctx,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const size_t bitlen = key->key_bits;
 #else
@@ -171,9 +173,11 @@ int mbedtls_ssl_ticket_rotate( mbedtls_ssl_ticket_context *ctx,
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if( ( ret = psa_ssl_status_to_mbedtls(
-                    psa_destroy_key( key->key ) ) ) != 0 )
+    if( ( status = psa_destroy_key( key->key ) ) != PSA_SUCCESS )
+    {
+        ret = psa_ssl_status_to_mbedtls( status );
         return( ret );
+    }
 
     psa_set_key_usage_flags( &attributes,
                              PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT );
@@ -181,11 +185,13 @@ int mbedtls_ssl_ticket_rotate( mbedtls_ssl_ticket_context *ctx,
     psa_set_key_type( &attributes, key->key_type );
     psa_set_key_bits( &attributes, key->key_bits );
 
-    if( ( ret = psa_ssl_status_to_mbedtls(
-                    psa_import_key( &attributes, k,
-                                    PSA_BITS_TO_BYTES( key->key_bits ),
-                                    &key->key ) ) ) != 0 )
+    if( ( ret = psa_import_key( &attributes, k,
+                                PSA_BITS_TO_BYTES( key->key_bits ),
+                                &key->key ) ) != PSA_SUCCESS )
+    {
+        ret = psa_ssl_status_to_mbedtls( status );
         return( ret );
+    }
 #else
     ret = mbedtls_cipher_setkey( &key->ctx, k, bitlen, MBEDTLS_ENCRYPT );
     if( ret != 0 )
@@ -294,6 +300,10 @@ int mbedtls_ssl_ticket_write( void *p_ticket,
     unsigned char *state = state_len_bytes + TICKET_CRYPT_LEN_BYTES;
     size_t clear_len, ciph_len;
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+#endif
+
     *tlen = 0;
 
     if( ctx == NULL || ctx->f_rng == NULL )
@@ -332,11 +342,15 @@ int mbedtls_ssl_ticket_write( void *p_ticket,
 
     /* Encrypt and authenticate */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if( ( ret = psa_ssl_status_to_mbedtls(
-                    psa_aead_encrypt( key->key, key->alg, iv, TICKET_IV_BYTES,
-                                      key_name, TICKET_ADD_DATA_LEN,
-                                      state, clear_len,
-                                      state, end - state, &ciph_len ) ) ) != 0 )
+    if( ( status = psa_aead_encrypt( key->key, key->alg, iv, TICKET_IV_BYTES,
+                                     key_name, TICKET_ADD_DATA_LEN,
+                                     state, clear_len,
+                                     state, end - state,
+                                     &ciph_len ) ) != PSA_SUCCESS )
+    {
+        ret = psa_ssl_status_to_mbedtls( status );
+        goto cleanup;
+    }
 #else
     if( ( ret = mbedtls_cipher_auth_encrypt_ext( &key->ctx,
                     iv, TICKET_IV_BYTES,
@@ -345,10 +359,10 @@ int mbedtls_ssl_ticket_write( void *p_ticket,
                     state, clear_len,
                     state, end - state, &ciph_len,
                     TICKET_AUTH_TAG_BYTES ) ) != 0 )
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
     {
         goto cleanup;
     }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     if( ciph_len != clear_len + TICKET_AUTH_TAG_BYTES )
     {
@@ -400,6 +414,10 @@ int mbedtls_ssl_ticket_parse( void *p_ticket,
     unsigned char *ticket = enc_len_p + TICKET_CRYPT_LEN_BYTES;
     size_t enc_len, clear_len;
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+#endif
+
     if( ctx == NULL || ctx->f_rng == NULL )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
@@ -433,11 +451,14 @@ int mbedtls_ssl_ticket_parse( void *p_ticket,
 
     /* Decrypt and authenticate */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if( ( ret = psa_ssl_status_to_mbedtls(
-                    psa_aead_decrypt( key->key, key->alg, iv, TICKET_IV_BYTES,
-                                      key_name, TICKET_ADD_DATA_LEN,
-                                      ticket, enc_len + TICKET_AUTH_TAG_BYTES,
-                                      ticket, enc_len, &clear_len ) ) ) != 0 )
+    if( ( status = psa_aead_decrypt( key->key, key->alg, iv, TICKET_IV_BYTES,
+                                     key_name, TICKET_ADD_DATA_LEN,
+                                     ticket, enc_len + TICKET_AUTH_TAG_BYTES,
+                                     ticket, enc_len, &clear_len ) ) != PSA_SUCCESS )
+    {
+        ret = psa_ssl_status_to_mbedtls( status );
+        goto cleanup;
+    }
 #else
     if( ( ret = mbedtls_cipher_auth_decrypt_ext( &key->ctx,
                     iv, TICKET_IV_BYTES,
@@ -446,13 +467,14 @@ int mbedtls_ssl_ticket_parse( void *p_ticket,
                     ticket, enc_len + TICKET_AUTH_TAG_BYTES,
                     ticket, enc_len, &clear_len,
                     TICKET_AUTH_TAG_BYTES ) ) != 0 )
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
     {
         if( ret == MBEDTLS_ERR_CIPHER_AUTH_FAILED )
             ret = MBEDTLS_ERR_SSL_INVALID_MAC;
 
         goto cleanup;
     }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
     if( clear_len != enc_len )
     {
         ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;

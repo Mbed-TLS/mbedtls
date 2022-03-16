@@ -100,28 +100,6 @@ int mbedtls_pk_error_from_psa( psa_status_t status )
     }
 }
 
-#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-int mbedtls_pk_error_from_psa_ecdca( psa_status_t status )
-{
-    switch( status )
-    {
-        case PSA_ERROR_NOT_PERMITTED:
-        case PSA_ERROR_INVALID_ARGUMENT:
-            return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-        case PSA_ERROR_INVALID_HANDLE:
-            return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
-        case PSA_ERROR_BUFFER_TOO_SMALL:
-            return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
-        case PSA_ERROR_INSUFFICIENT_ENTROPY:
-            return( MBEDTLS_ERR_ECP_RANDOM_FAILED );
-        case PSA_ERROR_INVALID_SIGNATURE:
-            return( MBEDTLS_ERR_ECP_VERIFY_FAILED );
-        default:
-            return( mbedtls_pk_error_from_psa( status ) );
-    }
-}
-#endif
-
 #if defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY)
 int mbedtls_pk_error_from_psa_rsa( psa_status_t status )
 {
@@ -144,6 +122,33 @@ int mbedtls_pk_error_from_psa_rsa( psa_status_t status )
     }
 }
 #endif
+
+#endif /* MBEDTLS_PSA_CRYPTO_C */
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+
+#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
+int mbedtls_pk_error_from_psa_ecdca( psa_status_t status )
+{
+    switch( status )
+    {
+        case PSA_ERROR_NOT_PERMITTED:
+        case PSA_ERROR_INVALID_ARGUMENT:
+            return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+        case PSA_ERROR_INVALID_HANDLE:
+            return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
+        case PSA_ERROR_BUFFER_TOO_SMALL:
+            return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+        case PSA_ERROR_INSUFFICIENT_ENTROPY:
+            return( MBEDTLS_ERR_ECP_RANDOM_FAILED );
+        case PSA_ERROR_INVALID_SIGNATURE:
+            return( MBEDTLS_ERR_ECP_VERIFY_FAILED );
+        default:
+            return( mbedtls_pk_error_from_psa( status ) );
+    }
+}
+#endif
+
 #endif
 
 #if defined(MBEDTLS_RSA_C)

@@ -240,7 +240,6 @@ static int rsa_encrypt_wrap( void *ctx,
     mbedtls_pk_context key;
     int key_len;
     unsigned char buf[MBEDTLS_PK_RSA_PUB_DER_MAX_BYTES];
-    mbedtls_pk_info_t pk_info = mbedtls_rsa_info;
 
     ((void) f_rng);
     ((void) p_rng);
@@ -257,7 +256,7 @@ static int rsa_encrypt_wrap( void *ctx,
 
     /* mbedtls_pk_write_pubkey_der() expects a full PK context;
      * re-construct one to make it happy */
-    key.pk_info = &pk_info;
+    key.pk_info = &mbedtls_rsa_info;
     key.pk_ctx = ctx;
     key_len = mbedtls_pk_write_pubkey_der( &key, buf, sizeof( buf ) );
     if( key_len <= 0 )

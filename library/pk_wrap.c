@@ -177,7 +177,6 @@ static int rsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     mbedtls_pk_context key;
     int key_len;
     unsigned char buf[MBEDTLS_PK_RSA_PUB_DER_MAX_BYTES];
-    mbedtls_pk_info_t pk_info = mbedtls_rsa_info;
     psa_algorithm_t psa_alg_md =
         PSA_ALG_RSA_PKCS1V15_SIGN( mbedtls_psa_translate_md( md_alg ) );
     size_t rsa_len = mbedtls_rsa_get_len( rsa );
@@ -192,7 +191,7 @@ static int rsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
 
     /* mbedtls_pk_write_pubkey_der() expects a full PK context;
      * re-construct one to make it happy */
-    key.pk_info = &pk_info;
+    key.pk_info = &mbedtls_rsa_info;
     key.pk_ctx = ctx;
     key_len = mbedtls_pk_write_pubkey_der( &key, buf, sizeof( buf ) );
     if( key_len <= 0 )

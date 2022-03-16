@@ -26,6 +26,10 @@ Certificate Request check Server1 key_usage
 depends_on:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_csr_check:"data_files/server1.key":"data_files/server1.req.key_usage":MBEDTLS_MD_SHA1:MBEDTLS_X509_KU_DIGITAL_SIGNATURE | MBEDTLS_X509_KU_NON_REPUDIATION | MBEDTLS_X509_KU_KEY_ENCIPHERMENT:1:0:0
 
+Certificate Request check opaque Server1 key_usage
+depends_on:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+x509_csr_check_opaque:"data_files/server1.key":MBEDTLS_MD_SHA1:MBEDTLS_X509_KU_DIGITAL_SIGNATURE | MBEDTLS_X509_KU_NON_REPUDIATION:0
+
 Certificate Request check Server1 key_usage empty
 depends_on:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_csr_check:"data_files/server1.key":"data_files/server1.req.key_usage_empty":MBEDTLS_MD_SHA1:0:1:0:0

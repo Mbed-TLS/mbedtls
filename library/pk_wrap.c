@@ -65,7 +65,7 @@
 #include <limits.h>
 #include <stdint.h>
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_PSA_CRYPTO_C)
 int mbedtls_pk_error_from_psa( psa_status_t status )
 {
     switch( status )
@@ -191,7 +191,7 @@ static int rsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     return( 0 );
 }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_PSA_CRYPTO_C)
 int mbedtls_pk_psa_sign_ext( psa_algorithm_t psa_alg_md, void *pk_ctx,
                              const unsigned char *hash, size_t hash_len,
                              unsigned char *sig, size_t sig_size,

@@ -162,7 +162,7 @@ int mbedtls_ssl_ticket_rotate( mbedtls_ssl_ticket_context *ctx,
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    const int bitlen = key->key_bits;
+    const size_t bitlen = key->key_bits;
 #else
     const int bitlen = mbedtls_cipher_get_key_bitlen( &key->ctx );
 #endif

@@ -558,9 +558,7 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
  *
  * \return          0 on success, or a specific error code.
  *
- * \note            For RSA keys, the padding type depends on the value of the
- *                  \p pk_type parameter: MBEDTLS_PK_RSA for PKCS#1 v1.5, and
- *                  MBEDTLS_PK_RSASSA_PSS for PKCS#1 v2.1 with any salt.
+ * \note            see #PSA_ALG_RSA_PSS also.
  *
  * \note            For RSA, md_alg may be MBEDTLS_MD_NONE if hash_len != 0.
  *                  For ECDSA, md_alg may never be MBEDTLS_MD_NONE.

@@ -546,7 +546,6 @@ int mbedtls_pk_sign_ext( mbedtls_pk_type_t pk_type,
     }
 
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && defined(MBEDTLS_USE_PSA_CRYPTO)
-
     return( mbedtls_pk_psa_sign_ext( PSA_ALG_RSA_PSS_ANY_SALT(
                                         mbedtls_psa_translate_md( md_alg ) ),
                                      ctx->pk_ctx, hash, hash_len,

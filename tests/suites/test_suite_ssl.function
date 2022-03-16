@@ -3807,35 +3807,27 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_SSL_PROTO_TLS1_3 */
-void psa_hkdf_extract( int alg, char *hex_ikm_string,
-                       char *hex_salt_string, char *hex_prk_string )
+void psa_hkdf_extract( int alg,
+                       data_t *ikm,
+                       data_t *salt,
+                       data_t *prk )
 {
-    unsigned char *ikm = NULL;
-    unsigned char *salt = NULL;
-    unsigned char *prk = NULL;
     unsigned char *output_prk = NULL;
-    size_t ikm_len, salt_len, prk_len, output_prk_size, output_prk_len;
+    size_t output_prk_size, output_prk_len;
 
     PSA_INIT( );
 
     output_prk_size = PSA_HASH_LENGTH( alg );
     ASSERT_ALLOC( output_prk, output_prk_size );
 
-    ikm = mbedtls_test_unhexify_alloc( hex_ikm_string, &ikm_len );
-    salt = mbedtls_test_unhexify_alloc( hex_salt_string, &salt_len );
-    prk = mbedtls_test_unhexify_alloc( hex_prk_string, &prk_len );
-
-    PSA_ASSERT( mbedtls_psa_hkdf_extract( alg, salt, salt_len,
-                                          ikm, ikm_len,
+    PSA_ASSERT( mbedtls_psa_hkdf_extract( alg, salt->x, salt->len,
+                                          ikm->x, ikm->len,
                                           output_prk, output_prk_size,
                                           &output_prk_len ) );
 
-    ASSERT_COMPARE( output_prk, output_prk_len, prk, prk_len );
+    ASSERT_COMPARE( output_prk, output_prk_len, prk->x, prk->len );
 
 exit:
-    mbedtls_free( ikm );
-    mbedtls_free( salt );
-    mbedtls_free( prk );
     mbedtls_free( output_prk );
 
     PSA_DONE( );
@@ -3872,35 +3864,27 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_SSL_PROTO_TLS1_3 */
-void psa_hkdf_expand( int alg, char *hex_info_string,
-                      char *hex_prk_string, char *hex_okm_string )
+void psa_hkdf_expand( int alg,
+                      data_t *info,
+                      data_t *prk,
+                      data_t *okm )
 {
     enum { OKM_LEN  = 1024 };
-    unsigned char *info = NULL;
-    unsigned char *prk = NULL;
-    unsigned char *okm = NULL;
     unsigned char *output_okm = NULL;
-    size_t info_len, prk_len, okm_len;
 
     PSA_INIT( );
 
     ASSERT_ALLOC( output_okm, OKM_LEN );
+    TEST_ASSERT( prk->len == PSA_HASH_LENGTH( alg ) );
+    TEST_ASSERT( okm->len < OKM_LEN );
 
-    prk = mbedtls_test_unhexify_alloc( hex_prk_string, &prk_len );
-    info = mbedtls_test_unhexify_alloc( hex_info_string, &info_len );
-    okm = mbedtls_test_unhexify_alloc( hex_okm_string, &okm_len );
-    TEST_ASSERT( prk_len == PSA_HASH_LENGTH( alg ) );
-    TEST_ASSERT( okm_len < OKM_LEN );
-
-    PSA_ASSERT( mbedtls_psa_hkdf_expand( alg, prk, prk_len, info, info_len,
+    PSA_ASSERT( mbedtls_psa_hkdf_expand( alg, prk->x, prk->len,
+                                         info->x, info->len,
                                          output_okm, OKM_LEN ) );
 
-    ASSERT_COMPARE( output_okm, okm_len, okm, okm_len );
+    ASSERT_COMPARE( output_okm, okm->len, okm->x, okm->len );
 
 exit:
-    mbedtls_free( info );
-    mbedtls_free( prk );
-    mbedtls_free( okm );
     mbedtls_free( output_okm );
 
     PSA_DONE( );

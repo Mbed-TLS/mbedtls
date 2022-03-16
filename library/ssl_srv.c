@@ -3100,13 +3100,6 @@ curve_matching_done:
 
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDHE curve: %s", (*curve)->name ) );
 
-        if( ( ret = mbedtls_ecdh_setup( &ssl->handshake->ecdh_ctx,
-                                        (*curve)->grp_id ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecp_group_load", ret );
-            return( ret );
-        }
-
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA ||
             ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA )
@@ -3195,14 +3188,23 @@ curve_matching_done:
         }
         else
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-        if( ( ret = mbedtls_ecdh_make_params(
-                  &ssl->handshake->ecdh_ctx, &len,
-                  ssl->out_msg + ssl->out_msglen,
-                  MBEDTLS_SSL_OUT_CONTENT_LEN - ssl->out_msglen,
-                  ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
         {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_make_params", ret );
-            return( ret );
+            if( ( ret = mbedtls_ecdh_setup( &ssl->handshake->ecdh_ctx,
+                                            (*curve)->grp_id ) ) != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecp_group_load", ret );
+                return( ret );
+            }
+
+            if( ( ret = mbedtls_ecdh_make_params(
+                    &ssl->handshake->ecdh_ctx, &len,
+                    ssl->out_msg + ssl->out_msglen,
+                    MBEDTLS_SSL_OUT_CONTENT_LEN - ssl->out_msglen,
+                    ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_make_params", ret );
+                return( ret );
+            }
         }
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_SERVER_SIGNATURE_ENABLED)

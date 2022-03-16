@@ -2612,7 +2612,13 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     size_t ecdh_bits = 0;
-    size_t qlen = 0;
+    size_t olen = 0;
+
+    if( mbedtls_ssl_check_curve( ssl, peer_key->grp.id ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server certificate (ECDH curve)" ) );
+        return( MBEDTLS_ERR_SSL_BAD_CERTIFICATE );
+    }
 
     ssl->handshake->ecdh_psa_type =
         PSA_KEY_TYPE_ECC_KEY_PAIR( mbedtls_ecc_group_to_psa( peer_key->grp.id,
@@ -2626,19 +2632,19 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
 
     ssl->handshake->ecdh_bits = (uint16_t) ecdh_bits;
 
-    qlen = mbedtls_mpi_size( (const mbedtls_mpi*) &peer_key->Q );
-
     /* Store peer's public key in psa format. */
-    ssl->handshake->ecdh_psa_peerkey[0] = 0x04;
-    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &peer_key->Q.X,
-                        ssl->handshake->ecdh_psa_peerkey + 1, qlen ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &peer_key->Q.Y,
-                        ssl->handshake->ecdh_psa_peerkey + 1 + qlen, qlen ) );
+    ret = mbedtls_ecp_point_write_binary( &peer_key->grp, &peer_key->Q,
+                                          MBEDTLS_ECP_PF_UNCOMPRESSED, &olen,
+                                          ssl->handshake->ecdh_psa_peerkey,
+                                          MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH );
 
-    ssl->handshake->ecdh_psa_peerkey_len = ( 2 * qlen + 1 );
+    if ( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ecp_point_write_binary" ), ret );
+        return( ret );
+    }
 
-    ret = 0;
-cleanup:
+    ssl->handshake->ecdh_psa_peerkey_len = olen;
 #else
     if( ( ret = mbedtls_ecdh_get_params( &ssl->handshake->ecdh_ctx, peer_key,
                                  MBEDTLS_ECDH_THEIRS ) ) != 0 )
@@ -2652,7 +2658,6 @@ cleanup:
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server certificate (ECDH curve)" ) );
         return( MBEDTLS_ERR_SSL_BAD_CERTIFICATE );
     }
-
 #endif
 #if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     /* We don't need the peer's public key anymore. Free it,

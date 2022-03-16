@@ -223,7 +223,7 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
                      char *serial_str, char *not_before, char *not_after,
                      int md_type, int key_usage, int set_key_usage,
                      int cert_type, int set_cert_type, int auth_ident,
-                     int ver, char *cert_check_file, int rsa_alt, int is_ca )
+                     int ver, char *cert_check_file, int pk_wrap, int is_ca )
 {
     mbedtls_pk_context subject_key, issuer_key, issuer_key_alt;
     mbedtls_pk_context *key = &issuer_key;
@@ -237,6 +237,9 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
     int der_len = -1;
     FILE *f;
     mbedtls_test_rnd_pseudo_info rnd_info;
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
+#endif
 
     memset( &rnd_info, 0x2a, sizeof( mbedtls_test_rnd_pseudo_info ) );
     mbedtls_mpi_init( &serial );
@@ -257,7 +260,7 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
 
 #if defined(MBEDTLS_RSA_C)
     /* For RSA PK contexts, create a copy as an alternative RSA context. */
-    if( rsa_alt == 1 && mbedtls_pk_get_type( &issuer_key ) == MBEDTLS_PK_RSA )
+    if( pk_wrap == 1 && mbedtls_pk_get_type( &issuer_key ) == MBEDTLS_PK_RSA )
     {
         TEST_ASSERT( mbedtls_pk_setup_rsa_alt( &issuer_key_alt,
                                             mbedtls_pk_rsa( issuer_key ),
@@ -267,9 +270,23 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
 
         key = &issuer_key_alt;
     }
-#else
-    (void) rsa_alt;
 #endif
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    /* For Opaque PK contexts, wrap key as an Opaque RSA context. */
+    if( pk_wrap == 2 )
+    {
+        psa_algorithm_t md_alg_psa =
+            mbedtls_psa_translate_md( (mbedtls_md_type_t) md_type );
+
+        TEST_ASSERT( md_alg_psa != MBEDTLS_MD_NONE );
+        TEST_ASSERT( mbedtls_pk_wrap_as_opaque( &issuer_key, &key_id,
+                                                md_alg_psa ) == 0 );
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+    if( pk_wrap == 2 )
+        TEST_ASSERT( mbedtls_pk_get_type( &issuer_key ) == MBEDTLS_PK_OPAQUE );
 
     TEST_ASSERT( mbedtls_test_read_mpi( &serial, 10, serial_str ) == 0 );
 
@@ -339,6 +356,9 @@ exit:
     mbedtls_pk_free( &subject_key );
     mbedtls_pk_free( &issuer_key );
     mbedtls_mpi_free( &serial );
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_destroy_key( key_id );
+#endif
     USE_PSA_DONE( );
 }
 /* END_CASE */

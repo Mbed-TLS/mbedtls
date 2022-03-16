@@ -138,7 +138,7 @@ static int ssl_ticket_update_keys( mbedtls_ssl_ticket_context *ctx )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         if( ( status = psa_destroy_key( ctx->keys[ctx->active].key ) ) != PSA_SUCCESS )
         {
-            return psa_ssl_status_to_mbedtls( ret );
+            return psa_ssl_status_to_mbedtls( status );
         }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
@@ -185,9 +185,9 @@ int mbedtls_ssl_ticket_rotate( mbedtls_ssl_ticket_context *ctx,
     psa_set_key_type( &attributes, key->key_type );
     psa_set_key_bits( &attributes, key->key_bits );
 
-    if( ( ret = psa_import_key( &attributes, k,
-                                PSA_BITS_TO_BYTES( key->key_bits ),
-                                &key->key ) ) != PSA_SUCCESS )
+    if( ( status = psa_import_key( &attributes, k,
+                                   PSA_BITS_TO_BYTES( key->key_bits ),
+                                   &key->key ) ) != PSA_SUCCESS )
     {
         ret = psa_ssl_status_to_mbedtls( status );
         return( ret );

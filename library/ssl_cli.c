@@ -2610,6 +2610,36 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
 
     peer_key = mbedtls_pk_ec( *peer_pk );
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    size_t ecdh_bits = 0;
+    size_t qlen = 0;
+
+    ssl->handshake->ecdh_psa_type =
+        PSA_KEY_TYPE_ECC_KEY_PAIR( mbedtls_ecc_group_to_psa( peer_key->grp.id,
+                                                             &ecdh_bits ) );
+
+    if( ssl->handshake->ecdh_psa_type == 0 || ecdh_bits > 0xffff )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Invalid ecc group conversion to psa." ) );
+        return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+    }
+
+    ssl->handshake->ecdh_bits = (uint16_t) ecdh_bits;
+
+    qlen = mbedtls_mpi_size( (const mbedtls_mpi*) &peer_key->Q );
+
+    /* Store peer's public key in psa format. */
+    ssl->handshake->ecdh_psa_peerkey[0] = 0x04;
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &peer_key->Q.X,
+                        ssl->handshake->ecdh_psa_peerkey + 1, qlen ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &peer_key->Q.Y,
+                        ssl->handshake->ecdh_psa_peerkey + 1 + qlen, qlen ) );
+
+    ssl->handshake->ecdh_psa_peerkey_len = ( 2 * qlen + 1 );
+
+    ret = 0;
+cleanup:
+#else
     if( ( ret = mbedtls_ecdh_get_params( &ssl->handshake->ecdh_ctx, peer_key,
                                  MBEDTLS_ECDH_THEIRS ) ) != 0 )
     {
@@ -2623,6 +2653,7 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_BAD_CERTIFICATE );
     }
 
+#endif
 #if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     /* We don't need the peer's public key anymore. Free it,
      * so that more RAM is available for upcoming expensive

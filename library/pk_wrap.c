@@ -865,7 +865,6 @@ static int ecdsa_sign_wrap( void *ctx_arg, mbedtls_md_type_t md_alg,
     size_t key_len;
     unsigned char buf[MBEDTLS_PK_ECP_PRV_DER_MAX_BYTES];
     unsigned char *p;
-    mbedtls_pk_info_t pk_info = mbedtls_eckey_info;
     psa_algorithm_t psa_sig_md =
         PSA_ALG_ECDSA( mbedtls_psa_translate_md( md_alg ) );
     size_t curve_bits;
@@ -882,7 +881,7 @@ static int ecdsa_sign_wrap( void *ctx_arg, mbedtls_md_type_t md_alg,
 
     /* mbedtls_pk_write_key_der() expects a full PK context;
      * re-construct one to make it happy */
-    key.pk_info = &pk_info;
+    key.pk_info = &mbedtls_eckey_info;
     key.pk_ctx = ctx;
     key_len = mbedtls_pk_write_key_der( &key, buf, sizeof( buf ) );
     if( key_len <= 0 )

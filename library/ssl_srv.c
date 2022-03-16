@@ -3166,8 +3166,9 @@ curve_matching_done:
              * Make one byte space for the length.
              */
             unsigned char *own_pubkey = p + data_length_size;
+
             size_t own_pubkey_max_len = (size_t)( MBEDTLS_SSL_OUT_CONTENT_LEN
-                                        - ssl->out_msglen - header_size );
+                                        - ( own_pubkey - ssl->out_msg ) );
 
             status = psa_export_public_key( handshake->ecdh_psa_privkey,
                                             own_pubkey, own_pubkey_max_len,

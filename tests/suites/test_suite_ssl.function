@@ -5452,3 +5452,86 @@ void timing_final_delay_accessor( )
     TEST_ASSERT( mbedtls_timing_get_final_delay( &delay_context ) == 100 );
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_DTLS_CONNECTION_ID */
+void cid_sanity( )
+{
+    mbedtls_ssl_context ssl;
+    mbedtls_ssl_config conf;
+
+    unsigned char own_cid[MBEDTLS_SSL_CID_IN_LEN_MAX];
+    unsigned char test_cid[MBEDTLS_SSL_CID_IN_LEN_MAX];
+    int cid_enabled;
+    size_t own_cid_len;
+
+    mbedtls_test_rnd_std_rand( NULL, own_cid, sizeof( own_cid ) );
+
+    mbedtls_ssl_init( &ssl );
+    mbedtls_ssl_config_init( &conf );
+
+    TEST_ASSERT( mbedtls_ssl_config_defaults( &conf,
+                                              MBEDTLS_SSL_IS_CLIENT,
+                                              MBEDTLS_SSL_TRANSPORT_STREAM,
+                                              MBEDTLS_SSL_PRESET_DEFAULT )
+                 == 0 );
+
+    TEST_ASSERT( mbedtls_ssl_setup( &ssl, &conf ) == 0 );
+
+    /* Can't use CID functions with stream transport. */
+    TEST_ASSERT( mbedtls_ssl_set_cid( &ssl, MBEDTLS_SSL_CID_ENABLED, own_cid,
+                                      sizeof( own_cid ) )
+                 == MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_ssl_get_own_cid( &ssl, &cid_enabled, test_cid,
+                                          &own_cid_len )
+                 == MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_ssl_config_defaults( &conf,
+                                              MBEDTLS_SSL_IS_CLIENT,
+                                              MBEDTLS_SSL_TRANSPORT_DATAGRAM,
+                                              MBEDTLS_SSL_PRESET_DEFAULT )
+                 == 0 );
+
+    /* Attempt to set config cid size too big. */
+    TEST_ASSERT( mbedtls_ssl_conf_cid( &conf, MBEDTLS_SSL_CID_IN_LEN_MAX + 1,
+                                       MBEDTLS_SSL_UNEXPECTED_CID_IGNORE )
+                 == MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_ssl_conf_cid( &conf, sizeof( own_cid ),
+                                       MBEDTLS_SSL_UNEXPECTED_CID_IGNORE )
+                 == 0 );
+
+    /* Attempt to set CID length not matching config. */
+    TEST_ASSERT( mbedtls_ssl_set_cid( &ssl, MBEDTLS_SSL_CID_ENABLED, own_cid,
+                                      MBEDTLS_SSL_CID_IN_LEN_MAX - 1 )
+                 == MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_ssl_set_cid( &ssl, MBEDTLS_SSL_CID_ENABLED, own_cid,
+                                      sizeof( own_cid ) )
+                 == 0 );
+
+    /* Test we get back what we put in. */
+    TEST_ASSERT( mbedtls_ssl_get_own_cid( &ssl, &cid_enabled, test_cid,
+                                          &own_cid_len )
+                 == 0 );
+
+    TEST_EQUAL( cid_enabled, MBEDTLS_SSL_CID_ENABLED );
+    ASSERT_COMPARE( own_cid, own_cid_len, test_cid, own_cid_len );
+
+    /* Test disabling works. */
+    TEST_ASSERT( mbedtls_ssl_set_cid( &ssl, MBEDTLS_SSL_CID_DISABLED, NULL,
+                                      0 )
+                 == 0 );
+
+    TEST_ASSERT( mbedtls_ssl_get_own_cid( &ssl, &cid_enabled, test_cid,
+                                          &own_cid_len )
+                 == 0 );
+
+    TEST_EQUAL( cid_enabled, MBEDTLS_SSL_CID_DISABLED );
+
+    mbedtls_ssl_free( &ssl );
+    mbedtls_ssl_config_free( &conf );
+}
+/* END_CASE */
+
+

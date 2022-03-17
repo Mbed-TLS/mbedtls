@@ -438,6 +438,15 @@ void mbedtls_ct_memcpy_offset( unsigned char *dest,
 }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
+
+#if defined(PSA_WANT_ALG_SHA_384)
+#define MAX_HASH_BLOCK_LENGTH PSA_HASH_BLOCK_LENGTH( PSA_ALG_SHA_384 )
+#elif defined(PSA_WANT_ALG_SHA_256)
+#define MAX_HASH_BLOCK_LENGTH PSA_HASH_BLOCK_LENGTH( PSA_ALG_SHA_256 )
+#else /* See check_config.h */
+#define MAX_HASH_BLOCK_LENGTH PSA_HASH_BLOCK_LENGTH( PSA_ALG_SHA_1 )
+#endif
+
 int mbedtls_ct_hmac( mbedtls_svc_key_id_t key,
                      psa_algorithm_t mac_alg,
                      const unsigned char *add_data,
@@ -465,18 +474,18 @@ int mbedtls_ct_hmac( mbedtls_svc_key_id_t key,
      */
     psa_algorithm_t hash_alg = PSA_ALG_HMAC_GET_HASH( mac_alg );
     const size_t block_size = PSA_HASH_BLOCK_LENGTH( hash_alg );
-    unsigned char ikey[MBEDTLS_MD_MAX_BLOCK_SIZE];
-    unsigned char okey[MBEDTLS_MD_MAX_BLOCK_SIZE];
+    unsigned char ikey[MAX_HASH_BLOCK_LENGTH];
+    unsigned char okey[MAX_HASH_BLOCK_LENGTH];
     const size_t hash_size = PSA_HASH_LENGTH( hash_alg );
     psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
     size_t hash_length;
 
-    unsigned char aux_out[MBEDTLS_MD_MAX_SIZE];
+    unsigned char aux_out[PSA_HASH_MAX_SIZE];
     psa_hash_operation_t aux_operation = PSA_HASH_OPERATION_INIT;
     size_t offset;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    unsigned char mac_key[MBEDTLS_MD_MAX_BLOCK_SIZE];
+    unsigned char mac_key[MAX_HASH_BLOCK_LENGTH];
     size_t mac_key_length;
     size_t i;
 
@@ -489,7 +498,7 @@ int mbedtls_ct_hmac( mbedtls_svc_key_id_t key,
 
     /* Export MAC key */
     PSA_CHK( psa_export_key( key, mac_key,
-                             MBEDTLS_MD_MAX_BLOCK_SIZE,
+                             MAX_HASH_BLOCK_LENGTH,
                              &mac_key_length ) );
 
     if( mac_key_length > block_size )
@@ -497,7 +506,7 @@ int mbedtls_ct_hmac( mbedtls_svc_key_id_t key,
         PSA_CHK( psa_hash_setup( &operation, hash_alg ) );
         PSA_CHK( psa_hash_update( &operation, mac_key, mac_key_length ) );
         PSA_CHK( psa_hash_finish( &operation, mac_key,
-                                  MBEDTLS_MD_MAX_BLOCK_SIZE, &mac_key_length ) );
+                                  MAX_HASH_BLOCK_LENGTH, &mac_key_length ) );
     }
 
     /* Calculate ikey/okey */
@@ -510,7 +519,7 @@ int mbedtls_ct_hmac( mbedtls_svc_key_id_t key,
         okey[i] = (unsigned char)( okey[i] ^ mac_key[i] );
     }
 
-    mbedtls_platform_zeroize( mac_key, MBEDTLS_MD_MAX_BLOCK_SIZE );
+    mbedtls_platform_zeroize( mac_key, MAX_HASH_BLOCK_LENGTH );
 
     PSA_CHK( psa_hash_setup( &operation, hash_alg ) );
 
@@ -524,7 +533,7 @@ int mbedtls_ct_hmac( mbedtls_svc_key_id_t key,
     {
         PSA_CHK( psa_hash_clone( &operation, &aux_operation ) );
         PSA_CHK( psa_hash_finish( &aux_operation, aux_out,
-                                  MBEDTLS_MD_MAX_SIZE, &hash_length ) );
+                                  PSA_HASH_MAX_SIZE, &hash_length ) );
         /* Keep only the correct inner_hash in the output buffer */
         mbedtls_ct_memcpy_if_eq( output, aux_out, hash_size,
                                  offset, data_len_secret );
@@ -545,14 +554,18 @@ int mbedtls_ct_hmac( mbedtls_svc_key_id_t key,
 #undef PSA_CHK
 
 cleanup:
-    mbedtls_platform_zeroize( mac_key, MBEDTLS_MD_MAX_BLOCK_SIZE );
-    mbedtls_platform_zeroize( ikey, MBEDTLS_MD_MAX_BLOCK_SIZE );
-    mbedtls_platform_zeroize( okey, MBEDTLS_MD_MAX_BLOCK_SIZE );
-    mbedtls_platform_zeroize( aux_out, MBEDTLS_MD_MAX_SIZE );
+    mbedtls_platform_zeroize( mac_key, MAX_HASH_BLOCK_LENGTH );
+    mbedtls_platform_zeroize( ikey, MAX_HASH_BLOCK_LENGTH );
+    mbedtls_platform_zeroize( okey, MAX_HASH_BLOCK_LENGTH );
+    mbedtls_platform_zeroize( aux_out, PSA_HASH_MAX_SIZE );
+
     psa_hash_abort( &operation );
     psa_hash_abort( &aux_operation );
     return( psa_ssl_status_to_mbedtls( status ) );
 }
+
+#undef MAX_HASH_BLOCK_LENGTH
+
 #else
 int mbedtls_ct_hmac( mbedtls_md_context_t *ctx,
                      const unsigned char *add_data,

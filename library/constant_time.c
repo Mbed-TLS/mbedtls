@@ -474,8 +474,7 @@ int mbedtls_ct_hmac( mbedtls_svc_key_id_t key,
      */
     psa_algorithm_t hash_alg = PSA_ALG_HMAC_GET_HASH( mac_alg );
     const size_t block_size = PSA_HASH_BLOCK_LENGTH( hash_alg );
-    unsigned char ikey[MAX_HASH_BLOCK_LENGTH];
-    unsigned char okey[MAX_HASH_BLOCK_LENGTH];
+    unsigned char key_buf[MAX_HASH_BLOCK_LENGTH];
     const size_t hash_size = PSA_HASH_LENGTH( hash_alg );
     psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
     size_t hash_length;
@@ -485,7 +484,6 @@ int mbedtls_ct_hmac( mbedtls_svc_key_id_t key,
     size_t offset;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    unsigned char mac_key[MAX_HASH_BLOCK_LENGTH];
     size_t mac_key_length;
     size_t i;
 
@@ -501,24 +499,18 @@ int mbedtls_ct_hmac( mbedtls_svc_key_id_t key,
      * which is never more than the block size, thus we use block_size
      * as the key buffer size.
      */
-    PSA_CHK( psa_export_key( key, mac_key, block_size, &mac_key_length ) );
+    PSA_CHK( psa_export_key( key, key_buf, block_size, &mac_key_length ) );
 
-    /* Calculate ikey/okey */
-    memset( ikey, 0x36, block_size );
-    memset( okey, 0x5C, block_size );
-
+    /* Calculate ikey */
     for( i = 0; i < mac_key_length; i++ )
-    {
-        ikey[i] = (unsigned char)( ikey[i] ^ mac_key[i] );
-        okey[i] = (unsigned char)( okey[i] ^ mac_key[i] );
-    }
-
-    mbedtls_platform_zeroize( mac_key, MAX_HASH_BLOCK_LENGTH );
+        key_buf[i] = (unsigned char)( key_buf[i] ^ 0x36 );
+    for(; i < block_size; ++i )
+        key_buf[i] = 0x36;
 
     PSA_CHK( psa_hash_setup( &operation, hash_alg ) );
 
     /* Now compute inner_hash = HASH(ikey + msg) */
-    PSA_CHK( psa_hash_update( &operation, ikey, block_size ) );
+    PSA_CHK( psa_hash_update( &operation, key_buf, block_size ) );
     PSA_CHK( psa_hash_update( &operation, add_data, add_data_len ) );
     PSA_CHK( psa_hash_update( &operation, data, min_data_len ) );
 
@@ -539,18 +531,22 @@ int mbedtls_ct_hmac( mbedtls_svc_key_id_t key,
     /* Abort current operation to prepare for final operation */
     PSA_CHK( psa_hash_abort( &operation ) );
 
+    /* Calculate okey */
+    for( i = 0; i < mac_key_length; i++ )
+        key_buf[i] = (unsigned char)( ( key_buf[i] ^ 0x36 ) ^ 0x5C );
+    for(; i < block_size; ++i )
+        key_buf[i] = 0x5C;
+
     /* Now compute HASH(okey + inner_hash) */
     PSA_CHK( psa_hash_setup( &operation, hash_alg ) );
-    PSA_CHK( psa_hash_update( &operation, okey, block_size ) );
+    PSA_CHK( psa_hash_update( &operation, key_buf, block_size ) );
     PSA_CHK( psa_hash_update( &operation, output, hash_size ) );
     PSA_CHK( psa_hash_finish( &operation, output, hash_size, &hash_length ) );
 
 #undef PSA_CHK
 
 cleanup:
-    mbedtls_platform_zeroize( mac_key, MAX_HASH_BLOCK_LENGTH );
-    mbedtls_platform_zeroize( ikey, MAX_HASH_BLOCK_LENGTH );
-    mbedtls_platform_zeroize( okey, MAX_HASH_BLOCK_LENGTH );
+    mbedtls_platform_zeroize( key_buf, MAX_HASH_BLOCK_LENGTH );
     mbedtls_platform_zeroize( aux_out, PSA_HASH_MAX_SIZE );
 
     psa_hash_abort( &operation );

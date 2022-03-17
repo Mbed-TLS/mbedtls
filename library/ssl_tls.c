@@ -7291,61 +7291,6 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
         goto end;
     }
 
-#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
-    /* For HMAC-based ciphersuites, initialize the HMAC transforms.
-       For AEAD-based ciphersuites, there is nothing to do here. */
-    if( mac_key_len != 0 )
-    {
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-        alg = mbedtls_psa_translate_md( ciphersuite_info->mac );
-        if( alg == 0 )
-        {
-                ret = MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
-                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_md_type_to_psa", ret );
-                goto end;
-        }
-
-        transform->psa_mac_alg = PSA_ALG_HMAC( alg );
-
-        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_MESSAGE );
-        psa_set_key_algorithm( &attributes, PSA_ALG_HMAC( alg ) );
-        psa_set_key_type( &attributes, PSA_KEY_TYPE_HMAC );
-
-        if( ( status = psa_import_key( &attributes,
-                                       mac_enc, mac_key_len,
-                                       &transform->psa_mac_enc ) ) != PSA_SUCCESS )
-        {
-            ret = psa_ssl_status_to_mbedtls( status );
-            MBEDTLS_SSL_DEBUG_RET( 1, "psa_import_mac_key", ret );
-            goto end;
-        }
-
-        /* mbedtls_ct_hmac() requires the key to be exportable */
-        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_EXPORT |
-                                              PSA_KEY_USAGE_VERIFY_HASH );
-
-        if( ( status = psa_import_key( &attributes,
-                                       mac_dec, mac_key_len,
-                                       &transform->psa_mac_dec ) ) != PSA_SUCCESS )
-        {
-            ret = psa_ssl_status_to_mbedtls( status );
-            MBEDTLS_SSL_DEBUG_RET( 1, "psa_import_mac_key", ret );
-            goto end;
-        }
-#else
-        ret = mbedtls_md_hmac_starts( &transform->md_ctx_enc, mac_enc, mac_key_len );
-        if( ret != 0 )
-            goto end;
-        ret = mbedtls_md_hmac_starts( &transform->md_ctx_dec, mac_dec, mac_key_len );
-        if( ret != 0 )
-            goto end;
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-    }
-#endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
-
-    ((void) mac_dec);
-    ((void) mac_enc);
-
     if( ssl != NULL && ssl->f_export_keys != NULL )
     {
         ssl->f_export_keys( ssl->p_export_keys,
@@ -7449,6 +7394,66 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
     }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
+    /* For HMAC-based ciphersuites, initialize the HMAC transforms.
+       For AEAD-based ciphersuites, there is nothing to do here. */
+    if( mac_key_len != 0 )
+    {
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        alg = mbedtls_psa_translate_md( ciphersuite_info->mac );
+        if( alg == 0 )
+        {
+                ret = MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_md_type_to_psa", ret );
+                goto end;
+        }
+
+        transform->psa_mac_alg = PSA_ALG_HMAC( alg );
+
+        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_MESSAGE );
+        psa_set_key_algorithm( &attributes, PSA_ALG_HMAC( alg ) );
+        psa_set_key_type( &attributes, PSA_KEY_TYPE_HMAC );
+
+        if( ( status = psa_import_key( &attributes,
+                                       mac_enc, mac_key_len,
+                                       &transform->psa_mac_enc ) ) != PSA_SUCCESS )
+        {
+            ret = psa_ssl_status_to_mbedtls( status );
+            MBEDTLS_SSL_DEBUG_RET( 1, "psa_import_mac_key", ret );
+            goto end;
+        }
+
+        if( ( transform->psa_alg == MBEDTLS_SSL_NULL_CIPHER ||
+              transform->psa_alg == PSA_ALG_CBC_NO_PADDING ) &&
+            transform->encrypt_then_mac == MBEDTLS_SSL_ETM_DISABLED )
+            /* mbedtls_ct_hmac() requires the key to be exportable */
+            psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_EXPORT |
+                                                  PSA_KEY_USAGE_VERIFY_HASH );
+        else
+            psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_HASH );
+
+        if( ( status = psa_import_key( &attributes,
+                                       mac_dec, mac_key_len,
+                                       &transform->psa_mac_dec ) ) != PSA_SUCCESS )
+        {
+            ret = psa_ssl_status_to_mbedtls( status );
+            MBEDTLS_SSL_DEBUG_RET( 1, "psa_import_mac_key", ret );
+            goto end;
+        }
+#else
+        ret = mbedtls_md_hmac_starts( &transform->md_ctx_enc, mac_enc, mac_key_len );
+        if( ret != 0 )
+            goto end;
+        ret = mbedtls_md_hmac_starts( &transform->md_ctx_dec, mac_dec, mac_key_len );
+        if( ret != 0 )
+            goto end;
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+    }
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
+
+    ((void) mac_dec);
+    ((void) mac_enc);
 
 end:
     mbedtls_platform_zeroize( keyblk, sizeof( keyblk ) );

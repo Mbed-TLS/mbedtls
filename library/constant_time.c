@@ -496,18 +496,12 @@ int mbedtls_ct_hmac( mbedtls_svc_key_id_t key,
             goto cleanup;           \
     } while( 0 )
 
-    /* Export MAC key */
-    PSA_CHK( psa_export_key( key, mac_key,
-                             MAX_HASH_BLOCK_LENGTH,
-                             &mac_key_length ) );
-
-    if( mac_key_length > block_size )
-    {
-        PSA_CHK( psa_hash_setup( &operation, hash_alg ) );
-        PSA_CHK( psa_hash_update( &operation, mac_key, mac_key_length ) );
-        PSA_CHK( psa_hash_finish( &operation, mac_key,
-                                  MAX_HASH_BLOCK_LENGTH, &mac_key_length ) );
-    }
+    /* Export MAC key
+     * We assume key length is always exactly the output size
+     * which is never more than the block size, thus we use block_size
+     * as the key buffer size.
+     */
+    PSA_CHK( psa_export_key( key, mac_key, block_size, &mac_key_length ) );
 
     /* Calculate ikey/okey */
     memset( ikey, 0x36, block_size );

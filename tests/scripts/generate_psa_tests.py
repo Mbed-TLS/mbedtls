@@ -456,7 +456,7 @@ class StorageKey(psa_storage.Key):
 
     def __init__(
             self,
-            usage: str,
+            usage: Iterable[str],
             without_implicit_usage: Optional[bool] = False,
             **kwargs
     ) -> None:
@@ -465,13 +465,16 @@ class StorageKey(psa_storage.Key):
         * `usage`                 : The usage flags used for the key.
         * `without_implicit_usage`: Flag to defide to apply the usage extension
         """
-        super().__init__(usage=usage, **kwargs)
-
+        usage_flags = set(usage)
         if not without_implicit_usage:
-            for flag, implicit in self.IMPLICIT_USAGE_FLAGS.items():
-                if self.usage.value() & psa_storage.Expr(flag).value() and \
-                   self.usage.value() & psa_storage.Expr(implicit).value() == 0:
-                    self.usage = psa_storage.Expr(self.usage.string + ' | ' + implicit)
+            for flag in sorted(usage_flags):
+                if flag in self.IMPLICIT_USAGE_FLAGS:
+                    usage_flags.add(self.IMPLICIT_USAGE_FLAGS[flag])
+        if usage_flags:
+            usage_expression = ' | '.join(sorted(usage_flags))
+        else:
+            usage_expression = '0'
+        super().__init__(usage=usage_expression, **kwargs)
 
 class StorageTestData(StorageKey):
     """Representation of test case data for storage format testing."""
@@ -479,7 +482,7 @@ class StorageTestData(StorageKey):
     def __init__(
             self,
             description: str,
-            expected_usage: Optional[str] = None,
+            expected_usage: Optional[List[str]] = None,
             **kwargs
     ) -> None:
         """Prepare to generate test data
@@ -491,7 +494,12 @@ class StorageTestData(StorageKey):
         """
         super().__init__(**kwargs)
         self.description = description #type: str
-        self.expected_usage = expected_usage if expected_usage else self.usage.string #type: str
+        if expected_usage is None:
+            self.expected_usage = self.usage #type: psa_storage.Expr
+        elif expected_usage:
+            self.expected_usage = psa_storage.Expr(' | '.join(expected_usage))
+        else:
+            self.expected_usage = psa_storage.Expr(0)
 
 class StorageFormat:
     """Storage format stability test cases."""
@@ -524,7 +532,7 @@ class StorageFormat:
         tc.set_description('PSA storage {}: {}'.format(verb, key.description))
         dependencies = automatic_dependencies(
             key.lifetime.string, key.type.string,
-            key.expected_usage, key.alg.string, key.alg2.string,
+            key.alg.string, key.alg2.string,
         )
         dependencies = finish_family_dependencies(dependencies, key.bits)
         tc.set_dependencies(dependencies)
@@ -545,7 +553,8 @@ class StorageFormat:
             extra_arguments = [' | '.join(flags) if flags else '0']
         tc.set_arguments([key.lifetime.string,
                           key.type.string, str(key.bits),
-                          key.expected_usage, key.alg.string, key.alg2.string,
+                          key.expected_usage.string,
+                          key.alg.string, key.alg2.string,
                           '"' + key.material.hex() + '"',
                           '"' + key.hex() + '"',
                           *extra_arguments])
@@ -564,7 +573,7 @@ class StorageFormat:
         key = StorageTestData(version=self.version,
                               id=1, lifetime=lifetime,
                               type='PSA_KEY_TYPE_RAW_DATA', bits=8,
-                              usage='PSA_KEY_USAGE_EXPORT', alg=0, alg2=0,
+                              usage=['PSA_KEY_USAGE_EXPORT'], alg=0, alg2=0,
                               material=b'L',
                               description=description)
         return key
@@ -590,19 +599,21 @@ class StorageFormat:
             test_implicit_usage: Optional[bool] = True
     ) -> StorageTestData:
         """Construct a test key for the given key usage."""
-        usage = ' | '.join(usage_flags) if usage_flags else '0'
-        if short is None:
-            short = re.sub(r'\bPSA_KEY_USAGE_', r'', usage)
         extra_desc = ' without implication' if test_implicit_usage else ''
-        description = 'usage' + extra_desc + ': ' + short
+        description = 'usage' + extra_desc + ': '
         key1 = StorageTestData(version=self.version,
                                id=1, lifetime=0x00000001,
                                type='PSA_KEY_TYPE_RAW_DATA', bits=8,
-                               expected_usage=usage,
+                               expected_usage=usage_flags,
                                without_implicit_usage=not test_implicit_usage,
-                               usage=usage, alg=0, alg2=0,
+                               usage=usage_flags, alg=0, alg2=0,
                                material=b'K',
                                description=description)
+        if short is None:
+            key1.description += re.sub(r'\bPSA_KEY_USAGE_', r'',
+                                       key1.expected_usage.string)
+        else:
+            key1.description += short
         return key1
 
     def generate_keys_for_usage_flags(self, **kwargs) -> Iterator[StorageTestData]:
@@ -633,7 +644,7 @@ class StorageFormat:
 
         If alg is not None, this key allows it.
         """
-        usage_flags = 'PSA_KEY_USAGE_EXPORT'
+        usage_flags = ['PSA_KEY_USAGE_EXPORT']
         alg1 = 0 if alg is None else alg.expression #type: psa_storage.Exprable
         alg2 = 0
         key_material = kt.key_material(bits)
@@ -687,7 +698,7 @@ class StorageFormat:
         # compatible key.
         descr = re.sub(r'PSA_ALG_', r'', alg)
         descr = re.sub(r',', r', ', re.sub(r' +', r'', descr))
-        usage = 'PSA_KEY_USAGE_EXPORT'
+        usage = ['PSA_KEY_USAGE_EXPORT']
         key1 = StorageTestData(version=self.version,
                                id=1, lifetime=0x00000001,
                                type='PSA_KEY_TYPE_RAW_DATA', bits=8,
@@ -760,9 +771,9 @@ class StorageFormatV0(StorageFormat):
         """
         bits = key_type.sizes_to_test()[0]
         implicit_usage = StorageKey.IMPLICIT_USAGE_FLAGS[implyer_usage]
-        usage_flags = 'PSA_KEY_USAGE_EXPORT'
-        material_usage_flags = usage_flags + ' | ' + implyer_usage
-        expected_usage_flags = material_usage_flags + ' | ' + implicit_usage
+        usage_flags = ['PSA_KEY_USAGE_EXPORT']
+        material_usage_flags = usage_flags + [implyer_usage]
+        expected_usage_flags = material_usage_flags + [implicit_usage]
         alg2 = 0
         key_material = key_type.key_material(bits)
         usage_expression = re.sub(r'PSA_KEY_USAGE_', r'', implyer_usage)

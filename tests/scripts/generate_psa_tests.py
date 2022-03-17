@@ -529,7 +529,7 @@ class StorageFormat:
         """
         verb = 'save' if self.forward else 'read'
         tc = test_case.TestCase()
-        tc.set_description('PSA storage {}: {}'.format(verb, key.description))
+        tc.set_description(verb + ' ' + key.description)
         dependencies = automatic_dependencies(
             key.lifetime.string, key.type.string,
             key.alg.string, key.alg2.string,
@@ -648,9 +648,9 @@ class StorageFormat:
         alg1 = 0 if alg is None else alg.expression #type: psa_storage.Exprable
         alg2 = 0
         key_material = kt.key_material(bits)
-        description = 'type: {} {}-bit'.format(kt.short_expression(), bits)
+        description = 'type: {} {}-bit'.format(kt.short_expression(1), bits)
         if alg is not None:
-            description += ', ' + alg.short_expression()
+            description += ', ' + alg.short_expression(1)
         key = StorageTestData(version=self.version,
                               id=1, lifetime=0x00000001,
                               type=kt.expression, bits=bits,
@@ -693,7 +693,7 @@ class StorageFormat:
         # whether the key read from storage is suitable for an operation.
         # `keys_for_types` generate read tests with an algorithm and a
         # compatible key.
-        descr = crypto_knowledge.short_expression(alg)
+        descr = crypto_knowledge.short_expression(alg, 1)
         usage = ['PSA_KEY_USAGE_EXPORT']
         key1 = StorageTestData(version=self.version,
                                id=1, lifetime=0x00000001,
@@ -772,9 +772,9 @@ class StorageFormatV0(StorageFormat):
         expected_usage_flags = material_usage_flags + [implicit_usage]
         alg2 = 0
         key_material = key_type.key_material(bits)
-        usage_expression = crypto_knowledge.short_expression(implyer_usage)
-        alg_expression = crypto_knowledge.short_expression(alg)
-        key_type_expression = key_type.short_expression()
+        usage_expression = crypto_knowledge.short_expression(implyer_usage, 1)
+        alg_expression = crypto_knowledge.short_expression(alg, 1)
+        key_type_expression = key_type.short_expression(1)
         description = 'implied by {}: {} {} {}-bit'.format(
             usage_expression, alg_expression, key_type_expression, bits)
         key = StorageTestData(version=self.version,

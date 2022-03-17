@@ -25,7 +25,7 @@ from typing import Iterable, Optional, Tuple
 from mbedtls_dev.asymmetric_key_data import ASYMMETRIC_KEY_DATA
 
 
-def short_expression(original: str) -> str:
+def short_expression(original: str, level: int = 0) -> str:
     """Abbreviate the expression, keeping it human-readable.
 
     If `level` is 0, just remove parts that are implicit from context,
@@ -36,6 +36,15 @@ def short_expression(original: str) -> str:
     short = original
     short = re.sub(r'\bPSA_(?:ALG|ECC_FAMILY|KEY_[A-Z]+)_', r'', short)
     short = re.sub(r' +', r'', short)
+    if level >= 1:
+        short = re.sub(r'PUBLIC_KEY\b', r'PUB', short)
+        short = re.sub(r'KEY_PAIR\b', r'PAIR', short)
+        short = re.sub(r'\bBRAINPOOL_P', r'BP', short)
+        short = re.sub(r'\bMONTGOMERY\b', r'MGM', short)
+        short = re.sub(r'AEAD_WITH_SHORTENED_TAG\b', r'AEAD_SHORT', short)
+        short = re.sub(r'\bDETERMINISTIC_', r'DET_', short)
+        short = re.sub(r'\bKEY_AGREEMENT\b', r'KA', short)
+        short = re.sub(r'_PSK_TO_MS\b', r'_PSK2MS', short)
     return short
 
 
@@ -118,12 +127,12 @@ class KeyType:
         `self.name`.
         """
 
-    def short_expression(self) -> str:
+    def short_expression(self, level: int = 0) -> str:
         """Abbreviate the expression, keeping it human-readable.
 
         See `crypto_knowledge.short_expression`.
         """
-        return short_expression(self.expression)
+        return short_expression(self.expression, level=level)
 
     def is_public(self) -> bool:
         """Whether the key type is for public keys."""
@@ -398,12 +407,12 @@ class Algorithm:
         return not re.match(r'(?:0[Xx])?0+\s*\Z', kdf_alg)
 
 
-    def short_expression(self) -> str:
+    def short_expression(self, level: int = 0) -> str:
         """Abbreviate the expression, keeping it human-readable.
 
         See `crypto_knowledge.short_expression`.
         """
-        return short_expression(self.expression)
+        return short_expression(self.expression, level=level)
 
     def can_do(self, category: AlgorithmCategory) -> bool:
         """Whether this algorithm fits the specified operation category."""

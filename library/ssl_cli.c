@@ -2242,8 +2242,9 @@ static int ssl_parse_server_dh_params( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) ||                     \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||                      \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
+    ( !defined(MBEDTLS_USE_PSA_CRYPTO) &&                                  \
+        ( defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||                \
+          defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED) ) )
 static int ssl_check_server_ecdh_params( const mbedtls_ssl_context *ssl )
 {
     const mbedtls_ecp_curve_info *curve_info;
@@ -2274,8 +2275,9 @@ static int ssl_check_server_ecdh_params( const mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED ||
-          MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
+          ( !MBEDTLS_USE_PSA_CRYPTO &&
+            ( MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED ||
+              MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED ) ) */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) &&                           \
         ( defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||     \

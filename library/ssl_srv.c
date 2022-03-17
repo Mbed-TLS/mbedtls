@@ -3116,21 +3116,113 @@ curve_matching_done:
 
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDHE curve: %s", (*curve)->name ) );
 
-        if( ( ret = mbedtls_ecdh_setup( &ssl->handshake->ecdh_ctx,
-                                        (*curve)->grp_id ) ) != 0 )
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA ||
+            ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA )
         {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecp_group_load", ret );
-            return( ret );
-        }
+            psa_status_t status = PSA_ERROR_GENERIC_ERROR;
+            psa_key_attributes_t key_attributes;
+            mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+            size_t ecdh_bits = 0;
+            uint8_t *p = ssl->out_msg + ssl->out_msglen;
+            const size_t header_size = 4; // curve_type(1), namedcurve(2),
+                                          // data length(1)
+            const size_t data_length_size = 1;
 
-        if( ( ret = mbedtls_ecdh_make_params(
-                  &ssl->handshake->ecdh_ctx, &len,
-                  ssl->out_msg + ssl->out_msglen,
-                  MBEDTLS_SSL_OUT_CONTENT_LEN - ssl->out_msglen,
-                  ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Perform PSA-based ECDH computation." ) );
+
+            /* Convert EC group to PSA key type. */
+            handshake->ecdh_psa_type = mbedtls_psa_parse_tls_ecc_group(
+                        (*curve)->tls_id, &ecdh_bits );
+
+            if( handshake->ecdh_psa_type == 0 || ecdh_bits > 0xffff )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "Invalid ecc group parse." ) );
+                return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+            }
+            handshake->ecdh_bits = (uint16_t) ecdh_bits;
+
+            key_attributes = psa_key_attributes_init();
+            psa_set_key_usage_flags( &key_attributes, PSA_KEY_USAGE_DERIVE );
+            psa_set_key_algorithm( &key_attributes, PSA_ALG_ECDH );
+            psa_set_key_type( &key_attributes, handshake->ecdh_psa_type );
+            psa_set_key_bits( &key_attributes, handshake->ecdh_bits );
+
+            /*
+             * ECParameters curve_params
+             *
+             * First byte is curve_type, always named_curve
+             */
+            *p++ = MBEDTLS_ECP_TLS_NAMED_CURVE;
+
+            /*
+             * Next two bytes are the namedcurve value
+             */
+            MBEDTLS_PUT_UINT16_BE( (*curve)->tls_id, p, 0 );
+            p += 2;
+
+            /* Generate ECDH private key. */
+            status = psa_generate_key( &key_attributes,
+                                       &handshake->ecdh_psa_privkey );
+            if( status != PSA_SUCCESS )
+            {
+                ret = psa_ssl_status_to_mbedtls( status );
+                MBEDTLS_SSL_DEBUG_RET( 1, "psa_generate_key", ret );
+                return( ret );
+            }
+
+            /*
+             * ECPoint  public
+             *
+             * First byte is data length.
+             * It will be filled later. p holds now the data length location.
+             */
+
+            /* Export the public part of the ECDH private key from PSA.
+             * Make one byte space for the length.
+             */
+            unsigned char *own_pubkey = p + data_length_size;
+
+            size_t own_pubkey_max_len = (size_t)( MBEDTLS_SSL_OUT_CONTENT_LEN
+                                        - ( own_pubkey - ssl->out_msg ) );
+
+            status = psa_export_public_key( handshake->ecdh_psa_privkey,
+                                            own_pubkey, own_pubkey_max_len,
+                                            &len );
+            if( status != PSA_SUCCESS )
+            {
+                ret = psa_ssl_status_to_mbedtls( status );
+                MBEDTLS_SSL_DEBUG_RET( 1, "psa_export_public_key", ret );
+                (void) psa_destroy_key( handshake->ecdh_psa_privkey );
+                handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
+                return( ret );
+            }
+
+            /* Store the length of the exported public key. */
+            *p = (uint8_t) len;
+
+            /* Determine full message length. */
+            len += header_size;
+        }
+        else
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
         {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_make_params", ret );
-            return( ret );
+            if( ( ret = mbedtls_ecdh_setup( &ssl->handshake->ecdh_ctx,
+                                            (*curve)->grp_id ) ) != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecp_group_load", ret );
+                return( ret );
+            }
+
+            if( ( ret = mbedtls_ecdh_make_params(
+                    &ssl->handshake->ecdh_ctx, &len,
+                    ssl->out_msg + ssl->out_msglen,
+                    MBEDTLS_SSL_OUT_CONTENT_LEN - ssl->out_msglen,
+                    ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_make_params", ret );
+                return( ret );
+            }
         }
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_SERVER_SIGNATURE_ENABLED)
@@ -3801,6 +3893,67 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED */
+#if defined(MBEDTLS_USE_PSA_CRYPTO) &&                           \
+        ( defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||     \
+          defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) )
+    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA ||
+        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA )
+    {
+        size_t data_len = (size_t)( *p++ );
+        size_t buf_len = (size_t)( end - p );
+        psa_status_t status = PSA_ERROR_GENERIC_ERROR;
+        mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Read the peer's public key." ) );
+
+        /*
+         * We must have at least two bytes (1 for length, at least 1 for data)
+         */
+        if( buf_len < 2 )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Invalid buffer length" ) );
+            return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+        }
+
+        if( data_len < 1 || data_len > buf_len )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Invalid data length" ) );
+            return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+        }
+
+        /* Store peer's ECDH public key. */
+        memcpy( handshake->ecdh_psa_peerkey, p, data_len );
+        handshake->ecdh_psa_peerkey_len = data_len;
+
+        /* Compute ECDH shared secret. */
+        status = psa_raw_key_agreement(
+                    PSA_ALG_ECDH, handshake->ecdh_psa_privkey,
+                    handshake->ecdh_psa_peerkey, handshake->ecdh_psa_peerkey_len,
+                    handshake->premaster, sizeof( handshake->premaster ),
+                    &handshake->pmslen );
+        if( status != PSA_SUCCESS )
+        {
+            ret = psa_ssl_status_to_mbedtls( status );
+            MBEDTLS_SSL_DEBUG_RET( 1, "psa_raw_key_agreement", ret );
+            (void) psa_destroy_key( handshake->ecdh_psa_privkey );
+            handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
+            return( ret );
+        }
+
+        status = psa_destroy_key( handshake->ecdh_psa_privkey );
+
+        if( status != PSA_SUCCESS )
+        {
+            ret = psa_ssl_status_to_mbedtls( status );
+            MBEDTLS_SSL_DEBUG_RET( 1, "psa_destroy_key", ret );
+            return( ret );
+        }
+        handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
+    }
+    else
+#endif /* MBEDTLS_USE_PSA_CRYPTO &&
+            ( MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
+              MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ) */
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||                      \

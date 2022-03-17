@@ -70,6 +70,14 @@ NAMED_GROUP_IANA_VALUE = {
     'x448': 0x1e,
 }
 
+HRR_CIPHER_SUITE_VALUE = {
+    "TLS_AES_256_GCM_SHA384": 0x1302,
+}
+
+HRR_SIG_ALG_VALUE = {
+    "ecdsa_secp384r1_sha384": 0x0503,
+}
+
 class TLSProgram(metaclass=abc.ABCMeta):
     """
     Base class for generate server/client command.
@@ -456,9 +464,6 @@ def main():
     parser.add_argument('-a', '--generate-all-tls13-compat-tests', action='store_true',
                         default=False, help='Generate all available tls13 compat tests')
 
-    parser.add_argument('-r', '--generate-hrr-tls13-compat-tests', action='store_true',
-                        default=False, help='Generate all hrr tls13 compat tests')
-
     parser.add_argument('--list-ciphers', action='store_true',
                         default=False, help='List supported ciphersuites')
 
@@ -502,10 +507,8 @@ def main():
                               CLIENT_CLASSES.keys()):
             yield generate_compat_test(cipher=cipher, sig_alg=sig_alg, named_group=named_group,
                                        server=server, client=client)
-
-    def get_hrr_test_cases():
         for cipher, sig_alg, client_named_group, server_named_group, server, client in \
-            itertools.product(CIPHER_SUITE_IANA_VALUE.keys(), SIG_ALG_IANA_VALUE.keys(),
+            itertools.product(HRR_CIPHER_SUITE_VALUE.keys(), HRR_SIG_ALG_VALUE.keys(),
                               NAMED_GROUP_IANA_VALUE.keys(), NAMED_GROUP_IANA_VALUE.keys(),
                               SERVER_CLASSES.keys(), CLIENT_CLASSES.keys()):
             if client_named_group != server_named_group:
@@ -523,17 +526,6 @@ def main():
                 f.write('\n')
         else:
             print('\n\n'.join(get_all_test_cases()))
-        return 0
-
-    if args.generate_hrr_tls13_compat_tests:
-        if args.output:
-            with open(args.output, 'w', encoding="utf-8") as f:
-                f.write(SSL_OUTPUT_HEADER.format(
-                    filename=os.path.basename(args.output), parameter='-r'))
-                f.write('\n\n'.join(get_hrr_test_cases()))
-                f.write('\n')
-        else:
-            print('\n\n'.join(get_hrr_test_cases()))
         return 0
 
     if args.list_ciphers or args.list_sig_algs or args.list_named_groups \
@@ -554,11 +546,6 @@ def main():
         print(generate_compat_test(server=args.server, client=args.client, sig_alg=args.sig_alg,
                                    cipher=args.cipher, named_group=args.named_group))
 
-    if args.generate_hrr_tls13_compat_tests:
-        print(generate_compat_hrr_test(server=args.server, client=args.client,
-                                       sig_alg=args.sig_alg, cipher=args.cipher,
-                                       client_named_group=args.client_named_group,
-                                       server_named_group=args.server_named_group))
     return 0
 
 

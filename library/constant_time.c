@@ -449,8 +449,8 @@ int mbedtls_ct_hmac( mbedtls_svc_key_id_t key,
                      unsigned char *output )
 {
     /*
-     * This function breaks the HMAC abstraction and uses the psa_hash_clone()
-     * in order to get constant-flow behaviour.
+     * This function breaks the HMAC abstraction and uses psa_hash_clone()
+     * extension in order to get constant-flow behaviour.
      *
      * HMAC(msg) is defined as HASH(okey + HASH(ikey + msg)) where + means
      * concatenation, and okey/ikey are the XOR of the key with some fixed bit
@@ -463,8 +463,6 @@ int mbedtls_ct_hmac( mbedtls_svc_key_id_t key,
      *
      * Then we only need to compute HASH(okey + inner_hash) and we're done.
      */
-    /* TLS 1.2 only supports SHA-384, SHA-256, SHA-1, MD-5,
-     * all of which have the same block size except SHA-384. */
     psa_algorithm_t hash_alg = PSA_ALG_HMAC_GET_HASH( mac_alg );
     const size_t block_size = PSA_HASH_BLOCK_LENGTH( hash_alg );
     unsigned char ikey[MBEDTLS_MD_MAX_BLOCK_SIZE];
@@ -535,7 +533,7 @@ int mbedtls_ct_hmac( mbedtls_svc_key_id_t key,
             PSA_CHK( psa_hash_update( &operation, data + offset, 1 ) );
     }
 
-    /* The context needs to finish() before it starts() again */
+    /* Abort current operation to prepare for final operation */
     PSA_CHK( psa_hash_abort( &operation ) );
 
     /* Now compute HASH(okey + inner_hash) */

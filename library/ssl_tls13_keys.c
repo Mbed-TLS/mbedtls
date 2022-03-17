@@ -139,6 +139,59 @@ static void ssl_tls13_hkdf_encode_label(
 #if defined( MBEDTLS_TEST_HOOKS )
 
 MBEDTLS_STATIC_TESTABLE
+psa_status_t mbedtls_psa_hkdf_extract( psa_algorithm_t alg,
+                                       const unsigned char *salt, size_t salt_len,
+                                       const unsigned char *ikm, size_t ikm_len,
+                                       unsigned char *prk, size_t prk_size,
+                                       size_t *prk_len )
+{
+    unsigned char null_salt[PSA_MAC_MAX_SIZE] = { '\0' };
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t destroy_status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    if( salt == NULL || salt_len == 0 )
+    {
+        size_t hash_len;
+
+        if( salt_len != 0 )
+        {
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        }
+
+        hash_len = PSA_HASH_LENGTH( alg );
+
+        if( hash_len == 0 )
+        {
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        }
+
+        /* salt_len <= sizeof( salt ) because
+           PSA_HASH_LENGTH( alg ) <= PSA_MAC_MAX_SIZE. */
+        salt = null_salt;
+        salt_len = hash_len;
+    }
+
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_MESSAGE );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, PSA_KEY_TYPE_HMAC );
+
+    status = psa_import_key( &attributes, salt, salt_len, &key );
+    if( status != PSA_SUCCESS )
+    {
+        goto cleanup;
+    }
+
+    status = psa_mac_compute( key, alg, ikm, ikm_len, prk, prk_size, prk_len );
+
+cleanup:
+    destroy_status = psa_destroy_key( key );
+
+    return( ( status == PSA_SUCCESS ) ? destroy_status : status );
+}
+
+MBEDTLS_STATIC_TESTABLE
 psa_status_t mbedtls_psa_hkdf_expand( psa_algorithm_t alg,
                                       const unsigned char *prk, size_t prk_len,
                                       const unsigned char *info, size_t info_len,

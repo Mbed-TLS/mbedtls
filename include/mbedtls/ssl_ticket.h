@@ -34,6 +34,10 @@
 #include "mbedtls/ssl.h"
 #include "mbedtls/cipher.h"
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "psa/crypto.h"
+#endif
+
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
 #endif
@@ -53,7 +57,14 @@ typedef struct mbedtls_ssl_ticket_key
     unsigned char MBEDTLS_PRIVATE(name)[MBEDTLS_SSL_TICKET_KEY_NAME_BYTES];
                                                      /*!< random key identifier              */
     uint32_t MBEDTLS_PRIVATE(generation_time);       /*!< key generation timestamp (seconds) */
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_cipher_context_t MBEDTLS_PRIVATE(ctx);   /*!< context for auth enc/decryption    */
+#else
+    mbedtls_svc_key_id_t MBEDTLS_PRIVATE(key);       /*!< key used for auth enc/decryption   */
+    psa_algorithm_t MBEDTLS_PRIVATE(alg);            /*!< algorithm of auth enc/decryption   */
+    psa_key_type_t MBEDTLS_PRIVATE(key_type);        /*!< key type                           */
+    size_t MBEDTLS_PRIVATE(key_bits);                /*!< key length in bits                 */
+#endif
 }
 mbedtls_ssl_ticket_key;
 

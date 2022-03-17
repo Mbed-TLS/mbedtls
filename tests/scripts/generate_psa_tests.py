@@ -145,7 +145,7 @@ def test_case_for_key_type_not_supported(
     """
     hack_dependencies_not_implemented(dependencies)
     tc = test_case.TestCase()
-    short_key_type = re.sub(r'PSA_(KEY_TYPE|ECC_FAMILY)_', r'', key_type)
+    short_key_type = crypto_knowledge.short_expression(key_type)
     adverb = 'not' if dependencies else 'never'
     if param_descr:
         adverb = param_descr + ' ' + adverb
@@ -243,7 +243,7 @@ def test_case_for_key_generation(
     """
     hack_dependencies_not_implemented(dependencies)
     tc = test_case.TestCase()
-    short_key_type = re.sub(r'PSA_(KEY_TYPE|ECC_FAMILY)_', r'', key_type)
+    short_key_type = crypto_knowledge.short_expression(key_type)
     tc.set_description('PSA {} {}-bit'
                        .format(short_key_type, bits))
     tc.set_dependencies(dependencies)
@@ -335,7 +335,7 @@ class OpFail:
         """Construct a failure test case for a one-key or keyless operation."""
         #pylint: disable=too-many-arguments,too-many-locals
         tc = test_case.TestCase()
-        pretty_alg = re.sub(r'PSA_ALG_', r'', alg.expression)
+        pretty_alg = alg.short_expression()
         if reason == self.Reason.NOT_SUPPORTED:
             short_deps = [re.sub(r'PSA_WANT_ALG_', r'', dep)
                           for dep in not_deps]
@@ -344,7 +344,7 @@ class OpFail:
             pretty_reason = reason.name.lower()
         if kt:
             key_type = kt.expression
-            pretty_type = re.sub(r'PSA_KEY_TYPE_', r'', key_type)
+            pretty_type = kt.short_expression()
         else:
             key_type = ''
             pretty_type = ''
@@ -568,7 +568,7 @@ class StorageFormat:
         short = lifetime
         short = re.sub(r'PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION',
                        r'', short)
-        short = re.sub(r'PSA_KEY_[A-Z]+_', r'', short)
+        short = crypto_knowledge.short_expression(short)
         description = 'lifetime: ' + short
         key = StorageTestData(version=self.version,
                               id=1, lifetime=lifetime,
@@ -610,8 +610,8 @@ class StorageFormat:
                                material=b'K',
                                description=description)
         if short is None:
-            key1.description += re.sub(r'\bPSA_KEY_USAGE_', r'',
-                                       key1.expected_usage.string)
+            usage_expr = key1.expected_usage.string
+            key1.description += crypto_knowledge.short_expression(usage_expr)
         else:
             key1.description += short
         return key1
@@ -648,12 +648,9 @@ class StorageFormat:
         alg1 = 0 if alg is None else alg.expression #type: psa_storage.Exprable
         alg2 = 0
         key_material = kt.key_material(bits)
-        short_expression = re.sub(r'\bPSA_(?:KEY_TYPE|ECC_FAMILY)_',
-                                  r'',
-                                  kt.expression)
-        description = 'type: {} {}-bit'.format(short_expression, bits)
+        description = 'type: {} {}-bit'.format(kt.short_expression(), bits)
         if alg is not None:
-            description += ', ' + re.sub(r'PSA_ALG_', r'', alg.expression)
+            description += ', ' + alg.short_expression()
         key = StorageTestData(version=self.version,
                               id=1, lifetime=0x00000001,
                               type=kt.expression, bits=bits,
@@ -696,8 +693,7 @@ class StorageFormat:
         # whether the key read from storage is suitable for an operation.
         # `keys_for_types` generate read tests with an algorithm and a
         # compatible key.
-        descr = re.sub(r'PSA_ALG_', r'', alg)
-        descr = re.sub(r',', r', ', re.sub(r' +', r'', descr))
+        descr = crypto_knowledge.short_expression(alg)
         usage = ['PSA_KEY_USAGE_EXPORT']
         key1 = StorageTestData(version=self.version,
                                id=1, lifetime=0x00000001,
@@ -776,12 +772,9 @@ class StorageFormatV0(StorageFormat):
         expected_usage_flags = material_usage_flags + [implicit_usage]
         alg2 = 0
         key_material = key_type.key_material(bits)
-        usage_expression = re.sub(r'PSA_KEY_USAGE_', r'', implyer_usage)
-        alg_expression = re.sub(r'PSA_ALG_', r'', alg)
-        alg_expression = re.sub(r',', r', ', re.sub(r' +', r'', alg_expression))
-        key_type_expression = re.sub(r'\bPSA_(?:KEY_TYPE|ECC_FAMILY)_',
-                                     r'',
-                                     key_type.expression)
+        usage_expression = crypto_knowledge.short_expression(implyer_usage)
+        alg_expression = crypto_knowledge.short_expression(alg)
+        key_type_expression = key_type.short_expression()
         description = 'implied by {}: {} {} {}-bit'.format(
             usage_expression, alg_expression, key_type_expression, bits)
         key = StorageTestData(version=self.version,

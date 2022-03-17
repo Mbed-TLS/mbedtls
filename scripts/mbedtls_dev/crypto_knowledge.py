@@ -25,6 +25,20 @@ from typing import Iterable, Optional, Tuple
 from mbedtls_dev.asymmetric_key_data import ASYMMETRIC_KEY_DATA
 
 
+def short_expression(original: str) -> str:
+    """Abbreviate the expression, keeping it human-readable.
+
+    If `level` is 0, just remove parts that are implicit from context,
+    such as a leading ``PSA_KEY_TYPE_``.
+    For larger values of `level`, also abbreviate some names in an
+    unambiguous, but ad hoc way.
+    """
+    short = original
+    short = re.sub(r'\bPSA_(?:ALG|ECC_FAMILY|KEY_[A-Z]+)_', r'', short)
+    short = re.sub(r' +', r'', short)
+    return short
+
+
 BLOCK_CIPHERS = frozenset(['AES', 'ARIA', 'CAMELLIA', 'DES'])
 BLOCK_MAC_MODES = frozenset(['CBC_MAC', 'CMAC'])
 BLOCK_CIPHER_MODES = frozenset([
@@ -103,6 +117,13 @@ class KeyType:
         For everything other than a public key type, this is the same as
         `self.name`.
         """
+
+    def short_expression(self) -> str:
+        """Abbreviate the expression, keeping it human-readable.
+
+        See `crypto_knowledge.short_expression`.
+        """
+        return short_expression(self.expression)
 
     def is_public(self) -> bool:
         """Whether the key type is for public keys."""
@@ -375,6 +396,14 @@ class Algorithm:
         kdf_alg = m.group(1)
         # Assume kdf_alg is either a valid KDF or 0.
         return not re.match(r'(?:0[Xx])?0+\s*\Z', kdf_alg)
+
+
+    def short_expression(self) -> str:
+        """Abbreviate the expression, keeping it human-readable.
+
+        See `crypto_knowledge.short_expression`.
+        """
+        return short_expression(self.expression)
 
     def can_do(self, category: AlgorithmCategory) -> bool:
         """Whether this algorithm fits the specified operation category."""

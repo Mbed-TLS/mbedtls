@@ -551,7 +551,7 @@ cleanup:
     mbedtls_platform_zeroize( aux_out, MBEDTLS_MD_MAX_SIZE );
     psa_hash_abort( &operation );
     psa_hash_abort( &aux_operation );
-    return( status == PSA_SUCCESS ? 0 : MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+    return( psa_ssl_status_to_mbedtls( status ) );
 }
 #else
 int mbedtls_ct_hmac( mbedtls_md_context_t *ctx,

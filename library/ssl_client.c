@@ -434,7 +434,7 @@ static int ssl_write_client_hello_body( mbedtls_ssl_context *ssl,
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if defined(MBEDTLS_ECDH_C)
     if( mbedtls_ssl_conf_tls13_some_ephemeral_enabled( ssl ) )
     {
         ret = mbedtls_ssl_write_supported_groups_ext( ssl, p, end, &output_len );
@@ -442,7 +442,11 @@ static int ssl_write_client_hello_body( mbedtls_ssl_context *ssl,
             return( ret );
         p += output_len;
     }
+#endif /* MBEDTLS_ECDH_C */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     if( mbedtls_ssl_conf_tls13_ephemeral_enabled( ssl ) )
     {
         ret = mbedtls_ssl_write_sig_alg_ext( ssl, p, end, &output_len );

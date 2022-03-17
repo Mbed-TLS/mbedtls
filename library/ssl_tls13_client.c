@@ -159,8 +159,6 @@ static int ssl_tls13_parse_alpn_ext( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_ALPN */
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-
 static int ssl_tls13_reset_key_share( mbedtls_ssl_context *ssl )
 {
     uint16_t group_id = ssl->handshake->offered_group_id;
@@ -584,8 +582,6 @@ static int ssl_tls13_parse_key_share_ext( mbedtls_ssl_context *ssl,
     return( ret );
 }
 
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
-
 /*
  * ssl_tls13_parse_cookie_ext()
  *      Parse cookie extension in Hello Retry Request
@@ -699,7 +695,6 @@ int mbedtls_ssl_tls13_write_client_hello_exts( mbedtls_ssl_context *ssl,
         return( ret );
     p += ext_len;
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     if( mbedtls_ssl_conf_tls13_some_ephemeral_enabled( ssl ) )
     {
         ret = ssl_tls13_write_key_share_ext( ssl, p, end, &ext_len );
@@ -707,7 +702,6 @@ int mbedtls_ssl_tls13_write_client_hello_exts( mbedtls_ssl_context *ssl,
             return( ret );
         p += ext_len;
     }
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
     *out_len = p - buf;
 
@@ -1093,7 +1087,6 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
                 fatal_alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT;
                 goto cleanup;
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
             case MBEDTLS_TLS_EXT_KEY_SHARE:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found key_shares extension" ) );
                 if( ! mbedtls_ssl_conf_tls13_some_ephemeral_enabled( ssl ) )
@@ -1116,7 +1109,6 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
                     goto cleanup;
                 }
                 break;
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
             default:
                 MBEDTLS_SSL_DEBUG_MSG(
@@ -1271,7 +1263,6 @@ cleanup:
 
 static int ssl_tls13_postprocess_hrr( mbedtls_ssl_context *ssl )
 {
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
 #if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
@@ -1296,9 +1287,6 @@ static int ssl_tls13_postprocess_hrr( mbedtls_ssl_context *ssl )
     ret = ssl_tls13_reset_key_share( ssl );
     if( ret != 0 )
         return( ret );
-#else
-    ((void) ssl);
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
     return( 0 );
 }

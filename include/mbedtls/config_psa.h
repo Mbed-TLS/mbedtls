@@ -390,7 +390,8 @@ extern "C" {
 #endif
 #endif /* PSA_WANT_ALG_XTS */
 
-#if defined(PSA_WANT_ALG_ECB_NO_PADDING)
+#if defined(PSA_WANT_ALG_ECB_NO_PADDING) &&     \
+    !defined(MBEDTLS_PSA_ACCEL_ALG_ECB_NO_PADDING)
 #define MBEDTLS_PSA_BUILTIN_ALG_ECB_NO_PADDING 1
 #endif
 

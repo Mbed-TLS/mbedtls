@@ -1,0 +1,3 @@
+Features
+   * Add a function to export ECP keypair parameters.
+     Fixes #4838.

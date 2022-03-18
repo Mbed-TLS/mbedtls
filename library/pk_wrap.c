@@ -823,11 +823,28 @@ static int pk_ecdsa_sig_asn1_from_psa( unsigned char *sig, size_t *sig_len,
     return( 0 );
 }
 
+/* Locate an ECDSA privateKey in a RFC 5915, or SEC1 Appendix C.4 ASN.1 buffer
+ *
+ * [in/out] buf: ASN.1 buffer start as input - ECDSA privateKey start as output
+ * [in] end: ASN.1 buffer end
+ * [out] key_len: the ECDSA privateKey length in bytes
+ */
 static int find_ecdsa_private_key( unsigned char **buf, unsigned char *end,
                                    size_t *key_len )
 {
     size_t len;
     int ret;
+
+    /*
+     * RFC 5915, or SEC1 Appendix C.4
+     *
+     * ECPrivateKey ::= SEQUENCE {
+     *      version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
+     *      privateKey     OCTET STRING,
+     *      parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
+     *      publicKey  [1] BIT STRING OPTIONAL
+     *    }
+     */
 
     if( ( ret = mbedtls_asn1_get_tag( buf, end, &len,
                                       MBEDTLS_ASN1_CONSTRUCTED |

@@ -249,9 +249,7 @@ static int rsa_encrypt_wrap( void *ctx,
         return( MBEDTLS_ERR_RSA_INVALID_PADDING );
 #endif
 
-    *olen = mbedtls_rsa_get_len( rsa );
-
-    if( *olen > osize )
+    if( mbedtls_rsa_get_len( rsa ) > osize )
         return( MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE );
 
     /* mbedtls_pk_write_pubkey_der() expects a full PK context;

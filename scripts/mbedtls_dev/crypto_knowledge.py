@@ -218,6 +218,12 @@ class KeyType:
             return False
         if self.head == 'HMAC' and alg.head == 'HMAC':
             return True
+        if self.head == 'DES':
+            # 64-bit block ciphers only allow a reduced set of modes.
+            return alg.head in [
+                'CBC_NO_PADDING', 'CBC_PKCS7',
+                'ECB_NO_PADDING',
+            ]
         if self.head in BLOCK_CIPHERS and \
            alg.head in frozenset.union(BLOCK_MAC_MODES,
                                        BLOCK_CIPHER_MODES,

@@ -645,8 +645,11 @@ class StorageFormat:
         If alg is not None, this key allows it.
         """
         usage_flags = ['PSA_KEY_USAGE_EXPORT']
-        alg1 = 0 if alg is None else alg.expression #type: psa_storage.Exprable
+        alg1 = 0 #type: psa_storage.Exprable
         alg2 = 0
+        if alg is not None:
+            alg1 = alg.expression
+            usage_flags += alg.usage_flags(public=kt.is_public())
         key_material = kt.key_material(bits)
         description = 'type: {} {}-bit'.format(kt.short_expression(1), bits)
         if alg is not None:

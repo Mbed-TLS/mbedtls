@@ -20,7 +20,7 @@ This module is entirely based on the PSA API.
 
 import enum
 import re
-from typing import Iterable, Optional, Tuple
+from typing import Iterable, List, Optional, Tuple
 
 from mbedtls_dev.asymmetric_key_data import ASYMMETRIC_KEY_DATA
 
@@ -422,3 +422,31 @@ class Algorithm:
            self.is_key_agreement_with_derivation():
             return True
         return False
+
+    def usage_flags(self, public: bool = False) -> List[str]:
+        """The list of usage flags describing operations that can perform this algorithm.
+
+        If public is true, only return public-key operations, not private-key operations.
+        """
+        if self.category == AlgorithmCategory.HASH:
+            flags = []
+        elif self.category == AlgorithmCategory.MAC:
+            flags = ['SIGN_HASH', 'SIGN_MESSAGE',
+                     'VERIFY_HASH', 'VERIFY_MESSAGE']
+        elif self.category == AlgorithmCategory.CIPHER or \
+             self.category == AlgorithmCategory.AEAD:
+            flags = ['DECRYPT', 'ENCRYPT']
+        elif self.category == AlgorithmCategory.SIGN:
+            flags = ['VERIFY_HASH', 'VERIFY_MESSAGE']
+            if not public:
+                flags += ['SIGN_HASH', 'SIGN_MESSAGE']
+        elif self.category == AlgorithmCategory.ASYMMETRIC_ENCRYPTION:
+            flags = ['ENCRYPT']
+            if not public:
+                flags += ['DECRYPT']
+        elif self.category == AlgorithmCategory.KEY_DERIVATION or \
+             self.category == AlgorithmCategory.KEY_AGREEMENT:
+            flags = ['DERIVE']
+        else:
+            raise AlgorithmNotRecognized(self.expression)
+        return ['PSA_KEY_USAGE_' + flag for flag in flags]

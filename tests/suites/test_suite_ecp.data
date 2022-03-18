@@ -882,3 +882,11 @@ fix_negative:"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff":
 # The first call to fix_negative in the test case of issue #4296.
 ECP fix_negative: #4296.1
 fix_negative:"8A4DD4C8B42C5EAED15FE4F4579F4CE513EC90A94010BF000000000000000000":-1:256
+
+ECP export key parameters #1 (OK)
+depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+ecp_export:MBEDTLS_ECP_DP_SECP256R1:"37cc56d976091e5a723ec7592dff206eee7cf9069174d0ad14b5f76822596292":"4ee500d82311ffea2fd2345d5d16bd8a88c26b770d55cd8a2a0efa01c8b4edff":"00f12a1320760270a83cbffd53f6031ef76a5d86c8a204f2c30ca9ebf51f0f0ea7":0:0
+
+ECP export key parameters #2 (invalid group)
+depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+ecp_export:MBEDTLS_ECP_DP_SECP256R1:"37cc56d976091e5a723ec7592dff206eee7cf9069174d0ad14b5f76822596292":"4ee500d82311ffea2fd2345d5d16bd8a88c26b770d55cd8a2a0efa01c8b4edff":"00f12a1320760270a83cbffd53f6031ef76a5d86c8a204f2c30ca9ebf51f0f0ea7":MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE:1

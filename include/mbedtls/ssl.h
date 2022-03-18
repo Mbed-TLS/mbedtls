@@ -4358,11 +4358,40 @@ int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl,
 int mbedtls_ssl_handshake( mbedtls_ssl_context *ssl );
 
 /**
+ * \brief          After calling mbedtls_ssl_handshake() to start the SSL
+ *                 handshake you can call this function to check whether the
+ *                 handshake is over for a given SSL context. This function
+ *                 should be also used to determine when to stop calling
+ *                 mbedtls_handshake_step() for that context.
+ *
+ * \param ssl      SSL context
+ *
+ * \return         \c 1 if handshake is over, \c 0 if it is still ongoing.
+ */
+static inline int mbedtls_ssl_is_handshake_over( mbedtls_ssl_context *ssl )
+{
+    return( ssl->MBEDTLS_PRIVATE( state ) == MBEDTLS_SSL_HANDSHAKE_OVER );
+}
+
+/**
  * \brief          Perform a single step of the SSL handshake
  *
  * \note           The state of the context (ssl->state) will be at
  *                 the next state after this function returns \c 0. Do not
- *                 call this function if state is MBEDTLS_SSL_HANDSHAKE_OVER.
+ *                 call this function if mbedtls_ssl_is_handshake_over()
+ *                 returns \c 1.
+ *
+ * \warning        Whilst in the past you may have used direct access to the
+ *                 context state (ssl->state) in order to ascertain when to
+ *                 stop calling this function and although you can still do
+ *                 so with something like ssl->MBEDTLS_PRIVATE(state) or by
+ *                 defining MBEDTLS_ALLOW_PRIVATE_ACCESS, this is now
+ *                 considered deprecated and could be broken in any future
+ *                 release. If you still find you have good reason for such
+ *                 direct access, then please do contact the team to explain
+ *                 this (raise an issue or post to the mailing list), so that
+ *                 we can add a solution to your problem that will be
+ *                 guaranteed to work in the future.
  *
  * \param ssl      SSL context
  *

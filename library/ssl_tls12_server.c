@@ -2897,7 +2897,7 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
             PSA_KEY_TYPE_ECC_KEY_PAIR( ssl->handshake->ecdh_psa_type ) );
     psa_set_key_bits( &key_attributes, ssl->handshake->ecdh_bits );
 
-    key_len = ( key->grp.pbits + 7 ) / 8;
+    key_len = PSA_BITS_TO_BYTES( key->grp.pbits );
     ret = mbedtls_ecp_write_key( key, buf, key_len );
     if( ret != 0 )
         goto cleanup;

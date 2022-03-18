@@ -2904,7 +2904,8 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
 
     status = psa_import_key( &key_attributes, buf, key_len,
                              &ssl->handshake->ecdh_psa_privkey );
-    if( status != PSA_SUCCESS ) {
+    if( status != PSA_SUCCESS )
+    {
         ret = psa_ssl_status_to_mbedtls( status );
         goto cleanup;
     }

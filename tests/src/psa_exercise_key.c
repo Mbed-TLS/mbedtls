@@ -166,18 +166,27 @@ static int exercise_cipher_key( mbedtls_svc_key_id_t key,
     psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     unsigned char iv[16] = {0};
     size_t iv_length = sizeof( iv );
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_type_t key_type;
     const unsigned char plaintext[16] = "Hello, world...";
     unsigned char ciphertext[32] = "(wabblewebblewibblewobblewubble)";
     size_t ciphertext_length = sizeof( ciphertext );
     unsigned char decrypted[sizeof( ciphertext )];
     size_t part_length;
 
+    PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
+    key_type = psa_get_key_type( &attributes );
+    iv_length = PSA_CIPHER_IV_LENGTH( key_type, alg );
+
     if( usage & PSA_KEY_USAGE_ENCRYPT )
     {
         PSA_ASSERT( psa_cipher_encrypt_setup( &operation, key, alg ) );
-        PSA_ASSERT( psa_cipher_generate_iv( &operation,
-                                            iv, sizeof( iv ),
-                                            &iv_length ) );
+        if( PSA_CIPHER_IV_LENGTH( key_type, alg ) != 0 )
+        {
+            PSA_ASSERT( psa_cipher_generate_iv( &operation,
+                                                iv, sizeof( iv ),
+                                                &iv_length ) );
+        }
         PSA_ASSERT( psa_cipher_update( &operation,
                                        plaintext, sizeof( plaintext ),
                                        ciphertext, sizeof( ciphertext ),
@@ -195,18 +204,14 @@ static int exercise_cipher_key( mbedtls_svc_key_id_t key,
         int maybe_invalid_padding = 0;
         if( ! ( usage & PSA_KEY_USAGE_ENCRYPT ) )
         {
-            psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-            PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
-            /* This should be PSA_CIPHER_GET_IV_SIZE but the API doesn't
-             * have this macro yet. */
-            iv_length = PSA_BLOCK_CIPHER_BLOCK_LENGTH(
-                psa_get_key_type( &attributes ) );
             maybe_invalid_padding = ! PSA_ALG_IS_STREAM_CIPHER( alg );
-            psa_reset_key_attributes( &attributes );
         }
         PSA_ASSERT( psa_cipher_decrypt_setup( &operation, key, alg ) );
-        PSA_ASSERT( psa_cipher_set_iv( &operation,
-                                       iv, iv_length ) );
+        if( iv_length != 0 )
+        {
+            PSA_ASSERT( psa_cipher_set_iv( &operation,
+                                           iv, iv_length ) );
+        }
         PSA_ASSERT( psa_cipher_update( &operation,
                                        ciphertext, ciphertext_length,
                                        decrypted, sizeof( decrypted ),
@@ -229,6 +234,7 @@ static int exercise_cipher_key( mbedtls_svc_key_id_t key,
 
 exit:
     psa_cipher_abort( &operation );
+    psa_reset_key_attributes( &attributes );
     return( 0 );
 }
 

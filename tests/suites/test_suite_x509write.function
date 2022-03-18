@@ -83,11 +83,14 @@ void x509_csr_check( char * key_file, char * cert_req_check_file, int md_type,
     mbedtls_pk_context key;
     mbedtls_x509write_csr req;
     unsigned char buf[4096];
-    unsigned char check_buf[4000];
     int ret;
-    size_t olen = 0, pem_len = 0, buf_index;
-    int der_len = -1;
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
+    unsigned char check_buf[4000];
     FILE *f;
+    size_t olen = 0;
+#endif /* !MBEDTLS_USE_PSA_CRYPTO */
+    size_t pem_len = 0, buf_index;
+    int der_len = -1;
     const char *subject_name = "C=NL,O=PolarSSL,CN=PolarSSL Server 1";
     mbedtls_test_rnd_pseudo_info rnd_info;
 
@@ -121,9 +124,6 @@ void x509_csr_check( char * key_file, char * cert_req_check_file, int md_type,
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     // When using PSA crypto, RNG isn't controllable, so cert_req_check_file can't be used
-    (void)f;
-    (void)olen;
-    (void)check_buf;
     (void)cert_req_check_file;
     buf[pem_len] = '\0';
     TEST_ASSERT( x509_crt_verifycsr( buf, pem_len + 1 ) == 0 );
@@ -135,7 +135,7 @@ void x509_csr_check( char * key_file, char * cert_req_check_file, int md_type,
 
     TEST_ASSERT( olen >= pem_len - 1 );
     TEST_ASSERT( memcmp( buf, check_buf, pem_len - 1 ) == 0 );
-#endif
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     der_len = mbedtls_x509write_csr_der( &req, buf, sizeof( buf ),
                                          mbedtls_test_rnd_pseudo_rand,

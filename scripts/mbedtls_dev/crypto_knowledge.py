@@ -20,7 +20,7 @@ This module is entirely based on the PSA API.
 
 import enum
 import re
-from typing import Iterable, List, Optional, Tuple
+from typing import FrozenSet, Iterable, List, Optional, Tuple
 
 from mbedtls_dev.asymmetric_key_data import ASYMMETRIC_KEY_DATA
 
@@ -215,6 +215,8 @@ class KeyType:
         """
         #pylint: disable=too-many-return-statements
         if alg.is_wildcard:
+            return False
+        if alg.is_invalid_truncation():
             return False
         if self.head == 'HMAC' and alg.head == 'HMAC':
             return True
@@ -420,8 +422,55 @@ class Algorithm:
         """
         return short_expression(self.expression, level=level)
 
+    PERMITTED_TAG_LENGTHS = {
+        'PSA_ALG_CCM': frozenset([4, 6, 8, 10, 12, 14, 16]),
+        'PSA_ALG_CHACHA20_POLY1305': frozenset([16]),
+        'PSA_ALG_GCM': frozenset([4, 8, 12, 13, 14, 15, 16]),
+    }
+    MAC_LENGTH = {
+        'PSA_ALG_CBC_MAC': 16,
+        'PSA_ALG_CMAC': 16,
+        'PSA_ALG_HMAC(PSA_ALG_MD5)': 16,
+        'PSA_ALG_HMAC(PSA_ALG_SHA_1)': 20,
+    }
+    HMAC_WITH_NOMINAL_LENGTH_RE = re.compile(r'PSA_ALG_HMAC\(\w+([0-9])+\)\Z')
+    @classmethod
+    def mac_or_tag_length(cls, base: str) -> FrozenSet[int]:
+        """Return the set of permitted lengths for the given MAC or AEAD tag."""
+        if base in cls.PERMITTED_TAG_LENGTHS:
+            return cls.PERMITTED_TAG_LENGTHS[base]
+        max_length = cls.MAC_LENGTH.get(base, None)
+        if max_length is None:
+            m = cls.HMAC_WITH_NOMINAL_LENGTH_RE.match(base)
+            if m:
+                max_length = int(m.group(1)) // 8
+        if max_length is None:
+            raise ValueError('Unknown permitted lengths for ' + base)
+        return frozenset(range(4, max_length + 1))
+
+    TRUNCATED_ALG_RE = re.compile(
+        r'(?P<face>PSA_ALG_(?:AEAD_WITH_SHORTENED_TAG|TRUNCATED_MAC))'
+        r'\((?P<base>.*),'
+        r'(?P<length>0[Xx][0-9A-Fa-f]+|[1-9][0-9]*|0[0-9]*)[LUlu]*\)\Z')
+    def is_invalid_truncation(self) -> bool:
+        """False for a MAC or AEAD algorithm truncated to an invalid length.
+
+        True for a MAC or AEAD algorithm truncated to a valid length or to
+        a length that cannot be determined. True for anything other than
+        a truncated MAC or AEAD.
+        """
+        m = self.TRUNCATED_ALG_RE.match(self.expression)
+        if m:
+            base = m.group('base')
+            to_length = int(m.group('length'), 0)
+            permitted_lengths = self.mac_or_tag_length(base)
+            if to_length not in permitted_lengths:
+                return True
+        return False
+
     def can_do(self, category: AlgorithmCategory) -> bool:
-        """Whether this algorithm fits the specified operation category."""
+        """Whether this algorithm can perform operations in the given category.
+        """
         if category == self.category:
             return True
         if category == AlgorithmCategory.KEY_DERIVATION and \

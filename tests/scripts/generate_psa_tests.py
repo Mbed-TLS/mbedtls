@@ -519,13 +519,14 @@ class StorageFormat:
         self.forward = forward #type: bool
 
     RSA_OAEP_RE = re.compile(r'PSA_ALG_RSA_OAEP\((.*)\)\Z')
+    BRAINPOOL_RE = re.compile(r'PSA_KEY_TYPE_\w+\(PSA_ECC_FAMILY_BRAINPOOL_\w+\)\Z')
     @classmethod
-    def valid_key_size_for_algorithm(
+    def exercise_key_with_algorithm(
             cls,
             key_type: psa_storage.Expr, bits: int,
             alg: psa_storage.Expr
     ) -> bool:
-        """Whether the given key type and size are valid for the algorithm.
+        """Whether to the given key with the given algorithm.
 
         Normally only the type and algorithm matter for compatibility, and
         this is handled in crypto_knowledge.KeyType.can_do(). This function
@@ -533,7 +534,13 @@ class StorageFormat:
         are not tested in OpFail and should therefore have manually written
         test cases.
         """
-        #pylint: disable=unused-argument
+        # Some test keys have the RAW_DATA type and attributes that don't
+        # necessarily make sense. We do this to validate numerical
+        # encodings of the attributes.
+        # Raw data keys have no useful exercise anyway so there is no
+        # loss of test coverage.
+        if key_type.string == 'PSA_KEY_TYPE_RAW_DATA':
+            return False
         # OAEP requires room for two hashes plus wrapping
         m = cls.RSA_OAEP_RE.match(alg.string)
         if m:
@@ -542,6 +549,14 @@ class StorageFormat:
             key_length = (bits + 7) // 8
             # Leave enough room for at least one byte of plaintext
             return key_length > 2 * hash_length + 2
+        # There's nothing wrong with ECC keys on Brainpool curves,
+        # but operations with them are very slow. So we only exercise them
+        # with a single algorithm, not with all possible hashes. We do
+        # exercise other curves with all algorithms so test coverage is
+        # perfectly adequate like this.
+        m = cls.BRAINPOOL_RE.match(key_type.string)
+        if m and alg.string != 'PSA_ALG_ECDSA_ANY':
+            return False
         return True
 
     def make_test_case(self, key: StorageTestData) -> test_case.TestCase:
@@ -567,13 +582,7 @@ class StorageFormat:
             extra_arguments = []
         else:
             flags = []
-            # Some test keys have the RAW_DATA type and attributes that don't
-            # necessarily make sense. We do this to validate numerical
-            # encodings of the attributes.
-            # Raw data keys have no useful exercise anyway so there is no
-            # loss of test coverage.
-            if key.type.string != 'PSA_KEY_TYPE_RAW_DATA' and \
-               self.valid_key_size_for_algorithm(key.type, key.bits, key.alg):
+            if self.exercise_key_with_algorithm(key.type, key.bits, key.alg):
                 flags.append('TEST_FLAG_EXERCISE')
             if 'READ_ONLY' in key.lifetime.string:
                 flags.append('TEST_FLAG_READ_ONLY')

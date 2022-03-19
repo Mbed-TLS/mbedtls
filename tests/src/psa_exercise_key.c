@@ -293,6 +293,17 @@ exit:
     return( 0 );
 }
 
+static int can_sign_or_verify_message( psa_key_usage_t usage,
+                                       psa_algorithm_t alg )
+{
+    /* Sign-the-unspecified-hash algorithms can only be used with
+     * {sign,verify}_hash, not with {sign,verify}_message. */
+    if( alg == PSA_ALG_ECDSA_ANY || alg == PSA_ALG_RSA_PKCS1V15_SIGN_RAW )
+        return( 0 );
+    return( usage & ( PSA_KEY_USAGE_SIGN_MESSAGE |
+                      PSA_KEY_USAGE_VERIFY_MESSAGE ) );
+}
+
 static int exercise_signature_key( mbedtls_svc_key_id_t key,
                                    psa_key_usage_t usage,
                                    psa_algorithm_t alg )
@@ -343,7 +354,7 @@ static int exercise_signature_key( mbedtls_svc_key_id_t key,
         }
     }
 
-    if( usage & ( PSA_KEY_USAGE_SIGN_MESSAGE | PSA_KEY_USAGE_VERIFY_MESSAGE ) )
+    if( can_sign_or_verify_message( usage, alg ) )
     {
         unsigned char message[256] = "Hello, world...";
         unsigned char signature[PSA_SIGNATURE_MAX_SIZE] = {0};

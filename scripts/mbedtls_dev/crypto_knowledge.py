@@ -213,7 +213,7 @@ class KeyType:
 
         This function does not currently handle key derivation or PAKE.
         """
-        #pylint: disable=too-many-return-statements
+        #pylint: disable=too-many-branches,too-many-return-statements
         if alg.is_wildcard:
             return False
         if alg.is_invalid_truncation():
@@ -425,28 +425,41 @@ class Algorithm:
         """
         return short_expression(self.expression, level=level)
 
+    HASH_LENGTH = {
+        'PSA_ALG_MD5': 16,
+        'PSA_ALG_SHA_1': 20,
+    }
+    HASH_LENGTH_BITS_RE = re.compile(r'([0-9]+)\Z')
+    @classmethod
+    def hash_length(cls, alg: str) -> int:
+        """The length of the given hash algorithm, in bytes."""
+        if alg in cls.HASH_LENGTH:
+            return cls.HASH_LENGTH[alg]
+        m = cls.HASH_LENGTH_BITS_RE.search(alg)
+        if m:
+            return int(m.group(1)) // 8
+        raise ValueError('Unknown hash length for ' + alg)
+
     PERMITTED_TAG_LENGTHS = {
         'PSA_ALG_CCM': frozenset([4, 6, 8, 10, 12, 14, 16]),
         'PSA_ALG_CHACHA20_POLY1305': frozenset([16]),
         'PSA_ALG_GCM': frozenset([4, 8, 12, 13, 14, 15, 16]),
     }
     MAC_LENGTH = {
-        'PSA_ALG_CBC_MAC': 16,
-        'PSA_ALG_CMAC': 16,
-        'PSA_ALG_HMAC(PSA_ALG_MD5)': 16,
-        'PSA_ALG_HMAC(PSA_ALG_SHA_1)': 20,
+        'PSA_ALG_CBC_MAC': 16, # actually the block cipher length
+        'PSA_ALG_CMAC': 16, # actually the block cipher length
     }
-    HMAC_WITH_NOMINAL_LENGTH_RE = re.compile(r'PSA_ALG_HMAC\(\w+([0-9])+\)\Z')
+    HMAC_RE = re.compile(r'PSA_ALG_HMAC\((.*)\)\Z')
     @classmethod
-    def mac_or_tag_length(cls, base: str) -> FrozenSet[int]:
+    def mac_or_tag_lengths(cls, base: str) -> FrozenSet[int]:
         """Return the set of permitted lengths for the given MAC or AEAD tag."""
         if base in cls.PERMITTED_TAG_LENGTHS:
             return cls.PERMITTED_TAG_LENGTHS[base]
         max_length = cls.MAC_LENGTH.get(base, None)
         if max_length is None:
-            m = cls.HMAC_WITH_NOMINAL_LENGTH_RE.match(base)
+            m = cls.HMAC_RE.match(base)
             if m:
-                max_length = int(m.group(1)) // 8
+                max_length = cls.hash_length(m.group(1))
         if max_length is None:
             raise ValueError('Unknown permitted lengths for ' + base)
         return frozenset(range(4, max_length + 1))
@@ -466,7 +479,7 @@ class Algorithm:
         if m:
             base = m.group('base')
             to_length = int(m.group('length'), 0)
-            permitted_lengths = self.mac_or_tag_length(base)
+            permitted_lengths = self.mac_or_tag_lengths(base)
             if to_length not in permitted_lengths:
                 return True
         return False

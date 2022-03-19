@@ -518,6 +518,32 @@ class StorageFormat:
         self.version = version #type: int
         self.forward = forward #type: bool
 
+    RSA_OAEP_RE = re.compile(r'PSA_ALG_RSA_OAEP\((.*)\)\Z')
+    @classmethod
+    def valid_key_size_for_algorithm(
+            cls,
+            key_type: psa_storage.Expr, bits: int,
+            alg: psa_storage.Expr
+    ) -> bool:
+        """Whether the given key type and size are valid for the algorithm.
+
+        Normally only the type and algorithm matter for compatibility, and
+        this is handled in crypto_knowledge.KeyType.can_do(). This function
+        exists to detect exceptional cases. Exceptional cases detected here
+        are not tested in OpFail and should therefore have manually written
+        test cases.
+        """
+        #pylint: disable=unused-argument
+        # OAEP requires room for two hashes plus wrapping
+        m = cls.RSA_OAEP_RE.match(alg.string)
+        if m:
+            hash_alg = m.group(1)
+            hash_length = crypto_knowledge.Algorithm.hash_length(hash_alg)
+            key_length = (bits + 7) // 8
+            # Leave enough room for at least one byte of plaintext
+            return key_length > 2 * hash_length + 2
+        return True
+
     def make_test_case(self, key: StorageTestData) -> test_case.TestCase:
         """Construct a storage format test case for the given key.
 
@@ -546,7 +572,8 @@ class StorageFormat:
             # encodings of the attributes.
             # Raw data keys have no useful exercise anyway so there is no
             # loss of test coverage.
-            if key.type.string != 'PSA_KEY_TYPE_RAW_DATA':
+            if key.type.string != 'PSA_KEY_TYPE_RAW_DATA' and \
+               self.valid_key_size_for_algorithm(key.type, key.bits, key.alg):
                 flags.append('TEST_FLAG_EXERCISE')
             if 'READ_ONLY' in key.lifetime.string:
                 flags.append('TEST_FLAG_READ_ONLY')

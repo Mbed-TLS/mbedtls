@@ -186,7 +186,7 @@ class PSAMacroEnumerator:
                 for value in argument_lists[i][1:]:
                     arguments[i] = value
                     yield self._format_arguments(name, arguments)
-                arguments[i] = argument_lists[0][0]
+                arguments[i] = argument_lists[i][0]
         except BaseException as e:
             raise Exception('distribute_arguments({})'.format(name)) from e
 

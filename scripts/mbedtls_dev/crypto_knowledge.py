@@ -230,6 +230,9 @@ class KeyType:
            alg.head in frozenset.union(BLOCK_MAC_MODES,
                                        BLOCK_CIPHER_MODES,
                                        BLOCK_AEAD_MODES):
+            if alg.head in ['CMAC', 'OFB'] and \
+               self.head in ['ARIA', 'CAMELLIA']:
+                return False # not implemented in Mbed TLS
             return True
         if self.head == 'CHACHA20' and alg.head == 'CHACHA20_POLY1305':
             return True

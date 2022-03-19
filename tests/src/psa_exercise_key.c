@@ -243,7 +243,9 @@ static int exercise_aead_key( mbedtls_svc_key_id_t key,
                               psa_algorithm_t alg )
 {
     unsigned char nonce[16] = {0};
-    size_t nonce_length = sizeof( nonce );
+    size_t nonce_length;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_type_t key_type;
     unsigned char plaintext[16] = "Hello, world...";
     unsigned char ciphertext[48] = "(wabblewebblewibblewobblewubble)";
     size_t ciphertext_length = sizeof( ciphertext );
@@ -255,19 +257,9 @@ static int exercise_aead_key( mbedtls_svc_key_id_t key,
         alg = PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg, PSA_ALG_AEAD_GET_TAG_LENGTH( alg ) );
     }
 
-    /* Default IV length for AES-GCM is 12 bytes */
-    if( PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg, 0 ) ==
-        PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_GCM, 0 ) )
-    {
-        nonce_length = 12;
-    }
-
-    /* IV length for CCM needs to be between 7 and 13 bytes */
-    if( PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg, 0 ) ==
-        PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, 0 ) )
-    {
-        nonce_length = 12;
-    }
+    PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
+    key_type = psa_get_key_type( &attributes );
+    nonce_length = PSA_AEAD_NONCE_LENGTH( key_type, alg );
 
     if( usage & PSA_KEY_USAGE_ENCRYPT )
     {
@@ -297,6 +289,7 @@ static int exercise_aead_key( mbedtls_svc_key_id_t key,
     return( 1 );
 
 exit:
+    psa_reset_key_attributes( &attributes );
     return( 0 );
 }
 

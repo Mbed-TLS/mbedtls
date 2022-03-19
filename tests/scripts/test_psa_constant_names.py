@@ -77,6 +77,22 @@ def normalize(expr: str) -> str:
     """
     return re.sub(NORMALIZE_STRIP_RE, '', expr)
 
+ALG_TRUNCATED_TO_SELF_RE = \
+    re.compile(r'PSA_ALG_AEAD_WITH_SHORTENED_TAG\('
+               r'PSA_ALG_(?:CCM|CHACHA20_POLY1305|GCM)'
+               r', *16\)\Z')
+
+def is_simplifiable(expr: str) -> bool:
+    """Determine whether an expression is simplifiable.
+
+    Simplifiable expressions can't be output in their input form, since
+    the output will be the simple form. Therefore they must be excluded
+    from testing.
+    """
+    if ALG_TRUNCATED_TO_SELF_RE.match(expr):
+        return True
+    return False
+
 def collect_values(inputs: InputsForTest,
                    type_word: str,
                    include_path: Optional[str] = None,
@@ -87,7 +103,9 @@ def collect_values(inputs: InputsForTest,
     value is a string representation of its integer value.
     """
     names = inputs.get_names(type_word)
-    expressions = sorted(inputs.generate_expressions(names))
+    expressions = sorted(expr
+                         for expr in inputs.generate_expressions(names)
+                         if not is_simplifiable(expr))
     values = run_c(type_word, expressions,
                    include_path=include_path, keep_c=keep_c)
     return expressions, values

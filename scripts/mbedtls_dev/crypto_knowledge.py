@@ -241,6 +241,13 @@ class KeyType:
             return True
         if self.head == 'RSA' and alg.head.startswith('RSA_'):
             return True
+        if alg.category == AlgorithmCategory.KEY_AGREEMENT and \
+           self.is_public():
+            # The PSA API does not use public key objects in key agreement
+            # operations: it imports the public key as a formatted byte string.
+            # So a public key object with a key agreement algorithm is not
+            # a valid combination.
+            return False
         if self.head == 'ECC':
             assert self.params is not None
             eccc = EllipticCurveCategory.from_family(self.params[0])

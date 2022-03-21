@@ -2137,6 +2137,10 @@ static inline int psa_ssl_status_to_mbedtls( psa_status_t status )
             return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
         case PSA_ERROR_INVALID_SIGNATURE:
             return( MBEDTLS_ERR_SSL_INVALID_MAC );
+        case PSA_ERROR_INVALID_ARGUMENT:
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+        case PSA_ERROR_BAD_STATE:
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         default:
             return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
     }

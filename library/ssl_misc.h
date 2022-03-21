@@ -2132,9 +2132,9 @@ static inline int psa_ssl_status_to_mbedtls( psa_status_t status )
         case PSA_SUCCESS:
             return( 0 );
         case PSA_ERROR_INSUFFICIENT_MEMORY:
-            return( MBEDTLS_ERR_CIPHER_ALLOC_FAILED );
+            return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
         case PSA_ERROR_NOT_SUPPORTED:
-            return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+            return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
         case PSA_ERROR_INVALID_SIGNATURE:
             return( MBEDTLS_ERR_SSL_INVALID_MAC );
         case PSA_ERROR_INVALID_ARGUMENT:

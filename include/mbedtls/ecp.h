@@ -1281,7 +1281,7 @@ int mbedtls_ecp_check_pub_priv(
 /**
  * \brief           This function exports generic key-pair parameters.
  *
- * \param kp        The key pair to export from.
+ * \param key       The key pair to export from.
  * \param grp       Slot for exported ECP group.
  *                  It must point to an initialized ECP group.
  * \param d         Slot for the exported secret value.

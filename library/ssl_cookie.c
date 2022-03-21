@@ -193,6 +193,7 @@ int mbedtls_ssl_cookie_write( void *p_ctx,
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t sign_mac_length = 0;
 #endif
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -214,26 +215,33 @@ int mbedtls_ssl_cookie_write( void *p_ctx,
     *p += 4;
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if( psa_mac_sign_setup( &operation, ctx->psa_hmac,
-                            ctx->psa_hmac_alg ) != PSA_SUCCESS ) {
-        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    status = psa_mac_sign_setup( &operation, ctx->psa_hmac,
+                                 ctx->psa_hmac_alg );
+    if( status != PSA_SUCCESS )
+    {
+        ret = psa_ssl_status_to_mbedtls( status );
         goto exit;
     }
 
-    if( psa_mac_update( &operation, *p - 4, 4 ) != PSA_SUCCESS ) {
-        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    status = psa_mac_update( &operation, *p - 4, 4 );
+    if( status != PSA_SUCCESS )
+    {
+        ret = psa_ssl_status_to_mbedtls( status );
         goto exit;
     }
 
-    if( psa_mac_update( &operation, cli_id,
-                        cli_id_len ) != PSA_SUCCESS ) {
-        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    status = psa_mac_update( &operation, cli_id, cli_id_len );
+    if( status != PSA_SUCCESS )
+    {
+        ret = psa_ssl_status_to_mbedtls( status );
         goto exit;
     }
 
-    if( psa_mac_sign_finish( &operation, *p, COOKIE_MD_OUTLEN,
-                             &sign_mac_length ) != PSA_SUCCESS ) {
-        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    status = psa_mac_sign_finish( &operation, *p, COOKIE_MD_OUTLEN,
+                                  &sign_mac_length );
+    if( status != PSA_SUCCESS )
+    {
+        ret = psa_ssl_status_to_mbedtls( status );
         goto exit;
     }
 
@@ -258,8 +266,9 @@ int mbedtls_ssl_cookie_write( void *p_ctx,
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 exit:
-    if( psa_mac_abort( &operation ) != PSA_SUCCESS )
-        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    status = psa_mac_abort( &operation );
+    if( status != PSA_SUCCESS )
+        ret = psa_ssl_status_to_mbedtls( status );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
     return( ret );
 }
@@ -273,6 +282,7 @@ int mbedtls_ssl_cookie_check( void *p_ctx,
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 #else
     unsigned char ref_hmac[COOKIE_HMAC_LEN];
     unsigned char *p = ref_hmac;
@@ -288,28 +298,38 @@ int mbedtls_ssl_cookie_check( void *p_ctx,
         return( -1 );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if( psa_mac_verify_setup( &operation, ctx->psa_hmac,
-                              ctx->psa_hmac_alg ) != PSA_SUCCESS ) {
-        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    status = psa_mac_verify_setup( &operation, ctx->psa_hmac,
+                                   ctx->psa_hmac_alg );
+    if( status != PSA_SUCCESS )
+    {
+        ret = psa_ssl_status_to_mbedtls( status );
         goto exit;
     }
 
-    if( psa_mac_update( &operation, cookie, 4 ) != PSA_SUCCESS ) {
-        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    status = psa_mac_update( &operation, cookie, 4 );
+    if( status != PSA_SUCCESS )
+    {
+        ret = psa_ssl_status_to_mbedtls( status );
         goto exit;
     }
 
-    if( psa_mac_update( &operation, cli_id,
-                        cli_id_len ) != PSA_SUCCESS ) {
-        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    status = psa_mac_update( &operation, cli_id,
+                             cli_id_len );
+    if( status != PSA_SUCCESS )
+    {
+        ret = psa_ssl_status_to_mbedtls( status );
         goto exit;
     }
 
-    if( psa_mac_verify_finish( &operation, cookie + 4,
-                               COOKIE_HMAC_LEN ) != PSA_SUCCESS ) {
-        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    status = psa_mac_verify_finish( &operation, cookie + 4,
+                                    COOKIE_HMAC_LEN );
+    if( status != PSA_SUCCESS )
+    {
+        ret = psa_ssl_status_to_mbedtls( status );
         goto exit;
     }
+
+    ret = 0;
 #else
 #if defined(MBEDTLS_THREADING_C)
     if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
@@ -358,8 +378,9 @@ int mbedtls_ssl_cookie_check( void *p_ctx,
 
 exit:
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if( psa_mac_abort( &operation ) != PSA_SUCCESS )
-        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    status = psa_mac_abort( &operation );
+    if( status != PSA_SUCCESS )
+        ret = psa_ssl_status_to_mbedtls( status );
 #else
     mbedtls_platform_zeroize( ref_hmac, sizeof( ref_hmac ) );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */

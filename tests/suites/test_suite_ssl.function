@@ -4062,6 +4062,8 @@ MBEDTLS_SSL_TLS1_3_LABEL_LIST
     TEST_ASSERT( (size_t) desired_length <= sizeof(dst) );
     TEST_ASSERT( (size_t) desired_length == expected->len );
 
+    USE_PSA_INIT( );
+
     TEST_ASSERT( mbedtls_ssl_tls13_hkdf_expand_label(
                       (mbedtls_md_type_t) hash_alg,
                       secret->x, secret->len,
@@ -4071,6 +4073,8 @@ MBEDTLS_SSL_TLS1_3_LABEL_LIST
 
     ASSERT_COMPARE( dst, (size_t) desired_length,
                     expected->x, (size_t) expected->len );
+
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 
@@ -4093,6 +4097,8 @@ void ssl_tls13_traffic_key_generation( int hash_alg,
                  expected_client_write_iv->len == (size_t) desired_iv_len );
     TEST_ASSERT( expected_client_write_key->len == expected_server_write_key->len &&
                  expected_client_write_key->len == (size_t) desired_key_len );
+
+    USE_PSA_INIT( );
 
     TEST_ASSERT( mbedtls_ssl_tls13_make_traffic_keys(
                      (mbedtls_md_type_t) hash_alg,
@@ -4118,6 +4124,8 @@ void ssl_tls13_traffic_key_generation( int hash_alg,
                     keys.iv_len,
                     expected_server_write_iv->x,
                     (size_t) desired_iv_len );
+
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 
@@ -4148,6 +4156,8 @@ MBEDTLS_SSL_TLS1_3_LABEL_LIST
     TEST_ASSERT( (size_t) desired_length <= sizeof(dst) );
     TEST_ASSERT( (size_t) desired_length == expected->len );
 
+    USE_PSA_INIT( );
+
     TEST_ASSERT( mbedtls_ssl_tls13_derive_secret(
                       (mbedtls_md_type_t) hash_alg,
                       secret->x, secret->len,
@@ -4158,6 +4168,8 @@ MBEDTLS_SSL_TLS1_3_LABEL_LIST
 
     ASSERT_COMPARE( dst, desired_length,
                     expected->x, desired_length );
+
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 
@@ -4180,6 +4192,8 @@ void ssl_tls13_derive_early_secrets( int hash_alg,
                  traffic_expected->len == md_size  &&
                  exporter_expected->len == md_size );
 
+    USE_PSA_INIT( );
+
     TEST_ASSERT( mbedtls_ssl_tls13_derive_early_secrets(
                      md_type, secret->x, transcript->x, transcript->len,
                      &secrets ) == 0 );
@@ -4188,6 +4202,8 @@ void ssl_tls13_derive_early_secrets( int hash_alg,
                     traffic_expected->x, traffic_expected->len );
     ASSERT_COMPARE( secrets.early_exporter_master_secret, md_size,
                     exporter_expected->x, exporter_expected->len );
+
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 
@@ -4210,6 +4226,8 @@ void ssl_tls13_derive_handshake_secrets( int hash_alg,
                  client_expected->len == md_size   &&
                  server_expected->len == md_size );
 
+    USE_PSA_INIT( );
+
     TEST_ASSERT( mbedtls_ssl_tls13_derive_handshake_secrets(
                      md_type, secret->x, transcript->x, transcript->len,
                      &secrets ) == 0 );
@@ -4218,6 +4236,8 @@ void ssl_tls13_derive_handshake_secrets( int hash_alg,
                     client_expected->x, client_expected->len );
     ASSERT_COMPARE( secrets.server_handshake_traffic_secret, md_size,
                     server_expected->x, server_expected->len );
+
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 
@@ -4242,6 +4262,8 @@ void ssl_tls13_derive_application_secrets( int hash_alg,
                  server_expected->len == md_size   &&
                  exporter_expected->len == md_size );
 
+    USE_PSA_INIT( );
+
     TEST_ASSERT( mbedtls_ssl_tls13_derive_application_secrets(
                      md_type, secret->x, transcript->x, transcript->len,
                      &secrets ) == 0 );
@@ -4252,6 +4274,8 @@ void ssl_tls13_derive_application_secrets( int hash_alg,
                     server_expected->x, server_expected->len );
     ASSERT_COMPARE( secrets.exporter_master_secret, md_size,
                     exporter_expected->x, exporter_expected->len );
+
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 
@@ -4272,12 +4296,16 @@ void ssl_tls13_derive_resumption_secrets( int hash_alg,
                  transcript->len == md_size          &&
                  resumption_expected->len == md_size );
 
+    USE_PSA_INIT( );
+
     TEST_ASSERT( mbedtls_ssl_tls13_derive_resumption_master_secret(
                      md_type, secret->x, transcript->x, transcript->len,
                      &secrets ) == 0 );
 
     ASSERT_COMPARE( secrets.resumption_master_secret, md_size,
                     resumption_expected->x, resumption_expected->len );
+
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 
@@ -4298,6 +4326,8 @@ void ssl_tls13_create_psk_binder( int hash_alg,
                  transcript->len == md_size      &&
                  binder_expected->len == md_size );
 
+    USE_PSA_INIT( );
+
     TEST_ASSERT( mbedtls_ssl_tls13_create_psk_binder(
                      NULL, /* SSL context for debugging only */
                      md_type,
@@ -4308,6 +4338,8 @@ void ssl_tls13_create_psk_binder( int hash_alg,
 
     ASSERT_COMPARE( binder, md_size,
                     binder_expected->x, binder_expected->len );
+
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 
@@ -4420,6 +4452,8 @@ void ssl_tls13_key_evolution( int hash_alg,
 {
     unsigned char secret_new[ MBEDTLS_MD_MAX_SIZE ];
 
+    USE_PSA_INIT();
+
     TEST_ASSERT( mbedtls_ssl_tls13_evolve_secret(
                       (mbedtls_md_type_t) hash_alg,
                       secret->len ? secret->x : NULL,
@@ -4428,6 +4462,8 @@ void ssl_tls13_key_evolution( int hash_alg,
 
     ASSERT_COMPARE( secret_new, (size_t) expected->len,
                     expected->x, (size_t) expected->len );
+
+    USE_PSA_DONE();
 }
 /* END_CASE */
 

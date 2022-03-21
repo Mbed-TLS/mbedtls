@@ -2562,7 +2562,8 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( opt.key_opaque != 0 )
     {
-        if ( mbedtls_pk_get_type( &pkey ) == MBEDTLS_PK_ECKEY )
+        if ( mbedtls_pk_get_type( &pkey ) == MBEDTLS_PK_ECKEY ||
+             mbedtls_pk_get_type( &pkey ) == MBEDTLS_PK_RSA )
         {
             if( ( ret = mbedtls_pk_wrap_as_opaque( &pkey, &key_slot,
                                                 PSA_ALG_ANY_HASH ) ) != 0 )
@@ -2573,7 +2574,8 @@ int main( int argc, char *argv[] )
             }
         }
 
-        if ( mbedtls_pk_get_type( &pkey2 ) == MBEDTLS_PK_ECKEY )
+        if ( mbedtls_pk_get_type( &pkey2 ) == MBEDTLS_PK_ECKEY ||
+             mbedtls_pk_get_type( &pkey2 ) == MBEDTLS_PK_RSA )
         {
             if( ( ret = mbedtls_pk_wrap_as_opaque( &pkey2, &key_slot2,
                                                 PSA_ALG_ANY_HASH ) ) != 0 )

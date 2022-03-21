@@ -954,8 +954,14 @@ struct mbedtls_ssl_transform
 
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    mbedtls_svc_key_id_t psa_mac_enc;           /*!<  MAC (encryption)        */
+    mbedtls_svc_key_id_t psa_mac_dec;           /*!<  MAC (decryption)        */
+    psa_algorithm_t psa_mac_alg;                /*!<  psa MAC algorithm       */
+#else
     mbedtls_md_context_t md_ctx_enc;            /*!<  MAC (encryption)        */
     mbedtls_md_context_t md_ctx_dec;            /*!<  MAC (decryption)        */
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     int encrypt_then_mac;       /*!< flag for EtM activation                */

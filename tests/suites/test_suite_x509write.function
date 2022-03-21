@@ -83,11 +83,14 @@ void x509_csr_check( char * key_file, char * cert_req_check_file, int md_type,
     mbedtls_pk_context key;
     mbedtls_x509write_csr req;
     unsigned char buf[4096];
-    unsigned char check_buf[4000];
     int ret;
-    size_t olen = 0, pem_len = 0, buf_index;
-    int der_len = -1;
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
+    unsigned char check_buf[4000];
     FILE *f;
+    size_t olen = 0;
+#endif /* !MBEDTLS_USE_PSA_CRYPTO */
+    size_t pem_len = 0, buf_index;
+    int der_len = -1;
     const char *subject_name = "C=NL,O=PolarSSL,CN=PolarSSL Server 1";
     mbedtls_test_rnd_pseudo_info rnd_info;
 
@@ -119,6 +122,12 @@ void x509_csr_check( char * key_file, char * cert_req_check_file, int md_type,
         TEST_ASSERT( buf[buf_index] == 0 );
     }
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    // When using PSA crypto, RNG isn't controllable, so cert_req_check_file can't be used
+    (void)cert_req_check_file;
+    buf[pem_len] = '\0';
+    TEST_ASSERT( x509_crt_verifycsr( buf, pem_len + 1 ) == 0 );
+#else
     f = fopen( cert_req_check_file, "r" );
     TEST_ASSERT( f != NULL );
     olen = fread( check_buf, 1, sizeof( check_buf ), f );
@@ -126,6 +135,7 @@ void x509_csr_check( char * key_file, char * cert_req_check_file, int md_type,
 
     TEST_ASSERT( olen >= pem_len - 1 );
     TEST_ASSERT( memcmp( buf, check_buf, pem_len - 1 ) == 0 );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     der_len = mbedtls_x509write_csr_der( &req, buf, sizeof( buf ),
                                          mbedtls_test_rnd_pseudo_rand,
@@ -135,7 +145,15 @@ void x509_csr_check( char * key_file, char * cert_req_check_file, int md_type,
     if( der_len == 0 )
         goto exit;
 
-    ret = mbedtls_x509write_csr_der( &req, buf, (size_t)( der_len - 1 ),
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    // When using PSA crypto, RNG isn't controllable, result length isn't
+    // deterministic over multiple runs, removing a single byte isn't enough to
+    // go into the MBEDTLS_ERR_ASN1_BUF_TOO_SMALL error case
+    der_len /= 2;
+#else
+    der_len -= 1;
+#endif
+    ret = mbedtls_x509write_csr_der( &req, buf, (size_t)( der_len ),
                                      mbedtls_test_rnd_pseudo_rand, &rnd_info );
     TEST_ASSERT( ret == MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
 

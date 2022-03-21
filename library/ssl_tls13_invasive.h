@@ -20,13 +20,13 @@
 
 #include "common.h"
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
 #endif
 
 #if defined(MBEDTLS_TEST_HOOKS)
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
 
 /**
  *  \brief  Take the input keying material \p ikm and extract from it a
@@ -87,7 +87,7 @@ psa_status_t mbedtls_psa_hkdf_expand( psa_algorithm_t alg,
                                       const unsigned char *info, size_t info_len,
                                       unsigned char *okm, size_t okm_len );
 
-#endif /* MBEDTLS_PSA_CRYPTO_C */
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #endif /* MBEDTLS_TEST_HOOKS */
 

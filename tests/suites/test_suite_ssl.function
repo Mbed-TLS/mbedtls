@@ -3885,7 +3885,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_SSL_PROTO_TLS1_3 */
+/* BEGIN_CASE depends_on:MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_TEST_HOOKS:MBEDTLS_SSL_PROTO_TLS1_3 */
 void psa_hkdf_extract( int alg,
                        data_t *ikm,
                        data_t *salt,
@@ -3913,7 +3913,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_SSL_PROTO_TLS1_3 */
+/* BEGIN_CASE depends_on:MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_TEST_HOOKS:MBEDTLS_SSL_PROTO_TLS1_3 */
 void psa_hkdf_extract_ret( int alg, int ret )
 {
     int output_ret;
@@ -3942,7 +3942,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_SSL_PROTO_TLS1_3 */
+/* BEGIN_CASE depends_on:MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_TEST_HOOKS:MBEDTLS_SSL_PROTO_TLS1_3 */
 void psa_hkdf_expand( int alg,
                       data_t *info,
                       data_t *prk,
@@ -3970,7 +3970,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_SSL_PROTO_TLS1_3 */
+/* BEGIN_CASE depends_on:MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_TEST_HOOKS:MBEDTLS_SSL_PROTO_TLS1_3 */
 void psa_hkdf_expand_ret( int alg, int prk_len, int okm_len, int ret )
 {
     int output_ret;

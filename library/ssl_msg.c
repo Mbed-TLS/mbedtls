@@ -2157,7 +2157,7 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
             ( cur->type == MBEDTLS_SSL_MSG_HANDSHAKE &&
               cur->p[0] == MBEDTLS_SSL_HS_FINISHED );
 
-        uint8_t const force_flush = ssl->disable_datagram_packing == 1 ?
+        int const force_flush = ssl->disable_datagram_packing == 1 ?
             SSL_FORCE_FLUSH : SSL_DONT_FORCE_FLUSH;
 
         /* Swap epochs before sending Finished: we can't do it after
@@ -2368,7 +2368,8 @@ void mbedtls_ssl_send_flight_completed( mbedtls_ssl_context *ssl )
  *   - ssl->out_msg: the record contents (handshake headers + content)
  */
 int mbedtls_ssl_write_handshake_msg_ext( mbedtls_ssl_context *ssl,
-                                         int update_checksum )
+                                         int update_checksum,
+                                         int force_flush )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const size_t hs_len = ssl->out_msglen - 4;
@@ -2495,7 +2496,7 @@ int mbedtls_ssl_write_handshake_msg_ext( mbedtls_ssl_context *ssl,
     else
 #endif
     {
-        if( ( ret = mbedtls_ssl_write_record( ssl, SSL_FORCE_FLUSH ) ) != 0 )
+        if( ( ret = mbedtls_ssl_write_record( ssl, force_flush ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_record", ret );
             return( ret );
@@ -2519,11 +2520,11 @@ int mbedtls_ssl_write_handshake_msg_ext( mbedtls_ssl_context *ssl,
  *  - ssl->out_msglen: length of the record content (excl headers)
  *  - ssl->out_msg: record content
  */
-int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
+int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, int force_flush )
 {
     int ret, done = 0;
     size_t len = ssl->out_msglen;
-    uint8_t flush = force_flush;
+    int flush = force_flush;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write record" ) );
 

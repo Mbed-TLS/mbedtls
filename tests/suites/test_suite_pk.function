@@ -710,24 +710,32 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_RSA_C */
-void pk_rsa_encrypt_test_vec( data_t * message, int mod, int radix_N,
-                              char * input_N, int radix_E, char * input_E,
-                              data_t * result, int ret )
+void pk_rsa_encrypt_decrypt_test( data_t * message, int mod, int radix_P,
+                                  char * input_P, int radix_Q, char * input_Q,
+                                  int radix_N, char * input_N, int radix_E,
+                                  char * input_E, int ret )
 {
-    unsigned char output[300];
+    unsigned char output[300], result[300];
     mbedtls_test_rnd_pseudo_info rnd_info;
+    mbedtls_mpi N, P, Q, E;
     mbedtls_rsa_context *rsa;
     mbedtls_pk_context pk;
-    size_t olen;
+    size_t olen, rlen;
+
+    mbedtls_pk_init( &pk );
 
     memset( &rnd_info,  0, sizeof( mbedtls_test_rnd_pseudo_info ) );
     memset( output,     0, sizeof( output ) );
 
+    USE_PSA_INIT( );
 
-    mbedtls_pk_init( &pk );
+    /* encryption test */
+
+    /* init pk-rsa context */
     TEST_ASSERT( mbedtls_pk_setup( &pk, mbedtls_pk_info_from_type( MBEDTLS_PK_RSA ) ) == 0 );
     rsa = mbedtls_pk_rsa( pk );
 
+    /* load public key */
     rsa->len = mod / 8;
     TEST_ASSERT( mbedtls_test_read_mpi( &rsa->N, radix_N, input_N ) == 0 );
     TEST_ASSERT( mbedtls_test_read_mpi( &rsa->E, radix_E, input_E ) == 0 );
@@ -735,11 +743,44 @@ void pk_rsa_encrypt_test_vec( data_t * message, int mod, int radix_N,
     TEST_ASSERT( mbedtls_pk_encrypt( &pk, message->x, message->len,
                             output, &olen, sizeof( output ),
                             mbedtls_test_rnd_pseudo_rand, &rnd_info ) == ret );
-    TEST_ASSERT( olen == result->len );
-    TEST_ASSERT( memcmp( output, result->x, olen ) == 0 );
+
+    /* decryption test */
+    mbedtls_mpi_init( &N ); mbedtls_mpi_init( &P );
+    mbedtls_mpi_init( &Q ); mbedtls_mpi_init( &E );
+
+    /* init pk-rsa context */
+    mbedtls_pk_free( &pk );
+    TEST_ASSERT( mbedtls_pk_setup( &pk,
+                    mbedtls_pk_info_from_type( MBEDTLS_PK_RSA ) ) == 0 );
+    rsa = mbedtls_pk_rsa( pk );
+
+    /* load public key */
+    TEST_ASSERT( mbedtls_test_read_mpi( &N, radix_N, input_N ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &E, radix_E, input_E ) == 0 );
+
+    /* load private key */
+    TEST_ASSERT( mbedtls_test_read_mpi( &P, radix_P, input_P ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &Q, radix_Q, input_Q ) == 0 );
+    TEST_ASSERT( mbedtls_rsa_import( rsa, &N, &P, &Q, NULL, &E ) == 0 );
+    TEST_ASSERT( mbedtls_rsa_get_len( rsa ) == (size_t) ( mod / 8 ) );
+    TEST_ASSERT( mbedtls_rsa_complete( rsa ) == 0 );
+
+    memset( result, 0, sizeof( result ) );
+    rlen = 0;
+    TEST_ASSERT( mbedtls_pk_decrypt( &pk, output, olen,
+                            result, &rlen, sizeof( result ),
+                            mbedtls_test_rnd_pseudo_rand, &rnd_info ) == ret );
+    if( ret == 0 )
+    {
+        TEST_ASSERT( rlen == message->len );
+        TEST_ASSERT( memcmp( result, message->x, rlen ) == 0 );
+    }
 
 exit:
+    mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P );
+    mbedtls_mpi_free( &Q ); mbedtls_mpi_free( &E );
     mbedtls_pk_free( &pk );
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 
@@ -884,6 +925,8 @@ void pk_rsa_alt(  )
     size_t sig_len, ciph_len, test_len;
     int ret = MBEDTLS_ERR_PK_TYPE_MISMATCH;
 
+    USE_PSA_INIT( );
+
     mbedtls_rsa_init( &raw );
     mbedtls_pk_init( &rsa ); mbedtls_pk_init( &alt );
 
@@ -948,6 +991,7 @@ void pk_rsa_alt(  )
 exit:
     mbedtls_rsa_free( &raw );
     mbedtls_pk_free( &rsa ); mbedtls_pk_free( &alt );
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 

@@ -544,11 +544,14 @@ int mbedtls_pk_sign_ext( mbedtls_pk_type_t pk_type,
         return( mbedtls_pk_sign( ctx, md_alg, hash, hash_len,
                                  sig, sig_size, sig_len, f_rng, p_rng ) );
     }
-
-    return( mbedtls_pk_psa_sign_ext( PSA_ALG_RSA_PSS(
-                                        mbedtls_psa_translate_md( md_alg ) ),
-                                     ctx->pk_ctx, hash, hash_len,
-                                     sig, sig_size, sig_len ) );
+#if defined(MBEDTLS_RSA_C)
+    return( mbedtls_pk_psa_rsa_sign_ext( PSA_ALG_RSA_PSS(
+                                            mbedtls_psa_translate_md( md_alg ) ),
+                                         ctx->pk_ctx, hash, hash_len,
+                                         sig, sig_size, sig_len ) );
+#else /* MBEDTLS_RSA_C */
+    return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
+#endif /* !MBEDTLS_RSA_C */
 
 }
 #endif /* MBEDTLS_PSA_CRYPTO_C */

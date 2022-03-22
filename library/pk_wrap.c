@@ -197,10 +197,10 @@ static int rsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
 }
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
-int mbedtls_pk_psa_sign_ext( psa_algorithm_t psa_alg_md, void *pk_ctx,
-                             const unsigned char *hash, size_t hash_len,
-                             unsigned char *sig, size_t sig_size,
-                             size_t *sig_len )
+int  mbedtls_pk_psa_rsa_sign_ext( psa_algorithm_t psa_alg_md, void *pk_ctx,
+                                  const unsigned char *hash, size_t hash_len,
+                                  unsigned char *sig, size_t sig_size,
+                                  size_t *sig_len )
 {
     mbedtls_rsa_context * rsa = (mbedtls_rsa_context *) pk_ctx;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -269,10 +269,10 @@ static int rsa_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 #endif /* SIZE_MAX > UINT_MAX */
 
-    return( mbedtls_pk_psa_sign_ext( PSA_ALG_RSA_PKCS1V15_SIGN(
-                                        mbedtls_psa_translate_md( md_alg ) ),
-                                     ctx, hash, hash_len,
-                                     sig, sig_size, sig_len ) );
+    return(  mbedtls_pk_psa_rsa_sign_ext( PSA_ALG_RSA_PKCS1V15_SIGN(
+                                            mbedtls_psa_translate_md( md_alg ) ),
+                                          ctx, hash, hash_len,
+                                          sig, sig_size, sig_len ) );
 }
 #else
 static int rsa_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,

@@ -27,9 +27,11 @@
 
 #include "mbedtls/ssl.h"
 
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
 #if defined(MBEDTLS_THREADING_C)
 #include "mbedtls/threading.h"
 #endif
+#endif /* !MBEDTLS_USE_PSA_CRYPTO */
 
 /**
  * \name SECTION: Module settings

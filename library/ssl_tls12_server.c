@@ -2914,7 +2914,7 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
     ret = 0;
 
 cleanup:
-    memset( buf, 0, sizeof( buf ) );
+    mbedtls_platform_zeroize( buf, sizeof( buf ) );
 
     return( ret );
 }

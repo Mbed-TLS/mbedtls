@@ -2861,7 +2861,8 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    unsigned char buf[MBEDTLS_ECP_MAX_BYTES];
+    unsigned char buf[
+        PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
     psa_key_attributes_t key_attributes;
     size_t ecdh_bits = 0;
     size_t key_len;

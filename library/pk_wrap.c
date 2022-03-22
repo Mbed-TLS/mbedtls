@@ -128,7 +128,7 @@ int mbedtls_pk_error_from_psa_rsa( psa_status_t status )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 
 #if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-int mbedtls_pk_error_from_psa_ecdca( psa_status_t status )
+int mbedtls_pk_error_from_psa_ecdsa( psa_status_t status )
 {
     switch( status )
     {
@@ -926,7 +926,7 @@ static int ecdsa_verify_wrap( void *ctx_arg, mbedtls_md_type_t md_alg,
                               buf, 2 * signature_part_size );
     if( status != PSA_SUCCESS )
     {
-         ret = mbedtls_pk_error_from_psa_ecdca( status );
+         ret = mbedtls_pk_error_from_psa_ecdsa( status );
          goto cleanup;
     }
 
@@ -1147,7 +1147,7 @@ static int ecdsa_sign_wrap( void *ctx_arg, mbedtls_md_type_t md_alg,
                             sig, sig_size, sig_len );
     if( status != PSA_SUCCESS )
     {
-         ret = mbedtls_pk_error_from_psa_ecdca( status );
+         ret = mbedtls_pk_error_from_psa_ecdsa( status );
          goto cleanup;
     }
 
@@ -1469,7 +1469,7 @@ static int pk_opaque_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
     status = psa_sign_hash( *key, alg, hash, hash_len,
                             sig, sig_size, sig_len );
     if( status != PSA_SUCCESS )
-        return( mbedtls_pk_error_from_psa_ecdca( status ) );
+        return( mbedtls_pk_error_from_psa_ecdsa( status ) );
 
     /* transcode it to ASN.1 sequence */
     return( pk_ecdsa_sig_asn1_from_psa( sig, sig_len, sig_size ) );

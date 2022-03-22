@@ -143,7 +143,7 @@ extern const mbedtls_pk_info_t mbedtls_pk_opaque_info;
 int mbedtls_pk_error_from_psa( psa_status_t status );
 
 #if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-int mbedtls_pk_error_from_psa_ecdca( psa_status_t status );
+int mbedtls_pk_error_from_psa_ecdsa( psa_status_t status );
 #endif
 
 #if defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY)

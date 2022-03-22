@@ -1095,7 +1095,8 @@ void pk_psa_sign_ext( int pk_type, int parameter, int key_pk_type, int md_alg )
     size_t sig_len;
     unsigned char sig[MBEDTLS_PK_SIGNATURE_MAX_SIZE];
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
-    size_t hash_len = sizeof( hash );
+    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( md_alg );
+    size_t hash_len = mbedtls_md_get_size( md_info );
     void const *options = NULL;
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
     mbedtls_pk_rsassa_pss_options rsassa_pss_options;
@@ -1125,7 +1126,7 @@ void pk_psa_sign_ext( int pk_type, int parameter, int key_pk_type, int md_alg )
     }
 #endif
     TEST_ASSERT( mbedtls_pk_verify_ext( key_pk_type, options, &pk, md_alg,
-                                    hash, sizeof( hash ), sig, sig_len ) == 0 );
+                                        hash, hash_len, sig, sig_len ) == 0 );
 exit:
     PSA_DONE( );
     mbedtls_pk_free( &pk );

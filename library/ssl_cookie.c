@@ -69,7 +69,7 @@
 void mbedtls_ssl_cookie_init( mbedtls_ssl_cookie_ctx *ctx )
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    ctx->psa_hmac = MBEDTLS_SVC_KEY_ID_INIT;
+    ctx->psa_hmac_key = MBEDTLS_SVC_KEY_ID_INIT;
 #else
     mbedtls_md_init( &ctx->hmac_ctx );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
@@ -93,7 +93,7 @@ void mbedtls_ssl_cookie_set_timeout( mbedtls_ssl_cookie_ctx *ctx, unsigned long 
 void mbedtls_ssl_cookie_free( mbedtls_ssl_cookie_ctx *ctx )
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_destroy_key( ctx->psa_hmac );
+    psa_destroy_key( ctx->psa_hmac_key );
 #else
     mbedtls_md_free( &ctx->hmac_ctx );
 
@@ -131,7 +131,7 @@ int mbedtls_ssl_cookie_setup( mbedtls_ssl_cookie_ctx *ctx,
     psa_set_key_bits( &attributes, PSA_BYTES_TO_BITS( COOKIE_MD_OUTLEN ) );
 
     if( ( status = psa_generate_key( &attributes,
-                                     &ctx->psa_hmac ) ) != PSA_SUCCESS )
+                                     &ctx->psa_hmac_key ) ) != PSA_SUCCESS )
     {
         return psa_ssl_status_to_mbedtls( status );
     }
@@ -215,7 +215,7 @@ int mbedtls_ssl_cookie_write( void *p_ctx,
     *p += 4;
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    status = psa_mac_sign_setup( &operation, ctx->psa_hmac,
+    status = psa_mac_sign_setup( &operation, ctx->psa_hmac_key,
                                  ctx->psa_hmac_alg );
     if( status != PSA_SUCCESS )
     {
@@ -298,7 +298,7 @@ int mbedtls_ssl_cookie_check( void *p_ctx,
         return( -1 );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    status = psa_mac_verify_setup( &operation, ctx->psa_hmac,
+    status = psa_mac_verify_setup( &operation, ctx->psa_hmac_key,
                                    ctx->psa_hmac_alg );
     if( status != PSA_SUCCESS )
     {

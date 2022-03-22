@@ -155,6 +155,6 @@ int mbedtls_pk_psa_sign_ext( psa_algorithm_t psa_alg_md, void *ctx,
                              unsigned char *sig, size_t sig_size,
                              size_t *sig_len );
 
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_PSA_CRYPTO_C */
 
 #endif /* MBEDTLS_PK_WRAP_H */

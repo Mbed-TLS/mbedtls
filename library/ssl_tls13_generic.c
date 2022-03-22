@@ -1129,7 +1129,6 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
         pk_type = MBEDTLS_PK_ECDSA;
         break;
 #endif /* MBEDTLS_ECDSA_C */
-#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
     case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
         md_alg = MBEDTLS_MD_SHA256;
         pk_type = MBEDTLS_PK_RSASSA_PSS;
@@ -1142,7 +1141,6 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
         md_alg = MBEDTLS_MD_SHA512;
         pk_type = MBEDTLS_PK_RSASSA_PSS;
         break;
-#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
     default:
         break;
     }

@@ -537,7 +537,7 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 /**
- * \brief           Make signature with input pk type. not the type of \p ctx .
+ * \brief           Make signature given a signature type.
  *
  * \param pk_type   Signature type.
  * \param ctx       The PK context to use. It must have been set up

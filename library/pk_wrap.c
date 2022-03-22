@@ -251,7 +251,7 @@ cleanup:
         ret = mbedtls_pk_error_from_psa( status );
     return( ret );
 }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_PSA_CRYPTO_C */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 static int rsa_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,

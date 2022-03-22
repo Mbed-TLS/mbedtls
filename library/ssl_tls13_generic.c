@@ -983,7 +983,9 @@ cleanup:
  * STATE HANDLING: Output Certificate Verify
  */
 static uint16_t ssl_tls13_get_sig_alg_from_pk( mbedtls_ssl_context *ssl,
-                                               mbedtls_pk_context *own_key )
+                                               mbedtls_pk_context *own_key,
+                                               mbedtls_pk_type_t *pk_type,
+                                               mbedtls_md_type_t *md_alg)
 {
     mbedtls_pk_type_t sig = mbedtls_ssl_sig_from_pk( own_key );
     /* Determine the size of the key */
@@ -999,12 +1001,18 @@ static uint16_t ssl_tls13_get_sig_alg_from_pk( mbedtls_ssl_context *ssl,
             {
                 case 256:
                     algorithm = MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256;
+                    *md_alg = MBEDTLS_MD_SHA256;
+                    *pk_type = MBEDTLS_PK_ECDSA;
                     break;
                 case 384:
                     algorithm = MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384;
+                    *md_alg = MBEDTLS_MD_SHA384;
+                    *pk_type = MBEDTLS_PK_ECDSA;
                     break;
                 case 521:
                     algorithm = MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512;
+                    *md_alg = MBEDTLS_MD_SHA512;
+                    *pk_type = MBEDTLS_PK_ECDSA;
                     break;
                 default:
                     MBEDTLS_SSL_DEBUG_MSG( 3,
@@ -1023,18 +1031,24 @@ static uint16_t ssl_tls13_get_sig_alg_from_pk( mbedtls_ssl_context *ssl,
                                     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256 ) )
             {
                 algorithm = MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256;
+                *md_alg = MBEDTLS_MD_SHA256;
+                *pk_type = MBEDTLS_PK_RSASSA_PSS;
             }
             else if( own_key_size <= 3072 &&
                      mbedtls_ssl_sig_alg_is_received( ssl,
                                     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384 ) )
             {
                 algorithm = MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384;
+                *md_alg = MBEDTLS_MD_SHA384;
+                *pk_type = MBEDTLS_PK_RSASSA_PSS;
             }
             else if( own_key_size <= 4096 &&
                      mbedtls_ssl_sig_alg_is_received( ssl,
                                     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512 ) )
             {
                 algorithm = MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512;
+                *md_alg = MBEDTLS_MD_SHA512;
+                *pk_type = MBEDTLS_PK_RSASSA_PSS;
             }
             break;
 #endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
@@ -1098,7 +1112,8 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
      *    opaque signature<0..2^16-1>;
      *  } CertificateVerify;
      */
-    algorithm = ssl_tls13_get_sig_alg_from_pk( ssl, own_key );
+    algorithm = ssl_tls13_get_sig_alg_from_pk( ssl, own_key,
+                                               &pk_type, &md_alg );
     if( algorithm == MBEDTLS_TLS1_3_SIG_NONE ||
         ! mbedtls_ssl_sig_alg_is_received( ssl, algorithm ) )
     {
@@ -1113,37 +1128,6 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }
 
-    switch( algorithm )
-    {
-#if defined(MBEDTLS_ECDSA_C)
-    case MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256:
-        md_alg = MBEDTLS_MD_SHA256;
-        pk_type = MBEDTLS_PK_ECDSA;
-        break;
-    case MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384:
-        md_alg = MBEDTLS_MD_SHA384;
-        pk_type = MBEDTLS_PK_ECDSA;
-        break;
-    case MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512:
-        md_alg = MBEDTLS_MD_SHA512;
-        pk_type = MBEDTLS_PK_ECDSA;
-        break;
-#endif /* MBEDTLS_ECDSA_C */
-    case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
-        md_alg = MBEDTLS_MD_SHA256;
-        pk_type = MBEDTLS_PK_RSASSA_PSS;
-        break;
-    case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384:
-        md_alg = MBEDTLS_MD_SHA384;
-        pk_type = MBEDTLS_PK_RSASSA_PSS;
-        break;
-    case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:
-        md_alg = MBEDTLS_MD_SHA512;
-        pk_type = MBEDTLS_PK_RSASSA_PSS;
-        break;
-    default:
-        break;
-    }
     /* Check there is space for the algorithm identifier (2 bytes) and the
      * signature length (2 bytes).
      */

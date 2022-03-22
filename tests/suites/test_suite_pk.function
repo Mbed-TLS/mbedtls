@@ -1098,9 +1098,7 @@ void pk_psa_sign_ext( int pk_type, int parameter, int key_pk_type, int md_alg )
     const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( md_alg );
     size_t hash_len = mbedtls_md_get_size( md_info );
     void const *options = NULL;
-#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
     mbedtls_pk_rsassa_pss_options rsassa_pss_options;
-#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
     memset( hash, 0x2a, sizeof( hash ) );
     memset( sig, 0, sizeof( sig ) );
 
@@ -1115,7 +1113,7 @@ void pk_psa_sign_ext( int pk_type, int parameter, int key_pk_type, int md_alg )
     TEST_ASSERT( mbedtls_pk_sign_ext( key_pk_type, &pk, md_alg, hash, hash_len,
                                       sig, sizeof( sig ), &sig_len,
                                       mbedtls_test_rnd_std_rand, NULL ) == 0 );
-#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
+
     if( key_pk_type == MBEDTLS_PK_RSASSA_PSS )
     {
         rsassa_pss_options.mgf1_hash_id = md_alg;
@@ -1123,7 +1121,6 @@ void pk_psa_sign_ext( int pk_type, int parameter, int key_pk_type, int md_alg )
         rsassa_pss_options.expected_salt_len = mbedtls_md_get_size( md_info );
         options = (const void*) &rsassa_pss_options;
     }
-#endif
     TEST_ASSERT( mbedtls_pk_verify_ext( key_pk_type, options, &pk, md_alg,
                                         hash, hash_len, sig, sig_len ) == 0 );
 exit:

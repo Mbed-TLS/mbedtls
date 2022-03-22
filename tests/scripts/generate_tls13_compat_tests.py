@@ -83,11 +83,12 @@ class TLSProgram(metaclass=abc.ABCMeta):
     Base class for generate server/client command.
     """
     # pylint: disable=too-many-arguments
-    def __init__(self, ciphersuite=None, signature_algorithm=None, named_group=None,
+    def __init__(self, ciphersuite=None, signature_algorithm=None, named_group=None, peer_named_group=None,
                  is_hrr=False, cert_sig_alg=None, compat_mode=True):
         self._ciphers = []
         self._sig_algs = []
         self._named_groups = []
+        self._peer_named_group = peer_named_group
         self._is_hrr = is_hrr
         self._cert_sig_algs = []
         if ciphersuite:
@@ -154,15 +155,16 @@ class OpenSSLServ(TLSProgram):
             ret += ['-cert {cert} -key {key}'.format(cert=cert, key=key)]
         ret += ['-accept $SRV_PORT']
 
-        if self._ciphers:
-            ciphersuites = ':'.join(self._ciphers)
-            ret += ["-ciphersuites {ciphersuites}".format(ciphersuites=ciphersuites)]
+        if not self._is_hrr:
+            if self._ciphers:
+                ciphersuites = ':'.join(self._ciphers)
+                ret += ["-ciphersuites {ciphersuites}".format(ciphersuites=ciphersuites)]
 
-        if self._sig_algs:
-            signature_algorithms = set(self._sig_algs + self._cert_sig_algs)
-            signature_algorithms = ':'.join(signature_algorithms)
-            ret += ["-sigalgs {signature_algorithms}".format(
-                signature_algorithms=signature_algorithms)]
+            if self._sig_algs:
+                signature_algorithms = set(self._sig_algs + self._cert_sig_algs)
+                signature_algorithms = ':'.join(signature_algorithms)
+                ret += ["-sigalgs {signature_algorithms}".format(
+                    signature_algorithms=signature_algorithms)]
 
         if self._named_groups:
             named_groups = ':'.join(
@@ -248,18 +250,22 @@ class GnuTLSServ(TLSProgram):
                     if i not in priority_string_list:
                         yield i
 
-        if self._ciphers:
-            priority_string_list.extend(update_priority_string_list(
-                self._ciphers, self.CIPHER_SUITE))
+        if self._is_hrr:
+            priority_string_list.extend(
+                        ['CIPHER-ALL', 'SIGN-ALL', 'MAC-ALL'])
         else:
-            priority_string_list.append('CIPHER-ALL')
+            if self._ciphers:
+                priority_string_list.extend(update_priority_string_list(
+                    self._ciphers, self.CIPHER_SUITE))
+            else:
+                priority_string_list.append('CIPHER-ALL')
 
-        if self._sig_algs:
-            signature_algorithms = set(self._sig_algs + self._cert_sig_algs)
-            priority_string_list.extend(update_priority_string_list(
-                signature_algorithms, self.SIGNATURE_ALGORITHM))
-        else:
-            priority_string_list.append('SIGN-ALL')
+            if self._sig_algs:
+                signature_algorithms = set(self._sig_algs + self._cert_sig_algs)
+                priority_string_list.extend(update_priority_string_list(
+                    signature_algorithms, self.SIGNATURE_ALGORITHM))
+            else:
+                priority_string_list.append('SIGN-ALL')
 
 
         if self._named_groups:
@@ -303,23 +309,25 @@ class MbedTLSCli(TLSProgram):
         ret += ['ca_file={cafile}'.format(
             cafile=CERTIFICATES[self._cert_sig_algs[0]].cafile)]
 
-        if self._ciphers:
-            ciphers = ','.join(
-                map(lambda cipher: self.CIPHER_SUITE[cipher], self._ciphers))
-            ret += ["force_ciphersuite={ciphers}".format(ciphers=ciphers)]
+        if not self._is_hrr:
+            if self._ciphers:
+                ciphers = ','.join(
+                    map(lambda cipher: self.CIPHER_SUITE[cipher], self._ciphers))
+                ret += ["force_ciphersuite={ciphers}".format(ciphers=ciphers)]
 
-        if self._sig_algs + self._cert_sig_algs:
-            ret += ['sig_algs={sig_algs}'.format(
-                sig_algs=','.join(set(self._sig_algs + self._cert_sig_algs)))]
+            if self._sig_algs + self._cert_sig_algs:
+                ret += ['sig_algs={sig_algs}'.format(
+                    sig_algs=','.join(set(self._sig_algs + self._cert_sig_algs)))]
 
         if self._named_groups:
-            named_groups = ','.join(self._named_groups)
             if self._is_hrr:
-                named_groups += ','
-                self_group_list = list(NAMED_GROUP_IANA_VALUE.keys())
-                self_group_list.remove(self._named_groups[0])
-                self_group = ','.join(self_group_list)
-                named_groups += (self_group)
+                for sig_alg in self._sig_algs:
+                    if sig_alg in ('ecdsa_secp256r1_sha256',
+                                   'ecdsa_secp384r1_sha384',
+                                   'ecdsa_secp521r1_sha512'):
+                        self.add_named_groups(sig_alg.split('_')[1])
+                self.add_named_groups(self._peer_named_group)
+            named_groups = ','.join(self._named_groups)
             ret += ["curves={named_groups}".format(named_groups=named_groups)]
 
         ret = ' '.join(ret)
@@ -360,12 +368,9 @@ class MbedTLSCli(TLSProgram):
 
     # pylint: disable=C0330
     def post_hrr_checks(self):
-        check_strings = ["server hello, chosen ciphersuite: ( {:04x} ) - {}".format(
-                            CIPHER_SUITE_IANA_VALUE[self._ciphers[0]],
-                            self.CIPHER_SUITE[self._ciphers[0]]),
-                         "Certificate Verify: Signature algorithm ( {:04x} )".format(
-                             SIG_ALG_IANA_VALUE[self._sig_algs[0]]),
-                         "<= ssl_tls13_process_server_hello ( HelloRetryRequest )",
+        check_strings = ["NamedGroup: {group}".format(group=self._named_groups[0]),
+                         "NamedGroup: {group}".format(group=self._named_groups[-1]),
+                        "<= ssl_tls13_process_server_hello ( HelloRetryRequest )",
                          "Verifying peer X.509 certificate... ok", ]
         return ['-c "{}"'.format(i) for i in check_strings]
 
@@ -405,12 +410,10 @@ def generate_compat_hrr_test(server=None, client=None, cipher=None, sig_alg=None
     """
     Generate test case with `ssl-opt.sh` format.
     """
-    name = 'TLS 1.3 {client[0]}->{server[0]}: {cipher},{server_named_group},'.format(
-            client=client, server=server, cipher=cipher, server_named_group=server_named_group)
-    name += '{client_named_group},{sig_alg}, force hrr'.format(
-            client_named_group=client_named_group, sig_alg=sig_alg)
-    server_object = SERVER_CLASSES[server](cipher, sig_alg, server_named_group)
-    client_object = CLIENT_CLASSES[client](cipher, sig_alg, client_named_group, True)
+    name = 'TLS 1.3 {client[0]}->{server[0]}: HRR {client_named_group} -> {server_named_group}'.format(
+            client=client, server=server, client_named_group=client_named_group, server_named_group=server_named_group)
+    server_object = SERVER_CLASSES[server](cipher, sig_alg, server_named_group, client_named_group, True)
+    client_object = CLIENT_CLASSES[client](cipher, sig_alg, client_named_group, server_named_group, True)
 
     cmd = ['run_test "{}"'.format(name), '"{}"'.format(
         server_object.cmd()), '"{}"'.format(client_object.cmd()), '0']

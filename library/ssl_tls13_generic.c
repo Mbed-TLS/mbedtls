@@ -732,24 +732,6 @@ static int ssl_tls13_validate_certificate( mbedtls_ssl_context *ssl )
     /*
      * Secondary checks: always done, but change 'ret' only if it was 0
      */
-
-#if defined(MBEDTLS_ECP_C)
-    {
-        const mbedtls_pk_context *pk = &ssl->session_negotiate->peer_cert->pk;
-
-        /* If certificate uses an EC key, make sure the curve is OK */
-        if( mbedtls_pk_can_do( pk, MBEDTLS_PK_ECKEY ) &&
-            mbedtls_ssl_check_curve( ssl, mbedtls_pk_ec( *pk )->grp.id ) != 0 )
-        {
-            verify_result |= MBEDTLS_X509_BADCERT_BAD_KEY;
-
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate ( EC key curve )" ) );
-            if( ret == 0 )
-                ret = MBEDTLS_ERR_SSL_BAD_CERTIFICATE;
-        }
-    }
-#endif /* MBEDTLS_ECP_C */
-
     if( mbedtls_ssl_check_cert_usage( ssl->session_negotiate->peer_cert,
                                       ssl->handshake->ciphersuite_info,
                                       !ssl->conf->endpoint,

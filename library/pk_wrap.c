@@ -197,7 +197,7 @@ static int rsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
 }
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
-int  mbedtls_pk_psa_rsa_sign_ext( psa_algorithm_t psa_alg_md, void *pk_ctx,
+int  mbedtls_pk_psa_rsa_sign_ext( psa_algorithm_t alg, void *pk_ctx,
                                   const unsigned char *hash, size_t hash_len,
                                   unsigned char *sig, size_t sig_size,
                                   size_t *sig_len )
@@ -224,7 +224,7 @@ int  mbedtls_pk_psa_rsa_sign_ext( psa_algorithm_t psa_alg_md, void *pk_ctx,
     if( key_len <= 0 )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_HASH );
-    psa_set_key_algorithm( &attributes, psa_alg_md );
+    psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, PSA_KEY_TYPE_RSA_KEY_PAIR );
 
     status = psa_import_key( &attributes,
@@ -235,7 +235,7 @@ int  mbedtls_pk_psa_rsa_sign_ext( psa_algorithm_t psa_alg_md, void *pk_ctx,
         ret = mbedtls_pk_error_from_psa( status );
         goto cleanup;
     }
-    status = psa_sign_hash( key_id, psa_alg_md, hash, hash_len,
+    status = psa_sign_hash( key_id, alg, hash, hash_len,
                             sig, sig_size, sig_len );
     if( status != PSA_SUCCESS )
     {

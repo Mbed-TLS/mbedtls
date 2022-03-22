@@ -1118,7 +1118,6 @@ void pk_psa_sign_ext( int pk_type, int parameter, int key_pk_type, int md_alg )
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
     if( key_pk_type == MBEDTLS_PK_RSASSA_PSS )
     {
-        const mbedtls_md_info_t* md_info = mbedtls_md_info_from_type( md_alg );
         rsassa_pss_options.mgf1_hash_id = md_alg;
         TEST_ASSERT( md_info != NULL );
         rsassa_pss_options.expected_salt_len = mbedtls_md_get_size( md_info );

@@ -251,8 +251,7 @@ class GnuTLSServ(TLSProgram):
                         yield i
 
         if self._is_hrr:
-            priority_string_list.extend(
-                        ['CIPHER-ALL', 'SIGN-ALL', 'MAC-ALL'])
+            priority_string_list.extend(['CIPHER-ALL', 'SIGN-ALL', 'MAC-ALL'])
         else:
             if self._ciphers:
                 priority_string_list.extend(update_priority_string_list(
@@ -321,6 +320,10 @@ class MbedTLSCli(TLSProgram):
 
         if self._named_groups:
             if self._is_hrr:
+                # pylint: disable=pointless-string-statement
+                """
+                TODO: Use _cert_sig_algs to select EC groups in certificate verification.
+                """
                 for sig_alg in self._sig_algs:
                     if sig_alg in ('ecdsa_secp256r1_sha256',
                                    'ecdsa_secp384r1_sha384',
@@ -408,12 +411,15 @@ def generate_compat_test(server=None, client=None, cipher=None, sig_alg=None, na
 def generate_compat_hrr_test(server=None, client=None, cipher=None, sig_alg=None,
                              client_named_group=None, server_named_group=None):
     """
-    Generate test case with `ssl-opt.sh` format.
+    Generate Hello Retry Request test case with `ssl-opt.sh` format.
     """
-    name = 'TLS 1.3 {client[0]}->{server[0]}: HRR {client_named_group} -> {server_named_group}'.format(
-            client=client, server=server, client_named_group=client_named_group, server_named_group=server_named_group)
-    server_object = SERVER_CLASSES[server](cipher, sig_alg, server_named_group, client_named_group, True)
-    client_object = CLIENT_CLASSES[client](cipher, sig_alg, client_named_group, server_named_group, True)
+    name = 'TLS 1.3 {client[0]}->{server[0]}: HRR {c_named_group} -> {s_named_group}'.format(
+            client=client, server=server, c_named_group=client_named_group,
+            s_named_group=server_named_group)
+    server_object = SERVER_CLASSES[server](cipher, sig_alg, server_named_group,
+                                           client_named_group, True, sig_alg)
+    client_object = CLIENT_CLASSES[client](cipher, sig_alg, client_named_group,
+                                           server_named_group, True, sig_alg)
 
     cmd = ['run_test "{}"'.format(name), '"{}"'.format(
         server_object.cmd()), '"{}"'.format(client_object.cmd()), '0']

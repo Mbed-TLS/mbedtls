@@ -4096,8 +4096,10 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
         destruction_status = psa_destroy_key( handshake->ecdh_psa_privkey );
         handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
 
-        if( status != PSA_SUCCESS || destruction_status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+        if( status != PSA_SUCCESS )
+            return( psa_ssl_status_to_mbedtls( status ) );
+        else if( destruction_status != PSA_SUCCESS )
+            return( psa_ssl_status_to_mbedtls( destruction_status ) );
 
         /* Write the ECDH computation length before the ECDH computation */
         MBEDTLS_PUT_UINT16_BE( zlen, psm, 0 );

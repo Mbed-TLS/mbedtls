@@ -520,7 +520,7 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 /*
- * Make a signature with options
+ * Make a signature given a signature type.
  */
 int mbedtls_pk_sign_ext( mbedtls_pk_type_t pk_type,
                          mbedtls_pk_context *ctx,
@@ -530,7 +530,9 @@ int mbedtls_pk_sign_ext( mbedtls_pk_type_t pk_type,
                          int (*f_rng)(void *, unsigned char *, size_t),
                          void *p_rng )
 {
-
+#if defined(MBEDTLS_RSA_C)
+    psa_algorithm_t psa_md_alg;
+#endif /* MBEDTLS_RSA_C */
     *sig_len = 0;
 
     if( ctx->pk_info == NULL )
@@ -545,8 +547,10 @@ int mbedtls_pk_sign_ext( mbedtls_pk_type_t pk_type,
                                  sig, sig_size, sig_len, f_rng, p_rng ) );
     }
 #if defined(MBEDTLS_RSA_C)
-    return( mbedtls_pk_psa_rsa_sign_ext( PSA_ALG_RSA_PSS(
-                                            mbedtls_psa_translate_md( md_alg ) ),
+    psa_md_alg = mbedtls_psa_translate_md( md_alg );
+    if( psa_md_alg == 0 )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+    return( mbedtls_pk_psa_rsa_sign_ext( PSA_ALG_RSA_PSS( psa_md_alg ),
                                          ctx->pk_ctx, hash, hash_len,
                                          sig, sig_size, sig_len ) );
 #else /* MBEDTLS_RSA_C */

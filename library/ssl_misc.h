@@ -2055,31 +2055,25 @@ static inline int mbedtls_ssl_sig_alg_is_supported(
           MBEDTLS_ECDSA_C */
 
 #if defined(MBEDTLS_SHA256_C) && \
-    defined(MBEDTLS_PKCS1_V21) && \
-    defined(MBEDTLS_RSA_C)
+    defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
             case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
                 break;
 #endif /* MBEDTLS_SHA256_C && \
-          MBEDTLS_PKCS1_V21 && \
-          MBEDTLS_RSA_C */
+          MBEDTLS_X509_RSASSA_PSS_SUPPORT */
 
 #if defined(MBEDTLS_SHA384_C) && \
-    defined(MBEDTLS_PKCS1_V21) && \
-    defined(MBEDTLS_RSA_C)
+    defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
             case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384:
                 break;
 #endif /* MBEDTLS_SHA384_C && \
-          MBEDTLS_PKCS1_V21 && \
-          MBEDTLS_RSA_C */
+          MBEDTLS_X509_RSASSA_PSS_SUPPORT */
 
 #if defined(MBEDTLS_SHA512_C) && \
-    defined(MBEDTLS_PKCS1_V21) && \
-    defined(MBEDTLS_RSA_C)
+    defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
             case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:
                 break;
 #endif /* MBEDTLS_SHA512_C && \
-          MBEDTLS_PKCS1_V21 && \
-          MBEDTLS_RSA_C */
+          MBEDTLS_X509_RSASSA_PSS_SUPPORT */
 
 #if defined(MBEDTLS_SHA256_C) && \
     defined(MBEDTLS_PKCS1_V15) && \

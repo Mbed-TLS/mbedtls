@@ -338,6 +338,7 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
     /* We currently only support ECDSA-based signatures */
     switch( algorithm )
     {
+#if defined(MBEDTLS_ECDSA_C)
         case MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256:
             md_alg = MBEDTLS_MD_SHA256;
             sig_alg = MBEDTLS_PK_ECDSA;
@@ -350,7 +351,9 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
             md_alg = MBEDTLS_MD_SHA512;
             sig_alg = MBEDTLS_PK_ECDSA;
             break;
-#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PKCS1_V21)
+#endif /* MBEDTLS_ECDSA_C */
+
+#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
 #if defined(MBEDTLS_SHA256_C)
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
             md_alg = MBEDTLS_MD_SHA256;
@@ -371,7 +374,7 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
             sig_alg = MBEDTLS_PK_RSASSA_PSS;
             break;
 #endif /* MBEDTLS_SHA512_C */
-#endif /* MBEDTLS_RSA_C && MBEDTLS_PKCS1_V21 */
+#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
         default:
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "Certificate Verify: Unknown signature algorithm." ) );
             goto error;

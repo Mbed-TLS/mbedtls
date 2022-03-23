@@ -3025,10 +3025,14 @@ ecdh_calc_secret:
         if( ssl_conf_has_static_raw_psk( ssl->conf ) == 0 )
             return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
 
+        /* uint16 to store content length */
+        const size_t content_len_size = 2;
+
         header_len = 4;
         content_len = ssl->conf->psk_identity_len;
 
-        if( header_len + 2 + content_len > MBEDTLS_SSL_OUT_CONTENT_LEN )
+        if( header_len + content_len_size + content_len
+                    > MBEDTLS_SSL_OUT_CONTENT_LEN )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1,
                 ( "psk identity too long or SSL buffer too short" ) );

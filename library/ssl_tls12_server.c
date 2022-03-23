@@ -4077,7 +4077,7 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
         /* The ECDH secret is the premaster secret used for key derivation. */
         unsigned char *psm = ssl->handshake->premaster;
         unsigned char *psm_end = psm + sizeof( ssl->handshake->premaster );
-        size_t zlen;
+        size_t zlen = 0;
 
         /* Compute ECDH shared secret. */
         status = psa_raw_key_agreement( PSA_ALG_ECDH,

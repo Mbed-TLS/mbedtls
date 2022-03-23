@@ -632,6 +632,7 @@ struct mbedtls_ssl_handshake_params
     psa_key_type_t ecdh_psa_type;
     uint16_t ecdh_bits;
     mbedtls_svc_key_id_t ecdh_psa_privkey;
+    uint8_t ecdh_psa_shared_key;
     unsigned char ecdh_psa_peerkey[MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH];
     size_t ecdh_psa_peerkey_len;
 #endif /* MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3 */

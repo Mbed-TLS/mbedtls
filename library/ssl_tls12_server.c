@@ -3946,18 +3946,22 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
         {
             ret = psa_ssl_status_to_mbedtls( status );
             MBEDTLS_SSL_DEBUG_RET( 1, "psa_raw_key_agreement", ret );
-            (void) psa_destroy_key( handshake->ecdh_psa_privkey );
+            if( handshake->ecdh_psa_shared_key == 0 )
+                (void) psa_destroy_key( handshake->ecdh_psa_privkey );
             handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
             return( ret );
         }
 
-        status = psa_destroy_key( handshake->ecdh_psa_privkey );
-
-        if( status != PSA_SUCCESS )
+        if( handshake->ecdh_psa_shared_key == 0 )
         {
-            ret = psa_ssl_status_to_mbedtls( status );
-            MBEDTLS_SSL_DEBUG_RET( 1, "psa_destroy_key", ret );
-            return( ret );
+            status = psa_destroy_key( handshake->ecdh_psa_privkey );
+
+            if( status != PSA_SUCCESS )
+            {
+                ret = psa_ssl_status_to_mbedtls( status );
+                MBEDTLS_SSL_DEBUG_RET( 1, "psa_destroy_key", ret );
+                return( ret );
+            }
         }
         handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
     }

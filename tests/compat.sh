@@ -213,15 +213,6 @@ filter_ciphersuites()
         G_CIPHERS=$( filter "$G_CIPHERS" )
     fi
 
-    # OpenSSL <1.0.2 doesn't support DTLS 1.2. Check what OpenSSL
-    # supports from the s_server help. (The s_client help isn't
-    # accurate as of 1.0.2g: it supports DTLS 1.2 but doesn't list it.
-    # But the s_server help seems to be accurate.)
-    if ! $OPENSSL_CMD s_server -help 2>&1 | grep -q "^ *-$O_MODE "; then
-        M_CIPHERS=""
-        O_CIPHERS=""
-    fi
-
     # For GnuTLS client -> mbed TLS server,
     # we need to force IPv4 by connecting to 127.0.0.1 but then auth fails
     if [ "X$VERIFY" = "XYES" ] && is_dtls "$MODE"; then
@@ -1077,6 +1068,15 @@ for VERIFY in $VERIFIES; do
                 [Oo]pen*)
 
                     if test "$OSSL_NO_DTLS" -gt 0 && is_dtls "$MODE"; then
+                        continue;
+                    fi
+
+                    # OpenSSL <1.0.2 doesn't support DTLS 1.2. Check if OpenSSL
+                    # supports $O_MODE from the s_server help. (The s_client
+                    # help isn't accurate as of 1.0.2g: it supports DTLS 1.2
+                    # but doesn't list it. But the s_server help seems to be
+                    # accurate.)
+                    if ! $OPENSSL_CMD s_server -help 2>&1 | grep -q "^ *-$O_MODE "; then
                         continue;
                     fi
 

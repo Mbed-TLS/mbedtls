@@ -3066,7 +3066,7 @@ ecdh_calc_secret:
         status = psa_generate_key( &key_attributes,
                                    &handshake->ecdh_psa_privkey );
         if( status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+            return( psa_ssl_status_to_mbedtls( status ) );
 
         /* Export the public part of the ECDH private key from PSA.
          * The export format is an ECPoint structure as expected by TLS,
@@ -3083,7 +3083,7 @@ ecdh_calc_secret:
         {
             psa_destroy_key( handshake->ecdh_psa_privkey );
             handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
-            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+            return( psa_ssl_status_to_mbedtls( status ) );
         }
 
         ssl->out_msg[header_len] = (unsigned char) own_pubkey_len;
@@ -3111,8 +3111,10 @@ ecdh_calc_secret:
         destruction_status = psa_destroy_key( handshake->ecdh_psa_privkey );
         handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
 
-        if( status != PSA_SUCCESS || destruction_status != PSA_SUCCESS )
-            return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+        if( status != PSA_SUCCESS )
+            return( psa_ssl_status_to_mbedtls( status ) );
+        else if( destruction_status != PSA_SUCCESS )
+            return( psa_ssl_status_to_mbedtls( destruction_status ) );
 
         /* Write the ECDH computation length before the ECDH computation */
         MBEDTLS_PUT_UINT16_BE( zlen, p, 0 );

@@ -3016,12 +3016,10 @@ ecdh_calc_secret:
          * opaque psk_identity<0..2^16-1>;
          */
         if( mbedtls_ssl_conf_has_static_psk( ssl->conf ) == 0 )
-        {
             /* We don't offer PSK suites if we don't have a PSK,
              * and we check that the server's choice is among the
              * ciphersuites we offered, so this should never happen. */
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-        }
 
         /* Opaque PSKs are currently only supported for PSK-only suites. */
         if( ssl_conf_has_static_raw_psk( ssl->conf ) == 0 )
@@ -3129,13 +3127,11 @@ ecdh_calc_secret:
 
         if( mbedtls_ssl_get_psk( ssl, &psk, &psk_len )
                 == MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED )
-        {
             /*
              * This should never happen because the existence of a PSK is always
              * checked before calling this function
              */
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-        }
 
         /* Write the PSK length as uint16 */
         MBEDTLS_PUT_UINT16_BE( psk_len, p, 0 );

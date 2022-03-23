@@ -335,14 +335,9 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
         goto error;
     }
 
-    /* We currently only support ECDSA-based signatures */
     if( mbedtls_ssl_tls13_get_pk_type_and_md_alg_from_sig_alg(
-                                        algorithm, &sig_alg, &md_alg ) == 0 )
+                                        algorithm, &sig_alg, &md_alg ) != 0 )
     {
-        /* algorithm not in offered signature algorithms list */
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Get pk type and md algorithm from "
-                                    "signature algorithm(%04x) fail.",
-                                    ( unsigned int ) algorithm ) );
         goto error;
     }
 
@@ -1137,17 +1132,9 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
     ret = mbedtls_ssl_tls13_get_pk_type_and_md_alg_from_sig_alg( algorithm,
                                                                  &pk_type,
                                                                  &md_alg );
-    if( ret == 0 )
+    if( ret != 0 )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1,
-                    ( "signature algorithm is not supported." ) );
-
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Signature algorithm is %s",
-                                    mbedtls_ssl_sig_alg_to_str( algorithm ) ) );
-
-        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
-                                      MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR  );
 
     }
 

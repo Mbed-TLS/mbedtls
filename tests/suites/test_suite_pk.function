@@ -1091,6 +1091,7 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_GENPRIME */
 void pk_psa_sign_ext( int pk_type, int parameter, int key_pk_type, int md_alg )
 {
+    /* See the description of pk_genkey() for the description of the `parameter` argument. */
     mbedtls_pk_context pk;
     size_t sig_len;
     unsigned char sig[MBEDTLS_PK_SIGNATURE_MAX_SIZE];

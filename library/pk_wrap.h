@@ -142,7 +142,7 @@ extern const mbedtls_pk_info_t mbedtls_pk_opaque_info;
 int mbedtls_pk_error_from_psa_ecdsa( psa_status_t status );
 #endif
 
-#endif
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 int mbedtls_pk_error_from_psa( psa_status_t status );

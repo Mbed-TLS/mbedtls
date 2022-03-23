@@ -1956,11 +1956,11 @@ static inline int mbedtls_ssl_sig_alg_is_offered( const mbedtls_ssl_context *ssl
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 static inline int mbedtls_ssl_tls13_get_pk_type_and_md_alg_from_sig_alg(
-    uint16_t sig_alg, mbedtls_pk_type_t *pk_type, mbedtls_md_type_t *md_alg)
+    uint16_t sig_alg, mbedtls_pk_type_t *pk_type, mbedtls_md_type_t *md_alg )
 {
     *pk_type = MBEDTLS_PK_NONE;
     *md_alg = MBEDTLS_MD_NONE;
-    ((void) sig_alg);
+
     switch( sig_alg )
     {
 #if defined(MBEDTLS_SHA256_C) && \
@@ -2057,9 +2057,9 @@ static inline int mbedtls_ssl_tls13_get_pk_type_and_md_alg_from_sig_alg(
           MBEDTLS_RSA_C */
 
             default:
-                return( 0 );
+                return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
         }
-        return( 1 );
+        return( 0 );
 }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
@@ -2136,7 +2136,7 @@ static inline int mbedtls_ssl_sig_alg_is_supported(
     {
         mbedtls_pk_type_t pk_type;
         mbedtls_md_type_t md_alg;
-        return( mbedtls_ssl_tls13_get_pk_type_and_md_alg_from_sig_alg(
+        return( ! mbedtls_ssl_tls13_get_pk_type_and_md_alg_from_sig_alg(
                                                 sig_alg, &pk_type, &md_alg ) );
     }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */

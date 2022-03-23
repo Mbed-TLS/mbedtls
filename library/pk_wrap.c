@@ -197,12 +197,12 @@ static int rsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
 }
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
-int  mbedtls_pk_psa_rsa_sign_ext( psa_algorithm_t alg, void *pk_ctx,
+int  mbedtls_pk_psa_rsa_sign_ext( psa_algorithm_t alg,
+                                  mbedtls_rsa_context *rsa_ctx,
                                   const unsigned char *hash, size_t hash_len,
                                   unsigned char *sig, size_t sig_size,
                                   size_t *sig_len )
 {
-    mbedtls_rsa_context * rsa = (mbedtls_rsa_context *) pk_ctx;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
@@ -212,14 +212,14 @@ int  mbedtls_pk_psa_rsa_sign_ext( psa_algorithm_t alg, void *pk_ctx,
     unsigned char buf[MBEDTLS_PK_RSA_PRV_DER_MAX_BYTES];
     mbedtls_pk_info_t pk_info = mbedtls_rsa_info;
 
-    *sig_len = mbedtls_rsa_get_len( rsa );
+    *sig_len = mbedtls_rsa_get_len( rsa_ctx );
     if( sig_size < *sig_len )
         return( MBEDTLS_ERR_PK_BUFFER_TOO_SMALL );
 
     /* mbedtls_pk_write_key_der() expects a full PK context;
      * re-construct one to make it happy */
     key.pk_info = &pk_info;
-    key.pk_ctx = pk_ctx;
+    key.pk_ctx = rsa_ctx;
     key_len = mbedtls_pk_write_key_der( &key, buf, sizeof( buf ) );
     if( key_len <= 0 )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );

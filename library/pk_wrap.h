@@ -151,7 +151,8 @@ int mbedtls_pk_error_from_psa_rsa( psa_status_t status );
 #endif
 
 #if defined(MBEDTLS_RSA_C)
-int  mbedtls_pk_psa_rsa_sign_ext( psa_algorithm_t psa_alg_md, void *ctx,
+int  mbedtls_pk_psa_rsa_sign_ext( psa_algorithm_t psa_alg_md,
+                                  mbedtls_rsa_context *rsa_ctx,
                                   const unsigned char *hash, size_t hash_len,
                                   unsigned char *sig, size_t sig_size,
                                   size_t *sig_len );

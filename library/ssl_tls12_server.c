@@ -4083,6 +4083,8 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
         unsigned char *psm = ssl->handshake->premaster;
         const unsigned char* const psm_end =
                     psm + sizeof( ssl->handshake->premaster );
+        /* uint16 to store length (in octets) of the ECDH computation */
+        const size_t zlen_size = 2;
         size_t zlen = 0;
 
         /* Compute ECDH shared secret. */
@@ -4090,8 +4092,8 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
                                         handshake->ecdh_psa_privkey,
                                         handshake->ecdh_psa_peerkey,
                                         handshake->ecdh_psa_peerkey_len,
-                                        psm + 2,
-                                        psm_end - ( psm + 2 ),
+                                        psm + zlen_size,
+                                        psm_end - ( psm + zlen_size ),
                                         &zlen );
 
         destruction_status = psa_destroy_key( handshake->ecdh_psa_privkey );
@@ -4104,7 +4106,7 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 
         /* Write the ECDH computation length before the ECDH computation */
         MBEDTLS_PUT_UINT16_BE( zlen, psm, 0 );
-        psm += 2 + zlen;
+        psm += zlen_size + zlen;
 
         /* opaque psk<0..2^16-1>; */
         if( psm_end - psm < 2 )

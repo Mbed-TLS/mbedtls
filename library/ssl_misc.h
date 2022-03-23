@@ -1963,98 +1963,80 @@ static inline int mbedtls_ssl_tls13_get_pk_type_and_md_alg_from_sig_alg(
 
     switch( sig_alg )
     {
-#if defined(MBEDTLS_SHA256_C) && \
-    defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) && \
-    defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_ECDSA_C)
+
+#if defined(MBEDTLS_SHA256_C) && defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
         case MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256:
             *md_alg = MBEDTLS_MD_SHA256;
             *pk_type = MBEDTLS_PK_ECDSA;
             break;
-#endif /* MBEDTLS_SHA256_C &&
-          MBEDTLS_ECP_DP_SECP256R1_ENABLED &&
-          MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_SHA256_C && MBEDTLS_ECP_DP_SECP256R1_ENABLED */
 
-#if defined(MBEDTLS_SHA384_C) && \
-    defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED) && \
-    defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_SHA384_C) && defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
         case MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384:
             *md_alg = MBEDTLS_MD_SHA384;
             *pk_type = MBEDTLS_PK_ECDSA;
             break;
-#endif /* MBEDTLS_SHA384_C &&
-          MBEDTLS_ECP_DP_SECP384R1_ENABLED &&
-          MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_SHA384_C && MBEDTLS_ECP_DP_SECP384R1_ENABLED */
 
-#if defined(MBEDTLS_SHA512_C) && \
-    defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED) && \
-    defined(MBEDTLS_ECDSA_C)
+#if defined(MBEDTLS_SHA512_C) && defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
         case MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512:
             *md_alg = MBEDTLS_MD_SHA512;
             *pk_type = MBEDTLS_PK_ECDSA;
             break;
-#endif /* MBEDTLS_SHA512_C &&
-          MBEDTLS_ECP_DP_SECP521R1_ENABLED &&
-          MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_SHA512_C && MBEDTLS_ECP_DP_SECP521R1_ENABLED */
 
-#if defined(MBEDTLS_SHA256_C) && \
-    defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
+#endif /* MBEDTLS_ECDSA_C */
+
+#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
+
+#if defined(MBEDTLS_SHA256_C)
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
             *md_alg = MBEDTLS_MD_SHA256;
             *pk_type = MBEDTLS_PK_RSASSA_PSS;
             break;
-#endif /* MBEDTLS_SHA256_C && \
-          MBEDTLS_X509_RSASSA_PSS_SUPPORT */
+#endif /* MBEDTLS_SHA256_C  */
 
-#if defined(MBEDTLS_SHA384_C) && \
-    defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
+#if defined(MBEDTLS_SHA384_C)
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384:
             *md_alg = MBEDTLS_MD_SHA384;
             *pk_type = MBEDTLS_PK_RSASSA_PSS;
             break;
-#endif /* MBEDTLS_SHA384_C && \
-          MBEDTLS_X509_RSASSA_PSS_SUPPORT */
+#endif /* MBEDTLS_SHA384_C */
 
-#if defined(MBEDTLS_SHA512_C) && \
-    defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
+#if defined(MBEDTLS_SHA512_C)
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:
             *md_alg = MBEDTLS_MD_SHA512;
             *pk_type = MBEDTLS_PK_RSASSA_PSS;
             break;
-#endif /* MBEDTLS_SHA512_C && \
-          MBEDTLS_X509_RSASSA_PSS_SUPPORT */
+#endif /* MBEDTLS_SHA512_C */
 
-#if defined(MBEDTLS_SHA256_C) && \
-    defined(MBEDTLS_PKCS1_V15) && \
-    defined(MBEDTLS_RSA_C)
+#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
+
+#if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C)
+
+#if defined(MBEDTLS_SHA256_C)
         case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256:
             *md_alg = MBEDTLS_MD_SHA256;
             *pk_type = MBEDTLS_PK_RSA;
             break;
-#endif /* MBEDTLS_SHA256_C && \
-          MBEDTLS_PKCS1_V15 && \
-          MBEDTLS_RSA_C */
+#endif /* MBEDTLS_SHA256_C */
 
-#if defined(MBEDTLS_SHA384_C) && \
-    defined(MBEDTLS_PKCS1_V15) && \
-    defined(MBEDTLS_RSA_C)
+#if defined(MBEDTLS_SHA384_C)
         case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384:
             *md_alg = MBEDTLS_MD_SHA384;
             *pk_type = MBEDTLS_PK_RSA;
             break;
-#endif /* MBEDTLS_SHA384_C && \
-          MBEDTLS_PKCS1_V15 && \
-          MBEDTLS_RSA_C */
+#endif /* MBEDTLS_SHA384_C */
 
-#if defined(MBEDTLS_SHA512_C) && \
-    defined(MBEDTLS_PKCS1_V15) && \
-    defined(MBEDTLS_RSA_C)
+#if defined(MBEDTLS_SHA512_C)
         case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512:
             *md_alg = MBEDTLS_MD_SHA512;
             *pk_type = MBEDTLS_PK_RSA;
             break;
-#endif /* MBEDTLS_SHA384_C && \
-          MBEDTLS_PKCS1_V15 && \
-          MBEDTLS_RSA_C */
+#endif /* MBEDTLS_SHA384_C */
+
+#endif /* MBEDTLS_PKCS1_V15 && MBEDTLS_RSA_C */
 
             default:
                 return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );

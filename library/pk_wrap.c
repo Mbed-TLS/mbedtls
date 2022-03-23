@@ -147,9 +147,9 @@ int mbedtls_pk_error_from_psa_ecdsa( psa_status_t status )
             return( mbedtls_pk_error_from_psa( status ) );
     }
 }
-#endif
+#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
-#endif
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_RSA_C)
 static int rsa_can_do( mbedtls_pk_type_t type )

@@ -4081,7 +4081,8 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 ￼         * - the PSK itself
 ￼         */
         unsigned char *psm = ssl->handshake->premaster;
-        unsigned char *psm_end = psm + sizeof( ssl->handshake->premaster );
+        const unsigned char* const psm_end =
+                    psm + sizeof( ssl->handshake->premaster );
         size_t zlen = 0;
 
         /* Compute ECDH shared secret. */

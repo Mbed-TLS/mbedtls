@@ -3091,12 +3091,17 @@ ecdh_calc_secret:
         ssl->out_msg[header_len] = (unsigned char) own_pubkey_len;
         content_len = own_pubkey_len + 1;
 
-        /* The ECDH secret is the premaster secret used for key derivation. */
+        /* As RFC 5489 section 2, the premaster secret is formed as follows:
+         * - a uint16 containing the length (in octets) of the ECDH computation
+         * - the octet string produced by the ECDH computation
+         * - a uint16 containing the length (in octets) of the PSK
+         * - the PSK itself
+         */
         unsigned char *p = ssl->handshake->premaster;
         unsigned char *p_end = p + sizeof( ssl->handshake->premaster );
         size_t zlen = 0;
 
-        /* Compute ECDH shared secret. */
+        /* Perform ECDH computation after the uint16 reserved for the length */
         status = psa_raw_key_agreement( PSA_ALG_ECDH,
                                         handshake->ecdh_psa_privkey,
                                         handshake->ecdh_psa_peerkey,
@@ -3111,6 +3116,7 @@ ecdh_calc_secret:
         if( status != PSA_SUCCESS || destruction_status != PSA_SUCCESS )
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
 
+        /* Write the ECDH computation length before the ECDH computation */
         MBEDTLS_PUT_UINT16_BE( zlen, p, 0 );
         p += 2 + zlen;
 
@@ -3131,12 +3137,14 @@ ecdh_calc_secret:
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
+        /* Write the PSK length as uint16 */
         MBEDTLS_PUT_UINT16_BE( psk_len, p, 0 );
         p += 2;
 
         if( p_end < p || (size_t)( p_end - p ) < psk_len )
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
+        /* Write the PSK itself */
         memcpy( p, psk, psk_len );
         p += psk_len;
 

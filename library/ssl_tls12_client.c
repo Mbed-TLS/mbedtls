@@ -3098,6 +3098,8 @@ ecdh_calc_secret:
         unsigned char *p = ssl->handshake->premaster;
         const unsigned char* const p_end = p +
                                 sizeof( ssl->handshake->premaster );
+        /* uint16 to store length (in octets) of the ECDH computation */
+        const size_t zlen_size = 2;
         size_t zlen = 0;
 
         /* Perform ECDH computation after the uint16 reserved for the length */
@@ -3105,8 +3107,8 @@ ecdh_calc_secret:
                                         handshake->ecdh_psa_privkey,
                                         handshake->ecdh_psa_peerkey,
                                         handshake->ecdh_psa_peerkey_len,
-                                        p + 2,
-                                        p_end - ( p + 2 ),
+                                        p + zlen_size,
+                                        p_end - ( p + zlen_size ),
                                         &zlen );
 
         destruction_status = psa_destroy_key( handshake->ecdh_psa_privkey );
@@ -3119,7 +3121,7 @@ ecdh_calc_secret:
 
         /* Write the ECDH computation length before the ECDH computation */
         MBEDTLS_PUT_UINT16_BE( zlen, p, 0 );
-        p += 2 + zlen;
+        p += zlen_size + zlen;
 
         /* opaque psk<0..2^16-1>; */
         if( p_end - p < 2 )

@@ -2863,55 +2863,86 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     unsigned char buf[
         PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(PSA_VENDOR_ECC_MAX_CURVE_BITS)];
-    psa_key_attributes_t key_attributes;
+    psa_key_attributes_t key_attributes = PSA_KEY_ATTRIBUTES_INIT;
     size_t ecdh_bits = 0;
     size_t key_len;
+    mbedtls_pk_context *pk;
+    mbedtls_ecp_keypair *key;
 
-    if( ! mbedtls_pk_can_do( mbedtls_ssl_own_key( ssl ), MBEDTLS_PK_ECKEY ) )
-    {
-        return( MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH );
-    }
+    pk = mbedtls_ssl_own_key( ssl );
 
-    mbedtls_ecp_keypair *key =
-            mbedtls_pk_ec( *mbedtls_ssl_own_key( ssl ) );
-
-    if( key == NULL )
+    if( pk == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-    /* Convert EC group to PSA key type. */
-    if( ( ssl->handshake->ecdh_psa_type =
-                mbedtls_ecc_group_to_psa( key->grp.id,
-                                          &ecdh_bits ) ) == 0 )
+    switch( mbedtls_pk_get_type( pk ) )
     {
-        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+    case MBEDTLS_PK_OPAQUE:
+        if( ! mbedtls_pk_can_do( pk, MBEDTLS_PK_ECKEY ) )
+            return( MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH );
+
+        ssl->handshake->ecdh_psa_privkey =
+                *( (mbedtls_svc_key_id_t*) pk->pk_ctx );
+
+        status = psa_get_key_attributes( ssl->handshake->ecdh_psa_privkey,
+                                         &key_attributes );
+        if( status != PSA_SUCCESS)
+            return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+        ssl->handshake->ecdh_psa_type = psa_get_key_type( &key_attributes );
+        ssl->handshake->ecdh_bits = psa_get_key_bits( &key_attributes );
+
+        psa_reset_key_attributes( &key_attributes );
+
+        /* Key should no be destroyed in the TLS library */
+        ssl->handshake->ecdh_psa_shared_key = 1;
+
+        ret = 0;
+        break;
+    case MBEDTLS_PK_ECKEY:
+    case MBEDTLS_PK_ECKEY_DH:
+    case MBEDTLS_PK_ECDSA:
+        key = mbedtls_pk_ec( *pk );
+        if( key == NULL )
+            return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+        /* Convert EC group to PSA key type. */
+        if( ( ssl->handshake->ecdh_psa_type =
+                    mbedtls_ecc_group_to_psa( key->grp.id,
+                                              &ecdh_bits ) ) == 0 )
+        {
+            return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+        }
+
+        if( ecdh_bits > 0xffff )
+            return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+
+        ssl->handshake->ecdh_bits = (uint16_t) ecdh_bits;
+
+        key_attributes = psa_key_attributes_init();
+        psa_set_key_usage_flags( &key_attributes, PSA_KEY_USAGE_DERIVE );
+        psa_set_key_algorithm( &key_attributes, PSA_ALG_ECDH );
+        psa_set_key_type( &key_attributes,
+                PSA_KEY_TYPE_ECC_KEY_PAIR( ssl->handshake->ecdh_psa_type ) );
+        psa_set_key_bits( &key_attributes, ssl->handshake->ecdh_bits );
+
+        key_len = PSA_BITS_TO_BYTES( key->grp.pbits );
+        ret = mbedtls_ecp_write_key( key, buf, key_len );
+        if( ret != 0 )
+            goto cleanup;
+
+        status = psa_import_key( &key_attributes, buf, key_len,
+                                 &ssl->handshake->ecdh_psa_privkey );
+        if( status != PSA_SUCCESS )
+        {
+            ret = psa_ssl_status_to_mbedtls( status );
+            goto cleanup;
+        }
+
+        ret = 0;
+        break;
+    default:
+            ret = MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH;
     }
-
-    if( ecdh_bits > 0xffff )
-        return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
-
-    ssl->handshake->ecdh_bits = (uint16_t) ecdh_bits;
-
-    key_attributes = psa_key_attributes_init();
-    psa_set_key_usage_flags( &key_attributes, PSA_KEY_USAGE_DERIVE );
-    psa_set_key_algorithm( &key_attributes, PSA_ALG_ECDH );
-    psa_set_key_type( &key_attributes,
-            PSA_KEY_TYPE_ECC_KEY_PAIR( ssl->handshake->ecdh_psa_type ) );
-    psa_set_key_bits( &key_attributes, ssl->handshake->ecdh_bits );
-
-    key_len = PSA_BITS_TO_BYTES( key->grp.pbits );
-    ret = mbedtls_ecp_write_key( key, buf, key_len );
-    if( ret != 0 )
-        goto cleanup;
-
-    status = psa_import_key( &key_attributes, buf, key_len,
-                             &ssl->handshake->ecdh_psa_privkey );
-    if( status != PSA_SUCCESS )
-    {
-        ret = psa_ssl_status_to_mbedtls( status );
-        goto cleanup;
-    }
-
-    ret = 0;
 
 cleanup:
     mbedtls_platform_zeroize( buf, sizeof( buf ) );

@@ -4112,13 +4112,11 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 
         if( mbedtls_ssl_get_psk( ssl, &psk, &psk_len )
                 == MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED )
-        {
             /*
              * This should never happen because the existence of a PSK is always
              * checked before calling this function
              */
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-        }
 
         /* Write the PSK length as uint16 */
         MBEDTLS_PUT_UINT16_BE( psk_len, psm, 0 );

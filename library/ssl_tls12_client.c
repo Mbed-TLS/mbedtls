@@ -3076,7 +3076,7 @@ ecdh_calc_secret:
         unsigned char *own_pubkey = ssl->out_msg + header_len + 1;
         unsigned char *end = ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN;
         size_t own_pubkey_max_len = (size_t)( end - own_pubkey );
-        size_t own_pubkey_len;
+        size_t own_pubkey_len = 0;
 
         status = psa_export_public_key( handshake->ecdh_psa_privkey,
                                         own_pubkey, own_pubkey_max_len,
@@ -3094,7 +3094,7 @@ ecdh_calc_secret:
         /* The ECDH secret is the premaster secret used for key derivation. */
         unsigned char *p = ssl->handshake->premaster;
         unsigned char *p_end = p + sizeof( ssl->handshake->premaster );
-        size_t zlen;
+        size_t zlen = 0;
 
         /* Compute ECDH shared secret. */
         status = psa_raw_key_agreement( PSA_ALG_ECDH,

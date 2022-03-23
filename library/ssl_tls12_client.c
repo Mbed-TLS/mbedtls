@@ -3096,7 +3096,8 @@ ecdh_calc_secret:
          * - the PSK itself
          */
         unsigned char *p = ssl->handshake->premaster;
-        unsigned char *p_end = p + sizeof( ssl->handshake->premaster );
+        const unsigned char* const p_end = p +
+                                sizeof( ssl->handshake->premaster );
         size_t zlen = 0;
 
         /* Perform ECDH computation after the uint16 reserved for the length */

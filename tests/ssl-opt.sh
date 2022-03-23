@@ -1583,6 +1583,23 @@ run_test    "Opaque key for server authentication" \
             -S "error" \
             -C "error"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_SHA256_C
+run_test    "Opaque key for server authentication (ECDH-)" \
+            "$P_SRV auth_mode=required key_opaque=1 crt_file=data_files/server5.ku-ka.crt \
+             key_file=data_files/server5.key" \
+            "$P_CLI" \
+            0 \
+            -c "Verifying peer X.509 certificate... ok" \
+            -c "Ciphersuite is TLS-ECDH-" \
+            -s "key types: Opaque, none" \
+            -s "Ciphersuite is TLS-ECDH-" \
+            -S "error" \
+            -C "error"
+
 # Test using an opaque private key for client/server authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO

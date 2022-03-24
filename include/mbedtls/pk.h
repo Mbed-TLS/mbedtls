@@ -558,13 +558,12 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
  *
  * \return          0 on success, or a specific error code.
  *
- * \note            see #PSA_ALG_RSA_PSS also.
+ * \note            When \p pk_type is #MBEDTLS_PK_RSASSA_PSS,
+ *                  see #PSA_ALG_RSA_PSS for a description of PSS options used.
  *
  * \note            For RSA, md_alg may be MBEDTLS_MD_NONE if hash_len != 0.
  *                  For ECDSA, md_alg may never be MBEDTLS_MD_NONE.
  *
- * \note            For RSA, md_alg may be MBEDTLS_MD_NONE if hash_len != 0.
- *                  For ECDSA, md_alg may never be MBEDTLS_MD_NONE.
  */
 int mbedtls_pk_sign_ext( mbedtls_pk_type_t pk_type,
                          mbedtls_pk_context *ctx,

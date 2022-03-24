@@ -259,18 +259,16 @@ static int rsa_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
                    unsigned char *sig, size_t sig_size, size_t *sig_len,
                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
-
     ((void) f_rng);
     ((void) p_rng);
-    ((void) md_alg);
 
-#if SIZE_MAX > UINT_MAX
-    if( md_alg == MBEDTLS_MD_NONE && UINT_MAX < hash_len )
+    psa_algorithm_t psa_md_alg;
+    psa_md_alg = mbedtls_psa_translate_md( md_alg );
+    if( psa_md_alg == 0 )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
-#endif /* SIZE_MAX > UINT_MAX */
 
-    return(  mbedtls_pk_psa_rsa_sign_ext( PSA_ALG_RSA_PKCS1V15_SIGN(
-                                            mbedtls_psa_translate_md( md_alg ) ),
+    return( mbedtls_pk_psa_rsa_sign_ext( PSA_ALG_RSA_PKCS1V15_SIGN(
+                                            psa_md_alg ),
                                           ctx, hash, hash_len,
                                           sig, sig_size, sig_len ) );
 }

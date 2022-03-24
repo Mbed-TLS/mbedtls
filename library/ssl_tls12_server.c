@@ -4075,11 +4075,11 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
         p += ecpoint_len;
 
         /* As RFC 5489 section 2, the premaster secret is formed as follows:
-￼         * - a uint16 containing the length (in octets) of the ECDH computation
-￼         * - the octet string produced by the ECDH computation
-￼         * - a uint16 containing the length (in octets) of the PSK
-￼         * - the PSK itself
-￼         */
+         * - a uint16 containing the length (in octets) of the ECDH computation
+         * - the octet string produced by the ECDH computation
+         * - a uint16 containing the length (in octets) of the PSK
+         * - the PSK itself
+         */
         unsigned char *psm = ssl->handshake->premaster;
         const unsigned char* const psm_end =
                     psm + sizeof( ssl->handshake->premaster );

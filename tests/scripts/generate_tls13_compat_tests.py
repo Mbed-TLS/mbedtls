@@ -151,7 +151,8 @@ class OpenSSLServ(TLSProgram):
             ret += ["-ciphersuites {ciphersuites}".format(ciphersuites=ciphersuites)]
 
         if self._sig_algs:
-            signature_algorithms = ':'.join(self._sig_algs)
+            signature_algorithms = set(self._sig_algs + self._cert_sig_algs)
+            signature_algorithms = ':'.join(signature_algorithms)
             ret += ["-sigalgs {signature_algorithms}".format(
                 signature_algorithms=signature_algorithms)]
 
@@ -246,8 +247,9 @@ class GnuTLSServ(TLSProgram):
             priority_string_list.append('CIPHER-ALL')
 
         if self._sig_algs:
+            signature_algorithms = set(self._sig_algs + self._cert_sig_algs)
             priority_string_list.extend(update_priority_string_list(
-                self._sig_algs, self.SIGNATURE_ALGORITHM))
+                signature_algorithms, self.SIGNATURE_ALGORITHM))
         else:
             priority_string_list.append('SIGN-ALL')
 
@@ -298,9 +300,9 @@ class MbedTLSCli(TLSProgram):
                 map(lambda cipher: self.CIPHER_SUITE[cipher], self._ciphers))
             ret += ["force_ciphersuite={ciphers}".format(ciphers=ciphers)]
 
-        if self._sig_algs:
+        if self._sig_algs + self._cert_sig_algs:
             ret += ['sig_algs={sig_algs}'.format(
-                sig_algs=','.join(self._sig_algs))]
+                sig_algs=','.join(set(self._sig_algs + self._cert_sig_algs)))]
 
         if self._named_groups:
             named_groups = ','.join(self._named_groups)

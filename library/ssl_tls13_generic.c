@@ -1129,13 +1129,10 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }
 
-    ret = mbedtls_ssl_tls13_get_pk_type_and_md_alg_from_sig_alg( algorithm,
-                                                                 &pk_type,
-                                                                 &md_alg );
-    if( ret != 0 )
+    if( mbedtls_ssl_tls13_get_pk_type_and_md_alg_from_sig_alg(
+                                        algorithm, &pk_type, &md_alg ) != 0 )
     {
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR  );
-
     }
 
     /* Check there is space for the algorithm identifier (2 bytes) and the

@@ -2034,7 +2034,7 @@ static inline int mbedtls_ssl_tls13_get_pk_type_and_md_alg_from_sig_alg(
             *md_alg = MBEDTLS_MD_SHA512;
             *pk_type = MBEDTLS_PK_RSA;
             break;
-#endif /* MBEDTLS_SHA384_C */
+#endif /* MBEDTLS_SHA512_C */
 
 #endif /* MBEDTLS_PKCS1_V15 && MBEDTLS_RSA_C */
 

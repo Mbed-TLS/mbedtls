@@ -2913,10 +2913,7 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
         }
 
-        if( ecdh_bits > 0xffff )
-            return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
-
-        ssl->handshake->ecdh_bits = (uint16_t) ecdh_bits;
+        ssl->handshake->ecdh_bits = ecdh_bits;
 
         key_attributes = psa_key_attributes_init();
         psa_set_key_usage_flags( &key_attributes, PSA_KEY_USAGE_DERIVE );
@@ -3186,12 +3183,12 @@ curve_matching_done:
             handshake->ecdh_psa_type = mbedtls_psa_parse_tls_ecc_group(
                         (*curve)->tls_id, &ecdh_bits );
 
-            if( handshake->ecdh_psa_type == 0 || ecdh_bits > 0xffff )
+            if( handshake->ecdh_psa_type == 0 )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "Invalid ecc group parse." ) );
                 return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
             }
-            handshake->ecdh_bits = (uint16_t) ecdh_bits;
+            handshake->ecdh_bits = ecdh_bits;
 
             key_attributes = psa_key_attributes_init();
             psa_set_key_usage_flags( &key_attributes, PSA_KEY_USAGE_DERIVE );

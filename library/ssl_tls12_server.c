@@ -2886,7 +2886,7 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
         status = psa_get_key_attributes( ssl->handshake->ecdh_psa_privkey,
                                          &key_attributes );
         if( status != PSA_SUCCESS)
-            return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+            return( psa_ssl_status_to_mbedtls( status ) );
 
         ssl->handshake->ecdh_psa_type = psa_get_key_type( &key_attributes );
         ssl->handshake->ecdh_bits = psa_get_key_bits( &key_attributes );

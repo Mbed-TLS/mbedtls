@@ -78,6 +78,22 @@ class TLSProgram:
     # pylint: disable=too-many-arguments
     def __init__(self, ciphersuite=None, signature_algorithm=None, named_group=None,
                  cert_sig_alg=None, compat_mode=True):
+        """Initial function of TLSProgram
+
+        Args:
+            ciphersuite (str, optional): Used by TLS program `ciphersuites` parameter. The value
+                                         MUST be one ciphersuite of RFC 8446. Defaults to None.
+            signature_algorithm (str, optional): Used by TLS program `signature algorithm` parameter.
+                                                 The value MUST be one signature_algorithm of
+                                                 RFC 8446. Defaults to None.
+            named_group (str, optional): Used by TLS program `named_group` or `curve` parameter. The
+                                         value MUST be one named_group of RFC 8446. Defaults to None.
+            cert_sig_alg (str, optional): Used by TLS program certification parameters. The value
+                                          MUST be one signature_algorithm of RFC 8446. Pick up the
+                                          certification used by program. Defaults to None.
+            compat_mode (bool, optional): Enable middlebox compatibility mode defined in RFC 8446.
+                                          Defaults to True.
+        """
         self._ciphers = []
         self._sig_algs = []
         self._named_groups = []

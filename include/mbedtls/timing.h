@@ -90,6 +90,17 @@ void mbedtls_timing_set_delay( void *data, uint32_t int_ms, uint32_t fin_ms );
  */
 int mbedtls_timing_get_delay( void *data );
 
+/**
+ * \brief          Get the final timing delay
+ *
+ * \param data     Pointer to timing data
+ *                 Must point to a valid \c mbedtls_timing_delay_context struct.
+ *
+ * \return         Final timing delay in milliseconds.
+ */
+uint32_t mbedtls_timing_get_final_delay(
+                                     const mbedtls_timing_delay_context *data );
+
 #ifdef __cplusplus
 }
 #endif

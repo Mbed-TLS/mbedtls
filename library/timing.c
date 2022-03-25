@@ -158,13 +158,28 @@ int mbedtls_timing_get_delay( void *data )
 
     return( 0 );
 }
-#else
-int mbedtls_timing_get_delay( void *data )
+
+/*
+ * Get the final delay.
+ */
+uint32_t mbedtls_timing_get_final_delay(
+                                      const mbedtls_timing_delay_context *data )
+{
+    return( data->fin_ms );
+}
+#else /* MBEDTLS_HAVE_TIME */
+uint32_t mbedtls_timing_get_final_delay(
+                                      const mbedtls_timing_delay_context *data )
 {
     (void) data;
     return( 0 );
 }
 
+int mbedtls_timing_get_delay( void *data )
+{
+    (void) data;
+    return( 0 );
+}
 void mbedtls_timing_set_delay( void *data, uint32_t int_ms, uint32_t fin_ms )
 {
     (void) data;
@@ -178,6 +193,7 @@ unsigned long mbedtls_timing_get_timer( struct mbedtls_timing_hr_time *val, int 
     (void) reset;
     return( 0 );
 }
+
 #endif /* MBEDTLS_HAVE_TIME */
 #endif /* !MBEDTLS_TIMING_ALT */
 #endif /* MBEDTLS_TIMING_C */

@@ -3210,3 +3210,6 @@ conf_curve:
 
 Test configuration of groups for DHE through mbedtls_ssl_conf_groups()
 conf_group:
+
+Test accessor into timing_delay_context
+timing_final_delay_accessor

@@ -5441,3 +5441,14 @@ void conf_group()
     mbedtls_ssl_config_free( &conf );
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_TIMING_C:MBEDTLS_HAVE_TIME */
+void timing_final_delay_accessor( )
+{
+    mbedtls_timing_delay_context    delay_context;
+
+    mbedtls_timing_set_delay( &delay_context, 50, 100 );
+
+    TEST_ASSERT( mbedtls_timing_get_final_delay( &delay_context ) == 100 );
+}
+/* END_CASE */

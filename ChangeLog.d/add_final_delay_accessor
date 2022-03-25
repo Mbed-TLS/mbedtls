@@ -1,0 +1,4 @@
+Features
+   * Add the function mbedtls_timing_get_final_delay() to access the private
+     final delay field in an mbedtls_timing_delay_context, as requested in
+     #5183

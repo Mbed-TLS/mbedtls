@@ -2893,7 +2893,7 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
 
         psa_reset_key_attributes( &key_attributes );
 
-        /* Key should no be destroyed in the TLS library */
+        /* Key should not be destroyed in the TLS library */
         ssl->handshake->ecdh_psa_shared_key = 1;
 
         ret = 0;

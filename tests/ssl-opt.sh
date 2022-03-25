@@ -1589,7 +1589,8 @@ requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SHA256_C
 run_test    "Opaque key for server authentication (ECDH-)" \
-            "$P_SRV auth_mode=required key_opaque=1 crt_file=data_files/server5.ku-ka.crt \
+            "$P_SRV force_version=tls12 auth_mode=required key_opaque=1\
+             crt_file=data_files/server5.ku-ka.crt\
              key_file=data_files/server5.key" \
             "$P_CLI" \
             0 \

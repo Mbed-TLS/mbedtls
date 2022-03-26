@@ -137,7 +137,7 @@ static void ssl_tls13_hkdf_encode_label(
 }
 
 MBEDTLS_STATIC_TESTABLE
-psa_status_t mbedtls_psa_hkdf_extract( psa_algorithm_t alg,
+psa_status_t mbedtls_psa_hkdf_extract( psa_algorithm_t hash_alg,
                                        const unsigned char *salt, size_t salt_len,
                                        const unsigned char *ikm, size_t ikm_len,
                                        unsigned char *prk, size_t prk_size,
@@ -148,6 +148,7 @@ psa_status_t mbedtls_psa_hkdf_extract( psa_algorithm_t alg,
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t destroy_status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_algorithm_t alg = PSA_ALG_HMAC( hash_alg );
 
     if( salt == NULL || salt_len == 0 )
     {
@@ -190,7 +191,7 @@ cleanup:
 }
 
 MBEDTLS_STATIC_TESTABLE
-psa_status_t mbedtls_psa_hkdf_expand( psa_algorithm_t alg,
+psa_status_t mbedtls_psa_hkdf_expand( psa_algorithm_t hash_alg,
                                       const unsigned char *prk, size_t prk_len,
                                       const unsigned char *info, size_t info_len,
                                       unsigned char *okm, size_t okm_len )
@@ -206,6 +207,7 @@ psa_status_t mbedtls_psa_hkdf_expand( psa_algorithm_t alg,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t destroy_status = PSA_ERROR_CORRUPTION_DETECTED;
     unsigned char t[PSA_MAC_MAX_SIZE];
+    psa_algorithm_t alg = PSA_ALG_HMAC( hash_alg );
 
     if( okm == NULL )
     {
@@ -350,7 +352,7 @@ int mbedtls_ssl_tls13_hkdf_expand_label(
                                  &hkdf_label_len );
 
     return( psa_ssl_status_to_mbedtls(
-                mbedtls_psa_hkdf_expand( PSA_ALG_HMAC( hash_alg ),
+                mbedtls_psa_hkdf_expand( hash_alg,
                                          secret, secret_len,
                                          hkdf_label, hkdf_label_len,
                                          buf, buf_len ) ) );
@@ -521,7 +523,7 @@ int mbedtls_ssl_tls13_evolve_secret(
      * The salt is the old secret, and the input key material
      * is the input secret (PSK / ECDHE). */
     ret = psa_ssl_status_to_mbedtls(
-            mbedtls_psa_hkdf_extract( PSA_ALG_HMAC( hash_alg ),
+            mbedtls_psa_hkdf_extract( hash_alg,
                                       tmp_secret, hlen,
                                       tmp_input, ilen,
                                       secret_new, hlen, &secret_len ) );
@@ -914,8 +916,8 @@ int mbedtls_ssl_tls13_create_psk_binder( mbedtls_ssl_context *ssl,
                                unsigned char *result )
 {
     int ret = 0;
-    unsigned char binder_key[MBEDTLS_MD_MAX_SIZE];
-    unsigned char early_secret[MBEDTLS_MD_MAX_SIZE];
+    unsigned char binder_key[PSA_MAC_MAX_SIZE];
+    unsigned char early_secret[PSA_MAC_MAX_SIZE];
     size_t const hash_len = PSA_HASH_LENGTH( hash_alg );
     size_t actual_len;
 

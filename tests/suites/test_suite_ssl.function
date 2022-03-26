@@ -4065,7 +4065,7 @@ MBEDTLS_SSL_TLS1_3_LABEL_LIST
     PSA_INIT( );
 
     TEST_ASSERT( mbedtls_ssl_tls13_hkdf_expand_label(
-                      (mbedtls_md_type_t) hash_alg,
+                      (psa_algorithm_t) hash_alg,
                       secret->x, secret->len,
                       lbl, lbl_len,
                       ctx->x, ctx->len,
@@ -4101,7 +4101,7 @@ void ssl_tls13_traffic_key_generation( int hash_alg,
     PSA_INIT( );
 
     TEST_ASSERT( mbedtls_ssl_tls13_make_traffic_keys(
-                     (mbedtls_md_type_t) hash_alg,
+                     (psa_algorithm_t) hash_alg,
                      client_secret->x,
                      server_secret->x,
                      client_secret->len /* == server_secret->len */,
@@ -4159,7 +4159,7 @@ MBEDTLS_SSL_TLS1_3_LABEL_LIST
     PSA_INIT( );
 
     TEST_ASSERT( mbedtls_ssl_tls13_derive_secret(
-                      (mbedtls_md_type_t) hash_alg,
+                      (psa_algorithm_t) hash_alg,
                       secret->x, secret->len,
                       lbl, lbl_len,
                       ctx->x, ctx->len,
@@ -4183,24 +4183,23 @@ void ssl_tls13_derive_early_secrets( int hash_alg,
     mbedtls_ssl_tls13_early_secrets secrets;
 
     /* Double-check that we've passed sane parameters. */
-    mbedtls_md_type_t md_type = (mbedtls_md_type_t) hash_alg;
-    mbedtls_md_info_t const * const md_info = mbedtls_md_info_from_type( md_type );
-    size_t const md_size = mbedtls_md_get_size( md_info );
-    TEST_ASSERT( md_info != 0                      &&
-                 secret->len == md_size            &&
-                 transcript->len == md_size        &&
-                 traffic_expected->len == md_size  &&
-                 exporter_expected->len == md_size );
+    psa_algorithm_t alg = (psa_algorithm_t) hash_alg;
+    size_t const hash_len = PSA_HASH_LENGTH( alg );
+    TEST_ASSERT( PSA_ALG_IS_HASH( alg )             &&
+                 secret->len == hash_len            &&
+                 transcript->len == hash_len        &&
+                 traffic_expected->len == hash_len  &&
+                 exporter_expected->len == hash_len );
 
     PSA_INIT( );
 
     TEST_ASSERT( mbedtls_ssl_tls13_derive_early_secrets(
-                     md_type, secret->x, transcript->x, transcript->len,
+                     alg, secret->x, transcript->x, transcript->len,
                      &secrets ) == 0 );
 
-    ASSERT_COMPARE( secrets.client_early_traffic_secret, md_size,
+    ASSERT_COMPARE( secrets.client_early_traffic_secret, hash_len,
                     traffic_expected->x, traffic_expected->len );
-    ASSERT_COMPARE( secrets.early_exporter_master_secret, md_size,
+    ASSERT_COMPARE( secrets.early_exporter_master_secret, hash_len,
                     exporter_expected->x, exporter_expected->len );
 
     PSA_DONE( );
@@ -4217,24 +4216,23 @@ void ssl_tls13_derive_handshake_secrets( int hash_alg,
     mbedtls_ssl_tls13_handshake_secrets secrets;
 
     /* Double-check that we've passed sane parameters. */
-    mbedtls_md_type_t md_type = (mbedtls_md_type_t) hash_alg;
-    mbedtls_md_info_t const * const md_info = mbedtls_md_info_from_type( md_type );
-    size_t const md_size = mbedtls_md_get_size( md_info );
-    TEST_ASSERT( md_info != 0                      &&
-                 secret->len == md_size            &&
-                 transcript->len == md_size        &&
-                 client_expected->len == md_size   &&
-                 server_expected->len == md_size );
+    psa_algorithm_t alg = (psa_algorithm_t) hash_alg;
+    size_t const hash_len = PSA_HASH_LENGTH( alg );
+    TEST_ASSERT( PSA_ALG_IS_HASH( alg )            &&
+                 secret->len == hash_len           &&
+                 transcript->len == hash_len       &&
+                 client_expected->len == hash_len  &&
+                 server_expected->len == hash_len );
 
     PSA_INIT( );
 
     TEST_ASSERT( mbedtls_ssl_tls13_derive_handshake_secrets(
-                     md_type, secret->x, transcript->x, transcript->len,
+                     alg, secret->x, transcript->x, transcript->len,
                      &secrets ) == 0 );
 
-    ASSERT_COMPARE( secrets.client_handshake_traffic_secret, md_size,
+    ASSERT_COMPARE( secrets.client_handshake_traffic_secret, hash_len,
                     client_expected->x, client_expected->len );
-    ASSERT_COMPARE( secrets.server_handshake_traffic_secret, md_size,
+    ASSERT_COMPARE( secrets.server_handshake_traffic_secret, hash_len,
                     server_expected->x, server_expected->len );
 
     PSA_DONE( );
@@ -4252,27 +4250,26 @@ void ssl_tls13_derive_application_secrets( int hash_alg,
     mbedtls_ssl_tls13_application_secrets secrets;
 
     /* Double-check that we've passed sane parameters. */
-    mbedtls_md_type_t md_type = (mbedtls_md_type_t) hash_alg;
-    mbedtls_md_info_t const * const md_info = mbedtls_md_info_from_type( md_type );
-    size_t const md_size = mbedtls_md_get_size( md_info );
-    TEST_ASSERT( md_info != 0                      &&
-                 secret->len == md_size            &&
-                 transcript->len == md_size        &&
-                 client_expected->len == md_size   &&
-                 server_expected->len == md_size   &&
-                 exporter_expected->len == md_size );
+    psa_algorithm_t alg = (psa_algorithm_t) hash_alg;
+    size_t const hash_len = PSA_HASH_LENGTH( alg );
+    TEST_ASSERT( PSA_ALG_IS_HASH( alg )            &&
+                 secret->len == hash_len           &&
+                 transcript->len == hash_len       &&
+                 client_expected->len == hash_len  &&
+                 server_expected->len == hash_len  &&
+                 exporter_expected->len == hash_len );
 
     PSA_INIT( );
 
     TEST_ASSERT( mbedtls_ssl_tls13_derive_application_secrets(
-                     md_type, secret->x, transcript->x, transcript->len,
+                     alg, secret->x, transcript->x, transcript->len,
                      &secrets ) == 0 );
 
-    ASSERT_COMPARE( secrets.client_application_traffic_secret_N, md_size,
+    ASSERT_COMPARE( secrets.client_application_traffic_secret_N, hash_len,
                     client_expected->x, client_expected->len );
-    ASSERT_COMPARE( secrets.server_application_traffic_secret_N, md_size,
+    ASSERT_COMPARE( secrets.server_application_traffic_secret_N, hash_len,
                     server_expected->x, server_expected->len );
-    ASSERT_COMPARE( secrets.exporter_master_secret, md_size,
+    ASSERT_COMPARE( secrets.exporter_master_secret, hash_len,
                     exporter_expected->x, exporter_expected->len );
 
     PSA_DONE( );
@@ -4288,21 +4285,20 @@ void ssl_tls13_derive_resumption_secrets( int hash_alg,
     mbedtls_ssl_tls13_application_secrets secrets;
 
     /* Double-check that we've passed sane parameters. */
-    mbedtls_md_type_t md_type = (mbedtls_md_type_t) hash_alg;
-    mbedtls_md_info_t const * const md_info = mbedtls_md_info_from_type( md_type );
-    size_t const md_size = mbedtls_md_get_size( md_info );
-    TEST_ASSERT( md_info != 0                        &&
-                 secret->len == md_size              &&
-                 transcript->len == md_size          &&
-                 resumption_expected->len == md_size );
+    psa_algorithm_t alg = (psa_algorithm_t) hash_alg;
+    size_t const hash_len = PSA_HASH_LENGTH( alg );
+    TEST_ASSERT( PSA_ALG_IS_HASH( alg )              &&
+                 secret->len == hash_len             &&
+                 transcript->len == hash_len         &&
+                 resumption_expected->len == hash_len );
 
     PSA_INIT( );
 
     TEST_ASSERT( mbedtls_ssl_tls13_derive_resumption_master_secret(
-                     md_type, secret->x, transcript->x, transcript->len,
+                     alg, secret->x, transcript->x, transcript->len,
                      &secrets ) == 0 );
 
-    ASSERT_COMPARE( secrets.resumption_master_secret, md_size,
+    ASSERT_COMPARE( secrets.resumption_master_secret, hash_len,
                     resumption_expected->x, resumption_expected->len );
 
     PSA_DONE( );
@@ -4319,24 +4315,23 @@ void ssl_tls13_create_psk_binder( int hash_alg,
     unsigned char binder[ MBEDTLS_MD_MAX_SIZE ];
 
     /* Double-check that we've passed sane parameters. */
-    mbedtls_md_type_t md_type = (mbedtls_md_type_t) hash_alg;
-    mbedtls_md_info_t const * const md_info = mbedtls_md_info_from_type( md_type );
-    size_t const md_size = mbedtls_md_get_size( md_info );
-    TEST_ASSERT( md_info != 0                    &&
-                 transcript->len == md_size      &&
-                 binder_expected->len == md_size );
+    psa_algorithm_t alg = (psa_algorithm_t) hash_alg;
+    size_t const hash_len = PSA_HASH_LENGTH( alg );
+    TEST_ASSERT( PSA_ALG_IS_HASH( alg )          &&
+                 transcript->len == hash_len     &&
+                 binder_expected->len == hash_len );
 
     PSA_INIT( );
 
     TEST_ASSERT( mbedtls_ssl_tls13_create_psk_binder(
                      NULL, /* SSL context for debugging only */
-                     md_type,
+                     alg,
                      psk->x, psk->len,
                      psk_type,
                      transcript->x,
                      binder ) == 0 );
 
-    ASSERT_COMPARE( binder, md_size,
+    ASSERT_COMPARE( binder, hash_len,
                     binder_expected->x, binder_expected->len );
 
     PSA_DONE( );
@@ -4455,7 +4450,7 @@ void ssl_tls13_key_evolution( int hash_alg,
     PSA_INIT();
 
     TEST_ASSERT( mbedtls_ssl_tls13_evolve_secret(
-                      (mbedtls_md_type_t) hash_alg,
+                      (psa_algorithm_t) hash_alg,
                       secret->len ? secret->x : NULL,
                       input->len ? input->x : NULL, input->len,
                       secret_new ) == 0 );

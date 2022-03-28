@@ -3474,3 +3474,683 @@ run_test "TLS 1.3 m->G: TLS_AES_128_CCM_8_SHA256,x448,rsa_pss_rsae_sha256" \
          -c "NamedGroup: x448 ( 1e )" \
          -c "Verifying peer X.509 certificate... ok" \
          -C "received HelloRetryRequest message"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->O: HRR secp256r1 -> secp384r1" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=secp256r1,secp384r1" \
+         0 \
+         -c "HTTP/1.0 200 ok" \
+         -c "NamedGroup: secp256r1 ( 17 )" \
+         -c "NamedGroup: secp384r1 ( 18 )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 24 )"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->O: HRR secp256r1 -> secp521r1" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=secp256r1,secp521r1" \
+         0 \
+         -c "HTTP/1.0 200 ok" \
+         -c "NamedGroup: secp256r1 ( 17 )" \
+         -c "NamedGroup: secp521r1 ( 19 )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 25 )"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->O: HRR secp256r1 -> x25519" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=secp256r1,x25519" \
+         0 \
+         -c "HTTP/1.0 200 ok" \
+         -c "NamedGroup: secp256r1 ( 17 )" \
+         -c "NamedGroup: x25519 ( 1d )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 29 )"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->O: HRR secp256r1 -> x448" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=secp256r1,x448" \
+         0 \
+         -c "HTTP/1.0 200 ok" \
+         -c "NamedGroup: secp256r1 ( 17 )" \
+         -c "NamedGroup: x448 ( 1e )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 30 )"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->O: HRR secp384r1 -> secp256r1" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=secp384r1,secp256r1" \
+         0 \
+         -c "HTTP/1.0 200 ok" \
+         -c "NamedGroup: secp384r1 ( 18 )" \
+         -c "NamedGroup: secp256r1 ( 17 )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 23 )"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->O: HRR secp384r1 -> secp521r1" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=secp384r1,secp521r1" \
+         0 \
+         -c "HTTP/1.0 200 ok" \
+         -c "NamedGroup: secp384r1 ( 18 )" \
+         -c "NamedGroup: secp521r1 ( 19 )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 25 )"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->O: HRR secp384r1 -> x25519" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=secp384r1,x25519" \
+         0 \
+         -c "HTTP/1.0 200 ok" \
+         -c "NamedGroup: secp384r1 ( 18 )" \
+         -c "NamedGroup: x25519 ( 1d )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 29 )"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->O: HRR secp384r1 -> x448" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=secp384r1,x448" \
+         0 \
+         -c "HTTP/1.0 200 ok" \
+         -c "NamedGroup: secp384r1 ( 18 )" \
+         -c "NamedGroup: x448 ( 1e )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 30 )"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->O: HRR secp521r1 -> secp256r1" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=secp521r1,secp256r1" \
+         0 \
+         -c "HTTP/1.0 200 ok" \
+         -c "NamedGroup: secp521r1 ( 19 )" \
+         -c "NamedGroup: secp256r1 ( 17 )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 23 )"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->O: HRR secp521r1 -> secp384r1" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=secp521r1,secp384r1" \
+         0 \
+         -c "HTTP/1.0 200 ok" \
+         -c "NamedGroup: secp521r1 ( 19 )" \
+         -c "NamedGroup: secp384r1 ( 18 )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 24 )"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->O: HRR secp521r1 -> x25519" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=secp521r1,x25519" \
+         0 \
+         -c "HTTP/1.0 200 ok" \
+         -c "NamedGroup: secp521r1 ( 19 )" \
+         -c "NamedGroup: x25519 ( 1d )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 29 )"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->O: HRR secp521r1 -> x448" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=secp521r1,x448" \
+         0 \
+         -c "HTTP/1.0 200 ok" \
+         -c "NamedGroup: secp521r1 ( 19 )" \
+         -c "NamedGroup: x448 ( 1e )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 30 )"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->O: HRR x25519 -> secp256r1" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=x25519,secp256r1" \
+         0 \
+         -c "HTTP/1.0 200 ok" \
+         -c "NamedGroup: x25519 ( 1d )" \
+         -c "NamedGroup: secp256r1 ( 17 )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 23 )"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->O: HRR x25519 -> secp384r1" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=x25519,secp384r1" \
+         0 \
+         -c "HTTP/1.0 200 ok" \
+         -c "NamedGroup: x25519 ( 1d )" \
+         -c "NamedGroup: secp384r1 ( 18 )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 24 )"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->O: HRR x25519 -> secp521r1" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=x25519,secp521r1" \
+         0 \
+         -c "HTTP/1.0 200 ok" \
+         -c "NamedGroup: x25519 ( 1d )" \
+         -c "NamedGroup: secp521r1 ( 19 )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 25 )"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->O: HRR x25519 -> x448" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -groups X448 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=x25519,x448" \
+         0 \
+         -c "HTTP/1.0 200 ok" \
+         -c "NamedGroup: x25519 ( 1d )" \
+         -c "NamedGroup: x448 ( 1e )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 30 )"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->O: HRR x448 -> secp256r1" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=x448,secp256r1" \
+         0 \
+         -c "HTTP/1.0 200 ok" \
+         -c "NamedGroup: x448 ( 1e )" \
+         -c "NamedGroup: secp256r1 ( 17 )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 23 )"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->O: HRR x448 -> secp384r1" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -groups P-384 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=x448,secp384r1" \
+         0 \
+         -c "HTTP/1.0 200 ok" \
+         -c "NamedGroup: x448 ( 1e )" \
+         -c "NamedGroup: secp384r1 ( 18 )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 24 )"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->O: HRR x448 -> secp521r1" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -groups P-521 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=x448,secp521r1" \
+         0 \
+         -c "HTTP/1.0 200 ok" \
+         -c "NamedGroup: x448 ( 1e )" \
+         -c "NamedGroup: secp521r1 ( 19 )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 25 )"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->O: HRR x448 -> x25519" \
+         "$O_NEXT_SRV_NO_CERT -cert data_files/ecdsa_secp256r1.crt -key data_files/ecdsa_secp256r1.key -accept $SRV_PORT -groups X25519 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=x448,x25519" \
+         0 \
+         -c "HTTP/1.0 200 ok" \
+         -c "NamedGroup: x448 ( 1e )" \
+         -c "NamedGroup: x25519 ( 1d )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 29 )"
+
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->G: HRR secp256r1 -> secp384r1" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+GROUP-SECP384R1:+MAC-ALL:+SIGN-ALL:+VERS-TLS1.3:%NO_TICKETS" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=secp256r1,secp384r1" \
+         0 \
+         -c "HTTP/1.0 200 OK" \
+         -c "NamedGroup: secp256r1 ( 17 )" \
+         -c "NamedGroup: secp384r1 ( 18 )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 24 )"
+
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->G: HRR secp256r1 -> secp521r1" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+GROUP-SECP521R1:+MAC-ALL:+SIGN-ALL:+VERS-TLS1.3:%NO_TICKETS" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=secp256r1,secp521r1" \
+         0 \
+         -c "HTTP/1.0 200 OK" \
+         -c "NamedGroup: secp256r1 ( 17 )" \
+         -c "NamedGroup: secp521r1 ( 19 )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 25 )"
+
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->G: HRR secp256r1 -> x25519" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+GROUP-X25519:+MAC-ALL:+SIGN-ALL:+VERS-TLS1.3:%NO_TICKETS" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=secp256r1,x25519" \
+         0 \
+         -c "HTTP/1.0 200 OK" \
+         -c "NamedGroup: secp256r1 ( 17 )" \
+         -c "NamedGroup: x25519 ( 1d )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 29 )"
+
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->G: HRR secp256r1 -> x448" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+GROUP-X448:+MAC-ALL:+SIGN-ALL:+VERS-TLS1.3:%NO_TICKETS" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=secp256r1,x448" \
+         0 \
+         -c "HTTP/1.0 200 OK" \
+         -c "NamedGroup: secp256r1 ( 17 )" \
+         -c "NamedGroup: x448 ( 1e )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 30 )"
+
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->G: HRR secp384r1 -> secp256r1" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+GROUP-SECP256R1:+MAC-ALL:+SIGN-ALL:+VERS-TLS1.3:%NO_TICKETS" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=secp384r1,secp256r1" \
+         0 \
+         -c "HTTP/1.0 200 OK" \
+         -c "NamedGroup: secp384r1 ( 18 )" \
+         -c "NamedGroup: secp256r1 ( 17 )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 23 )"
+
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->G: HRR secp384r1 -> secp521r1" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+GROUP-SECP521R1:+MAC-ALL:+SIGN-ALL:+VERS-TLS1.3:%NO_TICKETS" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=secp384r1,secp521r1" \
+         0 \
+         -c "HTTP/1.0 200 OK" \
+         -c "NamedGroup: secp384r1 ( 18 )" \
+         -c "NamedGroup: secp521r1 ( 19 )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 25 )"
+
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->G: HRR secp384r1 -> x25519" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+GROUP-X25519:+MAC-ALL:+SIGN-ALL:+VERS-TLS1.3:%NO_TICKETS" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=secp384r1,x25519" \
+         0 \
+         -c "HTTP/1.0 200 OK" \
+         -c "NamedGroup: secp384r1 ( 18 )" \
+         -c "NamedGroup: x25519 ( 1d )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 29 )"
+
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->G: HRR secp384r1 -> x448" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+GROUP-X448:+MAC-ALL:+SIGN-ALL:+VERS-TLS1.3:%NO_TICKETS" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=secp384r1,x448" \
+         0 \
+         -c "HTTP/1.0 200 OK" \
+         -c "NamedGroup: secp384r1 ( 18 )" \
+         -c "NamedGroup: x448 ( 1e )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 30 )"
+
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->G: HRR secp521r1 -> secp256r1" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+GROUP-SECP256R1:+MAC-ALL:+SIGN-ALL:+VERS-TLS1.3:%NO_TICKETS" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=secp521r1,secp256r1" \
+         0 \
+         -c "HTTP/1.0 200 OK" \
+         -c "NamedGroup: secp521r1 ( 19 )" \
+         -c "NamedGroup: secp256r1 ( 17 )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 23 )"
+
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->G: HRR secp521r1 -> secp384r1" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+GROUP-SECP384R1:+MAC-ALL:+SIGN-ALL:+VERS-TLS1.3:%NO_TICKETS" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=secp521r1,secp384r1" \
+         0 \
+         -c "HTTP/1.0 200 OK" \
+         -c "NamedGroup: secp521r1 ( 19 )" \
+         -c "NamedGroup: secp384r1 ( 18 )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 24 )"
+
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->G: HRR secp521r1 -> x25519" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+GROUP-X25519:+MAC-ALL:+SIGN-ALL:+VERS-TLS1.3:%NO_TICKETS" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=secp521r1,x25519" \
+         0 \
+         -c "HTTP/1.0 200 OK" \
+         -c "NamedGroup: secp521r1 ( 19 )" \
+         -c "NamedGroup: x25519 ( 1d )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 29 )"
+
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->G: HRR secp521r1 -> x448" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+GROUP-X448:+MAC-ALL:+SIGN-ALL:+VERS-TLS1.3:%NO_TICKETS" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=secp521r1,x448" \
+         0 \
+         -c "HTTP/1.0 200 OK" \
+         -c "NamedGroup: secp521r1 ( 19 )" \
+         -c "NamedGroup: x448 ( 1e )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 30 )"
+
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->G: HRR x25519 -> secp256r1" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+GROUP-SECP256R1:+MAC-ALL:+SIGN-ALL:+VERS-TLS1.3:%NO_TICKETS" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=x25519,secp256r1" \
+         0 \
+         -c "HTTP/1.0 200 OK" \
+         -c "NamedGroup: x25519 ( 1d )" \
+         -c "NamedGroup: secp256r1 ( 17 )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 23 )"
+
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->G: HRR x25519 -> secp384r1" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+GROUP-SECP384R1:+MAC-ALL:+SIGN-ALL:+VERS-TLS1.3:%NO_TICKETS" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=x25519,secp384r1" \
+         0 \
+         -c "HTTP/1.0 200 OK" \
+         -c "NamedGroup: x25519 ( 1d )" \
+         -c "NamedGroup: secp384r1 ( 18 )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 24 )"
+
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->G: HRR x25519 -> secp521r1" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+GROUP-SECP521R1:+MAC-ALL:+SIGN-ALL:+VERS-TLS1.3:%NO_TICKETS" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=x25519,secp521r1" \
+         0 \
+         -c "HTTP/1.0 200 OK" \
+         -c "NamedGroup: x25519 ( 1d )" \
+         -c "NamedGroup: secp521r1 ( 19 )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 25 )"
+
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->G: HRR x25519 -> x448" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+GROUP-X448:+MAC-ALL:+SIGN-ALL:+VERS-TLS1.3:%NO_TICKETS" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=x25519,x448" \
+         0 \
+         -c "HTTP/1.0 200 OK" \
+         -c "NamedGroup: x25519 ( 1d )" \
+         -c "NamedGroup: x448 ( 1e )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 30 )"
+
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->G: HRR x448 -> secp256r1" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+GROUP-SECP256R1:+MAC-ALL:+SIGN-ALL:+VERS-TLS1.3:%NO_TICKETS" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=x448,secp256r1" \
+         0 \
+         -c "HTTP/1.0 200 OK" \
+         -c "NamedGroup: x448 ( 1e )" \
+         -c "NamedGroup: secp256r1 ( 17 )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 23 )"
+
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->G: HRR x448 -> secp384r1" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+GROUP-SECP384R1:+MAC-ALL:+SIGN-ALL:+VERS-TLS1.3:%NO_TICKETS" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=x448,secp384r1" \
+         0 \
+         -c "HTTP/1.0 200 OK" \
+         -c "NamedGroup: x448 ( 1e )" \
+         -c "NamedGroup: secp384r1 ( 18 )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 24 )"
+
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->G: HRR x448 -> secp521r1" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+GROUP-SECP521R1:+MAC-ALL:+SIGN-ALL:+VERS-TLS1.3:%NO_TICKETS" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=x448,secp521r1" \
+         0 \
+         -c "HTTP/1.0 200 OK" \
+         -c "NamedGroup: x448 ( 1e )" \
+         -c "NamedGroup: secp521r1 ( 19 )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 25 )"
+
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_gnutls_next_disable_tls13_compat
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+run_test "TLS 1.3 m->G: HRR x448 -> x25519" \
+         "$G_NEXT_SRV_NO_CERT --http --disable-client-cert --debug=4 --x509certfile data_files/ecdsa_secp256r1.crt --x509keyfile data_files/ecdsa_secp256r1.key --priority=NONE:+CIPHER-ALL:+GROUP-X25519:+MAC-ALL:+SIGN-ALL:+VERS-TLS1.3:%NO_TICKETS" \
+         "$P_CLI server_addr=127.0.0.1 server_port=$SRV_PORT debug_level=4 force_version=tls13 ca_file=data_files/test-ca2.crt sig_algs=ecdsa_secp256r1_sha256 curves=x448,x25519" \
+         0 \
+         -c "HTTP/1.0 200 OK" \
+         -c "NamedGroup: x448 ( 1e )" \
+         -c "NamedGroup: x25519 ( 1d )" \
+         -c "Verifying peer X.509 certificate... ok" \
+         -c "received HelloRetryRequest message" \
+         -c "selected_group ( 29 )"

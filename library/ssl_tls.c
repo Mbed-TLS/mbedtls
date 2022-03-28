@@ -3100,9 +3100,11 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
     mbedtls_pk_free( &handshake->peer_pubkey );
 #endif /* MBEDTLS_X509_CRT_PARSE_C && !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
-#if defined(MBEDTLS_SSL_PROTO_DTLS) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    mbedtls_free( handshake->verify_cookie );
-#endif /* MBEDTLS_SSL_PROTO_DTLS || MBEDTLS_SSL_PROTO_TLS1_3 */
+#if defined(MBEDTLS_SSL_CLI_C) && \
+    ( defined(MBEDTLS_SSL_PROTO_DTLS) || defined(MBEDTLS_SSL_PROTO_TLS1_3) )
+    mbedtls_free( handshake->cookie );
+#endif /* MBEDTLS_SSL_CLI_C &&
+          ( MBEDTLS_SSL_PROTO_DTLS || MBEDTLS_SSL_PROTO_TLS1_3 ) */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     mbedtls_ssl_flight_free( handshake->flight );

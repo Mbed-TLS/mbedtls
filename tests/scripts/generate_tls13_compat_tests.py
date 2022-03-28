@@ -244,7 +244,7 @@ class GnuTLSServ(TLSProgram):
             priority_string_list.extend(update_priority_string_list(
                 self._ciphers, self.CIPHER_SUITE))
         else:
-            priority_string_list.append('CIPHER-ALL')
+            priority_string_list.extend(['CIPHER-ALL', 'MAC-ALL'])
 
         if self._sig_algs:
             signature_algorithms = set(self._sig_algs + self._cert_sig_algs)
@@ -375,6 +375,35 @@ def generate_compat_test(server=None, client=None, cipher=None, sig_alg=None, na
     return '\n'.join(server_object.pre_checks() + client_object.pre_checks() + [cmd])
 
 
+def generate_hrr_compat_test(client=None, server=None, cert_sig_alg=None,
+                             client_named_group=None, server_named_group=None):
+    """
+    Generate Hello Retry Request test case with `ssl-opt.sh` format.
+    """
+    name = 'TLS 1.3 {client[0]}->{server[0]}: HRR {c_named_group} -> {s_named_group}'.format(
+        client=client, server=server, c_named_group=client_named_group,
+        s_named_group=server_named_group)
+    server_object = SERVER_CLASSES[server](named_group=server_named_group,
+                                           cert_sig_alg=cert_sig_alg)
+
+    client_object = CLIENT_CLASSES[client](named_group=client_named_group,
+                                           cert_sig_alg=cert_sig_alg)
+    client_object.add_named_groups(server_named_group)
+
+    cmd = ['run_test "{}"'.format(name), '"{}"'.format(
+        server_object.cmd()), '"{}"'.format(client_object.cmd()), '0']
+    cmd += server_object.post_checks()
+    cmd += client_object.post_checks()
+    cmd += ['-c "received HelloRetryRequest message"']
+    cmd += ['-c "selected_group ( {:d} )"'.format(
+        NAMED_GROUP_IANA_VALUE[server_named_group])]
+    prefix = ' \\\n' + (' '*9)
+    cmd = prefix.join(cmd)
+    return '\n'.join(server_object.pre_checks() +
+                     client_object.pre_checks() +
+                     [cmd])
+
+
 SSL_OUTPUT_HEADER = '''#!/bin/sh
 
 # {filename}
@@ -403,7 +432,6 @@ SSL_OUTPUT_HEADER = '''#!/bin/sh
 # AND REGENERATE THIS FILE.
 #
 '''
-
 
 def main():
     """
@@ -461,6 +489,17 @@ def main():
             yield generate_compat_test(cipher=cipher, sig_alg=sig_alg, named_group=named_group,
                                        server=server, client=client)
 
+        # Generate Hello Retry Request  compat test cases
+        for client, server, client_named_group, server_named_group in \
+            itertools.product(CLIENT_CLASSES.keys(),
+                              SERVER_CLASSES.keys(),
+                              NAMED_GROUP_IANA_VALUE.keys(),
+                              NAMED_GROUP_IANA_VALUE.keys()):
+            if client_named_group != server_named_group:
+                yield generate_hrr_compat_test(client=client, server=server,
+                                               cert_sig_alg="ecdsa_secp256r1_sha256",
+                                               client_named_group=client_named_group,
+                                               server_named_group=server_named_group)
 
     if args.generate_all_tls13_compat_tests:
         if args.output:

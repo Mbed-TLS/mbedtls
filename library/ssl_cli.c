@@ -608,7 +608,7 @@ static int ssl_generate_random( mbedtls_ssl_context *ssl )
      */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
-        ssl->handshake->verify_cookie != NULL )
+        ssl->handshake->cookie != NULL )
     {
         return( 0 );
     }
@@ -846,7 +846,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     {
         MBEDTLS_SSL_CHK_BUF_PTR( p, end, 1 );
 
-        if( ssl->handshake->verify_cookie == NULL )
+        if( ssl->handshake->cookie == NULL )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "no verify cookie to send" ) );
             *p++ = 0;
@@ -854,15 +854,15 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
         else
         {
             MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, cookie",
-                              ssl->handshake->verify_cookie,
-                              ssl->handshake->verify_cookie_len );
+                                   ssl->handshake->cookie,
+                                   ssl->handshake->verify_cookie_len );
 
             *p++ = ssl->handshake->verify_cookie_len;
 
             MBEDTLS_SSL_CHK_BUF_PTR( p, end,
                                      ssl->handshake->verify_cookie_len );
-            memcpy( p, ssl->handshake->verify_cookie,
-                       ssl->handshake->verify_cookie_len );
+            memcpy( p, ssl->handshake->cookie,
+                    ssl->handshake->verify_cookie_len );
             p += ssl->handshake->verify_cookie_len;
         }
     }
@@ -1645,16 +1645,16 @@ static int ssl_parse_hello_verify_request( mbedtls_ssl_context *ssl )
     }
     MBEDTLS_SSL_DEBUG_BUF( 3, "cookie", p, cookie_len );
 
-    mbedtls_free( ssl->handshake->verify_cookie );
+    mbedtls_free( ssl->handshake->cookie );
 
-    ssl->handshake->verify_cookie = mbedtls_calloc( 1, cookie_len );
-    if( ssl->handshake->verify_cookie  == NULL )
+    ssl->handshake->cookie = mbedtls_calloc( 1, cookie_len );
+    if( ssl->handshake->cookie  == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc failed (%d bytes)", cookie_len ) );
         return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
     }
 
-    memcpy( ssl->handshake->verify_cookie, p, cookie_len );
+    memcpy( ssl->handshake->cookie, p, cookie_len );
     ssl->handshake->verify_cookie_len = cookie_len;
 
     /* Start over at ClientHello */
@@ -1736,8 +1736,8 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
         else
         {
             /* We made it through the verification process */
-            mbedtls_free( ssl->handshake->verify_cookie );
-            ssl->handshake->verify_cookie = NULL;
+            mbedtls_free( ssl->handshake->cookie );
+            ssl->handshake->cookie = NULL;
             ssl->handshake->verify_cookie_len = 0;
         }
     }

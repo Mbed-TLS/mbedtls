@@ -2047,12 +2047,6 @@ static void ssl_write_encrypt_then_mac_ext( mbedtls_ssl_context *ssl,
     const mbedtls_cipher_info_t *cipher = NULL;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-    if( ssl->session_negotiate->encrypt_then_mac == MBEDTLS_SSL_ETM_DISABLED )
-    {
-        *olen = 0;
-        return;
-    }
-
     /*
      * RFC 7366: "If a server receives an encrypt-then-MAC request extension
      * from a client and then selects a stream or Authenticated Encryption
@@ -2069,6 +2063,11 @@ static void ssl_write_encrypt_then_mac_ext( mbedtls_ssl_context *ssl,
         ( cipher = mbedtls_cipher_info_from_type( suite->cipher ) ) == NULL ||
         cipher->mode != MBEDTLS_MODE_CBC )
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
+    {
+        ssl->session_negotiate->encrypt_then_mac = MBEDTLS_SSL_ETM_DISABLED;
+    }
+
+    if( ssl->session_negotiate->encrypt_then_mac == MBEDTLS_SSL_ETM_DISABLED )
     {
         *olen = 0;
         return;

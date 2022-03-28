@@ -3363,10 +3363,6 @@ int mbedtls_ecp_export(const mbedtls_ecp_keypair *key, mbedtls_ecp_group *grp,
                        mbedtls_mpi *d, mbedtls_ecp_point *Q)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    ECP_VALIDATE_RET( key != NULL );
-    ECP_VALIDATE_RET( grp != NULL );
-    ECP_VALIDATE_RET( d != NULL );
-    ECP_VALIDATE_RET( Q != NULL );
 
     if( ( ret = mbedtls_ecp_group_copy( grp, &key->grp ) ) != 0 )
         return ret;

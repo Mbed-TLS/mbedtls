@@ -251,7 +251,7 @@ class GnuTLSServ(TLSProgram):
             priority_string_list.extend(update_priority_string_list(
                 signature_algorithms, self.SIGNATURE_ALGORITHM))
         else:
-            priority_string_list.extend(['SIGN-ALL','MAC-ALL'])
+            priority_string_list.extend(['SIGN-ALL', 'MAC-ALL'])
 
 
         if self._named_groups:
@@ -375,24 +375,19 @@ def generate_compat_test(server=None, client=None, cipher=None, sig_alg=None, na
     return '\n'.join(server_object.pre_checks() + client_object.pre_checks() + [cmd])
 
 
-def generate_hrr_compat_test(server=None, client=None, cipher=None, sig_alg=None,
-                             server_named_group=None):
+def generate_hrr_compat_test(client=None, server=None, cert_sig_alg=None,
+                             client_named_group=None, server_named_group=None):
     """
     Generate Hello Retry Request test case with `ssl-opt.sh` format.
     """
-    # Get a named_group for client side which does not equal input named_group
-    client_named_group = list(sorted(set(NAMED_GROUP_IANA_VALUE.keys() - {server_named_group})))[0]
     name = 'TLS 1.3 {client[0]}->{server[0]}: HRR {c_named_group} -> {s_named_group}'.format(
-            client=client, server=server, c_named_group=client_named_group,
-            s_named_group=server_named_group)
-    server_object = SERVER_CLASSES[server](ciphersuite=cipher,
-                                           named_group=server_named_group,
-                                           cert_sig_alg=sig_alg)
+        client=client, server=server, c_named_group=client_named_group,
+        s_named_group=server_named_group)
+    server_object = SERVER_CLASSES[server](named_group=server_named_group,
+                                           cert_sig_alg=cert_sig_alg)
 
-    client_object = CLIENT_CLASSES[client](ciphersuite=cipher,
-                                           named_group=client_named_group,
-                                           cert_sig_alg=sig_alg)
-    # after here, the named_group order is client_named_group, named_group.
+    client_object = CLIENT_CLASSES[client](named_group=client_named_group,
+                                           cert_sig_alg=cert_sig_alg)
     client_object.add_named_groups(server_named_group)
 
     cmd = ['run_test "{}"'.format(name), '"{}"'.format(
@@ -437,12 +432,6 @@ SSL_OUTPUT_HEADER = '''#!/bin/sh
 # AND REGENERATE THIS FILE.
 #
 '''
-
-def cycle_zip(*iters, max_len=None):
-    max_len = max_len or max([len(i) for i in iters])
-    cycle_iters = zip(*[itertools.cycle(i) for i in iters])
-    for _, c in zip(range(max_len), cycle_iters):
-        yield c
 
 def main():
     """
@@ -501,15 +490,16 @@ def main():
                                        server=server, client=client)
 
         # Generate Hello Retry Request  compat test cases
-        for combine_fields, server, client in \
-            itertools.product(list(cycle_zip(CIPHER_SUITE_IANA_VALUE.keys(),
-                                             SIG_ALG_IANA_VALUE.keys(),
-                                             NAMED_GROUP_IANA_VALUE.keys())),
+        for client, server, client_named_group, server_named_group in \
+            itertools.product(CLIENT_CLASSES.keys(),
                               SERVER_CLASSES.keys(),
-                              CLIENT_CLASSES.keys()):
-            cipher, sig_alg, named_group = combine_fields
-            yield generate_hrr_compat_test( server_named_group=named_group, sig_alg=sig_alg,
-                                           server=server, client=client)
+                              NAMED_GROUP_IANA_VALUE.keys(),
+                              NAMED_GROUP_IANA_VALUE.keys()):
+            if client_named_group != server_named_group:
+                yield generate_hrr_compat_test(client=client, server=server,
+                                               cert_sig_alg="ecdsa_secp256r1_sha256",
+                                               client_named_group=client_named_group,
+                                               server_named_group=server_named_group)
 
     if args.generate_all_tls13_compat_tests:
         if args.output:

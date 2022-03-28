@@ -244,14 +244,14 @@ class GnuTLSServ(TLSProgram):
             priority_string_list.extend(update_priority_string_list(
                 self._ciphers, self.CIPHER_SUITE))
         else:
-            priority_string_list.append('CIPHER-ALL')
+            priority_string_list.extend(['CIPHER-ALL', 'MAC-ALL'])
 
         if self._sig_algs:
             signature_algorithms = set(self._sig_algs + self._cert_sig_algs)
             priority_string_list.extend(update_priority_string_list(
                 signature_algorithms, self.SIGNATURE_ALGORITHM))
         else:
-            priority_string_list.extend(['SIGN-ALL', 'MAC-ALL'])
+            priority_string_list.append('SIGN-ALL')
 
 
         if self._named_groups:

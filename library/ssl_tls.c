@@ -1361,7 +1361,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
      * the structure field for the IV, which the PSA-based
      * implementation currently doesn't. */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+    if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
     {
         ret = mbedtls_cipher_setup_psa( &transform->cipher_ctx_enc,
                                         cipher_info, transform->taglen );
@@ -1404,7 +1404,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
      * the structure field for the IV, which the PSA-based
      * implementation currently doesn't. */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+    if( minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
     {
         ret = mbedtls_cipher_setup_psa( &transform->cipher_ctx_dec,
                                         cipher_info, transform->taglen );

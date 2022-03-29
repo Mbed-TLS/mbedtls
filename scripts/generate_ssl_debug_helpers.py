@@ -88,8 +88,7 @@ def preprocess_c_source_code(source, *classes):
                 if has_instance is False:
                     has_instance = True
                     yield pair_start, start_line
-                if instance:
-                    yield instance.span()[0], instance
+                yield instance.span()[0], instance
         if has_instance:
             yield start, end_line
 

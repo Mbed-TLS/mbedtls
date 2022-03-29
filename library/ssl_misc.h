@@ -52,11 +52,6 @@
 #include "mbedtls/ecjpake.h"
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-#include "psa/crypto.h"
-#include "mbedtls/psa_util.h"
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-
 #include "common.h"
 
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \

@@ -1015,14 +1015,24 @@ int mbedtls_ssl_write_client_hello( mbedtls_ssl_context *ssl )
         ssl->out_msglen = msg_len + 4;
         mbedtls_ssl_send_flight_completed( ssl );
 
+        /*
+         * The two functions below may try to send data on the network and
+         * can return with the MBEDTLS_ERR_SSL_WANT_READ error code when they
+         * fail to do so and the transmission has to be retried later. In that
+         * case as in fatal error cases, we return immediatly. But we must have
+         * set the handshake state to the next state at that point to ensure
+         * that we will not write and send again a ClientHello when we
+         * eventually succeed in sending the pending data.
+         */
+        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_HELLO );
+
         if( ( ret = mbedtls_ssl_write_handshake_msg( ssl ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_handshake_msg", ret );
             return( ret );
         }
 
-        if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
-            ( ret = mbedtls_ssl_flight_transmit( ssl ) ) != 0 )
+        if( ( ret = mbedtls_ssl_flight_transmit( ssl ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_flight_transmit", ret );
             return( ret );
@@ -1036,9 +1046,9 @@ int mbedtls_ssl_write_client_hello( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_finish_handshake_msg( ssl,
                                                                 buf_len,
                                                                 msg_len ) );
+        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_HELLO );
     }
 
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_HELLO );
 
 cleanup:
 

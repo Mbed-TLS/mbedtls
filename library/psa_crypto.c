@@ -1759,6 +1759,10 @@ static psa_status_t psa_finish_key_creation(
                                               slot->key.bytes );
         }
     }
+    if( status != PSA_SUCCESS )
+    {
+        return( status );
+    }
 #endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
 
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)

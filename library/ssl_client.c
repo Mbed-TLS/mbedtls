@@ -411,12 +411,13 @@ static int ssl_write_client_hello_body( mbedtls_ssl_context *ssl,
     p_extensions_len = p;
     p += 2;
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    ret = mbedtls_ssl_tls13_write_client_hello_exts( ssl, p, end, &output_len );
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    /* Write server name extension */
+    ret = mbedtls_ssl_write_hostname_ext( ssl, p, end, &output_len );
     if( ret != 0 )
         return( ret );
     p += output_len;
-#endif
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
 #if defined(MBEDTLS_SSL_ALPN)
     ret = ssl_write_alpn_ext( ssl, p, end, &output_len );
@@ -424,6 +425,13 @@ static int ssl_write_client_hello_body( mbedtls_ssl_context *ssl,
         return( ret );
     p += output_len;
 #endif /* MBEDTLS_SSL_ALPN */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    ret = mbedtls_ssl_tls13_write_client_hello_exts( ssl, p, end, &output_len );
+    if( ret != 0 )
+        return( ret );
+    p += output_len;
+#endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
@@ -444,14 +452,6 @@ static int ssl_write_client_hello_body( mbedtls_ssl_context *ssl,
     }
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
-
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-    /* Write server name extension */
-    ret = mbedtls_ssl_write_hostname_ext( ssl, p, end, &output_len );
-    if( ret != 0 )
-        return( ret );
-    p += output_len;
-#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
     /* Add more extensions here */
 

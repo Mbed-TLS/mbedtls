@@ -866,7 +866,7 @@ static int pk_parse_key_sec1_der( mbedtls_ecp_keypair *eck,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     int version, pubkey_done;
     size_t len;
-    mbedtls_asn1_buf params;
+    mbedtls_asn1_buf params = { 0, 0, NULL };
     unsigned char *p = (unsigned char *) key;
     unsigned char *end = p + keylen;
     unsigned char *end2;
@@ -1456,8 +1456,10 @@ int mbedtls_pk_parse_public_key( mbedtls_pk_context *ctx,
         if( ( pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_RSA ) ) == NULL )
             return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
 
-        if( ( ret = mbedtls_pk_setup( ctx, pk_info ) ) != 0 )
+        if( ( ret = mbedtls_pk_setup( ctx, pk_info ) ) != 0 ) {
+            mbedtls_pem_free( &pem );
             return( ret );
+        }
 
         if ( ( ret = pk_get_rsapubkey( &p, p + pem.buflen, mbedtls_pk_rsa( *ctx ) ) ) != 0 )
             mbedtls_pk_free( ctx );

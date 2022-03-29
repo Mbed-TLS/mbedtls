@@ -269,8 +269,7 @@ int mbedtls_ccm_update_ad( mbedtls_ccm_context *ctx,
                            size_t add_len )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    unsigned char i;
-    size_t olen, use_len, offset;
+    size_t i, olen, use_len, offset;
 
     if( ctx->state & CCM_STATE__ERROR )
     {
@@ -343,8 +342,7 @@ int mbedtls_ccm_update( mbedtls_ccm_context *ctx,
                         size_t *output_len )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    unsigned char i;
-    size_t use_len, offset, olen;
+    size_t i, use_len, offset, olen;
 
     unsigned char local_output[16];
 
@@ -541,7 +539,7 @@ int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
  */
 static int mbedtls_ccm_compare_tags(const unsigned char *tag1, const unsigned char *tag2, size_t tag_len)
 {
-    unsigned char i;
+    size_t i;
     int diff;
 
     /* Check tag in "constant-time" */

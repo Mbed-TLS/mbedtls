@@ -862,8 +862,7 @@ static int get_one_and_zeros_padding( unsigned char *input, size_t input_len,
 static void add_zeros_and_len_padding( unsigned char *output,
                                        size_t output_len, size_t data_len )
 {
-    size_t padding_len = output_len - data_len;
-    unsigned char i = 0;
+    size_t i, padding_len = output_len - data_len;
 
     for( i = 1; i < padding_len; i++ )
         output[data_len + i - 1] = 0x00;

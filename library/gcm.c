@@ -337,7 +337,7 @@ int mbedtls_gcm_update_ad( mbedtls_gcm_context *ctx,
     GCM_VALIDATE_RET( add_len == 0 || add != NULL );
 
     /* IV is limited to 2^64 bits, so 2^61 bytes */
-    if( (uint64_t) add_len >> 61 != 0 )
+    if( ( (uint64_t) add_len ) >> 61 != 0 )
         return( MBEDTLS_ERR_GCM_BAD_INPUT );
 
     offset = ctx->add_len % 16;
@@ -430,7 +430,7 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
     const unsigned char *p = input;
     unsigned char *out_p = output;
     size_t offset;
-    unsigned char ectr[16];
+    unsigned char ectr[16] = {0};
 
     if( output_size < input_length )
         return( MBEDTLS_ERR_GCM_BUFFER_TOO_SMALL );

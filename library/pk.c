@@ -36,7 +36,7 @@
 #include "mbedtls/ecdsa.h"
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_PSA_CRYPTO_C)
 #include "mbedtls/psa_util.h"
 #endif
 
@@ -517,6 +517,48 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
                                          sig, sig_size, sig_len,
                                          f_rng, p_rng, NULL ) );
 }
+
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+/*
+ * Make a signature given a signature type.
+ */
+int mbedtls_pk_sign_ext( mbedtls_pk_type_t pk_type,
+                         mbedtls_pk_context *ctx,
+                         mbedtls_md_type_t md_alg,
+                         const unsigned char *hash, size_t hash_len,
+                         unsigned char *sig, size_t sig_size, size_t *sig_len,
+                         int (*f_rng)(void *, unsigned char *, size_t),
+                         void *p_rng )
+{
+#if defined(MBEDTLS_RSA_C)
+    psa_algorithm_t psa_md_alg;
+#endif /* MBEDTLS_RSA_C */
+    *sig_len = 0;
+
+    if( ctx->pk_info == NULL )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    if( ! mbedtls_pk_can_do( ctx, pk_type ) )
+        return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
+
+    if( pk_type != MBEDTLS_PK_RSASSA_PSS )
+    {
+        return( mbedtls_pk_sign( ctx, md_alg, hash, hash_len,
+                                 sig, sig_size, sig_len, f_rng, p_rng ) );
+    }
+#if defined(MBEDTLS_RSA_C)
+    psa_md_alg = mbedtls_psa_translate_md( md_alg );
+    if( psa_md_alg == 0 )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+    return( mbedtls_pk_psa_rsa_sign_ext( PSA_ALG_RSA_PSS( psa_md_alg ),
+                                         ctx->pk_ctx, hash, hash_len,
+                                         sig, sig_size, sig_len ) );
+#else /* MBEDTLS_RSA_C */
+    return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
+#endif /* !MBEDTLS_RSA_C */
+
+}
+#endif /* MBEDTLS_PSA_CRYPTO_C */
 
 /*
  * Decrypt message

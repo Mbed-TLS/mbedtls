@@ -32,6 +32,7 @@
 
 #include "ssl_misc.h"
 #include "ssl_tls13_keys.h"
+#include "ssl_debug_helpers.h"
 
 int mbedtls_ssl_tls13_fetch_handshake_msg( mbedtls_ssl_context *ssl,
                                            unsigned hs_type,
@@ -334,31 +335,10 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
         goto error;
     }
 
-    /* We currently only support ECDSA-based signatures */
-    switch( algorithm )
+    if( mbedtls_ssl_tls13_get_pk_type_and_md_alg_from_sig_alg(
+                                        algorithm, &sig_alg, &md_alg ) != 0 )
     {
-        case MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256:
-            md_alg = MBEDTLS_MD_SHA256;
-            sig_alg = MBEDTLS_PK_ECDSA;
-            break;
-        case MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384:
-            md_alg = MBEDTLS_MD_SHA384;
-            sig_alg = MBEDTLS_PK_ECDSA;
-            break;
-        case MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512:
-            md_alg = MBEDTLS_MD_SHA512;
-            sig_alg = MBEDTLS_PK_ECDSA;
-            break;
-#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
-        case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
-            MBEDTLS_SSL_DEBUG_MSG( 4, ( "Certificate Verify: using RSA PSS" ) );
-            md_alg = MBEDTLS_MD_SHA256;
-            sig_alg = MBEDTLS_PK_RSASSA_PSS;
-            break;
-#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
-        default:
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Certificate Verify: Unknown signature algorithm." ) );
-            goto error;
+        goto error;
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "Certificate Verify: Signature algorithm ( %04x )",
@@ -948,6 +928,123 @@ cleanup:
 /*
  * STATE HANDLING: Output Certificate Verify
  */
+static int ssl_tls13_get_sig_alg_from_pk( mbedtls_ssl_context *ssl,
+                                          mbedtls_pk_context *own_key,
+                                          uint16_t *algorithm )
+{
+    mbedtls_pk_type_t sig = mbedtls_ssl_sig_from_pk( own_key );
+    /* Determine the size of the key */
+    size_t own_key_size = mbedtls_pk_get_bitlen( own_key );
+    *algorithm = MBEDTLS_TLS1_3_SIG_NONE;
+    ((void) own_key_size);
+
+    switch( sig )
+    {
+#if defined(MBEDTLS_ECDSA_C)
+        case MBEDTLS_SSL_SIG_ECDSA:
+            switch( own_key_size )
+            {
+                case 256:
+                    *algorithm = MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256;
+                    return( 0 );
+                case 384:
+                    *algorithm = MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384;
+                    return( 0 );
+                case 521:
+                    *algorithm = MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512;
+                    return( 0 );
+                default:
+                    MBEDTLS_SSL_DEBUG_MSG( 3,
+                                           ( "unknown key size: %"
+                                             MBEDTLS_PRINTF_SIZET " bits",
+                                             own_key_size ) );
+                    break;
+            }
+            break;
+#endif /* MBEDTLS_ECDSA_C */
+
+#if defined(MBEDTLS_RSA_C)
+        case MBEDTLS_SSL_SIG_RSA:
+#if defined(MBEDTLS_PKCS1_V21)
+#if defined(MBEDTLS_SHA256_C)
+            if( own_key_size <= 2048 &&
+                mbedtls_ssl_sig_alg_is_received( ssl,
+                                    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256 ) )
+            {
+                *algorithm = MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256;
+                return( 0 );
+            }
+            else
+#endif /* MBEDTLS_SHA256_C */
+#if defined(MBEDTLS_SHA384_C)
+            if( own_key_size <= 3072 &&
+                mbedtls_ssl_sig_alg_is_received( ssl,
+                                    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384 ) )
+            {
+                *algorithm = MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384;
+                return( 0 );
+            }
+            else
+#endif /* MBEDTLS_SHA384_C */
+#if defined(MBEDTLS_SHA512_C)
+            if( own_key_size <= 4096 &&
+                mbedtls_ssl_sig_alg_is_received( ssl,
+                                    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512 ) )
+            {
+                *algorithm = MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512;
+                return( 0 );
+            }
+            else
+#endif /* MBEDTLS_SHA512_C */
+#endif /* MBEDTLS_PKCS1_V21 */
+#if defined(MBEDTLS_PKCS1_V15)
+#if defined(MBEDTLS_SHA256_C)
+            if( own_key_size <= 2048 &&
+                mbedtls_ssl_sig_alg_is_received( ssl,
+                                    MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256 ) )
+            {
+                *algorithm = MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256;
+                return( 0 );
+            }
+            else
+#endif /* MBEDTLS_SHA256_C */
+#if defined(MBEDTLS_SHA384_C)
+            if( own_key_size <= 3072 &&
+                mbedtls_ssl_sig_alg_is_received( ssl,
+                                    MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384 ) )
+            {
+                *algorithm = MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384;
+                return( 0 );
+            }
+            else
+#endif /* MBEDTLS_SHA384_C */
+#if defined(MBEDTLS_SHA512_C)
+            if( own_key_size <= 4096 &&
+                mbedtls_ssl_sig_alg_is_received( ssl,
+                                    MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512 ) )
+            {
+                *algorithm = MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512;
+                return( 0 );
+            }
+            else
+#endif /* MBEDTLS_SHA512_C */
+#endif /* MBEDTLS_PKCS1_V15 */
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 3,
+                                       ( "unknown key size: %"
+                                         MBEDTLS_PRINTF_SIZET " bits",
+                                         own_key_size ) );
+            }
+            break;
+#endif /* MBEDTLS_RSA_C */
+        default:
+            MBEDTLS_SSL_DEBUG_MSG( 1,
+                                   ( "unkown signature type : %u", sig ) );
+            break;
+    }
+    return( -1 );
+}
+
 static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
                                                     unsigned char *buf,
                                                     unsigned char *end,
@@ -961,11 +1058,8 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
     size_t handshake_hash_len;
     unsigned char verify_buffer[ SSL_VERIFY_STRUCT_MAX_SIZE ];
     size_t verify_buffer_len;
-    unsigned char signature_type;
-#if defined(MBEDTLS_ECDSA_C)
-    size_t own_key_size;
-#endif /* MBEDTLS_ECDSA_C */
-    mbedtls_md_type_t md_alg;
+    mbedtls_pk_type_t pk_type = MBEDTLS_PK_NONE;
+    mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
     uint16_t algorithm = MBEDTLS_TLS1_3_SIG_NONE;
     size_t signature_len = 0;
     const mbedtls_md_info_t *md_info;
@@ -1003,53 +1097,24 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
      *    opaque signature<0..2^16-1>;
      *  } CertificateVerify;
      */
-    signature_type = mbedtls_ssl_sig_from_pk( own_key );
-#if defined(MBEDTLS_ECDSA_C)
-    /* Determine the size of the key */
-    own_key_size = mbedtls_pk_get_bitlen( own_key );
-#endif /* MBEDTLS_ECDSA_C */
-    switch( signature_type )
-    {
-#if defined(MBEDTLS_ECDSA_C)
-        case MBEDTLS_SSL_SIG_ECDSA:
-            switch( own_key_size )
-            {
-                case 256:
-                    md_alg  = MBEDTLS_MD_SHA256;
-                    algorithm = MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256;
-                    break;
-                case 384:
-                    md_alg  = MBEDTLS_MD_SHA384;
-                    algorithm = MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384;
-                    break;
-                case 521:
-                    md_alg  = MBEDTLS_MD_SHA512;
-                    algorithm = MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512;
-                    break;
-                default:
-                    MBEDTLS_SSL_DEBUG_MSG( 3,
-                                           ( "unknown key size: %"
-                                             MBEDTLS_PRINTF_SIZET " bits",
-                                             own_key_size ) );
-                    break;
-            }
-            break;
-#endif /* MBEDTLS_ECDSA_C */
-
-        default:
-            MBEDTLS_SSL_DEBUG_MSG( 1,
-                                   ( "unkown pk type : %d", signature_type ) );
-            break;
-    }
-
-    if( algorithm == MBEDTLS_TLS1_3_SIG_NONE ||
-        ! mbedtls_ssl_sig_alg_is_received( ssl, algorithm ) )
+    ret = ssl_tls13_get_sig_alg_from_pk( ssl, own_key, &algorithm );
+    if( ret != 0 || ! mbedtls_ssl_sig_alg_is_received( ssl, algorithm ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1,
                     ( "signature algorithm not in received or offered list." ) );
+
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Signature algorithm is %s",
+                                    mbedtls_ssl_sig_alg_to_str( algorithm ) ) );
+
         MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
                                       MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
         return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+    }
+
+    if( mbedtls_ssl_tls13_get_pk_type_and_md_alg_from_sig_alg(
+                                        algorithm, &pk_type, &md_alg ) != 0 )
+    {
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR  );
     }
 
     /* Check there is space for the algorithm identifier (2 bytes) and the
@@ -1071,10 +1136,10 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
     verify_hash_len = mbedtls_md_get_size( md_info );
     MBEDTLS_SSL_DEBUG_BUF( 3, "verify hash", verify_hash, verify_hash_len );
 
-    if( ( ret = mbedtls_pk_sign( own_key, md_alg,
-                                 verify_hash, verify_hash_len,
-                                 p + 2, (size_t)( end - ( p + 2 ) ), &signature_len,
-                                 ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+    if( ( ret = mbedtls_pk_sign_ext( pk_type, own_key,
+                        md_alg, verify_hash, verify_hash_len,
+                        p + 2, (size_t)( end - ( p + 2 ) ), &signature_len,
+                        ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_sign", ret );
         return( ret );

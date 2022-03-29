@@ -1087,3 +1087,46 @@ exit:
     USE_PSA_DONE( );
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_GENPRIME */
+void pk_psa_sign_ext( int pk_type, int parameter, int key_pk_type, int md_alg )
+{
+    /* See the description of pk_genkey() for the description of the `parameter` argument. */
+    mbedtls_pk_context pk;
+    size_t sig_len;
+    unsigned char sig[MBEDTLS_PK_SIGNATURE_MAX_SIZE];
+    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
+    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( md_alg );
+    size_t hash_len = mbedtls_md_get_size( md_info );
+    void const *options = NULL;
+    mbedtls_pk_rsassa_pss_options rsassa_pss_options;
+    memset( hash, 0x2a, sizeof( hash ) );
+    memset( sig, 0, sizeof( sig ) );
+
+    mbedtls_pk_init( &pk );
+    PSA_INIT();
+
+    TEST_ASSERT( mbedtls_pk_setup( &pk,
+                                mbedtls_pk_info_from_type( pk_type ) ) == 0 );
+
+    TEST_ASSERT( pk_genkey( &pk, parameter ) == 0 );
+
+    TEST_ASSERT( mbedtls_pk_sign_ext( key_pk_type, &pk, md_alg, hash, hash_len,
+                                      sig, sizeof( sig ), &sig_len,
+                                      mbedtls_test_rnd_std_rand, NULL ) == 0 );
+
+    if( key_pk_type == MBEDTLS_PK_RSASSA_PSS )
+    {
+        rsassa_pss_options.mgf1_hash_id = md_alg;
+        TEST_ASSERT( md_info != NULL );
+        rsassa_pss_options.expected_salt_len = mbedtls_md_get_size( md_info );
+        options = (const void*) &rsassa_pss_options;
+    }
+    TEST_ASSERT( mbedtls_pk_verify_ext( key_pk_type, options, &pk, md_alg,
+                                        hash, hash_len, sig, sig_len ) == 0 );
+exit:
+    PSA_DONE( );
+    mbedtls_pk_free( &pk );
+}
+/* END_CASE */
+

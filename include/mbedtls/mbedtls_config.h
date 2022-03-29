@@ -2841,6 +2841,60 @@
 #define MBEDTLS_SHA512_C
 
 /**
+ * \def MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
+ *
+ * Enable acceleration of the SHA-512 cryptographic hash algorithm with the
+ * Arm A64 cryptographic extensions if they are available at runtime. If not,
+ * it will fall back to the C implementation.
+ *
+ * \note If MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT is defined when building
+ * for a non-Aarch64 build it will be silently ignored.
+ *
+ * \note The code uses the SHA-512 Neon intrinsics, so requires GCC >= 8 or
+ * Clang >= 7, and \c CFLAGS must be set to a minimum of
+ * \c -march=armv8.2-a+sha3. An optimisation level of \c -O3 generates the
+ * fastest code.
+ *
+ * \warning MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT cannot be defined at the
+ * same time as MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY.
+ *
+ * Requires: MBEDTLS_SHA512_C.
+ *
+ * Module:  library/sha512.c
+ *
+ * Uncomment to have the library check for the A64 SHA-512 crypto extensions
+ * and use them if available.
+ */
+//#define MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
+
+/**
+ * \def MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY
+ *
+ * Enable acceleration of the SHA-512 cryptographic hash algorithm with the
+ * Arm A64 cryptographic extensions, which must be available at runtime (or
+ * an illegal instruction fault will occur).
+ *
+ * \note This allows builds with a smaller code size than with
+ * MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
+ *
+ * \note The code uses the SHA-512 Neon intrinsics, so requires GCC >= 8 or
+ * Clang >= 7, and \c CFLAGS must be set to a minimum of
+ * \c -march=armv8.2-a+sha3. An optimisation level of \c -O3 generates the
+ * fastest code.
+ *
+ * \warning MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY cannot be defined at the same
+ * time as MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT.
+ *
+ * Requires: MBEDTLS_SHA512_C.
+ *
+ * Module:  library/sha512.c
+ *
+ * Uncomment to have the library use the A64 SHA-512 crypto extensions
+ * unconditionally.
+ */
+//#define MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY
+
+/**
  * \def MBEDTLS_SSL_CACHE_C
  *
  * Enable simple SSL cache implementation.

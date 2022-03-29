@@ -851,7 +851,7 @@ int mbedtls_ssl_tls13_calculate_verify_data( mbedtls_ssl_context* ssl,
 
     psa_algorithm_t hash_alg = mbedtls_psa_translate_md(
                                     ssl->handshake->ciphersuite_info->mac );
-    size_t const hash_lem = PSA_HASH_LENGTH( hash_alg );
+    size_t const hash_len = PSA_HASH_LENGTH( hash_alg );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> mbedtls_ssl_tls13_calculate_verify_data" ) );
 
@@ -866,7 +866,7 @@ int mbedtls_ssl_tls13_calculate_verify_data( mbedtls_ssl_context* ssl,
         base_key_len = sizeof( tls13_hs_secrets->server_handshake_traffic_secret );
     }
 
-    if( dst_len < hash_lem )
+    if( dst_len < hash_len )
     {
         ret = MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
         goto exit;
@@ -886,7 +886,7 @@ int mbedtls_ssl_tls13_calculate_verify_data( mbedtls_ssl_context* ssl,
     if( ret != 0 )
         goto exit;
 
-    MBEDTLS_SSL_DEBUG_BUF( 3, "verify_data for finished message", dst, hash_lem );
+    MBEDTLS_SSL_DEBUG_BUF( 3, "verify_data for finished message", dst, hash_len );
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= mbedtls_ssl_tls13_calculate_verify_data" ) );
 
 exit:

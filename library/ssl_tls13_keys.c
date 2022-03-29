@@ -431,20 +431,8 @@ int mbedtls_ssl_tls13_derive_secret(
 {
     int ret;
     unsigned char hashed_context[ PSA_HASH_MAX_SIZE ];
-/*
-    const mbedtls_md_info_t *md_info;
-    md_info = mbedtls_md_info_from_type( hash_alg );
-    if( md_info == NULL )
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-*/
     if( ctx_hashed == MBEDTLS_SSL_TLS1_3_CONTEXT_UNHASHED )
     {
-/*
-        ret = mbedtls_md( md_info, ctx, ctx_len, hashed_context );
-        if( ret != 0 )
-            return( ret );
-        ctx_len = mbedtls_md_get_size( md_info );
-*/
         psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
         status = psa_hash_compute( hash_alg, ctx, ctx_len, hashed_context,

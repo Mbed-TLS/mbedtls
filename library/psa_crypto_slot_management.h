@@ -128,26 +128,6 @@ psa_status_t psa_get_empty_key_slot( psa_key_id_t *volatile_key_id,
 
 /** Unlock a key slot and, if possible, perform any delayed destruction
  *  or purging.
- * This function increments the key slot lock counter by one.
- *
- * \param[in] slot  The key slot.
- *
- * \retval #PSA_SUCCESS
-               The key slot lock counter was incremented.
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
- *             The lock counter already reached its maximum value and was not
- *             increased.
- */
-static inline psa_status_t psa_lock_key_slot( psa_key_slot_t *slot )
-{
-    if( slot->lock_count >= SIZE_MAX )
-        return( PSA_ERROR_CORRUPTION_DETECTED );
-
-    slot->lock_count++;
-
-    return( PSA_SUCCESS );
-}
-
  *
  * This function decrements the key slot lock counter by one.
  * If there was a key destruction or purging requested while the key was

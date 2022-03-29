@@ -561,7 +561,9 @@ psa_status_t psa_copy_key(mbedtls_svc_key_id_t source_key,
  *         a communication failure occurred. The cryptoprocessor may have
  *         been compromised.
  * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
+ *         The library has not been previously initialized by psa_crypto_init(),
+ *         or the library was not able to move the key slot to the
+ *         PSA_STATE_DESTROYING state.
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */

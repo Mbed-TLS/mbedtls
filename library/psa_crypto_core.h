@@ -46,6 +46,16 @@ static inline int mbedtls_psa_safer_memcmp(
     return( diff );
 }
 
+typedef enum
+{
+    PSA_STATE_EMPTY,     /* No key loaded yet. */
+    PSA_STATE_CREATING,  /* Key creation has been started. */
+    PSA_STATE_UNUSED,    /* Key present, but unused. */
+    PSA_STATE_READING,   /* Key material used in an operation. */
+    PSA_STATE_WIPING,    /* Purging key data from memory in progress. */
+    PSA_STATE_DESTROYING /* Persistent and volatile key material destruction in progress. */
+} psa_key_slot_state_t;
+
 /** The data structure representing a key slot, containing key material
  * and metadata for one key.
  */
@@ -54,7 +64,7 @@ typedef struct
     psa_core_key_attributes_t attr;
 
     /*
-     * Number of locks on the key slot held by the library.
+     * Number of active readers of the key slot.
      *
      * This counter is incremented by one each time a library function
      * retrieves through one of the dedicated internal API a pointer to the
@@ -76,7 +86,9 @@ typedef struct
      *   or purge or destroy a key while it is in used by the library through
      *   another thread.
      */
-    size_t lock_count;
+    size_t reader_count;
+
+    psa_key_slot_state_t state;
 
     /* Dynamically allocated key data buffer.
      * Format as specified in psa_export_key(). */
@@ -91,33 +103,6 @@ typedef struct
  * Currently there aren't any. */
 #define PSA_KA_MASK_INTERNAL_ONLY (     \
         0 )
-
-/** Test whether a key slot is occupied.
- *
- * A key slot is occupied iff the key type is nonzero. This works because
- * no valid key can have 0 as its key type.
- *
- * \param[in] slot      The key slot to test.
- *
- * \return 1 if the slot is occupied, 0 otherwise.
- */
-static inline int psa_is_key_slot_occupied( const psa_key_slot_t *slot )
-{
-    return( slot->attr.type != 0 );
-}
-
-/** Test whether a key slot is locked.
- *
- * A key slot is locked iff its lock counter is strictly greater than 0.
- *
- * \param[in] slot  The key slot to test.
- *
- * \return 1 if the slot is locked, 0 otherwise.
- */
-static inline int psa_is_key_slot_locked( const psa_key_slot_t *slot )
-{
-    return( slot->lock_count > 0 );
-}
 
 /** Retrieve flags from psa_key_slot_t::attr::core::flags.
  *
@@ -195,6 +180,14 @@ static inline psa_key_slot_number_t psa_key_slot_get_slot_number(
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  */
 psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot );
+
+/** Perform key destruction in both volatile and persistent memory.
+ *
+ * See psa_destroy_key for information on return errors.
+ *
+ * \param[in,out] slot  The key slot to wipe.
+ */
+psa_status_t psa_finish_key_destruction( psa_key_slot_t *slot );
 
 /** Try to allocate a buffer to an empty key slot.
  *
@@ -547,4 +540,13 @@ psa_status_t psa_verify_hash_builtin(
  */
 psa_status_t psa_validate_unstructured_key_bit_size( psa_key_type_t type,
                                                      size_t bits );
+
+#if defined(MBEDTLS_TEST_HOOKS)
+/**
+ * \brief Get a key slot from global data. Used in tests to check slot state
+ *        without locking it.
+ */
+psa_key_slot_t* mbedtls_psa_get_key_slot( uint32_t num );
+#endif
+
 #endif /* PSA_CRYPTO_CORE_H */

@@ -93,7 +93,8 @@ static inline int psa_key_id_is_volatile( psa_key_id_t key_id )
  * \retval #PSA_ERROR_DATA_CORRUPT
  */
 psa_status_t psa_get_and_lock_key_slot( mbedtls_svc_key_id_t key,
-                                        psa_key_slot_t **p_slot );
+                                        psa_key_slot_t **p_slot,
+                                        psa_key_slot_state_t intent );
 
 /** Initialize the key slot structures.
  *
@@ -125,8 +126,8 @@ void psa_wipe_all_key_slots( void );
 psa_status_t psa_get_empty_key_slot( psa_key_id_t *volatile_key_id,
                                      psa_key_slot_t **p_slot );
 
-/** Lock a key slot.
- *
+/** Unlock a key slot and, if possible, perform any delayed destruction
+ *  or purging.
  * This function increments the key slot lock counter by one.
  *
  * \param[in] slot  The key slot.
@@ -147,9 +148,11 @@ static inline psa_status_t psa_lock_key_slot( psa_key_slot_t *slot )
     return( PSA_SUCCESS );
 }
 
-/** Unlock a key slot.
  *
  * This function decrements the key slot lock counter by one.
+ * If there was a key destruction or purging requested while the key was
+ * still in use, and this caller is the last user of it, the delayed
+ * operation will be applied.
  *
  * \note To ease the handling of errors in retrieving a key slot
  *       a NULL input pointer is valid, and the function returns
@@ -161,9 +164,35 @@ static inline psa_status_t psa_lock_key_slot( psa_key_slot_t *slot )
  *             decremented successfully.
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  *             The lock counter was equal to 0.
- *
+ * \retval #PSA_ERROR_BAD_STATE
+ *             This slot is not in a state that enables any active reader.
  */
 psa_status_t psa_unlock_key_slot( psa_key_slot_t *slot );
+
+/** Test whether the number of readers of this lock is equal to 0.
+ *
+ * \param[in] slot  The key slot to test.
+ * \retval 0
+ *         The key slot has at least one active reader.
+ * \retval 1
+ *         The key slot has no active readers.
+ */
+psa_status_t psa_slot_has_no_readers( psa_key_slot_t *slot );
+
+/** Transition the slot to a given state
+ *
+ * \param[in] slot           The key slot.
+ * \param[in] target_state   The desired slot state.
+ *
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ *         \p slot is empty and a bad state change was requested.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The requested state transition could not be performed.
+ * \retval #PSA_SUCCESS
+ *         The transition succeeded and \p slot is now in \p target_state.
+ */
+psa_status_t psa_slot_change_state( psa_key_slot_t *slot,
+                                    psa_key_slot_state_t target_state );
 
 /** Test whether a lifetime designates a key in an external cryptoprocessor.
  *

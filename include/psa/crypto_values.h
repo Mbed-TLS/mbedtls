@@ -328,6 +328,14 @@
  */
 #define PSA_ERROR_DATA_INVALID          ((psa_status_t)-153)
 
+/** Requested operation has been delayed until the slot will be no longer in use.
+ *
+ * This error indicates that the requested operation could not be performed
+ * at the time. It is returned from psa_close_key, psa_purge_key, and
+ * psa_destroy_key for a call with a slot that is still used by a different
+ * thread. It will be performed by the thread that stops using the key last.
+ */
+#define PSA_ERROR_DELAYED               ((psa_status_t)-154)
 /**@}*/
 
 /** \defgroup crypto_types Key and algorithm types

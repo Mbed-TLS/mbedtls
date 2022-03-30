@@ -1028,9 +1028,7 @@ psa_status_t psa_finish_key_destruction( psa_key_slot_t *slot )
     psa_status_t overall_status = PSA_SUCCESS;
 
     if( slot->state != PSA_STATE_DESTROYING )
-    {
         return( PSA_ERROR_BAD_STATE );
-    }
 
     if( PSA_KEY_LIFETIME_IS_READ_ONLY( slot->attr.lifetime ) )
     {
@@ -1142,9 +1140,13 @@ psa_status_t psa_destroy_key( mbedtls_svc_key_id_t key )
         return( status );
 
     if( psa_slot_has_no_readers( slot ) )
+    {
+        MUTEX_LOCK_CHECK( &mbedtls_psa_slots_mutex );
         status = psa_finish_key_destruction( slot );
+        MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
+    }
     else
-        return ( PSA_ERROR_DELAYED );
+        status = PSA_ERROR_DELAYED;
 
     return( status );
 }
@@ -1601,9 +1603,11 @@ static psa_status_t psa_start_key_creation(
     if( status != PSA_SUCCESS )
         return( status );
 
+    MUTEX_LOCK_CHECK( &mbedtls_psa_slots_mutex );
     status = psa_get_empty_key_slot( &volatile_key_id, p_slot );
     if( status != PSA_SUCCESS )
     {
+        MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
         return( status );
     }
     slot = *p_slot;
@@ -1658,6 +1662,7 @@ static psa_status_t psa_start_key_creation(
                                            &slot_number );
         if( status != PSA_SUCCESS )
         {
+            MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
             return( status );
         }
 
@@ -1671,6 +1676,7 @@ static psa_status_t psa_start_key_creation(
             if( status != PSA_SUCCESS )
             {
                 (void) psa_crypto_stop_transaction( );
+                MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
                 return( status );
             }
         }
@@ -1682,11 +1688,13 @@ static psa_status_t psa_start_key_creation(
     if( *p_drv == NULL && method == PSA_KEY_CREATION_REGISTER )
     {
         /* Key registration only makes sense with a secure element. */
+        MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
         return( PSA_ERROR_INVALID_ARGUMENT );
     }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
     psa_slot_change_state( slot, PSA_STATE_CREATING );
 
+    MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
     return( PSA_SUCCESS );
 }
 
@@ -1729,6 +1737,7 @@ static psa_status_t psa_finish_key_creation(
     (void) slot;
     (void) driver;
 
+    MUTEX_LOCK_CHECK( &mbedtls_psa_slots_mutex );
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     if( ! PSA_KEY_LIFETIME_IS_VOLATILE( slot->attr.lifetime ) )
     {
@@ -1761,6 +1770,7 @@ static psa_status_t psa_finish_key_creation(
     }
     if( status != PSA_SUCCESS )
     {
+        MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
         return( status );
     }
 #endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
@@ -1778,6 +1788,7 @@ static psa_status_t psa_finish_key_creation(
         if( status != PSA_SUCCESS )
         {
             psa_destroy_persistent_key( slot->attr.id );
+            MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
             return( status );
         }
         status = psa_crypto_stop_transaction( );
@@ -1792,6 +1803,7 @@ static psa_status_t psa_finish_key_creation(
             *key = MBEDTLS_SVC_KEY_ID_INIT;
     }
 
+    MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
     return( status );
 }
 
@@ -1815,6 +1827,10 @@ static void psa_fail_key_creation( psa_key_slot_t *slot,
     if( slot == NULL )
         return;
 
+#if defined(MBEDTLS_THREADING_C)
+    (void) mbedtls_mutex_lock( &mbedtls_psa_slots_mutex );
+#endif
+
 #if defined(MBEDTLS_PSA_CRYPTO_SE_C)
     /* TODO: If the key has already been created in the secure
      * element, and the failure happened later (when saving metadata
@@ -1834,6 +1850,9 @@ static void psa_fail_key_creation( psa_key_slot_t *slot,
 
     (void) psa_slot_change_state( slot, PSA_STATE_WIPING );
     (void) psa_wipe_key_slot( slot );
+#if defined(MBEDTLS_THREADING_C)
+    (void) mbedtls_mutex_unlock( &mbedtls_psa_slots_mutex );
+#endif
 }
 
 /** Validate optional attributes during key creation.

@@ -99,6 +99,10 @@ extern int (*mbedtls_mutex_unlock)( mbedtls_threading_mutex_t *mutex );
 extern mbedtls_threading_mutex_t mbedtls_threading_readdir_mutex;
 #endif
 
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+extern mbedtls_threading_mutex_t mbedtls_psa_slots_mutex;
+#endif
+
 #if defined(MBEDTLS_HAVE_TIME_DATE) && !defined(MBEDTLS_PLATFORM_GMTIME_R_ALT)
 /* This mutex may or may not be used in the default definition of
  * mbedtls_platform_gmtime_r(), but in order to determine that,
@@ -108,6 +112,27 @@ extern mbedtls_threading_mutex_t mbedtls_threading_readdir_mutex;
  * doesn't need it, but that's not a problem. */
 extern mbedtls_threading_mutex_t mbedtls_threading_gmtime_mutex;
 #endif /* MBEDTLS_HAVE_TIME_DATE && !MBEDTLS_PLATFORM_GMTIME_R_ALT */
+
+/*
+ * Helper functions
+ */
+#if defined(MBEDTLS_THREADING_C)
+#define MUTEX_LOCK_CHECK( mutex )                 \
+    do                                            \
+    {                                             \
+        if( mbedtls_mutex_lock( mutex ) != 0 )    \
+            return( PSA_ERROR_BAD_STATE );        \
+    } while( 0 )
+#define MUTEX_UNLOCK_CHECK( mutex )               \
+    do                                            \
+    {                                             \
+        if( mbedtls_mutex_unlock( mutex ) != 0 )  \
+            return( PSA_ERROR_BAD_STATE );        \
+    } while( 0 )
+#else
+#define MUTEX_LOCK_CHECK( mutex )
+#define MUTEX_UNLOCK_CHECK( mutex )
+#endif
 
 #endif /* MBEDTLS_THREADING_C */
 

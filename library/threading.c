@@ -180,6 +180,13 @@ void mbedtls_threading_free_alt( void )
 #if defined(MBEDTLS_FS_IO)
 mbedtls_threading_mutex_t mbedtls_threading_readdir_mutex MUTEX_INIT;
 #endif
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+/*
+ * psa_crypto_slot_management.c global data mutex.
+ */
+mbedtls_threading_mutex_t mbedtls_psa_slots_mutex MUTEX_INIT;
+#endif
+
 #if defined(THREADING_USE_GMTIME)
 mbedtls_threading_mutex_t mbedtls_threading_gmtime_mutex MUTEX_INIT;
 #endif

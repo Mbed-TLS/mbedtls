@@ -4246,6 +4246,7 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
                 conf->max_major_ver = 0;
                 conf->min_minor_ver = 0;
                 conf->max_minor_ver = 0;
+                return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
             }
 #endif
             else
@@ -4297,6 +4298,7 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
                 conf->max_major_ver = 0;
                 conf->min_minor_ver = 0;
                 conf->max_minor_ver = 0;
+                return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
             }
 #endif
             else

@@ -83,11 +83,12 @@ class TLSProgram:
         Args:
             ciphersuite (str, optional): Used by TLS program `ciphersuites` parameter. The value
                                          MUST be one ciphersuite of RFC 8446. Defaults to None.
-            signature_algorithm (str, optional): Used by TLS program `signature algorithm` parameter.
-                                                 The value MUST be one signature_algorithm of
-                                                 RFC 8446. Defaults to None.
+            signature_algorithm (str, optional): Used by TLS program `signature algorithm`
+                                                 parameter. The value MUST be one
+                                                 signature_algorithm of RFC 8446. Defaults to None.
             named_group (str, optional): Used by TLS program `named_group` or `curve` parameter. The
-                                         value MUST be one named_group of RFC 8446. Defaults to None.
+                                         value MUST be one named_group of RFC 8446. Defaults to
+                                         None.
             cert_sig_alg (str, optional): Used by TLS program certification parameters. The value
                                           MUST be one signature_algorithm of RFC 8446. Pick up the
                                           certification used by program. Defaults to None.

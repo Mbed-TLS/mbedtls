@@ -534,47 +534,6 @@ static int ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 
-/**
- * \brief           Validate cipher suite against config in SSL context.
- *
- * \param suite_info    cipher suite to validate
- * \param ssl           SSL context
- * \param min_minor_ver Minimal minor version to accept a cipher suite
- * \param max_minor_ver Maximal minor version to accept a cipher suite
- *
- * \return          0 if valid, else 1
- */
-static int ssl_validate_ciphersuite(
-    const mbedtls_ssl_ciphersuite_t * suite_info,
-    const mbedtls_ssl_context * ssl,
-    int min_minor_ver, int max_minor_ver )
-{
-    (void) ssl;
-    if( suite_info == NULL )
-        return( 1 );
-
-    if( suite_info->min_minor_ver > max_minor_ver ||
-            suite_info->max_minor_ver < min_minor_ver )
-        return( 1 );
-
-#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
-    if( suite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE &&
-            mbedtls_ecjpake_check( &ssl->handshake->ecjpake_ctx ) != 0 )
-        return( 1 );
-#endif
-
-    /* Don't suggest PSK-based ciphersuite if no PSK is available. */
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
-    if( mbedtls_ssl_ciphersuite_uses_psk( suite_info ) &&
-        mbedtls_ssl_conf_has_static_psk( ssl->conf ) == 0 )
-    {
-        return( 1 );
-    }
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
-
-    return( 0 );
-}
-
 int mbedtls_ssl_tls12_write_client_hello_exts( mbedtls_ssl_context *ssl,
                                                unsigned char *buf,
                                                const unsigned char *end,
@@ -1516,8 +1475,8 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 
     suite_info = mbedtls_ssl_ciphersuite_from_id(
         ssl->session_negotiate->ciphersuite );
-    if( ssl_validate_ciphersuite( suite_info, ssl, ssl->minor_ver,
-                                  ssl->minor_ver ) != 0 )
+    if( mbedtls_ssl_validate_ciphersuite( ssl, suite_info, ssl->minor_ver,
+                                          ssl->minor_ver ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
         mbedtls_ssl_send_alert_message(

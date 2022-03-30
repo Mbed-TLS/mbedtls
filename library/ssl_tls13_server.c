@@ -730,10 +730,70 @@ cleanup:
 /*
  * StateHanler: MBEDTLS_SSL_SERVER_HELLO
  */
+static int ssl_tls13_prepare_server_hello( mbedtls_ssl_context *ssl )
+{
+    int ret = 0;
+
+    if( ssl->conf->f_rng == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "no RNG provided" ) );
+        return( MBEDTLS_ERR_SSL_NO_RNG );
+    }
+
+    if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng,
+                                  ssl->handshake->randbytes,
+                                  MBEDTLS_SERVER_HELLO_RANDOM_LEN ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "f_rng", ret );
+        return( ret );
+    }
+
+    MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, random bytes",
+                           ssl->handshake->randbytes,
+                           MBEDTLS_SERVER_HELLO_RANDOM_LEN );
+
+#if defined(MBEDTLS_HAVE_TIME)
+    ssl->session_negotiate->start = time( NULL );
+#endif /* MBEDTLS_HAVE_TIME */
+
+    return( ret );
+}
+
 static int ssl_tls13_write_server_hello( mbedtls_ssl_context *ssl )
 {
-    ((void) ssl);
-    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+    int ret = 0;
+    unsigned char *buf;
+    size_t buf_len, msg_len;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write server hello" ) );
+
+    /* Preprocessing */
+
+    /* This might lead to ssl_tls13_process_server_hello() being called
+     * multiple times. The implementation of
+     * ssl_tls13_process_server_hello_preprocess() must either be safe to be
+     * called multiple times, or we need to add state to omit this call once
+     * we're calling ssl_tls13_process_server_hello() multiple times.
+     */
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_prepare_server_hello( ssl ) );
+
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_start_handshake_msg( ssl,
+                                MBEDTLS_SSL_HS_SERVER_HELLO, &buf, &buf_len ) );
+
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_write_server_hello_body( ssl, buf, buf_len,
+                                                             &msg_len ) );
+
+    mbedtls_ssl_tls13_add_hs_msg_to_checksum(
+        ssl, MBEDTLS_SSL_HS_SERVER_HELLO, buf, msg_len );
+
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_server_hello( ssl ) );
+
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_finish_handshake_msg(
+                              ssl, buf_len, msg_len ) );
+cleanup:
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write server hello" ) );
+    return( ret );
 }
 
 /*

@@ -5306,12 +5306,23 @@ static psa_status_t psa_tls12_prf_psk_to_ms_set_key(
      * uint16 with the value N, and the PSK itself.
      */
 
+    if ( prf->state == PSA_TLS12_PRF_STATE_SALT_SET )
+    {
+        *cur++ = MBEDTLS_BYTE_1( prf->salt_length );
+        *cur++ = MBEDTLS_BYTE_0( prf->salt_length );
+        memcpy( cur, prf->salt, prf->salt_length );
+        cur += prf->salt_length;
+    }
+    else
+    {
+        *cur++ = MBEDTLS_BYTE_1( data_length );
+        *cur++ = MBEDTLS_BYTE_0( data_length );
+        memset( cur, 0, data_length );
+        cur += data_length;
+    }
+
     *cur++ = MBEDTLS_BYTE_1( data_length );
     *cur++ = MBEDTLS_BYTE_0( data_length );
-    memset( cur, 0, data_length );
-    cur += data_length;
-    *cur++ = pms[0];
-    *cur++ = pms[1];
     memcpy( cur, data, data_length );
     cur += data_length;
 

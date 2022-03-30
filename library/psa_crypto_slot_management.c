@@ -345,7 +345,9 @@ static psa_status_t psa_load_persistent_key_into_slot( psa_key_slot_t *slot )
     {
         goto exit;
     }
-    psa_slot_change_state( slot, PSA_STATE_UNUSED );
+    status = psa_slot_change_state( slot, PSA_STATE_UNUSED );
+    if( status != PSA_SUCCESS )
+        return( status );
 
 exit:
     psa_free_persistent_key_data( key_data, key_data_length );
@@ -417,6 +419,7 @@ static psa_status_t psa_load_builtin_key_into_slot( psa_key_slot_t *slot )
     slot->key.bytes = key_buffer_length;
     slot->attr = attributes.core;
 
+    status = psa_slot_change_state( slot, PSA_STATE_UNUSED );
 exit:
     if( status != PSA_SUCCESS )
         psa_remove_key_data_from_memory( slot );

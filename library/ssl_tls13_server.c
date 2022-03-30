@@ -759,6 +759,21 @@ static int ssl_tls13_prepare_server_hello( mbedtls_ssl_context *ssl )
     return( ret );
 }
 
+static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
+                                              unsigned char *buf,
+                                              unsigned char *end,
+                                              size_t *out_len )
+{
+    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+}
+
+
+static int ssl_tls13_finalize_server_hello( mbedtls_ssl_context *ssl )
+{
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_ENCRYPTED_EXTENSIONS );
+    return( 0 );
+}
+
 static int ssl_tls13_write_server_hello( mbedtls_ssl_context *ssl )
 {
     int ret = 0;

@@ -822,20 +822,27 @@ static int ssl_tls13_key_share_encapsulate( mbedtls_ssl_context *ssl,
                                             size_t *out_len )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
+    ((void) ssl);
+    ((void) named_group);
+    ((void) buf);
+    ((void) end);
+    ((void) out_len);
+#if defined(MBEDTLS_ECDH_C)
     if( mbedtls_ssl_tls13_named_group_is_ecdhe( named_group ) )
     {
-        ret = mbedtls_ecdh_tls13_make_params( &ssl->handshake->ecdh_ctx,
-                out_len, buf, end - buf, ssl->conf->f_rng, ssl->conf->p_rng );
+        ret = mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
+                                        ssl, named_group, buf, end, out_len );
         if( ret != 0 )
         {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_make_tls13_params", ret );
+            MBEDTLS_SSL_DEBUG_RET(
+                1, "mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange",
+                ret );
             return( ret );
         }
-
-        MBEDTLS_SSL_DEBUG_ECDH( 3, &ssl->handshake->ecdh_ctx, MBEDTLS_DEBUG_ECDH_Q );
     }
-    else if( 0 /* Other kinds of KEMs */ )
+    else
+#endif /* MBEDTLS_ECDH_C */
+    if( 0 /* Other kinds of KEMs */ )
     {
     }
     else

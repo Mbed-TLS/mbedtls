@@ -152,34 +152,6 @@ psa_status_t psa_get_empty_key_slot( psa_key_id_t *volatile_key_id,
  */
 psa_status_t psa_unlock_key_slot( psa_key_slot_t *slot );
 
-/** Test whether the number of readers of this lock is equal to 0.
- *
- * \param[in] slot  The key slot to test.
- * \retval 0
- *         The key slot has at least one active reader.
- * \retval 1
- *         The key slot has no active readers.
- */
-psa_status_t psa_slot_has_no_readers( psa_key_slot_t *slot );
-
-/** Transition the slot to a given state
- *
- * \param[in] slot           The key slot.
- * \param[in] target_state   The desired slot state.
- *
- * Please note that, if MBEDTLS_THREADING_C is enabled, this function should
- * be called with locked mbedtls_psa_slots_mutex.
- *
- * \retval #PSA_ERROR_INVALID_HANDLE
- *         \p slot is empty and a bad state change was requested.
- * \retval #PSA_ERROR_BAD_STATE
- *         The requested state transition could not be performed.
- * \retval #PSA_SUCCESS
- *         The transition succeeded and \p slot is now in \p target_state.
- */
-psa_status_t psa_slot_change_state( psa_key_slot_t *slot,
-                                    psa_key_slot_state_t target_state );
-
 /** Test whether a lifetime designates a key in an external cryptoprocessor.
  *
  * \param lifetime      The lifetime to test.

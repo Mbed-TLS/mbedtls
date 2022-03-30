@@ -5369,6 +5369,30 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void conf_version( int endpoint, int transport,
+                   int min_version_major, int min_version_minor,
+                   int max_version_major, int max_version_minor,
+                   int expected_ssl_setup_result )
+{
+    mbedtls_ssl_config conf;
+    mbedtls_ssl_context ssl;
+
+    mbedtls_ssl_config_init( &conf );
+    mbedtls_ssl_init( &ssl );
+
+    mbedtls_ssl_conf_endpoint( &conf, endpoint );
+    mbedtls_ssl_conf_transport( &conf, transport );
+    mbedtls_ssl_conf_min_version( &conf, min_version_major, min_version_minor );
+    mbedtls_ssl_conf_max_version( &conf, max_version_major, max_version_minor );
+
+    TEST_ASSERT( mbedtls_ssl_setup( &ssl, &conf ) == expected_ssl_setup_result );
+
+    mbedtls_ssl_free( &ssl );
+    mbedtls_ssl_config_free( &conf );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_ECP_C:!MBEDTLS_DEPRECATED_REMOVED:!MBEDTLS_DEPRECATED_WARNING:MBEDTLS_ECP_DP_SECP192R1_ENABLED:MBEDTLS_ECP_DP_SECP224R1_ENABLED:MBEDTLS_ECP_DP_SECP256R1_ENABLED */
 void conf_curve()
 {

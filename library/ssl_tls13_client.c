@@ -100,7 +100,7 @@ static int ssl_tls13_parse_supported_versions_ext( mbedtls_ssl_context *ssl,
 {
     ((void) ssl);
 
-    MBEDTLS_SSL_CHK_BUF_READ_PTR( buf, end, 2);
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( buf, end, 2 );
     if( buf[0] != MBEDTLS_SSL_MAJOR_VERSION_3 ||
         buf[1] != MBEDTLS_SSL_MINOR_VERSION_4 )
     {
@@ -109,6 +109,14 @@ static int ssl_tls13_parse_supported_versions_ext( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
                                       MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER);
         return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+    }
+
+    if( &buf[2] != end )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "supported_versions ext data length incorrect" ) );
+        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
+                                      MBEDTLS_ERR_SSL_DECODE_ERROR );
+        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
     }
 
     return( 0 );

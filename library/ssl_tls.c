@@ -1715,6 +1715,56 @@ void mbedtls_ssl_conf_psk_cb( mbedtls_ssl_config *conf,
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
+
+mbedtls_ssl_mode_t mbedtls_get_mode_from_transform(
+                    const mbedtls_ssl_transform *transform )
+{
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
+    mbedtls_cipher_mode_t mode =
+        mbedtls_cipher_get_cipher_mode( &transform->cipher_ctx_enc );
+#endif /* !MBEDTLS_USE_PSA_CRYPTO */
+
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( transform->psa_alg == PSA_ALG_CBC_NO_PADDING )
+    {
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+        if( transform->encrypt_then_mac == MBEDTLS_SSL_ETM_ENABLED )
+            return( MBEDTLS_SSL_MODE_CBC_ETM );
+#endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */
+
+        return( MBEDTLS_SSL_MODE_CBC );
+    }
+#else
+    if( mode == MBEDTLS_MODE_CBC )
+    {
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+        if( transform->encrypt_then_mac == MBEDTLS_SSL_ETM_ENABLED )
+            return( MBEDTLS_SSL_MODE_CBC_ETM );
+#endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */
+
+        return( MBEDTLS_SSL_MODE_CBC );
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( PSA_ALG_IS_AEAD( transform->psa_alg ) )
+        return( MBEDTLS_SSL_MODE_AEAD );
+#else
+#if defined(MBEDTLS_GCM_C) || \
+    defined(MBEDTLS_CCM_C) || \
+    defined(MBEDTLS_CHACHAPOLY_C)
+    if( mode == MBEDTLS_MODE_GCM ||
+        mode == MBEDTLS_MODE_CCM ||
+        mode == MBEDTLS_MODE_CHACHAPOLY )
+        return( MBEDTLS_SSL_MODE_AEAD );
+#endif /* MBEDTLS_GCM_C || MBEDTLS_CCM_C || MBEDTLS_CHACHAPOLY_C */
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+    return( MBEDTLS_SSL_MODE_STREAM );
+}
+
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 psa_status_t mbedtls_ssl_cipher_to_psa( mbedtls_cipher_type_t mbedtls_cipher_type,
                                     size_t taglen,

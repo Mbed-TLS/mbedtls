@@ -2210,6 +2210,19 @@ static inline int psa_ssl_status_to_mbedtls( psa_status_t status )
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3 */
 
+/**
+ * \brief       TLS record protection modes
+ */
+typedef enum {
+    MBEDTLS_SSL_MODE_STREAM = 0,
+    MBEDTLS_SSL_MODE_CBC,
+    MBEDTLS_SSL_MODE_CBC_ETM,
+    MBEDTLS_SSL_MODE_AEAD
+} mbedtls_ssl_mode_t;
+
+mbedtls_ssl_mode_t mbedtls_get_mode_from_transform(
+        const mbedtls_ssl_transform *transform );
+
 #if defined(MBEDTLS_ECDH_C)
 
 int mbedtls_ssl_tls13_read_public_ecdhe_share( mbedtls_ssl_context *ssl,

@@ -155,6 +155,8 @@ static psa_status_t psa_slot_add_reader( psa_key_slot_t *slot )
  * key with identifier key_id can only be stored in slot of index
  * ( key_id - #PSA_KEY_ID_VOLATILE_MIN ).
  *
+ * Please note that, if MBEDTLS_THREADING_C is enabled, this function should
+ * be called with locked mbedtls_psa_slots_mutex.
  *
  * \param key           Key identifier to query.
  * \param[out] p_slot   On success, `*p_slot` contains a pointer to the

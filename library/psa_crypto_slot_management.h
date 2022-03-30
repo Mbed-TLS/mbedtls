@@ -115,6 +115,9 @@ void psa_wipe_all_key_slots( void );
  * the responsibility of the caller to unlock the key slot when it does not
  * access it anymore.
  *
+ * Please note that, if MBEDTLS_THREADING_C is enabled, this function should
+ * be called with locked mbedtls_psa_slots_mutex.
+ *
  * \param[out] volatile_key_id   On success, volatile key identifier
  *                               associated to the returned slot.
  * \param[out] p_slot            On success, a pointer to the slot.
@@ -163,6 +166,9 @@ psa_status_t psa_slot_has_no_readers( psa_key_slot_t *slot );
  *
  * \param[in] slot           The key slot.
  * \param[in] target_state   The desired slot state.
+ *
+ * Please note that, if MBEDTLS_THREADING_C is enabled, this function should
+ * be called with locked mbedtls_psa_slots_mutex.
  *
  * \retval #PSA_ERROR_INVALID_HANDLE
  *         \p slot is empty and a bad state change was requested.

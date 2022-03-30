@@ -172,6 +172,9 @@ static inline psa_key_slot_number_t psa_key_slot_get_slot_number(
  *
  * Persistent storage is not affected.
  *
+ * Please note that, if MBEDTLS_THREADING_C is enabled, this function should
+ * be called with locked mbedtls_psa_slots_mutex.
+ *
  * \param[in,out] slot  The key slot to wipe.
  *
  * \retval #PSA_SUCCESS
@@ -184,6 +187,9 @@ psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot );
 /** Perform key destruction in both volatile and persistent memory.
  *
  * See psa_destroy_key for information on return errors.
+ *
+ * Please note that, if MBEDTLS_THREADING_C is enabled, this function should
+ * be called with locked mbedtls_psa_slots_mutex.
  *
  * \param[in,out] slot  The key slot to wipe.
  */

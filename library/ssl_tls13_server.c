@@ -26,7 +26,8 @@
 #include "ssl_misc.h"
 #include "ssl_tls13_keys.h"
 #include "ssl_debug_helpers.h"
-#include <string.h>
+#include "ecdh_misc.h"
+
 #if defined(MBEDTLS_ECP_C)
 #include "mbedtls/ecp.h"
 #endif /* MBEDTLS_ECP_C */
@@ -733,23 +734,22 @@ cleanup:
 static int ssl_tls13_prepare_server_hello( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
-
+    unsigned char *server_randbyes =
+                    ssl->handshake->randbytes + MBEDTLS_CLIENT_HELLO_RANDOM_LEN;
     if( ssl->conf->f_rng == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "no RNG provided" ) );
         return( MBEDTLS_ERR_SSL_NO_RNG );
     }
 
-    if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng,
-                                  ssl->handshake->randbytes,
+    if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng, server_randbyes,
                                   MBEDTLS_SERVER_HELLO_RANDOM_LEN ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "f_rng", ret );
         return( ret );
     }
 
-    MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, random bytes",
-                           ssl->handshake->randbytes,
+    MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, random bytes", server_randbyes,
                            MBEDTLS_SERVER_HELLO_RANDOM_LEN );
 
 #if defined(MBEDTLS_HAVE_TIME)
@@ -759,12 +759,276 @@ static int ssl_tls13_prepare_server_hello( mbedtls_ssl_context *ssl )
     return( ret );
 }
 
-static int ssl_tls13_write_client_hello_body( mbedtls_ssl_context *ssl,
+/*
+ * ssl_tls13_write_supported_versions_ext():
+ *
+ * struct {
+ *      ProtocolVersion versions<2..254>;
+ * } SupportedVersions;
+ */
+static int ssl_tls13_write_supported_versions_ext( mbedtls_ssl_context *ssl,
+                                                   unsigned char *buf,
+                                                   unsigned char *end,
+                                                   size_t *out_len )
+{
+    unsigned char *p = buf;
+
+    *out_len = 0;
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, write supported versions extension" ) );
+
+    /* Check if we have space to write the extension:
+     * - extension_type         (2 bytes)
+     * - extension_data_length  (2 bytes)
+     * - versions_length        (1 byte )
+     * - versions               (2 bytes)
+     */
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 7 );
+
+    /* Write extension_type */
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS, p, 0 );
+
+    /* Write extension_data_length */
+    MBEDTLS_PUT_UINT16_BE( 3, p, 2 );
+    p += 4;
+
+    /* Length of versions */
+    *p++ = 0x2;
+
+    /* Write values of supported versions.
+     *
+     * They are defined by the configuration.
+     *
+     * Currently, only one version is advertised.
+     */
+    mbedtls_ssl_write_version( p, ssl->tls_version, ssl->conf->transport );
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "supported version: [%04x]",
+                                ssl->tls_version ) );
+
+    *out_len = 7;
+
+    return( 0 );
+}
+
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+
+/* Generate and export a single key share. For hybrid KEMs, this can
+ * be called multiple times with the different components of the hybrid. */
+static int ssl_tls13_key_share_encapsulate( mbedtls_ssl_context *ssl,
+                                            uint16_t named_group,
+                                            unsigned char *buf,
+                                            unsigned char *end,
+                                            size_t *out_len )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    if( mbedtls_ssl_tls13_named_group_is_ecdhe( named_group ) )
+    {
+        ret = mbedtls_ecdh_tls13_make_params( &ssl->handshake->ecdh_ctx,
+                out_len, buf, end - buf, ssl->conf->f_rng, ssl->conf->p_rng );
+        if( ret != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_make_tls13_params", ret );
+            return( ret );
+        }
+
+        MBEDTLS_SSL_DEBUG_ECDH( 3, &ssl->handshake->ecdh_ctx, MBEDTLS_DEBUG_ECDH_Q );
+    }
+    else if( 0 /* Other kinds of KEMs */ )
+    {
+    }
+    else
+    {
+        ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    }
+
+    return( ret );
+}
+
+/*
+ * ssl_tls13_write_key_share_ext
+ *
+ * Structure of key_share extension in ServerHello:
+ *
+ *  struct {
+ *          NamedGroup group;
+ *          opaque key_exchange<1..2^16-1>;
+ *      } KeyShareEntry;
+ *  struct {
+ *          KeyShareEntry server_share;
+ *      } KeyShareServerHello;
+ */
+static int ssl_tls13_write_key_share_ext( mbedtls_ssl_context *ssl,
+                                          unsigned char *buf,
+                                          unsigned char *end,
+                                          size_t *out_len )
+{
+    unsigned char *p = buf;
+    unsigned char *start = buf;
+    uint16_t group = ssl->handshake->offered_group_id ;
+    unsigned char *server_share = buf + 4;
+    unsigned char *key_exchange = buf + 6;
+    size_t key_exchange_length;
+    int ret;
+
+    *out_len = 0;
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, adding key share extension" ) );
+
+    /* Check if we have space for header and length fields:
+     * - extension_type         (2 bytes)
+     * - extension_data_length  (2 bytes)
+     * - group                  (2 bytes)
+     * - key_exchange_length    (2 bytes)
+     */
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 8 );
+
+    p += 8;
+    /* When we introduce PQC-ECDHE hybrids, we'll want to call this
+     * function multiple times. */
+    ret = ssl_tls13_key_share_encapsulate( ssl, group, key_exchange + 2,
+                                           end, &key_exchange_length );
+    if( ret != 0 )
+        return( ret );
+    p += key_exchange_length;
+    /* Write length of key_exchange */
+    MBEDTLS_PUT_UINT16_BE( key_exchange_length, key_exchange, 0 );
+
+    *out_len = p - start;
+
+    /* Write group ID */
+    MBEDTLS_PUT_UINT16_BE( group, server_share, 0 );
+
+    /* Write extension header */
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_KEY_SHARE, start, 0 );
+
+    /* Write total extension length */
+    MBEDTLS_PUT_UINT16_BE( p - server_share, start, 2 );
+
+    return( 0 );
+}
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+
+/*
+ * Structure of ServerHello message:
+ *
+ *     struct {
+ *        ProtocolVersion legacy_version = 0x0303;    // TLS v1.2
+ *        Random random;
+ *        opaque legacy_session_id_echo<0..32>;
+ *        CipherSuite cipher_suite;
+ *        uint8 legacy_compression_method = 0;
+ *        Extension extensions<6..2^16-1>;
+ *    } ServerHello;
+ */
+static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
                                               unsigned char *buf,
                                               unsigned char *end,
                                               size_t *out_len )
 {
-    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+    int ret = 0;
+    size_t output_len;               /* Length of buffer used by function */
+    unsigned char *server_randbyes =
+                    ssl->handshake->randbytes + MBEDTLS_CLIENT_HELLO_RANDOM_LEN;
+
+    /* Buffer management */
+    unsigned char *p = buf;
+    unsigned char *start = buf;
+    unsigned char *extension_start;
+
+    *out_len = 0;
+
+    /*
+     * Write legacy_version
+     *    ProtocolVersion legacy_version = 0x0303;    // TLS v1.2
+     *
+     *  For TLS 1.3 we use the legacy version number {0x03, 0x03}
+     *  instead of the true version number.
+     */
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
+    MBEDTLS_PUT_UINT16_BE( 0x0303, p, 0 );
+    p += 2;
+
+    /* Write the random bytes ( random ).*/
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, MBEDTLS_SERVER_HELLO_RANDOM_LEN );
+    memcpy( p, server_randbyes, MBEDTLS_SERVER_HELLO_RANDOM_LEN );
+    MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, random bytes",
+                           p, MBEDTLS_SERVER_HELLO_RANDOM_LEN );
+    p += MBEDTLS_SERVER_HELLO_RANDOM_LEN;
+
+#if defined(MBEDTLS_HAVE_TIME)
+    ssl->session_negotiate->start = time( NULL );
+#endif /* MBEDTLS_HAVE_TIME */
+
+    /*
+     * Write legacy_session_id_echo
+     */
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 1 + ssl->session_negotiate->id_len );
+    *p++ = (unsigned char)ssl->session_negotiate->id_len;
+    if( ssl->session_negotiate->id_len > 0 )
+    {
+        memcpy( p, &ssl->session_negotiate->id[0],
+                ssl->session_negotiate->id_len );
+        p += ssl->session_negotiate->id_len;
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "session id length ( %"
+                                        MBEDTLS_PRINTF_SIZET " )",
+                                    ssl->session_negotiate->id_len ) );
+        MBEDTLS_SSL_DEBUG_BUF( 3, "session id", ssl->session_negotiate->id,
+                               ssl->session_negotiate->id_len );
+    }
+
+    /*
+     * Write ciphersuite
+     */
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
+    MBEDTLS_PUT_UINT16_BE( ssl->session_negotiate->ciphersuite, p, 0 );
+    p += 2;
+    MBEDTLS_SSL_DEBUG_MSG( 3,
+        ( "server hello, chosen ciphersuite: %s ( id=%d )",
+          mbedtls_ssl_get_ciphersuite_name(
+            ssl->session_negotiate->ciphersuite ),
+          ssl->session_negotiate->ciphersuite ) );
+
+    /* write legacy_compression_method = ( 0 ) */
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 1 );
+    *p++ = 0x0;
+
+    /* Extensions */
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
+    extension_start = p;
+    p += 2;
+
+    /* Add supported_version extension */
+    if( ( ret = ssl_tls13_write_supported_versions_ext(
+                                            ssl, p, end, &output_len ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_write_supported_versions_ext",
+                               ret );
+        return( ret );
+    }
+    p += output_len;
+
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+    if( mbedtls_ssl_conf_tls13_some_ephemeral_enabled( ssl ) )
+    {
+        ret = ssl_tls13_write_key_share_ext( ssl, p, end, &output_len );
+        if( ret != 0 )
+            return( ret );
+        p += output_len;
+    }
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+
+    /* Write length information */
+    MBEDTLS_PUT_UINT16_BE( p - extension_start - 2, extension_start, 0 );
+
+    MBEDTLS_SSL_DEBUG_BUF( 4, "server hello extensions", extension_start, p - extension_start );
+
+    *out_len = p - start;
+
+    MBEDTLS_SSL_DEBUG_BUF( 3, "server hello", start, *out_len );
+
+    return( ret );
 }
 
 
@@ -792,18 +1056,19 @@ static int ssl_tls13_write_server_hello( mbedtls_ssl_context *ssl )
      */
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_prepare_server_hello( ssl ) );
 
-    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_start_handshake_msg( ssl,
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_start_handshake_msg( ssl,
                                 MBEDTLS_SSL_HS_SERVER_HELLO, &buf, &buf_len ) );
 
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_write_server_hello_body( ssl, buf, buf_len,
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_write_server_hello_body( ssl, buf,
+                                                             buf + buf_len,
                                                              &msg_len ) );
 
-    mbedtls_ssl_tls13_add_hs_msg_to_checksum(
+    mbedtls_ssl_add_hs_msg_to_checksum(
         ssl, MBEDTLS_SSL_HS_SERVER_HELLO, buf, msg_len );
 
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_server_hello( ssl ) );
 
-    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_finish_handshake_msg(
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_finish_handshake_msg(
                               ssl, buf_len, msg_len ) );
 cleanup:
 

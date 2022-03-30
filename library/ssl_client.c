@@ -580,13 +580,6 @@ static int ssl_write_client_hello_body( mbedtls_ssl_context *ssl,
 {
     int ret;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    unsigned char propose_tls12 = 0;
-#endif
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    unsigned char propose_tls13 = 0;
-#endif
-
     unsigned char *p = buf;
     unsigned char *p_extensions_len; /* Pointer to extensions length */
     size_t output_len;               /* Length of buffer used by function */
@@ -596,14 +589,16 @@ static int ssl_write_client_hello_body( mbedtls_ssl_context *ssl,
     *out_len = 0;
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    propose_tls12 = ( handshake->min_minor_ver <= MBEDTLS_SSL_MINOR_VERSION_3 )
-                    &&
-                    ( MBEDTLS_SSL_MINOR_VERSION_3 <= ssl->minor_ver );
+    unsigned char propose_tls12 =
+        ( handshake->min_minor_ver <= MBEDTLS_SSL_MINOR_VERSION_3 )
+        &&
+        ( MBEDTLS_SSL_MINOR_VERSION_3 <= ssl->minor_ver );
 #endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    propose_tls13 = ( handshake->min_minor_ver <= MBEDTLS_SSL_MINOR_VERSION_4 )
-                    &&
-                    ( MBEDTLS_SSL_MINOR_VERSION_4 <= ssl->minor_ver );
+    unsigned char propose_tls13 =
+        ( handshake->min_minor_ver <= MBEDTLS_SSL_MINOR_VERSION_4 )
+        &&
+        ( MBEDTLS_SSL_MINOR_VERSION_4 <= ssl->minor_ver );
 #endif
 
     /*

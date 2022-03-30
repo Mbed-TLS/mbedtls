@@ -60,10 +60,9 @@ static int ssl_tls13_write_supported_versions_ext( mbedtls_ssl_context *ssl,
      * - extension_type         (2 bytes)
      * - extension_data_length  (2 bytes)
      * - versions_length        (1 byte )
-     * - versions               (2 to 4 bytes)
+     * - versions               (2 or 4 bytes)
      */
-
-    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 9 );
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 5 + versions_len );
 
     MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS, p, 0 );
     MBEDTLS_PUT_UINT16_BE( versions_len + 1, p, 2 );

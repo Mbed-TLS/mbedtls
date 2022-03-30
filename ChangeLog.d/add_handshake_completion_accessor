@@ -1,0 +1,4 @@
+Features
+   * Add function mbedtls_ssl_is_handshake_over() to enable querying if the SSL
+     Handshake has completed or not, and thus whether to continue calling
+     mbedtls_ssl_handshake_step(), requested in #4383

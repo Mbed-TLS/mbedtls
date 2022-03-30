@@ -1044,7 +1044,7 @@ int mbedtls_move_handshake_to_state( mbedtls_ssl_context *ssl,
     {
         /* If /p second_ssl ends the handshake procedure before /p ssl then
          * there is no need to call the next step */
-        if( second_ssl->state != MBEDTLS_SSL_HANDSHAKE_OVER )
+        if( !mbedtls_ssl_is_handshake_over( second_ssl ) )
         {
             ret = mbedtls_ssl_handshake_step( second_ssl );
             if( ret != 0 && ret != MBEDTLS_ERR_SSL_WANT_READ &&
@@ -2089,8 +2089,8 @@ void perform_handshake( handshake_test_options* options )
         goto exit;
     }
 
-    TEST_ASSERT( client.ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER );
-    TEST_ASSERT( server.ssl.state == MBEDTLS_SSL_HANDSHAKE_OVER );
+    TEST_ASSERT( mbedtls_ssl_is_handshake_over( &client.ssl ) == 1 );
+    TEST_ASSERT( mbedtls_ssl_is_handshake_over( &server.ssl ) == 1 );
 
     /* Check that both sides have negotiated the expected version. */
     mbedtls_test_set_step( 0 );

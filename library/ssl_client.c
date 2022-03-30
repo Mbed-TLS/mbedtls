@@ -416,32 +416,27 @@ static int ssl_write_sig_alg_ext( mbedtls_ssl_context *ssl, unsigned char *buf,
 /* Write cipher_suites
  * CipherSuite cipher_suites<2..2^16-2>;
  */
-/**
- * \brief Validate cipher suite against config in SSL context.
- *
- * \param ssl         SSL context
- * \param suite_info  Cipher suite to validate
- *
- * \return 0 if valid, else 1
- */
-static int ssl_validate_ciphersuite(
+int mbedtls_ssl_validate_ciphersuite(
     const mbedtls_ssl_context *ssl,
-    const mbedtls_ssl_ciphersuite_t *suite_info )
+    const mbedtls_ssl_ciphersuite_t *suite_info,
+    int min_minor_ver, int max_minor_ver )
 {
     if( suite_info == NULL )
-        return( 1 );
+        return( -1 );
 
-    if( ( suite_info->min_minor_ver > ssl->minor_ver ) ||
-        ( suite_info->max_minor_ver < ssl->handshake->min_minor_ver ) )
+    if( ( suite_info->min_minor_ver > max_minor_ver ) ||
+        ( suite_info->max_minor_ver < min_minor_ver ) )
     {
-        return( 1 );
+        return( -1 );
     }
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     if( suite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE &&
-            mbedtls_ecjpake_check( &ssl->handshake->ecjpake_ctx ) != 0 )
-        return( 1 );
+        mbedtls_ecjpake_check( &ssl->handshake->ecjpake_ctx ) != 0 )
+    {
+        return( -1 );
+    }
 #endif
 
     /* Don't suggest PSK-based ciphersuite if no PSK is available. */
@@ -449,7 +444,7 @@ static int ssl_validate_ciphersuite(
     if( mbedtls_ssl_ciphersuite_uses_psk( suite_info ) &&
         mbedtls_ssl_conf_has_static_psk( ssl->conf ) == 0 )
     {
-        return( 1 );
+        return( -1 );
     }
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
@@ -495,7 +490,9 @@ static int ssl_write_client_hello_cipher_suites(
 
         ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( cipher_suite );
 
-        if( ssl_validate_ciphersuite( ssl, ciphersuite_info ) )
+        if( mbedtls_ssl_validate_ciphersuite( ssl, ciphersuite_info,
+                                              ssl->handshake->min_minor_ver,
+                                              ssl->minor_ver ) != 0 )
             continue;
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \

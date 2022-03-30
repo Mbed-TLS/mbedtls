@@ -103,7 +103,357 @@ exit:
     return( 0 );
 }
 
+
+/* This test uses low-level functions to validate basic requirements for slot
+ * state transitions. */
+
+psa_status_t cycle_slot_to_state( psa_key_slot_t *slot,
+                                       psa_key_slot_state_t target_state )
+{
+    psa_status_t status = PSA_SUCCESS;
+    while( slot->state != target_state && status == PSA_SUCCESS )
+    {
+        switch( slot->state )
+        {
+            case PSA_STATE_EMPTY:
+                status = psa_slot_change_state( slot, PSA_STATE_CREATING );
+                break;
+            case PSA_STATE_CREATING:
+                status = psa_slot_change_state( slot, PSA_STATE_UNUSED );
+                break;
+            case PSA_STATE_UNUSED:
+                status = psa_slot_change_state( slot, PSA_STATE_READING );
+                break;
+            case PSA_STATE_READING:
+                if( target_state == PSA_STATE_DESTROYING )
+                    status = psa_slot_change_state( slot, PSA_STATE_DESTROYING );
+                else
+                    status = psa_slot_change_state( slot, PSA_STATE_WIPING );
+                break;
+            case PSA_STATE_WIPING: // fallthrough
+            case PSA_STATE_DESTROYING:
+                status = psa_slot_change_state( slot, PSA_STATE_EMPTY );
+                break;
+        }
+    }
+    return status;
+}
+
 /* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_TEST_HOOKS
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void slot_state_transitions( )
+{
+    PSA_INIT( );
+    psa_key_slot_t *slot = NULL;
+    size_t slot_idx;
+    mbedtls_svc_key_id_t key_id = 0xfedcba98; // use an invalid initial ID
+
+    /* Test that all of the slots are empty */
+    for( slot_idx = 0; slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT; slot_idx++ )
+    {
+        slot = mbedtls_psa_get_key_slot( slot_idx );
+        TEST_ASSERT( slot->state == PSA_STATE_EMPTY );
+    }
+    /* Please note that normally, some of these calls should be protected
+     * by locking the mbedtls_psa_slots_mutex, but we are performing this
+     * test in a single thread, so this can be omitted. */
+    PSA_ASSERT( psa_get_empty_key_slot( &key_id, &slot ) );
+
+    /* Test possible state transitions from PSA_STATE_EMPTY */
+    TEST_EQUAL( psa_slot_change_state( slot, PSA_STATE_EMPTY ),
+                    PSA_ERROR_INVALID_HANDLE );
+
+    TEST_EQUAL( psa_slot_change_state( slot, PSA_STATE_READING ),
+                    PSA_ERROR_INVALID_HANDLE );
+    TEST_EQUAL( psa_slot_change_state( slot, PSA_STATE_DESTROYING ),
+                    PSA_ERROR_INVALID_HANDLE );
+
+    PSA_ASSERT( psa_slot_change_state( slot, PSA_STATE_UNUSED ) );
+    PSA_ASSERT( cycle_slot_to_state( slot, PSA_STATE_EMPTY ) );
+
+    PSA_ASSERT( psa_slot_change_state( slot, PSA_STATE_WIPING ) );
+    PSA_ASSERT( cycle_slot_to_state( slot, PSA_STATE_EMPTY ) );
+
+    PSA_ASSERT( psa_slot_change_state( slot, PSA_STATE_CREATING ) );
+
+    /* Test possible state transitions from PSA_STATE_CREATING */
+    TEST_EQUAL( psa_slot_change_state( slot, PSA_STATE_CREATING ),
+                    PSA_ERROR_BAD_STATE);
+    TEST_EQUAL( psa_slot_change_state( slot, PSA_STATE_EMPTY ),
+                    PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( psa_slot_change_state( slot, PSA_STATE_READING ),
+                    PSA_ERROR_BAD_STATE );
+
+    PSA_ASSERT( psa_slot_change_state( slot, PSA_STATE_WIPING ) );
+    PSA_ASSERT( cycle_slot_to_state( slot, PSA_STATE_CREATING ) );
+
+    PSA_ASSERT( psa_slot_change_state( slot, PSA_STATE_DESTROYING ) ); // TODO - check if there are such transitions possible
+    PSA_ASSERT( cycle_slot_to_state( slot, PSA_STATE_CREATING ) );
+
+    PSA_ASSERT( psa_slot_change_state( slot, PSA_STATE_UNUSED ) );
+
+    /* Test possible state transitions from PSA_STATE_UNUSED */
+    TEST_EQUAL( psa_slot_change_state( slot, PSA_STATE_UNUSED ),
+                    PSA_ERROR_BAD_STATE);
+    TEST_EQUAL( psa_slot_change_state( slot, PSA_STATE_EMPTY ),
+                    PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( psa_slot_change_state( slot, PSA_STATE_CREATING ),
+                    PSA_ERROR_BAD_STATE );
+
+    PSA_ASSERT( psa_slot_change_state( slot, PSA_STATE_WIPING ) );
+    PSA_ASSERT( cycle_slot_to_state( slot, PSA_STATE_UNUSED ) );
+
+    PSA_ASSERT( psa_slot_change_state( slot, PSA_STATE_DESTROYING ) );
+    PSA_ASSERT( cycle_slot_to_state( slot, PSA_STATE_UNUSED ) );
+
+    PSA_ASSERT( psa_slot_change_state( slot, PSA_STATE_READING ) );
+
+    /* Test possible state transitions from PSA_STATE_READING */
+    PSA_ASSERT( psa_slot_change_state( slot, PSA_STATE_READING ) );
+
+    TEST_EQUAL( psa_slot_change_state( slot, PSA_STATE_EMPTY ),
+                    PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( psa_slot_change_state( slot, PSA_STATE_CREATING ),
+                    PSA_ERROR_BAD_STATE );
+
+    PSA_ASSERT( psa_slot_change_state( slot, PSA_STATE_UNUSED ) );
+    PSA_ASSERT( cycle_slot_to_state( slot, PSA_STATE_READING ) );
+
+    PSA_ASSERT( psa_slot_change_state( slot, PSA_STATE_WIPING ) );
+    PSA_ASSERT( cycle_slot_to_state( slot, PSA_STATE_READING ) );
+
+    PSA_ASSERT( psa_slot_change_state( slot, PSA_STATE_DESTROYING ) );
+
+    /* Test possible state transitions from PSA_STATE_DESTROYING */
+    TEST_EQUAL( psa_slot_change_state( slot, PSA_STATE_DESTROYING ),
+                    PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( psa_slot_change_state( slot, PSA_STATE_CREATING ),
+                    PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( psa_slot_change_state( slot, PSA_STATE_UNUSED ),
+                    PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( psa_slot_change_state( slot, PSA_STATE_READING ),
+                    PSA_ERROR_BAD_STATE );
+
+    PSA_ASSERT( psa_slot_change_state( slot, PSA_STATE_EMPTY ) );
+    PSA_ASSERT( psa_slot_change_state( slot, PSA_STATE_WIPING ) );
+
+    /* Test possible state transitions from PSA_STATE_WIPING */
+    TEST_EQUAL( psa_slot_change_state( slot, PSA_STATE_WIPING ),
+                    PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( psa_slot_change_state( slot, PSA_STATE_CREATING ),
+                    PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( psa_slot_change_state( slot, PSA_STATE_UNUSED ),
+                    PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( psa_slot_change_state( slot, PSA_STATE_READING ),
+                    PSA_ERROR_BAD_STATE );
+
+    PSA_ASSERT( psa_slot_change_state( slot, PSA_STATE_DESTROYING ) );
+    PSA_ASSERT( cycle_slot_to_state( slot, PSA_STATE_WIPING ) );
+
+    PSA_ASSERT( psa_slot_change_state( slot, PSA_STATE_EMPTY ) );
+
+exit:
+    PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_TEST_HOOKS
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void slot_volatile_reading( )
+{
+    PSA_INIT( );
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    mbedtls_svc_key_id_t key_id = 0xfedcba98; // use an invalid ID
+    psa_key_slot_t *slot = NULL;
+
+    // key lifetime, usage flags, algorithm are irrelevant for this test
+    psa_key_type_t key_type = PSA_KEY_TYPE_AES;
+    size_t bits = 256;
+
+    slot = mbedtls_psa_get_key_slot( 0 );
+    psa_set_key_type( &attributes, key_type );
+    psa_set_key_bits( &attributes, bits );
+
+    /* Destruction while reading */
+    TEST_EQUAL( slot->state, PSA_STATE_EMPTY );
+    PSA_ASSERT( psa_generate_key( &attributes, &key_id ) );
+    TEST_EQUAL( slot->state, PSA_STATE_UNUSED );
+    TEST_EQUAL( slot->reader_count, 0 );
+
+    PSA_ASSERT( psa_get_and_lock_key_slot( key_id, &slot, PSA_STATE_READING ) );
+    TEST_EQUAL( slot->state, PSA_STATE_READING );
+    TEST_EQUAL( slot->reader_count, 1 );
+
+    TEST_EQUAL( psa_destroy_key( key_id ), PSA_ERROR_DELAYED );
+    TEST_EQUAL( slot->reader_count, 1 );
+    TEST_EQUAL( slot->state, PSA_STATE_DESTROYING );
+
+    PSA_ASSERT( psa_unlock_key_slot(slot) );
+    TEST_EQUAL( slot->state, PSA_STATE_EMPTY );
+    TEST_EQUAL( slot->reader_count, 0 );
+
+    /* Purging while reading - does nothing */
+
+    PSA_ASSERT( psa_generate_key( &attributes, &key_id ) );
+    TEST_EQUAL( slot->state, PSA_STATE_UNUSED );
+    TEST_EQUAL( slot->reader_count, 0 );
+
+    PSA_ASSERT( psa_get_and_lock_key_slot( key_id, &slot, PSA_STATE_READING ) );
+    TEST_EQUAL( slot->state, PSA_STATE_READING );
+    TEST_EQUAL( slot->reader_count, 1 );
+
+    TEST_EQUAL( psa_purge_key( key_id ), PSA_SUCCESS );
+    TEST_EQUAL( slot->state, PSA_STATE_READING );
+    TEST_EQUAL( slot->reader_count,  1 );
+
+    PSA_ASSERT( psa_unlock_key_slot(slot) );
+    TEST_EQUAL( slot->state, PSA_STATE_UNUSED );
+    TEST_EQUAL( slot->reader_count, 0 );
+
+
+    /* Closing while reading */
+    PSA_ASSERT( psa_get_and_lock_key_slot( key_id, &slot, PSA_STATE_READING ) );
+    TEST_EQUAL( slot->state, PSA_STATE_READING );
+    TEST_EQUAL( slot->reader_count, 1 );
+
+    TEST_EQUAL( psa_close_key( key_id ), PSA_ERROR_DELAYED );
+    TEST_EQUAL( slot->reader_count, 1 );
+    TEST_EQUAL( slot->state, PSA_STATE_WIPING );
+
+    PSA_ASSERT( psa_unlock_key_slot(slot) );
+    TEST_EQUAL( slot->state, PSA_STATE_EMPTY );
+    TEST_EQUAL( slot->reader_count, 0 );
+
+exit:
+    PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_TEST_HOOKS
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void slot_persistent_reading( )
+{
+    PSA_INIT( );
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_lifetime_t lifetime = PSA_KEY_LIFETIME_PERSISTENT;
+    mbedtls_svc_key_id_t key_id = mbedtls_svc_key_id_make( 124, PSA_KEY_ID_USER_MIN );;
+    psa_key_slot_t *slot = NULL;
+    const uint8_t key_data[32];
+
+    // key lifetime, usage flags, algorithm are irrelevant for this test
+    psa_key_type_t key_type = PSA_KEY_TYPE_AES;
+    size_t bits = 256;
+
+    slot = mbedtls_psa_get_key_slot( 0 );
+    psa_set_key_type( &attributes, key_type );
+    psa_set_key_bits( &attributes, bits );
+    psa_set_key_lifetime( &attributes, lifetime );
+    psa_set_key_id( &attributes, key_id );
+
+    /* Purging while reading */
+    TEST_EQUAL( slot->state, PSA_STATE_EMPTY );
+    PSA_ASSERT( psa_import_key( &attributes, key_data, sizeof(key_data),
+                                &key_id ) );
+    TEST_EQUAL( slot->state, PSA_STATE_UNUSED );
+    TEST_EQUAL( slot->reader_count, 0 );
+
+    PSA_ASSERT( psa_get_and_lock_key_slot( key_id, &slot, PSA_STATE_READING ) );
+    TEST_EQUAL( slot->state, PSA_STATE_READING );
+    TEST_EQUAL( slot->reader_count, 1 );
+
+    TEST_EQUAL( psa_purge_key( key_id ), PSA_ERROR_DELAYED );
+    TEST_EQUAL( slot->reader_count, 1 );
+    TEST_EQUAL( slot->state, PSA_STATE_WIPING );
+
+    PSA_ASSERT( psa_unlock_key_slot(slot) );
+    TEST_EQUAL( slot->state, PSA_STATE_EMPTY );
+    TEST_EQUAL( slot->reader_count, 0 );
+
+    /* Open a purged slot, test closing while reading */
+    PSA_ASSERT( psa_get_and_lock_key_slot( key_id, &slot, PSA_STATE_READING ) );
+    TEST_EQUAL( slot->state, PSA_STATE_READING );
+    TEST_EQUAL( slot->reader_count, 1 );
+
+    TEST_EQUAL( psa_close_key( key_id ), PSA_ERROR_DELAYED );
+    TEST_EQUAL( slot->reader_count, 1 );
+    TEST_EQUAL( slot->state, PSA_STATE_WIPING );
+
+    PSA_ASSERT( psa_unlock_key_slot(slot) );
+    TEST_EQUAL( slot->state, PSA_STATE_EMPTY );
+    TEST_EQUAL( slot->reader_count, 0 );
+
+    /* Destruction while reading */
+    PSA_ASSERT( psa_get_and_lock_key_slot( key_id, &slot, PSA_STATE_READING ) );
+    TEST_EQUAL( slot->state, PSA_STATE_READING );
+    TEST_EQUAL( slot->reader_count, 1 );
+
+    TEST_EQUAL( psa_destroy_key( key_id ), PSA_ERROR_DELAYED );
+    TEST_EQUAL( slot->reader_count, 1 );
+    TEST_EQUAL( slot->state, PSA_STATE_DESTROYING );
+
+    PSA_ASSERT( psa_unlock_key_slot(slot) );
+    TEST_EQUAL( slot->state, PSA_STATE_EMPTY );
+    TEST_EQUAL( slot->reader_count, 0 );
+exit:
+    PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_TEST_HOOKS
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void slot_locking_bad_states( )
+{
+    PSA_INIT( );
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    mbedtls_svc_key_id_t key_id = 0xfedcba98; // use an invalid ID
+    psa_key_slot_t *slot = NULL;
+
+    // key lifetime, usage flags, algorithm are irrelevant for this test
+    psa_key_type_t key_type = PSA_KEY_TYPE_AES;
+    size_t bits = 256;
+
+    slot = mbedtls_psa_get_key_slot( 0 );
+    psa_set_key_type( &attributes, key_type );
+    psa_set_key_bits( &attributes, bits );
+
+    /* Destruction while reading */
+    TEST_EQUAL( slot->state, PSA_STATE_EMPTY );
+    PSA_ASSERT( psa_generate_key( &attributes, &key_id ) );
+    TEST_EQUAL( slot->state, PSA_STATE_UNUSED );
+    TEST_EQUAL( slot->reader_count, 0 );
+
+    TEST_EQUAL( psa_get_and_lock_key_slot( key_id, &slot, PSA_STATE_EMPTY ),
+                    PSA_ERROR_NOT_SUPPORTED );
+
+    PSA_ASSERT( psa_get_and_lock_key_slot( key_id, &slot, PSA_STATE_READING ) );
+    TEST_EQUAL( psa_slot_change_state(slot, PSA_STATE_UNUSED ), PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( psa_slot_change_state(slot, PSA_STATE_EMPTY ), PSA_ERROR_BAD_STATE );
+
+    PSA_ASSERT( psa_unlock_key_slot(slot) );
+    PSA_ASSERT( psa_destroy_key( key_id ) );
+
+exit:
+    PSA_DONE( );
+}
+/* END_CASE */
 
 /* BEGIN_DEPENDENCIES
  * depends_on:MBEDTLS_PSA_CRYPTO_C

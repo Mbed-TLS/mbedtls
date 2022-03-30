@@ -236,3 +236,15 @@ key_slot_eviction_to_import_new_key:PSA_KEY_LIFETIME_VOLATILE
 #   data and volatile key data being spoiled.
 Non reusable key slots integrity in case of key slot starvation
 non_reusable_key_slots_integrity_in_case_of_key_slot_starvation
+
+Slot state transitions
+slot_state_transitions:
+
+Reading and destroying volatile key slots
+slot_volatile_reading:
+
+Reading and destroying persistent key slots
+slot_persistent_reading:
+
+Locking bad states
+slot_locking_bad_states:

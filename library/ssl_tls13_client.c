@@ -714,6 +714,18 @@ int mbedtls_ssl_tls13_write_client_hello_exts( mbedtls_ssl_context *ssl,
 /*
  * Functions for parsing and processing Server Hello
  */
+/**
+ * \brief Detect if the ServerHello contains a supported_versions extension
+ *        or not.
+ *
+ * \param[in] ssl  SSL context
+ * \param[in] buf  Buffer containing the ServerHello message
+ * \param[in] end  End of the buffer containing the ServerHello message
+ *
+ * \return 0 if the ServerHello does not contain a supported_versions extension
+ * \return 1 if the ServerHello contains a supported_versions extension
+ * \return A negative value if an error occurred while parsing the ServerHello.
+ */
 static int ssl_tls13_is_supported_versions_ext_present(
     mbedtls_ssl_context *ssl,
     const unsigned char *buf,
@@ -726,10 +738,10 @@ static int ssl_tls13_is_supported_versions_ext_present(
 
     /*
      * Check there is enough data to access the legacy_session_id_echo vector
-     * length.
-     * - legacy_version,         2 bytes
-     * - random                  MBEDTLS_SERVER_HELLO_RANDOM_LEN bytes
-     * - legacy_session_id_echo  1 byte
+     * length:
+     * - legacy_version                 2 bytes
+     * - random                         MBEDTLS_SERVER_HELLO_RANDOM_LEN bytes
+     * - legacy_session_id_echo length  1 byte
      */
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, MBEDTLS_SERVER_HELLO_RANDOM_LEN + 3 );
     p += MBEDTLS_SERVER_HELLO_RANDOM_LEN + 2;

@@ -621,15 +621,6 @@ static int ssl_write_client_hello_body( mbedtls_ssl_context *ssl,
      * Random random;
      * ...
      *
-     * with for TLS 1.2
-     * struct {
-     *     uint32 gmt_unix_time;
-     *     opaque random_bytes[28];
-     * } Random;
-     *
-     * and for TLS 1.3
-     * opaque Random[32];
-     *
      * The random bytes have been prepared by ssl_prepare_client_hello() into
      * the handshake->randbytes buffer and are copied here into the output
      * buffer.
@@ -652,7 +643,7 @@ static int ssl_write_client_hello_body( mbedtls_ssl_context *ssl,
      * opaque legacy_session_id<0..32>;
      * ...
      *
-     * The (legacy) session identifier bytes have been by
+     * The (legacy) session identifier bytes have been prepared by
      * ssl_prepare_client_hello() into the ssl->session_negotiate->id buffer
      * and are copied here into the output buffer.
      */
@@ -890,9 +881,9 @@ static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
     }
 
     /*
-     * But when responding to a verify request where we MUST reuse the
-     * previoulsy generated random bytes (RFC 6347 4.2.1), generate the
-     * random bytes.
+     * Generate the random bytes, except when responding to a verify request
+     * where we MUST reuse the previoulsy generated random bytes
+     * (RFC 6347 4.2.1).
      */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ( ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM ) ||
@@ -908,9 +899,10 @@ static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
     }
 
     /*
-     * Prepare session identifier. But in the case of a TLS 1.2 session
-     * renegotiation or session resumption, the initial value of the session
-     * identifier length below is equal to zero.
+     * Prepare session identifier. At that point, the length of the session
+     * identifier in the SSL context `ssl->session_negotiate->id_len` is equal
+     * to zero, except in the case of a TLS 1.2 session renegotiation or
+     * session resumption.
      */
     session_id_len = ssl->session_negotiate->id_len;
 
@@ -1019,7 +1011,7 @@ int mbedtls_ssl_write_client_hello( mbedtls_ssl_context *ssl )
          * The two functions below may try to send data on the network and
          * can return with the MBEDTLS_ERR_SSL_WANT_READ error code when they
          * fail to do so and the transmission has to be retried later. In that
-         * case as in fatal error cases, we return immediatly. But we must have
+         * case as in fatal error cases, we return immediately. But we must have
          * set the handshake state to the next state at that point to ensure
          * that we will not write and send again a ClientHello when we
          * eventually succeed in sending the pending data.

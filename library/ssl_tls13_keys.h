@@ -44,6 +44,14 @@
     MBEDTLS_SSL_TLS1_3_LABEL( client_cv   , "TLS 1.3, client CertificateVerify" ) \
     MBEDTLS_SSL_TLS1_3_LABEL( server_cv   , "TLS 1.3, server CertificateVerify" )
 
+#define MBEDTLS_SSL_TLS1_3_CONTEXT_UNHASHED 0
+#define MBEDTLS_SSL_TLS1_3_CONTEXT_HASHED   1
+
+#define MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL   0
+#define MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION 1
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+
 #define MBEDTLS_SSL_TLS1_3_LABEL( name, string )       \
     const unsigned char name    [ sizeof(string) - 1 ];
 
@@ -157,10 +165,6 @@ int mbedtls_ssl_tls13_make_traffic_keys(
                      const unsigned char *server_secret, size_t secret_len,
                      size_t key_len, size_t iv_len,
                      mbedtls_ssl_key_set *keys );
-
-
-#define MBEDTLS_SSL_TLS1_3_CONTEXT_UNHASHED 0
-#define MBEDTLS_SSL_TLS1_3_CONTEXT_HASHED   1
 
 /**
  * \brief The \c Derive-Secret function from the TLS 1.3 standard RFC 8446.
@@ -455,9 +459,6 @@ int mbedtls_ssl_tls13_evolve_secret(
                    const unsigned char *input, size_t input_len,
                    unsigned char *secret_new );
 
-#define MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL   0
-#define MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION 1
-
 /**
  * \brief             Calculate a TLS 1.3 PSK binder.
  *
@@ -636,5 +637,7 @@ int mbedtls_ssl_tls13_calculate_verify_data( mbedtls_ssl_context *ssl,
                                              size_t dst_len,
                                              size_t *actual_len,
                                              int which );
+
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #endif /* MBEDTLS_SSL_TLS1_3_KEYS_H */

@@ -205,6 +205,7 @@ typedef enum
 {
     PSA_TLS12_PRF_STATE_INIT,       /* no input provided */
     PSA_TLS12_PRF_STATE_SEED_SET,   /* seed has been set */
+    PSA_TLS12_PRF_STATE_SALT_SET,   /* salt has been set - optional */
     PSA_TLS12_PRF_STATE_KEY_SET,    /* key has been set */
     PSA_TLS12_PRF_STATE_LABEL_SET,  /* label has been set */
     PSA_TLS12_PRF_STATE_OUTPUT      /* output has been started */

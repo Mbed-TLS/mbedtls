@@ -1026,6 +1026,9 @@ psa_status_t psa_finish_key_destruction( psa_key_slot_t *slot )
 {
     psa_status_t status; /* status of the last operation */
     psa_status_t overall_status = PSA_SUCCESS;
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+    psa_se_drv_table_entry_t *driver;
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
     if( slot->state != PSA_STATE_DESTROYING )
         return( PSA_ERROR_BAD_STATE );
@@ -1121,9 +1124,6 @@ psa_status_t psa_destroy_key( mbedtls_svc_key_id_t key )
 {
     psa_key_slot_t *slot;
     psa_status_t status; /* status of the last operation */
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-    psa_se_drv_table_entry_t *driver;
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
     if( mbedtls_svc_key_id_is_null( key ) )
         return( PSA_SUCCESS );

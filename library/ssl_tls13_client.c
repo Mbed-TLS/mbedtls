@@ -1083,12 +1083,13 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
 
     ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( cipher_suite );
     /*
-     * Check whether this ciphersuite is supported and offered.
+     * Check whether this ciphersuite is valid and offered.
      * Via the force_ciphersuite version we may have instructed the client
      * to use a different ciphersuite.
      */
-    if( ciphersuite_info == NULL ||
-        ssl_tls13_cipher_suite_is_offered( ssl, cipher_suite ) == 0 )
+    if( ( mbedtls_ssl_validate_ciphersuite(
+            ssl, ciphersuite_info, ssl->minor_ver, ssl->minor_ver ) != 0 ) ||
+        !ssl_tls13_cipher_suite_is_offered( ssl, cipher_suite ) )
     {
         fatal_alert = MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
     }

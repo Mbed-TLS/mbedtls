@@ -431,9 +431,11 @@ static int ssl_validate_ciphersuite(
     if( suite_info == NULL )
         return( 1 );
 
-    if( ( suite_info->min_minor_ver > ssl->conf->max_minor_ver ) ||
-        ( suite_info->max_minor_ver < ssl->conf->min_minor_ver ) )
+    if( ( suite_info->min_minor_ver > ssl->minor_ver ) ||
+        ( suite_info->max_minor_ver < ssl->handshake->min_minor_ver ) )
+    {
         return( 1 );
+    }
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)

@@ -5197,6 +5197,28 @@ static psa_status_t psa_tls12_prf_set_seed( psa_tls12_prf_key_derivation_t *prf,
     return( PSA_SUCCESS );
 }
 
+static psa_status_t psa_tls12_prf_set_salt( psa_tls12_prf_key_derivation_t *prf,
+                                            const uint8_t *data,
+                                            size_t data_length )
+{
+    if( prf->state != PSA_TLS12_PRF_STATE_SEED_SET )
+        return( PSA_ERROR_BAD_STATE );
+
+    if( data_length != 0 )
+    {
+        prf->salt = mbedtls_calloc( 1, data_length );
+        if( prf->salt == NULL )
+            return( PSA_ERROR_INSUFFICIENT_MEMORY );
+
+        memcpy( prf->salt, data, data_length );
+        prf->salt_length = data_length;
+    }
+
+    prf->state = PSA_TLS12_PRF_STATE_SALT_SET;
+
+    return( PSA_SUCCESS );
+}
+
 static psa_status_t psa_tls12_prf_set_key( psa_tls12_prf_key_derivation_t *prf,
                                            const uint8_t *data,
                                            size_t data_length )
@@ -5250,6 +5272,8 @@ static psa_status_t psa_tls12_prf_input( psa_tls12_prf_key_derivation_t *prf,
     {
         case PSA_KEY_DERIVATION_INPUT_SEED:
             return( psa_tls12_prf_set_seed( prf, data, data_length ) );
+        case PSA_KEY_DERIVATION_INPUT_SALT:
+            return( psa_tls12_prf_set_salt( prf, data, data_length ) );
         case PSA_KEY_DERIVATION_INPUT_SECRET:
             return( psa_tls12_prf_set_key( prf, data, data_length ) );
         case PSA_KEY_DERIVATION_INPUT_LABEL:

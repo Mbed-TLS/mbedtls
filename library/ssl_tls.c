@@ -761,7 +761,7 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
     /* Heap allocate and translate curve_list from internal to IANA group ids */
     if ( ssl->conf->curve_list != NULL )
     {
-        size_t length;
+        size_t length, i;
         const mbedtls_ecp_group_id *curve_list = ssl->conf->curve_list;
 
         for( length = 0;  ( curve_list[length] != MBEDTLS_ECP_DP_NONE ) &&
@@ -772,7 +772,7 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
         if ( group_list == NULL )
             return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
 
-        for( size_t i = 0; i < length; i++ )
+        for( i = 0; i < length; i++ )
         {
             const mbedtls_ecp_curve_info *info =
                         mbedtls_ecp_curve_info_from_grp_id( curve_list[i] );

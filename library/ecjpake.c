@@ -967,10 +967,10 @@ static const unsigned char ecjpake_test_pms[] = {
 static int self_test_rng( void *ctx, unsigned char *out, size_t len )
 {
     static uint32_t state = 42;
-
+    size_t i;
     (void) ctx;
 
-    for( size_t i = 0; i < len; i++ )
+    for( i = 0; i < len; i++ )
     {
         state = state * 1664525u + 1013904223u;
         out[i] = (unsigned char) state;

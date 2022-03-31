@@ -347,12 +347,11 @@ static psa_status_t psa_load_persistent_key_into_slot( psa_key_slot_t *slot )
     {
         goto exit;
     }
-    status = psa_slot_change_state( slot, PSA_STATE_UNUSED );
-    if( status != PSA_SUCCESS )
-        return( status );
 
 exit:
     psa_free_persistent_key_data( key_data, key_data_length );
+    if( status == PSA_SUCCESS )
+        status = psa_slot_change_state( slot, PSA_STATE_UNUSED );
     return( status );
 }
 #endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C */

@@ -12,7 +12,7 @@
 
 /* Needed only for test case data under #if defined(MBEDTLS_USE_PSA_CRYPTO),
  * but the test code generator requires test case data to be valid C code
- * unconditionally (https://github.com/ARMmbed/mbedtls/issues/2023). */
+ * unconditionally (https://github.com/Mbed-TLS/mbedtls/issues/2023). */
 #include "psa/crypto.h"
 
 #define RSA_KEY_SIZE 512

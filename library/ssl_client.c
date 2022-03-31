@@ -413,9 +413,6 @@ static int ssl_write_sig_alg_ext( mbedtls_ssl_context *ssl, unsigned char *buf,
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
-/* Write cipher_suites
- * CipherSuite cipher_suites<2..2^16-2>;
- */
 int mbedtls_ssl_validate_ciphersuite(
     const mbedtls_ssl_context *ssl,
     const mbedtls_ssl_ciphersuite_t *suite_info,
@@ -481,7 +478,9 @@ static int ssl_write_client_hello_cipher_suites(
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
     p += 2;
 
-    /* Write cipher_suites */
+    /* Write cipher_suites
+     * CipherSuite cipher_suites<2..2^16-2>;
+     */
     cipher_suites = p;
     for ( size_t i = 0; ciphersuite_list[i] != 0; i++ )
     {

@@ -1011,23 +1011,6 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
         }
 #endif
 
-        /*
-         * Try to select a SHA-1 certificate for pre-1.2 clients, but still
-         * present them a SHA-higher cert rather than failing if it's the only
-         * one we got that satisfies the other conditions.
-         */
-        if( ssl->minor_ver < MBEDTLS_SSL_MINOR_VERSION_3 &&
-            cur->cert->sig_md != MBEDTLS_MD_SHA1 )
-        {
-            if( fallback == NULL )
-                fallback = cur;
-            {
-                MBEDTLS_SSL_DEBUG_MSG( 3, ( "certificate not preferred: "
-                                    "sha-2 with pre-TLS 1.2 client" ) );
-            continue;
-            }
-        }
-
         /* If we get there, we got a winner */
         break;
     }
@@ -1120,16 +1103,13 @@ static int ssl_ciphersuite_match( mbedtls_ssl_context *ssl, int suite_id,
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     /* If the ciphersuite requires signing, check whether
      * a suitable hash algorithm is present. */
-    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+    sig_type = mbedtls_ssl_get_ciphersuite_sig_alg( suite_info );
+    if( sig_type != MBEDTLS_PK_NONE &&
+        mbedtls_ssl_sig_hash_set_find( &ssl->handshake->hash_algs, sig_type ) == MBEDTLS_MD_NONE )
     {
-        sig_type = mbedtls_ssl_get_ciphersuite_sig_alg( suite_info );
-        if( sig_type != MBEDTLS_PK_NONE &&
-            mbedtls_ssl_sig_hash_set_find( &ssl->handshake->hash_algs, sig_type ) == MBEDTLS_MD_NONE )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: no suitable hash algorithm "
-                                        "for signature algorithm %u", (unsigned) sig_type ) );
-            return( 0 );
-        }
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: no suitable hash algorithm "
+                                    "for signature algorithm %u", (unsigned) sig_type ) );
+        return( 0 );
     }
 
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
@@ -1435,28 +1415,14 @@ read_record_header:
                       ssl->conf->transport, buf );
     ssl->session_negotiate->minor_ver = ssl->minor_ver;
 
-    ssl->handshake->max_major_ver = ssl->major_ver;
-    ssl->handshake->max_minor_ver = ssl->minor_ver;
-
-    if( ssl->major_ver < ssl->conf->min_major_ver ||
-        ssl->minor_ver < ssl->conf->min_minor_ver )
+    if( ( ssl->major_ver != MBEDTLS_SSL_MAJOR_VERSION_3 ) ||
+        ( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 ) )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "client only supports ssl smaller than minimum"
-                            " [%d:%d] < [%d:%d]",
-                            ssl->major_ver, ssl->minor_ver,
-                            ssl->conf->min_major_ver, ssl->conf->min_minor_ver ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "server only supports TLS 1.2" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                      MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION );
         return( MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION );
     }
-
-    if( ssl->major_ver > ssl->conf->max_major_ver )
-    {
-        ssl->major_ver = ssl->conf->max_major_ver;
-        ssl->minor_ver = ssl->conf->max_minor_ver;
-    }
-    else if( ssl->minor_ver > ssl->conf->max_minor_ver )
-        ssl->minor_ver = ssl->conf->max_minor_ver;
 
     /*
      * Save client random (inc. Unix time)
@@ -1962,21 +1928,18 @@ have_ciphersuite:
     /* Debugging-only output for testsuite */
 #if defined(MBEDTLS_DEBUG_C)                         && \
     defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+    mbedtls_pk_type_t sig_alg = mbedtls_ssl_get_ciphersuite_sig_alg( ciphersuite_info );
+    if( sig_alg != MBEDTLS_PK_NONE )
     {
-        mbedtls_pk_type_t sig_alg = mbedtls_ssl_get_ciphersuite_sig_alg( ciphersuite_info );
-        if( sig_alg != MBEDTLS_PK_NONE )
-        {
-            mbedtls_md_type_t md_alg = mbedtls_ssl_sig_hash_set_find( &ssl->handshake->hash_algs,
-                                                                  sig_alg );
-            MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello v3, signature_algorithm ext: %d",
-                                        mbedtls_ssl_hash_from_md_alg( md_alg ) ) );
-        }
-        else
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 3, ( "no hash algorithm for signature algorithm "
-                                        "%u - should not happen", (unsigned) sig_alg ) );
-        }
+        mbedtls_md_type_t md_alg = mbedtls_ssl_sig_hash_set_find( &ssl->handshake->hash_algs,
+                                                              sig_alg );
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello v3, signature_algorithm ext: %d",
+                                    mbedtls_ssl_hash_from_md_alg( md_alg ) ) );
+    }
+    else
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "no hash algorithm for signature algorithm "
+                                    "%u - should not happen", (unsigned) sig_alg ) );
     }
 #endif
 
@@ -2811,32 +2774,26 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
      *     enum { (255) } HashAlgorithm;
      *     enum { (255) } SignatureAlgorithm;
      */
-    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+    const uint16_t *sig_alg = mbedtls_ssl_get_sig_algs( ssl );
+    if( sig_alg == NULL )
+        return( MBEDTLS_ERR_SSL_BAD_CONFIG );
+
+    for( ; *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
     {
-        /*
-         * Supported signature algorithms
-         */
-        const uint16_t *sig_alg = mbedtls_ssl_get_sig_algs( ssl );
-        if( sig_alg == NULL )
-            return( MBEDTLS_ERR_SSL_BAD_CONFIG );
+        unsigned char hash = MBEDTLS_BYTE_1( *sig_alg );
 
-        for( ; *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
-        {
-            unsigned char hash = MBEDTLS_BYTE_1( *sig_alg );
+        if( mbedtls_ssl_set_calc_verify_md( ssl, hash ) )
+            continue;
+        if( ! mbedtls_ssl_sig_alg_is_supported( ssl, *sig_alg ) )
+            continue;
 
-            if( mbedtls_ssl_set_calc_verify_md( ssl, hash ) )
-                continue;
-            if( ! mbedtls_ssl_sig_alg_is_supported( ssl, *sig_alg ) )
-                continue;
-
-            MBEDTLS_PUT_UINT16_BE( *sig_alg, p, sa_len );
-            sa_len += 2;
-        }
-
-        MBEDTLS_PUT_UINT16_BE( sa_len, p, 0 );
+        MBEDTLS_PUT_UINT16_BE( *sig_alg, p, sa_len );
         sa_len += 2;
-        p += sa_len;
     }
+
+    MBEDTLS_PUT_UINT16_BE( sa_len, p, 0 );
+    sa_len += 2;
+    p += sa_len;
 
     /*
      * DistinguishedName certificate_authorities<0..2^16-1>;
@@ -3260,26 +3217,18 @@ curve_matching_done:
          */
 
         mbedtls_md_type_t md_alg;
-
         mbedtls_pk_type_t sig_alg =
             mbedtls_ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
-        if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
-        {
-            /*    For TLS 1.2, obey signature-hash-algorithm extension
-             *    (RFC 5246, Sec. 7.4.1.4.1). */
-            if( sig_alg == MBEDTLS_PK_NONE ||
-                ( md_alg = mbedtls_ssl_sig_hash_set_find( &ssl->handshake->hash_algs,
-                                                          sig_alg ) ) == MBEDTLS_MD_NONE )
-            {
-                MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-                /* (... because we choose a cipher suite
-                 *      only if there is a matching hash.) */
-                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-            }
-        }
-        else
+
+        /*    For TLS 1.2, obey signature-hash-algorithm extension
+         *    (RFC 5246, Sec. 7.4.1.4.1). */
+        if( sig_alg == MBEDTLS_PK_NONE ||
+            ( md_alg = mbedtls_ssl_sig_hash_set_find( &ssl->handshake->hash_algs,
+                                                      sig_alg ) ) == MBEDTLS_MD_NONE )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            /* (... because we choose a cipher suite
+             *      only if there is a matching hash.) */
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
@@ -3308,29 +3257,24 @@ curve_matching_done:
         /*
          * 2.3: Compute and add the signature
          */
-        if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
-        {
-            /*
-             * For TLS 1.2, we need to specify signature and hash algorithm
-             * explicitly through a prefix to the signature.
-             *
-             * struct {
-             *    HashAlgorithm hash;
-             *    SignatureAlgorithm signature;
-             * } SignatureAndHashAlgorithm;
-             *
-             * struct {
-             *    SignatureAndHashAlgorithm algorithm;
-             *    opaque signature<0..2^16-1>;
-             * } DigitallySigned;
-             *
-             */
+        /*
+         * We need to specify signature and hash algorithm explicitly through
+         * a prefix to the signature.
+         *
+         * struct {
+         *    HashAlgorithm hash;
+         *    SignatureAlgorithm signature;
+         * } SignatureAndHashAlgorithm;
+         *
+         * struct {
+         *    SignatureAndHashAlgorithm algorithm;
+         *    opaque signature<0..2^16-1>;
+         * } DigitallySigned;
+         *
+         */
 
-            ssl->out_msg[ssl->out_msglen++] =
-                mbedtls_ssl_hash_from_md_alg( md_alg );
-            ssl->out_msg[ssl->out_msglen++] =
-                mbedtls_ssl_sig_from_pk_alg( sig_alg );
-        }
+        ssl->out_msg[ssl->out_msglen++] = mbedtls_ssl_hash_from_md_alg( md_alg );
+        ssl->out_msg[ssl->out_msglen++] = mbedtls_ssl_sig_from_pk_alg( sig_alg );
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         if( ssl->conf->f_async_sign_start != NULL )
@@ -3702,8 +3646,8 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
         return( ret );
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
-    mbedtls_ssl_write_version( ssl->handshake->max_major_ver,
-                               ssl->handshake->max_minor_ver,
+    mbedtls_ssl_write_version( MBEDTLS_SSL_MAJOR_VERSION_3,
+                               MBEDTLS_SSL_MINOR_VERSION_3,
                                ssl->conf->transport, ver );
 
     /* Avoid data-dependent branches while checking for invalid
@@ -4278,63 +4222,55 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
      *     opaque signature<0..2^16-1>;
      *  } DigitallySigned;
      */
-    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+    if( i + 2 > ssl->in_hslen )
     {
-        if( i + 2 > ssl->in_hslen )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
-            return( MBEDTLS_ERR_SSL_DECODE_ERROR );
-        }
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
+        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
+    }
 
-        /*
-         * Hash
-         */
-        md_alg = mbedtls_ssl_md_alg_from_hash( ssl->in_msg[i] );
+    /*
+     * Hash
+     */
+    md_alg = mbedtls_ssl_md_alg_from_hash( ssl->in_msg[i] );
 
-        if( md_alg == MBEDTLS_MD_NONE || mbedtls_ssl_set_calc_verify_md( ssl, ssl->in_msg[i] ) )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "peer not adhering to requested sig_alg"
-                                " for verify message" ) );
-            return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
-        }
+    if( md_alg == MBEDTLS_MD_NONE || mbedtls_ssl_set_calc_verify_md( ssl, ssl->in_msg[i] ) )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "peer not adhering to requested sig_alg"
+                            " for verify message" ) );
+        return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+    }
 
 #if !defined(MBEDTLS_MD_SHA1)
-        if( MBEDTLS_MD_SHA1 == md_alg )
-            hash_start += 16;
+    if( MBEDTLS_MD_SHA1 == md_alg )
+        hash_start += 16;
 #endif
 
-        /* Info from md_alg will be used instead */
-        hashlen = 0;
+    /* Info from md_alg will be used instead */
+    hashlen = 0;
 
-        i++;
+    i++;
 
-        /*
-         * Signature
-         */
-        if( ( pk_alg = mbedtls_ssl_pk_alg_from_sig( ssl->in_msg[i] ) )
-                        == MBEDTLS_PK_NONE )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "peer not adhering to requested sig_alg"
-                                " for verify message" ) );
-            return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
-        }
-
-        /*
-         * Check the certificate's key type matches the signature alg
-         */
-        if( !mbedtls_pk_can_do( peer_pk, pk_alg ) )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "sig_alg doesn't match cert key" ) );
-            return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
-        }
-
-        i++;
-    }
-    else
+    /*
+     * Signature
+     */
+    if( ( pk_alg = mbedtls_ssl_pk_alg_from_sig( ssl->in_msg[i] ) )
+                    == MBEDTLS_PK_NONE )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "peer not adhering to requested sig_alg"
+                            " for verify message" ) );
+        return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
     }
+
+    /*
+     * Check the certificate's key type matches the signature alg
+     */
+    if( !mbedtls_pk_can_do( peer_pk, pk_alg ) )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "sig_alg doesn't match cert key" ) );
+        return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+    }
+
+    i++;
 
     if( i + 2 > ssl->in_hslen )
     {

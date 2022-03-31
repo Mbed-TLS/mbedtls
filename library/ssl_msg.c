@@ -2445,6 +2445,24 @@ void mbedtls_ssl_send_flight_completed( mbedtls_ssl_context *ssl )
 /*
  * Handshake layer functions
  */
+int mbedtls_ssl_start_handshake_msg( mbedtls_ssl_context *ssl, unsigned hs_type,
+                                     unsigned char **buf, size_t *buf_len )
+{
+    /*
+     * Reserve 4 bytes for hanshake header. ( Section 4,RFC 8446 )
+     *    ...
+     *    HandshakeType msg_type;
+     *    uint24 length;
+     *    ...
+     */
+    *buf = ssl->out_msg + 4;
+    *buf_len = MBEDTLS_SSL_OUT_CONTENT_LEN - 4;
+
+    ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
+    ssl->out_msg[0]  = hs_type;
+
+    return( 0 );
+}
 
 /*
  * Write (DTLS: or queue) current handshake (including CCS) message.
@@ -2607,6 +2625,22 @@ int mbedtls_ssl_write_handshake_msg_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write handshake message" ) );
 
     return( 0 );
+}
+
+int mbedtls_ssl_finish_handshake_msg( mbedtls_ssl_context *ssl,
+                                      size_t buf_len, size_t msg_len )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t msg_with_header_len;
+    ((void) buf_len);
+
+    /* Add reserved 4 bytes for handshake header */
+    msg_with_header_len = msg_len + 4;
+    ssl->out_msglen = msg_with_header_len;
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_write_handshake_msg_ext( ssl, 0, 0 ) );
+
+cleanup:
+    return( ret );
 }
 
 /*

@@ -9625,7 +9625,7 @@ run_test    "TLS 1.3: No server support" \
             "$P_SRV debug_level=2 force_version=tls13" \
             "$P_CLI debug_level=2 force_version=tls13" \
             1 \
-            -s "TLS 1.3 server is not supported yet."
+            -s "The requested feature is not available"
 
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3

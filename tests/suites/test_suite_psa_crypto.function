@@ -6900,16 +6900,18 @@ void derive_output( int alg_arg,
                     int step1_arg, data_t *input1,
                     int step2_arg, data_t *input2,
                     int step3_arg, data_t *input3,
+                    int step4_arg, data_t *input4,
                     int requested_capacity_arg,
                     data_t *expected_output1,
                     data_t *expected_output2 )
 {
     psa_algorithm_t alg = alg_arg;
-    psa_key_derivation_step_t steps[] = {step1_arg, step2_arg, step3_arg};
-    data_t *inputs[] = {input1, input2, input3};
+    psa_key_derivation_step_t steps[] = {step1_arg, step2_arg, step3_arg, step4_arg};
+    data_t *inputs[] = {input1, input2, input3, input4};
     mbedtls_svc_key_id_t keys[] = { MBEDTLS_SVC_KEY_ID_INIT,
                                     MBEDTLS_SVC_KEY_ID_INIT,
-                                    MBEDTLS_SVC_KEY_ID_INIT };
+                                    MBEDTLS_SVC_KEY_ID_INIT,
+                                    MBEDTLS_SVC_KEY_ID_INIT};
     size_t requested_capacity = requested_capacity_arg;
     psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
     uint8_t *expected_outputs[2] =

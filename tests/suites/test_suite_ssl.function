@@ -5654,10 +5654,10 @@ void raw_key_agreement_fail( )
     /* Save the number of slots in use up to this point.
      * With PSA, one can be used for the ECDH private key. */
     free_slots_before = stats.empty_slots;
-    
+
     /* Force a simulated bitflip in the server key. to make the
      * raw key agreement in ssl_write_client_key_exchange fail. */
-    (client.ssl).handshake->ecdh_psa_peerkey[5] ^= 0x02;
+    (client.ssl).handshake->ecdh_psa_peerkey[0] ^= 0x02;
 
     TEST_ASSERT( mbedtls_move_handshake_to_state( &(client.ssl),
                                                   &(server.ssl),
@@ -5672,10 +5672,10 @@ void raw_key_agreement_fail( )
 exit:
     mbedtls_endpoint_free( &client, &client_context );
     mbedtls_endpoint_free( &server, &server_context );
-    
+
     mbedtls_psa_get_stats( &stats );
     TEST_ASSERT( stats.empty_slots == MBEDTLS_PSA_KEY_SLOT_COUNT );
-    
+
     USE_PSA_DONE( );
 }
 /* END_CASE */

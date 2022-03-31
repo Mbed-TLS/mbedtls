@@ -418,6 +418,8 @@ int mbedtls_ssl_validate_ciphersuite(
     const mbedtls_ssl_ciphersuite_t *suite_info,
     int min_minor_ver, int max_minor_ver )
 {
+    (void) ssl;
+
     if( suite_info == NULL )
         return( -1 );
 

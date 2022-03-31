@@ -540,7 +540,24 @@ struct mbedtls_ssl_handshake_params
     uint8_t cli_exts;                   /*!< client extension presence*/
 
 #if defined(MBEDTLS_SSL_CLI_C)
-    /*!< Minimum minor version to be negotiated. */
+    /*!< Minimum minor version to be negotiated.
+     *
+     *   It is set up in the ClientHello writing preparation stage and used
+     *   throughout the ClientHello writing. Not relevant anymore as soon as
+     *   the protocol version has been negotiated thus as soon as the
+     *   ServerHello is received.
+     *   For a fresh handshake not linked to any previous handshake, it is
+     *   equal to the configured minimum minor version to be negotiated. When
+     *   renegotiating or resuming a session, it is equal to the previously
+     *   negotiated minor version.
+     *
+     *   There is no maximum minor version field in this handshake context.
+     *   From the start of the handshake, we need to define a current protocol
+     *   version for the record layer which we define as the maximum minor
+     *   version to be negotiated. The `minor_ver` field of the SSL context is
+     *   used to store this maximum value until it contains the actual
+     *   negotiated value.
+     */
     unsigned char min_minor_ver;
 #endif
 

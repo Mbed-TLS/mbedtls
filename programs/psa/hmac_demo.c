@@ -107,7 +107,7 @@ psa_status_t hmac_demo(void)
     const psa_algorithm_t alg = PSA_ALG_HMAC(PSA_ALG_SHA_256);
     uint8_t out[PSA_MAC_MAX_SIZE]; // safe but not optimal
     /* PSA_MAC_LENGTH(PSA_KEY_TYPE_HMAC, 8 * sizeof( key_bytes ), alg)
-     * should work but see https://github.com/ARMmbed/mbedtls/issues/4320 */
+     * should work but see https://github.com/Mbed-TLS/mbedtls/issues/4320 */
 
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_id_t key = 0;

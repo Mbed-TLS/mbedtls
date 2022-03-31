@@ -337,7 +337,7 @@ add_common_ciphersuites()
 #
 # NOTE: for some reason RSA-PSK doesn't work with OpenSSL,
 # so RSA-PSK ciphersuites need to go in other sections, see
-# https://github.com/ARMmbed/mbedtls/issues/1419
+# https://github.com/Mbed-TLS/mbedtls/issues/1419
 #
 # ChachaPoly suites are here rather than in "common", as they were added in
 # GnuTLS in 3.5.0 and the CI only has 3.4.x so far.

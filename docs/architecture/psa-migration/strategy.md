@@ -42,7 +42,7 @@ are:
 - it's incompatible with `MBEDTLS_ECP_RESTARTABLE`;
 - historical: used to be incompatible
   `MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER` (fixed early 2022, see
-    <https://github.com/ARMmbed/mbedtls/issues/5259>);
+    <https://github.com/Mbed-TLS/mbedtls/issues/5259>);
 - it does not work well with `MBEDTLS_PSA_CRYPTO_CONFIG` (could compile with
   both of them, but then `MBEDTLS_PSA_CRYPTO_CONFIG` won't have the desired
 effect)
@@ -99,8 +99,8 @@ an algorithm through a PSA driver only, without building the software
 implementation of that algorithm. But then the TLS code would consider the
 algorithm unavailable.
 
-This is tracked in https://github.com/ARMmbed/mbedtls/issues/3674 and
-https://github.com/ARMmbed/mbedtls/issues/3677. But now that I look at it with
+This is tracked in https://github.com/Mbed-TLS/mbedtls/issues/3674 and
+https://github.com/Mbed-TLS/mbedtls/issues/3677. But now that I look at it with
 fresh eyes, I don't think the approach we were planning to use would actually
 works. This needs more design effort.
 
@@ -138,7 +138,7 @@ available in entropy-less builds. (Then code using those functions still needs
 to have one version using it, for entropy-less builds, and one version using
 the standard function, for driver support in build with entropy.)
 
-See https://github.com/ARMmbed/mbedtls/issues/5156
+See https://github.com/Mbed-TLS/mbedtls/issues/5156
 
 Taking advantage of the existing abstractions layers - or not
 =============================================================

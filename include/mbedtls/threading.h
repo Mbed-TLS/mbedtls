@@ -114,9 +114,8 @@ extern mbedtls_threading_mutex_t mbedtls_threading_gmtime_mutex;
 #endif /* MBEDTLS_HAVE_TIME_DATE && !MBEDTLS_PLATFORM_GMTIME_R_ALT */
 
 /*
- * Helper functions
+ * Helper macros for mutex handling
  */
-#if defined(MBEDTLS_THREADING_C)
 #define MUTEX_LOCK_CHECK( mutex )                 \
     do                                            \
     {                                             \
@@ -129,13 +128,10 @@ extern mbedtls_threading_mutex_t mbedtls_threading_gmtime_mutex;
         if( mbedtls_mutex_unlock( mutex ) != 0 )  \
             return( PSA_ERROR_BAD_STATE );        \
     } while( 0 )
-#else
+#else/* MBEDTLS_THREADING_C */
 #define MUTEX_LOCK_CHECK( mutex )
 #define MUTEX_UNLOCK_CHECK( mutex )
 #endif
-
-#endif /* MBEDTLS_THREADING_C */
-
 #ifdef __cplusplus
 }
 #endif

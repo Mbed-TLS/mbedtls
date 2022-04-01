@@ -555,7 +555,7 @@ psa_status_t psa_validate_unstructured_key_bit_size( psa_key_type_t type,
  * \retval 1
  *         The key slot has no active readers.
  */
-psa_status_t psa_slot_has_no_readers( psa_key_slot_t *slot );
+int psa_slot_has_no_readers( psa_key_slot_t *slot );
 
 /** Transition the slot to a given state
  *

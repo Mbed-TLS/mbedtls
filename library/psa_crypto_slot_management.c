@@ -435,12 +435,12 @@ psa_status_t psa_get_and_lock_key_slot( mbedtls_svc_key_id_t key,
 
     if( intent == PSA_STATE_EMPTY )
         return( PSA_ERROR_NOT_SUPPORTED );
-    MUTEX_LOCK_CHECK( &mbedtls_psa_slots_mutex );
+    MBEDTLS_MUTEX_LOCK_CHECK( &mbedtls_psa_slots_mutex );
 
     *p_slot = NULL;
     if( !global_data.key_slots_initialized )
     {
-        MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
+        MBEDTLS_MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
         return( PSA_ERROR_BAD_STATE );
     }
 
@@ -456,13 +456,13 @@ psa_status_t psa_get_and_lock_key_slot( mbedtls_svc_key_id_t key,
             status = psa_slot_change_state( *p_slot, intent );
         if( status != PSA_SUCCESS )
         {
-            MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
+            MBEDTLS_MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
             return( status );
         }
     }
     if( status != PSA_ERROR_DOES_NOT_EXIST )
     {
-        MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
+        MBEDTLS_MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
         return( status );
     }
 
@@ -474,7 +474,7 @@ psa_status_t psa_get_and_lock_key_slot( mbedtls_svc_key_id_t key,
     status = psa_get_empty_key_slot( &volatile_key_id, p_slot );
     if( status != PSA_SUCCESS )
     {
-        MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
+        MBEDTLS_MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
         return( status );
     }
 
@@ -509,10 +509,10 @@ psa_status_t psa_get_and_lock_key_slot( mbedtls_svc_key_id_t key,
             status = psa_slot_change_state( *p_slot, intent );
     }
 
-    MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
+    MBEDTLS_MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
     return( status );
 #else /* MBEDTLS_PSA_CRYPTO_STORAGE_C || MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
-    MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
+    MBEDTLS_MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
     return( PSA_ERROR_INVALID_HANDLE );
 #endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C || MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
 }
@@ -523,7 +523,7 @@ psa_status_t psa_unlock_key_slot( psa_key_slot_t *slot )
     if( slot == NULL )
         return( PSA_SUCCESS );
 
-    MUTEX_LOCK_CHECK( &mbedtls_psa_slots_mutex );
+    MBEDTLS_MUTEX_LOCK_CHECK( &mbedtls_psa_slots_mutex );
 
     if( slot->state != PSA_STATE_READING &&
         slot->state != PSA_STATE_DESTROYING &&
@@ -532,14 +532,14 @@ psa_status_t psa_unlock_key_slot( psa_key_slot_t *slot )
         MBEDTLS_TEST_HOOK_TEST_ASSERT( slot->state != PSA_STATE_READING &&
             slot->state != PSA_STATE_DESTROYING &&
             slot->state != PSA_STATE_WIPING );
-        MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
+        MBEDTLS_MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
         return( PSA_ERROR_BAD_STATE );
     }
 
     if( slot->reader_count == 0 )
     {
         MBEDTLS_TEST_HOOK_TEST_ASSERT( slot->reader_count != 0 );
-        MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
+        MBEDTLS_MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
         return( PSA_ERROR_CORRUPTION_DETECTED );
     }
     slot->reader_count--;
@@ -554,7 +554,7 @@ psa_status_t psa_unlock_key_slot( psa_key_slot_t *slot )
         else
             status = psa_slot_change_state( slot, PSA_STATE_UNUSED );
     }
-    MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
+    MBEDTLS_MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
     return( status );
 }
 
@@ -647,14 +647,14 @@ psa_status_t psa_close_key( psa_key_handle_t handle )
     if( psa_key_handle_is_null( handle ) )
         return( PSA_SUCCESS );
 
-    MUTEX_LOCK_CHECK( &mbedtls_psa_slots_mutex );
+    MBEDTLS_MUTEX_LOCK_CHECK( &mbedtls_psa_slots_mutex );
     status = psa_get_key_slot( handle, &slot );
     if( status != PSA_SUCCESS )
     {
         if( status == PSA_ERROR_DOES_NOT_EXIST )
             status = PSA_ERROR_INVALID_HANDLE;
 
-        MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
+        MBEDTLS_MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
         return( status );
     }
 
@@ -662,7 +662,7 @@ psa_status_t psa_close_key( psa_key_handle_t handle )
 
     if( status != PSA_SUCCESS )
     {
-        MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
+        MBEDTLS_MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
         return( status );
     }
 
@@ -671,7 +671,7 @@ psa_status_t psa_close_key( psa_key_handle_t handle )
     else
         status = PSA_ERROR_DELAYED;
 
-    MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
+    MBEDTLS_MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
     return( status );
 }
 
@@ -683,11 +683,11 @@ psa_status_t psa_purge_key( mbedtls_svc_key_id_t key )
     if( psa_key_id_is_volatile( key ) )
         return( PSA_SUCCESS );
 
-    MUTEX_LOCK_CHECK( &mbedtls_psa_slots_mutex );
+    MBEDTLS_MUTEX_LOCK_CHECK( &mbedtls_psa_slots_mutex );
     status = psa_get_key_slot( key, &slot );
     if( status != PSA_SUCCESS )
     {
-        MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
+        MBEDTLS_MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
         return( status );
     }
 
@@ -695,7 +695,7 @@ psa_status_t psa_purge_key( mbedtls_svc_key_id_t key )
 
     if( status != PSA_SUCCESS )
     {
-        MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
+        MBEDTLS_MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
         return( status );
     }
 
@@ -704,7 +704,7 @@ psa_status_t psa_purge_key( mbedtls_svc_key_id_t key )
     else
         status = PSA_ERROR_DELAYED;
 
-    MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
+    MBEDTLS_MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
     return( status );
 }
 

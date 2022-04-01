@@ -116,21 +116,21 @@ extern mbedtls_threading_mutex_t mbedtls_threading_gmtime_mutex;
 /*
  * Helper macros for mutex handling
  */
-#define MUTEX_LOCK_CHECK( mutex )                 \
+#define MBEDTLS_MUTEX_LOCK_CHECK( mutex )                 \
     do                                            \
     {                                             \
         if( mbedtls_mutex_lock( mutex ) != 0 )    \
             return( PSA_ERROR_BAD_STATE );        \
     } while( 0 )
-#define MUTEX_UNLOCK_CHECK( mutex )               \
+#define MBEDTLS_MUTEX_UNLOCK_CHECK( mutex )               \
     do                                            \
     {                                             \
         if( mbedtls_mutex_unlock( mutex ) != 0 )  \
             return( PSA_ERROR_BAD_STATE );        \
     } while( 0 )
 #else/* MBEDTLS_THREADING_C */
-#define MUTEX_LOCK_CHECK( mutex )
-#define MUTEX_UNLOCK_CHECK( mutex )
+#define MBEDTLS_MUTEX_LOCK_CHECK( mutex )
+#define MBEDTLS_MUTEX_UNLOCK_CHECK( mutex )
 #endif
 #ifdef __cplusplus
 }

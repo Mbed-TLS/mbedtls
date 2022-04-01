@@ -6912,6 +6912,7 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
     size_t keylen;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
     const mbedtls_cipher_info_t *cipher_info;
+    mbedtls_ssl_mode_t ssl_mode;
 #if !defined(MBEDTLS_USE_PSA_CRYPTO)
     const mbedtls_md_info_t *md_info;
 #endif /* !MBEDTLS_USE_PSA_CRYPTO */
@@ -6966,6 +6967,12 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
                                     ciphersuite ) );
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
+
+    ssl_mode = mbedtls_get_mode_from_ciphersuite(
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+                                        encrypt_then_mac,
+#endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */
+                                        ciphersuite_info );
 
     cipher_info = mbedtls_cipher_info_from_type( ciphersuite_info->cipher );
     if( cipher_info == NULL )
@@ -7038,9 +7045,7 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
 #if defined(MBEDTLS_GCM_C) ||                           \
     defined(MBEDTLS_CCM_C) ||                           \
     defined(MBEDTLS_CHACHAPOLY_C)
-    if( mbedtls_cipher_info_get_mode( cipher_info ) == MBEDTLS_MODE_GCM ||
-        mbedtls_cipher_info_get_mode( cipher_info ) == MBEDTLS_MODE_CCM ||
-        mbedtls_cipher_info_get_mode( cipher_info ) == MBEDTLS_MODE_CHACHAPOLY )
+    if( ssl_mode == MBEDTLS_SSL_MODE_AEAD )
     {
         size_t explicit_ivlen;
 
@@ -7070,8 +7075,9 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
     else
 #endif /* MBEDTLS_GCM_C || MBEDTLS_CCM_C || MBEDTLS_CHACHAPOLY_C */
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
-    if( mbedtls_cipher_info_get_mode( cipher_info ) == MBEDTLS_MODE_STREAM ||
-        mbedtls_cipher_info_get_mode( cipher_info ) == MBEDTLS_MODE_CBC )
+    if( ssl_mode == MBEDTLS_SSL_MODE_STREAM ||
+        ssl_mode == MBEDTLS_SSL_MODE_CBC ||
+        ssl_mode == MBEDTLS_SSL_MODE_CBC_ETM )
     {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         /* Get MAC length */
@@ -7094,7 +7100,7 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
         transform->ivlen = cipher_info->iv_size;
 
         /* Minimum length */
-        if( mbedtls_cipher_info_get_mode( cipher_info ) == MBEDTLS_MODE_STREAM )
+        if( ssl_mode == MBEDTLS_SSL_MODE_STREAM )
             transform->minlen = transform->maclen;
         else
         {
@@ -7105,7 +7111,7 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
              * 2. IV
              */
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
-            if( encrypt_then_mac == MBEDTLS_SSL_ETM_ENABLED )
+            if( ssl_mode == MBEDTLS_SSL_MODE_CBC_ETM )
             {
                 transform->minlen = transform->maclen
                                   + cipher_info->block_size;

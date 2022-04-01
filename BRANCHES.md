@@ -2,10 +2,10 @@
 
 At any point in time, we have a number of maintained branches consisting of:
 
-- The [`master`](https://github.com/ARMmbed/mbedtls/tree/master) branch:
+- The [`master`](https://github.com/Mbed-TLS/mbedtls/tree/master) branch:
   this always contains the latest release, including all publicly available
   security fixes.
-- The [`development`](https://github.com/ARMmbed/mbedtls/tree/development) branch:
+- The [`development`](https://github.com/Mbed-TLS/mbedtls/tree/development) branch:
   this is where new features land,
   as well as bug fixes and security fixes.
 - One or more long-time support (LTS) branches:
@@ -40,15 +40,15 @@ had to break ABI compatibility in an LTS branch, but we occasionally had to
 increase code size for a security fix.)
 
 For contributors, see the [Backwards Compatibility section of
-CONTRIBUTING](CONTRIBUTING.md#cackwords-compatibility).
+CONTRIBUTING](CONTRIBUTING.md#backwards-compatibility).
 
 ## Current Branches
 
 The following branches are currently maintained:
 
-- [master](https://github.com/ARMmbed/mbedtls/tree/master)
-- [`development`](https://github.com/ARMmbed/mbedtls/)
-- [`mbedtls-2.28`](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.28)
+- [master](https://github.com/Mbed-TLS/mbedtls/tree/master)
+- [`development`](https://github.com/Mbed-TLS/mbedtls/)
+- [`mbedtls-2.28`](https://github.com/Mbed-TLS/mbedtls/tree/mbedtls-2.28)
  maintained until at least the end of 2024.
 
 Users are urged to always use the latest version of a maintained branch.

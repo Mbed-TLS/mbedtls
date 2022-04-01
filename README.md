@@ -235,7 +235,7 @@ This implementation is not yet as mature as the rest of the library. Some parts 
 
 The X.509 and TLS code can use PSA cryptography for a limited subset of operations. To enable this support, activate the compilation option `MBEDTLS_USE_PSA_CRYPTO` in `config.h`.
 
-There are currently a few deviations where the library does not yet implement the latest version of the specification. Please refer to the [compliance issues on Github](https://github.com/ARMmbed/mbed-crypto/labels/compliance) for an up-to-date list.
+There are currently a few deviations where the library does not yet implement the latest version of the specification. Please refer to the [compliance issues on Github](https://github.com/Mbed-TLS/mbed-crypto/labels/compliance) for an up-to-date list.
 
 ### Upcoming features
 
@@ -260,5 +260,5 @@ Contact
 -------
 
 * To report a security vulnerability in Mbed TLS, please email <mbed-tls-security@lists.trustedfirmware.org>. For more information, see [`SECURITY.md`](SECURITY.md).
-* To report a bug or request a feature in Mbed TLS, please [file an issue on GitHub](https://github.com/ARMmbed/mbedtls/issues/new/choose).
+* To report a bug or request a feature in Mbed TLS, please [file an issue on GitHub](https://github.com/Mbed-TLS/mbedtls/issues/new/choose).
 * Please see [`SUPPORT.md`](SUPPORT.md) for other channels for discussion and support about Mbed TLS.

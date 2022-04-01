@@ -287,7 +287,7 @@ PSA wrapped sign: SECP192K1
 depends_on:MBEDTLS_ECP_DP_SECP192K1_ENABLED
 pk_psa_sign:MBEDTLS_ECP_DP_SECP192K1:PSA_ECC_FAMILY_SECP_K1:192
 
-## Currently buggy: https://github.com/ARMmbed/mbed-crypto/issues/336
+## Currently buggy: https://github.com/Mbed-TLS/mbed-crypto/issues/336
 # PSA wrapped sign: SECP224K1
 # depends_on:MBEDTLS_ECP_DP_SECP224K1_ENABLED
 # pk_psa_sign:MBEDTLS_ECP_DP_SECP224K1:PSA_ECC_FAMILY_SECP_K1:224

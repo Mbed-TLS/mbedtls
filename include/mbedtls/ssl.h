@@ -1118,10 +1118,11 @@ struct mbedtls_ssl_session
 
     unsigned char MBEDTLS_PRIVATE(exported);
 
-    /* This field is temporarily duplicated with mbedtls_ssl_context.minor_ver.
-     * Once runtime negotiation of TLS 1.2 and TLS 1.3 is implemented, it needs
-     * to be studied whether one of them can be removed. */
-    unsigned char MBEDTLS_PRIVATE(minor_ver);    /*!< The TLS version used in the session. */
+    /*!< Minor version negotiated in the session. Used if and when
+     *   renegotiating or resuming a session instead of the configured minor
+     *   version.
+     */
+    unsigned char MBEDTLS_PRIVATE(minor_ver);
 
 #if defined(MBEDTLS_HAVE_TIME)
     mbedtls_time_t MBEDTLS_PRIVATE(start);       /*!< starting time      */
@@ -1495,12 +1496,25 @@ struct mbedtls_ssl_context
                                   renego_max_records is < 0           */
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
-    int MBEDTLS_PRIVATE(major_ver);              /*!< equal to  MBEDTLS_SSL_MAJOR_VERSION_3    */
+    /*!< Equal to MBEDTLS_SSL_MAJOR_VERSION_3 */
+    int MBEDTLS_PRIVATE(major_ver);
 
-    /* This field is temporarily duplicated with mbedtls_ssl_context.minor_ver.
-     * Once runtime negotiation of TLS 1.2 and TLS 1.3 is implemented, it needs
-     * to be studied whether one of them can be removed. */
-    int MBEDTLS_PRIVATE(minor_ver);              /*!< one of MBEDTLS_SSL_MINOR_VERSION_x macros */
+    /*!< Server: Negotiated minor version.
+     *   Client: Maximum minor version to be negotiated, then negotiated minor
+     *           version.
+     *
+     *   It is initialized as the maximum minor version to be negotiated in the
+     *   ClientHello writing preparation stage and used throughout the
+     *   ClientHello writing. For a fresh handshake not linked to any previous
+     *   handshake, it is initialized to the configured maximum minor version
+     *   to be negotiated. When renegotiating or resuming a session, it is
+     *   initialized to the previously negotiated minor version.
+     *
+     *   Updated to the negotiated minor version as soon as the ServerHello is
+     *   received.
+     */
+    int MBEDTLS_PRIVATE(minor_ver);
+
     unsigned MBEDTLS_PRIVATE(badmac_seen);       /*!< records with a bad MAC received    */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)

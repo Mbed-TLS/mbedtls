@@ -291,7 +291,7 @@ class MbedTLSCli(TLSProgram):
         super().cmd()
         ret = ['$P_CLI']
         ret += ['server_addr=127.0.0.1', 'server_port=$SRV_PORT',
-                'debug_level=4', 'force_version=tls13']
+                'debug_level=4']
         ret += ['ca_file={cafile}'.format(
             cafile=CERTIFICATES[self._cert_sig_algs[0]].cafile)]
 
@@ -325,7 +325,7 @@ class MbedTLSCli(TLSProgram):
         return ret
 
     def post_checks(self):
-        check_strings = []
+        check_strings = ["Protocol is TLSv1.3"]
         if self._ciphers:
             check_strings.append(
                 "server hello, chosen ciphersuite: ( {:04x} ) - {}".format(

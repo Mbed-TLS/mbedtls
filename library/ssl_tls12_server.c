@@ -1978,13 +1978,6 @@ static void ssl_write_encrypt_then_mac_ext( mbedtls_ssl_context *ssl,
 {
     unsigned char *p = buf;
     const mbedtls_ssl_ciphersuite_t *suite = NULL;
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_key_type_t key_type;
-    psa_algorithm_t alg;
-    size_t key_bits;
-#else
-    const mbedtls_cipher_info_t *cipher = NULL;
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     /*
      * RFC 7366: "If a server receives an encrypt-then-MAC request extension
@@ -1992,18 +1985,19 @@ static void ssl_write_encrypt_then_mac_ext( mbedtls_ssl_context *ssl,
      * with Associated Data (AEAD) ciphersuite, it MUST NOT send an
      * encrypt-then-MAC response extension back to the client."
      */
-    if( ( suite = mbedtls_ssl_ciphersuite_from_id(
-                    ssl->session_negotiate->ciphersuite ) ) == NULL ||
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-        ( mbedtls_ssl_cipher_to_psa( suite->cipher, 0, &alg,
-                            &key_type, &key_bits ) != PSA_SUCCESS ) ||
-        alg != PSA_ALG_CBC_NO_PADDING )
-#else
-        ( cipher = mbedtls_cipher_info_from_type( suite->cipher ) ) == NULL ||
-        cipher->mode != MBEDTLS_MODE_CBC )
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-    {
+    suite = mbedtls_ssl_ciphersuite_from_id(
+                    ssl->session_negotiate->ciphersuite );
+    if( suite == NULL )
         ssl->session_negotiate->encrypt_then_mac = MBEDTLS_SSL_ETM_DISABLED;
+    else
+    {
+        mbedtls_ssl_mode_t ssl_mode =
+            mbedtls_get_mode_from_ciphersuite(
+                ssl->session_negotiate->encrypt_then_mac,
+                suite );
+
+        if( ssl_mode != MBEDTLS_SSL_MODE_CBC_ETM )
+            ssl->session_negotiate->encrypt_then_mac = MBEDTLS_SSL_ETM_DISABLED;
     }
 
     if( ssl->session_negotiate->encrypt_then_mac == MBEDTLS_SSL_ETM_DISABLED )

@@ -239,6 +239,25 @@
  */
 #define PSA_TLS12_PSK_TO_MS_PSK_MAX_SIZE 128
 
+/** This macro returns the maximum supported length of the other secret for
+ * the TLS-1.2 PSK-to-MS key derivation
+ * (#PSA_ALG_TLS12_PSK_TO_MS(\c hash_alg)).
+ *
+ * The other secret is the output of RSA key wrapping or
+ * of (EC)DHE key agreement.
+ *
+ * Pure PSK : other_secret has the same size as the PSK itself.
+ * RSA-PSK  : other_secret is always 48 bytes.
+ * ECDHE-PSK: other_secret is the size of the chosen elliptic curve,
+ *            so in practice at most 66 bytes (for P-521).
+ * DHE-PSK  : other_secret is the size of the chosen DH params.
+ *            A minimum of 2048 bits (256 bytes) is recommended,
+ *            and 3072 bits (384 bytes) is also popular.
+ *
+ * Define 384 bytes space for the other secret.
+ */
+#define PSA_TLS12_PSK_TO_MS_OTHER_SECRET_MAX_SIZE 384
+
 /** The maximum size of a block cipher. */
 #define PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE 16
 

@@ -5293,7 +5293,8 @@ static psa_status_t psa_tls12_prf_psk_to_ms_set_key(
     size_t data_length )
 {
     psa_status_t status;
-    uint8_t pms[ 4 + 2 * PSA_TLS12_PSK_TO_MS_PSK_MAX_SIZE ];
+    uint8_t pms[ 4 + PSA_TLS12_PSK_TO_MS_OTHER_SECRET_MAX_SIZE +
+                 PSA_TLS12_PSK_TO_MS_PSK_MAX_SIZE ];
     uint8_t *cur = pms;
 
     if( data_length > PSA_TLS12_PSK_TO_MS_PSK_MAX_SIZE )

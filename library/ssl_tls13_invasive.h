@@ -20,22 +20,17 @@
 
 #include "common.h"
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+
 #include "psa/crypto.h"
-#endif
 
 #if defined(MBEDTLS_TEST_HOOKS)
-
-#if defined(MBEDTLS_PSA_CRYPTO_C)
 
 /**
  *  \brief  Take the input keying material \p ikm and extract from it a
  *          fixed-length pseudorandom key \p prk.
  *
- *  \param       alg       The HMAC algorithm to use
- *                         (\c #PSA_ALG_HMAC( PSA_ALG_XXX ) value such that
- *                         PSA_ALG_XXX is a hash algorithm and
- *                         #PSA_ALG_IS_HMAC(\p alg) is true).
+ *  \param       hash_alg  Hash algorithm to use.
  *  \param       salt      An optional salt value (a non-secret random value);
  *                         if the salt is not provided, a string of all zeros
  *                         of the length of the hash provided by \p alg is used
@@ -53,7 +48,7 @@
  *  \return An PSA_ERROR_* error for errors returned from the underlying
  *          PSA layer.
  */
-psa_status_t mbedtls_psa_hkdf_extract( psa_algorithm_t alg,
+psa_status_t mbedtls_psa_hkdf_extract( psa_algorithm_t hash_alg,
                                        const unsigned char *salt, size_t salt_len,
                                        const unsigned char *ikm, size_t ikm_len,
                                        unsigned char *prk, size_t prk_size,
@@ -63,9 +58,7 @@ psa_status_t mbedtls_psa_hkdf_extract( psa_algorithm_t alg,
  *  \brief  Expand the supplied \p prk into several additional pseudorandom
  *          keys, which is the output of the HKDF.
  *
- *  \param  alg       The HMAC algorithm to use (\c #PSA_ALG_HMAC( PSA_ALG_XXX )
- *                    value such that PSA_ALG_XXX is a hash algorithm and
- *                    #PSA_ALG_IS_HMAC(\p alg) is true).
+ *  \param  hash_alg  Hash algorithm to use.
  *  \param  prk       A pseudorandom key of \p prk_len bytes. \p prk is
  *                    usually the output from the HKDF extract step.
  *  \param  prk_len   The length in bytes of \p prk.
@@ -82,13 +75,13 @@ psa_status_t mbedtls_psa_hkdf_extract( psa_algorithm_t alg,
  *  \return An PSA_ERROR_* error for errors returned from the underlying
  *          PSA layer.
  */
-psa_status_t mbedtls_psa_hkdf_expand( psa_algorithm_t alg,
+psa_status_t mbedtls_psa_hkdf_expand( psa_algorithm_t hash_alg,
                                       const unsigned char *prk, size_t prk_len,
                                       const unsigned char *info, size_t info_len,
                                       unsigned char *okm, size_t okm_len );
 
-#endif /* MBEDTLS_PSA_CRYPTO_C */
-
 #endif /* MBEDTLS_TEST_HOOKS */
+
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #endif /* MBEDTLS_SSL_TLS13_INVASIVE_H */

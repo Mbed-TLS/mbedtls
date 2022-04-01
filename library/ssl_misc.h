@@ -52,11 +52,6 @@
 #include "mbedtls/ecjpake.h"
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-#include "psa/crypto.h"
-#include "mbedtls/psa_util.h"
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-
 #include "common.h"
 
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
@@ -2187,11 +2182,15 @@ static inline int psa_ssl_status_to_mbedtls( psa_status_t status )
         case PSA_SUCCESS:
             return( 0 );
         case PSA_ERROR_INSUFFICIENT_MEMORY:
-            return( MBEDTLS_ERR_CIPHER_ALLOC_FAILED );
+            return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
         case PSA_ERROR_NOT_SUPPORTED:
-            return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+            return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
         case PSA_ERROR_INVALID_SIGNATURE:
             return( MBEDTLS_ERR_SSL_INVALID_MAC );
+        case PSA_ERROR_INVALID_ARGUMENT:
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+        case PSA_ERROR_BAD_STATE:
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         default:
             return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
     }

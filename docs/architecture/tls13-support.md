@@ -324,7 +324,7 @@ TLS 1.3 specific coding rules:
     ```
 
   - To mitigate what happened here
-    (https://github.com/ARMmbed/mbedtls/pull/4882#discussion_r701704527) from
+    (https://github.com/Mbed-TLS/mbedtls/pull/4882#discussion_r701704527) from
     happening again, use always a local variable named `p` for the reading
     pointer in functions parsing TLS 1.3 data, and for the writing pointer in
     functions writing data into an output buffer and only that variable. The

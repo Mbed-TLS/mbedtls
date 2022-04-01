@@ -65,7 +65,7 @@ addons:
     - gnutls-bin
   coverity_scan:
     project:
-      name: "ARMmbed/mbedtls"
+      name: "Mbed-TLS/mbedtls"
     notification_email: support-mbedtls@arm.com
     build_command_prepend:
     build_command: make

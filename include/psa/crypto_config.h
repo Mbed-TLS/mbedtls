@@ -97,7 +97,7 @@
 #define PSA_WANT_ECC_SECP_K1_192                1
 /*
  * SECP224K1 is buggy via the PSA API in Mbed TLS
- * (https://github.com/ARMmbed/mbedtls/issues/3541). Thus, do not enable it by
+ * (https://github.com/Mbed-TLS/mbedtls/issues/3541). Thus, do not enable it by
  * default.
  */
 //#define PSA_WANT_ECC_SECP_K1_224                1

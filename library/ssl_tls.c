@@ -112,6 +112,34 @@ int mbedtls_ssl_set_cid( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
+int mbedtls_ssl_get_own_cid( mbedtls_ssl_context *ssl,
+                              int *enabled,
+                              unsigned char own_cid[MBEDTLS_SSL_CID_OUT_LEN_MAX],
+                              size_t *own_cid_len )
+{
+    *enabled = MBEDTLS_SSL_CID_DISABLED;
+
+    if( ssl->conf->transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    /* We report MBEDTLS_SSL_CID_DISABLED in case the CID length is
+     * zero as this is indistinguishable from not requesting to use
+     * the CID extension. */
+    if( ssl->own_cid_len == 0 || ssl->negotiate_cid == MBEDTLS_SSL_CID_DISABLED )
+        return( 0 );
+
+    if( own_cid_len != NULL )
+    {
+        *own_cid_len = ssl->own_cid_len;
+        if( own_cid != NULL )
+            memcpy( own_cid, ssl->own_cid, ssl->own_cid_len );
+    }
+
+    *enabled = MBEDTLS_SSL_CID_ENABLED;
+
+    return( 0 );
+}
+
 int mbedtls_ssl_get_peer_cid( mbedtls_ssl_context *ssl,
                      int *enabled,
                      unsigned char peer_cid[ MBEDTLS_SSL_CID_OUT_LEN_MAX ],

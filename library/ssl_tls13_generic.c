@@ -1515,6 +1515,7 @@ int mbedtls_ssl_reset_transcript_for_hrr( mbedtls_ssl_context *ssl )
 #define ECDH_VALIDATE_RET( cond )    \
     MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_ECP_BAD_INPUT_DATA )
 
+#if !defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
 static int ecdh_import_public_raw( mbedtls_ecdh_context_mbed *ctx,
                                    const unsigned char *buf,
                                    const unsigned char *end )
@@ -1522,6 +1523,7 @@ static int ecdh_import_public_raw( mbedtls_ecdh_context_mbed *ctx,
     return( mbedtls_ecp_point_read_binary( &ctx->grp, &ctx->Qp,
                                            buf, end - buf ) );
 }
+#endif /* MBEDTLS_ECDH_LEGACY_CONTEXT */
 
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
 static int everest_import_public_raw( mbedtls_x25519_context *ctx,
@@ -1543,24 +1545,26 @@ int mbedtls_ecdh_import_public_raw( mbedtls_ecdh_context *ctx,
     ECDH_VALIDATE_RET( ctx != NULL );
     ECDH_VALIDATE_RET( buf != NULL );
     ECDH_VALIDATE_RET( end != NULL );
-
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
-    return( ecdh_import_public_raw( ctx, buf, end ) );
+    ((void) ctx);
+    ((void) buf);
+    ((void) end);
+    return ( 0 );
 #else
     switch( ctx->var )
     {
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
         case MBEDTLS_ECDH_VARIANT_EVEREST:
-            return( everest_import_public_raw( &ctx->ctx.everest_ecdh,
+            return( everest_import_public_raw( &ctx->ctx.everest_ecdh.ctx,
                                                buf, end) );
-#endif
+#endif /* MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED */
         case MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0:
             return( ecdh_import_public_raw( &ctx->ctx.mbed_ecdh,
                                             buf, end ) );
         default:
             return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
-#endif
+#endif /* MBEDTLS_ECDH_LEGACY_CONTEXT */
 }
 
 #endif /* MBEDTLS_SSL_TLS_C && MBEDTLS_SSL_PROTO_TLS1_3 */

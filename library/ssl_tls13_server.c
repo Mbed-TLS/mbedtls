@@ -147,7 +147,7 @@ static int mbedtls_ssl_tls13_parse_supported_groups_ext(
      *       not observe handshake->curves already being allocated. */
     if( ssl->handshake->curves != NULL )
     {
-        mbedtls_free( ssl->handshake->curves );
+        //mbedtls_free( ssl->handshake->curves );
         ssl->handshake->curves = NULL;
     }
 
@@ -189,7 +189,7 @@ static int mbedtls_ssl_tls13_parse_supported_groups_ext(
 }
 #endif /* MBEDTLS_ECDH_C || ( MBEDTLS_ECDSA_C */
 
-#if ( defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) )
+#if defined(MBEDTLS_ECDH_C)
 /*
  *  ssl_tls13_parse_key_shares_ext() verifies whether the information in the
  *  extension is correct and stores the provided key shares. Whether this is an
@@ -242,7 +242,6 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
     {
         uint16_t their_group;
         mbedtls_ecp_group_id their_curve;
-        mbedtls_ecp_curve_info const *their_curve_info;
         unsigned char const *end_of_share;
 
         /*
@@ -307,8 +306,7 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
          * - Apply further curve checks
          */
 
-        their_curve_info = mbedtls_ecp_curve_info_from_grp_id( their_curve );
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDH curve: %s", their_curve_info->name ) );
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDH curve: %ud", their_curve ) );
 
         ret = mbedtls_ecdh_setup( &ssl->handshake->ecdh_ctx, their_curve );
         if( ret != 0 )
@@ -335,7 +333,7 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
     }
     return( 0 );
 }
-#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_ECDH_C */
 
 #if defined(MBEDTLS_SSL_COOKIE_C)
 static int ssl_tls13_parse_cookie_ext( mbedtls_ssl_context *ssl,
@@ -345,7 +343,6 @@ static int ssl_tls13_parse_cookie_ext( mbedtls_ssl_context *ssl,
     int ret = 0;
     size_t cookie_len;
     unsigned char const *p = buf;
-    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "parse cookie extension" ) );
 
@@ -364,13 +361,11 @@ static int ssl_tls13_parse_cookie_ext( mbedtls_ssl_context *ssl,
                                        ssl->cli_id_len ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "cookie verification failed" ) );
-            handshake->verify_cookie_len = 1;
             ret = MBEDTLS_ERR_SSL_HRR_REQUIRED;
         }
         else
         {
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "cookie verification passed" ) );
-            handshake->verify_cookie_len = 0;
         }
     }
     else
@@ -722,7 +717,7 @@ static int ssl_client_hello_parse( mbedtls_ssl_context *ssl,
                 break;
 #endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C */
 
-#if ( defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) )
+#if defined(MBEDTLS_ECDH_C)
             case MBEDTLS_TLS_EXT_KEY_SHARE:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found key share extension" ) );
 
@@ -745,7 +740,7 @@ static int ssl_client_hello_parse( mbedtls_ssl_context *ssl,
 
                 ssl->handshake->extensions_present |= MBEDTLS_SSL_EXT_KEY_SHARE;
                 break;
-#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_ECDH_C */
 
             case MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found supported versions extension" ) );

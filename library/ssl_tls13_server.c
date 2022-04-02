@@ -92,7 +92,8 @@ static int ssl_tls13_parse_supported_versions_ext( mbedtls_ssl_context *ssl,
     if( tls13_supported == 0 )
     {
         /* When we support runtime negotiation of TLS 1.2 and TLS 1.3, we need
-         * a graceful fallback to TLS 1.2 in this case. */
+         * a graceful fallback to TLS 1.2 in this case.
+         */
 
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "TLS 1.3 is not supported by the client" ) );
 
@@ -140,7 +141,7 @@ static int mbedtls_ssl_tls13_parse_supported_groups_ext(
     if( list_size % 2 != 0 )
         return( MBEDTLS_ERR_SSL_DECODE_ERROR );
 
-    /* TODO: At the moment, this can happen when receiving a second
+    /*       At the moment, this can happen when receiving a second
      *       ClientHello after an HRR. We should properly reset the
      *       state upon receiving an HRR, in which case we should
      *       not observe handshake->curves already being allocated. */
@@ -151,7 +152,8 @@ static int mbedtls_ssl_tls13_parse_supported_groups_ext(
     }
 
     /* Don't allow our peer to make us allocate too much memory,
-     * and leave room for a final 0 */
+     * and leave room for a final 0
+     */
     our_size = list_size / 2 + 1;
     if( our_size > MBEDTLS_ECP_DP_MAX )
         our_size = MBEDTLS_ECP_DP_MAX;
@@ -170,7 +172,8 @@ static int mbedtls_ssl_tls13_parse_supported_groups_ext(
         /* mbedtls_ecp_curve_info_from_tls_id() uses the mbedtls_ecp_curve_info
          * data structure (defined in ecp.c), which only includes the list of
          * curves implemented. Hence, we only add curves that are also supported
-         * and implemented by the server. */
+         * and implemented by the server.
+         */
         if( curve_info != NULL )
         {
             *curves++ = curve_info;
@@ -187,7 +190,6 @@ static int mbedtls_ssl_tls13_parse_supported_groups_ext(
 #endif /* MBEDTLS_ECDH_C || ( MBEDTLS_ECDSA_C */
 
 #if ( defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) )
-/* TODO: Code for MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED missing */
 /*
  *  ssl_tls13_parse_key_shares_ext() verifies whether the information in the
  *  extension is correct and stores the provided key shares. Whether this is an
@@ -233,7 +235,8 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
     /* We try to find a suitable key share entry and copy it to the
      * handshake context. Later, we have to find out whether we can do
      * something with the provided key share or whether we have to
-     * dismiss it and send a HelloRetryRequest message. */
+     * dismiss it and send a HelloRetryRequest message.
+     */
 
     for( ; p < extentions_end; p += cur_share_len )
     {
@@ -259,7 +262,8 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
         end_of_share = p + cur_share_len;
 
         /* Continue parsing even if we have already found a match,
-         * for input validation purposes. */
+         * for input validation purposes.
+         */
         if( match_found == 1 )
             continue;
 
@@ -280,9 +284,6 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
         if( mbedtls_ssl_check_curve( ssl, their_curve ) != 0 )
             continue;
 
-        /* Type 2..X: Other kinds of shares */
-        /* TO BE ADDED */
-
         /* Skip if we no match succeeded. */
         if( their_curve == MBEDTLS_ECP_DP_NONE )
         {
@@ -296,7 +297,8 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
         /* KeyShare parsing
          *
          * Once we add more key share types, this needs to be a switch
-         * over the (type of) the named curve */
+         * over the (type of) the named curve
+         */
 
         /* Type 1: ECDHE shares
          *
@@ -371,8 +373,8 @@ static int ssl_tls13_parse_cookie_ext( mbedtls_ssl_context *ssl,
             handshake->verify_cookie_len = 0;
         }
     }
-    else {
-        /* TBD: Check under what cases this is appropriate */
+    else
+    {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "cookie verification skipped" ) );
     }
 
@@ -415,7 +417,6 @@ static int ssl_client_hello_parse( mbedtls_ssl_context *ssl,
                                    const unsigned char *end );
 
 /* Update the handshake state machine */
-/* TODO: At the moment, this doesn't update the state machine - why? */
 static int ssl_client_hello_postprocess( mbedtls_ssl_context *ssl,
                                          int hrr_required );
 
@@ -542,7 +543,7 @@ static int ssl_client_hello_parse( mbedtls_ssl_context *ssl,
      * ClientHello layer:
      *     0  .   1   protocol version
      *     2  .  33   random bytes ( starting with 4 bytes of Unix time )
-     *    34  .  35   session id length ( 1 byte )
+     *    34  .  34   session id length ( 1 byte )
      *    35  . 34+x  session id
      *   35+x . 35+x  DTLS only: cookie length ( 1 byte )
      *   36+x .  ..   DTLS only: cookie
@@ -554,7 +555,7 @@ static int ssl_client_hello_parse( mbedtls_ssl_context *ssl,
      *    ..  .  ..   extensions ( optional )
      */
 
-    /* TBD: Needs to be updated due to mandatory extensions
+    /* Needs to be updated due to mandatory extensions
      * Minimal length ( with everything empty and extensions ommitted ) is
      * 2 + 32 + 1 + 2 + 1 = 38 bytes. Check that first, so that we can
      * read at least up to session id length without worrying.
@@ -584,13 +585,14 @@ static int ssl_client_hello_parse( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, random bytes", p, 32 );
 
     memcpy( &ssl->handshake->randbytes[0], p, 32 );
-    p += 32; /* skip random bytes */
+    /* skip random bytes */
+    p += 32;
 
     /*
      * Parse session ID
      */
     sess_len = p[0];
-    p++; /* skip session id length */
+    p++;
 
     if( sess_len > 32 )
     {

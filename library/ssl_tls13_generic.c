@@ -1525,7 +1525,8 @@ static int ecdh_import_public_raw( mbedtls_ecdh_context_mbed *ctx,
 
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
 static int everest_import_public_raw( mbedtls_x25519_context *ctx,
-                        const unsigned char *buf, const unsigned char *end )
+                                      const unsigned char *buf,
+                                      const unsigned char *end )
 {
     if( end - buf != MBEDTLS_X25519_KEY_SIZE_BYTES )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );

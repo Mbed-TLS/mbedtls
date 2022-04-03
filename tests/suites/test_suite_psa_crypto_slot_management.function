@@ -345,7 +345,7 @@ void slot_persistent_reading( )
     psa_key_lifetime_t lifetime = PSA_KEY_LIFETIME_PERSISTENT;
     mbedtls_svc_key_id_t key_id = mbedtls_svc_key_id_make( 124, PSA_KEY_ID_USER_MIN );;
     psa_key_slot_t *slot = NULL;
-    const uint8_t key_data[32];
+    const uint8_t key_data[32] = {0};
 
     // key lifetime, usage flags, algorithm are irrelevant for this test
     psa_key_type_t key_type = PSA_KEY_TYPE_AES;

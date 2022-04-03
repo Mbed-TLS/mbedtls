@@ -680,7 +680,7 @@ psa_status_t psa_purge_key( mbedtls_svc_key_id_t key )
     psa_status_t status;
     psa_key_slot_t *slot;
 
-    if( psa_key_id_is_volatile( key ) )
+    if( psa_key_id_is_volatile( MBEDTLS_SVC_KEY_ID_GET_KEY_ID( key ) ) )
         return( PSA_SUCCESS );
 
     MBEDTLS_MUTEX_LOCK_CHECK( &mbedtls_psa_slots_mutex );

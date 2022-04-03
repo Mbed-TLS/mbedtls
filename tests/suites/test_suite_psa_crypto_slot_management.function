@@ -152,7 +152,8 @@ void slot_state_transitions( )
     PSA_INIT( );
     psa_key_slot_t *slot = NULL;
     size_t slot_idx;
-    mbedtls_svc_key_id_t key_id = 0xfedcba98; // use an invalid initial ID
+    /* Use an invalid initial ID */
+    mbedtls_svc_key_id_t key_id = mbedtls_svc_key_id_make( 1, 0xfedcba98 );
 
     /* Test that all of the slots are empty */
     for( slot_idx = 0; slot_idx < MBEDTLS_PSA_KEY_SLOT_COUNT; slot_idx++ )
@@ -163,7 +164,8 @@ void slot_state_transitions( )
     /* Please note that normally, some of these calls should be protected
      * by locking the mbedtls_psa_slots_mutex, but we are performing this
      * test in a single thread, so this can be omitted. */
-    PSA_ASSERT( psa_get_empty_key_slot( &key_id, &slot ) );
+    PSA_ASSERT( psa_get_empty_key_slot( &MBEDTLS_SVC_KEY_ID_GET_KEY_ID( key_id ),
+                                        &slot ) );
 
     /* Test possible state transitions from PSA_STATE_EMPTY */
     TEST_EQUAL( psa_slot_change_state( slot, PSA_STATE_EMPTY ),
@@ -273,7 +275,8 @@ void slot_volatile_reading( )
 {
     PSA_INIT( );
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    mbedtls_svc_key_id_t key_id = 0xfedcba98; // use an invalid ID
+    /* Use an invalid initial ID */
+    mbedtls_svc_key_id_t key_id = mbedtls_svc_key_id_make( 1, 0xfedcba98 );
     psa_key_slot_t *slot = NULL;
 
     // key lifetime, usage flags, algorithm are irrelevant for this test
@@ -423,7 +426,8 @@ void slot_locking_bad_states( )
 {
     PSA_INIT( );
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    mbedtls_svc_key_id_t key_id = 0xfedcba98; // use an invalid ID
+    /* Use an invalid initial ID */
+    mbedtls_svc_key_id_t key_id = mbedtls_svc_key_id_make( 1, 0xfedcba98 );
     psa_key_slot_t *slot = NULL;
 
     // key lifetime, usage flags, algorithm are irrelevant for this test

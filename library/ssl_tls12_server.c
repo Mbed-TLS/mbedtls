@@ -2883,18 +2883,21 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
         ssl->handshake->ecdh_psa_privkey =
                 *( (mbedtls_svc_key_id_t*) pk->pk_ctx );
 
+        /* Key should not be destroyed in the TLS library */
+        ssl->handshake->ecdh_psa_privkey_is_external = 1;
+
         status = psa_get_key_attributes( ssl->handshake->ecdh_psa_privkey,
                                          &key_attributes );
         if( status != PSA_SUCCESS)
+        {
+            ssl->handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
             return( psa_ssl_status_to_mbedtls( status ) );
+        }
 
         ssl->handshake->ecdh_psa_type = psa_get_key_type( &key_attributes );
         ssl->handshake->ecdh_bits = psa_get_key_bits( &key_attributes );
 
         psa_reset_key_attributes( &key_attributes );
-
-        /* Key should not be destroyed in the TLS library */
-        ssl->handshake->ecdh_psa_privkey_is_external = 1;
 
         ret = 0;
         break;

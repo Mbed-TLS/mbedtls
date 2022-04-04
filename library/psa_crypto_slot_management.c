@@ -432,7 +432,9 @@ psa_status_t psa_get_and_lock_key_slot( mbedtls_svc_key_id_t key,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    if( intent == PSA_STATE_EMPTY )
+    if( intent != PSA_STATE_DESTROYING &&
+        intent != PSA_STATE_READING &&
+        intent != PSA_STATE_UNUSED )
         return( PSA_ERROR_NOT_SUPPORTED );
     MBEDTLS_MUTEX_LOCK_CHECK( &mbedtls_psa_slots_mutex );
 

@@ -262,12 +262,6 @@ static int ssl_tls13_generate_and_write_ecdh_key_exchange(
 
     }
 
-    if( own_pubkey_len > (size_t)( end - buf ) )
-    {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "No space in the buffer for ECDH public key." ) );
-        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
-    }
-
     *out_len = own_pubkey_len;
 
     return( 0 );

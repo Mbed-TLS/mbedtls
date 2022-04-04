@@ -5307,11 +5307,25 @@ static psa_status_t psa_tls12_prf_psk_to_ms_set_key(
     if( data_length > PSA_TLS12_PSK_TO_MS_PSK_MAX_SIZE )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    /* Quoting RFC 4279, Section 2:
+    /* pure-PSK:
+     * Quoting RFC 4279, Section 2:
      *
      * The premaster secret is formed as follows: if the PSK is N octets
      * long, concatenate a uint16 with the value N, N zero octets, a second
      * uint16 with the value N, and the PSK itself.
+     *
+     * mixed-PSK:
+     * In a DHE-PSK, RSA-PSK, ECDHE-PSK the premaster secret is formed as
+     * follows: concatenate a uint16 with the length of the output of RSA
+     * key wrapping or of (EC)DHE key agreement, the output itself,
+     * uint16 with the length of PSK, and the PSK itself.
+     * For details please check:
+     * - RFC 4279, Section 4 for the definition of RSA-PSK,
+     * - RFC 4279, Section 3 for the definition of DHE-PSK,
+     * - RFC 5489 for the definition of ECDHE-PSK.
+     *
+     * Salt holds the output of RSA key wrapping or
+     * of (EC)DHE key agreement.
      */
 
     if ( prf->state == PSA_TLS12_PRF_STATE_SALT_SET )

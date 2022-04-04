@@ -1814,10 +1814,21 @@
  * The latter is based on HMAC and can be used with either SHA-256
  * or SHA-384.
  *
+ * In a mixed-PSK handshake (RSA-PSK, DHE-PSK, ECDHE-PSK) in TLS 1.2,
+ * the PSK is concatenated with the output of RSA key wrapping or
+ * of (EC)DHE key agreement to form the pre-master secret (PMS)
+ * from which the MS is derived. For details please check:
+ * - RFC 4279, Section 4 for the definition of RSA-PSK,
+ * - RFC 4279, Section 3 for the definition of DHE-PSK,
+ * - RFC 5489 for the definition of ECDHE-PSK.
+ *
  * This key derivation algorithm uses the following inputs, which must be
  * passed in the order given here:
  * - #PSA_KEY_DERIVATION_INPUT_SEED is the seed.
- * - #PSA_KEY_DERIVATION_INPUT_SECRET is the secret key.
+ * - #PSA_KEY_DERIVATION_INPUT_SALT is the the output of RSA
+ *   key wrapping or of (EC)DHE key agreement.
+ *   This input is optional and required for mixed-PSK handshake.
+ * - #PSA_KEY_DERIVATION_INPUT_SECRET is the secret key (PSK).
  * - #PSA_KEY_DERIVATION_INPUT_LABEL is the label.
  *
  * For the application to TLS-1.2, the seed (which is

@@ -243,9 +243,13 @@ void slot_state_transitions( )
                     PSA_ERROR_BAD_STATE );
 
     PSA_ASSERT( psa_slot_change_state( slot, PSA_STATE_EMPTY ) );
-    PSA_ASSERT( psa_slot_change_state( slot, PSA_STATE_WIPING ) );
+
+    PSA_ASSERT( cycle_slot_to_state( slot, PSA_STATE_DESTROYING ) );
+    TEST_EQUAL( psa_slot_change_state( slot, PSA_STATE_WIPING ),
+                    PSA_ERROR_BAD_STATE );
 
     /* Test possible state transitions from PSA_STATE_WIPING */
+    PSA_ASSERT( cycle_slot_to_state( slot, PSA_STATE_WIPING ) );
     TEST_EQUAL( psa_slot_change_state( slot, PSA_STATE_WIPING ),
                     PSA_ERROR_BAD_STATE );
     TEST_EQUAL( psa_slot_change_state( slot, PSA_STATE_CREATING ),
@@ -296,12 +300,21 @@ void slot_volatile_reading( )
     TEST_EQUAL( slot->reader_count, 1 );
     TEST_EQUAL( slot->state, PSA_STATE_DESTROYING );
 
+    /* Test that reading is now impossible */
+    TEST_EQUAL( psa_get_and_lock_key_slot( key_id, &slot, PSA_STATE_READING ),
+                    PSA_ERROR_BAD_STATE );
+    /* Second destruction should error out */
+    TEST_EQUAL( psa_destroy_key( key_id ), PSA_ERROR_BAD_STATE );
+
+    /* Test that closing at this stage is impossible */
+    TEST_EQUAL( psa_close_key( key_id ), PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( slot->state, PSA_STATE_DESTROYING );
+
     PSA_ASSERT( psa_unlock_key_slot(slot) );
     TEST_EQUAL( slot->state, PSA_STATE_EMPTY );
     TEST_EQUAL( slot->reader_count, 0 );
 
     /* Purging while reading - does nothing */
-
     PSA_ASSERT( psa_generate_key( &attributes, &key_id ) );
     TEST_EQUAL( slot->state, PSA_STATE_UNUSED );
     TEST_EQUAL( slot->reader_count, 0 );
@@ -312,12 +325,11 @@ void slot_volatile_reading( )
 
     TEST_EQUAL( psa_purge_key( key_id ), PSA_SUCCESS );
     TEST_EQUAL( slot->state, PSA_STATE_READING );
-    TEST_EQUAL( slot->reader_count,  1 );
+    TEST_EQUAL( slot->reader_count, 1 );
 
     PSA_ASSERT( psa_unlock_key_slot(slot) );
     TEST_EQUAL( slot->state, PSA_STATE_UNUSED );
     TEST_EQUAL( slot->reader_count, 0 );
-
 
     /* Closing while reading */
     PSA_ASSERT( psa_get_and_lock_key_slot( key_id, &slot, PSA_STATE_READING ) );
@@ -327,6 +339,39 @@ void slot_volatile_reading( )
     TEST_EQUAL( psa_close_key( key_id ), PSA_ERROR_DELAYED );
     TEST_EQUAL( slot->reader_count, 1 );
     TEST_EQUAL( slot->state, PSA_STATE_WIPING );
+
+    /* Test that reading is now impossible */
+    TEST_EQUAL( psa_get_and_lock_key_slot( key_id, &slot, PSA_STATE_READING ),
+                    PSA_ERROR_BAD_STATE );
+
+    /* Second call to close should error out */
+    TEST_EQUAL( psa_close_key( key_id ), PSA_ERROR_BAD_STATE );
+
+    /* Upgrading to destruction is possible */
+    TEST_EQUAL( psa_destroy_key( key_id ), PSA_ERROR_DELAYED );
+    TEST_EQUAL( slot->reader_count, 1 );
+    TEST_EQUAL( slot->state, PSA_STATE_DESTROYING );
+
+    PSA_ASSERT( psa_unlock_key_slot(slot) );
+    TEST_EQUAL( slot->state, PSA_STATE_EMPTY );
+    TEST_EQUAL( slot->reader_count, 0 );
+
+    /* Closing->destroying while reading */
+    PSA_ASSERT( psa_generate_key( &attributes, &key_id ) );
+    TEST_EQUAL( slot->state, PSA_STATE_UNUSED );
+    TEST_EQUAL( slot->reader_count, 0 );
+
+    PSA_ASSERT( psa_get_and_lock_key_slot( key_id, &slot, PSA_STATE_READING ) );
+    TEST_EQUAL( slot->state, PSA_STATE_READING );
+    TEST_EQUAL( slot->reader_count, 1 );
+
+    TEST_EQUAL( psa_close_key( key_id ), PSA_ERROR_DELAYED );
+    TEST_EQUAL( slot->reader_count, 1 );
+    TEST_EQUAL( slot->state, PSA_STATE_WIPING );
+
+    TEST_EQUAL( psa_destroy_key( key_id ), PSA_ERROR_DELAYED );
+    TEST_EQUAL( slot->reader_count, 1 );
+    TEST_EQUAL( slot->state, PSA_STATE_DESTROYING );
 
     PSA_ASSERT( psa_unlock_key_slot(slot) );
     TEST_EQUAL( slot->state, PSA_STATE_EMPTY );
@@ -372,17 +417,35 @@ void slot_persistent_reading( )
     TEST_EQUAL( slot->reader_count, 1 );
     TEST_EQUAL( slot->state, PSA_STATE_WIPING );
 
+    /* Test that reading is now impossible */
+    TEST_EQUAL( psa_get_and_lock_key_slot( key_id, &slot, PSA_STATE_READING ),
+                    PSA_ERROR_BAD_STATE );
+
+    /* Second purge should error out */
+    TEST_EQUAL( psa_purge_key( key_id ), PSA_ERROR_BAD_STATE );
+
+    /* Test that closing at this stage is impossible */
+    TEST_EQUAL( psa_close_key( key_id ), PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( slot->state, PSA_STATE_WIPING );
+
     PSA_ASSERT( psa_unlock_key_slot(slot) );
     TEST_EQUAL( slot->state, PSA_STATE_EMPTY );
     TEST_EQUAL( slot->reader_count, 0 );
 
-    /* Open a purged slot, test closing while reading */
+    /* Lock a purged slot, test closing while reading */
     PSA_ASSERT( psa_get_and_lock_key_slot( key_id, &slot, PSA_STATE_READING ) );
     TEST_EQUAL( slot->state, PSA_STATE_READING );
     TEST_EQUAL( slot->reader_count, 1 );
 
     TEST_EQUAL( psa_close_key( key_id ), PSA_ERROR_DELAYED );
     TEST_EQUAL( slot->reader_count, 1 );
+    TEST_EQUAL( slot->state, PSA_STATE_WIPING );
+
+    /* Second closing should error out */
+    TEST_EQUAL( psa_close_key( key_id ), PSA_ERROR_BAD_STATE );
+
+    /* Test that purging at this stage is impossible */
+    TEST_EQUAL( psa_purge_key( key_id ), PSA_ERROR_BAD_STATE );
     TEST_EQUAL( slot->state, PSA_STATE_WIPING );
 
     PSA_ASSERT( psa_unlock_key_slot(slot) );
@@ -393,6 +456,63 @@ void slot_persistent_reading( )
     PSA_ASSERT( psa_get_and_lock_key_slot( key_id, &slot, PSA_STATE_READING ) );
     TEST_EQUAL( slot->state, PSA_STATE_READING );
     TEST_EQUAL( slot->reader_count, 1 );
+
+    TEST_EQUAL( psa_destroy_key( key_id ), PSA_ERROR_DELAYED );
+    TEST_EQUAL( slot->reader_count, 1 );
+    TEST_EQUAL( slot->state, PSA_STATE_DESTROYING );
+
+    /* Test that reading is now impossible */
+    TEST_EQUAL( psa_get_and_lock_key_slot( key_id, &slot, PSA_STATE_READING ),
+                    PSA_ERROR_BAD_STATE );
+
+    /* Second destruction should error out */
+    TEST_EQUAL( psa_destroy_key( key_id ), PSA_ERROR_BAD_STATE );
+
+    /* Test that closing at this stage is impossible */
+    TEST_EQUAL( psa_close_key( key_id ), PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( slot->state, PSA_STATE_DESTROYING );
+
+    /* Test that purging at this stage is impossible */
+    TEST_EQUAL( psa_purge_key( key_id ), PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( slot->state, PSA_STATE_DESTROYING );
+
+    PSA_ASSERT( psa_unlock_key_slot(slot) );
+    TEST_EQUAL( slot->state, PSA_STATE_EMPTY );
+    TEST_EQUAL( slot->reader_count, 0 );
+
+    /* Closing->destroying while reading */
+    PSA_ASSERT( psa_generate_key( &attributes, &key_id ) );
+    TEST_EQUAL( slot->state, PSA_STATE_UNUSED );
+    TEST_EQUAL( slot->reader_count, 0 );
+
+    PSA_ASSERT( psa_get_and_lock_key_slot( key_id, &slot, PSA_STATE_READING ) );
+    TEST_EQUAL( slot->state, PSA_STATE_READING );
+    TEST_EQUAL( slot->reader_count, 1 );
+
+    TEST_EQUAL( psa_close_key( key_id ), PSA_ERROR_DELAYED );
+    TEST_EQUAL( slot->reader_count, 1 );
+    TEST_EQUAL( slot->state, PSA_STATE_WIPING );
+
+    TEST_EQUAL( psa_destroy_key( key_id ), PSA_ERROR_DELAYED );
+    TEST_EQUAL( slot->reader_count, 1 );
+    TEST_EQUAL( slot->state, PSA_STATE_DESTROYING );
+
+    PSA_ASSERT( psa_unlock_key_slot(slot) );
+    TEST_EQUAL( slot->state, PSA_STATE_EMPTY );
+    TEST_EQUAL( slot->reader_count, 0 );
+
+    /* Purging->destroying while reading */
+    PSA_ASSERT( psa_generate_key( &attributes, &key_id ) );
+    TEST_EQUAL( slot->state, PSA_STATE_UNUSED );
+    TEST_EQUAL( slot->reader_count, 0 );
+
+    PSA_ASSERT( psa_get_and_lock_key_slot( key_id, &slot, PSA_STATE_READING ) );
+    TEST_EQUAL( slot->state, PSA_STATE_READING );
+    TEST_EQUAL( slot->reader_count, 1 );
+
+    TEST_EQUAL( psa_purge_key( key_id ), PSA_ERROR_DELAYED );
+    TEST_EQUAL( slot->reader_count, 1 );
+    TEST_EQUAL( slot->state, PSA_STATE_WIPING );
 
     TEST_EQUAL( psa_destroy_key( key_id ), PSA_ERROR_DELAYED );
     TEST_EQUAL( slot->reader_count, 1 );

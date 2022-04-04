@@ -3130,10 +3130,6 @@ ecdh_calc_secret:
         MBEDTLS_PUT_UINT16_BE( zlen, pms, 0 );
         pms += zlen_size + zlen;
 
-        /* opaque psk<0..2^16-1>; */
-        if( pms_end - pms < 2 )
-            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-
         const unsigned char *psk = NULL;
         size_t psk_len = 0;
 
@@ -3145,12 +3141,13 @@ ecdh_calc_secret:
              */
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 
+        /* opaque psk<0..2^16-1>; */
+        if( (size_t)( pms_end - pms ) < ( 2 + psk_len ) )
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
         /* Write the PSK length as uint16 */
         MBEDTLS_PUT_UINT16_BE( psk_len, pms, 0 );
         pms += 2;
-
-        if( pms_end < pms || (size_t)( pms_end - pms ) < psk_len )
-            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
         /* Write the PSK itself */
         memcpy( pms, psk, psk_len );

@@ -3029,9 +3029,8 @@ ecdh_calc_secret:
         const size_t content_len_size = 2;
 
         header_len = 4;
-        content_len = ssl->conf->psk_identity_len;
 
-        if( header_len + content_len_size + content_len
+        if( header_len + content_len_size + ssl->conf->psk_identity_len
                     > MBEDTLS_SSL_OUT_CONTENT_LEN )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1,
@@ -3039,12 +3038,16 @@ ecdh_calc_secret:
             return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
         }
 
-        ssl->out_msg[header_len++] = MBEDTLS_BYTE_1( content_len );
-        ssl->out_msg[header_len++] = MBEDTLS_BYTE_0( content_len );
+        unsigned char *p = ssl->out_msg + header_len;
 
-        memcpy( ssl->out_msg + header_len,
-                ssl->conf->psk_identity,
+        *p++ = MBEDTLS_BYTE_1( ssl->conf->psk_identity_len );
+        *p++ = MBEDTLS_BYTE_0( ssl->conf->psk_identity_len );
+        header_len += content_len_size;
+
+        memcpy( p, ssl->conf->psk_identity,
                 ssl->conf->psk_identity_len );
+        p += ssl->conf->psk_identity_len;
+
         header_len += ssl->conf->psk_identity_len;
 
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Perform PSA-based ECDH computation." ) );
@@ -3075,7 +3078,7 @@ ecdh_calc_secret:
         /* Export the public part of the ECDH private key from PSA.
          * The export format is an ECPoint structure as expected by TLS,
          * but we just need to add a length byte before that. */
-        unsigned char *own_pubkey = ssl->out_msg + header_len + 1;
+        unsigned char *own_pubkey = p + 1;
         unsigned char *end = ssl->out_msg + MBEDTLS_SSL_OUT_CONTENT_LEN;
         size_t own_pubkey_max_len = (size_t)( end - own_pubkey );
         size_t own_pubkey_len = 0;
@@ -3090,7 +3093,7 @@ ecdh_calc_secret:
             return( psa_ssl_status_to_mbedtls( status ) );
         }
 
-        ssl->out_msg[header_len] = (unsigned char) own_pubkey_len;
+        *p = (unsigned char) own_pubkey_len;
         content_len = own_pubkey_len + 1;
 
         /* As RFC 5489 section 2, the premaster secret is formed as follows:
@@ -3099,8 +3102,8 @@ ecdh_calc_secret:
          * - a uint16 containing the length (in octets) of the PSK
          * - the PSK itself
          */
-        unsigned char *p = ssl->handshake->premaster;
-        const unsigned char* const p_end = p +
+        unsigned char *pms = ssl->handshake->premaster;
+        const unsigned char* const pms_end = pms +
                                 sizeof( ssl->handshake->premaster );
         /* uint16 to store length (in octets) of the ECDH computation */
         const size_t zlen_size = 2;
@@ -3111,8 +3114,8 @@ ecdh_calc_secret:
                                         handshake->ecdh_psa_privkey,
                                         handshake->ecdh_psa_peerkey,
                                         handshake->ecdh_psa_peerkey_len,
-                                        p + zlen_size,
-                                        p_end - ( p + zlen_size ),
+                                        pms + zlen_size,
+                                        pms_end - ( pms + zlen_size ),
                                         &zlen );
 
         destruction_status = psa_destroy_key( handshake->ecdh_psa_privkey );
@@ -3124,11 +3127,11 @@ ecdh_calc_secret:
             return( psa_ssl_status_to_mbedtls( destruction_status ) );
 
         /* Write the ECDH computation length before the ECDH computation */
-        MBEDTLS_PUT_UINT16_BE( zlen, p, 0 );
-        p += zlen_size + zlen;
+        MBEDTLS_PUT_UINT16_BE( zlen, pms, 0 );
+        pms += zlen_size + zlen;
 
         /* opaque psk<0..2^16-1>; */
-        if( p_end - p < 2 )
+        if( pms_end - pms < 2 )
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
         const unsigned char *psk = NULL;
@@ -3143,17 +3146,17 @@ ecdh_calc_secret:
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 
         /* Write the PSK length as uint16 */
-        MBEDTLS_PUT_UINT16_BE( psk_len, p, 0 );
-        p += 2;
+        MBEDTLS_PUT_UINT16_BE( psk_len, pms, 0 );
+        pms += 2;
 
-        if( p_end < p || (size_t)( p_end - p ) < psk_len )
+        if( pms_end < pms || (size_t)( pms_end - pms ) < psk_len )
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
         /* Write the PSK itself */
-        memcpy( p, psk, psk_len );
-        p += psk_len;
+        memcpy( pms, psk, psk_len );
+        pms += psk_len;
 
-        ssl->handshake->pmslen = p - ssl->handshake->premaster;
+        ssl->handshake->pmslen = pms - ssl->handshake->premaster;
     }
     else
 #endif /* MBEDTLS_USE_PSA_CRYPTO &&

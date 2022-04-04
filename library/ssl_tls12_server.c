@@ -2894,7 +2894,7 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
         psa_reset_key_attributes( &key_attributes );
 
         /* Key should not be destroyed in the TLS library */
-        ssl->handshake->ecdh_psa_shared_key = 1;
+        ssl->handshake->ecdh_psa_privkey_is_external = 1;
 
         ret = 0;
         break;
@@ -3974,13 +3974,13 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
         {
             ret = psa_ssl_status_to_mbedtls( status );
             MBEDTLS_SSL_DEBUG_RET( 1, "psa_raw_key_agreement", ret );
-            if( handshake->ecdh_psa_shared_key == 0 )
+            if( handshake->ecdh_psa_privkey_is_external == 0 )
                 (void) psa_destroy_key( handshake->ecdh_psa_privkey );
             handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
             return( ret );
         }
 
-        if( handshake->ecdh_psa_shared_key == 0 )
+        if( handshake->ecdh_psa_privkey_is_external == 0 )
         {
             status = psa_destroy_key( handshake->ecdh_psa_privkey );
 

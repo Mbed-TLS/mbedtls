@@ -3146,7 +3146,7 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_ECDH_C) && \
     ( defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3) )
-    if( handshake->ecdh_psa_shared_key == 0 )
+    if( handshake->ecdh_psa_privkey_is_external == 0 )
         psa_destroy_key( handshake->ecdh_psa_privkey );
 #endif /* MBEDTLS_ECDH_C && MBEDTLS_USE_PSA_CRYPTO */
 

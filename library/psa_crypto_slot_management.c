@@ -102,8 +102,7 @@ psa_status_t psa_slot_change_state( psa_key_slot_t *slot,
                 return( PSA_ERROR_BAD_STATE );
             break;
         case PSA_STATE_DESTROYING:
-            if( target_state != PSA_STATE_EMPTY &&
-                target_state != PSA_STATE_WIPING )
+            if( target_state != PSA_STATE_EMPTY )
                 return( PSA_ERROR_BAD_STATE );
             break;
         case PSA_STATE_WIPING :

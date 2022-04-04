@@ -1715,7 +1715,7 @@ void mbedtls_ssl_conf_psk_cb( mbedtls_ssl_config *conf,
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
-static inline mbedtls_ssl_mode_t mbedtls_get_mode(
+static inline mbedtls_ssl_mode_t mbedtls_ssl_get_mode(
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
         int encrypt_then_mac,
 #endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */
@@ -1771,7 +1771,7 @@ mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_transform(
                     const mbedtls_ssl_transform *transform )
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    return mbedtls_get_mode(
+    return mbedtls_ssl_get_mode(
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
             transform->encrypt_then_mac,
 #endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */
@@ -1780,7 +1780,7 @@ mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_transform(
     mbedtls_cipher_mode_t mode =
         mbedtls_cipher_get_cipher_mode( &transform->cipher_ctx_enc );
 
-    return mbedtls_get_mode(
+    return mbedtls_ssl_get_mode(
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
             transform->encrypt_then_mac,
 #endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */
@@ -1802,7 +1802,7 @@ mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
 
     status = mbedtls_ssl_cipher_to_psa( suite->cipher, 0, &alg, &type, &size );
     if( status == PSA_SUCCESS )
-        return mbedtls_get_mode(
+        return mbedtls_ssl_get_mode(
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
             encrypt_then_mac,
 #endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */
@@ -1812,7 +1812,7 @@ mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
             mbedtls_cipher_info_from_type( suite->cipher );
 
     if( cipher != NULL )
-        return mbedtls_get_mode(
+        return mbedtls_ssl_get_mode(
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
             encrypt_then_mac,
 #endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */

@@ -1128,8 +1128,8 @@ struct mbedtls_ssl_session
 
     unsigned char MBEDTLS_PRIVATE(exported);
 
-    /*!< TLS version negotiated in the session. Used if and when renegotiating
-     *   or resuming a session instead of the configured minor TLS version.
+    /** TLS version negotiated in the session. Used if and when renegotiating
+     *  or resuming a session instead of the configured minor TLS version.
      */
     mbedtls_ssl_protocol_version MBEDTLS_PRIVATE(tls_version);
 
@@ -1514,19 +1514,19 @@ struct mbedtls_ssl_context
                                   renego_max_records is < 0           */
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
-    /*!< Server: Negotiated TLS protocol version.
-     *   Client: Maximum TLS version to be negotiated, then negotiated TLS
-     *           version.
+    /** Server: Negotiated TLS protocol version.
+     *  Client: Maximum TLS version to be negotiated, then negotiated TLS
+     *          version.
      *
-     *   It is initialized as the maximum TLS version to be negotiated in the
-     *   ClientHello writing preparation stage and used throughout the
-     *   ClientHello writing. For a fresh handshake not linked to any previous
-     *   handshake, it is initialized to the configured maximum TLS version
-     *   to be negotiated. When renegotiating or resuming a session, it is
-     *   initialized to the previously negotiated TLS version.
+     *  It is initialized as the maximum TLS version to be negotiated in the
+     *  ClientHello writing preparation stage and used throughout the
+     *  ClientHello writing. For a fresh handshake not linked to any previous
+     *  handshake, it is initialized to the configured maximum TLS version
+     *  to be negotiated. When renegotiating or resuming a session, it is
+     *  initialized to the previously negotiated TLS version.
      *
-     *   Updated to the negotiated TLS version as soon as the ServerHello is
-     *   received.
+     *  Updated to the negotiated TLS version as soon as the ServerHello is
+     *  received.
      */
     mbedtls_ssl_protocol_version MBEDTLS_PRIVATE(tls_version);
 

@@ -274,6 +274,21 @@ def baremetal_adapter(name, active, section):
         return True
     return include_in_full(name) and keep_in_baremetal(name)
 
+# This set contains options that are mostly for debugging or test purposes,
+# and therefore should be excluded when doing code size measurements.
+# Options that are their own module (such as MBEDTLS_ERROR_C) are not listed
+# and therefore will be included when doing code size measurements.
+EXCLUDE_FOR_SIZE = frozenset([
+    'MBEDTLS_DEBUG_C', # large code size increase in TLS
+    'MBEDTLS_SELF_TEST', # increases the size of many modules
+    'MBEDTLS_TEST_HOOKS', # only useful with the hosted test framework, increases code size
+])
+
+def baremetal_size_adapter(name, active, section):
+    if name in EXCLUDE_FOR_SIZE:
+        return False
+    return baremetal_adapter(name, active, section)
+
 def include_in_crypto(name):
     """Rules for symbols in a crypto configuration."""
     if name.startswith('MBEDTLS_X509_') or \
@@ -486,6 +501,9 @@ if __name__ == '__main__':
         add_adapter('baremetal', baremetal_adapter,
                     """Like full, but exclude features that require platform
                     features such as file input-output.""")
+        add_adapter('baremetal_size', baremetal_size_adapter,
+                    """Like baremetal, but exclude debugging features.
+                    Useful for code size measurements.""")
         add_adapter('full', full_adapter,
                     """Uncomment most features.
                     Exclude alternative implementations and platform support

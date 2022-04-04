@@ -164,9 +164,72 @@ static size_t rsa_get_bitlen( const void *ctx )
     return( 8 * mbedtls_rsa_get_len( rsa ) );
 }
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
 static int rsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
                    const unsigned char *hash, size_t hash_len,
                    const unsigned char *sig, size_t sig_len )
+{
+    mbedtls_rsa_context * rsa = (mbedtls_rsa_context *) ctx;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_status_t status;
+    mbedtls_pk_context key;
+    int key_len;
+    unsigned char buf[MBEDTLS_PK_RSA_PUB_DER_MAX_BYTES];
+    psa_algorithm_t psa_alg_md =
+        PSA_ALG_RSA_PKCS1V15_SIGN( mbedtls_psa_translate_md( md_alg ) );
+    size_t rsa_len = mbedtls_rsa_get_len( rsa );
+
+#if SIZE_MAX > UINT_MAX
+    if( md_alg == MBEDTLS_MD_NONE && UINT_MAX < hash_len )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+#endif /* SIZE_MAX > UINT_MAX */
+
+    if( sig_len < rsa_len )
+        return( MBEDTLS_ERR_RSA_VERIFY_FAILED );
+
+    /* mbedtls_pk_write_pubkey_der() expects a full PK context;
+     * re-construct one to make it happy */
+    key.pk_info = &mbedtls_rsa_info;
+    key.pk_ctx = ctx;
+    key_len = mbedtls_pk_write_pubkey_der( &key, buf, sizeof( buf ) );
+    if( key_len <= 0 )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_VERIFY_HASH );
+    psa_set_key_algorithm( &attributes, psa_alg_md );
+    psa_set_key_type( &attributes, PSA_KEY_TYPE_RSA_PUBLIC_KEY );
+
+    status = psa_import_key( &attributes,
+                             buf + sizeof( buf ) - key_len, key_len,
+                             &key_id );
+    if( status != PSA_SUCCESS )
+    {
+        ret = mbedtls_pk_error_from_psa( status );
+        goto cleanup;
+    }
+
+    status = psa_verify_hash( key_id, psa_alg_md, hash, hash_len,
+                              sig, sig_len );
+    if( status != PSA_SUCCESS )
+    {
+        ret = mbedtls_pk_error_from_psa_rsa( status );
+        goto cleanup;
+    }
+    ret = 0;
+
+cleanup:
+    status = psa_destroy_key( key_id );
+    if( ret == 0 && status != PSA_SUCCESS )
+        ret = mbedtls_pk_error_from_psa( status );
+
+    return( ret );
+}
+#else
+static int rsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
+        const unsigned char *hash, size_t hash_len,
+        const unsigned char *sig, size_t sig_len )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_rsa_context * rsa = (mbedtls_rsa_context *) ctx;
@@ -195,6 +258,7 @@ static int rsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
 
     return( 0 );
 }
+#endif
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 int  mbedtls_pk_psa_rsa_sign_ext( psa_algorithm_t alg,

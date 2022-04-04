@@ -56,6 +56,14 @@ typedef enum
     PSA_STATE_DESTROYING /* Persistent and volatile key material destruction in progress. */
 } psa_key_slot_state_t;
 
+/** Intention behind locking a key slot */
+typedef enum
+{
+    PSA_INTENT_READ,
+    PSA_INTENT_DESTROY,
+    PSA_INTENT_OPEN /* Only used by psa_open_key, to be deprecated */
+} psa_slot_locking_intent_t;
+
 /** The data structure representing a key slot, containing key material
  * and metadata for one key.
  */

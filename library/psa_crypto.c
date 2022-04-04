@@ -902,7 +902,7 @@ static psa_status_t psa_get_and_lock_key_slot_with_policy(
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
 
-    status = psa_get_and_lock_key_slot( key, p_slot, PSA_STATE_READING );
+    status = psa_get_and_lock_key_slot( key, p_slot, PSA_INTENT_READ );
     if( status != PSA_SUCCESS )
         return( status );
     slot = *p_slot;
@@ -1136,7 +1136,7 @@ psa_status_t psa_destroy_key( mbedtls_svc_key_id_t key )
      * the key is operated by an SE or not and this information is needed by
      * the current implementation.
      */
-    status = psa_get_and_lock_key_slot( key, &slot, PSA_STATE_DESTROYING );
+    status = psa_get_and_lock_key_slot( key, &slot, PSA_INTENT_DESTROY );
     if( status != PSA_SUCCESS )
         return( status );
 

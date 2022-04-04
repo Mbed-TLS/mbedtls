@@ -428,14 +428,10 @@ exit:
 #endif /* MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS */
 
 psa_status_t psa_get_and_lock_key_slot( mbedtls_svc_key_id_t key,
-                                        psa_key_slot_t **p_slot, psa_key_slot_state_t intent )
+                                        psa_key_slot_t **p_slot,
+                                        psa_slot_locking_intent_t intent )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-
-    if( intent != PSA_STATE_DESTROYING &&
-        intent != PSA_STATE_READING &&
-        intent != PSA_STATE_UNUSED )
-        return( PSA_ERROR_NOT_SUPPORTED );
     MBEDTLS_MUTEX_LOCK_CHECK( &mbedtls_psa_slots_mutex );
 
     *p_slot = NULL;
@@ -451,10 +447,10 @@ psa_status_t psa_get_and_lock_key_slot( mbedtls_svc_key_id_t key,
      */
     if( ( status = psa_get_key_slot( key, p_slot ) ) == PSA_SUCCESS )
     {
-        if( intent == PSA_STATE_READING )
+        if( intent == PSA_INTENT_READ )
             status = psa_slot_add_reader( *p_slot );
-        else
-            status = psa_slot_change_state( *p_slot, intent );
+        else if( intent == PSA_INTENT_DESTROY )
+            status = psa_slot_change_state( *p_slot, PSA_STATE_DESTROYING );
         if( status != PSA_SUCCESS )
         {
             MBEDTLS_MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
@@ -504,10 +500,10 @@ psa_status_t psa_get_and_lock_key_slot( mbedtls_svc_key_id_t key,
     {
         /* Add implicit usage flags. */
         psa_extend_key_usage_flags( &(*p_slot)->attr.policy.usage );
-        if( intent == PSA_STATE_READING )
+        if( intent == PSA_INTENT_READ )
             status = psa_slot_add_reader( *p_slot );
-        else if( intent == PSA_STATE_DESTROYING )
-            status = psa_slot_change_state( *p_slot, intent );
+        else if( intent == PSA_INTENT_DESTROY )
+            status = psa_slot_change_state( *p_slot, PSA_STATE_DESTROYING );
     }
 
     MBEDTLS_MUTEX_UNLOCK_CHECK( &mbedtls_psa_slots_mutex );
@@ -619,7 +615,7 @@ psa_status_t psa_open_key( mbedtls_svc_key_id_t key, psa_key_handle_t *handle )
     psa_status_t status;
     psa_key_slot_t *slot;
 
-    status = psa_get_and_lock_key_slot( key, &slot, PSA_STATE_UNUSED );
+    status = psa_get_and_lock_key_slot( key, &slot, PSA_INTENT_OPEN );
     if( status != PSA_SUCCESS )
     {
         *handle = PSA_KEY_HANDLE_INIT;

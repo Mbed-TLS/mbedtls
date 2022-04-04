@@ -73,7 +73,7 @@ static inline int psa_key_id_is_volatile( psa_key_id_t key_id )
  * \param[out] p_slot   On success, `*p_slot` contains a pointer to the
  *                      key slot containing the description of the key
  *                      identified by \p key.
- *
+ * \param[in] intent    Reason for locking the key.
  * \retval #PSA_SUCCESS
  *         \p *p_slot contains a pointer to the key slot containing the
  *         description of the key identified by \p key.
@@ -94,7 +94,7 @@ static inline int psa_key_id_is_volatile( psa_key_id_t key_id )
  */
 psa_status_t psa_get_and_lock_key_slot( mbedtls_svc_key_id_t key,
                                         psa_key_slot_t **p_slot,
-                                        psa_key_slot_state_t intent );
+                                        psa_slot_locking_intent_t intent );
 
 /** Initialize the key slot structures.
  *

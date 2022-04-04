@@ -1992,7 +1992,7 @@ static void ssl_write_encrypt_then_mac_ext( mbedtls_ssl_context *ssl,
     else
     {
         mbedtls_ssl_mode_t ssl_mode =
-            mbedtls_get_mode_from_ciphersuite(
+            mbedtls_ssl_get_mode_from_ciphersuite(
                 ssl->session_negotiate->encrypt_then_mac,
                 suite );
 

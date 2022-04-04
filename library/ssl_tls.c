@@ -1767,7 +1767,7 @@ static inline mbedtls_ssl_mode_t mbedtls_get_mode(
     return( MBEDTLS_SSL_MODE_STREAM );
 }
 
-mbedtls_ssl_mode_t mbedtls_get_mode_from_transform(
+mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_transform(
                     const mbedtls_ssl_transform *transform )
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -1788,7 +1788,7 @@ mbedtls_ssl_mode_t mbedtls_get_mode_from_transform(
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 }
 
-mbedtls_ssl_mode_t mbedtls_get_mode_from_ciphersuite(
+mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
         int encrypt_then_mac,
 #endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */
@@ -6968,7 +6968,7 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
-    ssl_mode = mbedtls_get_mode_from_ciphersuite(
+    ssl_mode = mbedtls_ssl_get_mode_from_ciphersuite(
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
                                         encrypt_then_mac,
 #endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */

@@ -2220,15 +2220,15 @@ typedef enum {
     MBEDTLS_SSL_MODE_AEAD
 } mbedtls_ssl_mode_t;
 
-mbedtls_ssl_mode_t mbedtls_get_mode_from_transform(
+mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_transform(
         const mbedtls_ssl_transform *transform );
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
-mbedtls_ssl_mode_t mbedtls_get_mode_from_ciphersuite(
+mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
         int encrypt_then_mac,
         const mbedtls_ssl_ciphersuite_t *suite );
 #else
-mbedtls_ssl_mode_t mbedtls_get_mode_from_ciphersuite(
+mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
         const mbedtls_ssl_ciphersuite_t *suite );
 #endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */
 

@@ -266,7 +266,7 @@ static psa_status_t psa_cipher_update_ecb(
     mbedtls_cipher_context_t *ctx,
     const uint8_t *input,
     size_t input_length,
-    uint8_t *output,
+    uint8_t *output __attribute__((unused)),
     size_t *output_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;

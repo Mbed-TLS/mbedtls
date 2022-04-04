@@ -7103,7 +7103,7 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
         ssl_mode == MBEDTLS_SSL_MODE_CBC_ETM )
     {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        size_t block_size = PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE;
+        size_t block_size = PSA_BLOCK_CIPHER_BLOCK_LENGTH( key_type );
 #else
         size_t block_size = cipher_info->block_size;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */

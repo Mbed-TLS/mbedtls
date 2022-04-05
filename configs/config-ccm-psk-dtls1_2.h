@@ -23,7 +23,7 @@
  * Minimal configuration for DTLS 1.2 with PSK and AES-CCM ciphersuites
  *
  * Distinguishing features:
- * - Optimized for small code size, low bandwidth (on an unreliable network),
+ * - Optimized for small code size, low bandwidth (on an unreliable transport),
  *   and low RAM usage.
  * - No asymmetric cryptography (no certificates, no Diffie-Hellman key
  *   exchange).

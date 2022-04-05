@@ -354,7 +354,7 @@ def generate_compat_test(server=None, client=None, cipher=None, sig_alg=None, na
     Generate test case with `ssl-opt.sh` format.
     """
     name = 'TLS 1.3 {client[0]}->{server[0]}: {cipher},{named_group},{sig_alg}'.format(
-        client=client, server=server, cipher=cipher, sig_alg=sig_alg, named_group=named_group)
+        client=client, server=server, cipher=cipher[4:], sig_alg=sig_alg, named_group=named_group)
 
     server_object = SERVER_CLASSES[server](ciphersuite=cipher,
                                            named_group=named_group,

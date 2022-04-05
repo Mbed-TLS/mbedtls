@@ -1570,9 +1570,10 @@ trap cleanup INT TERM HUP
 # Checks that:
 # - things work with all ciphersuites active (used with config-full in all.sh)
 # - the expected parameters are selected
-#   ("signature_algorithm ext: 6" means SHA-512 (highest common hash))
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_ciphersuite_enabled TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256
+requires_config_enabled MBEDTLS_SHA512_C # "signature_algorithm ext: 6"
+requires_config_enabled MBEDTLS_ECP_DP_CURVE25519_ENABLED
 run_test    "Default" \
             "$P_SRV debug_level=3" \
             "$P_CLI" \

@@ -3138,12 +3138,6 @@ ecdh_calc_secret:
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
         if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK )
         {
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-            /* Opaque PSKs are currently only supported for PSK-only suites. */
-            if( ssl_conf_has_static_raw_psk( ssl->conf ) == 0 )
-                return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-
             if( ( ret = ssl_write_encrypted_pms( ssl, header_len,
                                                  &content_len, 2 ) ) != 0 )
                 return( ret );
@@ -3222,6 +3216,13 @@ ecdh_calc_secret:
         {
             MBEDTLS_SSL_DEBUG_MSG( 1,
                 ( "skip PMS generation for opaque PSK" ) );
+        }
+        else
+        if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK &&
+            ssl_conf_has_static_raw_psk( ssl->conf ) == 0 )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1,
+                ( "skip PMS generation for opaque RSA-PSK" ) );
         }
         else
 #endif /* MBEDTLS_USE_PSA_CRYPTO &&

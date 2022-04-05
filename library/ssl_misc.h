@@ -173,6 +173,12 @@
 #define MBEDTLS_SSL_SOME_SUITES_USE_MAC
 #endif
 
+/* This macro determines whether a ciphersuite uses Encrypt-then-MAC with CBC */
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC) && \
+    defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+#define MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM
+#endif
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
@@ -2223,16 +2229,14 @@ typedef enum {
 mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_transform(
         const mbedtls_ssl_transform *transform );
 
-#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC) && \
-    defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM)
 mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
         int encrypt_then_mac,
         const mbedtls_ssl_ciphersuite_t *suite );
 #else
 mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
         const mbedtls_ssl_ciphersuite_t *suite );
-#endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC &&
-          MBEDTLS_SSL_SOME_SUITES_USE_MAC */
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM */
 
 #if defined(MBEDTLS_ECDH_C)
 

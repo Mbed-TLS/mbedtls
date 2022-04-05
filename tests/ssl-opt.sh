@@ -318,7 +318,7 @@ adapt_cmd_for_psk () {
 # with a pre-shared key, skip it. If the test looks like it's already using
 # a pre-shared key, do nothing.
 #
-# This code does not consider builds with ECDH-PSK or RSA-PSK.
+# This code does not consider builds with ECDHE-PSK or RSA-PSK.
 #
 # Inputs:
 # * $CLI_CMD, $SRV_CMD, $PXY_CMD: client/server/proxy commands.
@@ -940,6 +940,14 @@ skip_handshake_stage_check() {
 #
 # Analyze and possibly instrument $PXY_CMD, $CLI_CMD, $SRV_CMD to pass
 # extra arguments or go through wrappers.
+#
+# Inputs:
+# * $@: supplemental options to run_test() (after the mandatory arguments).
+# * $CLI_CMD, $PXY_CMD, $SRV_CMD: the client, proxy and server commands.
+# * $DTLS: 1 if DTLS, otherwise 0.
+#
+# Outputs:
+# * $CLI_CMD, $PXY_CMD, $SRV_CMD: may be tweaked.
 analyze_test_commands() {
     # if the test uses DTLS but no custom proxy, add a simple proxy
     # as it provides timing info that's useful to debug failures

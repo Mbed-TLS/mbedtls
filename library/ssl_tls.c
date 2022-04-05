@@ -5092,9 +5092,11 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
     }
 #endif /* MBEDTLS_SSL_EXTENDED_MS_ENABLED */
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO) &&          \
-    defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
-    if( handshake->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK &&
+#if defined(MBEDTLS_USE_PSA_CRYPTO) &&             \
+    ( defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED) || \
+      defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED) )
+    if( ( handshake->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK ||
+          handshake->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK ) &&
         ssl_use_opaque_psk( ssl ) == 1 )
     {
         /* Perform PSK-to-MS expansion in a single step. */
@@ -5114,10 +5116,25 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
         else
             alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_256);
 
+        size_t salt_len = 0;
+        unsigned char* salt = NULL;
+
+        if ( handshake->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK )
+        {
+            /* Provide other key as salt.
+             * For RSA-PKS other key length is always 48 bytes.
+             * Other key is stored in premaster, where first 2 bytes hold the
+             * length of the other key. Skip them.
+             */
+            salt_len = 48;
+            salt = handshake->premaster + 2;
+        }
+
         status = setup_psa_key_derivation( &derivation, psk, alg,
                                            seed, seed_len,
                                            (unsigned char const *) lbl,
                                            (size_t) strlen( lbl ),
+                                           salt, salt_len,
                                            master_secret_len );
         if( status != PSA_SUCCESS )
         {

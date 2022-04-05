@@ -825,7 +825,6 @@ int main( int argc, char *argv[] )
 
     get_options( argc, argv );
 
-#if defined(MBEDTLS_HAVE_TIME)
     /*
      * Decisions to drop/delay/duplicate packets are pseudo-random: dropping
      * exactly 1 in N packets would lead to problems when a flight has exactly
@@ -836,12 +835,15 @@ int main( int argc, char *argv[] )
      */
     if( opt.seed == 0 )
     {
+#if defined(MBEDTLS_HAVE_TIME)
         opt.seed = (unsigned int) mbedtls_time( NULL );
+#else
+        opt.seed = 1;
+#endif /* MBEDTLS_HAVE_TIME */
         mbedtls_printf( "  . Pseudo-random seed: %u\n", opt.seed );
     }
 
     srand( opt.seed );
-#endif /* MBEDTLS_HAVE_TIME */
 
     /*
      * 0. "Connect" to the server

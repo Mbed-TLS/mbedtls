@@ -5056,15 +5056,15 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
      * is used. */
     char const *lbl = "master secret";
 
-    /* The salt for the KDF used for key expansion.
+    /* The seed for the KDF used for key expansion.
      * - If the Extended Master Secret extension is not used,
      *   this is ClientHello.Random + ServerHello.Random
      *   (see Sect. 8.1 in RFC 5246).
      * - If the Extended Master Secret extension is used,
      *   this is the transcript of the handshake so far.
      *   (see Sect. 4 in RFC 7627). */
-    unsigned char const *salt = handshake->randbytes;
-    size_t salt_len = 64;
+    unsigned char const *seed = handshake->randbytes;
+    size_t seed_len = 64;
 
 #if !defined(MBEDTLS_DEBUG_C) &&                    \
     !defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET) && \
@@ -5084,11 +5084,11 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
     if( handshake->extended_ms == MBEDTLS_SSL_EXTENDED_MS_ENABLED )
     {
         lbl  = "extended master secret";
-        salt = session_hash;
-        handshake->calc_verify( ssl, session_hash, &salt_len );
+        seed = session_hash;
+        handshake->calc_verify( ssl, session_hash, &seed_len );
 
         MBEDTLS_SSL_DEBUG_BUF( 3, "session hash for extended master secret",
-                                  session_hash, salt_len );
+                                  session_hash, seed_len );
     }
 #endif /* MBEDTLS_SSL_EXTENDED_MS_ENABLED */
 
@@ -5115,7 +5115,7 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
             alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_256);
 
         status = setup_psa_key_derivation( &derivation, psk, alg,
-                                           salt, salt_len,
+                                           seed, seed_len,
                                            (unsigned char const *) lbl,
                                            (size_t) strlen( lbl ),
                                            master_secret_len );
@@ -5142,7 +5142,7 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
 #endif
     {
         ret = handshake->tls_prf( handshake->premaster, handshake->pmslen,
-                                  lbl, salt, salt_len,
+                                  lbl, seed, seed_len,
                                   master,
                                   master_secret_len );
         if( ret != 0 )

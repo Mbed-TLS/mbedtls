@@ -181,7 +181,7 @@ static int exercise_cipher_key( mbedtls_svc_key_id_t key,
     if( usage & PSA_KEY_USAGE_ENCRYPT )
     {
         PSA_ASSERT( psa_cipher_encrypt_setup( &operation, key, alg ) );
-        if( PSA_CIPHER_IV_LENGTH( key_type, alg ) != 0 )
+        if( iv_length != 0 )
         {
             PSA_ASSERT( psa_cipher_generate_iv( &operation,
                                                 iv, sizeof( iv ),

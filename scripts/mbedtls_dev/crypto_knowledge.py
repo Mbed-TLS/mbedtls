@@ -474,7 +474,7 @@ class Algorithm:
     TRUNCATED_ALG_RE = re.compile(
         r'(?P<face>PSA_ALG_(?:AEAD_WITH_SHORTENED_TAG|TRUNCATED_MAC))'
         r'\((?P<base>.*),'
-        r'(?P<length>0[Xx][0-9A-Fa-f]+|[1-9][0-9]*|0[0-9]*)[LUlu]*\)\Z')
+        r'(?P<length>0[Xx][0-9A-Fa-f]+|[1-9][0-9]*|0[0-7]*)[LUlu]*\)\Z')
     def is_invalid_truncation(self) -> bool:
         """False for a MAC or AEAD algorithm truncated to an invalid length.
 

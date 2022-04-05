@@ -4057,8 +4057,15 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
         }
 
         /* Keep a copy of the peer's public key */
+        if( p >= end )
+        {
+            psa_destroy_key( handshake->ecdh_psa_privkey );
+            handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
+            return( MBEDTLS_ERR_SSL_DECODE_ERROR );
+        }
+
         ecpoint_len = *(p++);
-        if( (size_t)( end - *p ) < ecpoint_len ) {
+        if( (size_t)( end - p ) < ecpoint_len ) {
             psa_destroy_key( handshake->ecdh_psa_privkey );
             handshake->ecdh_psa_privkey = MBEDTLS_SVC_KEY_ID_INIT;
             return( MBEDTLS_ERR_SSL_DECODE_ERROR );

@@ -6454,6 +6454,66 @@ run_test    "PSK callback: opaque psk on client, no callback, SHA-384, EMS" \
 
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "PSK callback: opaque rsa-psk on client, no callback" \
+            "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo" \
+            "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA256 \
+            psk_identity=foo psk=abc123 psk_opaque=1" \
+            0 \
+            -c "skip PMS generation for opaque RSA-PSK"\
+            -S "skip PMS generation for opaque RSA-PSK"\
+            -C "session hash for extended master secret"\
+            -S "session hash for extended master secret"\
+            -S "SSL - The handshake negotiation failed" \
+            -S "SSL - Unknown identity received" \
+            -S "SSL - Verification of the message MAC failed"
+
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "PSK callback: opaque rsa-psk on client, no callback, SHA-384" \
+            "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo" \
+            "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-256-CBC-SHA384 \
+            psk_identity=foo psk=abc123 psk_opaque=1" \
+            0 \
+            -c "skip PMS generation for opaque RSA-PSK"\
+            -S "skip PMS generation for opaque RSA-PSK"\
+            -C "session hash for extended master secret"\
+            -S "session hash for extended master secret"\
+            -S "SSL - The handshake negotiation failed" \
+            -S "SSL - Unknown identity received" \
+            -S "SSL - Verification of the message MAC failed"
+
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "PSK callback: opaque rsa-psk on client, no callback, EMS" \
+            "$P_SRV extended_ms=1 debug_level=3 psk=abc123 psk_identity=foo" \
+            "$P_CLI extended_ms=1 debug_level=3 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA \
+            psk_identity=foo psk=abc123 psk_opaque=1" \
+            0 \
+            -c "skip PMS generation for opaque RSA-PSK"\
+            -S "skip PMS generation for opaque RSA-PSK"\
+            -c "session hash for extended master secret"\
+            -s "session hash for extended master secret"\
+            -S "SSL - The handshake negotiation failed" \
+            -S "SSL - Unknown identity received" \
+            -S "SSL - Verification of the message MAC failed"
+
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "PSK callback: opaque rsa-psk on client, no callback, SHA-384, EMS" \
+            "$P_SRV extended_ms=1 debug_level=3 psk=abc123 psk_identity=foo" \
+            "$P_CLI extended_ms=1 debug_level=3 min_version=tls12 force_ciphersuite=TLS-RSA-PSK-WITH-AES-256-CBC-SHA384 \
+            psk_identity=foo psk=abc123 psk_opaque=1" \
+            0 \
+            -c "skip PMS generation for opaque RSA-PSK"\
+            -S "skip PMS generation for opaque RSA-PSK"\
+            -c "session hash for extended master secret"\
+            -s "session hash for extended master secret"\
+            -S "SSL - The handshake negotiation failed" \
+            -S "SSL - Unknown identity received" \
+            -S "SSL - Verification of the message MAC failed"
+
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "PSK callback: raw psk on client, static opaque on server, no callback" \
             "$P_SRV extended_ms=0 debug_level=1 psk=abc123 psk_identity=foo psk_opaque=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA" \
             "$P_CLI extended_ms=0 debug_level=1 min_version=tls12 force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA \

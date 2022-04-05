@@ -2223,14 +2223,16 @@ typedef enum {
 mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_transform(
         const mbedtls_ssl_transform *transform );
 
-#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC) && \
+    defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
 mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
         int encrypt_then_mac,
         const mbedtls_ssl_ciphersuite_t *suite );
 #else
 mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
         const mbedtls_ssl_ciphersuite_t *suite );
-#endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */
+#endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC &&
+          MBEDTLS_SSL_SOME_SUITES_USE_MAC */
 
 #if defined(MBEDTLS_ECDH_C)
 

@@ -2328,3 +2328,123 @@ exit:
     PSA_DONE( );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void aead_encrypt_setup( int key_type_arg, data_t *key_data,
+                         int alg_arg,
+                         data_t *nonce,
+                         data_t *additional_data,
+                         data_t *input_data,
+                         data_t *expected_ciphertext,
+                         data_t *expected_tag,
+                         int forced_status_arg,
+                         int expected_status_arg )
+{
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    size_t key_bits;
+    psa_status_t forced_status = forced_status_arg;
+    psa_status_t expected_status = expected_status_arg;
+    uint8_t *output_data = NULL;
+    size_t output_size = 0;
+    size_t output_length = 0;
+    size_t finish_output_length = 0;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
+    size_t tag_length = 0;
+    uint8_t tag_buffer[PSA_AEAD_TAG_MAX_SIZE];
+
+    psa_aead_operation_t operation = psa_aead_operation_init();
+
+    mbedtls_test_driver_aead_hooks = mbedtls_test_driver_aead_hooks_init();
+
+    PSA_INIT( );
+
+    mbedtls_test_driver_aead_hooks.forced_status = forced_status;
+
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, key_type );
+
+    PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
+                                &key ) );
+    PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
+    key_bits = psa_get_key_bits( &attributes );
+
+    output_size = input_data->len + PSA_AEAD_TAG_LENGTH( key_type, key_bits,
+                                                         alg );
+
+    /* For all currently defined algorithms, PSA_AEAD_ENCRYPT_OUTPUT_SIZE
+     * should be exact. */
+    TEST_EQUAL( output_size,
+                PSA_AEAD_ENCRYPT_OUTPUT_SIZE( key_type, alg, input_data->len ) );
+    TEST_ASSERT( output_size <=
+                 PSA_AEAD_ENCRYPT_OUTPUT_MAX_SIZE( input_data->len ) );
+    ASSERT_ALLOC( output_data, output_size );
+
+    status = psa_aead_encrypt_setup( &operation, key, alg );
+
+    TEST_EQUAL( status, expected_status );
+    TEST_EQUAL( mbedtls_test_driver_aead_hooks.hits_encrypt_setup, 1 );
+
+    if( status == PSA_SUCCESS )
+    {
+        /* Set the nonce. */
+        PSA_ASSERT( psa_aead_set_nonce( &operation, nonce->x, nonce->len ) );
+
+        TEST_EQUAL( mbedtls_test_driver_aead_hooks.hits_set_nonce,
+                    forced_status == PSA_SUCCESS ? 1 : 0 );
+
+        /* Check hooks hits and
+         * set length (additional data and data to encrypt) */
+        PSA_ASSERT( psa_aead_set_lengths( &operation, additional_data->len,
+                                          input_data->len ) );
+
+        TEST_EQUAL( mbedtls_test_driver_aead_hooks.hits_set_lengths,
+                    forced_status == PSA_SUCCESS ? 1 : 0 );
+
+        /* Pass the additional data */
+        PSA_ASSERT( psa_aead_update_ad( &operation, additional_data->x,
+                                        additional_data->len ) );
+
+        TEST_EQUAL( mbedtls_test_driver_aead_hooks.hits_update_ad,
+                    forced_status == PSA_SUCCESS ? 1 : 0 );
+
+        /* Pass the data to encrypt */
+        PSA_ASSERT( psa_aead_update( &operation, input_data->x, input_data->len,
+                                     output_data, output_size, &output_length ) );
+
+        TEST_EQUAL( mbedtls_test_driver_aead_hooks.hits_update,
+                    forced_status == PSA_SUCCESS ? 1 : 0 );
+
+        /* Finish the encryption operation */
+        PSA_ASSERT( psa_aead_finish( &operation, output_data + output_length,
+                                     output_size - output_length,
+                                     &finish_output_length, tag_buffer,
+                                     PSA_AEAD_TAG_MAX_SIZE, &tag_length ) );
+
+        TEST_EQUAL( mbedtls_test_driver_aead_hooks.hits_finish,
+                    forced_status == PSA_SUCCESS ? 1 : 0 );
+
+        TEST_EQUAL( mbedtls_test_driver_aead_hooks.hits_abort,
+                    forced_status == PSA_SUCCESS ? 1 : 0 );
+
+        /* Compare output_data and expected_ciphertext */
+        ASSERT_COMPARE( expected_ciphertext->x, expected_ciphertext->len,
+                        output_data, output_length );
+
+        TEST_EQUAL( output_length + finish_output_length, expected_ciphertext->len );
+
+        /* Compare tag and expected_tag */
+        ASSERT_COMPARE( expected_tag->x, expected_tag->len, tag_buffer, tag_length );
+    }
+
+exit:
+    /* Cleanup */
+    PSA_ASSERT( psa_destroy_key( key ) );
+    mbedtls_free( output_data );
+    PSA_DONE( );
+    mbedtls_test_driver_aead_hooks = mbedtls_test_driver_aead_hooks_init();
+}
+/* END_CASE */

@@ -4715,6 +4715,7 @@ static psa_status_t setup_psa_key_derivation( psa_key_derivation_operation_t* de
                                               psa_algorithm_t alg,
                                               const unsigned char* seed, size_t seed_length,
                                               const unsigned char* label, size_t label_length,
+                                              const unsigned char* salt, size_t salt_length,
                                               size_t capacity )
 {
     psa_status_t status;
@@ -4730,6 +4731,15 @@ static psa_status_t setup_psa_key_derivation( psa_key_derivation_operation_t* de
                                                  seed, seed_length );
         if( status != PSA_SUCCESS )
             return( status );
+
+        if ( salt != NULL )
+        {
+            status = psa_key_derivation_input_bytes( derivation,
+                                                    PSA_KEY_DERIVATION_INPUT_SALT,
+                                                    salt, salt_length );
+            if( status != PSA_SUCCESS )
+                return( status );
+        }
 
         if( mbedtls_svc_key_id_is_null( key ) )
         {
@@ -4804,6 +4814,7 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
                                        random, rlen,
                                        (unsigned char const *) label,
                                        (size_t) strlen( label ),
+                                       NULL, 0,
                                        dlen );
     if( status != PSA_SUCCESS )
     {

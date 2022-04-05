@@ -30,7 +30,6 @@
 #include "mbedtls/platform.h"
 
 #include "ssl_misc.h"
-#include "ecdh_misc.h"
 #include "ssl_client.h"
 #include "ssl_tls13_keys.h"
 

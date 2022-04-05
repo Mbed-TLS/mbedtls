@@ -4046,6 +4046,10 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
         psa_status_t destruction_status = PSA_ERROR_CORRUPTION_DETECTED;
         uint8_t ecpoint_len;
 
+        /* Opaque PSKs are currently only supported for PSK-only. */
+        if( ssl_use_opaque_psk( ssl ) == 1 )
+            return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+
         mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
         if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )

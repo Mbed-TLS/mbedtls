@@ -2432,9 +2432,7 @@ void aead_encrypt_setup( int key_type_arg, data_t *key_data,
 
         /* Compare output_data and expected_ciphertext */
         ASSERT_COMPARE( expected_ciphertext->x, expected_ciphertext->len,
-                        output_data, output_length );
-
-        TEST_EQUAL( output_length + finish_output_length, expected_ciphertext->len );
+                        output_data, output_length + finish_output_length );
 
         /* Compare tag and expected_tag */
         ASSERT_COMPARE( expected_tag->x, expected_tag->len, tag_buffer, tag_length );

@@ -2454,10 +2454,9 @@ void aead_decrypt_setup( int key_type_arg, data_t *key_data,
                          int alg_arg,
                          data_t *nonce,
                          data_t *additional_data,
-                         data_t *total_input_data,
                          data_t *input_ciphertext,
                          data_t *input_tag,
-                         data_t *expected_result_arg,
+                         data_t *expected_result,
                          int forced_status_arg,
                          int expected_status_arg )
 {
@@ -2467,8 +2466,8 @@ void aead_decrypt_setup( int key_type_arg, data_t *key_data,
     unsigned char *output_data = NULL;
     size_t output_size = 0;
     size_t output_length = 0;
+    size_t verify_output_length = 0;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    data_t* expected_result = expected_result_arg;
     psa_status_t forced_status = forced_status_arg;
     psa_status_t expected_status = expected_status_arg;
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
@@ -2487,18 +2486,6 @@ void aead_decrypt_setup( int key_type_arg, data_t *key_data,
     PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
 
     output_size = input_ciphertext->len;
-
-    if( expected_status != PSA_ERROR_INVALID_ARGUMENT &&
-        expected_status != PSA_ERROR_NOT_SUPPORTED )
-    {
-        /* For all currently defined algorithms, PSA_AEAD_DECRYPT_OUTPUT_SIZE
-         * should be exact. */
-        TEST_EQUAL( output_size,
-                    PSA_AEAD_DECRYPT_OUTPUT_SIZE( key_type, alg,
-                                                    total_input_data->len ) );
-        TEST_ASSERT( output_size <=
-                     PSA_AEAD_DECRYPT_OUTPUT_MAX_SIZE( input_ciphertext->len ) );
-    }
 
     ASSERT_ALLOC( output_data, output_size );
 
@@ -2537,11 +2524,10 @@ void aead_decrypt_setup( int key_type_arg, data_t *key_data,
         TEST_EQUAL( mbedtls_test_driver_aead_hooks.hits_update,
                     forced_status == PSA_SUCCESS ? 1 : 0 );
 
-        ASSERT_COMPARE( expected_result->x, expected_result->len,
-                        output_data, output_length );
-
-        PSA_ASSERT( psa_aead_verify( &operation, output_data, output_size,
-                                     &output_length, input_tag->x, input_tag->len ) );
+        PSA_ASSERT( psa_aead_verify( &operation, output_data + output_length,
+                                     output_size - output_length,
+                                     &verify_output_length, input_tag->x,
+                                     input_tag->len ) );
 
         TEST_EQUAL( mbedtls_test_driver_aead_hooks.hits_verify,
                     forced_status == PSA_SUCCESS ? 1 : 0 );
@@ -2550,6 +2536,9 @@ void aead_decrypt_setup( int key_type_arg, data_t *key_data,
 
         TEST_EQUAL( mbedtls_test_driver_aead_hooks.hits_abort,
                     forced_status == PSA_SUCCESS ? 1 : 0 );
+        
+        ASSERT_COMPARE( expected_result->x, expected_result->len,
+                        output_data, output_length + verify_output_length );
     }
 
 exit:

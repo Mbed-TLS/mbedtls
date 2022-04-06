@@ -1525,17 +1525,9 @@ int mbedtls_mpi_mul_int( mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_uint 
     MPI_VALIDATE_RET( X != NULL );
     MPI_VALIDATE_RET( A != NULL );
 
-    /* mpi_mul_hlp can't deal with a leading 0. */
-    size_t n = A->n;
-    while( n > 0 && A->p[n - 1] == 0 )
-        --n;
-
-    /* The general method below doesn't work if n==0 or b==0. By chance
-     * calculating the result is trivial in those cases. */
-    if( b == 0 || n == 0 )
-    {
+    /* The general method below doesn't work if b==0. */
+    if( b == 0 )
         return( mbedtls_mpi_lset( X, 0 ) );
-    }
 
     /* Calculate A*b as A + A*(b-1) to take advantage of mpi_mul_hlp */
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -1547,9 +1539,9 @@ int mbedtls_mpi_mul_int( mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_uint 
      * calls to calloc() in ECP code, presumably because it reuses the
      * same mpi for a while and this way the mpi is more likely to directly
      * grow to its final size. */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, n + 1 ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, A->n + 1 ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( X, A ) );
-    mpi_mul_hlp( n, A->p, X->p, b - 1 );
+    mpi_mul_hlp( X->p, X->n, A->p, A->n, b - 1 );
 
 cleanup:
     return( ret );

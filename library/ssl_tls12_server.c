@@ -1971,7 +1971,7 @@ static void ssl_write_cid_ext( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
-#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM)
 static void ssl_write_encrypt_then_mac_ext( mbedtls_ssl_context *ssl,
                                             unsigned char *buf,
                                             size_t *olen )
@@ -2016,7 +2016,7 @@ static void ssl_write_encrypt_then_mac_ext( mbedtls_ssl_context *ssl,
 
     *olen = 4;
 }
-#endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM */
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
 static void ssl_write_extended_ms_ext( mbedtls_ssl_context *ssl,
@@ -2585,7 +2585,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
     ext_len += olen;
 #endif
 
-#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM)
     ssl_write_encrypt_then_mac_ext( ssl, p + 2 + ext_len, &olen );
     ext_len += olen;
 #endif

@@ -1377,14 +1377,17 @@ mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len,
     mbedtls_mpi_uint c = 0; /* carry */
     size_t excess_len = d_len - s_len;
 
-    for( ; s_len >= 8; s_len -= 8 )
+    size_t steps_x8 = s_len / 8;
+    size_t steps_x1 = s_len & 7;
+
+    while( steps_x8-- )
     {
         MULADDC_X8_INIT
         MULADDC_X8_CORE
         MULADDC_X8_STOP
     }
 
-    for( ; s_len > 0; s_len-- )
+    while( steps_x1-- )
     {
         MULADDC_X1_INIT
         MULADDC_X1_CORE

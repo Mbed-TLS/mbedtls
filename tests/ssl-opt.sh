@@ -6656,20 +6656,35 @@ run_test    "ClientHello without extensions" \
 
 # Tests for mbedtls_ssl_get_bytes_avail()
 
+# The server first reads buffer_size-1 bytes, then reads the remainder.
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "mbedtls_ssl_get_bytes_avail: no extra data" \
-            "$P_SRV" \
+            "$P_SRV buffer_size=100" \
             "$P_CLI request_size=100" \
             0 \
             -s "Read from client: 100 bytes read$"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-requires_max_content_len 474
-run_test    "mbedtls_ssl_get_bytes_avail: extra data" \
-            "$P_SRV" \
-            "$P_CLI request_size=450" \
+run_test    "mbedtls_ssl_get_bytes_avail: extra data (+1)" \
+            "$P_SRV buffer_size=100" \
+            "$P_CLI request_size=101" \
             0 \
-            -s "Read from client: 450 bytes read (.*+.*)"
+            -s "Read from client: 101 bytes read (100 + 1)"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_max_content_len 200
+run_test    "mbedtls_ssl_get_bytes_avail: extra data (*2)" \
+            "$P_SRV buffer_size=100" \
+            "$P_CLI request_size=200" \
+            0 \
+            -s "Read from client: 200 bytes read (100 + 100)"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "mbedtls_ssl_get_bytes_avail: extra data (max)" \
+            "$P_SRV buffer_size=100" \
+            "$P_CLI request_size=$MAX_CONTENT_LEN" \
+            0 \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read (100 + $((MAX_CONTENT_LEN - 100)))"
 
 # Tests for small client packets
 

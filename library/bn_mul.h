@@ -98,7 +98,7 @@
  */
 #if defined(__i386__) && defined(__OPTIMIZE__)
 
-#define MULADDC_INIT                        \
+#define MULADDC_X1_INIT                     \
     { mbedtls_mpi_uint t;                   \
     asm(                                    \
         "movl   %%ebx, %0           \n\t"   \
@@ -107,7 +107,7 @@
         "movl   %7, %%ecx           \n\t"   \
         "movl   %8, %%ebx           \n\t"
 
-#define MULADDC_CORE                        \
+#define MULADDC_X1_CORE                     \
         "lodsl                      \n\t"   \
         "mull   %%ebx               \n\t"   \
         "addl   %%ecx,   %%eax      \n\t"   \
@@ -117,9 +117,21 @@
         "movl   %%edx,   %%ecx      \n\t"   \
         "stosl                      \n\t"
 
+#define MULADDC_X1_STOP                                 \
+        "movl   %4, %%ebx       \n\t"                   \
+        "movl   %%ecx, %1       \n\t"                   \
+        "movl   %%edi, %2       \n\t"                   \
+        "movl   %%esi, %3       \n\t"                   \
+        : "=m" (t), "=m" (c), "=m" (d), "=m" (s)        \
+        : "m" (t), "m" (s), "m" (d), "m" (c), "m" (b)   \
+        : "eax", "ebx", "ecx", "edx", "esi", "edi"      \
+    ); }
+
 #if defined(MBEDTLS_HAVE_SSE2)
 
-#define MULADDC_HUIT                            \
+#define MULADDC_X8_INIT MULADDC_X1_INIT
+
+#define MULADDC_X8_CORE                         \
         "movd     %%ecx,     %%mm1      \n\t"   \
         "movd     %%ebx,     %%mm0      \n\t"   \
         "movd     (%%edi),   %%mm3      \n\t"   \
@@ -182,7 +194,7 @@
         "psrlq    $32,       %%mm1      \n\t"   \
         "movd     %%mm1,     %%ecx      \n\t"
 
-#define MULADDC_STOP                    \
+#define MULADDC_X8_STOP                 \
         "emms                   \n\t"   \
         "movl   %4, %%ebx       \n\t"   \
         "movl   %%ecx, %1       \n\t"   \
@@ -193,28 +205,17 @@
         : "eax", "ebx", "ecx", "edx", "esi", "edi"      \
     ); }                                                \
 
-
-#else
-
-#define MULADDC_STOP                    \
-        "movl   %4, %%ebx       \n\t"   \
-        "movl   %%ecx, %1       \n\t"   \
-        "movl   %%edi, %2       \n\t"   \
-        "movl   %%esi, %3       \n\t"   \
-        : "=m" (t), "=m" (c), "=m" (d), "=m" (s)        \
-        : "m" (t), "m" (s), "m" (d), "m" (c), "m" (b)   \
-        : "eax", "ebx", "ecx", "edx", "esi", "edi"      \
-    ); }
 #endif /* SSE2 */
+
 #endif /* i386 */
 
 #if defined(__amd64__) || defined (__x86_64__)
 
-#define MULADDC_INIT                        \
+#define MULADDC_X1_INIT                        \
     asm(                                    \
         "xorq   %%r8, %%r8\n"
 
-#define MULADDC_CORE                        \
+#define MULADDC_X1_CORE                        \
         "movq   (%%rsi), %%rax\n"           \
         "mulq   %%rbx\n"                    \
         "addq   $8, %%rsi\n"                \
@@ -226,7 +227,7 @@
         "adcq   %%rdx, %%rcx\n"             \
         "addq   $8, %%rdi\n"
 
-#define MULADDC_STOP                                                 \
+#define MULADDC_X1_STOP                                              \
         : "+c" (c), "+D" (d), "+S" (s), "+m" (*(uint64_t (*)[16]) d) \
         : "b" (b), "m" (*(const uint64_t (*)[16]) s)                 \
         : "rax", "rdx", "r8"                                         \
@@ -236,10 +237,10 @@
 
 #if defined(__aarch64__)
 
-#define MULADDC_INIT                \
+#define MULADDC_X1_INIT             \
     asm(
 
-#define MULADDC_CORE                \
+#define MULADDC_X1_CORE             \
         "ldr x4, [%2], #8   \n\t"   \
         "ldr x5, [%1]       \n\t"   \
         "mul x6, x4, %4     \n\t"   \
@@ -250,7 +251,7 @@
         "adc %0, x7, xzr    \n\t"   \
         "str x5, [%1], #8   \n\t"
 
-#define MULADDC_STOP                                                    \
+#define MULADDC_X1_STOP                                                 \
          : "+r" (c),  "+r" (d), "+r" (s), "+m" (*(uint64_t (*)[16]) d)  \
          : "r" (b), "m" (*(const uint64_t (*)[16]) s)                   \
          : "x4", "x5", "x6", "x7", "cc"                                 \
@@ -260,7 +261,7 @@
 
 #if defined(__mc68020__) || defined(__mcpu32__)
 
-#define MULADDC_INIT                    \
+#define MULADDC_X1_INIT                 \
     asm(                                \
         "movl   %3, %%a2        \n\t"   \
         "movl   %4, %%a3        \n\t"   \
@@ -268,7 +269,7 @@
         "movl   %6, %%d2        \n\t"   \
         "moveq  #0, %%d0        \n\t"
 
-#define MULADDC_CORE                    \
+#define MULADDC_X1_CORE                 \
         "movel  %%a2@+, %%d1    \n\t"   \
         "mulul  %%d2, %%d4:%%d1 \n\t"   \
         "addl   %%d3, %%d1      \n\t"   \
@@ -277,7 +278,7 @@
         "addl   %%d1, %%a3@+    \n\t"   \
         "addxl  %%d4, %%d3      \n\t"
 
-#define MULADDC_STOP                    \
+#define MULADDC_X1_STOP                 \
         "movl   %%d3, %0        \n\t"   \
         "movl   %%a3, %1        \n\t"   \
         "movl   %%a2, %2        \n\t"   \
@@ -286,7 +287,9 @@
         : "d0", "d1", "d2", "d3", "d4", "a2", "a3"  \
     );
 
-#define MULADDC_HUIT                        \
+#define MULADDC_X8_INIT MULADDC_X1_INIT
+
+#define MULADDC_X8_CORE                     \
         "movel  %%a2@+,  %%d1       \n\t"   \
         "mulul  %%d2,    %%d4:%%d1  \n\t"   \
         "addxl  %%d3,    %%d1       \n\t"   \
@@ -329,13 +332,15 @@
         "addl   %%d1,    %%a3@+     \n\t"   \
         "addxl  %%d0,    %%d3       \n\t"
 
+#define MULADDC_X8_STOP MULADDC_X1_STOP
+
 #endif /* MC68000 */
 
 #if defined(__powerpc64__) || defined(__ppc64__)
 
 #if defined(__MACH__) && defined(__APPLE__)
 
-#define MULADDC_INIT                        \
+#define MULADDC_X1_INIT                     \
     asm(                                    \
         "ld     r3, %3              \n\t"   \
         "ld     r4, %4              \n\t"   \
@@ -345,7 +350,7 @@
         "addi   r4, r4, -8          \n\t"   \
         "addic  r5, r5,  0          \n\t"
 
-#define MULADDC_CORE                        \
+#define MULADDC_X1_CORE                     \
         "ldu    r7, 8(r3)           \n\t"   \
         "mulld  r8, r7, r6          \n\t"   \
         "mulhdu r9, r7, r6          \n\t"   \
@@ -355,7 +360,7 @@
         "addc   r8, r8, r7          \n\t"   \
         "stdu   r8, 8(r4)           \n\t"
 
-#define MULADDC_STOP                        \
+#define MULADDC_X1_STOP                     \
         "addze  r5, r5              \n\t"   \
         "addi   r4, r4, 8           \n\t"   \
         "addi   r3, r3, 8           \n\t"   \
@@ -370,7 +375,7 @@
 
 #else /* __MACH__ && __APPLE__ */
 
-#define MULADDC_INIT                        \
+#define MULADDC_X1_INIT                     \
     asm(                                    \
         "ld     %%r3, %3            \n\t"   \
         "ld     %%r4, %4            \n\t"   \
@@ -380,7 +385,7 @@
         "addi   %%r4, %%r4, -8      \n\t"   \
         "addic  %%r5, %%r5,  0      \n\t"
 
-#define MULADDC_CORE                        \
+#define MULADDC_X1_CORE                     \
         "ldu    %%r7, 8(%%r3)       \n\t"   \
         "mulld  %%r8, %%r7, %%r6    \n\t"   \
         "mulhdu %%r9, %%r7, %%r6    \n\t"   \
@@ -390,7 +395,7 @@
         "addc   %%r8, %%r8, %%r7    \n\t"   \
         "stdu   %%r8, 8(%%r4)       \n\t"
 
-#define MULADDC_STOP                        \
+#define MULADDC_X1_STOP                     \
         "addze  %%r5, %%r5          \n\t"   \
         "addi   %%r4, %%r4, 8       \n\t"   \
         "addi   %%r3, %%r3, 8       \n\t"   \
@@ -408,7 +413,7 @@
 
 #if defined(__MACH__) && defined(__APPLE__)
 
-#define MULADDC_INIT                    \
+#define MULADDC_X1_INIT                 \
     asm(                                \
         "lwz    r3, %3          \n\t"   \
         "lwz    r4, %4          \n\t"   \
@@ -418,7 +423,7 @@
         "addi   r4, r4, -4      \n\t"   \
         "addic  r5, r5,  0      \n\t"
 
-#define MULADDC_CORE                    \
+#define MULADDC_X1_CORE                 \
         "lwzu   r7, 4(r3)       \n\t"   \
         "mullw  r8, r7, r6      \n\t"   \
         "mulhwu r9, r7, r6      \n\t"   \
@@ -428,7 +433,7 @@
         "addc   r8, r8, r7      \n\t"   \
         "stwu   r8, 4(r4)       \n\t"
 
-#define MULADDC_STOP                    \
+#define MULADDC_X1_STOP                 \
         "addze  r5, r5          \n\t"   \
         "addi   r4, r4, 4       \n\t"   \
         "addi   r3, r3, 4       \n\t"   \
@@ -442,7 +447,7 @@
 
 #else /* __MACH__ && __APPLE__ */
 
-#define MULADDC_INIT                        \
+#define MULADDC_X1_INIT                     \
     asm(                                    \
         "lwz    %%r3, %3            \n\t"   \
         "lwz    %%r4, %4            \n\t"   \
@@ -452,7 +457,7 @@
         "addi   %%r4, %%r4, -4      \n\t"   \
         "addic  %%r5, %%r5,  0      \n\t"
 
-#define MULADDC_CORE                        \
+#define MULADDC_X1_CORE                     \
         "lwzu   %%r7, 4(%%r3)       \n\t"   \
         "mullw  %%r8, %%r7, %%r6    \n\t"   \
         "mulhwu %%r9, %%r7, %%r6    \n\t"   \
@@ -462,7 +467,7 @@
         "addc   %%r8, %%r8, %%r7    \n\t"   \
         "stwu   %%r8, 4(%%r4)       \n\t"
 
-#define MULADDC_STOP                        \
+#define MULADDC_X1_STOP                     \
         "addze  %%r5, %%r5          \n\t"   \
         "addi   %%r4, %%r4, 4       \n\t"   \
         "addi   %%r3, %%r3, 4       \n\t"   \
@@ -485,14 +490,14 @@
 #if 0 && defined(__sparc__)
 #if defined(__sparc64__)
 
-#define MULADDC_INIT                                    \
+#define MULADDC_X1_INIT                                 \
     asm(                                                \
                 "ldx     %3, %%o0               \n\t"   \
                 "ldx     %4, %%o1               \n\t"   \
                 "ld      %5, %%o2               \n\t"   \
                 "ld      %6, %%o3               \n\t"
 
-#define MULADDC_CORE                                    \
+#define MULADDC_X1_CORE                                 \
                 "ld      [%%o0], %%o4           \n\t"   \
                 "inc     4, %%o0                \n\t"   \
                 "ld      [%%o1], %%o5           \n\t"   \
@@ -505,7 +510,7 @@
                 "addx    %%g1, 0, %%o2          \n\t"   \
                 "inc     4, %%o1                \n\t"
 
-        #define MULADDC_STOP                            \
+#define MULADDC_X1_STOP                                 \
                 "st      %%o2, %0               \n\t"   \
                 "stx     %%o1, %1               \n\t"   \
                 "stx     %%o0, %2               \n\t"   \
@@ -517,14 +522,14 @@
 
 #else /* __sparc64__ */
 
-#define MULADDC_INIT                                    \
+#define MULADDC_X1_INIT                                 \
     asm(                                                \
                 "ld      %3, %%o0               \n\t"   \
                 "ld      %4, %%o1               \n\t"   \
                 "ld      %5, %%o2               \n\t"   \
                 "ld      %6, %%o3               \n\t"
 
-#define MULADDC_CORE                                    \
+#define MULADDC_X1_CORE                                 \
                 "ld      [%%o0], %%o4           \n\t"   \
                 "inc     4, %%o0                \n\t"   \
                 "ld      [%%o1], %%o5           \n\t"   \
@@ -537,7 +542,7 @@
                 "addx    %%g1, 0, %%o2          \n\t"   \
                 "inc     4, %%o1                \n\t"
 
-#define MULADDC_STOP                                    \
+#define MULADDC_X1_STOP                                 \
                 "st      %%o2, %0               \n\t"   \
                 "st      %%o1, %1               \n\t"   \
                 "st      %%o0, %2               \n\t"   \
@@ -552,7 +557,7 @@
 
 #if defined(__microblaze__) || defined(microblaze)
 
-#define MULADDC_INIT                    \
+#define MULADDC_X1_INIT                 \
     asm(                                \
         "lwi   r3,   %3         \n\t"   \
         "lwi   r4,   %4         \n\t"   \
@@ -561,7 +566,7 @@
         "andi  r7,   r6, 0xffff \n\t"   \
         "bsrli r6,   r6, 16     \n\t"
 
-#define MULADDC_CORE                    \
+#define MULADDC_X1_CORE                 \
         "lhui  r8,   r3,   0    \n\t"   \
         "addi  r3,   r3,   2    \n\t"   \
         "lhui  r9,   r3,   0    \n\t"   \
@@ -588,7 +593,7 @@
         "swi   r12,  r4,   0    \n\t"   \
         "addi   r4,  r4,   4    \n\t"
 
-#define MULADDC_STOP                    \
+#define MULADDC_X1_STOP                 \
         "swi   r5,   %0         \n\t"   \
         "swi   r4,   %1         \n\t"   \
         "swi   r3,   %2         \n\t"   \
@@ -602,7 +607,7 @@
 
 #if defined(__tricore__)
 
-#define MULADDC_INIT                            \
+#define MULADDC_X1_INIT                         \
     asm(                                        \
         "ld.a   %%a2, %3                \n\t"   \
         "ld.a   %%a3, %4                \n\t"   \
@@ -610,7 +615,7 @@
         "ld.w   %%d1, %6                \n\t"   \
         "xor    %%d5, %%d5              \n\t"
 
-#define MULADDC_CORE                            \
+#define MULADDC_X1_CORE                         \
         "ld.w   %%d0,   [%%a2+]         \n\t"   \
         "madd.u %%e2, %%e4, %%d0, %%d1  \n\t"   \
         "ld.w   %%d0,   [%%a3]          \n\t"   \
@@ -619,7 +624,7 @@
         "mov    %%d4,    %%d3           \n\t"   \
         "st.w  [%%a3+],  %%d2           \n\t"
 
-#define MULADDC_STOP                            \
+#define MULADDC_X1_STOP                         \
         "st.w   %0, %%d4                \n\t"   \
         "st.a   %1, %%a3                \n\t"   \
         "st.a   %2, %%a2                \n\t"   \
@@ -649,7 +654,7 @@
 
 #if defined(__thumb__) && !defined(__thumb2__)
 
-#define MULADDC_INIT                                    \
+#define MULADDC_X1_INIT                                 \
     asm(                                                \
             "ldr    r0, %3                      \n\t"   \
             "ldr    r1, %4                      \n\t"   \
@@ -661,7 +666,7 @@
             "lsr    r7, r7, #16                 \n\t"   \
             "mov    r8, r7                      \n\t"
 
-#define MULADDC_CORE                                    \
+#define MULADDC_X1_CORE                                 \
             "ldmia  r0!, {r6}                   \n\t"   \
             "lsr    r7, r6, #16                 \n\t"   \
             "lsl    r6, r6, #16                 \n\t"   \
@@ -692,7 +697,7 @@
             "adc    r2, r5                      \n\t"   \
             "stmia  r1!, {r4}                   \n\t"
 
-#define MULADDC_STOP                                    \
+#define MULADDC_X1_STOP                                 \
             "str    r2, %0                      \n\t"   \
             "str    r1, %1                      \n\t"   \
             "str    r0, %2                      \n\t"   \
@@ -705,16 +710,16 @@
 #elif (__ARM_ARCH >= 6) && \
     defined (__ARM_FEATURE_DSP) && (__ARM_FEATURE_DSP == 1)
 
-#define MULADDC_INIT                            \
+#define MULADDC_X1_INIT                            \
     asm(
 
-#define MULADDC_CORE                            \
+#define MULADDC_X1_CORE                         \
             "ldr    r0, [%0], #4        \n\t"   \
             "ldr    r1, [%1]            \n\t"   \
             "umaal  r1, %2, %3, r0      \n\t"   \
             "str    r1, [%1], #4        \n\t"
 
-#define MULADDC_STOP                            \
+#define MULADDC_X1_STOP                         \
          : "=r" (s),  "=r" (d), "=r" (c)        \
          : "r" (b), "0" (s), "1" (d), "2" (c)   \
          : "r0", "r1", "memory"                 \
@@ -722,14 +727,14 @@
 
 #else
 
-#define MULADDC_INIT                                    \
+#define MULADDC_X1_INIT                                 \
     asm(                                                \
             "ldr    r0, %3                      \n\t"   \
             "ldr    r1, %4                      \n\t"   \
             "ldr    r2, %5                      \n\t"   \
             "ldr    r3, %6                      \n\t"
 
-#define MULADDC_CORE                                    \
+#define MULADDC_X1_CORE                                 \
             "ldr    r4, [r0], #4                \n\t"   \
             "mov    r5, #0                      \n\t"   \
             "ldr    r6, [r1]                    \n\t"   \
@@ -738,7 +743,7 @@
             "adc    r2, r5, #0                  \n\t"   \
             "str    r7, [r1], #4                \n\t"
 
-#define MULADDC_STOP                                    \
+#define MULADDC_X1_STOP                                 \
             "str    r2, %0                      \n\t"   \
             "str    r1, %1                      \n\t"   \
             "str    r0, %2                      \n\t"   \
@@ -754,14 +759,14 @@
 
 #if defined(__alpha__)
 
-#define MULADDC_INIT                    \
+#define MULADDC_X1_INIT                 \
     asm(                                \
         "ldq    $1, %3          \n\t"   \
         "ldq    $2, %4          \n\t"   \
         "ldq    $3, %5          \n\t"   \
         "ldq    $4, %6          \n\t"
 
-#define MULADDC_CORE                    \
+#define MULADDC_X1_CORE                 \
         "ldq    $6,  0($1)      \n\t"   \
         "addq   $1,  8, $1      \n\t"   \
         "mulq   $6, $4, $7      \n\t"   \
@@ -776,7 +781,7 @@
         "addq   $6, $3, $3      \n\t"   \
         "addq   $5, $3, $3      \n\t"
 
-#define MULADDC_STOP                                    \
+#define MULADDC_X1_STOP                 \
         "stq    $3, %0          \n\t"   \
         "stq    $2, %1          \n\t"   \
         "stq    $1, %2          \n\t"   \
@@ -788,14 +793,14 @@
 
 #if defined(__mips__) && !defined(__mips64)
 
-#define MULADDC_INIT                    \
+#define MULADDC_X1_INIT                 \
     asm(                                \
         "lw     $10, %3         \n\t"   \
         "lw     $11, %4         \n\t"   \
         "lw     $12, %5         \n\t"   \
         "lw     $13, %6         \n\t"
 
-#define MULADDC_CORE                    \
+#define MULADDC_X1_CORE                 \
         "lw     $14, 0($10)     \n\t"   \
         "multu  $13, $14        \n\t"   \
         "addi   $10, $10, 4     \n\t"   \
@@ -811,7 +816,7 @@
         "addu   $12, $12, $14   \n\t"   \
         "addi   $11, $11, 4     \n\t"
 
-#define MULADDC_STOP                    \
+#define MULADDC_X1_STOP                 \
         "sw     $12, %0         \n\t"   \
         "sw     $11, %1         \n\t"   \
         "sw     $10, %2         \n\t"   \
@@ -825,13 +830,13 @@
 
 #if (defined(_MSC_VER) && defined(_M_IX86)) || defined(__WATCOMC__)
 
-#define MULADDC_INIT                            \
+#define MULADDC_X1_INIT                         \
     __asm   mov     esi, s                      \
     __asm   mov     edi, d                      \
     __asm   mov     ecx, c                      \
     __asm   mov     ebx, b
 
-#define MULADDC_CORE                            \
+#define MULADDC_X1_CORE                         \
     __asm   lodsd                               \
     __asm   mul     ebx                         \
     __asm   add     eax, ecx                    \
@@ -841,11 +846,18 @@
     __asm   mov     ecx, edx                    \
     __asm   stosd
 
+#define MULADDC_X1_STOP                         \
+    __asm   mov     c, ecx                      \
+    __asm   mov     d, edi                      \
+    __asm   mov     s, esi
+
 #if defined(MBEDTLS_HAVE_SSE2)
 
 #define EMIT __asm _emit
 
-#define MULADDC_HUIT                            \
+#define MULADDC_X8_INIT MULADDC_X1_INIT
+
+#define MULADDC_X8_CORE                         \
     EMIT 0x0F  EMIT 0x6E  EMIT 0xC9             \
     EMIT 0x0F  EMIT 0x6E  EMIT 0xC3             \
     EMIT 0x0F  EMIT 0x6E  EMIT 0x1F             \
@@ -908,33 +920,26 @@
     EMIT 0x0F  EMIT 0x73  EMIT 0xD1  EMIT 0x20  \
     EMIT 0x0F  EMIT 0x7E  EMIT 0xC9
 
-#define MULADDC_STOP                            \
+#define MULADDC_X8_STOP                         \
     EMIT 0x0F  EMIT 0x77                        \
     __asm   mov     c, ecx                      \
     __asm   mov     d, edi                      \
-    __asm   mov     s, esi                      \
-
-#else
-
-#define MULADDC_STOP                            \
-    __asm   mov     c, ecx                      \
-    __asm   mov     d, edi                      \
-    __asm   mov     s, esi                      \
+    __asm   mov     s, esi
 
 #endif /* SSE2 */
 #endif /* MSVC */
 
 #endif /* MBEDTLS_HAVE_ASM */
 
-#if !defined(MULADDC_CORE)
+#if !defined(MULADDC_X1_CORE)
 #if defined(MBEDTLS_HAVE_UDBL)
 
-#define MULADDC_INIT                    \
+#define MULADDC_X1_INIT                 \
 {                                       \
     mbedtls_t_udbl r;                           \
     mbedtls_mpi_uint r0, r1;
 
-#define MULADDC_CORE                    \
+#define MULADDC_X1_CORE                 \
     r   = *(s++) * (mbedtls_t_udbl) b;          \
     r0  = (mbedtls_mpi_uint) r;                   \
     r1  = (mbedtls_mpi_uint)( r >> biL );         \
@@ -942,18 +947,19 @@
     r0 += *d; r1 += (r0 < *d);          \
     c = r1; *(d++) = r0;
 
-#define MULADDC_STOP                    \
+#define MULADDC_X1_STOP                 \
 }
 
-#else
-#define MULADDC_INIT                    \
+#else /* MBEDTLS_HAVE_UDBL */
+
+#define MULADDC_X1_INIT                 \
 {                                       \
     mbedtls_mpi_uint s0, s1, b0, b1;              \
     mbedtls_mpi_uint r0, r1, rx, ry;              \
     b0 = ( b << biH ) >> biH;           \
     b1 = ( b >> biH );
 
-#define MULADDC_CORE                    \
+#define MULADDC_X1_CORE                 \
     s0 = ( *s << biH ) >> biH;          \
     s1 = ( *s >> biH ); s++;            \
     rx = s0 * b1; r0 = s0 * b0;         \
@@ -967,10 +973,28 @@
     r0 += *d; r1 += (r0 < *d);          \
     c = r1; *(d++) = r0;
 
-#define MULADDC_STOP                    \
+#define MULADDC_X1_STOP                 \
 }
 
-#endif /* C (generic)  */
 #endif /* C (longlong) */
+#endif /* C (generic)  */
+
+#if !defined(MULADDC_X2_CORE)
+#define MULADDC_X2_INIT MULADDC_X1_INIT
+#define MULADDC_X2_STOP MULADDC_X1_STOP
+#define MULADDC_X2_CORE MULADDC_X1_CORE MULADDC_X1_CORE
+#endif /* MULADDC_X2_CORE */
+
+#if !defined(MULADDC_X4_CORE)
+#define MULADDC_X4_INIT MULADDC_X2_INIT
+#define MULADDC_X4_STOP MULADDC_X2_STOP
+#define MULADDC_X4_CORE MULADDC_X2_CORE MULADDC_X2_CORE
+#endif /* MULADDC_X4_CORE */
+
+#if !defined(MULADDC_X8_CORE)
+#define MULADDC_X8_INIT MULADDC_X4_INIT
+#define MULADDC_X8_STOP MULADDC_X4_STOP
+#define MULADDC_X8_CORE MULADDC_X4_CORE MULADDC_X4_CORE
+#endif /* MULADDC_X8_CORE */
 
 #endif /* bn_mul.h */

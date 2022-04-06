@@ -3515,7 +3515,7 @@ data_exchange:
         do
         {
             int terminated = 0;
-            len = opt.buffer_size - 1;
+            len = opt.buffer_size;
             memset( buf, 0, opt.buffer_size );
             ret = mbedtls_ssl_read( &ssl, buf, len );
 
@@ -3616,7 +3616,7 @@ data_exchange:
     }
     else /* Not stream, so datagram */
     {
-        len = opt.buffer_size - 1;
+        len = opt.buffer_size;
         memset( buf, 0, opt.buffer_size );
 
         do

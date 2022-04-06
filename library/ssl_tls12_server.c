@@ -4047,18 +4047,19 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
             return( ret );
         }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-        /* Opaque PSKs are currently only supported for PSK-only. */
-        if( ssl_use_opaque_psk( ssl ) == 1 )
-            return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
-#endif
-
         if( ( ret = ssl_parse_encrypted_pms( ssl, p, end, 2 ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_encrypted_pms" ), ret );
             return( ret );
         }
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        /* For opaque PSKs, we perform the PSK-to-MS derivation automatically
+         * and skip the intermediate PMS. */
+        if( ssl_use_opaque_psk( ssl ) == 1 )
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "skip PMS generation for opaque RSA-PSK" ) );
+        else
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
         if( ( ret = mbedtls_ssl_psk_derive_premaster( ssl,
                         ciphersuite_info->key_exchange ) ) != 0 )
         {

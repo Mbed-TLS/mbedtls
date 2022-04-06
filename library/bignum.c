@@ -1907,8 +1907,8 @@ static void mpi_montg_init( mbedtls_mpi_uint *mm, const mbedtls_mpi *N )
  * \param           mm  The value calculated by `mpi_montg_init(&mm, N)`.
  *                      This is -N^-1 mod 2^ciL.
  * \param[in,out]   T   A bignum for temporary storage.
- *                      It must be at least twice the limb size of N plus 2
- *                      (T->n >= 2 * (N->n + 1)).
+ *                      It must be at least twice the limb size of N plus 1
+ *                      (T->n >= 2 * N->n + 1).
  *                      Its initial content is unused and
  *                      its final content is indeterminate.
  *                      Note that unlike the usual convention in the library
@@ -1934,10 +1934,13 @@ static void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi
         u0 = A->p[i];
         u1 = ( d[0] + u0 * B->p[0] ) * mm;
 
-        mpi_mul_hlp( m, B->p, d, u0 );
-        mpi_mul_hlp( n, N->p, d, u1 );
-
-        d++; d[n + 1] = 0;
+        (void) mpi_mul_hlp( d, n + 2,
+                            B->p, m,
+                            u0 );
+        (void) mpi_mul_hlp( d, n + 2,
+                            N->p, n,
+                            u1 );
+        d++;
     }
 
     /* At this point, d is either the desired result or the desired result

@@ -763,7 +763,7 @@ static int ssl_tls13_prepare_server_hello( mbedtls_ssl_context *ssl )
  * ssl_tls13_write_supported_versions_ext():
  *
  * struct {
- *      ProtocolVersion versions<2..254>;
+ *      ProtocolVersion selected_version;
  * } SupportedVersions;
  */
 static int ssl_tls13_write_supported_versions_ext( mbedtls_ssl_context *ssl,

@@ -1377,54 +1377,19 @@ mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len,
     mbedtls_mpi_uint c = 0; /* carry */
     size_t excess_len = d_len - s_len;
 
-#if defined(MULADDC_HUIT)
     for( ; s_len >= 8; s_len -= 8 )
     {
-        MULADDC_INIT
-        MULADDC_HUIT
-        MULADDC_STOP
+        MULADDC_X8_INIT
+        MULADDC_X8_CORE
+        MULADDC_X8_STOP
     }
 
     for( ; s_len > 0; s_len-- )
     {
-        MULADDC_INIT
-        MULADDC_CORE
-        MULADDC_STOP
+        MULADDC_X1_INIT
+        MULADDC_X1_CORE
+        MULADDC_X1_STOP
     }
-#else /* MULADDC_HUIT */
-    for( ; s_len >= 16; s_len -= 16 )
-    {
-        MULADDC_INIT
-        MULADDC_CORE   MULADDC_CORE
-        MULADDC_CORE   MULADDC_CORE
-        MULADDC_CORE   MULADDC_CORE
-        MULADDC_CORE   MULADDC_CORE
-
-        MULADDC_CORE   MULADDC_CORE
-        MULADDC_CORE   MULADDC_CORE
-        MULADDC_CORE   MULADDC_CORE
-        MULADDC_CORE   MULADDC_CORE
-        MULADDC_STOP
-    }
-
-    for( ; s_len >= 8; s_len -= 8 )
-    {
-        MULADDC_INIT
-        MULADDC_CORE   MULADDC_CORE
-        MULADDC_CORE   MULADDC_CORE
-
-        MULADDC_CORE   MULADDC_CORE
-        MULADDC_CORE   MULADDC_CORE
-        MULADDC_STOP
-    }
-
-    for( ; s_len > 0; s_len-- )
-    {
-        MULADDC_INIT
-        MULADDC_CORE
-        MULADDC_STOP
-    }
-#endif /* MULADDC_HUIT */
 
     while( excess_len-- )
     {

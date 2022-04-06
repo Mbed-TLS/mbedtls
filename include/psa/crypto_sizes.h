@@ -243,6 +243,8 @@
  * the TLS-1.2 PSK-to-MS key derivation
  * (#PSA_ALG_TLS12_PSK_TO_MS(\c hash_alg)).
  *
+ * The other secret is the salt parameter in PSK-to-MS key derivation.
+ *
  * The other secret is the output of RSA key wrapping or
  * of (EC)DHE key agreement.
  *

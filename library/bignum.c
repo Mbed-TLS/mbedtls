@@ -1373,17 +1373,17 @@ int mbedtls_mpi_sub_int( mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_sint 
  *
  * Add \p b * \p s to \p d.
  *
- * \param i             The number of limbs of \p s.
+ * \param[in,out] d     The bignum to add to.
+ * \param d_len         The number of limbs of \p d. This must be
+ *                      at least \p s_len.
+ * \param s_len         The number of limbs of \p s.
  * \param[in] s         A bignum to multiply, of size \p i.
  *                      It may overlap with \p d, but only if
  *                      \p d <= \p s.
  *                      Its leading limb must not be \c 0.
- * \param[in,out] d     The bignum to add to.
- *                      It must be sufficiently large to store the
- *                      result of the multiplication. This means
- *                      \p i + 1 limbs if \p d[\p i - 1] started as 0 and \p b
- *                      is not known a priori.
  * \param b             A scalar to multiply.
+ *
+ * \return c            The carry at the end of the operation.
  */
 static
 #if defined(__APPLE__) && defined(__arm__)
@@ -1393,29 +1393,31 @@ static
  */
 __attribute__ ((noinline))
 #endif
-void mpi_mul_hlp( size_t i,
-                  const mbedtls_mpi_uint *s,
-                  mbedtls_mpi_uint *d,
-                  mbedtls_mpi_uint b )
+mbedtls_mpi_uint mpi_mul_hlp( mbedtls_mpi_uint *d, size_t d_len ,
+                              const mbedtls_mpi_uint *s, size_t s_len,
+                              mbedtls_mpi_uint b )
 {
     mbedtls_mpi_uint c = 0; /* carry */
 
+    /* Remember the excess of d over s for later */
+    d_len -= s_len;
+
 #if defined(MULADDC_HUIT)
-    for( ; i >= 8; i -= 8 )
+    for( ; s_len >= 8; s_len -= 8 )
     {
         MULADDC_INIT
         MULADDC_HUIT
         MULADDC_STOP
     }
 
-    for( ; i > 0; i-- )
+    for( ; s_len > 0; s_len-- )
     {
         MULADDC_INIT
         MULADDC_CORE
         MULADDC_STOP
     }
 #else /* MULADDC_HUIT */
-    for( ; i >= 16; i -= 16 )
+    for( ; s_len >= 16; s_len -= 16 )
     {
         MULADDC_INIT
         MULADDC_CORE   MULADDC_CORE
@@ -1430,7 +1432,7 @@ void mpi_mul_hlp( size_t i,
         MULADDC_STOP
     }
 
-    for( ; i >= 8; i -= 8 )
+    for( ; s_len >= 8; s_len -= 8 )
     {
         MULADDC_INIT
         MULADDC_CORE   MULADDC_CORE
@@ -1441,7 +1443,7 @@ void mpi_mul_hlp( size_t i,
         MULADDC_STOP
     }
 
-    for( ; i > 0; i-- )
+    for( ; s_len > 0; s_len-- )
     {
         MULADDC_INIT
         MULADDC_CORE
@@ -1449,10 +1451,12 @@ void mpi_mul_hlp( size_t i,
     }
 #endif /* MULADDC_HUIT */
 
-    while( c != 0 )
+    while( d_len-- )
     {
         *d += c; c = ( *d < c ); d++;
     }
+
+    return( c );
 }
 
 /*

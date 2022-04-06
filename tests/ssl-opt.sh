@@ -818,8 +818,9 @@ is_gnutls() {
 #          disabled on the client or on the server.
 #
 # Inputs:
-# * $1: 'required' or 1 if client authentication is expected,
-#       'none' or 0 or absent if not.
+# * $1: the value of the server auth_mode parameter.
+#       'required' if client authentication is expected,
+#       'none' or absent if not.
 # * $CONFIGS_ENABLED
 #
 # Outputs:
@@ -830,8 +831,8 @@ set_maybe_calc_verify() {
         *\ MBEDTLS_SSL_EXTENDED_MASTER_SECRET\ *) :;;
         *)
             case ${1-} in
-                ''|0|none) return;;
-                1|required) :;;
+                ''|none) return;;
+                required) :;;
                 *) echo "Bad parameter 1 to set_maybe_calc_verify: $1"; exit 1;;
             esac
     esac

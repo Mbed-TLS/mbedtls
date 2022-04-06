@@ -2222,6 +2222,8 @@ static inline int psa_ssl_status_to_mbedtls( psa_status_t status )
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
         case PSA_ERROR_BAD_STATE:
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        case PSA_ERROR_BUFFER_TOO_SMALL:
+            return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
         default:
             return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
     }

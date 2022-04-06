@@ -711,19 +711,57 @@
     defined (__ARM_FEATURE_DSP) && (__ARM_FEATURE_DSP == 1)
 
 #define MULADDC_X1_INIT                            \
-    asm(
+    {                                              \
+        mbedtls_mpi_uint tmp_a, tmp_b;             \
+        asm volatile (
 
-#define MULADDC_X1_CORE                         \
-            "ldr    r0, [%0], #4        \n\t"   \
-            "ldr    r1, [%1]            \n\t"   \
-            "umaal  r1, %2, %3, r0      \n\t"   \
-            "str    r1, [%1], #4        \n\t"
+#define MULADDC_X1_CORE                                         \
+           ".p2align  2                                 \n\t"   \
+            "ldr.w    %[a], [%[in]], #4                 \n\t"   \
+            "ldr.w    %[b], [%[acc]]                    \n\t"   \
+            "umaal    %[b], %[carry], %[scalar], %[a]   \n\t"   \
+            "str.w    %[b], [%[acc]], #4                \n\t"
 
-#define MULADDC_X1_STOP                         \
-         : "=r" (s),  "=r" (d), "=r" (c)        \
-         : "r" (b), "0" (s), "1" (d), "2" (c)   \
-         : "r0", "r1", "memory"                 \
-         );
+#define MULADDC_X1_STOP                                      \
+            : [a]      "=&r" (tmp_a),                        \
+              [b]      "=&r" (tmp_b),                        \
+              [in]     "+r"  (s),                            \
+              [acc]    "+r"  (d),                            \
+              [carry]  "+l"  (c)                             \
+            : [scalar] "r"   (b)                             \
+            : "memory"                                       \
+        );                                                   \
+    }
+
+#define MULADDC_X2_INIT                              \
+    {                                                \
+        mbedtls_mpi_uint tmp_a0, tmp_b0;             \
+        mbedtls_mpi_uint tmp_a1, tmp_b1;             \
+        asm volatile (
+
+#define MULADDC_X2_CORE                                           \
+           ".p2align  2                                   \n\t"   \
+            "ldr.w    %[a0], [%[in]],  #+8                \n\t"   \
+            "ldr.w    %[b0], [%[acc]], #+8                \n\t"   \
+            "ldr.w    %[a1], [%[in],  #-4]                \n\t"   \
+            "ldr.w    %[b1], [%[acc], #-4]                \n\t"   \
+            "umaal    %[b0], %[carry], %[scalar], %[a0]   \n\t"   \
+            "umaal    %[b1], %[carry], %[scalar], %[a1]   \n\t"   \
+            "str.w    %[b0], [%[acc], #-8]                \n\t"   \
+            "str.w    %[b1], [%[acc], #-4]                \n\t"
+
+#define MULADDC_X2_STOP                                      \
+            : [a0]     "=&r" (tmp_a0),                       \
+              [b0]     "=&r" (tmp_b0),                       \
+              [a1]     "=&r" (tmp_a1),                       \
+              [b1]     "=&r" (tmp_b1),                       \
+              [in]     "+r"  (s),                            \
+              [acc]    "+r"  (d),                            \
+              [carry]  "+l"  (c)                             \
+            : [scalar] "r"   (b)                             \
+            : "memory"                                       \
+        );                                                   \
+    }
 
 #else
 

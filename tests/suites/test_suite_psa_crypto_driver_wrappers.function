@@ -2534,7 +2534,7 @@ void aead_decrypt_setup( int key_type_arg, data_t *key_data,
 
         TEST_EQUAL( mbedtls_test_driver_aead_hooks.hits_abort,
                     forced_status == PSA_SUCCESS ? 1 : 0 );
-        
+
         ASSERT_COMPARE( expected_result->x, expected_result->len,
                         output_data, output_length + verify_output_length );
     }

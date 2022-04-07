@@ -2477,8 +2477,7 @@ component_build_mbedtls_config_file () {
     msg "build: make with MBEDTLS_CONFIG_FILE" # ~40s
     # Use the full config so as to catch a maximum of places where
     # the check of MBEDTLS_CONFIG_FILE might be missing.
-    scripts/config.py full
-    sed 's!"check_config.h"!"mbedtls/check_config.h"!' <"$CONFIG_H" >full_config.h
+    scripts/config.py -w full_config.h full
     echo '#error "MBEDTLS_CONFIG_FILE is not working"' >"$CONFIG_H"
     make CFLAGS="-I '$PWD' -DMBEDTLS_CONFIG_FILE='\"full_config.h\"'"
     rm -f full_config.h

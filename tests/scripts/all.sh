@@ -2478,7 +2478,17 @@ component_build_mbedtls_config_file () {
     scripts/config.py -w full_config.h full
     echo '#error "MBEDTLS_CONFIG_FILE is not working"' >"$CONFIG_H"
     make CFLAGS="-I '$PWD' -DMBEDTLS_CONFIG_FILE='\"full_config.h\"'"
-    rm -f full_config.h
+    programs/test/query_compile_time_config MBEDTLS_NIST_KW_C
+    make clean
+
+    msg "build: make with MBEDTLS_CONFIG_FILE + MBEDTLS_USER_CONFIG_FILE"
+    # In the user config, disable one feature (for simplicity, pick a feature
+    # that nothing else depends on).
+    echo '#undef MBEDTLS_NIST_KW_C' >user_config.h
+    make CFLAGS="-I '$PWD' -DMBEDTLS_CONFIG_FILE='\"full_config.h\"' -DMBEDTLS_USER_CONFIG_FILE='\"user_config.h\"'"
+    not programs/test/query_compile_time_config MBEDTLS_NIST_KW_C
+
+    rm -f user_config.h full_config.h
 }
 
 component_test_m32_o0 () {

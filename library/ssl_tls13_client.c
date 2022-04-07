@@ -229,9 +229,7 @@ static int ssl_tls13_generate_and_write_ecdh_key_exchange(
         mbedtls_psa_parse_tls_ecc_group( named_group, &ecdh_bits ) ) == 0 )
             return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
 
-    if( ecdh_bits > 0xffff )
-        return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
-    ssl->handshake->ecdh_bits = (uint16_t) ecdh_bits;
+    ssl->handshake->ecdh_bits = ecdh_bits;
 
     key_attributes = psa_key_attributes_init();
     psa_set_key_usage_flags( &key_attributes, PSA_KEY_USAGE_DERIVE );

@@ -923,7 +923,8 @@ int mbedtls_pk_load_file( const char *path, unsigned char **buf, size_t *n );
  *                  change or be removed at any time without notice.
  *
  * \note            Only ECDSA keys are supported so far. Signing with the
- *                  specified hash is the only allowed use of that key.
+ *                  specified hash & ECDH key agreement derivation operation
+ *                  are the only allowed use of that key.
  *
  * \param pk        Input: the EC key to import to a PSA key.
  *                  Output: a PK context wrapping that PSA key.

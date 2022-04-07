@@ -2473,7 +2473,7 @@ void aead_decrypt_setup( int key_type_arg, data_t *key_data,
     psa_aead_operation_t operation = psa_aead_operation_init();
     mbedtls_test_driver_aead_hooks = mbedtls_test_driver_aead_hooks_init();
 
-    PSA_ASSERT( psa_crypto_init( ) );
+    PSA_INIT( );
 
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DECRYPT  );
     psa_set_key_algorithm( &attributes, alg );

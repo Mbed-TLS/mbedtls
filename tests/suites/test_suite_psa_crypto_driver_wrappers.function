@@ -2481,7 +2481,6 @@ void aead_decrypt_setup( int key_type_arg, data_t *key_data,
 
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &key ) );
-    PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
 
     output_size = input_ciphertext->len;
 

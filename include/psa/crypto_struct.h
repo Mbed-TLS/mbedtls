@@ -231,6 +231,8 @@ typedef struct psa_tls12_prf_key_derivation_s
     size_t MBEDTLS_PRIVATE(seed_length);
     uint8_t *MBEDTLS_PRIVATE(label);
     size_t MBEDTLS_PRIVATE(label_length);
+    uint8_t *MBEDTLS_PRIVATE(other_secret);
+    size_t MBEDTLS_PRIVATE(other_secret_length);
 
     uint8_t MBEDTLS_PRIVATE(Ai)[PSA_HASH_MAX_SIZE];
 

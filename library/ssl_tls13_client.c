@@ -49,8 +49,8 @@ static int ssl_tls13_write_supported_versions_ext( mbedtls_ssl_context *ssl,
                                                    size_t *out_len )
 {
     unsigned char *p = buf;
-    unsigned char versions_len = ( ssl->handshake->min_minor_ver <=
-                                   MBEDTLS_SSL_MINOR_VERSION_3 ) ? 4 : 2;
+    unsigned char versions_len = ( ssl->handshake->min_tls_version <=
+                                   MBEDTLS_SSL_VERSION_TLS1_2 ) ? 4 : 2;
 
     *out_len = 0;
 
@@ -80,7 +80,7 @@ static int ssl_tls13_write_supported_versions_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "supported version: [3:4]" ) );
 
 
-    if( ssl->handshake->min_minor_ver <= MBEDTLS_SSL_MINOR_VERSION_3 )
+    if( ssl->handshake->min_tls_version <= MBEDTLS_SSL_VERSION_TLS1_2 )
     {
         mbedtls_ssl_write_version( p + 2, MBEDTLS_SSL_TRANSPORT_STREAM,
                                    MBEDTLS_SSL_VERSION_TLS1_2 );
@@ -859,7 +859,7 @@ static int ssl_tls13_server_hello_coordinate( mbedtls_ssl_context *ssl,
          * expecting it, abort the handshake. Otherwise, switch to TLS 1.2
          * handshake.
          */
-        if( ssl->handshake->min_minor_ver > MBEDTLS_SSL_MINOR_VERSION_3 )
+        if( ssl->handshake->min_tls_version > MBEDTLS_SSL_VERSION_TLS1_2 )
         {
             MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
                                           MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );

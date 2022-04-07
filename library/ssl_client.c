@@ -493,7 +493,7 @@ static int ssl_write_client_hello_cipher_suites(
         ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( cipher_suite );
 
         if( mbedtls_ssl_validate_ciphersuite( ssl, ciphersuite_info,
-                                              0x0300 | ssl->handshake->min_minor_ver,
+                                              ssl->handshake->min_tls_version,
                                               ssl->tls_version ) != 0 )
             continue;
 
@@ -585,13 +585,13 @@ static int ssl_write_client_hello_body( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     unsigned char propose_tls12 =
-        ( handshake->min_minor_ver <= MBEDTLS_SSL_MINOR_VERSION_3 )
+        ( handshake->min_tls_version <= MBEDTLS_SSL_VERSION_TLS1_2 )
         &&
         ( MBEDTLS_SSL_VERSION_TLS1_2 <= ssl->tls_version );
 #endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     unsigned char propose_tls13 =
-        ( handshake->min_minor_ver <= MBEDTLS_SSL_MINOR_VERSION_4 )
+        ( handshake->min_tls_version <= MBEDTLS_SSL_VERSION_TLS1_3 )
         &&
         ( MBEDTLS_SSL_VERSION_TLS1_3 <= ssl->tls_version );
 #endif
@@ -851,19 +851,19 @@ static int ssl_prepare_client_hello( mbedtls_ssl_context *ssl )
      */
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     if( ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE )
-        ssl->handshake->min_minor_ver = ssl->tls_version & 0xFF;
+        ssl->handshake->min_tls_version = ssl->tls_version;
     else
 #endif
     {
         if( ssl->handshake->resume )
         {
              ssl->tls_version = ssl->session_negotiate->tls_version;
-             ssl->handshake->min_minor_ver = ssl->tls_version & 0xFF;
+             ssl->handshake->min_tls_version = ssl->tls_version;
         }
         else
         {
              ssl->tls_version = ssl->conf->max_tls_version;
-             ssl->handshake->min_minor_ver = ssl->conf->min_tls_version & 0xFF;
+             ssl->handshake->min_tls_version = ssl->conf->min_tls_version;
         }
     }
 

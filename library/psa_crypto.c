@@ -5208,7 +5208,8 @@ static psa_status_t psa_tls12_prf_set_key( psa_tls12_prf_key_derivation_t *prf,
                                            const uint8_t *data,
                                            size_t data_length )
 {
-    if( prf->state != PSA_TLS12_PRF_STATE_SEED_SET )
+    if( prf->state != PSA_TLS12_PRF_STATE_SEED_SET &&
+        prf->state != PSA_TLS12_PRF_STATE_OTHER_KEY_SET )
         return( PSA_ERROR_BAD_STATE );
 
     if( data_length != 0 )

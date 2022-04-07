@@ -10223,7 +10223,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 requires_openssl_tls1_3
 run_test    "TLS 1.3: Server side check, ciphersuite TLS_AES_256_GCM_SHA384 - openssl" \
-            "$P_SRV debug_level=4 force_version=tls13 tickets=0" \
+            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
             "$O_NEXT_CLI -msg -tls1_3" \
             1 \
             -s "=> parse client hello" \
@@ -10237,7 +10237,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS 1.3: Server side check, ciphersuite TLS_AES_128_GCM_SHA256 - gnutls" \
-            "$P_SRV debug_level=4 force_version=tls13 tickets=0" \
+            "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
             "$G_NEXT_CLI -d 4 localhost --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+VERS-TLS1.3:%NO_TICKETS" \
             1 \
             -s "=> parse client hello" \

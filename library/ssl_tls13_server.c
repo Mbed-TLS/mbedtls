@@ -107,8 +107,6 @@ static int ssl_tls13_parse_supported_versions_ext( mbedtls_ssl_context *ssl,
 
     ssl->major_ver = major_ver;
     ssl->minor_ver = minor_ver;
-    ssl->handshake->max_major_ver = ssl->major_ver;
-    ssl->handshake->max_minor_ver = ssl->minor_ver;
     return( 0 );
 }
 
@@ -435,10 +433,6 @@ static int ssl_client_hello_process( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_fetch_handshake_msg(
                           ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
                           &buf, &buflen ) );
-
-    mbedtls_ssl_tls13_add_hs_hdr_to_checksum( ssl,
-                                              MBEDTLS_SSL_HS_CLIENT_HELLO,
-                                              buflen );
 
     MBEDTLS_SSL_PROC_CHK_NEG( ssl_client_hello_parse( ssl, buf, buf + buflen ) );
     hrr_required = ret;
@@ -786,7 +780,8 @@ static int ssl_client_hello_parse( mbedtls_ssl_context *ssl,
      * - The entire content of the CH message, if no PSK extension is present
      * - The content up to but excluding the PSK extension, if present.
      */
-    ssl->handshake->update_checksum( ssl, buf, p - buf );
+    mbedtls_ssl_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_SERVER_HELLO,
+                                        buf, p - buf );
     /*
      * Search for a matching ciphersuite
      */

@@ -4315,6 +4315,13 @@ psa_status_t psa_key_derivation_abort( psa_key_derivation_operation_t *operation
             mbedtls_free( operation->ctx.tls12_prf.label );
         }
 
+        if( operation->ctx.tls12_prf.other_secret != NULL )
+        {
+            mbedtls_platform_zeroize( operation->ctx.tls12_prf.other_secret,
+                                      operation->ctx.tls12_prf.other_secret_length );
+            mbedtls_free( operation->ctx.tls12_prf.other_secret );
+        }
+
         status = PSA_SUCCESS;
 
         /* We leave the fields Ai and output_block to be erased safely by the

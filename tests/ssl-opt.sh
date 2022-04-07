@@ -1164,7 +1164,8 @@ run_test() {
 
     analyze_test_commands "$@"
 
-    TIMES_LEFT=2
+    # One regular run and two retries
+    TIMES_LEFT=3
     while [ $TIMES_LEFT -gt 0 ]; do
         TIMES_LEFT=$(( $TIMES_LEFT - 1 ))
 

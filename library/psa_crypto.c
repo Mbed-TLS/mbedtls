@@ -5391,6 +5391,12 @@ static int psa_key_derivation_check_input_type(
             if( key_type == PSA_KEY_TYPE_NONE )
                 return( PSA_SUCCESS );
             break;
+        case PSA_KEY_DERIVATION_INPUT_OTHER_SECRET:
+            if( key_type == PSA_KEY_TYPE_DERIVE )
+                return( PSA_SUCCESS );
+            if( key_type == PSA_KEY_TYPE_NONE )
+                return( PSA_SUCCESS );
+            break;
         case PSA_KEY_DERIVATION_INPUT_LABEL:
         case PSA_KEY_DERIVATION_INPUT_SALT:
         case PSA_KEY_DERIVATION_INPUT_INFO:

@@ -119,7 +119,7 @@ mbedtls_svc_key_id_t pk_psa_genkey_rsa( void )
     mbedtls_svc_key_id_t key;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const psa_key_type_t type = PSA_KEY_TYPE_RSA_KEY_PAIR;
-    const size_t bits = 256;
+    const size_t bits = 1024;
 
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_HASH );
     psa_set_key_algorithm( &attributes, PSA_ALG_RSA_PKCS1V15_SIGN_RAW );
@@ -146,7 +146,7 @@ void pk_psa_utils( int key_is_rsa )
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     const char * const name = "Opaque";
-    const size_t bitlen = 256; /* harcoded in genkey() */
+    size_t bitlen;
 
     mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
     unsigned char b1[1], b2[1];
@@ -167,9 +167,15 @@ void pk_psa_utils( int key_is_rsa )
     mbedtls_pk_init( &pk );
 
     if( key_is_rsa )
+    {
+        bitlen = 1024; /* harcoded in genkey() */
         key = pk_psa_genkey_rsa();
+    }
     else
+    {
+        bitlen = 256; /* harcoded in genkey() */
         key = pk_psa_genkey_ecc();
+    }
     if( mbedtls_svc_key_id_is_null( key ) )
         goto exit;
 

@@ -1701,12 +1701,14 @@ run_test    "RC4: server half, client enabled" \
             1 \
             -s "SSL - The server has no ciphersuites in common"
 
+requires_ciphersuite_enabled TLS-RSA-WITH-RC4-128-SHA
 run_test    "RC4: server enabled, client disabled" \
             "$P_SRV force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI" \
             1 \
             -s "SSL - The server has no ciphersuites in common"
 
+requires_ciphersuite_enabled TLS-RSA-WITH-RC4-128-SHA
 run_test    "RC4: both enabled" \
             "$P_SRV force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \

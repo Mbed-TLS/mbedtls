@@ -169,7 +169,7 @@ int mbedtls_pk_setup_opaque( mbedtls_pk_context *ctx,
 
     if( PSA_KEY_TYPE_IS_ECC_KEY_PAIR( type ) )
         info = &mbedtls_pk_ecdsa_opaque_info;
-    else if( PSA_KEY_TYPE_IS_RSA( type ) )
+    else if( type == PSA_KEY_TYPE_RSA_KEY_PAIR )
         info = &mbedtls_pk_rsa_opaque_info;
     else
         return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );

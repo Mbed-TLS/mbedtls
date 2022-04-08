@@ -1006,6 +1006,44 @@
 #endif /* MBEDTLS_HAVE_UDBL */
 #endif /* MPI_UINT_UMAAL */
 
+#define MPI_UINT_DBL_MUL_SGL(out0,out1,a0,a1,b0)  \
+    {                                             \
+        mbedtls_mpi_uint carry = 0;               \
+        mbedtls_mpi_uint tmp0 = 0, tmp1 = 0;      \
+        MPI_UINT_UMAAL(tmp0,tmp1,a0,b0);          \
+        MPI_UINT_UMAAL(tmp1,carry,a1,b0);         \
+        out0 = tmp0; out1 = tmp1;                 \
+    }
+
+#define MPI_UINT_DBL_MUL_SGL_ACC(acc0,acc1,a0,a1,b0)     \
+    {                                                    \
+        mbedtls_mpi_uint carry;                          \
+        mbedtls_mpi_uint tmp0 = acc0, tmp1 = 0;          \
+        MPI_UINT_UMAAL(tmp0,tmp1,a0,b0);                 \
+        carry = acc1; MPI_UINT_UMAAL(tmp1,carry,a1,b0);  \
+        acc0 = tmp0; acc1 = tmp1;                        \
+    }
+
+#define MPI_UINT_DBL_MUL_DBL_ACC(acc0,acc1,a0,a1,b0,b1)  \
+    {                                                    \
+        mbedtls_mpi_uint carry;                          \
+        mbedtls_mpi_uint tmp0 = acc0, tmp1 = 0;          \
+        MPI_UINT_UMAAL(tmp0,tmp1,a0,b0);                 \
+        carry = acc1; MPI_UINT_UMAAL(tmp1,carry,a1,b0);  \
+        carry = 0;    MPI_UINT_UMAAL(tmp1,carry,a0,b1);  \
+        acc0 = tmp0; acc1 = tmp1;                        \
+    }
+
+#define MPI_UINT_DBL_MUL_DBL(out0,out1,a0,a1,b0,b1)  \
+    {                                                \
+        mbedtls_mpi_uint carry;                      \
+        mbedtls_mpi_uint tmp0 = 0, tmp1 = 0;         \
+        MPI_UINT_UMAAL(tmp0,tmp1,a0,b0);             \
+        carry = 0; MPI_UINT_UMAAL(tmp1,carry,a1,b0); \
+        carry = 0; MPI_UINT_UMAAL(tmp1,carry,a0,b1); \
+        out0 = tmp0; out1 = tmp1;                    \
+    }
+
 #if !defined(MULADDC_X1_CORE)
 #define MULADDC_X1_INIT                         \
     {                                           \

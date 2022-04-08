@@ -286,6 +286,15 @@ detect_required_features() {
             requires_ciphersuite_enabled "$tmp";;
     esac
 
+    case " $1 " in
+        *[-_\ =]tickets=[^0]*)
+            requires_config_enabled MBEDTLS_SSL_TICKET_C;;
+    esac
+    case " $1 " in
+        *[-_\ =]alpn=*)
+            requires_config_enabled MBEDTLS_SSL_ALPN;;
+    esac
+
     unset tmp
 }
 
@@ -1257,16 +1266,6 @@ run_test() {
     if [ "$DTLS" -eq 1 ]; then
         requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
     fi
-
-    # Check more TLS protocol features.
-    case "$SRV_CMD $CLI_CMD" in
-        *[-_\ =]tickets=[^0]*)
-            requires_config_enabled MBEDTLS_SSL_TICKET_C;;
-    esac
-    case "$SRV_CMD $CLI_CMD" in
-        *[-_\ =]alpn=*)
-            requires_config_enabled MBEDTLS_SSL_ALPN;;
-    esac
 
     # If the client or server requires certain features that can be detected
     # from their command-line arguments, check that they're enabled.

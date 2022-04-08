@@ -5610,23 +5610,23 @@ void raw_key_agreement_fail( int bad_server_ecdhe_key )
      * the raw key agreement. Flipping one bit with a Weierstrass
      * curve (as opposed to a Montgomery curve) has a high chance of
      * making it invalid. */
-    TEST_ASSERT( mbedtls_endpoint_init( &client, MBEDTLS_SSL_IS_CLIENT,
+    TEST_EQUAL( mbedtls_endpoint_init( &client, MBEDTLS_SSL_IS_CLIENT,
                                         MBEDTLS_PK_ECDSA, NULL, NULL,
-                                        NULL, iana_tls_group_list ) == 0 );
+                                        NULL, iana_tls_group_list ), 0 );
 
     /* Server side */
-    TEST_ASSERT( mbedtls_endpoint_init( &server, MBEDTLS_SSL_IS_SERVER,
+    TEST_EQUAL( mbedtls_endpoint_init( &server, MBEDTLS_SSL_IS_SERVER,
                                         MBEDTLS_PK_ECDSA, NULL, NULL,
-                                        NULL, NULL ) == 0 );
+                                        NULL, NULL ), 0 );
 
-    TEST_ASSERT( mbedtls_mock_socket_connect( &(client.socket),
+    TEST_EQUAL( mbedtls_mock_socket_connect( &(client.socket),
                                               &(server.socket),
-                                              BUFFSIZE ) == 0 );
+                                              BUFFSIZE ), 0 );
 
-    TEST_ASSERT( mbedtls_move_handshake_to_state( &(client.ssl),
+    TEST_EQUAL( mbedtls_move_handshake_to_state( &(client.ssl),
                                                   &(server.ssl),
                                                   MBEDTLS_SSL_CLIENT_KEY_EXCHANGE )
-                 ==  0 );
+                 , 0 );
 
     mbedtls_psa_get_stats( &stats );
     /* Save the number of slots in use up to this point.

@@ -703,7 +703,7 @@ mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx )
  * Load the key to a PSA key slot,
  * then turn the PK context into a wrapper for that key slot.
  *
- * Currently only works for EC private keys.
+ * Currently only works for EC & RSA private keys.
  */
 int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
                                mbedtls_svc_key_id_t *key,

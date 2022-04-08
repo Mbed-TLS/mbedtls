@@ -263,6 +263,19 @@ requires_config_value_equals() {
     fi
 }
 
+# Require Mbed TLS to support the given protocol version.
+#
+# Inputs:
+# * $1: protocol version in mbedtls syntax (argument to force_version=)
+requires_protocol_version() {
+    # Support for DTLS is detected separately in detect_dtls().
+    case "$1" in
+        tls12|dtls12) requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2;;
+        tls13|dtls13) requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3;;
+        *) echo "Unknown required protocol version: $1"; exit 1;;
+    esac
+}
+
 # Space-separated list of ciphersuites supported by this build of
 # Mbed TLS.
 P_CIPHERSUITES=" $($P_CLI --help 2>/dev/null |
@@ -279,6 +292,13 @@ requires_ciphersuite_enabled() {
 # If CMD (call to a TLS client or server program) requires certain features,
 # arrange to only run the following test case if those features are enabled.
 detect_required_features() {
+    case "$1" in
+        *\ force_version=*)
+            tmp="${1##*\ force_version=}"
+            tmp="${tmp%%[!-0-9A-Z_a-z]*}"
+            requires_protocol_version "$tmp";;
+    esac
+
     case "$1" in
         *\ force_ciphersuite=*)
             tmp="${1##*\ force_ciphersuite=}"
@@ -1313,7 +1333,6 @@ run_test() {
 }
 
 run_test_psa() {
-    requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
     requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
     set_maybe_calc_verify none
     run_test    "PSA-supported ciphersuite: $1" \
@@ -1333,7 +1352,6 @@ run_test_psa() {
 }
 
 run_test_psa_force_curve() {
-    requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
     requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
     set_maybe_calc_verify none
     run_test    "PSA - ECDH with $1" \
@@ -2915,7 +2933,6 @@ run_test    "Encrypt then MAC, DTLS: disabled, empty application data record" \
 
 # Tests for CBC 1/n-1 record splitting
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "CBC Record splitting: TLS 1.2, no splitting" \
             "$P_SRV" \
             "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
@@ -5152,7 +5169,6 @@ run_test    "Authentication, CA callback: client max_int chain, server required"
 # Tests for certificate selection based on SHA verson
 
 requires_config_disabled MBEDTLS_X509_REMOVE_INFO
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Certificate hash: client TLS 1.2 -> SHA-2" \
             "$P_SRV crt_file=data_files/server5.crt \
                     key_file=data_files/server5.key \
@@ -6684,7 +6700,6 @@ run_test    "mbedtls_ssl_get_bytes_avail: extra data (max)" \
 
 # Tests for small client packets
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Small client packet TLS 1.2 BlockCipher" \
             "$P_SRV" \
             "$P_CLI request_size=1 force_version=tls12 \
@@ -6692,7 +6707,6 @@ run_test    "Small client packet TLS 1.2 BlockCipher" \
             0 \
             -s "Read from client: 1 bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Small client packet TLS 1.2 BlockCipher, without EtM" \
             "$P_SRV" \
             "$P_CLI request_size=1 force_version=tls12 \
@@ -6700,7 +6714,6 @@ run_test    "Small client packet TLS 1.2 BlockCipher, without EtM" \
             0 \
             -s "Read from client: 1 bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Small client packet TLS 1.2 BlockCipher larger MAC" \
             "$P_SRV" \
             "$P_CLI request_size=1 force_version=tls12 \
@@ -6708,7 +6721,6 @@ run_test    "Small client packet TLS 1.2 BlockCipher larger MAC" \
             0 \
             -s "Read from client: 1 bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Small client packet TLS 1.2 AEAD" \
             "$P_SRV" \
             "$P_CLI request_size=1 force_version=tls12 \
@@ -6716,7 +6728,6 @@ run_test    "Small client packet TLS 1.2 AEAD" \
             0 \
             -s "Read from client: 1 bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Small client packet TLS 1.2 AEAD shorter tag" \
             "$P_SRV" \
             "$P_CLI request_size=1 force_version=tls12 \
@@ -6727,7 +6738,6 @@ run_test    "Small client packet TLS 1.2 AEAD shorter tag" \
 # Tests for small client packets in DTLS
 
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Small client packet DTLS 1.2" \
             "$P_SRV dtls=1 force_version=dtls12" \
             "$P_CLI dtls=1 request_size=1 \
@@ -6736,7 +6746,6 @@ run_test    "Small client packet DTLS 1.2" \
             -s "Read from client: 1 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Small client packet DTLS 1.2, without EtM" \
             "$P_SRV dtls=1 force_version=dtls12 etm=0" \
             "$P_CLI dtls=1 request_size=1 \
@@ -6746,7 +6755,6 @@ run_test    "Small client packet DTLS 1.2, without EtM" \
 
 # Tests for small server packets
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Small server packet TLS 1.2 BlockCipher" \
             "$P_SRV response_size=1" \
             "$P_CLI force_version=tls12 \
@@ -6754,7 +6762,6 @@ run_test    "Small server packet TLS 1.2 BlockCipher" \
             0 \
             -c "Read from server: 1 bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Small server packet TLS 1.2 BlockCipher, without EtM" \
             "$P_SRV response_size=1" \
             "$P_CLI force_version=tls12 \
@@ -6762,7 +6769,6 @@ run_test    "Small server packet TLS 1.2 BlockCipher, without EtM" \
             0 \
             -c "Read from server: 1 bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Small server packet TLS 1.2 BlockCipher larger MAC" \
             "$P_SRV response_size=1" \
             "$P_CLI force_version=tls12 \
@@ -6770,7 +6776,6 @@ run_test    "Small server packet TLS 1.2 BlockCipher larger MAC" \
             0 \
             -c "Read from server: 1 bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Small server packet TLS 1.2 AEAD" \
             "$P_SRV response_size=1" \
             "$P_CLI force_version=tls12 \
@@ -6778,7 +6783,6 @@ run_test    "Small server packet TLS 1.2 AEAD" \
             0 \
             -c "Read from server: 1 bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Small server packet TLS 1.2 AEAD shorter tag" \
             "$P_SRV response_size=1" \
             "$P_CLI force_version=tls12 \
@@ -6789,7 +6793,6 @@ run_test    "Small server packet TLS 1.2 AEAD shorter tag" \
 # Tests for small server packets in DTLS
 
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Small server packet DTLS 1.2" \
             "$P_SRV dtls=1 response_size=1 force_version=dtls12" \
             "$P_CLI dtls=1 \
@@ -6798,7 +6801,6 @@ run_test    "Small server packet DTLS 1.2" \
             -c "Read from server: 1 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Small server packet DTLS 1.2, without EtM" \
             "$P_SRV dtls=1 response_size=1 force_version=dtls12 etm=0" \
             "$P_CLI dtls=1 \
@@ -6813,7 +6815,6 @@ fragments_for_write() {
     echo "$(( ( $1 + $MAX_OUT_LEN - 1 ) / $MAX_OUT_LEN ))"
 }
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Large client packet TLS 1.2 BlockCipher" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls12 \
@@ -6822,7 +6823,6 @@ run_test    "Large client packet TLS 1.2 BlockCipher" \
             -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
             -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Large client packet TLS 1.2 BlockCipher, without EtM" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls12 etm=0 \
@@ -6830,7 +6830,6 @@ run_test    "Large client packet TLS 1.2 BlockCipher, without EtM" \
             0 \
             -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Large client packet TLS 1.2 BlockCipher larger MAC" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls12 \
@@ -6839,7 +6838,6 @@ run_test    "Large client packet TLS 1.2 BlockCipher larger MAC" \
             -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
             -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Large client packet TLS 1.2 AEAD" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls12 \
@@ -6848,7 +6846,6 @@ run_test    "Large client packet TLS 1.2 AEAD" \
             -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
             -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Large client packet TLS 1.2 AEAD shorter tag" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls12 \
@@ -6858,7 +6855,6 @@ run_test    "Large client packet TLS 1.2 AEAD shorter tag" \
             -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 # The tests below fail when the server's OUT_CONTENT_LEN is less than 16384.
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Large server packet TLS 1.2 BlockCipher" \
             "$P_SRV response_size=16384" \
             "$P_CLI force_version=tls12 \
@@ -6866,7 +6862,6 @@ run_test    "Large server packet TLS 1.2 BlockCipher" \
             0 \
             -c "Read from server: 16384 bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Large server packet TLS 1.2 BlockCipher, without EtM" \
             "$P_SRV response_size=16384" \
             "$P_CLI force_version=tls12 etm=0 \
@@ -6875,7 +6870,6 @@ run_test    "Large server packet TLS 1.2 BlockCipher, without EtM" \
             -s "16384 bytes written in 1 fragments" \
             -c "Read from server: 16384 bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Large server packet TLS 1.2 BlockCipher larger MAC" \
             "$P_SRV response_size=16384" \
             "$P_CLI force_version=tls12 \
@@ -6883,7 +6877,6 @@ run_test    "Large server packet TLS 1.2 BlockCipher larger MAC" \
             0 \
             -c "Read from server: 16384 bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Large server packet TLS 1.2 BlockCipher, without EtM, truncated MAC" \
             "$P_SRV response_size=16384 trunc_hmac=1" \
             "$P_CLI force_version=tls12 \
@@ -6892,7 +6885,6 @@ run_test    "Large server packet TLS 1.2 BlockCipher, without EtM, truncated MAC
             -s "16384 bytes written in 1 fragments" \
             -c "Read from server: 16384 bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Large server packet TLS 1.2 AEAD" \
             "$P_SRV response_size=16384" \
             "$P_CLI force_version=tls12 \
@@ -6900,7 +6892,6 @@ run_test    "Large server packet TLS 1.2 AEAD" \
             0 \
             -c "Read from server: 16384 bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Large server packet TLS 1.2 AEAD shorter tag" \
             "$P_SRV response_size=16384" \
             "$P_CLI force_version=tls12 \
@@ -8472,10 +8463,8 @@ run_test    "DTLS fragmenting: proxy MTU + 3d, nbio" \
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_gnutls
 requires_max_content_len 2048
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS fragmenting: gnutls server, DTLS 1.2" \
             "$G_SRV -u" \
             "$P_CLI dtls=1 debug_level=2 \
@@ -8496,11 +8485,9 @@ run_test    "DTLS fragmenting: gnutls server, DTLS 1.2" \
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_gnutls
 requires_not_i686
 requires_max_content_len 2048
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS fragmenting: gnutls client, DTLS 1.2" \
             "$P_SRV dtls=1 debug_level=2 \
              crt_file=data_files/server7_int-ca.crt \
@@ -8513,9 +8500,7 @@ run_test    "DTLS fragmenting: gnutls client, DTLS 1.2" \
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_max_content_len 2048
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS fragmenting: openssl server, DTLS 1.2" \
             "$O_SRV -dtls1_2 -verify 10" \
             "$P_CLI dtls=1 debug_level=2 \
@@ -8529,9 +8514,7 @@ run_test    "DTLS fragmenting: openssl server, DTLS 1.2" \
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_max_content_len 2048
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS fragmenting: openssl client, DTLS 1.2" \
             "$P_SRV dtls=1 debug_level=2 \
              crt_file=data_files/server7_int-ca.crt \
@@ -8549,10 +8532,8 @@ requires_gnutls_next
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 client_needs_more_time 4
 requires_max_content_len 2048
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.2" \
             -p "$P_PXY drop=8 delay=8 duplicate=8" \
             "$G_NEXT_SRV -u" \
@@ -8568,10 +8549,8 @@ requires_gnutls_next
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 client_needs_more_time 4
 requires_max_content_len 2048
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.2" \
             -p "$P_PXY drop=8 delay=8 duplicate=8" \
             "$P_SRV dtls=1 debug_level=2 \
@@ -8591,10 +8570,8 @@ skip_next_test
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 client_needs_more_time 4
 requires_max_content_len 2048
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.2" \
             -p "$P_PXY drop=8 delay=8 duplicate=8" \
             "$O_SRV -dtls1_2 -verify 10" \
@@ -8610,10 +8587,8 @@ skip_next_test
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 client_needs_more_time 4
 requires_max_content_len 2048
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS fragmenting: 3d, openssl client, DTLS 1.2" \
             -p "$P_PXY drop=8 delay=8 duplicate=8" \
             "$P_SRV dtls=1 debug_level=2 \
@@ -9988,7 +9963,6 @@ run_test    "TLS 1.3: CertificateRequest check - gnutls" \
             -c "got a certificate request" \
             -c "<= parse certificate request"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
@@ -10002,7 +9976,6 @@ run_test    "TLS 1.3: HelloRetryRequest check, ciphersuite TLS_AES_128_GCM_SHA25
             -c "tls13 client state: MBEDTLS_SSL_CLIENT_HELLO" \
             -c "HTTP/1.0 200 ok"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
@@ -10018,7 +9991,6 @@ run_test    "TLS 1.3: HelloRetryRequest check, ciphersuite TLS_AES_256_GCM_SHA38
 
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
@@ -10033,7 +10005,6 @@ run_test    "TLS 1.3: HelloRetryRequest check, ciphersuite TLS_AES_128_GCM_SHA25
 
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C

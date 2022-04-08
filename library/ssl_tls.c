@@ -1313,14 +1313,6 @@ void mbedtls_ssl_set_timer_cb( mbedtls_ssl_context *ssl,
 }
 
 #if defined(MBEDTLS_SSL_SRV_C)
-void mbedtls_ssl_conf_cert_cb( mbedtls_ssl_config *conf,
-                               int (*f_cert_cb)(mbedtls_ssl_context *) )
-{
-    conf->f_cert_cb = f_cert_cb;
-}
-#endif /* MBEDTLS_SSL_SRV_C */
-
-#if defined(MBEDTLS_SSL_SRV_C)
 void mbedtls_ssl_conf_session_cache( mbedtls_ssl_config *conf,
                                      void *p_cache,
                                      mbedtls_ssl_cache_get_t *f_get_cache,

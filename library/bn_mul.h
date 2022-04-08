@@ -979,53 +979,64 @@
 
 #endif /* MBEDTLS_HAVE_ASM */
 
-#if !defined(MULADDC_X1_CORE)
+#if !defined(MPI_UINT_UMULL)
 #if defined(MBEDTLS_HAVE_UDBL)
-
-#define MULADDC_X1_INIT                 \
-{                                       \
-    mbedtls_t_udbl r;                           \
-    mbedtls_mpi_uint r0, r1;
-
-#define MULADDC_X1_CORE                 \
-    r   = *(s++) * (mbedtls_t_udbl) b;          \
-    r0  = (mbedtls_mpi_uint) r;                   \
-    r1  = (mbedtls_mpi_uint)( r >> biL );         \
-    r0 += c;  r1 += (r0 <  c);          \
-    r0 += *d; r1 += (r0 < *d);          \
-    c = r1; *(d++) = r0;
-
-#define MULADDC_X1_STOP                 \
-}
-
+#define MPI_UINT_UMULL(dlo,dhi,a,b)                     \
+    do {                                                \
+        mbedtls_t_udbl r;                               \
+        r   = (mbedtls_t_udbl) a * (mbedtls_t_udbl) b;  \
+        dlo = (mbedtls_mpi_uint) r;                     \
+        dhi = (mbedtls_mpi_uint)( r >> biL );           \
+    } while( 0 )
 #else /* MBEDTLS_HAVE_UDBL */
+#define MPI_UINT_UMULL(dlo,dhi,a,b)                   \
+    do {                                              \
+        mbedtls_mpi_uint s0, s1, b0, b1;              \
+        mbedtls_mpi_uint r0, r1, rx, ry;              \
+        b0 = ( b << biH ) >> biH;                     \
+        b1 = ( b >> biH );                            \
+        s0 = ( a << biH ) >> biH;                     \
+        s1 = ( a >> biH );                            \
+        rx = s0 * b1; r0 = s0 * b0;                   \
+        ry = s1 * b0; r1 = s1 * b1;                   \
+        r1 += ( rx >> biH );                          \
+        r1 += ( ry >> biH );                          \
+        rx <<= biH; ry <<= biH;                       \
+        dlo = r0;                                     \
+        dhi = r1;                                     \
+    } while( 0 )
+#endif /* MBEDTLS_HAVE_UDBL */
+#endif /* MPI_UINT_UMULL */
 
-#define MULADDC_X1_INIT                 \
-{                                       \
-    mbedtls_mpi_uint s0, s1, b0, b1;              \
-    mbedtls_mpi_uint r0, r1, rx, ry;              \
-    b0 = ( b << biH ) >> biH;           \
-    b1 = ( b >> biH );
+#if !defined(MPI_UINT_ADDC)
+#define MPI_UINT_ADDC(acc_lo,acc_hi,add)               \
+    do {                                               \
+        acc_lo += (add); acc_hi += ( acc_lo < (add) ); \
+    } while( 0 )
+#endif /* MPI_UINT_ADDC */
 
-#define MULADDC_X1_CORE                 \
-    s0 = ( *s << biH ) >> biH;          \
-    s1 = ( *s >> biH ); s++;            \
-    rx = s0 * b1; r0 = s0 * b0;         \
-    ry = s1 * b0; r1 = s1 * b1;         \
-    r1 += ( rx >> biH );                \
-    r1 += ( ry >> biH );                \
-    rx <<= biH; ry <<= biH;             \
-    r0 += rx; r1 += (r0 < rx);          \
-    r0 += ry; r1 += (r0 < ry);          \
-    r0 +=  c; r1 += (r0 <  c);          \
-    r0 += *d; r1 += (r0 < *d);          \
-    c = r1; *(d++) = r0;
+#if !defined(MPI_UINT_UMAAL)
+#define MPI_UINT_UMAAL(acc0,acc1,a,b)             \
+    do {                                          \
+        mbedtls_mpi_uint tmp_lo, tmp_hi;          \
+        MPI_UINT_UMULL(tmp_lo,tmp_hi,(a),(b));    \
+        MPI_UINT_ADDC(tmp_lo,tmp_hi,(acc0));      \
+        MPI_UINT_ADDC(tmp_lo,tmp_hi,(acc1));      \
+        acc0 = tmp_lo; acc1 = tmp_hi;             \
+    } while( 0 )
+#endif /* MPI_UINT_UMAAL */
 
-#define MULADDC_X1_STOP                 \
-}
-
-#endif /* C (longlong) */
-#endif /* C (generic)  */
+#if !defined(MULADDC_X1_CORE)
+#define MULADDC_X1_INIT                         \
+    {                                           \
+        mbedtls_mpi_uint cur_d, cur_s;
+#define MULADDC_X1_CORE                         \
+        cur_d = *d; cur_s = *s++;               \
+        MPI_UINT_UMAAL(cur_d,c,cur_s,b);        \
+        *d++ = cur_d;
+#define MULADDC_X1_STOP                         \
+    }
+#endif /* MULADDC_X1_CORE */
 
 #if !defined(MULADDC_X2_CORE)
 #define MULADDC_X2_INIT MULADDC_X1_INIT

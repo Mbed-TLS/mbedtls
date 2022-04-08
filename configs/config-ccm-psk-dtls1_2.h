@@ -89,10 +89,10 @@
 
 /*
  * You should adjust this to the exact number of sources you're using: default
- * is the "platform_entropy_poll" source, but you may want to add other ones
- * Minimum is 2 for the entropy test suite.
+ * is the "platform_entropy_poll" source plus a weak clock source, but you may
+ * want to add other ones. Minimum is 3 for the entropy test suite.
  */
-#define MBEDTLS_ENTROPY_MAX_SOURCES 2
+#define MBEDTLS_ENTROPY_MAX_SOURCES 3
 
 /* These defines are present so that the config modifying scripts can enable
  * them during tests/scripts/test-ref-configs.pl */

@@ -47,4 +47,14 @@ mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len ,
                                        const mbedtls_mpi_uint *s, size_t s_len,
                                        mbedtls_mpi_uint b );
 
+mbedtls_mpi_uint mbedtls_mpi_core_mla_x2( const mbedtls_mpi_uint *s, size_t s_len,
+                                          mbedtls_mpi_uint *d, size_t d_len,
+                                          mbedtls_mpi_uint b0, mbedtls_mpi_uint b1 );
+
+mbedtls_mpi_uint mbedtls_mpi_core_mla_x2_dbl(
+    mbedtls_mpi_uint *d, size_t d_len,
+    const mbedtls_mpi_uint *s, const mbedtls_mpi_uint *t, size_t st_len,
+    mbedtls_mpi_uint b0, mbedtls_mpi_uint b1,
+    mbedtls_mpi_uint a0, mbedtls_mpi_uint a1 );
+
 #endif /* MBEDTLS_BIGNUM_INTERNAL_H */

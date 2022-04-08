@@ -1402,6 +1402,146 @@ mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len,
     return( c );
 }
 
+mbedtls_mpi_uint mbedtls_mpi_core_mla_x2( const mbedtls_mpi_uint *s, size_t s_len,
+                                          mbedtls_mpi_uint *d, size_t d_len,
+                                          mbedtls_mpi_uint b0, mbedtls_mpi_uint b1 )
+{
+    /* Ratio between Load/Store and Arithmetic: 1.5 / 1 */
+    size_t n4 = s_len / 4, nr = s_len % 4;
+    size_t excess_len = d_len - ( s_len + 1 );
+
+    mbedtls_mpi_uint c0, c1;
+    mbedtls_mpi_uint d0, d1, d2, d3;
+    mbedtls_mpi_uint s0, s1, s2, s3, sl;
+
+    sl = c0 = c1 = 0;
+    while( n4-- )
+    {
+        d0 = d[0]; d1 = d[1]; d2 = d[2]; d3 = d[3];
+
+        s0 = s[0]; s1 = s[1]; s2 = s[2]; s3 = s[3];
+        MPI_UINT_VMAAL_X4( d0, d1, d2, d3, c1,
+                           sl, s0, s1, s2, b1 );
+        MPI_UINT_VMAAL_X4( d0, d1, d2, d3, c0,
+                           s0, s1, s2, s3, b0 );
+        sl = s3;
+
+        d[0] = d0; d[1] = d1; d[2] = d2; d[3] = d3;
+        s += 4; d += 4;
+    }
+
+    while( nr-- )
+    {
+        d0 = *d;
+
+        s0 = *s++;
+        MPI_UINT_UMAAL( d0, c0, s0, b0 );
+        MPI_UINT_UMAAL( d0, c1, sl, b1 );
+        sl = s0;
+
+        *d++ = d0;
+    }
+
+    d0 = *d;
+    MPI_UINT_UMAAL( d0, c0,  0,  0 );
+    MPI_UINT_UMAAL( d0, c1, sl, b1 );
+    *d++ = d0;
+
+    d0 = *d;
+    d0 += c0; c0  = ( d0 < c0 );
+    d0 += c1; c0 += ( d0 < c1 );
+    *d++ = d0;
+
+    while( excess_len-- )
+    {
+        d0 = *d;
+        d0 += c0; c0 = ( d0 < c0 );
+        *d++ = d0;
+    }
+
+    return( c0 );
+}
+
+mbedtls_mpi_uint mbedtls_mpi_core_mla_x2_dbl(
+           mbedtls_mpi_uint *d, size_t d_len,
+           const mbedtls_mpi_uint *s, const mbedtls_mpi_uint *t, size_t st_len,
+           mbedtls_mpi_uint b0, mbedtls_mpi_uint b1,
+           mbedtls_mpi_uint a0, mbedtls_mpi_uint a1 )
+{
+    /* Ratio between Load/Store and Arithmetic: 1 / 1 */
+    size_t n4 = st_len / 4, nr = st_len % 4;
+    size_t excess_len = d_len - ( st_len + 2 );
+
+    mbedtls_mpi_uint c0, c1, c2, c3;
+    mbedtls_mpi_uint d0, d1, d2, d3;
+    mbedtls_mpi_uint s0, s1, s2, s3, sl;
+    mbedtls_mpi_uint t0, t1, t2, t3, tl;
+
+    sl = tl = c0 = c1 = c2 = c3 = 0;
+    while( n4-- )
+    {
+        d0 = d[0]; d1 = d[1]; d2 = d[2]; d3 = d[3];
+
+        s0 = s[0]; s1 = s[1]; s2 = s[2]; s3 = s[3];
+        MPI_UINT_VMAAL_X4( d0, d1, d2, d3, c0,
+                           sl, s0, s1, s2, b1 );
+        MPI_UINT_VMAAL_X4( d0, d1, d2, d3, c2,
+                           s0, s1, s2, s3, b0 );
+        sl = s3;
+
+        t0 = t[0]; t1 = t[1]; t2 = t[2]; t3 = t[3];
+        MPI_UINT_VMAAL_X4( d0, d1, d2, d3, c1,
+                           tl, t0, t1, t2, a1 );
+        MPI_UINT_VMAAL_X4( d0, d1, d2, d3, c3,
+                           t0, t1, t2, t3, a0 );
+        tl = t3;
+
+        d[0] = d0; d[1] = d1; d[2] = d2; d[3] = d3;
+        s += 4; t += 4; d += 4;
+    }
+
+    while( nr-- )
+    {
+        d0 = *d;
+
+        s0 = *s++;
+        MPI_UINT_UMAAL( d0, c0, sl, b1 );
+        MPI_UINT_UMAAL( d0, c1, s0, b0 );
+        sl = s0;
+
+        t0 = *t++;
+        MPI_UINT_UMAAL( d0, c2, tl, a1 );
+        MPI_UINT_UMAAL( d0, c3, t0, a0 );
+        tl = t0;
+
+        *d++ = d0;
+    }
+
+    d0 = *d;
+    MPI_UINT_UMAAL( d0, c0,  0,  0 );
+    MPI_UINT_UMAAL( d0, c1,  0,  0 );
+    MPI_UINT_UMAAL( d0, c2, sl, b1 );
+    MPI_UINT_UMAAL( d0, c3, tl, a1 );
+    *d++ = d0;
+
+    d0 = *d;
+    d0 += c0; c0  = ( d0 < c0 );
+    d0 += c1; c0 += ( d0 < c1 );
+    d0 += c2; c1 += ( d0 < c2 );
+    d0 += c3; c2 += ( d0 < c3 );
+    *d++ = d0;
+
+    while( excess_len-- )
+    {
+        d0 = *d;
+        d0 += c0; c0 = ( d0 < c0 );
+        *d++ = d0;
+    }
+
+    return( c0 );
+}
+
+
 /*
  * Baseline multiplication: X = A * B  (HAC 14.12)
  */
@@ -1824,8 +1964,14 @@ int mbedtls_mpi_mod_int( mbedtls_mpi_uint *r, const mbedtls_mpi *A, mbedtls_mpi_
  * This computes the negative modular inverse of m in mbedtls_mpi_uint.
  */
 static void mpi_montg_init( mbedtls_mpi_uint *m_inv,
-                            mbedtls_mpi_uint const *m )
+                            mbedtls_mpi_uint const *m,
+                            size_t n )
 {
+    mbedtls_mpi_uint m0, m1, mi0, mi1;
+
+    m0 = m[0];
+    m1 = n >= 2 ? m[1] : 0;
+
     /* The basic principle is the following:
      * If R=2^k and we already know that m_inv is the negative
      * modular inverse of m w.r.t. R -- that is,
@@ -1841,10 +1987,17 @@ static void mpi_montg_init( mbedtls_mpi_uint *m_inv,
      * throughout, which is higher precision than necessary for most of
      * the iterations, but yields the simplest and fastest code.
      */
-    mbedtls_mpi_uint m0 = m[0], mi0 = m0;
+    mi0 = m0;
     for( unsigned i = biL; i > 1; i /= 2 )
         mi0 *= ( 2 + ( m0 * mi0 ) );
-    *m_inv = mi0;
+
+    /* Second step: Modular inverse w.r.t. R^2
+     * This requires computing with pairs of limbs. */
+    mbedtls_mpi_uint t0=2, t1=0;
+    MPI_UINT_DBL_MUL_SGL_ACC(t0,t1,m0,m1,mi0); /* (t0,t1) =  2 + m_inv*m */
+    MPI_UINT_DBL_MUL_SGL    (mi0,mi1,t0,t1,mi0);
+
+    *m_inv++ = mi0; *m_inv++ = mi1;
 }
 
 /** Montgomery multiplication: A = A * B * R^-1 mod N  (HAC 14.36)
@@ -1869,28 +2022,65 @@ static void mpi_montg_init( mbedtls_mpi_uint *m_inv,
  *                      Note that unlike the usual convention in the library
  *                      for `const mbedtls_mpi*`, the content of T can change.
  */
-static void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi *N, mbedtls_mpi_uint mm,
-                         const mbedtls_mpi *T )
+
+static void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi *N,
+                         mbedtls_mpi_uint const *mm, const mbedtls_mpi *T )
 {
-    size_t i, n, m;
-    mbedtls_mpi_uint u0, u1, *d;
+    size_t i, n;
+    mbedtls_mpi_uint *d;
+    mbedtls_mpi_uint u0,u1;
+    mbedtls_mpi_uint mm0 = mm[0], mm1 = mm[1];
 
     memset( T->p, 0, T->n * ciL );
 
     d = T->p;
     n = N->n;
-    m = ( B->n < n ) ? B->n : n;
+    mbedtls_mpi_grow( (mbedtls_mpi*) B, n );
 
-    for( i = 0; i < n; i++ )
+    i = 0;
+
+    for( ; i + 1 < n; i += 2 )
+    {
+        mbedtls_mpi_uint a0,a1,b0,b1,d0,d1;
+        /*
+         * T = (T + u0*B + u1*N) / 2^biL
+         */
+        a0 = A->p[i], a1 = A->p[i+1];
+        b0 = B->p[0], b1 = B->p[1];
+        d0 = d[0],    d1 = d[1];
+
+        MPI_UINT_DBL_MUL_DBL_ACC(d0,d1,a0,a1,b0, b1);
+        MPI_UINT_DBL_MUL_DBL    (u0,u1,d0,d1,mm0,mm1);
+
+        /*
+         * Option 1 -- separate calls
+         */
+
+        /* mbedtls_mpi_core_mla_x2( d, n + 3, */
+        /*                          B->p, n, a0, a1 ); */
+        /* mbedtls_mpi_core_mla_x2( d, n + 3, */
+        /*                          N->p, n, u0, u1 );         */
+
+        /*
+         * Option 2 -- merged call, saving some loads/stores
+         */
+        mbedtls_mpi_core_mla_x2_dbl( d, n + 3,
+                                     B->p, N->p, n,
+                                     a0, a1, u0, u1 );
+
+        d += 2;
+    }
+
+    for( ; i < n; i++ )
     {
         /*
          * T = (T + u0*B + u1*N) / 2^biL
          */
         u0 = A->p[i];
-        u1 = ( d[0] + u0 * B->p[0] ) * mm;
+        u1 = ( d[0] + u0 * B->p[0] ) * mm0;
 
         (void) mbedtls_mpi_core_mla( d, n + 2,
-                                     B->p, m,
+                                     B->p, n,
                                      u0 );
         (void) mbedtls_mpi_core_mla( d, n + 2,
                                      N->p, n,
@@ -1925,15 +2115,14 @@ static void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi
  * See mpi_montmul() regarding constraints and guarantees on the parameters.
  */
 static void mpi_montred( mbedtls_mpi *A, const mbedtls_mpi *N,
-                         mbedtls_mpi_uint mm, const mbedtls_mpi *T )
+                         mbedtls_mpi_uint const *mm, const mbedtls_mpi *T )
 {
-    mbedtls_mpi_uint z = 1;
     mbedtls_mpi U;
-
-    U.n = U.s = (int) z;
-    U.p = &z;
-
+    mbedtls_mpi_init( &U );
+    mbedtls_mpi_lset( &U, 1 );
+    mbedtls_mpi_grow( &U, N->n );
     mpi_montmul( A, &U, N, mm, T );
+    mbedtls_mpi_free( &U );
 }
 
 /**
@@ -1976,7 +2165,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
     size_t wbits, wsize, one = 1;
     size_t i, j, nblimbs;
     size_t bufsize, nbits;
-    mbedtls_mpi_uint ei, mm, state;
+    mbedtls_mpi_uint ei, mm[2], state;
     mbedtls_mpi RR, T, W[ 1 << MBEDTLS_MPI_WINDOW_SIZE ], WW, Apos;
     int neg;
 
@@ -1998,7 +2187,8 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
     /*
      * Init temps and window size
      */
-    mpi_montg_init( &mm, N->p );
+    mpi_montg_init( mm, N->p, N->n );
+
     mbedtls_mpi_init( &RR ); mbedtls_mpi_init( &T );
     mbedtls_mpi_init( &Apos );
     mbedtls_mpi_init( &WW );

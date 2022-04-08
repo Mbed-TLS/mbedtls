@@ -1075,4 +1075,12 @@
 #define MULADDC_X8_CORE MULADDC_X4_CORE MULADDC_X4_CORE
 #endif /* MULADDC_X8_CORE */
 
+#if !defined(MPI_UINT_VMAAL_X4)
+#define MPI_UINT_VMAAL_X4(d0,d1,d2,d3,c,s0,s1,s2,s3,b)     \
+    MPI_UINT_UMAAL(d0, c, s0, b );                         \
+    MPI_UINT_UMAAL(d1, c, s1, b );                         \
+    MPI_UINT_UMAAL(d2, c, s2, b );                         \
+    MPI_UINT_UMAAL(d3, c, s3, b );
+#endif /* MPI_UINT_VMAAL_X4 */
+
 #endif /* bn_mul.h */

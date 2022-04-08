@@ -1123,6 +1123,7 @@ run_test() {
 }
 
 run_test_psa() {
+    requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
     requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
     run_test    "PSA-supported ciphersuite: $1" \
                 "$P_SRV debug_level=3 force_version=tls12" \
@@ -1146,6 +1147,7 @@ run_test_psa() {
 }
 
 run_test_psa_force_curve() {
+    requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
     requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
     run_test    "PSA - ECDH with $1" \
                 "$P_SRV debug_level=4 force_version=tls12" \
@@ -1382,6 +1384,7 @@ trap cleanup INT TERM HUP
 # - things work with all ciphersuites active (used with config-full in all.sh)
 # - the expected (highest security) parameters are selected
 #   ("signature_algorithm ext: 6" means SHA-512 (highest common hash))
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Default" \
             "$P_SRV debug_level=3" \
             "$P_CLI" \
@@ -1393,6 +1396,7 @@ run_test    "Default" \
             -S "error" \
             -C "error"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Default, DTLS" \
             "$P_SRV dtls=1" \
             "$P_CLI dtls=1" \
@@ -5291,6 +5295,7 @@ run_test    "Event-driven I/O, DTLS: session-id resume, UDP packing" \
 
 # Tests for version negotiation
 
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Version check: all -> 1.2" \
             "$P_SRV" \
             "$P_CLI" \
@@ -5300,6 +5305,7 @@ run_test    "Version check: all -> 1.2" \
             -s "Protocol is TLSv1.2" \
             -c "Protocol is TLSv1.2"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
 run_test    "Version check: cli max 1.1 -> 1.1" \
             "$P_SRV" \
             "$P_CLI max_version=tls1_1" \
@@ -5309,6 +5315,7 @@ run_test    "Version check: cli max 1.1 -> 1.1" \
             -s "Protocol is TLSv1.1" \
             -c "Protocol is TLSv1.1"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
 run_test    "Version check: srv max 1.1 -> 1.1" \
             "$P_SRV max_version=tls1_1" \
             "$P_CLI" \
@@ -5318,6 +5325,7 @@ run_test    "Version check: srv max 1.1 -> 1.1" \
             -s "Protocol is TLSv1.1" \
             -c "Protocol is TLSv1.1"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
 run_test    "Version check: cli+srv max 1.1 -> 1.1" \
             "$P_SRV max_version=tls1_1" \
             "$P_CLI max_version=tls1_1" \
@@ -5327,6 +5335,7 @@ run_test    "Version check: cli+srv max 1.1 -> 1.1" \
             -s "Protocol is TLSv1.1" \
             -c "Protocol is TLSv1.1"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
 run_test    "Version check: cli max 1.1, srv min 1.1 -> 1.1" \
             "$P_SRV min_version=tls1_1" \
             "$P_CLI max_version=tls1_1" \
@@ -5336,6 +5345,7 @@ run_test    "Version check: cli max 1.1, srv min 1.1 -> 1.1" \
             -s "Protocol is TLSv1.1" \
             -c "Protocol is TLSv1.1"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
 run_test    "Version check: cli min 1.1, srv max 1.1 -> 1.1" \
             "$P_SRV max_version=tls1_1" \
             "$P_CLI min_version=tls1_1" \

@@ -319,6 +319,11 @@ detect_required_features() {
             requires_config_enabled MBEDTLS_SSL_ALPN;;
     esac
 
+    case " $1 " in
+        *\ fallback=1\ *|*\ -fallback_scsv\ *)
+            requires_config_enabled MBEDTLS_SSL_FALLBACK_SCSV;;
+    esac
+
     unset tmp
 }
 
@@ -2966,7 +2971,7 @@ run_test    "Encrypt then MAC, DTLS: disabled, empty application data record" \
 ## The ClientHello content is spelled out below as a hex string as
 ## "prefix ciphersuite1 ciphersuite2 ciphersuite3 ciphersuite4 suffix".
 ## The expected response is an inappropriate_fallback alert.
-requires_openssl_with_fallback_scsv
+requires_config_enabled MBEDTLS_SSL_FALLBACK_SCSV
 run_test    "Fallback SCSV: beginning of list" \
             "$P_SRV debug_level=2" \
             "$TCP_CLIENT localhost $SRV_PORT '160301003e0100003a03022aafb94308dc22ca1086c65acc00e414384d76b61ecab37df1633b1ae1034dbe000008 5600 0031 0032 0033 0100000900230000000f000101' '15030200020256'" \
@@ -2974,7 +2979,7 @@ run_test    "Fallback SCSV: beginning of list" \
             -s "received FALLBACK_SCSV" \
             -s "inapropriate fallback"
 
-requires_openssl_with_fallback_scsv
+requires_config_enabled MBEDTLS_SSL_FALLBACK_SCSV
 run_test    "Fallback SCSV: end of list" \
             "$P_SRV debug_level=2" \
             "$TCP_CLIENT localhost $SRV_PORT '160301003e0100003a03022aafb94308dc22ca1086c65acc00e414384d76b61ecab37df1633b1ae1034dbe000008 0031 0032 0033 5600 0100000900230000000f000101' '15030200020256'" \
@@ -2983,7 +2988,7 @@ run_test    "Fallback SCSV: end of list" \
             -s "inapropriate fallback"
 
 ## Here the expected response is a valid ServerHello prefix, up to the random.
-requires_openssl_with_fallback_scsv
+requires_config_enabled MBEDTLS_SSL_FALLBACK_SCSV
 run_test    "Fallback SCSV: not in list" \
             "$P_SRV debug_level=2" \
             "$TCP_CLIENT localhost $SRV_PORT '160301003e0100003a03022aafb94308dc22ca1086c65acc00e414384d76b61ecab37df1633b1ae1034dbe000008 0056 0031 0032 0033 0100000900230000000f000101' '16030200300200002c0302'" \

@@ -1589,8 +1589,8 @@ const mbedtls_pk_info_t mbedtls_pk_ecdsa_opaque_info = {
     NULL, /* restartable verify - not relevant */
     NULL, /* restartable sign - not relevant */
 #endif
-    NULL, /* decrypt - will be done later */
-    NULL, /* encrypt - will be done later */
+    NULL, /* decrypt - not relevant */
+    NULL, /* encrypt - not relevant */
     NULL, /* check_pair - could be done later or left NULL */
     pk_opaque_alloc_wrap,
     pk_opaque_free_wrap,

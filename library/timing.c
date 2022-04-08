@@ -57,14 +57,14 @@ struct _hr_time
 #include <unistd.h>
 #include <sys/types.h>
 #include <signal.h>
-#if defined(MBEDTLS_HAVE_TIME)
+/* time.h should be included independently of MBEDTLS_HAVE_TIME. If the
+ * platform matches the ifdefs above, it will be used. */
 #include <time.h>
 #include <sys/time.h>
 struct _hr_time
 {
     struct timeval start;
 };
-#endif
 #endif /* _WIN32 && !EFIX64 && !EFI32 */
 
 #if !defined(HAVE_HARDCLOCK) && defined(MBEDTLS_HAVE_ASM) &&  \

@@ -383,14 +383,22 @@ int main( int argc, char *argv[] )
 #define CHECK_PADDING_SIGNED(TYPE, NAME)                                \
     do                                                                  \
     {                                                                   \
-        if( ( sizeof( TYPE ) == 2 &&                                    \
-              (int16_t) NAME ## _MAX != 0x7FFF )             ||         \
-            ( sizeof( TYPE ) == 4 &&                                    \
-              (int32_t) NAME ## _MAX != 0x7FFFFFFF )         ||         \
-            ( sizeof( TYPE ) == 8 &&                                    \
-              (int64_t) NAME ## _MAX != 0x7FFFFFFFFFFFFFFF ) )          \
-        {                                                               \
-            mbedtls_printf( "Type '" #TYPE "' has padding bits\n" );    \
+        if( sizeof( TYPE ) == 2 || sizeof( TYPE ) == 4 ||               \
+                sizeof( TYPE ) == 8 ) {                                 \
+            if( ( sizeof( TYPE ) == 2 &&                                \
+                (int16_t) NAME ## _MAX != 0x7FFF )             ||       \
+                ( sizeof( TYPE ) == 4 &&                                \
+                (int32_t) NAME ## _MAX != 0x7FFFFFFF )         ||       \
+                ( sizeof( TYPE ) == 8 &&                                \
+                (int64_t) NAME ## _MAX != 0x7FFFFFFFFFFFFFFF ) )        \
+            {                                                           \
+                mbedtls_printf( "Type '" #TYPE "' has padding bits\n" );\
+                mbedtls_exit( MBEDTLS_EXIT_FAILURE );                   \
+            }                                                           \
+        } else {                                                        \
+            mbedtls_printf( "Padding checks only implemented for types of size 2, 4 or 8" \
+                " - cannot check type '" #TYPE "' of size %ld\n",       \
+                sizeof( TYPE ) );                                       \
             mbedtls_exit( MBEDTLS_EXIT_FAILURE );                       \
         }                                                               \
     } while( 0 )

@@ -2909,6 +2909,7 @@ run_test    "Fallback SCSV: enabled, openssl server" \
             -c "adding FALLBACK_SCSV" \
             -c "is a fatal alert message (msg 86)"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS_1_1
 requires_openssl_with_fallback_scsv
 run_test    "Fallback SCSV: disabled, openssl client" \
             "$P_SRV debug_level=2" \
@@ -2917,6 +2918,7 @@ run_test    "Fallback SCSV: disabled, openssl client" \
             -S "received FALLBACK_SCSV" \
             -S "inapropriate fallback"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS_1_1
 requires_openssl_with_fallback_scsv
 run_test    "Fallback SCSV: enabled, openssl client" \
             "$P_SRV debug_level=2" \
@@ -5506,6 +5508,8 @@ run_test    "Version check: cli min 1.1, srv max 1.1 -> 1.1" \
             -s "Protocol is TLSv1.1" \
             -c "Protocol is TLSv1.1"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Version check: cli min 1.2, srv max 1.1 -> fail" \
             "$P_SRV max_version=tls1_1" \
             "$P_CLI min_version=tls12" \
@@ -5514,6 +5518,8 @@ run_test    "Version check: cli min 1.2, srv max 1.1 -> fail" \
             -c "mbedtls_ssl_handshake returned" \
             -c "SSL - Handshake protocol not within min/max boundaries"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Version check: srv min 1.2, cli max 1.1 -> fail" \
             "$P_SRV min_version=tls12" \
             "$P_CLI max_version=tls1_1" \

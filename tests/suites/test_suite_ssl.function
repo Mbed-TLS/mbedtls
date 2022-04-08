@@ -5595,7 +5595,7 @@ void cid_sanity( )
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ENTROPY_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_CTR_DRBG_C:MBEDTLS_ECP_C:MBEDTLS_ECDSA_C */
-void raw_key_agreement_fail( )
+void raw_key_agreement_fail( int bad_server_ecdhe_key )
 {
     enum { BUFFSIZE = 17000 };
     mbedtls_endpoint client, server;
@@ -5633,19 +5633,24 @@ void raw_key_agreement_fail( )
      * With PSA, one can be used for the ECDH private key. */
     free_slots_before = stats.empty_slots;
 
-    /* Force a simulated bitflip in the server key. to make the
-     * raw key agreement in ssl_write_client_key_exchange fail. */
-    (client.ssl).handshake->ecdh_psa_peerkey[0] ^= 0x02;
+    if( bad_server_ecdhe_key )
+    {
+        /* Force a simulated bitflip in the server key. to make the
+         * raw key agreement in ssl_write_client_key_exchange fail. */
+        (client.ssl).handshake->ecdh_psa_peerkey[0] ^= 0x02;
+    }
 
-    TEST_ASSERT( mbedtls_move_handshake_to_state( &(client.ssl),
-                                                  &(server.ssl),
-                                                  MBEDTLS_SSL_HANDSHAKE_OVER )
-                 !=  0 );
+    TEST_EQUAL( mbedtls_move_handshake_to_state( &(client.ssl),
+                                                 &(server.ssl),
+                                                 MBEDTLS_SSL_HANDSHAKE_OVER ),
+                bad_server_ecdhe_key ? MBEDTLS_ERR_SSL_HW_ACCEL_FAILED : 0 );
 
     mbedtls_psa_get_stats( &stats );
 
-    /* Make sure that the key slot is destroyed properly in case of failure. */
-    TEST_ASSERT( free_slots_before == stats.empty_slots );
+    /* Make sure that the key slot is already destroyed in case of failure,
+     * without waiting to close the connection. */
+    if( bad_server_ecdhe_key )
+        TEST_EQUAL( free_slots_before, stats.empty_slots );
 
 exit:
     mbedtls_endpoint_free( &client, NULL );

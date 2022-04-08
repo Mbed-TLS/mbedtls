@@ -3361,5 +3361,8 @@ timing_final_delay_accessor
 Sanity test cid functions
 cid_sanity:
 
-Raw key agreement fail
-raw_key_agreement_fail:
+Raw key agreement: nominal
+raw_key_agreement_fail:0
+
+Raw key agreement: bad server key
+raw_key_agreement_fail:1

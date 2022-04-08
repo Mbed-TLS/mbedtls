@@ -275,22 +275,18 @@ requires_ciphersuite_enabled() {
     esac
 }
 
-# maybe_requires_ciphersuite_enabled CMD [RUN_TEST_OPTION...]
-# If CMD (call to a TLS client or server program) requires a specific
-# ciphersuite, arrange to only run the test case if this ciphersuite is
-# enabled.
-maybe_requires_ciphersuite_enabled() {
+# detect_required_features CMD [RUN_TEST_OPTION...]
+# If CMD (call to a TLS client or server program) requires certain features,
+# arrange to only run the following test case if those features are enabled.
+detect_required_features() {
     case "$1" in
-        *\ force_ciphersuite=*) :;;
-        *) return;; # No specific required ciphersuite
+        *\ force_ciphersuite=*)
+            tmp="${1##*\ force_ciphersuite=}"
+            tmp="${tmp%%[!-0-9A-Z_a-z]*}"
+            requires_ciphersuite_enabled "$tmp";;
     esac
-    ciphersuite="${1##*\ force_ciphersuite=}"
-    ciphersuite="${ciphersuite%%[!-0-9A-Z_a-z]*}"
-    shift
 
-    requires_ciphersuite_enabled "$ciphersuite"
-
-    unset ciphersuite
+    unset tmp
 }
 
 requires_certificate_authentication () {
@@ -1272,9 +1268,10 @@ run_test() {
             requires_config_enabled MBEDTLS_SSL_ALPN;;
     esac
 
-    # If the client or serve requires a ciphersuite, check that it's enabled.
-    maybe_requires_ciphersuite_enabled "$SRV_CMD" "$@"
-    maybe_requires_ciphersuite_enabled "$CLI_CMD" "$@"
+    # If the client or server requires certain features that can be detected
+    # from their command-line arguments, check that they're enabled.
+    detect_required_features "$SRV_CMD" "$@"
+    detect_required_features "$CLI_CMD" "$@"
 
     # If we're in a PSK-only build and the test can be adapted to PSK, do that.
     maybe_adapt_for_psk "$@"

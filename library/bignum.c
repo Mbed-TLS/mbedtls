@@ -1877,19 +1877,31 @@ int mbedtls_mpi_mod_int( mbedtls_mpi_uint *r, const mbedtls_mpi *A, mbedtls_mpi_
 
 /*
  * Fast Montgomery initialization (thanks to Tom St Denis)
+ *
+ * This computes the negative modular inverse of m in mbedtls_mpi_uint.
  */
-static void mpi_montg_init( mbedtls_mpi_uint *mm, const mbedtls_mpi *N )
+static void mpi_montg_init( mbedtls_mpi_uint *m_inv,
+                            mbedtls_mpi_uint const *m )
 {
-    mbedtls_mpi_uint x, m0 = N->p[0];
-    unsigned int i;
-
-    x  = m0;
-    x += ( ( m0 + 2 ) & 4 ) << 1;
-
-    for( i = biL; i >= 8; i /= 2 )
-        x *= ( 2 - ( m0 * x ) );
-
-    *mm = ~x + 1;
+    /* The basic principle is the following:
+     * If R=2^k and we already know that m_inv is the negative
+     * modular inverse of m w.r.t. R -- that is,
+     *   m_inv*m + 1 == 0 mod R,
+     * then
+     *  (m_inv*m + 1)^2 == 0 mod R^2.
+     * Expanding yields that
+     *  2 m_inv + m_inv^2 * m = m_inv * (2 + m_inv*m)
+     * is the modular inverse of -m w.r.t. R^2 = 2^{2k}
+     *
+     * Below, we iterate this procedure, starting at the bitlevel (k=1)
+     * where m_inv = m = 1 (m must be odd). We compute in mbedtls_mpi_uint
+     * throughout, which is higher precision than necessary for most of
+     * the iterations, but yields the simplest and fastest code.
+     */
+    mbedtls_mpi_uint m0 = m[0], mi0 = m0;
+    for( unsigned i = biL; i > 1; i /= 2 )
+        mi0 *= ( 2 + ( m0 * mi0 ) );
+    *m_inv = mi0;
 }
 
 /** Montgomery multiplication: A = A * B * R^-1 mod N  (HAC 14.36)
@@ -2040,7 +2052,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
     /*
      * Init temps and window size
      */
-    mpi_montg_init( &mm, N );
+    mpi_montg_init( &mm, N->p );
     mbedtls_mpi_init( &RR ); mbedtls_mpi_init( &T );
     mbedtls_mpi_init( &Apos );
     mbedtls_mpi_init( &WW );

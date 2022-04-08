@@ -1,23 +1,17 @@
 Timing: hardclock
-depends_on:MBEDTLS_HAVE_TIME
 timing_hardclock:
 
 Timing: get timer
-depends_on:MBEDTLS_HAVE_TIME
 timing_get_timer:
 
 Timing: set alarm with no delay
-depends_on:MBEDTLS_HAVE_TIME
 timing_set_alarm:0:
 
 Timing: set alarm with 1s delay
-depends_on:MBEDTLS_HAVE_TIME
 timing_set_alarm:1:
 
 Timing: delay 0ms
-depends_on:MBEDTLS_HAVE_TIME
 timing_delay:0:
 
 Timing: delay 100ms
-depends_on:MBEDTLS_HAVE_TIME
 timing_delay:100:

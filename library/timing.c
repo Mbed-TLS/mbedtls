@@ -57,17 +57,16 @@ struct _hr_time
 #include <unistd.h>
 #include <sys/types.h>
 #include <signal.h>
-#if defined(MBEDTLS_HAVE_TIME)
+/* time.h should be included independently of MBEDTLS_HAVE_TIME. If the
+ * platform matches the ifdefs above, it will be used. */
 #include <time.h>
 #include <sys/time.h>
 struct _hr_time
 {
     struct timeval start;
 };
-#endif
 #endif /* _WIN32 && !EFIX64 && !EFI32 */
 
-#if defined(MBEDTLS_HAVE_TIME)
 #if !defined(HAVE_HARDCLOCK) && defined(MBEDTLS_HAVE_ASM) &&  \
     ( defined(_MSC_VER) && defined(_M_IX86) ) || defined(__WATCOMC__)
 
@@ -526,45 +525,5 @@ hard_test_done:
 }
 
 #endif /* MBEDTLS_SELF_TEST */
-
-#else
-volatile int mbedtls_timing_alarmed = 0;
-int mbedtls_timing_get_delay( void *data )
-{
-    (void) data;
-    return( 0 );
-}
-
-void mbedtls_timing_set_delay( void *data, uint32_t int_ms, uint32_t fin_ms )
-{
-    (void) data;
-    (void) int_ms;
-    (void) fin_ms;
-}
-
-unsigned long mbedtls_timing_get_timer( struct mbedtls_timing_hr_time *val, int reset )
-{
-    (void) val;
-    (void) reset;
-    return( 0 );
-}
-
-unsigned long mbedtls_timing_hardclock( void )
-{
-    return( 0 );
-}
-
-void mbedtls_set_alarm( int seconds )
-{
-    (void) seconds;
-}
-#if defined(MBEDTLS_SELF_TEST)
-int mbedtls_timing_self_test( int verbose )
-{
-    (void) verbose;
-    return( 0 );
-}
-#endif /* MBEDTLS_SELF_TEST */
-#endif /* MBEDTLS_HAVE_TIME */
 #endif /* !MBEDTLS_TIMING_ALT */
 #endif /* MBEDTLS_TIMING_C */

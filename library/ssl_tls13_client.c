@@ -417,30 +417,6 @@ cleanup:
     return( ret );
 }
 
-#if defined(MBEDTLS_ECDH_C)
-
-static int ssl_tls13_read_public_ecdhe_share( mbedtls_ssl_context *ssl,
-                                              const unsigned char *buf,
-                                              size_t buf_len )
-{
-    uint8_t *p = (uint8_t*)buf;
-    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
-
-    /* Get size of the TLS opaque key_exchange field of the KeyShareEntry struct. */
-    uint16_t peerkey_len = MBEDTLS_GET_UINT16_BE( p, 0 );
-    p += 2;
-
-    /* Check if key size is consistent with given buffer length. */
-    if ( peerkey_len > ( buf_len - 2 ) )
-        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
-
-    /* Store peer's ECDH public key. */
-    memcpy( handshake->ecdh_psa_peerkey, p, peerkey_len );
-    handshake->ecdh_psa_peerkey_len = peerkey_len;
-
-    return( 0 );
-}
-#endif /* MBEDTLS_ECDH_C */
 
 /*
  * ssl_tls13_parse_hrr_key_share_ext()
@@ -565,7 +541,7 @@ static int ssl_tls13_parse_key_share_ext( mbedtls_ssl_context *ssl,
 
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDH curve: %s", curve_info->name ) );
 
-        ret = ssl_tls13_read_public_ecdhe_share( ssl, p, end - p );
+        ret = mbedtls_ssl_tls13_read_public_ecdhe_share( ssl, p, end - p );
         if( ret != 0 )
             return( ret );
     }

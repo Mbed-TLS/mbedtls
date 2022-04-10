@@ -30,7 +30,6 @@
 #include "mbedtls/constant_time.h"
 #include <string.h>
 
-#include "ecp_internal.h"
 #include "ssl_misc.h"
 #include "ssl_tls13_keys.h"
 #include "ssl_debug_helpers.h"
@@ -1512,59 +1511,29 @@ int mbedtls_ssl_reset_transcript_for_hrr( mbedtls_ssl_context *ssl )
     return( ret );
 }
 
-#define ECDH_VALIDATE_RET( cond )    \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_ECP_BAD_INPUT_DATA )
+#if defined(MBEDTLS_ECDH_C)
 
-#if !defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
-static int ecdh_import_public_raw( mbedtls_ecdh_context_mbed *ctx,
-                                   const unsigned char *buf,
-                                   const unsigned char *end )
+int mbedtls_ssl_tls13_read_public_ecdhe_share( mbedtls_ssl_context *ssl,
+                                               const unsigned char *buf,
+                                               size_t buf_len )
 {
-    return( mbedtls_ecp_point_read_binary( &ctx->grp, &ctx->Qp,
-                                           buf, end - buf ) );
-}
-#endif /* MBEDTLS_ECDH_LEGACY_CONTEXT */
+    uint8_t *p = (uint8_t*)buf;
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
-#if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
-static int everest_import_public_raw( mbedtls_x25519_context *ctx,
-                                      const unsigned char *buf,
-                                      const unsigned char *end )
-{
-    if( end - buf != MBEDTLS_X25519_KEY_SIZE_BYTES )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+    /* Get size of the TLS opaque key_exchange field of the KeyShareEntry struct. */
+    uint16_t peerkey_len = MBEDTLS_GET_UINT16_BE( p, 0 );
+    p += 2;
 
-    memcpy( ctx->peer_point, buf, MBEDTLS_X25519_KEY_SIZE_BYTES );
+    /* Check if key size is consistent with given buffer length. */
+    if ( peerkey_len > ( buf_len - 2 ) )
+        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
+
+    /* Store peer's ECDH public key. */
+    memcpy( handshake->ecdh_psa_peerkey, p, peerkey_len );
+    handshake->ecdh_psa_peerkey_len = peerkey_len;
+
     return( 0 );
 }
-#endif /* MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED */
-
-int mbedtls_ecdh_import_public_raw( mbedtls_ecdh_context *ctx,
-                                    const unsigned char *buf,
-                                    const unsigned char *end )
-{
-    ECDH_VALIDATE_RET( ctx != NULL );
-    ECDH_VALIDATE_RET( buf != NULL );
-    ECDH_VALIDATE_RET( end != NULL );
-#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
-    ((void) ctx);
-    ((void) buf);
-    ((void) end);
-    return ( 0 );
-#else
-    switch( ctx->var )
-    {
-#if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
-        case MBEDTLS_ECDH_VARIANT_EVEREST:
-            return( everest_import_public_raw( &ctx->ctx.everest_ecdh.ctx,
-                                               buf, end) );
-#endif /* MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED */
-        case MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0:
-            return( ecdh_import_public_raw( &ctx->ctx.mbed_ecdh,
-                                            buf, end ) );
-        default:
-            return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
-    }
-#endif /* MBEDTLS_ECDH_LEGACY_CONTEXT */
-}
+#endif /* MBEDTLS_ECDH_C */
 
 #endif /* MBEDTLS_SSL_TLS_C && MBEDTLS_SSL_PROTO_TLS1_3 */

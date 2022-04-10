@@ -29,7 +29,6 @@
 #include <string.h>
 #if defined(MBEDTLS_ECP_C)
 #include "mbedtls/ecp.h"
-#include "ecp_internal.h"
 #endif /* MBEDTLS_ECP_C */
 
 #if defined(MBEDTLS_PLATFORM_C)
@@ -238,9 +237,7 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
 
     for( ; p < extentions_end; p += cur_share_len )
     {
-        uint16_t their_group;
-        mbedtls_ecp_group_id their_curve;
-        unsigned char const *end_of_share;
+        uint16_t group;
 
         /*
          * struct {
@@ -250,13 +247,11 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
          */
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, extentions_end, 4 );
 
-        their_group = MBEDTLS_GET_UINT16_BE( p, 0 );
-        p   += 2;
+        group = MBEDTLS_GET_UINT16_BE( p, 0 );
+        p += 2;
 
         cur_share_len = MBEDTLS_GET_UINT16_BE( p, 0 );
-        p   += 2;
-
-        end_of_share = p + cur_share_len;
+        p += 2;
 
         /* Continue parsing even if we have already found a match,
          * for input validation purposes.
@@ -268,60 +263,39 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
          * NamedGroup matching
          *
          * For now, we only support ECDHE groups, but e.g.
-         * PQC KEMs will need to be added at a later stage.
-         */
 
-        /* Type 1: ECDHE shares
+         * Type 1: ECDHE shares
          *
          * - Check if we recognize the group
          * - Check if it's supported
          */
 
-        their_curve = mbedtls_ecp_named_group_to_id( their_group );
-        if( mbedtls_ssl_check_curve( ssl, their_curve ) != 0 )
-            continue;
+        if( mbedtls_ssl_tls13_named_group_is_ecdhe( group ) )
+        {
+            const mbedtls_ecp_curve_info *curve_info =
+                mbedtls_ecp_curve_info_from_tls_id( group );
+            if( curve_info == NULL )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "Invalid TLS curve group id" ) );
+                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+            }
 
-        /* Skip if we no match succeeded. */
-        if( their_curve == MBEDTLS_ECP_DP_NONE )
+            match_found = 1;
+
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDH curve: %s", curve_info->name ) );
+
+            ret = mbedtls_ssl_tls13_read_public_ecdhe_share( ssl, p, end - p );
+            if( ret != 0 )
+                return( ret );
+        }
+        else
         {
             MBEDTLS_SSL_DEBUG_MSG( 4, ( "Unrecognized NamedGroup %u",
-                                        (unsigned) their_group ) );
+                                        (unsigned) group ) );
             continue;
         }
 
-        match_found = 1;
-
-        /* KeyShare parsing
-         *
-         * Once we add more key share types, this needs to be a switch
-         * over the (type of) the named curve
-         */
-
-        /* Type 1: ECDHE shares
-         *
-         * - Setup ECDHE context
-         * - Import client's public key
-         * - Apply further curve checks
-         */
-
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDH curve: %ud", their_curve ) );
-
-        ret = mbedtls_ecdh_setup( &ssl->handshake->ecdh_ctx, their_curve );
-        if( ret != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_setup()", ret );
-            return( ret );
-        }
-
-        ret = mbedtls_ecdh_import_public_raw( &ssl->handshake->ecdh_ctx,
-                                              p, end_of_share );
-        if( ret != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_import_public_raw()", ret );
-            return( ret );
-        }
-
-        ssl->handshake->offered_group_id = their_group;
+        ssl->handshake->offered_group_id = group;
     }
 
     if( match_found == 0 )

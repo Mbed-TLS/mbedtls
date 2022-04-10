@@ -2176,4 +2176,12 @@ static inline int psa_ssl_status_to_mbedtls( psa_status_t status )
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3 */
 
+#if defined(MBEDTLS_ECDH_C)
+
+int mbedtls_ssl_tls13_read_public_ecdhe_share( mbedtls_ssl_context *ssl,
+                                               const unsigned char *buf,
+                                               size_t buf_len );
+
+#endif /* MBEDTLS_ECDH_C */
+
 #endif /* ssl_misc.h */

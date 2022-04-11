@@ -750,11 +750,6 @@ static int ssl_server_hello_is_hrr( mbedtls_ssl_context *ssl,
                                     const unsigned char *buf,
                                     const unsigned char *end )
 {
-    static const unsigned char magic_hrr_string[MBEDTLS_SERVER_HELLO_RANDOM_LEN] =
-        { 0xCF, 0x21, 0xAD, 0x74, 0xE5, 0x9A, 0x61, 0x11,
-          0xBE, 0x1D, 0x8C, 0x02, 0x1E, 0x65, 0xB8, 0x91,
-          0xC2, 0xA2, 0x11, 0x16, 0x7A, 0xBB, 0x8C, 0x5E,
-          0x07, 0x9E, 0x09, 0xE2, 0xC8, 0xA8, 0x33 ,0x9C };
 
     /* Check whether this message is a HelloRetryRequest ( HRR ) message.
      *
@@ -771,9 +766,11 @@ static int ssl_server_hello_is_hrr( mbedtls_ssl_context *ssl,
      * } ServerHello;
      *
      */
-    MBEDTLS_SSL_CHK_BUF_READ_PTR( buf, end, 2 + sizeof( magic_hrr_string ) );
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( buf, end,
+                    2 + sizeof( mbedtls_ssl_tls13_hello_retry_request_magic ) );
 
-    if( memcmp( buf + 2, magic_hrr_string, sizeof( magic_hrr_string ) ) == 0 )
+    if( memcmp( buf + 2, mbedtls_ssl_tls13_hello_retry_request_magic,
+                sizeof( mbedtls_ssl_tls13_hello_retry_request_magic ) ) == 0 )
     {
         return( SSL_SERVER_HELLO_COORDINATE_HRR );
     }

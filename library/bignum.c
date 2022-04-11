@@ -1386,14 +1386,12 @@ int mbedtls_mpi_sub_int( mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_sint 
  *
  * \return c            The carry at the end of the operation.
  */
-mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len ,
+mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len,
                                        const mbedtls_mpi_uint *s, size_t s_len,
                                        mbedtls_mpi_uint b )
 {
     mbedtls_mpi_uint c = 0; /* carry */
-
-    /* Remember the excess of d over s for later */
-    d_len -= s_len;
+    size_t const excess_len = d_len - s_len;
 
 #if defined(MULADDC_HUIT)
     for( ; s_len >= 8; s_len -= 8 )
@@ -1444,7 +1442,7 @@ mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len ,
     }
 #endif /* MULADDC_HUIT */
 
-    while( d_len-- )
+    while( excess_len-- )
     {
         *d += c; c = ( *d < c ); d++;
     }

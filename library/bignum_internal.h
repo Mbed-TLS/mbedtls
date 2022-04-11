@@ -26,19 +26,20 @@
 #include "mbedtls/bignum.h"
 #endif
 
-/** Helper for mbedtls_mpi multiplication.
+/** Perform a known-size multiply accumulate operation
  *
  * Add \p b * \p s to \p d.
  *
- * \param[in,out] d     The bignum to add to.
+ * \param[in,out] d     The pointer to the (little-endian) array
+ *                      representing the bignum to accumulate onto.
  * \param d_len         The number of limbs of \p d. This must be
  *                      at least \p s_len.
+ * \param[in] s         The pointer to the (little-endian) array
+ *                      representing the bignum to multiply with.
+ *                      This may be the same as \p d. Otherwise,
+ *                      it must be disjoint from \p d.
  * \param s_len         The number of limbs of \p s.
- * \param[in] s         A bignum to multiply, of size \p i.
- *                      It may overlap with \p d, but only if
- *                      \p d <= \p s.
- *                      Its leading limb must not be \c 0.
- * \param b             A scalar to multiply.
+ * \param b             A scalar to multiply with.
  *
  * \return c            The carry at the end of the operation.
  */

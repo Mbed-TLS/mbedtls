@@ -3620,7 +3620,7 @@
 /** \} name SECTION: mbed TLS modules */
 
 /**
- * \name SECTION: Module configuration options
+ * \name SECTION: General configuration options
  *
  * This section allows for the setting of module specific sizes and
  * configuration options. The default values are already present in the
@@ -3634,7 +3634,6 @@
  * \{
  */
 
-/* Meta configuration */
 /**
  * \def MBEDTLS_CONFIG_FILE
  *
@@ -3698,6 +3697,23 @@
  * to a directory on the include search pah.
  */
 //#define MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE "/dev/null"
+
+/** \} name SECTION: General configuration options */
+
+/**
+ * \name SECTION: Module configuration options
+ *
+ * This section allows for the setting of module specific sizes and
+ * configuration options. The default values are already present in the
+ * relevant header files and should suffice for the regular use cases.
+ *
+ * Our advice is to enable options and change their values here
+ * only if you have a good reason and know the consequences.
+ *
+ * Please check the respective header file for documentation on these
+ * parameters (to prevent duplicate documentation).
+ * \{
+ */
 
 /* MPI / BIGNUM options */
 //#define MBEDTLS_MPI_WINDOW_SIZE            6 /**< Maximum window size used. */

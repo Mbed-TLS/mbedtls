@@ -49,6 +49,7 @@
 #include "mbedtls/ecjpake.h"
 #include "mbedtls/timing.h"
 #include "mbedtls/nist_kw.h"
+#include "mbedtls/debug.h"
 
 #include <limits.h>
 #include <string.h>
@@ -397,7 +398,7 @@ int main( int argc, char *argv[] )
             }                                                           \
         } else {                                                        \
             mbedtls_printf( "Padding checks only implemented for types of size 2, 4 or 8" \
-                " - cannot check type '" #TYPE "' of size %zu\n",       \
+                " - cannot check type '" #TYPE "' of size %" MBEDTLS_PRINTF_SIZET "\n",       \
                 sizeof( TYPE ) );                                       \
             mbedtls_exit( MBEDTLS_EXIT_FAILURE );                       \
         }                                                               \

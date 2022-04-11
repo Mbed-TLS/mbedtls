@@ -397,7 +397,7 @@ int main( int argc, char *argv[] )
             }                                                           \
         } else {                                                        \
             mbedtls_printf( "Padding checks only implemented for types of size 2, 4 or 8" \
-                " - cannot check type '" #TYPE "' of size %ld\n",       \
+                " - cannot check type '" #TYPE "' of size %zu\n",       \
                 sizeof( TYPE ) );                                       \
             mbedtls_exit( MBEDTLS_EXIT_FAILURE );                       \
         }                                                               \

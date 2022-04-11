@@ -52,17 +52,14 @@ void log_analyzer( void *ctx, int level,
     }
 }
 
-/* Invalid minor version used when not specifying a min/max version or expecting a test to fail */
-#define TEST_SSL_MINOR_VERSION_NONE -1
-
 typedef struct handshake_test_options
 {
     const char *cipher;
-    int client_min_version;
-    int client_max_version;
-    int server_min_version;
-    int server_max_version;
-    int expected_negotiated_version;
+    mbedtls_ssl_protocol_version client_min_version;
+    mbedtls_ssl_protocol_version client_max_version;
+    mbedtls_ssl_protocol_version server_min_version;
+    mbedtls_ssl_protocol_version server_max_version;
+    mbedtls_ssl_protocol_version expected_negotiated_version;
     int pk_alg;
     data_t *psk_str;
     int dtls;
@@ -85,10 +82,10 @@ typedef struct handshake_test_options
 void init_handshake_options( handshake_test_options *opts )
 {
   opts->cipher = "";
-  opts->client_min_version = TEST_SSL_MINOR_VERSION_NONE;
-  opts->client_max_version = TEST_SSL_MINOR_VERSION_NONE;
-  opts->server_min_version = TEST_SSL_MINOR_VERSION_NONE;
-  opts->server_max_version = TEST_SSL_MINOR_VERSION_NONE;
+  opts->client_min_version = MBEDTLS_SSL_VERSION_UNKNOWN;
+  opts->client_max_version = MBEDTLS_SSL_VERSION_UNKNOWN;
+  opts->server_min_version = MBEDTLS_SSL_VERSION_UNKNOWN;
+  opts->server_max_version = MBEDTLS_SSL_VERSION_UNKNOWN;
   opts->expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_2;
   opts->pk_alg = MBEDTLS_PK_RSA;
   opts->psk_str = NULL;
@@ -1861,8 +1858,11 @@ int exchange_data( mbedtls_ssl_context *ssl_1,
                                   ssl_2, 256, 1 );
 }
 
-int check_ssl_version( int expected_negotiated_version,
-                       const mbedtls_ssl_context *ssl )
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
+    defined(MBEDTLS_ENTROPY_C) && \
+    defined(MBEDTLS_CTR_DRBG_C)
+static int check_ssl_version( mbedtls_ssl_protocol_version expected_negotiated_version,
+                              const mbedtls_ssl_context *ssl )
 {
     const char *version_string = mbedtls_ssl_get_version( ssl );
     mbedtls_ssl_protocol_version version_number =
@@ -1897,6 +1897,7 @@ int check_ssl_version( int expected_negotiated_version,
 exit:
     return( 0 );
 }
+#endif /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C */
 
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && \
@@ -1950,13 +1951,13 @@ void perform_handshake( handshake_test_options* options )
                                             NULL ) == 0 );
     }
 
-    if( options->client_min_version != TEST_SSL_MINOR_VERSION_NONE )
+    if( options->client_min_version != MBEDTLS_SSL_VERSION_UNKNOWN )
     {
         mbedtls_ssl_conf_min_tls_version( &client.conf,
                                           options->client_min_version );
     }
 
-    if( options->client_max_version != TEST_SSL_MINOR_VERSION_NONE )
+    if( options->client_max_version != MBEDTLS_SSL_VERSION_UNKNOWN )
     {
         mbedtls_ssl_conf_max_tls_version( &client.conf,
                                           options->client_max_version );
@@ -1997,13 +1998,13 @@ void perform_handshake( handshake_test_options* options )
 
     mbedtls_ssl_conf_authmode( &server.conf, options->srv_auth_mode );
 
-    if( options->server_min_version != TEST_SSL_MINOR_VERSION_NONE )
+    if( options->server_min_version != MBEDTLS_SSL_VERSION_UNKNOWN )
     {
         mbedtls_ssl_conf_min_tls_version( &server.conf,
                                           options->server_min_version );
     }
 
-    if( options->server_max_version != TEST_SSL_MINOR_VERSION_NONE )
+    if( options->server_max_version != MBEDTLS_SSL_VERSION_UNKNOWN )
     {
         mbedtls_ssl_conf_max_tls_version( &server.conf,
                                           options->server_max_version );
@@ -2073,7 +2074,7 @@ void perform_handshake( handshake_test_options* options )
     }
 #endif
 
-    if( options->expected_negotiated_version == TEST_SSL_MINOR_VERSION_NONE )
+    if( options->expected_negotiated_version == MBEDTLS_SSL_VERSION_UNKNOWN )
     {
         expected_handshake_result = MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION;
     }
@@ -3425,7 +3426,6 @@ void ssl_crypt_record( int cipher_type, int hash_id,
 
     USE_PSA_INIT( );
 
-    ver |= 0x0300; /*(or substitute in tests)*/
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_transform_init( &t0 );
     mbedtls_ssl_transform_init( &t1 );
@@ -3587,7 +3587,6 @@ void ssl_crypt_record_small( int cipher_type, int hash_id,
 
     USE_PSA_INIT( );
 
-    ver |= 0x0300; /*(or substitute in tests)*/
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_transform_init( &t0 );
     mbedtls_ssl_transform_init( &t1 );
@@ -4913,17 +4912,11 @@ void handshake_version( int dtls, int client_min_version, int client_max_version
     handshake_test_options options;
     init_handshake_options( &options );
 
-    if ( client_min_version != TEST_SSL_MINOR_VERSION_NONE )
-        options.client_min_version = 0x0300 | client_min_version;
-    if ( client_max_version != TEST_SSL_MINOR_VERSION_NONE )
-        options.client_max_version = 0x0300 | client_max_version;
-    if ( server_min_version != TEST_SSL_MINOR_VERSION_NONE )
-        options.server_min_version = 0x0300 | server_min_version;
-    if ( server_max_version != TEST_SSL_MINOR_VERSION_NONE )
-        options.server_max_version = 0x0300 | server_max_version;
-
-    if ( expected_negotiated_version != TEST_SSL_MINOR_VERSION_NONE )
-        options.expected_negotiated_version = 0x0300 | expected_negotiated_version;
+    options.client_min_version = client_min_version;
+    options.client_max_version = client_max_version;
+    options.server_min_version = server_min_version;
+    options.server_max_version = server_max_version;
+    options.expected_negotiated_version = expected_negotiated_version;
 
     options.dtls = dtls;
     perform_handshake( &options );

@@ -5222,7 +5222,7 @@ static int ecp_mod_p255( mbedtls_mpi *N )
 
     /* Helper references for top part of N */
     mbedtls_mpi_uint * const NT_p = N->p + P255_WIDTH;
-    unsigned const NT_n = N->n - P255_WIDTH;
+    size_t const NT_n = N->n - P255_WIDTH;
     if( NT_n == 0 || NT_n > P255_WIDTH )
         return( 0 );
 

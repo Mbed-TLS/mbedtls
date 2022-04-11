@@ -38,6 +38,7 @@
 #if defined(MBEDTLS_BIGNUM_C)
 
 #include "mbedtls/bignum.h"
+#include "bignum_internal.h"
 #include "bn_mul.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
@@ -1385,17 +1386,9 @@ int mbedtls_mpi_sub_int( mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_sint 
  *
  * \return c            The carry at the end of the operation.
  */
-static
-#if defined(__APPLE__) && defined(__arm__)
-/*
- * Apple LLVM version 4.2 (clang-425.0.24) (based on LLVM 3.2svn)
- * appears to need this to prevent bad ARM code generation at -O3.
- */
-__attribute__ ((noinline))
-#endif
-mbedtls_mpi_uint mpi_mul_hlp( mbedtls_mpi_uint *d, size_t d_len ,
-                              const mbedtls_mpi_uint *s, size_t s_len,
-                              mbedtls_mpi_uint b )
+mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len ,
+                                       const mbedtls_mpi_uint *s, size_t s_len,
+                                       mbedtls_mpi_uint b )
 {
     mbedtls_mpi_uint c = 0; /* carry */
 
@@ -1496,9 +1489,9 @@ int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     {
         /* We know that there cannot be any carry-out since we're
          * iterating from bottom to top. */
-        (void) mpi_mul_hlp( X->p + k, i + 1,
-                            A->p, i,
-                            B->p[k] );
+        (void) mbedtls_mpi_core_mla( X->p + k, i + 1,
+                                     A->p, i,
+                                     B->p[k] );
     }
 
     /* If the result is 0, we don't shortcut the operation, which reduces
@@ -1529,7 +1522,7 @@ int mbedtls_mpi_mul_int( mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_uint 
     if( b == 0 )
         return( mbedtls_mpi_lset( X, 0 ) );
 
-    /* Calculate A*b as A + A*(b-1) to take advantage of mpi_mul_hlp */
+    /* Calculate A*b as A + A*(b-1) to take advantage of mbedtls_mpi_core_mla */
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     /* In general, A * b requires 1 limb more than b. If
      * A->p[n - 1] * b / b == A->p[n - 1], then A * b fits in the same
@@ -1541,7 +1534,7 @@ int mbedtls_mpi_mul_int( mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_uint 
      * grow to its final size. */
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, A->n + 1 ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( X, A ) );
-    mpi_mul_hlp( X->p, X->n, A->p, A->n, b - 1 );
+    mbedtls_mpi_core_mla( X->p, X->n, A->p, A->n, b - 1 );
 
 cleanup:
     return( ret );
@@ -1934,12 +1927,12 @@ static void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi
         u0 = A->p[i];
         u1 = ( d[0] + u0 * B->p[0] ) * mm;
 
-        (void) mpi_mul_hlp( d, n + 2,
-                            B->p, m,
-                            u0 );
-        (void) mpi_mul_hlp( d, n + 2,
-                            N->p, n,
-                            u1 );
+        (void) mbedtls_mpi_core_mla( d, n + 2,
+                                     B->p, m,
+                                     u0 );
+        (void) mbedtls_mpi_core_mla( d, n + 2,
+                                     N->p, n,
+                                     u1 );
         d++;
     }
 

@@ -15,7 +15,7 @@
             "mbedtls/c_depend_on":    "defined(PSA_CRYPTO_DRIVER_TEST)",
             "entry_points": ["export_public_key"],
             "fallback":     true,
-            "name":         {"export_public_key":"mbedtls_test_transparent_export_public_key"}
+            "names":         {"export_public_key":"mbedtls_test_transparent_export_public_key"}
         }
 
     ]

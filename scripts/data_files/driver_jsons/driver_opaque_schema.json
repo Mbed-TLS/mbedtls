@@ -25,8 +25,7 @@
       "items": {
           "type": "string"
         },
-        "minItems": 1,
-        "uniqueItems": true
+        "default": []
     },
     "capabilities": {
       "type": "array",
@@ -43,23 +42,17 @@
             "entry_points": {
               "type": "array",
               "items": {
-                  "type": "string",
-                  "enum": ["import_key", "export_key", "export_public_key",
-                          "copy_key", "get_builtin_key"]
-                },
-                "minItems": 1,
-                "uniqueItems": true
+                  "type": "string"
+                }
             },
-            "name": {
+            "names": {
               "type": "object",
               "patternProperties": {
                 "^[A-Z_a-z][0-9A-Z_a-z]*$": {
                   "type": "string",
                   "pattern": "^[A-Z_a-z][0-9A-Z_a-z]*$"
                 }
-              },
-                "minItems": 1,
-                "uniqueItems": true
+              }
             }
           },
           "required": [

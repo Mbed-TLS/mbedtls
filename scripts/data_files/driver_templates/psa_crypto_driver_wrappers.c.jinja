@@ -64,8 +64,8 @@
 
 /* BEGIN-Common Macro definitions */
 {% macro entry_point_name(capability, entry_point, driver) -%}
-    {% if capability.name is defined and entry_point in capability.name.keys() -%}
-    {{ capability.name[entry_point]}}
+    {% if capability.name is defined and entry_point in capability.names.keys() -%}
+    {{ capability.names[entry_point]}}
     {% else -%}
     {{driver.prefix}}_{{driver.type}}_{{entry_point}}
     {% endif -%}
@@ -606,7 +606,7 @@ psa_status_t psa_driver_wrapper_import_key(
     size_t *key_buffer_length,
     size_t *bits )
 {
-{% set entry_point = "import_key" -%}
+{% with entry_point = "import_key" -%}
 {% macro entry_point_param(driver) -%}
 attributes,
 data,
@@ -655,11 +655,9 @@ bits
             /* Key is stored in the slot in export representation, so
              * cycle through all known transparent accelerators */
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-/* BEGIN-Templating */
 {% with nest_indent=12 %}
 {% include "OS-template-transparent.jinja" -%}
 {% endwith -%}
-/* END-Templating */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
 
             /* Fell through, meaning no accelerator supports this operation */
@@ -669,17 +667,15 @@ bits
                                               key_buffer_length, bits ) );
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-/* BEGIN-Templating */
 {% with nest_indent=8 %}
 {% include "OS-template-opaque.jinja" -%}
 {% endwith -%}
-/* END-Templating */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
         default:
             (void)status;
             return( PSA_ERROR_INVALID_ARGUMENT );
     }
-
+{% endwith %}
 }
 
 psa_status_t psa_driver_wrapper_export_key(
@@ -688,7 +684,7 @@ psa_status_t psa_driver_wrapper_export_key(
     uint8_t *data, size_t data_size, size_t *data_length )
 
 {
-{% set entry_point = "export_key" -%}
+{% with entry_point = "export_key" -%}
 {% macro entry_point_param(driver) -%}
 attributes,
 key_buffer,
@@ -733,16 +729,15 @@ data_length
 
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-/* BEGIN-Templating */
 {% with nest_indent=8 %}
 {% include "OS-template-opaque.jinja" -%}
 {% endwith -%}
-/* END-Templating */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
         default:
             /* Key is declared with a lifetime not known to us */
             return( status );
     }
+{% endwith %}
 }
 
 psa_status_t psa_driver_wrapper_export_public_key(
@@ -751,7 +746,7 @@ psa_status_t psa_driver_wrapper_export_public_key(
     uint8_t *data, size_t data_size, size_t *data_length )
 
 {
-{% set entry_point = "export_public_key" -%}
+{% with entry_point = "export_public_key" -%}
 {% macro entry_point_param(driver) -%}
 attributes,
 key_buffer,
@@ -790,11 +785,9 @@ data_length
             /* Key is stored in the slot in export representation, so
              * cycle through all known transparent accelerators */
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-/* BEGIN-Templating */
 {% with nest_indent=12 %}
 {% include "OS-template-transparent.jinja" -%}
 {% endwith -%}
-/* END-Templating */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
             /* Fell through, meaning no accelerator supports this operation */
             return( psa_export_public_key_internal( attributes,
@@ -806,16 +799,15 @@ data_length
 
         /* Add cases for opaque driver here */
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-/* BEGIN-Templating */
 {% with nest_indent=8 %}
 {% include "OS-template-opaque.jinja" -%}
 {% endwith -%}
-/* END-Templating */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
         default:
             /* Key is declared with a lifetime not known to us */
             return( status );
     }
+{% endwith %}
 }
 
 psa_status_t psa_driver_wrapper_get_builtin_key(
@@ -823,7 +815,7 @@ psa_status_t psa_driver_wrapper_get_builtin_key(
     psa_key_attributes_t *attributes,
     uint8_t *key_buffer, size_t key_buffer_size, size_t *key_buffer_length )
 {
-{% set entry_point = "get_builtin_key" -%}
+{% with entry_point = "get_builtin_key" -%}
 {% macro entry_point_param(driver) -%}
 slot_number,
 attributes,
@@ -835,11 +827,9 @@ key_buffer_length
     switch( location )
     {
 #if defined(PSA_CRYPTO_DRIVER_TEST)
-/* BEGIN-Templating */
 {% with nest_indent=8 %}
 {% include "OS-template-opaque.jinja" -%}
 {% endwith -%}
-/* END-Templating */
 #endif /* PSA_CRYPTO_DRIVER_TEST */
         default:
             (void) slot_number;
@@ -848,6 +838,7 @@ key_buffer_length
             (void) key_buffer_length;
             return( PSA_ERROR_DOES_NOT_EXIST );
     }
+{% endwith %}
 }
 
 psa_status_t psa_driver_wrapper_copy_key(
@@ -856,7 +847,7 @@ psa_status_t psa_driver_wrapper_copy_key(
     uint8_t *target_key_buffer, size_t target_key_buffer_size,
     size_t *target_key_buffer_length )
 {
-{% set entry_point = "copy_key" -%}
+{% with entry_point = "copy_key" -%}
 {% macro entry_point_param(driver) -%}
 attributes,
 source_key,
@@ -883,11 +874,9 @@ target_key_buffer_length
     switch( location )
     {
 #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-/* BEGIN-Templating */
 {% with nest_indent=8 %}
 {% include "OS-template-opaque.jinja" -%}
 {% endwith -%}
-/* END-Templating */
 #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
         default:
             (void)source_key;
@@ -898,6 +887,7 @@ target_key_buffer_length
             status = PSA_ERROR_INVALID_ARGUMENT;
     }
     return( status );
+{% endwith %}
 }
 
 /*

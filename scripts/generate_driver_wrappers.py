@@ -135,12 +135,12 @@ def main() -> int:
     def_arg_mbedtls_root = build_tree.guess_mbedtls_root()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--mbedtls-root', nargs='?', default=def_arg_mbedtls_root,
+    parser.add_argument('--mbedtls-root', default=def_arg_mbedtls_root,
                         help='root directory of mbedtls source code')
-    parser.add_argument('--template-dir', nargs='?',
-                        help='root directory of mbedtls source code')
-    parser.add_argument('--json-dir', nargs='?',
-                        help='root directory of mbedtls source code')
+    parser.add_argument('--template-dir',
+                        help='directory holding the driver templates')
+    parser.add_argument('--json-dir',
+                        help='directory holding the driver JSONs')
     parser.add_argument('output_directory', nargs='?',
                         help='output file\'s location')
     args = parser.parse_args()

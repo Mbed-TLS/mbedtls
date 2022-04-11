@@ -1391,7 +1391,7 @@ mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len,
                                        mbedtls_mpi_uint b )
 {
     mbedtls_mpi_uint c = 0; /* carry */
-    size_t const excess_len = d_len - s_len;
+    size_t excess_len = d_len - s_len;
 
 #if defined(MULADDC_HUIT)
     for( ; s_len >= 8; s_len -= 8 )

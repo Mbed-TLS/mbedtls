@@ -1011,6 +1011,9 @@ int mbedtls_mpi_gen_prime( mbedtls_mpi *X, size_t nbits, int flags,
                    int (*f_rng)(void *, unsigned char *, size_t),
                    void *p_rng );
 
+void mbedtls_mpi_montmul_set( unsigned var );
+const char * mbedtls_mpi_montmul_varname( unsigned var );
+
 #if defined(MBEDTLS_SELF_TEST)
 
 /**

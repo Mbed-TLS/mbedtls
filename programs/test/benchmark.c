@@ -234,6 +234,40 @@ do {                                                                    \
     }                                                                   \
 } while( 0 )
 
+#define TIME_PUBLIC_STORE( TITLE, TYPE, CODE, OUT )                     \
+do {                                                                    \
+    unsigned long ii;                                                   \
+    int ret;                                                            \
+    MEMORY_MEASURE_INIT;                                                \
+                                                                        \
+    mbedtls_printf( HEADER_FORMAT, TITLE );                             \
+    fflush( stdout );                                                   \
+    mbedtls_set_alarm( 3 );                                             \
+                                                                        \
+    ret = 0;                                                            \
+    for( ii = 1; ! mbedtls_timing_alarmed && ! ret ; ii++ )             \
+    {                                                                   \
+        CODE;                                                           \
+    }                                                                   \
+                                                                        \
+    if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )               \
+    {                                                                   \
+        mbedtls_printf( "Feature Not Supported. Skipping.\n" );         \
+        ret = 0;                                                        \
+    }                                                                   \
+    else if( ret != 0 )                                                 \
+    {                                                                   \
+        PRINT_ERROR;                                                    \
+    }                                                                   \
+    else                                                                \
+    {                                                                   \
+        (OUT) = ii/3;                                                   \
+        mbedtls_printf( "%6lu " TYPE "/s", ii / 3 );                    \
+        MEMORY_MEASURE_PRINT( sizeof( TYPE ) + 1 );                     \
+        mbedtls_printf( "\n" );                                         \
+    }                                                                   \
+} while( 0 )
+
 #if !defined(HAVE_HARDCLOCK) && defined(MBEDTLS_HAVE_ASM) &&  \
     ( defined(_MSC_VER) && defined(_M_IX86) ) || defined(__WATCOMC__)
 
@@ -982,23 +1016,45 @@ int main( int argc, char *argv[] )
     {
         int keysize;
         mbedtls_rsa_context rsa;
-        for( keysize = 2048; keysize <= 4096; keysize *= 2 )
+        unsigned results[5][4];
+        char stats[160] = "";
+        char * cur = stats; size_t len = sizeof( stats ), s;
+
+        s = mbedtls_snprintf( cur, len, "| YOUR PLATFORM |" );
+        cur += s; len -= s;
+
+        for( unsigned var=0; var < 5; var++ )
         {
-            mbedtls_snprintf( title, sizeof( title ), "RSA-%d", keysize );
+            mbedtls_mpi_montmul_set( var );
+            for( keysize = 2048; keysize <= 4096; keysize *= 2 )
+            {
+                mbedtls_snprintf( title, sizeof( title ), "RSA-%d (var %s)", keysize,
+                                  mbedtls_mpi_montmul_varname( var ) );
 
-            mbedtls_rsa_init( &rsa );
-            mbedtls_rsa_gen_key( &rsa, myrand, NULL, keysize, 65537 );
+                mbedtls_rsa_init( &rsa );
+                mbedtls_rsa_gen_key( &rsa, myrand, NULL, keysize, 65537 );
 
-            TIME_PUBLIC( title, " public",
-                    buf[0] = 0;
-                    ret = mbedtls_rsa_public( &rsa, buf, buf ) );
+                TIME_PUBLIC_STORE( title, " public",
+                                   buf[0] = 0;
+                                   ret = mbedtls_rsa_public( &rsa, buf, buf ),
+                                   results[var][2*((keysize-2048)/2048) + 0] );
 
-            TIME_PUBLIC( title, "private",
-                    buf[0] = 0;
-                    ret = mbedtls_rsa_private( &rsa, myrand, NULL, buf, buf ) );
+                TIME_PUBLIC_STORE( title, "private",
+                             buf[0] = 0;
+                             ret = mbedtls_rsa_private( &rsa, myrand, NULL, buf, buf ),
+                                   results[var][2*((keysize-2048)/2048) + 1] );
 
-            mbedtls_rsa_free( &rsa );
+                mbedtls_rsa_free( &rsa );
+
+                s = mbedtls_snprintf( cur, len,
+                                      " %u | %u |",
+                                      results[var][2*((keysize-2048)/2048) + 0],
+                                      results[var][2*((keysize-2048)/2048) + 1] );
+                cur += s; len -= s;
+            }
         }
+
+        mbedtls_printf( "%s\n", stats );
     }
 #endif
 

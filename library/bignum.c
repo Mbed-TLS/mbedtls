@@ -1402,13 +1402,13 @@ mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len,
     return( c );
 }
 
-mbedtls_mpi_uint mbedtls_mpi_core_mla_x2( const mbedtls_mpi_uint *s, size_t s_len,
-                                          mbedtls_mpi_uint *d, size_t d_len,
-                                          mbedtls_mpi_uint b0, mbedtls_mpi_uint b1 )
+mbedtls_mpi_uint mbedtls_mpi_core_mla_x2(
+           mbedtls_mpi_uint *d, size_t d_len,
+           const mbedtls_mpi_uint *s, size_t s_len,
+           mbedtls_mpi_uint b0, mbedtls_mpi_uint b1 )
 {
-    /* Ratio between Load/Store and Arithmetic: 1.5 / 1 */
     size_t n4 = s_len / 4, nr = s_len % 4;
-    size_t excess_len = d_len - ( s_len + 1 );
+    size_t excess_len = d_len - ( s_len + 2 );
 
     mbedtls_mpi_uint c0, c1;
     mbedtls_mpi_uint d0, d1, d2, d3;
@@ -1462,7 +1462,7 @@ mbedtls_mpi_uint mbedtls_mpi_core_mla_x2( const mbedtls_mpi_uint *s, size_t s_le
     return( c0 );
 }
 
-mbedtls_mpi_uint mbedtls_mpi_core_mla_x2_dbl(
+mbedtls_mpi_uint mbedtls_mpi_core_mmla_x2(
            mbedtls_mpi_uint *d, size_t d_len,
            const mbedtls_mpi_uint *s, const mbedtls_mpi_uint *t, size_t st_len,
            mbedtls_mpi_uint b0, mbedtls_mpi_uint b1,
@@ -1485,12 +1485,12 @@ mbedtls_mpi_uint mbedtls_mpi_core_mla_x2_dbl(
         s0 = s[0]; s1 = s[1]; s2 = s[2]; s3 = s[3];
         MPI_UINT_VMAAL_X4( d0, d1, d2, d3, c0,
                            sl, s0, s1, s2, b1 );
-        MPI_UINT_VMAAL_X4( d0, d1, d2, d3, c2,
+        MPI_UINT_VMAAL_X4( d0, d1, d2, d3, c1,
                            s0, s1, s2, s3, b0 );
         sl = s3;
 
         t0 = t[0]; t1 = t[1]; t2 = t[2]; t3 = t[3];
-        MPI_UINT_VMAAL_X4( d0, d1, d2, d3, c1,
+        MPI_UINT_VMAAL_X4( d0, d1, d2, d3, c2,
                            tl, t0, t1, t2, a1 );
         MPI_UINT_VMAAL_X4( d0, d1, d2, d3, c3,
                            t0, t1, t2, t3, a0 );
@@ -1527,8 +1527,8 @@ mbedtls_mpi_uint mbedtls_mpi_core_mla_x2_dbl(
     d0 = *d;
     d0 += c0; c0  = ( d0 < c0 );
     d0 += c1; c0 += ( d0 < c1 );
-    d0 += c2; c1 += ( d0 < c2 );
-    d0 += c3; c2 += ( d0 < c3 );
+    d0 += c2; c0 += ( d0 < c2 );
+    d0 += c3; c0 += ( d0 < c3 );
     *d++ = d0;
 
     while( excess_len-- )
@@ -1541,6 +1541,97 @@ mbedtls_mpi_uint mbedtls_mpi_core_mla_x2_dbl(
     return( c0 );
 }
 
+mbedtls_mpi_uint mbedtls_mpi_core_mla_x1(
+           mbedtls_mpi_uint *d, size_t d_len,
+           const mbedtls_mpi_uint *s, size_t s_len,
+           mbedtls_mpi_uint b )
+{
+    size_t n4 = s_len / 4, nr = s_len % 4;
+    size_t excess_len = d_len - s_len;
+
+    mbedtls_mpi_uint c;
+    mbedtls_mpi_uint d0, d1, d2, d3;
+    mbedtls_mpi_uint s0, s1, s2, s3;
+
+    c = 0;
+    while( n4-- )
+    {
+        d0 = d[0]; d1 = d[1]; d2 = d[2]; d3 = d[3];
+        s0 = s[0]; s1 = s[1]; s2 = s[2]; s3 = s[3];
+        MPI_UINT_VMAAL_X4( d0, d1, d2, d3, c,
+                           s0, s1, s2, s3, b );
+        d[0] = d0; d[1] = d1; d[2] = d2; d[3] = d3;
+        s += 4; d += 4;
+    }
+
+    while( nr-- )
+    {
+        d0 = *d; s0 = *s++;
+        MPI_UINT_UMAAL( d0, c, s0, b );
+        *d++ = d0;
+    }
+
+    while( excess_len-- )
+    {
+        d0 = *d;
+        d0 += c; c = ( d0 < c );
+        *d++ = d0;
+    }
+
+    return( c );
+}
+
+mbedtls_mpi_uint mbedtls_mpi_core_mmla_x1(
+           mbedtls_mpi_uint *d, size_t d_len,
+           const mbedtls_mpi_uint *s, const mbedtls_mpi_uint *t, size_t st_len,
+           mbedtls_mpi_uint b, mbedtls_mpi_uint a )
+{
+    size_t n4 = st_len / 4, nr = st_len % 4;
+    size_t excess_len = d_len - ( st_len + 1 );
+
+    mbedtls_mpi_uint c0, c1;
+    mbedtls_mpi_uint d0, d1, d2, d3;
+    mbedtls_mpi_uint s0, s1, s2, s3;
+    mbedtls_mpi_uint t0, t1, t2, t3;
+
+    c0 = c1 = 0;
+    while( n4-- )
+    {
+        d0 = d[0]; d1 = d[1]; d2 = d[2]; d3 = d[3];
+        s0 = s[0]; s1 = s[1]; s2 = s[2]; s3 = s[3];
+        MPI_UINT_VMAAL_X4( d0, d1, d2, d3, c0,
+                           s0, s1, s2, s3, b );
+        t0 = t[0]; t1 = t[1]; t2 = t[2]; t3 = t[3];
+        MPI_UINT_VMAAL_X4( d0, d1, d2, d3, c1,
+                           t0, t1, t2, t3, a );
+        d[0] = d0; d[1] = d1; d[2] = d2; d[3] = d3;
+        s += 4; t += 4; d += 4;
+    }
+
+    while( nr-- )
+    {
+        d0 = *d;
+        s0 = *s++;
+        MPI_UINT_UMAAL( d0, c0, s0, b );
+        t0 = *t++;
+        MPI_UINT_UMAAL( d0, c1, t0, a );
+        *d++ = d0;
+    }
+
+    d0 = *d;
+    d0 += c0; c0  = ( d0 < c0 );
+    d0 += c1; c0 += ( d0 < c1 );
+    *d++ = d0;
+
+    while( excess_len-- )
+    {
+        d0 = *d;
+        d0 += c0; c0 = ( d0 < c0 );
+        *d++ = d0;
+    }
+
+    return( c0 );
+}
 
 /*
  * Baseline multiplication: X = A * B  (HAC 14.12)
@@ -2023,8 +2114,161 @@ static void mpi_montg_init( mbedtls_mpi_uint *m_inv,
  *                      for `const mbedtls_mpi*`, the content of T can change.
  */
 
-static void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi *N,
-                         mbedtls_mpi_uint const *mm, const mbedtls_mpi *T )
+typedef void (*mbedtls_mpi_montmul_func_t)( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi *N,
+                                            mbedtls_mpi_uint const *mm, const mbedtls_mpi *T );
+
+static void mpi_montmul_cios_x1( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi *N,
+                                mbedtls_mpi_uint const *mm, const mbedtls_mpi *T );
+static void mpi_montmul_cios_x2( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi *N,
+                                mbedtls_mpi_uint const *mm, const mbedtls_mpi *T );
+static void mpi_montmul_fios_x1( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi *N,
+                                mbedtls_mpi_uint const *mm, const mbedtls_mpi *T );
+static void mpi_montmul_fios_x2( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi *N,
+                                mbedtls_mpi_uint const *mm, const mbedtls_mpi *T );
+/* Original version with inline assembly */
+static void mpi_montmul_orig( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi *N,
+                              mbedtls_mpi_uint const *mm, const mbedtls_mpi *T );
+
+static const mbedtls_mpi_montmul_func_t mpi_montmul_vars[] = {
+    &mpi_montmul_orig,
+    &mpi_montmul_cios_x1,
+    &mpi_montmul_cios_x2,
+    &mpi_montmul_fios_x1,
+    &mpi_montmul_fios_x2,
+};
+
+static const char * mpi_montmul_varname[] = {
+    "orig",
+    "cios_x1",
+    "cios_x2",
+    "fios_x1",
+    "fios x2",
+};
+
+static mbedtls_mpi_montmul_func_t montmul_ptr = &mpi_montmul_fios_x2; // &mpi_montmul_orig;
+
+void mbedtls_mpi_montmul_set( unsigned var )
+{
+    if( var >= sizeof( mpi_montmul_vars ) / sizeof( mpi_montmul_vars[0] ) )
+        return;
+    montmul_ptr = mpi_montmul_vars[var];
+}
+
+const char * mbedtls_mpi_montmul_varname( unsigned var )
+{
+    if( var >= sizeof( mpi_montmul_vars ) / sizeof( mpi_montmul_vars[0] ) )
+        return( NULL );
+    return( mpi_montmul_varname[var] );
+}
+
+static inline void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi *N,
+                                mbedtls_mpi_uint const *mm, const mbedtls_mpi *T )
+{
+    montmul_ptr( A, B, N, mm, T );
+}
+
+static void mpi_montmul_cios_x1( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi *N,
+                                 mbedtls_mpi_uint const *mm, const mbedtls_mpi *T )
+{
+    size_t i, n;
+    mbedtls_mpi_uint *d;
+    mbedtls_mpi_uint u0,u1;
+    mbedtls_mpi_uint mm0 = mm[0];
+
+    memset( T->p, 0, T->n * ciL );
+
+    d = T->p;
+    n = N->n;
+    mbedtls_mpi_grow( (mbedtls_mpi*) B, n );
+
+    i = 0;
+    for( ; i < n; i++ )
+    {
+        /*
+         * T = (T + u0*B + u1*N) / 2^biL
+         */
+        u0 = A->p[i];
+        u1 = ( d[0] + u0 * B->p[0] ) * mm0;
+        mbedtls_mpi_core_mla_x1( d, n + 2, B->p, n, u0 );
+        mbedtls_mpi_core_mla_x1( d, n + 2, N->p, n, u1 );
+
+        d++;
+    }
+
+    /* At this point, d is either the desired result or the desired result
+     * plus N. We now potentially subtract N, avoiding leaking whether the
+     * subtraction is performed through side channels. */
+
+    /* Copy the n least significant limbs of d to A, so that
+     * A = d if d < N (recall that N has n limbs). */
+    memcpy( A->p, d, n * ciL );
+    /* If d >= N then we want to set A to d - N. To prevent timing attacks,
+     * do the calculation without using conditional tests. */
+    /* Set d to d0 + (2^biL)^n - N where d0 is the current value of d. */
+    d[n] += 1;
+    d[n] -= mpi_sub_hlp( n, d, d, N->p );
+    /* If d0 < N then d < (2^biL)^n
+     * so d[n] == 0 and we want to keep A as it is.
+     * If d0 >= N then d >= (2^biL)^n, and d <= (2^biL)^n + N < 2 * (2^biL)^n
+     * so d[n] == 1 and we want to set A to the result of the subtraction
+     * which is d - (2^biL)^n, i.e. the n least significant limbs of d.
+     * This exactly corresponds to a conditional assignment. */
+    mbedtls_ct_mpi_uint_cond_assign( n, A->p, d, (unsigned char) d[n] );
+}
+
+static void mpi_montmul_fios_x1( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi *N,
+                                 mbedtls_mpi_uint const *mm, const mbedtls_mpi *T )
+{
+    size_t i, n;
+    mbedtls_mpi_uint *d;
+    mbedtls_mpi_uint u0,u1;
+    mbedtls_mpi_uint mm0 = mm[0];
+
+    memset( T->p, 0, T->n * ciL );
+
+    d = T->p;
+    n = N->n;
+    mbedtls_mpi_grow( (mbedtls_mpi*) B, n );
+
+    i = 0;
+
+    for( ; i < n; i++ )
+    {
+        /*
+         * T = (T + u0*B + u1*N) / 2^biL
+         */
+        u0 = A->p[i];
+        u1 = ( d[0] + u0 * B->p[0] ) * mm0;
+
+        mbedtls_mpi_core_mmla_x1( d, n + 2,
+                                  B->p, N->p, n,
+                                  u0, u1 );
+        d++;
+    }
+
+    /* At this point, d is either the desired result or the desired result
+     * plus N. We now potentially subtract N, avoiding leaking whether the
+     * subtraction is performed through side channels. */
+
+    /* Copy the n least significant limbs of d to A, so that
+     * A = d if d < N (recall that N has n limbs). */
+    memcpy( A->p, d, n * ciL );
+    /* If d >= N then we want to set A to d - N. To prevent timing attacks,
+     * do the calculation without using conditional tests. */
+    /* Set d to d0 + (2^biL)^n - N where d0 is the current value of d. */
+    d[n] += 1;
+    d[n] -= mpi_sub_hlp( n, d, d, N->p );
+    /* If d0 < N then d < (2^biL)^n
+     * so d[n] == 0 and we want to keep A as it is.
+     * If d0 >= N then d >= (2^biL)^n, and d <= (2^biL)^n + N < 2 * (2^biL)^n
+     * so d[n] == 1 and we want to set A to the result of the subtraction
+     * which is d - (2^biL)^n, i.e. the n least significant limbs of d.
+     * This exactly corresponds to a conditional assignment. */
+    mbedtls_ct_mpi_uint_cond_assign( n, A->p, d, (unsigned char) d[n] );
+}
+
+static void mpi_montmul_cios_x2( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi *N,
+                                 mbedtls_mpi_uint const *mm, const mbedtls_mpi *T )
 {
     size_t i, n;
     mbedtls_mpi_uint *d;
@@ -2052,21 +2296,10 @@ static void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi
         MPI_UINT_DBL_MUL_DBL_ACC(d0,d1,a0,a1,b0, b1);
         MPI_UINT_DBL_MUL_DBL    (u0,u1,d0,d1,mm0,mm1);
 
-        /*
-         * Option 1 -- separate calls
-         */
-
-        /* mbedtls_mpi_core_mla_x2( d, n + 3, */
-        /*                          B->p, n, a0, a1 ); */
-        /* mbedtls_mpi_core_mla_x2( d, n + 3, */
-        /*                          N->p, n, u0, u1 );         */
-
-        /*
-         * Option 2 -- merged call, saving some loads/stores
-         */
-        mbedtls_mpi_core_mla_x2_dbl( d, n + 3,
-                                     B->p, N->p, n,
-                                     a0, a1, u0, u1 );
+        mbedtls_mpi_core_mla_x2( d, n + 3,
+                                 B->p, n, a0, a1 );
+        mbedtls_mpi_core_mla_x2( d, n + 3,
+                                 N->p, n, u0, u1 );
 
         d += 2;
     }
@@ -2078,13 +2311,11 @@ static void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi
          */
         u0 = A->p[i];
         u1 = ( d[0] + u0 * B->p[0] ) * mm0;
+        mbedtls_mpi_core_mla_x1( d, n + 2,
+                                 B->p, n, u0 );
+        mbedtls_mpi_core_mla_x1( d, n + 2,
+                                 N->p, n, u1 );
 
-        (void) mbedtls_mpi_core_mla( d, n + 2,
-                                     B->p, n,
-                                     u0 );
-        (void) mbedtls_mpi_core_mla( d, n + 2,
-                                     N->p, n,
-                                     u1 );
         d++;
     }
 
@@ -2108,6 +2339,128 @@ static void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi
      * This exactly corresponds to a conditional assignment. */
     mbedtls_ct_mpi_uint_cond_assign( n, A->p, d, (unsigned char) d[n] );
 }
+
+static void mpi_montmul_fios_x2( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi *N,
+                                 mbedtls_mpi_uint const *mm, const mbedtls_mpi *T )
+{
+    size_t i, n;
+    mbedtls_mpi_uint *d;
+    mbedtls_mpi_uint u0,u1;
+    mbedtls_mpi_uint mm0 = mm[0], mm1 = mm[1];
+
+    memset( T->p, 0, T->n * ciL );
+
+    d = T->p;
+    n = N->n;
+    mbedtls_mpi_grow( (mbedtls_mpi*) B, n );
+
+    i = 0;
+
+    for( ; i + 1 < n; i += 2 )
+    {
+        mbedtls_mpi_uint a0,a1,b0,b1,d0,d1;
+        /*
+         * T = (T + u0*B + u1*N) / 2^biL
+         */
+        a0 = A->p[i], a1 = A->p[i+1];
+        b0 = B->p[0], b1 = B->p[1];
+        d0 = d[0],    d1 = d[1];
+
+        MPI_UINT_DBL_MUL_DBL_ACC(d0,d1,a0,a1,b0, b1);
+        MPI_UINT_DBL_MUL_DBL    (u0,u1,d0,d1,mm0,mm1);
+
+        mbedtls_mpi_core_mmla_x2( d, n + 3,
+                                  B->p, N->p, n,
+                                  a0, a1, u0, u1 );
+
+        d += 2;
+    }
+
+    for( ; i < n; i++ )
+    {
+        /*
+         * T = (T + u0*B + u1*N) / 2^biL
+         */
+        u0 = A->p[i];
+        u1 = ( d[0] + u0 * B->p[0] ) * mm0;
+
+        (void) mbedtls_mpi_core_mmla_x1( d, n + 2,
+                                         B->p, N->p, n,
+                                         u0, u1 );
+
+        d++;
+    }
+
+    /* At this point, d is either the desired result or the desired result
+     * plus N. We now potentially subtract N, avoiding leaking whether the
+     * subtraction is performed through side channels. */
+
+    /* Copy the n least significant limbs of d to A, so that
+     * A = d if d < N (recall that N has n limbs). */
+    memcpy( A->p, d, n * ciL );
+    /* If d >= N then we want to set A to d - N. To prevent timing attacks,
+     * do the calculation without using conditional tests. */
+    /* Set d to d0 + (2^biL)^n - N where d0 is the current value of d. */
+    d[n] += 1;
+    d[n] -= mpi_sub_hlp( n, d, d, N->p );
+    /* If d0 < N then d < (2^biL)^n
+     * so d[n] == 0 and we want to keep A as it is.
+     * If d0 >= N then d >= (2^biL)^n, and d <= (2^biL)^n + N < 2 * (2^biL)^n
+     * so d[n] == 1 and we want to set A to the result of the subtraction
+     * which is d - (2^biL)^n, i.e. the n least significant limbs of d.
+     * This exactly corresponds to a conditional assignment. */
+    mbedtls_ct_mpi_uint_cond_assign( n, A->p, d, (unsigned char) d[n] );
+}
+
+static void mpi_montmul_orig( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi *N,
+                              mbedtls_mpi_uint const *mm, const mbedtls_mpi *T )
+{
+    size_t i, n;
+    mbedtls_mpi_uint *d;
+    mbedtls_mpi_uint u0,u1;
+    mbedtls_mpi_uint mm0 = mm[0];
+
+    memset( T->p, 0, T->n * ciL );
+
+    d = T->p;
+    n = N->n;
+    mbedtls_mpi_grow( (mbedtls_mpi*) B, n );
+
+    i = 0;
+    for( ; i < n; i++ )
+    {
+        /*
+         * T = (T + u0*B + u1*N) / 2^biL
+         */
+        u0 = A->p[i];
+        u1 = ( d[0] + u0 * B->p[0] ) * mm0;
+        mbedtls_mpi_core_mla( d, n + 2, B->p, n, u0 );
+        mbedtls_mpi_core_mla( d, n + 2, N->p, n, u1 );
+
+        d++;
+    }
+
+    /* At this point, d is either the desired result or the desired result
+     * plus N. We now potentially subtract N, avoiding leaking whether the
+     * subtraction is performed through side channels. */
+
+    /* Copy the n least significant limbs of d to A, so that
+     * A = d if d < N (recall that N has n limbs). */
+    memcpy( A->p, d, n * ciL );
+    /* If d >= N then we want to set A to d - N. To prevent timing attacks,
+     * do the calculation without using conditional tests. */
+    /* Set d to d0 + (2^biL)^n - N where d0 is the current value of d. */
+    d[n] += 1;
+    d[n] -= mpi_sub_hlp( n, d, d, N->p );
+    /* If d0 < N then d < (2^biL)^n
+     * so d[n] == 0 and we want to keep A as it is.
+     * If d0 >= N then d >= (2^biL)^n, and d <= (2^biL)^n + N < 2 * (2^biL)^n
+     * so d[n] == 1 and we want to set A to the result of the subtraction
+     * which is d - (2^biL)^n, i.e. the n least significant limbs of d.
+     * This exactly corresponds to a conditional assignment. */
+    mbedtls_ct_mpi_uint_cond_assign( n, A->p, d, (unsigned char) d[n] );
+}
+
 
 /*
  * Montgomery reduction: A = A * R^-1 mod N

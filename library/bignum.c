@@ -1370,22 +1370,6 @@ int mbedtls_mpi_sub_int( mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_sint 
     return( mbedtls_mpi_sub_mpi( X, A, &B ) );
 }
 
-/** Helper for mbedtls_mpi multiplication.
- *
- * Add \p b * \p s to \p d.
- *
- * \param[in,out] d     The bignum to add to.
- * \param d_len         The number of limbs of \p d. This must be
- *                      at least \p s_len.
- * \param s_len         The number of limbs of \p s.
- * \param[in] s         A bignum to multiply, of size \p i.
- *                      It may overlap with \p d, but only if
- *                      \p d <= \p s.
- *                      Its leading limb must not be \c 0.
- * \param b             A scalar to multiply.
- *
- * \return c            The carry at the end of the operation.
- */
 mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len,
                                        const mbedtls_mpi_uint *s, size_t s_len,
                                        mbedtls_mpi_uint b )

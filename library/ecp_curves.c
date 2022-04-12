@@ -5223,7 +5223,7 @@ static int ecp_mod_p255( mbedtls_mpi *N )
     /* Helper references for top part of N */
     mbedtls_mpi_uint * const NT_p = N->p + P255_WIDTH;
     const size_t NT_n = N->n - P255_WIDTH;
-    if( NT_n == 0 || NT_n > N->n )
+    if( NT_n <= P255_WIDTH )
         return( 0 );
 
     /* Split N as N + 2^256 M */

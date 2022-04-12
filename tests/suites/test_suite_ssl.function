@@ -5401,8 +5401,7 @@ exit:
 
 /* BEGIN_CASE */
 void conf_version( int endpoint, int transport,
-                   int min_version_major, int min_version_minor,
-                   int max_version_major, int max_version_minor,
+                   int min_tls_version, int max_tls_version,
                    int expected_ssl_setup_result )
 {
     mbedtls_ssl_config conf;
@@ -5413,8 +5412,8 @@ void conf_version( int endpoint, int transport,
 
     mbedtls_ssl_conf_endpoint( &conf, endpoint );
     mbedtls_ssl_conf_transport( &conf, transport );
-    mbedtls_ssl_conf_min_version( &conf, min_version_major, min_version_minor );
-    mbedtls_ssl_conf_max_version( &conf, max_version_major, max_version_minor );
+    mbedtls_ssl_conf_min_tls_version( &conf, min_tls_version );
+    mbedtls_ssl_conf_max_tls_version( &conf, max_tls_version );
 
     TEST_ASSERT( mbedtls_ssl_setup( &ssl, &conf ) == expected_ssl_setup_result );
 

@@ -1886,8 +1886,8 @@ static void mpi_montg_init( mbedtls_mpi_uint *mm, const mbedtls_mpi *N )
 static void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi *N, mbedtls_mpi_uint mm,
                          const mbedtls_mpi *T )
 {
-    size_t i, n, m;
-    mbedtls_mpi_uint u0, u1, *d;
+    size_t n, m;
+    mbedtls_mpi_uint *d;
 
     memset( T->p, 0, T->n * ciL );
 
@@ -1895,8 +1895,10 @@ static void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi
     n = N->n;
     m = ( B->n < n ) ? B->n : n;
 
-    for( i = 0; i < n; i++ )
+    for( size_t i = 0; i < n; i++ )
     {
+        mbedtls_mpi_uint u0, u1;
+
         /*
          * T = (T + u0*B + u1*N) / 2^biL
          */

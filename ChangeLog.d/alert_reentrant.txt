@@ -1,0 +1,5 @@
+Bugfix
+   * Fix bug in the alert sending function mbedtls_ssl_send_alert_message()
+     potentially leading to corrupted alert messages being sent in case
+     the function needs to be re-called after initially returning
+     MBEDTLS_SSL_WANT_WRITE. Fixes #1916.

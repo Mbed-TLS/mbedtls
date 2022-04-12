@@ -640,7 +640,10 @@ struct mbedtls_ssl_handshake_params
  * seem correct.
  */
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C)
+#if !defined(MBEDTLS_USE_PSA_CRYPTO) ||                         \
+    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     mbedtls_ecdh_context ecdh_ctx;              /*!<  ECDH key exchange       */
+#endif /* !MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
     psa_key_type_t ecdh_psa_type;

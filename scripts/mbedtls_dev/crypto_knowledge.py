@@ -458,8 +458,14 @@ class Algorithm:
     }
     HMAC_RE = re.compile(r'PSA_ALG_HMAC\((.*)\)\Z')
     @classmethod
-    def mac_or_tag_lengths(cls, base: str) -> FrozenSet[int]:
-        """Return the set of permitted lengths for the given MAC or AEAD tag."""
+    def permitted_truncations(cls, base: str) -> FrozenSet[int]:
+        """Permitted output lengths for the given MAC or AEAD base algorithm.
+
+        For a MAC algorithm, this is the set of truncation lengths that
+        Mbed TLS supports.
+        For an AEAD algorithm, this is the set of truncation lengths that
+        are permitted by the algorithm specification.
+        """
         if base in cls.PERMITTED_TAG_LENGTHS:
             return cls.PERMITTED_TAG_LENGTHS[base]
         max_length = cls.MAC_LENGTH.get(base, None)
@@ -486,7 +492,7 @@ class Algorithm:
         if m:
             base = m.group('base')
             to_length = int(m.group('length'), 0)
-            permitted_lengths = self.mac_or_tag_lengths(base)
+            permitted_lengths = self.permitted_truncations(base)
             if to_length not in permitted_lengths:
                 return True
         return False

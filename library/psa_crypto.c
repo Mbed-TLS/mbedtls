@@ -5243,6 +5243,10 @@ static psa_status_t psa_tls12_prf_set_other_key( psa_tls12_prf_key_derivation_t 
         memcpy( prf->other_secret, data, data_length );
         prf->other_secret_length = data_length;
     }
+    else
+    {
+        prf->other_secret_length = 0;
+    }
 
     prf->state = PSA_TLS12_PRF_STATE_OTHER_KEY_SET;
 
@@ -5332,8 +5336,11 @@ static psa_status_t psa_tls12_prf_psk_to_ms_set_key(
     {
         *cur++ = MBEDTLS_BYTE_1( prf->other_secret_length );
         *cur++ = MBEDTLS_BYTE_0( prf->other_secret_length );
-        memcpy( cur, prf->other_secret, prf->other_secret_length );
-        cur += prf->other_secret_length;
+        if ( prf->other_secret_length != 0 )
+        {
+            memcpy( cur, prf->other_secret, prf->other_secret_length );
+            cur += prf->other_secret_length;
+        }
     }
     else
     {

@@ -5225,6 +5225,8 @@ static int ecp_mod_p255( mbedtls_mpi *N )
     const size_t NT_n = N->n - P255_WIDTH;
     if( N->n <= P255_WIDTH )
         return( 0 );
+    if( NT_n > P255_WIDTH )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     /* Split N as N + 2^256 M */
     memset( Mp,   0,    sizeof( Mp ) );

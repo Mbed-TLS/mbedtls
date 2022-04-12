@@ -1131,7 +1131,7 @@ struct mbedtls_ssl_session
     /*!< TLS version negotiated in the session. Used if and when renegotiating
      *   or resuming a session instead of the configured minor TLS version.
      */
-    uint16_t MBEDTLS_PRIVATE(tls_version);
+    mbedtls_ssl_protocol_version MBEDTLS_PRIVATE(tls_version);
 
 #if defined(MBEDTLS_HAVE_TIME)
     mbedtls_time_t MBEDTLS_PRIVATE(start);       /*!< starting time      */
@@ -1241,8 +1241,8 @@ struct mbedtls_ssl_config
      * so that elements tend to be in the 128-element direct access window
      * on Arm Thumb, which reduces the code size. */
 
-    uint16_t MBEDTLS_PRIVATE(max_tls_version);  /*!< max. TLS version used          */
-    uint16_t MBEDTLS_PRIVATE(min_tls_version);  /*!< min. TLS version used          */
+    mbedtls_ssl_protocol_version MBEDTLS_PRIVATE(max_tls_version);  /*!< max. TLS version used */
+    mbedtls_ssl_protocol_version MBEDTLS_PRIVATE(min_tls_version);  /*!< min. TLS version used */
 
     /*
      * Flags (could be bit-fields to save RAM, but separate bytes make
@@ -1494,8 +1494,6 @@ struct mbedtls_ssl_context
                                   number of retransmissions of request if
                                   renego_max_records is < 0           */
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
-
-    int MBEDTLS_PRIVATE(major_ver_OBSOLETE);     /*!< (should no longer be used)                */
 
     /*!< Server: Negotiated TLS protocol version.
      *   Client: Maximum TLS version to be negotiated, then negotiated TLS

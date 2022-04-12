@@ -505,6 +505,14 @@ struct mbedtls_ssl_handshake_params
     uint8_t resume;                     /*!<  session resume indicator*/
     uint8_t cli_exts;                   /*!< client extension presence*/
 
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    uint8_t sni_authmode;               /*!< authmode from SNI callback     */
+#endif
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    uint8_t new_session_ticket;         /*!< use NewSessionTicket?    */
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+
 #if defined(MBEDTLS_SSL_CLI_C)
     /*!< Minimum TLS version to be negotiated.
      *
@@ -524,16 +532,8 @@ struct mbedtls_ssl_handshake_params
      *   used to store this maximum value until it contains the actual
      *   negotiated value.
      */
-    uint16_t min_tls_version;
+    mbedtls_ssl_protocol_version min_tls_version;
 #endif
-
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-    uint8_t sni_authmode;               /*!< authmode from SNI callback     */
-#endif
-
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    uint8_t new_session_ticket;         /*!< use NewSessionTicket?    */
-#endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
     uint8_t extended_ms;                /*!< use Extended Master Secret? */

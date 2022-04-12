@@ -1504,7 +1504,10 @@ int mbedtls_mpi_mul_int( mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_uint 
      * making the call to grow() unconditional causes slightly fewer
      * calls to calloc() in ECP code, presumably because it reuses the
      * same mpi for a while and this way the mpi is more likely to directly
-     * grow to its final size. */
+     * grow to its final size.
+     *
+     * Note that calculating A*b as 0 + A*b doesn't work as-is because
+     * A,X can be the same. */
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, A->n + 1 ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( X, A ) );
     mbedtls_mpi_core_mla( X->p, X->n, A->p, A->n, b - 1 );

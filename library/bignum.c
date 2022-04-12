@@ -1440,9 +1440,7 @@ mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len,
 int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t i, j, k;
     mbedtls_mpi TA, TB;
-    int result_is_zero = 0;
     MPI_VALIDATE_RET( X != NULL );
     MPI_VALIDATE_RET( A != NULL );
     MPI_VALIDATE_RET( B != NULL );
@@ -1452,38 +1450,31 @@ int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     if( X == A ) { MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &TA, A ) ); A = &TA; }
     if( X == B ) { MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &TB, B ) ); B = &TB; }
 
-    for( i = A->n; i > 0; i-- )
-        if( A->p[i - 1] != 0 )
-            break;
-    if( i == 0 )
-        result_is_zero = 1;
-
-    for( j = B->n; j > 0; j-- )
-        if( B->p[j - 1] != 0 )
-            break;
-    if( j == 0 )
-        result_is_zero = 1;
-
-    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, i + j ) );
+    const size_t A_len = A->n, B_len = B->n;
+    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, A_len + B_len ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( X, 0 ) );
 
-    for( k = 0; k < j; k++ )
+    for( size_t k = 0; k < B_len; k++ )
     {
         /* We know that there cannot be any carry-out since we're
          * iterating from bottom to top. */
-        (void) mbedtls_mpi_core_mla( X->p + k, i + 1,
-                                     A->p, i,
+        (void) mbedtls_mpi_core_mla( X->p + k, A_len + 1,
+                                     A->p, A_len,
                                      B->p[k] );
     }
 
-    /* If the result is 0, we don't shortcut the operation, which reduces
-     * but does not eliminate side channels leaking the zero-ness. We do
-     * need to take care to set the sign bit properly since the library does
-     * not fully support an MPI object with a value of 0 and s == -1. */
-    if( result_is_zero )
-        X->s = 1;
-    else
-        X->s = A->s * B->s;
+    X->s = A->s * B->s;
+
+    /* The library does not fully support a "negative zero". */
+    if( X->s == -1 )
+    {
+        size_t i;
+        for( i = X->n; i > 0; i-- )
+            if( X->p[i - 1] != 0 )
+                break;
+        if( i == 0 )
+            X->s = 1;
+    }
 
 cleanup:
 

@@ -854,6 +854,8 @@ psa_status_t psa_driver_wrapper_cipher_encrypt(
             (void)key_buffer;
             (void)key_buffer_size;
             (void)alg;
+            (void)iv;
+            (void)iv_length;
             (void)input;
             (void)input_length;
             (void)output;

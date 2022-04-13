@@ -2239,18 +2239,6 @@ component_test_variable_ssl_in_out_buffer_len_CID () {
     tests/compat.sh
 }
 
-component_test_CID_no_debug() {
-    msg "build: Connection ID enabled, debug disabled"
-    scripts/config.py unset MBEDTLS_DEBUG_C
-    scripts/config.py set MBEDTLS_SSL_DTLS_CONNECTION_ID
-
-    CC=gcc cmake .
-    make
-
-    msg "test: Connection ID enabled, debug disabled"
-    make test
-}
-
 component_test_ssl_alloc_buffer_and_mfl () {
     msg "build: default config with memory buffer allocator and MFL extension"
     scripts/config.py set MBEDTLS_MEMORY_BUFFER_ALLOC_C

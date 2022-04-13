@@ -1769,8 +1769,9 @@
  * This setting allows support for cryptographic mechanisms through the PSA
  * API to be configured separately from support through the mbedtls API.
  *
- * When this option is disabled, the PSA API exposes the same cryptographic
- * mechanism as the `mbedtls_xxx` API configured with `MBEDTLS_XXX` symbols.
+ * When this option is disabled, the PSA API exposes the cryptographic
+ * mechanisms that can be implemented on top of the `mbedtls_xxx` API
+ * configured with `MBEDTLS_XXX` symbols.
  *
  * When this option is enabled, the PSA API exposes the cryptographic
  * mechanisms requested by the `PSA_WANT_XXX` symbols defined in

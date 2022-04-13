@@ -4715,7 +4715,8 @@ static psa_status_t setup_psa_key_derivation( psa_key_derivation_operation_t* de
                                               psa_algorithm_t alg,
                                               const unsigned char* seed, size_t seed_length,
                                               const unsigned char* label, size_t label_length,
-                                              const unsigned char* salt, size_t salt_length,
+                                              const unsigned char* other_secret,
+                                              size_t other_secret_length,
                                               size_t capacity )
 {
     psa_status_t status;
@@ -4732,11 +4733,11 @@ static psa_status_t setup_psa_key_derivation( psa_key_derivation_operation_t* de
         if( status != PSA_SUCCESS )
             return( status );
 
-        if ( salt != NULL )
+        if ( other_secret != NULL )
         {
             status = psa_key_derivation_input_bytes( derivation,
-                                                    PSA_KEY_DERIVATION_INPUT_SALT,
-                                                    salt, salt_length );
+                                        PSA_KEY_DERIVATION_INPUT_OTHER_SECRET,
+                                        other_secret, other_secret_length );
             if( status != PSA_SUCCESS )
                 return( status );
         }
@@ -5116,25 +5117,25 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
         else
             alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_256);
 
-        size_t salt_len = 0;
-        unsigned char* salt = NULL;
+        size_t other_secret_len = 0;
+        unsigned char* other_secret = NULL;
 
         if ( handshake->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK )
         {
-            /* Provide other key as salt.
+            /* Provide other key as other secret.
              * For RSA-PKS other key length is always 48 bytes.
-             * Other key is stored in premaster, where first 2 bytes hold the
+             * Other secret is stored in premaster, where first 2 bytes hold the
              * length of the other key. Skip them.
              */
-            salt_len = 48;
-            salt = handshake->premaster + 2;
+            other_secret_len = 48;
+            other_secret = handshake->premaster + 2;
         }
 
         status = setup_psa_key_derivation( &derivation, psk, alg,
                                            seed, seed_len,
                                            (unsigned char const *) lbl,
                                            (size_t) strlen( lbl ),
-                                           salt, salt_len,
+                                           other_secret, other_secret_len,
                                            master_secret_len );
         if( status != PSA_SUCCESS )
         {

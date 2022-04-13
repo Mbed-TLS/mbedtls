@@ -709,7 +709,7 @@ Security
      applications calling mbedtls_mpi_sub_abs() directly are affected:
      all calls inside the library were safe since this function is
      only called with |A| >= |B|. Reported by Guido Vranken in #4042.
-   * Fix an erroneous estimation for an internal buffer in
+   * Fix an errorneous estimation for an internal buffer in
      mbedtls_pk_write_key_pem(). If MBEDTLS_MPI_MAX_SIZE is set to an odd
      value the function might fail to write a private RSA keys of the largest
      supported size.
@@ -722,7 +722,7 @@ Security
 
 Bugfix
    * Fix use-after-scope error in programs/ssl/ssl_client2.c and ssl_server2.c
-   * Fix memory leak that occurred when calling psa_close_key() on a
+   * Fix memory leak that occured when calling psa_close_key() on a
      wrapped key with MBEDTLS_PSA_CRYPTO_SE_C defined.
    * Fix an incorrect error code if an RSA private operation glitched.
    * Fix a memory leak in an error case in psa_generate_derived_key_internal().
@@ -1149,7 +1149,7 @@ Changes
      executable.
    * The ECP module, enabled by `MBEDTLS_ECP_C`, now depends on
      `MBEDTLS_CTR_DRBG_C` or `MBEDTLS_HMAC_DRBG_C` for some side-channel
-     countermeasures. If side channels are not a concern, this dependency can
+     coutermeasures. If side channels are not a concern, this dependency can
      be avoided by enabling the new option `MBEDTLS_ECP_NO_INTERNAL_RNG`.
    * Align MSVC error flag with GCC and Clang. Contributed by Carlos Gomes
      Martinho. #3147
@@ -1817,7 +1817,7 @@ New deprecations
      platform error.
    * All module specific generic hardware acceleration errors following the
      form MBEDTLS_ERR_XXX_HW_ACCEL_FAILED that are deprecated and are replaced
-     by the equivalent platform error.
+     by the equivalent plaform error.
    * Deprecate the function mbedtls_mpi_is_prime() in favor of
      mbedtls_mpi_is_prime_ext() which allows specifying the number of
      Miller-Rabin rounds.
@@ -2637,7 +2637,7 @@ Bugfix
      a negative MPI. Previously the result was always negative. Found by Guido
      Vranken.
    * Fix a numerical underflow leading to stack overflow in mpi_read_file()
-     that was triggered upon reading an empty line. Found by Guido Vranken.
+     that was triggered uppon reading an empty line. Found by Guido Vranken.
 
 Changes
    * Send fatal alerts in more cases. The previous behaviour was to skip
@@ -2812,7 +2812,7 @@ Bugfix
    * Fix mbedtls_x509_get_sig() to update the ASN1 type in the mbedtls_x509_buf
      data structure until after error checks are successful. Found by
      subramanyam-c. #622
-   * Fix documentation and implementation mismatch for function arguments of
+   * Fix documentation and implementation missmatch for function arguments of
      mbedtls_gcm_finish(). Found by cmiatpaar. #602
    * Guarantee that P>Q at RSA key generation. Found by inestlerode. #558
    * Fix potential byte overread when verifying malformed SERVER_HELLO in
@@ -2935,7 +2935,7 @@ Security
 Features
    * Experimental support for EC J-PAKE as defined in Thread 1.0.0.
      Disabled by default as the specification might still change.
-   * Added a key extraction callback to access the master secret and key
+   * Added a key extraction callback to accees the master secret and key
      block. (Potential uses include EAP-TLS and Thread.)
 
 Bugfix
@@ -2970,7 +2970,7 @@ Security
      overflow of the hostname or session ticket. Found by Guido Vranken,
      Intelworks.
    * Fix potential double-free if mbedtls_ssl_set_hs_psk() is called more than
-     once in the same handshake and mbedtls_ssl_conf_psk() was used.
+     once in the same handhake and mbedtls_ssl_conf_psk() was used.
      Found and patch provided by Guido Vranken, Intelworks. Cannot be forced
      remotely.
    * Fix stack buffer overflow in pkcs12 decryption (used by
@@ -3245,7 +3245,7 @@ Default behavior changes
 
 Requirement changes
    * The minimum MSVC version required is now 2010 (better C99 support).
-   * The NET layer now unconditionally relies on getaddrinfo() and select().
+   * The NET layer now unconditionnaly relies on getaddrinfo() and select().
    * Compiler is required to support C99 types such as long long and uint32_t.
 
 API changes from the 1.4 preview branch
@@ -3458,7 +3458,7 @@ Bugfix
      are defined but not POLARSSL_HAVE_TIME (found by Stephane Di Vito).
    * Remove non-existent file from VS projects (found by Peter Vaskovic).
    * ssl_read() could return non-application data records on server while
-     renegotiation was pending, and on client when a HelloRequest was received.
+     renegotation was pending, and on client when a HelloRequest was received.
    * Server-initiated renegotiation would fail with non-blocking I/O if the
      write callback returned WANT_WRITE when requesting renegotiation.
    * ssl_close_notify() could send more than one message in some circumstances
@@ -3942,7 +3942,7 @@ Bugfix
    * Don't print uninitialised buffer in ssl_mail_client (found by Marc Abel).
    * Fix net_accept() regarding non-blocking sockets (found by Luca Pesce).
    * ssl_read() could return non-application data records on server while
-     renegotiation was pending, and on client when a HelloRequest was received.
+     renegotation was pending, and on client when a HelloRequest was received.
    * Fix warnings from Clang's scan-build (contributed by Alfred Klomp).
 
 Changes
@@ -4378,7 +4378,7 @@ Changes
      x509parse_crtfile(). With permissive parsing the parsing does not stop on
      encountering a parse-error. Beware that the meaning of return values has
      changed!
-   * All error codes are now negative. Even on memory failures and IO errors.
+   * All error codes are now negative. Even on mermory failures and IO errors.
 
 Bugfix
    * Fixed faulty HMAC-MD2 implementation. Found by dibac. (Closes
@@ -4538,7 +4538,7 @@ Features
 Changes
    * Made Makefile cleaner
    * Removed dependency on rand() in rsa_pkcs1_encrypt().
-     Now using random function provided to function and
+     Now using random fuction provided to function and
      changed the prototype of rsa_pkcs1_encrypt(),
      rsa_init() and rsa_gen_key().
    * Some SSL defines were renamed in order to avoid

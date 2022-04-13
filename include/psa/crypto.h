@@ -3783,7 +3783,7 @@ psa_status_t psa_key_derivation_output_key(
  *
  * \param[in,out] operation The key derivation operation object to read from.
  * \param[in] expected_output Buffer containing the expected derivation output.
- * \param output_length     Length ot the expected output; this is also the
+ * \param output_length     Length of the expected output; this is also the
  *                          number of bytes that will be read.
  *
  * \retval #PSA_SUCCESS

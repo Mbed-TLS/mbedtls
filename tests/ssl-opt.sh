@@ -10839,7 +10839,7 @@ run_test    "TLS 1.3: Client authentication, client alg not in server list - ope
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
             -c "signature algorithm not in received or offered list." \
-            -C "unkown pk type"
+            -C "unknown pk type"
 
 requires_gnutls_tls1_3
 requires_gnutls_next_no_ticket
@@ -10857,7 +10857,7 @@ run_test    "TLS 1.3: Client authentication, client alg not in server list - gnu
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
             -c "signature algorithm not in received or offered list." \
-            -C "unkown pk type"
+            -C "unknown pk type"
 
 # Test using an opaque private key for client authentication
 requires_openssl_tls1_3

@@ -2735,7 +2735,7 @@ void mbedtls_ssl_conf_dtls_anti_replay( mbedtls_ssl_config *conf, char mode );
  *                 ones going through the authentication-decryption phase.
  *
  * \note           This is a security trade-off related to the fact that it's
- *                 often relatively easy for an active attacker ot inject UDP
+ *                 often relatively easy for an active attacker to inject UDP
  *                 datagrams. On one hand, setting a low limit here makes it
  *                 easier for such an attacker to forcibly terminated a
  *                 connection. On the other hand, a high limit or no limit

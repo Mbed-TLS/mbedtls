@@ -923,7 +923,7 @@ class TestGenerator:
         filename = self.filename_for(basename)
         test_case.write_data_file(filename, test_cases)
 
-    # Note that targets whose name containns 'test_format' have their content
+    # Note that targets whose name contains 'test_format' have their content
     # validated by `abi_check.py`.
     TARGETS = {
         'test_suite_psa_crypto_generate_key.generated':

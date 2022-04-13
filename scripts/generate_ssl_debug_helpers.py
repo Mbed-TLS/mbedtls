@@ -289,7 +289,7 @@ class SignatureAlgorithmDefinition:
             {translation_table}
                 }};
 
-                return "UNKOWN";
+                return "UNKNOWN";
             }}''')
         body = body.format(translation_table='\n'.join(translation_table))
         return body

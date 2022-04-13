@@ -1576,7 +1576,7 @@
  * unless you know for sure amplification cannot be a problem in the
  * environment in which your server operates.
  *
- * \warning Disabling this can ba a security risk! (see above)
+ * \warning Disabling this can be a security risk! (see above)
  *
  * Requires: MBEDTLS_SSL_PROTO_DTLS
  *

@@ -168,12 +168,12 @@ void pk_psa_utils( int key_is_rsa )
 
     if( key_is_rsa )
     {
-        bitlen = 1024; /* harcoded in genkey() */
+        bitlen = 1024; /* hardcoded in genkey() */
         key = pk_psa_genkey_rsa();
     }
     else
     {
-        bitlen = 256; /* harcoded in genkey() */
+        bitlen = 256; /* hardcoded in genkey() */
         key = pk_psa_genkey_ecc();
     }
     if( mbedtls_svc_key_id_is_null( key ) )

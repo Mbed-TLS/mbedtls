@@ -1440,7 +1440,7 @@ mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len,
 int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *B )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t i, j, k;
+    size_t i, j;
     mbedtls_mpi TA, TB;
     int result_is_zero = 0;
     MPI_VALIDATE_RET( X != NULL );
@@ -1467,7 +1467,7 @@ int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, i + j ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( X, 0 ) );
 
-    for( k = 0; k < j; k++ )
+    for( size_t k = 0; k < j; k++ )
     {
         /* We know that there cannot be any carry-out since we're
          * iterating from bottom to top. */

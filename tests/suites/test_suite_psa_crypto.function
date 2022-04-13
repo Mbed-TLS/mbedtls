@@ -7550,7 +7550,6 @@ void raw_key_agreement( int alg_arg,
     size_t output_length = ~0;
     size_t key_bits;
 
-    ASSERT_ALLOC( output, expected_output->len );
     PSA_ASSERT( psa_crypto_init( ) );
 
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
@@ -7563,6 +7562,10 @@ void raw_key_agreement( int alg_arg,
     PSA_ASSERT( psa_get_key_attributes( our_key, &attributes ) );
     key_bits = psa_get_key_bits( &attributes );
 
+    /* Validate size macros */
+
+    /* Good case with exact output size */
+    ASSERT_ALLOC( output, expected_output->len );
     PSA_ASSERT( psa_raw_key_agreement( alg, our_key,
                                        peer_key_data->x, peer_key_data->len,
                                        output, expected_output->len,
@@ -7573,6 +7576,33 @@ void raw_key_agreement( int alg_arg,
                  PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE( our_key_type, key_bits ) );
     TEST_ASSERT( output_length <=
                  PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE );
+    mbedtls_free( output );
+    output = NULL;
+    output_length = ~0;
+
+    /* Larger buffer */
+    ASSERT_ALLOC( output, expected_output->len + 1 );
+    PSA_ASSERT( psa_raw_key_agreement( alg, our_key,
+                                       peer_key_data->x, peer_key_data->len,
+                                       output, expected_output->len + 1,
+                                       &output_length ) );
+    ASSERT_COMPARE( output, output_length,
+                    expected_output->x, expected_output->len );
+    mbedtls_free( output );
+    output = NULL;
+    output_length = ~0;
+
+    /* Buffer too small */
+    ASSERT_ALLOC( output, expected_output->len - 1 );
+    TEST_EQUAL( psa_raw_key_agreement( alg, our_key,
+                                       peer_key_data->x, peer_key_data->len,
+                                       output, expected_output->len - 1,
+                                       &output_length ),
+                PSA_ERROR_BUFFER_TOO_SMALL );
+    /* Not required by the spec, but good robustness */
+    TEST_ASSERT( output_length <= expected_output->len - 1 );
+    mbedtls_free( output );
+    output = NULL;
 
 exit:
     mbedtls_free( output );

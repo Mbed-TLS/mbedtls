@@ -4102,7 +4102,7 @@
  */
 //#define MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
 
-/** \} name SECTION: Customisation configuration options */
+/** \} name SECTION: Module configuration options */
 
 /* Target and application specific configurations
  *

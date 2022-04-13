@@ -5229,13 +5229,12 @@ static int ecp_mod_p255( mbedtls_mpi *N )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     /* Split N as N + 2^256 M */
-    memset( Mp,   0,    sizeof( Mp ) );
     memcpy( Mp,   NT_p, sizeof( mbedtls_mpi_uint ) * NT_n );
     memset( NT_p, 0,    sizeof( mbedtls_mpi_uint ) * NT_n );
 
     /* N = A0 + 38 * A1 */
-    mbedtls_mpi_core_mla( N->p, N->n,
-                          Mp, P255_WIDTH,
+    mbedtls_mpi_core_mla( N->p, P255_WIDTH + 1,
+                          Mp, NT_n,
                           38 );
 
     return( 0 );

@@ -9638,14 +9638,6 @@ run_test    "TLS 1.3: Test gnutls tls1_3 feature" \
             -c "Version: TLS1.3"
 
 # TLS1.3 test cases
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-skip_handshake_stage_check
-run_test    "TLS 1.3: No server support" \
-            "$P_SRV debug_level=2 force_version=tls13" \
-            "$P_CLI debug_level=2 force_version=tls13" \
-            1 \
-            -s "The requested feature is not available"
-
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
@@ -10226,6 +10218,9 @@ run_test    "TLS 1.3: Server side check, ciphersuite TLS_AES_256_GCM_SHA384 - op
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
             "$O_NEXT_CLI -msg -tls1_3" \
             1 \
+            -s " tls13 server state: MBEDTLS_CLIENT_HELLO" \
+            -s " tls13 server state: MBEDTLS_SERVER_HELLO" \
+            -s ""SSL - The requested feature is not available"" \
             -s "=> parse client hello" \
             -s "<= parse client hello"
 
@@ -10240,6 +10235,9 @@ run_test    "TLS 1.3: Server side check, ciphersuite TLS_AES_128_GCM_SHA256 - gn
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
             "$G_NEXT_CLI -d 4 localhost --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+VERS-TLS1.3:%NO_TICKETS" \
             1 \
+            -s " tls13 server state: MBEDTLS_CLIENT_HELLO" \
+            -s " tls13 server state: MBEDTLS_SERVER_HELLO" \
+            -s ""SSL - The requested feature is not available"" \
             -s "=> parse client hello" \
             -s "<= parse client hello"
 

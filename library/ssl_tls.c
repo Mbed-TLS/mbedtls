@@ -912,6 +912,12 @@ static int ssl_conf_version_check( const mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     if( mbedtls_ssl_conf_is_tls13_only( conf ) )
     {
+        if( conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+        {
+             MBEDTLS_SSL_DEBUG_MSG( 1, ( "DTLS 1.3 is not yet supported." ) );
+             return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+        }
+
         MBEDTLS_SSL_DEBUG_MSG( 4, ( "The SSL configuration is tls13 only." ) );
         return( 0 );
     }
@@ -928,6 +934,12 @@ static int ssl_conf_version_check( const mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
     if( mbedtls_ssl_conf_is_hybrid_tls12_tls13( conf ) )
     {
+        if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+        {
+             MBEDTLS_SSL_DEBUG_MSG( 1, ( "DTLS not yet supported in Hybrid TLS 1.3 + TLS 1.2" ) );
+             return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+        }
+
         MBEDTLS_SSL_DEBUG_MSG( 4, ( "The SSL configuration is TLS 1.3 or TLS 1.2." ) );
         return( 0 );
     }

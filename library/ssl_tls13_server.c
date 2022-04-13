@@ -307,121 +307,6 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_ECDH_C */
 
-#if defined(MBEDTLS_SSL_COOKIE_C)
-static int ssl_tls13_parse_cookie_ext( mbedtls_ssl_context *ssl,
-                                       const unsigned char *buf,
-                                       const unsigned char *end )
-{
-    int ret = 0;
-    size_t cookie_len;
-    unsigned char const *p = buf;
-
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "parse cookie extension" ) );
-
-    if( ssl->conf->f_cookie_check != NULL )
-    {
-        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2 );
-        cookie_len = MBEDTLS_GET_UINT16_BE( p, 0 );
-        p += 2;
-
-        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, cookie_len );
-
-        MBEDTLS_SSL_DEBUG_BUF( 3, "Received cookie", p, cookie_len );
-
-        if( ssl->conf->f_cookie_check( ssl->conf->p_cookie,
-                                       p, cookie_len, ssl->cli_id,
-                                       ssl->cli_id_len ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 2, ( "cookie verification failed" ) );
-            ret = MBEDTLS_ERR_SSL_HRR_REQUIRED;
-        }
-        else
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 2, ( "cookie verification passed" ) );
-        }
-    }
-    else
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "cookie verification skipped" ) );
-    }
-
-    return( ret );
-}
-#endif /* MBEDTLS_SSL_COOKIE_C */
-
-/*
- *
- * STATE HANDLING: ClientHello
- *
- * There are three possible classes of outcomes when parsing the CH:
- *
- * 1) The CH was well-formed and matched the server's configuration.
- *
- *    In this case, the server progresses to sending its ServerHello.
- *
- * 2) The CH was well-formed but didn't match the server's configuration.
- *
- *    For example, the client might not have offered a key share which
- *    the server supports, or the server might require a cookie.
- *
- *    In this case, the server sends a HelloRetryRequest.
- *
- * 3) The CH was ill-formed
- *
- *    In this case, we abort the handshake.
- *
- */
-
-/*
- * Overview
- */
-
-/* Main entry point from the state machine; orchestrates the otherfunctions. */
-static int ssl_tls13_process_client_hello( mbedtls_ssl_context *ssl );
-
-static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
-                                         const unsigned char *buf,
-                                         const unsigned char *end );
-
-/* Update the handshake state machine */
-static int ssl_tls13_postprocess_client_hello( mbedtls_ssl_context *ssl,
-                                               int hrr_required );
-
-/*
- * Implementation
- */
-
-#define SSL_CLIENT_HELLO_OK           0
-#define SSL_CLIENT_HELLO_HRR_REQUIRED 1
-
-static int ssl_tls13_process_client_hello( mbedtls_ssl_context *ssl )
-{
-
-    int ret = 0;
-    int hrr_required = SSL_CLIENT_HELLO_OK;
-    unsigned char* buf = NULL;
-    size_t buflen = 0;
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse client hello" ) );
-
-    ssl->major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
-    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_fetch_handshake_msg(
-                          ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
-                          &buf, &buflen ) );
-
-    MBEDTLS_SSL_PROC_CHK_NEG( ssl_tls13_parse_client_hello( ssl, buf,
-                                                            buf + buflen ) );
-    hrr_required = ret;
-
-    MBEDTLS_SSL_DEBUG_MSG( 1, ( "postprocess" ) );
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_postprocess_client_hello( ssl,
-                                                              hrr_required ) );
-
-cleanup:
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse client hello" ) );
-    return( ret );
-}
-
 static void ssl_tls13_debug_print_client_hello_exts( mbedtls_ssl_context *ssl )
 {
     ((void) ssl);
@@ -450,11 +335,6 @@ static void ssl_tls13_debug_print_client_hello_exts( mbedtls_ssl_context *ssl )
                                 ( ( ssl->handshake->extensions_present & MBEDTLS_SSL_EXT_SERVERNAME ) > 0 ) ?
                                 "TRUE" : "FALSE" ) );
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
-#if defined ( MBEDTLS_SSL_COOKIE_C )
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "- COOKIE_EXTENSION ( %s )",
-                                ( ( ssl->handshake->extensions_present & MBEDTLS_SSL_EXT_COOKIE ) >0 ) ?
-                                "TRUE" : "FALSE" ) );
-#endif /* MBEDTLS_SSL_COOKIE_C */
 }
 
 static int ssl_tls13_client_hello_has_exts( mbedtls_ssl_context *ssl,
@@ -485,6 +365,29 @@ static int ssl_tls13_check_certificate_key_exchange( mbedtls_ssl_context *ssl )
 }
 
 /*
+ *
+ * STATE HANDLING: ClientHello
+ *
+ * There are three possible classes of outcomes when parsing the CH:
+ *
+ * 1) The CH was well-formed and matched the server's configuration.
+ *
+ *    In this case, the server progresses to sending its ServerHello.
+ *
+ * 2) The CH was well-formed but didn't match the server's configuration.
+ *
+ *    For example, the client might not have offered a key share which
+ *    the server supports, or the server might require a cookie.
+ *
+ *    In this case, the server sends a HelloRetryRequest.
+ *
+ * 3) The CH was ill-formed
+ *
+ *    In this case, we abort the handshake.
+ *
+ */
+
+/*
  * Structure of this message:
  *
  *       uint16 ProtocolVersion;
@@ -501,6 +404,10 @@ static int ssl_tls13_check_certificate_key_exchange( mbedtls_ssl_context *ssl )
  *           Extension extensions<8..2^16-1>;
  *       } ClientHello;
  */
+
+#define SSL_CLIENT_HELLO_OK           0
+#define SSL_CLIENT_HELLO_HRR_REQUIRED 1
+
 static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
                                          const unsigned char *buf,
                                          const unsigned char *end )
@@ -510,11 +417,11 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     size_t legacy_session_id_len;
     size_t cipher_suites_len;
     size_t extensions_len;
-    const unsigned char *ciph_offset;
+    const unsigned char *cipher_suites_start;
     const unsigned char *p = buf;
     const unsigned char *extensions_end;
 
-    const int* ciphersuites;
+    const int* cipher_suites;
     const mbedtls_ssl_ciphersuite_t* ciphersuite_info;
 
     int hrr_required = 0;
@@ -568,7 +475,6 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
                            p, MBEDTLS_SERVER_HELLO_RANDOM_LEN );
 
     memcpy( &ssl->handshake->randbytes[0], p, MBEDTLS_SERVER_HELLO_RANDOM_LEN );
-    /* skip random bytes */
     p += MBEDTLS_SERVER_HELLO_RANDOM_LEN;
 
     /*
@@ -592,10 +498,10 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
      * it sent in the ClientHello MUST abort the handshake with an
      * "illegal_parameter" alert.
      */
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, session id length ( %" MBEDTLS_PRINTF_SIZET " )", legacy_session_id_len ) );
-    MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, session id", buf, legacy_session_id_len );
+    MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, session id",
+                           buf, legacy_session_id_len );
 
-    memcpy( &ssl->session_negotiate->id[0], p, legacy_session_id_len ); /* write session id */
+    memcpy( &ssl->session_negotiate->id[0], p, legacy_session_id_len );
     p += legacy_session_id_len;
 
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2 );
@@ -605,12 +511,12 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, cipher_suites_len );
 
     /* store pointer to ciphersuite list */
-    ciph_offset = p;
+    cipher_suites_start = p;
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, ciphersuitelist",
                           p, cipher_suites_len );
 
-    /* skip ciphersuites for now */
+    /* skip cipher_suites for now */
     p += cipher_suites_len;
 
     /* ...
@@ -628,10 +534,9 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     p++;
 
     /*
-     * Check the extension length
+     * Check the extensions length
      */
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2 );
-
     extensions_len = MBEDTLS_GET_UINT16_BE( p, 0 );
     p += 2;
     extensions_end = p + extensions_len;
@@ -655,27 +560,6 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
 
         switch( extension_type )
         {
-#if defined(MBEDTLS_SSL_COOKIE_C)
-            case MBEDTLS_TLS_EXT_COOKIE:
-                MBEDTLS_SSL_DEBUG_MSG( 3, ( "found cookie extension" ) );
-
-                ret = ssl_tls13_parse_cookie_ext( ssl, p,
-                                                  extension_data_end );
-
-                /* if cookie verification failed then we return a hello retry
-                 * message, or return success and set cookie extension present
-                 */
-                if( ret == MBEDTLS_ERR_SSL_HRR_REQUIRED )
-                {
-                    hrr_required = 1;
-                }
-                else if( ret == 0 )
-                {
-                    ssl->handshake->extensions_present |= MBEDTLS_SSL_EXT_COOKIE;
-                }
-                break;
-#endif /* MBEDTLS_SSL_COOKIE_C  */
-
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C)
             case MBEDTLS_TLS_EXT_SUPPORTED_GROUPS:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found supported group extension" ) );
@@ -713,8 +597,8 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
                 ret = ssl_tls13_parse_key_shares_ext( ssl, p, extension_data_end );
                 if( ret == MBEDTLS_ERR_SSL_HRR_REQUIRED )
                 {
-                    hrr_required = 1;
-                    ret = 0;
+                    MBEDTLS_SSL_DEBUG_MSG( 2, ( "HRR needed " ) );
+                    ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
                 }
 
                 if( ret != 0 )
@@ -773,18 +657,17 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     /*
      * Search for a matching ciphersuite
      */
-    ciphersuites = ssl->conf->ciphersuite_list;
+    cipher_suites = ssl->conf->ciphersuite_list;
     ciphersuite_info = NULL;
-    for ( j = 0, p = ciph_offset; j < cipher_suites_len; j += 2, p += 2 )
+    for ( j = 0, p = cipher_suites_start; j < cipher_suites_len; j += 2, p += 2 )
     {
-        for ( i = 0; ciphersuites[i] != 0; i++ )
+        for ( i = 0; cipher_suites[i] != 0; i++ )
         {
-            if( p[0] != ( ( ciphersuites[i] >> 8 ) & 0xFF ) ||
-                p[1] != ( ( ciphersuites[i] ) & 0xFF ) )
+            if( MBEDTLS_GET_UINT16_BE(p, 0) != cipher_suites[i] )
                 continue;
 
             ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(
-                               ciphersuites[i] );
+                               cipher_suites[i] );
 
             if( ciphersuite_info == NULL )
             {
@@ -806,7 +689,7 @@ have_ciphersuite:
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "selected ciphersuite: %s",
                                 ciphersuite_info->name ) );
 
-    ssl->session_negotiate->ciphersuite = ciphersuites[i];
+    ssl->session_negotiate->ciphersuite = cipher_suites[i];
     ssl->handshake->ciphersuite_info = ciphersuite_info;
 
     /* List all the extensions we have received */
@@ -837,35 +720,20 @@ have_ciphersuite:
         return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
     }
 
-#if defined(MBEDTLS_SSL_COOKIE_C)
-    /* If we failed to see a cookie extension, and we required it through the
-     * configuration settings ( rr_config ), then we need to send a HRR msg.
-     * Conceptually, this is similiar to having received a cookie that failed
-     * the verification check.
-     */
-    if( ( ssl->conf->rr_config == MBEDTLS_SSL_FORCE_RR_CHECK_ON ) &&
-        !( ssl->handshake->extensions_present & MBEDTLS_SSL_EXT_COOKIE ) )
-    {
-        MBEDTLS_SSL_DEBUG_MSG(
-                2,
-                ( "Cookie extension missing. Need to send a HRR." ) );
-        hrr_required = 1;
-    }
-#endif /* MBEDTLS_SSL_COOKIE_C */
-
     if( hrr_required == 1 )
         return( SSL_CLIENT_HELLO_HRR_REQUIRED );
 
     return( 0 );
 }
 
+/* Update the handshake state machine */
+
 static int ssl_tls13_postprocess_client_hello( mbedtls_ssl_context* ssl,
                                                int hrr_required )
 {
     int ret = 0;
 
-    if( ssl->handshake->hello_retry_requests_sent == 0 &&
-        ssl->conf->rr_config == MBEDTLS_SSL_FORCE_RR_CHECK_ON )
+    if( ssl->handshake->hello_retry_requests_sent == 0 )
     {
         hrr_required = SSL_CLIENT_HELLO_HRR_REQUIRED;
     }
@@ -904,6 +772,38 @@ static int ssl_tls13_postprocess_client_hello( mbedtls_ssl_context* ssl,
 }
 
 /*
+ * Main entry point from the state machine; orchestrates the otherfunctions.
+ */
+
+static int ssl_tls13_process_client_hello( mbedtls_ssl_context *ssl )
+{
+
+    int ret = 0;
+    int hrr_required = SSL_CLIENT_HELLO_OK;
+    unsigned char* buf = NULL;
+    size_t buflen = 0;
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse client hello" ) );
+
+    ssl->major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_fetch_handshake_msg(
+                          ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
+                          &buf, &buflen ) );
+
+    MBEDTLS_SSL_PROC_CHK_NEG( ssl_tls13_parse_client_hello( ssl, buf,
+                                                            buf + buflen ) );
+    hrr_required = ret;
+
+    MBEDTLS_SSL_DEBUG_MSG( 1, ( "postprocess" ) );
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_postprocess_client_hello( ssl,
+                                                              hrr_required ) );
+
+cleanup:
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse client hello" ) );
+    return( ret );
+}
+
+/*
  * TLS and DTLS 1.3 State Maschine -- server side
  */
 int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
@@ -916,9 +816,6 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "tls13 server state: %s(%d)",
                                 mbedtls_ssl_states_str( ssl->state ),
                                 ssl->state ) );
-
-    if( ( ret = mbedtls_ssl_flush_output( ssl ) ) != 0 )
-        return( ret );
 
     switch( ssl->state )
     {
@@ -936,19 +833,6 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
             ret = ssl_tls13_process_client_hello( ssl );
             if( ret != 0 )
                 MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_process_client_hello", ret );
-
-            break;
-
-        case MBEDTLS_SSL_HANDSHAKE_WRAPUP:
-            MBEDTLS_SSL_DEBUG_MSG( 2, ( "handshake: done" ) );
-
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Switch to application keys for all traffic" ) );
-
-            mbedtls_ssl_set_inbound_transform ( ssl, ssl->transform_application );
-            mbedtls_ssl_set_outbound_transform( ssl, ssl->transform_application );
-
-            mbedtls_ssl_tls13_handshake_wrapup( ssl );
-            mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_NEW_SESSION_TICKET );
 
             break;
 

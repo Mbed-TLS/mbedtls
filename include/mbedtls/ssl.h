@@ -1362,9 +1362,7 @@ struct mbedtls_ssl_config
     void *MBEDTLS_PRIVATE(p_psk);                    /*!< context for PSK callback           */
 #endif
 
-#if (defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) ||                               \
-    (defined(MBEDTLS_SSL_COOKIE_C) && defined(MBEDTLS_SSL_PROTO_TLS1_3))) && \
-    defined(MBEDTLS_SSL_SRV_C)
+#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
     /** Callback to create & write a cookie for ClientHello veirifcation    */
     int (*MBEDTLS_PRIVATE(f_cookie_write))( void *, unsigned char **, unsigned char *,
                            const unsigned char *, size_t );
@@ -1382,9 +1380,6 @@ struct mbedtls_ssl_config
     int (*MBEDTLS_PRIVATE(f_ticket_parse))( void *, mbedtls_ssl_session *, unsigned char *, size_t);
     void *MBEDTLS_PRIVATE(p_ticket);                 /*!< context for the ticket callbacks   */
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_SRV_C */
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    unsigned int MBEDTLS_PRIVATE(rr_config);
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     size_t MBEDTLS_PRIVATE(cid_len); /*!< The length of CIDs for incoming DTLS records.      */
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */

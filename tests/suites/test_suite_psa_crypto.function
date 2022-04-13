@@ -7563,6 +7563,10 @@ void raw_key_agreement( int alg_arg,
     key_bits = psa_get_key_bits( &attributes );
 
     /* Validate size macros */
+    TEST_ASSERT( expected_output->len <=
+                 PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE( our_key_type, key_bits ) );
+    TEST_ASSERT( PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE( our_key_type, key_bits ) <=
+                 PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE );
 
     /* Good case with exact output size */
     ASSERT_ALLOC( output, expected_output->len );
@@ -7572,10 +7576,6 @@ void raw_key_agreement( int alg_arg,
                                        &output_length ) );
     ASSERT_COMPARE( output, output_length,
                     expected_output->x, expected_output->len );
-    TEST_ASSERT( output_length <=
-                 PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE( our_key_type, key_bits ) );
-    TEST_ASSERT( PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE( our_key_type, key_bits ) <=
-                 PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE );
     mbedtls_free( output );
     output = NULL;
     output_length = ~0;

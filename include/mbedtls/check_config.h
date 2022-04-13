@@ -177,7 +177,7 @@
 #endif
 
 #if defined(MBEDTLS_PKCS5_C) && !defined(MBEDTLS_MD_C)
-#error "MBEDTLS_PKCS5_C defined, but not all prerequesites"
+#error "MBEDTLS_PKCS5_C defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_ENTROPY_C) && (!defined(MBEDTLS_SHA512_C) &&      \

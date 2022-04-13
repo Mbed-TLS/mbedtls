@@ -1,0 +1,5 @@
+Bugfix
+   * In configurations with MBEDTLS_SSL_DTLS_CONNECTION_ID enabled but not
+     MBEDTLS_DEBUG_C, DTLS handshakes using CID would crash due to a null
+     pointer dereference. Fix this. Fixes #3998.
+     The fix was released, but not announced, in Mbed TLS 3.1.0.

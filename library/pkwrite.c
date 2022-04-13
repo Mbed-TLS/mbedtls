@@ -279,21 +279,35 @@ int mbedtls_pk_write_pubkey_der( const mbedtls_pk_context *key, unsigned char *b
         bits = psa_get_key_bits( &attributes );
         psa_reset_key_attributes( &attributes );
 
-        curve = PSA_KEY_TYPE_ECC_GET_FAMILY( key_type );
-        if( curve == 0 )
+        if( PSA_KEY_TYPE_IS_ECC_KEY_PAIR( key_type ) )
+        {
+            curve = PSA_KEY_TYPE_ECC_GET_FAMILY( key_type );
+            if( curve == 0 )
+                return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
+
+            ret = mbedtls_psa_get_ecc_oid_from_id( curve, bits,
+                                                   &oid, &oid_len );
+            if( ret != 0 )
+                return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
+
+            /* Write EC algorithm parameters; that's akin
+             * to pk_write_ec_param() above. */
+            MBEDTLS_ASN1_CHK_ADD( par_len, mbedtls_asn1_write_oid( &c, buf,
+                                                                   oid,
+                                                                   oid_len ) );
+
+            /* The rest of the function works as for legacy EC contexts. */
+            pk_type = MBEDTLS_PK_ECKEY;
+        }
+        else if( PSA_KEY_TYPE_IS_RSA( key_type ) )
+        {
+            /* The rest of the function works as for legacy RSA contexts. */
+            pk_type = MBEDTLS_PK_RSA;
+        }
+        else
+        {
             return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
-
-        ret = mbedtls_psa_get_ecc_oid_from_id( curve, bits, &oid, &oid_len );
-        if( ret != 0 )
-            return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
-
-        /* Write EC algorithm parameters; that's akin
-         * to pk_write_ec_param() above. */
-        MBEDTLS_ASN1_CHK_ADD( par_len, mbedtls_asn1_write_oid( &c, buf,
-                                                               oid, oid_len ) );
-
-        /* The rest of the function works as for legacy EC contexts. */
-        pk_type = MBEDTLS_PK_ECKEY;
+        }
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 

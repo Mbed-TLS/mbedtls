@@ -330,8 +330,8 @@ int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info );
  *                  storing and manipulating the key material directly.
  *
  * \param ctx       The context to initialize. It must be empty (type NONE).
- * \param key       The PSA key to wrap, which must hold an ECC key pair
- *                  (see notes below).
+ * \param key       The PSA key to wrap, which must hold an ECC or RSA key
+ *                  pair (see notes below).
  *
  * \note            The wrapped key must remain valid as long as the
  *                  wrapping PK context is in use, that is at least between
@@ -339,8 +339,8 @@ int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info );
  *                  mbedtls_pk_free() is called on this context. The wrapped
  *                  key might then be independently used or destroyed.
  *
- * \note            This function is currently only available for ECC key
- *                  pairs (that is, ECC keys containing private key material).
+ * \note            This function is currently only available for ECC or RSA
+ *                  key pairs (that is, keys containing private key material).
  *                  Support for other key types may be added later.
  *
  * \return          \c 0 on success.

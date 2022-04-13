@@ -320,6 +320,11 @@ detect_required_features() {
     esac
 
     case " $1 " in
+        *\ badmac_limit=*)
+            requires_config_enabled MBEDTLS_SSL_DTLS_BADMAC_LIMIT;;
+    esac
+
+    case " $1 " in
         *\ fallback=1\ *|*\ -fallback_scsv\ *)
             requires_config_enabled MBEDTLS_SSL_FALLBACK_SCSV;;
     esac

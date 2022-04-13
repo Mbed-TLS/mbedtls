@@ -154,6 +154,48 @@ int mbedtls_test_equal( const char *test, int line_no, const char* filename,
                         unsigned long long value1, unsigned long long value2 );
 
 /**
+ * \brief           Record the current test case as a failure based
+ *                  on comparing two unsigned integers.
+ *
+ *                  This function is usually called via the macro
+ *                  #TEST_LE_U.
+ *
+ * \param test      Description of the failure or assertion that failed. This
+ *                  MUST be a string literal. This normally has the form
+ *                  "EXPR1 <= EXPR2" where EXPR1 has the value \p value1
+ *                  and EXPR2 has the value \p value2.
+ * \param line_no   Line number where the failure originated.
+ * \param filename  Filename where the failure originated.
+ * \param value1    The first value to compare.
+ * \param value2    The second value to compare.
+ *
+ * \return          \c 1 if \p value1 <= \p value2, otherwise \c 0.
+ */
+int mbedtls_test_le_u( const char *test, int line_no, const char* filename,
+                       unsigned long long value1, unsigned long long value2 );
+
+/**
+ * \brief           Record the current test case as a failure based
+ *                  on comparing two signed integers.
+ *
+ *                  This function is usually called via the macro
+ *                  #TEST_LE_S.
+ *
+ * \param test      Description of the failure or assertion that failed. This
+ *                  MUST be a string literal. This normally has the form
+ *                  "EXPR1 <= EXPR2" where EXPR1 has the value \p value1
+ *                  and EXPR2 has the value \p value2.
+ * \param line_no   Line number where the failure originated.
+ * \param filename  Filename where the failure originated.
+ * \param value1    The first value to compare.
+ * \param value2    The second value to compare.
+ *
+ * \return          \c 1 if \p value1 <= \p value2, otherwise \c 0.
+ */
+int mbedtls_test_le_s( const char *test, int line_no, const char* filename,
+                       long long value1, long long value2 );
+
+/**
  * \brief          This function decodes the hexadecimal representation of
  *                 data.
  *

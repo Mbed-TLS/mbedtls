@@ -1,0 +1,5 @@
+Bugfix
+   * In configurations with MBEDTLS_SSL_DTLS_CONNECTION_ID enabled but none of
+     MBEDTLS_SSL_HW_RECORD_ACCEL, MBEDTLS_SSL_EXPORT_KEYS or MBEDTLS_DEBUG_C,
+     DTLS handshakes using CID would crash due to a null pointer dereference.
+     Fix this. Fixes #3998.

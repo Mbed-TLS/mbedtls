@@ -7574,7 +7574,7 @@ void raw_key_agreement( int alg_arg,
                     expected_output->x, expected_output->len );
     TEST_ASSERT( output_length <=
                  PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE( our_key_type, key_bits ) );
-    TEST_ASSERT( output_length <=
+    TEST_ASSERT( PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE( our_key_type, key_bits ) <=
                  PSA_RAW_KEY_AGREEMENT_OUTPUT_MAX_SIZE );
     mbedtls_free( output );
     output = NULL;

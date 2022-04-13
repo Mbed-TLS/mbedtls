@@ -1202,16 +1202,6 @@ read_record_header:
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, protocol version: [%d:%d]",
                    buf[1], buf[2] ) );
 
-    /* According to RFC 5246 Appendix E.1, the version here is typically
-     * "{03,00}, the lowest version number supported by the client, [or] the
-     * value of ClientHello.client_version", so the only meaningful check here
-     * is the major version shouldn't be less than 3 */
-    if( mbedtls_ssl_read_version( buf + 1, ssl->conf->transport ) < 0x0300 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-        return( MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION );
-    }
-
     /* For DTLS if this is the initial handshake, remember the client sequence
      * number to use it in our next message (RFC 6347 4.2.1) */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)

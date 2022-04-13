@@ -1121,7 +1121,7 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
 static int ssl_parse_hello_verify_request( mbedtls_ssl_context *ssl )
 {
     const unsigned char *p = ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl );
-    mbedtls_ssl_protocol_version tls_version;
+    uint16_t dtls_legacy_version;
     unsigned char cookie_len;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse hello verify request" ) );
@@ -1146,15 +1146,15 @@ static int ssl_parse_hello_verify_request( mbedtls_ssl_context *ssl )
      * } HelloVerifyRequest;
      */
     MBEDTLS_SSL_DEBUG_BUF( 3, "server version", p, 2 );
-    tls_version = mbedtls_ssl_read_version( p, ssl->conf->transport );
+    dtls_legacy_version = MBEDTLS_GET_UINT16_BE( p, 0 );
     p += 2;
 
     /*
-     * Since the RFC is not clear on this point, accept DTLS 1.0 (TLS 1.1)
-     * even if lower than our min version.
+     * Since the RFC is not clear on this point, accept DTLS 1.0 (0xfeff)
+     * The DTLS 1.3 (current draft) renames ProtocolVersion server_version to
+     * legacy_version and locks the value of legacy_version to 0xfefd (DTLS 1.2)
      */
-    if( tls_version < 0x0302 || /* TLSv1.1 */
-        tls_version > ssl->conf->max_tls_version )
+    if( dtls_legacy_version != 0xfefd && dtls_legacy_version != 0xfeff )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server version" ) );
 

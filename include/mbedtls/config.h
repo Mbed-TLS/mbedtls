@@ -3622,15 +3622,9 @@
 /**
  * \name SECTION: General configuration options
  *
- * This section allows for the setting of module specific sizes and
- * configuration options. The default values are already present in the
- * relevant header files and should suffice for the regular use cases.
+ * This section contains Mbed TLS build settings that are not associated
+ * with a particular module.
  *
- * Our advice is to enable options and change their values here
- * only if you have a good reason and know the consequences.
- *
- * Please check the respective header file for documentation on these
- * parameters (to prevent duplicate documentation).
  * \{
  */
 

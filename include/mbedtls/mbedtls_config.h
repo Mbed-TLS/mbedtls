@@ -3167,11 +3167,15 @@
  *
  * Our advice is to enable options and change their values here
  * only if you have a good reason and know the consequences.
- *
- * Please check the respective header file for documentation on these
- * parameters (to prevent duplicate documentation).
  * \{
  */
+/* The Doxygen documentation here is used when a user comments out a
+ * setting and runs doxygen themselves. On the other hand, when we typeset
+ * the full documentation including disabled settings, the documentation
+ * in specific modules' header files is used if present. When editing this
+ * file, make sure that each option is documented in exactly one place,
+ * plus optionally a same-line Doxygen comment here if there is a Doxygen
+ * comment in the specific module. */
 
 /* MPI / BIGNUM options */
 //#define MBEDTLS_MPI_WINDOW_SIZE            6 /**< Maximum window size used. */

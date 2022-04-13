@@ -1773,42 +1773,6 @@ static int ssl_parse_server_dh_params( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */
 
-#if !defined(MBEDTLS_USE_PSA_CRYPTO) &&                                     \
-    ( defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
-      defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
-      defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) )
-static int ssl_check_server_ecdh_params( const mbedtls_ssl_context *ssl )
-{
-    const mbedtls_ecp_curve_info *curve_info;
-    mbedtls_ecp_group_id grp_id;
-#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
-    grp_id = ssl->handshake->ecdh_ctx.grp.id;
-#else
-    grp_id = ssl->handshake->ecdh_ctx.grp_id;
-#endif
-
-    curve_info = mbedtls_ecp_curve_info_from_grp_id( grp_id );
-    if( curve_info == NULL )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-    }
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDH curve: %s", curve_info->name ) );
-
-    if( mbedtls_ssl_check_curve( ssl, grp_id ) != 0 )
-        return( -1 );
-
-    MBEDTLS_SSL_DEBUG_ECDH( 3, &ssl->handshake->ecdh_ctx,
-                            MBEDTLS_DEBUG_ECDH_QP );
-
-    return( 0 );
-}
-#endif /* !MBEDTLS_USE_PSA_CRYPTO &&
-          ( MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
-            MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
-            MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED ) */
-
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||     \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) ||     \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
@@ -1877,6 +1841,34 @@ static int ssl_parse_server_ecdh_params( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 #else
+static int ssl_check_server_ecdh_params( const mbedtls_ssl_context *ssl )
+{
+    const mbedtls_ecp_curve_info *curve_info;
+    mbedtls_ecp_group_id grp_id;
+#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
+    grp_id = ssl->handshake->ecdh_ctx.grp.id;
+#else
+    grp_id = ssl->handshake->ecdh_ctx.grp_id;
+#endif
+
+    curve_info = mbedtls_ecp_curve_info_from_grp_id( grp_id );
+    if( curve_info == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDH curve: %s", curve_info->name ) );
+
+    if( mbedtls_ssl_check_curve( ssl, grp_id ) != 0 )
+        return( -1 );
+
+    MBEDTLS_SSL_DEBUG_ECDH( 3, &ssl->handshake->ecdh_ctx,
+                            MBEDTLS_DEBUG_ECDH_QP );
+
+    return( 0 );
+}
+
 static int ssl_parse_server_ecdh_params( mbedtls_ssl_context *ssl,
                                          unsigned char **p,
                                          unsigned char *end )

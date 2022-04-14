@@ -121,7 +121,7 @@ echo
 echo '################ compat.sh ################'
 {
     echo '#### compat.sh: Default versions'
-    sh compat.sh -m 'tls1_2 dtls1_2'
+    sh compat.sh
     echo
 
     echo '#### compat.sh: legacy (null)'

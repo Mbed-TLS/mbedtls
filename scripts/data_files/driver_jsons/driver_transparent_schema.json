@@ -13,7 +13,7 @@
       "type": "string",
       "const": ["transparent"]
     },
-    "mbedtls/h_depend_on": {
+    "mbedtls/h_condition": {
       "type": "string"
     },
     "headers": {
@@ -32,7 +32,7 @@
             "_comment": {
               "type": "string"
             },
-            "mbedtls/c_depend_on": {
+            "mbedtls/c_condition": {
               "type": "string"
             },
             "entry_points": {

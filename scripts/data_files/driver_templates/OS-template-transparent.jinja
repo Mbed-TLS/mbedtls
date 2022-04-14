@@ -7,7 +7,7 @@ Expected inputs:
 -#}
 {% for driver in drivers if driver.type == "transparent" -%}
 {% for capability in driver.capabilities if entry_point in capability.entry_points -%}
-#if ({% if capability['mbedtls/c_depend_on'] is defined -%}{{ capability['mbedtls/c_depend_on'] }} {% else -%} {{ 1 }} {% endif %})
+#if ({% if capability['mbedtls/c_condition'] is defined -%}{{ capability['mbedtls/c_condition'] }} {% else -%} {{ 1 }} {% endif %})
 {%- filter indent(width = nest_indent) %}
 status = {{ entry_point_name(capability, entry_point, driver) }}({{entry_point_param(driver) | indent(20)}});
 

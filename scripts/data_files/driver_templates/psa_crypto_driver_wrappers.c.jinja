@@ -39,13 +39,13 @@
 #if defined(MBEDTLS_PSA_CRYPTO_DRIVERS)
 {% for driver in drivers -%}
 /* Headers for {{driver.prefix}} {{driver.type}} driver */
-{% if driver['mbedtls/h_depend_on'] is defined -%}
-#if {{ driver['mbedtls/h_depend_on'] }}
+{% if driver['mbedtls/h_condition'] is defined -%}
+#if {{ driver['mbedtls/h_condition'] }}
 {% endif -%}
 {% for header in driver.headers -%}
 #include "{{ header }}"
 {% endfor %}
-{% if driver['mbedtls/h_depend_on'] is defined -%}
+{% if driver['mbedtls/h_condition'] is defined -%}
 #endif
 {% endif -%}
 {% endfor %}

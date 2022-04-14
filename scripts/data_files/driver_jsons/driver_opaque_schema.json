@@ -17,7 +17,7 @@
       "type": ["integer","string"],
       "pattern": "^(0x|0X)?[a-fA-F0-9]+$"
     },
-    "mbedtls/h_depend_on": {
+    "mbedtls/h_condition": {
       "type": "string"
     },
     "headers": {
@@ -36,7 +36,7 @@
             "_comment": {
               "type": "string"
             },
-            "mbedtls/c_depend_on": {
+            "mbedtls/c_condition": {
               "type": "string"
             },
             "entry_points": {

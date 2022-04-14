@@ -67,12 +67,15 @@ else
 fi
 
 # default values for options
+# /!\ keep this synchronised with:
+# - basic-build-test.sh
+# - all.sh (multiple components)
 MODES="tls12 dtls12"
 VERIFIES="NO YES"
 TYPES="ECDSA RSA PSK"
 FILTER=""
-# exclude:
-# - NULL: excluded from our default config
+# By default, exclude:
+# - NULL: excluded from our default config + requires OpenSSL legacy
 # - ARIA: requires OpenSSL >= 1.1.1
 # - ChachaPoly: requires OpenSSL >= 1.1.0
 EXCLUDE='NULL\|ARIA\|CHACHA20-POLY1305'

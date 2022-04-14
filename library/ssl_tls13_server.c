@@ -41,12 +41,7 @@
 
 /* From RFC 8446:
  *   struct {
- *       select (Handshake.msg_type) {
- *           case client_hello:
- *                ProtocolVersion versions<2..254>;
- *           case server_hello: // and HelloRetryRequest
- *                ProtocolVersion selected_version;
- *       };
+ *          ProtocolVersion versions<2..254>;
  *   } SupportedVersions;
  */
 static int ssl_tls13_parse_supported_versions_ext( mbedtls_ssl_context *ssl,
@@ -60,21 +55,15 @@ static int ssl_tls13_parse_supported_versions_ext( mbedtls_ssl_context *ssl,
     const unsigned char *versions_end;
 
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 1 );
-
     versions_len = p[0];
     p += 1;
 
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, versions_len );
-    if( versions_len % 2 != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Invalid supported version list length %" MBEDTLS_PRINTF_SIZET,
-                                    versions_len ) );
-        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
-    }
 
     versions_end = p + versions_len;
     while( p < versions_end )
     {
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, versions_end, 2 );
         mbedtls_ssl_read_version( &major_ver, &minor_ver, ssl->conf->transport, p );
 
         /* In this implementation we only support TLS 1.3 and DTLS 1.3. */
@@ -121,7 +110,7 @@ static int ssl_tls13_parse_supported_versions_ext( mbedtls_ssl_context *ssl,
  *       NamedGroup named_group_list<2..2^16-1>;
  *   } NamedGroupList;
  */
-static int mbedtls_ssl_tls13_parse_supported_groups_ext(
+static int ssl_tls13_parse_supported_groups_ext(
                 mbedtls_ssl_context *ssl,
                 const unsigned char *buf, const unsigned char *end )
 {
@@ -307,6 +296,7 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_ECDH_C */
 
+#if defined(MBEDTLS_SSL_DEBUG_C)
 static void ssl_tls13_debug_print_client_hello_exts( mbedtls_ssl_context *ssl )
 {
     ((void) ssl);
@@ -336,6 +326,7 @@ static void ssl_tls13_debug_print_client_hello_exts( mbedtls_ssl_context *ssl )
                                 "TRUE" : "FALSE" ) );
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 }
+#endif /* MBEDTLS_SSL_DEBUG_C */
 
 static int ssl_tls13_client_hello_has_exts( mbedtls_ssl_context *ssl,
                                       int ext_id_mask )
@@ -523,6 +514,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
      * uint8 legacy_compression_method = 0;
      * ...
      */
+    p += 1;
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 1 );
     if( p[0] != 0 )
     {
@@ -570,7 +562,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
                  * indicates the named groups which the client supports,
                  * ordered from most preferred to least preferred.
                  */
-                ret = mbedtls_ssl_tls13_parse_supported_groups_ext( ssl, p,
+                ret = ssl_tls13_parse_supported_groups_ext( ssl, p,
                             extension_data_end );
                 if( ret != 0 )
                 {
@@ -693,7 +685,9 @@ have_ciphersuite:
     ssl->handshake->ciphersuite_info = ciphersuite_info;
 
     /* List all the extensions we have received */
+#if defined(MBEDTLS_SSL_DEBUG_C)
     ssl_tls13_debug_print_client_hello_exts( ssl );
+#endif /* MBEDTLS_SSL_DEBUG_C */
 
     /*
      * Determine the key exchange algorithm to use.
@@ -728,35 +722,9 @@ have_ciphersuite:
 
 /* Update the handshake state machine */
 
-static int ssl_tls13_postprocess_client_hello( mbedtls_ssl_context* ssl,
-                                               int hrr_required )
+static int ssl_tls13_postprocess_client_hello( mbedtls_ssl_context* ssl )
 {
     int ret = 0;
-
-    if( ssl->handshake->hello_retry_requests_sent == 0 )
-    {
-        hrr_required = SSL_CLIENT_HELLO_HRR_REQUIRED;
-    }
-
-    if( hrr_required == SSL_CLIENT_HELLO_HRR_REQUIRED )
-    {
-        /*
-         * Create stateless transcript hash for HRR
-         */
-        MBEDTLS_SSL_DEBUG_MSG( 4, ( "Reset transcript for HRR" ) );
-        ret = mbedtls_ssl_reset_transcript_for_hrr( ssl );
-        if( ret != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_reset_transcript_for_hrr",
-                                   ret );
-            return( ret );
-        }
-        mbedtls_ssl_session_reset_msg_layer( ssl, 0 );
-
-        /* Transmit Hello Retry Request */
-        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_HELLO_RETRY_REQUEST );
-        return( 0 );
-    }
 
     ret = mbedtls_ssl_tls13_key_schedule_stage_early( ssl );
     if( ret != 0 )
@@ -779,7 +747,6 @@ static int ssl_tls13_process_client_hello( mbedtls_ssl_context *ssl )
 {
 
     int ret = 0;
-    int hrr_required = SSL_CLIENT_HELLO_OK;
     unsigned char* buf = NULL;
     size_t buflen = 0;
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse client hello" ) );
@@ -791,11 +758,8 @@ static int ssl_tls13_process_client_hello( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_PROC_CHK_NEG( ssl_tls13_parse_client_hello( ssl, buf,
                                                             buf + buflen ) );
-    hrr_required = ret;
-
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "postprocess" ) );
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_postprocess_client_hello( ssl,
-                                                              hrr_required ) );
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_postprocess_client_hello( ssl ) );
 
 cleanup:
 
@@ -821,7 +785,6 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
     {
         /* start state */
         case MBEDTLS_SSL_HELLO_REQUEST:
-            ssl->handshake->hello_retry_requests_sent = 0;
             mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_HELLO );
 
             break;

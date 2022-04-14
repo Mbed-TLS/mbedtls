@@ -1518,15 +1518,16 @@ int mbedtls_ssl_tls13_read_public_ecdhe_share( mbedtls_ssl_context *ssl,
                                                size_t buf_len )
 {
     uint8_t *p = (uint8_t*)buf;
+    const uint8_t *end = buf + buf_len;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
     /* Get size of the TLS opaque key_exchange field of the KeyShareEntry struct. */
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
     uint16_t peerkey_len = MBEDTLS_GET_UINT16_BE( p, 0 );
     p += 2;
 
     /* Check if key size is consistent with given buffer length. */
-    if ( peerkey_len > ( buf_len - 2 ) )
-        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, peerkey_len );
 
     /* Store peer's ECDH public key. */
     memcpy( handshake->ecdh_psa_peerkey, p, peerkey_len );

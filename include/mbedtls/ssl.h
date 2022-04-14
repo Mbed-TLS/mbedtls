@@ -648,7 +648,6 @@ typedef enum
     MBEDTLS_SSL_SERVER_HELLO_VERIFY_REQUEST_SENT,
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     MBEDTLS_SSL_HELLO_RETRY_REQUEST,
-    MBEDTLS_SSL_SECOND_CLIENT_HELLO,
     MBEDTLS_SSL_ENCRYPTED_EXTENSIONS,
     MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY,
 #if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
@@ -1362,7 +1361,7 @@ struct mbedtls_ssl_config
     void *MBEDTLS_PRIVATE(p_psk);                    /*!< context for PSK callback           */
 #endif
 
-#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
+#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) && defined(MBEDTLS_SSL_SRV_C)
     /** Callback to create & write a cookie for ClientHello veirifcation    */
     int (*MBEDTLS_PRIVATE(f_cookie_write))( void *, unsigned char **, unsigned char *,
                            const unsigned char *, size_t );

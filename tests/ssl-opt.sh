@@ -10481,9 +10481,10 @@ run_test    "TLS 1.3: Server side check - openssl" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
             "$O_NEXT_CLI -msg -tls1_3" \
             1 \
-            -s " tls13 server state: MBEDTLS_SSL_CLIENT_HELLO" \
-            -s " tls13 server state: MBEDTLS_SSL_SERVER_HELLO" \
-            -s " SSL - The requested feature is not available" \
+            -s "tls13 server state: MBEDTLS_SSL_CLIENT_HELLO" \
+            -s "tls13 server state: MBEDTLS_SSL_SERVER_HELLO" \
+            -s "tls13 server state: MBEDTLS_SSL_ENCRYPTED_EXTENSIONS" \
+            -s "SSL - The requested feature is not available" \
             -s "=> parse client hello" \
             -s "<= parse client hello"
 
@@ -10496,9 +10497,10 @@ run_test    "TLS 1.3: Server side check - gnutls" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
             "$G_NEXT_CLI localhost -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
             1 \
-            -s " tls13 server state: MBEDTLS_SSL_CLIENT_HELLO" \
-            -s " tls13 server state: MBEDTLS_SSL_SERVER_HELLO" \
-            -s " SSL - The requested feature is not available" \
+            -s "tls13 server state: MBEDTLS_SSL_CLIENT_HELLO" \
+            -s "tls13 server state: MBEDTLS_SSL_SERVER_HELLO" \
+            -s "tls13 server state: MBEDTLS_SSL_ENCRYPTED_EXTENSIONS" \
+            -s "SSL - The requested feature is not available" \
             -s "=> parse client hello" \
             -s "<= parse client hello"
 

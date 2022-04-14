@@ -4569,9 +4569,8 @@ void raw_key_agreement_fail( int bad_server_ecdhe_key )
     USE_PSA_INIT( );
 
     /* Client side, force SECP256R1 to make one key bitflip fail
-     * the raw key agreement. Flipping one bit with a Weierstrass
-     * curve (as opposed to a Montgomery curve) has a high chance of
-     * making it invalid. */
+     * the raw key agreement. Flipping the first byte makes the
+     * required 0x04 identifier invalid. */
     TEST_EQUAL( mbedtls_endpoint_init( &client, MBEDTLS_SSL_IS_CLIENT,
                                         MBEDTLS_PK_ECDSA, NULL, NULL,
                                         NULL, curve_list ), 0 );

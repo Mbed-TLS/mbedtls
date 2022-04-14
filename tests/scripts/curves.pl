@@ -20,18 +20,24 @@
 # Purpose
 #
 # The purpose of this test script is to validate that the library works
-# with any combination of elliptic curves. To this effect, build the library
-# and run the test suite with each tested combination of elliptic curves.
+# when only a single curve is enabled. In particular, this validates that
+# curve-specific code is guarded by the proper preprocessor conditionals,
+# both in the library and in tests.
 #
-# Testing all 2^n combinations would be too much, so we only test 2*n:
+# Since this script only tests builds with a single curve, it can't detect
+# bugs that are only triggered when multiple curves are present. We do
+# also test in many configurations where all curves are enabled, as well
+# as a few configurations in configs/*.h with a restricted subset of curves.
 #
-# 1. Test with a single curve, for each curve. This validates that the
-#    library works with any curve, and in particular that curve-specific
-#    code is guarded by the proper preprocessor conditionals.
-# 2. Test with all curves except one, for each curve. This validates that
-#    the test cases have correct dependencies. Testing with a single curve
-#    doesn't validate this for tests that require more than one curve.
-
+# Here are some known test gaps that could be addressed by testing all
+# 2^n combinations of support for n curves, which is impractical:
+# * There could be product bugs when curves A and B are enabled but not C.
+#   For example, a MAX_SIZE calculation that forgets B, where
+#   size(A) < size(B) < size(C).
+# * For test cases that require three or more curves, validate that they're
+#   not missing dependencies. This is extremely rare. (For test cases that
+#   require curves A and B but are missing a dependency on B, this is
+#   detected in the A-only build.)
 # Usage: tests/scripts/curves.pl
 #
 # This script should be executed from the root of the project directory.
@@ -112,31 +118,6 @@ for my $curve (@curves) {
 
     system( "scripts/config.pl unset $curve" )
         and abort "Failed to disable $curve\n";
-}
-
-system( "cp $config_h.bak $config_h" ) and die "$config_h not restored\n";
-
-# Test with $curve disabled but the others enabled, for each $curve.
-for my $curve (@curves) {
-    system( "cp $config_h.bak $config_h" ) and die "$config_h not restored\n";
-    system( "make clean" ) and die;
-
-    # depends on a specific curve. Also, ignore error if it wasn't enabled
-    system( "scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED" );
-
-    print "\n******************************************\n";
-    print "* Testing without curve: $curve\n";
-    print "******************************************\n";
-    $ENV{MBEDTLS_TEST_CONFIGURATION} = "-$curve";
-
-    system( "scripts/config.py unset $curve" )
-        and abort "Failed to disable $curve\n";
-
-    system( "CFLAGS='-Werror -Wall -Wextra' make" )
-        and abort "Failed to build: all but $curve\n";
-    system( "make test" )
-        and abort "Failed test suite: all but $curve\n";
-
 }
 
 system( "mv $config_h.bak $config_h" ) and die "$config_h not restored\n";

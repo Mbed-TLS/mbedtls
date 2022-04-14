@@ -67,17 +67,19 @@ else
 fi
 
 # default values for options
-MODES="tls1 tls1_1 tls12 dtls1 dtls12"
+# /!\ keep this synchronised with:
+# - basic-build-test.sh
+# - all.sh (multiple components)
+MODES="tls1 tls1_1 tls12 dtls1 dtls12" # ssl3 not in default config
 VERIFIES="NO YES"
 TYPES="ECDSA RSA PSK"
 FILTER=""
 # exclude:
-# - NULL: excluded from our default config
+# - NULL: excluded from our default config + requires OpenSSL legacy
 # - RC4, single-DES: requires legacy OpenSSL/GnuTLS versions
-#   avoid plain DES but keep 3DES-EDE-CBC (mbedTLS), DES-CBC3 (OpenSSL)
+# - 3DES: not in default config
 # - ARIA: not in default config.h + requires OpenSSL >= 1.1.1
 # - ChachaPoly: requires OpenSSL >= 1.1.0
-# - 3DES: not in default config
 EXCLUDE='NULL\|DES\|RC4\|ARCFOUR\|ARIA\|CHACHA20-POLY1305'
 VERBOSE=""
 MEMCHECK=0

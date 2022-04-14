@@ -3104,8 +3104,8 @@
  * non-standard feature of the C language, so this feature is only available
  * with compilers that perform macro expansion on an <tt>\#include</tt> line.
  *
- * The value of this symbol is typically a path in double quotes, relative
- * to a directory on the include search pah.
+ * The value of this symbol is typically a path in double quotes, either
+ * absolute or relative to a directory on the include search path.
  */
 //#define MBEDTLS_CONFIG_FILE "mbedtls/mbedtls_config.h"
 
@@ -3121,8 +3121,8 @@
  * non-standard feature of the C language, so this feature is only available
  * with compilers that perform macro expansion on an <tt>\#include</tt> line.
  *
- * The value of this symbol is typically a path in double quotes, relative
- * to a directory on the include search pah.
+ * The value of this symbol is typically a path in double quotes, either
+ * absolute or relative to a directory on the include search path.
  */
 //#define MBEDTLS_USER_CONFIG_FILE "/dev/null"
 
@@ -3139,8 +3139,8 @@
  * non-standard feature of the C language, so this feature is only available
  * with compilers that perform macro expansion on an <tt>\#include</tt> line.
  *
- * The value of this symbol is typically a path in double quotes, relative
- * to a directory on the include search pah.
+ * The value of this symbol is typically a path in double quotes, either
+ * absolute or relative to a directory on the include search path.
  */
 //#define MBEDTLS_PSA_CRYPTO_CONFIG_FILE "psa/crypto_config.h"
 
@@ -3156,8 +3156,8 @@
  * non-standard feature of the C language, so this feature is only available
  * with compilers that perform macro expansion on an <tt>\#include</tt> line.
  *
- * The value of this symbol is typically a path in double quotes, relative
- * to a directory on the include search pah.
+ * The value of this symbol is typically a path in double quotes, either
+ * absolute or relative to a directory on the include search path.
  */
 //#define MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE "/dev/null"
 

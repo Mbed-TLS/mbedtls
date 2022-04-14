@@ -2959,10 +2959,6 @@ ecdh_calc_secret:
              * ciphersuites we offered, so this should never happen. */
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 
-        /* Opaque PSKs are currently only supported for PSK-only suites. */
-        if( ssl_conf_has_static_raw_psk( ssl->conf ) == 0 )
-            return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
-
         /* uint16 to store content length */
         const size_t content_len_size = 2;
 
@@ -3068,30 +3064,40 @@ ecdh_calc_secret:
         MBEDTLS_PUT_UINT16_BE( zlen, pms, 0 );
         pms += zlen_size + zlen;
 
-        const unsigned char *psk = NULL;
-        size_t psk_len = 0;
+        /* In case of opaque psk skip writting psk to pms.
+         * Opaque key will be handled later. */
+        if( ssl_conf_has_static_raw_psk( ssl->conf ) == 1 )
+        {
+            const unsigned char *psk = NULL;
+            size_t psk_len = 0;
 
-        if( mbedtls_ssl_get_psk( ssl, &psk, &psk_len )
-                == MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED )
-            /*
-             * This should never happen because the existence of a PSK is always
-             * checked before calling this function
-             */
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+            if( mbedtls_ssl_get_psk( ssl, &psk, &psk_len )
+                    == MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED )
+                /*
+                * This should never happen because the existence of a PSK is always
+                * checked before calling this function
+                */
+                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 
-        /* opaque psk<0..2^16-1>; */
-        if( (size_t)( pms_end - pms ) < ( 2 + psk_len ) )
-            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+            /* opaque psk<0..2^16-1>; */
+            if( (size_t)( pms_end - pms ) < ( 2 + psk_len ) )
+                return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-        /* Write the PSK length as uint16 */
-        MBEDTLS_PUT_UINT16_BE( psk_len, pms, 0 );
-        pms += 2;
+            /* Write the PSK length as uint16 */
+            MBEDTLS_PUT_UINT16_BE( psk_len, pms, 0 );
+            pms += 2;
 
-        /* Write the PSK itself */
-        memcpy( pms, psk, psk_len );
-        pms += psk_len;
+            /* Write the PSK itself */
+            memcpy( pms, psk, psk_len );
+            pms += psk_len;
 
-        ssl->handshake->pmslen = pms - ssl->handshake->premaster;
+            ssl->handshake->pmslen = pms - ssl->handshake->premaster;
+        }
+        else
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1,
+                ( "skip PMS generation for opaque ECDHE-PSK" ) );
+        }
     }
     else
 #endif /* MBEDTLS_USE_PSA_CRYPTO &&

@@ -5093,11 +5093,13 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
     }
 #endif /* MBEDTLS_SSL_EXTENDED_MS_ENABLED */
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO) &&             \
-    ( defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED) || \
-      defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED) )
+#if defined(MBEDTLS_USE_PSA_CRYPTO) &&                 \
+    ( defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED) ||     \
+      defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED) || \
+      defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) )
     if( ( handshake->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK ||
-          handshake->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK ) &&
+          handshake->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK ||
+          handshake->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK ) &&
         ssl_use_opaque_psk( ssl ) == 1 )
     {
         /* Perform PSK-to-MS expansion in a single step. */
@@ -5120,15 +5122,23 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
         size_t other_secret_len = 0;
         unsigned char* other_secret = NULL;
 
-        if ( handshake->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK )
+        switch( handshake->ciphersuite_info->key_exchange )
         {
-            /* Provide other key as other secret.
-             * For RSA-PKS other key length is always 48 bytes.
+            /* Provide other secret.
              * Other secret is stored in premaster, where first 2 bytes hold the
-             * length of the other key. Skip them.
+             * length of the other key.
              */
-            other_secret_len = 48;
-            other_secret = handshake->premaster + 2;
+            case MBEDTLS_KEY_EXCHANGE_RSA_PSK:
+                /* For RSA-PKS other key length is always 48 bytes. */
+                other_secret_len = 48;
+                other_secret = handshake->premaster + 2;
+                break;
+            case MBEDTLS_KEY_EXCHANGE_ECDHE_PSK:
+                other_secret_len = MBEDTLS_GET_UINT16_BE(handshake->premaster, 0);
+                other_secret = handshake->premaster + 2;
+                break;
+            default:
+                break;
         }
 
         status = setup_psa_key_derivation( &derivation, psk, alg,

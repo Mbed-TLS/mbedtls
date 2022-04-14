@@ -1406,11 +1406,13 @@ int main( int argc, char *argv[] )
 #if defined (MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
         if( opt.psk_opaque != 0 )
         {
-            /* Ensure that the chosen ciphersuite is PSK-only or rsa-psk; we must know
-             * the ciphersuite in advance to set the correct policy for the
+            /* Ensure that the chosen ciphersuite is PSK-only, rsa-psk
+               or ecdhe-psk; we must know the ciphersuite in
+               advance to set the correct policy for the
              * PSK key slot. This limitation might go away in the future. */
             if( ( ciphersuite_info->key_exchange != MBEDTLS_KEY_EXCHANGE_PSK &&
-                  ciphersuite_info->key_exchange != MBEDTLS_KEY_EXCHANGE_RSA_PSK ) ||
+                  ciphersuite_info->key_exchange != MBEDTLS_KEY_EXCHANGE_RSA_PSK &&
+                  ciphersuite_info->key_exchange != MBEDTLS_KEY_EXCHANGE_ECDHE_PSK ) ||
                 opt.min_version != MBEDTLS_SSL_MINOR_VERSION_3 )
             {
                 mbedtls_printf( "opaque PSKs are only supported in conjunction \

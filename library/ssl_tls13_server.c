@@ -760,40 +760,31 @@ static int ssl_tls13_prepare_server_hello( mbedtls_ssl_context *ssl )
 }
 
 /*
- * ssl_tls13_write_supported_versions_ext():
+ * ssl_tls13_write_selected_version_ext():
  *
  * struct {
  *      ProtocolVersion selected_version;
  * } SupportedVersions;
  */
-static int ssl_tls13_write_supported_versions_ext( mbedtls_ssl_context *ssl,
-                                                   unsigned char *buf,
-                                                   unsigned char *end,
-                                                   size_t *out_len )
+static int ssl_tls13_write_selected_version_ext( mbedtls_ssl_context *ssl,
+                                                 unsigned char *buf,
+                                                 unsigned char *end,
+                                                 size_t *out_len )
 {
-    unsigned char *p = buf;
-
     *out_len = 0;
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, write supported versions extension" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, write selected_version" ) );
 
     /* Check if we have space to write the extension:
      * - extension_type         (2 bytes)
      * - extension_data_length  (2 bytes)
-     * - versions_length        (1 byte )
-     * - versions               (2 bytes)
+     * - selected_version       (2 bytes)
      */
-    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 7 );
+    MBEDTLS_SSL_CHK_BUF_PTR( buf, end, 6 );
 
-    /* Write extension_type */
-    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS, p, 0 );
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS, buf, 0 );
 
-    /* Write extension_data_length */
-    MBEDTLS_PUT_UINT16_BE( 3, p, 2 );
-    p += 4;
-
-    /* Length of versions */
-    *p++ = 0x2;
+    MBEDTLS_PUT_UINT16_BE( 2, buf, 2 );
 
     /* Write values of supported versions.
      *
@@ -801,12 +792,14 @@ static int ssl_tls13_write_supported_versions_ext( mbedtls_ssl_context *ssl,
      *
      * Currently, only one version is advertised.
      */
-    mbedtls_ssl_write_version( p, ssl->tls_version, ssl->conf->transport );
+    mbedtls_ssl_write_version( buf + 4,
+                               ssl->conf->transport,
+                               ssl->tls_version );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "supported version: [%04x]",
                                 ssl->tls_version ) );
 
-    *out_len = 7;
+    *out_len = 6;
 
     return( 0 );
 }
@@ -1007,10 +1000,10 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
     p += 2;
 
     /* Add supported_version extension */
-    if( ( ret = ssl_tls13_write_supported_versions_ext(
+    if( ( ret = ssl_tls13_write_selected_version_ext(
                                             ssl, p, end, &output_len ) ) != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_write_supported_versions_ext",
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_write_selected_version_ext",
                                ret );
         return( ret );
     }

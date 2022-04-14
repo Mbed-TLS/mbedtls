@@ -121,7 +121,7 @@ echo
 echo '################ compat.sh ################'
 {
     echo '#### compat.sh: Default versions'
-    sh compat.sh -m 'tls1 tls1_1 tls1_2 dtls1 dtls1_2'
+    sh compat.sh -m 'tls1 tls1_1 tls12 dtls1 dtls12'
     echo
 
     echo '#### compat.sh: legacy (SSLv3)'

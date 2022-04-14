@@ -54,7 +54,7 @@ option(ENABLE_PROGRAMS "Build mbed TLS programs." ON)
 
 option(UNSAFE_BUILD "Allow unsafe builds. These builds ARE NOT SECURE." OFF)
 option(MBEDTLS_FATAL_WARNINGS "Compiler warnings treated as errors" ON)
-if(WIN32)
+if(CMAKE_HOST_WIN32)
     option(GEN_FILES "Generate the auto-generated files as needed" OFF)
 else()
     option(GEN_FILES "Generate the auto-generated files as needed" ON)

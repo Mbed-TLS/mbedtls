@@ -1226,7 +1226,7 @@ component_test_everest () {
 
     msg "test: Everest ECDH context - compat.sh with some ECDH ciphersuites (ASan build)" # ~ 3 min
     # Exclude some symmetric ciphers that are redundant here to gain time.
-    tests/compat.sh -f ECDH -V NO -e 'ARIA\|CAMELLIA\|CHACHA\|DES'
+    tests/compat.sh -f ECDH -V NO -e 'ARIA\|CAMELLIA\|CHACHA'
 }
 
 component_test_everest_curve25519_only () {
@@ -1314,8 +1314,8 @@ component_test_full_cmake_clang () {
     msg "test: ssl-opt.sh default, ECJPAKE, SSL async (full config)" # ~ 1s
     tests/ssl-opt.sh -f 'Default\|ECJPAKE\|SSL async private'
 
-    msg "test: compat.sh DES, 3DES & NULL (full config)" # ~ 2 min
-    env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '^$' -f 'NULL\|DES'
+    msg "test: compat.sh NULL (full config)" # ~ 2 min
+    env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '^$' -f 'NULL'
 
     msg "test: compat.sh ARIA + ChachaPoly"
     env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
@@ -1607,8 +1607,8 @@ component_test_no_use_psa_crypto_full_cmake_asan() {
     msg "test: compat.sh default (full minus MBEDTLS_USE_PSA_CRYPTO)"
     tests/compat.sh
 
-    msg "test: compat.sh DES & NULL (full minus MBEDTLS_USE_PSA_CRYPTO)"
-    env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES'
+    msg "test: compat.sh NULL (full minus MBEDTLS_USE_PSA_CRYPTO)"
+    env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -f 'NULL'
 
     msg "test: compat.sh ARIA + ChachaPoly (full minus MBEDTLS_USE_PSA_CRYPTO)"
     env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
@@ -2600,7 +2600,7 @@ component_test_m32_everest () {
 
     msg "test: i386, Everest ECDH context - compat.sh with some ECDH ciphersuites (ASan build)" # ~ 3 min
     # Exclude some symmetric ciphers that are redundant here to gain time.
-    tests/compat.sh -f ECDH -V NO -e 'ARIA\|CAMELLIA\|CHACHA\|DES'
+    tests/compat.sh -f ECDH -V NO -e 'ARIA\|CAMELLIA\|CHACHA'
 }
 support_test_m32_everest () {
     support_test_m32_o0 "$@"

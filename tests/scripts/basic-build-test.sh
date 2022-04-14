@@ -121,13 +121,13 @@ echo
 echo '################ compat.sh ################'
 {
     echo '#### compat.sh: Default versions'
-    sh compat.sh -m 'tls1_2 dtls1_2'
+    sh compat.sh
     echo
 
-    echo '#### compat.sh: legacy (null, DES)'
+    echo '#### compat.sh: legacy (null)'
     OPENSSL_CMD="$OPENSSL_LEGACY" \
     GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" \
-    sh compat.sh -e '^$' -f 'NULL\|DES'
+    sh compat.sh -e '^$' -f 'NULL'
     echo
 
     echo '#### compat.sh: next (ARIA, ChaCha)'

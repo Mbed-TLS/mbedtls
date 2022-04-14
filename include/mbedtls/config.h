@@ -2179,7 +2179,7 @@
  * in mbedtls_config.h.
  *
  * If the symbol #MBEDTLS_PSA_CRYPTO_CONFIG_FILE is defined, it specifies
- * an alternative location to use instead of include/psa/crypto_config.h.
+ * an alternative header to include instead of include/psa/crypto_config.h.
  *
  * If you enable this option and write your own configuration file, you must
  * include mbedtls/config_psa.h in your configuration file. The default

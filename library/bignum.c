@@ -1500,8 +1500,12 @@ int mbedtls_mpi_mul_int( mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_uint 
     MPI_VALIDATE_RET( X != NULL );
     MPI_VALIDATE_RET( A != NULL );
 
+    size_t n = A->n;
+    while( n > 0 && A->p[n - 1] == 0 )
+        --n;
+
     /* The general method below doesn't work if b==0. */
-    if( b == 0 )
+    if( b == 0 || n == 0 )
         return( mbedtls_mpi_lset( X, 0 ) );
 
     /* Calculate A*b as A + A*(b-1) to take advantage of mbedtls_mpi_core_mla */
@@ -1517,9 +1521,9 @@ int mbedtls_mpi_mul_int( mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_uint 
      *
      * Note that calculating A*b as 0 + A*b doesn't work as-is because
      * A,X can be the same. */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, A->n + 1 ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, n + 1 ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( X, A ) );
-    mbedtls_mpi_core_mla( X->p, X->n, A->p, A->n, b - 1 );
+    mbedtls_mpi_core_mla( X->p, X->n, A->p, n, b - 1 );
 
 cleanup:
     return( ret );

@@ -21,6 +21,7 @@ generate only the specified files.
 # limitations under the License.
 
 import argparse
+import enum
 import os
 import posixpath
 import re
@@ -305,6 +306,145 @@ class KeyGenerate:
                 kt = crypto_knowledge.KeyType(constr, [curve_family])
                 yield from self.test_cases_for_key_type_key_generation(kt)
 
+class OpFail:
+    """Generate test cases for operations that must fail."""
+    #pylint: disable=too-few-public-methods
+
+    class Reason(enum.Enum):
+        NOT_SUPPORTED = 0
+        INVALID = 1
+        INCOMPATIBLE = 2
+        PUBLIC = 3
+
+    def __init__(self, info: Information) -> None:
+        self.constructors = info.constructors
+        key_type_expressions = self.constructors.generate_expressions(
+            sorted(self.constructors.key_types)
+        )
+        self.key_types = [crypto_knowledge.KeyType(kt_expr)
+                          for kt_expr in key_type_expressions]
+
+    def make_test_case(
+            self,
+            alg: crypto_knowledge.Algorithm,
+            category: crypto_knowledge.AlgorithmCategory,
+            reason: 'Reason',
+            kt: Optional[crypto_knowledge.KeyType] = None,
+            not_deps: FrozenSet[str] = frozenset(),
+    ) -> test_case.TestCase:
+        """Construct a failure test case for a one-key or keyless operation."""
+        #pylint: disable=too-many-arguments,too-many-locals
+        tc = test_case.TestCase()
+        pretty_alg = re.sub(r'PSA_ALG_', r'', alg.expression)
+        if reason == self.Reason.NOT_SUPPORTED:
+            short_deps = [re.sub(r'PSA_WANT_ALG_', r'', dep)
+                          for dep in not_deps]
+            pretty_reason = '!' + '&'.join(sorted(short_deps))
+        else:
+            pretty_reason = reason.name.lower()
+        if kt:
+            key_type = kt.expression
+            pretty_type = re.sub(r'PSA_KEY_TYPE_', r'', key_type)
+        else:
+            key_type = ''
+            pretty_type = ''
+        tc.set_description('PSA {} {}: {}{}'
+                           .format(category.name.lower(),
+                                   pretty_alg,
+                                   pretty_reason,
+                                   ' with ' + pretty_type if pretty_type else ''))
+        dependencies = automatic_dependencies(alg.base_expression, key_type)
+        for i, dep in enumerate(dependencies):
+            if dep in not_deps:
+                dependencies[i] = '!' + dep
+        tc.set_dependencies(dependencies)
+        tc.set_function(category.name.lower() + '_fail')
+        arguments = []
+        if kt:
+            key_material = kt.key_material(kt.sizes_to_test()[0])
+            arguments += [key_type, test_case.hex_string(key_material)]
+        arguments.append(alg.expression)
+        if category.is_asymmetric():
+            arguments.append('1' if reason == self.Reason.PUBLIC else '0')
+        error = ('NOT_SUPPORTED' if reason == self.Reason.NOT_SUPPORTED else
+                 'INVALID_ARGUMENT')
+        arguments.append('PSA_ERROR_' + error)
+        tc.set_arguments(arguments)
+        return tc
+
+    def no_key_test_cases(
+            self,
+            alg: crypto_knowledge.Algorithm,
+            category: crypto_knowledge.AlgorithmCategory,
+    ) -> Iterator[test_case.TestCase]:
+        """Generate failure test cases for keyless operations with the specified algorithm."""
+        if alg.can_do(category):
+            # Compatible operation, unsupported algorithm
+            for dep in automatic_dependencies(alg.base_expression):
+                yield self.make_test_case(alg, category,
+                                          self.Reason.NOT_SUPPORTED,
+                                          not_deps=frozenset([dep]))
+        else:
+            # Incompatible operation, supported algorithm
+            yield self.make_test_case(alg, category, self.Reason.INVALID)
+
+    def one_key_test_cases(
+            self,
+            alg: crypto_knowledge.Algorithm,
+            category: crypto_knowledge.AlgorithmCategory,
+    ) -> Iterator[test_case.TestCase]:
+        """Generate failure test cases for one-key operations with the specified algorithm."""
+        for kt in self.key_types:
+            key_is_compatible = kt.can_do(alg)
+            if key_is_compatible and alg.can_do(category):
+                # Compatible key and operation, unsupported algorithm
+                for dep in automatic_dependencies(alg.base_expression):
+                    yield self.make_test_case(alg, category,
+                                              self.Reason.NOT_SUPPORTED,
+                                              kt=kt, not_deps=frozenset([dep]))
+                # Public key for a private-key operation
+                if category.is_asymmetric() and kt.is_public():
+                    yield self.make_test_case(alg, category,
+                                              self.Reason.PUBLIC,
+                                              kt=kt)
+            elif key_is_compatible:
+                # Compatible key, incompatible operation, supported algorithm
+                yield self.make_test_case(alg, category,
+                                          self.Reason.INVALID,
+                                          kt=kt)
+            elif alg.can_do(category):
+                # Incompatible key, compatible operation, supported algorithm
+                yield self.make_test_case(alg, category,
+                                          self.Reason.INCOMPATIBLE,
+                                          kt=kt)
+            else:
+                # Incompatible key and operation. Don't test cases where
+                # multiple things are wrong, to keep the number of test
+                # cases reasonable.
+                pass
+
+    def test_cases_for_algorithm(
+            self,
+            alg: crypto_knowledge.Algorithm,
+    ) -> Iterator[test_case.TestCase]:
+        """Generate operation failure test cases for the specified algorithm."""
+        for category in crypto_knowledge.AlgorithmCategory:
+            if category == crypto_knowledge.AlgorithmCategory.PAKE:
+                # PAKE operations are not implemented yet
+                pass
+            elif category.requires_key():
+                yield from self.one_key_test_cases(alg, category)
+            else:
+                yield from self.no_key_test_cases(alg, category)
+
+    def all_test_cases(self) -> Iterator[test_case.TestCase]:
+        """Generate all test cases for operations that must fail."""
+        algorithms = sorted(self.constructors.algorithms)
+        for expr in self.constructors.generate_expressions(algorithms):
+            alg = crypto_knowledge.Algorithm(expr)
+            yield from self.test_cases_for_algorithm(alg)
+
+
 class StorageKey(psa_storage.Key):
     """Representation of a key for storage format testing."""
 
@@ -443,51 +583,41 @@ class StorageFormat:
                 continue
             yield self.key_for_lifetime(lifetime)
 
-    def keys_for_usage_flags(
+    def key_for_usage_flags(
             self,
             usage_flags: List[str],
             short: Optional[str] = None,
-            test_implicit_usage: Optional[bool] = False
-    ) -> Iterator[StorageTestData]:
+            test_implicit_usage: Optional[bool] = True
+    ) -> StorageTestData:
         """Construct a test key for the given key usage."""
         usage = ' | '.join(usage_flags) if usage_flags else '0'
         if short is None:
             short = re.sub(r'\bPSA_KEY_USAGE_', r'', usage)
-        extra_desc = ' with implication' if test_implicit_usage else ''
+        extra_desc = ' without implication' if test_implicit_usage else ''
         description = 'usage' + extra_desc + ': ' + short
         key1 = StorageTestData(version=self.version,
                                id=1, lifetime=0x00000001,
                                type='PSA_KEY_TYPE_RAW_DATA', bits=8,
                                expected_usage=usage,
+                               without_implicit_usage=not test_implicit_usage,
                                usage=usage, alg=0, alg2=0,
                                material=b'K',
                                description=description)
-        yield key1
-
-        if test_implicit_usage:
-            description = 'usage without implication' + ': ' + short
-            key2 = StorageTestData(version=self.version,
-                                   id=1, lifetime=0x00000001,
-                                   type='PSA_KEY_TYPE_RAW_DATA', bits=8,
-                                   without_implicit_usage=True,
-                                   usage=usage, alg=0, alg2=0,
-                                   material=b'K',
-                                   description=description)
-            yield key2
+        return key1
 
     def generate_keys_for_usage_flags(self, **kwargs) -> Iterator[StorageTestData]:
         """Generate test keys covering usage flags."""
         known_flags = sorted(self.constructors.key_usage_flags)
-        yield from self.keys_for_usage_flags(['0'], **kwargs)
+        yield self.key_for_usage_flags(['0'], **kwargs)
         for usage_flag in known_flags:
-            yield from self.keys_for_usage_flags([usage_flag], **kwargs)
+            yield self.key_for_usage_flags([usage_flag], **kwargs)
         for flag1, flag2 in zip(known_flags,
                                 known_flags[1:] + [known_flags[0]]):
-            yield from self.keys_for_usage_flags([flag1, flag2], **kwargs)
+            yield self.key_for_usage_flags([flag1, flag2], **kwargs)
 
     def generate_key_for_all_usage_flags(self) -> Iterator[StorageTestData]:
         known_flags = sorted(self.constructors.key_usage_flags)
-        yield from self.keys_for_usage_flags(known_flags, short='all known')
+        yield self.key_for_usage_flags(known_flags, short='all known')
 
     def all_keys_for_usage_flags(self) -> Iterator[StorageTestData]:
         yield from self.generate_keys_for_usage_flags()
@@ -593,8 +723,8 @@ class StorageFormatV0(StorageFormat):
 
     def all_keys_for_usage_flags(self) -> Iterator[StorageTestData]:
         """Generate test keys covering usage flags."""
-        yield from self.generate_keys_for_usage_flags(test_implicit_usage=True)
-        yield from self.generate_key_for_all_usage_flags()
+        yield from super().all_keys_for_usage_flags()
+        yield from self.generate_keys_for_usage_flags(test_implicit_usage=False)
 
     def keys_for_implicit_usage(
             self,
@@ -732,6 +862,8 @@ class TestGenerator:
         lambda info: KeyGenerate(info).test_cases_for_key_generation(),
         'test_suite_psa_crypto_not_supported.generated':
         lambda info: NotSupported(info).test_cases_for_not_supported(),
+        'test_suite_psa_crypto_op_fail.generated':
+        lambda info: OpFail(info).all_test_cases(),
         'test_suite_psa_crypto_storage_format.current':
         lambda info: StorageFormatForward(info, 0).all_test_cases(),
         'test_suite_psa_crypto_storage_format.v0':

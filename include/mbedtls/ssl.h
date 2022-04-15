@@ -326,9 +326,6 @@
 #define MBEDTLS_SSL_SRV_CIPHERSUITE_ORDER_CLIENT  1
 #define MBEDTLS_SSL_SRV_CIPHERSUITE_ORDER_SERVER  0
 
-#define MBEDTLS_SSL_FORCE_RR_CHECK_OFF      0
-#define MBEDTLS_SSL_FORCE_RR_CHECK_ON       1
-
 /*
  * Default range for DTLS retransmission timer value, in milliseconds.
  * RFC 6347 4.2.4.1 says from 1 second to 60 seconds.
@@ -1699,9 +1696,7 @@ struct mbedtls_ssl_context
     /*
      * Information for DTLS hello verify
      */
-#if (defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) ||                               \
-    (defined(MBEDTLS_SSL_COOKIE_C) && defined(MBEDTLS_SSL_PROTO_TLS1_3))) && \
-    defined(MBEDTLS_SSL_SRV_C)
+#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) && defined(MBEDTLS_SSL_SRV_C)
     unsigned char  *MBEDTLS_PRIVATE(cli_id);         /*!<  transport-level ID of the client  */
     size_t          MBEDTLS_PRIVATE(cli_id_len);     /*!<  length of cli_id                  */
 #endif /* MBEDTLS_SSL_DTLS_HELLO_VERIFY && MBEDTLS_SSL_SRV_C */

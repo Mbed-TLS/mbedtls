@@ -48,18 +48,17 @@ static int ssl_tls13_parse_supported_versions_ext( mbedtls_ssl_context *ssl,
                                                    const unsigned char *buf,
                                                    const unsigned char *end )
 {
-    size_t versions_len;
-    int tls13_supported = 0;
-    int major_ver, minor_ver;
     const unsigned char *p = buf;
+    size_t versions_len;
     const unsigned char *versions_end;
+    int major_ver, minor_ver;
+    int tls13_supported = 0;
 
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 1 );
     versions_len = p[0];
     p += 1;
 
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, versions_len );
-
     versions_end = p + versions_len;
     while( p < versions_end )
     {
@@ -79,10 +78,6 @@ static int ssl_tls13_parse_supported_versions_ext( mbedtls_ssl_context *ssl,
 
     if( tls13_supported == 0 )
     {
-        /* Here we only support TLS 1.3, we need report "bad protocol" if it
-         * doesn't support TLS 1.2.
-         */
-
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "TLS 1.3 is not supported by the client" ) );
 
         MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION,
@@ -98,7 +93,7 @@ static int ssl_tls13_parse_supported_versions_ext( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
-#if ( defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) )
+#if defined(MBEDTLS_ECDH_C)
 /* This function parses the TLS 1.3 supported_groups extension and
  * stores the received groups in ssl->handshake->curves.
  *
@@ -114,23 +109,21 @@ static int ssl_tls13_parse_supported_groups_ext(
                 mbedtls_ssl_context *ssl,
                 const unsigned char *buf, const unsigned char *end )
 {
-
-    size_t named_group_list_len, curve_list_len;
     const unsigned char *p = buf;
+    size_t named_group_list_len, curve_list_len;
     const mbedtls_ecp_curve_info *curve_info, **curves;
-    const unsigned char *extentions_end;
+    const unsigned char *named_group_list_end;
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "supported_groups extension", p, end - buf );
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2 );
     named_group_list_len = MBEDTLS_GET_UINT16_BE( p, 0 );
     p += 2;
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, named_group_list_len );
-    if( named_group_list_len % 2 != 0 )
-        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
 
-    /*       At the moment, this can happen when receiving a second
-     *       ClientHello after an HRR. We should properly reset the
-     *       state upon receiving an HRR, in which case we should
-     *       not observe handshake->curves already being allocated. */
+    /* At the moment, this can happen when receiving a second
+     * ClientHello after an HRR. We should properly reset the
+     * state upon receiving an HRR, in which case we should
+     * not observe handshake->curves already being allocated. */
     if( ssl->handshake->curves != NULL )
     {
         mbedtls_free( ssl->handshake->curves );
@@ -147,12 +140,14 @@ static int ssl_tls13_parse_supported_groups_ext(
     if( ( curves = mbedtls_calloc( curve_list_len, sizeof( *curves ) ) ) == NULL )
         return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
 
-    extentions_end = p + named_group_list_len;
+    named_group_list_end = p + named_group_list_len;
     ssl->handshake->curves = curves;
 
-    while ( p < extentions_end && curve_list_len > 1 )
+    while ( p < named_group_list_end && curve_list_len > 1 )
     {
-        uint16_t tls_grp_id = MBEDTLS_GET_UINT16_BE( p, 0 );
+        uint16_t tls_grp_id;
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, named_group_list_end, 2 );
+        tls_grp_id = MBEDTLS_GET_UINT16_BE( p, 0 );
         curve_info = mbedtls_ecp_curve_info_from_tls_id( tls_grp_id );
 
         /* mbedtls_ecp_curve_info_from_tls_id() uses the mbedtls_ecp_curve_info
@@ -173,7 +168,7 @@ static int ssl_tls13_parse_supported_groups_ext(
     return( 0 );
 
 }
-#endif /* MBEDTLS_ECDH_C || ( MBEDTLS_ECDSA_C */
+#endif /* MBEDTLS_ECDH_C */
 
 #if defined(MBEDTLS_ECDH_C)
 /*
@@ -195,9 +190,9 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
 {
     int ret = 0;
     unsigned char const *p = buf;
-    unsigned char const *extentions_end;
+    unsigned char const *client_shares_end;
 
-    size_t total_extensions_len, key_share_len;
+    size_t client_shares_len, key_exchange_len;
     int match_found = 0;
 
     /* From RFC 8446:
@@ -208,15 +203,13 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
      *
      */
 
-    /* Read total legnth of KeyShareClientHello */
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2 );
-
-    total_extensions_len = MBEDTLS_GET_UINT16_BE( p, 0 );
+    client_shares_len = MBEDTLS_GET_UINT16_BE( p, 0 );
     p += 2;
-    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, total_extensions_len );
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, client_shares_len );
 
     ssl->handshake->offered_group_id = 0;
-    extentions_end = p + total_extensions_len;
+    client_shares_end = p + client_shares_len;
 
     /* We try to find a suitable key share entry and copy it to the
      * handshake context. Later, we have to find out whether we can do
@@ -224,7 +217,7 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
      * dismiss it and send a HelloRetryRequest message.
      */
 
-    for( ; p < extentions_end; p += key_share_len )
+    for( ; p < client_shares_end; p += key_exchange_len )
     {
         uint16_t group;
 
@@ -234,12 +227,10 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
          *    opaque key_exchange<1..2^16-1>;
          * } KeyShareEntry;
          */
-        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, extentions_end, 4 );
-
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, client_shares_end, 4 );
         group = MBEDTLS_GET_UINT16_BE( p, 0 );
         p += 2;
-
-        key_share_len = MBEDTLS_GET_UINT16_BE( p, 0 );
+        key_exchange_len = MBEDTLS_GET_UINT16_BE( p, 0 );
         p += 2;
 
         /* Continue parsing even if we have already found a match,
@@ -251,9 +242,9 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
         /*
          * NamedGroup matching
          *
-         * For now, we only support ECDHE groups, but e.g.
+         * For now, we only support ECDHE groups.
 
-         * Type 1: ECDHE shares
+         * ECDHE shares
          *
          * - Check if we recognize the group
          * - Check if it's supported
@@ -266,13 +257,11 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
             if( curve_info == NULL )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "Invalid TLS curve group id" ) );
-                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+                continue;
             }
 
             match_found = 1;
-
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDH curve: %s", curve_info->name ) );
-
             ret = mbedtls_ssl_tls13_read_public_ecdhe_share( ssl, p, end - p );
             if( ret != 0 )
                 return( ret );
@@ -296,7 +285,7 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_ECDH_C */
 
-#if defined(MBEDTLS_SSL_DEBUG_C)
+#if defined(MBEDTLS_DEBUG_C)
 static void ssl_tls13_debug_print_client_hello_exts( mbedtls_ssl_context *ssl )
 {
     ((void) ssl);
@@ -326,13 +315,13 @@ static void ssl_tls13_debug_print_client_hello_exts( mbedtls_ssl_context *ssl )
                                 "TRUE" : "FALSE" ) );
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 }
-#endif /* MBEDTLS_SSL_DEBUG_C */
+#endif /* MBEDTLS_DEBUG_C */
 
 static int ssl_tls13_client_hello_has_exts( mbedtls_ssl_context *ssl,
-                                      int ext_id_mask )
+                                            int exts_mask )
 {
-    int masked = ssl->handshake->extensions_present & ext_id_mask;
-    return( masked == ext_id_mask );
+    int masked = ssl->handshake->extensions_present & exts_mask;
+    return( masked == exts_mask );
 }
 
 static int ssl_tls13_client_hello_has_cert_extensions( mbedtls_ssl_context *ssl )
@@ -685,9 +674,9 @@ have_ciphersuite:
     ssl->handshake->ciphersuite_info = ciphersuite_info;
 
     /* List all the extensions we have received */
-#if defined(MBEDTLS_SSL_DEBUG_C)
+#if defined(MBEDTLS_DEBUG_C)
     ssl_tls13_debug_print_client_hello_exts( ssl );
-#endif /* MBEDTLS_SSL_DEBUG_C */
+#endif /* MBEDTLS_DEBUG_C */
 
     /*
      * Determine the key exchange algorithm to use.

@@ -99,6 +99,7 @@
 #if defined(__i386__) && defined(__OPTIMIZE__)
 
 #define MULADDC_INIT                        \
+    { mbedtls_mpi_uint t;                   \
     asm(                                    \
         "movl   %%ebx, %0           \n\t"   \
         "movl   %5, %%esi           \n\t"   \
@@ -190,7 +191,8 @@
         : "=m" (t), "=m" (c), "=m" (d), "=m" (s)        \
         : "m" (t), "m" (s), "m" (d), "m" (c), "m" (b)   \
         : "eax", "ebx", "ecx", "edx", "esi", "edi"      \
-    );
+    ); }                                                \
+
 
 #else
 
@@ -202,7 +204,7 @@
         : "=m" (t), "=m" (c), "=m" (d), "=m" (s)        \
         : "m" (t), "m" (s), "m" (d), "m" (c), "m" (b)   \
         : "eax", "ebx", "ecx", "edx", "esi", "edi"      \
-    );
+    ); }
 #endif /* SSE2 */
 #endif /* i386 */
 

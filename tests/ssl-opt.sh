@@ -1710,6 +1710,13 @@ run_test    "Context-specific CRT verification callback" \
 
 # Tests for rc4 option
 
+# Manual dependencies on the ciphersuite support are necessary
+# because the automatic requirements from force_ciphersuite=... detection
+# make an exception for these test cases since they expect a handshake
+# failure.
+requires_config_enabled MBEDTLS_ARC4_C
+requires_config_enabled MBEDTLS_SHA1_C
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
 requires_config_enabled MBEDTLS_REMOVE_ARC4_CIPHERSUITES
 run_test    "RC4: server disabled, client enabled" \
             "$P_SRV" \
@@ -1717,6 +1724,9 @@ run_test    "RC4: server disabled, client enabled" \
             1 \
             -s "SSL - The server has no ciphersuites in common"
 
+requires_config_enabled MBEDTLS_ARC4_C
+requires_config_enabled MBEDTLS_SHA1_C
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
 requires_config_enabled MBEDTLS_REMOVE_ARC4_CIPHERSUITES
 run_test    "RC4: server half, client enabled" \
             "$P_SRV arc4=1" \
@@ -1724,17 +1734,30 @@ run_test    "RC4: server half, client enabled" \
             1 \
             -s "SSL - The server has no ciphersuites in common"
 
-requires_ciphersuite_enabled TLS-RSA-WITH-RC4-128-SHA
+requires_config_enabled MBEDTLS_ARC4_C
+requires_config_enabled MBEDTLS_SHA1_C
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
+requires_config_enabled MBEDTLS_REMOVE_ARC4_CIPHERSUITES
 run_test    "RC4: server enabled, client disabled" \
             "$P_SRV force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI" \
             1 \
             -s "SSL - The server has no ciphersuites in common"
 
-requires_ciphersuite_enabled TLS-RSA-WITH-RC4-128-SHA
+# Run even if the ciphersuite is disabled by default, but only if the
+# requisite cryptographic mechanisms are present.
+# Having "force_ciphersuite=..." in the client or server arguments would
+# prevent that due to the automatic detection, so hide behind some
+# shell expansion to fool the automatic detection.
+with_rc4_ciphersuite() {
+    exec "$@" force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA
+}
+requires_config_enabled MBEDTLS_ARC4_C
+requires_config_enabled MBEDTLS_SHA1_C
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
 run_test    "RC4: both enabled" \
-            "$P_SRV force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
-            "$P_CLI force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
+            "with_rc4_ciphersuite $P_SRV" \
+            "with_rc4_ciphersuite $P_CLI" \
             0 \
             -S "SSL - None of the common ciphersuites is usable" \
             -S "SSL - The server has no ciphersuites in common"

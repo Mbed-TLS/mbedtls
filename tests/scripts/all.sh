@@ -873,7 +873,12 @@ component_check_doxygen_warnings () {
     tests/scripts/doxygen.sh
 }
 
+component_check_test_requires_psa_disabled () {
+  msg "Check: tests requiring PSA to be disabled"
 
+  not grep -n 'depends.*!MBEDTLS_USE_PSA_CRYPTO' -R tests/suites/
+  not grep -n 'requires.*disabled.*USE_PSA' tests/ssl-opt.sh tests/opt-testcases/tls13-compat.sh
+}
 
 ################################################################
 #### Build and test many configurations and targets

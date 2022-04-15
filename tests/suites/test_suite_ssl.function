@@ -937,8 +937,12 @@ int mbedtls_endpoint_init( mbedtls_endpoint *ep, int endpoint_type, int pk_alg,
                                        MBEDTLS_SSL_PRESET_DEFAULT );
     TEST_ASSERT( ret == 0 );
 
+#if defined(MBEDTLS_ECP_C)
     if( curves != NULL )
         mbedtls_ssl_conf_curves( &(ep->conf), curves );
+#else
+    (void) curves;
+#endif
 
     ret = mbedtls_ssl_setup( &( ep->ssl ), &( ep->conf ) );
     TEST_ASSERT( ret == 0 );

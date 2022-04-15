@@ -2881,11 +2881,12 @@ component_test_cmake_out_of_source () {
     # "No such file or directory", which would indicate that some required
     # file is missing (ssl-opt.sh tolerates the absence of some files so
     # may exit with status 0 but emit errors).
-    ./tests/ssl-opt.sh -f 'Fallback SCSV: beginning of list' 2>ssl-opt.err
+    ./tests/ssl-opt.sh -f 'Fallback SCSV: beginning of list' >ssl-opt.out 2>ssl-opt.err
+    grep PASS ssl-opt.out
     cat ssl-opt.err >&2
     # If ssl-opt.err is non-empty, record an error and keep going.
     [ ! -s ssl-opt.err ]
-    rm ssl-opt.err
+    rm ssl-opt.out ssl-opt.err
     cd "$MBEDTLS_ROOT_DIR"
     rm -rf "$OUT_OF_SOURCE_DIR"
 }

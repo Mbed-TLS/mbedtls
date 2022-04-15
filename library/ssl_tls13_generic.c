@@ -115,8 +115,12 @@ int mbedtls_ssl_tls13_parse_sig_alg_ext( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG( 4, ( "received signature algorithm: 0x%x",
                                     sig_alg ) );
 
-        if( ! mbedtls_ssl_sig_alg_is_offered( ssl, sig_alg ) ||
-            ! mbedtls_ssl_sig_alg_is_supported( ssl, sig_alg ) )
+        if( ! mbedtls_ssl_sig_alg_is_supported( ssl, sig_alg )
+#if defined(MBEDTLS_SSL_CLI_C)
+            || ( ( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
+            && ! mbedtls_ssl_sig_alg_is_offered( ssl, sig_alg ) )
+#endif /* MBEDTLS_SSL_CLI_C */
+          )
             continue;
 
         if( common_idx + 1 < MBEDTLS_RECEIVED_SIG_ALGS_SIZE )

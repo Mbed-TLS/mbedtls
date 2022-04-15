@@ -449,6 +449,12 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     p += 2;
 
     /*
+     * Only support TLS 1.3 currently, temporarily set the version.
+     */
+    ssl->major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
+    ssl->minor_ver = MBEDTLS_SSL_MINOR_VERSION_4;
+
+    /*
      * Save client random
      */
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, random bytes",

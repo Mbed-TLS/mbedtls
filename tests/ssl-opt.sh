@@ -760,13 +760,11 @@ if type lsof >/dev/null 2>/dev/null; then
         fi
         # Make a tight loop, server normally takes less than 1s to start.
         while true; do
-              SERVER_PIDS=$(lsof -a -n -b -i "$proto:$1" -F p)
+              SERVER_PIDS=$(lsof -a -n -b -i "$proto:$1" -t)
               # When we use a proxy, it will be listening on the same port we
               # are checking for as well as the server and lsof will list both.
-              # If multiple PIDs are returned, each one will be on a separate
-              # line, each prepended with 'p'.
              case ${newline}${SERVER_PIDS}${newline} in
-                  *${newline}p${2}${newline}*) break;;
+                  *${newline}${2}${newline}*) break;;
               esac
               if [ $(( $(date +%s) - $START_TIME )) -gt $DOG_DELAY ]; then
                   echo "$3 START TIMEOUT"

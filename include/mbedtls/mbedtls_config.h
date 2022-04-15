@@ -1671,7 +1671,7 @@
  *
  * Enable support for RFC 6066 server name indication (SNI) in SSL.
  *
- * Requires: MBEDTLS_X509_CRT_PARSE_C
+ * Requires: MBEDTLS_X509_CRT_PARSE_C or MBEDTLS_SSL_PROTO_DTLS
  *
  * Comment this macro to disable support for server name indication in SSL
  */

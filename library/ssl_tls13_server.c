@@ -1504,7 +1504,7 @@ int ssl_tls13_process_client_finished( mbedtls_ssl_context *ssl )
     if( ret != 0 )
         return( ret );
 
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_FLUSH_BUFFERS );
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_HANDSHAKE_WRAPUP );
     return( 0 );
 
 }
@@ -1523,8 +1523,14 @@ int ssl_tls13_flush_buffers( mbedtls_ssl_context *ssl )
  */
 int ssl_tls13_handshake_wrapup( mbedtls_ssl_context *ssl )
 {
-    ((void) ssl);
-    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "handshake: done" ) );
+
+    MBEDTLS_SSL_DEBUG_MSG( 1, ( "Switch to application keys for all traffic" ) );
+    mbedtls_ssl_set_inbound_transform ( ssl, ssl->transform_application );
+    mbedtls_ssl_set_outbound_transform( ssl, ssl->transform_application );
+    mbedtls_ssl_tls13_handshake_wrapup( ssl );
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_HANDSHAKE_OVER );
+    return( 0 );
 }
 
 /*

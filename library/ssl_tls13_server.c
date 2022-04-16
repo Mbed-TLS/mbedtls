@@ -1481,8 +1481,14 @@ static int ssl_tls13_write_certificate_verify( mbedtls_ssl_context *ssl )
  */
 int ssl_tls13_write_server_finished( mbedtls_ssl_context *ssl )
 {
-    ((void) ssl);
-    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+    int ret;
+
+    ret = mbedtls_ssl_tls13_write_finished_message( ssl );
+    if( ret != 0 )
+        return( ret );
+
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_FINISHED );
+    return( 0 );
 }
 
 /*

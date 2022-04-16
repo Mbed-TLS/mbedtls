@@ -1477,6 +1477,42 @@ static int ssl_tls13_write_certificate_verify( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 /*
+ * State Handler: MBEDTLS_SSL_SERVER_FINISHED
+ */
+int ssl_tls13_write_server_finished( mbedtls_ssl_context *ssl )
+{
+    ((void) ssl);
+    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+}
+
+/*
+ * State Handler: MBEDTLS_SSL_CLIENT_FINISHED
+ */
+int ssl_tls13_process_client_finished( mbedtls_ssl_context *ssl )
+{
+    ((void) ssl);
+    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+}
+
+/*
+ * State Handler: MBEDTLS_SSL_FLUSH_BUFFERS
+ */
+int ssl_tls13_flush_buffers( mbedtls_ssl_context *ssl )
+{
+    ((void) ssl);
+    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+}
+
+/*
+ * State Handler: MBEDTLS_SSL_HANDSHAKE_WRAPUP
+ */
+int ssl_tls13_handshake_wrapup( mbedtls_ssl_context *ssl )
+{
+    ((void) ssl);
+    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+}
+
+/*
  * TLS 1.3 State Machine -- server side
  */
 int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
@@ -1539,6 +1575,22 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
             ret = ssl_tls13_write_certificate_verify( ssl );
             break;
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+
+        case MBEDTLS_SSL_SERVER_FINISHED:
+            ret = ssl_tls13_write_server_finished( ssl );
+            break;
+
+        case MBEDTLS_SSL_CLIENT_FINISHED:
+            ret = ssl_tls13_process_client_finished( ssl );
+            break;
+
+        case MBEDTLS_SSL_FLUSH_BUFFERS:
+            ret = ssl_tls13_flush_buffers( ssl );
+            break;
+
+        case MBEDTLS_SSL_HANDSHAKE_WRAPUP:
+            ret = ssl_tls13_handshake_wrapup( ssl );
+            break;
 
         default:
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "invalid state %d", ssl->state ) );

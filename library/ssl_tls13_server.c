@@ -1449,7 +1449,12 @@ cleanup:
 int ssl_tls13_write_server_certificate( mbedtls_ssl_context *ssl )
 {
     ((void) ssl);
-    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+    int ret = mbedtls_ssl_tls13_write_certificate( ssl );
+    if(ret != 0)
+        return( ret );
+
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CERTIFICATE_VERIFY );
+    return( 0 );
 }
 
 /*

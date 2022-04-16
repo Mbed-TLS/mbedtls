@@ -1496,8 +1496,17 @@ int ssl_tls13_write_server_finished( mbedtls_ssl_context *ssl )
  */
 int ssl_tls13_process_client_finished( mbedtls_ssl_context *ssl )
 {
-    ((void) ssl);
-    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+    int ret;
+    MBEDTLS_SSL_DEBUG_MSG( 1,
+                  ( "Switch to handshake traffic keys for outbound traffic" ) );
+    mbedtls_ssl_set_inbound_transform( ssl, ssl->handshake->transform_handshake );
+    ret = mbedtls_ssl_tls13_process_finished_message( ssl );
+    if( ret != 0 )
+        return( ret );
+
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_FLUSH_BUFFERS );
+    return( 0 );
+
 }
 
 /*

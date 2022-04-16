@@ -611,6 +611,19 @@ int mbedtls_ssl_tls13_generate_application_keys(
     mbedtls_ssl_context* ssl, mbedtls_ssl_key_set *traffic_keys );
 
 /**
+ * \brief Compute TLS 1.3 resumption master secret.
+ *
+ * \param ssl  The SSL context to operate on. This must be in
+ *             key schedule stage \c Application, see
+ *             mbedtls_ssl_tls13_key_schedule_stage_application().
+ *
+ * \returns    \c 0 on success.
+ * \returns    A negative error code on failure.
+ */
+int mbedtls_ssl_tls13_generate_resumption_master_secret(
+    mbedtls_ssl_context* ssl );
+
+/**
  * \brief Calculate the verify_data value for the client or server TLS 1.3
  * Finished message.
  *

@@ -1182,6 +1182,23 @@ cleanup:
 static int ssl_tls13_postprocess_finished_message( mbedtls_ssl_context *ssl )
 {
 
+#if defined(MBEDTLS_SSL_SRV_C)
+    int ret;
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
+    {
+        /* Compute resumption_master_secret */
+        ret = mbedtls_ssl_tls13_generate_resumption_master_secret( ssl );
+        if( ret != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1,
+               "mbedtls_ssl_tls13_generate_resumption_master_secret ", ret );
+            return( ret );
+        }
+
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_SRV_C */
+
 #if defined(MBEDTLS_SSL_CLI_C)
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
     {

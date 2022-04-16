@@ -1565,4 +1565,13 @@ cleanup:
     return( ret );
 }
 
+int mbedtls_ssl_tls13_generate_resumption_master_secret(
+    mbedtls_ssl_context *ssl )
+{
+    /* Erase master secrets */
+    mbedtls_platform_zeroize( &ssl->handshake->tls13_master_secrets,
+                              sizeof( ssl->handshake->tls13_master_secrets ) );
+    return( 0 );
+}
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */

@@ -739,6 +739,16 @@
         mbedtls_mpi_uint tmp_a1, tmp_b1;             \
         asm volatile (
 
+            /* - Make sure loop is 4-byte aligned to avoid stalls
+             *   upon repeated non-word aligned instructions in
+             *   some microarchitectures.
+             * - Don't use ldm with post-increment or back-to-back
+             *   loads with post-increment and same address register
+             *   to avoid stalls on some microarchitectures.
+             * - Bunch loads and stores to reduce latency on some
+             *   microarchitectures. E.g., on Cortex-M4, the first
+             *   in a series of load/store operations has latency
+             *   2 cycles, while subsequent loads/stores are single-cycle. */
 #define MULADDC_X2_CORE                                           \
            ".p2align  2                                   \n\t"   \
             "ldr.w    %[a0], [%[in]],  #+8                \n\t"   \

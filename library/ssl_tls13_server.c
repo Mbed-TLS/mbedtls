@@ -1479,7 +1479,7 @@ static int ssl_tls13_write_certificate_verify( mbedtls_ssl_context *ssl )
 /*
  * State Handler: MBEDTLS_SSL_SERVER_FINISHED
  */
-int ssl_tls13_write_server_finished( mbedtls_ssl_context *ssl )
+static int ssl_tls13_write_server_finished( mbedtls_ssl_context *ssl )
 {
     int ret;
 
@@ -1494,7 +1494,7 @@ int ssl_tls13_write_server_finished( mbedtls_ssl_context *ssl )
 /*
  * State Handler: MBEDTLS_SSL_CLIENT_FINISHED
  */
-int ssl_tls13_process_client_finished( mbedtls_ssl_context *ssl )
+static int ssl_tls13_process_client_finished( mbedtls_ssl_context *ssl )
 {
     int ret;
     MBEDTLS_SSL_DEBUG_MSG( 1,
@@ -1512,7 +1512,7 @@ int ssl_tls13_process_client_finished( mbedtls_ssl_context *ssl )
 /*
  * State Handler: MBEDTLS_SSL_FLUSH_BUFFERS
  */
-int ssl_tls13_flush_buffers( mbedtls_ssl_context *ssl )
+static int ssl_tls13_flush_buffers( mbedtls_ssl_context *ssl )
 {
     ((void) ssl);
     return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
@@ -1521,7 +1521,7 @@ int ssl_tls13_flush_buffers( mbedtls_ssl_context *ssl )
 /*
  * State Handler: MBEDTLS_SSL_HANDSHAKE_WRAPUP
  */
-int ssl_tls13_handshake_wrapup( mbedtls_ssl_context *ssl )
+static int ssl_tls13_handshake_wrapup( mbedtls_ssl_context *ssl )
 {
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "handshake: done" ) );
 

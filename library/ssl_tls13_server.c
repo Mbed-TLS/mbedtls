@@ -492,9 +492,48 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, ciphersuitelist",
                           p, cipher_suites_len );
 
-    /* skip cipher_suites for now */
-    p += cipher_suites_len;
+    /*
+     * Search for a matching ciphersuite
+     */
+    size_t ciphersuite_exist = 0;
+    cipher_suites = ssl->conf->ciphersuite_list;
+    ciphersuite_info = NULL;
+    for ( size_t j = 0; j < cipher_suites_len;
+          j += 2, p += 2 )
+    {
+        for ( size_t i = 0; cipher_suites[i] != 0; i++ )
+        {
+            if( MBEDTLS_GET_UINT16_BE(p, 0) == cipher_suites[i] )
+            {
+                ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(
+                               cipher_suites[i] );
 
+                if( ciphersuite_info == NULL )
+                {
+                    MBEDTLS_SSL_DEBUG_MSG(
+                    1,
+                    ( "mbedtls_ssl_ciphersuite_from_id: should never happen" ) );
+                    return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+                }
+
+                ssl->session_negotiate->ciphersuite = cipher_suites[i];
+                ssl->handshake->ciphersuite_info = ciphersuite_info;
+                ciphersuite_exist = 1;
+
+                break;
+
+            }
+
+        }
+    }
+
+    if( !ciphersuite_exist )
+        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "selected ciphersuite: %s",
+                                ciphersuite_info->name ) );
+
+    p = cipher_suites_start + cipher_suites_len;
     /* ...
      * opaque legacy_compression_methods<1..2^8-1>;
      * ...
@@ -634,44 +673,6 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
      */
     mbedtls_ssl_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
                                         buf, p - buf );
-    /*
-     * Search for a matching ciphersuite
-     */
-    size_t i, j;
-    cipher_suites = ssl->conf->ciphersuite_list;
-    ciphersuite_info = NULL;
-    for ( j = 0, p = cipher_suites_start; j < cipher_suites_len; j += 2, p += 2 )
-    {
-        for ( i = 0; cipher_suites[i] != 0; i++ )
-        {
-            if( MBEDTLS_GET_UINT16_BE(p, 0) != cipher_suites[i] )
-                continue;
-
-            ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(
-                               cipher_suites[i] );
-
-            if( ciphersuite_info == NULL )
-            {
-                MBEDTLS_SSL_DEBUG_MSG(
-                1,
-                ( "mbedtls_ssl_ciphersuite_from_id: should never happen" ) );
-                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-            }
-
-            goto have_ciphersuite;
-
-        }
-    }
-
-    return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-
-have_ciphersuite:
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "selected ciphersuite: %s",
-                                ciphersuite_info->name ) );
-
-    ssl->session_negotiate->ciphersuite = cipher_suites[i];
-    ssl->handshake->ciphersuite_info = ciphersuite_info;
 
     /* List all the extensions we have received */
 #if defined(MBEDTLS_DEBUG_C)

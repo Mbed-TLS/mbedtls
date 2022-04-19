@@ -1121,7 +1121,7 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
 static int ssl_parse_hello_verify_request( mbedtls_ssl_context *ssl )
 {
     const unsigned char *p = ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl );
-    int major_ver, minor_ver;
+    uint16_t dtls_legacy_version;
     unsigned char cookie_len;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse hello verify request" ) );
@@ -1146,17 +1146,15 @@ static int ssl_parse_hello_verify_request( mbedtls_ssl_context *ssl )
      * } HelloVerifyRequest;
      */
     MBEDTLS_SSL_DEBUG_BUF( 3, "server version", p, 2 );
-    mbedtls_ssl_read_version( &major_ver, &minor_ver, ssl->conf->transport, p );
+    dtls_legacy_version = MBEDTLS_GET_UINT16_BE( p, 0 );
     p += 2;
 
     /*
-     * Since the RFC is not clear on this point, accept DTLS 1.0 (TLS 1.1)
-     * even is lower than our min version.
+     * Since the RFC is not clear on this point, accept DTLS 1.0 (0xfeff)
+     * The DTLS 1.3 (current draft) renames ProtocolVersion server_version to
+     * legacy_version and locks the value of legacy_version to 0xfefd (DTLS 1.2)
      */
-    if( major_ver < MBEDTLS_SSL_MAJOR_VERSION_3 ||
-        minor_ver < MBEDTLS_SSL_MINOR_VERSION_2 ||
-        major_ver > ssl->conf->max_major_ver  ||
-        minor_ver > ssl->conf->max_minor_ver  )
+    if( dtls_legacy_version != 0xfefd && dtls_legacy_version != 0xfeff )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server version" ) );
 
@@ -1297,23 +1295,18 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
      */
     buf += mbedtls_ssl_hs_hdr_len( ssl );
 
-    MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, version", buf + 0, 2 );
-    mbedtls_ssl_read_version( &ssl->major_ver, &ssl->minor_ver,
-                      ssl->conf->transport, buf + 0 );
-    ssl->session_negotiate->minor_ver = ssl->minor_ver;
+    MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, version", buf, 2 );
+    ssl->tls_version = mbedtls_ssl_read_version( buf, ssl->conf->transport );
+    ssl->session_negotiate->tls_version = ssl->tls_version;
 
-    if( ssl->major_ver < ssl->conf->min_major_ver ||
-        ssl->minor_ver < ssl->conf->min_minor_ver ||
-        ssl->major_ver > ssl->conf->max_major_ver ||
-        ssl->minor_ver > ssl->conf->max_minor_ver )
+    if( ssl->tls_version < ssl->conf->min_tls_version ||
+        ssl->tls_version > ssl->conf->max_tls_version )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1,
-            ( "server version out of bounds -  min: [%d:%d], server: [%d:%d], max: [%d:%d]",
-              ssl->conf->min_major_ver,
-              ssl->conf->min_minor_ver,
-              ssl->major_ver, ssl->minor_ver,
-              ssl->conf->max_major_ver,
-              ssl->conf->max_minor_ver ) );
+            ( "server version out of bounds -  min: [0x%x], server: [0x%x], max: [0x%x]",
+              (unsigned)ssl->conf->min_tls_version,
+              (unsigned)ssl->tls_version,
+              (unsigned)ssl->conf->max_tls_version ) );
 
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                      MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION );
@@ -1475,8 +1468,8 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 
     suite_info = mbedtls_ssl_ciphersuite_from_id(
         ssl->session_negotiate->ciphersuite );
-    if( mbedtls_ssl_validate_ciphersuite( ssl, suite_info, ssl->minor_ver,
-                                          ssl->minor_ver ) != 0 )
+    if( mbedtls_ssl_validate_ciphersuite( ssl, suite_info, ssl->tls_version,
+                                          ssl->tls_version ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
         mbedtls_ssl_send_alert_message(
@@ -1491,7 +1484,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
     if( suite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA &&
-        ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+        ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_2 )
     {
         ssl->handshake->ecrs_enabled = 1;
     }
@@ -1992,9 +1985,8 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
      *      opaque random[46];
      *  } PreMasterSecret;
      */
-    mbedtls_ssl_write_version( MBEDTLS_SSL_MAJOR_VERSION_3,
-                               MBEDTLS_SSL_MINOR_VERSION_3,
-                               ssl->conf->transport, p );
+    mbedtls_ssl_write_version( p, ssl->conf->transport,
+                               MBEDTLS_SSL_VERSION_TLS1_2 );
 
     if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng, p + 2, 46 ) ) != 0 )
     {

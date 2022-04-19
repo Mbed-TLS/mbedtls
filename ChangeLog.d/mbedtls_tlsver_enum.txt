@@ -1,0 +1,6 @@
+Features
+   * Unify internal/external TLS protocol version enums
+   * Deprecate mbedtls_ssl_conf_max_version()
+     Replaced with mbedtls_ssl_conf_max_tls_version()
+   * Deprecate mbedtls_ssl_conf_min_version()
+     Replaced with mbedtls_ssl_conf_min_tls_version()

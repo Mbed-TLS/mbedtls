@@ -52,17 +52,14 @@ void log_analyzer( void *ctx, int level,
     }
 }
 
-/* Invalid minor version used when not specifying a min/max version or expecting a test to fail */
-#define TEST_SSL_MINOR_VERSION_NONE -1
-
 typedef struct handshake_test_options
 {
     const char *cipher;
-    int client_min_version;
-    int client_max_version;
-    int server_min_version;
-    int server_max_version;
-    int expected_negotiated_version;
+    mbedtls_ssl_protocol_version client_min_version;
+    mbedtls_ssl_protocol_version client_max_version;
+    mbedtls_ssl_protocol_version server_min_version;
+    mbedtls_ssl_protocol_version server_max_version;
+    mbedtls_ssl_protocol_version expected_negotiated_version;
     int pk_alg;
     data_t *psk_str;
     int dtls;
@@ -85,11 +82,11 @@ typedef struct handshake_test_options
 void init_handshake_options( handshake_test_options *opts )
 {
   opts->cipher = "";
-  opts->client_min_version = TEST_SSL_MINOR_VERSION_NONE;
-  opts->client_max_version = TEST_SSL_MINOR_VERSION_NONE;
-  opts->server_min_version = TEST_SSL_MINOR_VERSION_NONE;
-  opts->server_max_version = TEST_SSL_MINOR_VERSION_NONE;
-  opts->expected_negotiated_version = MBEDTLS_SSL_MINOR_VERSION_3;
+  opts->client_min_version = MBEDTLS_SSL_VERSION_UNKNOWN;
+  opts->client_max_version = MBEDTLS_SSL_VERSION_UNKNOWN;
+  opts->server_min_version = MBEDTLS_SSL_VERSION_UNKNOWN;
+  opts->server_max_version = MBEDTLS_SSL_VERSION_UNKNOWN;
+  opts->expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_2;
   opts->pk_alg = MBEDTLS_PK_RSA;
   opts->psk_str = NULL;
   opts->dtls = 0;
@@ -1183,16 +1180,16 @@ void set_ciphersuite( mbedtls_ssl_config *conf, const char *cipher,
         mbedtls_ssl_ciphersuite_from_id( forced_ciphersuite[0] );
 
     TEST_ASSERT( ciphersuite_info != NULL );
-    TEST_ASSERT( ciphersuite_info->min_minor_ver <= conf->max_minor_ver );
-    TEST_ASSERT( ciphersuite_info->max_minor_ver >= conf->min_minor_ver );
+    TEST_ASSERT( ciphersuite_info->min_tls_version <= conf->max_tls_version );
+    TEST_ASSERT( ciphersuite_info->max_tls_version >= conf->min_tls_version );
 
-    if( conf->max_minor_ver > ciphersuite_info->max_minor_ver )
+    if( conf->max_tls_version > ciphersuite_info->max_tls_version )
     {
-        conf->max_minor_ver = ciphersuite_info->max_minor_ver;
+        conf->max_tls_version = ciphersuite_info->max_tls_version;
     }
-    if( conf->min_minor_ver < ciphersuite_info->min_minor_ver )
+    if( conf->min_tls_version < ciphersuite_info->min_tls_version )
     {
-        conf->min_minor_ver = ciphersuite_info->min_minor_ver;
+        conf->min_tls_version = ciphersuite_info->min_tls_version;
     }
 
     mbedtls_ssl_conf_ciphersuites( conf, forced_ciphersuite );
@@ -1265,7 +1262,8 @@ static int psa_cipher_encrypt_helper( mbedtls_ssl_transform *transform,
 static int build_transforms( mbedtls_ssl_transform *t_in,
                              mbedtls_ssl_transform *t_out,
                              int cipher_type, int hash_id,
-                             int etm, int tag_mode, int ver,
+                             int etm, int tag_mode,
+                             mbedtls_ssl_protocol_version tls_version,
                              size_t cid0_len,
                              size_t cid1_len )
 {
@@ -1442,8 +1440,8 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
     ((void) etm);
 #endif
 
-    t_out->minor_ver = ver;
-    t_in->minor_ver = ver;
+    t_out->tls_version = tls_version;
+    t_in->tls_version = tls_version;
     t_out->ivlen = ivlen;
     t_in->ivlen = ivlen;
 
@@ -1452,7 +1450,7 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
         case MBEDTLS_MODE_GCM:
         case MBEDTLS_MODE_CCM:
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-            if( ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+            if( tls_version == MBEDTLS_SSL_VERSION_TLS1_3 )
             {
                 t_out->fixed_ivlen = 12;
                 t_in->fixed_ivlen  = 12;
@@ -1637,7 +1635,7 @@ static int ssl_populate_session_tls12( mbedtls_ssl_session *session,
 #if defined(MBEDTLS_HAVE_TIME)
     session->start = mbedtls_time( NULL ) - 42;
 #endif
-    session->minor_ver = MBEDTLS_SSL_MINOR_VERSION_3;
+    session->tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
     session->ciphersuite = 0xabcd;
     session->compression = 1;
     session->id_len = sizeof( session->id );
@@ -1864,15 +1862,17 @@ int exchange_data( mbedtls_ssl_context *ssl_1,
                                   ssl_2, 256, 1 );
 }
 
-int check_ssl_version( int expected_negotiated_version,
-                       const mbedtls_ssl_context *ssl )
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
+    defined(MBEDTLS_ENTROPY_C) && \
+    defined(MBEDTLS_CTR_DRBG_C)
+static int check_ssl_version( mbedtls_ssl_protocol_version expected_negotiated_version,
+                              const mbedtls_ssl_context *ssl )
 {
     const char *version_string = mbedtls_ssl_get_version( ssl );
     mbedtls_ssl_protocol_version version_number =
         mbedtls_ssl_get_version_number( ssl );
 
-    TEST_EQUAL( ssl->major_ver, MBEDTLS_SSL_MAJOR_VERSION_3 );
-    TEST_EQUAL( ssl->minor_ver, expected_negotiated_version );
+    TEST_EQUAL( ssl->tls_version, expected_negotiated_version );
 
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
@@ -1882,13 +1882,13 @@ int check_ssl_version( int expected_negotiated_version,
 
     switch( expected_negotiated_version )
     {
-        case MBEDTLS_SSL_MINOR_VERSION_3:
-            TEST_EQUAL( version_number, MBEDTLS_SSL_VERSION_1_2 );
+        case MBEDTLS_SSL_VERSION_TLS1_2:
+            TEST_EQUAL( version_number, MBEDTLS_SSL_VERSION_TLS1_2 );
             TEST_ASSERT( strcmp( version_string, "TLSv1.2" ) == 0 );
             break;
 
-        case MBEDTLS_SSL_MINOR_VERSION_4:
-            TEST_EQUAL( version_number, MBEDTLS_SSL_VERSION_1_3 );
+        case MBEDTLS_SSL_VERSION_TLS1_3:
+            TEST_EQUAL( version_number, MBEDTLS_SSL_VERSION_TLS1_3 );
             TEST_ASSERT( strcmp( version_string, "TLSv1.3" ) == 0 );
             break;
 
@@ -1901,6 +1901,7 @@ int check_ssl_version( int expected_negotiated_version,
 exit:
     return( 0 );
 }
+#endif /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C */
 
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && \
@@ -1954,15 +1955,15 @@ void perform_handshake( handshake_test_options* options )
                                             NULL, NULL ) == 0 );
     }
 
-    if( options->client_min_version != TEST_SSL_MINOR_VERSION_NONE )
+    if( options->client_min_version != MBEDTLS_SSL_VERSION_UNKNOWN )
     {
-        mbedtls_ssl_conf_min_version( &client.conf, MBEDTLS_SSL_MAJOR_VERSION_3,
+        mbedtls_ssl_conf_min_tls_version( &client.conf,
                                           options->client_min_version );
     }
 
-    if( options->client_max_version != TEST_SSL_MINOR_VERSION_NONE )
+    if( options->client_max_version != MBEDTLS_SSL_VERSION_UNKNOWN )
     {
-        mbedtls_ssl_conf_max_version( &client.conf, MBEDTLS_SSL_MAJOR_VERSION_3,
+        mbedtls_ssl_conf_max_tls_version( &client.conf,
                                           options->client_max_version );
     }
 
@@ -2002,15 +2003,15 @@ void perform_handshake( handshake_test_options* options )
 
     mbedtls_ssl_conf_authmode( &server.conf, options->srv_auth_mode );
 
-    if( options->server_min_version != TEST_SSL_MINOR_VERSION_NONE )
+    if( options->server_min_version != MBEDTLS_SSL_VERSION_UNKNOWN )
     {
-        mbedtls_ssl_conf_min_version( &server.conf, MBEDTLS_SSL_MAJOR_VERSION_3,
+        mbedtls_ssl_conf_min_tls_version( &server.conf,
                                           options->server_min_version );
     }
 
-    if( options->server_max_version != TEST_SSL_MINOR_VERSION_NONE )
+    if( options->server_max_version != MBEDTLS_SSL_VERSION_UNKNOWN )
     {
-        mbedtls_ssl_conf_max_version( &server.conf, MBEDTLS_SSL_MAJOR_VERSION_3,
+        mbedtls_ssl_conf_max_tls_version( &server.conf,
                                           options->server_max_version );
     }
 
@@ -2078,7 +2079,7 @@ void perform_handshake( handshake_test_options* options )
     }
 #endif
 
-    if( options->expected_negotiated_version == TEST_SSL_MINOR_VERSION_NONE )
+    if( options->expected_negotiated_version == MBEDTLS_SSL_VERSION_UNKNOWN )
     {
         expected_handshake_result = MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION;
     }
@@ -3509,7 +3510,7 @@ void ssl_crypt_record( int cipher_type, int hash_id,
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-        if( t_enc->minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+        if( t_enc->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 )
         {
             /* TLS 1.3 hides the real content type and
              * always uses Application Data as the content type
@@ -3678,7 +3679,7 @@ void ssl_crypt_record_small( int cipher_type, int hash_id,
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-            if( t_enc->minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+            if( t_enc->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 )
             {
                 /* TLS 1.3 hides the real content type and
                  * always uses Application Data as the content type
@@ -3763,7 +3764,7 @@ void ssl_decrypt_non_etm_cbc( int cipher_type, int hash_id, int trunc_hmac,
     /* Set up transforms with dummy keys */
     ret = build_transforms( &t0, &t1, cipher_type, hash_id,
                                    0, trunc_hmac,
-                                   MBEDTLS_SSL_MINOR_VERSION_3,
+                                   MBEDTLS_SSL_VERSION_TLS1_2,
                                    0 , 0 );
 
     TEST_ASSERT( ret == 0 );
@@ -3803,8 +3804,8 @@ void ssl_decrypt_non_etm_cbc( int cipher_type, int hash_id, int trunc_hmac,
     /* Prepare a dummy record header */
     memset( rec.ctr, 0, sizeof( rec.ctr ) );
     rec.type    = MBEDTLS_SSL_MSG_APPLICATION_DATA;
-    rec.ver[0]  = MBEDTLS_SSL_MAJOR_VERSION_3;
-    rec.ver[1]  = MBEDTLS_SSL_MINOR_VERSION_3;
+    mbedtls_ssl_write_version( rec.ver, MBEDTLS_SSL_TRANSPORT_STREAM,
+                               MBEDTLS_SSL_VERSION_TLS1_2 );
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     rec.cid_len = 0;
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
@@ -4464,10 +4465,9 @@ void ssl_tls13_record_protection( int ciphersuite,
     rec.type   = MBEDTLS_SSL_MSG_APPLICATION_DATA;
 
     /* TLS 1.3 uses the version identifier from TLS 1.2 on the wire. */
-    mbedtls_ssl_write_version( MBEDTLS_SSL_MAJOR_VERSION_3,
-                               MBEDTLS_SSL_MINOR_VERSION_3,
+    mbedtls_ssl_write_version( rec.ver,
                                MBEDTLS_SSL_TRANSPORT_STREAM,
-                               rec.ver );
+                               MBEDTLS_SSL_VERSION_TLS1_2 );
 
     /* Copy plaintext into record structure */
     rec.buf = buf;
@@ -4587,7 +4587,7 @@ void ssl_serialize_session_save_load( int ticket_len, char *crt_file )
 #if defined(MBEDTLS_HAVE_TIME)
     TEST_ASSERT( original.start == restored.start );
 #endif
-    TEST_ASSERT( original.minor_ver == restored.minor_ver );
+    TEST_ASSERT( original.tls_version == restored.tls_version );
     TEST_ASSERT( original.ciphersuite == restored.ciphersuite );
     TEST_ASSERT( original.compression == restored.compression );
     TEST_ASSERT( original.id_len == restored.id_len );
@@ -4921,7 +4921,6 @@ void handshake_version( int dtls, int client_min_version, int client_max_version
     options.client_max_version = client_max_version;
     options.server_min_version = server_min_version;
     options.server_max_version = server_max_version;
-
     options.expected_negotiated_version = expected_negotiated_version;
 
     options.dtls = dtls;
@@ -5407,8 +5406,7 @@ exit:
 
 /* BEGIN_CASE */
 void conf_version( int endpoint, int transport,
-                   int min_version_major, int min_version_minor,
-                   int max_version_major, int max_version_minor,
+                   int min_tls_version, int max_tls_version,
                    int expected_ssl_setup_result )
 {
     mbedtls_ssl_config conf;
@@ -5419,8 +5417,8 @@ void conf_version( int endpoint, int transport,
 
     mbedtls_ssl_conf_endpoint( &conf, endpoint );
     mbedtls_ssl_conf_transport( &conf, transport );
-    mbedtls_ssl_conf_min_version( &conf, min_version_major, min_version_minor );
-    mbedtls_ssl_conf_max_version( &conf, max_version_major, max_version_minor );
+    mbedtls_ssl_conf_min_tls_version( &conf, min_tls_version );
+    mbedtls_ssl_conf_max_tls_version( &conf, max_tls_version );
 
     TEST_ASSERT( mbedtls_ssl_setup( &ssl, &conf ) == expected_ssl_setup_result );
 
@@ -5445,11 +5443,11 @@ void conf_curve()
     mbedtls_ssl_config conf;
     mbedtls_ssl_config_init( &conf );
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    mbedtls_ssl_conf_max_version( &conf, 3, 3 );
-    mbedtls_ssl_conf_min_version( &conf, 3, 3 );
+    mbedtls_ssl_conf_max_tls_version( &conf, MBEDTLS_SSL_VERSION_TLS1_2 );
+    mbedtls_ssl_conf_min_tls_version( &conf, MBEDTLS_SSL_VERSION_TLS1_2 );
 #else
-    mbedtls_ssl_conf_max_version( &conf, 3, 4 );
-    mbedtls_ssl_conf_min_version( &conf, 3, 4 );
+    mbedtls_ssl_conf_max_tls_version( &conf, MBEDTLS_SSL_VERSION_TLS1_3 );
+    mbedtls_ssl_conf_min_tls_version( &conf, MBEDTLS_SSL_VERSION_TLS1_3 );
 #endif
     mbedtls_ssl_conf_curves( &conf, curve_list );
 
@@ -5481,8 +5479,8 @@ void conf_group()
     mbedtls_ssl_config conf;
     mbedtls_ssl_config_init( &conf );
 
-    mbedtls_ssl_conf_max_version( &conf, 3, 3 );
-    mbedtls_ssl_conf_min_version( &conf, 3, 3 );
+    mbedtls_ssl_conf_max_tls_version( &conf, MBEDTLS_SSL_VERSION_TLS1_2 );
+    mbedtls_ssl_conf_min_tls_version( &conf, MBEDTLS_SSL_VERSION_TLS1_2 );
 
     mbedtls_ssl_conf_groups( &conf, iana_tls_group_list );
 

@@ -5099,7 +5099,8 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
       defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) )
     if( ( handshake->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK ||
           handshake->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK ||
-          handshake->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK ) &&
+          handshake->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK ||
+          handshake->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK ) &&
         ssl_use_opaque_psk( ssl ) == 1 )
     {
         /* Perform PSK-to-MS expansion in a single step. */
@@ -5134,6 +5135,7 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
                 other_secret = handshake->premaster + 2;
                 break;
             case MBEDTLS_KEY_EXCHANGE_ECDHE_PSK:
+            case MBEDTLS_KEY_EXCHANGE_DHE_PSK:
                 other_secret_len = MBEDTLS_GET_UINT16_BE(handshake->premaster, 0);
                 other_secret = handshake->premaster + 2;
                 break;
@@ -5383,21 +5385,27 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
     unsigned char *end = p + sizeof( ssl->handshake->premaster );
     const unsigned char *psk = NULL;
     size_t psk_len = 0;
+    int psk_ret = mbedtls_ssl_get_psk( ssl, &psk, &psk_len );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) &&                 \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
     (void) key_ex;
 #endif /* MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
 
-    if( mbedtls_ssl_get_psk( ssl, &psk, &psk_len )
-            == MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED )
+    if( psk_ret == MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED )
     {
         /*
          * This should never happen because the existence of a PSK is always
-         * checked before calling this function
+         * checked before calling this function.
+         *
+         * The exception is opaque DHE-PSK. For DHE-PSK fill premaster with
+         * the the shared secret without PSK.
          */
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        if ( key_ex != MBEDTLS_KEY_EXCHANGE_DHE_PSK )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
     }
 
     /*
@@ -5458,6 +5466,14 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
         p += 2 + len;
 
         MBEDTLS_SSL_DEBUG_MPI( 3, "DHM: K ", &ssl->handshake->dhm_ctx.K  );
+
+        /* For opaque PSK fill premaster with the the shared secret without PSK. */
+        if( psk_ret == MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1,
+                ( "skip PMS generation for opaque DHE-PSK" ) );
+            return( 0 );
+        }
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */

@@ -3153,12 +3153,6 @@ ecdh_calc_secret:
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED)
         if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK )
         {
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-            /* Opaque PSKs are currently only supported for PSK-only suites. */
-            if( ssl_conf_has_static_raw_psk( ssl->conf ) == 0 )
-                return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-
             /*
              * ClientDiffieHellmanPublic public (DHM send G^X mod P)
              */

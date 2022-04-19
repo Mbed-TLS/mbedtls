@@ -253,6 +253,12 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
 
             match_found = 1;
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDH curve: %s", curve_info->name ) );
+            ret = psa_crypto_init();
+            if( ret != PSA_SUCCESS )
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "psa_crypto_init()", ret );
+                return( ret );
+            }
             ret = mbedtls_ssl_tls13_read_public_ecdhe_share( ssl, p - 2, end - p + 2 );
             if( ret != 0 )
                 return( ret );
@@ -648,7 +654,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
      * - The entire content of the CH message, if no PSK extension is present
      * - The content up to but excluding the PSK extension, if present.
      */
-    mbedtls_ssl_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_SERVER_HELLO,
+    mbedtls_ssl_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
                                         buf, p - buf );
     /*
      * Search for a matching ciphersuite
@@ -793,6 +799,11 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
 
             break;
 
+        case MBEDTLS_SSL_SERVER_HELLO:
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "SSL - The requested feature is not available" ) );
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+            break;
         default:
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "invalid state %d", ssl->state ) );
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );

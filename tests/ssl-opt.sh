@@ -10219,6 +10219,8 @@ run_test    "TLS 1.3: Server side check, ciphersuite TLS_AES_256_GCM_SHA384 - op
             "$O_NEXT_CLI -msg -tls1_3" \
             1 \
             -s " tls13 server state: MBEDTLS_SSL_CLIENT_HELLO" \
+            -s " tls13 server state: MBEDTLS_SSL_SERVER_HELLO" \
+            -s " SSL - The requested feature is not available" \
             -s "=> parse client hello" \
             -s "<= parse client hello"
 
@@ -10231,9 +10233,11 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_disabled MBEDTLS_USE_PSA_CRYPTO
 run_test    "TLS 1.3: Server side check, ciphersuite TLS_AES_128_GCM_SHA256 - gnutls" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
-            "$G_NEXT_CLI -d 4 localhost --priority=NONE:+AES-128-GCM:+SHA256:+AEAD:+VERS-TLS1.3:%NO_TICKETS" \
+            "$G_NEXT_CLI localhost -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
             1 \
             -s " tls13 server state: MBEDTLS_SSL_CLIENT_HELLO" \
+            -s " tls13 server state: MBEDTLS_SSL_SERVER_HELLO" \
+            -s " SSL - The requested feature is not available" \
             -s "=> parse client hello" \
             -s "<= parse client hello"
 

@@ -232,8 +232,10 @@ typedef struct psa_tls12_prf_key_derivation_s
     size_t MBEDTLS_PRIVATE(seed_length);
     uint8_t *MBEDTLS_PRIVATE(label);
     size_t MBEDTLS_PRIVATE(label_length);
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
     uint8_t *MBEDTLS_PRIVATE(other_secret);
     size_t MBEDTLS_PRIVATE(other_secret_length);
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
 
     uint8_t MBEDTLS_PRIVATE(Ai)[PSA_HASH_MAX_SIZE];
 

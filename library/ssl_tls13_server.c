@@ -109,8 +109,8 @@ static int ssl_tls13_parse_supported_groups_ext(
                 const unsigned char *buf, const unsigned char *end )
 {
     const unsigned char *p = buf;
-    size_t named_group_list_len, curve_list_len;
-    const mbedtls_ecp_curve_info *curve_info, **curves;
+    size_t named_group_list_len;
+    const mbedtls_ecp_curve_info *curve_info;
     const unsigned char *named_group_list_end;
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "supported_groups extension", p, end - buf );
@@ -118,47 +118,25 @@ static int ssl_tls13_parse_supported_groups_ext(
     named_group_list_len = MBEDTLS_GET_UINT16_BE( p, 0 );
     p += 2;
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, named_group_list_len );
-
-    /* At the moment, this can happen when receiving a second
-     * ClientHello after an HRR. We should properly reset the
-     * state upon receiving an HRR, in which case we should
-     * not observe handshake->curves already being allocated. */
-    if( ssl->handshake->curves != NULL )
-    {
-        mbedtls_free( ssl->handshake->curves );
-        ssl->handshake->curves = NULL;
-    }
-
-    /* Don't allow our peer to make us allocate too much memory,
-     * and leave room for a final 0
-     */
-    curve_list_len = named_group_list_len / 2 + 1;
-    if( curve_list_len > MBEDTLS_ECP_DP_MAX )
-        curve_list_len = MBEDTLS_ECP_DP_MAX;
-
-    if( ( curves = mbedtls_calloc( curve_list_len, sizeof( *curves ) ) ) == NULL )
-        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
-
     named_group_list_end = p + named_group_list_len;
-    ssl->handshake->curves = curves;
 
-    while ( p < named_group_list_end && curve_list_len > 1 )
+    while ( p < named_group_list_end )
     {
         uint16_t tls_grp_id;
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, named_group_list_end, 2 );
         tls_grp_id = MBEDTLS_GET_UINT16_BE( p, 0 );
         curve_info = mbedtls_ecp_curve_info_from_tls_id( tls_grp_id );
 
-        /* mbedtls_ecp_curve_info_from_tls_id() uses the mbedtls_ecp_curve_info
-         * data structure (defined in ecp.c), which only includes the list of
-         * curves implemented. Hence, we only add curves that are also supported
-         * and implemented by the server.
-         */
         if( curve_info != NULL )
         {
-            *curves++ = curve_info;
+
             MBEDTLS_SSL_DEBUG_MSG( 4, ( "supported curve: %s", curve_info->name ) );
-            curve_list_len--;
+            /*
+             * Here we only update offered_group_id field with the first
+             * offered group
+             */
+            ssl->handshake->offered_group_id = tls_grp_id;
+            break;
         }
 
         p += 2;

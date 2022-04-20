@@ -6932,6 +6932,7 @@ void derive_output( int alg_arg,
     psa_key_attributes_t attributes2 = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_attributes_t attributes3 = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_attributes_t attributes4 = PSA_KEY_ATTRIBUTES_INIT;
+    mbedtls_svc_key_id_t derived_key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_status_t status;
     size_t i;
 
@@ -7055,9 +7056,12 @@ void derive_output( int alg_arg,
 
     if( derive_type == 1 ) // output key
     {
-        /* Test that output key derivation is not permitted when secret is
-         * passed using input bytes and other secret is passed using input key. */
-        mbedtls_svc_key_id_t derived_key = MBEDTLS_SVC_KEY_ID_INIT;
+        psa_status_t expected_status = PSA_ERROR_NOT_PERMITTED;
+
+        /* For output key derivation secret must be provided using
+           input key, otherwise operation is not permitted. */
+        if ( key_input_type == 1 )
+            expected_status = PSA_SUCCESS;
 
         psa_set_key_usage_flags( &attributes4, PSA_KEY_USAGE_EXPORT );
         psa_set_key_algorithm( &attributes4, alg );
@@ -7065,7 +7069,7 @@ void derive_output( int alg_arg,
         psa_set_key_bits( &attributes4, 48 );
 
         TEST_EQUAL( psa_key_derivation_output_key( &attributes4, &operation,
-                                        &derived_key ), PSA_ERROR_NOT_PERMITTED );
+                                        &derived_key ), expected_status );
     }
     else // output bytes
     {
@@ -7109,6 +7113,7 @@ exit:
     psa_key_derivation_abort( &operation );
     for( i = 0; i < ARRAY_LENGTH( keys ); i++ )
         psa_destroy_key( keys[i] );
+    psa_destroy_key( derived_key );
     PSA_DONE( );
 }
 /* END_CASE */

@@ -798,7 +798,7 @@ static int ssl_tls13_write_selected_version_ext( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+
 
 /* Generate and export a single key share. For hybrid KEMs, this can
  * be called multiple times with the different components of the hybrid. */
@@ -894,7 +894,7 @@ static int ssl_tls13_write_key_share_ext( mbedtls_ssl_context *ssl,
     *out_len = p - buf;
     return( 0 );
 }
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+
 
 /*
  * Structure of ServerHello message:
@@ -920,8 +920,7 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
 
     /* Buffer management */
     unsigned char *p = buf;
-    unsigned char *start = buf;
-    unsigned char *extension_start;
+    unsigned char *p_extensions_len;
 
     *out_len = 0;
 
@@ -985,7 +984,7 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
 
     /* Extensions */
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
-    extension_start = p;
+    p_extensions_len = p;
     p += 2;
 
     /* Add supported_version extension */
@@ -998,7 +997,6 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
     }
     p += output_len;
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     if( mbedtls_ssl_conf_tls13_some_ephemeral_enabled( ssl ) )
     {
         ret = ssl_tls13_write_key_share_ext( ssl, p, end, &output_len );
@@ -1006,16 +1004,16 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
             return( ret );
         p += output_len;
     }
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
     /* Write length information */
-    MBEDTLS_PUT_UINT16_BE( p - extension_start - 2, extension_start, 0 );
+    MBEDTLS_PUT_UINT16_BE( p - p_extensions_len - 2, p_extensions_len, 0 );
 
-    MBEDTLS_SSL_DEBUG_BUF( 4, "server hello extensions", extension_start, p - extension_start );
+    MBEDTLS_SSL_DEBUG_BUF( 4, "server hello extensions",
+                           p_extensions_len, p - p_extensions_len );
 
-    *out_len = p - start;
+    *out_len = p - buf;
 
-    MBEDTLS_SSL_DEBUG_BUF( 3, "server hello", start, *out_len );
+    MBEDTLS_SSL_DEBUG_BUF( 3, "server hello", buf, *out_len );
 
     return( ret );
 }

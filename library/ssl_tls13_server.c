@@ -729,7 +729,7 @@ cleanup:
 }
 
 /*
- * StateHanler: MBEDTLS_SSL_SERVER_HELLO
+ * Handler for MBEDTLS_SSL_SERVER_HELLO
  */
 static int ssl_tls13_prepare_server_hello( mbedtls_ssl_context *ssl )
 {
@@ -786,12 +786,6 @@ static int ssl_tls13_write_selected_version_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_PUT_UINT16_BE( 2, buf, 2 );
 
-    /* Write values of supported versions.
-     *
-     * They are defined by the configuration.
-     *
-     * Currently, only one version is advertised.
-     */
     mbedtls_ssl_write_version( buf + 4,
                                ssl->conf->transport,
                                ssl->tls_version );
@@ -851,13 +845,13 @@ static int ssl_tls13_key_share_encapsulate( mbedtls_ssl_context *ssl,
  *
  * Structure of key_share extension in ServerHello:
  *
- *  struct {
- *          NamedGroup group;
- *          opaque key_exchange<1..2^16-1>;
- *      } KeyShareEntry;
- *  struct {
- *          KeyShareEntry server_share;
- *      } KeyShareServerHello;
+ * struct {
+ *     NamedGroup group;
+ *     opaque key_exchange<1..2^16-1>;
+ * } KeyShareEntry;
+ * struct {
+ *     KeyShareEntry server_share;
+ * } KeyShareServerHello;
  */
 static int ssl_tls13_write_key_share_ext( mbedtls_ssl_context *ssl,
                                           unsigned char *buf,
@@ -950,7 +944,10 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
     MBEDTLS_PUT_UINT16_BE( 0x0303, p, 0 );
     p += 2;
 
-    /* Write the random bytes ( random ).*/
+    /* ...
+     * Random random;
+     * ...
+     */
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, MBEDTLS_SERVER_HELLO_RANDOM_LEN );
     memcpy( p, server_randbyes, MBEDTLS_SERVER_HELLO_RANDOM_LEN );
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, random bytes",
@@ -1046,14 +1043,6 @@ static int ssl_tls13_write_server_hello( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write server hello" ) );
 
-    /* Preprocessing */
-
-    /* This might lead to ssl_tls13_process_server_hello() being called
-     * multiple times. The implementation of
-     * ssl_tls13_process_server_hello_preprocess() must either be safe to be
-     * called multiple times, or we need to add state to omit this call once
-     * we're calling ssl_tls13_process_server_hello() multiple times.
-     */
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_prepare_server_hello( ssl ) );
 
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_start_handshake_msg( ssl,

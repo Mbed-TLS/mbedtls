@@ -5284,6 +5284,8 @@ static psa_status_t psa_tls12_prf_psk_to_ms_set_key(
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     uint8_t *pms = mbedtls_calloc( 1, pms_len );
+    if( pms == NULL )
+        return( PSA_ERROR_INSUFFICIENT_MEMORY );
     uint8_t *cur = pms;
 
     /* pure-PSK:

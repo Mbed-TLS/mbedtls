@@ -1763,12 +1763,11 @@
  * \note See docs/use-psa-crypto.md for a complete description of what this
  * option currently does, and of parts that are not affected by it so far.
  *
- * \warning This option enables new Mbed TLS APIs which are currently
- * considered experimental and may change in incompatible ways at any time.
- * That is, the APIs enabled by this option are not covered by the usual
- * promises of API stability.
+ * \warning If you enable this option, you need to call `psa_crypto_init()`
+ * before calling any function from the SSL/TLS, X.509 or PK modules.
  *
  * Requires: MBEDTLS_PSA_CRYPTO_C.
+ * Conflicts with: MBEDTLS_ECP_RESTARTABLE
  *
  * Uncomment this to enable internal use of PSA Crypto and new associated APIs.
  */

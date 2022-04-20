@@ -17,11 +17,6 @@ are specific to TLS 1.3; those parts always use PSA Crypto. The parts of the
 TLS 1.3 code that are common with TLS 1.2, however, follow this option (this
 is currently just the record protection code).
 
-Stability: any API that's only available when `MBEDTLS_USE_PSA_CRYPTO` is
-defined is considered experimental and may change in incompatible ways at any
-time. Said otherwise, these APIs are explicitly excluded from the usual API
-stability promises.
-
 New APIs / API extensions
 -------------------------
 

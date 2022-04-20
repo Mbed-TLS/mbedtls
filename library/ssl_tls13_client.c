@@ -939,22 +939,6 @@ static int ssl_tls13_check_server_hello_session_id_echo( mbedtls_ssl_context *ss
     return( 0 );
 }
 
-static int ssl_tls13_cipher_suite_is_offered( mbedtls_ssl_context *ssl,
-                                              int cipher_suite )
-{
-    const int *ciphersuite_list = ssl->conf->ciphersuite_list;
-
-    /* Check whether we have offered this ciphersuite */
-    for ( size_t i = 0; ciphersuite_list[i] != 0; i++ )
-    {
-        if( ciphersuite_list[i] == cipher_suite )
-        {
-            return( 1 );
-        }
-    }
-    return( 0 );
-}
-
 /* Parse ServerHello message and configure context
  *
  * struct {
@@ -1054,7 +1038,7 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
     if( ( mbedtls_ssl_validate_ciphersuite( ssl, ciphersuite_info,
                                             ssl->tls_version,
                                             ssl->tls_version ) != 0 ) ||
-        !ssl_tls13_cipher_suite_is_offered( ssl, cipher_suite ) )
+        !mbedtls_ssl_tls13_cipher_suite_is_offered( ssl, cipher_suite ) )
     {
         fatal_alert = MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
     }

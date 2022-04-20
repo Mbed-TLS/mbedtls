@@ -6998,13 +6998,14 @@ void derive_output( int alg_arg,
                                                                     inputs[i]->len ),
                                     statuses[i] );
                         break;
-                    case 1: // input key
+                    case 1: // input key, type DERIVE
+                    case 11: // input key, type RAW
                         psa_set_key_usage_flags( &attributes2, PSA_KEY_USAGE_DERIVE );
                         psa_set_key_algorithm( &attributes2, alg );
                         psa_set_key_type( &attributes2, PSA_KEY_TYPE_DERIVE );
 
                         // other secret of type RAW_DATA passed with input_key
-                        if( statuses[i] == PSA_ERROR_INVALID_ARGUMENT )
+                        if( other_key_input_type == 11 )
                             psa_set_key_type( &attributes2, PSA_KEY_TYPE_RAW_DATA );
 
                         PSA_ASSERT( psa_import_key( &attributes2,

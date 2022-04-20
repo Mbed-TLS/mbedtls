@@ -859,10 +859,9 @@ static int ssl_tls13_write_key_share_ext( mbedtls_ssl_context *ssl,
                                           size_t *out_len )
 {
     unsigned char *p = buf;
-    unsigned char *start = buf;
-    uint16_t group = ssl->handshake->offered_group_id ;
+    uint16_t group = ssl->handshake->offered_group_id;
     unsigned char *server_share = buf + 4;
-    unsigned char *key_exchange = buf + 6;
+    unsigned char *p_key_exchange_len = buf + 6;
     size_t key_exchange_length;
     int ret;
 
@@ -877,29 +876,22 @@ static int ssl_tls13_write_key_share_ext( mbedtls_ssl_context *ssl,
      * - key_exchange_length    (2 bytes)
      */
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 8 );
-
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_KEY_SHARE, p, 0 );
+    MBEDTLS_PUT_UINT16_BE( group, server_share, 0 );
     p += 8;
+
     /* When we introduce PQC-ECDHE hybrids, we'll want to call this
      * function multiple times. */
-    ret = ssl_tls13_key_share_encapsulate( ssl, group, key_exchange + 2,
+    ret = ssl_tls13_key_share_encapsulate( ssl, group, p_key_exchange_len + 2,
                                            end, &key_exchange_length );
     if( ret != 0 )
         return( ret );
     p += key_exchange_length;
-    /* Write length of key_exchange */
-    MBEDTLS_PUT_UINT16_BE( key_exchange_length, key_exchange, 0 );
+    MBEDTLS_PUT_UINT16_BE( key_exchange_length, p_key_exchange_len, 0 );
 
-    *out_len = p - start;
+    MBEDTLS_PUT_UINT16_BE( p - server_share, buf, 2 );
 
-    /* Write group ID */
-    MBEDTLS_PUT_UINT16_BE( group, server_share, 0 );
-
-    /* Write extension header */
-    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_KEY_SHARE, start, 0 );
-
-    /* Write total extension length */
-    MBEDTLS_PUT_UINT16_BE( p - server_share, start, 2 );
-
+    *out_len = p - buf;
     return( 0 );
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */

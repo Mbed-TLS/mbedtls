@@ -7032,30 +7032,6 @@ void derive_output( int alg_arg,
                                         keys[i], key_agreement_peer_key->x,
                                         key_agreement_peer_key->len ), statuses[i] );
                         break;
-                    case 3: // raw key agreement
-                        psa_set_key_usage_flags( &attributes3, PSA_KEY_USAGE_DERIVE );
-                        psa_set_key_algorithm( &attributes3, PSA_ALG_ECDH );
-                        psa_set_key_type( &attributes3, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1) );
-
-                        uint8_t key_agreement_output[32];
-                        size_t key_agreement_output_length;
-
-                        PSA_ASSERT( psa_import_key( &attributes3,
-                                                    inputs[i]->x, inputs[i]->len,
-                                                    &keys[i] ) );
-
-                        PSA_ASSERT( psa_raw_key_agreement(
-                                        PSA_ALG_ECDH,
-                                        keys[i], key_agreement_peer_key->x,
-                                        key_agreement_peer_key->len, key_agreement_output,
-                                        sizeof(key_agreement_output), &key_agreement_output_length ) );
-
-                        TEST_ASSERT( key_agreement_output_length == 32 );
-
-                        TEST_EQUAL( psa_key_derivation_input_bytes(
-                            &operation, steps[i],
-                            key_agreement_output, key_agreement_output_length ), statuses[i] );
-                        break;
                     default:
                         TEST_ASSERT( ! "default case not supported" );
                         break;

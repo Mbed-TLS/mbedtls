@@ -52,7 +52,7 @@ static int ssl_tls13_parse_supported_versions_ext( mbedtls_ssl_context *ssl,
     const unsigned char *p = buf;
     size_t versions_len;
     const unsigned char *versions_end;
-    int major_ver, minor_ver;
+    int tls_version;
     int tls13_supported = 0;
 
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 1 );
@@ -64,12 +64,11 @@ static int ssl_tls13_parse_supported_versions_ext( mbedtls_ssl_context *ssl,
     while( p < versions_end )
     {
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, versions_end, 2 );
-        mbedtls_ssl_read_version( &major_ver, &minor_ver, ssl->conf->transport, p );
+        tls_version = mbedtls_ssl_read_version( p, ssl->conf->transport );
         p += 2;
 
         /* In this implementation we only support TLS 1.3 and DTLS 1.3. */
-        if( major_ver == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-            minor_ver == MBEDTLS_SSL_MINOR_VERSION_4 )
+        if( tls_version == MBEDTLS_SSL_VERSION_TLS1_3 )
         {
             tls13_supported = 1;
             break;
@@ -85,11 +84,9 @@ static int ssl_tls13_parse_supported_versions_ext( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION );
     }
 
-    MBEDTLS_SSL_DEBUG_MSG( 1, ( "Negotiated version. Supported is [%d:%d]",
-                              major_ver, minor_ver ) );
+    MBEDTLS_SSL_DEBUG_MSG( 1, ( "Negotiated version. Supported is [%04x]",
+                              tls_version ) );
 
-    ssl->major_ver = major_ver;
-    ssl->minor_ver = minor_ver;
     return( 0 );
 }
 
@@ -425,8 +422,8 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
      * with ProtocolVersion defined as:
      * uint16 ProtocolVersion;
      */
-    if( !( p[0] == MBEDTLS_SSL_MAJOR_VERSION_3 &&
-           p[1] == MBEDTLS_SSL_MINOR_VERSION_3 ) )
+    if( mbedtls_ssl_read_version( p, ssl->conf->transport ) !=
+          MBEDTLS_SSL_VERSION_TLS1_2 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Unsupported version of TLS." ) );
         MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION,
@@ -438,8 +435,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     /*
      * Only support TLS 1.3 currently, temporarily set the version.
      */
-    ssl->major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
-    ssl->minor_ver = MBEDTLS_SSL_MINOR_VERSION_4;
+    ssl->tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
 
     /* ---
      *  Random random;
@@ -511,7 +507,8 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
         * Check whether this ciphersuite is valid and offered.
         */
         if( ( mbedtls_ssl_validate_ciphersuite(
-            ssl, ciphersuite_info, ssl->minor_ver, ssl->minor_ver ) != 0 ) ||
+            ssl, ciphersuite_info, ssl->tls_version,
+            ssl->tls_version ) != 0 ) ||
             !mbedtls_ssl_tls13_cipher_suite_is_offered( ssl, cipher_suite ) )
             continue;
 
@@ -726,7 +723,6 @@ static int ssl_tls13_process_client_hello( mbedtls_ssl_context *ssl )
     size_t buflen = 0;
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse client hello" ) );
 
-    ssl->major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_fetch_handshake_msg(
                           ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
                           &buf, &buflen ) );

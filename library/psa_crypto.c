@@ -3359,6 +3359,8 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     operation->iv_set = 0;
     if( alg == PSA_ALG_ECB_NO_PADDING )
         operation->iv_required = 0;
+    else if( slot->attr.type == PSA_KEY_TYPE_ARC4 )
+        operation->iv_required = 0;
     else
         operation->iv_required = 1;
     operation->default_iv_length = PSA_CIPHER_IV_LENGTH( slot->attr.type, alg );

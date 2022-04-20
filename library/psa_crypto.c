@@ -5313,6 +5313,7 @@ static psa_status_t psa_tls12_prf_psk_to_ms_set_key(
         if ( prf->other_secret_length != 0 )
         {
             memcpy( cur, prf->other_secret, prf->other_secret_length );
+            mbedtls_platform_zeroize( prf->other_secret, prf->other_secret_length );
             cur += prf->other_secret_length;
         }
     }
@@ -5327,6 +5328,7 @@ static psa_status_t psa_tls12_prf_psk_to_ms_set_key(
     *cur++ = MBEDTLS_BYTE_1( data_length );
     *cur++ = MBEDTLS_BYTE_0( data_length );
     memcpy( cur, data, data_length );
+    mbedtls_platform_zeroize( (void*) data, data_length );
     cur += data_length;
 
     status = psa_tls12_prf_set_key( prf, pms, cur - pms );

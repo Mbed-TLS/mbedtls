@@ -125,9 +125,7 @@ static int ssl_tls13_parse_supported_groups_ext(
         named_group = MBEDTLS_GET_UINT16_BE( p, 0 );
         p += 2;
 
-        MBEDTLS_SSL_DEBUG_MSG(
-                2, ( "got named group: %d",
-                     named_group ) );
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "got named group: %d", named_group ) );
 
         if( ! mbedtls_ssl_named_group_is_offered( ssl, named_group ) ||
             ! mbedtls_ssl_named_group_is_supported( named_group ) ||
@@ -233,13 +231,8 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
 
             match_found = 1;
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDH curve: %s", curve_info->name ) );
-            ret = psa_crypto_init();
-            if( ret != PSA_SUCCESS )
-            {
-                MBEDTLS_SSL_DEBUG_RET( 1, "psa_crypto_init()", ret );
-                return( ret );
-            }
-            ret = mbedtls_ssl_tls13_read_public_ecdhe_share( ssl, p - 2, key_exchange_len + 2 );
+            ret = mbedtls_ssl_tls13_read_public_ecdhe_share(
+                    ssl, p - 2, key_exchange_len + 2 );
             if( ret != 0 )
                 return( ret );
         }
@@ -385,8 +378,8 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const unsigned char *p = buf;
     size_t legacy_session_id_len;
-    size_t cipher_suites_len;
     const unsigned char *cipher_suites_start;
+    size_t cipher_suites_len;
     size_t extensions_len;
     const unsigned char *extensions_end;
 
@@ -494,13 +487,12 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     /*
      * Search for a matching ciphersuite
      */
-    size_t ciphersuite_exist = 0;
-    uint16_t cipher_suite; 
+    int ciphersuite_match = 0;
     ciphersuite_info = NULL;
     for ( size_t j = 0; j < cipher_suites_len;
           j += 2, p += 2 )
     {
-        cipher_suite = MBEDTLS_GET_UINT16_BE( p, 0 );
+        uint16_t cipher_suite = MBEDTLS_GET_UINT16_BE( p, 0 );
         ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(
                                cipher_suite );
         /*
@@ -514,14 +506,18 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
 
         ssl->session_negotiate->ciphersuite = cipher_suite;
         ssl->handshake->ciphersuite_info = ciphersuite_info;
-        ciphersuite_exist = 1;
+        ciphersuite_match = 1;
 
         break;
 
     }
 
-    if( !ciphersuite_exist )
-        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+    if( !ciphersuite_match )
+    {
+        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                                      MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+        return ( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+    }
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "selected ciphersuite: %s",
                                 ciphersuite_info->name ) );
@@ -562,7 +558,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
         size_t extension_data_len;
         const unsigned char *extension_data_end;
 
-        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 4 );
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, extensions_end, 4 );
         extension_type = MBEDTLS_GET_UINT16_BE( p, 0 );
         extension_data_len = MBEDTLS_GET_UINT16_BE( p, 2 );
         p += 4;

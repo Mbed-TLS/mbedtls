@@ -733,8 +733,8 @@ cleanup:
  */
 static int ssl_tls13_prepare_server_hello( mbedtls_ssl_context *ssl )
 {
-    int ret = 0;
-    unsigned char *server_randbyes =
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    unsigned char *server_randbytes =
                     ssl->handshake->randbytes + MBEDTLS_CLIENT_HELLO_RANDOM_LEN;
     if( ssl->conf->f_rng == NULL )
     {
@@ -742,14 +742,14 @@ static int ssl_tls13_prepare_server_hello( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_NO_RNG );
     }
 
-    if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng, server_randbyes,
+    if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng, server_randbytes,
                                   MBEDTLS_SERVER_HELLO_RANDOM_LEN ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "f_rng", ret );
         return( ret );
     }
 
-    MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, random bytes", server_randbyes,
+    MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, random bytes", server_randbytes,
                            MBEDTLS_SERVER_HELLO_RANDOM_LEN );
 
 #if defined(MBEDTLS_HAVE_TIME)
@@ -923,7 +923,7 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
 {
     int ret = 0;
     size_t output_len;               /* Length of buffer used by function */
-    unsigned char *server_randbyes =
+    unsigned char *server_randbytes =
                     ssl->handshake->randbytes + MBEDTLS_CLIENT_HELLO_RANDOM_LEN;
 
     /* Buffer management */
@@ -949,7 +949,7 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
      * ...
      */
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, MBEDTLS_SERVER_HELLO_RANDOM_LEN );
-    memcpy( p, server_randbyes, MBEDTLS_SERVER_HELLO_RANDOM_LEN );
+    memcpy( p, server_randbytes, MBEDTLS_SERVER_HELLO_RANDOM_LEN );
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, random bytes",
                            p, MBEDTLS_SERVER_HELLO_RANDOM_LEN );
     p += MBEDTLS_SERVER_HELLO_RANDOM_LEN;
@@ -1028,16 +1028,9 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
     return( ret );
 }
 
-
-static int ssl_tls13_finalize_server_hello( mbedtls_ssl_context *ssl )
-{
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_ENCRYPTED_EXTENSIONS );
-    return( 0 );
-}
-
 static int ssl_tls13_write_server_hello( mbedtls_ssl_context *ssl )
 {
-    int ret = 0;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *buf;
     size_t buf_len, msg_len;
 
@@ -1055,10 +1048,10 @@ static int ssl_tls13_write_server_hello( mbedtls_ssl_context *ssl )
     mbedtls_ssl_add_hs_msg_to_checksum(
         ssl, MBEDTLS_SSL_HS_SERVER_HELLO, buf, msg_len );
 
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_server_hello( ssl ) );
-
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_finish_handshake_msg(
                               ssl, buf_len, msg_len ) );
+
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_ENCRYPTED_EXTENSIONS );
 cleanup:
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write server hello" ) );

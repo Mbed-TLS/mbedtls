@@ -539,6 +539,9 @@ class StorageFormat:
         # loss of test coverage.
         if key_type.string == 'PSA_KEY_TYPE_RAW_DATA':
             return False
+        # Mbed TLS only supports 128-bit keys for RC4.
+        if key_type.string == 'PSA_KEY_TYPE_ARC4' and bits != 128:
+            return False
         # OAEP requires room for two hashes plus wrapping
         m = cls.RSA_OAEP_RE.match(alg.string)
         if m:

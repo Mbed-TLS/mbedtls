@@ -3304,11 +3304,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void cipher_encrypt_alg_without_iv( int alg_arg,
-                                    int key_type_arg,
-                                    data_t *key_data,
-                                    data_t *input,
-                                    data_t *expected_output )
+void cipher_alg_without_iv( int alg_arg, int key_type_arg, data_t *key_data,
+                            data_t *plaintext, data_t *ciphertext )
 {
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_type_t key_type = key_type_arg;
@@ -3318,28 +3315,38 @@ void cipher_encrypt_alg_without_iv( int alg_arg,
     size_t iv_length;
     unsigned char *output = NULL;
     size_t output_buffer_size = 0;
-    size_t output_length = 0;
+    size_t output_length;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
     /* Validate size macros */
-    TEST_ASSERT( expected_output->len <=
-                 PSA_CIPHER_ENCRYPT_OUTPUT_SIZE( key_type, alg, input->len ) );
-    TEST_ASSERT( PSA_CIPHER_ENCRYPT_OUTPUT_SIZE( key_type, alg, input->len ) <=
-                 PSA_CIPHER_ENCRYPT_OUTPUT_MAX_SIZE( input->len ) );
+    TEST_ASSERT( ciphertext->len <=
+                 PSA_CIPHER_ENCRYPT_OUTPUT_SIZE( key_type, alg, plaintext->len ) );
+    TEST_ASSERT( PSA_CIPHER_ENCRYPT_OUTPUT_SIZE( key_type, alg, plaintext->len ) <=
+                 PSA_CIPHER_ENCRYPT_OUTPUT_MAX_SIZE( plaintext->len ) );
+    TEST_ASSERT( plaintext->len <=
+                 PSA_CIPHER_DECRYPT_OUTPUT_SIZE( key_type, alg, ciphertext->len ) );
+    TEST_ASSERT( PSA_CIPHER_DECRYPT_OUTPUT_SIZE( key_type, alg, ciphertext->len ) <=
+                 PSA_CIPHER_DECRYPT_OUTPUT_MAX_SIZE( ciphertext->len ) );
+
 
     /* Set up key and output buffer */
-    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_ENCRYPT );
+    psa_set_key_usage_flags( &attributes,
+                             PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT );
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, key_type );
     PSA_ASSERT( psa_import_key( &attributes, key_data->x, key_data->len,
                                 &key ) );
-    output_buffer_size = PSA_CIPHER_ENCRYPT_OUTPUT_SIZE( key_type, alg, input->len );
+    output_buffer_size = PSA_CIPHER_ENCRYPT_OUTPUT_SIZE( key_type, alg,
+                                                         plaintext->len );
     ASSERT_ALLOC( output, output_buffer_size );
 
     /* set_iv() is not allowed */
     PSA_ASSERT( psa_cipher_encrypt_setup( &operation, key, alg ) );
+    TEST_EQUAL( psa_cipher_set_iv( &operation, iv, sizeof( iv ) ),
+                PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_cipher_decrypt_setup( &operation, key, alg ) );
     TEST_EQUAL( psa_cipher_set_iv( &operation, iv, sizeof( iv ) ),
                 PSA_ERROR_BAD_STATE );
 
@@ -3348,16 +3355,25 @@ void cipher_encrypt_alg_without_iv( int alg_arg,
     TEST_EQUAL( psa_cipher_generate_iv( &operation, iv, sizeof( iv ),
                                         &iv_length ),
                 PSA_ERROR_BAD_STATE );
+    PSA_ASSERT( psa_cipher_decrypt_setup( &operation, key, alg ) );
+    TEST_EQUAL( psa_cipher_generate_iv( &operation, iv, sizeof( iv ),
+                                        &iv_length ),
+                PSA_ERROR_BAD_STATE );
 
     /* One-shot encryption */
-    PSA_ASSERT( psa_cipher_encrypt( key, alg, input->x, input->len, output,
-                                    output_buffer_size, &output_length ) );
-    TEST_ASSERT( output_length <=
-                 PSA_CIPHER_ENCRYPT_OUTPUT_SIZE( key_type, alg, input->len ) );
-    TEST_ASSERT( output_length <=
-                 PSA_CIPHER_ENCRYPT_OUTPUT_MAX_SIZE( input->len ) );
+    output_length = ~0;
+    PSA_ASSERT( psa_cipher_encrypt( key, alg, plaintext->x, plaintext->len,
+                                    output, output_buffer_size,
+                                    &output_length ) );
+    ASSERT_COMPARE( ciphertext->x, ciphertext->len,
+                    output, output_length );
 
-    ASSERT_COMPARE( expected_output->x, expected_output->len,
+    /* One-shot decryption */
+    output_length = ~0;
+    PSA_ASSERT( psa_cipher_decrypt( key, alg, ciphertext->x, ciphertext->len,
+                                    output, output_buffer_size,
+                                    &output_length ) );
+    ASSERT_COMPARE( plaintext->x, plaintext->len,
                     output, output_length );
 
     /* Encrypt, multi-part */

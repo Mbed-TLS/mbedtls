@@ -4936,6 +4936,22 @@ int  mbedtls_ssl_tls_prf( const mbedtls_tls_prf_types prf,
                           const unsigned char *random, size_t rlen,
                           unsigned char *dstbuf, size_t dlen );
 
+/**
+ * \brief Validate cipher suite against config in SSL context.
+ *
+ * \param ssl              SSL context
+ * \param suite_info       Cipher suite to validate
+ * \param min_tls_version  Minimal TLS version to accept a cipher suite
+ * \param max_tls_version  Maximal TLS version to accept a cipher suite
+ *
+ * \return 0 if valid, negative value otherwise.
+ */
+int mbedtls_ssl_validate_ciphersuite(
+    const mbedtls_ssl_context *ssl,
+    const mbedtls_ssl_ciphersuite_t *suite_info,
+    mbedtls_ssl_protocol_version min_tls_version,
+    mbedtls_ssl_protocol_version max_tls_version );
+
 #ifdef __cplusplus
 }
 #endif

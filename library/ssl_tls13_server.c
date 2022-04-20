@@ -24,7 +24,6 @@
 #include "mbedtls/debug.h"
 
 #include "ssl_misc.h"
-#include "ssl_client.h"
 #include "ssl_tls13_keys.h"
 #include "ssl_debug_helpers.h"
 #include <string.h>
@@ -116,7 +115,7 @@ static int ssl_tls13_parse_supported_groups_ext(
     p += 2;
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, named_group_list_len );
     named_group_list_end = p + named_group_list_len;
-    ssl->handshake->hrr_selected_group = 0;
+    ssl->handshake->selected_group = 0;
 
     while( p < named_group_list_end )
     {
@@ -129,7 +128,7 @@ static int ssl_tls13_parse_supported_groups_ext(
 
         if( ! mbedtls_ssl_named_group_is_offered( ssl, named_group ) ||
             ! mbedtls_ssl_named_group_is_supported( named_group ) ||
-            ssl->handshake->hrr_selected_group != 0 )
+            ssl->handshake->selected_group != 0 )
         {
             continue;
         }
@@ -137,7 +136,7 @@ static int ssl_tls13_parse_supported_groups_ext(
         MBEDTLS_SSL_DEBUG_MSG(
                 2, ( "add named group (%04x) into received list.",
                      named_group ) );
-        ssl->handshake->hrr_selected_group = named_group;
+        ssl->handshake->selected_group = named_group;
     }
 
     return( 0 );
@@ -384,7 +383,6 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     const unsigned char *extensions_end;
 
     const mbedtls_ssl_ciphersuite_t* ciphersuite_info;
-    int hrr_required = 0;
 
     ssl->handshake->extensions_present = MBEDTLS_SSL_EXT_NONE;
 
@@ -681,9 +679,6 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
                                       MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
         return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
     }
-
-    if( hrr_required == 1 )
-        return( SSL_CLIENT_HELLO_HRR_REQUIRED );
 
     return( 0 );
 }

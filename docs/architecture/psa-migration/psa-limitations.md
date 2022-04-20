@@ -317,7 +317,7 @@ strong security arguments, so it's unclear whether it would be accepted.
 HKDF: Expand not exposed on its own (TLS 1.3)
 ---------------------------------------------
 
-The HKDF function uses and Extract-then-Expand approach, that is:
+The HKDF function uses an Extract-then-Expand approach, that is:
 
         HKDF(x, ...) = HKDF-Expand(HKDF-Extract(x, ...), ...)
 

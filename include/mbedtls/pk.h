@@ -917,16 +917,20 @@ int mbedtls_pk_load_file( const char *path, unsigned char **buf, size_t *n );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 /**
- * \brief           Turn an EC key into an opaque one.
+ * \brief           Turn an EC or RSA key into an opaque one.
  *
  * \warning         This is a temporary utility function for tests. It might
  *                  change or be removed at any time without notice.
  *
- * \note            Only ECDSA keys are supported so far. Signing with the
- *                  specified hash & ECDH key agreement derivation operation
- *                  are the only allowed use of that key.
+ * \note            ECDSA & RSA keys are supported.
+ *                  For both key types, signing with the specified hash
+ *                  is the only allowed use of that key with PK API.
+ *                  The RSA key supports RSA-PSS signing with the specified
+ *                  hash with the PK EXT API.
+ *                  In addition, the ECDSA key is also allowed for ECDH key
+ *                  agreement derivation operation using the PSA API.
  *
- * \param pk        Input: the EC key to import to a PSA key.
+ * \param pk        Input: the EC or RSA key to import to a PSA key.
  *                  Output: a PK context wrapping that PSA key.
  * \param key       Output: a PSA key identifier.
  *                  It's the caller's responsibility to call

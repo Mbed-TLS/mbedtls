@@ -349,12 +349,12 @@ SERVER_CLASSES = {'OpenSSL': OpenSSLServ, 'GnuTLS': GnuTLSServ}
 CLIENT_CLASSES = {'mbedTLS': MbedTLSCli}
 
 
-def generate_compat_test(server=None, client=None, cipher=None, sig_alg=None, named_group=None):
+def generate_compat_test(client=None, server=None, cipher=None, named_group=None, sig_alg=None):
     """
     Generate test case with `ssl-opt.sh` format.
     """
     name = 'TLS 1.3 {client[0]}->{server[0]}: {cipher},{named_group},{sig_alg}'.format(
-        client=client, server=server, cipher=cipher, sig_alg=sig_alg, named_group=named_group)
+        client=client, server=server, cipher=cipher[4:], sig_alg=sig_alg, named_group=named_group)
 
     server_object = SERVER_CLASSES[server](ciphersuite=cipher,
                                            named_group=named_group,
@@ -375,8 +375,9 @@ def generate_compat_test(server=None, client=None, cipher=None, sig_alg=None, na
     return '\n'.join(server_object.pre_checks() + client_object.pre_checks() + [cmd])
 
 
-def generate_hrr_compat_test(client=None, server=None, cert_sig_alg=None,
-                             client_named_group=None, server_named_group=None):
+def generate_hrr_compat_test(client=None, server=None,
+                             client_named_group=None, server_named_group=None,
+                             cert_sig_alg=None):
     """
     Generate Hello Retry Request test case with `ssl-opt.sh` format.
     """
@@ -480,14 +481,15 @@ def main():
 
     def get_all_test_cases():
         # Generate normal compat test cases
-        for cipher, sig_alg, named_group, server, client in \
-            itertools.product(CIPHER_SUITE_IANA_VALUE.keys(),
-                              SIG_ALG_IANA_VALUE.keys(),
-                              NAMED_GROUP_IANA_VALUE.keys(),
+        for client, server, cipher, named_group, sig_alg in \
+            itertools.product(CLIENT_CLASSES.keys(),
                               SERVER_CLASSES.keys(),
-                              CLIENT_CLASSES.keys()):
-            yield generate_compat_test(cipher=cipher, sig_alg=sig_alg, named_group=named_group,
-                                       server=server, client=client)
+                              CIPHER_SUITE_IANA_VALUE.keys(),
+                              NAMED_GROUP_IANA_VALUE.keys(),
+                              SIG_ALG_IANA_VALUE.keys()):
+            yield generate_compat_test(client=client, server=server,
+                                       cipher=cipher, named_group=named_group,
+                                       sig_alg=sig_alg)
 
         # Generate Hello Retry Request  compat test cases
         for client, server, client_named_group, server_named_group in \
@@ -497,9 +499,9 @@ def main():
                               NAMED_GROUP_IANA_VALUE.keys()):
             if client_named_group != server_named_group:
                 yield generate_hrr_compat_test(client=client, server=server,
-                                               cert_sig_alg="ecdsa_secp256r1_sha256",
                                                client_named_group=client_named_group,
-                                               server_named_group=server_named_group)
+                                               server_named_group=server_named_group,
+                                               cert_sig_alg="ecdsa_secp256r1_sha256")
 
     if args.generate_all_tls13_compat_tests:
         if args.output:

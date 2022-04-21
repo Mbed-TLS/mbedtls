@@ -1749,37 +1749,37 @@ run_test    "SHA-256 allowed by default in client certificate" \
 # ssl_client2/ssl_server2 example programs works.
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "TLS 1.3, key exchange mode parameter passing: PSK only" \
+run_test    "TLS 1.3: key exchange mode parameter passing: PSK only" \
             "$P_SRV tls13_kex_modes=psk debug_level=4" \
             "$P_CLI tls13_kex_modes=psk debug_level=4" \
             0
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "TLS 1.3, key exchange mode parameter passing: PSK-ephemeral only" \
+run_test    "TLS 1.3: key exchange mode parameter passing: PSK-ephemeral only" \
             "$P_SRV tls13_kex_modes=psk_ephemeral" \
             "$P_CLI tls13_kex_modes=psk_ephemeral" \
             0
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "TLS 1.3, key exchange mode parameter passing: Pure-ephemeral only" \
+run_test    "TLS 1.3: key exchange mode parameter passing: Pure-ephemeral only" \
             "$P_SRV tls13_kex_modes=ephemeral" \
             "$P_CLI tls13_kex_modes=ephemeral" \
             0
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "TLS 1.3, key exchange mode parameter passing: All ephemeral" \
+run_test    "TLS 1.3: key exchange mode parameter passing: All ephemeral" \
             "$P_SRV tls13_kex_modes=ephemeral_all" \
             "$P_CLI tls13_kex_modes=ephemeral_all" \
             0
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "TLS 1.3, key exchange mode parameter passing: All PSK" \
+run_test    "TLS 1.3: key exchange mode parameter passing: All PSK" \
             "$P_SRV tls13_kex_modes=psk_all" \
             "$P_CLI tls13_kex_modes=psk_all" \
             0
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-run_test    "TLS 1.3, key exchange mode parameter passing: All" \
+run_test    "TLS 1.3: key exchange mode parameter passing: All" \
             "$P_SRV tls13_kex_modes=all" \
             "$P_CLI tls13_kex_modes=all" \
             0
@@ -9789,7 +9789,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 skip_handshake_stage_check
 requires_gnutls_tls1_3
-run_test    "TLS 1.3:Not supported version check:gnutls: srv max TLS 1.0" \
+run_test    "TLS 1.3: Not supported version check:gnutls: srv max TLS 1.0" \
             "$G_NEXT_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.0 -d 4" \
             "$P_CLI debug_level=4" \
             1 \
@@ -9802,7 +9802,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 skip_handshake_stage_check
 requires_gnutls_tls1_3
-run_test    "TLS 1.3:Not supported version check:gnutls: srv max TLS 1.1" \
+run_test    "TLS 1.3: Not supported version check:gnutls: srv max TLS 1.1" \
             "$G_NEXT_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.1 -d 4" \
             "$P_CLI debug_level=4" \
             1 \
@@ -9815,7 +9815,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 skip_handshake_stage_check
 requires_gnutls_tls1_3
-run_test    "TLS 1.3:Not supported version check:gnutls: srv max TLS 1.2" \
+run_test    "TLS 1.3: Not supported version check:gnutls: srv max TLS 1.2" \
             "$G_NEXT_SRV --priority=NORMAL:-VERS-TLS-ALL:+VERS-TLS1.2 -d 4" \
             "$P_CLI force_version=tls13 debug_level=4" \
             1 \
@@ -9829,7 +9829,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 skip_handshake_stage_check
 requires_openssl_next
-run_test    "TLS 1.3:Not supported version check:openssl: srv max TLS 1.0" \
+run_test    "TLS 1.3: Not supported version check:openssl: srv max TLS 1.0" \
             "$O_NEXT_SRV -msg -tls1" \
             "$P_CLI debug_level=4" \
             1 \
@@ -9843,7 +9843,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 skip_handshake_stage_check
 requires_openssl_next
-run_test    "TLS 1.3:Not supported version check:openssl: srv max TLS 1.1" \
+run_test    "TLS 1.3: Not supported version check:openssl: srv max TLS 1.1" \
             "$O_NEXT_SRV -msg -tls1_1" \
             "$P_CLI debug_level=4" \
             1 \
@@ -9857,7 +9857,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 skip_handshake_stage_check
 requires_openssl_next
-run_test    "TLS 1.3:Not supported version check:openssl: srv max TLS 1.2" \
+run_test    "TLS 1.3: Not supported version check:openssl: srv max TLS 1.2" \
             "$O_NEXT_SRV -msg -tls1_2" \
             "$P_CLI force_version=tls13 debug_level=4" \
             1 \
@@ -10159,7 +10159,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_openssl_tls1_3
-run_test    "TLS 1.3: HelloRetryRequest check, ciphersuite TLS_AES_128_GCM_SHA256 - openssl" \
+run_test    "TLS 1.3: HRR check, ciphersuite TLS_AES_128_GCM_SHA256 - openssl" \
             "$O_NEXT_SRV -ciphersuites TLS_AES_128_GCM_SHA256  -sigalgs ecdsa_secp256r1_sha256 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
             "$P_CLI debug_level=4" \
             0 \
@@ -10174,7 +10174,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_openssl_tls1_3
-run_test    "TLS 1.3: HelloRetryRequest check, ciphersuite TLS_AES_256_GCM_SHA384 - openssl" \
+run_test    "TLS 1.3: HRR check, ciphersuite TLS_AES_256_GCM_SHA384 - openssl" \
             "$O_NEXT_SRV -ciphersuites TLS_AES_256_GCM_SHA384  -sigalgs ecdsa_secp256r1_sha256 -groups P-256 -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
             "$P_CLI debug_level=4" \
             0 \
@@ -10190,7 +10190,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-run_test    "TLS 1.3: HelloRetryRequest check, ciphersuite TLS_AES_128_GCM_SHA256 - gnutls" \
+run_test    "TLS 1.3: HRR check, ciphersuite TLS_AES_128_GCM_SHA256 - gnutls" \
             "$G_NEXT_SRV -d 4 --priority=NONE:+GROUP-SECP256R1:+AES-128-GCM:+SHA256:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS --disable-client-cert" \
             "$P_CLI debug_level=4" \
             0 \
@@ -10206,7 +10206,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-run_test    "TLS 1.3: HelloRetryRequest check, ciphersuite TLS_AES_256_GCM_SHA384 - gnutls" \
+run_test    "TLS 1.3: HRR check, ciphersuite TLS_AES_256_GCM_SHA384 - gnutls" \
             "$G_NEXT_SRV -d 4 --priority=NONE:+GROUP-SECP256R1:+AES-256-GCM:+SHA384:+AEAD:+SIGN-ECDSA-SECP256R1-SHA256:+VERS-TLS1.3:%NO_TICKETS --disable-client-cert" \
             "$P_CLI debug_level=4" \
             0 \

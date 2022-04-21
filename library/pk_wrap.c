@@ -1501,7 +1501,8 @@ static int pk_opaque_ecdsa_can_do( mbedtls_pk_type_t type )
 
 static int pk_opaque_rsa_can_do( mbedtls_pk_type_t type )
 {
-    return( type == MBEDTLS_PK_RSA );
+    return( type == MBEDTLS_PK_RSA ||
+            type == MBEDTLS_PK_RSASSA_PSS );
 }
 
 static int pk_opaque_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,

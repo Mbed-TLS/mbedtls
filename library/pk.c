@@ -550,10 +550,23 @@ int mbedtls_pk_sign_ext( mbedtls_pk_type_t pk_type,
         return( mbedtls_pk_sign( ctx, md_alg, hash, hash_len,
                                  sig, sig_size, sig_len, f_rng, p_rng ) );
     }
+
 #if defined(MBEDTLS_RSA_C)
     psa_md_alg = mbedtls_psa_translate_md( md_alg );
     if( psa_md_alg == 0 )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    if( mbedtls_pk_get_type( ctx ) == MBEDTLS_PK_OPAQUE )
+    {
+        const mbedtls_svc_key_id_t *key = (const mbedtls_svc_key_id_t *) ctx->pk_ctx;
+        psa_status_t status;
+
+        status = psa_sign_hash( *key, PSA_ALG_RSA_PSS( psa_md_alg ),
+                                hash, hash_len,
+                                sig, sig_size, sig_len );
+        return( mbedtls_pk_error_from_psa_rsa( status ) );
+    }
+
     return( mbedtls_pk_psa_rsa_sign_ext( PSA_ALG_RSA_PSS( psa_md_alg ),
                                          ctx->pk_ctx, hash, hash_len,
                                          sig, sig_size, sig_len ) );
@@ -776,6 +789,8 @@ int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
         psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_HASH );
         psa_set_key_algorithm( &attributes,
                                PSA_ALG_RSA_PKCS1V15_SIGN( hash_alg ) );
+        psa_set_key_enrollment_algorithm( &attributes,
+                                          PSA_ALG_RSA_PSS( hash_alg ) );
 
         /* import private key into PSA */
         status = psa_import_key( &attributes,

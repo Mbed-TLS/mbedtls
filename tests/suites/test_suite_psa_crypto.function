@@ -6897,19 +6897,27 @@ exit:
 
 /* BEGIN_CASE */
 void derive_output( int alg_arg,
-                    int step1_arg, data_t *input1,
-                    int step2_arg, data_t *input2,
-                    int step3_arg, data_t *input3,
+                    int step1_arg, data_t *input1, int expected_status_arg1,
+                    int step2_arg, data_t *input2, int expected_status_arg2,
+                    int step3_arg, data_t *input3, int expected_status_arg3,
+                    int step4_arg, data_t *input4, int expected_status_arg4,
+                    data_t *key_agreement_peer_key,
                     int requested_capacity_arg,
                     data_t *expected_output1,
-                    data_t *expected_output2 )
+                    data_t *expected_output2,
+                    int other_key_input_type,
+                    int key_input_type,
+                    int derive_type )
 {
     psa_algorithm_t alg = alg_arg;
-    psa_key_derivation_step_t steps[] = {step1_arg, step2_arg, step3_arg};
-    data_t *inputs[] = {input1, input2, input3};
-    mbedtls_svc_key_id_t keys[] = { MBEDTLS_SVC_KEY_ID_INIT,
-                                    MBEDTLS_SVC_KEY_ID_INIT,
-                                    MBEDTLS_SVC_KEY_ID_INIT };
+    psa_key_derivation_step_t steps[] = {step1_arg, step2_arg, step3_arg, step4_arg};
+    data_t *inputs[] = {input1, input2, input3, input4};
+    mbedtls_svc_key_id_t keys[] = {MBEDTLS_SVC_KEY_ID_INIT,
+                                   MBEDTLS_SVC_KEY_ID_INIT,
+                                   MBEDTLS_SVC_KEY_ID_INIT,
+                                   MBEDTLS_SVC_KEY_ID_INIT};
+    psa_status_t statuses[] = {expected_status_arg1, expected_status_arg2,
+                               expected_status_arg3, expected_status_arg4};
     size_t requested_capacity = requested_capacity_arg;
     psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
     uint8_t *expected_outputs[2] =
@@ -6920,7 +6928,11 @@ void derive_output( int alg_arg,
     uint8_t *output_buffer = NULL;
     size_t expected_capacity;
     size_t current_capacity;
-    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_attributes_t attributes1 = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_attributes_t attributes2 = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_attributes_t attributes3 = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_attributes_t attributes4 = PSA_KEY_ATTRIBUTES_INIT;
+    mbedtls_svc_key_id_t derived_key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_status_t status;
     size_t i;
 
@@ -6934,10 +6946,6 @@ void derive_output( int alg_arg,
     ASSERT_ALLOC( output_buffer, output_buffer_size );
     PSA_ASSERT( psa_crypto_init( ) );
 
-    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
-    psa_set_key_algorithm( &attributes, alg );
-    psa_set_key_type( &attributes, PSA_KEY_TYPE_DERIVE );
-
     /* Extraction phase. */
     PSA_ASSERT( psa_key_derivation_setup( &operation, alg ) );
     PSA_ASSERT( psa_key_derivation_set_capacity( &operation,
@@ -6949,19 +6957,89 @@ void derive_output( int alg_arg,
             case 0:
                 break;
             case PSA_KEY_DERIVATION_INPUT_SECRET:
-                PSA_ASSERT( psa_import_key( &attributes,
-                                            inputs[i]->x, inputs[i]->len,
-                                            &keys[i] ) );
-
-                if ( PSA_ALG_IS_TLS12_PSK_TO_MS( alg ) )
+                switch( key_input_type )
                 {
-                    PSA_ASSERT( psa_get_key_attributes( keys[i], &attributes ) );
-                    TEST_ASSERT( PSA_BITS_TO_BYTES( psa_get_key_bits( &attributes ) ) <=
-                                 PSA_TLS12_PSK_TO_MS_PSK_MAX_SIZE );
+                    case 0: // input bytes
+                        PSA_ASSERT( psa_key_derivation_input_bytes(
+                                        &operation, steps[i],
+                                        inputs[i]->x, inputs[i]->len ) );
+                        break;
+                    case 1: // input key
+                        psa_set_key_usage_flags( &attributes1, PSA_KEY_USAGE_DERIVE );
+                        psa_set_key_algorithm( &attributes1, alg );
+                        psa_set_key_type( &attributes1, PSA_KEY_TYPE_DERIVE );
+
+                        PSA_ASSERT( psa_import_key( &attributes1,
+                                                    inputs[i]->x, inputs[i]->len,
+                                                    &keys[i] ) );
+
+                        if( PSA_ALG_IS_TLS12_PSK_TO_MS( alg ) )
+                        {
+                            PSA_ASSERT( psa_get_key_attributes( keys[i], &attributes1 ) );
+                            TEST_ASSERT( PSA_BITS_TO_BYTES( psa_get_key_bits( &attributes1 ) ) <=
+                                        PSA_TLS12_PSK_TO_MS_PSK_MAX_SIZE );
+                        }
+
+                        PSA_ASSERT( psa_key_derivation_input_key( &operation,
+                                                                  steps[i],
+                                                                  keys[i] ) );
+                        break;
+                    default:
+                        TEST_ASSERT( ! "default case not supported" );
+                        break;
+                }
+                break;
+            case PSA_KEY_DERIVATION_INPUT_OTHER_SECRET:
+                switch( other_key_input_type )
+                {
+                    case 0: // input bytes
+                        TEST_EQUAL( psa_key_derivation_input_bytes( &operation,
+                                                                    steps[i],
+                                                                    inputs[i]->x,
+                                                                    inputs[i]->len ),
+                                    statuses[i] );
+                        break;
+                    case 1: // input key, type DERIVE
+                    case 11: // input key, type RAW
+                        psa_set_key_usage_flags( &attributes2, PSA_KEY_USAGE_DERIVE );
+                        psa_set_key_algorithm( &attributes2, alg );
+                        psa_set_key_type( &attributes2, PSA_KEY_TYPE_DERIVE );
+
+                        // other secret of type RAW_DATA passed with input_key
+                        if( other_key_input_type == 11 )
+                            psa_set_key_type( &attributes2, PSA_KEY_TYPE_RAW_DATA );
+
+                        PSA_ASSERT( psa_import_key( &attributes2,
+                                                    inputs[i]->x, inputs[i]->len,
+                                                    &keys[i] ) );
+
+                        TEST_EQUAL( psa_key_derivation_input_key( &operation,
+                                                                  steps[i],
+                                                                  keys[i] ),
+                                    statuses[i] );
+                        break;
+                    case 2: // key agreement
+                        psa_set_key_usage_flags( &attributes3, PSA_KEY_USAGE_DERIVE );
+                        psa_set_key_algorithm( &attributes3, alg );
+                        psa_set_key_type( &attributes3, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1) );
+
+                        PSA_ASSERT( psa_import_key( &attributes3,
+                                                    inputs[i]->x, inputs[i]->len,
+                                                    &keys[i] ) );
+
+                        TEST_EQUAL( psa_key_derivation_key_agreement(
+                                        &operation,
+                                        PSA_KEY_DERIVATION_INPUT_OTHER_SECRET,
+                                        keys[i], key_agreement_peer_key->x,
+                                        key_agreement_peer_key->len ), statuses[i] );
+                        break;
+                    default:
+                        TEST_ASSERT( ! "default case not supported" );
+                        break;
                 }
 
-                PSA_ASSERT( psa_key_derivation_input_key(
-                                &operation, steps[i], keys[i] ) );
+                if( statuses[i] != PSA_SUCCESS )
+                    goto exit;
                 break;
             default:
                 PSA_ASSERT( psa_key_derivation_input_bytes(
@@ -6976,37 +7054,57 @@ void derive_output( int alg_arg,
     TEST_EQUAL( current_capacity, requested_capacity );
     expected_capacity = requested_capacity;
 
-    /* Expansion phase. */
-    for( i = 0; i < ARRAY_LENGTH( expected_outputs ); i++ )
+    if( derive_type == 1 ) // output key
     {
-        /* Read some bytes. */
-        status = psa_key_derivation_output_bytes( &operation,
-                                                  output_buffer, output_sizes[i] );
-        if( expected_capacity == 0 && output_sizes[i] == 0 )
+        psa_status_t expected_status = PSA_ERROR_NOT_PERMITTED;
+
+        /* For output key derivation secret must be provided using
+           input key, otherwise operation is not permitted. */
+        if( key_input_type == 1 )
+            expected_status = PSA_SUCCESS;
+
+        psa_set_key_usage_flags( &attributes4, PSA_KEY_USAGE_EXPORT );
+        psa_set_key_algorithm( &attributes4, alg );
+        psa_set_key_type( &attributes4, PSA_KEY_TYPE_DERIVE );
+        psa_set_key_bits( &attributes4, 48 );
+
+        TEST_EQUAL( psa_key_derivation_output_key( &attributes4, &operation,
+                                        &derived_key ), expected_status );
+    }
+    else // output bytes
+    {
+        /* Expansion phase. */
+        for( i = 0; i < ARRAY_LENGTH( expected_outputs ); i++ )
         {
-            /* Reading 0 bytes when 0 bytes are available can go either way. */
-            TEST_ASSERT( status == PSA_SUCCESS ||
-                         status == PSA_ERROR_INSUFFICIENT_DATA );
-            continue;
+            /* Read some bytes. */
+            status = psa_key_derivation_output_bytes( &operation,
+                                                    output_buffer, output_sizes[i] );
+            if( expected_capacity == 0 && output_sizes[i] == 0 )
+            {
+                /* Reading 0 bytes when 0 bytes are available can go either way. */
+                TEST_ASSERT( status == PSA_SUCCESS ||
+                            status == PSA_ERROR_INSUFFICIENT_DATA );
+                continue;
+            }
+            else if( expected_capacity == 0 ||
+                    output_sizes[i] > expected_capacity )
+            {
+                /* Capacity exceeded. */
+                TEST_EQUAL( status, PSA_ERROR_INSUFFICIENT_DATA );
+                expected_capacity = 0;
+                continue;
+            }
+            /* Success. Check the read data. */
+            PSA_ASSERT( status );
+            if( output_sizes[i] != 0 )
+                ASSERT_COMPARE( output_buffer, output_sizes[i],
+                                expected_outputs[i], output_sizes[i] );
+            /* Check the operation status. */
+            expected_capacity -= output_sizes[i];
+            PSA_ASSERT( psa_key_derivation_get_capacity( &operation,
+                                                        &current_capacity ) );
+            TEST_EQUAL( expected_capacity, current_capacity );
         }
-        else if( expected_capacity == 0 ||
-                 output_sizes[i] > expected_capacity )
-        {
-            /* Capacity exceeded. */
-            TEST_EQUAL( status, PSA_ERROR_INSUFFICIENT_DATA );
-            expected_capacity = 0;
-            continue;
-        }
-        /* Success. Check the read data. */
-        PSA_ASSERT( status );
-        if( output_sizes[i] != 0 )
-            ASSERT_COMPARE( output_buffer, output_sizes[i],
-                            expected_outputs[i], output_sizes[i] );
-        /* Check the operation status. */
-        expected_capacity -= output_sizes[i];
-        PSA_ASSERT( psa_key_derivation_get_capacity( &operation,
-                                                     &current_capacity ) );
-        TEST_EQUAL( expected_capacity, current_capacity );
     }
     PSA_ASSERT( psa_key_derivation_abort( &operation ) );
 
@@ -7015,6 +7113,7 @@ exit:
     psa_key_derivation_abort( &operation );
     for( i = 0; i < ARRAY_LENGTH( keys ); i++ )
         psa_destroy_key( keys[i] );
+    psa_destroy_key( derived_key );
     PSA_DONE( );
 }
 /* END_CASE */

@@ -1817,13 +1817,37 @@
  * This key derivation algorithm uses the following inputs, which must be
  * passed in the order given here:
  * - #PSA_KEY_DERIVATION_INPUT_SEED is the seed.
+ * - #PSA_KEY_DERIVATION_INPUT_OTHER_SECRET is the other secret for the
+ *   computation of the premaster secret. This input is optional;
+ *   if omitted, it defaults to a string of null bytes with the same length
+ *   as the secret (PSK) input.
  * - #PSA_KEY_DERIVATION_INPUT_SECRET is the secret key.
  * - #PSA_KEY_DERIVATION_INPUT_LABEL is the label.
  *
  * For the application to TLS-1.2, the seed (which is
  * forwarded to the TLS-1.2 PRF) is the concatenation of the
  * ClientHello.Random + ServerHello.Random,
- * and the label is "master secret" or "extended master secret".
+ * the label is "master secret" or "extended master secret" and
+ * the other secret depends on the key exchange specified in the cipher suite:
+ * - for a plain PSK cipher suite (RFC 4279, Section 2), omit
+ *   PSA_KEY_DERIVATION_INPUT_OTHER_SECRET
+ * - for a DHE-PSK (RFC 4279, Section 3) or ECDHE-PSK cipher suite
+ *   (RFC 5489, Section 2), the other secret should be the output of the
+ *   PSA_ALG_FFDH or PSA_ALG_ECDH key agreement performed with the peer.
+ *   The recommended way to pass this input is to use a key derivation
+ *   algorithm constructed as
+ *   PSA_ALG_KEY_AGREEMENT(ka_alg, PSA_ALG_TLS12_PSK_TO_MS(hash_alg))
+ *   and to call psa_key_derivation_key_agreement(). Alternatively,
+ *   this input may be an output of `psa_raw_key_agreement()` passed with
+ *   psa_key_derivation_input_bytes(), or an equivalent input passed with
+ *   psa_key_derivation_input_bytes() or psa_key_derivation_input_key().
+ * - for a RSA-PSK cipher suite (RFC 4279, Section 4), the other secret
+ *   should be the 48-byte client challenge (the PreMasterSecret of
+ *   (RFC 5246, Section 7.4.7.1)) concatenation of the TLS version and
+ *   a 46-byte random string chosen by the client. On the server, this is
+ *   typically an output of psa_asymmetric_decrypt() using
+ *   PSA_ALG_RSA_PKCS1V15_CRYPT, passed to the key derivation operation
+ *   with `psa_key_derivation_input_bytes()`.
  *
  * For example, `PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA256)` represents the
  * TLS-1.2 PSK to MasterSecret derivation PRF using HMAC-SHA-256.
@@ -2453,6 +2477,16 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  * psa_key_derivation_output_key().
  */
 #define PSA_KEY_DERIVATION_INPUT_PASSWORD   ((psa_key_derivation_step_t)0x0102)
+
+/** A high-entropy additional secret input for key derivation.
+ *
+ * This is typically the shared secret resulting from a key agreement obtained
+ * via `psa_key_derivation_key_agreement()`. It may alternatively be a key of
+ * type `PSA_KEY_TYPE_DERIVE` passed to `psa_key_derivation_input_key()`, or
+ * a direct input passed to `psa_key_derivation_input_bytes()`.
+ */
+#define PSA_KEY_DERIVATION_INPUT_OTHER_SECRET \
+                                            ((psa_key_derivation_step_t)0x0103)
 
 /** A label for key derivation.
  *

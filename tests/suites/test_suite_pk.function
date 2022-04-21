@@ -1216,7 +1216,7 @@ void pk_psa_wrap_sign_ext( int pk_type, int parameter, int key_pk_type, int md_a
     size_t sig_len, pkey_len;
     mbedtls_svc_key_id_t key_id;
     unsigned char sig[MBEDTLS_PK_SIGNATURE_MAX_SIZE];
-    unsigned char pkey[400];
+    unsigned char pkey[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE];
     unsigned char *pkey_start;
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
     psa_algorithm_t psa_md_alg = mbedtls_psa_translate_md( md_alg );

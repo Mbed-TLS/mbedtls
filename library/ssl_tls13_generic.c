@@ -1537,20 +1537,4 @@ int mbedtls_ssl_tls13_read_public_ecdhe_share( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_ECDH_C */
 
-int mbedtls_ssl_tls13_cipher_suite_is_offered( mbedtls_ssl_context *ssl,
-                                              int cipher_suite )
-{
-    const int *ciphersuite_list = ssl->conf->ciphersuite_list;
-
-    /* Check whether we have offered this ciphersuite */
-    for ( size_t i = 0; ciphersuite_list[i] != 0; i++ )
-    {
-        if( ciphersuite_list[i] == cipher_suite )
-        {
-            return( 1 );
-        }
-    }
-    return( 0 );
-}
-
 #endif /* MBEDTLS_SSL_TLS_C && MBEDTLS_SSL_PROTO_TLS1_3 */

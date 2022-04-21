@@ -51,7 +51,7 @@ static int ssl_tls13_parse_supported_versions_ext( mbedtls_ssl_context *ssl,
     const unsigned char *p = buf;
     size_t versions_len;
     const unsigned char *versions_end;
-    int tls_version;
+    uint16_t tls_version;
     int tls13_supported = 0;
 
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 1 );
@@ -84,7 +84,7 @@ static int ssl_tls13_parse_supported_versions_ext( mbedtls_ssl_context *ssl,
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "Negotiated version. Supported is [%04x]",
-                              tls_version ) );
+                              (unsigned int)tls_version ) );
 
     return( 0 );
 }
@@ -512,9 +512,9 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
 
     if( !ciphersuite_match )
     {
-        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
-                                      MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
-        return ( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
+                                      MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+        return ( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "selected ciphersuite: %s",
@@ -525,7 +525,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
      * opaque legacy_compression_methods<1..2^8-1>;
      * ...
      */
-    if( p[0] != 1 || p[1] != 0 )
+    if( p[0] != 1 || p[1] != MBEDTLS_SSL_COMPRESS_NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad legacy compression method" ) );
         MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,

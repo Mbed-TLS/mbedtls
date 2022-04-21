@@ -2220,7 +2220,36 @@ int mbedtls_ssl_tls13_read_public_ecdhe_share( mbedtls_ssl_context *ssl,
 
 #endif /* MBEDTLS_ECDH_C */
 
-int mbedtls_ssl_tls13_cipher_suite_is_offered( mbedtls_ssl_context *ssl,
-                                              int cipher_suite );
+static inline int mbedtls_ssl_tls13_cipher_suite_is_offered(
+        mbedtls_ssl_context *ssl, int cipher_suite )
+{
+    const int *ciphersuite_list = ssl->conf->ciphersuite_list;
+
+    /* Check whether we have offered this ciphersuite */
+    for ( size_t i = 0; ciphersuite_list[i] != 0; i++ )
+    {
+        if( ciphersuite_list[i] == cipher_suite )
+        {
+            return( 1 );
+        }
+    }
+    return( 0 );
+}
+
+/**
+ * \brief Validate cipher suite against config in SSL context.
+ *
+ * \param ssl              SSL context
+ * \param suite_info       Cipher suite to validate
+ * \param min_tls_version  Minimal TLS version to accept a cipher suite
+ * \param max_tls_version  Maximal TLS version to accept a cipher suite
+ *
+ * \return 0 if valid, negative value otherwise.
+ */
+int mbedtls_ssl_validate_ciphersuite(
+    const mbedtls_ssl_context *ssl,
+    const mbedtls_ssl_ciphersuite_t *suite_info,
+    mbedtls_ssl_protocol_version min_tls_version,
+    mbedtls_ssl_protocol_version max_tls_version );
 
 #endif /* ssl_misc.h */

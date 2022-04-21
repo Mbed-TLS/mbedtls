@@ -925,12 +925,11 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
 
     *out_len = 0;
 
-    /*
-     * Write legacy_version
-     *    ProtocolVersion legacy_version = 0x0303;    // TLS v1.2
-     *
-     *  For TLS 1.3 we use the legacy version number {0x03, 0x03}
-     *  instead of the true version number.
+    /* ...
+     * ProtocolVersion legacy_version = 0x0303; // TLS 1.2
+     * ...
+     * with ProtocolVersion defined as:
+     * uint16 ProtocolVersion;
      */
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
     MBEDTLS_PUT_UINT16_BE( 0x0303, p, 0 );
@@ -939,6 +938,8 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
     /* ...
      * Random random;
      * ...
+     * with Random defined as:
+     * opaque Random[MBEDTLS_SERVER_HELLO_RANDOM_LEN];
      */
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, MBEDTLS_SERVER_HELLO_RANDOM_LEN );
     memcpy( p, server_randbytes, MBEDTLS_SERVER_HELLO_RANDOM_LEN );
@@ -950,8 +951,9 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
     ssl->session_negotiate->start = time( NULL );
 #endif /* MBEDTLS_HAVE_TIME */
 
-    /*
-     * Write legacy_session_id_echo
+    /* ...
+     * opaque legacy_session_id_echo<0..32>;
+     * ...
      */
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 1 + ssl->session_negotiate->id_len );
     *p++ = (unsigned char)ssl->session_negotiate->id_len;
@@ -967,8 +969,11 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
                                ssl->session_negotiate->id_len );
     }
 
-    /*
-     * Write ciphersuite
+    /* ...
+     * CipherSuite cipher_suite;
+     * ...
+     * with CipherSuite defined as:
+     * uint8 CipherSuite[2];
      */
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
     MBEDTLS_PUT_UINT16_BE( ssl->session_negotiate->ciphersuite, p, 0 );
@@ -979,11 +984,21 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
             ssl->session_negotiate->ciphersuite ),
           ssl->session_negotiate->ciphersuite ) );
 
-    /* write legacy_compression_method = ( 0 ) */
+    /* ...
+     * uint8 legacy_compression_method = 0;
+     * ...
+     */
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 1 );
     *p++ = 0x0;
 
-    /* Extensions */
+    /* ...
+     * Extension extensions<6..2^16-1>;
+     * ...
+     * struct {
+     *      ExtensionType extension_type; (2 bytes)
+     *      opaque extension_data<0..2^16-1>;
+     * } Extension;
+     */
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
     p_extensions_len = p;
     p += 2;
@@ -1000,13 +1015,13 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
 
     if( mbedtls_ssl_conf_tls13_some_ephemeral_enabled( ssl ) )
     {
+        /* Add key_share extension */
         ret = ssl_tls13_write_key_share_ext( ssl, p, end, &output_len );
         if( ret != 0 )
             return( ret );
         p += output_len;
     }
 
-    /* Write length information */
     MBEDTLS_PUT_UINT16_BE( p - p_extensions_len - 2, p_extensions_len, 0 );
 
     MBEDTLS_SSL_DEBUG_BUF( 4, "server hello extensions",

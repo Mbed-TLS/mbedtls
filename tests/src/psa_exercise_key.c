@@ -165,7 +165,7 @@ static int exercise_cipher_key( mbedtls_svc_key_id_t key,
 {
     psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     unsigned char iv[16] = {0};
-    size_t iv_length = sizeof( iv );
+    size_t iv_length;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_type_t key_type;
     const unsigned char plaintext[16] = "Hello, world...";

@@ -1138,6 +1138,23 @@ int mbedtls_x509write_crt_set_ns_cert_type( mbedtls_x509write_cert *ctx,
                                     unsigned char ns_cert_type );
 
 /**
+ * \brief               Query certificate for given extension type
+ *
+ * \param[in] ctx       Certificate context to be queried, must not be \c NULL
+ * \param ext_type      Extension type being queried for, must be a valid
+ *                      extension type. Must be one of the MBEDTLS_X509_EXT_XXX
+ *                      values
+ *
+ * \return              0 if the given extension type is not present,
+ *                      non-zero otherwise
+ */
+static inline int mbedtls_x509_crt_has_ext_type( const mbedtls_x509_crt *ctx,
+                                                 int ext_type )
+{
+    return ctx->MBEDTLS_PRIVATE(ext_types) & ext_type;
+}
+
+/**
  * \brief           Free the contents of a CRT write context
  *
  * \param ctx       CRT context to free

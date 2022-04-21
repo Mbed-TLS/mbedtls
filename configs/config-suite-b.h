@@ -119,6 +119,11 @@
 #define MBEDTLS_PK_WRITE_C
 #endif
 
+/* Error messages and TLS debugging traces
+ * (huge code size increase, needed for tests/ssl-opt.sh) */
+//#define MBEDTLS_DEBUG_C
+//#define MBEDTLS_ERROR_C
+
 #include "mbedtls/check_config.h"
 
 #endif /* MBEDTLS_CONFIG_H */

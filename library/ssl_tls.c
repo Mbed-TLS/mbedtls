@@ -990,6 +990,7 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
 
 #if !defined(MBEDTLS_SSL_HW_RECORD_ACCEL) && \
     !defined(MBEDTLS_SSL_EXPORT_KEYS) && \
+    !defined(MBEDTLS_SSL_DTLS_CONNECTION_ID) && \
     !defined(MBEDTLS_DEBUG_C)
     ssl = NULL; /* make sure we don't use it except for those cases */
     (void) ssl;

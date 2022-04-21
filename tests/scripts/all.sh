@@ -1609,6 +1609,10 @@ component_test_psa_crypto_config_accel_ecdsa () {
     # partial support for cipher operations in the driver test library.
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+    # Disable obsolete hashes (alternatively we could enable support for them
+    # in the driver test library).
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_MD2
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_MD4
 
     # SHA384 needed for some ECDSA signature tests.
     scripts/config.py -f tests/include/test/drivers/config_test_driver.h set MBEDTLS_SHA512_C

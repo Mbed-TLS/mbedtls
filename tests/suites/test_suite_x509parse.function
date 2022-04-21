@@ -35,8 +35,8 @@ const mbedtls_x509_crt_profile compat_profile =
     MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA256 ) |
     MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA384 ) |
     MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA512 ),
-    0xFFFFFFF, /* Any PK alg    */
-    0xFFFFFFF, /* Any curve     */
+    0xFFFFFFFF, /* Any PK alg    */
+    0xFFFFFFFF, /* Any curve     */
     1024,
 };
 
@@ -53,8 +53,8 @@ const mbedtls_x509_crt_profile profile_rsa3072 =
 const mbedtls_x509_crt_profile profile_sha512 =
 {
     MBEDTLS_X509_ID_FLAG( MBEDTLS_MD_SHA512 ),
-    0xFFFFFFF, /* Any PK alg    */
-    0xFFFFFFF, /* Any curve     */
+    0xFFFFFFFF, /* Any PK alg    */
+    0xFFFFFFFF, /* Any curve     */
     1024,
 };
 

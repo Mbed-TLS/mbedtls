@@ -7060,7 +7060,7 @@ void derive_output( int alg_arg,
 
         /* For output key derivation secret must be provided using
            input key, otherwise operation is not permitted. */
-        if ( key_input_type == 1 )
+        if( key_input_type == 1 )
             expected_status = PSA_SUCCESS;
 
         psa_set_key_usage_flags( &attributes4, PSA_KEY_USAGE_EXPORT );

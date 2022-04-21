@@ -5306,11 +5306,11 @@ static psa_status_t psa_tls12_prf_psk_to_ms_set_key(
      * - RFC 5489 for the definition of ECDHE-PSK.
      */
 
-    if ( prf->state == PSA_TLS12_PRF_STATE_OTHER_KEY_SET )
+    if( prf->state == PSA_TLS12_PRF_STATE_OTHER_KEY_SET )
     {
         *cur++ = MBEDTLS_BYTE_1( prf->other_secret_length );
         *cur++ = MBEDTLS_BYTE_0( prf->other_secret_length );
-        if ( prf->other_secret_length != 0 )
+        if( prf->other_secret_length != 0 )
         {
             memcpy( cur, prf->other_secret, prf->other_secret_length );
             mbedtls_platform_zeroize( prf->other_secret, prf->other_secret_length );

@@ -2326,18 +2326,6 @@ component_test_variable_ssl_in_out_buffer_len_CID () {
     tests/compat.sh
 }
 
-component_test_CID_no_debug() {
-    msg "build: Connection ID enabled, debug disabled"
-    scripts/config.py unset MBEDTLS_DEBUG_C
-    scripts/config.py set MBEDTLS_SSL_DTLS_CONNECTION_ID
-
-    CC=gcc cmake .
-    make
-
-    msg "test: Connection ID enabled, debug disabled"
-    make test
-}
-
 component_test_ssl_alloc_buffer_and_mfl () {
     msg "build: default config with memory buffer allocator and MFL extension"
     scripts/config.py set MBEDTLS_MEMORY_BUFFER_ALLOC_C
@@ -2978,16 +2966,17 @@ component_test_cmake_out_of_source () {
 
     msg "test: cmake 'out-of-source' build"
     make test
-    # Test an SSL option that requires an auxiliary script in test/scripts/.
+    # Check that ssl-opt.sh can find the test programs.
     # Also ensure that there are no error messages such as
     # "No such file or directory", which would indicate that some required
     # file is missing (ssl-opt.sh tolerates the absence of some files so
     # may exit with status 0 but emit errors).
-    ./tests/ssl-opt.sh -f 'Fallback SCSV: beginning of list' 2>ssl-opt.err
+    ./tests/ssl-opt.sh -f 'Default' >ssl-opt.out 2>ssl-opt.err
+    grep PASS ssl-opt.out
     cat ssl-opt.err >&2
     # If ssl-opt.err is non-empty, record an error and keep going.
     [ ! -s ssl-opt.err ]
-    rm ssl-opt.err
+    rm ssl-opt.out ssl-opt.err
     cd "$MBEDTLS_ROOT_DIR"
     rm -rf "$OUT_OF_SOURCE_DIR"
 }

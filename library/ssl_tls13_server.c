@@ -115,7 +115,7 @@ static int ssl_tls13_parse_supported_groups_ext(
     p += 2;
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, named_group_list_len );
     named_group_list_end = p + named_group_list_len;
-    ssl->handshake->selected_group = 0;
+    ssl->handshake->hrr_selected_group = 0;
 
     while( p < named_group_list_end )
     {
@@ -128,7 +128,7 @@ static int ssl_tls13_parse_supported_groups_ext(
 
         if( ! mbedtls_ssl_named_group_is_offered( ssl, named_group ) ||
             ! mbedtls_ssl_named_group_is_supported( named_group ) ||
-            ssl->handshake->selected_group != 0 )
+            ssl->handshake->hrr_selected_group != 0 )
         {
             continue;
         }
@@ -136,7 +136,7 @@ static int ssl_tls13_parse_supported_groups_ext(
         MBEDTLS_SSL_DEBUG_MSG(
                 2, ( "add named group (%04x) into received list.",
                      named_group ) );
-        ssl->handshake->selected_group = named_group;
+        ssl->handshake->hrr_selected_group = named_group;
     }
 
     return( 0 );
@@ -220,20 +220,22 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
         {
             continue;
         }
-        const mbedtls_ecp_curve_info *curve_info =
-                mbedtls_ecp_curve_info_from_tls_id( group );
 
         /*
          * For now, we only support ECDHE groups.
          */
         if( mbedtls_ssl_tls13_named_group_is_ecdhe( group ) )
         {
-            match_found = 1;
+            const mbedtls_ecp_curve_info *curve_info =
+                    mbedtls_ecp_curve_info_from_tls_id( group );
+            ((void) curve_info);
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDH curve: %s", curve_info->name ) );
             ret = mbedtls_ssl_tls13_read_public_ecdhe_share(
                     ssl, p - 2, key_exchange_len + 2 );
             if( ret != 0 )
                 return( ret );
+
+            match_found = 1;
         }
         else
         {

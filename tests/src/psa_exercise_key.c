@@ -164,7 +164,7 @@ static int exercise_cipher_key( mbedtls_svc_key_id_t key,
                                 psa_algorithm_t alg )
 {
     psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
-    unsigned char iv[16] = {0};
+    unsigned char iv[PSA_CIPHER_IV_MAX_SIZE] = {0};
     size_t iv_length;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_type_t key_type;
@@ -242,7 +242,7 @@ static int exercise_aead_key( mbedtls_svc_key_id_t key,
                               psa_key_usage_t usage,
                               psa_algorithm_t alg )
 {
-    unsigned char nonce[16] = {0};
+    unsigned char nonce[PSA_AEAD_NONCE_MAX_SIZE] = {0};
     size_t nonce_length;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_type_t key_type;

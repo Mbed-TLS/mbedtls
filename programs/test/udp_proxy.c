@@ -725,6 +725,8 @@ static int handle_message_malformation( packet* cur )
                                 opt.malform_pattern, copy_len );
                     left_len -= copy_len;
                 }
+                if( cur->len < opt.malform_length )
+                    cur->len = opt.malform_length;
             }
             PRINT_DEBUG_BUF( "malformed packet", cur->buf, cur->len );
         }

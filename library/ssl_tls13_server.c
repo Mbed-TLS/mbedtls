@@ -760,16 +760,17 @@ static int ssl_tls13_prepare_server_hello( mbedtls_ssl_context *ssl )
 }
 
 /*
- * ssl_tls13_write_selected_version_ext():
+ * ssl_tls13_write_server_hello_supported_versions_ext ():
  *
  * struct {
  *      ProtocolVersion selected_version;
  * } SupportedVersions;
  */
-static int ssl_tls13_write_selected_version_ext( mbedtls_ssl_context *ssl,
-                                                 unsigned char *buf,
-                                                 unsigned char *end,
-                                                 size_t *out_len )
+static int ssl_tls13_write_server_hello_supported_versions_ext(
+                                                mbedtls_ssl_context *ssl,
+                                                unsigned char *buf,
+                                                unsigned char *end,
+                                                size_t *out_len )
 {
     *out_len = 0;
 
@@ -988,7 +989,7 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
     p += 2;
 
     /* Add supported_version extension */
-    if( ( ret = ssl_tls13_write_selected_version_ext(
+    if( ( ret = ssl_tls13_write_server_hello_supported_versions_ext(
                                             ssl, p, end, &output_len ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_write_selected_version_ext",

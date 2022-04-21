@@ -4210,34 +4210,37 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
     conf->tls13_kex_modes = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_ALL;
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
-    if( ( endpoint == MBEDTLS_SSL_IS_SERVER ) ||
-        ( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM ) )
-    {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-        conf->min_tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
-        conf->max_tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    conf->min_tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
 #elif defined(MBEDTLS_SSL_PROTO_TLS1_3)
-        conf->min_tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
-        conf->max_tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
-#else
-        return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+    conf->min_tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
 #endif
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    if( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM ||
+        endpoint == MBEDTLS_SSL_IS_SERVER )
+    {
+        /* DTLS 1.3 not supported yet
+         * server side hybrid mode not support yet
+         */
+        conf->max_tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
     }
     else
     {
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
-        conf->min_tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
         conf->max_tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
-#elif defined(MBEDTLS_SSL_PROTO_TLS1_3)
-        conf->min_tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
-        conf->max_tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
-#elif defined(MBEDTLS_SSL_PROTO_TLS1_2)
-        conf->min_tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
-        conf->max_tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
-#else
-        return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
-#endif
     }
+#elif defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    conf->max_tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
+#elif defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    if( transport != MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    {
+        conf->max_tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
+    }
+    else
+    {
+        /* DTLS 1.3 not supported yet */
+        return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+    }
+#endif
 
     /*
      * Preset-specific defaults
@@ -7791,7 +7794,7 @@ int mbedtls_ssl_validate_ciphersuite(
         return( -1 );
     }
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_SSL_CLI_C)
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     if( suite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE &&
         mbedtls_ecjpake_check( &ssl->handshake->ecjpake_ctx ) != 0 )

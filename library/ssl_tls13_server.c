@@ -215,19 +215,19 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
         if( match_found == 1 )
             continue;
 
+        if( ! mbedtls_ssl_named_group_is_offered( ssl, group ) ||
+            ! mbedtls_ssl_named_group_is_supported( group ) )
+        {
+            continue;
+        }
+        const mbedtls_ecp_curve_info *curve_info =
+                mbedtls_ecp_curve_info_from_tls_id( group );
+
         /*
          * For now, we only support ECDHE groups.
          */
         if( mbedtls_ssl_tls13_named_group_is_ecdhe( group ) )
         {
-            const mbedtls_ecp_curve_info *curve_info =
-                mbedtls_ecp_curve_info_from_tls_id( group );
-            if( curve_info == NULL )
-            {
-                MBEDTLS_SSL_DEBUG_MSG( 1, ( "Invalid TLS curve group id" ) );
-                continue;
-            }
-
             match_found = 1;
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDH curve: %s", curve_info->name ) );
             ret = mbedtls_ssl_tls13_read_public_ecdhe_share(
@@ -377,8 +377,9 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const unsigned char *p = buf;
     size_t legacy_session_id_len;
-    const unsigned char *cipher_suites_start;
+    const unsigned char *cipher_suites;
     size_t cipher_suites_len;
+    const unsigned char *cipher_suites_end;
     size_t extensions_len;
     const unsigned char *extensions_end;
 
@@ -479,7 +480,8 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     * with CipherSuite defined as:
     * uint8 CipherSuite[2];
     */
-    cipher_suites_start = p;
+    cipher_suites = p;
+    cipher_suites_end = p + cipher_suites_len;
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, ciphersuitelist",
                           p, cipher_suites_len );
     /*
@@ -487,8 +489,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
      */
     int ciphersuite_match = 0;
     ciphersuite_info = NULL;
-    for ( size_t j = 0; j < cipher_suites_len;
-          j += 2, p += 2 )
+    for ( ; p < cipher_suites_end; p += 2 )
     {
         uint16_t cipher_suite = MBEDTLS_GET_UINT16_BE( p, 0 );
         ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(
@@ -520,7 +521,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "selected ciphersuite: %s",
                                 ciphersuite_info->name ) );
 
-    p = cipher_suites_start + cipher_suites_len;
+    p = cipher_suites + cipher_suites_len;
     /* ...
      * opaque legacy_compression_methods<1..2^8-1>;
      * ...
@@ -730,7 +731,7 @@ cleanup:
 }
 
 /*
- * TLS and DTLS 1.3 State Maschine -- server side
+ * TLS 1.3 State Maschine -- server side
  */
 int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
 {
@@ -760,14 +761,9 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
 
             break;
 
-        case MBEDTLS_SSL_SERVER_HELLO:
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "SSL - The requested feature is not available" ) );
-            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-
-            break;
         default:
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "invalid state %d", ssl->state ) );
-            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+            return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
     }
 
     return( ret );

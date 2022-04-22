@@ -218,7 +218,7 @@ int mbedtls_pkcs12_derivation( unsigned char *data, size_t datalen,
     unsigned int j;
 
     unsigned char diversifier[128];
-    unsigned char salt_block[128], pwd_block[128], hash_block[128];
+    unsigned char salt_block[128], pwd_block[128], hash_block[128] = {0};
     unsigned char hash_output[MBEDTLS_MD_MAX_SIZE];
     unsigned char *p;
     unsigned char c;

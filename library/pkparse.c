@@ -866,7 +866,7 @@ static int pk_parse_key_sec1_der( mbedtls_ecp_keypair *eck,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     int version, pubkey_done;
     size_t len;
-    mbedtls_asn1_buf params;
+    mbedtls_asn1_buf params = { 0, 0, NULL };
     unsigned char *p = (unsigned char *) key;
     unsigned char *end = p + keylen;
     unsigned char *end2;

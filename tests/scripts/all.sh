@@ -866,6 +866,10 @@ component_check_test_cases () {
     fi
     tests/scripts/check_test_cases.py $opt
     unset opt
+
+    # Check if some test are explicitely disabled when USE_PSA_CRYPTO is set
+    not grep -n -R 'depends_on.*!MBEDTLS_USE_PSA_CRYPTO' tests/suites/*.function tests/suites/*.data
+    not grep -n -R '^ *requires_config_disabled.*MBEDTLS_USE_PSA_CRYPTO' tests/ssl-opt.sh tests/opt-testcases/*.sh
 }
 
 component_check_doxygen_warnings () {
@@ -873,12 +877,7 @@ component_check_doxygen_warnings () {
     tests/scripts/doxygen.sh
 }
 
-component_check_test_requires_psa_disabled () {
-  msg "Check: tests requiring PSA to be disabled"
 
-  not grep -n -R 'depends.*!MBEDTLS_USE_PSA_CRYPTO' tests/suites/
-  not grep -n -R 'requires.*disabled.*USE_PSA' tests/ssl-opt.sh tests/opt-testcases/
-}
 
 ################################################################
 #### Build and test many configurations and targets

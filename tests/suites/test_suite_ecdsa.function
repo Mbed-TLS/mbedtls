@@ -279,13 +279,14 @@ void ecdsa_prim_test_vectors( int id, char * d_str, char * xQ_str,
 {
     mbedtls_ecp_group grp;
     mbedtls_ecp_point Q;
-    mbedtls_mpi d, r, s, r_check, s_check;
+    mbedtls_mpi d, r, s, r_check, s_check, zero;
     mbedtls_test_rnd_buf_info rnd_info;
 
     mbedtls_ecp_group_init( &grp );
     mbedtls_ecp_point_init( &Q );
     mbedtls_mpi_init( &d ); mbedtls_mpi_init( &r ); mbedtls_mpi_init( &s );
     mbedtls_mpi_init( &r_check ); mbedtls_mpi_init( &s_check );
+    mbedtls_mpi_init( &zero );
 
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
     TEST_ASSERT( mbedtls_ecp_point_read_string( &Q, 16, xQ_str, yQ_str ) == 0 );
@@ -314,20 +315,68 @@ void ecdsa_prim_test_vectors( int id, char * d_str, char * xQ_str,
 
     if ( result == 0)
     {
-        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &r, &r_check ) == 0 );
-        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &s, &s_check ) == 0 );
+        /* Check we generated the expected values */
+        TEST_EQUAL( mbedtls_mpi_cmp_mpi( &r, &r_check ), 0 );
+        TEST_EQUAL( mbedtls_mpi_cmp_mpi( &s, &s_check ), 0 );
 
-        TEST_ASSERT( mbedtls_ecdsa_verify( &grp, hash->x, hash->len, &Q, &r_check, &s_check ) == 0 );
+        /* Valid signature */
+        TEST_EQUAL( mbedtls_ecdsa_verify( &grp, hash->x, hash->len,
+                                          &Q, &r_check, &s_check ), 0 );
 
-        TEST_ASSERT( mbedtls_mpi_sub_int( &r, &r, 1 ) == 0 );
-        TEST_ASSERT( mbedtls_mpi_add_int( &s, &s, 1 ) == 0 );
+        /* Invalid signature: wrong public key (G instead of Q) */
+        TEST_EQUAL( mbedtls_ecdsa_verify( &grp, hash->x, hash->len,
+                    &grp.G, &r_check, &s_check ), MBEDTLS_ERR_ECP_VERIFY_FAILED );
 
-        TEST_ASSERT( mbedtls_ecdsa_verify( &grp, hash->x, hash->len,
-                     &Q, &r, &s_check ) == MBEDTLS_ERR_ECP_VERIFY_FAILED );
-        TEST_ASSERT( mbedtls_ecdsa_verify( &grp, hash->x, hash->len,
-                     &Q, &r_check, &s ) == MBEDTLS_ERR_ECP_VERIFY_FAILED );
-        TEST_ASSERT( mbedtls_ecdsa_verify( &grp, hash->x, hash->len,
-                     &grp.G, &r_check, &s_check ) == MBEDTLS_ERR_ECP_VERIFY_FAILED );
+        /* Invalid signatures: r or s or both one off */
+        TEST_EQUAL( mbedtls_mpi_sub_int( &r, &r_check, 1 ), 0 );
+        TEST_EQUAL( mbedtls_mpi_add_int( &s, &s_check, 1 ), 0 );
+
+        TEST_EQUAL( mbedtls_ecdsa_verify( &grp, hash->x, hash->len, &Q,
+                    &r, &s_check ), MBEDTLS_ERR_ECP_VERIFY_FAILED );
+        TEST_EQUAL( mbedtls_ecdsa_verify( &grp, hash->x, hash->len, &Q,
+                    &r_check, &s ), MBEDTLS_ERR_ECP_VERIFY_FAILED );
+        TEST_EQUAL( mbedtls_ecdsa_verify( &grp, hash->x, hash->len, &Q,
+                    &r, &s ), MBEDTLS_ERR_ECP_VERIFY_FAILED );
+
+        /* Invalid signatures: r, s or both (CVE-2022-21449) are zero */
+        TEST_EQUAL( mbedtls_mpi_lset( &zero, 0 ), 0 );
+
+        TEST_EQUAL( mbedtls_ecdsa_verify( &grp, hash->x, hash->len, &Q,
+                    &zero, &s_check ), MBEDTLS_ERR_ECP_VERIFY_FAILED );
+        TEST_EQUAL( mbedtls_ecdsa_verify( &grp, hash->x, hash->len, &Q,
+                    &r_check, &zero ), MBEDTLS_ERR_ECP_VERIFY_FAILED );
+        TEST_EQUAL( mbedtls_ecdsa_verify( &grp, hash->x, hash->len, &Q,
+                    &zero, &zero ), MBEDTLS_ERR_ECP_VERIFY_FAILED );
+
+        /* Invalid signatures: r, s or both are == N */
+        TEST_EQUAL( mbedtls_ecdsa_verify( &grp, hash->x, hash->len, &Q,
+                    &grp.N, &s_check ), MBEDTLS_ERR_ECP_VERIFY_FAILED );
+        TEST_EQUAL( mbedtls_ecdsa_verify( &grp, hash->x, hash->len, &Q,
+                    &r_check, &grp.N ), MBEDTLS_ERR_ECP_VERIFY_FAILED );
+        TEST_EQUAL( mbedtls_ecdsa_verify( &grp, hash->x, hash->len, &Q,
+                    &grp.N, &grp.N ), MBEDTLS_ERR_ECP_VERIFY_FAILED );
+
+        /* Invalid signatures: r, s or both are negative */
+        TEST_EQUAL( mbedtls_mpi_sub_mpi( &r, &r_check, &grp.N ), 0 );
+        TEST_EQUAL( mbedtls_mpi_sub_mpi( &s, &s_check, &grp.N ), 0 );
+
+        TEST_EQUAL( mbedtls_ecdsa_verify( &grp, hash->x, hash->len, &Q,
+                    &r, &s_check ), MBEDTLS_ERR_ECP_VERIFY_FAILED );
+        TEST_EQUAL( mbedtls_ecdsa_verify( &grp, hash->x, hash->len, &Q,
+                    &r_check, &s ), MBEDTLS_ERR_ECP_VERIFY_FAILED );
+        TEST_EQUAL( mbedtls_ecdsa_verify( &grp, hash->x, hash->len, &Q,
+                    &r, &s ), MBEDTLS_ERR_ECP_VERIFY_FAILED );
+
+        /* Invalid signatures: r or s or both are > N */
+        TEST_EQUAL( mbedtls_mpi_add_mpi( &r, &r_check, &grp.N ), 0 );
+        TEST_EQUAL( mbedtls_mpi_add_mpi( &s, &s_check, &grp.N ), 0 );
+
+        TEST_EQUAL( mbedtls_ecdsa_verify( &grp, hash->x, hash->len, &Q,
+                    &r, &s_check ), MBEDTLS_ERR_ECP_VERIFY_FAILED );
+        TEST_EQUAL( mbedtls_ecdsa_verify( &grp, hash->x, hash->len, &Q,
+                    &r_check, &s ), MBEDTLS_ERR_ECP_VERIFY_FAILED );
+        TEST_EQUAL( mbedtls_ecdsa_verify( &grp, hash->x, hash->len, &Q,
+                    &r, &s ), MBEDTLS_ERR_ECP_VERIFY_FAILED );
     }
 
 exit:
@@ -335,6 +384,7 @@ exit:
     mbedtls_ecp_point_free( &Q );
     mbedtls_mpi_free( &d ); mbedtls_mpi_free( &r ); mbedtls_mpi_free( &s );
     mbedtls_mpi_free( &r_check ); mbedtls_mpi_free( &s_check );
+    mbedtls_mpi_free( &zero );
 }
 /* END_CASE */
 

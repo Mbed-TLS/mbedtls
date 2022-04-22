@@ -2628,8 +2628,9 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
-    if ( mbedtls_ssl_ciphersuite_uses_ec(
-         mbedtls_ssl_ciphersuite_from_id( ssl->session_negotiate->ciphersuite ) ) )
+    const mbedtls_ssl_ciphersuite_t *suite =
+        mbedtls_ssl_ciphersuite_from_id( ssl->session_negotiate->ciphersuite );
+    if ( suite != NULL && mbedtls_ssl_ciphersuite_uses_ec( suite) )
     {
         ssl_write_supported_point_formats_ext( ssl, p + 2 + ext_len, &olen );
         ext_len += olen;
@@ -2854,7 +2855,14 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    if( ! mbedtls_pk_can_do( mbedtls_ssl_own_key( ssl ), MBEDTLS_PK_ECKEY ) )
+    const mbedtls_pk_context *private_key = mbedtls_ssl_own_key( ssl );
+    if( private_key == NULL)
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no ECDH private key" ) );
+        return( MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED );
+    }
+
+    if( ! mbedtls_pk_can_do( private_key, MBEDTLS_PK_ECKEY ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "server key not ECDH capable" ) );
         return( MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH );
@@ -3233,6 +3241,12 @@ curve_matching_done:
          */
         if( md_alg != MBEDTLS_MD_NONE )
         {
+            if( dig_signed == NULL )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+            }
+
             ret = mbedtls_ssl_get_key_exchange_md_tls1_2( ssl, hash, &hashlen,
                                                           dig_signed,
                                                           dig_signed_len,

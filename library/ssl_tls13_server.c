@@ -26,7 +26,6 @@
 #include "ssl_misc.h"
 #include "ssl_tls13_keys.h"
 #include "ssl_debug_helpers.h"
-#include "ecdh_misc.h"
 
 #if defined(MBEDTLS_ECP_C)
 #include "mbedtls/ecp.h"

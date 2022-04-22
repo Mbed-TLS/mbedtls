@@ -531,19 +531,25 @@ void pk_rsa_verify_ext_test_vec( data_t * message_str, int digest,
                                  digest, hash_result, hash_len,
                                  result_str->x, sig_len );
 
-    /* Mbed TLS distinguishes "invalid padding" from "valid padding but
-     * the rest of the signature is invalid". This has little use in
-     * practice and PSA doesn't report this distinction.
-     * In this case, PSA returns PSA_ERROR_INVALID_SIGNATURE translated
-     * to MBEDTLS_ERR_RSA_VERIFY_FAILED
-     */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if( result == MBEDTLS_ERR_RSA_INVALID_PADDING &&
-        ret == MBEDTLS_ERR_RSA_VERIFY_FAILED )
-        TEST_EQUAL( ret, MBEDTLS_ERR_RSA_VERIFY_FAILED);
+    if( result == MBEDTLS_ERR_RSA_INVALID_PADDING )
+    {
+        /* mbedtls_pk_verify_ext() may return MBEDTLS_ERR_RSA_INVALID_PADDING
+         * error depending on which path was taken.
+         * If the PSA path is used, it won't because Mbed TLS
+         * distinguishes "invalid padding" from "valid padding but
+         * the rest of the signature is invalid". This has little use in
+         * practice and PSA doesn't report this distinction.
+         * In this case, PSA returns PSA_ERROR_INVALID_SIGNATURE translated
+         * to MBEDTLS_ERR_RSA_VERIFY_FAILED
+         */
+        TEST_ASSERT( ret == result || ret == MBEDTLS_ERR_RSA_VERIFY_FAILED );
+    }
     else
 #endif
-    TEST_EQUAL( ret, result );
+    {
+        TEST_EQUAL( ret, result );
+    }
 
 exit:
     mbedtls_pk_free( &pk );

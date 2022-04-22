@@ -223,7 +223,8 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
                      char *serial_str, char *not_before, char *not_after,
                      int md_type, int key_usage, int set_key_usage,
                      int cert_type, int set_cert_type, int auth_ident,
-                     int ver, char *cert_check_file, int rsa_alt, int is_ca )
+                     int ver, char *cert_check_file, int pk_wrap, int is_ca,
+                     char *cert_verify_file )
 {
     mbedtls_pk_context subject_key, issuer_key, issuer_key_alt;
     mbedtls_pk_context *key = &issuer_key;
@@ -237,6 +238,10 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
     int der_len = -1;
     FILE *f;
     mbedtls_test_rnd_pseudo_info rnd_info;
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
+#endif
+    mbedtls_pk_type_t issuer_key_type;
 
     memset( &rnd_info, 0x2a, sizeof( mbedtls_test_rnd_pseudo_info ) );
     mbedtls_mpi_init( &serial );
@@ -255,9 +260,11 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
     TEST_ASSERT( mbedtls_pk_parse_keyfile( &issuer_key, issuer_key_file,
                     issuer_pwd, mbedtls_test_rnd_std_rand, NULL ) == 0 );
 
+    issuer_key_type = mbedtls_pk_get_type( &issuer_key );
+
 #if defined(MBEDTLS_RSA_C)
     /* For RSA PK contexts, create a copy as an alternative RSA context. */
-    if( rsa_alt == 1 && mbedtls_pk_get_type( &issuer_key ) == MBEDTLS_PK_RSA )
+    if( pk_wrap == 1 && issuer_key_type == MBEDTLS_PK_RSA )
     {
         TEST_ASSERT( mbedtls_pk_setup_rsa_alt( &issuer_key_alt,
                                             mbedtls_pk_rsa( issuer_key ),
@@ -267,9 +274,23 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
 
         key = &issuer_key_alt;
     }
-#else
-    (void) rsa_alt;
 #endif
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    /* For Opaque PK contexts, wrap key as an Opaque RSA context. */
+    if( pk_wrap == 2 )
+    {
+        psa_algorithm_t md_alg_psa =
+            mbedtls_psa_translate_md( (mbedtls_md_type_t) md_type );
+
+        TEST_ASSERT( md_alg_psa != MBEDTLS_MD_NONE );
+        TEST_ASSERT( mbedtls_pk_wrap_as_opaque( &issuer_key, &key_id,
+                                                md_alg_psa ) == 0 );
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+    if( pk_wrap == 2 )
+        TEST_ASSERT( mbedtls_pk_get_type( &issuer_key ) == MBEDTLS_PK_OPAQUE );
 
     TEST_ASSERT( mbedtls_test_read_mpi( &serial, 10, serial_str ) == 0 );
 
@@ -312,14 +333,40 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
         TEST_ASSERT( buf[buf_index] == 0 );
     }
 
-    f = fopen( cert_check_file, "r" );
-    TEST_ASSERT( f != NULL );
-    olen = fread( check_buf, 1, sizeof( check_buf ), f );
-    fclose( f );
-    TEST_ASSERT( olen < sizeof( check_buf ) );
+    if( issuer_key_type != MBEDTLS_PK_RSA )
+    {
+        mbedtls_x509_crt crt_parse, trusted;
+        uint32_t flags;
 
-    TEST_ASSERT( olen >= pem_len - 1 );
-    TEST_ASSERT( memcmp( buf, check_buf, pem_len - 1 ) == 0 );
+        mbedtls_x509_crt_init( &crt_parse );
+        mbedtls_x509_crt_init( &trusted );
+
+        TEST_ASSERT( mbedtls_x509_crt_parse_file( &trusted,
+                                                  cert_verify_file ) == 0 );
+        TEST_ASSERT( mbedtls_x509_crt_parse( &crt_parse,
+                                             buf, sizeof( buf ) ) == 0 );
+
+        ret = mbedtls_x509_crt_verify( &crt_parse, &trusted, NULL, NULL, &flags,
+                                       NULL, NULL );
+
+        mbedtls_x509_crt_free( &crt_parse );
+        mbedtls_x509_crt_free( &trusted );
+
+        TEST_EQUAL( flags, 0 );
+        TEST_EQUAL( ret, 0 );
+    }
+    else
+    {
+        f = fopen( cert_check_file, "r" );
+        TEST_ASSERT( f != NULL );
+        olen = fread( check_buf, 1, sizeof( check_buf ), f );
+        fclose( f );
+        TEST_ASSERT( olen < sizeof( check_buf ) );
+
+        TEST_EQUAL( olen, pem_len );
+        TEST_ASSERT( olen >= pem_len - 1 );
+        TEST_ASSERT( memcmp( buf, check_buf, pem_len - 1 ) == 0 );
+    }
 
     der_len = mbedtls_x509write_crt_der( &crt, buf, sizeof( buf ),
                                          mbedtls_test_rnd_pseudo_rand,
@@ -329,7 +376,17 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
     if( der_len == 0 )
         goto exit;
 
-    ret = mbedtls_x509write_crt_der( &crt, buf, (size_t)( der_len - 1 ),
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    // When using PSA crypto, RNG isn't controllable, result length isn't
+    // deterministic over multiple runs, removing a single byte isn't enough to
+    // go into the MBEDTLS_ERR_ASN1_BUF_TOO_SMALL error case
+    if( issuer_key_type != MBEDTLS_PK_RSA )
+        der_len /= 2;
+    else
+#endif
+        der_len -= 1;
+
+    ret = mbedtls_x509write_crt_der( &crt, buf, (size_t)( der_len ),
                                      mbedtls_test_rnd_pseudo_rand, &rnd_info );
     TEST_ASSERT( ret == MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
 
@@ -339,6 +396,9 @@ exit:
     mbedtls_pk_free( &subject_key );
     mbedtls_pk_free( &issuer_key );
     mbedtls_mpi_free( &serial );
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_destroy_key( key_id );
+#endif
     USE_PSA_DONE( );
 }
 /* END_CASE */

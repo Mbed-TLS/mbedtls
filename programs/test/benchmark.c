@@ -175,29 +175,38 @@ do {                                                                    \
  * Updated manually as the output of the following command:
  *
  *  sed -n 's/.*[T]IME_PUBLIC.*"\(.*\)",/\1/p' programs/test/benchmark.c |
- *      awk '{print length+2}' | sort -rn | head -n1
+ *      awk '{print length+3}' | sort -rn | head -n1
  *
- * This computes the maximum length of a title +2 (because we appends "/s").
- * (If the value is too small, the only consequence is poor alignement.) */
-#define TITLE_SPACE 16
+ * This computes the maximum length of a title +3, because we appends "/s" and
+ * want at least one space. (If the value is too small, the only consequence
+ * is poor alignement.) */
+#define TITLE_SPACE 17
 
 #define MEMORY_MEASURE_INIT                                             \
     size_t max_used, max_blocks, max_bytes;                             \
     size_t prv_used, prv_blocks;                                        \
+    size_t alloc_cnt, free_cnt, prv_alloc, prv_free;                    \
     mbedtls_memory_buffer_alloc_cur_get( &prv_used, &prv_blocks );      \
     mbedtls_memory_buffer_alloc_max_reset( );
 
+#define MEMORY_MEASURE_RESET                                            \
+    mbedtls_memory_buffer_alloc_count_get( &prv_alloc, &prv_free );
+
 #define MEMORY_MEASURE_PRINT( title_len )                               \
     mbedtls_memory_buffer_alloc_max_get( &max_used, &max_blocks );      \
+    mbedtls_memory_buffer_alloc_count_get( &alloc_cnt, &free_cnt );     \
     ii = TITLE_SPACE > (title_len) ? TITLE_SPACE - (title_len) : 1;     \
     while( ii-- ) mbedtls_printf( " " );                                \
     max_used -= prv_used;                                               \
     max_blocks -= prv_blocks;                                           \
     max_bytes = max_used + MEM_BLOCK_OVERHEAD * max_blocks;             \
-    mbedtls_printf( "%6u heap bytes", (unsigned) max_bytes );
+    mbedtls_printf( "%6u heap bytes, %6u allocs",                       \
+                    (unsigned) max_bytes,                               \
+                    (unsigned)( alloc_cnt - prv_alloc ) );
 
 #else
 #define MEMORY_MEASURE_INIT
+#define MEMORY_MEASURE_RESET
 #define MEMORY_MEASURE_PRINT( title_len )
 #endif
 
@@ -214,6 +223,7 @@ do {                                                                    \
     ret = 0;                                                            \
     for( ii = 1; ! mbedtls_timing_alarmed && ! ret ; ii++ )             \
     {                                                                   \
+        MEMORY_MEASURE_RESET;                                           \
         CODE;                                                           \
     }                                                                   \
                                                                         \
@@ -489,30 +499,6 @@ static int myrand( void *rng_state, unsigned char *output, size_t len )
         }                                                               \
     }
 
-/*
- * Clear some memory that was used to prepare the context
- */
-#if defined(MBEDTLS_ECP_C)
-void ecp_clear_precomputed( mbedtls_ecp_group *grp )
-{
-    if( grp->T != NULL
-#if MBEDTLS_ECP_FIXED_POINT_OPTIM == 1
-        && grp->T_size != 0
-#endif
-    )
-    {
-        size_t i;
-        for( i = 0; i < grp->T_size; i++ )
-            mbedtls_ecp_point_free( &grp->T[i] );
-        mbedtls_free( grp->T );
-    }
-    grp->T = NULL;
-    grp->T_size = 0;
-}
-#else
-#define ecp_clear_precomputed( g )
-#endif
-
 #if defined(MBEDTLS_ECP_C)
 static int set_ecp_curve( const char *string, mbedtls_ecp_curve_info *curve )
 {
@@ -640,6 +626,10 @@ int main( int argc, char *argv[] )
 #endif
     memset( buf, 0xAA, sizeof( buf ) );
     memset( tmp, 0xBB, sizeof( tmp ) );
+
+    /* Avoid "unused static function" warning in configurations without
+     * symmetric crypto. */
+    (void) mbedtls_timing_hardclock;
 
 #if defined(MBEDTLS_MD5_C)
     if( todo.md5 )
@@ -1078,7 +1068,6 @@ int main( int argc, char *argv[] )
 
             if( mbedtls_ecdsa_genkey( &ecdsa, curve_info->grp_id, myrand, NULL ) != 0 )
                 mbedtls_exit( 1 );
-            ecp_clear_precomputed( &ecdsa.grp );
 
             mbedtls_snprintf( title, sizeof( title ), "ECDSA-%s",
                                               curve_info->name );
@@ -1104,7 +1093,6 @@ int main( int argc, char *argv[] )
             {
                 mbedtls_exit( 1 );
             }
-            ecp_clear_precomputed( &ecdsa.grp );
 
             mbedtls_snprintf( title, sizeof( title ), "ECDSA-%s",
                                               curve_info->name );
@@ -1162,7 +1150,6 @@ int main( int argc, char *argv[] )
             CHECK_AND_CONTINUE( mbedtls_ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
                                                     myrand, NULL ) );
             CHECK_AND_CONTINUE( mbedtls_ecp_copy( &ecdh.Qp, &ecdh.Q ) );
-            ecp_clear_precomputed( &ecdh.grp );
 
             mbedtls_snprintf( title, sizeof( title ), "ECDHE-%s",
                                               curve_info->name );
@@ -1212,7 +1199,6 @@ int main( int argc, char *argv[] )
             CHECK_AND_CONTINUE( mbedtls_ecp_copy( &ecdh.Qp, &ecdh.Q ) );
             CHECK_AND_CONTINUE( mbedtls_ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
                                   myrand, NULL ) );
-            ecp_clear_precomputed( &ecdh.grp );
 
             mbedtls_snprintf( title, sizeof( title ), "ECDH-%s",
                                               curve_info->name );

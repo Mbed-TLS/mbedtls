@@ -171,7 +171,7 @@ int main( void )
  */
 
 #define MAX_DELAYED_HS 10
-uint32_t malform_counter = 0;
+size_t malform_counter = 0;
 unsigned char *malform_pattern = NULL; /* Converted to binary from hex */
 size_t malform_pattern_len = 0;
 
@@ -206,9 +206,9 @@ static struct options
                                  *     0 - no malformation.
                                  *     1 - bitflip.
                                  *     2 - memset to a pattern.             */
-    uint32_t malform_offset;    /* byte offset to start packet malformation */
-    uint8_t  malform_bit;       /* bit offset within a byte to malform      */
-    uint32_t malform_length;    /* how much data to malform in bytes        */
+    size_t malform_offset;      /* byte offset to start packet malformation */
+    size_t  malform_bit;        /* bit offset within a byte to malform      */
+    size_t malform_length;      /* how much data to malform in bytes        */
     char* malform_message;      /* which message to malform, a name as      */
                                 /* present in msg_type()                    */
                                 /* Options used in mode 2                   */
@@ -216,7 +216,7 @@ static struct options
                                  * If the pattern length is smaller than
                                  * malform_length - it will repeat. It
                                  * cannot be longer than it.                */
-    uint32_t malform_packet_num;/* which packet of a given message to
+    size_t malform_packet_num;  /* which packet of a given message to
                                  * malform. 0 - all. Currently only one
                                  * packet or all can be malformed.          */
 } opt;
@@ -708,16 +708,16 @@ static int handle_message_malformation( packet* cur )
         {
             if( opt.malform_mode == 1 )
             {
-                for( uint32_t i = 0; i < opt.malform_length; i++ )
+                for( size_t i = 0; i < opt.malform_length; i++ )
                 {
                     cur->buf[opt.malform_offset + i] ^= (1 << opt.malform_bit);
                 }
             }
             else if( opt.malform_mode == 2 )
             {
-                uint32_t copy_len = malform_pattern_len;
-                uint32_t left_len = opt.malform_length;
-                for( uint32_t i = 0; i < opt.malform_length; i+= malform_pattern_len )
+                size_t copy_len = malform_pattern_len;
+                size_t left_len = opt.malform_length;
+                for( size_t i = 0; i < opt.malform_length; i+= malform_pattern_len )
                 {
                     copy_len = ( left_len < malform_pattern_len ?
                                      left_len : malform_pattern_len );

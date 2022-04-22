@@ -624,7 +624,7 @@ ssl_dtls_replay:"abcd12340000abcd12340001abcd12340003":"abcd12350000":0
 SSL DTLS replay: delayed
 ssl_dtls_replay:"abcd12340000abcd12340001abcd12340003":"abcd12340002":0
 
-SSL DTLS replay: latest replayed
+SSL DTLS replay: last replayed
 ssl_dtls_replay:"abcd12340000abcd12340001abcd12340003":"abcd12340003":-1
 
 SSL DTLS replay: older replayed

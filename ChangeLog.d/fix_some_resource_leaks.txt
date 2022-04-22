@@ -1,0 +1,4 @@
+Bugfix
+   * Fixed resource leaks in mbedtls_pk_parse_public_key(), 
+     mbedtls_ssl_cache_set() for certain error conditions,
+     flagged by a static analyzer.

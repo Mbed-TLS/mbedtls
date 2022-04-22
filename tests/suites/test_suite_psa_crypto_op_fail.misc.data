@@ -7,8 +7,8 @@
 PSA hash: invalid algorithm
 hash_fail:PSA_ALG_ECDSA_ANY:PSA_ERROR_INVALID_ARGUMENT
 
-# For RC4, Mbed TLS only supports 128-bit keys. PSA allows 40 to 2048 bits.
-# The RC4 construction allows any whole number of bytes from 1 to 256 bytes
+# For ARC4, Mbed TLS only supports 128-bit keys. PSA allows 40 to 2048 bits.
+# The ARC4 construction allows any whole number of bytes from 1 to 256 bytes
 # (8 to 2048 bits).
 PSA cipher STREAM_CIPHER: 8-bit ARC4 never supported
 depends_on:PSA_WANT_KEY_TYPE_ARC4

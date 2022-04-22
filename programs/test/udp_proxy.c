@@ -1107,6 +1107,7 @@ int main( int argc, char *argv[] )
 accept:
     mbedtls_net_free( &client_fd );
 
+    malform_counter = 0;
     mbedtls_printf( "  . Waiting for a remote connection ..." );
     fflush( stdout );
 

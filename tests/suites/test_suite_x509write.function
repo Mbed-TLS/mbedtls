@@ -377,7 +377,7 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
         goto exit;
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    // When using PSA crypto, RNG isn't controllable, result length isn'
+    // When using PSA crypto, RNG isn't controllable, result length isn't
     // deterministic over multiple runs, removing a single byte isn't enough to
     // go into the MBEDTLS_ERR_ASN1_BUF_TOO_SMALL error case
     if( issuer_key_type != MBEDTLS_PK_RSA )

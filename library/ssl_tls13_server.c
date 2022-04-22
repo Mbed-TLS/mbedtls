@@ -90,8 +90,7 @@ static int ssl_tls13_parse_supported_versions_ext( mbedtls_ssl_context *ssl,
 }
 
 #if defined(MBEDTLS_ECDH_C)
-/* This function parses the TLS 1.3 supported_groups extension and
- * stores the received groups in ssl->handshake->curves.
+/*
  *
  * From RFC 8446:
  *   enum {
@@ -149,15 +148,14 @@ static int ssl_tls13_parse_supported_groups_ext(
 #if defined(MBEDTLS_ECDH_C)
 /*
  *  ssl_tls13_parse_key_shares_ext() verifies whether the information in the
- *  extension is correct and stores the provided key shares. Whether this is an
- *  acceptable key share depends on the selected ciphersuite.
+ *  extension is correct and stores the first acceptable key share and its associated group.
  *
  *  Possible return values are:
  *  - 0: Successful processing of the client provided key share extension.
  *  - SSL_TLS1_3_PARSE_KEY_SHARES_EXT_NO_MATCH: The key shares provided by the client
  *    does not match a group supported by the server. A HelloRetryRequest will
  *    be needed.
- *  - Another negative return value for fatal errors.
+ *  - A negative value for fatal errors.
 */
 
 static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
@@ -355,18 +353,18 @@ static int ssl_tls13_check_ephemeral_key_exchange( mbedtls_ssl_context *ssl )
 /*
  * Structure of this message:
  *
- *       uint16 ProtocolVersion;
- *       opaque Random[32];
- *       uint8 CipherSuite[2];    // Cryptographic suite selector
+ * uint16 ProtocolVersion;
+ * opaque Random[32];
+ * uint8 CipherSuite[2];    // Cryptographic suite selector
  *
- *       struct {
- *           ProtocolVersion legacy_version = 0x0303;    // TLS v1.2
- *           Random random;
- *           opaque legacy_session_id<0..32>;
- *           CipherSuite cipher_suites<2..2^16-2>;
- *           opaque legacy_compression_methods<1..2^8-1>;
- *           Extension extensions<8..2^16-1>;
- *       } ClientHello;
+ * struct {
+ *      ProtocolVersion legacy_version = 0x0303;    // TLS v1.2
+ *      Random random;
+ *      opaque legacy_session_id<0..32>;
+ *      CipherSuite cipher_suites<2..2^16-2>;
+ *      opaque legacy_compression_methods<1..2^8-1>;
+ *      Extension extensions<8..2^16-1>;
+ * } ClientHello;
  */
 
 #define SSL_CLIENT_HELLO_OK           0
@@ -392,7 +390,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     /*
      * ClientHello layout:
      *     0  .   1   protocol version
-     *     2  .  33   random bytes ( starting with 4 bytes of Unix time )
+     *     2  .  33   random bytes
      *    34  .  34   session id length ( 1 byte )
      *    35  . 34+x  session id
      *    ..  .  ..   ciphersuite list length ( 2 bytes )
@@ -458,7 +456,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
 
     ssl->session_negotiate->id_len = legacy_session_id_len;
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, session id",
-                           buf, legacy_session_id_len );
+                           p, legacy_session_id_len );
     /*
      * Check we have enough data for the legacy session identifier
      * and the ciphersuite list  length.
@@ -490,15 +488,15 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
      * Search for a matching ciphersuite
      */
     int ciphersuite_match = 0;
-    ciphersuite_info = NULL;
     for ( ; p < cipher_suites_end; p += 2 )
     {
-        uint16_t cipher_suite = MBEDTLS_GET_UINT16_BE( p, 0 );
-        ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(
-                               cipher_suite );
+        uint16_t cipher_suite;
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, cipher_suites_end, 2 );
+        cipher_suite = MBEDTLS_GET_UINT16_BE( p, 0 );
+        ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( cipher_suite );
         /*
-        * Check whether this ciphersuite is valid and offered.
-        */
+         * Check whether this ciphersuite is valid and offered.
+         */
         if( ( mbedtls_ssl_validate_ciphersuite(
             ssl, ciphersuite_info, ssl->tls_version,
             ssl->tls_version ) != 0 ) ||
@@ -548,8 +546,8 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
      */
     extensions_len = MBEDTLS_GET_UINT16_BE( p, 0 );
     p += 2;
-    extensions_end = p + extensions_len;
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, extensions_len );
+    extensions_end = p + extensions_len;
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello extensions", p, extensions_len );
 
@@ -686,8 +684,6 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
-/* Update the handshake state machine */
-
 static int ssl_tls13_postprocess_client_hello( mbedtls_ssl_context* ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -700,7 +696,6 @@ static int ssl_tls13_postprocess_client_hello( mbedtls_ssl_context* ssl )
         return( ret );
     }
 
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_HELLO );
     return( 0 );
 
 }
@@ -723,8 +718,8 @@ static int ssl_tls13_process_client_hello( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_PROC_CHK_NEG( ssl_tls13_parse_client_hello( ssl, buf,
                                                             buf + buflen ) );
-    MBEDTLS_SSL_DEBUG_MSG( 1, ( "postprocess" ) );
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_postprocess_client_hello( ssl ) );
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_HELLO );
 
 cleanup:
 
@@ -733,7 +728,7 @@ cleanup:
 }
 
 /*
- * TLS 1.3 State Maschine -- server side
+ * TLS 1.3 State Machine -- server side
  */
 int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
 {

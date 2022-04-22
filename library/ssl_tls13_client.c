@@ -416,30 +416,6 @@ cleanup:
     return( ret );
 }
 
-#if defined(MBEDTLS_ECDH_C)
-
-static int ssl_tls13_read_public_ecdhe_share( mbedtls_ssl_context *ssl,
-                                              const unsigned char *buf,
-                                              size_t buf_len )
-{
-    uint8_t *p = (uint8_t*)buf;
-    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
-
-    /* Get size of the TLS opaque key_exchange field of the KeyShareEntry struct. */
-    uint16_t peerkey_len = MBEDTLS_GET_UINT16_BE( p, 0 );
-    p += 2;
-
-    /* Check if key size is consistent with given buffer length. */
-    if ( peerkey_len > ( buf_len - 2 ) )
-        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
-
-    /* Store peer's ECDH public key. */
-    memcpy( handshake->ecdh_psa_peerkey, p, peerkey_len );
-    handshake->ecdh_psa_peerkey_len = peerkey_len;
-
-    return( 0 );
-}
-#endif /* MBEDTLS_ECDH_C */
 
 /*
  * ssl_tls13_parse_hrr_key_share_ext()
@@ -564,7 +540,7 @@ static int ssl_tls13_parse_key_share_ext( mbedtls_ssl_context *ssl,
 
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDH curve: %s", curve_info->name ) );
 
-        ret = ssl_tls13_read_public_ecdhe_share( ssl, p, end - p );
+        ret = mbedtls_ssl_tls13_read_public_ecdhe_share( ssl, p, end - p );
         if( ret != 0 )
             return( ret );
     }
@@ -1000,22 +976,6 @@ static int ssl_tls13_check_server_hello_session_id_echo( mbedtls_ssl_context *ss
     return( 0 );
 }
 
-static int ssl_tls13_cipher_suite_is_offered( mbedtls_ssl_context *ssl,
-                                              int cipher_suite )
-{
-    const int *ciphersuite_list = ssl->conf->ciphersuite_list;
-
-    /* Check whether we have offered this ciphersuite */
-    for ( size_t i = 0; ciphersuite_list[i] != 0; i++ )
-    {
-        if( ciphersuite_list[i] == cipher_suite )
-        {
-            return( 1 );
-        }
-    }
-    return( 0 );
-}
-
 /* Parse ServerHello message and configure context
  *
  * struct {
@@ -1115,7 +1075,7 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
     if( ( mbedtls_ssl_validate_ciphersuite( ssl, ciphersuite_info,
                                             ssl->tls_version,
                                             ssl->tls_version ) != 0 ) ||
-        !ssl_tls13_cipher_suite_is_offered( ssl, cipher_suite ) )
+        !mbedtls_ssl_tls13_cipher_suite_is_offered( ssl, cipher_suite ) )
     {
         fatal_alert = MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
     }

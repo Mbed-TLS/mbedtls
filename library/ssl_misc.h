@@ -582,9 +582,14 @@ struct mbedtls_ssl_handshake_params
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #if defined(MBEDTLS_SSL_CLI_C)
-    /*!<  Number of Hello Retry Request messages received from the server.  */
+    /** Number of Hello Retry Request messages received from the server.  */
     int hello_retry_request_count;
 #endif /* MBEDTLS_SSL_CLI_C */
+
+#if defined(MBEDTLS_SSL_SRV_C)
+    /** selected_group of key_share extension in HelloRetryRequest message. */
+    uint16_t hrr_selected_group;
+#endif /* MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
@@ -1856,6 +1861,39 @@ static inline int mbedtls_ssl_tls13_named_group_is_dhe( uint16_t named_group )
             named_group <= MBEDTLS_SSL_IANA_TLS_GROUP_FFDHE8192 );
 }
 
+static inline int mbedtls_ssl_named_group_is_offered(
+                        const mbedtls_ssl_context *ssl, uint16_t named_group )
+{
+    const uint16_t *group_list = mbedtls_ssl_get_groups( ssl );
+
+    if( group_list == NULL )
+        return( 0 );
+
+    for( ; *group_list != 0; group_list++ )
+    {
+        if( *group_list == named_group )
+            return( 1 );
+    }
+
+    return( 0 );
+}
+
+static inline int mbedtls_ssl_named_group_is_supported( uint16_t named_group )
+{
+#if defined(MBEDTLS_ECDH_C)
+    if( mbedtls_ssl_tls13_named_group_is_ecdhe( named_group ) )
+    {
+        const mbedtls_ecp_curve_info *curve_info =
+            mbedtls_ecp_curve_info_from_tls_id( named_group );
+        if( curve_info != NULL )
+            return( 1 );
+    }
+#else
+    ((void) named_group);
+#endif /* MBEDTLS_ECDH_C */
+    return( 0 );
+}
+
 /*
  * Return supported signature algorithms.
  *
@@ -2171,5 +2209,45 @@ static inline int psa_ssl_status_to_mbedtls( psa_status_t status )
     }
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3 */
+
+#if defined(MBEDTLS_ECDH_C)
+
+int mbedtls_ssl_tls13_read_public_ecdhe_share( mbedtls_ssl_context *ssl,
+                                               const unsigned char *buf,
+                                               size_t buf_len );
+
+#endif /* MBEDTLS_ECDH_C */
+
+static inline int mbedtls_ssl_tls13_cipher_suite_is_offered(
+        mbedtls_ssl_context *ssl, int cipher_suite )
+{
+    const int *ciphersuite_list = ssl->conf->ciphersuite_list;
+
+    /* Check whether we have offered this ciphersuite */
+    for ( size_t i = 0; ciphersuite_list[i] != 0; i++ )
+    {
+        if( ciphersuite_list[i] == cipher_suite )
+        {
+            return( 1 );
+        }
+    }
+    return( 0 );
+}
+
+/**
+ * \brief Validate cipher suite against config in SSL context.
+ *
+ * \param ssl              SSL context
+ * \param suite_info       Cipher suite to validate
+ * \param min_tls_version  Minimal TLS version to accept a cipher suite
+ * \param max_tls_version  Maximal TLS version to accept a cipher suite
+ *
+ * \return 0 if valid, negative value otherwise.
+ */
+int mbedtls_ssl_validate_ciphersuite(
+    const mbedtls_ssl_context *ssl,
+    const mbedtls_ssl_ciphersuite_t *suite_info,
+    mbedtls_ssl_protocol_version min_tls_version,
+    mbedtls_ssl_protocol_version max_tls_version );
 
 #endif /* ssl_misc.h */

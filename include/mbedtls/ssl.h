@@ -488,6 +488,7 @@
 #define MBEDTLS_SSL_ALERT_MSG_INAPROPRIATE_FALLBACK 86  /* 0x56 */
 #define MBEDTLS_SSL_ALERT_MSG_USER_CANCELED         90  /* 0x5A */
 #define MBEDTLS_SSL_ALERT_MSG_NO_RENEGOTIATION     100  /* 0x64 */
+#define MBEDTLS_SSL_ALERT_MSG_MISSING_EXTENSION    109  /* 0x6d -- new in TLS 1.3 */
 #define MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT      110  /* 0x6E */
 #define MBEDTLS_SSL_ALERT_MSG_UNRECOGNIZED_NAME    112  /* 0x70 */
 #define MBEDTLS_SSL_ALERT_MSG_UNKNOWN_PSK_IDENTITY 115  /* 0x73 */
@@ -641,6 +642,7 @@ typedef enum
     MBEDTLS_SSL_SERVER_NEW_SESSION_TICKET,
     MBEDTLS_SSL_SERVER_HELLO_VERIFY_REQUEST_SENT,
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    MBEDTLS_SSL_HELLO_RETRY_REQUEST,
     MBEDTLS_SSL_ENCRYPTED_EXTENSIONS,
     MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY,
 #if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
@@ -1372,7 +1374,6 @@ struct mbedtls_ssl_config
     int (*MBEDTLS_PRIVATE(f_ticket_parse))( void *, mbedtls_ssl_session *, unsigned char *, size_t);
     void *MBEDTLS_PRIVATE(p_ticket);                 /*!< context for the ticket callbacks   */
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_SRV_C */
-
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     size_t MBEDTLS_PRIVATE(cid_len); /*!< The length of CIDs for incoming DTLS records.      */
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */

@@ -412,45 +412,6 @@ static int ssl_write_sig_alg_ext( mbedtls_ssl_context *ssl, unsigned char *buf,
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
-int mbedtls_ssl_validate_ciphersuite(
-    const mbedtls_ssl_context *ssl,
-    const mbedtls_ssl_ciphersuite_t *suite_info,
-    mbedtls_ssl_protocol_version min_tls_version,
-    mbedtls_ssl_protocol_version max_tls_version )
-{
-    (void) ssl;
-
-    if( suite_info == NULL )
-        return( -1 );
-
-    if( ( suite_info->min_tls_version > max_tls_version ) ||
-        ( suite_info->max_tls_version < min_tls_version ) )
-    {
-        return( -1 );
-    }
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
-#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
-    if( suite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE &&
-        mbedtls_ecjpake_check( &ssl->handshake->ecjpake_ctx ) != 0 )
-    {
-        return( -1 );
-    }
-#endif
-
-    /* Don't suggest PSK-based ciphersuite if no PSK is available. */
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
-    if( mbedtls_ssl_ciphersuite_uses_psk( suite_info ) &&
-        mbedtls_ssl_conf_has_static_psk( ssl->conf ) == 0 )
-    {
-        return( -1 );
-    }
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
-
-    return( 0 );
-}
-
 static int ssl_write_client_hello_cipher_suites(
             mbedtls_ssl_context *ssl,
             unsigned char *buf,

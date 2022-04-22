@@ -115,8 +115,8 @@ int mbedtls_ssl_tls13_parse_sig_alg_ext( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG( 4, ( "received signature algorithm: 0x%x",
                                     sig_alg ) );
 
-        if( ! mbedtls_ssl_sig_alg_is_offered( ssl, sig_alg ) ||
-            ! mbedtls_ssl_sig_alg_is_supported( ssl, sig_alg ) )
+        if( ! mbedtls_ssl_sig_alg_is_supported( ssl, sig_alg ) ||
+            ! mbedtls_ssl_sig_alg_is_offered( ssl, sig_alg ) )
             continue;
 
         if( common_idx + 1 < MBEDTLS_RECEIVED_SIG_ALGS_SIZE )
@@ -1510,5 +1510,31 @@ int mbedtls_ssl_reset_transcript_for_hrr( mbedtls_ssl_context *ssl )
 
     return( ret );
 }
+
+#if defined(MBEDTLS_ECDH_C)
+
+int mbedtls_ssl_tls13_read_public_ecdhe_share( mbedtls_ssl_context *ssl,
+                                               const unsigned char *buf,
+                                               size_t buf_len )
+{
+    uint8_t *p = (uint8_t*)buf;
+    const uint8_t *end = buf + buf_len;
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+
+    /* Get size of the TLS opaque key_exchange field of the KeyShareEntry struct. */
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
+    uint16_t peerkey_len = MBEDTLS_GET_UINT16_BE( p, 0 );
+    p += 2;
+
+    /* Check if key size is consistent with given buffer length. */
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, peerkey_len );
+
+    /* Store peer's ECDH public key. */
+    memcpy( handshake->ecdh_psa_peerkey, p, peerkey_len );
+    handshake->ecdh_psa_peerkey_len = peerkey_len;
+
+    return( 0 );
+}
+#endif /* MBEDTLS_ECDH_C */
 
 #endif /* MBEDTLS_SSL_TLS_C && MBEDTLS_SSL_PROTO_TLS1_3 */

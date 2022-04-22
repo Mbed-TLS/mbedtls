@@ -39,6 +39,8 @@ else()
     project("Mbed TLS" C)
 endif()
 
+include(GNUInstallDirs)
+
 # Set the project root directory.
 set(MBEDTLS_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -259,8 +261,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
 endif(CMAKE_BUILD_TYPE STREQUAL "Coverage")
 
 if(LIB_INSTALL_DIR)
-else()
-    set(LIB_INSTALL_DIR lib)
+    set(CMAKE_INSTALL_LIBDIR "${LIB_INSTALL_DIR}")
 endif()
 
 if(ENABLE_ZLIB_SUPPORT)

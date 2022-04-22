@@ -170,7 +170,7 @@ void x509_csr_check_opaque( char *key_file, int md_type, int key_usage,
 {
     mbedtls_pk_context key;
     mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
-    psa_algorithm_t md_alg_psa;
+    psa_algorithm_t md_alg_psa, alg_psa;
     mbedtls_x509write_csr req;
     unsigned char buf[4096];
     int ret;
@@ -187,7 +187,17 @@ void x509_csr_check_opaque( char *key_file, int md_type, int key_usage,
     mbedtls_pk_init( &key );
     TEST_ASSERT( mbedtls_pk_parse_keyfile( &key, key_file, NULL,
                         mbedtls_test_rnd_std_rand, NULL ) == 0 );
-    TEST_ASSERT( mbedtls_pk_wrap_as_opaque( &key, &key_id, md_alg_psa ) == 0 );
+
+    if( mbedtls_pk_get_type( &key ) == MBEDTLS_PK_ECKEY )
+        alg_psa = PSA_ALG_ECDSA( md_alg_psa );
+    else if( mbedtls_pk_get_type( &key ) == MBEDTLS_PK_RSA )
+        alg_psa = PSA_ALG_RSA_PKCS1V15_SIGN( md_alg_psa );
+    else
+        TEST_ASSUME( ! "PK key type not supported in this configuration" );
+
+    TEST_ASSERT( mbedtls_pk_wrap_as_opaque( &key, &key_id, alg_psa,
+                                            PSA_KEY_USAGE_SIGN_HASH,
+                                            PSA_ALG_NONE ) == 0 );
 
     mbedtls_x509write_csr_init( &req );
     mbedtls_x509write_csr_set_md_alg( &req, md_type );
@@ -280,12 +290,21 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
     /* For Opaque PK contexts, wrap key as an Opaque RSA context. */
     if( pk_wrap == 2 )
     {
-        psa_algorithm_t md_alg_psa =
-            mbedtls_psa_translate_md( (mbedtls_md_type_t) md_type );
+        psa_algorithm_t alg_psa, md_alg_psa;
 
+        md_alg_psa = mbedtls_psa_translate_md( (mbedtls_md_type_t) md_type );
         TEST_ASSERT( md_alg_psa != MBEDTLS_MD_NONE );
-        TEST_ASSERT( mbedtls_pk_wrap_as_opaque( &issuer_key, &key_id,
-                                                md_alg_psa ) == 0 );
+
+        if( mbedtls_pk_get_type( &issuer_key ) == MBEDTLS_PK_ECKEY )
+            alg_psa = PSA_ALG_ECDSA( md_alg_psa );
+        else if( mbedtls_pk_get_type( &issuer_key ) == MBEDTLS_PK_RSA )
+            alg_psa = PSA_ALG_RSA_PKCS1V15_SIGN( md_alg_psa );
+        else
+            TEST_ASSUME( ! "PK key type not supported in this configuration" );
+
+        TEST_ASSERT( mbedtls_pk_wrap_as_opaque( &issuer_key, &key_id, alg_psa,
+                                                PSA_KEY_USAGE_SIGN_HASH,
+                                                PSA_ALG_NONE ) == 0 );
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 

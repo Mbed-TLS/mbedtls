@@ -2521,6 +2521,8 @@ void aead_decrypt_setup( int key_type_arg, data_t *key_data,
         TEST_EQUAL( mbedtls_test_driver_aead_hooks.hits_update,
                     forced_status == PSA_SUCCESS ? 1 : 0 );
 
+        /* Offset applied to output_data in order to handle cases where verify()
+         * outputs further data */
         PSA_ASSERT( psa_aead_verify( &operation, output_data + output_length,
                                      output_size - output_length,
                                      &verify_output_length, input_tag->x,
@@ -2529,6 +2531,8 @@ void aead_decrypt_setup( int key_type_arg, data_t *key_data,
         TEST_EQUAL( mbedtls_test_driver_aead_hooks.hits_verify,
                     forced_status == PSA_SUCCESS ? 1 : 0 );
 
+        /* Since this is a decryption operation,
+         * finish should never be hit */
         TEST_EQUAL( mbedtls_test_driver_aead_hooks.hits_finish, 0 );
 
         TEST_EQUAL( mbedtls_test_driver_aead_hooks.hits_abort,

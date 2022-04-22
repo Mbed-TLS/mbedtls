@@ -102,13 +102,15 @@ int main( void )
 #define USAGE_MALFORM                                                       \
     "    malform_mode=%%s     default: 0 (no data malformation)\n"          \
     "                                 1 (perform a bitflip at a location)\n" \
-    "                                 2 (memset packet info with a pattern)\n" \
-    "    malform_length=%%d   default: 0 (no data malformation)\n"         \
-    "    malform_offset=%%d   default: 0 (start at the beginning of a packet)\n" \
+    "                                 2 (memset packet data with a pattern)\n" \
+    "                                 3 (substitute the whole packet)\n"    \
+    "    malform_length=%%d   default: 0 (no data malformation)\n"          \
+    "    malform_offset=%%d   default: 0 (where to start the malformation,\n" \
+    "                                   unused in mode 3)\n"                \
     "    malform_bit=%%d      default: 0 (bit to perform the bitflip on,\n" \
-    "                                   used only in mode 1)\n"            \
-    "    malform_packet_num=%%d default:0 (which packet to malform,\n"     \
-    "                                      zero means all)\n"               \
+    "                                   used only in mode 1)\n"             \
+    "    malform_packet_num=%%d default:0 (which packet of a given type\n"  \
+    "                                    to malform, zero means all)\n"     \
     "    malform_message=%%s  Which message to malform. Acceptable values:\n"\
     "                        HelloRequest, ClientHello, ServerHello,\n"     \
     "                        HelloVerifyRequest, NewSessionTicket,\n"       \
@@ -117,10 +119,10 @@ int main( void )
     "                        CertificateVerify, ClientKeyExchange,\n"       \
     "                        Finished, ChangeCipherSpec, Alert,\n"          \
     "                        ApplicationData, CID\n"                        \
-    "    malform_pattern=%%s  What pattern to use in mode 2, in hex. If\n"  \
-    "                        the pattern length is smaller than\n"          \
-    "                        malform_length - it will repeat. It cannot\n"  \
-    "                        be longer.\n"
+    "    malform_pattern=%%s  What pattern to use in mode 2 and 3, in hex.\n" \
+    "                        For mode 2, if the pattern length is smaller\n" \
+    "                        than malform_length - it will repeat. It\n"    \
+    "                        cannot be longer.\n"
 #define USAGE                                                               \
     "\n usage: udp_proxy param=<>...\n"                                     \
     "\n acceptable parameters:\n"                                           \
@@ -163,6 +165,7 @@ int main( void )
     "\n"                                                                    \
     "    seed=%%d             default: (use current time)\n"                \
     USAGE_PACK                                                              \
+    "\n"                                                                    \
     USAGE_MALFORM                                                           \
     "\n"
 
@@ -205,7 +208,9 @@ static struct options
     uint8_t malform_mode;       /* How to malform the data of a message:
                                  *     0 - no malformation.
                                  *     1 - bitflip.
-                                 *     2 - memset to a pattern.             */
+                                 *     2 - memset to a pattern.
+                                 *     3 - memset to a pattern and modify
+                                 *     the packet size accordingly.         */
     size_t malform_offset;      /* byte offset to start packet malformation */
     size_t  malform_bit;        /* bit offset within a byte to malform      */
     size_t malform_length;      /* how much data to malform in bytes        */
@@ -438,10 +443,10 @@ static int validate_malformation_options()
                         " no mode chosen.\n");
         return( 1 );
     }
-    if( opt.malform_mode == 2 && ( malform_pattern_len == 0 ||
-                                   opt.malform_pattern == NULL ) )
+    if( ( opt.malform_mode == 2 || opt.malform_mode == 3 ) &&
+            ( malform_pattern_len == 0 || opt.malform_pattern == NULL ) )
     {
-        mbedtls_printf( " Malformation by a pattern chosen but"
+        mbedtls_printf( " Malformation by a pattern / substitution chosen but"
                         " the pattern was not specified.\n");
         return( 1 );
     }
@@ -717,6 +722,12 @@ static int handle_message_malformation( packet* cur )
             {
                 size_t copy_len = malform_pattern_len;
                 size_t left_len = opt.malform_length;
+                if( opt.malform_length > cur->len )
+                {
+                    mbedtls_printf( "packet malformation longer than packet "
+                                    "requested. Aborting");
+                    return 1;
+                }
                 for( size_t i = 0; i < opt.malform_length; i+= malform_pattern_len )
                 {
                     copy_len = ( left_len < malform_pattern_len ?
@@ -725,8 +736,11 @@ static int handle_message_malformation( packet* cur )
                                 opt.malform_pattern, copy_len );
                     left_len -= copy_len;
                 }
-                if( cur->len < opt.malform_length )
-                    cur->len = opt.malform_length;
+            }
+            else if( opt.malform_mode == 3 )
+            {
+                memcpy( &cur->buf[0], opt.malform_pattern, malform_pattern_len );
+                cur->len = (unsigned) opt.malform_length;
             }
             PRINT_DEBUG_BUF( "malformed packet", cur->buf, cur->len );
         }
@@ -928,7 +942,10 @@ int handle_message( const char *way,
     print_packet( &cur, NULL );
 
     if( opt.malform_mode )
-        handle_message_malformation( &cur );
+    {
+        if( handle_message_malformation( &cur ) != 0 )
+            return 1;
+    }
 
     id = cur.len % sizeof( held );
 

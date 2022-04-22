@@ -527,6 +527,13 @@ static size_t mbedtls_internal_sha512_process_many_a64_crypto(
     return( processed );
 }
 
+#if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT)
+/*
+ * This function is for internal use only if we are building both C and A64
+ * versions, otherwise it is renamed to be the public mbedtls_internal_sha512_process()
+ */
+static
+#endif
 int mbedtls_internal_sha512_process_a64_crypto( mbedtls_sha512_context *ctx,
                               const unsigned char data[SHA512_BLOCK_SIZE] )
 {
@@ -545,6 +552,13 @@ int mbedtls_internal_sha512_process_a64_crypto( mbedtls_sha512_context *ctx,
 
 #if !defined(MBEDTLS_SHA512_PROCESS_ALT) && !defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY)
 
+#if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT)
+/*
+ * This function is for internal use only if we are building both C and A64
+ * versions, otherwise it is renamed to be the public mbedtls_internal_sha512_process()
+ */
+static
+#endif
 int mbedtls_internal_sha512_process_c( mbedtls_sha512_context *ctx,
                                        const unsigned char data[SHA512_BLOCK_SIZE] )
 {
@@ -676,7 +690,7 @@ static size_t mbedtls_internal_sha512_process_many_c(
 
 #if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT)
 
-int mbedtls_a64_crypto_sha512_has_support( void )
+static int mbedtls_a64_crypto_sha512_has_support( void )
 {
     static int done = 0;
     static int supported = 0;

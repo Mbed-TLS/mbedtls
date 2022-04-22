@@ -773,7 +773,7 @@ static int ssl_tls13_write_server_hello_supported_versions_ext(
 {
     *out_len = 0;
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, write selected_version" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, write selected version" ) );
 
     /* Check if we have space to write the extension:
      * - extension_type         (2 bytes)
@@ -802,18 +802,16 @@ static int ssl_tls13_write_server_hello_supported_versions_ext(
 
 /* Generate and export a single key share. For hybrid KEMs, this can
  * be called multiple times with the different components of the hybrid. */
-static int ssl_tls13_key_share_encapsulate( mbedtls_ssl_context *ssl,
-                                            uint16_t named_group,
-                                            unsigned char *buf,
-                                            unsigned char *end,
-                                            size_t *out_len )
+static int ssl_tls13_generate_and_write_key_share( mbedtls_ssl_context *ssl,
+                                                   uint16_t named_group,
+                                                   unsigned char *buf,
+                                                   unsigned char *end,
+                                                   size_t *out_len )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    ((void) ssl);
-    ((void) named_group);
-    ((void) buf);
-    ((void) end);
-    ((void) out_len);
+
+    *out_len = 0;
+
 #if defined(MBEDTLS_ECDH_C)
     if( mbedtls_ssl_tls13_named_group_is_ecdhe( named_group ) )
     {
@@ -834,6 +832,10 @@ static int ssl_tls13_key_share_encapsulate( mbedtls_ssl_context *ssl,
     }
     else
     {
+        ((void) ssl);
+        ((void) named_group);
+        ((void) buf);
+        ((void) end);
         ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
     }
 
@@ -858,12 +860,11 @@ static int ssl_tls13_write_key_share_ext( mbedtls_ssl_context *ssl,
                                           unsigned char *end,
                                           size_t *out_len )
 {
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *p = buf;
     uint16_t group = ssl->handshake->offered_group_id;
     unsigned char *server_share = buf + 4;
-    unsigned char *p_key_exchange_len = buf + 6;
     size_t key_exchange_length;
-    int ret;
 
     *out_len = 0;
 
@@ -882,16 +883,17 @@ static int ssl_tls13_write_key_share_ext( mbedtls_ssl_context *ssl,
 
     /* When we introduce PQC-ECDHE hybrids, we'll want to call this
      * function multiple times. */
-    ret = ssl_tls13_key_share_encapsulate( ssl, group, p_key_exchange_len + 2,
-                                           end, &key_exchange_length );
+    ret = ssl_tls13_generate_and_write_key_share(
+              ssl, group, p_key_exchange_len + 2, end, &key_exchange_length );
     if( ret != 0 )
         return( ret );
     p += key_exchange_length;
-    MBEDTLS_PUT_UINT16_BE( key_exchange_length, p_key_exchange_len, 0 );
+    MBEDTLS_PUT_UINT16_BE( key_exchange_length, server_share + 2, 0 );
 
     MBEDTLS_PUT_UINT16_BE( p - server_share, buf, 2 );
 
     *out_len = p - buf;
+
     return( 0 );
 }
 
@@ -913,14 +915,10 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
                                               unsigned char *end,
                                               size_t *out_len )
 {
-    int ret = 0;
-    size_t output_len;               /* Length of buffer used by function */
-    unsigned char *server_randbytes =
-                    ssl->handshake->randbytes + MBEDTLS_CLIENT_HELLO_RANDOM_LEN;
-
-    /* Buffer management */
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *p = buf;
     unsigned char *p_extensions_len;
+    size_t output_len;               /* Length of buffer used by function */
 
     *out_len = 0;
 
@@ -941,14 +939,11 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
      * opaque Random[MBEDTLS_SERVER_HELLO_RANDOM_LEN];
      */
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, MBEDTLS_SERVER_HELLO_RANDOM_LEN );
-    memcpy( p, server_randbytes, MBEDTLS_SERVER_HELLO_RANDOM_LEN );
-    MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, random bytes",
+    memcpy( p, &ssl->handshake->randbytes[MBEDTLS_CLIENT_HELLO_RANDOM_LEN],
+               MBEDTLS_SERVER_HELLO_RANDOM_LEN );
+    MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, random bytes",
                            p, MBEDTLS_SERVER_HELLO_RANDOM_LEN );
     p += MBEDTLS_SERVER_HELLO_RANDOM_LEN;
-
-#if defined(MBEDTLS_HAVE_TIME)
-    ssl->session_negotiate->start = time( NULL );
-#endif /* MBEDTLS_HAVE_TIME */
 
     /* ...
      * opaque legacy_session_id_echo<0..32>;
@@ -961,9 +956,7 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
         memcpy( p, &ssl->session_negotiate->id[0],
                 ssl->session_negotiate->id_len );
         p += ssl->session_negotiate->id_len;
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "session id length ( %"
-                                        MBEDTLS_PRINTF_SIZET " )",
-                                    ssl->session_negotiate->id_len ) );
+
         MBEDTLS_SSL_DEBUG_BUF( 3, "session id", ssl->session_negotiate->id,
                                ssl->session_negotiate->id_len );
     }
@@ -1002,19 +995,17 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
     p_extensions_len = p;
     p += 2;
 
-    /* Add supported_version extension */
     if( ( ret = ssl_tls13_write_server_hello_supported_versions_ext(
                                             ssl, p, end, &output_len ) ) != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_write_selected_version_ext",
-                               ret );
+        MBEDTLS_SSL_DEBUG_RET(
+            1, "ssl_tls13_write_server_hello_supported_versions_ext", ret );
         return( ret );
     }
     p += output_len;
 
     if( mbedtls_ssl_conf_tls13_some_ephemeral_enabled( ssl ) )
     {
-        /* Add key_share extension */
         ret = ssl_tls13_write_key_share_ext( ssl, p, end, &output_len );
         if( ret != 0 )
             return( ret );

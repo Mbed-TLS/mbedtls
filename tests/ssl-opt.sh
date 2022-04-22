@@ -10504,11 +10504,10 @@ run_test    "TLS 1.3: Server side check - gnutls" \
             -s "=> parse client hello" \
             -s "<= parse client hello"
 
-requires_gnutls_tls1_3
-requires_gnutls_next_no_ticket
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3: Server side check - mbedtls" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
             "$P_CLI debug_level=4 force_version=tls13" \

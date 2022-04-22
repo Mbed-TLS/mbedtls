@@ -1,0 +1,3 @@
+Changes
+   * cmake: Fix runtime library install location in mingw
+     This install DLLs in bin directory instead of lib.

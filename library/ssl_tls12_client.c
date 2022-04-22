@@ -73,7 +73,9 @@ int mbedtls_ssl_conf_has_static_psk( mbedtls_ssl_config const *conf )
     return( 0 );
 }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && \
+    ( defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED ) || \
+      defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED) )
 static int ssl_conf_has_static_raw_psk( mbedtls_ssl_config const *conf )
 {
     if( conf->psk_identity     == NULL ||
@@ -87,7 +89,9 @@ static int ssl_conf_has_static_raw_psk( mbedtls_ssl_config const *conf )
 
     return( 0 );
 }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO &&
+          ( MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED ||
+            MBEDTLS_KEY_EXCHANGE_PSK_ENABLED ) */
 
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 

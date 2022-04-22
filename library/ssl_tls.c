@@ -5001,8 +5001,13 @@ static int ssl_set_handshake_prfs( mbedtls_ssl_handshake_params *handshake,
     return( 0 );
 }
 
-#if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED) && \
-    defined(MBEDTLS_USE_PSA_CRYPTO)
+
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO) &&                   \
+    ( defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED) ||       \
+      defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED) ||   \
+      defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) || \
+      defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED) )
 static int ssl_use_opaque_psk( mbedtls_ssl_context const *ssl )
 {
     if( ssl->conf->f_psk != NULL )
@@ -5021,7 +5026,10 @@ static int ssl_use_opaque_psk( mbedtls_ssl_context const *ssl )
     return( 0 );
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO &&
-          MBEDTLS_KEY_EXCHANGE_PSK_ENABLED */
+          ( MBEDTLS_KEY_EXCHANGE_PSK_ENABLED ||
+            MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED ||
+            MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED ||
+            MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED ) */
 
 /*
  * Compute master secret if needed
@@ -5093,10 +5101,11 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
     }
 #endif /* MBEDTLS_SSL_EXTENDED_MS_ENABLED */
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO) &&                 \
-    ( defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED) ||     \
-      defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED) || \
-      defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) )
+#if defined(MBEDTLS_USE_PSA_CRYPTO) &&                   \
+    ( defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED) ||       \
+      defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED) ||   \
+      defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) || \
+      defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED) )
     if( ( handshake->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK ||
           handshake->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK ||
           handshake->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK ||

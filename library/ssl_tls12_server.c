@@ -171,7 +171,10 @@ static int ssl_conf_has_psk_or_cb( mbedtls_ssl_config const *conf )
     return( 0 );
 }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && \
+    ( defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED ) || \
+      defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED) ||        \
+      defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED) )
 static int ssl_use_opaque_psk( mbedtls_ssl_context const *ssl )
 {
     if( ssl->conf->f_psk != NULL )
@@ -190,7 +193,10 @@ static int ssl_use_opaque_psk( mbedtls_ssl_context const *ssl )
 
     return( 0 );
 }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO &&
+          ( MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED ||
+            MBEDTLS_KEY_EXCHANGE_PSK_ENABLED ||
+            MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED) */
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
 static int ssl_parse_renegotiation_info( mbedtls_ssl_context *ssl,

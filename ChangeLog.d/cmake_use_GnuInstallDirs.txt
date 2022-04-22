@@ -1,0 +1,5 @@
+Changes
+   * cmake: Use GnuInstallDirs to customize install directories
+     Replace custom LIB_INSTALL_DIR variable with standard CMAKE_INSTALL_LIBDIR
+     variable. For backward compatibility, set CMAKE_INSTALL_LIBDIR if
+     LIB_INSTALL_DIR is set.

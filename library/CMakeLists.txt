@@ -291,7 +291,7 @@ foreach(target IN LISTS target_libraries)
     install(
         TARGETS ${target}
         EXPORT MbedTLSTargets
-        DESTINATION ${LIB_INSTALL_DIR}
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}
         PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
 endforeach(target)
 

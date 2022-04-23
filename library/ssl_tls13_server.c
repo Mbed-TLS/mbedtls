@@ -106,9 +106,9 @@ static int ssl_tls13_parse_supported_versions_ext( mbedtls_ssl_context *ssl,
  *       NamedGroup named_group_list<2..2^16-1>;
  *   } NamedGroupList;
  */
-static int ssl_tls13_parse_supported_groups_ext(
-                mbedtls_ssl_context *ssl,
-                const unsigned char *buf, const unsigned char *end )
+static int ssl_tls13_parse_supported_groups_ext( mbedtls_ssl_context *ssl,
+                                                 const unsigned char *buf,
+                                                 const unsigned char *end )
 {
     const unsigned char *p = buf;
     size_t named_group_list_len;
@@ -129,7 +129,10 @@ static int ssl_tls13_parse_supported_groups_ext(
         named_group = MBEDTLS_GET_UINT16_BE( p, 0 );
         p += 2;
 
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "got named group: %d", named_group ) );
+        MBEDTLS_SSL_DEBUG_MSG( 2,
+                               ( "got named group: %s(%04x)",
+                                 mbedtls_ssl_named_group_to_str( named_group ),
+                                 named_group ) );
 
         if( ! mbedtls_ssl_named_group_is_offered( ssl, named_group ) ||
             ! mbedtls_ssl_named_group_is_supported( named_group ) ||
@@ -138,9 +141,11 @@ static int ssl_tls13_parse_supported_groups_ext(
             continue;
         }
 
-        MBEDTLS_SSL_DEBUG_MSG(
-                2, ( "add named group (%04x) into received list.",
-                     named_group ) );
+        MBEDTLS_SSL_DEBUG_MSG( 2,
+                               ( "add named group %s(%04x) into received list.",
+                                 mbedtls_ssl_named_group_to_str( named_group ),
+                                 named_group ) );
+
         ssl->handshake->hrr_selected_group = named_group;
     }
 
@@ -162,8 +167,7 @@ static int ssl_tls13_parse_supported_groups_ext(
  *    does not match a group supported by the server. A HelloRetryRequest will
  *    be needed.
  *  - A negative value for fatal errors.
-*/
-
+ */
 static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
                                            const unsigned char *buf,
                                            const unsigned char *end )
@@ -171,8 +175,7 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char const *p = buf;
     unsigned char const *client_shares_end;
-    size_t client_shares_len, key_exchange_len;
-    int match_found = 0;
+    size_t client_shares_len;
 
     /* From RFC 8446:
      *
@@ -196,9 +199,10 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
      * dismiss it and send a HelloRetryRequest message.
      */
 
-    for( ; p < client_shares_end; p += key_exchange_len )
+    while( p < client_shares_end )
     {
         uint16_t group;
+        size_t key_exchange_len;
 
         /*
          * struct {
@@ -208,20 +212,18 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
          */
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, client_shares_end, 4 );
         group = MBEDTLS_GET_UINT16_BE( p, 0 );
-        p += 2;
-        key_exchange_len = MBEDTLS_GET_UINT16_BE( p, 0 );
-        p += 2;
+        key_exchange_len = MBEDTLS_GET_UINT16_BE( p, 2 );
+        p += 4;
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, client_shares_end, key_exchange_len );
 
         /* Continue parsing even if we have already found a match,
          * for input validation purposes.
          */
-        if( match_found == 1 )
-            continue;
-
         if( ! mbedtls_ssl_named_group_is_offered( ssl, group ) ||
-            ! mbedtls_ssl_named_group_is_supported( group ) )
+            ! mbedtls_ssl_named_group_is_supported( group ) ||
+            ssl->handshake->offered_group_id != 0 )
         {
+            p += key_exchange_len;
             continue;
         }
 
@@ -230,28 +232,29 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
          */
         if( mbedtls_ssl_tls13_named_group_is_ecdhe( group ) )
         {
-            const mbedtls_ecp_curve_info *curve_info =
-                    mbedtls_ecp_curve_info_from_tls_id( group );
-            ((void) curve_info);
-            MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDH curve: %s", curve_info->name ) );
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDH group: %s (%04x)",
+                                        mbedtls_ssl_named_group_to_str( group ),
+                                        group ) );
             ret = mbedtls_ssl_tls13_read_public_ecdhe_share(
-                    ssl, p - 2, key_exchange_len + 2 );
+                      ssl, p - 2, key_exchange_len + 2 );
             if( ret != 0 )
                 return( ret );
 
-            match_found = 1;
         }
         else
         {
             MBEDTLS_SSL_DEBUG_MSG( 4, ( "Unrecognized NamedGroup %u",
                                         (unsigned) group ) );
+            p += key_exchange_len;
             continue;
         }
 
         ssl->handshake->offered_group_id = group;
+        p += key_exchange_len;
     }
 
-    if( match_found == 0 )
+
+    if( ssl->handshake->offered_group_id == 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "no matching key share" ) );
         return( SSL_TLS1_3_PARSE_KEY_SHARES_EXT_NO_MATCH );
@@ -436,9 +439,9 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
      */
     ssl->tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
 
-    /* ---
-     *  Random random;
-     * ---
+    /* ...
+     * Random random;
+     * ...
      * with Random defined as:
      * opaque Random[32];
      */
@@ -448,9 +451,9 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     memcpy( &ssl->handshake->randbytes[0], p, MBEDTLS_CLIENT_HELLO_RANDOM_LEN );
     p += MBEDTLS_CLIENT_HELLO_RANDOM_LEN;
 
-    /* ---
+    /* ...
      * opaque legacy_session_id<0..32>;
-     * ---
+     * ...
      */
     legacy_session_id_len = p[0];
     p++;
@@ -481,9 +484,9 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
      */
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, cipher_suites_len + 2 + 2 );
 
-   /* ---
+   /* ...
     * CipherSuite cipher_suites<2..2^16-2>;
-    * ---
+    * ...
     * with CipherSuite defined as:
     * uint8 CipherSuite[2];
     */
@@ -505,10 +508,12 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
          * Check whether this ciphersuite is valid and offered.
          */
         if( ( mbedtls_ssl_validate_ciphersuite(
-            ssl, ciphersuite_info, ssl->tls_version,
-            ssl->tls_version ) != 0 ) ||
-            !mbedtls_ssl_tls13_cipher_suite_is_offered( ssl, cipher_suite ) )
+                ssl, ciphersuite_info, ssl->tls_version,
+                ssl->tls_version ) != 0 ) ||
+            ! mbedtls_ssl_tls13_cipher_suite_is_offered( ssl, cipher_suite ) )
+        {
             continue;
+        }
 
         ssl->session_negotiate->ciphersuite = cipher_suite;
         ssl->handshake->ciphersuite_info = ciphersuite_info;
@@ -518,7 +523,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
 
     }
 
-    if( !ciphersuite_match )
+    if( ! ciphersuite_match )
     {
         MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
                                       MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
@@ -529,6 +534,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
                                 ciphersuite_info->name ) );
 
     p = cipher_suites + cipher_suites_len;
+
     /* ...
      * opaque legacy_compression_methods<1..2^8-1>;
      * ...
@@ -542,9 +548,9 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     }
     p += 2;
 
-    /* ---
+    /* ...
      * Extension extensions<8..2^16-1>;
-     * ---
+     * ...
      * with Extension defined as:
      * struct {
      *    ExtensionType extension_type;
@@ -584,8 +590,8 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
                  * indicates the named groups which the client supports,
                  * ordered from most preferred to least preferred.
                  */
-                ret = ssl_tls13_parse_supported_groups_ext( ssl, p,
-                            extension_data_end );
+                ret = ssl_tls13_parse_supported_groups_ext(
+                          ssl, p, extension_data_end );
                 if( ret != 0 )
                 {
                     MBEDTLS_SSL_DEBUG_RET( 1,
@@ -608,7 +614,8 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
                  * contains the endpoint's cryptographic parameters for
                  * ECDHE/DHE key establishment methods.
                  */
-                ret = ssl_tls13_parse_key_shares_ext( ssl, p, extension_data_end );
+                ret = ssl_tls13_parse_key_shares_ext(
+                          ssl, p, extension_data_end );
                 if( ret == SSL_TLS1_3_PARSE_KEY_SHARES_EXT_NO_MATCH )
                 {
                     MBEDTLS_SSL_DEBUG_MSG( 2, ( "HRR needed " ) );
@@ -630,7 +637,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found supported versions extension" ) );
 
                 ret = ssl_tls13_parse_supported_versions_ext(
-                        ssl, p, extension_data_end );
+                          ssl, p, extension_data_end );
                 if( ret != 0 )
                 {
                     MBEDTLS_SSL_DEBUG_RET( 1,
@@ -644,8 +651,8 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
             case MBEDTLS_TLS_EXT_SIG_ALG:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found signature_algorithms extension" ) );
 
-                ret = mbedtls_ssl_tls13_parse_sig_alg_ext( ssl, p,
-                                                           extension_data_end );
+                ret = mbedtls_ssl_tls13_parse_sig_alg_ext(
+                          ssl, p, extension_data_end );
                 if( ret != 0 )
                 {
                     MBEDTLS_SSL_DEBUG_MSG( 1,
@@ -908,6 +915,7 @@ static int ssl_tls13_write_key_share_ext( mbedtls_ssl_context *ssl,
     if( ret != 0 )
         return( ret );
     p += key_exchange_length;
+
     MBEDTLS_PUT_UINT16_BE( key_exchange_length, server_share + 2, 0 );
 
     MBEDTLS_PUT_UINT16_BE( p - server_share, buf, 2 );

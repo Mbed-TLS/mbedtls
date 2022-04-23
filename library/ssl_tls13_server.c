@@ -884,7 +884,7 @@ static int ssl_tls13_write_key_share_ext( mbedtls_ssl_context *ssl,
     /* When we introduce PQC-ECDHE hybrids, we'll want to call this
      * function multiple times. */
     ret = ssl_tls13_generate_and_write_key_share(
-              ssl, group, p_key_exchange_len + 2, end, &key_exchange_length );
+              ssl, group, server_share + 4, end, &key_exchange_length );
     if( ret != 0 )
         return( ret );
     p += key_exchange_length;

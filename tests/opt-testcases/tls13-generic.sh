@@ -22,7 +22,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-run_test "TLS 1.3 m->M: HRR secp256r1 -> secp384r1" \
+run_test "TLS 1.3: server: HRR check - mbedtls" \
          "$P_SRV debug_level=4 force_version=tls13 curves=secp384r1" \
          "$P_CLI debug_level=4 force_version=tls13 curves=secp256r1,secp384r1" \
          1 \

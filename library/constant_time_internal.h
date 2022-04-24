@@ -196,8 +196,6 @@ signed char mbedtls_ct_base64_dec_value( unsigned char c );
 
 #endif /* MBEDTLS_BASE64_C */
 
-#if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
-
 /** Conditional memcpy without branches.
  *
  * This is equivalent to `if ( c1 == c2 ) memcpy(dest, src, len)`, but is likely
@@ -214,6 +212,25 @@ void mbedtls_ct_memcpy_if_eq( unsigned char *dest,
                               size_t len,
                               size_t c1, size_t c2 );
 
+/** Perform a secret table lookup
+ *
+ * \param dest              The destination buffer. This must point to a writable
+ *                          buffer of at least \p bytes_per_element bytes.
+ * \param table             The address of the table. This must point to a readable
+ *                          array of \p bytes_per_element elements of size
+ *                          \p bytes_per_element each.
+ * \param bytes_per_element The length of a table entry in bytes.
+ * \param elements_in_table The number of elements in \p table.
+ * \param secret_idx        The secret table index to look up. This must be in the
+ *                          range `0,..,elements_in_table-1`.
+ */
+void mbedtls_ct_table_lookup( unsigned char *dest,
+                              const unsigned char *table,
+                              size_t bytes_per_element,
+                              size_t elements_in_table,
+                              size_t idx );
+
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
 /** Copy data from a secret position with constant flow.
  *
  * This function copies \p len bytes from \p src_base + \p offset_secret to \p

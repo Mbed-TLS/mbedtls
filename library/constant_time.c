@@ -404,8 +404,6 @@ static void mbedtls_ct_mem_move_to_left( void *start,
 
 #endif /* MBEDTLS_PKCS1_V15 && MBEDTLS_RSA_C && ! MBEDTLS_RSA_ALT */
 
-#if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
-
 void mbedtls_ct_memcpy_if_eq( unsigned char *dest,
                               const unsigned char *src,
                               size_t len,
@@ -420,6 +418,23 @@ void mbedtls_ct_memcpy_if_eq( unsigned char *dest,
     for( size_t i = 0; i < len; i++ )
         dest[i] = ( src[i] & mask ) | ( dest[i] & ~mask );
 }
+
+void mbedtls_ct_table_lookup( unsigned char *dest,
+                              const unsigned char *table,
+                              size_t bytes_per_element,
+                              size_t elements_in_table,
+                              size_t secret_idx )
+{
+    for( size_t idx = 0; idx < elements_in_table; idx++ )
+    {
+        mbedtls_ct_memcpy_if_eq( dest, table, bytes_per_element,
+                                 idx, secret_idx );
+        table += bytes_per_element;
+    }
+}
+
+
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
 
 void mbedtls_ct_memcpy_offset( unsigned char *dest,
                                const unsigned char *src,

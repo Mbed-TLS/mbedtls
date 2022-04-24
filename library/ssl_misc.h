@@ -2290,4 +2290,7 @@ int mbedtls_ssl_validate_ciphersuite(
     mbedtls_ssl_protocol_version min_tls_version,
     mbedtls_ssl_protocol_version max_tls_version );
 
+int mbedtls_ssl_write_sig_alg_ext( mbedtls_ssl_context *ssl, unsigned char *buf,
+                                   const unsigned char *end, size_t *out_len );
+
 #endif /* ssl_misc.h */

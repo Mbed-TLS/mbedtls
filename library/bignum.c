@@ -112,6 +112,16 @@ void mbedtls_mpi_free( mbedtls_mpi *X )
     X->p = NULL;
 }
 
+
+int mbedtls_mpi_core_calloc( mbedtls_mpi_uint** p, size_t elems )
+{
+    *p = mbedtls_calloc( elems, ciL );
+    if( *p == NULL )
+        return( MBEDTLS_ERR_MPI_ALLOC_FAILED );
+    return( 0 );
+}
+
+
 /*
  * Enlarge to the specified number of limbs
  */
@@ -304,8 +314,9 @@ int mbedtls_mpi_get_bit( const mbedtls_mpi *X, size_t pos )
 }
 
 /* Get a specific byte, without range checks. */
-#define GET_BYTE( X, i )                                \
-    ( ( ( X )->p[( i ) / ciL] >> ( ( ( i ) % ciL ) * 8 ) ) & 0xff )
+#define GET_BYTE( X, i )                                        \
+    ( ( ( X )[( i ) / ciL] >> ( ( ( i ) % ciL ) * 8 ) ) & 0xff )
+#define GET_BYTE_MPI( X, i ) GET_BYTE( (X)->p, i )
 
 /*
  * Set a bit to a specific value of 0 or 1
@@ -813,6 +824,18 @@ cleanup:
     return( ret );
 }
 
+void mbedtls_mpi_core_read_binary( mbedtls_mpi_uint *X, size_t n,
+                                   const unsigned char *buf, size_t buflen )
+{
+    size_t const overhead = ( n * ciL ) - buflen;
+    unsigned char *Xp = (unsigned char*) X;
+    memset( Xp, 0, overhead );
+    if( buflen == 0 )
+        return;
+    memcpy( Xp + overhead, buf, buflen );
+    mpi_bigendian_to_host( X, n );
+}
+
 /*
  * Import X from unsigned binary data, big endian
  *
@@ -823,24 +846,13 @@ int mbedtls_mpi_read_binary( mbedtls_mpi *X, const unsigned char *buf, size_t bu
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t const limbs    = CHARS_TO_LIMBS( buflen );
-    size_t const overhead = ( limbs * ciL ) - buflen;
-    unsigned char *Xp;
 
     MPI_VALIDATE_RET( X != NULL );
     MPI_VALIDATE_RET( buflen == 0 || buf != NULL );
 
     /* Ensure that target MPI has exactly the necessary number of limbs */
     MBEDTLS_MPI_CHK( mbedtls_mpi_resize_clear( X, limbs ) );
-
-    /* Avoid calling `memcpy` with NULL source or destination argument,
-     * even if buflen is 0. */
-    if( buflen != 0 )
-    {
-        Xp = (unsigned char*) X->p;
-        memcpy( Xp + overhead, buf, buflen );
-
-        mpi_bigendian_to_host( X->p, limbs );
-    }
+    mbedtls_mpi_core_read_binary( X->p, X->n, buf, buflen );
 
 cleanup:
 
@@ -874,13 +886,13 @@ int mbedtls_mpi_write_binary_le( const mbedtls_mpi *X,
          * However X may fit if its leading bytes are zero. */
         for( i = bytes_to_copy; i < stored_bytes; i++ )
         {
-            if( GET_BYTE( X, i ) != 0 )
+            if( GET_BYTE_MPI( X, i ) != 0 )
                 return( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL );
         }
     }
 
     for( i = 0; i < bytes_to_copy; i++ )
-        buf[i] = GET_BYTE( X, i );
+        buf[i] = GET_BYTE_MPI( X, i );
 
     if( stored_bytes < buflen )
     {
@@ -889,6 +901,13 @@ int mbedtls_mpi_write_binary_le( const mbedtls_mpi *X,
     }
 
     return( 0 );
+}
+
+void mbedtls_mpi_core_write_binary( const mbedtls_mpi_uint *X,
+                                    unsigned char *buf, size_t buflen )
+{
+    for( size_t i = 0; i < buflen; i++ )
+        buf[buflen - i - 1] = GET_BYTE( X, i );
 }
 
 /*
@@ -926,13 +945,13 @@ int mbedtls_mpi_write_binary( const mbedtls_mpi *X,
         p = buf;
         for( i = bytes_to_copy; i < stored_bytes; i++ )
         {
-            if( GET_BYTE( X, i ) != 0 )
+            if( GET_BYTE_MPI( X, i ) != 0 )
                 return( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL );
         }
     }
 
     for( i = 0; i < bytes_to_copy; i++ )
-        p[bytes_to_copy - i - 1] = GET_BYTE( X, i );
+        p[bytes_to_copy - i - 1] = GET_BYTE_MPI( X, i );
 
     return( 0 );
 }
@@ -1192,10 +1211,10 @@ cleanup:
  * \return              1 if `l < r`.
  *                      0 if `l >= r`.
  */
-static mbedtls_mpi_uint mpi_sub_hlp( size_t n,
-                                     mbedtls_mpi_uint *d,
-                                     const mbedtls_mpi_uint *l,
-                                     const mbedtls_mpi_uint *r )
+mbedtls_mpi_uint mbedtls_mpi_core_sub( mbedtls_mpi_uint *d,
+                                       const mbedtls_mpi_uint *l,
+                                       const mbedtls_mpi_uint *r,
+                                       size_t n )
 {
     size_t i;
     mbedtls_mpi_uint c = 0, t, z;
@@ -1204,6 +1223,56 @@ static mbedtls_mpi_uint mpi_sub_hlp( size_t n,
     {
         z = ( l[i] <  c );    t = l[i] - c;
         c = ( t < r[i] ) + z; d[i] = t - r[i];
+    }
+
+    return( c );
+}
+
+mbedtls_mpi_uint mbedtls_mpi_core_sub_int( mbedtls_mpi_uint *d,
+                                           const mbedtls_mpi_uint *l,
+                                           mbedtls_mpi_uint r,
+                                           size_t n )
+{
+    mbedtls_mpi_uint c = 0, t, z;
+
+    z = ( l[0] <  c ); t = l[0] - c;
+    c = ( t < r ) + z; d[0] = t - r;
+
+    for( size_t i = 1; i < n; i++ )
+    {
+        c = ( l[i] < c ); d[i] = l[i] - c;
+    }
+
+    return( c );
+}
+
+mbedtls_mpi_uint mbedtls_mpi_core_add( mbedtls_mpi_uint *d,
+                                       const mbedtls_mpi_uint *l,
+                                       const mbedtls_mpi_uint *r,
+                                       size_t n )
+{
+    mbedtls_mpi_uint c = 0, t;
+    for( size_t i = 0; i < n; i++ )
+    {
+        t  = c;
+        t += l[i]; c  = ( t < l[i] );
+        t += r[i]; c += ( t < r[i] );
+        d[i] = t;
+    }
+    return( c );
+}
+
+mbedtls_mpi_uint mbedtls_mpi_core_lt( const mbedtls_mpi_uint *l,
+                                      const mbedtls_mpi_uint *r,
+                                      size_t n )
+{
+    size_t i;
+    mbedtls_mpi_uint c = 0, t, z;
+
+    for( i = 0; i < n; i++ )
+    {
+        z = ( l[i] <  c ); t = l[i] - c;
+        c = ( t < r[i] ) + z;
     }
 
     return( c );
@@ -1241,7 +1310,7 @@ int mbedtls_mpi_sub_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     if( X->n > A->n )
         memset( X->p + A->n, 0, ( X->n - A->n ) * ciL );
 
-    carry = mpi_sub_hlp( n, X->p, A->p, B->p );
+    carry = mbedtls_mpi_core_sub( X->p, A->p, B->p, n );
     if( carry != 0 )
     {
         /* Propagate the carry to the first nonzero limb of X. */
@@ -1828,9 +1897,9 @@ int mbedtls_mpi_mod_int( mbedtls_mpi_uint *r, const mbedtls_mpi *A, mbedtls_mpi_
 /*
  * Fast Montgomery initialization (thanks to Tom St Denis)
  */
-static void mpi_montg_init( mbedtls_mpi_uint *mm, const mbedtls_mpi *N )
+static void mpi_montg_init( mbedtls_mpi_uint *mm, const mbedtls_mpi_uint *N )
 {
-    mbedtls_mpi_uint x, m0 = N->p[0];
+    mbedtls_mpi_uint x, m0 = *N;
     unsigned int i;
 
     x  = m0;
@@ -1842,139 +1911,315 @@ static void mpi_montg_init( mbedtls_mpi_uint *mm, const mbedtls_mpi *N )
     *mm = ~x + 1;
 }
 
-/** Montgomery multiplication: A = A * B * R^-1 mod N  (HAC 14.36)
- *
- * \param[in,out]   A   One of the numbers to multiply.
- *                      It must have at least as many limbs as N
- *                      (A->n >= N->n), and any limbs beyond n are ignored.
- *                      On successful completion, A contains the result of
- *                      the multiplication A * B * R^-1 mod N where
- *                      R = (2^ciL)^n.
- * \param[in]       B   One of the numbers to multiply.
- *                      It must be nonzero and must not have more limbs than N
- *                      (B->n <= N->n).
- * \param[in]       N   The modulo. N must be odd.
- * \param           mm  The value calculated by `mpi_montg_init(&mm, N)`.
- *                      This is -N^-1 mod 2^ciL.
- * \param[in,out]   T   A bignum for temporary storage.
- *                      It must be at least twice the limb size of N plus 1
- *                      (T->n >= 2 * N->n + 1).
- *                      Its initial content is unused and
- *                      its final content is indeterminate.
- *                      Note that unlike the usual convention in the library
- *                      for `const mbedtls_mpi*`, the content of T can change.
- */
-static void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi *N, mbedtls_mpi_uint mm,
-                         const mbedtls_mpi *T )
+void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *A,
+                               const mbedtls_mpi_uint *B,
+                               size_t B_len,
+                               const mbedtls_mpi_uint *N,
+                               size_t n,
+                               mbedtls_mpi_uint mm,
+                               mbedtls_mpi_uint *T )
 {
-    size_t n, m;
-    mbedtls_mpi_uint *d;
 
-    memset( T->p, 0, T->n * ciL );
+    memset( T, 0, (2*n+1)*ciL );
 
-    d = T->p;
-    n = N->n;
-    m = ( B->n < n ) ? B->n : n;
-
-    for( size_t i = 0; i < n; i++ )
+    for( size_t i = 0; i < n; i++, T++ )
     {
         mbedtls_mpi_uint u0, u1;
+        /* T = (T + u0*B + u1*N) / 2^biL */
+        u0 = A[i];
+        u1 = ( T[0] + u0 * B[0] ) * mm;
 
-        /*
-         * T = (T + u0*B + u1*N) / 2^biL
-         */
-        u0 = A->p[i];
-        u1 = ( d[0] + u0 * B->p[0] ) * mm;
-
-        (void) mbedtls_mpi_core_mla( d, n + 2,
-                                     B->p, m,
-                                     u0 );
-        (void) mbedtls_mpi_core_mla( d, n + 2,
-                                     N->p, n,
-                                     u1 );
-        d++;
+        (void) mbedtls_mpi_core_mla( T, n + 2, B, B_len, u0 );
+        (void) mbedtls_mpi_core_mla( T, n + 2, N, n, u1 );
     }
 
-    /* At this point, d is either the desired result or the desired result
-     * plus N. We now potentially subtract N, avoiding leaking whether the
-     * subtraction is performed through side channels. */
+    mbedtls_mpi_uint carry, borrow, fixup;
 
-    /* Copy the n least significant limbs of d to A, so that
-     * A = d if d < N (recall that N has n limbs). */
-    memcpy( A->p, d, n * ciL );
-    /* If d >= N then we want to set A to d - N. To prevent timing attacks,
-     * do the calculation without using conditional tests. */
-    /* Set d to d0 + (2^biL)^n - N where d0 is the current value of d. */
-    d[n] += 1;
-    d[n] -= mpi_sub_hlp( n, d, d, N->p );
-    /* If d0 < N then d < (2^biL)^n
-     * so d[n] == 0 and we want to keep A as it is.
-     * If d0 >= N then d >= (2^biL)^n, and d <= (2^biL)^n + N < 2 * (2^biL)^n
-     * so d[n] == 1 and we want to set A to the result of the subtraction
-     * which is d - (2^biL)^n, i.e. the n least significant limbs of d.
-     * This exactly corresponds to a conditional assignment. */
-    mbedtls_ct_mpi_uint_cond_assign( n, A->p, d, (unsigned char) d[n] );
+    carry  = T[n];
+    borrow = mbedtls_mpi_core_sub( A, T, N, n );
+    fixup  = carry < borrow;
+    (void) mbedtls_mpi_core_mla( A, n, N, n, fixup );
 }
 
-/*
- * Montgomery reduction: A = A * R^-1 mod N
- *
- * See mpi_montmul() regarding constraints and guarantees on the parameters.
- */
-static void mpi_montred( mbedtls_mpi *A, const mbedtls_mpi *N,
-                         mbedtls_mpi_uint mm, const mbedtls_mpi *T )
+void mbedtls_mpi_core_add_mod( mbedtls_mpi_uint *X,
+                               mbedtls_mpi_uint const *A,
+                               mbedtls_mpi_uint const *B,
+                               const mbedtls_mpi_uint *N,
+                               size_t n )
 {
-    mbedtls_mpi_uint z = 1;
-    mbedtls_mpi U;
-
-    U.n = U.s = (int) z;
-    U.p = &z;
-
-    mpi_montmul( A, &U, N, mm, T );
+    size_t carry, borrow = 0, fixup;
+    carry  = mbedtls_mpi_core_add( X, A, B, n );
+    borrow = mbedtls_mpi_core_sub( X, X, N, n );
+    fixup  = ( carry < borrow );
+    (void) mbedtls_mpi_core_mla( X, n, N, n, fixup );
 }
 
-/**
- * Select an MPI from a table without leaking the index.
- *
- * This is functionally equivalent to mbedtls_mpi_copy(R, T[idx]) except it
- * reads the entire table in order to avoid leaking the value of idx to an
- * attacker able to observe memory access patterns.
- *
- * \param[out] R        Where to write the selected MPI.
- * \param[in] T         The table to read from.
- * \param[in] T_size    The number of elements in the table.
- * \param[in] idx       The index of the element to select;
- *                      this must satisfy 0 <= idx < T_size.
- *
- * \return \c 0 on success, or a negative error code.
- */
-static int mpi_select( mbedtls_mpi *R, const mbedtls_mpi *T, size_t T_size, size_t idx )
+int mbedtls_mpi_core_mod( mbedtls_mpi_uint *X,
+                          mbedtls_mpi_uint const *A,
+                          size_t A_len,
+                          const mbedtls_mpi_uint *N,
+                          size_t n,
+                          mbedtls_mpi_uint *RR )
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    int ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
+    mbedtls_mpi_uint *mempool, *T, *acc, mm, one=1;
 
-    for( size_t i = 0; i < T_size; i++ )
+    MBEDTLS_MPI_CHK( mbedtls_mpi_core_calloc( &mempool, n+2*n+1) );
+    acc = mempool;
+    T   = mempool + n;
+
+    mpi_montg_init( &mm, N ); /* Compute Montgomery constant */
+    A += A_len; /* Jump to end of A */
+
+    /* The basic idea is the following:
+     * With R = 2^{n*biL}, split A w.r.t. radix R as
+     * A = A0 + R A1 + R^2 A2 + ... = A0 + R(A1 + R(... R(A(n-1) + R*An))...)
+     *
+     * And calculate the iteration X |-> Ai + R*X via combination of
+     * Montgomery multiplication with R^2 and a modular addition. */
+
+    /* Start with top block of A */
+    size_t block_size = A_len % n;
+    if( block_size == 0 )
+        block_size = n;
+
+    A_len -= block_size;
+    A     -= block_size;
+    memset( acc, 0, n*ciL );
+    memcpy( acc, A, block_size * ciL );
+
+    while( A_len >= n )
     {
-        MBEDTLS_MPI_CHK( mbedtls_mpi_safe_cond_assign( R, &T[i],
-                        (unsigned char) mbedtls_ct_size_bool_eq( i, idx ) ) );
+        A_len -= n;
+        A     -= n;
+        /* X |-> R*X mod N via Montgomery multiplication with R^2 */
+        mbedtls_mpi_core_montmul( acc, RR, n, N, n, mm, T );
+        /* Add current block of A */
+        mbedtls_mpi_core_add_mod( acc, acc, A, N, n );
     }
+
+    /* At this point, we have quasi-reduced the input to the same number
+     * of limbs as the modulus. We get a canonical representative through
+     * two inverse Montomgery multiplications by 1 and R^2.
+     *
+     * TODO: This can be done more efficiently ... one step of Montgomery
+     *       reduction should be enough?
+     *
+     * TODO: Some call-sites seem to be fine with quasi-reduction --
+     *       split this out as a separate function? */
+    mbedtls_mpi_core_montmul( acc, RR, n, N, n, mm, T );
+    mbedtls_mpi_core_montmul( acc, &one, 1, N, n, mm, T );
+
+    memcpy( X, acc, n*ciL ); /* Store result */
 
 cleanup:
+
+    mbedtls_free( mempool );
+    return( ret );
+}
+
+int mbedtls_mpi_core_inv_mod_prime( mbedtls_mpi_uint *X,
+                                    mbedtls_mpi_uint const *A,
+                                    size_t A_len,
+                                    const mbedtls_mpi_uint *P,
+                                    size_t n,
+                                    mbedtls_mpi_uint *RR )
+{
+    int ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
+    mbedtls_mpi_uint *P2;
+    MBEDTLS_MPI_CHK( mbedtls_mpi_core_calloc( &P2, n ) );
+
+    /* |F_p^x| - 1 = p - 2 */
+    (void) mbedtls_mpi_core_sub_int( P2, P, 2, n );
+    /* Inversion by power: g^|G| = 1 <=> g^{-1} = g^{|G|-1} */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_core_mod( X, A, A_len, P, n, RR ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_core_exp_mod( X, X, P, n, P2, n, RR ) );
+
+cleanup:
+
+    mbedtls_free( P2 );
     return( ret );
 }
 
 /*
  * Sliding-window exponentiation: X = A^E mod N  (HAC 14.85)
  */
+static size_t mpi_exp_mod_get_window_size( size_t Ebits )
+{
+    size_t wsize = ( Ebits > 671 ) ? 6 : ( Ebits > 239 ) ? 5 :
+                   ( Ebits >  79 ) ? 4 : ( Ebits >  23 ) ? 3 : 1;
+
+#if( MBEDTLS_MPI_WINDOW_SIZE < 6 )
+    if( wsize > MBEDTLS_MPI_WINDOW_SIZE )
+        wsize = MBEDTLS_MPI_WINDOW_SIZE;
+#endif
+
+    return( wsize );
+}
+
+int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X,
+                              mbedtls_mpi_uint *A,
+                              const mbedtls_mpi_uint *N,
+                              size_t n,
+                              const mbedtls_mpi_uint *E,
+                              size_t E_len,
+                              const mbedtls_mpi_uint *RR )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    /* heap allocated memory pool */
+    mbedtls_mpi_uint *mempool;
+    /* pointers to temporaries within memory pool */
+    mbedtls_mpi_uint *Wtbl, *Wselect, *temp;
+    /* pointers to table entries */
+    mbedtls_mpi_uint *Wcur, *Wlast, *W1;
+
+    size_t wsize, welem;
+    mbedtls_mpi_uint one = 1, mm;
+
+    mpi_montg_init( &mm, N ); /* Compute Montgomery constant */
+    E += E_len;               /* Skip to end of exponent buffer */
+
+    wsize = mpi_exp_mod_get_window_size( E_len * biL );
+    welem = 1 << wsize;
+
+    /* Allocate memory pool and set pointers to parts of it */
+    const size_t table_limbs   = welem * n;
+    const size_t temp_limbs    = 2 * n + 1;
+    const size_t wselect_limbs = n;
+    const size_t total_limbs   = table_limbs + temp_limbs + wselect_limbs;
+    mempool = mbedtls_calloc( total_limbs, ciL );
+    if( mempool == NULL )
+    {
+        ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
+        goto cleanup;
+    }
+    Wtbl    = mempool;
+    Wselect = Wtbl    + table_limbs;
+    temp    = Wselect + wselect_limbs;
+
+    /*
+     * Window precomputation
+     */
+
+    /* W[0] = 1 (in Montgomery presentation) */
+    memset( Wtbl, 0, n * ciL ); Wtbl[0] = 1;
+    mbedtls_mpi_core_montmul( Wtbl, RR, n, N, n, mm, temp );
+    Wcur = Wtbl + n;
+    /* W[1] = A * R^2 * R^-1 mod N = A * R mod N */
+    memcpy( Wcur, A, n * ciL );
+    mbedtls_mpi_core_montmul( Wcur, RR, n, N, n, mm, temp );
+    W1 = Wcur;
+    Wcur += n;
+    /* W[i+1] = W[i] * W[1], i >= 2 */
+    Wlast = W1;
+    for( size_t i=2; i < welem; i++, Wlast += n, Wcur += n )
+    {
+        memcpy( Wcur, Wlast, n * ciL );
+        mbedtls_mpi_core_montmul( Wcur, W1, n, N, n, mm, temp );
+    }
+
+    /*
+     * Sliding window exponentiation
+     */
+
+    /* X = 1 (in Montgomery presentation) initially */
+    memcpy( X, Wtbl, n * ciL );
+
+    size_t limb_bits_remaining = 0;
+    mbedtls_mpi_uint window = 0;
+    size_t window_bits = 0, cur_limb;
+    while( 1 )
+    {
+        size_t window_bits_missing = wsize - window_bits;
+
+        const int no_more_bits =
+            ( limb_bits_remaining == 0 ) && ( E_len == 0 );
+        const int window_full =
+            ( window_bits_missing == 0 );
+
+        /* Clear window if it's full or if we don't have further bits. */
+        if( window_full || no_more_bits )
+        {
+            if( window_bits == 0 )
+                break;
+
+            /* Select table entry, square and multiply */
+            mbedtls_ct_table_lookup( (unsigned char*) Wselect,
+                                     (unsigned char*) Wtbl,
+                                     n * ciL, welem, window );
+            for( ; window_bits > 0; window_bits-- )
+                mbedtls_mpi_core_montmul( X, X, n, N, n, mm, temp );
+            mbedtls_mpi_core_montmul( X, Wselect, n, N, n, mm, temp );
+
+            window = 0;
+            continue;
+        }
+
+        /* Load next exponent limb if necessary */
+        if( limb_bits_remaining == 0 )
+        {
+            cur_limb = *--E;
+            E_len--;
+            limb_bits_remaining = biL;
+            continue;
+        }
+
+        const size_t bits_insert =
+            window_bits_missing < limb_bits_remaining ?
+            window_bits_missing : limb_bits_remaining;
+        const size_t bits_mask = ( 1u << bits_insert ) - 1;
+
+        window_bits += bits_insert;
+
+        limb_bits_remaining -= bits_insert;
+        window <<= bits_insert;
+        window |= ( cur_limb >> limb_bits_remaining ) & bits_mask;
+    }
+
+    /* Convert X back to normal presentation */
+    mbedtls_mpi_core_montmul( X, &one, 1, N, n, mm, temp );
+
+    ret = 0;
+
+cleanup:
+
+    mbedtls_free( mempool );
+    return( ret );
+}
+
+int mbedtls_mpi_get_montgomery_constant_unsafe( mbedtls_mpi *RR, mbedtls_mpi const *N )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( RR, 1 ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( RR, N->n * 2 * biL ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( RR, RR, N ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( RR, N->n ) );
+
+cleanup:
+    return( ret );
+}
+
+void mbedtls_mpi_core_get_montgomery_constant_safe( mbedtls_mpi_uint *RR,
+                                                    mbedtls_mpi_uint const *N,
+                                                    size_t n )
+{
+    /* Start with 2^0=1 */
+    memset( RR, 0, n * ciL );
+    RR[0] = 1;
+
+    /* Repated doubling and modular reduction -- very slow, but compared
+     * to an RSA private key operation it seems acceptable. */
+    for( size_t i=0; i < 2*n*biL; i++ )
+        mbedtls_mpi_core_add_mod( RR, RR, RR, N, n );
+}
+
 int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
                          const mbedtls_mpi *E, const mbedtls_mpi *N,
                          mbedtls_mpi *prec_RR )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t wbits, wsize, one = 1;
-    size_t i, j, nblimbs;
-    size_t bufsize, nbits;
-    mbedtls_mpi_uint ei, mm, state;
-    mbedtls_mpi RR, T, W[ 1 << MBEDTLS_MPI_WINDOW_SIZE ], WW, Apos;
+    mbedtls_mpi Acopy, RR;
     int neg;
 
     MPI_VALIDATE_RET( X != NULL );
@@ -1992,193 +2237,41 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
         mbedtls_mpi_bitlen( N ) > MBEDTLS_MPI_MAX_BITS )
         return ( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
-    /*
-     * Init temps and window size
-     */
-    mpi_montg_init( &mm, N );
-    mbedtls_mpi_init( &RR ); mbedtls_mpi_init( &T );
-    mbedtls_mpi_init( &Apos );
-    mbedtls_mpi_init( &WW );
-    memset( W, 0, sizeof( W ) );
-
-    i = mbedtls_mpi_bitlen( E );
-
-    wsize = ( i > 671 ) ? 6 : ( i > 239 ) ? 5 :
-            ( i >  79 ) ? 4 : ( i >  23 ) ? 3 : 1;
-
-#if( MBEDTLS_MPI_WINDOW_SIZE < 6 )
-    if( wsize > MBEDTLS_MPI_WINDOW_SIZE )
-        wsize = MBEDTLS_MPI_WINDOW_SIZE;
-#endif
-
-    j = N->n + 1;
-    /* All W[i] and X must have at least N->n limbs for the mpi_montmul()
-     * and mpi_montred() calls later. Here we ensure that W[1] and X are
-     * large enough, and later we'll grow other W[i] to the same length.
-     * They must not be shrunk midway through this function!
-     */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, j ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &W[1],  j ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &T, j * 2 ) );
+    mbedtls_mpi_init( &RR );
+    mbedtls_mpi_init( &Acopy );
 
     /*
-     * Compensate for negative A (and correct at the end)
+     * Grow A to expected size and ignore sign (will be corrected later).
      */
-    neg = ( A->s == -1 );
-    if( neg )
-    {
-        MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &Apos, A ) );
-        Apos.s = 1;
-        A = &Apos;
-    }
+    MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &Acopy, A ) );
+    neg = ( Acopy.s == -1 );
+    Acopy.s = 1;
+    if( mbedtls_mpi_cmp_mpi( &Acopy, N ) >= 0 )
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &Acopy, &Acopy, N ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &Acopy, N->n ) );
+
+    /* Grow output to expected size and clear. */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, N->n ) );
+    memset( X->p, 0, X->n * ciL );
 
     /*
      * If 1st call, pre-compute R^2 mod N
      */
     if( prec_RR == NULL || prec_RR->p == NULL )
     {
-        MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &RR, 1 ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( &RR, N->n * 2 * biL ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &RR, &RR, N ) );
-
+        MBEDTLS_MPI_CHK( mbedtls_mpi_get_montgomery_constant_unsafe( &RR, N ) );
         if( prec_RR != NULL )
             memcpy( prec_RR, &RR, sizeof( mbedtls_mpi ) );
     }
     else
         memcpy( &RR, prec_RR, sizeof( mbedtls_mpi ) );
 
-    /*
-     * W[1] = A * R^2 * R^-1 mod N = A * R mod N
-     */
-    if( mbedtls_mpi_cmp_mpi( A, N ) >= 0 )
-    {
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &W[1], A, N ) );
-        /* This should be a no-op because W[1] is already that large before
-         * mbedtls_mpi_mod_mpi(), but it's necessary to avoid an overflow
-         * in mpi_montmul() below, so let's make sure. */
-        MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &W[1], N->n + 1 ) );
-    }
-    else
-        MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &W[1], A ) );
+    /* Now input and output have standard size and can be passed to
+     * the low-level exponentiation routine. */
 
-    /* Note that this is safe because W[1] always has at least N->n limbs
-     * (it grew above and was preserved by mbedtls_mpi_copy()). */
-    mpi_montmul( &W[1], &RR, N, mm, &T );
+    mbedtls_mpi_core_exp_mod( X->p, Acopy.p, N->p, N->n, E->p, E->n, RR.p );
 
-    /*
-     * X = R^2 * R^-1 mod N = R mod N
-     */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_copy( X, &RR ) );
-    mpi_montred( X, N, mm, &T );
-
-    if( wsize > 1 )
-    {
-        /*
-         * W[1 << (wsize - 1)] = W[1] ^ (wsize - 1)
-         */
-        j =  one << ( wsize - 1 );
-
-        MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &W[j], N->n + 1 ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &W[j], &W[1]    ) );
-
-        for( i = 0; i < wsize - 1; i++ )
-            mpi_montmul( &W[j], &W[j], N, mm, &T );
-
-        /*
-         * W[i] = W[i - 1] * W[1]
-         */
-        for( i = j + 1; i < ( one << wsize ); i++ )
-        {
-            MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &W[i], N->n + 1 ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &W[i], &W[i - 1] ) );
-
-            mpi_montmul( &W[i], &W[1], N, mm, &T );
-        }
-    }
-
-    nblimbs = E->n;
-    bufsize = 0;
-    nbits   = 0;
-    wbits   = 0;
-    state   = 0;
-
-    while( 1 )
-    {
-        if( bufsize == 0 )
-        {
-            if( nblimbs == 0 )
-                break;
-
-            nblimbs--;
-
-            bufsize = sizeof( mbedtls_mpi_uint ) << 3;
-        }
-
-        bufsize--;
-
-        ei = (E->p[nblimbs] >> bufsize) & 1;
-
-        /*
-         * skip leading 0s
-         */
-        if( ei == 0 && state == 0 )
-            continue;
-
-        if( ei == 0 && state == 1 )
-        {
-            /*
-             * out of window, square X
-             */
-            mpi_montmul( X, X, N, mm, &T );
-            continue;
-        }
-
-        /*
-         * add ei to current window
-         */
-        state = 2;
-
-        nbits++;
-        wbits |= ( ei << ( wsize - nbits ) );
-
-        if( nbits == wsize )
-        {
-            /*
-             * X = X^wsize R^-1 mod N
-             */
-            for( i = 0; i < wsize; i++ )
-                mpi_montmul( X, X, N, mm, &T );
-
-            /*
-             * X = X * W[wbits] R^-1 mod N
-             */
-            MBEDTLS_MPI_CHK( mpi_select( &WW, W, (size_t) 1 << wsize, wbits ) );
-            mpi_montmul( X, &WW, N, mm, &T );
-
-            state--;
-            nbits = 0;
-            wbits = 0;
-        }
-    }
-
-    /*
-     * process the remaining bits
-     */
-    for( i = 0; i < nbits; i++ )
-    {
-        mpi_montmul( X, X, N, mm, &T );
-
-        wbits <<= 1;
-
-        if( ( wbits & ( one << wsize ) ) != 0 )
-            mpi_montmul( X, &W[1], N, mm, &T );
-    }
-
-    /*
-     * X = A^E * R * R^-1 mod N = A^E mod N
-     */
-    mpi_montred( X, N, mm, &T );
-
+    /* Correct the sign */
     if( neg && E->n != 0 && ( E->p[0] & 1 ) != 0 )
     {
         X->s = -1;
@@ -2187,12 +2280,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
 
 cleanup:
 
-    for( i = ( one << ( wsize - 1 ) ); i < ( one << wsize ); i++ )
-        mbedtls_mpi_free( &W[i] );
-
-    mbedtls_mpi_free( &W[1] ); mbedtls_mpi_free( &T ); mbedtls_mpi_free( &Apos );
-    mbedtls_mpi_free( &WW );
-
+    mbedtls_mpi_free( &Acopy );
     if( prec_RR == NULL || prec_RR->p == NULL )
         mbedtls_mpi_free( &RR );
 

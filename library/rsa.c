@@ -41,6 +41,7 @@
 
 #include "mbedtls/rsa.h"
 #include "rsa_alt_helpers.h"
+#include "bignum_internal.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
@@ -65,6 +66,10 @@
 #define mbedtls_calloc calloc
 #define mbedtls_free   free
 #endif
+
+#define ciL    (sizeof(mbedtls_mpi_uint))         /* chars in limb  */
+#define biL    (ciL << 3)               /* bits  in limb  */
+#define biH    (ciL << 2)               /* half limb size */
 
 #if !defined(MBEDTLS_RSA_ALT)
 
@@ -739,33 +744,36 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
                 unsigned char *output )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t olen;
-    mbedtls_mpi T;
+    size_t n;
+    mbedtls_mpi_uint *T;
     RSA_VALIDATE_RET( ctx != NULL );
     RSA_VALIDATE_RET( input != NULL );
     RSA_VALIDATE_RET( output != NULL );
 
+    n = ctx->N.n;
+
     if( rsa_check_context( ctx, 0 /* public */, 0 /* no blinding */ ) )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
-
-    mbedtls_mpi_init( &T );
 
 #if defined(MBEDTLS_THREADING_C)
     if( ( ret = mbedtls_mutex_lock( &ctx->mutex ) ) != 0 )
         return( ret );
 #endif
+    MBEDTLS_MPI_CHK( mbedtls_mpi_core_calloc( &T, n ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_get_montgomery_constant_unsafe(
+                         &ctx->RN, &ctx->N ) );
 
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &T, input, ctx->len ) );
-
-    if( mbedtls_mpi_cmp_mpi( &T, &ctx->N ) >= 0 )
+    mbedtls_mpi_core_read_binary( T, n, input, ctx->len );
+    if( !mbedtls_mpi_core_lt( T, ctx->N.p, n ) )
     {
         ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
         goto cleanup;
     }
 
-    olen = ctx->len;
-    MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &T, &T, &ctx->E, &ctx->N, &ctx->RN ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &T, output, olen ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_core_exp_mod(
+                         T, T, ctx->N.p, n, ctx->E.p, ctx->E.n, ctx->RN.p ) );
+
+    mbedtls_mpi_core_write_binary( T, output, ctx->len );
 
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
@@ -773,7 +781,7 @@ cleanup:
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 #endif
 
-    mbedtls_mpi_free( &T );
+    mbedtls_free( T );
 
     if( ret != 0 )
         return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_RSA_PUBLIC_FAILED, ret ) );

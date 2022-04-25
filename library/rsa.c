@@ -42,6 +42,7 @@
 #include "mbedtls/rsa.h"
 #include "rsa_alt_helpers.h"
 #include "bignum_internal.h"
+#include "bignum_core.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"

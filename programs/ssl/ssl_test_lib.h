@@ -221,6 +221,26 @@ void rng_free( rng_context_t *rng );
  */
 int rng_get( void *p_rng, unsigned char *output, size_t output_len );
 
+/** Parse command-line option: key_opaque_algs
+ *
+ *
+ * \param arg           String value of key_opaque_algs
+ *                      Coma-separated pair of values among the following:
+ *                      - "rsa-sign-pkcs1"
+ *                      - "rsa-sign-pss"
+ *                      - "rsa-decrypt"
+ *                      - "ecdsa-sign"
+ *                      - "ecdh"
+ *                      - "none" (only acceptable for the second value).
+ * \param alg1          Address of pointer to alg #1
+ * \param alg2          Address of pointer to alg #2
+ *
+ * \return              \c 0 on success.
+ * \return              \c 1 on parse failure.
+ */
+int key_opaque_alg_parse( const char *arg, const char **alg1, const char **alg2 );
+
+
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
 /* The test implementation of the PSA external RNG is insecure. When
  * MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG is enabled, before using any PSA crypto

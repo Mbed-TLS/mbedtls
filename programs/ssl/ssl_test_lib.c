@@ -193,6 +193,34 @@ int rng_get( void *p_rng, unsigned char *output, size_t output_len )
 #endif /* !MBEDTLS_TEST_USE_PSA_CRYPTO_RNG */
 }
 
+int key_opaque_alg_parse( const char *arg, const char **alg1, const char **alg2 )
+{
+    char* separator;
+    if( ( separator = strchr( arg, ',' ) ) == NULL )
+        return 1;
+    *separator = '\0';
+
+    *alg1 = arg;
+    *alg2 = separator + 1;
+
+    if ( strcmp( *alg1, "rsa-sign-pkcs1" ) != 0 &&
+         strcmp( *alg1, "rsa-sign-pss" ) != 0 &&
+         strcmp( *alg1, "rsa-decrypt" ) != 0 &&
+         strcmp( *alg1, "ecdsa-sign" ) != 0 &&
+         strcmp( *alg1, "ecdh" ) != 0 )
+        return 1;
+
+    if ( strcmp( *alg2, "rsa-sign-pkcs1" ) != 0 &&
+         strcmp( *alg2, "rsa-sign-pss" ) != 0 &&
+         strcmp( *alg2, "rsa-decrypt" ) != 0 &&
+         strcmp( *alg2, "ecdsa-sign" ) != 0 &&
+         strcmp( *alg2, "ecdh" ) != 0 &&
+         strcmp( *alg2, "none" ) != 0 )
+        return 1;
+
+    return 0;
+}
+
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
 int ca_callback( void *data, mbedtls_x509_crt const *child,
                  mbedtls_x509_crt **candidates )

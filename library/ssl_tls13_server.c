@@ -1013,7 +1013,7 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *p = buf;
     unsigned char *p_extensions_len;
-    size_t output_len;               /* Length of buffer used by function */
+    size_t output_len;
 
     *out_len = 0;
 
@@ -1037,12 +1037,12 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
     if( is_hrr )
     {
         memcpy( p, mbedtls_ssl_tls13_hello_retry_request_magic,
-                   MBEDTLS_SERVER_HELLO_RANDOM_LEN );
+                MBEDTLS_SERVER_HELLO_RANDOM_LEN );
     }
     else
     {
         memcpy( p, &ssl->handshake->randbytes[MBEDTLS_CLIENT_HELLO_RANDOM_LEN],
-                   MBEDTLS_SERVER_HELLO_RANDOM_LEN );
+                MBEDTLS_SERVER_HELLO_RANDOM_LEN );
     }
     MBEDTLS_SSL_DEBUG_BUF( 3, "server hello, random bytes",
                            p, MBEDTLS_SERVER_HELLO_RANDOM_LEN );
@@ -1385,7 +1385,7 @@ static int ssl_tls13_write_hello_retry_request_coordinate(
                                                     mbedtls_ssl_context *ssl )
 {
     int ret;
-    if( ssl->handshake->hello_retry_request_count > 1 )
+    if( ssl->handshake->hello_retry_request_count > 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Too many HRRs" ) );
         return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
@@ -1416,8 +1416,9 @@ static int ssl_tls13_write_hello_retry_request( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_write_hello_retry_request_coordinate( ssl ) );
 
-    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_start_handshake_msg( ssl,
-                       MBEDTLS_SSL_HS_SERVER_HELLO, &buf, &buf_len ) );
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_start_handshake_msg(
+                              ssl, MBEDTLS_SSL_HS_SERVER_HELLO,
+                              &buf, &buf_len ) );
 
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_write_server_hello_body( ssl, buf,
                                                              buf + buf_len,

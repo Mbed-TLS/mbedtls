@@ -1613,6 +1613,24 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
             ret = ssl_tls13_handshake_wrapup( ssl );
             break;
 
+        case MBEDTLS_SSL_CLIENT_CERTIFICATE:
+            ret = mbedtls_ssl_tls13_process_certificate( ssl );
+            if( ret == 0 )
+            {
+                mbedtls_ssl_handshake_set_state(
+                    ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY );
+            }
+            break;
+
+        case MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY:
+            ret = mbedtls_ssl_tls13_process_certificate_verify( ssl );
+            if( ret == 0 )
+            {
+                mbedtls_ssl_handshake_set_state(
+                    ssl, MBEDTLS_SSL_CLIENT_FINISHED );
+            }
+            break;
+
         default:
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "invalid state %d", ssl->state ) );
             return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );

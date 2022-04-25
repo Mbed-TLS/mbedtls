@@ -11194,10 +11194,10 @@ run_test    "TLS 1.3: HRR check, ciphersuite TLS_AES_256_GCM_SHA384 - gnutls" \
             -c "Protocol is TLSv1.3" \
             -c "HTTP/1.0 200 OK"
 
+requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_openssl_tls1_3
 run_test    "TLS 1.3: Server side check - openssl" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
             "$O_NEXT_CLI -msg -debug -tls1_3 -no_middlebox" \
@@ -11209,8 +11209,7 @@ run_test    "TLS 1.3: Server side check - openssl" \
             -s "tls13 server state: MBEDTLS_SSL_CERTIFICATE_VERIFY" \
             -s "tls13 server state: MBEDTLS_SSL_SERVER_FINISHED" \
             -s "tls13 server state: MBEDTLS_SSL_CLIENT_FINISHED" \
-            -s "tls13 server state: MBEDTLS_SSL_HANDSHAKE_WRAPUP" \
-            -c "DONE"
+            -s "tls13 server state: MBEDTLS_SSL_HANDSHAKE_WRAPUP"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_DEBUG_C

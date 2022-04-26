@@ -171,6 +171,15 @@ mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len,
     return( c );
 }
 
+void mbedtls_mpi_core_mul( mbedtls_mpi_uint *X,
+                           const mbedtls_mpi_uint *A, size_t a,
+                           const mbedtls_mpi_uint *B, size_t b )
+{
+    memset( X, 0, ( a + b ) * ciL );
+    for( size_t i=0; i < b; i++ )
+        (void) mbedtls_mpi_core_mla( X + i, a + 1, A, a, B[i] );
+}
+
 /*
  * Fast Montgomery initialization (thanks to Tom St Denis)
  */
@@ -230,12 +239,20 @@ void mbedtls_mpi_core_add_mod( mbedtls_mpi_uint *X,
     (void) mbedtls_mpi_core_mla( X, n, N, n, fixup );
 }
 
+void mbedtls_mpi_core_sub_mod( mbedtls_mpi_uint *X,
+                               mbedtls_mpi_uint const *A,
+                               mbedtls_mpi_uint const *B,
+                               const mbedtls_mpi_uint *N,
+                               size_t n )
+{
+    size_t borrow = mbedtls_mpi_core_sub( X, A, B, n );
+    (void) mbedtls_mpi_core_mla( X, n, N, n, borrow );
+}
+
 int mbedtls_mpi_core_mod( mbedtls_mpi_uint *X,
-                          mbedtls_mpi_uint const *A,
-                          size_t A_len,
-                          const mbedtls_mpi_uint *N,
-                          size_t n,
-                          mbedtls_mpi_uint *RR )
+                          mbedtls_mpi_uint const *A, size_t A_len,
+                          const mbedtls_mpi_uint *N, size_t n,
+                          const mbedtls_mpi_uint *RR )
 {
     int ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
     mbedtls_mpi_uint *mempool, *T, *acc, mm, one=1;
@@ -290,6 +307,59 @@ int mbedtls_mpi_core_mod( mbedtls_mpi_uint *X,
 
 cleanup:
 
+    mbedtls_free( mempool );
+    return( ret );
+}
+
+int mbedtls_mpi_core_crt_fwd( mbedtls_mpi_uint *TP, mbedtls_mpi_uint *TQ,
+                              const mbedtls_mpi_uint *P, size_t P_len,
+                              const mbedtls_mpi_uint *Q, size_t Q_len,
+                              const mbedtls_mpi_uint *T, size_t T_len,
+                              const mbedtls_mpi_uint *RP,
+                              const mbedtls_mpi_uint *RQ )
+{
+    int ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
+    MBEDTLS_MPI_CHK( mbedtls_mpi_core_mod( TP, T, T_len, P, P_len, RP ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_core_mod( TQ, T, T_len, Q, Q_len, RQ ) );
+cleanup:
+    return( ret );
+}
+
+int mbedtls_mpi_core_crt_inv( mbedtls_mpi_uint *T,
+                              mbedtls_mpi_uint *TP,
+                              mbedtls_mpi_uint *TQ,
+                              const mbedtls_mpi_uint *P, size_t P_len,
+                              const mbedtls_mpi_uint *Q, size_t Q_len,
+                              const mbedtls_mpi_uint *RP,
+                              const mbedtls_mpi_uint *QinvP )
+{
+    int ret = MBEDTLS_ERR_MPI_ALLOC_FAILED;
+    mbedtls_mpi_uint *mempool, *temp, *TQP;
+    mbedtls_mpi_uint mmP, carry;
+    MBEDTLS_MPI_CHK( mbedtls_mpi_core_calloc( &mempool, P_len + (2*P_len+1)) );
+    TQP = mempool;
+    temp = TQP + P_len;
+
+    mpi_montg_init( &mmP, P );
+
+    /*
+     * T = TQ + [(TP - (TQ mod P)) * (Q^-1 mod P) mod P]*Q
+     */
+
+    /* Compute (TQ mod P) within T */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_core_mod( TQP, TQ, Q_len, P, P_len, RP ) );
+    /* TP - (TQ mod P) */
+    mbedtls_mpi_core_sub_mod( TP, TP, TQP, P, P_len );
+    /* (TP - (TQ mod P)) * (Q^-1 mod P) mod P */
+    mbedtls_mpi_core_montmul( TP, QinvP, P_len, P, P_len, mmP, temp );
+    mbedtls_mpi_core_montmul( TP, RP, P_len, P, P_len, mmP, temp );
+    /* [(TP - (TQ mod P)) * (Q^-1 mod P) mod P]*Q */
+    mbedtls_mpi_core_mul( T, TP, P_len, Q, Q_len );
+    /* Final result */
+    carry = mbedtls_mpi_core_add( T, T, TQ, Q_len );
+    mbedtls_mpi_core_add_int( T + Q_len, T + Q_len, carry, P_len );
+
+cleanup:
     mbedtls_free( mempool );
     return( ret );
 }

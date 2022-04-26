@@ -131,6 +131,10 @@ mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len ,
                                        const mbedtls_mpi_uint *s, size_t s_len,
                                        mbedtls_mpi_uint b );
 
+void mbedtls_mpi_core_mul( mbedtls_mpi_uint *X,
+                           const mbedtls_mpi_uint *A, size_t a,
+                           const mbedtls_mpi_uint *B, size_t b );
+
 /** Montgomery multiplication: A = A * B * R^-1 mod N  (HAC 14.36)
  *
  * \param[in,out]   A   Big endian presentation of first operand.
@@ -206,10 +210,25 @@ int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X, mbedtls_mpi_uint *A,
  * \return       0 on success.
  * \return       MBEDTLS_ERR_MPI_ALLOC_FAILED
  */
-int mbedtls_mpi_core_mod( mbedtls_mpi_uint *X, mbedtls_mpi_uint const *A,
-                          size_t A_len, const mbedtls_mpi_uint *N,
-                          size_t n, mbedtls_mpi_uint *RR );
+int mbedtls_mpi_core_mod( mbedtls_mpi_uint *X,
+                          mbedtls_mpi_uint const *A, size_t A_len,
+                          const mbedtls_mpi_uint *N, size_t n,
+                          const mbedtls_mpi_uint *RR );
 
+int mbedtls_mpi_core_crt_fwd( mbedtls_mpi_uint *TP, mbedtls_mpi_uint *TQ,
+                              const mbedtls_mpi_uint *P, size_t P_len,
+                              const mbedtls_mpi_uint *Q, size_t Q_len,
+                              const mbedtls_mpi_uint *T, size_t T_len,
+                              const mbedtls_mpi_uint *RP,
+                              const mbedtls_mpi_uint *RQ );
+
+int mbedtls_mpi_core_crt_inv( mbedtls_mpi_uint *T,
+                              mbedtls_mpi_uint *TP,
+                              mbedtls_mpi_uint *TQ,
+                              const mbedtls_mpi_uint *P, size_t P_len,
+                              const mbedtls_mpi_uint *Q, size_t Q_len,
+                              const mbedtls_mpi_uint *RP,
+                              const mbedtls_mpi_uint *QinvP );
 
 /**
  * \brief        Compare to same-size large unsigned integers in constant time.
@@ -248,6 +267,9 @@ int mbedtls_mpi_core_write_binary_le( const mbedtls_mpi_uint *X, size_t n,
                                       unsigned char *buf, size_t buflen );
 /* TODO: Document */
 void mbedtls_mpi_core_add_mod( mbedtls_mpi_uint *X, mbedtls_mpi_uint const *A,
+                               mbedtls_mpi_uint const *B, const mbedtls_mpi_uint *N,
+                               size_t n );
+void mbedtls_mpi_core_sub_mod( mbedtls_mpi_uint *X, mbedtls_mpi_uint const *A,
                                mbedtls_mpi_uint const *B, const mbedtls_mpi_uint *N,
                                size_t n );
 /* TODO: Document */

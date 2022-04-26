@@ -791,92 +791,6 @@ cleanup:
 }
 
 /*
- * Generate or update blinding values, see section 10 of:
- *  KOCHER, Paul C. Timing attacks on implementations of Diffie-Hellman, RSA,
- *  DSS, and other systems. In : Advances in Cryptology-CRYPTO'96. Springer
- *  Berlin Heidelberg, 1996. p. 104-113.
- */
-static int rsa_prepare_blinding( mbedtls_rsa_context *ctx,
-                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
-{
-    int ret, count = 0;
-    mbedtls_mpi R;
-
-    mbedtls_mpi_init( &R );
-
-    if( ctx->Vf.p != NULL )
-    {
-        /* We already have blinding values, just update them by squaring */
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &ctx->Vi, &ctx->Vi, &ctx->Vi ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &ctx->Vi, &ctx->Vi, &ctx->N ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &ctx->Vf, &ctx->Vf, &ctx->Vf ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &ctx->Vf, &ctx->Vf, &ctx->N ) );
-
-        goto cleanup;
-    }
-
-    /* Unblinding value: Vf = random number, invertible mod N */
-    do {
-        if( count++ > 10 )
-        {
-            ret = MBEDTLS_ERR_RSA_RNG_FAILED;
-            goto cleanup;
-        }
-
-        MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &ctx->Vf, ctx->len - 1, f_rng, p_rng ) );
-
-        /* Compute Vf^-1 as R * (R Vf)^-1 to avoid leaks from inv_mod. */
-        MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &R, ctx->len - 1, f_rng, p_rng ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &ctx->Vi, &ctx->Vf, &R ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &ctx->Vi, &ctx->Vi, &ctx->N ) );
-
-        /* At this point, Vi is invertible mod N if and only if both Vf and R
-         * are invertible mod N. If one of them isn't, we don't need to know
-         * which one, we just loop and choose new values for both of them.
-         * (Each iteration succeeds with overwhelming probability.) */
-        ret = mbedtls_mpi_inv_mod( &ctx->Vi, &ctx->Vi, &ctx->N );
-        if( ret != 0 && ret != MBEDTLS_ERR_MPI_NOT_ACCEPTABLE )
-            goto cleanup;
-
-    } while( ret == MBEDTLS_ERR_MPI_NOT_ACCEPTABLE );
-
-    /* Finish the computation of Vf^-1 = R * (R Vf)^-1 */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &ctx->Vi, &ctx->Vi, &R ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &ctx->Vi, &ctx->Vi, &ctx->N ) );
-
-    /* Blinding value: Vi = Vf^(-e) mod N
-     * (Vi already contains Vf^-1 at this point) */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &ctx->Vi, &ctx->Vi, &ctx->E, &ctx->N, &ctx->RN ) );
-
-
-cleanup:
-    mbedtls_mpi_free( &R );
-
-    return( ret );
-}
-
-/*
- * Exponent blinding supposed to prevent side-channel attacks using multiple
- * traces of measurements to recover the RSA key. The more collisions are there,
- * the more bits of the key can be recovered. See [3].
- *
- * Collecting n collisions with m bit long blinding value requires 2^(m-m/n)
- * observations on avarage.
- *
- * For example with 28 byte blinding to achieve 2 collisions the adversary has
- * to make 2^112 observations on avarage.
- *
- * (With the currently (as of 2017 April) known best algorithms breaking 2048
- * bit RSA requires approximately as much time as trying out 2^112 random keys.
- * Thus in this sense with 28 byte blinding the security is not reduced by
- * side-channel attacks like the one in [3])
- *
- * This countermeasure does not help if the key recovery is possible with a
- * single trace.
- */
-#define RSA_EXPONENT_BLINDING 28
-
-/*
  * Do an RSA private key operation
  */
 int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
@@ -886,49 +800,28 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
                  unsigned char *output )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t olen;
 
-    /* Temporary holding the result */
-    mbedtls_mpi T;
+    mbedtls_mpi_uint *mempool = NULL;
 
-    /* Temporaries holding P-1, Q-1 and the
-     * exponent blinding factor, respectively. */
-    mbedtls_mpi P1, Q1, R;
+    size_t bytelen, n, nE;
+    mbedtls_mpi_uint *T, *C, *I, *N, *E, *RN;
 
 #if !defined(MBEDTLS_RSA_NO_CRT)
-    /* Temporaries holding the results mod p resp. mod q. */
-    mbedtls_mpi TP, TQ;
-
-    /* Temporaries holding the blinded exponents for
-     * the mod p resp. mod q computation (if used). */
-    mbedtls_mpi DP_blind, DQ_blind;
-
-    /* Pointers to actual exponents to be used - either the unblinded
-     * or the blinded ones, depending on the presence of a PRNG. */
-    mbedtls_mpi *DP = &ctx->DP;
-    mbedtls_mpi *DQ = &ctx->DQ;
+    size_t nP, nQ, nDP, nDQ;
+    mbedtls_mpi_uint *TP, *TQ, *P, *Q, *DP, *DQ, *RP, *RQ, *QP;
 #else
-    /* Temporary holding the blinded exponent (if used). */
-    mbedtls_mpi D_blind;
-
-    /* Pointer to actual exponent to be used - either the unblinded
-     * or the blinded one, depending on the presence of a PRNG. */
-    mbedtls_mpi *D = &ctx->D;
+    size_t nD;
+    mbedtls_mpi_uint *D;
 #endif /* MBEDTLS_RSA_NO_CRT */
 
-    /* Temporaries holding the initial input and the double
-     * checked result; should be the same in the end. */
-    mbedtls_mpi I, C;
+    ((void) p_rng); ((void) f_rng);
 
     RSA_VALIDATE_RET( ctx != NULL );
     RSA_VALIDATE_RET( input  != NULL );
     RSA_VALIDATE_RET( output != NULL );
 
-    if( f_rng == NULL )
-        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
-
     if( rsa_check_context( ctx, 1 /* private key checks */,
-                                1 /* blinding on        */ ) != 0 )
+                                0 /* blinding off       */ ) != 0 )
     {
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     }
@@ -938,132 +831,84 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
         return( ret );
 #endif
 
-    /* MPI Initialization */
-    mbedtls_mpi_init( &T );
+    /* The internal modular arithmetic API assumes that the top limbs
+     * of moduli are not 0. Since the number of limbs in P, Q is not
+     * a secret, we can safely shrink them to minimal size here. */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_shrink( &ctx->N, 0 ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_shrink( &ctx->P, 0 ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_shrink( &ctx->Q, 0 ) );
 
-    mbedtls_mpi_init( &P1 );
-    mbedtls_mpi_init( &Q1 );
-    mbedtls_mpi_init( &R );
-
-#if defined(MBEDTLS_RSA_NO_CRT)
-    mbedtls_mpi_init( &D_blind );
-#else
-    mbedtls_mpi_init( &DP_blind );
-    mbedtls_mpi_init( &DQ_blind );
+    /* Make sure that constants in RSA context have the right size.
+     * We ignore any excess limbs. */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &ctx->RN, ctx->N.n ) );
+#if !defined(MBEDTLS_RSA_NO_CRT)
+    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &ctx->RP, ctx->P.n ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &ctx->RQ, ctx->Q.n ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &ctx->QP, ctx->P.n ) );
 #endif
+
+    /* Extract raw pointers and lengths */
+    bytelen = ctx->len;
+    N  = ctx->N.p;  n   = ctx->N.n;  E  = ctx->E.p;  nE  = ctx->E.n;
+    RN = ctx->RN.p;
+#if !defined(MBEDTLS_RSA_NO_CRT)
+    P  = ctx->P.p;  nP  = ctx->P.n;  Q  = ctx->Q.p;  nQ  = ctx->Q.n;
+    DP = ctx->DP.p; nDP = ctx->DP.n; DQ = ctx->DQ.p; nDQ = ctx->DQ.n;
+    RP = ctx->RP.p; RQ  = ctx->RQ.p; QP = ctx->QP.p;
+#else
+    D  = ctx->D.p;  nD  = ctx->D.n;
+#endif /* MBEDTLS_RSA_NO_CRT */
 
 #if !defined(MBEDTLS_RSA_NO_CRT)
-    mbedtls_mpi_init( &TP ); mbedtls_mpi_init( &TQ );
+    /* Make sure Montgomery constants are available. */
+    /* TODO: This should only be done once */
+    mbedtls_mpi_core_get_montgomery_constant_safe( RP, P, nP );
+    mbedtls_mpi_core_get_montgomery_constant_safe( RQ, Q, nQ );
+#endif
+    mbedtls_mpi_core_get_montgomery_constant_safe( RN, N, n );
+
+    /* Allocate single memory pool for temporaries needed by this function. */
+    size_t mempool_limbs = 3*n;
+#if !defined(MBEDTLS_RSA_NO_CRT)
+    mempool_limbs += nP + nQ;
+#endif
+    MBEDTLS_MPI_CHK( mbedtls_mpi_core_calloc( &mempool, mempool_limbs ) );
+    T  = mempool;
+    I  = T  + n;
+    C  = I  + n;
+#if !defined(MBEDTLS_RSA_NO_CRT)
+    TP = C  + n;
+    TQ = TP + nP;
 #endif
 
-    mbedtls_mpi_init( &I );
-    mbedtls_mpi_init( &C );
-
-    /* End of MPI initialization */
-
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &T, input, ctx->len ) );
-    if( mbedtls_mpi_cmp_mpi( &T, &ctx->N ) >= 0 )
+    mbedtls_mpi_core_read_binary( T, n, input, bytelen );
+    if( !mbedtls_mpi_core_lt( T, N, n ) )
     {
         ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
         goto cleanup;
     }
-
-    MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &I, &T ) );
-
-    /*
-     * Blinding
-     * T = T * Vi mod N
-     */
-    MBEDTLS_MPI_CHK( rsa_prepare_blinding( ctx, f_rng, p_rng ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &T, &T, &ctx->Vi ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &T, &T, &ctx->N ) );
-
-    /*
-     * Exponent blinding
-     */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &P1, &ctx->P, 1 ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &Q1, &ctx->Q, 1 ) );
+    memcpy( I, T, n*ciL );
 
 #if defined(MBEDTLS_RSA_NO_CRT)
-    /*
-     * D_blind = ( P - 1 ) * ( Q - 1 ) * R + D
-     */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &R, RSA_EXPONENT_BLINDING,
-                     f_rng, p_rng ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &D_blind, &P1, &Q1 ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &D_blind, &D_blind, &R ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &D_blind, &D_blind, &ctx->D ) );
-
-    D = &D_blind;
+    MBEDTLS_MPI_CHK( mbedtls_mpi_core_exp_mod( T, T, N, n, D, nD, RN ) );
 #else
-    /*
-     * DP_blind = ( P - 1 ) * R + DP
-     */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &R, RSA_EXPONENT_BLINDING,
-                     f_rng, p_rng ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &DP_blind, &P1, &R ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &DP_blind, &DP_blind,
-                &ctx->DP ) );
-
-    DP = &DP_blind;
-
-    /*
-     * DQ_blind = ( Q - 1 ) * R + DQ
-     */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( &R, RSA_EXPONENT_BLINDING,
-                     f_rng, p_rng ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &DQ_blind, &Q1, &R ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &DQ_blind, &DQ_blind,
-                &ctx->DQ ) );
-
-    DQ = &DQ_blind;
+    /* Faster decryption using the CRT */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_core_crt_fwd( TP, TQ, P, nP, Q, nQ, T, n, RP, RQ ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_core_exp_mod( TP, TP, P, nP, DP, nDP, RP ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_core_exp_mod( TQ, TQ, Q, nQ, DQ, nDQ, RQ ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_core_crt_inv( T, TP, TQ, P, nP, Q, nQ, RP, QP ) );
 #endif /* MBEDTLS_RSA_NO_CRT */
-
-#if defined(MBEDTLS_RSA_NO_CRT)
-    MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &T, &T, D, &ctx->N, &ctx->RN ) );
-#else
-    /*
-     * Faster decryption using the CRT
-     *
-     * TP = input ^ dP mod P
-     * TQ = input ^ dQ mod Q
-     */
-
-    MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &TP, &T, DP, &ctx->P, &ctx->RP ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &TQ, &T, DQ, &ctx->Q, &ctx->RQ ) );
-
-    /*
-     * T = (TP - TQ) * (Q^-1 mod P) mod P
-     */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &T, &TP, &TQ ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &TP, &T, &ctx->QP ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &T, &TP, &ctx->P ) );
-
-    /*
-     * T = TQ + T * Q
-     */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &TP, &T, &ctx->Q ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &T, &TQ, &TP ) );
-#endif /* MBEDTLS_RSA_NO_CRT */
-
-    /*
-     * Unblind
-     * T = T * Vf mod N
-     */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &T, &T, &ctx->Vf ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &T, &T, &ctx->N ) );
 
     /* Verify the result to prevent glitching attacks. */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &C, &T, &ctx->E,
-                                          &ctx->N, &ctx->RN ) );
-    if( mbedtls_mpi_cmp_mpi( &C, &I ) != 0 )
+    MBEDTLS_MPI_CHK( mbedtls_mpi_core_exp_mod( C, T, N, n, E, nE, RN ) );
+    if( memcmp( I, C, n*ciL ) != 0 )
     {
+        fprintf( stderr, "VERIFICATION FAILED!\n" );
         ret = MBEDTLS_ERR_RSA_VERIFY_FAILED;
         goto cleanup;
     }
 
-    olen = ctx->len;
-    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &T, output, olen ) );
+    mbedtls_mpi_core_write_binary( T, output, bytelen );
 
 cleanup:
 #if defined(MBEDTLS_THREADING_C)
@@ -1071,25 +916,7 @@ cleanup:
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
 #endif
 
-    mbedtls_mpi_free( &P1 );
-    mbedtls_mpi_free( &Q1 );
-    mbedtls_mpi_free( &R );
-
-#if defined(MBEDTLS_RSA_NO_CRT)
-    mbedtls_mpi_free( &D_blind );
-#else
-    mbedtls_mpi_free( &DP_blind );
-    mbedtls_mpi_free( &DQ_blind );
-#endif
-
-    mbedtls_mpi_free( &T );
-
-#if !defined(MBEDTLS_RSA_NO_CRT)
-    mbedtls_mpi_free( &TP ); mbedtls_mpi_free( &TQ );
-#endif
-
-    mbedtls_mpi_free( &C );
-    mbedtls_mpi_free( &I );
+    mbedtls_free( mempool );
 
     if( ret != 0 && ret >= -0x007f )
         return( MBEDTLS_ERROR_ADD( MBEDTLS_ERR_RSA_PRIVATE_FAILED, ret ) );

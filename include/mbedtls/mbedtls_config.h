@@ -3099,6 +3099,9 @@
  * If defined, this is a header which will be included instead of
  * `"mbedtls/mbedtls_config.h"`.
  * This header file specifies the compile-time configuration of Mbed TLS.
+ * Unlike other configuration options, this one must be defined on the
+ * compiler command line: a definition in `mbedtls_config.h` would have
+ * no effect.
  *
  * This macro is expanded after an <tt>\#include</tt> directive. This is a popular but
  * non-standard feature of the C language, so this feature is only available

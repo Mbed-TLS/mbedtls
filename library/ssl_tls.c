@@ -1713,28 +1713,29 @@ void mbedtls_ssl_conf_psk_cb( mbedtls_ssl_config *conf,
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
-static mbedtls_ssl_mode_t mbedtls_ssl_get_base_mode(
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        psa_algorithm_t alg
-#else
-        mbedtls_cipher_mode_t mode
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-        )
+static mbedtls_ssl_mode_t mbedtls_ssl_get_base_mode(
+        psa_algorithm_t alg )
 {
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( alg == PSA_ALG_CBC_NO_PADDING )
         return( MBEDTLS_SSL_MODE_CBC );
-#else
-    if( mode == MBEDTLS_MODE_CBC )
-        return( MBEDTLS_SSL_MODE_CBC );
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( PSA_ALG_IS_AEAD( alg ) )
         return( MBEDTLS_SSL_MODE_AEAD );
-#else
+    return( MBEDTLS_SSL_MODE_STREAM );
+}
+
+#else /* MBEDTLS_USE_PSA_CRYPTO */
+
+static mbedtls_ssl_mode_t mbedtls_ssl_get_base_mode(
+        mbedtls_cipher_mode_t mode )
+{
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
+    if( mode == MBEDTLS_MODE_CBC )
+        return( MBEDTLS_SSL_MODE_CBC );
+#endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
+
 #if defined(MBEDTLS_GCM_C) || \
     defined(MBEDTLS_CCM_C) || \
     defined(MBEDTLS_CHACHAPOLY_C)
@@ -1743,10 +1744,10 @@ static mbedtls_ssl_mode_t mbedtls_ssl_get_base_mode(
         mode == MBEDTLS_MODE_CHACHAPOLY )
         return( MBEDTLS_SSL_MODE_AEAD );
 #endif /* MBEDTLS_GCM_C || MBEDTLS_CCM_C || MBEDTLS_CHACHAPOLY_C */
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     return( MBEDTLS_SSL_MODE_STREAM );
 }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 static mbedtls_ssl_mode_t mbedtls_ssl_get_actual_mode(
     mbedtls_ssl_mode_t base_mode,

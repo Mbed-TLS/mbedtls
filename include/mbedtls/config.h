@@ -2176,7 +2176,7 @@
  * include/psa/crypto_config.h. The corresponding `MBEDTLS_XXX` settings are
  * automatically enabled if required (i.e. if no PSA driver provides the
  * mechanism). You may still freely enable additional `MBEDTLS_XXX` symbols
- * in mbedtls_config.h.
+ * in config.h.
  *
  * If the symbol #MBEDTLS_PSA_CRYPTO_CONFIG_FILE is defined, it specifies
  * an alternative header to include instead of include/psa/crypto_config.h.
@@ -3633,7 +3633,7 @@
  * \def MBEDTLS_CONFIG_FILE
  *
  * If defined, this is a header which will be included instead of
- * `"mbedtls/mbedtls_config.h"`.
+ * `"mbedtls/config.h"`.
  * This header file specifies the compile-time configuration of Mbed TLS.
  *
  * This macro is expanded after an <tt>\#include</tt> directive. This is a popular but
@@ -3643,13 +3643,13 @@
  * The value of this symbol is typically a path in double quotes, either
  * absolute or relative to a directory on the include search path.
  */
-//#define MBEDTLS_CONFIG_FILE "mbedtls/mbedtls_config.h"
+//#define MBEDTLS_CONFIG_FILE "mbedtls/config.h"
 
 /**
  * \def MBEDTLS_USER_CONFIG_FILE
  *
  * If defined, this is a header which will be included after
- * `"mbedtls/mbedtls_config.h"` or #MBEDTLS_CONFIG_FILE.
+ * `"mbedtls/config.h"` or #MBEDTLS_CONFIG_FILE.
  * This allows you to modify the default configuration, including the ability
  * to undefine options that are enabled by default.
  *

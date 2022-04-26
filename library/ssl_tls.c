@@ -1713,10 +1713,7 @@ void mbedtls_ssl_conf_psk_cb( mbedtls_ssl_config *conf,
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
-static inline mbedtls_ssl_mode_t mbedtls_ssl_get_mode(
-#if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM)
-        int encrypt_then_mac,
-#endif /* MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM */
+static mbedtls_ssl_mode_t mbedtls_ssl_get_base_mode(
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         psa_algorithm_t alg
 #else
@@ -1727,24 +1724,10 @@ static inline mbedtls_ssl_mode_t mbedtls_ssl_get_mode(
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( alg == PSA_ALG_CBC_NO_PADDING )
-    {
-#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
-        if( encrypt_then_mac == MBEDTLS_SSL_ETM_ENABLED )
-            return( MBEDTLS_SSL_MODE_CBC_ETM );
-#endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */
-
         return( MBEDTLS_SSL_MODE_CBC );
-    }
 #else
     if( mode == MBEDTLS_MODE_CBC )
-    {
-#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
-        if( encrypt_then_mac == MBEDTLS_SSL_ETM_ENABLED )
-            return( MBEDTLS_SSL_MODE_CBC_ETM );
-#endif /* MBEDTLS_SSL_ENCRYPT_THEN_MAC */
-
         return( MBEDTLS_SSL_MODE_CBC );
-    }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_MAC */
 
@@ -1765,25 +1748,38 @@ static inline mbedtls_ssl_mode_t mbedtls_ssl_get_mode(
     return( MBEDTLS_SSL_MODE_STREAM );
 }
 
+static mbedtls_ssl_mode_t mbedtls_ssl_get_actual_mode(
+    mbedtls_ssl_mode_t base_mode,
+    int encrypt_then_mac )
+{
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM)
+    if( encrypt_then_mac == MBEDTLS_SSL_ETM_ENABLED &&
+        base_mode == MBEDTLS_SSL_MODE_CBC )
+    {
+        return( MBEDTLS_SSL_MODE_CBC_ETM );
+    }
+#else
+    (void) encrypt_then_mac;
+#endif
+    return( base_mode );
+}
+
 mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_transform(
                     const mbedtls_ssl_transform *transform )
 {
+    mbedtls_ssl_mode_t base_mode = mbedtls_ssl_get_base_mode(
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    return mbedtls_ssl_get_mode(
-#if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM)
-            transform->encrypt_then_mac,
-#endif /* MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM */
-            transform->psa_alg );
+            transform->psa_alg
 #else
-    mbedtls_cipher_mode_t mode =
-        mbedtls_cipher_get_cipher_mode( &transform->cipher_ctx_enc );
+            mbedtls_cipher_get_cipher_mode( &transform->cipher_ctx_enc )
+#endif
+        );
 
-    return mbedtls_ssl_get_mode(
+    int encrypt_then_mac = 0;
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM)
-            transform->encrypt_then_mac,
-#endif /* MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM */
-            mode );
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+    encrypt_then_mac = transform->encrypt_then_mac;
+#endif
+    return( mbedtls_ssl_get_actual_mode( base_mode, encrypt_then_mac ) );
 }
 
 mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
@@ -1792,32 +1788,31 @@ mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM */
         const mbedtls_ssl_ciphersuite_t *suite )
 {
+    mbedtls_ssl_mode_t base_mode = MBEDTLS_SSL_MODE_STREAM;
+
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_status_t status;
     psa_algorithm_t alg;
     psa_key_type_t type;
     size_t size;
-
     status = mbedtls_ssl_cipher_to_psa( suite->cipher, 0, &alg, &type, &size );
     if( status == PSA_SUCCESS )
-        return mbedtls_ssl_get_mode(
-#if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM)
-            encrypt_then_mac,
-#endif /* MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM */
-            alg );
+        base_mode = mbedtls_ssl_get_base_mode( alg );
 #else
     const mbedtls_cipher_info_t *cipher =
             mbedtls_cipher_info_from_type( suite->cipher );
-
     if( cipher != NULL )
-        return mbedtls_ssl_get_mode(
-#if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM)
-            encrypt_then_mac,
-#endif /* MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM */
-            mbedtls_cipher_info_get_mode( cipher ) );
+    {
+        base_mode =
+            mbedtls_ssl_get_base_mode(
+                mbedtls_cipher_info_get_mode( cipher ) );
+    }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-    return( MBEDTLS_SSL_MODE_STREAM );
+#if !defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM)
+    int encrypt_then_mac = 0;
+#endif
+    return( mbedtls_ssl_get_actual_mode( base_mode, encrypt_then_mac ) );
 }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)

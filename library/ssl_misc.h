@@ -423,24 +423,6 @@ static inline int mbedtls_ssl_chk_buf_ptr( const uint8_t *cur,
 extern "C" {
 #endif
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
-    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-/*
- * Abstraction for a grid of allowed signature-hash-algorithm pairs.
- */
-struct mbedtls_ssl_sig_hash_set_t
-{
-    /* At the moment, we only need to remember a single suitable
-     * hash algorithm per signature algorithm. As long as that's
-     * the case - and we don't need a general lookup function -
-     * we can implement the sig-hash-set as a map from signatures
-     * to hash algorithms. */
-    mbedtls_md_type_t rsa;
-    mbedtls_md_type_t ecdsa;
-};
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 &&
-          MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
-
 typedef int  mbedtls_ssl_tls_prf_cb( const unsigned char *secret, size_t slen,
                                      const char *label,
                                      const unsigned char *random, size_t rlen,
@@ -594,13 +576,7 @@ struct mbedtls_ssl_handshake_params
 #endif /* MBEDTLS_SSL_SRV_C */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
-    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-    mbedtls_ssl_sig_hash_set_t hash_algs;             /*!<  Set of suitable sig-hash pairs */
-#endif
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
-    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     uint16_t received_sig_algs[MBEDTLS_RECEIVED_SIG_ALGS_SIZE];
 #endif
 
@@ -1116,23 +1092,9 @@ int mbedtls_ssl_tls12_write_client_hello_exts( mbedtls_ssl_context *ssl,
     defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 
 /* Find an entry in a signature-hash set matching a given hash algorithm. */
-mbedtls_md_type_t mbedtls_ssl_sig_hash_set_find( mbedtls_ssl_sig_hash_set_t *set,
-                                                 mbedtls_pk_type_t sig_alg );
-/* Add a signature-hash-pair to a signature-hash set */
-void mbedtls_ssl_sig_hash_set_add( mbedtls_ssl_sig_hash_set_t *set,
-                                   mbedtls_pk_type_t sig_alg,
-                                   mbedtls_md_type_t md_alg );
-/* Allow exactly one hash algorithm for each signature. */
-void mbedtls_ssl_sig_hash_set_const_hash( mbedtls_ssl_sig_hash_set_t *set,
-                                          mbedtls_md_type_t md_alg );
-
-/* Setup an empty signature-hash set */
-static inline void mbedtls_ssl_sig_hash_set_init( mbedtls_ssl_sig_hash_set_t *set )
-{
-    mbedtls_ssl_sig_hash_set_const_hash( set, MBEDTLS_MD_NONE );
-}
-
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2) &&
+mbedtls_md_type_t mbedtls_ssl_sig_hash_set_find( mbedtls_ssl_context *ssl,
+                                                 mbedtls_pk_type_t pk_alg );
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 &&
           MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 /**
@@ -1806,9 +1768,9 @@ int mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
 /*
  * Parse TLS 1.3 Signature Algorithm extension
  */
-int mbedtls_ssl_tls13_parse_sig_alg_ext( mbedtls_ssl_context *ssl,
-                                         const unsigned char *buf,
-                                         const unsigned char *end );
+int mbedtls_ssl_parse_sig_alg_ext( mbedtls_ssl_context *ssl,
+                                   const unsigned char *buf,
+                                   const unsigned char *end );
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 /* Get handshake transcript */
@@ -2155,16 +2117,21 @@ static inline int mbedtls_ssl_sig_alg_is_supported(
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_RSA_C)
-#define MBEDTLS_SSL_SIG_ALG( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_ECDSA), \
-                                    (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA),
+#define MBEDTLS_SSL_SIG_ALG_SET( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_ECDSA), \
+                                        (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA),
 #elif defined(MBEDTLS_ECDSA_C)
-#define MBEDTLS_SSL_SIG_ALG( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_ECDSA),
+#define MBEDTLS_SSL_SIG_ALG_SET( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_ECDSA),
 #elif defined(MBEDTLS_RSA_C)
-#define MBEDTLS_SSL_SIG_ALG( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA),
+#define MBEDTLS_SSL_SIG_ALG_SET( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA),
 #else
-#define MBEDTLS_SSL_SIG_ALG( hash )
-#endif /* MBEDTLS_ECDSA_C && MBEDTLS_RSA_C */
+#define MBEDTLS_SSL_SIG_ALG_SET( hash )
+#endif
+
+#define MBEDTLS_SSL_SIG_ALG( sig, hash ) (( hash << 8 ) | sig)
+#define MBEDTLS_SSL_SIG_FROM_SIG_ALG(alg) (alg & 0xFF)
+#define MBEDTLS_SSL_HASH_FROM_SIG_ALG(alg) (alg >> 8)
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 /* Corresponding PSA algorithm for MBEDTLS_CIPHER_NULL.
  * Same value is used fo PSA_ALG_CATEGORY_CIPHER, hence it is

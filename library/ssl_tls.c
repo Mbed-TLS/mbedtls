@@ -616,11 +616,6 @@ static void ssl_handshake_params_init( mbedtls_ssl_handshake_params *handshake )
 
     handshake->update_checksum = ssl_update_checksum_start;
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
-    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-    mbedtls_ssl_sig_hash_set_init( &handshake->hash_algs );
-#endif
-
 #if defined(MBEDTLS_DHM_C)
     mbedtls_dhm_init( &handshake->dhm_ctx );
 #endif
@@ -4150,13 +4145,13 @@ static uint16_t ssl_preset_default_sig_algs[] = {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 static uint16_t ssl_tls12_preset_default_sig_algs[] = {
 #if defined(MBEDTLS_SHA512_C)
-    MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA512 )
+    MBEDTLS_SSL_SIG_ALG_SET( MBEDTLS_SSL_HASH_SHA512 )
 #endif
 #if defined(MBEDTLS_SHA384_C)
-    MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA384 )
+    MBEDTLS_SSL_SIG_ALG_SET( MBEDTLS_SSL_HASH_SHA384 )
 #endif
 #if defined(MBEDTLS_SHA256_C)
-    MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA256 )
+    MBEDTLS_SSL_SIG_ALG_SET( MBEDTLS_SSL_HASH_SHA256 )
 #endif
     MBEDTLS_TLS1_3_SIG_NONE
 };
@@ -4191,10 +4186,10 @@ static uint16_t ssl_preset_suiteb_sig_algs[] = {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 static uint16_t ssl_tls12_preset_suiteb_sig_algs[] = {
 #if defined(MBEDTLS_SHA256_C)
-    MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA256 )
+    MBEDTLS_SSL_SIG_ALG_SET( MBEDTLS_SSL_HASH_SHA256 )
 #endif
 #if defined(MBEDTLS_SHA384_C)
-    MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA384 )
+    MBEDTLS_SSL_SIG_ALG_SET( MBEDTLS_SSL_HASH_SHA384 )
 #endif
     MBEDTLS_TLS1_3_SIG_NONE
 };
@@ -4851,6 +4846,109 @@ int mbedtls_ssl_get_handshake_transcript( mbedtls_ssl_context *ssl,
 }
 
 #endif /* !MBEDTLS_USE_PSA_CRYPTO */
+
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+/* mbedtls_ssl_parse_sig_alg_ext()
+ *
+ * The `extension_data` field of signature algorithm contains  a `SignatureSchemeList`
+ * value (TLS 1.3 RFC8446):
+ *      enum {
+ *         ....
+ *        ecdsa_secp256r1_sha256( 0x0403 ),
+ *        ecdsa_secp384r1_sha384( 0x0503 ),
+ *        ecdsa_secp521r1_sha512( 0x0603 ),
+ *         ....
+ *      } SignatureScheme;
+ *
+ *      struct {
+ *         SignatureScheme supported_signature_algorithms<2..2^16-2>;
+ *      } SignatureSchemeList;
+ *
+ * The `extension_data` field of signature algorithm contains a `SignatureAndHashAlgorithm`
+ * value (TLS 1.2 RFC5246):
+ *      enum {
+ *          none(0), md5(1), sha1(2), sha224(3), sha256(4), sha384(5),
+ *          sha512(6), (255)
+ *      } HashAlgorithm;
+ *
+ *      enum { anonymous(0), rsa(1), dsa(2), ecdsa(3), (255) }
+ *        SignatureAlgorithm;
+ *
+ *      struct {
+ *          HashAlgorithm hash;
+ *          SignatureAlgorithm signature;
+ *      } SignatureAndHashAlgorithm;
+ *
+ *      SignatureAndHashAlgorithm
+ *        supported_signature_algorithms<2..2^16-2>;
+ *
+ * The TLS 1.3 signature algorithm extension was defined to be a compatible
+ * generalization of the TLS 1.2 signature algorithm extension.
+ * `SignatureAndHashAlgorithm` field of TLS 1.2 can be represented by
+ * `SignatureScheme` field of TLS 1.3
+ *
+ */
+int mbedtls_ssl_parse_sig_alg_ext( mbedtls_ssl_context *ssl,
+                                   const unsigned char *buf,
+                                   const unsigned char *end )
+{
+    const unsigned char *p = buf;
+    size_t supported_sig_algs_len = 0;
+    const unsigned char *supported_sig_algs_end;
+    uint16_t sig_alg;
+    uint32_t common_idx = 0;
+
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2 );
+    supported_sig_algs_len = MBEDTLS_GET_UINT16_BE( p, 0 );
+    p += 2;
+
+    memset( ssl->handshake->received_sig_algs, 0,
+            sizeof(ssl->handshake->received_sig_algs) );
+
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, supported_sig_algs_len );
+    supported_sig_algs_end = p + supported_sig_algs_len;
+    while( p < supported_sig_algs_end )
+    {
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, supported_sig_algs_end, 2 );
+        sig_alg = MBEDTLS_GET_UINT16_BE( p, 0 );
+        p += 2;
+
+        MBEDTLS_SSL_DEBUG_MSG( 4, ( "received signature algorithm: 0x%x",
+                                    sig_alg ) );
+
+        if( ! mbedtls_ssl_sig_alg_is_supported( ssl, sig_alg ) ||
+            ! mbedtls_ssl_sig_alg_is_offered( ssl, sig_alg ) )
+            continue;
+
+        if( common_idx + 1 < MBEDTLS_RECEIVED_SIG_ALGS_SIZE )
+        {
+            ssl->handshake->received_sig_algs[common_idx] = sig_alg;
+            common_idx += 1;
+        }
+    }
+    /* Check that we consumed all the message. */
+    if( p != end )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1,
+            ( "Signature algorithms extension length misaligned" ) );
+        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
+                                      MBEDTLS_ERR_SSL_DECODE_ERROR );
+        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
+    }
+
+    if( common_idx == 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "no signature algorithm in common" ) );
+        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
+                                      MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+    }
+
+    ssl->handshake->received_sig_algs[common_idx] = MBEDTLS_TLS1_3_SIG_NONE;
+    return( 0 );
+}
+
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 
@@ -7555,49 +7653,26 @@ exit:
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 
-/* Find an entry in a signature-hash set matching a given hash algorithm. */
-mbedtls_md_type_t mbedtls_ssl_sig_hash_set_find( mbedtls_ssl_sig_hash_set_t *set,
-                                                 mbedtls_pk_type_t sig_alg )
+/* Find an entry in a signature-hash set matching a given sign algorithm. */
+mbedtls_md_type_t mbedtls_ssl_sig_hash_set_find( mbedtls_ssl_context *ssl,
+                                                 mbedtls_pk_type_t pk_alg )
 {
-    switch( sig_alg )
+    unsigned int i;
+    uint16_t sig_alg = mbedtls_ssl_sig_from_pk_alg( pk_alg );
+    uint16_t *set = ssl->handshake->received_sig_algs;
+    uint16_t invalid_sig_alg = MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_SIG_ANON,
+                                                    MBEDTLS_SSL_HASH_NONE );
+
+    if( sig_alg == MBEDTLS_SSL_SIG_ANON )
+        return( MBEDTLS_MD_NONE );
+
+    for( i = 0; set[i] != invalid_sig_alg; i++ )
     {
-        case MBEDTLS_PK_RSA:
-            return( set->rsa );
-        case MBEDTLS_PK_ECDSA:
-            return( set->ecdsa );
-        default:
-            return( MBEDTLS_MD_NONE );
+        if( sig_alg == MBEDTLS_SSL_SIG_FROM_SIG_ALG( set[i] ) )
+            return MBEDTLS_SSL_HASH_FROM_SIG_ALG( set[i] );
     }
-}
 
-/* Add a signature-hash-pair to a signature-hash set */
-void mbedtls_ssl_sig_hash_set_add( mbedtls_ssl_sig_hash_set_t *set,
-                                   mbedtls_pk_type_t sig_alg,
-                                   mbedtls_md_type_t md_alg )
-{
-    switch( sig_alg )
-    {
-        case MBEDTLS_PK_RSA:
-            if( set->rsa == MBEDTLS_MD_NONE )
-                set->rsa = md_alg;
-            break;
-
-        case MBEDTLS_PK_ECDSA:
-            if( set->ecdsa == MBEDTLS_MD_NONE )
-                set->ecdsa = md_alg;
-            break;
-
-        default:
-            break;
-    }
-}
-
-/* Allow exactly one hash algorithm for each signature. */
-void mbedtls_ssl_sig_hash_set_const_hash( mbedtls_ssl_sig_hash_set_t *set,
-                                          mbedtls_md_type_t md_alg )
-{
-    set->rsa   = md_alg;
-    set->ecdsa = md_alg;
+    return( MBEDTLS_MD_NONE );
 }
 
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */

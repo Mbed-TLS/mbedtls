@@ -1129,7 +1129,7 @@
  *
  * Enable support for PKCS#1 v1.5 encoding.
  *
- * Requires: MBEDTLS_RSA_C
+ * Requires: MBEDTLS_MD_C, MBEDTLS_RSA_C
  *
  * This enables support for PKCS#1 v1.5 operations.
  */
@@ -2390,7 +2390,24 @@
  * Enable the generic message digest layer.
  *
  * Module:  library/md.c
- * Caller:
+ * Caller:  library/constant_time.c
+ *          library/ecdsa.c
+ *          library/ecjpake.c
+ *          library/hkdf.c
+ *          library/hmac_drbg.c
+ *          library/oid.c
+ *          library/pk.c
+ *          library/pkcs5.c
+ *          library/pkcs12.c
+ *          library/psa_crypto_ecp.c
+ *          library/psa_crypto_rsa.c
+ *          library/rsa.c
+ *          library/ssl_cookie.c
+ *          library/ssl_msg.c
+ *          library/ssl_tls.c
+ *          library/x509_crt.c
+ *          library/x509write_crt.c
+ *          library/x509write_csr.c
  *
  * Uncomment to enable generic message digest wrappers.
  */
@@ -2535,7 +2552,7 @@
  *          library/ssl*_server.c
  *          library/x509.c
  *
- * Requires: MBEDTLS_RSA_C or MBEDTLS_ECP_C
+ * Requires: MBEDTLS_MD_C, MBEDTLS_RSA_C or MBEDTLS_ECP_C
  *
  * Uncomment to enable generic public key wrappers.
  */

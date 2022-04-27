@@ -7114,10 +7114,7 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
 
         /* IV length */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        if( ssl_mode == MBEDTLS_SSL_MODE_STREAM )
-            transform->ivlen = 0;
-        else
-            transform->ivlen = PSA_CIPHER_IV_LENGTH( key_type, alg );
+        transform->ivlen = PSA_CIPHER_IV_LENGTH( key_type, alg );
 #else
         transform->ivlen = cipher_info->iv_size;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */

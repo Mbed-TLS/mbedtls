@@ -5221,22 +5221,22 @@ static int ecp_mod_p255( mbedtls_mpi *N )
 {
     mbedtls_mpi_uint Mp[P255_WIDTH];
 
-    /* Helper references for top part of N */
-    mbedtls_mpi_uint * const NT_p = N->p + P255_WIDTH;
-    const size_t NT_n = N->n - P255_WIDTH;
     if( N->n <= P255_WIDTH )
         return( 0 );
-    if( NT_n > P255_WIDTH )
+
+    /* Helper references for top part of N */
+    mbedtls_mpi_buf top = { .p = N->p + P255_WIDTH, .n = N->n - P255_WIDTH };
+    if( top.n > P255_WIDTH )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
+    mbedtls_mpi_buf mp = { .p = Mp, .n = top.n };
     /* Split N as N + 2^256 M */
-    memcpy( Mp,   NT_p, sizeof( mbedtls_mpi_uint ) * NT_n );
-    memset( NT_p, 0,    sizeof( mbedtls_mpi_uint ) * NT_n );
+    memcpy( mp.p,  top.p, sizeof( mbedtls_mpi_uint ) * top.n );
+    memset( top.p, 0,     sizeof( mbedtls_mpi_uint ) * top.n );
 
     /* N = A0 + 38 * A1 */
-    mbedtls_mpi_core_mla( N->p, P255_WIDTH + 1,
-                          Mp, NT_n,
-                          38, NULL );
+    mbedtls_mpi_buf new = { .p = N->p, .n = P255_WIDTH + 1 };
+    mbedtls_mpi_core_mla( new, mp, 38, NULL );
 
     return( 0 );
 }

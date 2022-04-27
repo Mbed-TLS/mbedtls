@@ -42,8 +42,8 @@
 #define mbedtls_free       free
 #endif
 
-void mbedtls_mpi_core_read_binary( mbedtls_mpi_uint *X, size_t nx,
-                                   const unsigned char *buf, size_t buflen )
+void MPI_CORE(read_binary)( mbedtls_mpi_uint *X, size_t nx,
+                            const unsigned char *buf, size_t buflen )
 {
     size_t const overhead = ( nx * ciL ) - buflen;
     unsigned char *Xp = (unsigned char*) X;
@@ -51,7 +51,7 @@ void mbedtls_mpi_core_read_binary( mbedtls_mpi_uint *X, size_t nx,
     if( buflen == 0 )
         return;
     memcpy( Xp + overhead, buf, buflen );
-    mbedtls_mpi_core_bigendian_to_host( X, nx );
+    MPI_CORE(bigendian_to_host)( X, nx );
 }
 
 void MPI_CORE(write_binary)( const mbedtls_mpi_uint *X,
@@ -592,11 +592,11 @@ mbedtls_mpi_uint mbedtls_mpi_core_uint_bigendian_to_host( mbedtls_mpi_uint x )
     return( mpi_uint_bigendian_to_host_c( x ) );
 }
 
-void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint * const p, size_t limbs )
+void MPI_CORE(bigendian_to_host)( mbedtls_mpi_uint *X, size_t nx )
 {
     mbedtls_mpi_uint *cur_limb_left;
     mbedtls_mpi_uint *cur_limb_right;
-    if( limbs == 0 )
+    if( nx == 0 )
         return;
 
     /*
@@ -608,7 +608,7 @@ void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint * const p, size_t limb
      * than the right index (it's not a problem if limbs is odd and the
      * indices coincide in the last iteration).
      */
-    for( cur_limb_left = p, cur_limb_right = p + ( limbs - 1 );
+    for( cur_limb_left = X, cur_limb_right = X + ( nx - 1 );
          cur_limb_left <= cur_limb_right;
          cur_limb_left++, cur_limb_right-- )
     {
@@ -629,13 +629,12 @@ int MPI_CORE(random_be)( mbedtls_mpi_uint *X, size_t nx,
     const size_t overhead = ( nx * ciL ) - n_bytes;
     memset( X, 0, overhead );
     MBEDTLS_MPI_CHK( f_rng( p_rng, (unsigned char*) X + overhead, n_bytes ) );
-    mbedtls_mpi_core_bigendian_to_host( X, nx );
+    MPI_CORE(bigendian_to_host)( X, nx );
 cleanup:
     return( ret );
 }
 
-void mbedtls_mpi_core_shift_r( mbedtls_mpi_uint *X,
-                               size_t nx, size_t count )
+void MPI_CORE(shift_r)( mbedtls_mpi_uint *X, size_t nx, size_t count )
 {
     size_t i;
     size_t v0 = count /  biL;

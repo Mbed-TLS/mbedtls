@@ -50,6 +50,12 @@
 
 #define MPI_CORE(func) mbedtls_mpi_core_ ## func ## _minimal
 
+typedef struct
+{
+    mbedtls_mpi_uint *p;
+    size_t n;
+} mbedtls_mpi_buf;
+
 /**
  * \brief Add two known-size large unsigned integers, returning the carry.
  *
@@ -72,16 +78,14 @@ mbedtls_mpi_uint MPI_CORE(add)( mbedtls_mpi_uint *d,
                                 size_t n );
 
 static inline
-int mbedtls_mpi_core_add( mbedtls_mpi_uint *d, size_t nd,
-                          const mbedtls_mpi_uint *l, size_t nl,
-                          const mbedtls_mpi_uint *r, size_t nr,
+int mbedtls_mpi_core_add( mbedtls_mpi_buf d, mbedtls_mpi_buf l, mbedtls_mpi_buf r,
                           mbedtls_mpi_uint *carry )
 {
     mbedtls_mpi_uint res;
-    if( nd != nl || nl != nr )
+    if( d.n != l.n || l.n != r.n )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
-    res = MPI_CORE(add)( d, l, r, nr );
+    res = MPI_CORE(add)( d.p, l.p, r.p, d.n );
     if( carry != NULL )
         *carry = res;
     return( 0 );
@@ -103,15 +107,13 @@ mbedtls_mpi_uint MPI_CORE(add_int)( mbedtls_mpi_uint *d,
                                     mbedtls_mpi_uint c, size_t n );
 
 static inline
-int mbedtls_mpi_core_add_int( mbedtls_mpi_uint *d, size_t nd,
-                              const mbedtls_mpi_uint *l, size_t nl,
-                              mbedtls_mpi_uint c,
-                              mbedtls_mpi_uint *carry )
+int mbedtls_mpi_core_add_int( mbedtls_mpi_buf d, mbedtls_mpi_buf l,
+                              mbedtls_mpi_uint c, mbedtls_mpi_uint *carry )
 {
     mbedtls_mpi_uint res;
-    if( nd != nl )
+    if( d.n != l.n )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
-    res = MPI_CORE(add_int)( d, l, c, nd );
+    res = MPI_CORE(add_int)( d.p, l.p, c, d.n );
     if( carry != NULL )
         *carry = res;
     return( 0 );
@@ -140,15 +142,13 @@ mbedtls_mpi_uint MPI_CORE(sub)( mbedtls_mpi_uint *d,
                                 size_t n );
 
 static inline
-int mbedtls_mpi_core_sub( mbedtls_mpi_uint *d, size_t nd,
-                          const mbedtls_mpi_uint *l, size_t nl,
-                          const mbedtls_mpi_uint *r, size_t nr,
-                          mbedtls_mpi_uint *borrow )
+int mbedtls_mpi_core_sub( mbedtls_mpi_buf d, mbedtls_mpi_buf l,
+                          mbedtls_mpi_buf r, mbedtls_mpi_uint *borrow )
 {
     mbedtls_mpi_uint res;
-    if( nd != nl || nl != nr )
+    if( d.n != l.n || l.n != r.n )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
-    res = MPI_CORE(sub)( d, l, r, nr );
+    res = MPI_CORE(sub)( d.p, l.p, r.p, r.n );
     if( borrow != NULL )
         *borrow = res;
     return( 0 );
@@ -171,15 +171,13 @@ mbedtls_mpi_uint MPI_CORE(sub_int)( mbedtls_mpi_uint *d,
                                     mbedtls_mpi_uint r, size_t n );
 
 static inline
-int mbedtls_mpi_core_sub_int( mbedtls_mpi_uint *d, size_t nd,
-                              const mbedtls_mpi_uint *l, size_t nl,
-                              mbedtls_mpi_uint c,
-                              mbedtls_mpi_uint *borrow )
+int mbedtls_mpi_core_sub_int( mbedtls_mpi_buf d, mbedtls_mpi_buf l,
+                              mbedtls_mpi_uint c, mbedtls_mpi_uint *borrow )
 {
     mbedtls_mpi_uint res;
-    if( nd != nl )
+    if( d.n != l.n )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
-    res = MPI_CORE(sub_int)( d, l, c, nd );
+    res = MPI_CORE(sub_int)( d.p, l.p, c, d.n );
     if( borrow != NULL )
         *borrow = res;
     return( 0 );
@@ -207,13 +205,11 @@ mbedtls_mpi_uint MPI_CORE(mla)( mbedtls_mpi_uint *d, size_t d_len ,
                                 mbedtls_mpi_uint b );
 
 static inline
-int mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t nd,
-                          const mbedtls_mpi_uint *s, size_t ns,
-                          mbedtls_mpi_uint b,
-                          mbedtls_mpi_uint *carry )
+int mbedtls_mpi_core_mla( mbedtls_mpi_buf d, mbedtls_mpi_buf s,
+                          mbedtls_mpi_uint b, mbedtls_mpi_uint *carry )
 {
     mbedtls_mpi_uint res;
-    res = MPI_CORE(mla)( d, nd, s, ns, b );
+    res = MPI_CORE(mla)( d.p, d.n, s.p, s.n, b );
     if( carry != NULL )
         *carry = res;
     return( 0 );
@@ -224,13 +220,11 @@ void MPI_CORE(mul)( mbedtls_mpi_uint *X,
                     const mbedtls_mpi_uint *B, size_t b );
 
 static inline
-int mbedtls_mpi_core_mul( mbedtls_mpi_uint *X, size_t nx,
-                          const mbedtls_mpi_uint *A, size_t na,
-                          const mbedtls_mpi_uint *B, size_t nb )
+int mbedtls_mpi_core_mul( mbedtls_mpi_buf x, mbedtls_mpi_buf a, mbedtls_mpi_buf b )
 {
-    if( nx != na + nb )
+    if( x.n != a.n + b.n )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
-    MPI_CORE(mul)( X, A, na, B, nb );
+    MPI_CORE(mul)( x.p, a.p, a.n, b.p, b.n );
     return( 0 );
 }
 
@@ -258,16 +252,14 @@ void MPI_CORE(montmul)( mbedtls_mpi_uint *A, const mbedtls_mpi_uint *B,
                         mbedtls_mpi_uint *T );
 
 static inline
-int mbedtls_mpi_core_montmul( mbedtls_mpi_uint *A, size_t na,
-                              const mbedtls_mpi_uint *B, size_t nb,
-                              const mbedtls_mpi_uint *N, size_t nn,
-                              mbedtls_mpi_uint *T, size_t nt,
+int mbedtls_mpi_core_montmul( mbedtls_mpi_buf a, mbedtls_mpi_buf n,
+                              mbedtls_mpi_buf b, mbedtls_mpi_buf t,
                               mbedtls_mpi_uint mm )
 {
-    if( na != nn || nb > nn || nt != 2*nn + 1 )
+    if( a.n != n.n || b.n > n.n || t.n != 2*n.n + 1 )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
-    MPI_CORE(montmul)( A, B, nb, N, nn, mm, T );
+    MPI_CORE(montmul)( a.p, b.p, b.n, n.p, n.n, mm, t.p );
 }
 
 /**
@@ -285,12 +277,12 @@ void MPI_CORE(get_montgomery_constant_safe)( mbedtls_mpi_uint *RR,
                                              size_t n );
 
 static inline
-int mbedtls_mpi_core_get_montgomery_constant_safe( mbedtls_mpi_uint *RR, size_t nrr,
-                                                   mbedtls_mpi_uint const *N, size_t n )
+int mbedtls_mpi_core_get_montgomery_constant_safe( mbedtls_mpi_buf rr,
+                                                   mbedtls_mpi_buf n )
 {
-    if( nrr != n )
+    if( rr.n != n.n )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
-    MPI_CORE(get_montgomery_constant_safe)( RR, N, n );
+    MPI_CORE(get_montgomery_constant_safe)( rr.p, n.p, n.n );
     return( 0 );
 }
 
@@ -314,15 +306,16 @@ int MPI_CORE(exp_mod)( mbedtls_mpi_uint *X, mbedtls_mpi_uint *A,
                        const mbedtls_mpi_uint *RR );
 
 static inline
-int mbedtls_mpi_core_exp_mod( mbedtls_mpi_uint *X, size_t nx,
-                              mbedtls_mpi_uint *A, size_t na,
-                              const mbedtls_mpi_uint *N, size_t nn,
-                              const mbedtls_mpi_uint *E, size_t ne,
-                              const mbedtls_mpi_uint *RR, size_t nrr )
+int mbedtls_mpi_core_exp_mod( mbedtls_mpi_buf x, mbedtls_mpi_buf a,
+                              mbedtls_mpi_buf n, mbedtls_mpi_buf e,
+                              mbedtls_mpi_buf rr )
 {
-    if( nx != nn || na != nn || nrr != nn )
+    if( x.n != n.n || a.n != n.n || rr.n != n.n )
+    {
+        fprintf( stderr, "BAD! x %u, n %u, a %u, rr %u\n", x.n, n.n, a.n, rr.n );
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
-    return( MPI_CORE(exp_mod)( X, A, N, nn, E, ne, RR ) );
+    }
+    return( MPI_CORE(exp_mod)( x.p, a.p, n.p, n.n, e.p, e.n, rr.p ) );
 }
 
 /**
@@ -350,14 +343,12 @@ int MPI_CORE(mod_reduce)( mbedtls_mpi_uint *X,
                    const mbedtls_mpi_uint *RR );
 
 static inline
-int mbedtls_mpi_core_mod_reduce( mbedtls_mpi_uint *X, size_t nx,
-                                 mbedtls_mpi_uint const *A, size_t na,
-                                 const mbedtls_mpi_uint *N, size_t nn,
-                                 const mbedtls_mpi_uint *RR, size_t nrr )
+int mbedtls_mpi_core_mod_reduce( mbedtls_mpi_buf x, mbedtls_mpi_buf a,
+                                 mbedtls_mpi_buf n, mbedtls_mpi_buf rr )
 {
-    if( nx != nn || nrr != nn )
+    if( x.n != n.n || rr.n != n.n )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
-    return( MPI_CORE(mod_reduce)( X, A, na, N, nn, RR ) );
+    return( MPI_CORE(mod_reduce)( x.p, a.p, a.n, n.p, n.n, rr.p ) );
 }
 
 int MPI_CORE(crt_fwd)( mbedtls_mpi_uint *TP, mbedtls_mpi_uint *TQ,
@@ -368,39 +359,39 @@ int MPI_CORE(crt_fwd)( mbedtls_mpi_uint *TP, mbedtls_mpi_uint *TQ,
                        const mbedtls_mpi_uint *RQ );
 
 static inline
-int mbedtls_mpi_core_crt_fwd(       mbedtls_mpi_uint *TP, size_t ntp,
-                                    mbedtls_mpi_uint *TQ, size_t ntq,
-                              const mbedtls_mpi_uint *P,  size_t np,
-                              const mbedtls_mpi_uint *Q,  size_t nq,
-                              const mbedtls_mpi_uint *T,  size_t nt,
-                              const mbedtls_mpi_uint *RP, size_t nrp,
-                              const mbedtls_mpi_uint *RQ, size_t nrq)
+int mbedtls_mpi_core_crt_fwd( mbedtls_mpi_buf tp,
+                              mbedtls_mpi_buf tq,
+                              mbedtls_mpi_buf p,
+                              mbedtls_mpi_buf q,
+                              mbedtls_mpi_buf t,
+                              mbedtls_mpi_buf rp,
+                              mbedtls_mpi_buf rq )
 {
-    if( ntp != np || ntq != nq || nrp != np || nrq != nq )
+    if( tp.n != p.n || tq.n != q.n || rp.n != p.n || rq.n != q.n )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
-    return( MPI_CORE(crt_fwd)( TP, TQ, P, np, Q, nq, T, nt, RP, RQ ) );
+    return( MPI_CORE(crt_fwd)( tp.p, tq.p, p.p, p.n, q.p, q.n, t.p, t.n, rp.p, rq.p ) );
 }
 
 int MPI_CORE(crt_inv)( mbedtls_mpi_uint *T,
-                              mbedtls_mpi_uint *TP,
-                              mbedtls_mpi_uint *TQ,
-                              const mbedtls_mpi_uint *P, size_t P_len,
-                              const mbedtls_mpi_uint *Q, size_t Q_len,
-                              const mbedtls_mpi_uint *RP,
-                              const mbedtls_mpi_uint *QinvP );
+                       mbedtls_mpi_uint *TP,
+                       mbedtls_mpi_uint *TQ,
+                       const mbedtls_mpi_uint *P, size_t P_len,
+                       const mbedtls_mpi_uint *Q, size_t Q_len,
+                       const mbedtls_mpi_uint *RP,
+                       const mbedtls_mpi_uint *QinvP );
 
 static inline
-int mbedtls_mpi_core_crt_inv(       mbedtls_mpi_uint *T,     size_t nt,
-                                    mbedtls_mpi_uint *TP,    size_t ntp,
-                                    mbedtls_mpi_uint *TQ,    size_t ntq,
-                              const mbedtls_mpi_uint *P,     size_t np,
-                              const mbedtls_mpi_uint *Q,     size_t nq,
-                              const mbedtls_mpi_uint *RP,    size_t nrp,
-                              const mbedtls_mpi_uint *QinvP, size_t nqp )
+int mbedtls_mpi_core_crt_inv( mbedtls_mpi_buf t,
+                              mbedtls_mpi_buf tp,
+                              mbedtls_mpi_buf tq,
+                              mbedtls_mpi_buf p,
+                              mbedtls_mpi_buf q,
+                              mbedtls_mpi_buf rp,
+                              mbedtls_mpi_buf qinvp )
 {
-    if( ntp != np || ntq != nq || nrp != np || nqp != np || nt != np + nq )
+    if( tp.n != p.n || tq.n != q.n || rp.n != p.n || qinvp.n != p.n || t.n != p.n + q.n )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
-    return( MPI_CORE(crt_inv)( T, TP, TQ, P, np, Q, nq, RP, QinvP ) );
+    return( MPI_CORE(crt_inv)( t.p, tp.p, tq.p, p.p, p.n, q.p, q.n, rp.p, qinvp.p ) );
 }
 
 /**
@@ -418,13 +409,11 @@ mbedtls_mpi_uint MPI_CORE(lt)( const mbedtls_mpi_uint *l,
                                size_t n );
 
 static inline
-int mbedtls_mpi_core_lt( const mbedtls_mpi_uint *l, size_t nl,
-                         const mbedtls_mpi_uint *r, size_t nr,
-                         unsigned *lt )
+int mbedtls_mpi_core_lt( mbedtls_mpi_buf l, mbedtls_mpi_buf r, unsigned *lt )
 {
-    if( nl != nr || lt == NULL )
+    if( l.n != r.n || lt == NULL )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
-    *lt = MPI_CORE(lt)( l, r, nl );
+    *lt = MPI_CORE(lt)( l.p, r.p, l.n );
     return( 0 );
 }
 
@@ -452,14 +441,12 @@ void MPI_CORE(add_mod)( mbedtls_mpi_uint *X, mbedtls_mpi_uint const *A,
                         size_t n );
 
 static inline
-int mbedtls_mpi_core_add_mod( mbedtls_mpi_uint *X,       size_t nx,
-                              mbedtls_mpi_uint const *A, size_t na,
-                              mbedtls_mpi_uint const *B, size_t nb,
-                              const mbedtls_mpi_uint *N, size_t nn )
+int mbedtls_mpi_core_add_mod( mbedtls_mpi_buf x, mbedtls_mpi_buf a,
+                              mbedtls_mpi_buf b, mbedtls_mpi_buf n )
 {
-    if( nx != nn || na != nn || nb != nn )
+    if( x.n != n.n || a.n != n.n || b.n != n.n )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
-    MPI_CORE(add_mod)(X,A,B,N,nn);
+    MPI_CORE(add_mod)(x.p,a.p,b.p,n.p,n.n);
     return( 0 );
 }
 
@@ -468,14 +455,12 @@ void MPI_CORE(sub_mod)( mbedtls_mpi_uint *X, mbedtls_mpi_uint const *A,
                         size_t n );
 
 static inline
-int mbedtls_mpi_core_sub_mod( mbedtls_mpi_uint *X,       size_t nx,
-                              mbedtls_mpi_uint const *A, size_t na,
-                              mbedtls_mpi_uint const *B, size_t nb,
-                              const mbedtls_mpi_uint *N, size_t nn )
+int mbedtls_mpi_core_sub_mod( mbedtls_mpi_buf x, mbedtls_mpi_buf a,
+                              mbedtls_mpi_buf b, mbedtls_mpi_buf n )
 {
-    if( nx != nn || na != nn || nb != nn )
+    if( x.n != n.n || a.n != n.n || b.n != n.n )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
-    MPI_CORE(sub_mod)(X,A,B,N,nn);
+    MPI_CORE(sub_mod)(x.p,a.p,b.p,n.p,n.n);
     return( 0 );
 }
 
@@ -486,54 +471,75 @@ int MPI_CORE(inv_mod_prime)( mbedtls_mpi_uint *X,
                              mbedtls_mpi_uint *RR );
 
 static inline
-int mbedtls_mpi_core_inv_mod_prime( mbedtls_mpi_uint *X,       size_t nx,
-                                    mbedtls_mpi_uint const *A, size_t na,
-                                    const mbedtls_mpi_uint *P, size_t np,
-                                    mbedtls_mpi_uint *RR,      size_t nrr )
+int mbedtls_mpi_core_inv_mod_prime( mbedtls_mpi_buf x,
+                                    mbedtls_mpi_buf a,
+                                    mbedtls_mpi_buf p,
+                                    mbedtls_mpi_buf rr )
 {
-    if( nx != np || na != np || nrr != np )
+    if( x.n != p.n || a.n != p.n || rr.n != p.n )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
-    return( MPI_CORE(inv_mod_prime)(X,A,P,np,RR) );
+    return( MPI_CORE(inv_mod_prime)(x.p,a.p,p.p,p.n,rr.p) );
 }
 
 /* TODO: Document */
 mbedtls_mpi_uint mbedtls_mpi_core_uint_bigendian_to_host( mbedtls_mpi_uint x );
 /* TODO: Document */
-void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint * p, size_t limbs );
 
+void MPI_CORE(bigendian_to_host)( mbedtls_mpi_uint *X, size_t nx );
+static inline
+int mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_buf p )
+{
+    MPI_CORE(bigendian_to_host)(p.p,p.n);
+    return( 0 );
+}
+
+void MPI_CORE(read_binary)( mbedtls_mpi_uint *X, size_t nx,
+                            const unsigned char *buf, size_t buflen );
 /* TODO: Document */
-void mbedtls_mpi_core_read_binary( mbedtls_mpi_uint *X, size_t nx,
-                                   const unsigned char *buf, size_t buflen );
+static inline
+int mbedtls_mpi_core_read_binary( mbedtls_mpi_buf x,
+                                  const unsigned char *buf, size_t buflen )
+{
+    MPI_CORE(read_binary)(x.p,x.n,buf,buflen);
+    return( 0 );
+}
+
+
 /* TODO: Document */
 void MPI_CORE(write_binary)( const mbedtls_mpi_uint *X,
                              unsigned char *buf, size_t buflen );
 
 static inline
-int mbedtls_mpi_core_write_binary( const mbedtls_mpi_uint *X, size_t nx,
+int mbedtls_mpi_core_write_binary( mbedtls_mpi_buf x,
                                    unsigned char *buf, size_t buflen )
 {
-    if( nx < CHARS_TO_LIMBS(buflen) )
+    if( x.n < CHARS_TO_LIMBS(buflen) )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
-    MPI_CORE(write_binary)( X, buf, buflen );
+    MPI_CORE(write_binary)( x.p, buf, buflen );
     return( 0 );
 }
 
-int MPI_CORE(random_be)( mbedtls_mpi_uint *X, size_t nx,
-                         size_t n_bytes,
+int MPI_CORE(random_be)( mbedtls_mpi_uint *X, size_t nx, size_t n_bytes,
                          int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 static inline
-int mbedtls_mpi_core_random_be( mbedtls_mpi_uint *X, size_t nx,
-                                size_t n_bytes,
+int mbedtls_mpi_core_random_be( mbedtls_mpi_buf x, size_t n_bytes,
                                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
-    if( nx < CHARS_TO_LIMBS( n_bytes ) )
+    if( x.n < CHARS_TO_LIMBS( n_bytes ) )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
-    if( nx == 0 )
+    if( x.n == 0 )
         return( 0 );
-    return( MPI_CORE(random_be)( X, nx, n_bytes, f_rng, p_rng ) );
+    return( MPI_CORE(random_be)( x.p, x.n, n_bytes, f_rng, p_rng ) );
 }
 
-void mbedtls_mpi_core_shift_r( mbedtls_mpi_uint *X, size_t nx, size_t count );
+void MPI_CORE(shift_r)( mbedtls_mpi_uint *X, size_t nx, size_t count );
+
+static inline
+int mbedtls_mpi_core_shift_r( mbedtls_mpi_buf x, size_t count )
+{
+    MPI_CORE(shift_r)( x.p, x.n, count );
+    return( 0 );
+}
 
 #endif /* MBEDTLS_BIGNUM_CORE_H */

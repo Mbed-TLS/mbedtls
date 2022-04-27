@@ -216,19 +216,14 @@ int mbedtls_ssl_ticket_setup( mbedtls_ssl_ticket_context *ctx,
     uint32_t lifetime )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t key_bits;
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_algorithm_t alg;
     psa_key_type_t key_type;
-    size_t key_bits;
 #else
     const mbedtls_cipher_info_t *cipher_info;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-
-    ctx->f_rng = f_rng;
-    ctx->p_rng = p_rng;
-
-    ctx->ticket_lifetime = lifetime;
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( mbedtls_ssl_cipher_to_psa( cipher, TICKET_AUTH_TAG_BYTES,
@@ -237,17 +232,6 @@ int mbedtls_ssl_ticket_setup( mbedtls_ssl_ticket_context *ctx,
 
     if( PSA_ALG_IS_AEAD( alg ) == 0 )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-
-    if( key_bits > PSA_BYTES_TO_BITS( MAX_KEY_BYTES ) )
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-
-    ctx->keys[0].alg = alg;
-    ctx->keys[0].key_type = key_type;
-    ctx->keys[0].key_bits = key_bits;
-
-    ctx->keys[1].alg = alg;
-    ctx->keys[1].key_type = key_type;
-    ctx->keys[1].key_bits = key_bits;
 #else
     cipher_info = mbedtls_cipher_info_from_type( cipher );
 
@@ -258,9 +242,26 @@ int mbedtls_ssl_ticket_setup( mbedtls_ssl_ticket_context *ctx,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
-    if( mbedtls_cipher_info_get_key_bitlen( cipher_info ) > 8 * MAX_KEY_BYTES )
+    key_bits = mbedtls_cipher_info_get_key_bitlen( cipher_info );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+    if( key_bits > 8 * MAX_KEY_BYTES )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
+    ctx->f_rng = f_rng;
+    ctx->p_rng = p_rng;
+
+    ctx->ticket_lifetime = lifetime;
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    ctx->keys[0].alg = alg;
+    ctx->keys[0].key_type = key_type;
+    ctx->keys[0].key_bits = key_bits;
+
+    ctx->keys[1].alg = alg;
+    ctx->keys[1].key_type = key_type;
+    ctx->keys[1].key_bits = key_bits;
+#else
     if( ( ret = mbedtls_cipher_setup( &ctx->keys[0].ctx, cipher_info ) ) != 0 )
         return( ret );
 

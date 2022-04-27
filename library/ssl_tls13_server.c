@@ -753,12 +753,7 @@ static int ssl_tls13_certificate_request_coordinate( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "<= skip write certificate request" ) );
         return( SSL_CERTIFICATE_REQUEST_SKIP );
     }
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-    if( ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET )
-        authmode = ssl->handshake->sni_authmode;
-    else
-#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
-        authmode = ssl->conf->authmode;
+    authmode = ssl->conf->authmode;
 
     if( authmode == MBEDTLS_SSL_VERIFY_NONE )
         return( SSL_CERTIFICATE_REQUEST_SKIP );
@@ -779,8 +774,9 @@ static int ssl_tls13_write_certificate_request_body( mbedtls_ssl_context *ssl,
                                                      size_t *out_len )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t extensions_len = 0;
     unsigned char *p = buf;
+    size_t extensions_len = 0;
+    unsigned char *p_extensions_len;
 
     *out_len = 0;
 
@@ -804,13 +800,15 @@ static int ssl_tls13_write_certificate_request_body( mbedtls_ssl_context *ssl,
      * Write extensions
      */
     /* The extensions must contain the signature_algorithms. */
-    ret = mbedtls_ssl_write_sig_alg_ext( ssl, p + 2, end, &extensions_len );
+    p_extensions_len = p;
+    p += 2;
+    ret = mbedtls_ssl_write_sig_alg_ext( ssl, p, end, &extensions_len );
     if( ret != 0 )
         return( ret );
 
     /* length field for all extensions */
-    MBEDTLS_PUT_UINT16_BE( extensions_len, p, 0 );
-    p += 2 + extensions_len;
+    MBEDTLS_PUT_UINT16_BE( extensions_len, p_extensions_len, 0 );
+    p += extensions_len;
 
     *out_len = p - buf;
 

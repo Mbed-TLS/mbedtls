@@ -82,7 +82,7 @@ void oid_get_x509_extension( data_t *oid, int exp_type )
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_MD_C */
 void oid_get_md_alg_id( data_t *oid, int exp_md_id )
 {
     mbedtls_asn1_buf md_oid = { 0, 0, NULL };

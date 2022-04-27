@@ -87,7 +87,7 @@ int ca_callback_fail( void *data, mbedtls_x509_crt const *child, mbedtls_x509_cr
 
     return -1;
 }
-
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
 int ca_callback( void *data, mbedtls_x509_crt const *child,
                  mbedtls_x509_crt **candidates )
 {
@@ -141,6 +141,7 @@ exit:
     *candidates = first;
     return( ret );
 }
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 #endif /* MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK */
 
 int verify_fatal( void *data, mbedtls_x509_crt *crt, int certificate_depth, uint32_t *flags )

@@ -5236,7 +5236,7 @@ static int ecp_mod_p255( mbedtls_mpi *N )
     /* N = A0 + 38 * A1 */
     mbedtls_mpi_core_mla( N->p, P255_WIDTH + 1,
                           Mp, NT_n,
-                          38 );
+                          38, NULL );
 
     return( 0 );
 }

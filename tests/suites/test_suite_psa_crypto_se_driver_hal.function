@@ -170,6 +170,7 @@ static psa_status_t counter_allocate( psa_drv_se_context_t *context,
 }
 
 /* Null import: do nothing, but pretend it worked. */
+#if defined(AT_LEAST_ONE_BUILTIN_KDF)
 static psa_status_t null_import( psa_drv_se_context_t *context,
                                  psa_key_slot_number_t slot_number,
                                  const psa_key_attributes_t *attributes,
@@ -186,8 +187,10 @@ static psa_status_t null_import( psa_drv_se_context_t *context,
     *bits = PSA_BYTES_TO_BITS( data_length );
     return( PSA_SUCCESS );
 }
+#endif /* AT_LEAST_ONE_BUILTIN_KDF */
 
 /* Null generate: do nothing, but pretend it worked. */
+#if defined(AT_LEAST_ONE_BUILTIN_KDF)
 static psa_status_t null_generate( psa_drv_se_context_t *context,
                                    psa_key_slot_number_t slot_number,
                                    const psa_key_attributes_t *attributes,
@@ -208,6 +211,7 @@ static psa_status_t null_generate( psa_drv_se_context_t *context,
 
     return( PSA_SUCCESS );
 }
+#endif /* AT_LEAST_ONE_BUILTIN_KDF */
 
 /* Null destroy: do nothing, but pretend it worked. */
 static psa_status_t null_destroy( psa_drv_se_context_t *context,
@@ -635,6 +639,7 @@ exit:
 /* Check that a function's return status is "smoke-free", i.e. that
  * it's an acceptable error code when calling an API function that operates
  * on a key with potentially bogus parameters. */
+#if defined(AT_LEAST_ONE_BUILTIN_KDF)
 static int is_status_smoke_free( psa_status_t status )
 {
     switch( status )
@@ -651,6 +656,8 @@ static int is_status_smoke_free( psa_status_t status )
             return( 0 );
     }
 }
+#endif /* AT_LEAST_ONE_BUILTIN_KDF */
+
 #define SMOKE_ASSERT( expr )                    \
     TEST_ASSERT( is_status_smoke_free( expr ) )
 
@@ -658,6 +665,7 @@ static int is_status_smoke_free( psa_status_t status )
  * mostly bogus parameters: the goal is to ensure that there is no memory
  * corruption or crash. This test function is most useful when run under
  * an environment with sanity checks such as ASan or MSan. */
+#if defined(AT_LEAST_ONE_BUILTIN_KDF)
 static int smoke_test_key( mbedtls_svc_key_id_t key )
 {
     int ok = 0;
@@ -766,6 +774,7 @@ exit:
 
     return( ok );
 }
+#endif /* AT_LEAST_ONE_BUILTIN_KDF */
 
 static void psa_purge_storage( void )
 {
@@ -1073,7 +1082,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:AT_LEAST_ONE_BUILTIN_KDF */
 void import_key_smoke( int type_arg, int alg_arg,
                        data_t *key_material )
 {
@@ -1186,7 +1195,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:AT_LEAST_ONE_BUILTIN_KDF */
 void generate_key_smoke( int type_arg, int bits_arg, int alg_arg )
 {
     psa_key_type_t type = type_arg;

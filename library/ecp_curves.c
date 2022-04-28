@@ -5211,6 +5211,7 @@ cleanup:
 
 /*
  * Fast quasi-reduction modulo p521 = 2^521 - 1 (FIPS 186-3 D.2.5)
+ * Returns a result < 2*p521.
  */
 static int ecp_mod_p521( mbedtls_mpi *N )
 {
@@ -5289,7 +5290,7 @@ static int ecp_mod_p255( mbedtls_mpi *N )
         memset( NT_p, 0, sizeof( mbedtls_mpi_uint ) * NT_n );
     }
 
-    /* Step 2: Reduce to <p
+    /* Step 2: Reduce to <2*p
      * Split as A0 + 2^255*c, with c a scalar, and compute A0 + 19*c */
     carry <<= 1;
     carry  += ( N_p[P255_WIDTH-1] >> ( biL - 1 ) );

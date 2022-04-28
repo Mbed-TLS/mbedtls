@@ -5139,7 +5139,7 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
              * length of the other key.
              */
             case MBEDTLS_KEY_EXCHANGE_RSA_PSK:
-                /* For RSA-PKS other key length is always 48 bytes. */
+                /* For RSA-PSK other key length is always 48 bytes. */
                 other_secret_len = 48;
                 other_secret = handshake->premaster + 2;
                 break;
@@ -5408,7 +5408,7 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
          * checked before calling this function.
          *
          * The exception is opaque DHE-PSK. For DHE-PSK fill premaster with
-         * the the shared secret without PSK.
+         * the shared secret without PSK.
          */
         if ( key_ex != MBEDTLS_KEY_EXCHANGE_DHE_PSK )
         {

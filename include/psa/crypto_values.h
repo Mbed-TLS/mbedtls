@@ -440,9 +440,9 @@
  * Camellia block cipher. */
 #define PSA_KEY_TYPE_CAMELLIA                       ((psa_key_type_t)0x2403)
 
-/** Key for the RC4 stream cipher.
+/** Key for the ARC4 stream cipher (also known as RC4 or ARCFOUR).
  *
- * Note that RC4 is weak and deprecated and should only be used in
+ * Note that ARC4 is weak and deprecated and should only be used in
  * legacy protocols. */
 #define PSA_KEY_TYPE_ARC4                           ((psa_key_type_t)0x2002)
 

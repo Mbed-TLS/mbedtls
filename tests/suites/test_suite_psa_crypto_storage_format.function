@@ -60,6 +60,163 @@ static int can_export( const psa_key_attributes_t *attributes )
         return( 0 );
 }
 
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
+static int is_accelerated_rsa( psa_algorithm_t alg )
+{
+#if defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN)
+    if ( PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) )
+        return( 1 );
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_ALG_RSA_PSS)
+    if( PSA_ALG_IS_RSA_PSS( alg ) )
+        return( 1 );
+#endif
+#if defined(MBEDTLS_PSA_ACCEL_ALG_RSA_OAEP)
+    if( PSA_ALG_IS_RSA_OAEP( alg ) )
+        return( 1 );
+#endif
+    (void) alg;
+    return( 0 );
+}
+
+/* Whether the algorithm is implemented as a builtin, i.e. not accelerated,
+ * and calls mbedtls_md() functions that require the hash algorithm to
+ * also be built-in. */
+static int is_builtin_calling_md( psa_algorithm_t alg )
+{
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN)
+    if( PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) )
+        return( 1 );
+#endif
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS)
+    if( PSA_ALG_IS_RSA_PSS( alg ) )
+        return( 1 );
+#endif
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP)
+    if( PSA_ALG_IS_RSA_OAEP( alg ) )
+        return( 1 );
+#endif
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
+    if( PSA_ALG_IS_DETERMINISTIC_ECDSA( alg ) )
+        return( 1 );
+#endif
+    (void) alg;
+    return( 0 );
+}
+
+static int has_builtin_hash( psa_algorithm_t alg )
+{
+#if !defined(MBEDTLS_MD2_C)
+    if( alg == PSA_ALG_MD2 )
+        return( 0 );
+#endif
+#if !defined(MBEDTLS_MD4_C)
+    if( alg == PSA_ALG_MD4 )
+        return( 0 );
+#endif
+#if !defined(MBEDTLS_MD5_C)
+    if( alg == PSA_ALG_MD5 )
+        return( 0 );
+#endif
+#if !defined(MBEDTLS_RIPEMD160_C)
+    if( alg == PSA_ALG_RIPEMD160 )
+        return( 0 );
+#endif
+#if !defined(MBEDTLS_SHA1_C)
+    if( alg == PSA_ALG_SHA_1 )
+        return( 0 );
+#endif
+#if !defined(MBEDTLS_SHA224_C)
+    if( alg == PSA_ALG_SHA_224 )
+        return( 0 );
+#endif
+#if !defined(MBEDTLS_SHA256_C)
+    if( alg == PSA_ALG_SHA_256 )
+        return( 0 );
+#endif
+#if !defined(MBEDTLS_SHA384_C)
+    if( alg == PSA_ALG_SHA_384 )
+        return( 0 );
+#endif
+#if !defined(MBEDTLS_SHA512_C)
+    if( alg == PSA_ALG_SHA_512 )
+        return( 0 );
+#endif
+    (void) alg;
+    return( 1 );
+}
+#endif
+
+/* Mbed TLS doesn't support certain combinations of key type and algorithm
+ * in certain configurations. */
+static int can_exercise( const psa_key_attributes_t *attributes )
+{
+    psa_key_type_t key_type = psa_get_key_type( attributes );
+    psa_algorithm_t alg = psa_get_key_algorithm( attributes );
+    psa_algorithm_t hash_alg =
+        PSA_ALG_IS_HASH_AND_SIGN( alg ) ? PSA_ALG_SIGN_GET_HASH( alg ) :
+        PSA_ALG_IS_RSA_OAEP( alg ) ? PSA_ALG_RSA_OAEP_GET_HASH( alg ) :
+        PSA_ALG_NONE;
+    psa_key_usage_t usage = psa_get_key_usage_flags( attributes );
+
+#if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
+    /* We test some configurations using drivers where the driver doesn't
+     * support certain hash algorithms, but declares that it supports
+     * compound algorithms that use those hashes. Until this is fixed,
+     * in those configurations, don't try to actually perform operations.
+     *
+     * Hash-and-sign algorithms where the asymmetric part doesn't use
+     * a hash operation are ok. So randomized ECDSA signature is fine,
+     * ECDSA verification is fine, but deterministic ECDSA signature is
+     * affected. All RSA signatures are affected except raw PKCS#1v1.5.
+     * OAEP is also affected.
+     */
+    if( PSA_ALG_IS_DETERMINISTIC_ECDSA( alg ) &&
+        ! ( usage & ( PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_SIGN_MESSAGE ) ) )
+    {
+        /* Verification only. Verification doesn't use the hash algorithm. */
+        return( 1 );
+    }
+
+#if defined(MBEDTLS_PSA_ACCEL_ALG_DETERMINISTIC_ECDSA)
+    if( PSA_ALG_IS_DETERMINISTIC_ECDSA( alg ) &&
+        ( hash_alg == PSA_ALG_MD5 ||
+          hash_alg == PSA_ALG_RIPEMD160 ||
+          hash_alg == PSA_ALG_SHA_1 ) )
+    {
+        return( 0 );
+    }
+#endif
+    if( is_accelerated_rsa( alg ) &&
+        ( hash_alg == PSA_ALG_RIPEMD160 || hash_alg == PSA_ALG_SHA_384 ) )
+    {
+            return( 0 );
+    }
+#if defined(MBEDTLS_PSA_ACCEL_ALG_RSA_OAEP)
+    if( PSA_ALG_IS_RSA_OAEP( alg ) &&
+        ( hash_alg == PSA_ALG_RIPEMD160 || hash_alg == PSA_ALG_SHA_384 ) )
+    {
+        return( 0 );
+    }
+#endif
+
+    /* The built-in implementation of asymmetric algorithms that use a
+     * hash internally only dispatch to the internal md module, not to
+     * PSA. Until this is supported, don't try to actually perform
+     * operations when the operation is built-in and the hash isn't.  */
+    if( is_builtin_calling_md( alg ) && ! has_builtin_hash( hash_alg ) )
+    {
+        return( 0 );
+    }
+#endif /* MBEDTLS_TEST_LIBTESTDRIVER1 */
+
+    (void) key_type;
+    (void) alg;
+    (void) hash_alg;
+    (void) usage;
+    return( 1 );
+}
+
 /** Write a key with the given representation to storage, then check
  * that it has the given attributes and (if exportable) key material.
  *
@@ -108,7 +265,7 @@ static int test_read_key( const psa_key_attributes_t *expected_attributes,
                         exported_material, length );
     }
 
-    if( flags & TEST_FLAG_EXERCISE )
+    if( ( flags & TEST_FLAG_EXERCISE ) && can_exercise( &actual_attributes ) )
     {
         TEST_ASSERT( mbedtls_test_psa_exercise_key(
                          key_id,

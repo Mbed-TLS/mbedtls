@@ -1,0 +1,3 @@
+Bugfix
+   * Fix PSA cipher multipart operations using ARC4. Previously, an IV was
+     required but discarded. Now, an IV is rejected, as it should be.

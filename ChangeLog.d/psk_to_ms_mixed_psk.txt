@@ -1,0 +1,4 @@
+Features
+    * Extend the existing PSA_ALG_TLS12_PSK_TO_MS() algorithm to support
+      mixed-psk. Add an optional input PSA_KEY_DERIVATION_INPUT_OTHER_SECRET
+      holding the other secret.

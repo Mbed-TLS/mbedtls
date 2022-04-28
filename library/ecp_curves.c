@@ -5262,28 +5262,42 @@ static int ecp_mod_p521( mbedtls_mpi *N )
 
 /*
  * Fast quasi-reduction modulo p255 = 2^255 - 19
- * Write N as A0 + 2^256 A1, return A0 + 38 * A1
+ * Returns a result < 2*(2^255-19).
  */
 static int ecp_mod_p255( mbedtls_mpi *N )
 {
-    mbedtls_mpi_uint Mp[P255_WIDTH];
+    mbedtls_mpi_uint carry = 0;
 
-    /* Helper references for top part of N */
-    mbedtls_mpi_uint * const NT_p = N->p + P255_WIDTH;
-    const size_t NT_n = N->n - P255_WIDTH;
-    if( N->n <= P255_WIDTH )
-        return( 0 );
-    if( NT_n > P255_WIDTH )
+    mbedtls_mpi_uint* N_p = N->p;
+    size_t N_n = N->n;
+
+    if( N_n > 2*P255_WIDTH )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+    if( N_n < P255_WIDTH )
+        return( 0 );
 
-    /* Split N as N + 2^256 M */
-    memcpy( Mp,   NT_p, sizeof( mbedtls_mpi_uint ) * NT_n );
-    memset( NT_p, 0,    sizeof( mbedtls_mpi_uint ) * NT_n );
+    /* Step 1: Reduction to P255_WIDTH limbs */
+    if( N_n > P255_WIDTH )
+    {
+        /* Helper references for top part of N */
+        mbedtls_mpi_uint * const NT_p = N_p + P255_WIDTH;
+        const size_t NT_n = N_n - P255_WIDTH;
 
-    /* N = A0 + 38 * A1 */
-    mbedtls_mpi_core_mla( N->p, P255_WIDTH + 1,
-                          Mp, NT_n,
-                          38 );
+        /* N = A0 + 38 * A1, capture carry out */
+        carry = mbedtls_mpi_core_mla( N_p, P255_WIDTH, NT_p, NT_n, 38 );
+        /* Clear top part */
+        memset( NT_p, 0, sizeof( mbedtls_mpi_uint ) * NT_n );
+    }
+
+    /* Step 2: Reduce to <p
+     * Split as A0 + 2^255*c, with c a scalar, and compute A0 + 19*c */
+    carry <<= 1;
+    carry  += ( N_p[P255_WIDTH-1] >> ( biL - 1 ) );
+    carry *= 19;
+
+    /* Clear top bit */
+    N_p[P255_WIDTH-1] <<= 1; N_p[P255_WIDTH-1] >>= 1;
+    (void) mbedtls_mpi_core_add_int( N_p, N_p, carry, P255_WIDTH );
 
     return( 0 );
 }

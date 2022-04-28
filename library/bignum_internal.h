@@ -41,7 +41,7 @@
  * \param s_len         The number of limbs of \p s.
  * \param b             A scalar to multiply with.
  *
- * \return c            The carry at the end of the operation.
+ * \return              The carry at the end of the operation.
  */
 mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len ,
                                        const mbedtls_mpi_uint *s, size_t s_len,

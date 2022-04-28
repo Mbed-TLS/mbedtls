@@ -1352,7 +1352,7 @@ static int mbedtls_ecp_point_read_binary_ed( const mbedtls_ecp_group *grp,
     MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &u, &pt->Y,  &pt->Y  ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &v, &grp->B, &u      ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mod( grp, &v, &v,      &grp->A ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &u, &u, 1 ) ); MOD_SUB( u );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &u, &u, 1 ) ); MOD_SUB( &u );
 
     /* We use different algorithm to compute the square root of (u/v)
      * depending on p (mod 8). */
@@ -1434,7 +1434,7 @@ cleanup:
 }
 #endif
 
-#if defined(ECP_SHORTWEIERSTRASS)
+#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
 /*
  * For curves in short Weierstrass form, we do all the internal operations in
  * Jacobian coordinates.
@@ -2954,8 +2954,8 @@ static int ecp_mul_edxyz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &R->Z, 1 ) );
 
     /* RP.X and RP.Y might be slightly larger than P, so reduce them */
-    MOD_ADD( RP.X );
-    MOD_ADD( RP.Y );
+    MOD_ADD( &RP.X );
+    MOD_ADD( &RP.Y );
 
     /* Randomize coordinates of the starting point */
     if( f_rng != NULL )
@@ -3497,7 +3497,7 @@ static int ecp_check_pubkey_ed( const mbedtls_ecp_group *grp, const mbedtls_ecp_
     /* RHS = 1 + d X^2 Y^2 */
     MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &RHS, &X2,    &Y2     ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &RHS, &RHS,   &grp->B ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( &RHS, &RHS, 1 ) ); MOD_ADD( RHS );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( &RHS, &RHS, 1 ) ); MOD_ADD( &RHS );
 
     if( mbedtls_mpi_cmp_mpi( &LHS, &RHS ) != 0 )
         ret = MBEDTLS_ERR_ECP_INVALID_KEY;

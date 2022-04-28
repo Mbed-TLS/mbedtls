@@ -4942,7 +4942,7 @@ cleanup:
 #define STORE32                                   \
     if( i % 2 ) {                                 \
         N->p[i/2] &= 0x00000000FFFFFFFF;          \
-        N->p[i/2] |= cur << 32;                   \
+        N->p[i/2] |= (uint64_t)( cur ) << 32;     \
     } else {                                      \
         N->p[i/2] &= 0xFFFFFFFF00000000;          \
         N->p[i/2] |= (uint32_t) cur;              \
@@ -4957,9 +4957,9 @@ cleanup:
 
 #endif
 
-static inline signed char extract_carry( int64_t cur )
+static inline int8_t extract_carry( int64_t cur )
 {
-    return( cur >> 32 );
+    return( (int8_t)( cur >> 32 ) );
 }
 
 #define ADD( j )    cur += A(j)
@@ -4979,11 +4979,11 @@ static inline signed char extract_carry( int64_t cur )
  */
 #define INIT( b )                                                       \
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;                    \
-    signed char c = 0, last_c;                                          \
+    int8_t c = 0, last_c;                                               \
     int64_t cur;                                                        \
     size_t i = 0;                                                       \
     /* N is the size of the product of two b-bit numbers */             \
-    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( N, ( b ) * 2 / biL ) );      \
+    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( N, ( b ) * 2 / biL ) );          \
     LOAD32;
 
 #define NEXT                                            \

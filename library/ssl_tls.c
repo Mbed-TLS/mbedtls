@@ -5004,10 +5004,7 @@ static int ssl_set_handshake_prfs( mbedtls_ssl_handshake_params *handshake,
 
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) &&                   \
-    ( defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED) ||       \
-      defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED) ||   \
-      defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) || \
-      defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED) )
+    defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED )
 static int ssl_use_opaque_psk( mbedtls_ssl_context const *ssl )
 {
     if( ssl->conf->f_psk != NULL )
@@ -5102,14 +5099,8 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
 #endif /* MBEDTLS_SSL_EXTENDED_MS_ENABLED */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) &&                   \
-    ( defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED) ||       \
-      defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED) ||   \
-      defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED) || \
-      defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED) )
-    if( ( handshake->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK ||
-          handshake->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK ||
-          handshake->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK ||
-          handshake->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK ) &&
+    defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+    if( mbedtls_ssl_ciphersuite_uses_psk( handshake->ciphersuite_info ) == 1 &&
         ssl_use_opaque_psk( ssl ) == 1 )
     {
         /* Perform PSK-to-MS expansion in a single step. */

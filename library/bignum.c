@@ -1878,30 +1878,40 @@ int mbedtls_mpi_mod_int( mbedtls_mpi_uint *r, const mbedtls_mpi *A, mbedtls_mpi_
 /*
  * Fast Montgomery initialization (thanks to Tom St Denis)
  *
- * This computes the negative modular inverse of m in mbedtls_mpi_uint.
+ * This computes the negative modular inverse of m in mbedtls_mpi_uint;
+ * that is, the return value r satisfies r*m = -1 in mbedtls_mpi_uint.
+ *
+ * It is assumed that m is odd.
  */
-static void mpi_montg_init( mbedtls_mpi_uint *m_inv,
-                            mbedtls_mpi_uint const *m )
+static mbedtls_mpi_uint mpi_montg_init( mbedtls_mpi_uint m )
 {
-    /* The basic principle is the following:
-     * If R=2^k and we already know that m_inv is the negative
-     * modular inverse of m w.r.t. R -- that is,
-     *   m_inv*m + 1 == 0 mod R,
-     * then
-     *  (m_inv*m + 1)^2 == 0 mod R^2.
-     * Expanding yields that
-     *  2 m_inv + m_inv^2 * m = m_inv * (2 + m_inv*m)
-     * is the modular inverse of -m w.r.t. R^2 = 2^{2k}
+    /* The goal is to calculate m_inv with m*m_inv = -1 in
+     * mbedtls_mpi_uint, or equivalently m*m_inv == -1 mod 2^biL.
      *
-     * Below, we iterate this procedure, starting at the bitlevel (k=1)
-     * where m_inv = m = 1 (m must be odd). We compute in mbedtls_mpi_uint
-     * throughout, which is higher precision than necessary for most of
-     * the iterations, but yields the simplest and fastest code.
+     * This is achieved by iterating a procedure which assumes
+     * knowledge of some m_inv with m*m_inv == -1 mod 2^k and
+     * derives m_inv' with m*m_inv' == -1 mod 2^2k.
+     *
+     * Each iteration proceeds as follows:
+     * Suppose R=2^k and we already know that m_inv is the negative
+     * modular inverse of m w.r.t. R -- that is,
+     *   m_inv*m + 1 == 0 mod R.
+     * Then
+     *  (m_inv*m + 1)^2 == 0 mod R^2.
+     * Expanding gives that
+     *  2 m_inv + m_inv^2 * m = m_inv * (2 + m_inv*m)
+     * is the modular inverse of -m w.r.t. R^2 = 2^{2k} as desired.
+     *
+     * Below, we iterate this procedure log_2(biL) times, starting at the bitlevel
+     * (k=1) where m_inv = m = 1 mod 2^k (using that m is odd).
+     *
+     * We compute in mbedtls_mpi_uint throughout, which is higher precision than
+     * necessary for most of the iterations, but yields the simplest and fastest code.
      */
-    mbedtls_mpi_uint m0 = m[0], mi0 = m0;
+    mbedtls_mpi_uint m_inv = 1;
     for( unsigned i = biL; i > 1; i /= 2 )
-        mi0 *= ( 2 + ( m0 * mi0 ) );
-    *m_inv = mi0;
+        m_inv *= ( 2 + ( m * m_inv ) );
+    return( m_inv );
 }
 
 /** Montgomery multiplication: A = A * B * R^-1 mod N  (HAC 14.36)
@@ -1916,7 +1926,7 @@ static void mpi_montg_init( mbedtls_mpi_uint *m_inv,
  *                      It must be nonzero and must not have more limbs than N
  *                      (B->n <= N->n).
  * \param[in]       N   The modulo. N must be odd.
- * \param           mm  The value calculated by `mpi_montg_init(&mm, N)`.
+ * \param           mm  The value calculated by mpi_montg_init().
  *                      This is -N^-1 mod 2^ciL.
  * \param[in,out]   T   A bignum for temporary storage.
  *                      It must be at least twice the limb size of N plus 2
@@ -2052,7 +2062,7 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
     /*
      * Init temps and window size
      */
-    mpi_montg_init( &mm, N->p );
+    mm = mpi_montg_init( N->p[0] );
     mbedtls_mpi_init( &RR ); mbedtls_mpi_init( &T );
     mbedtls_mpi_init( &Apos );
     mbedtls_mpi_init( &WW );

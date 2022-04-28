@@ -1370,6 +1370,19 @@ int mbedtls_mpi_sub_int( mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_sint 
     return( mbedtls_mpi_sub_mpi( X, A, &B ) );
 }
 
+mbedtls_mpi_uint mbedtls_mpi_core_add_int( mbedtls_mpi_uint *d,
+                                           const mbedtls_mpi_uint *l,
+                                           mbedtls_mpi_uint c, size_t n )
+{
+    mbedtls_mpi_uint t;
+    for( size_t i = 0; i < n; i++ )
+    {
+        t = l[i] + c; c = ( t < c );
+        d[i] = t;
+    }
+    return( c );
+}
+
 mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len,
                                        const mbedtls_mpi_uint *s, size_t s_len,
                                        mbedtls_mpi_uint b )

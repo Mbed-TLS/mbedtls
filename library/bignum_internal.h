@@ -47,4 +47,24 @@ mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len ,
                                        const mbedtls_mpi_uint *s, size_t s_len,
                                        mbedtls_mpi_uint b );
 
+/** Perform a known-size addition of a scalar to a buffer
+ *
+ * \param[out] d        The pointer to the (little-endian) array
+ *                      representing the result of the addition.
+ *                      This must point to a writable buffer with
+ *                      \p n limbs.
+ * \param[in] s         The pointer to the (little-endian) array
+ *                      representing the bignum to add to.
+ *                      This must point to a writable buffer with
+ *                      \p n limbs.
+ *                      This may be the same as \p d. Otherwise,
+ *                      it must be disjoint from \p d.
+ * \param c             The scalar to add to \p s.
+ * \param n             The number of limbs of \p d and \p l.
+ *
+ * \return              The carry at the end of the operation.
+ */
+mbedtls_mpi_uint mbedtls_mpi_core_add_int( mbedtls_mpi_uint *d,
+                                           const mbedtls_mpi_uint *l,
+                                           mbedtls_mpi_uint c, size_t n );
 #endif /* MBEDTLS_BIGNUM_INTERNAL_H */

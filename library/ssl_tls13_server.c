@@ -1154,7 +1154,7 @@ static int ssl_tls13_write_encrypted_extensions( mbedtls_ssl_context *ssl )
     size_t buf_len = 0;
     size_t msg_len = 0;
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write encrypted extension" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write encrypted extensions" ) );
 
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_prepare_encrypted_extensions( ssl ) );
 
@@ -1175,7 +1175,7 @@ static int ssl_tls13_write_encrypted_extensions( mbedtls_ssl_context *ssl )
 
 cleanup:
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write encrypted extension" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write encrypted extensions" ) );
     return( ret );
 }
 

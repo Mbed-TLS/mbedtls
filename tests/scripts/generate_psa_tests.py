@@ -145,7 +145,7 @@ def test_case_for_key_type_not_supported(
     """
     hack_dependencies_not_implemented(dependencies)
     tc = test_case.TestCase()
-    short_key_type = re.sub(r'PSA_(KEY_TYPE|ECC_FAMILY)_', r'', key_type)
+    short_key_type = crypto_knowledge.short_expression(key_type)
     adverb = 'not' if dependencies else 'never'
     if param_descr:
         adverb = param_descr + ' ' + adverb
@@ -206,7 +206,7 @@ class NotSupported:
                 continue
                 # For public key we expect that key generation fails with
                 # INVALID_ARGUMENT. It is handled by KeyGenerate class.
-            if not kt.name.endswith('_PUBLIC_KEY'):
+            if not kt.is_public():
                 yield test_case_for_key_type_not_supported(
                     'generate', kt.expression, bits,
                     finish_family_dependencies(generate_dependencies, bits),
@@ -243,7 +243,7 @@ def test_case_for_key_generation(
     """
     hack_dependencies_not_implemented(dependencies)
     tc = test_case.TestCase()
-    short_key_type = re.sub(r'PSA_(KEY_TYPE|ECC_FAMILY)_', r'', key_type)
+    short_key_type = crypto_knowledge.short_expression(key_type)
     tc.set_description('PSA {} {}-bit'
                        .format(short_key_type, bits))
     tc.set_dependencies(dependencies)
@@ -335,7 +335,7 @@ class OpFail:
         """Construct a failure test case for a one-key or keyless operation."""
         #pylint: disable=too-many-arguments,too-many-locals
         tc = test_case.TestCase()
-        pretty_alg = re.sub(r'PSA_ALG_', r'', alg.expression)
+        pretty_alg = alg.short_expression()
         if reason == self.Reason.NOT_SUPPORTED:
             short_deps = [re.sub(r'PSA_WANT_ALG_', r'', dep)
                           for dep in not_deps]
@@ -344,7 +344,7 @@ class OpFail:
             pretty_reason = reason.name.lower()
         if kt:
             key_type = kt.expression
-            pretty_type = re.sub(r'PSA_KEY_TYPE_', r'', key_type)
+            pretty_type = kt.short_expression()
         else:
             key_type = ''
             pretty_type = ''
@@ -456,7 +456,7 @@ class StorageKey(psa_storage.Key):
 
     def __init__(
             self,
-            usage: str,
+            usage: Iterable[str],
             without_implicit_usage: Optional[bool] = False,
             **kwargs
     ) -> None:
@@ -465,13 +465,16 @@ class StorageKey(psa_storage.Key):
         * `usage`                 : The usage flags used for the key.
         * `without_implicit_usage`: Flag to defide to apply the usage extension
         """
-        super().__init__(usage=usage, **kwargs)
-
+        usage_flags = set(usage)
         if not without_implicit_usage:
-            for flag, implicit in self.IMPLICIT_USAGE_FLAGS.items():
-                if self.usage.value() & psa_storage.Expr(flag).value() and \
-                   self.usage.value() & psa_storage.Expr(implicit).value() == 0:
-                    self.usage = psa_storage.Expr(self.usage.string + ' | ' + implicit)
+            for flag in sorted(usage_flags):
+                if flag in self.IMPLICIT_USAGE_FLAGS:
+                    usage_flags.add(self.IMPLICIT_USAGE_FLAGS[flag])
+        if usage_flags:
+            usage_expression = ' | '.join(sorted(usage_flags))
+        else:
+            usage_expression = '0'
+        super().__init__(usage=usage_expression, **kwargs)
 
 class StorageTestData(StorageKey):
     """Representation of test case data for storage format testing."""
@@ -479,7 +482,7 @@ class StorageTestData(StorageKey):
     def __init__(
             self,
             description: str,
-            expected_usage: Optional[str] = None,
+            expected_usage: Optional[List[str]] = None,
             **kwargs
     ) -> None:
         """Prepare to generate test data
@@ -491,7 +494,12 @@ class StorageTestData(StorageKey):
         """
         super().__init__(**kwargs)
         self.description = description #type: str
-        self.expected_usage = expected_usage if expected_usage else self.usage.string #type: str
+        if expected_usage is None:
+            self.expected_usage = self.usage #type: psa_storage.Expr
+        elif expected_usage:
+            self.expected_usage = psa_storage.Expr(' | '.join(expected_usage))
+        else:
+            self.expected_usage = psa_storage.Expr(0)
 
 class StorageFormat:
     """Storage format stability test cases."""
@@ -510,6 +518,47 @@ class StorageFormat:
         self.version = version #type: int
         self.forward = forward #type: bool
 
+    RSA_OAEP_RE = re.compile(r'PSA_ALG_RSA_OAEP\((.*)\)\Z')
+    BRAINPOOL_RE = re.compile(r'PSA_KEY_TYPE_\w+\(PSA_ECC_FAMILY_BRAINPOOL_\w+\)\Z')
+    @classmethod
+    def exercise_key_with_algorithm(
+            cls,
+            key_type: psa_storage.Expr, bits: int,
+            alg: psa_storage.Expr
+    ) -> bool:
+        """Whether to the given key with the given algorithm.
+
+        Normally only the type and algorithm matter for compatibility, and
+        this is handled in crypto_knowledge.KeyType.can_do(). This function
+        exists to detect exceptional cases. Exceptional cases detected here
+        are not tested in OpFail and should therefore have manually written
+        test cases.
+        """
+        # Some test keys have the RAW_DATA type and attributes that don't
+        # necessarily make sense. We do this to validate numerical
+        # encodings of the attributes.
+        # Raw data keys have no useful exercise anyway so there is no
+        # loss of test coverage.
+        if key_type.string == 'PSA_KEY_TYPE_RAW_DATA':
+            return False
+        # OAEP requires room for two hashes plus wrapping
+        m = cls.RSA_OAEP_RE.match(alg.string)
+        if m:
+            hash_alg = m.group(1)
+            hash_length = crypto_knowledge.Algorithm.hash_length(hash_alg)
+            key_length = (bits + 7) // 8
+            # Leave enough room for at least one byte of plaintext
+            return key_length > 2 * hash_length + 2
+        # There's nothing wrong with ECC keys on Brainpool curves,
+        # but operations with them are very slow. So we only exercise them
+        # with a single algorithm, not with all possible hashes. We do
+        # exercise other curves with all algorithms so test coverage is
+        # perfectly adequate like this.
+        m = cls.BRAINPOOL_RE.match(key_type.string)
+        if m and alg.string != 'PSA_ALG_ECDSA_ANY':
+            return False
+        return True
+
     def make_test_case(self, key: StorageTestData) -> test_case.TestCase:
         """Construct a storage format test case for the given key.
 
@@ -521,10 +570,10 @@ class StorageFormat:
         """
         verb = 'save' if self.forward else 'read'
         tc = test_case.TestCase()
-        tc.set_description('PSA storage {}: {}'.format(verb, key.description))
+        tc.set_description(verb + ' ' + key.description)
         dependencies = automatic_dependencies(
             key.lifetime.string, key.type.string,
-            key.expected_usage, key.alg.string, key.alg2.string,
+            key.alg.string, key.alg2.string,
         )
         dependencies = finish_family_dependencies(dependencies, key.bits)
         tc.set_dependencies(dependencies)
@@ -533,19 +582,15 @@ class StorageFormat:
             extra_arguments = []
         else:
             flags = []
-            # Some test keys have the RAW_DATA type and attributes that don't
-            # necessarily make sense. We do this to validate numerical
-            # encodings of the attributes.
-            # Raw data keys have no useful exercise anyway so there is no
-            # loss of test coverage.
-            if key.type.string != 'PSA_KEY_TYPE_RAW_DATA':
+            if self.exercise_key_with_algorithm(key.type, key.bits, key.alg):
                 flags.append('TEST_FLAG_EXERCISE')
             if 'READ_ONLY' in key.lifetime.string:
                 flags.append('TEST_FLAG_READ_ONLY')
             extra_arguments = [' | '.join(flags) if flags else '0']
         tc.set_arguments([key.lifetime.string,
                           key.type.string, str(key.bits),
-                          key.expected_usage, key.alg.string, key.alg2.string,
+                          key.expected_usage.string,
+                          key.alg.string, key.alg2.string,
                           '"' + key.material.hex() + '"',
                           '"' + key.hex() + '"',
                           *extra_arguments])
@@ -559,12 +604,12 @@ class StorageFormat:
         short = lifetime
         short = re.sub(r'PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION',
                        r'', short)
-        short = re.sub(r'PSA_KEY_[A-Z]+_', r'', short)
+        short = crypto_knowledge.short_expression(short)
         description = 'lifetime: ' + short
         key = StorageTestData(version=self.version,
                               id=1, lifetime=lifetime,
                               type='PSA_KEY_TYPE_RAW_DATA', bits=8,
-                              usage='PSA_KEY_USAGE_EXPORT', alg=0, alg2=0,
+                              usage=['PSA_KEY_USAGE_EXPORT'], alg=0, alg2=0,
                               material=b'L',
                               description=description)
         return key
@@ -590,19 +635,21 @@ class StorageFormat:
             test_implicit_usage: Optional[bool] = True
     ) -> StorageTestData:
         """Construct a test key for the given key usage."""
-        usage = ' | '.join(usage_flags) if usage_flags else '0'
-        if short is None:
-            short = re.sub(r'\bPSA_KEY_USAGE_', r'', usage)
         extra_desc = ' without implication' if test_implicit_usage else ''
-        description = 'usage' + extra_desc + ': ' + short
+        description = 'usage' + extra_desc + ': '
         key1 = StorageTestData(version=self.version,
                                id=1, lifetime=0x00000001,
                                type='PSA_KEY_TYPE_RAW_DATA', bits=8,
-                               expected_usage=usage,
+                               expected_usage=usage_flags,
                                without_implicit_usage=not test_implicit_usage,
-                               usage=usage, alg=0, alg2=0,
+                               usage=usage_flags, alg=0, alg2=0,
                                material=b'K',
                                description=description)
+        if short is None:
+            usage_expr = key1.expected_usage.string
+            key1.description += crypto_knowledge.short_expression(usage_expr)
+        else:
+            key1.description += short
         return key1
 
     def generate_keys_for_usage_flags(self, **kwargs) -> Iterator[StorageTestData]:
@@ -623,49 +670,70 @@ class StorageFormat:
         yield from self.generate_keys_for_usage_flags()
         yield from self.generate_key_for_all_usage_flags()
 
+    def key_for_type_and_alg(
+            self,
+            kt: crypto_knowledge.KeyType,
+            bits: int,
+            alg: Optional[crypto_knowledge.Algorithm] = None,
+    ) -> StorageTestData:
+        """Construct a test key of the given type.
+
+        If alg is not None, this key allows it.
+        """
+        usage_flags = ['PSA_KEY_USAGE_EXPORT']
+        alg1 = 0 #type: psa_storage.Exprable
+        alg2 = 0
+        if alg is not None:
+            alg1 = alg.expression
+            usage_flags += alg.usage_flags(public=kt.is_public())
+        key_material = kt.key_material(bits)
+        description = 'type: {} {}-bit'.format(kt.short_expression(1), bits)
+        if alg is not None:
+            description += ', ' + alg.short_expression(1)
+        key = StorageTestData(version=self.version,
+                              id=1, lifetime=0x00000001,
+                              type=kt.expression, bits=bits,
+                              usage=usage_flags, alg=alg1, alg2=alg2,
+                              material=key_material,
+                              description=description)
+        return key
+
     def keys_for_type(
             self,
             key_type: str,
-            params: Optional[Iterable[str]] = None
+            all_algorithms: List[crypto_knowledge.Algorithm],
     ) -> Iterator[StorageTestData]:
-        """Generate test keys for the given key type.
-
-        For key types that depend on a parameter (e.g. elliptic curve family),
-        `param` is the parameter to pass to the constructor. Only a single
-        parameter is supported.
-        """
-        kt = crypto_knowledge.KeyType(key_type, params)
+        """Generate test keys for the given key type."""
+        kt = crypto_knowledge.KeyType(key_type)
         for bits in kt.sizes_to_test():
-            usage_flags = 'PSA_KEY_USAGE_EXPORT'
-            alg = 0
-            alg2 = 0
-            key_material = kt.key_material(bits)
-            short_expression = re.sub(r'\bPSA_(?:KEY_TYPE|ECC_FAMILY)_',
-                                      r'',
-                                      kt.expression)
-            description = 'type: {} {}-bit'.format(short_expression, bits)
-            key = StorageTestData(version=self.version,
-                                  id=1, lifetime=0x00000001,
-                                  type=kt.expression, bits=bits,
-                                  usage=usage_flags, alg=alg, alg2=alg2,
-                                  material=key_material,
-                                  description=description)
-            yield key
+            # Test a non-exercisable key, as well as exercisable keys for
+            # each compatible algorithm.
+            # To do: test reading a key from storage with an incompatible
+            # or unsupported algorithm.
+            yield self.key_for_type_and_alg(kt, bits)
+            compatible_algorithms = [alg for alg in all_algorithms
+                                     if kt.can_do(alg)]
+            for alg in compatible_algorithms:
+                yield self.key_for_type_and_alg(kt, bits, alg)
 
     def all_keys_for_types(self) -> Iterator[StorageTestData]:
         """Generate test keys covering key types and their representations."""
         key_types = sorted(self.constructors.key_types)
+        all_algorithms = [crypto_knowledge.Algorithm(alg)
+                          for alg in self.constructors.generate_expressions(
+                              sorted(self.constructors.algorithms)
+                          )]
         for key_type in self.constructors.generate_expressions(key_types):
-            yield from self.keys_for_type(key_type)
+            yield from self.keys_for_type(key_type, all_algorithms)
 
     def keys_for_algorithm(self, alg: str) -> Iterator[StorageTestData]:
-        """Generate test keys for the specified algorithm."""
-        # For now, we don't have information on the compatibility of key
-        # types and algorithms. So we just test the encoding of algorithms,
-        # and not that operations can be performed with them.
-        descr = re.sub(r'PSA_ALG_', r'', alg)
-        descr = re.sub(r',', r', ', re.sub(r' +', r'', descr))
-        usage = 'PSA_KEY_USAGE_EXPORT'
+        """Generate test keys for the encoding of the specified algorithm."""
+        # These test cases only validate the encoding of algorithms, not
+        # whether the key read from storage is suitable for an operation.
+        # `keys_for_types` generate read tests with an algorithm and a
+        # compatible key.
+        descr = crypto_knowledge.short_expression(alg, 1)
+        usage = ['PSA_KEY_USAGE_EXPORT']
         key1 = StorageTestData(version=self.version,
                                id=1, lifetime=0x00000001,
                                type='PSA_KEY_TYPE_RAW_DATA', bits=8,
@@ -738,17 +806,14 @@ class StorageFormatV0(StorageFormat):
         """
         bits = key_type.sizes_to_test()[0]
         implicit_usage = StorageKey.IMPLICIT_USAGE_FLAGS[implyer_usage]
-        usage_flags = 'PSA_KEY_USAGE_EXPORT'
-        material_usage_flags = usage_flags + ' | ' + implyer_usage
-        expected_usage_flags = material_usage_flags + ' | ' + implicit_usage
+        usage_flags = ['PSA_KEY_USAGE_EXPORT']
+        material_usage_flags = usage_flags + [implyer_usage]
+        expected_usage_flags = material_usage_flags + [implicit_usage]
         alg2 = 0
         key_material = key_type.key_material(bits)
-        usage_expression = re.sub(r'PSA_KEY_USAGE_', r'', implyer_usage)
-        alg_expression = re.sub(r'PSA_ALG_', r'', alg)
-        alg_expression = re.sub(r',', r', ', re.sub(r' +', r'', alg_expression))
-        key_type_expression = re.sub(r'\bPSA_(?:KEY_TYPE|ECC_FAMILY)_',
-                                     r'',
-                                     key_type.expression)
+        usage_expression = crypto_knowledge.short_expression(implyer_usage, 1)
+        alg_expression = crypto_knowledge.short_expression(alg, 1)
+        key_type_expression = key_type.short_expression(1)
         description = 'implied by {}: {} {} {}-bit'.format(
             usage_expression, alg_expression, key_type_expression, bits)
         key = StorageTestData(version=self.version,
@@ -822,8 +887,10 @@ class StorageFormatV0(StorageFormat):
                 for key_type in sorted(alg_with_keys[alg]):
                     # The key types must be filtered to fit the specific usage flag.
                     kt = crypto_knowledge.KeyType(key_type)
-                    if kt.is_valid_for_signature(usage):
-                        yield self.keys_for_implicit_usage(usage, alg, kt)
+                    if kt.is_public() and '_SIGN_' in usage:
+                        # Can't sign with a public key
+                        continue
+                    yield self.keys_for_implicit_usage(usage, alg, kt)
 
     def generate_all_keys(self) -> Iterator[StorageTestData]:
         yield from super().generate_all_keys()

@@ -2320,6 +2320,38 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_XTEA_C */
 
+#if defined(MBEDTLS_CONFIG_FILE)
+    if( strcmp( "MBEDTLS_CONFIG_FILE", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_CONFIG_FILE );
+        return( 0 );
+    }
+#endif /* MBEDTLS_CONFIG_FILE */
+
+#if defined(MBEDTLS_USER_CONFIG_FILE)
+    if( strcmp( "MBEDTLS_USER_CONFIG_FILE", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_USER_CONFIG_FILE );
+        return( 0 );
+    }
+#endif /* MBEDTLS_USER_CONFIG_FILE */
+
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG_FILE)
+    if( strcmp( "MBEDTLS_PSA_CRYPTO_CONFIG_FILE", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_PSA_CRYPTO_CONFIG_FILE );
+        return( 0 );
+    }
+#endif /* MBEDTLS_PSA_CRYPTO_CONFIG_FILE */
+
+#if defined(MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE)
+    if( strcmp( "MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE );
+        return( 0 );
+    }
+#endif /* MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE */
+
 #if defined(MBEDTLS_MPI_WINDOW_SIZE)
     if( strcmp( "MBEDTLS_MPI_WINDOW_SIZE", config ) == 0 )
     {
@@ -3945,6 +3977,22 @@ void list_config( void )
 #if defined(MBEDTLS_XTEA_C)
     OUTPUT_MACRO_NAME_VALUE(MBEDTLS_XTEA_C);
 #endif /* MBEDTLS_XTEA_C */
+
+#if defined(MBEDTLS_CONFIG_FILE)
+    OUTPUT_MACRO_NAME_VALUE(MBEDTLS_CONFIG_FILE);
+#endif /* MBEDTLS_CONFIG_FILE */
+
+#if defined(MBEDTLS_USER_CONFIG_FILE)
+    OUTPUT_MACRO_NAME_VALUE(MBEDTLS_USER_CONFIG_FILE);
+#endif /* MBEDTLS_USER_CONFIG_FILE */
+
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG_FILE)
+    OUTPUT_MACRO_NAME_VALUE(MBEDTLS_PSA_CRYPTO_CONFIG_FILE);
+#endif /* MBEDTLS_PSA_CRYPTO_CONFIG_FILE */
+
+#if defined(MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE)
+    OUTPUT_MACRO_NAME_VALUE(MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE);
+#endif /* MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE */
 
 #if defined(MBEDTLS_MPI_WINDOW_SIZE)
     OUTPUT_MACRO_NAME_VALUE(MBEDTLS_MPI_WINDOW_SIZE);

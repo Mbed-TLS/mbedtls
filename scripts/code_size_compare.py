@@ -34,6 +34,7 @@ class CodeSizeComparison:
     """Compare code size between two Git revisions."""
 
     def __init__(self, old_revision, new_revision, result_dir,
+                 #pylint: disable=too-many-arguments
                  config=None, symbols=False, buildtag=None):
         """
         old_revision: revision to compare against

@@ -22,9 +22,8 @@
 
 #include "common.h"
 
-#if defined(MBEDTLS_BIGNUM_C)
+#include "mbedtls/build_info.h"
 #include "mbedtls/bignum.h"
-#endif
 
 /** Perform a known-size multiply accumulate operation
  *
@@ -46,5 +45,31 @@
 mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len ,
                                        const mbedtls_mpi_uint *s, size_t s_len,
                                        mbedtls_mpi_uint b );
+
+
+#define MPI_FROM_RAW_REF_RO( P, N )                     \
+    {                                                   \
+        .s = 1,                                         \
+        .p = (mbedtls_mpi_uint*) (P),                   \
+        .n = (N),                                       \
+    }
+
+#define MPI_FROM_RAW_STATIC_REF( P )                    \
+    MPI_FROM_RAW_REF_RO(                                \
+           P, sizeof( P ) / sizeof( mbedtls_mpi_uint ) )
+
+#define MPI_FROM_RAW_REF_RW( P, N )                     \
+    {                                                   \
+        .s = 1,                                         \
+        .p = (P),                                       \
+        .n = (N),                                       \
+    }
+
+#define MPI_UNSET()                                     \
+    {                                                   \
+        .s = 1,                                         \
+        .p = NULL,                                      \
+        .n = 0,                                         \
+    }
 
 #endif /* MBEDTLS_BIGNUM_INTERNAL_H */

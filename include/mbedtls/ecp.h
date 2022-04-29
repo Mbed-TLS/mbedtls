@@ -246,9 +246,8 @@ typedef struct mbedtls_ecp_group
     int (*MBEDTLS_PRIVATE(t_pre))(mbedtls_ecp_point *, void *);  /*!< Unused. */
     int (*MBEDTLS_PRIVATE(t_post))(mbedtls_ecp_point *, void *); /*!< Unused. */
     void *MBEDTLS_PRIVATE(t_data);               /*!< Unused. */
-    mbedtls_ecp_point *MBEDTLS_PRIVATE(T);       /*!< Pre-computed points for ecp_mul_comb(). */
-    size_t MBEDTLS_PRIVATE(T_size);              /*!< The number of dynamic allocated pre-computed points. */
-    mbedtls_mpi MBEDTLS_PRIVATE(tmp_dbl);         /*!< Temporary MPI holding double-width intermediate values. */
+    void *MBEDTLS_PRIVATE(T);                        /*!< Pre-computed points for ecp_mul_comb(). */
+    size_t MBEDTLS_PRIVATE(T_size);                  /*!< The number of dynamic allocated pre-computed points. */
 }
 mbedtls_ecp_group;
 
@@ -345,6 +344,9 @@ mbedtls_ecp_group;
 #endif
 
 #define MBEDTLS_ECP_MAX_BYTES    ( ( MBEDTLS_ECP_MAX_BITS + 7 ) / 8 )
+#define MBEDTLS_ECP_MAX_LIMBS                                            \
+    ( ( MBEDTLS_ECP_MAX_BYTES + sizeof(mbedtls_mpi_uint) - 1 )           \
+      / sizeof(mbedtls_mpi_uint) )
 #define MBEDTLS_ECP_MAX_PT_LEN   ( 2 * MBEDTLS_ECP_MAX_BYTES + 1 )
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
@@ -398,13 +400,18 @@ int mbedtls_ecp_check_budget( const mbedtls_ecp_group *grp,
                               unsigned ops );
 
 /* Utility macro for checking and updating ops budget */
-#define MBEDTLS_ECP_BUDGET( ops )   \
-    MBEDTLS_MPI_CHK( mbedtls_ecp_check_budget( grp, rs_ctx, \
+#define MBEDTLS_ECP_BUDGET( ops )                                           \
+    MBEDTLS_MPI_CHK( mbedtls_ecp_check_budget( grp, rs_ctx,                 \
+                                               (unsigned) (ops) ) );
+
+#define MBEDTLS_ECP_BUDGET_INTERNAL( ops )                                  \
+    MBEDTLS_MPI_CHK( mbedtls_ecp_check_budget( getGrp(grp), rs_ctx,         \
                                                (unsigned) (ops) ) );
 
 #else /* MBEDTLS_ECP_RESTARTABLE */
 
 #define MBEDTLS_ECP_BUDGET( ops )   /* no-op; for compatibility */
+#define MBEDTLS_ECP_BUDGET_INTERNAL( ops )   /* no-op; for compatibility */
 
 /* We want to declare restartable versions of existing functions anyway */
 typedef void mbedtls_ecp_restart_ctx;

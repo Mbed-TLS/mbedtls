@@ -2888,7 +2888,10 @@ static int ecp_check_pubkey_sw( const mbedtls_ecp_group *grp, const mbedtls_ecp_
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_mpi YY, RHS;
-    ECP_DECL_INTERNAL_INPUT(pt);
+
+    /* Must use affine coordinates */
+    if( mbedtls_mpi_cmp_int( &pt->Z, 1 ) != 0 )
+        return( MBEDTLS_ERR_ECP_INVALID_KEY );
 
     /* pt coordinates must be normalized for our checks */
     if( mbedtls_mpi_cmp_int( &pt->X, 0 ) < 0 ||
@@ -2900,6 +2903,7 @@ static int ecp_check_pubkey_sw( const mbedtls_ecp_group *grp, const mbedtls_ecp_
     }
 
     mbedtls_mpi_init( &YY ); mbedtls_mpi_init( &RHS );
+    ECP_DECL_INTERNAL_INPUT(pt);
 
     ECP_SETUP_INTERNAL_INPUT(pt);
 
@@ -3221,6 +3225,10 @@ cleanup:
  */
 static int ecp_check_pubkey_mx( const mbedtls_ecp_group *grp, const mbedtls_ecp_point *pt )
 {
+    /* Must use affine coordinates */
+    if( mbedtls_mpi_cmp_int( &pt->Z, 1 ) != 0 )
+        return( MBEDTLS_ERR_ECP_INVALID_KEY );
+
     /* [Curve25519 p. 5] Just check X is the correct number of bytes */
     /* Allow any public value, if it's too big then we'll just reduce it mod p
      * (RFC 7748 sec. 5 para. 3). */
@@ -3245,10 +3253,6 @@ int mbedtls_ecp_check_pubkey( const mbedtls_ecp_group *grp,
 {
     ECP_VALIDATE_RET( grp != NULL );
     ECP_VALIDATE_RET( pt  != NULL );
-
-    /* Must use affine coordinates */
-    if( mbedtls_mpi_cmp_int( &pt->Z, 1 ) != 0 )
-        return( MBEDTLS_ERR_ECP_INVALID_KEY );
 
 #if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
     if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_MONTGOMERY )

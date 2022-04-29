@@ -3118,9 +3118,16 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 
 #if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
 #if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
-#define ECP_MPI_INIT(s, n, p) {s, (n), (mbedtls_mpi_uint *)(p)}
-#define ECP_MPI_INIT_ARRAY(x)   \
-    ECP_MPI_INIT(1, sizeof(x) / sizeof(mbedtls_mpi_uint), x)
+
+#define ECP_MPI_FROM_STATIC_BUF_LENGTH(N, P)      \
+     {                                            \
+        .s = 1,                                   \
+        .p = (mbedtls_mpi_uint*) (P),             \
+        .n = (N)                                  \
+     }
+
+#define ECP_MPI_FROM_STATIC(x)   \
+    ECP_MPI_FROM_STATIC_BUF_LENGTH(sizeof(x) / sizeof(mbedtls_mpi_uint), x)
 /*
  * Constants for the two points other than 0, 1, -1 (mod p) in
  * https://cr.yp.to/ecdh.html#validate
@@ -3138,10 +3145,11 @@ static const mbedtls_mpi_uint x25519_bad_point_2[] = {
     MBEDTLS_BYTES_TO_T_UINT_8( 0x04, 0x44, 0x5c, 0xc4, 0x58, 0x1c, 0x8e, 0x86 ),
     MBEDTLS_BYTES_TO_T_UINT_8( 0xd8, 0x22, 0x4e, 0xdd, 0xd0, 0x9f, 0x11, 0x57 ),
 };
-static const mbedtls_mpi ecp_x25519_bad_point_1 = ECP_MPI_INIT_ARRAY(
-        x25519_bad_point_1 );
-static const mbedtls_mpi ecp_x25519_bad_point_2 = ECP_MPI_INIT_ARRAY(
-        x25519_bad_point_2 );
+
+static const mbedtls_mpi ecp_x25519_bad_point_1 =
+    ECP_MPI_FROM_STATIC( x25519_bad_point_1 );
+static const mbedtls_mpi ecp_x25519_bad_point_2 =
+    ECP_MPI_FROM_STATIC( x25519_bad_point_2 );
 #endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED */
 
 /*

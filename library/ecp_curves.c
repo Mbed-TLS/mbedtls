@@ -4762,6 +4762,8 @@ static int ecp_use_ed25519( mbedtls_ecp_group *grp )
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &grp->G.Y, 16,
                                               "6666666666666666666666666666666666666666666666666666666666666658" ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &grp->G.Z, 1 ) );
+    
+    grp->nbits = 256;
 
 cleanup:
     if( ret != 0 )
@@ -4809,6 +4811,8 @@ static int ecp_use_ed448( mbedtls_ecp_group *grp )
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &grp->G.Y, 16,
                                               "693F46716EB6BC248876203756C9C7624BEA73736CA3984087789C1E05A0C2D73AD3FF1CE67C39C4FDBD132C4ED7C8AD9808795BF230FA14" ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &grp->G.Z, 1 ) );
+    
+    grp->nbits = 456;
 
 cleanup:
     mbedtls_mpi_free( &Ns );

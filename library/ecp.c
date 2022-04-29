@@ -80,6 +80,10 @@
 #include "bn_mul.h"
 #include "ecp_invasive.h"
 
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
+#include "mbedtls/sha512.h"
+#endif
+
 #include <string.h>
 
 #if !defined(MBEDTLS_ECP_ALT)
@@ -354,11 +358,6 @@ static void mpi_free_many( mbedtls_mpi *arr, size_t size )
         mbedtls_mpi_free( arr++ );
 }
 
-#if defined(MBEDTLS_ECP_DP_ED25519_ENABLED) || \
-    defined(MBEDTLS_ECP_DP_ED448_ENABLED)
-#define ECP_EDWARDS
-#endif
-
 /*
  * List of supported curves:
  *  - internal ID
@@ -411,6 +410,12 @@ static const mbedtls_ecp_curve_info ecp_supported_curves[] =
 #endif
 #if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
     { MBEDTLS_ECP_DP_CURVE448,     30,     448,    "x448"              },
+#endif
+#if defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
+    { MBEDTLS_ECP_DP_ED25519,      29,     256,    "ed25519"           },
+#endif
+#if defined(MBEDTLS_ECP_DP_ED448_ENABLED)
+    { MBEDTLS_ECP_DP_ED448,        30,     457,    "ed448"             },
 #endif
     { MBEDTLS_ECP_DP_NONE,          0,     0,      NULL                },
 };
@@ -805,7 +810,7 @@ int mbedtls_ecp_point_write_binary( const mbedtls_ecp_group *grp,
         }
     }
 #endif
-#if defined(ECP_EDWARDS)
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
     if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_EDWARDS )
     {
         /* Only the compressed format is defined for Edwards curves. */
@@ -834,7 +839,7 @@ cleanup:
     return( ret );
 }
 
-#if defined(ECP_EDWARDS)
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
 /* FIXME: The function is defined later in this file as reading a binary
    point on an Edwards curve needs computation and thus access to the
    mbedtls_mpi_xxx_mod functions. */
@@ -900,7 +905,7 @@ int mbedtls_ecp_point_read_binary( const mbedtls_ecp_group *grp,
         MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->Z, 1 ) );
     }
 #endif
-#if defined(ECP_EDWARDS)
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
     if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_EDWARDS )
     {
         MBEDTLS_MPI_CHK( mbedtls_ecp_point_read_binary_ed( grp, pt, buf, ilen ) );
@@ -1309,7 +1314,7 @@ cleanup:
 #define MPI_ECP_COND_SWAP( X, Y, cond )       \
     MBEDTLS_MPI_CHK( mbedtls_mpi_safe_cond_swap( (X), (Y), (cond) ) )
 
-#if defined(ECP_EDWARDS)
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
 /*
  * Import and Edward point from binary data (RFC8032)
  */
@@ -2739,7 +2744,7 @@ cleanup:
 
 #endif /* MBEDTLS_ECP_MONTGOMERY_ENABLED */
 
-#if defined(ECP_EDWARDS)
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
 /*
  * For Edwards curves, we do all the internal arithmetic in projective
  * coordinates. Import/export of points uses only the x and y coordinates,
@@ -3006,7 +3011,7 @@ cleanup:
 
     return( ret );
 }
-#endif /* ECP_EDWARDS */
+#endif /* MBEDTLS_ECP_EDWARDS_ENABLED */
 
 /*
  * Point addition R = P + Q
@@ -3021,7 +3026,7 @@ int mbedtls_ecp_add( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     ECP_VALIDATE_RET( P   != NULL );
     ECP_VALIDATE_RET( Q   != NULL );
 
-#if defined(ECP_EDWARDS)
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
     if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_EDWARDS )
     {
         MBEDTLS_MPI_CHK( ecp_add_edxyz( grp, R, P, Q ) );
@@ -3090,7 +3095,7 @@ static int ecp_mul_restartable_internal( mbedtls_ecp_group *grp, mbedtls_ecp_poi
     if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS )
         MBEDTLS_MPI_CHK( ecp_mul_comb( grp, R, m, P, f_rng, p_rng, rs_ctx ) );
 #endif
-#if defined(ECP_EDWARDS)
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
     if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_EDWARDS )
         MBEDTLS_MPI_CHK( ecp_mul_edxyz( grp, R, m, P, f_rng, p_rng ) );
 #endif
@@ -3466,7 +3471,7 @@ static int ecp_check_pubkey_mx( const mbedtls_ecp_group *grp, const mbedtls_ecp_
 }
 #endif /* MBEDTLS_ECP_MONTGOMERY_ENABLED */
 
-#if defined(ECP_EDWARDS)
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
 /*
  * Check that a point is valid as a public key, i.e. it is actually on
  * the curve.
@@ -3509,7 +3514,7 @@ cleanup:
 
     return( ret );
 }
-#endif /* ECP_EDWARDS */
+#endif /* MBEDTLS_ECP_EDWARDS_ENABLED */
 
 /*
  * Check that a point is valid as a public key
@@ -3532,7 +3537,7 @@ int mbedtls_ecp_check_pubkey( const mbedtls_ecp_group *grp,
     if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS )
         return( ecp_check_pubkey_sw( grp, pt ) );
 #endif
-#if defined(ECP_EDWARDS)
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
     if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_EDWARDS )
         return( ecp_check_pubkey_ed( grp, pt ) );
 #endif
@@ -3576,7 +3581,7 @@ int mbedtls_ecp_check_privkey( const mbedtls_ecp_group *grp,
             return( 0 );
     }
 #endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
-#if defined(ECP_EDWARDS)
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
     /* FIXME: add a check for Edwards */
     if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_EDWARDS )
         return( 0 );
@@ -3652,6 +3657,11 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
         return( mbedtls_ecp_gen_privkey_mx( grp->nbits, d, f_rng, p_rng ) );
 #endif /* MBEDTLS_ECP_MONTGOMERY_ENABLED */
 
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
+    if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_EDWARDS )
+        return( mbedtls_ecp_gen_privkey_mx( grp->nbits, d, f_rng, p_rng ) );
+#endif /* MBEDTLS_ECP_EDWARDS_ENABLED */
+
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
     if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS )
         return( mbedtls_ecp_gen_privkey_sw( &grp->N, d, f_rng, p_rng ) );
@@ -3659,6 +3669,60 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
 
     return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 }
+
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
+static int mbedtls_privkey_expand_ed25519( const mbedtls_mpi *d, mbedtls_mpi *q, mbedtls_mpi *prefix )
+{
+    mbedtls_sha512_context ctx;
+    int ret = 0;
+    
+    if( mbedtls_mpi_size( d ) != 32)
+            return( MBEDTLS_ERR_ECP_INVALID_KEY );
+    
+    unsigned char key_buf[32], sha_buf[64];
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( d, key_buf, sizeof(key_buf) ) );
+    mbedtls_sha512_init( &ctx );    
+    mbedtls_sha512_starts( &ctx , 0 );
+    mbedtls_sha512_update( &ctx, key_buf, sizeof( key_buf ) );
+    mbedtls_sha512_finish( &ctx, sha_buf );
+    mbedtls_sha512_free( &ctx );
+    
+    sha_buf[0] &= ~0x7;
+    sha_buf[31] &= ~0x80;
+    sha_buf[31] |= 0x40;
+    
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( q, sha_buf, 32 ) );
+    if( prefix )
+        MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( prefix, sha_buf+32, 32 ) );
+    
+cleanup:
+    return( ret );
+}
+static int mbedtls_privkey_expand_ed448( const mbedtls_mpi *d, mbedtls_mpi *q, mbedtls_mpi *prefix )
+{
+    return 0;
+}
+int mbedtls_ecp_get_pubkey_ed( mbedtls_ecp_group *grp,
+                     mbedtls_ecp_point *Q,
+                     mbedtls_mpi *d, const mbedtls_ecp_point *G,
+                     int (*f_rng)(void *, unsigned char *, size_t),
+                     void *p_rng )
+{
+    int ret = 0;
+    mbedtls_mpi q;
+    mbedtls_mpi_init( &q );
+    
+    if( grp->id == MBEDTLS_ECP_DP_ED25519 )
+        ret = mbedtls_privkey_expand_ed25519( d, &q, NULL );
+    else if( grp->id == MBEDTLS_ECP_DP_ED448 )
+        ret = mbedtls_privkey_expand_ed448( d, &q, NULL );
+
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, Q, &q, G, f_rng, p_rng ) );
+cleanup:
+    mbedtls_mpi_free( &q );
+    return( ret );
+}
+#endif
 
 /*
  * Generate a keypair with configurable base point
@@ -3677,7 +3741,12 @@ int mbedtls_ecp_gen_keypair_base( mbedtls_ecp_group *grp,
     ECP_VALIDATE_RET( f_rng != NULL );
 
     MBEDTLS_MPI_CHK( mbedtls_ecp_gen_privkey( grp, d, f_rng, p_rng ) );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, Q, d, G, f_rng, p_rng ) );
+#ifdef MBEDTLS_ECP_EDWARDS_ENABLED
+    if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_EDWARDS )
+        MBEDTLS_MPI_CHK( mbedtls_ecp_get_pubkey_ed( grp, Q, d, G, f_rng, p_rng ) );
+    else
+#endif
+        MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, Q, d, G, f_rng, p_rng ) );
 
 cleanup:
     return( ret );
@@ -3717,6 +3786,8 @@ int mbedtls_ecp_gen_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
 
 #define ECP_CURVE25519_KEY_SIZE 32
 #define ECP_CURVE448_KEY_SIZE   56
+#define ECP_ED25519_KEY_SIZE    32
+#define ECP_ED448_KEY_SIZE      57
 /*
  * Read a private key.
  */
@@ -3792,6 +3863,15 @@ int mbedtls_ecp_read_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
     }
 
 #endif
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
+    if( mbedtls_ecp_get_type( &key->grp ) == MBEDTLS_ECP_TYPE_EDWARDS)
+    {
+        MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( &key->d, buf, buflen ) );
+
+        MBEDTLS_MPI_CHK( mbedtls_ecp_check_privkey( &key->grp, &key->d ) );
+    }
+
+#endif
 cleanup:
 
     if( ret != 0 )
@@ -3823,6 +3903,23 @@ int mbedtls_ecp_write_key( mbedtls_ecp_keypair *key,
         else if( key->grp.id == MBEDTLS_ECP_DP_CURVE448 )
         {
             if( buflen < ECP_CURVE448_KEY_SIZE )
+                return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+        }
+        MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( &key->d, buf, buflen ) );
+    }
+#endif
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
+    if( mbedtls_ecp_get_type( &key->grp ) == MBEDTLS_ECP_TYPE_EDWARDS )
+    {
+        if( key->grp.id == MBEDTLS_ECP_DP_ED25519 )
+        {
+            if( buflen < ECP_ED25519_KEY_SIZE )
+                return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+
+        }
+        else if( key->grp.id == MBEDTLS_ECP_DP_ED448 )
+        {
+            if( buflen < ECP_ED448_KEY_SIZE )
                 return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
         }
         MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( &key->d, buf, buflen ) );

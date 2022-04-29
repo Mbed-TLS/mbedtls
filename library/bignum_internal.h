@@ -53,7 +53,7 @@ mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len ,
  *                      representing the result of the addition.
  *                      This must point to a writable buffer with
  *                      \p n limbs.
- * \param[in] s         The pointer to the (little-endian) array
+ * \param[in] l         The pointer to the (little-endian) array
  *                      representing the bignum to add to.
  *                      This must point to a writable buffer with
  *                      \p n limbs.

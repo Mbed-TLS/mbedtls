@@ -5023,10 +5023,7 @@ static int ssl_use_opaque_psk( mbedtls_ssl_context const *ssl )
     return( 0 );
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO &&
-          ( MBEDTLS_KEY_EXCHANGE_PSK_ENABLED ||
-            MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED ||
-            MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED ||
-            MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED ) */
+          MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
 /*
  * Compute master secret if needed
@@ -5096,7 +5093,7 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
         MBEDTLS_SSL_DEBUG_BUF( 3, "session hash for extended master secret",
                                   session_hash, seed_len );
     }
-#endif /* MBEDTLS_SSL_EXTENDED_MS_ENABLED */
+#endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) &&                   \
     defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)

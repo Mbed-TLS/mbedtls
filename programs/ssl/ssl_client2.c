@@ -346,7 +346,7 @@ int main( void )
 
 #define USAGE_KEY_OPAQUE_ALGS \
     "    key_opaque_algs=%%s  Allowed opaque key algorithms.\n"                      \
-    "                        coma-separated pair of values among the following:\n"   \
+    "                        comma-separated pair of values among the following:\n"   \
     "                        rsa-sign-pkcs1, rsa-sign-pss, rsa-decrypt,\n"           \
     "                        ecdsa-sign, ecdh, none (only acceptable for\n"          \
     "                        the second value).\n"                                   \
@@ -1323,8 +1323,8 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "key_opaque_algs" ) == 0 )
         {
-            if ( key_opaque_alg_parse( q, &opt.key_opaque_alg1,
-                                          &opt.key_opaque_alg2 ) != 0 )
+            if( key_opaque_alg_parse( q, &opt.key_opaque_alg1,
+                                         &opt.key_opaque_alg2 ) != 0 )
                 goto usage;
         }
         else

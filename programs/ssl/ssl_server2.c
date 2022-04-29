@@ -458,7 +458,7 @@ int main( void )
 
 #define USAGE_KEY_OPAQUE_ALGS \
     "    key_opaque_algs=%%s  Allowed opaque key algorithms.\n"                      \
-    "                        coma-separated pair of values among the following:\n"   \
+    "                        comma-separated pair of values among the following:\n"   \
     "                        rsa-sign-pkcs1, rsa-sign-pss, rsa-decrypt,\n"           \
     "                        ecdsa-sign, ecdh, none (only acceptable for\n"          \
     "                        the second value).\n"                                   \
@@ -690,7 +690,7 @@ static int get_auth_mode( const char *s )
 }
 
 /*
- * Used by sni_parse and psk_parse to handle coma-separated lists
+ * Used by sni_parse and psk_parse to handle comma-separated lists
  */
 #define GET_ITEM( dst )         \
     do                          \
@@ -2103,8 +2103,8 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "key_opaque_algs" ) == 0 )
         {
-            if ( key_opaque_alg_parse( q, &opt.key_opaque_alg1,
-                                          &opt.key_opaque_alg2 ) != 0 )
+            if( key_opaque_alg_parse( q, &opt.key_opaque_alg1,
+                                         &opt.key_opaque_alg2 ) != 0 )
                 goto usage;
         }
         else

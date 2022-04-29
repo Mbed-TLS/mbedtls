@@ -240,7 +240,6 @@ int rng_get( void *p_rng, unsigned char *output, size_t output_len );
  */
 int key_opaque_alg_parse( const char *arg, const char **alg1, const char **alg2 );
 
-
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
 /* The test implementation of the PSA external RNG is insecure. When
  * MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG is enabled, before using any PSA crypto

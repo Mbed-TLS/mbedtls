@@ -203,19 +203,19 @@ int key_opaque_alg_parse( const char *arg, const char **alg1, const char **alg2 
     *alg1 = arg;
     *alg2 = separator + 1;
 
-    if ( strcmp( *alg1, "rsa-sign-pkcs1" ) != 0 &&
-         strcmp( *alg1, "rsa-sign-pss" ) != 0 &&
-         strcmp( *alg1, "rsa-decrypt" ) != 0 &&
-         strcmp( *alg1, "ecdsa-sign" ) != 0 &&
-         strcmp( *alg1, "ecdh" ) != 0 )
+    if( strcmp( *alg1, "rsa-sign-pkcs1" ) != 0 &&
+        strcmp( *alg1, "rsa-sign-pss" ) != 0 &&
+        strcmp( *alg1, "rsa-decrypt" ) != 0 &&
+        strcmp( *alg1, "ecdsa-sign" ) != 0 &&
+        strcmp( *alg1, "ecdh" ) != 0 )
         return 1;
 
-    if ( strcmp( *alg2, "rsa-sign-pkcs1" ) != 0 &&
-         strcmp( *alg2, "rsa-sign-pss" ) != 0 &&
-         strcmp( *alg2, "rsa-decrypt" ) != 0 &&
-         strcmp( *alg2, "ecdsa-sign" ) != 0 &&
-         strcmp( *alg2, "ecdh" ) != 0 &&
-         strcmp( *alg2, "none" ) != 0 )
+    if( strcmp( *alg2, "rsa-sign-pkcs1" ) != 0 &&
+        strcmp( *alg2, "rsa-sign-pss" ) != 0 &&
+        strcmp( *alg2, "rsa-decrypt" ) != 0 &&
+        strcmp( *alg2, "ecdsa-sign" ) != 0 &&
+        strcmp( *alg2, "ecdh" ) != 0 &&
+        strcmp( *alg2, "none" ) != 0 )
         return 1;
 
     return 0;

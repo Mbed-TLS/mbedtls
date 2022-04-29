@@ -4814,6 +4814,8 @@ static psa_status_t setup_psa_key_derivation( psa_key_derivation_operation_t* de
                                               psa_algorithm_t alg,
                                               const unsigned char* seed, size_t seed_length,
                                               const unsigned char* label, size_t label_length,
+                                              const unsigned char* other_secret,
+                                              size_t other_secret_length,
                                               size_t capacity )
 {
     psa_status_t status;
@@ -4829,6 +4831,15 @@ static psa_status_t setup_psa_key_derivation( psa_key_derivation_operation_t* de
                                                  seed, seed_length );
         if( status != PSA_SUCCESS )
             return( status );
+
+        if ( other_secret != NULL )
+        {
+            status = psa_key_derivation_input_bytes( derivation,
+                                        PSA_KEY_DERIVATION_INPUT_OTHER_SECRET,
+                                        other_secret, other_secret_length );
+            if( status != PSA_SUCCESS )
+                return( status );
+        }
 
         if( mbedtls_svc_key_id_is_null( key ) )
         {
@@ -4903,6 +4914,7 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
                                        random, rlen,
                                        (unsigned char const *) label,
                                        (size_t) strlen( label ),
+                                       NULL, 0,
                                        dlen );
     if( status != PSA_SUCCESS )
     {
@@ -5088,8 +5100,10 @@ static int ssl_set_handshake_prfs( mbedtls_ssl_handshake_params *handshake,
     return( 0 );
 }
 
-#if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED) && \
-    defined(MBEDTLS_USE_PSA_CRYPTO)
+
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO) &&                   \
+    defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED )
 static int ssl_use_opaque_psk( mbedtls_ssl_context const *ssl )
 {
     if( ssl->conf->f_psk != NULL )
@@ -5108,7 +5122,7 @@ static int ssl_use_opaque_psk( mbedtls_ssl_context const *ssl )
     return( 0 );
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO &&
-          MBEDTLS_KEY_EXCHANGE_PSK_ENABLED */
+          MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
 /*
  * Compute master secret if needed
@@ -5144,15 +5158,15 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
      * is used. */
     char const *lbl = "master secret";
 
-    /* The salt for the KDF used for key expansion.
+    /* The seed for the KDF used for key expansion.
      * - If the Extended Master Secret extension is not used,
      *   this is ClientHello.Random + ServerHello.Random
      *   (see Sect. 8.1 in RFC 5246).
      * - If the Extended Master Secret extension is used,
      *   this is the transcript of the handshake so far.
      *   (see Sect. 4 in RFC 7627). */
-    unsigned char const *salt = handshake->randbytes;
-    size_t salt_len = 64;
+    unsigned char const *seed = handshake->randbytes;
+    size_t seed_len = 64;
 
 #if !defined(MBEDTLS_DEBUG_C) &&                    \
     !defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET) && \
@@ -5172,17 +5186,17 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
     if( handshake->extended_ms == MBEDTLS_SSL_EXTENDED_MS_ENABLED )
     {
         lbl  = "extended master secret";
-        salt = session_hash;
-        handshake->calc_verify( ssl, session_hash, &salt_len );
+        seed = session_hash;
+        handshake->calc_verify( ssl, session_hash, &seed_len );
 
         MBEDTLS_SSL_DEBUG_BUF( 3, "session hash for extended master secret",
-                                  session_hash, salt_len );
+                                  session_hash, seed_len );
     }
-#endif /* MBEDTLS_SSL_EXTENDED_MS_ENABLED */
+#endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO) &&          \
-    defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
-    if( handshake->ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK &&
+#if defined(MBEDTLS_USE_PSA_CRYPTO) &&                   \
+    defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+    if( mbedtls_ssl_ciphersuite_uses_psk( handshake->ciphersuite_info ) == 1 &&
         ssl_use_opaque_psk( ssl ) == 1 )
     {
         /* Perform PSK-to-MS expansion in a single step. */
@@ -5202,10 +5216,34 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
         else
             alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_256);
 
+        size_t other_secret_len = 0;
+        unsigned char* other_secret = NULL;
+
+        switch( handshake->ciphersuite_info->key_exchange )
+        {
+            /* Provide other secret.
+             * Other secret is stored in premaster, where first 2 bytes hold the
+             * length of the other key.
+             */
+            case MBEDTLS_KEY_EXCHANGE_RSA_PSK:
+                /* For RSA-PSK other key length is always 48 bytes. */
+                other_secret_len = 48;
+                other_secret = handshake->premaster + 2;
+                break;
+            case MBEDTLS_KEY_EXCHANGE_ECDHE_PSK:
+            case MBEDTLS_KEY_EXCHANGE_DHE_PSK:
+                other_secret_len = MBEDTLS_GET_UINT16_BE(handshake->premaster, 0);
+                other_secret = handshake->premaster + 2;
+                break;
+            default:
+                break;
+        }
+
         status = setup_psa_key_derivation( &derivation, psk, alg,
-                                           salt, salt_len,
+                                           seed, seed_len,
                                            (unsigned char const *) lbl,
                                            (size_t) strlen( lbl ),
+                                           other_secret, other_secret_len,
                                            master_secret_len );
         if( status != PSA_SUCCESS )
         {
@@ -5230,7 +5268,7 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
 #endif
     {
         ret = handshake->tls_prf( handshake->premaster, handshake->pmslen,
-                                  lbl, salt, salt_len,
+                                  lbl, seed, seed_len,
                                   master,
                                   master_secret_len );
         if( ret != 0 )
@@ -5441,21 +5479,27 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
     unsigned char *end = p + sizeof( ssl->handshake->premaster );
     const unsigned char *psk = NULL;
     size_t psk_len = 0;
+    int psk_ret = mbedtls_ssl_get_psk( ssl, &psk, &psk_len );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) &&                 \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
     (void) key_ex;
 #endif /* MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
 
-    if( mbedtls_ssl_get_psk( ssl, &psk, &psk_len )
-            == MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED )
+    if( psk_ret == MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED )
     {
         /*
          * This should never happen because the existence of a PSK is always
-         * checked before calling this function
+         * checked before calling this function.
+         *
+         * The exception is opaque DHE-PSK. For DHE-PSK fill premaster with
+         * the shared secret without PSK.
          */
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        if ( key_ex != MBEDTLS_KEY_EXCHANGE_DHE_PSK )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
     }
 
     /*
@@ -5516,6 +5560,14 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
         p += 2 + len;
 
         MBEDTLS_SSL_DEBUG_MPI( 3, "DHM: K ", &ssl->handshake->dhm_ctx.K  );
+
+        /* For opaque PSK fill premaster with the the shared secret without PSK. */
+        if( psk_ret == MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1,
+                ( "skip PMS generation for opaque DHE-PSK" ) );
+            return( 0 );
+        }
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */

@@ -80,6 +80,10 @@
     defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
 #define MBEDTLS_ECP_MONTGOMERY_ENABLED
 #endif
+#if defined(MBEDTLS_ECP_DP_ED25519_ENABLED) || \
+    defined(MBEDTLS_ECP_DP_ED448_ENABLED)
+#define MBEDTLS_ECP_EDWARDS_ENABLED
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -1188,6 +1192,16 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
  * \return          An \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_MPI_XXX error code
  *                  on failure.
  */
+ 
+ 
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
+int mbedtls_ecp_get_pubkey_ed( mbedtls_ecp_group *grp,
+                     mbedtls_ecp_point *Q,
+                     mbedtls_mpi *d, const mbedtls_ecp_point *G,
+                     int (*f_rng)(void *, unsigned char *, size_t),
+                     void *p_rng );
+#endif
+ 
 int mbedtls_ecp_gen_keypair_base( mbedtls_ecp_group *grp,
                                   const mbedtls_ecp_point *G,
                                   mbedtls_mpi *d, mbedtls_ecp_point *Q,

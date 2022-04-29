@@ -194,31 +194,30 @@ class CodeSizeComparison:
         old and new. Measured code size results of these two revisions
         must be available."""
 
-        old_stem = self.get_file_stem(self.old_rev)
-        new_stem = self.get_file_stem(self.new_rev)
+        def parse_csv_as_dict(f):
+            result = {}
+            for line in f.readlines()[1:]:
+                cols = line.split(", ")
+                fname = cols[0]
+                size = int(cols[1])
+                result[fname] = size
+            return result
 
-        old_file = open(os.path.join(self.csv_dir, old_stem + ".csv"), "r")
-        new_file = open(os.path.join(self.csv_dir, new_stem + ".csv"), "r")
+        def get_stem_and_file(rev):
+            stem = self.get_file_stem(rev)
+            f = open(os.path.join(self.csv_dir, stem + ".csv"), "r")
+            return stem, f
+
+        old_stem, old_file = get_stem_and_file(self.old_rev)
+        new_stem, new_file = get_stem_and_file(self.new_rev)
         res_file = open(os.path.join(self.result_dir, "compare-" + old_stem
                                      + "-" + new_stem + ".csv"), "w")
 
         res_file.write("file_name, this_size, old_size, change, change %\n")
         print("Generating comparision results.")
 
-        old_ds = {}
-        for line in old_file.readlines()[1:]:
-            cols = line.split(", ")
-            fname = cols[0]
-            size = int(cols[1])
-            if size != 0:
-                old_ds[fname] = size
-
-        new_ds = {}
-        for line in new_file.readlines()[1:]:
-            cols = line.split(", ")
-            fname = cols[0]
-            size = int(cols[1])
-            new_ds[fname] = size
+        old_ds = parse_csv_as_dict(old_file)
+        new_ds = parse_csv_as_dict(new_file)
 
         for fname in new_ds:
             this_size = new_ds[fname]

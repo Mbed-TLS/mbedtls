@@ -751,6 +751,7 @@ typedef struct mbedtls_endpoint
     mbedtls_entropy_context entropy;
     mbedtls_mock_socket socket;
     mbedtls_endpoint_certificate cert;
+    FILE *dbg_output;
 } mbedtls_endpoint;
 
 /*
@@ -872,6 +873,17 @@ exit:
     return ret;
 }
 
+static void my_debug( void *ctx, int level,
+                      const char *file, int line,
+                      const char *str )
+{
+    ((void) level);
+    mbedtls_endpoint *ep=(mbedtls_endpoint *)ctx;
+    mbedtls_fprintf( ep->dbg_output,
+                     "%s: %s:%04d: %s",
+                     ep->name, file, line, str );
+    fflush( ep->dbg_output  );
+}
 /*
  * Initializes \p ep structure. It is important to call `mbedtls_endpoint_free()`
  * after calling this function even if it fails.
@@ -886,6 +898,7 @@ exit:
  *
  * \retval  0 on success, otherwise error code.
  */
+
 int mbedtls_endpoint_init( mbedtls_endpoint *ep, int endpoint_type, int pk_alg,
                            mbedtls_test_message_socket_context *dtls_context,
                            mbedtls_test_message_queue *input_queue,
@@ -912,6 +925,8 @@ int mbedtls_endpoint_init( mbedtls_endpoint *ep, int endpoint_type, int pk_alg,
         mbedtls_ctr_drbg_random,
         &( ep->ctr_drbg ) );
     mbedtls_entropy_init( &( ep->entropy ) );
+
+
 
     TEST_ASSERT( mbedtls_ssl_conf_get_user_data_p( &ep->conf ) == NULL );
     TEST_EQUAL( mbedtls_ssl_conf_get_user_data_n( &ep->conf ), 0 );
@@ -981,6 +996,9 @@ int mbedtls_endpoint_init( mbedtls_endpoint *ep, int endpoint_type, int pk_alg,
     mbedtls_ssl_conf_set_user_data_p( &ep->conf, ep );
     TEST_EQUAL( mbedtls_ssl_get_user_data_n( &ep->ssl ), user_data_n );
     mbedtls_ssl_set_user_data_p( &ep->ssl, ep );
+    ep->dbg_output = stderr;
+    mbedtls_ssl_conf_dbg( &ep->conf, my_debug, ep );
+    mbedtls_debug_set_threshold( 100 );
 
 exit:
     return ret;

@@ -98,7 +98,6 @@ int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
     int ret;
     mbedtls_ecp_point Q, R;
     mbedtls_mpi q, prefix, rq, h;
-    mbedtls_sha512_context sha_ctx;
 
     /* EdDSA only should be used with Ed25519 and Ed448 curves  */
     if( ! mbedtls_eddsa_can_do( grp->id ) || grp->N.p == NULL )
@@ -127,6 +126,7 @@ int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
 #ifdef MBEDTLS_ECP_DP_ED25519_ENABLED
     if( grp->id == MBEDTLS_ECP_DP_ED25519 )
     {
+        mbedtls_sha512_context sha_ctx;
         unsigned char sha_buf[64], tmp_buf[32];
         size_t olen = 0;
         

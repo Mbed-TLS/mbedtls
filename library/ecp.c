@@ -830,7 +830,7 @@ int mbedtls_ecp_point_write_binary( const mbedtls_ecp_group *grp,
 
         /* Store the least significant bit of X into the most significant
          * bit of the final octet. */
-        if( mbedtls_mpi_get_bit( &P->X, 0 ))
+        if( mbedtls_mpi_get_bit( &P->X, 0 ) )
             buf[plen - 1] |= 0x80;
     }
 #endif
@@ -3671,7 +3671,8 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
 }
 
 #if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
-static int mbedtls_privkey_expand_ed25519( const mbedtls_mpi *d, mbedtls_mpi *q, mbedtls_mpi *prefix )
+static int mbedtls_ecp_expand_ed25519( const mbedtls_mpi *d, 
+                    mbedtls_mpi *q, mbedtls_mpi *prefix )
 {
     mbedtls_sha512_context ctx;
     int ret = 0;
@@ -3680,9 +3681,10 @@ static int mbedtls_privkey_expand_ed25519( const mbedtls_mpi *d, mbedtls_mpi *q,
             return( MBEDTLS_ERR_ECP_INVALID_KEY );
     
     unsigned char key_buf[32], sha_buf[64];
-    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( d, key_buf, sizeof(key_buf) ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( d, key_buf, sizeof( key_buf ) ) );
+    
     mbedtls_sha512_init( &ctx );    
-    mbedtls_sha512_starts( &ctx , 0 );
+    mbedtls_sha512_starts( &ctx, 0 );
     mbedtls_sha512_update( &ctx, key_buf, sizeof( key_buf ) );
     mbedtls_sha512_finish( &ctx, sha_buf );
     mbedtls_sha512_free( &ctx );
@@ -3693,16 +3695,34 @@ static int mbedtls_privkey_expand_ed25519( const mbedtls_mpi *d, mbedtls_mpi *q,
     
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( q, sha_buf, 32 ) );
     if( prefix )
-        MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( prefix, sha_buf+32, 32 ) );
+    {
+        MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( prefix, sha_buf + 32, 32 ) );
+    }
     
 cleanup:
     return( ret );
 }
-static int mbedtls_privkey_expand_ed448( const mbedtls_mpi *d, mbedtls_mpi *q, mbedtls_mpi *prefix )
+
+static int mbedtls_ecp_expand_ed448( const mbedtls_mpi *d, 
+                    mbedtls_mpi *q, mbedtls_mpi *prefix )
 {
     return 0;
 }
-int mbedtls_ecp_get_pubkey_ed( mbedtls_ecp_group *grp,
+
+int mbedtls_ecp_expand_edwards( mbedtls_ecp_group *grp, 
+                    const mbedtls_mpi *d, mbedtls_mpi *q, 
+                    mbedtls_mpi *prefix )
+{
+    int ret;
+    
+    if( grp->id == MBEDTLS_ECP_DP_ED25519 )
+        ret = mbedtls_ecp_expand_ed25519( d, q, prefix );
+    else if( grp->id == MBEDTLS_ECP_DP_ED448 )
+        ret = mbedtls_ecp_expand_ed448( d, q, prefix );
+        
+    return( ret );
+}
+int mbedtls_ecp_point_edwards( mbedtls_ecp_group *grp,
                      mbedtls_ecp_point *Q,
                      mbedtls_mpi *d, const mbedtls_ecp_point *G,
                      int (*f_rng)(void *, unsigned char *, size_t),
@@ -3712,12 +3732,10 @@ int mbedtls_ecp_get_pubkey_ed( mbedtls_ecp_group *grp,
     mbedtls_mpi q;
     mbedtls_mpi_init( &q );
     
-    if( grp->id == MBEDTLS_ECP_DP_ED25519 )
-        ret = mbedtls_privkey_expand_ed25519( d, &q, NULL );
-    else if( grp->id == MBEDTLS_ECP_DP_ED448 )
-        ret = mbedtls_privkey_expand_ed448( d, &q, NULL );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_expand_edwards( grp, d, &q, NULL ) );
 
     MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, Q, &q, G, f_rng, p_rng ) );
+    
 cleanup:
     mbedtls_mpi_free( &q );
     return( ret );
@@ -3743,7 +3761,7 @@ int mbedtls_ecp_gen_keypair_base( mbedtls_ecp_group *grp,
     MBEDTLS_MPI_CHK( mbedtls_ecp_gen_privkey( grp, d, f_rng, p_rng ) );
 #ifdef MBEDTLS_ECP_EDWARDS_ENABLED
     if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_EDWARDS )
-        MBEDTLS_MPI_CHK( mbedtls_ecp_get_pubkey_ed( grp, Q, d, G, f_rng, p_rng ) );
+        MBEDTLS_MPI_CHK( mbedtls_ecp_point_edwards( grp, Q, d, G, f_rng, p_rng ) );
     else
 #endif
         MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, Q, d, G, f_rng, p_rng ) );

@@ -1195,7 +1195,10 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
  
  
 #if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
-int mbedtls_ecp_get_pubkey_ed( mbedtls_ecp_group *grp,
+int mbedtls_ecp_expand_edwards( mbedtls_ecp_group *grp, 
+                    const mbedtls_mpi *d, mbedtls_mpi *q, 
+                    mbedtls_mpi *prefix );
+int mbedtls_ecp_point_edwards( mbedtls_ecp_group *grp,
                      mbedtls_ecp_point *Q,
                      mbedtls_mpi *d, const mbedtls_ecp_point *G,
                      int (*f_rng)(void *, unsigned char *, size_t),

@@ -3758,6 +3758,313 @@ cleanup:
 
 #endif /* MBEDTLS_SELF_TEST */
 
+#if defined(MBEDTLS_ECP_INTERNAL_ALT)
+static int ecp_wrapper_active = 0;
+
+#if defined(MBEDTLS_ECP_NORMALIZE_JAC_ALT)
+int mbedtls_internal_ecp_normalize_jac( mbedtls_ecp_group const *grp_,
+                                        mbedtls_ecp_point *pt )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_ecp_group *grp = (mbedtls_ecp_group*) grp_;
+    ecp_wrapper_active = 1;
+
+    ECP_DECL_INTERNAL_GROUP(grp);
+    ECP_DECL_INTERNAL_INOUT(pt);
+
+    ECP_CONVERT_GROUP(grp);
+    ECP_CONVERT_INOUT(pt);
+
+    MBEDTLS_MPI_CHK( ecp_normalize_jac_internal(
+                         ECP_INTERNAL_GROUP(grp),
+                         ECP_INTERNAL_INOUT(pt) ) );
+
+    ECP_SAVE_INTERNAL_INOUT(pt);
+    ECP_SAVE_INTERNAL_GROUP(grp);
+
+cleanup:
+    ECP_FREE_INTERNAL_INOUT(pt);
+    ECP_FREE_INTERNAL_GROUP(grp);
+
+    ecp_wrapper_active = 0;
+    return( ret );
+}
+#endif
+
+#if defined(MBEDTLS_ECP_NORMALIZE_JAC_MANY_ALT)
+int mbedtls_internal_ecp_normalize_jac_many( const mbedtls_ecp_group *grp_,
+        mbedtls_ecp_point *T[], size_t T_size )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_ecp_group *grp = (mbedtls_ecp_group*) grp_;
+    ecp_wrapper_active = 1;
+
+    ECP_DECL_INTERNAL_GROUP(grp);
+    ECP_DECL_INTERNAL_INOUT_MANY(T,T_size);
+
+    ECP_CONVERT_GROUP(grp);
+    ECP_CONVERT_INOUT_MANY(T,T_size);
+
+    MBEDTLS_MPI_CHK( ecp_normalize_jac_many(
+                         ECP_INTERNAL_GROUP(grp),
+                         ECP_INTERNAL_INOUT_MANY(T),
+                         T_size ) );
+
+    ECP_SAVE_INTERNAL_INOUT_MANY(T,T_size);
+    ECP_SAVE_INTERNAL_GROUP(grp);
+
+cleanup:
+    ECP_FREE_INTERNAL_INOUT_MANY(T,T_size);
+    ECP_FREE_INTERNAL_GROUP(grp);
+
+    ecp_wrapper_active = 0;
+    return( ret );
+}
+#endif
+
+#if defined(MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT)
+int mbedtls_internal_ecp_double_add_mxz( const mbedtls_ecp_group *grp_,
+        mbedtls_ecp_point *R, mbedtls_ecp_point *S, const mbedtls_ecp_point *P,
+        const mbedtls_ecp_point *Q, const mbedtls_mpi *d )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_ecp_group *grp = (mbedtls_ecp_group*) grp_;
+    ecp_wrapper_active = 1;
+
+    ECP_DECL_INTERNAL_GROUP(grp);
+    ECP_DECL_INTERNAL_INPUT(P);
+    ECP_DECL_INTERNAL_INPUT(Q);
+    ECP_DECL_INTERNAL_INPUT_MPI(d);
+    ECP_DECL_INTERNAL_OUTPUT(R);
+    ECP_DECL_INTERNAL_OUTPUT(S);
+
+    ECP_CONVERT_GROUP(grp);
+    ECP_CONVERT_INPUT(P);
+    ECP_CONVERT_INPUT(Q);
+    ECP_CONVERT_INPUT_MPI(d);
+    ECP_CONVERT_OUTPUT(R);
+    ECP_CONVERT_OUTPUT(S);
+
+    MBEDTLS_MPI_CHK( ecp_double_add_mxz(
+                         ECP_INTERNAL_GROUP(grp),
+                         ECP_INTERNAL_OUTPUT(R),
+                         ECP_INTERNAL_OUTPUT(S),
+                         ECP_INTERNAL_INPUT(P),
+                         ECP_INTERNAL_INPUT(Q),
+                         ECP_INTERNAL_INPUT_MPI(d)
+                         ) );
+
+    ECP_SAVE_INTERNAL_OUTPUT(R);
+    ECP_SAVE_INTERNAL_OUTPUT(S);
+    ECP_SAVE_INTERNAL_GROUP(grp);
+
+cleanup:
+    ECP_FREE_INTERNAL_INPUT(P);
+    ECP_FREE_INTERNAL_INPUT(Q);
+    ECP_FREE_INTERNAL_INPUT_MPI(d);
+    ECP_FREE_INTERNAL_OUTPUT(R);
+    ECP_FREE_INTERNAL_OUTPUT(S);
+    ECP_FREE_INTERNAL_GROUP(grp);
+
+    ecp_wrapper_active = 0;
+    return( ret );
+}
+#endif
+
+#if defined(MBEDTLS_ECP_DOUBLE_JAC_ALT)
+int mbedtls_internal_ecp_double_jac( mbedtls_ecp_group const *grp_,
+                                     mbedtls_ecp_point *R,
+                                     const mbedtls_ecp_point *P )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_ecp_group *grp = (mbedtls_ecp_group*) grp_;
+    ecp_wrapper_active = 1;
+
+    ECP_DECL_INTERNAL_GROUP(grp);
+    ECP_DECL_INTERNAL_INPUT(P);
+    ECP_DECL_INTERNAL_OUTPUT(R);
+
+    ECP_CONVERT_GROUP(grp);
+    ECP_CONVERT_INPUT(P);
+    ECP_CONVERT_OUTPUT(R);
+
+    MBEDTLS_MPI_CHK( ecp_double_jac(
+                         ECP_INTERNAL_GROUP(grp),
+                         ECP_INTERNAL_OUTPUT(R),
+                         ECP_INTERNAL_INPUT(P)
+                         ) );
+
+    ECP_SAVE_INTERNAL_OUTPUT(R);
+    ECP_SAVE_INTERNAL_GROUP(grp);
+
+cleanup:
+    ECP_FREE_INTERNAL_INPUT(P);
+    ECP_FREE_INTERNAL_OUTPUT(R);
+    ECP_FREE_INTERNAL_GROUP(grp);
+
+    ecp_wrapper_active = 0;
+    return( ret );
+}
+#endif /* MBEDTLS_ECP_DOUBLE_JAC_ALT */
+
+#if defined(MBEDTLS_ECP_ADD_MIXED_ALT)
+int mbedtls_internal_ecp_add_mixed( mbedtls_ecp_group const *grp_,
+                                    mbedtls_ecp_point *R,
+                                    const mbedtls_ecp_point *P,
+                                    const mbedtls_ecp_point *Q )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_ecp_group *grp = (mbedtls_ecp_group*) grp_;
+    ecp_wrapper_active = 1;
+
+    ECP_DECL_INTERNAL_GROUP(grp);
+    ECP_DECL_INTERNAL_INPUT(P);
+    ECP_DECL_INTERNAL_INPUT(Q);
+    ECP_DECL_INTERNAL_OUTPUT(R);
+
+    ECP_CONVERT_GROUP(grp);
+    ECP_CONVERT_INPUT(P);
+    ECP_CONVERT_INPUT(Q);
+    ECP_CONVERT_OUTPUT(R);
+
+    MBEDTLS_MPI_CHK( ecp_add_mixed_internal(
+                         ECP_INTERNAL_GROUP(grp),
+                         ECP_INTERNAL_OUTPUT(R),
+                         ECP_INTERNAL_INPUT(P),
+                         ECP_INTERNAL_INPUT(Q)
+                         ) );
+
+    ECP_SAVE_INTERNAL_OUTPUT(R);
+    ECP_SAVE_INTERNAL_GROUP(grp);
+
+cleanup:
+    ECP_FREE_INTERNAL_INPUT(P);
+    ECP_FREE_INTERNAL_INPUT(Q);
+    ECP_FREE_INTERNAL_OUTPUT(R);
+    ECP_FREE_INTERNAL_GROUP(grp);
+
+    ecp_wrapper_active = 0;
+    return( ret );
+}
+#endif /* MBEDTLS_ECP_ADD_MIXED_ALT */
+
+#if defined(MBEDTLS_ECP_RANDOMIZE_JAC_ALT)
+int mbedtls_internal_ecp_randomize_jac( mbedtls_ecp_group const *grp_,
+                                        mbedtls_ecp_point *P,
+                                        int (*f_rng)(void *, unsigned char *, size_t),
+                                        void *p_rng )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_ecp_group *grp = (mbedtls_ecp_group*) grp_;
+    ecp_wrapper_active = 1;
+
+    ECP_DECL_INTERNAL_GROUP(grp);
+    ECP_DECL_INTERNAL_INOUT(P);
+
+    ECP_CONVERT_GROUP(grp);
+    ECP_CONVERT_INOUT(P);
+
+    MBEDTLS_MPI_CHK( ecp_randomize_jac(
+                         ECP_INTERNAL_GROUP(grp),
+                         ECP_INTERNAL_INOUT(P),
+                         f_rng, p_rng
+                         ) );
+
+    ECP_SAVE_INTERNAL_INOUT(R);
+    ECP_SAVE_INTERNAL_GROUP(grp);
+
+cleanup:
+    ECP_FREE_INTERNAL_INOUT(P);
+    ECP_FREE_INTERNAL_GROUP(grp);
+
+    ecp_wrapper_active = 0;
+    return( ret );
+}
+#endif /* MBEDTLS_ECP_RANDOMIZE_JAC_ALT */
+
+#if defined(MBEDTLS_ECP_NORMALIZE_MXZ_ALT)
+int mbedtls_internal_ecp_normalize_mxz( mbedtls_ecp_group const *grp_,
+                                        mbedtls_ecp_point *P )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_ecp_group *grp = (mbedtls_ecp_group*) grp_;
+    ecp_wrapper_active = 1;
+
+    ECP_DECL_INTERNAL_GROUP(grp);
+    ECP_DECL_INTERNAL_INOUT(P);
+
+    ECP_CONVERT_GROUP(grp);
+    ECP_CONVERT_INOUT(P);
+
+    MBEDTLS_MPI_CHK( ecp_normalize_mxz(
+                         ECP_INTERNAL_GROUP(grp),
+                         ECP_INTERNAL_INOUT(P)
+                         ) );
+
+    ECP_SAVE_INTERNAL_INOUT(R);
+    ECP_SAVE_INTERNAL_GROUP(grp);
+
+cleanup:
+    ECP_FREE_INTERNAL_INOUT(P);
+    ECP_FREE_INTERNAL_GROUP(grp);
+
+    ecp_wrapper_active = 0;
+    return( ret );
+
+}
+#endif /* MBEDTLS_ECP_NORMALIZE_MXZ_ALT */
+
+#if defined(MBEDTLS_ECP_RANDOMIZE_MXZ_ALT)
+int mbedtls_internal_ecp_randomize_mxz( mbedtls_ecp_group const *grp_,
+                                        mbedtls_ecp_point *P,
+                                        int (*f_rng)(void *, unsigned char *, size_t),
+                                        void *p_rng )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_ecp_group *grp = (mbedtls_ecp_group*) grp_;
+    ecp_wrapper_active = 1;
+
+    ECP_DECL_INTERNAL_GROUP(grp);
+    ECP_DECL_INTERNAL_INOUT(P);
+
+    ECP_CONVERT_GROUP(grp);
+    ECP_CONVERT_INOUT(P);
+
+    MBEDTLS_MPI_CHK( ecp_randomize_mxz(
+                         ECP_INTERNAL_GROUP(grp),
+                         ECP_INTERNAL_INOUT(P),
+                         f_rng, p_rng
+                         ) );
+
+    ECP_SAVE_INTERNAL_INOUT(R);
+    ECP_SAVE_INTERNAL_GROUP(grp);
+
+cleanup:
+    ECP_FREE_INTERNAL_INOUT(P);
+    ECP_FREE_INTERNAL_GROUP(grp);
+
+    ecp_wrapper_active = 0;
+    return( ret );
+}
+#endif /* MBEDTLS_ECP_RANDOMIZE_MXZ_ALT */
+
+int mbedtls_internal_ecp_init( const mbedtls_ecp_group *grp )
+{
+    ((void) grp);
+    return( 0 );
+}
+unsigned char mbedtls_internal_ecp_grp_capable( const mbedtls_ecp_group *grp )
+{
+    ((void) grp);
+    return( ecp_wrapper_active == 0 );
+}
+void mbedtls_internal_ecp_free( const mbedtls_ecp_group *grp )
+{
+    ((void) grp);
+}
+
+#endif /* MBEDTLS_ECP_INTERNAL_ALT */
+
 #endif /* !MBEDTLS_ECP_ALT */
 
 #endif /* MBEDTLS_ECP_C */

@@ -3675,7 +3675,6 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
 static int mbedtls_ecp_expand_ed25519( const mbedtls_mpi *d, 
                     mbedtls_mpi *q, mbedtls_mpi *prefix )
 {
-    mbedtls_sha512_context ctx;
     int ret = 0;
     
     if( mbedtls_mpi_size( d ) != 32)
@@ -3703,7 +3702,6 @@ cleanup:
 static int mbedtls_ecp_expand_ed448( const mbedtls_mpi *d, 
                     mbedtls_mpi *q, mbedtls_mpi *prefix )
 {
-    mbedtls_shake256_context ctx;
     int ret = 0;
     
     if( mbedtls_mpi_size( d ) != 57)
@@ -3732,7 +3730,7 @@ int mbedtls_ecp_expand_edwards( mbedtls_ecp_group *grp,
                     const mbedtls_mpi *d, mbedtls_mpi *q, 
                     mbedtls_mpi *prefix )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     
     if( grp->id == MBEDTLS_ECP_DP_ED25519 )
         ret = mbedtls_ecp_expand_ed25519( d, q, prefix );

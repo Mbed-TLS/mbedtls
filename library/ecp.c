@@ -82,6 +82,7 @@
 
 #if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
 #include "mbedtls/sha512.h"
+#include "mbedtls/shake256.h"
 #endif
 
 #include <string.h>
@@ -3678,16 +3679,12 @@ static int mbedtls_ecp_expand_ed25519( const mbedtls_mpi *d,
     int ret = 0;
     
     if( mbedtls_mpi_size( d ) != 32)
-            return( MBEDTLS_ERR_ECP_INVALID_KEY );
+        return( MBEDTLS_ERR_ECP_INVALID_KEY );
     
     unsigned char key_buf[32], sha_buf[64];
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( d, key_buf, sizeof( key_buf ) ) );
     
-    mbedtls_sha512_init( &ctx );    
-    mbedtls_sha512_starts( &ctx, 0 );
-    mbedtls_sha512_update( &ctx, key_buf, sizeof( key_buf ) );
-    mbedtls_sha512_finish( &ctx, sha_buf );
-    mbedtls_sha512_free( &ctx );
+    mbedtls_sha512( key_buf, sizeof( key_buf ), sha_buf, 0 );
     
     sha_buf[0] &= ~0x7;
     sha_buf[31] &= ~0x80;
@@ -3706,7 +3703,29 @@ cleanup:
 static int mbedtls_ecp_expand_ed448( const mbedtls_mpi *d, 
                     mbedtls_mpi *q, mbedtls_mpi *prefix )
 {
-    return 0;
+    mbedtls_shake256_context ctx;
+    int ret = 0;
+    
+    if( mbedtls_mpi_size( d ) != 57)
+        return( MBEDTLS_ERR_ECP_INVALID_KEY );
+    
+    unsigned char key_buf[57], sha_buf[114];
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( d, key_buf, sizeof( key_buf ) ) );
+    
+    mbedtls_shake256( key_buf, sizeof( key_buf ) , sha_buf, 114 );
+    
+    sha_buf[0] &= ~0x3;
+    sha_buf[56] = 0;
+    sha_buf[55] |= 0x80;
+    
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( q, sha_buf, 57 ) );
+    if( prefix )
+    {
+        MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( prefix, sha_buf + 57, 57 ) );
+    }
+    
+cleanup:
+    return( ret );
 }
 
 int mbedtls_ecp_expand_edwards( mbedtls_ecp_group *grp, 
@@ -3733,7 +3752,7 @@ int mbedtls_ecp_point_edwards( mbedtls_ecp_group *grp,
     mbedtls_mpi_init( &q );
     
     MBEDTLS_MPI_CHK( mbedtls_ecp_expand_edwards( grp, d, &q, NULL ) );
-
+    
     MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, Q, &q, G, f_rng, p_rng ) );
     
 cleanup:

@@ -4793,9 +4793,10 @@ static int ecp_use_ed448( mbedtls_ecp_group *grp )
     grp->pbits = mbedtls_mpi_bitlen( &grp->P );
 
     /* N = 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885 */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &grp->N, 0 ) ); /* For curves448 N comes unitialized. */
     MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( &grp->N, 446, 1 ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &Ns, 16,
-                                              "8335DC163BB124B65129C96FDE933D8D723A70AADC873D6D54A7BB0D" ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &Ns,
+                        curve448_part_of_n, sizeof( curve448_part_of_n ) ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &grp->N, &grp->N, &Ns ) );
 
     /* A = 1 */

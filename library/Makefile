@@ -99,6 +99,7 @@ OBJS_CRYPTO= \
 	     ecjpake.o \
 	     ecp.o \
 	     ecp_curves.o \
+	     eddsa.o \
 	     entropy.o \
 	     entropy_poll.o \
 	     error.o \
@@ -142,6 +143,7 @@ OBJS_CRYPTO= \
 	     sha1.o \
 	     sha256.o \
 	     sha512.o \
+	     shake256.o \
 	     ssl_debug_helpers_generated.o \
 	     threading.o \
 	     timing.o \

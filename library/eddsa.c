@@ -224,9 +224,83 @@ cleanup:
 int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
                           const unsigned char *buf, size_t blen,
                           const mbedtls_ecp_point *Q, const mbedtls_mpi *r,
-                          const mbedtls_mpi *s)
+                          const mbedtls_mpi *s, 
+                          int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
+                          mbedtls_eddsa_id eddsa_id,
+                          const unsigned char *ed_ctx, size_t ed_ctx_len)
 {
-    return( 0 );
+    int ret = 0;
+    mbedtls_mpi h;
+    mbedtls_ecp_point sB, hA, R;
+    unsigned char tmp_buf[32];
+    
+    mbedtls_mpi_init( &h );
+    mbedtls_ecp_point_init( &sB );
+    mbedtls_ecp_point_init( &hA );
+    mbedtls_ecp_point_init( &R );
+    
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( r, tmp_buf, sizeof(tmp_buf) ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_point_read_binary( grp, &R, tmp_buf, sizeof(tmp_buf) ) );
+    
+#ifdef MBEDTLS_ECP_DP_ED25519_ENABLED
+    if( grp->id == MBEDTLS_ECP_DP_ED25519 )
+    {
+        mbedtls_sha512_context sha_ctx;
+        unsigned char sha_buf[64];
+        size_t olen = 0;
+        
+        mbedtls_sha512_init( &sha_ctx );    
+        mbedtls_sha512_starts( &sha_ctx , 0 );
+        
+        if( eddsa_id == MBEDTLS_EDDSA_CTX )
+        {
+            MBEDTLS_MPI_CHK( mbedtls_eddsa_put_dom2_ctx( 0, ed_ctx, ed_ctx_len, &sha_ctx ) );
+        }
+        else if( eddsa_id == MBEDTLS_EDDSA_PREHASH )
+        {
+            MBEDTLS_MPI_CHK( mbedtls_eddsa_put_dom2_ctx( 1, ed_ctx, ed_ctx_len, &sha_ctx ) );
+        }
+        
+        /* tmp_buf contains the R point */
+        mbedtls_sha512_update( &sha_ctx, tmp_buf, sizeof( tmp_buf ) );
+        
+        MBEDTLS_MPI_CHK( mbedtls_ecp_point_write_binary( grp, Q, MBEDTLS_ECP_PF_COMPRESSED, &olen, tmp_buf, sizeof( tmp_buf ) ) );
+        mbedtls_sha512_update( &sha_ctx, tmp_buf, sizeof( tmp_buf ) );
+        
+        /* In EDDSA_PREHASH, buf should contain the SHA512 hash. It contains the whole message otherwise */
+        mbedtls_sha512_update( &sha_ctx, buf, blen );
+        
+        mbedtls_sha512_finish( &sha_ctx, sha_buf );
+        mbedtls_sha512_free( &sha_ctx );
+        
+        MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( &h, sha_buf, sizeof( sha_buf ) ) );
+        
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &h, &h, &grp->N ) );   
+        
+        MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &sB, s, &grp->G, f_rng, p_rng ) );
+        MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &hA, &h, Q, f_rng, p_rng ) );
+        MBEDTLS_MPI_CHK( mbedtls_ecp_add( grp, &R, &R, &hA ) );
+        
+        MBEDTLS_MPI_CHK( mbedtls_ecp_point_write_binary( grp, &hA, MBEDTLS_ECP_PF_COMPRESSED, &olen, tmp_buf, sizeof( tmp_buf ) ) );
+        
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &sB.X, &sB.X, &R.X ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &sB.X, &sB.X, &grp->N ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &sB.Y, &sB.Y, &R.Y ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &sB.Y, &sB.Y, &grp->N ) );
+        
+        if( mbedtls_mpi_cmp_int( &sB.X, 0) != 0 || mbedtls_mpi_cmp_int( &sB.Y, 0 ) != 0 )
+        {
+            ret = MBEDTLS_ERR_ECP_VERIFY_FAILED;
+            goto cleanup;
+        }
+    }
+#endif
+cleanup:
+    mbedtls_mpi_free( &h );
+    mbedtls_ecp_point_free( &sB );
+    mbedtls_ecp_point_free( &hA );
+    mbedtls_ecp_point_free( &R );
+    return( ret );
 }
 
 /*
@@ -299,7 +373,10 @@ cleanup:
  */
 int mbedtls_eddsa_read_signature( mbedtls_eddsa_context *ctx,
                           const unsigned char *hash, size_t hlen,
-                          const unsigned char *sig, size_t slen )
+                          const unsigned char *sig, size_t slen,
+                          int (*f_rng)(void *, unsigned char *, size_t),
+                          void *p_rng, mbedtls_eddsa_id eddsa_id,
+                          const unsigned char *ed_ctx, size_t ed_ctx_len )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *p = (unsigned char *) sig;
@@ -335,7 +412,8 @@ int mbedtls_eddsa_read_signature( mbedtls_eddsa_context *ctx,
     }
 
     if( ( ret = mbedtls_eddsa_verify( &ctx->grp, hash, hlen,
-                                      &ctx->Q, &r, &s ) ) != 0 )
+                                      &ctx->Q, &r, &s, f_rng, p_rng, 
+                                      eddsa_id, ed_ctx, ed_ctx_len ) ) != 0 )
         goto cleanup;
 
     /* At this point we know that the buffer starts with a valid signature.

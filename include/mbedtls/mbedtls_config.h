@@ -2880,6 +2880,18 @@
 #define MBEDTLS_SHA512_C
 
 /**
+ * \def MBEDTLS_SHAKE256_C
+ *
+ * Enable the SHAKE256 cryptographic hash algorithm.
+ *
+ * Module:  library/shake256.c
+ *
+ * This module adds support for SHAKE256.
+ * This module is required for the Ed448.
+ */
+#define MBEDTLS_SHAKE256_C
+
+/**
  * \def MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
  *
  * Enable acceleration of the SHA-512 cryptographic hash algorithm with the

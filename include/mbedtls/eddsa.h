@@ -37,6 +37,11 @@
 #include "mbedtls/ecp.h"
 #include "mbedtls/md.h"
 
+#define EDDSA_VALIDATE_RET( cond )    \
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_ECP_BAD_INPUT_DATA )
+#define EDDSA_VALIDATE( cond )        \
+    MBEDTLS_INTERNAL_VALIDATE( cond )
+
 /**
  * \brief           Maximum EdDSA signature size for a given curve bit size
  *
@@ -207,7 +212,7 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
                           const unsigned char *ed_ctx, size_t ed_ctx_len);
 
 /**
- * \brief           This function computes the ECDSA signature and writes it
+ * \brief           This function computes the EdDSA signature and writes it
  *                  to a buffer, serialized as defined in <em>RFC-4492:
  *                  Elliptic Curve Cryptography (ECC) Cipher Suites for
  *                  Transport Layer Security (TLS)</em>.
@@ -225,7 +230,7 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
  *
  * \param ctx       The EdDSA context to use. This must be initialized
  *                  and have a group and private key bound to it, for example
- *                  via mbedtls_ecdsa_genkey() or mbedtls_ecdsa_from_keypair().
+ *                  via mbedtls_eddsa_genkey() or mbedtls_eddsa_from_keypair().
  * \param md_alg    The message digest that was used to hash the message.
  * \param hash      The message hash to be signed. This must be a readable
  *                  buffer of length \p blen Bytes.
@@ -238,10 +243,7 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
  * \param sig_size  The size of the \p sig buffer in bytes.
  * \param slen      The address at which to store the actual length of
  *                  the signature written. Must not be \c NULL.
- * \param f_rng     The RNG function. This must not be \c NULL if
- *                  #MBEDTLS_ECDSA_DETERMINISTIC is unset. Otherwise,
- *                  it is used only for blinding and may be set to \c NULL, but
- *                  doing so is DEPRECATED.
+ * \param f_rng     The RNG function. This must not be \c NULL. 
  * \param p_rng     The RNG context to be passed to \p f_rng. This may be
  *                  \c NULL if \p f_rng is \c NULL or doesn't use a context.
  * \param eddsa_id  The signature operation id that identifies PureEdDSA, 
@@ -282,10 +284,7 @@ int mbedtls_eddsa_write_signature( mbedtls_eddsa_context *ctx,
  * \param sig       The signature to read and verify. This must be a readable
  *                  buffer of length \p slen Bytes.
  * \param slen      The size of \p sig in Bytes.
- * \param f_rng     The RNG function. This must not be \c NULL if
- *                  #MBEDTLS_ECDSA_DETERMINISTIC is unset. Otherwise,
- *                  it is used only for blinding and may be set to \c NULL, but
- *                  doing so is DEPRECATED.
+ * \param f_rng     The RNG function. This must not be \c NULL.
  * \param p_rng     The RNG context to be passed to \p f_rng. This may be
  *                  \c NULL if \p f_rng is \c NULL or doesn't use a context.
  * \param eddsa_id  The signature operation id that identifies PureEdDSA, 
@@ -351,7 +350,7 @@ int mbedtls_eddsa_from_keypair( mbedtls_eddsa_context *ctx,
 /**
  * \brief           This function initializes an EdDSA context.
  *
- * \param ctx       The ECDSA context to initialize.
+ * \param ctx       The EdDSA context to initialize.
  *                  This must not be \c NULL.
  */
 void mbedtls_eddsa_init( mbedtls_eddsa_context *ctx );
@@ -369,4 +368,4 @@ void mbedtls_eddsa_free( mbedtls_eddsa_context *ctx );
 }
 #endif
 
-#endif /* ecdsa.h */
+#endif /* eddsa.h */

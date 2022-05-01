@@ -145,6 +145,31 @@
 #define ECP_SAVE_INTERNAL_INOUT(x) do {} while( 0 )
 #define ECP_FREE_INTERNAL_INOUT(x) do {} while( 0 )
 
+/* Only needed for internal version of ecp_normalize_jac_many() */
+#define ECP_INTERNAL_INOUT_MANY(x) ((mbedtls_ecp_point_internal**) x)
+#define ECP_DECL_INTERNAL_INOUT_MANY(x,n) do {} while(0)
+#define ECP_CONVERT_INOUT_MANY(x,n)                                     \
+    do                                                                  \
+    {                                                                   \
+        for( unsigned i=0; i < (n); i++ )                               \
+            MBEDTLS_MPI_CHK( ecp_point_force_single( grp, (x)[i] ) );   \
+    } while( 0 )
+#define ECP_SAVE_INTERNAL_INOUT_MANY(x,n) do {} while( 0 )
+#define ECP_FREE_INTERNAL_INOUT_MANY(x,n) do {} while( 0 )
+
+#define ECP_INTERNAL_INPUT_MPI_TMP(x) x ## _tmp
+#define ECP_INTERNAL_INPUT_MPI(x)  (& ECP_INTERNAL_INPUT_MPI_TMP(x))
+#define ECP_INTERNAL_INPUT_MPI_AS_ORIG(x) \
+    ((mbedtls_mpi*) ECP_INTERNAL_INPUT_MPI(x))
+#define ECP_DECL_INTERNAL_INPUT_MPI(x) \
+    mbedtls_ecp_mpi_internal ECP_INTERNAL_INPUT_MPI_TMP(x);                 \
+    mbedtls_mpi_init( ECP_INTERNAL_INPUT_MPI_AS_ORIG(x) )
+#define ECP_CONVERT_INPUT_MPI(x)                                            \
+    MBEDTLS_MPI_CHK( ecp_mpi_setup_internal_input( grp,                     \
+                  ECP_INTERNAL_INPUT_MPI_AS_ORIG(x), x ) )
+#define ECP_FREE_INTERNAL_INPUT_MPI(x)                                      \
+    mbedtls_mpi_free( ECP_INTERNAL_INPUT_MPI_AS_ORIG(x) )
+
 /* Group                                                                */
 
 #define ECP_INTERNAL_GROUP_TMP(x) x ## _tmp
@@ -249,6 +274,78 @@ static int mbedtls_ecp_point_internal_setup( mbedtls_ecp_group_internal *grp,
     return( ecp_point_force_single( getGrp(grp), (mbedtls_ecp_point*) x ) );
 }
 
+/* Only necessary for alt implementations */
+
+#if defined(MBEDTLS_ECP_INTERNAL_ALT)
+static int mbedtls_ecp_mpi_internal_to_orig( mbedtls_ecp_group const *grp,
+                                             mbedtls_mpi *mpi_orig,
+                                             mbedtls_ecp_mpi_internal const *mpi )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    ((void) grp);
+    MBEDTLS_MPI_CHK( mbedtls_mpi_copy( mpi_orig, (mbedtls_mpi const*) mpi ) );
+cleanup:
+    return( ret );
+}
+
+static int mbedtls_ecp_mpi_internal_from_orig( mbedtls_ecp_group const *grp,
+                                               mbedtls_ecp_mpi_internal *mpi,
+                                               mbedtls_mpi const *mpi_orig )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    ((void) grp);
+
+    /* Some coordinates are unused and have their buffer set to NULL. */
+    if( mpi->v.p == NULL )
+    {
+        if( mpi_orig->p != NULL )
+            return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+        return( 0 );
+    }
+
+    size_t to_copy = mpi_orig->n;
+    if( to_copy > mpi->v.n )
+        to_copy = mpi->v.n;
+    memcpy( mpi->v.p, mpi_orig->p,
+            to_copy * sizeof( mbedtls_mpi_uint ) );
+    memset( mpi->v.p + to_copy, 0,
+            ( mpi->v.n - to_copy ) * sizeof( mbedtls_mpi_uint ) );
+    return( 0 );
+}
+
+static int mbedtls_ecp_point_internal_to_orig( mbedtls_ecp_group const *grp,
+                                             mbedtls_ecp_point *pt_orig,
+                                             mbedtls_ecp_point_internal const *pt )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mpi_internal_to_orig( grp,
+                         &pt_orig->X, getX(pt) ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mpi_internal_to_orig( grp,
+                         &pt_orig->Y, getY(pt) ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mpi_internal_to_orig( grp,
+                         &pt_orig->Z, getZ(pt) ) );
+cleanup:
+    return( ret );
+}
+
+static int mbedtls_ecp_point_internal_from_orig( mbedtls_ecp_group const *grp,
+                                                 mbedtls_ecp_point_internal *pt,
+                                                 mbedtls_ecp_point const *pt_orig )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mpi_internal_from_orig(
+                         grp, getX(pt), &pt_orig->X ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mpi_internal_from_orig(
+                         grp, getY(pt), &pt_orig->Y ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mpi_internal_from_orig(
+                         grp, getZ(pt), &pt_orig->Z ) );
+
+cleanup:
+    return( ret );
+}
+#endif /* MBEDTLS_ECP_INTERNAL_ALT */
+
 /*
  *
  * Implementation details
@@ -330,6 +427,22 @@ static int ecp_setup_internal_input(
 cleanup:
     return( ret );
 }
+
+/* Coordinate MPI */
+
+#if defined(MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT)
+static int ecp_mpi_setup_internal_input(
+    mbedtls_ecp_group const *grp,
+    mbedtls_mpi *new,
+    mbedtls_mpi const *old )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    MBEDTLS_MPI_CHK( mbedtls_mpi_copy( new, old ) );
+    MBEDTLS_MPI_CHK( mpi_force_single( grp, new ) );
+cleanup:
+    return( ret );
+}
+#endif /* MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT */
 
 /* Groups */
 

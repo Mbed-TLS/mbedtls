@@ -720,12 +720,16 @@ mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx )
  */
 int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
                                mbedtls_svc_key_id_t *key,
-                               psa_algorithm_t hash_alg )
+                               psa_algorithm_t alg,
+                               psa_key_usage_t usage,
+                               psa_algorithm_t alg2 )
 {
 #if !defined(MBEDTLS_ECP_C) && !defined(MBEDTLS_RSA_C)
     ((void) pk);
     ((void) key);
-    ((void) hash_alg);
+    ((void) alg);
+    ((void) usage);
+    ((void) alg2);
 #else
 #if defined(MBEDTLS_ECP_C)
     if( mbedtls_pk_get_type( pk ) == MBEDTLS_PK_ECKEY )
@@ -752,10 +756,10 @@ int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
         /* prepare the key attributes */
         psa_set_key_type( &attributes, key_type );
         psa_set_key_bits( &attributes, bits );
-        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_HASH |
-                                              PSA_KEY_USAGE_DERIVE);
-        psa_set_key_algorithm( &attributes, PSA_ALG_ECDSA( hash_alg ) );
-        psa_set_key_enrollment_algorithm( &attributes, PSA_ALG_ECDH );
+        psa_set_key_usage_flags( &attributes, usage );
+        psa_set_key_algorithm( &attributes, alg );
+        if( alg2 != PSA_ALG_NONE )
+            psa_set_key_enrollment_algorithm( &attributes, alg2 );
 
         /* import private key into PSA */
         status = psa_import_key( &attributes, d, d_len, key );
@@ -786,11 +790,10 @@ int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
         /* prepare the key attributes */
         psa_set_key_type( &attributes, PSA_KEY_TYPE_RSA_KEY_PAIR );
         psa_set_key_bits( &attributes, mbedtls_pk_get_bitlen( pk ) );
-        psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_HASH );
-        psa_set_key_algorithm( &attributes,
-                               PSA_ALG_RSA_PKCS1V15_SIGN( hash_alg ) );
-        psa_set_key_enrollment_algorithm( &attributes,
-                                          PSA_ALG_RSA_PSS( hash_alg ) );
+        psa_set_key_usage_flags( &attributes, usage );
+        psa_set_key_algorithm( &attributes, alg );
+        if( alg2 != PSA_ALG_NONE )
+            psa_set_key_enrollment_algorithm( &attributes, alg2 );
 
         /* import private key into PSA */
         status = psa_import_key( &attributes,

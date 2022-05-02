@@ -1,0 +1,21 @@
+/* BEGIN_HEADER */
+#include "mbedtls/shake256.h"
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_SHAKE256_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void mbedtls_shake256( data_t *in, data_t *hash )
+{
+    unsigned char output[hash->len];
+
+    memset(output, 0x00, hash->len);
+
+    TEST_ASSERT( mbedtls_shake256( in->x, in->len, output, hash->len ) == 0 );
+
+    TEST_ASSERT( memcmp( output, hash->x, hash->len ) == 0 );
+}
+/* END_CASE */

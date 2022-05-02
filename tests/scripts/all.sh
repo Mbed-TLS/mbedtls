@@ -1254,6 +1254,26 @@ component_test_full_no_cipher () {
     make test
 }
 
+component_test_crypto_full_no_cipher () {
+    msg "build: crypto_full minus CIPHER"
+    scripts/config.py crypto_full
+    scripts/config.py unset MBEDTLS_CIPHER_C
+    scripts/config.py unset MBEDTLS_CMAC_C
+    scripts/config.py unset MBEDTLS_NIST_KW_C
+    scripts/config.py unset MBEDTLS_PKCS12_C
+    scripts/config.py unset MBEDTLS_PKCS5_C
+    scripts/config.py unset MBEDTLS_CCM_C
+    scripts/config.py unset MBEDTLS_GCM_C
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_C
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_SE_C
+    scripts/config.py unset MBEDTLS_PSA_CRYPTO_STORAGE_C
+    scripts/config.py unset MBEDTLS_USE_PSA_CRYPTO
+    make
+
+    msg "test: crypto_full minus CIPHER"
+    make test
+}
+
 component_test_psa_external_rng_use_psa_crypto () {
     msg "build: full + PSA_CRYPTO_EXTERNAL_RNG + USE_PSA_CRYPTO minus CTR_DRBG"
     scripts/config.py full

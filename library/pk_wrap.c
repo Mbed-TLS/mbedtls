@@ -1602,7 +1602,6 @@ const mbedtls_pk_info_t mbedtls_pk_ecdsa_opaque_info = {
     NULL, /* debug - could be done later, or even left NULL */
 };
 
-#if defined(MBEDTLS_RSA_C)
 static int pk_opaque_rsa_decrypt( void *ctx,
                     const unsigned char *input, size_t ilen,
                     unsigned char *output, size_t *olen, size_t osize,
@@ -1626,7 +1625,6 @@ static int pk_opaque_rsa_decrypt( void *ctx,
 
     return 0;
 }
-#endif
 
 const mbedtls_pk_info_t mbedtls_pk_rsa_opaque_info = {
     MBEDTLS_PK_OPAQUE,
@@ -1639,11 +1637,7 @@ const mbedtls_pk_info_t mbedtls_pk_rsa_opaque_info = {
     NULL, /* restartable verify - not relevant */
     NULL, /* restartable sign - not relevant */
 #endif
-#if defined(MBEDTLS_RSA_C)
     pk_opaque_rsa_decrypt,
-#else
-    NULL, /* decrypt */
-#endif /* MBEDTLS_RSA_C */
     NULL, /* encrypt - will be done later */
     NULL, /* check_pair - could be done later or left NULL */
     pk_opaque_alloc_wrap,

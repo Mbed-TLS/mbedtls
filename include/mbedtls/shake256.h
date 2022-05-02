@@ -89,7 +89,6 @@ void mbedtls_shake256_clone( mbedtls_shake256_context *dst,
  *                 calculation.
  *
  * \param ctx      The context to use. This must be initialized.
- * \param is224    This determines which function to use. 
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.

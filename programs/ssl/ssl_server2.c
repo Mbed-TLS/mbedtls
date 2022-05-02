@@ -668,8 +668,10 @@ struct options
     int use_srtp;               /* Support SRTP                             */
     int force_srtp_profile;     /* SRTP protection profile to use or all    */
     int support_mki;            /* The dtls mki mki support                 */
-    const char *key_opaque_alg1; /* Allowed opaque key alg 1                */
-    const char *key_opaque_alg2; /* Allowed Opaque key alg 2                */
+    const char *key1_opaque_alg1; /* Allowed opaque key 1 alg 1            */
+    const char *key1_opaque_alg2; /* Allowed Opaque key 1 alg 2            */
+    const char *key2_opaque_alg1; /* Allowed opaque key 2 alg 1            */
+    const char *key2_opaque_alg2; /* Allowed Opaque key 2 alg 2            */
 } opt;
 
 #include "ssl_test_common_source.c"
@@ -1626,8 +1628,10 @@ int main( int argc, char *argv[] )
     opt.use_srtp            = DFL_USE_SRTP;
     opt.force_srtp_profile  = DFL_SRTP_FORCE_PROFILE;
     opt.support_mki         = DFL_SRTP_SUPPORT_MKI;
-    opt.key_opaque_alg1     = DFL_KEY_OPAQUE_ALG;
-    opt.key_opaque_alg2     = DFL_KEY_OPAQUE_ALG;
+    opt.key1_opaque_alg1   = DFL_KEY_OPAQUE_ALG;
+    opt.key1_opaque_alg2   = DFL_KEY_OPAQUE_ALG;
+    opt.key2_opaque_alg1   = DFL_KEY_OPAQUE_ALG;
+    opt.key2_opaque_alg2   = DFL_KEY_OPAQUE_ALG;
 
     for( i = 1; i < argc; i++ )
     {
@@ -2103,8 +2107,14 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "key_opaque_algs" ) == 0 )
         {
-            if( key_opaque_alg_parse( q, &opt.key_opaque_alg1,
-                                         &opt.key_opaque_alg2 ) != 0 )
+            if( key_opaque_alg_parse( q, &opt.key1_opaque_alg1,
+                                         &opt.key1_opaque_alg2 ) != 0 )
+                goto usage;
+        }
+        else if( strcmp( p, "key_opaque_algs2" ) == 0 )
+        {
+            if( key_opaque_alg_parse( q, &opt.key2_opaque_alg1,
+                                         &opt.key2_opaque_alg2 ) != 0 )
                 goto usage;
         }
         else

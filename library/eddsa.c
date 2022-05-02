@@ -329,6 +329,9 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
     mbedtls_ecp_point_init( &hA );
     mbedtls_ecp_point_init( &R );
     
+    if( mbedtls_mpi_cmp_mpi( s, &grp->N ) >= 0 || mbedtls_mpi_cmp_int( s, 0 ) < 0 )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+    
 #ifdef MBEDTLS_ECP_DP_ED25519_ENABLED
     if( grp->id == MBEDTLS_ECP_DP_ED25519 )
     {

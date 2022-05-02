@@ -121,11 +121,11 @@ int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
        
 #ifdef MBEDTLS_ECP_DP_ED25519_ENABLED
-    if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_DP_ED25519 && eddsa_id != MBEDTLS_EDDSA_PURE && eddsa_id != MBEDTLS_EDDSA_CTX && eddsa_id != MBEDTLS_EDDSA_PREHASH )
+    if( grp->id == MBEDTLS_ECP_DP_ED25519 && eddsa_id != MBEDTLS_EDDSA_PURE && eddsa_id != MBEDTLS_EDDSA_CTX && eddsa_id != MBEDTLS_EDDSA_PREHASH )
         return( MBEDTLS_ERR_EDDSA_INVALID_TYPE );
 #endif
 #ifdef MBEDTLS_ECP_DP_ED448_ENABLED
-    if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_DP_ED448 && eddsa_id != MBEDTLS_EDDSA_PURE && eddsa_id != MBEDTLS_EDDSA_PREHASH )
+    if( grp->id == MBEDTLS_ECP_DP_ED448 && eddsa_id != MBEDTLS_EDDSA_PURE && eddsa_id != MBEDTLS_EDDSA_PREHASH )
         return( MBEDTLS_ERR_EDDSA_INVALID_TYPE );
 #endif
 
@@ -173,7 +173,7 @@ int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
         
         MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( &rq, sha_buf, sizeof( sha_buf ) ) );
         
-        //MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &rq, &rq, &grp->N ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &rq, &rq, &grp->N ) );
         
         MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &R, &rq, &grp->G, f_rng, p_rng ) );
         
@@ -251,9 +251,7 @@ int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
         mbedtls_shake256_free( &sha_ctx );
         
         MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( &rq, sha_buf, sizeof( sha_buf ) ) );
-        
-        MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( &grp->N, sha_buf, 57 ) );
-        
+               
         MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &rq, &rq, &grp->N ) );
         
         MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &R, &rq, &grp->G, f_rng, p_rng ) );
@@ -330,7 +328,6 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
     mbedtls_ecp_point_init( &sB );
     mbedtls_ecp_point_init( &hA );
     mbedtls_ecp_point_init( &R );
-    
     
 #ifdef MBEDTLS_ECP_DP_ED25519_ENABLED
     if( grp->id == MBEDTLS_ECP_DP_ED25519 )

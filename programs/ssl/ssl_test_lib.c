@@ -221,6 +221,70 @@ int key_opaque_alg_parse( const char *arg, const char **alg1, const char **alg2 
     return 0;
 }
 
+int key_opaque_set_alg_usage( const char *alg1, const char *alg2,
+                              psa_algorithm_t *psa_alg1,
+                              psa_algorithm_t *psa_alg2,
+                              psa_key_usage_t *usage )
+{
+    if( strcmp( alg1, "rsa-sign-pkcs1" ) == 0 )
+    {
+        *psa_alg1 = PSA_ALG_RSA_PKCS1V15_SIGN( PSA_ALG_ANY_HASH );
+        *usage = PSA_KEY_USAGE_SIGN_HASH;
+    }
+    else if ( strcmp( alg1, "rsa-sign-pss" ) == 0 )
+    {
+        *psa_alg1 = PSA_ALG_RSA_PSS( PSA_ALG_ANY_HASH );
+        *usage = PSA_KEY_USAGE_SIGN_HASH;
+    }
+    else if ( strcmp( alg1, "rsa-decrypt" ) == 0 )
+    {
+        *psa_alg1 = PSA_ALG_RSA_PKCS1V15_CRYPT;
+        *usage = PSA_KEY_USAGE_DECRYPT;
+    }
+    else if ( strcmp( alg1, "ecdsa-sign" ) == 0 )
+    {
+        *psa_alg1 = PSA_ALG_ECDSA( PSA_ALG_ANY_HASH );
+        *usage = PSA_KEY_USAGE_SIGN_HASH;
+    }
+    else if ( strcmp( alg1, "ecdh" ) == 0 )
+    {
+        *psa_alg1 = PSA_ALG_ECDH;
+        *usage = PSA_KEY_USAGE_DERIVE;
+    }
+
+    if( strcmp( alg2, "rsa-sign-pkcs1" ) == 0 )
+    {
+        *psa_alg1 = PSA_ALG_RSA_PKCS1V15_SIGN( PSA_ALG_ANY_HASH );
+        *usage |= PSA_KEY_USAGE_SIGN_HASH;
+    }
+    else if( strcmp( alg2, "rsa-sign-pss" ) == 0 )
+    {
+        *psa_alg2 = PSA_ALG_RSA_PSS( PSA_ALG_ANY_HASH );
+        *usage |= PSA_KEY_USAGE_SIGN_HASH;
+    }
+    else if( strcmp( alg2, "rsa-decrypt" ) == 0 )
+    {
+        *psa_alg2 = PSA_ALG_RSA_PKCS1V15_CRYPT;
+        *usage |= PSA_KEY_USAGE_DECRYPT;
+    }
+    else if( strcmp( alg2, "ecdsa-sign" ) == 0 )
+    {
+        *psa_alg2 = PSA_ALG_ECDSA( PSA_ALG_ANY_HASH );
+        *usage |= PSA_KEY_USAGE_SIGN_HASH;
+    }
+    else if( strcmp( alg2, "ecdh" ) == 0 )
+    {
+        *psa_alg2 = PSA_ALG_ECDH;
+        *usage |= PSA_KEY_USAGE_DERIVE;
+    }
+    else if( strcmp( alg2, "none" ) == 0 )
+    {
+        *psa_alg2 = PSA_ALG_NONE;
+    }
+
+    return 0;
+}
+
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
 int ca_callback( void *data, mbedtls_x509_crt const *child,
                  mbedtls_x509_crt **candidates )

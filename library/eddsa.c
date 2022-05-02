@@ -42,7 +42,6 @@
 
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
-#include "mbedtls/ecdsa.h"
 #include "mbedtls/sha512.h"
 #include "mbedtls/shake256.h"
 
@@ -584,7 +583,16 @@ cleanup:
 int mbedtls_eddsa_genkey( mbedtls_eddsa_context *ctx, mbedtls_ecp_group_id gid,
                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
-    return( mbedtls_ecdsa_genkey( ctx, gid, f_rng, p_rng ) );
+    int ret = 0;
+    EDDSA_VALIDATE_RET( ctx   != NULL );
+    EDDSA_VALIDATE_RET( f_rng != NULL );
+
+    ret = mbedtls_ecp_group_load( &ctx->grp, gid );
+    if( ret != 0 )
+        return( ret );
+
+   return( mbedtls_ecp_gen_keypair( &ctx->grp, &ctx->d,
+                                    &ctx->Q, f_rng, p_rng ) );
 }
 
 /*
@@ -592,7 +600,18 @@ int mbedtls_eddsa_genkey( mbedtls_eddsa_context *ctx, mbedtls_ecp_group_id gid,
  */
 int mbedtls_eddsa_from_keypair( mbedtls_eddsa_context *ctx, const mbedtls_ecp_keypair *key )
 {
-    return( mbedtls_ecdsa_from_keypair( ctx, key ) );
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    EDDSA_VALIDATE_RET( ctx != NULL );
+    EDDSA_VALIDATE_RET( key != NULL );
+
+    if( ( ret = mbedtls_ecp_group_copy( &ctx->grp, &key->grp ) ) != 0 ||
+        ( ret = mbedtls_mpi_copy( &ctx->d, &key->d ) ) != 0 ||
+        ( ret = mbedtls_ecp_copy( &ctx->Q, &key->Q ) ) != 0 )
+    {
+        mbedtls_eddsa_free( ctx );
+    }
+
+    return( ret );
 }
 
 /*
@@ -600,7 +619,9 @@ int mbedtls_eddsa_from_keypair( mbedtls_eddsa_context *ctx, const mbedtls_ecp_ke
  */
 void mbedtls_eddsa_init( mbedtls_eddsa_context *ctx )
 {
-    return( mbedtls_ecdsa_init( ctx ) );
+    EDDSA_VALIDATE( ctx != NULL );
+
+    mbedtls_ecp_keypair_init( ctx );
 }
 
 /*
@@ -608,7 +629,10 @@ void mbedtls_eddsa_init( mbedtls_eddsa_context *ctx )
  */
 void mbedtls_eddsa_free( mbedtls_eddsa_context *ctx )
 {
-    return( mbedtls_ecdsa_free( ctx ) );
+    if( ctx == NULL )
+        return;
+
+    mbedtls_ecp_keypair_free( ctx );
 }
 
 #endif /* MBEDTLS_EDDSA_C */

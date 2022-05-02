@@ -108,7 +108,7 @@ static void keccak_f1600(mbedtls_shake256_context *ctx)
 {
     uint64_t lane[5];
     uint64_t *s = ctx->state;
-    int i, j;    
+    int i;    
     
     for( int round = 0; round < 24; round++ )
     {
@@ -191,6 +191,7 @@ static void keccak_f1600(mbedtls_shake256_context *ctx)
  */
 int mbedtls_shake256_starts( mbedtls_shake256_context *ctx )
 {
+    ( void )ctx;
     return( 0 );
 }
 

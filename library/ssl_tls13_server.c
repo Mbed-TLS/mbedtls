@@ -1106,7 +1106,6 @@ static int ssl_tls13_prepare_encrypted_extensions( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG(
         3, ( "switching to new transform spec for outbound data" ) );
 
-
     return( 0 );
 }
 
@@ -1124,6 +1123,7 @@ static int ssl_tls13_write_encrypted_extensions_body( mbedtls_ssl_context *ssl,
     unsigned char *p = buf;
     size_t extensions_len = 0;
     unsigned char *p_extensions_len;
+
     *out_len = 0;
 
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );

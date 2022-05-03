@@ -658,7 +658,7 @@
 #define MBEDTLS_ECP_DP_BP256R1_ENABLED
 #define MBEDTLS_ECP_DP_BP384R1_ENABLED
 #define MBEDTLS_ECP_DP_BP512R1_ENABLED
-/* Montgomery curves (supporting ECP) */
+/* Montgomery curves (supporting ECP, ECDH) */
 #define MBEDTLS_ECP_DP_CURVE25519_ENABLED
 #define MBEDTLS_ECP_DP_CURVE448_ENABLED
 /* Edwards curves (supporting ECP, EdDSA */
@@ -2286,7 +2286,7 @@
 /**
  * \def MBEDTLS_EDDSA_C
  *
- * Enable the Edwards DSA library.
+ * Enable the Edwards-curve DSA library.
  *
  * Module:  library/eddsa.c
  * Caller:

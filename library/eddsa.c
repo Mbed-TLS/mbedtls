@@ -452,6 +452,7 @@ cleanup:
 /*
  * Convert a signature (given by context) to ASN.1
  */
+#if defined(MBEDTLS_ASN1_WRITE_C)
 static int eddsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
                                     unsigned char *sig, size_t sig_size,
                                     size_t *slen )
@@ -476,6 +477,7 @@ static int eddsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
 
     return( 0 );
 }
+#endif
 
 /*
  * Compute and write signature
@@ -489,6 +491,10 @@ int mbedtls_eddsa_write_signature( mbedtls_ecp_keypair *ctx,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_mpi r, s;
+    
+#if !defined(MBEDTLS_ASN1_WRITE_C)
+    return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
+#else
     
     if( ctx == NULL || hash == NULL || sig == NULL || slen == NULL || f_rng == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
@@ -508,6 +514,7 @@ cleanup:
     mbedtls_mpi_free( &s );
 
     return( ret );
+#endif /* defined(MBEDTLS_ASN1_WRITE_C) */
 }
 
 /*
@@ -525,6 +532,10 @@ int mbedtls_eddsa_read_signature( mbedtls_ecp_keypair *ctx,
     const unsigned char *end = sig + slen;
     size_t len;
     mbedtls_mpi r, s;
+    
+#if !defined(MBEDTLS_ASN1_PARSE_C)
+    return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
+#else
     
     if( ctx == NULL || hash == NULL || sig == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
@@ -569,6 +580,7 @@ cleanup:
     mbedtls_mpi_free( &s );
 
     return( ret );
+#endif /* defined(MBEDTLS_ASN1_PARSE_C) */
 }
 
 /*

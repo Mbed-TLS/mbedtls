@@ -212,7 +212,7 @@ int mbedtls_sha3_starts( mbedtls_sha3_context *ctx, mbedtls_sha3_id id )
 
     ctx->id = id;
     ctx->r = p->r;
-    ctx->olen = p->olen;
+    ctx->olen = p->olen / 8;
     ctx->xor_byte = p->xor_byte;
     ctx->max_block_size = ctx->r / 8;
 
@@ -251,7 +251,7 @@ int mbedtls_sha3_finish( mbedtls_sha3_context *ctx,
 
     if( olen == 0 )
         return( 0 );
-        
+
     if( ctx->olen > 0 && ctx->olen != olen )
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
 

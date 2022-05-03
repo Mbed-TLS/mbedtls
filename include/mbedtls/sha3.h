@@ -90,7 +90,7 @@ typedef struct mbedtls_sha3_context {
 mbedtls_sha3_context;
 
 #else  /* MBEDTLS_SHA3_ALT */
-#include "sha3_alt.h"
+//#include "sha3_alt.h"
 #endif /* MBEDTLS_SHA3_ALT */
 
 /**

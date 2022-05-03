@@ -5533,16 +5533,18 @@ void ssl_calc_verify_tls_sha384( const mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
 int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exchange_type_t key_ex )
 {
+#if !defined(MBEDTLS_USE_PSA_CRYPTO) ||                 \
+    defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED)
     unsigned char *p = ssl->handshake->premaster;
     unsigned char *end = p + sizeof( ssl->handshake->premaster );
+#else
+    (void)ssl;
+    (void)key_ex;
+#endif /* !MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
     const unsigned char *psk = NULL;
     size_t psk_len = 0;
     int psk_ret = mbedtls_ssl_get_psk( ssl, &psk, &psk_len );
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO) &&                 \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
-    (void) key_ex;
-#endif /* MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
 
     if( psk_ret == MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED )
     {
@@ -5600,6 +5602,7 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED */
+#endif /* !MBEDTLS_USE_PSA_CRYPTO */
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED)
     if( key_ex == MBEDTLS_KEY_EXCHANGE_DHE_PSK )
     {
@@ -5618,14 +5621,6 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
         p += 2 + len;
 
         MBEDTLS_SSL_DEBUG_MPI( 3, "DHM: K ", &ssl->handshake->dhm_ctx.K  );
-
-        /* For opaque PSK fill premaster with the the shared secret without PSK. */
-        if( psk_ret == MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1,
-                ( "skip PMS generation for opaque DHE-PSK" ) );
-            return( 0 );
-        }
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */
@@ -5657,6 +5652,7 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
     /* opaque psk<0..2^16-1>; */
     if( end - p < 2 )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
@@ -5671,6 +5667,7 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
     p += psk_len;
 
     ssl->handshake->pmslen = p - ssl->handshake->premaster;
+#endif /* !MBEDTLS_USE_PSA_CRYPTO */
 
     return( 0 );
 }

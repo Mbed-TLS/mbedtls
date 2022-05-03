@@ -1313,6 +1313,26 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl,
 int mbedtls_ssl_conf_has_static_psk( mbedtls_ssl_config const *conf );
 #endif
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+/**
+ * Get the first defined opaque PSK by order of precedence:
+ * 1. handshake PSK set by \c mbedtls_ssl_set_hs_psk_opaque() in the PSK
+ *    callback
+ * 2. static PSK configured by \c mbedtls_ssl_conf_psk_opaque()
+ * Return an opaque PSK
+ */
+static inline mbedtls_svc_key_id_t mbedtls_ssl_get_opaque_psk(
+    const mbedtls_ssl_context *ssl )
+{
+    if( ! mbedtls_svc_key_id_is_null( ssl->handshake->psk_opaque ) )
+        return( ssl->handshake->psk_opaque );
+
+    if( ! mbedtls_svc_key_id_is_null( ssl->conf->psk_opaque ) )
+        return( ssl->conf->psk_opaque );
+
+    return( MBEDTLS_SVC_KEY_ID_INIT );
+}
+#else
 /**
  * Get the first defined PSK by order of precedence:
  * 1. handshake PSK set by \c mbedtls_ssl_set_hs_psk() in the PSK callback
@@ -1322,12 +1342,6 @@ int mbedtls_ssl_conf_has_static_psk( mbedtls_ssl_config const *conf );
 static inline int mbedtls_ssl_get_psk( const mbedtls_ssl_context *ssl,
     const unsigned char **psk, size_t *psk_len )
 {
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    (void) ssl;
-    *psk = NULL;
-    *psk_len = 0;
-    return( MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED );
-#else
     if( ssl->handshake->psk != NULL && ssl->handshake->psk_len > 0 )
     {
         *psk = ssl->handshake->psk;
@@ -1348,29 +1362,7 @@ static inline int mbedtls_ssl_get_psk( const mbedtls_ssl_context *ssl,
     }
 
     return( 0 );
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 }
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-/**
- * Get the first defined opaque PSK by order of precedence:
- * 1. handshake PSK set by \c mbedtls_ssl_set_hs_psk_opaque() in the PSK
- *    callback
- * 2. static PSK configured by \c mbedtls_ssl_conf_psk_opaque()
- * Return an opaque PSK
- */
-static inline mbedtls_svc_key_id_t mbedtls_ssl_get_opaque_psk(
-    const mbedtls_ssl_context *ssl )
-{
-    if( ! mbedtls_svc_key_id_is_null( ssl->handshake->psk_opaque ) )
-        return( ssl->handshake->psk_opaque );
-
-    if( ! mbedtls_svc_key_id_is_null( ssl->conf->psk_opaque ) )
-        return( ssl->conf->psk_opaque );
-
-    return( MBEDTLS_SVC_KEY_ID_INIT );
-}
-
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */

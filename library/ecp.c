@@ -3765,7 +3765,7 @@ int mbedtls_ecp_expand_edwards( mbedtls_ecp_group *grp,
 }
 int mbedtls_ecp_point_edwards( mbedtls_ecp_group *grp,
                      mbedtls_ecp_point *Q,
-                     mbedtls_mpi *d, const mbedtls_ecp_point *G,
+                     const mbedtls_mpi *d,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng )
 {
@@ -3775,7 +3775,7 @@ int mbedtls_ecp_point_edwards( mbedtls_ecp_group *grp,
 
     MBEDTLS_MPI_CHK( mbedtls_ecp_expand_edwards( grp, d, &q, NULL ) );
 
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, Q, &q, G, f_rng, p_rng ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, Q, &q, &grp->G, f_rng, p_rng ) );
 
 cleanup:
     mbedtls_mpi_free( &q );
@@ -3802,7 +3802,7 @@ int mbedtls_ecp_gen_keypair_base( mbedtls_ecp_group *grp,
     MBEDTLS_MPI_CHK( mbedtls_ecp_gen_privkey( grp, d, f_rng, p_rng ) );
 #ifdef MBEDTLS_ECP_EDWARDS_ENABLED
     if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_EDWARDS )
-        MBEDTLS_MPI_CHK( mbedtls_ecp_point_edwards( grp, Q, d, G, f_rng, p_rng ) );
+        MBEDTLS_MPI_CHK( mbedtls_ecp_point_edwards( grp, Q, d, f_rng, p_rng ) );
     else
 #endif
         MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, Q, d, G, f_rng, p_rng ) );

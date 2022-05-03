@@ -115,11 +115,11 @@ int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
        
 #ifdef MBEDTLS_ECP_DP_ED25519_ENABLED
     if( grp->id == MBEDTLS_ECP_DP_ED25519 && eddsa_id != MBEDTLS_EDDSA_PURE && eddsa_id != MBEDTLS_EDDSA_CTX && eddsa_id != MBEDTLS_EDDSA_PREHASH )
-        return( MBEDTLS_ERR_EDDSA_INVALID_TYPE );
+        return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
 #endif
 #ifdef MBEDTLS_ECP_DP_ED448_ENABLED
     if( grp->id == MBEDTLS_ECP_DP_ED448 && eddsa_id != MBEDTLS_EDDSA_PURE && eddsa_id != MBEDTLS_EDDSA_PREHASH )
-        return( MBEDTLS_ERR_EDDSA_INVALID_TYPE );
+        return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
 #endif
 
     if( eddsa_id == MBEDTLS_EDDSA_PREHASH && blen != 64)
@@ -476,7 +476,7 @@ static int eddsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
 /*
  * Compute and write signature
  */
-int mbedtls_eddsa_write_signature( mbedtls_eddsa_context *ctx,
+int mbedtls_eddsa_write_signature( mbedtls_ecp_keypair *ctx,
                            const unsigned char *hash, size_t hlen,
                            unsigned char *sig, size_t sig_size, size_t *slen,
                            int (*f_rng)(void *, unsigned char *, size_t),
@@ -509,7 +509,7 @@ cleanup:
 /*
  * Restartable read and check signature
  */
-int mbedtls_eddsa_read_signature( mbedtls_eddsa_context *ctx,
+int mbedtls_eddsa_read_signature( mbedtls_ecp_keypair *ctx,
                           const unsigned char *hash, size_t hlen,
                           const unsigned char *sig, size_t slen,
                           int (*f_rng)(void *, unsigned char *, size_t),
@@ -570,7 +570,7 @@ cleanup:
 /*
  * Generate key pair
  */
-int mbedtls_eddsa_genkey( mbedtls_eddsa_context *ctx, mbedtls_ecp_group_id gid,
+int mbedtls_eddsa_genkey( mbedtls_ecp_keypair *ctx, mbedtls_ecp_group_id gid,
                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret = 0;
@@ -584,48 +584,6 @@ int mbedtls_eddsa_genkey( mbedtls_eddsa_context *ctx, mbedtls_ecp_group_id gid,
 
    return( mbedtls_ecp_gen_keypair( &ctx->grp, &ctx->d,
                                     &ctx->Q, f_rng, p_rng ) );
-}
-
-/*
- * Set context from an mbedtls_ecp_keypair
- */
-int mbedtls_eddsa_from_keypair( mbedtls_eddsa_context *ctx, const mbedtls_ecp_keypair *key )
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    
-    if( ctx == NULL || key == NULL )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-
-    if( ( ret = mbedtls_ecp_group_copy( &ctx->grp, &key->grp ) ) != 0 ||
-        ( ret = mbedtls_mpi_copy( &ctx->d, &key->d ) ) != 0 ||
-        ( ret = mbedtls_ecp_copy( &ctx->Q, &key->Q ) ) != 0 )
-    {
-        mbedtls_eddsa_free( ctx );
-    }
-
-    return( ret );
-}
-
-/*
- * Initialize context
- */
-void mbedtls_eddsa_init( mbedtls_eddsa_context *ctx )
-{
-    if( ctx == NULL )
-        return;
-
-    mbedtls_ecp_keypair_init( ctx );
-}
-
-/*
- * Free context
- */
-void mbedtls_eddsa_free( mbedtls_eddsa_context *ctx )
-{
-    if( ctx == NULL )
-        return;
-
-    mbedtls_ecp_keypair_free( ctx );
 }
 
 #endif /* MBEDTLS_EDDSA_C */

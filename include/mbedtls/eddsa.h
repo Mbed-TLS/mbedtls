@@ -88,21 +88,6 @@ typedef enum
                                 instead of full message like pure or ctx. */
 } mbedtls_eddsa_id;
 
-/*
- * EdDSA error codes
- */
-/** Invalid signatue operation type. */
-#define MBEDTLS_ERR_EDDSA_INVALID_TYPE      -0x5C80
-
-/**
- * \brief           The EdDSA context structure.
- *
- * \warning         Performing multiple operations concurrently on the same
- *                  EdDSA context is not supported; objects of this type
- *                  should not be shared between multiple threads.
- */
-typedef mbedtls_ecp_keypair mbedtls_eddsa_context;
-
 /**
  * \brief          This function checks whether a given group can be used
  *                 for EdDSA.
@@ -227,17 +212,14 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
  *
  * \see             ecp.h
  *
- * \param ctx       The EdDSA context to use. This must be initialized
+ * \param ctx       The ECP keypair context to use. This must be initialized
  *                  and have a group and private key bound to it, for example
- *                  via mbedtls_eddsa_genkey() or mbedtls_eddsa_from_keypair().
+ *                  via mbedtls_eddsa_genkey().
  * \param hash      The message hash to be signed. This must be a readable
  *                  buffer of length \p blen Bytes.
  * \param hlen      The length of the hash \p hash in Bytes.
- * \param sig       The buffer to which to write the signature. This must be a
- *                  writable buffer of length at least twice as large as the
- *                  size of the curve used, plus 9. For example, 73 Bytes if
- *                  a Ed25519 curve is used. A buffer length of
- *                  #MBEDTLS_EDDSA_MAX_LEN is always safe.
+ * \param sig       The buffer to which to write the signature. 
+ *                  A buffer size of #MBEDTLS_EDDSA_MAX_LEN is always safe.
  * \param sig_size  The size of the \p sig buffer in bytes.
  * \param slen      The address at which to store the actual length of
  *                  the signature written. Must not be \c NULL.
@@ -256,7 +238,7 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
  * \return          An \c MBEDTLS_ERR_ECP_XXX, \c MBEDTLS_ERR_MPI_XXX or
  *                  \c MBEDTLS_ERR_ASN1_XXX error code on failure.
  */
-int mbedtls_eddsa_write_signature( mbedtls_eddsa_context *ctx,
+int mbedtls_eddsa_write_signature( mbedtls_ecp_keypair *ctx,
                            const unsigned char *hash, size_t hlen,
                            unsigned char *sig, size_t sig_size, size_t *slen,
                            int (*f_rng)(void *, unsigned char *, size_t),
@@ -274,7 +256,7 @@ int mbedtls_eddsa_write_signature( mbedtls_eddsa_context *ctx,
  *
  * \see             ecp.h
  *
- * \param ctx       The EdDSA context to use. This must be initialized
+ * \param ctx       The ECP keypair context to use. This must be initialized
  *                  and have a group and public key bound to it.
  * \param hash      The message hash that was signed. This must be a readable
  *                  buffer of length \p size Bytes.
@@ -300,7 +282,7 @@ int mbedtls_eddsa_write_signature( mbedtls_eddsa_context *ctx,
  * \return          An \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_ERR_MPI_XXX
  *                  error code on failure for any other reason.
  */
-int mbedtls_eddsa_read_signature( mbedtls_eddsa_context *ctx,
+int mbedtls_eddsa_read_signature( mbedtls_ecp_keypair *ctx,
                           const unsigned char *hash, size_t hlen,
                           const unsigned char *sig, size_t slen,
                           int (*f_rng)(void *, unsigned char *, size_t),
@@ -312,7 +294,7 @@ int mbedtls_eddsa_read_signature( mbedtls_eddsa_context *ctx,
  *
  * \see            ecp.h
  *
- * \param ctx      The EdDSA context to store the keypair in.
+ * \param ctx      The ECP keypair context to store the keypair in.
  *                 This must be initialized.
  * \param gid      The elliptic curve to use. One of the various
  *                 \c MBEDTLS_ECP_DP_XXX macros depending on configuration.
@@ -324,43 +306,8 @@ int mbedtls_eddsa_read_signature( mbedtls_eddsa_context *ctx,
  * \return         \c 0 on success.
  * \return         An \c MBEDTLS_ERR_ECP_XXX code on failure.
  */
-int mbedtls_eddsa_genkey( mbedtls_eddsa_context *ctx, mbedtls_ecp_group_id gid,
+int mbedtls_eddsa_genkey( mbedtls_ecp_keypair *ctx, mbedtls_ecp_group_id gid,
                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
-
-/**
- * \brief           This function sets up an EdDSA context from an EC key pair.
- *
- * \see             ecp.h
- *
- * \param ctx       The EdDSA context to setup. This must be initialized.
- * \param key       The EC key to use. This must be initialized and hold
- *                  a private-public key pair or a public key. In the former
- *                  case, the EdDSA context may be used for signature creation
- *                  and verification after this call. In the latter case, it
- *                  may be used for signature verification.
- *
- * \return          \c 0 on success.
- * \return          An \c MBEDTLS_ERR_ECP_XXX code on failure.
- */
-int mbedtls_eddsa_from_keypair( mbedtls_eddsa_context *ctx,
-                                const mbedtls_ecp_keypair *key );
-
-/**
- * \brief           This function initializes an EdDSA context.
- *
- * \param ctx       The EdDSA context to initialize.
- *                  This must not be \c NULL.
- */
-void mbedtls_eddsa_init( mbedtls_eddsa_context *ctx );
-
-/**
- * \brief           This function frees an EdDSA context.
- *
- * \param ctx       The EdDSA context to free. This may be \c NULL,
- *                  in which case this function does nothing. If it
- *                  is not \c NULL, it must be initialized.
- */
-void mbedtls_eddsa_free( mbedtls_eddsa_context *ctx );
 
 #ifdef __cplusplus
 }

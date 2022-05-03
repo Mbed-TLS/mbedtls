@@ -1103,10 +1103,9 @@ static int ssl_tls13_prepare_encrypted_extensions( mbedtls_ssl_context *ssl )
 
     ssl->handshake->transform_handshake = transform_handshake;
     mbedtls_ssl_set_outbound_transform( ssl, ssl->handshake->transform_handshake );
-
     MBEDTLS_SSL_DEBUG_MSG(
         3, ( "switching to new transform spec for outbound data" ) );
-    memset( ssl->out_ctr, 0, 8 );
+
 
     return( 0 );
 }

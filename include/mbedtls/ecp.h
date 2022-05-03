@@ -1196,11 +1196,10 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
  * \return          An \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_MPI_XXX error code
  *                  on failure.
  */
- 
- 
+
 #if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
-int mbedtls_ecp_expand_edwards( mbedtls_ecp_group *grp, 
-                    const mbedtls_mpi *d, mbedtls_mpi *q, 
+int mbedtls_ecp_expand_edwards( mbedtls_ecp_group *grp,
+                    const mbedtls_mpi *d, mbedtls_mpi *q,
                     mbedtls_mpi *prefix );
 int mbedtls_ecp_point_edwards( mbedtls_ecp_group *grp,
                      mbedtls_ecp_point *Q,
@@ -1208,7 +1207,7 @@ int mbedtls_ecp_point_edwards( mbedtls_ecp_group *grp,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng );
 #endif
- 
+
 int mbedtls_ecp_gen_keypair_base( mbedtls_ecp_group *grp,
                                   const mbedtls_ecp_point *G,
                                   mbedtls_mpi *d, mbedtls_ecp_point *Q,

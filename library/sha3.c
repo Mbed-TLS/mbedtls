@@ -21,7 +21,7 @@
  *
  *  https://nvlpubs.nist.gov/nistpubs/fips/nist.fips.202.pdf
  */
- 
+
 #include "common.h"
 
 #if defined(MBEDTLS_SHA3_C)
@@ -51,11 +51,14 @@ static int shake256_update( mbedtls_sha3_context *ctx,
                            const unsigned char *input,
                            size_t ilen );
 static int shake256_finish( mbedtls_sha3_context *ctx,
-                               unsigned char *output, 
+                               unsigned char *output,
                                size_t olen );
 #endif /* MBEDTLS_SHA3_SHAKE256_ENABLED */
 
-mbedtls_sha3_family_functions sha3_families[] = {
+/*
+ * List of supported SHA-3 families 
+ */
+static mbedtls_sha3_family_functions sha3_families[] = {
 #if defined(MBEDTLS_SHA3_SHAKE256_ENABLED)
     { MBEDTLS_SHA3_SHAKE256, shake256_update, shake256_finish },
 #endif
@@ -77,7 +80,7 @@ static const uint64_t rc[24] = {
 
 static const uint8_t rho[24] = {
     1, 62, 28, 27, 36, 44,  6, 55, 20,
-    3, 10, 43, 25, 39, 41, 45, 15, 
+    3, 10, 43, 25, 39, 41, 45, 15,
     21,  8, 18,  2, 61, 56, 14
 };
 
@@ -96,8 +99,8 @@ static void keccak_f1600(mbedtls_sha3_context *ctx)
 {
     uint64_t lane[5];
     uint64_t *s = ctx->state;
-    int i;    
-    
+    int i;
+
     for( int round = 0; round < 24; round++ )
     {
         uint64_t t;
@@ -108,61 +111,61 @@ static void keccak_f1600(mbedtls_sha3_context *ctx)
         lane[2] = s[2] ^ s[7] ^ s[12] ^ s[17] ^ s[22];
         lane[3] = s[3] ^ s[8] ^ s[13] ^ s[18] ^ s[23];
         lane[4] = s[4] ^ s[9] ^ s[14] ^ s[19] ^ s[24];
-        
+
         t = lane[4] ^ ROT64( lane[1], 1 );
         s[0] ^= t; s[5] ^= t; s[10] ^= t; s[15] ^= t; s[20] ^= t;
-        
+
         t = lane[0] ^ ROT64( lane[2], 1 );
         s[1] ^= t; s[6] ^= t; s[11] ^= t; s[16] ^= t; s[21] ^= t;
-        
+
         t = lane[1] ^ ROT64( lane[3], 1 );
         s[2] ^= t; s[7] ^= t; s[12] ^= t; s[17] ^= t; s[22] ^= t;
-        
+
         t = lane[2] ^ ROT64( lane[4], 1 );
         s[3] ^= t; s[8] ^= t; s[13] ^= t; s[18] ^= t; s[23] ^= t;
-        
+
         t = lane[3] ^ ROT64( lane[0], 1 );
         s[4] ^= t; s[9] ^= t; s[14] ^= t; s[19] ^= t; s[24] ^= t;
 
         /* Rho */
         for( i = 1; i < 25; i++ )
-	        s[i] = ROT64( s[i], rho[i-1] );
+            s[i] = ROT64( s[i], rho[i-1] );
 
         /* Pi */
         t = s[1];
         for( i = 0; i < 24; i++ )
-	        SWAP( s[pi[i]], t );
+            SWAP( s[pi[i]], t );
 
         /* Chi */
-        lane[0] = s[0]; lane[1] = s[1]; lane[2] = s[2]; lane[3] = s[3]; lane[4] = s[4]; 
+        lane[0] = s[0]; lane[1] = s[1]; lane[2] = s[2]; lane[3] = s[3]; lane[4] = s[4];
         s[0] ^= (~lane[1]) & lane[2];
         s[1] ^= (~lane[2]) & lane[3];
         s[2] ^= (~lane[3]) & lane[4];
         s[3] ^= (~lane[4]) & lane[0];
         s[4] ^= (~lane[0]) & lane[1];
-        
-        lane[0] = s[5]; lane[1] = s[6]; lane[2] = s[7]; lane[3] = s[8]; lane[4] = s[9]; 
+
+        lane[0] = s[5]; lane[1] = s[6]; lane[2] = s[7]; lane[3] = s[8]; lane[4] = s[9];
         s[5] ^= (~lane[1]) & lane[2];
         s[6] ^= (~lane[2]) & lane[3];
         s[7] ^= (~lane[3]) & lane[4];
         s[8] ^= (~lane[4]) & lane[0];
         s[9] ^= (~lane[0]) & lane[1];
-        
-        lane[0] = s[10]; lane[1] = s[11]; lane[2] = s[12]; lane[3] = s[13]; lane[4] = s[14]; 
+
+        lane[0] = s[10]; lane[1] = s[11]; lane[2] = s[12]; lane[3] = s[13]; lane[4] = s[14];
         s[10] ^= (~lane[1]) & lane[2];
         s[11] ^= (~lane[2]) & lane[3];
         s[12] ^= (~lane[3]) & lane[4];
         s[13] ^= (~lane[4]) & lane[0];
         s[14] ^= (~lane[0]) & lane[1];
-        
-        lane[0] = s[15]; lane[1] = s[16]; lane[2] = s[17]; lane[3] = s[18]; lane[4] = s[19]; 
+
+        lane[0] = s[15]; lane[1] = s[16]; lane[2] = s[17]; lane[3] = s[18]; lane[4] = s[19];
         s[15] ^= (~lane[1]) & lane[2];
         s[16] ^= (~lane[2]) & lane[3];
         s[17] ^= (~lane[3]) & lane[4];
         s[18] ^= (~lane[4]) & lane[0];
         s[19] ^= (~lane[0]) & lane[1];
-        
-        lane[0] = s[20]; lane[1] = s[21]; lane[2] = s[22]; lane[3] = s[23]; lane[4] = s[24]; 
+
+        lane[0] = s[20]; lane[1] = s[21]; lane[2] = s[22]; lane[3] = s[23]; lane[4] = s[24];
         s[20] ^= (~lane[1]) & lane[2];
         s[21] ^= (~lane[2]) & lane[3];
         s[22] ^= (~lane[3]) & lane[4];
@@ -194,13 +197,13 @@ static int shake256_finish( mbedtls_sha3_context *ctx,
     ABSORB( ctx, SHAKE256_INDEX_MAX - 1, 0x80 );
     keccak_f1600( ctx );
     ctx->index = 0;
-    
+
     while( olen-- > 0 )
     {
         *output++ = SQUEEZE( ctx, ctx->index );
-        
+
         if( ( ctx->index = ( ctx->index + 1) % SHAKE256_INDEX_MAX ) == 0 )
-	        keccak_f1600( ctx );
+            keccak_f1600( ctx );
     }
     return( 0 );
 }
@@ -239,20 +242,20 @@ int mbedtls_sha3_starts( mbedtls_sha3_context *ctx, mbedtls_sha3_id id )
     mbedtls_sha3_family_functions *p = NULL;
     if( ctx == NULL )
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
-    
+
     for( p = sha3_families; p->id != MBEDTLS_SHA3_NONE; p++ )
     {
         if( p->id == id )
             break;
     }
-    
+
     if( p == NULL )
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
-        
+
     ctx->id = id;
     ctx->update = p->update;
     ctx->finish = p->finish;
-    
+
     return( 0 );
 }
 
@@ -265,12 +268,12 @@ int mbedtls_sha3_update( mbedtls_sha3_context *ctx,
 {
     if( ctx == NULL )
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
-        
+
     if( ilen == 0 )
         return( 0 );
-    
+
     ctx->update( ctx, input, ilen );
-    
+
     return( 0 );
 }
 
@@ -279,9 +282,9 @@ int mbedtls_sha3_finish( mbedtls_sha3_context *ctx,
 {
     if( olen == 0 )
         return( 0 );
-    
+
     ctx->finish( ctx, output, olen );
-    
+
     return( 0 );
 }
 
@@ -300,7 +303,7 @@ int mbedtls_sha3( mbedtls_sha3_id id, const unsigned char *input,
 
     if( ilen != 0 && input == NULL )
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
-        
+
     if( output == NULL )
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
 

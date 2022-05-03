@@ -7,7 +7,7 @@
  * <em>Standards for Efficient Cryptography Group (SECG):
  * SEC1 Elliptic Curve Cryptography</em>.
  * The use of EdDSA for TLS is defined in <em>RFC-8422: Elliptic Curve
- * Cryptography (ECC) Cipher Suites for Transport Layer Security (TLS) 
+ * Cryptography (ECC) Cipher Suites for Transport Layer Security (TLS)
  * Versions 1.2 and Earlier</em>.
  *
  */
@@ -123,12 +123,12 @@ int mbedtls_eddsa_can_do( mbedtls_ecp_group_id gid );
  * \param f_rng     The RNG function. This must not be \c NULL.
  * \param p_rng     The RNG context to be passed to \p f_rng. This may be
  *                  \c NULL if \p f_rng doesn't need a context parameter.
- * \param eddsa_id  The signature operation id that identifies PureEdDSA, 
+ * \param eddsa_id  The signature operation id that identifies PureEdDSA,
  *                  EdDSActx or EdDSAph
  * \param ed_ctx    The context for EdDSActx and EdDSAph operations.
                     it can be \c NULL if \c MBEDTLS_EDDSA_PURE is used or
                     if no context is provided.
- * \param ed_ctx_len The length of the context for EdDSActx and EdDSAph 
+ * \param ed_ctx_len The length of the context for EdDSActx and EdDSAph
  *                  operations. It can be \c 0.
  *
  * \return          \c 0 on success.
@@ -170,12 +170,12 @@ int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
  * \param f_rng     The RNG function. This must not be \c NULL.
  * \param p_rng     The RNG context to be passed to \p f_rng. This may be
  *                  \c NULL if \p f_rng doesn't need a context parameter.
- * \param eddsa_id  The signature operation id that identifies PureEdDSA, 
+ * \param eddsa_id  The signature operation id that identifies PureEdDSA,
  *                  EdDSActx or EdDSAph
  * \param ed_ctx    The context for EdDSActx and EdDSAph operations.
                     it can be \c NULL if \c MBEDTLS_EDDSA_PURE is used or
                     if no context is provided.
- * \param ed_ctx_len The length of the context for EdDSActx and EdDSAph 
+ * \param ed_ctx_len The length of the context for EdDSActx and EdDSAph
  *                  operations. It can be \c 0.
  *
  * \return          \c 0 on success.
@@ -187,7 +187,7 @@ int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
 int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
                           const unsigned char *buf, size_t blen,
                           const mbedtls_ecp_point *Q, const mbedtls_mpi *r,
-                          const mbedtls_mpi *s, 
+                          const mbedtls_mpi *s,
                           int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
                           mbedtls_eddsa_id eddsa_id,
                           const unsigned char *ed_ctx, size_t ed_ctx_len);
@@ -215,20 +215,20 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
  * \param hash      The message hash to be signed. This must be a readable
  *                  buffer of length \p blen Bytes.
  * \param hlen      The length of the hash \p hash in Bytes.
- * \param sig       The buffer to which to write the signature. 
+ * \param sig       The buffer to which to write the signature.
  *                  A buffer size of #MBEDTLS_EDDSA_MAX_LEN is always safe.
  * \param sig_size  The size of the \p sig buffer in bytes.
  * \param slen      The address at which to store the actual length of
  *                  the signature written. Must not be \c NULL.
- * \param f_rng     The RNG function. This must not be \c NULL. 
+ * \param f_rng     The RNG function. This must not be \c NULL.
  * \param p_rng     The RNG context to be passed to \p f_rng. This may be
  *                  \c NULL if \p f_rng is \c NULL or doesn't use a context.
- * \param eddsa_id  The signature operation id that identifies PureEdDSA, 
+ * \param eddsa_id  The signature operation id that identifies PureEdDSA,
  *                  EdDSActx or EdDSAph
  * \param ed_ctx    The context for EdDSActx and EdDSAph operations.
                     it can be \c NULL if \c MBEDTLS_EDDSA_PURE is used or
                     if no context is provided.
- * \param ed_ctx_len The length of the context for EdDSActx and EdDSAph 
+ * \param ed_ctx_len The length of the context for EdDSActx and EdDSAph
  *                  operations. It can be \c 0.
  *
  * \return          \c 0 on success.
@@ -264,12 +264,12 @@ int mbedtls_eddsa_write_signature( mbedtls_ecp_keypair *ctx,
  * \param f_rng     The RNG function. This must not be \c NULL.
  * \param p_rng     The RNG context to be passed to \p f_rng. This may be
  *                  \c NULL if \p f_rng is \c NULL or doesn't use a context.
- * \param eddsa_id  The signature operation id that identifies PureEdDSA, 
+ * \param eddsa_id  The signature operation id that identifies PureEdDSA,
  *                  EdDSActx or EdDSAph
  * \param ed_ctx    The context for EdDSActx and EdDSAph operations.
                     it can be \c NULL if \c MBEDTLS_EDDSA_PURE is used or
                     if no context is provided.
- * \param ed_ctx_len The length of the context for EdDSActx and EdDSAph 
+ * \param ed_ctx_len The length of the context for EdDSActx and EdDSAph
  *                  operations. It can be \c 0.
  *
  * \return          \c 0 on success.

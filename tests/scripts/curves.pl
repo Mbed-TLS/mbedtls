@@ -130,7 +130,7 @@ for my $curve (@curves) {
         system( "scripts/config.pl $ecdsa $dep" )
             and abort "Failed to $ecdsa $dep\n";
     }
-    
+
     my $eddsa = $curve_supports_eddsa{$curve} ? "set" : "unset";
     for my $dep (qw(MBEDTLS_EDDSA_C)) {
         system( "scripts/config.pl $eddsa $dep" )

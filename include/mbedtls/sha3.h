@@ -4,7 +4,7 @@
  * \brief This file contains SHA3 definitions and functions.
  *
  * The Secure Hash Algorithms cryptographic
- * hash functions are defined in <em>FIPS 202: SHA-3 Standard: 
+ * hash functions are defined in <em>FIPS 202: SHA-3 Standard:
  * Permutation-Based Hash and Extendable-Output Functions </em>.
  */
 /*
@@ -23,7 +23,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
- 
+
 #ifndef MBEDTLS_SHA3_H
 #define MBEDTLS_SHA3_H
 #include "mbedtls/private_access.h"
@@ -69,7 +69,7 @@ typedef struct mbedtls_sha3_family_functions
                            const unsigned char *input,
                            size_t ilen );
     int (*finish)( struct mbedtls_sha3_context *ctx,
-                               unsigned char *output, 
+                               unsigned char *output,
                                size_t olen );
 }
 mbedtls_sha3_family_functions;
@@ -87,7 +87,7 @@ typedef struct mbedtls_sha3_context {
                            const unsigned char *input,
                            size_t ilen );
     int (*finish)( struct mbedtls_sha3_context *ctx,
-                               unsigned char *output, 
+                               unsigned char *output,
                                size_t olen );
 }
 mbedtls_sha3_context;

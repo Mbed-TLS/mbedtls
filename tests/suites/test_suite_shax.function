@@ -139,13 +139,13 @@ void sha512_selftest(  )
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA3_C */
-void mbedtls_shake256( data_t *in, data_t *hash )
+void mbedtls_sha3( int family, data_t *in, data_t *hash )
 {
     unsigned char *output = NULL;
 
     ASSERT_ALLOC( output, hash->len );
 
-    TEST_ASSERT( mbedtls_sha3( MBEDTLS_SHA3_SHAKE256, in->x, in->len, output, hash->len ) == 0 );
+    TEST_ASSERT( mbedtls_sha3( family, in->x, in->len, output, hash->len ) == 0 );
 
     ASSERT_COMPARE( output, hash->len, hash->x, hash->len );
 
@@ -155,7 +155,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA3_C */
-void mbedtls_shake256_multi( data_t *in, data_t *hash )
+void mbedtls_sha3_multi( int family, data_t *in, data_t *hash )
 {
     unsigned char *output = NULL;
     mbedtls_sha3_context ctx;
@@ -164,7 +164,7 @@ void mbedtls_shake256_multi( data_t *in, data_t *hash )
     ASSERT_ALLOC( output, hash->len );
 
     mbedtls_sha3_init( &ctx );
-    mbedtls_sha3_starts( &ctx, MBEDTLS_SHA3_SHAKE256 );
+    mbedtls_sha3_starts( &ctx, family );
 
     for( size_t l = 0; l < in->len; l += block_size )
         TEST_ASSERT( mbedtls_sha3_update( &ctx, in->x + l, MIN( in->len - l, block_size ) ) == 0 );

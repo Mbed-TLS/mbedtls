@@ -653,9 +653,10 @@ struct mbedtls_ssl_handshake_params
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_svc_key_id_t psk_opaque;            /*!< Opaque PSK from the callback   */
     uint8_t psk_opaque_is_internal;
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#else
     unsigned char *psk;                 /*!<  PSK from the callback         */
     size_t psk_len;                     /*!<  Length of PSK from callback   */
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)
@@ -1321,6 +1322,12 @@ int mbedtls_ssl_conf_has_static_psk( mbedtls_ssl_config const *conf );
 static inline int mbedtls_ssl_get_psk( const mbedtls_ssl_context *ssl,
     const unsigned char **psk, size_t *psk_len )
 {
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    (void) ssl;
+    *psk = NULL;
+    *psk_len = 0;
+    return( MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED );
+#else
     if( ssl->handshake->psk != NULL && ssl->handshake->psk_len > 0 )
     {
         *psk = ssl->handshake->psk;
@@ -1341,6 +1348,7 @@ static inline int mbedtls_ssl_get_psk( const mbedtls_ssl_context *ssl,
     }
 
     return( 0 );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)

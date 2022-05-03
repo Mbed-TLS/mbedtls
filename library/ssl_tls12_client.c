@@ -62,11 +62,11 @@ int mbedtls_ssl_conf_has_static_psk( mbedtls_ssl_config const *conf )
         return( 0 );
     }
 
-    if( conf->psk != NULL && conf->psk_len != 0 )
-        return( 1 );
-
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( ! mbedtls_svc_key_id_is_null( conf->psk_opaque ) )
+        return( 1 );
+#else
+    if( conf->psk != NULL && conf->psk_len != 0 )
         return( 1 );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 

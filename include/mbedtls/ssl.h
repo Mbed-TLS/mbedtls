@@ -1428,8 +1428,7 @@ struct mbedtls_ssl_config
                               *   configured, this has value \c 0.
                               */
     uint8_t MBEDTLS_PRIVATE(psk_opaque_is_internal);
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-
+#else
     unsigned char *MBEDTLS_PRIVATE(psk);      /*!< The raw pre-shared key. This field should
                               *   only be set via mbedtls_ssl_conf_psk().
                               *   If either no PSK or an opaque PSK
@@ -1439,6 +1438,7 @@ struct mbedtls_ssl_config
                               *   mbedtls_ssl_conf_psk().
                               *   Its value is non-zero if and only if
                               *   \c psk is not \c NULL. */
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     unsigned char *MBEDTLS_PRIVATE(psk_identity);    /*!< The PSK identity for PSK negotiation.
                                      *   This field should only be set via

@@ -1527,10 +1527,10 @@ static int ssl_conf_psk_is_configured( mbedtls_ssl_config const *conf )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( !mbedtls_svc_key_id_is_null( conf->psk_opaque ) )
         return( 1 );
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-
+#else
     if( conf->psk != NULL )
         return( 1 );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     return( 0 );
 }
@@ -1550,12 +1550,7 @@ static void ssl_conf_remove_psk( mbedtls_ssl_config *conf )
         }
         conf->psk_opaque = MBEDTLS_SVC_KEY_ID_INIT;
     }
-    /* This and the following branch should never
-     * be taken simultaenously as we maintain the
-     * invariant that raw and opaque PSKs are never
-     * configured simultaneously. As a safeguard,
-     * though, `else` is omitted here. */
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#else
     if( conf->psk != NULL )
     {
         mbedtls_platform_zeroize( conf->psk, conf->psk_len );
@@ -1564,6 +1559,7 @@ static void ssl_conf_remove_psk( mbedtls_ssl_config *conf )
         conf->psk = NULL;
         conf->psk_len = 0;
     }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     /* Remove reference to PSK identity, if any. */
     if( conf->psk_identity != NULL )
@@ -1668,8 +1664,7 @@ static void ssl_remove_psk( mbedtls_ssl_context *ssl )
         }
         ssl->handshake->psk_opaque = MBEDTLS_SVC_KEY_ID_INIT;
     }
-    else
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#else
     if( ssl->handshake->psk != NULL )
     {
         mbedtls_platform_zeroize( ssl->handshake->psk,
@@ -1677,6 +1672,7 @@ static void ssl_remove_psk( mbedtls_ssl_context *ssl )
         mbedtls_free( ssl->handshake->psk );
         ssl->handshake->psk_len = 0;
     }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 }
 
 int mbedtls_ssl_set_hs_psk( mbedtls_ssl_context *ssl,
@@ -3304,12 +3300,13 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
         }
         ssl->handshake->psk_opaque = MBEDTLS_SVC_KEY_ID_INIT;
     }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#else
     if( handshake->psk != NULL )
     {
         mbedtls_platform_zeroize( handshake->psk, handshake->psk_len );
         mbedtls_free( handshake->psk );
     }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 #endif
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && \
@@ -4508,7 +4505,7 @@ void mbedtls_ssl_config_free( mbedtls_ssl_config *conf )
         }
         conf->psk_opaque = MBEDTLS_SVC_KEY_ID_INIT;
     }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#else
     if( conf->psk != NULL )
     {
         mbedtls_platform_zeroize( conf->psk, conf->psk_len );
@@ -4516,6 +4513,7 @@ void mbedtls_ssl_config_free( mbedtls_ssl_config *conf )
         conf->psk = NULL;
         conf->psk_len = 0;
     }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     if( conf->psk_identity != NULL )
     {
@@ -5185,30 +5183,6 @@ static int ssl_set_handshake_prfs( mbedtls_ssl_handshake_params *handshake,
     return( 0 );
 }
 
-
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO) &&                   \
-    defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED )
-static int ssl_use_opaque_psk( mbedtls_ssl_context const *ssl )
-{
-    if( ssl->conf->f_psk != NULL )
-    {
-        /* If we've used a callback to select the PSK,
-         * the static configuration is irrelevant. */
-        if( ! mbedtls_svc_key_id_is_null( ssl->handshake->psk_opaque ) )
-            return( 1 );
-
-        return( 0 );
-    }
-
-    if( ! mbedtls_svc_key_id_is_null( ssl->conf->psk_opaque ) )
-        return( 1 );
-
-    return( 0 );
-}
-#endif /* MBEDTLS_USE_PSA_CRYPTO &&
-          MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
-
 /*
  * Compute master secret if needed
  *
@@ -5281,8 +5255,7 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) &&                   \
     defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
-    if( mbedtls_ssl_ciphersuite_uses_psk( handshake->ciphersuite_info ) == 1 &&
-        ssl_use_opaque_psk( ssl ) == 1 )
+    if( mbedtls_ssl_ciphersuite_uses_psk( handshake->ciphersuite_info ) == 1 )
     {
         /* Perform PSK-to-MS expansion in a single step. */
         psa_status_t status;

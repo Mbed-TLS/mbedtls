@@ -1104,10 +1104,6 @@ static int ssl_tls13_prepare_encrypted_extensions( mbedtls_ssl_context *ssl )
     ssl->handshake->transform_handshake = transform_handshake;
     mbedtls_ssl_set_outbound_transform( ssl, ssl->handshake->transform_handshake );
 
-    /*
-     * Switch to our negotiated transform and session parameters for outbound
-     * data.
-     */
     MBEDTLS_SSL_DEBUG_MSG(
         3, ( "switching to new transform spec for outbound data" ) );
     memset( ssl->out_ctr, 0, 8 );
@@ -1126,21 +1122,21 @@ static int ssl_tls13_write_encrypted_extensions_body( mbedtls_ssl_context *ssl,
                                                       unsigned char *end,
                                                       size_t *out_len )
 {
-    ((void) ssl);
     unsigned char *p = buf;
     size_t extensions_len = 0;
-    unsigned char *extensions_start;
+    unsigned char *p_extensions_len;
     *out_len = 0;
 
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
-    extensions_start = p;
+    p_extensions_len = p;
     p += 2;
 
-    *out_len = (size_t)( p - buf );
+    ((void) ssl);
 
-    /* write extensions length */
-    extensions_len = ( p - extensions_start ) - 2;
-    MBEDTLS_PUT_UINT16_BE( extensions_len, extensions_start, 0);
+    extensions_len = ( p - p_extensions_len ) - 2;
+    MBEDTLS_PUT_UINT16_BE( extensions_len, p_extensions_len, 0 );
+
+    *out_len = p - buf;
 
     MBEDTLS_SSL_DEBUG_BUF( 4, "encrypted extensions", buf, *out_len );
 
@@ -1167,11 +1163,17 @@ static int ssl_tls13_write_encrypted_extensions( mbedtls_ssl_context *ssl )
     mbedtls_ssl_add_hs_msg_to_checksum(
         ssl, MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS, buf, msg_len );
 
-    /* Update state */
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_CERTIFICATE );
-
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_finish_handshake_msg(
                               ssl, buf_len, msg_len ) );
+
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+    if( mbedtls_ssl_tls13_some_psk_enabled( ssl ) )
+        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_FINISHED );
+    else
+        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_CERTIFICATE );
+#else
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_FINISHED );
+#endif
 
 cleanup:
 

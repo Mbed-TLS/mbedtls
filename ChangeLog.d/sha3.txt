@@ -1,0 +1,2 @@
+Features
+    * Add SHA3 family hash functions (only SHAKE256 at this moment).

@@ -1214,7 +1214,7 @@ cleanup:
     return( ret );
 }
 
-#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED) || defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
+#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
 static inline int mbedtls_mpi_mul_int_mod( const mbedtls_ecp_group *grp,
                                            mbedtls_mpi *X,
                                            const mbedtls_mpi *A,

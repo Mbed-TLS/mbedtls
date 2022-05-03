@@ -46,18 +46,23 @@
 
 #if !defined(MBEDTLS_SHA3_ALT)
 
+#if defined(MBEDTLS_SHA3_SHAKE256_ENABLED)
 static int shake256_update( mbedtls_sha3_context *ctx,
                            const unsigned char *input,
                            size_t ilen );
 static int shake256_finish( mbedtls_sha3_context *ctx,
                                unsigned char *output, 
                                size_t olen );
+#endif /* MBEDTLS_SHA3_SHAKE256_ENABLED */
 
 mbedtls_sha3_family_functions sha3_families[] = {
+#if defined(MBEDTLS_SHA3_SHAKE256_ENABLED)
     { MBEDTLS_SHA3_SHAKE256, shake256_update, shake256_finish },
+#endif
     { MBEDTLS_SHA3_NONE, NULL, NULL }
 };
 
+#if defined(MBEDTLS_SHA3_SHAKE256_ENABLED)
 #define SHAKE256_BITS          256
 #define SHAKE256_INDEX_MAX     (200 - (SHAKE256_BITS >> 2))
 
@@ -85,31 +90,6 @@ static const uint8_t pi[24] = {
 #define ABSORB( ctx, idx, v ) do { ctx->state[( idx ) >> 3] ^= ( ( uint64_t ) ( v ) ) << ( ( ( idx ) & 0x7 ) << 3 ); } while( 0 )
 #define SQUEEZE( ctx, idx ) ( ctx->state[( idx ) >> 3] >> ( ( ( idx ) & 0x7 ) << 3 ) )
 #define SWAP( x, y ) do { uint64_t tmp = ( x ); ( x ) = ( y ); ( y ) = tmp; } while( 0 )
-
-void mbedtls_sha3_init( mbedtls_sha3_context *ctx )
-{
-    if( ctx == NULL )
-        return;
-
-    memset( ctx, 0, sizeof( mbedtls_sha3_context ) );
-}
-
-void mbedtls_sha3_free( mbedtls_sha3_context *ctx )
-{
-    if( ctx == NULL )
-        return;
-
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha3_context ) );
-}
-
-void mbedtls_sha3_clone( mbedtls_sha3_context *dst,
-                           const mbedtls_sha3_context *src )
-{
-    if ( dst == NULL || src == NULL )
-        return;
-
-    *dst = *src;
-}
 
 /* The permutation function.  */
 static void keccak_f1600(mbedtls_sha3_context *ctx)
@@ -223,6 +203,32 @@ static int shake256_finish( mbedtls_sha3_context *ctx,
 	        keccak_f1600( ctx );
     }
     return( 0 );
+}
+#endif /* MBEDTLS_SHA3_SHAKE256_ENABLED */
+
+void mbedtls_sha3_init( mbedtls_sha3_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    memset( ctx, 0, sizeof( mbedtls_sha3_context ) );
+}
+
+void mbedtls_sha3_free( mbedtls_sha3_context *ctx )
+{
+    if( ctx == NULL )
+        return;
+
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha3_context ) );
+}
+
+void mbedtls_sha3_clone( mbedtls_sha3_context *dst,
+                           const mbedtls_sha3_context *src )
+{
+    if ( dst == NULL || src == NULL )
+        return;
+
+    *dst = *src;
 }
 
 /*

@@ -5,6 +5,8 @@
 
 /* BEGIN_DEPENDENCIES
  * depends_on:MBEDTLS_EDDSA_C
+ * depends_on:MBEDTLS_SHA512_C
+ * depends_on:MBEDTLS_SHA3
  * END_DEPENDENCIES
  */
 

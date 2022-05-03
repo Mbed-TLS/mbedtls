@@ -1,6 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/eddsa.h"
-#include "mbedtls/shake256.h"
+#include "mbedtls/sha3.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

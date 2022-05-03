@@ -43,7 +43,7 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 #include "mbedtls/sha512.h"
-#include "mbedtls/shake256.h"
+#include "mbedtls/sha3.h"
    
 int mbedtls_eddsa_can_do( mbedtls_ecp_group_id gid )
 {

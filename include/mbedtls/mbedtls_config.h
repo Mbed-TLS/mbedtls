@@ -2292,6 +2292,7 @@
  * Caller:
  *
  * Requires: MBEDTLS_ECP_C, MBEDTLS_ASN1_WRITE_C, MBEDTLS_ASN1_PARSE_C,
+ *           MBEDTLS_SHA512_C for Ed25519, MBEDTLS_SHA3_C for Ed448
  *           and at least one MBEDTLS_ECP_DP_XXX_ENABLED for a
  *           Edwards curve.
  */
@@ -2880,16 +2881,16 @@
 #define MBEDTLS_SHA512_C
 
 /**
- * \def MBEDTLS_SHAKE256_C
+ * \def MBEDTLS_SHA3_C
  *
- * Enable the SHAKE256 cryptographic hash algorithm.
+ * Enable the SHA3 cryptographic hash algorithm.
  *
- * Module:  library/shake256.c
+ * Module:  library/sha3.c
  *
- * This module adds support for SHAKE256.
+ * This module adds support for SHA3.
  * This module is required for the Ed448.
  */
-#define MBEDTLS_SHAKE256_C
+#define MBEDTLS_SHA3_C
 
 /**
  * \def MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT

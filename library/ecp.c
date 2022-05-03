@@ -82,7 +82,7 @@
 
 #if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
 #include "mbedtls/sha512.h"
-#include "mbedtls/shake256.h"
+#include "mbedtls/sha3.h"
 #endif
 
 #include <string.h>

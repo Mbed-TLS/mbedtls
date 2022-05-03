@@ -112,7 +112,11 @@
       !( defined(MBEDTLS_ECP_DP_ED25519_ENABLED) || \
          defined(MBEDTLS_ECP_DP_ED448_ENABLED) ) || \
       !defined(MBEDTLS_ASN1_PARSE_C) ||    \
-      !defined(MBEDTLS_ASN1_WRITE_C) )
+      !defined(MBEDTLS_ASN1_WRITE_C) ||    \
+      ( defined(MBEDTLS_ECP_DP_ED25519_ENABLED) \
+        && !defined(MBEDTLS_SHA512_C) )   ||    \
+      ( defined(MBEDTLS_ECP_DP_E448_ENABLED) \
+        && !defined(MBEDTLS_SHA3_C) ) )
 #error "MBEDTLS_EDDSA_C defined, but not all prerequisites"
 #endif
 

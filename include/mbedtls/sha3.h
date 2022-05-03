@@ -1,9 +1,9 @@
 /**
- * \file shake256.h
+ * \file sha3.h
  *
- * \brief This file contains SHAKE256 definitions and functions.
+ * \brief This file contains SHA3 definitions and functions.
  *
- * The Secure Hash Algorithms Keccak (SHAKE256) cryptographic
+ * The Secure Hash Algorithms cryptographic
  * hash functions are defined in <em>FIPS 202: SHA-3 Standard: 
  * Permutation-Based Hash and Extendable-Output Functions </em>.
  */
@@ -24,8 +24,8 @@
  *  limitations under the License.
  */
  
-#ifndef MBEDTLS_SHAKE256_H
-#define MBEDTLS_SHAKE256_H
+#ifndef MBEDTLS_SHA3_H
+#define MBEDTLS_SHA3_H
 #include "mbedtls/private_access.h"
 
 #include "mbedtls/build_info.h"
@@ -38,7 +38,7 @@ extern "C" {
 #endif
 
 /** SHAKE256 input data was malformed. */
-#define MBEDTLS_ERR_SHAKE256_BAD_INPUT_DATA                 -0x0076
+#define MBEDTLS_ERR_SHA3_BAD_INPUT_DATA                 -0x0076
 
 #if !defined(MBEDTLS_SHAKE256_ALT)
 // Regular implementation
@@ -159,4 +159,4 @@ int mbedtls_shake256( const unsigned char *input,
 }
 #endif
 
-#endif /* mbedtls_shake256.h */
+#endif /* mbedtls_sha3.h */

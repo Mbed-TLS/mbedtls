@@ -1,5 +1,5 @@
 /*
- *  FIPS-202 compliant SHAKE256 implementation
+ *  FIPS-202 compliant SHA3 implementation
  *
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
@@ -24,9 +24,9 @@
  
 #include "common.h"
 
-#if defined(MBEDTLS_SHAKE256_C)
+#if defined(MBEDTLS_SHA3_C)
 
-#include "mbedtls/shake256.h"
+#include "mbedtls/sha3.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 

@@ -17,7 +17,7 @@
  *  limitations under the License.
  */
 /*
- *  The SHAKE256 Secure Hash Standard was published by NIST in 2015.
+ *  The SHA-3 Secure Hash Standard was published by NIST in 2015.
  *
  *  https://nvlpubs.nist.gov/nistpubs/fips/nist.fips.202.pdf
  */
@@ -44,15 +44,10 @@
 #endif /* MBEDTLS_PLATFORM_C */
 #endif /* MBEDTLS_SELF_TEST */
 
-#define SHAKE256_VALIDATE_RET(cond)                           \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHAKE256_BAD_INPUT_DATA )
-#define SHAKE256_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
+#if !defined(MBEDTLS_SHA3_ALT)
 
-
-#if !defined(MBEDTLS_SHAKE256_ALT)
-
-#define SHAKE_BITS          256
-#define SHAKE_INDEX_MAX     (200 - (SHAKE_BITS >> 2))
+#define SHAKE256_BITS          256
+#define SHAKE256_INDEX_MAX     (200 - (SHAKE256_BITS >> 2))
 
 static const uint64_t rc[24] = {
     0x0000000000000001, 0x0000000000008082, 0x800000000000808a, 0x8000000080008000,
@@ -79,32 +74,33 @@ static const uint8_t pi[24] = {
 #define SQUEEZE( ctx, idx ) ( ctx->state[( idx ) >> 3] >> ( ( ( idx ) & 0x7 ) << 3 ) )
 #define SWAP( x, y ) do { uint64_t tmp = ( x ); ( x ) = ( y ); ( y ) = tmp; } while( 0 )
 
-void mbedtls_shake256_init( mbedtls_shake256_context *ctx )
-{
-    SHAKE256_VALIDATE( ctx != NULL );
-
-    memset( ctx, 0, sizeof( mbedtls_shake256_context ) );
-}
-
-void mbedtls_shake256_free( mbedtls_shake256_context *ctx )
+void mbedtls_sha3_init( mbedtls_sha3_context *ctx )
 {
     if( ctx == NULL )
         return;
 
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_shake256_context ) );
+    memset( ctx, 0, sizeof( mbedtls_sha3_context ) );
 }
 
-void mbedtls_shake256_clone( mbedtls_shake256_context *dst,
-                           const mbedtls_shake256_context *src )
+void mbedtls_sha3_free( mbedtls_sha3_context *ctx )
 {
-    SHAKE256_VALIDATE( dst != NULL );
-    SHAKE256_VALIDATE( src != NULL );
+    if( ctx == NULL )
+        return;
+
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha3_context ) );
+}
+
+void mbedtls_sha3_clone( mbedtls_sha3_context *dst,
+                           const mbedtls_sha3_context *src )
+{
+    if ( dst == NULL || src == NULL )
+        return;
 
     *dst = *src;
 }
 
 /* The permutation function.  */
-static void keccak_f1600(mbedtls_shake256_context *ctx)
+static void keccak_f1600(mbedtls_sha3_context *ctx)
 {
     uint64_t lane[5];
     uint64_t *s = ctx->state;
@@ -187,18 +183,21 @@ static void keccak_f1600(mbedtls_shake256_context *ctx)
 }
 
 /*
- * SHAKE256 context setup
+ * SHA-3 context setup
  */
-int mbedtls_shake256_starts( mbedtls_shake256_context *ctx )
+int mbedtls_sha3_starts( mbedtls_sha3_context *ctx, mbedtls_sha3_id id )
 {
-    ( void )ctx;
+    if( ctx == NULL )
+        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
+    
+    ctx->id = id;
     return( 0 );
 }
 
 /*
- * SHAKE256 process buffer
+ * SHA-3 process buffer
  */
-int mbedtls_shake256_update( mbedtls_shake256_context *ctx,
+int mbedtls_sha3_update( mbedtls_sha3_context *ctx,
                            const unsigned char *input,
                            size_t ilen )
 {
@@ -208,20 +207,20 @@ int mbedtls_shake256_update( mbedtls_shake256_context *ctx,
     while( ilen-- > 0 )
     {
         ABSORB( ctx, ctx->index, *input++ );
-        if( ( ctx->index = ( ctx->index + 1) % SHAKE_INDEX_MAX ) == 0 )
+        if( ( ctx->index = ( ctx->index + 1) % SHAKE256_INDEX_MAX ) == 0 )
             keccak_f1600( ctx );
     }
     return( 0 );
 }
 
-int mbedtls_shake256_finish( mbedtls_shake256_context *ctx,
+int mbedtls_sha3_finish( mbedtls_sha3_context *ctx,
                                unsigned char *output, size_t olen )
 {
     if( olen == 0 )
         return( 0 );
     
     ABSORB( ctx, ctx->index, 0x1f );
-    ABSORB( ctx, SHAKE_INDEX_MAX - 1, 0x80 );
+    ABSORB( ctx, SHAKE256_INDEX_MAX - 1, 0x80 );
     keccak_f1600( ctx );
     ctx->index = 0;
     
@@ -229,44 +228,47 @@ int mbedtls_shake256_finish( mbedtls_shake256_context *ctx,
     {
         *output++ = SQUEEZE( ctx, ctx->index );
         
-        if( ( ctx->index = ( ctx->index + 1) % SHAKE_INDEX_MAX ) == 0 )
+        if( ( ctx->index = ( ctx->index + 1) % SHAKE256_INDEX_MAX ) == 0 )
 	        keccak_f1600( ctx );
     }
     
     return( 0 );
 }
 
-#endif /* !MBEDTLS_SHAKE256_ALT */
+#endif /* !MBEDTLS_SHA3_ALT */
 
 /*
- * output = SHAKE256( input buffer )
+ * output = SHA3( input buffer )
  */
-int mbedtls_shake256( const unsigned char *input,
+int mbedtls_sha3( mbedtls_sha3_id id, const unsigned char *input,
                         size_t ilen,
                         unsigned char *output,
                         size_t olen )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    mbedtls_shake256_context ctx;
+    mbedtls_sha3_context ctx;
 
-    SHAKE256_VALIDATE_RET( ilen == 0 || input != NULL );
-    SHAKE256_VALIDATE_RET( (unsigned char *)output != NULL );
+    if( ilen != 0 && input == NULL )
+        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
+        
+    if( output == NULL )
+        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
 
-    mbedtls_shake256_init( &ctx );
+    mbedtls_sha3_init( &ctx );
 
-    if( ( ret = mbedtls_shake256_starts( &ctx ) ) != 0 )
+    if( ( ret = mbedtls_sha3_starts( &ctx, id ) ) != 0 )
         goto exit;
 
-    if( ( ret = mbedtls_shake256_update( &ctx, input, ilen ) ) != 0 )
+    if( ( ret = mbedtls_sha3_update( &ctx, input, ilen ) ) != 0 )
         goto exit;
 
-    if( ( ret = mbedtls_shake256_finish( &ctx, output, olen ) ) != 0 )
+    if( ( ret = mbedtls_sha3_finish( &ctx, output, olen ) ) != 0 )
         goto exit;
 
 exit:
-    mbedtls_shake256_free( &ctx );
+    mbedtls_sha3_free( &ctx );
 
     return( ret );
 }
 
-#endif /* MBEDTLS_SHAKE256_C */
+#endif /* MBEDTLS_SHA3_C */

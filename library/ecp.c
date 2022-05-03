@@ -3734,7 +3734,7 @@ static int mbedtls_ecp_expand_ed448( const mbedtls_mpi *d,
     unsigned char key_buf[57], sha_buf[114];
     MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( d, key_buf, sizeof( key_buf ) ) );
     
-    mbedtls_shake256( key_buf, sizeof( key_buf ) , sha_buf, 114 );
+    mbedtls_sha3( MBEDTLS_SHA3_SHAKE256, key_buf, sizeof( key_buf ) , sha_buf, 114 );
     
     sha_buf[0] &= ~0x3;
     sha_buf[56] = 0;

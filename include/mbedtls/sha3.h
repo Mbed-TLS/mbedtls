@@ -37,69 +37,88 @@
 extern "C" {
 #endif
 
-/** SHAKE256 input data was malformed. */
+/** SHA3 input data was malformed. */
 #define MBEDTLS_ERR_SHA3_BAD_INPUT_DATA                 -0x0076
 
-#if !defined(MBEDTLS_SHAKE256_ALT)
+/**
+ * SHA-3 family id.
+ *
+ * It identifies the family (SHA3-256, SHA3-512, SHAKE128, SHAKE256, etc.)
+ */
+
+typedef enum
+{
+    MBEDTLS_SHA3_NONE = 0, /*!< Operation not defined. */
+    MBEDTLS_SHA3_224, /*!< SHA3-224 */
+    MBEDTLS_SHA3_256, /*!< SHA3-256 */
+    MBEDTLS_SHA3_384, /*!< SHA3-384 */
+    MBEDTLS_SHA3_512, /*!< SHA3-512 */
+    MBEDTLS_SHA3_SHAKE128, /*!< SHA3-SHAKE128 */
+    MBEDTLS_SHA3_SHAKE256, /*!< SHA3-SHAKE256 */
+} mbedtls_sha3_id;
+
+#if !defined(MBEDTLS_SHA3_ALT)
 // Regular implementation
 //
 
 /**
- * \brief          The SHAKE256 context structure.
+ * \brief          The SHA-3 context structure.
  *
- *                 The structure is used SHAKE256 checksum calculations.
+ *                 The structure is used SHA-3 checksum calculations.
  */
-typedef struct mbedtls_shake256_context {
+typedef struct mbedtls_sha3_context {
   uint64_t state[25];
   uint8_t index;
+  uint8_t id;
 }
-mbedtls_shake256_context;
+mbedtls_sha3_context;
 
-#else  /* MBEDTLS_SHAKE256_ALT */
-#include "shake256_alt.h"
-#endif /* MBEDTLS_SHAKE256_ALT */
+#else  /* MBEDTLS_SHA3_ALT */
+#include "sha3_alt.h"
+#endif /* MBEDTLS_SHA3_ALT */
 
 /**
- * \brief          This function initializes a SHAKE256 context.
+ * \brief          This function initializes a SHA-3 context.
  *
- * \param ctx      The SHAKE256 context to initialize. This must not be \c NULL.
+ * \param ctx      The SHA-3 context to initialize. This must not be \c NULL.
  */
-void mbedtls_shake256_init( mbedtls_shake256_context *ctx );
+void mbedtls_sha3_init( mbedtls_sha3_context *ctx );
 
 /**
- * \brief          This function clears a SHAKE256 context.
+ * \brief          This function clears a SHA-3 context.
  *
- * \param ctx      The SHAKE256 context to clear. This may be \c NULL, in which
+ * \param ctx      The SHA-3 context to clear. This may be \c NULL, in which
  *                 case this function returns immediately. If it is not \c NULL,
- *                 it must point to an initialized SHAKE256 context.
+ *                 it must point to an initialized SHA-3 context.
  */
-void mbedtls_shake256_free( mbedtls_shake256_context *ctx );
+void mbedtls_sha3_free( mbedtls_sha3_context *ctx );
 
 /**
- * \brief          This function clones the state of a SHAKE256 context.
+ * \brief          This function clones the state of a SHA-3 context.
  *
  * \param dst      The destination context. This must be initialized.
  * \param src      The context to clone. This must be initialized.
  */
-void mbedtls_shake256_clone( mbedtls_shake256_context *dst,
-                           const mbedtls_shake256_context *src );
+void mbedtls_sha3_clone( mbedtls_sha3_context *dst,
+                           const mbedtls_sha3_context *src );
 
 /**
- * \brief          This function starts a SHAKE256 checksum
+ * \brief          This function starts a SHA-3 checksum
  *                 calculation.
  *
  * \param ctx      The context to use. This must be initialized.
+ * \param id       The id of the SHA-3 family.
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
-int mbedtls_shake256_starts( mbedtls_shake256_context *ctx );
+int mbedtls_sha3_starts( mbedtls_sha3_context *ctx, mbedtls_sha3_id id );
 
 /**
  * \brief          This function feeds an input buffer into an ongoing
- *                 SHAKE256 checksum calculation.
+ *                 SHA-3 checksum calculation.
  *
- * \param ctx      The SHAKE256 context. This must be initialized
+ * \param ctx      The SHA-3 context. This must be initialized
  *                 and have a hash operation started.
  * \param input    The buffer holding the data. This must be a readable
  *                 buffer of length \p ilen Bytes.
@@ -108,17 +127,17 @@ int mbedtls_shake256_starts( mbedtls_shake256_context *ctx );
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
-int mbedtls_shake256_update( mbedtls_shake256_context *ctx,
+int mbedtls_sha3_update( mbedtls_sha3_context *ctx,
                            const unsigned char *input,
                            size_t ilen );
 
 /**
- * \brief          This function finishes the SHAKE256 operation, and writes
+ * \brief          This function finishes the SHA-3 operation, and writes
  *                 the result to the output buffer.
  *
- * \param ctx      The SHAKE256 context. This must be initialized
+ * \param ctx      The SHA-3 context. This must be initialized
  *                 and have a hash operation started.
- * \param output   The SHAKE256 checksum result.
+ * \param output   The SHA-3 checksum result.
  *                 This must be a writable buffer of length \c olen bytes.
  * \param olen     Defines a variable output length (in bytes). \c output must be
  *                 \c olen bytes length.
@@ -126,23 +145,24 @@ int mbedtls_shake256_update( mbedtls_shake256_context *ctx,
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
-int mbedtls_shake256_finish( mbedtls_shake256_context *ctx,
+int mbedtls_sha3_finish( mbedtls_sha3_context *ctx,
                            unsigned char *output, size_t olen );
 
 /**
- * \brief          This function calculates the SHAKE256
+ * \brief          This function calculates the SHA-3
  *                 checksum of a buffer.
  *
  *                 The function allocates the context, performs the
  *                 calculation, and frees the context.
  *
- *                 The SHAKE256 result is calculated as
- *                 output = SHAKE256(input buffer, d).
+ *                 The SHA-3 result is calculated as
+ *                 output = SHA-3(id, input buffer, d).
  *
+ * \param id       The id of the SHA-3 family.
  * \param input    The buffer holding the data. This must be a readable
  *                 buffer of length \p ilen Bytes.
  * \param ilen     The length of the input data in Bytes.
- * \param output   The SHAKE256 checksum result.
+ * \param output   The SHA-3 checksum result.
  *                 This must be a writable buffer of length \c olen bytes.
  * \param olen     Determines the length (in bytes) of the output. \c output
  *                 must be \c olen bytes length.
@@ -150,7 +170,7 @@ int mbedtls_shake256_finish( mbedtls_shake256_context *ctx,
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
-int mbedtls_shake256( const unsigned char *input,
+int mbedtls_sha3( mbedtls_sha3_id id, const unsigned char *input,
                     size_t ilen,
                     unsigned char *output,
                     size_t olen );

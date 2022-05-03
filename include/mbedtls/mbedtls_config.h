@@ -328,6 +328,7 @@
 //#define MBEDTLS_SHA1_ALT
 //#define MBEDTLS_SHA256_ALT
 //#define MBEDTLS_SHA512_ALT
+//#define MBEDTLS_SHA3_ALT
 
 /*
  * When replacing the elliptic curve module, pleace consider, that it is
@@ -459,6 +460,8 @@
 //#define MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT
 //#define MBEDTLS_ECP_RANDOMIZE_MXZ_ALT
 //#define MBEDTLS_ECP_NORMALIZE_MXZ_ALT
+/* Support for curves with Edwards arithmetic */
+//#define MBEDTLS_ECP_DOUBLE_ADD_EDXYZ_ALT
 
 /**
  * \def MBEDTLS_ENTROPY_HARDWARE_ALT

@@ -80,18 +80,18 @@ static int mbedtls_eddsa_put_dom2_ctx( int flag, const unsigned char *ctx,
 
 #ifdef MBEDTLS_ECP_DP_ED448_ENABLED
 static int mbedtls_eddsa_put_dom4_ctx( int flag, const unsigned char *ctx, 
-                size_t ctx_len, mbedtls_shake256_context *sha_ctx )
+                size_t ctx_len, mbedtls_sha3_context *sha_ctx )
 {
     unsigned char ct_init_string[] = "SigEd448";
     unsigned char ct_flag = flag;
     unsigned char ct_ctx_len = ctx_len & 0xff;
     
-    mbedtls_shake256_update( sha_ctx, ct_init_string, 8 );
-    mbedtls_shake256_update( sha_ctx, &ct_flag, 1 );
-    mbedtls_shake256_update( sha_ctx, &ct_ctx_len, 1 );
+    mbedtls_sha3_update( sha_ctx, ct_init_string, 8 );
+    mbedtls_sha3_update( sha_ctx, &ct_flag, 1 );
+    mbedtls_sha3_update( sha_ctx, &ct_ctx_len, 1 );
     
     if( ctx && ctx_len > 0)
-        mbedtls_shake256_update( sha_ctx, ctx, ctx_len );
+        mbedtls_sha3_update( sha_ctx, ctx, ctx_len );
     
     return( 0 );
 }
@@ -219,13 +219,13 @@ int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
 #ifdef MBEDTLS_ECP_DP_ED448_ENABLED
     if( grp->id == MBEDTLS_ECP_DP_ED448 )
     {
-        mbedtls_shake256_context sha_ctx;
+        mbedtls_sha3_context sha_ctx;
         unsigned char sha_buf[114], tmp_buf[57];
         size_t olen = 0;
         
         /* r computation */
-        mbedtls_shake256_init( &sha_ctx );    
-        mbedtls_shake256_starts( &sha_ctx );
+        mbedtls_sha3_init( &sha_ctx );    
+        mbedtls_sha3_starts( &sha_ctx, MBEDTLS_SHA3_SHAKE256 );
         
         if( eddsa_id == MBEDTLS_EDDSA_PREHASH )
         {
@@ -239,13 +239,13 @@ int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
         /* Update SHAKE with prefix */
         MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( &prefix, tmp_buf, sizeof(tmp_buf) ) );
         
-        mbedtls_shake256_update( &sha_ctx, tmp_buf, sizeof( tmp_buf ) );
+        mbedtls_sha3_update( &sha_ctx, tmp_buf, sizeof( tmp_buf ) );
         
         /* In EDDSA_PREHASH, buf should contain the SHAKE256 hash. It contains the whole message otherwise */
-        mbedtls_shake256_update( &sha_ctx, buf, blen );
+        mbedtls_sha3_update( &sha_ctx, buf, blen );
         
-        mbedtls_shake256_finish( &sha_ctx, sha_buf, 114 );
-        mbedtls_shake256_free( &sha_ctx );
+        mbedtls_sha3_finish( &sha_ctx, sha_buf, 114 );
+        mbedtls_sha3_free( &sha_ctx );
         
         MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( &rq, sha_buf, sizeof( sha_buf ) ) );
                
@@ -261,8 +261,8 @@ int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
         }
         
         /* s computation */
-        mbedtls_shake256_init( &sha_ctx );    
-        mbedtls_shake256_starts( &sha_ctx );
+        mbedtls_sha3_init( &sha_ctx );    
+        mbedtls_sha3_starts( &sha_ctx, MBEDTLS_SHA3_SHAKE256 );
 
         if( eddsa_id == MBEDTLS_EDDSA_PREHASH )
         {
@@ -274,16 +274,16 @@ int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
         }        
 
         MBEDTLS_MPI_CHK( mbedtls_ecp_point_write_binary( grp, &R, MBEDTLS_ECP_PF_COMPRESSED, &olen, tmp_buf, sizeof( tmp_buf ) ) );
-        mbedtls_shake256_update( &sha_ctx, tmp_buf, sizeof( tmp_buf ) );
+        mbedtls_sha3_update( &sha_ctx, tmp_buf, sizeof( tmp_buf ) );
         
         MBEDTLS_MPI_CHK( mbedtls_ecp_point_write_binary( grp, &Q, MBEDTLS_ECP_PF_COMPRESSED, &olen, tmp_buf, sizeof( tmp_buf ) ) );
-        mbedtls_shake256_update( &sha_ctx, tmp_buf, sizeof( tmp_buf ) );
+        mbedtls_sha3_update( &sha_ctx, tmp_buf, sizeof( tmp_buf ) );
         
         /* In EDDSA_PREHASH, buf should contain the SHA512 hash. It contains the whole message otherwise */
-        mbedtls_shake256_update( &sha_ctx, buf, blen );
+        mbedtls_sha3_update( &sha_ctx, buf, blen );
         
-        mbedtls_shake256_finish( &sha_ctx, sha_buf, 114 );
-        mbedtls_shake256_free( &sha_ctx );
+        mbedtls_sha3_finish( &sha_ctx, sha_buf, 114 );
+        mbedtls_sha3_free( &sha_ctx );
         
         MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( &h, sha_buf, sizeof( sha_buf ) ) );
         
@@ -388,15 +388,15 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
 #ifdef MBEDTLS_ECP_DP_ED448_ENABLED
     if( grp->id == MBEDTLS_ECP_DP_ED448 )
     {
-        mbedtls_shake256_context sha_ctx;
+        mbedtls_sha3_context sha_ctx;
         unsigned char sha_buf[114], tmp_buf[57];
         size_t olen = 0;
         
         MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( r, tmp_buf, sizeof(tmp_buf) ) );
         MBEDTLS_MPI_CHK( mbedtls_ecp_point_read_binary( grp, &R, tmp_buf, sizeof(tmp_buf) ) );
         
-        mbedtls_shake256_init( &sha_ctx );    
-        mbedtls_shake256_starts( &sha_ctx  );
+        mbedtls_sha3_init( &sha_ctx );    
+        mbedtls_sha3_starts( &sha_ctx, MBEDTLS_SHA3_SHAKE256 );
         
         if( eddsa_id == MBEDTLS_EDDSA_PREHASH )
         {
@@ -408,16 +408,16 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
         }
         
         /* tmp_buf contains the R point */
-        mbedtls_shake256_update( &sha_ctx, tmp_buf, sizeof( tmp_buf ) );
+        mbedtls_sha3_update( &sha_ctx, tmp_buf, sizeof( tmp_buf ) );
         
         MBEDTLS_MPI_CHK( mbedtls_ecp_point_write_binary( grp, Q, MBEDTLS_ECP_PF_COMPRESSED, &olen, tmp_buf, sizeof( tmp_buf ) ) );
-        mbedtls_shake256_update( &sha_ctx, tmp_buf, sizeof( tmp_buf ) );
+        mbedtls_sha3_update( &sha_ctx, tmp_buf, sizeof( tmp_buf ) );
         
         /* In EDDSA_PREHASH, buf should contain the SHAKE256 hash. It contains the whole message otherwise */
-        mbedtls_shake256_update( &sha_ctx, buf, blen );
+        mbedtls_sha3_update( &sha_ctx, buf, blen );
         
-        mbedtls_shake256_finish( &sha_ctx, sha_buf, 114 );
-        mbedtls_shake256_free( &sha_ctx );
+        mbedtls_sha3_finish( &sha_ctx, sha_buf, 114 );
+        mbedtls_sha3_free( &sha_ctx );
         
         MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( &h, sha_buf, sizeof( sha_buf ) ) );
         
@@ -514,7 +514,7 @@ cleanup:
     mbedtls_mpi_free( &s );
 
     return( ret );
-#endif /* defined(MBEDTLS_ASN1_WRITE_C) */
+#endif /* MBEDTLS_ASN1_WRITE_C */
 }
 
 /*
@@ -580,7 +580,7 @@ cleanup:
     mbedtls_mpi_free( &s );
 
     return( ret );
-#endif /* defined(MBEDTLS_ASN1_PARSE_C) */
+#endif /* MBEDTLS_ASN1_PARSE_C */
 }
 
 /*

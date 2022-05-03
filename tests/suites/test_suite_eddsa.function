@@ -43,7 +43,7 @@ void eddsa_sign( int gid, int eddsa_type, data_t *key, data_t *message, data_t *
         if( gid == MBEDTLS_ECP_DP_ED25519 )
             TEST_ASSERT( mbedtls_sha512( message->x, message->len, sha_buf, 0 ) == 0 );
         else if( gid == MBEDTLS_ECP_DP_ED448 )
-            TEST_ASSERT( mbedtls_shake256( message->x, message->len, sha_buf, sha_buf_size ) == 0 );
+            TEST_ASSERT( mbedtls_sha3( MBEDTLS_SHA3_SHAKE256, message->x, message->len, sha_buf, sha_buf_size ) == 0 );
         
         data = sha_buf;
         data_size = sha_buf_size;
@@ -136,7 +136,7 @@ void eddsa_verify( int gid, int eddsa_type, data_t *key, data_t *message, data_t
         if( gid == MBEDTLS_ECP_DP_ED25519 )
             TEST_ASSERT( mbedtls_sha512( message->x, message->len, sha_buf, 0 ) == 0 );
         else if( gid == MBEDTLS_ECP_DP_ED448 )
-            TEST_ASSERT( mbedtls_shake256( message->x, message->len, sha_buf, sha_buf_size ) == 0 );
+            TEST_ASSERT( mbedtls_sha3( MBEDTLS_SHA3_SHAKE256, message->x, message->len, sha_buf, sha_buf_size ) == 0 );
         
         data = sha_buf;
         data_size = sha_buf_size;

@@ -80,12 +80,9 @@ extern "C" {
 typedef enum
 {
     MBEDTLS_EDDSA_NONE = 0, /*!< Operation not defined. */
-    MBEDTLS_EDDSA_PURE,     /*!< Pure operation (the usual). It uses the entire message, 
-                                without hashing it previously. */
-    MBEDTLS_EDDSA_CTX,      /*!< Operation with a deterministic context. It uses the entire 
-                                message, without hashing it previously. */
-    MBEDTLS_EDDSA_PREHASH,  /*!< Operation with a pre-hashed message. It uses the hashed message
-                                instead of full message like pure or ctx. */
+    MBEDTLS_EDDSA_PURE,     /*!< Pure operation (the usual). It uses the entire message, without hashing it previously. */
+    MBEDTLS_EDDSA_CTX,      /*!< Operation with a deterministic context. It uses the entire message, without hashing it previously. */
+    MBEDTLS_EDDSA_PREHASH,  /*!< Operation with a pre-hashed message. It uses the hashed message instead of full message like pure or ctx. */
 } mbedtls_eddsa_id;
 
 /**

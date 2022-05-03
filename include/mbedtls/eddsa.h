@@ -30,17 +30,11 @@
 
 #ifndef MBEDTLS_EDDSA_H
 #define MBEDTLS_EDDSA_H
-#include "mbedtls/private_access.h"
 
 #include "mbedtls/build_info.h"
 
 #include "mbedtls/ecp.h"
 #include "mbedtls/md.h"
-
-#define EDDSA_VALIDATE_RET( cond )    \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_ECP_BAD_INPUT_DATA )
-#define EDDSA_VALIDATE( cond )        \
-    MBEDTLS_INTERNAL_VALIDATE( cond )
 
 /**
  * \brief           Maximum EdDSA signature size for a given curve bit size
@@ -66,7 +60,12 @@
 
 /** The maximal size of an EdDSA signature in Bytes. */
 /* EdDSA is defined for two curves: Ed25519 (256 bits) and Ed448 (456 bits) */
+
+#if defined(MBEDTLS_ECP_DP_ED448_ENABLED)
 #define MBEDTLS_EDDSA_MAX_LEN  MBEDTLS_EDDSA_MAX_SIG_LEN( 456 )
+#elif defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
+#define MBEDTLS_EDDSA_MAX_LEN  MBEDTLS_EDDSA_MAX_SIG_LEN( 256 )
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -231,7 +230,6 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
  * \param ctx       The EdDSA context to use. This must be initialized
  *                  and have a group and private key bound to it, for example
  *                  via mbedtls_eddsa_genkey() or mbedtls_eddsa_from_keypair().
- * \param md_alg    The message digest that was used to hash the message.
  * \param hash      The message hash to be signed. This must be a readable
  *                  buffer of length \p blen Bytes.
  * \param hlen      The length of the hash \p hash in Bytes.

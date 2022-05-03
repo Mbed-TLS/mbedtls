@@ -1767,7 +1767,6 @@ component_test_psa_crypto_config_accel_hash () {
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
     make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
 
-    not grep mbedtls_sha512_init library/sha512.o
     not grep mbedtls_sha1_init library/sha1.o
 
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash"

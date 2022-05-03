@@ -59,8 +59,6 @@ static mbedtls_sha3_family_functions sha3_families[] = {
     { MBEDTLS_SHA3_NONE, 0, 0, 0 }
 };
 
-#if defined(MBEDTLS_SHA3_SHAKE256_ENABLED)
-
 static const uint64_t rc[24] = {
     0x0000000000000001, 0x0000000000008082, 0x800000000000808a, 0x8000000080008000,
     0x000000000000808b, 0x0000000080000001, 0x8000000080008081, 0x8000000000008009,
@@ -168,7 +166,6 @@ static void keccak_f1600(mbedtls_sha3_context *ctx)
         s[0] ^= rc[round];
     }
 }
-#endif /* MBEDTLS_SHA3_SHAKE256_ENABLED */
 
 void mbedtls_sha3_init( mbedtls_sha3_context *ctx )
 {
@@ -249,8 +246,14 @@ int mbedtls_sha3_update( mbedtls_sha3_context *ctx,
 int mbedtls_sha3_finish( mbedtls_sha3_context *ctx,
                                unsigned char *output, size_t olen )
 {
+    if( ctx == NULL )
+        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
+
     if( olen == 0 )
         return( 0 );
+        
+    if( ctx->olen > 0 && ctx->olen != olen )
+        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
 
     //ctx->finish( ctx, output, olen );
     ABSORB( ctx, ctx->index, ctx->xor_byte );

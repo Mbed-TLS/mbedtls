@@ -1147,8 +1147,7 @@ static int ssl_tls13_write_encrypted_extensions( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *buf;
-    size_t buf_len = 0;
-    size_t msg_len = 0;
+    size_t buf_len, msg_len;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write encrypted extensions" ) );
 

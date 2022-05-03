@@ -56,7 +56,7 @@ static int shake256_finish( mbedtls_sha3_context *ctx,
 #endif /* MBEDTLS_SHA3_SHAKE256_ENABLED */
 
 /*
- * List of supported SHA-3 families 
+ * List of supported SHA-3 families
  */
 static mbedtls_sha3_family_functions sha3_families[] = {
 #if defined(MBEDTLS_SHA3_SHAKE256_ENABLED)

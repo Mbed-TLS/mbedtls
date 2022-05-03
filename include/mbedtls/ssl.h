@@ -1427,6 +1427,7 @@ struct mbedtls_ssl_config
                               *   If either no PSK or a raw PSK have been
                               *   configured, this has value \c 0.
                               */
+    uint8_t MBEDTLS_PRIVATE(psk_opaque_is_internal);
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     unsigned char *MBEDTLS_PRIVATE(psk);      /*!< The raw pre-shared key. This field should

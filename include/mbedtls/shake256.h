@@ -38,7 +38,7 @@ extern "C" {
 #endif
 
 /** SHAKE256 input data was malformed. */
-#define MBEDTLS_ERR_SHAKE256_BAD_INPUT_DATA                 -0x5074
+#define MBEDTLS_ERR_SHAKE256_BAD_INPUT_DATA                 -0x0076
 
 #if !defined(MBEDTLS_SHAKE256_ALT)
 // Regular implementation

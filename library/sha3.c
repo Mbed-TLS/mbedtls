@@ -46,6 +46,18 @@
 
 #if !defined(MBEDTLS_SHA3_ALT)
 
+static int shake256_update( mbedtls_sha3_context *ctx,
+                           const unsigned char *input,
+                           size_t ilen );
+static int shake256_finish( mbedtls_sha3_context *ctx,
+                               unsigned char *output, 
+                               size_t olen );
+
+mbedtls_sha3_family_functions sha3_families[] = {
+    { MBEDTLS_SHA3_SHAKE256, shake256_update, shake256_finish },
+    { MBEDTLS_SHA3_NONE, NULL, NULL }
+};
+
 #define SHAKE256_BITS          256
 #define SHAKE256_INDEX_MAX     (200 - (SHAKE256_BITS >> 2))
 
@@ -182,28 +194,10 @@ static void keccak_f1600(mbedtls_sha3_context *ctx)
     }
 }
 
-/*
- * SHA-3 context setup
- */
-int mbedtls_sha3_starts( mbedtls_sha3_context *ctx, mbedtls_sha3_id id )
-{
-    if( ctx == NULL )
-        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
-    
-    ctx->id = id;
-    return( 0 );
-}
-
-/*
- * SHA-3 process buffer
- */
-int mbedtls_sha3_update( mbedtls_sha3_context *ctx,
+static int shake256_update( mbedtls_sha3_context *ctx,
                            const unsigned char *input,
                            size_t ilen )
 {
-    if( ilen == 0 )
-        return( 0 );
-
     while( ilen-- > 0 )
     {
         ABSORB( ctx, ctx->index, *input++ );
@@ -213,12 +207,9 @@ int mbedtls_sha3_update( mbedtls_sha3_context *ctx,
     return( 0 );
 }
 
-int mbedtls_sha3_finish( mbedtls_sha3_context *ctx,
+static int shake256_finish( mbedtls_sha3_context *ctx,
                                unsigned char *output, size_t olen )
 {
-    if( olen == 0 )
-        return( 0 );
-    
     ABSORB( ctx, ctx->index, 0x1f );
     ABSORB( ctx, SHAKE256_INDEX_MAX - 1, 0x80 );
     keccak_f1600( ctx );
@@ -231,6 +222,59 @@ int mbedtls_sha3_finish( mbedtls_sha3_context *ctx,
         if( ( ctx->index = ( ctx->index + 1) % SHAKE256_INDEX_MAX ) == 0 )
 	        keccak_f1600( ctx );
     }
+    return( 0 );
+}
+
+/*
+ * SHA-3 context setup
+ */
+int mbedtls_sha3_starts( mbedtls_sha3_context *ctx, mbedtls_sha3_id id )
+{
+    mbedtls_sha3_family_functions *p = NULL;
+    if( ctx == NULL )
+        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
+    
+    for( p = sha3_families; p->id != MBEDTLS_SHA3_NONE; p++ )
+    {
+        if( p->id == id )
+            break;
+    }
+    
+    if( p == NULL )
+        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
+        
+    ctx->id = id;
+    ctx->update = p->update;
+    ctx->finish = p->finish;
+    
+    return( 0 );
+}
+
+/*
+ * SHA-3 process buffer
+ */
+int mbedtls_sha3_update( mbedtls_sha3_context *ctx,
+                           const unsigned char *input,
+                           size_t ilen )
+{
+    if( ctx == NULL )
+        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
+        
+    if( ilen == 0 )
+        return( 0 );
+    
+    ctx->update( ctx, input, ilen );
+    
+    return( 0 );
+}
+
+int mbedtls_sha3_finish( mbedtls_sha3_context *ctx,
+                               unsigned char *output, size_t olen )
+{
+    if( olen == 0 )
+        return( 0 );
+    
+    ctx->finish( ctx, output, olen );
     
     return( 0 );
 }

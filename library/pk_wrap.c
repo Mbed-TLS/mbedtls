@@ -100,7 +100,8 @@ int mbedtls_pk_error_from_psa( psa_status_t status )
     }
 }
 
-#if defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY)
+#if defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY) ||    \
+    defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR)
 int mbedtls_pk_error_from_psa_rsa( psa_status_t status )
 {
     switch( status )
@@ -121,7 +122,7 @@ int mbedtls_pk_error_from_psa_rsa( psa_status_t status )
             return( mbedtls_pk_error_from_psa( status ) );
     }
 }
-#endif
+#endif /* PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY || PSA_WANT_KEY_TYPE_RSA_KEY_PAIR */
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 
@@ -1602,6 +1603,7 @@ const mbedtls_pk_info_t mbedtls_pk_ecdsa_opaque_info = {
     NULL, /* debug - could be done later, or even left NULL */
 };
 
+#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR)
 static int pk_opaque_rsa_decrypt( void *ctx,
                     const unsigned char *input, size_t ilen,
                     unsigned char *output, size_t *olen, size_t osize,
@@ -1625,6 +1627,7 @@ static int pk_opaque_rsa_decrypt( void *ctx,
 
     return 0;
 }
+#endif /* PSA_WANT_KEY_TYPE_RSA_KEY_PAIR */
 
 const mbedtls_pk_info_t mbedtls_pk_rsa_opaque_info = {
     MBEDTLS_PK_OPAQUE,
@@ -1637,7 +1640,11 @@ const mbedtls_pk_info_t mbedtls_pk_rsa_opaque_info = {
     NULL, /* restartable verify - not relevant */
     NULL, /* restartable sign - not relevant */
 #endif
+#if defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR)
     pk_opaque_rsa_decrypt,
+#else
+    NULL, /* decrypt - not available */
+#endif /* PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY */
     NULL, /* encrypt - will be done later */
     NULL, /* check_pair - could be done later or left NULL */
     pk_opaque_alloc_wrap,

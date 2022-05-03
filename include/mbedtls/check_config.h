@@ -107,6 +107,15 @@
 #error "MBEDTLS_ECDSA_C defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_EDDSA_C) &&            \
+    ( !defined(MBEDTLS_ECP_C) ||           \
+      !( defined(MBEDTLS_ECP_DP_ED25519_ENABLED) || \
+         defined(MBEDTLS_ECP_DP_ED448_ENABLED) ) || \
+      !defined(MBEDTLS_ASN1_PARSE_C) ||    \
+      !defined(MBEDTLS_ASN1_WRITE_C) )
+#error "MBEDTLS_EDDSA_C defined, but not all prerequisites"
+#endif
+
 #if defined(MBEDTLS_ECJPAKE_C) &&           \
     ( !defined(MBEDTLS_ECP_C) || !defined(MBEDTLS_MD_C) )
 #error "MBEDTLS_ECJPAKE_C defined, but not all prerequisites"

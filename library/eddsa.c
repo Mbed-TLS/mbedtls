@@ -44,13 +44,7 @@
 #include "mbedtls/error.h"
 #include "mbedtls/sha512.h"
 #include "mbedtls/shake256.h"
-
-/* Parameter validation macros based on platform_util.h */
-#define EDDSA_VALIDATE_RET( cond )    \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_ECP_BAD_INPUT_DATA )
-#define EDDSA_VALIDATE( cond )        \
-    MBEDTLS_INTERNAL_VALIDATE( cond )
-    
+   
 int mbedtls_eddsa_can_do( mbedtls_ecp_group_id gid )
 {
     switch( gid )
@@ -491,12 +485,8 @@ int mbedtls_eddsa_write_signature( mbedtls_eddsa_context *ctx,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_mpi r, s;
-    EDDSA_VALIDATE_RET( ctx   != NULL );
-    EDDSA_VALIDATE_RET( hash  != NULL );
-    EDDSA_VALIDATE_RET( sig   != NULL );
-    EDDSA_VALIDATE_RET( slen  != NULL );
-
-    if( f_rng == NULL )
+    
+    if( ctx == NULL || hash == NULL || sig == NULL || slen == NULL || f_rng == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     mbedtls_mpi_init( &r );
@@ -531,9 +521,9 @@ int mbedtls_eddsa_read_signature( mbedtls_eddsa_context *ctx,
     const unsigned char *end = sig + slen;
     size_t len;
     mbedtls_mpi r, s;
-    EDDSA_VALIDATE_RET( ctx  != NULL );
-    EDDSA_VALIDATE_RET( hash != NULL );
-    EDDSA_VALIDATE_RET( sig  != NULL );
+    
+    if( ctx == NULL || hash == NULL || sig == NULL )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     mbedtls_mpi_init( &r );
     mbedtls_mpi_init( &s );
@@ -584,8 +574,9 @@ int mbedtls_eddsa_genkey( mbedtls_eddsa_context *ctx, mbedtls_ecp_group_id gid,
                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret = 0;
-    EDDSA_VALIDATE_RET( ctx   != NULL );
-    EDDSA_VALIDATE_RET( f_rng != NULL );
+    
+    if( ctx == NULL || f_rng == NULL )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     ret = mbedtls_ecp_group_load( &ctx->grp, gid );
     if( ret != 0 )
@@ -601,8 +592,9 @@ int mbedtls_eddsa_genkey( mbedtls_eddsa_context *ctx, mbedtls_ecp_group_id gid,
 int mbedtls_eddsa_from_keypair( mbedtls_eddsa_context *ctx, const mbedtls_ecp_keypair *key )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    EDDSA_VALIDATE_RET( ctx != NULL );
-    EDDSA_VALIDATE_RET( key != NULL );
+    
+    if( ctx == NULL || key == NULL )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     if( ( ret = mbedtls_ecp_group_copy( &ctx->grp, &key->grp ) ) != 0 ||
         ( ret = mbedtls_mpi_copy( &ctx->d, &key->d ) ) != 0 ||
@@ -619,7 +611,8 @@ int mbedtls_eddsa_from_keypair( mbedtls_eddsa_context *ctx, const mbedtls_ecp_ke
  */
 void mbedtls_eddsa_init( mbedtls_eddsa_context *ctx )
 {
-    EDDSA_VALIDATE( ctx != NULL );
+    if( ctx == NULL )
+        return;
 
     mbedtls_ecp_keypair_init( ctx );
 }

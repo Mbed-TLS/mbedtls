@@ -81,8 +81,12 @@
 #include "ecp_invasive.h"
 
 #if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
+#if defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
 #include "mbedtls/sha512.h"
+#endif
+#if defined(MBEDTLS_ECP_DP_ED448_ENABLED)
 #include "mbedtls/sha3.h"
+#endif
 #endif
 
 #include <string.h>
@@ -421,7 +425,7 @@ static const mbedtls_ecp_curve_info ecp_supported_curves[] =
     { MBEDTLS_ECP_DP_ED25519,      29,     256,    "ed25519"           },
 #endif
 #if defined(MBEDTLS_ECP_DP_ED448_ENABLED)
-    { MBEDTLS_ECP_DP_ED448,        30,     457,    "ed448"             },
+    { MBEDTLS_ECP_DP_ED448,        30,     456,    "ed448"             },
 #endif
     { MBEDTLS_ECP_DP_NONE,          0,     0,      NULL                },
 };
@@ -913,6 +917,7 @@ int mbedtls_ecp_point_read_binary( const mbedtls_ecp_group *grp,
     }
 #endif
 #if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
+    ( void )plen;
     if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_EDWARDS )
     {
         MBEDTLS_MPI_CHK( mbedtls_ecp_point_read_binary_ed( grp, pt, buf, ilen ) );
@@ -3696,6 +3701,7 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
 }
 
 #if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
+#if defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
 static int mbedtls_ecp_expand_ed25519( const mbedtls_mpi *d,
                     mbedtls_mpi *q, mbedtls_mpi *prefix )
 {
@@ -3722,7 +3728,9 @@ static int mbedtls_ecp_expand_ed25519( const mbedtls_mpi *d,
 cleanup:
     return( ret );
 }
+#endif /* MBEDTLS_ECP_DP_ED25519_ENABLED */
 
+#if defined(MBEDTLS_ECP_DP_ED448_ENABLED)
 static int mbedtls_ecp_expand_ed448( const mbedtls_mpi *d,
                     mbedtls_mpi *q, mbedtls_mpi *prefix )
 {
@@ -3749,6 +3757,7 @@ static int mbedtls_ecp_expand_ed448( const mbedtls_mpi *d,
 cleanup:
     return( ret );
 }
+#endif /* MBEDTLS_ECP_DP_ED448_ENABLED */
 
 int mbedtls_ecp_expand_edwards( mbedtls_ecp_group *grp,
                     const mbedtls_mpi *d, mbedtls_mpi *q,
@@ -3756,11 +3765,14 @@ int mbedtls_ecp_expand_edwards( mbedtls_ecp_group *grp,
 {
     int ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
 
+#if defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
     if( grp->id == MBEDTLS_ECP_DP_ED25519 )
         ret = mbedtls_ecp_expand_ed25519( d, q, prefix );
-    else if( grp->id == MBEDTLS_ECP_DP_ED448 )
+#endif
+#if defined(MBEDTLS_ECP_DP_ED448_ENABLED)
+    if( grp->id == MBEDTLS_ECP_DP_ED448 )
         ret = mbedtls_ecp_expand_ed448( d, q, prefix );
-
+#endif
     return( ret );
 }
 int mbedtls_ecp_point_edwards( mbedtls_ecp_group *grp,
@@ -3781,7 +3793,7 @@ cleanup:
     mbedtls_mpi_free( &q );
     return( ret );
 }
-#endif
+#endif /* MBEDTLS_ECP_EDWARDS_ENABLED */
 
 /*
  * Generate a keypair with configurable base point

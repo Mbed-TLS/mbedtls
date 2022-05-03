@@ -184,12 +184,6 @@
 #error "MBEDTLS_ENTROPY_FORCE_SHA256 defined, but not all prerequisites"
 #endif
 
-/* If SHA3 is enabled, at least one family should be enabled */
-#if defined(MBEDTLS_SHA3_C) &&            \
-    ( !( defined(MBEDTLS_SHA3_SHAKE256_ENABLED) ) )
-#error "MBEDTLS_SHA3_C defined, but not all prerequisites"
-#endif
-
 #if defined(__has_feature)
 #if __has_feature(memory_sanitizer)
 #define MBEDTLS_HAS_MEMSAN

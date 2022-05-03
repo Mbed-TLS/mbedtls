@@ -65,12 +65,10 @@ struct mbedtls_sha3_context;
 typedef struct mbedtls_sha3_family_functions
 {
     mbedtls_sha3_id id;
-    int (*update)( struct mbedtls_sha3_context *ctx,
-                           const unsigned char *input,
-                           size_t ilen );
-    int (*finish)( struct mbedtls_sha3_context *ctx,
-                               unsigned char *output,
-                               size_t olen );
+
+    uint16_t r;
+    uint16_t olen;
+    uint8_t xor_byte;
 }
 mbedtls_sha3_family_functions;
 
@@ -83,12 +81,11 @@ typedef struct mbedtls_sha3_context {
     uint64_t state[25];
     uint8_t index;
     uint8_t id;
-    int (*update)( struct mbedtls_sha3_context *ctx,
-                           const unsigned char *input,
-                           size_t ilen );
-    int (*finish)( struct mbedtls_sha3_context *ctx,
-                               unsigned char *output,
-                               size_t olen );
+
+    uint16_t r;
+    uint16_t olen;
+    uint8_t xor_byte;
+    uint16_t max_block_size;
 }
 mbedtls_sha3_context;
 

@@ -2896,16 +2896,6 @@
 #define MBEDTLS_SHA3_C
 
 /**
- * \def MBEDTLS_SHA3_SHAKE256_ENABLED
- *
- * MBEDTLS_SHA3_XXX_ENABLED: Enables specific family of SHA-3
- * module.  By default all families are enabled.
- *
- * Comment macros to disable the family
- */
-#define MBEDTLS_SHA3_SHAKE256_ENABLED
-
-/**
  * \def MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
  *
  * Enable acceleration of the SHA-512 cryptographic hash algorithm with the

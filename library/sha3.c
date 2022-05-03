@@ -46,28 +46,20 @@
 
 #if !defined(MBEDTLS_SHA3_ALT)
 
-#if defined(MBEDTLS_SHA3_SHAKE256_ENABLED)
-static int shake256_update( mbedtls_sha3_context *ctx,
-                           const unsigned char *input,
-                           size_t ilen );
-static int shake256_finish( mbedtls_sha3_context *ctx,
-                               unsigned char *output,
-                               size_t olen );
-#endif /* MBEDTLS_SHA3_SHAKE256_ENABLED */
-
 /*
  * List of supported SHA-3 families
  */
 static mbedtls_sha3_family_functions sha3_families[] = {
-#if defined(MBEDTLS_SHA3_SHAKE256_ENABLED)
-    { MBEDTLS_SHA3_SHAKE256, shake256_update, shake256_finish },
-#endif
-    { MBEDTLS_SHA3_NONE, NULL, NULL }
+    { MBEDTLS_SHA3_SHAKE128, 1344,   0, 0x1F },
+    { MBEDTLS_SHA3_SHAKE256, 1088,   0, 0x1F },
+    { MBEDTLS_SHA3_224,      1152, 224, 0x06 },
+    { MBEDTLS_SHA3_256,      1088, 256, 0x06 },
+    { MBEDTLS_SHA3_384,       832, 384, 0x06 },
+    { MBEDTLS_SHA3_512,       576, 512, 0x06 },
+    { MBEDTLS_SHA3_NONE, 0, 0, 0 }
 };
 
 #if defined(MBEDTLS_SHA3_SHAKE256_ENABLED)
-#define SHAKE256_BITS          256
-#define SHAKE256_INDEX_MAX     (200 - (SHAKE256_BITS >> 2))
 
 static const uint64_t rc[24] = {
     0x0000000000000001, 0x0000000000008082, 0x800000000000808a, 0x8000000080008000,
@@ -176,37 +168,6 @@ static void keccak_f1600(mbedtls_sha3_context *ctx)
         s[0] ^= rc[round];
     }
 }
-
-static int shake256_update( mbedtls_sha3_context *ctx,
-                           const unsigned char *input,
-                           size_t ilen )
-{
-    while( ilen-- > 0 )
-    {
-        ABSORB( ctx, ctx->index, *input++ );
-        if( ( ctx->index = ( ctx->index + 1) % SHAKE256_INDEX_MAX ) == 0 )
-            keccak_f1600( ctx );
-    }
-    return( 0 );
-}
-
-static int shake256_finish( mbedtls_sha3_context *ctx,
-                               unsigned char *output, size_t olen )
-{
-    ABSORB( ctx, ctx->index, 0x1f );
-    ABSORB( ctx, SHAKE256_INDEX_MAX - 1, 0x80 );
-    keccak_f1600( ctx );
-    ctx->index = 0;
-
-    while( olen-- > 0 )
-    {
-        *output++ = SQUEEZE( ctx, ctx->index );
-
-        if( ( ctx->index = ( ctx->index + 1) % SHAKE256_INDEX_MAX ) == 0 )
-            keccak_f1600( ctx );
-    }
-    return( 0 );
-}
 #endif /* MBEDTLS_SHA3_SHAKE256_ENABLED */
 
 void mbedtls_sha3_init( mbedtls_sha3_context *ctx )
@@ -253,8 +214,10 @@ int mbedtls_sha3_starts( mbedtls_sha3_context *ctx, mbedtls_sha3_id id )
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
 
     ctx->id = id;
-    ctx->update = p->update;
-    ctx->finish = p->finish;
+    ctx->r = p->r;
+    ctx->olen = p->olen;
+    ctx->xor_byte = p->xor_byte;
+    ctx->max_block_size = ctx->r / 8;
 
     return( 0 );
 }
@@ -272,7 +235,13 @@ int mbedtls_sha3_update( mbedtls_sha3_context *ctx,
     if( ilen == 0 )
         return( 0 );
 
-    ctx->update( ctx, input, ilen );
+    //ctx->update( ctx, input, ilen );
+    while( ilen-- > 0 )
+    {
+        ABSORB( ctx, ctx->index, *input++ );
+        if( ( ctx->index = ( ctx->index + 1) % ctx->max_block_size ) == 0 )
+            keccak_f1600( ctx );
+    }
 
     return( 0 );
 }
@@ -283,7 +252,19 @@ int mbedtls_sha3_finish( mbedtls_sha3_context *ctx,
     if( olen == 0 )
         return( 0 );
 
-    ctx->finish( ctx, output, olen );
+    //ctx->finish( ctx, output, olen );
+    ABSORB( ctx, ctx->index, ctx->xor_byte );
+    ABSORB( ctx, ctx->max_block_size - 1, 0x80 );
+    keccak_f1600( ctx );
+    ctx->index = 0;
+
+    while( olen-- > 0 )
+    {
+        *output++ = SQUEEZE( ctx, ctx->index );
+
+        if( ( ctx->index = ( ctx->index + 1) % ctx->max_block_size ) == 0 )
+            keccak_f1600( ctx );
+    }
 
     return( 0 );
 }

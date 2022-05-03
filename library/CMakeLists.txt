@@ -34,6 +34,7 @@ set(src_crypto
     ecjpake.c
     ecp.c
     ecp_curves.c
+    eddsa.c
     entropy.c
     entropy_poll.c
     error.c
@@ -77,6 +78,7 @@ set(src_crypto
     sha1.c
     sha256.c
     sha512.c
+    shake256.c
     ssl_debug_helpers_generated.c
     threading.c
     timing.c

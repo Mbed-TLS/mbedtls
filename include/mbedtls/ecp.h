@@ -1182,10 +1182,6 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
  * \param q         The destination first expansion. This must not be \c NULL.
  * \param prefix    The destination second expansion. This can be \c NULL.
  *
- * \param f_rng     The RNG function. This must not be \c NULL.
- * \param p_rng     The RNG context to be passed to \p f_rng. This may
- *                  be \c NULL if \p f_rng doesn't need a context argument.
- *
  * \return          \c 0 on success.
  * \return          An \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_MPI_XXX error code
  *                  on failure.

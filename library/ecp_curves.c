@@ -4674,9 +4674,8 @@ cleanup:
 }
 #endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED */
 
-#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED) || defined(MBEDTLS_ECP_DP_ED448_ENABLED)
 /* Constants used by ecp_use_curve448() */
-static const mbedtls_mpi_sint curve448_a24 = 0x98AA;
 static const unsigned char curve448_part_of_n[] = {
     0x83, 0x35, 0xDC, 0x16, 0x3B, 0xB1, 0x24,
     0xB6, 0x51, 0x29, 0xC9, 0x6F, 0xDE, 0x93,
@@ -4684,6 +4683,8 @@ static const unsigned char curve448_part_of_n[] = {
     0x87, 0x3D, 0x6D, 0x54, 0xA7, 0xBB, 0x0D,
 };
 
+#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+static const mbedtls_mpi_sint curve448_a24 = 0x98AA;
 /*
  * Specialized function for creating the Curve448 group
  */
@@ -4727,7 +4728,10 @@ cleanup:
 
     return( ret );
 }
-#endif /* MBEDTLS_ECP_DP_CURVE448_ENABLED */
+
+#endif /* MBEDTLS_ECP_DP_CURVE448_ENABLED */ 
+
+#endif /* MBEDTLS_ECP_DP_CURVE448_ENABLED || MBEDTLS_ECP_DP_ED448_ENABLED */
 
 #if defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
 /*

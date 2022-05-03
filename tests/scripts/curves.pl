@@ -75,6 +75,25 @@ my %curve_supports_ecdsa = ();
     close(CHECK_CONFIG);
 }
 
+# Determine which curves support ECDSA by checking the dependencies of
+# ECDSA in check_config.h.
+my %curve_supports_eddsa = ();
+{
+    local $/ = "";
+    local *CHECK_CONFIG;
+    open(CHECK_CONFIG, '<', 'include/mbedtls/check_config.h')
+        or die "open include/mbedtls/check_config.h: $!";
+    while (my $stanza = <CHECK_CONFIG>) {
+        if ($stanza =~ /\A#if defined\(MBEDTLS_EDDSA_C\)/) {
+            for my $curve ($stanza =~ /(?<=\()MBEDTLS_ECP_DP_\w+_ENABLED(?=\))/g) {
+                $curve_supports_eddsa{$curve} = 1;
+            }
+            last;
+        }
+    }
+    close(CHECK_CONFIG);
+}
+
 system( "cp $config_h $config_h.bak" ) and die;
 sub abort {
     system( "mv $config_h.bak $config_h" ) and warn "$config_h not restored\n";
@@ -110,6 +129,12 @@ for my $curve (@curves) {
                     MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)) {
         system( "scripts/config.pl $ecdsa $dep" )
             and abort "Failed to $ecdsa $dep\n";
+    }
+    
+    my $eddsa = $curve_supports_eddsa{$curve} ? "set" : "unset";
+    for my $dep (qw(MBEDTLS_EDDSA_C)) {
+        system( "scripts/config.pl $eddsa $dep" )
+            and abort "Failed to $eddsa $dep\n";
     }
 
     system( "CFLAGS='-Werror -Wall -Wextra' make" )

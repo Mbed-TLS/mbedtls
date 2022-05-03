@@ -58,7 +58,8 @@ int mbedtls_eddsa_can_do( mbedtls_ecp_group_id gid )
     default: return 0;
     }
 }
-    
+
+#ifdef MBEDTLS_ECP_DP_ED25519_ENABLED
 static int mbedtls_eddsa_put_dom2_ctx( int flag, const unsigned char *ctx, 
                 size_t ctx_len, mbedtls_sha512_context *sha_ctx )
 {
@@ -75,7 +76,9 @@ static int mbedtls_eddsa_put_dom2_ctx( int flag, const unsigned char *ctx,
     
     return( 0 );
 }
+#endif
 
+#ifdef MBEDTLS_ECP_DP_ED448_ENABLED
 static int mbedtls_eddsa_put_dom4_ctx( int flag, const unsigned char *ctx, 
                 size_t ctx_len, mbedtls_shake256_context *sha_ctx )
 {
@@ -92,6 +95,7 @@ static int mbedtls_eddsa_put_dom4_ctx( int flag, const unsigned char *ctx,
     
     return( 0 );
 }
+#endif
 
 /*
  * Compute EdDSA signature of a message.

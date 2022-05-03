@@ -10,12 +10,15 @@
 /* BEGIN_CASE */
 void mbedtls_shake256( data_t *in, data_t *hash )
 {
-    unsigned char output[hash->len];
-
-    memset(output, 0x00, hash->len);
+    unsigned char *output = NULL;
+    
+    ASSERT_ALLOC( output, hash->len );
 
     TEST_ASSERT( mbedtls_shake256( in->x, in->len, output, hash->len ) == 0 );
 
-    TEST_ASSERT( memcmp( output, hash->x, hash->len ) == 0 );
+    ASSERT_COMPARE( output, hash->len, hash->x, hash->len );
+
+exit:
+    mbedtls_free( output );
 }
 /* END_CASE */

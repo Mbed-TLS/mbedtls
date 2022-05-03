@@ -3126,6 +3126,25 @@ ecdh_calc_secret:
                 MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_dhm_make_public", ret );
                 return( ret );
             }
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+            unsigned char *pms = ssl->handshake->premaster;
+            unsigned char *pms_end = pms + sizeof( ssl->handshake->premaster );
+            size_t pms_len;
+
+            /* Write length only when we know the actual value */
+            if( ( ret = mbedtls_dhm_calc_secret( &ssl->handshake->dhm_ctx,
+                                          pms + 2, pms_end - ( pms + 2 ), &pms_len,
+                                          ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_dhm_calc_secret", ret );
+                return( ret );
+            }
+            MBEDTLS_PUT_UINT16_BE( pms_len, pms, 0 );
+            pms += 2 + pms_len;
+
+            MBEDTLS_SSL_DEBUG_MPI( 3, "DHM: K ", &ssl->handshake->dhm_ctx.K  );
+#endif
         }
         else
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */
@@ -3157,21 +3176,15 @@ ecdh_calc_secret:
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO) &&          \
-    defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
-        if( ciphersuite_info->key_exchange != MBEDTLS_KEY_EXCHANGE_PSK &&
-            ciphersuite_info->key_exchange != MBEDTLS_KEY_EXCHANGE_RSA_PSK )
-#endif /* MBEDTLS_USE_PSA_CRYPTO &&
-          MBEDTLS_KEY_EXCHANGE_PSK_ENABLED */
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
+        if( ( ret = mbedtls_ssl_psk_derive_premaster( ssl,
+                        ciphersuite_info->key_exchange ) ) != 0 )
         {
-            if( ( ret = mbedtls_ssl_psk_derive_premaster( ssl,
-                            ciphersuite_info->key_exchange ) ) != 0 )
-            {
-                MBEDTLS_SSL_DEBUG_RET( 1,
+            MBEDTLS_SSL_DEBUG_RET( 1,
                     "mbedtls_ssl_psk_derive_premaster", ret );
-                return( ret );
-            }
+            return( ret );
         }
+#endif /* !MBEDTLS_USE_PSA_CRYPTO */
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */

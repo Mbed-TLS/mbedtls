@@ -5530,18 +5530,12 @@ void ssl_calc_verify_tls_sha384( const mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SHA384_C */
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+#if !defined(MBEDTLS_USE_PSA_CRYPTO) &&                      \
+    defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
 int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exchange_type_t key_ex )
 {
-#if !defined(MBEDTLS_USE_PSA_CRYPTO) ||                 \
-    defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED)
     unsigned char *p = ssl->handshake->premaster;
     unsigned char *end = p + sizeof( ssl->handshake->premaster );
-#else
-    (void)ssl;
-    (void)key_ex;
-#endif /* !MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */
-#if !defined(MBEDTLS_USE_PSA_CRYPTO)
     const unsigned char *psk = NULL;
     size_t psk_len = 0;
     int psk_ret = mbedtls_ssl_get_psk( ssl, &psk, &psk_len );
@@ -5602,7 +5596,6 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED */
-#endif /* !MBEDTLS_USE_PSA_CRYPTO */
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED)
     if( key_ex == MBEDTLS_KEY_EXCHANGE_DHE_PSK )
     {
@@ -5624,8 +5617,7 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */
-#if !defined(MBEDTLS_USE_PSA_CRYPTO) &&                 \
-    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
     if( key_ex == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK )
     {
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -5646,13 +5638,12 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
                                 MBEDTLS_DEBUG_ECDH_Z );
     }
     else
-#endif /* !MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
-#if !defined(MBEDTLS_USE_PSA_CRYPTO)
     /* opaque psk<0..2^16-1>; */
     if( end - p < 2 )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
@@ -5667,11 +5658,10 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
     p += psk_len;
 
     ssl->handshake->pmslen = p - ssl->handshake->premaster;
-#endif /* !MBEDTLS_USE_PSA_CRYPTO */
 
     return( 0 );
 }
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+#endif /* !MBEDTLS_USE_PSA_CRYPTO && MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
 #if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_RENEGOTIATION)
 static int ssl_write_hello_request( mbedtls_ssl_context *ssl );

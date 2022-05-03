@@ -3046,11 +3046,6 @@ ecdh_calc_secret:
         /* Write the ECDH computation length before the ECDH computation */
         MBEDTLS_PUT_UINT16_BE( zlen, pms, 0 );
         pms += zlen_size + zlen;
-
-        /* In case of opaque psk skip writting psk to pms.
-         * Opaque key will be handled later. */
-        MBEDTLS_SSL_DEBUG_MSG( 1,
-                ( "skip PMS generation for opaque ECDHE-PSK" ) );
     }
     else
 #endif /* MBEDTLS_USE_PSA_CRYPTO &&
@@ -3164,26 +3159,18 @@ ecdh_calc_secret:
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) &&          \
     defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
-        if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK)
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1,
-                ( "skip PMS generation for opaque PSK" ) );
-        }
-        else
-        if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK)
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1,
-                ( "skip PMS generation for opaque RSA-PSK" ) );
-        }
-        else
+        if( ciphersuite_info->key_exchange != MBEDTLS_KEY_EXCHANGE_PSK &&
+            ciphersuite_info->key_exchange != MBEDTLS_KEY_EXCHANGE_RSA_PSK )
 #endif /* MBEDTLS_USE_PSA_CRYPTO &&
           MBEDTLS_KEY_EXCHANGE_PSK_ENABLED */
-        if( ( ret = mbedtls_ssl_psk_derive_premaster( ssl,
-                        ciphersuite_info->key_exchange ) ) != 0 )
         {
-            MBEDTLS_SSL_DEBUG_RET( 1,
-                "mbedtls_ssl_psk_derive_premaster", ret );
-            return( ret );
+            if( ( ret = mbedtls_ssl_psk_derive_premaster( ssl,
+                            ciphersuite_info->key_exchange ) ) != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1,
+                    "mbedtls_ssl_psk_derive_premaster", ret );
+                return( ret );
+            }
         }
     }
     else

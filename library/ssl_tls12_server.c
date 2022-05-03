@@ -3983,18 +3983,14 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_SSL_DECODE_ERROR );
         }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-        /* For opaque PSKs, we perform the PSK-to-MS derivation automatically
-         * and skip the intermediate PMS. */
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "skip PMS generation for opaque PSK" ) );
-#else
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
         if( ( ret = mbedtls_ssl_psk_derive_premaster( ssl,
                         ciphersuite_info->key_exchange ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_psk_derive_premaster", ret );
             return( ret );
         }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* !MBEDTLS_USE_PSA_CRYPTO */
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_PSK_ENABLED */
@@ -4026,18 +4022,14 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
             return( ret );
         }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-        /* For opaque PSKs, we perform the PSK-to-MS derivation automatically
-         * and skip the intermediate PMS. */
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "skip PMS generation for opaque RSA-PSK" ) );
-#else
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
         if( ( ret = mbedtls_ssl_psk_derive_premaster( ssl,
                         ciphersuite_info->key_exchange ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_psk_derive_premaster", ret );
             return( ret );
         }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* !MBEDTLS_USE_PSA_CRYPTO */
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED */
@@ -4147,9 +4139,6 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
         MBEDTLS_PUT_UINT16_BE( zlen, psm, 0 );
         psm += zlen_size + zlen;
 
-        /* In case of opaque psk skip writting psk to pms.
-         * Opaque key will be handled later. */
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "skip PMS generation for opaque ECDHE-PSK" ) );
 #else /* MBEDTLS_USE_PSA_CRYPTO */
         if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )
         {

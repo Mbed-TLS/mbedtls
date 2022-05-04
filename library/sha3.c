@@ -174,7 +174,7 @@ static uint8_t left_encode( uint8_t *encbuf, size_t value )
     uint8_t n = 0;
 
     /* Compute length of value in bytes */
-    for ( size_t v = value, n = 0; v > 0 && n < sizeof( size_t ); n++, v >>= 8 );
+    for ( size_t v = value; v > 0 && n < sizeof( size_t ); n++, v >>= 8 );
 
     if ( n == 0 )
         n = 1;
@@ -184,6 +184,22 @@ static uint8_t left_encode( uint8_t *encbuf, size_t value )
         encbuf[i] = ( uint8_t )( value >> ( 8 * ( n - i ) ) );
 
     return( n + 1 );
+}
+
+static uint8_t right_encode( uint8_t *encbuf, size_t value )
+{
+    uint8_t n = 0;
+
+    /* Compute length of value in bytes */
+    for ( size_t v = value; v > 0 && n < sizeof( size_t ); n++, v >>= 8 );
+
+    if ( n == 0 )
+        n = 1;
+
+    for ( int i = 1; i <= n; i++ )
+        encbuf[i - 1] = ( uint8_t )( value >> ( 8 * ( n - i ) ) );
+    encbuf[n] = (unsigned char)n;
+    return n + 1;
 }
 
 void mbedtls_sha3_init( mbedtls_sha3_context *ctx )

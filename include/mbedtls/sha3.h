@@ -152,7 +152,7 @@ int mbedtls_sha3_starts( mbedtls_sha3_context *ctx, mbedtls_sha3_id id );
 int mbedtls_sha3_starts_cshake( mbedtls_sha3_context *ctx,
                             mbedtls_sha3_id id,
                             const uint8_t *name, size_t name_len,
-                            const uint8_t *custom, size_t name_custom );
+                            const uint8_t *custom, size_t custom_len );
 
 /**
  * \brief          This function feeds an input buffer into an ongoing

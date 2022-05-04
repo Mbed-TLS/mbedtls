@@ -197,7 +197,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA3_C */
-void mbedtls_sha3_kmac( int family, data_t *in, data_t *key, char *custom, data_t *hash )
+void mbedtls_sha3_kmac( int family, int xof, data_t *in, data_t *key, char *custom, data_t *hash )
 {
     unsigned char *output = NULL;
 
@@ -205,7 +205,7 @@ void mbedtls_sha3_kmac( int family, data_t *in, data_t *key, char *custom, data_
 
     TEST_ASSERT( mbedtls_sha3_kmac( family, in->x, in->len, key->x, key->len,
                                 ( const uint8_t * )custom, strlen(custom),
-                                output, hash->len ) == 0 );
+                                output, hash->len, xof ) == 0 );
 
     ASSERT_COMPARE( output, hash->len, hash->x, hash->len );
 

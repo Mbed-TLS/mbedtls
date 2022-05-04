@@ -374,10 +374,13 @@ Store named data: found, larger data
 store_named_data_val_found:4:9
 
 Store named data: new, val_len=0
-store_named_data_val_new:0
+store_named_data_val_new:0:1
+
+Stored named data: new, val_len=0, val=NULL
+store_named_data_val_new:0:0
 
 Store named data: new, val_len=4
-store_named_data_val_new:4
+store_named_data_val_new:4:1
 
 Store named data: new, val_len=4, val=NULL
-store_named_data_val_new:-4
+store_named_data_val_new:4:0

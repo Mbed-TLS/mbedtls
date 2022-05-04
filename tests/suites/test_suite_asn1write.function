@@ -431,7 +431,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void store_named_data_val_new( int new_len )
+void store_named_data_val_new( int new_len, int set_new_val )
 {
     mbedtls_asn1_named_data *head = NULL;
     mbedtls_asn1_named_data *found = NULL;
@@ -439,10 +439,8 @@ void store_named_data_val_new( int new_len )
     size_t oid_len = strlen( (const char *) oid );
     const unsigned char *new_val = (unsigned char *) "new value";
 
-    if( new_len <= 0 )
+    if( set_new_val == 0 )
         new_val = NULL;
-    if( new_len < 0 )
-        new_len = - new_len;
 
     found = mbedtls_asn1_store_named_data( &head,
                                            (const char *) oid, oid_len,

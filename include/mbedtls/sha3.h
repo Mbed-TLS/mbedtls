@@ -226,12 +226,13 @@ int mbedtls_sha3_finish( mbedtls_sha3_context *ctx,
  *                 \c olen bytes length. For SHAKE128 and SHAKE256 it can be
  *                 an arbitrary number. For SHA-3 224, SHA-3 256, SHA-3 384 and
  *                 SHA-3 512 must equal to 28, 32, 48 and 64, respectively.
+ * \param xof      Performs KMAC XOF operation.
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  */
 int mbedtls_sha3_finish_kmac( mbedtls_sha3_context *ctx,
-                           uint8_t *output, size_t olen );
+                           uint8_t *output, size_t olen, int xof );
 
 /**
  * \brief          This function calculates the SHA-3
@@ -320,6 +321,7 @@ int mbedtls_sha3_cshake( mbedtls_sha3_id id, const uint8_t *input,
  *                 This must be a writable buffer of length \c olen bytes.
  * \param olen     Determines the length (in bytes) of the output. \c output
  *                 must be \c olen bytes length.
+ * \param xof      Performs KMAC XOF operation.
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
@@ -330,7 +332,7 @@ int mbedtls_sha3_cshake( mbedtls_sha3_id id, const uint8_t *input,
 int mbedtls_sha3_kmac( mbedtls_sha3_id id, const uint8_t *input,
                     size_t ilen, const uint8_t *key, size_t key_len,
                     const uint8_t *custom, size_t custom_len,
-                    uint8_t *output, size_t olen );
+                    uint8_t *output, size_t olen, int xof );
 
 #ifdef __cplusplus
 }

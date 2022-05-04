@@ -2607,6 +2607,16 @@ int main( int argc, char *argv[] )
                                 (unsigned int) -ret );
                 goto exit;
             }
+
+            if( ( ret = mbedtls_pk_wrap_as_opaque( &pkey, &key_slot,
+                                                   psa_alg,
+                                                   psa_usage,
+                                                   psa_alg2 ) ) != 0 )
+            {
+                mbedtls_printf( " failed\n  !  "
+                                "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n", (unsigned int)  -ret );
+                goto exit;
+            }
         }
         else
         {
@@ -2625,19 +2635,18 @@ int main( int argc, char *argv[] )
                     psa_alg2 = PSA_ALG_NONE;
                     psa_usage = PSA_KEY_USAGE_SIGN_HASH;
                 }
+
+                if( ( ret = mbedtls_pk_wrap_as_opaque( &pkey, &key_slot,
+                                                       psa_alg,
+                                                       psa_usage,
+                                                       psa_alg2 ) ) != 0 )
+                {
+                    mbedtls_printf( " failed\n  !  "
+                                    "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n", (unsigned int)  -ret );
+                    goto exit;
+                }
             }
         }
-
-        if( ( ret = mbedtls_pk_wrap_as_opaque( &pkey, &key_slot,
-                                                psa_alg,
-                                                psa_usage,
-                                                psa_alg2 ) ) != 0 )
-        {
-            mbedtls_printf( " failed\n  !  "
-                            "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n", (unsigned int)  -ret );
-            goto exit;
-        }
-
 
         if ( strcmp( opt.key2_opaque_alg1, DFL_KEY_OPAQUE_ALG ) != 0 )
         {
@@ -2648,6 +2657,16 @@ int main( int argc, char *argv[] )
             {
                 mbedtls_printf( " failed\n  !  key_opaque_set_alg_usage returned -0x%x\n\n",
                                 (unsigned int) -ret );
+                goto exit;
+            }
+
+            if( ( ret = mbedtls_pk_wrap_as_opaque( &pkey2, &key_slot2,
+                                                   psa_alg,
+                                                   psa_usage,
+                                                   psa_alg2 ) ) != 0 )
+            {
+                mbedtls_printf( " failed\n  !  "
+                                "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n", (unsigned int)  -ret );
                 goto exit;
             }
         }
@@ -2668,17 +2687,17 @@ int main( int argc, char *argv[] )
                     psa_alg2 = PSA_ALG_NONE;
                     psa_usage = PSA_KEY_USAGE_SIGN_HASH;
                 }
-            }
-        }
 
-        if( ( ret = mbedtls_pk_wrap_as_opaque( &pkey2, &key_slot2,
-                                                psa_alg,
-                                                psa_usage,
-                                                psa_alg2 ) ) != 0 )
-        {
-            mbedtls_printf( " failed\n  !  "
-                            "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n", (unsigned int)  -ret );
-            goto exit;
+                if( ( ret = mbedtls_pk_wrap_as_opaque( &pkey2, &key_slot2,
+                                                       psa_alg,
+                                                       psa_usage,
+                                                       psa_alg2 ) ) != 0 )
+                {
+                    mbedtls_printf( " failed\n  !  "
+                                    "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n", (unsigned int)  -ret );
+                    goto exit;
+                }
+            }
         }
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */

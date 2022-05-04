@@ -137,7 +137,8 @@ int mbedtls_sha3_starts( mbedtls_sha3_context *ctx, mbedtls_sha3_id id );
  *                 calculation with function-name and customization strings.
  *
  * \param ctx      The context to use. This must be initialized.
- * \param id       The id of the SHA-3 family.
+ * \param id       The id of the SHA-3 family. It can be \c MBEDTLS_SHA3_CSHAKE128 or
+ *                 \c MBEDTLS_SHA3_CSHAKE256.
  * \param name     The function-name string. It must be zero-terminated.
  * \param name_len The length of \c name in Bytes.
  * \param custom   The customization string. It must be zero-terminated.
@@ -152,6 +153,29 @@ int mbedtls_sha3_starts( mbedtls_sha3_context *ctx, mbedtls_sha3_id id );
 int mbedtls_sha3_starts_cshake( mbedtls_sha3_context *ctx,
                             mbedtls_sha3_id id,
                             const uint8_t *name, size_t name_len,
+                            const uint8_t *custom, size_t custom_len );
+
+/**
+ * \brief          This function starts a SHA-3 checksum calculation for KMAC
+ *                 with key and customization strings.
+ *
+ * \param ctx      The context to use. This must be initialized.
+ * \param id       The id of the SHA-3 family. It can be \c MBEDTLS_SHA3_CSHAKE128 or
+ *                 \c MBEDTLS_SHA3_CSHAKE256.
+ * \param key      The key buffer.
+ * \param key_len  The length of \c key in Bytes.
+ * \param custom   The customization string. It must be zero-terminated.
+ * \param custom_len The length of \c custom in Bytes.
+ *
+ * \return         \c 0 on success.
+ * \return         A negative error code on failure.
+ *
+ * \note           If no name and no custom strings are provided (are \c NULL),
+ *                 it is equivalent to mbedtls_sha3_starts().
+ */
+int mbedtls_sha3_starts_kmac( mbedtls_sha3_context *ctx,
+                            mbedtls_sha3_id id,
+                            const uint8_t *key, size_t key_len,
                             const uint8_t *custom, size_t custom_len );
 
 /**
@@ -188,6 +212,25 @@ int mbedtls_sha3_update( mbedtls_sha3_context *ctx,
  * \return         A negative error code on failure.
  */
 int mbedtls_sha3_finish( mbedtls_sha3_context *ctx,
+                           uint8_t *output, size_t olen );
+
+/**
+ * \brief          This function finishes the SHA-3 KMAC operation, and writes
+ *                 the result to the output buffer.
+ *
+ * \param ctx      The SHA-3 context. This must be initialized
+ *                 and have a hash operation started.
+ * \param output   The SHA-3 checksum result.
+ *                 This must be a writable buffer of length \c olen bytes.
+ * \param olen     Defines a variable output length (in bytes). \c output must be
+ *                 \c olen bytes length. For SHAKE128 and SHAKE256 it can be
+ *                 an arbitrary number. For SHA-3 224, SHA-3 256, SHA-3 384 and
+ *                 SHA-3 512 must equal to 28, 32, 48 and 64, respectively.
+ *
+ * \return         \c 0 on success.
+ * \return         A negative error code on failure.
+ */
+int mbedtls_sha3_finish_kmac( mbedtls_sha3_context *ctx,
                            uint8_t *output, size_t olen );
 
 /**
@@ -228,7 +271,8 @@ int mbedtls_sha3( mbedtls_sha3_id id, const uint8_t *input,
  *                 The SHA-3 result is calculated as
  *                 output = SHA-3(id, name || customization || input buffer, d).
  *
- * \param id       The id of the SHA-3 family.
+ * \param id       The id of the SHA-3 family. It can be \c MBEDTLS_SHA3_CSHAKE128 or
+ *                 \c MBEDTLS_SHA3_CSHAKE256.
  * \param input    The buffer holding the data. This must be a readable
  *                 buffer of length \p ilen Bytes.
  * \param ilen     The length of the input data in Bytes.
@@ -251,6 +295,43 @@ int mbedtls_sha3_cshake( mbedtls_sha3_id id, const uint8_t *input,
                     size_t ilen, const uint8_t *name, size_t name_len,
                     const uint8_t *custom, size_t custom_len,
                     uint8_t *output, size_t olen );
+
+/**
+ * \brief          This function calculates the SHA-3 KMAC
+ *                 checksum of a buffer with a key and customization
+ *                 strings.
+ *
+ *                 The function allocates the context, performs the
+ *                 calculation, and frees the context.
+ *
+ *                 The SHA-3 result is calculated as
+ *                 output = SHA-3(id, key || customization || input buffer, d).
+ *
+ * \param id       The id of the SHA-3 family. It can be \c MBEDTLS_SHA3_CSHAKE128 or
+ *                 \c MBEDTLS_SHA3_CSHAKE256.
+ * \param input    The buffer holding the data. This must be a readable
+ *                 buffer of length \p ilen Bytes.
+ * \param ilen     The length of the input data in Bytes.
+ * \param key      The key buffer.
+ * \param key_len  The length of \c key in Bytes.
+ * \param custom   The customization string. It must be zero-terminated.
+ * \param custom_len The length of \c custom in Bytes.
+ * \param output   The SHA-3 checksum result.
+ *                 This must be a writable buffer of length \c olen bytes.
+ * \param olen     Determines the length (in bytes) of the output. \c output
+ *                 must be \c olen bytes length.
+ *
+ * \return         \c 0 on success.
+ * \return         A negative error code on failure.
+ *
+ * \note           If no name and no custom strings are provided (are \c NULL),
+ *                 it is equivalent to mbedtls_sha3().
+ */
+int mbedtls_sha3_kmac( mbedtls_sha3_id id, const uint8_t *input,
+                    size_t ilen, const uint8_t *key, size_t key_len,
+                    const uint8_t *custom, size_t custom_len,
+                    uint8_t *output, size_t olen );
+
 #ifdef __cplusplus
 }
 #endif

@@ -2610,7 +2610,7 @@ int main( int argc, char *argv[] )
             }
         }
 
-        if ( strcmp( opt.key1_opaque_alg1, DFL_KEY_OPAQUE_ALG ) != 0 )
+        if( strcmp( opt.key1_opaque_alg1, DFL_KEY_OPAQUE_ALG ) != 0 )
         {
             ret = key_opaque_set_alg_usage( opt.key1_opaque_alg1,
                                             opt.key1_opaque_alg2,
@@ -2647,7 +2647,7 @@ int main( int argc, char *argv[] )
             }
         }
 
-        if ( strcmp( opt.key2_opaque_alg1, DFL_KEY_OPAQUE_ALG ) != 0 )
+        if( strcmp( opt.key2_opaque_alg1, DFL_KEY_OPAQUE_ALG ) != 0 )
         {
             ret = key_opaque_set_alg_usage( opt.key2_opaque_alg1,
                                             opt.key2_opaque_alg2,

@@ -2596,6 +2596,20 @@ int main( int argc, char *argv[] )
         psa_algorithm_t psa_alg, psa_alg2;
         psa_key_usage_t psa_usage;
 
+        if( strcmp( opt.key1_opaque_alg1, DFL_KEY_OPAQUE_ALG ) == 0 )
+        {
+            if( mbedtls_pk_get_type( &pkey ) == MBEDTLS_PK_ECKEY )
+            {
+                opt.key1_opaque_alg1 = "ecdsa-sign";
+                opt.key1_opaque_alg2 = "ecdh";
+            }
+            else if( mbedtls_pk_get_type( &pkey ) == MBEDTLS_PK_RSA )
+            {
+                opt.key1_opaque_alg1 = "rsa-sign-pkcs1";
+                opt.key1_opaque_alg2 = "none";
+            }
+        }
+
         if ( strcmp( opt.key1_opaque_alg1, DFL_KEY_OPAQUE_ALG ) != 0 )
         {
             ret = key_opaque_set_alg_usage( opt.key1_opaque_alg1,
@@ -2618,33 +2632,18 @@ int main( int argc, char *argv[] )
                 goto exit;
             }
         }
-        else
-        {
-            if ( mbedtls_pk_get_type( &pkey ) == MBEDTLS_PK_ECKEY ||
-                 mbedtls_pk_get_type( &pkey ) == MBEDTLS_PK_RSA )
-            {
-                if( mbedtls_pk_get_type( &pkey ) == MBEDTLS_PK_ECKEY )
-                {
-                    psa_alg = PSA_ALG_ECDSA( PSA_ALG_ANY_HASH );
-                    psa_alg2 = PSA_ALG_ECDH;
-                    psa_usage = PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_DERIVE;
-                }
-                else
-                {
-                    psa_alg = PSA_ALG_RSA_PKCS1V15_SIGN( PSA_ALG_ANY_HASH );
-                    psa_alg2 = PSA_ALG_NONE;
-                    psa_usage = PSA_KEY_USAGE_SIGN_HASH;
-                }
 
-                if( ( ret = mbedtls_pk_wrap_as_opaque( &pkey, &key_slot,
-                                                       psa_alg,
-                                                       psa_usage,
-                                                       psa_alg2 ) ) != 0 )
-                {
-                    mbedtls_printf( " failed\n  !  "
-                                    "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n", (unsigned int)  -ret );
-                    goto exit;
-                }
+        if( strcmp( opt.key2_opaque_alg1, DFL_KEY_OPAQUE_ALG ) == 0 )
+        {
+            if( mbedtls_pk_get_type( &pkey ) == MBEDTLS_PK_ECKEY )
+            {
+                opt.key2_opaque_alg1 = "ecdsa-sign";
+                opt.key2_opaque_alg2 = "ecdh";
+            }
+            else if( mbedtls_pk_get_type( &pkey ) == MBEDTLS_PK_RSA )
+            {
+                opt.key2_opaque_alg1 = "rsa-sign-pkcs1";
+                opt.key2_opaque_alg2 = "none";
             }
         }
 
@@ -2668,35 +2667,6 @@ int main( int argc, char *argv[] )
                 mbedtls_printf( " failed\n  !  "
                                 "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n", (unsigned int)  -ret );
                 goto exit;
-            }
-        }
-        else
-        {
-            if ( mbedtls_pk_get_type( &pkey2 ) == MBEDTLS_PK_ECKEY ||
-                 mbedtls_pk_get_type( &pkey2 ) == MBEDTLS_PK_RSA )
-            {
-                if( mbedtls_pk_get_type( &pkey2 ) == MBEDTLS_PK_ECKEY )
-                {
-                    psa_alg = PSA_ALG_ECDSA( PSA_ALG_ANY_HASH );
-                    psa_alg2 = PSA_ALG_ECDH;
-                    psa_usage = PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_DERIVE;
-                }
-                else
-                {
-                    psa_alg = PSA_ALG_RSA_PKCS1V15_SIGN( PSA_ALG_ANY_HASH );
-                    psa_alg2 = PSA_ALG_NONE;
-                    psa_usage = PSA_KEY_USAGE_SIGN_HASH;
-                }
-
-                if( ( ret = mbedtls_pk_wrap_as_opaque( &pkey2, &key_slot2,
-                                                       psa_alg,
-                                                       psa_usage,
-                                                       psa_alg2 ) ) != 0 )
-                {
-                    mbedtls_printf( " failed\n  !  "
-                                    "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n", (unsigned int)  -ret );
-                    goto exit;
-                }
             }
         }
     }

@@ -1720,6 +1720,20 @@ int main( int argc, char *argv[] )
         psa_algorithm_t psa_alg, psa_alg2;
         psa_key_usage_t usage = PSA_KEY_USAGE_SIGN_HASH;
 
+        if( strcmp( opt.key_opaque_alg1, DFL_KEY_OPAQUE_ALG ) == 0 )
+        {
+            if( mbedtls_pk_get_type( &pkey ) == MBEDTLS_PK_ECKEY )
+            {
+                opt.key_opaque_alg1 = "ecdsa-sign";
+                opt.key_opaque_alg2 = "ecdh";
+            }
+            else
+            {
+                opt.key_opaque_alg1 = "rsa-sign-pkcs1";
+                opt.key_opaque_alg2 = "none";
+            }
+        }
+
         if ( strcmp( opt.key_opaque_alg1, DFL_KEY_OPAQUE_ALG ) != 0 )
         {
             ret = key_opaque_set_alg_usage( opt.key_opaque_alg1,
@@ -1730,19 +1744,6 @@ int main( int argc, char *argv[] )
                 mbedtls_printf( " failed\n  !  key_opaque_set_alg_usage returned -0x%x\n\n",
                                 (unsigned int) -ret );
                 goto exit;
-            }
-        }
-        else
-        {
-            if( mbedtls_pk_get_type( &pkey ) == MBEDTLS_PK_ECKEY )
-            {
-                psa_alg = PSA_ALG_ECDSA( PSA_ALG_ANY_HASH );
-                psa_alg2 = PSA_ALG_NONE;
-            }
-            else
-            {
-                psa_alg = PSA_ALG_RSA_PKCS1V15_SIGN( PSA_ALG_ANY_HASH );
-                psa_alg2 = PSA_ALG_RSA_PSS( PSA_ALG_ANY_HASH );
             }
         }
 

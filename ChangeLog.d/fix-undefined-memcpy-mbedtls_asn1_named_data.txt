@@ -1,0 +1,3 @@
+Bugfix
+   * Fix undefined behavior in mbedtls_asn1_find_named_data(), where val is
+     not NULL and val_len is zero.

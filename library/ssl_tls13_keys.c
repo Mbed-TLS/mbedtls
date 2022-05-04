@@ -993,8 +993,8 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
 {
 #if !defined(MBEDTLS_USE_PSA_CRYPTO)
     int ret;
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
     mbedtls_cipher_info_t const *cipher_info;
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
     unsigned char const *key_enc;
     unsigned char const *iv_enc;
@@ -1022,6 +1022,7 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
     cipher_info = mbedtls_cipher_info_from_type( ciphersuite_info->cipher );
     if( cipher_info == NULL )
     {
@@ -1030,7 +1031,6 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
-#if !defined(MBEDTLS_USE_PSA_CRYPTO)
     /*
      * Setup cipher contexts in target transform
      */
@@ -1120,7 +1120,7 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
     /*
      * Setup psa keys and alg
      */
-    if( ( status = mbedtls_ssl_cipher_to_psa( cipher_info->type,
+    if( ( status = mbedtls_ssl_cipher_to_psa( ciphersuite_info->cipher,
                                  transform->taglen,
                                  &alg,
                                  &key_type,

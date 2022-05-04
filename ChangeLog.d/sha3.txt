@@ -1,2 +1,4 @@
 Features
-    * Add SHA3 family hash functions (only SHAKE256 at this moment).
+    * Add SHA3 family hash functions.
+    * Add SHAKE family hash functions.
+    * Add CSHAKE family functions.

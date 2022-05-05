@@ -760,7 +760,7 @@ static void debug_print_buf( const char *file, int line, const char *text,
     debug_print_buf( __FILE__, __LINE__, text, buf, len )
 
 #if defined(MBEDTLS_SHA256_C)
-unsigned char unique_packet_hashes[PACKET_HASHES_STORED][SHA256_SIZE] = {0};
+unsigned char unique_packet_hashes[PACKET_HASHES_STORED][SHA256_SIZE] = { { 0 } };
 unsigned char single_malformed_hash[SHA256_SIZE] = {0};
 unsigned int single_malformation_done = 0;
 uint16_t num_unique_packets = 0;

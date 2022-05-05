@@ -391,7 +391,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     const unsigned char *cipher_suites_end;
     size_t extensions_len;
     const unsigned char *extensions_end;
-    int hrr_required = SSL_CLIENT_HELLO_OK;
+    int hrr_required = 0;
 
     const mbedtls_ssl_ciphersuite_t* ciphersuite_info;
 
@@ -619,7 +619,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
                 if( ret == SSL_TLS1_3_PARSE_KEY_SHARES_EXT_NO_MATCH )
                 {
                     MBEDTLS_SSL_DEBUG_MSG( 2, ( "HRR needed " ) );
-                    hrr_required |= SSL_TLS1_3_PARSE_KEY_SHARES_EXT_NO_MATCH;
+                    hrr_required = 1;
                 }
 
                 if( ret < 0 )
@@ -699,7 +699,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
     }
 
-    return( hrr_required );
+    return( hrr_required ? SSL_CLIENT_HELLO_HRR_REQUIRED : SSL_CLIENT_HELLO_OK );
 }
 
 /* Update the handshake state machine */
@@ -730,7 +730,7 @@ static int ssl_tls13_process_client_hello( mbedtls_ssl_context *ssl )
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char* buf = NULL;
     size_t buflen = 0;
-    int hrr_required ;
+    int parse_client_hello_ret ;
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse client hello" ) );
 
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_fetch_handshake_msg(
@@ -740,10 +740,10 @@ static int ssl_tls13_process_client_hello( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_PROC_CHK_NEG( ssl_tls13_parse_client_hello( ssl, buf,
                                                             buf + buflen ) );
 
-    hrr_required = ret;
+    parse_client_hello_ret = ret;
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_postprocess_client_hello( ssl ) );
 
-    if( hrr_required == SSL_CLIENT_HELLO_OK )
+    if( parse_client_hello_ret == SSL_CLIENT_HELLO_OK )
         mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_HELLO );
     else
         mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_HELLO_RETRY_REQUEST );

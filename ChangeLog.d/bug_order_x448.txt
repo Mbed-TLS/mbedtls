@@ -1,3 +1,2 @@
 Bugfix
-	* Fix order value of curve x448.
-
+    * Fix order value of curve x448.

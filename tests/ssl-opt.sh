@@ -11401,6 +11401,25 @@ run_test    "TLS 1.3: Server side check - mbedtls with client authentication" \
             -s "=> parse client hello" \
             -s "<= parse client hello"
 
+
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+run_test "TLS 1.3: server: HRR check - mbedtls" \
+         "$P_SRV debug_level=4 force_version=tls13 curves=secp384r1" \
+         "$P_CLI debug_level=4 force_version=tls13 curves=secp256r1,secp384r1" \
+         1 \
+        -s "tls13 server state: MBEDTLS_SSL_CLIENT_HELLO" \
+        -s "tls13 server state: MBEDTLS_SSL_SERVER_HELLO" \
+        -s "tls13 server state: MBEDTLS_SSL_ENCRYPTED_EXTENSIONS" \
+        -s "tls13 server state: MBEDTLS_SSL_HELLO_RETRY_REQUEST" \
+        -c "client state: MBEDTLS_SSL_ENCRYPTED_EXTENSIONS" \
+        -s "selected_group: secp384r1" \
+        -s "SSL - The requested feature is not available" \
+        -s "=> write hello retry request" \
+        -s "<= write hello retry request"
+
 for i in opt-testcases/*.sh
 do
     TEST_SUITE_NAME=${i##*/}

@@ -165,6 +165,7 @@ class NotSupported:
     ALWAYS_SUPPORTED = frozenset([
         'PSA_KEY_TYPE_DERIVE',
         'PSA_KEY_TYPE_RAW_DATA',
+        'PSA_KEY_TYPE_HMAC'
     ])
     def test_cases_for_key_type_not_supported(
             self,

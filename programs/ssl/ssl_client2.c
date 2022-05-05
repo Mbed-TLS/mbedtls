@@ -1725,12 +1725,12 @@ int main( int argc, char *argv[] )
             if( mbedtls_pk_get_type( &pkey ) == MBEDTLS_PK_ECKEY )
             {
                 opt.key_opaque_alg1 = "ecdsa-sign";
-                opt.key_opaque_alg2 = "ecdh";
+                opt.key_opaque_alg2 = "none";
             }
             else
             {
                 opt.key_opaque_alg1 = "rsa-sign-pkcs1";
-                opt.key_opaque_alg2 = "none";
+                opt.key_opaque_alg2 = "rsa-sign-pss";
             }
         }
 

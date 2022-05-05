@@ -203,6 +203,7 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
     {
         uint16_t group;
         size_t key_exchange_len;
+        const unsigned char *key_exchange;
 
         /*
          * struct {
@@ -214,7 +215,9 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
         group = MBEDTLS_GET_UINT16_BE( p, 0 );
         key_exchange_len = MBEDTLS_GET_UINT16_BE( p, 2 );
         p += 4;
+        key_exchange = p;
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, client_shares_end, key_exchange_len );
+        p += key_exchange_len;
 
         /* Continue parsing even if we have already found a match,
          * for input validation purposes.
@@ -223,7 +226,6 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
             ! mbedtls_ssl_named_group_is_supported( group ) ||
             ssl->handshake->offered_group_id != 0 )
         {
-            p += key_exchange_len;
             continue;
         }
 
@@ -236,7 +238,7 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
                                         mbedtls_ssl_named_group_to_str( group ),
                                         group ) );
             ret = mbedtls_ssl_tls13_read_public_ecdhe_share(
-                      ssl, p - 2, key_exchange_len + 2 );
+                      ssl, key_exchange - 2, key_exchange_len + 2 );
             if( ret != 0 )
                 return( ret );
 
@@ -245,12 +247,10 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
         {
             MBEDTLS_SSL_DEBUG_MSG( 4, ( "Unrecognized NamedGroup %u",
                                         (unsigned) group ) );
-            p += key_exchange_len;
             continue;
         }
 
         ssl->handshake->offered_group_id = group;
-        p += key_exchange_len;
     }
 
 

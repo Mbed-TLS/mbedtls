@@ -945,8 +945,12 @@ static int ssl_tls13_write_hrr_key_share_ext( mbedtls_ssl_context *ssl,
 
     *out_len = 0;
 
-    /* For a pure PSK-based ciphersuite there is no key share to declare. */
-    if( ! mbedtls_ssl_conf_tls13_some_ephemeral_enabled( ssl ) )
+    /*
+     * For a pure PSK key exchange, there is no group to agree upon. The purpose
+     * of the HRR is then to transmit a cookie to force the client to demonstrate
+     * reachability at their apparent network address (primarily useful for DTLS).
+     */
+    if( ! mbedtls_ssl_tls13_some_ephemeral_enabled( ssl ) )
         return( 0 );
 
     /* We should only send the key_share extension if the client's initial
@@ -963,23 +967,15 @@ static int ssl_tls13_write_hrr_key_share_ext( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }
 
-    if( ! mbedtls_ssl_named_group_is_offered( ssl, selected_group ) ||
-        ! mbedtls_ssl_named_group_is_supported( selected_group ) )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 4, ( "should never happen" ) );
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-    }
-
-    /* extension header, extension length, NamedGroup value */
+    /* Check if we have enough space:
+     * - extension_type         (2 bytes)
+     * - extension_data_length  (2 bytes)
+     * - selected_group         (2 bytes)
+     */
     MBEDTLS_SSL_CHK_BUF_READ_PTR( buf, end, 6 );
 
-    /* Write extension header */
     MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_KEY_SHARE, buf, 0 );
-
-    /* Write extension length */
     MBEDTLS_PUT_UINT16_BE( 2, buf, 2 );
-
-    /* Write selected group */
     MBEDTLS_PUT_UINT16_BE( selected_group, buf, 4 );
 
     MBEDTLS_SSL_DEBUG_MSG( 3,
@@ -988,8 +984,8 @@ static int ssl_tls13_write_hrr_key_share_ext( mbedtls_ssl_context *ssl,
             selected_group ) );
 
     *out_len = 6;
-    return( 0 );
 
+    return( 0 );
 }
 
 /*

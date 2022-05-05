@@ -41,7 +41,7 @@ after_failure:
 env:
   global:
     - SEED=1
-    - secure: "FrI5d2s+ckckC17T66c8jm2jV6i2DkBPU5nyWzwbedjmEBeocREfQLd/x8yKpPzLDz7ghOvr+/GQvsPPn0dVkGlNzm3Q+hGHc/ujnASuUtGrcuMM+0ALnJ3k4rFr9xEvjJeWb4SmhJO5UCAZYvTItW4k7+bj9L+R6lt3TzQbXzg="
+    - secure: "JECCru6HASpKZ0OLfHh8f/KXhKkdrCwjquZghd/qbA4ksxsWImjR7KEPERcaPndXEilzhDbKwuFvJiQX2duVgTGoq745YGhLZIjzo1i8tySkceCVd48P8WceYGz+F/bmY7r+m6fFNuxDSoGGSVeA4Lnjvmm8PFUP45YodDV9no4="
 
 addons:
   apt:

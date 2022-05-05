@@ -1527,10 +1527,9 @@ static int ssl_conf_psk_is_configured( mbedtls_ssl_config const *conf )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( !mbedtls_svc_key_id_is_null( conf->psk_opaque ) )
         return( 1 );
-#else
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
     if( conf->psk != NULL )
         return( 1 );
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     return( 0 );
 }
@@ -1541,16 +1540,11 @@ static void ssl_conf_remove_psk( mbedtls_ssl_config *conf )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( ! mbedtls_svc_key_id_is_null( conf->psk_opaque ) )
     {
-        /* The maintenance of the external PSK key slot is the
+        /* The maintenance of the PSK key slot is the
          * user's responsibility. */
-        if( conf->psk_opaque_is_internal )
-        {
-            psa_destroy_key( conf->psk_opaque );
-            conf->psk_opaque_is_internal = 0;
-        }
         conf->psk_opaque = MBEDTLS_SVC_KEY_ID_INIT;
     }
-#else
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
     if( conf->psk != NULL )
     {
         mbedtls_platform_zeroize( conf->psk, conf->psk_len );
@@ -1559,7 +1553,6 @@ static void ssl_conf_remove_psk( mbedtls_ssl_config *conf )
         conf->psk = NULL;
         conf->psk_len = 0;
     }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     /* Remove reference to PSK identity, if any. */
     if( conf->psk_identity != NULL )
@@ -1601,11 +1594,6 @@ int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
                 const unsigned char *psk_identity, size_t psk_identity_len )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_key_attributes_t key_attributes = psa_key_attributes_init();
-    psa_status_t status;
-    mbedtls_svc_key_id_t key;
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     /* We currently only support one PSK, raw or opaque. */
     if( ssl_conf_psk_is_configured( conf ) )
@@ -1619,23 +1607,6 @@ int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
     if( psk_len > MBEDTLS_PSK_MAX_LEN )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_set_key_usage_flags( &key_attributes, PSA_KEY_USAGE_DERIVE );
-    psa_set_key_algorithm( &key_attributes,
-                           PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_256) );
-    psa_set_key_enrollment_algorithm( &key_attributes,
-                           PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_384) );
-    psa_set_key_type( &key_attributes, PSA_KEY_TYPE_DERIVE );
-
-    status = psa_import_key( &key_attributes, psk, psk_len, &key );
-    if( status != PSA_SUCCESS )
-        return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-
-    /* Allow calling psa_destroy_key() on config psk remove/free */
-    conf->psk_opaque_is_internal = 1;
-    ret = mbedtls_ssl_conf_psk_opaque( conf, key,
-                                       psk_identity, psk_identity_len );
-#else
     if( ( conf->psk = mbedtls_calloc( 1, psk_len ) ) == NULL )
         return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
     conf->psk_len = psk_len;
@@ -1645,7 +1616,6 @@ int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
     ret = ssl_conf_set_psk_identity( conf, psk_identity, psk_identity_len );
     if( ret != 0 )
         ssl_conf_remove_psk( conf );
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     return( ret );
 }
@@ -4498,14 +4468,9 @@ void mbedtls_ssl_config_free( mbedtls_ssl_config *conf )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( ! mbedtls_svc_key_id_is_null( conf->psk_opaque ) )
     {
-        if( conf->psk_opaque_is_internal )
-        {
-            psa_destroy_key( conf->psk_opaque );
-            conf->psk_opaque_is_internal = 0;
-        }
         conf->psk_opaque = MBEDTLS_SVC_KEY_ID_INIT;
     }
-#else
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
     if( conf->psk != NULL )
     {
         mbedtls_platform_zeroize( conf->psk, conf->psk_len );
@@ -4513,7 +4478,6 @@ void mbedtls_ssl_config_free( mbedtls_ssl_config *conf )
         conf->psk = NULL;
         conf->psk_len = 0;
     }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     if( conf->psk_identity != NULL )
     {
@@ -4895,6 +4859,7 @@ int mbedtls_ssl_get_handshake_transcript( mbedtls_ssl_context *ssl,
 static psa_status_t setup_psa_key_derivation( psa_key_derivation_operation_t* derivation,
                                               mbedtls_svc_key_id_t key,
                                               psa_algorithm_t alg,
+                                              const unsigned char* raw_psk, size_t raw_psk_length,
                                               const unsigned char* seed, size_t seed_length,
                                               const unsigned char* label, size_t label_length,
                                               const unsigned char* other_secret,
@@ -4928,7 +4893,7 @@ static psa_status_t setup_psa_key_derivation( psa_key_derivation_operation_t* de
         {
             status = psa_key_derivation_input_bytes(
                 derivation, PSA_KEY_DERIVATION_INPUT_SECRET,
-                NULL, 0 );
+                raw_psk, raw_psk_length );
         }
         else
         {
@@ -4994,6 +4959,7 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
 
     status = setup_psa_key_derivation( &derivation,
                                        master_key, alg,
+                                       NULL, 0,
                                        random, rlen,
                                        (unsigned char const *) label,
                                        (size_t) strlen( label ),
@@ -5298,6 +5264,7 @@ static int ssl_compute_master( mbedtls_ssl_handshake_params *handshake,
         }
 
         status = setup_psa_key_derivation( &derivation, psk, alg,
+                                           ssl->conf->psk, ssl->conf->psk_len,
                                            seed, seed_len,
                                            (unsigned char const *) lbl,
                                            (size_t) strlen( lbl ),

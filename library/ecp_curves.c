@@ -4712,6 +4712,7 @@ static int ecp_use_curve448( mbedtls_ecp_group *grp )
     mbedtls_mpi_free( &grp->G.Y );
 
     /* N = 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885 */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &grp->N, 0 ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( &grp->N, 446, 1 ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &Ns,
                         curve448_part_of_n, sizeof( curve448_part_of_n ) ) );

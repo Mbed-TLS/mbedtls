@@ -1717,7 +1717,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( opt.key_opaque != 0 )
     {
-        psa_algorithm_t psa_alg, psa_alg2;
+        psa_algorithm_t psa_alg, psa_alg2 = 0;
         psa_key_usage_t usage = PSA_KEY_USAGE_SIGN_HASH;
 
         if( strcmp( opt.key_opaque_alg1, DFL_KEY_OPAQUE_ALG ) == 0 )

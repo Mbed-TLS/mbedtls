@@ -1419,8 +1419,12 @@ trap cleanup INT TERM HUP
 
 for i in opt-testcases/*.sh
 do
+    # Remove directory part of filename
     TEST_SUITE_NAME=${i##*/}
+    # Remove suffix of filename
     TEST_SUITE_NAME=${TEST_SUITE_NAME%.*}
+    # The test suite file should be like `XX-<test suite name>`. That can keep
+    # executaition order. Below line is to remove leading part.
     TEST_SUITE_NAME=${TEST_SUITE_NAME#*-}
     . "$i"
 done

@@ -457,12 +457,16 @@ int main( void )
 #endif
 
 #define USAGE_KEY_OPAQUE_ALGS \
-    "    key_opaque_algs=%%s  Allowed opaque key algorithms.\n"                      \
-    "                        comma-separated pair of values among the following:\n"   \
+    "    key_opaque_algs=%%s  Allowed opaque key 1 algorithms.\n"                    \
+    "                        comma-separated pair of values among the following:\n"  \
     "                        rsa-sign-pkcs1, rsa-sign-pss, rsa-decrypt,\n"           \
     "                        ecdsa-sign, ecdh, none (only acceptable for\n"          \
     "                        the second value).\n"                                   \
-
+    "    key_opaque_algs2=%%s Allowed opaque key 2 algorithms.\n"                    \
+    "                        comma-separated pair of values among the following:\n"  \
+    "                        rsa-sign-pkcs1, rsa-sign-pss, rsa-decrypt,\n"           \
+    "                        ecdsa-sign, ecdh, none (only acceptable for\n"          \
+    "                        the second value).\n"
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 #define USAGE_TLS1_3_KEY_EXCHANGE_MODES \
     "    tls13_kex_modes=%%s   default: all\n"     \

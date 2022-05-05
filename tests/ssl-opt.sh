@@ -1421,6 +1421,7 @@ for i in opt-testcases/*.sh
 do
     TEST_SUITE_NAME=${i##*/}
     TEST_SUITE_NAME=${TEST_SUITE_NAME%.*}
+    TEST_SUITE_NAME=${TEST_SUITE_NAME#*-}
     . "$i"
 done
 unset TEST_SUITE_NAME

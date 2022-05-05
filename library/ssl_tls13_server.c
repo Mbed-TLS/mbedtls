@@ -1026,6 +1026,25 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
     return( ret );
 }
 
+static int ssl_tls13_finalize_write_server_hello( mbedtls_ssl_context *ssl )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    ret = mbedtls_ssl_tls13_set_handshake_transform( ssl );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_set_handshake_transform",
+                               ret );
+        return( ret );
+    }
+
+    mbedtls_ssl_set_outbound_transform( ssl,
+                                        ssl->handshake->transform_handshake );
+    MBEDTLS_SSL_DEBUG_MSG(
+        3, ( "switching to new transform spec for outbound data" ) );
+
+    return( ret );
+}
+
 static int ssl_tls13_write_server_hello( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -1049,7 +1068,10 @@ static int ssl_tls13_write_server_hello( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_finish_handshake_msg(
                               ssl, buf_len, msg_len ) );
 
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_write_server_hello( ssl ) );
+
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_ENCRYPTED_EXTENSIONS );
+
 cleanup:
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write server hello" ) );
@@ -1059,55 +1081,6 @@ cleanup:
 /*
  * Handler for MBEDTLS_SSL_ENCRYPTED_EXTENSIONS
  */
-static int ssl_tls13_prepare_encrypted_extensions( mbedtls_ssl_context *ssl )
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    mbedtls_ssl_key_set traffic_keys;
-    mbedtls_ssl_transform *transform_handshake = NULL;
-
-    /* Compute handshake secret */
-    ret = mbedtls_ssl_tls13_key_schedule_stage_handshake( ssl );
-    if( ret != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET(
-            1, "mbedtls_ssl_tls13_key_schedule_stage_handshake", ret );
-        return( ret );
-    }
-
-    /* Derive handshake key material */
-    ret = mbedtls_ssl_tls13_generate_handshake_keys( ssl, &traffic_keys );
-    if( ret != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET(
-            1, "mbedtls_ssl_tls13_generate_handshake_keys", ret );
-        return( ret );
-    }
-
-    transform_handshake = mbedtls_calloc( 1, sizeof( mbedtls_ssl_transform ) );
-    if( transform_handshake == NULL )
-        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
-
-    /* Setup transform from handshake key material */
-    ret = mbedtls_ssl_tls13_populate_transform(
-                               transform_handshake,
-                               ssl->conf->endpoint,
-                               ssl->session_negotiate->ciphersuite,
-                               &traffic_keys,
-                               ssl );
-    if( ret != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_populate_transform", ret );
-        mbedtls_free( transform_handshake );
-        return( ret );
-    }
-
-    ssl->handshake->transform_handshake = transform_handshake;
-    mbedtls_ssl_set_outbound_transform( ssl, ssl->handshake->transform_handshake );
-    MBEDTLS_SSL_DEBUG_MSG(
-        3, ( "switching to new transform spec for outbound data" ) );
-
-    return( 0 );
-}
 
 /*
  * struct {
@@ -1149,8 +1122,6 @@ static int ssl_tls13_write_encrypted_extensions( mbedtls_ssl_context *ssl )
     size_t buf_len, msg_len;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write encrypted extensions" ) );
-
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_prepare_encrypted_extensions( ssl ) );
 
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_start_handshake_msg( ssl,
                        MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS, &buf, &buf_len ) );

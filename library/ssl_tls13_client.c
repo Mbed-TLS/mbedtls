@@ -1189,8 +1189,6 @@ cleanup:
 static int ssl_tls13_postprocess_server_hello( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    mbedtls_ssl_key_set traffic_keys;
-    mbedtls_ssl_transform *transform_handshake = NULL;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
     /* Determine the key exchange mode:
@@ -1234,50 +1232,20 @@ static int ssl_tls13_postprocess_server_hello( mbedtls_ssl_context *ssl )
     ret = mbedtls_ssl_tls13_key_schedule_stage_early( ssl );
     if( ret != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_key_schedule_stage_early_data",
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_key_schedule_stage_early",
                                ret );
         goto cleanup;
     }
 
-    /* Compute handshake secret */
-    ret = mbedtls_ssl_tls13_key_schedule_stage_handshake( ssl );
+    ret = mbedtls_ssl_tls13_set_handshake_transform( ssl );
     if( ret != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_derive_master_secret", ret );
-        goto cleanup;
-    }
-
-    /* Next evolution in key schedule: Establish handshake secret and
-     * key material. */
-    ret = mbedtls_ssl_tls13_generate_handshake_keys( ssl, &traffic_keys );
-    if( ret != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_generate_handshake_keys",
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_set_handshake_transform",
                                ret );
         goto cleanup;
     }
 
-    transform_handshake = mbedtls_calloc( 1, sizeof( mbedtls_ssl_transform ) );
-    if( transform_handshake == NULL )
-    {
-        ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
-        goto cleanup;
-    }
-
-    ret = mbedtls_ssl_tls13_populate_transform( transform_handshake,
-                              ssl->conf->endpoint,
-                              ssl->session_negotiate->ciphersuite,
-                              &traffic_keys,
-                              ssl );
-    if( ret != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_populate_transform", ret );
-        goto cleanup;
-    }
-
-    handshake->transform_handshake = transform_handshake;
-    mbedtls_ssl_set_inbound_transform( ssl, transform_handshake );
-
+    mbedtls_ssl_set_inbound_transform( ssl, handshake->transform_handshake );
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "Switch to handshake keys for inbound traffic" ) );
     ssl->session_in = ssl->session_negotiate;
 
@@ -1287,16 +1255,13 @@ static int ssl_tls13_postprocess_server_hello( mbedtls_ssl_context *ssl )
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_ENCRYPTED_EXTENSIONS );
 
 cleanup:
-
-    mbedtls_platform_zeroize( &traffic_keys, sizeof( traffic_keys ) );
     if( ret != 0 )
     {
-        mbedtls_free( transform_handshake );
-
         MBEDTLS_SSL_PEND_FATAL_ALERT(
             MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
             MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }
+
     return( ret );
 }
 

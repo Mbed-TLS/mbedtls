@@ -1015,11 +1015,6 @@ exit:
     mbedtls_net_free( &server_fd );
     mbedtls_net_free( &listen_fd );
 
-#if defined(_WIN32)
-    mbedtls_printf( "  Press Enter to exit this program.\n" );
-    fflush( stdout ); getchar();
-#endif
-
     mbedtls_exit( exit_code );
 }
 

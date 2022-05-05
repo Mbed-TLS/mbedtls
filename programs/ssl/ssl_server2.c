@@ -4213,11 +4213,6 @@ exit:
     if( opt.query_config_mode == DFL_QUERY_CONFIG_MODE )
     {
         mbedtls_printf( " done.\n" );
-
-#if defined(_WIN32)
-        mbedtls_printf( "  + Press Enter to exit this program.\n" );
-        fflush( stdout ); getchar();
-#endif
     }
 
     // Shell can not handle large exit numbers -> 1 for errors

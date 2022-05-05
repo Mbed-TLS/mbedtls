@@ -150,7 +150,7 @@ int main( void )
     "                        Finished, ChangeCipherSpec, Alert,\n"          \
     "                        ApplicationData, CID\n"
 
-#define USAGE                                                               \
+#define USAGE_1                                                             \
     "\n usage: udp_proxy param=<>...\n"                                     \
     "\n acceptable parameters:\n"                                           \
     "    server_addr=%%s      default: localhost\n"                         \
@@ -190,7 +190,9 @@ int main( void )
     "    protect_len=%%d      default: (don't protect packets of this size)\n" \
     "    inject_clihlo=0/1   default: 0 (don't inject fake ClientHello)\n"  \
     "\n"                                                                    \
-    "    seed=%%d             default: (use current time)\n"                \
+    "    seed=%%d             default: (use current time)\n"
+
+#define USAGE_2                                                             \
     USAGE_PACK                                                              \
     "\n"                                                                    \
     USAGE_MALFORM                                                           \
@@ -274,7 +276,8 @@ static void exit_usage( const char *name, const char *value )
     else
         mbedtls_printf( " option %s: illegal value: %s\n", name, value );
 
-    mbedtls_printf( USAGE );
+    mbedtls_printf( USAGE_1 );
+    mbedtls_printf( USAGE_2 );
     mbedtls_exit( 1 );
 }
 

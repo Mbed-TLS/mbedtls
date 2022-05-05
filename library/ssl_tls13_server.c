@@ -1380,7 +1380,7 @@ cleanup:
 static int ssl_tls13_write_hello_retry_request_coordinate(
                                                     mbedtls_ssl_context *ssl )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     if( ssl->handshake->hello_retry_request_count > 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Too many HRRs" ) );
@@ -1404,7 +1404,7 @@ static int ssl_tls13_write_hello_retry_request_coordinate(
 
 static int ssl_tls13_write_hello_retry_request( mbedtls_ssl_context *ssl )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *buf;
     size_t buf_len, msg_len;
 
@@ -1454,9 +1454,7 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
     {
         /* start state */
         case MBEDTLS_SSL_HELLO_REQUEST:
-            ssl->handshake->hello_retry_request_count = 0;
             mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_HELLO );
-
             ret = 0;
             break;
 
@@ -1472,7 +1470,6 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
             ret = ssl_tls13_write_server_hello( ssl );
             break;
 
-<<<<<<< HEAD
         case MBEDTLS_SSL_ENCRYPTED_EXTENSIONS:
             ret = ssl_tls13_write_encrypted_extensions( ssl );
             if( ret != 0 )
@@ -1480,10 +1477,14 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
                 MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_write_encrypted_extensions", ret );
                 return( ret );
             }
-=======
+
         case MBEDTLS_SSL_HELLO_RETRY_REQUEST:
             ret = ssl_tls13_write_hello_retry_request( ssl );
->>>>>>> tls13:hrr:add empty frame work
+            if( ret != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_write_hello_retry_request", ret );
+                return( ret );
+            }
             break;
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)

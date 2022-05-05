@@ -586,7 +586,7 @@ struct mbedtls_ssl_handshake_params
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     int tls13_kex_modes; /*!< key exchange modes for TLS 1.3 */
 
-    /* Number of HelloRetryRequest messages received/sent from the server. */
+    /** Number of HelloRetryRequest messages received/sent from/to the server. */
     int hello_retry_request_count;
 #if defined(MBEDTLS_SSL_SRV_C)
     /** selected_group of key_share extension in HelloRetryRequest message. */

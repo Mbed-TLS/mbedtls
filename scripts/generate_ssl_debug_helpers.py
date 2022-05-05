@@ -300,19 +300,19 @@ class NamedGroupDefinition:
         Generate helper functions for named group
 
         It generates translation function from named group define to string.
-        Signature algorithm definition looks like:
+        Named group definition looks like:
         #define MBEDTLS_SSL_IANA_TLS_GROUP_[ upper case named group ] [ value(hex) ]
 
         Known limitation:
-        - the definitions SHOULD  exist in same macro blocks.
+        - the definitions SHOULD exist in same macro blocks.
     """
 
     @classmethod
     def extract(cls, source_code, start=0, end=-1):
-        sig_alg_pattern = re.compile(r'#define\s+(?P<name>MBEDTLS_SSL_IANA_TLS_GROUP_\w+)\s+' +
-                                     r'(?P<value>0[xX][0-9a-fA-F]+)$',
-                                     re.MULTILINE | re.DOTALL)
-        matches = list(sig_alg_pattern.finditer(source_code, start, end))
+        named_group_pattern = re.compile(r'#define\s+(?P<name>MBEDTLS_SSL_IANA_TLS_GROUP_\w+)\s+' +
+                                         r'(?P<value>0[xX][0-9a-fA-F]+)$',
+                                         re.MULTILINE | re.DOTALL)
+        matches = list(named_group_pattern.finditer(source_code, start, end))
         if matches:
             yield NamedGroupDefinition(source_code, definitions=matches)
 

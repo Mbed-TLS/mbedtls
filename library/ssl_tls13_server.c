@@ -1204,7 +1204,7 @@ static int ssl_tls13_write_certificate_request_body( mbedtls_ssl_context *ssl,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *p = buf;
-    size_t extensions_len = 0;
+    size_t output_len = 0;
     unsigned char *p_extensions_len;
 
     *out_len = 0;
@@ -1231,13 +1231,13 @@ static int ssl_tls13_write_certificate_request_body( mbedtls_ssl_context *ssl,
     /* The extensions must contain the signature_algorithms. */
     p_extensions_len = p;
     p += 2;
-    ret = mbedtls_ssl_write_sig_alg_ext( ssl, p, end, &extensions_len );
+    ret = mbedtls_ssl_write_sig_alg_ext( ssl, p, end, &output_len );
     if( ret != 0 )
         return( ret );
 
     /* length field for all extensions */
-    MBEDTLS_PUT_UINT16_BE( extensions_len, p_extensions_len, 0 );
-    p += extensions_len;
+    MBEDTLS_PUT_UINT16_BE( output_len, p_extensions_len, 0 );
+    p += output_len;
 
     *out_len = p - buf;
 

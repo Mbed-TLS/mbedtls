@@ -1384,8 +1384,8 @@ static int ssl_tls13_write_hello_retry_request_coordinate(
     if( ssl->handshake->hello_retry_request_count > 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "Too many HRRs" ) );
-        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE,
-                                      MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
+        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
+                                      MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
         return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }
 

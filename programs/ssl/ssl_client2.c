@@ -1717,42 +1717,24 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( opt.key_opaque != 0 )
     {
-        psa_algorithm_t psa_alg, psa_alg2 = 0;
-        psa_key_usage_t usage = PSA_KEY_USAGE_SIGN_HASH;
+        psa_algorithm_t psa_alg, psa_alg2 = PSA_ALG_NONE;
+        psa_key_usage_t usage = 0;
 
-        if( strcmp( opt.key_opaque_alg1, DFL_KEY_OPAQUE_ALG ) == 0 )
+        if( key_opaque_set_alg_usage( opt.key_opaque_alg1,
+                                      opt.key_opaque_alg2,
+                                      &psa_alg, &psa_alg2,
+                                      &usage,
+                                      mbedtls_pk_get_type( &pkey ) ) == 0 )
         {
-            if( mbedtls_pk_get_type( &pkey ) == MBEDTLS_PK_ECKEY )
-            {
-                opt.key_opaque_alg1 = "ecdsa-sign";
-                opt.key_opaque_alg2 = "none";
-            }
-            else
-            {
-                opt.key_opaque_alg1 = "rsa-sign-pkcs1";
-                opt.key_opaque_alg2 = "rsa-sign-pss";
-            }
-        }
-
-        if ( strcmp( opt.key_opaque_alg1, DFL_KEY_OPAQUE_ALG ) != 0 )
-        {
-            ret = key_opaque_set_alg_usage( opt.key_opaque_alg1,
-                                            opt.key_opaque_alg2,
-                                            &psa_alg, &psa_alg2, &usage );
+            ret = mbedtls_pk_wrap_as_opaque( &pkey, &key_slot, psa_alg,
+                                             usage, psa_alg2 );
             if( ret != 0 )
             {
-                mbedtls_printf( " failed\n  !  key_opaque_set_alg_usage returned -0x%x\n\n",
-                                (unsigned int) -ret );
+                mbedtls_printf( " failed\n  !  "
+                                "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n",
+                                (unsigned int)  -ret );
                 goto exit;
             }
-        }
-
-        if( ( ret = mbedtls_pk_wrap_as_opaque( &pkey, &key_slot, psa_alg,
-                                               usage, psa_alg2 ) ) != 0 )
-        {
-            mbedtls_printf( " failed\n  !  "
-                            "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n", (unsigned int)  -ret );
-            goto exit;
         }
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */

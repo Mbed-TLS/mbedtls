@@ -225,62 +225,65 @@ int key_opaque_alg_parse( const char *arg, const char **alg1, const char **alg2 
 int key_opaque_set_alg_usage( const char *alg1, const char *alg2,
                               psa_algorithm_t *psa_alg1,
                               psa_algorithm_t *psa_alg2,
-                              psa_key_usage_t *usage )
+                              psa_key_usage_t *usage,
+                              mbedtls_pk_type_t key_type )
 {
-    if( strcmp( alg1, "rsa-sign-pkcs1" ) == 0 )
+    if( strcmp( alg1, "none" ) != 0 )
     {
-        *psa_alg1 = PSA_ALG_RSA_PKCS1V15_SIGN( PSA_ALG_ANY_HASH );
-        *usage = PSA_KEY_USAGE_SIGN_HASH;
-    }
-    else if ( strcmp( alg1, "rsa-sign-pss" ) == 0 )
-    {
-        *psa_alg1 = PSA_ALG_RSA_PSS( PSA_ALG_ANY_HASH );
-        *usage = PSA_KEY_USAGE_SIGN_HASH;
-    }
-    else if ( strcmp( alg1, "rsa-decrypt" ) == 0 )
-    {
-        *psa_alg1 = PSA_ALG_RSA_PKCS1V15_CRYPT;
-        *usage = PSA_KEY_USAGE_DECRYPT;
-    }
-    else if ( strcmp( alg1, "ecdsa-sign" ) == 0 )
-    {
-        *psa_alg1 = PSA_ALG_ECDSA( PSA_ALG_ANY_HASH );
-        *usage = PSA_KEY_USAGE_SIGN_HASH;
-    }
-    else if ( strcmp( alg1, "ecdh" ) == 0 )
-    {
-        *psa_alg1 = PSA_ALG_ECDH;
-        *usage = PSA_KEY_USAGE_DERIVE;
-    }
+        const char * algs[] = { alg1, alg2 };
+        psa_algorithm_t *psa_algs[] = { psa_alg1, psa_alg2 };
 
-    if( strcmp( alg2, "rsa-sign-pkcs1" ) == 0 )
-    {
-        *psa_alg1 = PSA_ALG_RSA_PKCS1V15_SIGN( PSA_ALG_ANY_HASH );
-        *usage |= PSA_KEY_USAGE_SIGN_HASH;
+        for ( int i = 0; i < 2; i++ )
+        {
+            if( strcmp( algs[i], "rsa-sign-pkcs1" ) == 0 )
+            {
+                *psa_algs[i] = PSA_ALG_RSA_PKCS1V15_SIGN( PSA_ALG_ANY_HASH );
+                *usage |= PSA_KEY_USAGE_SIGN_HASH;
+            }
+            else if( strcmp( algs[i], "rsa-sign-pss" ) == 0 )
+            {
+                *psa_algs[i] = PSA_ALG_RSA_PSS( PSA_ALG_ANY_HASH );
+                *usage |= PSA_KEY_USAGE_SIGN_HASH;
+            }
+            else if( strcmp( algs[i], "rsa-decrypt" ) == 0 )
+            {
+                *psa_algs[i] = PSA_ALG_RSA_PKCS1V15_CRYPT;
+                *usage |= PSA_KEY_USAGE_DECRYPT;
+            }
+            else if( strcmp( algs[i], "ecdsa-sign" ) == 0 )
+            {
+                *psa_algs[i] = PSA_ALG_ECDSA( PSA_ALG_ANY_HASH );
+                *usage |= PSA_KEY_USAGE_SIGN_HASH;
+            }
+            else if( strcmp( algs[i], "ecdh" ) == 0 )
+            {
+                *psa_algs[i] = PSA_ALG_ECDH;
+                *usage |= PSA_KEY_USAGE_DERIVE;
+            }
+            else if( strcmp( algs[i], "none" ) == 0 )
+            {
+                *psa_algs[i] = PSA_ALG_NONE;
+            }
+        }
     }
-    else if( strcmp( alg2, "rsa-sign-pss" ) == 0 )
+    else
     {
-        *psa_alg2 = PSA_ALG_RSA_PSS( PSA_ALG_ANY_HASH );
-        *usage |= PSA_KEY_USAGE_SIGN_HASH;
-    }
-    else if( strcmp( alg2, "rsa-decrypt" ) == 0 )
-    {
-        *psa_alg2 = PSA_ALG_RSA_PKCS1V15_CRYPT;
-        *usage |= PSA_KEY_USAGE_DECRYPT;
-    }
-    else if( strcmp( alg2, "ecdsa-sign" ) == 0 )
-    {
-        *psa_alg2 = PSA_ALG_ECDSA( PSA_ALG_ANY_HASH );
-        *usage |= PSA_KEY_USAGE_SIGN_HASH;
-    }
-    else if( strcmp( alg2, "ecdh" ) == 0 )
-    {
-        *psa_alg2 = PSA_ALG_ECDH;
-        *usage |= PSA_KEY_USAGE_DERIVE;
-    }
-    else if( strcmp( alg2, "none" ) == 0 )
-    {
-        *psa_alg2 = PSA_ALG_NONE;
+        if( key_type == MBEDTLS_PK_ECKEY )
+        {
+            *psa_alg1 = PSA_ALG_ECDSA( PSA_ALG_ANY_HASH );
+            *psa_alg2 = PSA_ALG_ECDH;
+            *usage = PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_DERIVE;
+        }
+        else if( key_type == MBEDTLS_PK_RSA )
+        {
+            *psa_alg1 = PSA_ALG_RSA_PKCS1V15_SIGN( PSA_ALG_ANY_HASH );
+            *psa_alg2 = PSA_ALG_RSA_PSS( PSA_ALG_ANY_HASH );
+            *usage = PSA_KEY_USAGE_SIGN_HASH;
+        }
+        else
+        {
+            return 1;
+        }
     }
 
     return 0;

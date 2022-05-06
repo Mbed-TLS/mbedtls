@@ -1237,10 +1237,11 @@ static int ssl_tls13_postprocess_server_hello( mbedtls_ssl_context *ssl )
         goto cleanup;
     }
 
-    ret = mbedtls_ssl_tls13_set_handshake_transform( ssl );
+    ret = mbedtls_ssl_tls13_compute_handshake_transform( ssl );
     if( ret != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_set_handshake_transform",
+        MBEDTLS_SSL_DEBUG_RET( 1,
+                               "mbedtls_ssl_tls13_compute_handshake_transform",
                                ret );
         goto cleanup;
     }

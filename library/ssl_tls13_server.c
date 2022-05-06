@@ -1029,10 +1029,11 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
 static int ssl_tls13_finalize_write_server_hello( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    ret = mbedtls_ssl_tls13_set_handshake_transform( ssl );
+    ret = mbedtls_ssl_tls13_compute_handshake_transform( ssl );
     if( ret != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_set_handshake_transform",
+        MBEDTLS_SSL_DEBUG_RET( 1,
+                               "mbedtls_ssl_tls13_compute_handshake_transform",
                                ret );
         return( ret );
     }
@@ -1040,7 +1041,7 @@ static int ssl_tls13_finalize_write_server_hello( mbedtls_ssl_context *ssl )
     mbedtls_ssl_set_outbound_transform( ssl,
                                         ssl->handshake->transform_handshake );
     MBEDTLS_SSL_DEBUG_MSG(
-        3, ( "switching to new transform spec for outbound data" ) );
+        3, ( "switching to handshake transform for outbound data" ) );
 
     return( ret );
 }

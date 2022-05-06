@@ -1511,7 +1511,7 @@ int mbedtls_ssl_tls13_generate_application_keys(
     return( ret );
 }
 
-int mbedtls_ssl_tls13_set_handshake_transform( mbedtls_ssl_context *ssl )
+int mbedtls_ssl_tls13_compute_handshake_transform( mbedtls_ssl_context *ssl )
 {
     int ret;
     mbedtls_ssl_key_set traffic_keys;
@@ -1558,9 +1558,7 @@ int mbedtls_ssl_tls13_set_handshake_transform( mbedtls_ssl_context *ssl )
 cleanup:
     mbedtls_platform_zeroize( &traffic_keys, sizeof( traffic_keys ) );
     if( ret != 0 )
-    {
         mbedtls_free( transform_handshake );
-    }
 
     return( ret );
 }

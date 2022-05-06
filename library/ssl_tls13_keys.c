@@ -1507,13 +1507,14 @@ int mbedtls_ssl_tls13_generate_application_keys(
     /* randbytes is not used again */
     mbedtls_platform_zeroize( ssl->handshake->randbytes,
                               sizeof( ssl->handshake->randbytes ) );
+
     mbedtls_platform_zeroize( transcript, sizeof( transcript ) );
     return( ret );
 }
 
 int mbedtls_ssl_tls13_compute_handshake_transform( mbedtls_ssl_context *ssl )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ssl_key_set traffic_keys;
     mbedtls_ssl_transform *transform_handshake = NULL;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
@@ -1543,11 +1544,12 @@ int mbedtls_ssl_tls13_compute_handshake_transform( mbedtls_ssl_context *ssl )
         goto cleanup;
     }
 
-    ret = mbedtls_ssl_tls13_populate_transform( transform_handshake,
-                              ssl->conf->endpoint,
-                              ssl->session_negotiate->ciphersuite,
-                              &traffic_keys,
-                              ssl );
+    ret = mbedtls_ssl_tls13_populate_transform(
+                                        transform_handshake,
+                                        ssl->conf->endpoint,
+                                        ssl->session_negotiate->ciphersuite,
+                                        &traffic_keys,
+                                        ssl );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_populate_transform", ret );

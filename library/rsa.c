@@ -49,10 +49,6 @@
 
 #include <string.h>
 
-#if defined(MBEDTLS_PKCS1_V21)
-#include "mbedtls/md.h"
-#endif
-
 #if defined(MBEDTLS_PKCS1_V15) && !defined(__OpenBSD__) && !defined(__NetBSD__)
 #include <stdlib.h>
 #endif

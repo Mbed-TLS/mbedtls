@@ -1479,6 +1479,7 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
                 MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_write_encrypted_extensions", ret );
                 return( ret );
             }
+            break;
 
         case MBEDTLS_SSL_HELLO_RETRY_REQUEST:
             ret = ssl_tls13_write_hello_retry_request( ssl );

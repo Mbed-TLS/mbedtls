@@ -630,9 +630,15 @@ int mbedtls_cipher_setup( mbedtls_cipher_context_t *ctx,
                           const mbedtls_cipher_info_t *cipher_info );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /**
  * \brief               This function initializes a cipher context for
  *                      PSA-based use with the given cipher primitive.
+ *
+ * \deprecated          This function is deprecated and will be removed in a
+ *                      future version of the library.
+ *                      Please use psa_aead_xxx() / psa_cipher_xxx() directly
+ *                      instead.
  *
  * \note                See #MBEDTLS_USE_PSA_CRYPTO for information on PSA.
  *
@@ -651,9 +657,9 @@ int mbedtls_cipher_setup( mbedtls_cipher_context_t *ctx,
  * \return              #MBEDTLS_ERR_CIPHER_ALLOC_FAILED if allocation of the
  *                      cipher-specific context fails.
  */
-int mbedtls_cipher_setup_psa( mbedtls_cipher_context_t *ctx,
-                              const mbedtls_cipher_info_t *cipher_info,
-                              size_t taglen );
+int MBEDTLS_DEPRECATED mbedtls_cipher_setup_psa( mbedtls_cipher_context_t *ctx,
+    const mbedtls_cipher_info_t *cipher_info, size_t taglen );
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 /**

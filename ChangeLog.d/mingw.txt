@@ -1,0 +1,4 @@
+Bugfix
+   * Fix compilation error with mingw32. Fixed by Cameron Cawley in #4211.
+   * Fix compilation error when using C++ Builder on Windows. Reported by
+     Miroslav Mastny in #4015.

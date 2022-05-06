@@ -95,8 +95,7 @@ void mbedtls_platform_zeroize( void *buf, size_t len )
 #if ! ( defined(_WIN32) && !defined(EFIX64) && !defined(EFI32) ) || \
       ( defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR) )
 #define PLATFORM_UTIL_USE_GMTIME
-#endif /* ! ( defined(_WIN32) && !defined(EFIX64) && !defined(EFI32) ) || \
-             (defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR) ) */
+#endif
 
 #endif /* !( ( defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L ) ||     \
              ( defined(_POSIX_THREAD_SAFE_FUNCTIONS ) &&                     \

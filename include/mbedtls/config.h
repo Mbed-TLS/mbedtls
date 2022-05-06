@@ -2946,7 +2946,6 @@
  *          library/ecjpake.c
  *          library/hkdf.c
  *          library/hmac_drbg.c
- *          library/oid.c
  *          library/pk.c
  *          library/pkcs5.c
  *          library/pkcs12.c
@@ -2956,6 +2955,7 @@
  *          library/ssl_cookie.c
  *          library/ssl_msg.c
  *          library/ssl_tls.c
+ *          library/x509.c
  *          library/x509_crt.c
  *          library/x509write_crt.c
  *          library/x509write_csr.c

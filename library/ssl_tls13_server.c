@@ -733,30 +733,6 @@ cleanup:
     return( ret );
 }
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-#define SSL_CERTIFICATE_REQUEST_SEND_REQUEST 0
-#define SSL_CERTIFICATE_REQUEST_SKIP         1
-/* Coordination:
- * Check whether a CertificateRequest message should be written.
- * Returns a negative code on failure, or
- * - SSL_CERTIFICATE_REQUEST_SEND_REQUEST
- * - SSL_CERTIFICATE_REQUEST_SKIP
- * indicating if the writing of the CertificateRequest
- * should be skipped or not.
- */
-static int ssl_tls13_certificate_request_coordinate( mbedtls_ssl_context *ssl )
-{
-    int authmode;
-
-    authmode = ssl->conf->authmode;
-
-    if( authmode == MBEDTLS_SSL_VERIFY_NONE )
-        return( SSL_CERTIFICATE_REQUEST_SKIP );
-
-    return( SSL_CERTIFICATE_REQUEST_SEND_REQUEST );
-}
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
-
 /*
  * Handler for MBEDTLS_SSL_SERVER_HELLO
  */
@@ -1170,14 +1146,7 @@ static int ssl_tls13_write_encrypted_extensions( mbedtls_ssl_context *ssl )
         mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_FINISHED );
     else
     {
-        MBEDTLS_SSL_PROC_CHK_NEG( ssl_tls13_certificate_request_coordinate( ssl ) );
-        if( ret == SSL_CERTIFICATE_REQUEST_SEND_REQUEST )
-            mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CERTIFICATE_REQUEST );
-        else
-        {
-            mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_CERTIFICATE );
-            ret = 0;
-        }
+        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CERTIFICATE_REQUEST );
     }
 #else
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_FINISHED );
@@ -1190,6 +1159,28 @@ cleanup:
 }
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+#define SSL_CERTIFICATE_REQUEST_SEND_REQUEST 0
+#define SSL_CERTIFICATE_REQUEST_SKIP         1
+/* Coordination:
+ * Check whether a CertificateRequest message should be written.
+ * Returns a negative code on failure, or
+ * - SSL_CERTIFICATE_REQUEST_SEND_REQUEST
+ * - SSL_CERTIFICATE_REQUEST_SKIP
+ * indicating if the writing of the CertificateRequest
+ * should be skipped or not.
+ */
+static int ssl_tls13_certificate_request_coordinate( mbedtls_ssl_context *ssl )
+{
+    int authmode;
+
+    authmode = ssl->conf->authmode;
+
+    if( authmode == MBEDTLS_SSL_VERIFY_NONE )
+        return( SSL_CERTIFICATE_REQUEST_SKIP );
+
+    return( SSL_CERTIFICATE_REQUEST_SEND_REQUEST );
+}
+
 /*
  * struct {
  *   opaque certificate_request_context<0..2^8-1>;

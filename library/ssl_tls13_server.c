@@ -743,10 +743,21 @@ static int ssl_tls13_process_client_hello( mbedtls_ssl_context *ssl )
     parse_client_hello_ret = ret;
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_postprocess_client_hello( ssl ) );
 
-    if( parse_client_hello_ret == SSL_CLIENT_HELLO_OK )
-        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_HELLO );
-    else
-        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_HELLO_RETRY_REQUEST );
+    switch( parse_client_hello_ret )
+    {
+        case SSL_CLIENT_HELLO_OK:
+            mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_HELLO );
+            break;
+
+        case SSL_CLIENT_HELLO_HRR_REQUIRED:
+            mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_HELLO_RETRY_REQUEST );
+            break;
+
+        default:
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "should never happen" ) );
+            ret = parse_client_hello_ret;
+            break;
+    }
 
 cleanup:
 

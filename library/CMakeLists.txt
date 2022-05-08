@@ -34,6 +34,7 @@ set(src_crypto
     ecjpake.c
     ecp.c
     ecp_curves.c
+    eddsa.c
     entropy.c
     entropy_poll.c
     error.c

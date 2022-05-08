@@ -99,6 +99,7 @@ OBJS_CRYPTO= \
 	     ecjpake.o \
 	     ecp.o \
 	     ecp_curves.o \
+	     eddsa.o \
 	     entropy.o \
 	     entropy_poll.o \
 	     error.o \

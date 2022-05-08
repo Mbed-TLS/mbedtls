@@ -107,6 +107,14 @@
 #error "MBEDTLS_ECDSA_C defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_EDDSA_C) &&            \
+    ( !defined(MBEDTLS_ECP_C) ||           \
+      !( defined(MBEDTLS_ECP_DP_ED25519_ENABLED) ) || \
+      ( defined(MBEDTLS_ECP_DP_ED25519_ENABLED) \
+        && !defined(MBEDTLS_SHA512_C) ) )
+#error "MBEDTLS_EDDSA_C defined, but not all prerequisites"
+#endif
+
 #if defined(MBEDTLS_ECJPAKE_C) &&           \
     ( !defined(MBEDTLS_ECP_C) || !defined(MBEDTLS_MD_C) )
 #error "MBEDTLS_ECJPAKE_C defined, but not all prerequisites"
@@ -141,7 +149,8 @@
     !defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED) &&                  \
     !defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED) &&                  \
     !defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) &&                 \
-    !defined(MBEDTLS_ECP_DP_CURVE448_ENABLED) ) )
+    !defined(MBEDTLS_ECP_DP_CURVE448_ENABLED) &&                   \
+    !defined(MBEDTLS_ECP_DP_ED25519_ENABLED) ) )
 #error "MBEDTLS_ECP_C defined, but not all prerequisites"
 #endif
 

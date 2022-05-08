@@ -2285,6 +2285,21 @@
 #define MBEDTLS_ECDSA_C
 
 /**
+ * \def MBEDTLS_EDDSA_C
+ *
+ * Enable the Edwards-curve DSA library.
+ *
+ * Module:  library/eddsa.c
+ * Caller:
+ *
+ * Requires: MBEDTLS_ECP_C
+ *           MBEDTLS_SHA512_C for Ed25519
+ *           and at least one MBEDTLS_ECP_DP_XXX_ENABLED for a
+ *           Edwards curve.
+ */
+#define MBEDTLS_EDDSA_C
+
+/**
  * \def MBEDTLS_ECJPAKE_C
  *
  * Enable the elliptic curve J-PAKE library.

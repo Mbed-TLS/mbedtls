@@ -55,7 +55,7 @@ my @ssl = split( /\s+/, `sed -n -e '$ssl_sed_cmd' $config_h` );
 # separating them would generate invalid configurations.
 my @hash_configs = (
     ['unset MBEDTLS_MD5_C'],
-    ['unset MBEDTLS_SHA512_C', 'unset MBEDTLS_SHA384_C '],
+    ['unset MBEDTLS_SHA512_C', 'unset MBEDTLS_SHA384_C', 'unset MBEDTLS_EDDSA_C', 'unset MBEDTLS_ECP_DP_ED25519_ENABLED'],
     ['unset MBEDTLS_SHA384_C'],
     ['unset MBEDTLS_SHA256_C', 'unset MBEDTLS_SHA224_C'],
     ['unset MBEDTLS_SHA1_C'],

@@ -1229,7 +1229,6 @@ static inline int mbedtls_mpi_mul_int_mod( const mbedtls_ecp_group *grp,
 cleanup:
     return( ret );
 }
-#endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
 
 static inline int mbedtls_mpi_sub_int_mod( const mbedtls_ecp_group *grp,
                                            mbedtls_mpi *X,
@@ -1243,6 +1242,7 @@ static inline int mbedtls_mpi_sub_int_mod( const mbedtls_ecp_group *grp,
 cleanup:
     return( ret );
 }
+#endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
 
 #define MPI_ECP_SUB_INT( X, A, c )             \
     MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int_mod( grp, X, A, c ) )

@@ -51,6 +51,7 @@ my %algs = (
     'MBEDTLS_ECDSA_C'   => ['MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED',
                             'MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED'],
     'MBEDTLS_ECP_C'     => ['MBEDTLS_ECDSA_C',
+                            'MBEDTLS_EDDSA_C',
                             'MBEDTLS_ECDH_C',
                             'MBEDTLS_ECJPAKE_C',
                             'MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED',

@@ -50,6 +50,8 @@
  * List of supported SHA-3 families
  */
 static mbedtls_sha3_family_functions sha3_families[] = {
+    { MBEDTLS_SHA3_SHAKE128, 1344,   0, 0x1F },
+    { MBEDTLS_SHA3_SHAKE256, 1088,   0, 0x1F },
     { MBEDTLS_SHA3_224,      1152, 224, 0x06 },
     { MBEDTLS_SHA3_256,      1088, 256, 0x06 },
     { MBEDTLS_SHA3_384,       832, 384, 0x06 },

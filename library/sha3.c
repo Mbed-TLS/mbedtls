@@ -186,6 +186,22 @@ static uint8_t left_encode( uint8_t *encbuf, size_t value )
     return( n + 1 );
 }
 
+static uint8_t right_encode( uint8_t *encbuf, size_t value )
+{
+    uint8_t n = 0;
+
+    /* Compute length of value in bytes */
+    for ( size_t v = value; v > 0 && n < sizeof( size_t ); n++, v >>= 8 );
+
+    if ( n == 0 )
+        n = 1;
+
+    for ( int i = 1; i <= n; i++ )
+        encbuf[i - 1] = ( uint8_t )( value >> ( 8 * ( n - i ) ) );
+    encbuf[n] = ( uint8_t )n;
+    return n + 1;
+}
+
 static void keccak_pad( mbedtls_sha3_context *ctx )
 {
     if( ( ctx->index % ctx->max_block_size ) != 0 )
@@ -292,6 +308,34 @@ int mbedtls_sha3_starts_cshake( mbedtls_sha3_context *ctx, mbedtls_sha3_id id,
 }
 
 /*
+ * SHA-3 starts with key and customization strings
+ */
+/* If this function receives an id != CSHAKE, it fallsback to mbedtls_sha3_starts() */
+int mbedtls_sha3_starts_kmac( mbedtls_sha3_context *ctx, mbedtls_sha3_id id,
+                                const uint8_t *key, size_t key_len,
+                                const uint8_t *custom, size_t custom_len )
+{
+    int ret = 0;
+    size_t encbuf_len = 0;
+    uint8_t encbuf[sizeof( size_t ) + 1];
+
+    if( ( ret = mbedtls_sha3_starts_cshake( ctx, id, (const uint8_t *)"KMAC", 4,
+                                custom, custom_len ) ) != 0 )
+        return( ret );
+
+    encbuf_len = left_encode( encbuf, ctx->r / 8 );
+    mbedtls_sha3_update( ctx, encbuf, encbuf_len );
+
+    encbuf_len = left_encode( encbuf, key_len * 8 );
+    mbedtls_sha3_update( ctx, encbuf, encbuf_len );
+    mbedtls_sha3_update( ctx, key, key_len );
+
+    keccak_pad( ctx );
+
+    return( 0 );
+}
+
+/*
  * SHA-3 process buffer
  */
 int mbedtls_sha3_update( mbedtls_sha3_context *ctx,
@@ -342,6 +386,21 @@ int mbedtls_sha3_finish( mbedtls_sha3_context *ctx,
     return( 0 );
 }
 
+int mbedtls_sha3_finish_kmac( mbedtls_sha3_context *ctx,
+                              uint8_t *output, size_t olen, int xof )
+{
+    size_t encbuf_len = 0;
+    uint8_t encbuf[sizeof( size_t ) + 1];
+
+    if( xof == 1 )
+        encbuf_len = right_encode( encbuf, 0 );
+    else
+        encbuf_len = right_encode( encbuf, olen * 8 );
+    mbedtls_sha3_update( ctx, encbuf, encbuf_len );
+
+    return( mbedtls_sha3_finish( ctx, output, olen ) );
+}
+
 #endif /* !MBEDTLS_SHA3_ALT */
 
 int mbedtls_sha3_cshake( mbedtls_sha3_id id,
@@ -369,6 +428,39 @@ int mbedtls_sha3_cshake( mbedtls_sha3_id id,
         goto exit;
 
     if( ( ret = mbedtls_sha3_finish( &ctx, output, olen ) ) != 0 )
+        goto exit;
+
+exit:
+    mbedtls_sha3_free( &ctx );
+
+    return( ret );
+}
+
+int mbedtls_sha3_kmac( mbedtls_sha3_id id,
+                                const uint8_t *input, size_t ilen,
+                                const uint8_t *key, size_t key_len,
+                                const uint8_t *custom, size_t custom_len,
+                                uint8_t *output, size_t olen, int xof )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_sha3_context ctx;
+
+    if( ilen != 0 && input == NULL )
+        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
+
+    if( output == NULL )
+        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
+
+    mbedtls_sha3_init( &ctx );
+
+    if( ( ret = mbedtls_sha3_starts_kmac( &ctx, id, key, key_len,
+                                custom, custom_len ) ) != 0 )
+        goto exit;
+
+    if( ( ret = mbedtls_sha3_update( &ctx, input, ilen ) ) != 0 )
+        goto exit;
+
+    if( ( ret = mbedtls_sha3_finish_kmac( &ctx, output, olen, xof ) ) != 0 )
         goto exit;
 
 exit:

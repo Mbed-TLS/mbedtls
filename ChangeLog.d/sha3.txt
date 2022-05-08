@@ -1,3 +1,4 @@
 Features
     * Add SHA3 family hash functions.
     * Add SHA3 SHAKE128 and SHA3 SHAKE256.
+    * Add SHA3 cSHAKE128 and cSHAKE256.

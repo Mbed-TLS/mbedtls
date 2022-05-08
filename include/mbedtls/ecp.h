@@ -80,6 +80,9 @@
     defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
 #define MBEDTLS_ECP_MONTGOMERY_ENABLED
 #endif
+#if defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
+#define MBEDTLS_ECP_EDWARDS_ENABLED
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -330,6 +333,8 @@ mbedtls_ecp_group;
 #elif defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
 #define MBEDTLS_ECP_MAX_BITS 256
 #elif defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS 256
+#elif defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
 #define MBEDTLS_ECP_MAX_BITS 256
 #elif defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
 #define MBEDTLS_ECP_MAX_BITS 255
@@ -1159,6 +1164,53 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
                      mbedtls_mpi *d,
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng );
+
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
+/**
+ * \brief           This function expands a secret on the Edwards curve.
+ *
+ * \param grp       The ECP group that contains curve information.
+ *                  This must be initialized and have group parameters
+ *                  set, for example through mbedtls_ecp_group_load().
+ *
+ * \param d         The destination MPI (secret part).
+ *                  This must be initialized.
+ * \param q         The destination first expansion. This must not be \c NULL.
+ * \param prefix    The destination second expansion. This can be \c NULL.
+ *
+ * \return          \c 0 on success.
+ * \return          An \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_MPI_XXX error code
+ *                  on failure.
+ */
+int mbedtls_ecp_expand_edwards( mbedtls_ecp_group *grp,
+                    const mbedtls_mpi *d, mbedtls_mpi *q,
+                    mbedtls_mpi *prefix );
+
+/**
+ * \brief           This function obtains a point on the Edwards curve.
+ *
+ * \param grp       The ECP group that contains curve information.
+ *                  This must be initialized and have group parameters
+ *                  set, for example through mbedtls_ecp_group_load().
+ *
+ * \param Q         The destination public point.
+ *                  This must be initialized.
+ * \param d         The secret MPI (secret part).
+ *
+ * \param f_rng     The RNG function. This must not be \c NULL.
+ * \param p_rng     The RNG context to be passed to \p f_rng. This may
+ *                  be \c NULL if \p f_rng doesn't need a context argument.
+ *
+ * \return          \c 0 on success.
+ * \return          An \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_MPI_XXX error code
+ *                  on failure.
+ */
+int mbedtls_ecp_point_edwards( mbedtls_ecp_group *grp,
+                     mbedtls_ecp_point *Q,
+                     const mbedtls_mpi *d,
+                     int (*f_rng)(void *, unsigned char *, size_t),
+                     void *p_rng );
+#endif
 
 /**
  * \brief           This function generates a keypair with a configurable base

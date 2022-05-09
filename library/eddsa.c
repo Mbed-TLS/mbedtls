@@ -45,6 +45,9 @@
 #if defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
 #include "mbedtls/sha512.h"
 #endif
+#if defined(MBEDTLS_ECP_DP_ED448_ENABLED)
+#include "mbedtls/sha3.h"
+#endif
 
 int mbedtls_eddsa_can_do( mbedtls_ecp_group_id gid )
 {
@@ -52,6 +55,9 @@ int mbedtls_eddsa_can_do( mbedtls_ecp_group_id gid )
     {
 #ifdef MBEDTLS_ECP_DP_ED25519_ENABLED
         case MBEDTLS_ECP_DP_ED25519: return 1;
+#endif
+#ifdef MBEDTLS_ECP_DP_ED448_ENABLED
+        case MBEDTLS_ECP_DP_ED448: return 1;
 #endif
     default: return 0;
     }
@@ -111,7 +117,7 @@ int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
     mbedtls_ecp_point Q, R;
     mbedtls_mpi q, prefix, rq, h;
 
-    /* EdDSA only should be used with Ed25519 curve  */
+    /* EdDSA only should be used with Ed25519 and Ed448 curves  */
     if( ! mbedtls_eddsa_can_do( grp->id ) || grp->N.p == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 

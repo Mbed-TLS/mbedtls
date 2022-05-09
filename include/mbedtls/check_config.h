@@ -109,7 +109,8 @@
 
 #if defined(MBEDTLS_EDDSA_C) &&            \
     ( !defined(MBEDTLS_ECP_C) ||           \
-      !( defined(MBEDTLS_ECP_DP_ED25519_ENABLED) ) || \
+      !( defined(MBEDTLS_ECP_DP_ED25519_ENABLED) || \
+         defined(MBEDTLS_ECP_DP_ED448_ENABLED) ) || \
       ( defined(MBEDTLS_ECP_DP_ED25519_ENABLED) \
         && !defined(MBEDTLS_SHA512_C) )   ||    \
       ( defined(MBEDTLS_ECP_DP_ED448_ENABLED) \

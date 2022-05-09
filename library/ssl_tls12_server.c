@@ -1632,13 +1632,14 @@ read_record_header:
         uint16_t *set = ssl->handshake->received_sig_algs;
         const uint16_t sig_algs[] = {
             MBEDTLS_SSL_SIG_ALG_SET( MBEDTLS_SSL_HASH_SHA1 )
-            MBEDTLS_TLS_SIG_NONE
         };
+        const uint16_t invalid_sig_alg = MBEDTLS_TLS_SIG_NONE;
         size_t count = sizeof( sig_algs ) / sizeof( sig_algs[0] );
 
-        if( count <= MBEDTLS_RECEIVED_SIG_ALGS_SIZE )
+        if( count < MBEDTLS_RECEIVED_SIG_ALGS_SIZE )
         {
             memcpy( set, sig_algs, sizeof( sig_algs ) );
+            memcpy( &set[count], &invalid_sig_alg, sizeof( sig_algs[0] ) );
         }
         else
         {
@@ -1647,7 +1648,7 @@ read_record_header:
 
             memcpy( set, sig_algs, size );
             memcpy( &set[MBEDTLS_RECEIVED_SIG_ALGS_SIZE - 1],
-                    &sig_algs[count - 1], sizeof( sig_algs[0] ) );
+                    &invalid_sig_alg, sizeof( sig_algs[0] ) );
         }
     }
 

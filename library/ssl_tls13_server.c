@@ -740,9 +740,11 @@ static int ssl_tls13_process_client_hello( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_PROC_CHK_NEG( ssl_tls13_parse_client_hello( ssl, buf,
                                                             buf + buflen ) );
-    parse_client_hello_ret = ret; /* store return reason of parse_client_hello
-                                     without error. on error, this statment will
-                                     not be called.*/
+    parse_client_hello_ret = ret; /* Store return value of parse_client_hello,
+                                   * only SSL_CLIENT_HELLO_OK or
+                                   * SSL_CLIENT_HELLO_HRR_REQUIRED at this
+                                   * stage as negative error codes are handled
+                                   * by MBEDTLS_SSL_PROC_CHK_NEG. */
 
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_postprocess_client_hello( ssl ) );
 
@@ -1464,11 +1466,18 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
             break;
 
         case MBEDTLS_SSL_CLIENT_HELLO:
-
             ret = ssl_tls13_process_client_hello( ssl );
             if( ret != 0 )
                 MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_process_client_hello", ret );
+            break;
 
+        case MBEDTLS_SSL_HELLO_RETRY_REQUEST:
+            ret = ssl_tls13_write_hello_retry_request( ssl );
+            if( ret != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_write_hello_retry_request", ret );
+                return( ret );
+            }
             break;
 
         case MBEDTLS_SSL_SERVER_HELLO:
@@ -1480,15 +1489,6 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
             if( ret != 0 )
             {
                 MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_write_encrypted_extensions", ret );
-                return( ret );
-            }
-            break;
-
-        case MBEDTLS_SSL_HELLO_RETRY_REQUEST:
-            ret = ssl_tls13_write_hello_retry_request( ssl );
-            if( ret != 0 )
-            {
-                MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_write_hello_retry_request", ret );
                 return( ret );
             }
             break;

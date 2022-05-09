@@ -151,6 +151,7 @@ int main( void )
 #define DFL_USE_SRTP            0
 #define DFL_SRTP_FORCE_PROFILE  0
 #define DFL_SRTP_SUPPORT_MKI    0
+#define DFL_KEY_OPAQUE_ALG      "none"
 
 #define LONG_RESPONSE "<p>01-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n" \
     "02-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n"  \
@@ -455,6 +456,17 @@ int main( void )
 #define USAGE_SERIALIZATION ""
 #endif
 
+#define USAGE_KEY_OPAQUE_ALGS \
+    "    key_opaque_algs=%%s  Allowed opaque key 1 algorithms.\n"                    \
+    "                        comma-separated pair of values among the following:\n"  \
+    "                        rsa-sign-pkcs1, rsa-sign-pss, rsa-decrypt,\n"           \
+    "                        ecdsa-sign, ecdh, none (only acceptable for\n"          \
+    "                        the second value).\n"                                   \
+    "    key_opaque_algs2=%%s Allowed opaque key 2 algorithms.\n"                    \
+    "                        comma-separated pair of values among the following:\n"  \
+    "                        rsa-sign-pkcs1, rsa-sign-pss, rsa-decrypt,\n"           \
+    "                        ecdsa-sign, ecdh, none (only acceptable for\n"          \
+    "                        the second value).\n"
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 #define USAGE_TLS1_3_KEY_EXCHANGE_MODES \
     "    tls13_kex_modes=%%s   default: all\n"     \
@@ -519,6 +531,7 @@ int main( void )
     USAGE_ETM                                               \
     USAGE_CURVES                                            \
     USAGE_SIG_ALGS                                          \
+    USAGE_KEY_OPAQUE_ALGS                                   \
     "\n"
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
@@ -659,6 +672,10 @@ struct options
     int use_srtp;               /* Support SRTP                             */
     int force_srtp_profile;     /* SRTP protection profile to use or all    */
     int support_mki;            /* The dtls mki mki support                 */
+    const char *key1_opaque_alg1; /* Allowed opaque key 1 alg 1            */
+    const char *key1_opaque_alg2; /* Allowed Opaque key 1 alg 2            */
+    const char *key2_opaque_alg1; /* Allowed opaque key 2 alg 1            */
+    const char *key2_opaque_alg2; /* Allowed Opaque key 2 alg 2            */
 } opt;
 
 #include "ssl_test_common_source.c"
@@ -679,7 +696,7 @@ static int get_auth_mode( const char *s )
 }
 
 /*
- * Used by sni_parse and psk_parse to handle coma-separated lists
+ * Used by sni_parse and psk_parse to handle comma-separated lists
  */
 #define GET_ITEM( dst )         \
     do                          \
@@ -1615,6 +1632,10 @@ int main( int argc, char *argv[] )
     opt.use_srtp            = DFL_USE_SRTP;
     opt.force_srtp_profile  = DFL_SRTP_FORCE_PROFILE;
     opt.support_mki         = DFL_SRTP_SUPPORT_MKI;
+    opt.key1_opaque_alg1   = DFL_KEY_OPAQUE_ALG;
+    opt.key1_opaque_alg2   = DFL_KEY_OPAQUE_ALG;
+    opt.key2_opaque_alg1   = DFL_KEY_OPAQUE_ALG;
+    opt.key2_opaque_alg2   = DFL_KEY_OPAQUE_ALG;
 
     for( i = 1; i < argc; i++ )
     {
@@ -2087,6 +2108,18 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "support_mki" ) == 0 )
         {
             opt.support_mki = atoi( q );
+        }
+        else if( strcmp( p, "key_opaque_algs" ) == 0 )
+        {
+            if( key_opaque_alg_parse( q, &opt.key1_opaque_alg1,
+                                         &opt.key1_opaque_alg2 ) != 0 )
+                goto usage;
+        }
+        else if( strcmp( p, "key_opaque_algs2" ) == 0 )
+        {
+            if( key_opaque_alg_parse( q, &opt.key2_opaque_alg1,
+                                         &opt.key2_opaque_alg2 ) != 0 )
+                goto usage;
         }
         else
             goto usage;
@@ -2564,59 +2597,44 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( opt.key_opaque != 0 )
     {
-        psa_algorithm_t psa_alg, psa_alg2;
-        psa_key_usage_t psa_usage;
+        psa_algorithm_t psa_alg, psa_alg2 = PSA_ALG_NONE;
+        psa_key_usage_t psa_usage = 0;
 
-        if ( mbedtls_pk_get_type( &pkey ) == MBEDTLS_PK_ECKEY ||
-             mbedtls_pk_get_type( &pkey ) == MBEDTLS_PK_RSA )
+        if( key_opaque_set_alg_usage( opt.key1_opaque_alg1,
+                                      opt.key1_opaque_alg2,
+                                      &psa_alg, &psa_alg2,
+                                      &psa_usage,
+                                      mbedtls_pk_get_type( &pkey ) ) == 0 )
         {
-            if( mbedtls_pk_get_type( &pkey ) == MBEDTLS_PK_ECKEY )
-            {
-                psa_alg = PSA_ALG_ECDSA( PSA_ALG_ANY_HASH );
-                psa_alg2 = PSA_ALG_ECDH;
-                psa_usage = PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_DERIVE;
-            }
-            else
-            {
-                psa_alg = PSA_ALG_RSA_PKCS1V15_SIGN( PSA_ALG_ANY_HASH );
-                psa_alg2 = PSA_ALG_NONE;
-                psa_usage = PSA_KEY_USAGE_SIGN_HASH;
-            }
+            ret = mbedtls_pk_wrap_as_opaque( &pkey, &key_slot,
+                                             psa_alg, psa_usage, psa_alg2 );
 
-            if( ( ret = mbedtls_pk_wrap_as_opaque( &pkey, &key_slot,
-                                                   psa_alg,
-                                                   psa_usage,
-                                                   psa_alg2 ) ) != 0 )
+            if( ret != 0 )
             {
                 mbedtls_printf( " failed\n  !  "
-                                "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n", (unsigned int)  -ret );
+                                "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n",
+                                (unsigned int)  -ret );
                 goto exit;
             }
         }
 
-        if ( mbedtls_pk_get_type( &pkey2 ) == MBEDTLS_PK_ECKEY ||
-             mbedtls_pk_get_type( &pkey2 ) == MBEDTLS_PK_RSA )
-        {
-            if( mbedtls_pk_get_type( &pkey2 ) == MBEDTLS_PK_ECKEY )
-            {
-                psa_alg = PSA_ALG_ECDSA( PSA_ALG_ANY_HASH );
-                psa_alg2 = PSA_ALG_ECDH;
-                psa_usage = PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_DERIVE;
-            }
-            else
-            {
-                psa_alg = PSA_ALG_RSA_PKCS1V15_SIGN( PSA_ALG_ANY_HASH );
-                psa_alg2 = PSA_ALG_NONE;
-                psa_usage = PSA_KEY_USAGE_SIGN_HASH;
-            }
+        psa_alg = PSA_ALG_NONE; psa_alg2 = PSA_ALG_NONE;
+        psa_usage = 0;
 
-            if( ( ret = mbedtls_pk_wrap_as_opaque( &pkey2, &key_slot2,
-                                                   psa_alg,
-                                                   psa_usage,
-                                                   psa_alg2 ) ) != 0 )
+        if( key_opaque_set_alg_usage( opt.key2_opaque_alg1,
+                                      opt.key2_opaque_alg2,
+                                      &psa_alg, &psa_alg2,
+                                      &psa_usage,
+                                      mbedtls_pk_get_type( &pkey2 ) ) == 0 )
+        {
+            ret = mbedtls_pk_wrap_as_opaque( &pkey2, &key_slot2,
+                                             psa_alg, psa_usage, psa_alg2 );
+
+            if( ret != 0 )
             {
                 mbedtls_printf( " failed\n  !  "
-                                "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n", (unsigned int)  -ret );
+                                "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n",
+                                (unsigned int)  -ret );
                 goto exit;
             }
         }

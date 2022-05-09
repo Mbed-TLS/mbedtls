@@ -5371,7 +5371,6 @@ static psa_status_t psa_tls12_prf_psk_to_ms_set_key(
     *cur++ = MBEDTLS_BYTE_1( data_length );
     *cur++ = MBEDTLS_BYTE_0( data_length );
     memcpy( cur, data, data_length );
-    mbedtls_platform_zeroize( (void*) data, data_length );
     cur += data_length;
 
     status = psa_tls12_prf_set_key( prf, pms, cur - pms );

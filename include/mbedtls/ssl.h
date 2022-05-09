@@ -1428,7 +1428,6 @@ struct mbedtls_ssl_config
                               *   configured, this has value \c 0.
                               */
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
-
     unsigned char *MBEDTLS_PRIVATE(psk);      /*!< The raw pre-shared key. This field should
                               *   only be set via mbedtls_ssl_conf_psk().
                               *   If either no PSK or an opaque PSK

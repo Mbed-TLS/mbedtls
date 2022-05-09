@@ -5310,6 +5310,7 @@ void test_multiple_psks()
 
     mbedtls_ssl_config conf;
 
+    USE_PSA_INIT( );
     mbedtls_ssl_config_init( &conf );
 
     TEST_ASSERT( mbedtls_ssl_conf_psk( &conf,
@@ -5323,6 +5324,8 @@ void test_multiple_psks()
 exit:
 
     mbedtls_ssl_config_free( &conf );
+
+    USE_PSA_DONE( );
 }
 /* END_CASE */
 

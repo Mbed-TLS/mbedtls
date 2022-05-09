@@ -62,37 +62,16 @@ int mbedtls_ssl_conf_has_static_psk( mbedtls_ssl_config const *conf )
         return( 0 );
     }
 
-    if( conf->psk != NULL && conf->psk_len != 0 )
-        return( 1 );
-
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( ! mbedtls_svc_key_id_is_null( conf->psk_opaque ) )
         return( 1 );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-    return( 0 );
-}
-
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && \
-    ( defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED ) || \
-      defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED) )
-static int ssl_conf_has_static_raw_psk( mbedtls_ssl_config const *conf )
-{
-    if( conf->psk_identity     == NULL ||
-        conf->psk_identity_len == 0     )
-    {
-        return( 0 );
-    }
-
     if( conf->psk != NULL && conf->psk_len != 0 )
         return( 1 );
 
     return( 0 );
 }
-#endif /* MBEDTLS_USE_PSA_CRYPTO &&
-          ( MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED ||
-            MBEDTLS_KEY_EXCHANGE_PSK_ENABLED ) */
-
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
@@ -3067,41 +3046,6 @@ ecdh_calc_secret:
         /* Write the ECDH computation length before the ECDH computation */
         MBEDTLS_PUT_UINT16_BE( zlen, pms, 0 );
         pms += zlen_size + zlen;
-
-        /* In case of opaque psk skip writting psk to pms.
-         * Opaque key will be handled later. */
-        if( ssl_conf_has_static_raw_psk( ssl->conf ) == 1 )
-        {
-            const unsigned char *psk = NULL;
-            size_t psk_len = 0;
-
-            if( mbedtls_ssl_get_psk( ssl, &psk, &psk_len )
-                    == MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED )
-                /*
-                * This should never happen because the existence of a PSK is always
-                * checked before calling this function
-                */
-                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-
-            /* opaque psk<0..2^16-1>; */
-            if( (size_t)( pms_end - pms ) < ( 2 + psk_len ) )
-                return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-
-            /* Write the PSK length as uint16 */
-            MBEDTLS_PUT_UINT16_BE( psk_len, pms, 0 );
-            pms += 2;
-
-            /* Write the PSK itself */
-            memcpy( pms, psk, psk_len );
-            pms += psk_len;
-
-            ssl->handshake->pmslen = pms - ssl->handshake->premaster;
-        }
-        else
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1,
-                ( "skip PMS generation for opaque ECDHE-PSK" ) );
-        }
     }
     else
 #endif /* MBEDTLS_USE_PSA_CRYPTO &&
@@ -3182,6 +3126,25 @@ ecdh_calc_secret:
                 MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_dhm_make_public", ret );
                 return( ret );
             }
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+            unsigned char *pms = ssl->handshake->premaster;
+            unsigned char *pms_end = pms + sizeof( ssl->handshake->premaster );
+            size_t pms_len;
+
+            /* Write length only when we know the actual value */
+            if( ( ret = mbedtls_dhm_calc_secret( &ssl->handshake->dhm_ctx,
+                                          pms + 2, pms_end - ( pms + 2 ), &pms_len,
+                                          ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_dhm_calc_secret", ret );
+                return( ret );
+            }
+            MBEDTLS_PUT_UINT16_BE( pms_len, pms, 0 );
+            pms += 2 + pms_len;
+
+            MBEDTLS_SSL_DEBUG_MPI( 3, "DHM: K ", &ssl->handshake->dhm_ctx.K  );
+#endif
         }
         else
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */
@@ -3213,31 +3176,15 @@ ecdh_calc_secret:
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO) &&          \
-    defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
-        if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK &&
-            ssl_conf_has_static_raw_psk( ssl->conf ) == 0 )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1,
-                ( "skip PMS generation for opaque PSK" ) );
-        }
-        else
-        if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK &&
-            ssl_conf_has_static_raw_psk( ssl->conf ) == 0 )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1,
-                ( "skip PMS generation for opaque RSA-PSK" ) );
-        }
-        else
-#endif /* MBEDTLS_USE_PSA_CRYPTO &&
-          MBEDTLS_KEY_EXCHANGE_PSK_ENABLED */
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
         if( ( ret = mbedtls_ssl_psk_derive_premaster( ssl,
                         ciphersuite_info->key_exchange ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1,
-                "mbedtls_ssl_psk_derive_premaster", ret );
+                    "mbedtls_ssl_psk_derive_premaster", ret );
             return( ret );
         }
+#endif /* !MBEDTLS_USE_PSA_CRYPTO */
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */

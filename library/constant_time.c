@@ -514,6 +514,12 @@ int mbedtls_ct_hmac( mbedtls_svc_key_id_t key,
     PSA_CHK( psa_hash_update( &operation, add_data, add_data_len ) );
     PSA_CHK( psa_hash_update( &operation, data, min_data_len ) );
 
+    /* Fill the hash buffer in advance with something that is
+     * not a valid hash (barring an attack on the hash and
+     * deliberately-crafted input), in case the caller doesn't
+     * check the return status properly. */
+    memset( output, '!', hash_size );
+
     /* For each possible length, compute the hash up to that point */
     for( offset = min_data_len; offset <= max_data_len; offset++ )
     {
@@ -608,6 +614,12 @@ int mbedtls_ct_hmac( mbedtls_md_context_t *ctx,
      * so we can start directly with the message */
     MD_CHK( mbedtls_md_update( ctx, add_data, add_data_len ) );
     MD_CHK( mbedtls_md_update( ctx, data, min_data_len ) );
+
+    /* Fill the hash buffer in advance with something that is
+     * not a valid hash (barring an attack on the hash and
+     * deliberately-crafted input), in case the caller doesn't
+     * check the return status properly. */
+    memset( output, '!', hash_size );
 
     /* For each possible length, compute the hash up to that point */
     for( offset = min_data_len; offset <= max_data_len; offset++ )

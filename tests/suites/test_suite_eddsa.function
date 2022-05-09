@@ -1,5 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/eddsa.h"
+#include "mbedtls/sha512.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

@@ -1140,14 +1140,11 @@ static int ssl_tls13_write_encrypted_extensions( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_finish_handshake_msg(
                               ssl, buf_len, msg_len ) );
 
-    /* Update state */
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     if( mbedtls_ssl_tls13_some_psk_enabled( ssl ) )
         mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_FINISHED );
     else
-    {
         mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CERTIFICATE_REQUEST );
-    }
 #else
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_FINISHED );
 #endif
@@ -1226,9 +1223,8 @@ static int ssl_tls13_write_certificate_request_body( mbedtls_ssl_context *ssl,
     if( ret != 0 )
         return( ret );
 
-    /* length field for all extensions */
-    MBEDTLS_PUT_UINT16_BE( output_len, p_extensions_len, 0 );
     p += output_len;
+    MBEDTLS_PUT_UINT16_BE( p - p_extensions_len - 2, p_extensions_len, 0 );
 
     *out_len = p - buf;
 

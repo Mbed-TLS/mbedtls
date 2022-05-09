@@ -8085,14 +8085,10 @@ int mbedtls_ssl_write_sig_alg_ext( mbedtls_ssl_context *ssl, unsigned char *buf,
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
-    /* Write extension_type */
     MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_SIG_ALG, buf, 0 );
-    /* Write extension_data_length */
     MBEDTLS_PUT_UINT16_BE( supported_sig_alg_len + 2, buf, 2 );
-    /* Write length of supported_signature_algorithms */
     MBEDTLS_PUT_UINT16_BE( supported_sig_alg_len, buf, 4 );
 
-    /* Output the total length of signature algorithms extension. */
     *out_len = p - buf;
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)

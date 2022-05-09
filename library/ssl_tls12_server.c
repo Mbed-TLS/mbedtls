@@ -1632,7 +1632,7 @@ read_record_header:
         uint16_t *set = ssl->handshake->received_sig_algs;
         const uint16_t sig_algs[] = {
             MBEDTLS_SSL_SIG_ALG_SET( MBEDTLS_SSL_HASH_SHA1 )
-            MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_SIG_ANON, MBEDTLS_SSL_HASH_NONE )
+            MBEDTLS_TLS_SIG_NONE
         };
         size_t count = sizeof( sig_algs ) / sizeof( sig_algs[0] );
 
@@ -2647,7 +2647,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
     if( sig_alg == NULL )
         return( MBEDTLS_ERR_SSL_BAD_CONFIG );
 
-    for( ; *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
+    for( ; *sig_alg != MBEDTLS_TLS_SIG_NONE; sig_alg++ )
     {
         unsigned char hash = MBEDTLS_BYTE_1( *sig_alg );
 

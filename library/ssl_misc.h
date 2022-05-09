@@ -243,6 +243,35 @@
 
 #define MBEDTLS_RECEIVED_SIG_ALGS_SIZE         20
 
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+
+#define MBEDTLS_SSL_SIG_ALG( sig, hash ) (( hash << 8 ) | sig)
+#define MBEDTLS_SSL_SIG_FROM_SIG_ALG(alg) (alg & 0xFF)
+#define MBEDTLS_SSL_HASH_FROM_SIG_ALG(alg) (alg >> 8)
+
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_RSA_C)
+#define MBEDTLS_SSL_SIG_ALG_SET( hash ) MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_SIG_ECDSA, hash ), \
+                                        MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_SIG_RSA, hash ),
+#elif defined(MBEDTLS_ECDSA_C)
+#define MBEDTLS_SSL_SIG_ALG_SET( hash ) MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_SIG_ECDSA, hash ),
+#elif defined(MBEDTLS_RSA_C)
+#define MBEDTLS_SSL_SIG_ALG_SET( hash ) MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_SIG_RSA, hash ),
+#else
+#define MBEDTLS_SSL_SIG_ALG_SET( hash )
+#endif
+
+#define MBEDTLS_TLS_SIG_NONE MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_SIG_ANON, \
+                                                  MBEDTLS_SSL_HASH_NONE )
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#define MBEDTLS_TLS_SIG_NONE MBEDTLS_TLS1_3_SIG_NONE
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+
 /*
  * Check that we obey the standard's message size bounds
  */
@@ -1916,7 +1945,7 @@ static inline int mbedtls_ssl_sig_alg_is_received( const mbedtls_ssl_context *ss
     if( sig_alg == NULL )
         return( 0 );
 
-    for( ; *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
+    for( ; *sig_alg != MBEDTLS_TLS_SIG_NONE; sig_alg++ )
     {
         if( *sig_alg == own_sig_alg )
             return( 1 );
@@ -1932,7 +1961,7 @@ static inline int mbedtls_ssl_sig_alg_is_offered( const mbedtls_ssl_context *ssl
     if( sig_alg == NULL )
         return( 0 );
 
-    for( ; *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
+    for( ; *sig_alg != MBEDTLS_TLS_SIG_NONE; sig_alg++ )
     {
         if( *sig_alg == proposed_sig_alg )
             return( 1 );
@@ -2113,26 +2142,6 @@ static inline int mbedtls_ssl_sig_alg_is_supported(
     return( 0 );
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
-    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-
-#define MBEDTLS_SSL_SIG_ALG( sig, hash ) (( hash << 8 ) | sig)
-#define MBEDTLS_SSL_SIG_FROM_SIG_ALG(alg) (alg & 0xFF)
-#define MBEDTLS_SSL_HASH_FROM_SIG_ALG(alg) (alg >> 8)
-
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_RSA_C)
-#define MBEDTLS_SSL_SIG_ALG_SET( hash ) MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_SIG_ECDSA, hash ), \
-                                        MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_SIG_RSA, hash ),
-#elif defined(MBEDTLS_ECDSA_C)
-#define MBEDTLS_SSL_SIG_ALG_SET( hash ) MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_SIG_ECDSA, hash ),
-#elif defined(MBEDTLS_RSA_C)
-#define MBEDTLS_SSL_SIG_ALG_SET( hash ) MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_SIG_RSA, hash ),
-#else
-#define MBEDTLS_SSL_SIG_ALG_SET( hash )
-#endif
-
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 /* Corresponding PSA algorithm for MBEDTLS_CIPHER_NULL.

@@ -847,7 +847,7 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
             p++;
 #endif
         }
-        *p = MBEDTLS_TLS1_3_SIG_NONE;
+        *p = MBEDTLS_TLS_SIG_NONE;
         ssl->handshake->sig_algs_heap_allocated = 1;
     }
     else
@@ -4138,7 +4138,7 @@ static uint16_t ssl_preset_default_sig_algs[] = {
     MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256,
 #endif /* MBEDTLS_RSA_C && MBEDTLS_SHA256_C */
 
-    MBEDTLS_TLS1_3_SIG_NONE
+    MBEDTLS_TLS_SIG_NONE
 };
 
 /* NOTICE: see above */
@@ -4153,7 +4153,7 @@ static uint16_t ssl_tls12_preset_default_sig_algs[] = {
 #if defined(MBEDTLS_SHA256_C)
     MBEDTLS_SSL_SIG_ALG_SET( MBEDTLS_SSL_HASH_SHA256 )
 #endif
-    MBEDTLS_TLS1_3_SIG_NONE
+    MBEDTLS_TLS_SIG_NONE
 };
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 /* NOTICE: see above */
@@ -4179,7 +4179,7 @@ static uint16_t ssl_preset_suiteb_sig_algs[] = {
     MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256,
 #endif /* MBEDTLS_RSA_C && MBEDTLS_SHA256_C */
 
-    MBEDTLS_TLS1_3_SIG_NONE
+    MBEDTLS_TLS_SIG_NONE
 };
 
 /* NOTICE: see above */
@@ -4191,7 +4191,7 @@ static uint16_t ssl_tls12_preset_suiteb_sig_algs[] = {
 #if defined(MBEDTLS_SHA384_C)
     MBEDTLS_SSL_SIG_ALG_SET( MBEDTLS_SSL_HASH_SHA384 )
 #endif
-    MBEDTLS_TLS1_3_SIG_NONE
+    MBEDTLS_TLS_SIG_NONE
 };
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
@@ -4215,7 +4215,7 @@ static int ssl_check_no_sig_alg_duplication( uint16_t * sig_algs )
     size_t i, j;
     int ret = 0;
 
-    for( i = 0; sig_algs[i] != MBEDTLS_TLS1_3_SIG_NONE; i++ )
+    for( i = 0; sig_algs[i] != MBEDTLS_TLS_SIG_NONE; i++ )
     {
         for( j = 0; j < i; j++ )
         {
@@ -4944,7 +4944,7 @@ int mbedtls_ssl_parse_sig_alg_ext( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }
 
-    ssl->handshake->received_sig_algs[common_idx] = MBEDTLS_TLS1_3_SIG_NONE;
+    ssl->handshake->received_sig_algs[common_idx] = MBEDTLS_TLS_SIG_NONE;
     return( 0 );
 }
 
@@ -7660,8 +7660,7 @@ mbedtls_md_type_t mbedtls_ssl_sig_hash_set_find( mbedtls_ssl_context *ssl,
     unsigned int i;
     uint16_t sig_alg = mbedtls_ssl_sig_from_pk_alg( pk_alg );
     uint16_t *set = ssl->handshake->received_sig_algs;
-    uint16_t invalid_sig_alg = MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_SIG_ANON,
-                                                    MBEDTLS_SSL_HASH_NONE );
+    uint16_t invalid_sig_alg = MBEDTLS_TLS_SIG_NONE;
 
     if( sig_alg == MBEDTLS_SSL_SIG_ANON )
         return( MBEDTLS_MD_NONE );

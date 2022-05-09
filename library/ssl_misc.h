@@ -2116,20 +2116,22 @@ static inline int mbedtls_ssl_sig_alg_is_supported(
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_RSA_C)
-#define MBEDTLS_SSL_SIG_ALG_SET( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_ECDSA), \
-                                        (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA),
-#elif defined(MBEDTLS_ECDSA_C)
-#define MBEDTLS_SSL_SIG_ALG_SET( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_ECDSA),
-#elif defined(MBEDTLS_RSA_C)
-#define MBEDTLS_SSL_SIG_ALG_SET( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA),
-#else
-#define MBEDTLS_SSL_SIG_ALG_SET( hash )
-#endif
 
 #define MBEDTLS_SSL_SIG_ALG( sig, hash ) (( hash << 8 ) | sig)
 #define MBEDTLS_SSL_SIG_FROM_SIG_ALG(alg) (alg & 0xFF)
 #define MBEDTLS_SSL_HASH_FROM_SIG_ALG(alg) (alg >> 8)
+
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_RSA_C)
+#define MBEDTLS_SSL_SIG_ALG_SET( hash ) MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_SIG_ECDSA, hash ), \
+                                        MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_SIG_RSA, hash ),
+#elif defined(MBEDTLS_ECDSA_C)
+#define MBEDTLS_SSL_SIG_ALG_SET( hash ) MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_SIG_ECDSA, hash ),
+#elif defined(MBEDTLS_RSA_C)
+#define MBEDTLS_SSL_SIG_ALG_SET( hash ) MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_SIG_RSA, hash ),
+#else
+#define MBEDTLS_SSL_SIG_ALG_SET( hash )
+#endif
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)

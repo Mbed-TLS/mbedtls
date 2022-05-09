@@ -1,9 +1,10 @@
 /* BEGIN_HEADER */
 #include "mbedtls/eddsa.h"
+#include "mbedtls/sha3.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_EDDSA_C:MBEDTLS_SHA512_C
+ * depends_on:MBEDTLS_EDDSA_C:MBEDTLS_SHA512_C:MBEDTLS_SHA3_C
  * END_DEPENDENCIES
  */
 
@@ -17,9 +18,10 @@ void eddsa_sign( int gid, int eddsa_type, data_t *key, data_t *message, data_t *
     size_t sign_buf_size = 0, data_size = message->len;
     const size_t sha_buf_size = 64;
 
-    TEST_ASSERT( ( gid == MBEDTLS_ECP_DP_ED25519 && key->len == 32 ) ); /* For Ed25519 */
+    TEST_ASSERT( ( gid == MBEDTLS_ECP_DP_ED25519 && key->len == 32 ) || ( gid == MBEDTLS_ECP_DP_ED448 && key->len == 57 ) ); /* For Ed25519 and Ed448 */
 
-    TEST_ASSERT( ( gid == MBEDTLS_ECP_DP_ED25519 && ( eddsa_type == MBEDTLS_EDDSA_PURE || eddsa_type == MBEDTLS_EDDSA_CTX || eddsa_type == MBEDTLS_EDDSA_PREHASH ) ) );
+    TEST_ASSERT( ( gid == MBEDTLS_ECP_DP_ED25519 && ( eddsa_type == MBEDTLS_EDDSA_PURE || eddsa_type == MBEDTLS_EDDSA_CTX || eddsa_type == MBEDTLS_EDDSA_PREHASH ) ) ||
+                    ( gid == MBEDTLS_ECP_DP_ED448 && ( eddsa_type == MBEDTLS_EDDSA_PURE || eddsa_type == MBEDTLS_EDDSA_PREHASH ) ) );
 
     if( gid == MBEDTLS_ECP_DP_ED25519 && eddsa_type == MBEDTLS_EDDSA_PURE )
         TEST_ASSERT( ed_ctx->len == 0 );
@@ -40,6 +42,8 @@ void eddsa_sign( int gid, int eddsa_type, data_t *key, data_t *message, data_t *
 
         if( gid == MBEDTLS_ECP_DP_ED25519 )
             TEST_ASSERT( mbedtls_sha512( message->x, message->len, sha_buf, 0 ) == 0 );
+        else if( gid == MBEDTLS_ECP_DP_ED448 )
+            TEST_ASSERT( mbedtls_sha3( MBEDTLS_SHA3_SHAKE256, message->x, message->len, sha_buf, sha_buf_size ) == 0 );
 
         data = sha_buf;
         data_size = sha_buf_size;
@@ -69,7 +73,7 @@ void eddsa_point_edwards( int gid, data_t *key, data_t *tv )
     uint8_t *buf = NULL;
     size_t olen = 0, buf_size = 0;
 
-    TEST_ASSERT( ( gid == MBEDTLS_ECP_DP_ED25519 && key->len == 32 ) ); /* For Ed25519 */
+    TEST_ASSERT( ( gid == MBEDTLS_ECP_DP_ED25519 && key->len == 32 ) || ( gid == MBEDTLS_ECP_DP_ED448 && key->len == 57 ) ); /* For Ed25519 and Ed448 */
 
     buf_size = key->len;
 
@@ -104,9 +108,10 @@ void eddsa_verify( int gid, int eddsa_type, data_t *key, data_t *message, data_t
     unsigned char *data = message->x, *sha_buf = NULL;
     size_t data_size = message->len, sha_buf_size = 64;
 
-    TEST_ASSERT( ( gid == MBEDTLS_ECP_DP_ED25519 && key->len == 32 ) ); /* For Ed25519 */
+    TEST_ASSERT( ( gid == MBEDTLS_ECP_DP_ED25519 && key->len == 32 ) || ( gid == MBEDTLS_ECP_DP_ED448 && key->len == 57 ) ); /* For Ed25519 and Ed448 */
 
-    TEST_ASSERT( ( gid == MBEDTLS_ECP_DP_ED25519 && ( eddsa_type == MBEDTLS_EDDSA_PURE || eddsa_type == MBEDTLS_EDDSA_CTX || eddsa_type == MBEDTLS_EDDSA_PREHASH ) ) );
+    TEST_ASSERT( ( gid == MBEDTLS_ECP_DP_ED25519 && ( eddsa_type == MBEDTLS_EDDSA_PURE || eddsa_type == MBEDTLS_EDDSA_CTX || eddsa_type == MBEDTLS_EDDSA_PREHASH ) ) ||
+                    ( gid == MBEDTLS_ECP_DP_ED448 && ( eddsa_type == MBEDTLS_EDDSA_PURE || eddsa_type == MBEDTLS_EDDSA_PREHASH ) ) );
 
     if( gid == MBEDTLS_ECP_DP_ED25519 && eddsa_type == MBEDTLS_EDDSA_PURE )
         TEST_ASSERT( ed_ctx->len == 0 );
@@ -130,6 +135,8 @@ void eddsa_verify( int gid, int eddsa_type, data_t *key, data_t *message, data_t
 
         if( gid == MBEDTLS_ECP_DP_ED25519 )
             TEST_ASSERT( mbedtls_sha512( message->x, message->len, sha_buf, 0 ) == 0 );
+        else if( gid == MBEDTLS_ECP_DP_ED448 )
+            TEST_ASSERT( mbedtls_sha3( MBEDTLS_SHA3_SHAKE256, message->x, message->len, sha_buf, sha_buf_size ) == 0 );
 
         data = sha_buf;
         data_size = sha_buf_size;

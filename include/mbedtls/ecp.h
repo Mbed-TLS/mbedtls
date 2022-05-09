@@ -80,7 +80,8 @@
     defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
 #define MBEDTLS_ECP_MONTGOMERY_ENABLED
 #endif
-#if defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
+#if defined(MBEDTLS_ECP_DP_ED25519_ENABLED) || \
+    defined(MBEDTLS_ECP_DP_ED448_ENABLED)
 #define MBEDTLS_ECP_EDWARDS_ENABLED
 #endif
 
@@ -130,6 +131,7 @@ typedef enum
     MBEDTLS_ECP_DP_SECP256K1,      /*!< Domain parameters for 256-bit "Koblitz" curve. */
     MBEDTLS_ECP_DP_CURVE448,       /*!< Domain parameters for Curve448. */
     MBEDTLS_ECP_DP_ED25519,        /*!< Domain parameters for Ed25519. */
+    MBEDTLS_ECP_DP_ED448,          /*!< Domain parameters for Ed448. */
 } mbedtls_ecp_group_id;
 
 /**
@@ -322,6 +324,8 @@ mbedtls_ecp_group;
 #define MBEDTLS_ECP_MAX_BITS 521
 #elif defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
 #define MBEDTLS_ECP_MAX_BITS 512
+#elif defined(MBEDTLS_ECP_DP_ED448_ENABLED)
+#define MBEDTLS_ECP_MAX_BITS 456
 #elif defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
 #define MBEDTLS_ECP_MAX_BITS 448
 #elif defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)

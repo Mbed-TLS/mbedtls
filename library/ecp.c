@@ -86,6 +86,9 @@
 #if defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
 #include "mbedtls/sha512.h"
 #endif
+#if defined(MBEDTLS_ECP_DP_ED448_ENABLED)
+#include "mbedtls/sha3.h"
+#endif
 #endif
 
 #if !defined(MBEDTLS_ECP_ALT)
@@ -420,6 +423,9 @@ static const mbedtls_ecp_curve_info ecp_supported_curves[] =
 #if defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
     { MBEDTLS_ECP_DP_ED25519,      29,     256,    "ed25519"           },
 #endif
+#if defined(MBEDTLS_ECP_DP_ED448_ENABLED)
+    { MBEDTLS_ECP_DP_ED448,        30,     456,    "ed448"             },
+#endif
     { MBEDTLS_ECP_DP_NONE,          0,     0,      NULL                },
 };
 
@@ -535,6 +541,10 @@ mbedtls_ecp_curve_type mbedtls_ecp_get_type( const mbedtls_ecp_group *grp )
     if( grp->id == MBEDTLS_ECP_DP_ED25519 )
         return( MBEDTLS_ECP_TYPE_EDWARDS );
 #endif /* MBEDTLS_ECP_DP_ED25519_ENABLED */
+#if defined(MBEDTLS_ECP_DP_ED448_ENABLED)
+    if( grp->id == MBEDTLS_ECP_DP_ED448 )
+        return( MBEDTLS_ECP_TYPE_EDWARDS );
+#endif /* MBEDTLS_ECP_DP_ED448_ENABLED */
 #endif /* MBEDTLS_ECP_EDWARDS_ENABLED */
     else
         return( MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS );
@@ -3720,6 +3730,35 @@ cleanup:
 }
 #endif /* MBEDTLS_ECP_DP_ED25519_ENABLED */
 
+#if defined(MBEDTLS_ECP_DP_ED448_ENABLED)
+static int mbedtls_ecp_expand_ed448( const mbedtls_mpi *d,
+                    mbedtls_mpi *q, mbedtls_mpi *prefix )
+{
+    int ret = 0;
+
+    if( mbedtls_mpi_size( d ) != 57)
+        return( MBEDTLS_ERR_ECP_INVALID_KEY );
+
+    unsigned char key_buf[57], sha_buf[114];
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( d, key_buf, sizeof( key_buf ) ) );
+
+    mbedtls_sha3( MBEDTLS_SHA3_SHAKE256, key_buf, sizeof( key_buf ) , sha_buf, 114 );
+
+    sha_buf[0] &= ~0x3;
+    sha_buf[56] = 0;
+    sha_buf[55] |= 0x80;
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( q, sha_buf, 57 ) );
+    if( prefix )
+    {
+        MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( prefix, sha_buf + 57, 57 ) );
+    }
+
+cleanup:
+    return( ret );
+}
+#endif /* MBEDTLS_ECP_DP_ED448_ENABLED */
+
 int mbedtls_ecp_expand_edwards( mbedtls_ecp_group *grp,
                     const mbedtls_mpi *d, mbedtls_mpi *q,
                     mbedtls_mpi *prefix )
@@ -3729,6 +3768,10 @@ int mbedtls_ecp_expand_edwards( mbedtls_ecp_group *grp,
 #if defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
     if( grp->id == MBEDTLS_ECP_DP_ED25519 )
         ret = mbedtls_ecp_expand_ed25519( d, q, prefix );
+#endif
+#if defined(MBEDTLS_ECP_DP_ED448_ENABLED)
+    if( grp->id == MBEDTLS_ECP_DP_ED448 )
+        ret = mbedtls_ecp_expand_ed448( d, q, prefix );
 #endif
     return( ret );
 }
@@ -3814,7 +3857,8 @@ int mbedtls_ecp_gen_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
 
 #define ECP_CURVE25519_KEY_SIZE 32
 #define ECP_CURVE448_KEY_SIZE   56
-#define ECP_ED25519_KEY_SIZE 32
+#define ECP_ED25519_KEY_SIZE    32
+#define ECP_ED448_KEY_SIZE      57
 /*
  * Read a private key.
  */
@@ -3951,6 +3995,13 @@ int mbedtls_ecp_write_key( mbedtls_ecp_keypair *key,
 
         }
 #endif /* MBEDTLS_ECP_DP_ED25519_ENABLED */
+#if defined(MBEDTLS_ECP_DP_ED448_ENABLED)
+        if( key->grp.id == MBEDTLS_ECP_DP_ED448 )
+        {
+            if( buflen < ECP_ED448_KEY_SIZE )
+                return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+        }
+#endif /* MBEDTLS_ECP_DP_ED448_ENABLED */
         MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( &key->d, buf, buflen ) );
     }
 #endif

@@ -59,9 +59,11 @@
       /*V of r,s*/                ( ( bits ) + 8 ) / 8 ) )
 
 /** The maximal size of an EdDSA signature in Bytes. */
-/* EdDSA is defined for two curves: Ed25519 (256 bits) */
+/* EdDSA is defined for two curves: Ed25519 (256 bits) and Ed448 (456 bits) */
 
-#if defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
+#if defined(MBEDTLS_ECP_DP_ED448_ENABLED)
+#define MBEDTLS_EDDSA_MAX_LEN  MBEDTLS_EDDSA_MAX_SIG_LEN( 456 )
+#elif defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
 #define MBEDTLS_EDDSA_MAX_LEN  MBEDTLS_EDDSA_MAX_SIG_LEN( 256 )
 #endif
 
@@ -293,7 +295,7 @@ int mbedtls_eddsa_read_signature( mbedtls_ecp_keypair *ctx,
  *                 This must be initialized.
  * \param gid      The elliptic curve to use. One of the various
  *                 \c MBEDTLS_ECP_DP_XXX macros depending on configuration.
- *                 Only accepts \c MBEDTLS_ECP_DP_ED25519.
+ *                 Only accepts \c MBEDTLS_ECP_DP_ED25519 or \c MBEDTLS_ECP_DP_ED448.
  * \param f_rng    The RNG function to use. This must not be \c NULL.
  * \param p_rng    The RNG context to be passed to \p f_rng. This may be
  *                 \c NULL if \p f_rng doesn't need a context argument.

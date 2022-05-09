@@ -666,6 +666,7 @@
 #define MBEDTLS_ECP_DP_CURVE448_ENABLED
 /* Edwards curves (supporting ECP, EdDSA) */
 #define MBEDTLS_ECP_DP_ED25519_ENABLED
+#define MBEDTLS_ECP_DP_ED448_ENABLED
 
 /**
  * \def MBEDTLS_ECP_NIST_OPTIM

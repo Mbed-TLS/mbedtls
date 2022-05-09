@@ -143,6 +143,7 @@ print_usage() {
     printf "     --proxy-port\tTCP/UDP proxy port (default: randomish 2xxxx)\n"
     printf "     --seed     \tInteger seed value to use for this test run\n"
     printf "     --test-suite\tOnly matching test suites are executed\n"
+    printf "                 \t(comma-separated, e.g. 'ssl-opt,tls13-compat')\n\n"
 }
 
 get_options() {
@@ -1264,7 +1265,9 @@ run_test() {
         return
     fi
 
+    # Use ssl-opt as default test suite name. Also see record_outcome function
     if is_excluded_test_suite "${TEST_SUITE_NAME:-ssl-opt}"; then
+        # Do not skip next test and skip current test.
         SKIP_NEXT="NO"
         return
     fi

@@ -1342,6 +1342,8 @@ static int ssl_tls13_certificate_request_coordinate( mbedtls_ssl_context *ssl )
     if( authmode == MBEDTLS_SSL_VERIFY_NONE )
         return( SSL_CERTIFICATE_REQUEST_SKIP );
 
+    ssl->handshake->cert_request_send = 1;
+
     return( SSL_CERTIFICATE_REQUEST_SEND_REQUEST );
 }
 
@@ -1495,7 +1497,15 @@ static int ssl_tls13_write_server_finished( mbedtls_ssl_context *ssl )
                 MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
         return( ret );
     }
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_FINISHED );
+    if( ssl->handshake->cert_request_send )
+    {
+        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE );
+
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Switch to handshake keys for inbound traffic" ) );
+        mbedtls_ssl_set_inbound_transform( ssl, ssl->handshake->transform_handshake );
+    }
+    else
+        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_FINISHED );
     return( 0 );
 }
 

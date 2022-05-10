@@ -1120,9 +1120,20 @@ int mbedtls_ssl_tls12_write_client_hello_exts( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 
-/* Find an entry in a signature-hash set matching a given hash algorithm. */
-mbedtls_md_type_t mbedtls_ssl_sig_hash_set_find( mbedtls_ssl_context *ssl,
-                                                 mbedtls_pk_type_t pk_alg );
+/**
+ * \brief Find the preferred hash for a given signature algorithm.
+ *
+ * \param[in]   ssl     SSL context
+ * \param[in]   sig_alg A signature algorithm identifier as defined in the
+ *                      TLS 1.2 SignatureAlgorithm enumeration.
+ *
+ * \return  The preferred hash algorithm for \p sig_alg. It is a hash algorithm
+ *          identifier as defined in the TLS 1.2 HashAlgorithm enumeration.
+ */
+unsigned int mbedtls_ssl_tls12_get_preferred_hash_for_sig_alg(
+                mbedtls_ssl_context *ssl,
+                unsigned int sig_alg );
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 &&
           MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 

@@ -988,7 +988,8 @@ static int ssl_ciphersuite_match( mbedtls_ssl_context *ssl, int suite_id,
      * a suitable hash algorithm is present. */
     sig_type = mbedtls_ssl_get_ciphersuite_sig_alg( suite_info );
     if( sig_type != MBEDTLS_PK_NONE &&
-        mbedtls_ssl_sig_hash_set_find( ssl, sig_type ) == MBEDTLS_MD_NONE )
+        mbedtls_ssl_tls12_get_preferred_hash_for_sig_alg(
+            ssl, mbedtls_ssl_sig_from_pk_alg( sig_type ) ) == MBEDTLS_SSL_HASH_NONE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: no suitable hash algorithm "
                                     "for signature algorithm %u", (unsigned) sig_type ) );
@@ -1810,7 +1811,9 @@ have_ciphersuite:
     mbedtls_pk_type_t sig_alg = mbedtls_ssl_get_ciphersuite_sig_alg( ciphersuite_info );
     if( sig_alg != MBEDTLS_PK_NONE )
     {
-        mbedtls_md_type_t md_alg = mbedtls_ssl_sig_hash_set_find( ssl, sig_alg );
+        unsigned int sig_hash = mbedtls_ssl_tls12_get_preferred_hash_for_sig_alg(
+                                    ssl, mbedtls_ssl_sig_from_pk_alg( sig_alg ) );
+        mbedtls_md_type_t md_alg = mbedtls_ssl_md_alg_from_hash( sig_hash );
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello v3, signature_algorithm ext: %d",
                                     mbedtls_ssl_hash_from_md_alg( md_alg ) ) );
     }
@@ -3175,14 +3178,19 @@ curve_matching_done:
          *      to choose appropriate hash.
          */
 
-        mbedtls_md_type_t md_alg;
         mbedtls_pk_type_t sig_alg =
             mbedtls_ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
+
+        unsigned int sig_hash =
+            mbedtls_ssl_tls12_get_preferred_hash_for_sig_alg(
+                ssl, mbedtls_ssl_sig_from_pk_alg( sig_alg ) );
+
+        mbedtls_md_type_t md_alg = mbedtls_ssl_md_alg_from_hash( sig_hash );
 
         /*    For TLS 1.2, obey signature-hash-algorithm extension
          *    (RFC 5246, Sec. 7.4.1.4.1). */
         if( sig_alg == MBEDTLS_PK_NONE ||
-            ( md_alg = mbedtls_ssl_sig_hash_set_find( ssl, sig_alg ) ) == MBEDTLS_MD_NONE )
+            md_alg == MBEDTLS_MD_NONE )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             /* (... because we choose a cipher suite

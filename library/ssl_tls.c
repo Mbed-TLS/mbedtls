@@ -7653,25 +7653,24 @@ exit:
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 
-/* Find an entry in a signature-hash set matching a given sign algorithm. */
-mbedtls_md_type_t mbedtls_ssl_sig_hash_set_find( mbedtls_ssl_context *ssl,
-                                                 mbedtls_pk_type_t pk_alg )
+/* Find the preferred hash for a given signature algorithm. */
+unsigned int mbedtls_ssl_tls12_get_preferred_hash_for_sig_alg(
+                mbedtls_ssl_context *ssl,
+                unsigned int sig_alg )
 {
     unsigned int i;
-    uint16_t sig_alg = mbedtls_ssl_sig_from_pk_alg( pk_alg );
-    uint16_t *set = ssl->handshake->received_sig_algs;
-    uint16_t invalid_sig_alg = MBEDTLS_TLS_SIG_NONE;
+    uint16_t *received_sig_algs = ssl->handshake->received_sig_algs;
 
     if( sig_alg == MBEDTLS_SSL_SIG_ANON )
-        return( MBEDTLS_MD_NONE );
+        return( MBEDTLS_SSL_HASH_NONE );
 
-    for( i = 0; set[i] != invalid_sig_alg; i++ )
+    for( i = 0; received_sig_algs[i] != MBEDTLS_TLS_SIG_NONE; i++ )
     {
-        if( sig_alg == MBEDTLS_SSL_SIG_FROM_SIG_ALG( set[i] ) )
-            return MBEDTLS_SSL_HASH_FROM_SIG_ALG( set[i] );
+        if( sig_alg == MBEDTLS_SSL_SIG_FROM_SIG_ALG( received_sig_algs[i] ) )
+            return MBEDTLS_SSL_HASH_FROM_SIG_ALG( received_sig_algs[i] );
     }
 
-    return( MBEDTLS_MD_NONE );
+    return( MBEDTLS_SSL_HASH_NONE );
 }
 
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */

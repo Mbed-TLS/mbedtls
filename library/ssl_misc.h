@@ -245,6 +245,8 @@
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 
+#define MBEDTLS_TLS_SIG_NONE MBEDTLS_TLS1_3_SIG_NONE
+
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 
 #define MBEDTLS_SSL_SIG_ALG( sig, hash ) (( hash << 8 ) | sig)
@@ -262,13 +264,7 @@
 #define MBEDTLS_SSL_SIG_ALG_SET( hash )
 #endif
 
-#define MBEDTLS_TLS_SIG_NONE MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_SIG_ANON, \
-                                                  MBEDTLS_SSL_HASH_NONE )
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-#define MBEDTLS_TLS_SIG_NONE MBEDTLS_TLS1_3_SIG_NONE
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 

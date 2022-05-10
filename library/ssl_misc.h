@@ -1789,7 +1789,7 @@ int mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 /*
- * Parse TLS 1.3 Signature Algorithm extension
+ * Parse TLS Signature Algorithm extension
  */
 int mbedtls_ssl_parse_sig_alg_ext( mbedtls_ssl_context *ssl,
                                    const unsigned char *buf,

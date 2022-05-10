@@ -1376,7 +1376,6 @@ cleanup:
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write certificate request" ) );
     return( ret );
 }
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 /*
  * Handler for MBEDTLS_SSL_HELLO_RETRY_REQUEST
@@ -1448,14 +1447,17 @@ cleanup:
  */
 static int ssl_tls13_write_server_certificate( mbedtls_ssl_context *ssl )
 {
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     if( mbedtls_ssl_own_cert( ssl ) == NULL )
+    {
+        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
+                                      MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE);
         return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+    }
+
     ret = mbedtls_ssl_tls13_write_certificate( ssl );
     if( ret != 0 )
         return( ret );
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CERTIFICATE_VERIFY );
     return( 0 );
 }
@@ -1465,14 +1467,13 @@ static int ssl_tls13_write_server_certificate( mbedtls_ssl_context *ssl )
  */
 static int ssl_tls13_write_certificate_verify( mbedtls_ssl_context *ssl )
 {
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     int ret = mbedtls_ssl_tls13_write_certificate_verify( ssl );
     if( ret != 0 )
         return( ret );
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_FINISHED );
     return( 0 );
 }
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 /*
  * TLS 1.3 State Machine -- server side
@@ -1528,7 +1529,6 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
         case MBEDTLS_SSL_CERTIFICATE_REQUEST:
             ret = ssl_tls13_write_certificate_request( ssl );
             break;
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
         case MBEDTLS_SSL_SERVER_CERTIFICATE:
             ret = ssl_tls13_write_server_certificate( ssl );
@@ -1537,6 +1537,7 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
         case MBEDTLS_SSL_CERTIFICATE_VERIFY:
             ret = ssl_tls13_write_certificate_verify( ssl );
             break;
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
         default:
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "invalid state %d", ssl->state ) );

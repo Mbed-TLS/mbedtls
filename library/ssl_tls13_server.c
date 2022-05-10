@@ -1449,8 +1449,11 @@ cleanup:
 static int ssl_tls13_write_server_certificate( mbedtls_ssl_context *ssl )
 {
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-    int ret = mbedtls_ssl_tls13_write_certificate( ssl );
-    if(ret != 0)
+    int ret;
+    if( mbedtls_ssl_own_cert( ssl ) == NULL )
+        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+    ret = mbedtls_ssl_tls13_write_certificate( ssl );
+    if( ret != 0 )
         return( ret );
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CERTIFICATE_VERIFY );
@@ -1464,7 +1467,7 @@ static int ssl_tls13_write_certificate_verify( mbedtls_ssl_context *ssl )
 {
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     int ret = mbedtls_ssl_tls13_write_certificate_verify( ssl );
-    if(ret != 0)
+    if( ret != 0 )
         return( ret );
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_FINISHED );

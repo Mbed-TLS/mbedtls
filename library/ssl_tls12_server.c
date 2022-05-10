@@ -1632,7 +1632,14 @@ read_record_header:
     {
         uint16_t *set = ssl->handshake->received_sig_algs;
         const uint16_t sig_algs[] = {
-            MBEDTLS_SSL_SIG_ALG_SET( MBEDTLS_SSL_HASH_SHA1 )
+#if defined(MBEDTLS_ECDSA_C)
+            MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG( MBEDTLS_SSL_SIG_ECDSA,
+                                                MBEDTLS_SSL_HASH_SHA1 ),
+#endif
+#if defined(MBEDTLS_RSA_C)
+            MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG( MBEDTLS_SSL_SIG_RSA,
+                                                MBEDTLS_SSL_HASH_SHA1 ),
+#endif
         };
         const uint16_t invalid_sig_alg = MBEDTLS_TLS_SIG_NONE;
         size_t count = sizeof( sig_algs ) / sizeof( sig_algs[0] );

@@ -1628,10 +1628,10 @@ read_record_header:
      * Try to fall back to default hash SHA1 if the client
      * hasn't provided any preferred signature-hash combinations.
      */
-    if( sig_hash_alg_ext_present == 0 )
+    if( ! sig_hash_alg_ext_present )
     {
-        uint16_t *set = ssl->handshake->received_sig_algs;
-        const uint16_t sig_algs[] = {
+        uint16_t *received_sig_algs = ssl->handshake->received_sig_algs;
+        const uint16_t default_sig_algs[] = {
 #if defined(MBEDTLS_ECDSA_C)
             MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG( MBEDTLS_SSL_SIG_ECDSA,
                                                 MBEDTLS_SSL_HASH_SHA1 ),
@@ -1640,24 +1640,15 @@ read_record_header:
             MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG( MBEDTLS_SSL_SIG_RSA,
                                                 MBEDTLS_SSL_HASH_SHA1 ),
 #endif
+            MBEDTLS_TLS_SIG_NONE
         };
-        const uint16_t invalid_sig_alg = MBEDTLS_TLS_SIG_NONE;
-        size_t count = sizeof( sig_algs ) / sizeof( sig_algs[0] );
 
-        if( count < MBEDTLS_RECEIVED_SIG_ALGS_SIZE )
-        {
-            memcpy( set, sig_algs, sizeof( sig_algs ) );
-            memcpy( &set[count], &invalid_sig_alg, sizeof( sig_algs[0] ) );
-        }
-        else
-        {
-            size_t size = ( MBEDTLS_RECEIVED_SIG_ALGS_SIZE - 1 ) *
-                          sizeof( sig_algs[0] );
+#if defined(static_assert)
+        static_assert( sizeof( default_sig_algs ) / sizeof( default_sig_algs[0] ) <=
+                       MBEDTLS_RECEIVED_SIG_ALGS_SIZE, "default_sig_algs is too big" );
+#endif
 
-            memcpy( set, sig_algs, size );
-            memcpy( &set[MBEDTLS_RECEIVED_SIG_ALGS_SIZE - 1],
-                    &invalid_sig_alg, sizeof( sig_algs[0] ) );
-        }
+        memcpy( received_sig_algs, default_sig_algs, sizeof( default_sig_algs ) );
     }
 
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */

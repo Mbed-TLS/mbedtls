@@ -19,7 +19,7 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 #ifndef _BSD_SOURCE
-#define _BSD_SOURCE
+#define _BSD_SOURCE /* Required to enable compilation under --std=c99 */
 #endif
 #ifndef _DEFAULT_SOURCE
 #define _DEFAULT_SOURCE

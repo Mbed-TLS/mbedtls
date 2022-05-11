@@ -232,6 +232,94 @@ int mbedtls_pk_can_do( const mbedtls_pk_context *ctx, mbedtls_pk_type_t type )
     return( ctx->pk_info->can_do( type ) );
 }
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+/*
+ * Tell if a PK can do the operations of the given PSA algorithm
+ */
+int mbedtls_pk_can_do_ext( const mbedtls_pk_context *ctx, psa_algorithm_t alg )
+{
+    /* A context with null pk_info is not set up yet and can't do anything.
+     * For backward compatibility, also accept NULL instead of a context
+     * pointer. */
+    if( ctx == NULL || ctx->pk_info == NULL )
+        return( 0 );
+
+    /* Filter out non allowed algorithms */
+    if( PSA_ALG_IS_ECDSA( alg ) == 0 &&
+        PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) == 0 &&
+        PSA_ALG_IS_RSA_PSS( alg ) == 0 &&
+        alg != PSA_ALG_RSA_PKCS1V15_CRYPT &&
+        PSA_ALG_IS_ECDH( alg ) == 0 )
+        return( 0 );
+
+    /* Wildcard hash is not allowed */
+    if( PSA_ALG_IS_SIGN_HASH( alg ) &&
+        PSA_ALG_SIGN_GET_HASH( alg ) == PSA_ALG_ANY_HASH )
+        return( 0 );
+
+    if( mbedtls_pk_get_type( ctx ) != MBEDTLS_PK_OPAQUE )
+    {
+        mbedtls_pk_type_t type;
+
+        if( PSA_ALG_IS_ECDSA( alg ) || PSA_ALG_IS_ECDH( alg ) )
+            type = MBEDTLS_PK_ECKEY;
+        else if( PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) ||
+                 alg == PSA_ALG_RSA_PKCS1V15_CRYPT )
+            type = MBEDTLS_PK_RSA;
+        else if( PSA_ALG_IS_RSA_PSS( alg ) )
+            type = MBEDTLS_PK_RSASSA_PSS;
+        else
+            return( 0 );
+
+        return( ctx->pk_info->can_do( type ) );
+    }
+
+    const mbedtls_svc_key_id_t *key = (const mbedtls_svc_key_id_t *) ctx->pk_ctx;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_algorithm_t key_alg, key_alg2;
+    psa_status_t status;
+
+    status = psa_get_key_attributes( *key, &attributes );
+    if( status != PSA_SUCCESS )
+        return( 0 );
+
+    key_alg = psa_get_key_algorithm( &attributes );
+    key_alg2 = psa_get_key_enrollment_algorithm( &attributes );
+    psa_reset_key_attributes( &attributes );
+
+    /*
+     * Common case: the key alg & alg2 only allows alg.
+     * This will match PSA_ALG_RSA_PKCS1V15_CRYPT & PSA_ALG_IS_ECDH
+     * directly.
+     * This would also match ECDSA/RSA_PKCS1V15_SIGN/RSA_PSS with
+     * a fixed hash on key_alg/key_alg2.
+     */
+    if( alg == key_alg || alg == key_alg2 )
+            return( 1 );
+
+    /*
+     * If key alg or alg2 is a hash-and-sign with a wildcard for the hash,
+     * and alg is the same hash-and-sign family with any hash,
+     * then alg is compliant with this key alg
+     */
+    if( PSA_ALG_IS_SIGN_HASH( alg ) )
+    {
+
+        if( PSA_ALG_IS_SIGN_HASH( key_alg ) &&
+            PSA_ALG_SIGN_GET_HASH( key_alg ) == PSA_ALG_ANY_HASH &&
+            ( alg & ~PSA_ALG_HASH_MASK ) == ( key_alg & ~PSA_ALG_HASH_MASK ) )
+            return( 1 );
+
+        if( PSA_ALG_IS_SIGN_HASH( key_alg2 ) &&
+            PSA_ALG_SIGN_GET_HASH( key_alg2 ) == PSA_ALG_ANY_HASH &&
+            ( alg & ~PSA_ALG_HASH_MASK ) == ( key_alg2 & ~PSA_ALG_HASH_MASK ) )
+            return( 1 );
+    }
+
+    return( 0 );
+}
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
 /*
  * Helper for mbedtls_pk_sign and mbedtls_pk_verify
  */

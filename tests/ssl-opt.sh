@@ -11218,7 +11218,7 @@ requires_openssl_tls1_3
 run_test    "TLS 1.3: Server side check - openssl with client authentication" \
             "$P_SRV debug_level=4 auth_mode=required crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
             "$O_NEXT_CLI -msg -debug -cert data_files/server5.crt -key data_files/server5.key -tls1_3" \
-            1 \
+            0 \
             -s "tls13 server state: MBEDTLS_SSL_CLIENT_HELLO" \
             -s "tls13 server state: MBEDTLS_SSL_SERVER_HELLO" \
             -s "tls13 server state: MBEDTLS_SSL_ENCRYPTED_EXTENSIONS" \
@@ -11227,7 +11227,6 @@ run_test    "TLS 1.3: Server side check - openssl with client authentication" \
             -s "tls13 server state: MBEDTLS_SSL_CERTIFICATE_VERIFY" \
             -s "tls13 server state: MBEDTLS_SSL_SERVER_FINISHED" \
             -s "=> write certificate request" \
-            -s "SSL - The requested feature is not available" \
             -s "=> parse client hello" \
             -s "<= parse client hello"
 
@@ -11267,7 +11266,6 @@ run_test    "TLS 1.3: Server side check - gnutls with client authentication" \
             -s "tls13 server state: MBEDTLS_SSL_CERTIFICATE_VERIFY" \
             -s "tls13 server state: MBEDTLS_SSL_SERVER_FINISHED" \
             -s "=> write certificate request" \
-            -s "SSL - The requested feature is not available" \
             -s "=> parse client hello" \
             -s "<= parse client hello"
 
@@ -11282,12 +11280,13 @@ run_test    "TLS 1.3: Server side check - mbedtls" \
             -s "tls13 server state: MBEDTLS_SSL_CLIENT_HELLO" \
             -s "tls13 server state: MBEDTLS_SSL_SERVER_HELLO" \
             -s "tls13 server state: MBEDTLS_SSL_ENCRYPTED_EXTENSIONS" \
+            -s "tls13 server state: MBEDTLS_SSL_CERTIFICATE_REQUEST" \
             -s "tls13 server state: MBEDTLS_SSL_SERVER_CERTIFICATE" \
-            -s "=> write certificate request" \
-            -c "client state: MBEDTLS_SSL_CERTIFICATE_REQUEST" \
-            -s "SSL - The requested feature is not available" \
-            -s "=> parse client hello" \
-            -s "<= parse client hello"
+            -s "tls13 server state: MBEDTLS_SSL_CERTIFICATE_VERIFY" \
+            -s "tls13 server state: MBEDTLS_SSL_SERVER_FINISHED" \
+            -s "tls13 server state: MBEDTLS_SSL_CLIENT_FINISHED" \
+            -s "tls13 server state: MBEDTLS_SSL_HANDSHAKE_WRAPUP" \
+            -c "HTTP/1.0 200 OK"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_DEBUG_C
@@ -11300,13 +11299,11 @@ run_test    "TLS 1.3: Server side check - mbedtls with client authentication" \
             -s "tls13 server state: MBEDTLS_SSL_CLIENT_HELLO" \
             -s "tls13 server state: MBEDTLS_SSL_SERVER_HELLO" \
             -s "tls13 server state: MBEDTLS_SSL_ENCRYPTED_EXTENSIONS" \
-            -s "tls13 server state: MBEDTLS_SSL_CERTIFICATE_REQUEST" \
             -s "tls13 server state: MBEDTLS_SSL_SERVER_CERTIFICATE" \
-            -s "tls13 server state: MBEDTLS_SSL_CERTIFICATE_VERIFY" \
-            -s "tls13 server state: MBEDTLS_SSL_SERVER_FINISHED" \
-            -s "tls13 server state: MBEDTLS_SSL_CLIENT_FINISHED" \
-            -s "tls13 server state: MBEDTLS_SSL_HANDSHAKE_WRAPUP" \
-            -c "HTTP/1.0 200 OK"
+            -s "=> write certificate request" \
+            -c "client state: MBEDTLS_SSL_CERTIFICATE_REQUEST" \
+            -s "=> parse client hello" \
+            -s "<= parse client hello"
 
 
 requires_config_enabled MBEDTLS_DEBUG_C

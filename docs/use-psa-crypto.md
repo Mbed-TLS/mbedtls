@@ -11,7 +11,8 @@ Compile-time: enabling `MBEDTLS_USE_PSA_CRYPTO` requires
 Scope: `MBEDTLS_USE_PSA_CRYPTO` has no effect on the parts of the code that
 are specific to TLS 1.3; those parts always use PSA Crypto. The parts of the
 TLS 1.3 code that are common with TLS 1.2, however, follow this option (this
-is currently just the record protection code).
+is currently just the record protection code, and X.509). You need to enable
+`MBEDTLS_USE_PSA_CRYPTO` if you want TLS 1.3 to use PSA everywhere.
 
 New APIs / API extensions
 -------------------------

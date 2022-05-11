@@ -1778,7 +1778,6 @@
  *    "extract" step.
  * You must pass #PSA_KEY_DERIVATION_INPUT_SALT
  * before #PSA_KEY_DERIVATION_INPUT_SECRET.
- * starting to generate output.
  *
  *  \warning HKDF-Extract is not meant to be used on its own. PSA_ALG_HKDF
  *  should be used instead if possible. PSA_ALG_HKDF_EXTRACT is provided
@@ -1839,7 +1838,7 @@
  */
 #define PSA_ALG_HKDF_EXPAND(hash_alg)                                  \
     (PSA_ALG_HKDF_EXPAND_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
-/** Whether the specified algorithm is an HKDF-Extract algorithm.
+/** Whether the specified algorithm is an HKDF-Expand algorithm.
  *
  * HKDF-Expand is a family of key derivation algorithms that are based
  * on a hash function and the HMAC construction.

@@ -1,12 +1,18 @@
 This document describes the compile-time configuration option
 `MBEDTLS_USE_PSA_CRYPTO` from a user's perspective.
 
+This option makes the X.509 and TLS library use PSA for cryptographic
+operations, and enables new APIs for using keys handled by PSA Crypto.
+
 General limitations
 -------------------
 
 Compile-time: enabling `MBEDTLS_USE_PSA_CRYPTO` requires
-`MBEDTLS_ECP_RESTARTABLE` and
-`MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER` to be disabled.
+`MBEDTLS_ECP_RESTARTABLE` to be disabled.
+
+Application code: when this option is enabled, you need to call
+`psa_crypto_init()` before calling any function from the SSL/TLS, X.509 or PK
+module.
 
 Scope: `MBEDTLS_USE_PSA_CRYPTO` has no effect on the parts of the code that
 are specific to TLS 1.3; those parts always use PSA Crypto. The parts of the

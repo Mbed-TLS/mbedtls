@@ -975,7 +975,7 @@ void pk_wrap_rsa_decrypt_test_vec( data_t * cipher, int mod, int radix_P,
         TEST_EQUAL( memcmp( output, clear->x, olen ), 0 );
     }
 
-    TEST_ASSERT( PSA_SUCCESS == psa_destroy_key( key_id ) );
+    TEST_EQUAL( PSA_SUCCESS, psa_destroy_key( key_id ) );
 
 exit:
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P );

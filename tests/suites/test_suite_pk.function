@@ -204,10 +204,13 @@ void pk_psa_utils( int key_is_rsa )
     TEST_ASSERT( mbedtls_pk_verify( &pk, md_alg,
                                     b1, sizeof( b1), b2, sizeof( b2 ) )
                  == MBEDTLS_ERR_PK_TYPE_MISMATCH );
-    TEST_ASSERT( mbedtls_pk_decrypt( &pk, b1, sizeof( b1 ),
-                                     b2, &len, sizeof( b2 ),
-                                     NULL, NULL )
-                 == MBEDTLS_ERR_PK_TYPE_MISMATCH );
+    if( key_is_rsa == 0 )
+    {
+        TEST_ASSERT( mbedtls_pk_decrypt( &pk, b1, sizeof( b1 ),
+                                         b2, &len, sizeof( b2 ),
+                                         NULL, NULL )
+                     == MBEDTLS_ERR_PK_TYPE_MISMATCH );
+    }
     TEST_ASSERT( mbedtls_pk_encrypt( &pk, b1, sizeof( b1 ),
                                      b2, &len, sizeof( b2 ),
                                      NULL, NULL )
@@ -907,6 +910,72 @@ void pk_rsa_decrypt_test_vec( data_t * cipher, int mod, int radix_P,
         TEST_ASSERT( olen == clear->len );
         TEST_ASSERT( memcmp( output, clear->x, olen ) == 0 );
     }
+
+exit:
+    mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P );
+    mbedtls_mpi_free( &Q ); mbedtls_mpi_free( &E );
+    mbedtls_pk_free( &pk );
+    USE_PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_RSA_C:MBEDTLS_USE_PSA_CRYPTO */
+void pk_wrap_rsa_decrypt_test_vec( data_t * cipher, int mod, int radix_P,
+                                   char * input_P, int radix_Q, char * input_Q,
+                                   int radix_N, char * input_N, int radix_E,
+                                   char * input_E, data_t * clear, int ret )
+{
+    unsigned char output[256];
+    mbedtls_test_rnd_pseudo_info rnd_info;
+    mbedtls_mpi N, P, Q, E;
+    mbedtls_rsa_context *rsa;
+    mbedtls_pk_context pk;
+    mbedtls_svc_key_id_t key_id;
+    size_t olen;
+
+    USE_PSA_INIT( );
+
+    mbedtls_pk_init( &pk );
+    mbedtls_mpi_init( &N ); mbedtls_mpi_init( &P );
+    mbedtls_mpi_init( &Q ); mbedtls_mpi_init( &E );
+
+    memset( &rnd_info,  0, sizeof( mbedtls_test_rnd_pseudo_info ) );
+
+    /* init pk-rsa context */
+    TEST_EQUAL( mbedtls_pk_setup( &pk,
+                        mbedtls_pk_info_from_type( MBEDTLS_PK_RSA ) ), 0 );
+    rsa = mbedtls_pk_rsa( pk );
+
+    /* load public key */
+    TEST_EQUAL( mbedtls_test_read_mpi( &N, radix_N, input_N ), 0 );
+    TEST_EQUAL( mbedtls_test_read_mpi( &E, radix_E, input_E ), 0 );
+
+    /* load private key */
+    TEST_EQUAL( mbedtls_test_read_mpi( &P, radix_P, input_P ), 0 );
+    TEST_EQUAL( mbedtls_test_read_mpi( &Q, radix_Q, input_Q ), 0 );
+    TEST_EQUAL( mbedtls_rsa_import( rsa, &N, &P, &Q, NULL, &E ), 0 );
+    TEST_EQUAL( mbedtls_rsa_get_len( rsa ), (size_t) ( mod / 8 ) );
+    TEST_EQUAL( mbedtls_rsa_complete( rsa ), 0 );
+
+    /* Turn PK context into an opaque one. */
+    TEST_EQUAL( mbedtls_pk_wrap_as_opaque( &pk, &key_id,
+                                           PSA_ALG_RSA_PKCS1V15_CRYPT,
+                                           PSA_KEY_USAGE_DECRYPT,
+                                           PSA_ALG_NONE ), 0 );
+
+    /* decryption test */
+    memset( output, 0, sizeof( output ) );
+    olen = 0;
+    TEST_EQUAL( mbedtls_pk_decrypt( &pk, cipher->x, cipher->len,
+                            output, &olen, sizeof( output ),
+                            mbedtls_test_rnd_pseudo_rand, &rnd_info ), ret );
+    if( ret == 0 )
+    {
+        TEST_EQUAL( olen, clear->len );
+        TEST_EQUAL( memcmp( output, clear->x, olen ), 0 );
+    }
+
+    TEST_EQUAL( PSA_SUCCESS, psa_destroy_key( key_id ) );
 
 exit:
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P );

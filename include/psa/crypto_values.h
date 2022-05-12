@@ -489,8 +489,12 @@
  *
  * ChaCha20 and the ChaCha20_Poly1305 construction are defined in RFC 7539.
  *
- * Implementations must support 12-byte nonces, may support 8-byte nonces,
- * and should reject other sizes.
+ * \note For ChaCha20 and ChaCha20_Poly1305, Mbed TLS only supports
+ *       12-byte nonces.
+ *
+ * \note For ChaCha20, the initial counter value is 0. To encrypt or decrypt
+ *       with the initial counter value 1, you can process and discard a
+ *       64-byte block before the real data.
  */
 #define PSA_KEY_TYPE_CHACHA20                       ((psa_key_type_t)0x2004)
 

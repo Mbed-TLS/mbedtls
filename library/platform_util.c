@@ -74,7 +74,7 @@ void mbedtls_platform_zeroize( void *buf, size_t len )
 #endif /* MBEDTLS_PLATFORM_ZEROIZE_ALT */
 
 #if defined(MBEDTLS_HAVE_TIME_DATE) && !defined(MBEDTLS_PLATFORM_GMTIME_R_ALT)
-#define __STDC_WANT_LIB_EXT1__ 1
+#define __STDC_WANT_LIB_EXT1__ 1  /* Ask for the C11 gmtime_s() if it's available */
 #include <time.h>
 #if !defined(_WIN32) && (defined(unix) || \
     defined(__unix) || defined(__unix__) || (defined(__APPLE__) && \

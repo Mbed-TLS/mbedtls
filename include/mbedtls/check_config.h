@@ -82,7 +82,7 @@
 
 #if defined(MBEDTLS_NIST_KW_C) && \
     ( !defined(MBEDTLS_AES_C) || !defined(MBEDTLS_CIPHER_C) )
-#error "MBEDTLS_NIST_KW_C defined, but not all prerequisites (missing CIPHER)"
+#error "MBEDTLS_NIST_KW_C defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_ECDH_C) && !defined(MBEDTLS_ECP_C)
@@ -204,7 +204,7 @@
 #endif
 
 #if defined(MBEDTLS_CCM_C) && !defined(MBEDTLS_CIPHER_C)
-#error "MBEDTLS_CCM_C defined, but not all prerequisites (missing CIPHER)"
+#error "MBEDTLS_CCM_C defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_GCM_C) && (                                        \
@@ -213,7 +213,7 @@
 #endif
 
 #if defined(MBEDTLS_GCM_C) && !defined(MBEDTLS_CIPHER_C)
-#error "MBEDTLS_GCM_C defined, but not all prerequisites (missing CIPHER)"
+#error "MBEDTLS_GCM_C defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_CHACHAPOLY_C) && !defined(MBEDTLS_CHACHA20_C)
@@ -568,7 +568,7 @@
 #endif
 
 #if defined(MBEDTLS_PSA_CRYPTO_C) && !defined(MBEDTLS_CIPHER_C )
-#error "MBEDTLS_PSA_CRYPTO_C defined, but not all prerequisites (missing CIPHER)"
+#error "MBEDTLS_PSA_CRYPTO_C defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_PSA_CRYPTO_SPM) && !defined(MBEDTLS_PSA_CRYPTO_C)
@@ -809,8 +809,9 @@
 #error "MBEDTLS_SSL_EXTENDED_MASTER_SECRET defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_SSL_TICKET_C) && !defined(MBEDTLS_CIPHER_C)
-#error "MBEDTLS_SSL_TICKET_C defined, but not all prerequisites (missing CIPHER)"
+#if defined(MBEDTLS_SSL_TICKET_C) && ( !defined(MBEDTLS_CIPHER_C) && \
+                                       !defined(MBEDTLS_USE_PSA_CRYPTO) )
+#error "MBEDTLS_SSL_TICKET_C defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && \

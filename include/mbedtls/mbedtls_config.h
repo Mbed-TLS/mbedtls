@@ -2153,14 +2153,13 @@
  *          library/cmac.c
  *          library/gcm.c
  *          library/nist_kw.c
- *          library/oid.c
  *          library/pkcs12.c
  *          library/pkcs5.c
  *          library/psa_crypto_aead.c
  *          library/psa_crypto_mac.c
  *          library/ssl_ciphersuites.c
  *          library/ssl_msg.c
- *          library/ssl_ticket.c
+ *          library/ssl_ticket.c (unless MBEDTLS_USE_PSA_CRYPTO is enabled)
  *
  * Uncomment to enable generic cipher wrappers.
  */
@@ -2978,7 +2977,7 @@
  * Module:  library/ssl_ticket.c
  * Caller:
  *
- * Requires: MBEDTLS_CIPHER_C
+ * Requires: MBEDTLS_CIPHER_C || MBEDTLS_USE_PSA_CRYPTO
  */
 #define MBEDTLS_SSL_TICKET_C
 

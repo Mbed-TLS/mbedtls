@@ -1890,15 +1890,12 @@ size_t mbedtls_ssl_ciphersuite_get_cipher_key_bitlen( const mbedtls_ssl_ciphersu
         return 0;
 
     return key_bits;
-#elif defined(MBEDTLS_CIPHER_C)
+#else
     const mbedtls_cipher_info_t * const cipher_info =
       mbedtls_cipher_info_from_type( info->cipher );
 
     return( mbedtls_cipher_info_get_key_bitlen( cipher_info ) );
-#else
-    (void)info;
-    return( 0 );
-#endif
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 }
 
 #if defined(MBEDTLS_PK_C)

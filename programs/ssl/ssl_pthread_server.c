@@ -515,11 +515,6 @@ exit:
     mbedtls_memory_buffer_alloc_free();
 #endif
 
-#if defined(_WIN32)
-    mbedtls_printf( "  Press Enter to exit this program.\n" );
-    fflush( stdout ); getchar();
-#endif
-
     mbedtls_exit( ret );
 }
 

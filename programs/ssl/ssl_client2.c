@@ -3151,14 +3151,6 @@ exit:
     mbedtls_memory_buffer_alloc_free();
 #endif  /* MBEDTLS_MEMORY_BUFFER_ALLOC_C */
 
-#if defined(_WIN32)
-    if( opt.query_config_mode == DFL_QUERY_CONFIG_MODE )
-    {
-        mbedtls_printf( "  + Press Enter to exit this program.\n" );
-        fflush( stdout ); getchar();
-    }
-#endif
-
     // Shell can not handle large exit numbers -> 1 for errors
     if( ret < 0 )
         ret = 1;

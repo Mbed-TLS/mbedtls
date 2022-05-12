@@ -1235,7 +1235,7 @@ int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
         return ret;
     }
 
-    key_len = PSA_BITS_TO_BYTES(key_bits);
+    key_len = PSA_BITS_TO_BYTES( key_bits );
 
     if( PSA_ALG_IS_AEAD( alg ) )
         iv_len = 12;
@@ -1469,7 +1469,7 @@ int mbedtls_ssl_tls13_generate_application_keys(
         goto cleanup;
     }
 
-    key_len = PSA_BITS_TO_BYTES(key_bits);
+    key_len = PSA_BITS_TO_BYTES( key_bits );
 
     if( PSA_ALG_IS_AEAD( alg ) )
         iv_len = 12;

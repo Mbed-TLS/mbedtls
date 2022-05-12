@@ -186,7 +186,13 @@ int mbedtls_net_connect( mbedtls_net_context *ctx, const char *host,
     memset( &hints, 0, sizeof( hints ) );
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = proto == MBEDTLS_NET_PROTO_UDP ? SOCK_DGRAM : SOCK_STREAM;
-    hints.ai_protocol = proto == MBEDTLS_NET_PROTO_UDP ? IPPROTO_UDP : IPPROTO_TCP;
+
+    if( proto == MBEDTLS_NET_PROTO_UDP )
+       hints.ai_protocol = IPPROTO_UDP;
+    else if( proto == MBEDTLS_NET_PROTO_TCP )
+       hints.ai_protocol = IPPROTO_TCP;
+    else
+       hints.ai_protocol = IPPROTO_SCTP;
 
     if( getaddrinfo( host, port, &hints, &addr_list ) != 0 )
         return( MBEDTLS_ERR_NET_UNKNOWN_HOST );

@@ -28,7 +28,7 @@
  *                      On success, it refers to the opened file (\p wanted_fd).
  * \param wanted_fd     The desired file descriptor.
  *
- * \return              \c 0 on succes, a negative error code on error.
+ * \return              \c 0 on success, a negative error code on error.
  */
 static int open_file_on_fd( mbedtls_net_context *ctx, int wanted_fd )
 {

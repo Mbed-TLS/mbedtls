@@ -41,7 +41,7 @@
  * dominate memory usage in small configurations. For the sake of simplicity,
  * only a Unix version is implemented.
  *
- * Warning: we are breaking some of the abtractions from the NET layer here.
+ * Warning: we are breaking some of the abstractions from the NET layer here.
  * This is not a good example for general use. This programs has the specific
  * goal of minimizing use of the libc functions on full-blown OSes.
  */

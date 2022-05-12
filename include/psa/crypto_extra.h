@@ -345,7 +345,7 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  * length of the byte string is the private key size in bytes (leading zeroes
  * are not stripped).
  *
- * Determinstic DSA key derivation with psa_generate_derived_key follows
+ * Deterministic DSA key derivation with psa_generate_derived_key follows
  * FIPS 186-4 &sect;B.1.2: interpret the byte string as integer
  * in big-endian order. Discard it if it is not in the range
  * [0, *N* - 2] where *N* is the boundary of the private key domain

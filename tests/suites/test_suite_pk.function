@@ -125,7 +125,7 @@ void pk_psa_utils(  )
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
 
     const char * const name = "Opaque";
-    const size_t bitlen = 256; /* harcoded in genkey() */
+    const size_t bitlen = 256; /* hardcoded in genkey() */
 
     mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
     unsigned char b1[1], b2[1];
@@ -1150,7 +1150,7 @@ void pk_rsa_alt(  )
     memset( ciph, 0, sizeof ciph );
     memset( test, 0, sizeof test );
 
-    /* Initiliaze PK RSA context with random key */
+    /* Initialize PK RSA context with random key */
     TEST_ASSERT( mbedtls_pk_setup( &rsa,
                               mbedtls_pk_info_from_type( MBEDTLS_PK_RSA ) ) == 0 );
     TEST_ASSERT( pk_genkey( &rsa, RSA_KEY_SIZE ) == 0 );

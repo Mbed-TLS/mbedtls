@@ -376,7 +376,7 @@ void ecdh_restart( int id, data_t *dA, data_t *dB, data_t *z,
     rnd_info_B.buf = dB->x;
     rnd_info_B.length = dB->len;
 
-    /* The ECDH context is not guaranteed ot have an mbedtls_ecp_group structure
+    /* The ECDH context is not guaranteed to have an mbedtls_ecp_group structure
      * in every configuration, therefore we load it separately. */
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
 

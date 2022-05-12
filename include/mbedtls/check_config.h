@@ -173,11 +173,11 @@
 #endif
 
 #if defined(MBEDTLS_PK_PARSE_C) && !defined(MBEDTLS_ASN1_PARSE_C)
-#error "MBEDTLS_PK_PARSE_C defined, but not all prerequesites"
+#error "MBEDTLS_PK_PARSE_C defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_PKCS5_C) && !defined(MBEDTLS_MD_C)
-#error "MBEDTLS_PKCS5_C defined, but not all prerequesites"
+#error "MBEDTLS_PKCS5_C defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_ENTROPY_C) && (!defined(MBEDTLS_SHA512_C) &&      \
@@ -363,11 +363,11 @@
 #endif
 
 #if defined(MBEDTLS_MEMORY_BACKTRACE) && !defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
-#error "MBEDTLS_MEMORY_BACKTRACE defined, but not all prerequesites"
+#error "MBEDTLS_MEMORY_BACKTRACE defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_MEMORY_DEBUG) && !defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
-#error "MBEDTLS_MEMORY_DEBUG defined, but not all prerequesites"
+#error "MBEDTLS_MEMORY_DEBUG defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_PADLOCK_C) && !defined(MBEDTLS_HAVE_ASM)
@@ -798,14 +798,14 @@
     !defined(MBEDTLS_SSL_PROTO_TLS1)   &&      \
     !defined(MBEDTLS_SSL_PROTO_TLS1_1) &&      \
     !defined(MBEDTLS_SSL_PROTO_TLS1_2)
-#error "MBEDTLS_SSL_ENCRYPT_THEN_MAC defined, but not all prerequsites"
+#error "MBEDTLS_SSL_ENCRYPT_THEN_MAC defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET) && \
     !defined(MBEDTLS_SSL_PROTO_TLS1)   &&          \
     !defined(MBEDTLS_SSL_PROTO_TLS1_1) &&          \
     !defined(MBEDTLS_SSL_PROTO_TLS1_2)
-#error "MBEDTLS_SSL_EXTENDED_MASTER_SECRET defined, but not all prerequsites"
+#error "MBEDTLS_SSL_EXTENDED_MASTER_SECRET defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_SSL_TICKET_C) && !defined(MBEDTLS_CIPHER_C)

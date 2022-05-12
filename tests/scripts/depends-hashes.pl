@@ -46,7 +46,7 @@ my $config_h = 'include/mbedtls/config.h';
 
 # as many SSL options depend on specific hashes,
 # and SSL is not in the test suites anyways,
-# disable it to avoid dependcies issues
+# disable it to avoid dependency issues
 my $ssl_sed_cmd = 's/^#define \(MBEDTLS_SSL.*\)/\1/p';
 my @ssl = split( /\s+/, `sed -n -e '$ssl_sed_cmd' $config_h` );
 

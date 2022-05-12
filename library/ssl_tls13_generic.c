@@ -982,7 +982,7 @@ static int ssl_tls13_get_sig_alg_from_pk( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_RSA_C */
         default:
             MBEDTLS_SSL_DEBUG_MSG( 1,
-                                   ( "unkown signature type : %u", sig ) );
+                                   ( "unknown signature type : %u", sig ) );
             break;
     }
     return( -1 );

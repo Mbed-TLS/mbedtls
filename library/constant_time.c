@@ -690,7 +690,7 @@ cleanup:
 /*
  * Conditionally swap X and Y, without leaking information
  * about whether the swap was made or not.
- * Here it is not ok to simply swap the pointers, which whould lead to
+ * Here it is not ok to simply swap the pointers, which would lead to
  * different memory access patterns when X and Y are used afterwards.
  */
 int mbedtls_mpi_safe_cond_swap( mbedtls_mpi *X,

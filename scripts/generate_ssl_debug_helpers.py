@@ -53,7 +53,7 @@ def preprocess_c_source_code(source, *classes):
     """
         Simple preprocessor for C source code.
 
-        Only processses condition directives without expanding them.
+        Only processes condition directives without expanding them.
         Yield object according to the classes input. Most match firstly
 
         If the directive pair does not match , raise CondDirectiveNotMatch.
@@ -289,7 +289,7 @@ class SignatureAlgorithmDefinition:
             {translation_table}
                 }};
 
-                return "UNKOWN";
+                return "UNKNOWN";
             }}''')
         body = body.format(translation_table='\n'.join(translation_table))
         return body

@@ -6,7 +6,7 @@ send an email to the security team at
 
 ## Security Incident Handling Process
 
-Our security process is detailled in our
+Our security process is detailed in our
 [security
 center](https://developer.trustedfirmware.org/w/mbed-tls/security-center/).
 

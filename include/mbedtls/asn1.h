@@ -228,7 +228,7 @@ mbedtls_asn1_named_data;
  * \return      0 if successful.
  * \return      #MBEDTLS_ERR_ASN1_OUT_OF_DATA if the ASN.1 element
  *              would end beyond \p end.
- * \return      #MBEDTLS_ERR_ASN1_INVALID_LENGTH if the length is unparseable.
+ * \return      #MBEDTLS_ERR_ASN1_INVALID_LENGTH if the length is unparsable.
  */
 int mbedtls_asn1_get_len( unsigned char **p,
                           const unsigned char *end,
@@ -253,7 +253,7 @@ int mbedtls_asn1_get_len( unsigned char **p,
  *              with the requested tag.
  * \return      #MBEDTLS_ERR_ASN1_OUT_OF_DATA if the ASN.1 element
  *              would end beyond \p end.
- * \return      #MBEDTLS_ERR_ASN1_INVALID_LENGTH if the length is unparseable.
+ * \return      #MBEDTLS_ERR_ASN1_INVALID_LENGTH if the length is unparsable.
  */
 int mbedtls_asn1_get_tag( unsigned char **p,
                           const unsigned char *end,

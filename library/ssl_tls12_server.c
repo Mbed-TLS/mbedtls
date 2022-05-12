@@ -1261,7 +1261,7 @@ read_record_header:
      * Handshake layer:
      *     0  .   0   handshake type
      *     1  .   3   handshake length
-     *     4  .   5   DTLS only: message seqence number
+     *     4  .   5   DTLS only: message sequence number
      *     6  .   8   DTLS only: fragment offset
      *     9  .  11   DTLS only: fragment length
      */

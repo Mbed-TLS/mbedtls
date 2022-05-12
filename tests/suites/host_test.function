@@ -519,7 +519,7 @@ int execute_tests( int argc , const char ** argv )
     FILE *file;
     char buf[5000];
     char *params[50];
-    /* Store for proccessed integer params. */
+    /* Store for processed integer params. */
     int32_t int_params[50];
     void *pointer;
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))

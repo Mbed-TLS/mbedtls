@@ -278,7 +278,7 @@ int ca_callback( void *data, mbedtls_x509_crt const *child,
 
 /*
  * Test recv/send functions that make sure each try returns
- * WANT_READ/WANT_WRITE at least once before sucesseding
+ * WANT_READ/WANT_WRITE at least once before succeeding
  */
 int delayed_recv( void *ctx, unsigned char *buf, size_t len );
 int delayed_send( void *ctx, const unsigned char *buf, size_t len );

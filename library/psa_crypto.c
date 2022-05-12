@@ -913,7 +913,7 @@ static psa_status_t psa_get_and_lock_key_slot_with_policy(
         goto error;
     }
 
-    /* Enforce that the usage policy permits the requested algortihm. */
+    /* Enforce that the usage policy permits the requested algorithm. */
     if( alg != 0 )
     {
         status = psa_key_policy_permits( &slot->attr.policy,
@@ -4810,7 +4810,7 @@ static psa_status_t psa_generate_derived_ecc_key_weierstrass_helper(
 
         /* 4. If k > N - 2, discard the result and return to step 1.
         *    Result of comparison is returned. When it indicates error
-        *    then this fuction is called again.
+        *    then this function is called again.
         */
         MBEDTLS_MPI_CHK( mbedtls_mpi_lt_mpi_ct( &diff_N_2, &k, &key_out_of_range ) );
     }

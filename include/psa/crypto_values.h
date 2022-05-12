@@ -1456,7 +1456,7 @@
  * with a random per-message secret number (*k*).
  *
  * The representation of the signature as a byte string consists of
- * the concatentation of the signature values *r* and *s*. Each of
+ * the concatenation of the signature values *r* and *s*. Each of
  * *r* and *s* is encoded as an *N*-octet string, where *N* is the length
  * of the base point of the curve in octets. Each value is represented
  * in big-endian order (most significant octet first).

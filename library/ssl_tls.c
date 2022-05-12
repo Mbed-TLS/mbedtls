@@ -2918,7 +2918,7 @@ static int ssl_prepare_handshake_step( mbedtls_ssl_context *ssl )
      * In the case of TLS 1.3, handshake step handlers do not send data to the
      * peer. Data are only sent here and through
      * `mbedtls_ssl_handle_pending_alert` in case an error that triggered an
-     * alert occured.
+     * alert occurred.
      */
     if( ( ret = mbedtls_ssl_flush_output( ssl ) ) != 0 )
         return( ret );
@@ -4017,7 +4017,7 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
 }
 
 /*
- * Initialze mbedtls_ssl_config
+ * Initialize mbedtls_ssl_config
  */
 void mbedtls_ssl_config_init( mbedtls_ssl_config *conf )
 {
@@ -6614,7 +6614,7 @@ void mbedtls_ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl )
     ssl->handshake = NULL;
 
     /*
-     * Free the previous transform and swith in the current one
+     * Free the previous transform and switch in the current one
      */
     if( ssl->transform )
     {

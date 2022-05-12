@@ -2229,7 +2229,7 @@ void perform_handshake( handshake_test_options* options )
 
         /* After calling mbedtls_ssl_renegotiate for the client all renegotiation
          * should happen inside this function. However in this test, we cannot
-         * perform simultaneous communication betwen client and server so this
+         * perform simultaneous communication between client and server so this
          * function will return waiting error on the socket. All rest of
          * renegotiation should happen during data exchanging */
         ret = mbedtls_ssl_renegotiate( &(client.ssl) );
@@ -2321,7 +2321,7 @@ void test_callback_buffer_sanity()
     TEST_ASSERT( mbedtls_test_buffer_get( NULL, NULL, 0 ) == -1 );
 
     /* Make sure calling put and get on a buffer that hasn't been set up results
-     * in eror. */
+     * in error. */
     mbedtls_test_buffer_init( &buf );
 
     TEST_ASSERT( mbedtls_test_buffer_put( &buf, input, sizeof( input ) ) == -1 );

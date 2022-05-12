@@ -968,7 +968,7 @@ void mbedtls_x509_crt_restart_free( mbedtls_x509_crt_restart_ctx *ctx );
 void mbedtls_x509write_crt_init( mbedtls_x509write_cert *ctx );
 
 /**
- * \brief           Set the verion for a Certificate
+ * \brief           Set the version for a Certificate
  *                  Default: MBEDTLS_X509_CRT_VERSION_3
  *
  * \param ctx       CRT context to use

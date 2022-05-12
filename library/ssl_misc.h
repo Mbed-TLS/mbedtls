@@ -1854,7 +1854,7 @@ static inline int mbedtls_ssl_tls12_named_group_is_ecdhe( uint16_t named_group )
             named_group == MBEDTLS_SSL_IANA_TLS_GROUP_BP384R1   ||
             named_group == MBEDTLS_SSL_IANA_TLS_GROUP_BP512R1   ||
             named_group == MBEDTLS_SSL_IANA_TLS_GROUP_X448      ||
-            /* Below deprected curves should be removed with notice to users */
+            /* Below deprecated curves should be removed with notice to users */
             named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP192K1 ||
             named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP192R1 ||
             named_group == MBEDTLS_SSL_IANA_TLS_GROUP_SECP224K1 ||
@@ -2167,7 +2167,7 @@ static inline int mbedtls_ssl_sig_alg_is_supported(
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 /* Corresponding PSA algorithm for MBEDTLS_CIPHER_NULL.
- * Same value is used fo PSA_ALG_CATEGORY_CIPHER, hence it is
+ * Same value is used for PSA_ALG_CATEGORY_CIPHER, hence it is
  * guaranteed to not be a valid PSA algorithm identifier.
  */
 #define MBEDTLS_SSL_NULL_CIPHER 0x04000000

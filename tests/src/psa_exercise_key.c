@@ -221,7 +221,7 @@ static int exercise_cipher_key( mbedtls_svc_key_id_t key,
                                     sizeof( decrypted ) - part_length,
                                     &part_length );
         /* For a stream cipher, all inputs are valid. For a block cipher,
-         * if the input is some aribtrary data rather than an actual
+         * if the input is some arbitrary data rather than an actual
          ciphertext, a padding error is likely.  */
         if( maybe_invalid_padding )
             TEST_ASSERT( status == PSA_SUCCESS ||
@@ -929,7 +929,7 @@ int mbedtls_test_psa_exercise_key( mbedtls_svc_key_id_t key,
         return( 0 );
 
     if( alg == 0 )
-        ok = 1; /* If no algorihm, do nothing (used for raw data "keys"). */
+        ok = 1; /* If no algorithm, do nothing (used for raw data "keys"). */
     else if( PSA_ALG_IS_MAC( alg ) )
         ok = exercise_mac_key( key, usage, alg );
     else if( PSA_ALG_IS_CIPHER( alg ) )

@@ -84,7 +84,7 @@ the hash algorithm potentially used to hash the message being signed:
   - most commonly MGF1, which in turn is parametrized by a hash algorithm
 - a salt length
 - a trailer field - the value is fixed to 0xBC by PKCS#1 v2.1, but was left
-  configurable in the original scheme; 0xBC is used everywhere in pratice.
+  configurable in the original scheme; 0xBC is used everywhere in practice.
 
 Both the existing `mbedtls_` API and the PSA API support only MGF1 as the
 generation function (and only 0xBC as the trailer field), but there are
@@ -317,7 +317,7 @@ strong security arguments, so it's unclear whether it would be accepted.
 HKDF: Expand not exposed on its own (TLS 1.3)
 ---------------------------------------------
 
-The HKDF function uses and Extract-then-Expand approch, that is:
+The HKDF function uses an Extract-then-Expand approach, that is:
 
         HKDF(x, ...) = HKDF-Expand(HKDF-Extract(x, ...), ...)
 

@@ -831,7 +831,7 @@ class StorageFormatV0(StorageFormat):
     def gather_key_types_for_sign_alg(self) -> Dict[str, List[str]]:
         # pylint: disable=too-many-locals
         """Match possible key types for sign algorithms."""
-        # To create a valid combinaton both the algorithms and key types
+        # To create a valid combination both the algorithms and key types
         # must be filtered. Pair them with keywords created from its names.
         incompatible_alg_keyword = frozenset(['RAW', 'ANY', 'PURE'])
         incompatible_key_type_keywords = frozenset(['MONTGOMERY'])
@@ -855,7 +855,7 @@ class StorageFormatV0(StorageFormat):
                     if re.match(pattern, keyword):
                         alg_keywords.remove(keyword)
                         alg_keywords.add(replace)
-            # Filter out incompatible algortihms
+            # Filter out incompatible algorithms
             if not alg_keywords.isdisjoint(incompatible_alg_keyword):
                 continue
 
@@ -863,7 +863,7 @@ class StorageFormatV0(StorageFormat):
                 # Generate keywords from the of the key type
                 key_type_keywords = set(key_type.translate(translation_table).split(sep='_')[3:])
 
-                # Remove ambigious keywords
+                # Remove ambiguous keywords
                 for keyword1, keyword2 in exclusive_keywords.items():
                     if keyword1 in key_type_keywords:
                         key_type_keywords.remove(keyword2)
@@ -880,7 +880,7 @@ class StorageFormatV0(StorageFormat):
         """Generate test keys for usage flag extensions."""
         # Generate a key type and algorithm pair for each extendable usage
         # flag to generate a valid key for exercising. The key is generated
-        # without usage extension to check the extension compatiblity.
+        # without usage extension to check the extension compatibility.
         alg_with_keys = self.gather_key_types_for_sign_alg()
 
         for usage in sorted(StorageKey.IMPLICIT_USAGE_FLAGS, key=str):
@@ -923,7 +923,7 @@ class TestGenerator:
         filename = self.filename_for(basename)
         test_case.write_data_file(filename, test_cases)
 
-    # Note that targets whose name containns 'test_format' have their content
+    # Note that targets whose names contain 'test_format' have their content
     # validated by `abi_check.py`.
     TARGETS = {
         'test_suite_psa_crypto_generate_key.generated':

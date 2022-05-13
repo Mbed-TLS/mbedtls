@@ -315,14 +315,6 @@ int mbedtls_ssl_tls13_process_certificate_verify( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate verify" ) );
 
-    if( ssl->handshake->cert_request_send &&
-        ssl->session_negotiate->peer_cert == NULL ) 
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate verify" ) );
-        ret = 0;
-        goto cleanup;
-    }
-
     MBEDTLS_SSL_PROC_CHK(
         mbedtls_ssl_tls13_fetch_handshake_msg( ssl,
                 MBEDTLS_SSL_HS_CERTIFICATE_VERIFY, &buf, &buf_len ) );
@@ -472,6 +464,13 @@ static int ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
         mbedtls_free( ssl->session_negotiate->peer_cert );
     }
 
+    if( certificate_list_len == 0 )
+    {
+        ssl->session_negotiate->peer_cert = NULL;
+        ret = 0;
+        goto exit;
+    }
+
     if( ( ssl->session_negotiate->peer_cert =
           mbedtls_calloc( 1, sizeof( mbedtls_x509_crt ) ) ) == NULL )
     {
@@ -557,6 +556,7 @@ static int ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_DECODE_ERROR );
     }
 
+exit:
     MBEDTLS_SSL_DEBUG_CRT( 3, "peer certificate", ssl->session_negotiate->peer_cert );
 
     return( ret );
@@ -620,15 +620,15 @@ static int ssl_tls13_validate_certificate( mbedtls_ssl_context *ssl )
     }
 #endif /* MBEDTLS_SSL_SRV_C */
 
-    if( authmode == MBEDTLS_SSL_VERIFY_NONE )
+#if defined(MBEDTLS_SSL_CLI_C)
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
+        ssl->session_negotiate->peer_cert == NULL )
     {
-        /* NOTE: This happens on client-side only, with the
-         * server-side case of VERIFY_NONE being handled earlier
-         * and leading to `ssl->verify_result` being set to
-         * MBEDTLS_X509_BADCERT_SKIP_VERIFY --
-         * is this difference intentional? */
-        return( 0 );
+        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_NO_CERT,
+                                      MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE );
+        return( MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE );
     }
+#endif /* MBEDTLS_SSL_CLI_C */
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     if( ssl->handshake->sni_ca_chain != NULL )
@@ -746,36 +746,23 @@ int mbedtls_ssl_tls13_process_certificate( mbedtls_ssl_context *ssl )
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate" ) );
 
-    /* Coordination:
-     * Check if we expect a certificate, and if yes,
-     * check if a non-empty certificate has been sent.
-     */
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
-    if( ssl->handshake->cert_request_send )
-    {
-        unsigned char *buf;
-        size_t buf_len;
+    unsigned char *buf;
+    size_t buf_len;
 
-        MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_fetch_handshake_msg(
-                              ssl, MBEDTLS_SSL_HS_CERTIFICATE,
-                              &buf, &buf_len ) );
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_fetch_handshake_msg(
+                          ssl, MBEDTLS_SSL_HS_CERTIFICATE,
+                          &buf, &buf_len ) );
 
-        /* Parse the certificate chain sent by the peer. */
-        MBEDTLS_SSL_PROC_CHK( ssl_tls13_parse_certificate( ssl, buf,
-                                                           buf + buf_len ) );
-        /* Validate the certificate chain and set the verification results. */
-        MBEDTLS_SSL_PROC_CHK( ssl_tls13_validate_certificate( ssl ) );
+    /* Parse the certificate chain sent by the peer. */
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_parse_certificate( ssl, buf,
+                                                       buf + buf_len ) );
+    /* Validate the certificate chain and set the verification results. */
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_validate_certificate( ssl ) );
 
-        mbedtls_ssl_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_CERTIFICATE,
-                                            buf, buf_len );
-    }
-    else
+    mbedtls_ssl_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_CERTIFICATE,
+                                        buf, buf_len );
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
-        ret = 0;
-    }
-
 
 cleanup:
 

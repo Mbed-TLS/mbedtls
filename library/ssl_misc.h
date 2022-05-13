@@ -510,8 +510,9 @@ struct mbedtls_ssl_handshake_params
 #endif
 
 #if defined(MBEDTLS_SSL_SRV_C)
-    /** cert_request_send to indicate whether client certitifacte request */
-    uint16_t cert_request_send;
+    /* Flag indicating if a CertificateRequest message has been sent
+     * to the client or not. */
+    uint16_t certificate_request_sent;
 #endif /* MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)

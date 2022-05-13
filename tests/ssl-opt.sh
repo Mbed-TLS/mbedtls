@@ -11291,7 +11291,7 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 run_test    "TLS 1.3: Server side check - gnutls with client authentication" \
             "$P_SRV debug_level=4 auth_mode=required crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
             "$G_NEXT_CLI localhost -d 4 --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
-            1 \
+            0 \
             -s "tls13 server state: MBEDTLS_SSL_CLIENT_HELLO" \
             -s "tls13 server state: MBEDTLS_SSL_SERVER_HELLO" \
             -s "tls13 server state: MBEDTLS_SSL_ENCRYPTED_EXTENSIONS" \
@@ -11310,7 +11310,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3: Server side check - mbedtls" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
             "$P_CLI debug_level=4 force_version=tls13" \
-            1 \
+            0 \
             -s "tls13 server state: MBEDTLS_SSL_CLIENT_HELLO" \
             -s "tls13 server state: MBEDTLS_SSL_SERVER_HELLO" \
             -s "tls13 server state: MBEDTLS_SSL_ENCRYPTED_EXTENSIONS" \
@@ -11329,7 +11329,7 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3: Server side check - mbedtls with client authentication" \
             "$P_SRV debug_level=4 auth_mode=required crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
             "$P_CLI debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13" \
-            1 \
+            0 \
             -s "tls13 server state: MBEDTLS_SSL_CLIENT_HELLO" \
             -s "tls13 server state: MBEDTLS_SSL_SERVER_HELLO" \
             -s "tls13 server state: MBEDTLS_SSL_ENCRYPTED_EXTENSIONS" \

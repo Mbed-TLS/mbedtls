@@ -1342,7 +1342,7 @@ static int ssl_tls13_certificate_request_coordinate( mbedtls_ssl_context *ssl )
     if( authmode == MBEDTLS_SSL_VERIFY_NONE )
         return( SSL_CERTIFICATE_REQUEST_SKIP );
 
-    ssl->handshake->cert_request_send = 1;
+    ssl->handshake->certificate_request_sent = 1;
 
     return( SSL_CERTIFICATE_REQUEST_SEND_REQUEST );
 }
@@ -1497,7 +1497,8 @@ static int ssl_tls13_write_server_finished( mbedtls_ssl_context *ssl )
                 MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
         return( ret );
     }
-    if( ssl->handshake->cert_request_send )
+
+    if( ssl->handshake->certificate_request_sent )
     {
         mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE );
 
@@ -1517,9 +1518,9 @@ static int ssl_tls13_process_client_finished( mbedtls_ssl_context *ssl )
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     MBEDTLS_SSL_DEBUG_MSG( 1,
-                  ( "Switch to handshake traffic keys for inbound traffic" ) );
-    mbedtls_ssl_set_inbound_transform( ssl, ssl->handshake->transform_handshake );
-
+                  ( "Switch to handshake traffic keys for outbound traffic" ) );
+    if( ! ssl->handshake->certificate_request_sent )
+        mbedtls_ssl_set_inbound_transform( ssl, ssl->handshake->transform_handshake );
     ret = mbedtls_ssl_tls13_process_finished_message( ssl );
     if( ret != 0 )
         return( ret );
@@ -1625,11 +1626,14 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
 
         case MBEDTLS_SSL_CLIENT_CERTIFICATE:
             ret = mbedtls_ssl_tls13_process_certificate( ssl );
-            if( ret == 0 )
+            if( ret == 0 && ssl->session_negotiate->peer_cert != NULL)
             {
                 mbedtls_ssl_handshake_set_state(
                     ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY );
             }
+            else
+                mbedtls_ssl_handshake_set_state(
+                    ssl, MBEDTLS_SSL_CLIENT_FINISHED );
             break;
 
         case MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY:

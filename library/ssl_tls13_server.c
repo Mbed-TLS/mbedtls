@@ -1450,6 +1450,7 @@ static int ssl_tls13_write_server_certificate( mbedtls_ssl_context *ssl )
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     if( mbedtls_ssl_own_cert( ssl ) == NULL )
     {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "No certificate available." ) );
         MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
                                       MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE);
         return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );

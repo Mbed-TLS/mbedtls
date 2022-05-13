@@ -10,7 +10,9 @@ markupsafe < 2.1
 # See https://github.com/Mbed-TLS/mbedtls/pull/5067#discussion_r738794607 .
 # Note that Jinja 3.0 drops support for Python 3.5, so we need to support
 # Jinja 2.x as long as we're still using Python 3.5 anywhere.
-Jinja2 >= 2.10.1
+# Jinja 2.10.1 doesn't support Python 3.10+
+Jinja2 >= 2.10.1; python_version <  '3.10'
+Jinja2 >= 2.10.3; python_version >= '3.10'
 # Jinja2 >=2.10, <3.0 needs a separate package for type annotations
 types-Jinja2
 

@@ -146,6 +146,9 @@ int mbedtls_ssl_tls13_hkdf_expand_label(
 {
     unsigned char hkdf_label[ SSL_TLS1_3_KEY_SCHEDULE_MAX_HKDF_LABEL_LEN ];
     size_t hkdf_label_len;
+    psa_status_t status = PSA_SUCCESS;
+    psa_key_derivation_operation_t operation =
+        PSA_KEY_DERIVATION_OPERATION_INIT;
 
     if( label_len > MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_LABEL_LEN )
     {
@@ -176,11 +179,25 @@ int mbedtls_ssl_tls13_hkdf_expand_label(
                                  hkdf_label,
                                  &hkdf_label_len );
 
-    return( psa_ssl_status_to_mbedtls(
-                mbedtls_psa_hkdf_expand( hash_alg,
-                                         secret, secret_len,
-                                         hkdf_label, hkdf_label_len,
-                                         buf, buf_len ) ) );
+    status = psa_key_derivation_setup( &operation, PSA_ALG_HKDF_EXPAND( hash_alg ) );
+    if (status == PSA_SUCCESS)
+        status |= psa_key_derivation_input_bytes( &operation,
+                                                  PSA_KEY_DERIVATION_INPUT_SECRET,
+                                                  secret,
+                                                  secret_len );
+    if (status == PSA_SUCCESS)
+        status |= psa_key_derivation_input_bytes( &operation,
+                                                  PSA_KEY_DERIVATION_INPUT_INFO,
+                                                  hkdf_label,
+                                                  hkdf_label_len );
+    if (status == PSA_SUCCESS)
+        status |= psa_key_derivation_output_bytes( &operation,
+                                                   buf,
+                                                   buf_len );
+    if (status == PSA_SUCCESS)
+        status |= psa_key_derivation_abort( &operation );
+
+    return( psa_ssl_status_to_mbedtls ( status ) );
 }
 
 /*
@@ -297,10 +314,12 @@ int mbedtls_ssl_tls13_evolve_secret(
                    unsigned char *secret_new )
 {
     int ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+    psa_status_t status = PSA_SUCCESS;
     size_t hlen, ilen;
     unsigned char tmp_secret[ PSA_MAC_MAX_SIZE ] = { 0 };
     unsigned char tmp_input [ MBEDTLS_ECP_MAX_BYTES ] = { 0 };
-    size_t secret_len;
+    psa_key_derivation_operation_t operation =
+        PSA_KEY_DERIVATION_OPERATION_INIT;
 
     if( ! PSA_ALG_IS_HASH( hash_alg ) )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
@@ -332,15 +351,26 @@ int mbedtls_ssl_tls13_evolve_secret(
         ilen = hlen;
     }
 
-    /* HKDF-Extract takes a salt and input key material.
-     * The salt is the old secret, and the input key material
-     * is the input secret (PSK / ECDHE). */
-    ret = psa_ssl_status_to_mbedtls(
-            mbedtls_psa_hkdf_extract( hash_alg,
-                                      tmp_secret, hlen,
-                                      tmp_input, ilen,
-                                      secret_new, hlen, &secret_len ) );
+    status = psa_key_derivation_setup( &operation,
+                                       PSA_ALG_HKDF_EXTRACT( hash_alg ) );
+    if (status == PSA_SUCCESS)
+        status |= psa_key_derivation_input_bytes( &operation,
+                                                  PSA_KEY_DERIVATION_INPUT_SALT,
+                                                  tmp_secret,
+                                                  hlen );
+    if (status == PSA_SUCCESS)
+        status |= psa_key_derivation_input_bytes( &operation,
+                                                  PSA_KEY_DERIVATION_INPUT_SECRET,
+                                                  tmp_input,
+                                                  ilen );
+    if (status == PSA_SUCCESS)
+        status |= psa_key_derivation_output_bytes( &operation,
+                                                   secret_new,
+                                                   PSA_HASH_LENGTH( hash_alg ) );
+    if (status == PSA_SUCCESS)
+        status |= psa_key_derivation_abort( &operation );
 
+    ret = psa_ssl_status_to_mbedtls ( status );
  cleanup:
 
     mbedtls_platform_zeroize( tmp_secret, sizeof(tmp_secret) );

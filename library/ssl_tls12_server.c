@@ -1811,9 +1811,8 @@ have_ciphersuite:
     {
         unsigned int sig_hash = mbedtls_ssl_tls12_get_preferred_hash_for_sig_alg(
                                     ssl, mbedtls_ssl_sig_from_pk_alg( sig_alg ) );
-        mbedtls_md_type_t md_alg = mbedtls_ssl_md_alg_from_hash( sig_hash );
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello v3, signature_algorithm ext: %d",
-                                    mbedtls_ssl_hash_from_md_alg( md_alg ) ) );
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello v3, signature_algorithm ext: %u",
+                                    sig_hash ) );
     }
     else
     {

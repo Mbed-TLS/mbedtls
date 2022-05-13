@@ -3231,7 +3231,7 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
     const mbedtls_pk_context *private_key = mbedtls_ssl_own_key( ssl );
     if( private_key == NULL)
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no ECDH private key" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no server private key" ) );
         return( MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED );
     }
 

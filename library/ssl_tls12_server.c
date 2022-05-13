@@ -3186,8 +3186,7 @@ curve_matching_done:
 
         /*    For TLS 1.2, obey signature-hash-algorithm extension
          *    (RFC 5246, Sec. 7.4.1.4.1). */
-        if( sig_alg == MBEDTLS_PK_NONE ||
-            md_alg == MBEDTLS_MD_NONE )
+        if( sig_alg == MBEDTLS_PK_NONE || md_alg == MBEDTLS_MD_NONE )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             /* (... because we choose a cipher suite

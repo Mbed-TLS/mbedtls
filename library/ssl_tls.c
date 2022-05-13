@@ -7693,8 +7693,8 @@ unsigned int mbedtls_ssl_tls12_get_preferred_hash_for_sig_alg(
     {
         if( sig_alg == MBEDTLS_SSL_TLS12_SIG_ALG_FROM_SIG_AND_HASH_ALG(
                             received_sig_algs[i] ) )
-            return MBEDTLS_SSL_TLS12_HASH_ALG_FROM_SIG_AND_HASH_ALG(
-                        received_sig_algs[i] );
+            return( MBEDTLS_SSL_TLS12_HASH_ALG_FROM_SIG_AND_HASH_ALG(
+                        received_sig_algs[i] ) );
     }
 
     return( MBEDTLS_SSL_HASH_NONE );

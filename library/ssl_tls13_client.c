@@ -1613,7 +1613,7 @@ static int ssl_tls13_parse_certificate_request( mbedtls_ssl_context *ssl,
                 MBEDTLS_SSL_DEBUG_MSG( 3,
                         ( "found signature algorithms extension" ) );
                 ret = mbedtls_ssl_parse_sig_alg_ext( ssl, p,
-                              p + extension_data_len );
+                                                     p + extension_data_len );
                 if( ret != 0 )
                     return( ret );
                 if( ! sig_alg_ext_found )

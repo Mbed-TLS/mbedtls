@@ -2675,10 +2675,11 @@ static int mbedtls_ecp_point_read_binary_edwards( const mbedtls_ecp_group *grp,
     /* To recover the x-coordinates, the curve equation implies
        x^2 = (y^2 - 1) / (d y^2 - a) (mod p). The denominator is always
        non-zero mod p. Let u = y^2 - 1 and v = d y^2 - a. */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &u, &pt->Y,  &pt->Y  ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &v, &grp->B, &u      ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mod( grp, &v, &v,      &grp->A ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &u, &u, 1 ) ); MOD_SUB( &u );
+
+    MPI_ECP_MUL( &u, &pt->Y,  &pt->Y   );
+    MPI_ECP_MUL( &v, &grp->B, &u       );
+    MPI_ECP_SUB( &v, &v,      &grp->A  );
+    MPI_ECP_SUB_INT( &u, &u, 1         );
 
     /* We use different algorithm to compute the square root of (u/v)
      * depending on p (mod 8). */
@@ -2688,16 +2689,16 @@ static int mbedtls_ecp_point_read_binary_edwards( const mbedtls_ecp_group *grp,
     {
         /* This corresponds to p = 3 (mod 4) and for instance Ed448. *
          * The candidate root is x = sqrt(u/v) = u (u v)^((p-3)/4) */
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &pt->X,  &u, &v ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &t, &grp->P, 3 ) );
+        MPI_ECP_MUL( &pt->X,  &u, &v );
+        MPI_ECP_SUB_INT( &t, &grp->P, 3 );
         MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &t, 2 ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &pt->X, &pt->X, &t, &grp->P, NULL ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &pt->X, &pt->X, &u ) );
+        MPI_ECP_MUL( &pt->X, &pt->X, &u );
 
         /* If v * x^2 = u (mod p), the recovered x-coordinate is x. Otherwise,
          * no square root exists, and the decoding fails. */
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &t,   &pt->X,   &pt->X ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &t,   &t,      &v    ) );
+        MPI_ECP_MUL( &t,   &pt->X,   &pt->X );
+        MPI_ECP_MUL( &t,   &t,      &v      );
         if( mbedtls_mpi_cmp_mpi( &t, &u ) != 0 )
         {
             ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
@@ -2708,15 +2709,15 @@ static int mbedtls_ecp_point_read_binary_edwards( const mbedtls_ecp_group *grp,
     {
         /* This corresponds for instance to Ed25519. The candidate root is
          * x = sqrt(u/v) = u (u v)^((p-5)/8) */
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &pt->X,  &u, &v ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &t, &grp->P, 5 ) );
+        MPI_ECP_MUL( &pt->X,  &u, &v );
+        MPI_ECP_SUB_INT( &t, &grp->P, 5 );
         MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &t, 3 ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_exp_mod( &pt->X, &pt->X, &t, &grp->P, NULL ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &pt->X, &pt->X, &u ) );
+        MPI_ECP_MUL( &pt->X, &pt->X, &u  );
 
         /* If v * x^2 = u (mod p), x is a square root. */
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &t,   &pt->X,   &pt->X ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &t,   &t,      &v    ) );
+        MPI_ECP_MUL( &t,   &pt->X,   &pt->X );
+        MPI_ECP_MUL( &t,   &t,      &v      );
         if( mbedtls_mpi_cmp_mpi( &t, &u ) != 0 )
         {
             /* Otherwise if v x^2 = -u (mod p), x * 2^((p-1)/4) is a square
@@ -2731,7 +2732,7 @@ static int mbedtls_ecp_point_read_binary_edwards( const mbedtls_ecp_group *grp,
 
             /* x *= 2^((p-1)/4) */
             MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &t, 16, "2B8324804FC1DF0B2B4D00993DFBD7A72F431806AD2FE478C4EE1B274A0EA0B0" ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &pt->X, &pt->X, &t ) );
+            MPI_ECP_MUL( &pt->X, &pt->X, &t );
         }
     }
     else
@@ -2778,10 +2779,10 @@ static int ecp_normalize_edxyz( const mbedtls_ecp_group *grp, mbedtls_ecp_point 
 
     mbedtls_mpi_init( &Zi );
 
-    MBEDTLS_MPI_CHK( mbedtls_mpi_inv_mod( &Zi, &P->Z, &grp->P) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &P->X, &P->X, &Zi ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &P->Y, &P->Y, &Zi ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &P->Z, 1) ) ;
+    MPI_ECP_INV( &Zi, &P->Z );
+    MPI_ECP_MUL( &P->X, &P->X, &Zi );
+    MPI_ECP_MUL( &P->Y, &P->Y, &Zi );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &P->Z, 1)  );
 
 cleanup:
     mbedtls_mpi_free( &Zi );
@@ -2821,9 +2822,9 @@ static int ecp_randomize_edxyz( const mbedtls_ecp_group *grp, mbedtls_ecp_point 
     }
     while( mbedtls_mpi_cmp_int( &l, 1 ) <= 0 );
 
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &P->X, &P->X, &l ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &P->Y, &P->Y, &l ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &P->Z, &P->Z, &l ) );
+    MPI_ECP_MUL( &P->X, &P->X, &l );
+    MPI_ECP_MUL( &P->Y, &P->Y, &l );
+    MPI_ECP_MUL( &P->Z, &P->Z, &l );
 
 cleanup:
     mbedtls_mpi_free( &l );
@@ -2863,35 +2864,35 @@ static int ecp_add_edxyz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     mbedtls_mpi_init( &G ); mbedtls_mpi_init( &t1 ); mbedtls_mpi_init( &t2 );
 
     /* A = Z1*Z2 */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &A,    &P->Z,   &Q->Z   ) );
+    MPI_ECP_MUL( &A,    &P->Z,   &Q->Z    );
     /* B = A^2 */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &B,    &A,      &A      ) );
+    MPI_ECP_MUL( &B,    &A,      &A       );
     /* C = X1*X2 */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &C,    &P->X,   &Q->X   ) );
+    MPI_ECP_MUL( &C,    &P->X,   &Q->X    );
     /* D = Y1*Y2 */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &D,    &P->Y,   &Q->Y   ) );
+    MPI_ECP_MUL( &D,    &P->Y,   &Q->Y    );
     /* E = d*C*D */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &E,    &C,      &D      ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &E,    &E,      &grp->B ) );
+    MPI_ECP_MUL( &E,    &C,      &D       );
+    MPI_ECP_MUL( &E,    &E,      &grp->B  );
     /* F = B-E */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mod( grp, &F,    &B,      &E      ) );
+    MPI_ECP_SUB( &F,    &B,      &E       );
     /* G = B+E */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_add_mod( grp, &G,    &B,      &E      ) );
+    MPI_ECP_ADD( &G,    &B,      &E       );
     /* X3 = A*F*((X1+Y1)*(X2+Y2)-C-D) */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_add_mod( grp, &t1,   &P->X,   &P->Y   ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_add_mod( grp, &t2,   &Q->X,   &Q->Y   ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &R->X, &t1,     &t2     ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mod( grp, &R->X, &R->X,   &C      ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mod( grp, &R->X, &R->X,   &D      ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &R->X, &R->X,   &F      ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &R->X, &R->X,   &A      ) );
+    MPI_ECP_ADD( &t1,   &P->X,   &P->Y    );
+    MPI_ECP_ADD( &t2,   &Q->X,   &Q->Y    );
+    MPI_ECP_MUL( &R->X, &t1,     &t2      );
+    MPI_ECP_SUB( &R->X, &R->X,   &C       );
+    MPI_ECP_SUB( &R->X, &R->X,   &D       );
+    MPI_ECP_MUL( &R->X, &R->X,   &F       );
+    MPI_ECP_MUL( &R->X, &R->X,   &A       );
     /* Y3 = A*G*(D-a*C) */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &R->Y, &grp->A, &C      ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mod( grp, &R->Y, &D,      &R->Y   ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &R->Y, &R->Y,   &G      ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &R->Y, &R->Y,   &A      ) );
+    MPI_ECP_MUL( &R->Y, &grp->A, &C       );
+    MPI_ECP_SUB( &R->Y, &D,      &R->Y    );
+    MPI_ECP_MUL( &R->Y, &R->Y,   &G       );
+    MPI_ECP_MUL( &R->Y, &R->Y,   &A       );
     /* Z3 = F*G */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &R->Z, &F,      &G      ) );
+    MPI_ECP_MUL( &R->Z, &F,      &G       );
 
 cleanup:
     mbedtls_mpi_free( &A ); mbedtls_mpi_free( &B ); mbedtls_mpi_free( &C );
@@ -2925,29 +2926,29 @@ static int ecp_double_edxyz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     mbedtls_mpi_init( &J );
 
     /* B = (X1+Y1)^2 */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_add_mod( grp, &B,    &P->X,   &P->Y ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &B,    &B,      &B    ) );
+    MPI_ECP_ADD( &B,    &P->X,   &P->Y  );
+    MPI_ECP_MUL( &B,    &B,      &B     );
     /* C = X1^2 */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &C,    &P->X,   &P->X ) );
+    MPI_ECP_MUL( &C,    &P->X,   &P->X  );
     /* D = Y1^2 */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &D,    &P->Y,   &P->Y ) );
+    MPI_ECP_MUL( &D,    &P->Y,   &P->Y  );
     /* E = a*C */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &E,    &grp->A, &C    ) );
+    MPI_ECP_MUL( &E,    &grp->A, &C     );
     /* F = E+D */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_add_mod( grp, &F,    &E,      &D    ) );
+    MPI_ECP_ADD( &F,    &E,      &D     );
     /* J = F-2*(Z1^2) */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &J,    &P->Z,   &P->Z ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l_mod( grp, &J, 1             ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mod( grp, &J,    &F,      &J    ) );
+    MPI_ECP_MUL( &J,    &P->Z,   &P->Z  );
+    MPI_ECP_SHIFT_L( &J, 1              );
+    MPI_ECP_SUB( &J,    &F,      &J     );
     /* X3 = (B-C-D)*J */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mod( grp, &R->X, &B,      &C    ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mod( grp, &R->X, &R->X,   &D    ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &R->X, &R->X,   &J    ) );
+    MPI_ECP_SUB( &R->X, &B,      &C     );
+    MPI_ECP_SUB( &R->X, &R->X,   &D     );
+    MPI_ECP_MUL( &R->X, &R->X,   &J     );
     /* Y3 = F*(E-D) */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mod( grp, &R->Y, &E,      &D    ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &R->Y, &R->Y,   &F    ) );
+    MPI_ECP_SUB( &R->Y, &E,      &D     );
+    MPI_ECP_MUL( &R->Y, &R->Y,   &F     );
     /* Z3 = F*J */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &R->Z, &F,      &J    ) );
+    MPI_ECP_MUL( &R->Z, &F,      &J     );
 
 cleanup:
     mbedtls_mpi_free( &A ); mbedtls_mpi_free( &B ); mbedtls_mpi_free( &C );
@@ -3513,16 +3514,16 @@ static int ecp_check_pubkey_ed( const mbedtls_ecp_group *grp, const mbedtls_ecp_
     mbedtls_mpi_init( &X2 ); mbedtls_mpi_init( &Y2 );
 
     /* X2 = X^2, Y2 = Y^2 */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &X2,  &pt->X, &pt->X  ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &Y2,  &pt->Y, &pt->Y  ) );
+    MPI_ECP_MUL( &X2,  &pt->X, &pt->X   );
+    MPI_ECP_MUL( &Y2,  &pt->Y, &pt->Y   );
 
     /* LHS = a X^2 + Y^2 */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &LHS, &X2,    &grp->A ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_add_mod( grp, &LHS, &LHS,   &Y2     ) );
+    MPI_ECP_MUL( &LHS, &X2,    &grp->A  );
+    MPI_ECP_ADD( &LHS, &LHS,   &Y2      );
 
     /* RHS = 1 + d X^2 Y^2 */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &RHS, &X2,    &Y2     ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mod( grp, &RHS, &RHS,   &grp->B ) );
+    MPI_ECP_MUL( &RHS, &X2,    &Y2      );
+    MPI_ECP_MUL( &RHS, &RHS,   &grp->B  );
     MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( &RHS, &RHS, 1 ) ); MOD_ADD( &RHS );
 
     if( mbedtls_mpi_cmp_mpi( &LHS, &RHS ) != 0 )

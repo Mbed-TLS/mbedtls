@@ -529,7 +529,6 @@ mbedtls_ecp_curve_type mbedtls_ecp_get_type( const mbedtls_ecp_group *grp )
 
     if( grp->G.Y.p == NULL )
         return( MBEDTLS_ECP_TYPE_MONTGOMERY );
-    /* FIXME: there is probably a cleaner way of doing that. */
 #if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
 #if defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
     if( grp->id == MBEDTLS_ECP_DP_ED25519 )
@@ -822,7 +821,8 @@ int mbedtls_ecp_point_write_binary( const mbedtls_ecp_group *grp,
     if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_EDWARDS )
     {
         /* Only the compressed format is defined for Edwards curves. */
-        ECP_VALIDATE_RET( format == MBEDTLS_ECP_PF_COMPRESSED );
+        if( format != MBEDTLS_ECP_PF_COMPRESSED )
+            return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
         /* We need to add an extra bit to store the least significant bit of X. */
         plen = ( mbedtls_mpi_bitlen( &grp->P ) + 1 + 7 ) >> 3;
@@ -832,7 +832,7 @@ int mbedtls_ecp_point_write_binary( const mbedtls_ecp_group *grp,
             return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
 
         if( mbedtls_mpi_cmp_int( &P->Z, 1 ) != 0 )
-            return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+            return ( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
         MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( &P->Y, buf, plen ) );
 

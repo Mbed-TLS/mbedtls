@@ -3008,9 +3008,9 @@ static int ecp_mul_edxyz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
          *  if (b) R = 2R + P else R = 2R,
          * which is:
          *  if (b) add( R, R, RP )
-         *         add( RP, RP, RP )
+         *         double( RP )
          *  else   add( RP, RP, R )
-         *         add( R, R, R )
+         *         double( R )
          * but using safe conditional swaps to avoid leaks
          */
         MBEDTLS_MPI_CHK( mbedtls_mpi_safe_cond_swap( &R->X, &RP.X, b ) );

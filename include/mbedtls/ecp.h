@@ -33,6 +33,7 @@
 
 #ifndef MBEDTLS_ECP_H
 #define MBEDTLS_ECP_H
+#include "mbedtls/platform_util.h"
 #include "mbedtls/private_access.h"
 
 #include "mbedtls/build_info.h"
@@ -683,8 +684,15 @@ int mbedtls_ecp_copy( mbedtls_ecp_point *P, const mbedtls_ecp_point *Q );
 int mbedtls_ecp_group_copy( mbedtls_ecp_group *dst,
                             const mbedtls_ecp_group *src );
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /**
  * \brief           This function sets a point to the point at infinity.
+ *
+ * \note            This does not work for Edwards curves and will silently
+ *                  set the point to a wrong value in that case.
+ *
+ * \deprecated      This function is deprecated and has been replaced by
+ *                  \c mbedtls_ecp_set_zero_ext().
  *
  * \param pt        The point to set. This must be initialized.
  *
@@ -692,10 +700,32 @@ int mbedtls_ecp_group_copy( mbedtls_ecp_group *dst,
  * \return          #MBEDTLS_ERR_MPI_ALLOC_FAILED on memory-allocation failure.
  * \return          Another negative error code on other kinds of failure.
  */
-int mbedtls_ecp_set_zero( mbedtls_ecp_point *pt );
+int MBEDTLS_DEPRECATED mbedtls_ecp_set_zero( mbedtls_ecp_point *pt );
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
 
 /**
+ * \brief           This function sets a point to the point at infinity.
+ *
+ * \param grp       The ECP group to use.
+ *                  This must be initialized and have group parameters
+ *                  set, for example through mbedtls_ecp_group_load().
+ * \param pt        The point to set. This must be initialized.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_MPI_ALLOC_FAILED on memory-allocation failure.
+ * \return          Another negative error code on other kinds of failure.
+ */
+int mbedtls_ecp_set_zero_ext( const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt );
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+/**
  * \brief           This function checks if a point is the point at infinity.
+ *
+ * \note            This does not work for Edwards curves and will return a
+ *                  wrong result in that case.
+ *
+ * \deprecated      This function is deprecated and has been replaced by
+ *                  \c mbedtls_ecp_is_zero_ext().
  *
  * \param pt        The point to test. This must be initialized.
  *
@@ -703,7 +733,22 @@ int mbedtls_ecp_set_zero( mbedtls_ecp_point *pt );
  * \return          \c 0 if the point is non-zero.
  * \return          A negative error code on failure.
  */
-int mbedtls_ecp_is_zero( mbedtls_ecp_point *pt );
+int MBEDTLS_DEPRECATED mbedtls_ecp_is_zero( mbedtls_ecp_point *pt );
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
+
+/**
+ * \brief           This function checks if a point is the point at infinity.
+ *
+ * \param grp       The ECP group to use.
+ *                  This must be initialized and have group parameters
+ *                  set, for example through mbedtls_ecp_group_load().
+ * \param pt        The point to test. This must be initialized.
+ *
+ * \return          \c 1 if the point is zero.
+ * \return          \c 0 if the point is non-zero.
+ * \return          A negative error code on failure.
+ */
+int mbedtls_ecp_is_zero_ext( const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt );
 
 /**
  * \brief           This function compares two points.

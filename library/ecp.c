@@ -687,7 +687,9 @@ int mbedtls_ecp_group_copy( mbedtls_ecp_group *dst, const mbedtls_ecp_group *src
 }
 
 /*
- * Set point to zero
+ * Set point to zero. This deprecated function does not work for Edwards curves
+ * and will silently set the point to a wrong value in that case. Use
+ * mbedtls_ecp_set_zero_ext() instead.
  */
 int mbedtls_ecp_set_zero( mbedtls_ecp_point *pt )
 {
@@ -703,13 +705,81 @@ cleanup:
 }
 
 /*
- * Tell if a point is zero
+ * Set point to zero.
+ */
+int mbedtls_ecp_set_zero_ext( const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    ECP_VALIDATE_RET( pt != NULL );
+
+    switch( mbedtls_ecp_get_type( grp ) )
+    {
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
+        case MBEDTLS_ECP_TYPE_EDWARDS:
+            MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->X , 0 ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->Y , 1 ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->Z , 1 ) );
+        break;
+#endif
+#if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
+        case MBEDTLS_ECP_TYPE_MONTGOMERY:
+            MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->X , 1 ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->Y , 1 ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->Z , 0 ) );
+        break;
+#endif
+#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
+        case MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS:
+            MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->X , 1 ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->Y , 1 ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->Z , 0 ) );
+        break;
+#endif
+        default:
+            ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+cleanup:
+    return( ret );
+}
+
+/*
+ * Tell if a point is zero. This deprecated function does not work for Edwards
+ * curves and will return a wrong result in that case. Use
+ * mbedtls_ecp_is_zero_ext() instead.
  */
 int mbedtls_ecp_is_zero( mbedtls_ecp_point *pt )
 {
     ECP_VALIDATE_RET( pt != NULL );
 
     return( mbedtls_mpi_cmp_int( &pt->Z, 0 ) == 0 );
+}
+
+/*
+ * Tell if a point is zero.
+ */
+int mbedtls_ecp_is_zero_ext( const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt )
+{
+    ECP_VALIDATE_RET( pt != NULL );
+
+    switch( mbedtls_ecp_get_type( grp ) )
+    {
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
+        case MBEDTLS_ECP_TYPE_EDWARDS:
+            return( mbedtls_mpi_cmp_int( &pt->X, 0 ) == 0 &&
+                    mbedtls_mpi_cmp_mpi( &pt->Y, &pt->Z ) == 0);
+        break;
+#endif
+#if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
+        case MBEDTLS_ECP_TYPE_MONTGOMERY:
+            return( mbedtls_mpi_cmp_int( &pt->Z, 0 ) == 0 );
+#endif
+#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
+        case MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS:
+            return( mbedtls_mpi_cmp_int( &pt->Z, 0 ) == 0 );
+#endif
+        default:
+            return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+    }
 }
 
 /*
@@ -911,7 +981,7 @@ int mbedtls_ecp_point_read_binary( const mbedtls_ecp_group *grp,
             if( buf[0] == 0x00 )
             {
                 if( ilen == 1 )
-                    return( mbedtls_ecp_set_zero( pt ) );
+                    return( mbedtls_ecp_set_zero_ext( grp, pt ) );
                 else
                     return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
             }
@@ -1697,7 +1767,7 @@ static int ecp_add_mixed( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         }
         else
         {
-            ret = mbedtls_ecp_set_zero( R );
+            ret = mbedtls_ecp_set_zero_ext( grp, R );
             goto cleanup;
         }
     }
@@ -3047,10 +3117,8 @@ static int ecp_mul_edxyz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     /* Read from P before writing to R, in case P == R */
     MBEDTLS_MPI_CHK( mbedtls_ecp_copy( &RP, P ) );
 
-    /* Set R to zero in projective coordinates */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &R->X, 0 ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &R->Y, 1 ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &R->Z, 1 ) );
+    /* Set R to zero */
+    MBEDTLS_MPI_CHK( mbedtls_ecp_set_zero_ext( grp, R ) );
 
     /* RP.X and RP.Y might be slightly larger than P, so reduce them */
     MOD_ADD( &RP.X );
@@ -3317,7 +3385,7 @@ static int mbedtls_ecp_mul_shortcuts( mbedtls_ecp_group *grp,
 
     if( mbedtls_mpi_cmp_int( m, 0 ) == 0 )
     {
-        MBEDTLS_MPI_CHK( mbedtls_ecp_set_zero( R ) );
+        MBEDTLS_MPI_CHK( mbedtls_ecp_set_zero_ext( grp, R ) );
     }
     else if( mbedtls_mpi_cmp_int( m, 1 ) == 0 )
     {

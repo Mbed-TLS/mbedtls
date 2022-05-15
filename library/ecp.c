@@ -2636,6 +2636,14 @@ cleanup:
 
 #endif /* MBEDTLS_ECP_MONTGOMERY_ENABLED */
 #if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
+/* sqrt(-1) aka 2^((p-1)/4) */
+static const unsigned char ed25519_sqrt_m1[] = {
+    0x2B, 0x83, 0x24, 0x80, 0x4F, 0xC1, 0xDF, 0x0B,
+    0x2B, 0x4D, 0x00, 0x99, 0x3D, 0xFB, 0xD7, 0xA7,
+    0x2F, 0x43, 0x18, 0x06, 0xAD, 0x2F, 0xE4, 0x78,
+    0xC4, 0xEE, 0x1B, 0x27, 0x4A, 0x0E, 0xA0, 0xB0,
+};
+
 /*
  * Import and Edward point from binary data (RFC8032)
  */
@@ -2731,7 +2739,8 @@ static int mbedtls_ecp_point_read_binary_edwards( const mbedtls_ecp_group *grp,
             }
 
             /* x *= 2^((p-1)/4) */
-            MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &t, 16, "2B8324804FC1DF0B2B4D00993DFBD7A72F431806AD2FE478C4EE1B274A0EA0B0" ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &t,
+                                ed25519_sqrt_m1, sizeof( ed25519_sqrt_m1 ) ) );
             MPI_ECP_MUL( &pt->X, &pt->X, &t );
         }
     }

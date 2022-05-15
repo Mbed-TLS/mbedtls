@@ -411,39 +411,10 @@ static int ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
     const unsigned char *p = buf;
     const unsigned char *certificate_list_end;
 
-    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 1 );
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 4 );
     certificate_request_context_len = p[0];
-    p++;
-
-#if defined(MBEDTLS_SSL_SRV_C)
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
-    {
-        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end,
-                                      certificate_request_context_len + 3 );
-
-        /* check whether we got an empty certificate message */
-        if( memcmp( p + certificate_request_context_len , "\0\0\0", 3 ) == 0 )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1,
-                ( "client has no certificate - empty certificate message received" ) );
-
-            ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_MISSING;
-            if( ssl->conf->authmode == MBEDTLS_SSL_VERIFY_OPTIONAL )
-                return( 0 );
-            else
-            {
-                MBEDTLS_SSL_DEBUG_MSG( 1, ( "client certificate required" ) );
-                MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_CERT_REQUIRED,
-                                              MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE );
-                return( MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE );
-            }
-        }
-    }
-#endif /* MBEDTLS_SSL_SRV_C */
-
-    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 3 );
-    certificate_list_len = MBEDTLS_GET_UINT24_BE( p, 0 );
-    p += 3;
+    certificate_list_len = MBEDTLS_GET_UINT24_BE( p, 1 );
+    p += 4;
 
     /* In theory, the certificate list can be up to 2^24 Bytes, but we don't
      * support anything beyond 2^16 = 64K.
@@ -547,6 +518,7 @@ static int ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
         p += extensions_len;
     }
 
+exit:
     /* Check that all the message is consumed. */
     if( p != end )
     {
@@ -556,7 +528,6 @@ static int ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_DECODE_ERROR );
     }
 
-exit:
     MBEDTLS_SSL_DEBUG_CRT( 3, "peer certificate", ssl->session_negotiate->peer_cert );
 
     return( ret );
@@ -599,36 +570,34 @@ static int ssl_tls13_validate_certificate( mbedtls_ssl_context *ssl )
      * Check for that and handle it depending on the
      * server's authentication mode.
      */
-#if defined(MBEDTLS_SSL_SRV_C)
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
-        ssl->session_negotiate->peer_cert == NULL )
+    if( ssl->session_negotiate->peer_cert == NULL )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "client has no certificate" ) );
+#if defined(MBEDTLS_SSL_SRV_C)
+        if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "client has no certificate" ) );
 
-        /* The client was asked for a certificate but didn't send
-           one. The client should know what's going on, so we
-           don't send an alert. */
-
-        /* Note that for authmode == VERIFY_NONE we don't end up in this
-         * routine in the first place, because ssl_tls13_read_certificate_coordinate
-         * will return CERTIFICATE_SKIP. */
-        ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_MISSING;
-        if( authmode == MBEDTLS_SSL_VERIFY_OPTIONAL )
-            return( 0 );
-        else
-            return( MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE );
-    }
+            /* The client was asked for a certificate but didn't send
+             * one. The client should know what's going on, so we
+             * don't send an alert.
+             */
+            ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_MISSING;
+            if( authmode == MBEDTLS_SSL_VERIFY_OPTIONAL )
+                return( 0 );
+            else
+                return( MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE );
+        }
 #endif /* MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_CLI_C)
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
-        ssl->session_negotiate->peer_cert == NULL )
-    {
-        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_NO_CERT,
-                                      MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE );
-        return( MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE );
-    }
+        if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
+        {
+            MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_NO_CERT,
+                                          MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE );
+            return( MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE );
+        }
 #endif /* MBEDTLS_SSL_CLI_C */
+    }
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     if( ssl->handshake->sni_ca_chain != NULL )

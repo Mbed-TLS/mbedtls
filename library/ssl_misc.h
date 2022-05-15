@@ -512,7 +512,7 @@ struct mbedtls_ssl_handshake_params
 #if defined(MBEDTLS_SSL_SRV_C)
     /* Flag indicating if a CertificateRequest message has been sent
      * to the client or not. */
-    uint16_t certificate_request_sent;
+    uint8_t certificate_request_sent;
 #endif /* MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)

@@ -3000,7 +3000,7 @@ static int ecp_mul_edxyz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         MBEDTLS_MPI_CHK( ecp_randomize_edxyz( grp, &RP, f_rng, p_rng ) );
 
     /* Loop invariant: R = result so far, RP = R + P */
-    i = mbedtls_mpi_bitlen( m ); /* one past the (zero-based) most significant bit */
+    i = grp->pbits; /* one past the (zero-based) most significant bit */
     while( i-- > 0 )
     {
         b = mbedtls_mpi_get_bit( m, i );

@@ -626,6 +626,7 @@ void ecp_read_binary( int id, data_t * buf, char * x, char * y, char * z,
     if( ret == 0 )
     {
         TEST_ASSERT( mbedtls_mpi_cmp_mpi( &P.X, &X ) == 0 );
+#if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
         if( mbedtls_ecp_get_type( &grp ) == MBEDTLS_ECP_TYPE_MONTGOMERY )
         {
             TEST_ASSERT( mbedtls_mpi_cmp_int( &Y, 0 ) == 0 );
@@ -634,6 +635,7 @@ void ecp_read_binary( int id, data_t * buf, char * x, char * y, char * z,
             TEST_ASSERT( mbedtls_mpi_cmp_int( &P.Z, 1 ) == 0 );
         }
         else
+#endif
         {
             TEST_ASSERT( mbedtls_mpi_cmp_mpi( &P.Y, &Y ) == 0 );
             TEST_ASSERT( mbedtls_mpi_cmp_mpi( &P.Z, &Z ) == 0 );

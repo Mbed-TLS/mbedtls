@@ -917,7 +917,8 @@ int mbedtls_ecp_tls_write_group( const mbedtls_ecp_group *grp,
                                  unsigned char *buf, size_t blen );
 
 /**
- * \brief           This function performs a point addition: \p R = \p P + \p Q.
+ * \brief           This function performs a point addition in Edwards curves:
+                    \p R = \p P + \p Q.
  *
  *                  It is not thread-safe to use same group in multiple threads.
  *

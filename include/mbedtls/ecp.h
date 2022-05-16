@@ -143,9 +143,15 @@ typedef enum
 typedef enum
 {
     MBEDTLS_ECP_TYPE_NONE = 0,
-    MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS,    /* y^2 = x^3 + a x + b      */
-    MBEDTLS_ECP_TYPE_MONTGOMERY,           /* y^2 = x^3 + a x^2 + x    */
-    MBEDTLS_ECP_TYPE_EDWARDS,              /* a x^2 + y^2 = 1 + d x^2 y^2 */
+#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
+    MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS = 1,    /* y^2 = x^3 + a x + b      */
+#endif
+#if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
+    MBEDTLS_ECP_TYPE_MONTGOMERY = 2,           /* y^2 = x^3 + a x^2 + x    */
+#endif
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
+    MBEDTLS_ECP_TYPE_EDWARDS = 3,              /* a x^2 + y^2 = 1 + d x^2 y^2 */
+#endif
 } mbedtls_ecp_curve_type;
 
 /**

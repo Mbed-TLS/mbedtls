@@ -229,12 +229,11 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
 {
     int ret = 0;
     mbedtls_mpi h;
-    mbedtls_ecp_point sB, hA, R;
+    mbedtls_ecp_point sB, hA;
 
     mbedtls_mpi_init( &h );
     mbedtls_ecp_point_init( &sB );
     mbedtls_ecp_point_init( &hA );
-    mbedtls_ecp_point_init( &R );
 
     /* Step 1 */
     if( mbedtls_mpi_cmp_mpi( s, &grp->N ) >= 0 || mbedtls_mpi_cmp_int( s, 0 ) < 0 )
@@ -246,9 +245,6 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
         mbedtls_sha512_context sha_ctx;
         unsigned char sha_buf[64], tmp_buf[32];
         size_t olen = 0;
-
-        MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( r, tmp_buf, sizeof(tmp_buf) ) );
-        MBEDTLS_MPI_CHK( mbedtls_ecp_point_read_binary( grp, &R, tmp_buf, sizeof(tmp_buf) ) );
 
         mbedtls_sha512_init( &sha_ctx );
         mbedtls_sha512_starts( &sha_ctx , 0 );
@@ -263,7 +259,7 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
             MBEDTLS_MPI_CHK( mbedtls_eddsa_put_dom2_ctx( 1, ed_ctx, ed_ctx_len, &sha_ctx ) );
         }
 
-        /* tmp_buf contains the R point */
+        MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( r, tmp_buf, sizeof(tmp_buf) ) );
         mbedtls_sha512_update( &sha_ctx, tmp_buf, sizeof( tmp_buf ) );
 
         MBEDTLS_MPI_CHK( mbedtls_ecp_point_write_binary( grp, Q, MBEDTLS_ECP_PF_COMPRESSED, &olen, tmp_buf, sizeof( tmp_buf ) ) );
@@ -282,16 +278,14 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
         MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &h, &h, &grp->N ) );
 
         /* Step 3 */
+        /* We perform fast single-signature verification by compressing sB-hA and comparing with r without decompressing it (expensive) */
         MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &sB, s, &grp->G, f_rng, p_rng ) );
         MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &hA, &h, Q, f_rng, p_rng ) );
-        MBEDTLS_MPI_CHK( mbedtls_ecp_add( grp, &R, &R, &hA ) );
+        MBEDTLS_MPI_CHK( mbedtls_ecp_sub( grp, &sB, &sB, &hA ) );
+        MBEDTLS_MPI_CHK( mbedtls_ecp_point_encode( grp, &h, &sB ) ); /* We reuse h */
 
-        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &sB.X, &sB.X, &R.X ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &sB.X, &sB.X, &grp->P ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &sB.Y, &sB.Y, &R.Y ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &sB.Y, &sB.Y, &grp->P ) );
-
-        if( mbedtls_mpi_cmp_int( &sB.X, 0) != 0 || mbedtls_mpi_cmp_int( &sB.Y, 0 ) != 0 )
+        /* Since h is a compressed point, we are free to compare with r without decompressing it */
+        if( mbedtls_mpi_cmp_mpi( &h, r ) != 0 )
         {
             ret = MBEDTLS_ERR_ECP_VERIFY_FAILED;
             goto cleanup;
@@ -303,7 +297,6 @@ cleanup:
     mbedtls_mpi_free( &h );
     mbedtls_ecp_point_free( &sB );
     mbedtls_ecp_point_free( &hA );
-    mbedtls_ecp_point_free( &R );
     return( ret );
 }
 

@@ -157,13 +157,7 @@ int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
         MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &R, &rq, &grp->G, f_rng, p_rng ) );
 
         /* We encode the R point to r */
-        MBEDTLS_MPI_CHK( mbedtls_mpi_copy( r, &R.Y ) );
-
-        /* From 5.1.2, we shall copy LSB of x to the MSB of y */
-        if( mbedtls_mpi_get_bit( &R.X, 0 ) )
-        {
-            MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( r, 255, 1 ) );
-        }
+        MBEDTLS_MPI_CHK( mbedtls_ecp_point_encode( grp, r, &R ) );
 
         /* s computation */
         mbedtls_sha512_init( &sha_ctx );

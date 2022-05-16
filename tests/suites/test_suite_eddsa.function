@@ -46,8 +46,8 @@ void eddsa_sign( int gid, int eddsa_type, data_t *key, data_t *message, data_t *
         data_size = sha_buf_size;
     }
 
-    TEST_ASSERT( mbedtls_eddsa_sign( &ctx.grp, &r, &s, &ctx.d, data, data_size, &mbedtls_test_rnd_pseudo_rand,
-                                       &rnd_info, eddsa_type, ed_ctx->x, ed_ctx->len ) == 0 );
+    TEST_ASSERT( mbedtls_eddsa_sign( &ctx.grp, &r, &s, &ctx.d, data, data_size, eddsa_type, ed_ctx->x, ed_ctx->len, &mbedtls_test_rnd_pseudo_rand,
+                                       &rnd_info ) == 0 );
     mbedtls_mpi_write_binary_le( &r, sign_buf, sign_buf_size );
     mbedtls_mpi_write_binary_le( &s, sign_buf + key->len, sign_buf_size - key->len );
 
@@ -136,8 +136,8 @@ void eddsa_verify( int gid, int eddsa_type, data_t *key, data_t *message, data_t
         data_size = sha_buf_size;
     }
 
-    TEST_ASSERT( mbedtls_eddsa_verify( &ctx.grp, data, data_size, &ctx.Q, &r, &s,
-                                       &mbedtls_test_rnd_pseudo_rand, &rnd_info, eddsa_type, ed_ctx->x, ed_ctx->len ) == 0 );
+    TEST_ASSERT( mbedtls_eddsa_verify( &ctx.grp, data, data_size, &ctx.Q, &r, &s, eddsa_type, ed_ctx->x, ed_ctx->len,
+                                       &mbedtls_test_rnd_pseudo_rand, &rnd_info ) == 0 );
 
 exit:
     mbedtls_mpi_free( &r );

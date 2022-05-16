@@ -2651,6 +2651,9 @@ int mbedtls_ecp_point_encode( const mbedtls_ecp_group *grp, mbedtls_mpi *q, cons
 {
     int ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
 
+    if( mbedtls_ecp_get_type( grp ) != MBEDTLS_ECP_TYPE_EDWARDS )
+        return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
+
     if( mbedtls_mpi_cmp_int( &pt->Z, 1 ) != 0 )
         return ( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
@@ -2673,6 +2676,10 @@ int mbedtls_ecp_point_decode( const mbedtls_ecp_group *grp, mbedtls_ecp_point *p
     mbedtls_mpi_uint r;
     size_t plen;
     int x_0;
+
+    if( mbedtls_ecp_get_type( grp ) != MBEDTLS_ECP_TYPE_EDWARDS )
+        return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
+
     mbedtls_mpi_init( &u ); mbedtls_mpi_init( &v ); mbedtls_mpi_init( &t );
 
     plen = ( mbedtls_mpi_bitlen( &grp->P ) + 1 + 7 ) >> 3;

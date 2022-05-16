@@ -2954,66 +2954,6 @@ cleanup:
 #endif /* defined(MBEDTLS_ECP_NO_FALLBACK) && defined(MBEDTLS_ECP_DOUBLE_ADD_EDXYZ_ALT) */
 }
 
-static int ecp_sub_edxyz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
-                          const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q )
-{
-#if defined(MBEDTLS_ECP_DOUBLE_ADD_EDXYZ_ALT)
-    if( mbedtls_internal_ecp_grp_capable( grp ) )
-        return( mbedtls_internal_ecp_double_sub_edxyz( grp, R, S, P, Q, d ) );
-#endif /* MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT */
-
-#if defined(MBEDTLS_ECP_NO_FALLBACK) && defined(MBEDTLS_ECP_DOUBLE_ADD_EDXYZ_ALT)
-    return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
-#else
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    mbedtls_mpi A, B, C, D, E, F, G, t1, t2, t3, t4;
-
-    mbedtls_mpi_init( &A ); mbedtls_mpi_init( &B ); mbedtls_mpi_init( &C );
-    mbedtls_mpi_init( &D ); mbedtls_mpi_init( &E ); mbedtls_mpi_init( &F );
-    mbedtls_mpi_init( &G ); mbedtls_mpi_init( &t1 ); mbedtls_mpi_init( &t2 );
-    mbedtls_mpi_init( &t3 ); mbedtls_mpi_init( &t4 );
-
-    /* A = Z1*Z2 */
-    MPI_ECP_MUL( &A,    &P->Z,   &Q->Z    );
-    /* B = A^2 */
-    MPI_ECP_MUL( &B,    &A,      &A       );
-    /* C = X1*X2 */ /* C is negative! */
-    MPI_ECP_MUL( &C,    &P->X,   &Q->X    );
-    /* D = Y1*Y2 */
-    MPI_ECP_MUL( &D,    &P->Y,   &Q->Y    );
-    /* E = d*C*D */ /* E is negative! */
-    MPI_ECP_MUL( &E,    &C,      &D       );
-    MPI_ECP_MUL( &E,    &E,      &grp->B  );
-    /* F = B-E */
-    MPI_ECP_ADD( &F,    &B,      &E       );
-    /* G = B+E */
-    MPI_ECP_SUB( &G,    &B,      &E       );
-    /* X3 = A*F*((X1+Y1)*(X2+Y2)-C-D) */ /* X2 is negative! */
-    MPI_ECP_ADD( &t1,   &P->X,   &P->Y    );
-    MPI_ECP_SUB( &t2,   &Q->Y,   &Q->X    );
-    MPI_ECP_MUL( &R->X, &t1,     &t2      );
-    MPI_ECP_ADD( &R->X, &R->X,   &C       );
-    MPI_ECP_SUB( &R->X, &R->X,   &D       );
-    MPI_ECP_MUL( &R->X, &R->X,   &F       );
-    MPI_ECP_MUL( &R->X, &R->X,   &A       );
-    /* Y3 = A*G*(D-a*C) */
-    MPI_ECP_MUL( &R->Y, &grp->A, &C       );
-    MPI_ECP_ADD( &R->Y, &D,      &R->Y    );
-    MPI_ECP_MUL( &R->Y, &R->Y,   &G       );
-    MPI_ECP_MUL( &R->Y, &R->Y,   &A       );
-    /* Z3 = F*G */
-    MPI_ECP_MUL( &R->Z, &F,      &G       );
-
-
-cleanup:
-    mbedtls_mpi_free( &A ); mbedtls_mpi_free( &B ); mbedtls_mpi_free( &C );
-    mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &F );
-    mbedtls_mpi_free( &G ); mbedtls_mpi_free( &t1 ); mbedtls_mpi_free( &t2 );
-
-    return( ret );
-#endif /* defined(MBEDTLS_ECP_NO_FALLBACK) && defined(MBEDTLS_ECP_DOUBLE_ADD_EDXYZ_ALT) */
-}
-
 /*
  * Double for: R = 2 * P for both Edwards and Twisted Edwards curves in projective
  * coordinates.
@@ -3179,36 +3119,6 @@ cleanup:
     return( ret );
 }
 
-/*
- * Point subtraction R = P - Q
- */
-int mbedtls_ecp_sub( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
-                     const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q )
-{
-    int ret = MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
-
-    ECP_VALIDATE_RET( grp != NULL );
-    ECP_VALIDATE_RET( R   != NULL );
-    ECP_VALIDATE_RET( P   != NULL );
-    ECP_VALIDATE_RET( Q   != NULL );
-
-#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
-    if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_EDWARDS )
-    {
-        MBEDTLS_MPI_CHK( ecp_sub_edxyz( grp, R, P, Q ) );
-        MBEDTLS_MPI_CHK( ecp_normalize_edxyz( grp, R ) );
-    }
-#else
-    (void) grp;
-    (void) R;
-    (void) P;
-    (void) Q;
-    goto cleanup;
-#endif
-
-cleanup:
-    return( ret );
-}
 /*
  * Restartable multiplication R = m * P
  *

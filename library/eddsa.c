@@ -274,8 +274,9 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
         /* Step 3 */
         /* We perform fast single-signature verification by compressing sB-hA and comparing with r without decompressing it (expensive) */
         MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &sB, s, &grp->G, f_rng, p_rng ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &h, &grp->N, &h ) );
         MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &hA, &h, Q, f_rng, p_rng ) );
-        MBEDTLS_MPI_CHK( mbedtls_ecp_sub( grp, &sB, &sB, &hA ) );
+        MBEDTLS_MPI_CHK( mbedtls_ecp_add( grp, &sB, &sB, &hA ) );
         MBEDTLS_MPI_CHK( mbedtls_ecp_point_encode( grp, &h, &sB ) ); /* We reuse h */
 
         /* Since h is a compressed point, we are free to compare with r without decompressing it */

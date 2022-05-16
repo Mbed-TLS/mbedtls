@@ -108,6 +108,7 @@ int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
 
     mbedtls_mpi_init( &q ); mbedtls_mpi_init( &prefix ); mbedtls_mpi_init( &rq ); mbedtls_mpi_init( &h);
 
+    /* Step 1 */
     MBEDTLS_MPI_CHK( mbedtls_ecp_expand_edwards( grp, d, &q, &prefix ) );
 
     MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &Q, &q, &grp->G, f_rng, p_rng ) );
@@ -123,6 +124,7 @@ int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
         mbedtls_sha512_init( &sha_ctx );
         mbedtls_sha512_starts( &sha_ctx , 0 );
 
+        /* Step 2 */
         if( eddsa_id == MBEDTLS_EDDSA_CTX )
         {
             MBEDTLS_MPI_CHK( mbedtls_eddsa_put_dom2_ctx( 0, ed_ctx, ed_ctx_len, &sha_ctx ) );
@@ -147,9 +149,13 @@ int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
 
         MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &rq, &rq, &grp->N ) );
 
+        /* Step 3 */
         MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &R, &rq, &grp->G, f_rng, p_rng ) );
 
+        /* We encode the R point to r */
         MBEDTLS_MPI_CHK( mbedtls_mpi_copy( r, &R.Y ) );
+
+        /* From 5.1.2, we shall copy LSB of x to the MSB of y */
         if( mbedtls_mpi_get_bit( &R.X, 0 ) )
         {
             MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( r, 255, 1 ) );
@@ -159,6 +165,7 @@ int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
         mbedtls_sha512_init( &sha_ctx );
         mbedtls_sha512_starts( &sha_ctx , 0 );
 
+        /* Step 4 */
         if( eddsa_id == MBEDTLS_EDDSA_CTX )
         {
             MBEDTLS_MPI_CHK( mbedtls_eddsa_put_dom2_ctx( 0, ed_ctx, ed_ctx_len, &sha_ctx ) );
@@ -180,6 +187,7 @@ int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
         mbedtls_sha512_finish( &sha_ctx, sha_buf );
         mbedtls_sha512_free( &sha_ctx );
 
+        /* Step 5 */
         MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( &h, sha_buf, sizeof( sha_buf ) ) );
 
         MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &h, &h, &grp->N ) );
@@ -221,6 +229,7 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
     mbedtls_ecp_point_init( &hA );
     mbedtls_ecp_point_init( &R );
 
+    /* Step 1 */
     if( mbedtls_mpi_cmp_mpi( s, &grp->N ) >= 0 || mbedtls_mpi_cmp_int( s, 0 ) < 0 )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
@@ -237,6 +246,7 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
         mbedtls_sha512_init( &sha_ctx );
         mbedtls_sha512_starts( &sha_ctx , 0 );
 
+        /* Step 2 */
         if( eddsa_id == MBEDTLS_EDDSA_CTX )
         {
             MBEDTLS_MPI_CHK( mbedtls_eddsa_put_dom2_ctx( 0, ed_ctx, ed_ctx_len, &sha_ctx ) );
@@ -262,6 +272,7 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
 
         MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &h, &h, &grp->N ) );
 
+        /* Step 3 */
         MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &sB, s, &grp->G, f_rng, p_rng ) );
         MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &hA, &h, Q, f_rng, p_rng ) );
         MBEDTLS_MPI_CHK( mbedtls_ecp_add( grp, &R, &R, &hA ) );

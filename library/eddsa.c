@@ -277,8 +277,6 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
         MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &hA, &h, Q, f_rng, p_rng ) );
         MBEDTLS_MPI_CHK( mbedtls_ecp_add( grp, &R, &R, &hA ) );
 
-        MBEDTLS_MPI_CHK( mbedtls_ecp_point_write_binary( grp, &hA, MBEDTLS_ECP_PF_COMPRESSED, &olen, tmp_buf, sizeof( tmp_buf ) ) );
-
         MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &sB.X, &sB.X, &R.X ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &sB.X, &sB.X, &grp->P ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &sB.Y, &sB.Y, &R.Y ) );

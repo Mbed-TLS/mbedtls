@@ -84,9 +84,9 @@ static int mbedtls_eddsa_put_dom2_ctx( int flag, const unsigned char *ctx,
 int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
                 mbedtls_mpi *r, mbedtls_mpi *s,
                 const mbedtls_mpi *d, const unsigned char *buf, size_t blen,
-                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
                 mbedtls_eddsa_id eddsa_id,
-                const unsigned char *ed_ctx, size_t ed_ctx_len )
+                const unsigned char *ed_ctx, size_t ed_ctx_len,
+                int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret;
     mbedtls_ecp_point Q, R;
@@ -208,9 +208,9 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
                           const unsigned char *buf, size_t blen,
                           const mbedtls_ecp_point *Q, const mbedtls_mpi *r,
                           const mbedtls_mpi *s,
-                          int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
                           mbedtls_eddsa_id eddsa_id,
-                          const unsigned char *ed_ctx, size_t ed_ctx_len)
+                          const unsigned char *ed_ctx, size_t ed_ctx_len,
+                          int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret = 0;
     mbedtls_mpi h;
@@ -325,9 +325,10 @@ static int eddsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
 int mbedtls_eddsa_write_signature( mbedtls_ecp_keypair *ctx,
                            const unsigned char *hash, size_t hlen,
                            unsigned char *sig, size_t sig_size, size_t *slen,
+                           mbedtls_eddsa_id eddsa_id,
+                           const unsigned char *ed_ctx, size_t ed_ctx_len,
                            int (*f_rng)(void *, unsigned char *, size_t),
-                           void *p_rng, mbedtls_eddsa_id eddsa_id,
-                           const unsigned char *ed_ctx, size_t ed_ctx_len )
+                           void *p_rng )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_mpi r, s;
@@ -343,9 +344,9 @@ int mbedtls_eddsa_write_signature( mbedtls_ecp_keypair *ctx,
     mbedtls_mpi_init( &s );
 
     MBEDTLS_MPI_CHK( mbedtls_eddsa_sign( &ctx->grp, &r, &s, &ctx->d,
-                                                 hash, hlen, f_rng,
-                                                 p_rng, eddsa_id, ed_ctx,
-                                                 ed_ctx_len ) );
+                                                 hash, hlen, eddsa_id, ed_ctx,
+                                                 ed_ctx_len, f_rng,
+                                                 p_rng ) );
 
     MBEDTLS_MPI_CHK( eddsa_signature_to_asn1( &r, &s, sig, sig_size, slen ) );
 
@@ -363,9 +364,10 @@ cleanup:
 int mbedtls_eddsa_read_signature( mbedtls_ecp_keypair *ctx,
                           const unsigned char *hash, size_t hlen,
                           const unsigned char *sig, size_t slen,
+                          mbedtls_eddsa_id eddsa_id,
+                          const unsigned char *ed_ctx, size_t ed_ctx_len,
                           int (*f_rng)(void *, unsigned char *, size_t),
-                          void *p_rng, mbedtls_eddsa_id eddsa_id,
-                          const unsigned char *ed_ctx, size_t ed_ctx_len )
+                          void *p_rng )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *p = (unsigned char *) sig;
@@ -405,8 +407,8 @@ int mbedtls_eddsa_read_signature( mbedtls_ecp_keypair *ctx,
     }
 
     if( ( ret = mbedtls_eddsa_verify( &ctx->grp, hash, hlen,
-                                      &ctx->Q, &r, &s, f_rng, p_rng,
-                                      eddsa_id, ed_ctx, ed_ctx_len ) ) != 0 )
+                                      &ctx->Q, &r, &s,
+                                      eddsa_id, ed_ctx, ed_ctx_len, f_rng, p_rng ) ) != 0 )
         goto cleanup;
 
     /* At this point we know that the buffer starts with a valid signature.

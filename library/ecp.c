@@ -3818,7 +3818,7 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
 #endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
 #if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
     if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_EDWARDS )
-        return( mbedtls_mpi_fill_random( d, grp->nbits / 8, f_rng, p_rng ) );
+        return( mbedtls_mpi_fill_random( d, grp->pbits / 8 + 1, f_rng, p_rng ) );
 #endif /* MBEDTLS_ECP_EDWARDS_ENABLED */
 
     return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );

@@ -139,6 +139,8 @@ int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
 
         mbedtls_sha512_update( &sha_ctx, tmp_buf, sizeof( tmp_buf ) );
 
+        mbedtls_platform_zeroize( tmp_buf, sizeof( tmp_buf ) );
+
         /* In EDDSA_PREHASH, buf should contain the SHA512 hash. It contains the whole message otherwise */
         mbedtls_sha512_update( &sha_ctx, buf, blen );
 
@@ -146,6 +148,8 @@ int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
         mbedtls_sha512_free( &sha_ctx );
 
         MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( &rq, sha_buf, sizeof( sha_buf ) ) );
+
+        mbedtls_platform_zeroize( sha_buf, sizeof( sha_buf ) );
 
         MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &rq, &rq, &grp->N ) );
 
@@ -181,6 +185,8 @@ int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
         MBEDTLS_MPI_CHK( mbedtls_ecp_point_write_binary( grp, &Q, MBEDTLS_ECP_PF_COMPRESSED, &olen, tmp_buf, sizeof( tmp_buf ) ) );
         mbedtls_sha512_update( &sha_ctx, tmp_buf, sizeof( tmp_buf ) );
 
+        mbedtls_platform_zeroize( tmp_buf, sizeof( tmp_buf ) );
+
         /* In EDDSA_PREHASH, buf should contain the SHA512 hash. It contains the whole message otherwise */
         mbedtls_sha512_update( &sha_ctx, buf, blen );
 
@@ -189,6 +195,7 @@ int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
 
         /* Step 5 */
         MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( &h, sha_buf, sizeof( sha_buf ) ) );
+        mbedtls_platform_zeroize( sha_buf, sizeof( sha_buf ) );
 
         MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &h, &h, &grp->N ) );
 
@@ -261,6 +268,7 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
 
         MBEDTLS_MPI_CHK( mbedtls_ecp_point_write_binary( grp, Q, MBEDTLS_ECP_PF_COMPRESSED, &olen, tmp_buf, sizeof( tmp_buf ) ) );
         mbedtls_sha512_update( &sha_ctx, tmp_buf, sizeof( tmp_buf ) );
+        mbedtls_platform_zeroize( tmp_buf, sizeof( tmp_buf ) );
 
         /* In EDDSA_PREHASH, buf should contain the SHA512 hash. It contains the whole message otherwise */
         mbedtls_sha512_update( &sha_ctx, buf, blen );
@@ -269,6 +277,7 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
         mbedtls_sha512_free( &sha_ctx );
 
         MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( &h, sha_buf, sizeof( sha_buf ) ) );
+        mbedtls_platform_zeroize( sha_buf, sizeof( sha_buf ) );
 
         MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &h, &h, &grp->N ) );
 

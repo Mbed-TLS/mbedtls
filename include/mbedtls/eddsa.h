@@ -286,26 +286,6 @@ int mbedtls_eddsa_read_signature( mbedtls_ecp_keypair *ctx,
                           int (*f_rng)(void *, unsigned char *, size_t),
                           void *p_rng );
 
-/**
- * \brief          This function generates an EdDSA keypair on the given curve.
- *
- * \see            ecp.h
- *
- * \param ctx      The ECP keypair context to store the keypair in.
- *                 This must be initialized.
- * \param gid      The elliptic curve to use. One of the various
- *                 \c MBEDTLS_ECP_DP_XXX macros depending on configuration.
- *                 Only accepts \c MBEDTLS_ECP_DP_ED25519.
- * \param f_rng    The RNG function to use. This must not be \c NULL.
- * \param p_rng    The RNG context to be passed to \p f_rng. This may be
- *                 \c NULL if \p f_rng doesn't need a context argument.
- *
- * \return         \c 0 on success.
- * \return         An \c MBEDTLS_ERR_ECP_XXX code on failure.
- */
-int mbedtls_eddsa_genkey( mbedtls_ecp_keypair *ctx, mbedtls_ecp_group_id gid,
-                  int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
-
 #ifdef __cplusplus
 }
 #endif

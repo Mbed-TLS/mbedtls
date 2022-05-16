@@ -430,24 +430,5 @@ cleanup:
 #endif /* MBEDTLS_ASN1_PARSE_C */
 }
 
-/*
- * Generate key pair
- */
-int mbedtls_eddsa_genkey( mbedtls_ecp_keypair *ctx, mbedtls_ecp_group_id gid,
-                  int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
-{
-    int ret = 0;
-
-    if( ctx == NULL || f_rng == NULL )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-
-    ret = mbedtls_ecp_group_load( &ctx->grp, gid );
-    if( ret != 0 )
-        return( ret );
-
-   return( mbedtls_ecp_gen_keypair( &ctx->grp, &ctx->d,
-                                    &ctx->Q, f_rng, p_rng ) );
-}
-
 #endif /* MBEDTLS_EDDSA_C */
 

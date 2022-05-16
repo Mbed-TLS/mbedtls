@@ -1217,6 +1217,7 @@ cleanup:
     return( ret );
 }
 
+#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED) || defined(MBEDTLS_ECP_EDWARDS_ENABLED)
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
 static inline int mbedtls_mpi_mul_int_mod( const mbedtls_ecp_group *grp,
                                            mbedtls_mpi *X,
@@ -1230,6 +1231,7 @@ static inline int mbedtls_mpi_mul_int_mod( const mbedtls_ecp_group *grp,
 cleanup:
     return( ret );
 }
+#endif
 
 static inline int mbedtls_mpi_sub_int_mod( const mbedtls_ecp_group *grp,
                                            mbedtls_mpi *X,
@@ -1243,7 +1245,7 @@ static inline int mbedtls_mpi_sub_int_mod( const mbedtls_ecp_group *grp,
 cleanup:
     return( ret );
 }
-#endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
+#endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED || MBEDTLS_ECP_EDWARDS_ENABLED */
 
 #define MPI_ECP_SUB_INT( X, A, c )             \
     MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int_mod( grp, X, A, c ) )
@@ -3745,7 +3747,7 @@ int mbedtls_ecp_check_privkey( const mbedtls_ecp_group *grp,
     return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 }
 
-#if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED) || defined(MBEDTLS_ECP_EDWARDS_ENABLED)
+#if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
 MBEDTLS_STATIC_TESTABLE
 int mbedtls_ecp_gen_privkey_mx( size_t high_bit,
                                 mbedtls_mpi *d,

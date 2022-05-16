@@ -3715,6 +3715,8 @@ static int mbedtls_ecp_expand_ed25519( const mbedtls_mpi *d,
 
     mbedtls_sha512( key_buf, sizeof( key_buf ), sha_buf, 0 );
 
+    mbedtls_platform_zeroize( key_buf, sizeof( key_buf ) );
+
     sha_buf[0] &= ~0x7;
     sha_buf[31] &= ~0x80;
     sha_buf[31] |= 0x40;
@@ -3726,6 +3728,8 @@ static int mbedtls_ecp_expand_ed25519( const mbedtls_mpi *d,
     }
 
 cleanup:
+
+    mbedtls_platform_zeroize( sha_buf, sizeof( sha_buf ) );
     return( ret );
 }
 #endif /* MBEDTLS_ECP_DP_ED25519_ENABLED */

@@ -729,6 +729,38 @@ int mbedtls_ecp_point_cmp( const mbedtls_ecp_point *P,
 int mbedtls_ecp_point_read_string( mbedtls_ecp_point *P, int radix,
                            const char *x, const char *y );
 
+
+/**
+ * \brief           This function encodes an Edwards point to an \c mpi.
+ *
+ * \param grp       The group to which the point should belong.
+ *                  This must be initialized and have group parameters
+ *                  set, for example through mbedtls_ecp_group_load().
+ * \param q         The encoded point.
+ * \param pt        The Edwards point.
+ *
+ * \return          \c 0 on success.
+ * \return          An \c MBEDTLS_ERR_MPI_XXX error code on failure.
+ */
+int mbedtls_ecp_point_encode( const mbedtls_ecp_group *grp,
+                                mbedtls_mpi *q,
+                                const mbedtls_ecp_point *pt);
+
+/**
+ * \brief           This function decodes an Edwards point from an \c mpi.
+ *
+ * \param grp       The group to which the point should belong.
+ *                  This must be initialized and have group parameters
+ *                  set, for example through mbedtls_ecp_group_load().
+ * \param pt        The decoded Edwards point.
+ * \param q         The encoded point.
+ *
+ * \return          \c 0 on success.
+ * \return          An \c MBEDTLS_ERR_MPI_XXX error code on failure.
+ */
+int mbedtls_ecp_point_decode( const mbedtls_ecp_group *grp,
+                                mbedtls_ecp_point *pt,
+                                const mbedtls_mpi *q );
 /**
  * \brief           This function exports a point into unsigned binary data.
  *
@@ -937,6 +969,29 @@ int mbedtls_ecp_tls_write_group( const mbedtls_ecp_group *grp,
  * \return          Another negative error code on other kinds of failure.
  */
 int mbedtls_ecp_add( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+                     const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q );
+
+/**
+ * \brief           This function performs a point subtraction in Edwards curves:
+                    \p R = \p P - \p Q.
+ *
+ *                  It is not thread-safe to use same group in multiple threads.
+ *
+ * \param grp       The ECP group to use.
+ *                  This must be initialized and have group parameters
+ *                  set, for example through mbedtls_ecp_group_load().
+ * \param R         The point in which to store the result of the calculation.
+ *                  This must be initialized.
+ * \param P         The first point to add. This must be initialized.
+ * \param Q         The second point to add. This must be initialized.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if the operation for
+ *                  the group is not implemented.
+ * \return          #MBEDTLS_ERR_MPI_ALLOC_FAILED on memory-allocation failure.
+ * \return          Another negative error code on other kinds of failure.
+ */
+int mbedtls_ecp_sub( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                      const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q );
 
 /**

@@ -756,6 +756,10 @@ int mbedtls_ecp_point_write_binary( const mbedtls_ecp_group *grp,
 {
     int ret = MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
     size_t plen;
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
+    mbedtls_mpi q;
+    mbedtls_mpi_init( &q );
+#endif
     ECP_VALIDATE_RET( grp  != NULL );
     ECP_VALIDATE_RET( P    != NULL );
     ECP_VALIDATE_RET( olen != NULL );
@@ -825,25 +829,22 @@ int mbedtls_ecp_point_write_binary( const mbedtls_ecp_group *grp,
             return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
         /* We need to add an extra bit to store the least significant bit of X. */
-        plen = ( mbedtls_mpi_bitlen( &grp->P ) + 1 + 7 ) >> 3;
+        plen = ( grp->pbits + 1 + 7 ) >> 3;
 
         *olen = plen;
         if( buflen < *olen )
             return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
 
-        if( mbedtls_mpi_cmp_int( &P->Z, 1 ) != 0 )
-            return ( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+        MBEDTLS_MPI_CHK( mbedtls_ecp_point_encode( grp, &q, P ) );
 
-        MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( &P->Y, buf, plen ) );
-
-        /* Store the least significant bit of X into the most significant
-         * bit of the final octet. */
-        if( mbedtls_mpi_get_bit( &P->X, 0 ) )
-            buf[plen - 1] |= 0x80;
+        MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( &q, buf, plen ) );
     }
 #endif
 
 cleanup:
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
+    mbedtls_mpi_free( &q );
+#endif
     return( ret );
 }
 
@@ -2644,30 +2645,36 @@ static const unsigned char ed25519_sqrt_m1[] = {
     0xC4, 0xEE, 0x1B, 0x27, 0x4A, 0x0E, 0xA0, 0xB0,
 };
 
-/*
- * Import and Edward point from binary data (RFC8032)
- */
-static int mbedtls_ecp_point_read_binary_edwards( const mbedtls_ecp_group *grp,
-                                             mbedtls_ecp_point *pt,
-                                             const unsigned char *buf, size_t ilen )
+int mbedtls_ecp_point_encode( const mbedtls_ecp_group *grp, mbedtls_mpi *q, const mbedtls_ecp_point *pt )
+{
+    int ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+
+    if( mbedtls_mpi_cmp_int( &pt->Z, 1 ) != 0 )
+        return ( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_copy( q, &pt->Y ) );
+
+    /* From 5.1.2, we shall copy LSB of x to the MSB of y */
+    if( mbedtls_mpi_get_bit( &pt->X, 0 ) )
+    {
+        MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( q, grp->pbits, 1 ) );
+    }
+
+cleanup:
+    return( ret );
+}
+
+int mbedtls_ecp_point_decode( const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt, const mbedtls_mpi *q )
 {
     int ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     mbedtls_mpi u, v, t;
     mbedtls_mpi_uint r;
     size_t plen;
     int x_0;
-
-    /* We need to add an extra bit to store the least significant bit of X. */
-    plen = ( mbedtls_mpi_bitlen( &grp->P ) + 1 + 7 ) >> 3;
-
-    if( plen != ilen )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-
     mbedtls_mpi_init( &u ); mbedtls_mpi_init( &v ); mbedtls_mpi_init( &t );
 
-    /* Interpret the string as an integer in little-endian representation. */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( &pt->Y, buf, plen ) );
-
+    plen = ( mbedtls_mpi_bitlen( &grp->P ) + 1 + 7 ) >> 3;
+    MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &pt->Y, q ) );
     /* High bit of last digit is the least significant bit of the
      * x-coordinate. Save it and clear it. */
     x_0 = mbedtls_mpi_get_bit ( &pt->Y, (plen * 8) - 1 );
@@ -2765,7 +2772,33 @@ static int mbedtls_ecp_point_read_binary_edwards( const mbedtls_ecp_group *grp,
 
 cleanup:
     mbedtls_mpi_free( &u ); mbedtls_mpi_free( &v ); mbedtls_mpi_free( &t );
+    return( ret );
+}
+/*
+ * Import and Edward point from binary data (RFC8032)
+ */
+static int mbedtls_ecp_point_read_binary_edwards( const mbedtls_ecp_group *grp,
+                                             mbedtls_ecp_point *pt,
+                                             const unsigned char *buf, size_t ilen )
+{
+    int ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    size_t plen;
+    mbedtls_mpi q;
 
+    mbedtls_mpi_init( &q );
+
+    /* We need to add an extra bit to store the least significant bit of X. */
+    plen = ( mbedtls_mpi_bitlen( &grp->P ) + 1 + 7 ) >> 3;
+
+    if( plen != ilen )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+    /* Interpret the string as an integer in little-endian representation. */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( &q, buf, plen ) );
+    ret = mbedtls_ecp_point_decode( grp, pt, &q );
+
+cleanup:
+    mbedtls_mpi_free( &q );
     return( ret );
 }
 
@@ -2902,6 +2935,66 @@ static int ecp_add_edxyz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     MPI_ECP_MUL( &R->Y, &R->Y,   &A       );
     /* Z3 = F*G */
     MPI_ECP_MUL( &R->Z, &F,      &G       );
+
+cleanup:
+    mbedtls_mpi_free( &A ); mbedtls_mpi_free( &B ); mbedtls_mpi_free( &C );
+    mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &F );
+    mbedtls_mpi_free( &G ); mbedtls_mpi_free( &t1 ); mbedtls_mpi_free( &t2 );
+
+    return( ret );
+#endif /* defined(MBEDTLS_ECP_NO_FALLBACK) && defined(MBEDTLS_ECP_DOUBLE_ADD_EDXYZ_ALT) */
+}
+
+static int ecp_sub_edxyz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+                          const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q )
+{
+#if defined(MBEDTLS_ECP_DOUBLE_ADD_EDXYZ_ALT)
+    if( mbedtls_internal_ecp_grp_capable( grp ) )
+        return( mbedtls_internal_ecp_double_sub_edxyz( grp, R, S, P, Q, d ) );
+#endif /* MBEDTLS_ECP_DOUBLE_ADD_MXZ_ALT */
+
+#if defined(MBEDTLS_ECP_NO_FALLBACK) && defined(MBEDTLS_ECP_DOUBLE_ADD_EDXYZ_ALT)
+    return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
+#else
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_mpi A, B, C, D, E, F, G, t1, t2, t3, t4;
+
+    mbedtls_mpi_init( &A ); mbedtls_mpi_init( &B ); mbedtls_mpi_init( &C );
+    mbedtls_mpi_init( &D ); mbedtls_mpi_init( &E ); mbedtls_mpi_init( &F );
+    mbedtls_mpi_init( &G ); mbedtls_mpi_init( &t1 ); mbedtls_mpi_init( &t2 );
+    mbedtls_mpi_init( &t3 ); mbedtls_mpi_init( &t4 );
+
+    /* A = Z1*Z2 */
+    MPI_ECP_MUL( &A,    &P->Z,   &Q->Z    );
+    /* B = A^2 */
+    MPI_ECP_MUL( &B,    &A,      &A       );
+    /* C = X1*X2 */ /* C is negative! */
+    MPI_ECP_MUL( &C,    &P->X,   &Q->X    );
+    /* D = Y1*Y2 */
+    MPI_ECP_MUL( &D,    &P->Y,   &Q->Y    );
+    /* E = d*C*D */ /* E is negative! */
+    MPI_ECP_MUL( &E,    &C,      &D       );
+    MPI_ECP_MUL( &E,    &E,      &grp->B  );
+    /* F = B-E */
+    MPI_ECP_ADD( &F,    &B,      &E       );
+    /* G = B+E */
+    MPI_ECP_SUB( &G,    &B,      &E       );
+    /* X3 = A*F*((X1+Y1)*(X2+Y2)-C-D) */ /* X2 is negative! */
+    MPI_ECP_ADD( &t1,   &P->X,   &P->Y    );
+    MPI_ECP_SUB( &t2,   &Q->Y,   &Q->X    );
+    MPI_ECP_MUL( &R->X, &t1,     &t2      );
+    MPI_ECP_ADD( &R->X, &R->X,   &C       );
+    MPI_ECP_SUB( &R->X, &R->X,   &D       );
+    MPI_ECP_MUL( &R->X, &R->X,   &F       );
+    MPI_ECP_MUL( &R->X, &R->X,   &A       );
+    /* Y3 = A*G*(D-a*C) */
+    MPI_ECP_MUL( &R->Y, &grp->A, &C       );
+    MPI_ECP_ADD( &R->Y, &D,      &R->Y    );
+    MPI_ECP_MUL( &R->Y, &R->Y,   &G       );
+    MPI_ECP_MUL( &R->Y, &R->Y,   &A       );
+    /* Z3 = F*G */
+    MPI_ECP_MUL( &R->Z, &F,      &G       );
+
 
 cleanup:
     mbedtls_mpi_free( &A ); mbedtls_mpi_free( &B ); mbedtls_mpi_free( &C );
@@ -3063,6 +3156,37 @@ int mbedtls_ecp_add( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_EDWARDS )
     {
         MBEDTLS_MPI_CHK( ecp_add_edxyz( grp, R, P, Q ) );
+        MBEDTLS_MPI_CHK( ecp_normalize_edxyz( grp, R ) );
+    }
+#else
+    (void) grp;
+    (void) R;
+    (void) P;
+    (void) Q;
+    goto cleanup;
+#endif
+
+cleanup:
+    return( ret );
+}
+
+/*
+ * Point subtraction R = P - Q
+ */
+int mbedtls_ecp_sub( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+                     const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q )
+{
+    int ret = MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
+
+    ECP_VALIDATE_RET( grp != NULL );
+    ECP_VALIDATE_RET( R   != NULL );
+    ECP_VALIDATE_RET( P   != NULL );
+    ECP_VALIDATE_RET( Q   != NULL );
+
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
+    if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_EDWARDS )
+    {
+        MBEDTLS_MPI_CHK( ecp_sub_edxyz( grp, R, P, Q ) );
         MBEDTLS_MPI_CHK( ecp_normalize_edxyz( grp, R ) );
     }
 #else

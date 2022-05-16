@@ -430,7 +430,7 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
     const unsigned char *p = input;
     unsigned char *out_p = output;
     size_t offset;
-    unsigned char ectr[16];
+    unsigned char ectr[16] = {0};
 
     if( output_size < input_length )
         return( MBEDTLS_ERR_GCM_BUFFER_TOO_SMALL );

@@ -1817,7 +1817,7 @@ static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
     unsigned char i;
     size_t j = 0;
     const unsigned char T_size = 1U << ( w - 1 );
-    mbedtls_ecp_point *cur, *TT[COMB_MAX_PRE - 1];
+    mbedtls_ecp_point *cur, *TT[COMB_MAX_PRE - 1] = {NULL};
 
     mbedtls_mpi tmp[4];
 

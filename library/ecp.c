@@ -3575,6 +3575,7 @@ int mbedtls_ecp_muladd_restartable(
     {
 #if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
         case MBEDTLS_ECP_TYPE_EDWARDS:
+            ( void ) rs_ctx;
             return( mbedtls_ecp_muladd_edwards( grp, R, m, P, n, Q ) );
 #endif
 #if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)

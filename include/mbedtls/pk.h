@@ -413,7 +413,7 @@ int mbedtls_pk_can_do( const mbedtls_pk_context *ctx, mbedtls_pk_type_t type );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 /**
- * \brief           Tell if context can do the operation given by PSA algorighm
+ * \brief           Tell if context can do the operation given by PSA algorithm
  *
  * \param ctx       The context to query. It must have been initialized.
  * \param alg       PSA algorithm to check against, the following are allowed:

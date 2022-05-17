@@ -203,7 +203,7 @@ int mbedtls_sha3_starts( mbedtls_sha3_context *ctx, mbedtls_sha3_id id )
             break;
     }
 
-    if( p == NULL )
+    if( p == NULL || p->id == MBEDTLS_SHA3_NONE )
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
 
     ctx->id = id;

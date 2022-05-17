@@ -687,7 +687,9 @@ int mbedtls_ecp_group_copy( mbedtls_ecp_group *dst, const mbedtls_ecp_group *src
 }
 
 /*
- * Set point to zero
+ * Set point to zero. This deprecated function does not work for Edwards curves
+ * and will silently set the point to a wrong value in that case. Use
+ * mbedtls_ecp_set_zero_ext() instead.
  */
 int mbedtls_ecp_set_zero( mbedtls_ecp_point *pt )
 {
@@ -703,13 +705,81 @@ cleanup:
 }
 
 /*
- * Tell if a point is zero
+ * Set point to zero.
+ */
+int mbedtls_ecp_set_zero_ext( const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    ECP_VALIDATE_RET( pt != NULL );
+
+    switch( mbedtls_ecp_get_type( grp ) )
+    {
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
+        case MBEDTLS_ECP_TYPE_EDWARDS:
+            MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->X , 0 ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->Y , 1 ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->Z , 1 ) );
+        break;
+#endif
+#if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
+        case MBEDTLS_ECP_TYPE_MONTGOMERY:
+            MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->X , 1 ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->Y , 1 ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->Z , 0 ) );
+        break;
+#endif
+#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
+        case MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS:
+            MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->X , 1 ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->Y , 1 ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->Z , 0 ) );
+        break;
+#endif
+        default:
+            ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+cleanup:
+    return( ret );
+}
+
+/*
+ * Tell if a point is zero. This deprecated function does not work for Edwards
+ * curves and will return a wrong result in that case. Use
+ * mbedtls_ecp_is_zero_ext() instead.
  */
 int mbedtls_ecp_is_zero( mbedtls_ecp_point *pt )
 {
     ECP_VALIDATE_RET( pt != NULL );
 
     return( mbedtls_mpi_cmp_int( &pt->Z, 0 ) == 0 );
+}
+
+/*
+ * Tell if a point is zero.
+ */
+int mbedtls_ecp_is_zero_ext( const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt )
+{
+    ECP_VALIDATE_RET( pt != NULL );
+
+    switch( mbedtls_ecp_get_type( grp ) )
+    {
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
+        case MBEDTLS_ECP_TYPE_EDWARDS:
+            return( mbedtls_mpi_cmp_int( &pt->X, 0 ) == 0 &&
+                    mbedtls_mpi_cmp_mpi( &pt->Y, &pt->Z ) == 0);
+        break;
+#endif
+#if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
+        case MBEDTLS_ECP_TYPE_MONTGOMERY:
+            return( mbedtls_mpi_cmp_int( &pt->Z, 0 ) == 0 );
+#endif
+#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
+        case MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS:
+            return( mbedtls_mpi_cmp_int( &pt->Z, 0 ) == 0 );
+#endif
+        default:
+            return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+    }
 }
 
 /*
@@ -911,7 +981,7 @@ int mbedtls_ecp_point_read_binary( const mbedtls_ecp_group *grp,
             if( buf[0] == 0x00 )
             {
                 if( ilen == 1 )
-                    return( mbedtls_ecp_set_zero( pt ) );
+                    return( mbedtls_ecp_set_zero_ext( grp, pt ) );
                 else
                     return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
             }
@@ -1697,7 +1767,7 @@ static int ecp_add_mixed( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         }
         else
         {
-            ret = mbedtls_ecp_set_zero( R );
+            ret = mbedtls_ecp_set_zero_ext( grp, R );
             goto cleanup;
         }
     }
@@ -3047,10 +3117,8 @@ static int ecp_mul_edxyz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     /* Read from P before writing to R, in case P == R */
     MBEDTLS_MPI_CHK( mbedtls_ecp_copy( &RP, P ) );
 
-    /* Set R to zero in projective coordinates */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &R->X, 0 ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &R->Y, 1 ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &R->Z, 1 ) );
+    /* Set R to zero */
+    MBEDTLS_MPI_CHK( mbedtls_ecp_set_zero_ext( grp, R ) );
 
     /* RP.X and RP.Y might be slightly larger than P, so reduce them */
     MOD_ADD( &RP.X );
@@ -3106,37 +3174,6 @@ cleanup:
     return( ret );
 }
 #endif /* MBEDTLS_ECP_EDWARDS_ENABLED */
-
-/*
- * Point addition R = P + Q
- */
-int mbedtls_ecp_add( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
-                     const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q )
-{
-    int ret = MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
-
-    ECP_VALIDATE_RET( grp != NULL );
-    ECP_VALIDATE_RET( R   != NULL );
-    ECP_VALIDATE_RET( P   != NULL );
-    ECP_VALIDATE_RET( Q   != NULL );
-
-#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
-    if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_EDWARDS )
-    {
-        MBEDTLS_MPI_CHK( ecp_add_edxyz( grp, R, P, Q ) );
-        MBEDTLS_MPI_CHK( ecp_normalize_edxyz( grp, R ) );
-    }
-#else
-    (void) grp;
-    (void) R;
-    (void) P;
-    (void) Q;
-    goto cleanup;
-#endif
-
-cleanup:
-    return( ret );
-}
 
 /*
  * Restartable multiplication R = m * P
@@ -3317,7 +3354,7 @@ static int mbedtls_ecp_mul_shortcuts( mbedtls_ecp_group *grp,
 
     if( mbedtls_mpi_cmp_int( m, 0 ) == 0 )
     {
-        MBEDTLS_MPI_CHK( mbedtls_ecp_set_zero( R ) );
+        MBEDTLS_MPI_CHK( mbedtls_ecp_set_zero_ext( grp, R ) );
     }
     else if( mbedtls_mpi_cmp_int( m, 1 ) == 0 )
     {
@@ -3342,9 +3379,9 @@ cleanup:
 
 /*
  * Restartable linear combination
- * NOT constant-time
+ * NOT constant-time - ONLY for short Weierstrass!
  */
-int mbedtls_ecp_muladd_restartable(
+static int mbedtls_ecp_muladd_restartable_sw(
              mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
              const mbedtls_mpi *m, const mbedtls_ecp_point *P,
              const mbedtls_mpi *n, const mbedtls_ecp_point *Q,
@@ -3443,11 +3480,116 @@ cleanup:
 
     return( ret );
 }
+#endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
 
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
+/*
+ * Restartable linear combination
+ * NOT constant-time - ONLY for Edwards!
+ */
+static int mbedtls_ecp_muladd_edwards(
+             mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+             const mbedtls_mpi *m, const mbedtls_ecp_point *P,
+             const mbedtls_mpi *n, const mbedtls_ecp_point *Q )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t i;
+    unsigned char bm, bn;
+    mbedtls_ecp_point RP, RQ, RPQ;
+    ECP_VALIDATE_RET( grp != NULL );
+    ECP_VALIDATE_RET( R   != NULL );
+    ECP_VALIDATE_RET( m   != NULL );
+    ECP_VALIDATE_RET( P   != NULL );
+    ECP_VALIDATE_RET( n   != NULL );
+    ECP_VALIDATE_RET( Q   != NULL );
+
+    mbedtls_ecp_point_init( &RP );
+    mbedtls_ecp_point_init( &RQ );
+    mbedtls_ecp_point_init( &RPQ );
+
+    /* Read from P and Q before writing to R, in case P == R or Q == R */
+    MBEDTLS_MPI_CHK( mbedtls_ecp_copy( &RP, P ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_copy( &RQ, Q ) );
+
+    /* Set R to zero */
+    MBEDTLS_MPI_CHK( mbedtls_ecp_set_zero_ext( grp, R ) );
+
+    /* RP.X, RP.Y, RQ.X, RQ.Y might be slightly larger than P, so reduce them */
+    MOD_ADD( &RP.X );
+    MOD_ADD( &RP.Y );
+    MOD_ADD( &RQ.X );
+    MOD_ADD( &RQ.Y );
+
+    /* Compute RPQ = RP + RQ */
+    MBEDTLS_MPI_CHK( ecp_add_edxyz( grp, &RPQ, &RP, &RQ ) );
+
+    /*
+     * Compute mP + nQ using Shamir's trick
+     * Loop invariant: R = result so far
+     */
+    i = grp->pbits; /* one past the (zero-based) most significant bit */
+    while( i-- > 0 )
+    {
+        MBEDTLS_MPI_CHK( ecp_double_edxyz( grp, R, R ) );
+
+        bm = mbedtls_mpi_get_bit( m, i );
+        bn = mbedtls_mpi_get_bit( n, i );
+        if (bm && bn)
+            MBEDTLS_MPI_CHK( ecp_add_edxyz( grp, R, R, &RPQ ) );
+        else if (bm)
+            MBEDTLS_MPI_CHK( ecp_add_edxyz( grp, R, R, &RP ) );
+        else if (bn)
+            MBEDTLS_MPI_CHK( ecp_add_edxyz( grp, R, R, &RQ ) );
+    }
+
+    MBEDTLS_MPI_CHK( ecp_normalize_edxyz( grp, R ) );
+
+cleanup:
+    mbedtls_ecp_point_free( &RP );
+    mbedtls_ecp_point_free( &RQ );
+    mbedtls_ecp_point_free( &RPQ );
+
+    return( ret );
+}
+#endif /* MBEDTLS_ECP_EDWARDS_ENABLED */
+
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED) || defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
+/*
+ * Restartable linear combination
+ * NOT constant-time - ONLY for short Weierstrass and Edwards!
+ */
+int mbedtls_ecp_muladd_restartable(
+             mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+             const mbedtls_mpi *m, const mbedtls_ecp_point *P,
+             const mbedtls_mpi *n, const mbedtls_ecp_point *Q,
+             mbedtls_ecp_restart_ctx *rs_ctx )
+{
+    ECP_VALIDATE_RET( grp != NULL );
+    ECP_VALIDATE_RET( R   != NULL );
+    ECP_VALIDATE_RET( m   != NULL );
+    ECP_VALIDATE_RET( P   != NULL );
+    ECP_VALIDATE_RET( n   != NULL );
+    ECP_VALIDATE_RET( Q   != NULL );
+
+    switch( mbedtls_ecp_get_type(grp) )
+    {
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
+        case MBEDTLS_ECP_TYPE_EDWARDS:
+            return( mbedtls_ecp_muladd_edwards( grp, R, m, P, n, Q ) );
+#endif
+#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
+        case MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS:
+            return( mbedtls_ecp_muladd_restartable_sw( grp, R, m, P, n, Q, rs_ctx ) );
+#endif
+        default:
+            return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
+    }
+}
 /*
  * Linear combination
- * NOT constant-time
+ * NOT constant-time - ONLY for short Weierstrass and Edwards!
  */
+
 int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
              const mbedtls_mpi *m, const mbedtls_ecp_point *P,
              const mbedtls_mpi *n, const mbedtls_ecp_point *Q )
@@ -3460,7 +3602,7 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     ECP_VALIDATE_RET( Q   != NULL );
     return( mbedtls_ecp_muladd_restartable( grp, R, m, P, n, Q, NULL ) );
 }
-#endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
+#endif /* MBEDTLS_ECP_EDWARDS_ENABLED || MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
 
 #if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
 #if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)

@@ -714,19 +714,19 @@ void ecp_tls_write_read_point( int id )
     TEST_ASSERT( vbuf == buf + olen );
 
     memset( buf, 0x00, sizeof( buf ) ); vbuf = buf;
-    TEST_ASSERT( mbedtls_ecp_set_zero( &pt ) == 0 );
+    TEST_ASSERT( mbedtls_ecp_set_zero_ext( &grp, &pt ) == 0 );
     TEST_ASSERT( mbedtls_ecp_tls_write_point( &grp, &pt,
                     MBEDTLS_ECP_PF_COMPRESSED, &olen, buf, 256 ) == 0 );
     TEST_ASSERT( mbedtls_ecp_tls_read_point( &grp, &pt, &vbuf, olen ) == 0 );
-    TEST_ASSERT( mbedtls_ecp_is_zero( &pt ) );
+    TEST_ASSERT( mbedtls_ecp_is_zero_ext( &grp, &pt ) );
     TEST_ASSERT( vbuf == buf + olen );
 
     memset( buf, 0x00, sizeof( buf ) ); vbuf = buf;
-    TEST_ASSERT( mbedtls_ecp_set_zero( &pt ) == 0 );
+    TEST_ASSERT( mbedtls_ecp_set_zero_ext( &grp, &pt ) == 0 );
     TEST_ASSERT( mbedtls_ecp_tls_write_point( &grp, &pt,
                     MBEDTLS_ECP_PF_UNCOMPRESSED, &olen, buf, 256 ) == 0 );
     TEST_ASSERT( mbedtls_ecp_tls_read_point( &grp, &pt, &vbuf, olen ) == 0 );
-    TEST_ASSERT( mbedtls_ecp_is_zero( &pt ) );
+    TEST_ASSERT( mbedtls_ecp_is_zero_ext( &grp, &pt ) );
     TEST_ASSERT( vbuf == buf + olen );
 
 exit:

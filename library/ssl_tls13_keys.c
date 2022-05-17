@@ -1210,10 +1210,8 @@ static int mbedtls_ssl_tls13_get_cipher_key_info(
 
     *key_len = PSA_BITS_TO_BYTES( key_bits );
 
-    if( PSA_ALG_IS_AEAD( alg ) )
-        *iv_len = 12;
-    else
-        *iv_len = PSA_CIPHER_IV_LENGTH( key_type, alg );
+    /* TLS 1.3 only have AEAD ciphers, IV length is unconditionally 12 bytes */
+    *iv_len = 12;
 
     return 0;
 }

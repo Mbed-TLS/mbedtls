@@ -131,10 +131,10 @@ int mbedtls_sha3_starts( mbedtls_sha3_context *ctx, mbedtls_sha3_id id );
  * \param ctx      The context to use. This must be initialized.
  * \param id       The id of the SHA-3 family. It can be \c MBEDTLS_SHA3_CSHAKE128 or
  *                 \c MBEDTLS_SHA3_CSHAKE256.
- * \param name     The function-name string. It must be zero-terminated.
- * \param name_len The length of \c name in Bytes (does not contain \c NULL char).
- * \param custom   The customization string. It must be zero-terminated.
- * \param custom_len The length of \c custom in Bytes (does not contain \c NULL char).
+ * \param name     The function-name string.
+ * \param name_len The length of \c name in bytes (not counting any terminating \c NUL character).
+ * \param custom   The customization string.
+ * \param custom_len The length of \c custom in bytes (not counting any terminating \c NUL character).
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
@@ -144,8 +144,8 @@ int mbedtls_sha3_starts( mbedtls_sha3_context *ctx, mbedtls_sha3_id id );
  */
 int mbedtls_sha3_starts_cshake( mbedtls_sha3_context *ctx,
                             mbedtls_sha3_id id,
-                            const uint8_t *name, size_t name_len,
-                            const uint8_t *custom, size_t custom_len );
+                            const char *name, size_t name_len,
+                            const char *custom, size_t custom_len );
 
 /**
  * \brief          This function feeds an input buffer into an ongoing
@@ -228,10 +228,10 @@ int mbedtls_sha3( mbedtls_sha3_id id, const uint8_t *input,
  * \param input    The buffer holding the data. This must be a readable
  *                 buffer of length \p ilen Bytes.
  * \param ilen     The length of the input data in Bytes.
- * \param name     The function-name string. It must be zero-terminated.
- * \param name_len The length of \c name in Bytes (does not contain \c NULL char).
- * \param custom   The customization string. It must be zero-terminated.
- * \param custom_len The length of \c custom in Bytes (does not contain \c NULL char).
+ * \param name     The function-name string.
+ * \param name_len The length of \c name in bytes (not counting any terminating \c NUL character).
+ * \param custom   The customization string.
+ * \param custom_len The length of \c custom in bytes (not counting any terminating \c NUL character).
  * \param output   The SHA-3 checksum result.
  *                 This must be a writable buffer of length \c olen bytes.
  * \param olen     Defines the length of output buffer (in bytes). For CSHAKE128 and
@@ -244,8 +244,8 @@ int mbedtls_sha3( mbedtls_sha3_id id, const uint8_t *input,
  *                 it is equivalent to mbedtls_sha3().
  */
 int mbedtls_sha3_cshake( mbedtls_sha3_id id, const uint8_t *input,
-                    size_t ilen, const uint8_t *name, size_t name_len,
-                    const uint8_t *custom, size_t custom_len,
+                    size_t ilen, const char *name, size_t name_len,
+                    const char *custom, size_t custom_len,
                     uint8_t *output, size_t olen );
 
 #ifdef __cplusplus

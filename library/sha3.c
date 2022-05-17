@@ -244,8 +244,13 @@ int mbedtls_sha3_finish( mbedtls_sha3_context *ctx,
     if( ctx == NULL || output == NULL )
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
 
-    if( ctx->olen > 0 && ctx->olen != olen )
-        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
+    /* Catch SHA-3 families, with fixed output length */
+    if( ctx->olen > 0 )
+    {
+        if ( ctx->olen > olen )
+            return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
+        olen = ctx->olen;
+    }
 
     ABSORB( ctx, ctx->index, ctx->xor_byte );
     ABSORB( ctx, ctx->max_block_size - 1, 0x80 );

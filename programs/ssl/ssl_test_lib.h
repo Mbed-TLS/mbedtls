@@ -241,7 +241,7 @@ int rng_get( void *p_rng, unsigned char *output, size_t output_len );
 int key_opaque_alg_parse( const char *arg, const char **alg1, const char **alg2 );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-/** Parse given opaque key algoritms to obtain psa algs and usage
+/** Parse given opaque key algorithms to obtain psa algs and usage
  *  that will be passed to mbedtls_pk_wrap_as_opaque().
  *
  *

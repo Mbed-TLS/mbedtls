@@ -292,7 +292,7 @@ int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
 
             mbedtls_platform_zeroize( tmp_buf, sizeof( tmp_buf ) );
 
-            /* In EDDSA_PREHASH, buf should contain the SHA512 hash. It contains the whole message otherwise */
+            /* In EDDSA_PREHASH, buf should contain the SHAKE256 hash. It contains the whole message otherwise */
             mbedtls_sha3_update( &sha_ctx, buf, blen );
 
             mbedtls_sha3_finish( &sha_ctx, sha_buf, 114 );
@@ -415,7 +415,7 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
             mbedtls_sha3_update( &sha_ctx, tmp_buf, sizeof( tmp_buf ) );
             mbedtls_platform_zeroize( tmp_buf, sizeof( tmp_buf ) );
 
-            /* In EDDSA_PREHASH, buf should contain the SHA512 hash. It contains the whole message otherwise */
+            /* In EDDSA_PREHASH, buf should contain the SHAKE256 hash. It contains the whole message otherwise */
             mbedtls_sha3_update( &sha_ctx, buf, blen );
 
             mbedtls_sha3_finish( &sha_ctx, sha_buf, 114 );

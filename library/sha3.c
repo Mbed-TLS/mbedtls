@@ -241,11 +241,8 @@ int mbedtls_sha3_update( mbedtls_sha3_context *ctx,
 int mbedtls_sha3_finish( mbedtls_sha3_context *ctx,
                               uint8_t *output, size_t olen )
 {
-    if( ctx == NULL )
+    if( ctx == NULL || output == NULL )
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
-
-    if( olen == 0 )
-        return( 0 );
 
     if( ctx->olen > 0 && ctx->olen != olen )
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
@@ -275,14 +272,9 @@ int mbedtls_sha3( mbedtls_sha3_id id, const uint8_t *input,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_sha3_context ctx;
 
-    if( ilen != 0 && input == NULL )
-        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
-
-    if( output == NULL )
-        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
-
     mbedtls_sha3_init( &ctx );
 
+    /* Sanity checks are performed in every mbedtls_sha3_xxx() */
     if( ( ret = mbedtls_sha3_starts( &ctx, id ) ) != 0 )
         goto exit;
 

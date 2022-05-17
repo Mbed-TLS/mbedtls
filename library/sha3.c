@@ -44,8 +44,6 @@
 #endif /* MBEDTLS_PLATFORM_C */
 #endif /* MBEDTLS_SELF_TEST */
 
-#if !defined(MBEDTLS_SHA3_ALT)
-
 /*
  * List of supported SHA-3 families
  */
@@ -236,7 +234,7 @@ int mbedtls_sha3_starts( mbedtls_sha3_context *ctx, mbedtls_sha3_id id )
             break;
     }
 
-    if( p == NULL )
+    if( p == NULL || p->id == MBEDTLS_SHA3_NONE )
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
 
     ctx->id = id;
@@ -260,6 +258,8 @@ int mbedtls_sha3_starts_cshake( mbedtls_sha3_context *ctx, mbedtls_sha3_id id,
     size_t encbuf_len = 0;
     uint8_t encbuf[sizeof( size_t ) + 1];
 
+    /* If name and custom are NULL, the context equals to SHAKE version */
+    /* If name or custom are NOT NULL and id is not EQUAL to CSHAKE, it fallsback to SHA-3 */
     if( ( ( name == NULL || name_len == 0 ) &&
         ( custom == NULL || custom_len == 0 ) ) ||
         ( id != MBEDTLS_SHA3_CSHAKE128 && id != MBEDTLS_SHA3_CSHAKE256 ) )
@@ -272,6 +272,12 @@ int mbedtls_sha3_starts_cshake( mbedtls_sha3_context *ctx, mbedtls_sha3_id id,
         return( mbedtls_sha3_starts( ctx, id ) );
     }
 
+    if( name == NULL )
+        name_len = 0;
+    if( custom == NULL )
+        custom_len = 0;
+
+    /* At this point, name or custom are not NULL, we start the context with id CSHAKE */
     if( ( ret = mbedtls_sha3_starts( ctx, id ) ) != 0 )
         return( ret );
 
@@ -280,11 +286,13 @@ int mbedtls_sha3_starts_cshake( mbedtls_sha3_context *ctx, mbedtls_sha3_id id,
 
     encbuf_len = left_encode( encbuf, name_len * 8 );
     mbedtls_sha3_update( ctx, encbuf, encbuf_len );
-    mbedtls_sha3_update( ctx, name, name_len );
+    if( name != NULL && name_len > 0 )
+        mbedtls_sha3_update( ctx, name, name_len );
 
     encbuf_len = left_encode( encbuf, custom_len * 8 );
     mbedtls_sha3_update( ctx, encbuf, encbuf_len );
-    mbedtls_sha3_update( ctx, custom, custom_len );
+    if( custom != NULL && custom_len > 0 )
+        mbedtls_sha3_update( ctx, custom, custom_len );
 
     keccak_pad( ctx );
 
@@ -317,14 +325,16 @@ int mbedtls_sha3_update( mbedtls_sha3_context *ctx,
 int mbedtls_sha3_finish( mbedtls_sha3_context *ctx,
                               uint8_t *output, size_t olen )
 {
-    if( ctx == NULL )
+    if( ctx == NULL || output == NULL )
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
 
-    if( olen == 0 )
-        return( 0 );
-
-    if( ctx->olen > 0 && ctx->olen != olen )
-        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
+    /* Catch SHA-3 families, with fixed output length */
+    if( ctx->olen > 0 )
+    {
+        if( ctx->olen > olen )
+            return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
+        olen = ctx->olen;
+    }
 
     ABSORB( ctx, ctx->index, ctx->xor_byte );
     ABSORB( ctx, ctx->max_block_size - 1, 0x80 );
@@ -342,8 +352,6 @@ int mbedtls_sha3_finish( mbedtls_sha3_context *ctx,
     return( 0 );
 }
 
-#endif /* !MBEDTLS_SHA3_ALT */
-
 int mbedtls_sha3_cshake( mbedtls_sha3_id id,
                                 const uint8_t *input, size_t ilen,
                                 const uint8_t *name, size_t name_len,
@@ -353,16 +361,11 @@ int mbedtls_sha3_cshake( mbedtls_sha3_id id,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_sha3_context ctx;
 
-    if( ilen != 0 && input == NULL )
-        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
-
-    if( output == NULL )
-        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
-
     mbedtls_sha3_init( &ctx );
 
     if( ( ret = mbedtls_sha3_starts_cshake( &ctx, id, name, name_len,
                                 custom, custom_len ) ) != 0 )
+
         goto exit;
 
     if( ( ret = mbedtls_sha3_update( &ctx, input, ilen ) ) != 0 )

@@ -121,11 +121,11 @@ int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
             mbedtls_sha512_context sha_ctx;
             unsigned char sha_buf[64], tmp_buf[32];
             size_t olen = 0;
-    
+
             /* r computation */
             mbedtls_sha512_init( &sha_ctx );
             mbedtls_sha512_starts( &sha_ctx , 0 );
-    
+
             /* Step 2 */
             if( eddsa_id == MBEDTLS_EDDSA_CTX )
             {
@@ -135,36 +135,36 @@ int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
             {
                 MBEDTLS_MPI_CHK( mbedtls_eddsa_put_dom2_ctx( 1, ed_ctx, ed_ctx_len, &sha_ctx ) );
             }
-    
+
             /* Update SHA with prefix */
             MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( &prefix, tmp_buf, sizeof(tmp_buf) ) );
-    
+
             mbedtls_sha512_update( &sha_ctx, tmp_buf, sizeof( tmp_buf ) );
-    
+
             mbedtls_platform_zeroize( tmp_buf, sizeof( tmp_buf ) );
-    
+
             /* In EDDSA_PREHASH, buf should contain the SHA512 hash. It contains the whole message otherwise */
             mbedtls_sha512_update( &sha_ctx, buf, blen );
-    
+
             mbedtls_sha512_finish( &sha_ctx, sha_buf );
             mbedtls_sha512_free( &sha_ctx );
-    
+
             MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( &rq, sha_buf, sizeof( sha_buf ) ) );
-    
+
             mbedtls_platform_zeroize( sha_buf, sizeof( sha_buf ) );
-    
+
             MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &rq, &rq, &grp->N ) );
-    
+
             /* Step 3 */
             MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &R, &rq, &grp->G, f_rng, p_rng ) );
-    
+
             /* We encode the R point to r */
             MBEDTLS_MPI_CHK( mbedtls_ecp_point_encode( grp, r, &R ) );
-    
+
             /* s computation */
             mbedtls_sha512_init( &sha_ctx );
             mbedtls_sha512_starts( &sha_ctx , 0 );
-    
+
             /* Step 4 */
             if( eddsa_id == MBEDTLS_EDDSA_CTX )
             {
@@ -174,31 +174,31 @@ int mbedtls_eddsa_sign( mbedtls_ecp_group *grp,
             {
                 MBEDTLS_MPI_CHK( mbedtls_eddsa_put_dom2_ctx( 1, ed_ctx, ed_ctx_len, &sha_ctx ) );
             }
-    
+
             MBEDTLS_MPI_CHK( mbedtls_ecp_point_write_binary( grp, &R, MBEDTLS_ECP_PF_COMPRESSED, &olen, tmp_buf, sizeof( tmp_buf ) ) );
             mbedtls_sha512_update( &sha_ctx, tmp_buf, sizeof( tmp_buf ) );
-    
+
             MBEDTLS_MPI_CHK( mbedtls_ecp_point_write_binary( grp, &Q, MBEDTLS_ECP_PF_COMPRESSED, &olen, tmp_buf, sizeof( tmp_buf ) ) );
             mbedtls_sha512_update( &sha_ctx, tmp_buf, sizeof( tmp_buf ) );
-    
+
             mbedtls_platform_zeroize( tmp_buf, sizeof( tmp_buf ) );
-    
+
             /* In EDDSA_PREHASH, buf should contain the SHA512 hash. It contains the whole message otherwise */
             mbedtls_sha512_update( &sha_ctx, buf, blen );
-    
+
             mbedtls_sha512_finish( &sha_ctx, sha_buf );
             mbedtls_sha512_free( &sha_ctx );
-    
+
             /* Step 5 */
             MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( &h, sha_buf, sizeof( sha_buf ) ) );
             mbedtls_platform_zeroize( sha_buf, sizeof( sha_buf ) );
-    
+
             MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &h, &h, &grp->N ) );
-    
+
             MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &h, &h, &q ) );
-    
+
             MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( s, &h, &rq ) );
-    
+
             MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( s, s, &grp->N ) );
             break;
         }
@@ -247,10 +247,10 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
             mbedtls_sha512_context sha_ctx;
             unsigned char sha_buf[64], tmp_buf[32];
             size_t olen = 0;
-    
+
             mbedtls_sha512_init( &sha_ctx );
             mbedtls_sha512_starts( &sha_ctx , 0 );
-    
+
             /* Step 2 */
             if( eddsa_id == MBEDTLS_EDDSA_CTX )
             {
@@ -260,25 +260,25 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
             {
                 MBEDTLS_MPI_CHK( mbedtls_eddsa_put_dom2_ctx( 1, ed_ctx, ed_ctx_len, &sha_ctx ) );
             }
-    
+
             MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( r, tmp_buf, sizeof(tmp_buf) ) );
             mbedtls_sha512_update( &sha_ctx, tmp_buf, sizeof( tmp_buf ) );
-    
+
             MBEDTLS_MPI_CHK( mbedtls_ecp_point_write_binary( grp, Q, MBEDTLS_ECP_PF_COMPRESSED, &olen, tmp_buf, sizeof( tmp_buf ) ) );
             mbedtls_sha512_update( &sha_ctx, tmp_buf, sizeof( tmp_buf ) );
             mbedtls_platform_zeroize( tmp_buf, sizeof( tmp_buf ) );
-    
+
             /* In EDDSA_PREHASH, buf should contain the SHA512 hash. It contains the whole message otherwise */
             mbedtls_sha512_update( &sha_ctx, buf, blen );
-    
+
             mbedtls_sha512_finish( &sha_ctx, sha_buf );
             mbedtls_sha512_free( &sha_ctx );
-    
+
             MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( &h, sha_buf, sizeof( sha_buf ) ) );
             mbedtls_platform_zeroize( sha_buf, sizeof( sha_buf ) );
-    
+
             MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &h, &h, &grp->N ) );
-    
+
             /* Step 3 */
             /* We perform fast single-signature verification by compressing sB-hA and comparing with r without decompressing it (expensive) */
             MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &sB, s, &grp->G, f_rng, p_rng ) );
@@ -286,7 +286,7 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
             MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &hA, &h, Q, f_rng, p_rng ) );
             MBEDTLS_MPI_CHK( mbedtls_ecp_add( grp, &sB, &sB, &hA ) );
             MBEDTLS_MPI_CHK( mbedtls_ecp_point_encode( grp, &h, &sB ) ); /* We reuse h */
-    
+
             /* Since h is a compressed point, we are free to compare with r without decompressing it */
             if( mbedtls_mpi_cmp_mpi( &h, r ) != 0 )
             {

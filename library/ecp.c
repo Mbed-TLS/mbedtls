@@ -782,7 +782,7 @@ int mbedtls_ecp_point_write_binary( const mbedtls_ecp_group *grp,
             *olen = plen;
             if( buflen < *olen )
                 return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
-    
+
             MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( &P->X, buf, plen ) );
             break;
         }
@@ -797,20 +797,20 @@ int mbedtls_ecp_point_write_binary( const mbedtls_ecp_group *grp,
             {
                 if( buflen < 1 )
                     return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
-    
+
                 buf[0] = 0x00;
                 *olen = 1;
-    
+
                 return( 0 );
             }
-    
+
             if( format == MBEDTLS_ECP_PF_UNCOMPRESSED )
             {
                 *olen = 2 * plen + 1;
-    
+
                 if( buflen < *olen )
                     return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
-    
+
                 buf[0] = 0x04;
                 MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &P->X, buf + 1, plen ) );
                 MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &P->Y, buf + 1 + plen, plen ) );
@@ -818,10 +818,10 @@ int mbedtls_ecp_point_write_binary( const mbedtls_ecp_group *grp,
             else if( format == MBEDTLS_ECP_PF_COMPRESSED )
             {
                 *olen = plen + 1;
-    
+
                 if( buflen < *olen )
                     return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
-    
+
                 buf[0] = 0x02 + mbedtls_mpi_get_bit( &P->Y, 0 );
                 MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &P->X, buf + 1, plen ) );
             }
@@ -834,16 +834,16 @@ int mbedtls_ecp_point_write_binary( const mbedtls_ecp_group *grp,
             /* Only the compressed format is defined for Edwards curves. */
             if( format != MBEDTLS_ECP_PF_COMPRESSED )
                 return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-    
+
             /* We need to add an extra bit to store the least significant bit of X. */
             plen = ( grp->pbits + 1 + 7 ) >> 3;
-    
+
             *olen = plen;
             if( buflen < *olen )
                 return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
-    
+
             MBEDTLS_MPI_CHK( mbedtls_ecp_point_encode( grp, &q, P ) );
-    
+
             MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary_le( &q, buf, plen ) );
             break;
         }
@@ -893,14 +893,14 @@ int mbedtls_ecp_point_read_binary( const mbedtls_ecp_group *grp,
         {
             if( plen != ilen )
                 return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-    
+
             MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary_le( &pt->X, buf, plen ) );
             mbedtls_mpi_free( &pt->Y );
-    
+
             if( grp->id == MBEDTLS_ECP_DP_CURVE25519 )
                 /* Set most significant bit to 0 as prescribed in RFC7748 §5 */
                 MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( &pt->X, plen * 8 - 1, 0 ) );
-    
+
             MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->Z, 1 ) );
             break;
         }
@@ -915,13 +915,13 @@ int mbedtls_ecp_point_read_binary( const mbedtls_ecp_group *grp,
                 else
                     return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
             }
-    
+
             if( buf[0] != 0x04 )
                 return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
-    
+
             if( ilen != 2 * plen + 1 )
                 return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-    
+
             MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &pt->X, buf + 1, plen ) );
             MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &pt->Y,
                                                       buf + 1 + plen, plen ) );
@@ -3671,11 +3671,11 @@ int mbedtls_ecp_check_privkey( const mbedtls_ecp_group *grp,
                 mbedtls_mpi_get_bit( d, 1 ) != 0 ||
                 mbedtls_mpi_bitlen( d ) - 1 != grp->nbits ) /* mbedtls_mpi_bitlen is one-based! */
                 return( MBEDTLS_ERR_ECP_INVALID_KEY );
-    
+
             /* see [Curve25519] page 5 */
             if( grp->nbits == 254 && mbedtls_mpi_get_bit( d, 2 ) != 0 )
                 return( MBEDTLS_ERR_ECP_INVALID_KEY );
-    
+
             return( 0 );
         }
 #endif /* MBEDTLS_ECP_MONTGOMERY_ENABLED */

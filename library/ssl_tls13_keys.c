@@ -1203,15 +1203,11 @@ int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
     unsigned char transcript[MBEDTLS_TLS1_3_MD_MAX_SIZE];
     size_t transcript_len;
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_key_type_t key_type;
     psa_algorithm_t alg;
     size_t key_bits;
     size_t taglen;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-#else
-    mbedtls_cipher_info_t const *cipher_info;
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
     size_t key_len, iv_len;
 
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
@@ -1220,7 +1216,6 @@ int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> mbedtls_ssl_tls13_generate_handshake_keys" ) );
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( ciphersuite_info->flags & MBEDTLS_CIPHERSUITE_SHORT_TAG )
         taglen = 8;
     else
@@ -1241,11 +1236,6 @@ int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
         iv_len = 12;
     else
         iv_len = PSA_CIPHER_IV_LENGTH( key_type, alg );
-#else
-    cipher_info = mbedtls_cipher_info_from_type( ciphersuite_info->cipher );
-    key_len = cipher_info->key_bitlen >> 3;
-    iv_len = cipher_info->iv_size;
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     md_type = ciphersuite_info->mac;
 
@@ -1439,22 +1429,17 @@ int mbedtls_ssl_tls13_generate_application_keys(
     size_t hash_len;
 
     /* Variables relating to the cipher for the chosen ciphersuite. */
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_key_type_t key_type;
     psa_algorithm_t alg;
     size_t key_bits;
     size_t taglen;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-#else
-    mbedtls_cipher_info_t const *cipher_info;
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
     size_t key_len, iv_len;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> derive application traffic keys" ) );
 
     /* Extract basic information about hash and ciphersuite */
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( handshake->ciphersuite_info->flags & MBEDTLS_CIPHERSUITE_SHORT_TAG )
         taglen = 8;
     else
@@ -1475,12 +1460,6 @@ int mbedtls_ssl_tls13_generate_application_keys(
         iv_len = 12;
     else
         iv_len = PSA_CIPHER_IV_LENGTH( key_type, alg );
-#else
-    cipher_info = mbedtls_cipher_info_from_type(
-                                  handshake->ciphersuite_info->cipher );
-    key_len = cipher_info->key_bitlen / 8;
-    iv_len = cipher_info->iv_size;
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     md_type = handshake->ciphersuite_info->mac;
 

@@ -1626,7 +1626,7 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
 
         case MBEDTLS_SSL_CLIENT_CERTIFICATE:
             ret = mbedtls_ssl_tls13_process_certificate( ssl );
-            if( ret == 0 && ssl->session_negotiate->peer_cert != NULL)
+            if( ret == 0 && ssl->session_negotiate->peer_cert != NULL )
             {
                 mbedtls_ssl_handshake_set_state(
                     ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY );

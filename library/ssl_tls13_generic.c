@@ -551,32 +551,39 @@ static int ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
 static int ssl_tls13_validate_certificate( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
-    int authmode = ssl->conf->authmode;
+    int authmode = MBEDTLS_SSL_VERIFY_REQUIRED;
     mbedtls_x509_crt *ca_chain;
     mbedtls_x509_crl *ca_crl;
     uint32_t verify_result = 0;
 
     /* If SNI was used, overwrite authentication mode
      * from the configuration. */
+#if defined(MBEDTLS_SSL_SRV_C)
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
+    {
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-    if( ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET )
-        authmode = ssl->handshake->sni_authmode;
+        if( ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET )
+            authmode = ssl->handshake->sni_authmode;
+        else
+#endif
+            authmode = ssl->conf->authmode;
+    }
 #endif
 
     /*
-     * If the client hasn't sent a certificate ( i.e. it sent
+     * If the peer hasn't sent a certificate ( i.e. it sent
      * an empty certificate chain ), this is reflected in the peer CRT
      * structure being unset.
      * Check for that and handle it depending on the
-     * server's authentication mode.
+     * authentication mode.
      */
     if( ssl->session_negotiate->peer_cert == NULL )
     {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "peer has not sent a certificate" ) );
+
 #if defined(MBEDTLS_SSL_SRV_C)
         if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "client has no certificate" ) );
-
             /* The client was asked for a certificate but didn't send
              * one. The client should know what's going on, so we
              * don't send an alert.
@@ -585,7 +592,11 @@ static int ssl_tls13_validate_certificate( mbedtls_ssl_context *ssl )
             if( authmode == MBEDTLS_SSL_VERIFY_OPTIONAL )
                 return( 0 );
             else
-                return( MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE );
+            {
+                MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_NO_CERT,
+                                              MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE );
+                return( MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE );
+            }
         }
 #endif /* MBEDTLS_SSL_SRV_C */
 
@@ -653,7 +664,6 @@ static int ssl_tls13_validate_certificate( mbedtls_ssl_context *ssl )
     {
         ret = 0;
     }
-
 
     if( ca_chain == NULL && authmode == MBEDTLS_SSL_VERIFY_REQUIRED )
     {

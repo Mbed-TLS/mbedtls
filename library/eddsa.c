@@ -218,8 +218,7 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
                           const mbedtls_ecp_point *Q, const mbedtls_mpi *r,
                           const mbedtls_mpi *s,
                           mbedtls_eddsa_id eddsa_id,
-                          const unsigned char *ed_ctx, size_t ed_ctx_len,
-                          int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+                          const unsigned char *ed_ctx, size_t ed_ctx_len )
 {
     int ret = 0;
     mbedtls_mpi h;
@@ -367,9 +366,7 @@ int mbedtls_eddsa_read_signature( mbedtls_ecp_keypair *ctx,
                           const unsigned char *hash, size_t hlen,
                           const unsigned char *sig, size_t slen,
                           mbedtls_eddsa_id eddsa_id,
-                          const unsigned char *ed_ctx, size_t ed_ctx_len,
-                          int (*f_rng)(void *, unsigned char *, size_t),
-                          void *p_rng )
+                          const unsigned char *ed_ctx, size_t ed_ctx_len )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *p = (unsigned char *) sig;
@@ -410,7 +407,7 @@ int mbedtls_eddsa_read_signature( mbedtls_ecp_keypair *ctx,
 
     if( ( ret = mbedtls_eddsa_verify( &ctx->grp, hash, hlen,
                                       &ctx->Q, &r, &s,
-                                      eddsa_id, ed_ctx, ed_ctx_len, f_rng, p_rng ) ) != 0 )
+                                      eddsa_id, ed_ctx, ed_ctx_len ) ) != 0 )
         goto cleanup;
 
     /* At this point we know that the buffer starts with a valid signature.

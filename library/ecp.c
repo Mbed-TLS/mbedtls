@@ -2761,7 +2761,21 @@ int mbedtls_ecp_point_encode( const mbedtls_ecp_group *grp, mbedtls_mpi *q, cons
     /* From 5.1.2, we shall copy LSB of x to the MSB of y */
     if( mbedtls_mpi_get_bit( &pt->X, 0 ) )
     {
-        MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( q, grp->pbits, 1 ) );
+        switch( grp->id )
+        {
+#if defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
+            case MBEDTLS_ECP_DP_ED25519:
+                MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( q, grp->pbits, 1 ) );
+                break;
+#endif
+#if defined(MBEDTLS_ECP_DP_ED448_ENABLED)
+            case MBEDTLS_ECP_DP_ED448:
+                MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( q, grp->pbits + 7, 1 ) );
+                break;
+#endif
+            default:
+                break;
+        }
     }
 
 cleanup:

@@ -267,8 +267,8 @@ int mbedtls_sha3_starts( mbedtls_sha3_context *ctx, mbedtls_sha3_id id )
  */
 /* If this function receives an id != CSHAKE, it fallsback to mbedtls_sha3_starts() */
 int mbedtls_sha3_starts_cshake( mbedtls_sha3_context *ctx, mbedtls_sha3_id id,
-                                const uint8_t *name, size_t name_len,
-                                const uint8_t *custom, size_t custom_len )
+                                const char *name, size_t name_len,
+                                const char *custom, size_t custom_len )
 {
     int ret = 0;
     size_t encbuf_len = 0;
@@ -303,12 +303,12 @@ int mbedtls_sha3_starts_cshake( mbedtls_sha3_context *ctx, mbedtls_sha3_id id,
     encbuf_len = left_encode( encbuf, name_len * 8 );
     mbedtls_sha3_update( ctx, encbuf, encbuf_len );
     if( name != NULL && name_len > 0 )
-        mbedtls_sha3_update( ctx, name, name_len );
+        mbedtls_sha3_update( ctx, (const uint8_t *)name, name_len );
 
     encbuf_len = left_encode( encbuf, custom_len * 8 );
     mbedtls_sha3_update( ctx, encbuf, encbuf_len );
     if( custom != NULL && custom_len > 0 )
-        mbedtls_sha3_update( ctx, custom, custom_len );
+        mbedtls_sha3_update( ctx, (const uint8_t *)custom, custom_len );
 
     keccak_pad( ctx );
 
@@ -413,8 +413,8 @@ int mbedtls_sha3_finish_kmac( mbedtls_sha3_context *ctx,
 
 int mbedtls_sha3_cshake( mbedtls_sha3_id id,
                                 const uint8_t *input, size_t ilen,
-                                const uint8_t *name, size_t name_len,
-                                const uint8_t *custom, size_t custom_len,
+                                const char *name, size_t name_len,
+                                const char *custom, size_t custom_len,
                                 uint8_t *output, size_t olen )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;

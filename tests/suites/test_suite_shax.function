@@ -185,8 +185,8 @@ void mbedtls_sha3_cshake( int family, data_t *in, char *name, char *custom, data
 
     ASSERT_ALLOC( output, hash->len );
 
-    TEST_ASSERT( mbedtls_sha3_cshake( family, in->x, in->len, ( const uint8_t *)name, strlen(name),
-                                ( const uint8_t * )custom, strlen(custom),
+    TEST_ASSERT( mbedtls_sha3_cshake( family, in->x, in->len, name, strlen(name),
+                                custom, strlen(custom),
                                 output, hash->len ) == 0 );
 
     ASSERT_COMPARE( output, hash->len, hash->x, hash->len );

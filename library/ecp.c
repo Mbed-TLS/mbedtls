@@ -3410,9 +3410,9 @@ cleanup:
 
 /*
  * Restartable linear combination
- * NOT constant-time
+ * NOT constant-time - ONLY for short Weierstrass!
  */
-int mbedtls_ecp_muladd_restartable(
+static int mbedtls_ecp_muladd_restartable_sw(
              mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
              const mbedtls_mpi *m, const mbedtls_ecp_point *P,
              const mbedtls_mpi *n, const mbedtls_ecp_point *Q,
@@ -3511,11 +3511,116 @@ cleanup:
 
     return( ret );
 }
+#endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
 
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
+/*
+ * Restartable linear combination
+ * NOT constant-time - ONLY for Edwards!
+ */
+static int mbedtls_ecp_muladd_edwards(
+             mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+             const mbedtls_mpi *m, const mbedtls_ecp_point *P,
+             const mbedtls_mpi *n, const mbedtls_ecp_point *Q )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    size_t i;
+    unsigned char bm, bn;
+    mbedtls_ecp_point RP, RQ, RPQ;
+    ECP_VALIDATE_RET( grp != NULL );
+    ECP_VALIDATE_RET( R   != NULL );
+    ECP_VALIDATE_RET( m   != NULL );
+    ECP_VALIDATE_RET( P   != NULL );
+    ECP_VALIDATE_RET( n   != NULL );
+    ECP_VALIDATE_RET( Q   != NULL );
+
+    mbedtls_ecp_point_init( &RP );
+    mbedtls_ecp_point_init( &RQ );
+    mbedtls_ecp_point_init( &RPQ );
+
+    /* Read from P and Q before writing to R, in case P == R or Q == R */
+    MBEDTLS_MPI_CHK( mbedtls_ecp_copy( &RP, P ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_copy( &RQ, Q ) );
+
+    /* Set R to zero */
+    MBEDTLS_MPI_CHK( mbedtls_ecp_set_zero_ext( grp, R ) );
+
+    /* RP.X, RP.Y, RQ.X, RQ.Y might be slightly larger than P, so reduce them */
+    MOD_ADD( &RP.X );
+    MOD_ADD( &RP.Y );
+    MOD_ADD( &RQ.X );
+    MOD_ADD( &RQ.Y );
+
+    /* Compute RPQ = RP + RQ */
+    MBEDTLS_MPI_CHK( ecp_add_edxyz( grp, &RPQ, &RP, &RQ ) );
+
+    /*
+     * Compute mP + nQ using Shamir's trick
+     * Loop invariant: R = result so far
+     */
+    i = grp->pbits; /* one past the (zero-based) most significant bit */
+    while( i-- > 0 )
+    {
+        MBEDTLS_MPI_CHK( ecp_double_edxyz( grp, R, R ) );
+
+        bm = mbedtls_mpi_get_bit( m, i );
+        bn = mbedtls_mpi_get_bit( n, i );
+        if (bm && bn)
+            MBEDTLS_MPI_CHK( ecp_add_edxyz( grp, R, R, &RPQ ) );
+        else if (bm)
+            MBEDTLS_MPI_CHK( ecp_add_edxyz( grp, R, R, &RP ) );
+        else if (bn)
+            MBEDTLS_MPI_CHK( ecp_add_edxyz( grp, R, R, &RQ ) );
+    }
+
+    MBEDTLS_MPI_CHK( ecp_normalize_edxyz( grp, R ) );
+
+cleanup:
+    mbedtls_ecp_point_free( &RP );
+    mbedtls_ecp_point_free( &RQ );
+    mbedtls_ecp_point_free( &RPQ );
+
+    return( ret );
+}
+#endif /* MBEDTLS_ECP_EDWARDS_ENABLED */
+
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED) || defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
+/*
+ * Restartable linear combination
+ * NOT constant-time - ONLY for short Weierstrass and Edwards!
+ */
+int mbedtls_ecp_muladd_restartable(
+             mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
+             const mbedtls_mpi *m, const mbedtls_ecp_point *P,
+             const mbedtls_mpi *n, const mbedtls_ecp_point *Q,
+             mbedtls_ecp_restart_ctx *rs_ctx )
+{
+    ECP_VALIDATE_RET( grp != NULL );
+    ECP_VALIDATE_RET( R   != NULL );
+    ECP_VALIDATE_RET( m   != NULL );
+    ECP_VALIDATE_RET( P   != NULL );
+    ECP_VALIDATE_RET( n   != NULL );
+    ECP_VALIDATE_RET( Q   != NULL );
+
+    switch( mbedtls_ecp_get_type(grp) )
+    {
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
+        case MBEDTLS_ECP_TYPE_EDWARDS:
+            return( mbedtls_ecp_muladd_edwards( grp, R, m, P, n, Q ) );
+#endif
+#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
+        case MBEDTLS_ECP_TYPE_SHORT_WEIERSTRASS:
+            return( mbedtls_ecp_muladd_restartable_sw( grp, R, m, P, n, Q, rs_ctx ) );
+#endif
+        default:
+            return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
+    }
+}
 /*
  * Linear combination
- * NOT constant-time
+ * NOT constant-time - ONLY for short Weierstrass and Edwards!
  */
+
 int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
              const mbedtls_mpi *m, const mbedtls_ecp_point *P,
              const mbedtls_mpi *n, const mbedtls_ecp_point *Q )
@@ -3528,7 +3633,7 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     ECP_VALIDATE_RET( Q   != NULL );
     return( mbedtls_ecp_muladd_restartable( grp, R, m, P, n, Q, NULL ) );
 }
-#endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
+#endif /* MBEDTLS_ECP_EDWARDS_ENABLED || MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
 
 #if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
 #if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)

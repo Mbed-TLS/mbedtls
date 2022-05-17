@@ -1090,7 +1090,7 @@ int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
              mbedtls_ecp_restart_ctx *rs_ctx );
 
-#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
+#if defined(MBEDTLS_ECP_EDWARDS_ENABLED) || defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
 /**
  * \brief           This function performs multiplication and addition of two
  *                  points by integers: \p R = \p m * \p P + \p n * \p Q
@@ -1100,9 +1100,9 @@ int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
  * \note            In contrast to mbedtls_ecp_mul(), this function does not
  *                  guarantee a constant execution flow and timing.
  *
- * \note            This function is only defined for short Weierstrass curves.
- *                  It may not be included in builds without any short
- *                  Weierstrass curve.
+ * \note            This function is only defined for Edwards and short
+ *                  Weierstrass curves. It may not be included in builds
+ *                  without any Edwards or short Weierstrass curve.
  *
  * \param grp       The ECP group to use.
  *                  This must be initialized and have group parameters
@@ -1123,7 +1123,7 @@ int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
  *                  keys.
  * \return          #MBEDTLS_ERR_MPI_ALLOC_FAILED on memory-allocation failure.
  * \return          #MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if \p grp does not
- *                  designate a short Weierstrass curve.
+ *                  designate a Edwards or short Weierstrass curve.
  * \return          Another negative error code on other kinds of failure.
  */
 int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
@@ -1141,9 +1141,9 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
  *                  but it can return early and restart according to the limit
  *                  set with \c mbedtls_ecp_set_max_ops() to reduce blocking.
  *
- * \note            This function is only defined for short Weierstrass curves.
- *                  It may not be included in builds without any short
- *                  Weierstrass curve.
+ * \note            This function is only defined for Edwards and short
+ *                  Weierstrass curves. It may not be included in builds
+ *                  without any Edwards or short Weierstrass curve.
  *
  * \param grp       The ECP group to use.
  *                  This must be initialized and have group parameters
@@ -1165,7 +1165,7 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
  *                  keys.
  * \return          #MBEDTLS_ERR_MPI_ALLOC_FAILED on memory-allocation failure.
  * \return          #MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if \p grp does not
- *                  designate a short Weierstrass curve.
+ *                  designate a Edwards or short Weierstrass curve.
  * \return          #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
  *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
  * \return          Another negative error code on other kinds of failure.
@@ -1175,7 +1175,7 @@ int mbedtls_ecp_muladd_restartable(
              const mbedtls_mpi *m, const mbedtls_ecp_point *P,
              const mbedtls_mpi *n, const mbedtls_ecp_point *Q,
              mbedtls_ecp_restart_ctx *rs_ctx );
-#endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
+#endif /* MBEDTLS_ECP_EDWARDS_ENABLED || MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
 
 /**
  * \brief           This function checks that a point is a valid public key

@@ -44,8 +44,6 @@
 #endif /* MBEDTLS_PLATFORM_C */
 #endif /* MBEDTLS_SELF_TEST */
 
-#if !defined(MBEDTLS_SHA3_ALT)
-
 /*
  * List of supported SHA-3 families
  */
@@ -267,8 +265,6 @@ int mbedtls_sha3_finish( mbedtls_sha3_context *ctx,
 
     return( 0 );
 }
-
-#endif /* !MBEDTLS_SHA3_ALT */
 
 /*
  * output = SHA3( input buffer )

@@ -57,10 +57,6 @@ typedef enum
     MBEDTLS_SHA3_SHAKE256, /*!< SHA3-SHAKE256 */
 } mbedtls_sha3_id;
 
-#if !defined(MBEDTLS_SHA3_ALT)
-// Regular implementation
-//
-
 struct mbedtls_sha3_context;
 typedef struct mbedtls_sha3_family_functions
 {
@@ -88,10 +84,6 @@ typedef struct mbedtls_sha3_context {
     uint16_t max_block_size;
 }
 mbedtls_sha3_context;
-
-#else  /* MBEDTLS_SHA3_ALT */
-#include "sha3_alt.h"
-#endif /* MBEDTLS_SHA3_ALT */
 
 /**
  * \brief          This function initializes a SHA-3 context.
@@ -155,10 +147,10 @@ int mbedtls_sha3_update( mbedtls_sha3_context *ctx,
  *                 and have a hash operation started.
  * \param output   The SHA-3 checksum result.
  *                 This must be a writable buffer of length \c olen bytes.
- * \param olen     Defines a variable output length (in bytes). \c output must be
- *                 \c olen bytes length. For SHA-3 224, SHA-3 256, SHA-3 384 and
- *                 SHA-3 512 must equal to 28, 32, 48 and 64, respectively.
- *                 For SHAKE128 and SHAKE256 it can be an arbitrary number.
+ * \param olen     Defines the length of output buffer (in bytes). For SHA-3 224, SHA-3 256,
+ *                 SHA-3 384 and SHA-3 512 \c olen must be at least 28, 32, 48 or 64 bytes,
+ *                 respectively. For SHAKE128 and SHAKE256, the buffer will be filled up to
+ *                 \c olen bytes.
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
@@ -182,8 +174,10 @@ int mbedtls_sha3_finish( mbedtls_sha3_context *ctx,
  * \param ilen     The length of the input data in Bytes.
  * \param output   The SHA-3 checksum result.
  *                 This must be a writable buffer of length \c olen bytes.
- * \param olen     Determines the length (in bytes) of the output. \c output
- *                 must be \c olen bytes length.
+ * \param olen     Defines the length of output buffer (in bytes). For SHA-3 224, SHA-3 256,
+ *                 SHA-3 384 and SHA-3 512 \c olen must be at least 28, 32, 48 or 64 bytes,
+ *                 respectively. For SHAKE128 and SHAKE256, the buffer will be filled up to
+ *                 \c olen bytes.
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.

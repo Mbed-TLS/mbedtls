@@ -223,11 +223,10 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
 {
     int ret = 0;
     mbedtls_mpi h;
-    mbedtls_ecp_point sB, hA;
+    mbedtls_ecp_point R;
 
     mbedtls_mpi_init( &h );
-    mbedtls_ecp_point_init( &sB );
-    mbedtls_ecp_point_init( &hA );
+    mbedtls_ecp_point_init( &R );
 
     /* Step 1 */
     if( mbedtls_mpi_cmp_mpi( s, &grp->N ) >= 0 || mbedtls_mpi_cmp_int( s, 0 ) < 0 )
@@ -273,11 +272,9 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
 
         /* Step 3 */
         /* We perform fast single-signature verification by compressing sB-hA and comparing with r without decompressing it (expensive) */
-        MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &sB, s, &grp->G, f_rng, p_rng ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &h, &grp->N, &h ) );
-        MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, &hA, &h, Q, f_rng, p_rng ) );
-        MBEDTLS_MPI_CHK( mbedtls_ecp_add( grp, &sB, &sB, &hA ) );
-        MBEDTLS_MPI_CHK( mbedtls_ecp_point_encode( grp, &h, &sB ) ); /* We reuse h */
+        MBEDTLS_MPI_CHK( mbedtls_ecp_muladd( grp, &R, s, &grp->G, &h, Q ) );
+        MBEDTLS_MPI_CHK( mbedtls_ecp_point_encode( grp, &h, &R ) ); /* We reuse h */
 
         /* Since h is a compressed point, we are free to compare with r without decompressing it */
         if( mbedtls_mpi_cmp_mpi( &h, r ) != 0 )
@@ -290,8 +287,7 @@ int mbedtls_eddsa_verify( mbedtls_ecp_group *grp,
 
 cleanup:
     mbedtls_mpi_free( &h );
-    mbedtls_ecp_point_free( &sB );
-    mbedtls_ecp_point_free( &hA );
+    mbedtls_ecp_point_free( &R );
     return( ret );
 }
 

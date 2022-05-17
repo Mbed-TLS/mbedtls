@@ -328,8 +328,8 @@ int mbedtls_pk_can_do_ext( const mbedtls_pk_context *ctx, psa_algorithm_t alg,
             return( 1 );
 
     /*
-     * If key alg or alg2 is a hash-and-sign with a wildcard for the hash,
-     * and alg is the same hash-and-sign family with any hasor,
+     * If key_alg or key_alg2 is a hash-and-sign with a wildcard for the hash,
+     * and alg is the same hash-and-sign family with any hash,
      * then alg is compliant with this key alg
      */
     if( PSA_ALG_IS_SIGN_HASH( alg ) )

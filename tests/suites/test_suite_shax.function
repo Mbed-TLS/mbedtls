@@ -204,7 +204,7 @@ void mbedtls_sha3_kmac( int family, int xof, data_t *in, data_t *key, char *cust
     ASSERT_ALLOC( output, hash->len );
 
     TEST_ASSERT( mbedtls_sha3_kmac( family, in->x, in->len, key->x, key->len,
-                                ( const uint8_t * )custom, strlen(custom),
+                                custom, strlen(custom),
                                 output, hash->len, xof ) == 0 );
 
     ASSERT_COMPARE( output, hash->len, hash->x, hash->len );

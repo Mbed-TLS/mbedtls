@@ -321,13 +321,13 @@ int mbedtls_sha3_starts_cshake( mbedtls_sha3_context *ctx, mbedtls_sha3_id id,
 /* If this function receives an id != CSHAKE, it fallsback to mbedtls_sha3_starts() */
 int mbedtls_sha3_starts_kmac( mbedtls_sha3_context *ctx, mbedtls_sha3_id id,
                                 const uint8_t *key, size_t key_len,
-                                const uint8_t *custom, size_t custom_len )
+                                const char *custom, size_t custom_len )
 {
     int ret = 0;
     size_t encbuf_len = 0;
     uint8_t encbuf[sizeof( size_t ) + 1];
 
-    if( ( ret = mbedtls_sha3_starts_cshake( ctx, id, (const uint8_t *)"KMAC", 4,
+    if( ( ret = mbedtls_sha3_starts_cshake( ctx, id, "KMAC", 4,
                                 custom, custom_len ) ) != 0 )
         return( ret );
 
@@ -441,7 +441,7 @@ exit:
 int mbedtls_sha3_kmac( mbedtls_sha3_id id,
                                 const uint8_t *input, size_t ilen,
                                 const uint8_t *key, size_t key_len,
-                                const uint8_t *custom, size_t custom_len,
+                                const char *custom, size_t custom_len,
                                 uint8_t *output, size_t olen, int xof )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;

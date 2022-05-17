@@ -152,12 +152,12 @@ int mbedtls_sha3_starts_cshake( mbedtls_sha3_context *ctx,
  *                 with key and customization strings.
  *
  * \param ctx      The context to use. This must be initialized.
- * \param id       The id of the SHA-3 family. It can be \c MBEDTLS_SHA3_CSHAKE128 or
+ * \param id       The id of the SHA-3 family. It must be \c MBEDTLS_SHA3_CSHAKE128 or
  *                 \c MBEDTLS_SHA3_CSHAKE256.
  * \param key      The key buffer.
- * \param key_len  The length of \c key in Bytes.
- * \param custom   The customization string. It must be zero-terminated.
- * \param custom_len The length of \c custom in Bytes.
+ * \param key_len  The length of \c key in bytes.
+ * \param custom   The customization string.
+ * \param custom_len The length of \c custom in bytes (not counting any terminating \c NUL character).
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
@@ -168,7 +168,7 @@ int mbedtls_sha3_starts_cshake( mbedtls_sha3_context *ctx,
 int mbedtls_sha3_starts_kmac( mbedtls_sha3_context *ctx,
                             mbedtls_sha3_id id,
                             const uint8_t *key, size_t key_len,
-                            const uint8_t *custom, size_t custom_len );
+                            const char *custom, size_t custom_len );
 
 /**
  * \brief          This function feeds an input buffer into an ongoing
@@ -177,8 +177,8 @@ int mbedtls_sha3_starts_kmac( mbedtls_sha3_context *ctx,
  * \param ctx      The SHA-3 context. This must be initialized
  *                 and have a hash operation started.
  * \param input    The buffer holding the data. This must be a readable
- *                 buffer of length \p ilen Bytes.
- * \param ilen     The length of the input data in Bytes.
+ *                 buffer of length \p ilen bytes.
+ * \param ilen     The length of the input data in bytes.
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
@@ -214,10 +214,8 @@ int mbedtls_sha3_finish( mbedtls_sha3_context *ctx,
  *                 and have a hash operation started.
  * \param output   The SHA-3 checksum result.
  *                 This must be a writable buffer of length \c olen bytes.
- * \param olen     Defines a variable output length (in bytes). \c output must be
- *                 \c olen bytes length. For SHAKE128 and SHAKE256 it can be
- *                 an arbitrary number. For SHA-3 224, SHA-3 256, SHA-3 384 and
- *                 SHA-3 512 must equal to 28, 32, 48 and 64, respectively.
+ * \param olen     Defines the length of output buffer (in bytes). For CSHAKE128 and CSHAKE256
+ *                 the buffer will be filled up to \c olen bytes.
  * \param xof      \c 1 performs KMAC XOF operation or \c 0 does not perform XOF.
  *
  * \return         \c 0 on success.
@@ -238,8 +236,8 @@ int mbedtls_sha3_finish_kmac( mbedtls_sha3_context *ctx,
  *
  * \param id       The id of the SHA-3 family.
  * \param input    The buffer holding the data. This must be a readable
- *                 buffer of length \p ilen Bytes.
- * \param ilen     The length of the input data in Bytes.
+ *                 buffer of length \p ilen bytes.
+ * \param ilen     The length of the input data in bytes.
  * \param output   The SHA-3 checksum result.
  *                 This must be a writable buffer of length \c olen bytes.
  * \param olen     Defines the length of output buffer (in bytes). For SHA-3 224, SHA-3 256,
@@ -269,8 +267,8 @@ int mbedtls_sha3( mbedtls_sha3_id id, const uint8_t *input,
  * \param id       The id of the SHA-3 family. It can be \c MBEDTLS_SHA3_CSHAKE128 or
  *                 \c MBEDTLS_SHA3_CSHAKE256.
  * \param input    The buffer holding the data. This must be a readable
- *                 buffer of length \p ilen Bytes.
- * \param ilen     The length of the input data in Bytes.
+ *                 buffer of length \p ilen bytes.
+ * \param ilen     The length of the input data in bytes.
  * \param name     The function-name string.
  * \param name_len The length of \c name in bytes (not counting any terminating \c NUL character).
  * \param custom   The customization string.
@@ -302,19 +300,19 @@ int mbedtls_sha3_cshake( mbedtls_sha3_id id, const uint8_t *input,
  *                 The SHA-3 result is calculated as
  *                 output = SHA-3(id, key || customization || input buffer, d).
  *
- * \param id       The id of the SHA-3 family. It can be \c MBEDTLS_SHA3_CSHAKE128 or
+ * \param id       The id of the SHA-3 family. It must be \c MBEDTLS_SHA3_CSHAKE128 or
  *                 \c MBEDTLS_SHA3_CSHAKE256.
  * \param input    The buffer holding the data. This must be a readable
- *                 buffer of length \p ilen Bytes.
- * \param ilen     The length of the input data in Bytes.
+ *                 buffer of length \p ilen bytes.
+ * \param ilen     The length of the input data in bytes.
  * \param key      The key buffer.
- * \param key_len  The length of \c key in Bytes.
+ * \param key_len  The length of \c key in bytes.
  * \param custom   The customization string. It must be zero-terminated.
  * \param custom_len The length of \c custom in Bytes.
  * \param output   The SHA-3 checksum result.
  *                 This must be a writable buffer of length \c olen bytes.
- * \param olen     Determines the length (in bytes) of the output. \c output
- *                 must be \c olen bytes length.
+ * \param olen     Defines the length of output buffer (in bytes). For CSHAKE128 and
+ *                 CSHAKE256 the buffer will be filled up to \c olen bytes.
  * \param xof      Performs KMAC XOF operation.
  *
  * \return         \c 0 on success.
@@ -325,7 +323,7 @@ int mbedtls_sha3_cshake( mbedtls_sha3_id id, const uint8_t *input,
  */
 int mbedtls_sha3_kmac( mbedtls_sha3_id id, const uint8_t *input,
                     size_t ilen, const uint8_t *key, size_t key_len,
-                    const uint8_t *custom, size_t custom_len,
+                    const char *custom, size_t custom_len,
                     uint8_t *output, size_t olen, int xof );
 
 #ifdef __cplusplus

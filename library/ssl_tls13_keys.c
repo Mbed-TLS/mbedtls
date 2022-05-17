@@ -1188,6 +1188,36 @@ int mbedtls_ssl_tls13_key_schedule_stage_early( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
+static int mbedtls_ssl_tls13_get_cipher_key_info(
+                    const mbedtls_ssl_ciphersuite_t *ciphersuite_info,
+                    size_t *key_len, size_t *iv_len )
+{
+    psa_key_type_t key_type;
+    psa_algorithm_t alg;
+    size_t taglen;
+    size_t key_bits;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    if( ciphersuite_info->flags & MBEDTLS_CIPHERSUITE_SHORT_TAG )
+        taglen = 8;
+    else
+        taglen = 16;
+
+    status = mbedtls_ssl_cipher_to_psa( ciphersuite_info->cipher, taglen,
+                                        &alg, &key_type, &key_bits );
+    if( status != PSA_SUCCESS )
+        return psa_ssl_status_to_mbedtls( status );
+
+    *key_len = PSA_BITS_TO_BYTES( key_bits );
+
+    if( PSA_ALG_IS_AEAD( alg ) )
+        *iv_len = 12;
+    else
+        *iv_len = PSA_CIPHER_IV_LENGTH( key_type, alg );
+
+    return 0;
+}
+
 /* mbedtls_ssl_tls13_generate_handshake_keys() generates keys necessary for
  * protecting the handshake messages, as described in Section 7 of TLS 1.3. */
 int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
@@ -1203,11 +1233,6 @@ int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
     unsigned char transcript[MBEDTLS_TLS1_3_MD_MAX_SIZE];
     size_t transcript_len;
 
-    psa_key_type_t key_type;
-    psa_algorithm_t alg;
-    size_t key_bits;
-    size_t taglen;
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t key_len, iv_len;
 
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
@@ -1216,26 +1241,13 @@ int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> mbedtls_ssl_tls13_generate_handshake_keys" ) );
 
-    if( ciphersuite_info->flags & MBEDTLS_CIPHERSUITE_SHORT_TAG )
-        taglen = 8;
-    else
-        taglen = 16;
-
-    status = mbedtls_ssl_cipher_to_psa( ciphersuite_info->cipher, taglen,
-                                        &alg, &key_type, &key_bits );
-    if( status != PSA_SUCCESS )
+    ret = mbedtls_ssl_tls13_get_cipher_key_info( ciphersuite_info,
+                                                 &key_len, &iv_len );
+    if( ret != 0 )
     {
-        ret = psa_ssl_status_to_mbedtls( status );
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_cipher_to_psa", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_get_cipher_key_info", ret );
         return ret;
     }
-
-    key_len = PSA_BITS_TO_BYTES( key_bits );
-
-    if( PSA_ALG_IS_AEAD( alg ) )
-        iv_len = 12;
-    else
-        iv_len = PSA_CIPHER_IV_LENGTH( key_type, alg );
 
     md_type = ciphersuite_info->mac;
 
@@ -1429,37 +1441,19 @@ int mbedtls_ssl_tls13_generate_application_keys(
     size_t hash_len;
 
     /* Variables relating to the cipher for the chosen ciphersuite. */
-    psa_key_type_t key_type;
-    psa_algorithm_t alg;
-    size_t key_bits;
-    size_t taglen;
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t key_len, iv_len;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> derive application traffic keys" ) );
 
     /* Extract basic information about hash and ciphersuite */
 
-    if( handshake->ciphersuite_info->flags & MBEDTLS_CIPHERSUITE_SHORT_TAG )
-        taglen = 8;
-    else
-        taglen = 16;
-
-    status = mbedtls_ssl_cipher_to_psa( handshake->ciphersuite_info->cipher,
-                                        taglen, &alg, &key_type, &key_bits );
-    if( status != PSA_SUCCESS )
+    ret = mbedtls_ssl_tls13_get_cipher_key_info( handshake->ciphersuite_info,
+                                                 &key_len, &iv_len );
+    if( ret != 0 )
     {
-        ret = psa_ssl_status_to_mbedtls( status );
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_cipher_to_psa", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_get_cipher_key_info", ret );
         goto cleanup;
     }
-
-    key_len = PSA_BITS_TO_BYTES( key_bits );
-
-    if( PSA_ALG_IS_AEAD( alg ) )
-        iv_len = 12;
-    else
-        iv_len = PSA_CIPHER_IV_LENGTH( key_type, alg );
 
     md_type = handshake->ciphersuite_info->mac;
 

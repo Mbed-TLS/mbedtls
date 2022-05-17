@@ -1185,6 +1185,71 @@ cleanup:
     return( ret );
 }
 
+
+/*
+ * Handler for MBEDTLS_SSL_HELLO_RETRY_REQUEST
+ */
+static int ssl_tls13_write_hello_retry_request_coordinate(
+                                                    mbedtls_ssl_context *ssl )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    if( ssl->handshake->hello_retry_request_count > 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Too many HRRs" ) );
+        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
+                                      MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+    }
+
+    /*
+     * Create stateless transcript hash for HRR
+     */
+    MBEDTLS_SSL_DEBUG_MSG( 4, ( "Reset transcript for HRR" ) );
+    ret = mbedtls_ssl_reset_transcript_for_hrr( ssl );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_reset_transcript_for_hrr", ret );
+        return( ret );
+    }
+    mbedtls_ssl_session_reset_msg_layer( ssl, 0 );
+
+    return( 0 );
+}
+
+static int ssl_tls13_write_hello_retry_request( mbedtls_ssl_context *ssl )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    unsigned char *buf;
+    size_t buf_len, msg_len;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write hello retry request" ) );
+
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_write_hello_retry_request_coordinate( ssl ) );
+
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_start_handshake_msg(
+                              ssl, MBEDTLS_SSL_HS_SERVER_HELLO,
+                              &buf, &buf_len ) );
+
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_write_server_hello_body( ssl, buf,
+                                                             buf + buf_len,
+                                                             &msg_len,
+                                                             1 ) );
+    mbedtls_ssl_add_hs_msg_to_checksum(
+        ssl, MBEDTLS_SSL_HS_SERVER_HELLO, buf, msg_len );
+
+
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_finish_handshake_msg( ssl, buf_len,
+                                                            msg_len ) );
+
+    ssl->handshake->hello_retry_request_count++;
+
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_HELLO );
+
+cleanup:
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write hello retry request" ) );
+    return( ret );
+}
+
 /*
  * Handler for MBEDTLS_SSL_ENCRYPTED_EXTENSIONS
  */
@@ -1376,72 +1441,40 @@ cleanup:
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write certificate request" ) );
     return( ret );
 }
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 /*
- * Handler for MBEDTLS_SSL_HELLO_RETRY_REQUEST
+ * Handler for MBEDTLS_SSL_SERVER_CERTIFICATE
  */
-
-static int ssl_tls13_write_hello_retry_request_coordinate(
-                                                    mbedtls_ssl_context *ssl )
+static int ssl_tls13_write_server_certificate( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    if( ssl->handshake->hello_retry_request_count > 0 )
+    if( mbedtls_ssl_own_cert( ssl ) == NULL )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Too many HRRs" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "No certificate available." ) );
         MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
-                                      MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+                                      MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE);
         return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }
 
-    /*
-     * Create stateless transcript hash for HRR
-     */
-    MBEDTLS_SSL_DEBUG_MSG( 4, ( "Reset transcript for HRR" ) );
-    ret = mbedtls_ssl_reset_transcript_for_hrr( ssl );
+    ret = mbedtls_ssl_tls13_write_certificate( ssl );
     if( ret != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_reset_transcript_for_hrr", ret );
         return( ret );
-    }
-    mbedtls_ssl_session_reset_msg_layer( ssl, 0 );
-
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CERTIFICATE_VERIFY );
     return( 0 );
 }
 
-static int ssl_tls13_write_hello_retry_request( mbedtls_ssl_context *ssl )
+/*
+ * Handler for MBEDTLS_SSL_CERTIFICATE_VERIFY
+ */
+static int ssl_tls13_write_certificate_verify( mbedtls_ssl_context *ssl )
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    unsigned char *buf;
-    size_t buf_len, msg_len;
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write hello retry request" ) );
-
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_write_hello_retry_request_coordinate( ssl ) );
-
-    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_start_handshake_msg(
-                              ssl, MBEDTLS_SSL_HS_SERVER_HELLO,
-                              &buf, &buf_len ) );
-
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_write_server_hello_body( ssl, buf,
-                                                             buf + buf_len,
-                                                             &msg_len,
-                                                             1 ) );
-    mbedtls_ssl_add_hs_msg_to_checksum(
-        ssl, MBEDTLS_SSL_HS_SERVER_HELLO, buf, msg_len );
-
-
-    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_finish_handshake_msg( ssl, buf_len,
-                                                            msg_len ) );
-
-    ssl->handshake->hello_retry_request_count++;
-
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_HELLO );
-
-cleanup:
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write hello retry request" ) );
-    return( ret );
+    int ret = mbedtls_ssl_tls13_write_certificate_verify( ssl );
+    if( ret != 0 )
+        return( ret );
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_FINISHED );
+    return( 0 );
 }
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 /*
  * TLS 1.3 State Machine -- server side
@@ -1496,6 +1529,14 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
         case MBEDTLS_SSL_CERTIFICATE_REQUEST:
             ret = ssl_tls13_write_certificate_request( ssl );
+            break;
+
+        case MBEDTLS_SSL_SERVER_CERTIFICATE:
+            ret = ssl_tls13_write_server_certificate( ssl );
+            break;
+
+        case MBEDTLS_SSL_CERTIFICATE_VERIFY:
+            ret = ssl_tls13_write_certificate_verify( ssl );
             break;
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 

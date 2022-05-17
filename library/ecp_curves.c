@@ -4733,6 +4733,30 @@ cleanup:
 #endif /* MBEDTLS_ECP_DP_CURVE448_ENABLED || MBEDTLS_ECP_DP_ED448_ENABLED */
 
 #if defined(MBEDTLS_ECP_DP_ED25519_ENABLED)
+/* Constants used by ecp_use_ed25519() */
+static const unsigned char ed25519_part_of_n[] = {
+    0x14, 0xDE, 0xF9, 0xDE, 0xA2, 0xF7, 0x9C, 0xD6,
+    0x58, 0x12, 0x63, 0x1A, 0x5C, 0xF5, 0xD3, 0xED,
+};
+static const unsigned char ed25519_b[] = {
+    0x52, 0x03, 0x6C, 0xEE, 0x2B, 0x6F, 0xFE, 0x73,
+    0x8C, 0xC7, 0x40, 0x79, 0x77, 0x79, 0xE8, 0x98,
+    0x00, 0x70, 0x0A, 0x4D, 0x41, 0x41, 0xD8, 0xAB,
+    0x75, 0xEB, 0x4D, 0xCA, 0x13, 0x59, 0x78, 0xA3,
+};
+static const unsigned char ed25519_g_x[] = {
+    0x21, 0x69, 0x36, 0xD3, 0xCD, 0x6E, 0x53, 0xFE,
+    0xC0, 0xA4, 0xE2, 0x31, 0xFD, 0xD6, 0xDC, 0x5C,
+    0x69, 0x2C, 0xC7, 0x60, 0x95, 0x25, 0xA7, 0xB2,
+    0xC9, 0x56, 0x2D, 0x60, 0x8F, 0x25, 0xD5, 0x1A,
+};
+static const unsigned char ed25519_g_y[] = {
+    0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66,
+    0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66,
+    0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66,
+    0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x58,
+};
+
 /*
  * Specialized function for creating the Ed25519 group
  */
@@ -4747,23 +4771,23 @@ static int ecp_use_ed25519( mbedtls_ecp_group *grp )
     grp->pbits = mbedtls_mpi_bitlen( &grp->P );
 
     /* N = 2^252 + 27742317777372353535851937790883648493 */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &grp->N, 16,
-                                              "14DEF9DEA2F79CD65812631A5CF5D3ED" ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &grp->N,
+                        ed25519_part_of_n, sizeof( ed25519_part_of_n ) ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( &grp->N, 252, 1 ) );
 
     /* A = -1 */
     MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &grp->A, &grp->P, 1 ) );
 
     /* B = -121665/121666 (actually d of edwards25519) */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &grp->B, 16,
-                                              "52036CEE2B6FFE738CC740797779E89800700A4D4141D8AB75EB4DCA135978A3" ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &grp->B,
+                        ed25519_b, sizeof( ed25519_b ) ) );
 
     /* (X(P),Y(P)) of edwards25519 in RFC7748. Also set Z so that
      * projective coordinates can be used. */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &grp->G.X, 16,
-                                              "216936D3CD6E53FEC0A4E231FDD6DC5C692CC7609525A7B2C9562D608F25D51A" ) ) ;
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &grp->G.Y, 16,
-                                              "6666666666666666666666666666666666666666666666666666666666666658" ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &grp->G.X,
+                        ed25519_g_x, sizeof( ed25519_g_x ) ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &grp->G.Y,
+                        ed25519_g_y, sizeof( ed25519_g_y ) ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &grp->G.Z, 1 ) );
 
 cleanup:

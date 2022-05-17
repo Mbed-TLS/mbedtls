@@ -124,7 +124,7 @@ static int ecdh_compute_shared_restartable( mbedtls_ecp_group *grp,
     MBEDTLS_MPI_CHK( mbedtls_ecp_mul_restartable( grp, &P, d, Q,
                                                   f_rng, p_rng, rs_ctx ) );
 
-    if( mbedtls_ecp_is_zero( &P ) )
+    if( mbedtls_ecp_is_zero_ext( grp, &P ) )
     {
         ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
         goto cleanup;
@@ -682,8 +682,10 @@ static int ecdh_calc_secret_internal( mbedtls_ecdh_context_mbed *ctx,
 
     *olen = ctx->grp.pbits / 8 + ( ( ctx->grp.pbits % 8 ) != 0 );
 
+#if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
     if( mbedtls_ecp_get_type( &ctx->grp ) == MBEDTLS_ECP_TYPE_MONTGOMERY )
         return mbedtls_mpi_write_binary_le( &ctx->z, buf, *olen );
+#endif
 
     return mbedtls_mpi_write_binary( &ctx->z, buf, *olen );
 }

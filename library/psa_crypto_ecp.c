@@ -215,7 +215,7 @@ psa_status_t mbedtls_psa_ecp_export_key( psa_key_type_t type,
     if( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) )
     {
         /* Check whether the public part is loaded */
-        if( mbedtls_ecp_is_zero( &ecp->Q ) )
+        if( mbedtls_ecp_is_zero_ext( &ecp->grp, &ecp->Q ) )
         {
             /* Calculate the public key */
             status = mbedtls_to_psa_error(
@@ -447,7 +447,7 @@ psa_status_t mbedtls_psa_ecdsa_verify_hash(
                                               curve_bytes ) );
 
     /* Check whether the public part is loaded. If not, load it. */
-    if( mbedtls_ecp_is_zero( &ecp->Q ) )
+    if( mbedtls_ecp_is_zero_ext( &ecp->grp, &ecp->Q ) )
     {
         MBEDTLS_MPI_CHK(
             mbedtls_ecp_mul( &ecp->grp, &ecp->Q, &ecp->d, &ecp->grp.G,

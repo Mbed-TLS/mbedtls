@@ -288,7 +288,7 @@ int mbedtls_pk_can_do_ext( const mbedtls_pk_context *ctx, psa_algorithm_t alg )
     psa_reset_key_attributes( &attributes );
 
     /*
-     * Common case: the key alg & alg2 only allows alg.
+     * Common case: the key alg or alg2 only allows alg.
      * This will match PSA_ALG_RSA_PKCS1V15_CRYPT & PSA_ALG_IS_ECDH
      * directly.
      * This would also match ECDSA/RSA_PKCS1V15_SIGN/RSA_PSS with

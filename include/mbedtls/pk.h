@@ -422,6 +422,11 @@ int mbedtls_pk_can_do( const mbedtls_pk_context *ctx, mbedtls_pk_type_t type );
  *                  PSA_ALG_RSA_PKCS1V15_CRYPT,
  *                  PSA_ALG_ECDSA(hash),
  *                  PSA_ALG_ECDH, where hash is a specific hash.
+ * \param usage  PSA usage flag to check against, must be composed of:
+ *                  PSA_KEY_USAGE_SIGN_HASH
+ *                  PSA_KEY_USAGE_DECRYPT
+ *                  PSA_KEY_USAGE_DERIVE.
+ *                  Context key must match all passed usage flags.
  *
  * \return          1 if the context can do operations on the given type.
  * \return          0 if the context cannot do the operations on the given
@@ -429,7 +434,8 @@ int mbedtls_pk_can_do( const mbedtls_pk_context *ctx, mbedtls_pk_type_t type );
  *                  been initialized but not set up, or that has been
  *                  cleared with mbedtls_pk_free().
  */
-int mbedtls_pk_can_do_ext( const mbedtls_pk_context *ctx, psa_algorithm_t alg );
+int mbedtls_pk_can_do_ext( const mbedtls_pk_context *ctx, psa_algorithm_t alg,
+                           psa_key_usage_t usage );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 /**

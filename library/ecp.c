@@ -3176,37 +3176,6 @@ cleanup:
 #endif /* MBEDTLS_ECP_EDWARDS_ENABLED */
 
 /*
- * Point addition R = P + Q
- */
-int mbedtls_ecp_add( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
-                     const mbedtls_ecp_point *P, const mbedtls_ecp_point *Q )
-{
-    int ret = MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
-
-    ECP_VALIDATE_RET( grp != NULL );
-    ECP_VALIDATE_RET( R   != NULL );
-    ECP_VALIDATE_RET( P   != NULL );
-    ECP_VALIDATE_RET( Q   != NULL );
-
-#if defined(MBEDTLS_ECP_EDWARDS_ENABLED)
-    if( mbedtls_ecp_get_type( grp ) == MBEDTLS_ECP_TYPE_EDWARDS )
-    {
-        MBEDTLS_MPI_CHK( ecp_add_edxyz( grp, R, P, Q ) );
-        MBEDTLS_MPI_CHK( ecp_normalize_edxyz( grp, R ) );
-    }
-#else
-    (void) grp;
-    (void) R;
-    (void) P;
-    (void) Q;
-    goto cleanup;
-#endif
-
-cleanup:
-    return( ret );
-}
-
-/*
  * Restartable multiplication R = m * P
  *
  * This internal function can be called without an RNG in case where we know

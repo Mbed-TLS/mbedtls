@@ -1409,8 +1409,8 @@ read_record_header:
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
             case MBEDTLS_TLS_EXT_SERVERNAME:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found ServerName extension" ) );
-                ret = mbedtls_ssl_parse_servername_ext( ssl, ext + 4,
-                                                        ext + 4 + ext_size );
+                ret = mbedtls_ssl_parse_server_name_ext( ssl, ext + 4,
+                                                         ext + 4 + ext_size );
                 if( ret != 0 )
                     return( ret );
                 break;

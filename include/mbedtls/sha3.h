@@ -132,9 +132,9 @@ int mbedtls_sha3_starts( mbedtls_sha3_context *ctx, mbedtls_sha3_id id );
  * \param id       The id of the SHA-3 family. It can be \c MBEDTLS_SHA3_CSHAKE128 or
  *                 \c MBEDTLS_SHA3_CSHAKE256.
  * \param name     The function-name string. It must be zero-terminated.
- * \param name_len The length of \c name in Bytes.
+ * \param name_len The length of \c name in Bytes (does not contain \c NULL char).
  * \param custom   The customization string. It must be zero-terminated.
- * \param custom_len The length of \c custom in Bytes.
+ * \param custom_len The length of \c custom in Bytes (does not contain \c NULL char).
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
@@ -174,8 +174,8 @@ int mbedtls_sha3_update( mbedtls_sha3_context *ctx,
  *                 This must be a writable buffer of length \c olen bytes.
  * \param olen     Defines the length of output buffer (in bytes). For SHA-3 224, SHA-3 256,
  *                 SHA-3 384 and SHA-3 512 \c olen must be at least 28, 32, 48 or 64 bytes,
- *                 respectively. For SHAKE128 and SHAKE256, the buffer will be filled up to
- *                 \c olen bytes.
+ *                 respectively. For SHAKE128, SHAKE256, CSHAKE128 and CSHAKE256 the buffer
+ *                 will be filled up to \c olen bytes.
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
@@ -229,13 +229,13 @@ int mbedtls_sha3( mbedtls_sha3_id id, const uint8_t *input,
  *                 buffer of length \p ilen Bytes.
  * \param ilen     The length of the input data in Bytes.
  * \param name     The function-name string. It must be zero-terminated.
- * \param name_len The length of \c name in Bytes.
+ * \param name_len The length of \c name in Bytes (does not contain \c NULL char).
  * \param custom   The customization string. It must be zero-terminated.
- * \param custom_len The length of \c custom in Bytes.
+ * \param custom_len The length of \c custom in Bytes (does not contain \c NULL char).
  * \param output   The SHA-3 checksum result.
  *                 This must be a writable buffer of length \c olen bytes.
- * \param olen     Determines the length (in bytes) of the output. \c output
- *                 must be \c olen bytes length.
+ * \param olen     Defines the length of output buffer (in bytes). For CSHAKE128 and
+ *                 CSHAKE256 the buffer will be filled up to \c olen bytes.
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.

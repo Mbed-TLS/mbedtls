@@ -365,7 +365,6 @@ int mbedtls_sha3_cshake( mbedtls_sha3_id id,
 
     if( ( ret = mbedtls_sha3_starts_cshake( &ctx, id, name, name_len,
                                 custom, custom_len ) ) != 0 )
-
         goto exit;
 
     if( ( ret = mbedtls_sha3_update( &ctx, input, ilen ) ) != 0 )

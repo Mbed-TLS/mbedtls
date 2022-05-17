@@ -651,7 +651,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
             case MBEDTLS_TLS_EXT_SIG_ALG:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found signature_algorithms extension" ) );
 
-                ret = mbedtls_ssl_tls13_parse_sig_alg_ext(
+                ret = mbedtls_ssl_parse_sig_alg_ext(
                           ssl, p, extension_data_end );
                 if( ret != 0 )
                 {

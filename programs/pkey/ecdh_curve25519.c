@@ -61,7 +61,8 @@ int main( int argc, char *argv[] )
     const char pers[] = "ecdh";
 
     size_t olen;
-    unsigned char secret_cli[32], secret_srv[32];
+    unsigned char secret_cli[32] = { 0 };
+    unsigned char secret_srv[32] = { 0 };
     const unsigned char *p_cli_to_srv = cli_to_srv;
 
     ((void) argc);
@@ -175,6 +176,8 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
+    size_t secret_cli_olen = olen;
+
     ret = mbedtls_ecdh_calc_secret( &ctx_srv, &olen, secret_srv,
                                     sizeof( secret_srv ),
                                     mbedtls_ctr_drbg_random, &ctr_drbg );
@@ -185,6 +188,8 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
+    size_t secret_srv_olen = olen;
+
     mbedtls_printf( " ok\n" );
 
     /*
@@ -193,8 +198,8 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "  . Check if both calculated secrets are equal..." );
     fflush( stdout );
 
-    ret = memcmp( secret_srv, secret_cli, sizeof( secret_srv ) );
-    if( ret != 0 )
+    ret = memcmp( secret_srv, secret_cli, sizeof( secret_srv_olen ) );
+    if( ret != 0 || ( secret_cli_olen != secret_srv_olen ) )
     {
         mbedtls_printf( " failed\n  ! Shared secrets not equal.\n" );
         goto exit;

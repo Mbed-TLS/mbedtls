@@ -1477,11 +1477,11 @@ static int ssl_tls13_write_certificate_verify( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 /*
- * State Handler: MBEDTLS_SSL_SERVER_FINISHED
+ * Handler for MBEDTLS_SSL_SERVER_FINISHED
  */
 static int ssl_tls13_write_server_finished( mbedtls_ssl_context *ssl )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     ret = mbedtls_ssl_tls13_write_finished_message( ssl );
     if( ret != 0 )
@@ -1492,34 +1492,26 @@ static int ssl_tls13_write_server_finished( mbedtls_ssl_context *ssl )
 }
 
 /*
- * State Handler: MBEDTLS_SSL_CLIENT_FINISHED
+ * Handler for MBEDTLS_SSL_CLIENT_FINISHED
  */
 static int ssl_tls13_process_client_finished( mbedtls_ssl_context *ssl )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
     MBEDTLS_SSL_DEBUG_MSG( 1,
-                  ( "Switch to handshake traffic keys for outbound traffic" ) );
+                  ( "Switch to handshake traffic keys for inbound traffic" ) );
     mbedtls_ssl_set_inbound_transform( ssl, ssl->handshake->transform_handshake );
+
     ret = mbedtls_ssl_tls13_process_finished_message( ssl );
     if( ret != 0 )
         return( ret );
 
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_HANDSHAKE_WRAPUP );
     return( 0 );
-
 }
 
 /*
- * State Handler: MBEDTLS_SSL_FLUSH_BUFFERS
- */
-static int ssl_tls13_flush_buffers( mbedtls_ssl_context *ssl )
-{
-    ((void) ssl);
-    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
-}
-
-/*
- * State Handler: MBEDTLS_SSL_HANDSHAKE_WRAPUP
+ * Handler for MBEDTLS_SSL_HANDSHAKE_WRAPUP
  */
 static int ssl_tls13_handshake_wrapup( mbedtls_ssl_context *ssl )
 {

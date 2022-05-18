@@ -621,7 +621,7 @@ int mbedtls_ssl_tls13_generate_application_keys(
  * \returns    A negative error code on failure.
  */
 int mbedtls_ssl_tls13_generate_resumption_master_secret(
-    mbedtls_ssl_context* ssl );
+    mbedtls_ssl_context *ssl );
 
 /**
  * \brief Calculate the verify_data value for the client or server TLS 1.3

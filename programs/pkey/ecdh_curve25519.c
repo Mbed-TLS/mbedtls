@@ -135,7 +135,7 @@ int main( int argc, char *argv[] )
                                     mbedtls_ctr_drbg_random, &ctr_drbg );
     if( ret != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ecdh_make_params returned %d\n",
+        mbedtls_printf( " failed\n  ! mbedtls_ecdh_make_public returned %d\n",
                         ret );
         goto exit;
     }

@@ -1594,10 +1594,6 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
             ret = ssl_tls13_process_client_finished( ssl );
             break;
 
-        case MBEDTLS_SSL_FLUSH_BUFFERS:
-            ret = ssl_tls13_flush_buffers( ssl );
-            break;
-
         case MBEDTLS_SSL_HANDSHAKE_WRAPUP:
             ret = ssl_tls13_handshake_wrapup( ssl );
             break;

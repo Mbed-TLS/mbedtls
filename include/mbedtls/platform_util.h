@@ -67,7 +67,7 @@ extern "C" {
  * \brief       User supplied callback function for parameter validation failure.
  *              See #MBEDTLS_CHECK_PARAMS for context.
  *
- *              This function will be called unless an alternative treatement
+ *              This function will be called unless an alternative treatment
  *              is defined through the #MBEDTLS_PARAM_FAILED macro.
  *
  *              This function can return, and the operation will be aborted, or

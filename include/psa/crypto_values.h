@@ -1769,15 +1769,11 @@
  * HKDF-Extract using HMAC-SHA-256.
  *
  * This key derivation algorithm uses the following inputs:
- *  - PSA_KEY_DERIVATION_INPUT_SALT is the salt. Note that if the salt is
- *    shorter than the hash function's block size, it is padded to the block
- *    size with null bytes (and in particular an empty salt is equivalent to
- *    a string of zeros of the length of the hash, or of the  block size which
- *    is larger than the hash).
+ *  - PSA_KEY_DERIVATION_INPUT_SALT is the salt.
  *  - PSA_KEY_DERIVATION_INPUT_SECRET is the input keying material used in the
  *    "extract" step.
- * You must pass #PSA_KEY_DERIVATION_INPUT_SALT
- * before #PSA_KEY_DERIVATION_INPUT_SECRET.
+ * The inputs are mandatory and must be passed in the order above.
+ * Each input may only be passed once.
  *
  *  \warning HKDF-Extract is not meant to be used on its own. PSA_ALG_HKDF
  *  should be used instead if possible. PSA_ALG_HKDF_EXTRACT is provided
@@ -1786,6 +1782,12 @@
  *  in applications that use HKDF with the same salt and key but many
  *  different info strings.
  *
+ *  \warning  HKDF processes the salt as follows: first hash it with hash_alg
+ *  if the salt is longer than the block size of the hash algorithm; then
+ *  pad with null bytes up to the block size. As a result, it is possible
+ *  for distinct salt inputs to result in the same outputs. To ensure
+ *  unique outputs, it is recommended to use a fixed length for salt values.
+ *
  * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
  *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
  *
@@ -1793,7 +1795,6 @@
  * \return              Unspecified if \p hash_alg is not a supported
  *                      hash algorithm.
  */
-
 #define PSA_ALG_HKDF_EXTRACT(hash_alg)                                  \
     (PSA_ALG_HKDF_EXTRACT_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
 /** Whether the specified algorithm is an HKDF-Extract algorithm.

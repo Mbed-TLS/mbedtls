@@ -5194,7 +5194,6 @@ static psa_status_t psa_hkdf_input( psa_hkdf_key_derivation_t *hkdf,
                 return( PSA_SUCCESS );
             }
         case PSA_KEY_DERIVATION_INPUT_SECRET:
-            /* If no salt was provided, use an empty salt. */
             if( PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) )
             {
                 if( hkdf->state != HKDF_STATE_INIT )
@@ -5207,6 +5206,7 @@ static psa_status_t psa_hkdf_input( psa_hkdf_key_derivation_t *hkdf,
             }
             else
             {
+                /* If no salt was provided, use an empty salt. */
                 if( hkdf->state == HKDF_STATE_INIT )
                 {
                     status = psa_key_derivation_start_hmac( &hkdf->hmac,

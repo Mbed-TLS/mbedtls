@@ -7005,9 +7005,13 @@ void derive_output( int alg_arg,
                 switch( key_input_type )
                 {
                     case 0: // input bytes
-                        PSA_ASSERT( psa_key_derivation_input_bytes(
+                        TEST_EQUAL( psa_key_derivation_input_bytes(
                                         &operation, steps[i],
-                                        inputs[i]->x, inputs[i]->len ) );
+                                        inputs[i]->x, inputs[i]->len ),
+                                    statuses[i] );
+
+                        if( statuses[i] != PSA_SUCCESS )
+                            goto exit;
                         break;
                     case 1: // input key
                         psa_set_key_usage_flags( &attributes1, PSA_KEY_USAGE_DERIVE );

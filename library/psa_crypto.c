@@ -5196,10 +5196,15 @@ static psa_status_t psa_hkdf_input( psa_hkdf_key_derivation_t *hkdf,
         case PSA_KEY_DERIVATION_INPUT_SECRET:
             if( PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) )
             {
+                /* We shouldn't be in different state as HKDF_EXPAND only allows
+                 * two inputs: SECRET (this case) and INFO which does not modify
+                 * the state. It could happen only if the hkdf
+                 * object was corrupted. */
                 if( hkdf->state != HKDF_STATE_INIT )
                     return( PSA_ERROR_BAD_STATE );
 
-                if( data_length > sizeof( hkdf->prk ) )
+                /* Allow only input that fits expected prk size */
+                if( data_length != PSA_HASH_LENGTH( hash_alg ) )
                     return( PSA_ERROR_INVALID_ARGUMENT );
 
                 memcpy( hkdf->prk, data, data_length );

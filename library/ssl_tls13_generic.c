@@ -594,8 +594,8 @@ static int ssl_tls13_validate_certificate( mbedtls_ssl_context *ssl )
             else
             {
                 MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_NO_CERT,
-                                              MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE );
-                return( MBEDTLS_ERR_SSL_FATAL_ALERT_MESSAGE );
+                                              MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE  );
+                return( MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE );
             }
         }
 #endif /* MBEDTLS_SSL_SRV_C */
@@ -741,9 +741,9 @@ int mbedtls_ssl_tls13_process_certificate( mbedtls_ssl_context *ssl )
 
     mbedtls_ssl_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_CERTIFICATE,
                                         buf, buf_len );
-#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
 
 cleanup:
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate" ) );
     return( ret );

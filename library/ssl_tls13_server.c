@@ -1517,10 +1517,12 @@ static int ssl_tls13_process_client_finished( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    MBEDTLS_SSL_DEBUG_MSG( 1,
-                  ( "Switch to handshake traffic keys for outbound traffic" ) );
     if( ! ssl->handshake->certificate_request_sent )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1,
+            ( "Switch to handshake traffic keys for inbound traffic" ) );
         mbedtls_ssl_set_inbound_transform( ssl, ssl->handshake->transform_handshake );
+    }
     ret = mbedtls_ssl_tls13_process_finished_message( ssl );
     if( ret != 0 )
         return( ret );

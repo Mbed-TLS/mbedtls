@@ -993,8 +993,8 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
 {
 #if !defined(MBEDTLS_USE_PSA_CRYPTO)
     int ret;
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
     mbedtls_cipher_info_t const *cipher_info;
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
     unsigned char const *key_enc;
     unsigned char const *iv_enc;
@@ -1022,6 +1022,7 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
     cipher_info = mbedtls_cipher_info_from_type( ciphersuite_info->cipher );
     if( cipher_info == NULL )
     {
@@ -1030,7 +1031,6 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
-#if !defined(MBEDTLS_USE_PSA_CRYPTO)
     /*
      * Setup cipher contexts in target transform
      */
@@ -1120,7 +1120,7 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
     /*
      * Setup psa keys and alg
      */
-    if( ( status = mbedtls_ssl_cipher_to_psa( cipher_info->type,
+    if( ( status = mbedtls_ssl_cipher_to_psa( ciphersuite_info->cipher,
                                  transform->taglen,
                                  &alg,
                                  &key_type,
@@ -1188,6 +1188,34 @@ int mbedtls_ssl_tls13_key_schedule_stage_early( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
+static int mbedtls_ssl_tls13_get_cipher_key_info(
+                    const mbedtls_ssl_ciphersuite_t *ciphersuite_info,
+                    size_t *key_len, size_t *iv_len )
+{
+    psa_key_type_t key_type;
+    psa_algorithm_t alg;
+    size_t taglen;
+    size_t key_bits;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    if( ciphersuite_info->flags & MBEDTLS_CIPHERSUITE_SHORT_TAG )
+        taglen = 8;
+    else
+        taglen = 16;
+
+    status = mbedtls_ssl_cipher_to_psa( ciphersuite_info->cipher, taglen,
+                                        &alg, &key_type, &key_bits );
+    if( status != PSA_SUCCESS )
+        return psa_ssl_status_to_mbedtls( status );
+
+    *key_len = PSA_BITS_TO_BYTES( key_bits );
+
+    /* TLS 1.3 only have AEAD ciphers, IV length is unconditionally 12 bytes */
+    *iv_len = 12;
+
+    return 0;
+}
+
 /* mbedtls_ssl_tls13_generate_handshake_keys() generates keys necessary for
  * protecting the handshake messages, as described in Section 7 of TLS 1.3. */
 int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
@@ -1203,7 +1231,6 @@ int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
     unsigned char transcript[MBEDTLS_TLS1_3_MD_MAX_SIZE];
     size_t transcript_len;
 
-    mbedtls_cipher_info_t const *cipher_info;
     size_t key_len, iv_len;
 
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
@@ -1212,9 +1239,13 @@ int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> mbedtls_ssl_tls13_generate_handshake_keys" ) );
 
-    cipher_info = mbedtls_cipher_info_from_type( ciphersuite_info->cipher );
-    key_len = cipher_info->key_bitlen >> 3;
-    iv_len = cipher_info->iv_size;
+    ret = mbedtls_ssl_tls13_get_cipher_key_info( ciphersuite_info,
+                                                 &key_len, &iv_len );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_get_cipher_key_info", ret );
+        return ret;
+    }
 
     md_type = ciphersuite_info->mac;
 
@@ -1408,17 +1439,19 @@ int mbedtls_ssl_tls13_generate_application_keys(
     size_t hash_len;
 
     /* Variables relating to the cipher for the chosen ciphersuite. */
-    mbedtls_cipher_info_t const *cipher_info;
     size_t key_len, iv_len;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> derive application traffic keys" ) );
 
     /* Extract basic information about hash and ciphersuite */
 
-    cipher_info = mbedtls_cipher_info_from_type(
-                                  handshake->ciphersuite_info->cipher );
-    key_len = cipher_info->key_bitlen / 8;
-    iv_len = cipher_info->iv_size;
+    ret = mbedtls_ssl_tls13_get_cipher_key_info( handshake->ciphersuite_info,
+                                                 &key_len, &iv_len );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_get_cipher_key_info", ret );
+        goto cleanup;
+    }
 
     md_type = handshake->ciphersuite_info->mac;
 

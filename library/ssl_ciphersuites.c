@@ -1876,15 +1876,26 @@ int mbedtls_ssl_get_ciphersuite_id( const char *ciphersuite_name )
 
 size_t mbedtls_ssl_ciphersuite_get_cipher_key_bitlen( const mbedtls_ssl_ciphersuite_t *info )
 {
-#if defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_type_t key_type;
+    psa_algorithm_t alg;
+    size_t key_bits;
+
+    status = mbedtls_ssl_cipher_to_psa( info->cipher,
+                        info->flags & MBEDTLS_CIPHERSUITE_SHORT_TAG ? 8 : 16,
+                        &alg, &key_type, &key_bits );
+
+    if( status != PSA_SUCCESS )
+        return 0;
+
+    return key_bits;
+#else
     const mbedtls_cipher_info_t * const cipher_info =
       mbedtls_cipher_info_from_type( info->cipher );
 
     return( mbedtls_cipher_info_get_key_bitlen( cipher_info ) );
-#else
-    (void)info;
-    return( 0 );
-#endif
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 }
 
 #if defined(MBEDTLS_PK_C)

@@ -87,7 +87,7 @@ Creating or removing a key in a secure element involves multiple storage modific
 * This must be done for each possible flow, including error cases (e.g. a key creation that fails midway due to `OUT_OF_MEMORY`).
 * The recovery during `psa_crypto_init` can itself be interrupted. Test those interruptions too.
 * Two things need to be tested: the key that is being created or destroyed, and the driver's persistent storage.
-* Check both that the storage has the expected content (this can be done by e.g. using a key that is supposed to be present) and does not have any unexpected content (for keys, this can be done by checking that `psa_open_key` fails with `PSA_ERRROR_DOES_NOT_EXIST`).
+* Check both that the storage has the expected content (this can be done by e.g. using a key that is supposed to be present) and does not have any unexpected content (for keys, this can be done by checking that `psa_open_key` fails with `PSA_ERROR_DOES_NOT_EXIST`).
 
 This requires instrumenting the storage implementation, either to force it to fail at each point or to record successive storage states and replay each of them. Each `psa_its_xxx` function call is assumed to be atomic.
 

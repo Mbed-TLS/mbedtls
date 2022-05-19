@@ -360,7 +360,7 @@ would need a way to easily extract the PSA key ID from the PK context.
 
 2. APIs the accept list of identifiers: for example
    `mbedtls_ssl_conf_curves()` taking a list of `mbedtls_ecp_group_id`s. This
-could be changed to accept a list of pairs (`psa_ecc_familiy_t`, size) but we
+could be changed to accept a list of pairs (`psa_ecc_family_t`, size) but we
 should probably take this opportunity to move to a identifier independent from
 the underlying crypto implementation and use TLS-specific identifiers instead
 (based on IANA values or custom enums), as is currently done in the new

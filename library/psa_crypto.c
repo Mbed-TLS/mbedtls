@@ -4377,8 +4377,7 @@ psa_status_t psa_key_derivation_set_capacity( psa_key_derivation_operation_t *op
 }
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
-/* Read some bytes from an HKDF-based operation. This performs a chunk
- * of the expand phase of the HKDF algorithm. */
+/* Read some bytes from an HKDF-based operation. */
 static psa_status_t psa_key_derivation_hkdf_read( psa_hkdf_key_derivation_t *hkdf,
                                                   psa_algorithm_t kdf_alg,
                                                   uint8_t *output,
@@ -4388,6 +4387,7 @@ static psa_status_t psa_key_derivation_hkdf_read( psa_hkdf_key_derivation_t *hkd
     uint8_t hash_length = PSA_HASH_LENGTH( hash_alg );
     size_t hmac_output_length;
     psa_status_t status;
+    const uint8_t last_block = PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) ? 0 : 0xff;
 
     if( hkdf->state < HKDF_STATE_KEYED ||
         ( ! hkdf->info_set && ! PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) ) )
@@ -4406,57 +4406,49 @@ static psa_status_t psa_key_derivation_hkdf_read( psa_hkdf_key_derivation_t *hkd
         hkdf->offset_in_block += n;
         if( output_length == 0 )
             break;
-        /* We can't be wanting more output after block 0xff, otherwise
+        /* We can't be wanting more output after the last block, otherwise
          * the capacity check in psa_key_derivation_output_bytes() would have
          * prevented this call. It could happen only if the operation
          * object was corrupted or if this function is called directly
          * inside the library. */
-        if( hkdf->block_number == 0xff )
+        if( hkdf->block_number == last_block )
             return( PSA_ERROR_BAD_STATE );
 
-
-        if( PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) && hkdf->block_number == 0 )
-        {
-            memcpy( hkdf->output_block, hkdf->prk, hash_length );
-        }
 
         /* We need a new block */
         ++hkdf->block_number;
         hkdf->offset_in_block = 0;
 
-        if( ! PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) )
-        {
-            status = psa_key_derivation_start_hmac( &hkdf->hmac,
-                                                    hash_alg,
-                                                    hkdf->prk,
-                                                    hash_length );
-            if( status != PSA_SUCCESS )
-                return( status );
+        status = psa_key_derivation_start_hmac( &hkdf->hmac,
+                                                hash_alg,
+                                                hkdf->prk,
+                                                hash_length );
+        if( status != PSA_SUCCESS )
+            return( status );
 
-            if( hkdf->block_number != 1 )
-            {
-                status = psa_mac_update( &hkdf->hmac,
-                                        hkdf->output_block,
-                                        hash_length );
-                if( status != PSA_SUCCESS )
-                    return( status );
-            }
+        if( hkdf->block_number != 1 )
+        {
             status = psa_mac_update( &hkdf->hmac,
-                                    hkdf->info,
-                                    hkdf->info_length );
-            if( status != PSA_SUCCESS )
-                return( status );
-            status = psa_mac_update( &hkdf->hmac,
-                                    &hkdf->block_number, 1 );
-            if( status != PSA_SUCCESS )
-                return( status );
-            status = psa_mac_sign_finish( &hkdf->hmac,
-                                        hkdf->output_block,
-                                        sizeof( hkdf->output_block ),
-                                        &hmac_output_length );
+                                    hkdf->output_block,
+                                    hash_length );
             if( status != PSA_SUCCESS )
                 return( status );
         }
+        status = psa_mac_update( &hkdf->hmac,
+                                hkdf->info,
+                                hkdf->info_length );
+        if( status != PSA_SUCCESS )
+            return( status );
+        status = psa_mac_update( &hkdf->hmac,
+                                &hkdf->block_number, 1 );
+        if( status != PSA_SUCCESS )
+            return( status );
+        status = psa_mac_sign_finish( &hkdf->hmac,
+                                    hkdf->output_block,
+                                    sizeof( hkdf->output_block ),
+                                    &hmac_output_length );
+        if( status != PSA_SUCCESS )
+            return( status );
     }
 
     return( PSA_SUCCESS );
@@ -5235,9 +5227,21 @@ static psa_status_t psa_hkdf_input( psa_hkdf_key_derivation_t *hkdf,
                     return( status );
             }
 
-            hkdf->offset_in_block = PSA_HASH_LENGTH( hash_alg );
-            hkdf->block_number = 0;
             hkdf->state = HKDF_STATE_KEYED;
+            hkdf->block_number = 0;
+            if( PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) )
+            {
+                /* The only block of output is the PRK. */
+                memcpy( hkdf->output_block, hkdf->prk, PSA_HASH_LENGTH( hash_alg ) );
+                hkdf->offset_in_block = 0;
+            }
+            else
+            {
+                /* Block 0 is empty, and the next block will be
+                 * generated by psa_key_derivation_hkdf_read(). */
+                hkdf->offset_in_block = PSA_HASH_LENGTH( hash_alg );
+            }
+
             return( PSA_SUCCESS );
         case PSA_KEY_DERIVATION_INPUT_INFO:
             if( PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) )

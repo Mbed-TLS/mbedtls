@@ -1571,4 +1571,58 @@ int mbedtls_ssl_tls13_generate_resumption_master_secret(
     return( 0 );
 }
 
+int mbedtls_ssl_tls13_compute_application_transform( mbedtls_ssl_context *ssl )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_ssl_key_set traffic_keys;
+    mbedtls_ssl_transform *transform_application = NULL;
+
+    ret = mbedtls_ssl_tls13_key_schedule_stage_application( ssl );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1,
+           "mbedtls_ssl_tls13_key_schedule_stage_application", ret );
+        goto cleanup;
+    }
+
+    ret = mbedtls_ssl_tls13_generate_application_keys( ssl, &traffic_keys );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1,
+            "mbedtls_ssl_tls13_generate_application_keys", ret );
+        goto cleanup;
+    }
+
+    transform_application =
+        mbedtls_calloc( 1, sizeof( mbedtls_ssl_transform ) );
+    if( transform_application == NULL )
+    {
+        ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
+        goto cleanup;
+    }
+
+    ret = mbedtls_ssl_tls13_populate_transform(
+                                    transform_application,
+                                    ssl->conf->endpoint,
+                                    ssl->session_negotiate->ciphersuite,
+                                    &traffic_keys,
+                                    ssl );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_populate_transform", ret );
+        goto cleanup;
+    }
+
+    ssl->transform_application = transform_application;
+
+cleanup:
+
+    mbedtls_platform_zeroize( &traffic_keys, sizeof( traffic_keys ) );
+    if( ret != 0 )
+    {
+        mbedtls_free( transform_application );
+    }
+    return( ret );
+}
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */

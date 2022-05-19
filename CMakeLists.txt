@@ -8,7 +8,7 @@
 #     that targets are built using the proper list of include directories.
 #   + Use the PUBLIC and PRIVATE keywords to specify the scope of include
 #     directories. That way, a target linking to a library (using the
-#     target_link_librairies command) inherits from the library PUBLIC include
+#     target_link_libraries command) inherits from the library PUBLIC include
 #     directories and not from the PRIVATE ones.
 #   + Note: there is currently one remaining include_directories command in the
 #     CMake files. It is related to ZLIB support which is planned to be removed.

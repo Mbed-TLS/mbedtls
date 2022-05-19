@@ -1405,7 +1405,7 @@ struct mbedtls_ssl_context
     unsigned char *compress_buf;        /*!<  zlib data buffer        */
 #endif /* MBEDTLS_ZLIB_SUPPORT */
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
-    signed char split_done;     /*!< current record already splitted? */
+    signed char split_done;     /*!< current record already split? */
 #endif /* MBEDTLS_SSL_CBC_RECORD_SPLITTING */
 
     /*
@@ -1688,7 +1688,7 @@ void mbedtls_ssl_conf_dbg( mbedtls_ssl_config *conf,
  *
  * \note           The two most common use cases are:
  *                 - non-blocking I/O, f_recv != NULL, f_recv_timeout == NULL
- *                 - blocking I/O, f_recv == NULL, f_recv_timout != NULL
+ *                 - blocking I/O, f_recv == NULL, f_recv_timeout != NULL
  *
  * \note           For DTLS, you need to provide either a non-NULL
  *                 f_recv_timeout callback, or a f_recv that doesn't block.
@@ -2793,7 +2793,7 @@ void mbedtls_ssl_conf_ca_cb( mbedtls_ssl_config *conf,
  *
  * \note           On client, only the first call has any effect. That is,
  *                 only one client certificate can be provisioned. The
- *                 server's preferences in its CertficateRequest message will
+ *                 server's preferences in its CertificateRequest message will
  *                 be ignored and our only cert will be sent regardless of
  *                 whether it matches those preferences - the server can then
  *                 decide what it wants to do with it.

@@ -445,9 +445,9 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  *   As an exception, the public exponent 65537 is represented by an empty
  *   byte string.
  * - For DSA keys (#PSA_KEY_TYPE_DSA_PUBLIC_KEY or #PSA_KEY_TYPE_DSA_KEY_PAIR),
- *   the `Dss-Parms` format as defined by RFC 3279 &sect;2.3.2.
+ *   the `Dss-Params` format as defined by RFC 3279 &sect;2.3.2.
  *   ```
- *   Dss-Parms ::= SEQUENCE  {
+ *   Dss-Params ::= SEQUENCE  {
  *      p       INTEGER,
  *      q       INTEGER,
  *      g       INTEGER
@@ -463,9 +463,9 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  *      g               INTEGER,                    -- generator, g
  *      q               INTEGER,                    -- factor of p-1
  *      j               INTEGER OPTIONAL,           -- subgroup factor
- *      validationParms ValidationParms OPTIONAL
+ *      validationParams ValidationParams OPTIONAL
  *   }
- *   ValidationParms ::= SEQUENCE {
+ *   ValidationParams ::= SEQUENCE {
  *      seed            BIT STRING,
  *      pgenCounter     INTEGER
  *   }

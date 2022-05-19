@@ -100,6 +100,32 @@
             goto exit;                                                  \
     } while( 0 )
 
+/** Evaluate two unsigned integer expressions and fail the test case
+ * if they are not in increasing order (left <= right).
+ *
+ * \param expr1     An integral-typed expression to evaluate.
+ * \param expr2     Another integral-typed expression to evaluate.
+ */
+#define TEST_LE_U( expr1, expr2 )                                       \
+    do {                                                                \
+        if( ! mbedtls_test_le_u( #expr1 " <= " #expr2, __LINE__, __FILE__, \
+                                 expr1, expr2 ) )                      \
+            goto exit;                                                  \
+    } while( 0 )
+
+/** Evaluate two signed integer expressions and fail the test case
+ * if they are not in increasing order (left <= right).
+ *
+ * \param expr1     An integral-typed expression to evaluate.
+ * \param expr2     Another integral-typed expression to evaluate.
+ */
+#define TEST_LE_S( expr1, expr2 )                                       \
+    do {                                                                \
+        if( ! mbedtls_test_le_s( #expr1 " <= " #expr2, __LINE__, __FILE__, \
+                                 expr1, expr2 ) )                      \
+            goto exit;                                                  \
+    } while( 0 )
+
 /** Allocate memory dynamically and fail the test case if this fails.
  * The allocated memory will be filled with zeros.
  *

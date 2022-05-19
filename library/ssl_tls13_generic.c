@@ -1120,41 +1120,6 @@ static int ssl_tls13_parse_finished_message( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
-static int ssl_tls13_postprocess_finished_message( mbedtls_ssl_context *ssl )
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-#if defined(MBEDTLS_SSL_SRV_C)
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
-    {
-        ret = mbedtls_ssl_tls13_generate_resumption_master_secret( ssl );
-        if( ret != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1,
-               "mbedtls_ssl_tls13_generate_resumption_master_secret ", ret );
-        }
-
-        return( ret );
-    }
-#endif /* MBEDTLS_SSL_SRV_C */
-
-#if defined(MBEDTLS_SSL_CLI_C)
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
-    {
-        ret = mbedtls_ssl_tls13_compute_application_transform( ssl );
-        if( ret != 0 )
-        {
-            MBEDTLS_SSL_PEND_FATAL_ALERT(
-                    MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
-                    MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-        }
-        return( ret );
-    }
-#endif /* MBEDTLS_SSL_CLI_C */
-
-    ((void) ssl);
-    return( ret );
-}
-
 int mbedtls_ssl_tls13_process_finished_message( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -1172,7 +1137,6 @@ int mbedtls_ssl_tls13_process_finished_message( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_parse_finished_message( ssl, buf, buf + buf_len ) );
     mbedtls_ssl_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_FINISHED,
                                         buf, buf_len );
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_postprocess_finished_message( ssl ) );
 
 cleanup:
 
@@ -1207,39 +1171,6 @@ static int ssl_tls13_prepare_finished_message( mbedtls_ssl_context *ssl )
     }
 
     return( 0 );
-}
-
-static int ssl_tls13_finalize_finished_message( mbedtls_ssl_context *ssl )
-{
-    int ret = 0;
-#if defined(MBEDTLS_SSL_CLI_C)
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
-    {
-        ret = mbedtls_ssl_tls13_generate_resumption_master_secret( ssl );
-        if( ret != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1,
-                    "mbedtls_ssl_tls13_generate_resumption_master_secret ", ret );
-            return ( ret );
-        }
-    }
-#endif /* MBEDTLS_SSL_CLI_C */
-
-#if defined(MBEDTLS_SSL_SRV_C)
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
-    {
-        ret = mbedtls_ssl_tls13_compute_application_transform( ssl );
-        if( ret != 0 )
-        {
-            MBEDTLS_SSL_PEND_FATAL_ALERT(
-                    MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
-                    MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-        }
-        return( ret );
-    }
-#endif /* MBEDTLS_SSL_SRV_C */
-
-    return( ret );
 }
 
 static int ssl_tls13_write_finished_message_body( mbedtls_ssl_context *ssl,
@@ -1282,7 +1213,6 @@ int mbedtls_ssl_tls13_write_finished_message( mbedtls_ssl_context *ssl )
     mbedtls_ssl_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_FINISHED,
                                         buf, msg_len );
 
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_finished_message( ssl ) );
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_finish_handshake_msg(
                               ssl, buf_len, msg_len ) );
 cleanup:

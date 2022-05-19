@@ -271,33 +271,35 @@ int mbedtls_pk_can_do_ext( const mbedtls_pk_context *ctx, psa_algorithm_t alg,
         mbedtls_pk_type_t type;
 
         if( PSA_ALG_IS_ECDSA( alg ) || PSA_ALG_IS_ECDH( alg ) )
-        {
             type = MBEDTLS_PK_ECKEY;
-            key_usage = PSA_KEY_USAGE_SIGN_HASH |
-                        PSA_KEY_USAGE_DERIVE;
-        }
-        else if( PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) )
-        {
+        else if( PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) ||
+                 alg == PSA_ALG_RSA_PKCS1V15_CRYPT )
             type = MBEDTLS_PK_RSA;
-            key_usage = PSA_KEY_USAGE_SIGN_HASH;
-        }
-        else if( alg == PSA_ALG_RSA_PKCS1V15_CRYPT )
-        {
-            type = MBEDTLS_PK_RSA;
-            key_usage = PSA_KEY_USAGE_DECRYPT;
-        }
         else if( PSA_ALG_IS_RSA_PSS( alg ) )
-        {
             type = MBEDTLS_PK_RSASSA_PSS;
-            key_usage = PSA_KEY_USAGE_SIGN_HASH;
-        }
         else
             return( 0 );
 
-        if( ( key_usage & usage ) != usage )
+        if( ctx->pk_info->can_do( type ) == 0 )
             return( 0 );
 
-        return( ctx->pk_info->can_do( type ) );
+        switch( type )
+        {
+            case MBEDTLS_PK_ECKEY:
+                key_usage = PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_DERIVE;
+                break;
+            case MBEDTLS_PK_RSA:
+            case MBEDTLS_PK_RSASSA_PSS:
+                key_usage = PSA_KEY_USAGE_SIGN_HASH |
+                            PSA_KEY_USAGE_SIGN_MESSAGE |
+                            PSA_KEY_USAGE_DECRYPT;
+                break;
+            default:
+                /* Should never happend */
+                return( 0 );
+        }
+
+        return( ( key_usage & usage ) == usage );
     }
 
     const mbedtls_svc_key_id_t *key = (const mbedtls_svc_key_id_t *) ctx->pk_ctx;

@@ -5766,6 +5766,22 @@ psa_status_t psa_raw_key_agreement( psa_algorithm_t alg,
     if( status != PSA_SUCCESS )
         goto exit;
 
+    /* PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE() is in general an upper bound
+     * for the output size. The PSA specification only guarantees that this
+     * function works if output_size >= PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE(...),
+     * but it might be nice to allow smaller buffers if the output fits.
+     * At the time of writing this comment, with only ECDH implemented,
+     * PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE() is exact so the point is moot.
+     * If FFDH is implemented, PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE() can easily
+     * be exact for it as well. */
+    size_t expected_length =
+        PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE( slot->attr.type, slot->attr.bits );
+    if( output_size < expected_length )
+    {
+        status = PSA_ERROR_BUFFER_TOO_SMALL;
+        goto exit;
+    }
+
     status = psa_key_agreement_raw_internal( alg, slot,
                                              peer_key, peer_key_length,
                                              output, output_size,

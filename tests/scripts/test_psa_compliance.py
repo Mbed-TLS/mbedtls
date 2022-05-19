@@ -47,7 +47,7 @@ EXPECTED_FAILURES = {
 #
 # Web URL: https://github.com/bensze01/psa-arch-tests/tree/fixes-for-mbedtls-3
 PSA_ARCH_TESTS_REPO = 'https://github.com/bensze01/psa-arch-tests.git'
-PSA_ARCH_TESTS_REF = 'fix-pr-5139-3'
+PSA_ARCH_TESTS_REF = 'fix-pr-5736'
 
 #pylint: disable=too-many-branches,too-many-statements
 def main():

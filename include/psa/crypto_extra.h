@@ -1743,9 +1743,10 @@ psa_status_t psa_pake_abort(psa_pake_operation_t * operation);
  * \param output_step   A value of type ::psa_pake_step_t that is valid for the
  *                      algorithm \p alg.
  * \return              A sufficient output buffer size for the specified
- *                      output, cipher suite and algorithm. If the cipher suite,
- *                      the output type or PAKE algorithm is not recognized, or
- *                      the parameters are incompatible, return 0.
+ *                      PAKE algorithm, primitive, and output step. If the
+ *                      PAKE algorithm, primitive, or output step is not
+ *                      recognized, or the parameters are incompatible,
+ *                      return 0.
  */
 #define PSA_PAKE_OUTPUT_SIZE(alg, primitive, output_step) 0
 

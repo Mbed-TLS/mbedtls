@@ -862,15 +862,15 @@ psa_status_t mbedtls_psa_platform_get_builtin_key(
  * psa_pake_set_password_key(operation, ...);
  * \endcode
  *
- * The password is read as a byte array and must be non-empty. This can be the
- * password itself (in some pre-defined character encoding) or some value
- * derived from the password as mandated by some higher level protocol.
+ * The password is provided as a key. This can be the password text itself,
+ * in an agreed character encoding, or some value derived from the password
+ * as required by a higher level protocol.
  *
- * (The implementation converts this byte array to a number as described in
+ * (The implementation converts the key material to a number as described in
  * Section 2.3.8 of _SEC 1: Elliptic Curve Cryptography_
  * (https://www.secg.org/sec1-v2.pdf), before reducing it modulo \c q. Here
  * \c q is order of the group defined by the primitive set in the cipher suite.
- * The \c psa_pake_set_password_xxx() functions return an error if the result
+ * The \c psa_pake_set_password() functions return an error if the result
  * of the reduction is 0.)
  *
  * The key exchange flow for J-PAKE is as follows:

@@ -1378,10 +1378,18 @@ static psa_pake_operation_t psa_pake_operation_init(void);
  *
  * \retval #PSA_SUCCESS
  *         Success.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The algorithm in \p cipher_suite is not a PAKE algorithm, or the
+ *         PAKE primitive in \p cipher_suite is not compatible with the
+ *         PAKE algorithm, or the hash algorithm in \p cipher_suite is invalid
+ *         or not compatible with the PAKE algorithm and primitive.
  * \retval #PSA_ERROR_NOT_SUPPORTED
- *         The \p cipher_suite is not supported or is not valid.
+ *         The algorithm in \p cipher_suite is not a supported PAKE algorithm,
+ *         or the PAKE primitive in \p cipher_suite is not supported or not
+ *         compatible with the PAKE algorithm, or the hash algorithm in
+ *         \p cipher_suite is not supported or not compatible with the PAKE
+ *         algorithm and primitive.
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid, or

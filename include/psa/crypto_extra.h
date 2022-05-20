@@ -1572,8 +1572,11 @@ psa_status_t psa_pake_set_side(psa_pake_operation_t *operation,
  *                             \c PSA_PAKE_STEP_XXX constants for more
  *                             information.
  * \param output_size          Size of the \p output buffer in bytes. This must
- *                             be at least #PSA_PAKE_OUTPUT_SIZE(\p alg, \c
- *                             cipher_suite, \p type).
+ *                             be at least #PSA_PAKE_OUTPUT_SIZE(\p alg, \p
+ *                             primitive, \p step) where \p alg and
+ *                             \p primitive are the PAKE algorithm and primitive
+ *                             in the operation's cipher suite, and \p step is
+ *                             the output step.
  *
  * \param[out] output_length   On success, the number of bytes of the returned
  *                             output.

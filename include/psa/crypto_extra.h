@@ -961,12 +961,13 @@ psa_status_t mbedtls_psa_platform_get_builtin_key(
  * @{
  */
 
-/** \brief Encoding of the side of PAKE
+/** \brief Encoding of the application role of PAKE
  *
- * Encodes which side of the algorithm is being executed. For more information
- * see the documentation of individual \c PSA_PAKE_SIDE_XXX constants.
+ * Encodes the application's role in the algorithm is being executed. For more
+ * information see the documentation of individual \c PSA_PAKE_ROLE_XXX
+ * constants.
  */
-typedef uint8_t psa_pake_side_t;
+typedef uint8_t psa_pake_role_t;
 
 /** Encoding of input and output indicators for PAKE.
  *
@@ -999,35 +1000,41 @@ typedef uint8_t psa_pake_family_t;
  */
 typedef uint32_t psa_pake_primitive_t;
 
+/** A value to indicate no role in a PAKE algorithm.
+ * This value can be used in a call to psa_pake_set_role() for symmetric PAKE
+ * algorithms which do not assign roles.
+ */
+#define PSA_PAKE_ROLE_NONE                  ((psa_pake_role_t)0x00)
+
 /** The first peer in a balanced PAKE.
  *
  * Although balanced PAKE algorithms are symmetric, some of them needs an
  * ordering of peers for the transcript calculations. If the algorithm does not
- * need this, both #PSA_PAKE_SIDE_FIRST and #PSA_PAKE_SIDE_SECOND are
+ * need this, both #PSA_PAKE_ROLE_FIRST and #PSA_PAKE_ROLE_SECOND are
  * accepted.
  */
-#define PSA_PAKE_SIDE_FIRST                ((psa_pake_side_t)0x01)
+#define PSA_PAKE_ROLE_FIRST                ((psa_pake_role_t)0x01)
 
 /** The second peer in a balanced PAKE.
  *
  * Although balanced PAKE algorithms are symmetric, some of them needs an
  * ordering of peers for the transcript calculations. If the algorithm does not
- * need this, either #PSA_PAKE_SIDE_FIRST or #PSA_PAKE_SIDE_SECOND are
+ * need this, either #PSA_PAKE_ROLE_FIRST or #PSA_PAKE_ROLE_SECOND are
  * accepted.
  */
-#define PSA_PAKE_SIDE_SECOND                ((psa_pake_side_t)0x02)
+#define PSA_PAKE_ROLE_SECOND                ((psa_pake_role_t)0x02)
 
 /** The client in an augmented PAKE.
  *
  * Augmented PAKE algorithms need to differentiate between client and server.
  */
-#define PSA_PAKE_SIDE_CLIENT                ((psa_pake_side_t)0x11)
+#define PSA_PAKE_ROLE_CLIENT                ((psa_pake_role_t)0x11)
 
 /** The server in an augmented PAKE.
  *
  * Augmented PAKE algorithms need to differentiate between client and server.
  */
-#define PSA_PAKE_SIDE_SERVER                ((psa_pake_side_t)0x12)
+#define PSA_PAKE_ROLE_SERVER                ((psa_pake_role_t)0x12)
 
 /** The PAKE primitive type indicating the use of elliptic curves.
  *
@@ -1530,34 +1537,37 @@ psa_status_t psa_pake_set_peer(psa_pake_operation_t *operation,
                                const uint8_t *peer_id,
                                size_t peer_id_len);
 
-/** Set the side for a password-authenticated key exchange.
+/** Set the application role for a password-authenticated key exchange.
  *
  * Not all PAKE algorithms need to differentiate the communicating entities.
- * It is optional to call this function for PAKEs that don't require a side
- * parameter. For such PAKEs the side parameter is ignored.
+ * It is optional to call this function for PAKEs that don't require a role
+ * to be specified. For such PAKEs the application role parameter is ignored,
+ * or #PSA_PAKE_ROLE_NONE can be passed as \c role.
  *
  * Refer to the documentation of individual PAKE algorithm types (`PSA_ALG_XXX`
  * values of type ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true)
  * for more information.
  *
- * \param[in,out] operation     The operation object to set the side for. It
- *                              must have been set up by psa_pake_setup() and
- *                              not yet in use (neither psa_pake_output() nor
- *                              psa_pake_input() has been called yet). It must
- *                              be on operation for which the side hasn't been
- *                              set (psa_pake_set_side() hasn't been called
- *                              yet).
- * \param side                  A value of type ::psa_pake_side_t signaling the
- *                              side of the algorithm that is being set up. For
- *                              more information see the documentation of
- *                              \c PSA_PAKE_SIDE_XXX constants.
+ * \param[in,out] operation     The operation object to specificy the
+ *                              application's role for. It must have been set up
+ *                              by psa_pake_setup() and not yet in use (neither
+ *                              psa_pake_output() nor psa_pake_input() has been
+ *                              called yet). It must be on operation for which
+ *                              the application's role hasn't been specified
+ *                              (psa_pake_set_role() hasn't been called yet).
+ * \param role                  A value of type ::psa_pake_role_t indicating the
+ *                              application's role in the PAKE the algorithm
+ *                              that is being set up. For more information see
+ *                              the documentation of \c PSA_PAKE_ROLE_XXX
+ *                              constants.
  *
  * \retval #PSA_SUCCESS
  *         Success.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The \p role is not a valid PAKE role in the \p operation’s algorithm.
  * \retval #PSA_ERROR_NOT_SUPPORTED
- *         The \p side for this algorithm is not supported or is not valid.
+ *         The \p role for this algorithm is not supported or is not valid.
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid, or
@@ -1565,8 +1575,8 @@ psa_status_t psa_pake_set_peer(psa_pake_operation_t *operation,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_pake_set_side(psa_pake_operation_t *operation,
-                               psa_pake_side_t side);
+psa_status_t psa_pake_set_role(psa_pake_operation_t *operation,
+                               psa_pake_role_t role);
 
 /** Get output for a step of a password-authenticated key exchange.
  *

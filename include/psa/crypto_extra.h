@@ -1238,6 +1238,20 @@ static psa_pake_family_t psa_pake_cs_get_family(
                            const psa_pake_cipher_suite_t* cipher_suite
                            );
 
+/** Retrieve the PAKE primitive bit-size from a PAKE cipher suite.
+ *
+ * This function may be declared as `static` (i.e. without external
+ * linkage). This function may be provided as a function-like macro,
+ * but in this case it must evaluate its argument exactly once.
+ *
+ * \param[in] cipher_suite     The cipher suite structure to query.
+ *
+ * \return The PAKE primitive bit-size stored in the cipher suite structure.
+ */
+static uint16_t psa_pake_cs_get_bits(
+                           const psa_pake_cipher_suite_t* cipher_suite
+                           );
+
 /** Retrieve the hash algorithm from a PAKE cipher suite.
  *
  * This function may be declared as `static` (i.e. without external
@@ -1829,6 +1843,12 @@ static inline psa_pake_family_t psa_pake_cs_get_family(
     const psa_pake_cipher_suite_t *cipher_suite)
 {
     return(cipher_suite->family);
+}
+
+static inline uint16_t psa_pake_cs_get_bits(
+    const psa_pake_cipher_suite_t *cipher_suite)
+{
+    return(cipher_suite->bits);
 }
 
 static inline psa_algorithm_t psa_pake_cs_get_hash(

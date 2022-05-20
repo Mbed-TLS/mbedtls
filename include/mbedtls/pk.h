@@ -428,12 +428,16 @@ int mbedtls_pk_can_do( const mbedtls_pk_context *ctx, mbedtls_pk_type_t type );
  *                  PSA_KEY_USAGE_DERIVE.
  *                  Context key must match all passed usage flags.
  *
+ * \warning         Since the set of allowed algorithms and usage flags may be
+ *                  expanded in the future, the return value \c 0 should not
+ *                  be taken in account for non-allowed algorithms and usage
+ *                  flags.
+ *
  * \return          1 if the context can do operations on the given type.
  * \return          0 if the context cannot do the operations on the given
- *                  type, or for non-allowed algorithms and usage flags.
- *                  This is always the case for a context that has
- *                  been initialized but not set up, or that has been
- *                  cleared with mbedtls_pk_free().
+ *                  type, for non-allowed algorithms and usage flags, or
+ *                  for a context that has been initialized but not set up
+ *                  or that has been cleared with mbedtls_pk_free().
  */
 int mbedtls_pk_can_do_ext( const mbedtls_pk_context *ctx, psa_algorithm_t alg,
                            psa_key_usage_t usage );

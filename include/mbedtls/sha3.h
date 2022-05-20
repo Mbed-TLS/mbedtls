@@ -84,6 +84,7 @@ typedef struct mbedtls_sha3_context {
     uint16_t olen;
     uint8_t xor_byte;
     uint16_t max_block_size;
+    uint8_t finished;
 }
 mbedtls_sha3_context;
 
@@ -247,6 +248,17 @@ int mbedtls_sha3_cshake( mbedtls_sha3_id id, const uint8_t *input,
                     size_t ilen, const char *name, size_t name_len,
                     const char *custom, size_t custom_len,
                     uint8_t *output, size_t olen );
+
+#if defined(MBEDTLS_SELF_TEST)
+/**
+ * \brief          Checkup routine for the algorithms implemented
+ *                 by this module: SHA3-224, SHA3-256, SHA3-384, SHA3-512,
+ *                 SHAKE128, SHAKE256, cSHAKE128 and cSHAKE256.
+ *
+ * \return         0 if successful, or 1 if the test failed.
+ */
+int mbedtls_sha3_self_test( int verbose );
+#endif /* MBEDTLS_SELF_TEST */
 
 #ifdef __cplusplus
 }

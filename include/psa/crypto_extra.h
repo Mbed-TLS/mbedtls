@@ -1673,6 +1673,31 @@ psa_status_t psa_pake_input(psa_pake_operation_t *operation,
 psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
                                        psa_key_derivation_operation_t *output);
 
+/** Abort a PAKE operation.
+ *
+ * Aborting an operation frees all associated resources except for the \c
+ * operation structure itself. Once aborted, the operation object can be reused
+ * for another operation by calling psa_pake_setup() again.
+ *
+ * This function may be called at any time after the operation
+ * object has been initialized as described in #psa_pake_operation_t.
+ *
+ * In particular, calling psa_pake_abort() after the operation has been
+ * terminated by a call to psa_pake_abort() or psa_pake_get_implicit_key()
+ * is safe and has no effect.
+ *
+ * \param[in,out] operation    The operation to abort.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_pake_abort(psa_pake_operation_t * operation);
+
 /**@}*/
 
 /** A sufficient output buffer size for psa_pake_output().

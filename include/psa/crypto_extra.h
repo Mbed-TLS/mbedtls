@@ -1153,6 +1153,10 @@ typedef uint32_t psa_pake_primitive_t;
  */
 typedef struct psa_pake_cipher_suite_s psa_pake_cipher_suite_t;
 
+/** Return an initial value for a PAKE cipher suite object.
+ */
+static psa_pake_cipher_suite_t psa_pake_cipher_suite_init(void);
+
 /** Retrieve the PAKE algorithm from a PAKE cipher suite.
  *
  * This function may be declared as `static` (i.e. without external
@@ -1802,6 +1806,12 @@ struct psa_pake_operation_s
         uint8_t dummy;
     } ctx;
 };
+
+static inline struct psa_pake_cipher_suite_s psa_pake_cipher_suite_init(void)
+{
+    const struct psa_pake_cipher_suite_s v = PSA_PAKE_CIPHER_SUITE_INIT;
+    return(v);
+}
 
 /* This only zeroes out the first byte in the union, the rest is unspecified. */
 #define PSA_PAKE_OPERATION_INIT {0, {0}}

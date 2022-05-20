@@ -216,6 +216,7 @@ int mbedtls_sha3_starts( mbedtls_sha3_context *ctx, mbedtls_sha3_id id )
 
     memset( ctx->state, 0, sizeof( ctx->state ) );
     ctx->index = 0;
+    ctx->finished = 0;
 
     return( 0 );
 }
@@ -246,9 +247,11 @@ int mbedtls_sha3_update( mbedtls_sha3_context *ctx,
 int mbedtls_sha3_finish( mbedtls_sha3_context *ctx,
                               uint8_t *output, size_t olen )
 {
-    if( ctx == NULL || output == NULL )
+    if( ctx == NULL )
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
 
+    if( olen == 0 || output == NULL )
+        return( 0 );
     /* Catch SHA-3 families, with fixed output length */
     if( ctx->olen > 0 )
     {
@@ -257,10 +260,14 @@ int mbedtls_sha3_finish( mbedtls_sha3_context *ctx,
         olen = ctx->olen;
     }
 
-    ABSORB( ctx, ctx->index, ctx->xor_byte );
-    ABSORB( ctx, ctx->max_block_size - 1, 0x80 );
-    keccak_f1600( ctx );
-    ctx->index = 0;
+    if( ctx->finished == 0 )
+    {
+        ABSORB( ctx, ctx->index, ctx->xor_byte );
+        ABSORB( ctx, ctx->max_block_size - 1, 0x80 );
+        keccak_f1600( ctx );
+        ctx->index = 0;
+        ctx->finished = 1;
+    }
 
     while( olen-- > 0 )
     {

@@ -1344,7 +1344,7 @@ static psa_pake_operation_t psa_pake_operation_init(void);
  *
  * \param[in,out] operation     The operation object to set up. It must have
  *                              been initialized but not set up yet.
- * \param cipher_suite          The cipher suite to use. (A cipher suite fully
+ * \param[in] cipher_suite      The cipher suite to use. (A cipher suite fully
  *                              characterizes a PAKE algorithm and determines
  *                              the algorithm as well.)
  *
@@ -1362,7 +1362,7 @@ static psa_pake_operation_t psa_pake_operation_init(void);
  *         results in this error code.
  */
 psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
-                            psa_pake_cipher_suite_t cipher_suite);
+                            const psa_pake_cipher_suite_t *cipher_suite);
 
 /** Set the password for a password-authenticated key exchange from key ID.
  *
@@ -1818,7 +1818,6 @@ static inline struct psa_pake_cipher_suite_s psa_pake_cipher_suite_init(void)
     return(v);
 }
 
-/* This only zeroes out the first byte in the union, the rest is unspecified. */
 static inline struct psa_pake_operation_s psa_pake_operation_init(void)
 {
     const struct psa_pake_operation_s v = PSA_PAKE_OPERATION_INIT;

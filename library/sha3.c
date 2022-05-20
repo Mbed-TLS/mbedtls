@@ -807,6 +807,116 @@ static int mbedtls_shake_self_test( int verbose )
     return( 0 );
 }
 
+static const unsigned char cshake_test_customization[15] =
+    "email signature";
+
+static const unsigned char cshake128_test_output[2][16] =
+{
+    {
+        0xcb, 0x7f, 0xc0, 0x3a, 0x6a, 0xd2, 0x25, 0xd0,
+        0x42, 0xba, 0x48, 0xdb, 0x49, 0x7e, 0x09, 0x96
+    },
+    {
+        0x79, 0x51, 0x27, 0xb7, 0x1d, 0x4a, 0x55, 0x34,
+        0x00, 0xe9, 0xa5, 0x65, 0x8f, 0xbc, 0x38, 0x1e
+    }
+};
+
+static const unsigned char cshake256_test_output[2][32] =
+{
+    {
+        0xa4, 0x32, 0xb6, 0x58, 0x06, 0xe2, 0x24, 0x0e,
+        0xb0, 0xd7, 0x32, 0x46, 0x4a, 0xb6, 0x22, 0x39,
+        0x04, 0x5c, 0x2c, 0x3e, 0xdc, 0xab, 0x4e, 0x39,
+        0xab, 0xb0, 0x78, 0xc8, 0x99, 0xaf, 0xae, 0xcd
+    },
+    {
+        0xb4, 0x25, 0xb4, 0xc5, 0xef, 0x1f, 0xec, 0xa1,
+        0x16, 0x8b, 0x88, 0xbe, 0x51, 0x0c, 0xc4, 0x1d,
+        0x44, 0x0a, 0x06, 0x16, 0xd6, 0x81, 0x9c, 0x45,
+        0x75, 0xeb, 0xcf, 0x2e, 0x15, 0xe4, 0x32, 0x06
+    }
+};
+
+static int mbedtls_cshake_self_test( int verbose )
+{
+    uint8_t output[32];
+    int i;
+    int result;
+
+    for( i = 0; i < 2; i++ )
+    {
+        if( verbose != 0 )
+        {
+            mbedtls_printf( "  cSHAKE128 test %d ", i );
+        }
+
+        result = mbedtls_sha3_cshake( MBEDTLS_SHA3_CSHAKE128,
+                                 shake128_test_input[i], 16,
+                                 NULL, 0,
+                                 (const char *) cshake_test_customization,
+                                 sizeof( cshake_test_customization ),
+                                 output, 16 );
+        if( result != 0 )
+        {
+            if( verbose != 0 )
+            {
+                mbedtls_printf( "error code: %d\n", result );
+            }
+            return( -1 );
+        }
+        if( 0 != memcmp( cshake128_test_output[i], output, 16 ) )
+        {
+            if( verbose != 0 )
+            {
+                mbedtls_printf( "failed\n" );
+            }
+            return( -1 );
+        }
+
+        if( verbose != 0 )
+        {
+            mbedtls_printf( "passed\n" );
+            mbedtls_printf( "  cSHAKE256 test %d ", i );
+        }
+
+        result = mbedtls_sha3_cshake( MBEDTLS_SHA3_CSHAKE256,
+                                 shake256_test_input[i], 32,
+                                 NULL, 0,
+                                 (const char *) cshake_test_customization,
+                                 sizeof( cshake_test_customization ),
+                                 output, 32 );
+        if( result != 0 )
+        {
+            if( verbose != 0 )
+            {
+                mbedtls_printf( "error code: %d\n", result );
+            }
+            return( -1 );
+        }
+        if( 0 != memcmp( cshake256_test_output[i], output, 32 ) )
+        {
+            if( verbose != 0 )
+            {
+                mbedtls_printf( "failed\n" );
+            }
+            return( -1 );
+        }
+
+        if( verbose != 0 )
+        {
+            mbedtls_printf( "passed\n" );
+        }
+    }
+
+    if( verbose != 0 )
+    {
+        mbedtls_printf( "\n" );
+    }
+
+    return( 0 );
+}
+
 int mbedtls_sha3_self_test( int verbose )
 {
     int i;
@@ -855,6 +965,8 @@ int mbedtls_sha3_self_test( int verbose )
 
     /* SHAKE and cSHAKE tests */
     if( 0 != mbedtls_shake_self_test( verbose ) )
+        return( 1 );
+    if( 0 != mbedtls_cshake_self_test( verbose ) )
         return( 1 );
 
     return( 0 );

@@ -1422,14 +1422,23 @@ psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
  *
  * \retval #PSA_SUCCESS
  *         Success.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p key is not compatible with the algorithm or the cipher suite.
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_STORAGE_FAILURE
+ *         \p password is not a valid key identifier.
  * \retval #PSA_ERROR_NOT_PERMITTED
+ *         The key does not have the #PSA_KEY_USAGE_DERIVE flag, or it does not
+ *         permit the \p operation's algorithm.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The key type for \p password is not #PSA_KEY_TYPE_PASSWORD or
+ *         #PSA_KEY_TYPE_PASSWORD_HASH, or \p password is not compatible with
+ *         the \p operation's cipher suite.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         The key type or key size of \p password is not supported with the
+ *         \p operation's cipher suite.
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ * \retval #PSA_ERROR_DATA_CORRUPT
+ * \retval #PSA_ERROR_DATA_INVALID
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (it must have been set up.), or
  *         the library has not been previously initialized by psa_crypto_init().

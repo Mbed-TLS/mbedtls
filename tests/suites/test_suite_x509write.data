@@ -139,7 +139,7 @@ depends_on:MBEDTLS_SHA256_C:MBEDTLS_ECDSA_C:MBEDTLS_ECDSA_DETERMINISTIC:MBEDTLS_
 x509_crt_check:"data_files/server5.key":"":"C=NL,O=PolarSSL,CN=PolarSSL Server 1":"data_files/test-ca2.key":"PolarSSLTest":"C=NL,O=PolarSSL,CN=Polarssl Test EC CA":"1":"20190210144406":"20290210144406":MBEDTLS_MD_SHA256:0:0:0:0:1:-1:"":2:0:"data_files/test-ca2.crt"
 
 X509 String to Names #1
-mbedtls_x509_string_to_names:"C=NL,O=Offspark\, Inc., OU=PolarSSL":"C=NL, O=Offspark, Inc., OU=PolarSSL":0
+mbedtls_x509_string_to_names:"C=NL,O=Offspark\, Inc., OU=PolarSSL":"C=NL, O=Offspark\, Inc., OU=PolarSSL":0
 
 X509 String to Names #2
 mbedtls_x509_string_to_names:"C=NL, O=Offspark, Inc., OU=PolarSSL":"":MBEDTLS_ERR_X509_UNKNOWN_OID

@@ -1663,13 +1663,22 @@ psa_status_t psa_pake_output(psa_pake_operation_t *operation,
  *
  * \retval #PSA_SUCCESS
  *         Success.
+ * \retval #PSA_ERROR_INVALID_SIGNATURE
+ *         The verification fails for a #PSA_PAKE_STEP_ZK_PROOF input step.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         The input is not valid for the algorithm, ciphersuite or \p step.
+ *         \p is not compatible with the \p operation’s algorithm, or the
+ *         \p input is not valid for the \p operation's algorithm, cipher suite
+ *         or \p step.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p step p is not supported with the \p operation's algorithm, or the
+ *         \p input is not supported for the \p operation's algorithm, cipher
+ *         suite or \p step.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_STORAGE_FAILURE
+ * \retval #PSA_ERROR_DATA_CORRUPT
+ * \retval #PSA_ERROR_DATA_INVALID
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (it must be active, but beyond that
  *         validity is specific to the algorithm), or

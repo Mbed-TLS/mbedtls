@@ -430,7 +430,8 @@ int mbedtls_pk_can_do( const mbedtls_pk_context *ctx, mbedtls_pk_type_t type );
  *
  * \return          1 if the context can do operations on the given type.
  * \return          0 if the context cannot do the operations on the given
- *                  type. This is always the case for a context that has
+ *                  type, or for non-allowed algorithms and usage flags.
+ *                  This is always the case for a context that has
  *                  been initialized but not set up, or that has been
  *                  cleared with mbedtls_pk_free().
  */

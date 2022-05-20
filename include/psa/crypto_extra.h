@@ -1727,13 +1727,17 @@ psa_status_t psa_pake_input(psa_pake_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         #PSA_KEY_DERIVATION_INPUT_SECRET is not compatible with the output’s
- *         algorithm.
+ *         #PSA_KEY_DERIVATION_INPUT_SECRET is not compatible with the
+ *         algorithm in the \p output key derivation operation.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         Input from a PAKE is not supported by the algorithm in the \p output
+ *         key derivation operation.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_STORAGE_FAILURE
+ * \retval #PSA_ERROR_DATA_CORRUPT
+ * \retval #PSA_ERROR_DATA_INVALID
  * \retval #PSA_ERROR_BAD_STATE
  *         The PAKE operation state is not valid (it must be active, but beyond
  *         that validity is specific to the algorithm), or

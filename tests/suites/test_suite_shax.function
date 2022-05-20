@@ -273,7 +273,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_SHA3_C */
 void shake_multi( int type,
                   data_t *input1, data_t *input2,
                   data_t *output1, data_t *output2 )

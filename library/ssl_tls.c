@@ -8247,7 +8247,7 @@ int mbedtls_ssl_parse_server_name_ext( mbedtls_ssl_context *ssl,
         return( 0 );
     }
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "Parse ServerName extension" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "parse ServerName extension" ) );
 
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2 );
     server_name_list_len = MBEDTLS_GET_UINT16_BE( p, 0 );
@@ -8264,11 +8264,15 @@ int mbedtls_ssl_parse_server_name_ext( mbedtls_ssl_context *ssl,
 
         if( p[0] == MBEDTLS_TLS_EXT_SERVERNAME_HOSTNAME )
         {
+            ssl->handshake->sni_name = p + 3;
+            ssl->handshake->sni_name_len = hostname_len;
+            if( ssl->conf->f_sni == NULL )
+                return( 0 );
             ret = ssl->conf->f_sni( ssl->conf->p_sni,
                                     ssl, p + 3, hostname_len );
             if( ret != 0 )
             {
-                MBEDTLS_SSL_DEBUG_RET( 1, "sni_wrapper", ret );
+                MBEDTLS_SSL_DEBUG_RET( 1, "ssl_sni_wrapper", ret );
                 mbedtls_ssl_send_alert_message(
                         ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                         MBEDTLS_SSL_ALERT_MSG_UNRECOGNIZED_NAME );

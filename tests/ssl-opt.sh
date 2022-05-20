@@ -11399,6 +11399,53 @@ run_test    "TLS 1.3: Server side check, no server certificate available" \
             -s "No certificate available."
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+run_test    "TLS 1.3: Server side check - openssl with server name indication" \
+            "$P_SRV debug_level=4 auth_mode=required crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0 \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,data_files/test-ca2.crt,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
+            "$O_NEXT_CLI -msg -debug -servername localhost -CAfile data_files/test-ca_cat12.crt -cert data_files/server5.crt -key data_files/server5.key -tls1_3" \
+            0 \
+            -s "tls13 server state: MBEDTLS_SSL_CLIENT_HELLO" \
+            -s "tls13 server state: MBEDTLS_SSL_SERVER_HELLO" \
+            -s "tls13 server state: MBEDTLS_SSL_ENCRYPTED_EXTENSIONS" \
+            -s "tls13 server state: MBEDTLS_SSL_SERVER_CERTIFICATE" \
+            -s "tls13 server state: MBEDTLS_SSL_CERTIFICATE_REQUEST" \
+            -s "tls13 server state: MBEDTLS_SSL_CERTIFICATE_VERIFY" \
+            -s "tls13 server state: MBEDTLS_SSL_SERVER_FINISHED" \
+            -s "tls13 server state: MBEDTLS_SSL_CLIENT_FINISHED" \
+            -s "tls13 server state: MBEDTLS_SSL_HANDSHAKE_WRAPUP" \
+            -s "parse ServerName extension" \
+            -s "=> parse client hello" \
+            -s "<= parse client hello"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+run_test    "TLS 1.3: Server side check - gnutls with server name indication" \
+            "$P_SRV debug_level=4 auth_mode=required crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0 \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,data_files/test-ca2.crt,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
+            "$G_NEXT_CLI localhost -d 4 --sni-hostname=localhost --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS -V" \
+            0 \
+            -s "tls13 server state: MBEDTLS_SSL_CLIENT_HELLO" \
+            -s "tls13 server state: MBEDTLS_SSL_SERVER_HELLO" \
+            -s "tls13 server state: MBEDTLS_SSL_ENCRYPTED_EXTENSIONS" \
+            -s "tls13 server state: MBEDTLS_SSL_SERVER_CERTIFICATE" \
+            -s "tls13 server state: MBEDTLS_SSL_CERTIFICATE_REQUEST" \
+            -s "tls13 server state: MBEDTLS_SSL_CERTIFICATE_VERIFY" \
+            -s "tls13 server state: MBEDTLS_SSL_SERVER_FINISHED" \
+            -s "tls13 server state: MBEDTLS_SSL_CLIENT_FINISHED" \
+            -s "tls13 server state: MBEDTLS_SSL_HANDSHAKE_WRAPUP" \
+            -s "parse ServerName extension" \
+            -s "=> parse client hello" \
+            -s "<= parse client hello"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
@@ -11407,14 +11454,17 @@ run_test    "TLS 1.3: Server side check - mbedtls with server name indication" \
              sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
             "$P_CLI debug_level=4 server_name=localhost crt_file=data_files/server5.crt key_file=data_files/server5.key \
             force_version=tls13" \
-            1 \
+            0 \
             -s "tls13 server state: MBEDTLS_SSL_CLIENT_HELLO" \
             -s "tls13 server state: MBEDTLS_SSL_SERVER_HELLO" \
             -s "tls13 server state: MBEDTLS_SSL_ENCRYPTED_EXTENSIONS" \
             -s "tls13 server state: MBEDTLS_SSL_SERVER_CERTIFICATE" \
-            -c "client state: MBEDTLS_SSL_CERTIFICATE_REQUEST" \
-            -s "Parse ServerName extension" \
-            -s "SSL - The requested feature is not available" \
+            -s "tls13 server state: MBEDTLS_SSL_CERTIFICATE_REQUEST" \
+            -s "tls13 server state: MBEDTLS_SSL_CERTIFICATE_VERIFY" \
+            -s "tls13 server state: MBEDTLS_SSL_SERVER_FINISHED" \
+            -s "tls13 server state: MBEDTLS_SSL_CLIENT_FINISHED" \
+            -s "tls13 server state: MBEDTLS_SSL_HANDSHAKE_WRAPUP" \
+            -s "parse ServerName extension" \
             -s "=> parse client hello" \
             -s "<= parse client hello"
 

@@ -60,7 +60,8 @@ int main( int argc, char *argv[] )
     unsigned char cli_to_srv[36], srv_to_cli[33];
     const char pers[] = "ecdh";
 
-    size_t olen;
+    size_t srv_olen;
+    size_t cli_olen;
     unsigned char secret_cli[32] = { 0 };
     unsigned char secret_srv[32] = { 0 };
     const unsigned char *p_cli_to_srv = cli_to_srv;
@@ -104,7 +105,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    ret = mbedtls_ecdh_make_params( &ctx_cli, &olen, cli_to_srv,
+    ret = mbedtls_ecdh_make_params( &ctx_cli, &cli_olen, cli_to_srv,
                                     sizeof( cli_to_srv ),
                                     mbedtls_ctr_drbg_random, &ctr_drbg );
     if( ret != 0 )
@@ -131,7 +132,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    ret = mbedtls_ecdh_make_public( &ctx_srv, &olen, srv_to_cli,
+    ret = mbedtls_ecdh_make_public( &ctx_srv, &srv_olen, srv_to_cli,
                                     sizeof( srv_to_cli ),
                                     mbedtls_ctr_drbg_random, &ctr_drbg );
     if( ret != 0 )
@@ -166,7 +167,7 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "  . Calculate secrets..." );
     fflush( stdout );
 
-    ret = mbedtls_ecdh_calc_secret( &ctx_cli, &olen, secret_cli,
+    ret = mbedtls_ecdh_calc_secret( &ctx_cli, &cli_olen, secret_cli,
                                     sizeof( secret_cli ),
                                     mbedtls_ctr_drbg_random, &ctr_drbg );
     if( ret != 0 )
@@ -176,9 +177,7 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    size_t secret_cli_olen = olen;
-
-    ret = mbedtls_ecdh_calc_secret( &ctx_srv, &olen, secret_srv,
+    ret = mbedtls_ecdh_calc_secret( &ctx_srv, &srv_olen, secret_srv,
                                     sizeof( secret_srv ),
                                     mbedtls_ctr_drbg_random, &ctr_drbg );
     if( ret != 0 )
@@ -188,8 +187,6 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    size_t secret_srv_olen = olen;
-
     mbedtls_printf( " ok\n" );
 
     /*
@@ -198,8 +195,8 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "  . Check if both calculated secrets are equal..." );
     fflush( stdout );
 
-    ret = memcmp( secret_srv, secret_cli, sizeof( secret_srv_olen ) );
-    if( ret != 0 || ( secret_cli_olen != secret_srv_olen ) )
+    ret = memcmp( secret_srv, secret_cli, sizeof( srv_olen ) );
+    if( ret != 0 || ( cli_olen != srv_olen ) )
     {
         mbedtls_printf( " failed\n  ! Shared secrets not equal.\n" );
         goto exit;

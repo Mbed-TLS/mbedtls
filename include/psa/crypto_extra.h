@@ -1224,6 +1224,20 @@ static void psa_pake_cs_set_primitive(
                            psa_pake_primitive_t primitive
                            );
 
+/** Retrieve the PAKE family from a PAKE cipher suite.
+ *
+ * This function may be declared as `static` (i.e. without external
+ * linkage). This function may be provided as a function-like macro,
+ * but in this case it must evaluate its argument exactly once.
+ *
+ * \param[in] cipher_suite     The cipher suite structure to query.
+ *
+ * \return The PAKE family stored in the cipher suite structure.
+ */
+static psa_pake_family_t psa_pake_cs_get_family(
+                           const psa_pake_cipher_suite_t* cipher_suite
+                           );
+
 /** Retrieve the hash algorithm from a PAKE cipher suite.
  *
  * This function may be declared as `static` (i.e. without external
@@ -1809,6 +1823,12 @@ static inline void psa_pake_cs_set_primitive(
     cipher_suite->type = (psa_pake_primitive_type_t) (primitive >> 24);
     cipher_suite->family = (psa_pake_family_t) (0xFF & (primitive >> 16));
     cipher_suite->bits = (uint16_t) (0xFFFF & primitive);
+}
+
+static inline psa_pake_family_t psa_pake_cs_get_family(
+    const psa_pake_cipher_suite_t *cipher_suite)
+{
+    return(cipher_suite->family);
 }
 
 static inline psa_algorithm_t psa_pake_cs_get_hash(

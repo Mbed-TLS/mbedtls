@@ -212,6 +212,9 @@ int mbedtls_sha3_starts( mbedtls_sha3_context *ctx, mbedtls_sha3_id id )
     ctx->xor_byte = p->xor_byte;
     ctx->max_block_size = ctx->r / 8;
 
+    memset( ctx->state, 0, sizeof( ctx->state ) );
+    ctx->index = 0;
+
     return( 0 );
 }
 

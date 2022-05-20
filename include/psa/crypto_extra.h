@@ -1512,13 +1512,13 @@ psa_status_t psa_pake_set_user(psa_pake_operation_t *operation,
  *
  * \retval #PSA_SUCCESS
  *         Success.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p user_id is not valid for the \p operation's algorithm and cipher
+ *         suite.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         The algorithm doesn't associate a second identity with the session.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p user_id is NULL.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid, or the library has not

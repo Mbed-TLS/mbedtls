@@ -1528,7 +1528,8 @@ psa_status_t psa_pake_set_user(psa_pake_operation_t *operation,
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid, or the library has not
+ *         Calling psa_pake_set_peer() is invalid with the \p operation's
+ *         algorithm, the operation state is not valid, or the library has not
  *         been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.

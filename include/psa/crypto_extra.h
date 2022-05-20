@@ -1614,11 +1614,17 @@ psa_status_t psa_pake_set_role(psa_pake_operation_t *operation,
  *         Success.
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p output buffer is too small.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p step is not compatible with the operation's algorithm.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p step is not supported with the operation's algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_STORAGE_FAILURE
+ * \retval #PSA_ERROR_DATA_CORRUPT
+ * \retval #PSA_ERROR_DATA_INVALID
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (it must be active, but beyond that
  *         validity is specific to the algorithm), or

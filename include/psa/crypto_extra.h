@@ -1740,6 +1740,11 @@ psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
  */
 #define PSA_PAKE_CIPHER_SUITE_INIT {PSA_ALG_NONE, 0, 0, 0, PSA_ALG_NONE}
 
+/** Returns a suitable initializer for a PAKE operation object of type
+ * psa_pake_operation_t.
+ */
+#define PSA_PAKE_OPERATION_INIT {0, {0}}
+
 struct psa_pake_cipher_suite_s
 {
     psa_algorithm_t algorithm;
@@ -1814,7 +1819,6 @@ static inline struct psa_pake_cipher_suite_s psa_pake_cipher_suite_init(void)
 }
 
 /* This only zeroes out the first byte in the union, the rest is unspecified. */
-#define PSA_PAKE_OPERATION_INIT {0, {0}}
 static inline struct psa_pake_operation_s psa_pake_operation_init(void)
 {
     const struct psa_pake_operation_s v = PSA_PAKE_OPERATION_INIT;

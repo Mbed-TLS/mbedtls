@@ -1731,6 +1731,11 @@ psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
  */
 #define PSA_PAKE_INPUT_MAX_SIZE 0
 
+/** Returns a suitable initializer for a PAKE cipher suite object of type
+ * psa_pake_cipher_suite_t.
+ */
+#define PSA_PAKE_CIPHER_SUITE_INIT {PSA_ALG_NONE, 0, 0, 0, PSA_ALG_NONE}
+
 struct psa_pake_cipher_suite_s
 {
     psa_algorithm_t algorithm;

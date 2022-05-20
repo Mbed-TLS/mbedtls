@@ -1768,6 +1768,7 @@ psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
  * \param[in,out] operation    The operation to abort.
  *
  * \retval #PSA_SUCCESS
+ *         Success.
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_BAD_STATE

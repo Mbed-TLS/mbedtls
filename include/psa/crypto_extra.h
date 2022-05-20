@@ -1588,12 +1588,12 @@ psa_status_t psa_pake_output(psa_pake_operation_t *operation,
  *
  * \param[in,out] operation    Active PAKE operation.
  * \param step                 The step for which the input is provided.
- * \param[out] input           Buffer containing the input in the format
+ * \param[in] input            Buffer containing the input in the format
  *                             appropriate for this \p step. Refer to the
  *                             documentation of the individual
  *                             \c PSA_PAKE_STEP_XXX constants for more
  *                             information.
- * \param[out] input_length    Size of the \p input buffer in bytes.
+ * \param input_length         Size of the \p input buffer in bytes.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -1613,7 +1613,7 @@ psa_status_t psa_pake_output(psa_pake_operation_t *operation,
  */
 psa_status_t psa_pake_input(psa_pake_operation_t *operation,
                             psa_pake_step_t step,
-                            uint8_t *input,
+                            const uint8_t *input,
                             size_t input_length);
 
 /** Get implicitly confirmed shared secret from a PAKE.

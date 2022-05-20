@@ -61,15 +61,23 @@ typedef enum {
     MBEDTLS_MD_SHA384,    /**< The SHA-384 message digest. */
     MBEDTLS_MD_SHA512,    /**< The SHA-512 message digest. */
     MBEDTLS_MD_RIPEMD160, /**< The RIPEMD-160 message digest. */
+#if defined(MBEDTLS_SHA3_C)
+    MBEDTLS_MD_SHA3_224,    /**< The SHA3-224 message digest. */
+    MBEDTLS_MD_SHA3_256,    /**< The SHA3-256 message digest. */
+    MBEDTLS_MD_SHA3_384,    /**< The SHA3-384 message digest. */
+    MBEDTLS_MD_SHA3_512,    /**< The SHA3-512 message digest. */
+#endif
 } mbedtls_md_type_t;
 
-#if defined(MBEDTLS_SHA512_C)
+#if defined(MBEDTLS_SHA512_C) || defined(MBEDTLS_SHA3_C)
 #define MBEDTLS_MD_MAX_SIZE         64  /* longest known is SHA512 */
 #else
 #define MBEDTLS_MD_MAX_SIZE         32  /* longest known is SHA256 or less */
 #endif
 
-#if defined(MBEDTLS_SHA512_C)
+#if defined(MBEDTLS_SHA3_C)
+#define MBEDTLS_MD_MAX_BLOCK_SIZE         144 /* the longest known is SHA3-224 */
+#elif defined(MBEDTLS_SHA512_C)
 #define MBEDTLS_MD_MAX_BLOCK_SIZE         128
 #else
 #define MBEDTLS_MD_MAX_BLOCK_SIZE         64

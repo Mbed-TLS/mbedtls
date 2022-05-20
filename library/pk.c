@@ -256,7 +256,8 @@ int mbedtls_pk_can_do_ext( const mbedtls_pk_context *ctx, psa_algorithm_t alg,
         return( 0 );
 
     /* Filter out non allowed usage flags */
-    if( ( usage & ~( PSA_KEY_USAGE_SIGN_HASH |
+    if( usage == 0 ||
+        ( usage & ~( PSA_KEY_USAGE_SIGN_HASH |
                      PSA_KEY_USAGE_DECRYPT |
                      PSA_KEY_USAGE_DERIVE ) ) != 0 )
         return( 0 );

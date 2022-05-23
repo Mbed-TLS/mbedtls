@@ -195,7 +195,7 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "  . Check if both calculated secrets are equal..." );
     fflush( stdout );
 
-    ret = memcmp( secret_srv, secret_cli, sizeof( srv_olen ) );
+    ret = memcmp( secret_srv, secret_cli, srv_olen );
     if( ret != 0 || ( cli_olen != srv_olen ) )
     {
         mbedtls_printf( " failed\n  ! Shared secrets not equal.\n" );

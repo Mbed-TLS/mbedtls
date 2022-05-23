@@ -11211,6 +11211,10 @@ run_test    "TLS 1.3: Server side check - openssl" \
             -s "tls13 server state: MBEDTLS_SSL_CLIENT_FINISHED" \
             -s "tls13 server state: MBEDTLS_SSL_HANDSHAKE_WRAPUP"
 
+# Skip this test before openssl exit code issue fixed
+# On fail, openssl return different exit code on OpenCI and internal CI for
+# this test.
+skip_next_test
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C

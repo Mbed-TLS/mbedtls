@@ -411,6 +411,38 @@ static inline size_t mbedtls_pk_get_len( const mbedtls_pk_context *ctx )
  */
 int mbedtls_pk_can_do( const mbedtls_pk_context *ctx, mbedtls_pk_type_t type );
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+/**
+ * \brief           Tell if context can do the operation given by PSA algorithm
+ *
+ * \param ctx       The context to query. It must have been initialized.
+ * \param alg       PSA algorithm to check against, the following are allowed:
+ *                  PSA_ALG_RSA_PKCS1V15_SIGN(hash),
+ *                  PSA_ALG_RSA_PSS(hash),
+ *                  PSA_ALG_RSA_PKCS1V15_CRYPT,
+ *                  PSA_ALG_ECDSA(hash),
+ *                  PSA_ALG_ECDH, where hash is a specific hash.
+ * \param usage  PSA usage flag to check against, must be composed of:
+ *                  PSA_KEY_USAGE_SIGN_HASH
+ *                  PSA_KEY_USAGE_DECRYPT
+ *                  PSA_KEY_USAGE_DERIVE.
+ *                  Context key must match all passed usage flags.
+ *
+ * \warning         Since the set of allowed algorithms and usage flags may be
+ *                  expanded in the future, the return value \c 0 should not
+ *                  be taken in account for non-allowed algorithms and usage
+ *                  flags.
+ *
+ * \return          1 if the context can do operations on the given type.
+ * \return          0 if the context cannot do the operations on the given
+ *                  type, for non-allowed algorithms and usage flags, or
+ *                  for a context that has been initialized but not set up
+ *                  or that has been cleared with mbedtls_pk_free().
+ */
+int mbedtls_pk_can_do_ext( const mbedtls_pk_context *ctx, psa_algorithm_t alg,
+                           psa_key_usage_t usage );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
 /**
  * \brief           Verify signature (including padding if relevant).
  *

@@ -247,6 +247,54 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_USE_PSA_CRYPTO */
+void pk_can_do_ext( int opaque_key, int key_type, int key_usage, int key_alg,
+                    int key_alg2, int parameter, int alg_check, int usage_check,
+                    int result )
+{
+    mbedtls_pk_context pk;
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    mbedtls_pk_init( &pk );
+
+    if( opaque_key == 1 )
+    {
+        psa_set_key_usage_flags( &attributes, key_usage );
+        psa_set_key_algorithm( &attributes, key_alg );
+        if( key_alg2 != 0 )
+            psa_set_key_enrollment_algorithm( &attributes, key_alg2 );
+        psa_set_key_type( &attributes, key_type );
+        psa_set_key_bits( &attributes, parameter );
+
+        PSA_ASSERT( psa_generate_key( &attributes, &key ) );
+
+        if( mbedtls_svc_key_id_is_null( key ) )
+            goto exit;
+
+        TEST_EQUAL( mbedtls_pk_setup_opaque( &pk, key ), 0 );
+
+        TEST_EQUAL( mbedtls_pk_get_type( &pk ), MBEDTLS_PK_OPAQUE );
+    }
+    else
+    {
+        TEST_EQUAL( mbedtls_pk_setup( &pk,
+                            mbedtls_pk_info_from_type( key_type ) ), 0 );
+        TEST_EQUAL( pk_genkey( &pk, parameter ), 0 );
+        TEST_EQUAL( mbedtls_pk_get_type( &pk ), key_type );
+    }
+
+    TEST_EQUAL( mbedtls_pk_can_do_ext( &pk, alg_check, usage_check ), result );
+
+exit:
+    psa_reset_key_attributes( &attributes );
+    PSA_ASSERT( psa_destroy_key( key ) );
+    mbedtls_pk_free( &pk );
+    USE_PSA_DONE( );
+}
+/* END_CASE */
 
 /* BEGIN_CASE */
 void valid_parameters( )

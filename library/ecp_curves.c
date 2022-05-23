@@ -4711,6 +4711,15 @@ static int ecp_use_curve448( mbedtls_ecp_group *grp )
     mbedtls_mpi_free( &grp->G.Y );
 
     /* N = 2^446 - 13818066809895115352007386748515426880336692474882178609894547503885 */
+    /* Fix wrong sign flag grp->N.s
+     *
+     * grp->N is in uninitialized state due to caller's having invoked
+     * mbedtls_ecp_group_free(grp) before. In uninitialized state, grp->N.s
+     * is not initialized to 1 to indicate positive. This can fix by
+     * re-initializing through mbedtls_mpi_lset(&grp->N, 0), following
+     * most other code.
+     */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &grp->N, 0 ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( &grp->N, 446, 1 ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &Ns,
                         curve448_part_of_n, sizeof( curve448_part_of_n ) ) );

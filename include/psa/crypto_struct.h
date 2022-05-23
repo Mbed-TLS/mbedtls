@@ -181,18 +181,30 @@ static inline struct psa_aead_operation_s psa_aead_operation_init( void )
     return( v );
 }
 
+
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
 typedef struct
 {
+    uint8_t *MBEDTLS_PRIVATE(secret);
+    size_t MBEDTLS_PRIVATE(secret_length);
+    uint8_t *MBEDTLS_PRIVATE(seed);
+    size_t MBEDTLS_PRIVATE(seed_length);
     uint8_t *MBEDTLS_PRIVATE(info);
     size_t MBEDTLS_PRIVATE(info_length);
+
+    unsigned int MBEDTLS_PRIVATE(state) : 2;
+    unsigned int MBEDTLS_PRIVATE(info_set) : 1;
+
+} psa_hkdf_key_derivation_inputs_t;
+
+typedef struct
+{
 #if PSA_HASH_MAX_SIZE > 0xff
 #error "PSA_HASH_MAX_SIZE does not fit in uint8_t"
 #endif
+    psa_hkdf_key_derivation_inputs_t inputs;
     uint8_t MBEDTLS_PRIVATE(offset_in_block);
     uint8_t MBEDTLS_PRIVATE(block_number);
-    unsigned int MBEDTLS_PRIVATE(state) : 2;
-    unsigned int MBEDTLS_PRIVATE(info_set) : 1;
     uint8_t MBEDTLS_PRIVATE(output_block)[PSA_HASH_MAX_SIZE];
     uint8_t MBEDTLS_PRIVATE(prk)[PSA_HASH_MAX_SIZE];
     struct psa_mac_operation_s MBEDTLS_PRIVATE(hmac);
@@ -211,21 +223,8 @@ typedef enum
     PSA_TLS12_PRF_STATE_OUTPUT            /* output has been started */
 } psa_tls12_prf_key_derivation_state_t;
 
-typedef struct psa_tls12_prf_key_derivation_s
+typedef struct
 {
-#if PSA_HASH_MAX_SIZE > 0xff
-#error "PSA_HASH_MAX_SIZE does not fit in uint8_t"
-#endif
-
-    /* Indicates how many bytes in the current HMAC block have
-     * not yet been read by the user. */
-    uint8_t MBEDTLS_PRIVATE(left_in_block);
-
-    /* The 1-based number of the block. */
-    uint8_t MBEDTLS_PRIVATE(block_number);
-
-    psa_tls12_prf_key_derivation_state_t MBEDTLS_PRIVATE(state);
-
     uint8_t *MBEDTLS_PRIVATE(secret);
     size_t MBEDTLS_PRIVATE(secret_length);
     uint8_t *MBEDTLS_PRIVATE(seed);
@@ -237,6 +236,23 @@ typedef struct psa_tls12_prf_key_derivation_s
     size_t MBEDTLS_PRIVATE(other_secret_length);
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
 
+    psa_tls12_prf_key_derivation_state_t MBEDTLS_PRIVATE(state);
+} psa_tls12_prf_key_derivation_inputs_t;
+
+
+typedef struct psa_tls12_prf_key_derivation_s
+{
+#if PSA_HASH_MAX_SIZE > 0xff
+#error "PSA_HASH_MAX_SIZE does not fit in uint8_t"
+#endif
+    psa_tls12_prf_key_derivation_inputs_t MBEDTLS_PRIVATE(inputs);
+    /* Indicates how many bytes in the current HMAC block have
+     * not yet been read by the user. */
+    uint8_t MBEDTLS_PRIVATE(left_in_block);
+
+    /* The 1-based number of the block. */
+    uint8_t MBEDTLS_PRIVATE(block_number);
+
     uint8_t MBEDTLS_PRIVATE(Ai)[PSA_HASH_MAX_SIZE];
 
     /* `HMAC_hash( prk, A( i ) + seed )` in the notation of RFC 5246, Sect. 5. */
@@ -245,20 +261,40 @@ typedef struct psa_tls12_prf_key_derivation_s
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) ||
         * MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
 
+typedef struct
+{
+    union
+    {
+        /* Make the union non-empty even with no supported algorithms. */
+        uint8_t MBEDTLS_PRIVATE(dummy);
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
+        psa_tls12_prf_key_derivation_inputs_t MBEDTLS_PRIVATE(prf);
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF ||
+          MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
+        psa_hkdf_key_derivation_inputs_t MBEDTLS_PRIVATE(hkdf);
+    };
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF */
+} psa_crypto_driver_key_derivation_inputs_t;
+
 struct psa_key_derivation_s
 {
     psa_algorithm_t MBEDTLS_PRIVATE(alg);
     unsigned int MBEDTLS_PRIVATE(can_output_key) : 1;
     size_t MBEDTLS_PRIVATE(capacity);
+
     union
     {
-        /* Make the union non-empty even with no supported algorithms. */
         uint8_t MBEDTLS_PRIVATE(dummy);
+        psa_crypto_driver_key_derivation_inputs_t MBEDTLS_PRIVATE(inputs);
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
+        // psa_crypto_driver_key_derivation_inputs_t is the first field of psa_hkdf_key_derivation_t
         psa_hkdf_key_derivation_t MBEDTLS_PRIVATE(hkdf);
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
+        // psa_crypto_driver_key_derivation_inputs_t is the first field of psa_tls12_prf_key_derivation_t
         psa_tls12_prf_key_derivation_t MBEDTLS_PRIVATE(tls12_prf);
 #endif
     } MBEDTLS_PRIVATE(ctx);

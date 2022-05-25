@@ -1852,7 +1852,7 @@ psa_status_t psa_pake_abort(psa_pake_operation_t * operation);
 /** Returns a suitable initializer for a PAKE operation object of type
  * psa_pake_operation_t.
  */
-#define PSA_PAKE_OPERATION_INIT {0, {0}}
+#define PSA_PAKE_OPERATION_INIT {PSA_ALG_NONE, {0}}
 
 struct psa_pake_cipher_suite_s
 {

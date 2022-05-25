@@ -445,6 +445,8 @@ psa_status_t psa_validate_unstructured_key_bit_size( psa_key_type_t type,
         case PSA_KEY_TYPE_RAW_DATA:
         case PSA_KEY_TYPE_HMAC:
         case PSA_KEY_TYPE_DERIVE:
+        case PSA_KEY_TYPE_PASSWORD:
+        case PSA_KEY_TYPE_PASSWORD_HASH:
             break;
 #if defined(PSA_WANT_KEY_TYPE_AES)
         case PSA_KEY_TYPE_AES:

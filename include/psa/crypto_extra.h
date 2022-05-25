@@ -1826,21 +1826,21 @@ psa_status_t psa_pake_abort(psa_pake_operation_t * operation);
  */
 #define PSA_PAKE_INPUT_SIZE(alg, primitive, input_step) 0
 
-/** Output buffer size for psa_pake_output() for any of the supported cipher
- * suites and PAKE algorithms.
+/** Output buffer size for psa_pake_output() for any of the supported PAKE
+ * algorithm and primitive suites and output step.
  *
  * This macro must expand to a compile-time constant integer.
  *
- * See also #PSA_PAKE_OUTPUT_SIZE(\p alg, \p cipher_suite, \p output).
+ * See also #PSA_PAKE_OUTPUT_SIZE(\p alg, \p primitive, \p step).
  */
 #define PSA_PAKE_OUTPUT_MAX_SIZE 0
 
-/** Input buffer size for psa_pake_input() for any of the supported cipher
- * suites and PAKE algorithms.
+/** Input buffer size for psa_pake_input() for any of the supported PAKE
+ * algorithm and primitive suites and input step.
  *
  * This macro must expand to a compile-time constant integer.
  *
- * See also #PSA_PAKE_INPUT_SIZE(\p alg, \p cipher_suite, \p input).
+ * See also #PSA_PAKE_INPUT_SIZE(\p alg, \p primitive, \p step).
  */
 #define PSA_PAKE_INPUT_MAX_SIZE 0
 

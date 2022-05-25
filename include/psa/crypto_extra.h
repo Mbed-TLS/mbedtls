@@ -1162,7 +1162,7 @@ typedef struct psa_pake_cipher_suite_s psa_pake_cipher_suite_t;
 
 /** Return an initial value for a PAKE cipher suite object.
  */
-static psa_pake_cipher_suite_t psa_pake_cipher_suite_init(void);
+static psa_pake_cipher_suite_t psa_pake_cipher_suite_init( void );
 
 /** Retrieve the PAKE algorithm from a PAKE cipher suite.
  *
@@ -1175,8 +1175,7 @@ static psa_pake_cipher_suite_t psa_pake_cipher_suite_init(void);
  * \return The PAKE algorithm stored in the cipher suite structure.
  */
 static psa_algorithm_t psa_pake_cs_get_algorithm(
-                           const psa_pake_cipher_suite_t* cipher_suite
-                           );
+                           const psa_pake_cipher_suite_t *cipher_suite );
 
 /** Declare the PAKE algorithm for the cipher suite.
  *
@@ -1194,10 +1193,8 @@ static psa_algorithm_t psa_pake_cs_get_algorithm(
  *                             If this is 0, the PAKE algorithm in
  *                             \p cipher_suite becomes unspecified.
  */
-static void psa_pake_cs_set_algorithm(
-                           psa_pake_cipher_suite_t* cipher_suite,
-                           psa_algorithm_t algorithm
-                           );
+static void psa_pake_cs_set_algorithm( psa_pake_cipher_suite_t *cipher_suite,
+                                       psa_algorithm_t algorithm );
 
 /** Retrieve the primitive from a PAKE cipher suite.
  *
@@ -1210,8 +1207,7 @@ static void psa_pake_cs_set_algorithm(
  * \return The primitive stored in the cipher suite structure.
  */
 static psa_pake_primitive_t psa_pake_cs_get_primitive(
-                           const psa_pake_cipher_suite_t* cipher_suite
-                           );
+                           const psa_pake_cipher_suite_t *cipher_suite );
 
 /** Declare the primitive for a PAKE cipher suite.
  *
@@ -1226,10 +1222,8 @@ static psa_pake_primitive_t psa_pake_cs_get_primitive(
  *                             primitive type in \p cipher_suite becomes
  *                             unspecified.
  */
-static void psa_pake_cs_set_primitive(
-                           psa_pake_cipher_suite_t* cipher_suite,
-                           psa_pake_primitive_t primitive
-                           );
+static void psa_pake_cs_set_primitive( psa_pake_cipher_suite_t *cipher_suite,
+                                       psa_pake_primitive_t primitive );
 
 /** Retrieve the PAKE family from a PAKE cipher suite.
  *
@@ -1242,8 +1236,7 @@ static void psa_pake_cs_set_primitive(
  * \return The PAKE family stored in the cipher suite structure.
  */
 static psa_pake_family_t psa_pake_cs_get_family(
-                           const psa_pake_cipher_suite_t* cipher_suite
-                           );
+                           const psa_pake_cipher_suite_t *cipher_suite );
 
 /** Retrieve the PAKE primitive bit-size from a PAKE cipher suite.
  *
@@ -1256,8 +1249,7 @@ static psa_pake_family_t psa_pake_cs_get_family(
  * \return The PAKE primitive bit-size stored in the cipher suite structure.
  */
 static uint16_t psa_pake_cs_get_bits(
-                           const psa_pake_cipher_suite_t* cipher_suite
-                           );
+                           const psa_pake_cipher_suite_t *cipher_suite );
 
 /** Retrieve the hash algorithm from a PAKE cipher suite.
  *
@@ -1272,8 +1264,7 @@ static uint16_t psa_pake_cs_get_bits(
  *         the hash algorithm is not set.
  */
 static psa_algorithm_t psa_pake_cs_get_hash(
-                           const psa_pake_cipher_suite_t* cipher_suite
-                           );
+                           const psa_pake_cipher_suite_t *cipher_suite );
 
 /** Declare the hash algorithm for a PAKE cipher suite.
  *
@@ -1295,10 +1286,8 @@ static psa_algorithm_t psa_pake_cs_get_hash(
  *                              If this is 0, the hash algorithm in
  *                              \p cipher_suite becomes unspecified.
  */
-static void psa_pake_cs_set_hash(
-                           psa_pake_cipher_suite_t* cipher_suite,
-                           psa_algorithm_t hash
-                           );
+static void psa_pake_cs_set_hash( psa_pake_cipher_suite_t *cipher_suite,
+                                  psa_algorithm_t hash );
 
 /** The type of the state data structure for PAKE operations.
  *
@@ -1332,7 +1321,7 @@ typedef struct psa_pake_operation_s psa_pake_operation_t;
 
 /** Return an initial value for an PAKE operation object.
  */
-static psa_pake_operation_t psa_pake_operation_init(void);
+static psa_pake_operation_t psa_pake_operation_init( void );
 
 /** Set the session information for a password-authenticated key exchange.
  *
@@ -1404,8 +1393,8 @@ static psa_pake_operation_t psa_pake_operation_init(void);
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
-                            const psa_pake_cipher_suite_t *cipher_suite);
+psa_status_t psa_pake_setup( psa_pake_operation_t *operation,
+                             const psa_pake_cipher_suite_t *cipher_suite );
 
 /** Set the password for a password-authenticated key exchange from key ID.
  *
@@ -1452,8 +1441,8 @@ psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
-                                       mbedtls_svc_key_id_t password);
+psa_status_t psa_pake_set_password_key( psa_pake_operation_t *operation,
+                                        mbedtls_svc_key_id_t password );
 
 /** Set the user ID for a password-authenticated key exchange.
  *
@@ -1492,9 +1481,9 @@ psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_pake_set_user(psa_pake_operation_t *operation,
-                               const uint8_t *user_id,
-                               size_t user_id_len);
+psa_status_t psa_pake_set_user( psa_pake_operation_t *operation,
+                                const uint8_t *user_id,
+                                size_t user_id_len );
 
 /** Set the peer ID for a password-authenticated key exchange.
  *
@@ -1534,9 +1523,9 @@ psa_status_t psa_pake_set_user(psa_pake_operation_t *operation,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_pake_set_peer(psa_pake_operation_t *operation,
-                               const uint8_t *peer_id,
-                               size_t peer_id_len);
+psa_status_t psa_pake_set_peer( psa_pake_operation_t *operation,
+                                const uint8_t *peer_id,
+                                size_t peer_id_len );
 
 /** Set the application role for a password-authenticated key exchange.
  *
@@ -1576,8 +1565,8 @@ psa_status_t psa_pake_set_peer(psa_pake_operation_t *operation,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_pake_set_role(psa_pake_operation_t *operation,
-                               psa_pake_role_t role);
+psa_status_t psa_pake_set_role( psa_pake_operation_t *operation,
+                                psa_pake_role_t role );
 
 /** Get output for a step of a password-authenticated key exchange.
  *
@@ -1634,11 +1623,11 @@ psa_status_t psa_pake_set_role(psa_pake_operation_t *operation,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_pake_output(psa_pake_operation_t *operation,
-                             psa_pake_step_t step,
-                             uint8_t *output,
-                             size_t output_size,
-                             size_t *output_length);
+psa_status_t psa_pake_output( psa_pake_operation_t *operation,
+                              psa_pake_step_t step,
+                              uint8_t *output,
+                              size_t output_size,
+                              size_t *output_length );
 
 /** Provide input for a step of a password-authenticated key exchange.
  *
@@ -1689,10 +1678,10 @@ psa_status_t psa_pake_output(psa_pake_operation_t *operation,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_pake_input(psa_pake_operation_t *operation,
-                            psa_pake_step_t step,
-                            const uint8_t *input,
-                            size_t input_length);
+psa_status_t psa_pake_input( psa_pake_operation_t *operation,
+                             psa_pake_step_t step,
+                             const uint8_t *input,
+                             size_t input_length );
 
 /** Get implicitly confirmed shared secret from a PAKE.
  *
@@ -1752,8 +1741,8 @@ psa_status_t psa_pake_input(psa_pake_operation_t *operation,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
-                                       psa_key_derivation_operation_t *output);
+psa_status_t psa_pake_get_implicit_key( psa_pake_operation_t *operation,
+                                        psa_key_derivation_operation_t *output );
 
 /** Abort a PAKE operation.
  *
@@ -1779,7 +1768,7 @@ psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_pake_abort(psa_pake_operation_t * operation);
+psa_status_t psa_pake_abort( psa_pake_operation_t * operation );
 
 /**@}*/
 
@@ -1864,31 +1853,31 @@ struct psa_pake_cipher_suite_s
 };
 
 static inline psa_algorithm_t psa_pake_cs_get_algorithm(
-    const psa_pake_cipher_suite_t *cipher_suite)
+                        const psa_pake_cipher_suite_t *cipher_suite )
 {
-    return(cipher_suite->algorithm);
+    return( cipher_suite->algorithm );
 }
 
 static inline void psa_pake_cs_set_algorithm(
     psa_pake_cipher_suite_t *cipher_suite,
     psa_algorithm_t algorithm)
 {
-    if(!PSA_ALG_IS_PAKE(algorithm))
+    if( !PSA_ALG_IS_PAKE(algorithm) )
         cipher_suite->algorithm = 0;
     else
         cipher_suite->algorithm = algorithm;
 }
 
 static inline psa_pake_primitive_t psa_pake_cs_get_primitive(
-    const psa_pake_cipher_suite_t *cipher_suite)
+                        const psa_pake_cipher_suite_t *cipher_suite )
 {
-    return(PSA_PAKE_PRIMITIVE(cipher_suite->type, cipher_suite->family,
-                cipher_suite->bits));
+    return( PSA_PAKE_PRIMITIVE(cipher_suite->type, cipher_suite->family,
+                               cipher_suite->bits) );
 }
 
 static inline void psa_pake_cs_set_primitive(
-    psa_pake_cipher_suite_t *cipher_suite,
-    psa_pake_primitive_t primitive)
+                        psa_pake_cipher_suite_t *cipher_suite,
+                        psa_pake_primitive_t primitive )
 {
     cipher_suite->type = (psa_pake_primitive_type_t) (primitive >> 24);
     cipher_suite->family = (psa_pake_family_t) (0xFF & (primitive >> 16));
@@ -1896,28 +1885,27 @@ static inline void psa_pake_cs_set_primitive(
 }
 
 static inline psa_pake_family_t psa_pake_cs_get_family(
-    const psa_pake_cipher_suite_t *cipher_suite)
+                        const psa_pake_cipher_suite_t *cipher_suite )
 {
-    return(cipher_suite->family);
+    return( cipher_suite->family );
 }
 
 static inline uint16_t psa_pake_cs_get_bits(
-    const psa_pake_cipher_suite_t *cipher_suite)
+                        const psa_pake_cipher_suite_t *cipher_suite )
 {
-    return(cipher_suite->bits);
+    return( cipher_suite->bits );
 }
 
 static inline psa_algorithm_t psa_pake_cs_get_hash(
-    const psa_pake_cipher_suite_t *cipher_suite)
+                        const psa_pake_cipher_suite_t *cipher_suite )
 {
-    return(cipher_suite->hash);
+    return( cipher_suite->hash );
 }
 
-static inline void psa_pake_cs_set_hash(
-    psa_pake_cipher_suite_t *cipher_suite,
-    psa_algorithm_t hash)
+static inline void psa_pake_cs_set_hash( psa_pake_cipher_suite_t *cipher_suite,
+                                         psa_algorithm_t hash )
 {
-    if(!PSA_ALG_IS_HASH(hash))
+    if( !PSA_ALG_IS_HASH(hash) )
         cipher_suite->hash = 0;
     else
         cipher_suite->hash = hash;
@@ -1933,16 +1921,16 @@ struct psa_pake_operation_s
     } ctx;
 };
 
-static inline struct psa_pake_cipher_suite_s psa_pake_cipher_suite_init(void)
+static inline struct psa_pake_cipher_suite_s psa_pake_cipher_suite_init( void )
 {
     const struct psa_pake_cipher_suite_s v = PSA_PAKE_CIPHER_SUITE_INIT;
-    return(v);
+    return( v );
 }
 
-static inline struct psa_pake_operation_s psa_pake_operation_init(void)
+static inline struct psa_pake_operation_s psa_pake_operation_init( void )
 {
     const struct psa_pake_operation_s v = PSA_PAKE_OPERATION_INIT;
-    return(v);
+    return( v );
 }
 
 #ifdef __cplusplus

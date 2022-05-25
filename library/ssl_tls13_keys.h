@@ -611,6 +611,19 @@ int mbedtls_ssl_tls13_generate_application_keys(
     mbedtls_ssl_context* ssl, mbedtls_ssl_key_set *traffic_keys );
 
 /**
+ * \brief Compute TLS 1.3 resumption master secret.
+ *
+ * \param ssl  The SSL context to operate on. This must be in
+ *             key schedule stage \c Application, see
+ *             mbedtls_ssl_tls13_key_schedule_stage_application().
+ *
+ * \returns    \c 0 on success.
+ * \returns    A negative error code on failure.
+ */
+int mbedtls_ssl_tls13_generate_resumption_master_secret(
+    mbedtls_ssl_context *ssl );
+
+/**
  * \brief Calculate the verify_data value for the client or server TLS 1.3
  * Finished message.
  *
@@ -648,6 +661,17 @@ int mbedtls_ssl_tls13_calculate_verify_data( mbedtls_ssl_context *ssl,
  * \returns    A negative error code on failure.
  */
 int mbedtls_ssl_tls13_compute_handshake_transform( mbedtls_ssl_context *ssl );
+
+/**
+ * \brief Compute TLS 1.3 application transform
+ *
+ * \param ssl  The SSL context to operate on. The early secret must have been
+ *             computed.
+ *
+ * \returns    \c 0 on success.
+ * \returns    A negative error code on failure.
+ */
+int mbedtls_ssl_tls13_compute_application_transform( mbedtls_ssl_context *ssl );
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 

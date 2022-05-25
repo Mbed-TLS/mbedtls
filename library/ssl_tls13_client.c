@@ -1750,6 +1750,15 @@ static int ssl_tls13_process_server_finished( mbedtls_ssl_context *ssl )
     if( ret != 0 )
         return( ret );
 
+    ret = mbedtls_ssl_tls13_compute_application_transform( ssl );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_PEND_FATAL_ALERT(
+                MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
+                MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+        return( ret );
+    }
+
 #if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
     mbedtls_ssl_handshake_set_state(
         ssl,
@@ -1825,6 +1834,14 @@ static int ssl_tls13_write_client_finished( mbedtls_ssl_context *ssl )
     if( ret != 0 )
         return( ret );
 
+    ret = mbedtls_ssl_tls13_generate_resumption_master_secret( ssl );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1,
+                "mbedtls_ssl_tls13_generate_resumption_master_secret ", ret );
+        return ( ret );
+    }
+
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_FLUSH_BUFFERS );
     return( 0 );
 }
@@ -1844,11 +1861,6 @@ static int ssl_tls13_flush_buffers( mbedtls_ssl_context *ssl )
  */
 static int ssl_tls13_handshake_wrapup( mbedtls_ssl_context *ssl )
 {
-    MBEDTLS_SSL_DEBUG_MSG( 1, ( "Switch to application keys for inbound traffic" ) );
-    mbedtls_ssl_set_inbound_transform ( ssl, ssl->transform_application );
-
-    MBEDTLS_SSL_DEBUG_MSG( 1, ( "Switch to application keys for outbound traffic" ) );
-    mbedtls_ssl_set_outbound_transform( ssl, ssl->transform_application );
 
     mbedtls_ssl_tls13_handshake_wrapup( ssl );
 

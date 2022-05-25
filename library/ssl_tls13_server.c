@@ -1477,6 +1477,67 @@ static int ssl_tls13_write_certificate_verify( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 /*
+ * Handler for MBEDTLS_SSL_SERVER_FINISHED
+ */
+static int ssl_tls13_write_server_finished( mbedtls_ssl_context *ssl )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    ret = mbedtls_ssl_tls13_write_finished_message( ssl );
+    if( ret != 0 )
+        return( ret );
+
+    ret = mbedtls_ssl_tls13_compute_application_transform( ssl );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_PEND_FATAL_ALERT(
+                MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
+                MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+        return( ret );
+    }
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_FINISHED );
+    return( 0 );
+}
+
+/*
+ * Handler for MBEDTLS_SSL_CLIENT_FINISHED
+ */
+static int ssl_tls13_process_client_finished( mbedtls_ssl_context *ssl )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    MBEDTLS_SSL_DEBUG_MSG( 1,
+                  ( "Switch to handshake traffic keys for inbound traffic" ) );
+    mbedtls_ssl_set_inbound_transform( ssl, ssl->handshake->transform_handshake );
+
+    ret = mbedtls_ssl_tls13_process_finished_message( ssl );
+    if( ret != 0 )
+        return( ret );
+
+    ret = mbedtls_ssl_tls13_generate_resumption_master_secret( ssl );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1,
+            "mbedtls_ssl_tls13_generate_resumption_master_secret ", ret );
+    }
+
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_HANDSHAKE_WRAPUP );
+    return( 0 );
+}
+
+/*
+ * Handler for MBEDTLS_SSL_HANDSHAKE_WRAPUP
+ */
+static int ssl_tls13_handshake_wrapup( mbedtls_ssl_context *ssl )
+{
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "handshake: done" ) );
+
+    mbedtls_ssl_tls13_handshake_wrapup( ssl );
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_HANDSHAKE_OVER );
+    return( 0 );
+}
+
+/*
  * TLS 1.3 State Machine -- server side
  */
 int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
@@ -1539,6 +1600,18 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
             ret = ssl_tls13_write_certificate_verify( ssl );
             break;
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+
+        case MBEDTLS_SSL_SERVER_FINISHED:
+            ret = ssl_tls13_write_server_finished( ssl );
+            break;
+
+        case MBEDTLS_SSL_CLIENT_FINISHED:
+            ret = ssl_tls13_process_client_finished( ssl );
+            break;
+
+        case MBEDTLS_SSL_HANDSHAKE_WRAPUP:
+            ret = ssl_tls13_handshake_wrapup( ssl );
+            break;
 
         default:
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "invalid state %d", ssl->state ) );

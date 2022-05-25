@@ -1120,80 +1120,6 @@ static int ssl_tls13_parse_finished_message( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
-#if defined(MBEDTLS_SSL_CLI_C)
-static int ssl_tls13_postprocess_server_finished_message( mbedtls_ssl_context *ssl )
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    mbedtls_ssl_key_set traffic_keys;
-    mbedtls_ssl_transform *transform_application = NULL;
-
-    ret = mbedtls_ssl_tls13_key_schedule_stage_application( ssl );
-    if( ret != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1,
-           "mbedtls_ssl_tls13_key_schedule_stage_application", ret );
-        goto cleanup;
-    }
-
-    ret = mbedtls_ssl_tls13_generate_application_keys( ssl, &traffic_keys );
-    if( ret != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1,
-            "mbedtls_ssl_tls13_generate_application_keys", ret );
-        goto cleanup;
-    }
-
-    transform_application =
-        mbedtls_calloc( 1, sizeof( mbedtls_ssl_transform ) );
-    if( transform_application == NULL )
-    {
-        ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
-        goto cleanup;
-    }
-
-    ret = mbedtls_ssl_tls13_populate_transform(
-                                    transform_application,
-                                    ssl->conf->endpoint,
-                                    ssl->session_negotiate->ciphersuite,
-                                    &traffic_keys,
-                                    ssl );
-    if( ret != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_populate_transform", ret );
-        goto cleanup;
-    }
-
-    ssl->transform_application = transform_application;
-
-cleanup:
-
-    mbedtls_platform_zeroize( &traffic_keys, sizeof( traffic_keys ) );
-    if( ret != 0 )
-    {
-        mbedtls_free( transform_application );
-        MBEDTLS_SSL_PEND_FATAL_ALERT(
-                MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
-                MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-    }
-    return( ret );
-}
-#endif /* MBEDTLS_SSL_CLI_C */
-
-static int ssl_tls13_postprocess_finished_message( mbedtls_ssl_context *ssl )
-{
-
-#if defined(MBEDTLS_SSL_CLI_C)
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
-    {
-        return( ssl_tls13_postprocess_server_finished_message( ssl ) );
-    }
-#else
-    ((void) ssl);
-#endif /* MBEDTLS_SSL_CLI_C */
-
-    return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-}
-
 int mbedtls_ssl_tls13_process_finished_message( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -1211,7 +1137,6 @@ int mbedtls_ssl_tls13_process_finished_message( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_parse_finished_message( ssl, buf, buf + buf_len ) );
     mbedtls_ssl_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_FINISHED,
                                         buf, buf_len );
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_postprocess_finished_message( ssl ) );
 
 cleanup:
 
@@ -1244,14 +1169,6 @@ static int ssl_tls13_prepare_finished_message( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_RET( 1, "calculate_verify_data failed", ret );
         return( ret );
     }
-
-    return( 0 );
-}
-
-static int ssl_tls13_finalize_finished_message( mbedtls_ssl_context *ssl )
-{
-    // TODO: Add back resumption keys calculation after MVP.
-    ((void) ssl);
 
     return( 0 );
 }
@@ -1296,7 +1213,6 @@ int mbedtls_ssl_tls13_write_finished_message( mbedtls_ssl_context *ssl )
     mbedtls_ssl_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_FINISHED,
                                         buf, msg_len );
 
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_finalize_finished_message( ssl ) );
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_finish_handshake_msg(
                               ssl, buf_len, msg_len ) );
 cleanup:
@@ -1309,6 +1225,12 @@ void mbedtls_ssl_tls13_handshake_wrapup( mbedtls_ssl_context *ssl )
 {
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "=> handshake wrapup" ) );
+
+    MBEDTLS_SSL_DEBUG_MSG( 1, ( "Switch to application keys for inbound traffic" ) );
+    mbedtls_ssl_set_inbound_transform ( ssl, ssl->transform_application );
+
+    MBEDTLS_SSL_DEBUG_MSG( 1, ( "Switch to application keys for outbound traffic" ) );
+    mbedtls_ssl_set_outbound_transform( ssl, ssl->transform_application );
 
     /*
      * Free the previous session and switch to the current one.

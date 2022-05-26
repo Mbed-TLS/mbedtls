@@ -182,6 +182,12 @@ static inline struct psa_aead_operation_s psa_aead_operation_init( void )
 }
 
 
+typedef enum
+{
+    PSA_KEY_DERIVATION_STAGE_INPUT,   /* collecting inputs */
+    PSA_KEY_DERIVATION_STAGE_OUTPUT   /* generating output */
+} psa_key_derivation_stage_t;
+
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
 typedef struct
 {
@@ -202,7 +208,8 @@ typedef struct
 #if PSA_HASH_MAX_SIZE > 0xff
 #error "PSA_HASH_MAX_SIZE does not fit in uint8_t"
 #endif
-    psa_hkdf_key_derivation_inputs_t inputs;
+    uint8_t *MBEDTLS_PRIVATE(info);
+    size_t MBEDTLS_PRIVATE(info_length);
     uint8_t MBEDTLS_PRIVATE(offset_in_block);
     uint8_t MBEDTLS_PRIVATE(block_number);
     uint8_t MBEDTLS_PRIVATE(output_block)[PSA_HASH_MAX_SIZE];
@@ -245,7 +252,6 @@ typedef struct psa_tls12_prf_key_derivation_s
 #if PSA_HASH_MAX_SIZE > 0xff
 #error "PSA_HASH_MAX_SIZE does not fit in uint8_t"
 #endif
-    psa_tls12_prf_key_derivation_inputs_t MBEDTLS_PRIVATE(inputs);
     /* Indicates how many bytes in the current HMAC block have
      * not yet been read by the user. */
     uint8_t MBEDTLS_PRIVATE(left_in_block);
@@ -253,11 +259,23 @@ typedef struct psa_tls12_prf_key_derivation_s
     /* The 1-based number of the block. */
     uint8_t MBEDTLS_PRIVATE(block_number);
 
+    uint8_t *MBEDTLS_PRIVATE(secret);
+    size_t MBEDTLS_PRIVATE(secret_length);
+    uint8_t *MBEDTLS_PRIVATE(seed);
+    size_t MBEDTLS_PRIVATE(seed_length);
+    uint8_t *MBEDTLS_PRIVATE(label);
+    size_t MBEDTLS_PRIVATE(label_length);
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
+    uint8_t *MBEDTLS_PRIVATE(other_secret);
+    size_t MBEDTLS_PRIVATE(other_secret_length);
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
+
     uint8_t MBEDTLS_PRIVATE(Ai)[PSA_HASH_MAX_SIZE];
 
     /* `HMAC_hash( prk, A( i ) + seed )` in the notation of RFC 5246, Sect. 5. */
     uint8_t MBEDTLS_PRIVATE(output_block)[PSA_HASH_MAX_SIZE];
 } psa_tls12_prf_key_derivation_t;
+
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) ||
         * MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
 
@@ -269,7 +287,7 @@ typedef struct
         uint8_t MBEDTLS_PRIVATE(dummy);
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
-        psa_tls12_prf_key_derivation_inputs_t MBEDTLS_PRIVATE(prf);
+        psa_tls12_prf_key_derivation_inputs_t MBEDTLS_PRIVATE(tls12_prf);
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF ||
           MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
@@ -278,16 +296,8 @@ typedef struct
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF */
 } psa_crypto_driver_key_derivation_inputs_t;
 
-struct psa_key_derivation_s
+typedef struct
 {
-    psa_algorithm_t MBEDTLS_PRIVATE(alg);
-    unsigned int MBEDTLS_PRIVATE(can_output_key) : 1;
-    size_t MBEDTLS_PRIVATE(capacity);
-
-    union
-    {
-        uint8_t MBEDTLS_PRIVATE(dummy);
-        psa_crypto_driver_key_derivation_inputs_t MBEDTLS_PRIVATE(inputs);
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
         // psa_crypto_driver_key_derivation_inputs_t is the first field of psa_hkdf_key_derivation_t
         psa_hkdf_key_derivation_t MBEDTLS_PRIVATE(hkdf);
@@ -297,11 +307,24 @@ struct psa_key_derivation_s
         // psa_crypto_driver_key_derivation_inputs_t is the first field of psa_tls12_prf_key_derivation_t
         psa_tls12_prf_key_derivation_t MBEDTLS_PRIVATE(tls12_prf);
 #endif
-    } MBEDTLS_PRIVATE(ctx);
+} psa_driver_key_derivation_context_t;
+
+struct psa_key_derivation_s
+{
+    psa_algorithm_t MBEDTLS_PRIVATE(alg);
+    unsigned int MBEDTLS_PRIVATE(can_output_key) : 1;
+    size_t MBEDTLS_PRIVATE(capacity);
+    psa_key_derivation_stage_t stage;
+
+    union {
+        unsigned dummy; /* Make sure this union is always non-empty */
+        psa_crypto_driver_key_derivation_inputs_t MBEDTLS_PRIVATE(inputs);
+        psa_driver_key_derivation_context_t MBEDTLS_PRIVATE(context);
+    } MBEDTLS_PRIVATE(data);
 };
 
 /* This only zeroes out the first byte in the union, the rest is unspecified. */
-#define PSA_KEY_DERIVATION_OPERATION_INIT { 0, 0, 0, { 0 } }
+#define PSA_KEY_DERIVATION_OPERATION_INIT { 0, 0, 0, 0, { 0 } }
 static inline struct psa_key_derivation_s psa_key_derivation_operation_init(
         void )
 {

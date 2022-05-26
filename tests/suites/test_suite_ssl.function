@@ -2099,6 +2099,17 @@ void perform_handshake( handshake_test_options* options )
     }
 
     TEST_ASSERT( mbedtls_ssl_is_handshake_over( &client.ssl ) == 1 );
+
+    /* Workaround for TLS1.3 */
+    TEST_ASSERT( mbedtls_move_handshake_to_state( &(server.ssl),
+                                                  &(client.ssl),
+                                                  MBEDTLS_SSL_HANDSHAKE_OVER )
+                 ==  expected_handshake_result );
+    if( expected_handshake_result != 0 )
+    {
+        goto exit;
+    }
+
     TEST_ASSERT( mbedtls_ssl_is_handshake_over( &server.ssl ) == 1 );
 
     /* Check that both sides have negotiated the expected version. */

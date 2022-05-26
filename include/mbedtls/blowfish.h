@@ -246,7 +246,7 @@ int mbedtls_blowfish_crypt_cfb64( mbedtls_blowfish_context *ctx,
  *             The recommended way to ensure uniqueness is to use a message
  *             counter.
  *
- *             Note that for both stategies, sizes are measured in blocks and
+ *             Note that for both strategies, sizes are measured in blocks and
  *             that a Blowfish block is 8 bytes.
  *
  * \warning    Upon return, \p stream_block contains sensitive data. Its

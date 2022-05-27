@@ -1862,7 +1862,7 @@ static inline void psa_pake_cs_set_algorithm(
     psa_pake_cipher_suite_t *cipher_suite,
     psa_algorithm_t algorithm)
 {
-    if( !PSA_ALG_IS_PAKE(algorithm) )
+    if( !PSA_ALG_IS_PAKE( algorithm ) )
         cipher_suite->algorithm = 0;
     else
         cipher_suite->algorithm = algorithm;
@@ -1871,8 +1871,8 @@ static inline void psa_pake_cs_set_algorithm(
 static inline psa_pake_primitive_t psa_pake_cs_get_primitive(
                         const psa_pake_cipher_suite_t *cipher_suite )
 {
-    return( PSA_PAKE_PRIMITIVE(cipher_suite->type, cipher_suite->family,
-                               cipher_suite->bits) );
+    return( PSA_PAKE_PRIMITIVE( cipher_suite->type, cipher_suite->family,
+                                cipher_suite->bits ) );
 }
 
 static inline void psa_pake_cs_set_primitive(
@@ -1905,7 +1905,7 @@ static inline psa_algorithm_t psa_pake_cs_get_hash(
 static inline void psa_pake_cs_set_hash( psa_pake_cipher_suite_t *cipher_suite,
                                          psa_algorithm_t hash )
 {
-    if( !PSA_ALG_IS_HASH(hash) )
+    if( !PSA_ALG_IS_HASH( hash ) )
         cipher_suite->hash = 0;
     else
         cipher_suite->hash = hash;

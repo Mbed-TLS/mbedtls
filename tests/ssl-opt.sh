@@ -1738,6 +1738,23 @@ run_test    "TLS-ECDHE-RSA Opaque key for client authentication" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_SHA256_C
+run_test    "TLS-ECDHE-ECDSA Opaque key for server authentication, invalid algs" \
+            "$P_SRV auth_mode=required key_opaque=1 crt_file=data_files/server5.crt \
+             key_file=data_files/server5.key key_opaque_algs=rsa-decrypt,none \
+             debug_level=1" \
+            "$P_CLI crt_file=data_files/server5.crt \
+             key_file=data_files/server5.key" \
+            1 \
+            -s "key types: Opaque, none" \
+            -s "got ciphersuites in common, but none of them usable" \
+            -s "error" \
+            -c "error"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_SHA256_C
 run_test    "TLS-DHE-RSA Opaque key for client authentication" \
@@ -1801,6 +1818,24 @@ run_test    "TLS-ECDHE-ECDSA Opaque key for server authentication" \
             -s "Ciphersuite is TLS-ECDHE-ECDSA" \
             -S "error" \
             -C "error"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_SHA256_C
+run_test    "TLS-ECDHE-RSA Opaque key for server authentication, invalid algs" \
+            "$P_SRV auth_mode=required key_opaque=1 crt_file=data_files/server2-sha256.crt \
+             key_file=data_files/server2.key key_opaque_algs=ecdh,none \
+             debug_level=1" \
+            "$P_CLI crt_file=data_files/server2-sha256.crt \
+             key_file=data_files/server2.key" \
+            1 \
+            -s "key types: Opaque, none" \
+            -s "got ciphersuites in common, but none of them usable" \
+            -s "error" \
+            -c "error"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO

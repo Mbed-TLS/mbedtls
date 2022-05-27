@@ -3206,6 +3206,13 @@ psa_status_t psa_asymmetric_decrypt(mbedtls_svc_key_id_t key,
  */
 typedef struct psa_key_derivation_s psa_key_derivation_operation_t;
 
+/** The type of the input data structure for key derivation operations.
+ *
+ * Structure holds union of the algorithm dependent input types.
+ */
+typedef struct psa_crypto_driver_key_derivation_inputs_s
+    psa_crypto_driver_key_derivation_inputs_t;
+
 /** \def PSA_KEY_DERIVATION_OPERATION_INIT
  *
  * This macro returns a suitable initializer for a key derivation operation
@@ -3905,6 +3912,59 @@ psa_status_t psa_key_derivation_verify_key(
 psa_status_t psa_key_derivation_abort(
     psa_key_derivation_operation_t *operation);
 
+/** Retrieve the size of the desired input in bytes.
+ *
+ * \param[in] inputs    Key derivation inputs
+ * \param[in] step      Which step the input data is for.
+ * \param[out] size     Buffer where the decrypted desired
+ *                      input size is to be written.
+ *
+ * \retval #PSA_SUCCESS
+ *         The call succeeded and the desired value has been copied
+ *         to the output parameter.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The input step is not valid for this particular algorithm,
+ *         or the type of the input step is not suitable for this function.
+ *         This is not a fatal error and the driver can, for example,
+ *         subsequently call the appropriate function on the same step.
+ */
+psa_status_t psa_crypto_driver_key_derivation_get_input_size(
+    psa_key_derivation_operation_t *operation,
+    const psa_crypto_driver_key_derivation_inputs_t *inputs,
+    psa_key_derivation_step_t step,
+    size_t *size);
+
+/** Retrieve the desired input data.
+ *
+ * \param[in,out] operation    The operation to process.
+ * \param[in] inputs           Key derivation inputs
+ * \param[in] step             Which step the input data is for.
+ * \param[out] buffer          Buffer where the decrypted desired
+ *                             input is to be written.
+ * \param[in] buffer_size      Size of the buffer.
+ * \param[out] buffer_length   Length of the returned input in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         The call succeeded and the desired value has been copied
+ *         to the output parameter.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The input step is not valid for this particular algorithm,
+ *         or the type of the input step is not suitable for this function.
+ *         This is not a fatal error and the driver can, for example,
+ *         subsequently call the appropriate function on the same step.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The output buffer is too small. This is not a fatal error and the
+ *         driver can, for example, subsequently call the same function again
+ *         with a larger buffer.
+ *         Call psa_crypto_driver_key_derivation_get_input_size()) to obtain
+ *         the required size.
+ */
+psa_status_t psa_crypto_driver_key_derivation_get_input_bytes(
+    psa_key_derivation_operation_t *operation,
+    const psa_crypto_driver_key_derivation_inputs_t *inputs,
+    psa_key_derivation_step_t step,
+    uint8_t *buffer, size_t buffer_size, size_t *buffer_length);
+
 /** Perform a key agreement and return the raw shared secret.
  *
  * \warning The raw result of a key agreement algorithm such as finite-field
@@ -3914,6 +3974,7 @@ psa_status_t psa_key_derivation_abort(
  * a key derivation, use psa_key_derivation_key_agreement() and other
  * functions from the key derivation interface.
  *
+ * \param[in,out] operation       The operation to process.
  * \param alg                     The key agreement algorithm to compute
  *                                (\c PSA_ALG_XXX value such that
  *                                #PSA_ALG_IS_RAW_KEY_AGREEMENT(\p alg)

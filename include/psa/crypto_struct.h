@@ -279,7 +279,7 @@ typedef struct psa_tls12_prf_key_derivation_s
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) ||
         * MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
 
-typedef struct
+struct psa_crypto_driver_key_derivation_inputs_s
 {
     union
     {
@@ -294,7 +294,7 @@ typedef struct
         psa_hkdf_key_derivation_inputs_t MBEDTLS_PRIVATE(hkdf);
     };
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF */
-} psa_crypto_driver_key_derivation_inputs_t;
+};
 
 typedef struct
 {

@@ -1368,22 +1368,30 @@ accept:
         }
 
         if( FD_ISSET( listen_fd.fd, &read_fds ) )
+        {
+            mbedtls_printf( "  . New connection incomming" );
             goto accept;
+        }
 
         if( FD_ISSET( client_fd.fd, &read_fds ) )
         {
             if( ( ret = handle_message( "S <- C",
                                         &server_fd, &client_fd ) ) != 0 )
+            {
+                mbedtls_printf( "  . Unhandled S <- C message" );
                 goto accept;
+            }
         }
 
         if( FD_ISSET( server_fd.fd, &read_fds ) )
         {
             if( ( ret = handle_message( "S -> C",
                                         &client_fd, &server_fd ) ) != 0 )
+            {
+                mbedtls_printf( "  . Unhandled S -> C message" );
                 goto accept;
+            }
         }
-
     }
 
     exit_code = MBEDTLS_EXIT_SUCCESS;

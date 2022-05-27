@@ -870,7 +870,7 @@ psa_status_t mbedtls_psa_platform_get_builtin_key(
  * Section 2.3.8 of _SEC 1: Elliptic Curve Cryptography_
  * (https://www.secg.org/sec1-v2.pdf), before reducing it modulo \c q. Here
  * \c q is order of the group defined by the primitive set in the cipher suite.
- * The \c psa_pake_set_password() function returns an error if the result
+ * The \c psa_pake_set_password_key() function returns an error if the result
  * of the reduction is 0.)
  *
  * The key exchange flow for J-PAKE is as follows:

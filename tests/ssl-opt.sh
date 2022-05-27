@@ -1213,7 +1213,11 @@ do_run_test_once() {
     wait_server_start "$SRV_PORT" "$SRV_PID"
 
     printf '# %s\n%s\n' "$NAME" "$CLI_CMD" > $CLI_OUT
-    eval "$CLI_CMD" >> $CLI_OUT 2>&1 &
+    # The client must be a subprocess of the script in order for killing it to
+    # work properly, that's why the ampersand is placed inside the eval command,
+    # not at the end of the line: the latter approach will spawn eval as a
+    # subprocess, and the $CLI_CMD as a grandchild.
+    eval "$CLI_CMD &" >> $CLI_OUT 2>&1
     wait_client_done
 
     sleep 0.05

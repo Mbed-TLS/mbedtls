@@ -36,15 +36,17 @@ from textwrap import dedent
 from unidiff import PatchSet
 from config import ConfigFile
 
+
 def get_changed(file_path):
     """Get changed config in config.h"""
     patch = PatchSet.from_string(
-                check_output(['git', 'diff', '--', file_path],
-                             universal_newlines=True))
+        check_output(['git', 'diff', '--', file_path],
+                     universal_newlines=True))
 
     def iter_lines():
         for i in patch[0]:
             yield from i.target_lines()
+
     _define_line_regexp = (r'(?P<indentation>\s*)' +
                            r'(?P<commented_out>(//\s*)?)' +
                            r'(?P<define>#\s*define\s+)' +
@@ -74,25 +76,32 @@ def main():
         m = disable_arg_pair_regexp.match(arg)
         assert m, arg
         return False, m['name'], ''
+
     parser.add_argument('-e', '--enable', type=enable_arg,
-                        nargs='+', default=[])
+                        nargs='+', default=[], help="Enable config options")
     parser.add_argument('-d', '--disable', nargs='+',
-                        type=disable_arg, default=[])
-    parser.add_argument('-i', '--input', nargs='?', default=None)
-    parser.add_argument('-o', '--output', nargs='?',
-                        type=argparse.FileType('w'), default=sys.stdout)
-    parser.add_argument('-w', '--over-write', action='store_true')
+                        type=disable_arg, default=[], help="Disable config options")
+    parser.add_argument('-i', '--input', nargs='?', default=None,
+                        help="input config file, default:'include/mbedtls/mbedtls_config.h'")
+    parser.add_argument('-o', '--output', nargs='?', type=argparse.FileType('w'),
+                        default=sys.stdout, help="ouput config file, default: print to stdout")
+    parser.add_argument('-w', '--over-write', action='store_true',
+                        help="overwrite exist output file")
+
+    def is_validate_name(_name, kwargs):
+        assert _name in config.settings, \
+            '{name} is not valid config'.format(**kwargs)
+        assert bool(config.settings[_name].value) == bool(value), \
+            '{name}={value} is not valid config'.format(**kwargs)
+        assert _name not in processed_settings, \
+            '{name} has been added in argument'.format(**kwargs)
+
     args = parser.parse_args()
     config = ConfigFile(filename=args.input)
     if args.over_write:
         processed_settings = set()
         for active, name, value in args.enable + args.disable:
-            assert name in config.settings, \
-                '{name} is not valid config'.format(**locals())
-            assert bool(config.settings[name].value) == bool(value), \
-                '{name}={value} is not valid config'.format(**locals())
-            assert name not in processed_settings, \
-                '{name} has been added in argument'.format(**locals())
+            is_validate_name(name, locals())
             config.settings[name].active = active
             config.settings[name].value = value
         config.write()
@@ -108,11 +117,7 @@ def main():
         target_settings[name] = (active, value)
     processed_settings = set()
     for active, name, value in args.enable + args.disable:
-        assert name in config.settings, '{name} is not valid config'.format(**locals())
-        assert bool(config.settings[name].value) == bool(value), \
-            '{name}={value} is not valid config'.format(**locals())
-        assert name not in processed_settings, \
-                '{name} has been added in argument'.format(**locals())
+        is_validate_name(name, locals())
         target_settings[name] = (active, value)
     for name, v in target_settings.items():
         active, value = v
@@ -137,6 +142,7 @@ def main():
                 #endif
                 ''').format(**locals()))
     return 0
+
 
 if __name__ == '__main__':
     sys.exit(main())

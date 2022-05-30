@@ -114,7 +114,7 @@ mbedtls_x509_crt;
 typedef struct mbedtls_x509_san_other_name
 {
     /**
-     * The type_id is an OID as deifned in RFC 5280.
+     * The type_id is an OID as defined in RFC 5280.
      * To check the value of the type id, you should use
      * \p MBEDTLS_OID_CMP with a known OID mbedtls_x509_buf.
      */
@@ -1084,7 +1084,7 @@ int mbedtls_x509write_crt_set_extension( mbedtls_x509write_cert *ctx,
  * \param is_ca     is this a CA certificate
  * \param max_pathlen   maximum length of certificate chains below this
  *                      certificate (only for CA certificates, -1 is
- *                      inlimited)
+ *                      unlimited)
  *
  * \return          0 if successful, or a MBEDTLS_ERR_X509_ALLOC_FAILED
  */

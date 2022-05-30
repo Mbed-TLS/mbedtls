@@ -1369,7 +1369,7 @@ accept:
 
         if( FD_ISSET( listen_fd.fd, &read_fds ) )
         {
-            mbedtls_printf( "  . New connection incomming" );
+            mbedtls_printf( "  . New connection incomming\n" );
             goto accept;
         }
 
@@ -1378,7 +1378,7 @@ accept:
             if( ( ret = handle_message( "S <- C",
                                         &server_fd, &client_fd ) ) != 0 )
             {
-                mbedtls_printf( "  . Unhandled S <- C message" );
+                mbedtls_printf( "  . Unhandled S <- C message\n" );
                 goto accept;
             }
         }
@@ -1388,7 +1388,7 @@ accept:
             if( ( ret = handle_message( "S -> C",
                                         &client_fd, &server_fd ) ) != 0 )
             {
-                mbedtls_printf( "  . Unhandled S -> C message" );
+                mbedtls_printf( "  . Unhandled S -> C message\n" );
                 goto accept;
             }
         }

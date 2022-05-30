@@ -4792,21 +4792,81 @@ static psa_status_t psa_crypto_key_derivation_complete_hkdf_inputs(
     psa_status_t status;
     psa_hkdf_key_derivation_inputs_t *inputs = &operation->data.inputs.hkdf;
     psa_hkdf_key_derivation_t *hkdf = &operation->data.context.hkdf;
+    uint8_t  *secret = NULL, *seed = NULL, *info = NULL;
+    size_t secret_length = 0, seed_length = 0, info_length = 0;
 
     if( inputs->state < HKDF_STATE_KEYED ||
         ( ! inputs->info_set && ! PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) ) )
         return( PSA_ERROR_BAD_STATE );
 
-    /* Make a local copy of inputs before filling the key derivation
-     * implementation specific context. */
-    uint8_t* secret = inputs->secret;
-    const size_t secret_length = inputs->secret_length;
-    uint8_t* seed = inputs->seed;
-    const size_t seed_length = inputs->seed_length;
-    uint8_t* info = inputs->info;
-    const size_t info_length = inputs->info_length;
+    /* Get sizes of the hkdf inputs. */
+    if ( !PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) &&
+         ( status = psa_crypto_driver_key_derivation_get_input_size(
+                        operation, &operation->data.inputs,
+                        PSA_KEY_DERIVATION_INPUT_SEED,
+                        &seed_length ) != PSA_SUCCESS ) )
+        return status;
+    if ( ( status = psa_crypto_driver_key_derivation_get_input_size(
+                        operation, &operation->data.inputs,
+                        PSA_KEY_DERIVATION_INPUT_SECRET,
+                        &secret_length ) != PSA_SUCCESS ) )
+        return status;
+    if ( !PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) &&
+         ( status = psa_crypto_driver_key_derivation_get_input_size(
+                        operation, &operation->data.inputs,
+                        PSA_KEY_DERIVATION_INPUT_INFO,
+                        &info_length ) != PSA_SUCCESS ) )
+        return status;
 
-    /* Clear the implementation specific context. */
+    /* Allocate local buffers for hkdf inputs. */
+    if( seed_length != 0 )
+        seed = mbedtls_calloc( 1, seed_length );
+    if( secret_length != 0 )
+        secret = mbedtls_calloc( 1, secret_length );
+    if( info_length != 0 )
+        info = mbedtls_calloc( 1, info_length );
+
+    if( ( seed_length != 0 && seed == NULL ) ||
+        ( secret_length != 0 && secret == NULL ) ||
+        ( info_length != 0 && info == NULL ) )
+    {
+        mbedtls_free( seed );
+        mbedtls_free( seed );
+        mbedtls_free( secret );
+
+        return( PSA_ERROR_INSUFFICIENT_MEMORY );
+    }
+
+    /* Store hkdf inputs in the local buffers. */
+    if ( !PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) &&
+         ( status = psa_crypto_driver_key_derivation_get_input_bytes(
+                        operation, &operation->data.inputs,
+                        PSA_KEY_DERIVATION_INPUT_SEED,
+                        seed, seed_length, &data_length ) != PSA_SUCCESS ) )
+        return status;
+
+    if ( ( status = psa_crypto_driver_key_derivation_get_input_bytes(
+                        operation, &operation->data.inputs,
+                        PSA_KEY_DERIVATION_INPUT_SECRET,
+                        secret, secret_length, &data_length ) != PSA_SUCCESS ) )
+        return status;
+
+    if ( !PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) &&
+         ( status = psa_crypto_driver_key_derivation_get_input_bytes(
+                        operation, &operation->data.inputs,
+                        PSA_KEY_DERIVATION_INPUT_INFO,
+                        info, info_length, &data_length ) != PSA_SUCCESS ) )
+        return status;
+
+    /* Release hkdf inputs.  */
+    mbedtls_free( inputs->seed );
+    mbedtls_free( inputs->secret );
+    mbedtls_free( inputs->info );
+
+    /* At this point we hold all hkdf inputs in the local buffers.
+       Start transition to hkdf context. */
+
+    /* Clear the context. */
     memset( &operation->data.context, 0,
             sizeof( operation->data.context ) );
 
@@ -4862,18 +4922,12 @@ static psa_status_t psa_crypto_key_derivation_complete_hkdf_inputs(
         hkdf->offset_in_block = PSA_HASH_LENGTH( hash_alg );
     }
 
-    hkdf->info = mbedtls_calloc( 1, info_length );
-
-    if( hkdf->info == NULL )
-        return( PSA_ERROR_INSUFFICIENT_MEMORY );
-
-    memcpy( hkdf->info, info, info_length );
+    hkdf->info = info;
     hkdf->info_length = info_length;
 
-    /* Now when we moved data to hkdf release inputs. */
+    /* Release seed and secret (already derived to prk) . */
     mbedtls_free( secret );
     mbedtls_free( seed );
-    mbedtls_free( info );
 
     return( PSA_SUCCESS );
 }

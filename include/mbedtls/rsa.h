@@ -687,7 +687,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
  *                   mode being set to #MBEDTLS_RSA_PRIVATE and might instead
  *                   return #MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED.
  *
- * \param ctx        The initnialized RSA context to use.
+ * \param ctx        The initialized RSA context to use.
  * \param f_rng      The RNG function to use. This is needed for padding
  *                   generation and must be provided.
  * \param p_rng      The RNG context to be passed to \p f_rng. This may

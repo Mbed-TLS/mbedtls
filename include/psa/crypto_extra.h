@@ -1166,10 +1166,6 @@ static psa_pake_cipher_suite_t psa_pake_cipher_suite_init( void );
 
 /** Retrieve the PAKE algorithm from a PAKE cipher suite.
  *
- * This function may be declared as `static` (i.e. without external
- * linkage). This function may be provided as a function-like macro,
- * but in this case it must evaluate its argument exactly once.
- *
  * \param[in] cipher_suite     The cipher suite structure to query.
  *
  * \return The PAKE algorithm stored in the cipher suite structure.
@@ -1181,10 +1177,6 @@ static psa_algorithm_t psa_pake_cs_get_algorithm(
  *
  * This function overwrites any PAKE algorithm
  * previously set in \p cipher_suite.
- *
- * This function may be declared as `static` (i.e. without external
- * linkage). This function may be provided as a function-like macro,
- * but in this case it must evaluate each of its arguments exactly once.
  *
  * \param[out] cipher_suite    The cipher suite structure to write to.
  * \param algorithm            The PAKE algorithm to write.
@@ -1198,10 +1190,6 @@ static void psa_pake_cs_set_algorithm( psa_pake_cipher_suite_t *cipher_suite,
 
 /** Retrieve the primitive from a PAKE cipher suite.
  *
- * This function may be declared as `static` (i.e. without external linkage).
- * This function may be provided as a function-like macro, but in this case it
- * must evaluate its argument exactly once.
- *
  * \param[in] cipher_suite     The cipher suite structure to query.
  *
  * \return The primitive stored in the cipher suite structure.
@@ -1213,10 +1201,6 @@ static psa_pake_primitive_t psa_pake_cs_get_primitive(
  *
  * This function overwrites any primitive previously set in \p cipher_suite.
  *
- * This function may be declared as `static` (i.e. without external
- * linkage). This function may be provided as a function-like macro,
- * but in this case it must evaluate each of its arguments exactly once.
- *
  * \param[out] cipher_suite    The cipher suite structure to write to.
  * \param primitive            The primitive to write. If this is 0, the
  *                             primitive type in \p cipher_suite becomes
@@ -1227,10 +1211,6 @@ static void psa_pake_cs_set_primitive( psa_pake_cipher_suite_t *cipher_suite,
 
 /** Retrieve the PAKE family from a PAKE cipher suite.
  *
- * This function may be declared as `static` (i.e. without external
- * linkage). This function may be provided as a function-like macro,
- * but in this case it must evaluate its argument exactly once.
- *
  * \param[in] cipher_suite     The cipher suite structure to query.
  *
  * \return The PAKE family stored in the cipher suite structure.
@@ -1240,10 +1220,6 @@ static psa_pake_family_t psa_pake_cs_get_family(
 
 /** Retrieve the PAKE primitive bit-size from a PAKE cipher suite.
  *
- * This function may be declared as `static` (i.e. without external
- * linkage). This function may be provided as a function-like macro,
- * but in this case it must evaluate its argument exactly once.
- *
  * \param[in] cipher_suite     The cipher suite structure to query.
  *
  * \return The PAKE primitive bit-size stored in the cipher suite structure.
@@ -1252,10 +1228,6 @@ static uint16_t psa_pake_cs_get_bits(
                            const psa_pake_cipher_suite_t *cipher_suite );
 
 /** Retrieve the hash algorithm from a PAKE cipher suite.
- *
- * This function may be declared as `static` (i.e. without external
- * linkage). This function may be provided as a function-like macro,
- * but in this case it must evaluate its argument exactly once.
  *
  * \param[in] cipher_suite      The cipher suite structure to query.
  *
@@ -1270,10 +1242,6 @@ static psa_algorithm_t psa_pake_cs_get_hash(
  *
  * This function overwrites any hash algorithm
  * previously set in \p cipher_suite.
- *
- * This function may be declared as `static` (i.e. without external
- * linkage). This function may be provided as a function-like macro,
- * but in this case it must evaluate each of its arguments exactly once.
  *
  * Refer to the documentation of individual PAKE algorithm types (`PSA_ALG_XXX`
  * values of type ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true)

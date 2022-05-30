@@ -1,0 +1,4 @@
+Bugfix
+   * Fix a bug in x25519 example program where the removal of
+     MBEDTLS_ECDH_LEGACY_CONTEXT caused the program not to run. Fixes #4901 and
+     #3191.

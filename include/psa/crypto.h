@@ -3929,14 +3929,12 @@ psa_status_t psa_key_derivation_abort(
  *         subsequently call the appropriate function on the same step.
  */
 psa_status_t psa_crypto_driver_key_derivation_get_input_size(
-    psa_key_derivation_operation_t *operation,
     const psa_crypto_driver_key_derivation_inputs_t *inputs,
     psa_key_derivation_step_t step,
     size_t *size);
 
 /** Retrieve the desired input data.
  *
- * \param[in,out] operation    The operation to process.
  * \param[in] inputs           Key derivation inputs
  * \param[in] step             Which step the input data is for.
  * \param[out] buffer          Buffer where the decrypted desired
@@ -3960,7 +3958,6 @@ psa_status_t psa_crypto_driver_key_derivation_get_input_size(
  *         the required size.
  */
 psa_status_t psa_crypto_driver_key_derivation_get_input_bytes(
-    psa_key_derivation_operation_t *operation,
     const psa_crypto_driver_key_derivation_inputs_t *inputs,
     psa_key_derivation_step_t step,
     uint8_t *buffer, size_t buffer_size, size_t *buffer_length);

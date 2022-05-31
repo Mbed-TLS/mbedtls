@@ -815,7 +815,8 @@ static int calculate_packet_hash( packet *cur )
 
     if( cur->resend_detected == 0 )
     {
-        mbedtls_printf( " Added as unique packet no. %u\n", num_unique_packets );
+        mbedtls_printf( " Added as unique packet no. %u\n",
+                        (unsigned) num_unique_packets );
         memcpy( unique_packet_hashes[num_unique_packets], cur->hash, SHA256_SIZE );
         if( num_unique_packets == PACKET_HASHES_STORED )
         {

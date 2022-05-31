@@ -121,11 +121,12 @@ static int ssl_tls13_parse_supported_versions_ext( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_ALPN)
 static int ssl_tls13_parse_alpn_ext( mbedtls_ssl_context *ssl,
-                               const unsigned char *buf, size_t len )
+                                     const unsigned char *buf, size_t len )
 {
-    size_t list_len, name_len;
     const unsigned char *p = buf;
     const unsigned char *end = buf + len;
+    size_t protocol_name_list_len, protocol_name_len;
+    const unsigned char *protocol_name_list_end;
 
     /* If we didn't send it, the server shouldn't send it */
     if( ssl->conf->alpn_list == NULL )
@@ -141,21 +142,22 @@ static int ssl_tls13_parse_alpn_ext( mbedtls_ssl_context *ssl,
      * the "ProtocolNameList" MUST contain exactly one "ProtocolName"
      */
 
-    /* Min length is 2 ( list_len ) + 1 ( name_len ) + 1 ( name ) */
-    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 4 );
-
-    list_len = MBEDTLS_GET_UINT16_BE( p, 0 );
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2 );
+    protocol_name_list_len = MBEDTLS_GET_UINT16_BE( p, 0 );
     p += 2;
-    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, list_len );
 
-    name_len = *p++;
-    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, list_len - 1 );
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, protocol_name_list_len );
+    protocol_name_list_end = p + protocol_name_list_len;
+
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, protocol_name_list_end, 1 );
+    protocol_name_len = *p++;
 
     /* Check that the server chosen protocol was in our list and save it */
-    for ( const char **alpn = ssl->conf->alpn_list; *alpn != NULL; alpn++ )
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, protocol_name_list_end, protocol_name_len );
+    for( const char **alpn = ssl->conf->alpn_list; *alpn != NULL; alpn++ )
     {
-        if( name_len == strlen( *alpn ) &&
-            memcmp( buf + 3, *alpn, name_len ) == 0 )
+        if( protocol_name_len == strlen( *alpn ) &&
+            memcmp( p, *alpn, protocol_name_len ) == 0 )
         {
             ssl->alpn_chosen = *alpn;
             return( 0 );

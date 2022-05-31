@@ -791,6 +791,7 @@ static int ssl_tls13_preprocess_server_hello( mbedtls_ssl_context *ssl,
                                               const unsigned char *end )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
 
     MBEDTLS_SSL_PROC_CHK_NEG( ssl_tls13_is_supported_versions_ext_present(
                                   ssl, buf, end ) );
@@ -805,7 +806,7 @@ static int ssl_tls13_preprocess_server_hello( mbedtls_ssl_context *ssl,
          *   version of the protocol and thus we are under downgrade attack
          * abort the handshake with an "illegal parameter" alert.
          */
-        if( ssl->handshake->min_tls_version > MBEDTLS_SSL_VERSION_TLS1_2 || ret )
+        if( handshake->min_tls_version > MBEDTLS_SSL_VERSION_TLS1_2 || ret )
         {
             MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
                                           MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
@@ -827,6 +828,8 @@ static int ssl_tls13_preprocess_server_hello( mbedtls_ssl_context *ssl,
         return( SSL_SERVER_HELLO_TLS1_2 );
     }
 
+    handshake->extensions_present = MBEDTLS_SSL_EXT_NONE;
+
     ret = ssl_server_hello_is_hrr( ssl, buf, end );
     switch( ret )
     {
@@ -840,7 +843,7 @@ static int ssl_tls13_preprocess_server_hello( mbedtls_ssl_context *ssl,
               * was itself in response to a HelloRetryRequest), it MUST abort the
               * handshake with an "unexpected_message" alert.
               */
-            if( ssl->handshake->hello_retry_request_count > 0 )
+            if( handshake->hello_retry_request_count > 0 )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "Multiple HRRs received" ) );
                 MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE,
@@ -863,7 +866,7 @@ static int ssl_tls13_preprocess_server_hello( mbedtls_ssl_context *ssl,
                 return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
             }
 
-            ssl->handshake->hello_retry_request_count++;
+            handshake->hello_retry_request_count++;
 
             break;
     }
@@ -1304,8 +1307,6 @@ static int ssl_tls13_process_server_hello( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_fetch_handshake_msg( ssl,
                                              MBEDTLS_SSL_HS_SERVER_HELLO,
                                              &buf, &buf_len ) );
-
-    ssl->handshake->extensions_present = MBEDTLS_SSL_EXT_NONE;
 
     ret = ssl_tls13_preprocess_server_hello( ssl, buf, buf + buf_len );
     if( ret < 0 )

@@ -1245,11 +1245,6 @@ static int ssl_tls13_postprocess_server_hello( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "Switch to handshake keys for inbound traffic" ) );
     ssl->session_in = ssl->session_negotiate;
 
-    /*
-     * State machine update
-     */
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_ENCRYPTED_EXTENSIONS );
-
 cleanup:
     if( ret != 0 )
     {
@@ -1264,17 +1259,6 @@ cleanup:
 static int ssl_tls13_postprocess_hrr( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
-#if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
-    /* If not offering early data, the client sends a dummy CCS record
-     * immediately before its second flight. This may either be before
-     * its second ClientHello or before its encrypted handshake flight.
-     */
-    mbedtls_ssl_handshake_set_state( ssl,
-            MBEDTLS_SSL_CLIENT_CCS_BEFORE_2ND_CLIENT_HELLO );
-#else
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_HELLO );
-#endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
 
     mbedtls_ssl_session_reset_msg_layer( ssl, 0 );
 
@@ -1330,9 +1314,24 @@ static int ssl_tls13_process_server_hello( mbedtls_ssl_context *ssl )
                                         buf, buf_len );
 
     if( is_hrr )
+    {
         MBEDTLS_SSL_PROC_CHK( ssl_tls13_postprocess_hrr( ssl ) );
+#if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
+    /* If not offering early data, the client sends a dummy CCS record
+     * immediately before its second flight. This may either be before
+     * its second ClientHello or before its encrypted handshake flight.
+     */
+        mbedtls_ssl_handshake_set_state( ssl,
+            MBEDTLS_SSL_CLIENT_CCS_BEFORE_2ND_CLIENT_HELLO );
+#else
+        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_HELLO );
+#endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
+    }
     else
+    {
         MBEDTLS_SSL_PROC_CHK( ssl_tls13_postprocess_server_hello( ssl ) );
+        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_ENCRYPTED_EXTENSIONS );
+    }
 
 cleanup:
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= %s ( %s )", __func__,
@@ -1435,20 +1434,6 @@ static int ssl_tls13_parse_encrypted_extensions( mbedtls_ssl_context *ssl,
     return( ret );
 }
 
-static int ssl_tls13_postprocess_encrypted_extensions( mbedtls_ssl_context *ssl )
-{
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-    if( mbedtls_ssl_tls13_some_psk_enabled( ssl ) )
-        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_FINISHED );
-    else
-        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CERTIFICATE_REQUEST );
-#else
-    ((void) ssl);
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_FINISHED );
-#endif
-    return( 0 );
-}
-
 static int ssl_tls13_process_encrypted_extensions( mbedtls_ssl_context *ssl )
 {
     int ret;
@@ -1468,7 +1453,15 @@ static int ssl_tls13_process_encrypted_extensions( mbedtls_ssl_context *ssl )
     mbedtls_ssl_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_ENCRYPTED_EXTENSIONS,
                                         buf, buf_len );
 
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_postprocess_encrypted_extensions( ssl ) );
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+    if( mbedtls_ssl_tls13_some_psk_enabled( ssl ) )
+        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_FINISHED );
+    else
+        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CERTIFICATE_REQUEST );
+#else
+    ((void) ssl);
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_FINISHED );
+#endif
 
 cleanup:
 

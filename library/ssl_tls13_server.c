@@ -1636,19 +1636,18 @@ static int ssl_tls13_write_server_finished( mbedtls_ssl_context *ssl )
         return( ret );
     }
 
-    if( ssl->handshake->certificate_request_sent )
-    {
-        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE );
+    MBEDTLS_SSL_DEBUG_MSG( 1, ( "Switch to handshake keys for inbound traffic" ) );
+    mbedtls_ssl_set_inbound_transform( ssl, ssl->handshake->transform_handshake );
 
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Switch to handshake keys for inbound traffic" ) );
-        mbedtls_ssl_set_inbound_transform( ssl, ssl->handshake->transform_handshake );
-    }
+    if( ssl->handshake->certificate_request_sent )
+        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE );
     else
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "skip parse certificate" ) );
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "skip parse certificate verify" ) );
         mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_FINISHED );
     }
+
     return( 0 );
 }
 
@@ -1659,12 +1658,6 @@ static int ssl_tls13_process_client_finished( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    if( ! ssl->handshake->certificate_request_sent )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1,
-            ( "Switch to handshake traffic keys for inbound traffic" ) );
-        mbedtls_ssl_set_inbound_transform( ssl, ssl->handshake->transform_handshake );
-    }
     ret = mbedtls_ssl_tls13_process_finished_message( ssl );
     if( ret != 0 )
         return( ret );

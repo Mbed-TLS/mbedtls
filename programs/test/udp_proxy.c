@@ -90,6 +90,12 @@ int main( void )
 #define PACKET_HASHES_STORED 1000
 #define SHA256_SIZE 32
 
+#define MODE_NONE       0
+#define MODE_BITFLIP    1
+#define MODE_PATTERN    2
+#define MODE_SUBSTITUTE 3
+
+
 #define DFL_SERVER_ADDR         "localhost"
 #define DFL_SERVER_PORT         "4433"
 #define DFL_LISTEN_ADDR         "localhost"
@@ -237,8 +243,7 @@ static struct options
                                  *     0 - no malformation.
                                  *     1 - bitflip.
                                  *     2 - memset to a pattern.
-                                 *     3 - memset to a pattern and modify
-                                 *     the packet size accordingly.         */
+                                 *     3 - substitute the packet.           */
     size_t malform_offset;      /* byte offset to start packet malformation */
     size_t malform_bit;         /* bit offset within a byte to malform      */
     size_t malform_length;      /* how much data to malform in bytes        */
@@ -482,21 +487,22 @@ static int validate_malformation_options()
                         (unsigned) opt.malform_length );
         return( 1 );
     }
-    if( opt.malform_message == NULL && opt.malform_mode != 0 )
+    if( opt.malform_message == NULL && opt.malform_mode != MODE_NONE )
     {
         mbedtls_printf( " Malformation requested but no message specified.\n");
         return( 1 );
     }
-    if( opt.malform_mode == 0 && ( opt.malform_message != NULL ||
-                                   opt.malform_length != 0 ||
-                                   opt.malform_packet_num != 0 ||
-                                   opt.malform_pattern != NULL ) )
+    if( opt.malform_mode == MODE_NONE &&
+            ( opt.malform_message != NULL ||
+              opt.malform_length != 0 ||
+              opt.malform_packet_num != 0 ||
+              opt.malform_pattern != NULL ) )
     {
         mbedtls_printf( " Malformation parameters specified but"
                         " no mode chosen.\n");
         return( 1 );
     }
-    if( ( opt.malform_mode == 2 || opt.malform_mode == 3 ) &&
+    if( ( opt.malform_mode == MODE_PATTERN || opt.malform_mode == MODE_SUBSTITUTE ) &&
             ( malform_pattern_len == 0 || opt.malform_pattern == NULL ) )
     {
         mbedtls_printf( " Malformation by a pattern / substitution chosen but"
@@ -759,10 +765,12 @@ static void debug_print_buf( const char *file, int line, const char *text,
     debug_print_buf( __FILE__, __LINE__, text, buf, len )
 
 #if defined(MBEDTLS_SHA256_C)
+
+size_t num_unique_packets = 0; // Occupied size of unique_packet_hashes
 unsigned char unique_packet_hashes[PACKET_HASHES_STORED][SHA256_SIZE] = { { 0 } };
+
 unsigned char single_malformed_hash[SHA256_SIZE] = {0};
 unsigned int single_malformation_done = 0;
-uint16_t num_unique_packets = 0;
 
 #define SEQ_NUM_LEN 6
 #define SEQ_NUM_POS 5
@@ -809,12 +817,12 @@ static int calculate_packet_hash( packet *cur )
     {
         mbedtls_printf( " Added as unique packet no. %u\n", num_unique_packets );
         memcpy( unique_packet_hashes[num_unique_packets], cur->hash, SHA256_SIZE );
-        num_unique_packets++;
         if( num_unique_packets == PACKET_HASHES_STORED )
         {
             mbedtls_printf( " Packet hash buffer full. Exiting. \n" );
             exit( MBEDTLS_EXIT_FAILURE );
         }
+        num_unique_packets++;
     }
 
     return ret;
@@ -864,14 +872,14 @@ static int handle_message_malformation( packet* cur )
             opt.malform_packet_num == 0 ||
             malformed_before )
     {
-        if( opt.malform_mode == 1 )
+        if( opt.malform_mode == MODE_BITFLIP )
         {
             for( size_t i = 0; i < opt.malform_length; i++ )
             {
                 cur->buf[opt.malform_offset + i] ^= (1 << opt.malform_bit);
             }
         }
-        else if( opt.malform_mode == 2 )
+        else if( opt.malform_mode == MODE_PATTERN )
         {
             size_t copy_len = malform_pattern_len;
             size_t left_len = opt.malform_length;
@@ -890,7 +898,7 @@ static int handle_message_malformation( packet* cur )
                 left_len -= copy_len;
             }
         }
-        else if( opt.malform_mode == 3 )
+        else if( opt.malform_mode == MODE_SUBSTITUTE )
         {
             memcpy( &cur->buf[0], opt.malform_pattern, malform_pattern_len );
             cur->len = (unsigned) opt.malform_length;

@@ -1417,8 +1417,8 @@ static int ssl_tls13_parse_encrypted_extensions( mbedtls_ssl_context *ssl,
     p += 2;
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "encrypted extensions", p, extensions_len );
-    extensions_end = p + extensions_len;
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, extensions_len );
+    extensions_end = p + extensions_len;
 
     while( p < extensions_end )
     {

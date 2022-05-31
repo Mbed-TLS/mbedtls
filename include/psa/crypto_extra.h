@@ -862,15 +862,15 @@ psa_status_t mbedtls_psa_platform_get_builtin_key(
  * psa_pake_set_password_key(operation, ...);
  * \endcode
  *
- * The password is read as a byte array and must be non-empty. This can be the
- * password itself (in some pre-defined character encoding) or some value
- * derived from the password as mandated by some higher level protocol.
+ * The password is provided as a key. This can be the password text itself,
+ * in an agreed character encoding, or some value derived from the password
+ * as required by a higher level protocol.
  *
- * (The implementation converts this byte array to a number as described in
+ * (The implementation converts the key material to a number as described in
  * Section 2.3.8 of _SEC 1: Elliptic Curve Cryptography_
  * (https://www.secg.org/sec1-v2.pdf), before reducing it modulo \c q. Here
  * \c q is order of the group defined by the primitive set in the cipher suite.
- * The \c psa_pake_set_password_xxx() functions return an error if the result
+ * The \c psa_pake_set_password_key() function returns an error if the result
  * of the reduction is 0.)
  *
  * The key exchange flow for J-PAKE is as follows:
@@ -961,12 +961,13 @@ psa_status_t mbedtls_psa_platform_get_builtin_key(
  * @{
  */
 
-/** \brief Encoding of the side of PAKE
+/** \brief Encoding of the application role of PAKE
  *
- * Encodes which side of the algorithm is being executed. For more information
- * see the documentation of individual \c PSA_PAKE_SIDE_XXX constants.
+ * Encodes the application's role in the algorithm is being executed. For more
+ * information see the documentation of individual \c PSA_PAKE_ROLE_XXX
+ * constants.
  */
-typedef uint8_t psa_pake_side_t;
+typedef uint8_t psa_pake_role_t;
 
 /** Encoding of input and output indicators for PAKE.
  *
@@ -999,35 +1000,41 @@ typedef uint8_t psa_pake_family_t;
  */
 typedef uint32_t psa_pake_primitive_t;
 
+/** A value to indicate no role in a PAKE algorithm.
+ * This value can be used in a call to psa_pake_set_role() for symmetric PAKE
+ * algorithms which do not assign roles.
+ */
+#define PSA_PAKE_ROLE_NONE                  ((psa_pake_role_t)0x00)
+
 /** The first peer in a balanced PAKE.
  *
  * Although balanced PAKE algorithms are symmetric, some of them needs an
  * ordering of peers for the transcript calculations. If the algorithm does not
- * need this, both #PSA_PAKE_SIDE_FIRST and #PSA_PAKE_SIDE_SECOND are
+ * need this, both #PSA_PAKE_ROLE_FIRST and #PSA_PAKE_ROLE_SECOND are
  * accepted.
  */
-#define PSA_PAKE_SIDE_FIRST                ((psa_pake_side_t)0x01)
+#define PSA_PAKE_ROLE_FIRST                ((psa_pake_role_t)0x01)
 
 /** The second peer in a balanced PAKE.
  *
  * Although balanced PAKE algorithms are symmetric, some of them needs an
  * ordering of peers for the transcript calculations. If the algorithm does not
- * need this, either #PSA_PAKE_SIDE_FIRST or #PSA_PAKE_SIDE_SECOND are
+ * need this, either #PSA_PAKE_ROLE_FIRST or #PSA_PAKE_ROLE_SECOND are
  * accepted.
  */
-#define PSA_PAKE_SIDE_SECOND                ((psa_pake_side_t)0x02)
+#define PSA_PAKE_ROLE_SECOND                ((psa_pake_role_t)0x02)
 
 /** The client in an augmented PAKE.
  *
  * Augmented PAKE algorithms need to differentiate between client and server.
  */
-#define PSA_PAKE_SIDE_CLIENT                ((psa_pake_side_t)0x11)
+#define PSA_PAKE_ROLE_CLIENT                ((psa_pake_role_t)0x11)
 
 /** The server in an augmented PAKE.
  *
  * Augmented PAKE algorithms need to differentiate between client and server.
  */
-#define PSA_PAKE_SIDE_SERVER                ((psa_pake_side_t)0x12)
+#define PSA_PAKE_ROLE_SERVER                ((psa_pake_role_t)0x12)
 
 /** The PAKE primitive type indicating the use of elliptic curves.
  *
@@ -1153,28 +1160,23 @@ typedef uint32_t psa_pake_primitive_t;
  */
 typedef struct psa_pake_cipher_suite_s psa_pake_cipher_suite_t;
 
+/** Return an initial value for a PAKE cipher suite object.
+ */
+static psa_pake_cipher_suite_t psa_pake_cipher_suite_init( void );
+
 /** Retrieve the PAKE algorithm from a PAKE cipher suite.
- *
- * This function may be declared as `static` (i.e. without external
- * linkage). This function may be provided as a function-like macro,
- * but in this case it must evaluate its argument exactly once.
  *
  * \param[in] cipher_suite     The cipher suite structure to query.
  *
  * \return The PAKE algorithm stored in the cipher suite structure.
  */
 static psa_algorithm_t psa_pake_cs_get_algorithm(
-                           const psa_pake_cipher_suite_t* cipher_suite
-                           );
+                           const psa_pake_cipher_suite_t *cipher_suite );
 
 /** Declare the PAKE algorithm for the cipher suite.
  *
  * This function overwrites any PAKE algorithm
  * previously set in \p cipher_suite.
- *
- * This function may be declared as `static` (i.e. without external
- * linkage). This function may be provided as a function-like macro,
- * but in this case it must evaluate each of its arguments exactly once.
  *
  * \param[out] cipher_suite    The cipher suite structure to write to.
  * \param algorithm            The PAKE algorithm to write.
@@ -1183,48 +1185,49 @@ static psa_algorithm_t psa_pake_cs_get_algorithm(
  *                             If this is 0, the PAKE algorithm in
  *                             \p cipher_suite becomes unspecified.
  */
-static void psa_pake_cs_set_algorithm(
-                           psa_pake_cipher_suite_t* cipher_suite,
-                           psa_algorithm_t algorithm
-                           );
+static void psa_pake_cs_set_algorithm( psa_pake_cipher_suite_t *cipher_suite,
+                                       psa_algorithm_t algorithm );
 
 /** Retrieve the primitive from a PAKE cipher suite.
- *
- * This function may be declared as `static` (i.e. without external linkage).
- * This function may be provided as a function-like macro, but in this case it
- * must evaluate its argument exactly once.
  *
  * \param[in] cipher_suite     The cipher suite structure to query.
  *
  * \return The primitive stored in the cipher suite structure.
  */
 static psa_pake_primitive_t psa_pake_cs_get_primitive(
-                           const psa_pake_cipher_suite_t* cipher_suite
-                           );
+                           const psa_pake_cipher_suite_t *cipher_suite );
 
 /** Declare the primitive for a PAKE cipher suite.
  *
  * This function overwrites any primitive previously set in \p cipher_suite.
- *
- * This function may be declared as `static` (i.e. without external
- * linkage). This function may be provided as a function-like macro,
- * but in this case it must evaluate each of its arguments exactly once.
  *
  * \param[out] cipher_suite    The cipher suite structure to write to.
  * \param primitive            The primitive to write. If this is 0, the
  *                             primitive type in \p cipher_suite becomes
  *                             unspecified.
  */
-static void psa_pake_cs_set_primitive(
-                           psa_pake_cipher_suite_t* cipher_suite,
-                           psa_pake_primitive_t primitive
-                           );
+static void psa_pake_cs_set_primitive( psa_pake_cipher_suite_t *cipher_suite,
+                                       psa_pake_primitive_t primitive );
+
+/** Retrieve the PAKE family from a PAKE cipher suite.
+ *
+ * \param[in] cipher_suite     The cipher suite structure to query.
+ *
+ * \return The PAKE family stored in the cipher suite structure.
+ */
+static psa_pake_family_t psa_pake_cs_get_family(
+                           const psa_pake_cipher_suite_t *cipher_suite );
+
+/** Retrieve the PAKE primitive bit-size from a PAKE cipher suite.
+ *
+ * \param[in] cipher_suite     The cipher suite structure to query.
+ *
+ * \return The PAKE primitive bit-size stored in the cipher suite structure.
+ */
+static uint16_t psa_pake_cs_get_bits(
+                           const psa_pake_cipher_suite_t *cipher_suite );
 
 /** Retrieve the hash algorithm from a PAKE cipher suite.
- *
- * This function may be declared as `static` (i.e. without external
- * linkage). This function may be provided as a function-like macro,
- * but in this case it must evaluate its argument exactly once.
  *
  * \param[in] cipher_suite      The cipher suite structure to query.
  *
@@ -1233,17 +1236,12 @@ static void psa_pake_cs_set_primitive(
  *         the hash algorithm is not set.
  */
 static psa_algorithm_t psa_pake_cs_get_hash(
-                           const psa_pake_cipher_suite_t* cipher_suite
-                           );
+                           const psa_pake_cipher_suite_t *cipher_suite );
 
 /** Declare the hash algorithm for a PAKE cipher suite.
  *
  * This function overwrites any hash algorithm
  * previously set in \p cipher_suite.
- *
- * This function may be declared as `static` (i.e. without external
- * linkage). This function may be provided as a function-like macro,
- * but in this case it must evaluate each of its arguments exactly once.
  *
  * Refer to the documentation of individual PAKE algorithm types (`PSA_ALG_XXX`
  * values of type ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true)
@@ -1256,10 +1254,8 @@ static psa_algorithm_t psa_pake_cs_get_hash(
  *                              If this is 0, the hash algorithm in
  *                              \p cipher_suite becomes unspecified.
  */
-static void psa_pake_cs_set_hash(
-                           psa_pake_cipher_suite_t* cipher_suite,
-                           psa_algorithm_t hash
-                           );
+static void psa_pake_cs_set_hash( psa_pake_cipher_suite_t *cipher_suite,
+                                  psa_algorithm_t hash );
 
 /** The type of the state data structure for PAKE operations.
  *
@@ -1293,7 +1289,7 @@ typedef struct psa_pake_operation_s psa_pake_operation_t;
 
 /** Return an initial value for an PAKE operation object.
  */
-static psa_pake_operation_t psa_pake_operation_init(void);
+static psa_pake_operation_t psa_pake_operation_init( void );
 
 /** Set the session information for a password-authenticated key exchange.
  *
@@ -1340,16 +1336,24 @@ static psa_pake_operation_t psa_pake_operation_init(void);
  *
  * \param[in,out] operation     The operation object to set up. It must have
  *                              been initialized but not set up yet.
- * \param cipher_suite          The cipher suite to use. (A cipher suite fully
+ * \param[in] cipher_suite      The cipher suite to use. (A cipher suite fully
  *                              characterizes a PAKE algorithm and determines
  *                              the algorithm as well.)
  *
  * \retval #PSA_SUCCESS
  *         Success.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The algorithm in \p cipher_suite is not a PAKE algorithm, or the
+ *         PAKE primitive in \p cipher_suite is not compatible with the
+ *         PAKE algorithm, or the hash algorithm in \p cipher_suite is invalid
+ *         or not compatible with the PAKE algorithm and primitive.
  * \retval #PSA_ERROR_NOT_SUPPORTED
- *         The \p cipher_suite is not supported or is not valid.
+ *         The algorithm in \p cipher_suite is not a supported PAKE algorithm,
+ *         or the PAKE primitive in \p cipher_suite is not supported or not
+ *         compatible with the PAKE algorithm, or the hash algorithm in
+ *         \p cipher_suite is not supported or not compatible with the PAKE
+ *         algorithm and primitive.
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid, or
@@ -1357,8 +1361,8 @@ static psa_pake_operation_t psa_pake_operation_init(void);
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
-                            psa_pake_cipher_suite_t cipher_suite);
+psa_status_t psa_pake_setup( psa_pake_operation_t *operation,
+                             const psa_pake_cipher_suite_t *cipher_suite );
 
 /** Set the password for a password-authenticated key exchange from key ID.
  *
@@ -1382,22 +1386,31 @@ psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
  *
  * \retval #PSA_SUCCESS
  *         Success.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p key is not compatible with the algorithm or the cipher suite.
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_STORAGE_FAILURE
+ *         \p password is not a valid key identifier.
  * \retval #PSA_ERROR_NOT_PERMITTED
+ *         The key does not have the #PSA_KEY_USAGE_DERIVE flag, or it does not
+ *         permit the \p operation's algorithm.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The key type for \p password is not #PSA_KEY_TYPE_PASSWORD or
+ *         #PSA_KEY_TYPE_PASSWORD_HASH, or \p password is not compatible with
+ *         the \p operation's cipher suite.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         The key type or key size of \p password is not supported with the
+ *         \p operation's cipher suite.
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ * \retval #PSA_ERROR_DATA_CORRUPT
+ * \retval #PSA_ERROR_DATA_INVALID
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (it must have been set up.), or
  *         the library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
-                                       mbedtls_svc_key_id_t password);
+psa_status_t psa_pake_set_password_key( psa_pake_operation_t *operation,
+                                        mbedtls_svc_key_id_t password );
 
 /** Set the user ID for a password-authenticated key exchange.
  *
@@ -1423,10 +1436,12 @@ psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p user_id is NULL.
+ *         \p user_id is not valid for the \p operation's algorithm and cipher
+ *         suite.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         The value of \p user_id is not supported by the implementation.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid, or
@@ -1434,9 +1449,9 @@ psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_pake_set_user(psa_pake_operation_t *operation,
-                               const uint8_t *user_id,
-                               size_t user_id_len);
+psa_status_t psa_pake_set_user( psa_pake_operation_t *operation,
+                                const uint8_t *user_id,
+                                size_t user_id_len );
 
 /** Set the peer ID for a password-authenticated key exchange.
  *
@@ -1461,52 +1476,56 @@ psa_status_t psa_pake_set_user(psa_pake_operation_t *operation,
  *
  * \retval #PSA_SUCCESS
  *         Success.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p user_id is not valid for the \p operation's algorithm and cipher
+ *         suite.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         The algorithm doesn't associate a second identity with the session.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p user_id is NULL.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid, or the library has not
+ *         Calling psa_pake_set_peer() is invalid with the \p operation's
+ *         algorithm, the operation state is not valid, or the library has not
  *         been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_pake_set_peer(psa_pake_operation_t *operation,
-                               const uint8_t *peer_id,
-                               size_t peer_id_len);
+psa_status_t psa_pake_set_peer( psa_pake_operation_t *operation,
+                                const uint8_t *peer_id,
+                                size_t peer_id_len );
 
-/** Set the side for a password-authenticated key exchange.
+/** Set the application role for a password-authenticated key exchange.
  *
  * Not all PAKE algorithms need to differentiate the communicating entities.
- * It is optional to call this function for PAKEs that don't require a side
- * parameter. For such PAKEs the side parameter is ignored.
+ * It is optional to call this function for PAKEs that don't require a role
+ * to be specified. For such PAKEs the application role parameter is ignored,
+ * or #PSA_PAKE_ROLE_NONE can be passed as \c role.
  *
  * Refer to the documentation of individual PAKE algorithm types (`PSA_ALG_XXX`
  * values of type ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true)
  * for more information.
  *
- * \param[in,out] operation     The operation object to set the side for. It
- *                              must have been set up by psa_pake_setup() and
- *                              not yet in use (neither psa_pake_output() nor
- *                              psa_pake_input() has been called yet). It must
- *                              be on operation for which the side hasn't been
- *                              set (psa_pake_set_side() hasn't been called
- *                              yet).
- * \param side                  A value of type ::psa_pake_side_t signaling the
- *                              side of the algorithm that is being set up. For
- *                              more information see the documentation of
- *                              \c PSA_PAKE_SIDE_XXX constants.
+ * \param[in,out] operation     The operation object to specify the
+ *                              application's role for. It must have been set up
+ *                              by psa_pake_setup() and not yet in use (neither
+ *                              psa_pake_output() nor psa_pake_input() has been
+ *                              called yet). It must be on operation for which
+ *                              the application's role hasn't been specified
+ *                              (psa_pake_set_role() hasn't been called yet).
+ * \param role                  A value of type ::psa_pake_role_t indicating the
+ *                              application's role in the PAKE the algorithm
+ *                              that is being set up. For more information see
+ *                              the documentation of \c PSA_PAKE_ROLE_XXX
+ *                              constants.
  *
  * \retval #PSA_SUCCESS
  *         Success.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The \p role is not a valid PAKE role in the \p operation’s algorithm.
  * \retval #PSA_ERROR_NOT_SUPPORTED
- *         The \p side for this algorithm is not supported or is not valid.
+ *         The \p role for this algorithm is not supported or is not valid.
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid, or
@@ -1514,8 +1533,8 @@ psa_status_t psa_pake_set_peer(psa_pake_operation_t *operation,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_pake_set_side(psa_pake_operation_t *operation,
-                               psa_pake_side_t side);
+psa_status_t psa_pake_set_role( psa_pake_operation_t *operation,
+                                psa_pake_role_t role );
 
 /** Get output for a step of a password-authenticated key exchange.
  *
@@ -1540,8 +1559,11 @@ psa_status_t psa_pake_set_side(psa_pake_operation_t *operation,
  *                             \c PSA_PAKE_STEP_XXX constants for more
  *                             information.
  * \param output_size          Size of the \p output buffer in bytes. This must
- *                             be at least #PSA_PAKE_OUTPUT_SIZE(\p alg, \c
- *                             cipher_suite, \p type).
+ *                             be at least #PSA_PAKE_OUTPUT_SIZE(\p alg, \p
+ *                             primitive, \p step) where \p alg and
+ *                             \p primitive are the PAKE algorithm and primitive
+ *                             in the operation's cipher suite, and \p step is
+ *                             the output step.
  *
  * \param[out] output_length   On success, the number of bytes of the returned
  *                             output.
@@ -1550,23 +1572,30 @@ psa_status_t psa_pake_set_side(psa_pake_operation_t *operation,
  *         Success.
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p output buffer is too small.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p step is not compatible with the operation's algorithm.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p step is not supported with the operation's algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_STORAGE_FAILURE
+ * \retval #PSA_ERROR_DATA_CORRUPT
+ * \retval #PSA_ERROR_DATA_INVALID
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must be active, but beyond that
- *         validity is specific to the algorithm), or
+ *         The operation state is not valid (it must be active, and fully set
+ *         up, and this call must conform to the algorithm's requirements
+ *         for ordering of input and output steps), or
  *         the library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_pake_output(psa_pake_operation_t *operation,
-                             psa_pake_step_t step,
-                             uint8_t *output,
-                             size_t output_size,
-                             size_t *output_length);
+psa_status_t psa_pake_output( psa_pake_operation_t *operation,
+                              psa_pake_step_t step,
+                              uint8_t *output,
+                              size_t output_size,
+                              size_t *output_length );
 
 /** Provide input for a step of a password-authenticated key exchange.
  *
@@ -1584,33 +1613,43 @@ psa_status_t psa_pake_output(psa_pake_operation_t *operation,
  *
  * \param[in,out] operation    Active PAKE operation.
  * \param step                 The step for which the input is provided.
- * \param[out] input           Buffer containing the input in the format
+ * \param[in] input            Buffer containing the input in the format
  *                             appropriate for this \p step. Refer to the
  *                             documentation of the individual
  *                             \c PSA_PAKE_STEP_XXX constants for more
  *                             information.
- * \param[out] input_length    Size of the \p input buffer in bytes.
+ * \param input_length         Size of the \p input buffer in bytes.
  *
  * \retval #PSA_SUCCESS
  *         Success.
+ * \retval #PSA_ERROR_INVALID_SIGNATURE
+ *         The verification fails for a #PSA_PAKE_STEP_ZK_PROOF input step.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         The input is not valid for the algorithm, ciphersuite or \p step.
+ *         \p is not compatible with the \p operation’s algorithm, or the
+ *         \p input is not valid for the \p operation's algorithm, cipher suite
+ *         or \p step.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p step p is not supported with the \p operation's algorithm, or the
+ *         \p input is not supported for the \p operation's algorithm, cipher
+ *         suite or \p step.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_STORAGE_FAILURE
+ * \retval #PSA_ERROR_DATA_CORRUPT
+ * \retval #PSA_ERROR_DATA_INVALID
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must be active, but beyond that
- *         validity is specific to the algorithm), or
+ *         The operation state is not valid (it must be active, and fully set
+ *         up, and this call must conform to the algorithm's requirements
+ *         for ordering of input and output steps), or
  *         the library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_pake_input(psa_pake_operation_t *operation,
-                            psa_pake_step_t step,
-                            uint8_t *input,
-                            size_t input_length);
+psa_status_t psa_pake_input( psa_pake_operation_t *operation,
+                             psa_pake_step_t step,
+                             const uint8_t *input,
+                             size_t input_length );
 
 /** Get implicitly confirmed shared secret from a PAKE.
  *
@@ -1648,13 +1687,17 @@ psa_status_t psa_pake_input(psa_pake_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         #PSA_KEY_DERIVATION_INPUT_SECRET is not compatible with the output’s
- *         algorithm.
+ *         #PSA_KEY_DERIVATION_INPUT_SECRET is not compatible with the
+ *         algorithm in the \p output key derivation operation.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         Input from a PAKE is not supported by the algorithm in the \p output
+ *         key derivation operation.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_CORRUPTION_DETECTED
  * \retval #PSA_ERROR_STORAGE_FAILURE
+ * \retval #PSA_ERROR_DATA_CORRUPT
+ * \retval #PSA_ERROR_DATA_INVALID
  * \retval #PSA_ERROR_BAD_STATE
  *         The PAKE operation state is not valid (it must be active, but beyond
  *         that validity is specific to the algorithm), or
@@ -1666,8 +1709,34 @@ psa_status_t psa_pake_input(psa_pake_operation_t *operation,
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
-                                       psa_key_derivation_operation_t *output);
+psa_status_t psa_pake_get_implicit_key( psa_pake_operation_t *operation,
+                                        psa_key_derivation_operation_t *output );
+
+/** Abort a PAKE operation.
+ *
+ * Aborting an operation frees all associated resources except for the \c
+ * operation structure itself. Once aborted, the operation object can be reused
+ * for another operation by calling psa_pake_setup() again.
+ *
+ * This function may be called at any time after the operation
+ * object has been initialized as described in #psa_pake_operation_t.
+ *
+ * In particular, calling psa_pake_abort() after the operation has been
+ * terminated by a call to psa_pake_abort() or psa_pake_get_implicit_key()
+ * is safe and has no effect.
+ *
+ * \param[in,out] operation    The operation to abort.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_pake_abort( psa_pake_operation_t * operation );
 
 /**@}*/
 
@@ -1686,9 +1755,10 @@ psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
  * \param output_step   A value of type ::psa_pake_step_t that is valid for the
  *                      algorithm \p alg.
  * \return              A sufficient output buffer size for the specified
- *                      output, cipher suite and algorithm. If the cipher suite,
- *                      the output type or PAKE algorithm is not recognized, or
- *                      the parameters are incompatible, return 0.
+ *                      PAKE algorithm, primitive, and output step. If the
+ *                      PAKE algorithm, primitive, or output step is not
+ *                      recognized, or the parameters are incompatible,
+ *                      return 0.
  */
 #define PSA_PAKE_OUTPUT_SIZE(alg, primitive, output_step) 0
 
@@ -1713,23 +1783,33 @@ psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
  */
 #define PSA_PAKE_INPUT_SIZE(alg, primitive, input_step) 0
 
-/** Output buffer size for psa_pake_output() for any of the supported cipher
- * suites and PAKE algorithms.
+/** Output buffer size for psa_pake_output() for any of the supported PAKE
+ * algorithm and primitive suites and output step.
  *
  * This macro must expand to a compile-time constant integer.
  *
- * See also #PSA_PAKE_OUTPUT_SIZE(\p alg, \p cipher_suite, \p output).
+ * See also #PSA_PAKE_OUTPUT_SIZE(\p alg, \p primitive, \p step).
  */
 #define PSA_PAKE_OUTPUT_MAX_SIZE 0
 
-/** Input buffer size for psa_pake_input() for any of the supported cipher
- * suites and PAKE algorithms.
+/** Input buffer size for psa_pake_input() for any of the supported PAKE
+ * algorithm and primitive suites and input step.
  *
  * This macro must expand to a compile-time constant integer.
  *
- * See also #PSA_PAKE_INPUT_SIZE(\p alg, \p cipher_suite, \p input).
+ * See also #PSA_PAKE_INPUT_SIZE(\p alg, \p primitive, \p step).
  */
 #define PSA_PAKE_INPUT_MAX_SIZE 0
+
+/** Returns a suitable initializer for a PAKE cipher suite object of type
+ * psa_pake_cipher_suite_t.
+ */
+#define PSA_PAKE_CIPHER_SUITE_INIT {PSA_ALG_NONE, 0, 0, 0, PSA_ALG_NONE}
+
+/** Returns a suitable initializer for a PAKE operation object of type
+ * psa_pake_operation_t.
+ */
+#define PSA_PAKE_OPERATION_INIT {PSA_ALG_NONE, {0}}
 
 struct psa_pake_cipher_suite_s
 {
@@ -1741,48 +1821,59 @@ struct psa_pake_cipher_suite_s
 };
 
 static inline psa_algorithm_t psa_pake_cs_get_algorithm(
-    const psa_pake_cipher_suite_t *cipher_suite)
+                        const psa_pake_cipher_suite_t *cipher_suite )
 {
-    return(cipher_suite->algorithm);
+    return( cipher_suite->algorithm );
 }
 
 static inline void psa_pake_cs_set_algorithm(
     psa_pake_cipher_suite_t *cipher_suite,
     psa_algorithm_t algorithm)
 {
-    if(!PSA_ALG_IS_PAKE(algorithm))
+    if( !PSA_ALG_IS_PAKE( algorithm ) )
         cipher_suite->algorithm = 0;
     else
         cipher_suite->algorithm = algorithm;
 }
 
 static inline psa_pake_primitive_t psa_pake_cs_get_primitive(
-    const psa_pake_cipher_suite_t *cipher_suite)
+                        const psa_pake_cipher_suite_t *cipher_suite )
 {
-    return(PSA_PAKE_PRIMITIVE(cipher_suite->type, cipher_suite->family,
-                cipher_suite->bits));
+    return( PSA_PAKE_PRIMITIVE( cipher_suite->type, cipher_suite->family,
+                                cipher_suite->bits ) );
 }
 
 static inline void psa_pake_cs_set_primitive(
-    psa_pake_cipher_suite_t *cipher_suite,
-    psa_pake_primitive_t primitive)
+                        psa_pake_cipher_suite_t *cipher_suite,
+                        psa_pake_primitive_t primitive )
 {
     cipher_suite->type = (psa_pake_primitive_type_t) (primitive >> 24);
     cipher_suite->family = (psa_pake_family_t) (0xFF & (primitive >> 16));
     cipher_suite->bits = (uint16_t) (0xFFFF & primitive);
 }
 
-static inline psa_algorithm_t psa_pake_cs_get_hash(
-    const psa_pake_cipher_suite_t *cipher_suite)
+static inline psa_pake_family_t psa_pake_cs_get_family(
+                        const psa_pake_cipher_suite_t *cipher_suite )
 {
-    return(cipher_suite->hash);
+    return( cipher_suite->family );
 }
 
-static inline void psa_pake_cs_set_hash(
-    psa_pake_cipher_suite_t *cipher_suite,
-    psa_algorithm_t hash)
+static inline uint16_t psa_pake_cs_get_bits(
+                        const psa_pake_cipher_suite_t *cipher_suite )
 {
-    if(!PSA_ALG_IS_HASH(hash))
+    return( cipher_suite->bits );
+}
+
+static inline psa_algorithm_t psa_pake_cs_get_hash(
+                        const psa_pake_cipher_suite_t *cipher_suite )
+{
+    return( cipher_suite->hash );
+}
+
+static inline void psa_pake_cs_set_hash( psa_pake_cipher_suite_t *cipher_suite,
+                                         psa_algorithm_t hash )
+{
+    if( !PSA_ALG_IS_HASH( hash ) )
         cipher_suite->hash = 0;
     else
         cipher_suite->hash = hash;
@@ -1798,12 +1889,16 @@ struct psa_pake_operation_s
     } ctx;
 };
 
-/* This only zeroes out the first byte in the union, the rest is unspecified. */
-#define PSA_PAKE_OPERATION_INIT {0, {0}}
-static inline struct psa_pake_operation_s psa_pake_operation_init(void)
+static inline struct psa_pake_cipher_suite_s psa_pake_cipher_suite_init( void )
+{
+    const struct psa_pake_cipher_suite_s v = PSA_PAKE_CIPHER_SUITE_INIT;
+    return( v );
+}
+
+static inline struct psa_pake_operation_s psa_pake_operation_init( void )
 {
     const struct psa_pake_operation_s v = PSA_PAKE_OPERATION_INIT;
-    return(v);
+    return( v );
 }
 
 #ifdef __cplusplus

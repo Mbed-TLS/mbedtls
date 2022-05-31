@@ -219,6 +219,7 @@ int mbedtls_cipher_setup( mbedtls_cipher_context_t *ctx,
 }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 int mbedtls_cipher_setup_psa( mbedtls_cipher_context_t *ctx,
                               const mbedtls_cipher_info_t *cipher_info,
                               size_t taglen )
@@ -248,6 +249,7 @@ int mbedtls_cipher_setup_psa( mbedtls_cipher_context_t *ctx,
     ctx->psa_enabled = 1;
     return( 0 );
 }
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx,

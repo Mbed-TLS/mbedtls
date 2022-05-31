@@ -1,0 +1,3 @@
+New deprecations
+   * Deprecate mbedtls_cipher_setup_psa() function.
+     Use psa_aead_xxx() / psa_cipher_xxx() directly instead.

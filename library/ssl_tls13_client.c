@@ -787,23 +787,17 @@ static int ssl_server_hello_is_hrr( mbedtls_ssl_context *ssl,
  */
 #define SSL_SERVER_HELLO_COORDINATE_TLS1_2 2
 static int ssl_tls13_server_hello_coordinate( mbedtls_ssl_context *ssl,
-                                              unsigned char **buf,
-                                              size_t *buf_len )
+                                              const unsigned char *buf,
+                                              const unsigned char *end )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    const unsigned char *end;
-
-    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_fetch_handshake_msg( ssl,
-                                             MBEDTLS_SSL_HS_SERVER_HELLO,
-                                             buf, buf_len ) );
-    end = *buf + *buf_len;
 
     MBEDTLS_SSL_PROC_CHK_NEG( ssl_tls13_is_supported_versions_ext_present(
-                                  ssl, *buf, end ) );
+                                  ssl, buf, end ) );
     if( ret == 0 )
     {
         MBEDTLS_SSL_PROC_CHK_NEG(
-            ssl_tls13_is_downgrade_negotiation( ssl, *buf, end ) );
+            ssl_tls13_is_downgrade_negotiation( ssl, buf, end ) );
 
         /* If the server is negotiating TLS 1.2 or below and:
          * . we did not propose TLS 1.2 or
@@ -821,7 +815,7 @@ static int ssl_tls13_server_hello_coordinate( mbedtls_ssl_context *ssl,
         ssl->keep_current_message = 1;
         ssl->tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
         mbedtls_ssl_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_SERVER_HELLO,
-                                            *buf, *buf_len );
+                                            buf, (size_t)(end - buf) );
 
         if( mbedtls_ssl_conf_tls13_some_ephemeral_enabled( ssl ) )
         {
@@ -833,7 +827,7 @@ static int ssl_tls13_server_hello_coordinate( mbedtls_ssl_context *ssl,
         return( SSL_SERVER_HELLO_COORDINATE_TLS1_2 );
     }
 
-    ret = ssl_server_hello_is_hrr( ssl, *buf, end );
+    ret = ssl_server_hello_is_hrr( ssl, buf, end );
     switch( ret )
     {
         case SSL_SERVER_HELLO_COORDINATE_HELLO:
@@ -1307,14 +1301,13 @@ static int ssl_tls13_process_server_hello( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> %s", __func__ ) );
 
-    /* Coordination step
-     * - Fetch record
-     * - Make sure it's either a ServerHello or a HRR.
-     * - Switch processing routine in case of HRR
-     */
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_fetch_handshake_msg( ssl,
+                                             MBEDTLS_SSL_HS_SERVER_HELLO,
+                                             &buf, &buf_len ) );
+
     ssl->handshake->extensions_present = MBEDTLS_SSL_EXT_NONE;
 
-    ret = ssl_tls13_server_hello_coordinate( ssl, &buf, &buf_len );
+    ret = ssl_tls13_server_hello_coordinate( ssl, buf, buf + buf_len );
     if( ret < 0 )
         goto cleanup;
     else

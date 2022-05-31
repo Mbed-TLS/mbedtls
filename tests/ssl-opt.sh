@@ -11403,7 +11403,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-run_test    "TLS 1.3: Server side check - openssl with server name indication" \
+run_test    "TLS 1.3: Server side check - openssl with sni" \
             "$P_SRV debug_level=4 auth_mode=required crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0 \
              sni=localhost,data_files/server2.crt,data_files/server2.key,data_files/test-ca2.crt,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
             "$O_NEXT_CLI -msg -debug -servername localhost -CAfile data_files/test-ca_cat12.crt -cert data_files/server5.crt -key data_files/server5.key -tls1_3" \
@@ -11426,7 +11426,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-run_test    "TLS 1.3: Server side check - gnutls with server name indication" \
+run_test    "TLS 1.3: Server side check - gnutls with sni" \
             "$P_SRV debug_level=4 auth_mode=required crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0 \
              sni=localhost,data_files/server2.crt,data_files/server2.key,data_files/test-ca2.crt,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
             "$G_NEXT_CLI localhost -d 4 --sni-hostname=localhost --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS -V" \
@@ -11449,7 +11449,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-run_test    "TLS 1.3: Server side check - mbedtls with server name indication" \
+run_test    "TLS 1.3: Server side check - mbedtls with sni" \
             "$P_SRV debug_level=4 auth_mode=required crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0 \
              sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
             "$P_CLI debug_level=4 server_name=localhost crt_file=data_files/server5.crt key_file=data_files/server5.key \

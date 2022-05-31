@@ -741,12 +741,12 @@ static int ssl_tls13_is_downgrade_negotiation( mbedtls_ssl_context *ssl,
 }
 
 /* Returns a negative value on failure, and otherwise
- * - SSL_SERVER_HELLO_COORDINATE_HELLO or
- * - SSL_SERVER_HELLO_COORDINATE_HRR
+ * - SSL_SERVER_HELLO or
+ * - SSL_SERVER_HELLO_HRR
  * to indicate which message is expected and to be parsed next.
  */
-#define SSL_SERVER_HELLO_COORDINATE_HELLO 0
-#define SSL_SERVER_HELLO_COORDINATE_HRR 1
+#define SSL_SERVER_HELLO 0
+#define SSL_SERVER_HELLO_HRR 1
 static int ssl_server_hello_is_hrr( mbedtls_ssl_context *ssl,
                                     const unsigned char *buf,
                                     const unsigned char *end )
@@ -773,20 +773,20 @@ static int ssl_server_hello_is_hrr( mbedtls_ssl_context *ssl,
     if( memcmp( buf + 2, mbedtls_ssl_tls13_hello_retry_request_magic,
                 sizeof( mbedtls_ssl_tls13_hello_retry_request_magic ) ) == 0 )
     {
-        return( SSL_SERVER_HELLO_COORDINATE_HRR );
+        return( SSL_SERVER_HELLO_HRR );
     }
 
-    return( SSL_SERVER_HELLO_COORDINATE_HELLO );
+    return( SSL_SERVER_HELLO );
 }
 
-/* Fetch and preprocess
+/*
  * Returns a negative value on failure, and otherwise
- * - SSL_SERVER_HELLO_COORDINATE_HELLO or
- * - SSL_SERVER_HELLO_COORDINATE_HRR or
- * - SSL_SERVER_HELLO_COORDINATE_TLS1_2
+ * - SSL_SERVER_HELLO or
+ * - SSL_SERVER_HELLO_HRR or
+ * - SSL_SERVER_HELLO_TLS1_2
  */
-#define SSL_SERVER_HELLO_COORDINATE_TLS1_2 2
-static int ssl_tls13_server_hello_coordinate( mbedtls_ssl_context *ssl,
+#define SSL_SERVER_HELLO_TLS1_2 2
+static int ssl_tls13_preprocess_server_hello( mbedtls_ssl_context *ssl,
                                               const unsigned char *buf,
                                               const unsigned char *end )
 {
@@ -824,16 +824,16 @@ static int ssl_tls13_server_hello_coordinate( mbedtls_ssl_context *ssl,
                 return( ret );
         }
 
-        return( SSL_SERVER_HELLO_COORDINATE_TLS1_2 );
+        return( SSL_SERVER_HELLO_TLS1_2 );
     }
 
     ret = ssl_server_hello_is_hrr( ssl, buf, end );
     switch( ret )
     {
-        case SSL_SERVER_HELLO_COORDINATE_HELLO:
+        case SSL_SERVER_HELLO:
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "received ServerHello message" ) );
             break;
-        case SSL_SERVER_HELLO_COORDINATE_HRR:
+        case SSL_SERVER_HELLO_HRR:
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "received HelloRetryRequest message" ) );
              /* If a client receives a second
               * HelloRetryRequest in the same connection (i.e., where the ClientHello
@@ -1307,13 +1307,13 @@ static int ssl_tls13_process_server_hello( mbedtls_ssl_context *ssl )
 
     ssl->handshake->extensions_present = MBEDTLS_SSL_EXT_NONE;
 
-    ret = ssl_tls13_server_hello_coordinate( ssl, buf, buf + buf_len );
+    ret = ssl_tls13_preprocess_server_hello( ssl, buf, buf + buf_len );
     if( ret < 0 )
         goto cleanup;
     else
-        is_hrr = ( ret == SSL_SERVER_HELLO_COORDINATE_HRR );
+        is_hrr = ( ret == SSL_SERVER_HELLO_HRR );
 
-    if( ret == SSL_SERVER_HELLO_COORDINATE_TLS1_2 )
+    if( ret == SSL_SERVER_HELLO_TLS1_2 )
     {
         ret = 0;
         goto cleanup;

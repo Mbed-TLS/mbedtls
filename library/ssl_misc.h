@@ -50,7 +50,8 @@
 #include "mbedtls/sha512.h"
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED) && \
+    !defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "mbedtls/ecjpake.h"
 #endif
 
@@ -663,7 +664,13 @@ struct mbedtls_ssl_handshake_params
 #endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_pake_operation_t psa_pake_ctx;        /*!< EC J-PAKE key exchange */
+    mbedtls_svc_key_id_t psa_pake_password;
+    uint8_t psa_pake_ctx_is_ok;
+#else
     mbedtls_ecjpake_context ecjpake_ctx;        /*!< EC J-PAKE key exchange */
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 #if defined(MBEDTLS_SSL_CLI_C)
     unsigned char *ecjpake_cache;               /*!< Cache for ClientHello ext */
     size_t ecjpake_cache_len;                   /*!< Length of cached data */

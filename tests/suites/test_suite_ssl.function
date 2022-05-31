@@ -2100,7 +2100,7 @@ void perform_handshake( handshake_test_options* options )
 
     TEST_ASSERT( mbedtls_ssl_is_handshake_over( &client.ssl ) == 1 );
 
-    /* Workaround for TLS1.3 */
+    /* Make sure server state is moved to HANDSHAKE_OVER also. */
     TEST_ASSERT( mbedtls_move_handshake_to_state( &(server.ssl),
                                                   &(client.ssl),
                                                   MBEDTLS_SSL_HANDSHAKE_OVER )

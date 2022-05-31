@@ -64,7 +64,6 @@ int main( void )
 #include <test/helpers.h>
 
 #include <string.h>
-#include <inttypes.h>
 
 /* For select() */
 #if (defined(_WIN32) || defined(_WIN32_WCE)) && !defined(EFIX64) && \
@@ -726,9 +725,6 @@ static void debug_print_buf( const char *file, int line, const char *text,
     memset( txt, 0, sizeof( txt ) );
     for( i = 0; i < len; i++ )
     {
-        if( i >= 4096 )
-            break;
-
         if( i % 16 == 0 )
         {
             if( i > 0 )

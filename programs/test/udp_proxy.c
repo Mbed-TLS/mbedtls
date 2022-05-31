@@ -145,7 +145,11 @@ int main( void )
     "    malform_packet_num=%%d default:0, which packet of a given type\n"  \
     "                                    that passes all filters to\n"      \
     "                                    malform. Zero means all.\n"        \
-    "    malform_hs_seq_num=%%d  default:-1 (apply a hs seq_num filter)\n"  \
+    "    malform_hs_seq_num=%%d  only malform handshake messages with this\n"\
+    "                            seq_num. default: -1 - do not apply.\n"    \
+    "                            Specifying this option and chosing a\n"    \
+    "                            non-handshake message type will probably\n"\
+    "                            give no results.\n"                        \
     "    malform_message=%%s  Which message to malform. Acceptable values:\n"\
     "                        HelloRequest, ClientHello, ServerHello,\n"     \
     "                        HelloVerifyRequest, NewSessionTicket,\n"       \

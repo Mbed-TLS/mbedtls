@@ -1634,8 +1634,8 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
     if( auth_done == 0 )
     {
-        unsigned char mac_expect[MBEDTLS_SSL_MAC_ADD];
-        unsigned char mac_peer[MBEDTLS_SSL_MAC_ADD];
+        unsigned char mac_expect[MBEDTLS_SSL_MAC_ADD] = { 0 };
+        unsigned char mac_peer[MBEDTLS_SSL_MAC_ADD] = { 0 };
 
         /* If the initial value of padlen was such that
          * data_len < maclen + padlen + 1, then padlen

@@ -812,7 +812,7 @@ static int ssl_tls13_write_certificate_body( mbedtls_ssl_context *ssl,
         /* Currently, we don't have any certificate extensions defined.
          * Hence, we are sending an empty extension with length zero.
          */
-        MBEDTLS_PUT_UINT24_BE( 0, p, 0 );
+        MBEDTLS_PUT_UINT16_BE( 0, p, 0 );
         p += 2;
     }
 

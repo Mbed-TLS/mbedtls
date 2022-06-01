@@ -1095,7 +1095,7 @@ static int ssl_tls13_write_hrr_key_share_ext( mbedtls_ssl_context *ssl,
      * - extension_data_length  (2 bytes)
      * - selected_group         (2 bytes)
      */
-    MBEDTLS_SSL_CHK_BUF_READ_PTR( buf, end, 6 );
+    MBEDTLS_SSL_CHK_BUF_PTR( buf, end, 6 );
 
     MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_KEY_SHARE, buf, 0 );
     MBEDTLS_PUT_UINT16_BE( 2, buf, 2 );

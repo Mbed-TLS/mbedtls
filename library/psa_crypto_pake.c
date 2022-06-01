@@ -24,6 +24,7 @@
 
 #include <psa/crypto.h>
 #include "psa_crypto_core.h"
+#include "psa_crypto_pake.h"
 #include "psa_crypto_slot_management.h"
 
 #include <mbedtls/ecjpake.h>
@@ -190,8 +191,8 @@ static psa_status_t mbedtls_ecjpake_to_psa_error(int ret)
 #endif
 
 #if defined(MBEDTLS_PSA_BUILTIN_PAKE)
-psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
-                            const psa_pake_cipher_suite_t *cipher_suite)
+psa_status_t mbedtls_psa_pake_setup(psa_pake_operation_t *operation,
+                                    const psa_pake_cipher_suite_t *cipher_suite)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -243,8 +244,8 @@ error:
     return status;
 }
 
-psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
-                                       mbedtls_svc_key_id_t password)
+psa_status_t mbedtls_psa_pake_set_password_key(psa_pake_operation_t *operation,
+                                               mbedtls_svc_key_id_t password)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_attributes_t attributes = psa_key_attributes_init();
@@ -310,9 +311,9 @@ error:
     return status;
 }
 
-psa_status_t psa_pake_set_user(psa_pake_operation_t *operation,
-                               const uint8_t *user_id,
-                               size_t user_id_len)
+psa_status_t mbedtls_psa_pake_set_user(psa_pake_operation_t *operation,
+                                       const uint8_t *user_id,
+                                       size_t user_id_len)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -334,9 +335,9 @@ error:
     return status;
 }
 
-psa_status_t psa_pake_set_peer(psa_pake_operation_t *operation,
-                               const uint8_t *peer_id,
-                               size_t peer_id_len)
+psa_status_t mbedtls_psa_pake_set_peer(psa_pake_operation_t *operation,
+                                       const uint8_t *peer_id,
+                                       size_t peer_id_len)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -358,8 +359,8 @@ error:
     return status;
 }
 
-psa_status_t psa_pake_set_role(psa_pake_operation_t *operation,
-                               psa_pake_role_t role)
+psa_status_t mbedtls_psa_pake_set_role(psa_pake_operation_t *operation,
+                                       psa_pake_role_t role)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -437,7 +438,7 @@ static psa_status_t psa_pake_ecjpake_setup(psa_pake_operation_t *operation)
 }
 #endif
 
-static psa_status_t psa_pake_output_internal(
+static psa_status_t mbedtls_psa_pake_output_internal(
     psa_pake_operation_t *operation,
     psa_pake_step_t step,
     uint8_t *output,
@@ -626,13 +627,13 @@ static psa_status_t psa_pake_output_internal(
     return PSA_ERROR_NOT_SUPPORTED;
 }
 
-psa_status_t psa_pake_output(psa_pake_operation_t *operation,
-                             psa_pake_step_t step,
-                             uint8_t *output,
-                             size_t output_size,
-                             size_t *output_length)
+psa_status_t mbedtls_psa_pake_output(psa_pake_operation_t *operation,
+                                     psa_pake_step_t step,
+                                     uint8_t *output,
+                                     size_t output_size,
+                                     size_t *output_length)
 {
-    psa_status_t status = psa_pake_output_internal(
+    psa_status_t status = mbedtls_psa_pake_output_internal(
         operation, step, output, output_size, output_length);
 
     if (status != PSA_SUCCESS) {
@@ -642,7 +643,7 @@ psa_status_t psa_pake_output(psa_pake_operation_t *operation,
     return status;
 }
 
-static psa_status_t psa_pake_input_internal(
+static psa_status_t mbedtls_psa_pake_input_internal(
     psa_pake_operation_t *operation,
     psa_pake_step_t step,
     const uint8_t *input,
@@ -824,12 +825,12 @@ static psa_status_t psa_pake_input_internal(
     return PSA_ERROR_NOT_SUPPORTED;
 }
 
-psa_status_t psa_pake_input(psa_pake_operation_t *operation,
-                            psa_pake_step_t step,
-                            const uint8_t *input,
-                            size_t input_length)
+psa_status_t mbedtls_psa_pake_input(psa_pake_operation_t *operation,
+                                    psa_pake_step_t step,
+                                    const uint8_t *input,
+                                    size_t input_length)
 {
-    psa_status_t status = psa_pake_input_internal(
+    psa_status_t status = mbedtls_psa_pake_input_internal(
         operation, step, input, input_length);
 
     if (status != PSA_SUCCESS) {
@@ -839,8 +840,9 @@ psa_status_t psa_pake_input(psa_pake_operation_t *operation,
     return status;
 }
 
-psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
-                                       psa_key_derivation_operation_t *output)
+psa_status_t mbedtls_psa_pake_get_implicit_key(
+    psa_pake_operation_t *operation,
+    psa_key_derivation_operation_t *output)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
@@ -887,7 +889,7 @@ error:
     return status;
 }
 
-psa_status_t psa_pake_abort(psa_pake_operation_t *operation)
+psa_status_t mbedtls_psa_pake_abort(psa_pake_operation_t *operation)
 {
     if (operation->alg == PSA_ALG_NONE) {
         return PSA_SUCCESS;

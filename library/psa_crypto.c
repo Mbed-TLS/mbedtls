@@ -4385,9 +4385,9 @@ psa_status_t psa_key_derivation_abort( psa_key_derivation_operation_t *operation
             tls12_prf_inputs->label_length : tls12_prf_context->label_length;
 
         uint8_t *other_secret = is_input_stage ?
-            tls12_prf_inputs->other_secret : tls12_prf_context->other_secret;
+            tls12_prf_inputs->other_secret : NULL;
         size_t other_secret_length = is_input_stage ?
-            tls12_prf_inputs->other_secret_length : tls12_prf_context->other_secret_length;
+            tls12_prf_inputs->other_secret_length : 0;
 
 
         if( secret != NULL )
@@ -5020,6 +5020,212 @@ static psa_status_t psa_crypto_key_derivation_complete_hkdf_inputs(
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
+static psa_status_t psa_tls12_prf_set_seed( psa_tls12_prf_key_derivation_inputs_t *prf,
+                                            const uint8_t *data,
+                                            size_t data_length )
+{
+    if( prf->state != PSA_TLS12_PRF_STATE_INIT )
+        return( PSA_ERROR_BAD_STATE );
+
+    if( data_length != 0 )
+    {
+        prf->seed = mbedtls_calloc( 1, data_length );
+        if( prf->seed == NULL )
+            return( PSA_ERROR_INSUFFICIENT_MEMORY );
+
+        memcpy( prf->seed, data, data_length );
+        prf->seed_length = data_length;
+    }
+
+    prf->state = PSA_TLS12_PRF_STATE_SEED_SET;
+
+    return( PSA_SUCCESS );
+}
+
+static psa_status_t psa_tls12_prf_set_key( psa_tls12_prf_key_derivation_inputs_t *prf,
+                                           const uint8_t *data,
+                                           size_t data_length )
+{
+    if( prf->state != PSA_TLS12_PRF_STATE_SEED_SET &&
+        prf->state != PSA_TLS12_PRF_STATE_OTHER_KEY_SET )
+        return( PSA_ERROR_BAD_STATE );
+
+    if( data_length != 0 )
+    {
+        prf->secret = mbedtls_calloc( 1, data_length );
+        if( prf->secret == NULL )
+            return( PSA_ERROR_INSUFFICIENT_MEMORY );
+
+        memcpy( prf->secret, data, data_length );
+        prf->secret_length = data_length;
+    }
+
+    prf->state = PSA_TLS12_PRF_STATE_KEY_SET;
+
+    return( PSA_SUCCESS );
+}
+
+static psa_status_t psa_tls12_prf_set_label( psa_tls12_prf_key_derivation_inputs_t *prf,
+                                             const uint8_t *data,
+                                             size_t data_length )
+{
+    if( prf->state != PSA_TLS12_PRF_STATE_KEY_SET )
+        return( PSA_ERROR_BAD_STATE );
+
+    if( data_length != 0 )
+    {
+        prf->label = mbedtls_calloc( 1, data_length );
+        if( prf->label == NULL )
+            return( PSA_ERROR_INSUFFICIENT_MEMORY );
+
+        memcpy( prf->label, data, data_length );
+        prf->label_length = data_length;
+    }
+
+    prf->state = PSA_TLS12_PRF_STATE_LABEL_SET;
+
+    return( PSA_SUCCESS );
+}
+
+static psa_status_t psa_tls12_prf_input( psa_tls12_prf_key_derivation_inputs_t *prf,
+                                         psa_key_derivation_step_t step,
+                                         const uint8_t *data,
+                                         size_t data_length )
+{
+    switch( step )
+    {
+        case PSA_KEY_DERIVATION_INPUT_SEED:
+            return( psa_tls12_prf_set_seed( prf, data, data_length ) );
+        case PSA_KEY_DERIVATION_INPUT_SECRET:
+            return( psa_tls12_prf_set_key( prf, data, data_length ) );
+        case PSA_KEY_DERIVATION_INPUT_LABEL:
+            return( psa_tls12_prf_set_label( prf, data, data_length ) );
+        default:
+            return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+}
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) ||
+        * MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
+
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
+static psa_status_t psa_tls12_prf_psk_to_ms_get_key(
+    psa_tls12_prf_key_derivation_inputs_t *prf,
+    uint8_t **pms_output, size_t *pms_size )
+{
+    const size_t pms_len = ( prf->other_secret_set ?
+        4 + prf->secret_length + prf->other_secret_length :
+        4 + 2 * prf->secret_length );
+
+    uint8_t *pms = mbedtls_calloc( 1, pms_len );
+    if( pms == NULL )
+        return( PSA_ERROR_INSUFFICIENT_MEMORY );
+    uint8_t *cur = pms;
+
+    /* pure-PSK:
+     * Quoting RFC 4279, Section 2:
+     *
+     * The premaster secret is formed as follows: if the PSK is N octets
+     * long, concatenate a uint16 with the value N, N zero octets, a second
+     * uint16 with the value N, and the PSK itself.
+     *
+     * mixed-PSK:
+     * In a DHE-PSK, RSA-PSK, ECDHE-PSK the premaster secret is formed as
+     * follows: concatenate a uint16 with the length of the other secret,
+     * the other secret itself, uint16 with the length of PSK, and the
+     * PSK itself.
+     * For details please check:
+     * - RFC 4279, Section 4 for the definition of RSA-PSK,
+     * - RFC 4279, Section 3 for the definition of DHE-PSK,
+     * - RFC 5489 for the definition of ECDHE-PSK.
+     */
+
+    if( prf->other_secret_set )
+    {
+        *cur++ = MBEDTLS_BYTE_1( prf->other_secret_length );
+        *cur++ = MBEDTLS_BYTE_0( prf->other_secret_length );
+        if( prf->other_secret_length != 0 )
+        {
+            memcpy( cur, prf->other_secret, prf->other_secret_length );
+            mbedtls_platform_zeroize( prf->other_secret, prf->other_secret_length );
+            cur += prf->other_secret_length;
+        }
+    }
+    else
+    {
+        *cur++ = MBEDTLS_BYTE_1( prf->secret_length );
+        *cur++ = MBEDTLS_BYTE_0( prf->secret_length );
+        memset( cur, 0, prf->secret_length );
+        cur += prf->secret_length;
+    }
+
+    *cur++ = MBEDTLS_BYTE_1( prf->secret_length );
+    *cur++ = MBEDTLS_BYTE_0( prf->secret_length );
+    memcpy( cur, prf->secret, prf->secret_length );
+    mbedtls_platform_zeroize( (void*) prf->secret, prf->secret_length );
+    cur += prf->secret_length;
+
+    *pms_output = pms;
+    *pms_size = ( cur - pms );
+
+    return( PSA_SUCCESS );
+}
+
+static psa_status_t psa_tls12_prf_psk_to_ms_set_other_key(
+    psa_tls12_prf_key_derivation_inputs_t *prf,
+    const uint8_t *data,
+    size_t data_length )
+{
+    if( prf->state != PSA_TLS12_PRF_STATE_SEED_SET )
+        return( PSA_ERROR_BAD_STATE );
+
+    if( data_length != 0 )
+    {
+        prf->other_secret = mbedtls_calloc( 1, data_length );
+        if( prf->other_secret == NULL )
+            return( PSA_ERROR_INSUFFICIENT_MEMORY );
+
+        memcpy( prf->other_secret, data, data_length );
+        prf->other_secret_length = data_length;
+    }
+    else
+    {
+        prf->other_secret_length = 0;
+    }
+
+    prf->state = PSA_TLS12_PRF_STATE_OTHER_KEY_SET;
+    prf->other_secret_set = 1;
+
+    return( PSA_SUCCESS );
+}
+
+static psa_status_t psa_tls12_prf_psk_to_ms_input(
+    psa_tls12_prf_key_derivation_inputs_t *prf,
+    psa_key_derivation_step_t step,
+    const uint8_t *data,
+    size_t data_length )
+{
+    switch( step )
+    {
+        case PSA_KEY_DERIVATION_INPUT_SECRET:
+            if( data_length > PSA_TLS12_PSK_TO_MS_PSK_MAX_SIZE )
+                return( PSA_ERROR_INVALID_ARGUMENT );
+            return( psa_tls12_prf_set_key( prf, data, data_length ) );
+            break;
+        case PSA_KEY_DERIVATION_INPUT_OTHER_SECRET:
+            return( psa_tls12_prf_psk_to_ms_set_other_key( prf,
+                                                           data,
+                                                           data_length ) );
+            break;
+        default:
+            return( psa_tls12_prf_input( prf, step, data, data_length ) );
+            break;
+
+    }
+}
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
+
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
 static psa_status_t psa_crypto_key_derivation_complete_tls12_prf_inputs(
     psa_key_derivation_operation_t *operation )
 {
@@ -5032,9 +5238,13 @@ static psa_status_t psa_crypto_key_derivation_complete_tls12_prf_inputs(
     size_t secret_length = 0, seed_length = 0, label_length = 0;
     uint8_t *secret = NULL, *seed = NULL, *label = NULL;
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
-    size_t other_secret_length = 0;
-    uint8_t *other_secret = NULL;
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
+    uint8_t *pms = NULL;
+    size_t pms_length = 0;
+    uint8_t is_psk_to_psk =
+        PSA_ALG_IS_TLS12_PSK_TO_MS( psa_key_derivation_get_kdf_alg( operation ) );
+#else /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
+    uint8_t is_psk_to_psk = 0;
+#endif
 
     if ( inputs->state != PSA_TLS12_PRF_STATE_LABEL_SET )
         return( PSA_ERROR_BAD_STATE );
@@ -5045,7 +5255,8 @@ static psa_status_t psa_crypto_key_derivation_complete_tls12_prf_inputs(
                         PSA_KEY_DERIVATION_INPUT_SEED,
                         &seed_length ) != PSA_SUCCESS ) )
         return status;
-    if ( ( status = psa_crypto_driver_key_derivation_get_input_size(
+    if ( !is_psk_to_psk  &&
+         ( status = psa_crypto_driver_key_derivation_get_input_size(
                         &operation->data.inputs,
                         PSA_KEY_DERIVATION_INPUT_SECRET,
                         &secret_length ) != PSA_SUCCESS ) )
@@ -5055,13 +5266,6 @@ static psa_status_t psa_crypto_key_derivation_complete_tls12_prf_inputs(
                         PSA_KEY_DERIVATION_INPUT_LABEL,
                         &label_length ) != PSA_SUCCESS ) )
         return status;
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
-    if ( ( status = psa_crypto_driver_key_derivation_get_input_size(
-                        &operation->data.inputs,
-                        PSA_KEY_DERIVATION_INPUT_OTHER_SECRET,
-                        &other_secret_length ) != PSA_SUCCESS ) )
-        return status;
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
 
     /* Allocate local buffers for prf inputs. */
     if( seed_length != 0 )
@@ -5070,25 +5274,14 @@ static psa_status_t psa_crypto_key_derivation_complete_tls12_prf_inputs(
         secret = mbedtls_calloc( 1, secret_length );
     if( label_length != 0 )
         label = mbedtls_calloc( 1, label_length );
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
-    if( other_secret_length != 0 )
-        other_secret = mbedtls_calloc( 1, other_secret_length );
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
-
     if( ( seed_length != 0 && seed == NULL )
         || ( secret_length != 0 && secret == NULL )
         || ( label_length != 0 && label == NULL )
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
-        || ( other_secret_length != 0 && other_secret == NULL )
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
       )
     {
         mbedtls_free( seed );
         mbedtls_free( secret );
         mbedtls_free( label );
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
-        mbedtls_free( other_secret );
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
 
         return( PSA_ERROR_INSUFFICIENT_MEMORY );
     }
@@ -5098,7 +5291,8 @@ static psa_status_t psa_crypto_key_derivation_complete_tls12_prf_inputs(
                         PSA_KEY_DERIVATION_INPUT_SEED,
                         seed, seed_length, &data_length ) != PSA_SUCCESS ) )
         return status;
-    if ( ( status = psa_crypto_driver_key_derivation_get_input_bytes(
+    if ( !is_psk_to_psk &&
+         ( status = psa_crypto_driver_key_derivation_get_input_bytes(
                         &operation->data.inputs,
                         PSA_KEY_DERIVATION_INPUT_SECRET,
                         secret, secret_length, &data_length ) != PSA_SUCCESS ) )
@@ -5108,13 +5302,20 @@ static psa_status_t psa_crypto_key_derivation_complete_tls12_prf_inputs(
                         PSA_KEY_DERIVATION_INPUT_LABEL,
                         label, label_length, &data_length ) != PSA_SUCCESS ) )
         return status;
+
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
-    if ( ( status = psa_crypto_driver_key_derivation_get_input_bytes(
-                        &operation->data.inputs,
-                        PSA_KEY_DERIVATION_INPUT_OTHER_SECRET,
-                        other_secret, other_secret_length,
-                        &data_length ) != PSA_SUCCESS ) )
-        return status;
+    if( is_psk_to_psk )
+    {
+        status = psa_tls12_prf_psk_to_ms_get_key( &operation->data.inputs.tls12_prf,
+                                                  &pms, &pms_length );
+        if( status != PSA_SUCCESS )
+        {
+            mbedtls_free( seed );
+            mbedtls_free( label );
+
+            return( status );
+        }
+    }
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
 
     /* Release prf inputs.  */
@@ -5129,16 +5330,21 @@ static psa_status_t psa_crypto_key_derivation_complete_tls12_prf_inputs(
     memset( &operation->data.context, 0,
             sizeof( operation->data.context ) );
 
-    tls12_prf->secret = secret;
-    tls12_prf->secret_length = secret_length;
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
+    if( is_psk_to_psk )
+    {
+        tls12_prf->secret = pms;
+        tls12_prf->secret_length = pms_length;
+    } else
+#endif  /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
+    {
+        tls12_prf->secret = secret;
+        tls12_prf->secret_length = secret_length;
+    }
     tls12_prf->seed = seed;
     tls12_prf->seed_length = seed_length;
     tls12_prf->label = label;
     tls12_prf->label_length = label_length;
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
-    tls12_prf->other_secret = other_secret;
-    tls12_prf->other_secret_length = other_secret_length;
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
 
     return( PSA_SUCCESS );
 }
@@ -5836,216 +6042,6 @@ static psa_status_t psa_hkdf_input( psa_hkdf_key_derivation_inputs_t *hkdf,
     }
 }
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF */
-
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
-static psa_status_t psa_tls12_prf_set_seed( psa_tls12_prf_key_derivation_inputs_t *prf,
-                                            const uint8_t *data,
-                                            size_t data_length )
-{
-    if( prf->state != PSA_TLS12_PRF_STATE_INIT )
-        return( PSA_ERROR_BAD_STATE );
-
-    if( data_length != 0 )
-    {
-        prf->seed = mbedtls_calloc( 1, data_length );
-        if( prf->seed == NULL )
-            return( PSA_ERROR_INSUFFICIENT_MEMORY );
-
-        memcpy( prf->seed, data, data_length );
-        prf->seed_length = data_length;
-    }
-
-    prf->state = PSA_TLS12_PRF_STATE_SEED_SET;
-
-    return( PSA_SUCCESS );
-}
-
-static psa_status_t psa_tls12_prf_set_key( psa_tls12_prf_key_derivation_inputs_t *prf,
-                                           const uint8_t *data,
-                                           size_t data_length )
-{
-    if( prf->state != PSA_TLS12_PRF_STATE_SEED_SET &&
-        prf->state != PSA_TLS12_PRF_STATE_OTHER_KEY_SET )
-        return( PSA_ERROR_BAD_STATE );
-
-    if( data_length != 0 )
-    {
-        prf->secret = mbedtls_calloc( 1, data_length );
-        if( prf->secret == NULL )
-            return( PSA_ERROR_INSUFFICIENT_MEMORY );
-
-        memcpy( prf->secret, data, data_length );
-        prf->secret_length = data_length;
-    }
-
-    prf->state = PSA_TLS12_PRF_STATE_KEY_SET;
-
-    return( PSA_SUCCESS );
-}
-
-static psa_status_t psa_tls12_prf_set_label( psa_tls12_prf_key_derivation_inputs_t *prf,
-                                             const uint8_t *data,
-                                             size_t data_length )
-{
-    if( prf->state != PSA_TLS12_PRF_STATE_KEY_SET )
-        return( PSA_ERROR_BAD_STATE );
-
-    if( data_length != 0 )
-    {
-        prf->label = mbedtls_calloc( 1, data_length );
-        if( prf->label == NULL )
-            return( PSA_ERROR_INSUFFICIENT_MEMORY );
-
-        memcpy( prf->label, data, data_length );
-        prf->label_length = data_length;
-    }
-
-    prf->state = PSA_TLS12_PRF_STATE_LABEL_SET;
-
-    return( PSA_SUCCESS );
-}
-
-static psa_status_t psa_tls12_prf_input( psa_tls12_prf_key_derivation_inputs_t *prf,
-                                         psa_key_derivation_step_t step,
-                                         const uint8_t *data,
-                                         size_t data_length )
-{
-    switch( step )
-    {
-        case PSA_KEY_DERIVATION_INPUT_SEED:
-            return( psa_tls12_prf_set_seed( prf, data, data_length ) );
-        case PSA_KEY_DERIVATION_INPUT_SECRET:
-            return( psa_tls12_prf_set_key( prf, data, data_length ) );
-        case PSA_KEY_DERIVATION_INPUT_LABEL:
-            return( psa_tls12_prf_set_label( prf, data, data_length ) );
-        default:
-            return( PSA_ERROR_INVALID_ARGUMENT );
-    }
-}
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) ||
-        * MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
-
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
-static psa_status_t psa_tls12_prf_psk_to_ms_set_key(
-    psa_tls12_prf_key_derivation_inputs_t *prf,
-    const uint8_t *data,
-    size_t data_length )
-{
-    psa_status_t status;
-    const size_t pms_len = ( prf->state == PSA_TLS12_PRF_STATE_OTHER_KEY_SET ?
-        4 + data_length + prf->other_secret_length :
-        4 + 2 * data_length );
-
-    if( data_length > PSA_TLS12_PSK_TO_MS_PSK_MAX_SIZE )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-
-    uint8_t *pms = mbedtls_calloc( 1, pms_len );
-    if( pms == NULL )
-        return( PSA_ERROR_INSUFFICIENT_MEMORY );
-    uint8_t *cur = pms;
-
-    /* pure-PSK:
-     * Quoting RFC 4279, Section 2:
-     *
-     * The premaster secret is formed as follows: if the PSK is N octets
-     * long, concatenate a uint16 with the value N, N zero octets, a second
-     * uint16 with the value N, and the PSK itself.
-     *
-     * mixed-PSK:
-     * In a DHE-PSK, RSA-PSK, ECDHE-PSK the premaster secret is formed as
-     * follows: concatenate a uint16 with the length of the other secret,
-     * the other secret itself, uint16 with the length of PSK, and the
-     * PSK itself.
-     * For details please check:
-     * - RFC 4279, Section 4 for the definition of RSA-PSK,
-     * - RFC 4279, Section 3 for the definition of DHE-PSK,
-     * - RFC 5489 for the definition of ECDHE-PSK.
-     */
-
-    if( prf->state == PSA_TLS12_PRF_STATE_OTHER_KEY_SET )
-    {
-        *cur++ = MBEDTLS_BYTE_1( prf->other_secret_length );
-        *cur++ = MBEDTLS_BYTE_0( prf->other_secret_length );
-        if( prf->other_secret_length != 0 )
-        {
-            memcpy( cur, prf->other_secret, prf->other_secret_length );
-            mbedtls_platform_zeroize( prf->other_secret, prf->other_secret_length );
-            cur += prf->other_secret_length;
-        }
-    }
-    else
-    {
-        *cur++ = MBEDTLS_BYTE_1( data_length );
-        *cur++ = MBEDTLS_BYTE_0( data_length );
-        memset( cur, 0, data_length );
-        cur += data_length;
-    }
-
-    *cur++ = MBEDTLS_BYTE_1( data_length );
-    *cur++ = MBEDTLS_BYTE_0( data_length );
-    memcpy( cur, data, data_length );
-    mbedtls_platform_zeroize( (void*) data, data_length );
-    cur += data_length;
-
-    status = psa_tls12_prf_set_key( prf, pms, cur - pms );
-
-    mbedtls_platform_zeroize( pms, pms_len );
-    mbedtls_free( pms );
-    return( status );
-}
-
-static psa_status_t psa_tls12_prf_psk_to_ms_set_other_key(
-    psa_tls12_prf_key_derivation_inputs_t *prf,
-    const uint8_t *data,
-    size_t data_length )
-{
-    if( prf->state != PSA_TLS12_PRF_STATE_SEED_SET )
-        return( PSA_ERROR_BAD_STATE );
-
-    if( data_length != 0 )
-    {
-        prf->other_secret = mbedtls_calloc( 1, data_length );
-        if( prf->other_secret == NULL )
-            return( PSA_ERROR_INSUFFICIENT_MEMORY );
-
-        memcpy( prf->other_secret, data, data_length );
-        prf->other_secret_length = data_length;
-    }
-    else
-    {
-        prf->other_secret_length = 0;
-    }
-
-    prf->state = PSA_TLS12_PRF_STATE_OTHER_KEY_SET;
-
-    return( PSA_SUCCESS );
-}
-
-static psa_status_t psa_tls12_prf_psk_to_ms_input(
-    psa_tls12_prf_key_derivation_inputs_t *prf,
-    psa_key_derivation_step_t step,
-    const uint8_t *data,
-    size_t data_length )
-{
-    switch( step )
-    {
-        case PSA_KEY_DERIVATION_INPUT_SECRET:
-            return( psa_tls12_prf_psk_to_ms_set_key( prf,
-                                                     data, data_length ) );
-            break;
-        case PSA_KEY_DERIVATION_INPUT_OTHER_SECRET:
-            return( psa_tls12_prf_psk_to_ms_set_other_key( prf,
-                                                           data,
-                                                           data_length ) );
-            break;
-        default:
-            return( psa_tls12_prf_input( prf, step, data, data_length ) );
-            break;
-
-    }
-}
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
 
 /** Check whether the given key type is acceptable for the given
  * input step of a key derivation.

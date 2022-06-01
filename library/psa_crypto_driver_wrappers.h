@@ -373,6 +373,8 @@ struct psa_entropy_acc {
 #endif
 };
 
+#define PSA_DRIVER_GET_ENTROPY_BLOCK  1
+
 psa_status_t mbedtls_accumulate_psa_entropy(struct psa_entropy_acc *acc,
     size_t estimate_bits, uint8_t *p);
 

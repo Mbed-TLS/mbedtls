@@ -7163,4 +7163,79 @@ exit:
     return status;
 }
 
+#if defined(MBEDTLS_PSA_BUILTIN_PAKE)
+psa_status_t psa_pake_setup(
+    psa_pake_operation_t *operation,
+    const psa_pake_cipher_suite_t *cipher_suite)
+{
+    return psa_driver_wrapper_pake_setup(operation, cipher_suite);
+}
+
+psa_status_t psa_pake_set_password_key(
+    psa_pake_operation_t *operation,
+    mbedtls_svc_key_id_t password)
+{
+    return psa_driver_wrapper_pake_set_password_key(operation, password);
+}
+
+psa_status_t psa_pake_set_user(
+    psa_pake_operation_t *operation,
+    const uint8_t *user_id,
+    size_t user_id_len)
+{
+    return psa_driver_wrapper_pake_set_user(operation, user_id,
+                                            user_id_len);
+}
+
+psa_status_t psa_pake_set_peer(
+    psa_pake_operation_t *operation,
+    const uint8_t *peer_id,
+    size_t peer_id_len)
+{
+    return psa_driver_wrapper_pake_set_peer(operation, peer_id,
+                                            peer_id_len);
+}
+
+psa_status_t psa_pake_set_role(
+    psa_pake_operation_t *operation,
+    psa_pake_role_t role)
+{
+    return psa_driver_wrapper_pake_set_role(operation, role);
+}
+
+psa_status_t psa_pake_output(
+    psa_pake_operation_t *operation,
+    psa_pake_step_t step,
+    uint8_t *output,
+    size_t output_size,
+    size_t *output_length)
+{
+    return psa_driver_wrapper_pake_output(operation, step, output,
+                                          output_size, output_length);
+}
+
+psa_status_t psa_pake_input(
+    psa_pake_operation_t *operation,
+    psa_pake_step_t step,
+    const uint8_t *input,
+    size_t input_length)
+{
+    return psa_driver_wrapper_pake_input(operation, step, input,
+                                         input_length);
+}
+
+psa_status_t psa_pake_get_implicit_key(
+    psa_pake_operation_t *operation,
+    psa_key_derivation_operation_t *output)
+{
+    return psa_driver_wrapper_pake_get_implicit_key(operation, output);
+}
+
+psa_status_t psa_pake_abort(
+    psa_pake_operation_t *operation)
+{
+    return psa_driver_wrapper_pake_abort(operation);
+}
+#endif /* MBEDTLS_PSA_BUILTIN_PAKE */
+
 #endif /* MBEDTLS_PSA_CRYPTO_C */

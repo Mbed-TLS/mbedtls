@@ -4476,12 +4476,16 @@ psa_status_t psa_crypto_driver_key_derivation_get_input_size(
         switch( step )
         {
             case PSA_KEY_DERIVATION_INPUT_SALT:
+                if ( PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) )
+                    return ( PSA_ERROR_INVALID_ARGUMENT );
                 *size = hkdf_inputs->salt_length;
                 break;
             case PSA_KEY_DERIVATION_INPUT_SECRET:
                 *size = hkdf_inputs->secret_length;
                 break;
             case PSA_KEY_DERIVATION_INPUT_INFO:
+                if ( PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) )
+                    return ( PSA_ERROR_INVALID_ARGUMENT );
                 *size = hkdf_inputs->info_length;
                 break;
             default:

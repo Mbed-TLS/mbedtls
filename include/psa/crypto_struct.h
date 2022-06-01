@@ -193,8 +193,8 @@ typedef struct
 {
     uint8_t *MBEDTLS_PRIVATE(secret);
     size_t MBEDTLS_PRIVATE(secret_length);
-    uint8_t *MBEDTLS_PRIVATE(seed);
-    size_t MBEDTLS_PRIVATE(seed_length);
+    uint8_t *MBEDTLS_PRIVATE(salt);
+    size_t MBEDTLS_PRIVATE(salt_length);
     uint8_t *MBEDTLS_PRIVATE(info);
     size_t MBEDTLS_PRIVATE(info_length);
 

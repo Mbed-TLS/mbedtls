@@ -4337,11 +4337,11 @@ psa_status_t psa_key_derivation_abort( psa_key_derivation_operation_t *operation
                 mbedtls_free( tls12_prf_inputs->secret );
             }
 
-            if( tls12_prf_inputs->seed != NULL )
+            if( tls12_prf_inputs->salt != NULL )
             {
-                mbedtls_platform_zeroize( tls12_prf_inputs->seed,
-                    tls12_prf_inputs->seed_length );
-                mbedtls_free( tls12_prf_inputs->seed );
+                mbedtls_platform_zeroize( tls12_prf_inputs->salt,
+                    tls12_prf_inputs->salt_length );
+                mbedtls_free( tls12_prf_inputs->salt );
             }
 
             if( tls12_prf_inputs->info != NULL )
@@ -4475,8 +4475,8 @@ psa_status_t psa_crypto_driver_key_derivation_get_input_size(
 
         switch( step )
         {
-            case PSA_KEY_DERIVATION_INPUT_SEED:
-                *size = hkdf_inputs->seed_length;
+            case PSA_KEY_DERIVATION_INPUT_SALT:
+                *size = hkdf_inputs->salt_length;
                 break;
             case PSA_KEY_DERIVATION_INPUT_SECRET:
                 *size = hkdf_inputs->secret_length;
@@ -4549,14 +4549,14 @@ psa_status_t psa_crypto_driver_key_derivation_get_input_bytes(
 
         switch( step )
         {
-            case PSA_KEY_DERIVATION_INPUT_SEED:
+            case PSA_KEY_DERIVATION_INPUT_SALT:
                 if ( PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) )
                     return ( PSA_ERROR_INVALID_ARGUMENT );
-                if( buffer_size < hkdf_inputs->seed_length )
+                if( buffer_size < hkdf_inputs->salt_length )
                     return PSA_ERROR_BUFFER_TOO_SMALL;
-                memcpy( buffer, hkdf_inputs->seed,
-                        hkdf_inputs->seed_length );
-                *buffer_length = hkdf_inputs->seed_length;
+                memcpy( buffer, hkdf_inputs->salt,
+                        hkdf_inputs->salt_length );
+                *buffer_length = hkdf_inputs->salt_length;
                 break;
             case PSA_KEY_DERIVATION_INPUT_SECRET:
                 if( buffer_size < hkdf_inputs->secret_length )
@@ -4873,8 +4873,8 @@ static psa_status_t psa_crypto_key_derivation_complete_hkdf_inputs(
     psa_status_t status;
     psa_hkdf_key_derivation_inputs_t *inputs = &operation->data.inputs.hkdf;
     psa_hkdf_key_derivation_t *hkdf = &operation->data.context.hkdf;
-    uint8_t  *secret = NULL, *seed = NULL, *info = NULL;
-    size_t secret_length = 0, seed_length = 0, info_length = 0;
+    uint8_t  *secret = NULL, *salt = NULL, *info = NULL;
+    size_t secret_length = 0, salt_length = 0, info_length = 0;
 
     if( inputs->state < HKDF_STATE_KEYED ||
         ( ! inputs->info_set && ! PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) ) )
@@ -4884,8 +4884,8 @@ static psa_status_t psa_crypto_key_derivation_complete_hkdf_inputs(
     if ( !PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) &&
          ( status = psa_crypto_driver_key_derivation_get_input_size(
                         &operation->data.inputs,
-                        PSA_KEY_DERIVATION_INPUT_SEED,
-                        &seed_length ) != PSA_SUCCESS ) )
+                        PSA_KEY_DERIVATION_INPUT_SALT,
+                        &salt_length ) != PSA_SUCCESS ) )
         return status;
     if ( ( status = psa_crypto_driver_key_derivation_get_input_size(
                         &operation->data.inputs,
@@ -4900,20 +4900,20 @@ static psa_status_t psa_crypto_key_derivation_complete_hkdf_inputs(
         return status;
 
     /* Allocate local buffers for hkdf inputs. */
-    if( seed_length != 0 )
-        seed = mbedtls_calloc( 1, seed_length );
+    if( salt_length != 0 )
+        salt = mbedtls_calloc( 1, salt_length );
     if( secret_length != 0 )
         secret = mbedtls_calloc( 1, secret_length );
     if( info_length != 0 )
         info = mbedtls_calloc( 1, info_length );
 
-    if( ( seed_length != 0 && seed == NULL ) ||
+    if( ( salt_length != 0 && salt == NULL ) ||
         ( secret_length != 0 && secret == NULL ) ||
         ( info_length != 0 && info == NULL ) )
     {
-        mbedtls_free( seed );
-        mbedtls_free( seed );
+        mbedtls_free( salt );
         mbedtls_free( secret );
+        mbedtls_free( info );
 
         return( PSA_ERROR_INSUFFICIENT_MEMORY );
     }
@@ -4922,8 +4922,8 @@ static psa_status_t psa_crypto_key_derivation_complete_hkdf_inputs(
     if ( !PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) &&
          ( status = psa_crypto_driver_key_derivation_get_input_bytes(
                         &operation->data.inputs,
-                        PSA_KEY_DERIVATION_INPUT_SEED,
-                        seed, seed_length, &data_length ) != PSA_SUCCESS ) )
+                        PSA_KEY_DERIVATION_INPUT_SALT,
+                        salt, salt_length, &data_length ) != PSA_SUCCESS ) )
         return status;
 
     if ( ( status = psa_crypto_driver_key_derivation_get_input_bytes(
@@ -4940,7 +4940,7 @@ static psa_status_t psa_crypto_key_derivation_complete_hkdf_inputs(
         return status;
 
     /* Release hkdf inputs.  */
-    mbedtls_free( inputs->seed );
+    mbedtls_free( inputs->salt );
     mbedtls_free( inputs->secret );
     mbedtls_free( inputs->info );
 
@@ -4957,12 +4957,12 @@ static psa_status_t psa_crypto_key_derivation_complete_hkdf_inputs(
     }
     else
     {
-        if ( seed_length != 0 )
+        if ( salt_length != 0 )
         {
             status = psa_key_derivation_start_hmac( &hkdf->hmac,
                                                     hash_alg,
-                                                    seed,
-                                                    seed_length );
+                                                    salt,
+                                                    salt_length );
             if( status != PSA_SUCCESS )
                 return( status );
         }
@@ -5008,7 +5008,7 @@ static psa_status_t psa_crypto_key_derivation_complete_hkdf_inputs(
 
     /* Release seed and secret (already derived to prk) . */
     mbedtls_free( secret );
-    mbedtls_free( seed );
+    mbedtls_free( salt );
 
     return( PSA_SUCCESS );
 }
@@ -5731,7 +5731,7 @@ psa_status_t psa_key_derivation_setup( psa_key_derivation_operation_t *operation
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
 
-static psa_status_t psa_hkdf_prf_set_seed( psa_hkdf_key_derivation_inputs_t *hkdf,
+static psa_status_t psa_hkdf_prf_set_salt( psa_hkdf_key_derivation_inputs_t *hkdf,
                                             const uint8_t *data,
                                             size_t data_length )
 {
@@ -5740,12 +5740,12 @@ static psa_status_t psa_hkdf_prf_set_seed( psa_hkdf_key_derivation_inputs_t *hkd
 
     if( data_length != 0 )
     {
-        hkdf->seed = mbedtls_calloc( 1, data_length );
-        if( hkdf->seed == NULL )
+        hkdf->salt = mbedtls_calloc( 1, data_length );
+        if( hkdf->salt == NULL )
             return( PSA_ERROR_INSUFFICIENT_MEMORY );
 
-        memcpy( hkdf->seed, data, data_length );
-        hkdf->seed_length = data_length;
+        memcpy( hkdf->salt, data, data_length );
+        hkdf->salt_length = data_length;
     }
 
     hkdf->state = HKDF_STATE_STARTED;
@@ -5809,7 +5809,7 @@ static psa_status_t psa_hkdf_input( psa_hkdf_key_derivation_inputs_t *hkdf,
         case PSA_KEY_DERIVATION_INPUT_SALT:
             if( PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) )
                 return( PSA_ERROR_INVALID_ARGUMENT );
-            return ( psa_hkdf_prf_set_seed( hkdf, data, data_length ) );
+            return ( psa_hkdf_prf_set_salt( hkdf, data, data_length ) );
         case PSA_KEY_DERIVATION_INPUT_SECRET:
                 /* We shouldn't be in different state as HKDF_EXPAND only allows
                  * two inputs: SECRET (this case) and INFO which does not modify

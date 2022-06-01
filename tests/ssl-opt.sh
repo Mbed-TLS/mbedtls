@@ -11398,7 +11398,7 @@ run_test    "TLS 1.3: Server side check, no server certificate available" \
             -s "tls13 server state: MBEDTLS_SSL_SERVER_CERTIFICATE" \
             -s "No certificate available."
 
-requires_gnutls_tls1_3
+requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C

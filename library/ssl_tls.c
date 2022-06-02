@@ -8240,13 +8240,6 @@ int mbedtls_ssl_parse_server_name_ext( mbedtls_ssl_context *ssl,
     size_t server_name_list_len, hostname_len;
     const unsigned char *server_name_list_end;
 
-    if( ssl->conf->p_sni == NULL )
-    {
-        MBEDTLS_SSL_DEBUG_MSG(
-                3, ( "No SNI callback configured. Skip SNI parsing." ) );
-        return( 0 );
-    }
-
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "parse ServerName extension" ) );
 
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2 );
@@ -8273,9 +8266,8 @@ int mbedtls_ssl_parse_server_name_ext( mbedtls_ssl_context *ssl,
             if( ret != 0 )
             {
                 MBEDTLS_SSL_DEBUG_RET( 1, "ssl_sni_wrapper", ret );
-                mbedtls_ssl_send_alert_message(
-                        ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                        MBEDTLS_SSL_ALERT_MSG_UNRECOGNIZED_NAME );
+                MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNRECOGNIZED_NAME,
+                                              MBEDTLS_ERR_SSL_UNRECOGNIZED_NAME );
                 return( MBEDTLS_ERR_SSL_UNRECOGNIZED_NAME );
             }
             return( 0 );

@@ -4532,6 +4532,10 @@ psa_status_t psa_crypto_driver_key_derivation_get_input_size(
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) ||
         * defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS) */
     {
+        (void) kdf_alg;
+        (void) inputs;
+        (void) step;
+        (void) size;
         status = PSA_ERROR_INVALID_ARGUMENT;
     }
 
@@ -4645,6 +4649,12 @@ psa_status_t psa_crypto_driver_key_derivation_get_input_bytes(
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) ||
         * defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS) */
     {
+        (void) kdf_alg;
+        (void) inputs;
+        (void) step;
+        (void) buffer;
+        (void) buffer_size;
+        (void) buffer_length;
         status = PSA_ERROR_INVALID_ARGUMENT;
     }
 

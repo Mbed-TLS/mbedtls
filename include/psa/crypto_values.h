@@ -1853,6 +1853,21 @@
 #define PSA_ALG_IS_HKDF_EXPAND(alg)                            \
     (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_HKDF_EXPAND_BASE)
 
+/** Whether the specified algorithm is an HKDF or HKDF-Extract or
+ *  HKDF-Expand algorithm.
+ *
+ *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
+ * \return 1 if \c alg is any HKDF type algorithm, 0 otherwise.
+ *         This macro may return either 0 or 1 if \c alg is not a supported
+ *         key derivation algorithm identifier.
+ */
+#define PSA_ALG_IS_ANY_HKDF(alg)                                   \
+    (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_HKDF_BASE ||          \
+     ((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_HKDF_EXTRACT_BASE ||  \
+     ((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_HKDF_EXPAND_BASE)
+
 #define PSA_ALG_TLS12_PRF_BASE                  ((psa_algorithm_t)0x08000200)
 /** Macro to build a TLS-1.2 PRF algorithm.
  *

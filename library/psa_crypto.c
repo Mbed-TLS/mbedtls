@@ -4295,8 +4295,7 @@ psa_status_t psa_key_derivation_abort( psa_key_derivation_operation_t *operation
     }
     else
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
-    if( PSA_ALG_IS_HKDF( kdf_alg ) || PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) ||
-        PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) )
+    if( PSA_ALG_IS_ANY_HKDF( kdf_alg ) )
     {
         mbedtls_free( operation->ctx.hkdf.info );
         status = psa_mac_abort( &operation->ctx.hkdf.hmac );
@@ -4653,8 +4652,7 @@ psa_status_t psa_key_derivation_output_bytes(
     operation->capacity -= output_length;
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
-    if( PSA_ALG_IS_HKDF( kdf_alg ) || PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) ||
-        PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) )
+    if( PSA_ALG_IS_ANY_HKDF( kdf_alg ) )
     {
         status = psa_key_derivation_hkdf_read( &operation->ctx.hkdf, kdf_alg,
                                           output, output_length );
@@ -5046,8 +5044,7 @@ psa_status_t psa_key_derivation_output_key( const psa_key_attributes_t *attribut
 static int is_kdf_alg_supported( psa_algorithm_t kdf_alg )
 {
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
-    if( PSA_ALG_IS_HKDF( kdf_alg ) || PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) ||
-        PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) )
+    if( PSA_ALG_IS_ANY_HKDF( kdf_alg ) )
         return( 1 );
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF)
@@ -5530,8 +5527,7 @@ static psa_status_t psa_key_derivation_input_internal(
         goto exit;
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
-    if( PSA_ALG_IS_HKDF( kdf_alg ) || PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) ||
-        PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) )
+    if( PSA_ALG_IS_ANY_HKDF( kdf_alg ) )
     {
         status = psa_hkdf_input( &operation->ctx.hkdf, kdf_alg,
                                  step, data, data_length );

@@ -3971,7 +3971,6 @@ psa_status_t psa_crypto_driver_key_derivation_get_input_bytes(
  * a key derivation, use psa_key_derivation_key_agreement() and other
  * functions from the key derivation interface.
  *
- * \param[in,out] operation       The operation to process.
  * \param alg                     The key agreement algorithm to compute
  *                                (\c PSA_ALG_XXX value such that
  *                                #PSA_ALG_IS_RAW_KEY_AGREEMENT(\p alg)

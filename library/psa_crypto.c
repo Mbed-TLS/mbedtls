@@ -4414,7 +4414,6 @@ static psa_status_t psa_key_derivation_hkdf_read( psa_hkdf_key_derivation_t *hkd
         if( hkdf->block_number == last_block )
             return( PSA_ERROR_BAD_STATE );
 
-
         /* We need a new block */
         ++hkdf->block_number;
         hkdf->offset_in_block = 0;
@@ -4429,24 +4428,24 @@ static psa_status_t psa_key_derivation_hkdf_read( psa_hkdf_key_derivation_t *hkd
         if( hkdf->block_number != 1 )
         {
             status = psa_mac_update( &hkdf->hmac,
-                                    hkdf->output_block,
-                                    hash_length );
+                                     hkdf->output_block,
+                                     hash_length );
             if( status != PSA_SUCCESS )
                 return( status );
         }
         status = psa_mac_update( &hkdf->hmac,
-                                hkdf->info,
-                                hkdf->info_length );
+                                 hkdf->info,
+                                 hkdf->info_length );
         if( status != PSA_SUCCESS )
             return( status );
         status = psa_mac_update( &hkdf->hmac,
-                                &hkdf->block_number, 1 );
+                                 &hkdf->block_number, 1 );
         if( status != PSA_SUCCESS )
             return( status );
         status = psa_mac_sign_finish( &hkdf->hmac,
-                                    hkdf->output_block,
-                                    sizeof( hkdf->output_block ),
-                                    &hmac_output_length );
+                                      hkdf->output_block,
+                                      sizeof( hkdf->output_block ),
+                                      &hmac_output_length );
         if( status != PSA_SUCCESS )
             return( status );
     }

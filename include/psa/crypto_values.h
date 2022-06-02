@@ -1818,7 +1818,7 @@
  * HKDF-Expand using HMAC-SHA-256.
  *
  * This key derivation algorithm uses the following inputs:
- *  - PSA_KEY_DERIVATION_INPUT_SECRET is the pseudoramdom key (PRK).
+ *  - PSA_KEY_DERIVATION_INPUT_SECRET is the pseudorandom key (PRK).
  *  - PSA_KEY_DERIVATION_INPUT_INFO is the info string.
  *
  *  The inputs are mandatory and must be passed in the order above.

@@ -8196,7 +8196,7 @@ void key_derivation_get_input( int alg_arg,
             continue;
 
         /* Select corresponding input. */
-        data_t no_input = {0};
+        data_t no_input = {NULL, 0};
         data_t *input = &no_input;
 
         for( size_t j = 0; j < ARRAY_LENGTH( steps ); j++ )

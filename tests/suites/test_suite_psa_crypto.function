@@ -8101,7 +8101,8 @@ void key_derivation_get_input( int alg_arg,
     psa_key_attributes_t attributes2 = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t status;
     const size_t default_output_buffer_size = 512;
-    uint8_t output[default_output_buffer_size];
+    uint8_t *output = mbedtls_calloc( 1, default_output_buffer_size );
+    TEST_ASSERT( output != NULL );
     size_t output_length;
 
     PSA_ASSERT( psa_crypto_init( ) );
@@ -8239,6 +8240,7 @@ void key_derivation_get_input( int alg_arg,
     PSA_ASSERT( psa_key_derivation_abort( &operation ) );
 
 exit:
+    mbedtls_free( output );
     psa_key_derivation_abort( &operation );
     for( size_t i = 0; i < ARRAY_LENGTH( keys ); i++ )
         psa_destroy_key( keys[i] );

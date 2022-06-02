@@ -4561,15 +4561,17 @@ psa_status_t psa_crypto_driver_key_derivation_get_input_bytes(
                     return ( PSA_ERROR_INVALID_ARGUMENT );
                 if( buffer_size < hkdf_inputs->salt_length )
                     return PSA_ERROR_BUFFER_TOO_SMALL;
-                memcpy( buffer, hkdf_inputs->salt,
-                        hkdf_inputs->salt_length );
+                if( hkdf_inputs->salt_length != 0 )
+                    memcpy( buffer, hkdf_inputs->salt,
+                            hkdf_inputs->salt_length );
                 *buffer_length = hkdf_inputs->salt_length;
                 break;
             case PSA_KEY_DERIVATION_INPUT_SECRET:
                 if( buffer_size < hkdf_inputs->secret_length )
                     return PSA_ERROR_BUFFER_TOO_SMALL;
-                memcpy( buffer, hkdf_inputs->secret,
-                        hkdf_inputs->secret_length );
+                if( hkdf_inputs->secret_length != 0 )
+                    memcpy( buffer, hkdf_inputs->secret,
+                            hkdf_inputs->secret_length );
                 *buffer_length = hkdf_inputs->secret_length;
                 break;
             case PSA_KEY_DERIVATION_INPUT_INFO:
@@ -4577,8 +4579,9 @@ psa_status_t psa_crypto_driver_key_derivation_get_input_bytes(
                     return ( PSA_ERROR_INVALID_ARGUMENT );
                 if( buffer_size < hkdf_inputs->info_length )
                     return PSA_ERROR_BUFFER_TOO_SMALL;
-                memcpy( buffer, hkdf_inputs->info,
-                        hkdf_inputs->info_length );
+                if( hkdf_inputs->info_length != 0 )
+                    memcpy( buffer, hkdf_inputs->info,
+                            hkdf_inputs->info_length );
                 *buffer_length = hkdf_inputs->info_length;
                 break;
             default:
@@ -4602,30 +4605,34 @@ psa_status_t psa_crypto_driver_key_derivation_get_input_bytes(
             case PSA_KEY_DERIVATION_INPUT_SEED:
                 if( buffer_size < prf_tls12_inputs->seed_length )
                     return PSA_ERROR_BUFFER_TOO_SMALL;
-                memcpy( buffer, prf_tls12_inputs->seed,
-                        prf_tls12_inputs->seed_length );
+                if( prf_tls12_inputs->seed_length != 0 )
+                    memcpy( buffer, prf_tls12_inputs->seed,
+                            prf_tls12_inputs->seed_length );
                 *buffer_length = prf_tls12_inputs->seed_length;
                 break;
             case PSA_KEY_DERIVATION_INPUT_SECRET:
                 if( buffer_size < prf_tls12_inputs->secret_length )
                     return PSA_ERROR_BUFFER_TOO_SMALL;
-                memcpy( buffer, prf_tls12_inputs->secret,
-                        prf_tls12_inputs->secret_length );
+                if( prf_tls12_inputs->secret_length != 0 )
+                    memcpy( buffer, prf_tls12_inputs->secret,
+                            prf_tls12_inputs->secret_length );
                 *buffer_length = prf_tls12_inputs->secret_length;
                 break;
             case PSA_KEY_DERIVATION_INPUT_LABEL:
                 if( buffer_size < prf_tls12_inputs->label_length )
                     return PSA_ERROR_BUFFER_TOO_SMALL;
-                memcpy( buffer, prf_tls12_inputs->label,
-                        prf_tls12_inputs->label_length );
+                if( prf_tls12_inputs->label_length != 0 )
+                    memcpy( buffer, prf_tls12_inputs->label,
+                            prf_tls12_inputs->label_length );
                 *buffer_length = prf_tls12_inputs->label_length;
                 break;
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
             case PSA_KEY_DERIVATION_INPUT_OTHER_SECRET:
                 if( buffer_size < prf_tls12_inputs->other_secret_length )
                     return PSA_ERROR_BUFFER_TOO_SMALL;
-                memcpy( buffer, prf_tls12_inputs->other_secret,
-                        prf_tls12_inputs->other_secret_length );
+                if( prf_tls12_inputs->other_secret_length != 0 )
+                    memcpy( buffer, prf_tls12_inputs->other_secret,
+                            prf_tls12_inputs->other_secret_length );
                 *buffer_length = prf_tls12_inputs->other_secret_length;
                 break;
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */

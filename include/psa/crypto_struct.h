@@ -290,7 +290,7 @@ struct psa_crypto_driver_key_derivation_inputs_s
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
         psa_hkdf_key_derivation_inputs_t MBEDTLS_PRIVATE(hkdf);
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF */
-    };
+    } u;
     psa_algorithm_t MBEDTLS_PRIVATE(alg);
 };
 
@@ -307,7 +307,7 @@ typedef struct
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
         psa_tls12_prf_key_derivation_t MBEDTLS_PRIVATE(tls12_prf);
 #endif
-    };
+    } u;
     psa_algorithm_t MBEDTLS_PRIVATE(alg);
 } psa_driver_key_derivation_context_t;
 
@@ -315,7 +315,7 @@ struct psa_key_derivation_s
 {
     unsigned int MBEDTLS_PRIVATE(can_output_key) : 1;
     size_t MBEDTLS_PRIVATE(capacity);
-    psa_key_derivation_stage_t stage;
+    psa_key_derivation_stage_t MBEDTLS_PRIVATE(stage);
 
     union {
         unsigned dummy; /* Make sure this union is always non-empty */
@@ -325,7 +325,7 @@ struct psa_key_derivation_s
 };
 
 /* This only zeroes out the first byte in the union, the rest is unspecified. */
-#define PSA_KEY_DERIVATION_OPERATION_INIT { 0, 0, 0, { 0 } }
+#define PSA_KEY_DERIVATION_OPERATION_INIT { 0, 0, PSA_KEY_DERIVATION_STAGE_INPUT, { 0 } }
 static inline struct psa_key_derivation_s psa_key_derivation_operation_init(
         void )
 {

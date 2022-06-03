@@ -7109,10 +7109,6 @@ void derive_output( int alg_arg,
     if( derive_type == 1 ) // output key
     {
         psa_status_t expected_status = PSA_ERROR_NOT_PERMITTED;
-        size_t bits = 48; // default for Mix-PSK-to-MS
-
-        if( PSA_ALG_IS_HKDF_EXTRACT( alg ) || PSA_ALG_IS_HKDF_EXPAND( alg ))
-            bits = PSA_HASH_LENGTH( alg );
 
         /* For output key derivation secret must be provided using
            input key, otherwise operation is not permitted. */
@@ -7122,7 +7118,7 @@ void derive_output( int alg_arg,
         psa_set_key_usage_flags( &attributes4, PSA_KEY_USAGE_EXPORT );
         psa_set_key_algorithm( &attributes4, alg );
         psa_set_key_type( &attributes4, PSA_KEY_TYPE_DERIVE );
-        psa_set_key_bits( &attributes4, bits );
+        psa_set_key_bits( &attributes4, PSA_BYTES_TO_BITS( requested_capacity ) );
 
         TEST_EQUAL( psa_key_derivation_output_key( &attributes4, &operation,
                                         &derived_key ), expected_status );

@@ -5285,6 +5285,11 @@ static psa_status_t psa_hkdf_input( psa_hkdf_key_derivation_t *hkdf,
             if( PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) )
                 return( PSA_ERROR_INVALID_ARGUMENT );
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND)
+            if( PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) &&
+                hkdf->state == HKDF_STATE_INIT )
+                return( PSA_ERROR_BAD_STATE );
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT */
             if( hkdf->state == HKDF_STATE_OUTPUT )
                 return( PSA_ERROR_BAD_STATE );
             if( hkdf->info_set )

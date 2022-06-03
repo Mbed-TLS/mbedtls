@@ -5233,9 +5233,14 @@ static psa_status_t psa_hkdf_input( psa_hkdf_key_derivation_t *hkdf,
             else
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND */
             {
-                /* If no salt was provided, use an empty salt. */
+                /* HKDF: If no salt was provided, use an empty salt.
+                 * HKDF-EXTRACT: salt is mandatory. */
                 if( hkdf->state == HKDF_STATE_INIT )
                 {
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT)
+                    if( PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) )
+                        return( PSA_ERROR_BAD_STATE );
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT */
                     status = psa_key_derivation_start_hmac( &hkdf->hmac,
                                                             hash_alg,
                                                             NULL, 0 );

@@ -4236,12 +4236,16 @@ psa_status_t psa_aead_abort( psa_aead_operation_t *operation )
 /****************************************************************/
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
 #define AT_LEAST_ONE_BUILTIN_KDF
 #endif /* At least one builtin KDF */
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
 static psa_status_t psa_key_derivation_start_hmac(
@@ -4294,14 +4298,18 @@ psa_status_t psa_key_derivation_abort( psa_key_derivation_operation_t *operation
          * nothing to do. */
     }
     else
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND)
     if( PSA_ALG_IS_ANY_HKDF( kdf_alg ) )
     {
         mbedtls_free( operation->ctx.hkdf.info );
         status = psa_mac_abort( &operation->ctx.hkdf.hmac );
     }
     else
-#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF ||
+          MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT ||
+          MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
     if( PSA_ALG_IS_TLS12_PRF( kdf_alg ) ||
@@ -4375,7 +4383,9 @@ psa_status_t psa_key_derivation_set_capacity( psa_key_derivation_operation_t *op
     return( PSA_SUCCESS );
 }
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND)
 /* Read some bytes from an HKDF-based operation. */
 static psa_status_t psa_key_derivation_hkdf_read( psa_hkdf_key_derivation_t *hkdf,
                                                   psa_algorithm_t kdf_alg,
@@ -4386,10 +4396,18 @@ static psa_status_t psa_key_derivation_hkdf_read( psa_hkdf_key_derivation_t *hkd
     uint8_t hash_length = PSA_HASH_LENGTH( hash_alg );
     size_t hmac_output_length;
     psa_status_t status;
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT)
     const uint8_t last_block = PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) ? 0 : 0xff;
+#else
+    const uint8_t last_block = 0xff;
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT */
 
     if( hkdf->state < HKDF_STATE_KEYED ||
-        ( ! hkdf->info_set && ! PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) ) )
+        ( !hkdf->info_set
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT)
+         && !PSA_ALG_IS_HKDF_EXTRACT( kdf_alg )
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT */
+    ) )
         return( PSA_ERROR_BAD_STATE );
     hkdf->state = HKDF_STATE_OUTPUT;
 
@@ -4451,7 +4469,9 @@ static psa_status_t psa_key_derivation_hkdf_read( psa_hkdf_key_derivation_t *hkd
 
     return( PSA_SUCCESS );
 }
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF ||
+          MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT ||
+          MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND */
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
@@ -4651,14 +4671,18 @@ psa_status_t psa_key_derivation_output_bytes(
     }
     operation->capacity -= output_length;
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND)
     if( PSA_ALG_IS_ANY_HKDF( kdf_alg ) )
     {
         status = psa_key_derivation_hkdf_read( &operation->ctx.hkdf, kdf_alg,
                                           output, output_length );
     }
     else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF ||
+          MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT ||
+          MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
     if( PSA_ALG_IS_TLS12_PRF( kdf_alg ) ||
@@ -5043,7 +5067,9 @@ psa_status_t psa_key_derivation_output_key( const psa_key_attributes_t *attribut
 #if defined(AT_LEAST_ONE_BUILTIN_KDF)
 static int is_kdf_alg_supported( psa_algorithm_t kdf_alg )
 {
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND)
     if( PSA_ALG_IS_ANY_HKDF( kdf_alg ) )
         return( 1 );
 #endif
@@ -5098,9 +5124,11 @@ static psa_status_t psa_key_derivation_setup_kdf(
     {
         return( PSA_ERROR_NOT_SUPPORTED );
     }
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT)
     if( PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) )
         operation->capacity = hash_size;
     else
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT */
         operation->capacity = 255 * hash_size;
     return( PSA_SUCCESS );
 }
@@ -5155,7 +5183,9 @@ psa_status_t psa_key_derivation_setup( psa_key_derivation_operation_t *operation
     return( status );
 }
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND)
 static psa_status_t psa_hkdf_input( psa_hkdf_key_derivation_t *hkdf,
                                     psa_algorithm_t kdf_alg,
                                     psa_key_derivation_step_t step,
@@ -5167,8 +5197,10 @@ static psa_status_t psa_hkdf_input( psa_hkdf_key_derivation_t *hkdf,
     switch( step )
     {
         case PSA_KEY_DERIVATION_INPUT_SALT:
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND)
             if( PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) )
                 return( PSA_ERROR_INVALID_ARGUMENT );
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND */
             if( hkdf->state != HKDF_STATE_INIT )
                 return( PSA_ERROR_BAD_STATE );
             else
@@ -5182,6 +5214,7 @@ static psa_status_t psa_hkdf_input( psa_hkdf_key_derivation_t *hkdf,
                 return( PSA_SUCCESS );
             }
         case PSA_KEY_DERIVATION_INPUT_SECRET:
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND)
             if( PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) )
             {
                 /* We shouldn't be in different state as HKDF_EXPAND only allows
@@ -5198,6 +5231,7 @@ static psa_status_t psa_hkdf_input( psa_hkdf_key_derivation_t *hkdf,
                 memcpy( hkdf->prk, data, data_length );
             }
             else
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND */
             {
                 /* If no salt was provided, use an empty salt. */
                 if( hkdf->state == HKDF_STATE_INIT )
@@ -5225,6 +5259,7 @@ static psa_status_t psa_hkdf_input( psa_hkdf_key_derivation_t *hkdf,
 
             hkdf->state = HKDF_STATE_KEYED;
             hkdf->block_number = 0;
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT)
             if( PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) )
             {
                 /* The only block of output is the PRK. */
@@ -5232,6 +5267,7 @@ static psa_status_t psa_hkdf_input( psa_hkdf_key_derivation_t *hkdf,
                 hkdf->offset_in_block = 0;
             }
             else
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT */
             {
                 /* Block 0 is empty, and the next block will be
                  * generated by psa_key_derivation_hkdf_read(). */
@@ -5240,8 +5276,10 @@ static psa_status_t psa_hkdf_input( psa_hkdf_key_derivation_t *hkdf,
 
             return( PSA_SUCCESS );
         case PSA_KEY_DERIVATION_INPUT_INFO:
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT)
             if( PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) )
                 return( PSA_ERROR_INVALID_ARGUMENT );
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT */
             if( hkdf->state == HKDF_STATE_OUTPUT )
                 return( PSA_ERROR_BAD_STATE );
             if( hkdf->info_set )
@@ -5260,7 +5298,9 @@ static psa_status_t psa_hkdf_input( psa_hkdf_key_derivation_t *hkdf,
             return( PSA_ERROR_INVALID_ARGUMENT );
     }
 }
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF ||
+          MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT ||
+          MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND */
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
@@ -5526,14 +5566,18 @@ static psa_status_t psa_key_derivation_input_internal(
     if( status != PSA_SUCCESS )
         goto exit;
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND)
     if( PSA_ALG_IS_ANY_HKDF( kdf_alg ) )
     {
         status = psa_hkdf_input( &operation->ctx.hkdf, kdf_alg,
                                  step, data, data_length );
     }
     else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF ||
+          MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT ||
+          MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF)
     if( PSA_ALG_IS_TLS12_PRF( kdf_alg ) )
     {

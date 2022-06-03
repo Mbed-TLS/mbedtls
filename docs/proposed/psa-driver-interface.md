@@ -325,7 +325,7 @@ A key derivation driver has the following entry points:
 For naming purposes, here and in the following subsection, this specification takes the example of a driver with the prefix `"acme"` that implements the `"key_derivation"` entry point family with a capability that does not use the `"names"` property to declare different type and entry point names. Such a driver must implement the following type and functions, as well as the entry points listed above and described in the following subsections:
 ```
 typedef ... acme_key_derivation_operation_t;
-psa_status_t acme_hash_abort(acme_key_derivation_operation_t *operation);
+psa_status_t acme_key_derivation_abort(acme_key_derivation_operation_t *operation);
 ```
 
 #### Key derivation driver initial inputs
@@ -336,7 +336,7 @@ The core conveys the initial inputs for a key derivation via an opaque data stru
 typedef ... psa_crypto_driver_key_derivation_inputs_t; // implementation-specific type
 ```
 
-A driver receiving an argument that points to a `psa_crypto_driver_key_derivation_inputs_t` can retrieve its content using the following functions.
+A driver receiving an argument that points to a `psa_crypto_driver_key_derivation_inputs_t` can retrieve its contents using the following functions.
 
 ```
 psa_status_t psa_crypto_driver_key_derivation_get_input_size(
@@ -359,7 +359,7 @@ psa_status_t psa_crypto_driver_key_derivation_get_input_integer(
 
 These functions take the following parameters:
 
-* The first parameter `inputs` must be a pointer passed by the core to a key derivation driver setup entry points which has not returned yet.
+* The first parameter `inputs` must be a pointer passed by the core to a key derivation driver setup entry point which has not returned yet.
 * The `step` parameter indicates the input step whose content the driver wants to retrieve. The type of the input step must be compatible with the function:
     * `psa_crypto_driver_key_derivation_get_input_integer` for integer inputs (steps that the application passes with `psa_key_derivation_input_integer()`).
     * `psa_crypto_driver_key_derivation_get_input_size` and `psa_crypto_driver_key_derivation_get_input_bytes` for data inputs (steps that the application passes with `psa_key_derivation_input_bytes()` or `psa_key_derivation_input_key()`, excluding key inputs from the same secure element).
@@ -373,7 +373,7 @@ These functions can return the following statuses:
 
 * `PSA_SUCCESS`: the call succeeded and the desired value has been copied to the output parameter (`size`, `buffer`, `value` or `p_key_buffer`) and if applicable the size of the value has been writen to the applicable parameter (`buffer_length`, `key_buffer_size`).
 * `PSA_ERROR_INSUFFICIENT_DATA`: the driver called `psa_crypto_driver_key_derivation_get_input_key` on a data input step which is available as a bytes input, or the driver called ``psa_crypto_driver_key_derivation_get_input_size` or `psa_crypto_driver_key_derivation_get_input_bytes` on a data input step which is available as a key input. This is not a fatal error and the driver is expected to call the appropriate function(s) instead.
-* `PSA_ERROR_DOES_NOT_EXIST`: the input step, is valid for this particular algorithm, but it is not part of the initial inputs. This is not a fatal error. The driver will receive the input later as a [long input](#key-derivation-driver-long-inputs).
+* `PSA_ERROR_DOES_NOT_EXIST`: the input step is valid for this particular algorithm, but it is not part of the initial inputs. This is not a fatal error. The driver will receive the input later as a [long input](#key-derivation-driver-long-inputs).
 * `PSA_ERROR_INVALID_ARGUMENT`: the input step is not valid for this particular algorithm, or the type of the input step is not suitable for this function. This is not a fatal error and the driver can, for example, subsequently call the appropriate function on the same step.
 * `PSA_ERROR_BUFFER_TOO_SMALL` (`psa_crypto_driver_key_derivation_get_input_bytes` only): the output buffer is too small. This is not a fatal error and the driver can, for example, subsequently call the same function again with a larger buffer. Call `psa_crypto_driver_key_derivation_get_input_size` to obtain the required size.
 * The core may return other errors such as `PSA_ERROR_CORRUPTION_DETECTED` or `PSA_ERROR_COMMUNICATION_FAILURE` to convey implementation-specific error conditions. Portable drivers should treat such conditions as fatal errors.
@@ -394,7 +394,7 @@ psa_status_t acme_key_derivation_setup(
 
 The following process describes how a driver is expected to retrieve the inputs of the key derivation. For each input step that is valid for the algorithm `alg` and is not a [long input](#key-derivation-driver-long-inputs):
 
-* If the step is a data step and the driver is an opaque driver, call `psa_crypto_driver_key_derivation_get_input_key`. This may either succeed or fail with `PSA_ERROR_INSUFFICIENT_DATA` depending on whether the input comes from the same secure element or not. Note that the driver obtains a pointer key context which only remains valid until the end of the call to the setup entry point. If the driver needs the context in subsequent steps of the operation, it must make a copy.
+* If the step is a data step and the driver is an opaque driver, call `psa_crypto_driver_key_derivation_get_input_key`. This may either succeed or fail with `PSA_ERROR_INSUFFICIENT_DATA` depending on whether the input comes from the same secure element or not. Note that the driver obtains a pointer to the [key context](#overview-of-driver-entry-points) which only remains valid until the end of the call to the setup entry point. If the driver needs the context in subsequent steps of the operation, it must make a copy.
 * If the step is a data step and the driver is a transparent driver, or if `psa_crypto_driver_key_derivation_get_input_key` returned `PSA_ERROR_INSUFFICIENT_DATA`, call `psa_crypto_driver_key_derivation_get_input_size` to retrieve the size of the input, then call `psa_crypto_driver_key_derivation_get_input_bytes` with a large enough buffer to retrieve the input data.
 * If the step is an integer, call `psa_crypto_driver_key_derivation_get_input_integer`.
 

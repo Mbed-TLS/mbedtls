@@ -319,7 +319,7 @@ A key derivation driver has the following entry points:
 * `"key_derivation_input_step"` (optional): provide an extra input for the key derivation. This entry point is only mandatory in drivers that support algorithms that have extra inputs. See [“Key derivation driver long inputs”](#key-derivation-driver-long-inputs).
 * `"key_derivation_output_bytes"` (mandatory): derive cryptographic material and output it. See [“Key derivation driver outputs”](#key-derivation-driver-outputs).
 * `"key_derivation_derive_key"`, `"key_derivation_verify_bytes"`, `"key_derivation_verify_key"` (optional, opaque drivers only): derive key material which remains inside the same secure element. See [“Key derivation driver outputs”](#key-derivation-driver-outputs).
-* `"key_derivation_set_capacity"` (mandatory for opaque drivers that implement `"key_derivation_output_bytes"` for non-raw-data key types): update the capacity policy on the operation. See [“Key derivation driver operation capacity”](#key-derivation-driver-operation-capacity).
+* `"key_derivation_set_capacity"` (mandatory for opaque drivers that implement `"key_derivation_output_bytes"` for “cooked”, i.e. non-raw-data key types): update the capacity policy on the operation. See [“Key derivation driver operation capacity”](#key-derivation-driver-operation-capacity).
 * `"key_derivation_abort"` (mandatory): always the last entry point to be called.
 
 For naming purposes, here and in the following subsection, this specification takes the example of a driver with the prefix `"acme"` that implements the `"key_derivation"` entry point family with a capability that does not use the `"names"` property to declare different type and entry point names. Such a driver must implement the following type and functions, as well as the entry points listed above and described in the following subsections:
@@ -413,7 +413,7 @@ At the time of writing, no standard key derivation algorithm has long inputs. It
 
 #### Key derivation driver operation capacity
 
-The core keeps track of an operation's capacity and enforces it. The core guarantees that it will not request output beyond the capacity of the operation, with one exception: opaque drivers that support `"key_derivation_derive_key"` for key types where the derived key material is not a direct copy of the key derivation's output stream.
+The core keeps track of an operation's capacity and enforces it. The core guarantees that it will not request output beyond the capacity of the operation, with one exception: opaque drivers that support `"key_derivation_derive_key"` [cooked key types](#transparent-cooked-key-derivation), i.e. for key types where the derived key material is not a direct copy of the key derivation's output stream.
 
 Such drivers must enforce the capacity limitation and must return `PSA_ERROR_INSUFFICIENT_CAPACITY` from any output request that exceeds the operation's capacity. Such drivers must provide the following entry point:
 ```
@@ -456,7 +456,7 @@ If the key derivation's `PSA_KEY_DERIVATION_INPUT_SECRET` input is in a secure e
 1. For a call to `psa_key_derivation_output_key()`, if the driver's capabilities indicate that its `"import_key"` entry point does not support the derived key, stop and return `PSA_ERROR_NOT_SUPPORTED`.
 1. For a call to `psa_key_derivation_verify_key()`, if the driver has a `"key_derivation_verify_key"` entry point, call it and stop.
 1. For a call to `psa_key_derivation_verify_key()` or `psa_key_derivation_verify_bytes()`, if the driver has a `"key_derivation_verify_bytes"` entry point, call the driver's `"export_key"` entry point on the key object that contains the expected value, call the `"key_derivation_verify_bytes"` entry point on the exported material, and stop.
-1. Call the `"key_derivation_output_bytes"` entry point. The core may call this entry point multiple times to implement a single call from the application when deriving a non-raw key or if the output size exceeds some implementation limit.
+1. Call the `"key_derivation_output_bytes"` entry point. The core may call this entry point multiple times to implement a single call from the application when deriving a cooked (non-raw) key as described below, or if the output size exceeds some implementation limit.
 
 If the key derivation operation is not handled by an opaque driver as described above, the core calls the `"key_derivation_output_bytes"` from the applicable transparent driver (or multiple drivers in succession if fallback applies). In some cases, the driver then calls additional entry points in the same or another driver:
 

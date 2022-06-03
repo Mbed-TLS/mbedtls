@@ -316,7 +316,7 @@ The core decides whether to dispatch a key derivation operation to a driver base
 A key derivation driver has the following entry points:
 
 * `"key_derivation_setup"` (mandatory): always the first entry point to be called. This entry point provides the [initial inputs](#key-derivation-driver-initial-inputs). See [“Key derivation driver setup”](#key-derivation-driver-setup).
-* `"key_derivation_input_step"` (optional): provide an extra input for the key derivation. This entry point is only mandatory in drivers that support algorithms that have extra inputs. See [“Key derivation driver extra inputs”](#key-derivation-driver-inputs).
+* `"key_derivation_input_step"` (optional): provide an extra input for the key derivation. This entry point is only mandatory in drivers that support algorithms that have extra inputs. See [“Key derivation driver long inputs”](#key-derivation-driver-long-inputs).
 * `"key_derivation_output_bytes"` (mandatory): derive cryptographic material and output it. See [“Key derivation driver outputs”](#key-derivation-driver-outputs).
 * `"key_derivation_derive_key"`, `"key_derivation_verify_bytes"`, `"key_derivation_verify_key"` (optional, opaque drivers only): derive key material which remains inside the same secure element. See [“Key derivation driver outputs”](#key-derivation-driver-outputs).
 * `"key_derivation_set_capacity"` (mandatory for opaque drivers that implement `"key_derivation_output_bytes"` for non-raw-data key types): update the capacity policy on the operation. See [“Key derivation driver operation capacity”](#key-derivation-driver-operation-capacity).
@@ -373,7 +373,7 @@ These functions can return the following statuses:
 
 * `PSA_SUCCESS`: the call succeeded and the desired value has been copied to the output parameter (`size`, `buffer`, `value` or `p_key_buffer`) and if applicable the size of the value has been writen to the applicable parameter (`buffer_length`, `key_buffer_size`).
 * `PSA_ERROR_INSUFFICIENT_DATA`: the driver called `psa_crypto_driver_key_derivation_get_input_key` on a data input step which is available as a bytes input, or the driver called ``psa_crypto_driver_key_derivation_get_input_size` or `psa_crypto_driver_key_derivation_get_input_bytes` on a data input step which is available as a key input. This is not a fatal error and the driver is expected to call the appropriate function(s) instead.
-* `PSA_ERROR_DOES_NOT_EXIST`: the input step, is valid for this particular algorithm, but it is not part of the initial inputs. This is not a fatal error. The driver will receive the input later as a [long input](#key-derivation-driver-extra-inputs).
+* `PSA_ERROR_DOES_NOT_EXIST`: the input step, is valid for this particular algorithm, but it is not part of the initial inputs. This is not a fatal error. The driver will receive the input later as a [long input](#key-derivation-driver-long-inputs).
 * `PSA_ERROR_INVALID_ARGUMENT`: the input step is not valid for this particular algorithm, or the type of the input step is not suitable for this function. This is not a fatal error and the driver can, for example, subsequently call the appropriate function on the same step.
 * `PSA_ERROR_BUFFER_TOO_SMALL` (`psa_crypto_driver_key_derivation_get_input_bytes` only): the output buffer is too small. This is not a fatal error and the driver can, for example, subsequently call the same function again with a larger buffer. Call `psa_crypto_driver_key_derivation_get_input_size` to obtain the required size.
 * The core may return other errors such as `PSA_ERROR_CORRUPTION_DETECTED` or `PSA_ERROR_COMMUNICATION_FAILURE` to convey implementation-specific error conditions. Portable drivers should treat such conditions as fatal errors.
@@ -697,7 +697,7 @@ psa_status_t acme_import_key(const psa_key_attributes_t *attributes,
 This entry point has several roles:
 
 1. Parse the key data in the input buffer `data`. The driver must support the export format for the key types that the entry point is declared for. It may support additional formats as specified in the description of [`psa_import_key()`](https://armmbed.github.io/mbed-crypto/html/api/keys/management.html#c.psa_export_key) in the PSA Cryptography API specification.
-2. Validate the key data. The necessary validation is described in the section [“Key validation with transparent drivers”](#key-validation-with-transparent-drivers) above.
+2. Validate the key data. The necessary validation is described in the section [“Key validation”](#key-validation) above.
 3. [Determine the key size](#key-size-determination-on-import) and output it through `*bits`.
 4. Copy the validated key data from `data` to `key_buffer`. The output must be in the canonical format documented for [`psa_export_key()`](https://armmbed.github.io/mbed-crypto/html/api/keys/management.html#c.psa_export_key) or [`psa_export_public_key()`](https://armmbed.github.io/mbed-crypto/html/api/keys/management.html#c.psa_export_public_key), so if the input is not in this format, the entry point must convert it.
 

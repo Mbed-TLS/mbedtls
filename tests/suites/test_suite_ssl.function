@@ -914,8 +914,6 @@ int mbedtls_endpoint_init( mbedtls_endpoint *ep, int endpoint_type, int pk_alg,
         &( ep->ctr_drbg ) );
     mbedtls_entropy_init( &( ep->entropy ) );
 
-
-
     TEST_ASSERT( mbedtls_ssl_conf_get_user_data_p( &ep->conf ) == NULL );
     TEST_EQUAL( mbedtls_ssl_conf_get_user_data_n( &ep->conf ), 0 );
     TEST_ASSERT( mbedtls_ssl_get_user_data_p( &ep->ssl ) == NULL );

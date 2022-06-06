@@ -3295,7 +3295,7 @@ static int ssl_check_dtls_clihlo_cookie(
     }
 
     sid_len = in[59];
-    if( sid_len > in_len - 61 )
+    if( 59 + 1 + sid_len + 1 > in_len )
     {
         MBEDTLS_SSL_DEBUG_MSG( 4, ( "check cookie: sid_len=%u > %u",
                                     (unsigned) sid_len,
@@ -3306,10 +3306,11 @@ static int ssl_check_dtls_clihlo_cookie(
                            in + 60, sid_len );
 
     cookie_len = in[60 + sid_len];
-    if( cookie_len > in_len - 60 ) {
+    if( 59 + 1 + sid_len + 1 + cookie_len > in_len )
+    {
         MBEDTLS_SSL_DEBUG_MSG( 4, ( "check cookie: cookie_len=%u > %u",
                                     (unsigned) cookie_len,
-                                    (unsigned) in_len - 60 ) );
+                                    (unsigned) ( in_len - sid_len - 61 ) ) );
         return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
 

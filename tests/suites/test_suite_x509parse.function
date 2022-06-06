@@ -401,6 +401,22 @@ int parse_crt_ext_cb( void *p_ctx, mbedtls_x509_crt const *crt, mbedtls_x509_buf
  * END_DEPENDENCIES
  */
 
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C */
+void x509_accessor_ext_types( int ext_type, int has_ext_type )
+{
+    mbedtls_x509_crt crt;
+    int expected_result = ext_type & has_ext_type;
+
+    mbedtls_x509_crt_init( &crt );
+
+    crt.ext_types = ext_type;
+
+    TEST_ASSERT( mbedtls_x509_crt_has_ext_type( &crt, has_ext_type ) == expected_result );
+
+    mbedtls_x509_crt_free( &crt );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
 void x509_parse_san( char * crt_file, char * result_str )
 {

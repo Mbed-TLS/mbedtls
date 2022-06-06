@@ -1,0 +1,3 @@
+Features
+   * Add the function mbedtls_x509_crt_has_ext_type() to access the ext types
+     field within mbedtls_x509_crt context, as requested in #5585.

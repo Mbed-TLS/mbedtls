@@ -2791,3 +2791,11 @@ x509_verify_restart:"data_files/server10_int3-bs.pem":"data_files/test-int-ca2.c
 X509 CRT verify restart: one int, int badsign, max_ops=500
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_RSA_C
 x509_verify_restart:"data_files/server10_int3-bs.pem":"data_files/test-int-ca2.crt":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_NOT_TRUSTED:500:25:100
+
+X509 ext types accessor: ext type present
+depends_on:MBEDTLS_X509_CRT_PARSE_C
+x509_accessor_ext_types:MBEDTLS_X509_EXT_KEY_USAGE:MBEDTLS_X509_EXT_KEY_USAGE
+
+X509 ext types accessor: ext type not present
+depends_on:MBEDTLS_X509_CRT_PARSE_C
+x509_accessor_ext_types:MBEDTLS_X509_EXT_KEY_USAGE:MBEDTLS_X509_EXT_SUBJECT_ALT_NAME

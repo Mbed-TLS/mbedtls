@@ -200,6 +200,8 @@ void pkcs7_verify( char *pkcs7_file, char *crt, char *filetobesigned )
     mbedtls_pkcs7 pkcs7;
     mbedtls_x509_crt x509;
 
+    USE_PSA_INIT();
+
     mbedtls_pkcs7_init( &pkcs7 );
     mbedtls_x509_crt_init( &x509 );
 
@@ -233,6 +235,7 @@ exit:
     mbedtls_x509_crt_free( &x509 );
     mbedtls_free( data );
     mbedtls_pkcs7_free( &pkcs7 );
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -252,6 +255,8 @@ void pkcs7_verify_hash( char *pkcs7_file, char *crt, char *filetobesigned )
 
     mbedtls_pkcs7 pkcs7;
     mbedtls_x509_crt x509;
+
+    USE_PSA_INIT();
 
     mbedtls_pkcs7_init( &pkcs7 );
     mbedtls_x509_crt_init( &x509 );
@@ -296,6 +301,7 @@ exit:
     mbedtls_free( data );
     mbedtls_pkcs7_free( &pkcs7 );
     mbedtls_free( pkcs7_buf );
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -313,6 +319,8 @@ void pkcs7_verify_badcert( char *pkcs7_file, char *crt, char *filetobesigned )
     mbedtls_pkcs7 pkcs7;
     mbedtls_x509_crt x509;
 
+    USE_PSA_INIT();
+
     mbedtls_pkcs7_init( &pkcs7 );
     mbedtls_x509_crt_init( &x509 );
 
@@ -346,6 +354,7 @@ exit:
     mbedtls_free( data );
     mbedtls_pkcs7_free( &pkcs7 );
     mbedtls_free( pkcs7_buf );
+    USE_PSA_DONE();
 }
 /* END_CASE */
 
@@ -363,6 +372,8 @@ void pkcs7_verify_tampered_data( char *pkcs7_file, char *crt, char *filetobesign
     mbedtls_pkcs7 pkcs7;
     mbedtls_x509_crt x509;
 
+    USE_PSA_INIT();
+
     mbedtls_pkcs7_init( &pkcs7 );
     mbedtls_x509_crt_init( &x509 );
 
@@ -396,6 +407,7 @@ exit:
     mbedtls_pkcs7_free( &pkcs7 );
     mbedtls_free( data );
     mbedtls_free( pkcs7_buf );
+    USE_PSA_DONE();
 }
 /* END_CASE */
 

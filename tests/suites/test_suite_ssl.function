@@ -5506,6 +5506,33 @@ void conf_group()
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
+void cookie_parsing( data_t *cookie, int exp_ret )
+{
+    mbedtls_ssl_context ssl;
+    mbedtls_ssl_config conf;
+    size_t len;
+
+    mbedtls_ssl_init( &ssl );
+    mbedtls_ssl_config_init( &conf );
+    TEST_EQUAL( mbedtls_ssl_config_defaults( &conf, MBEDTLS_SSL_IS_SERVER,
+                                             MBEDTLS_SSL_TRANSPORT_DATAGRAM,
+                                             MBEDTLS_SSL_PRESET_DEFAULT ),
+                0 );
+
+    TEST_EQUAL( mbedtls_ssl_setup( &ssl, &conf ), 0 );
+    TEST_EQUAL( ssl_check_dtls_clihlo_cookie( &ssl, ssl.cli_id, ssl.cli_id_len,
+                                              cookie->x, cookie->len,
+                                              ssl.out_buf,
+                                              MBEDTLS_SSL_OUT_CONTENT_LEN,
+                                              &len ),
+                exp_ret );
+
+    mbedtls_ssl_free( &ssl );
+    mbedtls_ssl_config_free( &conf );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_TIMING_C:MBEDTLS_HAVE_TIME */
 void timing_final_delay_accessor( )
 {

@@ -2296,4 +2296,12 @@ int mbedtls_ssl_validate_ciphersuite(
 int mbedtls_ssl_write_sig_alg_ext( mbedtls_ssl_context *ssl, unsigned char *buf,
                                    const unsigned char *end, size_t *out_len );
 
+#if defined(MBEDTLS_TEST_HOOKS)
+int ssl_check_dtls_clihlo_cookie(
+                           mbedtls_ssl_context *ssl,
+                           const unsigned char *cli_id, size_t cli_id_len,
+                           const unsigned char *in, size_t in_len,
+                           unsigned char *obuf, size_t buf_len, size_t *olen );
+#endif
+
 #endif /* ssl_misc.h */

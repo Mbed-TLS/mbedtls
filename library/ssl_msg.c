@@ -3149,7 +3149,10 @@ void mbedtls_ssl_dtls_replay_update( mbedtls_ssl_context *ssl )
  *   return MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED
  * - otherwise return a specific error code
  */
-static int ssl_check_dtls_clihlo_cookie(
+#if !defined(MBEDTLS_TEST_HOOKS)
+static
+#endif
+int ssl_check_dtls_clihlo_cookie(
                            mbedtls_ssl_context *ssl,
                            const unsigned char *cli_id, size_t cli_id_len,
                            const unsigned char *in, size_t in_len,

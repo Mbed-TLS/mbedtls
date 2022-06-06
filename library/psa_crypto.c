@@ -5067,10 +5067,16 @@ psa_status_t psa_key_derivation_output_key( const psa_key_attributes_t *attribut
 #if defined(AT_LEAST_ONE_BUILTIN_KDF)
 static int is_kdf_alg_supported( psa_algorithm_t kdf_alg )
 {
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND)
-    if( PSA_ALG_IS_ANY_HKDF( kdf_alg ) )
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
+    if( PSA_ALG_IS_HKDF( kdf_alg ) )
+        return( 1 );
+#endif
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT)
+    if( PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) )
+        return( 1 );
+#endif
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND)
+    if( PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) )
         return( 1 );
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF)

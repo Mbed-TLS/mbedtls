@@ -14,8 +14,8 @@ Limitations relevant for G1 (performing crypto operations)
 Restartable ECC operations
 --------------------------
 
-There is currently no support for that in PSA at all. API design, as well as
-implementation, would be non-trivial.
+There is currently no support for that in PSA at all, but it will be added at
+some point, see <https://github.com/orgs/Mbed-TLS/projects/1#column-18816849>.
 
 Currently, `MBEDTLS_USE_PSA_CRYPTO` is simply incompatible with
 `MBEDTLS_ECP_RESTARTABLE`.

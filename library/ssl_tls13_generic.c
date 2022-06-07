@@ -922,7 +922,8 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
     size_t signature_len = 0;
     unsigned char verify_hash[ MBEDTLS_MD_MAX_SIZE ];
     size_t verify_hash_len;
-
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    
     *out_len = 0;
 
     own_key = mbedtls_ssl_own_key( ssl );
@@ -984,11 +985,12 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
     /* Hash verify buffer with indicated hash function */
     psa_algorithm = mbedtls_psa_translate_md( md_alg );
 
-    if( psa_hash_compute( psa_algorithm,
-                          verify_buffer,
-                          verify_buffer_len,
-                          verify_hash,sizeof( verify_hash ),
-                          &verify_hash_len ) != PSA_SUCCESS )
+    status = psa_hash_compute( psa_algorithm,
+                               verify_buffer,
+                               verify_buffer_len,
+                               verify_hash,sizeof( verify_hash ),
+                               &verify_hash_len );
+    if( status != PSA_SUCCESS )
         return( psa_ssl_status_to_mbedtls( status ) );
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "verify hash", verify_hash, verify_hash_len );

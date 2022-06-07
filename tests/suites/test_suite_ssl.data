@@ -128,7 +128,6 @@ depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_SERVER_HELLO_DONE:1
 
 Test moving clients handshake to state: CLIENT_CERTIFICATE
-depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_CLIENT_CERTIFICATE:1
 
 Test moving clients handshake to state: CLIENT_KEY_EXCHANGE
@@ -153,7 +152,6 @@ Test moving clients handshake to state: SERVER_FINISHED
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_SERVER_FINISHED:1
 
 Test moving clients handshake to state: FLUSH_BUFFERS
-depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_FLUSH_BUFFERS:1
 
 Test moving clients handshake to state: HANDSHAKE_WRAPUP
@@ -186,7 +184,6 @@ depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_SERVER_HELLO_DONE:1
 
 Test moving servers handshake to state: CLIENT_CERTIFICATE
-depends_on:MBEDTLS_SSL_PROTO_TLS1_2
 move_handshake_to_state:MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_CLIENT_CERTIFICATE:1
 
 Test moving servers handshake to state: CLIENT_KEY_EXCHANGE

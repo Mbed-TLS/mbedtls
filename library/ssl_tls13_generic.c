@@ -253,7 +253,6 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
     }
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "verify hash", verify_hash, verify_hash_len );
-
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
     if( sig_alg == MBEDTLS_PK_RSASSA_PSS )
     {
@@ -990,7 +989,7 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
                           verify_buffer_len,
                           verify_hash,sizeof( verify_hash ),
                           &verify_hash_len ) != PSA_SUCCESS )
-        return( ret );
+        return( psa_ssl_status_to_mbedtls( status ) );
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "verify hash", verify_hash, verify_hash_len );
 

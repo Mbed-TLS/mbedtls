@@ -151,6 +151,11 @@ static int can_exercise( const psa_key_attributes_t *attributes )
         PSA_ALG_NONE;
     psa_key_usage_t usage = psa_get_key_usage_flags( attributes );
 
+    /* Disable KA(ECDH,HKDF_EXTRACT/EXPAND...) test cases. */
+    if( PSA_ALG_IS_KEY_AGREEMENT( alg ) &&
+        ( PSA_ALG_HKDF_EXTRACT( alg ) || PSA_ALG_HKDF_EXPAND( alg ) ) )
+        return 0;
+
 #if defined(MBEDTLS_TEST_LIBTESTDRIVER1)
     /* We test some configurations using drivers where the driver doesn't
      * support certain hash algorithms, but declares that it supports

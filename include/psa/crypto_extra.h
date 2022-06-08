@@ -1828,7 +1828,9 @@ psa_status_t psa_pake_abort( psa_pake_operation_t * operation );
  * psa_pake_operation_t.
  */
 #if defined(MBEDTLS_PSA_BUILTIN_PAKE)
-#define PSA_PAKE_OPERATION_INIT {PSA_ALG_NONE, 0, 0, 0, 0, MBEDTLS_SVC_KEY_ID_INIT, 0, NULL, 0, 0, { .dummy = 0 } }
+#define PSA_PAKE_OPERATION_INIT {PSA_ALG_NONE, 0, 0, 0, 0,              \
+                                 MBEDTLS_SVC_KEY_ID_INIT, 0, NULL, 0, 0, \
+                                 {.dummy = 0}}
 #else
 #define PSA_PAKE_OPERATION_INIT {PSA_ALG_NONE, 0, 0, {0}}
 #endif

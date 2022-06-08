@@ -5506,7 +5506,7 @@ void conf_group()
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE:MBEDTLS_TEST_HOOKS */
 void cookie_parsing( data_t *cookie, int exp_ret )
 {
     mbedtls_ssl_context ssl;

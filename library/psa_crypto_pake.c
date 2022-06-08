@@ -46,7 +46,7 @@
  *   |   | psa_pake_set_password_key()
  *   |   | psa_pake_set_user()
  *   |   | psa_pake_set_peer()
- *   |   | psa_pake_set_role
+ *   |   | psa_pake_set_role()
  *   |
  *   |--- In any order: (First round input before or after first round output)
  *   |   |
@@ -449,7 +449,7 @@ psa_status_t psa_pake_output( psa_pake_operation_t *operation,
     }
     else
     {
-        /* Length is stored at the first byte */
+        /* Length is stored at the first byte of the next chunk */
         length = operation->buffer[operation->buffer_offset] + 1;
     }
 

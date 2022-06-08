@@ -1604,9 +1604,14 @@ read_record_header:
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello v3, handshake len.: %d",
                    ( buf[1] << 16 ) | ( buf[2] << 8 ) | buf[3] ) );
 
+    if( buf[1] != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message: %u != 0",
+                                    (unsigned) buf[1] ) );
+        return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
     /* We don't support fragmentation of ClientHello (yet?) */
-    if( buf[1] != 0 ||
-        msg_len != mbedtls_ssl_hs_hdr_len( ssl ) + ( ( buf[2] << 8 ) | buf[3] ) )
+    if( msg_len != mbedtls_ssl_hs_hdr_len( ssl ) + ( ( buf[2] << 8 ) | buf[3] ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message: %u != %u + %u",
                                     (unsigned) msg_len,

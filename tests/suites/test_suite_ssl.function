@@ -886,6 +886,7 @@ exit:
  *
  * \retval  0 on success, otherwise error code.
  */
+
 int mbedtls_endpoint_init( mbedtls_endpoint *ep, int endpoint_type, int pk_alg,
                            mbedtls_test_message_socket_context *dtls_context,
                            mbedtls_test_message_queue *input_queue,
@@ -965,6 +966,8 @@ int mbedtls_endpoint_init( mbedtls_endpoint *ep, int endpoint_type, int pk_alg,
 
     if( group_list != NULL )
         mbedtls_ssl_conf_groups( &(ep->conf), group_list );
+
+    mbedtls_ssl_conf_authmode( &( ep->conf ), MBEDTLS_SSL_VERIFY_REQUIRED );
 
     ret = mbedtls_ssl_setup( &( ep->ssl ), &( ep->conf ) );
     TEST_ASSERT( ret == 0 );
@@ -2096,6 +2099,17 @@ void perform_handshake( handshake_test_options* options )
     }
 
     TEST_ASSERT( mbedtls_ssl_is_handshake_over( &client.ssl ) == 1 );
+
+    /* Make sure server state is moved to HANDSHAKE_OVER also. */
+    TEST_ASSERT( mbedtls_move_handshake_to_state( &(server.ssl),
+                                                  &(client.ssl),
+                                                  MBEDTLS_SSL_HANDSHAKE_OVER )
+                 ==  expected_handshake_result );
+    if( expected_handshake_result != 0 )
+    {
+        goto exit;
+    }
+
     TEST_ASSERT( mbedtls_ssl_is_handshake_over( &server.ssl ) == 1 );
 
     /* Check that both sides have negotiated the expected version. */
@@ -4867,7 +4881,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_ENTROPY_C:MBEDTLS_ENTROPY_C:MBEDTLS_CTR_DRBG_C */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_ENTROPY_C:MBEDTLS_CTR_DRBG_C */
 void move_handshake_to_state(int endpoint_type, int state, int need_pass)
 {
     enum { BUFFSIZE = 1024 };
@@ -4896,12 +4910,16 @@ void move_handshake_to_state(int endpoint_type, int state, int need_pass)
                                            state );
     if( need_pass )
     {
-        TEST_ASSERT( ret == 0 );
+        TEST_ASSERT( ret == 0 ||
+                     ret == MBEDTLS_ERR_SSL_WANT_READ ||
+                     ret == MBEDTLS_ERR_SSL_WANT_WRITE );
         TEST_ASSERT( base_ep.ssl.state == state );
     }
     else
     {
-        TEST_ASSERT( ret != 0 );
+        TEST_ASSERT( ret != 0 &&
+                     ret != MBEDTLS_ERR_SSL_WANT_READ &&
+                     ret != MBEDTLS_ERR_SSL_WANT_WRITE );
         TEST_ASSERT( base_ep.ssl.state != state );
     }
 

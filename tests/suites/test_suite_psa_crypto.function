@@ -8128,6 +8128,23 @@ void ecjpake_setup( int alg_arg, int primitive_arg, int hash_arg, int role_arg,
     psa_pake_cs_set_primitive( &cipher_suite, primitive_arg );
     psa_pake_cs_set_hash( &cipher_suite, hash_alg );
 
+    PSA_ASSERT( psa_pake_abort( &operation ) );
+
+    TEST_EQUAL( psa_pake_set_user( &operation, NULL, 0 ),
+                PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( psa_pake_set_peer( &operation, NULL, 0 ),
+                PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( psa_pake_set_password_key( &operation, key ),
+                PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( psa_pake_set_role( &operation, role ),
+                PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( psa_pake_output( &operation, step, NULL, 0, NULL ),
+                PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( psa_pake_input( &operation, step, NULL, 0),
+                PSA_ERROR_BAD_STATE );
+
+    PSA_ASSERT( psa_pake_abort( &operation ) );
+
     status = psa_pake_setup( &operation, &cipher_suite );
     if( status != PSA_SUCCESS )
     {

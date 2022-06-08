@@ -8158,6 +8158,18 @@ void ecjpake_setup( int alg_arg, int primitive_arg, int hash_arg, int role_arg,
             PSA_ASSERT( status );
     }
 
+    TEST_EQUAL( psa_pake_set_user( &operation, NULL, 0 ),
+                PSA_ERROR_INVALID_ARGUMENT );
+    TEST_EQUAL( psa_pake_set_peer( &operation, NULL, 0 ),
+                PSA_ERROR_INVALID_ARGUMENT );
+
+    const uint8_t unsupported_id[] = "abcd";
+
+    TEST_EQUAL( psa_pake_set_user( &operation, unsupported_id, 4 ),
+                PSA_ERROR_NOT_SUPPORTED );
+    TEST_EQUAL( psa_pake_set_peer( &operation, unsupported_id, 4 ),
+                PSA_ERROR_NOT_SUPPORTED );
+
     /* First round Output */
     status = psa_pake_output( &operation, step, output_buffer,
                               512, &output_len );

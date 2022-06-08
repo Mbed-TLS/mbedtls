@@ -1760,13 +1760,16 @@ psa_status_t psa_pake_abort( psa_pake_operation_t * operation );
  *                      recognized, or the parameters are incompatible,
  *                      return 0.
  */
-#define PSA_PAKE_OUTPUT_SIZE(alg, primitive, output_step)                    \
-            ( alg == PSA_ALG_JPAKE &&                                        \
-              primitive == PSA_PAKE_PRIMITIVE(PSA_PAKE_PRIMITIVE_TYPE_ECC,   \
-                                              PSA_ECC_FAMILY_SECP_R1, 256) ? \
-              ( output_step == PSA_PAKE_STEP_KEY_SHARE ? 69 :                \
-                ( output_step == PSA_PAKE_STEP_ZK_PUBLIC ? 66 : 33 ) ) : 0 )
-
+#define PSA_PAKE_OUTPUT_SIZE(alg, primitive, output_step)               \
+    ( alg == PSA_ALG_JPAKE &&                                           \
+      primitive == PSA_PAKE_PRIMITIVE(PSA_PAKE_PRIMITIVE_TYPE_ECC,      \
+                                      PSA_ECC_FAMILY_SECP_R1, 256) ?    \
+      (                                                                 \
+        output_step == PSA_PAKE_STEP_KEY_SHARE ? 69 :                   \
+        output_step == PSA_PAKE_STEP_ZK_PUBLIC ? 66 :                   \
+        33                                                              \
+      ) :                                                               \
+      0 )
 
 /** A sufficient input buffer size for psa_pake_input().
  *
@@ -1787,12 +1790,16 @@ psa_status_t psa_pake_abort( psa_pake_operation_t * operation );
  *                      the input type or PAKE algorithm is not recognized, or
  *                      the parameters are incompatible, return 0.
  */
-#define PSA_PAKE_INPUT_SIZE(alg, primitive, input_step)                      \
-            ( alg == PSA_ALG_JPAKE &&                                        \
-              primitive == PSA_PAKE_PRIMITIVE(PSA_PAKE_PRIMITIVE_TYPE_ECC,   \
-                                              PSA_ECC_FAMILY_SECP_R1, 256) ? \
-              ( input_step == PSA_PAKE_STEP_KEY_SHARE ? 69 :                 \
-                ( input_step == PSA_PAKE_STEP_ZK_PUBLIC ? 66 : 33 ) ) : 0 )
+#define PSA_PAKE_INPUT_SIZE(alg, primitive, input_step)                 \
+    ( alg == PSA_ALG_JPAKE &&                                           \
+      primitive == PSA_PAKE_PRIMITIVE(PSA_PAKE_PRIMITIVE_TYPE_ECC,      \
+                                      PSA_ECC_FAMILY_SECP_R1, 256) ?    \
+      (                                                                 \
+        input_step == PSA_PAKE_STEP_KEY_SHARE ? 69 :                    \
+        input_step == PSA_PAKE_STEP_ZK_PUBLIC ? 66 :                    \
+        33                                                              \
+      ) :                                                               \
+      0 )
 
 /** Output buffer size for psa_pake_output() for any of the supported PAKE
  * algorithm and primitive suites and output step.

@@ -90,11 +90,8 @@ int main( void )
 #define PACKET_HASHES_STORED 1000
 #define SHA256_SIZE 32
 
-#define MODE_NONE       0
+#define MODE_PATTERN    0
 #define MODE_BITFLIP    1
-#define MODE_PATTERN    2
-#define MODE_SUBSTITUTE 3
-
 
 #define DFL_SERVER_ADDR         "localhost"
 #define DFL_SERVER_PORT         "4433"
@@ -103,7 +100,8 @@ int main( void )
 #define DFL_PACK                0
 #define DFL_RESEND_PROTECTION   0
 #define DFL_MALFORM_HS_SEQ_NUM  -1
-#define DFL_MALFORM_EPOCH       -1
+#define DFL_MALFORM_TRUNCATE    -1
+#define DFL_MALFORM_MESSAGE     "Any"
 
 #if defined(MBEDTLS_TIMING_C)
 #define USAGE_PACK                                                          \
@@ -127,19 +125,15 @@ int main( void )
 
 #define USAGE_MALFORM                                                       \
     " Packet malformation arguments:\n"                                     \
-    "    malform_mode=%%s     default: 0, no data malformation\n"           \
-    "                                 1, perform a bitflip at a location\n" \
-    "                                 2, memset packet data with a pattern\n"\
-    "                                 3, substitute the whole packet\n"     \
-    "    malform_length=%%d   default: 0, no data malformation\n"           \
-    "    malform_offset=%%d   default: 0, where to start the malformation,\n"\
-    "                                    unused in mode 3.\n"               \
-    "    malform_bit=%%d      default: 0, bit to perform the bitflip on,\n" \
-    "                                    used only in mode 1.\n"            \
-    "    malform_pattern=%%s  What pattern to use in mode 2 and 3, in hex.\n"\
-    "                        For mode 2, if the pattern length is smaller\n"\
-    "                        than malform_length - it will repeat. It\n"    \
-    "                        cannot be longer.\n"                           \
+    "    malform_mode=%%s     default: 0, memset packet data with a pattern.\n"\
+    "                        1, XOR packet data with a pattern.\n"          \
+    "    malform_offset=%%d   default: 0, where to start the malformation\n"\
+    "    malform_pattern=%%s  What pattern to use to set/xor packet data,\n"\
+    "                        in hex. Its presence indicates that\n"         \
+    "                        a malformation should be performed.\n"         \
+    "    malform_truncate=%%d default: -1, truncate the packet at this\n"   \
+    "                        offset and rewrite the length in the packet\n" \
+    "                        header. -1 means no truncation."               \
     USAGE_RESEND                                                            \
     " Possible malformation filters (joined by an AND):\n"                  \
     "    malform_packet_num=%%d default:0, which packet of a given type\n"  \
@@ -150,8 +144,9 @@ int main( void )
     "                            Specifying this option and chosing a\n"    \
     "                            non-handshake message type will probably\n"\
     "                            give no results.\n"                        \
-    "    malform_message=%%s  Which message to malform. Acceptable values:\n"\
-    "                        HelloRequest, ClientHello, ServerHello,\n"     \
+    "    malform_message=%%s  Which message to malform. Default: Any.\n"    \
+    "                        Acceptable values:\n"                          \
+    "                        Any, HelloRequest, ClientHello, ServerHello,\n"\
     "                        HelloVerifyRequest, NewSessionTicket,\n"       \
     "                        Certificate, ServerKeyExchange,\n"             \
     "                        CertificateRequest, ServerHelloDone,\n"        \
@@ -243,22 +238,21 @@ static struct options
                                  * at most \c merge milliseconds if > 0     */
     unsigned int seed;          /* seed for "random" events                 */
 
-    uint8_t malform_mode;       /* How to malform the data of a message:
-                                 *     0 - no malformation.
-                                 *     1 - bitflip.
-                                 *     2 - memset to a pattern.
-                                 *     3 - substitute the packet.           */
+    uint8_t malform_mode;       /* how to malform the data of a message:
+                                 *     0 - pattern.
+                                 *     1 - XOR.                             */
+    int malform_truncate;       /* Truncate the packet at this offset,
+                                 * rewrite length in the packet header.
+                                 * -1 means no truncation.                  */
     size_t malform_offset;      /* byte offset to start packet malformation */
-    size_t malform_bit;         /* bit offset within a byte to malform      */
-    size_t malform_length;      /* how much data to malform in bytes        */
-    char* malform_message;      /* which message to malform, a name as      */
-                                /* present in msg_type()                    */
-                                /* Options used in mode 2                   */
-    unsigned char* malform_pattern;/* Pattern to insert at an offset.
-                                 * If the pattern length is smaller than
-                                 * malform_length - it will repeat. It
-                                 * cannot be longer than it.                */
-    size_t malform_packet_num;  /* which packet of a given message to
+    const char* malform_message;/* which message to malform, a name as      */
+                                /* present in msg_type(), or Any            */
+
+    unsigned char* malform_pattern;/* Pattern to memset/XOR at an offset.
+                                    * Its presence indicates that
+                                    * a malformation should be performed. */
+
+    size_t malform_packet_num;  /* Which packet of a given message to
                                  * malform. 0 - all. Currently only one
                                  * packet or all can be malformed. First packet
                                  * has number 1. */
@@ -303,6 +297,8 @@ static void get_options( int argc, char *argv[] )
     opt.resend_protection = DFL_RESEND_PROTECTION;
 #endif
     opt.malform_hs_seq_num   = DFL_MALFORM_HS_SEQ_NUM;
+    opt.malform_truncate     = DFL_MALFORM_TRUNCATE;
+    opt.malform_message      = DFL_MALFORM_MESSAGE;
     /* Other members default to 0 */
 
     opt.delay_cli_cnt = 0;
@@ -439,10 +435,8 @@ static void get_options( int argc, char *argv[] )
         }
         else if( strcmp( p, "malform_offset" ) == 0 )
             opt.malform_offset = atoi( q );
-        else if( strcmp( p, "malform_length" ) == 0 )
-            opt.malform_length = atoi( q );
-        else if( strcmp( p, "malform_bit" ) == 0 )
-            opt.malform_bit = atoi( q );
+        else if( strcmp( p, "malform_truncate" ) == 0 )
+            opt.malform_truncate = atoi( q );
         else if( strcmp( p, "malform_mode" ) == 0 )
             opt.malform_mode = atoi( q );
         else if( strcmp( p, "malform_packet_num" ) == 0 )
@@ -479,41 +473,6 @@ static void get_options( int argc, char *argv[] )
         else
             exit_usage( p, NULL );
     }
-}
-
-static int validate_malformation_options()
-{
-    if( malform_pattern_len != 0 && opt.malform_length < malform_pattern_len )
-    {
-        mbedtls_printf( " Malformation pattern is longer"
-                        " than malform_pattern_len: %u > %u \n",
-                        (unsigned) malform_pattern_len,
-                        (unsigned) opt.malform_length );
-        return( 1 );
-    }
-    if( opt.malform_message == NULL && opt.malform_mode != MODE_NONE )
-    {
-        mbedtls_printf( " Malformation requested but no message specified.\n");
-        return( 1 );
-    }
-    if( opt.malform_mode == MODE_NONE &&
-            ( opt.malform_message != NULL ||
-              opt.malform_length != 0 ||
-              opt.malform_packet_num != 0 ||
-              opt.malform_pattern != NULL ) )
-    {
-        mbedtls_printf( " Malformation parameters specified but"
-                        " no mode chosen.\n");
-        return( 1 );
-    }
-    if( ( opt.malform_mode == MODE_PATTERN || opt.malform_mode == MODE_SUBSTITUTE ) &&
-            ( malform_pattern_len == 0 || opt.malform_pattern == NULL ) )
-    {
-        mbedtls_printf( " Malformation by a pattern / substitution chosen but"
-                        " the pattern was not specified.\n");
-        return( 1 );
-    }
-    return( 0 );
 }
 
 static const char *msg_type( unsigned char *msg, size_t len )
@@ -836,7 +795,8 @@ static int calculate_packet_hash( packet *cur )
 
 static int message_passes_filters( packet *cur )
 {
-    if( strcmp( cur->type, opt.malform_message ) != 0 )
+    if( strcmp( opt.malform_message, "Any" ) != 0 &&
+        strcmp( cur->type, opt.malform_message ) != 0 )
         return 0;
     if( opt.malform_hs_seq_num != (uint16_t) -1  &&
         cur->buf[0] == MBEDTLS_SSL_MSG_HANDSHAKE )
@@ -879,35 +839,19 @@ static int handle_message_malformation( packet* cur )
     {
         if( opt.malform_mode == MODE_BITFLIP )
         {
-            for( size_t i = 0; i < opt.malform_length; i++ )
+            for( size_t i = 0; i < malform_pattern_len; i++ )
             {
-                cur->buf[opt.malform_offset + i] ^= (1 << opt.malform_bit);
+                cur->buf[opt.malform_offset + i] ^= opt.malform_pattern[i];
             }
         }
         else if( opt.malform_mode == MODE_PATTERN )
         {
-            size_t copy_len = malform_pattern_len;
-            size_t left_len = opt.malform_length;
-            if( opt.malform_length > cur->len )
-            {
-                mbedtls_printf( " packet malformation longer than packet "
-                                " requested. Aborting");
-                return 1;
-            }
-            for( size_t i = 0; i < opt.malform_length; i+= malform_pattern_len )
-            {
-                copy_len = ( left_len < malform_pattern_len ?
-                                 left_len : malform_pattern_len );
-                memcpy( &cur->buf[opt.malform_offset + i],
-                            opt.malform_pattern, copy_len );
-                left_len -= copy_len;
-            }
+                memcpy( &cur->buf[opt.malform_offset],
+                            opt.malform_pattern, malform_pattern_len );
         }
-        else if( opt.malform_mode == MODE_SUBSTITUTE )
-        {
-            memcpy( &cur->buf[0], opt.malform_pattern, malform_pattern_len );
-            cur->len = (unsigned) opt.malform_length;
-        }
+
+        if( opt.malform_truncate != -1 )
+            cur->len = (unsigned) opt.malform_truncate;
 #if defined(MBEDTLS_SHA256_C)
         /* If just a single packet should be malformed - store the hash.
          * Do not overwrite it with the sama data on a resend */
@@ -1117,7 +1061,7 @@ int handle_message( const char *way,
     cur.dst  = dst;
     print_packet( &cur, NULL );
 
-    if( opt.malform_mode )
+    if( malform_pattern_len != 0 || opt.malform_truncate != DFL_MALFORM_TRUNCATE )
     {
         if( handle_message_malformation( &cur ) != 0 )
             return 1;
@@ -1221,9 +1165,6 @@ int main( int argc, char *argv[] )
     mbedtls_net_init( &server_fd );
 
     get_options( argc, argv );
-
-    if( validate_malformation_options() != 0 )
-        goto exit;
 
     /*
      * Decisions to drop/delay/duplicate packets are pseudo-random: dropping

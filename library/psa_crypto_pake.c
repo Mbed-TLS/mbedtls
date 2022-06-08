@@ -300,7 +300,7 @@ static psa_status_t psa_pake_ecjpake_setup( psa_pake_operation_t *operation )
     if( ret != 0 )
         return( mbedtls_to_psa_error( ret ) );
 
-    operation->buffer = mbedtls_calloc( 1, 512 );
+    operation->buffer = mbedtls_calloc( 1, PSA_PAKE_BUFFER_SIZE );
     if( operation->buffer == NULL )
         return( PSA_ERROR_INSUFFICIENT_MEMORY );
 

@@ -188,11 +188,8 @@ psa_status_t psa_pake_set_password_key( psa_pake_operation_t *operation,
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
-    if( usage == 0 ||
-        ( usage & PSA_KEY_USAGE_DERIVE ) == 0 )
-    {
+    if( ( usage & PSA_KEY_USAGE_DERIVE ) == 0 )
         return PSA_ERROR_NOT_PERMITTED;
-    }
 
     operation->password = password;
 

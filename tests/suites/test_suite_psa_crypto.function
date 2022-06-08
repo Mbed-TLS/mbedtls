@@ -8198,6 +8198,9 @@ void ecjpake_setup( int alg_arg, int primitive_arg, int hash_arg, int role_arg,
     else
         PSA_ASSERT( status );
 
+    TEST_EQUAL( psa_pake_output( &operation, step, NULL, 0, NULL),
+                PSA_ERROR_INVALID_ARGUMENT );
+
     TEST_ASSERT( output_len > 0 );
 
 exit:

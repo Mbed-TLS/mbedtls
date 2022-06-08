@@ -442,18 +442,7 @@ static void get_options( int argc, char *argv[] )
         else if( strcmp( p, "malform_packet_num" ) == 0 )
             opt.malform_packet_num = atoi( q );
         else if( strcmp( p, "malform_message" ) == 0 )
-        {
-            size_t len;
-
-            len = strlen( q );
-            opt.malform_message = mbedtls_calloc( 1, len + 1 );
-            if( opt.malform_message == NULL )
-            {
-                mbedtls_printf( " Allocation failure\n" );
-                exit( 1 );
-            }
-            memcpy( opt.malform_message, q, len + 1 );
-        }
+            opt.malform_message = q;
         else if( strcmp( p, "malform_pattern" ) == 0 )
         {
             opt.malform_pattern = mbedtls_test_unhexify_alloc( q,

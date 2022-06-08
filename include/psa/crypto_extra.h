@@ -1903,7 +1903,7 @@ static inline void psa_pake_cs_set_hash( psa_pake_cipher_suite_t *cipher_suite,
         cipher_suite->hash = hash;
 }
 
-#if defined(MBEDTLS_PSA_BUILTIN_PAKE)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECJPAKE)
 #include <mbedtls/ecjpake.h>
 #endif
 

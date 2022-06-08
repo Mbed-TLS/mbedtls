@@ -337,27 +337,6 @@ static int ssl_tls13_check_ephemeral_key_exchange( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 /*
- * Return 0 if the given key uses one of the acceptable curves, -1 otherwise
- */
-static int ssl_tls13_check_key_sigs( mbedtls_pk_context *pk,
-                                     uint16_t *sig_alg )
-{
-    mbedtls_pk_type_t pk_type;
-    mbedtls_md_type_t md_alg;
-
-    while( *sig_alg != MBEDTLS_TLS1_3_SIG_NONE )
-    {
-        mbedtls_ssl_tls13_get_pk_type_and_md_alg_from_sig_alg(
-                    *sig_alg, &pk_type, &md_alg );
-        if( pk_type == mbedtls_pk_get_type(pk) )
-            return( 0 );
-        sig_alg++;
-    }
-
-    return( -1 );
-}
-
-/*
  * Try picking a certificate for this ciphersuite,
  * return 0 on success and -1 on failure.
  */
@@ -391,14 +370,6 @@ static int ssl_tls13_pick_cert( mbedtls_ssl_context *ssl )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "certificate mismatch: "
                                       "(extended) key usage extension" ) );
-            continue;
-        }
-
-        if( ssl_tls13_check_key_sigs( &cur->cert->pk,
-                                      ssl->handshake->received_sig_algs ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_MSG(
-                        3, ( "certificate key mismatch: received_sig_algs" ) );
             continue;
         }
 

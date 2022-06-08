@@ -339,37 +339,31 @@ static int ssl_tls13_check_ephemeral_key_exchange( mbedtls_ssl_context *ssl )
 /*
  * Return 0 if the given key uses one of the acceptable curves, -1 otherwise
  */
-#if defined(MBEDTLS_ECDSA_C)
-static int ssl_check_key_curve( mbedtls_pk_context *pk,
-                                const mbedtls_ecp_curve_info **curves )
+static int ssl_tls13_check_key_sigs( mbedtls_pk_context *pk,
+                                     uint16_t *sig_alg )
 {
-    const mbedtls_ecp_curve_info **crv = curves;
-    mbedtls_ecp_group_id grp_id = mbedtls_pk_ec( *pk )->grp.id;
+    mbedtls_pk_type_t pk_type;
+    mbedtls_md_type_t md_alg;
 
-    while( *crv != NULL )
+    while( *sig_alg != MBEDTLS_TLS1_3_SIG_NONE )
     {
-        if( (*crv)->grp_id == grp_id )
+        mbedtls_ssl_tls13_get_pk_type_and_md_alg_from_sig_alg(
+                    *sig_alg, &pk_type, &md_alg );
+        if( pk_type == mbedtls_pk_get_type(pk) )
             return( 0 );
-        crv++;
+        sig_alg++;
     }
 
     return( -1 );
 }
-#endif /* MBEDTLS_ECDSA_C */
 
 /*
  * Try picking a certificate for this ciphersuite,
  * return 0 on success and -1 on failure.
  */
-static int ssl_pick_cert( mbedtls_ssl_context *ssl,
-                          const mbedtls_ssl_ciphersuite_t * ciphersuite_info )
+static int ssl_tls13_pick_cert( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_key_cert *cur, *list;
-#if defined(MBEDTLS_ECDSA_C)
-    mbedtls_pk_type_t pk_alg =
-        mbedtls_ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
-#endif /* MBEDTLS_ECDSA_C */
-    uint32_t flags;
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     if( ssl->handshake->sni_key_cert != NULL )
@@ -386,7 +380,6 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
 
     for( cur = list; cur != NULL; cur = cur->next )
     {
-        flags = 0;
         MBEDTLS_SSL_DEBUG_CRT( 3, "candidate certificate chain, certificate",
                                cur->cert );
 
@@ -394,22 +387,20 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
          * This avoids sending the client a cert it'll reject based on
          * keyUsage or other extensions.
          */
-        if( mbedtls_ssl_check_cert_usage( cur->cert, ciphersuite_info,
-                                  MBEDTLS_SSL_IS_SERVER, &flags ) != 0 )
+        if( mbedtls_x509_crt_check_key_usage( cur->cert, MBEDTLS_X509_KU_DIGITAL_SIGNATURE ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "certificate mismatch: "
                                       "(extended) key usage extension" ) );
             continue;
         }
 
-#if defined(MBEDTLS_ECDSA_C)
-        if( pk_alg == MBEDTLS_PK_ECDSA &&
-            ssl_check_key_curve( &cur->cert->pk, ssl->handshake->curves ) != 0 )
+        if( ssl_tls13_check_key_sigs( &cur->cert->pk,
+                                      ssl->handshake->received_sig_algs ) != 0 )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 3, ( "certificate mismatch: elliptic curve" ) );
+            MBEDTLS_SSL_DEBUG_MSG(
+                        3, ( "certificate key mismatch: received_sig_algs" ) );
             continue;
         }
-#endif /* MBEDTLS_ECDSA_C */
 
         break;
     }
@@ -794,7 +785,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-    if( (ssl_pick_cert( ssl, ssl->handshake->ciphersuite_info ) != 0) )
+    if( (ssl_tls13_pick_cert( ssl ) != 0) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: "
                             "no suitable certificate" ) );

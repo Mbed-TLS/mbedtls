@@ -131,32 +131,34 @@ psa_status_t psa_pake_setup( psa_pake_operation_t *operation,
     }
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_ECJPAKE)
-    if( cipher_suite->algorithm != PSA_ALG_JPAKE ||
-        cipher_suite->type != PSA_PAKE_PRIMITIVE_TYPE_ECC ||
-        cipher_suite->family != PSA_ECC_FAMILY_SECP_R1 ||
-        cipher_suite->bits != 256 ||
-        cipher_suite->hash != PSA_ALG_SHA_256 )
+    if( cipher_suite->algorithm == PSA_ALG_JPAKE )
     {
-        return( PSA_ERROR_NOT_SUPPORTED );
+        if( cipher_suite->type != PSA_PAKE_PRIMITIVE_TYPE_ECC ||
+            cipher_suite->family != PSA_ECC_FAMILY_SECP_R1 ||
+            cipher_suite->bits != 256 ||
+            cipher_suite->hash != PSA_ALG_SHA_256 )
+        {
+            return( PSA_ERROR_NOT_SUPPORTED );
+        }
+
+        operation->alg = cipher_suite->algorithm;
+
+        mbedtls_ecjpake_init( &operation->ctx.ecjpake );
+
+        operation->state = PSA_PAKE_STATE_SETUP;
+        operation->sequence = PSA_PAKE_SEQ_INVALID;
+        operation->input_step = PSA_PAKE_STEP_X1_X2;
+        operation->output_step = PSA_PAKE_STEP_X1_X2;
+
+        operation->buffer = NULL;
+        operation->buffer_length = 0;
+        operation->buffer_offset = 0;
+
+        return( PSA_SUCCESS );
     }
-
-    operation->alg = cipher_suite->algorithm;
-
-    mbedtls_ecjpake_init( &operation->ctx.ecjpake );
-
-    operation->state = PSA_PAKE_STATE_SETUP;
-    operation->sequence = PSA_PAKE_SEQ_INVALID;
-    operation->input_step = PSA_PAKE_STEP_X1_X2;
-    operation->output_step = PSA_PAKE_STEP_X1_X2;
-
-    operation->buffer = NULL;
-    operation->buffer_length = 0;
-    operation->buffer_offset = 0;
-
-    return( PSA_SUCCESS );
-#else
-    return( PSA_ERROR_NOT_SUPPORTED );
+    else
 #endif
+    return( PSA_ERROR_NOT_SUPPORTED );
 }
 
 psa_status_t psa_pake_set_password_key( psa_pake_operation_t *operation,
@@ -327,162 +329,165 @@ psa_status_t psa_pake_output( psa_pake_operation_t *operation,
         return( PSA_ERROR_INVALID_ARGUMENT );
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_ECJPAKE)
-    if( operation->state == PSA_PAKE_STATE_SETUP ) {
-        status = psa_pake_ecjpake_setup( operation );
-        if( status != PSA_SUCCESS )
-        {
-            psa_pake_abort( operation );
-            return( status );
+    if( operation->alg == PSA_ALG_JPAKE )
+    {
+        if( operation->state == PSA_PAKE_STATE_SETUP ) {
+            status = psa_pake_ecjpake_setup( operation );
+            if( status != PSA_SUCCESS )
+            {
+                psa_pake_abort( operation );
+                return( status );
+            }
         }
-    }
 
-    if( operation->state >= PSA_PAKE_STATE_READY &&
-        ( mbedtls_ecjpake_check( &operation->ctx.ecjpake ) != 0 ||
-          operation->buffer == NULL ) )
-    {
-        return( PSA_ERROR_BAD_STATE );
-    }
-
-    if( operation->state != PSA_PAKE_STATE_READY &&
-        operation->state != PSA_PAKE_OUTPUT_X1_X2 &&
-        operation->state != PSA_PAKE_OUTPUT_X2S )
-    {
-        return( PSA_ERROR_BAD_STATE );
-    }
-
-    if( operation->state == PSA_PAKE_STATE_READY )
-    {
-        if( step != PSA_PAKE_STEP_KEY_SHARE )
-            return( PSA_ERROR_BAD_STATE );
-
-        switch( operation->output_step )
+        if( operation->state >= PSA_PAKE_STATE_READY &&
+            ( mbedtls_ecjpake_check( &operation->ctx.ecjpake ) != 0 ||
+              operation->buffer == NULL ) )
         {
-            case PSA_PAKE_STEP_X1_X2:
-                operation->state = PSA_PAKE_OUTPUT_X1_X2;
+            return( PSA_ERROR_BAD_STATE );
+        }
+
+        if( operation->state != PSA_PAKE_STATE_READY &&
+            operation->state != PSA_PAKE_OUTPUT_X1_X2 &&
+            operation->state != PSA_PAKE_OUTPUT_X2S )
+        {
+            return( PSA_ERROR_BAD_STATE );
+        }
+
+        if( operation->state == PSA_PAKE_STATE_READY )
+        {
+            if( step != PSA_PAKE_STEP_KEY_SHARE )
+                return( PSA_ERROR_BAD_STATE );
+
+            switch( operation->output_step )
+            {
+                case PSA_PAKE_STEP_X1_X2:
+                    operation->state = PSA_PAKE_OUTPUT_X1_X2;
+                    break;
+                case PSA_PAKE_STEP_X2S:
+                    operation->state = PSA_PAKE_OUTPUT_X2S;
+                    break;
+                default:
+                    return( PSA_ERROR_BAD_STATE );
+            }
+
+            operation->sequence = PSA_PAKE_X1_STEP_KEY_SHARE;
+        }
+
+        /* Check if step matches current sequence */
+        switch( operation->sequence )
+        {
+            case PSA_PAKE_X1_STEP_KEY_SHARE:
+            case PSA_PAKE_X2_STEP_KEY_SHARE:
+                if( step != PSA_PAKE_STEP_KEY_SHARE )
+                    return( PSA_ERROR_BAD_STATE );
                 break;
-            case PSA_PAKE_STEP_X2S:
-                operation->state = PSA_PAKE_OUTPUT_X2S;
+
+            case PSA_PAKE_X1_STEP_ZK_PUBLIC:
+            case PSA_PAKE_X2_STEP_ZK_PUBLIC:
+                if( step != PSA_PAKE_STEP_ZK_PUBLIC )
+                    return( PSA_ERROR_BAD_STATE );
                 break;
+
+            case PSA_PAKE_X1_STEP_ZK_PROOF:
+            case PSA_PAKE_X2_STEP_ZK_PROOF:
+                if( step != PSA_PAKE_STEP_ZK_PROOF )
+                    return( PSA_ERROR_BAD_STATE );
+                break;
+
             default:
                 return( PSA_ERROR_BAD_STATE );
         }
 
-        operation->sequence = PSA_PAKE_X1_STEP_KEY_SHARE;
-    }
-
-    /* Check if step matches current sequence */
-    switch( operation->sequence )
-    {
-        case PSA_PAKE_X1_STEP_KEY_SHARE:
-        case PSA_PAKE_X2_STEP_KEY_SHARE:
-            if( step != PSA_PAKE_STEP_KEY_SHARE )
-                return( PSA_ERROR_BAD_STATE );
-            break;
-
-        case PSA_PAKE_X1_STEP_ZK_PUBLIC:
-        case PSA_PAKE_X2_STEP_ZK_PUBLIC:
-            if( step != PSA_PAKE_STEP_ZK_PUBLIC )
-                return( PSA_ERROR_BAD_STATE );
-            break;
-
-        case PSA_PAKE_X1_STEP_ZK_PROOF:
-        case PSA_PAKE_X2_STEP_ZK_PROOF:
-            if( step != PSA_PAKE_STEP_ZK_PROOF )
-                return( PSA_ERROR_BAD_STATE );
-            break;
-
-        default:
-            return( PSA_ERROR_BAD_STATE );
-    }
-
-    /* Initialize & write round on KEY_SHARE sequences */
-    if( operation->state == PSA_PAKE_OUTPUT_X1_X2 &&
-        operation->sequence == PSA_PAKE_X1_STEP_KEY_SHARE )
-    {
-        ret = mbedtls_ecjpake_write_round_one( &operation->ctx.ecjpake,
-                                               operation->buffer,
-                                               PSA_PAKE_BUFFER_SIZE,
-                                               &operation->buffer_length,
-                                               mbedtls_psa_get_random,
-                                               MBEDTLS_PSA_RANDOM_STATE );
-        if( ret != 0 )
+        /* Initialize & write round on KEY_SHARE sequences */
+        if( operation->state == PSA_PAKE_OUTPUT_X1_X2 &&
+            operation->sequence == PSA_PAKE_X1_STEP_KEY_SHARE )
         {
-            psa_pake_abort( operation );
-            return( mbedtls_to_psa_error( ret ) );
+            ret = mbedtls_ecjpake_write_round_one( &operation->ctx.ecjpake,
+                                                   operation->buffer,
+                                                   PSA_PAKE_BUFFER_SIZE,
+                                                   &operation->buffer_length,
+                                                   mbedtls_psa_get_random,
+                                                   MBEDTLS_PSA_RANDOM_STATE );
+            if( ret != 0 )
+            {
+                psa_pake_abort( operation );
+                return( mbedtls_to_psa_error( ret ) );
+            }
+
+            operation->buffer_offset = 0;
+        }
+        else if( operation->state == PSA_PAKE_OUTPUT_X2S &&
+                 operation->sequence == PSA_PAKE_X1_STEP_KEY_SHARE )
+        {
+            ret = mbedtls_ecjpake_write_round_two( &operation->ctx.ecjpake,
+                                                   operation->buffer,
+                                                   PSA_PAKE_BUFFER_SIZE,
+                                                   &operation->buffer_length,
+                                                   mbedtls_psa_get_random,
+                                                   MBEDTLS_PSA_RANDOM_STATE );
+            if( ret != 0 )
+            {
+                psa_pake_abort( operation );
+                return( mbedtls_to_psa_error( ret ) );
+            }
+
+            operation->buffer_offset = 0;
         }
 
-        operation->buffer_offset = 0;
-    }
-    else if( operation->state == PSA_PAKE_OUTPUT_X2S &&
-             operation->sequence == PSA_PAKE_X1_STEP_KEY_SHARE )
-    {
-        ret = mbedtls_ecjpake_write_round_two( &operation->ctx.ecjpake,
-                                               operation->buffer,
-                                               PSA_PAKE_BUFFER_SIZE,
-                                               &operation->buffer_length,
-                                               mbedtls_psa_get_random,
-                                               MBEDTLS_PSA_RANDOM_STATE );
-        if( ret != 0 )
+        /* Load output sequence length */
+        if( operation->state == PSA_PAKE_OUTPUT_X2S &&
+            operation->sequence == PSA_PAKE_X1_STEP_KEY_SHARE )
         {
-            psa_pake_abort( operation );
-            return( mbedtls_to_psa_error( ret ) );
+            if( operation->role == PSA_PAKE_ROLE_SERVER )
+                /* Length is stored after 3bytes curve */
+                length = 3 + operation->buffer[3] + 1;
+            else
+                /* Length is stored at the first byte */
+                length = operation->buffer[0] + 1;
         }
-
-        operation->buffer_offset = 0;
-    }
-
-    /* Load output sequence length */
-    if( operation->state == PSA_PAKE_OUTPUT_X2S &&
-        operation->sequence == PSA_PAKE_X1_STEP_KEY_SHARE )
-    {
-        if( operation->role == PSA_PAKE_ROLE_SERVER )
-            /* Length is stored after 3bytes curve */
-            length = 3 + operation->buffer[3] + 1;
         else
-            /* Length is stored at the first byte */
-            length = operation->buffer[0] + 1;
+            /* Length is stored at the first byte of the next chunk */
+            length = operation->buffer[operation->buffer_offset] + 1;
+
+        if( length > operation->buffer_length )
+            return( PSA_ERROR_DATA_CORRUPT );
+
+        if( output_size < length )
+        {
+            psa_pake_abort( operation );
+            return( PSA_ERROR_BUFFER_TOO_SMALL );
+        }
+
+        memcpy( output,
+                operation->buffer +  operation->buffer_offset,
+                length );
+        *output_length = length;
+
+        operation->buffer_offset += length;
+
+        /* Reset buffer after ZK_PROOF sequence */
+        if( ( operation->state == PSA_PAKE_OUTPUT_X1_X2 &&
+              operation->sequence == PSA_PAKE_X2_STEP_ZK_PROOF ) ||
+            ( operation->state == PSA_PAKE_OUTPUT_X2S &&
+              operation->sequence == PSA_PAKE_X1_STEP_ZK_PROOF ) )
+        {
+            mbedtls_platform_zeroize( operation->buffer, PSA_PAKE_BUFFER_SIZE );
+            operation->buffer_length = 0;
+            operation->buffer_offset = 0;
+
+            operation->state = PSA_PAKE_STATE_READY;
+            operation->output_step++;
+            operation->sequence = 0;
+        }
+        else
+            operation->sequence++;
+
+        return( PSA_SUCCESS );
     }
     else
-        /* Length is stored at the first byte of the next chunk */
-        length = operation->buffer[operation->buffer_offset] + 1;
-
-    if( length > operation->buffer_length )
-        return( PSA_ERROR_DATA_CORRUPT );
-
-    if( output_size < length )
-    {
-        psa_pake_abort( operation );
-        return( PSA_ERROR_BUFFER_TOO_SMALL );
-    }
-
-    memcpy( output,
-            operation->buffer +  operation->buffer_offset,
-            length );
-    *output_length = length;
-
-    operation->buffer_offset += length;
-
-    /* Reset buffer after ZK_PROOF sequence */
-    if( ( operation->state == PSA_PAKE_OUTPUT_X1_X2 &&
-          operation->sequence == PSA_PAKE_X2_STEP_ZK_PROOF ) ||
-        ( operation->state == PSA_PAKE_OUTPUT_X2S &&
-          operation->sequence == PSA_PAKE_X1_STEP_ZK_PROOF ) )
-    {
-        mbedtls_platform_zeroize( operation->buffer, PSA_PAKE_BUFFER_SIZE );
-        operation->buffer_length = 0;
-        operation->buffer_offset = 0;
-
-        operation->state = PSA_PAKE_STATE_READY;
-        operation->output_step++;
-        operation->sequence = 0;
-    }
-    else
-        operation->sequence++;
-
-    return( PSA_SUCCESS );
-#else
-    return( PSA_ERROR_NOT_SUPPORTED );
 #endif
+    return( PSA_ERROR_NOT_SUPPORTED );
 }
 
 psa_status_t psa_pake_input( psa_pake_operation_t *operation,
@@ -504,138 +509,141 @@ psa_status_t psa_pake_input( psa_pake_operation_t *operation,
         return( PSA_ERROR_INVALID_ARGUMENT );
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_ECJPAKE)
-    if( operation->state == PSA_PAKE_STATE_SETUP ) {
-        status = psa_pake_ecjpake_setup( operation );
-        if( status != PSA_SUCCESS )
+    if( operation->alg == PSA_ALG_JPAKE )
+    {
+        if( operation->state == PSA_PAKE_STATE_SETUP ) {
+            status = psa_pake_ecjpake_setup( operation );
+            if( status != PSA_SUCCESS )
+            {
+                psa_pake_abort( operation );
+                return( status );
+            }
+        }
+
+        if( operation->state >= PSA_PAKE_STATE_READY &&
+            ( mbedtls_ecjpake_check( &operation->ctx.ecjpake ) != 0 ||
+              operation->buffer == NULL ) )
+        {
+            return( PSA_ERROR_BAD_STATE );
+        }
+
+        if( operation->state != PSA_PAKE_STATE_READY &&
+            operation->state != PSA_PAKE_INPUT_X1_X2 &&
+            operation->state != PSA_PAKE_INPUT_X4S )
+        {
+            return( PSA_ERROR_BAD_STATE );
+        }
+
+        if( operation->state == PSA_PAKE_STATE_READY )
+        {
+            if( step != PSA_PAKE_STEP_KEY_SHARE )
+                return( PSA_ERROR_BAD_STATE );
+
+            switch( operation->input_step )
+            {
+                case PSA_PAKE_STEP_X1_X2:
+                    operation->state = PSA_PAKE_INPUT_X1_X2;
+                    break;
+                case PSA_PAKE_STEP_X2S:
+                    operation->state = PSA_PAKE_INPUT_X4S;
+                    break;
+                default:
+                    return( PSA_ERROR_BAD_STATE );
+            }
+
+            operation->sequence = PSA_PAKE_X1_STEP_KEY_SHARE;
+        }
+
+        buffer_remain = PSA_PAKE_BUFFER_SIZE - operation->buffer_length;
+
+        if( input_length == 0 ||
+            input_length > buffer_remain )
         {
             psa_pake_abort( operation );
-            return( status );
+            return( PSA_ERROR_INSUFFICIENT_MEMORY );
         }
-    }
 
-    if( operation->state >= PSA_PAKE_STATE_READY &&
-        ( mbedtls_ecjpake_check( &operation->ctx.ecjpake ) != 0 ||
-          operation->buffer == NULL ) )
-    {
-        return( PSA_ERROR_BAD_STATE );
-    }
-
-    if( operation->state != PSA_PAKE_STATE_READY &&
-        operation->state != PSA_PAKE_INPUT_X1_X2 &&
-        operation->state != PSA_PAKE_INPUT_X4S )
-    {
-        return( PSA_ERROR_BAD_STATE );
-    }
-
-    if( operation->state == PSA_PAKE_STATE_READY )
-    {
-        if( step != PSA_PAKE_STEP_KEY_SHARE )
-            return( PSA_ERROR_BAD_STATE );
-
-        switch( operation->input_step )
+        /* Check if step matches current sequence */
+        switch( operation->sequence )
         {
-            case PSA_PAKE_STEP_X1_X2:
-                operation->state = PSA_PAKE_INPUT_X1_X2;
+            case PSA_PAKE_X1_STEP_KEY_SHARE:
+            case PSA_PAKE_X2_STEP_KEY_SHARE:
+                if( step != PSA_PAKE_STEP_KEY_SHARE )
+                    return( PSA_ERROR_BAD_STATE );
                 break;
-            case PSA_PAKE_STEP_X2S:
-                operation->state = PSA_PAKE_INPUT_X4S;
+
+            case PSA_PAKE_X1_STEP_ZK_PUBLIC:
+            case PSA_PAKE_X2_STEP_ZK_PUBLIC:
+                if( step != PSA_PAKE_STEP_ZK_PUBLIC )
+                    return( PSA_ERROR_BAD_STATE );
                 break;
+
+            case PSA_PAKE_X1_STEP_ZK_PROOF:
+            case PSA_PAKE_X2_STEP_ZK_PROOF:
+                if( step != PSA_PAKE_STEP_ZK_PROOF )
+                    return( PSA_ERROR_BAD_STATE );
+                break;
+
             default:
                 return( PSA_ERROR_BAD_STATE );
         }
 
-        operation->sequence = PSA_PAKE_X1_STEP_KEY_SHARE;
-    }
+        /* Copy input to local buffer */
+        memcpy( operation->buffer + operation->buffer_length,
+                input, input_length );
+        operation->buffer_length += input_length;
 
-    buffer_remain = PSA_PAKE_BUFFER_SIZE - operation->buffer_length;
-
-    if( input_length == 0 ||
-        input_length > buffer_remain )
-    {
-        psa_pake_abort( operation );
-        return( PSA_ERROR_INSUFFICIENT_MEMORY );
-    }
-
-    /* Check if step matches current sequence */
-    switch( operation->sequence )
-    {
-        case PSA_PAKE_X1_STEP_KEY_SHARE:
-        case PSA_PAKE_X2_STEP_KEY_SHARE:
-            if( step != PSA_PAKE_STEP_KEY_SHARE )
-                return( PSA_ERROR_BAD_STATE );
-            break;
-
-        case PSA_PAKE_X1_STEP_ZK_PUBLIC:
-        case PSA_PAKE_X2_STEP_ZK_PUBLIC:
-            if( step != PSA_PAKE_STEP_ZK_PUBLIC )
-                return( PSA_ERROR_BAD_STATE );
-            break;
-
-        case PSA_PAKE_X1_STEP_ZK_PROOF:
-        case PSA_PAKE_X2_STEP_ZK_PROOF:
-            if( step != PSA_PAKE_STEP_ZK_PROOF )
-                return( PSA_ERROR_BAD_STATE );
-            break;
-
-        default:
-            return( PSA_ERROR_BAD_STATE );
-    }
-
-    /* Copy input to local buffer */
-    memcpy( operation->buffer + operation->buffer_length,
-            input, input_length );
-    operation->buffer_length += input_length;
-
-    /* Load buffer at each last round ZK_PROOF */
-    if( operation->state == PSA_PAKE_INPUT_X1_X2 &&
-        operation->sequence == PSA_PAKE_X2_STEP_ZK_PROOF )
-    {
-        ret = mbedtls_ecjpake_read_round_one( &operation->ctx.ecjpake,
-                                              operation->buffer,
-                                              operation->buffer_length );
-
-        mbedtls_platform_zeroize( operation->buffer, PSA_PAKE_BUFFER_SIZE );
-        operation->buffer_length = 0;
-
-        if( ret != 0 )
+        /* Load buffer at each last round ZK_PROOF */
+        if( operation->state == PSA_PAKE_INPUT_X1_X2 &&
+            operation->sequence == PSA_PAKE_X2_STEP_ZK_PROOF )
         {
-            psa_pake_abort( operation );
-            return( mbedtls_to_psa_error( ret ) );
+            ret = mbedtls_ecjpake_read_round_one( &operation->ctx.ecjpake,
+                                                  operation->buffer,
+                                                  operation->buffer_length );
+
+            mbedtls_platform_zeroize( operation->buffer, PSA_PAKE_BUFFER_SIZE );
+            operation->buffer_length = 0;
+
+            if( ret != 0 )
+            {
+                psa_pake_abort( operation );
+                return( mbedtls_to_psa_error( ret ) );
+            }
         }
-    }
-    else if( operation->state == PSA_PAKE_INPUT_X4S &&
-             operation->sequence == PSA_PAKE_X1_STEP_ZK_PROOF )
-    {
-        ret = mbedtls_ecjpake_read_round_two( &operation->ctx.ecjpake,
-                                              operation->buffer,
-                                              operation->buffer_length );
-
-        mbedtls_platform_zeroize( operation->buffer, PSA_PAKE_BUFFER_SIZE );
-        operation->buffer_length = 0;
-
-        if( ret != 0 )
+        else if( operation->state == PSA_PAKE_INPUT_X4S &&
+                 operation->sequence == PSA_PAKE_X1_STEP_ZK_PROOF )
         {
-            psa_pake_abort( operation );
-            return( mbedtls_to_psa_error( ret ) );
-        }
-    }
+            ret = mbedtls_ecjpake_read_round_two( &operation->ctx.ecjpake,
+                                                  operation->buffer,
+                                                  operation->buffer_length );
 
-    if( ( operation->state == PSA_PAKE_INPUT_X1_X2 &&
-          operation->sequence == PSA_PAKE_X2_STEP_ZK_PROOF ) ||
-        ( operation->state == PSA_PAKE_INPUT_X4S &&
-          operation->sequence == PSA_PAKE_X1_STEP_ZK_PROOF ) )
-    {
-        operation->state = PSA_PAKE_STATE_READY;
-        operation->input_step++;
-        operation->sequence = 0;
+            mbedtls_platform_zeroize( operation->buffer, PSA_PAKE_BUFFER_SIZE );
+            operation->buffer_length = 0;
+
+            if( ret != 0 )
+            {
+                psa_pake_abort( operation );
+                return( mbedtls_to_psa_error( ret ) );
+            }
+        }
+
+        if( ( operation->state == PSA_PAKE_INPUT_X1_X2 &&
+              operation->sequence == PSA_PAKE_X2_STEP_ZK_PROOF ) ||
+            ( operation->state == PSA_PAKE_INPUT_X4S &&
+              operation->sequence == PSA_PAKE_X1_STEP_ZK_PROOF ) )
+        {
+            operation->state = PSA_PAKE_STATE_READY;
+            operation->input_step++;
+            operation->sequence = 0;
+        }
+        else
+            operation->sequence++;
+
+        return( PSA_SUCCESS );
     }
     else
-        operation->sequence++;
-
-    return( PSA_SUCCESS );
-#else
-    return( PSA_ERROR_NOT_SUPPORTED );
 #endif
+    return( PSA_ERROR_NOT_SUPPORTED );
 }
 
 psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
@@ -651,31 +659,34 @@ psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
         return( PSA_ERROR_BAD_STATE );
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_ECJPAKE)
-    ret = mbedtls_ecjpake_derive_secret( &operation->ctx.ecjpake,
-                                         operation->buffer,
-                                         PSA_PAKE_BUFFER_SIZE,
-                                         &operation->buffer_length,
-                                         mbedtls_psa_get_random,
-                                         MBEDTLS_PSA_RANDOM_STATE );
-    if( ret != 0)
+    if( operation->alg == PSA_ALG_JPAKE )
     {
-        psa_pake_abort( operation );
-        return( mbedtls_to_psa_error( ret ) );
-    }
-
-    status = psa_key_derivation_input_bytes( output,
-                                             PSA_KEY_DERIVATION_INPUT_SECRET,
+        ret = mbedtls_ecjpake_derive_secret( &operation->ctx.ecjpake,
                                              operation->buffer,
-                                             operation->buffer_length );
+                                             PSA_PAKE_BUFFER_SIZE,
+                                             &operation->buffer_length,
+                                             mbedtls_psa_get_random,
+                                             MBEDTLS_PSA_RANDOM_STATE );
+        if( ret != 0)
+        {
+            psa_pake_abort( operation );
+            return( mbedtls_to_psa_error( ret ) );
+        }
 
-    mbedtls_platform_zeroize( operation->buffer, PSA_PAKE_BUFFER_SIZE );
+        status = psa_key_derivation_input_bytes( output,
+                                                 PSA_KEY_DERIVATION_INPUT_SECRET,
+                                                 operation->buffer,
+                                                 operation->buffer_length );
 
-    psa_pake_abort( operation );
+        mbedtls_platform_zeroize( operation->buffer, PSA_PAKE_BUFFER_SIZE );
 
-    return( status );
-#else
-    return( PSA_ERROR_NOT_SUPPORTED );
+        psa_pake_abort( operation );
+
+        return( status );
+    }
+    else
 #endif
+    return( PSA_ERROR_NOT_SUPPORTED );
 }
 
 psa_status_t psa_pake_abort(psa_pake_operation_t * operation)
@@ -690,15 +701,18 @@ psa_status_t psa_pake_abort(psa_pake_operation_t * operation)
     operation->sequence = 0;
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_ECJPAKE)
-    operation->input_step = 0;
-    operation->output_step = 0;
-    operation->password = MBEDTLS_SVC_KEY_ID_INIT;
-    operation->role = 0;
-    mbedtls_free( operation->buffer );
-    operation->buffer = NULL;
-    operation->buffer_length = 0;
-    operation->buffer_offset = 0;
-    mbedtls_ecjpake_free( &operation->ctx.ecjpake );
+    if( operation->alg == PSA_ALG_JPAKE )
+    {
+        operation->input_step = 0;
+        operation->output_step = 0;
+        operation->password = MBEDTLS_SVC_KEY_ID_INIT;
+        operation->role = 0;
+        mbedtls_free( operation->buffer );
+        operation->buffer = NULL;
+        operation->buffer_length = 0;
+        operation->buffer_offset = 0;
+        mbedtls_ecjpake_free( &operation->ctx.ecjpake );
+    }
 #endif
 
     return( PSA_SUCCESS );

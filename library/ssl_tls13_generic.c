@@ -34,6 +34,9 @@
 #include "ssl_tls13_keys.h"
 #include "ssl_debug_helpers.h"
 
+#include "psa/crypto.h"
+#include "mbedtls/psa_util.h"
+
 const uint8_t mbedtls_ssl_tls13_hello_retry_request_magic[
                 MBEDTLS_SERVER_HELLO_RANDOM_LEN ] =
                     { 0xCF, 0x21, 0xAD, 0x74, 0xE5, 0x9A, 0x61, 0x11,
@@ -160,12 +163,14 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
                                                size_t verify_buffer_len )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     const unsigned char *p = buf;
     uint16_t algorithm;
     size_t signature_len;
     mbedtls_pk_type_t sig_alg;
     mbedtls_md_type_t md_alg;
-    unsigned char verify_hash[MBEDTLS_MD_MAX_SIZE];
+    psa_algorithm_t hash_alg = PSA_ALG_NONE;
+    unsigned char verify_hash[PSA_HASH_MAX_SIZE];
     size_t verify_hash_len;
 
     void const *options = NULL;
@@ -212,6 +217,12 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
         goto error;
     }
 
+    hash_alg = mbedtls_psa_translate_md( md_alg );
+    if( hash_alg == 0 )
+    {
+        goto error;
+    }
+
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "Certificate Verify: Signature algorithm ( %04x )",
                                 ( unsigned int ) algorithm ) );
 
@@ -229,38 +240,15 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
     p += 2;
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, signature_len );
 
-    /* Hash verify buffer with indicated hash function */
-    switch( md_alg )
+    status = psa_hash_compute( hash_alg,
+                               verify_buffer,
+                               verify_buffer_len,
+                               verify_hash,
+                               sizeof( verify_hash ),
+                               &verify_hash_len );
+    if( status != PSA_SUCCESS )
     {
-#if defined(MBEDTLS_SHA256_C)
-        case MBEDTLS_MD_SHA256:
-            verify_hash_len = 32;
-            ret = mbedtls_sha256( verify_buffer, verify_buffer_len, verify_hash, 0 );
-            break;
-#endif /* MBEDTLS_SHA256_C */
-
-#if defined(MBEDTLS_SHA384_C)
-        case MBEDTLS_MD_SHA384:
-            verify_hash_len = 48;
-            ret = mbedtls_sha512( verify_buffer, verify_buffer_len, verify_hash, 1 );
-            break;
-#endif /* MBEDTLS_SHA384_C */
-
-#if defined(MBEDTLS_SHA512_C)
-        case MBEDTLS_MD_SHA512:
-            verify_hash_len = 64;
-            ret = mbedtls_sha512( verify_buffer, verify_buffer_len, verify_hash, 0 );
-            break;
-#endif /* MBEDTLS_SHA512_C */
-
-        default:
-            ret = MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
-            break;
-    }
-
-    if( ret != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "hash computation error", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "hash computation PSA error", status );
         goto error;
     }
 
@@ -991,11 +979,12 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
     size_t verify_buffer_len;
     mbedtls_pk_type_t pk_type = MBEDTLS_PK_NONE;
     mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
+    psa_algorithm_t psa_algorithm = PSA_ALG_NONE;
     uint16_t algorithm = MBEDTLS_TLS1_3_SIG_NONE;
     size_t signature_len = 0;
-    const mbedtls_md_info_t *md_info;
     unsigned char verify_hash[ MBEDTLS_MD_MAX_SIZE ];
     size_t verify_hash_len;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     *out_len = 0;
 
@@ -1056,15 +1045,15 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
     p += 2;
 
     /* Hash verify buffer with indicated hash function */
-    md_info = mbedtls_md_info_from_type( md_alg );
-    if( md_info == NULL )
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    psa_algorithm = mbedtls_psa_translate_md( md_alg );
+    status = psa_hash_compute( psa_algorithm,
+                               verify_buffer,
+                               verify_buffer_len,
+                               verify_hash,sizeof( verify_hash ),
+                               &verify_hash_len );
+    if( status != PSA_SUCCESS )
+        return( psa_ssl_status_to_mbedtls( status ) );
 
-    ret = mbedtls_md( md_info, verify_buffer, verify_buffer_len, verify_hash );
-    if( ret != 0 )
-        return( ret );
-
-    verify_hash_len = mbedtls_md_get_size( md_info );
     MBEDTLS_SSL_DEBUG_BUF( 3, "verify hash", verify_hash, verify_hash_len );
 
     if( ( ret = mbedtls_pk_sign_ext( pk_type, own_key,

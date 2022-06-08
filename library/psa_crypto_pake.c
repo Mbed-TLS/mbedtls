@@ -119,9 +119,7 @@ psa_status_t psa_pake_setup( psa_pake_operation_t *operation,
 {
     /* A context must be freshly initialized before it can be set up. */
     if( operation->alg != 0 || operation->state != PSA_PAKE_STATE_INVALID )
-    {
         return( PSA_ERROR_BAD_STATE );
-    }
 
     if( cipher_suite == NULL ||
         PSA_ALG_IS_PAKE(cipher_suite->algorithm ) == 0 ||
@@ -448,10 +446,8 @@ psa_status_t psa_pake_output( psa_pake_operation_t *operation,
             length = operation->buffer[0] + 1;
     }
     else
-    {
         /* Length is stored at the first byte of the next chunk */
         length = operation->buffer[operation->buffer_offset] + 1;
-    }
 
     if( length > operation->buffer_length )
         return( PSA_ERROR_DATA_CORRUPT );
@@ -484,9 +480,7 @@ psa_status_t psa_pake_output( psa_pake_operation_t *operation,
         operation->sequence = 0;
     }
     else
-    {
         operation->sequence++;
-    }
 
     return( PSA_SUCCESS );
 #else
@@ -639,9 +633,7 @@ psa_status_t psa_pake_input( psa_pake_operation_t *operation,
         operation->sequence = 0;
     }
     else
-    {
         operation->sequence++;
-    }
 
     return( PSA_SUCCESS );
 #else

@@ -6,6 +6,4 @@ Security
      when MBEDTLS_SSL_IN_CONTENT_LEN is less than a threshold that depends on
      the exact configuration: 258 bytes if using mbedtls_ssl_cookie_check(),
      and possibly up to 571 bytes with a custom cookie check function.
-     If the function provider deliberately omits these size checks, he/she
-     is responsible for the negative impact on his/her code.
      Reported by the Cybeats PSI Team.

@@ -8154,6 +8154,9 @@ void ecjpake_setup( int alg_arg, int primitive_arg, int hash_arg, int role_arg,
     else
         PSA_ASSERT( status );
 
+    TEST_EQUAL( psa_pake_setup( &operation, &cipher_suite ),
+                PSA_ERROR_BAD_STATE );
+
     status = psa_pake_set_role( &operation, role );
     if( status != PSA_SUCCESS )
     {

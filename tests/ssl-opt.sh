@@ -86,6 +86,7 @@ if [ -n "${OPENSSL_NEXT:-}" ]; then
 else
     O_NEXT_SRV=false
     O_NEXT_SRV_NO_CERT=false
+    O_NEXT_CLI_NO_CERT=false
     O_NEXT_CLI=false
 fi
 

@@ -3149,10 +3149,8 @@ void mbedtls_ssl_dtls_replay_update( mbedtls_ssl_context *ssl )
  *   return MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED
  * - otherwise return a specific error code
  */
-#if !defined(MBEDTLS_TEST_HOOKS)
-static
-#endif
-int ssl_check_dtls_clihlo_cookie(
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ssl_check_dtls_clihlo_cookie(
                            mbedtls_ssl_context *ssl,
                            const unsigned char *cli_id, size_t cli_id_len,
                            const unsigned char *in, size_t in_len,
@@ -3324,13 +3322,13 @@ static int ssl_handle_possible_reconnect( mbedtls_ssl_context *ssl )
         return( 0 );
     }
 
-    ret = ssl_check_dtls_clihlo_cookie(
+    ret = mbedtls_ssl_check_dtls_clihlo_cookie(
             ssl,
             ssl->cli_id, ssl->cli_id_len,
             ssl->in_buf, ssl->in_left,
             ssl->out_buf, MBEDTLS_SSL_OUT_CONTENT_LEN, &len );
 
-    MBEDTLS_SSL_DEBUG_RET( 2, "ssl_check_dtls_clihlo_cookie", ret );
+    MBEDTLS_SSL_DEBUG_RET( 2, "mbedtls_ssl_check_dtls_clihlo_cookie", ret );
 
     if( ret == MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED )
     {

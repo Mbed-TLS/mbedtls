@@ -8094,7 +8094,7 @@ exit:
 
 /* BEGIN_CASE depends_on:PSA_WANT_ALG_ECJPAKE */
 void ecjpake_setup( int alg_arg, int primitive_arg, int hash_arg, int role_arg,
-                    int output_step_arg, data_t *pw_data,
+                    int input_first, data_t *pw_data,
                     int expected_status_arg )
 {
     psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
@@ -8102,7 +8102,6 @@ void ecjpake_setup( int alg_arg, int primitive_arg, int hash_arg, int role_arg,
     psa_algorithm_t alg = alg_arg;
     psa_algorithm_t hash_alg = hash_arg;
     psa_pake_role_t role = role_arg;
-    psa_pake_step_t step = output_step_arg;
     mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t expected_status = expected_status_arg;
@@ -8113,7 +8112,8 @@ void ecjpake_setup( int alg_arg, int primitive_arg, int hash_arg, int role_arg,
     PSA_INIT( );
 
     ASSERT_ALLOC( output_buffer,
-                  PSA_PAKE_OUTPUT_SIZE(alg, primitive_arg, step) );
+                  PSA_PAKE_OUTPUT_SIZE(alg, primitive_arg,
+                                       PSA_PAKE_STEP_KEY_SHARE) );
 
     if( pw_data->len > 0 )
     {
@@ -8138,9 +8138,10 @@ void ecjpake_setup( int alg_arg, int primitive_arg, int hash_arg, int role_arg,
                 PSA_ERROR_BAD_STATE );
     TEST_EQUAL( psa_pake_set_role( &operation, role ),
                 PSA_ERROR_BAD_STATE );
-    TEST_EQUAL( psa_pake_output( &operation, step, NULL, 0, NULL ),
+    TEST_EQUAL( psa_pake_output( &operation, PSA_PAKE_STEP_KEY_SHARE,
+                                 NULL, 0, NULL ),
                 PSA_ERROR_BAD_STATE );
-    TEST_EQUAL( psa_pake_input( &operation, step, NULL, 0),
+    TEST_EQUAL( psa_pake_input( &operation, PSA_PAKE_STEP_KEY_SHARE, NULL, 0),
                 PSA_ERROR_BAD_STATE );
 
     PSA_ASSERT( psa_pake_abort( &operation ) );
@@ -8190,21 +8191,71 @@ void ecjpake_setup( int alg_arg, int primitive_arg, int hash_arg, int role_arg,
     TEST_EQUAL( psa_pake_set_peer( &operation, unsupported_id, 4 ),
                 PSA_ERROR_NOT_SUPPORTED );
 
-    /* First round Output */
-    status = psa_pake_output( &operation, step, output_buffer,
-                              512, &output_len );
-    if( status != PSA_SUCCESS )
+    /* First round */
+    if( input_first )
     {
-        TEST_EQUAL( status, expected_status );
-        goto exit;
+        /* Invalid parameters */
+        TEST_EQUAL( psa_pake_input( &operation, PSA_PAKE_STEP_ZK_PROOF,
+                                    NULL, 0 ),
+                    PSA_ERROR_INVALID_ARGUMENT );
+        TEST_EQUAL( psa_pake_input( &operation, PSA_PAKE_STEP_ZK_PROOF + 10,
+                                    output_buffer, 66 ),
+                    PSA_ERROR_INVALID_ARGUMENT );
+        /* Invalid first step */
+        TEST_EQUAL( psa_pake_input( &operation, PSA_PAKE_STEP_ZK_PROOF,
+                                    output_buffer, 66 ),
+                    PSA_ERROR_BAD_STATE );
+
+        TEST_EQUAL( psa_pake_input( &operation, PSA_PAKE_STEP_KEY_SHARE,
+                                    output_buffer, 66 ),
+                    expected_status);
+
+        if( expected_status == PSA_SUCCESS )
+        {
+            /* Buffer too large */
+            TEST_EQUAL( psa_pake_input( &operation, PSA_PAKE_STEP_ZK_PUBLIC,
+                                    output_buffer, 512 ),
+                        PSA_ERROR_INSUFFICIENT_MEMORY );
+
+            /* The operation should be aborted at this point */
+            TEST_EQUAL( psa_pake_input( &operation, PSA_PAKE_STEP_ZK_PUBLIC,
+                                        output_buffer, 66 ),
+                        PSA_ERROR_BAD_STATE );
+        }
     }
     else
-        PSA_ASSERT( status );
+    {
+        /* Invalid parameters */
+        TEST_EQUAL( psa_pake_output( &operation, PSA_PAKE_STEP_ZK_PROOF,
+                                     NULL, 0, NULL ),
+                    PSA_ERROR_INVALID_ARGUMENT );
+        TEST_EQUAL( psa_pake_output( &operation, PSA_PAKE_STEP_ZK_PROOF + 10,
+                                     output_buffer, 512, &output_len ),
+                    PSA_ERROR_INVALID_ARGUMENT );
+        /* Invalid first step */
+        TEST_EQUAL( psa_pake_output( &operation, PSA_PAKE_STEP_ZK_PROOF,
+                                     output_buffer, 512, &output_len ),
+                    PSA_ERROR_BAD_STATE );
 
-    TEST_EQUAL( psa_pake_output( &operation, step, NULL, 0, NULL),
-                PSA_ERROR_INVALID_ARGUMENT );
+        TEST_EQUAL( psa_pake_output( &operation, PSA_PAKE_STEP_KEY_SHARE,
+                                     output_buffer, 512, &output_len ),
+                    expected_status );
 
-    TEST_ASSERT( output_len > 0 );
+        if( expected_status == PSA_SUCCESS )
+        {
+            TEST_ASSERT( output_len > 0 );
+
+            /* Buffer too small */
+            TEST_EQUAL( psa_pake_output( &operation, PSA_PAKE_STEP_ZK_PUBLIC,
+                                         output_buffer, 5, &output_len ),
+                        PSA_ERROR_BUFFER_TOO_SMALL );
+
+            /* The operation should be aborted at this point */
+            TEST_EQUAL( psa_pake_output( &operation, PSA_PAKE_STEP_ZK_PUBLIC,
+                                         output_buffer, 512, &output_len ),
+                        PSA_ERROR_BAD_STATE );
+        }
+    }
 
 exit:
     PSA_ASSERT( psa_destroy_key( key ) );

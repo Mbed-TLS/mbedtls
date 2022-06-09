@@ -103,6 +103,7 @@ if [ -n "${GNUTLS_NEXT_CLI:-}" ]; then
     G_NEXT_CLI_NO_CERT="echo 'GET / HTTP/1.0' | $GNUTLS_NEXT_CLI"
 else
     G_NEXT_CLI=false
+    G_NEXT_CLI_NO_CERT=false
 fi
 
 TESTS=0
@@ -1568,6 +1569,7 @@ fi
 
 if [ -n "${GNUTLS_NEXT_CLI:-}" ]; then
     G_NEXT_CLI="$G_NEXT_CLI -p +SRV_PORT"
+    G_NEXT_CLI_NO_CERT="$G_NEXT_CLI_NO_CERT"
 fi
 
 # Allow SHA-1, because many of our test certificates use it

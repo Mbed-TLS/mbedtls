@@ -1,5 +1,3 @@
 Bugfix
-   * Fix handshake failure when the peer Finished message has not been received
-     yet when we first try to fetch it. The fetching is moved before the
-     preprocessing computations to avoid doing them multiple times, which was
-     causing the handshake to fail.
+   * Fix a TLS 1.3 handshake failure when the peer Finished message has not
+     been received yet when we first try to fetch it.

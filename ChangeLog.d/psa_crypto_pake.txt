@@ -1,0 +1,2 @@
+Features
+    * Expose the EC J-PAKE functionality through the PSA PAKE Crypto API.

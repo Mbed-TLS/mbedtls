@@ -80,6 +80,10 @@ psa_status_t mbedtls_psa_hkdf_expand( psa_algorithm_t hash_alg,
                                       const unsigned char *info, size_t info_len,
                                       unsigned char *okm, size_t okm_len );
 
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
+                                         const unsigned char *buf,
+                                         const unsigned char *end );
 #endif /* MBEDTLS_TEST_HOOKS */
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */

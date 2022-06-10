@@ -31,6 +31,7 @@
 #include <string.h>
 
 #include "ssl_misc.h"
+#include "ssl_tls13_invasive.h"
 #include "ssl_tls13_keys.h"
 #include "ssl_debug_helpers.h"
 
@@ -391,9 +392,10 @@ cleanup:
 
 /* Parse certificate chain send by the server. */
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
-                                        const unsigned char *buf,
-                                        const unsigned char *end )
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
+                                         const unsigned char *buf,
+                                         const unsigned char *end )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t certificate_request_context_len = 0;
@@ -524,9 +526,10 @@ exit:
 }
 #else
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
-                                        const unsigned char *buf,
-                                        const unsigned char *end )
+MBEDTLS_STATIC_TESTABLE
+int mbedtls_ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
+                                         const unsigned char *buf,
+                                         const unsigned char *end )
 {
     ((void) ssl);
     ((void) buf);
@@ -657,7 +660,8 @@ static int ssl_tls13_validate_certificate( mbedtls_ssl_context *ssl )
      * with details encoded in the verification flags. All other kinds
      * of error codes, including those from the user provided f_vrfy
      * functions, are treated as fatal and lead to a failure of
-     * ssl_tls13_parse_certificate even if verification was optional. */
+     * mbedtls_ssl_tls13_parse_certificate even if verification was optional.
+     */
     if( authmode == MBEDTLS_SSL_VERIFY_OPTIONAL &&
         ( ret == MBEDTLS_ERR_X509_CERT_VERIFY_FAILED ||
           ret == MBEDTLS_ERR_SSL_BAD_CERTIFICATE ) )
@@ -735,8 +739,8 @@ int mbedtls_ssl_tls13_process_certificate( mbedtls_ssl_context *ssl )
                           &buf, &buf_len ) );
 
     /* Parse the certificate chain sent by the peer. */
-    MBEDTLS_SSL_PROC_CHK( ssl_tls13_parse_certificate( ssl, buf,
-                                                       buf + buf_len ) );
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_parse_certificate( ssl, buf,
+                                                               buf + buf_len ) );
     /* Validate the certificate chain and set the verification results. */
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_validate_certificate( ssl ) );
 

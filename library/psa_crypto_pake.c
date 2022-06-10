@@ -118,7 +118,7 @@ psa_status_t psa_pake_setup( psa_pake_operation_t *operation,
                              const psa_pake_cipher_suite_t *cipher_suite)
 {
     /* A context must be freshly initialized before it can be set up. */
-    if( operation->alg != 0 || operation->state != PSA_PAKE_STATE_INVALID )
+    if( operation->alg != 0 )
         return( PSA_ERROR_BAD_STATE );
 
     if( cipher_suite == NULL ||

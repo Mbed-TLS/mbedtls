@@ -3350,7 +3350,12 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDH_ENABLED)
         if( mbedtls_ssl_ciphersuite_uses_ecdh( ciphersuite_info ) )
         {
-            ssl_get_ecdh_params_from_cert( ssl );
+            ret = ssl_get_ecdh_params_from_cert( ssl );
+            if( ret != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "ssl_get_ecdh_params_from_cert", ret );
+                return( ret );
+            }
         }
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_ECDH_ENABLED */
 

@@ -3239,15 +3239,18 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_pk_context *own_key = mbedtls_ssl_own_key( ssl );
 
-    if( ! mbedtls_pk_can_do( mbedtls_ssl_own_key( ssl ), MBEDTLS_PK_ECKEY ) )
+    /* We want to call mbedtls_pk_ec(), which only works on those types. */
+    if( mbedtls_pk_get_type( own_key ) != MBEDTLS_PK_ECKEY &&
+        mbedtls_pk_get_type( own_key ) != MBEDTLS_PK_ECKEY_DH )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "server key not ECDH capable" ) );
         return( MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH );
     }
 
     if( ( ret = mbedtls_ecdh_get_params( &ssl->handshake->ecdh_ctx,
-                                 mbedtls_pk_ec( *mbedtls_ssl_own_key( ssl ) ),
+                                 mbedtls_pk_ec( *own_key ),
                                  MBEDTLS_ECDH_OURS ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ecdh_get_params" ), ret );

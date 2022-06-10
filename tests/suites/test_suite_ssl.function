@@ -1022,7 +1022,7 @@ int mbedtls_endpoint_init( mbedtls_endpoint *ep, int endpoint_type,
 
     mbedtls_ssl_conf_authmode( &( ep->conf ), MBEDTLS_SSL_VERIFY_REQUIRED );
 
-#if defined(MBEDTLS_SSL_CACHE_C)
+#if defined(MBEDTLS_SSL_CACHE_C) && defined(MBEDTLS_SSL_SRV_C)
     if( endpoint_type == MBEDTLS_SSL_IS_SERVER && options->cache != NULL )
     {
         mbedtls_ssl_conf_session_cache( &( ep->conf ), options->cache,

@@ -381,11 +381,36 @@ static inline size_t mbedtls_ssl_get_input_buflen( const mbedtls_ssl_context *ct
  * \return       Zero if the needed space is available in the buffer, non-zero
  *               otherwise.
  */
+#if ! defined(MBEDTLS_TEST_HOOKS)
 static inline int mbedtls_ssl_chk_buf_ptr( const uint8_t *cur,
                                            const uint8_t *end, size_t need )
 {
     return( ( cur > end ) || ( need > (size_t)( end - cur ) ) );
 }
+#else
+typedef struct
+{
+    const uint8_t *cur;
+    const uint8_t *end;
+    size_t need;
+} mbedtls_ssl_chk_buf_ptr_args;
+
+void mbedtls_ssl_set_chk_buf_ptr_fail_args(
+    const uint8_t *cur, const uint8_t *end, size_t need );
+void mbedtls_ssl_reset_chk_buf_ptr_fail_args( void );
+int mbedtls_ssl_cmp_chk_buf_ptr_fail_args( mbedtls_ssl_chk_buf_ptr_args *args );
+
+static inline int mbedtls_ssl_chk_buf_ptr( const uint8_t *cur,
+                                           const uint8_t *end, size_t need )
+{
+    if( ( cur > end ) || ( need > (size_t)( end - cur ) ) )
+    {
+        mbedtls_ssl_set_chk_buf_ptr_fail_args( cur, end, need );
+        return( 1 );
+    }
+    return( 0 );
+}
+#endif
 
 /**
  * \brief        This macro checks if the remaining size in a buffer is

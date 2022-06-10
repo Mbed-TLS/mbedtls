@@ -667,6 +667,7 @@ static int ssl_tls13_is_supported_versions_ext_present(
      * - cipher_suite               2 bytes
      * - legacy_compression_method  1 byte
      */
+     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, legacy_session_id_echo_len + 4 );
      p += legacy_session_id_echo_len + 4;
 
     /* Case of no extension */

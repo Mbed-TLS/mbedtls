@@ -702,10 +702,6 @@ psa_status_t psa_pake_abort(psa_pake_operation_t * operation)
         return( PSA_SUCCESS );
     }
 
-    operation->alg = 0;
-    operation->state = 0;
-    operation->sequence = 0;
-
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_ECJPAKE)
     if( operation->alg == PSA_ALG_JPAKE )
     {
@@ -720,6 +716,10 @@ psa_status_t psa_pake_abort(psa_pake_operation_t * operation)
         mbedtls_ecjpake_free( &operation->ctx.ecjpake );
     }
 #endif
+
+    operation->alg = 0;
+    operation->state = 0;
+    operation->sequence = 0;
 
     return( PSA_SUCCESS );
 }

@@ -1903,7 +1903,7 @@ static inline void psa_pake_cs_set_hash( psa_pake_cipher_suite_t *cipher_suite,
         cipher_suite->hash = hash;
 }
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECJPAKE)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
 #include <mbedtls/ecjpake.h>
 #endif
 
@@ -1923,7 +1923,7 @@ struct psa_pake_operation_s
 #endif
     union
     {
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECJPAKE)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
         mbedtls_ecjpake_context ecjpake;
 #endif
         /* Make the union non-empty even with no supported algorithms. */

@@ -8092,7 +8092,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECJPAKE */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE */
 void ecjpake_setup( int alg_arg, int primitive_arg, int hash_arg, int role_arg,
                     int input_first, data_t *pw_data,
                     int expected_status_arg )
@@ -8265,7 +8265,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:PSA_WANT_ALG_ECJPAKE */
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE */
 void ecjpake_rounds( int alg_arg, int primitive_arg, int hash_arg,
                      int derive_alg_arg, data_t *pw_data )
 {

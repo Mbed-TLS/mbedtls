@@ -33,7 +33,7 @@
 #include <mbedtls/error.h>
 #include <string.h>
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECJPAKE)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
 #define PSA_PAKE_BUFFER_SIZE ( ( 69 + 66 + 33 ) * 2 )
 #endif
 
@@ -130,7 +130,7 @@ psa_status_t psa_pake_setup( psa_pake_operation_t *operation,
         return( PSA_ERROR_INVALID_ARGUMENT );
     }
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECJPAKE)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
     if( cipher_suite->algorithm == PSA_ALG_JPAKE )
     {
         if( cipher_suite->type != PSA_PAKE_PRIMITIVE_TYPE_ECC ||
@@ -248,7 +248,7 @@ psa_status_t psa_pake_set_role( psa_pake_operation_t *operation,
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECJPAKE)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
     if( operation->alg == PSA_ALG_JPAKE )
     {
         if( role != PSA_PAKE_ROLE_CLIENT &&
@@ -264,7 +264,7 @@ psa_status_t psa_pake_set_role( psa_pake_operation_t *operation,
         return( PSA_ERROR_NOT_SUPPORTED );
 }
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECJPAKE)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
 static psa_status_t psa_pake_ecjpake_setup( psa_pake_operation_t *operation )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -331,7 +331,7 @@ psa_status_t psa_pake_output( psa_pake_operation_t *operation,
     if( output == NULL || output_size == 0 || output_length == NULL )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECJPAKE)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
     if( operation->alg == PSA_ALG_JPAKE )
     {
         if( operation->state == PSA_PAKE_STATE_SETUP ) {
@@ -514,7 +514,7 @@ psa_status_t psa_pake_input( psa_pake_operation_t *operation,
     if( input == NULL || input_length == 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECJPAKE)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
     if( operation->alg == PSA_ALG_JPAKE )
     {
         if( operation->state == PSA_PAKE_STATE_SETUP ) {
@@ -664,7 +664,7 @@ psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
           operation->output_step != PSA_PAKE_STEP_DERIVE ) )
         return( PSA_ERROR_BAD_STATE );
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECJPAKE)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
     if( operation->alg == PSA_ALG_JPAKE )
     {
         ret = mbedtls_ecjpake_derive_secret( &operation->ctx.ecjpake,
@@ -702,7 +702,7 @@ psa_status_t psa_pake_abort(psa_pake_operation_t * operation)
         return( PSA_SUCCESS );
     }
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_ECJPAKE)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
     if( operation->alg == PSA_ALG_JPAKE )
     {
         operation->input_step = 0;

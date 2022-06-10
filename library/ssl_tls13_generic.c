@@ -446,6 +446,7 @@ int mbedtls_ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
 
     mbedtls_x509_crt_init( ssl->session_negotiate->peer_cert );
 
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, certificate_list_len );
     certificate_list_end = p + certificate_list_len;
     while( p < certificate_list_end )
     {

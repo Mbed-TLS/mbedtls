@@ -177,7 +177,7 @@ psa_status_t psa_pake_set_password_key( psa_pake_operation_t *operation,
 
     status = psa_get_key_attributes( password, &attributes );
     if( status != PSA_SUCCESS )
-        return status;
+        return( status );
 
     type = psa_get_key_type( &attributes );
     usage = psa_get_key_usage_flags( &attributes );
@@ -187,11 +187,11 @@ psa_status_t psa_pake_set_password_key( psa_pake_operation_t *operation,
     if( type != PSA_KEY_TYPE_PASSWORD &&
         type != PSA_KEY_TYPE_PASSWORD_HASH )
     {
-        return PSA_ERROR_INVALID_ARGUMENT;
+        return( PSA_ERROR_INVALID_ARGUMENT );
     }
 
     if( ( usage & PSA_KEY_USAGE_DERIVE ) == 0 )
-        return PSA_ERROR_NOT_PERMITTED;
+        return( PSA_ERROR_NOT_PERMITTED );
 
     operation->password = password;
 
@@ -209,7 +209,7 @@ psa_status_t psa_pake_set_user( psa_pake_operation_t *operation,
     }
 
     if( user_id_len == 0 || user_id == NULL )
-        return PSA_ERROR_INVALID_ARGUMENT;
+        return( PSA_ERROR_INVALID_ARGUMENT );
 
     return( PSA_ERROR_NOT_SUPPORTED );
 }
@@ -225,7 +225,7 @@ psa_status_t psa_pake_set_peer( psa_pake_operation_t *operation,
     }
 
     if( peer_id_len == 0 || peer_id == NULL )
-        return PSA_ERROR_INVALID_ARGUMENT;
+        return( PSA_ERROR_INVALID_ARGUMENT );
 
     return( PSA_ERROR_NOT_SUPPORTED );
 }
@@ -245,7 +245,7 @@ psa_status_t psa_pake_set_role( psa_pake_operation_t *operation,
         role != PSA_PAKE_ROLE_CLIENT &&
         role != PSA_PAKE_ROLE_SERVER )
     {
-        return PSA_ERROR_INVALID_ARGUMENT;
+        return( PSA_ERROR_INVALID_ARGUMENT );
     }
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
@@ -253,7 +253,7 @@ psa_status_t psa_pake_set_role( psa_pake_operation_t *operation,
     {
         if( role != PSA_PAKE_ROLE_CLIENT &&
             role != PSA_PAKE_ROLE_SERVER )
-            return PSA_ERROR_NOT_SUPPORTED;
+            return( PSA_ERROR_NOT_SUPPORTED );
 
         operation->role = role;
 

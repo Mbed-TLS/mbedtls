@@ -91,7 +91,7 @@
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF) ||          \
     defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT) ||  \
     defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND)
-#define MBEDTLS_PSA_BUILTIN_ALG_ANY_HKDF 1
+#define BUILTIN_ALG_ANY_HKDF 1
 #endif
 
 /****************************************************************/
@@ -4241,13 +4241,13 @@ psa_status_t psa_aead_abort( psa_aead_operation_t *operation )
 /* Generators */
 /****************************************************************/
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_ANY_HKDF) || \
+#if defined(BUILTIN_ALG_ANY_HKDF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
 #define AT_LEAST_ONE_BUILTIN_KDF
 #endif /* At least one builtin KDF */
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_ANY_HKDF) || \
+#if defined(BUILTIN_ALG_ANY_HKDF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
 static psa_status_t psa_key_derivation_start_hmac(
@@ -4300,14 +4300,14 @@ psa_status_t psa_key_derivation_abort( psa_key_derivation_operation_t *operation
          * nothing to do. */
     }
     else
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_ANY_HKDF)
+#if defined(BUILTIN_ALG_ANY_HKDF)
     if( PSA_ALG_IS_ANY_HKDF( kdf_alg ) )
     {
         mbedtls_free( operation->ctx.hkdf.info );
         status = psa_mac_abort( &operation->ctx.hkdf.hmac );
     }
     else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_ANY_HKDF */
+#endif /* BUILTIN_ALG_ANY_HKDF */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
     if( PSA_ALG_IS_TLS12_PRF( kdf_alg ) ||
@@ -4381,7 +4381,7 @@ psa_status_t psa_key_derivation_set_capacity( psa_key_derivation_operation_t *op
     return( PSA_SUCCESS );
 }
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_ANY_HKDF)
+#if defined(BUILTIN_ALG_ANY_HKDF)
 /* Read some bytes from an HKDF-based operation. */
 static psa_status_t psa_key_derivation_hkdf_read( psa_hkdf_key_derivation_t *hkdf,
                                                   psa_algorithm_t kdf_alg,
@@ -4465,7 +4465,7 @@ static psa_status_t psa_key_derivation_hkdf_read( psa_hkdf_key_derivation_t *hkd
 
     return( PSA_SUCCESS );
 }
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_ANY_HKDF */
+#endif /* BUILTIN_ALG_ANY_HKDF */
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
@@ -4665,14 +4665,14 @@ psa_status_t psa_key_derivation_output_bytes(
     }
     operation->capacity -= output_length;
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_ANY_HKDF)
+#if defined(BUILTIN_ALG_ANY_HKDF)
     if( PSA_ALG_IS_ANY_HKDF( kdf_alg ) )
     {
         status = psa_key_derivation_hkdf_read( &operation->ctx.hkdf, kdf_alg,
                                           output, output_length );
     }
     else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_ANY_HKDF */
+#endif /* BUILTIN_ALG_ANY_HKDF */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
     if( PSA_ALG_IS_TLS12_PRF( kdf_alg ) ||
@@ -5179,7 +5179,7 @@ psa_status_t psa_key_derivation_setup( psa_key_derivation_operation_t *operation
     return( status );
 }
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_ANY_HKDF)
+#if defined(BUILTIN_ALG_ANY_HKDF)
 static psa_status_t psa_hkdf_input( psa_hkdf_key_derivation_t *hkdf,
                                     psa_algorithm_t kdf_alg,
                                     psa_key_derivation_step_t step,
@@ -5302,7 +5302,7 @@ static psa_status_t psa_hkdf_input( psa_hkdf_key_derivation_t *hkdf,
             return( PSA_ERROR_INVALID_ARGUMENT );
     }
 }
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_ANY_HKDF */
+#endif /* BUILTIN_ALG_ANY_HKDF */
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
@@ -5568,14 +5568,14 @@ static psa_status_t psa_key_derivation_input_internal(
     if( status != PSA_SUCCESS )
         goto exit;
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_ANY_HKDF)
+#if defined(BUILTIN_ALG_ANY_HKDF)
     if( PSA_ALG_IS_ANY_HKDF( kdf_alg ) )
     {
         status = psa_hkdf_input( &operation->ctx.hkdf, kdf_alg,
                                  step, data, data_length );
     }
     else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_ANY_HKDF */
+#endif /* BUILTIN_ALG_ANY_HKDF */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF)
     if( PSA_ALG_IS_TLS12_PRF( kdf_alg ) )
     {

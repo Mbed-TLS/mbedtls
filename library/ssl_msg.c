@@ -3757,7 +3757,7 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl,
 
     /* Check actual (decrypted) record content length against
      * configured maximum. */
-    if( ssl->in_msglen > MBEDTLS_SSL_IN_CONTENT_LEN )
+    if( rec->data_len > MBEDTLS_SSL_IN_CONTENT_LEN )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad message length" ) );
         return( MBEDTLS_ERR_SSL_INVALID_RECORD );

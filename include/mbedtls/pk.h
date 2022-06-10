@@ -220,8 +220,9 @@ typedef void mbedtls_pk_restart_ctx;
 /**
  * Quick access to an RSA context inside a PK context.
  *
- * \warning You must make sure the PK context actually holds an RSA context
- * before using this function!
+ * \warning This function can only be used when the type of the context, as
+ * returned by mbedtls_pk_get_type(), is #MBEDTLS_PK_RSA.
+ * Ensuring that is the caller's responsibility.
  */
 static inline mbedtls_rsa_context *mbedtls_pk_rsa( const mbedtls_pk_context pk )
 {
@@ -233,8 +234,10 @@ static inline mbedtls_rsa_context *mbedtls_pk_rsa( const mbedtls_pk_context pk )
 /**
  * Quick access to an EC context inside a PK context.
  *
- * \warning You must make sure the PK context actually holds an EC context
- * before using this function!
+ * \warning This function can only be used when the type of the context, as
+ * returned by mbedtls_pk_get_type(), is #MBEDTLS_PK_ECKEY,
+ * #MBEDTLS_PK_ECKEY_DH, or #MBEDTLS_PK_ECDSA.
+ * Ensuring that is the caller's responsibility.
  */
 static inline mbedtls_ecp_keypair *mbedtls_pk_ec( const mbedtls_pk_context pk )
 {

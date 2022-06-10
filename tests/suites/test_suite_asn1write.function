@@ -63,7 +63,7 @@ void mbedtls_asn1_write_null( data_t *expected )
     generic_write_data_t data = { NULL, NULL, NULL, NULL, 0 };
     int ret;
 
-    for( data.size = 0; data.size < expected->len + 1; data.size++ )
+    for( data.size = 0; data.size <= expected->len + 1; data.size++ )
     {
         if( ! generic_write_start_step( &data ) )
             goto exit;
@@ -83,7 +83,7 @@ void mbedtls_asn1_write_bool( int val, data_t *expected )
     generic_write_data_t data = { NULL, NULL, NULL, NULL, 0 };
     int ret;
 
-    for( data.size = 0; data.size < expected->len + 1; data.size++ )
+    for( data.size = 0; data.size <= expected->len + 1; data.size++ )
     {
         if( ! generic_write_start_step( &data ) )
             goto exit;
@@ -103,7 +103,7 @@ void mbedtls_asn1_write_int( int val, data_t *expected )
     generic_write_data_t data = { NULL, NULL, NULL, NULL, 0 };
     int ret;
 
-    for( data.size = 0; data.size < expected->len + 1; data.size++ )
+    for( data.size = 0; data.size <= expected->len + 1; data.size++ )
     {
         if( ! generic_write_start_step( &data ) )
             goto exit;
@@ -124,7 +124,7 @@ void mbedtls_asn1_write_enum( int val, data_t *expected )
     generic_write_data_t data = { NULL, NULL, NULL, NULL, 0 };
     int ret;
 
-    for( data.size = 0; data.size < expected->len + 1; data.size++ )
+    for( data.size = 0; data.size <= expected->len + 1; data.size++ )
     {
         if( ! generic_write_start_step( &data ) )
             goto exit;
@@ -148,7 +148,7 @@ void mbedtls_asn1_write_mpi( data_t *val, data_t *expected )
     mbedtls_mpi_init( &mpi );
     TEST_ASSERT( mbedtls_mpi_read_binary( &mpi, val->x, val->len ) == 0 );
 
-    for( data.size = 0; data.size < expected->len + 1; data.size++ )
+    for( data.size = 0; data.size <= expected->len + 1; data.size++ )
     {
         if( ! generic_write_start_step( &data ) )
             goto exit;
@@ -171,7 +171,7 @@ void mbedtls_asn1_write_string( int tag, data_t *content, data_t *expected )
     generic_write_data_t data = { NULL, NULL, NULL, NULL, 0 };
     int ret;
 
-    for( data.size = 0; data.size < expected->len + 1; data.size++ )
+    for( data.size = 0; data.size <= expected->len + 1; data.size++ )
     {
         if( ! generic_write_start_step( &data ) )
             goto exit;
@@ -225,7 +225,7 @@ void mbedtls_asn1_write_algorithm_identifier( data_t *oid,
     generic_write_data_t data = { NULL, NULL, NULL, NULL, 0 };
     int ret;
 
-    for( data.size = 0; data.size < expected->len + 1; data.size++ )
+    for( data.size = 0; data.size <= expected->len + 1; data.size++ )
     {
         if( ! generic_write_start_step( &data ) )
             goto exit;
@@ -309,7 +309,7 @@ void test_asn1_write_bitstrings( data_t *bitstring, int bits,
         ( is_named ? mbedtls_asn1_write_named_bitstring :
           mbedtls_asn1_write_bitstring );
 
-    for( data.size = 0; data.size < expected->len + 1; data.size++ )
+    for( data.size = 0; data.size <= expected->len + 1; data.size++ )
     {
         if( ! generic_write_start_step( &data ) )
             goto exit;

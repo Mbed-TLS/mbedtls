@@ -335,7 +335,8 @@ static int ssl_tls13_check_ephemeral_key_exchange( mbedtls_ssl_context *ssl )
     return( 1 );
 }
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
+    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 /*
  * Try picking a certificate for this ciphersuite,
  * return 0 on success and -1 on failure.
@@ -343,6 +344,8 @@ static int ssl_tls13_check_ephemeral_key_exchange( mbedtls_ssl_context *ssl )
 static int ssl_tls13_pick_cert( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_key_cert *cur, *list;
+    const uint16_t *sig_alg = ssl->handshake->received_sig_algs;
+    uint16_t own_sig_alg;
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     if( ssl->handshake->sni_key_cert != NULL )
@@ -357,37 +360,46 @@ static int ssl_tls13_pick_cert( mbedtls_ssl_context *ssl )
         return( -1 );
     }
 
-    for( cur = list; cur != NULL; cur = cur->next )
+    for( ; *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
     {
-        MBEDTLS_SSL_DEBUG_CRT( 3, "candidate certificate chain, certificate",
-                               cur->cert );
-
-        /*
-         * This avoids sending the client a cert it'll reject based on
-         * keyUsage or other extensions.
-         */
-        if( mbedtls_x509_crt_check_key_usage( cur->cert, MBEDTLS_X509_KU_DIGITAL_SIGNATURE ) != 0 )
+        for( cur = list; cur != NULL; cur = cur->next )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 3, ( "certificate mismatch: "
+            MBEDTLS_SSL_DEBUG_CRT( 3, "candidate certificate chain, certificate",
+                                   cur->cert );
+
+            /*
+            * This avoids sending the client a cert it'll reject based on
+            * keyUsage or other extensions.
+            */
+            if( mbedtls_x509_crt_check_key_usage(
+                        cur->cert, MBEDTLS_X509_KU_DIGITAL_SIGNATURE ) != 0 ||
+                mbedtls_x509_crt_check_extended_key_usage(
+                        cur->cert, MBEDTLS_OID_SERVER_AUTH,
+                        MBEDTLS_OID_SIZE( MBEDTLS_OID_SERVER_AUTH ) ) != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 3, ( "certificate mismatch: "
                                       "(extended) key usage extension" ) );
-            continue;
-        }
+                continue;
+            }
 
-        break;
-    }
-
-    /* Do not update ssl->handshake->key_cert unless there is a match */
-    if( cur != NULL )
-    {
-        ssl->handshake->key_cert = cur;
-        MBEDTLS_SSL_DEBUG_CRT( 3, "selected certificate chain, certificate",
+            if( ! mbedtls_ssl_tls13_get_sig_alg_from_pk(
+                ssl, &cur->cert->pk, &own_sig_alg ) &&
+                ( *sig_alg == own_sig_alg ) )
+            {
+                ssl->handshake->key_cert = cur;
+                MBEDTLS_SSL_DEBUG_CRT( 3, "selected certificate chain, certificate",
                                ssl->handshake->key_cert->cert );
-        return( 0 );
+                return( 0 );
+            }
+
+
+        }
     }
 
     return( -1 );
 }
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C &&
+          MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 /*
  *
@@ -755,14 +767,16 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     ssl->handshake->sni_name_len = 0;
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
+    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     if( (ssl_tls13_pick_cert( ssl ) != 0) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: "
                             "no suitable certificate" ) );
         return( 0 );
     }
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C &&
+          MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
     /* Update checksum with either
      * - The entire content of the CH message, if no PSK extension is present

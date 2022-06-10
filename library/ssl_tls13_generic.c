@@ -866,9 +866,9 @@ cleanup:
 /*
  * STATE HANDLING: Output Certificate Verify
  */
-static int ssl_tls13_get_sig_alg_from_pk( mbedtls_ssl_context *ssl,
-                                          mbedtls_pk_context *own_key,
-                                          uint16_t *algorithm )
+int mbedtls_ssl_tls13_get_sig_alg_from_pk( mbedtls_ssl_context *ssl,
+                                           mbedtls_pk_context *own_key,
+                                           uint16_t *algorithm )
 {
     mbedtls_pk_type_t sig = mbedtls_ssl_sig_from_pk( own_key );
     /* Determine the size of the key */
@@ -1035,7 +1035,7 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
      *    opaque signature<0..2^16-1>;
      *  } CertificateVerify;
      */
-    ret = ssl_tls13_get_sig_alg_from_pk( ssl, own_key, &algorithm );
+    ret = mbedtls_ssl_tls13_get_sig_alg_from_pk( ssl, own_key, &algorithm );
     if( ret != 0 || ! mbedtls_ssl_sig_alg_is_received( ssl, algorithm ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1,

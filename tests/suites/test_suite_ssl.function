@@ -5502,6 +5502,74 @@ void conf_group()
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_CACHE_C:MBEDTLS_DEBUG_C */
+void force_bad_session_id_len( )
+{
+    enum { BUFFSIZE = 1024 };
+    handshake_test_options options;
+    mbedtls_endpoint client, server;
+    log_pattern srv_pattern, cli_pattern;
+    mbedtls_test_message_socket_context server_context, client_context;
+
+    srv_pattern.pattern = cli_pattern.pattern = "cache did not store session";
+    srv_pattern.counter = 0;
+    init_handshake_options( &options );
+
+    options.srv_log_obj = &srv_pattern;
+    options.srv_log_fun = log_analyzer;
+
+    USE_PSA_INIT( );
+
+    mbedtls_message_socket_init( &server_context );
+    mbedtls_message_socket_init( &client_context );
+
+    TEST_ASSERT( mbedtls_endpoint_init( &client, MBEDTLS_SSL_IS_CLIENT,
+                                        &options, NULL, NULL,
+                                        NULL ) == 0 );
+
+    TEST_ASSERT( mbedtls_endpoint_init( &server, MBEDTLS_SSL_IS_SERVER,
+                                        &options, NULL, NULL, NULL ) == 0 );
+
+    mbedtls_debug_set_threshold( 1 );
+    mbedtls_ssl_conf_dbg( &server.conf, options.srv_log_fun,
+                                        options.srv_log_obj );
+
+    TEST_ASSERT( mbedtls_mock_socket_connect( &(client.socket),
+                                              &(server.socket),
+                                              BUFFSIZE ) == 0 );
+
+    TEST_ASSERT( mbedtls_move_handshake_to_state( &(client.ssl),
+                                                  &(server.ssl),
+                                                  MBEDTLS_SSL_HANDSHAKE_WRAPUP )
+                 ==  0 );
+    /* Force a bad session_id_len that will be read by the server in
+     * mbedtls_ssl_cache_set. */
+    server.ssl.session_negotiate->id_len = 33;
+    if( options.cli_msg_len != 0 || options.srv_msg_len != 0 )
+    {
+        /* Start data exchanging test */
+        TEST_ASSERT( mbedtls_exchange_data( &(client.ssl), options.cli_msg_len,
+                                            options.expected_cli_fragments,
+                                            &(server.ssl), options.srv_msg_len,
+                                            options.expected_srv_fragments )
+                     == 0 );
+    }
+    TEST_ASSERT( mbedtls_ssl_conf_get_user_data_p( &client.conf ) == &client );
+    TEST_ASSERT( mbedtls_ssl_get_user_data_p( &client.ssl ) == &client );
+    TEST_ASSERT( mbedtls_ssl_conf_get_user_data_p( &server.conf ) == &server );
+    TEST_ASSERT( mbedtls_ssl_get_user_data_p( &server.ssl ) == &server );
+
+    /* Make sure that the cache did not store the session */
+    TEST_EQUAL( srv_pattern.counter, 1 );
+exit:
+    mbedtls_endpoint_free( &client, NULL );
+    mbedtls_endpoint_free( &server, NULL );
+    free_handshake_options( &options );
+    mbedtls_debug_set_threshold( 0 );
+    USE_PSA_DONE( );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_TIMING_C:MBEDTLS_HAVE_TIME */
 void timing_final_delay_accessor( )
 {

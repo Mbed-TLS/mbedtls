@@ -91,8 +91,11 @@ mbedtls_asn1_write_enum:0x12345678:"0A0412345678"
 ASN.1 Write enum 2147483647
 mbedtls_asn1_write_enum:0x7fffffff:"0A047fffffff"
 
-#ASN.1 Write mpi 0
-#mbedtls_asn1_write_mpi:"00":"020100"
+ASN.1 Write mpi 0 (null)
+mbedtls_asn1_write_mpi:"":"020100"
+
+ASN.1 Write mpi 0 (1 limb)
+mbedtls_asn1_write_mpi:"00":"020100"
 
 ASN.1 Write mpi 1
 mbedtls_asn1_write_mpi:"01":"020101"

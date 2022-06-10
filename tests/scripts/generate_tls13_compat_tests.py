@@ -125,7 +125,12 @@ class TLSProgram(metaclass=abc.ABCMeta):
     def post_checks(self):
         return []
 
+    @abc.abstractmethod
     def pre_cmd(self):
+        return []
+
+    @abc.abstractmethod
+    def hrr_post_checks(self, named_group):
         return []
 
 
@@ -167,13 +172,18 @@ class OpenSSLBase(TLSProgram):
         if not self._compat_mode:
             ret += ['-no_middlebox']
 
-#return ' '.join(ret)
         return ret
 
     def pre_checks(self):
         return ["requires_openssl_tls1_3"]
 
     def post_checks(self):
+        return []
+
+    def pre_cmd(self):
+        return []
+
+    def hrr_post_checks(self, named_group):
         return []
 
 
@@ -189,9 +199,6 @@ class OpenSSLServ(OpenSSLBase):
         ret += ['-num_tickets 0 -no_resume_ephemeral -no_cache']
 
         return ' '.join(ret)
-
-    def pre_checks(self):
-        return ["requires_openssl_tls1_3"]
 
     def post_checks(self):
         return ['-c "HTTP/1.0 200 ok"']
@@ -247,6 +254,12 @@ class GnuTLSBase(TLSProgram):
                 "requires_gnutls_next_disable_tls13_compat", ]
 
     def post_checks(self):
+        return ['-c "HTTP/1.0 200 OK"']
+
+    def hrr_post_checks(self, named_group):
+        return []
+
+    def pre_cmd(self):
         return []
 
     def cmd(self):
@@ -296,21 +309,12 @@ class GnuTLSBase(TLSProgram):
 
         ret += ['--priority={priority_string}'.format(
             priority_string=priority_string)]
-#ret = ' '.join(ret)
         return ret
 
 class GnuTLSServ(GnuTLSBase):
     """
     Generate test commands for GnuTLS server.
     """
-
-    def pre_checks(self):
-        return ["requires_gnutls_tls1_3",
-                "requires_gnutls_next_no_ticket",
-                "requires_gnutls_next_disable_tls13_compat", ]
-
-    def post_checks(self):
-        return ['-c "HTTP/1.0 200 OK"']
 
     def cmd(self):
         ret = self.pre_cmd() + super().cmd()
@@ -357,7 +361,6 @@ class MbedTLSBase(TLSProgram):
 
     def pre_checks(self):
         ret = ['requires_config_enabled MBEDTLS_DEBUG_C',
-               'requires_config_enabled MBEDTLS_SSL_CLI_C',
                'requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3']
 
         if self._compat_mode:
@@ -369,6 +372,12 @@ class MbedTLSBase(TLSProgram):
         return ret
 
     def post_checks(self):
+        return []
+
+    def pre_cmd(self):
+        return []
+
+    def hrr_post_checks(self, named_group):
         return []
 
 
@@ -388,17 +397,7 @@ class MbedTLSServ(MbedTLSBase):
         return ret
 
     def pre_checks(self):
-        ret = ['requires_config_enabled MBEDTLS_DEBUG_C',
-               'requires_config_enabled MBEDTLS_SSL_SRV_C',
-               'requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3']
-
-        if self._compat_mode:
-            ret += ['requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE']
-
-        if 'rsa_pss_rsae_sha256' in self._sig_algs + self._cert_sig_algs:
-            ret.append(
-                'requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT')
-        return ret
+        return ['requires_config_enabled MBEDTLS_SSL_SRV_C'] + super().pre_checks()
 
     def post_checks(self):
         check_strings = ["Protocol is TLSv1.3"]
@@ -423,6 +422,9 @@ class MbedTLSServ(MbedTLSBase):
     def pre_cmd(self):
         return ['$P_SRV_NO_CERT']
 
+    def hrr_post_checks(self, named_group):
+        return ['-s "HRR selected_group: {:s}"'.format(named_group)]
+
 
 class OpenSSLCli(OpenSSLBase):
     """
@@ -437,9 +439,6 @@ class OpenSSLCli(OpenSSLBase):
 
         return ' '.join(ret)
 
-    def pre_checks(self):
-        return ["requires_openssl_tls1_3"]
-
     def post_checks(self):
         return ['-s "HTTP/1.0 200 OK"']
 
@@ -452,14 +451,6 @@ class GnuTLSCli(GnuTLSBase):
     Generate test commands for GnuTLS client.
     """
 
-    def pre_checks(self):
-        return ["requires_gnutls_tls1_3",
-                "requires_gnutls_next_no_ticket",
-                "requires_gnutls_next_disable_tls13_compat", ]
-
-    def post_checks(self):
-        return ['-c "HTTP/1.0 200 OK"']
-
     def cmd(self):
         ret = self.pre_cmd() + super().cmd()
         ret += ['--x509cafile {cafile}'.format(
@@ -469,7 +460,9 @@ class GnuTLSCli(GnuTLSBase):
         return ret
 
     def pre_cmd(self):
-        return ['$G_NEXT_CLI_NO_CERT'] + ['--debug=4', 'localhost', '-p $SRV_PORT', '--single-key-share']
+        ret = ['$G_NEXT_CLI_NO_CERT']
+        ret += ['--debug=4', 'localhost', '-p $SRV_PORT', '--single-key-share']
+        return ret
 
 
 class MbedTLSCli(MbedTLSBase):
@@ -487,16 +480,11 @@ class MbedTLSCli(MbedTLSBase):
         return ['$P_CLI']
 
     def pre_checks(self):
-        ret = ['requires_config_enabled MBEDTLS_DEBUG_C',
-               'requires_config_enabled MBEDTLS_SSL_CLI_C',
-               'requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3']
+        return ['requires_config_enabled MBEDTLS_SSL_CLI_C'] + super().pre_checks()
 
-        if self._compat_mode:
-            ret += ['requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE']
-
-        if 'rsa_pss_rsae_sha256' in self._sig_algs + self._cert_sig_algs:
-            ret.append(
-                'requires_config_enabled MBEDTLS_X509_RSASSA_PSS_SUPPORT')
+    def hrr_post_checks(self, named_group):
+        ret = ['-c "received HelloRetryRequest message"']
+        ret += ['-c "selected_group ( {:d} )"'.format(NAMED_GROUP_IANA_VALUE[named_group])]
         return ret
 
     def post_checks(self):
@@ -570,36 +558,8 @@ def generate_hrr_compat_test(client=None, server=None,
         server_object.cmd()), '"{}"'.format(client_object.cmd()), '0']
     cmd += server_object.post_checks()
     cmd += client_object.post_checks()
-    cmd += ['-c "received HelloRetryRequest message"']
-    cmd += ['-c "selected_group ( {:d} )"'.format(
-        NAMED_GROUP_IANA_VALUE[server_named_group])]
-    prefix = ' \\\n' + (' '*9)
-    cmd = prefix.join(cmd)
-    return '\n'.join(server_object.pre_checks() +
-                     client_object.pre_checks() +
-                     [cmd])
-
-def generate_server_hrr_compat_test(client=None, server=None,
-                                    client_named_group=None, server_named_group=None,
-                                    cert_sig_alg=None):
-    """
-    Generate server side Hello Retry Request test case with `ssl-opt.sh` format.
-    """
-    name = 'TLS 1.3 {client[0]}->{server[0]}: Server HRR {c_named_group} -> {s_named_group}'.format(
-        client=client, server=server, c_named_group=client_named_group,
-        s_named_group=server_named_group)
-    server_object = SERVER_CLASSES[server](named_group=server_named_group,
-                                           cert_sig_alg=cert_sig_alg)
-
-    client_object = CLIENT_CLASSES[client](named_group=client_named_group,
-                                           cert_sig_alg=cert_sig_alg)
-    client_object.add_named_groups(server_named_group)
-
-    cmd = ['run_test "{}"'.format(name), '"{}"'.format(
-        server_object.cmd()), '"{}"'.format(client_object.cmd()), '0']
-    cmd += server_object.post_checks()
-    cmd += client_object.post_checks()
-    cmd += ['-s "HRR selected_group: {:s}"'.format(server_named_group)]
+    cmd += server_object.hrr_post_checks(server_named_group)
+    cmd += client_object.hrr_post_checks(server_named_group)
     prefix = ' \\\n' + (' '*9)
     cmd = prefix.join(cmd)
     return '\n'.join(server_object.pre_checks() +
@@ -700,23 +660,12 @@ def main():
                               SERVER_CLASSES.keys(),
                               NAMED_GROUP_IANA_VALUE.keys(),
                               NAMED_GROUP_IANA_VALUE.keys()):
-            if client == 'mbedTLS' and client_named_group != server_named_group:
-                    yield generate_hrr_compat_test(client=client, server=server,
-                                                   client_named_group=client_named_group,
-                                                   server_named_group=server_named_group,
-                                                   cert_sig_alg="ecdsa_secp256r1_sha256")
-
-        for client, server, client_named_group, server_named_group in \
-            itertools.product(CLIENT_CLASSES.keys(),
-                              SERVER_CLASSES.keys(),
-                              NAMED_GROUP_IANA_VALUE.keys(),
-                              NAMED_GROUP_IANA_VALUE.keys()):
-            if server == 'mbedTLS' and client_named_group != server_named_group:
-                yield generate_server_hrr_compat_test(client=client, server=server,
-                                                      client_named_group=client_named_group,
-                                                      server_named_group=server_named_group,
-                                                      cert_sig_alg="ecdsa_secp256r1_sha256")
-
+            if (client == 'mbedTLS' or server == 'mbedTLS') and \
+                client_named_group != server_named_group:
+                yield generate_hrr_compat_test(client=client, server=server,
+                                               client_named_group=client_named_group,
+                                               server_named_group=server_named_group,
+                                               cert_sig_alg="ecdsa_secp256r1_sha256")
 
     if args.generate_all_tls13_compat_tests:
         if args.output:

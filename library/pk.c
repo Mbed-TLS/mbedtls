@@ -484,8 +484,7 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( pss_opts->mgf1_hash_id == md_alg )
     {
-        /* see RSA_PUB_DER_MAX_BYTES in pkwrite.c */
-        unsigned char buf[ 38 + 2 * MBEDTLS_MPI_MAX_SIZE ];
+        unsigned char buf[MBEDTLS_PK_RSA_PUB_DER_MAX_BYTES];
         unsigned char *p;
         int key_len;
         size_t signature_length;

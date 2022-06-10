@@ -100,8 +100,14 @@ mbedtls_asn1_write_mpi:"01":"020101"
 ASN.1 Write mpi 0x7f
 mbedtls_asn1_write_mpi:"7f":"02017f"
 
+ASN.1 Write mpi 0x7f with leading 0 limb
+mbedtls_asn1_write_mpi:"00000000000000007f":"02017f"
+
 ASN.1 Write mpi 0x80
 mbedtls_asn1_write_mpi:"80":"02020080"
+
+ASN.1 Write mpi 0x80 with leading 0 limb
+mbedtls_asn1_write_mpi:"000000000000000080":"02020080"
 
 ASN.1 Write mpi 0xff
 mbedtls_asn1_write_mpi:"ff":"020200ff"

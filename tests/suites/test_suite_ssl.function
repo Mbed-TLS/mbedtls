@@ -4998,6 +4998,8 @@ void handshake_serialization( )
     perform_handshake( &options );
     /* The goto below is used to avoid an "unused label" warning.*/
     goto exit;
+exit:
+    free_handshake_options( &options );
 }
 /* END_CASE */
 

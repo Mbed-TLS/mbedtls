@@ -1542,7 +1542,6 @@ SRV_DELAY_SECONDS=0
 # Note: Using 'localhost' rather than 127.0.0.1 here is unwise, as on many
 # machines that will resolve to ::1, and we don't want ipv6 here.
 P_SRV="$P_SRV server_addr=127.0.0.1 server_port=$SRV_PORT"
-P_SRV_NO_CERT="$P_SRV server_addr=127.0.0.1 server_port=$SRV_PORT"
 P_CLI="$P_CLI server_addr=127.0.0.1 server_port=+SRV_PORT"
 P_PXY="$P_PXY server_addr=127.0.0.1 server_port=$SRV_PORT listen_addr=127.0.0.1 listen_port=$PXY_PORT ${SEED:+"seed=$SEED"}"
 O_SRV="$O_SRV -accept $SRV_PORT"
@@ -1569,7 +1568,7 @@ fi
 
 if [ -n "${GNUTLS_NEXT_CLI:-}" ]; then
     G_NEXT_CLI="$G_NEXT_CLI -p +SRV_PORT"
-    G_NEXT_CLI_NO_CERT="$G_NEXT_CLI_NO_CERT"
+    G_NEXT_CLI_NO_CERT="$G_NEXT_CLI_NO_CERT -p +SRV_PORT localhost"
 fi
 
 # Allow SHA-1, because many of our test certificates use it

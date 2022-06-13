@@ -550,15 +550,14 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
     }
 #endif
 
+    ctx->rk_offset = 0;
 #if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_PADLOCK_ALIGN16)
     if( aes_padlock_ace == -1 )
         aes_padlock_ace = mbedtls_padlock_has_support( MBEDTLS_PADLOCK_ACE );
 
     if( aes_padlock_ace )
         ctx->rk_offset = MBEDTLS_PADLOCK_ALIGN16( ctx->buf ) - ctx->buf;
-    else
 #endif
-    ctx->rk_offset = 0;
     RK = ctx->buf + ctx->rk_offset;
 
 #if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
@@ -655,15 +654,14 @@ int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
 
     mbedtls_aes_init( &cty );
 
+    ctx->rk_offset = 0;
 #if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_PADLOCK_ALIGN16)
     if( aes_padlock_ace == -1 )
         aes_padlock_ace = mbedtls_padlock_has_support( MBEDTLS_PADLOCK_ACE );
 
     if( aes_padlock_ace )
         ctx->rk_offset = MBEDTLS_PADLOCK_ALIGN16( ctx->buf ) - ctx->buf;
-    else
 #endif
-    ctx->rk_offset = 0;
     RK = ctx->buf + ctx->rk_offset;
 
     /* Also checks keybits */

@@ -871,14 +871,32 @@ int mbedtls_ssl_tls13_get_sig_alg_from_pk( mbedtls_ssl_context *ssl,
             switch( own_key_size )
             {
                 case 256:
-                    *algorithm = MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256;
-                    return( 0 );
+                    if( mbedtls_pk_can_do_ext( own_key,
+                                               PSA_ALG_ECDSA( PSA_ALG_SHA_256 ),
+                                               PSA_KEY_USAGE_SIGN_HASH ) == 1 )
+                    {
+                        *algorithm = MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256;
+                        return( 0 );
+                    }
+                    break;
                 case 384:
-                    *algorithm = MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384;
-                    return( 0 );
+                    if( mbedtls_pk_can_do_ext( own_key,
+                                               PSA_ALG_ECDSA( PSA_ALG_SHA_384 ),
+                                               PSA_KEY_USAGE_SIGN_HASH ) == 1 )
+                    {
+                        *algorithm = MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384;
+                        return( 0 );
+                    }
+                    break;
                 case 521:
-                    *algorithm = MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512;
-                    return( 0 );
+                    if( mbedtls_pk_can_do_ext( own_key,
+                                               PSA_ALG_ECDSA( PSA_ALG_SHA_512 ),
+                                               PSA_KEY_USAGE_SIGN_HASH ) == 1 )
+                    {
+                        *algorithm = MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512;
+                        return( 0 );
+                    }
+                    break;
                 default:
                     MBEDTLS_SSL_DEBUG_MSG( 3,
                                            ( "unknown key size: %"
@@ -893,9 +911,11 @@ int mbedtls_ssl_tls13_get_sig_alg_from_pk( mbedtls_ssl_context *ssl,
         case MBEDTLS_SSL_SIG_RSA:
 #if defined(MBEDTLS_PKCS1_V21)
 #if defined(MBEDTLS_SHA256_C)
-            if( own_key_size <= 2048 &&
-                mbedtls_ssl_sig_alg_is_received( ssl,
-                                    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256 ) )
+            if( mbedtls_ssl_sig_alg_is_received( ssl,
+                                    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256 ) &&
+                mbedtls_pk_can_do_ext( own_key,
+                                       PSA_ALG_RSA_PSS( PSA_ALG_SHA_256 ),
+                                       PSA_KEY_USAGE_SIGN_HASH ) == 1 )
             {
                 *algorithm = MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256;
                 return( 0 );
@@ -903,9 +923,11 @@ int mbedtls_ssl_tls13_get_sig_alg_from_pk( mbedtls_ssl_context *ssl,
             else
 #endif /* MBEDTLS_SHA256_C */
 #if defined(MBEDTLS_SHA384_C)
-            if( own_key_size <= 3072 &&
-                mbedtls_ssl_sig_alg_is_received( ssl,
-                                    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384 ) )
+            if( mbedtls_ssl_sig_alg_is_received( ssl,
+                                    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384 ) &&
+                mbedtls_pk_can_do_ext( own_key,
+                                       PSA_ALG_RSA_PSS( PSA_ALG_SHA_384 ),
+                                       PSA_KEY_USAGE_SIGN_HASH ) == 1 )
             {
                 *algorithm = MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384;
                 return( 0 );
@@ -913,9 +935,11 @@ int mbedtls_ssl_tls13_get_sig_alg_from_pk( mbedtls_ssl_context *ssl,
             else
 #endif /* MBEDTLS_SHA384_C */
 #if defined(MBEDTLS_SHA512_C)
-            if( own_key_size <= 4096 &&
-                mbedtls_ssl_sig_alg_is_received( ssl,
-                                    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512 ) )
+            if( mbedtls_ssl_sig_alg_is_received( ssl,
+                                    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512 ) &&
+                mbedtls_pk_can_do_ext( own_key,
+                                       PSA_ALG_RSA_PSS( PSA_ALG_SHA_512 ),
+                                       PSA_KEY_USAGE_SIGN_HASH ) == 1 )
             {
                 *algorithm = MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512;
                 return( 0 );
@@ -924,43 +948,50 @@ int mbedtls_ssl_tls13_get_sig_alg_from_pk( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_SHA512_C */
 #endif /* MBEDTLS_PKCS1_V21 */
 #if defined(MBEDTLS_PKCS1_V15)
-#if defined(MBEDTLS_SHA256_C)
-            if( own_key_size <= 2048 &&
-                mbedtls_ssl_sig_alg_is_received( ssl,
-                                    MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256 ) )
+            if( mbedtls_pk_can_do_ext( own_key,
+                                       PSA_ALG_RSA_PKCS1V15_CRYPT,
+                                       PSA_KEY_USAGE_SIGN_HASH ) == 1 )
             {
-                *algorithm = MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256;
-                return( 0 );
-            }
-            else
+#if defined(MBEDTLS_SHA256_C)
+                if( mbedtls_ssl_sig_alg_is_received( ssl,
+                                        MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256 ) )
+                {
+                    *algorithm = MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256;
+                    return( 0 );
+                }
+                else
 #endif /* MBEDTLS_SHA256_C */
 #if defined(MBEDTLS_SHA384_C)
-            if( own_key_size <= 3072 &&
-                mbedtls_ssl_sig_alg_is_received( ssl,
-                                    MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384 ) )
-            {
-                *algorithm = MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384;
-                return( 0 );
-            }
-            else
+                if( mbedtls_ssl_sig_alg_is_received( ssl,
+                                        MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384 ) )
+                {
+                    *algorithm = MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384;
+                    return( 0 );
+                }
+                else
 #endif /* MBEDTLS_SHA384_C */
 #if defined(MBEDTLS_SHA512_C)
-            if( own_key_size <= 4096 &&
-                mbedtls_ssl_sig_alg_is_received( ssl,
-                                    MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512 ) )
-            {
-                *algorithm = MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512;
-                return( 0 );
+                if( mbedtls_ssl_sig_alg_is_received( ssl,
+                                        MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512 ) )
+
+                {
+                    *algorithm = MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512;
+                    return( 0 );
+                }
+                else
+#endif /* MBEDTLS_SHA512_C */
+                {
+                    MBEDTLS_SSL_DEBUG_MSG( 1,
+                        ( "Unable to find matching PKCS1 signature alg" ) );
+                }
             }
             else
-#endif /* MBEDTLS_SHA512_C */
-#endif /* MBEDTLS_PKCS1_V15 */
             {
-                MBEDTLS_SSL_DEBUG_MSG( 3,
-                                       ( "unknown key size: %"
-                                         MBEDTLS_PRINTF_SIZET " bits",
-                                         own_key_size ) );
+                MBEDTLS_SSL_DEBUG_MSG( 1,
+                    ( "Unable to find matching RSA signature alg" ) );
             }
+#endif /* MBEDTLS_PKCS1_V15 */
+
             break;
 #endif /* MBEDTLS_RSA_C */
         default:

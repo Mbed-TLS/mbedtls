@@ -5680,3 +5680,82 @@ exit:
     USE_PSA_DONE( );
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3 */
+void get_sig_alg_from_pk( int opaque_key, int key_type, int key_usage,
+                          int key_alg, int bits,
+                          int received_alg1, int received_alg2,
+                          int expected_alg, int expected_result )
+{
+    mbedtls_pk_context pk;
+    mbedtls_ssl_handshake_params params;
+    mbedtls_ssl_context ssl;
+    ssl.handshake = &params;
+    memset( &ssl.handshake->received_sig_algs[0], 0,
+            sizeof( ssl.handshake->received_sig_algs ) );
+    ssl.handshake->received_sig_algs[0] = (uint16_t) received_alg1;
+    ssl.handshake->received_sig_algs[1] = (uint16_t) received_alg2;
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    uint16_t algorithm = 0;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    mbedtls_pk_init( &pk );
+
+    if( opaque_key == 1 )
+    {
+        psa_set_key_usage_flags( &attributes, key_usage );
+        psa_set_key_algorithm( &attributes, key_alg );
+        psa_set_key_type( &attributes, key_type );
+        psa_set_key_bits( &attributes, bits );
+
+        PSA_ASSERT( psa_generate_key( &attributes, &key ) );
+
+        if( mbedtls_svc_key_id_is_null( key ) )
+            goto exit;
+
+        TEST_EQUAL( mbedtls_pk_setup_opaque( &pk, key ), 0 );
+
+        TEST_EQUAL( mbedtls_pk_get_type( &pk ), MBEDTLS_PK_OPAQUE );
+    }
+    else
+    {
+        TEST_EQUAL( mbedtls_pk_setup( &pk,
+                            mbedtls_pk_info_from_type( key_type ) ), 0 );
+
+#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_GENPRIME)
+        if( mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_RSA )
+            TEST_EQUAL( mbedtls_rsa_gen_key( mbedtls_pk_rsa( pk ),
+                                        mbedtls_test_rnd_std_rand, NULL,
+                                        bits, 3 ), 0 );
+#endif
+#if defined(MBEDTLS_ECP_C)
+        if( mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_ECKEY ||
+            mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_ECKEY_DH ||
+            mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_ECDSA )
+        {
+            TEST_EQUAL( mbedtls_ecp_group_load( &mbedtls_pk_ec( pk )->grp,
+                                                bits ), 0 );
+
+            TEST_EQUAL( mbedtls_ecp_gen_keypair( &mbedtls_pk_ec( pk )->grp,
+                                            &mbedtls_pk_ec( pk )->d,
+                                            &mbedtls_pk_ec( pk )->Q,
+                                            mbedtls_test_rnd_std_rand, NULL ), 0 );
+        }
+#endif
+        TEST_EQUAL( mbedtls_pk_get_type( &pk ), key_type );
+    }
+
+    TEST_EQUAL( ssl_tls13_get_sig_alg_from_pk( &ssl, &pk, &algorithm ),
+                expected_result );
+    if( expected_result == 0 )
+        TEST_EQUAL( algorithm, expected_alg );
+
+exit:
+    psa_reset_key_attributes( &attributes );
+    PSA_ASSERT( psa_destroy_key( key ) );
+    mbedtls_pk_free( &pk );
+    USE_PSA_DONE( );
+}
+/* END_CASE */

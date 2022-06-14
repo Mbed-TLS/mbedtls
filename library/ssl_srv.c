@@ -3241,7 +3241,8 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_pk_context *own_key = mbedtls_ssl_own_key( ssl );
 
-    /* We want to call mbedtls_pk_ec(), which only works on those types. */
+    /* Check if the key is a transparent ECDH key.
+     * This also ensures that it is safe to call mbedtls_pk_ec(). */
     if( mbedtls_pk_get_type( own_key ) != MBEDTLS_PK_ECKEY &&
         mbedtls_pk_get_type( own_key ) != MBEDTLS_PK_ECKEY_DH )
     {

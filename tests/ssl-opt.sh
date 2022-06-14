@@ -1783,6 +1783,34 @@ run_test    "RSA-PSK opaque key on server configured for decryption" \
             -S "error" \
             -C "error"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_RSA_C
+run_test    "TLS 1.3: RSA opaque keys on server configured for decryption/sign" \
+            "$P_SRV debug_level=1 force_version=tls13 key_opaque=1 key_opaque_algs=rsa-decrypt,rsa-sign-pkcs1" \
+            "$P_CLI debug_level=1 force_version=tls13" \
+            0 \
+            -c "Verifying peer X.509 certificate... ok" \
+            -c "Ciphersuite is TLS1-3-" \
+            -s "key types: Opaque, Opaque" \
+            -s "Ciphersuite is TLS1-3-" \
+            -S "error" \
+            -C "error"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_RSA_C
+run_test    "TLS 1.3: RSA opaque key on client configured for decryption/sign" \
+            "$P_SRV debug_level=1 force_version=tls13" \
+            "$P_CLI debug_level=1 force_version=tls13 key_opaque=1 key_opaque_algs=rsa-decrypt,rsa-sign-pkcs1" \
+            0 \
+            -c "Verifying peer X.509 certificate... ok" \
+            -c "Ciphersuite is TLS1-3-" \
+            -c "key type: Opaque" \
+            -s "Ciphersuite is TLS1-3-" \
+            -S "error" \
+            -C "error"
+
 # Test using an EC opaque private key for server authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO

@@ -341,7 +341,7 @@ static int ssl_tls13_check_ephemeral_key_exchange( mbedtls_ssl_context *ssl )
  * Try picking a certificate for this ciphersuite,
  * return 0 on success and -1 on failure.
  */
-static int ssl_tls13_pick_cert( mbedtls_ssl_context *ssl )
+static int ssl_tls13_pick_key_cert( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_key_cert *cur, *list;
     const uint16_t *sig_alg = ssl->handshake->received_sig_algs;
@@ -391,8 +391,6 @@ static int ssl_tls13_pick_cert( mbedtls_ssl_context *ssl )
                                ssl->handshake->key_cert->cert );
                 return( 0 );
             }
-
-
         }
     }
 
@@ -769,7 +767,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && \
     defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-    if( (ssl_tls13_pick_cert( ssl ) != 0) )
+    if( (ssl_tls13_pick_key_cert( ssl ) != 0) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: "
                             "no suitable certificate" ) );

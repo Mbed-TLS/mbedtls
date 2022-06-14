@@ -1673,6 +1673,32 @@ run_test    "Opaque key for client/server authentication" \
             -S "error" \
             -C "error"
 
+# Opaque keys not supported for static ECDH
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
+run_test    "Opaque key: server: ECDH-ECDSA not supported" \
+            "$P_SRV debug_level=1 key_opaque=1
+             crt_file=data_files/server5.crt key_file=data_files/server5.key" \
+            "$P_CLI force_ciphersuite=TLS-ECDH-ECDSA-WITH-AES-128-GCM-SHA256" \
+            1 \
+            -s "server key not ECDH capable" \
+            -s "ssl_get_ecdh_params_from_cert() returned" \
+            -s "error" \
+            -c "error"
+
+# Opaque keys not supported for static ECDH
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
+run_test    "Opaque key: server: ECDH-RSA not supported" \
+            "$P_SRV debug_level=1 key_opaque=1
+             crt_file=data_files/server5.crt key_file=data_files/server5.key" \
+            "$P_CLI force_ciphersuite=TLS-ECDH-RSA-WITH-AES-128-GCM-SHA256" \
+            1 \
+            -s "server key not ECDH capable" \
+            -s "ssl_get_ecdh_params_from_cert() returned" \
+            -s "error" \
+            -c "error"
+
 # Test ciphersuites which we expect to be fully supported by PSA Crypto
 # and check that we don't fall back to Mbed TLS' internal crypto primitives.
 run_test_psa TLS-ECDHE-ECDSA-WITH-AES-128-CCM

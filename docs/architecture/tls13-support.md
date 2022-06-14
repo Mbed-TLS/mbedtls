@@ -476,7 +476,7 @@ organization is to concentrate solely on the parsing in the parsing function to
 reduce the size of its code and to simplify it.
 
 * post-processing stage: following the parsing, further update of the SSL
-context to prepare for the next incoming and outpoing messages. This stage is
+context to prepare for the next incoming and outgoing messages. This stage is
 optional. For example, secret and key computations occur at this stage, as well
 as handshake messages checksum update.
 

@@ -3928,7 +3928,10 @@ ecdh_calc_secret:
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
             /* Opaque PSKs are currently only supported for PSK-only suites. */
             if( ssl_conf_has_static_raw_psk( ssl->conf ) == 0 )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "opaque PSK not supported with RSA-PSK" ) );
                 return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+            }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
             if( ( ret = ssl_write_encrypted_pms( ssl, header_len,
@@ -3943,7 +3946,10 @@ ecdh_calc_secret:
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
             /* Opaque PSKs are currently only supported for PSK-only suites. */
             if( ssl_conf_has_static_raw_psk( ssl->conf ) == 0 )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "opaque PSK not supported with DHE-PSK" ) );
                 return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+            }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
             /*
@@ -3980,7 +3986,10 @@ ecdh_calc_secret:
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
             /* Opaque PSKs are currently only supported for PSK-only suites. */
             if( ssl_conf_has_static_raw_psk( ssl->conf ) == 0 )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "opaque PSK not supported with ECDHE-PSK" ) );
                 return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+            }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
             /*

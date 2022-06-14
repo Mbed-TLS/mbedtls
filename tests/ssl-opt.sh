@@ -1734,6 +1734,39 @@ run_test    "Opaque psk: client: RSA-PSK not supported" \
             -s "error" \
             -c "error"
 
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "Opaque psk: server: ECDHE-PSK not supported" \
+            "$P_SRV debug_level=1 psk=abc123 psk_identity=foo psk_opaque=1 \
+            force_version=tls12 \
+            force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA" \
+            "$P_CLI debug_level=1 psk=abc123 psk_identity=foo" \
+            1 \
+            -s "opaque PSK not supported with ECDHE-PSK" \
+            -s "error" \
+            -c "error"
+
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "Opaque psk: server: DHE-PSK not supported" \
+            "$P_SRV debug_level=1 psk=abc123 psk_identity=foo psk_opaque=1 \
+            force_version=tls12 \
+            force_ciphersuite=TLS-DHE-PSK-WITH-AES-128-CBC-SHA" \
+            "$P_CLI debug_level=1 psk=abc123 psk_identity=foo" \
+            1 \
+            -s "opaque PSK not supported with DHE-PSK" \
+            -s "error" \
+            -c "error"
+
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "Opaque psk: server: RSA-PSK not supported" \
+            "$P_SRV debug_level=1 psk=abc123 psk_identity=foo psk_opaque=1 \
+            force_version=tls12 \
+            force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA" \
+            "$P_CLI debug_level=1 psk=abc123 psk_identity=foo" \
+            1 \
+            -s "opaque PSK not supported with RSA-PSK" \
+            -s "error" \
+            -c "error"
+
 # Test ciphersuites which we expect to be fully supported by PSA Crypto
 # and check that we don't fall back to Mbed TLS' internal crypto primitives.
 run_test_psa TLS-ECDHE-ECDSA-WITH-AES-128-CCM

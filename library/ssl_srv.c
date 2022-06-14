@@ -4270,7 +4270,10 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         /* Opaque PSKs are currently only supported for PSK-only. */
         if( ssl_use_opaque_psk( ssl ) == 1 )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "opaque PSK not supported with RSA-PSK" ) );
             return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+        }
 #endif
 
         if( ( ret = ssl_parse_encrypted_pms( ssl, p, end, 2 ) ) != 0 )
@@ -4305,7 +4308,10 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         /* Opaque PSKs are currently only supported for PSK-only. */
         if( ssl_use_opaque_psk( ssl ) == 1 )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "opaque PSK not supported with DHE-PSK" ) );
             return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+        }
 #endif
 
         if( p != end )
@@ -4342,7 +4348,10 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         /* Opaque PSKs are currently only supported for PSK-only. */
         if( ssl_use_opaque_psk( ssl ) == 1 )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "opaque PSK not supported with ECDHE-PSK" ) );
             return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+        }
 #endif
 
         MBEDTLS_SSL_DEBUG_ECDH( 3, &ssl->handshake->ecdh_ctx,

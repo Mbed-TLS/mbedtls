@@ -641,6 +641,13 @@ static int exercise_key_agreement_key( mbedtls_svc_key_id_t key,
                             input, sizeof( input ) ) );
         }
 
+        if( PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) )
+        {
+            PSA_ASSERT( psa_key_derivation_input_bytes(
+                &operation, PSA_KEY_DERIVATION_INPUT_SALT,
+                input, sizeof( input ) ) );
+        }
+
         PSA_ASSERT( mbedtls_test_psa_key_agreement_with_self( &operation, key ) );
 
         if( PSA_ALG_IS_TLS12_PRF( kdf_alg ) ||

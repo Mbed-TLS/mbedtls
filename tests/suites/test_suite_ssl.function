@@ -5683,7 +5683,7 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_SSL_PROTO_TLS1_3 */
 void get_sig_alg_from_pk( int opaque_key, int key_type, int key_usage,
-                          int key_alg, int bits,
+                          int key_alg, int parameter,
                           int received_alg1, int received_alg2,
                           int expected_alg, int expected_result )
 {
@@ -5708,7 +5708,7 @@ void get_sig_alg_from_pk( int opaque_key, int key_type, int key_usage,
         psa_set_key_usage_flags( &attributes, key_usage );
         psa_set_key_algorithm( &attributes, key_alg );
         psa_set_key_type( &attributes, key_type );
-        psa_set_key_bits( &attributes, bits );
+        psa_set_key_bits( &attributes, parameter );
 
         PSA_ASSERT( psa_generate_key( &attributes, &key ) );
 
@@ -5728,7 +5728,7 @@ void get_sig_alg_from_pk( int opaque_key, int key_type, int key_usage,
         if( mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_RSA )
             TEST_EQUAL( mbedtls_rsa_gen_key( mbedtls_pk_rsa( pk ),
                                         mbedtls_test_rnd_std_rand, NULL,
-                                        bits, 3 ), 0 );
+                                        parameter, 3 ), 0 );
 #endif
 #if defined(MBEDTLS_ECP_C)
         if( mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_ECKEY ||
@@ -5736,7 +5736,7 @@ void get_sig_alg_from_pk( int opaque_key, int key_type, int key_usage,
             mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_ECDSA )
         {
             TEST_EQUAL( mbedtls_ecp_group_load( &mbedtls_pk_ec( pk )->grp,
-                                                bits ), 0 );
+                                                parameter ), 0 );
 
             TEST_EQUAL( mbedtls_ecp_gen_keypair( &mbedtls_pk_ec( pk )->grp,
                                             &mbedtls_pk_ec( pk )->d,

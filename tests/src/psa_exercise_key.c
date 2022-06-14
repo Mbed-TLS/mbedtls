@@ -627,6 +627,7 @@ static int exercise_key_agreement_key( mbedtls_svc_key_id_t key,
     unsigned char output[1];
     int ok = 0;
     psa_algorithm_t kdf_alg = PSA_ALG_KEY_AGREEMENT_GET_KDF( alg );
+    psa_status_t expected_key_agreement_status = PSA_SUCCESS;
 
     if( usage & PSA_KEY_USAGE_DERIVE )
     {
@@ -648,7 +649,25 @@ static int exercise_key_agreement_key( mbedtls_svc_key_id_t key,
                 input, sizeof( input ) ) );
         }
 
-        PSA_ASSERT( mbedtls_test_psa_key_agreement_with_self( &operation, key ) );
+        /* For HKDF_EXPAND input secret may fail as secret size may not match
+           to expected PRK size. In practice it means that key bits must match
+           hash length. Otherwise test should fail with INVALID_ARGUMENT. */
+        if( PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) )
+        {
+            psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+            PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
+            size_t key_bits = psa_get_key_bits( &attributes );
+            psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH( kdf_alg );
+
+            if( PSA_BITS_TO_BYTES( key_bits ) != PSA_HASH_LENGTH( hash_alg ) )
+                expected_key_agreement_status = PSA_ERROR_INVALID_ARGUMENT;
+        }
+
+        TEST_EQUAL( mbedtls_test_psa_key_agreement_with_self( &operation, key ),
+                    expected_key_agreement_status );
+
+        if( expected_key_agreement_status != PSA_SUCCESS )
+            return( 1 );
 
         if( PSA_ALG_IS_TLS12_PRF( kdf_alg ) ||
             PSA_ALG_IS_TLS12_PSK_TO_MS( kdf_alg ) )
@@ -657,7 +676,7 @@ static int exercise_key_agreement_key( mbedtls_svc_key_id_t key,
                             &operation, PSA_KEY_DERIVATION_INPUT_LABEL,
                             input, sizeof( input ) ) );
         }
-        else if( PSA_ALG_IS_HKDF( kdf_alg ) )
+        else if( PSA_ALG_IS_HKDF( kdf_alg ) || PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) )
         {
             PSA_ASSERT( psa_key_derivation_input_bytes(
                             &operation, PSA_KEY_DERIVATION_INPUT_INFO,

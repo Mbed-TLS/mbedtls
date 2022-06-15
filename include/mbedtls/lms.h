@@ -58,20 +58,33 @@
 extern "C" {
 #endif
 
+/* https://www.iana.org/assignments/leighton-micali-signatures/leighton-micali-signatures.xhtml
+ * We are only implementing a subset of the types, particularly H10, for the sake of simplicty.
+ */
 typedef enum {
     MBEDTLS_LMS_SHA256_M32_H10 = 0x6,
 } mbedtls_lms_algorithm_type_t;
 
 
 typedef struct {
-    unsigned char MBEDTLS_PRIVATE(have_privkey);
-    unsigned char MBEDTLS_PRIVATE(have_pubkey);
-    unsigned char MBEDTLS_PRIVATE(I_key_identifier)[MBEDTLS_LMOTS_I_KEY_ID_LEN];
-    mbedtls_lms_algorithm_type_t MBEDTLS_PRIVATE(type);
-    mbedtls_lmots_algorithm_type_t MBEDTLS_PRIVATE(otstype);
-    unsigned int MBEDTLS_PRIVATE(q_next_usable_key);
-    mbedtls_lmots_context *MBEDTLS_PRIVATE(priv_keys);
-    unsigned char MBEDTLS_PRIVATE(T_1_pub_key)[MBEDTLS_LMS_M_NODE_BYTES];
+    unsigned char MBEDTLS_PRIVATE(have_privkey); /*!< Whether the context contains a private key.
+                                                     Boolean values only. */
+    unsigned char MBEDTLS_PRIVATE(have_pubkey); /*!< Whether the context contains a public key.
+                                                     Boolean values only. */
+    unsigned char MBEDTLS_PRIVATE(I_key_identifier)[MBEDTLS_LMOTS_I_KEY_ID_LEN]; /*!< The key
+                                                     identifier. */
+    mbedtls_lms_algorithm_type_t MBEDTLS_PRIVATE(type); /*!< The LMS key type identifier as per
+                                                     IANA. Only SHA256_M32_H10 is currently
+                                                     supported. */
+    mbedtls_lmots_algorithm_type_t MBEDTLS_PRIVATE(otstype); /*!< The LM-OTS key type identifier as
+                                                     per IANA. Only SHA256_N32_W8 is currently
+                                                     supported. */
+    unsigned int MBEDTLS_PRIVATE(q_next_usable_key); /*!< The index of the next OTS key that has not
+                                                     been used. */
+    mbedtls_lmots_context *MBEDTLS_PRIVATE(priv_keys); /*!< The private key material. One OTS key
+                                                     for each leaf node in the merkle tree. */
+    unsigned char MBEDTLS_PRIVATE(T_1_pub_key)[MBEDTLS_LMS_M_NODE_BYTES]; /*!< The public key, in
+                                                     the form of the merkle tree root node. */
 } mbedtls_lms_context;
 
 

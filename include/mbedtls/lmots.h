@@ -59,8 +59,8 @@
 extern "C" {
 #endif
 
-/* We are only implementing a subset of the types, particularly n32_w8, for the
- * sake of simplicty
+/* https://www.iana.org/assignments/leighton-micali-signatures/leighton-micali-signatures.xhtml
+ * We are only implementing a subset of the types, particularly n32_w8, for the sake of simplicty.
  */
 typedef enum {
     MBEDTLS_LMOTS_SHA256_N32_W8 = 4
@@ -68,14 +68,25 @@ typedef enum {
 
 
 typedef struct {
-    unsigned char MBEDTLS_PRIVATE(have_privkey);
-    unsigned char MBEDTLS_PRIVATE(have_pubkey);
-    unsigned char MBEDTLS_PRIVATE(I_key_identifier[MBEDTLS_LMOTS_I_KEY_ID_LEN]);
-    unsigned int MBEDTLS_PRIVATE(q_leaf_identifier);
-    unsigned char MBEDTLS_PRIVATE(q_leaf_identifier_bytes)[MBEDTLS_LMOTS_Q_LEAF_ID_LEN];
-    mbedtls_lmots_algorithm_type_t MBEDTLS_PRIVATE(type);
-    unsigned char MBEDTLS_PRIVATE(priv_key[MBEDTLS_LMOTS_P_SIG_SYMBOL_LEN][32]);
-    unsigned char MBEDTLS_PRIVATE(pub_key[32]);
+    unsigned char MBEDTLS_PRIVATE(have_privkey); /*!< Whether the context contains a private key.
+                                                     Boolean values only. */
+    unsigned char MBEDTLS_PRIVATE(have_pubkey); /*!< Whether the context contains a public key.
+                                                     Boolean values only. */
+    unsigned char MBEDTLS_PRIVATE(I_key_identifier[MBEDTLS_LMOTS_I_KEY_ID_LEN]); /*!< The key
+                                                     identifier. */
+    unsigned int MBEDTLS_PRIVATE(q_leaf_identifier); /*!< Which leaf of the LMS key this is.
+                                                     0 if the key is not part of an LMS key. */
+    unsigned char MBEDTLS_PRIVATE(q_leaf_identifier_bytes)[MBEDTLS_LMOTS_Q_LEAF_ID_LEN];/*!< The
+                                                     leaf identifier in network bytes form. */
+    mbedtls_lmots_algorithm_type_t MBEDTLS_PRIVATE(type); /*!< The LM-OTS key type identifier as
+                                                     per IANA. Only SHA256_N32_W8 is currently
+                                                     supported. */
+    unsigned char MBEDTLS_PRIVATE(priv_key[MBEDTLS_LMOTS_P_SIG_SYMBOL_LEN][32]); /*!< The private
+                                                     key, one hash output per byte of the encoded
+                                                     symbol string P (32 bytes of hash output +
+                                                     2 bytes of checksum). */
+    unsigned char MBEDTLS_PRIVATE(pub_key[32]); /*!< The public key, in the form of a SHA256
+                                                     output. */
 } mbedtls_lmots_context;
 
 

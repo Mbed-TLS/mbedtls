@@ -147,7 +147,7 @@ int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info )
     return( 0 );
 }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
 /*
  * Initialise a PSA-wrapping context
  */
@@ -184,7 +184,7 @@ int mbedtls_pk_setup_opaque( mbedtls_pk_context *ctx,
 
     return( 0 );
 }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /*
@@ -232,7 +232,7 @@ int mbedtls_pk_can_do( const mbedtls_pk_context *ctx, mbedtls_pk_type_t type )
     return( ctx->pk_info->can_do( type ) );
 }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
 /*
  * Tell if a PK can do the operations of the given PSA algorithm
  */
@@ -351,7 +351,7 @@ int mbedtls_pk_can_do_ext( const mbedtls_pk_context *ctx, psa_algorithm_t alg,
 
     return( 0 );
 }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3 */
 
 /*
  * Helper for mbedtls_pk_sign and mbedtls_pk_verify
@@ -495,7 +495,7 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
 
     pss_opts = (const mbedtls_pk_rsassa_pss_options *) options;
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
     if( pss_opts->mgf1_hash_id == md_alg &&
         ( (size_t) pss_opts->expected_salt_len == hash_len ||
             pss_opts->expected_salt_len  == MBEDTLS_RSA_SALT_LEN_ANY ) )
@@ -832,7 +832,7 @@ mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx )
     return( ctx->pk_info->type );
 }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
 /*
  * Load the key to a PSA key slot,
  * then turn the PK context into a wrapper for that key slot.
@@ -937,5 +937,5 @@ int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
 #endif /* !MBEDTLS_ECP_C && !MBEDTLS_RSA_C */
     return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
 }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3 */
 #endif /* MBEDTLS_PK_C */

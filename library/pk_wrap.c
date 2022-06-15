@@ -40,7 +40,7 @@
 #include "mbedtls/ecdsa.h"
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
 #include "mbedtls/asn1write.h"
 #endif
 
@@ -48,7 +48,7 @@
 #include "mbedtls/platform_util.h"
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
 #include "mbedtls/asn1.h"
@@ -126,7 +126,7 @@ int mbedtls_pk_error_from_psa_rsa( psa_status_t status )
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
 
 #if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
 int mbedtls_pk_error_from_psa_ecdsa( psa_status_t status )
@@ -150,7 +150,7 @@ int mbedtls_pk_error_from_psa_ecdsa( psa_status_t status )
 }
 #endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
 
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #if defined(MBEDTLS_RSA_C)
 static int rsa_can_do( mbedtls_pk_type_t type )
@@ -165,7 +165,7 @@ static size_t rsa_get_bitlen( const void *ctx )
     return( 8 * mbedtls_rsa_get_len( rsa ) );
 }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
 static int rsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
                    const unsigned char *hash, size_t hash_len,
                    const unsigned char *sig, size_t sig_len )
@@ -316,9 +316,9 @@ cleanup:
         ret = mbedtls_pk_error_from_psa( status );
     return( ret );
 }
-#endif /* MBEDTLS_PSA_CRYPTO_C */
+#endif /* MBEDTLS_PSA_CRYPTO_C || MBEDTLS_SSL_PROTO_TLS1_3 */
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
 static int rsa_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
                    const unsigned char *hash, size_t hash_len,
                    unsigned char *sig, size_t sig_size, size_t *sig_len,
@@ -360,7 +360,7 @@ static int rsa_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
 }
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
 static int rsa_decrypt_wrap( void *ctx,
                     const unsigned char *input, size_t ilen,
                     unsigned char *output, size_t *olen, size_t osize,
@@ -443,7 +443,7 @@ static int rsa_decrypt_wrap( void *ctx,
 }
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
 static int rsa_encrypt_wrap( void *ctx,
                     const unsigned char *input, size_t ilen,
                     unsigned char *output, size_t *olen, size_t osize,
@@ -864,7 +864,7 @@ static int ecdsa_can_do( mbedtls_pk_type_t type )
     return( type == MBEDTLS_PK_ECDSA );
 }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
 /*
  * An ASN.1 encoded signature is a sequence of two ASN.1 integers. Parse one of
  * those integers and convert it to the fixed-length encoding expected by PSA.
@@ -1007,7 +1007,7 @@ cleanup:
 
     return( ret );
 }
-#else /* MBEDTLS_USE_PSA_CRYPTO */
+#else /* MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3 */
 static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
                        const unsigned char *hash, size_t hash_len,
                        const unsigned char *sig, size_t sig_len )
@@ -1023,9 +1023,9 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
 
     return( ret );
 }
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3 */
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
 /*
  * Simultaneously convert and move raw MPI from the beginning of a buffer
  * to an ASN.1 MPI at the end of the buffer.
@@ -1463,7 +1463,7 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
 
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
 
 static void *pk_opaque_alloc_wrap( void )
 {
@@ -1656,6 +1656,6 @@ const mbedtls_pk_info_t mbedtls_pk_rsa_opaque_info = {
     NULL, /* debug - could be done later, or even left NULL */
 };
 
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #endif /* MBEDTLS_PK_C */

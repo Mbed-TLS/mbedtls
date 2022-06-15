@@ -29,7 +29,7 @@
 
 #include "mbedtls/build_info.h"
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_PSA_CRYPTO_C) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
 
 #include "psa/crypto.h"
 
@@ -361,6 +361,6 @@ extern mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state;
 
 #endif /* !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) */
 
-#endif /* MBEDTLS_PSA_CRYPTO_C */
+#endif /* MBEDTLS_PSA_CRYPTO_C || MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #endif /* MBEDTLS_PSA_UTIL_H */

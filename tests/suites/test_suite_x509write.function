@@ -28,7 +28,7 @@ size_t mbedtls_rsa_key_len_func( void *ctx )
 }
 #endif /* MBEDTLS_RSA_C */
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO) && \
+#if ( defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3) ) && \
     defined(MBEDTLS_PEM_WRITE_C) && defined(MBEDTLS_X509_CSR_WRITE_C)
 static int x509_crt_verifycsr( const unsigned char *buf, size_t buflen )
 {
@@ -84,11 +84,11 @@ void x509_csr_check( char * key_file, char * cert_req_check_file, int md_type,
     mbedtls_x509write_csr req;
     unsigned char buf[4096];
     int ret;
-#if !defined(MBEDTLS_USE_PSA_CRYPTO)
+#if !defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_SSL_PROTO_TLS1_3)
     unsigned char check_buf[4000];
     FILE *f;
     size_t olen = 0;
-#endif /* !MBEDTLS_USE_PSA_CRYPTO */
+#endif /* !MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_SSL_PROTO_TLS1_3 */
     size_t pem_len = 0, buf_index;
     int der_len = -1;
     const char *subject_name = "C=NL,O=PolarSSL,CN=PolarSSL Server 1";
@@ -122,7 +122,7 @@ void x509_csr_check( char * key_file, char * cert_req_check_file, int md_type,
         TEST_ASSERT( buf[buf_index] == 0 );
     }
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
     // When using PSA crypto, RNG isn't controllable, so cert_req_check_file can't be used
     (void)cert_req_check_file;
     buf[pem_len] = '\0';
@@ -135,7 +135,7 @@ void x509_csr_check( char * key_file, char * cert_req_check_file, int md_type,
 
     TEST_ASSERT( olen >= pem_len - 1 );
     TEST_ASSERT( memcmp( buf, check_buf, pem_len - 1 ) == 0 );
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3 */
 
     der_len = mbedtls_x509write_csr_der( &req, buf, sizeof( buf ),
                                          mbedtls_test_rnd_pseudo_rand,
@@ -145,7 +145,7 @@ void x509_csr_check( char * key_file, char * cert_req_check_file, int md_type,
     if( der_len == 0 )
         goto exit;
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
     // When using PSA crypto, RNG isn't controllable, result length isn't
     // deterministic over multiple runs, removing a single byte isn't enough to
     // go into the MBEDTLS_ERR_ASN1_BUF_TOO_SMALL error case

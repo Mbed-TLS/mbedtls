@@ -135,7 +135,7 @@ extern const mbedtls_pk_info_t mbedtls_ecdsa_info;
 extern const mbedtls_pk_info_t mbedtls_rsa_alt_info;
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
 extern const mbedtls_pk_info_t mbedtls_pk_ecdsa_opaque_info;
 extern const mbedtls_pk_info_t mbedtls_pk_rsa_opaque_info;
 
@@ -143,7 +143,7 @@ extern const mbedtls_pk_info_t mbedtls_pk_rsa_opaque_info;
 int mbedtls_pk_error_from_psa_ecdsa( psa_status_t status );
 #endif
 
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 int mbedtls_pk_error_from_psa( psa_status_t status );

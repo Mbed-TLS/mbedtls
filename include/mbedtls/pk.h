@@ -40,7 +40,7 @@
 #include "mbedtls/ecdsa.h"
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
 #include "psa/crypto.h"
 #endif
 
@@ -141,7 +141,7 @@ typedef struct mbedtls_pk_rsassa_pss_options
 #define MBEDTLS_PK_SIGNATURE_MAX_SIZE MBEDTLS_ECDSA_MAX_LEN
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
 #if PSA_SIGNATURE_MAX_SIZE > MBEDTLS_PK_SIGNATURE_MAX_SIZE
 /* PSA_SIGNATURE_MAX_SIZE is the maximum size of a signature made
  * through the PSA API in the PSA representation. */
@@ -159,7 +159,7 @@ typedef struct mbedtls_pk_rsassa_pss_options
 #undef MBEDTLS_PK_SIGNATURE_MAX_SIZE
 #define MBEDTLS_PK_SIGNATURE_MAX_SIZE ( PSA_VENDOR_ECDSA_SIGNATURE_MAX_SIZE + 11 )
 #endif
-#endif /* defined(MBEDTLS_USE_PSA_CRYPTO) */
+#endif /* defined(MBEDTLS_USE_PSA_CRYPTO) || MBEDTLS_SSL_PROTO_TLS1_3 */
 
 /**
  * \brief           Types for interfacing with the debug module
@@ -321,7 +321,7 @@ void mbedtls_pk_restart_free( mbedtls_pk_restart_ctx *ctx );
  */
 int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info );
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
 /**
  * \brief           Initialize a PK context to wrap a PSA key.
  *
@@ -352,7 +352,7 @@ int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info );
  */
 int mbedtls_pk_setup_opaque( mbedtls_pk_context *ctx,
                              const mbedtls_svc_key_id_t key );
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /**
@@ -411,7 +411,7 @@ static inline size_t mbedtls_pk_get_len( const mbedtls_pk_context *ctx )
  */
 int mbedtls_pk_can_do( const mbedtls_pk_context *ctx, mbedtls_pk_type_t type );
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
 /**
  * \brief           Tell if context can do the operation given by PSA algorithm
  *
@@ -441,7 +441,7 @@ int mbedtls_pk_can_do( const mbedtls_pk_context *ctx, mbedtls_pk_type_t type );
  */
 int mbedtls_pk_can_do_ext( const mbedtls_pk_context *ctx, psa_algorithm_t alg,
                            psa_key_usage_t usage );
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3 */
 
 /**
  * \brief           Verify signature (including padding if relevant).
@@ -947,7 +947,7 @@ int mbedtls_pk_write_pubkey( unsigned char **p, unsigned char *start,
 int mbedtls_pk_load_file( const char *path, unsigned char **buf, size_t *n );
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
 /**
  * \brief           Turn an EC or RSA key into an opaque one.
  *
@@ -972,7 +972,7 @@ int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
                                psa_algorithm_t alg,
                                psa_key_usage_t usage,
                                psa_algorithm_t alg2 );
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_USE_PSA_CRYPTO || MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #ifdef __cplusplus
 }

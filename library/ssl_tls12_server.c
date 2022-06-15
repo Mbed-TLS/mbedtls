@@ -1280,7 +1280,7 @@ read_record_header:
     }
     {
         size_t handshake_len = MBEDTLS_GET_UINT24_BE( buf, 1 );
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello v3, handshake len.: %d",
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello v3, handshake len.: %u",
                        ( unsigned ) handshake_len ) );
 
         /* The record layer has a record size limit of 2^14 - 1 and

@@ -705,6 +705,7 @@ exit:
     return( test_ok );
 }
 
+#if defined(PSA_WANT_ALG_JPAKE)
 static int ecjpake_do_round( psa_algorithm_t alg, unsigned int primitive,
                              psa_pake_operation_t *server,
                              psa_pake_operation_t *client,
@@ -994,6 +995,7 @@ exit:
     mbedtls_free( buffer1 );
     return( ret );
 }
+#endif /* PSA_WANT_ALG_JPAKE */
 
 /* END_HEADER */
 

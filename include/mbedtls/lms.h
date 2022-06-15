@@ -34,7 +34,7 @@
 #define MBEDTLS_ERR_LMS_VERIFY_FAILED    -0x0015 /**< LMS signature verification failed */
 #define MBEDTLS_ERR_LMS_ALLOC_FAILED     -0x0017 /**< LMS failed to allocate space for a private key */
 
-#define MBEDTLS_LMS_TYPE_LEN        (4)
+#define MBEDTLS_LMS_TYPE_LEN            (4)
 #define MBEDTLS_LMS_H_TREE_HEIGHT       (10)
 #define MBEDTLS_LMS_M_NODE_BYTES        (32)
 
@@ -122,6 +122,10 @@ int mbedtls_lms_set_algorithm_type( mbedtls_lms_context *ctx,
 /**
  * \brief                    This function creates a LMS signature, using a
  *                           LMOTS context that contains a private key.
+ *
+ * \note                     This function is intended for _testing purposes
+ *                           only_, due to complexities around updating stateful
+ *                           keys.
  *
  * \note                     Before this function is called, the context must
  *                           have been initialized and must contain a private

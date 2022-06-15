@@ -660,8 +660,8 @@ psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
 
     if( operation->alg == 0 ||
         operation->state != PSA_PAKE_STATE_READY ||
-        ( operation->input_step != PSA_PAKE_STEP_DERIVE  &&
-          operation->output_step != PSA_PAKE_STEP_DERIVE ) )
+        operation->input_step != PSA_PAKE_STEP_DERIVE ||
+        operation->output_step != PSA_PAKE_STEP_DERIVE )
         return( PSA_ERROR_BAD_STATE );
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)

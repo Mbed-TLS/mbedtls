@@ -200,7 +200,7 @@ ASN.1 Write OID: length=1
 mbedtls_asn1_write_string:MBEDTLS_ASN1_OID:"41":"060141"
 
 ASN.1 Write AlgorithmIdentifier, null parameters
-mbedtls_asn1_write_algorithm_identifier:"4f4944":8:"300d06034f4944"
+mbedtls_asn1_write_algorithm_identifier:"4f4944":0:"300706034f49440500"
 
 ASN.1 Write AlgorithmIdentifier, parameters (8 bytes)
 mbedtls_asn1_write_algorithm_identifier:"4f4944":8:"300d06034f4944"

@@ -3156,7 +3156,7 @@ int mbedtls_ssl_check_dtls_clihlo_cookie(
                            const unsigned char *in, size_t in_len,
                            unsigned char *obuf, size_t buf_len, size_t *olen )
 {
-    size_t sid_len, cookie_len;
+    size_t sid_len, cookie_len, epoch, fragment_offset;
     unsigned char *p;
 
     /*
@@ -3193,15 +3193,17 @@ int mbedtls_ssl_check_dtls_clihlo_cookie(
         MBEDTLS_SSL_DEBUG_MSG( 4, ( "check cookie: record too short" ) );
         return( MBEDTLS_ERR_SSL_DECODE_ERROR );
     }
-    if( in[0] != MBEDTLS_SSL_MSG_HANDSHAKE ||
-        in[3] != 0 || in[4] != 0 ||
-        in[19] != 0 || in[20] != 0 || in[21] != 0 )
+
+    epoch = MBEDTLS_GET_UINT16_BE( in, 3 );
+    fragment_offset = MBEDTLS_GET_UINT24_BE( in, 19 );
+
+    if( in[0] != MBEDTLS_SSL_MSG_HANDSHAKE || epoch != 0 ||
+        fragment_offset != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 4, ( "check cookie: not a good ClientHello" ) );
         MBEDTLS_SSL_DEBUG_MSG( 4, ( "    type=%u epoch=%u fragment_offset=%u",
-                                    in[0],
-                                    (unsigned) in[3] << 8 | in[4],
-                                    (unsigned) in[19] << 16 | in[20] << 8 | in[21] ) );
+                                    in[0], (unsigned) epoch,
+                                    (unsigned) fragment_offset ) );
         return( MBEDTLS_ERR_SSL_DECODE_ERROR );
     }
 

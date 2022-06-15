@@ -2276,6 +2276,16 @@ int mbedtls_ssl_parse_server_name_ext( mbedtls_ssl_context *ssl,
                                        const unsigned char *end );
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
+/**
+ * \brief Determine signature algorithm based on algorithms offered by the peer,
+ *        and capabilities of our own private key
+ *
+ * \param ssl              SSL context
+ * \param own_key          Own private key
+ * \param algorithm        Output buffer for determined algorithm
+ *
+ * \return 0 if valid, negative value otherwise.
+ */
 int mbedtls_ssl_tls13_get_sig_alg_from_pk( mbedtls_ssl_context *ssl,
                                            mbedtls_pk_context *own_key,
                                            uint16_t *algorithm );

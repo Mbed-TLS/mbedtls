@@ -5747,7 +5747,7 @@ void get_sig_alg_from_pk( int opaque_key, int key_type, int key_usage,
         TEST_EQUAL( mbedtls_pk_get_type( &pk ), key_type );
     }
 
-    TEST_EQUAL( ssl_tls13_get_sig_alg_from_pk( &ssl, &pk, &algorithm ),
+    TEST_EQUAL( mbedtls_ssl_tls13_get_sig_alg_from_pk( &ssl, &pk, &algorithm ),
                 expected_result );
     if( expected_result == 0 )
         TEST_EQUAL( algorithm, expected_alg );

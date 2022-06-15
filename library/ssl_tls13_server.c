@@ -338,23 +338,23 @@ static int ssl_tls13_check_ephemeral_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && \
     defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 /*
- * Try picking a certificate for this ciphersuite,
- * return 0 on success and -1 on failure.
+ * Pick best ( private key, certificate chain ) pair based on the signature
+ * algorithms supported by the client.
  */
 static int ssl_tls13_pick_key_cert( mbedtls_ssl_context *ssl )
 {
-    mbedtls_ssl_key_cert *cur, *list;
+    mbedtls_ssl_key_cert *key_cert, *key_cert_list;
     const uint16_t *sig_alg = ssl->handshake->received_sig_algs;
-    uint16_t own_sig_alg;
+    uint16_t key_sig_alg;
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     if( ssl->handshake->sni_key_cert != NULL )
-        list = ssl->handshake->sni_key_cert;
+        key_cert_list = ssl->handshake->sni_key_cert;
     else
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
-        list = ssl->conf->key_cert;
+        key_cert_list = ssl->conf->key_cert;
 
-    if( list == NULL )
+    if( key_cert_list == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "server has no certificate" ) );
         return( -1 );
@@ -362,33 +362,38 @@ static int ssl_tls13_pick_key_cert( mbedtls_ssl_context *ssl )
 
     for( ; *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
     {
-        for( cur = list; cur != NULL; cur = cur->next )
+        for( key_cert = key_cert_list; key_cert != NULL;
+             key_cert = key_cert->next )
         {
-            MBEDTLS_SSL_DEBUG_CRT( 3, "candidate certificate chain, certificate",
-                                   cur->cert );
+            int ret;
+            MBEDTLS_SSL_DEBUG_CRT( 3, "certificate (chain) candidate",
+                                   key_cert->cert );
 
             /*
             * This avoids sending the client a cert it'll reject based on
             * keyUsage or other extensions.
             */
             if( mbedtls_x509_crt_check_key_usage(
-                        cur->cert, MBEDTLS_X509_KU_DIGITAL_SIGNATURE ) != 0 ||
+                    key_cert->cert, MBEDTLS_X509_KU_DIGITAL_SIGNATURE ) != 0 ||
                 mbedtls_x509_crt_check_extended_key_usage(
-                        cur->cert, MBEDTLS_OID_SERVER_AUTH,
-                        MBEDTLS_OID_SIZE( MBEDTLS_OID_SERVER_AUTH ) ) != 0 )
+                    key_cert->cert, MBEDTLS_OID_SERVER_AUTH,
+                    MBEDTLS_OID_SIZE( MBEDTLS_OID_SERVER_AUTH ) ) != 0 )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "certificate mismatch: "
-                                      "(extended) key usage extension" ) );
+                                       "(extended) key usage extension" ) );
                 continue;
             }
 
-            if( ! mbedtls_ssl_tls13_get_sig_alg_from_pk(
-                ssl, &cur->cert->pk, &own_sig_alg ) &&
-                ( *sig_alg == own_sig_alg ) )
+            ret = mbedtls_ssl_tls13_get_sig_alg_from_pk(
+                    ssl, &key_cert->cert->pk, &key_sig_alg );
+            if( ret != 0 )
+                continue;
+            if( *sig_alg == key_sig_alg )
             {
-                ssl->handshake->key_cert = cur;
-                MBEDTLS_SSL_DEBUG_CRT( 3, "selected certificate chain, certificate",
-                               ssl->handshake->key_cert->cert );
+                ssl->handshake->key_cert = key_cert;
+                MBEDTLS_SSL_DEBUG_CRT(
+                        3, "selected certificate chain, certificate",
+                        ssl->handshake->key_cert->cert );
                 return( 0 );
             }
         }
@@ -752,30 +757,6 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
         p += extension_data_len;
     }
 
-    /*
-     * Server certification selection (after processing TLS extensions)
-     */
-    if( ssl->conf->f_cert_cb && ( ret = ssl->conf->f_cert_cb( ssl ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "f_cert_cb", ret );
-        return( ret );
-    }
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-    ssl->handshake->sni_name = NULL;
-    ssl->handshake->sni_name_len = 0;
-#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
-
-#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
-    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-    if( (ssl_tls13_pick_key_cert( ssl ) != 0) )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: "
-                            "no suitable certificate" ) );
-        return( 0 );
-    }
-#endif /* MBEDTLS_X509_CRT_PARSE_C &&
-          MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
-
     /* Update checksum with either
      * - The entire content of the CH message, if no PSK extension is present
      * - The content up to but excluding the PSK extension, if present.
@@ -810,6 +791,19 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
 static int ssl_tls13_postprocess_client_hello( mbedtls_ssl_context* ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    /*
+     * Server certificate selection
+     */
+    if( ssl->conf->f_cert_cb && ( ret = ssl->conf->f_cert_cb( ssl ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "f_cert_cb", ret );
+        return( ret );
+    }
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    ssl->handshake->sni_name = NULL;
+    ssl->handshake->sni_name_len = 0;
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
     ret = mbedtls_ssl_tls13_key_schedule_stage_early( ssl );
     if( ret != 0 )
@@ -1558,13 +1552,17 @@ cleanup:
 static int ssl_tls13_write_server_certificate( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    if( mbedtls_ssl_own_cert( ssl ) == NULL )
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    if( ( ssl_tls13_pick_key_cert( ssl ) != 0 ) ||
+          mbedtls_ssl_own_cert( ssl ) == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "No certificate available." ) );
         MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
                                       MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE);
         return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     ret = mbedtls_ssl_tls13_write_certificate( ssl );
     if( ret != 0 )

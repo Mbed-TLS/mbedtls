@@ -8248,7 +8248,7 @@ int mbedtls_ssl_parse_server_name_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, server_name_list_len );
     server_name_list_end = p + server_name_list_len;
-    while ( p < server_name_list_end )
+    while( p < server_name_list_end )
     {
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, server_name_list_end, 3 );
         hostname_len = MBEDTLS_GET_UINT16_BE( p, 1 );
@@ -8257,6 +8257,11 @@ int mbedtls_ssl_parse_server_name_ext( mbedtls_ssl_context *ssl,
 
         if( p[0] == MBEDTLS_TLS_EXT_SERVERNAME_HOSTNAME )
         {
+            /* sni_name is intended to be used only during the parsing of the
+             * ClientHello message (it is reset to NULL before the end of
+             * the message parsing). Thus it is ok to just point to the
+             * reception buffer and not make a copy of it.
+             */
             ssl->handshake->sni_name = p + 3;
             ssl->handshake->sni_name_len = hostname_len;
             if( ssl->conf->f_sni == NULL )

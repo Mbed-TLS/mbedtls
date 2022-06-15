@@ -392,7 +392,7 @@ static int ssl_tls13_pick_key_cert( mbedtls_ssl_context *ssl )
             {
                 ssl->handshake->key_cert = key_cert;
                 MBEDTLS_SSL_DEBUG_CRT(
-                        3, "selected certificate chain, certificate",
+                        3, "selected certificate (chain)",
                         ssl->handshake->key_cert->cert );
                 return( 0 );
             }
@@ -769,10 +769,18 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     ssl_tls13_debug_print_client_hello_exts( ssl );
 #endif /* MBEDTLS_DEBUG_C */
 
+    return( hrr_required ? SSL_CLIENT_HELLO_HRR_REQUIRED : SSL_CLIENT_HELLO_OK );
+}
+
+/* Update the handshake state machine */
+
+static int ssl_tls13_postprocess_client_hello( mbedtls_ssl_context* ssl )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
     /*
      * Here we only support the ephemeral or (EC)DHE key echange mode
      */
-
     if( !ssl_tls13_check_ephemeral_key_exchange( ssl ) )
     {
         MBEDTLS_SSL_DEBUG_MSG(
@@ -782,15 +790,6 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
                                       MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
         return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
     }
-
-    return( hrr_required ? SSL_CLIENT_HELLO_HRR_REQUIRED : SSL_CLIENT_HELLO_OK );
-}
-
-/* Update the handshake state machine */
-
-static int ssl_tls13_postprocess_client_hello( mbedtls_ssl_context* ssl )
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     /*
      * Server certificate selection

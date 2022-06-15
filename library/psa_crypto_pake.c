@@ -690,12 +690,12 @@ psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
     if( operation->alg == PSA_ALG_JPAKE )
     {
-        ret = mbedtls_ecjpake_derive_secret( &operation->ctx.ecjpake,
-                                             operation->buffer,
-                                             PSA_PAKE_BUFFER_SIZE,
-                                             &operation->buffer_length,
-                                             mbedtls_psa_get_random,
-                                             MBEDTLS_PSA_RANDOM_STATE );
+        ret = mbedtls_ecjpake_write_shared_key( &operation->ctx.ecjpake,
+                                                operation->buffer,
+                                                PSA_PAKE_BUFFER_SIZE,
+                                                &operation->buffer_length,
+                                                mbedtls_psa_get_random,
+                                                MBEDTLS_PSA_RANDOM_STATE );
         if( ret != 0)
         {
             psa_pake_abort( operation );

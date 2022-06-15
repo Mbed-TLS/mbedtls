@@ -4864,7 +4864,7 @@ run_test    "Authentication: client has no cert, server required (TLS)" \
             -c "= write certificate$" \
             -C "skip write certificate$" \
             -S "x509_verify_cert() returned" \
-            -s "client has no certificate" \
+            -s "peer has no certificate" \
             -s "! mbedtls_ssl_handshake returned" \
             -c "! mbedtls_ssl_handshake returned" \
             -s "No client certification received from the client, but required by the authentication mode"

@@ -567,7 +567,7 @@ static int ssl_tls13_validate_certificate( mbedtls_ssl_context *ssl )
      */
     if( ssl->session_negotiate->peer_cert == NULL )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "peer has not sent a certificate" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "peer has no certificate" ) );
 
 #if defined(MBEDTLS_SSL_SRV_C)
         if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )

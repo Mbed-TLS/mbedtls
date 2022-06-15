@@ -898,10 +898,7 @@ int mbedtls_ssl_tls13_get_sig_alg_from_pk( mbedtls_ssl_context *ssl,
                     }
                     break;
                 default:
-                    MBEDTLS_SSL_DEBUG_MSG( 3,
-                                           ( "unknown key size: %"
-                                             MBEDTLS_PRINTF_SIZET " bits",
-                                             own_key_size ) );
+                    // do nothing
                     break;
             }
             break;
@@ -981,22 +978,19 @@ int mbedtls_ssl_tls13_get_sig_alg_from_pk( mbedtls_ssl_context *ssl,
                 else
 #endif /* MBEDTLS_SHA512_C */
                 {
-                    MBEDTLS_SSL_DEBUG_MSG( 1,
-                        ( "Unable to find matching PKCS1 signature alg" ) );
+                    // do nothing
                 }
             }
             else
             {
-                MBEDTLS_SSL_DEBUG_MSG( 1,
-                    ( "Unable to find matching RSA signature alg" ) );
+                // do nothing
             }
 #endif /* MBEDTLS_PKCS1_V15 */
 
             break;
 #endif /* MBEDTLS_RSA_C */
         default:
-            MBEDTLS_SSL_DEBUG_MSG( 1,
-                                   ( "unknown signature type : %u", sig ) );
+            // do nothing
             break;
     }
     return( -1 );

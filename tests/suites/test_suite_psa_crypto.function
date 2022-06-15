@@ -8556,6 +8556,60 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE */
+void ecjpake_rounds_inject( int alg_arg, int primitive_arg, int hash_arg,
+                            int client_input_first, int inject_error,
+                            data_t *pw_data )
+{
+    psa_pake_cipher_suite_t cipher_suite = psa_pake_cipher_suite_init();
+    psa_pake_operation_t server = psa_pake_operation_init();
+    psa_pake_operation_t client = psa_pake_operation_init();
+    psa_algorithm_t alg = alg_arg;
+    psa_algorithm_t hash_alg = hash_arg;
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+
+    PSA_INIT( );
+
+    psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_DERIVE );
+    psa_set_key_algorithm( &attributes, alg );
+    psa_set_key_type( &attributes, PSA_KEY_TYPE_PASSWORD );
+    PSA_ASSERT( psa_import_key( &attributes, pw_data->x, pw_data->len,
+                &key ) );
+
+    psa_pake_cs_set_algorithm( &cipher_suite, alg );
+    psa_pake_cs_set_primitive( &cipher_suite, primitive_arg );
+    psa_pake_cs_set_hash( &cipher_suite, hash_alg );
+
+
+    PSA_ASSERT( psa_pake_setup( &server, &cipher_suite ) );
+    PSA_ASSERT( psa_pake_setup( &client, &cipher_suite ) );
+
+    PSA_ASSERT( psa_pake_set_role( &server, PSA_PAKE_ROLE_SERVER ) );
+    PSA_ASSERT( psa_pake_set_role( &client, PSA_PAKE_ROLE_CLIENT ) );
+
+    PSA_ASSERT( psa_pake_set_password_key( &server, key ) );
+    PSA_ASSERT( psa_pake_set_password_key( &client, key ) );
+
+    TEST_EQUAL( ecjpake_do_round( alg, primitive_arg, &server, &client,
+                                  client_input_first, 1,
+                                  inject_error ), 1 );
+
+    if( inject_error == 1 || inject_error == 2 )
+        goto exit;
+
+    TEST_EQUAL( ecjpake_do_round( alg, primitive_arg, &server, &client,
+                client_input_first, 2,
+                inject_error ), 1 );
+
+exit:
+    psa_destroy_key( key );
+    psa_pake_abort( &server );
+    psa_pake_abort( &client );
+    PSA_DONE( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:PSA_WANT_ALG_JPAKE */
 void ecjpake_rounds( int alg_arg, int primitive_arg, int hash_arg,
                      int derive_alg_arg, data_t *pw_data,
                      int client_input_first )

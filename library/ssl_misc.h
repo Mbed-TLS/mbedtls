@@ -2058,6 +2058,8 @@ static inline int mbedtls_ssl_tls13_get_pk_type_and_md_alg_from_sig_alg(
         }
         return( 0 );
 }
+
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 static inline int mbedtls_ssl_sig_alg_is_supported(
@@ -2141,6 +2143,102 @@ static inline int mbedtls_ssl_sig_alg_is_supported(
     ((void) sig_alg);
     return( 0 );
 }
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+
+static inline int mbedtls_ssl_tls13_sig_alg_is_available_for_pk(
+                mbedtls_ssl_context *ssl,
+                uint16_t sig_alg,
+                mbedtls_pk_context *key)
+{
+    mbedtls_pk_type_t pk_type = mbedtls_ssl_sig_from_pk( key );
+    size_t key_size = mbedtls_pk_get_bitlen( key );
+
+    if( !mbedtls_ssl_sig_alg_is_supported( ssl, sig_alg ) )
+        return( 0 );
+
+    switch( pk_type )
+    {
+#if defined(MBEDTLS_ECDSA_C)
+        case MBEDTLS_SSL_SIG_ECDSA:
+            switch( key_size )
+            {
+#if defined(MBEDTLS_SHA256_C) && defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+                case 256:
+                    return(
+                        sig_alg == MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256 );
+#endif /* MBEDTLS_SHA256_C && MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+
+#if defined(MBEDTLS_SHA384_C) && defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+                case 384:
+                    return(
+                        sig_alg == MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384 );
+#endif /* MBEDTLS_SHA384_C && MBEDTLS_ECP_DP_SECP384R1_ENABLED */
+
+#if defined(MBEDTLS_SHA512_C) && defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
+                case 521:
+                    return(
+                        sig_alg == MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512 );
+#endif /* MBEDTLS_SHA512_C && MBEDTLS_ECP_DP_SECP521R1_ENABLED */
+                default:
+                    break;
+            }
+            break;
+#endif /* MBEDTLS_ECDSA_C */
+
+#if defined(MBEDTLS_RSA_C)
+        case MBEDTLS_SSL_SIG_RSA:
+            switch( sig_alg )
+            {
+#if defined(MBEDTLS_PKCS1_V21)
+#if defined(MBEDTLS_SHA256_C)
+                case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
+                    return( key_size <= 2048 );
+#endif /* MBEDTLS_SHA256_C */
+
+#if defined(MBEDTLS_SHA384_C)
+                case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384:
+                    return( key_size <= 3072 );
+#endif /* MBEDTLS_SHA384_C */
+
+#if defined(MBEDTLS_SHA512_C)
+                case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:
+                    return( key_size <= 4096 );
+#endif /* MBEDTLS_SHA512_C */
+#endif /* MBEDTLS_PKCS1_V21 */
+
+#if defined(MBEDTLS_PKCS1_V15)
+#if defined(MBEDTLS_SHA256_C)
+                case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256:
+                    return( key_size <= 2048 );
+#endif /* MBEDTLS_SHA256_C */
+
+#if defined(MBEDTLS_SHA384_C)
+                case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384:
+                    return( key_size <= 3072 );
+#endif /* MBEDTLS_SHA384_C */
+
+#if defined(MBEDTLS_SHA512_C)
+                case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512:
+                    return( key_size <= 4096 );
+#endif /* MBEDTLS_SHA512_C */
+#endif /* MBEDTLS_PKCS1_V15 */
+
+                default:
+                    break;
+            }
+            break;
+#endif /* MBEDTLS_RSA_C */
+
+        default:
+            break;
+    }
+
+    return( 0 );
+}
+
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
@@ -2275,10 +2373,6 @@ int mbedtls_ssl_parse_server_name_ext( mbedtls_ssl_context *ssl,
                                        const unsigned char *buf,
                                        const unsigned char *end );
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
-
-int mbedtls_ssl_tls13_get_sig_alg_from_pk( mbedtls_ssl_context *ssl,
-                                           mbedtls_pk_context *own_key,
-                                           uint16_t *algorithm );
 
 #if defined(MBEDTLS_SSL_ALPN)
 int mbedtls_ssl_parse_alpn_ext( mbedtls_ssl_context *ssl,

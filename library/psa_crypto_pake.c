@@ -113,6 +113,29 @@ enum psa_pake_sequence
     PSA_PAKE_SEQ_END            = 7,
 };
 
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
+static psa_status_t mbedtls_ecjpake_to_psa_error( int ret )
+{
+    switch( ret )
+    {
+        case MBEDTLS_ERR_MPI_BAD_INPUT_DATA:
+        case MBEDTLS_ERR_ECP_BAD_INPUT_DATA:
+        case MBEDTLS_ERR_ECP_INVALID_KEY:
+        case MBEDTLS_ERR_ECP_VERIFY_FAILED:
+            return( PSA_ERROR_DATA_INVALID );
+        case MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL:
+        case MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL:
+            return( PSA_ERROR_BUFFER_TOO_SMALL );
+        case MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE:
+            return( PSA_ERROR_NOT_SUPPORTED );
+        case MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED:
+            return( PSA_ERROR_CORRUPTION_DETECTED );
+        default:
+            return( PSA_ERROR_GENERIC_ERROR );
+    }
+}
+#endif
+
 #if defined(MBEDTLS_PSA_BUILTIN_PAKE)
 psa_status_t psa_pake_setup( psa_pake_operation_t *operation,
                              const psa_pake_cipher_suite_t *cipher_suite)
@@ -297,7 +320,7 @@ static psa_status_t psa_pake_ecjpake_setup( psa_pake_operation_t *operation )
     slot = NULL;
 
     if( ret != 0 )
-        return( mbedtls_to_psa_error( ret ) );
+        return( mbedtls_ecjpake_to_psa_error( ret ) );
 
     operation->buffer = mbedtls_calloc( 1, PSA_PAKE_BUFFER_SIZE );
     if( operation->buffer == NULL )
@@ -415,7 +438,7 @@ psa_status_t psa_pake_output( psa_pake_operation_t *operation,
             if( ret != 0 )
             {
                 psa_pake_abort( operation );
-                return( mbedtls_to_psa_error( ret ) );
+                return( mbedtls_ecjpake_to_psa_error( ret ) );
             }
 
             operation->buffer_offset = 0;
@@ -432,7 +455,7 @@ psa_status_t psa_pake_output( psa_pake_operation_t *operation,
             if( ret != 0 )
             {
                 psa_pake_abort( operation );
-                return( mbedtls_to_psa_error( ret ) );
+                return( mbedtls_ecjpake_to_psa_error( ret ) );
             }
 
             operation->buffer_offset = 0;
@@ -613,7 +636,7 @@ psa_status_t psa_pake_input( psa_pake_operation_t *operation,
             if( ret != 0 )
             {
                 psa_pake_abort( operation );
-                return( mbedtls_to_psa_error( ret ) );
+                return( mbedtls_ecjpake_to_psa_error( ret ) );
             }
         }
         else if( operation->state == PSA_PAKE_INPUT_X4S &&
@@ -629,7 +652,7 @@ psa_status_t psa_pake_input( psa_pake_operation_t *operation,
             if( ret != 0 )
             {
                 psa_pake_abort( operation );
-                return( mbedtls_to_psa_error( ret ) );
+                return( mbedtls_ecjpake_to_psa_error( ret ) );
             }
         }
 
@@ -676,7 +699,7 @@ psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
         if( ret != 0)
         {
             psa_pake_abort( operation );
-            return( mbedtls_to_psa_error( ret ) );
+            return( mbedtls_ecjpake_to_psa_error( ret ) );
         }
 
         status = psa_key_derivation_input_bytes( output,

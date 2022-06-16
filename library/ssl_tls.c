@@ -8210,4 +8210,79 @@ int mbedtls_ssl_write_sig_alg_ext( mbedtls_ssl_context *ssl, unsigned char *buf,
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+/*
+ * mbedtls_ssl_parse_server_name_ext
+ *
+ * Structure of server_name extension:
+ *
+ *  enum {
+ *        host_name(0), (255)
+ *     } NameType;
+ *  opaque HostName<1..2^16-1>;
+ *
+ *  struct {
+ *          NameType name_type;
+ *          select (name_type) {
+ *             case host_name: HostName;
+ *           } name;
+ *     } ServerName;
+ *  struct {
+ *          ServerName server_name_list<1..2^16-1>
+ *     } ServerNameList;
+ */
+int mbedtls_ssl_parse_server_name_ext( mbedtls_ssl_context *ssl,
+                                       const unsigned char *buf,
+                                       const unsigned char *end )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    const unsigned char *p = buf;
+    size_t server_name_list_len, hostname_len;
+    const unsigned char *server_name_list_end;
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "parse ServerName extension" ) );
+
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2 );
+    server_name_list_len = MBEDTLS_GET_UINT16_BE( p, 0 );
+    p += 2;
+
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, server_name_list_len );
+    server_name_list_end = p + server_name_list_len;
+    while( p < server_name_list_end )
+    {
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, server_name_list_end, 3 );
+        hostname_len = MBEDTLS_GET_UINT16_BE( p, 1 );
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, server_name_list_end,
+                                      hostname_len + 3 );
+
+        if( p[0] == MBEDTLS_TLS_EXT_SERVERNAME_HOSTNAME )
+        {
+            /* sni_name is intended to be used only during the parsing of the
+             * ClientHello message (it is reset to NULL before the end of
+             * the message parsing). Thus it is ok to just point to the
+             * reception buffer and not make a copy of it.
+             */
+            ssl->handshake->sni_name = p + 3;
+            ssl->handshake->sni_name_len = hostname_len;
+            if( ssl->conf->f_sni == NULL )
+                return( 0 );
+            ret = ssl->conf->f_sni( ssl->conf->p_sni,
+                                    ssl, p + 3, hostname_len );
+            if( ret != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "ssl_sni_wrapper", ret );
+                MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNRECOGNIZED_NAME,
+                                              MBEDTLS_ERR_SSL_UNRECOGNIZED_NAME );
+                return( MBEDTLS_ERR_SSL_UNRECOGNIZED_NAME );
+            }
+            return( 0 );
+        }
+
+        p += hostname_len + 3;
+    }
+
+    return( 0 );
+}
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
+
 #endif /* MBEDTLS_SSL_TLS_C */

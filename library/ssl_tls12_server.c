@@ -77,80 +77,6 @@ void mbedtls_ssl_conf_dtls_cookies( mbedtls_ssl_config *conf,
 }
 #endif /* MBEDTLS_SSL_DTLS_HELLO_VERIFY */
 
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-static int ssl_parse_servername_ext( mbedtls_ssl_context *ssl,
-                                     const unsigned char *buf,
-                                     size_t len )
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t servername_list_size, hostname_len;
-    const unsigned char *p;
-
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "parse ServerName extension" ) );
-
-    if( len < 2 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                       MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
-        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
-    }
-    servername_list_size = ( ( buf[0] << 8 ) | ( buf[1] ) );
-    if( servername_list_size + 2 != len )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
-        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
-    }
-
-    p = buf + 2;
-    while( servername_list_size > 2 )
-    {
-        hostname_len = ( ( p[1] << 8 ) | p[2] );
-        if( hostname_len + 3 > servername_list_size )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-            mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                            MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
-            return( MBEDTLS_ERR_SSL_DECODE_ERROR );
-        }
-
-        if( p[0] == MBEDTLS_TLS_EXT_SERVERNAME_HOSTNAME )
-        {
-            ssl->handshake->sni_name = p + 3;
-            ssl->handshake->sni_name_len = hostname_len;
-            if( ssl->conf->f_sni == NULL )
-                return( 0 );
-
-            ret = ssl->conf->f_sni( ssl->conf->p_sni,
-                                    ssl, p + 3, hostname_len );
-            if( ret != 0 )
-            {
-                MBEDTLS_SSL_DEBUG_RET( 1, "ssl_sni_wrapper", ret );
-                mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                        MBEDTLS_SSL_ALERT_MSG_UNRECOGNIZED_NAME );
-                return( MBEDTLS_ERR_SSL_UNRECOGNIZED_NAME );
-            }
-            return( 0 );
-        }
-
-        servername_list_size -= hostname_len + 3;
-        p += hostname_len + 3;
-    }
-
-    if( servername_list_size != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
-        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
-    }
-
-    return( 0 );
-}
-#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
-
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
 static int ssl_conf_has_psk_or_cb( mbedtls_ssl_config const *conf )
 {
@@ -1483,7 +1409,8 @@ read_record_header:
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
             case MBEDTLS_TLS_EXT_SERVERNAME:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found ServerName extension" ) );
-                ret = ssl_parse_servername_ext( ssl, ext + 4, ext_size );
+                ret = mbedtls_ssl_parse_server_name_ext( ssl, ext + 4,
+                                                         ext + 4 + ext_size );
                 if( ret != 0 )
                     return( ret );
                 break;

@@ -2059,8 +2059,80 @@ static inline int mbedtls_ssl_tls13_get_pk_type_and_md_alg_from_sig_alg(
         return( 0 );
 }
 
+static inline int mbedtls_ssl_tls13_sig_alg_is_supported(
+                                                    const uint16_t sig_alg )
+{
+    mbedtls_pk_type_t pk_type;
+    mbedtls_md_type_t md_alg;
+    return( ! mbedtls_ssl_tls13_get_pk_type_and_md_alg_from_sig_alg(
+                                            sig_alg, &pk_type, &md_alg ) );
+}
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+static inline int mbedtls_ssl_tls12_sig_alg_is_supported(
+                                                    const uint16_t sig_alg )
+{
+    /* High byte is hash */
+    unsigned char hash = MBEDTLS_BYTE_1( sig_alg );
+    unsigned char sig = MBEDTLS_BYTE_0( sig_alg );
+
+    switch( hash )
+    {
+#if defined(MBEDTLS_MD5_C)
+        case MBEDTLS_SSL_HASH_MD5:
+            break;
+#endif
+
+#if defined(MBEDTLS_SHA1_C)
+        case MBEDTLS_SSL_HASH_SHA1:
+            break;
+#endif
+
+#if defined(MBEDTLS_SHA224_C)
+        case MBEDTLS_SSL_HASH_SHA224:
+            break;
+#endif
+
+#if defined(MBEDTLS_SHA256_C)
+        case MBEDTLS_SSL_HASH_SHA256:
+            break;
+#endif
+
+#if defined(MBEDTLS_SHA384_C)
+        case MBEDTLS_SSL_HASH_SHA384:
+            break;
+#endif
+
+#if defined(MBEDTLS_SHA512_C)
+        case MBEDTLS_SSL_HASH_SHA512:
+            break;
+#endif
+
+        default:
+            return( 0 );
+    }
+
+    switch( sig )
+    {
+#if defined(MBEDTLS_RSA_C)
+        case MBEDTLS_SSL_SIG_RSA:
+            break;
+#endif
+
+#if defined(MBEDTLS_ECDSA_C)
+        case MBEDTLS_SSL_SIG_ECDSA:
+            break;
+#endif
+
+    default:
+        return( 0 );
+    }
+
+    return( 1 );
+}
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 static inline int mbedtls_ssl_sig_alg_is_supported(
                                                 const mbedtls_ssl_context *ssl,
@@ -2070,73 +2142,14 @@ static inline int mbedtls_ssl_sig_alg_is_supported(
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_2 )
     {
-        /* High byte is hash */
-        unsigned char hash = MBEDTLS_BYTE_1( sig_alg );
-        unsigned char sig = MBEDTLS_BYTE_0( sig_alg );
-
-        switch( hash )
-        {
-#if defined(MBEDTLS_MD5_C)
-            case MBEDTLS_SSL_HASH_MD5:
-                break;
-#endif
-
-#if defined(MBEDTLS_SHA1_C)
-            case MBEDTLS_SSL_HASH_SHA1:
-                break;
-#endif
-
-#if defined(MBEDTLS_SHA224_C)
-            case MBEDTLS_SSL_HASH_SHA224:
-                break;
-#endif
-
-#if defined(MBEDTLS_SHA256_C)
-            case MBEDTLS_SSL_HASH_SHA256:
-                break;
-#endif
-
-#if defined(MBEDTLS_SHA384_C)
-            case MBEDTLS_SSL_HASH_SHA384:
-                break;
-#endif
-
-#if defined(MBEDTLS_SHA512_C)
-            case MBEDTLS_SSL_HASH_SHA512:
-                break;
-#endif
-
-            default:
-                return( 0 );
-        }
-
-        switch( sig )
-        {
-#if defined(MBEDTLS_RSA_C)
-            case MBEDTLS_SSL_SIG_RSA:
-                break;
-#endif
-
-#if defined(MBEDTLS_ECDSA_C)
-            case MBEDTLS_SSL_SIG_ECDSA:
-                break;
-#endif
-
-        default:
-            return( 0 );
-        }
-
-        return( 1 );
+        return( mbedtls_ssl_tls12_sig_alg_is_supported( sig_alg ) );
     }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     if( ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 )
     {
-        mbedtls_pk_type_t pk_type;
-        mbedtls_md_type_t md_alg;
-        return( ! mbedtls_ssl_tls13_get_pk_type_and_md_alg_from_sig_alg(
-                                                sig_alg, &pk_type, &md_alg ) );
+        return( mbedtls_ssl_tls13_sig_alg_is_supported( sig_alg ) );
     }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
     ((void) ssl);

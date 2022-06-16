@@ -542,6 +542,8 @@ static int ssl_tls13_validate_certificate( mbedtls_ssl_context *ssl )
     int authmode = MBEDTLS_SSL_VERIFY_REQUIRED;
     mbedtls_x509_crt *ca_chain;
     mbedtls_x509_crl *ca_crl;
+    const char *ext_oid;
+    size_t ext_len;
     uint32_t verify_result = 0;
 
     /* If SNI was used, overwrite authentication mode
@@ -623,12 +625,25 @@ static int ssl_tls13_validate_certificate( mbedtls_ssl_context *ssl )
     /*
      * Secondary checks: always done, but change 'ret' only if it was 0
      */
-    if( mbedtls_ssl_check_cert_usage( ssl->session_negotiate->peer_cert,
-                                      ssl->handshake->ciphersuite_info,
-                                      !ssl->conf->endpoint,
-                                      &verify_result ) != 0 )
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate ( usage extensions )" ) );
+        ext_oid = MBEDTLS_OID_SERVER_AUTH;
+        ext_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_SERVER_AUTH );
+    }
+    else
+    {
+        ext_oid = MBEDTLS_OID_CLIENT_AUTH;
+        ext_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_CLIENT_AUTH );
+    }
+
+    if( ( mbedtls_x509_crt_check_key_usage(
+              ssl->session_negotiate->peer_cert,
+              MBEDTLS_X509_KU_DIGITAL_SIGNATURE ) != 0 ) ||
+        ( mbedtls_x509_crt_check_extended_key_usage(
+              ssl->session_negotiate->peer_cert,
+              ext_oid, ext_len ) != 0 ) )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate (usage extensions)" ) );
         if( ret == 0 )
             ret = MBEDTLS_ERR_SSL_BAD_CERTIFICATE;
     }

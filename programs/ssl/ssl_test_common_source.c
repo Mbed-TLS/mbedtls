@@ -285,6 +285,9 @@ uint16_t ssl_sig_algs_for_test[] = {
 #if defined(MBEDTLS_SHA224_C)
     MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA224 )
 #endif
+#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_SHA256_C)
+    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256,
+#endif /* MBEDTLS_RSASSA_C && MBEDTLS_SHA256_C */
 #if defined(MBEDTLS_SHA1_C)
     /* Allow SHA-1 as we use it extensively in tests. */
     MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA1 )

@@ -2028,7 +2028,7 @@ static inline int mbedtls_ssl_tls13_get_pk_type_and_md_alg_from_sig_alg(
 
 #endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
 
-#if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C)
+#if 0 && defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C)
 
 #if defined(MBEDTLS_SHA256_C)
         case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256:

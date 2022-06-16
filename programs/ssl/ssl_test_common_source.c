@@ -263,12 +263,24 @@ int send_cb( void *ctx, unsigned char const *buf, size_t len )
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_RSA_C)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#define MBEDTLS_SSL_SIG_ALG( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_ECDSA), \
+                                    ( 0x800 | hash ),                        \
+                                    (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA),
+
+#else
 #define MBEDTLS_SSL_SIG_ALG( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_ECDSA), \
                                     (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA),
+#endif
 #elif defined(MBEDTLS_ECDSA_C)
 #define MBEDTLS_SSL_SIG_ALG( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_ECDSA),
 #elif defined(MBEDTLS_RSA_C)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#define MBEDTLS_SSL_SIG_ALG( hash ) ( 0x800 | hash ),  \
+                                    (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA),
+#else
 #define MBEDTLS_SSL_SIG_ALG( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA),
+#endif
 #else
 #define MBEDTLS_SSL_SIG_ALG( hash )
 #endif

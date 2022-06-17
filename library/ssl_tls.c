@@ -6280,7 +6280,9 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
     {
         const mbedtls_pk_context *pk = &chain->pk;
 
-        /* If certificate uses an EC key, make sure the curve is OK */
+        /* If certificate uses an EC key, make sure the curve is OK.
+         * This is a public key, so it can't be opaque, so can_do() is a good
+         * enough check to ensure pk_ec() is safe to use here. */
         if( mbedtls_pk_can_do( pk, MBEDTLS_PK_ECKEY ) &&
             mbedtls_ssl_check_curve( ssl, mbedtls_pk_ec( *pk )->grp.id ) != 0 )
         {

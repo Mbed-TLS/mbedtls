@@ -410,7 +410,7 @@ static inline int mbedtls_ssl_chk_buf_ptr( const uint8_t *cur,
     }
     return( 0 );
 }
-#endif
+#endif /* MBEDTLS_TEST_HOOKS */
 
 /**
  * \brief        This macro checks if the remaining size in a buffer is

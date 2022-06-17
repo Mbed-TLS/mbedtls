@@ -160,6 +160,7 @@ int mbedtls_ssl_cookie_setup( mbedtls_ssl_cookie_ctx *ctx,
 /*
  * Generate the HMAC part of a cookie
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_cookie_hmac( mbedtls_md_context_t *hmac_ctx,
                             const unsigned char time[4],
                             unsigned char **p, unsigned char *end,

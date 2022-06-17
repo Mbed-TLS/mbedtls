@@ -4019,28 +4019,6 @@ void mbedtls_ssl_config_init( mbedtls_ssl_config *conf )
     memset( conf, 0, sizeof( mbedtls_ssl_config ) );
 }
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-/* The selection should be the same as mbedtls_x509_crt_profile_default in
- * x509_crt.c. Here, the order matters. Currently we favor stronger hashes,
- * for no fundamental reason.
- * See the documentation of mbedtls_ssl_conf_curves() for what we promise
- * about this list. */
-static int ssl_preset_default_hashes[] = {
-#if defined(MBEDTLS_SHA512_C)
-    MBEDTLS_MD_SHA512,
-#endif
-#if defined(MBEDTLS_SHA384_C)
-    MBEDTLS_MD_SHA384,
-#endif
-#if defined(MBEDTLS_SHA256_C)
-    MBEDTLS_MD_SHA256,
-#endif
-    MBEDTLS_MD_NONE
-};
-#endif /* !MBEDTLS_DEPRECATED_REMOVED */
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
-
 /* The selection should be the same as mbedtls_x509_crt_profile_default in
  * x509_crt.c, plus Montgomery curves for ECDHE. Here, the order matters:
  * curves with a lower resource usage come first.
@@ -4082,17 +4060,6 @@ static int ssl_preset_suiteb_ciphersuites[] = {
 };
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-static int ssl_preset_suiteb_hashes[] = {
-#if defined(MBEDTLS_SHA256_C)
-    MBEDTLS_MD_SHA256,
-#endif
-#if defined(MBEDTLS_SHA384_C)
-    MBEDTLS_MD_SHA384,
-#endif
-    MBEDTLS_MD_NONE
-};
-#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
 /* NOTICE:
  *   For ssl_preset_*_sig_algs and ssl_tls12_preset_*_sig_algs, the following
@@ -4122,6 +4089,14 @@ static uint16_t ssl_preset_default_sig_algs[] = {
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_SHA384_C &&
           MBEDTLS_ECP_DP_SECP521R1_ENABLED */
 
+#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && defined(MBEDTLS_SHA512_C)
+    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512,
+#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT && MBEDTLS_SHA512_C */
+
+#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && defined(MBEDTLS_SHA384_C)
+    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384,
+#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT && MBEDTLS_SHA384_C */
+
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && defined(MBEDTLS_SHA256_C)
     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256,
 #endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT && MBEDTLS_SHA256_C */
@@ -4148,14 +4123,25 @@ static uint16_t ssl_tls12_preset_default_sig_algs[] = {
 #if defined(MBEDTLS_ECDSA_C)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG( MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA512 ),
 #endif
+#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && \
+    defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512,
+#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT &&
+          MBEDTLS_SSL_PROTO_TLS1_3 */
 #if defined(MBEDTLS_RSA_C)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG( MBEDTLS_SSL_SIG_RSA, MBEDTLS_SSL_HASH_SHA512 ),
 #endif
 #endif /* MBEDTLS_SHA512_C */
+
 #if defined(MBEDTLS_SHA384_C)
 #if defined(MBEDTLS_ECDSA_C)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG( MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA384 ),
 #endif
+#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && \
+    defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384,
+#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT &&
+          MBEDTLS_SSL_PROTO_TLS1_3 */
 #if defined(MBEDTLS_RSA_C)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG( MBEDTLS_SSL_SIG_RSA, MBEDTLS_SSL_HASH_SHA384 ),
 #endif
@@ -4164,6 +4150,11 @@ static uint16_t ssl_tls12_preset_default_sig_algs[] = {
 #if defined(MBEDTLS_ECDSA_C)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG( MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA256 ),
 #endif
+#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && \
+    defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256,
+#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT &&
+          MBEDTLS_SSL_PROTO_TLS1_3 */
 #if defined(MBEDTLS_RSA_C)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG( MBEDTLS_SSL_SIG_RSA, MBEDTLS_SSL_HASH_SHA256 ),
 #endif
@@ -4422,7 +4413,7 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
-            conf->sig_hashes = ssl_preset_suiteb_hashes;
+            conf->sig_hashes = NULL;
 #endif /* !MBEDTLS_DEPRECATED_REMOVED */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
             if( mbedtls_ssl_conf_is_tls12_only( conf ) )
@@ -4451,7 +4442,7 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
-            conf->sig_hashes = ssl_preset_default_hashes;
+            conf->sig_hashes = NULL;
 #endif /* !MBEDTLS_DEPRECATED_REMOVED */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
             if( mbedtls_ssl_conf_is_tls12_only( conf ) )
@@ -8186,6 +8177,7 @@ int mbedtls_ssl_write_sig_alg_ext( mbedtls_ssl_context *ssl, unsigned char *buf,
         MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
         MBEDTLS_PUT_UINT16_BE( *sig_alg, p, 0 );
         p += 2;
+
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "signature scheme [%x]", *sig_alg ) );
     }
 

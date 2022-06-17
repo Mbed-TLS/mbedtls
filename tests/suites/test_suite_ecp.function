@@ -1297,3 +1297,27 @@ void ecp_selftest(  )
     TEST_ASSERT( mbedtls_ecp_self_test( 1 ) == 0 );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void ecp_check_order( int id, char * expected_order_hex )
+{
+    mbedtls_ecp_group grp;
+    mbedtls_mpi expected_n;
+
+    mbedtls_ecp_group_init( &grp );
+    mbedtls_mpi_init( &expected_n );
+
+    TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &expected_n, 16, expected_order_hex ) == 0);
+
+    // check sign bits are well-formed (i.e. 1 or -1) - see #5810
+    TEST_ASSERT( grp.N.s == -1 || grp.N.s == 1);
+    TEST_ASSERT( expected_n.s == -1 || expected_n.s == 1);
+
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &grp.N, &expected_n ) == 0 );
+
+exit:
+    mbedtls_ecp_group_free( &grp );
+    mbedtls_mpi_free( &expected_n );
+}
+/* END_CASE */

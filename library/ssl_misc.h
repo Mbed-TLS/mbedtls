@@ -2171,9 +2171,6 @@ static inline int mbedtls_ssl_tls13_check_sig_alg_cert_key_match(
     mbedtls_pk_type_t pk_type = mbedtls_ssl_sig_from_pk( key );
     size_t key_size = mbedtls_pk_get_bitlen( key );
 
-    if( !mbedtls_ssl_sig_alg_is_supported( ssl, sig_alg ) )
-        return( 0 );
-
     switch( pk_type )
     {
 #if defined(MBEDTLS_ECDSA_C)
@@ -2223,23 +2220,6 @@ static inline int mbedtls_ssl_tls13_check_sig_alg_cert_key_match(
                     return( key_size <= 4096 );
 #endif /* MBEDTLS_SHA512_C */
 #endif /* MBEDTLS_PKCS1_V21 */
-
-#if defined(MBEDTLS_PKCS1_V15)
-#if defined(MBEDTLS_SHA256_C)
-                case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256:
-                    return( key_size <= 2048 );
-#endif /* MBEDTLS_SHA256_C */
-
-#if defined(MBEDTLS_SHA384_C)
-                case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384:
-                    return( key_size <= 3072 );
-#endif /* MBEDTLS_SHA384_C */
-
-#if defined(MBEDTLS_SHA512_C)
-                case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512:
-                    return( key_size <= 4096 );
-#endif /* MBEDTLS_SHA512_C */
-#endif /* MBEDTLS_PKCS1_V15 */
 
                 default:
                     break;

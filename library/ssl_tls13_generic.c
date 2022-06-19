@@ -873,7 +873,7 @@ static int ssl_tls13_select_sig_alg_for_certificate_verify(
         }
         if( mbedtls_ssl_sig_alg_is_supported( ssl, *sig_alg) &&
             mbedtls_ssl_tls13_check_sig_alg_cert_key_match(
-                                              ssl, *sig_alg, own_key ) )
+                                                        *sig_alg, own_key ) )
         {
             *algorithm = *sig_alg;
             return( 0 );

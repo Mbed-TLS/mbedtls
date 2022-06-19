@@ -390,7 +390,7 @@ static int ssl_tls13_pick_key_cert( mbedtls_ssl_context *ssl )
             }
 
             if( mbedtls_ssl_tls13_check_sig_alg_cert_key_match(
-                    ssl, *sig_alg, &key_cert->cert->pk ) )
+                                            *sig_alg, &key_cert->cert->pk ) )
             {
                 ssl->handshake->key_cert = key_cert;
                 MBEDTLS_SSL_DEBUG_CRT(

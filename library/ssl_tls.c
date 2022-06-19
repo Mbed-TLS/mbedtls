@@ -4088,6 +4088,24 @@ static uint16_t ssl_preset_default_sig_algs[] = {
     MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512,
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_SHA384_C &&
           MBEDTLS_ECP_DP_SECP521R1_ENABLED */
+/*
+ * To fix version negotiation fail with RSA server key.
+ * - With TLS1.3 server, `rsa_pss_rsae_*` must be sent.
+ * - With TLS1.2 server, `rsa_pkcs1_*` must be sent before `rsa_pss_rsae_*`
+ *   - This point is only tested with OpenSSL now.
+ */
+#if defined(MBEDTLS_RSA_C) &&  defined(MBEDTLS_SHA256_C)
+    MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256,
+#endif /* MBEDTLS_RSA_C && MBEDTLS_SHA256_C */
+
+#if defined(MBEDTLS_RSA_C) &&  defined(MBEDTLS_SHA384_C)
+    MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384,
+#endif /* MBEDTLS_RSA_C && MBEDTLS_SHA384_C */
+
+#if defined(MBEDTLS_RSA_C) &&  defined(MBEDTLS_SHA512_C)
+    MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512,
+#endif /* MBEDTLS_RSA_C && MBEDTLS_SHA512_C */
+
 
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && defined(MBEDTLS_SHA512_C)
     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512,
@@ -4101,18 +4119,6 @@ static uint16_t ssl_preset_default_sig_algs[] = {
     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256,
 #endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT && MBEDTLS_SHA256_C */
 
-#if defined(MBEDTLS_RSA_C) &&  defined(MBEDTLS_SHA512_C)
-    MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512,
-#endif /* MBEDTLS_RSA_C && MBEDTLS_SHA512_C */
-
-#if defined(MBEDTLS_RSA_C) &&  defined(MBEDTLS_SHA384_C)
-    MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384,
-#endif /* MBEDTLS_RSA_C && MBEDTLS_SHA384_C */
-
-#if defined(MBEDTLS_RSA_C) &&  defined(MBEDTLS_SHA256_C)
-    MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256,
-#endif /* MBEDTLS_RSA_C && MBEDTLS_SHA256_C */
-
     MBEDTLS_TLS_SIG_NONE
 };
 
@@ -4123,41 +4129,54 @@ static uint16_t ssl_tls12_preset_default_sig_algs[] = {
 #if defined(MBEDTLS_ECDSA_C)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG( MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA512 ),
 #endif
+#if defined(MBEDTLS_RSA_C)
+    MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG( MBEDTLS_SSL_SIG_RSA, MBEDTLS_SSL_HASH_SHA512 ),
+#endif
+/* Server side hybrid mode is not supported yet. When both tls13 and tls12
+ * enabled, this list will be used as signature algorithm list for server side.
+ * With RSA server key, `rsa_pkcs1_*` must be excluded from tls13. As a result,
+ * tls13 server will fail when the key is RSA key.
+ *
+ * With hybrid mode enabled, it can be removed.
+ *
+ * And there is a known issue for version negotiation. See above.
+ */
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && \
     defined(MBEDTLS_SSL_PROTO_TLS1_3)
     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512,
 #endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT &&
           MBEDTLS_SSL_PROTO_TLS1_3 */
-#if defined(MBEDTLS_RSA_C)
-    MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG( MBEDTLS_SSL_SIG_RSA, MBEDTLS_SSL_HASH_SHA512 ),
-#endif
 #endif /* MBEDTLS_SHA512_C */
 
 #if defined(MBEDTLS_SHA384_C)
 #if defined(MBEDTLS_ECDSA_C)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG( MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA384 ),
 #endif
+
+#if defined(MBEDTLS_RSA_C)
+    MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG( MBEDTLS_SSL_SIG_RSA, MBEDTLS_SSL_HASH_SHA384 ),
+#endif
+/* Notice: See above */
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && \
     defined(MBEDTLS_SSL_PROTO_TLS1_3)
     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384,
 #endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT &&
           MBEDTLS_SSL_PROTO_TLS1_3 */
-#if defined(MBEDTLS_RSA_C)
-    MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG( MBEDTLS_SSL_SIG_RSA, MBEDTLS_SSL_HASH_SHA384 ),
-#endif
 #endif /* MBEDTLS_SHA384_C */
 #if defined(MBEDTLS_SHA256_C)
 #if defined(MBEDTLS_ECDSA_C)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG( MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA256 ),
 #endif
+
+#if defined(MBEDTLS_RSA_C)
+    MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG( MBEDTLS_SSL_SIG_RSA, MBEDTLS_SSL_HASH_SHA256 ),
+#endif
+/* Notice: See above */
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && \
     defined(MBEDTLS_SSL_PROTO_TLS1_3)
     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256,
 #endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT &&
           MBEDTLS_SSL_PROTO_TLS1_3 */
-#if defined(MBEDTLS_RSA_C)
-    MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG( MBEDTLS_SSL_SIG_RSA, MBEDTLS_SSL_HASH_SHA256 ),
-#endif
 #endif /* MBEDTLS_SHA256_C */
     MBEDTLS_TLS_SIG_NONE
 };
@@ -8169,6 +8188,7 @@ int mbedtls_ssl_write_sig_alg_ext( mbedtls_ssl_context *ssl, unsigned char *buf,
         return( MBEDTLS_ERR_SSL_BAD_CONFIG );
 
     for( ; *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
+
     {
         if( ! mbedtls_ssl_sig_alg_is_supported( ssl, *sig_alg ) )
             continue;

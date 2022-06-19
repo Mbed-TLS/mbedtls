@@ -264,10 +264,14 @@ int send_cb( void *ctx, unsigned char const *buf, size_t len )
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_RSA_C)
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+/* To fix version negotiation fail with RSA server key.
+ * - With TLS1.3 server, `rsa_pss_rsae_*` must be sent.
+ * - With TLS1.2 server, `rsa_pkcs1_*` must be sent before `rsa_pss_rsae_*`
+ *   - This point is only tested with OpenSSL now.
+ */
 #define MBEDTLS_SSL_SIG_ALG( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_ECDSA), \
-                                    ( 0x800 | hash ),                        \
-                                    (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA),
-
+                                    (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA), \
+                                    ( 0x800 | hash ),
 #else
 #define MBEDTLS_SSL_SIG_ALG( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_ECDSA), \
                                     (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA),
@@ -276,8 +280,9 @@ int send_cb( void *ctx, unsigned char const *buf, size_t len )
 #define MBEDTLS_SSL_SIG_ALG( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_ECDSA),
 #elif defined(MBEDTLS_RSA_C)
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-#define MBEDTLS_SSL_SIG_ALG( hash ) ( 0x800 | hash ),  \
-                                    (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA),
+/* See above */
+#define MBEDTLS_SSL_SIG_ALG( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA), \
+                                    ( 0x800 | hash ),
 #else
 #define MBEDTLS_SSL_SIG_ALG( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA),
 #endif

@@ -2163,7 +2163,7 @@ static inline int mbedtls_ssl_sig_alg_is_supported(
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 
-static inline int mbedtls_ssl_tls13_sig_alg_is_available_for_pk(
+static inline int mbedtls_ssl_tls13_check_sig_alg_cert_key_match(
                 mbedtls_ssl_context *ssl,
                 uint16_t sig_alg,
                 mbedtls_pk_context *key)

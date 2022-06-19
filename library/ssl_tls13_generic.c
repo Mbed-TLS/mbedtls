@@ -871,7 +871,7 @@ static int ssl_tls13_get_sig_alg_from_pk( mbedtls_ssl_context *ssl,
             continue;
         }
         if( mbedtls_ssl_sig_alg_is_supported( ssl, *sig_alg) &&
-            mbedtls_ssl_tls13_sig_alg_is_available_for_pk(
+            mbedtls_ssl_tls13_check_sig_alg_cert_key_match(
                                               ssl, *sig_alg, own_key ) )
         {
             *algorithm = *sig_alg;

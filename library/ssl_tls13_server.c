@@ -389,7 +389,6 @@ static int ssl_tls13_pick_key_cert( mbedtls_ssl_context *ssl )
                 continue;
             }
 
-            MBEDTLS_SSL_DEBUG_MSG( 2,("Try get sig alg %04x",*sig_alg));
             if( mbedtls_ssl_tls13_check_sig_alg_cert_key_match(
                     ssl, *sig_alg, &key_cert->cert->pk ) )
             {
@@ -402,7 +401,8 @@ static int ssl_tls13_pick_key_cert( mbedtls_ssl_context *ssl )
         }
     }
 
-    MBEDTLS_SSL_DEBUG_MSG( 2,("No signature algorithm found"));
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "ssl_tls13_pick_key_cert: "
+                                "No signature algorithm found" ) );
     return( -1 );
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C &&

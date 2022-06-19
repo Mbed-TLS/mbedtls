@@ -1600,7 +1600,7 @@ requires_config_enabled MBEDTLS_SHA512_C # "signature_algorithm ext: 6"
 requires_config_enabled MBEDTLS_ECP_DP_CURVE25519_ENABLED
 run_test    "Default" \
             "$P_SRV debug_level=3" \
-            "$P_CLI debug_level=4" \
+            "$P_CLI" \
             0 \
             -s "Protocol is TLSv1.2" \
             -s "Ciphersuite is TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256" \

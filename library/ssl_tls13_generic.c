@@ -855,7 +855,8 @@ cleanup:
  * STATE HANDLING: Output Certificate Verify
  */
 
-static int ssl_tls13_get_sig_alg_from_pk( mbedtls_ssl_context *ssl,
+static int ssl_tls13_select_sig_alg_for_certificate_verify(
+                                          mbedtls_ssl_context *ssl,
                                           mbedtls_pk_context *own_key,
                                           uint16_t *algorithm )
 {
@@ -935,8 +936,9 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
      *    opaque signature<0..2^16-1>;
      *  } CertificateVerify;
      */
-    ret = ssl_tls13_get_sig_alg_from_pk( ssl, own_key, &algorithm );
-    if( ret != 0 || ! mbedtls_ssl_sig_alg_is_received( ssl, algorithm ) )
+    ret = ssl_tls13_select_sig_alg_for_certificate_verify( ssl, own_key,
+                                                           &algorithm );
+    if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1,
                     ( "signature algorithm not in received or offered list." ) );

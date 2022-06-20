@@ -2686,11 +2686,11 @@
 /**
  * \def MBEDTLS_PSA_CRYPTO_SE_C
  *
- * Enable secure element support in the Platform Security Architecture
+ * Enable dynamic secure element support in the Platform Security Architecture
  * cryptography API.
  *
- * \warning This feature is not yet suitable for production. It is provided
- *          for API evaluation and testing purposes only.
+ * \deprecated This feature is deprecated. Please switch to the driver
+ *             interface enabled by #MBEDTLS_PSA_CRYPTO_DRIVERS.
  *
  * Module:  library/psa_crypto_se.c
  *

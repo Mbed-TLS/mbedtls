@@ -36,6 +36,14 @@ undocumented features, then you should be able to re-compile it without
 modification with any later release x.y'.z' with the same major version
 number, and your code will still build, be secure, and work.
 
+Note that this guarantee only applies if you either use the default
+compile-time configuration (`mbedtls/mbedtls_config.h`) or the same modified
+compile-time configuration. Changing compile-time configuration options can
+result in an incompatible API or ABI, altough features will generally not
+affect independent features (for example, enabling or disabling a
+cryptographic algorithm does not break code that does not use that
+algorithm).
+
 Note that new releases of Mbed TLS may extend the API. Here are some
 examples of changes that are common in minor releases of Mbed TLS, and are
 not considered API compatibility breaks:

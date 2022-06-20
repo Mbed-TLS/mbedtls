@@ -1733,7 +1733,6 @@ static int ssl_tls12_populate_session( mbedtls_ssl_session *session,
 #endif
     session->tls_version = MBEDTLS_SSL_VERSION_TLS1_2;
     session->ciphersuite = 0xabcd;
-    session->compression = 1;
     session->id_len = sizeof( session->id );
     memset( session->id, 66, session->id_len );
     memset( session->master, 17, sizeof( session->master ) );
@@ -4721,12 +4720,11 @@ void ssl_serialize_session_save_load( int ticket_len, char *crt_file,
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( tls_version == MBEDTLS_SSL_VERSION_TLS1_2 )
     {
-        TEST_ASSERT( original.compression == restored.compression );
         TEST_ASSERT( original.id_len == restored.id_len );
         TEST_ASSERT( memcmp( original.id,
-                            restored.id, sizeof( original.id ) ) == 0 );
+                             restored.id, sizeof( original.id ) ) == 0 );
         TEST_ASSERT( memcmp( original.master,
-                            restored.master, sizeof( original.master ) ) == 0 );
+                             restored.master, sizeof( original.master ) ) == 0 );
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)

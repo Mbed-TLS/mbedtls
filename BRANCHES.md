@@ -78,6 +78,12 @@ Mbed TLS 3.x can also read keys written by Mbed TLS 2.25.0 through 2.28.x
 LTS, but future major version upgrades (for example from 2.28.x/3.x to 4.y)
 may require the use of an upgrade tool.
 
+Note that this guarantee does not currently fully extend to drivers, which
+are an experimental feature. We intend to maintain compatibility with the
+basic use of drivers from Mbed TLS 2.28.0 onwards, even if driver APIs
+change. However, for more experimental parts of the driver interface, such
+as the use of driver state, we do not yet guarantee backward compatibility.
+
 ## Long-time support branches
 
 For the LTS branches, additionally we try very hard to also maintain ABI

@@ -384,7 +384,7 @@ mbedtls_x509_dn_get_next:"C=NL, O=PolarSSL, CN=PolarSSL Server 1":0b001:"C CN":2
 X509 Get Next DN #3 Single Multivalue RDN
 mbedtls_x509_dn_get_next:"C=NL, O=PolarSSL, CN=PolarSSL Server 1":0b011:"C":1:"C=NL + O=PolarSSL + CN=PolarSSL Server 1"
 
-X509 Get Next DN #4 Consecutive MV RDNs
+X509 Get Next DN #4 Consecutive Multivalue RDNs
 mbedtls_x509_dn_get_next:"C=NL, O=PolarSSL, title=Example, CN=PolarSSL Server 1":0b0101:"C title":2:"C=NL + O=PolarSSL, title=Example + CN=PolarSSL Server 1"
 
 X509 Time Expired #1

@@ -181,7 +181,9 @@ static inline struct psa_aead_operation_s psa_aead_operation_init( void )
     return( v );
 }
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND)
 typedef struct
 {
     uint8_t *MBEDTLS_PRIVATE(info);
@@ -197,7 +199,9 @@ typedef struct
     uint8_t MBEDTLS_PRIVATE(prk)[PSA_HASH_MAX_SIZE];
     struct psa_mac_operation_s MBEDTLS_PRIVATE(hmac);
 } psa_hkdf_key_derivation_t;
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF ||
+          MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT ||
+          MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND */
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
@@ -254,7 +258,9 @@ struct psa_key_derivation_s
     {
         /* Make the union non-empty even with no supported algorithms. */
         uint8_t MBEDTLS_PRIVATE(dummy);
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND)
         psa_hkdf_key_derivation_t MBEDTLS_PRIVATE(hkdf);
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \

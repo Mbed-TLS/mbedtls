@@ -67,6 +67,8 @@
 #define PSA_WANT_ALG_ECDSA                      1
 #define PSA_WANT_ALG_GCM                        1
 #define PSA_WANT_ALG_HKDF                       1
+#define PSA_WANT_ALG_HKDF_EXTRACT               1
+#define PSA_WANT_ALG_HKDF_EXPAND                1
 #define PSA_WANT_ALG_HMAC                       1
 #define PSA_WANT_ALG_MD5                        1
 #define PSA_WANT_ALG_OFB                        1

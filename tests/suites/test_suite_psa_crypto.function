@@ -7005,9 +7005,13 @@ void derive_output( int alg_arg,
                 switch( key_input_type )
                 {
                     case 0: // input bytes
-                        PSA_ASSERT( psa_key_derivation_input_bytes(
+                        TEST_EQUAL( psa_key_derivation_input_bytes(
                                         &operation, steps[i],
-                                        inputs[i]->x, inputs[i]->len ) );
+                                        inputs[i]->x, inputs[i]->len ),
+                                    statuses[i] );
+
+                        if( statuses[i] != PSA_SUCCESS )
+                            goto exit;
                         break;
                     case 1: // input key
                         psa_set_key_usage_flags( &attributes1, PSA_KEY_USAGE_DERIVE );
@@ -7087,9 +7091,12 @@ void derive_output( int alg_arg,
                     goto exit;
                 break;
             default:
-                PSA_ASSERT( psa_key_derivation_input_bytes(
+                TEST_EQUAL( psa_key_derivation_input_bytes(
                                 &operation, steps[i],
-                                inputs[i]->x, inputs[i]->len ) );
+                                inputs[i]->x, inputs[i]->len ), statuses[i] );
+
+                if( statuses[i] != PSA_SUCCESS )
+                    goto exit;
                 break;
         }
     }
@@ -7111,7 +7118,7 @@ void derive_output( int alg_arg,
         psa_set_key_usage_flags( &attributes4, PSA_KEY_USAGE_EXPORT );
         psa_set_key_algorithm( &attributes4, alg );
         psa_set_key_type( &attributes4, PSA_KEY_TYPE_DERIVE );
-        psa_set_key_bits( &attributes4, 48 );
+        psa_set_key_bits( &attributes4, PSA_BYTES_TO_BITS( requested_capacity ) );
 
         TEST_EQUAL( psa_key_derivation_output_key( &attributes4, &operation,
                                         &derived_key ), expected_status );

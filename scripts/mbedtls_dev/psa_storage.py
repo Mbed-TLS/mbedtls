@@ -1,4 +1,9 @@
 """Knowledge about the PSA key store as implemented in Mbed TLS.
+
+Note that if you need to make a change that affects how keys are
+stored, this may indicate that the key store is changing in a
+backward-incompatible way! Think carefully about backward compatibility
+before changing how test data is constructed or validated.
 """
 
 # Copyright The Mbed TLS Contributors
@@ -146,6 +151,11 @@ class Key:
         This is the content of the PSA storage file. When PSA storage is
         implemented over stdio files, this does not include any wrapping made
         by the PSA-storage-over-stdio-file implementation.
+
+        Note that if you need to make a change in this function,
+        this may indicate that the key store is changing in a
+        backward-incompatible way! Think carefully about backward
+        compatibility before making any change here.
         """
         header = self.MAGIC + self.pack('L', self.version)
         if self.version == 0:

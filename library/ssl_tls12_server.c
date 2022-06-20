@@ -1189,16 +1189,29 @@ read_record_header:
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
         return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
     }
-
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello v3, handshake len.: %d",
-                   ( buf[1] << 16 ) | ( buf[2] << 8 ) | buf[3] ) );
-
-    /* We don't support fragmentation of ClientHello (yet?) */
-    if( buf[1] != 0 ||
-        msg_len != mbedtls_ssl_hs_hdr_len( ssl ) + ( ( buf[2] << 8 ) | buf[3] ) )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
-        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
+        size_t handshake_len = MBEDTLS_GET_UINT24_BE( buf, 1 );
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello v3, handshake len.: %u",
+                       ( unsigned ) handshake_len ) );
+
+        /* The record layer has a record size limit of 2^14 - 1 and
+         * fragmentation is not supported, so buf[1] should be zero. */
+        if( buf[1] != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message: %u != 0",
+                                        (unsigned) buf[1] ) );
+            return( MBEDTLS_ERR_SSL_DECODE_ERROR );
+        }
+
+        /* We don't support fragmentation of ClientHello (yet?) */
+        if( msg_len != mbedtls_ssl_hs_hdr_len( ssl ) + handshake_len )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message: %u != %u + %u",
+                                    (unsigned) msg_len,
+                                    (unsigned) mbedtls_ssl_hs_hdr_len( ssl ),
+                                    (unsigned) handshake_len ) );
+            return( MBEDTLS_ERR_SSL_DECODE_ERROR );
+        }
     }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -1233,16 +1246,24 @@ read_record_header:
             ssl->handshake->out_msg_seq = cli_msg_seq;
             ssl->handshake->in_msg_seq  = cli_msg_seq + 1;
         }
-
-        /*
-         * For now we don't support fragmentation, so make sure
-         * fragment_offset == 0 and fragment_length == length
-         */
-        if( ssl->in_msg[6] != 0 || ssl->in_msg[7] != 0 || ssl->in_msg[8] != 0 ||
-            memcmp( ssl->in_msg + 1, ssl->in_msg + 9, 3 ) != 0 )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "ClientHello fragmentation not supported" ) );
-            return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+            /*
+             * For now we don't support fragmentation, so make sure
+             * fragment_offset == 0 and fragment_length == length
+             */
+            size_t fragment_offset, fragment_length, length;
+            fragment_offset = MBEDTLS_GET_UINT24_BE( ssl->in_msg, 6 );
+            fragment_length = MBEDTLS_GET_UINT24_BE( ssl->in_msg, 9 );
+            length = MBEDTLS_GET_UINT24_BE( ssl->in_msg, 1 );
+            MBEDTLS_SSL_DEBUG_MSG(
+                4, ( "fragment_offset=%u fragment_length=%u length=%u",
+                     (unsigned) fragment_offset, (unsigned) fragment_length,
+                     (unsigned) length ) );
+            if( fragment_offset != 0 || length != fragment_length )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "ClientHello fragmentation not supported" ) );
+                return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+            }
         }
     }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */

@@ -855,6 +855,76 @@ cleanup:
  * STATE HANDLING: Output Certificate Verify
  */
 
+int mbedtls_ssl_tls13_check_sig_alg_cert_key_match(
+                uint16_t sig_alg,
+                mbedtls_pk_context *key)
+{
+    mbedtls_pk_type_t pk_type = mbedtls_ssl_sig_from_pk( key );
+    size_t key_size = mbedtls_pk_get_bitlen( key );
+
+    switch( pk_type )
+    {
+#if defined(MBEDTLS_ECDSA_C)
+        case MBEDTLS_SSL_SIG_ECDSA:
+            switch( key_size )
+            {
+#if defined(MBEDTLS_SHA256_C) && defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+                case 256:
+                    return(
+                        sig_alg == MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256 );
+#endif /* MBEDTLS_SHA256_C && MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+
+#if defined(MBEDTLS_SHA384_C) && defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+                case 384:
+                    return(
+                        sig_alg == MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384 );
+#endif /* MBEDTLS_SHA384_C && MBEDTLS_ECP_DP_SECP384R1_ENABLED */
+
+#if defined(MBEDTLS_SHA512_C) && defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
+                case 521:
+                    return(
+                        sig_alg == MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512 );
+#endif /* MBEDTLS_SHA512_C && MBEDTLS_ECP_DP_SECP521R1_ENABLED */
+                default:
+                    break;
+            }
+            break;
+#endif /* MBEDTLS_ECDSA_C */
+
+#if defined(MBEDTLS_RSA_C)
+        case MBEDTLS_SSL_SIG_RSA:
+            switch( sig_alg )
+            {
+#if defined(MBEDTLS_PKCS1_V21)
+#if defined(MBEDTLS_SHA256_C)
+                case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
+                    return( key_size <= 2048 );
+#endif /* MBEDTLS_SHA256_C */
+
+#if defined(MBEDTLS_SHA384_C)
+                case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384:
+                    return( key_size <= 3072 );
+#endif /* MBEDTLS_SHA384_C */
+
+#if defined(MBEDTLS_SHA512_C)
+                case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:
+                    return( key_size <= 4096 );
+#endif /* MBEDTLS_SHA512_C */
+#endif /* MBEDTLS_PKCS1_V21 */
+
+                default:
+                    break;
+            }
+            break;
+#endif /* MBEDTLS_RSA_C */
+
+        default:
+            break;
+    }
+
+    return( 0 );
+}
+
 static int ssl_tls13_select_sig_alg_for_certificate_verify(
                                           mbedtls_ssl_context *ssl,
                                           mbedtls_pk_context *own_key,

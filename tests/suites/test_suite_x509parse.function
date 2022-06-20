@@ -813,7 +813,7 @@ void mbedtls_x509_dn_get_next( char * name_str, int next_merged, char * expected
     parsed_cur = &parsed;
     for( ; next_merged != 0 && parsed_cur != NULL; next_merged = next_merged >> 1 )
     {
-        parsed_cur->next_merged = next_merged & 0b1;
+        parsed_cur->next_merged = next_merged & 0x01;
         parsed_cur = parsed_cur->next;
     }
 

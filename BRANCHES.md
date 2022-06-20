@@ -28,7 +28,7 @@ the API of 3.(x+1) is backward compatible with 3.x). We only break API
 compatibility on major version changes (e.g. from 3.x to 4.0). We also maintain
 ABI compatibility within LTS branches; see the next section for details.
 
-## Backwards Compatibility
+## Backwards Compatibility for application code
 
 We maintain API compatibility in released versions of Mbed TLS. If you have
 code that's working and secure with Mbed TLS x.y.z and does not rely on
@@ -64,6 +64,19 @@ relying on something that became insecure in the meantime (for example,
 crypto that was found to be weak) may need to be changed. In case security
 comes in conflict with backwards compatibility, we will put security first,
 but always attempt to provide a compatibility option.
+
+## Backward compatibility for the key store
+
+We maintain backward compatibility with previous versions of versions of the
+PSA Crypto persistent storage since Mbed TLS 2.25.0, provided that the
+storage backend (PSA ITS implementation) is configured in a compatible way.
+We intend to maintain this backward compatibilty throughout a major version
+of Mbed TLS (for example, all Mbed TLS 3.y versions will be able to read
+keys written under any Mbed TLS 3.x with x < y).
+
+Mbed TLS 3.x can also read keys written by Mbed TLS 2.25.0 through 2.28.x
+LTS, but future major version upgrades (for example from 2.28.x/3.x to 4.y)
+may require the use of an upgrade tool.
 
 ## Long-time support branches
 

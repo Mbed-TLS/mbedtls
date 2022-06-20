@@ -274,7 +274,7 @@ int mbedtls_x509_dn_gets( char *buf, size_t size, const mbedtls_x509_name *dn );
  * \return         Pointer to the first attribute-value pair of the
  *                 next RDN in sequence, or NULL if end is reached.
  */
-mbedtls_x509_name * mbedtls_x509_dn_get_next( mbedtls_x509_name * start );
+mbedtls_x509_name * mbedtls_x509_dn_get_next( mbedtls_x509_name *dn );
 
 /**
  * \brief          Store the certificate serial in printable form into buf;

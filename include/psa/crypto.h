@@ -3204,6 +3204,14 @@ psa_status_t psa_asymmetric_decrypt(mbedtls_svc_key_id_t key,
  * make any assumptions about the content of this structure.
  * Implementation details can change in future versions without notice.
  */
+
+/** The type of the input data structure for key derivation operations.
+ *
+ * Structure holds union of the algorithm dependent input types.
+ */
+typedef struct psa_crypto_driver_key_derivation_inputs_s
+    psa_crypto_driver_key_derivation_inputs_t;
+
 typedef struct psa_key_derivation_s psa_key_derivation_operation_t;
 
 /** \def PSA_KEY_DERIVATION_OPERATION_INIT

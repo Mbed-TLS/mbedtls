@@ -181,20 +181,37 @@ static inline struct psa_aead_operation_s psa_aead_operation_init( void )
     return( v );
 }
 
+typedef enum
+{
+    PSA_KEY_DERIVATION_STAGE_INPUT,   /* collecting inputs */
+    PSA_KEY_DERIVATION_STAGE_OUTPUT   /* generating output */
+} psa_key_derivation_stage_t;
+
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND)
 typedef struct
 {
+    uint8_t *MBEDTLS_PRIVATE(secret);
+    size_t MBEDTLS_PRIVATE(secret_length);
+    uint8_t *MBEDTLS_PRIVATE(salt);
+    size_t MBEDTLS_PRIVATE(salt_length);
     uint8_t *MBEDTLS_PRIVATE(info);
     size_t MBEDTLS_PRIVATE(info_length);
+
+    unsigned int MBEDTLS_PRIVATE(state) : 2;
+    unsigned int MBEDTLS_PRIVATE(info_set) : 1;
+} psa_hkdf_key_derivation_inputs_t;
+
+typedef struct
+{
 #if PSA_HASH_MAX_SIZE > 0xff
 #error "PSA_HASH_MAX_SIZE does not fit in uint8_t"
 #endif
+    uint8_t *MBEDTLS_PRIVATE(info);
+    size_t MBEDTLS_PRIVATE(info_length);
     uint8_t MBEDTLS_PRIVATE(offset_in_block);
     uint8_t MBEDTLS_PRIVATE(block_number);
-    unsigned int MBEDTLS_PRIVATE(state) : 2;
-    unsigned int MBEDTLS_PRIVATE(info_set) : 1;
     uint8_t MBEDTLS_PRIVATE(output_block)[PSA_HASH_MAX_SIZE];
     uint8_t MBEDTLS_PRIVATE(prk)[PSA_HASH_MAX_SIZE];
     struct psa_mac_operation_s MBEDTLS_PRIVATE(hmac);
@@ -215,6 +232,23 @@ typedef enum
     PSA_TLS12_PRF_STATE_OUTPUT            /* output has been started */
 } psa_tls12_prf_key_derivation_state_t;
 
+typedef struct
+{
+    uint8_t *MBEDTLS_PRIVATE(secret);
+    size_t MBEDTLS_PRIVATE(secret_length);
+    uint8_t *MBEDTLS_PRIVATE(seed);
+    size_t MBEDTLS_PRIVATE(seed_length);
+    uint8_t *MBEDTLS_PRIVATE(label);
+    size_t MBEDTLS_PRIVATE(label_length);
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
+    uint8_t *MBEDTLS_PRIVATE(other_secret);
+    size_t MBEDTLS_PRIVATE(other_secret_length);
+    unsigned int MBEDTLS_PRIVATE(other_secret_set) : 1;
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
+
+    unsigned int MBEDTLS_PRIVATE(state) : 3;
+} psa_tls12_prf_key_derivation_inputs_t;
+
 typedef struct psa_tls12_prf_key_derivation_s
 {
 #if PSA_HASH_MAX_SIZE > 0xff
@@ -228,18 +262,12 @@ typedef struct psa_tls12_prf_key_derivation_s
     /* The 1-based number of the block. */
     uint8_t MBEDTLS_PRIVATE(block_number);
 
-    psa_tls12_prf_key_derivation_state_t MBEDTLS_PRIVATE(state);
-
     uint8_t *MBEDTLS_PRIVATE(secret);
     size_t MBEDTLS_PRIVATE(secret_length);
     uint8_t *MBEDTLS_PRIVATE(seed);
     size_t MBEDTLS_PRIVATE(seed_length);
     uint8_t *MBEDTLS_PRIVATE(label);
     size_t MBEDTLS_PRIVATE(label_length);
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
-    uint8_t *MBEDTLS_PRIVATE(other_secret);
-    size_t MBEDTLS_PRIVATE(other_secret_length);
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
 
     uint8_t MBEDTLS_PRIVATE(Ai)[PSA_HASH_MAX_SIZE];
 
@@ -249,29 +277,56 @@ typedef struct psa_tls12_prf_key_derivation_s
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) ||
         * MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
 
-struct psa_key_derivation_s
+struct psa_crypto_driver_key_derivation_inputs_s
 {
-    psa_algorithm_t MBEDTLS_PRIVATE(alg);
-    unsigned int MBEDTLS_PRIVATE(can_output_key) : 1;
-    size_t MBEDTLS_PRIVATE(capacity);
     union
     {
         /* Make the union non-empty even with no supported algorithms. */
         uint8_t MBEDTLS_PRIVATE(dummy);
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
+        psa_tls12_prf_key_derivation_inputs_t MBEDTLS_PRIVATE(tls12_prf);
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF ||
+          MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
+        psa_hkdf_key_derivation_inputs_t MBEDTLS_PRIVATE(hkdf);
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF */
+    } u;
+    psa_algorithm_t MBEDTLS_PRIVATE(alg);
+};
+
+typedef struct
+{
+    union
+    {
+        /* Make the union non-empty even with no supported algorithms. */
+        uint8_t MBEDTLS_PRIVATE(dummy);
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
         psa_hkdf_key_derivation_t MBEDTLS_PRIVATE(hkdf);
 #endif
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
         psa_tls12_prf_key_derivation_t MBEDTLS_PRIVATE(tls12_prf);
 #endif
-    } MBEDTLS_PRIVATE(ctx);
+    } u;
+    psa_algorithm_t MBEDTLS_PRIVATE(alg);
+} psa_driver_key_derivation_context_t;
+
+struct psa_key_derivation_s
+{
+    unsigned int MBEDTLS_PRIVATE(can_output_key) : 1;
+    size_t MBEDTLS_PRIVATE(capacity);
+    psa_key_derivation_stage_t MBEDTLS_PRIVATE(stage);
+
+    union {
+        unsigned dummy; /* Make sure this union is always non-empty */
+        psa_crypto_driver_key_derivation_inputs_t MBEDTLS_PRIVATE(inputs);
+        psa_driver_key_derivation_context_t MBEDTLS_PRIVATE(context);
+    } MBEDTLS_PRIVATE(data);
 };
 
 /* This only zeroes out the first byte in the union, the rest is unspecified. */
-#define PSA_KEY_DERIVATION_OPERATION_INIT { 0, 0, 0, { 0 } }
+#define PSA_KEY_DERIVATION_OPERATION_INIT { 0, 0, PSA_KEY_DERIVATION_STAGE_INPUT, { 0 } }
 static inline struct psa_key_derivation_s psa_key_derivation_operation_init(
         void )
 {

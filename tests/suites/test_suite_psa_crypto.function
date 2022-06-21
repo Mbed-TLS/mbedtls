@@ -8091,3 +8091,185 @@ exit:
     PSA_DONE();
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void key_derivation_get_input( int alg_arg,
+    int step1_arg, data_t *input1,
+    int step2_arg, data_t *input2,
+    int step3_arg, data_t *input3,
+    int step4_arg, data_t *input4,
+    int get_step1_arg, int expected_status_get_size_arg1, int expected_status_get_bytes_arg1,
+    int get_step2_arg, int expected_status_get_size_arg2, int expected_status_get_bytes_arg2,
+    int get_step3_arg, int expected_status_get_size_arg3, int expected_status_get_bytes_arg3,
+    int get_step4_arg, int expected_status_get_size_arg4, int expected_status_get_bytes_arg4,
+    int other_key_input_type,
+    int key_input_type )
+{
+    psa_algorithm_t alg = alg_arg;
+    psa_key_derivation_step_t steps[] = {step1_arg, step2_arg, step3_arg, step4_arg};
+    psa_key_derivation_step_t get_steps[] = {get_step1_arg, get_step2_arg,
+                                             get_step3_arg, get_step4_arg};
+    psa_status_t get_size_statuses[] = {expected_status_get_size_arg1,
+                                        expected_status_get_size_arg2,
+                                        expected_status_get_size_arg3,
+                                        expected_status_get_size_arg4};
+    psa_status_t get_bytes_statuses[] = {expected_status_get_bytes_arg1,
+                                         expected_status_get_bytes_arg2,
+                                         expected_status_get_bytes_arg3,
+                                         expected_status_get_bytes_arg4};
+    data_t *inputs[] = {input1, input2, input3, input4};
+    mbedtls_svc_key_id_t keys[] = {MBEDTLS_SVC_KEY_ID_INIT,
+                                   MBEDTLS_SVC_KEY_ID_INIT,
+                                   MBEDTLS_SVC_KEY_ID_INIT,
+                                   MBEDTLS_SVC_KEY_ID_INIT};
+    psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
+    psa_key_attributes_t attributes1 = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_attributes_t attributes2 = PSA_KEY_ATTRIBUTES_INIT;
+    psa_status_t status;
+    const size_t default_output_buffer_size = 512;
+    uint8_t *output = mbedtls_calloc( 1, default_output_buffer_size );
+    TEST_ASSERT( output != NULL );
+    size_t output_length;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    /* Extraction phase. */
+    PSA_ASSERT( psa_key_derivation_setup( &operation, alg ) );
+
+    for( size_t i = 0; i < ARRAY_LENGTH( steps ); i++ )
+    {
+        switch( steps[i] )
+        {
+            case 0:
+                break;
+            case PSA_KEY_DERIVATION_INPUT_SECRET:
+                switch( key_input_type )
+                {
+                    case 0: // input bytes
+                        TEST_EQUAL( psa_key_derivation_input_bytes(
+                                        &operation, steps[i],
+                                        inputs[i]->x, inputs[i]->len ),
+                                    PSA_SUCCESS );
+
+                        break;
+                    case 1: // input key
+                        psa_set_key_usage_flags( &attributes1, PSA_KEY_USAGE_DERIVE );
+                        psa_set_key_algorithm( &attributes1, alg );
+                        psa_set_key_type( &attributes1, PSA_KEY_TYPE_DERIVE );
+
+                        PSA_ASSERT( psa_import_key( &attributes1,
+                                                    inputs[i]->x, inputs[i]->len,
+                                                    &keys[i] ) );
+
+                        if( PSA_ALG_IS_TLS12_PSK_TO_MS( alg ) )
+                        {
+                            PSA_ASSERT( psa_get_key_attributes( keys[i], &attributes1 ) );
+                            TEST_ASSERT( PSA_BITS_TO_BYTES( psa_get_key_bits( &attributes1 ) ) <=
+                                        PSA_TLS12_PSK_TO_MS_PSK_MAX_SIZE );
+                        }
+
+                        PSA_ASSERT( psa_key_derivation_input_key( &operation,
+                                                                  steps[i],
+                                                                  keys[i] ) );
+                        break;
+                    default:
+                        TEST_ASSERT( ! "default case not supported" );
+                        break;
+                }
+                break;
+            case PSA_KEY_DERIVATION_INPUT_OTHER_SECRET:
+                switch( other_key_input_type )
+                {
+                    case 0: // input bytes
+                        TEST_EQUAL( psa_key_derivation_input_bytes( &operation,
+                                                                    steps[i],
+                                                                    inputs[i]->x,
+                                                                    inputs[i]->len ),
+                                    PSA_SUCCESS );
+                        break;
+                    case 1: // input key
+                        psa_set_key_usage_flags( &attributes2, PSA_KEY_USAGE_DERIVE );
+                        psa_set_key_algorithm( &attributes2, alg );
+                        psa_set_key_type( &attributes2, PSA_KEY_TYPE_DERIVE );
+
+                        PSA_ASSERT( psa_import_key( &attributes2,
+                                                    inputs[i]->x, inputs[i]->len,
+                                                    &keys[i] ) );
+
+                        TEST_EQUAL( psa_key_derivation_input_key( &operation,
+                                                                  steps[i],
+                                                                  keys[i] ),
+                                    PSA_SUCCESS );
+                        break;
+                    default:
+                        TEST_ASSERT( ! "default case not supported" );
+                        break;
+                }
+                break;
+            default:
+                TEST_EQUAL( psa_key_derivation_input_bytes(
+                                &operation, steps[i],
+                                inputs[i]->x, inputs[i]->len ), PSA_SUCCESS );
+                break;
+        }
+    }
+
+    for( size_t i = 0; i < ARRAY_LENGTH( get_steps ); i++ )
+    {
+        size_t buffer_size = default_output_buffer_size;
+
+        if( get_steps[i] == 0 )
+            continue;
+
+        /* Select corresponding input. */
+        data_t no_input = {NULL, 0};
+        data_t *input = &no_input;
+
+        for( size_t j = 0; j < ARRAY_LENGTH( steps ); j++ )
+            if( steps[j] == get_steps[i] )
+                input = inputs[j];
+
+        if( input != &no_input )
+        {
+            buffer_size = input->len;
+            TEST_ASSERT( buffer_size < default_output_buffer_size );
+
+            if( get_bytes_statuses[i] == PSA_ERROR_BUFFER_TOO_SMALL )
+                buffer_size--;
+        }
+
+        status = psa_crypto_driver_key_derivation_get_input_size(
+                                        &operation.data.inputs,
+                                        get_steps[i],
+                                        &output_length );
+
+        TEST_EQUAL( status, get_size_statuses[i] );
+        if( status == PSA_SUCCESS )
+            TEST_EQUAL( output_length, input->len );
+
+
+        status = psa_crypto_driver_key_derivation_get_input_bytes(
+                                        &operation.data.inputs,
+                                        get_steps[i],
+                                        output, buffer_size, &output_length );
+
+        TEST_EQUAL( status, get_bytes_statuses[i] );
+
+        if( status == PSA_SUCCESS )
+        {
+            TEST_EQUAL( output_length, input->len );
+            if( output_length > 0 )
+                PSA_ASSERT( memcmp( output, input->x, output_length ) );
+        }
+    }
+
+    PSA_ASSERT( psa_key_derivation_abort( &operation ) );
+
+exit:
+    mbedtls_free( output );
+    psa_key_derivation_abort( &operation );
+    for( size_t i = 0; i < ARRAY_LENGTH( keys ); i++ )
+        psa_destroy_key( keys[i] );
+    PSA_DONE( );
+}
+/* END_CASE */

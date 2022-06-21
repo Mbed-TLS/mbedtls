@@ -4381,6 +4381,207 @@ psa_status_t psa_key_derivation_set_capacity( psa_key_derivation_operation_t *op
     return( PSA_SUCCESS );
 }
 
+psa_status_t psa_crypto_driver_key_derivation_get_input_size(
+    const psa_crypto_driver_key_derivation_inputs_t *inputs,
+    psa_key_derivation_step_t step,
+    size_t *size)
+{
+    psa_status_t status = PSA_SUCCESS;
+    const psa_algorithm_t kdf_alg = PSA_ALG_IS_KEY_AGREEMENT( inputs->alg ) ?
+        PSA_ALG_KEY_AGREEMENT_GET_KDF( inputs->alg ) : inputs->alg;
+
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
+    if( PSA_ALG_IS_HKDF( kdf_alg ) || PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) ||
+        PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) )
+    {
+        const psa_hkdf_key_derivation_inputs_t* hkdf_inputs =
+            (psa_hkdf_key_derivation_inputs_t*) inputs;
+
+        switch( step )
+        {
+            case PSA_KEY_DERIVATION_INPUT_SALT:
+                if ( PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) )
+                    return ( PSA_ERROR_INVALID_ARGUMENT );
+                *size = hkdf_inputs->salt_length;
+                break;
+            case PSA_KEY_DERIVATION_INPUT_SECRET:
+                *size = hkdf_inputs->secret_length;
+                break;
+            case PSA_KEY_DERIVATION_INPUT_INFO:
+                if ( PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) )
+                    return ( PSA_ERROR_INVALID_ARGUMENT );
+                *size = hkdf_inputs->info_length;
+                break;
+            default:
+                return PSA_ERROR_INVALID_ARGUMENT;
+                break;
+        }
+    }
+    else
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
+    if( PSA_ALG_IS_TLS12_PRF( kdf_alg ) ||
+             /* TLS-1.2 PSK-to-MS KDF uses the same core as TLS-1.2 PRF */
+             PSA_ALG_IS_TLS12_PSK_TO_MS( kdf_alg ) )
+    {
+        const psa_tls12_prf_key_derivation_inputs_t* prf_tls12_inputs =
+            (psa_tls12_prf_key_derivation_inputs_t*) inputs;
+
+        switch( step )
+        {
+             case PSA_KEY_DERIVATION_INPUT_SEED:
+                *size = prf_tls12_inputs->seed_length;
+                break;
+            case PSA_KEY_DERIVATION_INPUT_SECRET:
+                *size = prf_tls12_inputs->secret_length;
+                break;
+            case PSA_KEY_DERIVATION_INPUT_LABEL:
+                *size = prf_tls12_inputs->label_length;
+                break;
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
+            case PSA_KEY_DERIVATION_INPUT_OTHER_SECRET:
+                *size = prf_tls12_inputs->other_secret_length;
+                break;
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
+            default:
+                return PSA_ERROR_INVALID_ARGUMENT;
+                break;
+        }
+    }
+    else
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS) */
+    {
+        (void) kdf_alg;
+        (void) inputs;
+        (void) step;
+        (void) size;
+        status = PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    return( status );
+}
+
+psa_status_t psa_crypto_driver_key_derivation_get_input_bytes(
+    const psa_crypto_driver_key_derivation_inputs_t *inputs,
+    psa_key_derivation_step_t step,
+    uint8_t *buffer, size_t buffer_size, size_t *buffer_length)
+{
+    psa_status_t status = PSA_SUCCESS;
+    const psa_algorithm_t kdf_alg = PSA_ALG_IS_KEY_AGREEMENT( inputs->alg ) ?
+        PSA_ALG_KEY_AGREEMENT_GET_KDF( inputs->alg ) : inputs->alg;
+
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
+    if( PSA_ALG_IS_HKDF( kdf_alg ) || PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) ||
+        PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) )
+    {
+        const psa_hkdf_key_derivation_inputs_t* hkdf_inputs =
+            (psa_hkdf_key_derivation_inputs_t*) inputs;
+
+        switch( step )
+        {
+            case PSA_KEY_DERIVATION_INPUT_SALT:
+                if ( PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) )
+                    return ( PSA_ERROR_INVALID_ARGUMENT );
+                if( buffer_size < hkdf_inputs->salt_length )
+                    return PSA_ERROR_BUFFER_TOO_SMALL;
+                if( hkdf_inputs->salt_length != 0 )
+                    memcpy( buffer, hkdf_inputs->salt,
+                            hkdf_inputs->salt_length );
+                *buffer_length = hkdf_inputs->salt_length;
+                break;
+            case PSA_KEY_DERIVATION_INPUT_SECRET:
+                if( buffer_size < hkdf_inputs->secret_length )
+                    return PSA_ERROR_BUFFER_TOO_SMALL;
+                if( hkdf_inputs->secret_length != 0 )
+                    memcpy( buffer, hkdf_inputs->secret,
+                            hkdf_inputs->secret_length );
+                *buffer_length = hkdf_inputs->secret_length;
+                break;
+            case PSA_KEY_DERIVATION_INPUT_INFO:
+                if ( PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) )
+                    return ( PSA_ERROR_INVALID_ARGUMENT );
+                if( buffer_size < hkdf_inputs->info_length )
+                    return PSA_ERROR_BUFFER_TOO_SMALL;
+                if( hkdf_inputs->info_length != 0 )
+                    memcpy( buffer, hkdf_inputs->info,
+                            hkdf_inputs->info_length );
+                *buffer_length = hkdf_inputs->info_length;
+                break;
+            default:
+                return ( PSA_ERROR_INVALID_ARGUMENT );
+                break;
+        }
+    }
+    else
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
+    if( PSA_ALG_IS_TLS12_PRF( kdf_alg ) ||
+             /* TLS-1.2 PSK-to-MS KDF uses the same core as TLS-1.2 PRF */
+             PSA_ALG_IS_TLS12_PSK_TO_MS( kdf_alg ) )
+    {
+        const psa_tls12_prf_key_derivation_inputs_t* prf_tls12_inputs =
+            (psa_tls12_prf_key_derivation_inputs_t*) inputs;
+
+        switch( step )
+        {
+            case PSA_KEY_DERIVATION_INPUT_SEED:
+                if( buffer_size < prf_tls12_inputs->seed_length )
+                    return PSA_ERROR_BUFFER_TOO_SMALL;
+                if( prf_tls12_inputs->seed_length != 0 )
+                    memcpy( buffer, prf_tls12_inputs->seed,
+                            prf_tls12_inputs->seed_length );
+                *buffer_length = prf_tls12_inputs->seed_length;
+                break;
+            case PSA_KEY_DERIVATION_INPUT_SECRET:
+                if( buffer_size < prf_tls12_inputs->secret_length )
+                    return PSA_ERROR_BUFFER_TOO_SMALL;
+                if( prf_tls12_inputs->secret_length != 0 )
+                    memcpy( buffer, prf_tls12_inputs->secret,
+                            prf_tls12_inputs->secret_length );
+                *buffer_length = prf_tls12_inputs->secret_length;
+                break;
+            case PSA_KEY_DERIVATION_INPUT_LABEL:
+                if( buffer_size < prf_tls12_inputs->label_length )
+                    return PSA_ERROR_BUFFER_TOO_SMALL;
+                if( prf_tls12_inputs->label_length != 0 )
+                    memcpy( buffer, prf_tls12_inputs->label,
+                            prf_tls12_inputs->label_length );
+                *buffer_length = prf_tls12_inputs->label_length;
+                break;
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
+            case PSA_KEY_DERIVATION_INPUT_OTHER_SECRET:
+                if( buffer_size < prf_tls12_inputs->other_secret_length )
+                    return PSA_ERROR_BUFFER_TOO_SMALL;
+                if( prf_tls12_inputs->other_secret_length != 0 )
+                    memcpy( buffer, prf_tls12_inputs->other_secret,
+                            prf_tls12_inputs->other_secret_length );
+                *buffer_length = prf_tls12_inputs->other_secret_length;
+                break;
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
+            default:
+                return ( PSA_ERROR_INVALID_ARGUMENT );
+                break;
+        }
+    }
+    else
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) ||
+        * defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS) */
+    {
+        (void) kdf_alg;
+        (void) inputs;
+        (void) step;
+        (void) buffer;
+        (void) buffer_size;
+        (void) buffer_length;
+        status = PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    return( status );
+}
+
 #if defined(BUILTIN_ALG_ANY_HKDF)
 /* Read some bytes from an HKDF-based operation. */
 static psa_status_t psa_key_derivation_hkdf_read( psa_hkdf_key_derivation_t *hkdf,

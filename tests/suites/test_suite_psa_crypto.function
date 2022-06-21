@@ -775,7 +775,7 @@ static int ecjpake_do_round( psa_algorithm_t alg, unsigned int primitive,
 
             if( inject_error == 1 )
             {
-                buffer0[s_x1_pk_off + 12] >>= 4;
+                buffer0[s_x1_pk_off + 8] >>= 4;
                 buffer0[s_x2_pk_off + 7] <<= 4;
                 expected_status = PSA_ERROR_DATA_INVALID;
             }
@@ -1090,7 +1090,7 @@ static int ecjpake_do_round( psa_algorithm_t alg, unsigned int primitive,
 
             if( inject_error == 3 )
             {
-                buffer0[s_x2s_pk_off + 12] >>= 4;
+                buffer0[s_x2s_pk_off + 12] += 0x33;
                 expected_status = PSA_ERROR_DATA_INVALID;
             }
 
@@ -1207,7 +1207,7 @@ static int ecjpake_do_round( psa_algorithm_t alg, unsigned int primitive,
 
             if( inject_error == 4 )
             {
-                buffer1[c_x2s_pk_off + 12] >>= 4;
+                buffer1[c_x2s_pk_off + 7] += 0x28;
                 expected_status = PSA_ERROR_DATA_INVALID;
             }
 

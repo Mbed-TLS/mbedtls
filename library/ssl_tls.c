@@ -4113,24 +4113,6 @@ static uint16_t ssl_preset_default_sig_algs[] = {
     MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512,
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_SHA384_C &&
           MBEDTLS_ECP_DP_SECP521R1_ENABLED */
-/*
- * To fix version negotiation fail with RSA server key.
- * - With TLS1.3 server, `rsa_pss_rsae_*` must be sent.
- * - With TLS1.2 server, `rsa_pkcs1_*` must be sent before `rsa_pss_rsae_*`
- *   - This point is only tested with OpenSSL now.
- */
-#if defined(MBEDTLS_RSA_C) &&  defined(MBEDTLS_SHA256_C)
-    MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256,
-#endif /* MBEDTLS_RSA_C && MBEDTLS_SHA256_C */
-
-#if defined(MBEDTLS_RSA_C) &&  defined(MBEDTLS_SHA384_C)
-    MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384,
-#endif /* MBEDTLS_RSA_C && MBEDTLS_SHA384_C */
-
-#if defined(MBEDTLS_RSA_C) &&  defined(MBEDTLS_SHA512_C)
-    MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512,
-#endif /* MBEDTLS_RSA_C && MBEDTLS_SHA512_C */
-
 
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && defined(MBEDTLS_SHA512_C)
     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512,
@@ -4143,6 +4125,18 @@ static uint16_t ssl_preset_default_sig_algs[] = {
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && defined(MBEDTLS_SHA256_C)
     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256,
 #endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT && MBEDTLS_SHA256_C */
+
+#if defined(MBEDTLS_RSA_C) &&  defined(MBEDTLS_SHA512_C)
+    MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512,
+#endif /* MBEDTLS_RSA_C && MBEDTLS_SHA512_C */
+
+#if defined(MBEDTLS_RSA_C) &&  defined(MBEDTLS_SHA384_C)
+    MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384,
+#endif /* MBEDTLS_RSA_C && MBEDTLS_SHA384_C */
+
+#if defined(MBEDTLS_RSA_C) &&  defined(MBEDTLS_SHA256_C)
+    MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256,
+#endif /* MBEDTLS_RSA_C && MBEDTLS_SHA256_C */
 
     MBEDTLS_TLS_SIG_NONE
 };

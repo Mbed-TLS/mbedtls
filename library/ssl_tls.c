@@ -961,10 +961,23 @@ static int ssl_conf_check(const mbedtls_ssl_context *ssl)
     return( 0 );
 }
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
+    defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
+    defined(MBEDTLS_SSL_SRV_C) && \
+    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+/* Remove below lines if server side hybrid mode implemented.
+ * To fix wrong default signature algorithm setting when both
+ * TLS1.2 and TLS1.3 enabled.
+ */
+static void ssl_fix_server_side_negotiation_fail( mbedtls_ssl_context *ssl );
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 &&
+          MBEDTLS_SSL_PROTO_TLS1_3 &&
+          MBEDTLS_SSL_SRV_C &&
+          MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
+
 /*
  * Setup an SSL context
  */
-
 int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
                        const mbedtls_ssl_config *conf )
 {
@@ -2984,8 +2997,20 @@ int mbedtls_ssl_handshake_step( mbedtls_ssl_context *ssl )
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
     {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+
         if( mbedtls_ssl_conf_is_tls13_only( ssl->conf ) )
+        {
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
+    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+            /* Remove below lines if server side hybrid mode implemented. */
+            if( ssl->state == MBEDTLS_SSL_HELLO_REQUEST )
+            {
+                ssl_fix_server_side_negotiation_fail( ssl );
+            }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 &&
+          MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
             ret = mbedtls_ssl_tls13_handshake_server_step( ssl );
+        }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
@@ -4132,51 +4157,22 @@ static uint16_t ssl_tls12_preset_default_sig_algs[] = {
 #if defined(MBEDTLS_RSA_C)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG( MBEDTLS_SSL_SIG_RSA, MBEDTLS_SSL_HASH_SHA512 ),
 #endif
-/* Server side hybrid mode is not supported yet. When both tls13 and tls12
- * enabled, this list will be used as signature algorithm list for server side.
- * With RSA server key, `rsa_pkcs1_*` must be excluded from tls13. As a result,
- * tls13 server will fail when the key is RSA key.
- *
- * With hybrid mode enabled, it can be removed.
- *
- * And there is a known issue for version negotiation. See above.
- */
-#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && \
-    defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512,
-#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT &&
-          MBEDTLS_SSL_PROTO_TLS1_3 */
 #endif /* MBEDTLS_SHA512_C */
-
 #if defined(MBEDTLS_SHA384_C)
 #if defined(MBEDTLS_ECDSA_C)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG( MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA384 ),
 #endif
-
 #if defined(MBEDTLS_RSA_C)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG( MBEDTLS_SSL_SIG_RSA, MBEDTLS_SSL_HASH_SHA384 ),
 #endif
-/* Notice: See above */
-#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && \
-    defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384,
-#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT &&
-          MBEDTLS_SSL_PROTO_TLS1_3 */
 #endif /* MBEDTLS_SHA384_C */
 #if defined(MBEDTLS_SHA256_C)
 #if defined(MBEDTLS_ECDSA_C)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG( MBEDTLS_SSL_SIG_ECDSA, MBEDTLS_SSL_HASH_SHA256 ),
 #endif
-
 #if defined(MBEDTLS_RSA_C)
     MBEDTLS_SSL_TLS12_SIG_AND_HASH_ALG( MBEDTLS_SSL_SIG_RSA, MBEDTLS_SSL_HASH_SHA256 ),
 #endif
-/* Notice: See above */
-#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && \
-    defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256,
-#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT &&
-          MBEDTLS_SSL_PROTO_TLS1_3 */
 #endif /* MBEDTLS_SHA256_C */
     MBEDTLS_TLS_SIG_NONE
 };
@@ -4941,7 +4937,6 @@ int mbedtls_ssl_parse_sig_alg_ext( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, supported_sig_algs_end, 2 );
         sig_alg = MBEDTLS_GET_UINT16_BE( p, 0 );
         p += 2;
-
         MBEDTLS_SSL_DEBUG_MSG( 4, ( "received signature algorithm: 0x%x %s",
                                     sig_alg,
                                     mbedtls_ssl_sig_alg_to_str( sig_alg ) ) );
@@ -8191,6 +8186,7 @@ int mbedtls_ssl_write_sig_alg_ext( mbedtls_ssl_context *ssl, unsigned char *buf,
     {
         if( ! mbedtls_ssl_sig_alg_is_supported( ssl, *sig_alg ) )
             continue;
+
         MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
         MBEDTLS_PUT_UINT16_BE( *sig_alg, p, 0 );
         p += 2;

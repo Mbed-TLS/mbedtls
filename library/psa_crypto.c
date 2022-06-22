@@ -4475,7 +4475,7 @@ psa_status_t psa_crypto_driver_key_derivation_get_input_size(
     const psa_algorithm_t kdf_alg = PSA_ALG_IS_KEY_AGREEMENT( inputs->alg ) ?
         PSA_ALG_KEY_AGREEMENT_GET_KDF( inputs->alg ) : inputs->alg;
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
+#if defined(BUILTIN_ALG_ANY_HKDF)
     if( PSA_ALG_IS_HKDF( kdf_alg ) || PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) ||
         PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) )
     {
@@ -4503,7 +4503,7 @@ psa_status_t psa_crypto_driver_key_derivation_get_input_size(
         }
     }
     else
-#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF */
+#endif /* BUILTIN_ALG_ANY_HKDF */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
     if( PSA_ALG_IS_TLS12_PRF( kdf_alg ) ||
@@ -4557,7 +4557,7 @@ psa_status_t psa_crypto_driver_key_derivation_get_input_bytes(
     const psa_algorithm_t kdf_alg = PSA_ALG_IS_KEY_AGREEMENT( inputs->alg ) ?
         PSA_ALG_KEY_AGREEMENT_GET_KDF( inputs->alg ) : inputs->alg;
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
+#if defined(BUILTIN_ALG_ANY_HKDF)
     if( PSA_ALG_IS_HKDF( kdf_alg ) || PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) ||
         PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) )
     {
@@ -4600,7 +4600,7 @@ psa_status_t psa_crypto_driver_key_derivation_get_input_bytes(
         }
     }
     else
-#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF */
+#endif /* BUILTIN_ALG_ANY_HKDF */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
     if( PSA_ALG_IS_TLS12_PRF( kdf_alg ) ||
@@ -5227,7 +5227,7 @@ static psa_status_t psa_crypto_key_derivation_complete_tls12_prf_inputs(
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF ||
         * MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS */
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
+#if defined(BUILTIN_ALG_ANY_HKDF)
 static psa_status_t psa_crypto_key_derivation_complete_hkdf_inputs(
     psa_key_derivation_operation_t *operation )
 {
@@ -5376,7 +5376,7 @@ static psa_status_t psa_crypto_key_derivation_complete_hkdf_inputs(
 
     return( PSA_SUCCESS );
 }
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF */
+#endif /* BUILTIN_ALG_ANY_HKDF */
 
 
 static psa_status_t psa_crypto_key_derivation_complete_inputs(
@@ -5385,14 +5385,14 @@ static psa_status_t psa_crypto_key_derivation_complete_inputs(
     psa_algorithm_t alg = psa_key_derivation_get_stage_alg( operation );
     psa_algorithm_t kdf_alg = psa_key_derivation_get_kdf_alg( operation );
     psa_status_t status;
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF)
+#if defined(BUILTIN_ALG_ANY_HKDF)
     if( PSA_ALG_IS_HKDF( kdf_alg ) || PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) ||
         PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) )
     {
         status = psa_crypto_key_derivation_complete_hkdf_inputs( operation );
     }
     else
-#endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF */
+#endif /* BUILTIN_ALG_ANY_HKDF */
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PRF) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
     if( PSA_ALG_IS_TLS12_PRF( kdf_alg ) ||

@@ -6231,6 +6231,7 @@ run_test    "keyUsage cli-auth: RSA, DigitalSignature: OK" \
             "$O_CLI -key data_files/server2.key \
              -cert data_files/server2.ku-ds.crt" \
             0 \
+            -s "Verifying peer X.509 certificate... ok" \
             -S "bad certificate (usage extensions)" \
             -S "Processing of the Certificate handshake message failed"
 
@@ -6258,6 +6259,7 @@ run_test    "keyUsage cli-auth: ECDSA, DigitalSignature: OK" \
             "$O_CLI -key data_files/server5.key \
              -cert data_files/server5.ku-ds.crt" \
             0 \
+            -s "Verifying peer X.509 certificate... ok" \
             -S "bad certificate (usage extensions)" \
             -S "Processing of the Certificate handshake message failed"
 
@@ -6278,6 +6280,7 @@ run_test    "keyUsage cli-auth 1.3: RSA, DigitalSignature: OK" \
             "$O_NEXT_CLI_NO_CERT -key data_files/server2.key \
              -cert data_files/server2.ku-ds.crt" \
             0 \
+            -s "Verifying peer X.509 certificate... ok" \
             -S "bad certificate (usage extensions)" \
             -S "Processing of the Certificate handshake message failed"
 
@@ -6300,6 +6303,7 @@ run_test    "keyUsage cli-auth 1.3: ECDSA, DigitalSignature: OK" \
             "$O_NEXT_CLI_NO_CERT -key data_files/server5.key \
              -cert data_files/server5.ku-ds.crt" \
             0 \
+            -s "Verifying peer X.509 certificate... ok" \
             -S "bad certificate (usage extensions)" \
             -S "Processing of the Certificate handshake message failed"
 

@@ -4322,8 +4322,7 @@ psa_status_t psa_key_derivation_abort( psa_key_derivation_operation_t *operation
     }
     else
 #if defined(BUILTIN_ALG_ANY_HKDF)
-    if( PSA_ALG_IS_HKDF( kdf_alg ) || PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) ||
-        PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) )
+    if( PSA_ALG_IS_ANY_HKDF( kdf_alg ) )
     {
         uint8_t is_input_stage =
             ( operation->stage == PSA_KEY_DERIVATION_STAGE_INPUT );
@@ -4476,8 +4475,7 @@ psa_status_t psa_crypto_driver_key_derivation_get_input_size(
         PSA_ALG_KEY_AGREEMENT_GET_KDF( inputs->alg ) : inputs->alg;
 
 #if defined(BUILTIN_ALG_ANY_HKDF)
-    if( PSA_ALG_IS_HKDF( kdf_alg ) || PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) ||
-        PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) )
+    if( PSA_ALG_IS_ANY_HKDF( kdf_alg ) )
     {
         const psa_hkdf_key_derivation_inputs_t* hkdf_inputs =
             (psa_hkdf_key_derivation_inputs_t*) inputs;
@@ -4558,8 +4556,7 @@ psa_status_t psa_crypto_driver_key_derivation_get_input_bytes(
         PSA_ALG_KEY_AGREEMENT_GET_KDF( inputs->alg ) : inputs->alg;
 
 #if defined(BUILTIN_ALG_ANY_HKDF)
-    if( PSA_ALG_IS_HKDF( kdf_alg ) || PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) ||
-        PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) )
+    if( PSA_ALG_IS_ANY_HKDF( kdf_alg ) )
     {
         const psa_hkdf_key_derivation_inputs_t* hkdf_inputs =
             (psa_hkdf_key_derivation_inputs_t*) inputs;
@@ -5386,8 +5383,7 @@ static psa_status_t psa_crypto_key_derivation_complete_inputs(
     psa_algorithm_t kdf_alg = psa_key_derivation_get_kdf_alg( operation );
     psa_status_t status;
 #if defined(BUILTIN_ALG_ANY_HKDF)
-    if( PSA_ALG_IS_HKDF( kdf_alg ) || PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) ||
-        PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) )
+    if( PSA_ALG_IS_ANY_HKDF( kdf_alg ) )
     {
         status = psa_crypto_key_derivation_complete_hkdf_inputs( operation );
     }

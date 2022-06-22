@@ -1271,7 +1271,8 @@ static inline int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
 int mbedtls_ssl_finish_handshake_msg( mbedtls_ssl_context *ssl,
                                       size_t buf_len, size_t msg_len );
 
-int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, int force_flush );
+int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, int force_flush,
+                              int encrypt );
 int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl );
 
 int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl );

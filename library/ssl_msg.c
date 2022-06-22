@@ -151,6 +151,9 @@ exit:
 #define SSL_DONT_FORCE_FLUSH 0
 #define SSL_FORCE_FLUSH      1
 
+#define SSL_DONT_ENCRYPT_RECORD 0
+#define SSL_ENCRYPT_RECORD      1
+
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 
 /* Forward declarations for functions related to message buffering. */
@@ -2324,7 +2327,8 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
         }
 
         /* Actually send the message out */
-        if( ( ret = mbedtls_ssl_write_record( ssl, force_flush ) ) != 0 )
+        if( ( ret = mbedtls_ssl_write_record( ssl, force_flush,
+                                              SSL_ENCRYPT_RECORD ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );
             return( ret );
@@ -2570,7 +2574,8 @@ int mbedtls_ssl_write_handshake_msg_ext( mbedtls_ssl_context *ssl,
     else
 #endif
     {
-        if( ( ret = mbedtls_ssl_write_record( ssl, force_flush ) ) != 0 )
+        if( ( ret = mbedtls_ssl_write_record( ssl, force_flush,
+                                              SSL_ENCRYPT_RECORD ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "ssl_write_record", ret );
             return( ret );
@@ -2610,7 +2615,8 @@ cleanup:
  *  - ssl->out_msglen: length of the record content (excl headers)
  *  - ssl->out_msg: record content
  */
-int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, int force_flush )
+int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, int force_flush,
+                              int encrypt )
 {
     int ret, done = 0;
     size_t len = ssl->out_msglen;
@@ -2642,7 +2648,7 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, int force_flush )
         memcpy( ssl->out_ctr, ssl->cur_out_ctr, MBEDTLS_SSL_SEQUENCE_NUMBER_LEN );
         MBEDTLS_PUT_UINT16_BE( len, ssl->out_len, 0);
 
-        if( ssl->transform_out != NULL )
+        if( ssl->transform_out != NULL && encrypt )
         {
             mbedtls_record rec;
 
@@ -2714,17 +2720,21 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, int force_flush )
 
         ssl->out_left += protected_record_size;
         ssl->out_hdr  += protected_record_size;
-        mbedtls_ssl_update_out_pointers( ssl, ssl->transform_out );
+        mbedtls_ssl_update_out_pointers( ssl, encrypt ? ssl->transform_out : NULL );
 
-        for( i = 8; i > mbedtls_ssl_ep_len( ssl ); i-- )
-            if( ++ssl->cur_out_ctr[i - 1] != 0 )
-                break;
-
-        /* The loop goes to its end iff the counter is wrapping */
-        if( i == mbedtls_ssl_ep_len( ssl ) )
+        /* Do not increment the counter for CCS records. */
+        if( encrypt )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "outgoing message counter would wrap" ) );
-            return( MBEDTLS_ERR_SSL_COUNTER_WRAPPING );
+            for( i = 8; i > mbedtls_ssl_ep_len( ssl ); i-- )
+                if( ++ssl->cur_out_ctr[i - 1] != 0 )
+                    break;
+
+            /* The loop goes to its end iff the counter is wrapping */
+            if( i == mbedtls_ssl_ep_len( ssl ) )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "outgoing message counter would wrap" ) );
+                return( MBEDTLS_ERR_SSL_COUNTER_WRAPPING );
+            }
         }
     }
 
@@ -4812,7 +4822,8 @@ int mbedtls_ssl_send_alert_message( mbedtls_ssl_context *ssl,
     ssl->out_msg[0] = level;
     ssl->out_msg[1] = message;
 
-    if( ( ret = mbedtls_ssl_write_record( ssl, SSL_FORCE_FLUSH ) ) != 0 )
+    if( ( ret = mbedtls_ssl_write_record( ssl, SSL_FORCE_FLUSH,
+                                          SSL_ENCRYPT_RECORD ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );
         return( ret );
@@ -5602,7 +5613,8 @@ static int ssl_write_real( mbedtls_ssl_context *ssl,
         ssl->out_msgtype = MBEDTLS_SSL_MSG_APPLICATION_DATA;
         memcpy( ssl->out_msg, buf, len );
 
-        if( ( ret = mbedtls_ssl_write_record( ssl, SSL_FORCE_FLUSH ) ) != 0 )
+        if( ( ret = mbedtls_ssl_write_record( ssl, SSL_FORCE_FLUSH,
+                                              SSL_ENCRYPT_RECORD ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );
             return( ret );

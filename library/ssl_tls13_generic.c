@@ -1341,7 +1341,7 @@ int mbedtls_ssl_tls13_write_change_cipher_spec( mbedtls_ssl_context *ssl )
     ssl->out_msgtype = MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC;
 
     /* Dispatch message */
-    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_write_record( ssl, 0 ) );
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_write_record( ssl, 0, 0 ) );
 
 cleanup:
 

@@ -8179,22 +8179,14 @@ int mbedtls_ssl_write_sig_alg_ext( mbedtls_ssl_context *ssl, unsigned char *buf,
 
     for( ; *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
     {
-        if( mbedtls_ssl_sig_alg_is_supported( ssl, *sig_alg ) ||
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_SSL_PROTO_TLS1_3)
-            ( mbedtls_ssl_conf_is_hybrid_tls12_tls13( ssl->conf ) &&
-              ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
-              mbedtls_ssl_tls12_sig_alg_is_supported( *sig_alg ) ) ||
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_SSL_PROTO_TLS1_3 */
-            0 )
-        {
-            MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
-            MBEDTLS_PUT_UINT16_BE( *sig_alg, p, 0 );
-            p += 2;
-            MBEDTLS_SSL_DEBUG_MSG( 3,
-                                  ( "sent signature scheme [%x] %s",
+        if( ! mbedtls_ssl_sig_alg_is_supported( ssl, *sig_alg ) )
+            continue;
+        MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
+        MBEDTLS_PUT_UINT16_BE( *sig_alg, p, 0 );
+        p += 2;
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "sent signature scheme [%x] %s",
                                     *sig_alg,
                                     mbedtls_ssl_sig_alg_to_str( *sig_alg ) ) );
-        }
     }
 
     /* Length of supported_signature_algorithms */

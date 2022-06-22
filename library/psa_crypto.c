@@ -6097,6 +6097,7 @@ static psa_status_t psa_hkdf_input( psa_hkdf_key_derivation_inputs_t *hkdf,
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND */
             return ( psa_hkdf_prf_set_info( hkdf, data, data_length ) );
         default:
+            (void) kdf_alg;
             return( PSA_ERROR_INVALID_ARGUMENT );
     }
 }

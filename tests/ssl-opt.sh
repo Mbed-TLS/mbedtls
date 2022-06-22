@@ -6165,7 +6165,7 @@ run_test    "keyUsage cli 1.3: DigitalSignature+KeyEncipherment, RSA: OK" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_openssl_tls1_3
 requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "keyUsage cli 1.3: KeyEncipherment, RSA: KO" \
+run_test    "keyUsage cli 1.3: KeyEncipherment, RSA: fail" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key data_files/server2.key \
              -cert data_files/server2.ku-ke.crt" \
             "$P_CLI debug_level=1" \
@@ -6177,7 +6177,7 @@ run_test    "keyUsage cli 1.3: KeyEncipherment, RSA: KO" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_openssl_tls1_3
 requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "keyUsage cli 1.3: KeyAgreement, RSA: KO" \
+run_test    "keyUsage cli 1.3: KeyAgreement, RSA: fail" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key data_files/server2.key \
              -cert data_files/server2.ku-ka.crt" \
             "$P_CLI debug_level=1" \
@@ -6201,7 +6201,7 @@ run_test    "keyUsage cli 1.3: DigitalSignature, ECDSA: OK" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_openssl_tls1_3
 requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "keyUsage cli 1.3: KeyEncipherment, ECDSA: KO" \
+run_test    "keyUsage cli 1.3: KeyEncipherment, ECDSA: fail" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key data_files/server5.key \
              -cert data_files/server5.ku-ke.crt" \
             "$P_CLI debug_level=1" \
@@ -6213,7 +6213,7 @@ run_test    "keyUsage cli 1.3: KeyEncipherment, ECDSA: KO" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_openssl_tls1_3
 requires_config_disabled MBEDTLS_SSL_PROTO_TLS1_2
-run_test    "keyUsage cli 1.3: KeyAgreement, ECDSA: KO" \
+run_test    "keyUsage cli 1.3: KeyAgreement, ECDSA: fail" \
             "$O_NEXT_SRV_NO_CERT -tls1_3 -num_tickets=0 -key data_files/server5.key \
              -cert data_files/server5.ku-ka.crt" \
             "$P_CLI debug_level=1" \

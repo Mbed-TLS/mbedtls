@@ -978,6 +978,7 @@ static void ssl_fix_server_side_negotiation_fail( mbedtls_ssl_context *ssl );
 /*
  * Setup an SSL context
  */
+
 int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
                        const mbedtls_ssl_config *conf )
 {
@@ -8180,7 +8181,6 @@ int mbedtls_ssl_write_sig_alg_ext( mbedtls_ssl_context *ssl, unsigned char *buf,
     {
         if( ! mbedtls_ssl_sig_alg_is_supported( ssl, *sig_alg ) )
             continue;
-
         MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
         MBEDTLS_PUT_UINT16_BE( *sig_alg, p, 0 );
         p += 2;

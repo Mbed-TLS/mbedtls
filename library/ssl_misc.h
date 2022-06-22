@@ -2042,26 +2042,6 @@ static inline int mbedtls_ssl_tls13_sig_alg_is_supported(
             break;
 #endif /* MBEDTLS_SHA512_C */
 #endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
-#if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_RSA_C)
-
-#if defined(MBEDTLS_SHA256_C)
-        case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256:
-            break;
-#endif /* MBEDTLS_SHA256_C */
-
-#if defined(MBEDTLS_SHA384_C)
-        case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384:
-            break;
-#endif /* MBEDTLS_SHA384_C */
-
-#if defined(MBEDTLS_SHA512_C)
-        case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512:
-            break;
-#endif /* MBEDTLS_SHA512_C */
-
-#endif /* MBEDTLS_PKCS1_V15 && MBEDTLS_RSA_C */
-
-
         default:
             return( 0 );
     }

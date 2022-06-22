@@ -162,9 +162,9 @@ do {                                                                    \
     }                                                                   \
     else                                                                \
     {                                                                   \
-        mbedtls_printf( "%9lu KiB/s,  %9lu cycles/byte\n",              \
+        mbedtls_printf( "%9lu KiB/s,  %f cycles/byte\n",                \
                          ii * BUFSIZE / 1024,                           \
-                         ( mbedtls_timing_hardclock() - tsc )           \
+                         (float)( mbedtls_timing_hardclock() - tsc )    \
                          / ( jj * BUFSIZE ) );                          \
     }                                                                   \
 } while( 0 )

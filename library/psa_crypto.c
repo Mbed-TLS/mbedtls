@@ -6044,7 +6044,6 @@ static psa_status_t psa_hkdf_input( psa_hkdf_key_derivation_inputs_t *hkdf,
                                     const uint8_t *data,
                                     size_t data_length )
 {
-    psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH( kdf_alg );
     switch( step )
     {
         case PSA_KEY_DERIVATION_INPUT_SALT:
@@ -6074,6 +6073,7 @@ static psa_status_t psa_hkdf_input( psa_hkdf_key_derivation_inputs_t *hkdf,
                     return( PSA_ERROR_BAD_STATE );
                 }
                 /* Allow only HKDF_EXPAND secret that fits expected prk size */
+                psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH( kdf_alg );
                 if( PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) &&
                     data_length != PSA_HASH_LENGTH( hash_alg ) )
                 {

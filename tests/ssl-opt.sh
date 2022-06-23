@@ -5720,7 +5720,6 @@ run_test    "Non-blocking I/O: session-id resume" \
 
 # Tests for event-driven I/O: exercise a variety of handshake flows
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Event-driven I/O: basic handshake" \
             "$P_SRV event=1 tickets=0 auth_mode=none" \
             "$P_CLI event=1 tickets=0" \
@@ -5729,7 +5728,6 @@ run_test    "Event-driven I/O: basic handshake" \
             -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Event-driven I/O: client auth" \
             "$P_SRV event=1 tickets=0 auth_mode=required" \
             "$P_CLI event=1 tickets=0" \

@@ -803,14 +803,14 @@ void mbedtls_x509_dn_get_next( char * name_str, int next_merged, char * expected
     out_size = strlen( expected_oids ) + 2;
     ASSERT_ALLOC( out, out_size );
 
-    TEST_ASSERT( mbedtls_x509_string_to_names( &names, name_str ) == 0 );
+    TEST_EQUAL( mbedtls_x509_string_to_names( &names, name_str ), 0 );
 
     ret = mbedtls_x509_write_names( &c, buf, names );
-    TEST_ASSERT( ret > 0 );
+    TEST_LE_S( 0, ret );
 
-    TEST_ASSERT( mbedtls_asn1_get_tag( &c, buf + sizeof( buf ), &len,
-                       MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) == 0 );
-    TEST_ASSERT( mbedtls_x509_get_name( &c, buf + sizeof( buf ), &parsed ) == 0 );
+    TEST_EQUAL( mbedtls_asn1_get_tag( &c, buf + sizeof( buf ), &len,
+                       MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ), 0 );
+    TEST_EQUAL( mbedtls_x509_get_name( &c, buf + sizeof( buf ), &parsed ), 0 );
 
     // Iterate over names and set next_merged nodes
     parsed_cur = &parsed;
@@ -825,23 +825,23 @@ void mbedtls_x509_dn_get_next( char * name_str, int next_merged, char * expected
     len = 0;
     for( i = 0; parsed_cur != NULL; i++ )
     {
-        TEST_ASSERT( mbedtls_oid_get_attr_short_name( &parsed_cur->oid,
-                                                      &short_name ) == 0 );
+        TEST_EQUAL( mbedtls_oid_get_attr_short_name( &parsed_cur->oid,
+                                                      &short_name ), 0 );
         len += mbedtls_snprintf( (char*) out + len, out_size - len, "%s ", short_name );
         parsed_cur = mbedtls_x509_dn_get_next( parsed_cur );
     }
     out[len-1] = 0;
 
-    TEST_ASSERT( exp_count == i );
-    TEST_ASSERT( strcmp( (char *) out, expected_oids ) == 0 );
+    TEST_EQUAL( exp_count, i );
+    TEST_EQUAL( strcmp( (char *) out, expected_oids ), 0 );
     mbedtls_free( out );
     out = NULL;
 
     out_size = strlen( exp_dn_gets ) + 1;
     ASSERT_ALLOC( out, out_size );
 
-    TEST_ASSERT( mbedtls_x509_dn_gets( (char *) out, out_size, &parsed ) >= 0 );
-    TEST_ASSERT( strcmp( (char *) out, exp_dn_gets ) == 0 );
+    TEST_LE_S( 0, mbedtls_x509_dn_gets( (char *) out, out_size, &parsed ) );
+    TEST_EQUAL( strcmp( (char *) out, exp_dn_gets ), 0 );
 exit:
     mbedtls_free( out );
     mbedtls_asn1_free_named_data_list( &names );

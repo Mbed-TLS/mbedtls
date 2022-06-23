@@ -86,6 +86,7 @@ int mbedtls_ssl_check_timer( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_parse_record_header( mbedtls_ssl_context const *ssl,
                                     unsigned char *buf,
                                     size_t len,
@@ -157,11 +158,16 @@ exit:
 static void ssl_buffering_free_slot( mbedtls_ssl_context *ssl,
                                      uint8_t slot );
 static void ssl_free_buffered_record( mbedtls_ssl_context *ssl );
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_load_buffered_message( mbedtls_ssl_context *ssl );
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_load_buffered_record( mbedtls_ssl_context *ssl );
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_buffer_message( mbedtls_ssl_context *ssl );
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_buffer_future_record( mbedtls_ssl_context *ssl,
                                      mbedtls_record const *rec );
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_next_record_is_in_datagram( mbedtls_ssl_context *ssl );
 
 static size_t ssl_get_maximum_datagram_size( mbedtls_ssl_context const *ssl )
@@ -179,6 +185,7 @@ static size_t ssl_get_maximum_datagram_size( mbedtls_ssl_context const *ssl )
     return( out_buf_len );
 }
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_get_remaining_space_in_datagram( mbedtls_ssl_context const *ssl )
 {
     size_t const bytes_written = ssl->out_left;
@@ -195,6 +202,7 @@ static int ssl_get_remaining_space_in_datagram( mbedtls_ssl_context const *ssl )
     return( (int) ( mtu - bytes_written ) );
 }
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_get_remaining_payload_in_datagram( mbedtls_ssl_context const *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -246,6 +254,7 @@ static int ssl_get_remaining_payload_in_datagram( mbedtls_ssl_context const *ssl
  * Double the retransmit timeout value, within the allowed range,
  * returning -1 if the maximum value has already been reached.
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_double_retransmit_timeout( mbedtls_ssl_context *ssl )
 {
     uint32_t new_timeout;
@@ -329,6 +338,7 @@ static size_t ssl_compute_padding_length( size_t len,
  *  - A negative error code if `max_len` didn't offer enough space
  *    for the expansion.
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_build_inner_plaintext( unsigned char *content,
                                       size_t *content_size,
                                       size_t remaining,
@@ -356,6 +366,7 @@ static int ssl_build_inner_plaintext( unsigned char *content,
 
 /* This function parses a (D)TLSInnerPlaintext structure.
  * See ssl_build_inner_plaintext() for details. */
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_parse_inner_plaintext( unsigned char const *content,
                                           size_t *content_size,
                                           uint8_t *rec_type )
@@ -469,6 +480,7 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
 #if defined(MBEDTLS_GCM_C) || \
     defined(MBEDTLS_CCM_C) || \
     defined(MBEDTLS_CHACHAPOLY_C)
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_transform_aead_dynamic_iv_is_explicit(
                                 mbedtls_ssl_transform const *transform )
 {
@@ -2066,6 +2078,7 @@ int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl )
 /*
  * Append current handshake message to current outgoing flight
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_flight_append( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_flight_item *msg;
@@ -2132,6 +2145,7 @@ void mbedtls_ssl_flight_free( mbedtls_ssl_flight_item *flight )
 /*
  * Swap transform_out and out_ctr with the alternative ones
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_swap_epochs( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_transform *tmp_transform;
@@ -2767,6 +2781,7 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, int force_flush )
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_hs_is_proper_fragment( mbedtls_ssl_context *ssl )
 {
     if( ssl->in_msglen < ssl->in_hslen ||
@@ -2792,6 +2807,7 @@ static uint32_t ssl_get_hs_frag_off( mbedtls_ssl_context const *ssl )
               ssl->in_msg[8] );
 }
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_check_hs_header( mbedtls_ssl_context const *ssl )
 {
     uint32_t msg_len, frag_off, frag_len;
@@ -2858,6 +2874,7 @@ static void ssl_bitmask_set( unsigned char *mask, size_t offset, size_t len )
 /*
  * Check that bitmask is full
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_bitmask_check( unsigned char *mask, size_t len )
 {
     size_t i;
@@ -3057,6 +3074,7 @@ static inline uint64_t ssl_load_six_bytes( unsigned char *buf )
             ( (uint64_t) buf[5]       ) );
 }
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int mbedtls_ssl_dtls_record_replay_check( mbedtls_ssl_context *ssl, uint8_t *record_in_ctr )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -3149,6 +3167,7 @@ void mbedtls_ssl_dtls_replay_update( mbedtls_ssl_context *ssl )
  *   return MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED
  * - otherwise return a specific error code
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 MBEDTLS_STATIC_TESTABLE
 int mbedtls_ssl_check_dtls_clihlo_cookie(
                            mbedtls_ssl_context *ssl,
@@ -3309,6 +3328,7 @@ int mbedtls_ssl_check_dtls_clihlo_cookie(
  * includes the case of MBEDTLS_ERR_SSL_CLIENT_RECONNECT and of unexpected
  * errors, and is the right thing to do in both cases).
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_handle_possible_reconnect( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -3364,6 +3384,7 @@ static int ssl_handle_possible_reconnect( mbedtls_ssl_context *ssl )
 }
 #endif /* MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE && MBEDTLS_SSL_SRV_C */
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_check_record_type( uint8_t record_type )
 {
     if( record_type != MBEDTLS_SSL_MSG_HANDSHAKE &&
@@ -3396,6 +3417,7 @@ static int ssl_check_record_type( uint8_t record_type )
  * Point 2 is needed when the peer is resending, and we have already received
  * the first record from a datagram but are still waiting for the others.
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_parse_record_header( mbedtls_ssl_context const *ssl,
                                     unsigned char *buf,
                                     size_t len,
@@ -3622,6 +3644,7 @@ static int ssl_parse_record_header( mbedtls_ssl_context const *ssl,
 
 
 #if defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE) && defined(MBEDTLS_SSL_SRV_C)
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_check_client_reconnect( mbedtls_ssl_context *ssl )
 {
     unsigned int rec_epoch = ( ssl->in_ctr[0] << 8 ) | ssl->in_ctr[1];
@@ -3651,6 +3674,7 @@ static int ssl_check_client_reconnect( mbedtls_ssl_context *ssl )
 /*
  * If applicable, decrypt record content
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_prepare_record_content( mbedtls_ssl_context *ssl,
                                        mbedtls_record *rec )
 {
@@ -3803,8 +3827,11 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl,
  */
 
 /* Helper functions for mbedtls_ssl_read_record(). */
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_consume_current_message( mbedtls_ssl_context *ssl );
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_get_next_record( mbedtls_ssl_context *ssl );
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_record_is_in_progress( mbedtls_ssl_context *ssl );
 
 int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl,
@@ -3892,6 +3919,7 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl,
 }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_next_record_is_in_datagram( mbedtls_ssl_context *ssl )
 {
     if( ssl->in_left > ssl->next_record_offset )
@@ -3900,6 +3928,7 @@ static int ssl_next_record_is_in_datagram( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_load_buffered_message( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_handshake_params * const hs = ssl->handshake;
@@ -3997,6 +4026,7 @@ exit:
     return( ret );
 }
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_buffer_make_space( mbedtls_ssl_context *ssl,
                                   size_t desired )
 {
@@ -4039,6 +4069,7 @@ static int ssl_buffer_make_space( mbedtls_ssl_context *ssl,
     return( -1 );
 }
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_buffer_message( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
@@ -4243,6 +4274,7 @@ exit:
 }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_consume_current_message( mbedtls_ssl_context *ssl )
 {
     /*
@@ -4330,6 +4362,7 @@ static int ssl_consume_current_message( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_record_is_in_progress( mbedtls_ssl_context *ssl )
 {
     if( ssl->in_msglen > 0 )
@@ -4356,6 +4389,7 @@ static void ssl_free_buffered_record( mbedtls_ssl_context *ssl )
     }
 }
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_load_buffered_record( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_handshake_params * const hs = ssl->handshake;
@@ -4413,6 +4447,7 @@ exit:
     return( 0 );
 }
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_buffer_future_record( mbedtls_ssl_context *ssl,
                                      mbedtls_record const *rec )
 {
@@ -4471,6 +4506,7 @@ static int ssl_buffer_future_record( mbedtls_ssl_context *ssl,
 
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_get_next_record( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -5221,6 +5257,7 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
 /*
  * Check record counters and renegotiate if they're above the limit.
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_check_ctr_renegotiate( mbedtls_ssl_context *ssl )
 {
     size_t ep_len = mbedtls_ssl_ep_len( ssl );
@@ -5260,6 +5297,7 @@ static int ssl_check_ctr_renegotiate( mbedtls_ssl_context *ssl )
  * and having a helper function allows to distinguish between TLS <= 1.2 and
  * TLS 1.3 in the future without bloating the logic of mbedtls_ssl_read().
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_handle_hs_message_post_handshake( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -5577,6 +5615,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
  * Therefore, it is possible that the input message length is 0 and the
  * corresponding return code is 0 on success.
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_write_real( mbedtls_ssl_context *ssl,
                            const unsigned char *buf, size_t len )
 {

@@ -1778,6 +1778,7 @@ const int *mbedtls_ssl_list_ciphersuites( void )
 static int supported_ciphersuites[MAX_CIPHERSUITES];
 static int supported_init = 0;
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ciphersuite_is_removed( const mbedtls_ssl_ciphersuite_t *cs_info )
 {
     (void)cs_info;

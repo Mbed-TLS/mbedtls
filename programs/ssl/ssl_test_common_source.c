@@ -264,10 +264,14 @@ int send_cb( void *ctx, unsigned char const *buf, size_t len )
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_RSA_C)
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-/* To fix version negotiation fail with RSA server key.
- * - With TLS1.3 server, `rsa_pss_rsae_*` must be sent.
- * - With TLS1.2 server, `rsa_pkcs1_*` must be sent before `rsa_pss_rsae_*`
- *   - This point is only tested with OpenSSL now.
+/*
+ *   `rsa_pss_rsae_*` MUST BE PUT ARTER `rsa_pkcs1_*` before below compitable fixed
+ *   The compitable issue is When
+ *   - GnuTLS/OpenSSL is configured as tls12 server with rsa key
+ *   - `mebedTLS` is configured as hybrid mode.
+ *   - The order is `rsa_pss_rsae_*`, `rsa_pkcs1_*`.
+ *   GnuTLS/OpenSSL will return `rsa_pss_rsae_*` which are not supported by
+ *   TLS 1.2 in mbedTLS.
  */
 #define MBEDTLS_SSL_SIG_ALG( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_ECDSA), \
                                     (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA), \

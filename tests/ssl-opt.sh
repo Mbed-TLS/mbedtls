@@ -7358,6 +7358,20 @@ run_test    "Small client packet TLS 1.2 AEAD shorter tag" \
             0 \
             -s "Read from client: 1 bytes read"
 
+run_test    "Small client packet TLS 1.3 AEAD" \
+            "$P_SRV force_version=tls13" \
+            "$P_CLI request_size=1 \
+             force_ciphersuite=TLS1-3-AES-128-CCM-SHA256" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+run_test    "Small client packet TLS 1.3 AEAD shorter tag" \
+            "$P_SRV force_version=tls13" \
+            "$P_CLI request_size=1 \
+             force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
 # Tests for small client packets in DTLS
 
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
@@ -7405,6 +7419,18 @@ run_test    "Small server packet TLS 1.2 AEAD" \
 run_test    "Small server packet TLS 1.2 AEAD shorter tag" \
             "$P_SRV response_size=1 force_version=tls12" \
             "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-256-CCM-8" \
+            0 \
+            -c "Read from server: 1 bytes read"
+
+run_test    "Small server packet TLS 1.3 AEAD" \
+            "$P_SRV response_size=1 force_version=tls13" \
+            "$P_CLI force_ciphersuite=TLS1-3-AES-128-CCM-SHA256" \
+            0 \
+            -c "Read from server: 1 bytes read"
+
+run_test    "Small server packet TLS 1.3 AEAD shorter tag" \
+            "$P_SRV response_size=1 force_version=tls13" \
+            "$P_CLI force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256" \
             0 \
             -c "Read from server: 1 bytes read"
 
@@ -7472,6 +7498,22 @@ run_test    "Large client packet TLS 1.2 AEAD shorter tag" \
             -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
             -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
+run_test    "Large client packet TLS 1.3 AEAD" \
+            "$P_SRV force_version=tls13" \
+            "$P_CLI request_size=16384 \
+             force_ciphersuite=TLS1-3-AES-128-CCM-SHA256" \
+            0 \
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
+
+run_test    "Large client packet TLS 1.3 AEAD shorter tag" \
+            "$P_SRV force_version=tls13" \
+            "$P_CLI request_size=16384 \
+             force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256" \
+            0 \
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
+
 # The tests below fail when the server's OUT_CONTENT_LEN is less than 16384.
 run_test    "Large server packet TLS 1.2 BlockCipher" \
             "$P_SRV response_size=16384 force_version=tls12" \
@@ -7508,6 +7550,18 @@ run_test    "Large server packet TLS 1.2 AEAD" \
 run_test    "Large server packet TLS 1.2 AEAD shorter tag" \
             "$P_SRV response_size=16384 force_version=tls12" \
             "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-256-CCM-8" \
+            0 \
+            -c "Read from server: 16384 bytes read"
+
+run_test    "Large server packet TLS 1.3 AEAD" \
+            "$P_SRV response_size=16384 force_version=tls13" \
+            "$P_CLI force_ciphersuite=TLS1-3-AES-128-CCM-SHA256" \
+            0 \
+            -c "Read from server: 16384 bytes read"
+
+run_test    "Large server packet TLS 1.3 AEAD shorter tag" \
+            "$P_SRV response_size=16384 force_version=tls13" \
+            "$P_CLI force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256" \
             0 \
             -c "Read from server: 16384 bytes read"
 

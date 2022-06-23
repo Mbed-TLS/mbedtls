@@ -10520,16 +10520,22 @@ run_test    "TLS 1.3: server alpn - openssl" \
             "$P_SRV debug_level=3 tickets=0 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 alpn=h2" \
             "$O_NEXT_CLI -msg -tls1_3 -no_middlebox -alpn h2" \
             0 \
-            -s "server state: MBEDTLS_SSL_HELLO_REQUEST" \
-            -s "server state: MBEDTLS_SSL_SERVER_HELLO" \
-            -s "server state: MBEDTLS_SSL_ENCRYPTED_EXTENSIONS" \
-            -s "server state: MBEDTLS_SSL_CERTIFICATE_REQUEST" \
-            -s "server state: MBEDTLS_SSL_SERVER_CERTIFICATE" \
-            -s "server state: MBEDTLS_SSL_CERTIFICATE_VERIFY" \
-            -s "server state: MBEDTLS_SSL_SERVER_FINISHED" \
-            -s "server state: MBEDTLS_SSL_CLIENT_FINISHED" \
-            -s "server state: MBEDTLS_SSL_HANDSHAKE_WRAPUP" \
-            -s "<= parse client hello" \
+            -s "found alpn extension" \
+            -s "server side, adding alpn extension" \
+            -s "Protocol is TLSv1.3" \
+            -s "HTTP/1.0 200 OK" \
+            -s "Application Layer Protocol is h2"
+
+requires_gnutls_tls1_3
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_SSL_ALPN
+run_test    "TLS 1.3: server alpn - gnutls" \
+            "$P_SRV debug_level=3 tickets=0 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 alpn=h2" \
+            "$G_NEXT_CLI localhost -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V --alpn h2" \
+            0 \
             -s "found alpn extension" \
             -s "server side, adding alpn extension" \
             -s "Protocol is TLSv1.3" \

@@ -8291,36 +8291,42 @@ int mbedtls_ssl_parse_alpn_ext( mbedtls_ssl_context *ssl,
                                 const unsigned char *end )
 {
     const unsigned char *p = buf;
-    size_t list_len;
+    size_t protocol_name_list_len;
 
-    const unsigned char *cur_alpn;
-    size_t cur_alpn_len;
+    const unsigned char *protocol_name;
+    size_t protocol_name_len;
 
     /* If ALPN not configured, just ignore the extension */
     if( ssl->conf->alpn_list == NULL )
         return( 0 );
 
     /*
-     * opaque ProtocolName<1..2^8-1>;
+     * RFC7301, section 3.1
+     *      opaque ProtocolName<1..2^8-1>;
      *
-     * struct {
-     *     ProtocolName protocol_name_list<2..2^16-1>
-     * } ProtocolNameList;
+     *      struct {
+     *          ProtocolName protocol_name_list<2..2^16-1>
+     *      } ProtocolNameList;
      */
 
-    /* Min length is 2 ( list_len ) + 1 ( name_len ) + 1 ( name ) */
+    /*
+     * protocal_name_list_len    2 bytes
+     * protocal_name_len         1 bytes
+     * protocal_name             >=1 byte
+     */
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 4 );
 
-    list_len = MBEDTLS_GET_UINT16_BE( p, 0 );
+    protocol_name_list_len = MBEDTLS_GET_UINT16_BE( p, 0 );
     p += 2;
-    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, list_len );
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, protocol_name_list_len );
 
     /* Validate peer's list (lengths) */
-    for( cur_alpn = p; cur_alpn != end; cur_alpn += cur_alpn_len )
+    for( protocol_name = p; protocol_name != end;
+         protocol_name += protocol_name_len )
     {
-        cur_alpn_len = *cur_alpn++;
-        MBEDTLS_SSL_CHK_BUF_READ_PTR( cur_alpn, end, cur_alpn_len );
-        if( cur_alpn_len == 0 )
+        protocol_name_len = *protocol_name++;
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( protocol_name, end, protocol_name_len );
+        if( protocol_name_len == 0 )
             return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
     }
 
@@ -8328,12 +8334,13 @@ int mbedtls_ssl_parse_alpn_ext( mbedtls_ssl_context *ssl,
     for( const char **alpn = ssl->conf->alpn_list; *alpn != NULL; alpn++ )
     {
         size_t const alpn_len = strlen( *alpn );
-        for( cur_alpn = p; cur_alpn != end; cur_alpn += cur_alpn_len )
+        for( protocol_name = p; protocol_name != end;
+             protocol_name += protocol_name_len )
         {
-            cur_alpn_len = *cur_alpn++;
+            protocol_name_len = *protocol_name++;
 
-            if( cur_alpn_len == alpn_len &&
-                memcmp( cur_alpn, *alpn, alpn_len ) == 0 )
+            if( protocol_name_len == alpn_len &&
+                memcmp( protocol_name, *alpn, alpn_len ) == 0 )
             {
                 ssl->alpn_chosen = *alpn;
                 return( 0 );
@@ -8351,10 +8358,10 @@ int mbedtls_ssl_parse_alpn_ext( mbedtls_ssl_context *ssl,
 int mbedtls_ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
                                 unsigned char *buf,
                                 unsigned char *end,
-                                size_t *olen )
+                                size_t *out_len )
 {
     unsigned char *p = buf;
-    *olen = 0;
+    *out_len = 0;
 
     if( ssl->alpn_chosen == NULL )
     {
@@ -8373,14 +8380,14 @@ int mbedtls_ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
      */
     MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_ALPN, p, 0 );
 
-    *olen = 7 + strlen( ssl->alpn_chosen );
+    *out_len = 7 + strlen( ssl->alpn_chosen );
 
-    MBEDTLS_PUT_UINT16_BE( *olen - 4, p, 2 );
-    MBEDTLS_PUT_UINT16_BE( *olen - 6, p, 4 );
-    p[6] = MBEDTLS_BYTE_0( *olen - 7 );
+    MBEDTLS_PUT_UINT16_BE( *out_len - 4, p, 2 );
+    MBEDTLS_PUT_UINT16_BE( *out_len - 6, p, 4 );
+    p[6] = MBEDTLS_BYTE_0( *out_len - 7 );
     p += 7;
 
-    memcpy( p, ssl->alpn_chosen, *olen - 7 );
+    memcpy( p, ssl->alpn_chosen, *out_len - 7 );
     return ( 0 );
 }
 #endif /* MBEDTLS_SSL_ALPN */

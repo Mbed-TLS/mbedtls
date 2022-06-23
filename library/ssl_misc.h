@@ -2289,7 +2289,7 @@ int mbedtls_ssl_parse_alpn_ext( mbedtls_ssl_context *ssl,
 int mbedtls_ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
                                 unsigned char *buf,
                                 unsigned char *end,
-                                size_t *olen );
+                                size_t *out_len );
 #endif /* MBEDTLS_SSL_ALPN */
 
 #endif /* ssl_misc.h */

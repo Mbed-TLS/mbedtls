@@ -722,9 +722,13 @@ mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx );
  */
 static inline mbedtls_rsa_context *mbedtls_pk_rsa( const mbedtls_pk_context pk )
 {
-    return( mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_RSA ?
-            (mbedtls_rsa_context *) (pk).MBEDTLS_PRIVATE(pk_ctx) :
-            NULL );
+    switch( mbedtls_pk_get_type( &pk ) )
+    {
+        case MBEDTLS_PK_RSA:
+            return( (mbedtls_rsa_context *) (pk).MBEDTLS_PRIVATE(pk_ctx) );
+        default:
+            return( NULL );
+    }
 }
 #endif /* MBEDTLS_RSA_C */
 
@@ -742,11 +746,15 @@ static inline mbedtls_rsa_context *mbedtls_pk_rsa( const mbedtls_pk_context pk )
  */
 static inline mbedtls_ecp_keypair *mbedtls_pk_ec( const mbedtls_pk_context pk )
 {
-    return( mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_ECKEY ||
-            mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_ECKEY_DH ||
-            mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_ECDSA ?
-            (mbedtls_ecp_keypair *) (pk).MBEDTLS_PRIVATE(pk_ctx) :
-            NULL );
+    switch( mbedtls_pk_get_type( &pk ) )
+    {
+        case MBEDTLS_PK_ECKEY:
+        case MBEDTLS_PK_ECKEY_DH:
+        case MBEDTLS_PK_ECDSA:
+            return( (mbedtls_ecp_keypair *) (pk).MBEDTLS_PRIVATE(pk_ctx) );
+        default:
+            return( NULL );
+    }
 }
 #endif /* MBEDTLS_ECP_C */
 

@@ -789,16 +789,19 @@ exit:
 void mbedtls_x509_dn_get_next( char * name_str, int next_merged, char * expected_oids, int exp_count, char * exp_dn_gets )
 {
     int ret = 0, i;
-    size_t len = 0;
+    size_t len = 0, out_size;
     mbedtls_asn1_named_data *names = NULL;
     mbedtls_x509_name parsed, *parsed_cur, *parsed_prv;
-    unsigned char buf[1024], out[1024], *c;
+    // Size of buf is maximum required for test cases
+    unsigned char buf[80], *out = NULL, *c;
     const char *short_name;
 
     memset( &parsed, 0, sizeof( parsed ) );
-    memset( out, 0, sizeof( out ) );
     memset( buf, 0, sizeof( buf ) );
     c = buf + sizeof( buf );
+    // Additional size required for trailing space
+    out_size = strlen( expected_oids ) + 2;
+    ASSERT_ALLOC( out, out_size );
 
     TEST_ASSERT( mbedtls_x509_string_to_names( &names, name_str ) == 0 );
 
@@ -824,17 +827,23 @@ void mbedtls_x509_dn_get_next( char * name_str, int next_merged, char * expected
     {
         TEST_ASSERT( mbedtls_oid_get_attr_short_name( &parsed_cur->oid,
                                                       &short_name ) == 0 );
-        len += mbedtls_snprintf( (char*) out + len, 1024 - len, "%s ", short_name );
+        len += mbedtls_snprintf( (char*) out + len, out_size - len, "%s ", short_name );
         parsed_cur = mbedtls_x509_dn_get_next( parsed_cur );
     }
     out[len-1] = 0;
 
     TEST_ASSERT( exp_count == i );
     TEST_ASSERT( strcmp( (char *) out, expected_oids ) == 0 );
+    mbedtls_free( out );
+    out = NULL;
 
-    TEST_ASSERT( mbedtls_x509_dn_gets( (char *) out, sizeof( out ), &parsed ) >= 0 );
+    out_size = strlen( exp_dn_gets ) + 1;
+    ASSERT_ALLOC( out, out_size );
+
+    TEST_ASSERT( mbedtls_x509_dn_gets( (char *) out, out_size, &parsed ) >= 0 );
     TEST_ASSERT( strcmp( (char *) out, exp_dn_gets ) == 0 );
 exit:
+    mbedtls_free( out );
     mbedtls_asn1_free_named_data_list( &names );
 
     parsed_cur = parsed.next;

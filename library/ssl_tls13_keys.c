@@ -145,7 +145,7 @@ int mbedtls_ssl_tls13_hkdf_expand_label(
                      unsigned char *buf, size_t buf_len )
 {
     unsigned char hkdf_label[ SSL_TLS1_3_KEY_SCHEDULE_MAX_HKDF_LABEL_LEN ];
-    size_t hkdf_label_len;
+    size_t hkdf_label_len = 0;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t abort_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_derivation_operation_t operation =
@@ -211,6 +211,7 @@ int mbedtls_ssl_tls13_hkdf_expand_label(
 cleanup:
     abort_status = psa_key_derivation_abort( &operation );
     status = ( status == PSA_SUCCESS ? abort_status : status );
+    mbedtls_platform_zeroize( hkdf_label, hkdf_label_len );
     return( psa_ssl_status_to_mbedtls ( status ) );
 }
 

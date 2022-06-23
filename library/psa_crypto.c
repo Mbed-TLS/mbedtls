@@ -4280,7 +4280,7 @@ static psa_status_t psa_key_derivation_start_hmac(
 #define HKDF_STATE_KEYED 2 /* got key */
 #define HKDF_STATE_OUTPUT 3 /* output started */
 
-static psa_algorithm_t psa_key_derivation_get_stage_alg (
+static psa_algorithm_t psa_key_derivation_get_stage_alg(
     const psa_key_derivation_operation_t *operation )
 {
     if ( operation->stage == PSA_KEY_DERIVATION_STAGE_INPUT )
@@ -4302,7 +4302,7 @@ static void psa_key_derivation_set_stage_alg (
 static psa_algorithm_t psa_key_derivation_get_kdf_alg(
     const psa_key_derivation_operation_t *operation )
 {
-    psa_algorithm_t alg = psa_key_derivation_get_stage_alg ( operation );
+    psa_algorithm_t alg = psa_key_derivation_get_stage_alg( operation );
 
     if ( PSA_ALG_IS_KEY_AGREEMENT( alg ) )
         return( PSA_ALG_KEY_AGREEMENT_GET_KDF( alg ) );
@@ -4440,7 +4440,7 @@ psa_status_t psa_key_derivation_abort( psa_key_derivation_operation_t *operation
 psa_status_t psa_key_derivation_get_capacity(const psa_key_derivation_operation_t *operation,
                                         size_t *capacity)
 {
-    const psa_algorithm_t alg = psa_key_derivation_get_stage_alg ( operation );
+    const psa_algorithm_t alg = psa_key_derivation_get_stage_alg( operation );
 
     if( alg == 0 )
     {
@@ -4455,7 +4455,7 @@ psa_status_t psa_key_derivation_get_capacity(const psa_key_derivation_operation_
 psa_status_t psa_key_derivation_set_capacity( psa_key_derivation_operation_t *operation,
                                          size_t capacity )
 {
-    const psa_algorithm_t alg = psa_key_derivation_get_stage_alg ( operation );
+    const psa_algorithm_t alg = psa_key_derivation_get_stage_alg( operation );
 
     if( alg == 0 )
         return( PSA_ERROR_BAD_STATE );
@@ -5421,7 +5421,7 @@ psa_status_t psa_key_derivation_output_bytes(
     psa_status_t status;
     psa_algorithm_t kdf_alg = psa_key_derivation_get_kdf_alg( operation );
 
-    if( psa_key_derivation_get_stage_alg ( operation ) == 0 )
+    if( psa_key_derivation_get_stage_alg( operation ) == 0 )
     {
         /* This is a blank operation. */
         return( PSA_ERROR_BAD_STATE );
@@ -5488,7 +5488,7 @@ exit:
          * This allows us to differentiate between exhausted operations and
          * blank operations, so we can return PSA_ERROR_BAD_STATE on blank
          * operations. */
-        psa_algorithm_t alg = psa_key_derivation_get_stage_alg ( operation );
+        psa_algorithm_t alg = psa_key_derivation_get_stage_alg( operation );
         psa_key_derivation_abort( operation );
         operation->stage = PSA_KEY_DERIVATION_STAGE_OUTPUT;
         psa_key_derivation_set_stage_alg( operation, alg );
@@ -5811,7 +5811,7 @@ psa_status_t psa_key_derivation_output_key( const psa_key_attributes_t *attribut
     if( psa_get_key_bits( attributes ) == 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    if( psa_key_derivation_get_stage_alg ( operation ) == PSA_ALG_NONE )
+    if( psa_key_derivation_get_stage_alg( operation ) == PSA_ALG_NONE )
         return( PSA_ERROR_BAD_STATE );
 
     if( ! operation->can_output_key )
@@ -5937,7 +5937,7 @@ psa_status_t psa_key_derivation_setup( psa_key_derivation_operation_t *operation
 {
     psa_status_t status;
 
-    if( psa_key_derivation_get_stage_alg ( operation ) != 0 )
+    if( psa_key_derivation_get_stage_alg( operation ) != 0 )
         return( PSA_ERROR_BAD_STATE );
 
     if( PSA_ALG_IS_RAW_KEY_AGREEMENT( alg ) )
@@ -6219,7 +6219,7 @@ psa_status_t psa_key_derivation_input_key(
 
     status = psa_get_and_lock_transparent_key_slot_with_policy(
                  key, &slot, PSA_KEY_USAGE_DERIVE,
-                 psa_key_derivation_get_stage_alg ( operation ) );
+                 psa_key_derivation_get_stage_alg( operation ) );
     if( status != PSA_SUCCESS )
     {
         psa_key_derivation_abort( operation );
@@ -6359,7 +6359,7 @@ static psa_status_t psa_key_agreement_internal( psa_key_derivation_operation_t *
     uint8_t shared_secret[PSA_KEY_AGREEMENT_MAX_SHARED_SECRET_SIZE];
     size_t shared_secret_length = 0;
     psa_algorithm_t ka_alg = PSA_ALG_KEY_AGREEMENT_GET_BASE(
-        psa_key_derivation_get_stage_alg ( operation ) );
+        psa_key_derivation_get_stage_alg( operation ) );
 
     /* Step 1: run the secret agreement algorithm to generate the shared
      * secret. */
@@ -6394,11 +6394,11 @@ psa_status_t psa_key_derivation_key_agreement( psa_key_derivation_operation_t *o
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot;
 
-    if( ! PSA_ALG_IS_KEY_AGREEMENT( psa_key_derivation_get_stage_alg ( operation ) ) )
+    if( ! PSA_ALG_IS_KEY_AGREEMENT( psa_key_derivation_get_stage_alg( operation ) ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
     status = psa_get_and_lock_transparent_key_slot_with_policy(
                  private_key, &slot, PSA_KEY_USAGE_DERIVE,
-                 psa_key_derivation_get_stage_alg ( operation ) );
+                 psa_key_derivation_get_stage_alg( operation ) );
     if( status != PSA_SUCCESS )
         return( status );
     status = psa_key_agreement_internal( operation, step,

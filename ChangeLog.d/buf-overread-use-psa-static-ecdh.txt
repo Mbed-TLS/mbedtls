@@ -1,0 +1,6 @@
+Security
+   * Fix a potential heap buffer overread in TLS 1.2 server-side when
+     MBEDTLS_USE_PSA_CRYPTO is enabled, an opaque key (created with
+     mbedtls_pk_setup_opaque()) is provisioned, and a static ECDH ciphersuite
+     is selected. This may result in an application crash or potentially an
+     information leak.

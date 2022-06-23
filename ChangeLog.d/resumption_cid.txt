@@ -1,0 +1,4 @@
+Bugfix
+   * Fix a bug where the connection ID extension on client side would not work
+     after a session resumption took place. This caused the client to not
+     recognize records containing a CID and drop them.

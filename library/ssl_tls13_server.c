@@ -1403,7 +1403,7 @@ static int ssl_tls13_write_encrypted_extensions_body( mbedtls_ssl_context *ssl,
     ret = mbedtls_ssl_write_alpn_ext( ssl, p, end, &output_len );
     if( ret != 0 )
         return( ret );
-    p  += output_len;
+    p += output_len;
 #endif /* MBEDTLS_SSL_ALPN */
 
     extensions_len = ( p - p_extensions_len ) - 2;

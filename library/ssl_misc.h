@@ -1922,8 +1922,12 @@ static inline const void *mbedtls_ssl_get_sig_algs(
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
-    if( ssl->handshake != NULL && ssl->handshake->sig_algs != NULL )
+    if( ssl->handshake->sig_algs_heap_allocated == 1 &&
+        ssl->handshake != NULL &&
+        ssl->handshake->sig_algs != NULL )
+    {
         return( ssl->handshake->sig_algs );
+    }
 #endif
     return( ssl->conf->sig_algs );
 

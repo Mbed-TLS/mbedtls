@@ -375,6 +375,18 @@ X509 Get Distinguished Name #4
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
 mbedtls_x509_dn_gets:"data_files/server2.crt":"issuer":"C=NL, O=PolarSSL, CN=PolarSSL Test CA"
 
+X509 Get Next DN #1 No Multivalue RDNs
+mbedtls_x509_dn_get_next:"C=NL, O=PolarSSL, CN=PolarSSL Server 1":0:"C O CN":3:"C=NL, O=PolarSSL, CN=PolarSSL Server 1"
+
+X509 Get Next DN #2 Initial Multivalue RDN
+mbedtls_x509_dn_get_next:"C=NL, O=PolarSSL, CN=PolarSSL Server 1":0x01:"C CN":2:"C=NL + O=PolarSSL, CN=PolarSSL Server 1"
+
+X509 Get Next DN #3 Single Multivalue RDN
+mbedtls_x509_dn_get_next:"C=NL, O=PolarSSL, CN=PolarSSL Server 1":0x03:"C":1:"C=NL + O=PolarSSL + CN=PolarSSL Server 1"
+
+X509 Get Next DN #4 Consecutive Multivalue RDNs
+mbedtls_x509_dn_get_next:"C=NL, O=PolarSSL, title=Example, CN=PolarSSL Server 1":0x05:"C title":2:"C=NL + O=PolarSSL, title=Example + CN=PolarSSL Server 1"
+
 X509 Time Expired #1
 depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_HAVE_TIME_DATE:MBEDTLS_SHA1_C
 mbedtls_x509_time_is_past:"data_files/server1.crt":"valid_from":1

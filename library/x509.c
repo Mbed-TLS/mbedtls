@@ -797,6 +797,15 @@ int mbedtls_x509_dn_gets( char *buf, size_t size, const mbedtls_x509_name *dn )
 }
 
 /*
+ * Return the next relative DN in an X509 name.
+ */
+mbedtls_x509_name * mbedtls_x509_dn_get_next( mbedtls_x509_name * dn )
+{
+    for( ; dn->next != NULL && dn->next_merged; dn = dn->next );
+    return( dn->next );
+}
+
+/*
  * Store the serial in printable form into buf; no more
  * than size characters will be written
  */

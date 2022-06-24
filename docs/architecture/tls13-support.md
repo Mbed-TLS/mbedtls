@@ -415,7 +415,7 @@ Overview of handshake code organization
 ---------------------------------------
 
 The TLS 1.3 handshake protocol is implemented as a state machine. The
-functions `mbedtls_ssl_tls13_handshake_client/server_step` are the top level
+functions `mbedtls_ssl_tls13_handshake_{client,server}_step` are the top level
 functions of that implementation. They are implemented as a switch over all the
 possible states of the state machine.
 
@@ -435,7 +435,7 @@ and outbound keys are updated. The `MBEDTLS_SSL_CLIENT_CERTIFICATE` state on
 client side is a example of that.
 
 The names of the handlers processing/writing an handshake message are
-prefixed with `(mbedtls_)ssl_tls13_process/write`. To ease the maintenance and
+prefixed with `(mbedtls_)ssl_tls13_{process,write}`. To ease the maintenance and
 reduce the risk of bugs, the code of the message processing and writing
 handlers is split into a sequence of stages.
 

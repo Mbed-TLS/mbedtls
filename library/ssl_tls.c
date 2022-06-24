@@ -961,20 +961,6 @@ static int ssl_conf_check(const mbedtls_ssl_context *ssl)
     return( 0 );
 }
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
-    defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
-    defined(MBEDTLS_SSL_SRV_C) && \
-    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-/* Remove below lines if server side hybrid mode implemented.
- * To fix wrong default signature algorithm setting when both
- * TLS1.2 and TLS1.3 enabled.
- */
-static void ssl_fix_server_side_negotiation_fail( mbedtls_ssl_context *ssl );
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 &&
-          MBEDTLS_SSL_PROTO_TLS1_3 &&
-          MBEDTLS_SSL_SRV_C &&
-          MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
-
 /*
  * Setup an SSL context
  */
@@ -2998,20 +2984,8 @@ int mbedtls_ssl_handshake_step( mbedtls_ssl_context *ssl )
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
     {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-
         if( mbedtls_ssl_conf_is_tls13_only( ssl->conf ) )
-        {
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
-    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-            /* Remove below lines if server side hybrid mode implemented. */
-            if( ssl->state == MBEDTLS_SSL_HELLO_REQUEST )
-            {
-                ssl_fix_server_side_negotiation_fail( ssl );
-            }
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 &&
-          MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
             ret = mbedtls_ssl_tls13_handshake_server_step( ssl );
-        }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)

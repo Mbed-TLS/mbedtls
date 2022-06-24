@@ -4095,13 +4095,12 @@ static int ssl_preset_suiteb_ciphersuites[] = {
  *   - ssl_tls12_present* is for TLS 1.2 use only.
  *   - ssl_preset_* is for TLS 1.3 only or hybrid TLS 1.3/1.2 handshakes.
  *
- *   `rsa_pss_rsae_*` MUST BE PUT ARTER `rsa_pkcs1_*` before below compitable fixed
- *   The compitable issue is When
- *   - GnuTLS/OpenSSL is configured as tls12 server with rsa key
- *   - `mebedTLS` is configured as hybrid mode.
- *   - The order is `rsa_pss_rsae_*`, `rsa_pkcs1_*`.
- *   GnuTLS/OpenSSL will return `rsa_pss_rsae_*` which are not supported by
- *   TLS 1.2 in mbedTLS.
+ *   When GnuTLS/Openssl server is configured in TLS 1.2 mode with a certificate
+ *   declaring an RSA public key and Mbed TLS is configured in hybrid mode, if
+ *   `rsa_pss_rsae_*` algorithms are before `rsa_pkcs1_*` ones in this list then
+ *   the  GnuTLS/Openssl server chooses an `rsa_pss_rsae_*` signature algorithm
+ *   for its signature in the key exchange message and as Mbed TLS 1.2 does not
+ *   support them, the handshake fails.
  */
 static uint16_t ssl_preset_default_sig_algs[] = {
 

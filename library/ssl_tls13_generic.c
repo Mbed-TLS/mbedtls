@@ -898,17 +898,17 @@ int mbedtls_ssl_tls13_check_sig_alg_cert_key_match(
 #if defined(MBEDTLS_PKCS1_V21)
 #if defined(MBEDTLS_SHA256_C)
                 case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
-                    return( key_size <= 2048 );
+                    return( key_size <= 3072 );
 #endif /* MBEDTLS_SHA256_C */
 
 #if defined(MBEDTLS_SHA384_C)
                 case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384:
-                    return( key_size <= 3072 );
+                    return( key_size <= 7680 );
 #endif /* MBEDTLS_SHA384_C */
 
 #if defined(MBEDTLS_SHA512_C)
                 case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:
-                    return( key_size <= 4096 );
+                    return( 1 );
 #endif /* MBEDTLS_SHA512_C */
 #endif /* MBEDTLS_PKCS1_V21 */
 
@@ -935,7 +935,8 @@ static int ssl_tls13_select_sig_alg_for_certificate_verify(
     *algorithm = MBEDTLS_TLS1_3_SIG_NONE;
     for( ; *sig_alg != MBEDTLS_TLS1_3_SIG_NONE ; sig_alg++ )
     {
-        if( mbedtls_ssl_tls13_sig_alg_is_supported_for_certificate( *sig_alg ) &&
+        if( mbedtls_ssl_tls13_sig_alg_for_cert_verify_is_supported(
+                                                            *sig_alg ) &&
             mbedtls_ssl_tls13_check_sig_alg_cert_key_match(
                                                         *sig_alg, own_key ) )
         {

@@ -265,13 +265,12 @@ int send_cb( void *ctx, unsigned char const *buf, size_t len )
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_RSA_C)
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 /*
- *   `rsa_pss_rsae_*` MUST BE PUT ARTER `rsa_pkcs1_*` before below compitable fixed
- *   The compitable issue is When
- *   - GnuTLS/OpenSSL is configured as tls12 server with rsa key
- *   - `mebedTLS` is configured as hybrid mode.
- *   - The order is `rsa_pss_rsae_*`, `rsa_pkcs1_*`.
- *   GnuTLS/OpenSSL will return `rsa_pss_rsae_*` which are not supported by
- *   TLS 1.2 in mbedTLS.
+ *   When GnuTLS/Openssl server is configured in TLS 1.2 mode with a certificate
+ *   declaring an RSA public key and Mbed TLS is configured in hybrid mode, if
+ *   `rsa_pss_rsae_*` algorithms are before `rsa_pkcs1_*` ones in this list then
+ *   the  GnuTLS/Openssl server chooses an `rsa_pss_rsae_*` signature algorithm
+ *   for its signature in the key exchange message and as Mbed TLS 1.2 does not
+ *   support them, the handshake fails.
  */
 #define MBEDTLS_SSL_SIG_ALG( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_ECDSA), \
                                     (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA), \

@@ -1740,7 +1740,7 @@ requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SHA256_C
-run_test    "TLS-ECDHE-ECDSA Opaque key for server authentication, invalid algs" \
+run_test    "Opaque key for server authentication: invalid alg: decrypt with ECC key" \
             "$P_SRV auth_mode=required key_opaque=1 crt_file=data_files/server5.crt \
              key_file=data_files/server5.key key_opaque_algs=rsa-decrypt,none \
              debug_level=1" \
@@ -1825,7 +1825,7 @@ requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_SHA256_C
-run_test    "TLS-ECDHE-RSA Opaque key for server authentication, invalid algs" \
+run_test    "Opaque key for server authentication: invalid alg: ecdh with RSA key" \
             "$P_SRV auth_mode=required key_opaque=1 crt_file=data_files/server2-sha256.crt \
              key_file=data_files/server2.key key_opaque_algs=ecdh,none \
              debug_level=1" \

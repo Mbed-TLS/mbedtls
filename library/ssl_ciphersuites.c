@@ -1922,7 +1922,7 @@ mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_pk_alg( const mbedtls_ssl_ciph
 }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-psa_algorithm_t mbedtls_ssl_get_ciphersuite_sig_pk_ext_alg( const mbedtls_ssl_ciphersuite_t *info )
+psa_algorithm_t mbedtls_ssl_get_ciphersuite_sig_pk_psa_alg( const mbedtls_ssl_ciphersuite_t *info )
 {
     switch( info->key_exchange )
     {
@@ -1946,7 +1946,7 @@ psa_algorithm_t mbedtls_ssl_get_ciphersuite_sig_pk_ext_alg( const mbedtls_ssl_ci
     }
 }
 
-psa_key_usage_t mbedtls_ssl_get_ciphersuite_sig_pk_ext_usage( const mbedtls_ssl_ciphersuite_t *info )
+psa_key_usage_t mbedtls_ssl_get_ciphersuite_sig_pk_psa_usage( const mbedtls_ssl_ciphersuite_t *info )
 {
     switch( info->key_exchange )
     {

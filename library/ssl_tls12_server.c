@@ -684,9 +684,9 @@ static int ssl_pick_cert( mbedtls_ssl_context *ssl,
     mbedtls_ssl_key_cert *cur, *list;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_algorithm_t pk_alg =
-        mbedtls_ssl_get_ciphersuite_sig_pk_ext_alg( ciphersuite_info );
+        mbedtls_ssl_get_ciphersuite_sig_pk_psa_alg( ciphersuite_info );
     psa_key_usage_t pk_usage =
-        mbedtls_ssl_get_ciphersuite_sig_pk_ext_usage( ciphersuite_info );
+        mbedtls_ssl_get_ciphersuite_sig_pk_psa_usage( ciphersuite_info );
 #else
     mbedtls_pk_type_t pk_alg =
         mbedtls_ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );

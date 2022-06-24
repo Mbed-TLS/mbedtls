@@ -843,21 +843,6 @@ static int ssl_ciphersuite_match( mbedtls_ssl_context *ssl, int suite_id,
     }
 #endif
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-    /* If the ciphersuite requires signing, check whether
-     * a suitable hash algorithm is present. */
-    sig_type = mbedtls_ssl_get_ciphersuite_sig_alg( suite_info );
-    if( sig_type != MBEDTLS_PK_NONE &&
-        mbedtls_ssl_tls12_get_preferred_hash_for_sig_alg(
-            ssl, mbedtls_ssl_sig_from_pk_alg( sig_type ) ) == MBEDTLS_SSL_HASH_NONE )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: no suitable hash algorithm "
-                                    "for signature algorithm %u", (unsigned) sig_type ) );
-        return( 0 );
-    }
-
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
-
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     /*
      * Final check: if ciphersuite requires us to have a
@@ -873,6 +858,21 @@ static int ssl_ciphersuite_match( mbedtls_ssl_context *ssl, int suite_id,
         return( 0 );
     }
 #endif
+
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+    /* If the ciphersuite requires signing, check whether
+     * a suitable hash algorithm is present. */
+    sig_type = mbedtls_ssl_get_ciphersuite_sig_alg( suite_info );
+    if( sig_type != MBEDTLS_PK_NONE &&
+        mbedtls_ssl_tls12_get_preferred_hash_for_sig_alg(
+            ssl, mbedtls_ssl_sig_from_pk_alg( sig_type ) ) == MBEDTLS_SSL_HASH_NONE )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite mismatch: no suitable hash algorithm "
+                                    "for signature algorithm %u", (unsigned) sig_type ) );
+        return( 0 );
+    }
+
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 
     *ciphersuite_info = suite_info;
     return( 0 );

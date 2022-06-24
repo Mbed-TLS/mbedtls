@@ -8310,9 +8310,9 @@ int mbedtls_ssl_parse_alpn_ext( mbedtls_ssl_context *ssl,
      */
 
     /*
-     * protocal_name_list_len    2 bytes
-     * protocal_name_len         1 bytes
-     * protocal_name             >=1 byte
+     * protocol_name_list_len    2 bytes
+     * protocol_name_len         1 bytes
+     * protocol_name             >=1 byte
      */
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 4 );
 
@@ -8396,6 +8396,9 @@ int mbedtls_ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_PUT_UINT16_BE( protocol_name_len + 3, p, 2 );
     MBEDTLS_PUT_UINT16_BE( protocol_name_len + 1, p, 4 );
+    /* Note: the length of the chosen protocol has been checked to be less
+     * than 255 bytes in `mbedtls_ssl_conf_alpn_protocols`.
+     */
     p[6] = MBEDTLS_BYTE_0( protocol_name_len );
 
     memcpy( p + 7, ssl->alpn_chosen, protocol_name_len );

@@ -455,6 +455,16 @@ void mbedtls_asn1_free_named_data_list( mbedtls_asn1_named_data **head )
     }
 }
 
+void mbedtls_asn1_free_named_data_list_shallow( mbedtls_asn1_named_data *name )
+{
+    for( mbedtls_asn1_named_data *next; name != NULL; name = next )
+    {
+        next = name->next;
+        mbedtls_platform_zeroize( name, sizeof( *name ) );
+        mbedtls_free( name );
+    }
+}
+
 const mbedtls_asn1_named_data *mbedtls_asn1_find_named_data( const mbedtls_asn1_named_data *list,
                                        const char *oid, size_t len )
 {

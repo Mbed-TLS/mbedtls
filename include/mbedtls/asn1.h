@@ -625,6 +625,15 @@ void mbedtls_asn1_free_named_data( mbedtls_asn1_named_data *entry );
  */
 void mbedtls_asn1_free_named_data_list( mbedtls_asn1_named_data **head );
 
+/**
+ * \brief       Free all shallow entries in a mbedtls_asn1_named_data list,
+ *              but do not free internal pointer targets.
+ *
+ * \param name  Head of the list of named data entries to free.
+ *              This function calls mbedtls_free() on each list element.
+ */
+void mbedtls_asn1_free_named_data_list_shallow( mbedtls_asn1_named_data *name );
+
 /** \} name Functions to parse ASN.1 data structures */
 /** \} addtogroup asn1_module */
 

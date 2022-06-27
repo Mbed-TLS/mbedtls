@@ -2280,4 +2280,16 @@ int mbedtls_ssl_tls13_get_sig_alg_from_pk( mbedtls_ssl_context *ssl,
                                            mbedtls_pk_context *own_key,
                                            uint16_t *algorithm );
 
+#if defined(MBEDTLS_SSL_ALPN)
+int mbedtls_ssl_parse_alpn_ext( mbedtls_ssl_context *ssl,
+                                const unsigned char *buf,
+                                const unsigned char *end );
+
+
+int mbedtls_ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
+                                unsigned char *buf,
+                                unsigned char *end,
+                                size_t *out_len );
+#endif /* MBEDTLS_SSL_ALPN */
+
 #endif /* ssl_misc.h */

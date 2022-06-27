@@ -528,94 +528,6 @@ static int ssl_parse_session_ticket_ext( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
-#if defined(MBEDTLS_SSL_ALPN)
-static int ssl_parse_alpn_ext( mbedtls_ssl_context *ssl,
-                               const unsigned char *buf, size_t len )
-{
-    size_t list_len, cur_len, ours_len;
-    const unsigned char *theirs, *start, *end;
-    const char **ours;
-
-    /* If ALPN not configured, just ignore the extension */
-    if( ssl->conf->alpn_list == NULL )
-        return( 0 );
-
-    /*
-     * opaque ProtocolName<1..2^8-1>;
-     *
-     * struct {
-     *     ProtocolName protocol_name_list<2..2^16-1>
-     * } ProtocolNameList;
-     */
-
-    /* Min length is 2 (list_len) + 1 (name_len) + 1 (name) */
-    if( len < 4 )
-    {
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
-        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
-    }
-
-    list_len = ( buf[0] << 8 ) | buf[1];
-    if( list_len != len - 2 )
-    {
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
-        return( MBEDTLS_ERR_SSL_DECODE_ERROR );
-    }
-
-    /*
-     * Validate peer's list (lengths)
-     */
-    start = buf + 2;
-    end = buf + len;
-    for( theirs = start; theirs != end; theirs += cur_len )
-    {
-        cur_len = *theirs++;
-
-        /* Current identifier must fit in list */
-        if( cur_len > (size_t)( end - theirs ) )
-        {
-            mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                            MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
-            return( MBEDTLS_ERR_SSL_DECODE_ERROR );
-        }
-
-        /* Empty strings MUST NOT be included */
-        if( cur_len == 0 )
-        {
-            mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                            MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
-            return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
-        }
-    }
-
-    /*
-     * Use our order of preference
-     */
-    for( ours = ssl->conf->alpn_list; *ours != NULL; ours++ )
-    {
-        ours_len = strlen( *ours );
-        for( theirs = start; theirs != end; theirs += cur_len )
-        {
-            cur_len = *theirs++;
-
-            if( cur_len == ours_len &&
-                memcmp( theirs, *ours, cur_len ) == 0 )
-            {
-                ssl->alpn_chosen = *ours;
-                return( 0 );
-            }
-        }
-    }
-
-    /* If we get there, no match was found */
-    mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                            MBEDTLS_SSL_ALERT_MSG_NO_APPLICATION_PROTOCOL );
-    return( MBEDTLS_ERR_SSL_NO_APPLICATION_PROTOCOL );
-}
-#endif /* MBEDTLS_SSL_ALPN */
-
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
 static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
                                    const unsigned char *buf,
@@ -1524,7 +1436,8 @@ read_record_header:
             case MBEDTLS_TLS_EXT_ALPN:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found alpn extension" ) );
 
-                ret = ssl_parse_alpn_ext( ssl, ext + 4, ext_size );
+                ret = mbedtls_ssl_parse_alpn_ext( ssl, ext + 4,
+                                                  ext + 4 + ext_size );
                 if( ret != 0 )
                     return( ret );
                 break;
@@ -2040,39 +1953,6 @@ static void ssl_write_ecjpake_kkpp_ext( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 
-#if defined(MBEDTLS_SSL_ALPN )
-static void ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
-                                unsigned char *buf, size_t *olen )
-{
-    if( ssl->alpn_chosen == NULL )
-    {
-        *olen = 0;
-        return;
-    }
-
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, adding alpn extension" ) );
-
-    /*
-     * 0 . 1    ext identifier
-     * 2 . 3    ext length
-     * 4 . 5    protocol list length
-     * 6 . 6    protocol name length
-     * 7 . 7+n  protocol name
-     */
-    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_ALPN, buf, 0);
-
-    *olen = 7 + strlen( ssl->alpn_chosen );
-
-    MBEDTLS_PUT_UINT16_BE( *olen - 4, buf, 2 );
-
-    MBEDTLS_PUT_UINT16_BE( *olen - 6, buf, 4 );
-
-    buf[6] = MBEDTLS_BYTE_0( *olen - 7 );
-
-    memcpy( buf + 7, ssl->alpn_chosen, *olen - 7 );
-}
-#endif /* MBEDTLS_ECDH_C || MBEDTLS_ECDSA_C */
-
 #if defined(MBEDTLS_SSL_DTLS_SRTP ) && defined(MBEDTLS_SSL_PROTO_DTLS)
 static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
                                     unsigned char *buf,
@@ -2446,7 +2326,8 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 #endif
 
 #if defined(MBEDTLS_SSL_ALPN)
-    ssl_write_alpn_ext( ssl, p + 2 + ext_len, &olen );
+    unsigned char *end = buf + MBEDTLS_SSL_OUT_CONTENT_LEN - 4;
+    mbedtls_ssl_write_alpn_ext( ssl, p + 2 + ext_len, end, &olen );
     ext_len += olen;
 #endif
 

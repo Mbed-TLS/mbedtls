@@ -303,6 +303,13 @@ static void ssl_tls13_debug_print_client_hello_exts( mbedtls_ssl_context *ssl )
                 & MBEDTLS_SSL_EXT_SERVERNAME ) > 0 ) ?
                 "TRUE" : "FALSE" ) );
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
+#if defined ( MBEDTLS_SSL_ALPN )
+    MBEDTLS_SSL_DEBUG_MSG( 3,
+            ( "- ALPN_EXTENSION   ( %s )",
+            ( ( ssl->handshake->extensions_present
+                & MBEDTLS_SSL_EXT_ALPN ) > 0 ) ?
+                "TRUE" : "FALSE" ) );
+#endif /* MBEDTLS_SSL_ALPN */
 }
 #endif /* MBEDTLS_DEBUG_C */
 
@@ -730,6 +737,21 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
                 }
                 ssl->handshake->extensions_present |= MBEDTLS_SSL_EXT_SUPPORTED_VERSIONS;
                 break;
+
+#if defined(MBEDTLS_SSL_ALPN)
+            case MBEDTLS_TLS_EXT_ALPN:
+                MBEDTLS_SSL_DEBUG_MSG( 3, ( "found alpn extension" ) );
+
+                ret = mbedtls_ssl_parse_alpn_ext( ssl, p, extension_data_end );
+                if( ret != 0 )
+                {
+                    MBEDTLS_SSL_DEBUG_RET(
+                            1, ( "mbedtls_ssl_parse_alpn_ext" ), ret );
+                    return( ret );
+                }
+                ssl->handshake->extensions_present |= MBEDTLS_SSL_EXT_ALPN;
+                break;
+#endif /* MBEDTLS_SSL_ALPN */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
             case MBEDTLS_TLS_EXT_SIG_ALG:
@@ -1361,9 +1383,11 @@ static int ssl_tls13_write_encrypted_extensions_body( mbedtls_ssl_context *ssl,
                                                       unsigned char *end,
                                                       size_t *out_len )
 {
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *p = buf;
     size_t extensions_len = 0;
     unsigned char *p_extensions_len;
+    size_t output_len;
 
     *out_len = 0;
 
@@ -1372,6 +1396,15 @@ static int ssl_tls13_write_encrypted_extensions_body( mbedtls_ssl_context *ssl,
     p += 2;
 
     ((void) ssl);
+    ((void) ret);
+    ((void) output_len);
+
+#if defined(MBEDTLS_SSL_ALPN)
+    ret = mbedtls_ssl_write_alpn_ext( ssl, p, end, &output_len );
+    if( ret != 0 )
+        return( ret );
+    p += output_len;
+#endif /* MBEDTLS_SSL_ALPN */
 
     extensions_len = ( p - p_extensions_len ) - 2;
     MBEDTLS_PUT_UINT16_BE( extensions_len, p_extensions_len, 0 );

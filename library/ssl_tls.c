@@ -8285,4 +8285,125 @@ int mbedtls_ssl_parse_server_name_ext( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
+#if defined(MBEDTLS_SSL_ALPN)
+int mbedtls_ssl_parse_alpn_ext( mbedtls_ssl_context *ssl,
+                                const unsigned char *buf,
+                                const unsigned char *end )
+{
+    const unsigned char *p = buf;
+    size_t protocol_name_list_len;
+    const unsigned char *protocol_name_list;
+    const unsigned char *protocol_name_list_end;
+    size_t protocol_name_len;
+
+    /* If ALPN not configured, just ignore the extension */
+    if( ssl->conf->alpn_list == NULL )
+        return( 0 );
+
+    /*
+     * RFC7301, section 3.1
+     *      opaque ProtocolName<1..2^8-1>;
+     *
+     *      struct {
+     *          ProtocolName protocol_name_list<2..2^16-1>
+     *      } ProtocolNameList;
+     */
+
+    /*
+     * protocol_name_list_len    2 bytes
+     * protocol_name_len         1 bytes
+     * protocol_name             >=1 byte
+     */
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 4 );
+
+    protocol_name_list_len = MBEDTLS_GET_UINT16_BE( p, 0 );
+    p += 2;
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, protocol_name_list_len );
+    protocol_name_list = p;
+    protocol_name_list_end = p + protocol_name_list_len;
+
+    /* Validate peer's list (lengths) */
+    while( p < protocol_name_list_end )
+    {
+        protocol_name_len = *p++;
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, protocol_name_list_end,
+                                      protocol_name_len );
+        if( protocol_name_len == 0 )
+        {
+            MBEDTLS_SSL_PEND_FATAL_ALERT(
+                MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+            return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+        }
+
+        p += protocol_name_len;
+    }
+
+    /* Use our order of preference */
+    for( const char **alpn = ssl->conf->alpn_list; *alpn != NULL; alpn++ )
+    {
+        size_t const alpn_len = strlen( *alpn );
+        p = protocol_name_list;
+        while( p < protocol_name_list_end )
+        {
+            protocol_name_len = *p++;
+            if( protocol_name_len == alpn_len &&
+                memcmp( p, *alpn, alpn_len ) == 0 )
+            {
+                ssl->alpn_chosen = *alpn;
+                return( 0 );
+            }
+
+            p += protocol_name_len;
+        }
+    }
+
+    /* If we get here, no match was found */
+    MBEDTLS_SSL_PEND_FATAL_ALERT(
+            MBEDTLS_SSL_ALERT_MSG_NO_APPLICATION_PROTOCOL,
+            MBEDTLS_ERR_SSL_NO_APPLICATION_PROTOCOL );
+    return( MBEDTLS_ERR_SSL_NO_APPLICATION_PROTOCOL );
+}
+
+int mbedtls_ssl_write_alpn_ext( mbedtls_ssl_context *ssl,
+                                unsigned char *buf,
+                                unsigned char *end,
+                                size_t *out_len )
+{
+    unsigned char *p = buf;
+    size_t protocol_name_len;
+    *out_len = 0;
+
+    if( ssl->alpn_chosen == NULL )
+    {
+        return( 0 );
+    }
+
+    protocol_name_len = strlen( ssl->alpn_chosen );
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 7 + protocol_name_len );
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server side, adding alpn extension" ) );
+    /*
+     * 0 . 1    ext identifier
+     * 2 . 3    ext length
+     * 4 . 5    protocol list length
+     * 6 . 6    protocol name length
+     * 7 . 7+n  protocol name
+     */
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_ALPN, p, 0 );
+
+    *out_len = 7 + protocol_name_len;
+
+    MBEDTLS_PUT_UINT16_BE( protocol_name_len + 3, p, 2 );
+    MBEDTLS_PUT_UINT16_BE( protocol_name_len + 1, p, 4 );
+    /* Note: the length of the chosen protocol has been checked to be less
+     * than 255 bytes in `mbedtls_ssl_conf_alpn_protocols`.
+     */
+    p[6] = MBEDTLS_BYTE_0( protocol_name_len );
+
+    memcpy( p + 7, ssl->alpn_chosen, protocol_name_len );
+    return ( 0 );
+}
+#endif /* MBEDTLS_SSL_ALPN */
+
 #endif /* MBEDTLS_SSL_TLS_C */

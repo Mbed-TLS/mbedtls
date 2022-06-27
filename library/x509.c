@@ -785,7 +785,7 @@ int mbedtls_x509_dn_gets( char *buf, size_t size, const mbedtls_x509_name *dn )
             if( c && strchr( ",=+<>#;\"\\", c ) )
             {
                 if( j + 1 >= sizeof( s ) - 1 )
-                    continue;
+                    return( MBEDTLS_ERR_X509_BUFFER_TOO_SMALL );
                 s[j++] = '\\';
             }
             if( c < 32 || c >= 127 )

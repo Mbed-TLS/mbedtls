@@ -412,8 +412,8 @@ static int ssl_tls13_pick_key_cert( mbedtls_ssl_context *ssl )
         }
     }
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "ssl_tls13_pick_key_cert: "
-                                "no suitable signature algorithm found" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "ssl_tls13_pick_key_cert:"
+                                "no suitable certificate found" ) );
     return( -1 );
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C &&

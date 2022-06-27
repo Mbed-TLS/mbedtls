@@ -39,7 +39,7 @@ number, and your code will still build, be secure, and work.
 Note that this guarantee only applies if you either use the default
 compile-time configuration (`mbedtls/mbedtls_config.h`) or the same modified
 compile-time configuration. Changing compile-time configuration options can
-result in an incompatible API or ABI, altough features will generally not
+result in an incompatible API or ABI, although features will generally not
 affect independent features (for example, enabling or disabling a
 cryptographic algorithm does not break code that does not use that
 algorithm).
@@ -70,7 +70,7 @@ but always attempt to provide a compatibility option.
 We maintain backward compatibility with previous versions of versions of the
 PSA Crypto persistent storage since Mbed TLS 2.25.0, provided that the
 storage backend (PSA ITS implementation) is configured in a compatible way.
-We intend to maintain this backward compatibilty throughout a major version
+We intend to maintain this backward compatibility throughout a major version
 of Mbed TLS (for example, all Mbed TLS 3.y versions will be able to read
 keys written under any Mbed TLS 3.x with x < y).
 

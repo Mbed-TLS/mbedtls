@@ -909,8 +909,8 @@ int mbedtls_x509_sig_alg_gets( char *buf, size_t size, const mbedtls_x509_buf *s
 
         pss_opts = (const mbedtls_pk_rsassa_pss_options *) sig_opts;
 
-        const char *name = md_type_to_string ( md_alg );
-        const char *mgf_name = md_type_to_string ( pss_opts->mgf1_hash_id );
+        const char *name = md_type_to_string( md_alg );
+        const char *mgf_name = md_type_to_string( pss_opts->mgf1_hash_id );
 
         ret = mbedtls_snprintf( p, n, " (%s, MGF1-%s, 0x%02X)",
                               name ? name : "???",

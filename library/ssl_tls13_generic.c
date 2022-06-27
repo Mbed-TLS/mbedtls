@@ -855,9 +855,8 @@ cleanup:
  * STATE HANDLING: Output Certificate Verify
  */
 
-int mbedtls_ssl_tls13_check_sig_alg_cert_key_match(
-                uint16_t sig_alg,
-                mbedtls_pk_context *key)
+int mbedtls_ssl_tls13_check_sig_alg_cert_key_match( uint16_t sig_alg,
+                                                    mbedtls_pk_context *key )
 {
     mbedtls_pk_type_t pk_type = mbedtls_ssl_sig_from_pk( key );
     size_t key_size = mbedtls_pk_get_bitlen( key );
@@ -911,6 +910,23 @@ int mbedtls_ssl_tls13_check_sig_alg_cert_key_match(
                     return( 1 );
 #endif /* MBEDTLS_SHA512_C */
 #endif /* MBEDTLS_PKCS1_V21 */
+
+#if defined(MBEDTLS_PKCS1_V15)
+#if defined(MBEDTLS_SHA256_C)
+                case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256:
+                    return( key_size <= 3072 );
+#endif /* MBEDTLS_SHA256_C */
+
+#if defined(MBEDTLS_SHA384_C)
+                case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384:
+                    return( key_size <= 7680 );
+#endif /* MBEDTLS_SHA384_C */
+
+#if defined(MBEDTLS_SHA512_C)
+                case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512:
+                    return( 1 );
+#endif /* MBEDTLS_SHA512_C */
+#endif /* MBEDTLS_PKCS1_V15 */
 
                 default:
                     break;

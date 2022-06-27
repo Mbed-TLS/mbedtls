@@ -5,6 +5,6 @@ New deprecations
      mbedtls_ssl_conf_min_tls_version().
 
 Features
-   * The new functions mbedtls_ssl_conf_max_tls_version() and
-     mbedtls_ssl_conf_min_tls_version() use a single value to specify
+   * Add functions mbedtls_ssl_conf_max_tls_version() and
+     mbedtls_ssl_conf_min_tls_version() that use a single value to specify
      the protocol version.

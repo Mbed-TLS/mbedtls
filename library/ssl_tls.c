@@ -853,7 +853,6 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
     else
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
     {
-        ssl->handshake->sig_algs = ssl->conf->sig_algs;
         ssl->handshake->sig_algs_heap_allocated = 0;
     }
 #endif /* !MBEDTLS_DEPRECATED_REMOVED */

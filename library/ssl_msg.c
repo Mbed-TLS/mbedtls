@@ -377,8 +377,51 @@ static int ssl_parse_inner_plaintext( unsigned char const *content,
 }
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID || MBEDTLS_SSL_PROTO_TLS1_3 */
 
-/* `add_data` must have size 13 Bytes if the CID extension is disabled,
- * and 1 + 1 + 1 + 1 + 2 + 8 + CID-length Bytes + 2 if the CID extension is enabled. */
+/* The size of the `add_data` structure depends on various
+ * factors, namely
+ *
+ * 1) CID functionality disabled
+ *
+ * size = 13 bytes
+ *
+ * 2) CID functionality based on RFC 9146 enabled
+ *
+ * size = 8 + 1 + 1 + 1 + 2 + 2 + 6 + 2 + CID-length
+ *      = 23 + CID-length
+ *
+ * 3) CID functionality based on legacy CID version
+    according to draft-ietf-tls-dtls-connection-id-05
+ *  https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-05
+ *
+ * size = 13 + 1 + CID-length
+ *
+ * More information about the CID usage:
+ * 
+ * Per Section 5.3 of draft-ietf-tls-dtls-connection-id-05 the
+ * size of the additional data structure is calculated as:
+ *
+ * additional_data =
+ *    8: seq_num +
+ *    1:                  tls12_cid +
+ *    2:     DTLSCipherText.version +
+ *    n:                        cid +
+ *    1:                 cid_length +
+ *    2: length_of_DTLSInnerPlaintext
+ *
+ * Per RFC 9146 the size of the add_data structure is calculated as:
+ * 
+ * additional_data =
+ *    8:        seq_num_placeholder +
+ *    1:                  tls12_cid +
+ *    1:                 cid_length +
+ *    1:                  tls12_cid +
+ *    2:     DTLSCiphertext.version +
+ *    2:                      epoch +
+ *    6:            sequence_number +
+ *    n:                        cid +
+ *    2: length_of_DTLSInnerPlaintext
+ *
+ */
 static void ssl_extract_add_data_from_record( unsigned char* add_data,
                                               size_t *add_data_len,
                                               mbedtls_record *rec,
@@ -389,6 +432,10 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
     /* Several types of ciphers have been defined for use with TLS and DTLS,
      * and the MAC calculations for those ciphers differ slightly. Further
      * variants were added when the CID functionality was added with RFC 9146.
+     * This implementations also considers the use of a legacy version of the
+     * CID specification published in draft-ietf-tls-dtls-connection-id-05,
+     * which is used in deployments.
+     * 
      * We will distinguish between the non-CID and the CID cases below.
      *
      * --- Non-CID cases ---
@@ -459,14 +506,25 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
      *                sequence_number +
      *                cid +
      *                length_of_DTLSInnerPlaintext
+     *
+     * Section 5.3 of draft-ietf-tls-dtls-connection-id-05 (for legacy CID use)
+     * defines the additional data calculation as follows:
+     *
+     *     additional_data = seq_num +
+     *                tls12_cid +
+     *                DTLSCipherText.version +
+     *                cid +
+     *                cid_length +
+     *                length_of_DTLSInnerPlaintext
     */
 
     unsigned char *cur = add_data;
     size_t ad_len_field = rec->data_len;
 
-#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID) && \
+    MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT == 0
     const unsigned char seq_num_placeholder[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
-#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+#endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     if( tls_version == MBEDTLS_SSL_VERSION_TLS1_3 )
@@ -483,13 +541,15 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
         ((void) taglen);
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-        if (rec->cid_len != 0)
+        
+#if MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT == 0
+        if( rec->cid_len != 0 )
         {
             // seq_num_placeholder
-            memcpy(cur, seq_num_placeholder, sizeof(seq_num_placeholder));
-            cur += sizeof(seq_num_placeholder);
+            memcpy( cur, seq_num_placeholder, sizeof(seq_num_placeholder) );
+            cur += sizeof( seq_num_placeholder );
 
-            // type
+            // tls12_cid type
             *cur = rec->type;
             cur++;
 
@@ -497,11 +557,18 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
             *cur = rec->cid_len;
             cur++;
         }
+        else
+        {
+            // epoch + sequence number
+            memcpy( cur, rec->ctr, sizeof( rec->ctr ) );
+            cur += sizeof( rec->ctr );
+        }
+#endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT == 0 */
 #else
-        memcpy( cur, rec->ctr, sizeof( rec->ctr ) );
-        cur += sizeof( rec->ctr );
+        // epoch + sequence number
+        memcpy(cur, rec->ctr, sizeof(rec->ctr));
+        cur += sizeof(rec->ctr);
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
-
     }
 
     // type
@@ -512,7 +579,27 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
     memcpy( cur, rec->ver, sizeof( rec->ver ) );
     cur += sizeof( rec->ver );
 
-#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID) && \
+    MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT == 1
+
+    if (rec->cid_len != 0)
+    {
+        // CID
+        memcpy(cur, rec->cid, rec->cid_len);
+        cur += rec->cid_len;
+
+        // cid_length
+        *cur = rec->cid_len;
+        cur++;
+
+        // length of inner plaintext
+        MBEDTLS_PUT_UINT16_BE(ad_len_field, cur, 0);
+        cur += 2;
+    }
+    else
+#elif defined(MBEDTLS_SSL_DTLS_CONNECTION_ID) && \
+    MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT == 0
+
     if( rec->cid_len != 0 )
     {
         // epoch + sequence number
@@ -1084,30 +1171,7 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
             size_t sign_mac_length = 0;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-            /* MAC computation (without CID):
-             *
-             * MAC(MAC_write_key, seq_num +
-             *     TLSCipherText.type +
-             *     TLSCipherText.version +
-             *     length_of( (IV +) ENC(...) ) +
-             *     IV +
-             *     ENC(content + padding + padding_length));
-             *
-             * MAC calculation (with CID):
-             *
-             *     MAC(MAC_write_key,
-             *         seq_num_placeholder +
-             *         tls12_cid +
-             *         cid_length +
-             *         tls12_cid +
-             *         DTLSCiphertext.version +
-             *         epoch +
-             *         sequence_number +
-             *         cid +
-             *         DTLSCiphertext.length +
-             *         IV +
-             *         ENC(content + padding + padding_length)
-             *        );
+            /* MAC(MAC_write_key, add_data, IV, ENC(content + padding + padding_length))
              */
 
             if( post_avail < transform->maclen)

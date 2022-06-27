@@ -268,8 +268,8 @@ int send_cb( void *ctx, unsigned char const *buf, size_t len )
  *   When GnuTLS/Openssl server is configured in TLS 1.2 mode with a certificate
  *   declaring an RSA public key and Mbed TLS is configured in hybrid mode, if
  *   `rsa_pss_rsae_*` algorithms are before `rsa_pkcs1_*` ones in this list then
- *   the  GnuTLS/Openssl server chooses an `rsa_pss_rsae_*` signature algorithm
- *   for its signature in the key exchange message and as Mbed TLS 1.2 does not
+ *   the GnuTLS/Openssl server chooses an `rsa_pss_rsae_*` signature algorithm
+ *   for its signature in the key exchange message. As Mbed TLS 1.2 does not
  *   support them, the handshake fails.
  */
 #define MBEDTLS_SSL_SIG_ALG( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_ECDSA), \

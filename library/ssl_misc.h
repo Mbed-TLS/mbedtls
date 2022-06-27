@@ -1922,8 +1922,8 @@ static inline const void *mbedtls_ssl_get_sig_algs(
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
-    if( ssl->handshake->sig_algs_heap_allocated == 1 &&
-        ssl->handshake != NULL &&
+    if( ssl->handshake != NULL &&
+        ssl->handshake->sig_algs_heap_allocated == 1 &&
         ssl->handshake->sig_algs != NULL )
     {
         return( ssl->handshake->sig_algs );
@@ -1984,6 +1984,7 @@ static inline int mbedtls_ssl_tls13_get_pk_type_and_md_alg_from_sig_alg(
 
     switch( sig_alg )
     {
+#if defined(MBEDTLS_RSA_C)
 #if defined(MBEDTLS_SHA256_C)
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
             *md_alg = MBEDTLS_MD_SHA256;
@@ -2002,7 +2003,7 @@ static inline int mbedtls_ssl_tls13_get_pk_type_and_md_alg_from_sig_alg(
             *pk_type = MBEDTLS_PK_RSASSA_PSS;
             break;
 #endif /* MBEDTLS_SHA512_C */
-
+#endif /* MBEDTLS_RSA_C */
             default:
                 return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
         }
@@ -2168,9 +2169,8 @@ static inline int mbedtls_ssl_sig_alg_is_supported(
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 
-int mbedtls_ssl_tls13_check_sig_alg_cert_key_match(
-                uint16_t sig_alg,
-                mbedtls_pk_context *key);
+int mbedtls_ssl_tls13_check_sig_alg_cert_key_match( uint16_t sig_alg,
+                                                    mbedtls_pk_context *key );
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 

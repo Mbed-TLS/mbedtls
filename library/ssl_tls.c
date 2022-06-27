@@ -856,7 +856,7 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
         ssl->handshake->sig_algs = ssl->conf->sig_algs;
         ssl->handshake->sig_algs_heap_allocated = 0;
     }
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
     return( 0 );
 }
@@ -4072,8 +4072,8 @@ static int ssl_preset_suiteb_ciphersuites[] = {
  *   When GnuTLS/Openssl server is configured in TLS 1.2 mode with a certificate
  *   declaring an RSA public key and Mbed TLS is configured in hybrid mode, if
  *   `rsa_pss_rsae_*` algorithms are before `rsa_pkcs1_*` ones in this list then
- *   the  GnuTLS/Openssl server chooses an `rsa_pss_rsae_*` signature algorithm
- *   for its signature in the key exchange message and as Mbed TLS 1.2 does not
+ *   the GnuTLS/Openssl server chooses an `rsa_pss_rsae_*` signature algorithm
+ *   for its signature in the key exchange message. As Mbed TLS 1.2 does not
  *   support them, the handshake fails.
  */
 static uint16_t ssl_preset_default_sig_algs[] = {

@@ -940,16 +940,18 @@ static int ssl_tls13_select_sig_alg_for_certificate_verify(
             mbedtls_ssl_tls13_check_sig_alg_cert_key_match(
                                                         *sig_alg, own_key ) )
         {
-            MBEDTLS_SSL_DEBUG_MSG(
-                    3, ( "select_sig_alg_for_certificate_verify:"
-                         "selected signature algorithm %s [%04x]",
-                         mbedtls_ssl_sig_alg_to_str( *sig_alg ),
-                         *sig_alg ) );
+            MBEDTLS_SSL_DEBUG_MSG( 3,
+                                   ( "select_sig_alg_for_certificate_verify:"
+                                     "selected signature algorithm %s [%04x]",
+                                     mbedtls_ssl_sig_alg_to_str( *sig_alg ),
+                                     *sig_alg ) );
             *algorithm = *sig_alg;
             return( 0 );
         }
     }
-
+    MBEDTLS_SSL_DEBUG_MSG( 2,
+                           ( "select_sig_alg_for_certificate_verify:"
+                             "no suitable signature algorithm found" ) );
     return( -1 );
 }
 

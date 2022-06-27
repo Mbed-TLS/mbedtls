@@ -417,9 +417,12 @@ void test_asn1_write_bitstrings( data_t *bitstring, int bits,
 
 #if defined(MBEDTLS_ASN1_PARSE_C)
     ASSERT_ALLOC( masked_bitstring, byte_length );
-    memcpy( masked_bitstring, bitstring->x, byte_length );
-    if( bits % 8 != 0 )
-        masked_bitstring[byte_length - 1] &= ~( 0xff >> ( bits % 8 ) );
+    if( byte_length != 0 )
+    {
+        memcpy( masked_bitstring, bitstring->x, byte_length );
+        if( bits % 8 != 0 )
+            masked_bitstring[byte_length - 1] &= ~( 0xff >> ( bits % 8 ) );
+    }
     size_t value_bits = bits;
     if( is_named )
     {

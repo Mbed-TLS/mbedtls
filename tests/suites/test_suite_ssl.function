@@ -4880,6 +4880,9 @@ void handshake_version( int dtls, int client_min_version, int client_max_version
 
     /* The goto below is used to avoid an "unused label" warning.*/
     goto exit;
+
+exit:
+    free_handshake_options( &options );
 }
 /* END_CASE */
 
@@ -4898,6 +4901,9 @@ void handshake_psk_cipher( char* cipher, int pk_alg, data_t *psk_str, int dtls )
 
     /* The goto below is used to avoid an "unused label" warning.*/
     goto exit;
+
+    exit:
+    free_handshake_options( &options );
 }
 /* END_CASE */
 
@@ -5056,9 +5062,6 @@ void renegotiation( int legacy_renegotiation )
 
     /* The goto below is used to avoid an "unused label" warning.*/
     goto exit;
-
-exit:
-    free_handshake_options( &options );
 }
 /* END_CASE */
 
@@ -5094,9 +5097,6 @@ void resize_buffers_serialize_mfl( int mfl )
 
     /* The goto below is used to avoid an "unused label" warning.*/
     goto exit;
-
-exit:
-    free_handshake_options( &options );
 }
 /* END_CASE */
 

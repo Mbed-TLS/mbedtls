@@ -1,4 +1,24 @@
 #!/usr/bin/env python3
+"""
+This script updates tests/src/certs.c using data from data_files.
+
+You must run this script from an Mbed TLS root.
+
+"""
+# Copyright The Mbed TLS Contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import sys
 import os
@@ -6,12 +26,14 @@ import re
 import subprocess
 import tempfile
 
-
-
-
 class updaterCerts:
+    """ Updater for certs.c"""
 
     def __init__(self):
+        """Instantiate the updater for certs.c
+
+        CERTS: path to certs.c
+        """
         self.CERTS = "tests/src/certs.c"
 
 
@@ -71,7 +93,6 @@ class updaterCerts:
                 output = self.type_macro_string(name,filename)
         return output
 
-    # Update cert.c file using datas from tests/data_files
     def update(self):
         TEMPFILE = tempfile.TemporaryFile(mode="w+")
         with open(self.CERTS,"r+") as old_f, open(TEMPFILE.name,"w+") as tmp:

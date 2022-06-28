@@ -4747,7 +4747,6 @@ run_test    "DER format: with 9 trailing random bytes" \
 # Tests for auth_mode, there are duplicated tests using ca callback for authentication
 # When updating these tests, modify the matching authentication tests accordingly
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Authentication: server badcert, client required" \
             "$P_SRV crt_file=data_files/server5-badsign.crt \
              key_file=data_files/server5.key" \
@@ -4781,7 +4780,6 @@ run_test    "Authentication: server goodcert, client optional, no trusted CA" \
             -C "X509 - Certificate verification failed" \
             -C "SSL - No CA Chain is set, but required to operate"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Authentication: server goodcert, client required, no trusted CA" \
             "$P_SRV" \
             "$P_CLI debug_level=3 auth_mode=required ca_file=none ca_path=none" \
@@ -4852,7 +4850,6 @@ run_test    "Authentication: client SHA384, server required" \
             -c "Supported Signature Algorithm found: 4," \
             -c "Supported Signature Algorithm found: 5,"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Authentication: client has no cert, server required (TLS)" \
             "$P_SRV debug_level=3 auth_mode=required" \
             "$P_CLI debug_level=3 crt_file=none \
@@ -4864,12 +4861,10 @@ run_test    "Authentication: client has no cert, server required (TLS)" \
             -c "= write certificate$" \
             -C "skip write certificate$" \
             -S "x509_verify_cert() returned" \
-            -s "client has no certificate" \
+            -s "peer has no certificate" \
             -s "! mbedtls_ssl_handshake returned" \
-            -c "! mbedtls_ssl_handshake returned" \
             -s "No client certification received from the client, but required by the authentication mode"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Authentication: client badcert, server required" \
             "$P_SRV debug_level=3 auth_mode=required" \
             "$P_CLI debug_level=3 crt_file=data_files/server5-badsign.crt \
@@ -4885,13 +4880,11 @@ run_test    "Authentication: client badcert, server required" \
             -s "! The certificate is not correctly signed by the trusted CA" \
             -s "! mbedtls_ssl_handshake returned" \
             -s "send alert level=2 message=48" \
-            -c "! mbedtls_ssl_handshake returned" \
             -s "X509 - Certificate verification failed"
 # We don't check that the client receives the alert because it might
 # detect that its write end of the connection is closed and abort
 # before reading the alert message.
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Authentication: client cert self-signed and trusted, server required" \
             "$P_SRV debug_level=3 auth_mode=required ca_file=data_files/server5-selfsigned.crt" \
             "$P_CLI debug_level=3 crt_file=data_files/server5-selfsigned.crt \
@@ -4907,7 +4900,6 @@ run_test    "Authentication: client cert self-signed and trusted, server require
             -S "! The certificate is not correctly signed" \
             -S "X509 - Certificate verification failed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Authentication: client cert not trusted, server required" \
             "$P_SRV debug_level=3 auth_mode=required" \
             "$P_CLI debug_level=3 crt_file=data_files/server5-selfsigned.crt \
@@ -4922,10 +4914,8 @@ run_test    "Authentication: client cert not trusted, server required" \
             -s "x509_verify_cert() returned" \
             -s "! The certificate is not correctly signed by the trusted CA" \
             -s "! mbedtls_ssl_handshake returned" \
-            -c "! mbedtls_ssl_handshake returned" \
             -s "X509 - Certificate verification failed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Authentication: client badcert, server optional" \
             "$P_SRV debug_level=3 auth_mode=optional" \
             "$P_CLI debug_level=3 crt_file=data_files/server5-badsign.crt \
@@ -4943,7 +4933,6 @@ run_test    "Authentication: client badcert, server optional" \
             -C "! mbedtls_ssl_handshake returned" \
             -S "X509 - Certificate verification failed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Authentication: client badcert, server none" \
             "$P_SRV debug_level=3 auth_mode=none" \
             "$P_CLI debug_level=3 crt_file=data_files/server5-badsign.crt \
@@ -4961,7 +4950,6 @@ run_test    "Authentication: client badcert, server none" \
             -C "! mbedtls_ssl_handshake returned" \
             -S "X509 - Certificate verification failed"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Authentication: client no cert, server optional" \
             "$P_SRV debug_level=3 auth_mode=optional" \
             "$P_CLI debug_level=3 crt_file=none key_file=none" \
@@ -5023,7 +5011,6 @@ MAX_IM_CA='8'
 # are in place so that the semantics are consistent with the test description.
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Authentication: server max_int chain, client default" \
             "$P_SRV crt_file=data_files/dir-maxpath/c09.pem \
                     key_file=data_files/dir-maxpath/09.key" \
@@ -5033,7 +5020,6 @@ run_test    "Authentication: server max_int chain, client default" \
 
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Authentication: server max_int+1 chain, client default" \
             "$P_SRV crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
@@ -5065,7 +5051,6 @@ run_test    "Authentication: server max_int+1 chain, client none" \
 
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Authentication: client max_int+1 chain, server default" \
             "$P_SRV ca_file=data_files/dir-maxpath/00.crt" \
             "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
@@ -5075,7 +5060,6 @@ run_test    "Authentication: client max_int+1 chain, server default" \
 
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Authentication: client max_int+1 chain, server optional" \
             "$P_SRV ca_file=data_files/dir-maxpath/00.crt auth_mode=optional" \
             "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
@@ -5085,7 +5069,6 @@ run_test    "Authentication: client max_int+1 chain, server optional" \
 
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Authentication: client max_int+1 chain, server required" \
             "$P_SRV ca_file=data_files/dir-maxpath/00.crt auth_mode=required" \
             "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
@@ -5095,7 +5078,6 @@ run_test    "Authentication: client max_int+1 chain, server required" \
 
 requires_config_value_equals "MBEDTLS_X509_MAX_INTERMEDIATE_CA" $MAX_IM_CA
 requires_full_size_output_buffer
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Authentication: client max_int chain, server required" \
             "$P_SRV ca_file=data_files/dir-maxpath/00.crt auth_mode=required" \
             "$P_CLI crt_file=data_files/dir-maxpath/c09.pem \
@@ -5657,7 +5639,6 @@ run_test    "SNI: DTLS, CA override with CRL" \
 
 # Tests for non-blocking I/O: exercise a variety of handshake flows
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Non-blocking I/O: basic handshake" \
             "$P_SRV nbio=2 tickets=0 auth_mode=none" \
             "$P_CLI nbio=2 tickets=0" \
@@ -5666,7 +5647,6 @@ run_test    "Non-blocking I/O: basic handshake" \
             -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Non-blocking I/O: client auth" \
             "$P_SRV nbio=2 tickets=0 auth_mode=required" \
             "$P_CLI nbio=2 tickets=0" \
@@ -5722,7 +5702,6 @@ run_test    "Non-blocking I/O: session-id resume" \
 
 # Tests for event-driven I/O: exercise a variety of handshake flows
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Event-driven I/O: basic handshake" \
             "$P_SRV event=1 tickets=0 auth_mode=none" \
             "$P_CLI event=1 tickets=0" \
@@ -5731,7 +5710,6 @@ run_test    "Event-driven I/O: basic handshake" \
             -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "Event-driven I/O: client auth" \
             "$P_SRV event=1 tickets=0 auth_mode=required" \
             "$P_CLI event=1 tickets=0" \
@@ -7355,6 +7333,20 @@ run_test    "Small client packet TLS 1.2 AEAD shorter tag" \
             0 \
             -s "Read from client: 1 bytes read"
 
+run_test    "Small client packet TLS 1.3 AEAD" \
+            "$P_SRV force_version=tls13" \
+            "$P_CLI request_size=1 \
+             force_ciphersuite=TLS1-3-AES-128-CCM-SHA256" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+run_test    "Small client packet TLS 1.3 AEAD shorter tag" \
+            "$P_SRV force_version=tls13" \
+            "$P_CLI request_size=1 \
+             force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
 # Tests for small client packets in DTLS
 
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
@@ -7402,6 +7394,18 @@ run_test    "Small server packet TLS 1.2 AEAD" \
 run_test    "Small server packet TLS 1.2 AEAD shorter tag" \
             "$P_SRV response_size=1 force_version=tls12" \
             "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-256-CCM-8" \
+            0 \
+            -c "Read from server: 1 bytes read"
+
+run_test    "Small server packet TLS 1.3 AEAD" \
+            "$P_SRV response_size=1 force_version=tls13" \
+            "$P_CLI force_ciphersuite=TLS1-3-AES-128-CCM-SHA256" \
+            0 \
+            -c "Read from server: 1 bytes read"
+
+run_test    "Small server packet TLS 1.3 AEAD shorter tag" \
+            "$P_SRV response_size=1 force_version=tls13" \
+            "$P_CLI force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256" \
             0 \
             -c "Read from server: 1 bytes read"
 
@@ -7469,6 +7473,22 @@ run_test    "Large client packet TLS 1.2 AEAD shorter tag" \
             -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
             -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
+run_test    "Large client packet TLS 1.3 AEAD" \
+            "$P_SRV force_version=tls13" \
+            "$P_CLI request_size=16384 \
+             force_ciphersuite=TLS1-3-AES-128-CCM-SHA256" \
+            0 \
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
+
+run_test    "Large client packet TLS 1.3 AEAD shorter tag" \
+            "$P_SRV force_version=tls13" \
+            "$P_CLI request_size=16384 \
+             force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256" \
+            0 \
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
+
 # The tests below fail when the server's OUT_CONTENT_LEN is less than 16384.
 run_test    "Large server packet TLS 1.2 BlockCipher" \
             "$P_SRV response_size=16384 force_version=tls12" \
@@ -7505,6 +7525,18 @@ run_test    "Large server packet TLS 1.2 AEAD" \
 run_test    "Large server packet TLS 1.2 AEAD shorter tag" \
             "$P_SRV response_size=16384 force_version=tls12" \
             "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-256-CCM-8" \
+            0 \
+            -c "Read from server: 16384 bytes read"
+
+run_test    "Large server packet TLS 1.3 AEAD" \
+            "$P_SRV response_size=16384 force_version=tls13" \
+            "$P_CLI force_ciphersuite=TLS1-3-AES-128-CCM-SHA256" \
+            0 \
+            -c "Read from server: 16384 bytes read"
+
+run_test    "Large server packet TLS 1.3 AEAD shorter tag" \
+            "$P_SRV response_size=16384 force_version=tls13" \
+            "$P_CLI force_ciphersuite=TLS1-3-AES-128-CCM-8-SHA256" \
             0 \
             -c "Read from server: 16384 bytes read"
 

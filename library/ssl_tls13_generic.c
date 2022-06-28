@@ -257,13 +257,8 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
     if( sig_alg == MBEDTLS_PK_RSASSA_PSS )
     {
         rsassa_pss_options.mgf1_hash_id = md_alg;
-        psa_algorithm_t psa_alg = mbedtls_psa_translate_md( md_alg );
 
-        if( psa_alg == 0 )
-        {
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-        }
-        rsassa_pss_options.expected_salt_len = PSA_HASH_LENGTH( psa_alg );
+        rsassa_pss_options.expected_salt_len = PSA_HASH_LENGTH( hash_alg );
         options = (const void*) &rsassa_pss_options;
     }
 #endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */

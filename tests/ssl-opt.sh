@@ -9170,12 +9170,10 @@ run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.2" \
             0 \
             -s "fragmenting handshake message"
 
-## Interop test with OpenSSL might trigger a bug in recent versions (including
-## all versions installed on the CI machines), reported here:
-## Bug report: https://github.com/openssl/openssl/issues/6902
-## They should be re-enabled once a fixed version of OpenSSL is available
-## (this should happen in some 1.1.1_ release according to the ticket).
-skip_next_test
+## The two tests below require 1.1.1a or higher version of openssl, otherwise
+## it might trigger a bug due to openssl (https://github.com/openssl/openssl/issues/6902)
+
+requires_openssl_next
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -9183,7 +9181,7 @@ client_needs_more_time 4
 requires_max_content_len 2048
 run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.2" \
             -p "$P_PXY drop=8 delay=8 duplicate=8" \
-            "$O_SRV -dtls1_2 -verify 10" \
+            "$O_NEXT_SRV -dtls1_2 -verify 10" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
@@ -9192,7 +9190,7 @@ run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.2" \
             -c "fragmenting handshake message" \
             -C "error"
 
-skip_next_test
+requires_openssl_next
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -10269,40 +10267,38 @@ run_test    "DTLS proxy: 3d, min handshake, server-initiated renego, nbio" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-## Interop tests with OpenSSL might trigger a bug in recent versions (including
-## all versions installed on the CI machines), reported here:
-## Bug report: https://github.com/openssl/openssl/issues/6902
-## They should be re-enabled once a fixed version of OpenSSL is available
-## (this should happen in some 1.1.1_ release according to the ticket).
-skip_next_test
+## The three tests below require 1.1.1a or higher version of openssl, otherwise
+## it might trigger a bug due to openssl (https://github.com/openssl/openssl/issues/6902)
+## Besides, openssl should use dtls1_2 or dtls, otherwise it will cause "SSL alert number 70" error
+requires_openssl_next
 client_needs_more_time 6
 not_with_valgrind # risk of non-mbedtls peer timing out
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS proxy: 3d, openssl server" \
             -p "$P_PXY drop=5 delay=5 duplicate=5 protect_hvr=1" \
-            "$O_SRV -dtls1 -mtu 2048" \
+            "$O_NEXT_SRV -dtls1_2 -mtu 2048" \
             "$P_CLI dgram_packing=0 dtls=1 hs_timeout=500-60000 tickets=0" \
             0 \
             -c "HTTP/1.0 200 OK"
 
-skip_next_test # see above
+requires_openssl_next
 client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS proxy: 3d, openssl server, fragmentation" \
             -p "$P_PXY drop=5 delay=5 duplicate=5 protect_hvr=1" \
-            "$O_SRV -dtls1 -mtu 768" \
+            "$O_NEXT_SRV -dtls1_2 -mtu 768" \
             "$P_CLI dgram_packing=0 dtls=1 hs_timeout=500-60000 tickets=0" \
             0 \
             -c "HTTP/1.0 200 OK"
 
-skip_next_test # see above
+requires_openssl_next
 client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS proxy: 3d, openssl server, fragmentation, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5 protect_hvr=1" \
-            "$O_SRV -dtls1 -mtu 768" \
+            "$O_NEXT_SRV -dtls1_2 -mtu 768" \
             "$P_CLI dgram_packing=0 dtls=1 hs_timeout=500-60000 nbio=2 tickets=0" \
             0 \
             -c "HTTP/1.0 200 OK"

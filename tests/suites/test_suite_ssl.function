@@ -87,7 +87,7 @@ typedef struct handshake_test_options
     void (*cli_log_fun)(void *, int, const char *, int, const char *);
     int resize_buffers;
 #if defined(MBEDTLS_SSL_CACHE_C)
-    mbedtls_ssl_cache_context* cache;
+    mbedtls_ssl_cache_context *cache;
 #endif
 } handshake_test_options;
 
@@ -940,7 +940,7 @@ exit:
  * \retval  0 on success, otherwise error code.
  */
 int mbedtls_endpoint_init( mbedtls_endpoint *ep, int endpoint_type,
-                           handshake_test_options* options,
+                           handshake_test_options *options,
                            mbedtls_test_message_socket_context *dtls_context,
                            mbedtls_test_message_queue *input_queue,
                            mbedtls_test_message_queue *output_queue,
@@ -1983,7 +1983,7 @@ exit:
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && \
     defined(MBEDTLS_ENTROPY_C) && \
     defined(MBEDTLS_CTR_DRBG_C)
-void perform_handshake( handshake_test_options* options )
+void perform_handshake( handshake_test_options *options )
 {
     /* forced_ciphersuite needs to last until the end of the handshake */
     int forced_ciphersuite[2];

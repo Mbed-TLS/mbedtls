@@ -1239,11 +1239,6 @@ static int ssl_tls13_finalize_write_server_hello( mbedtls_ssl_context *ssl )
         return( ret );
     }
 
-    mbedtls_ssl_set_outbound_transform( ssl,
-                                        ssl->handshake->transform_handshake );
-    MBEDTLS_SSL_DEBUG_MSG(
-        3, ( "switching to handshake transform for outbound data" ) );
-
     return( ret );
 }
 
@@ -1406,6 +1401,11 @@ static int ssl_tls13_write_encrypted_extensions( mbedtls_ssl_context *ssl )
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *buf;
     size_t buf_len, msg_len;
+
+    mbedtls_ssl_set_outbound_transform( ssl,
+                                        ssl->handshake->transform_handshake );
+    MBEDTLS_SSL_DEBUG_MSG(
+        3, ( "switching to handshake transform for outbound data" ) );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write encrypted extensions" ) );
 

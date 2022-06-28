@@ -758,6 +758,37 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_X509_REMOVE_INFO */
+void mbedtls_x509_dn_gets_subject_replace( char * crt_file, char * new_subject_ou, char * result_str, int ret )
+{
+    mbedtls_x509_crt   crt;
+    char buf[2000];
+    int res = 0;
+
+    mbedtls_x509_crt_init( &crt );
+    memset( buf, 0, 2000 );
+
+    TEST_ASSERT( mbedtls_x509_crt_parse_file( &crt, crt_file ) == 0 );
+    crt.subject.next->val.p = (unsigned char *) new_subject_ou;
+    crt.subject.next->val.len = strlen( new_subject_ou );
+
+    res =  mbedtls_x509_dn_gets( buf, 2000, &crt.subject );
+
+    if ( ret != 0 )
+    {
+        TEST_ASSERT( res == ret );
+    }
+    else
+    {
+        TEST_ASSERT( res != -1 );
+        TEST_ASSERT( res != -2 );
+        TEST_ASSERT( strcmp( buf, result_str ) == 0 );
+    }
+exit:
+    mbedtls_x509_crt_free( &crt );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_X509_REMOVE_INFO */
 void mbedtls_x509_dn_gets( char * crt_file, char * entity, char * result_str )
 {
     mbedtls_x509_crt   crt;
@@ -854,7 +885,6 @@ exit:
         mbedtls_free( parsed_prv );
     }
 }
-
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */

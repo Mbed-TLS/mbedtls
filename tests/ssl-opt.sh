@@ -11452,10 +11452,10 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3 m->m both peers do not support middlebox compatibility" \
             "$P_SRV debug_level=4 force_version=tls13 tickets=0" \
-            "$P_CLI debug_level=4 force_version=tls13" \
+            "$P_CLI debug_level=4" \
             0 \
-            -s "The SSL configuration is tls13 only." \
-            -c "The SSL configuration is tls13 only." \
+            -s "Protocol is TLSv1.3" \
+            -c "Protocol is TLSv1.3" \
             -S "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_SERVER_HELLO" \
             -C "Ignore ChangeCipherSpec in TLS 1.3 compatibility mode"
 
@@ -11466,10 +11466,10 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3 m->m both with middlebox compat support" \
             "$P_SRV debug_level=4 force_version=tls13 tickets=0" \
-            "$P_CLI debug_level=4 force_version=tls13" \
+            "$P_CLI debug_level=4" \
             0 \
-            -s "The SSL configuration is tls13 only." \
-            -c "The SSL configuration is tls13 only." \
+            -s "Protocol is TLSv1.3" \
+            -c "Protocol is TLSv1.3" \
             -s "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_SERVER_HELLO" \
             -c "Ignore ChangeCipherSpec in TLS 1.3 compatibility mode"
 
@@ -11480,9 +11480,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3 m->O both peers do not support middlebox compatibility" \
             "$O_NEXT_SRV -msg -tls1_3 -no_middlebox -num_tickets 0 -no_resume_ephemeral -no_cache" \
-            "$P_CLI debug_level=4 force_version=tls13" \
+            "$P_CLI debug_level=4" \
             0 \
-            -c "The SSL configuration is tls13 only." \
+            -c "Protocol is TLSv1.3" \
             -C "ChangeCipherSpec invalid in TLS 1.3 without compatibility mode" \
             -C "Ignore ChangeCipherSpec in TLS 1.3 compatibility mode"
 
@@ -11493,9 +11493,8 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3 m->O server with middlebox compat support, not client" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
-            "$P_CLI debug_level=4 force_version=tls13" \
+            "$P_CLI debug_level=4" \
             1 \
-            -c "The SSL configuration is tls13 only." \
             -c "ChangeCipherSpec invalid in TLS 1.3 without compatibility mode"
 
 requires_openssl_tls1_3
@@ -11505,9 +11504,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3 m->O both with middlebox compat support" \
             "$O_NEXT_SRV -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache" \
-            "$P_CLI debug_level=4 force_version=tls13" \
+            "$P_CLI debug_level=4" \
             0 \
-            -c "The SSL configuration is tls13 only." \
+            -c "Protocol is TLSv1.3" \
             -c "Ignore ChangeCipherSpec in TLS 1.3 compatibility mode"
 
 requires_gnutls_tls1_3
@@ -11519,9 +11518,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3 m->G both peers do not support middlebox compatibility" \
             "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE --disable-client-cert" \
-            "$P_CLI debug_level=4 force_version=tls13" \
+            "$P_CLI debug_level=4" \
             0 \
-            -c "The SSL configuration is tls13 only." \
+            -c "Protocol is TLSv1.3" \
             -C "ChangeCipherSpec invalid in TLS 1.3 without compatibility mode" \
             -C "Ignore ChangeCipherSpec in TLS 1.3 compatibility mode"
 
@@ -11533,9 +11532,8 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3 m->G server with middlebox compat support, not client" \
             "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS --disable-client-cert" \
-            "$P_CLI debug_level=4 force_version=tls13" \
+            "$P_CLI debug_level=4" \
             1 \
-            -c "The SSL configuration is tls13 only." \
             -c "ChangeCipherSpec invalid in TLS 1.3 without compatibility mode"
 
 requires_gnutls_tls1_3
@@ -11546,9 +11544,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3 m->G both with middlebox compat support" \
             "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS --disable-client-cert" \
-            "$P_CLI debug_level=4 force_version=tls13" \
+            "$P_CLI debug_level=4" \
             0 \
-            -c "The SSL configuration is tls13 only." \
+            -c "Protocol is TLSv1.3" \
             -c "Ignore ChangeCipherSpec in TLS 1.3 compatibility mode"
 
 requires_openssl_tls1_3
@@ -11558,9 +11556,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 run_test    "TLS 1.3 O->m both peers do not support middlebox compatibility" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
-            "$O_NEXT_CLI -msg -debug -tls1_3 -no_middlebox" \
+            "$O_NEXT_CLI -msg -debug -no_middlebox" \
             0 \
-            -s "The SSL configuration is tls13 only." \
+            -s "Protocol is TLSv1.3" \
             -S "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_SERVER_HELLO" \
             -C "14 03 03 00 01"
 
@@ -11571,9 +11569,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 run_test    "TLS 1.3 O->m server with middlebox compat support, not client" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
-            "$O_NEXT_CLI -msg -debug -tls1_3 -no_middlebox" \
+            "$O_NEXT_CLI -msg -debug -no_middlebox" \
             0 \
-            -s "The SSL configuration is tls13 only." \
+            -s "Protocol is TLSv1.3" \
             -s "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_SERVER_HELLO"
 
 requires_openssl_tls1_3
@@ -11583,9 +11581,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 run_test    "TLS 1.3 O->m both with middlebox compat support" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
-            "$O_NEXT_CLI -msg -debug -tls1_3" \
+            "$O_NEXT_CLI -msg -debug" \
             0 \
-            -s "The SSL configuration is tls13 only." \
+            -s "Protocol is TLSv1.3" \
             -s "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_SERVER_HELLO" \
             -c "14 03 03 00 01"
 
@@ -11598,9 +11596,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 run_test    "TLS 1.3 G->m both peers do not support middlebox compatibility" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
-            "$G_NEXT_CLI localhost --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
             0 \
-            -s "The SSL configuration is tls13 only." \
+            -s "Protocol is TLSv1.3" \
             -S "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_SERVER_HELLO" \
             -C "SSL 3.3 ChangeCipherSpec packet received"
 
@@ -11613,9 +11611,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 run_test    "TLS 1.3 G->m server with middlebox compat support, not client" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
-            "$G_NEXT_CLI localhost --debug=10 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
+            "$G_NEXT_CLI localhost --debug=10 --priority=NORMAL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
             0 \
-            -s "The SSL configuration is tls13 only." \
+            -s "Protocol is TLSv1.3" \
             -s "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_SERVER_HELLO" \
             -c "SSL 3.3 ChangeCipherSpec packet received" \
             -c "discarding change cipher spec in TLS1.3"
@@ -11629,9 +11627,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 run_test    "TLS 1.3 G->m both with middlebox compat support" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=0" \
-            "$G_NEXT_CLI localhost --debug=10 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
+            "$G_NEXT_CLI localhost --debug=10 --priority=NORMAL:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
             0 \
-            -s "The SSL configuration is tls13 only." \
+            -s "Protocol is TLSv1.3" \
             -s "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_SERVER_HELLO" \
             -c "SSL 3.3 ChangeCipherSpec packet received"
 
@@ -11642,9 +11640,9 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3 m->m HRR both peers do not support middlebox compatibility" \
             "$P_SRV debug_level=4 force_version=tls13 curves=secp384r1 tickets=0" \
-            "$P_CLI debug_level=4 force_version=tls13 curves=secp256r1,secp384r1" \
+            "$P_CLI debug_level=4 curves=secp256r1,secp384r1" \
             0 \
-            -s "The SSL configuration is tls13 only." \
+            -s "Protocol is TLSv1.3" \
             -c "Protocol is TLSv1.3" \
             -s "tls13 server state: MBEDTLS_SSL_HELLO_RETRY_REQUEST" \
             -S "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REQUEST" \
@@ -11657,9 +11655,9 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3 m->m HRR both with middlebox compat support" \
             "$P_SRV debug_level=4 force_version=tls13 curves=secp384r1 tickets=0" \
-            "$P_CLI debug_level=4 force_version=tls13 curves=secp256r1,secp384r1" \
+            "$P_CLI debug_level=4 curves=secp256r1,secp384r1" \
             0 \
-            -s "The SSL configuration is tls13 only." \
+            -s "Protocol is TLSv1.3" \
             -c "Protocol is TLSv1.3" \
             -s "tls13 server state: MBEDTLS_SSL_HELLO_RETRY_REQUEST" \
             -s "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REQUEST" \
@@ -11672,9 +11670,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3 m->O HRR both peers do not support middlebox compatibility" \
             "$O_NEXT_SRV -msg -tls1_3 -groups P-384 -no_middlebox -num_tickets 0 -no_cache" \
-            "$P_CLI debug_level=4 force_version=tls13 curves=secp256r1,secp384r1" \
+            "$P_CLI debug_level=4 curves=secp256r1,secp384r1" \
             0 \
-            -c "The SSL configuration is tls13 only." \
+            -c "Protocol is TLSv1.3" \
             -c "received HelloRetryRequest message" \
             -C "ChangeCipherSpec invalid in TLS 1.3 without compatibility mode" \
             -C "Ignore ChangeCipherSpec in TLS 1.3 compatibility mode"
@@ -11686,9 +11684,8 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3 m->O HRR server with middlebox compat support, not client" \
             "$O_NEXT_SRV -msg -tls1_3 -groups P-384 -num_tickets 0 -no_cache" \
-            "$P_CLI debug_level=4 force_version=tls13 curves=secp256r1,secp384r1" \
+            "$P_CLI debug_level=4 curves=secp256r1,secp384r1" \
             1 \
-            -c "The SSL configuration is tls13 only." \
             -c "received HelloRetryRequest message" \
             -c "ChangeCipherSpec invalid in TLS 1.3 without compatibility mode"
 
@@ -11699,9 +11696,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3 m->O HRR both with middlebox compat support" \
             "$O_NEXT_SRV -msg -tls1_3 -groups P-384 -num_tickets 0 -no_resume_ephemeral -no_cache" \
-            "$P_CLI debug_level=4 force_version=tls13 curves=secp256r1,secp384r1" \
+            "$P_CLI debug_level=4 curves=secp256r1,secp384r1" \
             0 \
-            -c "The SSL configuration is tls13 only." \
+            -c "Protocol is TLSv1.3" \
             -c "Ignore ChangeCipherSpec in TLS 1.3 compatibility mode"
 
 requires_gnutls_tls1_3
@@ -11713,9 +11710,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3 m->G HRR both peers do not support middlebox compatibility" \
             "$G_NEXT_SRV --priority=NORMAL:-GROUP-ALL:+GROUP-SECP384R1:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE --disable-client-cert" \
-            "$P_CLI debug_level=4 force_version=tls13 curves=secp256r1,secp384r1" \
+            "$P_CLI debug_level=4 curves=secp256r1,secp384r1" \
             0 \
-            -c "The SSL configuration is tls13 only." \
+            -c "Protocol is TLSv1.3" \
             -c "received HelloRetryRequest message" \
             -C "ChangeCipherSpec invalid in TLS 1.3 without compatibility mode" \
             -C "Ignore ChangeCipherSpec in TLS 1.3 compatibility mode"
@@ -11728,9 +11725,8 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3 m->G HRR server with middlebox compat support, not client" \
             "$G_NEXT_SRV --priority=NORMAL:-GROUP-ALL:+GROUP-SECP384R1:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS --disable-client-cert" \
-            "$P_CLI debug_level=4 force_version=tls13 curves=secp256r1,secp384r1" \
+            "$P_CLI debug_level=4 curves=secp256r1,secp384r1" \
             1 \
-            -c "The SSL configuration is tls13 only." \
             -c "received HelloRetryRequest message" \
             -c "ChangeCipherSpec invalid in TLS 1.3 without compatibility mode"
 
@@ -11742,9 +11738,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3 m->G HRR both with middlebox compat support" \
             "$G_NEXT_SRV --priority=NORMAL:-GROUP-ALL:+GROUP-SECP384R1:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS --disable-client-cert" \
-            "$P_CLI debug_level=4 force_version=tls13 curves=secp256r1,secp384r1" \
+            "$P_CLI debug_level=4 curves=secp256r1,secp384r1" \
             0 \
-            -c "The SSL configuration is tls13 only." \
+            -c "Protocol is TLSv1.3" \
             -c "Ignore ChangeCipherSpec in TLS 1.3 compatibility mode"
 
 requires_openssl_tls1_3
@@ -11754,9 +11750,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 run_test    "TLS 1.3 O->m HRR both peers do not support middlebox compatibility" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 curves=secp384r1 tickets=0" \
-            "$O_NEXT_CLI -msg -debug -tls1_3 -groups P-256:P-384 -no_middlebox" \
+            "$O_NEXT_CLI -msg -debug -groups P-256:P-384 -no_middlebox" \
             0 \
-            -s "The SSL configuration is tls13 only." \
+            -s "Protocol is TLSv1.3" \
             -S "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REQUEST" \
             -C "14 03 03 00 01"
 
@@ -11767,9 +11763,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 run_test    "TLS 1.3 O->m HRR server with middlebox compat support, not client" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 curves=secp384r1 tickets=0" \
-            "$O_NEXT_CLI -msg -debug -tls1_3 -groups P-256:P-384 -no_middlebox" \
+            "$O_NEXT_CLI -msg -debug -groups P-256:P-384 -no_middlebox" \
             0 \
-            -s "The SSL configuration is tls13 only." \
+            -s "Protocol is TLSv1.3" \
             -s "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REQUEST" \
 
 requires_openssl_tls1_3
@@ -11779,9 +11775,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 run_test    "TLS 1.3 O->m HRR both with middlebox compat support" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 curves=secp384r1 tickets=0" \
-            "$O_NEXT_CLI -msg -debug -tls1_3 -groups P-256:P-384" \
+            "$O_NEXT_CLI -msg -debug -groups P-256:P-384" \
             0 \
-            -s "The SSL configuration is tls13 only." \
+            -s "Protocol is TLSv1.3" \
             -s "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REQUEST" \
             -c "14 03 03 00 01"
 
@@ -11794,9 +11790,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 run_test    "TLS 1.3 G->m HRR both peers do not support middlebox compatibility" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 curves=secp384r1 tickets=0" \
-            "$G_NEXT_CLI localhost --priority=NORMAL:-GROUP-ALL:+GROUP-SECP256R1:+GROUP-SECP384R1:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
+            "$G_NEXT_CLI localhost --priority=NORMAL:-GROUP-ALL:+GROUP-SECP256R1:+GROUP-SECP384R1:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
             0 \
-            -s "The SSL configuration is tls13 only." \
+            -s "Protocol is TLSv1.3" \
             -S "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REQUEST" \
             -C "SSL 3.3 ChangeCipherSpec packet received"
 
@@ -11809,9 +11805,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 run_test    "TLS 1.3 G->m HRR server with middlebox compat support, not client" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 curves=secp384r1 tickets=0" \
-            "$G_NEXT_CLI localhost --debug=10 --priority=NORMAL:-GROUP-ALL:+GROUP-SECP256R1:+GROUP-SECP384R1:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
+            "$G_NEXT_CLI localhost --debug=10 --priority=NORMAL:-GROUP-ALL:+GROUP-SECP256R1:+GROUP-SECP384R1:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
             0 \
-            -s "The SSL configuration is tls13 only." \
+            -s "Protocol is TLSv1.3" \
             -s "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REQUEST" \
             -c "SSL 3.3 ChangeCipherSpec packet received" \
             -c "discarding change cipher spec in TLS1.3"
@@ -11825,9 +11821,9 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_SRV_C
 run_test    "TLS 1.3 G->m HRR both with middlebox compat support" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 curves=secp384r1 tickets=0" \
-            "$G_NEXT_CLI localhost --debug=10 --priority=NORMAL:-GROUP-ALL:+GROUP-SECP256R1:+GROUP-SECP384R1:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
+            "$G_NEXT_CLI localhost --debug=10 --priority=NORMAL:-GROUP-ALL:+GROUP-SECP256R1:+GROUP-SECP384R1:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
             0 \
-            -s "The SSL configuration is tls13 only." \
+            -s "Protocol is TLSv1.3" \
             -s "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REQUEST" \
             -c "SSL 3.3 ChangeCipherSpec packet received"
 

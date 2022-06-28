@@ -1,3 +1,3 @@
 Features
-   * Add a function to extract message digest information from a message
-     digest context.
+   * Add function mbedtls_md_info_from_ctx() to recall the message digest
+     information that was used to set up a message digest context.

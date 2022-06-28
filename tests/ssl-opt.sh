@@ -11647,7 +11647,7 @@ run_test    "TLS 1.3 m->m HRR both peers do not support middlebox compatibility"
             -s "The SSL configuration is tls13 only." \
             -c "Protocol is TLSv1.3" \
             -s "tls13 server state: MBEDTLS_SSL_HELLO_RETRY_REQUEST" \
-            -S "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REUEST" \
+            -S "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REQUEST" \
             -C "Ignore ChangeCipherSpec in TLS 1.3 compatibility mode"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -11662,7 +11662,7 @@ run_test    "TLS 1.3 m->m HRR both with middlebox compat support" \
             -s "The SSL configuration is tls13 only." \
             -c "Protocol is TLSv1.3" \
             -s "tls13 server state: MBEDTLS_SSL_HELLO_RETRY_REQUEST" \
-            -s "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REUEST" \
+            -s "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REQUEST" \
             -c "Ignore ChangeCipherSpec in TLS 1.3 compatibility mode"
 
 requires_openssl_tls1_3
@@ -11757,7 +11757,7 @@ run_test    "TLS 1.3 O->m HRR both peers do not support middlebox compatibility"
             "$O_NEXT_CLI -msg -debug -tls1_3 -groups P-256:P-384 -no_middlebox" \
             0 \
             -s "The SSL configuration is tls13 only." \
-            -S "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REUEST" \
+            -S "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REQUEST" \
             -C "14 03 03 00 01"
 
 requires_openssl_tls1_3
@@ -11770,7 +11770,7 @@ run_test    "TLS 1.3 O->m HRR server with middlebox compat support, not client" 
             "$O_NEXT_CLI -msg -debug -tls1_3 -groups P-256:P-384 -no_middlebox" \
             0 \
             -s "The SSL configuration is tls13 only." \
-            -s "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REUEST" \
+            -s "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REQUEST" \
 
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -11782,7 +11782,7 @@ run_test    "TLS 1.3 O->m HRR both with middlebox compat support" \
             "$O_NEXT_CLI -msg -debug -tls1_3 -groups P-256:P-384" \
             0 \
             -s "The SSL configuration is tls13 only." \
-            -s "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REUEST" \
+            -s "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REQUEST" \
             -c "14 03 03 00 01"
 
 requires_gnutls_tls1_3
@@ -11797,7 +11797,7 @@ run_test    "TLS 1.3 G->m HRR both peers do not support middlebox compatibility"
             "$G_NEXT_CLI localhost --priority=NORMAL:-GROUP-ALL:+GROUP-SECP256R1:+GROUP-SECP384R1:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
             0 \
             -s "The SSL configuration is tls13 only." \
-            -S "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REUEST" \
+            -S "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REQUEST" \
             -C "SSL 3.3 ChangeCipherSpec packet received"
 
 requires_gnutls_tls1_3
@@ -11812,7 +11812,7 @@ run_test    "TLS 1.3 G->m HRR server with middlebox compat support, not client" 
             "$G_NEXT_CLI localhost --debug=10 --priority=NORMAL:-GROUP-ALL:+GROUP-SECP256R1:+GROUP-SECP384R1:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
             0 \
             -s "The SSL configuration is tls13 only." \
-            -s "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REUEST" \
+            -s "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REQUEST" \
             -c "SSL 3.3 ChangeCipherSpec packet received" \
             -c "discarding change cipher spec in TLS1.3"
 
@@ -11828,7 +11828,7 @@ run_test    "TLS 1.3 G->m HRR both with middlebox compat support" \
             "$G_NEXT_CLI localhost --debug=10 --priority=NORMAL:-GROUP-ALL:+GROUP-SECP256R1:+GROUP-SECP384R1:-VERS-ALL:+VERS-TLS1.3:%NO_TICKETS:%DISABLE_TLS13_COMPAT_MODE -V" \
             0 \
             -s "The SSL configuration is tls13 only." \
-            -s "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REUEST" \
+            -s "tls13 server state: MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REQUEST" \
             -c "SSL 3.3 ChangeCipherSpec packet received"
 
 # Test heap memory usage after handshake

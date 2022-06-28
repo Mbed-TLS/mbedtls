@@ -1349,7 +1349,7 @@ static int ssl_tls13_write_hello_retry_request( mbedtls_ssl_context *ssl )
      * a ServerHello or a HelloRetryRequest.
      */
     mbedtls_ssl_handshake_set_state(
-            ssl, MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REUEST );
+            ssl, MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REQUEST );
 #else
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_HELLO );
 #endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
@@ -1741,7 +1741,7 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
          * Injection of dummy-CCS's for middlebox compatibility
          */
 #if defined(MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE)
-        case MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REUEST:
+        case MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REQUEST:
             ret = mbedtls_ssl_tls13_write_change_cipher_spec( ssl );
             if( ret == 0 )
                 mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_HELLO );

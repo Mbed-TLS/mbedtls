@@ -4916,8 +4916,7 @@ int mbedtls_ssl_parse_sig_alg_ext( mbedtls_ssl_context *ssl,
                                     sig_alg,
                                     mbedtls_ssl_sig_alg_to_str( sig_alg ) ) );
 
-        if( ! mbedtls_ssl_sig_alg_is_supported( ssl, sig_alg ) ||
-            ! mbedtls_ssl_sig_alg_is_offered( ssl, sig_alg ) )
+        if( ! mbedtls_ssl_sig_alg_is_supported( ssl, sig_alg ) )
             continue;
 
         MBEDTLS_SSL_DEBUG_MSG( 4, ( "valid signature algorithm: %s",

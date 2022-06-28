@@ -1273,8 +1273,8 @@ static int ssl_tls13_write_server_hello( mbedtls_ssl_context *ssl )
      * after its first handshake message. This may either be after
      * a ServerHello or a HelloRetryRequest.
      */
-    mbedtls_ssl_handshake_set_state( ssl,
-            MBEDTLS_SSL_SERVER_CCS_AFTER_SERVER_HELLO );
+    mbedtls_ssl_handshake_set_state(
+            ssl, MBEDTLS_SSL_SERVER_CCS_AFTER_SERVER_HELLO );
 #else
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_ENCRYPTED_EXTENSIONS );
 #endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
@@ -1348,8 +1348,8 @@ static int ssl_tls13_write_hello_retry_request( mbedtls_ssl_context *ssl )
      * after its first handshake message. This may either be after
      * a ServerHello or a HelloRetryRequest.
      */
-    mbedtls_ssl_handshake_set_state( ssl,
-            MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REUEST );
+    mbedtls_ssl_handshake_set_state(
+            ssl, MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REUEST );
 #else
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_HELLO );
 #endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */

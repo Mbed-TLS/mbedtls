@@ -1,0 +1,2 @@
+Bugfix
+   * Silence a warning from GCC 12 in the selftest program. Fixes #5974.

@@ -47,7 +47,14 @@
 /* PSA error codes */
 
 /* Error codes are standardized across PSA domains (framework, crypto, storage,
- * etc.). Do not change the values in this section. If you must add a new
+ * etc.). Do not change the values in this section or even the expansions
+ * of each macro: it must be possible to `#include` both this header
+ * and some other PSA component's headers in the same C source,
+ * which will lead to duplicate definitions of the `PSA_SUCCESS` and
+ * `PSA_ERROR_xxx` macros, which is ok if and only if the macros expand
+ * to the same sequence of tokens.
+ *
+ * If you must add a new
  * value, check with the Arm PSA framework group to pick one that other
  * domains aren't already using. */
 

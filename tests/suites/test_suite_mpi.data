@@ -73,11 +73,17 @@ mpi_read_write_string:16:"":16:"":4:0:0
 Test mpi_read_write_string #9 (Empty MPI hex -> dec)
 mpi_read_write_string:16:"":10:"0":4:0:0
 
+Test mpi_read_write_string #9 (Empty MPI hex -> base 2)
+mpi_read_write_string:16:"":2:"0":4:0:0
+
 Test mpi_read_write_string #8 (Empty MPI dec -> hex)
 mpi_read_write_string:10:"":16:"":4:0:0
 
 Test mpi_read_write_string #9 (Empty MPI dec -> dec)
 mpi_read_write_string:10:"":10:"0":4:0:0
+
+Test mpi_read_write_string #9 (Empty MPI dec -> base 2)
+mpi_read_write_string:16:"":2:"0":4:0:0
 
 Test mpi_write_string #10 (Negative hex with odd number of digits)
 mpi_read_write_string:16:"-1":16:"":3:0:MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL
@@ -1222,8 +1228,14 @@ mbedtls_mpi_mod_int:10:"1000":2:0:0
 Test mbedtls_mpi_mod_int: 0 (null) % 1
 mbedtls_mpi_mod_int:16:"":1:0:0
 
+Test mbedtls_mpi_mod_int: 0 (null) % 2
+mbedtls_mpi_mod_int:16:"":2:0:0
+
 Test mbedtls_mpi_mod_int: 0 (null) % -1
 mbedtls_mpi_mod_int:16:"":-1:0:MBEDTLS_ERR_MPI_NEGATIVE_VALUE
+
+Test mbedtls_mpi_mod_int: 0 (null) % -2
+mbedtls_mpi_mod_int:16:"":-2:0:MBEDTLS_ERR_MPI_NEGATIVE_VALUE
 
 Base test mbedtls_mpi_exp_mod #1
 mbedtls_mpi_exp_mod:10:"23":10:"13":10:"29":10:"24":0

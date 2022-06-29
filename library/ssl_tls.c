@@ -58,6 +58,30 @@
 #include "mbedtls/oid.h"
 #endif
 
+#if defined(MBEDTLS_TEST_HOOKS)
+static mbedtls_ssl_chk_buf_ptr_args chk_buf_ptr_fail_args;
+
+void mbedtls_ssl_set_chk_buf_ptr_fail_args(
+    const uint8_t *cur, const uint8_t *end, size_t need )
+{
+    chk_buf_ptr_fail_args.cur = cur;
+    chk_buf_ptr_fail_args.end = end;
+    chk_buf_ptr_fail_args.need = need;
+}
+
+void mbedtls_ssl_reset_chk_buf_ptr_fail_args( void )
+{
+    memset( &chk_buf_ptr_fail_args, 0, sizeof( chk_buf_ptr_fail_args ) );
+}
+
+int mbedtls_ssl_cmp_chk_buf_ptr_fail_args( mbedtls_ssl_chk_buf_ptr_args *args )
+{
+    return( ( chk_buf_ptr_fail_args.cur  != args->cur  ) ||
+            ( chk_buf_ptr_fail_args.end  != args->end  ) ||
+            ( chk_buf_ptr_fail_args.need != args->need ) );
+}
+#endif /* MBEDTLS_TEST_HOOKS */
+
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
@@ -1102,6 +1126,8 @@ void mbedtls_ssl_session_reset_msg_layer( mbedtls_ssl_context *ssl,
         ssl->in_left = 0;
         memset( ssl->in_buf, 0, in_buf_len );
     }
+
+    ssl->send_alert = 0;
 
     /* Reset outgoing message writing */
     ssl->out_msgtype = 0;

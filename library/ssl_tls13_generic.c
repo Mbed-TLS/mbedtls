@@ -917,10 +917,8 @@ static int ssl_tls13_select_sig_alg_for_certificate_verify(
     for( ; *sig_alg != MBEDTLS_TLS1_3_SIG_NONE ; sig_alg++ )
     {
         if( mbedtls_ssl_sig_alg_is_offered( ssl, *sig_alg ) &&
-            mbedtls_ssl_tls13_sig_alg_for_cert_verify_is_supported(
-                                                            *sig_alg ) &&
-            mbedtls_ssl_tls13_check_sig_alg_cert_key_match(
-                                                        *sig_alg, own_key ) )
+            mbedtls_ssl_tls13_sig_alg_for_cert_verify_is_supported( *sig_alg ) &&
+            mbedtls_ssl_tls13_check_sig_alg_cert_key_match( *sig_alg, own_key ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3,
                                    ( "select_sig_alg_for_certificate_verify:"

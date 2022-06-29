@@ -382,6 +382,12 @@ static int ssl_parse_inner_plaintext( unsigned char const *content,
  *
  * 1) CID functionality disabled
  *
+ * additional_data =
+ *    8:                    seq_num +
+ *    1:                       type +
+ *    2:                    version +
+ *    2:  length of inner plaintext +
+ *
  * size = 13 bytes
  *
  * 2) CID functionality based on RFC 9146 enabled
@@ -401,7 +407,7 @@ static int ssl_parse_inner_plaintext( unsigned char const *content,
  * size of the additional data structure is calculated as:
  *
  * additional_data =
- *    8: seq_num +
+ *    8:                    seq_num +
  *    1:                  tls12_cid +
  *    2:     DTLSCipherText.version +
  *    n:                        cid +
@@ -426,7 +432,7 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
                                               size_t *add_data_len,
                                               mbedtls_record *rec,
                                               mbedtls_ssl_protocol_version
-                                                tls_version,
+                                              tls_version,
                                               size_t taglen )
 {
     /* Several types of ciphers have been defined for use with TLS and DTLS,
@@ -541,7 +547,7 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
         ((void) taglen);
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-        
+
 #if MBEDTLS_SSL_DTLS_CONNECTION_ID_COMPAT == 0
         if( rec->cid_len != 0 )
         {
@@ -684,10 +690,13 @@ int mbedtls_ssl_encrypt_buf( mbedtls_ssl_context *ssl,
     mbedtls_ssl_mode_t ssl_mode;
     int auth_done = 0;
     unsigned char * data;
+    /* For an explanation of the additional data length see
+    * the descrpition of ssl_extract_add_data_from_record().
+    */
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
-    unsigned char add_data[16 + MBEDTLS_SSL_CID_OUT_LEN_MAX];
+    unsigned char add_data[23 + MBEDTLS_SSL_CID_OUT_LEN_MAX];
 #else
-    unsigned char add_data[13 + 1 + MBEDTLS_SSL_CID_OUT_LEN_MAX ];
+    unsigned char add_data[13];
 #endif
     size_t add_data_len;
     size_t post_avail;
@@ -1277,7 +1286,14 @@ int mbedtls_ssl_decrypt_buf( mbedtls_ssl_context const *ssl,
     size_t padlen = 0, correct = 1;
 #endif
     unsigned char* data;
-    unsigned char add_data[13 + 1 + MBEDTLS_SSL_CID_IN_LEN_MAX ];
+    /* For an explanation of the additional data length see
+    * the descrpition of ssl_extract_add_data_from_record().
+    */
+#if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
+    unsigned char add_data[23 + MBEDTLS_SSL_CID_IN_LEN_MAX];
+#else
+    unsigned char add_data[13];
+#endif
     size_t add_data_len;
 
 #if !defined(MBEDTLS_DEBUG_C)

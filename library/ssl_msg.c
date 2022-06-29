@@ -402,7 +402,7 @@ static int ssl_parse_inner_plaintext( unsigned char const *content,
  * size = 13 + 1 + CID-length
  *
  * More information about the CID usage:
- * 
+ *
  * Per Section 5.3 of draft-ietf-tls-dtls-connection-id-05 the
  * size of the additional data structure is calculated as:
  *
@@ -415,7 +415,7 @@ static int ssl_parse_inner_plaintext( unsigned char const *content,
  *    2: length_of_DTLSInnerPlaintext
  *
  * Per RFC 9146 the size of the add_data structure is calculated as:
- * 
+ *
  * additional_data =
  *    8:        seq_num_placeholder +
  *    1:                  tls12_cid +
@@ -441,7 +441,7 @@ static void ssl_extract_add_data_from_record( unsigned char* add_data,
      * This implementations also considers the use of a legacy version of the
      * CID specification published in draft-ietf-tls-dtls-connection-id-05,
      * which is used in deployments.
-     * 
+     *
      * We will distinguish between the non-CID and the CID cases below.
      *
      * --- Non-CID cases ---

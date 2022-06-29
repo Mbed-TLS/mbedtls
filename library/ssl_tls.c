@@ -4915,9 +4915,17 @@ int mbedtls_ssl_parse_sig_alg_ext( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG( 4, ( "received signature algorithm: 0x%x %s",
                                     sig_alg,
                                     mbedtls_ssl_sig_alg_to_str( sig_alg ) ) );
-
-        if( ! mbedtls_ssl_sig_alg_is_supported( ssl, sig_alg ) )
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+        if(
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+            ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_2 &&
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+            ( ! ( mbedtls_ssl_sig_alg_is_supported( ssl, sig_alg ) &&
+                  mbedtls_ssl_sig_alg_is_offered( ssl, sig_alg ) ) ) )
+        {
             continue;
+        }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
         MBEDTLS_SSL_DEBUG_MSG( 4, ( "valid signature algorithm: %s",
                                     mbedtls_ssl_sig_alg_to_str( sig_alg ) ) );

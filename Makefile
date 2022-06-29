@@ -55,7 +55,7 @@ $(VISUALC_FILES):
 	$(PERL) scripts/generate_visualc_files.pl
 
 ifndef WINDOWS
-install: no_test
+install:
 	mkdir -p $(DESTDIR)/include/mbedtls
 	cp -rp include/mbedtls $(DESTDIR)/include
 	mkdir -p $(DESTDIR)/include/psa

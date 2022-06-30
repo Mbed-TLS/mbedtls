@@ -82,6 +82,9 @@ int mbedtls_pk_load_file( const char *path, unsigned char **buf, size_t *n )
     if( ( f = fopen( path, "rb" ) ) == NULL )
         return( MBEDTLS_ERR_PK_FILE_IO_ERROR );
 
+    /* Ensure no stdio buffering of secrets, as such buffers cannot be wiped. */
+    mbedtls_setbuf( f, NULL );
+
     fseek( f, 0, SEEK_END );
     if( ( size = ftell( f ) ) == -1 )
     {

@@ -1444,6 +1444,8 @@
  *       still ensure that certificates do not change during renegotiation,
  *       for example by keeping a hash of the peer's certificate.
  *
+ * \note This option is required if MBEDTLS_SSL_PROTO_TLS1_3 is set.
+ *
  * Comment this macro to disable storing the peer's certificate
  * after the handshake.
  */
@@ -1501,6 +1503,8 @@
  *       pre-shared keys are not supported.
  *       See docs/architecture/tls13-support.md for a description of the TLS
  *       1.3 support that this option enables.
+ *
+ * Requires: MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
  *
  * Uncomment this macro to enable the support for TLS 1.3.
  *

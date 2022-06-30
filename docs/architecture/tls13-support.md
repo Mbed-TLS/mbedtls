@@ -136,10 +136,16 @@ MVP definition
 
 - Compatibility with existing SSL/TLS build options:
 
-  The TLS 1.3 MVP is compatible with all TLS 1.2 configuration options in the
-  sense that when enabling the TLS 1.3 MVP in the library there is no need to
-  modify the configuration for TLS 1.2. The MBEDTLS_USE_PSA_CRYPTO configuration
-  option is an exception though, the TLS 1.3 MVP is not compatible with it.
+  The TLS 1.3 MVP is compatible with nearly all TLS 1.2 configuration options
+  in the sense that when enabling the TLS 1.3 MVP in the library there is rarely
+  any need to modify the configuration from that used for TLS 1.2.
+
+  The exceptions to this are:
+
+  - The TLS 1.3 MVP is not compatible with MBEDTLS_USE_PSA_CRYPTO, so this option
+    must be disabled.
+  - The TLS 1.3 MVP requires MBEDTLS_PSA_CRYPTO_C and MBEDTLS_SSL_KEEP_PEER_CERTIFICATE,
+    so these options must be enabled.
 
   Mbed TLS SSL/TLS related features are not supported or not applicable to the
   TLS 1.3 MVP:
@@ -152,12 +158,11 @@ MVP definition
   | MBEDTLS_SSL_DEBUG_ALL                    | no      |
   | MBEDTLS_SSL_ENCRYPT_THEN_MAC             | n/a     |
   | MBEDTLS_SSL_EXTENDED_MASTER_SECRET       | n/a     |
-  | MBEDTLS_SSL_KEEP_PEER_CERTIFICATE        | no      |
+  | MBEDTLS_SSL_KEEP_PEER_CERTIFICATE        | no (1)  |
   | MBEDTLS_SSL_RENEGOTIATION                | n/a     |
   | MBEDTLS_SSL_MAX_FRAGMENT_LENGTH          | no      |
   |                                          |         |
   | MBEDTLS_SSL_SESSION_TICKETS              | no      |
-  | MBEDTLS_SSL_EXPORT_KEYS                  | no (1)  |
   | MBEDTLS_SSL_SERVER_NAME_INDICATION       | no      |
   | MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH       | no      |
   |                                          |         |
@@ -176,9 +181,10 @@ MVP definition
   | MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED    | n/a     |
   | MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED     | n/a     |
   |                                          |         |
+  | MBEDTLS_PSA_CRYPTO_C                     | no (1)  |
   | MBEDTLS_USE_PSA_CRYPTO                   | no      |
 
-  (1) Some support has already been upstreamed but it is incomplete.
+  (1) These options must remain in their default state of enabled.
   (2) Key exchange configuration options for TLS 1.3 will likely to be
       organized around the notion of key exchange mode along the line
       of the MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_NONE/PSK/PSK_EPHEMERAL/EPHEMERAL

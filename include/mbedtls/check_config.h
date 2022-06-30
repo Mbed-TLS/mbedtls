@@ -729,6 +729,13 @@
 #error "MBEDTLS_SSL_PROTO_TLS1_3 defined, but not all prerequisites"
 #endif
 
+/*
+ * The current implementation of TLS 1.3 requires MBEDTLS_SSL_KEEP_PEER_CERTIFICATE.
+ */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+#error "MBEDTLS_SSL_PROTO_TLS1_3 defined without MBEDTLS_SSL_KEEP_PEER_CERTIFICATE"
+#endif
+
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) &&                                    \
     !(defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED) ||                          \
       defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED) ||                      \

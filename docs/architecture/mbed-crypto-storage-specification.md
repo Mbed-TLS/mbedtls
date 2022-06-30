@@ -328,7 +328,7 @@ First released in December 2020.
 
 Note: this is the first version that is officially supported. The version number is still 0.
 
-Backward compatibility commitments: we promise backward compatibility for stored keys when Mbed TLS is upgraded from x to y if x >= 2.25 and y << 4. See [`BRANCHES.md`](../../BRANCHES.md) for more details.
+Backward compatibility commitments: we promise backward compatibility for stored keys when Mbed TLS is upgraded from x to y if x >= 2.25 and y < 4. See [`BRANCHES.md`](../../BRANCHES.md) for more details.
 
 Supported integrations:
 
@@ -376,7 +376,7 @@ Assumption: C stdio, allowing names containing lowercase letters, digits and und
 An undocumented build-time configuration value `PSA_ITS_STORAGE_PREFIX` allows storing the key files in a directory other than the current directory. This value is simply prepended to the file name (so it must end with a directory separator to put the keys in a different directory).
 
 * `PSA_ITS_STORAGE_PREFIX "tempfile.psa_its"`: used as a temporary file. Must be writable. May be overwritten or deleted if present.
-* `sprintf(PSA_ITS_STORAGE_PREFIX "%016llx.psa_its", key_id)`: a key or non-key file. The `key_id` in the name is file identifier, which is the [key identifier](#key-names-for-mbed-tls-2.25.0) for a key file or some reserved identifier for a [non-key file](#non-key-files-on-mbed-tls-2.25.0). The contents of the file are:
+* `sprintf(PSA_ITS_STORAGE_PREFIX "%016llx.psa_its", key_id)`: a key or non-key file. The `key_id` in the name is the 64-bit file identifier, which is the [key identifier](#key-names-for-mbed-tls-2.25.0) for a key file or some reserved identifier for a [non-key file](#non-key-files-on-mbed-tls-2.25.0). The contents of the file are:
     * Magic header (8 bytes): `"PSA\0ITS\0"`
     * File contents.
 

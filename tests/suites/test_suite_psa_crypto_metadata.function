@@ -4,6 +4,10 @@
  * code. Other test suites validate macros that require creating a key
  * and using it. */
 
+/* Validate that the error macros that we define in "psa/crypto_values.h"
+ * are compatible with the official PSA list. */
+#include "external/psa-status-code/error.h"
+
 #if defined(MBEDTLS_PSA_CRYPTO_SPM)
 #include "spm/psa_defs.h"
 #endif

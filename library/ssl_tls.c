@@ -7703,39 +7703,27 @@ unsigned int mbedtls_ssl_tls12_get_preferred_hash_for_sig_alg(
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
             if( ssl->handshake->key_cert && ssl->handshake->key_cert->key )
             {
-                psa_algorithm_t alg = PSA_ALG_NONE;
-                psa_algorithm_t alg2 = PSA_ALG_NONE;
-                psa_key_usage_t usage = 0;
-                psa_key_usage_t usage2 = 0;
+                psa_algorithm_t psa_hash_alg =
+                                mbedtls_psa_translate_md( hash_alg_received );
 
-                if( sig_alg_received == MBEDTLS_SSL_SIG_ECDSA )
-                {
-
-                    alg = PSA_ALG_ECDSA(
-                                mbedtls_psa_translate_md( hash_alg_received ) );
-                    usage = PSA_KEY_USAGE_SIGN_HASH;
-                    alg2 = PSA_ALG_ECDH;
-                    usage2 = PSA_KEY_USAGE_DERIVE;
-                }
-                else if( sig_alg_received == MBEDTLS_SSL_SIG_RSA )
-                {
-                    alg = PSA_ALG_RSA_PKCS1V15_SIGN(
-                                mbedtls_psa_translate_md( hash_alg_received ) );
-                    usage = PSA_KEY_USAGE_SIGN_HASH;
-                    alg2 = PSA_ALG_RSA_PKCS1V15_CRYPT;
-                    usage2 = PSA_KEY_USAGE_DECRYPT;
-                }
-                else
+                if( sig_alg_received == MBEDTLS_SSL_SIG_ECDSA &&
+                    ! mbedtls_pk_can_do_ext( ssl->handshake->key_cert->key,
+                                             PSA_ALG_ECDSA( psa_hash_alg ),
+                                             PSA_KEY_USAGE_SIGN_HASH ) )
                     continue;
 
-                if( ! mbedtls_pk_can_do_ext( ssl->handshake->key_cert->key,
-                                             alg, usage ) &&
-                    ! mbedtls_pk_can_do_ext( ssl->handshake->key_cert->key,
-                                             alg2, usage2 ) )
+                if( sig_alg_received == MBEDTLS_SSL_SIG_RSA &&
+                    ! ( mbedtls_pk_can_do_ext( ssl->handshake->key_cert->key,
+                                               PSA_ALG_RSA_PKCS1V15_CRYPT,
+                                               PSA_KEY_USAGE_DECRYPT ) ||
+                        mbedtls_pk_can_do_ext( ssl->handshake->key_cert->key,
+                                               PSA_ALG_RSA_PKCS1V15_SIGN(
+                                                                psa_hash_alg ),
+                                               PSA_KEY_USAGE_SIGN_HASH ) ) )
                     continue;
             }
-
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
+
             return( hash_alg_received );
         }
     }

@@ -1011,17 +1011,11 @@ int mbedtls_x509_time_cmp(const mbedtls_x509_time *t1,
 }
 
 #if defined(MBEDTLS_HAVE_TIME_DATE)
-/*
- * Set the time structure to the current time.
- * Return 0 on success, non-zero on failure.
- */
-static int x509_get_current_time(mbedtls_x509_time *now)
+int mbedtls_x509_time_gmtime(mbedtls_time_t tt, mbedtls_x509_time *now)
 {
     struct tm *lt, tm_buf;
-    mbedtls_time_t tt;
     int ret = 0;
 
-    tt = mbedtls_time(NULL);
     lt = mbedtls_platform_gmtime_r(&tt, &tm_buf);
 
     if (lt == NULL) {
@@ -1036,6 +1030,11 @@ static int x509_get_current_time(mbedtls_x509_time *now)
     }
 
     return ret;
+}
+
+static int x509_get_current_time(mbedtls_x509_time *now)
+{
+    return mbedtls_x509_time_gmtime(mbedtls_time(NULL), now);
 }
 
 int mbedtls_x509_time_is_past(const mbedtls_x509_time *to)

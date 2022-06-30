@@ -297,10 +297,8 @@ int mbedtls_platform_set_vsnprintf( int (*vsnprintf_func)( char * s, size_t n,
  *                         you can set mbedtls_setbuf to a function that
  *                         does nothing.
  *
- * \param   setbuf_func    The \c setbuf function implementation.
- *                         It is always called with `buf` equal to `NULL`.
- *
- * \return                 \c 0 on success, negative on error.
+ *                         The library always calls this function with
+ *                         `buf` equal to `NULL`.
  */
 extern void (*mbedtls_setbuf)( FILE *stream, char *buf );
 

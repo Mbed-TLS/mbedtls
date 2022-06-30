@@ -9172,7 +9172,6 @@ run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.2" \
 
 ## The two tests below require 1.1.1a or higher version of openssl, otherwise
 ## it might trigger a bug due to openssl (https://github.com/openssl/openssl/issues/6902)
-
 requires_openssl_next
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C

@@ -318,7 +318,7 @@ A key derivation driver has the following entry points:
 * `"key_derivation_setup"` (mandatory): always the first entry point to be called. This entry point provides the [initial inputs](#key-derivation-driver-initial-inputs). See [“Key derivation driver setup”](#key-derivation-driver-setup).
 * `"key_derivation_input_step"` (optional): provide an extra input for the key derivation. This entry point is only mandatory in drivers that support algorithms that have extra inputs. See [“Key derivation driver long inputs”](#key-derivation-driver-long-inputs).
 * `"key_derivation_output_bytes"` (mandatory): derive cryptographic material and output it. See [“Key derivation driver outputs”](#key-derivation-driver-outputs).
-* `"key_derivation_derive_key"`, `"key_derivation_verify_bytes"`, `"key_derivation_verify_key"` (optional, opaque drivers only): derive key material which remains inside the same secure element. See [“Key derivation driver outputs”](#key-derivation-driver-outputs).
+* `"key_derivation_output_key"`, `"key_derivation_verify_bytes"`, `"key_derivation_verify_key"` (optional, opaque drivers only): derive key material which remains inside the same secure element. See [“Key derivation driver outputs”](#key-derivation-driver-outputs).
 * `"key_derivation_set_capacity"` (mandatory for opaque drivers that implement `"key_derivation_output_bytes"` for “cooked”, i.e. non-raw-data key types): update the capacity policy on the operation. See [“Key derivation driver operation capacity”](#key-derivation-driver-operation-capacity).
 * `"key_derivation_abort"` (mandatory): always the last entry point to be called.
 
@@ -427,7 +427,7 @@ At the time of writing, no standard key derivation algorithm has long inputs. It
 
 #### Key derivation driver operation capacity
 
-The core keeps track of an operation's capacity and enforces it. The core guarantees that it will not request output beyond the capacity of the operation, with one exception: opaque drivers that support `"key_derivation_derive_key"` [cooked key types](#transparent-cooked-key-derivation), i.e. for key types where the derived key material is not a direct copy of the key derivation's output stream.
+The core keeps track of an operation's capacity and enforces it. The core guarantees that it will not request output beyond the capacity of the operation, with one exception: opaque drivers that support [`"key_derivation_output_key"`](#key-derivation-driver-outputs), i.e. for key types where the derived key material is not a direct copy of the key derivation's output stream.
 
 Such drivers must enforce the capacity limitation and must return `PSA_ERROR_INSUFFICIENT_CAPACITY` from any output request that exceeds the operation's capacity. Such drivers must provide the following entry point:
 ```

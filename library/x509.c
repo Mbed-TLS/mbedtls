@@ -1013,23 +1013,19 @@ int mbedtls_x509_time_cmp(const mbedtls_x509_time *t1,
 #if defined(MBEDTLS_HAVE_TIME_DATE)
 int mbedtls_x509_time_gmtime(mbedtls_time_t tt, mbedtls_x509_time *now)
 {
-    struct tm *lt, tm_buf;
-    int ret = 0;
+    struct tm tm;
 
-    lt = mbedtls_platform_gmtime_r(&tt, &tm_buf);
-
-    if (lt == NULL) {
-        ret = -1;
-    } else {
-        now->year = lt->tm_year + 1900;
-        now->mon  = lt->tm_mon  + 1;
-        now->day  = lt->tm_mday;
-        now->hour = lt->tm_hour;
-        now->min  = lt->tm_min;
-        now->sec  = lt->tm_sec;
+    if (mbedtls_platform_gmtime_r(&tt, &tm) == NULL) {
+        return -1;
     }
 
-    return ret;
+    now->year = tm.tm_year + 1900;
+    now->mon  = tm.tm_mon  + 1;
+    now->day  = tm.tm_mday;
+    now->hour = tm.tm_hour;
+    now->min  = tm.tm_min;
+    now->sec  = tm.tm_sec;
+    return 0;
 }
 
 static int x509_get_current_time(mbedtls_x509_time *now)

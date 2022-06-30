@@ -1860,6 +1860,48 @@ run_test    "Opaque key for server authentication: invalid alg: TLS-ECDHE-ECDSA 
             -s "error" \
             -c "error"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_SHA256_C
+run_test    "Two Opaque keys for server authentication: EC with different algs" \
+            "$P_SRV auth_mode=required key_opaque=1 crt_file=data_files/server5.crt \
+             key_file=data_files/server5.key key_opaque_algs=ecdh,none \
+             crt_file2=data_files/server5.crt key_file2=data_files/server5.key \
+             key_opaque_algs2=ecdsa-sign,none" \
+            "$P_CLI crt_file=data_files/server5.crt \
+             key_file=data_files/server5.key" \
+            0 \
+            -c "Verifying peer X.509 certificate... ok" \
+            -c "Ciphersuite is TLS-ECDHE-ECDSA" \
+            -s "key types: Opaque, Opaque" \
+            -s "Ciphersuite is TLS-ECDHE-ECDSA" \
+            -S "error" \
+            -C "error"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_SHA384_C
+requires_config_enabled MBEDTLS_CCM_C
+run_test    "Two Opaque keys for server authentication: EC + RSA, force TLS-ECDHE-ECDSA" \
+            "$P_SRV auth_mode=required key_opaque=1 crt_file=data_files/server5.crt \
+             key_file=data_files/server5.key key_opaque_algs=ecdsa-sign,none \
+             crt_file2=data_files/server2-sha256.crt \
+             key_file2=data_files/server2.key key_opaque_algs2=rsa-sign-pkcs1,none" \
+            "$P_CLI crt_file=data_files/server2-sha256.crt \
+             key_file=data_files/server2.key \
+             force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-256-CCM" \
+            0 \
+            -c "Verifying peer X.509 certificate... ok" \
+            -c "Ciphersuite is TLS-ECDHE-ECDSA" \
+            -s "key types: Opaque, Opaque" \
+            -s "Ciphersuite is TLS-ECDHE-ECDSA" \
+            -S "error" \
+            -C "error"
+
 # Test using a RSA opaque private key for server authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
@@ -1931,6 +1973,50 @@ run_test    "Opaque key for server authentication: TLS-DHE-RSA, PSS instead of P
             -s "got ciphersuites in common, but none of them usable" \
             -s "error" \
             -c "error"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_SHA256_C
+run_test    "Two Opaque keys for server authentication: RSA with different algs" \
+            "$P_SRV auth_mode=required key_opaque=1 crt_file=data_files/server2-sha256.crt \
+             key_file=data_files/server2.key key_opaque_algs=rsa-sign-pss,none \
+             crt_file2=data_files/server2-sha256.crt \
+             key_file2=data_files/server2.key key_opaque_algs2=rsa-sign-pkcs1,none" \
+            "$P_CLI crt_file=data_files/server2-sha256.crt \
+             key_file=data_files/server2.key" \
+            0 \
+            -c "Verifying peer X.509 certificate... ok" \
+            -c "Ciphersuite is TLS-ECDHE-RSA" \
+            -s "key types: Opaque, Opaque" \
+            -s "Ciphersuite is TLS-ECDHE-RSA" \
+            -S "error" \
+            -C "error"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_SHA384_C
+requires_config_enabled MBEDTLS_GCM_C
+run_test    "Two Opaque keys for server authentication: EC + RSA, force TLS-DHE-RSA" \
+            "$P_SRV auth_mode=required key_opaque=1 crt_file=data_files/server5.crt \
+             key_file=data_files/server5.key key_opaque_algs=ecdsa-sign,none \
+             crt_file2=data_files/server2-sha256.crt \
+             key_file2=data_files/server2.key key_opaque_algs2=rsa-sign-pkcs1,none" \
+            "$P_CLI crt_file=data_files/server2-sha256.crt \
+             key_file=data_files/server2.key \
+             force_ciphersuite=TLS-DHE-RSA-WITH-AES-128-CBC-SHA" \
+            0 \
+            -c "Verifying peer X.509 certificate... ok" \
+            -c "Ciphersuite is TLS-DHE-RSA" \
+            -s "key types: Opaque, Opaque" \
+            -s "Ciphersuite is TLS-DHE-RSA" \
+            -S "error" \
+            -C "error"
 
 # Test using an EC opaque private key for client/server authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2

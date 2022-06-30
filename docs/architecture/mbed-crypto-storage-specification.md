@@ -112,7 +112,7 @@ Information about each key is stored in a dedicated file designated by the key i
 The way in which the file name is constructed from the key identifier depends on the storage backend. The content of the file is described [below](#key-file-format-for-1.0.0).
 
 * Library integration: the key file name is just the key identifier as defined in the PSA crypto specification. This is a 32-bit value.
-* PSA service integration: the key file name is `(uint32_t)owner_uid << 32 | key_id` where `key_id` is the key identifier from the owner point of view and `owner_uid` (of type `int32_t`) is the calling partition identifier provided to the server by the partition manager. This is a 64-bit value.
+* PSA service integration: the key file name is `(uint64_t)owner_uid << 32 | key_id` where `key_id` is the key identifier from the owner point of view and `owner_uid` (of type `int32_t`) is the calling partition identifier provided to the server by the partition manager. This is a 64-bit value.
 
 ### Key file format for 1.0.0
 
@@ -383,7 +383,7 @@ Information about each key is stored in a dedicated file designated by the key i
 The way in which the file name is constructed from the key identifier depends on the storage backend. The content of the file is described [below](#key-file-format-for-mbed-tls-2.25.0).
 
 * Library integration: the key file name is just the key identifier as defined in the PSA crypto specification. This is a 32-bit value which must be in the range 0x00000001..0x3fffffff (`PSA_KEY_ID_USER_MIN`..`PSA_KEY_ID_USER_MAX`).
-* PSA service integration: the key file name is `(uint32_t)owner_uid << 32 | key_id` where `key_id` is the key identifier from the owner point of view and `owner_uid` (of type `int32_t`) is the calling partition identifier provided to the server by the partition manager. This is a 64-bit value.
+* PSA service integration: the key file name is `(uint64_t)owner_uid << 32 | key_id` where `key_id` is the key identifier from the owner point of view and `owner_uid` (of type `int32_t`) is the calling partition identifier provided to the server by the partition manager. This is a 64-bit value.
 
 ### Key file format for Mbed TLS 2.25.0
 

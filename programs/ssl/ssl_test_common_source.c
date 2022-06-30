@@ -101,6 +101,10 @@ void nss_keylog_export( void *p_expkey,
             goto exit;
         }
 
+        /* Ensure no stdio buffering of secrets, as such buffers cannot be
+         * wiped. */
+        mbedtls_setbuf( f, NULL );
+
         if( fwrite( nss_keylog_line, 1, len, f ) != len )
         {
             fclose( f );

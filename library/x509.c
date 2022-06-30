@@ -997,27 +997,17 @@ int mbedtls_x509_key_size_helper(char *buf, size_t buf_size, const char *name)
 int mbedtls_x509_time_cmp(const mbedtls_x509_time *t1,
                           const mbedtls_x509_time *t2)
 {
-    if (t1->year != t2->year) {
-        return t1->year - t2->year;
+    int x;
+
+    x = (((t1->year << 9) | (t1->mon << 5) | (t1->day)) -
+         ((t2->year << 9) | (t2->mon << 5) | (t2->day)));
+    if (x != 0) {
+        return x;
     }
 
-    if (t1->mon  != t2->mon) {
-        return t1->mon  - t2->mon;
-    }
-
-    if (t1->day  != t2->day) {
-        return t1->day  - t2->day;
-    }
-
-    if (t1->hour != t2->hour) {
-        return t1->hour - t2->hour;
-    }
-
-    if (t1->min  != t2->min) {
-        return t1->min  - t2->min;
-    }
-
-    return t1->sec  - t2->sec;
+    x = (((t1->hour << 12) | (t1->min << 6) | (t1->sec)) -
+         ((t2->hour << 12) | (t2->min << 6) | (t2->sec)));
+    return x;
 }
 
 #if defined(MBEDTLS_HAVE_TIME_DATE)

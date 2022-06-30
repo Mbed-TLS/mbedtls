@@ -1,0 +1,2 @@
+Bugfix
+   * Fix mbedtls_asn1_write_mpi() writing an incorrect encoding of 0.

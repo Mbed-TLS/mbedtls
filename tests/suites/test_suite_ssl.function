@@ -4889,16 +4889,16 @@ void handshake_cipher( char* cipher, int pk_alg, int dtls )
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ENTROPY_C:MBEDTLS_CTR_DRBG_C */
-void handshake_ciphersuite_select( char* cipher, int pk_alg, int psa_alg,
-                                   int psa_alg2, int psa_usage, int dtls,
+void handshake_ciphersuite_select( char* cipher, int pk_alg, data_t *psk_str,
+                                   int psa_alg, int psa_alg2, int psa_usage,
                                    int expected_handshake_result,
-                                   int expected_ciphersuite )
+                                   int expected_ciphersuite  )
 {
     handshake_test_options options;
     init_handshake_options( &options );
 
     options.cipher = cipher;
-    options.dtls = dtls;
+    options.psk_str = psk_str;
     options.pk_alg = pk_alg;
     options.opaque_alg = psa_alg;
     options.opaque_alg2 = psa_alg2;

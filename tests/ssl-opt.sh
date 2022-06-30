@@ -303,11 +303,10 @@ get_config_value_or_default() {
     # Note that if the configuration is not defined or is defined to nothing,
     # the output of this function will be an empty string.
     if [ "$LIST_TESTS" -eq 0 ];then
-        ${P_SRV} "query_config=${1}"
+        ${P_QUERY} "${1}"
     else
         echo "1"
     fi
-
 }
 
 requires_config_value_at_least() {
@@ -2004,6 +2003,19 @@ SRV_OUT="srv_out.$$"
 CLI_OUT="cli_out.$$"
 PXY_OUT="pxy_out.$$"
 SESSION="session.$$"
+
+# If MBEDTLS_ENTROPY_C && MBEDTLS_ENTROPY_NV_SEED && !MBEDTLS_NO_PLATFORM_ENTROPY
+# create seedfile to fix test fail.
+requires_config_enabled MBEDTLS_ENTROPY_C
+requires_config_enabled MBEDTLS_ENTROPY_NV_SEED
+requires_config_disabled MBEDTLS_NO_PLATFORM_ENTROPY
+create_seedfile()
+{
+    [ -f $1 ] || dd if=/dev/urandom of=$1 bs=64 count=1 2>/dev/null
+}
+if [ "${SKIP_NEXT:-}" != "YES" ]; then
+    eval "create_seedfile `$P_QUERY MBEDTLS_PLATFORM_STD_NV_SEED_FILE`"
+fi
 
 SKIP_NEXT="NO"
 

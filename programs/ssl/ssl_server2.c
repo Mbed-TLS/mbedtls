@@ -1650,11 +1650,6 @@ int main(int argc, char *argv[])
 #endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
-#if defined(MBEDTLS_ENTROPY_C) && \
-    defined(MBEDTLS_ENTROPY_NV_SEED) && \
-    !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
-    create_entropy_seed_file();
-#endif
     status = psa_crypto_init();
     if (status != PSA_SUCCESS) {
         mbedtls_fprintf(stderr, "Failed to initialize PSA Crypto implementation: %d\n",

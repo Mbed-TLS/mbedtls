@@ -373,39 +373,3 @@ void mbedtls_print_supported_sig_algs(void)
     mbedtls_printf("ecdsa_sha1\n");
     mbedtls_printf("\n");
 }
-#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
-#if defined(MBEDTLS_ENTROPY_C) && \
-    defined(MBEDTLS_ENTROPY_NV_SEED) && \
-    !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
-static void create_entropy_seed_file(void)
-{
-    int result;
-    size_t output_len = 0;
-    unsigned char seed_value[MBEDTLS_ENTROPY_BLOCK_SIZE];
-
-    /* Attempt to read the entropy seed file. If this fails - attempt to write
-     * to the file to ensure one is present. */
-    result = mbedtls_platform_std_nv_seed_read(seed_value,
-                                               MBEDTLS_ENTROPY_BLOCK_SIZE);
-    if (0 == result) {
-        return;
-    }
-
-    result = mbedtls_platform_entropy_poll(NULL,
-                                           seed_value,
-                                           MBEDTLS_ENTROPY_BLOCK_SIZE,
-                                           &output_len);
-    if (0 != result) {
-        return;
-    }
-
-    if (MBEDTLS_ENTROPY_BLOCK_SIZE != output_len) {
-        return;
-    }
-
-    mbedtls_platform_std_nv_seed_write(seed_value, MBEDTLS_ENTROPY_BLOCK_SIZE);
-}
-#endif /* MBEDTLS_ENTROPY_C &&
-          MBEDTLS_ENTROPY_NV_SEED &&
-          !MBEDTLS_NO_PLATFORM_ENTROPY */
-#endif

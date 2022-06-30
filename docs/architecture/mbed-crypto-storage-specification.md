@@ -120,7 +120,11 @@ The layout is identical to [0.1.0](#key-file-format-for-0.1.0) so far. However n
 
 ### Nonvolatile random seed file format for 1.0.0
 
-[Identical to 0.1.0](#nonvolatile-random-seed-file-format-for-0.1.0).
+The nonvolatile random seed file contains a seed for the random generator. If present, it is rewritten at each boot as part of the random generator initialization.
+
+The file format is just the seed as a byte string with no metadata or encoding of any kind.
+
+This is unchanged since [the feature was introduced in Mbed Crypto 0.1.0](#nonvolatile-random-seed-file-format-for-0.1.0).
 
 ### File namespace on a PSA platform for 1.0.0
 

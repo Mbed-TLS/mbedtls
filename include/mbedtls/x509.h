@@ -367,6 +367,18 @@ static inline mbedtls_x509_name *mbedtls_x509_dn_get_next(
 int mbedtls_x509_serial_gets(char *buf, size_t size, const mbedtls_x509_buf *serial);
 
 /**
+ * \brief          Compare pair of mbedtls_x509_time.
+ *
+ * \param t1       mbedtls_x509_time to compare
+ * \param t2       mbedtls_x509_time to compare
+ *
+ * \return         < 0 if t1 is before t2
+ *                   0 if t1 equals t2
+ *                 > 0 if t1 is after t2
+ */
+int mbedtls_x509_time_cmp(const mbedtls_x509_time *t1, const mbedtls_x509_time *t2);
+
+/**
  * \brief          Check a given mbedtls_x509_time against the system time
  *                 and tell if it's in the past.
  *

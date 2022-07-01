@@ -7322,7 +7322,6 @@ static mbedtls_tls_prf_types tls_prf_get_type( mbedtls_ssl_tls_prf_cb *tls_prf )
  * - [in] ciphersuite
  * - [in] master
  * - [in] encrypt_then_mac
- * - [in] compression
  * - [in] tls_prf: pointer to PRF to use for key derivation
  * - [in] randbytes: buffer holding ServerHello.random + ClientHello.random
  * - [in] tls_version: TLS version
@@ -7998,7 +7997,6 @@ unsigned int mbedtls_ssl_tls12_get_preferred_hash_for_sig_alg(
  * struct {
  *    uint64 start_time;
  *    uint8 ciphersuite[2];           // defined by the standard
- *    uint8 compression;              // 0 or 1
  *    uint8 session_id_len;           // at most 32
  *    opaque session_id[32];
  *    opaque master[48];              // fixed length in the standard

@@ -11892,7 +11892,7 @@ run_test    "TLS 1.3: Check signature algorithm order, m->O" \
                                  -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache
                                  -Verify 10 -sigalgs rsa_pkcs1_sha512:rsa_pss_rsae_sha512:rsa_pss_rsae_sha384:ecdsa_secp256r1_sha256" \
             "$P_CLI debug_level=4 crt_file=data_files/server2-sha256.crt key_file=data_files/server2.key \
-                    force_version=tls13 sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,rsa_pss_rsae_sha384,ecdsa_secp256r1_sha256" \
+                    sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,rsa_pss_rsae_sha384,ecdsa_secp256r1_sha256" \
             0 \
             -c "Protocol is TLSv1.3" \
             -c "select_sig_alg_for_certificate_verify:selected signature algorithm rsa_pss_rsae_sha512" \
@@ -11908,7 +11908,7 @@ run_test    "TLS 1.3: Check signature algorithm order, m->G" \
                     -d 4
                     --priority=NORMAL:-VERS-ALL:-SIGN-ALL:+SIGN-RSA-SHA512:+SIGN-RSA-PSS-RSAE-SHA512:+SIGN-RSA-PSS-RSAE-SHA384:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS " \
             "$P_CLI debug_level=4 crt_file=data_files/server2-sha256.crt key_file=data_files/server2.key \
-                    force_version=tls13 sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,rsa_pss_rsae_sha384,ecdsa_secp256r1_sha256" \
+                    sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,rsa_pss_rsae_sha384,ecdsa_secp256r1_sha256" \
             0 \
             -c "Protocol is TLSv1.3" \
             -c "select_sig_alg_for_certificate_verify:selected signature algorithm rsa_pss_rsae_sha512" \
@@ -11925,8 +11925,7 @@ run_test    "TLS 1.3: Check signature algorithm order, m->m" \
                     crt_file=data_files/server5.crt key_file=data_files/server5.key
                     sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,rsa_pss_rsae_sha384,ecdsa_secp256r1_sha256 " \
             "$P_CLI debug_level=4 crt_file=data_files/server2-sha256.crt key_file=data_files/server2.key \
-                    sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,rsa_pss_rsae_sha384,ecdsa_secp256r1_sha256 \
-                    force_version=tls13" \
+                    sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,rsa_pss_rsae_sha384,ecdsa_secp256r1_sha256" \
             0 \
             -c "Protocol is TLSv1.3" \
             -c "select_sig_alg_for_certificate_verify:selected signature algorithm rsa_pss_rsae_sha512" \
@@ -12016,8 +12015,7 @@ run_test    "TLS 1.3: Check server no suitable signature algorithm, m->m" \
                     crt_file=data_files/server5.crt key_file=data_files/server5.key
                     sig_algs=rsa_pkcs1_sha512,ecdsa_secp256r1_sha256 " \
             "$P_CLI allow_sha1=0 debug_level=4 crt_file=data_files/server2-sha256.crt key_file=data_files/server2.key \
-                    sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,ecdsa_secp521r1_sha512 \
-                    force_version=tls13" \
+                    sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,ecdsa_secp521r1_sha512" \
             1 \
             -s "ssl_tls13_pick_key_cert:selected signature algorithm rsa_pss_rsae_sha512" \
             -s "select_sig_alg_for_certificate_verify:no suitable signature algorithm found"
@@ -12060,8 +12058,7 @@ run_test    "TLS 1.3: Check server no suitable certificate, m->m" \
                     crt_file=data_files/server2-sha256.crt key_file=data_files/server2.key
                     sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,rsa_pss_rsae_sha384,ecdsa_secp256r1_sha256 " \
             "$P_CLI allow_sha1=0 debug_level=4 \
-                    sig_algs=ecdsa_secp521r1_sha512,ecdsa_secp256r1_sha256 \
-                    force_version=tls13" \
+                    sig_algs=ecdsa_secp521r1_sha512,ecdsa_secp256r1_sha256" \
             1 \
             -s "ssl_tls13_pick_key_cert:no suitable certificate found"
 
@@ -12075,7 +12072,7 @@ run_test    "TLS 1.3: Check client no signature algorithm, m->O" \
                                  -msg -tls1_3 -num_tickets 0 -no_resume_ephemeral -no_cache
                                  -Verify 10 -sigalgs rsa_pkcs1_sha512:rsa_pss_rsae_sha512:rsa_pss_rsae_sha384:ecdsa_secp521r1_sha512" \
             "$P_CLI debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key \
-                    force_version=tls13 sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,rsa_pss_rsae_sha384,ecdsa_secp256r1_sha256" \
+                    sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,rsa_pss_rsae_sha384,ecdsa_secp256r1_sha256" \
             1 \
             -c "select_sig_alg_for_certificate_verify:no suitable signature algorithm found"
 
@@ -12089,7 +12086,7 @@ run_test    "TLS 1.3: Check client no signature algorithm, m->G" \
                     -d 4
                     --priority=NORMAL:-VERS-ALL:-SIGN-ALL:+SIGN-RSA-SHA512:+SIGN-RSA-PSS-RSAE-SHA512:+SIGN-RSA-PSS-RSAE-SHA384:+VERS-TLS1.3:+CIPHER-ALL:%NO_TICKETS " \
             "$P_CLI debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key \
-                    force_version=tls13 sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,rsa_pss_rsae_sha384,ecdsa_secp256r1_sha256" \
+                    sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,rsa_pss_rsae_sha384,ecdsa_secp256r1_sha256" \
             1 \
             -c "select_sig_alg_for_certificate_verify:no suitable signature algorithm found"
 
@@ -12104,8 +12101,7 @@ run_test    "TLS 1.3: Check client no signature algorithm, m->m" \
                     crt_file=data_files/server5.crt key_file=data_files/server5.key
                     sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,rsa_pss_rsae_sha384,ecdsa_secp521r1_sha512" \
             "$P_CLI debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key \
-                    sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,rsa_pss_rsae_sha384,ecdsa_secp256r1_sha256 \
-                    force_version=tls13" \
+                    sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,rsa_pss_rsae_sha384,ecdsa_secp256r1_sha256" \
             1 \
             -c "select_sig_alg_for_certificate_verify:no suitable signature algorithm found"
 

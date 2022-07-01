@@ -581,6 +581,14 @@
 #error "MBEDTLS_PSA_CRYPTO_SE_C defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+#if defined(MBEDTLS_DEPRECATED_REMOVED)
+#error "MBEDTLS_PSA_CRYPTO_SE_C is deprecated and will be removed in a future version of Mbed TLS"
+#elif defined(MBEDTLS_DEPRECATED_WARNING)
+#warning "MBEDTLS_PSA_CRYPTO_SE_C is deprecated and will be removed in a future version of Mbed TLS"
+#endif
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) &&            \
     ! defined(MBEDTLS_PSA_CRYPTO_C)
 #error "MBEDTLS_PSA_CRYPTO_STORAGE_C defined, but not all prerequisites"

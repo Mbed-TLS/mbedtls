@@ -34,8 +34,8 @@
 #define mbedtls_printf     printf
 #define mbedtls_fprintf    fprintf
 #define mbedtls_snprintf   snprintf
-#define mbedtls_exit            exit
 #define mbedtls_setbuf     setbuf
+#define mbedtls_exit            exit
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif

@@ -314,7 +314,6 @@ void mbedtls_asn1_sequence_free( mbedtls_asn1_sequence *seq )
     while( seq != NULL )
     {
         mbedtls_asn1_sequence *next = seq->next;
-        mbedtls_platform_zeroize( seq, sizeof( *seq ) );
         mbedtls_free( seq );
         seq = next;
     }
@@ -450,7 +449,8 @@ void mbedtls_asn1_free_named_data_list( mbedtls_asn1_named_data **head )
     while( ( cur = *head ) != NULL )
     {
         *head = cur->next;
-        mbedtls_asn1_free_named_data( cur );
+        mbedtls_free( cur->oid.p );
+        mbedtls_free( cur->val.p );
         mbedtls_free( cur );
     }
 }
@@ -460,7 +460,6 @@ void mbedtls_asn1_free_named_data_list_shallow( mbedtls_asn1_named_data *name )
     for( mbedtls_asn1_named_data *next; name != NULL; name = next )
     {
         next = name->next;
-        mbedtls_platform_zeroize( name, sizeof( *name ) );
         mbedtls_free( name );
     }
 }

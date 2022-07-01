@@ -39,31 +39,30 @@ Support description
 
 - Supported ClientHello extensions:
 
-  | Extension                    | Mbed TLS | Prototype (1) |
-  | ---------------------------- | -------- | ------------- |
-  | server_name                  | YES      | YES           |
-  | max_fragment_length          | no       | YES           |
-  | status_request               | no       | no            |
-  | supported_groups             | YES      | YES           |
-  | signature_algorithms         | YES      | YES           |
-  | use_srtp                     | no       | no            |
-  | heartbeat                    | no       | no            |
-  | apln                         | YES      | YES           |
-  | signed_certificate_timestamp | no       | no            |
-  | client_certificate_type      | no       | no            |
-  | server_certificate_type      | no       | no            |
-  | padding                      | no       | no            |
-  | key_share                    | YES      | YES           |
-  | pre_shared_key               | no       | YES           |
-  | psk_key_exchange_modes       | no       | YES           |
-  | early_data                   | no       | YES           |
-  | cookie                       | no       | YES           |
-  | supported_versions           | YES      | YES           |
-  | certificate_authorities      | no       | no            |
-  | post_handshake_auth          | no       | no            |
-  | signature_algorithms_cert    | no       | no            |
+  | Extension                    | Support |
+  | ---------------------------- | ------- |
+  | server_name                  | YES     |
+  | max_fragment_length          | no      |
+  | status_request               | no      |
+  | supported_groups             | YES     |
+  | signature_algorithms         | YES     |
+  | use_srtp                     | no      |
+  | heartbeat                    | no      |
+  | apln                         | YES     |
+  | signed_certificate_timestamp | no      |
+  | client_certificate_type      | no      |
+  | server_certificate_type      | no      |
+  | padding                      | no      |
+  | key_share                    | YES     |
+  | pre_shared_key               | no      |
+  | psk_key_exchange_modes       | no      |
+  | early_data                   | no      |
+  | cookie                       | no      |
+  | supported_versions           | YES     |
+  | certificate_authorities      | no      |
+  | post_handshake_auth          | no      |
+  | signature_algorithms_cert    | no      |
 
-  (1) This is just for comparison.
 
 - Supported groups: depends on the library configuration.
   Potentially all ECDHE groups:
@@ -104,8 +103,8 @@ Support description
   MBEDTLS_PSA_CRYPTO_C and MBEDTLS_SSL_KEEP_PEER_CERTIFICATE, so these options
   must be enabled.
 
-  Most of Mbed TLS SSL/TLS related features are not supported or not applicable
-  to the TLS 1.3 implementation:
+  Most of the Mbed TLS SSL/TLS related options are not supported or not
+  applicable to the TLS 1.3 implementation:
 
   | Mbed TLS configuration option            | Support |
   | ---------------------------------------- | ------- |
@@ -126,7 +125,7 @@ Support description
   | MBEDTLS_ECP_RESTARTABLE                  | no      |
   | MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED     | no      |
   |                                          |         |
-  | MBEDTLS_KEY_EXCHANGE_PSK_ENABLED         | n/a (1) |
+  | MBEDTLS_KEY_EXCHANGE_PSK_ENABLED         | n/a (2) |
   | MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED     | n/a     |
   | MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED   | n/a     |
   | MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED     | n/a     |
@@ -151,8 +150,7 @@ Support description
 Prototype upstreaming status
 ----------------------------
 
-The following summarizes which parts of the TLS 1.3 prototype remain to be
-upstreamed:
+The following parts of the TLS 1.3 prototype remain to be upstreamed:
 
 - Pre-shared keys, session resumption and 0-RTT data (both client and server
   side).

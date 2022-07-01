@@ -233,8 +233,8 @@ int mbedtls_platform_set_fprintf( int (*fprintf_func)( FILE *, const char *, ...
  */
 static void platform_setbuf_uninit( FILE *stream, char *buf )
 {
-   (( void ) stream);
-   (( void ) buf);
+   ((void) stream);
+   ((void) buf);
 }
 
 #define MBEDTLS_PLATFORM_STD_SETBUF   platform_setbuf_uninit

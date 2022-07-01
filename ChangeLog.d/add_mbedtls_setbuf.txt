@@ -5,6 +5,7 @@ Security
      Glenn Strauss.
 Requirement changes
    * The library will no longer compile out of the box on a platform without
-     setbuf() if MBEDTLS_FS_IO is enabled. If your platform does not have
-     setbuf(), you can configure an alternative function by enabling
-     MBEDTLS_PLATFORM_SETBUF_ALT or MBEDTLS_PLATFORM_SETBUF_MACRO.
+     setbuf(). If your platform does not have setbuf(), you can configure an
+     alternative function by enabling MBEDTLS_PLATFORM_SETBUF_ALT or
+     MBEDTLS_PLATFORM_SETBUF_MACRO.
+

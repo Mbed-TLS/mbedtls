@@ -1472,6 +1472,14 @@ void mbedtls_ssl_set_hs_ca_chain( mbedtls_ssl_context *ssl,
     ssl->handshake->sni_ca_crl     = ca_crl;
 }
 
+#if defined(MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED)
+void mbedtls_ssl_set_hs_dn_hints( mbedtls_ssl_context *ssl,
+                                  const mbedtls_x509_crt *crt)
+{
+    ssl->handshake->dn_hints = crt;
+}
+#endif /* MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED */
+
 void mbedtls_ssl_set_hs_authmode( mbedtls_ssl_context *ssl,
                                   int authmode )
 {

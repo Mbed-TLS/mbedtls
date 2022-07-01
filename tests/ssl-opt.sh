@@ -5116,6 +5116,39 @@ run_test    "Authentication: send CA list in CertificateRequest, client self sig
             -c "! mbedtls_ssl_handshake returned" \
             -s "X509 - Certificate verification failed"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "Authentication: send alt conf DN hints in CertificateRequest" \
+            "$P_SRV debug_level=3 auth_mode=optional cert_req_ca_list=2 \
+             crt_file2=data_files/server1.crt \
+             key_file2=data_files/server1.key" \
+            "$P_CLI debug_level=3 auth_mode=optional \
+             crt_file=data_files/server6.crt \
+             key_file=data_files/server6.key" \
+            0 \
+            -c "DN hint: C=NL, O=PolarSSL, CN=PolarSSL Server 1"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "Authentication: send alt conf DN hints in CertificateRequest (2)" \
+            "$P_SRV debug_level=3 auth_mode=optional cert_req_ca_list=2 \
+             crt_file2=data_files/server2.crt \
+             key_file2=data_files/server2.key" \
+            "$P_CLI debug_level=3 auth_mode=optional \
+             crt_file=data_files/server6.crt \
+             key_file=data_files/server6.key" \
+            0 \
+            -c "DN hint: C=NL, O=PolarSSL, CN=localhost"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+run_test    "Authentication: send alt hs DN hints in CertificateRequest" \
+            "$P_SRV debug_level=3 auth_mode=optional cert_req_ca_list=3 \
+             crt_file2=data_files/server1.crt \
+             key_file2=data_files/server1.key" \
+            "$P_CLI debug_level=3 auth_mode=optional \
+             crt_file=data_files/server6.crt \
+             key_file=data_files/server6.key" \
+            0 \
+            -c "DN hint: C=NL, O=PolarSSL, CN=PolarSSL Server 1"
+
 # Tests for auth_mode, using CA callback, these are duplicated from the authentication tests
 # When updating these tests, modify the matching authentication tests accordingly
 

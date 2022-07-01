@@ -1496,6 +1496,10 @@ struct mbedtls_ssl_config
 #if defined(MBEDTLS_SSL_SRV_C)
     mbedtls_ssl_hs_cb_t MBEDTLS_PRIVATE(f_cert_cb);  /*!< certificate selection callback */
 #endif /* MBEDTLS_SSL_SRV_C */
+
+#if defined(MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED)
+    const mbedtls_x509_crt *MBEDTLS_PRIVATE(dn_hints);/*!< acceptable client cert issuers    */
+#endif
 };
 
 struct mbedtls_ssl_context
@@ -3128,6 +3132,26 @@ void mbedtls_ssl_conf_ca_chain( mbedtls_ssl_config *conf,
                                mbedtls_x509_crt *ca_chain,
                                mbedtls_x509_crl *ca_crl );
 
+#if defined(MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED)
+/**
+ * \brief          Set DN hints sent to client in CertificateRequest message
+ *
+ * \note           If not set, subject distinguished names (DNs) are taken
+ *                 from \c mbedtls_ssl_conf_ca_chain()
+ *                 or \c mbedtls_ssl_set_hs_ca_chain())
+ *
+ * \param conf     SSL configuration
+ * \param crt      crt chain whose subject DNs are issuer DNs of client certs
+ *                 from which the client should select client peer certificate.
+ */
+static inline
+void mbedtls_ssl_conf_dn_hints( mbedtls_ssl_config *conf,
+                                const mbedtls_x509_crt *crt )
+{
+    conf->MBEDTLS_PRIVATE(dn_hints) = crt;
+}
+#endif /* MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED */
+
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
 /**
  * \brief          Set the trusted certificate callback.
@@ -3651,6 +3675,21 @@ int mbedtls_ssl_set_hs_own_cert( mbedtls_ssl_context *ssl,
 void mbedtls_ssl_set_hs_ca_chain( mbedtls_ssl_context *ssl,
                                   mbedtls_x509_crt *ca_chain,
                                   mbedtls_x509_crl *ca_crl );
+
+#if defined(MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED)
+/**
+ * \brief          Set DN hints sent to client in CertificateRequest message
+ *
+ * \note           Same as \c mbedtls_ssl_conf_dn_hints() but for use within
+ *                 the SNI callback or the certificate selection callback.
+ *
+ * \param ssl      SSL context
+ * \param crt      crt chain whose subject DNs are issuer DNs of client certs
+ *                 from which the client should select client peer certificate.
+ */
+void mbedtls_ssl_set_hs_dn_hints( mbedtls_ssl_context *ssl,
+                                  const mbedtls_x509_crt *crt );
+#endif /* MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED */
 
 /**
  * \brief          Set authmode for the current handshake.

@@ -1972,7 +1972,6 @@ mbedtls_pk_type_t mbedtls_ssl_get_ciphersuite_sig_alg( const mbedtls_ssl_ciphers
 {
     switch( info->key_exchange )
     {
-        case MBEDTLS_KEY_EXCHANGE_RSA:
         case MBEDTLS_KEY_EXCHANGE_DHE_RSA:
         case MBEDTLS_KEY_EXCHANGE_ECDHE_RSA:
             return( MBEDTLS_PK_RSA );

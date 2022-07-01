@@ -7713,13 +7713,10 @@ unsigned int mbedtls_ssl_tls12_get_preferred_hash_for_sig_alg(
                     continue;
 
                 if( sig_alg_received == MBEDTLS_SSL_SIG_RSA &&
-                    ! ( mbedtls_pk_can_do_ext( ssl->handshake->key_cert->key,
-                                               PSA_ALG_RSA_PKCS1V15_CRYPT,
-                                               PSA_KEY_USAGE_DECRYPT ) ||
-                        mbedtls_pk_can_do_ext( ssl->handshake->key_cert->key,
-                                               PSA_ALG_RSA_PKCS1V15_SIGN(
-                                                                psa_hash_alg ),
-                                               PSA_KEY_USAGE_SIGN_HASH ) ) )
+                    ! mbedtls_pk_can_do_ext( ssl->handshake->key_cert->key,
+                                             PSA_ALG_RSA_PKCS1V15_SIGN(
+                                                            psa_hash_alg ),
+                                             PSA_KEY_USAGE_SIGN_HASH ) )
                     continue;
             }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */

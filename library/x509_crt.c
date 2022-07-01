@@ -1641,7 +1641,7 @@ cleanup:
         }
         else
         {
-            /* determinate if the file entry could be a link, using lstat(2)
+            /* Determine if the file entry could be a link. Using lstat(2)
              * is safer than just stat(2), otherwise a broken link will
              * give us a false positive. */
             if( lstat( entry_name, &sb ) == -1 )
@@ -1650,13 +1650,12 @@ cleanup:
                 goto cleanup;
             }
 
-            /* if the file is a symbolic link, we need to validate the real
+            /* If the file is a symbolic link, we need to validate the real
              * information using stat(2). */
             if( S_ISLNK( sb.st_mode ) )
             {
-                /* if stat(2) fails it could be a broken link or a generic
-                 * error, if the link is broken, just report it as a
-                 * certificate that could not be processed, otherwise
+                /* If stat(2) fails it could be a broken link or a generic
+                 * error. If the link is broken, ignore it, otherwise
                  * just set a MBEDTLS_ERR_X509_FILE_IO_ERROR. */
                 if( stat( entry_name, &sb ) == -1 )
                 {

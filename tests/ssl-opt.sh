@@ -2006,14 +2006,18 @@ SESSION="session.$$"
 
 # If MBEDTLS_ENTROPY_C && MBEDTLS_ENTROPY_NV_SEED && !MBEDTLS_NO_PLATFORM_ENTROPY
 # create seedfile to fix test fail.
+SKIP_NEXT="NO"
 requires_config_enabled MBEDTLS_ENTROPY_C
 requires_config_enabled MBEDTLS_ENTROPY_NV_SEED
 requires_config_disabled MBEDTLS_NO_PLATFORM_ENTROPY
 create_seedfile()
 {
-    [ -f $1 ] || dd if=/dev/urandom of=$1 bs=64 count=1 2>/dev/null
+    dd if=/dev/urandom of=$1 bs=64 count=1 2>/dev/null
 }
 if [ "${SKIP_NEXT:-}" != "YES" ]; then
+    # `$P_QUERY MBEDTLS_PLATFORM_STD_NV_SEED_FILE` will return `"seedfile"` and
+    # `dd` will create file with double quotes. That's not expected, with `eval`
+    # we can remove double quotes
     eval "create_seedfile `$P_QUERY MBEDTLS_PLATFORM_STD_NV_SEED_FILE`"
 fi
 

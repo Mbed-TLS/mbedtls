@@ -5559,10 +5559,6 @@ void force_bad_session_id_len( )
                                             options.expected_srv_fragments )
                      == 0 );
     }
-    TEST_ASSERT( mbedtls_ssl_conf_get_user_data_p( &client.conf ) == &client );
-    TEST_ASSERT( mbedtls_ssl_get_user_data_p( &client.ssl ) == &client );
-    TEST_ASSERT( mbedtls_ssl_conf_get_user_data_p( &server.conf ) == &server );
-    TEST_ASSERT( mbedtls_ssl_get_user_data_p( &server.ssl ) == &server );
 
     /* Make sure that the cache did not store the session */
     TEST_EQUAL( srv_pattern.counter, 1 );

@@ -138,31 +138,31 @@ static inline const char* md_type_to_string( mbedtls_md_type_t md_alg )
 {
     switch( md_alg )
     {
-#if defined(MBEDTLS_MD5_C)
+#if defined(MBEDTLS_USE_PSA_WANT_ALG_MD5)
     case MBEDTLS_MD_MD5:
         return( "MD5" );
 #endif
-#if defined(MBEDTLS_SHA1_C)
+#if defined(MBEDTLS_USE_PSA_WANT_ALG_SHA_1)
     case MBEDTLS_MD_SHA1:
         return( "SHA1" );
 #endif
-#if defined(MBEDTLS_SHA224_C)
+#if defined(MBEDTLS_USE_PSA_WANT_ALG_SHA_224)
     case MBEDTLS_MD_SHA224:
         return( "SHA224" );
 #endif
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_USE_PSA_WANT_ALG_SHA_256)
     case MBEDTLS_MD_SHA256:
         return( "SHA256" );
 #endif
-#if defined(MBEDTLS_SHA384_C)
+#if defined(MBEDTLS_USE_PSA_WANT_ALG_SHA_384)
     case MBEDTLS_MD_SHA384:
         return( "SHA384" );
 #endif
-#if defined(MBEDTLS_SHA512_C)
+#if defined(MBEDTLS_USE_PSA_WANT_ALG_SHA_512)
     case MBEDTLS_MD_SHA512:
         return( "SHA512" );
 #endif
-#if defined(MBEDTLS_RIPEMD160_C)
+#if defined(MBEDTLS_USE_PSA_WANT_ALG_RIPEMD160)
     case MBEDTLS_MD_RIPEMD160:
         return( "RIPEMD160" );
 #endif

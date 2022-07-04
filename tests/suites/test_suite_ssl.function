@@ -4905,7 +4905,7 @@ void handshake_psk_cipher( char* cipher, int pk_alg, data_t *psk_str, int dtls )
     /* The goto below is used to avoid an "unused label" warning.*/
     goto exit;
 
-    exit:
+exit:
     free_handshake_options( &options );
 }
 /* END_CASE */
@@ -4941,6 +4941,9 @@ void handshake_ciphersuite_select( char* cipher, int pk_alg, data_t *psk_str,
 
     /* The goto below is used to avoid an "unused label" warning.*/
     goto exit;
+
+exit:
+    free_handshake_options( &options );
 }
 /* END_CASE */
 
@@ -5065,6 +5068,8 @@ void renegotiation( int legacy_renegotiation )
 
     /* The goto below is used to avoid an "unused label" warning.*/
     goto exit;
+exit:
+    free_handshake_options( &options );
 }
 /* END_CASE */
 
@@ -5111,9 +5116,6 @@ void resize_buffers_renegotiate_mfl( int mfl, int legacy_renegotiation,
 
     /* The goto below is used to avoid an "unused label" warning.*/
     goto exit;
-
-exit:
-    free_handshake_options( &options );
 }
 /* END_CASE */
 

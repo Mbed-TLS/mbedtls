@@ -122,6 +122,7 @@ void init_handshake_options( handshake_test_options *opts )
     opts->cli_log_fun = NULL;
     opts->resize_buffers = 1;
 #if defined(MBEDTLS_SSL_CACHE_C)
+    opts->cache = NULL;
     ASSERT_ALLOC( opts->cache, sizeof( mbedtls_ssl_cache_context ) );
     mbedtls_ssl_cache_init( opts->cache );
 exit:

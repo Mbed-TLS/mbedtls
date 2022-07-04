@@ -83,4 +83,34 @@
 
 #include "mbedtls/check_config.h"
 
+/* Temporary helpers for USE_PSA */
+#if defined(MBEDTLS_MD5_C) || \
+    ( defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_MD5) )
+#define MBEDTLS_USE_PSA_WANT_ALG_MD5
+#endif
+#if defined(MBEDTLS_RIPEMD160_C) || \
+    ( defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_RIPEMD160) )
+#define MBEDTLS_USE_PSA_WANT_ALG_RIPEMD160
+#endif
+#if defined(MBEDTLS_SHA1_C) || \
+    ( defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_SHA_1) )
+#define MBEDTLS_USE_PSA_WANT_ALG_SHA_1
+#endif
+#if defined(MBEDTLS_SHA224_C) || \
+    ( defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_SHA_224) )
+#define MBEDTLS_USE_PSA_WANT_ALG_SHA_224
+#endif
+#if defined(MBEDTLS_SHA256_C) || \
+    ( defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_SHA_256) )
+#define MBEDTLS_USE_PSA_WANT_ALG_SHA_256
+#endif
+#if defined(MBEDTLS_SHA384_C) || \
+    ( defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_SHA_384) )
+#define MBEDTLS_USE_PSA_WANT_ALG_SHA_384
+#endif
+#if defined(MBEDTLS_SHA512_C) || \
+    ( defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_SHA_512) )
+#define MBEDTLS_USE_PSA_WANT_ALG_SHA_512
+#endif
+
 #endif /* MBEDTLS_BUILD_INFO_H */

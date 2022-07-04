@@ -934,13 +934,46 @@ static int ssl_tls13_select_sig_alg_for_certificate_verify(
                                           uint16_t *algorithm )
 {
     uint16_t *sig_alg = ssl->handshake->received_sig_algs;
+    psa_algorithm_t psa_alg = 0;
 
     *algorithm = MBEDTLS_TLS1_3_SIG_NONE;
     for( ; *sig_alg != MBEDTLS_TLS1_3_SIG_NONE ; sig_alg++ )
     {
+        switch( *sig_alg )
+        {
+            case MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256:
+                psa_alg = PSA_ALG_ECDSA( PSA_ALG_SHA_256 );
+                break;
+            case MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384:
+                psa_alg = PSA_ALG_ECDSA( PSA_ALG_SHA_384 );
+                break;
+            case MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512:
+                psa_alg = PSA_ALG_ECDSA( PSA_ALG_SHA_512 );
+                break;
+            case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
+                psa_alg = PSA_ALG_RSA_PSS( PSA_ALG_SHA_256 );
+                break;
+            case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384:
+                psa_alg = PSA_ALG_RSA_PSS( PSA_ALG_SHA_384 );
+                break;
+            case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:
+                psa_alg = PSA_ALG_RSA_PSS( PSA_ALG_SHA_512 );
+                break;
+            case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256:
+            case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384:
+            case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512:
+                psa_alg = PSA_ALG_RSA_PKCS1V15_CRYPT;
+                break;
+            default:
+                break;
+        }
+
         if( mbedtls_ssl_sig_alg_is_offered( ssl, *sig_alg ) &&
             mbedtls_ssl_tls13_sig_alg_for_cert_verify_is_supported( *sig_alg ) &&
-            mbedtls_ssl_tls13_check_sig_alg_cert_key_match( *sig_alg, own_key ) )
+            mbedtls_ssl_tls13_check_sig_alg_cert_key_match( *sig_alg, own_key ) &&
+            psa_alg != 0 &&
+            mbedtls_pk_can_do_ext( own_key, psa_alg,
+                                   PSA_KEY_USAGE_SIGN_HASH ) == 1 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3,
                                    ( "select_sig_alg_for_certificate_verify:"

@@ -93,37 +93,39 @@ typedef struct handshake_test_options
 
 void init_handshake_options( handshake_test_options *opts )
 {
-  opts->cipher = "";
-  opts->client_min_version = MBEDTLS_SSL_VERSION_UNKNOWN;
-  opts->client_max_version = MBEDTLS_SSL_VERSION_UNKNOWN;
-  opts->server_min_version = MBEDTLS_SSL_VERSION_UNKNOWN;
-  opts->server_max_version = MBEDTLS_SSL_VERSION_UNKNOWN;
-  opts->expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_2;
-  opts->expected_handshake_result = 0;
-  opts->expected_ciphersuite = 0;
-  opts->pk_alg = MBEDTLS_PK_RSA;
-  opts->opaque_alg = 0;
-  opts->opaque_alg2 = 0;
-  opts->opaque_usage = 0;
-  opts->psk_str = NULL;
-  opts->dtls = 0;
-  opts->srv_auth_mode = MBEDTLS_SSL_VERIFY_NONE;
-  opts->serialize = 0;
-  opts->mfl = MBEDTLS_SSL_MAX_FRAG_LEN_NONE;
-  opts->cli_msg_len = 100;
-  opts->srv_msg_len = 100;
-  opts->expected_cli_fragments = 1;
-  opts->expected_srv_fragments = 1;
-  opts->renegotiate = 0;
-  opts->legacy_renegotiation = MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION;
-  opts->srv_log_obj = NULL;
-  opts->srv_log_obj = NULL;
-  opts->srv_log_fun = NULL;
-  opts->cli_log_fun = NULL;
-  opts->resize_buffers = 1;
+    opts->cipher = "";
+    opts->client_min_version = MBEDTLS_SSL_VERSION_UNKNOWN;
+    opts->client_max_version = MBEDTLS_SSL_VERSION_UNKNOWN;
+    opts->server_min_version = MBEDTLS_SSL_VERSION_UNKNOWN;
+    opts->server_max_version = MBEDTLS_SSL_VERSION_UNKNOWN;
+    opts->expected_negotiated_version = MBEDTLS_SSL_VERSION_TLS1_2;
+    opts->expected_handshake_result = 0;
+    opts->expected_ciphersuite = 0;
+    opts->pk_alg = MBEDTLS_PK_RSA;
+    opts->opaque_alg = 0;
+    opts->opaque_alg2 = 0;
+    opts->opaque_usage = 0;
+    opts->psk_str = NULL;
+    opts->dtls = 0;
+    opts->srv_auth_mode = MBEDTLS_SSL_VERIFY_NONE;
+    opts->serialize = 0;
+    opts->mfl = MBEDTLS_SSL_MAX_FRAG_LEN_NONE;
+    opts->cli_msg_len = 100;
+    opts->srv_msg_len = 100;
+    opts->expected_cli_fragments = 1;
+    opts->expected_srv_fragments = 1;
+    opts->renegotiate = 0;
+    opts->legacy_renegotiation = MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION;
+    opts->srv_log_obj = NULL;
+    opts->srv_log_obj = NULL;
+    opts->srv_log_fun = NULL;
+    opts->cli_log_fun = NULL;
+    opts->resize_buffers = 1;
 #if defined(MBEDTLS_SSL_CACHE_C)
-  opts->cache = malloc( sizeof( mbedtls_ssl_cache_context ) );
-  mbedtls_ssl_cache_init( opts->cache );
+    ASSERT_ALLOC( opts->cache, sizeof( mbedtls_ssl_cache_context ) );
+    mbedtls_ssl_cache_init( opts->cache );
+exit:
+    return;
 #endif
 }
 
@@ -131,7 +133,7 @@ void free_handshake_options( handshake_test_options *opts )
 {
 #if defined(MBEDTLS_SSL_CACHE_C)
     mbedtls_ssl_cache_free( opts->cache );
-    free( opts->cache );
+    mbedtls_free( opts->cache );
 #else
     (void) opts;
 #endif

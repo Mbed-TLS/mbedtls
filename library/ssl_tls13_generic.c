@@ -850,120 +850,84 @@ cleanup:
 /*
  * STATE HANDLING: Output Certificate Verify
  */
-int mbedtls_ssl_tls13_get_sig_alg_from_pk( mbedtls_ssl_context *ssl,
-                                           mbedtls_pk_context *own_key,
-                                           uint16_t *algorithm )
-{
-    mbedtls_pk_type_t sig = mbedtls_ssl_sig_from_pk( own_key );
-    /* Determine the size of the key */
-    size_t own_key_size = mbedtls_pk_get_bitlen( own_key );
-    *algorithm = MBEDTLS_TLS1_3_SIG_NONE;
-    ((void) own_key_size);
 
-    switch( sig )
+int mbedtls_ssl_tls13_check_sig_alg_cert_key_match( uint16_t sig_alg,
+                                                    mbedtls_pk_context *key )
+{
+    mbedtls_pk_type_t pk_type = mbedtls_ssl_sig_from_pk( key );
+    size_t key_size = mbedtls_pk_get_bitlen( key );
+
+    switch( pk_type )
     {
-#if defined(MBEDTLS_ECDSA_C)
         case MBEDTLS_SSL_SIG_ECDSA:
-            switch( own_key_size )
+            switch( key_size )
             {
                 case 256:
-                    *algorithm = MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256;
-                    return( 0 );
+                    return(
+                        sig_alg == MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256 );
+
                 case 384:
-                    *algorithm = MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384;
-                    return( 0 );
+                    return(
+                        sig_alg == MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384 );
+
                 case 521:
-                    *algorithm = MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512;
-                    return( 0 );
+                    return(
+                        sig_alg == MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512 );
                 default:
-                    MBEDTLS_SSL_DEBUG_MSG( 3,
-                                           ( "unknown key size: %"
-                                             MBEDTLS_PRINTF_SIZET " bits",
-                                             own_key_size ) );
                     break;
             }
             break;
-#endif /* MBEDTLS_ECDSA_C */
 
-#if defined(MBEDTLS_RSA_C)
         case MBEDTLS_SSL_SIG_RSA:
-#if defined(MBEDTLS_PKCS1_V21)
-#if defined(MBEDTLS_SHA256_C)
-            if( own_key_size <= 2048 &&
-                mbedtls_ssl_sig_alg_is_received( ssl,
-                                    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256 ) )
+            switch( sig_alg )
             {
-                *algorithm = MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256;
-                return( 0 );
-            }
-            else
-#endif /* MBEDTLS_SHA256_C */
-#if defined(MBEDTLS_SHA384_C)
-            if( own_key_size <= 3072 &&
-                mbedtls_ssl_sig_alg_is_received( ssl,
-                                    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384 ) )
-            {
-                *algorithm = MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384;
-                return( 0 );
-            }
-            else
-#endif /* MBEDTLS_SHA384_C */
-#if defined(MBEDTLS_SHA512_C)
-            if( own_key_size <= 4096 &&
-                mbedtls_ssl_sig_alg_is_received( ssl,
-                                    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512 ) )
-            {
-                *algorithm = MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512;
-                return( 0 );
-            }
-            else
-#endif /* MBEDTLS_SHA512_C */
-#endif /* MBEDTLS_PKCS1_V21 */
-#if defined(MBEDTLS_PKCS1_V15)
-#if defined(MBEDTLS_SHA256_C)
-            if( own_key_size <= 2048 &&
-                mbedtls_ssl_sig_alg_is_received( ssl,
-                                    MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256 ) )
-            {
-                *algorithm = MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256;
-                return( 0 );
-            }
-            else
-#endif /* MBEDTLS_SHA256_C */
-#if defined(MBEDTLS_SHA384_C)
-            if( own_key_size <= 3072 &&
-                mbedtls_ssl_sig_alg_is_received( ssl,
-                                    MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384 ) )
-            {
-                *algorithm = MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384;
-                return( 0 );
-            }
-            else
-#endif /* MBEDTLS_SHA384_C */
-#if defined(MBEDTLS_SHA512_C)
-            if( own_key_size <= 4096 &&
-                mbedtls_ssl_sig_alg_is_received( ssl,
-                                    MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512 ) )
-            {
-                *algorithm = MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512;
-                return( 0 );
-            }
-            else
-#endif /* MBEDTLS_SHA512_C */
-#endif /* MBEDTLS_PKCS1_V15 */
-            {
-                MBEDTLS_SSL_DEBUG_MSG( 3,
-                                       ( "unknown key size: %"
-                                         MBEDTLS_PRINTF_SIZET " bits",
-                                         own_key_size ) );
+                case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
+                    return( key_size <= 3072 );
+
+                case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384:
+                    return( key_size <= 7680 );
+
+                case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:
+                    return( 1 );
+
+                default:
+                    break;
             }
             break;
-#endif /* MBEDTLS_RSA_C */
+
         default:
-            MBEDTLS_SSL_DEBUG_MSG( 1,
-                                   ( "unknown signature type : %u", sig ) );
             break;
     }
+
+    return( 0 );
+}
+
+static int ssl_tls13_select_sig_alg_for_certificate_verify(
+                                          mbedtls_ssl_context *ssl,
+                                          mbedtls_pk_context *own_key,
+                                          uint16_t *algorithm )
+{
+    uint16_t *sig_alg = ssl->handshake->received_sig_algs;
+
+    *algorithm = MBEDTLS_TLS1_3_SIG_NONE;
+    for( ; *sig_alg != MBEDTLS_TLS1_3_SIG_NONE ; sig_alg++ )
+    {
+        if( mbedtls_ssl_sig_alg_is_offered( ssl, *sig_alg ) &&
+            mbedtls_ssl_tls13_sig_alg_for_cert_verify_is_supported( *sig_alg ) &&
+            mbedtls_ssl_tls13_check_sig_alg_cert_key_match( *sig_alg, own_key ) )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 3,
+                                   ( "select_sig_alg_for_certificate_verify:"
+                                     "selected signature algorithm %s [%04x]",
+                                     mbedtls_ssl_sig_alg_to_str( *sig_alg ),
+                                     *sig_alg ) );
+            *algorithm = *sig_alg;
+            return( 0 );
+        }
+    }
+    MBEDTLS_SSL_DEBUG_MSG( 2,
+                           ( "select_sig_alg_for_certificate_verify:"
+                             "no suitable signature algorithm found" ) );
     return( -1 );
 }
 
@@ -1020,8 +984,9 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
      *    opaque signature<0..2^16-1>;
      *  } CertificateVerify;
      */
-    ret = mbedtls_ssl_tls13_get_sig_alg_from_pk( ssl, own_key, &algorithm );
-    if( ret != 0 || ! mbedtls_ssl_sig_alg_is_received( ssl, algorithm ) )
+    ret = ssl_tls13_select_sig_alg_for_certificate_verify( ssl, own_key,
+                                                           &algorithm );
+    if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1,
                     ( "signature algorithm not in received or offered list." ) );
@@ -1033,6 +998,9 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
                                       MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
         return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
     }
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "CertificateVerify with %s",
+                                mbedtls_ssl_sig_alg_to_str( algorithm )) );
 
     if( mbedtls_ssl_tls13_get_pk_type_and_md_alg_from_sig_alg(
                                         algorithm, &pk_type, &md_alg ) != 0 )

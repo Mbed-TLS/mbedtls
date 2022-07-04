@@ -352,7 +352,6 @@ static int ssl_tls13_pick_key_cert( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_key_cert *key_cert, *key_cert_list;
     const uint16_t *sig_alg = ssl->handshake->received_sig_algs;
-    uint16_t key_sig_alg;
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     if( ssl->handshake->sni_key_cert != NULL )
@@ -372,7 +371,6 @@ static int ssl_tls13_pick_key_cert( mbedtls_ssl_context *ssl )
         for( key_cert = key_cert_list; key_cert != NULL;
              key_cert = key_cert->next )
         {
-            int ret;
             MBEDTLS_SSL_DEBUG_CRT( 3, "certificate (chain) candidate",
                                    key_cert->cert );
 
@@ -391,13 +389,21 @@ static int ssl_tls13_pick_key_cert( mbedtls_ssl_context *ssl )
                 continue;
             }
 
-            ret = mbedtls_ssl_tls13_get_sig_alg_from_pk(
-                    ssl, &key_cert->cert->pk, &key_sig_alg );
-            if( ret != 0 )
-                continue;
-            if( *sig_alg == key_sig_alg )
+            MBEDTLS_SSL_DEBUG_MSG( 3,
+                                   ( "ssl_tls13_pick_key_cert:"
+                                     "check signature algorithm %s [%04x]",
+                                     mbedtls_ssl_sig_alg_to_str( *sig_alg ),
+                                     *sig_alg ) );
+            if( mbedtls_ssl_tls13_check_sig_alg_cert_key_match(
+                                            *sig_alg, &key_cert->cert->pk ) )
             {
                 ssl->handshake->key_cert = key_cert;
+                MBEDTLS_SSL_DEBUG_MSG( 3,
+                                       ( "ssl_tls13_pick_key_cert:"
+                                         "selected signature algorithm"
+                                         " %s [%04x]",
+                                         mbedtls_ssl_sig_alg_to_str( *sig_alg ),
+                                         *sig_alg ) );
                 MBEDTLS_SSL_DEBUG_CRT(
                         3, "selected certificate (chain)",
                         ssl->handshake->key_cert->cert );
@@ -406,6 +412,8 @@ static int ssl_tls13_pick_key_cert( mbedtls_ssl_context *ssl )
         }
     }
 
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "ssl_tls13_pick_key_cert:"
+                                "no suitable certificate found" ) );
     return( -1 );
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C &&

@@ -853,10 +853,9 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
     else
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
     {
-        ssl->handshake->sig_algs = ssl->conf->sig_algs;
         ssl->handshake->sig_algs_heap_allocated = 0;
     }
-#endif /* MBEDTLS_DEPRECATED_REMOVED */
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
     return( 0 );
 }
@@ -4027,28 +4026,6 @@ void mbedtls_ssl_config_init( mbedtls_ssl_config *conf )
     memset( conf, 0, sizeof( mbedtls_ssl_config ) );
 }
 
-#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-/* The selection should be the same as mbedtls_x509_crt_profile_default in
- * x509_crt.c. Here, the order matters. Currently we favor stronger hashes,
- * for no fundamental reason.
- * See the documentation of mbedtls_ssl_conf_curves() for what we promise
- * about this list. */
-static int ssl_preset_default_hashes[] = {
-#if defined(MBEDTLS_SHA512_C)
-    MBEDTLS_MD_SHA512,
-#endif
-#if defined(MBEDTLS_SHA384_C)
-    MBEDTLS_MD_SHA384,
-#endif
-#if defined(MBEDTLS_SHA256_C)
-    MBEDTLS_MD_SHA256,
-#endif
-    MBEDTLS_MD_NONE
-};
-#endif /* !MBEDTLS_DEPRECATED_REMOVED */
-#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
-
 /* The selection should be the same as mbedtls_x509_crt_profile_default in
  * x509_crt.c, plus Montgomery curves for ECDHE. Here, the order matters:
  * curves with a lower resource usage come first.
@@ -4090,17 +4067,6 @@ static int ssl_preset_suiteb_ciphersuites[] = {
 };
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-static int ssl_preset_suiteb_hashes[] = {
-#if defined(MBEDTLS_SHA256_C)
-    MBEDTLS_MD_SHA256,
-#endif
-#if defined(MBEDTLS_SHA384_C)
-    MBEDTLS_MD_SHA384,
-#endif
-    MBEDTLS_MD_NONE
-};
-#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
 /* NOTICE:
  *   For ssl_preset_*_sig_algs and ssl_tls12_preset_*_sig_algs, the following
@@ -4109,6 +4075,13 @@ static int ssl_preset_suiteb_hashes[] = {
  *   - But if there is a good reason, do not change the order of the algorithms.
  *   - ssl_tls12_present* is for TLS 1.2 use only.
  *   - ssl_preset_* is for TLS 1.3 only or hybrid TLS 1.3/1.2 handshakes.
+ *
+ *   When GnuTLS/Openssl server is configured in TLS 1.2 mode with a certificate
+ *   declaring an RSA public key and Mbed TLS is configured in hybrid mode, if
+ *   `rsa_pss_rsae_*` algorithms are before `rsa_pkcs1_*` ones in this list then
+ *   the GnuTLS/Openssl server chooses an `rsa_pss_rsae_*` signature algorithm
+ *   for its signature in the key exchange message. As Mbed TLS 1.2 does not
+ *   support them, the handshake fails.
  */
 static uint16_t ssl_preset_default_sig_algs[] = {
 
@@ -4130,10 +4103,6 @@ static uint16_t ssl_preset_default_sig_algs[] = {
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_SHA384_C &&
           MBEDTLS_ECP_DP_SECP521R1_ENABLED */
 
-#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && defined(MBEDTLS_SHA256_C)
-    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256,
-#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT && MBEDTLS_SHA256_C */
-
 #if defined(MBEDTLS_RSA_C) &&  defined(MBEDTLS_SHA512_C)
     MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512,
 #endif /* MBEDTLS_RSA_C && MBEDTLS_SHA512_C */
@@ -4145,6 +4114,18 @@ static uint16_t ssl_preset_default_sig_algs[] = {
 #if defined(MBEDTLS_RSA_C) &&  defined(MBEDTLS_SHA256_C)
     MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256,
 #endif /* MBEDTLS_RSA_C && MBEDTLS_SHA256_C */
+
+#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && defined(MBEDTLS_SHA512_C)
+    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512,
+#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT && MBEDTLS_SHA512_C */
+
+#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && defined(MBEDTLS_SHA384_C)
+    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384,
+#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT && MBEDTLS_SHA384_C */
+
+#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) && defined(MBEDTLS_SHA256_C)
+    MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256,
+#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT && MBEDTLS_SHA256_C */
 
     MBEDTLS_TLS_SIG_NONE
 };
@@ -4429,9 +4410,6 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-            conf->sig_hashes = ssl_preset_suiteb_hashes;
-#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
             if( mbedtls_ssl_conf_is_tls12_only( conf ) )
                 conf->sig_algs = ssl_tls12_preset_suiteb_sig_algs;
@@ -4458,9 +4436,6 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-#if !defined(MBEDTLS_DEPRECATED_REMOVED)
-            conf->sig_hashes = ssl_preset_default_hashes;
-#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
             if( mbedtls_ssl_conf_is_tls12_only( conf ) )
                 conf->sig_algs = ssl_tls12_preset_default_sig_algs;
@@ -4945,13 +4920,20 @@ int mbedtls_ssl_parse_sig_alg_ext( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, supported_sig_algs_end, 2 );
         sig_alg = MBEDTLS_GET_UINT16_BE( p, 0 );
         p += 2;
-
-        MBEDTLS_SSL_DEBUG_MSG( 4, ( "received signature algorithm: 0x%x",
-                                    sig_alg ) );
-
-        if( ! mbedtls_ssl_sig_alg_is_supported( ssl, sig_alg ) ||
-            ! mbedtls_ssl_sig_alg_is_offered( ssl, sig_alg ) )
+        MBEDTLS_SSL_DEBUG_MSG( 4, ( "received signature algorithm: 0x%x %s",
+                                    sig_alg,
+                                    mbedtls_ssl_sig_alg_to_str( sig_alg ) ) );
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+        if( ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_2 &&
+            ( ! ( mbedtls_ssl_sig_alg_is_supported( ssl, sig_alg ) &&
+                  mbedtls_ssl_sig_alg_is_offered( ssl, sig_alg ) ) ) )
+        {
             continue;
+        }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
+        MBEDTLS_SSL_DEBUG_MSG( 4, ( "valid signature algorithm: %s",
+                                    mbedtls_ssl_sig_alg_to_str( sig_alg ) ) );
 
         if( common_idx + 1 < MBEDTLS_RECEIVED_SIG_ALGS_SIZE )
         {
@@ -8189,12 +8171,17 @@ int mbedtls_ssl_write_sig_alg_ext( mbedtls_ssl_context *ssl, unsigned char *buf,
 
     for( ; *sig_alg != MBEDTLS_TLS1_3_SIG_NONE; sig_alg++ )
     {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "got signature scheme [%x] %s",
+                                    *sig_alg,
+                                    mbedtls_ssl_sig_alg_to_str( *sig_alg ) ) );
         if( ! mbedtls_ssl_sig_alg_is_supported( ssl, *sig_alg ) )
             continue;
         MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 );
         MBEDTLS_PUT_UINT16_BE( *sig_alg, p, 0 );
         p += 2;
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "signature scheme [%x]", *sig_alg ) );
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "sent signature scheme [%x] %s",
+                                    *sig_alg,
+                                    mbedtls_ssl_sig_alg_to_str( *sig_alg ) ) );
     }
 
     /* Length of supported_signature_algorithms */

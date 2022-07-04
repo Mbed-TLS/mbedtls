@@ -7681,10 +7681,38 @@ unsigned int mbedtls_ssl_tls12_get_preferred_hash_for_sig_alg(
 
     for( i = 0; received_sig_algs[i] != MBEDTLS_TLS_SIG_NONE; i++ )
     {
-        if( sig_alg == MBEDTLS_SSL_TLS12_SIG_ALG_FROM_SIG_AND_HASH_ALG(
-                            received_sig_algs[i] ) )
-            return( MBEDTLS_SSL_TLS12_HASH_ALG_FROM_SIG_AND_HASH_ALG(
-                        received_sig_algs[i] ) );
+        unsigned int hash_alg_received =
+                    MBEDTLS_SSL_TLS12_HASH_ALG_FROM_SIG_AND_HASH_ALG(
+                        received_sig_algs[i] );
+        unsigned int sig_alg_received =
+                    MBEDTLS_SSL_TLS12_SIG_ALG_FROM_SIG_AND_HASH_ALG(
+                        received_sig_algs[i] );
+
+        if( sig_alg == sig_alg_received )
+        {
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+            if( ssl->handshake->key_cert && ssl->handshake->key_cert->key )
+            {
+                psa_algorithm_t psa_hash_alg =
+                                mbedtls_psa_translate_md( hash_alg_received );
+
+                if( sig_alg_received == MBEDTLS_SSL_SIG_ECDSA &&
+                    ! mbedtls_pk_can_do_ext( ssl->handshake->key_cert->key,
+                                             PSA_ALG_ECDSA( psa_hash_alg ),
+                                             PSA_KEY_USAGE_SIGN_HASH ) )
+                    continue;
+
+                if( sig_alg_received == MBEDTLS_SSL_SIG_RSA &&
+                    ! mbedtls_pk_can_do_ext( ssl->handshake->key_cert->key,
+                                             PSA_ALG_RSA_PKCS1V15_SIGN(
+                                                            psa_hash_alg ),
+                                             PSA_KEY_USAGE_SIGN_HASH ) )
+                    continue;
+            }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+            return( hash_alg_received );
+        }
     }
 
     return( MBEDTLS_SSL_HASH_NONE );

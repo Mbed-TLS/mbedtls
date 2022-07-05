@@ -1,0 +1,4 @@
+Bugfix
+   * Fix resource leaks in mbedtls_pk_parse_public_key() in low
+     memory conditions.
+

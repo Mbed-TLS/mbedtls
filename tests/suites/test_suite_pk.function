@@ -475,7 +475,7 @@ void mbedtls_pk_check_pair( char * pub_file, char * prv_file, int ret )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_RSA_C */
+/* BEGIN_CASE depends_on:MBEDTLS_RSA_C:MBEDTLS_MD_C */
 void pk_rsa_verify_test_vec( data_t * message_str, int digest, int mod,
                              int radix_N, char * input_N, int radix_E,
                              char * input_E, data_t * result_str,
@@ -526,7 +526,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_RSA_C */
+/* BEGIN_CASE depends_on:MBEDTLS_RSA_C:MBEDTLS_MD_C */
 void pk_rsa_verify_ext_test_vec( data_t * message_str, int digest,
                                  int mod, int radix_N, char * input_N,
                                  int radix_E, char * input_E,
@@ -1365,7 +1365,6 @@ void pk_psa_wrap_sign_ext( int pk_type, int parameter, int key_pk_type, int md_a
     psa_algorithm_t psa_md_alg = mbedtls_psa_translate_md( md_alg );
     psa_algorithm_t psa_alg;
     size_t hash_len = PSA_HASH_LENGTH( psa_md_alg );
-    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( md_alg );
     void const *options = NULL;
     mbedtls_pk_rsassa_pss_options rsassa_pss_options;
     int ret;
@@ -1417,8 +1416,8 @@ void pk_psa_wrap_sign_ext( int pk_type, int parameter, int key_pk_type, int md_a
     if( key_pk_type == MBEDTLS_PK_RSASSA_PSS )
     {
         rsassa_pss_options.mgf1_hash_id = md_alg;
-        TEST_ASSERT( md_info != NULL );
-        rsassa_pss_options.expected_salt_len = mbedtls_md_get_size( md_info );
+        TEST_ASSERT( hash_len != 0 );
+        rsassa_pss_options.expected_salt_len = hash_len;
         options = (const void*) &rsassa_pss_options;
     }
     TEST_EQUAL( mbedtls_pk_verify_ext( key_pk_type, options, &pk, md_alg,

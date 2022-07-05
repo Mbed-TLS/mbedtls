@@ -497,6 +497,7 @@ int mbedtls_rsa_set_padding( mbedtls_rsa_context *ctx, int padding,
             return( MBEDTLS_ERR_RSA_INVALID_PADDING );
     }
 
+#if defined(MBEDTLS_PKCS1_V21)
     if( ( padding == MBEDTLS_RSA_PKCS_V21 ) &&
         ( hash_id != MBEDTLS_MD_NONE ) )
     {
@@ -506,6 +507,7 @@ int mbedtls_rsa_set_padding( mbedtls_rsa_context *ctx, int padding,
         if( md_info == NULL )
             return( MBEDTLS_ERR_RSA_INVALID_PADDING );
     }
+#endif /* MBEDTLS_PKCS1_V21 */
 
     ctx->padding = padding;
     ctx->hash_id = hash_id;

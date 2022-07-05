@@ -1211,13 +1211,11 @@ component_test_crypto_full_no_md () {
     scripts/config.py unset MBEDTLS_ECJPAKE_C
     scripts/config.py unset MBEDTLS_HKDF_C
     scripts/config.py unset MBEDTLS_HMAC_DRBG_C
-    scripts/config.py unset MBEDTLS_PKCS1_V15
     scripts/config.py unset MBEDTLS_PKCS1_V21
     scripts/config.py unset MBEDTLS_PKCS5_C
     scripts/config.py unset MBEDTLS_PKCS12_C
     # Indirect dependencies
     scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC
-    scripts/config.py unset MBEDTLS_RSA_C
     make
 
     msg "test: crypto_full minus MD"

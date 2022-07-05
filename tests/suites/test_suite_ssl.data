@@ -3426,3 +3426,6 @@ raw_key_agreement_fail:0
 
 Raw key agreement: bad server key
 raw_key_agreement_fail:1
+
+Force a bad session id length
+force_bad_session_id_len

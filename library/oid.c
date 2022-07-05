@@ -586,7 +586,6 @@ FN_OID_TYPED_FROM_ASN1(oid_cipher_alg_t, cipher_alg, oid_cipher_alg)
 FN_OID_GET_ATTR1(mbedtls_oid_get_cipher_alg, oid_cipher_alg_t, cipher_alg, mbedtls_cipher_type_t, cipher_alg)
 #endif /* MBEDTLS_CIPHER_C */
 
-#if defined(MBEDTLS_MD_C)
 /*
  * For digestAlgorithm
  */
@@ -597,48 +596,48 @@ typedef struct {
 
 static const oid_md_alg_t oid_md_alg[] =
 {
-#if defined(MBEDTLS_MD5_C)
+#if defined(MBEDTLS_MD5_C) || defined(PSA_WANT_ALG_MD5)
     {
         OID_DESCRIPTOR( MBEDTLS_OID_DIGEST_ALG_MD5,       "id-md5",       "MD5" ),
         MBEDTLS_MD_MD5,
     },
-#endif /* MBEDTLS_MD5_C */
-#if defined(MBEDTLS_SHA1_C)
+#endif
+#if defined(MBEDTLS_SHA1_C) || defined(PSA_WANT_ALG_SHA_1)
     {
         OID_DESCRIPTOR( MBEDTLS_OID_DIGEST_ALG_SHA1,      "id-sha1",      "SHA-1" ),
         MBEDTLS_MD_SHA1,
     },
-#endif /* MBEDTLS_SHA1_C */
-#if defined(MBEDTLS_SHA224_C)
+#endif
+#if defined(MBEDTLS_SHA224_C) || defined(PSA_WANT_ALG_SHA_224)
     {
         OID_DESCRIPTOR( MBEDTLS_OID_DIGEST_ALG_SHA224,    "id-sha224",    "SHA-224" ),
         MBEDTLS_MD_SHA224,
     },
 #endif
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_SHA256_C) || defined(PSA_WANT_ALG_SHA_256)
     {
         OID_DESCRIPTOR( MBEDTLS_OID_DIGEST_ALG_SHA256,    "id-sha256",    "SHA-256" ),
         MBEDTLS_MD_SHA256,
     },
-#endif /* MBEDTLS_SHA256_C */
-#if defined(MBEDTLS_SHA384_C)
+#endif
+#if defined(MBEDTLS_SHA384_C) || defined(PSA_WANT_ALG_SHA_384)
     {
         OID_DESCRIPTOR( MBEDTLS_OID_DIGEST_ALG_SHA384,    "id-sha384",    "SHA-384" ),
         MBEDTLS_MD_SHA384,
     },
-#endif /* MBEDTLS_SHA384_C */
-#if defined(MBEDTLS_SHA512_C)
+#endif
+#if defined(MBEDTLS_SHA512_C) || defined(PSA_WANT_ALG_SHA_512)
     {
         OID_DESCRIPTOR( MBEDTLS_OID_DIGEST_ALG_SHA512,    "id-sha512",    "SHA-512" ),
         MBEDTLS_MD_SHA512,
     },
-#endif /* MBEDTLS_SHA512_C */
-#if defined(MBEDTLS_RIPEMD160_C)
+#endif
+#if defined(MBEDTLS_RIPEMD160_C) || defined(PSA_WANT_ALG_RIPEMD160)
     {
      OID_DESCRIPTOR( MBEDTLS_OID_DIGEST_ALG_RIPEMD160, "id-ripemd160", "RIPEMD-160" ),
         MBEDTLS_MD_RIPEMD160,
     },
-#endif /* MBEDTLS_RIPEMD160_C */
+#endif
     {
         NULL_OID_DESCRIPTOR,
         MBEDTLS_MD_NONE,
@@ -649,6 +648,7 @@ FN_OID_TYPED_FROM_ASN1(oid_md_alg_t, md_alg, oid_md_alg)
 FN_OID_GET_ATTR1(mbedtls_oid_get_md_alg, oid_md_alg_t, md_alg, mbedtls_md_type_t, md_alg)
 FN_OID_GET_OID_BY_ATTR1(mbedtls_oid_get_oid_by_md, oid_md_alg_t, oid_md_alg, mbedtls_md_type_t, md_alg)
 
+#if defined(MBEDTLS_MD_C)
 /*
  * For HMAC digestAlgorithm
  */

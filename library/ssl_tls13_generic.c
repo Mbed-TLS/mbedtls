@@ -927,6 +927,7 @@ int mbedtls_ssl_tls13_check_sig_alg_cert_key_match( uint16_t sig_alg,
     return( 0 );
 }
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
 static psa_algorithm_t ssl_tls13_select_sig_alg_to_psa_alg( uint16_t sig_alg )
 {
     psa_algorithm_t psa_alg = 0;
@@ -960,6 +961,7 @@ static psa_algorithm_t ssl_tls13_select_sig_alg_to_psa_alg( uint16_t sig_alg )
     }
     return( psa_alg );
 }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_select_sig_alg_for_certificate_verify(
@@ -968,19 +970,26 @@ static int ssl_tls13_select_sig_alg_for_certificate_verify(
                                           uint16_t *algorithm )
 {
     uint16_t *sig_alg = ssl->handshake->received_sig_algs;
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_algorithm_t psa_alg = 0;
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     *algorithm = MBEDTLS_TLS1_3_SIG_NONE;
     for( ; *sig_alg != MBEDTLS_TLS1_3_SIG_NONE ; sig_alg++ )
     {
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
         psa_alg = ssl_tls13_select_sig_alg_to_psa_alg( *sig_alg );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
         if( mbedtls_ssl_sig_alg_is_offered( ssl, *sig_alg ) &&
             mbedtls_ssl_tls13_sig_alg_for_cert_verify_is_supported( *sig_alg ) &&
-            mbedtls_ssl_tls13_check_sig_alg_cert_key_match( *sig_alg, own_key ) &&
-            psa_alg != 0 &&
+            mbedtls_ssl_tls13_check_sig_alg_cert_key_match( *sig_alg, own_key )
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+            && psa_alg != 0 &&
             mbedtls_pk_can_do_ext( own_key, psa_alg,
-                                   PSA_KEY_USAGE_SIGN_HASH ) == 1 )
+                                   PSA_KEY_USAGE_SIGN_HASH ) == 1
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+            )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3,
                                    ( "select_sig_alg_for_certificate_verify:"

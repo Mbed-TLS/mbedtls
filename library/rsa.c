@@ -46,6 +46,7 @@
 #include "mbedtls/error.h"
 #include "constant_time_internal.h"
 #include "mbedtls/constant_time.h"
+#include "md_internal.h"
 
 #include <string.h>
 
@@ -1735,14 +1736,14 @@ static int rsa_rsassa_pkcs1_v15_encode( mbedtls_md_type_t md_alg,
     /* Are we signing hashed or raw data? */
     if( md_alg != MBEDTLS_MD_NONE )
     {
-        const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( md_alg );
-        if( md_info == NULL )
+        unsigned char md_size = mbedtls_md_internal_get_size( md_alg );
+        if( md_size == 0 )
             return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
         if( mbedtls_oid_get_oid_by_md( md_alg, &oid, &oid_size ) != 0 )
             return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
-        if( hashlen != mbedtls_md_get_size( md_info ) )
+        if( hashlen != md_size )
             return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
         /* Double-check that 8 + hashlen + oid_size can be used as a

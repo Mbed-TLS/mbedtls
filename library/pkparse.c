@@ -1462,7 +1462,7 @@ int mbedtls_pk_parse_public_key( mbedtls_pk_context *ctx,
     if( ret == 0 )
     {
         p = pem.buf;
-        if( ( pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_RSA )) == NULL )
+        if( ( pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_RSA ) ) == NULL )
         {
             mbedtls_pem_free( &pem );
             return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );

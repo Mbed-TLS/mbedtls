@@ -29,8 +29,7 @@
 #include <mbedtls/error.h>
 #include <string.h>
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) || \
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
 const mbedtls_md_info_t *mbedtls_md_info_from_psa( psa_algorithm_t alg )
@@ -69,8 +68,7 @@ const mbedtls_md_info_t *mbedtls_md_info_from_psa( psa_algorithm_t alg )
             return( NULL );
     }
 }
-#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) ||
-        * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) ||
+#endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) ||
         * defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) ||
         * defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA) */
 

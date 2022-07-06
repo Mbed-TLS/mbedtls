@@ -3836,6 +3836,29 @@ run_test    "Session resume using cache: openssl server" \
             -C "parse new session ticket" \
             -c "a session has been resumed"
 
+# Tests for Session resume and extensions
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
+run_test    "Session resume and connection ID" \
+            "$P_SRV debug_level=3 cid=1 cid_val=dead dtls=1 tickets=0" \
+            "$P_CLI debug_level=3 cid=1 cid_val=beef dtls=1 tickets=0 reconnect=1" \
+            0 \
+            -c "Enable use of CID extension." \
+            -s "Enable use of CID extension." \
+            -c "client hello, adding CID extension" \
+            -s "found CID extension"           \
+            -s "Use of CID extension negotiated" \
+            -s "server hello, adding CID extension" \
+            -c "found CID extension" \
+            -c "Use of CID extension negotiated" \
+            -s "Copy CIDs into SSL transform" \
+            -c "Copy CIDs into SSL transform" \
+            -c "Peer CID (length 2 Bytes): de ad" \
+            -s "Peer CID (length 2 Bytes): be ef" \
+            -s "Use of Connection ID has been negotiated" \
+            -c "Use of Connection ID has been negotiated"
+
 # Tests for Session Resume based on session-ID and cache, DTLS
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2

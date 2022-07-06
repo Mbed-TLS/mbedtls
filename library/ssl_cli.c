@@ -2276,16 +2276,6 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     else
     {
         ssl->state = MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC;
-
-        if( ( ret = mbedtls_ssl_derive_keys( ssl ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_derive_keys", ret );
-            mbedtls_ssl_send_alert_message(
-                ssl,
-                MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
-            return( ret );
-        }
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "%s session has been resumed",
@@ -2534,6 +2524,24 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
             return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
+        }
+    }
+
+    /*
+     * mbedtls_ssl_derive_keys() has to be called after the parsing of the
+     * extensions. It sets the transform data for the resumed session which in
+     * case of DTLS includes the server CID extracted from the CID extension.
+     */
+    if( ssl->handshake->resume )
+    {
+        if( ( ret = mbedtls_ssl_derive_keys( ssl ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_derive_keys", ret );
+            mbedtls_ssl_send_alert_message(
+                ssl,
+                MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
+            return( ret );
         }
     }
 

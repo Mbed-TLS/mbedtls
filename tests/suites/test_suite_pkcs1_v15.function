@@ -59,12 +59,10 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void pkcs1_rsaes_v15_decrypt( int mod, char * input_P,
-                              char * input_Q,
-                              char * input_N, char * input_E,
-                              int hash, data_t * result_str,
-                              char * seed, data_t * message_str,
-                              int result )
+void pkcs1_rsaes_v15_decrypt( int mod, char * input_P, char * input_Q,
+                              char * input_N, char * input_E, int hash,
+                              data_t * result_str, char * seed,
+                              data_t * message_str, int result )
 {
     unsigned char output[128];
     mbedtls_rsa_context ctx;
@@ -317,10 +315,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void pkcs1_rsassa_v15_verify( int mod, char * input_N,
-                              char * input_E, int digest,
-                              int hash, data_t * message_str, char * salt,
-                              data_t * result_str, int result )
+void pkcs1_rsassa_v15_verify( int mod, char * input_N, char * input_E,
+                              int digest, int hash, data_t * message_str,
+                              char * salt, data_t * result_str, int result )
 {
     mbedtls_rsa_context ctx;
     mbedtls_mpi N, E;

@@ -514,8 +514,7 @@ void rsa_init_free( int reinit )
 /* BEGIN_CASE */
 void mbedtls_rsa_pkcs1_sign( data_t * message_str, int padding_mode,
                              int digest, int mod, char * input_P,
-                             char * input_Q,
-                             char * input_N, char * input_E,
+                             char * input_Q, char * input_N, char * input_E,
                              data_t * result_str, int result )
 {
     unsigned char hash_result[MBEDTLS_MD_MAX_SIZE];
@@ -601,8 +600,8 @@ exit:
 void rsa_pkcs1_sign_raw( data_t * hash_result,
                          int padding_mode, int mod,
                          char * input_P, char * input_Q,
-                         char * input_N,
-                         char * input_E, data_t * result_str )
+                         char * input_N, char * input_E,
+                         data_t * result_str )
 {
     unsigned char output[256];
     mbedtls_rsa_context ctx;
@@ -735,8 +734,7 @@ exit:
 
 /* BEGIN_CASE */
 void mbedtls_rsa_pkcs1_encrypt( data_t * message_str, int padding_mode,
-                                int mod, char * input_N,
-                                char * input_E,
+                                int mod, char * input_N, char * input_E,
                                 data_t * result_str, int result )
 {
     unsigned char output[256];
@@ -779,8 +777,7 @@ exit:
 
 /* BEGIN_CASE */
 void rsa_pkcs1_encrypt_bad_rng( data_t * message_str, int padding_mode,
-                                int mod, char * input_N,
-                                char * input_E,
+                                int mod, char * input_N, char * input_E,
                                 data_t * result_str, int result )
 {
     unsigned char output[256];
@@ -820,10 +817,9 @@ exit:
 /* BEGIN_CASE */
 void mbedtls_rsa_pkcs1_decrypt( data_t * message_str, int padding_mode,
                                 int mod, char * input_P,
-                                char * input_Q,
-                                char * input_N, char * input_E,
-                                int max_output, data_t * result_str,
-                                int result )
+                                char * input_Q, char * input_N,
+                                char * input_E, int max_output,
+                                data_t * result_str, int result )
 {
     unsigned char output[32];
     mbedtls_rsa_context ctx;
@@ -930,9 +926,8 @@ exit:
 /* BEGIN_CASE */
 void mbedtls_rsa_private( data_t * message_str, int mod,
                           char * input_P, char * input_Q,
-                          char * input_N,
-                          char * input_E, data_t * result_str,
-                          int result )
+                          char * input_N, char * input_E,
+                          data_t * result_str, int result )
 {
     unsigned char output[256];
     mbedtls_rsa_context ctx, ctx2; /* Also test mbedtls_rsa_copy() while at it */
@@ -1014,8 +1009,7 @@ void rsa_check_privkey_null(  )
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_rsa_check_pubkey( char * input_N,
-                               char * input_E, int result )
+void mbedtls_rsa_check_pubkey( char * input_N, char * input_E, int result )
 {
     mbedtls_rsa_context ctx;
     mbedtls_mpi N, E;
@@ -1042,13 +1036,10 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_rsa_check_privkey( int mod, char * input_P,
-                                char * input_Q,
-                                char * input_N, char * input_E,
-                                char * input_D,
-                                char * input_DP,
-                                char * input_DQ,
-                                char * input_QP, int result )
+void mbedtls_rsa_check_privkey( int mod, char * input_P, char * input_Q,
+                                char * input_N, char * input_E, char * input_D,
+                                char * input_DP, char * input_DQ, char * input_QP,
+                                int result )
 {
     mbedtls_rsa_context ctx;
 
@@ -1102,14 +1093,10 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void rsa_check_pubpriv( int mod, char * input_Npub,
-                        char * input_Epub,
-                        char * input_P, char * input_Q,
-                        char * input_N,
-                        char * input_E, char * input_D,
-                        char * input_DP,
-                        char * input_DQ, char * input_QP,
-                        int result )
+void rsa_check_pubpriv( int mod, char * input_Npub, char * input_Epub,
+                        char * input_P, char * input_Q, char * input_N,
+                        char * input_E, char * input_D, char * input_DP,
+                        char * input_DQ, char * input_QP, int result )
 {
     mbedtls_rsa_context pub, prv;
 

@@ -645,9 +645,8 @@ void mbedtls_pk_check_pair( char * pub_file, char * prv_file, int ret )
 
 /* BEGIN_CASE depends_on:MBEDTLS_RSA_C */
 void pk_rsa_verify_test_vec( data_t * message_str, int digest, int mod,
-                             char * input_N,
-                             char * input_E, data_t * result_str,
-                             int result )
+                             char * input_N, char * input_E,
+                             data_t * result_str, int result )
 {
     unsigned char hash_result[MBEDTLS_MD_MAX_SIZE];
     mbedtls_rsa_context *rsa;
@@ -694,9 +693,9 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_RSA_C */
 void pk_rsa_verify_ext_test_vec( data_t * message_str, int digest,
                                  int mod, char * input_N,
-                                 char * input_E,
-                                 data_t * result_str, int pk_type,
-                                 int mgf1_hash_id, int salt_len, int result )
+                                 char * input_E, data_t * result_str,
+                                 int pk_type, int mgf1_hash_id,
+                                 int salt_len, int result )
 {
     unsigned char hash_result[MBEDTLS_MD_MAX_SIZE];
     mbedtls_rsa_context *rsa;
@@ -1007,8 +1006,8 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_RSA_C */
 void pk_rsa_decrypt_test_vec( data_t * cipher, int mod,
                               char * input_P, char * input_Q,
-                              char * input_N,
-                              char * input_E, data_t * clear, int ret )
+                              char * input_N, char * input_E,
+                              data_t * clear, int ret )
 {
     unsigned char output[256];
     mbedtls_test_rnd_pseudo_info rnd_info;

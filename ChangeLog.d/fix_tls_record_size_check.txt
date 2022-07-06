@@ -1,4 +1,0 @@
-Bugfix
-   * Fix record sizes larger than 16384 being sometimes accepted despite being
-     non-compliant. This could not lead to a buffer overflow. In particular,
-     application data size was already checked correctly.

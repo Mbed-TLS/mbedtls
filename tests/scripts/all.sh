@@ -1827,12 +1827,6 @@ component_test_psa_crypto_config_accel_hash () {
     # Don't unset MBEDTLS_SHA256_C as it is needed by PSA crypto core.
     scripts/config.py unset MBEDTLS_SHA384_C
     scripts/config.py unset MBEDTLS_SHA512_C
-    # Unset MBEDTLS_SSL_PROTO_SSL3, MBEDTLS_SSL_PROTO_TLS1 and MBEDTLS_SSL_PROTO_TLS1_1 as they depend on MBEDTLS_SHA1_C
-    scripts/config.py unset MBEDTLS_SSL_PROTO_SSL3
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_1
-    # Unset MBEDTLS_SSL_CBC_RECORD_SPLITTING as it depends on MBEDTLS_SSL_PROTO_TLS1 in the default configuration.
-    scripts/config.py unset MBEDTLS_SSL_CBC_RECORD_SPLITTING
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
     make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
 
@@ -1875,7 +1869,7 @@ component_test_psa_crypto_config_accel_cipher () {
 
     not grep mbedtls_des* library/des.o
 
-    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash"
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated cipher"
     make test
 }
 

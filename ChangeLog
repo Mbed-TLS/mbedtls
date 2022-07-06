@@ -1,6 +1,6 @@
-mbed TLS ChangeLog (Sorted per branch, date)
+Mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= Mbed TLS 2.28.1 branch released 2022-07-11
 
 Default behavior changes
    * mbedtls_cipher_set_iv will now fail with ChaCha20 and ChaCha20+Poly1305
@@ -73,7 +73,7 @@ Bugfix
      #3191.
    * Encode X.509 dates before 1/1/2000 as UTCTime rather than
      GeneralizedTime. Fixes #5465.
-    * Fix order value of curve x448.
+   * Fix order value of curve x448.
    * Fix string representation of DNs when outputting values containing commas
      and other special characters, conforming to RFC 1779. Fixes #769.
    * Silence a warning from GCC 12 in the selftest program. Fixes #5974.

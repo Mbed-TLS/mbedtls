@@ -2527,7 +2527,12 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
         }
     }
 
-    if( ssl->state == MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC )
+    /*
+     * mbedtls_ssl_derive_keys() has to be called after the parsing of the
+     * extensions. It sets the transform data for the resumed session which in
+     * case of DTLS includes the server CID extracted from the CID extension.
+     */
+    if( ssl->handshake->resume )
     {
         if( ( ret = mbedtls_ssl_derive_keys( ssl ) ) != 0 )
         {

@@ -24,7 +24,6 @@
  *  limitations under the License.
  */
 
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
 void eap_tls_key_derivation( void *p_expkey,
                              mbedtls_ssl_key_export_type secret_type,
                              const unsigned char *secret,
@@ -139,8 +138,6 @@ void dtls_srtp_key_derivation( void *p_expkey,
     keys->tls_prf_type = tls_prf_type;
 }
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
-
-#endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 int ssl_check_record( mbedtls_ssl_context const *ssl,
                       unsigned char const *buf, size_t len )
@@ -265,24 +262,54 @@ int send_cb( void *ctx, unsigned char const *buf, size_t len )
 }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-int ssl_sig_hashes_for_test[] = {
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_RSA_C)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+/*
+ *   When GnuTLS/Openssl server is configured in TLS 1.2 mode with a certificate
+ *   declaring an RSA public key and Mbed TLS is configured in hybrid mode, if
+ *   `rsa_pss_rsae_*` algorithms are before `rsa_pkcs1_*` ones in this list then
+ *   the GnuTLS/Openssl server chooses an `rsa_pss_rsae_*` signature algorithm
+ *   for its signature in the key exchange message. As Mbed TLS 1.2 does not
+ *   support them, the handshake fails.
+ */
+#define MBEDTLS_SSL_SIG_ALG( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_ECDSA), \
+                                    (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA), \
+                                    ( 0x800 | hash ),
+#else
+#define MBEDTLS_SSL_SIG_ALG( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_ECDSA), \
+                                    (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA),
+#endif
+#elif defined(MBEDTLS_ECDSA_C)
+#define MBEDTLS_SSL_SIG_ALG( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_ECDSA),
+#elif defined(MBEDTLS_RSA_C)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+/* See above */
+#define MBEDTLS_SSL_SIG_ALG( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA), \
+                                    ( 0x800 | hash ),
+#else
+#define MBEDTLS_SSL_SIG_ALG( hash ) (( hash << 8 ) | MBEDTLS_SSL_SIG_RSA),
+#endif
+#else
+#define MBEDTLS_SSL_SIG_ALG( hash )
+#endif
+uint16_t ssl_sig_algs_for_test[] = {
 #if defined(MBEDTLS_SHA512_C)
-    MBEDTLS_MD_SHA512,
+    MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA512 )
 #endif
 #if defined(MBEDTLS_SHA384_C)
-    MBEDTLS_MD_SHA384,
+    MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA384 )
 #endif
 #if defined(MBEDTLS_SHA256_C)
-    MBEDTLS_MD_SHA256,
+    MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA256 )
 #endif
 #if defined(MBEDTLS_SHA224_C)
-    MBEDTLS_MD_SHA224,
+    MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA224 )
 #endif
 #if defined(MBEDTLS_SHA1_C)
     /* Allow SHA-1 as we use it extensively in tests. */
-    MBEDTLS_MD_SHA1,
+    MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA1 )
 #endif
-    MBEDTLS_MD_NONE
+    MBEDTLS_TLS1_3_SIG_NONE
 };
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
@@ -323,3 +350,25 @@ int x509_crt_verify_info( char *buf, size_t size, const char *prefix,
 #endif /* MBEDTLS_X509_REMOVE_INFO */
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
+
+void mbedtls_print_supported_sig_algs( void )
+{
+    mbedtls_printf( "supported signature algorithms:\n" );
+    mbedtls_printf("\trsa_pkcs1_sha256 ");
+    mbedtls_printf("rsa_pkcs1_sha384 ");
+    mbedtls_printf("rsa_pkcs1_sha512\n");
+    mbedtls_printf("\tecdsa_secp256r1_sha256 ");
+    mbedtls_printf("ecdsa_secp384r1_sha384 ");
+    mbedtls_printf("ecdsa_secp521r1_sha512\n");
+    mbedtls_printf("\trsa_pss_rsae_sha256 ");
+    mbedtls_printf("rsa_pss_rsae_sha384 ");
+    mbedtls_printf("rsa_pss_rsae_sha512\n");
+    mbedtls_printf("\trsa_pss_pss_sha256 ");
+    mbedtls_printf("rsa_pss_pss_sha384 ");
+    mbedtls_printf("rsa_pss_pss_sha512\n");
+    mbedtls_printf("\ted25519 ");
+    mbedtls_printf("ed448 ");
+    mbedtls_printf("rsa_pkcs1_sha1 ");
+    mbedtls_printf("ecdsa_sha1\n");
+    mbedtls_printf( "\n" );
+}

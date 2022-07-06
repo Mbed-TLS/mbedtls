@@ -133,6 +133,29 @@ state may override this method.
             ssl_opt_sh = os.path.join(directory, 'ssl-opt.sh')
             if os.path.exists(ssl_opt_sh):
                 self.walk_ssl_opt_sh(ssl_opt_sh)
+            for ssl_opt_file_name in glob.glob(os.path.join(directory, 'opt-testcases',
+                                                            '*.sh')):
+                self.walk_ssl_opt_sh(ssl_opt_file_name)
+
+class TestDescriptions(TestDescriptionExplorer):
+    """Collect the available test cases."""
+
+    def __init__(self):
+        super().__init__()
+        self.descriptions = set()
+
+    def process_test_case(self, _per_file_state,
+                          file_name, _line_number, description):
+        """Record an available test case."""
+        base_name = re.sub(r'\.[^.]*$', '', re.sub(r'.*/', '', file_name))
+        key = ';'.join([base_name, description.decode('utf-8')])
+        self.descriptions.add(key)
+
+def collect_available_test_cases():
+    """Collect the available test cases."""
+    explorer = TestDescriptions()
+    explorer.walk_all()
+    return sorted(explorer.descriptions)
 
 class DescriptionChecker(TestDescriptionExplorer):
     """Check all test case descriptions.
@@ -173,6 +196,9 @@ class DescriptionChecker(TestDescriptionExplorer):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--list-all',
+                        action='store_true',
+                        help='List all test cases, without doing checks')
     parser.add_argument('--quiet', '-q',
                         action='store_true',
                         help='Hide warnings')
@@ -180,6 +206,10 @@ def main():
                         action='store_false', dest='quiet',
                         help='Show warnings (default: on; undoes --quiet)')
     options = parser.parse_args()
+    if options.list_all:
+        descriptions = collect_available_test_cases()
+        sys.stdout.write('\n'.join(descriptions + ['']))
+        return
     results = Results(options)
     checker = DescriptionChecker(results)
     checker.walk_all()

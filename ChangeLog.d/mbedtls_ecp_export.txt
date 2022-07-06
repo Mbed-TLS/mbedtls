@@ -1,0 +1,3 @@
+Features
+   * Add function mbedtls_ecp_export() to export ECP key pair parameters.
+     Fixes #4838.

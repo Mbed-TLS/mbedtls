@@ -47,7 +47,7 @@
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
-#endif
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -63,10 +63,12 @@
 #include "mbedtls/threading.h"
 #endif
 
+#if defined(MBEDTLS_HAVE_TIME)
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
 #include <windows.h>
 #else
 #include <time.h>
+#endif
 #endif
 
 #if defined(MBEDTLS_FS_IO)
@@ -2336,8 +2338,14 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
                                const mbedtls_x509_crt_profile *profile )
 {
     int flags = 0;
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    unsigned char hash[PSA_HASH_MAX_SIZE];
+    psa_algorithm_t psa_algorithm;
+#else
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
     const mbedtls_md_info_t *md_info;
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+    size_t hash_length;
 
     if( ca == NULL )
         return( flags );
@@ -2370,19 +2378,38 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
         if( x509_profile_check_pk_alg( profile, crl_list->sig_pk ) != 0 )
             flags |= MBEDTLS_X509_BADCRL_BAD_PK;
 
-        md_info = mbedtls_md_info_from_type( crl_list->sig_md );
-        if( mbedtls_md( md_info, crl_list->tbs.p, crl_list->tbs.len, hash ) != 0 )
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        psa_algorithm = mbedtls_psa_translate_md( crl_list->sig_md );
+        if( psa_hash_compute( psa_algorithm,
+                              crl_list->tbs.p,
+                              crl_list->tbs.len,
+                              hash,
+                              sizeof( hash ),
+                              &hash_length ) != PSA_SUCCESS )
         {
             /* Note: this can't happen except after an internal error */
             flags |= MBEDTLS_X509_BADCRL_NOT_TRUSTED;
             break;
         }
+#else
+        md_info = mbedtls_md_info_from_type( crl_list->sig_md );
+        hash_length = mbedtls_md_get_size( md_info );
+        if( mbedtls_md( md_info,
+                        crl_list->tbs.p,
+                        crl_list->tbs.len,
+                        hash ) != 0 )
+        {
+            /* Note: this can't happen except after an internal error */
+            flags |= MBEDTLS_X509_BADCRL_NOT_TRUSTED;
+            break;
+        }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
         if( x509_profile_check_key( profile, &ca->pk ) != 0 )
             flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
 
         if( mbedtls_pk_verify_ext( crl_list->sig_pk, crl_list->sig_opts, &ca->pk,
-                           crl_list->sig_md, hash, mbedtls_md_get_size( md_info ),
+                           crl_list->sig_md, hash, hash_length,
                            crl_list->sig.p, crl_list->sig.len ) != 0 )
         {
             flags |= MBEDTLS_X509_BADCRL_NOT_TRUSTED;
@@ -2421,9 +2448,9 @@ static int x509_crt_check_signature( const mbedtls_x509_crt *child,
                                      mbedtls_x509_crt *parent,
                                      mbedtls_x509_crt_restart_ctx *rs_ctx )
 {
-    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
     size_t hash_len;
 #if !defined(MBEDTLS_USE_PSA_CRYPTO)
+    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
     const mbedtls_md_info_t *md_info;
     md_info = mbedtls_md_info_from_type( child->sig_md );
     hash_len = mbedtls_md_get_size( md_info );
@@ -2432,23 +2459,21 @@ static int x509_crt_check_signature( const mbedtls_x509_crt *child,
     if( mbedtls_md( md_info, child->tbs.p, child->tbs.len, hash ) != 0 )
         return( -1 );
 #else
-    psa_hash_operation_t hash_operation = PSA_HASH_OPERATION_INIT;
+    unsigned char hash[PSA_HASH_MAX_SIZE];
     psa_algorithm_t hash_alg = mbedtls_psa_translate_md( child->sig_md );
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    if( psa_hash_setup( &hash_operation, hash_alg ) != PSA_SUCCESS )
-        return( -1 );
-
-    if( psa_hash_update( &hash_operation, child->tbs.p, child->tbs.len )
-        != PSA_SUCCESS )
+    status = psa_hash_compute( hash_alg,
+                               child->tbs.p,
+                               child->tbs.len,
+                               hash,
+                               sizeof( hash ),
+                               &hash_len );
+    if( status != PSA_SUCCESS )
     {
-        return( -1 );
+        return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
     }
 
-    if( psa_hash_finish( &hash_operation, hash, sizeof( hash ), &hash_len )
-        != PSA_SUCCESS )
-    {
-        return( -1 );
-    }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
     /* Skip expensive computation on obvious mismatch */
     if( ! mbedtls_pk_can_do( &parent->pk, child->sig_pk ) )

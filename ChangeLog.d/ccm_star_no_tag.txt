@@ -1,0 +1,4 @@
+Bugfix
+   * Declare or use PSA_WANT_ALG_CCM_STAR_NO_TAG following the general
+     pattern for PSA_WANT_xxx symbols. Previously you had to specify
+     PSA_WANT_ALG_CCM for PSA_ALG_CCM_STAR_NO_TAG.

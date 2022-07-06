@@ -431,6 +431,29 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void gcm_update_output_buffer_too_small( int cipher_id, int mode,
+                                         data_t * key_str, const data_t *input,
+                                         const data_t *iv )
+{
+    mbedtls_gcm_context ctx;
+    uint8_t *output = NULL;
+    size_t olen = 0;
+    size_t output_len = input->len - 1;
+
+    mbedtls_gcm_init( &ctx );
+    TEST_EQUAL( mbedtls_gcm_setkey( &ctx, cipher_id, key_str->x, key_str->len * 8 ), 0 );
+    TEST_EQUAL( 0, mbedtls_gcm_starts( &ctx, mode, iv->x, iv->len ) );
+
+    ASSERT_ALLOC( output, output_len );
+    TEST_EQUAL( MBEDTLS_ERR_GCM_BUFFER_TOO_SMALL, mbedtls_gcm_update( &ctx, input->x, input->len, output, output_len, &olen ) );
+
+exit:
+    mbedtls_free( output );
+    mbedtls_gcm_free( &ctx );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void gcm_selftest(  )
 {

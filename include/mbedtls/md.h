@@ -29,6 +29,7 @@
 #include <stddef.h>
 
 #include "mbedtls/build_info.h"
+#include "mbedtls/platform_util.h"
 
 /** The selected feature is not available. */
 #define MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE                -0x5080
@@ -137,6 +138,19 @@ const mbedtls_md_info_t *mbedtls_md_info_from_string( const char *md_name );
 const mbedtls_md_info_t *mbedtls_md_info_from_type( mbedtls_md_type_t md_type );
 
 /**
+ * \brief           This function returns the message-digest information
+ *                  from the given context.
+ *
+ * \param ctx       The context from which to extract the information.
+ *                  This must be initialized (or \c NULL).
+ *
+ * \return          The message-digest information associated with \p ctx.
+ * \return          \c NULL if \p ctx is \c NULL.
+ */
+const mbedtls_md_info_t *mbedtls_md_info_from_ctx(
+                                        const mbedtls_md_context_t *ctx );
+
+/**
  * \brief           This function initializes a message-digest context without
  *                  binding it to a particular message-digest algorithm.
  *
@@ -181,6 +195,7 @@ void mbedtls_md_free( mbedtls_md_context_t *ctx );
  *                  failure.
  * \return          #MBEDTLS_ERR_MD_ALLOC_FAILED on memory-allocation failure.
  */
+MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_md_setup( mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_info, int hmac );
 
 /**
@@ -202,6 +217,7 @@ int mbedtls_md_setup( mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_inf
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_MD_BAD_INPUT_DATA on parameter-verification failure.
  */
+MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_md_clone( mbedtls_md_context_t *dst,
                       const mbedtls_md_context_t *src );
 
@@ -251,6 +267,7 @@ const char *mbedtls_md_get_name( const mbedtls_md_info_t *md_info );
  * \return          #MBEDTLS_ERR_MD_BAD_INPUT_DATA on parameter-verification
  *                  failure.
  */
+MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_md_starts( mbedtls_md_context_t *ctx );
 
 /**
@@ -269,6 +286,7 @@ int mbedtls_md_starts( mbedtls_md_context_t *ctx );
  * \return          #MBEDTLS_ERR_MD_BAD_INPUT_DATA on parameter-verification
  *                  failure.
  */
+MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_md_update( mbedtls_md_context_t *ctx, const unsigned char *input, size_t ilen );
 
 /**
@@ -289,6 +307,7 @@ int mbedtls_md_update( mbedtls_md_context_t *ctx, const unsigned char *input, si
  * \return          #MBEDTLS_ERR_MD_BAD_INPUT_DATA on parameter-verification
  *                  failure.
  */
+MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_md_finish( mbedtls_md_context_t *ctx, unsigned char *output );
 
 /**
@@ -309,6 +328,7 @@ int mbedtls_md_finish( mbedtls_md_context_t *ctx, unsigned char *output );
  * \return         #MBEDTLS_ERR_MD_BAD_INPUT_DATA on parameter-verification
  *                 failure.
  */
+MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_md( const mbedtls_md_info_t *md_info, const unsigned char *input, size_t ilen,
         unsigned char *output );
 
@@ -330,6 +350,7 @@ int mbedtls_md( const mbedtls_md_info_t *md_info, const unsigned char *input, si
  *                 the file pointed by \p path.
  * \return         #MBEDTLS_ERR_MD_BAD_INPUT_DATA if \p md_info was NULL.
  */
+MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_md_file( const mbedtls_md_info_t *md_info, const char *path,
                      unsigned char *output );
 #endif /* MBEDTLS_FS_IO */
@@ -352,6 +373,7 @@ int mbedtls_md_file( const mbedtls_md_info_t *md_info, const char *path,
  * \return          #MBEDTLS_ERR_MD_BAD_INPUT_DATA on parameter-verification
  *                  failure.
  */
+MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_md_hmac_starts( mbedtls_md_context_t *ctx, const unsigned char *key,
                     size_t keylen );
 
@@ -374,6 +396,7 @@ int mbedtls_md_hmac_starts( mbedtls_md_context_t *ctx, const unsigned char *key,
  * \return          #MBEDTLS_ERR_MD_BAD_INPUT_DATA on parameter-verification
  *                  failure.
  */
+MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_md_hmac_update( mbedtls_md_context_t *ctx, const unsigned char *input,
                     size_t ilen );
 
@@ -395,6 +418,7 @@ int mbedtls_md_hmac_update( mbedtls_md_context_t *ctx, const unsigned char *inpu
  * \return          #MBEDTLS_ERR_MD_BAD_INPUT_DATA on parameter-verification
  *                  failure.
  */
+MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_md_hmac_finish( mbedtls_md_context_t *ctx, unsigned char *output);
 
 /**
@@ -412,6 +436,7 @@ int mbedtls_md_hmac_finish( mbedtls_md_context_t *ctx, unsigned char *output);
  * \return          #MBEDTLS_ERR_MD_BAD_INPUT_DATA on parameter-verification
  *                  failure.
  */
+MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_md_hmac_reset( mbedtls_md_context_t *ctx );
 
 /**
@@ -436,11 +461,13 @@ int mbedtls_md_hmac_reset( mbedtls_md_context_t *ctx );
  * \return         #MBEDTLS_ERR_MD_BAD_INPUT_DATA on parameter-verification
  *                 failure.
  */
+MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_md_hmac( const mbedtls_md_info_t *md_info, const unsigned char *key, size_t keylen,
                 const unsigned char *input, size_t ilen,
                 unsigned char *output );
 
 /* Internal use */
+MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_md_process( mbedtls_md_context_t *ctx, const unsigned char *data );
 
 #ifdef __cplusplus

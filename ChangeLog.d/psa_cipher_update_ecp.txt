@@ -1,2 +1,0 @@
-Bugfix
-   * Fix a parameter set but unused in psa_crypto_cipher.c. Fixes #4935.

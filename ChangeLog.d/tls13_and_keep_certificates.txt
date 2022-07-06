@@ -1,0 +1,4 @@
+Bugfix
+   * Fix check_config.h to check that we have MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
+     when MBEDTLS_SSL_PROTO_TLS1_3 is specified, and make this and other
+     dependencies explicit in the documentation. Fixes #5610.

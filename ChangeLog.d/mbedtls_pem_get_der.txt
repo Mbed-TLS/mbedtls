@@ -1,0 +1,2 @@
+Features
+   * Add accessor to get the raw buffer pointer from a PEM context.

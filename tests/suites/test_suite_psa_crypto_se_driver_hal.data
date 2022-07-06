@@ -78,6 +78,21 @@ import_key_smoke:PSA_KEY_TYPE_AES:PSA_ALG_CCM:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 Key import smoke test: AES-GCM
 import_key_smoke:PSA_KEY_TYPE_AES:PSA_ALG_GCM:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
+Key import smoke test: ARIA-CTR
+import_key_smoke:PSA_KEY_TYPE_ARIA:PSA_ALG_CTR:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+Key import smoke test: ARIA-CBC
+import_key_smoke:PSA_KEY_TYPE_ARIA:PSA_ALG_CBC_NO_PADDING:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+Key import smoke test: ARIA-CMAC
+import_key_smoke:PSA_KEY_TYPE_ARIA:PSA_ALG_CMAC:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+Key import smoke test: ARIA-CCM
+import_key_smoke:PSA_KEY_TYPE_ARIA:PSA_ALG_CCM:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+Key import smoke test: ARIA-GCM
+import_key_smoke:PSA_KEY_TYPE_ARIA:PSA_ALG_GCM:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
 Key import smoke test: CAMELLIA-CTR
 import_key_smoke:PSA_KEY_TYPE_CAMELLIA:PSA_ALG_CTR:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 

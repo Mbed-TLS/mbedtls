@@ -7,7 +7,6 @@ less likely to be useful.
 """
 
 import argparse
-import re
 import sys
 import traceback
 
@@ -51,29 +50,9 @@ class TestCaseOutcomes:
         """
         return len(self.successes) + len(self.failures)
 
-class TestDescriptions(check_test_cases.TestDescriptionExplorer):
-    """Collect the available test cases."""
-
-    def __init__(self):
-        super().__init__()
-        self.descriptions = set()
-
-    def process_test_case(self, _per_file_state,
-                          file_name, _line_number, description):
-        """Record an available test case."""
-        base_name = re.sub(r'\.[^.]*$', '', re.sub(r'.*/', '', file_name))
-        key = ';'.join([base_name, description.decode('utf-8')])
-        self.descriptions.add(key)
-
-def collect_available_test_cases():
-    """Collect the available test cases."""
-    explorer = TestDescriptions()
-    explorer.walk_all()
-    return sorted(explorer.descriptions)
-
 def analyze_coverage(results, outcomes):
     """Check that all available test cases are executed at least once."""
-    available = collect_available_test_cases()
+    available = check_test_cases.collect_available_test_cases()
     for key in available:
         hits = outcomes[key].hits() if key in outcomes else 0
         if hits == 0:

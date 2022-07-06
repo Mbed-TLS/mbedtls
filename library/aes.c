@@ -971,6 +971,7 @@ int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
                            unsigned char output[16] )
 {
     AES_VALIDATE_RET( ctx != NULL );
+    AES_VALIDATE_RET( ctx->rk != NULL );
     AES_VALIDATE_RET( input != NULL );
     AES_VALIDATE_RET( output != NULL );
     AES_VALIDATE_RET( mode == MBEDTLS_AES_ENCRYPT ||
@@ -1011,6 +1012,7 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
                     unsigned char *output )
 {
     int i;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char temp[16];
 
     AES_VALIDATE_RET( ctx != NULL );
@@ -1040,7 +1042,9 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
         while( length > 0 )
         {
             memcpy( temp, input, 16 );
-            mbedtls_aes_crypt_ecb( ctx, mode, input, output );
+            ret = mbedtls_aes_crypt_ecb( ctx, mode, input, output );
+            if( ret != 0 )
+                goto exit;
 
             for( i = 0; i < 16; i++ )
                 output[i] = (unsigned char)( output[i] ^ iv[i] );
@@ -1059,7 +1063,9 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
             for( i = 0; i < 16; i++ )
                 output[i] = (unsigned char)( input[i] ^ iv[i] );
 
-            mbedtls_aes_crypt_ecb( ctx, mode, output, output );
+            ret = mbedtls_aes_crypt_ecb( ctx, mode, output, output );
+            if( ret != 0 )
+                goto exit;
             memcpy( iv, output, 16 );
 
             input  += 16;
@@ -1067,8 +1073,10 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
             length -= 16;
         }
     }
+    ret = 0;
 
-    return( 0 );
+exit:
+    return( ret );
 }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
@@ -1081,7 +1089,7 @@ typedef unsigned char mbedtls_be128[16];
  *
  * This function multiplies a field element by x in the polynomial field
  * representation. It uses 64-bit word operations to gain speed but compensates
- * for machine endianess and hence works correctly on both big and little
+ * for machine endianness and hence works correctly on both big and little
  * endian machines.
  */
 static void mbedtls_gf128mul_x_ble( unsigned char r[16],
@@ -1181,7 +1189,7 @@ int mbedtls_aes_crypt_xts( mbedtls_aes_xts_context *ctx,
         unsigned char *prev_output = output - 16;
 
         /* Copy ciphertext bytes from the previous block to our output for each
-         * byte of cyphertext we won't steal. At the same time, copy the
+         * byte of ciphertext we won't steal. At the same time, copy the
          * remainder of the input for this final round (since the loop bounds
          * are the same). */
         for( i = 0; i < leftover; i++ )
@@ -1222,6 +1230,7 @@ int mbedtls_aes_crypt_cfb128( mbedtls_aes_context *ctx,
                        unsigned char *output )
 {
     int c;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t n;
 
     AES_VALIDATE_RET( ctx != NULL );
@@ -1242,7 +1251,11 @@ int mbedtls_aes_crypt_cfb128( mbedtls_aes_context *ctx,
         while( length-- )
         {
             if( n == 0 )
-                mbedtls_aes_crypt_ecb( ctx, MBEDTLS_AES_ENCRYPT, iv, iv );
+            {
+                ret = mbedtls_aes_crypt_ecb( ctx, MBEDTLS_AES_ENCRYPT, iv, iv );
+                if( ret != 0 )
+                    goto exit;
+            }
 
             c = *input++;
             *output++ = (unsigned char)( c ^ iv[n] );
@@ -1256,7 +1269,11 @@ int mbedtls_aes_crypt_cfb128( mbedtls_aes_context *ctx,
         while( length-- )
         {
             if( n == 0 )
-                mbedtls_aes_crypt_ecb( ctx, MBEDTLS_AES_ENCRYPT, iv, iv );
+            {
+                ret = mbedtls_aes_crypt_ecb( ctx, MBEDTLS_AES_ENCRYPT, iv, iv );
+                if( ret != 0 )
+                    goto exit;
+            }
 
             iv[n] = *output++ = (unsigned char)( iv[n] ^ *input++ );
 
@@ -1265,8 +1282,10 @@ int mbedtls_aes_crypt_cfb128( mbedtls_aes_context *ctx,
     }
 
     *iv_off = n;
+    ret = 0;
 
-    return( 0 );
+exit:
+    return( ret );
 }
 
 /*
@@ -1279,6 +1298,7 @@ int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
                             const unsigned char *input,
                             unsigned char *output )
 {
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char c;
     unsigned char ov[17];
 
@@ -1291,7 +1311,9 @@ int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
     while( length-- )
     {
         memcpy( ov, iv, 16 );
-        mbedtls_aes_crypt_ecb( ctx, MBEDTLS_AES_ENCRYPT, iv, iv );
+        ret = mbedtls_aes_crypt_ecb( ctx, MBEDTLS_AES_ENCRYPT, iv, iv );
+        if( ret != 0 )
+            goto exit;
 
         if( mode == MBEDTLS_AES_DECRYPT )
             ov[16] = *input;
@@ -1303,8 +1325,10 @@ int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
 
         memcpy( iv, ov + 1, 16 );
     }
+    ret = 0;
 
-    return( 0 );
+exit:
+    return( ret );
 }
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
@@ -1366,6 +1390,7 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
                        unsigned char *output )
 {
     int c, i;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t n;
 
     AES_VALIDATE_RET( ctx != NULL );
@@ -1383,7 +1408,9 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
     while( length-- )
     {
         if( n == 0 ) {
-            mbedtls_aes_crypt_ecb( ctx, MBEDTLS_AES_ENCRYPT, nonce_counter, stream_block );
+            ret = mbedtls_aes_crypt_ecb( ctx, MBEDTLS_AES_ENCRYPT, nonce_counter, stream_block );
+            if( ret != 0 )
+                goto exit;
 
             for( i = 16; i > 0; i-- )
                 if( ++nonce_counter[i - 1] != 0 )
@@ -1396,8 +1423,10 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
     }
 
     *nc_off = n;
+    ret = 0;
 
-    return( 0 );
+exit:
+    return( ret );
 }
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 

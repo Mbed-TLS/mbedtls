@@ -1,0 +1,3 @@
+Bugfix
+   * psa_raw_key_agreement() now returns PSA_ERROR_BUFFER_TOO_SMALL when
+     applicable. Fixes #5735.

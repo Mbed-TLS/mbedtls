@@ -74,7 +74,7 @@
 
 /*
  * The above constants may be used even if the RSA module is compile out,
- * eg for alternative (PKCS#11) RSA implemenations in the PK layers.
+ * eg for alternative (PKCS#11) RSA implementations in the PK layers.
  */
 
 #ifdef __cplusplus
@@ -540,7 +540,7 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
  *
  * \note           Blinding is used if and only if a PRNG is provided.
  *
- * \note           If blinding is used, both the base of exponentation
+ * \note           If blinding is used, both the base of exponentiation
  *                 and the exponent are blinded, providing protection
  *                 against some side-channel attacks.
  *
@@ -634,7 +634,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
  * \note             The output buffer must be as large as the size
  *                   of ctx->N. For example, 128 Bytes if RSA-1024 is used.
  *
- * \param ctx        The initnialized RSA context to use.
+ * \param ctx        The initialized RSA context to use.
  * \param f_rng      The RNG function to use. This is needed for padding
  *                   generation and is mandatory.
  * \param p_rng      The RNG context to be passed to \p f_rng. This may

@@ -35,7 +35,7 @@
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
-#endif
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #include <string.h>
 #include <stdlib.h>
@@ -149,7 +149,6 @@ static int x509write_csr_der_internal( mbedtls_x509write_csr *ctx,
     size_t len = 0;
     mbedtls_pk_type_t pk_alg;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_hash_operation_t hash_operation = PSA_HASH_OPERATION_INIT;
     size_t hash_len;
     psa_algorithm_t hash_alg = mbedtls_psa_translate_md( ctx->md_alg );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
@@ -219,16 +218,14 @@ static int x509write_csr_der_internal( mbedtls_x509write_csr *ctx,
      * Note: hash errors can happen only after an internal error
      */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if( psa_hash_setup( &hash_operation, hash_alg ) != PSA_SUCCESS )
-        return( MBEDTLS_ERR_X509_FATAL_ERROR );
-
-    if( psa_hash_update( &hash_operation, c, len ) != PSA_SUCCESS )
-        return( MBEDTLS_ERR_X509_FATAL_ERROR );
-
-    if( psa_hash_finish( &hash_operation, hash, sizeof( hash ), &hash_len )
-        != PSA_SUCCESS )
+    if( psa_hash_compute( hash_alg,
+                          c,
+                          len,
+                          hash,
+                          sizeof( hash ),
+                          &hash_len ) != PSA_SUCCESS )
     {
-        return( MBEDTLS_ERR_X509_FATAL_ERROR );
+        return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
     }
 #else /* MBEDTLS_USE_PSA_CRYPTO */
     ret = mbedtls_md( mbedtls_md_info_from_type( ctx->md_alg ), c, len, hash );

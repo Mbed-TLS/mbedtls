@@ -167,6 +167,9 @@ int mbedtls_internal_sha256_process( mbedtls_sha256_context *ctx,
  *                 for SHA-256, \c 28 bytes for SHA-224.
  * \param is224    Determines which function to use. This must be
  *                 either \c 0 for SHA-256, or \c 1 for SHA-224.
+ *
+ * \return         \c 0 on success.
+ * \return         A negative error code on failure.
  */
 int mbedtls_sha256( const unsigned char *input,
                     size_t ilen,

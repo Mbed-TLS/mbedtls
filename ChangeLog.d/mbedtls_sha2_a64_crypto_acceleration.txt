@@ -1,0 +1,3 @@
+Features
+   * Add support for the ARMv8 SHA-2 acceleration instructions when building
+     for Aarch64.

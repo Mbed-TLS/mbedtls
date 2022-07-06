@@ -1,3 +1,33 @@
+mask_of_range empty (1..0)
+mask_of_range:1:0
+
+mask_of_range empty (255..0)
+mask_of_range:255:0
+
+mask_of_range empty (42..7)
+mask_of_range:42:7
+
+mask_of_range 0..0
+mask_of_range:0:0
+
+mask_of_range 42..42
+mask_of_range:42:42
+
+mask_of_range 255..255
+mask_of_range:255:255
+
+mask_of_range 0..255
+mask_of_range:0:255
+
+mask_of_range 'A'..'Z'
+mask_of_range:65:90
+
+enc_char (all digits)
+enc_chars:
+
+dec_value (all characters)
+dec_chars:
+
 Test case mbedtls_base64_encode #1 buffer just right
 mbedtls_base64_encode:"":"":0:0
 

@@ -29,7 +29,7 @@
 
 #include "mbedtls/build_info.h"
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_PSA_CRYPTO_C)
 
 #include "psa/crypto.h"
 
@@ -51,6 +51,9 @@ static inline psa_key_type_t mbedtls_psa_translate_cipher_type(
         case MBEDTLS_CIPHER_AES_128_CCM:
         case MBEDTLS_CIPHER_AES_192_CCM:
         case MBEDTLS_CIPHER_AES_256_CCM:
+        case MBEDTLS_CIPHER_AES_128_CCM_STAR_NO_TAG:
+        case MBEDTLS_CIPHER_AES_192_CCM_STAR_NO_TAG:
+        case MBEDTLS_CIPHER_AES_256_CCM_STAR_NO_TAG:
         case MBEDTLS_CIPHER_AES_128_GCM:
         case MBEDTLS_CIPHER_AES_192_GCM:
         case MBEDTLS_CIPHER_AES_256_GCM:
@@ -66,6 +69,9 @@ static inline psa_key_type_t mbedtls_psa_translate_cipher_type(
         /* case MBEDTLS_CIPHER_ARIA_128_CCM:
            case MBEDTLS_CIPHER_ARIA_192_CCM:
            case MBEDTLS_CIPHER_ARIA_256_CCM:
+           case MBEDTLS_CIPHER_ARIA_128_CCM_STAR_NO_TAG:
+           case MBEDTLS_CIPHER_ARIA_192_CCM_STAR_NO_TAG:
+           case MBEDTLS_CIPHER_ARIA_256_CCM_STAR_NO_TAG:
            case MBEDTLS_CIPHER_ARIA_128_GCM:
            case MBEDTLS_CIPHER_ARIA_192_GCM:
            case MBEDTLS_CIPHER_ARIA_256_GCM:
@@ -90,6 +96,8 @@ static inline psa_algorithm_t mbedtls_psa_translate_cipher_mode(
             return( PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_GCM, taglen ) );
         case MBEDTLS_MODE_CCM:
             return( PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, taglen ) );
+        case MBEDTLS_MODE_CCM_STAR_NO_TAG:
+            return PSA_ALG_CCM_STAR_NO_TAG;
         case MBEDTLS_MODE_CBC:
             if( taglen == 0 )
                 return( PSA_ALG_CBC_NO_PADDING );
@@ -250,115 +258,8 @@ static inline int mbedtls_psa_get_ecc_oid_from_id(
     return( -1 );
 }
 
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH 1
-
-#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 192 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 192 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_SECP192R1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 224 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 224 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_SECP224R1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 384 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 384 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_SECP384R1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 521 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 521 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_SECP521R1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 192 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 192 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_SECP192K1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 224 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 224 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_SECP224K1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_SECP256K1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 256 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_BP256R1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 384 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 384 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_BP384R1_ENABLED */
-
-#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
-#if MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH < ( 2 * ( ( 512 + 7 ) / 8 ) + 1 )
-#undef MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH
-#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH ( 2 * ( ( 512 + 7 ) / 8 ) + 1 )
-#endif
-#endif /* MBEDTLS_ECP_DP_BP512R1_ENABLED */
-
-
-/* Translations for PK layer */
-
-static inline int mbedtls_psa_err_translate_pk( psa_status_t status )
-{
-    switch( status )
-    {
-        case PSA_SUCCESS:
-            return( 0 );
-        case PSA_ERROR_NOT_SUPPORTED:
-            return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
-        case PSA_ERROR_INSUFFICIENT_MEMORY:
-            return( MBEDTLS_ERR_PK_ALLOC_FAILED );
-        case PSA_ERROR_INSUFFICIENT_ENTROPY:
-            return( MBEDTLS_ERR_ECP_RANDOM_FAILED );
-        case PSA_ERROR_BAD_STATE:
-            return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
-        /* All other failures */
-        case PSA_ERROR_COMMUNICATION_FAILURE:
-        case PSA_ERROR_HARDWARE_FAILURE:
-        case PSA_ERROR_CORRUPTION_DETECTED:
-            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
-        default: /* We return the same as for the 'other failures',
-                  * but list them separately nonetheless to indicate
-                  * which failure conditions we have considered. */
-            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
-    }
-}
-
-/* Translations for ECC */
+#define MBEDTLS_PSA_MAX_EC_PUBKEY_LENGTH \
+    PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE( PSA_VENDOR_ECC_MAX_CURVE_BITS )
 
 /* This function transforms an ECC group identifier from
  * https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-8
@@ -376,52 +277,11 @@ static inline psa_key_type_t mbedtls_psa_parse_tls_ecc_group(
 }
 #endif /* MBEDTLS_ECP_C */
 
-/* This function takes a buffer holding an EC public key
- * exported through psa_export_public_key(), and converts
- * it into an ECPoint structure to be put into a ClientKeyExchange
- * message in an ECDHE exchange.
- *
- * Both the present and the foreseeable future format of EC public keys
- * used by PSA have the ECPoint structure contained in the exported key
- * as a subbuffer, and the function merely selects this subbuffer instead
- * of making a copy.
- */
-static inline int mbedtls_psa_tls_psa_ec_to_ecpoint( unsigned char *src,
-                                                     size_t srclen,
-                                                     unsigned char **dst,
-                                                     size_t *dstlen )
-{
-    *dst = src;
-    *dstlen = srclen;
-    return( 0 );
-}
-
-/* This function takes a buffer holding an ECPoint structure
- * (as contained in a TLS ServerKeyExchange message for ECDHE
- * exchanges) and converts it into a format that the PSA key
- * agreement API understands.
- */
-static inline int mbedtls_psa_tls_ecpoint_to_psa_ec( unsigned char const *src,
-                                                     size_t srclen,
-                                                     unsigned char *dst,
-                                                     size_t dstlen,
-                                                     size_t *olen )
-{
-    if( srclen > dstlen )
-        return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
-
-    memcpy( dst, src, srclen );
-    *olen = srclen;
-    return( 0 );
-}
-
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-
 /* Expose whatever RNG the PSA subsystem uses to applications using the
  * mbedtls_xxx API. The declarations and definitions here need to be
  * consistent with the implementation in library/psa_crypto_random_impl.h.
  * See that file for implementation documentation. */
-#if defined(MBEDTLS_PSA_CRYPTO_C)
+
 
 /* The type of a `f_rng` random generator function that many library functions
  * take.

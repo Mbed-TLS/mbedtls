@@ -30,41 +30,7 @@
 #include <mbedtls/error.h>
 #include <string.h>
 
-/* Use builtin defines specific to this compilation unit, since the test driver
- * relies on the software driver. */
-#if( defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC) || \
-    ( defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_ACCEL_ALG_CMAC) ) )
-#define BUILTIN_ALG_CMAC        1
-#endif
-#if( defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC) || \
-    ( defined(PSA_CRYPTO_DRIVER_TEST) && defined(MBEDTLS_PSA_ACCEL_ALG_HMAC) ) )
-#define BUILTIN_ALG_HMAC        1
-#endif
-
-#if defined(BUILTIN_ALG_HMAC)
-static size_t psa_get_hash_block_size( psa_algorithm_t alg )
-{
-    switch( alg )
-    {
-        case PSA_ALG_MD5:
-            return( 64 );
-        case PSA_ALG_RIPEMD160:
-            return( 64 );
-        case PSA_ALG_SHA_1:
-            return( 64 );
-        case PSA_ALG_SHA_224:
-            return( 64 );
-        case PSA_ALG_SHA_256:
-            return( 64 );
-        case PSA_ALG_SHA_384:
-            return( 128 );
-        case PSA_ALG_SHA_512:
-            return( 128 );
-        default:
-            return( 0 );
-    }
-}
-
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
 static psa_status_t psa_hmac_abort_internal(
     mbedtls_psa_hmac_operation_t *hmac )
 {
@@ -81,7 +47,7 @@ static psa_status_t psa_hmac_setup_internal(
     uint8_t ipad[PSA_HMAC_MAX_HASH_BLOCK_SIZE];
     size_t i;
     size_t hash_size = PSA_HASH_LENGTH( hash_alg );
-    size_t block_size = psa_get_hash_block_size( hash_alg );
+    size_t block_size = PSA_HASH_BLOCK_LENGTH( hash_alg );
     psa_status_t status;
 
     hmac->alg = hash_alg;
@@ -150,10 +116,10 @@ static psa_status_t psa_hmac_finish_internal(
     uint8_t *mac,
     size_t mac_size )
 {
-    uint8_t tmp[MBEDTLS_MD_MAX_SIZE];
+    uint8_t tmp[PSA_HASH_MAX_SIZE];
     psa_algorithm_t hash_alg = hmac->alg;
     size_t hash_size = 0;
-    size_t block_size = psa_get_hash_block_size( hash_alg );
+    size_t block_size = PSA_HASH_BLOCK_LENGTH( hash_alg );
     psa_status_t status;
 
     status = psa_hash_finish( &hmac->hash_ctx, tmp, sizeof( tmp ), &hash_size );
@@ -183,9 +149,9 @@ exit:
     mbedtls_platform_zeroize( tmp, hash_size );
     return( status );
 }
-#endif /* BUILTIN_ALG_HMAC */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC */
 
-#if defined(BUILTIN_ALG_CMAC)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC)
 static psa_status_t cmac_setup( mbedtls_psa_mac_operation_t *operation,
                                 const psa_key_attributes_t *attributes,
                                 const uint8_t *key_buffer )
@@ -221,11 +187,10 @@ static psa_status_t cmac_setup( mbedtls_psa_mac_operation_t *operation,
 exit:
     return( mbedtls_to_psa_error( ret ) );
 }
-#endif /* BUILTIN_ALG_CMAC */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CMAC */
 
-/* Implement the PSA driver MAC interface on top of mbed TLS if either the
- * software driver or the test driver requires it. */
-#if defined(BUILTIN_ALG_HMAC) || defined(BUILTIN_ALG_CMAC)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC)
 
 /* Initialize this driver's MAC operation structure. Once this function has been
  * called, mbedtls_psa_mac_abort can run and will do the right thing. */
@@ -237,15 +202,15 @@ static psa_status_t mac_init(
 
     operation->alg = alg;
 
-#if defined(BUILTIN_ALG_CMAC)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC)
     if( PSA_ALG_FULL_LENGTH_MAC( operation->alg ) == PSA_ALG_CMAC )
     {
         mbedtls_cipher_init( &operation->ctx.cmac );
         status = PSA_SUCCESS;
     }
     else
-#endif /* BUILTIN_ALG_CMAC */
-#if defined(BUILTIN_ALG_HMAC)
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CMAC */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
     if( PSA_ALG_IS_HMAC( operation->alg ) )
     {
         /* We'll set up the hash operation later in psa_hmac_setup_internal. */
@@ -253,8 +218,9 @@ static psa_status_t mac_init(
         status = PSA_SUCCESS;
     }
     else
-#endif /* BUILTIN_ALG_HMAC */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC */
     {
+        (void) operation;
         status = PSA_ERROR_NOT_SUPPORTED;
     }
 
@@ -263,7 +229,7 @@ static psa_status_t mac_init(
     return( status );
 }
 
-static psa_status_t mac_abort( mbedtls_psa_mac_operation_t *operation )
+psa_status_t mbedtls_psa_mac_abort( mbedtls_psa_mac_operation_t *operation )
 {
     if( operation->alg == 0 )
     {
@@ -273,20 +239,20 @@ static psa_status_t mac_abort( mbedtls_psa_mac_operation_t *operation )
         return( PSA_SUCCESS );
     }
     else
-#if defined(BUILTIN_ALG_CMAC)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC)
     if( PSA_ALG_FULL_LENGTH_MAC( operation->alg ) == PSA_ALG_CMAC )
     {
         mbedtls_cipher_free( &operation->ctx.cmac );
     }
     else
-#endif /* BUILTIN_ALG_CMAC */
-#if defined(BUILTIN_ALG_HMAC)
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CMAC */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
     if( PSA_ALG_IS_HMAC( operation->alg ) )
     {
         psa_hmac_abort_internal( &operation->ctx.hmac );
     }
     else
-#endif /* BUILTIN_ALG_HMAC */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC */
     {
         /* Sanity check (shouldn't happen: operation->alg should
          * always have been initialized to a valid value). */
@@ -306,11 +272,11 @@ bad_state:
     return( PSA_ERROR_BAD_STATE );
 }
 
-static psa_status_t mac_setup( mbedtls_psa_mac_operation_t *operation,
-                               const psa_key_attributes_t *attributes,
-                               const uint8_t *key_buffer,
-                               size_t key_buffer_size,
-                               psa_algorithm_t alg )
+static psa_status_t psa_mac_setup( mbedtls_psa_mac_operation_t *operation,
+                                   const psa_key_attributes_t *attributes,
+                                   const uint8_t *key_buffer,
+                                   size_t key_buffer_size,
+                                   psa_algorithm_t alg )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -322,7 +288,7 @@ static psa_status_t mac_setup( mbedtls_psa_mac_operation_t *operation,
     if( status != PSA_SUCCESS )
         return( status );
 
-#if defined(BUILTIN_ALG_CMAC)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC)
     if( PSA_ALG_FULL_LENGTH_MAC( alg ) == PSA_ALG_CMAC )
     {
         /* Key buffer size for CMAC is dictated by the key bits set on the
@@ -331,8 +297,8 @@ static psa_status_t mac_setup( mbedtls_psa_mac_operation_t *operation,
         status = cmac_setup( operation, attributes, key_buffer );
     }
     else
-#endif /* BUILTIN_ALG_CMAC */
-#if defined(BUILTIN_ALG_HMAC)
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CMAC */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
     if( PSA_ALG_IS_HMAC( alg ) )
     {
         status = psa_hmac_setup_internal( &operation->ctx.hmac,
@@ -341,7 +307,7 @@ static psa_status_t mac_setup( mbedtls_psa_mac_operation_t *operation,
                                           PSA_ALG_HMAC_GET_HASH( alg ) );
     }
     else
-#endif /* BUILTIN_ALG_HMAC */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC */
     {
         (void) attributes;
         (void) key_buffer;
@@ -350,12 +316,34 @@ static psa_status_t mac_setup( mbedtls_psa_mac_operation_t *operation,
     }
 
     if( status != PSA_SUCCESS )
-        mac_abort( operation );
+        mbedtls_psa_mac_abort( operation );
 
     return( status );
 }
 
-static psa_status_t mac_update(
+psa_status_t mbedtls_psa_mac_sign_setup(
+    mbedtls_psa_mac_operation_t *operation,
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer,
+    size_t key_buffer_size,
+    psa_algorithm_t alg )
+{
+    return( psa_mac_setup( operation, attributes,
+                           key_buffer, key_buffer_size, alg ) );
+}
+
+psa_status_t mbedtls_psa_mac_verify_setup(
+    mbedtls_psa_mac_operation_t *operation,
+    const psa_key_attributes_t *attributes,
+    const uint8_t *key_buffer,
+    size_t key_buffer_size,
+    psa_algorithm_t alg )
+{
+    return( psa_mac_setup( operation, attributes,
+                           key_buffer, key_buffer_size, alg ) );
+}
+
+psa_status_t mbedtls_psa_mac_update(
     mbedtls_psa_mac_operation_t *operation,
     const uint8_t *input,
     size_t input_length )
@@ -363,7 +351,7 @@ static psa_status_t mac_update(
     if( operation->alg == 0 )
         return( PSA_ERROR_BAD_STATE );
 
-#if defined(BUILTIN_ALG_CMAC)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC)
     if( PSA_ALG_FULL_LENGTH_MAC( operation->alg ) == PSA_ALG_CMAC )
     {
         return( mbedtls_to_psa_error(
@@ -371,15 +359,15 @@ static psa_status_t mac_update(
                                                 input, input_length ) ) );
     }
     else
-#endif /* BUILTIN_ALG_CMAC */
-#if defined(BUILTIN_ALG_HMAC)
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CMAC */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
     if( PSA_ALG_IS_HMAC( operation->alg ) )
     {
         return( psa_hmac_update_internal( &operation->ctx.hmac,
                                           input, input_length ) );
     }
     else
-#endif /* BUILTIN_ALG_HMAC */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC */
     {
         /* This shouldn't happen if `operation` was initialized by
          * a setup function. */
@@ -389,11 +377,11 @@ static psa_status_t mac_update(
     }
 }
 
-static psa_status_t mac_finish_internal( mbedtls_psa_mac_operation_t *operation,
-                                         uint8_t *mac,
-                                         size_t mac_size )
+static psa_status_t psa_mac_finish_internal(
+    mbedtls_psa_mac_operation_t *operation,
+    uint8_t *mac, size_t mac_size )
 {
-#if defined(BUILTIN_ALG_CMAC)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_CMAC)
     if( PSA_ALG_FULL_LENGTH_MAC( operation->alg ) == PSA_ALG_CMAC )
     {
         uint8_t tmp[PSA_BLOCK_CIPHER_BLOCK_MAX_SIZE];
@@ -404,15 +392,15 @@ static psa_status_t mac_finish_internal( mbedtls_psa_mac_operation_t *operation,
         return( mbedtls_to_psa_error( ret ) );
     }
     else
-#endif /* BUILTIN_ALG_CMAC */
-#if defined(BUILTIN_ALG_HMAC)
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_CMAC */
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HMAC)
     if( PSA_ALG_IS_HMAC( operation->alg ) )
     {
         return( psa_hmac_finish_internal( &operation->ctx.hmac,
                                           mac, mac_size ) );
     }
     else
-#endif /* BUILTIN_ALG_HMAC */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC */
     {
         /* This shouldn't happen if `operation` was initialized by
          * a setup function. */
@@ -423,7 +411,7 @@ static psa_status_t mac_finish_internal( mbedtls_psa_mac_operation_t *operation,
     }
 }
 
-static psa_status_t mac_sign_finish(
+psa_status_t mbedtls_psa_mac_sign_finish(
     mbedtls_psa_mac_operation_t *operation,
     uint8_t *mac,
     size_t mac_size,
@@ -434,15 +422,14 @@ static psa_status_t mac_sign_finish(
     if( operation->alg == 0 )
         return( PSA_ERROR_BAD_STATE );
 
-    status = mac_finish_internal( operation, mac, mac_size );
-
+    status = psa_mac_finish_internal( operation, mac, mac_size );
     if( status == PSA_SUCCESS )
         *mac_length = mac_size;
 
     return( status );
 }
 
-static psa_status_t mac_verify_finish(
+psa_status_t mbedtls_psa_mac_verify_finish(
     mbedtls_psa_mac_operation_t *operation,
     const uint8_t *mac,
     size_t mac_length )
@@ -457,7 +444,7 @@ static psa_status_t mac_verify_finish(
     if( mac_length > sizeof( actual_mac ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    status = mac_finish_internal( operation, actual_mac, mac_length );
+    status = psa_mac_finish_internal( operation, actual_mac, mac_length );
     if( status != PSA_SUCCESS )
         goto cleanup;
 
@@ -470,7 +457,7 @@ cleanup:
     return( status );
 }
 
-static psa_status_t mac_compute(
+psa_status_t mbedtls_psa_mac_compute(
     const psa_key_attributes_t *attributes,
     const uint8_t *key_buffer,
     size_t key_buffer_size,
@@ -484,314 +471,29 @@ static psa_status_t mac_compute(
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     mbedtls_psa_mac_operation_t operation = MBEDTLS_PSA_MAC_OPERATION_INIT;
 
-    status = mac_setup( &operation,
-                        attributes, key_buffer, key_buffer_size,
-                        alg );
+    status = psa_mac_setup( &operation,
+                            attributes, key_buffer, key_buffer_size,
+                            alg );
     if( status != PSA_SUCCESS )
         goto exit;
 
     if( input_length > 0 )
     {
-        status = mac_update( &operation, input, input_length );
+        status = mbedtls_psa_mac_update( &operation, input, input_length );
         if( status != PSA_SUCCESS )
             goto exit;
     }
 
-    status = mac_finish_internal( &operation, mac, mac_size );
+    status = psa_mac_finish_internal( &operation, mac, mac_size );
     if( status == PSA_SUCCESS )
         *mac_length = mac_size;
 
 exit:
-    mac_abort( &operation );
+    mbedtls_psa_mac_abort( &operation );
 
     return( status );
 }
 
-#endif /* BUILTIN_ALG_HMAC || BUILTIN_ALG_CMAC */
-
-#if defined(MBEDTLS_PSA_BUILTIN_MAC)
-psa_status_t mbedtls_psa_mac_compute(
-    const psa_key_attributes_t *attributes,
-    const uint8_t *key_buffer,
-    size_t key_buffer_size,
-    psa_algorithm_t alg,
-    const uint8_t *input,
-    size_t input_length,
-    uint8_t *mac,
-    size_t mac_size,
-    size_t *mac_length )
-{
-    return( mac_compute( attributes, key_buffer, key_buffer_size, alg,
-                         input, input_length,
-                         mac, mac_size, mac_length ) );
-}
-
-psa_status_t mbedtls_psa_mac_sign_setup(
-    mbedtls_psa_mac_operation_t *operation,
-    const psa_key_attributes_t *attributes,
-    const uint8_t *key_buffer,
-    size_t key_buffer_size,
-    psa_algorithm_t alg )
-{
-    return( mac_setup( operation, attributes,
-                       key_buffer, key_buffer_size, alg ) );
-}
-
-psa_status_t mbedtls_psa_mac_verify_setup(
-    mbedtls_psa_mac_operation_t *operation,
-    const psa_key_attributes_t *attributes,
-    const uint8_t *key_buffer,
-    size_t key_buffer_size,
-    psa_algorithm_t alg )
-{
-    return( mac_setup( operation, attributes,
-                       key_buffer, key_buffer_size, alg ) );
-}
-
-psa_status_t mbedtls_psa_mac_update(
-    mbedtls_psa_mac_operation_t *operation,
-    const uint8_t *input,
-    size_t input_length )
-{
-    return( mac_update( operation, input, input_length ) );
-}
-
-psa_status_t mbedtls_psa_mac_sign_finish(
-    mbedtls_psa_mac_operation_t *operation,
-    uint8_t *mac,
-    size_t mac_size,
-    size_t *mac_length )
-{
-    return( mac_sign_finish( operation, mac, mac_size, mac_length ) );
-}
-
-psa_status_t mbedtls_psa_mac_verify_finish(
-    mbedtls_psa_mac_operation_t *operation,
-    const uint8_t *mac,
-    size_t mac_length )
-{
-    return( mac_verify_finish( operation, mac, mac_length ) );
-}
-
-psa_status_t mbedtls_psa_mac_abort(
-    mbedtls_psa_mac_operation_t *operation )
-{
-    return( mac_abort( operation ) );
-}
-#endif /* MBEDTLS_PSA_BUILTIN_MAC */
-
- /*
-  * BEYOND THIS POINT, TEST DRIVER ENTRY POINTS ONLY.
-  */
-#if defined(PSA_CRYPTO_DRIVER_TEST)
-
-static int is_mac_accelerated( psa_algorithm_t alg )
-{
-#if defined(MBEDTLS_PSA_ACCEL_ALG_HMAC)
-    if( PSA_ALG_IS_HMAC( alg ) )
-        return( 1 );
-#endif
-
-    switch( PSA_ALG_FULL_LENGTH_MAC( alg ) )
-    {
-#if defined(MBEDTLS_PSA_ACCEL_ALG_CMAC)
-        case PSA_ALG_CMAC:
-            return( 1 );
-#endif
-        default:
-            return( 0 );
-    }
-}
-
-psa_status_t mbedtls_transparent_test_driver_mac_compute(
-    const psa_key_attributes_t *attributes,
-    const uint8_t *key_buffer,
-    size_t key_buffer_size,
-    psa_algorithm_t alg,
-    const uint8_t *input,
-    size_t input_length,
-    uint8_t *mac,
-    size_t mac_size,
-    size_t *mac_length )
-{
-    if( is_mac_accelerated( alg ) )
-        return( mac_compute( attributes, key_buffer, key_buffer_size, alg,
-                             input, input_length,
-                             mac, mac_size, mac_length ) );
-    else
-        return( PSA_ERROR_NOT_SUPPORTED );
-}
-
-psa_status_t mbedtls_transparent_test_driver_mac_sign_setup(
-    mbedtls_transparent_test_driver_mac_operation_t *operation,
-    const psa_key_attributes_t *attributes,
-    const uint8_t *key_buffer,
-    size_t key_buffer_size,
-    psa_algorithm_t alg )
-{
-    if( is_mac_accelerated( alg ) )
-        return( mac_setup( operation, attributes,
-                           key_buffer, key_buffer_size, alg ) );
-    else
-        return( PSA_ERROR_NOT_SUPPORTED );
-}
-
-psa_status_t mbedtls_transparent_test_driver_mac_verify_setup(
-    mbedtls_transparent_test_driver_mac_operation_t *operation,
-    const psa_key_attributes_t *attributes,
-    const uint8_t *key_buffer,
-    size_t key_buffer_size,
-    psa_algorithm_t alg )
-{
-    if( is_mac_accelerated( alg ) )
-        return( mac_setup( operation, attributes,
-                           key_buffer, key_buffer_size, alg ) );
-    else
-        return( PSA_ERROR_NOT_SUPPORTED );
-}
-
-psa_status_t mbedtls_transparent_test_driver_mac_update(
-    mbedtls_transparent_test_driver_mac_operation_t *operation,
-    const uint8_t *input,
-    size_t input_length )
-{
-    if( is_mac_accelerated( operation->alg ) )
-        return( mac_update( operation, input, input_length ) );
-    else
-        return( PSA_ERROR_BAD_STATE );
-}
-
-psa_status_t mbedtls_transparent_test_driver_mac_sign_finish(
-    mbedtls_transparent_test_driver_mac_operation_t *operation,
-    uint8_t *mac,
-    size_t mac_size,
-    size_t *mac_length )
-{
-    if( is_mac_accelerated( operation->alg ) )
-        return( mac_sign_finish( operation, mac, mac_size, mac_length ) );
-    else
-        return( PSA_ERROR_BAD_STATE );
-}
-
-psa_status_t mbedtls_transparent_test_driver_mac_verify_finish(
-    mbedtls_transparent_test_driver_mac_operation_t *operation,
-    const uint8_t *mac,
-    size_t mac_length )
-{
-    if( is_mac_accelerated( operation->alg ) )
-        return( mac_verify_finish( operation, mac, mac_length ) );
-    else
-        return( PSA_ERROR_BAD_STATE );
-}
-
-psa_status_t mbedtls_transparent_test_driver_mac_abort(
-    mbedtls_transparent_test_driver_mac_operation_t *operation )
-{
-    return( mac_abort( operation ) );
-}
-
-psa_status_t mbedtls_opaque_test_driver_mac_compute(
-    const psa_key_attributes_t *attributes,
-    const uint8_t *key_buffer,
-    size_t key_buffer_size,
-    psa_algorithm_t alg,
-    const uint8_t *input,
-    size_t input_length,
-    uint8_t *mac,
-    size_t mac_size,
-    size_t *mac_length )
-{
-    /* Opaque driver testing is not implemented yet through this mechanism. */
-    (void) attributes;
-    (void) key_buffer;
-    (void) key_buffer_size;
-    (void) alg;
-    (void) input;
-    (void) input_length;
-    (void) mac;
-    (void) mac_size;
-    (void) mac_length;
-    return( PSA_ERROR_NOT_SUPPORTED );
-}
-
-psa_status_t mbedtls_opaque_test_driver_mac_sign_setup(
-    mbedtls_opaque_test_driver_mac_operation_t *operation,
-    const psa_key_attributes_t *attributes,
-    const uint8_t *key_buffer,
-    size_t key_buffer_size,
-    psa_algorithm_t alg )
-{
-    /* Opaque driver testing is not implemented yet through this mechanism. */
-    (void) operation;
-    (void) attributes;
-    (void) key_buffer;
-    (void) key_buffer_size;
-    (void) alg;
-    return( PSA_ERROR_NOT_SUPPORTED );
-}
-
-psa_status_t mbedtls_opaque_test_driver_mac_verify_setup(
-    mbedtls_opaque_test_driver_mac_operation_t *operation,
-    const psa_key_attributes_t *attributes,
-    const uint8_t *key_buffer,
-    size_t key_buffer_size,
-    psa_algorithm_t alg )
-{
-    /* Opaque driver testing is not implemented yet through this mechanism. */
-    (void) operation;
-    (void) attributes;
-    (void) key_buffer;
-    (void) key_buffer_size;
-    (void) alg;
-    return( PSA_ERROR_NOT_SUPPORTED );
-}
-
-psa_status_t mbedtls_opaque_test_driver_mac_update(
-    mbedtls_opaque_test_driver_mac_operation_t *operation,
-    const uint8_t *input,
-    size_t input_length )
-{
-    /* Opaque driver testing is not implemented yet through this mechanism. */
-    (void) operation;
-    (void) input;
-    (void) input_length;
-    return( PSA_ERROR_NOT_SUPPORTED );
-}
-
-psa_status_t mbedtls_opaque_test_driver_mac_sign_finish(
-    mbedtls_opaque_test_driver_mac_operation_t *operation,
-    uint8_t *mac,
-    size_t mac_size,
-    size_t *mac_length )
-{
-    /* Opaque driver testing is not implemented yet through this mechanism. */
-    (void) operation;
-    (void) mac;
-    (void) mac_size;
-    (void) mac_length;
-    return( PSA_ERROR_NOT_SUPPORTED );
-}
-
-psa_status_t mbedtls_opaque_test_driver_mac_verify_finish(
-    mbedtls_opaque_test_driver_mac_operation_t *operation,
-    const uint8_t *mac,
-    size_t mac_length )
-{
-    /* Opaque driver testing is not implemented yet through this mechanism. */
-    (void) operation;
-    (void) mac;
-    (void) mac_length;
-    return( PSA_ERROR_NOT_SUPPORTED );
-}
-
-psa_status_t mbedtls_opaque_test_driver_mac_abort(
-    mbedtls_opaque_test_driver_mac_operation_t *operation )
-{
-    /* Opaque driver testing is not implemented yet through this mechanism. */
-    (void) operation;
-    return( PSA_ERROR_NOT_SUPPORTED );
-}
-
-#endif /* PSA_CRYPTO_DRIVER_TEST */
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_HMAC || MBEDTLS_PSA_BUILTIN_ALG_CMAC */
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

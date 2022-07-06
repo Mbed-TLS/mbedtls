@@ -519,7 +519,7 @@ int execute_tests( int argc , const char ** argv )
     FILE *file;
     char buf[5000];
     char *params[50];
-    /* Store for proccessed integer params. */
+    /* Store for processed integer params. */
     int32_t int_params[50];
     void *pointer;
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
@@ -778,6 +778,12 @@ int execute_tests( int argc , const char ** argv )
                     mbedtls_fprintf( stdout, "line %d, %s",
                                      mbedtls_test_info.line_no,
                                      mbedtls_test_info.filename );
+                    if( mbedtls_test_info.line1[0] != 0 )
+                        mbedtls_fprintf( stdout, "\n  %s",
+                                         mbedtls_test_info.line1 );
+                    if( mbedtls_test_info.line2[0] != 0 )
+                        mbedtls_fprintf( stdout, "\n  %s",
+                                         mbedtls_test_info.line2 );
                 }
                 fflush( stdout );
             }

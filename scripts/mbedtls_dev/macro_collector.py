@@ -18,7 +18,7 @@
 
 import itertools
 import re
-from typing import Dict, Iterable, Iterator, List, Optional, Pattern, Set, Tuple, Union
+from typing import Dict, IO, Iterable, Iterator, List, Optional, Pattern, Set, Tuple, Union
 
 
 class ReadFileLineException(Exception):
@@ -50,12 +50,13 @@ class read_file_lines:
     """
     def __init__(self, filename: str, binary: bool = False) -> None:
         self.filename = filename
+        self.file = None #type: Optional[IO[str]]
         self.line_number = 'entry' #type: Union[int, str]
         self.generator = None #type: Optional[Iterable[Tuple[int, str]]]
         self.binary = binary
     def __enter__(self) -> 'read_file_lines':
-        self.generator = enumerate(open(self.filename,
-                                        'rb' if self.binary else 'r'))
+        self.file = open(self.filename, 'rb' if self.binary else 'r')
+        self.generator = enumerate(self.file)
         return self
     def __iter__(self) -> Iterator[str]:
         assert self.generator is not None
@@ -64,6 +65,8 @@ class read_file_lines:
             yield content
         self.line_number = 'exit'
     def __exit__(self, exc_type, exc_value, exc_traceback) -> None:
+        if self.file is not None:
+            self.file.close()
         if exc_type is not None:
             raise ReadFileLineException(self.filename, self.line_number) \
                 from exc_value
@@ -183,7 +186,7 @@ class PSAMacroEnumerator:
                 for value in argument_lists[i][1:]:
                     arguments[i] = value
                     yield self._format_arguments(name, arguments)
-                arguments[i] = argument_lists[0][0]
+                arguments[i] = argument_lists[i][0]
         except BaseException as e:
             raise Exception('distribute_arguments({})'.format(name)) from e
 
@@ -232,6 +235,27 @@ class PSAMacroCollector(PSAMacroEnumerator):
         self.key_types_from_curve = {} #type: Dict[str, str]
         self.key_types_from_group = {} #type: Dict[str, str]
         self.algorithms_from_hash = {} #type: Dict[str, str]
+
+    @staticmethod
+    def algorithm_tester(name: str) -> str:
+        """The predicate for whether an algorithm is built from the given constructor.
+
+        The given name must be the name of an algorithm constructor of the
+        form ``PSA_ALG_xxx`` which is used as ``PSA_ALG_xxx(yyy)`` to build
+        an algorithm value. Return the corresponding predicate macro which
+        is used as ``predicate(alg)`` to test whether ``alg`` can be built
+        as ``PSA_ALG_xxx(yyy)``. The predicate is usually called
+        ``PSA_ALG_IS_xxx``.
+        """
+        prefix = 'PSA_ALG_'
+        assert name.startswith(prefix)
+        midfix = 'IS_'
+        suffix = name[len(prefix):]
+        if suffix in ['DSA', 'ECDSA']:
+            midfix += 'RANDOMIZED_'
+        elif suffix == 'RSA_PSS':
+            suffix += '_STANDARD_SALT'
+        return prefix + midfix + suffix
 
     def record_algorithm_subtype(self, name: str, expansion: str) -> None:
         """Record the subtype of an algorithm constructor.
@@ -308,12 +332,7 @@ class PSAMacroCollector(PSAMacroEnumerator):
             self.algorithms.add(name)
             self.record_algorithm_subtype(name, expansion)
         elif name.startswith('PSA_ALG_') and parameter == 'hash_alg':
-            if name in ['PSA_ALG_DSA', 'PSA_ALG_ECDSA']:
-                # A naming irregularity
-                tester = name[:8] + 'IS_RANDOMIZED_' + name[8:]
-            else:
-                tester = name[:8] + 'IS_' + name[8:]
-            self.algorithms_from_hash[name] = tester
+            self.algorithms_from_hash[name] = self.algorithm_tester(name)
         elif name.startswith('PSA_KEY_USAGE_') and not parameter:
             self.key_usage_flags.add(name)
         else:
@@ -381,10 +400,26 @@ enumerate
             'other_algorithm': [],
             'lifetime': [self.lifetimes],
         } #type: Dict[str, List[Set[str]]]
-        self.arguments_for['mac_length'] += ['1', '63']
-        self.arguments_for['min_mac_length'] += ['1', '63']
-        self.arguments_for['tag_length'] += ['1', '63']
-        self.arguments_for['min_tag_length'] += ['1', '63']
+        mac_lengths = [str(n) for n in [
+            1,  # minimum expressible
+            4,  # minimum allowed by policy
+            13, # an odd size in a plausible range
+            14, # an even non-power-of-two size in a plausible range
+            16, # same as full size for at least one algorithm
+            63, # maximum expressible
+        ]]
+        self.arguments_for['mac_length'] += mac_lengths
+        self.arguments_for['min_mac_length'] += mac_lengths
+        aead_lengths = [str(n) for n in [
+            1,  # minimum expressible
+            4,  # minimum allowed by policy
+            13, # an odd size in a plausible range
+            14, # an even non-power-of-two size in a plausible range
+            16, # same as full size for at least one algorithm
+            63, # maximum expressible
+        ]]
+        self.arguments_for['tag_length'] += aead_lengths
+        self.arguments_for['min_tag_length'] += aead_lengths
 
     def add_numerical_values(self) -> None:
         """Add numerical values that are not supported to the known identifiers."""

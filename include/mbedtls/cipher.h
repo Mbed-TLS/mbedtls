@@ -140,9 +140,15 @@ typedef enum {
     MBEDTLS_CIPHER_AES_128_CCM,          /**< AES cipher with 128-bit CCM mode. */
     MBEDTLS_CIPHER_AES_192_CCM,          /**< AES cipher with 192-bit CCM mode. */
     MBEDTLS_CIPHER_AES_256_CCM,          /**< AES cipher with 256-bit CCM mode. */
+    MBEDTLS_CIPHER_AES_128_CCM_STAR_NO_TAG, /**< AES cipher with 128-bit CCM_STAR_NO_TAG mode. */
+    MBEDTLS_CIPHER_AES_192_CCM_STAR_NO_TAG, /**< AES cipher with 192-bit CCM_STAR_NO_TAG mode. */
+    MBEDTLS_CIPHER_AES_256_CCM_STAR_NO_TAG, /**< AES cipher with 256-bit CCM_STAR_NO_TAG mode. */
     MBEDTLS_CIPHER_CAMELLIA_128_CCM,     /**< Camellia cipher with 128-bit CCM mode. */
     MBEDTLS_CIPHER_CAMELLIA_192_CCM,     /**< Camellia cipher with 192-bit CCM mode. */
     MBEDTLS_CIPHER_CAMELLIA_256_CCM,     /**< Camellia cipher with 256-bit CCM mode. */
+    MBEDTLS_CIPHER_CAMELLIA_128_CCM_STAR_NO_TAG, /**< Camellia cipher with 128-bit CCM_STAR_NO_TAG mode. */
+    MBEDTLS_CIPHER_CAMELLIA_192_CCM_STAR_NO_TAG, /**< Camellia cipher with 192-bit CCM_STAR_NO_TAG mode. */
+    MBEDTLS_CIPHER_CAMELLIA_256_CCM_STAR_NO_TAG, /**< Camellia cipher with 256-bit CCM_STAR_NO_TAG mode. */
     MBEDTLS_CIPHER_ARIA_128_ECB,         /**< Aria cipher with 128-bit key and ECB mode. */
     MBEDTLS_CIPHER_ARIA_192_ECB,         /**< Aria cipher with 192-bit key and ECB mode. */
     MBEDTLS_CIPHER_ARIA_256_ECB,         /**< Aria cipher with 256-bit key and ECB mode. */
@@ -161,6 +167,9 @@ typedef enum {
     MBEDTLS_CIPHER_ARIA_128_CCM,         /**< Aria cipher with 128-bit key and CCM mode. */
     MBEDTLS_CIPHER_ARIA_192_CCM,         /**< Aria cipher with 192-bit key and CCM mode. */
     MBEDTLS_CIPHER_ARIA_256_CCM,         /**< Aria cipher with 256-bit key and CCM mode. */
+    MBEDTLS_CIPHER_ARIA_128_CCM_STAR_NO_TAG, /**< Aria cipher with 128-bit key and CCM_STAR_NO_TAG mode. */
+    MBEDTLS_CIPHER_ARIA_192_CCM_STAR_NO_TAG, /**< Aria cipher with 192-bit key and CCM_STAR_NO_TAG mode. */
+    MBEDTLS_CIPHER_ARIA_256_CCM_STAR_NO_TAG, /**< Aria cipher with 256-bit key and CCM_STAR_NO_TAG mode. */
     MBEDTLS_CIPHER_AES_128_OFB,          /**< AES 128-bit cipher in OFB mode. */
     MBEDTLS_CIPHER_AES_192_OFB,          /**< AES 192-bit cipher in OFB mode. */
     MBEDTLS_CIPHER_AES_256_OFB,          /**< AES 256-bit cipher in OFB mode. */
@@ -187,6 +196,7 @@ typedef enum {
     MBEDTLS_MODE_GCM,                    /**< The GCM cipher mode.         */
     MBEDTLS_MODE_STREAM,                 /**< The stream cipher mode.      */
     MBEDTLS_MODE_CCM,                    /**< The CCM cipher mode.         */
+    MBEDTLS_MODE_CCM_STAR_NO_TAG,        /**< The CCM*-no-tag cipher mode. */
     MBEDTLS_MODE_XTS,                    /**< The XTS cipher mode.         */
     MBEDTLS_MODE_CHACHAPOLY,             /**< The ChaCha-Poly cipher mode. */
     MBEDTLS_MODE_KW,                     /**< The SP800-38F KW mode */
@@ -498,6 +508,80 @@ static inline const char *mbedtls_cipher_info_get_name(
 }
 
 /**
+ * \brief       This function returns the size of the IV or nonce
+ *              for the cipher info structure, in bytes.
+ *
+ * \param info  The cipher info structure. This may be \c NULL.
+ *
+ * \return      The recommended IV size.
+ * \return      \c 0 for ciphers not using an IV or a nonce.
+ * \return      \c 0 if \p info is \c NULL.
+ */
+static inline size_t mbedtls_cipher_info_get_iv_size(
+    const mbedtls_cipher_info_t *info )
+{
+    if( info == NULL )
+        return( 0 );
+
+    return( (size_t) info->MBEDTLS_PRIVATE(iv_size) );
+}
+
+/**
+ * \brief        This function returns the block size of the given
+ *               cipher info structure in bytes.
+ *
+ * \param info   The cipher info structure. This may be \c NULL.
+ *
+ * \return       The block size of the cipher.
+ * \return       \c 1 if the cipher is a stream cipher.
+ * \return       \c 0 if \p info is \c NULL.
+ */
+static inline size_t mbedtls_cipher_info_get_block_size(
+    const mbedtls_cipher_info_t *info )
+{
+    if( info == NULL )
+        return( 0 );
+
+    return( (size_t) info->MBEDTLS_PRIVATE(block_size) );
+}
+
+/**
+ * \brief        This function returns a non-zero value if the key length for
+ *               the given cipher is variable.
+ *
+ * \param info   The cipher info structure. This may be \c NULL.
+ *
+ * \return       Non-zero if the key length is variable, \c 0 otherwise.
+ * \return       \c 0 if the given pointer is \c NULL.
+ */
+static inline int mbedtls_cipher_info_has_variable_key_bitlen(
+    const mbedtls_cipher_info_t *info )
+{
+    if( info == NULL )
+        return( 0 );
+
+    return( info->MBEDTLS_PRIVATE(flags) & MBEDTLS_CIPHER_VARIABLE_KEY_LEN );
+}
+
+/**
+ * \brief        This function returns a non-zero value if the IV size for
+ *               the given cipher is variable.
+ *
+ * \param info   The cipher info structure. This may be \c NULL.
+ *
+ * \return       Non-zero if the IV size is variable, \c 0 otherwise.
+ * \return       \c 0 if the given pointer is \c NULL.
+ */
+static inline int mbedtls_cipher_info_has_variable_iv_size(
+    const mbedtls_cipher_info_t *info )
+{
+    if( info == NULL )
+        return( 0 );
+
+    return( info->MBEDTLS_PRIVATE(flags) & MBEDTLS_CIPHER_VARIABLE_IV_LEN );
+}
+
+/**
  * \brief               This function initializes a \p cipher_context as NONE.
  *
  * \param ctx           The context to be initialized. This must not be \c NULL.
@@ -546,9 +630,15 @@ int mbedtls_cipher_setup( mbedtls_cipher_context_t *ctx,
                           const mbedtls_cipher_info_t *cipher_info );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /**
  * \brief               This function initializes a cipher context for
  *                      PSA-based use with the given cipher primitive.
+ *
+ * \deprecated          This function is deprecated and will be removed in a
+ *                      future version of the library.
+ *                      Please use psa_aead_xxx() / psa_cipher_xxx() directly
+ *                      instead.
  *
  * \note                See #MBEDTLS_USE_PSA_CRYPTO for information on PSA.
  *
@@ -567,17 +657,19 @@ int mbedtls_cipher_setup( mbedtls_cipher_context_t *ctx,
  * \return              #MBEDTLS_ERR_CIPHER_ALLOC_FAILED if allocation of the
  *                      cipher-specific context fails.
  */
-int mbedtls_cipher_setup_psa( mbedtls_cipher_context_t *ctx,
-                              const mbedtls_cipher_info_t *cipher_info,
-                              size_t taglen );
+int MBEDTLS_DEPRECATED mbedtls_cipher_setup_psa( mbedtls_cipher_context_t *ctx,
+    const mbedtls_cipher_info_t *cipher_info, size_t taglen );
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 /**
- * \brief        This function returns the block size of the given cipher.
+ * \brief        This function returns the block size of the given cipher
+ *               in bytes.
  *
- * \param ctx    The context of the cipher. This must be initialized.
+ * \param ctx    The context of the cipher.
  *
  * \return       The block size of the underlying cipher.
+ * \return       \c 1 if the cipher is a stream cipher.
  * \return       \c 0 if \p ctx has not been initialized.
  */
 static inline unsigned int mbedtls_cipher_get_block_size(
@@ -757,6 +849,12 @@ int mbedtls_cipher_set_padding_mode( mbedtls_cipher_context_t *ctx,
  *
  * \note            Some ciphers do not use IVs nor nonce. For these
  *                  ciphers, this function has no effect.
+ *
+ * \note            For #MBEDTLS_CIPHER_CHACHA20, the nonce length must
+ *                  be 12, and the initial counter value is 0.
+ *
+ * \note            For #MBEDTLS_CIPHER_CHACHA20_POLY1305, the nonce length
+ *                  must be 12.
  *
  * \param ctx       The generic cipher context. This must be initialized and
  *                  bound to a cipher information structure.

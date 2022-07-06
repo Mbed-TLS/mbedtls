@@ -325,7 +325,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int owner_id_arg, int id_arg,
         case INVALIDATE_BY_DESTROYING:
         case INVALIDATE_BY_DESTROYING_WITH_SHUTDOWN:
             /*
-             * Test that the key handle and identifier are now not refering to an
+             * Test that the key handle and identifier are now not referring to an
              * existing key.
              */
             TEST_EQUAL( psa_get_key_attributes( handle, &read_attributes ),

@@ -12,6 +12,11 @@
  * designations of cryptographic algorithms, and error codes returned by
  * the library.
  *
+ * Note that many of the constants defined in this file are embedded in
+ * the persistent key store, as part of key metadata (including usage
+ * policies). As a consequence, they must not be changed (unless the storage
+ * format version changes).
+ *
  * This header file only defines preprocessor macros.
  */
 /*
@@ -40,6 +45,18 @@
  */
 
 /* PSA error codes */
+
+/* Error codes are standardized across PSA domains (framework, crypto, storage,
+ * etc.). Do not change the values in this section or even the expansions
+ * of each macro: it must be possible to `#include` both this header
+ * and some other PSA component's headers in the same C source,
+ * which will lead to duplicate definitions of the `PSA_SUCCESS` and
+ * `PSA_ERROR_xxx` macros, which is ok if and only if the macros expand
+ * to the same sequence of tokens.
+ *
+ * If you must add a new
+ * value, check with the Arm PSA framework group to pick one that other
+ * domains aren't already using. */
 
 /** The action was completed successfully. */
 #define PSA_SUCCESS ((psa_status_t)0)
@@ -317,6 +334,12 @@
  * @{
  */
 
+/* Note that key type values, including ECC family and DH group values, are
+ * embedded in the persistent key store, as part of key metadata. As a
+ * consequence, they must not be changed (unless the storage format version
+ * changes).
+ */
+
 /** An invalid key type value.
  *
  * Zero is not the encoding of any key type.
@@ -466,6 +489,10 @@
  */
 #define PSA_KEY_TYPE_AES                            ((psa_key_type_t)0x2400)
 
+/** Key for a cipher, AEAD or MAC algorithm based on the
+ * ARIA block cipher. */
+#define PSA_KEY_TYPE_ARIA                           ((psa_key_type_t)0x2406)
+
 /** Key for a cipher or MAC algorithm based on DES or 3DES (Triple-DES).
  *
  * The size of the key can be 64 bits (single DES), 128 bits (2-key 3DES) or
@@ -485,8 +512,12 @@
  *
  * ChaCha20 and the ChaCha20_Poly1305 construction are defined in RFC 7539.
  *
- * Implementations must support 12-byte nonces, may support 8-byte nonces,
- * and should reject other sizes.
+ * \note For ChaCha20 and ChaCha20_Poly1305, Mbed TLS only supports
+ *       12-byte nonces.
+ *
+ * \note For ChaCha20, the initial counter value is 0. To encrypt or decrypt
+ *       with the initial counter value 1, you can process and discard a
+ *       64-byte block before the real data.
  */
 #define PSA_KEY_TYPE_CHACHA20                       ((psa_key_type_t)0x2004)
 
@@ -548,6 +579,9 @@
     ((psa_ecc_family_t) (PSA_KEY_TYPE_IS_ECC(type) ?             \
                         ((type) & PSA_KEY_TYPE_ECC_CURVE_MASK) : \
                         0))
+
+/** Check if the curve of given family is Weierstrass elliptic curve. */
+#define PSA_ECC_FAMILY_IS_WEIERSTRASS(family) ((family & 0xc0) == 0)
 
 /** SEC Koblitz curves over prime fields.
  *
@@ -708,6 +742,11 @@
      1u << PSA_GET_KEY_TYPE_BLOCK_SIZE_EXPONENT(type) :                         \
      0u)
 
+/* Note that algorithm values are embedded in the persistent key store,
+ * as part of key metadata. As a consequence, they must not be changed
+ * (unless the storage format version changes).
+ */
+
 /** Vendor-defined algorithm flag.
  *
  * Algorithms defined by this standard will never have the #PSA_ALG_VENDOR_FLAG
@@ -843,6 +882,9 @@
     (PSA_ALG_IS_KEY_DERIVATION(alg) &&              \
      (alg) & PSA_ALG_KEY_DERIVATION_STRETCHING_FLAG)
 
+/** An invalid algorithm identifier value. */
+#define PSA_ALG_NONE                            ((psa_algorithm_t)0)
+
 #define PSA_ALG_HASH_MASK                       ((psa_algorithm_t)0x000000ff)
 /** MD5 */
 #define PSA_ALG_MD5                             ((psa_algorithm_t)0x02000003)
@@ -886,7 +928,7 @@
  * algorithm parametrized with any supported hash.
  *
  * That is, suppose that `PSA_xxx_SIGNATURE` is one of the following macros:
- * - #PSA_ALG_RSA_PKCS1V15_SIGN, #PSA_ALG_RSA_PSS,
+ * - #PSA_ALG_RSA_PKCS1V15_SIGN, #PSA_ALG_RSA_PSS, #PSA_ALG_RSA_PSS_ANY_SALT,
  * - #PSA_ALG_ECDSA, #PSA_ALG_DETERMINISTIC_ECDSA.
  * Then you may create and use a key as follows:
  * - Set the key usage field using #PSA_ALG_ANY_HASH, for example:
@@ -1195,6 +1237,17 @@
  */
 #define PSA_ALG_CCM                             ((psa_algorithm_t)0x05500100)
 
+/** The CCM* cipher mode without authentication.
+ *
+ * This is CCM* as specified in IEEE 802.15.4 §7, with a tag length of 0.
+ * For CCM* with a nonzero tag length, use the AEAD algorithm #PSA_ALG_CCM.
+ *
+ * The underlying block cipher is determined by the key type.
+ *
+ * Currently only 13-byte long IV's are supported.
+ */
+#define PSA_ALG_CCM_STAR_NO_TAG                 ((psa_algorithm_t)0x04c01300)
+
 /** The GCM authenticated encryption algorithm.
  *
  * The underlying block cipher is determined by the key type.
@@ -1341,6 +1394,7 @@
     (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_RSA_PKCS1V15_SIGN_BASE)
 
 #define PSA_ALG_RSA_PSS_BASE               ((psa_algorithm_t)0x06000300)
+#define PSA_ALG_RSA_PSS_ANY_SALT_BASE      ((psa_algorithm_t)0x06001300)
 /** RSA PSS signature with hashing.
  *
  * This is the signature scheme defined by RFC 8017
@@ -1361,8 +1415,71 @@
  */
 #define PSA_ALG_RSA_PSS(hash_alg)                               \
     (PSA_ALG_RSA_PSS_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
-#define PSA_ALG_IS_RSA_PSS(alg)                                 \
+
+/** RSA PSS signature with hashing with relaxed verification.
+ *
+ * This algorithm has the same behavior as #PSA_ALG_RSA_PSS when signing,
+ * but allows an arbitrary salt length (including \c 0) when verifying a
+ * signature.
+ *
+ * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
+ *                      This includes #PSA_ALG_ANY_HASH
+ *                      when specifying the algorithm in a usage policy.
+ *
+ * \return              The corresponding RSA PSS signature algorithm.
+ * \return              Unspecified if \p hash_alg is not a supported
+ *                      hash algorithm.
+ */
+#define PSA_ALG_RSA_PSS_ANY_SALT(hash_alg)                      \
+    (PSA_ALG_RSA_PSS_ANY_SALT_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
+
+/** Whether the specified algorithm is RSA PSS with standard salt.
+ *
+ * \param alg           An algorithm value or an algorithm policy wildcard.
+ *
+ * \return              1 if \p alg is of the form
+ *                      #PSA_ALG_RSA_PSS(\c hash_alg),
+ *                      where \c hash_alg is a hash algorithm or
+ *                      #PSA_ALG_ANY_HASH. 0 otherwise.
+ *                      This macro may return either 0 or 1 if \p alg is not
+ *                      a supported algorithm identifier or policy.
+ */
+#define PSA_ALG_IS_RSA_PSS_STANDARD_SALT(alg)                   \
     (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_RSA_PSS_BASE)
+
+/** Whether the specified algorithm is RSA PSS with any salt.
+ *
+ * \param alg           An algorithm value or an algorithm policy wildcard.
+ *
+ * \return              1 if \p alg is of the form
+ *                      #PSA_ALG_RSA_PSS_ANY_SALT_BASE(\c hash_alg),
+ *                      where \c hash_alg is a hash algorithm or
+ *                      #PSA_ALG_ANY_HASH. 0 otherwise.
+ *                      This macro may return either 0 or 1 if \p alg is not
+ *                      a supported algorithm identifier or policy.
+ */
+#define PSA_ALG_IS_RSA_PSS_ANY_SALT(alg)                                \
+    (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_RSA_PSS_ANY_SALT_BASE)
+
+/** Whether the specified algorithm is RSA PSS.
+ *
+ * This includes any of the RSA PSS algorithm variants, regardless of the
+ * constraints on salt length.
+ *
+ * \param alg           An algorithm value or an algorithm policy wildcard.
+ *
+ * \return              1 if \p alg is of the form
+ *                      #PSA_ALG_RSA_PSS(\c hash_alg) or
+ *                      #PSA_ALG_RSA_PSS_ANY_SALT_BASE(\c hash_alg),
+ *                      where \c hash_alg is a hash algorithm or
+ *                      #PSA_ALG_ANY_HASH. 0 otherwise.
+ *                      This macro may return either 0 or 1 if \p alg is not
+ *                      a supported algorithm identifier or policy.
+ */
+#define PSA_ALG_IS_RSA_PSS(alg)                                 \
+    (PSA_ALG_IS_RSA_PSS_STANDARD_SALT(alg) ||                   \
+     PSA_ALG_IS_RSA_PSS_ANY_SALT(alg))
 
 #define PSA_ALG_ECDSA_BASE                      ((psa_algorithm_t)0x06000600)
 /** ECDSA signature with hashing.
@@ -1371,7 +1488,7 @@
  * with a random per-message secret number (*k*).
  *
  * The representation of the signature as a byte string consists of
- * the concatentation of the signature values *r* and *s*. Each of
+ * the concatenation of the signature values *r* and *s*. Each of
  * *r* and *s* is encoded as an *N*-octet string, where *N* is the length
  * of the base point of the curve in octets. Each value is represented
  * in big-endian order (most significant octet first).
@@ -1521,20 +1638,24 @@
  * file. */
 #define PSA_ALG_IS_VENDOR_HASH_AND_SIGN(alg) 0
 
-/** Whether the specified algorithm is a hash-and-sign algorithm.
+/** Whether the specified algorithm is a signature algorithm that can be used
+ * with psa_sign_hash() and psa_verify_hash().
  *
- * Hash-and-sign algorithms are asymmetric (public-key) signature algorithms
- * structured in two parts: first the calculation of a hash in a way that
- * does not depend on the key, then the calculation of a signature from the
- * hash value and the key.
+ * This encompasses all strict hash-and-sign algorithms categorized by
+ * PSA_ALG_IS_HASH_AND_SIGN(), as well as algorithms that follow the
+ * paradigm more loosely:
+ * - #PSA_ALG_RSA_PKCS1V15_SIGN_RAW (expects its input to be an encoded hash)
+ * - #PSA_ALG_ECDSA_ANY (doesn't specify what kind of hash the input is)
  *
- * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ * \param alg An algorithm identifier (value of type psa_algorithm_t).
  *
- * \return 1 if \p alg is a hash-and-sign algorithm, 0 otherwise.
- *         This macro may return either 0 or 1 if \p alg is not a supported
- *         algorithm identifier.
+ * \return 1 if alg is a signature algorithm that can be used to sign a
+ *         hash. 0 if alg is a signature algorithm that can only be used
+ *         to sign a message. 0 if alg is not a signature algorithm.
+ *         This macro can return either 0 or 1 if alg is not a
+ *         supported algorithm identifier.
  */
-#define PSA_ALG_IS_HASH_AND_SIGN(alg)                                   \
+#define PSA_ALG_IS_SIGN_HASH(alg)                                       \
     (PSA_ALG_IS_RSA_PSS(alg) || PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg) ||    \
      PSA_ALG_IS_ECDSA(alg) || PSA_ALG_IS_HASH_EDDSA(alg) ||             \
      PSA_ALG_IS_VENDOR_HASH_AND_SIGN(alg))
@@ -1551,7 +1672,37 @@
  *         supported algorithm identifier.
  */
 #define PSA_ALG_IS_SIGN_MESSAGE(alg)                                    \
-    (PSA_ALG_IS_HASH_AND_SIGN(alg) || (alg) == PSA_ALG_PURE_EDDSA )
+    (PSA_ALG_IS_SIGN_HASH(alg) || (alg) == PSA_ALG_PURE_EDDSA )
+
+/** Whether the specified algorithm is a hash-and-sign algorithm.
+ *
+ * Hash-and-sign algorithms are asymmetric (public-key) signature algorithms
+ * structured in two parts: first the calculation of a hash in a way that
+ * does not depend on the key, then the calculation of a signature from the
+ * hash value and the key. Hash-and-sign algorithms encode the hash
+ * used for the hashing step, and you can call #PSA_ALG_SIGN_GET_HASH
+ * to extract this algorithm.
+ *
+ * Thus, for a hash-and-sign algorithm,
+ * `psa_sign_message(key, alg, input, ...)` is equivalent to
+ * ```
+ * psa_hash_compute(PSA_ALG_SIGN_GET_HASH(alg), input, ..., hash, ...);
+ * psa_sign_hash(key, alg, hash, ..., signature, ...);
+ * ```
+ * Most usefully, separating the hash from the signature allows the hash
+ * to be calculated in multiple steps with psa_hash_setup(), psa_hash_update()
+ * and psa_hash_finish(). Likewise psa_verify_message() is equivalent to
+ * calculating the hash and then calling psa_verify_hash().
+ *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
+ * \return 1 if \p alg is a hash-and-sign algorithm, 0 otherwise.
+ *         This macro may return either 0 or 1 if \p alg is not a supported
+ *         algorithm identifier.
+ */
+#define PSA_ALG_IS_HASH_AND_SIGN(alg)                                   \
+    (PSA_ALG_IS_SIGN_HASH(alg) &&                                       \
+     ((alg) & PSA_ALG_HASH_MASK) != 0)
 
 /** Get the hash used by a hash-and-sign signature algorithm.
  *
@@ -1573,7 +1724,6 @@
  */
 #define PSA_ALG_SIGN_GET_HASH(alg)                                     \
     (PSA_ALG_IS_HASH_AND_SIGN(alg) ?                                   \
-     ((alg) & PSA_ALG_HASH_MASK) == 0 ? /*"raw" algorithm*/ 0 :        \
      ((alg) & PSA_ALG_HASH_MASK) | PSA_ALG_CATEGORY_HASH :             \
      0)
 
@@ -1619,6 +1769,12 @@
  * You may pass #PSA_KEY_DERIVATION_INPUT_INFO at any time after steup and before
  * starting to generate output.
  *
+ *  \warning  HKDF processes the salt as follows: first hash it with hash_alg
+ *  if the salt is longer than the block size of the hash algorithm; then
+ *  pad with null bytes up to the block size. As a result, it is possible
+ *  for distinct salt inputs to result in the same outputs. To ensure
+ *  unique outputs, it is recommended to use a fixed length for salt values.
+ *
  * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
  *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
  *
@@ -1643,6 +1799,112 @@
     (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_HKDF_BASE)
 #define PSA_ALG_HKDF_GET_HASH(hkdf_alg)                         \
     (PSA_ALG_CATEGORY_HASH | ((hkdf_alg) & PSA_ALG_HASH_MASK))
+
+#define PSA_ALG_HKDF_EXTRACT_BASE                       ((psa_algorithm_t)0x08000400)
+/** Macro to build an HKDF-Extract algorithm.
+ *
+ * For example, `PSA_ALG_HKDF_EXTRACT(PSA_ALG_SHA256)` is
+ * HKDF-Extract using HMAC-SHA-256.
+ *
+ * This key derivation algorithm uses the following inputs:
+ *  - PSA_KEY_DERIVATION_INPUT_SALT is the salt.
+ *  - PSA_KEY_DERIVATION_INPUT_SECRET is the input keying material used in the
+ *    "extract" step.
+ * The inputs are mandatory and must be passed in the order above.
+ * Each input may only be passed once.
+ *
+ *  \warning HKDF-Extract is not meant to be used on its own. PSA_ALG_HKDF
+ *  should be used instead if possible. PSA_ALG_HKDF_EXTRACT is provided
+ *  as a separate algorithm for the sake of protocols that use it as a
+ *  building block. It may also be a slight performance optimization
+ *  in applications that use HKDF with the same salt and key but many
+ *  different info strings.
+ *
+ *  \warning  HKDF processes the salt as follows: first hash it with hash_alg
+ *  if the salt is longer than the block size of the hash algorithm; then
+ *  pad with null bytes up to the block size. As a result, it is possible
+ *  for distinct salt inputs to result in the same outputs. To ensure
+ *  unique outputs, it is recommended to use a fixed length for salt values.
+ *
+ * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
+ *
+ * \return              The corresponding HKDF-Extract algorithm.
+ * \return              Unspecified if \p hash_alg is not a supported
+ *                      hash algorithm.
+ */
+#define PSA_ALG_HKDF_EXTRACT(hash_alg)                                  \
+    (PSA_ALG_HKDF_EXTRACT_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
+/** Whether the specified algorithm is an HKDF-Extract algorithm.
+ *
+ * HKDF-Extract is a family of key derivation algorithms that are based
+ * on a hash function and the HMAC construction.
+ *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
+ * \return 1 if \c alg is an HKDF-Extract algorithm, 0 otherwise.
+ *         This macro may return either 0 or 1 if \c alg is not a supported
+ *         key derivation algorithm identifier.
+ */
+#define PSA_ALG_IS_HKDF_EXTRACT(alg)                            \
+    (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_HKDF_EXTRACT_BASE)
+
+#define PSA_ALG_HKDF_EXPAND_BASE                       ((psa_algorithm_t)0x08000500)
+/** Macro to build an HKDF-Expand algorithm.
+ *
+ * For example, `PSA_ALG_HKDF_EXPAND(PSA_ALG_SHA256)` is
+ * HKDF-Expand using HMAC-SHA-256.
+ *
+ * This key derivation algorithm uses the following inputs:
+ *  - PSA_KEY_DERIVATION_INPUT_SECRET is the pseudorandom key (PRK).
+ *  - PSA_KEY_DERIVATION_INPUT_INFO is the info string.
+ *
+ *  The inputs are mandatory and must be passed in the order above.
+ *  Each input may only be passed once.
+ *
+ *  \warning HKDF-Expand is not meant to be used on its own. `PSA_ALG_HKDF`
+ *  should be used instead if possible. `PSA_ALG_HKDF_EXPAND` is provided as
+ *  a separate algorithm for the sake of protocols that use it as a building
+ *  block. It may also be a slight performance optimization in applications
+ *  that use HKDF with the same salt and key but many different info strings.
+ *
+ * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
+ *
+ * \return              The corresponding HKDF-Expand algorithm.
+ * \return              Unspecified if \p hash_alg is not a supported
+ *                      hash algorithm.
+ */
+#define PSA_ALG_HKDF_EXPAND(hash_alg)                                  \
+    (PSA_ALG_HKDF_EXPAND_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
+/** Whether the specified algorithm is an HKDF-Expand algorithm.
+ *
+ * HKDF-Expand is a family of key derivation algorithms that are based
+ * on a hash function and the HMAC construction.
+ *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
+ * \return 1 if \c alg is an HKDF-Expand algorithm, 0 otherwise.
+ *         This macro may return either 0 or 1 if \c alg is not a supported
+ *         key derivation algorithm identifier.
+ */
+#define PSA_ALG_IS_HKDF_EXPAND(alg)                            \
+    (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_HKDF_EXPAND_BASE)
+
+/** Whether the specified algorithm is an HKDF or HKDF-Extract or
+ *  HKDF-Expand algorithm.
+ *
+ *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
+ * \return 1 if \c alg is any HKDF type algorithm, 0 otherwise.
+ *         This macro may return either 0 or 1 if \c alg is not a supported
+ *         key derivation algorithm identifier.
+ */
+#define PSA_ALG_IS_ANY_HKDF(alg)                                   \
+    (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_HKDF_BASE ||          \
+     ((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_HKDF_EXTRACT_BASE ||  \
+     ((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_HKDF_EXPAND_BASE)
 
 #define PSA_ALG_TLS12_PRF_BASE                  ((psa_algorithm_t)0x08000200)
 /** Macro to build a TLS-1.2 PRF algorithm.
@@ -1699,13 +1961,37 @@
  * This key derivation algorithm uses the following inputs, which must be
  * passed in the order given here:
  * - #PSA_KEY_DERIVATION_INPUT_SEED is the seed.
+ * - #PSA_KEY_DERIVATION_INPUT_OTHER_SECRET is the other secret for the
+ *   computation of the premaster secret. This input is optional;
+ *   if omitted, it defaults to a string of null bytes with the same length
+ *   as the secret (PSK) input.
  * - #PSA_KEY_DERIVATION_INPUT_SECRET is the secret key.
  * - #PSA_KEY_DERIVATION_INPUT_LABEL is the label.
  *
  * For the application to TLS-1.2, the seed (which is
  * forwarded to the TLS-1.2 PRF) is the concatenation of the
  * ClientHello.Random + ServerHello.Random,
- * and the label is "master secret" or "extended master secret".
+ * the label is "master secret" or "extended master secret" and
+ * the other secret depends on the key exchange specified in the cipher suite:
+ * - for a plain PSK cipher suite (RFC 4279, Section 2), omit
+ *   PSA_KEY_DERIVATION_INPUT_OTHER_SECRET
+ * - for a DHE-PSK (RFC 4279, Section 3) or ECDHE-PSK cipher suite
+ *   (RFC 5489, Section 2), the other secret should be the output of the
+ *   PSA_ALG_FFDH or PSA_ALG_ECDH key agreement performed with the peer.
+ *   The recommended way to pass this input is to use a key derivation
+ *   algorithm constructed as
+ *   PSA_ALG_KEY_AGREEMENT(ka_alg, PSA_ALG_TLS12_PSK_TO_MS(hash_alg))
+ *   and to call psa_key_derivation_key_agreement(). Alternatively,
+ *   this input may be an output of `psa_raw_key_agreement()` passed with
+ *   psa_key_derivation_input_bytes(), or an equivalent input passed with
+ *   psa_key_derivation_input_bytes() or psa_key_derivation_input_key().
+ * - for a RSA-PSK cipher suite (RFC 4279, Section 4), the other secret
+ *   should be the 48-byte client challenge (the PreMasterSecret of
+ *   (RFC 5246, Section 7.4.7.1)) concatenation of the TLS version and
+ *   a 46-byte random string chosen by the client. On the server, this is
+ *   typically an output of psa_asymmetric_decrypt() using
+ *   PSA_ALG_RSA_PKCS1V15_CRYPT, passed to the key derivation operation
+ *   with `psa_key_derivation_input_bytes()`.
  *
  * For example, `PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA256)` represents the
  * TLS-1.2 PSK to MasterSecret derivation PRF using HMAC-SHA-256.
@@ -1949,6 +2235,11 @@
  * @{
  */
 
+/* Note that location and persistence level values are embedded in the
+ * persistent key store, as part of key metadata. As a consequence, they
+ * must not be changed (unless the storage format version changes).
+ */
+
 /** The default lifetime for volatile keys.
  *
  * A volatile key only exists as long as the identifier to it is not destroyed.
@@ -2064,6 +2355,14 @@
 
 #define PSA_KEY_LOCATION_VENDOR_FLAG            ((psa_key_location_t)0x800000)
 
+/* Note that key identifier values are embedded in the
+ * persistent key store, as part of key metadata. As a consequence, they
+ * must not be changed (unless the storage format version changes).
+ */
+
+/** The null key identifier.
+ */
+#define PSA_KEY_ID_NULL                         ((psa_key_id_t)0)
 /** The minimum value for a key identifier chosen by the application.
  */
 #define PSA_KEY_ID_USER_MIN                     ((psa_key_id_t)0x00000001)
@@ -2124,8 +2423,8 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
 #else /* MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER */
 
 #define MBEDTLS_SVC_KEY_ID_INIT ( (mbedtls_svc_key_id_t){ 0, 0 } )
-#define MBEDTLS_SVC_KEY_ID_GET_KEY_ID( id ) ( ( id ).key_id )
-#define MBEDTLS_SVC_KEY_ID_GET_OWNER_ID( id ) ( ( id ).owner )
+#define MBEDTLS_SVC_KEY_ID_GET_KEY_ID( id ) ( ( id ).MBEDTLS_PRIVATE(key_id) )
+#define MBEDTLS_SVC_KEY_ID_GET_OWNER_ID( id ) ( ( id ).MBEDTLS_PRIVATE(owner) )
 
 /** Utility to initialize a key identifier at runtime.
  *
@@ -2170,6 +2469,11 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
 
 /** \defgroup policy Key policies
  * @{
+ */
+
+/* Note that key usage flags are embedded in the
+ * persistent key store, as part of key metadata. As a consequence, they
+ * must not be changed (unless the storage format version changes).
  */
 
 /** Whether the key may be exported.
@@ -2298,6 +2602,9 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  * @{
  */
 
+/* Key input steps are not embedded in the persistent storage, so you can
+ * change them if needed: it's only an ABI change. */
+
 /** A secret input for key derivation.
  *
  * This should be a key of type #PSA_KEY_TYPE_DERIVE
@@ -2332,6 +2639,16 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
  * psa_key_derivation_output_key().
  */
 #define PSA_KEY_DERIVATION_INPUT_PASSWORD   ((psa_key_derivation_step_t)0x0102)
+
+/** A high-entropy additional secret input for key derivation.
+ *
+ * This is typically the shared secret resulting from a key agreement obtained
+ * via `psa_key_derivation_key_agreement()`. It may alternatively be a key of
+ * type `PSA_KEY_TYPE_DERIVE` passed to `psa_key_derivation_input_key()`, or
+ * a direct input passed to `psa_key_derivation_input_bytes()`.
+ */
+#define PSA_KEY_DERIVATION_INPUT_OTHER_SECRET \
+                                            ((psa_key_derivation_step_t)0x0103)
 
 /** A label for key derivation.
  *

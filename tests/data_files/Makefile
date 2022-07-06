@@ -909,6 +909,10 @@ server1.req.cert_type_empty: server1.key
 	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< subject_name="C=NL,O=PolarSSL,CN=PolarSSL Server 1" md=SHA1 force_ns_cert_type=1
 all_final += server1.req.cert_type_empty
 
+server1.req.commas.sha256: server1.key
+	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< subject_name="C=NL,O=PolarSSL\, Commas,CN=PolarSSL Server 1" md=SHA256
+all_final += server1.req.commas.sha256
+
 # server2*
 
 server2_pwd_ec = PolarSSLTest
@@ -966,7 +970,9 @@ server1.crt.der: server1.crt
 	$(MBEDTLS_CERT_WRITE) request_file=server1.req.sha256 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20190210144406 not_after=20290210144406 md=SHA1 authority_identifier=0 version=3 output_file=$@
 server1.der: server1.crt
 	$(OPENSSL) x509 -inform PEM -in $< -outform DER -out $@
-all_final += server1.crt server1.noauthid.crt server1.crt.der
+server1.commas.crt: server1.key server1.req.commas.sha256 $(test_ca_crt) $(test_ca_key_file_rsa)
+	$(MBEDTLS_CERT_WRITE) request_file=server1.req.commas.sha256 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) version=1 not_before=20190210144406 not_after=20290210144406 md=SHA1 version=3 output_file=$@
+all_final += server1.crt server1.noauthid.crt server1.crt.der server1.commas.crt
 
 server1.key_usage.crt: server1.key server1.req.sha256 $(test_ca_crt) $(test_ca_key_file_rsa)
 	$(MBEDTLS_CERT_WRITE) request_file=server1.req.sha256 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) version=1 not_before=20190210144406 not_after=20290210144406 md=SHA1 key_usage=digital_signature,non_repudiation,key_encipherment version=3 output_file=$@
@@ -1086,6 +1092,44 @@ all_intermediate += cert_md5.csr
 cert_md5.crt: cert_md5.csr
 	$(MBEDTLS_CERT_WRITE) request_file=$< serial=6 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20000101121212 not_after=20300101121212 md=MD5 version=3 output_file=$@
 all_final += cert_md5.crt
+
+# TLSv1.3 test certificates
+ecdsa_secp256r1.key: ec_256_prv.pem
+	cp $< $@
+
+ecdsa_secp256r1.csr: ecdsa_secp256r1.key
+	$(OPENSSL) req -new -subj "/C=NL/O=PolarSSL/CN=localhost" \
+					-key $< -out $@
+all_intermediate += ecdsa_secp256r1.csr
+ecdsa_secp256r1.crt: ecdsa_secp256r1.csr
+	$(OPENSSL) x509 -req -CA $(test_ca_crt_file_ec) -CAkey $(test_ca_key_file_ec) \
+				-set_serial 77 -days 3653 -sha384 -in $< -out $@
+all_final += ecdsa_secp256r1.crt ecdsa_secp256r1.key
+tls13_certs: ecdsa_secp256r1.crt ecdsa_secp256r1.key
+
+ecdsa_secp384r1.key: ec_384_prv.pem
+	cp $< $@
+ecdsa_secp384r1.csr: ecdsa_secp384r1.key
+	$(OPENSSL) req -new -subj "/C=NL/O=PolarSSL/CN=localhost" \
+					-key $< -out $@
+all_intermediate += ecdsa_secp384r1.csr
+ecdsa_secp384r1.crt: ecdsa_secp384r1.csr
+	$(OPENSSL) x509 -req -CA $(test_ca_crt_file_ec) -CAkey $(test_ca_key_file_ec) \
+				-set_serial 77 -days 3653 -sha384 -in $< -out $@
+all_final += ecdsa_secp384r1.crt ecdsa_secp384r1.key
+tls13_certs: ecdsa_secp384r1.crt ecdsa_secp384r1.key
+
+ecdsa_secp521r1.key: ec_521_prv.pem
+	cp $< $@
+ecdsa_secp521r1.csr: ecdsa_secp521r1.key
+	$(OPENSSL) req -new -subj "/C=NL/O=PolarSSL/CN=localhost" \
+					-key $< -out $@
+all_intermediate += ecdsa_secp521r1.csr
+ecdsa_secp521r1.crt: ecdsa_secp521r1.csr
+	$(OPENSSL) x509 -req -CA $(test_ca_crt_file_ec) -CAkey $(test_ca_key_file_ec) \
+				-set_serial 77 -days 3653 -sha384 -in $< -out $@
+all_final += ecdsa_secp521r1.crt ecdsa_secp521r1.key
+tls13_certs: ecdsa_secp521r1.crt ecdsa_secp521r1.key
 
 ################################################################
 #### Diffie-Hellman parameters

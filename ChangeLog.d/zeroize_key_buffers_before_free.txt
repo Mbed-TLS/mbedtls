@@ -1,0 +1,4 @@
+Security
+   * Zeroize dynamically-allocated buffers used by the PSA Crypto key storage
+     module before freeing them. These buffers contain secret key material, and
+     could thus potentially leak the key through freed heap.

@@ -227,6 +227,15 @@ const mbedtls_md_info_t *mbedtls_md_info_from_type( mbedtls_md_type_t md_type )
     }
 }
 
+const mbedtls_md_info_t *mbedtls_md_info_from_ctx(
+                                            const mbedtls_md_context_t *ctx )
+{
+    if( ctx == NULL )
+        return NULL;
+
+    return( ctx->MBEDTLS_PRIVATE(md_info) );
+}
+
 void mbedtls_md_init( mbedtls_md_context_t *ctx )
 {
     memset( ctx, 0, sizeof( mbedtls_md_context_t ) );

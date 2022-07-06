@@ -16,6 +16,44 @@
     mbedtls_ecp_point_free( x );    \
     mbedtls_ecp_point_init( x );
 
+/* Auxiliary function to compare two mbedtls_ecp_group objects. */
+inline static int mbedtls_ecp_group_cmp( mbedtls_ecp_group *grp1,
+                                         mbedtls_ecp_group *grp2 )
+{
+    if( mbedtls_mpi_cmp_mpi( &grp1->P, &grp2->P ) != 0 )
+        return 1;
+    if( mbedtls_mpi_cmp_mpi( &grp1->A, &grp2->A ) != 0 )
+        return 1;
+    if( mbedtls_mpi_cmp_mpi( &grp1->B, &grp2->B ) != 0 )
+        return 1;
+    if( mbedtls_mpi_cmp_mpi( &grp1->N, &grp2->N ) != 0 )
+        return 1;
+    if( mbedtls_ecp_point_cmp( &grp1->G, &grp2->G ) != 0 )
+        return 1;
+    if( grp1->id != grp2->id )
+        return 1;
+    if( grp1->pbits != grp2->pbits )
+        return 1;
+    if( grp1->nbits != grp2->nbits )
+        return 1;
+    if( grp1->h != grp2->h )
+        return 1;
+    if( grp1->modp != grp2->modp )
+        return 1;
+    if( grp1->t_pre != grp2->t_pre )
+        return 1;
+    if( grp1->t_post != grp2->t_post )
+        return 1;
+    if( grp1->t_data != grp2->t_data )
+        return 1;
+    if( grp1->T_size != grp2->T_size )
+        return 1;
+    if( grp1->T != grp2->T )
+        return 1;
+
+    return 0;
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -986,5 +1024,66 @@ exit:
 void ecp_selftest(  )
 {
     TEST_ASSERT( mbedtls_ecp_self_test( 1 ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ecp_export( int id, char * Qx, char * Qy,char * d, int expected_ret, int invalid_grp )
+{
+    mbedtls_ecp_keypair key;
+    mbedtls_ecp_group export_grp;
+    mbedtls_mpi export_d;
+    mbedtls_ecp_point export_Q;
+
+    mbedtls_ecp_group_init( &export_grp );
+    mbedtls_ecp_group_init( &key.grp );
+    mbedtls_mpi_init( &export_d );
+    mbedtls_ecp_point_init( &export_Q );
+
+    mbedtls_ecp_keypair_init( &key );
+    if( invalid_grp == 0 )
+        TEST_ASSERT( mbedtls_ecp_group_load( &key.grp, id ) == 0 );
+    TEST_ASSERT( mbedtls_ecp_point_read_string( &key.Q, 16, Qx, Qy ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &key.d, 16, d ) == 0 );
+
+    TEST_EQUAL( mbedtls_ecp_export( &key, &export_grp,
+                                    &export_d, &export_Q ), expected_ret );
+
+    if( expected_ret == 0 )
+    {
+        TEST_EQUAL( mbedtls_ecp_point_cmp( &key.Q, &export_Q ), 0 );
+        TEST_EQUAL( mbedtls_mpi_cmp_mpi( &key.d, &export_d ), 0 );
+        TEST_EQUAL( mbedtls_ecp_group_cmp( &key.grp, &export_grp ), 0 );
+    }
+
+exit:
+    mbedtls_ecp_keypair_free( &key );
+    mbedtls_ecp_group_free( &export_grp );
+    mbedtls_mpi_free( &export_d );
+    mbedtls_ecp_point_free( &export_Q );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ecp_check_order( int id, char * expected_order_hex )
+{
+    mbedtls_ecp_group grp;
+    mbedtls_mpi expected_n;
+
+    mbedtls_ecp_group_init( &grp );
+    mbedtls_mpi_init( &expected_n );
+
+    TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &expected_n, 16, expected_order_hex ) == 0);
+
+    // check sign bits are well-formed (i.e. 1 or -1) - see #5810
+    TEST_ASSERT( grp.N.s == -1 || grp.N.s == 1);
+    TEST_ASSERT( expected_n.s == -1 || expected_n.s == 1);
+
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &grp.N, &expected_n ) == 0 );
+
+exit:
+    mbedtls_ecp_group_free( &grp );
+    mbedtls_mpi_free( &expected_n );
 }
 /* END_CASE */

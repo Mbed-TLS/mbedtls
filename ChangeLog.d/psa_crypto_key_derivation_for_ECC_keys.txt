@@ -1,0 +1,3 @@
+Features
+   * Add support for psa crypto key derivation for elliptic curve
+     keys. Fixes #3260.

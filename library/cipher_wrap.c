@@ -639,6 +639,39 @@ static const mbedtls_cipher_info_t aes_256_ccm_info = {
     16,
     &ccm_aes_info
 };
+
+static const mbedtls_cipher_info_t aes_128_ccm_star_no_tag_info = {
+    MBEDTLS_CIPHER_AES_128_CCM_STAR_NO_TAG,
+    MBEDTLS_MODE_CCM_STAR_NO_TAG,
+    128,
+    "AES-128-CCM*-NO-TAG",
+    12,
+    MBEDTLS_CIPHER_VARIABLE_IV_LEN,
+    16,
+    &ccm_aes_info
+};
+
+static const mbedtls_cipher_info_t aes_192_ccm_star_no_tag_info = {
+    MBEDTLS_CIPHER_AES_192_CCM_STAR_NO_TAG,
+    MBEDTLS_MODE_CCM_STAR_NO_TAG,
+    192,
+    "AES-192-CCM*-NO-TAG",
+    12,
+    MBEDTLS_CIPHER_VARIABLE_IV_LEN,
+    16,
+    &ccm_aes_info
+};
+
+static const mbedtls_cipher_info_t aes_256_ccm_star_no_tag_info = {
+    MBEDTLS_CIPHER_AES_256_CCM_STAR_NO_TAG,
+    MBEDTLS_MODE_CCM_STAR_NO_TAG,
+    256,
+    "AES-256-CCM*-NO-TAG",
+    12,
+    MBEDTLS_CIPHER_VARIABLE_IV_LEN,
+    16,
+    &ccm_aes_info
+};
 #endif /* MBEDTLS_CCM_C */
 
 #endif /* MBEDTLS_AES_C */
@@ -1009,6 +1042,39 @@ static const mbedtls_cipher_info_t camellia_256_ccm_info = {
     MBEDTLS_MODE_CCM,
     256,
     "CAMELLIA-256-CCM",
+    12,
+    MBEDTLS_CIPHER_VARIABLE_IV_LEN,
+    16,
+    &ccm_camellia_info
+};
+
+static const mbedtls_cipher_info_t camellia_128_ccm_star_no_tag_info = {
+    MBEDTLS_CIPHER_CAMELLIA_128_CCM_STAR_NO_TAG,
+    MBEDTLS_MODE_CCM_STAR_NO_TAG,
+    128,
+    "CAMELLIA-128-CCM*-NO-TAG",
+    12,
+    MBEDTLS_CIPHER_VARIABLE_IV_LEN,
+    16,
+    &ccm_camellia_info
+};
+
+static const mbedtls_cipher_info_t camellia_192_ccm_star_no_tag_info = {
+    MBEDTLS_CIPHER_CAMELLIA_192_CCM_STAR_NO_TAG,
+    MBEDTLS_MODE_CCM_STAR_NO_TAG,
+    192,
+    "CAMELLIA-192-CCM*-NO-TAG",
+    12,
+    MBEDTLS_CIPHER_VARIABLE_IV_LEN,
+    16,
+    &ccm_camellia_info
+};
+
+static const mbedtls_cipher_info_t camellia_256_ccm_star_no_tag_info = {
+    MBEDTLS_CIPHER_CAMELLIA_256_CCM_STAR_NO_TAG,
+    MBEDTLS_MODE_CCM_STAR_NO_TAG,
+    256,
+    "CAMELLIA-256-CCM*-NO-TAG",
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     16,
@@ -1385,6 +1451,39 @@ static const mbedtls_cipher_info_t aria_256_ccm_info = {
     MBEDTLS_MODE_CCM,
     256,
     "ARIA-256-CCM",
+    12,
+    MBEDTLS_CIPHER_VARIABLE_IV_LEN,
+    16,
+    &ccm_aria_info
+};
+
+static const mbedtls_cipher_info_t aria_128_ccm_star_no_tag_info = {
+    MBEDTLS_CIPHER_ARIA_128_CCM_STAR_NO_TAG,
+    MBEDTLS_MODE_CCM_STAR_NO_TAG,
+    128,
+    "ARIA-128-CCM*-NO-TAG",
+    12,
+    MBEDTLS_CIPHER_VARIABLE_IV_LEN,
+    16,
+    &ccm_aria_info
+};
+
+static const mbedtls_cipher_info_t aria_192_ccm_star_no_tag_info = {
+    MBEDTLS_CIPHER_ARIA_192_CCM_STAR_NO_TAG,
+    MBEDTLS_MODE_CCM_STAR_NO_TAG,
+    192,
+    "ARIA-192-CCM*-NO-TAG",
+    12,
+    MBEDTLS_CIPHER_VARIABLE_IV_LEN,
+    16,
+    &ccm_aria_info
+};
+
+static const mbedtls_cipher_info_t aria_256_ccm_star_no_tag_info = {
+    MBEDTLS_CIPHER_ARIA_256_CCM_STAR_NO_TAG,
+    MBEDTLS_MODE_CCM_STAR_NO_TAG,
+    256,
+    "ARIA-256-CCM*-NO-TAG",
     12,
     MBEDTLS_CIPHER_VARIABLE_IV_LEN,
     16,
@@ -2055,6 +2154,9 @@ const mbedtls_cipher_definition_t mbedtls_cipher_definitions[] =
     { MBEDTLS_CIPHER_AES_128_CCM,          &aes_128_ccm_info },
     { MBEDTLS_CIPHER_AES_192_CCM,          &aes_192_ccm_info },
     { MBEDTLS_CIPHER_AES_256_CCM,          &aes_256_ccm_info },
+    { MBEDTLS_CIPHER_AES_128_CCM_STAR_NO_TAG,          &aes_128_ccm_star_no_tag_info },
+    { MBEDTLS_CIPHER_AES_192_CCM_STAR_NO_TAG,          &aes_192_ccm_star_no_tag_info },
+    { MBEDTLS_CIPHER_AES_256_CCM_STAR_NO_TAG,          &aes_256_ccm_star_no_tag_info },
 #endif
 #endif /* MBEDTLS_AES_C */
 
@@ -2086,6 +2188,9 @@ const mbedtls_cipher_definition_t mbedtls_cipher_definitions[] =
     { MBEDTLS_CIPHER_CAMELLIA_128_CCM,     &camellia_128_ccm_info },
     { MBEDTLS_CIPHER_CAMELLIA_192_CCM,     &camellia_192_ccm_info },
     { MBEDTLS_CIPHER_CAMELLIA_256_CCM,     &camellia_256_ccm_info },
+    { MBEDTLS_CIPHER_CAMELLIA_128_CCM_STAR_NO_TAG,     &camellia_128_ccm_star_no_tag_info },
+    { MBEDTLS_CIPHER_CAMELLIA_192_CCM_STAR_NO_TAG,     &camellia_192_ccm_star_no_tag_info },
+    { MBEDTLS_CIPHER_CAMELLIA_256_CCM_STAR_NO_TAG,     &camellia_256_ccm_star_no_tag_info },
 #endif
 #endif /* MBEDTLS_CAMELLIA_C */
 
@@ -2117,6 +2222,9 @@ const mbedtls_cipher_definition_t mbedtls_cipher_definitions[] =
     { MBEDTLS_CIPHER_ARIA_128_CCM,     &aria_128_ccm_info },
     { MBEDTLS_CIPHER_ARIA_192_CCM,     &aria_192_ccm_info },
     { MBEDTLS_CIPHER_ARIA_256_CCM,     &aria_256_ccm_info },
+    { MBEDTLS_CIPHER_ARIA_128_CCM_STAR_NO_TAG,     &aria_128_ccm_star_no_tag_info },
+    { MBEDTLS_CIPHER_ARIA_192_CCM_STAR_NO_TAG,     &aria_192_ccm_star_no_tag_info },
+    { MBEDTLS_CIPHER_ARIA_256_CCM_STAR_NO_TAG,     &aria_256_ccm_star_no_tag_info },
 #endif
 #endif /* MBEDTLS_ARIA_C */
 

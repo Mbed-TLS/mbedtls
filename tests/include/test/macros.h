@@ -73,15 +73,47 @@
        }                                                    \
     } while( 0 )
 
-/** Evaluate two expressions and fail the test case if they have different
- * values.
+/** Evaluate two integer expressions and fail the test case if they have
+ * different values.
  *
- * \param expr1     An expression to evaluate.
- * \param expr2     The expected value of \p expr1. This can be any
- *                  expression, but it is typically a constant.
+ * The two expressions should have the same signedness, otherwise the
+ * comparison is not meaningful if the signed value is negative.
+ *
+ * \param expr1     An integral-typed expression to evaluate.
+ * \param expr2     Another integral-typed expression to evaluate.
  */
-#define TEST_EQUAL( expr1, expr2 )              \
-    TEST_ASSERT( ( expr1 ) == ( expr2 ) )
+#define TEST_EQUAL( expr1, expr2 )                                      \
+    do {                                                                \
+        if( ! mbedtls_test_equal( #expr1 " == " #expr2, __LINE__, __FILE__, \
+                                  expr1, expr2 ) )                      \
+            goto exit;                                                  \
+    } while( 0 )
+
+/** Evaluate two unsigned integer expressions and fail the test case
+ * if they are not in increasing order (left <= right).
+ *
+ * \param expr1     An integral-typed expression to evaluate.
+ * \param expr2     Another integral-typed expression to evaluate.
+ */
+#define TEST_LE_U( expr1, expr2 )                                       \
+    do {                                                                \
+        if( ! mbedtls_test_le_u( #expr1 " <= " #expr2, __LINE__, __FILE__, \
+                                 expr1, expr2 ) )                      \
+            goto exit;                                                  \
+    } while( 0 )
+
+/** Evaluate two signed integer expressions and fail the test case
+ * if they are not in increasing order (left <= right).
+ *
+ * \param expr1     An integral-typed expression to evaluate.
+ * \param expr2     Another integral-typed expression to evaluate.
+ */
+#define TEST_LE_S( expr1, expr2 )                                       \
+    do {                                                                \
+        if( ! mbedtls_test_le_s( #expr1 " <= " #expr2, __LINE__, __FILE__, \
+                                 expr1, expr2 ) )                      \
+            goto exit;                                                  \
+    } while( 0 )
 
 /** Allocate memory dynamically and fail the test case if this fails.
  * The allocated memory will be filled with zeros.

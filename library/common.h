@@ -87,7 +87,7 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
  * big-endian order (MSB first).
  *
  * \param   data    Base address of the memory to get the four bytes from.
- * \param   offset  Offset from \p base of the first and most significant
+ * \param   offset  Offset from \p data of the first and most significant
  *                  byte of the four bytes to build the 32 bits unsigned
  *                  integer from.
  */
@@ -107,7 +107,7 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
  * \param   n       32 bits unsigned integer to put in memory.
  * \param   data    Base address of the memory where to put the 32
  *                  bits unsigned integer in.
- * \param   offset  Offset from \p base where to put the most significant
+ * \param   offset  Offset from \p data where to put the most significant
  *                  byte of the 32 bits unsigned integer \p n.
  */
 #ifndef MBEDTLS_PUT_UINT32_BE
@@ -125,7 +125,7 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
  * little-endian order (LSB first).
  *
  * \param   data    Base address of the memory to get the four bytes from.
- * \param   offset  Offset from \p base of the first and least significant
+ * \param   offset  Offset from \p data of the first and least significant
  *                  byte of the four bytes to build the 32 bits unsigned
  *                  integer from.
  */
@@ -145,7 +145,7 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
  * \param   n       32 bits unsigned integer to put in memory.
  * \param   data    Base address of the memory where to put the 32
  *                  bits unsigned integer in.
- * \param   offset  Offset from \p base where to put the least significant
+ * \param   offset  Offset from \p data where to put the least significant
  *                  byte of the 32 bits unsigned integer \p n.
  */
 #ifndef MBEDTLS_PUT_UINT32_LE
@@ -163,7 +163,7 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
  * little-endian order (LSB first).
  *
  * \param   data    Base address of the memory to get the two bytes from.
- * \param   offset  Offset from \p base of the first and least significant
+ * \param   offset  Offset from \p data of the first and least significant
  *                  byte of the two bytes to build the 16 bits unsigned
  *                  integer from.
  */
@@ -181,7 +181,7 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
  * \param   n       16 bits unsigned integer to put in memory.
  * \param   data    Base address of the memory where to put the 16
  *                  bits unsigned integer in.
- * \param   offset  Offset from \p base where to put the least significant
+ * \param   offset  Offset from \p data where to put the least significant
  *                  byte of the 16 bits unsigned integer \p n.
  */
 #ifndef MBEDTLS_PUT_UINT16_LE
@@ -197,7 +197,7 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
  * big-endian order (MSB first).
  *
  * \param   data    Base address of the memory to get the two bytes from.
- * \param   offset  Offset from \p base of the first and most significant
+ * \param   offset  Offset from \p data of the first and most significant
  *                  byte of the two bytes to build the 16 bits unsigned
  *                  integer from.
  */
@@ -215,7 +215,7 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
  * \param   n       16 bits unsigned integer to put in memory.
  * \param   data    Base address of the memory where to put the 16
  *                  bits unsigned integer in.
- * \param   offset  Offset from \p base where to put the most significant
+ * \param   offset  Offset from \p data where to put the most significant
  *                  byte of the 16 bits unsigned integer \p n.
  */
 #ifndef MBEDTLS_PUT_UINT16_BE
@@ -227,11 +227,83 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
 #endif
 
 /**
+ * Get the unsigned 24 bits integer corresponding to three bytes in
+ * big-endian order (MSB first).
+ *
+ * \param   data    Base address of the memory to get the three bytes from.
+ * \param   offset  Offset from \p data of the first and most significant
+ *                  byte of the three bytes to build the 24 bits unsigned
+ *                  integer from.
+ */
+#ifndef MBEDTLS_GET_UINT24_BE
+#define MBEDTLS_GET_UINT24_BE( data , offset )                  \
+    (                                                           \
+          ( (uint32_t) ( data )[( offset )    ] << 16 )         \
+        | ( (uint32_t) ( data )[( offset ) + 1] << 8  )         \
+        | ( (uint32_t) ( data )[( offset ) + 2]       )         \
+    )
+#endif
+
+/**
+ * Put in memory a 24 bits unsigned integer in big-endian order.
+ *
+ * \param   n       24 bits unsigned integer to put in memory.
+ * \param   data    Base address of the memory where to put the 24
+ *                  bits unsigned integer in.
+ * \param   offset  Offset from \p data where to put the most significant
+ *                  byte of the 24 bits unsigned integer \p n.
+ */
+#ifndef MBEDTLS_PUT_UINT24_BE
+#define MBEDTLS_PUT_UINT24_BE( n, data, offset )                \
+{                                                               \
+    ( data )[( offset )    ] = MBEDTLS_BYTE_2( n );             \
+    ( data )[( offset ) + 1] = MBEDTLS_BYTE_1( n );             \
+    ( data )[( offset ) + 2] = MBEDTLS_BYTE_0( n );             \
+}
+#endif
+
+/**
+ * Get the unsigned 24 bits integer corresponding to three bytes in
+ * little-endian order (LSB first).
+ *
+ * \param   data    Base address of the memory to get the three bytes from.
+ * \param   offset  Offset from \p data of the first and least significant
+ *                  byte of the three bytes to build the 24 bits unsigned
+ *                  integer from.
+ */
+#ifndef MBEDTLS_GET_UINT24_LE
+#define MBEDTLS_GET_UINT24_LE( data, offset )                   \
+    (                                                           \
+          ( (uint32_t) ( data )[( offset )    ]       )         \
+        | ( (uint32_t) ( data )[( offset ) + 1] <<  8 )         \
+        | ( (uint32_t) ( data )[( offset ) + 2] << 16 )         \
+    )
+#endif
+
+/**
+ * Put in memory a 24 bits unsigned integer in little-endian order.
+ *
+ * \param   n       24 bits unsigned integer to put in memory.
+ * \param   data    Base address of the memory where to put the 24
+ *                  bits unsigned integer in.
+ * \param   offset  Offset from \p data where to put the least significant
+ *                  byte of the 24 bits unsigned integer \p n.
+ */
+#ifndef MBEDTLS_PUT_UINT24_LE
+#define MBEDTLS_PUT_UINT24_LE( n, data, offset )                \
+{                                                               \
+    ( data )[( offset )    ] = MBEDTLS_BYTE_0( n );             \
+    ( data )[( offset ) + 1] = MBEDTLS_BYTE_1( n );             \
+    ( data )[( offset ) + 2] = MBEDTLS_BYTE_2( n );             \
+}
+#endif
+
+/**
  * Get the unsigned 64 bits integer corresponding to eight bytes in
  * big-endian order (MSB first).
  *
  * \param   data    Base address of the memory to get the eight bytes from.
- * \param   offset  Offset from \p base of the first and most significant
+ * \param   offset  Offset from \p data of the first and most significant
  *                  byte of the eight bytes to build the 64 bits unsigned
  *                  integer from.
  */
@@ -255,7 +327,7 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
  * \param   n       64 bits unsigned integer to put in memory.
  * \param   data    Base address of the memory where to put the 64
  *                  bits unsigned integer in.
- * \param   offset  Offset from \p base where to put the most significant
+ * \param   offset  Offset from \p data where to put the most significant
  *                  byte of the 64 bits unsigned integer \p n.
  */
 #ifndef MBEDTLS_PUT_UINT64_BE
@@ -277,7 +349,7 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
  * little-endian order (LSB first).
  *
  * \param   data    Base address of the memory to get the eight bytes from.
- * \param   offset  Offset from \p base of the first and least significant
+ * \param   offset  Offset from \p data of the first and least significant
  *                  byte of the eight bytes to build the 64 bits unsigned
  *                  integer from.
  */
@@ -301,7 +373,7 @@ extern void (*mbedtls_test_hook_test_fail)( const char * test, int line, const c
  * \param   n       64 bits unsigned integer to put in memory.
  * \param   data    Base address of the memory where to put the 64
  *                  bits unsigned integer in.
- * \param   offset  Offset from \p base where to put the least significant
+ * \param   offset  Offset from \p data where to put the least significant
  *                  byte of the 64 bits unsigned integer \p n.
  */
 #ifndef MBEDTLS_PUT_UINT64_LE

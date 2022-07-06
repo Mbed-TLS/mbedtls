@@ -184,6 +184,11 @@ psa_status_t psa_its_set( psa_storage_uid_t uid,
                           const void *p_data,
                           psa_storage_create_flags_t create_flags )
 {
+    if( uid == 0 )
+    {
+        return( PSA_ERROR_INVALID_HANDLE );
+    }
+
     psa_status_t status = PSA_ERROR_STORAGE_FAILURE;
     char filename[PSA_ITS_STORAGE_FILENAME_LENGTH];
     FILE *stream = NULL;

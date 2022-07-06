@@ -330,8 +330,8 @@ int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info );
  *                  storing and manipulating the key material directly.
  *
  * \param ctx       The context to initialize. It must be empty (type NONE).
- * \param key       The PSA key to wrap, which must hold an ECC key pair
- *                  (see notes below).
+ * \param key       The PSA key to wrap, which must hold an ECC or RSA key
+ *                  pair (see notes below).
  *
  * \note            The wrapped key must remain valid as long as the
  *                  wrapping PK context is in use, that is at least between
@@ -339,8 +339,8 @@ int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info );
  *                  mbedtls_pk_free() is called on this context. The wrapped
  *                  key might then be independently used or destroyed.
  *
- * \note            This function is currently only available for ECC key
- *                  pairs (that is, ECC keys containing private key material).
+ * \note            This function is currently only available for ECC or RSA
+ *                  key pairs (that is, keys containing private key material).
  *                  Support for other key types may be added later.
  *
  * \return          \c 0 on success.
@@ -351,7 +351,7 @@ int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info );
  * \return          #MBEDTLS_ERR_PK_ALLOC_FAILED on allocation failure.
  */
 int mbedtls_pk_setup_opaque( mbedtls_pk_context *ctx,
-                             const psa_key_id_t key );
+                             const mbedtls_svc_key_id_t key );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
@@ -410,6 +410,38 @@ static inline size_t mbedtls_pk_get_len( const mbedtls_pk_context *ctx )
  *                  cleared with mbedtls_pk_free().
  */
 int mbedtls_pk_can_do( const mbedtls_pk_context *ctx, mbedtls_pk_type_t type );
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+/**
+ * \brief           Tell if context can do the operation given by PSA algorithm
+ *
+ * \param ctx       The context to query. It must have been initialized.
+ * \param alg       PSA algorithm to check against, the following are allowed:
+ *                  PSA_ALG_RSA_PKCS1V15_SIGN(hash),
+ *                  PSA_ALG_RSA_PSS(hash),
+ *                  PSA_ALG_RSA_PKCS1V15_CRYPT,
+ *                  PSA_ALG_ECDSA(hash),
+ *                  PSA_ALG_ECDH, where hash is a specific hash.
+ * \param usage  PSA usage flag to check against, must be composed of:
+ *                  PSA_KEY_USAGE_SIGN_HASH
+ *                  PSA_KEY_USAGE_DECRYPT
+ *                  PSA_KEY_USAGE_DERIVE.
+ *                  Context key must match all passed usage flags.
+ *
+ * \warning         Since the set of allowed algorithms and usage flags may be
+ *                  expanded in the future, the return value \c 0 should not
+ *                  be taken in account for non-allowed algorithms and usage
+ *                  flags.
+ *
+ * \return          1 if the context can do operations on the given type.
+ * \return          0 if the context cannot do the operations on the given
+ *                  type, for non-allowed algorithms and usage flags, or
+ *                  for a context that has been initialized but not set up
+ *                  or that has been cleared with mbedtls_pk_free().
+ */
+int mbedtls_pk_can_do_ext( const mbedtls_pk_context *ctx, psa_algorithm_t alg,
+                           psa_key_usage_t usage );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 /**
  * \brief           Verify signature (including padding if relevant).
@@ -534,6 +566,45 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
              const unsigned char *hash, size_t hash_len,
              unsigned char *sig, size_t sig_size, size_t *sig_len,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
+
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+/**
+ * \brief           Make signature given a signature type.
+ *
+ * \param pk_type   Signature type.
+ * \param ctx       The PK context to use. It must have been set up
+ *                  with a private key.
+ * \param md_alg    Hash algorithm used (see notes)
+ * \param hash      Hash of the message to sign
+ * \param hash_len  Hash length
+ * \param sig       Place to write the signature.
+ *                  It must have enough room for the signature.
+ *                  #MBEDTLS_PK_SIGNATURE_MAX_SIZE is always enough.
+ *                  You may use a smaller buffer if it is large enough
+ *                  given the key type.
+ * \param sig_size  The size of the \p sig buffer in bytes.
+ * \param sig_len   On successful return,
+ *                  the number of bytes written to \p sig.
+ * \param f_rng     RNG function, must not be \c NULL.
+ * \param p_rng     RNG parameter
+ *
+ * \return          0 on success, or a specific error code.
+ *
+ * \note            When \p pk_type is #MBEDTLS_PK_RSASSA_PSS,
+ *                  see #PSA_ALG_RSA_PSS for a description of PSS options used.
+ *
+ * \note            For RSA, md_alg may be MBEDTLS_MD_NONE if hash_len != 0.
+ *                  For ECDSA, md_alg may never be MBEDTLS_MD_NONE.
+ *
+ */
+int mbedtls_pk_sign_ext( mbedtls_pk_type_t pk_type,
+                         mbedtls_pk_context *ctx,
+                         mbedtls_md_type_t md_alg,
+                         const unsigned char *hash, size_t hash_len,
+                         unsigned char *sig, size_t sig_size, size_t *sig_len,
+                         int (*f_rng)(void *, unsigned char *, size_t),
+                         void *p_rng );
+#endif /* MBEDTLS_PSA_CRYPTO_C */
 
 /**
  * \brief           Restartable version of \c mbedtls_pk_sign()
@@ -878,28 +949,29 @@ int mbedtls_pk_load_file( const char *path, unsigned char **buf, size_t *n );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 /**
- * \brief           Turn an EC key into an opaque one.
+ * \brief           Turn an EC or RSA key into an opaque one.
  *
  * \warning         This is a temporary utility function for tests. It might
  *                  change or be removed at any time without notice.
  *
- * \note            Only ECDSA keys are supported so far. Signing with the
- *                  specified hash is the only allowed use of that key.
- *
- * \param pk        Input: the EC key to import to a PSA key.
+ * \param pk        Input: the EC or RSA key to import to a PSA key.
  *                  Output: a PK context wrapping that PSA key.
  * \param key       Output: a PSA key identifier.
  *                  It's the caller's responsibility to call
  *                  psa_destroy_key() on that key identifier after calling
  *                  mbedtls_pk_free() on the PK context.
- * \param hash_alg  The hash algorithm to allow for use with that key.
+ * \param alg       The algorithm to allow for use with that key.
+ * \param usage     The usage to allow for use with that key.
+ * \param alg2      The secondary algorithm to allow for use with that key.
  *
  * \return          \c 0 if successful.
  * \return          An Mbed TLS error code otherwise.
  */
 int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
-                               psa_key_id_t *key,
-                               psa_algorithm_t hash_alg );
+                               mbedtls_svc_key_id_t *key,
+                               psa_algorithm_t alg,
+                               psa_key_usage_t usage,
+                               psa_algorithm_t alg2 );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #ifdef __cplusplus

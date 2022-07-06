@@ -34,13 +34,13 @@ Use a similar approach for files other than keys where possible and relevant.
 
 Test cases should normally not be removed from the code base: if something has worked before, it should keep working in future versions, so we should keep testing it.
 
-This cannot be enforced solely by looking at a single version of Mbed TLS, since there would be no indication that more test cases used to exist. It can only be enforced through review of library changes. The review may be assisted by a tool that compares the old and the new version, in the same way that `abi-check.py` compares the library's API and ABI.
+This cannot be enforced solely by looking at a single version of Mbed TLS, since there would be no indication that more test cases used to exist. It can only be enforced through review of library changes. The review is be assisted by a tool that compares the old and the new version, which is implemented in `scripts/abi_check.py`. This tool fails the CI if load-and-check test case disappears (changed test cases are raised as false positives).
 
 If the way certain keys are stored changes, and we don't deliberately decide to stop supporting old keys (which should only be done by retiring a version of the storage format), then we should keep the corresponding test cases in load-only mode: create a file with the expected content, load it and check the data that it contains.
 
 ## Storage architecture overview
 
-The PSA subsystem provides storage on top of the PSA trusted storage interface. The state of the storage is a mapping from file identifer (a 64-bit number) to file content (a byte array). These files include:
+The PSA subsystem provides storage on top of the PSA trusted storage interface. The state of the storage is a mapping from file identifier (a 64-bit number) to file content (a byte array). These files include:
 
 * [Key files](#key-storage) (files containing one key's metadata and, except for some secure element keys, key material).
 * The [random generator injected seed or state file](#random-generator-state) (`PSA_CRYPTO_ITS_RANDOM_SEED_UID`).

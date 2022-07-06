@@ -522,6 +522,12 @@ void mbedtls_memory_buffer_alloc_status( void )
     }
 }
 
+void mbedtls_memory_buffer_alloc_count_get( size_t *alloc_count, size_t *free_count )
+{
+    *alloc_count = heap.alloc_count;
+    *free_count = heap.free_count;
+}
+
 void mbedtls_memory_buffer_alloc_max_get( size_t *max_used, size_t *max_blocks )
 {
     *max_used   = heap.maximum_used;
@@ -555,8 +561,8 @@ static void *buffer_alloc_calloc_mutexed( size_t n, size_t size )
 
 static void buffer_alloc_free_mutexed( void *ptr )
 {
-    /* We have to good option here, but corrupting the heap seems
-     * worse than loosing memory. */
+    /* We have no good option here, but corrupting the heap seems
+     * worse than losing memory. */
     if( mbedtls_mutex_lock( &heap.mutex ) )
         return;
     buffer_alloc_free( ptr );

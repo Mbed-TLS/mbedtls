@@ -69,7 +69,7 @@
 #define MBEDTLS_ENTROPY_MAX_GATHER      128     /**< Maximum amount requested from entropy sources */
 #endif
 
-/* \} name SECTION: Module settings */
+/** \} name SECTION: Module settings */
 
 #if defined(MBEDTLS_ENTROPY_SHA512_ACCUMULATOR)
 #define MBEDTLS_ENTROPY_BLOCK_SIZE      64      /**< Block size of entropy accumulator (SHA-512) */
@@ -124,7 +124,7 @@ typedef struct mbedtls_entropy_context
                               * -1 after free. */
 #if defined(MBEDTLS_ENTROPY_SHA512_ACCUMULATOR)
     mbedtls_sha512_context  MBEDTLS_PRIVATE(accumulator);
-#else
+#elif defined(MBEDTLS_ENTROPY_SHA256_ACCUMULATOR)
     mbedtls_sha256_context  MBEDTLS_PRIVATE(accumulator);
 #endif
     int             MBEDTLS_PRIVATE(source_count); /* Number of entries used in source. */

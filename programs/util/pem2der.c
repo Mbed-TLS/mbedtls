@@ -279,11 +279,6 @@ int main( int argc, char *argv[] )
 exit:
     free( pem_buffer );
 
-#if defined(_WIN32)
-    mbedtls_printf( "  + Press Enter to exit this program.\n" );
-    fflush( stdout ); getchar();
-#endif
-
     mbedtls_exit( exit_code );
 }
 #endif /* MBEDTLS_BASE64_C && MBEDTLS_FS_IO */

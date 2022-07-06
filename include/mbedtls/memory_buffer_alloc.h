@@ -38,7 +38,7 @@
 #define MBEDTLS_MEMORY_ALIGN_MULTIPLE       4 /**< Align on multiples of this value */
 #endif
 
-/* \} name SECTION: Module settings */
+/** \} name SECTION: Module settings */
 
 #define MBEDTLS_MEMORY_VERIFY_NONE         0
 #define MBEDTLS_MEMORY_VERIFY_ALLOC        (1 << 0)
@@ -89,6 +89,14 @@ void mbedtls_memory_buffer_set_verify( int verify );
  *          trace if MBEDTLS_MEMORY_BACKTRACE is defined.
  */
 void mbedtls_memory_buffer_alloc_status( void );
+
+/**
+ * \brief   Get the number of alloc/free so far.
+ *
+ * \param alloc_count   Number of allocations.
+ * \param free_count    Number of frees.
+ */
+void mbedtls_memory_buffer_alloc_count_get( size_t *alloc_count, size_t *free_count );
 
 /**
  * \brief   Get the peak heap usage so far

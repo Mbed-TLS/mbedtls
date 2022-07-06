@@ -1,0 +1,3 @@
+Bugfix
+   * Fix compile errors when MBEDTLS_HAVE_TIME is not defined. Add tests
+     to catch bad uses of time.h.

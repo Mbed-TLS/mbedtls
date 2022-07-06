@@ -1,0 +1,3 @@
+Features
+    * Add mbedtls_pk_sign_ext() which allows generating RSA-PSS signatures when
+      PSA Crypto is enabled.

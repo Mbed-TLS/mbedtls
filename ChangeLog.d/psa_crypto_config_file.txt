@@ -1,0 +1,6 @@
+Features
+   * When MBEDTLS_PSA_CRYPTO_CONFIG is enabled, you may list the PSA crypto
+     feature requirements in the file named by the new macro
+     MBEDTLS_PSA_CRYPTO_CONFIG_FILE instead of the default psa/crypto_config.h.
+     Furthermore you may name an additional file to include after the main
+     file with the macro MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE.

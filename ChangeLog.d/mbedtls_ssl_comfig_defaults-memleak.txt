@@ -1,0 +1,2 @@
+Bugfix
+   * Fix a memory leak if mbedtls_ssl_config_defaults() is called twice.

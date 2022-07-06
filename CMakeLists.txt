@@ -6,9 +6,9 @@
 #     command but rather at the target level using the
 #     target_include_directories command. That way, it is easier to guarantee
 #     that targets are built using the proper list of include directories.
-#   + Use the PUBLIC and PRIVATE keywords to specifiy the scope of include
+#   + Use the PUBLIC and PRIVATE keywords to specify the scope of include
 #     directories. That way, a target linking to a library (using the
-#     target_link_librairies command) inherits from the library PUBLIC include
+#     target_link_libraries command) inherits from the library PUBLIC include
 #     directories and not from the PRIVATE ones.
 # - MBEDTLS_TARGET_PREFIX: CMake targets are designed to be alterable by calling
 #   CMake in order to avoid target name clashes, via the use of
@@ -39,6 +39,16 @@ else()
     project("mbed TLS" C)
 endif()
 
+include(GNUInstallDirs)
+
+# Determine if mbed TLS is being built as a subproject using add_subdirectory()
+if(NOT DEFINED MBEDTLS_AS_SUBPROJECT)
+  set(MBEDTLS_AS_SUBPROJECT ON)
+  if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    set(MBEDTLS_AS_SUBPROJECT OFF)
+  endif()
+endif()
+
 # Set the project root directory.
 set(MBEDTLS_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -46,6 +56,13 @@ option(ENABLE_PROGRAMS "Build mbed TLS programs." ON)
 
 option(UNSAFE_BUILD "Allow unsafe builds. These builds ARE NOT SECURE." OFF)
 option(MBEDTLS_FATAL_WARNINGS "Compiler warnings treated as errors" ON)
+if(CMAKE_HOST_WIN32)
+    option(GEN_FILES "Generate the auto-generated files as needed" OFF)
+else()
+    option(GEN_FILES "Generate the auto-generated files as needed" ON)
+endif()
+
+option(DISABLE_PACKAGE_CONFIG_AND_INSTALL "Disable package configuration, target export and installation" ${MBEDTLS_AS_SUBPROJECT})
 
 string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER_ID}")
 string(REGEX MATCH "GNU" CMAKE_COMPILER_IS_GNU "${CMAKE_C_COMPILER_ID}")
@@ -135,9 +152,28 @@ function(link_to_source base_name)
     endif()
 endfunction(link_to_source)
 
+# Get the filename without the final extension (i.e. convert "a.b.c" to "a.b")
+function(get_name_without_last_ext dest_var full_name)
+    # Split into a list on '.' (but a cmake list is just a ';'-separated string)
+    string(REPLACE "." ";" ext_parts "${full_name}")
+    # Remove the last item if there are more than one
+    list(LENGTH ext_parts ext_parts_len)
+    if (${ext_parts_len} GREATER "1")
+        math(EXPR ext_parts_last_item "${ext_parts_len} - 1")
+        list(REMOVE_AT ext_parts ${ext_parts_last_item})
+    endif()
+    # Convert back to a string by replacing separators with '.'
+    string(REPLACE ";" "." no_ext_name "${ext_parts}")
+    # Copy into the desired variable
+    set(${dest_var} ${no_ext_name} PARENT_SCOPE)
+endfunction(get_name_without_last_ext)
+
 string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER_ID}")
 
 include(CheckCCompilerFlag)
+
+set(CMAKE_C_EXTENSIONS OFF)
+set(CMAKE_C_STANDARD 99)
 
 if(CMAKE_COMPILER_IS_GNU)
     # some warnings we want are not available with old GCC versions
@@ -192,8 +228,8 @@ if(CMAKE_COMPILER_IS_IAR)
 endif(CMAKE_COMPILER_IS_IAR)
 
 if(CMAKE_COMPILER_IS_MSVC)
-    # Strictest warnings
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3")
+    # Strictest warnings, UTF-8 source and execution charset
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3 /utf-8")
 endif(CMAKE_COMPILER_IS_MSVC)
 
 if(MBEDTLS_FATAL_WARNINGS)
@@ -218,8 +254,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
 endif(CMAKE_BUILD_TYPE STREQUAL "Coverage")
 
 if(LIB_INSTALL_DIR)
-else()
-    set(LIB_INSTALL_DIR lib)
+    set(CMAKE_INSTALL_LIBDIR "${LIB_INSTALL_DIR}")
 endif()
 
 add_subdirectory(include)
@@ -304,36 +339,38 @@ if(ENABLE_TESTING)
     endif()
 endif()
 
-configure_package_config_file(
-    "cmake/MbedTLSConfig.cmake.in"
-    "cmake/MbedTLSConfig.cmake"
-        INSTALL_DESTINATION "cmake")
+if(NOT DISABLE_PACKAGE_CONFIG_AND_INSTALL)
+    configure_package_config_file(
+        "cmake/MbedTLSConfig.cmake.in"
+        "cmake/MbedTLSConfig.cmake"
+            INSTALL_DESTINATION "cmake")
 
-write_basic_package_version_file(
-    "cmake/MbedTLSConfigVersion.cmake"
-        COMPATIBILITY SameMajorVersion
-        VERSION 3.0.0)
+    write_basic_package_version_file(
+        "cmake/MbedTLSConfigVersion.cmake"
+            COMPATIBILITY SameMajorVersion
+            VERSION 3.1.0)
 
-install(
-    FILES "${CMAKE_CURRENT_BINARY_DIR}/cmake/MbedTLSConfig.cmake"
-          "${CMAKE_CURRENT_BINARY_DIR}/cmake/MbedTLSConfigVersion.cmake"
-    DESTINATION "cmake")
+    install(
+        FILES "${CMAKE_CURRENT_BINARY_DIR}/cmake/MbedTLSConfig.cmake"
+              "${CMAKE_CURRENT_BINARY_DIR}/cmake/MbedTLSConfigVersion.cmake"
+        DESTINATION "cmake")
 
-export(
-    EXPORT MbedTLSTargets
-    NAMESPACE MbedTLS::
-    FILE "cmake/MbedTLSTargets.cmake")
+    export(
+        EXPORT MbedTLSTargets
+        NAMESPACE MbedTLS::
+        FILE "cmake/MbedTLSTargets.cmake")
 
-install(
-    EXPORT MbedTLSTargets
-    NAMESPACE MbedTLS::
-    DESTINATION "cmake"
-    FILE "MbedTLSTargets.cmake")
+    install(
+        EXPORT MbedTLSTargets
+        NAMESPACE MbedTLS::
+        DESTINATION "cmake"
+        FILE "MbedTLSTargets.cmake")
 
-if(CMAKE_VERSION VERSION_GREATER 3.15 OR CMAKE_VERSION VERSION_EQUAL 3.15)
-    # Do not export the package by default
-    cmake_policy(SET CMP0090 NEW)
+    if(CMAKE_VERSION VERSION_GREATER 3.15 OR CMAKE_VERSION VERSION_EQUAL 3.15)
+        # Do not export the package by default
+        cmake_policy(SET CMP0090 NEW)
 
-    # Make this package visible to the system
-    export(PACKAGE MbedTLS)
+        # Make this package visible to the system
+        export(PACKAGE MbedTLS)
+    endif()
 endif()

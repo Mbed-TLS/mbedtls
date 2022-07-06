@@ -83,8 +83,6 @@ class TestCase:
             out.write('depends_on:' + ':'.join(self.dependencies) + '\n')
         out.write(self.function + ':' + ':'.join(self.arguments) + '\n')
 
-
-
 def write_data_file(filename: str,
                     test_cases: Iterable[TestCase],
                     caller: Optional[str] = None) -> None:

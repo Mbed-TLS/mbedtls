@@ -1,0 +1,3 @@
+Bugfix
+   * Fixed swap of client and server random bytes when exporting them alongside
+     TLS 1.3 handshake and application traffic secret.

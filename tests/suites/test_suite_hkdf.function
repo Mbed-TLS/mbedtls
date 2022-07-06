@@ -30,71 +30,57 @@ void test_hkdf( int md_alg, data_t *ikm, data_t *salt, data_t *info,
 /* END_CASE */
 
 /* BEGIN_CASE */
-void test_hkdf_extract( int md_alg, char *hex_ikm_string,
-                        char *hex_salt_string, char *hex_prk_string )
+void test_hkdf_extract( int md_alg,
+                        data_t *ikm,
+                        data_t *salt,
+                        data_t *prk )
 {
     int ret;
-    unsigned char *ikm = NULL;
-    unsigned char *salt = NULL;
-    unsigned char *prk = NULL;
     unsigned char *output_prk = NULL;
-    size_t ikm_len, salt_len, prk_len, output_prk_len;
+    size_t output_prk_len;
 
     const mbedtls_md_info_t *md = mbedtls_md_info_from_type( md_alg );
     TEST_ASSERT( md != NULL );
 
     output_prk_len = mbedtls_md_get_size( md );
-    output_prk = mbedtls_calloc( 1, output_prk_len );
+    ASSERT_ALLOC( output_prk, output_prk_len );
 
-    ikm = mbedtls_test_unhexify_alloc( hex_ikm_string, &ikm_len );
-    salt = mbedtls_test_unhexify_alloc( hex_salt_string, &salt_len );
-    prk = mbedtls_test_unhexify_alloc( hex_prk_string, &prk_len );
-
-    ret = mbedtls_hkdf_extract( md, salt, salt_len, ikm, ikm_len, output_prk );
+    ret = mbedtls_hkdf_extract( md, salt->x, salt->len,
+                                ikm->x, ikm->len, output_prk );
     TEST_ASSERT( ret == 0 );
 
-    ASSERT_COMPARE( output_prk, output_prk_len, prk, prk_len );
+    ASSERT_COMPARE( output_prk, output_prk_len, prk->x, prk->len );
 
 exit:
-    mbedtls_free(ikm);
-    mbedtls_free(salt);
-    mbedtls_free(prk);
     mbedtls_free(output_prk);
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
-void test_hkdf_expand( int md_alg, char *hex_info_string,
-                       char *hex_prk_string, char *hex_okm_string )
+void test_hkdf_expand( int md_alg,
+                       data_t *info,
+                       data_t *prk,
+                       data_t *okm )
 {
     enum { OKM_LEN  = 1024 };
     int ret;
-    unsigned char *info = NULL;
-    unsigned char *prk = NULL;
-    unsigned char *okm = NULL;
     unsigned char *output_okm = NULL;
-    size_t info_len, prk_len, okm_len;
 
     const mbedtls_md_info_t *md = mbedtls_md_info_from_type( md_alg );
     TEST_ASSERT( md != NULL );
 
-    output_okm = mbedtls_calloc( OKM_LEN, 1 );
+    ASSERT_ALLOC( output_okm, OKM_LEN );
 
-    prk = mbedtls_test_unhexify_alloc( hex_prk_string, &prk_len );
-    info = mbedtls_test_unhexify_alloc( hex_info_string, &info_len );
-    okm = mbedtls_test_unhexify_alloc( hex_okm_string, &okm_len );
-    TEST_ASSERT( prk_len == mbedtls_md_get_size( md ) );
-    TEST_ASSERT( okm_len < OKM_LEN );
+    TEST_ASSERT( prk->len == mbedtls_md_get_size( md ) );
+    TEST_ASSERT( okm->len < OKM_LEN );
 
-    ret = mbedtls_hkdf_expand( md, prk, prk_len, info, info_len,
+    ret = mbedtls_hkdf_expand( md, prk->x, prk->len,
+                               info->x, info->len,
                                output_okm, OKM_LEN );
     TEST_ASSERT( ret == 0 );
-    ASSERT_COMPARE( output_okm, okm_len, okm, okm_len );
+    ASSERT_COMPARE( output_okm, okm->len, okm->x, okm->len );
 
 exit:
-    mbedtls_free(info);
-    mbedtls_free(prk);
-    mbedtls_free(okm);
     mbedtls_free(output_okm);
 }
 /* END_CASE */
@@ -113,7 +99,7 @@ void test_hkdf_extract_ret( int hash_len, int ret )
     fake_md_info.type = MBEDTLS_MD_NONE;
     fake_md_info.size = hash_len;
 
-    prk = mbedtls_calloc( MBEDTLS_MD_MAX_SIZE, 1 );
+    ASSERT_ALLOC( prk, MBEDTLS_MD_MAX_SIZE);
     salt_len = 0;
     ikm_len = 0;
 
@@ -143,10 +129,10 @@ void test_hkdf_expand_ret( int hash_len, int prk_len, int okm_len, int ret )
     info_len = 0;
 
     if (prk_len > 0)
-        prk = mbedtls_calloc( prk_len, 1 );
+        ASSERT_ALLOC( prk, prk_len );
 
     if (okm_len > 0)
-        okm = mbedtls_calloc( okm_len, 1 );
+        ASSERT_ALLOC( okm, okm_len );
 
     output_ret = mbedtls_hkdf_expand( &fake_md_info, prk, prk_len,
                                       info, info_len, okm, okm_len );

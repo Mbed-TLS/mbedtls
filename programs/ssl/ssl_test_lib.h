@@ -52,14 +52,12 @@
 #endif
 
 #if !defined(MBEDTLS_NET_C) ||                              \
-    !defined(MBEDTLS_SSL_TLS_C) ||                          \
-    defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
-#define MBEDTLS_SSL_TEST_IMPOSSIBLE                             \
-    "MBEDTLS_NET_C and/or "                                     \
-    "MBEDTLS_SSL_TLS_C not defined, "                           \
-    "and/or MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined.\n"
+    !defined(MBEDTLS_SSL_TLS_C)
+#define MBEDTLS_SSL_TEST_IMPOSSIBLE                         \
+    "MBEDTLS_NET_C and/or "                                 \
+    "MBEDTLS_SSL_TLS_C not defined."
 #elif !defined(HAVE_RNG)
-#define MBEDTLS_SSL_TEST_IMPOSSIBLE             \
+#define MBEDTLS_SSL_TEST_IMPOSSIBLE                         \
     "No random generator is available.\n"
 #else
 #undef MBEDTLS_SSL_TEST_IMPOSSIBLE
@@ -72,6 +70,7 @@
 
 #include "mbedtls/net_sockets.h"
 #include "mbedtls/ssl.h"
+#include "mbedtls/ssl_ciphersuites.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/hmac_drbg.h"
@@ -94,8 +93,6 @@
 #include <test/helpers.h>
 
 #include "../test/query_config.h"
-
-#if defined(MBEDTLS_SSL_EXPORT_KEYS)
 
 typedef struct eap_tls_keys
 {
@@ -122,8 +119,6 @@ typedef struct dtls_srtp_keys
 
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 
-#endif /* MBEDTLS_SSL_EXPORT_KEYS */
-
 typedef struct
 {
     mbedtls_ssl_context *ssl;
@@ -134,9 +129,11 @@ void my_debug( void *ctx, int level,
                const char *file, int line,
                const char *str );
 
+#if defined(MBEDTLS_HAVE_TIME)
 mbedtls_time_t dummy_constant_time( mbedtls_time_t* time );
+#endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_TEST_USE_PSA_CRYPTO_RNG)
 /* If MBEDTLS_TEST_USE_PSA_CRYPTO_RNG is defined, the SSL test programs will use
  * mbedtls_psa_get_random() rather than entropy+DRBG as a random generator.
  *
@@ -224,6 +221,48 @@ void rng_free( rng_context_t *rng );
  */
 int rng_get( void *p_rng, unsigned char *output, size_t output_len );
 
+/** Parse command-line option: key_opaque_algs
+ *
+ *
+ * \param arg           String value of key_opaque_algs
+ *                      Coma-separated pair of values among the following:
+ *                      - "rsa-sign-pkcs1"
+ *                      - "rsa-sign-pss"
+ *                      - "rsa-decrypt"
+ *                      - "ecdsa-sign"
+ *                      - "ecdh"
+ *                      - "none" (only acceptable for the second value).
+ * \param alg1          Address of pointer to alg #1
+ * \param alg2          Address of pointer to alg #2
+ *
+ * \return              \c 0 on success.
+ * \return              \c 1 on parse failure.
+ */
+int key_opaque_alg_parse( const char *arg, const char **alg1, const char **alg2 );
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+/** Parse given opaque key algorithms to obtain psa algs and usage
+ *  that will be passed to mbedtls_pk_wrap_as_opaque().
+ *
+ *
+ * \param alg1          input string opaque key algorithm #1
+ * \param alg2          input string opaque key algorithm #2
+ * \param psa_alg1      output PSA algorithm #1
+ * \param psa_alg2      output PSA algorithm #2
+ * \param usage         output key usage
+ * \param key_type      key type used to set default psa algorithm/usage
+ *                      when alg1 in "none"
+ *
+ * \return              \c 0 on success.
+ * \return              \c 1 on parse failure.
+ */
+int key_opaque_set_alg_usage( const char *alg1, const char *alg2,
+                              psa_algorithm_t *psa_alg1,
+                              psa_algorithm_t *psa_alg2,
+                              psa_key_usage_t *usage,
+                              mbedtls_pk_type_t key_type );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
 #if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
 /* The test implementation of the PSA external RNG is insecure. When
  * MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG is enabled, before using any PSA crypto
@@ -239,7 +278,7 @@ int ca_callback( void *data, mbedtls_x509_crt const *child,
 
 /*
  * Test recv/send functions that make sure each try returns
- * WANT_READ/WANT_WRITE at least once before sucesseding
+ * WANT_READ/WANT_WRITE at least once before succeeding
  */
 int delayed_recv( void *ctx, unsigned char *buf, size_t len );
 int delayed_send( void *ctx, const unsigned char *buf, size_t len );

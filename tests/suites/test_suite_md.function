@@ -16,11 +16,12 @@ void mbedtls_md_process(  )
     unsigned char buf[150];
 
     mbedtls_md_init( &ctx );
+    memset( buf, 0, sizeof( buf ) );
 
     /*
      * Very minimal testing of mbedtls_md_process, just make sure the various
      * xxx_process_wrap() function pointers are valid. (Testing that they
-     * indeed do the right thing whould require messing with the internal
+     * indeed do the right thing would require messing with the internal
      * state of the underlying mbedtls_md/sha context.)
      *
      * Also tests that mbedtls_md_list() only returns valid MDs.
@@ -30,6 +31,7 @@ void mbedtls_md_process(  )
         info = mbedtls_md_info_from_type( *md_type_ptr );
         TEST_ASSERT( info != NULL );
         TEST_ASSERT( mbedtls_md_setup( &ctx, info, 0 ) == 0 );
+        TEST_ASSERT( mbedtls_md_starts( &ctx ) == 0 );
         TEST_ASSERT( mbedtls_md_process( &ctx, buf ) == 0 );
         mbedtls_md_free( &ctx );
     }
@@ -53,6 +55,8 @@ void md_null_args(  )
     TEST_ASSERT( mbedtls_md_get_name( NULL ) == NULL );
 
     TEST_ASSERT( mbedtls_md_info_from_string( NULL ) == NULL );
+    TEST_ASSERT( mbedtls_md_info_from_ctx( NULL ) == NULL );
+    TEST_ASSERT( mbedtls_md_info_from_ctx( &ctx ) == NULL );
 
     TEST_ASSERT( mbedtls_md_setup( &ctx, NULL, 0 ) == MBEDTLS_ERR_MD_BAD_INPUT_DATA );
     TEST_ASSERT( mbedtls_md_setup( NULL, info, 0 ) == MBEDTLS_ERR_MD_BAD_INPUT_DATA );
@@ -202,6 +206,8 @@ void md_text_multi( char * text_md_name, char * text_src_string,
     TEST_ASSERT( md_info != NULL );
     TEST_ASSERT ( 0 == mbedtls_md_setup( &ctx, md_info, 0 ) );
     TEST_ASSERT ( 0 == mbedtls_md_setup( &ctx_copy, md_info, 0 ) );
+    TEST_ASSERT ( mbedtls_md_info_from_ctx( &ctx ) == md_info );
+    TEST_ASSERT ( mbedtls_md_info_from_ctx( &ctx_copy ) == md_info );
 
     TEST_ASSERT ( 0 == mbedtls_md_starts( &ctx ) );
     TEST_ASSERT ( ctx.md_ctx != NULL );
@@ -249,6 +255,8 @@ void md_hex_multi( char * text_md_name, data_t * src_str, data_t * hash )
     TEST_ASSERT( md_info != NULL );
     TEST_ASSERT ( 0 == mbedtls_md_setup( &ctx, md_info, 0 ) );
     TEST_ASSERT ( 0 == mbedtls_md_setup( &ctx_copy, md_info, 0 ) );
+    TEST_ASSERT ( mbedtls_md_info_from_ctx( &ctx ) == md_info );
+    TEST_ASSERT ( mbedtls_md_info_from_ctx( &ctx_copy ) == md_info );
 
     halfway = src_str->len / 2;
 
@@ -321,6 +329,7 @@ void md_hmac_multi( char * text_md_name, int trunc_size, data_t * key_str,
     md_info = mbedtls_md_info_from_string( md_name );
     TEST_ASSERT( md_info != NULL );
     TEST_ASSERT ( 0 == mbedtls_md_setup( &ctx, md_info, 1 ) );
+    TEST_ASSERT ( mbedtls_md_info_from_ctx( &ctx ) == md_info );
 
     halfway = src_str->len / 2;
 

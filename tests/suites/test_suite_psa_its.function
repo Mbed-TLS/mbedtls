@@ -3,6 +3,11 @@
 /* This test file is specific to the ITS implementation in PSA Crypto
  * on top of stdio. It expects to know what the stdio name of a file is
  * based on its keystore name.
+ *
+ * Note that if you need to make a change that affects how files are
+ * stored, this may indicate that the key store is changing in a
+ * backward-incompatible way! Think carefully about backward compatibility
+ * before changing how test data is constructed or validated.
  */
 
 #include "../library/psa_crypto_its.h"
@@ -282,6 +287,19 @@ exit:
         fclose( stream );
 
     mbedtls_free( buffer );
+    cleanup( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void set_fail( int uid_arg, data_t *data,
+               int expected_status )
+{
+    psa_storage_uid_t uid = uid_arg;
+    TEST_ASSERT( psa_its_set_wrap( uid, data->len, data->x, 0 ) ==
+                 (psa_status_t) expected_status );
+
+    exit:
     cleanup( );
 }
 /* END_CASE */

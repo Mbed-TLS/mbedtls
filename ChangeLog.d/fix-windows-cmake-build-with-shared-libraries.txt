@@ -1,0 +1,3 @@
+Bugfix
+   * Fix the library search path when building a shared library with CMake
+     on Windows.

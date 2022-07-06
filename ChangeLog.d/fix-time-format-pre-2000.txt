@@ -1,0 +1,3 @@
+Bugfix
+   * Encode X.509 dates before 1/1/2000 as UTCTime rather than
+     GeneralizedTime. Fixes #5465.

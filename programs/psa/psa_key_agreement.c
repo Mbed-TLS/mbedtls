@@ -8,7 +8,7 @@
  *  there is no protocol interaction and the operations excuted by the
  *  client are shown.
  *
- *  The client, as shown in the code, performs the following steps: 
+ *  The client, as shown in the code, performs the following steps:
  *    - Generate an ephemeral key pair
  *    - Import the server public key
  *    - Generate the ECDH-derived key using the server public key, and the

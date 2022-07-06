@@ -109,7 +109,7 @@ int main( void )
     {
         printf( "psa_verify_hash failed\n" );
         return( EXIT_FAILURE );
-    } 
+    }
     else
     {
         printf( "\nSignature verification successful!\n" );

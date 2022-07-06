@@ -131,7 +131,7 @@ int main( void )
 
     if( safer_memcmp( mac,
                       mbedtls_test_hmac_sha256,
-                      mac_size_real 
+                      mac_size_real
                     ) != 0 )
     {
         printf( "\nMAC verified incorrectly!\n" );

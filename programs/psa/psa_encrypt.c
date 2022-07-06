@@ -61,7 +61,7 @@ int main( void )
     const uint8_t plaintext[] = "Hello World!";
     const uint8_t key_bytes[32] = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     uint8_t nonce[PSA_AEAD_NONCE_LENGTH(PSA_KEY_TYPE_AES, PSA_ALG_CCM)];
-    size_t nonce_length = sizeof( nonce ); 
+    size_t nonce_length = sizeof( nonce );
     size_t ciphertext_length;
     size_t plaintext_length;
 
@@ -71,7 +71,7 @@ int main( void )
         printf( "psa_crypto_init failed\n" );
         return( EXIT_FAILURE );
     }
-  
+
     psa_set_key_usage_flags( &attributes,
                              PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT );
     psa_set_key_algorithm( &attributes, PSA_ALG_CCM );

@@ -78,9 +78,9 @@ int main( void )
     /* The output size of the HKDF function depends on the hash function used.
      * In our case we use SHA-256, which produces a 32 byte fingerprint.
      * Therefore, we allocate a buffer of 32 bytes to hold the output keying
-     * material (OKM). 
+     * material (OKM).
      */
-    unsigned char output[32]; 
+    unsigned char output[32];
 
     psa_algorithm_t alg = PSA_ALG_HKDF( PSA_ALG_SHA_256 );
 

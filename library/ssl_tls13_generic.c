@@ -930,36 +930,27 @@ int mbedtls_ssl_tls13_check_sig_alg_cert_key_match( uint16_t sig_alg,
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 static psa_algorithm_t ssl_tls13_select_sig_alg_to_psa_alg( uint16_t sig_alg )
 {
-    psa_algorithm_t psa_alg = 0;
     switch( sig_alg )
     {
         case MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256:
-            psa_alg = PSA_ALG_ECDSA( PSA_ALG_SHA_256 );
-            break;
+            return( PSA_ALG_ECDSA( PSA_ALG_SHA_256 ) );
         case MBEDTLS_TLS1_3_SIG_ECDSA_SECP384R1_SHA384:
-            psa_alg = PSA_ALG_ECDSA( PSA_ALG_SHA_384 );
-            break;
+            return( PSA_ALG_ECDSA( PSA_ALG_SHA_384 ) );
         case MBEDTLS_TLS1_3_SIG_ECDSA_SECP521R1_SHA512:
-            psa_alg = PSA_ALG_ECDSA( PSA_ALG_SHA_512 );
-            break;
+            return( PSA_ALG_ECDSA( PSA_ALG_SHA_512 ) );
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
-            psa_alg = PSA_ALG_RSA_PSS( PSA_ALG_SHA_256 );
-            break;
+            return( PSA_ALG_RSA_PSS( PSA_ALG_SHA_256 ) );
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384:
-            psa_alg = PSA_ALG_RSA_PSS( PSA_ALG_SHA_384 );
-            break;
+            return( PSA_ALG_RSA_PSS( PSA_ALG_SHA_384 ) );
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:
-            psa_alg = PSA_ALG_RSA_PSS( PSA_ALG_SHA_512 );
-            break;
+            return( PSA_ALG_RSA_PSS( PSA_ALG_SHA_512 ) );
         case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256:
         case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384:
         case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512:
-            psa_alg = PSA_ALG_RSA_PKCS1V15_CRYPT;
-            break;
+            return( PSA_ALG_RSA_PKCS1V15_CRYPT );
         default:
-            break;
+            return( 0 );
     }
-    return( psa_alg );
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 

@@ -206,7 +206,7 @@ void mbedtls_debug_print_mpi( int radix, char * value, char * file, int line,
 
     TEST_ASSERT( mbedtls_ssl_setup( &ssl, &conf ) == 0 );
 
-    TEST_ASSERT( mbedtls_test_read_mpi( &val, radix, value ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &val, value ) == 0 );
 
     mbedtls_debug_print_mpi( &ssl, 0, file, line, prefix, &val);
 

@@ -276,7 +276,7 @@ void mbedtls_test_err_add_check( int high, int low,
 #endif
 
 #if defined(MBEDTLS_BIGNUM_C)
-/** Read an MPI from a string.
+/** Read an MPI from a hexadecimal string.
  *
  * Like mbedtls_mpi_read_string(), but size the resulting bignum based
  * on the number of digits in the string. In particular, construct a
@@ -287,13 +287,12 @@ void mbedtls_test_err_add_check( int high, int low,
  * "leading zeros" test cases do what they claim.
  *
  * \param[out] X        The MPI object to populate. It must be initialized.
- * \param radix         The radix (2 to 16).
- * \param[in] s         The null-terminated string to read from.
+ * \param[in] s         The null-terminated hexadecimal string to read from.
  *
  * \return \c 0 on success, an \c MBEDTLS_ERR_MPI_xxx error code otherwise.
  */
 /* Since the library has exactly the desired behavior, this is trivial. */
-int mbedtls_test_read_mpi( mbedtls_mpi *X, int radix, const char *s );
+int mbedtls_test_read_mpi( mbedtls_mpi *X, const char *s );
 #endif /* MBEDTLS_BIGNUM_C */
 
 #endif /* TEST_HELPERS_H */

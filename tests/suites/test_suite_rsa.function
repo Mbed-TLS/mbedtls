@@ -594,9 +594,9 @@ void mbedtls_rsa_check_privkey( int mod, char * input_P,
         TEST_ASSERT( mbedtls_test_read_mpi( &ctx.QP, input_QP ) == 0 );
     }
 #else
-    ((void) radix_DP); ((void) input_DP);
-    ((void) radix_DQ); ((void) input_DQ);
-    ((void) radix_QP); ((void) input_QP);
+    ((void) input_DP);
+    ((void) input_DQ);
+    ((void) input_QP);
 #endif
 
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == result );
@@ -667,9 +667,9 @@ void rsa_check_pubpriv( int mod, char * input_Npub,
         TEST_ASSERT( mbedtls_test_read_mpi( &prv.QP, input_QP ) == 0 );
     }
 #else
-    ((void) radix_DP); ((void) input_DP);
-    ((void) radix_DQ); ((void) input_DQ);
-    ((void) radix_QP); ((void) input_QP);
+    ((void) input_DP);
+    ((void) input_DQ);
+    ((void) input_QP);
 #endif
 
     TEST_ASSERT( mbedtls_rsa_check_pub_priv( &pub, &prv ) == result );

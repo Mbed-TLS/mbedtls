@@ -1769,7 +1769,8 @@ int main( int argc, char *argv[] )
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     mbedtls_printf( " ok (key type: %s)\n",
-                    strlen( opt.key_file ) ? mbedtls_pk_get_name( &pkey ) : "none" );
+                    strlen( opt.key_file ) || strlen( opt.key_opaque_alg1 ) ?
+                            mbedtls_pk_get_name( &pkey ) : "none" );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     /*

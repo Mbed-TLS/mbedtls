@@ -101,6 +101,10 @@
 #define MBEDTLS_SSL_EXT_SIG_ALG_CERT                ( 1 << 20 )
 #define MBEDTLS_SSL_EXT_KEY_SHARE                   ( 1 << 21 )
 
+#define MBEDTLS_SSL_TICKET_FLAG_ALLOW_EARLY_DATA        ( 1 << 0 )
+#define MBEDTLS_SSL_TICKET_FLAG_ALLOW_DHE_RESUMPTION    ( 1 << 1 )
+#define MBEDTLS_SSL_TICKET_FLAG_ALLOW_PSK_RESUMPTION    ( 1 << 2 )
+
 /*
  * Helper macros for function call with return check.
  */

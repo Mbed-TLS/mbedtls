@@ -1171,6 +1171,23 @@ struct mbedtls_ssl_session
     uint32_t MBEDTLS_PRIVATE(ticket_lifetime);   /*!< ticket lifetime hint    */
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+    uint8_t MBEDTLS_PRIVATE(ticket_flags);                  /*!< Ticket flags */
+    uint32_t MBEDTLS_PRIVATE(ticket_age_add);               /*!< Randomly generated value used to obscure the age of the ticket */
+    uint8_t MBEDTLS_PRIVATE(key_len);                       /*!< PSK key length */
+
+#if defined(MBEDTLS_SHA384_C)
+    unsigned char MBEDTLS_PRIVATE(key)[48];                 /*!< key (48 byte) */
+#elif defined(MBEDTLS_SHA256_C)
+    unsigned char MBEDTLS_PRIVATE(key)[32];                 /*!< key (32 byte) */
+#endif /* MBEDTLS_SHA256_C  */
+
+#if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_CLI_C)
+    time_t MBEDTLS_PRIVATE(ticket_received);                /*!< time ticket was received */
+#endif /* MBEDTLS_HAVE_TIME && MBEDTLS_SSL_CLI_C */
+
+#endif /*  MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS */
+
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     int MBEDTLS_PRIVATE(encrypt_then_mac);       /*!< flag for EtM activation                */
 #endif

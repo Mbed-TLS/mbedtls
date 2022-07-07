@@ -1876,6 +1876,234 @@ static int ssl_tls13_handshake_wrapup( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+
+static int ssl_tls13_parse_new_session_ticket_extensions(
+                                                mbedtls_ssl_context *ssl,
+                                                const unsigned char *buf,
+                                                const unsigned char *end )
+{
+    unsigned char *p = ( unsigned char * )buf;
+
+    ((void) ssl);
+
+    while( p < end )
+    {
+        unsigned int extension_type;
+        size_t extension_data_len;
+        const unsigned char *extension_data_end;
+
+        ((void) extension_data_end);
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 4 );
+        extension_type = MBEDTLS_GET_UINT16_BE( p, 0 );
+        extension_data_len = MBEDTLS_GET_UINT16_BE( p, 2 );
+        p += 4;
+
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, extension_data_len );
+        extension_data_end = p + extension_data_len;
+
+        switch( extension_type )
+        {
+            case MBEDTLS_TLS_EXT_EARLY_DATA:
+                MBEDTLS_SSL_DEBUG_MSG( 4, ( "early_data extension received" ) );
+                break;
+            default:
+                break;
+        }
+        p +=  extension_data_len;
+    }
+
+    return( 0 );
+}
+
+/*
+ * struct {
+ *    uint32 ticket_lifetime;
+ *    uint32 ticket_age_add;
+ *    opaque ticket_nonce<0..255>;
+ *    opaque ticket<1..2^16-1>;
+ *    Extension extensions<0..2^16-2>;
+ * } NewSessionTicket;
+ *
+ */
+static int ssl_tls13_parse_new_session_ticket( mbedtls_ssl_context *ssl,
+                                               unsigned char *buf,
+                                               unsigned char *end )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    unsigned char *p = buf;
+    mbedtls_ssl_session *session = ssl->session;
+    size_t ticket_nonce_len;
+    unsigned char *ticket_nonce;
+    size_t ticket_len;
+    unsigned char *ticket;
+    size_t extensions_len;
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
+    psa_algorithm_t psa_hash_alg;
+    int hash_length;
+
+    /*
+     *    ticket_lifetime   4 bytes
+     *    ticket_age_add    4 bytes
+     *    ticket_nonce      >=1 byte
+     *    ticket            >=2 bytes
+     *    extensions        >=2 bytes
+     */
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 13);
+
+    session->ticket_lifetime = MBEDTLS_GET_UINT32_BE( p, 0 );
+    p += 4;
+    MBEDTLS_SSL_DEBUG_MSG( 3,
+                           ( "ticket->lifetime: %u",
+                             ( unsigned int )session->ticket_lifetime ) );
+
+    session->ticket_age_add = MBEDTLS_GET_UINT32_BE( p, 0 );
+    p += 4;
+    MBEDTLS_SSL_DEBUG_MSG( 3,
+                           ( "ticket->ticket_age_add: %u",
+                             ( unsigned int )session->ticket_age_add ) );
+
+    ticket_nonce_len = *p++;
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, ticket_nonce_len );
+    ticket_nonce = p;
+    MBEDTLS_SSL_DEBUG_BUF( 3, "ticket_nonce:", ticket_nonce, ticket_nonce_len );
+    p += ticket_nonce_len;
+
+    /* Ticket */
+    ticket_len = MBEDTLS_GET_UINT16_BE( p, 0 );
+    p += 2;
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, ticket_len );
+
+    MBEDTLS_SSL_DEBUG_BUF( 3, "received ticket", p, ticket_len ) ;
+
+    /* Check if we previously received a ticket already. */
+    if( session->ticket != NULL || session->ticket_len > 0 )
+    {
+        mbedtls_free( session->ticket );
+        session->ticket = NULL;
+        session->ticket_len = 0;
+    }
+
+    if( ( ticket = mbedtls_calloc( 1, ticket_len ) ) == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "ticket alloc failed" ) );
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+    }
+    memcpy( ticket, p, ticket_len );
+    p += ticket_len;
+    session->ticket = ticket;
+    session->ticket_len = ticket_len;
+    MBEDTLS_SSL_DEBUG_BUF( 4, "stored ticket", ticket, ticket_len );
+
+    extensions_len = MBEDTLS_GET_UINT16_BE( p, 0 );
+    p += 2;
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, extensions_len );
+
+    MBEDTLS_SSL_DEBUG_BUF( 3, "ticket->extension", p, extensions_len );
+
+    ret = ssl_tls13_parse_new_session_ticket_extensions( ssl, p, end );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1,
+                               "ssl_tls13_parse_new_session_ticket_extensions",
+                               ret );
+        return( ret );
+    }
+    p += extensions_len;
+
+    /* Compute PSK based on received nonce and resumption_master_secret
+     * in the following style:
+     *
+     *  HKDF-Expand-Label( resumption_master_secret,
+     *                    "resumption", ticket_nonce, Hash.length )
+     */
+    ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( session->ciphersuite );
+    if( ciphersuite_info == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+
+    psa_hash_alg = mbedtls_psa_translate_md( ciphersuite_info->mac );
+    hash_length = PSA_HASH_LENGTH( psa_hash_alg );
+    if( hash_length == -1 )
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+
+    MBEDTLS_SSL_DEBUG_BUF( 3, "resumption_master_secret",
+                           session->app_secrets.resumption_master_secret,
+                           hash_length );
+
+    /* Computer resumption key
+     *
+     *  HKDF-Expand-Label( resumption_master_secret,
+     *                    "resumption", ticket_nonce, Hash.length )
+     */
+    ret = mbedtls_ssl_tls13_hkdf_expand_label(
+                    psa_hash_alg,
+                    session->app_secrets.resumption_master_secret,
+                    hash_length,
+                    MBEDTLS_SSL_TLS1_3_LBL_WITH_LEN( resumption ),
+                    ticket_nonce,
+                    ticket_nonce_len,
+                    session->key,
+                    hash_length );
+
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 2,
+                               "Creating the ticket-resumed PSK failed",
+                               ret );
+        return( ret );
+    }
+
+    session->key_len = hash_length;
+
+    MBEDTLS_SSL_DEBUG_BUF( 3, "Ticket-resumed PSK",
+                           session->key,
+                           session->key_len );
+
+#if defined(MBEDTLS_HAVE_TIME)
+    /* Store ticket creation time */
+    session->ticket_received = time( NULL );
+#endif
+
+    return( 0 );
+}
+
+static int ssl_tls13_postprocess_new_session_ticket( mbedtls_ssl_context *ssl )
+{
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_HANDSHAKE_OVER );
+    return( 0 );
+}
+
+/*
+ * Handler for MBEDTLS_SSL_CLIENT_NEW_SESSION_TICKET
+ */
+static int ssl_tls13_process_new_session_ticket( mbedtls_ssl_context *ssl )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    unsigned char *buf;
+    size_t buf_len;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse new session ticket" ) );
+
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_tls13_fetch_handshake_msg(
+                              ssl, MBEDTLS_SSL_HS_NEW_SESSION_TICKET,
+                              &buf, &buf_len ) );
+
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_parse_new_session_ticket( ssl,
+                                                              buf,
+                                                              buf + buf_len ) );
+
+    MBEDTLS_SSL_PROC_CHK( ssl_tls13_postprocess_new_session_ticket( ssl ) );
+
+cleanup:
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse new session ticket" ) );
+    return( ret );
+}
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+
 int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
@@ -1955,6 +2183,15 @@ int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl )
                 mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE );
             break;
 #endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+        case MBEDTLS_SSL_CLIENT_NEW_SESSION_TICKET:
+            ret = ssl_tls13_process_new_session_ticket( ssl );
+            if( ret != 0 )
+                break;
+            ret = MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET;
+            break;
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
         default:
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "invalid state %d", ssl->state ) );

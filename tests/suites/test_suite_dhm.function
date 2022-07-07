@@ -88,8 +88,8 @@ exit:
  */
 
 /* BEGIN_CASE */
-void dhm_do_dhm( int radix_P, char *input_P, int x_size,
-                 int radix_G, char *input_G, int result )
+void dhm_do_dhm( char *input_P, int x_size,
+                 char *input_G, int result )
 {
     mbedtls_dhm_context ctx_srv;
     mbedtls_dhm_context ctx_cli;
@@ -225,7 +225,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void dhm_make_public( int P_bytes, int radix_G, char *input_G, int result )
+void dhm_make_public( int P_bytes, char *input_G, int result )
 {
     mbedtls_mpi P, G;
     mbedtls_dhm_context ctx;

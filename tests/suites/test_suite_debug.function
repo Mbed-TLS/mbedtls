@@ -183,7 +183,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_BIGNUM_C */
-void mbedtls_debug_print_mpi( int radix, char * value, char * file, int line,
+void mbedtls_debug_print_mpi( char * value, char * file, int line,
                               char * prefix, char * result_str )
 {
     mbedtls_ssl_context ssl;

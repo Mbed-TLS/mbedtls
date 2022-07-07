@@ -726,7 +726,8 @@
  *
  * \note  This option only works with the default software implementation of
  *        elliptic curve functionality. It is incompatible with
- *        MBEDTLS_ECP_ALT, MBEDTLS_ECDH_XXX_ALT, MBEDTLS_ECDSA_XXX_ALT.
+ *        MBEDTLS_ECP_ALT, MBEDTLS_ECDH_XXX_ALT, MBEDTLS_ECDSA_XXX_ALT. This
+ *        option is also incompatible with MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED.
  *
  * Requires: MBEDTLS_ECP_C
  *
@@ -3911,8 +3912,7 @@
  * Enable the verified implementations of ECDH primitives from Project Everest
  * (currently only Curve25519). This feature changes the layout of ECDH
  * contexts and therefore is a compatibility break for applications that access
- * fields of a mbedtls_ecdh_context structure directly. See also
- * MBEDTLS_ECDH_LEGACY_CONTEXT in include/mbedtls/ecdh.h.
+ * fields of a mbedtls_ecdh_context structure directly.
  */
 //#define MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
 

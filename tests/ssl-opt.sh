@@ -2042,6 +2042,48 @@ run_test    "Opaque keys for server authentication: EC + RSA, force ECDHE-ECDSA"
             -S "error" \
             -C "error"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_RSA_C
+run_test    "TLS1.3 opaque key: no suitable algorithm found" \
+            "$P_SRV debug_level=4 force_version=tls13 key_opaque=1 key_opaque_algs=rsa-decrypt,none" \
+            "$P_CLI debug_level=4 force_version=tls13 key_opaque=1 key_opaque_algs=rsa-decrypt,rsa-sign-pss" \
+            1 \
+            -c "The SSL configuration is tls13 only" \
+            -s "The SSL configuration is tls13 only" \
+            -c "key type: Opaque" \
+            -s "key types: Opaque, Opaque" \
+            -c "error" \
+            -s "select_sig_alg_for_certificate_verify:no suitable signature algorithm found" \
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_RSA_C
+run_test    "TLS1.3 opaque key: suitable algorithm found" \
+            "$P_SRV debug_level=4 force_version=tls13 key_opaque=1 key_opaque_algs=rsa-decrypt,rsa-sign-pss" \
+            "$P_CLI debug_level=4 force_version=tls13 key_opaque=1 key_opaque_algs=rsa-decrypt,rsa-sign-pss" \
+            0 \
+            -c "The SSL configuration is tls13 only" \
+            -s "The SSL configuration is tls13 only" \
+            -c "key type: Opaque" \
+            -s "key types: Opaque, Opaque" \
+            -C "error" \
+            -S "error" \
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_RSA_C
+run_test    "TLS1.3 opaque key: 2 keys on server, suitable algorithm found" \
+            "$P_SRV debug_level=4 force_version=tls13 key_opaque=1 key_opaque_algs2=ecdsa-sign,none key_opaque_algs=rsa-decrypt,rsa-sign-pss" \
+            "$P_CLI debug_level=4 force_version=tls13 key_opaque=1 key_opaque_algs=rsa-decrypt,rsa-sign-pss" \
+            0 \
+            -c "The SSL configuration is tls13 only" \
+            -s "The SSL configuration is tls13 only" \
+            -c "key type: Opaque" \
+            -s "key types: Opaque, Opaque" \
+            -C "error" \
+            -S "error" \
+
 # Test using a RSA opaque private key for server authentication
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO

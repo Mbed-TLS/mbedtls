@@ -1,0 +1,5 @@
+Bugfix
+   * Ensure that TLS 1.2 ciphersuite/certificate and key selection takes into
+     account not just the type of the key (RSA vs EC) but also what it can
+     actually do. Resolves #5831.
+

@@ -1,0 +1,3 @@
+Features
+   * cmake now detects if it is being built as a sub-project, and in that case
+     disables the target export/installation and package configuration.

@@ -1,0 +1,3 @@
+Bugfix
+   * Fix CMake windows host detection, especially when cross compiling.
+

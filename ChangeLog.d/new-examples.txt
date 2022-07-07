@@ -1,0 +1,5 @@
+Features
+   * Add example programs cipher_aead_demo.c, md_hmac_demo.c, aead_demo.c
+     and hmac_demo.c, which use PSA and the md/cipher interfaces side
+     by side in order to illustrate how the operation is performed in PSA.
+     Addresses #5208.

@@ -1,0 +1,4 @@
+Bugfix
+   * Fix MBEDTLS_SVC_KEY_ID_GET_KEY_ID() and MBEDTLS_SVC_KEY_ID_GET_OWNER_ID()
+     which have been broken, resulting in compilation errors, since Mbed TLS
+     3.0.

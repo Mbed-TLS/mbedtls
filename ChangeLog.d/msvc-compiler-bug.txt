@@ -1,0 +1,3 @@
+Bugfix
+   * Work around an MSVC ARM64 compiler bug causing incorrect behaviour
+     in mbedtls_mpi_exp_mod(). Reported by Tautvydas Žilys in #5467.

@@ -1,0 +1,2 @@
+Features
+   * Make USE_PSA_CRYPTO compatible with KEY_ID_ENCODES_OWNER. Fixes #5259.

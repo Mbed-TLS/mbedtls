@@ -20,17 +20,28 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/suites)
 execute_process(
     COMMAND
         ${MBEDTLS_PYTHON_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/../tests/scripts/generate_bignum_tests.py
+        --list-for-cmake
+        --directory suites
+    WORKING_DIRECTORY
+        ${CMAKE_CURRENT_SOURCE_DIR}/..
+    OUTPUT_VARIABLE
+        bignum_generated_data_files)
+
+execute_process(
+    COMMAND
+        ${MBEDTLS_PYTHON_EXECUTABLE}
         ${CMAKE_CURRENT_SOURCE_DIR}/../tests/scripts/generate_psa_tests.py
         --list-for-cmake
         --directory suites
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_SOURCE_DIR}/..
     OUTPUT_VARIABLE
-        base_generated_data_files)
+        psa_generated_data_files)
 
 # Derive generated file paths in the build directory
 set(generated_data_files "")
-foreach(file ${base_generated_data_files})
+foreach(file ${bignum_generated_data_files} ${psa_generated_data_files})
     list(APPEND generated_data_files ${CMAKE_CURRENT_BINARY_DIR}/${file})
 endforeach()
 
@@ -44,8 +55,13 @@ if(GEN_FILES)
             ${MBEDTLS_PYTHON_EXECUTABLE}
             ${CMAKE_CURRENT_SOURCE_DIR}/../tests/scripts/generate_psa_tests.py
             --directory ${CMAKE_CURRENT_BINARY_DIR}/suites
+        COMMAND
+            ${MBEDTLS_PYTHON_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/../tests/scripts/generate_bignum_tests.py
+            --directory ${CMAKE_CURRENT_BINARY_DIR}/suites
         DEPENDS
             ${CMAKE_CURRENT_SOURCE_DIR}/../tests/scripts/generate_psa_tests.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/../tests/scripts/generate_bignum_tests.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/crypto_knowledge.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/macro_collector.py
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/mbedtls_dev/psa_storage.py

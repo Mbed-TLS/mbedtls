@@ -1,5 +1,0 @@
-New deprecations
-   * Deprecate mbedtls_ssl_conf_sig_hashes() in favor of the more generic
-     mbedtls_ssl_conf_sig_algs(). Signature algorithms for the TLS 1.2 and
-     TLS 1.3 handshake should now be configured with
-     mbedtls_ssl_conf_sig_algs().

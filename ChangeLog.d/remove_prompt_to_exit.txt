@@ -1,4 +1,0 @@
-Bugfix
-   * Removed the prompt to exit from all windows build programs that was causing
-     issues in CI/CD environments.
-

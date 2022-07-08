@@ -1,3 +1,0 @@
-Bugfix
-   * Fix an error in make where the absence of a generated file caused
-     make to break on a clean checkout. Fixes #5340. 

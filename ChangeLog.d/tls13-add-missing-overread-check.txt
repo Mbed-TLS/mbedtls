@@ -1,8 +1,0 @@
-Security
-    * Fix a buffer overread in TLS 1.3 Certificate parsing. An unauthenticated
-      client or server could cause an MbedTLS server or client to overread up
-      to 64 kBytes of data and potentially overread the input buffer by that
-      amount minus the size of the input buffer. As overread data undergoes
-      various checks, the likelihood of reaching the boundary of the input
-      buffer is rather small but increases as its size
-      MBEDTLS_SSL_IN_CONTENT_LEN decreases.

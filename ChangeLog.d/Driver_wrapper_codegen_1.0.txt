@@ -1,5 +1,0 @@
-Changes
-   * The file library/psa_crypto_driver_wrappers.c is now generated
-     from a template. In the future, the generation will support
-     driver descriptions. For the time being, to customize this file,
-     see docs/proposed/psa-driver-wrappers-codegen-migration-guide.md

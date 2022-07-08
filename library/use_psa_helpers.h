@@ -1,8 +1,10 @@
 /**
  *  Internal macros for parts of the code governed by MBEDTLS_USE_PSA_CRYPTO.
- *  These macros allow checking if an algorithm is available, either via the
- *  legacy API or the PSA Crypto API, depending on MBEDTLS_USE_PSA_CRYPTO.
- *  When possible, they're named after the corresponding PSA_WANT_ macro.
+ *  Some macros allow checking if an algorithm is available, either via the
+ *  legacy API or the PSA Crypto API, depending on MBEDTLS_USE_PSA_CRYPTO;
+ *  when possible, they're named after the corresponding PSA_WANT_ macro.
+ *  Other macros provide max sizes or similar information in a USE_PSA-aware
+ *  way; they're name after a similar constant from the legacy API or PSA.
  *
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
@@ -53,6 +55,13 @@
 #if ( !defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_SHA512_C) ) || \
     ( defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_SHA_512) )
 #define MBEDTLS_USE_PSA_WANT_ALG_SHA_512
+#endif
+
+/* Hash information */
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#define MBEDTLS_USE_PSA_MD_MAX_SIZE PSA_HASH_MAX_SIZE
+#else
+#define MBEDTLS_USE_PSA_MD_MAX_SIZE MBEDTLS_MD_MAX_SIZE
 #endif
 
 #endif /* MBEDTLS_USE_PSA_HELPERS_H */

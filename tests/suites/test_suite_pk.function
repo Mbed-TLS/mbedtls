@@ -8,6 +8,7 @@
 #include "mbedtls/rsa.h"
 
 #include "md_internal.h"
+#include "use_psa_helpers.h"
 
 #include <limits.h>
 #include <stdint.h>
@@ -481,7 +482,7 @@ void pk_rsa_verify_test_vec( data_t * message_str, int digest, int mod,
                              char * input_E, data_t * result_str,
                              int result )
 {
-    unsigned char hash_result[MBEDTLS_MD_MAX_SIZE];
+    unsigned char hash_result[MBEDTLS_USE_PSA_MD_MAX_SIZE];
     mbedtls_rsa_context *rsa;
     mbedtls_pk_context pk;
     mbedtls_pk_restart_ctx *rs_ctx = NULL;
@@ -498,7 +499,7 @@ void pk_rsa_verify_test_vec( data_t * message_str, int digest, int mod,
 
     mbedtls_pk_init( &pk );
 
-    memset( hash_result, 0x00, MBEDTLS_MD_MAX_SIZE );
+    memset( hash_result, 0x00, sizeof( hash_result ) );
 
     TEST_ASSERT( mbedtls_pk_setup( &pk, mbedtls_pk_info_from_type( MBEDTLS_PK_RSA ) ) == 0 );
     rsa = mbedtls_pk_rsa( pk );
@@ -508,8 +509,20 @@ void pk_rsa_verify_test_vec( data_t * message_str, int digest, int mod,
     TEST_ASSERT( mbedtls_test_read_mpi( &rsa->E, radix_E, input_E ) == 0 );
 
 
-    if( mbedtls_md_info_from_type( digest ) != NULL )
-        TEST_ASSERT( mbedtls_md( mbedtls_md_info_from_type( digest ), message_str->x, message_str->len, hash_result ) == 0 );
+    if( digest != MBEDTLS_MD_NONE )
+    {
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        size_t hash_len;
+        psa_algorithm_t hash_alg = mbedtls_psa_translate_md( digest );
+        TEST_EQUAL( PSA_SUCCESS, psa_hash_compute( hash_alg,
+                        message_str->x, message_str->len,
+                        hash_result, sizeof( hash_result ), &hash_len ) );
+
+#else
+        TEST_EQUAL( 0, mbedtls_md( mbedtls_md_info_from_type( digest ),
+                            message_str->x, message_str->len, hash_result ) );
+#endif
+    }
 
     TEST_ASSERT( mbedtls_pk_verify( &pk, digest, hash_result, 0,
                             result_str->x, mbedtls_pk_get_len( &pk ) ) == result );
@@ -534,7 +547,7 @@ void pk_rsa_verify_ext_test_vec( data_t * message_str, int digest,
                                  int mgf1_hash_id, int salt_len, int sig_len,
                                  int result )
 {
-    unsigned char hash_result[MBEDTLS_MD_MAX_SIZE];
+    unsigned char hash_result[MBEDTLS_USE_PSA_MD_MAX_SIZE];
     mbedtls_rsa_context *rsa;
     mbedtls_pk_context pk;
     mbedtls_pk_rsassa_pss_options pss_opts;
@@ -557,10 +570,17 @@ void pk_rsa_verify_ext_test_vec( data_t * message_str, int digest,
 
     if( digest != MBEDTLS_MD_NONE )
     {
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        psa_algorithm_t hash_alg = mbedtls_psa_translate_md( digest );
+        TEST_EQUAL( PSA_SUCCESS, psa_hash_compute( hash_alg,
+                    message_str->x, message_str->len,
+                    hash_result, sizeof( hash_result ), &hash_len ) );
+#else
         const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( digest );
         TEST_ASSERT( mbedtls_md( md_info, message_str->x, message_str->len,
                                  hash_result ) == 0 );
         hash_len = mbedtls_md_get_size( md_info );
+#endif
     }
     else
     {
@@ -1317,7 +1337,7 @@ void pk_psa_sign_ext( int pk_type, int parameter, int key_pk_type, int md_alg )
     mbedtls_pk_context pk;
     size_t sig_len;
     unsigned char sig[MBEDTLS_PK_SIGNATURE_MAX_SIZE];
-    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
+    unsigned char hash[PSA_HASH_MAX_SIZE];
     size_t hash_len = mbedtls_md_internal_get_size( md_alg );
     void const *options = NULL;
     mbedtls_pk_rsassa_pss_options rsassa_pss_options;
@@ -1361,7 +1381,7 @@ void pk_psa_wrap_sign_ext( int pk_type, int parameter, int key_pk_type, int md_a
     unsigned char sig[MBEDTLS_PK_SIGNATURE_MAX_SIZE];
     unsigned char pkey[PSA_EXPORT_PUBLIC_KEY_MAX_SIZE];
     unsigned char *pkey_start;
-    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
+    unsigned char hash[PSA_HASH_MAX_SIZE];
     psa_algorithm_t psa_md_alg = mbedtls_psa_translate_md( md_alg );
     psa_algorithm_t psa_alg;
     size_t hash_len = PSA_HASH_LENGTH( psa_md_alg );

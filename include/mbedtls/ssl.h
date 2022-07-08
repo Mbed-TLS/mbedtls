@@ -170,6 +170,15 @@
 #define MBEDTLS_ERR_SSL_BAD_CONFIG                        -0x5E80
 
 /*
+ * Constants from RFC 8446 for TLS 1.3 PSK modes
+ *
+ * Those are used in the Pre-Shared Key Exchange Modes extension.
+ * See Section 4.2.9 in RFC 8446.
+ */
+#define MBEDTLS_SSL_TLS1_3_PSK_MODE_PURE  0 /* Pure PSK-based exchange  */
+#define MBEDTLS_SSL_TLS1_3_PSK_MODE_ECDHE 1 /* PSK+ECDHE-based exchange */
+
+/*
  * TLS 1.3 NamedGroup values
  *
  * From RF 8446

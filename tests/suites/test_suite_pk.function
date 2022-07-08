@@ -766,7 +766,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
+/* BEGIN_CASE depends_on:MBEDTLS_USE_PSA_WANT_ALG_SHA_256 */
 void pk_sign_verify( int type, int parameter, int sign_ret, int verify_ret )
 {
     mbedtls_pk_context pk;
@@ -1209,7 +1209,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C:MBEDTLS_USE_PSA_CRYPTO */
+/* BEGIN_CASE depends_on:MBEDTLS_USE_PSA_WANT_ALG_SHA_256:MBEDTLS_USE_PSA_CRYPTO */
 void pk_psa_sign( int parameter_arg,
                   int psa_type_arg, int expected_bits_arg )
 {

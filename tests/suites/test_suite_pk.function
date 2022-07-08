@@ -476,7 +476,7 @@ void mbedtls_pk_check_pair( char * pub_file, char * prv_file, int ret )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_RSA_C:MBEDTLS_MD_C */
+/* BEGIN_CASE depends_on:MBEDTLS_RSA_C */
 void pk_rsa_verify_test_vec( data_t * message_str, int digest, int mod,
                              int radix_N, char * input_N, int radix_E,
                              char * input_E, data_t * result_str,
@@ -539,7 +539,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_RSA_C:MBEDTLS_MD_C */
+/* BEGIN_CASE depends_on:MBEDTLS_RSA_C */
 void pk_rsa_verify_ext_test_vec( data_t * message_str, int digest,
                                  int mod, int radix_N, char * input_N,
                                  int radix_E, char * input_E,

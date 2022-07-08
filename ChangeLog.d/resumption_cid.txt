@@ -1,0 +1,5 @@
+Bugfix
+   * Fix server connection identifier setting for outgoing encrypted records
+     on DTLS 1.2 session resumption. After DTLS 1.2 session resumption with
+     connection identifier, the Mbed TLS client now properly sends the server
+     connection identifier in encrypted record headers. Fix #5872.

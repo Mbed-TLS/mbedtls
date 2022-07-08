@@ -581,6 +581,14 @@
 #error "MBEDTLS_PSA_CRYPTO_SE_C defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+#if defined(MBEDTLS_DEPRECATED_REMOVED)
+#error "MBEDTLS_PSA_CRYPTO_SE_C is deprecated and will be removed in a future version of Mbed TLS"
+#elif defined(MBEDTLS_DEPRECATED_WARNING)
+#warning "MBEDTLS_PSA_CRYPTO_SE_C is deprecated and will be removed in a future version of Mbed TLS"
+#endif
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
+
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) &&            \
     ! defined(MBEDTLS_PSA_CRYPTO_C)
 #error "MBEDTLS_PSA_CRYPTO_STORAGE_C defined, but not all prerequisites"
@@ -727,6 +735,13 @@
       ( !defined(MBEDTLS_SHA256_C) && !defined(MBEDTLS_SHA384_C) ) || \
       ( !defined(MBEDTLS_PSA_CRYPTO_C) ) )
 #error "MBEDTLS_SSL_PROTO_TLS1_3 defined, but not all prerequisites"
+#endif
+
+/*
+ * The current implementation of TLS 1.3 requires MBEDTLS_SSL_KEEP_PEER_CERTIFICATE.
+ */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+#error "MBEDTLS_SSL_PROTO_TLS1_3 defined without MBEDTLS_SSL_KEEP_PEER_CERTIFICATE"
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) &&                                    \

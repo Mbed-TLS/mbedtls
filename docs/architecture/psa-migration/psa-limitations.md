@@ -14,8 +14,8 @@ Limitations relevant for G1 (performing crypto operations)
 Restartable ECC operations
 --------------------------
 
-There is currently no support for that in PSA at all. API design, as well as
-implementation, would be non-trivial.
+There is currently no support for that in PSA at all, but it will be added at
+some point, see <https://github.com/orgs/Mbed-TLS/projects/1#column-18816849>.
 
 Currently, `MBEDTLS_USE_PSA_CRYPTO` is simply incompatible with
 `MBEDTLS_ECP_RESTARTABLE`.
@@ -60,16 +60,25 @@ There are several options here:
 
 1. Implement support for custom FFDH parameters in PSA Crypto: this would pose
    non-trivial API design problem, but most importantly seems backwards, as
-the crypto community is moving away from custom FFDH parameters.
+the crypto community is moving away from custom FFDH parameters. (Could be
+done any time.)
 2. Drop the DHE-RSA and DHE-PSK key exchanges in TLS 1.2 when moving to PSA.
-3. Implement RFC 7919, support DHE-RSA and DHE-PSK only in conjunction with it
-   when moving to PSA. We can modify our server so that it only selects a DHE
-   ciphersuite if the client offered name FFDH groups; unfortunately
+   (For people who want some algorithmic variety in case ECC collapses, FFDH
+would still be available in TLS 1.3, just not in 1.2.) (Can only be done in
+4.0 or another major version.)
+3. Variant of the precedent: only drop client-side support. Server-side is
+   easy to support in terms of API/protocol, as the server picks the
+parameters: we just need remove the existing `mbedtls_ssl_conf_dh_param_xxx()`
+APIs and tell people to use `mbedtls_ssl_conf_groups()` instead. (Can only be
+done in 4.0 or another major version.)
+4. Implement RFC 7919, support DHE-RSA and DHE-PSK only in conjunction with it
+   when moving to PSA. Server-side would work as above; unfortunately
 client-side the only option is to offer named groups and break the handshake
 if the server didn't take on our offer. This is not fully satisfying, but is
 perhaps the least unsatisfying option in terms of result; it's also probably
 the one that requires the most work, but it would deliver value beyond PSA
-migration by implementing RFC 7919.
+migration by implementing RFC 7919. (Implementing RFC 7919 could be done any
+time; making it mandatory can only be done in 4.0 or another major version.)
 
 RSA-PSS parameters
 ------------------
@@ -294,7 +303,7 @@ server9.req.sha512
          Mask Algorithm: mgf1 with sha512
           Salt Length: 0x3E
 
-These CSRss are signed with a 2048-bit key. It appears that they are
+These CSRs are signed with a 2048-bit key. It appears that they are
 all using saltlen = keylen - hashlen - 2.
 
 ### Possible courses of action
@@ -308,87 +317,13 @@ is about X.509 signature verification. Options include:
    saltlen happens to match hashlen, and falling back to `ANY_SALT` otherwise.
 Same issue as with the previous point, except more contained.
 3. Reject all certificates with saltlen != hashlen. This includes all
-   certificates generate with OpenSSL using the default parameters, so it's
+   certificates generated with OpenSSL using the default parameters, so it's
 probably not acceptable.
 4. Request an extension to the PSA Crypto API and use one of the above options
    in the meantime. Such an extension seems inconvenient and not motivated by
 strong security arguments, so it's unclear whether it would be accepted.
 
-HKDF: Expand not exposed on its own (TLS 1.3)
----------------------------------------------
-
-The HKDF function uses an Extract-then-Expand approach, that is:
-
-        HKDF(x, ...) = HKDF-Expand(HKDF-Extract(x, ...), ...)
-
-Only the full HKDF function is safe in general, however there are cases when
-one case safely use the individual Extract and Expand; the TLS 1.3 key
-schedule does so. Specifically, looking at the [hierarchy of secrets][13hs]
-is seems that Expand and Extract are always chained, so that this hierarchy
-can be implemented using only the full HKDF. However, looking at the
-derivation of traffic keys (7.3) and the update mechanism (7.2) it appears
-that calls to HKDF-Expand are iterated without any intermediated call to
-HKDF-Extract : that is, the traffic keys are computed as
-
-        HKDF-Expand(HKDF-Expand(HKDF-Extract(...)))
-
-(with possibly more than two Expands in a row with update).
-
-[13hs]: https://datatracker.ietf.org/doc/html/rfc8446#page-93
-
-In the short term (early 2022), we'll work around that by re-implementing HKDF
-in `ssl_tls13_keys.c` based on the `psa_mac_` APIs (for HMAC).
-
-In the long term, it is desirable to extend the PSA API. See
-https://github.com/ARM-software/psa-crypto-api/issues/539
-
 Limitations relevant for G2 (isolation of long-term secrets)
 ============================================================
 
-Custom key derivations for mixed-PSK handshake
-----------------------------------------------
-
-Currently, `MBEDTLS_USE_PSA_CRYPTO` enables the new configuration function
-`mbedtls_ssl_conf_psk_opaque()` which allows a PSA-held key to be used for the
-(pure) `PSK` key exchange in TLS 1.2. This requires that the derivation of the
-Master Secret (MS) be done on the PSA side. To support this, an algorithm
-family `PSA_ALG_TLS12_PSK_TO_MS(hash_alg)` was added to PSA Crypto.
-
-If we want to support key isolation for the "mixed PSK" key exchanges:
-DHE-PSK, RSA-PSK, ECDHE-PSK, where the PSK is concatenated with the result of
-a DH key agreement (resp. RSA decryption) to form the pre-master secret (PMS)
-from which the MS is derived. If the value of the PSK is to remain hidden, we
-need the derivation PSK + secondary secret -> MS to be implemented as an
-ad-hoc PSA key derivation algorithm.
-
-Adding this new, TLS-specific, key derivation algorithm to PSA Crypto should
-be no harder than it was to add `PSA_ALG_TLS12_PSK_TO_MS()` but still requires
-an extension to PSA Crypto.
-
-Note: looking at RFCs 4279 and 5489, it appears that the structure of the PMS
-is always the same: 2-byte length of the secondary secret, secondary secret,
-2-byte length of the PSK, PSK. So, a single key derivation algorithm should be
-able to cover the 3 key exchanges DHE-PSK, RSA-PSK and ECDHE-PSK. (That's a
-minor gain: adding 3 algorithms would not be a blocker anyway.)
-
-Note: if later we want to also isolate short-term secret (G3), the "secondary
-secret" (output of DHE/ECDHE key agreement or RSA decryption) could be a
-candidate. This wouldn't be a problem as the PSA key derivation API always
-allows inputs from key slots. (Tangent: the hard part in isolating the result
-of RSA decryption would be still checking that is has the correct format:
-48 bytes, the first two matching the TLS version - note that this is timing
-sensitive.)
-
-HKDF: Expand not exposed on its own (TLS 1.3)
----------------------------------------------
-
-See the section with the same name in the G1 part above for background.
-
-The work-around mentioned there works well enough just for acceleration, but
-is not sufficient for key isolation or generally proper key management (it
-requires marking keys are usable for HMAC while they should only be used for
-key derivation).
-
-The obvious long-term solution is to make HKDF-Expand available as a new KDF
-(in addition to the full HKDF) in PSA (with appropriate warnings in the
-documentation).
+Currently none.

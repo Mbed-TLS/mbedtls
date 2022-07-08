@@ -1,0 +1,5 @@
+New deprecations
+   * Secure element drivers enabled by MBEDTLS_PSA_CRYPTO_SE_C are deprecated.
+     This was intended as an experimental feature, but had not been explicitly
+     documented as such. Use opaque drivers with the interface enabled by
+     MBEDTLS_PSA_CRYPTO_DRIVERS instead.

@@ -1,0 +1,18 @@
+Bugfix
+   * Fix a TLS 1.3 handshake failure when the first attempt to send the client
+     Finished message on the network cannot be satisfied. Fixes #5499.
+
+Features
+   * Add support for authentication of TLS 1.3 clients by TLS 1.3 servers.
+   * Add support for server HelloRetryRequest message. The TLS 1.3 client is
+     now capable of negotiating another shared secret if the one sent in its
+     first ClientHello was not suitable to the server.
+   * Add support for client-side TLS version negotiation. If both TLS 1.2 and
+     TLS 1.3 protocols are enabled in the build of Mbed TLS, the TLS client now
+     negotiates TLS 1.3 or TLS 1.2 with TLS servers.
+   * Enable building of Mbed TLS with TLS 1.3 protocol support but without TLS
+     1.2 protocol support.
+   * Mbed TLS provides an implementation of a TLS 1.3 server (ephemeral key
+     establishment only). See docs/architecture/tls13-support.md for a
+     description of the support. The MBEDTLS_SSL_PROTO_TLS1_3 and
+     MBEDTLS_SSL_SRV_C configuration options control this.

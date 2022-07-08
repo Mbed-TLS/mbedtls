@@ -1,0 +1,7 @@
+Security
+   * Fix check of certificate key usage in TLS 1.3. The usage of the public key
+     provided by a client or server certificate for authentication was not
+     checked properly when validating the certificate. This could cause a
+     client or server to be able to authenticate itself through a certificate
+     to an Mbed TLS TLS 1.3 server or client while it does not own a proper
+     certificate to do so.

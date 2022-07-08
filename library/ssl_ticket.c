@@ -66,6 +66,7 @@ void mbedtls_ssl_ticket_init( mbedtls_ssl_ticket_context *ctx )
 /*
  * Generate/update a key
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_ticket_gen_key( mbedtls_ssl_ticket_context *ctx,
                                unsigned char index )
 {
@@ -113,6 +114,7 @@ static int ssl_ticket_gen_key( mbedtls_ssl_ticket_context *ctx,
 /*
  * Rotate/generate keys if necessary
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_ticket_update_keys( mbedtls_ssl_ticket_context *ctx )
 {
 #if !defined(MBEDTLS_HAVE_TIME)

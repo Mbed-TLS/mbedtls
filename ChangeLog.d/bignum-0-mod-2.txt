@@ -1,0 +1,4 @@
+Bugfix
+   * Fix a null pointer dereference when performing some operations on zero
+     represented with 0 limbs (specifically mbedtls_mpi_mod_int() dividing
+     by 2, and mbedtls_mpi_write_string() in base 2).

@@ -1,0 +1,9 @@
+Security
+   * Fix a buffer overread in DTLS ClientHello parsing in servers with
+     MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE enabled. An unauthenticated client
+     or a man-in-the-middle could cause a DTLS server to read up to 255 bytes
+     after the end of the SSL input buffer. The buffer overread only happens
+     when MBEDTLS_SSL_IN_CONTENT_LEN is less than a threshold that depends on
+     the exact configuration: 258 bytes if using mbedtls_ssl_cookie_check(),
+     and possibly up to 571 bytes with a custom cookie check function.
+     Reported by the Cybeats PSI Team.

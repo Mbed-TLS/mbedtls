@@ -276,10 +276,9 @@ class SignatureAlgorithmDefinition:
         translation_table = []
         for m in self._definitions:
             name = m.groupdict()['name']
+            return_val = name[len('MBEDTLS_TLS1_3_SIG_'):].lower()
             translation_table.append(
-                '    case {}:\n        return "{}";'.format(name,
-                                                        name[len('MBEDTLS_TLS1_3_SIG_'):].lower())
-            )
+                '    case {}:\n        return "{}";'.format(name, return_val))
 
         body = textwrap.dedent('''\
             const char *mbedtls_ssl_sig_alg_to_str( uint16_t in )

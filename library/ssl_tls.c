@@ -1710,7 +1710,8 @@ int mbedtls_ssl_set_hs_psk( mbedtls_ssl_context *ssl,
     else
         alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_256);
 
-    psa_set_key_usage_flags( &key_attributes, PSA_KEY_USAGE_DERIVE );
+    psa_set_key_usage_flags( &key_attributes,
+                             PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_EXPORT );
     psa_set_key_algorithm( &key_attributes, alg );
     psa_set_key_type( &key_attributes, PSA_KEY_TYPE_DERIVE );
 

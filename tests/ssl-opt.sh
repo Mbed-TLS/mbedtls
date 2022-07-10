@@ -2283,6 +2283,8 @@ run_test    "TLS 1.3: key exchange mode parameter passing: All" \
             "$P_CLI tls13_kex_modes=all" \
             0
 
+# FIXME: force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 should be removed in future
+#        Without it, the binder will generate wrong value.
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
@@ -2296,6 +2298,8 @@ run_test    "TLS 1.3: psk_key_exchange_modes: basic check, O->m" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE"
 
+# FIXME: force_ciphersuite=TLS1-3-AES-128-GCM-SHA256 should be removed in future
+#        Without it, the binder will generate wrong value.
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE

@@ -139,6 +139,23 @@ void free_handshake_options( handshake_test_options *opts )
     (void) opts;
 #endif
 }
+
+#if defined(MBEDTLS_TEST_HOOKS)
+static void set_chk_buf_ptr_args(
+    mbedtls_ssl_chk_buf_ptr_args *args,
+    unsigned char *cur, unsigned char *end, size_t need )
+{
+    args->cur = cur;
+    args->end = end;
+    args->need = need;
+}
+
+static void reset_chk_buf_ptr_args( mbedtls_ssl_chk_buf_ptr_args *args )
+{
+    memset( args, 0, sizeof( *args ) );
+}
+#endif /* MBEDTLS_TEST_HOOKS */
+
 /*
  * Buffer structure for custom I/O callbacks.
  */
@@ -2383,6 +2400,119 @@ exit:
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C */
 
+#if defined(MBEDTLS_TEST_HOOKS)
+/*
+ * Tweak vector lengths in a TLS 1.3 Certificate message
+ *
+ * \param[in]       buf    Buffer containing the Certificate message to tweak
+ * \param[in]]out]  end    End of the buffer to parse
+ * \param           tweak  Tweak identifier (from 1 to the number of tweaks).
+ * \param[out]  expected_result  Error code expected from the parsing function
+ * \param[out]  args  Arguments of the MBEDTLS_SSL_CHK_BUF_READ_PTR call that
+ *                    is expected to fail. All zeroes if no
+ *                    MBEDTLS_SSL_CHK_BUF_READ_PTR failure is expected.
+ */
+int tweak_tls13_certificate_msg_vector_len(
+    unsigned char *buf, unsigned char **end, int tweak,
+    int *expected_result, mbedtls_ssl_chk_buf_ptr_args *args )
+{
+/*
+ * The definition of the tweaks assume that the certificate list contains only
+ * one certificate.
+ */
+
+/*
+ * struct {
+ *     opaque cert_data<1..2^24-1>;
+ *     Extension extensions<0..2^16-1>;
+ * } CertificateEntry;
+ *
+ * struct {
+ *     opaque certificate_request_context<0..2^8-1>;
+ *     CertificateEntry certificate_list<0..2^24-1>;
+ * } Certificate;
+ */
+    unsigned char *p_certificate_request_context_len = buf;
+    size_t certificate_request_context_len = buf[0];
+
+    unsigned char *p_certificate_list_len = buf + 1 + certificate_request_context_len;
+    unsigned char *certificate_list = p_certificate_list_len + 3;
+    size_t certificate_list_len = MBEDTLS_GET_UINT24_BE( p_certificate_list_len, 0 );
+
+    unsigned char *p_cert_data_len = certificate_list;
+    unsigned char *cert_data = p_cert_data_len + 3;
+    size_t cert_data_len = MBEDTLS_GET_UINT24_BE( p_cert_data_len, 0 );
+
+    unsigned char *p_extensions_len = cert_data + cert_data_len;
+    unsigned char *extensions = p_extensions_len + 2;
+    size_t extensions_len = MBEDTLS_GET_UINT16_BE( p_extensions_len, 0 );
+
+    *expected_result = MBEDTLS_ERR_SSL_DECODE_ERROR;
+
+    switch( tweak )
+    {
+        case 1:
+        /* Failure when checking if the certificate request context length and
+         * certificate list length can be read
+         */
+        *end = buf + 3;
+        set_chk_buf_ptr_args( args, buf, *end, 4 );
+        break;
+
+        case 2:
+        /* Invalid certificate request context length.
+         */
+        *p_certificate_request_context_len =
+            certificate_request_context_len + 1;
+        reset_chk_buf_ptr_args( args );
+        break;
+
+        case 3:
+        /* Failure when checking if certificate_list data can be read. */
+        MBEDTLS_PUT_UINT24_BE( certificate_list_len + 1,
+                               p_certificate_list_len, 0 );
+        set_chk_buf_ptr_args( args, certificate_list, *end,
+                              certificate_list_len + 1 );
+        break;
+
+        case 4:
+        /* Failure when checking if the cert_data length can be read. */
+        MBEDTLS_PUT_UINT24_BE( 2, p_certificate_list_len, 0 );
+        set_chk_buf_ptr_args( args, p_cert_data_len, certificate_list + 2, 3 );
+        break;
+
+        case 5:
+        /* Failure when checking if cert_data data can be read. */
+        MBEDTLS_PUT_UINT24_BE( certificate_list_len - 3 + 1,
+                               p_cert_data_len, 0 );
+        set_chk_buf_ptr_args( args, cert_data,
+                              certificate_list + certificate_list_len,
+                              certificate_list_len - 3 + 1 );
+        break;
+
+        case 6:
+        /* Failure when checking if the extensions length can be read. */
+        MBEDTLS_PUT_UINT24_BE( certificate_list_len - extensions_len - 1,
+                               p_certificate_list_len, 0 );
+        set_chk_buf_ptr_args( args, p_extensions_len,
+            certificate_list + certificate_list_len - extensions_len - 1, 2 );
+        break;
+
+        case 7:
+        /* Failure when checking if extensions data can be read. */
+        MBEDTLS_PUT_UINT16_BE( extensions_len + 1, p_extensions_len, 0 );
+
+        set_chk_buf_ptr_args( args, extensions,
+            certificate_list + certificate_list_len, extensions_len + 1 );
+        break;
+
+        default:
+        return( -1 );
+    }
+
+    return( 0 );
+}
+#endif /* MBEDTLS_TEST_HOOKS */
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -5574,6 +5704,34 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE:MBEDTLS_TEST_HOOKS */
+void cookie_parsing( data_t *cookie, int exp_ret )
+{
+    mbedtls_ssl_context ssl;
+    mbedtls_ssl_config conf;
+    size_t len;
+
+    mbedtls_ssl_init( &ssl );
+    mbedtls_ssl_config_init( &conf );
+    TEST_EQUAL( mbedtls_ssl_config_defaults( &conf, MBEDTLS_SSL_IS_SERVER,
+                                             MBEDTLS_SSL_TRANSPORT_DATAGRAM,
+                                             MBEDTLS_SSL_PRESET_DEFAULT ),
+                0 );
+
+    TEST_EQUAL( mbedtls_ssl_setup( &ssl, &conf ), 0 );
+    TEST_EQUAL( mbedtls_ssl_check_dtls_clihlo_cookie( &ssl, ssl.cli_id,
+                                                  ssl.cli_id_len,
+                                                  cookie->x, cookie->len,
+                                                  ssl.out_buf,
+                                                  MBEDTLS_SSL_OUT_CONTENT_LEN,
+                                                  &len ),
+                exp_ret );
+
+    mbedtls_ssl_free( &ssl );
+    mbedtls_ssl_config_free( &conf );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_TIMING_C:MBEDTLS_HAVE_TIME */
 void timing_final_delay_accessor( )
 {
@@ -5732,6 +5890,98 @@ exit:
     mbedtls_endpoint_free( &server, NULL );
     free_handshake_options( &options );
 
+    USE_PSA_DONE( );
+}
+/* END_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS:MBEDTLS_SSL_PROTO_TLS1_3:!MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_SRV_C:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED */
+void tls13_server_certificate_msg_invalid_vector_len( )
+{
+    int ret = -1;
+    mbedtls_endpoint client_ep, server_ep;
+    unsigned char *buf, *end;
+    size_t buf_len;
+    int step = 0;
+    int expected_result;
+    mbedtls_ssl_chk_buf_ptr_args expected_chk_buf_ptr_args;
+    handshake_test_options client_options;
+    handshake_test_options server_options;
+
+    /*
+     * Test set-up
+     */
+    USE_PSA_INIT( );
+
+    init_handshake_options( &client_options );
+    client_options.pk_alg = MBEDTLS_PK_ECDSA;
+    ret = mbedtls_endpoint_init( &client_ep, MBEDTLS_SSL_IS_CLIENT,
+                                 &client_options, NULL, NULL, NULL, NULL );
+    TEST_EQUAL( ret, 0 );
+
+    init_handshake_options( &server_options );
+    server_options.pk_alg = MBEDTLS_PK_ECDSA;
+    ret = mbedtls_endpoint_init( &server_ep, MBEDTLS_SSL_IS_SERVER,
+                                 &server_options, NULL, NULL, NULL, NULL );
+    TEST_EQUAL( ret, 0 );
+
+    ret = mbedtls_mock_socket_connect( &(client_ep.socket),
+                                       &(server_ep.socket), 1024 );
+    TEST_EQUAL( ret, 0 );
+
+    while( 1 )
+    {
+        mbedtls_test_set_step( ++step );
+
+        ret = mbedtls_move_handshake_to_state( &(server_ep.ssl),
+                                               &(client_ep.ssl),
+                                               MBEDTLS_SSL_CERTIFICATE_VERIFY );
+        TEST_EQUAL( ret, 0 );
+
+        ret = mbedtls_ssl_flush_output( &(server_ep.ssl) );
+        TEST_EQUAL( ret, 0 );
+
+        ret = mbedtls_move_handshake_to_state( &(client_ep.ssl),
+                                               &(server_ep.ssl),
+                                               MBEDTLS_SSL_SERVER_CERTIFICATE );
+        TEST_EQUAL( ret, 0 );
+
+        ret = mbedtls_ssl_tls13_fetch_handshake_msg( &(client_ep.ssl),
+                                                     MBEDTLS_SSL_HS_CERTIFICATE,
+                                                     &buf, &buf_len );
+        TEST_EQUAL( ret, 0 );
+
+        end = buf + buf_len;
+
+        /*
+         * Tweak server Certificate message and parse it.
+         */
+
+        ret = tweak_tls13_certificate_msg_vector_len(
+            buf, &end, step, &expected_result, &expected_chk_buf_ptr_args );
+
+        if( ret != 0 )
+            break;
+
+        ret = mbedtls_ssl_tls13_parse_certificate( &(client_ep.ssl), buf, end );
+        TEST_EQUAL( ret, expected_result );
+
+        TEST_ASSERT( mbedtls_ssl_cmp_chk_buf_ptr_fail_args(
+                         &expected_chk_buf_ptr_args ) == 0 );
+
+        mbedtls_ssl_reset_chk_buf_ptr_fail_args( );
+
+        ret = mbedtls_ssl_session_reset( &(client_ep.ssl) );
+        TEST_EQUAL( ret, 0 );
+
+        ret = mbedtls_ssl_session_reset( &(server_ep.ssl) );
+        TEST_EQUAL( ret, 0 );
+    }
+
+exit:
+    mbedtls_ssl_reset_chk_buf_ptr_fail_args( );
+    mbedtls_endpoint_free( &client_ep, NULL );
+    mbedtls_endpoint_free( &server_ep, NULL );
+    free_handshake_options( &client_options );
+    free_handshake_options( &server_options );
     USE_PSA_DONE( );
 }
 /* END_CASE */

@@ -1,4 +1,0 @@
-Changes
-   * In CMake builds, add aliases for libraries so that the normal MbedTLS::*
-     targets work when MbedTLS is built as a subdirectory. This allows the
-     use of FetchContent, as requested in #5688.

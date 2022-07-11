@@ -1,3 +1,0 @@
-Changes
-   * Fix runtime library install location when building with CMake and MinGW.
-     DLLs are now installed in the bin directory instead of lib.

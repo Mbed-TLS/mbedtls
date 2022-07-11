@@ -1785,7 +1785,7 @@ int mbedtls_mpi_mod_int( mbedtls_mpi_uint *r, const mbedtls_mpi *A, mbedtls_mpi_
     /*
      * handle trivial cases
      */
-    if( b == 1 )
+    if( b == 1 || A->n == 0 )
     {
         *r = 0;
         return( 0 );

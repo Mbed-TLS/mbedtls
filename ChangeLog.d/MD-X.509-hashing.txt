@@ -1,2 +1,0 @@
-Features
-   * The X.509 module now uses PSA hash acceleration if present.

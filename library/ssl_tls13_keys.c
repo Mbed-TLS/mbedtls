@@ -644,6 +644,7 @@ int mbedtls_ssl_tls13_key_schedule_stage_application( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_calc_finished_core( psa_algorithm_t hash_alg,
                                          unsigned char const *base_key,
                                          unsigned char const *transcript,
@@ -1071,6 +1072,7 @@ int mbedtls_ssl_tls13_key_schedule_stage_early( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int mbedtls_ssl_tls13_get_cipher_key_info(
                     const mbedtls_ssl_ciphersuite_t *ciphersuite_info,
                     size_t *key_len, size_t *iv_len )

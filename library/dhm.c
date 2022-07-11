@@ -620,6 +620,7 @@ static int load_file( const char *path, unsigned char **buf, size_t *n )
 
     if( ( f = fopen( path, "rb" ) ) == NULL )
         return( MBEDTLS_ERR_DHM_FILE_IO_ERROR );
+    /* The data loaded here is public, so don't bother disabling buffering. */
 
     fseek( f, 0, SEEK_END );
     if( ( size = ftell( f ) ) == -1 )

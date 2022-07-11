@@ -457,6 +457,9 @@ int mbedtls_entropy_write_seed_file( mbedtls_entropy_context *ctx, const char *p
         goto exit;
     }
 
+    /* Ensure no stdio buffering of secrets, as such buffers cannot be wiped. */
+    mbedtls_setbuf( f, NULL );
+
     if( fwrite( buf, 1, MBEDTLS_ENTROPY_BLOCK_SIZE, f ) != MBEDTLS_ENTROPY_BLOCK_SIZE )
     {
         ret = MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR;
@@ -483,6 +486,9 @@ int mbedtls_entropy_update_seed_file( mbedtls_entropy_context *ctx, const char *
 
     if( ( f = fopen( path, "rb" ) ) == NULL )
         return( MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR );
+
+    /* Ensure no stdio buffering of secrets, as such buffers cannot be wiped. */
+    mbedtls_setbuf( f, NULL );
 
     fseek( f, 0, SEEK_END );
     n = (size_t) ftell( f );

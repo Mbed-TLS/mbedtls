@@ -2387,7 +2387,10 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL_ALPN)
     unsigned char *end = buf + MBEDTLS_SSL_OUT_CONTENT_LEN - 4;
-    mbedtls_ssl_write_alpn_ext( ssl, p + 2 + ext_len, end, &olen );
+    if( ( ret = mbedtls_ssl_write_alpn_ext( ssl, p + 2 + ext_len, end, &olen ) )
+        != 0 )
+        return ret;
+
     ext_len += olen;
 #endif
 

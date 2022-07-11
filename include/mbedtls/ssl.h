@@ -250,6 +250,8 @@
     ( MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL        |            \
       MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL    ) /*!< All ephemeral TLS 1.3 key exchanges */
 
+#define MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_NONE   ( 0 )
+
 /*
  * Various constants
  */

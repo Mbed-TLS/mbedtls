@@ -361,6 +361,61 @@ exit_failue:
 #endif
     return( ret );
 }
+
+/*
+ * struct {
+ *   select ( Handshake.msg_type ) {
+ *      ....
+ *      case server_hello:
+ *          uint16 selected_identity;
+ *   }
+ * } PreSharedKeyExtension;
+ */
+static int ssl_tls13_write_selected_identity_ext( mbedtls_ssl_context *ssl,
+                                                      unsigned char *buf,
+                                                      unsigned char *end,
+                                                      size_t *olen )
+{
+    unsigned char *p = (unsigned char*)buf;
+    size_t selected_identity;
+
+    *olen = 0;
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( mbedtls_svc_key_id_is_null( ssl->handshake->psk_opaque ) )
+#else
+    if( ssl->handshake->psk == NULL )
+#endif
+    {
+        /* We shouldn't have called this extension writer unless we've
+         * chosen to use a PSK. */
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, adding pre_shared_key extension" ) );
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 6 );
+
+    /* Extension Type */
+    MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_PRE_SHARED_KEY, p, 0 );
+
+    /* Extension Length */
+    MBEDTLS_PUT_UINT16_BE( 2, p, 2 );
+
+    /* NOTE: This will need to be adjusted once we support multiple PSKs
+     *       being offered by the client. */
+    selected_identity = 0;
+
+    /* Write selected_identity */
+    MBEDTLS_PUT_UINT16_BE( selected_identity, p, 4 );
+
+    *olen = 6;
+
+    MBEDTLS_SSL_DEBUG_MSG( 4, ( "sent selected_identity: %" MBEDTLS_PRINTF_SIZET,
+                                selected_identity ) );
+
+    return( 0 );
+}
+
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
 /* From RFC 8446:
@@ -1157,6 +1212,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     mbedtls_ssl_add_hs_hdr_to_checksum( ssl,
                                         MBEDTLS_SSL_HS_CLIENT_HELLO,
                                         p - buf );
+
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
     /* Update checksum with either
      * - The entire content of the CH message, if no PSK extension is present
@@ -1644,6 +1700,21 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
             return( ret );
         p += output_len;
     }
+
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+    MBEDTLS_SSL_DEBUG_MSG( 2,( " mbedtls_ssl_tls13_some_psk_enabled %d", mbedtls_ssl_tls13_some_psk_enabled( ssl ) ) );
+    if( mbedtls_ssl_tls13_some_psk_enabled( ssl ) )
+    {
+        ret = ssl_tls13_write_selected_identity_ext( ssl, p, end, &output_len );
+        if( ret != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_write_selected_identity_ext",
+                                   ret );
+            return( ret );
+        }
+        p += output_len;
+    }
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
     MBEDTLS_PUT_UINT16_BE( p - p_extensions_len - 2, p_extensions_len, 0 );
 

@@ -276,10 +276,9 @@ class SignatureAlgorithmDefinition:
         translation_table = []
         for m in self._definitions:
             name = m.groupdict()['name']
+            return_val = name[len('MBEDTLS_TLS1_3_SIG_'):].lower()
             translation_table.append(
-                '\tcase {}:\n\t    return "{}";'.format(name,
-                                                        name[len('MBEDTLS_TLS1_3_SIG_'):].lower())
-            )
+                '    case {}:\n        return "{}";'.format(name, return_val))
 
         body = textwrap.dedent('''\
             const char *mbedtls_ssl_sig_alg_to_str( uint16_t in )
@@ -337,7 +336,7 @@ class NamedGroupDefinition:
         for m in self._definitions:
             name = m.groupdict()['name']
             iana_name = name[len('MBEDTLS_SSL_IANA_TLS_GROUP_'):].lower()
-            translation_table.append('\tcase {}:\n\t    return "{}";'.format(name, iana_name))
+            translation_table.append('    case {}:\n        return "{}";'.format(name, iana_name))
 
         body = textwrap.dedent('''\
             const char *mbedtls_ssl_named_group_to_str( uint16_t in )

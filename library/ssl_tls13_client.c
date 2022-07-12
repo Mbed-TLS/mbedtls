@@ -1878,12 +1878,11 @@ static int ssl_tls13_handshake_wrapup( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 
-static int ssl_tls13_parse_new_session_ticket_extensions(
-                                                mbedtls_ssl_context *ssl,
-                                                const unsigned char *buf,
-                                                const unsigned char *end )
+static int ssl_tls13_parse_new_session_ticket_exts( mbedtls_ssl_context *ssl,
+                                                    const unsigned char *buf,
+                                                    const unsigned char *end )
 {
-    unsigned char *p = ( unsigned char * )buf;
+    const unsigned char *p = buf;
 
     ((void) ssl);
 
@@ -1891,22 +1890,20 @@ static int ssl_tls13_parse_new_session_ticket_extensions(
     {
         unsigned int extension_type;
         size_t extension_data_len;
-        const unsigned char *extension_data_end;
 
-        ((void) extension_data_end);
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 4 );
         extension_type = MBEDTLS_GET_UINT16_BE( p, 0 );
         extension_data_len = MBEDTLS_GET_UINT16_BE( p, 2 );
         p += 4;
 
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, extension_data_len );
-        extension_data_end = p + extension_data_len;
 
         switch( extension_type )
         {
             case MBEDTLS_TLS_EXT_EARLY_DATA:
                 MBEDTLS_SSL_DEBUG_MSG( 4, ( "early_data extension received" ) );
                 break;
+
             default:
                 break;
         }
@@ -2001,11 +1998,11 @@ static int ssl_tls13_parse_new_session_ticket( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "ticket->extension", p, extensions_len );
 
-    ret = ssl_tls13_parse_new_session_ticket_extensions( ssl, p, end );
+    ret = ssl_tls13_parse_new_session_ticket_exts( ssl, p, end );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1,
-                               "ssl_tls13_parse_new_session_ticket_extensions",
+                               "ssl_tls13_parse_new_session_ticket_exts",
                                ret );
         return( ret );
     }

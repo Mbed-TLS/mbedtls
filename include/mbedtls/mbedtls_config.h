@@ -1546,7 +1546,7 @@
  *
  * Size in bytes of a ticket nonce. This is not used in TLS 1.2.
  *
- * The default value is 32 bytes.
+ * This must be smaller or equal to 255.
  */
 #define MBEDTLS_SSL_TICKET_NONCE_LENGTH 32
 

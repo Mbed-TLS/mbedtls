@@ -9170,8 +9170,8 @@ run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.2" \
             0 \
             -s "fragmenting handshake message"
 
-## The two tests below require 1.1.1a or higher version of openssl, otherwise
-## it might trigger a bug due to openssl (https://github.com/openssl/openssl/issues/6902)
+## The test below requires 1.1.1a or higher version of openssl, otherwise
+## it might trigger a bug due to openssl server (https://github.com/openssl/openssl/issues/6902)
 requires_openssl_next
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
@@ -9189,7 +9189,6 @@ run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.2" \
             -c "fragmenting handshake message" \
             -C "error"
 
-requires_openssl_next
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C

@@ -35,9 +35,6 @@ We currently have two compile-time options that are relevant to the migration:
 The reasons why `MBEDTLS_USE_PSA_CRYPTO` is optional and disabled by default
 are:
 - it's incompatible with `MBEDTLS_ECP_RESTARTABLE`;
-- it does not work well with `MBEDTLS_PSA_CRYPTO_CONFIG` (could compile with
-  both of them, but then `MBEDTLS_PSA_CRYPTO_CONFIG` won't have the desired
-effect)
 - to avoid a hard/default dependency of TLS, X.509 and PK on
   `MBEDTLS_PSA_CRYPTO_C`, for backward compatibility reasons:
   - When `MBEDTLS_PSA_CRYPTO_C` is enabled and used, applications need to call
@@ -77,34 +74,6 @@ Supporting this in PSA is on our roadmap and currently planned for end of
 
 It will then require follow-up work to make use of the new PSA API in
 PK/X.509/TLS in all places where we currently allow restartable operations.
-
-### `MBEDTLS_PSA_CRYPTO_CONFIG`
-
-(This section taken from a comment by Gilles.)
-
-X509 and TLS code use `MBEDTLS_xxx` macros to decide whether an algorithm is
-supported. This doesn't make `MBEDTLS_USE_PSA_CRYPTO` incompatible with
-`MBEDTLS_PSA_CRYPTO_CONFIG` per se, but it makes it incompatible with most
-useful uses of `MBEDTLS_PSA_CRYPTO_CONFIG`. The point of
-`MBEDTLS_PSA_CRYPTO_CONFIG` is to be able to build a library with support for
-an algorithm through a PSA driver only, without building the software
-implementation of that algorithm. But then the TLS code would consider the
-algorithm unavailable.
-
-This is tracked in https://github.com/Mbed-TLS/mbedtls/issues/3674 and
-https://github.com/Mbed-TLS/mbedtls/issues/3677. But now that I look at it with
-fresh eyes, I don't think the approach we were planning to use would actually
-works. This needs more design effort.
-
-This is something we need to support eventually, and several partners want it.
-I don't know what the priority is for `MBEDTLS_USE_PSA_CRYPTO` between
-improving driver support and covering more of the protocol. It seems to me
-that it'll be less work overall to first implement a good architecture for
-`MBEDTLS_USE_PSA_CRYPTO + MBEDTLS_PSA_CRYPTO_CONFIG` and then extend to more
-protocol features, because implementing that architecture will require changes
-to the existing code and the less code there is at this point the better,
-whereas extending to more protocol features will require the same amount of
-work either way.
 
 ### Backward compatibility issues with making `MBEDTLS_USE_PSA_CRYPTO` always on
 

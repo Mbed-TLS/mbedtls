@@ -12609,7 +12609,7 @@ run_test    "TLS 1.3: NewSessionTicket: Basic check, m->O" \
             "$P_CLI debug_level=4" \
             0 \
             -c "Protocol is TLSv1.3" \
-            -c "MBEDTLS_SSL_CLIENT_NEW_SESSION_TICKET" \
+            -c "MBEDTLS_SSL_NEW_SESSION_TICKET" \
             -c "got new session ticket." \
             -c "HTTP/1.0 200 ok"
 
@@ -12623,7 +12623,7 @@ run_test    "TLS 1.3: NewSessionTicket: Basic check, m->G" \
             "$P_CLI debug_level=4" \
             0 \
             -c "Protocol is TLSv1.3" \
-            -c "MBEDTLS_SSL_CLIENT_NEW_SESSION_TICKET" \
+            -c "MBEDTLS_SSL_NEW_SESSION_TICKET" \
             -c "got new session ticket." \
             -c "HTTP/1.0 200 OK"
 

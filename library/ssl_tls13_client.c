@@ -2077,7 +2077,7 @@ static int ssl_tls13_postprocess_new_session_ticket( mbedtls_ssl_context *ssl )
 }
 
 /*
- * Handler for MBEDTLS_SSL_CLIENT_NEW_SESSION_TICKET
+ * Handler for MBEDTLS_SSL_NEW_SESSION_TICKET
  */
 static int ssl_tls13_process_new_session_ticket( mbedtls_ssl_context *ssl )
 {
@@ -2185,7 +2185,7 @@ int mbedtls_ssl_tls13_handshake_client_step( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE */
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-        case MBEDTLS_SSL_CLIENT_NEW_SESSION_TICKET:
+        case MBEDTLS_SSL_NEW_SESSION_TICKET:
             ret = ssl_tls13_process_new_session_ticket( ssl );
             if( ret != 0 )
                 break;

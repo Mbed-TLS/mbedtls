@@ -5291,6 +5291,7 @@ static int ssl_check_ctr_renegotiate( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_check_new_session_ticket( mbedtls_ssl_context *ssl )
 {
 
@@ -5310,6 +5311,7 @@ static int ssl_tls13_check_new_session_ticket( mbedtls_ssl_context *ssl )
 }
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_handle_hs_message_post_handshake( mbedtls_ssl_context *ssl )
 {
 
@@ -5339,6 +5341,7 @@ static int ssl_tls13_handle_hs_message_post_handshake( mbedtls_ssl_context *ssl 
  * and having a helper function allows to distinguish between TLS <= 1.2 and
  * TLS 1.3 in the future without bloating the logic of mbedtls_ssl_read().
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls12_handle_hs_message_post_handshake( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;

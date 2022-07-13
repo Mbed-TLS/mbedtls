@@ -1878,6 +1878,7 @@ static int ssl_tls13_handshake_wrapup( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_parse_new_session_ticket_exts( mbedtls_ssl_context *ssl,
                                                     const unsigned char *buf,
                                                     const unsigned char *end )
@@ -1923,6 +1924,7 @@ static int ssl_tls13_parse_new_session_ticket_exts( mbedtls_ssl_context *ssl,
  * } NewSessionTicket;
  *
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_parse_new_session_ticket( mbedtls_ssl_context *ssl,
                                                unsigned char *buf,
                                                unsigned char *end,
@@ -2007,6 +2009,7 @@ static int ssl_tls13_parse_new_session_ticket( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_postprocess_new_session_ticket( mbedtls_ssl_context *ssl,
                                                      unsigned char *ticket_nonce,
                                                      size_t ticket_nonce_len )
@@ -2073,6 +2076,7 @@ static int ssl_tls13_postprocess_new_session_ticket( mbedtls_ssl_context *ssl,
 /*
  * Handler for MBEDTLS_SSL_NEW_SESSION_TICKET
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_process_new_session_ticket( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;

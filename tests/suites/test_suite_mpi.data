@@ -1223,13 +1223,13 @@ Test mbedtls_mpi_mod_int: 0 (null) % 1
 mbedtls_mpi_mod_int:"":1:0:0
 
 Test mbedtls_mpi_mod_int: 0 (null) % 2
-mbedtls_mpi_mod_int:16:"":2:0:0
+mbedtls_mpi_mod_int:"":2:0:0
 
 Test mbedtls_mpi_mod_int: 0 (null) % -1
 mbedtls_mpi_mod_int:"":-1:0:MBEDTLS_ERR_MPI_NEGATIVE_VALUE
 
 Test mbedtls_mpi_mod_int: 0 (null) % -2
-mbedtls_mpi_mod_int:16:"":-2:0:MBEDTLS_ERR_MPI_NEGATIVE_VALUE
+mbedtls_mpi_mod_int:"":-2:0:MBEDTLS_ERR_MPI_NEGATIVE_VALUE
 
 Base test mbedtls_mpi_exp_mod #1
 mbedtls_mpi_exp_mod:"17":"d":"1d":"18":0

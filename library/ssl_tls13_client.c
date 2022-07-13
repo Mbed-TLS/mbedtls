@@ -1947,12 +1947,12 @@ static int ssl_tls13_parse_new_session_ticket( mbedtls_ssl_context *ssl,
 
     session->ticket_lifetime = MBEDTLS_GET_UINT32_BE( p, 0 );
     MBEDTLS_SSL_DEBUG_MSG( 3,
-                           ( "ticket->lifetime: %u",
+                           ( "ticket_lifetime: %u",
                              ( unsigned int )session->ticket_lifetime ) );
 
     session->ticket_age_add = MBEDTLS_GET_UINT32_BE( p, 4 );
     MBEDTLS_SSL_DEBUG_MSG( 3,
-                           ( "ticket->ticket_age_add: %u",
+                           ( "ticket_age_add: %u",
                              ( unsigned int )session->ticket_age_add ) );
 
     *ticket_nonce_len = p[8];
@@ -1987,16 +1987,15 @@ static int ssl_tls13_parse_new_session_ticket( mbedtls_ssl_context *ssl,
     p += ticket_len;
     session->ticket = ticket;
     session->ticket_len = ticket_len;
-    MBEDTLS_SSL_DEBUG_BUF( 4, "stored ticket", ticket, ticket_len );
 
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2 );
     extensions_len = MBEDTLS_GET_UINT16_BE( p, 0 );
     p += 2;
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, extensions_len );
 
-    MBEDTLS_SSL_DEBUG_BUF( 3, "ticket->extension", p, extensions_len );
+    MBEDTLS_SSL_DEBUG_BUF( 3, "ticket extension", p, extensions_len );
 
-    ret = ssl_tls13_parse_new_session_ticket_exts( ssl, p, end );
+    ret = ssl_tls13_parse_new_session_ticket_exts( ssl, p, p + extensions_len );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1,
@@ -2004,12 +2003,6 @@ static int ssl_tls13_parse_new_session_ticket( mbedtls_ssl_context *ssl,
                                ret );
         return( ret );
     }
-    p += extensions_len;
-
-#if defined(MBEDTLS_HAVE_TIME)
-    /* Store ticket creation time */
-    session->ticket_received = time( NULL );
-#endif
 
     return( 0 );
 }
@@ -2024,12 +2017,11 @@ static int ssl_tls13_postprocess_new_session_ticket( mbedtls_ssl_context *ssl,
     psa_algorithm_t psa_hash_alg;
     int hash_length;
 
-    /* Compute PSK based on received nonce and resumption_master_secret
-     * in the following style:
-     *
-     *  HKDF-Expand-Label( resumption_master_secret,
-     *                    "resumption", ticket_nonce, Hash.length )
-     */
+#if defined(MBEDTLS_HAVE_TIME)
+    /* Store ticket creation time */
+    session->ticket_received = time( NULL );
+#endif
+
     ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( session->ciphersuite );
     if( ciphersuite_info == NULL )
     {
@@ -2046,7 +2038,7 @@ static int ssl_tls13_postprocess_new_session_ticket( mbedtls_ssl_context *ssl,
                            session->app_secrets.resumption_master_secret,
                            hash_length );
 
-    /* Computer resumption key
+    /* Compute resumption key
      *
      *  HKDF-Expand-Label( resumption_master_secret,
      *                    "resumption", ticket_nonce, Hash.length )
@@ -2075,7 +2067,6 @@ static int ssl_tls13_postprocess_new_session_ticket( mbedtls_ssl_context *ssl,
                            session->key,
                            session->key_len );
 
-    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_HANDSHAKE_OVER );
     return( 0 );
 }
 
@@ -2102,6 +2093,8 @@ static int ssl_tls13_process_new_session_ticket( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_PROC_CHK( ssl_tls13_postprocess_new_session_ticket(
                               ssl, ticket_nonce, ticket_nonce_len ) );
+
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_HANDSHAKE_OVER );
 
 cleanup:
 

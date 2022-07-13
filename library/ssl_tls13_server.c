@@ -55,24 +55,29 @@
  */
 static int ssl_tls13_parse_key_exchange_modes_ext( mbedtls_ssl_context *ssl,
                                                    const unsigned char *buf,
-                                                   const unsigned char *end)
+                                                   const unsigned char *end )
 {
+    const unsigned char *p = buf;
     size_t ke_modes_len;
     int ke_modes = 0;
 
     /* Read PSK mode list length (1 Byte) */
-    MBEDTLS_SSL_CHK_BUF_READ_PTR( buf, end, 1 );
-    ke_modes_len = *buf++;
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 1 );
+    ke_modes_len = *p++;
     /* Currently, there are only two PSK modes, so even without looking
      * at the content, something's wrong if the list has more than 2 items. */
     if( ke_modes_len > 2 )
+    {
+        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                                      MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
         return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+    }
 
-    MBEDTLS_SSL_CHK_BUF_READ_PTR( buf, end, ke_modes_len );
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, ke_modes_len );
 
     while( ke_modes_len-- != 0 )
     {
-        switch( *buf++ )
+        switch( *p++ )
         {
         case MBEDTLS_SSL_TLS1_3_PSK_MODE_PURE:
             ke_modes |= MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK;
@@ -83,6 +88,8 @@ static int ssl_tls13_parse_key_exchange_modes_ext( mbedtls_ssl_context *ssl,
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "Found PSK_EPHEMERAL KEX MODE" ) );
             break;
         default:
+            MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                                          MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
             return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
         }
     }

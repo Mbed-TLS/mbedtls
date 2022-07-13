@@ -878,6 +878,8 @@ wait_client_done() {
     CLI_EXIT=$?
 
     kill $DOG_PID >/dev/null 2>&1
+    # For ubuntu 22.04, `Terminated` message is outputed from `wait` command.
+    # to eliminate it from stdout, redirect stdout/stderr to CLI_OUT
     wait $DOG_PID >> $CLI_OUT 2>&1
 
     echo "EXIT: $CLI_EXIT" >> $CLI_OUT
@@ -2308,15 +2310,6 @@ run_test    "TLS 1.3: psk_key_exchange_modes: basic check, G->m" \
             -s "found psk key exchange modes extension" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE"
-
-requires_openssl_tls1_3
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_DEBUG_C
-run_test    "TLS 1.3: psk_key_exchange_modes: basic check, O->G" \
-            "$G_NEXT_SRV -d 50 --pskpasswd data_files/passwd.psk --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3" \
-            "$O_NEXT_CLI -tls1_3 -psk 6162636465666768696a6b6c6d6e6f70" \
-            0
 
 # Tests for datagram packing
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2

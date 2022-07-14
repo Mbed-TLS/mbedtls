@@ -878,8 +878,8 @@ wait_client_done() {
     CLI_EXIT=$?
 
     kill $DOG_PID >/dev/null 2>&1
-    # For ubuntu 22.04, `Terminated` message is outputed from `wait` command.
-    # to eliminate it from stdout, redirect stdout/stderr to CLI_OUT
+    # For Ubuntu 22.04, `Terminated` message is outputed by wait command.
+    # To remove it from stdout, redirect stdout/stderr to CLI_OUT
     wait $DOG_PID >> $CLI_OUT 2>&1
 
     echo "EXIT: $CLI_EXIT" >> $CLI_OUT

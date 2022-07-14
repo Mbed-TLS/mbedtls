@@ -637,18 +637,41 @@ int mbedtls_pkcs7_signed_hash_verify( mbedtls_pkcs7 *pkcs7,
                                       const mbedtls_x509_crt *cert,
                                       const unsigned char *hash, size_t hashlen)
 {
-    int ret;
+    int ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
+    const mbedtls_md_info_t *md_info;
     mbedtls_md_type_t md_alg;
     mbedtls_pk_context pk_cxt;
-
-    ret = mbedtls_oid_get_md_alg( &pkcs7->signed_data.digest_alg_identifiers, &md_alg );
-    if( ret != 0 )
-        return( MBEDTLS_ERR_PKCS7_VERIFY_FAIL );
+    mbedtls_pkcs7_signer_info *signer;
 
     pk_cxt = cert->pk;
-    ret = mbedtls_pk_verify( &pk_cxt, md_alg, hash, hashlen,
-                             pkcs7->signed_data.signers.sig.p,
-                             pkcs7->signed_data.signers.sig.len );
+
+    if( pkcs7->signed_data.no_of_signers == 0 )
+        return( MBEDTLS_ERR_PKCS7_VERIFY_FAIL );
+
+    signer = &pkcs7->signed_data.signers;
+    while( signer )
+    {
+        ret = mbedtls_oid_get_md_alg( &signer->alg_identifier, &md_alg );
+        if( ret != 0 )
+            return( MBEDTLS_ERR_PKCS7_VERIFY_FAIL );
+
+        md_info = mbedtls_md_info_from_type( md_alg );
+
+        if( hashlen != mbedtls_md_get_size( md_info ) )
+        {
+            ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
+            signer = signer->next;
+            continue;
+        }
+
+        ret = mbedtls_pk_verify( &pk_cxt, md_alg, hash, hashlen,
+                                 pkcs7->signed_data.signers.sig.p,
+                                 pkcs7->signed_data.signers.sig.len );
+        if( ret == 0 )
+            break;
+
+        signer = signer->next;
+    }
 
     return ( ret );
 }

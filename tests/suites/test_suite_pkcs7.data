@@ -69,3 +69,7 @@ pkcs7_parse:"data_files/pkcs7_data_cert_signeddata_sha256.der"
 PKCS7 Signed Data Verify with multiple signers #16
 depends_on:MBEDTLS_SHA256_C
 pkcs7_verify_multiple_signers:"data_files/pkcs7_data_multiple_signed.der":"data_files/pkcs7-rsa-sha256-1.crt":"data_files/pkcs7-rsa-sha256-2.crt":"data_files/pkcs7_data.bin"
+
+PKCS7 Signed Data Hash Verify with multiple signers #17
+depends_on:MBEDTLS_SHA256_C
+pkcs7_verify_hash_multiple_signers:"data_files/pkcs7_data_multiple_signed.der":"data_files/pkcs7-rsa-sha256-1.crt":"data_files/pkcs7-rsa-sha256-2.crt":"data_files/pkcs7_data.bin"

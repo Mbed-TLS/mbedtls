@@ -1174,7 +1174,6 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
     unsigned char *p = output;
     unsigned int hlen;
     const mbedtls_md_info_t *md_info;
-    mbedtls_md_context_t md_ctx;
 
     RSA_VALIDATE_RET( ctx != NULL );
     RSA_VALIDATE_RET( output != NULL );
@@ -1214,24 +1213,14 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
     if( ilen != 0 )
         memcpy( p, input, ilen );
 
-    mbedtls_md_init( &md_ctx );
-    if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 0 ) ) != 0 )
-        goto exit;
-
     /* maskedDB: Apply dbMask to DB */
     if( ( ret = mgf_mask( output + hlen + 1, olen - hlen - 1, output + 1, hlen,
                           ctx->hash_id ) ) != 0 )
-        goto exit;
+        return( ret );
 
     /* maskedSeed: Apply seedMask to seed */
     if( ( ret = mgf_mask( output + 1, hlen, output + hlen + 1, olen - hlen - 1,
                           ctx->hash_id ) ) != 0 )
-        goto exit;
-
-exit:
-    mbedtls_md_free( &md_ctx );
-
-    if( ret != 0 )
         return( ret );
 
     return( mbedtls_rsa_public(  ctx, output, output ) );
@@ -1347,7 +1336,6 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
     unsigned char lhash[MBEDTLS_MD_MAX_SIZE];
     unsigned int hlen;
     const mbedtls_md_info_t *md_info;
-    mbedtls_md_context_t md_ctx;
 
     RSA_VALIDATE_RET( ctx != NULL );
     RSA_VALIDATE_RET( output_max_len == 0 || output != NULL );
@@ -1387,13 +1375,6 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
     /*
      * Unmask data and generate lHash
      */
-    mbedtls_md_init( &md_ctx );
-    if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 0 ) ) != 0 )
-    {
-        mbedtls_md_free( &md_ctx );
-        goto cleanup;
-    }
-
     /* seed: Apply seedMask to maskedSeed */
     if( ( ret = mgf_mask( buf + 1, hlen, buf + hlen + 1, ilen - hlen - 1,
                           ctx->hash_id ) ) != 0 ||
@@ -1401,11 +1382,8 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
         ( ret = mgf_mask( buf + hlen + 1, ilen - hlen - 1, buf + 1, hlen,
                           ctx->hash_id ) ) != 0 )
     {
-        mbedtls_md_free( &md_ctx );
         goto cleanup;
     }
-
-    mbedtls_md_free( &md_ctx );
 
     /* Generate lHash */
     if( ( ret = mbedtls_md( md_info, label, label_len, lhash ) ) != 0 )
@@ -2037,13 +2015,9 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     hash_start = p + siglen - hlen - 1;
 
-    mbedtls_md_init( &md_ctx );
-    if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 0 ) ) != 0 )
-        goto exit;
-
     ret = mgf_mask( p, siglen - hlen - 1, hash_start, hlen, mgf1_hash_id );
     if( ret != 0 )
-        goto exit;
+        return( ret );
 
     buf[0] &= 0xFF >> ( siglen * 8 - msb );
 
@@ -2051,23 +2025,23 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
         p++;
 
     if( *p++ != 0x01 )
-    {
-        ret = MBEDTLS_ERR_RSA_INVALID_PADDING;
-        goto exit;
-    }
+        return( MBEDTLS_ERR_RSA_INVALID_PADDING );
 
     observed_salt_len = hash_start - p;
 
     if( expected_salt_len != MBEDTLS_RSA_SALT_LEN_ANY &&
         observed_salt_len != (size_t) expected_salt_len )
     {
-        ret = MBEDTLS_ERR_RSA_INVALID_PADDING;
-        goto exit;
+        return( MBEDTLS_ERR_RSA_INVALID_PADDING );
     }
 
     /*
      * Generate H = Hash( M' )
      */
+    mbedtls_md_init( &md_ctx );
+    if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 0 ) ) != 0 )
+        goto exit;
+
     ret = mbedtls_md_starts( &md_ctx );
     if ( ret != 0 )
         goto exit;

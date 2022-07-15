@@ -1163,7 +1163,7 @@ exit:
  * \param hlen      length of the input hash
  * \param salt      the input salt
  * \param slen      length of the input salt
- * \param out       the output buffer - must be large enough for \c md_alg
+ * \param out       the output buffer - must be large enough for \p md_alg
  * \param md_alg    message digest to use
  */
 static int hash_mprime( const unsigned char *hash, size_t hlen,
@@ -1196,6 +1196,27 @@ exit:
     mbedtls_md_free( &md_ctx );
 
     return( ret );
+}
+
+/**
+ * Compute a hash.
+ *
+ * \param md_alg    algorithm to use
+ * \param input     input message to hash
+ * \param ilen      input length
+ * \param output    the output buffer - must be large enough for \p md_alg
+ */
+static int compute_hash( mbedtls_md_type_t md_alg,
+                         const unsigned char *input, size_t ilen,
+                         unsigned char *output )
+{
+    const mbedtls_md_info_t *md_info;
+
+    md_info = mbedtls_md_info_from_type( md_alg );
+    if( md_info == NULL )
+        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    return( mbedtls_md( md_info, input, ilen, output ) );
 }
 #endif /* MBEDTLS_PKCS1_V21 */
 
@@ -1247,7 +1268,8 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
     p += hlen;
 
     /* Construct DB */
-    if( ( ret = mbedtls_md( md_info, label, label_len, p ) ) != 0 )
+    ret = compute_hash( (mbedtls_md_type_t) ctx->hash_id, label, label_len, p );
+    if( ret != 0 )
         return( ret );
     p += hlen;
     p += olen - 2 * hlen - 2 - ilen;
@@ -1428,7 +1450,9 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
     }
 
     /* Generate lHash */
-    if( ( ret = mbedtls_md( md_info, label, label_len, lhash ) ) != 0 )
+    ret = compute_hash( (mbedtls_md_type_t) ctx->hash_id,
+                        label, label_len, lhash );
+    if( ret != 0 )
         goto cleanup;
 
     /*

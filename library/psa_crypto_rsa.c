@@ -318,8 +318,8 @@ psa_status_t mbedtls_psa_rsa_generate_key(
 /****************************************************************/
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS)
-
+    defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP)
 /* Convert a hash algorithm from PSA to MD identifier */
 static inline mbedtls_md_type_t get_md_alg_from_psa( psa_algorithm_t psa_alg )
 {
@@ -343,6 +343,10 @@ static inline mbedtls_md_type_t get_md_alg_from_psa( psa_algorithm_t psa_alg )
             return( MBEDTLS_MD_NONE );
     }
 }
+#endif
+
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS)
 
 /* Decode the hash algorithm from alg and store the mbedtls encoding in
  * md_alg. Verify that the hash length is acceptable. */
@@ -567,8 +571,7 @@ static int psa_rsa_oaep_set_padding_mode( psa_algorithm_t alg,
                                           mbedtls_rsa_context *rsa )
 {
     psa_algorithm_t hash_alg = PSA_ALG_RSA_OAEP_GET_HASH( alg );
-    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_psa( hash_alg );
-    mbedtls_md_type_t md_alg = mbedtls_md_get_type( md_info );
+    mbedtls_md_type_t md_alg = get_md_alg_from_psa( hash_alg );
 
     return( mbedtls_rsa_set_padding( rsa, MBEDTLS_RSA_PKCS_V21, md_alg ) );
 }

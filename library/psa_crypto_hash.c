@@ -29,9 +29,7 @@
 #include <mbedtls/error.h>
 #include <string.h>
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS) || \
-    defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_DETERMINISTIC_ECDSA)
 const mbedtls_md_info_t *mbedtls_md_info_from_psa( psa_algorithm_t alg )
 {
     switch( alg )

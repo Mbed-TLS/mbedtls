@@ -61,7 +61,7 @@ static int ssl_tls13_parse_key_exchange_modes_ext( mbedtls_ssl_context *ssl,
     size_t ke_modes_len;
     int ke_modes = 0;
 
-    /* Read PSK mode list length (1 Byte) */
+    /* Read ke_modes length (1 Byte) */
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 1 );
     ke_modes_len = *p++;
     /* Currently, there are only two PSK modes, so even without looking

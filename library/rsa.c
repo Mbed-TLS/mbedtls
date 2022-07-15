@@ -64,7 +64,7 @@
 #include "mbedtls/psa_util.h"
 #define HASH_MAX_SIZE   PSA_HASH_MAX_SIZE
 #endif /* MBEDTLS_MD_C */
-#endif /* MBEDTLS_PKCS12_V21 */
+#endif /* MBEDTLS_PKCS1_V21 */
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"

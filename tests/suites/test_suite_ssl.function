@@ -4854,7 +4854,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void ssl_serialize_session_load_buf_size( int ticket_len, char *crt_file )
+void ssl_serialize_session_load_buf_size( int ticket_len, char *crt_file,
+                                          int endpoint_type, int tls_version )
 {
     mbedtls_ssl_session session;
     unsigned char *good_buf = NULL, *bad_buf = NULL;
@@ -4867,7 +4868,20 @@ void ssl_serialize_session_load_buf_size( int ticket_len, char *crt_file )
     mbedtls_ssl_session_init( &session );
 
     /* Prepare serialized session data */
-    TEST_ASSERT( ssl_tls12_populate_session( &session, ticket_len, crt_file ) == 0 );
+    ((void) endpoint_type);
+    ((void) tls_version);
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    if(tls_version == MBEDTLS_SSL_VERSION_TLS1_3)
+    {
+        TEST_ASSERT( ssl_tls13_populate_session(
+                         &session, 0, endpoint_type ) == 0 );
+    }
+    else
+#endif
+    {
+        TEST_ASSERT( ssl_tls12_populate_session(
+                         &session, ticket_len, crt_file ) == 0 );
+    }
     TEST_ASSERT( mbedtls_ssl_session_save( &session, NULL, 0, &good_len )
                  == MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
     TEST_ASSERT( ( good_buf = mbedtls_calloc( 1, good_len ) ) != NULL );

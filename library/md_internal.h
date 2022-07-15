@@ -24,6 +24,7 @@
 #include "common.h"
 
 #include "mbedtls/md.h"
+#include "or_psa_helpers.h"
 
 /** Get the output length of the given hash type
  *
@@ -35,29 +36,29 @@ static inline unsigned char mbedtls_md_internal_get_size( mbedtls_md_type_t md_t
 {
     switch( md_type )
     {
-#if defined(MBEDTLS_MD5_C) || defined(PSA_WANT_ALG_MD5)
+#if defined(MBEDTLS_OR_PSA_WANT_ALG_MD5)
         case MBEDTLS_MD_MD5:
             return( 16 );
 #endif
-#if defined(MBEDTLS_RIPEMD160_C) || defined(PSA_WANT_ALG_RIPEMD160) || \
-    defined(MBEDTLS_SHA1_C) || defined(PSA_WANT_ALG_SHA_1)
+#if defined(MBEDTLS_OR_PSA_WANT_ALG_RIPEMD160) || \
+    defined(MBEDTLS_OR_PSA_WANT_ALG_SHA_1)
         case MBEDTLS_MD_RIPEMD160:
         case MBEDTLS_MD_SHA1:
             return( 20 );
 #endif
-#if defined(MBEDTLS_SHA224_C) || defined(PSA_WANT_ALG_SHA_224)
+#if defined(MBEDTLS_OR_PSA_WANT_ALG_SHA_224)
         case MBEDTLS_MD_SHA224:
             return( 28 );
 #endif
-#if defined(MBEDTLS_SHA256_C) || defined(PSA_WANT_ALG_SHA_256)
+#if defined(MBEDTLS_OR_PSA_WANT_ALG_SHA_256)
         case MBEDTLS_MD_SHA256:
             return( 32 );
 #endif
-#if defined(MBEDTLS_SHA384_C) || defined(PSA_WANT_ALG_SHA_384)
+#if defined(MBEDTLS_OR_PSA_WANT_ALG_SHA_384)
         case MBEDTLS_MD_SHA384:
             return( 48 );
 #endif
-#if defined(MBEDTLS_SHA512_C) || defined(PSA_WANT_ALG_SHA_512)
+#if defined(MBEDTLS_OR_PSA_WANT_ALG_SHA_512)
         case MBEDTLS_MD_SHA512:
             return( 64 );
 #endif

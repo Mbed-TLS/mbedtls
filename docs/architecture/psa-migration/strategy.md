@@ -311,7 +311,7 @@ readability or testability.
 
 **Strategy for step 3:**
 
-There are currently two (competing) ways for crypto-using code to check if a
+There are currently two (complementary) ways for crypto-using code to check if a
 particular algorithm is supported: using `MBEDTLS_xxx` macros, and using
 `PSA_WANT_xxx` macros. For example, PSA-based code that want to use SHA-256
 will check for `PSA_WANT_ALG_SHA_256`, while legacy-based code that wants to
@@ -331,7 +331,7 @@ information tables that are not tied to a particular crypto API, and may be
 used by functions that are either purely PSA-based, purely legacy-based, or
 hybrid governed by `MBEDTL_USE_PSA_CRYPTO` should use `MBEDTLS_xxx ||
 PSA_WANT_xxx` - for example, `oid_md_alg` from `oid.c`, used by both X.509 and
-RSA.
+RSA. A new family of macros `MBEDTLS_OR_PSA_WANT_xxx` is defined for this.
 
 To sum up, there are 4 categories:
 
@@ -340,7 +340,7 @@ To sum up, there are 4 categories:
 - hybrid code governed by `MBEDTLS_USE_PSA_CRYPTO` can use
   `MBEDTLS_USE_PSA_WANT_xxx` to express dependencies in common parts;
 - data and crypto-agnostic helpers that can be used by code from at least two
-  of the above categories should depend on `MBEDTLS_xxx || PSA_WANT_xxx`.
+  of the above categories should depend on `MBEDTLS_OR_PSA_WANT_xxx`.
 
 
 Migrating away from the legacy API

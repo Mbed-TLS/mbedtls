@@ -4670,7 +4670,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void ssl_serialize_session_save_load( int ticket_len, char *crt_file )
+void ssl_serialize_session_save_load( int ticket_len, char *crt_file,
+                                      int endpoint_type, int tls_version )
 {
     mbedtls_ssl_session original, restored;
     unsigned char *buf = NULL;
@@ -4684,7 +4685,20 @@ void ssl_serialize_session_save_load( int ticket_len, char *crt_file )
     mbedtls_ssl_session_init( &restored );
 
     /* Prepare a dummy session to work on */
-    TEST_ASSERT( ssl_tls12_populate_session( &original, ticket_len, crt_file ) == 0 );
+    ((void) endpoint_type);
+    ((void) tls_version);
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    if(tls_version == MBEDTLS_SSL_VERSION_TLS1_3)
+    {
+        TEST_ASSERT( ssl_tls13_populate_session(
+                         &original, 0, endpoint_type ) == 0 );
+    }
+    else
+#endif
+    {
+        TEST_ASSERT( ssl_tls12_populate_session(
+                         &original, ticket_len, crt_file ) == 0 );
+    }
 
     /* Serialize it */
     TEST_ASSERT( mbedtls_ssl_session_save( &original, NULL, 0, &len )
@@ -4704,42 +4718,54 @@ void ssl_serialize_session_save_load( int ticket_len, char *crt_file )
 #endif
     TEST_ASSERT( original.tls_version == restored.tls_version );
     TEST_ASSERT( original.ciphersuite == restored.ciphersuite );
-    TEST_ASSERT( original.compression == restored.compression );
-    TEST_ASSERT( original.id_len == restored.id_len );
-    TEST_ASSERT( memcmp( original.id,
-                         restored.id, sizeof( original.id ) ) == 0 );
-    TEST_ASSERT( memcmp( original.master,
-                         restored.master, sizeof( original.master ) ) == 0 );
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    if( tls_version == MBEDTLS_SSL_VERSION_TLS1_2 )
+    {
+        TEST_ASSERT( original.compression == restored.compression );
+        TEST_ASSERT( original.id_len == restored.id_len );
+        TEST_ASSERT( memcmp( original.id,
+                            restored.id, sizeof( original.id ) ) == 0 );
+        TEST_ASSERT( memcmp( original.master,
+                            restored.master, sizeof( original.master ) ) == 0 );
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     TEST_ASSERT( ( original.peer_cert == NULL ) ==
                  ( restored.peer_cert == NULL ) );
-    if( original.peer_cert != NULL )
-    {
-        TEST_ASSERT( original.peer_cert->raw.len ==
-                     restored.peer_cert->raw.len );
-        TEST_ASSERT( memcmp( original.peer_cert->raw.p,
-                             restored.peer_cert->raw.p,
-                             original.peer_cert->raw.len ) == 0 );
-    }
+        if( original.peer_cert != NULL )
+        {
+            TEST_ASSERT( original.peer_cert->raw.len ==
+                        restored.peer_cert->raw.len );
+            TEST_ASSERT( memcmp( original.peer_cert->raw.p,
+                                restored.peer_cert->raw.p,
+                                original.peer_cert->raw.len ) == 0 );
+        }
 #else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
-    TEST_ASSERT( original.peer_cert_digest_type ==
-                 restored.peer_cert_digest_type );
-    TEST_ASSERT( original.peer_cert_digest_len ==
-                 restored.peer_cert_digest_len );
-    TEST_ASSERT( ( original.peer_cert_digest == NULL ) ==
-                 ( restored.peer_cert_digest == NULL ) );
-    if( original.peer_cert_digest != NULL )
-    {
-        TEST_ASSERT( memcmp( original.peer_cert_digest,
-                             restored.peer_cert_digest,
-                             original.peer_cert_digest_len ) == 0 );
-    }
+        TEST_ASSERT( original.peer_cert_digest_type ==
+                    restored.peer_cert_digest_type );
+        TEST_ASSERT( original.peer_cert_digest_len ==
+                    restored.peer_cert_digest_len );
+        TEST_ASSERT( ( original.peer_cert_digest == NULL ) ==
+                    ( restored.peer_cert_digest == NULL ) );
+        if( original.peer_cert_digest != NULL )
+        {
+            TEST_ASSERT( memcmp( original.peer_cert_digest,
+                                restored.peer_cert_digest,
+                                original.peer_cert_digest_len ) == 0 );
+        }
 #endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
-    TEST_ASSERT( original.verify_result == restored.verify_result );
+        TEST_ASSERT( original.verify_result == restored.verify_result );
 
+#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
+        TEST_ASSERT( original.mfl_code == restored.mfl_code );
+#endif
+
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+        TEST_ASSERT( original.encrypt_then_mac == restored.encrypt_then_mac );
+#endif
+    }
+#endif
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
     TEST_ASSERT( original.ticket_len == restored.ticket_len );
     if( original.ticket_len != 0 )
@@ -4750,14 +4776,6 @@ void ssl_serialize_session_save_load( int ticket_len, char *crt_file )
                              restored.ticket, original.ticket_len ) == 0 );
     }
     TEST_ASSERT( original.ticket_lifetime == restored.ticket_lifetime );
-#endif
-
-#if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-    TEST_ASSERT( original.mfl_code == restored.mfl_code );
-#endif
-
-#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
-    TEST_ASSERT( original.encrypt_then_mac == restored.encrypt_then_mac );
 #endif
 
 exit:

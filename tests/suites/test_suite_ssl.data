@@ -3201,27 +3201,43 @@ ssl_tls_prf:MBEDTLS_SSL_TLS_PRF_SHA256:"1234567890abcdef1234567890abcdef12345678
 
 Session serialization, save-load: no ticket, no cert
 depends_on:MBEDTLS_SSL_PROTO_TLS1_2
-ssl_serialize_session_save_load:0:""
+ssl_serialize_session_save_load:0:"":MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_VERSION_TLS1_2
 
 Session serialization, save-load: small ticket, no cert
 depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_PROTO_TLS1_2
-ssl_serialize_session_save_load:42:""
+ssl_serialize_session_save_load:42:"":MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_VERSION_TLS1_2
 
 Session serialization, save-load: large ticket, no cert
 depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_PROTO_TLS1_2
-ssl_serialize_session_save_load:1023:""
+ssl_serialize_session_save_load:1023:"":MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_VERSION_TLS1_2
 
 Session serialization, save-load: no ticket, cert
 depends_on:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO:MBEDTLS_SSL_PROTO_TLS1_2
-ssl_serialize_session_save_load:0:"data_files/server5.crt"
+ssl_serialize_session_save_load:0:"data_files/server5.crt":MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_VERSION_TLS1_2
 
 Session serialization, save-load: small ticket, cert
 depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO:MBEDTLS_SSL_PROTO_TLS1_2
-ssl_serialize_session_save_load:42:"data_files/server5.crt"
+ssl_serialize_session_save_load:42:"data_files/server5.crt":MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_VERSION_TLS1_2
 
 Session serialization, save-load: large ticket, cert
 depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_X509_USE_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_FS_IO:MBEDTLS_SSL_PROTO_TLS1_2
-ssl_serialize_session_save_load:1023:"data_files/server5.crt"
+ssl_serialize_session_save_load:1023:"data_files/server5.crt":MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_VERSION_TLS1_2
+
+TLS 1.3: CLI: Session serialization, save-load: no ticket
+depends_on:MBEDTLS_SSL_PROTO_TLS1_3
+ssl_serialize_session_save_load:0:"":MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_VERSION_TLS1_3
+
+TLS 1.3: CLI: Session serialization, save-load: small ticket
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_PROTO_TLS1_3
+ssl_serialize_session_save_load:42:"":MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_VERSION_TLS1_3
+
+TLS 1.3: CLI: Session serialization, save-load: large ticket
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_CLI_C:MBEDTLS_SSL_PROTO_TLS1_3
+ssl_serialize_session_save_load:1023:"":MBEDTLS_SSL_IS_CLIENT:MBEDTLS_SSL_VERSION_TLS1_3
+
+TLS 1.3: SRV: Session serialization, save-load: large ticket
+depends_on:MBEDTLS_SSL_SESSION_TICKETS:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_PROTO_TLS1_3
+ssl_serialize_session_save_load:1023:"":MBEDTLS_SSL_IS_SERVER:MBEDTLS_SSL_VERSION_TLS1_3
 
 Session serialization, load-save: no ticket, no cert
 depends_on:MBEDTLS_SSL_PROTO_TLS1_2

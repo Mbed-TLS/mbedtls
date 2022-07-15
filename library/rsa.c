@@ -502,10 +502,8 @@ int mbedtls_rsa_set_padding( mbedtls_rsa_context *ctx, int padding,
     if( ( padding == MBEDTLS_RSA_PKCS_V21 ) &&
         ( hash_id != MBEDTLS_MD_NONE ) )
     {
-        const mbedtls_md_info_t *md_info;
-
-        md_info = mbedtls_md_info_from_type( hash_id );
-        if( md_info == NULL )
+        /* Just make sure this hash is supported in this build. */
+        if( mbedtls_hash_info_get_size( hash_id ) == 0 )
             return( MBEDTLS_ERR_RSA_INVALID_PADDING );
     }
 #endif /* MBEDTLS_PKCS1_V21 */
@@ -1236,7 +1234,6 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *p = output;
     unsigned int hlen;
-    const mbedtls_md_info_t *md_info;
 
     RSA_VALIDATE_RET( ctx != NULL );
     RSA_VALIDATE_RET( output != NULL );
@@ -1246,12 +1243,11 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
     if( f_rng == NULL )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
-    md_info = mbedtls_md_info_from_type( (mbedtls_md_type_t) ctx->hash_id );
-    if( md_info == NULL )
+    hlen = mbedtls_hash_info_get_size( (mbedtls_md_type_t) ctx->hash_id );
+    if( hlen == 0 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
     olen = ctx->len;
-    hlen = mbedtls_md_get_size( md_info );
 
     /* first comparison checks for overflow */
     if( ilen + 2 * hlen + 2 < ilen || olen < ilen + 2 * hlen + 2 )
@@ -1399,7 +1395,6 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
     unsigned char lhash[MBEDTLS_MD_MAX_SIZE];
     unsigned int hlen;
-    const mbedtls_md_info_t *md_info;
 
     RSA_VALIDATE_RET( ctx != NULL );
     RSA_VALIDATE_RET( output_max_len == 0 || output != NULL );
@@ -1418,11 +1413,9 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
     if( ilen < 16 || ilen > sizeof( buf ) )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
-    md_info = mbedtls_md_info_from_type( (mbedtls_md_type_t) ctx->hash_id );
-    if( md_info == NULL )
+    hlen = mbedtls_hash_info_get_size( (mbedtls_md_type_t) ctx->hash_id );
+    if( hlen == 0 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
-
-    hlen = mbedtls_md_get_size( md_info );
 
     // checking for integer underflow
     if( 2 * hlen + 2 > ilen )
@@ -1609,7 +1602,6 @@ static int rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
     size_t slen, min_slen, hlen, offset = 0;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t msb;
-    const mbedtls_md_info_t *md_info;
 
     RSA_VALIDATE_RET( ctx != NULL );
     RSA_VALIDATE_RET( ( md_alg  == MBEDTLS_MD_NONE &&
@@ -1628,19 +1620,17 @@ static int rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
     if( md_alg != MBEDTLS_MD_NONE )
     {
         /* Gather length of hash to sign */
-        md_info = mbedtls_md_info_from_type( md_alg );
-        if( md_info == NULL )
+        size_t exp_hashlen = mbedtls_hash_info_get_size( md_alg );
+        if( exp_hashlen == 0 )
             return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
-        if( hashlen != mbedtls_md_get_size( md_info ) )
+        if( hashlen != exp_hashlen )
             return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     }
 
-    md_info = mbedtls_md_info_from_type( (mbedtls_md_type_t) ctx->hash_id );
-    if( md_info == NULL )
+    hlen = mbedtls_hash_info_get_size( (mbedtls_md_type_t) ctx->hash_id );
+    if( hlen == 0 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
-
-    hlen = mbedtls_md_get_size( md_info );
 
     if (saltlen == MBEDTLS_RSA_SALT_LEN_ANY)
     {
@@ -2001,7 +1991,6 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
     unsigned char result[MBEDTLS_MD_MAX_SIZE];
     unsigned int hlen;
     size_t observed_salt_len, msb;
-    const mbedtls_md_info_t *md_info;
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE] = {0};
 
     RSA_VALIDATE_RET( ctx != NULL );
@@ -2028,19 +2017,17 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
     if( md_alg != MBEDTLS_MD_NONE )
     {
         /* Gather length of hash to sign */
-        md_info = mbedtls_md_info_from_type( md_alg );
-        if( md_info == NULL )
+        size_t exp_hashlen = mbedtls_hash_info_get_size( md_alg );
+        if( exp_hashlen == 0 )
             return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
-        if( hashlen != mbedtls_md_get_size( md_info ) )
+        if( hashlen != exp_hashlen )
             return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     }
 
-    md_info = mbedtls_md_info_from_type( mgf1_hash_id );
-    if( md_info == NULL )
+    hlen = mbedtls_hash_info_get_size( mgf1_hash_id );
+    if( hlen == 0 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
-
-    hlen = mbedtls_md_get_size( md_info );
 
     /*
      * Note: EMSA-PSS verification is over the length of N - 1 bits

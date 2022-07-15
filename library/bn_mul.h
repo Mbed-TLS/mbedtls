@@ -717,10 +717,10 @@
 
 #define MULADDC_X1_CORE                                         \
            ".p2align  2                                 \n\t"   \
-            "ldr.w    %[a], [%[in]], #4                 \n\t"   \
-            "ldr.w    %[b], [%[acc]]                    \n\t"   \
+            "ldr      %[a], [%[in]], #4                 \n\t"   \
+            "ldr      %[b], [%[acc]]                    \n\t"   \
             "umaal    %[b], %[carry], %[scalar], %[a]   \n\t"   \
-            "str.w    %[b], [%[acc]], #4                \n\t"
+            "str      %[b], [%[acc]], #4                \n\t"
 
 #define MULADDC_X1_STOP                                      \
             : [a]      "=&r" (tmp_a),                        \
@@ -751,14 +751,14 @@
              *   2 cycles, while subsequent loads/stores are single-cycle. */
 #define MULADDC_X2_CORE                                           \
            ".p2align  2                                   \n\t"   \
-            "ldr.w    %[a0], [%[in]],  #+8                \n\t"   \
-            "ldr.w    %[b0], [%[acc]], #+8                \n\t"   \
-            "ldr.w    %[a1], [%[in],  #-4]                \n\t"   \
-            "ldr.w    %[b1], [%[acc], #-4]                \n\t"   \
+            "ldr      %[a0], [%[in]],  #+8                \n\t"   \
+            "ldr      %[b0], [%[acc]], #+8                \n\t"   \
+            "ldr      %[a1], [%[in],  #-4]                \n\t"   \
+            "ldr      %[b1], [%[acc], #-4]                \n\t"   \
             "umaal    %[b0], %[carry], %[scalar], %[a0]   \n\t"   \
             "umaal    %[b1], %[carry], %[scalar], %[a1]   \n\t"   \
-            "str.w    %[b0], [%[acc], #-8]                \n\t"   \
-            "str.w    %[b1], [%[acc], #-4]                \n\t"
+            "str      %[b0], [%[acc], #-8]                \n\t"   \
+            "str      %[b1], [%[acc], #-4]                \n\t"
 
 #define MULADDC_X2_STOP                                      \
             : [a0]     "=&r" (tmp_a0),                       \

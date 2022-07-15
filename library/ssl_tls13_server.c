@@ -372,9 +372,9 @@ exit_failue:
  * } PreSharedKeyExtension;
  */
 static int ssl_tls13_write_selected_identity_ext( mbedtls_ssl_context *ssl,
-                                                      unsigned char *buf,
-                                                      unsigned char *end,
-                                                      size_t *olen )
+                                                  unsigned char *buf,
+                                                  unsigned char *end,
+                                                  size_t *olen )
 {
     unsigned char *p = (unsigned char*)buf;
     size_t selected_identity;
@@ -395,17 +395,12 @@ static int ssl_tls13_write_selected_identity_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, adding pre_shared_key extension" ) );
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 6 );
 
-    /* Extension Type */
     MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_PRE_SHARED_KEY, p, 0 );
-
-    /* Extension Length */
     MBEDTLS_PUT_UINT16_BE( 2, p, 2 );
 
     /* NOTE: This will need to be adjusted once we support multiple PSKs
      *       being offered by the client. */
     selected_identity = 0;
-
-    /* Write selected_identity */
     MBEDTLS_PUT_UINT16_BE( selected_identity, p, 4 );
 
     *olen = 6;
@@ -702,9 +697,9 @@ static int ssl_tls13_client_hello_has_exts_for_ephemeral_key_exchange(
         mbedtls_ssl_context *ssl )
 {
     return( ssl_tls13_client_hello_has_exts( ssl,
-                          MBEDTLS_SSL_EXT_SUPPORTED_GROUPS |
-                          MBEDTLS_SSL_EXT_KEY_SHARE        |
-                          MBEDTLS_SSL_EXT_SIG_ALG ) );
+                                             MBEDTLS_SSL_EXT_SUPPORTED_GROUPS |
+                                             MBEDTLS_SSL_EXT_KEY_SHARE        |
+                                             MBEDTLS_SSL_EXT_SIG_ALG ) );
 }
 
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -1702,7 +1697,8 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
     }
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
-    MBEDTLS_SSL_DEBUG_MSG( 2,( " mbedtls_ssl_tls13_some_psk_enabled %d", mbedtls_ssl_tls13_some_psk_enabled( ssl ) ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( " mbedtls_ssl_tls13_some_psk_enabled %d",
+                                mbedtls_ssl_tls13_some_psk_enabled( ssl ) ) );
     if( mbedtls_ssl_tls13_some_psk_enabled( ssl ) )
     {
         ret = ssl_tls13_write_selected_identity_ext( ssl, p, end, &output_len );

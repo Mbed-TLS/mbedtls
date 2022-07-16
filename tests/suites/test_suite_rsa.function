@@ -83,8 +83,6 @@ void mbedtls_rsa_pkcs1_sign( data_t * message_str, int padding_mode,
                              char * input_N, int radix_E, char * input_E,
                              data_t * result_str, int result )
 {
-    unsigned char hash_result[MBEDTLS_MD_MAX_SIZE];
-    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( digest );
     unsigned char output[256];
     mbedtls_rsa_context ctx;
     mbedtls_mpi N, P, Q, E;
@@ -96,7 +94,6 @@ void mbedtls_rsa_pkcs1_sign( data_t * message_str, int padding_mode,
     TEST_ASSERT( mbedtls_rsa_set_padding( &ctx,padding_mode,
                                           MBEDTLS_MD_NONE ) == 0 );
 
-    memset( hash_result, 0x00, sizeof( hash_result ) );
     memset( output, 0x00, sizeof( output ) );
     memset( &rnd_info, 0, sizeof( mbedtls_test_rnd_pseudo_info ) );
 
@@ -110,12 +107,9 @@ void mbedtls_rsa_pkcs1_sign( data_t * message_str, int padding_mode,
     TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == 0 );
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
 
-    if( md_info != NULL )
-        TEST_ASSERT( mbedtls_md( md_info, message_str->x, message_str->len, hash_result ) == 0 );
-
     TEST_ASSERT( mbedtls_rsa_pkcs1_sign(
                      &ctx, &mbedtls_test_rnd_pseudo_rand, &rnd_info,
-                     digest, mbedtls_md_get_size( md_info ), hash_result,
+                     digest, message_str->len, message_str->x,
                      output ) == result );
     if( result == 0 )
     {
@@ -137,8 +131,6 @@ void mbedtls_rsa_pkcs1_verify( data_t * message_str, int padding_mode,
                                char * input_N, int radix_E, char * input_E,
                                data_t * result_str, int result )
 {
-    unsigned char hash_result[MBEDTLS_MD_MAX_SIZE];
-    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( digest );
     mbedtls_rsa_context ctx;
     mbedtls_mpi N, E;
 
@@ -146,7 +138,6 @@ void mbedtls_rsa_pkcs1_verify( data_t * message_str, int padding_mode,
     mbedtls_rsa_init( &ctx );
     TEST_ASSERT( mbedtls_rsa_set_padding( &ctx, padding_mode,
                                           MBEDTLS_MD_NONE ) == 0 );
-    memset( hash_result, 0x00, sizeof( hash_result ) );
 
     TEST_ASSERT( mbedtls_test_read_mpi( &N, radix_N, input_N ) == 0 );
     TEST_ASSERT( mbedtls_test_read_mpi( &E, radix_E, input_E ) == 0 );
@@ -154,10 +145,7 @@ void mbedtls_rsa_pkcs1_verify( data_t * message_str, int padding_mode,
     TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod / 8 ) );
     TEST_ASSERT( mbedtls_rsa_check_pubkey( &ctx ) == 0 );
 
-    if( md_info != NULL )
-        TEST_ASSERT( mbedtls_md( md_info, message_str->x, message_str->len, hash_result ) == 0 );
-
-    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, digest, mbedtls_md_get_size( md_info ), hash_result, result_str->x ) == result );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, digest, message_str->len, message_str->x, result_str->x ) == result );
 
 exit:
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &E );

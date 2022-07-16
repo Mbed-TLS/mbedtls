@@ -717,7 +717,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_CTR_DRBG_C:MBEDTLS_ENTROPY_C */
+/* BEGIN_CASE */
 void mbedtls_rsa_deduce_primes( int radix_N, char *input_N,
                                 int radix_D, char *input_D,
                                 int radix_E, char *input_E,
@@ -1155,7 +1155,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_CTR_DRBG_C:MBEDTLS_ENTROPY_C */
+/* BEGIN_CASE */
 void mbedtls_rsa_export_raw( data_t *input_N, data_t *input_P,
                              data_t *input_Q, data_t *input_D,
                              data_t *input_E, int is_priv,

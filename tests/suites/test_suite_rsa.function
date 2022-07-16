@@ -8,6 +8,8 @@
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
 
+#include "or_psa_helpers.h"
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -76,7 +78,7 @@ void rsa_init_free( int reinit )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_MD_C */
+/* BEGIN_CASE */
 void mbedtls_rsa_pkcs1_sign( data_t * message_str, int padding_mode,
                              int digest, int mod, int radix_P, char * input_P,
                              int radix_Q, char * input_Q, int radix_N,
@@ -125,7 +127,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_MD_C */
+/* BEGIN_CASE */
 void mbedtls_rsa_pkcs1_verify( data_t * message_str, int padding_mode,
                                int digest, int mod, int radix_N,
                                char * input_N, int radix_E, char * input_E,

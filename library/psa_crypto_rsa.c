@@ -41,7 +41,7 @@
 #include <mbedtls/error.h>
 #include <mbedtls/pk.h>
 #include "pk_wrap.h"
-#include "md_internal.h"
+#include "hash_info.h"
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_CRYPT) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_OAEP) || \
@@ -366,7 +366,7 @@ static psa_status_t psa_rsa_decode_md_type( psa_algorithm_t alg,
     {
         if( *md_alg == MBEDTLS_MD_NONE )
             return( PSA_ERROR_NOT_SUPPORTED );
-        if( mbedtls_md_internal_get_size( *md_alg ) != hash_length )
+        if( mbedtls_hash_info_get_size( *md_alg ) != hash_length )
             return( PSA_ERROR_INVALID_ARGUMENT );
     }
 

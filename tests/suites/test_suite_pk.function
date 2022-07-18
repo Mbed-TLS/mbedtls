@@ -7,7 +7,7 @@
 #include "mbedtls/ecp.h"
 #include "mbedtls/rsa.h"
 
-#include "md_internal.h"
+#include "hash_info.h"
 #include "use_psa_helpers.h"
 
 #include <limits.h>
@@ -1277,7 +1277,7 @@ void pk_psa_sign_ext( int pk_type, int parameter, int key_pk_type, int md_alg )
     size_t sig_len;
     unsigned char sig[MBEDTLS_PK_SIGNATURE_MAX_SIZE];
     unsigned char hash[PSA_HASH_MAX_SIZE];
-    size_t hash_len = mbedtls_md_internal_get_size( md_alg );
+    size_t hash_len = mbedtls_hash_info_get_size( md_alg );
     void const *options = NULL;
     mbedtls_pk_rsassa_pss_options rsassa_pss_options;
     memset( hash, 0x2a, sizeof( hash ) );

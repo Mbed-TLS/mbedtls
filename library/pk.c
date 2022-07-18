@@ -24,7 +24,7 @@
 #include "pk_wrap.h"
 #include "pkwrite.h"
 
-#include "md_internal.h"
+#include "hash_info.h"
 
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
@@ -363,7 +363,7 @@ static inline int pk_hashlen_helper( mbedtls_md_type_t md_alg, size_t *hash_len 
     if( *hash_len != 0 )
         return( 0 );
 
-    *hash_len = mbedtls_md_internal_get_size( md_alg );
+    *hash_len = mbedtls_hash_info_get_size( md_alg );
 
     if( *hash_len == 0 )
         return( -1 );

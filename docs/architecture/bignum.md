@@ -51,7 +51,6 @@ typedef struct {
         mbedtls_mpi_mont_struct mont;
         mbedtls_mpi_opt_red_struct ored;
     };
-    mbedtls_mpi_uint *mempool; // temporary space (2*n limbs or more)
 } mbedtls_mpi_mod_modulus;
 ```
 

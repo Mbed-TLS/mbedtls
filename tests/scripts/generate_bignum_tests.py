@@ -194,6 +194,16 @@ class BignumCmp(BignumOperation):
         return str(self._result)
 
 
+class BignumCmpAbs(BignumCmp):
+    """Target for abs comparison variant."""
+    count = 0
+    func = "mbedtls_mpi_cmp_abs"
+    title = "MPI compare (abs)"
+
+    def __init__(self, val_l, val_r):
+        super().__init__(val_l.strip("-"), val_r.strip("-"))
+
+
 class TestGenerator:
     """Generate test data."""
 

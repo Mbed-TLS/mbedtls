@@ -57,11 +57,4 @@
 #define MBEDTLS_USE_PSA_WANT_ALG_SHA_512
 #endif
 
-/* Hash information */
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-#define MBEDTLS_USE_PSA_MD_MAX_SIZE PSA_HASH_MAX_SIZE
-#else
-#define MBEDTLS_USE_PSA_MD_MAX_SIZE MBEDTLS_MD_MAX_SIZE
-#endif
-
 #endif /* MBEDTLS_USE_PSA_HELPERS_H */

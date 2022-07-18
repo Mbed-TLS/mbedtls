@@ -320,30 +320,6 @@ psa_status_t mbedtls_psa_rsa_generate_key(
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PKCS1V15_SIGN) || \
     defined(MBEDTLS_PSA_BUILTIN_ALG_RSA_PSS)
 
-/* Convert a hash algorithm from PSA to MD identifier */
-static inline mbedtls_md_type_t get_md_alg_from_psa( psa_algorithm_t psa_alg )
-{
-    switch( psa_alg )
-    {
-        case PSA_ALG_MD5:
-            return( MBEDTLS_MD_MD5 );
-        case PSA_ALG_RIPEMD160:
-            return( MBEDTLS_MD_RIPEMD160 );
-        case PSA_ALG_SHA_1:
-            return( MBEDTLS_MD_SHA1 );
-        case PSA_ALG_SHA_224:
-            return( MBEDTLS_MD_SHA224 );
-        case PSA_ALG_SHA_256:
-            return( MBEDTLS_MD_SHA256 );
-        case PSA_ALG_SHA_384:
-            return( MBEDTLS_MD_SHA384 );
-        case PSA_ALG_SHA_512:
-            return( MBEDTLS_MD_SHA512 );
-        default:
-            return( MBEDTLS_MD_NONE );
-    }
-}
-
 /* Decode the hash algorithm from alg and store the mbedtls encoding in
  * md_alg. Verify that the hash length is acceptable. */
 static psa_status_t psa_rsa_decode_md_type( psa_algorithm_t alg,
@@ -351,7 +327,7 @@ static psa_status_t psa_rsa_decode_md_type( psa_algorithm_t alg,
                                             mbedtls_md_type_t *md_alg )
 {
     psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH( alg );
-    *md_alg = get_md_alg_from_psa( hash_alg );
+    *md_alg = mbedtls_hash_info_md_from_psa( hash_alg );
 
     /* The Mbed TLS RSA module uses an unsigned int for hash length
      * parameters. Validate that it fits so that we don't risk an

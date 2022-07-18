@@ -543,8 +543,7 @@ static int psa_rsa_oaep_set_padding_mode( psa_algorithm_t alg,
                                           mbedtls_rsa_context *rsa )
 {
     psa_algorithm_t hash_alg = PSA_ALG_RSA_OAEP_GET_HASH( alg );
-    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_psa( hash_alg );
-    mbedtls_md_type_t md_alg = mbedtls_md_get_type( md_info );
+    mbedtls_md_type_t md_alg = mbedtls_hash_info_md_from_psa( hash_alg );
 
     return( mbedtls_rsa_set_padding( rsa, MBEDTLS_RSA_PKCS_V21, md_alg ) );
 }

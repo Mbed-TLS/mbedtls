@@ -14,7 +14,7 @@ G5. Code size: compile out our implementation when a driver is available.
 
 As of Mbed TLS 3.2, most of (G1) and all of (G2) is implemented when
 `MBEDTLS_USE_PSA_CRYPTO` is enabled. For (G2) to take effect, the application
-needs to be changed to use new APIs. For a more detailled account of what's
+needs to be changed to use new APIs. For a more detailed account of what's
 implemented, see `docs/use-psa-crypto.md`, where new APIs are about (G2), and
 internal changes implement (G1).
 
@@ -219,7 +219,7 @@ Supporting builds with drivers without the software implementation
 This section presents a plan towards G5: save code size by compiling out our
 software implementation when a driver is available.
 
-Additionally, we want to save code sive by compiling out the
+Additionally, we want to save code size by compiling out the
 abstractions layers that we are not using when `MBEDTLS_USE_PSA_CRYPTO` is
 enabled (see previous section): MD and Cipher.
 
@@ -279,7 +279,7 @@ crypto modules have similar issues, for example RSA PKCS#1 v2.1 calls
 **Strategy for step 1:**
 
 Regarding PK, X.509, and TLS, this is mostly achieved with only a few gaps.
-(The strategy was outline in the previous section.)
+(The strategy was outlined in the previous section.)
 
 Regarding libmbedcrypto, including the PSA Crypto core, this has not been
 studied yet. For dependencies outside the PSA Crypto code (such as RSA
@@ -289,14 +289,14 @@ call `mbedtls_rsa_xxx()` functions without calling `psa_crypto_init()` first),
 otherwise a new compile-time option might be needed. For dependencies in the
 PSA Crypto core, splitting `psa_crypto_init()` might be a topic (which might
 also help for dependencies outside the core), with likely questions about
-ordering (can we initialize drivers before the RNG or do some divers expect a
+ordering (can we initialize drivers before the RNG or do some drivers expect a
 working RNG?) and trying to avoid circular dependencies.
 
 **Strategy for step 2:**
 
 The most satisfying situation here is when we can just use the PSA Crypto API
 for information management as well. However sometimes it may not be
-convenient, for example in parts of the code that accept old-style identifier
+convenient, for example in parts of the code that accept old-style identifiers
 (such as `mbedtls_md_type_t`) in their API and can't assume PSA to be
 compiled in (such as `rsa.c`).
 
@@ -316,20 +316,20 @@ particular algorithm is supported: using `MBEDTLS_xxx` macros, and using
 `PSA_WANT_xxx` macros. For example, PSA-based code that want to use SHA-256
 will check for `PSA_WANT_ALG_SHA_256`, while legacy-based code that wants to
 use SHA-256 will check for `MBEDTLS_SHA256_C` if using the `mbedtls_sha256`
-API, or for `MBEDTLS_MD_C && MBEDTLS_SHA256_C` if suing the `mbedtls_md` API.
+API, or for `MBEDTLS_MD_C && MBEDTLS_SHA256_C` if using the `mbedtls_md` API.
 
 It is suggested to introduce a new set of macros, `MBEDTLS_USE_PSA_WANT_xxx`,
 for use in the parts of the code that use either API depending of whether
 `MBEDTLS_USE_PSA_CRYPTO` is enabled (that is, PK, X.509 and TLS 1.2). This is
 done for hash algorithms, as an example, by PR 6065. These macros can be used
-in library code (most useful when algorithm availability is check far from the
+in library code (most useful when algorithm availability is checked far from the
 code that will be using it, such as in TLS negotiation) as well as test
 dependencies.
 
 It should also be noted that there is a fourth case: utility functions /
 information tables that are not tied to a particular crypto API, and may be
 used by functions that are either purely PSA-based, purely legacy-based, or
-hybrid governed by `MBEDTL_USE_PSA_CRYPTO` should use `MBEDTLS_xxx ||
+hybrid governed by `MBEDTLS_USE_PSA_CRYPTO` should use `MBEDTLS_xxx ||
 PSA_WANT_xxx` - for example, `oid_md_alg` from `oid.c`, used by both X.509 and
 RSA. A new family of macros `MBEDTLS_OR_PSA_WANT_xxx` is defined for this.
 

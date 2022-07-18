@@ -28,6 +28,7 @@
 #include "mbedtls/bignum.h"
 #include "bignum_core.h"
 #include "bignum_mod.h"
+#include "bignum_mod_raw.h"
 
 #define MPI_VALIDATE_RET( cond )                                       \
     MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_MPI_BAD_INPUT_DATA )
@@ -403,6 +404,40 @@ int mbedtls_mpi_core_write_be( const mbedtls_mpi_uint *X,
 
     for( i = 0; i < bytes_to_copy; i++ )
         p[bytes_to_copy - i - 1] = GET_BYTE( X, i );
+
+    return( 0 );
+}
+
+int mbedtls_mpi_mod_raw_read( mbedtls_mpi_uint *X,
+                              mbedtls_mpi_mod_modulus *m,
+                              unsigned char *buf,
+                              size_t buflen )
+{
+    if( m->ext_rep & MBEDTLS_MI_MOD_EXT_REP_LE )
+        return mbedtls_mpi_core_read_le( X, m->n, buf, buflen );
+
+    else if( m->ext_rep & MBEDTLS_MI_MOD_EXT_REP_BE )
+        return mbedtls_mpi_core_read_be( X, m->n, buf, buflen );
+
+    else
+        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+
+    return( 0 );
+}
+
+int mbedtls_mpi_mod_raw_write( mbedtls_mpi_uint *X,
+                               mbedtls_mpi_mod_modulus *m,
+                               unsigned char *buf,
+                               size_t buflen )
+{
+    if( m->ext_rep & MBEDTLS_MI_MOD_EXT_REP_LE )
+        return mbedtls_mpi_core_write_le( X, m->n, buf, buflen );
+
+    else if( m->ext_rep & MBEDTLS_MI_MOD_EXT_REP_BE )
+        return mbedtls_mpi_core_write_be( X, m->n, buf, buflen );
+
+    else
+        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
     return( 0 );
 }

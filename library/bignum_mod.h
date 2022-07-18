@@ -49,6 +49,16 @@ typedef struct {
     } rep;
 } mbedtls_mpi_mod_modulus;
 
+typedef enum
+{
+    MBEDTLS_MPI_MOD_REP_INVALID    = 0,
+    MBEDTLS_MPI_MOD_REP_MONTGOMERY,
+    MBEDTLS_MPI_MOD_REP_OPT_RED
+} mbedtls_mpi_mod_rep_selector;
+
+#define MBEDTLS_MI_MOD_EXT_REP_LE   0x1
+#define MBEDTLS_MI_MOD_EXT_REP_BE   0x2
+
 void mbedtls_mpi_mod_residue_release( mbedtls_mpi_mod_residue *r );
 
 int mbedtls_mpi_mod_residue_setup( mbedtls_mpi_mod_residue *r,

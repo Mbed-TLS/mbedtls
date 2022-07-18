@@ -810,6 +810,8 @@ int mbedtls_ssl_tls13_write_pre_shared_key_ext_binders(
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *p = buf;
+    const unsigned char *psk_identity;
+    size_t psk_identity_len;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info = NULL;
     psa_algorithm_t psa_hash_alg;
     int hash_len = 0;
@@ -818,6 +820,12 @@ int mbedtls_ssl_tls13_write_pre_shared_key_ext_binders(
     int psk_type;
     unsigned char transcript[MBEDTLS_MD_MAX_SIZE];
     size_t transcript_len;
+
+    if( mbedtls_ssl_get_psk_to_offer( ssl, &psk_type, &psk, &psk_len,
+                                      &psk_identity, &psk_identity_len ) != 0 )
+    {
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
 
     ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(
             ssl->session_negotiate->ciphersuite );

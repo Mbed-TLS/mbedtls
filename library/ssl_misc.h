@@ -1336,6 +1336,9 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_optimize_checksum( mbedtls_ssl_context *ssl,
                             const mbedtls_ssl_ciphersuite_t *ciphersuite_info );
 
+void mbedtls_ssl_add_hs_hdr_to_checksum( mbedtls_ssl_context *ssl,
+                                         unsigned hs_type,
+                                         size_t total_hs_len );
 /*
  * Update checksum of handshake messages.
  */

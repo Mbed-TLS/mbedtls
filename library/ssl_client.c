@@ -899,6 +899,9 @@ int mbedtls_ssl_write_client_hello( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 && MBEDTLS_SSL_PROTO_DTLS */
     {
 
+        mbedtls_ssl_add_hs_hdr_to_checksum( ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
+                                            msg_len );
+        ssl->handshake->update_checksum( ssl, buf, msg_len - binders_len );
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
     defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
         if( binders_len > 0 )
@@ -907,10 +910,10 @@ int mbedtls_ssl_write_client_hello( mbedtls_ssl_context *ssl )
                 mbedtls_ssl_tls13_write_pre_shared_key_ext_binders(
                       ssl, buf + msg_len - binders_len, buf + msg_len ) );
         }
+        ssl->handshake->update_checksum( ssl, buf + msg_len - binders_len,
+                                         binders_len );
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
-        mbedtls_ssl_add_hs_msg_to_checksum( ssl, MBEDTLS_SSL_HS_CLIENT_HELLO,
-                                            buf, msg_len );
         MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_finish_handshake_msg( ssl,
                                                                 buf_len,
                                                                 msg_len ) );

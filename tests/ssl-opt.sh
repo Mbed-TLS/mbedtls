@@ -11998,6 +11998,37 @@ run_test    "TLS 1.3, default suite, PSK" \
             -c "client hello, adding PSK binder list" \
             -c "<= write client hello"
 
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+run_test    "TLS 1.3, default suite, PSK - openssl" \
+            "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -allow_no_dhe_kex -nocert" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk force_ciphersuite=TLS1-3-AES-128-GCM-SHA256" \
+            1 \
+            -c "=> write client hello" \
+            -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
+            -c "client hello, adding psk_key_exchange_modes extension" \
+            -c "client hello, adding PSK binder list" \
+            -c "<= write client hello"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+run_test    "TLS 1.3, default suite, PSK - gnutls" \
+            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk force_ciphersuite=TLS1-3-AES-128-GCM-SHA256" \
+            1 \
+            -c "=> write client hello" \
+            -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
+            -c "client hello, adding psk_key_exchange_modes extension" \
+            -c "client hello, adding PSK binder list" \
+            -c "<= write client hello"
+
 for i in opt-testcases/*.sh
 do
     TEST_SUITE_NAME=${i##*/}

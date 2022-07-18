@@ -204,6 +204,27 @@ class BignumCmpAbs(BignumCmp):
         super().__init__(val_l.strip("-"), val_r.strip("-"))
 
 
+class BignumAdd(BignumOperation):
+    """Target for bignum addition test cases."""
+    count = 0
+    func = "mbedtls_mpi_add_mpi"
+    title = "MPI add"
+    input_cases = list(itertools.combinations(
+        [
+            "1c67967269c6", "9cde3",
+            "-1c67967269c6", "-9cde3",
+        ], 2
+    ))
+
+    def __init__(self, val_l, val_r):
+        super().__init__(val_l, val_r)
+        self.symb = "+"
+
+    @property
+    def result(self):
+        return quote_str(hex(self.int_l + self.int_r).replace("0x", "", 1))
+
+
 class TestGenerator:
     """Generate test data."""
 

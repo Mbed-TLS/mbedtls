@@ -6,6 +6,8 @@
 #include "mbedtls/oid.h"
 #include "mbedtls/rsa.h"
 
+#include "hash_info.h"
+
 #if defined(MBEDTLS_RSA_C)
 int mbedtls_rsa_decrypt_func( void *ctx, size_t *olen,
                        const unsigned char *input, unsigned char *output,
@@ -181,7 +183,7 @@ void x509_csr_check_opaque( char *key_file, int md_type, int key_usage,
     PSA_INIT( );
     memset( &rnd_info, 0x2a, sizeof( mbedtls_test_rnd_pseudo_info ) );
 
-    md_alg_psa = mbedtls_psa_translate_md( (mbedtls_md_type_t) md_type );
+    md_alg_psa = mbedtls_hash_info_psa_from_md( (mbedtls_md_type_t) md_type );
     TEST_ASSERT( md_alg_psa != MBEDTLS_MD_NONE );
 
     mbedtls_pk_init( &key );
@@ -294,7 +296,7 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
     {
         psa_algorithm_t alg_psa, md_alg_psa;
 
-        md_alg_psa = mbedtls_psa_translate_md( (mbedtls_md_type_t) md_type );
+        md_alg_psa = mbedtls_hash_info_psa_from_md( (mbedtls_md_type_t) md_type );
         TEST_ASSERT( md_alg_psa != MBEDTLS_MD_NONE );
 
         if( mbedtls_pk_get_type( &issuer_key ) == MBEDTLS_PK_ECKEY )

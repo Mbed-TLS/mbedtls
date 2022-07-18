@@ -43,6 +43,7 @@
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
+#include "hash_info.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 void mbedtls_x509write_crt_init( mbedtls_x509write_cert *ctx )
@@ -500,7 +501,7 @@ int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx,
 
     /* Compute hash of CRT. */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_algorithm = mbedtls_psa_translate_md( ctx->md_alg );
+    psa_algorithm = mbedtls_hash_info_psa_from_md( ctx->md_alg );
 
     status = psa_hash_compute( psa_algorithm,
                                c,

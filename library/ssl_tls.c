@@ -7235,10 +7235,10 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    mac_alg = mbedtls_psa_translate_md( ciphersuite_info->mac );
+    mac_alg = mbedtls_hash_info_psa_from_md( ciphersuite_info->mac );
     if( mac_alg == 0 )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "mbedtls_psa_translate_md for %u not found",
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "mbedtls_hash_info_psa_from_md for %u not found",
                             (unsigned) ciphersuite_info->mac ) );
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
@@ -7618,7 +7618,7 @@ int mbedtls_ssl_get_key_exchange_md_tls1_2( mbedtls_ssl_context *ssl,
 {
     psa_status_t status;
     psa_hash_operation_t hash_operation = PSA_HASH_OPERATION_INIT;
-    psa_algorithm_t hash_alg = mbedtls_psa_translate_md( md_alg );
+    psa_algorithm_t hash_alg = mbedtls_hash_info_psa_from_md( md_alg );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "Perform PSA-based computation of digest of ServerKeyExchange" ) );
 
@@ -7759,7 +7759,7 @@ unsigned int mbedtls_ssl_tls12_get_preferred_hash_for_sig_alg(
             if( ssl->handshake->key_cert && ssl->handshake->key_cert->key )
             {
                 psa_algorithm_t psa_hash_alg =
-                                mbedtls_psa_translate_md( hash_alg_received );
+                                mbedtls_hash_info_psa_from_md( hash_alg_received );
 
                 if( sig_alg_received == MBEDTLS_SSL_SIG_ECDSA &&
                     ! mbedtls_pk_can_do_ext( ssl->handshake->key_cert->key,

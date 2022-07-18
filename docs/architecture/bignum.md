@@ -38,6 +38,8 @@ typedef struct
 
 The main structure will only hold the information necessary to access the value and to do the most minimalistic checks. (As mentioned above not all functions will perform even these minimalistic checks.)
 
+This structure never owns the memory where the limbs are stored, it is allocated and managed by the caller.
+
 ```C
 typedef struct {
     mbedtls_mpi_uint *p;

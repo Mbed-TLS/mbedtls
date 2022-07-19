@@ -114,7 +114,11 @@ void mbedtls_mpi_mod_modulus_init( mbedtls_mpi_mod_modulus *m )
     if ( m == NULL )
         return;
 
-    m->rep.mont = 0;
+    m->p = NULL;
+    m->n = 0;
+    m->plen = 0;
+    m->ext_rep = MBEDTLS_MPI_MOD_EXT_REP_INVALID;
+    m->int_rep = MBEDTLS_MPI_MOD_REP_INVALID;
 }
 
 void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m )
@@ -125,10 +129,8 @@ void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m )
     m->p = NULL;
     m->n = 0;
     m->plen = 0;
-    m->ext_rep = 0;
-    m->int_rep = 0;
-    m->rep.mont = NULL;
-    m->rep.ored = NULL;
+    m->ext_rep = MBEDTLS_MPI_MOD_EXT_REP_INVALID;
+    m->int_rep = MBEDTLS_MPI_MOD_REP_INVALID;
 }
 
 int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,

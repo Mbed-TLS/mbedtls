@@ -56,8 +56,12 @@ typedef enum
     MBEDTLS_MPI_MOD_REP_OPT_RED
 } mbedtls_mpi_mod_rep_selector;
 
-#define MBEDTLS_MPI_MOD_EXT_REP_LE   0x1
-#define MBEDTLS_MPI_MOD_EXT_REP_BE   0x2
+typedef enum
+{
+    MBEDTLS_MPI_MOD_EXT_REP_INVALID    = 0,
+    MBEDTLS_MPI_MOD_EXT_REP_LE,
+    MBEDTLS_MPI_MOD_EXT_REP_BE
+} mbedtls_mpi_mod_ext_rep;
 
 void mbedtls_mpi_mod_residue_release( mbedtls_mpi_mod_residue *r );
 

@@ -645,6 +645,9 @@ static int ssl_write_client_hello_body( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
     defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+    /* The "pre_shared_key" extension (RFC 8446 Section 4.2.11)
+     * MUST be the last extension in the ClientHello.
+     */
     if( propose_tls13 && mbedtls_ssl_conf_tls13_some_psk_enabled( ssl ) )
     {
         ret = mbedtls_ssl_tls13_write_pre_shared_key_ext_without_binders(
@@ -907,11 +910,11 @@ int mbedtls_ssl_write_client_hello( mbedtls_ssl_context *ssl )
         if( binders_len > 0 )
         {
             MBEDTLS_SSL_PROC_CHK(
-                mbedtls_ssl_tls13_write_pre_shared_key_ext_binders(
+                mbedtls_ssl_tls13_write_binders_of_pre_shared_key_ext(
                       ssl, buf + msg_len - binders_len, buf + msg_len ) );
+            ssl->handshake->update_checksum( ssl, buf + msg_len - binders_len,
+                                             binders_len );
         }
-        ssl->handshake->update_checksum( ssl, buf + msg_len - binders_len,
-                                         binders_len );
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
         MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_finish_handshake_msg( ssl,

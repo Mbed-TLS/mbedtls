@@ -605,15 +605,12 @@ static int ssl_tls13_write_cookie_ext( mbedtls_ssl_context *ssl,
  *     PskKeyExchangeMode ke_modes<1..255>;
  * } PskKeyExchangeModes;
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_write_psk_key_exchange_modes_ext( mbedtls_ssl_context *ssl,
                                                        unsigned char *buf,
                                                        unsigned char *end,
                                                        size_t *out_len )
 {
-    const unsigned char *psk;
-    size_t psk_len;
-    const unsigned char *psk_identity;
-    size_t psk_identity_len;
     unsigned char *p = buf;
     int ke_modes_len = 0;
 
@@ -623,9 +620,7 @@ static int ssl_tls13_write_psk_key_exchange_modes_ext( mbedtls_ssl_context *ssl,
     /* Skip writing extension if no PSK key exchange mode
      * is enabled in the config or there is no PSK to offer.
      */
-    if( !mbedtls_ssl_conf_tls13_some_psk_enabled( ssl ) ||
-         mbedtls_ssl_get_psk_to_offer( ssl, NULL, &psk, &psk_len,
-                                      &psk_identity, &psk_identity_len ) != 0 )
+    if( !mbedtls_ssl_conf_tls13_some_psk_enabled( ssl ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "skip psk_key_exchange_modes extension" ) );
         return( 0 );
@@ -682,10 +677,15 @@ static int ssl_tls13_write_psk_key_exchange_modes_ext( mbedtls_ssl_context *ssl,
  * opaque PskBinderEntry<32..255>;
  *
  * struct {
+ *   PskIdentity identities<7..2^16-1>;
+ *   PskBinderEntry binders<33..2^16-1>;
+ * } OfferedPsks;
  *
- *     PskIdentity identities<7..2^16-1>;
- *     PskBinderEntry binders<33..2^16-1>;
- *
+ * struct {
+ *   select (Handshake.msg_type) {
+ *      case client_hello: OfferedPsks;
+ *      ...
+ *   };
  * } PreSharedKeyExtension;
  *
  */
@@ -702,6 +702,7 @@ int mbedtls_ssl_tls13_write_pre_shared_key_ext_without_binders(
     size_t psk_len;
     const unsigned char *psk_identity;
     size_t psk_identity_len;
+    int psk_type;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info = NULL;
     const int *ciphersuites;
     psa_algorithm_t psa_hash_alg;
@@ -725,7 +726,7 @@ int mbedtls_ssl_tls13_write_pre_shared_key_ext_without_binders(
      * - Otherwise, skip the PSK extension.
      */
 
-    if( mbedtls_ssl_get_psk_to_offer( ssl, NULL, &psk, &psk_len,
+    if( mbedtls_ssl_get_psk_to_offer( ssl, &psk_type, &psk, &psk_len,
                                       &psk_identity, &psk_identity_len ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "skip pre_shared_key extensions" ) );
@@ -736,19 +737,25 @@ int mbedtls_ssl_tls13_write_pre_shared_key_ext_without_binders(
      * Ciphersuite list
      */
     ciphersuites = ssl->conf->ciphersuite_list;
-    for ( int i = 0; ciphersuites[i] != 0; i++ )
+    if( psk_type == MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL )
     {
-        ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( ciphersuites[i] );
+        for( int i = 0; ciphersuites[i] != 0; i++ )
+        {
+            ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(
+                                    ciphersuites[i] );
 
-        if( mbedtls_ssl_validate_ciphersuite(
+            if( mbedtls_ssl_validate_ciphersuite(
                                 ssl, ciphersuite_info,
                                 MBEDTLS_SSL_VERSION_TLS1_3,
                                 MBEDTLS_SSL_VERSION_TLS1_3 ) != 0 )
-            continue;
+                continue;
 
-        /* In this implementation we only add one pre-shared-key extension. */
-        ssl->session_negotiate->ciphersuite = ciphersuites[i];
-        break;
+            /* In this implementation we only add one pre-shared-key
+             * extension.
+             */
+            ssl->session_negotiate->ciphersuite = ciphersuites[i];
+            break;
+        }
     }
 
     ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(
@@ -804,7 +811,7 @@ int mbedtls_ssl_tls13_write_pre_shared_key_ext_without_binders(
     return( 0 );
 }
 
-int mbedtls_ssl_tls13_write_pre_shared_key_ext_binders(
+int mbedtls_ssl_tls13_write_binders_of_pre_shared_key_ext(
     mbedtls_ssl_context *ssl,
     unsigned char *buf, unsigned char *end )
 {
@@ -846,11 +853,6 @@ int mbedtls_ssl_tls13_write_pre_shared_key_ext_binders(
 
     /* 1 bytes length field for next psk binder */
     *p++ = MBEDTLS_BYTE_0( hash_len );
-
-    if( ssl->handshake->resume == 1 )
-        psk_type = MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION;
-    else
-        psk_type = MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL;
 
     /* Get current state of handshake transcript. */
     ret = mbedtls_ssl_get_handshake_transcript( ssl, ciphersuite_info->mac,
@@ -1234,15 +1236,19 @@ static int ssl_tls13_check_server_hello_session_id_echo( mbedtls_ssl_context *ss
  *
  * struct {
  *
- *   uint16 selected_identity;
+ *   select (Handshake.msg_type) {
+ *         ...
+ *         case server_hello: uint16 selected_identity;
+ *   };
  *
  * } PreSharedKeyExtension;
  *
  */
 
-static int ssl_tls13_parse_server_psk_identity_ext( mbedtls_ssl_context *ssl,
-                                                    const unsigned char *buf,
-                                                    const unsigned char *end )
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_parse_server_pre_shared_key_ext( mbedtls_ssl_context *ssl,
+                                                      const unsigned char *buf,
+                                                      const unsigned char *end )
 {
     int ret = 0;
     size_t selected_identity;
@@ -1524,11 +1530,11 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
                     goto cleanup;
                 }
 
-                if( ( ret = ssl_tls13_parse_server_psk_identity_ext(
+                if( ( ret = ssl_tls13_parse_server_pre_shared_key_ext(
                                 ssl, p, extension_data_end ) ) != 0 )
                 {
                     MBEDTLS_SSL_DEBUG_RET(
-                        1, ( "ssl_tls13_parse_server_psk_identity_ext" ), ret );
+                        1, ( "ssl_tls13_parse_server_pre_shared_key_ext" ), ret );
                     return( ret );
                 }
                 break;

@@ -1336,9 +1336,6 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_optimize_checksum( mbedtls_ssl_context *ssl,
                             const mbedtls_ssl_ciphersuite_t *ciphersuite_info );
 
-void mbedtls_ssl_add_hs_hdr_to_checksum( mbedtls_ssl_context *ssl,
-                                         unsigned hs_type,
-                                         size_t total_hs_len );
 /*
  * Update checksum of handshake messages.
  */
@@ -1346,6 +1343,10 @@ void mbedtls_ssl_add_hs_msg_to_checksum( mbedtls_ssl_context *ssl,
                                          unsigned hs_type,
                                          unsigned char const *msg,
                                          size_t msg_len );
+
+void mbedtls_ssl_add_hs_hdr_to_checksum( mbedtls_ssl_context *ssl,
+                                         unsigned hs_type,
+                                         size_t total_hs_len );
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
 #if !defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -2426,6 +2427,7 @@ int mbedtls_ssl_check_dtls_clihlo_cookie(
 /* Check if we have any PSK to offer, returns 0 if PSK is available.
  * Assign the psk and ticket if pointers are present.
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_get_psk_to_offer(
         const mbedtls_ssl_context *ssl,
         int *psk_type,
@@ -2445,6 +2447,7 @@ int mbedtls_ssl_get_psk_to_offer(
  * \param[out]  binders_len Length of the binders to be written at the end of
  *                          the extension.
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_write_pre_shared_key_ext_without_binders(
     mbedtls_ssl_context *ssl,
     unsigned char *buf, unsigned char *end,
@@ -2459,7 +2462,8 @@ int mbedtls_ssl_tls13_write_pre_shared_key_ext_without_binders(
  * \param[in]   buf     Base address of the buffer where to write the binders
  * \param[in]   end     End address of the buffer where to write the binders
  */
-int mbedtls_ssl_tls13_write_pre_shared_key_ext_binders(
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_tls13_write_binders_of_pre_shared_key_ext(
     mbedtls_ssl_context *ssl,
     unsigned char *buf, unsigned char *end );
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */

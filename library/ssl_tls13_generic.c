@@ -1509,6 +1509,7 @@ int mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
 /* Check if we have any PSK to offer, returns 0 if PSK is available.
  * Assign the psk and ticket if pointers are present.
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_get_psk_to_offer(
         const mbedtls_ssl_context *ssl,
         int *psk_type,
@@ -1517,7 +1518,7 @@ int mbedtls_ssl_get_psk_to_offer(
 {
     int ptrs_present = 0;
 
-    if( psk != NULL && psk_len != NULL &&
+    if( psk_type != NULL && psk != NULL && psk_len != NULL &&
         psk_identity != NULL && psk_identity_len != NULL )
     {
         ptrs_present = 1;
@@ -1528,14 +1529,13 @@ int mbedtls_ssl_get_psk_to_offer(
     {
         if( ptrs_present )
         {
+            *psk_type = MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL;
             *psk = ssl->conf->psk;
             *psk_len = ssl->conf->psk_len;
             *psk_identity = ssl->conf->psk_identity;
             *psk_identity_len = ssl->conf->psk_identity_len;
         }
 
-        if( psk_type != NULL )
-            *psk_type = MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL;
         return( 0 );
     }
 

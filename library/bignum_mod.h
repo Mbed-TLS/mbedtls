@@ -56,8 +56,8 @@ typedef enum
     MBEDTLS_MPI_MOD_REP_OPT_RED
 } mbedtls_mpi_mod_rep_selector;
 
-#define MBEDTLS_MI_MOD_EXT_REP_LE   0x1
-#define MBEDTLS_MI_MOD_EXT_REP_BE   0x2
+#define MBEDTLS_MPI_MOD_EXT_REP_LE   0x1
+#define MBEDTLS_MPI_MOD_EXT_REP_BE   0x2
 
 void mbedtls_mpi_mod_residue_release( mbedtls_mpi_mod_residue *r );
 
@@ -67,7 +67,7 @@ int mbedtls_mpi_mod_residue_setup( mbedtls_mpi_mod_residue *r,
 
 void mbedtls_mpi_mod_modulus_init( mbedtls_mpi_mod_modulus *m );
 
-void mbedtls_mpi_mod_modulus_init( mbedtls_mpi_mod_modulus *m );
+void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m );
 
 int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,
                                    mbedtls_mpi_uint *p,

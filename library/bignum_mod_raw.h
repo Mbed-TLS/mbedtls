@@ -17,8 +17,8 @@
  *  limitations under the License.
  */
 
-#ifndef MBEDTLS_BIGNUM_CORE_H
-#define MBEDTLS_BIGNUM_CORE_H
+#ifndef MBEDTLS_BIGNUM_MOD_RAW_H
+#define MBEDTLS_BIGNUM_MOD_RAW_H
 
 #include "common.h"
 
@@ -36,4 +36,4 @@ int mbedtls_mpi_mod_raw_write( mbedtls_mpi_uint *X,
                                unsigned char *buf,
                                size_t buflen );
 
-#endif /* MBEDTLS_BIGNUM_CORE_H */
+#endif /* MBEDTLS_BIGNUM_MOD_RAW_H */

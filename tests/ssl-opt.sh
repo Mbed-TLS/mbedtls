@@ -2337,10 +2337,10 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_DEBUG_C
 run_test    "TLS 1.3: PSK: basic check, G->m" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk debug_level=5 psk=6162636465666768696a6b6c6d6e6f70" \
-            "$G_NEXT_CLI --priority NORMAL:-VERS-ALL:+KX-ALL:+PSK:+DHE-PSK:+VERS-TLS1.3 \
+            "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3:-CIPHER-ALL:+AES-128-GCM:+SHA256 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
                          localhost" \
-            1 \
+            0 \
             -s "found psk key exchange modes extension" \
             -s "found pre_shared_key extension" \
             -s "Found PSK_EPHEMERAL KEX MODE" \

@@ -359,7 +359,7 @@ int mbedtls_ssl_tls13_evolve_secret(
 
     ret = 0;
 
-    if( input != NULL )
+    if( ( input != NULL ) && ( input_len != 0 ) )
     {
         memcpy( tmp_input, input, input_len );
         ilen = input_len;
@@ -825,6 +825,9 @@ int mbedtls_ssl_tls13_create_psk_binder( mbedtls_ssl_context *ssl,
         goto exit;
     }
 
+    MBEDTLS_SSL_DEBUG_BUF( 4, "mbedtls_ssl_tls13_create_psk_binder",
+                           early_secret, hash_len ) ;
+
     if( psk_type == MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION )
     {
         ret = mbedtls_ssl_tls13_derive_secret( hash_alg,
@@ -1052,6 +1055,8 @@ int mbedtls_ssl_tls13_key_schedule_stage_early( mbedtls_ssl_context *ssl )
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_algorithm_t hash_alg;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+    unsigned char *psk = NULL;
+    size_t psk_len = 0;
 
     if( handshake->ciphersuite_info == NULL )
     {
@@ -1061,14 +1066,28 @@ int mbedtls_ssl_tls13_key_schedule_stage_early( mbedtls_ssl_context *ssl )
 
     hash_alg = mbedtls_hash_info_psa_from_md( handshake->ciphersuite_info->mac );
 
-    ret = mbedtls_ssl_tls13_evolve_secret( hash_alg, NULL, NULL, 0,
+    ret = mbedtls_ssl_tls13_export_handshake_psk( ssl, &psk, &psk_len );
+    if( ret != 0 && psk != NULL )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_export_handshake_psk", ret );
+        return( ret );
+    }
+
+    ret = mbedtls_ssl_tls13_evolve_secret( hash_alg, NULL, psk, psk_len,
                                            handshake->tls13_master_secrets.early );
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && \
+    defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+    mbedtls_free( (void*)psk );
+#endif
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_evolve_secret", ret );
         return( ret );
     }
 
+    MBEDTLS_SSL_DEBUG_BUF( 4, "mbedtls_ssl_tls13_key_schedule_stage_early",
+                           handshake->tls13_master_secrets.early,
+                           PSA_HASH_LENGTH( hash_alg ) );
     return( 0 );
 }
 

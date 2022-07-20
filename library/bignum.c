@@ -961,40 +961,6 @@ cleanup:
     return( ret );
 }
 
-/**
- * Helper for mbedtls_mpi subtraction.
- *
- * Calculate l - r where l and r have the same size.
- * This function operates modulo (2^ciL)^n and returns the carry
- * (1 if there was a wraparound, i.e. if `l < r`, and 0 otherwise).
- *
- * d may be aliased to l or r.
- *
- * \param n             Number of limbs of \p d, \p l and \p r.
- * \param[out] d        The result of the subtraction.
- * \param[in] l         The left operand.
- * \param[in] r         The right operand.
- *
- * \return              1 if `l < r`.
- *                      0 if `l >= r`.
- */
-static mbedtls_mpi_uint mpi_sub_hlp( size_t n,
-                                     mbedtls_mpi_uint *d,
-                                     const mbedtls_mpi_uint *l,
-                                     const mbedtls_mpi_uint *r )
-{
-    size_t i;
-    mbedtls_mpi_uint c = 0, t, z;
-
-    for( i = 0; i < n; i++ )
-    {
-        z = ( l[i] <  c );    t = l[i] - c;
-        c = ( t < r[i] ) + z; d[i] = t - r[i];
-    }
-
-    return( c );
-}
-
 /*
  * Unsigned subtraction: X = |A| - |B|  (HAC 14.9, 14.10)
  */
@@ -1027,7 +993,7 @@ int mbedtls_mpi_sub_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     if( X->n > A->n )
         memset( X->p + A->n, 0, ( X->n - A->n ) * ciL );
 
-    carry = mpi_sub_hlp( n, X->p, A->p, B->p );
+    carry = mbedtls_mpi_core_sub( X->p, A->p, B->p, n );
     if( carry != 0 )
     {
         /* Propagate the carry to the first nonzero limb of X. */
@@ -1660,7 +1626,7 @@ static void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B, const mbedtls_mpi
      * do the calculation without using conditional tests. */
     /* Set d to d0 + (2^biL)^n - N where d0 is the current value of d. */
     d[n] += 1;
-    d[n] -= mpi_sub_hlp( n, d, d, N->p );
+    d[n] -= mbedtls_mpi_core_sub( d, d, N->p, n );
     /* If d0 < N then d < (2^biL)^n
      * so d[n] == 0 and we want to keep A as it is.
      * If d0 >= N then d >= (2^biL)^n, and d <= (2^biL)^n + N < 2 * (2^biL)^n

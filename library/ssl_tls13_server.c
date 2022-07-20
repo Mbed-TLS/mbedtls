@@ -146,14 +146,11 @@ static int ssl_tls13_offered_psks_check_binder_match(
     mbedtls_md_type_t md_alg =
         binder_len == 32 ? MBEDTLS_MD_SHA256 : MBEDTLS_MD_SHA384 ;
     psa_algorithm_t psa_md_alg = mbedtls_psa_translate_md( md_alg );
-    unsigned char transcript[MBEDTLS_MD_MAX_SIZE];
+    unsigned char transcript[PSA_HASH_MAX_SIZE];
     size_t transcript_len;
-    unsigned char server_computed_binder[MBEDTLS_MD_MAX_SIZE];
+    unsigned char server_computed_binder[PSA_HASH_MAX_SIZE];
 
-    if( ssl->handshake->resume == 1 )
-        psk_type = MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION;
-    else
-        psk_type = MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL;
+    psk_type = MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL;
 
     /* Get current state of handshake transcript. */
     ret = mbedtls_ssl_get_handshake_transcript( ssl, md_alg,
@@ -182,6 +179,8 @@ static int ssl_tls13_offered_psks_check_binder_match(
         return( SSL_TLS1_3_OFFERED_PSK_MATCH );
     }
 
+    mbedtls_platform_zeroize( server_computed_binder,
+                              sizeof( server_computed_binder ) );
     return( SSL_TLS1_3_OFFERED_PSK_NOT_MATCH );
 }
 /* Parser for pre_shared_key extension in client hello

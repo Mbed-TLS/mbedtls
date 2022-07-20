@@ -611,7 +611,8 @@ struct mbedtls_ssl_handshake_params
      * Handshake specific crypto variables
      */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    int tls13_kex_modes; /*!< key exchange modes for TLS 1.3 */
+    uint8_t key_exchange_mode; /*!< Selected key exchange mode */
+    uint8_t tls13_kex_modes;   /*!< key exchange modes for TLS 1.3 */
 
     /** Number of HelloRetryRequest messages received/sent from/to the server. */
     int hello_retry_request_count;
@@ -1814,6 +1815,29 @@ static inline int mbedtls_ssl_tls13_some_psk_enabled( mbedtls_ssl_context *ssl )
 {
     return( ! mbedtls_ssl_tls13_check_kex_modes( ssl,
                    MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL ) );
+}
+
+/*
+ * Helper functions to check the selected key exchange mode.
+ */
+static inline int mbedtls_ssl_tls13_key_exchange_mode_check(
+    mbedtls_ssl_context *ssl, int kex_mask )
+{
+    return( ( ssl->handshake->key_exchange_mode & kex_mask ) != 0 );
+}
+
+static inline int mbedtls_ssl_tls13_key_exchange_mode_with_psk(
+    mbedtls_ssl_context *ssl )
+{
+    return( mbedtls_ssl_tls13_key_exchange_mode_check( ssl,
+                   MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL ) );
+}
+
+static inline int mbedtls_ssl_tls13_key_exchange_mode_with_ephemeral(
+    mbedtls_ssl_context *ssl )
+{
+    return( mbedtls_ssl_tls13_key_exchange_mode_check( ssl,
+                   MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ALL ) );
 }
 
 /*

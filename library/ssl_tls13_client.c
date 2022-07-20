@@ -618,7 +618,7 @@ static int ssl_tls13_write_psk_key_exchange_modes_ext( mbedtls_ssl_context *ssl,
     *out_len = 0;
 
     /* Skip writing extension if no PSK key exchange mode
-     * is enabled in the config or there is no PSK to offer.
+     * is enabled in the config.
      */
     if( !mbedtls_ssl_conf_tls13_some_psk_enabled( ssl ) )
     {
@@ -733,12 +733,12 @@ int mbedtls_ssl_tls13_write_pre_shared_key_ext_without_binders(
         return( 0 );
     }
 
-    /*
-     * Ciphersuite list
-     */
-    ciphersuites = ssl->conf->ciphersuite_list;
     if( psk_type == MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL )
     {
+        /*
+         * Ciphersuite list
+         */
+        ciphersuites = ssl->conf->ciphersuite_list;
         for( int i = 0; ciphersuites[i] != 0; i++ )
         {
             ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(

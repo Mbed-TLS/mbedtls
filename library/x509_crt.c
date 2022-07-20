@@ -1639,37 +1639,23 @@ cleanup:
             ret = MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
             goto cleanup;
         }
-        else
+        else if( stat( entry_name, &sb ) == -1 )
         {
-            /* Determine if the file entry could be a link. Using lstat(2)
-             * is safer than just stat(2), otherwise a broken link will
-             * give us a false positive. */
-            if( lstat( entry_name, &sb ) == -1 )
+            if( errno == ENOENT )
             {
+                /* Broken symbolic link - ignore this entry.
+                    stat(2) will return this error for either (a) a dangling
+                    symlink or (b) a missing file.
+                    Given that we have just obtained the filename from readdir,
+                    assume that it does exist and therefore treat this as a
+                    dangling symlink. */
+                continue;
+            }
+            else
+            {
+                /* Some other file error; report the error. */
                 ret = MBEDTLS_ERR_X509_FILE_IO_ERROR;
                 goto cleanup;
-            }
-
-            /* If the file is a symbolic link, we need to validate the real
-             * information using stat(2). */
-            if( S_ISLNK( sb.st_mode ) )
-            {
-                /* If stat(2) fails it could be a broken link or a generic
-                 * error. If the link is broken, ignore it, otherwise
-                 * just set a MBEDTLS_ERR_X509_FILE_IO_ERROR. */
-                if( stat( entry_name, &sb ) == -1 )
-                {
-                    if( errno == ENOENT )
-                    {
-                        /* Broken link - ignore this entry */
-                        continue;
-                    }
-                    else
-                    {
-                        ret = MBEDTLS_ERR_X509_FILE_IO_ERROR;
-                        goto cleanup;
-                    }
-                }
             }
         }
 

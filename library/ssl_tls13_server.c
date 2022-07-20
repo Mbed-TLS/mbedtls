@@ -128,8 +128,6 @@ static int ssl_tls13_offered_psks_check_identity_match(
         return( SSL_TLS1_3_OFFERED_PSK_MATCH );
     }
 
-    /* Add session ticket here */
-
     return( SSL_TLS1_3_OFFERED_PSK_NOT_MATCH );
 }
 
@@ -242,9 +240,10 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
         identity_len = MBEDTLS_GET_UINT16_BE( p, 0 );
         p += 2;
         identity = p;
-        p += identity_len;
-        p += 4; // skip obfuscated_ticket_age
-        MBEDTLS_SSL_CHK_BUF_READ_PTR( identity, identities_end, identity_len );
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( identity,
+                                      identities_end,
+                                      identity_len + 4  );
+        p += identity_len + 4;
 
         if( identity_matched == SSL_TLS1_3_OFFERED_PSK_MATCH )
             continue;
@@ -258,8 +257,8 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
     if( identity_matched != SSL_TLS1_3_OFFERED_PSK_MATCH )
     {
         MBEDTLS_SSL_PEND_FATAL_ALERT(
-            MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-            MBEDTLS_SSL_ALERT_MSG_UNKNOWN_PSK_IDENTITY );
+            MBEDTLS_SSL_ALERT_MSG_UNKNOWN_PSK_IDENTITY,
+            MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY );
         return( MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY );
     }
 
@@ -298,7 +297,7 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
     if( status != PSA_SUCCESS)
     {
         ret = psa_ssl_status_to_mbedtls( status );
-        goto exit_failue;
+        goto exit_failure;
     }
 #else
     psk = ssl->handshake->psk;
@@ -310,9 +309,9 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
         uint8_t binder_len;
         const unsigned char *binder;
 
-        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 1 );
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, binders_end, 1 );
         binder_len = *p++;
-        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, binder_len );
+        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, binders_end, binder_len );
         binder = p;
         p += binder_len;
 
@@ -326,10 +325,10 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
             MBEDTLS_SSL_DEBUG_RET( 1,
                 "ssl_tls13_offered_psks_check_binder_match" , binder_matched );
             MBEDTLS_SSL_PEND_FATAL_ALERT(
-                MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
+                MBEDTLS_SSL_ALERT_MSG_DECRYPT_ERROR,
                 MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
             ret = binder_matched;
-            goto exit_failue;
+            goto exit_failure;
         }
     }
 
@@ -341,7 +340,7 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
             MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE,
             MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
         ret = MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
-        goto exit_failue;
+        goto exit_failure;
     }
 
     if( p != binders_end )
@@ -350,7 +349,7 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR,
                                       MBEDTLS_ERR_SSL_DECODE_ERROR );
         ret = MBEDTLS_ERR_SSL_DECODE_ERROR;
-        goto exit_failue;
+        goto exit_failure;
     }
 
     /* Update the handshake transcript with the binder list. */
@@ -359,7 +358,7 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
                                      (size_t)( p - identities_end ) );
     ret = 0;
 
-exit_failue:
+exit_failure:
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     mbedtls_free( (void *)psk );
 #endif

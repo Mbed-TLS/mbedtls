@@ -1512,12 +1512,6 @@ static int ssl_tls13_certificate_request_coordinate( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    if( mbedtls_ssl_tls13_some_psk_enabled( ssl ) )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "<= skip parse certificate request" ) );
-        return( SSL_CERTIFICATE_REQUEST_SKIP );
-    }
-
     if( ( ret = mbedtls_ssl_read_record( ssl, 0 ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );

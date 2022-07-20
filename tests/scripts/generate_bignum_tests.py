@@ -162,7 +162,7 @@ class BignumOperation(BignumTarget):
 
     @classmethod
     def generate_tests(cls) -> Iterator[test_case.TestCase]:
-        if cls.func is not None:
+        if cls.func:
             # Generate tests for the current class
             for l_value, r_value in cls.get_value_pairs():
                 cur_op = cls(l_value, r_value)

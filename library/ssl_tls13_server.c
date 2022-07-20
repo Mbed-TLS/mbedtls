@@ -397,7 +397,7 @@ static int ssl_tls13_check_ephemeral_key_exchange( mbedtls_ssl_context *ssl )
     if( !ssl_tls13_client_hello_has_exts_for_ephemeral_key_exchange( ssl ) )
         return( 0 );
 
-    ssl->handshake->tls13_kex_modes =
+    ssl->handshake->key_exchange_mode =
         MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL;
     return( 1 );
 }
@@ -1167,7 +1167,7 @@ static int ssl_tls13_write_hrr_key_share_ext( mbedtls_ssl_context *ssl,
      * of the HRR is then to transmit a cookie to force the client to demonstrate
      * reachability at their apparent network address (primarily useful for DTLS).
      */
-    if( ! mbedtls_ssl_tls13_some_ephemeral_enabled( ssl ) )
+    if( ! mbedtls_ssl_tls13_key_exchange_mode_with_ephemeral( ssl ) )
         return( 0 );
 
     /* We should only send the key_share extension if the client's initial
@@ -1555,7 +1555,7 @@ static int ssl_tls13_write_encrypted_extensions( mbedtls_ssl_context *ssl )
                               ssl, buf_len, msg_len ) );
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-    if( mbedtls_ssl_tls13_some_psk_enabled( ssl ) )
+    if( mbedtls_ssl_tls13_key_exchange_mode_with_psk( ssl ) )
         mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_FINISHED );
     else
         mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CERTIFICATE_REQUEST );

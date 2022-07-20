@@ -82,7 +82,7 @@ class BaseTarget:
     @classmethod
     def generate_tests(cls):
         """Generate test cases for the target subclasses."""
-        for subclass in cls.__subclasses__():
+        for subclass in sorted(cls.__subclasses__(), key=lambda c: c.__name__):
             yield from subclass.generate_tests()
 
 

@@ -26,7 +26,7 @@ import os
 import posixpath
 import re
 import sys
-from typing import Iterable, Iterator, Optional, Tuple, TypeVar
+from typing import Iterable, Iterator, List, Optional, Tuple, TypeVar
 
 import scripts_path # pylint: disable=unused-import
 from mbedtls_dev import build_tree
@@ -52,16 +52,16 @@ class BaseTarget:
         title: Description of the test function/purpose.
     """
     count = 0
-    desc = None
-    func = None
+    desc = ""
+    func = ""
     gen_file = ""
-    title = None
+    title = ""
 
     def __init__(self) -> None:
         type(self).count += 1
 
     @property
-    def args(self) -> Iterable[str]:
+    def args(self) -> List[str]:
         """Create list of arguments for test case."""
         return []
 
@@ -105,8 +105,8 @@ class BignumOperation(BignumTarget):
         "", "0", "7b", "-7b",
         "0000000000000000123", "-0000000000000000123",
         "1230000000000000000", "-1230000000000000000"
-    ]
-    input_cases = []
+    ] # type: List[str]
+    input_cases = [] # type: List[Tuple[str, ...]]
 
     def __init__(self, val_l: str, val_r: str) -> None:
         super().__init__()

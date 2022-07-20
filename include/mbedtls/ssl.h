@@ -335,6 +335,13 @@
 #define MBEDTLS_SSL_SRV_CIPHERSUITE_ORDER_CLIENT  1
 #define MBEDTLS_SSL_SRV_CIPHERSUITE_ORDER_SERVER  0
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SHA384_C)
+#define MBEDTLS_SSL_TLS1_3_TICKET_RESUMPTION_KEY_LEN        48
+#elif defined(MBEDTLS_SHA256_C)
+#define MBEDTLS_SSL_TLS1_3_TICKET_RESUMPTION_KEY_LEN        32
+#endif /* MBEDTLS_SHA256_C  */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS */
 /*
  * Default range for DTLS retransmission timer value, in milliseconds.
  * RFC 6347 4.2.4.1 says from 1 second to 60 seconds.
@@ -1175,13 +1182,8 @@ struct mbedtls_ssl_session
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
     uint32_t MBEDTLS_PRIVATE(ticket_age_add);               /*!< Randomly generated value used to obscure the age of the ticket */
-    uint8_t MBEDTLS_PRIVATE(key_len);                       /*!< PSK key length */
-
-#if defined(MBEDTLS_SHA384_C)
-    unsigned char MBEDTLS_PRIVATE(key)[48];                 /*!< key (48 byte) */
-#elif defined(MBEDTLS_SHA256_C)
-    unsigned char MBEDTLS_PRIVATE(key)[32];                 /*!< key (32 byte) */
-#endif /* MBEDTLS_SHA256_C  */
+    uint8_t MBEDTLS_PRIVATE(resumption_key_len);            /*!< resumption_key length */
+    unsigned char MBEDTLS_PRIVATE(resumption_key)[MBEDTLS_SSL_TLS1_3_TICKET_RESUMPTION_KEY_LEN];
 
 #if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_CLI_C)
     mbedtls_time_t MBEDTLS_PRIVATE(ticket_received);        /*!< time ticket was received */

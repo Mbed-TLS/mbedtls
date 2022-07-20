@@ -1915,6 +1915,8 @@ static int ssl_tls13_parse_new_session_ticket_exts( mbedtls_ssl_context *ssl,
 }
 
 /*
+ * From RFC8446, page 74
+ *
  * struct {
  *    uint32 ticket_lifetime;
  *    uint32 ticket_age_add;
@@ -1943,7 +1945,7 @@ static int ssl_tls13_parse_new_session_ticket( mbedtls_ssl_context *ssl,
     /*
      *    ticket_lifetime   4 bytes
      *    ticket_age_add    4 bytes
-     *    ticket_nonce      >=1 byte
+     *    ticket_nonce_len  1 byte
      */
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 9 );
 
@@ -2022,7 +2024,7 @@ static int ssl_tls13_postprocess_new_session_ticket( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_HAVE_TIME)
     /* Store ticket creation time */
-    session->ticket_received = time( NULL );
+    session->ticket_received = mbedtls_time( NULL );
 #endif
 
     ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( session->ciphersuite );

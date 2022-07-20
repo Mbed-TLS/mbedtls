@@ -1185,7 +1185,7 @@ struct mbedtls_ssl_session
 #endif /* MBEDTLS_SHA256_C  */
 
 #if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_CLI_C)
-    time_t MBEDTLS_PRIVATE(ticket_received);                /*!< time ticket was received */
+    mbedtls_time_t MBEDTLS_PRIVATE(ticket_received);        /*!< time ticket was received */
 #endif /* MBEDTLS_HAVE_TIME && MBEDTLS_SSL_CLI_C */
 
 #endif /*  MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS */

@@ -205,9 +205,9 @@ static int ssl_tls13_offered_psks_check_binder_match(
  *    } PreSharedKeyExtension;
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_parse_offered_psks_ext( mbedtls_ssl_context *ssl,
-                                             const unsigned char *buf,
-                                             const unsigned char *end )
+static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
+                                               const unsigned char *buf,
+                                               const unsigned char *end )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const unsigned char *p = buf;
@@ -238,6 +238,7 @@ static int ssl_tls13_parse_offered_psks_ext( mbedtls_ssl_context *ssl,
     {
         uint16_t identity_len;
         const unsigned char *identity;
+
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, identities_end, 2 );
         identity_len = MBEDTLS_GET_UINT16_BE( p, 0 );
         p += 2;
@@ -375,10 +376,10 @@ exit_failue:
  *   }
  * } PreSharedKeyExtension;
  */
-static int ssl_tls13_write_selected_identity_ext( mbedtls_ssl_context *ssl,
-                                                  unsigned char *buf,
-                                                  unsigned char *end,
-                                                  size_t *olen )
+static int ssl_tls13_write_server_pre_shared_key_ext( mbedtls_ssl_context *ssl,
+                                                      unsigned char *buf,
+                                                      unsigned char *end,
+                                                      size_t *olen )
 {
     unsigned char *p = (unsigned char*)buf;
     size_t selected_identity;
@@ -1223,12 +1224,12 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     {
         ssl->handshake->update_checksum( ssl, buf,
                                          pre_shared_key_ext_start - buf );
-        ret = ssl_tls13_parse_offered_psks_ext( ssl,
-                                                pre_shared_key_ext_start,
-                                                pre_shared_key_ext_end );
+        ret = ssl_tls13_parse_pre_shared_key_ext( ssl,
+                                                  pre_shared_key_ext_start,
+                                                  pre_shared_key_ext_end );
         if( ret != 0 )
         {
-            MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_tls13_parse_offered_psks_ext" ),
+            MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_tls13_parse_pre_shared_key_ext" ),
                                    ret );
             return( ret );
         }
@@ -1705,10 +1706,10 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
                                 mbedtls_ssl_tls13_some_psk_enabled( ssl ) ) );
     if( mbedtls_ssl_tls13_some_psk_enabled( ssl ) )
     {
-        ret = ssl_tls13_write_selected_identity_ext( ssl, p, end, &output_len );
+        ret = ssl_tls13_write_server_pre_shared_key_ext( ssl, p, end, &output_len );
         if( ret != 0 )
         {
-            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_write_selected_identity_ext",
+            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_tls13_write_server_pre_shared_key_ext",
                                    ret );
             return( ret );
         }

@@ -1542,13 +1542,13 @@
 //#define MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 
 /**
- * \def MBEDTLS_SSL_TICKET_NONCE_LENGTH
+ * \def MBEDTLS_SSL_TLS1_3_TICKET_NONCE_LENGTH
  *
  * Size in bytes of a ticket nonce. This is not used in TLS 1.2.
  *
  * This must be less than 256.
  */
-#define MBEDTLS_SSL_TICKET_NONCE_LENGTH 32
+#define MBEDTLS_SSL_TLS1_3_TICKET_NONCE_LENGTH 32
 
 /**
  * \def MBEDTLS_SSL_PROTO_DTLS

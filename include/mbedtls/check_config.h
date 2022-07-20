@@ -843,9 +843,9 @@
 #error "MBEDTLS_SSL_TICKET_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_SSL_TICKET_NONCE_LENGTH) && \
-    MBEDTLS_SSL_TICKET_NONCE_LENGTH >= 256
-#error "MBEDTLS_SSL_TICKET_NONCE_LENGTH must be less than 256"
+#if defined(MBEDTLS_SSL_TLS1_3_TICKET_NONCE_LENGTH) && \
+    MBEDTLS_SSL_TLS1_3_TICKET_NONCE_LENGTH >= 256
+#error "MBEDTLS_SSL_TLS1_3_TICKET_NONCE_LENGTH must be less than 256"
 #endif
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && \

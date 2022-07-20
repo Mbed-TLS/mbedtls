@@ -156,7 +156,7 @@ class BignumOperation(BignumTarget):
     def get_value_pairs(cls) -> Iterator[Tuple[str, ...]]:
         """Generate value pairs."""
         for pair in list(
-            itertools.combinations(cls.input_vals, 2)
+                itertools.combinations(cls.input_vals, 2)
             ) + cls.input_cases:
             yield pair
 

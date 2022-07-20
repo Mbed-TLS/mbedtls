@@ -281,16 +281,25 @@ crypto modules have similar issues, for example RSA PKCS#1 v2.1 calls
 Regarding PK, X.509, and TLS, this is mostly achieved with only a few gaps.
 (The strategy was outlined in the previous section.)
 
-Regarding libmbedcrypto, including the PSA Crypto core, this has not been
-studied yet. For dependencies outside the PSA Crypto code (such as RSA
-PKCS#1 v2.1 depending on MD), it should be checked whether this can be
-achieved without backwards compatibility issues (currently applications can
-call `mbedtls_rsa_xxx()` functions without calling `psa_crypto_init()` first),
-otherwise a new compile-time option might be needed. For dependencies in the
-PSA Crypto core, splitting `psa_crypto_init()` might be a topic (which might
-also help for dependencies outside the core), with likely questions about
-ordering (can we initialize drivers before the RNG or do some drivers expect a
-working RNG?) and trying to avoid circular dependencies.
+Regarding libmbedcrypto, outside of the RNG subsystem, for modules that
+currently depend on other legacy crypto modules, this can be achieved without
+backwards compatibility issues, by using the software implementation if
+available, and "falling back" to PSA only if it's not. The compile-time
+dependency changes from the current one (say, `MD_C` or `AES_C`) to "the
+previous dependency OR PSA Crypto with needed algorithms". When building
+without software implementation, users need to call `psa_crypto_init()` before
+calling any function from these modules. This condition does constitute a
+break of backwards compability, as it was previously impossible to build in
+those configurations, and in configurations were the build was possible,
+application code keeps working unchanged. An incomplete example of applying
+this strategy, for RSA PKCS#1 v2.1, is here:
+<https://github.com/mpg/mbedtls/pull/4>.
+
+There is a problem with the modules used for the PSA RNG, as currently the RNG
+is initialized before drivers and the key store. This part will need further
+study, but in the meantime we can proceed with everything that's not the
+entropy module of one of the DRBG modules, and that does not depend on one of
+those modules.
 
 **Strategy for step 2:**
 
@@ -302,8 +311,8 @@ compiled in (such as `rsa.c`).
 
 It is suggested that, as a temporary solution until we clean this up
 later when removing the legacy API including its identifiers (G4), we may
-occasionally use ad-hoc internal functions, such as the one introduced by PR
-6065 in `library/md_internal.h`.
+occasionally use ad-hoc internal functions, such as the ones introduced by PR
+6065 in `library/hash_info.[ch]`.
 
 An alternative would be to have two different code paths depending on whether
 `MBEDTLS_PSA_CRYPTO_C` is defined or not. However this is not great for

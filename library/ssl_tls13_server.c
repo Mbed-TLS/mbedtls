@@ -54,6 +54,7 @@
  *       PskKeyExchangeMode ke_modes<1..255>;
  *   } PskKeyExchangeModes;
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_parse_key_exchange_modes_ext( mbedtls_ssl_context *ssl,
                                                    const unsigned char *buf,
                                                    const unsigned char *end )
@@ -101,6 +102,7 @@ static int ssl_tls13_parse_key_exchange_modes_ext( mbedtls_ssl_context *ssl,
 
 #define SSL_TLS1_3_OFFERED_PSK_NOT_MATCH   0
 #define SSL_TLS1_3_OFFERED_PSK_MATCH       1
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_offered_psks_check_identity_match(
                mbedtls_ssl_context *ssl,
                const unsigned char *identity,
@@ -131,6 +133,7 @@ static int ssl_tls13_offered_psks_check_identity_match(
     return( SSL_TLS1_3_OFFERED_PSK_NOT_MATCH );
 }
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_offered_psks_check_binder_match(
                mbedtls_ssl_context *ssl,
                const unsigned char *binder,
@@ -201,6 +204,7 @@ static int ssl_tls13_offered_psks_check_binder_match(
  *        };
  *    } PreSharedKeyExtension;
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_parse_offered_psks_ext( mbedtls_ssl_context *ssl,
                                              const unsigned char *buf,
                                              const unsigned char *end )

@@ -2036,8 +2036,12 @@ static int ssl_tls13_postprocess_new_session_ticket( mbedtls_ssl_context *ssl,
 
     psa_hash_alg = mbedtls_psa_translate_md( ciphersuite_info->mac );
     hash_length = PSA_HASH_LENGTH( psa_hash_alg );
-    if( hash_length == -1 )
+    if( hash_length == -1 ||
+        ( size_t )hash_length > sizeof( session->resumption_key ) )
+    {
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "resumption_master_secret",
                            session->app_secrets.resumption_master_secret,

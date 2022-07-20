@@ -1913,7 +1913,7 @@ component_test_psa_crypto_config_accel_hash_use_psa () {
     # but is already disabled in the default config
 
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
-    make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS" tests
+    make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS" all
 
     # There's a risk of something getting re-enabled via config_psa.h;
     # make sure it did not happen.

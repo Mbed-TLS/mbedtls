@@ -5288,6 +5288,50 @@ static int ssl_check_ctr_renegotiate( mbedtls_ssl_context *ssl )
 }
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_check_new_session_ticket( mbedtls_ssl_context *ssl )
+{
+
+    if( ( ssl->in_hslen == mbedtls_ssl_hs_hdr_len( ssl ) ) ||
+        ( ssl->in_msg[0] != MBEDTLS_SSL_HS_NEW_SESSION_TICKET ) )
+    {
+        return( 0 );
+    }
+
+    ssl->keep_current_message = 1;
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "NewSessionTicket received" ) );
+    mbedtls_ssl_handshake_set_state( ssl,
+                                     MBEDTLS_SSL_NEW_SESSION_TICKET );
+
+    return( MBEDTLS_ERR_SSL_WANT_READ );
+}
+#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
+
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_handle_hs_message_post_handshake( mbedtls_ssl_context *ssl )
+{
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "received post-handshake message" ) );
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
+    {
+        int ret = ssl_tls13_check_new_session_ticket( ssl );
+        if( ret != 0 )
+            return( ret );
+    }
+#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
+
+    /* Fail in all other cases. */
+    return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
+}
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 /* This function is called from mbedtls_ssl_read() when a handshake message is
  * received after the initial handshake. In this context, handshake messages
  * may only be sent for the purpose of initiating renegotiations.
@@ -5298,7 +5342,7 @@ static int ssl_check_ctr_renegotiate( mbedtls_ssl_context *ssl )
  * TLS 1.3 in the future without bloating the logic of mbedtls_ssl_read().
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_handle_hs_message_post_handshake( mbedtls_ssl_context *ssl )
+static int ssl_tls12_handle_hs_message_post_handshake( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
@@ -5380,17 +5424,38 @@ static int ssl_handle_hs_message_post_handshake( mbedtls_ssl_context *ssl )
 
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "refusing renegotiation, sending alert" ) );
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
         if( ( ret = mbedtls_ssl_send_alert_message( ssl,
                          MBEDTLS_SSL_ALERT_LEVEL_WARNING,
                          MBEDTLS_SSL_ALERT_MSG_NO_RENEGOTIATION ) ) != 0 )
         {
             return( ret );
         }
-#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
     }
 
     return( 0 );
+}
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_handle_hs_message_post_handshake( mbedtls_ssl_context *ssl )
+{
+    /* Check protocol version and dispatch accordingly. */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    if( ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 )
+    {
+        return( ssl_tls13_handle_hs_message_post_handshake( ssl ) );
+    }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    if( ssl->tls_version <= MBEDTLS_SSL_VERSION_TLS1_2 )
+    {
+        return( ssl_tls12_handle_hs_message_post_handshake( ssl ) );
+    }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
+    /* Should never happen */
+    return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 }
 
 /*

@@ -1837,12 +1837,6 @@ static int ssl_tls13_write_new_session_ticket_coordinate( mbedtls_ssl_context *s
         return( SSL_NEW_SESSION_TICKET_SKIP );
     }
 
-    if( !mbedtls_ssl_tls13_some_psk_enabled( ssl ) )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "psk or psk_ephemeral is not enabled" ) );
-        return( SSL_NEW_SESSION_TICKET_SKIP );
-    }
-
     return( SSL_NEW_SESSION_TICKET_WRITE );
 }
 

@@ -1174,7 +1174,6 @@ struct mbedtls_ssl_session
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
-    uint8_t MBEDTLS_PRIVATE(ticket_flags);                  /*!< Ticket flags */
     uint32_t MBEDTLS_PRIVATE(ticket_age_add);               /*!< Randomly generated value used to obscure the age of the ticket */
     uint8_t MBEDTLS_PRIVATE(key_len);                       /*!< PSK key length */
 

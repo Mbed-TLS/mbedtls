@@ -1037,6 +1037,23 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
         size_t extension_data_len;
         const unsigned char *extension_data_end;
 
+        /* RFC 8446, page 57
+         *
+         * The "pre_shared_key" extension MUST be the last extension in the
+         * ClientHello (this facilitates implementation as described below).
+         * Servers MUST check that it is the last extension and otherwise fail
+         * the handshake with an "illegal_parameter" alert.
+         */
+        if( ssl->handshake->extensions_present & MBEDTLS_SSL_EXT_PRE_SHARED_KEY )
+        {
+            MBEDTLS_SSL_DEBUG_MSG(
+                3, ( "pre_shared_key is not last extension." ) );
+            MBEDTLS_SSL_PEND_FATAL_ALERT(
+                MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+            return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+        }
+
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, extensions_end, 4 );
         extension_type = MBEDTLS_GET_UINT16_BE( p, 0 );
         extension_data_len = MBEDTLS_GET_UINT16_BE( p, 2 );
@@ -1146,19 +1163,18 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
                 break;
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
             case MBEDTLS_TLS_EXT_PRE_SHARED_KEY:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found pre_shared_key extension" ) );
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
                 /* Delay processing of the PSK identity once we have
                  * found out which algorithms to use. We keep a pointer
                  * to the buffer and the size for later processing.
                  */
                 pre_shared_key_ext_start = p;
                 pre_shared_key_ext_end = extension_data_end;
-
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
                 ssl->handshake->extensions_present |= MBEDTLS_SSL_EXT_PRE_SHARED_KEY;
                 break;
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
 #if defined(MBEDTLS_SSL_ALPN)
             case MBEDTLS_TLS_EXT_ALPN:
@@ -1230,13 +1246,6 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
             MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_tls13_parse_pre_shared_key_ext" ),
                                    ret );
             return( ret );
-        }
-        /* If pre_shared_key is not last extension */
-        if( p - pre_shared_key_ext_end )
-        {
-            ssl->handshake->update_checksum( ssl,
-                                             pre_shared_key_ext_end,
-                                             p - pre_shared_key_ext_end );
         }
     }
     else

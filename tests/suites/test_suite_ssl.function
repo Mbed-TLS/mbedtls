@@ -4764,19 +4764,63 @@ void ssl_serialize_session_save_load( int ticket_len, char *crt_file,
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
         TEST_ASSERT( original.encrypt_then_mac == restored.encrypt_then_mac );
 #endif
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
+        TEST_ASSERT( original.ticket_len == restored.ticket_len );
+        if( original.ticket_len != 0 )
+        {
+            TEST_ASSERT( original.ticket != NULL );
+            TEST_ASSERT( restored.ticket != NULL );
+            TEST_ASSERT( memcmp( original.ticket,
+                                 restored.ticket, original.ticket_len ) == 0 );
+        }
+        TEST_ASSERT( original.ticket_lifetime == restored.ticket_lifetime );
+#endif
     }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    if( tls_version == MBEDTLS_SSL_VERSION_TLS1_3 )
+    {
+        TEST_ASSERT( original.endpoint == restored.endpoint );
+        TEST_ASSERT( original.ciphersuite == restored.ciphersuite );
+        TEST_ASSERT( original.ticket_age_add == restored.ticket_age_add );
+        TEST_ASSERT( original.ticket_flags == restored.ticket_flags );
+        TEST_ASSERT( original.resumption_key_len == restored.resumption_key_len );
+        if( original.resumption_key_len != 0 )
+        {
+            TEST_ASSERT( original.resumption_key != NULL );
+            TEST_ASSERT( restored.resumption_key != NULL );
+            TEST_ASSERT( memcmp( original.resumption_key,
+                                 restored.resumption_key,
+                                 original.resumption_key_len ) == 0 );
+        }
+#if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
+        if( endpoint_type == MBEDTLS_SSL_IS_CLIENT)
+        {
+            TEST_ASSERT( original.start == restored.start );
+        }
 #endif
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
-    TEST_ASSERT( original.ticket_len == restored.ticket_len );
-    if( original.ticket_len != 0 )
-    {
-        TEST_ASSERT( original.ticket != NULL );
-        TEST_ASSERT( restored.ticket != NULL );
-        TEST_ASSERT( memcmp( original.ticket,
-                             restored.ticket, original.ticket_len ) == 0 );
-    }
-    TEST_ASSERT( original.ticket_lifetime == restored.ticket_lifetime );
+        if( endpoint_type == MBEDTLS_SSL_IS_CLIENT)
+        {
+#if defined(MBEDTLS_HAVE_TIME)
+            TEST_ASSERT( original.ticket_received == restored.ticket_received );
 #endif
+            TEST_ASSERT( original.ticket_lifetime == restored.ticket_lifetime );
+            TEST_ASSERT( original.ticket_len == restored.ticket_len );
+            if( original.ticket_len != 0 )
+            {
+                TEST_ASSERT( original.ticket != NULL );
+                TEST_ASSERT( restored.ticket != NULL );
+                TEST_ASSERT( memcmp( original.ticket,
+                                     restored.ticket,
+                                     original.ticket_len ) == 0 );
+            }
+
+        }
+#endif
+    }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 exit:
     mbedtls_ssl_session_free( &original );

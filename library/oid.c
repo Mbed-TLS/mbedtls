@@ -27,7 +27,7 @@
 #include "mbedtls/rsa.h"
 #include "mbedtls/error.h"
 
-#include "or_psa_helpers.h"
+#include "legacy_or_psa.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -598,43 +598,43 @@ typedef struct {
 
 static const oid_md_alg_t oid_md_alg[] =
 {
-#if defined(MBEDTLS_OR_PSA_WANT_ALG_MD5)
+#if defined(MBEDTLS_HAS_ALG_MD5_VIA_LOWLEVEL_OR_PSA)
     {
         OID_DESCRIPTOR( MBEDTLS_OID_DIGEST_ALG_MD5,       "id-md5",       "MD5" ),
         MBEDTLS_MD_MD5,
     },
 #endif
-#if defined(MBEDTLS_OR_PSA_WANT_ALG_SHA_1)
+#if defined(MBEDTLS_HAS_ALG_SHA_1_VIA_LOWLEVEL_OR_PSA)
     {
         OID_DESCRIPTOR( MBEDTLS_OID_DIGEST_ALG_SHA1,      "id-sha1",      "SHA-1" ),
         MBEDTLS_MD_SHA1,
     },
 #endif
-#if defined(MBEDTLS_OR_PSA_WANT_ALG_SHA_224)
+#if defined(MBEDTLS_HAS_ALG_SHA_224_VIA_LOWLEVEL_OR_PSA)
     {
         OID_DESCRIPTOR( MBEDTLS_OID_DIGEST_ALG_SHA224,    "id-sha224",    "SHA-224" ),
         MBEDTLS_MD_SHA224,
     },
 #endif
-#if defined(MBEDTLS_OR_PSA_WANT_ALG_SHA_256)
+#if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_LOWLEVEL_OR_PSA)
     {
         OID_DESCRIPTOR( MBEDTLS_OID_DIGEST_ALG_SHA256,    "id-sha256",    "SHA-256" ),
         MBEDTLS_MD_SHA256,
     },
 #endif
-#if defined(MBEDTLS_OR_PSA_WANT_ALG_SHA_384)
+#if defined(MBEDTLS_HAS_ALG_SHA_384_VIA_LOWLEVEL_OR_PSA)
     {
         OID_DESCRIPTOR( MBEDTLS_OID_DIGEST_ALG_SHA384,    "id-sha384",    "SHA-384" ),
         MBEDTLS_MD_SHA384,
     },
 #endif
-#if defined(MBEDTLS_OR_PSA_WANT_ALG_SHA_512)
+#if defined(MBEDTLS_HAS_ALG_SHA_512_VIA_LOWLEVEL_OR_PSA)
     {
         OID_DESCRIPTOR( MBEDTLS_OID_DIGEST_ALG_SHA512,    "id-sha512",    "SHA-512" ),
         MBEDTLS_MD_SHA512,
     },
 #endif
-#if defined(MBEDTLS_OR_PSA_WANT_ALG_RIPEMD160)
+#if defined(MBEDTLS_HAS_ALG_RIPEMD160_VIA_LOWLEVEL_OR_PSA)
     {
      OID_DESCRIPTOR( MBEDTLS_OID_DIGEST_ALG_RIPEMD160, "id-ripemd160", "RIPEMD-160" ),
         MBEDTLS_MD_RIPEMD160,

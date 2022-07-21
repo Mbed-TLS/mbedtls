@@ -2,7 +2,7 @@
 #include "mbedtls/rsa.h"
 #include "mbedtls/md.h"
 
-#include "or_psa_helpers.h"
+#include "legacy_or_psa.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

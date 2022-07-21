@@ -21,7 +21,7 @@
  */
 
 #include "hash_info.h"
-#include "or_psa_helpers.h"
+#include "legacy_or_psa.h"
 
 typedef struct
 {
@@ -32,25 +32,25 @@ typedef struct
 } hash_entry;
 
 static const hash_entry hash_table[] = {
-#if defined(MBEDTLS_OR_PSA_WANT_ALG_MD5)
+#if defined(MBEDTLS_HAS_ALG_MD5_VIA_LOWLEVEL_OR_PSA)
     { PSA_ALG_MD5, MBEDTLS_MD_MD5, 16, 64 },
 #endif
-#if defined(MBEDTLS_OR_PSA_WANT_ALG_RIPEMD160)
+#if defined(MBEDTLS_HAS_ALG_RIPEMD160_VIA_LOWLEVEL_OR_PSA)
     { PSA_ALG_RIPEMD160, MBEDTLS_MD_RIPEMD160, 20, 64 },
 #endif
-#if defined(MBEDTLS_OR_PSA_WANT_ALG_SHA_1)
+#if defined(MBEDTLS_HAS_ALG_SHA_1_VIA_LOWLEVEL_OR_PSA)
     { PSA_ALG_SHA_1, MBEDTLS_MD_SHA1, 20, 64 },
 #endif
-#if defined(MBEDTLS_OR_PSA_WANT_ALG_SHA_224)
+#if defined(MBEDTLS_HAS_ALG_SHA_224_VIA_LOWLEVEL_OR_PSA)
     { PSA_ALG_SHA_224, MBEDTLS_MD_SHA224, 28, 64 },
 #endif
-#if defined(MBEDTLS_OR_PSA_WANT_ALG_SHA_256)
+#if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_LOWLEVEL_OR_PSA)
     { PSA_ALG_SHA_256, MBEDTLS_MD_SHA256, 32, 64 },
 #endif
-#if defined(MBEDTLS_OR_PSA_WANT_ALG_SHA_384)
+#if defined(MBEDTLS_HAS_ALG_SHA_384_VIA_LOWLEVEL_OR_PSA)
     { PSA_ALG_SHA_384, MBEDTLS_MD_SHA384, 48, 128 },
 #endif
-#if defined(MBEDTLS_OR_PSA_WANT_ALG_SHA_512)
+#if defined(MBEDTLS_HAS_ALG_SHA_512_VIA_LOWLEVEL_OR_PSA)
     { PSA_ALG_SHA_512, MBEDTLS_MD_SHA512, 64, 128 },
 #endif
     { PSA_ALG_NONE, MBEDTLS_MD_NONE, 0, 0 },

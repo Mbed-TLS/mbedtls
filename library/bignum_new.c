@@ -347,8 +347,8 @@ int mbedtls_mpi_core_read_be( mbedtls_mpi_uint *X,
                               size_t buflen )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t const limbs    = CHARS_TO_LIMBS( buflen );
-    size_t const overhead = ( limbs * ciL ) - buflen;
+    size_t const limbs = CHARS_TO_LIMBS( buflen );
+    size_t overhead;
     unsigned char *Xp;
 
     MPI_VALIDATE_RET( X != NULL );
@@ -356,6 +356,8 @@ int mbedtls_mpi_core_read_be( mbedtls_mpi_uint *X,
 
     /* Ensure that target MPI has at least the necessary number of limbs */
     MBEDTLS_MPI_CHK( mpi_core_clear( X, nx, limbs ) );
+
+    overhead = ( nx * ciL ) - buflen;
 
     /* Avoid calling `memcpy` with NULL source or destination argument,
      * even if buflen is 0. */

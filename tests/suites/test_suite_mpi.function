@@ -1,6 +1,7 @@
 /* BEGIN_HEADER */
 #include "mbedtls/bignum.h"
 #include "mbedtls/entropy.h"
+#include "bignum_core.h"
 
 #if MBEDTLS_MPI_MAX_BITS > 792
 #define MPI_MAX_BITS_LARGER_THAN_792
@@ -193,6 +194,67 @@ void mbedtls_mpi_read_binary( data_t * buf, char * input_A )
 
 exit:
     mbedtls_mpi_free( &X );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mbedtls_mpi_core_io_be( data_t *input, int nb_int, int nx_64_int, int iret,
+                             int oret )
+{
+    #define BMAX 1024
+    unsigned char buf[BMAX];
+    #define XMAX BMAX / sizeof( mbedtls_mpi_uint )
+    mbedtls_mpi_uint X[XMAX];
+    size_t nx, nb;
+    int ret;
+
+    if( iret != 0 )
+        TEST_ASSERT( oret == 0 );
+
+    TEST_ASSERT( 0 <= nb_int );
+    nb = nb_int;
+    TEST_ASSERT( nb <= BMAX );
+
+    TEST_ASSERT( 0 <= nx_64_int );
+    nx = nx_64_int;
+    /* nx_64_int is the number of 64 bit limbs, if we have 32 bit limbs we need
+     * to double the number of limbs to have the same size. */
+    if( sizeof( mbedtls_mpi_uint ) == 4 )
+        nx *= 2;
+    TEST_ASSERT( nx <= XMAX );
+
+    ret =  mbedtls_mpi_core_read_be( X, nx, input->x, input->len );
+    TEST_ASSERT( ret == iret );
+
+    if( iret == 0 )
+    {
+        ret =  mbedtls_mpi_core_write_be( X, nx, buf, nb );
+        TEST_ASSERT( ret == oret );
+    }
+
+    if( ( iret == 0 ) && ( oret == 0 ) )
+    {
+        if( nb > input->len )
+        {
+            size_t leading_zeroes = nb - input->len;
+            TEST_ASSERT( memcmp( buf + nb - input->len, input->x, input->len ) == 0 );
+            for( size_t i = 0; i < leading_zeroes; i++ )
+                TEST_ASSERT( buf[i] == 0 );
+        }
+        else
+        {
+            size_t leading_zeroes = input->len - nb;
+            TEST_ASSERT( memcmp( input->x + input->len - nb, buf, nb ) == 0 );
+            for( size_t i = 0; i < leading_zeroes; i++ )
+                TEST_ASSERT( input->x[i] == 0 );
+        }
+    }
+
+exit:
+    ;
+
+    #undef BMAX
+    #undef XMAX
 }
 /* END_CASE */
 

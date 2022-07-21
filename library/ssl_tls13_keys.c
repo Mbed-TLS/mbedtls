@@ -1237,7 +1237,7 @@ int mbedtls_ssl_tls13_key_schedule_stage_handshake( mbedtls_ssl_context *ssl )
      * client_handshake_traffic_secret and server_handshake_traffic_secret
      * are derived in the handshake secret derivation stage.
      */
-    if( mbedtls_ssl_tls13_ephemeral_enabled( ssl ) )
+    if( mbedtls_ssl_tls13_key_exchange_mode_with_ephemeral( ssl ) )
     {
         if( mbedtls_ssl_tls13_named_group_is_ecdhe( handshake->offered_group_id ) )
         {

@@ -43,7 +43,7 @@
 /*
  * Count leading zero bits in a given integer
  */
-static size_t mpi_clz( const mbedtls_mpi_uint x )
+size_t mbedtls_mpi_core_clz( const mbedtls_mpi_uint x )
 {
     size_t j;
     mbedtls_mpi_uint mask = (mbedtls_mpi_uint) 1 << (biL - 1);
@@ -61,7 +61,7 @@ static size_t mpi_clz( const mbedtls_mpi_uint x )
 /*
  * Return the number of bits
  */
-static size_t mpi_bitlen( const mbedtls_mpi_uint *X, size_t nx )
+size_t mbedtls_mpi_core_bitlen( const mbedtls_mpi_uint *X, size_t nx )
 {
     size_t i, j;
 
@@ -72,7 +72,7 @@ static size_t mpi_bitlen( const mbedtls_mpi_uint *X, size_t nx )
         if( X[i] != 0 )
             break;
 
-    j = biL - mpi_clz( X[i] );
+    j = biL - mbedtls_mpi_core_clz( X[i] );
 
     return( ( i * biL ) + j );
 }
@@ -150,7 +150,7 @@ int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,
 
     m->p = X;
     m->n = nx;
-    m->plen = mpi_bitlen( X, nx );
+    m->plen = mbedtls_mpi_core_bitlen( X, nx );
 
     switch( ext_rep )
     {
@@ -264,8 +264,8 @@ static mbedtls_mpi_uint mpi_bigendian_to_host( mbedtls_mpi_uint x )
     return( mpi_bigendian_to_host_c( x ) );
 }
 
-static void mpi_core_bigendian_to_host( mbedtls_mpi_uint * const X,
-                                        size_t limbs )
+void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint * const X,
+                                         size_t limbs )
 {
     mbedtls_mpi_uint *cur_limb_left;
     mbedtls_mpi_uint *cur_limb_right;
@@ -350,7 +350,7 @@ int mbedtls_mpi_core_read_be( mbedtls_mpi_uint *X,
         Xp = (unsigned char*) X;
         memcpy( Xp + overhead, buf, buflen );
 
-        mpi_core_bigendian_to_host( X, nx );
+        mbedtls_mpi_core_bigendian_to_host( X, nx );
     }
 
 cleanup:

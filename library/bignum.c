@@ -338,40 +338,11 @@ size_t mbedtls_mpi_lsb( const mbedtls_mpi *X )
 }
 
 /*
- * Count leading zero bits in a given integer
- */
-static size_t mbedtls_clz( const mbedtls_mpi_uint x )
-{
-    size_t j;
-    mbedtls_mpi_uint mask = (mbedtls_mpi_uint) 1 << (biL - 1);
-
-    for( j = 0; j < biL; j++ )
-    {
-        if( x & mask ) break;
-
-        mask >>= 1;
-    }
-
-    return j;
-}
-
-/*
  * Return the number of bits
  */
 size_t mbedtls_mpi_bitlen( const mbedtls_mpi *X )
 {
-    size_t i, j;
-
-    if( X->n == 0 )
-        return( 0 );
-
-    for( i = X->n - 1; i > 0; i-- )
-        if( X->p[i] != 0 )
-            break;
-
-    j = biL - mbedtls_clz( X->p[i] );
-
-    return( ( i * biL ) + j );
+    return mbedtls_mpi_core_bitlen( X->p, X->n );
 }
 
 /*
@@ -678,97 +649,6 @@ cleanup:
 }
 #endif /* MBEDTLS_FS_IO */
 
-
-/* Convert a big-endian byte array aligned to the size of mbedtls_mpi_uint
- * into the storage form used by mbedtls_mpi. */
-
-static mbedtls_mpi_uint mpi_uint_bigendian_to_host_c( mbedtls_mpi_uint x )
-{
-    uint8_t i;
-    unsigned char *x_ptr;
-    mbedtls_mpi_uint tmp = 0;
-
-    for( i = 0, x_ptr = (unsigned char*) &x; i < ciL; i++, x_ptr++ )
-    {
-        tmp <<= CHAR_BIT;
-        tmp |= (mbedtls_mpi_uint) *x_ptr;
-    }
-
-    return( tmp );
-}
-
-static mbedtls_mpi_uint mpi_uint_bigendian_to_host( mbedtls_mpi_uint x )
-{
-#if defined(__BYTE_ORDER__)
-
-/* Nothing to do on bigendian systems. */
-#if ( __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__ )
-    return( x );
-#endif /* __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__ */
-
-#if ( __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__ )
-
-/* For GCC and Clang, have builtins for byte swapping. */
-#if defined(__GNUC__) && defined(__GNUC_PREREQ)
-#if __GNUC_PREREQ(4,3)
-#define have_bswap
-#endif
-#endif
-
-#if defined(__clang__) && defined(__has_builtin)
-#if __has_builtin(__builtin_bswap32)  &&                 \
-    __has_builtin(__builtin_bswap64)
-#define have_bswap
-#endif
-#endif
-
-#if defined(have_bswap)
-    /* The compiler is hopefully able to statically evaluate this! */
-    switch( sizeof(mbedtls_mpi_uint) )
-    {
-        case 4:
-            return( __builtin_bswap32(x) );
-        case 8:
-            return( __builtin_bswap64(x) );
-    }
-#endif
-#endif /* __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__ */
-#endif /* __BYTE_ORDER__ */
-
-    /* Fall back to C-based reordering if we don't know the byte order
-     * or we couldn't use a compiler-specific builtin. */
-    return( mpi_uint_bigendian_to_host_c( x ) );
-}
-
-static void mpi_bigendian_to_host( mbedtls_mpi_uint * const p, size_t limbs )
-{
-    mbedtls_mpi_uint *cur_limb_left;
-    mbedtls_mpi_uint *cur_limb_right;
-    if( limbs == 0 )
-        return;
-
-    /*
-     * Traverse limbs and
-     * - adapt byte-order in each limb
-     * - swap the limbs themselves.
-     * For that, simultaneously traverse the limbs from left to right
-     * and from right to left, as long as the left index is not bigger
-     * than the right index (it's not a problem if limbs is odd and the
-     * indices coincide in the last iteration).
-     */
-    for( cur_limb_left = p, cur_limb_right = p + ( limbs - 1 );
-         cur_limb_left <= cur_limb_right;
-         cur_limb_left++, cur_limb_right-- )
-    {
-        mbedtls_mpi_uint tmp;
-        /* Note that if cur_limb_left == cur_limb_right,
-         * this code effectively swaps the bytes only once. */
-        tmp             = mpi_uint_bigendian_to_host( *cur_limb_left  );
-        *cur_limb_left  = mpi_uint_bigendian_to_host( *cur_limb_right );
-        *cur_limb_right = tmp;
-    }
-}
-
 /*
  * Import X from unsigned binary data, little endian
  *
@@ -824,7 +704,7 @@ int mbedtls_mpi_read_binary( mbedtls_mpi *X, const unsigned char *buf, size_t bu
         Xp = (unsigned char*) X->p;
         memcpy( Xp + overhead, buf, buflen );
 
-        mpi_bigendian_to_host( X->p, limbs );
+        mbedtls_mpi_core_bigendian_to_host( X->p, limbs );
     }
 
 cleanup:
@@ -1530,7 +1410,7 @@ static mbedtls_mpi_uint mbedtls_int_div_int( mbedtls_mpi_uint u1,
     /*
      * Normalize the divisor, d, and dividend, u0, u1
      */
-    s = mbedtls_clz( d );
+    s = mbedtls_mpi_core_clz( d );
     d = d << s;
 
     u1 = u1 << s;
@@ -2319,7 +2199,7 @@ static int mpi_fill_random_internal(
     memset( X->p, 0, overhead );
     memset( (unsigned char *) X->p + limbs * ciL, 0, ( X->n - limbs ) * ciL );
     MBEDTLS_MPI_CHK( f_rng( p_rng, (unsigned char *) X->p + overhead, n_bytes ) );
-    mpi_bigendian_to_host( X->p, limbs );
+    mbedtls_mpi_core_bigendian_to_host( X->p, limbs );
 
 cleanup:
     return( ret );

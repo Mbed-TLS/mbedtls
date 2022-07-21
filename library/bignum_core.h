@@ -42,6 +42,13 @@
 #define BITS_TO_LIMBS(i)  ( (i) / biL + ( (i) % biL != 0 ) )
 #define CHARS_TO_LIMBS(i) ( (i) / ciL + ( (i) % ciL != 0 ) )
 
+size_t mbedtls_mpi_core_clz( const mbedtls_mpi_uint x );
+
+size_t mbedtls_mpi_core_bitlen( const mbedtls_mpi_uint *X, size_t nx );
+
+void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint * const X,
+                                         size_t limbs );
+
 int mbedtls_mpi_core_read_le( mbedtls_mpi_uint *X,
                               size_t nx,
                               const unsigned char *buf,

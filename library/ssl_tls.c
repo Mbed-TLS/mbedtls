@@ -1915,11 +1915,11 @@ static size_t ssl_tls13_session_save( const mbedtls_ssl_session *session,
                                       size_t buf_len )
 {
     unsigned char *p = buf;
-    size_t needed =   1                 /* endpoint */
-                    + 2                 /* ciphersuite */
-                    + 4                 /* ticket_age_add */
-                    + 2                 /* key_len */
-                    + session->key_len; /* key */
+    size_t needed =   1                             /* endpoint */
+                    + 2                             /* ciphersuite */
+                    + 4                             /* ticket_age_add */
+                    + 2                             /* resumption_key length */
+                    + session->resumption_key_len;  /* resumption_key */
 
 #if defined(MBEDTLS_HAVE_TIME)
     needed += 8; /* start_time or ticket_received */
@@ -1943,10 +1943,10 @@ static size_t ssl_tls13_session_save( const mbedtls_ssl_session *session,
     p[7] = session->ticket_flags;
 
     /* save resumption_key */
-    p[8] = session->key_len;
+    p[8] = session->resumption_key_len;
     p += 9;
-    memcpy( p, session->key, session->key_len );
-    p += session->key_len;
+    memcpy( p, session->resumption_key, session->resumption_key_len );
+    p += session->resumption_key_len;
 
 #if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
     if( session->endpoint == MBEDTLS_SSL_IS_SERVER )
@@ -1994,16 +1994,16 @@ static int ssl_tls13_session_load( mbedtls_ssl_session *session,
     session->ticket_flags = p[7];
 
     /* load resumption_key */
-    session->key_len = p[8];
+    session->resumption_key_len = p[8];
     p += 9;
 
-    if( end - p < session->key_len )
+    if( end - p < session->resumption_key_len )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    if( sizeof( session->key ) < session->key_len)
+    if( sizeof( session->resumption_key ) < session->resumption_key_len )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-    memcpy( session->key, p, session->key_len );
-    p += session->key_len;
+    memcpy( session->resumption_key, p, session->resumption_key_len );
+    p += session->resumption_key_len;
 
 #if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_SRV_C)
     if( session->endpoint == MBEDTLS_SSL_IS_SERVER )

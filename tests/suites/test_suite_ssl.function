@@ -1818,8 +1818,8 @@ static int ssl_tls13_populate_session( mbedtls_ssl_session *session,
     session->ticket_age_add = 0x87654321;
     session->ticket_flags = 0x7;
 
-    session->key_len = 32;
-    memset( session->key, 0x99, sizeof( session->key ) );
+    session->resumption_key_len = 32;
+    memset( session->resumption_key, 0x99, sizeof( session->resumption_key ) );
 
 #if defined(MBEDTLS_HAVE_TIME)
     if( session->endpoint == MBEDTLS_SSL_IS_SERVER )
@@ -4688,7 +4688,7 @@ void ssl_serialize_session_save_load( int ticket_len, char *crt_file,
     ((void) endpoint_type);
     ((void) tls_version);
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    if(tls_version == MBEDTLS_SSL_VERSION_TLS1_3)
+    if( tls_version == MBEDTLS_SSL_VERSION_TLS1_3 )
     {
         TEST_ASSERT( ssl_tls13_populate_session(
                          &original, 0, endpoint_type ) == 0 );
@@ -4730,8 +4730,8 @@ void ssl_serialize_session_save_load( int ticket_len, char *crt_file,
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 #if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
-    TEST_ASSERT( ( original.peer_cert == NULL ) ==
-                 ( restored.peer_cert == NULL ) );
+        TEST_ASSERT( ( original.peer_cert == NULL ) ==
+                     ( restored.peer_cert == NULL ) );
         if( original.peer_cert != NULL )
         {
             TEST_ASSERT( original.peer_cert->raw.len ==

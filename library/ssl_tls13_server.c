@@ -1883,7 +1883,7 @@ static int ssl_tls13_prepare_new_session_ticket( mbedtls_ssl_context *ssl,
     psa_hash_alg = mbedtls_psa_translate_md( ciphersuite_info->mac );
     hash_length = PSA_HASH_LENGTH( psa_hash_alg );
     if( hash_length == -1 ||
-        hash_length > (int)sizeof( session->resumption_key ) )
+        (size_t)hash_length > sizeof( session->resumption_key ) )
     {
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }

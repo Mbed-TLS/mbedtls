@@ -588,7 +588,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     /* Store minor version for later use with ticket serialization. */
     ssl->session_negotiate->tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
-#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+#endif
 
     /* ...
      * Random random;
@@ -1814,11 +1814,10 @@ static int ssl_tls13_handshake_wrapup( mbedtls_ssl_context *ssl )
     mbedtls_ssl_tls13_handshake_wrapup( ssl );
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    mbedtls_ssl_handshake_set_state( ssl,
-                                     MBEDTLS_SSL_NEW_SESSION_TICKET );
-#else /* MBEDTLS_SSL_SESSION_TICKETS */
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_NEW_SESSION_TICKET );
+#else
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_HANDSHAKE_OVER );
-#endif /* !MBEDTLS_SSL_SESSION_TICKETS */
+#endif
     return( 0 );
 }
 
@@ -1860,14 +1859,14 @@ static int ssl_tls13_prepare_new_session_ticket( mbedtls_ssl_context *ssl,
 
     /* Generate ticket_age_add */
     if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng,
-                                  (unsigned char*) &session->ticket_age_add,
+                                  (unsigned char *) &session->ticket_age_add,
                                   sizeof( session->ticket_age_add ) ) != 0 ) )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "generate_ticket_age_add", ret );
         return( ret );
     }
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "ticket_age_add: %u",
-                                ( unsigned int )session->ticket_age_add ) );
+                                (unsigned int)session->ticket_age_add ) );
 
     /* Generate ticket_nonce */
     ret = ssl->conf->f_rng( ssl->conf->p_rng, ticket_nonce, ticket_nonce_size );
@@ -1883,8 +1882,12 @@ static int ssl_tls13_prepare_new_session_ticket( mbedtls_ssl_context *ssl,
                 (mbedtls_ssl_ciphersuite_t *) ssl->handshake->ciphersuite_info;
     psa_hash_alg = mbedtls_psa_translate_md( ciphersuite_info->mac );
     hash_length = PSA_HASH_LENGTH( psa_hash_alg );
-    if( hash_length == -1 )
+    if( hash_length == -1 ||
+        hash_length > (int)sizeof( session->resumption_key ) )
+    {
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+
     /* In this code the psk key length equals the length of the hash */
     session->resumption_key_len = hash_length;
     session->ciphersuite = ciphersuite_info->id;
@@ -2059,17 +2062,16 @@ static int ssl_tls13_write_new_session_ticket( mbedtls_ssl_context *ssl )
                                   ssl, buf, buf + buf_len, &msg_len,
                                   ticket_nonce, sizeof( ticket_nonce ) ) );
 
-        mbedtls_ssl_handshake_set_state( ssl,
-                                         MBEDTLS_SSL_NEW_SESSION_TICKET_FLUSH );
-
         MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_finish_handshake_msg(
                                   ssl, buf_len, msg_len ) );
+
+        mbedtls_ssl_handshake_set_state( ssl,
+                                         MBEDTLS_SSL_NEW_SESSION_TICKET_FLUSH );
     }
     else
     {
         mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_HANDSHAKE_OVER );
     }
-
 
 cleanup:
 

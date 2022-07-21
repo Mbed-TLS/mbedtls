@@ -2853,7 +2853,7 @@ static int ssl_session_save( const mbedtls_ssl_session *session,
     }
 
     /* Forward to version-specific serialization routine. */
-    remaining_len = used <= buf_len ? buf_len - used : 0;
+    remaining_len = (buf_len >= used) ? buf_len - used : 0;
     switch( session->tls_version )
     {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)

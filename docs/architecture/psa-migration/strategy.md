@@ -256,6 +256,12 @@ configuration", to allow working around internal crypto dependencies when
 working on other parts such as X.509 and TLS - for example, a configuration
 without RSA PKCS#1 v2.1 still allows reasonable use of X.509 and TLS.
 
+Note: this is a conceptual division that will sometimes translate to how the
+work is divided into PRs, sometimes not. For example, in situations where it's
+not possible to achieve good test coverage at the end of step 1 or step 2, it
+is preferable to group with the next step(s) in the same PR until good test
+coverage can be reached.
+
 **Status as of Mbed TLS 3.2:**
 
 - Step 0 is achieved for most algorithms, with only a few gaps remaining.
@@ -354,6 +360,31 @@ the new macros in the hope of avoiding confusion.
 
 Executing step 3 will mostly consist of using the right dependency macros in
 the right places (once the previous steps are done).
+
+**Note on testing**
+
+Since supporting driver-only builds is not about adding features, but also
+supporting existing features in new types of builds, the existing tests should
+be enough to cover everything, as long as they're run in the newly supported
+configurations. An all.sh component needs to be present each main type of
+configutation we support (for example, with this (family of) algorithm
+driver-only, with or without `USE_PSA`).
+
+There is however a risk, especially in step 3 where we change how dependencies
+are expressed (sometimes in bulk), to get things wrong in a way that would
+result in more tests being skipped, which is easy to miss. Care must be
+taken to ensure this does not happen. The following criteria can be used:
+
+- the sets of tests skipped in the default config and the full config must be
+  the same before and after the PR that implements step 3;
+- the set of tests skipped in the driver-only build is the same as in an
+  equivalent software-based configuration, or the difference is small enough,
+justified, and a github issue is created to track it.
+
+Note that the favourable case is when the number of tests skipped is 0 in the
+driver-only build. In other cases, analysis of the outcome files is needed,
+see the example script `outcome-analysis.sh` in the same directory.
+
 
 Migrating away from the legacy API
 ==================================

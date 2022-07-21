@@ -327,30 +327,33 @@ will check for `PSA_WANT_ALG_SHA_256`, while legacy-based code that wants to
 use SHA-256 will check for `MBEDTLS_SHA256_C` if using the `mbedtls_sha256`
 API, or for `MBEDTLS_MD_C && MBEDTLS_SHA256_C` if using the `mbedtls_md` API.
 
-It is suggested to introduce a new set of macros, `MBEDTLS_USE_PSA_WANT_xxx`,
-for use in the parts of the code that use either API depending of whether
-`MBEDTLS_USE_PSA_CRYPTO` is enabled (that is, PK, X.509 and TLS 1.2). This is
-done for hash algorithms, as an example, by PR 6065. These macros can be used
-in library code (most useful when algorithm availability is checked far from the
-code that will be using it, such as in TLS negotiation) as well as test
-dependencies.
+Code that obeys `MBEDTLS_USE_PSA_CRYPTO` will want to use one of the two
+dependencies above depending on whether `MBEDTLS_USE_PSA_CRYPTO` is defined:
+if it is, the code want the algorithm available in PSA, otherwise, it wants it
+available via the legacy API(s) is it using (MD and/or low-level).
 
-It should also be noted that there is a fourth case: utility functions /
-information tables that are not tied to a particular crypto API, and may be
-used by functions that are either purely PSA-based, purely legacy-based, or
-hybrid governed by `MBEDTLS_USE_PSA_CRYPTO` should use `MBEDTLS_xxx ||
-PSA_WANT_xxx` - for example, `oid_md_alg` from `oid.c`, used by both X.509 and
-RSA. A new family of macros `MBEDTLS_OR_PSA_WANT_xxx` is defined for this.
+The strategy for steps 1 and 2 above will introduce new situations: code that
+currently compute hashes using MD (resp. a low-level hash module) will gain
+the ability to "fall back" to using PSA if the legacy dependency isn't
+available. Data related to a certain hash (OID, sizes, translations) should
+only be included in the build if it is possible to use that hash in some way.
 
-To sum up, there are 4 categories:
+In order to cater to these new needs, new families of macros are introduced in
+`library/legacy_or_psa.h`, see its documentation for details.
 
-- legacy-based code depends on `MBEDTLS_xxx`;
-- PSA-based code depends on `PSA_WANT_xxx`;
-- hybrid code governed by `MBEDTLS_USE_PSA_CRYPTO` can use
-  `MBEDTLS_USE_PSA_WANT_xxx` to express dependencies in common parts;
-- data and crypto-agnostic helpers that can be used by code from at least two
-  of the above categories should depend on `MBEDTLS_OR_PSA_WANT_xxx`.
+It should be noted that there are currently:
+- too many different ways of computing a hash (low-level, MD, PSA);
+- too many different ways to configure the library that influence which of
+  these ways is available and will be used (`MBEDTLS_USE_PSA_CRYPTO`,
+`MBEDTLS_PSA_CRYPTO_CONFIG`, `mbedtls_config.h` + `psa/crypto_config.h`).
 
+As a result, we need more families of dependency macros than we'd like to.
+This is a temporary situation until we move to a place where everthing is
+based on PSA Crypto. In the meantime, long and explicit names where chosen for
+the new macros in the hope of avoiding confusion.
+
+Executing step 3 will mostly consist of using the right dependency macros in
+the right places (once the previous steps are done).
 
 Migrating away from the legacy API
 ==================================

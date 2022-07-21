@@ -443,6 +443,7 @@ static void ssl_calc_finished_tls_sha384( mbedtls_ssl_context *, unsigned char *
 static size_t ssl_session_save_tls12( const mbedtls_ssl_session *session,
                                       unsigned char *buf,
                                       size_t buf_len );
+
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_session_load_tls12( mbedtls_ssl_session *session,
                                    const unsigned char *buf,
@@ -1885,6 +1886,19 @@ mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
 }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+static size_t ssl_session_save_tls13( const mbedtls_ssl_session *session,
+                                      unsigned char *buf,
+                                      size_t buf_len )
+{
+    ((void) session);
+    ((void) buf);
+    ((void) buf_len);
+    return( 0 );
+}
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+
 psa_status_t mbedtls_ssl_cipher_to_psa( mbedtls_cipher_type_t mbedtls_cipher_type,
                                     size_t taglen,
                                     psa_algorithm_t *alg,
@@ -2811,6 +2825,7 @@ static int ssl_session_save( const mbedtls_ssl_session *session,
 {
     unsigned char *p = buf;
     size_t used = 0;
+    size_t remaining_len;
 
     if( !omit_header )
     {
@@ -2838,16 +2853,24 @@ static int ssl_session_save( const mbedtls_ssl_session *session,
     }
 
     /* Forward to version-specific serialization routine. */
+    remaining_len = (buf_len >= used) ? buf_len - used : 0;
     switch( session->tls_version )
     {
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     case MBEDTLS_SSL_VERSION_TLS1_2:
     {
-        size_t remaining_len = used <= buf_len ? buf_len - used : 0;
         used += ssl_session_save_tls12( session, p, remaining_len );
         break;
     }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    case MBEDTLS_SSL_VERSION_TLS1_3:
+    {
+        used += ssl_session_save_tls13( session, p, remaining_len );
+        break;
+    }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
     default:
         return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );

@@ -40,22 +40,6 @@
 #define mbedtls_free       free
 #endif
 
-#define MPI_VALIDATE_RET( cond )                                       \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_MPI_BAD_INPUT_DATA )
-#define MPI_VALIDATE( cond )                                           \
-    MBEDTLS_INTERNAL_VALIDATE( cond )
-
-#define ciL    (sizeof(mbedtls_mpi_uint))   /* chars in limb  */
-#define biL    (ciL << 3)                   /* bits  in limb  */
-#define biH    (ciL << 2)                   /* half limb size */
-
-/*
- * Convert between bits/chars and number of limbs
- * Divide first in order to avoid potential overflows
- */
-#define BITS_TO_LIMBS(i)  ( (i) / biL + ( (i) % biL != 0 ) )
-#define CHARS_TO_LIMBS(i) ( (i) / ciL + ( (i) % ciL != 0 ) )
-
 /*
  * Count leading zero bits in a given integer
  */

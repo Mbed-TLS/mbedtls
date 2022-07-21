@@ -783,26 +783,29 @@ int mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext(
 
     identities_len = 6 + psk_identity_len;
     l_binders_len = 1 + hash_len;
-    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 4 + 2 + identities_len + 2 + l_binders_len );
 
     MBEDTLS_SSL_DEBUG_MSG( 3,
                  ( "client hello, adding pre_shared_key extension, "
                    "omitting PSK binder list" ) );
 
     /* Extension header */
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 8 );
     MBEDTLS_PUT_UINT16_BE( MBEDTLS_TLS_EXT_PRE_SHARED_KEY, p, 0 );
     MBEDTLS_PUT_UINT16_BE( 2 + identities_len + 2 + l_binders_len , p, 2 );
 
     MBEDTLS_PUT_UINT16_BE( identities_len, p, 4 );
     MBEDTLS_PUT_UINT16_BE( psk_identity_len, p, 6 );
     p += 8;
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, psk_identity_len );
     memcpy( p, psk_identity, psk_identity_len );
     p += psk_identity_len;
 
     /* add obfuscated ticket age */
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 4 );
     MBEDTLS_PUT_UINT32_BE( obfuscated_ticket_age, p, 0 );
     p += 4;
 
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 2 + l_binders_len );
     *out_len = ( p - buf ) + l_binders_len + 2;
     *binders_len = l_binders_len + 2;
 

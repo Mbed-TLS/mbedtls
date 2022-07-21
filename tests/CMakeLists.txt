@@ -40,8 +40,9 @@ execute_process(
         psa_generated_data_files)
 
 # Derive generated file paths in the build directory
+set(base_generated_data_files ${bignum_generated_data_files} ${psa_generated_data_files})
 set(generated_data_files "")
-foreach(file ${bignum_generated_data_files} ${psa_generated_data_files})
+foreach(file ${base_generated_data_files})
     list(APPEND generated_data_files ${CMAKE_CURRENT_BINARY_DIR}/${file})
 endforeach()
 

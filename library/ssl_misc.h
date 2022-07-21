@@ -2448,7 +2448,7 @@ int mbedtls_ssl_get_psk_to_offer(
  *                          the extension.
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
-int mbedtls_ssl_tls13_write_pre_shared_key_ext_without_binders(
+int mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext(
     mbedtls_ssl_context *ssl,
     unsigned char *buf, unsigned char *end,
     size_t *out_len, size_t *binders_len );

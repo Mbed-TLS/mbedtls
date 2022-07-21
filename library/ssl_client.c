@@ -650,7 +650,7 @@ static int ssl_write_client_hello_body( mbedtls_ssl_context *ssl,
      */
     if( propose_tls13 && mbedtls_ssl_conf_tls13_some_psk_enabled( ssl ) )
     {
-        ret = mbedtls_ssl_tls13_write_pre_shared_key_ext_without_binders(
+        ret = mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext(
                   ssl, p, end, &output_len, binders_len );
         if( ret != 0 )
             return( ret );

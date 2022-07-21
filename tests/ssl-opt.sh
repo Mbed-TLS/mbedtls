@@ -12027,6 +12027,8 @@ run_test    "TLS 1.3, default suite, PSK - gnutls" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
+            -s "Parsing extension 'PSK Key Exchange Modes/45'" \
+            -s "Parsing extension 'Pre Shared Key/41'" \
             -c "<= write client hello"
 
 for i in opt-testcases/*.sh

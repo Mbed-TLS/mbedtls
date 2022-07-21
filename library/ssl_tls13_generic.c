@@ -1509,7 +1509,6 @@ int mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
 /* Check if we have any PSK to offer, returns 0 if PSK is available.
  * Assign the psk and ticket if pointers are present.
  */
-MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_get_psk_to_offer(
         const mbedtls_ssl_context *ssl,
         int *psk_type,

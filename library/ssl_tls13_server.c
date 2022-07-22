@@ -356,9 +356,6 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
     if( matched_identity == -1 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "No matched pre shared key found" ) );
-        MBEDTLS_SSL_PEND_FATAL_ALERT(
-            MBEDTLS_SSL_ALERT_MSG_UNKNOWN_PSK_IDENTITY,
-            MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY );
         return( MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY );
     }
 
@@ -1317,15 +1314,11 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
         p += extension_data_len;
     }
 
-
 #if defined(MBEDTLS_DEBUG_C)
     /* List all the extensions we have received */
     ssl_tls13_debug_print_client_hello_exts( ssl );
 #endif /* MBEDTLS_DEBUG_C */
 
-    ret = ssl_tls13_determine_key_exchange_mode( ssl );
-    if( ret < 0 )
-        return( ret );
     mbedtls_ssl_add_hs_hdr_to_checksum( ssl,
                                         MBEDTLS_SSL_HS_CLIENT_HELLO,
                                         p - buf );
@@ -1336,14 +1329,18 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
      * - The content up to but excluding the PSK extension, if present.
      */
     /* If we've settled on a PSK-based exchange, parse PSK identity ext */
-    if( mbedtls_ssl_tls13_key_exchange_mode_with_psk( ssl ) )
+    if( mbedtls_ssl_tls13_some_psk_enabled( ssl ) &&
+        ( ssl->handshake->extensions_present & MBEDTLS_SSL_EXT_PRE_SHARED_KEY ) )
     {
         ssl->handshake->update_checksum( ssl, buf,
                                          pre_shared_key_ext_start - buf );
         ret = ssl_tls13_parse_pre_shared_key_ext( ssl,
                                                   pre_shared_key_ext_start,
                                                   pre_shared_key_ext_end );
-        if( ret != 0 )
+        if( ret == MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY)
+        {
+            ssl->handshake->extensions_present &= ~MBEDTLS_SSL_EXT_PRE_SHARED_KEY;
+        }else if( ret != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_tls13_parse_pre_shared_key_ext" ),
                                    ret );
@@ -1355,6 +1352,10 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     {
         ssl->handshake->update_checksum( ssl, buf, p - buf );
     }
+
+    ret = ssl_tls13_determine_key_exchange_mode( ssl );
+    if( ret < 0 )
+        return( ret );
 
     return( hrr_required ? SSL_CLIENT_HELLO_HRR_REQUIRED : SSL_CLIENT_HELLO_OK );
 }

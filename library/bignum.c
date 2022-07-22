@@ -659,14 +659,12 @@ int mbedtls_mpi_read_binary_le( mbedtls_mpi *X,
                                 const unsigned char *buf, size_t buflen )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t i;
     size_t const limbs = CHARS_TO_LIMBS( buflen );
 
     /* Ensure that target MPI has exactly the necessary number of limbs */
     MBEDTLS_MPI_CHK( mbedtls_mpi_resize_clear( X, limbs ) );
 
-    for( i = 0; i < buflen; i++ )
-        X->p[i / ciL] |= ((mbedtls_mpi_uint) buf[i]) << ((i % ciL) << 3);
+    MBEDTLS_MPI_CHK( mbedtls_mpi_core_read_le( X->p, X->n, buf, buflen ) );
 
 cleanup:
 
@@ -687,9 +685,7 @@ cleanup:
 int mbedtls_mpi_read_binary( mbedtls_mpi *X, const unsigned char *buf, size_t buflen )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t const limbs    = CHARS_TO_LIMBS( buflen );
-    size_t const overhead = ( limbs * ciL ) - buflen;
-    unsigned char *Xp;
+    size_t const limbs = CHARS_TO_LIMBS( buflen );
 
     MPI_VALIDATE_RET( X != NULL );
     MPI_VALIDATE_RET( buflen == 0 || buf != NULL );
@@ -697,15 +693,7 @@ int mbedtls_mpi_read_binary( mbedtls_mpi *X, const unsigned char *buf, size_t bu
     /* Ensure that target MPI has exactly the necessary number of limbs */
     MBEDTLS_MPI_CHK( mbedtls_mpi_resize_clear( X, limbs ) );
 
-    /* Avoid calling `memcpy` with NULL source or destination argument,
-     * even if buflen is 0. */
-    if( buflen != 0 )
-    {
-        Xp = (unsigned char*) X->p;
-        memcpy( Xp + overhead, buf, buflen );
-
-        mbedtls_mpi_core_bigendian_to_host( X->p, limbs );
-    }
+    MBEDTLS_MPI_CHK( mbedtls_mpi_core_read_be( X->p, X->n, buf, buflen ) );
 
 cleanup:
 
@@ -723,37 +711,7 @@ cleanup:
 int mbedtls_mpi_write_binary_le( const mbedtls_mpi *X,
                                  unsigned char *buf, size_t buflen )
 {
-    size_t stored_bytes = X->n * ciL;
-    size_t bytes_to_copy;
-    size_t i;
-
-    if( stored_bytes < buflen )
-    {
-        bytes_to_copy = stored_bytes;
-    }
-    else
-    {
-        bytes_to_copy = buflen;
-
-        /* The output buffer is smaller than the allocated size of X.
-         * However X may fit if its leading bytes are zero. */
-        for( i = bytes_to_copy; i < stored_bytes; i++ )
-        {
-            if( GET_BYTE( X, i ) != 0 )
-                return( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL );
-        }
-    }
-
-    for( i = 0; i < bytes_to_copy; i++ )
-        buf[i] = GET_BYTE( X, i );
-
-    if( stored_bytes < buflen )
-    {
-        /* Write trailing 0 bytes */
-        memset( buf + stored_bytes, 0, buflen - stored_bytes );
-    }
-
-    return( 0 );
+    return( mbedtls_mpi_core_write_le( X->p, X->n, buf, buflen) );
 }
 
 /*
@@ -762,44 +720,7 @@ int mbedtls_mpi_write_binary_le( const mbedtls_mpi *X,
 int mbedtls_mpi_write_binary( const mbedtls_mpi *X,
                               unsigned char *buf, size_t buflen )
 {
-    size_t stored_bytes;
-    size_t bytes_to_copy;
-    unsigned char *p;
-    size_t i;
-
-    MPI_VALIDATE_RET( X != NULL );
-    MPI_VALIDATE_RET( buflen == 0 || buf != NULL );
-
-    stored_bytes = X->n * ciL;
-
-    if( stored_bytes < buflen )
-    {
-        /* There is enough space in the output buffer. Write initial
-         * null bytes and record the position at which to start
-         * writing the significant bytes. In this case, the execution
-         * trace of this function does not depend on the value of the
-         * number. */
-        bytes_to_copy = stored_bytes;
-        p = buf + buflen - stored_bytes;
-        memset( buf, 0, buflen - stored_bytes );
-    }
-    else
-    {
-        /* The output buffer is smaller than the allocated size of X.
-         * However X may fit if its leading bytes are zero. */
-        bytes_to_copy = buflen;
-        p = buf;
-        for( i = bytes_to_copy; i < stored_bytes; i++ )
-        {
-            if( GET_BYTE( X, i ) != 0 )
-                return( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL );
-        }
-    }
-
-    for( i = 0; i < bytes_to_copy; i++ )
-        p[bytes_to_copy - i - 1] = GET_BYTE( X, i );
-
-    return( 0 );
+    return( mbedtls_mpi_core_write_be( X->p, X->n, buf, buflen ) );
 }
 
 /*

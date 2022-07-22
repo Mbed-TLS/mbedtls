@@ -409,6 +409,63 @@ mbedtls_mpi_cmp_mpi:"-1230000000000000000":"":-1
 Test mbedtls_mpi_cmp_mpi: large negative < 0 (1 limb)
 mbedtls_mpi_cmp_mpi:"-1230000000000000000":"0":-1
 
+Base test mbedtls_mpi_core_lt_ct #1
+mbedtls_mpi_core_lt_ct:"02B5":"02B5":0
+
+Base test mbedtls_mpi_core_lt_ct #2
+mbedtls_mpi_core_lt_ct:"02B5":"02B4":0
+
+Base test mbedtls_mpi_core_lt_ct #3
+mbedtls_mpi_core_lt_ct:"02B5":"02B6":1
+
+Base test mbedtls_mpi_core_lt_ct (length=0)
+mbedtls_mpi_core_lt_ct:"":"":0
+
+Base test mbedtls_mpi_core_lt_ct (corner case - 64 bit) #1
+mbedtls_mpi_core_lt_ct:"7FFFFFFFFFFFFFFF":"FF":0
+
+Base test mbedtls_mpi_core_lt_ct (corner case - 64 bit) #2
+mbedtls_mpi_core_lt_ct:"8000000000000000":"7FFFFFFFFFFFFFFF":0
+
+Base test mbedtls_mpi_core_lt_ct (corner case - 64 bit) #3
+mbedtls_mpi_core_lt_ct:"8000000000000000":"01":0
+
+Base test mbedtls_mpi_core_lt_ct (corner case - 64 bit) #4
+mbedtls_mpi_core_lt_ct:"8000000000000000":"00":0
+
+Base test mbedtls_mpi_core_lt_ct (corner case - 64 bit) #5
+mbedtls_mpi_core_lt_ct:"FFFFFFFFFFFFFFFF":"FF":0
+
+Base test mbedtls_mpi_core_lt_ct (corner case - 32 bit) #1
+mbedtls_mpi_core_lt_ct:"7FFFFFFF":"FF":0
+
+Base test mbedtls_mpi_core_lt_ct (corner case - 32 bit) #2
+mbedtls_mpi_core_lt_ct:"80000000":"7FFFFFFF":0
+
+Base test mbedtls_mpi_core_lt_ct (corner case - 32 bit) #3
+mbedtls_mpi_core_lt_ct:"80000000":"01":0
+
+Base test mbedtls_mpi_core_lt_ct (corner case - 32 bit) #4
+mbedtls_mpi_core_lt_ct:"80000000":"00":0
+
+Base test mbedtls_mpi_core_lt_ct (corner case - 32 bit) #5
+mbedtls_mpi_core_lt_ct:"FFFFFFFF":"FF":0
+
+Multi-limb mbedtls_mpi_core_lt_ct (X<Y, zero vs non-zero MS limb)
+mbedtls_mpi_core_lt_ct:"00FFFFFFFFFFFFFFFF":"01FFFFFFFFFFFFFFFF":1
+
+Multi-limb mbedtls_mpi_core_lt_ct (X>Y, equal MS limbs)
+mbedtls_mpi_core_lt_ct:"EEFFFFFFFFFFFFFFFF":"EEFFFFFFFFFFFFFFF1":0
+
+Multi-limb mbedtls_mpi_core_lt_ct (X=Y)
+mbedtls_mpi_core_lt_ct:"EEFFFFFFFFFFFFFFFF":"EEFFFFFFFFFFFFFFFF":0
+
+Multi-limb mbedtls_mpi_core_lt_ct (Alternating limbs) #1
+mbedtls_mpi_core_lt_ct:"11FFFFFFFFFFFFFFFF":"FF1111111111111111":1
+
+Multi-limb mbedtls_mpi_core_lt_ct (Alternating limbs) #2
+mbedtls_mpi_core_lt_ct:"FF1111111111111111":"11FFFFFFFFFFFFFFFF":0
+
 Base test mbedtls_mpi_lt_mpi_ct #1
 mbedtls_mpi_lt_mpi_ct:1:"2B5":1:"2B5":0:0
 

@@ -742,6 +742,50 @@ cleanup:
 }
 
 /*
+ * Compare unsigned values in constant time
+ */
+unsigned mbedtls_mpi_core_lt_ct( const mbedtls_mpi_uint *X,
+                                 const mbedtls_mpi_uint *Y,
+                                 size_t len )
+{
+    size_t i;
+    /* The value of any of these variables is either 0 or 1 at all times. */
+    unsigned ret, cond, done;
+
+    ret = cond = done = 0;
+
+    for( i = len; i > 0; i-- )
+    {
+        /*
+         * If Y[i - 1] < X[i - 1] then X < Y is false and the result must
+         * remain 0.
+         *
+         * Again even if we can make a decision, we just mark the result and
+         * the fact that we are done and continue looping.
+         */
+        cond = mbedtls_ct_mpi_uint_lt( Y[i - 1], X[i - 1] );
+        done |= cond;
+
+        /*
+         * If X[i - 1] < Y[i - 1] then X < Y is true.
+         *
+         * Again even if we can make a decision, we just mark the result and
+         * the fact that we are done and continue looping.
+         */
+        cond = mbedtls_ct_mpi_uint_lt( X[i - 1], Y[i - 1] );
+        ret |= cond & ( 1 - done );
+        done |= cond;
+    }
+
+    /*
+     * If all the limbs were equal, then the numbers are equal, X < Y is false
+     * and leaving the result 0 is correct.
+     */
+
+    return( ret );
+}
+
+/*
  * Compare signed values in constant time
  */
 int mbedtls_mpi_lt_mpi_ct( const mbedtls_mpi *X,

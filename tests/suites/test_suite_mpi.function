@@ -2,6 +2,8 @@
 #include "mbedtls/bignum.h"
 #include "mbedtls/entropy.h"
 #include "bignum_core.h"
+#include "constant_time_internal.h"
+#include "test/constant_flow.h"
 
 #if MBEDTLS_MPI_MAX_BITS > 792
 #define MPI_MAX_BITS_LARGER_THAN_792
@@ -604,6 +606,42 @@ void mbedtls_mpi_cmp_mpi( char * input_X, char * input_Y,
 
 exit:
     mbedtls_mpi_free( &X ); mbedtls_mpi_free( &Y );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mbedtls_mpi_core_lt_ct( data_t * input_X, data_t * input_Y, int input_ret )
+{
+    #define MAX_LEN 64
+    mbedtls_mpi_uint X[MAX_LEN];
+    mbedtls_mpi_uint Y[MAX_LEN];
+    unsigned exp_ret = input_ret;
+    unsigned ret;
+    size_t len = CHARS_TO_LIMBS(
+                    input_X->len > input_Y->len ? input_X->len : input_Y->len );
+
+    TEST_ASSERT( len <= MAX_LEN );
+
+    TEST_ASSERT( mbedtls_mpi_core_read_be( X, len, input_X->x, input_X->len )
+                 == 0 );
+    TEST_ASSERT( mbedtls_mpi_core_read_be( Y, len, input_Y->x, input_Y->len )
+                 == 0 );
+
+    TEST_CF_SECRET( X, len * sizeof( mbedtls_mpi_uint ) );
+    TEST_CF_SECRET( Y, len * sizeof( mbedtls_mpi_uint ) );
+
+    ret = mbedtls_mpi_core_lt_ct( X, Y, len );
+
+    TEST_CF_PUBLIC( X, len * sizeof( mbedtls_mpi_uint ) );
+    TEST_CF_PUBLIC( Y, len * sizeof( mbedtls_mpi_uint ) );
+    TEST_CF_PUBLIC( &ret, sizeof( ret ) );
+
+    TEST_ASSERT( ret == exp_ret );
+
+exit:
+    ;
+
+    #undef MAX_LEN
 }
 /* END_CASE */
 

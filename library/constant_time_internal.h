@@ -129,6 +129,22 @@ unsigned mbedtls_ct_size_bool_eq( size_t x,
 unsigned mbedtls_ct_mpi_uint_lt( const mbedtls_mpi_uint x,
                                  const mbedtls_mpi_uint y );
 
+/**
+ * \brief          Check if an MPI is less than the other in constant time.
+ *
+ * \param X        The left-hand MPI. This must point to an array of limbs
+ *                 with the same allocated length as Y.
+ * \param Y        The right-hand MPI. This must point to an array of limbs
+ *                 with the same allocated length as X.
+ * \param len      The number of limbs in X and Y.
+ *
+ * \return         The result of the comparison:
+ *                 \c 1 if \p X is less than \p Y.
+ *                 \c 0 if \p X is greater than or equal to \p Y.
+ */
+unsigned mbedtls_mpi_core_lt_ct( const mbedtls_mpi_uint *X,
+                                 const mbedtls_mpi_uint *Y,
+                                 size_t len );
 #endif /* MBEDTLS_BIGNUM_C */
 
 /** Choose between two integer values without branches.

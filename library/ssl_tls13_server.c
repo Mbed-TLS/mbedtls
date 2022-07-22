@@ -1262,6 +1262,14 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
 
             case MBEDTLS_TLS_EXT_PRE_SHARED_KEY:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found pre_shared_key extension" ) );
+                if( ( ssl->handshake->extensions_present &
+                      MBEDTLS_SSL_EXT_PSK_KEY_EXCHANGE_MODES ) == 0 )
+                {
+                    MBEDTLS_SSL_PEND_FATAL_ALERT(
+                        MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                        MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+                    return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+                }
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
                 /* Delay processing of the PSK identity once we have
                  * found out which algorithms to use. We keep a pointer

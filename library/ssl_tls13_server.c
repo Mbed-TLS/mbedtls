@@ -290,7 +290,7 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
      * binders      >= 33 bytes
      */
     binders = identities_end;
-    MBEDTLS_SSL_CHK_BUF_READ_PTR( binders, end, 33 );
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( binders, end, 33 + 2 );
     binders_len = MBEDTLS_GET_UINT16_BE( binders, 0 );
     p_binder_len = binders + 2;
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p_binder_len, end, binders_len );
@@ -353,6 +353,10 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_DECODE_ERROR );
     }
 
+    /* Update the handshake transcript with the binder list. */
+    ssl->handshake->update_checksum( ssl,
+                                     identities_end,
+                                     (size_t)( binders_end - identities_end ) );
     if( matched_identity == -1 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "No matched pre shared key found" ) );
@@ -362,10 +366,6 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
     ssl->handshake->selected_identity = (uint16_t)matched_identity;
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "Pre shared key found" ) );
 
-    /* Update the handshake transcript with the binder list. */
-    ssl->handshake->update_checksum( ssl,
-                                     identities_end,
-                                     (size_t)( binders_end - identities_end ) );
     return( 0 );
 }
 
@@ -1340,7 +1340,8 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
         if( ret == MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY)
         {
             ssl->handshake->extensions_present &= ~MBEDTLS_SSL_EXT_PRE_SHARED_KEY;
-        }else if( ret != 0 )
+        }
+        else if( ret != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_tls13_parse_pre_shared_key_ext" ),
                                    ret );

@@ -775,20 +775,13 @@ static int ssl_tls13_determine_key_exchange_mode( mbedtls_ssl_context *ssl )
      * The PSK-based key exchanges may additionally be used with 0-RTT.
      *
      * Our built-in order of preference is
-     *  1 ) Plain PSK Mode ( psk )
-     *  2 ) (EC)DHE-PSK Mode ( psk_ephemeral )
-     *  3 ) Certificate Mode ( ephemeral )
+     *  1 ) (EC)DHE-PSK Mode ( psk_ephemeral )
+     *  2 ) Certificate Mode ( ephemeral )
+     *  3 ) Plain PSK Mode ( psk )
      */
 
     ssl->handshake->key_exchange_mode = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_NONE;
 
-    if( ssl_tls13_check_psk_key_exchange( ssl ) )
-    {
-        ssl->handshake->key_exchange_mode =
-            MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK;
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "key exchange mode: psk" ) );
-    }
-    else
     if( ssl_tls13_check_psk_ephemeral_key_exchange( ssl ) )
     {
         ssl->handshake->key_exchange_mode =
@@ -801,6 +794,13 @@ static int ssl_tls13_determine_key_exchange_mode( mbedtls_ssl_context *ssl )
         ssl->handshake->key_exchange_mode =
             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL;
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "key exchange mode: ephemeral" ) );
+    }
+    else
+    if( ssl_tls13_check_psk_key_exchange( ssl ) )
+    {
+        ssl->handshake->key_exchange_mode =
+            MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK;
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "key exchange mode: psk" ) );
     }
     else
     {

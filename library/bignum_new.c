@@ -190,17 +190,13 @@ static int mpi_core_clear( mbedtls_mpi_uint *X,
                            size_t nx,
                            size_t limbs )
 {
-    if( X == NULL )
-        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
-
-    else if( nx < limbs )
+    if( nx < limbs )
         return( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL );
 
-    else
-    {
+    if( X != NULL )
         memset( X, 0, nx * ciL );
-        return( 0 );
-    }
+
+    return( 0 );
 }
 
 /* Convert a big-endian byte array aligned to the size of mbedtls_mpi_uint

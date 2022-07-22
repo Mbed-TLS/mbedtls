@@ -1349,6 +1349,10 @@ void mbedtls_ssl_add_hs_msg_to_checksum( mbedtls_ssl_context *ssl,
                                          unsigned char const *msg,
                                          size_t msg_len );
 
+void mbedtls_ssl_add_hs_hdr_to_checksum( mbedtls_ssl_context *ssl,
+                                         unsigned hs_type,
+                                         size_t total_hs_len );
+
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
 #if !defined(MBEDTLS_USE_PSA_CRYPTO)
 MBEDTLS_CHECK_RETURN_CRITICAL
@@ -2448,5 +2452,50 @@ int mbedtls_ssl_check_dtls_clihlo_cookie(
                            const unsigned char *in, size_t in_len,
                            unsigned char *obuf, size_t buf_len, size_t *olen );
 #endif
+
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+/* Check if we have any PSK to offer, returns 0 if PSK is available.
+ * Assign the psk and ticket if pointers are present.
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_get_psk_to_offer(
+        const mbedtls_ssl_context *ssl,
+        int *psk_type,
+        const unsigned char **psk, size_t *psk_len,
+        const unsigned char **psk_identity, size_t *psk_identity_len );
+
+/**
+ * \brief Given an SSL context and its associated configuration, write the TLS
+ *        1.3 specific Pre-Shared key extension.
+ *
+ * \param[in]   ssl     SSL context
+ * \param[in]   buf     Base address of the buffer where to write the extension
+ * \param[in]   end     End address of the buffer where to write the extension
+ * \param[out]  out_len Length in bytes of the Pre-Shared key extension: data
+ *                      written into the buffer \p buf by this function plus
+ *                      the length of the binders to be written.
+ * \param[out]  binders_len Length of the binders to be written at the end of
+ *                          the extension.
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext(
+    mbedtls_ssl_context *ssl,
+    unsigned char *buf, unsigned char *end,
+    size_t *out_len, size_t *binders_len );
+
+/**
+ * \brief Given an SSL context and its associated configuration, write the TLS
+ *        1.3 specific Pre-Shared key extension binders at the end of the
+ *        ClientHello.
+ *
+ * \param[in]   ssl     SSL context
+ * \param[in]   buf     Base address of the buffer where to write the binders
+ * \param[in]   end     End address of the buffer where to write the binders
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_tls13_write_binders_of_pre_shared_key_ext(
+    mbedtls_ssl_context *ssl,
+    unsigned char *buf, unsigned char *end );
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
 #endif /* ssl_misc.h */

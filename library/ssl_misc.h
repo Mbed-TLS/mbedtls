@@ -680,6 +680,7 @@ struct mbedtls_ssl_handshake_params
     unsigned char *psk;                 /*!<  PSK from the callback         */
     size_t psk_len;                     /*!<  Length of PSK from callback   */
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
+    uint16_t    selected_identity;
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
 #if defined(MBEDTLS_SSL_ECP_RESTARTABLE_ENABLED)

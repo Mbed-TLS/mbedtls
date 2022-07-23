@@ -1006,6 +1006,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     /* Store minor version for later use with ticket serialization. */
     ssl->session_negotiate->tls_version = MBEDTLS_SSL_VERSION_TLS1_3;
+    ssl->session_negotiate->endpoint = ssl->conf->endpoint;
 #endif
 
     /* ...

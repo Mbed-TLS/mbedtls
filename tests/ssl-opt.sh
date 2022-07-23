@@ -12658,11 +12658,12 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 run_test    "TLS 1.3: NewSessionTicket: Basic check, m->O" \
             "$O_NEXT_SRV -msg -tls1_3 -no_resume_ephemeral -no_cache " \
-            "$P_CLI debug_level=4" \
+            "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
             0 \
             -c "Protocol is TLSv1.3" \
             -c "MBEDTLS_SSL_NEW_SESSION_TICKET" \
             -c "got new session ticket." \
+            -c "Saving session for reuse... ok" \
             -c "HTTP/1.0 200 ok"
 
 requires_gnutls_tls1_3
@@ -12672,11 +12673,12 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3: NewSessionTicket: Basic check, m->G" \
             "$G_NEXT_SRV --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+CIPHER-ALL:+PSK --disable-client-cert" \
-            "$P_CLI debug_level=4" \
+            "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
             0 \
             -c "Protocol is TLSv1.3" \
             -c "MBEDTLS_SSL_NEW_SESSION_TICKET" \
             -c "got new session ticket." \
+            -c "Saving session for reuse... ok" \
             -c "HTTP/1.0 200 OK"
 
 requires_openssl_tls1_3
@@ -12713,11 +12715,12 @@ requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 run_test    "TLS 1.3: NewSessionTicket: Basic check, m->m" \
             "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=1" \
-            "$P_CLI debug_level=4" \
+            "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
             0 \
             -c "Protocol is TLSv1.3" \
             -c "MBEDTLS_SSL_NEW_SESSION_TICKET" \
             -c "got new session ticket." \
+            -c "Saving session for reuse... ok" \
             -c "HTTP/1.0 200 OK"    \
             -s "=> write NewSessionTicket msg" \
             -s "server state: MBEDTLS_SSL_NEW_SESSION_TICKET" \

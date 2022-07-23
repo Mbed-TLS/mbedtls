@@ -12730,7 +12730,7 @@ requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-run_test    "TLS 1.2: Check rsa_pss_rsae compitable issue, m->O" \
+run_test    "TLS 1.2: Check rsa_pss_rsae compatibility issue, m->O" \
             "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key
                                  -msg -tls1_2
                                  -Verify 10 " \
@@ -12746,7 +12746,7 @@ requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-run_test    "TLS 1.2: Check rsa_pss_rsae compitable issue, m->G" \
+run_test    "TLS 1.2: Check rsa_pss_rsae compatibility issue, m->G" \
             "$G_NEXT_SRV_NO_CERT --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key
                     -d 4
                     --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2" \

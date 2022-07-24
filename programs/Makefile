@@ -316,6 +316,10 @@ ssl/ssl_server2$(EXEXT): ssl/ssl_server2.c $(SSL_TEST_DEPS)
 	echo "  CC    ssl/ssl_server2.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_server2.c $(SSL_TEST_OBJECTS) $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
+ssl/ssl_server$(EXEXT): ssl/ssl_server.c $(SSL_TEST_DEPS)
+	echo "  CC    ssl/ssl_server.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_server.c $(SSL_TEST_OBJECTS) $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
 ssl/ssl_context_info$(EXEXT): ssl/ssl_context_info.c test/query_config.o test/query_config.h $(DEP)
 	echo "  CC    ssl/ssl_context_info.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_context_info.c test/query_config.o $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@

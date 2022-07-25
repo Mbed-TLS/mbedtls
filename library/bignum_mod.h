@@ -67,7 +67,8 @@ void mbedtls_mpi_mod_residue_release( mbedtls_mpi_mod_residue *r );
 
 int mbedtls_mpi_mod_residue_setup( mbedtls_mpi_mod_residue *r,
                                    mbedtls_mpi_mod_modulus *m,
-                                   mbedtls_mpi_uint *p );
+                                   mbedtls_mpi_uint *p,
+                                   size_t pn );
 
 void mbedtls_mpi_mod_modulus_init( mbedtls_mpi_mod_modulus *m );
 

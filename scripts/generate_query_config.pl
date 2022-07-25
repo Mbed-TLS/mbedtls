@@ -15,7 +15,7 @@
 # function by using the template in scripts/data_files/query_config.fmt.
 #
 # Usage: scripts/generate_query_config.pl without arguments, or
-# generate_query_config.pl mbedtls_config_file template_file output_file
+# generate_query_config.pl mbedtls_config_file template_file output_file [psa_crypto_config_file]
 #
 # Copyright The Mbed TLS Contributors
 # SPDX-License-Identifier: Apache-2.0
@@ -34,11 +34,12 @@
 
 use strict;
 
-my ($mbedtls_config_file, $query_config_format_file, $query_config_file);
+my ($mbedtls_config_file, $query_config_format_file, $query_config_file, $psa_crypto_config_file);
 
 my $default_mbedtls_config_file = "./include/mbedtls/mbedtls_config.h";
 my $default_query_config_format_file = "./scripts/data_files/query_config.fmt";
 my $default_query_config_file = "./programs/test/query_config.c";
+my $default_psa_crypto_config_file = "./include/psa/crypto_config.h";
 
 if( @ARGV ) {
     die "Invalid number of arguments - usage: $0 [CONFIG_FILE TEMPLATE_FILE OUTPUT_FILE]" if scalar @ARGV != 3;
@@ -46,14 +47,20 @@ if( @ARGV ) {
 
     -f $mbedtls_config_file or die "No such file: $mbedtls_config_file";
     -f $query_config_format_file or die "No such file: $query_config_format_file";
+    if (defined($psa_crypto_config_file) && length($psa_crypto_config_file)) {
+        -f $psa_crypto_config_file or die "No such file: $psa_crypto_config_file";
+    } else {
+        $psa_crypto_config_file = (-d $default_psa_crypto_config_file) ? $default_psa_crypto_config_file : undef;
+    }
 } else {
     $mbedtls_config_file = $default_mbedtls_config_file;
     $query_config_format_file = $default_query_config_format_file;
     $query_config_file = $default_query_config_file;
+    $psa_crypto_config_file = $default_psa_crypto_config_file;
 
-    unless( -f $mbedtls_config_file && -f $query_config_format_file ) {
+    unless(-f $mbedtls_config_file && -f $query_config_format_file  && -f $psa_crypto_config_file) {
         chdir '..' or die;
-        -f $mbedtls_config_file && -f $query_config_format_file
+        -f $mbedtls_config_file && -f $query_config_format_file && -f $psa_crypto_config_file
           or die "No arguments supplied, must be run from project root or a first-level subdirectory\n";
     }
 }
@@ -72,16 +79,20 @@ my $excluded_re = join '|', @excluded;
 my $config_check = "";
 my $list_config = "";
 
-open(CONFIG_FILE, "<", $mbedtls_config_file) or die "Opening config file '$mbedtls_config_file': $!";
+for my $config_file ($mbedtls_config_file, $psa_crypto_config_file) {
 
-while (my $line = <CONFIG_FILE>) {
-    if ($line =~ /^(\/\/)?\s*#\s*define\s+(MBEDTLS_\w+).*/) {
-        my $name = $2;
+    next unless defined($config_file);  # we might not have been given a PSA crypto config file
 
-        # Skip over the macro if it is in the ecluded list
-        next if $name =~ /$excluded_re/;
+    open(CONFIG_FILE, "<", $config_file) or die "Opening config file '$config_file': $!";
 
-        $config_check .= <<EOT;
+    while (my $line = <CONFIG_FILE>) {
+        if ($line =~ /^(\/\/)?\s*#\s*define\s+(MBEDTLS_\w+|PSA_WANT_\w+).*/) {
+            my $name = $2;
+
+            # Skip over the macro if it is in the ecluded list
+            next if $name =~ /$excluded_re/;
+
+            $config_check .= <<EOT;
 #if defined($name)
     if( strcmp( "$name", config ) == 0 )
     {
@@ -92,16 +103,17 @@ while (my $line = <CONFIG_FILE>) {
 
 EOT
 
-        $list_config .= <<EOT;
+            $list_config .= <<EOT;
 #if defined($name)
     OUTPUT_MACRO_NAME_VALUE($name);
 #endif /* $name */
 
 EOT
+        }
     }
-}
 
-close(CONFIG_FILE);
+    close(CONFIG_FILE);
+}
 
 # Read the full format file into a string
 local $/;

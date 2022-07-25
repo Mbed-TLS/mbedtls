@@ -90,6 +90,8 @@
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/x509_csr.h"
 
+#include "psa/crypto_config.h"
+
 #include <string.h>
 
 /*

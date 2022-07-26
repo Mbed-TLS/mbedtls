@@ -23,11 +23,42 @@ You must run this script from an Mbed TLS root.
 import sys
 import os
 import re
-import subprocess
 import tempfile
 
-class UpdaterCerts:
+class FormatException(Exception):
+    """ Exception that is raised when file has wrong format
+    """
+    typ = ""
+    line = 0
+
+    def __init__(self, typ, line, *args):
+        super().__init__(args)
+        self.typ = typ
+        self.line = line
+
+    def __str__(self):
+        if self.typ == "eof":
+            return "Reached end of file unexpectedly"
+        elif self.typ == "beginline":
+            return f"Begin File has wrong number of parameters on line {self.line}"
+        elif self.typ == "beginbegin":
+            return f"Encountered another Begin File line before End File on line {self.line}"
+        return "Not known format exception"
+
+class TypeEncodingException(Exception):
+    def __init__(self, tried, line, *args):
+        super().__init__(args)
+        self.tried = tried
+        self.line = line
+
+    def __str__(self):
+        return f"""The {self.tried} is not valid type/encoding on line {self.line}.
+                Possible types are macro or variable\n
+                Possible encoding is string and binary"""
+
+class CertUpdater:
     """ Updater for certs.c"""
+    col = 77
 
     def __init__(self):
         """Instantiate the updater for certs.c
@@ -37,14 +68,29 @@ class UpdaterCerts:
         self.certs = "tests/src/certs.c"
 
     @staticmethod
-    def type_var_bin(name, filename):
+    def byte_to_array(filename):
+        """ Reads file and returns as hex array
+        """
+        final = ""
+        with open(filename, "rb") as f:
+            data = f.read()
+            data = data.hex()
+            add = ["0x"+data[i:i+2] for i in range(0, len(data), 2)]
+            i = 0
+            column = 12
+            while i + column < len(add):
+                final += "    " + ", ".join(add[i:i+column]) + ",\n"
+                i += column
+            final += "    " + ", ".join(add[i:]) + "\n"
+        return final
+
+    def type_var_bin(self, name, filename):
         """ Generates code snipper to be added
         name: name of variable
         filename: where value of variable stored
         """
         output = "const unsigned char " + name + "[] = {\n"
-        data = subprocess.check_output(["xxd", "-i", filename]).decode("utf-8")
-        output += '   ' + '   '.join(data.splitlines(keepends=True)[1:-2])
+        output += self.byte_to_array(filename)
         output += "};\n"
         return output
 
@@ -61,21 +107,18 @@ class UpdaterCerts:
             output = output[:-1] + ";\n"
         return output
 
-    @staticmethod
-    def type_macro_bin(name, filename):
+    def type_macro_bin(self, name, filename):
         """ Generates code snipper to be added
         name: name of macro
         filename: where value of macro stored
         """
         output = "#define " + name + " {\n"
-        data = subprocess.check_output(["xxd", "-i", filename]).decode("utf-8")
-        output += '  ' + '  '.join(data.splitlines(keepends=True)[1:-2])
-        output = "".join([(line + (77-len(line))*" " + "\\\n") for line in output.splitlines()])
+        output += self.byte_to_array(filename)
+        output = "".join([(line + (self.col-len(line))*" " + "\\\n") for line in output.splitlines()])
         output += "}\n"
         return output
 
-    @staticmethod
-    def type_macro_string(name, filename):
+    def type_macro_string(self, name, filename):
         """ Generates code snipper to be added
         name: name of macro
         filename: where value of macro stored
@@ -85,13 +128,13 @@ class UpdaterCerts:
             for line in f.read().splitlines()[:-1]:
                 output += "    \"" + line + "\\r\\n\"\n"
             output = output[:-1] + "\n"
-        output = "".join([(line + (75-len(line))*" " + "\\\n") for line in output.splitlines()])
+        output = "".join([(line + (self.col-len(line))*" " + "\\\n") for line in output.splitlines()])
         with open(filename) as f:
             output += "    \"" + f.read().splitlines()[-1] + "\\r\\n\"\n"
         return output
 
     # Extract key or certificate from file.
-    def extract_key(self, enc, typ, name, filename):
+    def extract_key(self, enc, typ, name, filename, line_num):
         """ Depending on encoding and type it calls appriopriate
         function
 
@@ -101,11 +144,9 @@ class UpdaterCerts:
         filename: where data is
         """
         if enc not in ("string", "binary"):
-            print("choose either string encoding or binary encoding")
-            sys.exit(1)
+            raise TypeEncodingException(enc, line_num)
         if typ not in ("macro", "variable"):
-            print("choose either macro or variable as a type")
-            sys.exit(1)
+            raise TypeEncodingException(typ, line_num)
 
         output = ""
         if typ == "variable":
@@ -126,31 +167,49 @@ class UpdaterCerts:
         """
         tempf = tempfile.TemporaryFile(mode="w+")
         with open(self.certs, "r+") as old_f, open(tempf.name, "w+") as tmp:
+            line_num = 1
             line = old_f.readline()
             while line:
                 if re.fullmatch(r"^/\*\s*BEGIN FILE.*\*/$\n", line):
                     tmp.write(line)
-                    args = line.split(" ")[3:7]
-                    add = self.extract_key(args[0], args[1], args[2], args[3])
+                    args = re.fullmatch(r"^/\*\s*BEGIN FILE(.*)\*/$\n", line).group(1).strip().split(" ")[0:4]
+                    if len(args) != 4:
+                        raise FormatException("beginline", line_num)
+                    add = self.extract_key(args[0], args[1], args[2], args[3], line_num)
                     tmp.write(add)
                     line = old_f.readline()
+                    line_num += 1
+                    if not line:
+                        raise FormatException("eof", -1)
                     while not re.fullmatch(r"^/\*\s*END FILE\s*\*/$\n", line):
+                        if re.fullmatch(r"^/\*\s*BEGIN FILE.*\*/$\n", line):
+                            raise FormatException("beginbegin", line_num)
                         line = old_f.readline()
+                        line_num += 1
+                        if not line:
+                            raise FormatException("eof", -1)
                 tmp.write(line)
                 line = old_f.readline()
+                line_num += 1
             tmp.seek(0)
             old_f.truncate(0)
-            final = tmp.read()
             old_f.seek(0)
-            old_f.write(final)
+            old_f.write(tmp.read())
 
 def run_main():
     if not os.path.exists("include/mbedtls"):
         print("Must be run from root")
-        sys.exit(2)
+        sys.exit(1)
 
-    updater = UpdaterCerts()
-    updater.update()
+    try:
+        updater = CertUpdater()
+        updater.update()
+    except TypeEncodingException as ex:
+        print(ex)
+        sys.exit(1)
+    except FormatException as ex:
+        print(ex)
+        sys.exit(1)
 
 if __name__ == "__main__":
     run_main()

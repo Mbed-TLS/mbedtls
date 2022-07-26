@@ -134,45 +134,6 @@ static int ssl_tls13_offered_psks_check_identity_match(
 }
 
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_get_psk( mbedtls_ssl_context *ssl,
-                              unsigned char **psk,
-                              size_t *psk_len )
-{
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_key_attributes_t key_attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_status_t status;
-
-    *psk_len = 0;
-    *psk = NULL;
-
-    status = psa_get_key_attributes( ssl->handshake->psk_opaque, &key_attributes );
-    if( status != PSA_SUCCESS)
-    {
-        return( psa_ssl_status_to_mbedtls( status ) );
-    }
-
-    *psk_len = PSA_BITS_TO_BYTES( psa_get_key_bits( &key_attributes ) );
-    *psk = mbedtls_calloc( 1, *psk_len );
-    if( *psk == NULL )
-    {
-        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
-    }
-
-    status = psa_export_key( ssl->handshake->psk_opaque,
-                             (uint8_t *)*psk, *psk_len, psk_len );
-    if( status != PSA_SUCCESS)
-    {
-        mbedtls_free( (void *)*psk );
-        return( psa_ssl_status_to_mbedtls( status ) );
-    }
-#else
-    *psk = ssl->handshake->psk;
-    *psk_len = ssl->handshake->psk_len;
-#endif /* !MBEDTLS_USE_PSA_CRYPTO */
-    return( 0 );
-}
-
-MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_offered_psks_check_binder_match( mbedtls_ssl_context *ssl,
                                                       const unsigned char *binder,
                                                       size_t binder_len )
@@ -208,7 +169,7 @@ static int ssl_tls13_offered_psks_check_binder_match( mbedtls_ssl_context *ssl,
     if( ret != 0 )
         return( ret );
 
-    ret = ssl_tls13_get_psk( ssl, &psk, &psk_len );
+    ret = mbedtls_ssl_tls13_export_handshake_psk( ssl, &psk, &psk_len );
     if( ret != 0 )
         return( ret );
 

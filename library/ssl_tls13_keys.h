@@ -692,6 +692,22 @@ int mbedtls_ssl_tls13_compute_handshake_transform( mbedtls_ssl_context *ssl );
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_compute_application_transform( mbedtls_ssl_context *ssl );
 
+/**
+ * \brief Export TLS 1.3 PSK key from handshake context
+ *
+ * \param ssl  The SSL context to operate on.
+ * \param psk  PSK key output pointer.
+ * \param psk_len
+ *             Length of PSK key.
+ *
+ * \returns    \c 0 on success.
+ * \returns    A negative error code on failure.
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_tls13_export_handshake_psk( mbedtls_ssl_context *ssl,
+                                            unsigned char **psk,
+                                            size_t *psk_len );
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #endif /* MBEDTLS_SSL_TLS1_3_KEYS_H */

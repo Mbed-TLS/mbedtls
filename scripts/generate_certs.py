@@ -43,6 +43,8 @@ class FormatException(Exception):
             return f"Begin File has wrong number of parameters on line {self.line}"
         elif self.typ == "beginbegin":
             return f"Encountered another Begin File line before End File on line {self.line}"
+        elif self.typ == "nofile":
+            return f"Can't open file specified in line {self.line}"
         return "Not known format exception"
 
 class TypeEncodingException(Exception):
@@ -114,7 +116,8 @@ class CertUpdater:
         """
         output = "#define " + name + " {\n"
         output += self.byte_to_array(filename)
-        output = "".join([(line + (self.col-len(line))*" " + "\\\n") for line in output.splitlines()])
+        output = "".join([(line + (self.col-len(line))*" " + "\\\n")
+                          for line in output.splitlines()])
         output += "}\n"
         return output
 
@@ -128,21 +131,25 @@ class CertUpdater:
             for line in f.read().splitlines()[:-1]:
                 output += "    \"" + line + "\\r\\n\"\n"
             output = output[:-1] + "\n"
-        output = "".join([(line + (self.col-len(line))*" " + "\\\n") for line in output.splitlines()])
+        output = "".join([(line + (self.col-len(line))*" " + "\\\n") \
+                          for line in output.splitlines()])
         with open(filename) as f:
             output += "    \"" + f.read().splitlines()[-1] + "\\r\\n\"\n"
         return output
 
     # Extract key or certificate from file.
-    def extract_key(self, enc, typ, name, filename, line_num):
+    def extract_key(self, enctyp, name, filename, line_num):
         """ Depending on encoding and type it calls appriopriate
         function
 
-        enc: encoding
-        typ: type
+        enctyp: (encoding , type)
         name: name of variable/macro
         filename: where data is
+        line_num: line number
         """
+
+        enc = enctyp[0]
+        typ = enctyp[1]
         if enc not in ("string", "binary"):
             raise TypeEncodingException(enc, line_num)
         if typ not in ("macro", "variable"):
@@ -172,10 +179,15 @@ class CertUpdater:
             while line:
                 if re.fullmatch(r"^/\*\s*BEGIN FILE.*\*/$\n", line):
                     tmp.write(line)
-                    args = re.fullmatch(r"^/\*\s*BEGIN FILE(.*)\*/$\n", line).group(1).strip().split(" ")[0:4]
+                    args = re.fullmatch(r"^/\*\s*BEGIN FILE(.*)\*/$\n", line).group(1) \
+                                                                             .strip()  \
+                                                                             .split(" ")[0:4]
                     if len(args) != 4:
                         raise FormatException("beginline", line_num)
-                    add = self.extract_key(args[0], args[1], args[2], args[3], line_num)
+                    try:
+                        add = self.extract_key((args[0], args[1]), args[2], args[3], line_num)
+                    except IOError as er:
+                        raise FormatException("nofile", line_num)
                     tmp.write(add)
                     line = old_f.readline()
                     line_num += 1

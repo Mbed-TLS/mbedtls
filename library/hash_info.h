@@ -7,9 +7,9 @@
  *  - code based on either of them depending on MBEDTLS_USE_PSA_CRYPTO
  *  - code based on either of them depending on what's available
  *
- *  Note: this internal module will go away when everything become based on
+ *  Note: this internal module will go away when everything becomes based on
  *  PSA Crypto; it is a helper for the transition while hash algorithms are
- *  wtill represented using mbedtls_md_type_t in most places even when PSA is
+ *  still represented using mbedtls_md_type_t in most places even when PSA is
  *  used for the actual crypto computations.
  *
  *  Copyright The Mbed TLS Contributors

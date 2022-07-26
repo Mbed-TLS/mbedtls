@@ -95,7 +95,7 @@ psa_algorithm_t mbedtls_hash_info_psa_from_md( mbedtls_md_type_t md_type )
     return entry->psa_alg;
 }
 
-/* Get PSA from MD */
+/* Get MD from PSA */
 mbedtls_md_type_t mbedtls_hash_info_md_from_psa( psa_algorithm_t psa_alg )
 {
     const hash_entry *entry = hash_table;

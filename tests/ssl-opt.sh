@@ -836,11 +836,13 @@ wait_client_done() {
     ( sleep $CLI_DELAY; echo "===CLIENT_TIMEOUT===" >> $CLI_OUT; kill $CLI_PID ) &
     DOG_PID=$!
 
-    wait $CLI_PID
+    # For Ubuntu 22.04, `Terminated` message is outputed by wait command.
+    # To remove it from stdout, redirect stdout/stderr to CLI_OUT
+    wait $CLI_PID >> $CLI_OUT 2>&1
     CLI_EXIT=$?
 
     kill $DOG_PID >/dev/null 2>&1
-    wait $DOG_PID
+    wait $DOG_PID >> $CLI_OUT 2>&1
 
     echo "EXIT: $CLI_EXIT" >> $CLI_OUT
 
@@ -1181,7 +1183,9 @@ do_run_test_once() {
 
     # terminate the server (and the proxy)
     kill $SRV_PID
-    wait $SRV_PID
+    # For Ubuntu 22.04, `Terminated` message is outputed by wait command.
+    # To remove it from stdout, redirect stdout/stderr to CLI_OUT
+    wait $SRV_PID >> $SRV_OUT 2>&1
     SRV_RET=$?
 
     if [ -n "$PXY_CMD" ]; then

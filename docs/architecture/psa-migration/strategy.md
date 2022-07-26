@@ -270,12 +270,12 @@ coverage can be reached.
   docs/use-psa-crypto.md).
 - Step 1 is not achieved for a lot of the crypto library including the PSA
   core. For example, `entropy.c` calls the legacy API
-`mbedtls_sha256` (or `mbedtls_sha512` optionally); `hmac_drbg.c` calls the
-legacy API `mbedtls_md` and `ctr_drbg.c` calls the legacy API `mbedtls_aes`;
-the PSA core depends on the entropy module and at least one of the DRBG
-modules (unless `MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG` is used). Further, several
-crypto modules have similar issues, for example RSA PKCS#1 v2.1 calls
-`mbedtls_md` directly.
+  `mbedtls_sha256` (or `mbedtls_sha512` optionally); `hmac_drbg.c` calls the
+  legacy API `mbedtls_md` and `ctr_drbg.c` calls the legacy API `mbedtls_aes`;
+  the PSA core depends on the entropy module and at least one of the DRBG
+  modules (unless `MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG` is used). Further, several
+  crypto modules have similar issues, for example RSA PKCS#1 v2.1 calls
+  `mbedtls_md` directly.
 - Step 2 is achieved for most of X.509 and TLS (same gaps as step 1) when
   `MBEDTLS_USE_PSA_CRYPTO` is enabled - this was tasks like #5795, #5796,
   #5797. It is being done in PK and RSA PKCS#1 v1.5 by PR #6065.
@@ -363,12 +363,13 @@ the right places (once the previous steps are done).
 
 **Note on testing**
 
-Since supporting driver-only builds is not about adding features, but also
-supporting existing features in new types of builds, the existing tests should
-be enough to cover everything, as long as they're run in the newly supported
-configurations. An all.sh component needs to be present each main type of
-configutation we support (for example, with this (family of) algorithm
-driver-only, with or without `USE_PSA`).
+Since supporting driver-only builds is not about adding features, but about
+supporting existing features in new types of builds, testing will not involve
+adding cases to the test suites, but instead adding new components in `all.sh`
+that build and run tests in newly-supported configurations. For example, if
+we're making some part of the library work with hashes provided only by
+drivers when `MBEDTLS_USE_PSA_CRYPTO` is defined, there should be a place in
+`all.sh` that builds and run tests in such a configuration.
 
 There is however a risk, especially in step 3 where we change how dependencies
 are expressed (sometimes in bulk), to get things wrong in a way that would
@@ -379,7 +380,7 @@ taken to ensure this does not happen. The following criteria can be used:
   the same before and after the PR that implements step 3;
 - the set of tests skipped in the driver-only build is the same as in an
   equivalent software-based configuration, or the difference is small enough,
-justified, and a github issue is created to track it.
+  justified, and a github issue is created to track it.
 
 Note that the favourable case is when the number of tests skipped is 0 in the
 driver-only build. In other cases, analysis of the outcome files is needed,

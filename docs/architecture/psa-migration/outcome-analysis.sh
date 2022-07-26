@@ -1,13 +1,35 @@
 #!/bin/sh
 
-# This is only an example/template script, you should make a copy and edit it
-# to suit your needs. The part that needs editing is at the top.
+# This script runs tests in various revisions and configurations and analyses
+# the results in order to highlight any difference in the set of tests skipped
+# in the test suites of interest.
+#
+# It can be used to ensure the testing criteria mentioned in strategy.md,
+# end of section "Supporting builds with drivers without the software
+# implementation" are met, namely:
+#
+# - the sets of tests skipped in the default config and the full config must be
+#   the same before and after the PR that implements step 3;
+# - the set of tests skipped in the driver-only build is the same as in an
+#   equivalent software-based configuration, or the difference is small enough,
+#   justified, and a github issue is created to track it.
+#
+# WARNING: this script checks out a commit other than the head of the current
+# branch; it checks out the current branch again when running sucessfully,
+# but while the script is running, or if it terminates early in error, you
+# should be aware that yu might be at a different commit than expected.
+#
+# NOTE: This is only an example/template script, you should make a copy and
+# edit it to suit your needs. The part that needs editing is at the top.
 #
 # Also, you can comment out parts that don't need to be re-done when
 # re-running this script (for example "get numbers before this PR").
 
 # ----- BEGIN edit this -----
+# The component in all.sh that builds and tests with drivers.
 DRIVER_COMPONENT=test_psa_crypto_config_accel_hash_use_psa
+# A similar configuration to that of the component, except without drivers,
+# for comparison.
 reference_config () {
     scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py unset MBEDTLS_PKCS1_V21
@@ -16,6 +38,7 @@ reference_config () {
     scripts/config.py unset MBEDTLS_PKCS12_C
     scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC
 }
+# Space-separated list of test suites of interest.
 SUITES="rsa pkcs1_v15 pk pkparse pkwrite"
 # ----- END edit this -----
 

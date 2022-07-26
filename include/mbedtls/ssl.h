@@ -257,7 +257,7 @@
  */
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
-/* These are the high an low bytes of ProtocolVersion as defined by:
+/* These are the high and low bytes of ProtocolVersion as defined by:
  * - RFC 5246: ProtocolVersion version = { 3, 3 };     // TLS v1.2
  * - RFC 8446: see section 4.2.1
  */

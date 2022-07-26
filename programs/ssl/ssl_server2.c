@@ -676,9 +676,9 @@ struct options
     int force_srtp_profile;     /* SRTP protection profile to use or all    */
     int support_mki;            /* The dtls mki mki support                 */
     const char *key1_opaque_alg1; /* Allowed opaque key 1 alg 1            */
-    const char *key1_opaque_alg2; /* Allowed Opaque key 1 alg 2            */
+    const char *key1_opaque_alg2; /* Allowed opaque key 1 alg 2            */
     const char *key2_opaque_alg1; /* Allowed opaque key 2 alg 1            */
-    const char *key2_opaque_alg2; /* Allowed Opaque key 2 alg 2            */
+    const char *key2_opaque_alg2; /* Allowed opaque key 2 alg 2            */
 } opt;
 
 #include "ssl_test_common_source.c"

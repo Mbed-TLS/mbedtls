@@ -152,6 +152,10 @@ static inline psa_algorithm_t mbedtls_psa_translate_md( mbedtls_md_type_t md_alg
     case MBEDTLS_MD_SHA512:
         return( PSA_ALG_SHA_512 );
 #endif
+#if defined(MBEDTLS_SM3_C)
+    case MBEDTLS_MD_SM3:
+        return( PSA_ALG_SM3 );
+#endif
 #if defined(MBEDTLS_RIPEMD160_C)
     case MBEDTLS_MD_RIPEMD160:
         return( PSA_ALG_RIPEMD160 );

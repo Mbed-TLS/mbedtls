@@ -34,12 +34,6 @@
 
 #include <string.h>
 
-/* Parameter validation macros based on platform_util.h */
-#define ECDH_VALIDATE_RET( cond )    \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_ECP_BAD_INPUT_DATA )
-#define ECDH_VALIDATE( cond )        \
-    MBEDTLS_INTERNAL_VALIDATE( cond )
-
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
 typedef mbedtls_ecdh_context mbedtls_ecdh_context_mbed;
 #endif
@@ -447,8 +441,8 @@ int mbedtls_ecdh_get_params( mbedtls_ecdh_context *ctx,
                              mbedtls_ecdh_side side )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    ECDH_VALIDATE_RET( side == MBEDTLS_ECDH_OURS ||
-                       side == MBEDTLS_ECDH_THEIRS );
+    if( side != MBEDTLS_ECDH_OURS && side != MBEDTLS_ECDH_THEIRS )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     if( mbedtls_ecdh_grp_id( ctx ) == MBEDTLS_ECP_DP_NONE )
     {

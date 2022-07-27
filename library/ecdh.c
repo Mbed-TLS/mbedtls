@@ -97,10 +97,6 @@ int mbedtls_ecdh_gen_public( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtls_ecp
                      int (*f_rng)(void *, unsigned char *, size_t),
                      void *p_rng )
 {
-    ECDH_VALIDATE_RET( grp != NULL );
-    ECDH_VALIDATE_RET( d != NULL );
-    ECDH_VALIDATE_RET( Q != NULL );
-    ECDH_VALIDATE_RET( f_rng != NULL );
     return( ecdh_gen_public_restartable( grp, d, Q, f_rng, p_rng, NULL ) );
 }
 #endif /* !MBEDTLS_ECDH_GEN_PUBLIC_ALT */
@@ -146,10 +142,6 @@ int mbedtls_ecdh_compute_shared( mbedtls_ecp_group *grp, mbedtls_mpi *z,
                          int (*f_rng)(void *, unsigned char *, size_t),
                          void *p_rng )
 {
-    ECDH_VALIDATE_RET( grp != NULL );
-    ECDH_VALIDATE_RET( Q != NULL );
-    ECDH_VALIDATE_RET( d != NULL );
-    ECDH_VALIDATE_RET( z != NULL );
     return( ecdh_compute_shared_restartable( grp, z, Q, d,
                                              f_rng, p_rng, NULL ) );
 }
@@ -173,8 +165,6 @@ static void ecdh_init_internal( mbedtls_ecdh_context_mbed *ctx )
  */
 void mbedtls_ecdh_init( mbedtls_ecdh_context *ctx )
 {
-    ECDH_VALIDATE( ctx != NULL );
-
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
     ecdh_init_internal( ctx );
     mbedtls_ecp_point_init( &ctx->Vi  );
@@ -210,8 +200,6 @@ static int ecdh_setup_internal( mbedtls_ecdh_context_mbed *ctx,
  */
 int mbedtls_ecdh_setup( mbedtls_ecdh_context *ctx, mbedtls_ecp_group_id grp_id )
 {
-    ECDH_VALIDATE_RET( ctx != NULL );
-
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
     return( ecdh_setup_internal( ctx, grp_id ) );
 #else
@@ -253,8 +241,6 @@ static void ecdh_free_internal( mbedtls_ecdh_context_mbed *ctx )
  */
 void mbedtls_ecdh_enable_restart( mbedtls_ecdh_context *ctx )
 {
-    ECDH_VALIDATE( ctx != NULL );
-
     ctx->restart_enabled = 1;
 }
 #endif
@@ -357,11 +343,6 @@ int mbedtls_ecdh_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
                               void *p_rng )
 {
     int restart_enabled = 0;
-    ECDH_VALIDATE_RET( ctx != NULL );
-    ECDH_VALIDATE_RET( olen != NULL );
-    ECDH_VALIDATE_RET( buf != NULL );
-    ECDH_VALIDATE_RET( f_rng != NULL );
-
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     restart_enabled = ctx->restart_enabled;
 #else
@@ -411,11 +392,6 @@ int mbedtls_ecdh_read_params( mbedtls_ecdh_context *ctx,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_ecp_group_id grp_id;
-    ECDH_VALIDATE_RET( ctx != NULL );
-    ECDH_VALIDATE_RET( buf != NULL );
-    ECDH_VALIDATE_RET( *buf != NULL );
-    ECDH_VALIDATE_RET( end != NULL );
-
     if( ( ret = mbedtls_ecp_tls_read_group_id( &grp_id, buf, end - *buf ) )
             != 0 )
         return( ret );
@@ -471,8 +447,6 @@ int mbedtls_ecdh_get_params( mbedtls_ecdh_context *ctx,
                              mbedtls_ecdh_side side )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    ECDH_VALIDATE_RET( ctx != NULL );
-    ECDH_VALIDATE_RET( key != NULL );
     ECDH_VALIDATE_RET( side == MBEDTLS_ECDH_OURS ||
                        side == MBEDTLS_ECDH_THEIRS );
 
@@ -563,11 +537,6 @@ int mbedtls_ecdh_make_public( mbedtls_ecdh_context *ctx, size_t *olen,
                               void *p_rng )
 {
     int restart_enabled = 0;
-    ECDH_VALIDATE_RET( ctx != NULL );
-    ECDH_VALIDATE_RET( olen != NULL );
-    ECDH_VALIDATE_RET( buf != NULL );
-    ECDH_VALIDATE_RET( f_rng != NULL );
-
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     restart_enabled = ctx->restart_enabled;
 #endif
@@ -616,9 +585,6 @@ static int ecdh_read_public_internal( mbedtls_ecdh_context_mbed *ctx,
 int mbedtls_ecdh_read_public( mbedtls_ecdh_context *ctx,
                               const unsigned char *buf, size_t blen )
 {
-    ECDH_VALIDATE_RET( ctx != NULL );
-    ECDH_VALIDATE_RET( buf != NULL );
-
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
     return( ecdh_read_public_internal( ctx, buf, blen ) );
 #else
@@ -697,10 +663,6 @@ int mbedtls_ecdh_calc_secret( mbedtls_ecdh_context *ctx, size_t *olen,
                               void *p_rng )
 {
     int restart_enabled = 0;
-    ECDH_VALIDATE_RET( ctx != NULL );
-    ECDH_VALIDATE_RET( olen != NULL );
-    ECDH_VALIDATE_RET( buf != NULL );
-
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     restart_enabled = ctx->restart_enabled;
 #endif

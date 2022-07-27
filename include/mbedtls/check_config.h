@@ -162,7 +162,8 @@
 #error "MBEDTLS_PKCS12_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_PKCS1_V21) && !defined(MBEDTLS_MD_C)
+#if defined(MBEDTLS_PKCS1_V21) && \
+    !( defined(MBEDTLS_MD_C) || defined(MBEDTLS_PSA_CRYPTO_C) )
 #error "MBEDTLS_PKCS1_V21 defined, but not all prerequisites"
 #endif
 

@@ -61,7 +61,7 @@ inline static int mbedtls_ecp_group_cmp( mbedtls_ecp_group *grp1,
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE depends_on:NOT_DEFINED */
+/* BEGIN_CASE */
 void ecp_invalid_param( )
 {
     mbedtls_ecp_group grp;

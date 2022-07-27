@@ -223,6 +223,34 @@ requires_config_disabled() {
     esac
 }
 
+requires_all_configs_enabled() {
+    if ! $P_QUERY -all $*
+    then
+        SKIP_NEXT="YES"
+    fi
+}
+
+requires_all_configs_disabled() {
+    if $P_QUERY -any $*
+    then
+        SKIP_NEXT="YES"
+    fi
+}
+
+requires_any_configs_enabled() {
+    if ! $P_QUERY -any $*
+    then
+        SKIP_NEXT="YES"
+    fi
+}
+
+requires_any_configs_disabled() {
+    if $P_QUERY -all $*
+    then
+        SKIP_NEXT="YES"
+    fi
+}
+
 get_config_value_or_default() {
     # This function uses the query_config command line option to query the
     # required Mbed TLS compile time configuration from the ssl_server2

@@ -816,7 +816,7 @@ int main( int argc, char *argv[] )
         if( ret != 0 )
         {
             mbedtls_strerror( ret, buf, 1024 );
-            mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_ext_key_usage returned -0x%02x - %s\n\n", -ret, buf );
+            mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_ext_key_usage returned -0x%02x - %s\n\n", (unsigned int) -ret, buf );
             goto exit;
         }
 

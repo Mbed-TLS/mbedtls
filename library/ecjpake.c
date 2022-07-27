@@ -34,12 +34,6 @@
 
 #if !defined(MBEDTLS_ECJPAKE_ALT)
 
-/* Parameter validation macros based on platform_util.h */
-#define ECJPAKE_VALIDATE_RET( cond )    \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_ECP_BAD_INPUT_DATA )
-#define ECJPAKE_VALIDATE( cond )        \
-    MBEDTLS_INTERNAL_VALIDATE( cond )
-
 /*
  * Convert a mbedtls_ecjpake_role to identifier string
  */
@@ -105,8 +99,8 @@ int mbedtls_ecjpake_setup( mbedtls_ecjpake_context *ctx,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    ECJPAKE_VALIDATE_RET( role == MBEDTLS_ECJPAKE_CLIENT ||
-                          role == MBEDTLS_ECJPAKE_SERVER );
+    if( role != MBEDTLS_ECJPAKE_CLIENT && role != MBEDTLS_ECJPAKE_SERVER )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     ctx->role = role;
 

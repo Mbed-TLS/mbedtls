@@ -50,7 +50,7 @@ if( @ARGV ) {
     if (defined($psa_crypto_config_file) && length($psa_crypto_config_file)) {
         -f $psa_crypto_config_file or die "No such file: $psa_crypto_config_file";
     } else {
-        $psa_crypto_config_file = (-d $default_psa_crypto_config_file) ? $default_psa_crypto_config_file : undef;
+        $psa_crypto_config_file = (-f $default_psa_crypto_config_file) ? $default_psa_crypto_config_file : undef;
     }
 } else {
     $mbedtls_config_file = $default_mbedtls_config_file;
@@ -89,7 +89,7 @@ for my $config_file ($mbedtls_config_file, $psa_crypto_config_file) {
         if ($line =~ /^(\/\/)?\s*#\s*define\s+(MBEDTLS_\w+|PSA_WANT_\w+).*/) {
             my $name = $2;
 
-            # Skip over the macro if it is in the ecluded list
+            # Skip over the macro if it is in the excluded list
             next if $name =~ /$excluded_re/;
 
             $config_check .= <<EOT;

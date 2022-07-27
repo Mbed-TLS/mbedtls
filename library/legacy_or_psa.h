@@ -55,7 +55,7 @@
  * - feature is expressed the same way as in PSA_WANT macros, for example:
  *   KEY_TYPE_AES, ALG_SHA_256, ECC_SECP_R1_256;
  * - legacy is either LOWLEVEL or the name of the layer: MD, CIPHER;
- * - condition is ommitted if it's based on availability, else it's
+ * - condition is omitted if it's based on availability, else it's
  *   BASED_ON_USE_PSA.
  *
  * Coming back to the examples above:

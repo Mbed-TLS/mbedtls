@@ -15,9 +15,9 @@
 #   justified, and a github issue is created to track it.
 #
 # WARNING: this script checks out a commit other than the head of the current
-# branch; it checks out the current branch again when running sucessfully,
+# branch; it checks out the current branch again when running successfully,
 # but while the script is running, or if it terminates early in error, you
-# should be aware that yu might be at a different commit than expected.
+# should be aware that you might be at a different commit than expected.
 #
 # NOTE: This is only an example/template script, you should make a copy and
 # edit it to suit your needs. The part that needs editing is at the top.

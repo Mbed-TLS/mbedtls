@@ -294,12 +294,12 @@ available, and "falling back" to PSA only if it's not. The compile-time
 dependency changes from the current one (say, `MD_C` or `AES_C`) to "the
 previous dependency OR PSA Crypto with needed algorithms". When building
 without software implementation, users need to call `psa_crypto_init()` before
-calling any function from these modules. This condition does constitute a
-break of backwards compability, as it was previously impossible to build in
+calling any function from these modules. This condition does not constitute a
+break of backwards compatibility, as it was previously impossible to build in
 those configurations, and in configurations were the build was possible,
-application code keeps working unchanged. An incomplete example of applying
-this strategy, for RSA PKCS#1 v2.1, is here:
-<https://github.com/mpg/mbedtls/pull/4>.
+application code keeps working unchanged. An work-in-progress example of
+applying this strategy, for RSA PKCS#1 v2.1, is here:
+<https://github.com/Mbed-TLS/mbedtls/pull/6141>
 
 There is a problem with the modules used for the PSA RNG, as currently the RNG
 is initialized before drivers and the key store. This part will need further
@@ -354,7 +354,7 @@ It should be noted that there are currently:
 `MBEDTLS_PSA_CRYPTO_CONFIG`, `mbedtls_config.h` + `psa/crypto_config.h`).
 
 As a result, we need more families of dependency macros than we'd like to.
-This is a temporary situation until we move to a place where everthing is
+This is a temporary situation until we move to a place where everything is
 based on PSA Crypto. In the meantime, long and explicit names where chosen for
 the new macros in the hope of avoiding confusion.
 

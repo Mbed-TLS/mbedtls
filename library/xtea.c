@@ -1,5 +1,5 @@
 /*
- *  An 32-bit implementation of the XTEA algorithm
+ *  A 32-bit implementation of the XTEA algorithm
  *
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0

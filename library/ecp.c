@@ -705,7 +705,8 @@ int mbedtls_ecp_point_write_binary( const mbedtls_ecp_group *grp,
 {
     int ret = MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
     size_t plen;
-    if( format != MBEDTLS_ECP_PF_UNCOMPRESSED && format != MBEDTLS_ECP_PF_COMPRESSED )
+    if( format != MBEDTLS_ECP_PF_UNCOMPRESSED &&
+        format != MBEDTLS_ECP_PF_COMPRESSED )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     plen = mbedtls_mpi_size( &grp->P );
@@ -866,7 +867,8 @@ int mbedtls_ecp_tls_write_point( const mbedtls_ecp_group *grp, const mbedtls_ecp
                          unsigned char *buf, size_t blen )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    if( format != MBEDTLS_ECP_PF_UNCOMPRESSED && format != MBEDTLS_ECP_PF_COMPRESSED )
+    if( format != MBEDTLS_ECP_PF_UNCOMPRESSED &&
+        format != MBEDTLS_ECP_PF_COMPRESSED )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     /*

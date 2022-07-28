@@ -2514,12 +2514,15 @@ static int ecp_mul_mxz( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     MPI_ECP_MOV( &PX, &P->X );
     MBEDTLS_MPI_CHK( mbedtls_ecp_copy( &RP, P ) );
 
-    /* Set R to zero in modified x/z coordinates */
+    /*
+     * Set R to zero in modified x/z coordinates.
+     * Free first to make sure R does not have too many limbs
+     * as required by fast quasi-reduction.
+     */
+    mbedtls_mpi_free( &R->X );
+    mbedtls_mpi_free( &R->Z );
     MPI_ECP_LSET( &R->X, 1 );
     MPI_ECP_LSET( &R->Z, 0 );
-    /* Shrink for fast quasi-reduction */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_shrink( &R->X, 1 ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_shrink( &R->Z, 1 ) );
     mbedtls_mpi_free( &R->Y );
 
     /* RP.X might be slightly larger than P, so reduce it */

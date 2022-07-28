@@ -1788,11 +1788,7 @@ static int ssl_check_server_ecdh_params(const mbedtls_ssl_context *ssl)
 {
     uint16_t tls_id;
     mbedtls_ecp_group_id grp_id;
-#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
-    grp_id = ssl->handshake->ecdh_ctx.grp.id;
-#else
     grp_id = ssl->handshake->ecdh_ctx.grp_id;
-#endif
 
     tls_id = mbedtls_ssl_get_tls_id_from_ecp_group_id(grp_id);
     if (tls_id == 0) {

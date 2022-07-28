@@ -34,18 +34,11 @@
 
 #include <string.h>
 
-#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
-typedef mbedtls_ecdh_context mbedtls_ecdh_context_mbed;
-#endif
 
 static mbedtls_ecp_group_id mbedtls_ecdh_grp_id(
     const mbedtls_ecdh_context *ctx)
 {
-#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
-    return ctx->grp.id;
-#else
-    return ctx->grp_id;
-#endif
+    return( ctx->grp_id );
 }
 
 int mbedtls_ecdh_can_do(mbedtls_ecp_group_id gid)
@@ -161,16 +154,9 @@ static void ecdh_init_internal(mbedtls_ecdh_context_mbed *ctx)
  */
 void mbedtls_ecdh_init(mbedtls_ecdh_context *ctx)
 {
-#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
-    ecdh_init_internal(ctx);
-    mbedtls_ecp_point_init(&ctx->Vi);
-    mbedtls_ecp_point_init(&ctx->Vf);
-    mbedtls_mpi_init(&ctx->_d);
-#else
-    memset(ctx, 0, sizeof(mbedtls_ecdh_context));
+    memset( ctx, 0, sizeof( mbedtls_ecdh_context ) );
 
     ctx->var = MBEDTLS_ECDH_VARIANT_NONE;
-#endif
     ctx->point_format = MBEDTLS_ECP_PF_UNCOMPRESSED;
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     ctx->restart_enabled = 0;
@@ -195,10 +181,8 @@ static int ecdh_setup_internal(mbedtls_ecdh_context_mbed *ctx,
  */
 int mbedtls_ecdh_setup(mbedtls_ecdh_context *ctx, mbedtls_ecp_group_id grp_id)
 {
-#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
-    return ecdh_setup_internal(ctx, grp_id);
-#else
-    switch (grp_id) {
+    switch( grp_id )
+    {
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
         case MBEDTLS_ECP_DP_CURVE25519:
             ctx->point_format = MBEDTLS_ECP_PF_COMPRESSED;
@@ -213,7 +197,6 @@ int mbedtls_ecdh_setup(mbedtls_ecdh_context *ctx, mbedtls_ecp_group_id grp_id)
             ecdh_init_internal(&ctx->ctx.mbed_ecdh);
             return ecdh_setup_internal(&ctx->ctx.mbed_ecdh, grp_id);
     }
-#endif
 }
 
 static void ecdh_free_internal(mbedtls_ecdh_context_mbed *ctx)
@@ -248,13 +231,8 @@ void mbedtls_ecdh_free(mbedtls_ecdh_context *ctx)
         return;
     }
 
-#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
-    mbedtls_ecp_point_free(&ctx->Vi);
-    mbedtls_ecp_point_free(&ctx->Vf);
-    mbedtls_mpi_free(&ctx->_d);
-    ecdh_free_internal(ctx);
-#else
-    switch (ctx->var) {
+    switch( ctx->var )
+    {
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
         case MBEDTLS_ECDH_VARIANT_EVEREST:
             mbedtls_everest_free(&ctx->ctx.everest_ecdh);
@@ -270,7 +248,6 @@ void mbedtls_ecdh_free(mbedtls_ecdh_context *ctx)
     ctx->point_format = MBEDTLS_ECP_PF_UNCOMPRESSED;
     ctx->var = MBEDTLS_ECDH_VARIANT_NONE;
     ctx->grp_id = MBEDTLS_ECP_DP_NONE;
-#endif
 }
 
 static int ecdh_make_params_internal(mbedtls_ecdh_context_mbed *ctx,
@@ -349,11 +326,8 @@ int mbedtls_ecdh_make_params(mbedtls_ecdh_context *ctx, size_t *olen,
     (void) restart_enabled;
 #endif
 
-#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
-    return ecdh_make_params_internal(ctx, olen, ctx->point_format, buf, blen,
-                                     f_rng, p_rng, restart_enabled);
-#else
-    switch (ctx->var) {
+    switch( ctx->var )
+    {
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
         case MBEDTLS_ECDH_VARIANT_EVEREST:
             return mbedtls_everest_make_params(&ctx->ctx.everest_ecdh, olen,
@@ -367,7 +341,6 @@ int mbedtls_ecdh_make_params(mbedtls_ecdh_context *ctx, size_t *olen,
         default:
             return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
-#endif
 }
 
 static int ecdh_read_params_internal(mbedtls_ecdh_context_mbed *ctx,
@@ -400,10 +373,8 @@ int mbedtls_ecdh_read_params(mbedtls_ecdh_context *ctx,
         return ret;
     }
 
-#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
-    return ecdh_read_params_internal(ctx, buf, end);
-#else
-    switch (ctx->var) {
+    switch( ctx->var )
+    {
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
         case MBEDTLS_ECDH_VARIANT_EVEREST:
             return mbedtls_everest_read_params(&ctx->ctx.everest_ecdh,
@@ -415,7 +386,6 @@ int mbedtls_ecdh_read_params(mbedtls_ecdh_context *ctx,
         default:
             return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
-#endif
 }
 
 static int ecdh_get_params_internal(mbedtls_ecdh_context_mbed *ctx,
@@ -469,10 +439,8 @@ int mbedtls_ecdh_get_params(mbedtls_ecdh_context *ctx,
         }
     }
 
-#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
-    return ecdh_get_params_internal(ctx, key, side);
-#else
-    switch (ctx->var) {
+    switch( ctx->var )
+    {
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
         case MBEDTLS_ECDH_VARIANT_EVEREST:
         {
@@ -489,7 +457,6 @@ int mbedtls_ecdh_get_params(mbedtls_ecdh_context *ctx,
         default:
             return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
-#endif
 }
 
 static int ecdh_make_public_internal(mbedtls_ecdh_context_mbed *ctx,
@@ -547,11 +514,8 @@ int mbedtls_ecdh_make_public(mbedtls_ecdh_context *ctx, size_t *olen,
     restart_enabled = ctx->restart_enabled;
 #endif
 
-#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
-    return ecdh_make_public_internal(ctx, olen, ctx->point_format, buf, blen,
-                                     f_rng, p_rng, restart_enabled);
-#else
-    switch (ctx->var) {
+    switch( ctx->var )
+    {
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
         case MBEDTLS_ECDH_VARIANT_EVEREST:
             return mbedtls_everest_make_public(&ctx->ctx.everest_ecdh, olen,
@@ -565,7 +529,6 @@ int mbedtls_ecdh_make_public(mbedtls_ecdh_context *ctx, size_t *olen,
         default:
             return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
-#endif
 }
 
 static int ecdh_read_public_internal(mbedtls_ecdh_context_mbed *ctx,
@@ -592,10 +555,8 @@ static int ecdh_read_public_internal(mbedtls_ecdh_context_mbed *ctx,
 int mbedtls_ecdh_read_public(mbedtls_ecdh_context *ctx,
                              const unsigned char *buf, size_t blen)
 {
-#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
-    return ecdh_read_public_internal(ctx, buf, blen);
-#else
-    switch (ctx->var) {
+    switch( ctx->var )
+    {
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
         case MBEDTLS_ECDH_VARIANT_EVEREST:
             return mbedtls_everest_read_public(&ctx->ctx.everest_ecdh,
@@ -607,7 +568,6 @@ int mbedtls_ecdh_read_public(mbedtls_ecdh_context *ctx,
         default:
             return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
-#endif
 }
 
 static int ecdh_calc_secret_internal(mbedtls_ecdh_context_mbed *ctx,
@@ -675,11 +635,8 @@ int mbedtls_ecdh_calc_secret(mbedtls_ecdh_context *ctx, size_t *olen,
     restart_enabled = ctx->restart_enabled;
 #endif
 
-#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
-    return ecdh_calc_secret_internal(ctx, olen, buf, blen, f_rng, p_rng,
-                                     restart_enabled);
-#else
-    switch (ctx->var) {
+    switch( ctx->var )
+    {
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
         case MBEDTLS_ECDH_VARIANT_EVEREST:
             return mbedtls_everest_calc_secret(&ctx->ctx.everest_ecdh, olen,
@@ -692,6 +649,5 @@ int mbedtls_ecdh_calc_secret(mbedtls_ecdh_context *ctx, size_t *olen,
         default:
             return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
-#endif
 }
 #endif /* MBEDTLS_ECDH_C */

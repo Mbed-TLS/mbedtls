@@ -1779,7 +1779,7 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
      * ...
      */
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, 1 );
-    *p++ = 0x0;
+    *p++ = MBEDTLS_SSL_COMPRESS_NULL;
 
     /* ...
      * Extension extensions<6..2^16-1>;

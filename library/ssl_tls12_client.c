@@ -1413,7 +1413,6 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
         ssl->renego_status != MBEDTLS_SSL_INITIAL_HANDSHAKE ||
 #endif
         ssl->session_negotiate->ciphersuite != i ||
-        ssl->session_negotiate->compression != comp ||
         ssl->session_negotiate->id_len != n ||
         memcmp( ssl->session_negotiate->id, buf + 35, n ) != 0 )
     {
@@ -1423,7 +1422,6 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
         ssl->session_negotiate->start = mbedtls_time( NULL );
 #endif
         ssl->session_negotiate->ciphersuite = i;
-        ssl->session_negotiate->compression = comp;
         ssl->session_negotiate->id_len = n;
         memcpy( ssl->session_negotiate->id, buf + 35, n );
     }
@@ -1486,8 +1484,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     }
 #endif
 
-    if( comp != MBEDTLS_SSL_COMPRESS_NULL
-      )
+    if( comp != MBEDTLS_SSL_COMPRESS_NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
         mbedtls_ssl_send_alert_message(
@@ -1496,7 +1493,6 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
             MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
         return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
     }
-    ssl->session_negotiate->compression = comp;
 
     ext = buf + 40 + n;
 

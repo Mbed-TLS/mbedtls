@@ -1298,7 +1298,10 @@ read_record_header:
                    buf + ciph_offset + 2,  ciph_len );
 
     /*
-     * Check the compression algorithms length and pick one
+     * Check the compression algorithm's length.
+     * The list contents are ignored because implementing
+     * MBEDTLS_SSL_COMPRESS_NULL is mandatory and is the only
+     * option supported by Mbed TLS.
      */
     comp_offset = ciph_offset + 2 + ciph_len;
 
@@ -1317,12 +1320,6 @@ read_record_header:
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, compression",
                       buf + comp_offset + 1, comp_len );
 
-    ssl->session_negotiate->compression = MBEDTLS_SSL_COMPRESS_NULL;
-    /* See comments in ssl_write_client_hello() */
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-        ssl->session_negotiate->compression = MBEDTLS_SSL_COMPRESS_NULL;
-#endif
         /*
          * Check the extension length
          */
@@ -2180,8 +2177,7 @@ static void ssl_handle_id_based_session_resumption( mbedtls_ssl_context *ssl )
     if( ret != 0 )
         goto exit;
 
-    if( session->ciphersuite != session_tmp.ciphersuite ||
-        session->compression != session_tmp.compression )
+    if( session->ciphersuite != session_tmp.ciphersuite )
     {
         /* Mismatch between cached and negotiated session */
         goto exit;
@@ -2331,12 +2327,12 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 
     MBEDTLS_PUT_UINT16_BE( ssl->session_negotiate->ciphersuite, p, 0 );
     p += 2;
-    *p++ = MBEDTLS_BYTE_0( ssl->session_negotiate->compression );
+    *p++ = MBEDTLS_BYTE_0( MBEDTLS_SSL_COMPRESS_NULL );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, chosen ciphersuite: %s",
            mbedtls_ssl_get_ciphersuite_name( ssl->session_negotiate->ciphersuite ) ) );
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, compress alg.: 0x%02X",
-                   (unsigned int) ssl->session_negotiate->compression ) );
+                   (unsigned int) MBEDTLS_SSL_COMPRESS_NULL ) );
 
     /*
      *  First write extensions, then the total length

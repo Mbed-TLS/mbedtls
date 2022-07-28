@@ -7322,7 +7322,6 @@ static mbedtls_tls_prf_types tls_prf_get_type( mbedtls_ssl_tls_prf_cb *tls_prf )
  * - [in] ciphersuite
  * - [in] master
  * - [in] encrypt_then_mac
- * - [in] compression
  * - [in] tls_prf: pointer to PRF to use for key derivation
  * - [in] randbytes: buffer holding ServerHello.random + ClientHello.random
  * - [in] tls_version: TLS version
@@ -7998,7 +7997,6 @@ unsigned int mbedtls_ssl_tls12_get_preferred_hash_for_sig_alg(
  * struct {
  *    uint64 start_time;
  *    uint8 ciphersuite[2];           // defined by the standard
- *    uint8 compression;              // 0 or 1
  *    uint8 session_id_len;           // at most 32
  *    opaque session_id[32];
  *    opaque master[48];              // fixed length in the standard
@@ -8046,7 +8044,6 @@ static size_t ssl_tls12_session_save( const mbedtls_ssl_session *session,
      * Basic mandatory fields
      */
     used += 2   /* ciphersuite */
-          + 1   /* compression */
           + 1   /* id_len */
           + sizeof( session->id )
           + sizeof( session->master )
@@ -8056,8 +8053,6 @@ static size_t ssl_tls12_session_save( const mbedtls_ssl_session *session,
     {
         MBEDTLS_PUT_UINT16_BE( session->ciphersuite, p, 0 );
         p += 2;
-
-        *p++ = MBEDTLS_BYTE_0( session->compression );
 
         *p++ = MBEDTLS_BYTE_0( session->id_len );
         memcpy( p, session->id, 32 );
@@ -8202,13 +8197,11 @@ static int ssl_tls12_session_load( mbedtls_ssl_session *session,
     /*
      * Basic mandatory fields
      */
-    if( 2 + 1 + 1 + 32 + 48 + 4 > (size_t)( end - p ) )
+    if( 2 + 1 + 32 + 48 + 4 > (size_t)( end - p ) )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     session->ciphersuite = ( p[0] << 8 ) | p[1];
     p += 2;
-
-    session->compression = *p++;
 
     session->id_len = *p++;
     memcpy( session->id, p, 32 );

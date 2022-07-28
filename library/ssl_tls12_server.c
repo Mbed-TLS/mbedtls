@@ -37,6 +37,12 @@
 #include "constant_time_internal.h"
 #include "mbedtls/constant_time.h"
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#define HASH_MAX_SIZE PSA_HASH_MAX_SIZE
+#else
+#define HASH_MAX_SIZE MBEDTLS_MD_MAX_SIZE
+#endif
+
 #include <string.h>
 
 #if defined(MBEDTLS_ECP_C)
@@ -3059,11 +3065,7 @@ curve_matching_done:
 
         size_t dig_signed_len = ssl->out_msg + ssl->out_msglen - dig_signed;
         size_t hashlen = 0;
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-        unsigned char hash[PSA_HASH_MAX_SIZE];
-#else
-        unsigned char hash[MBEDTLS_MD_MAX_SIZE];
-#endif
+        unsigned char hash[HASH_MAX_SIZE];
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
         /*
@@ -4094,7 +4096,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
     size_t i, sig_len;
-    unsigned char hash[48];
+    unsigned char hash[HASH_MAX_SIZE];
     unsigned char *hash_start = hash;
     size_t hashlen;
     mbedtls_pk_type_t pk_alg;

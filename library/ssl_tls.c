@@ -6918,12 +6918,13 @@ static void ssl_calc_finished_tls_sha384(
 {
     int len = 12;
     const char *sender;
-    unsigned char padbuf[48];
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
+    unsigned char padbuf[PSA_HASH_MAX_SIZE];
     size_t hash_size;
     psa_hash_operation_t sha384_psa = PSA_HASH_OPERATION_INIT;
     psa_status_t status;
 #else
+    unsigned char padbuf[MBEDTLS_MD_MAX_SIZE];
     mbedtls_sha512_context sha512;
 #endif
 

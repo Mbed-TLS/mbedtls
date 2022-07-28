@@ -39,7 +39,10 @@
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "mbedtls/psa_util.h"
 #include "psa/crypto.h"
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#define HASH_MAX_SIZE PSA_HASH_MAX_SIZE
+#else
+#define HASH_MAX_SIZE MBEDTLS_MD_MAX_SIZE
+#endif
 
 #include <string.h>
 
@@ -2388,11 +2391,7 @@ start_processing:
     if( mbedtls_ssl_ciphersuite_uses_server_signature( ciphersuite_info ) )
     {
         size_t sig_len, hashlen;
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-        unsigned char hash[PSA_HASH_MAX_SIZE];
-#else
-        unsigned char hash[MBEDTLS_MD_MAX_SIZE];
-#endif
+        unsigned char hash[HASH_MAX_SIZE];
         mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
         mbedtls_pk_type_t pk_alg = MBEDTLS_PK_NONE;
         unsigned char *params = ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl );
@@ -3360,7 +3359,7 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
         ssl->handshake->ciphersuite_info;
     size_t n = 0, offset = 0;
-    unsigned char hash[48];
+    unsigned char hash[HASH_MAX_SIZE];
     unsigned char *hash_start = hash;
     mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
     size_t hashlen;

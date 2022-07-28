@@ -1,13 +1,8 @@
 /* BEGIN_HEADER */
 #include "mbedtls/rsa.h"
 #include "rsa_alt_helpers.h"
-#include "mbedtls/md5.h"
-#include "mbedtls/sha1.h"
-#include "mbedtls/sha256.h"
-#include "mbedtls/sha512.h"
-#include "mbedtls/entropy.h"
-#include "mbedtls/ctr_drbg.h"
 
+#include "legacy_or_psa.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -83,8 +78,6 @@ void mbedtls_rsa_pkcs1_sign( data_t * message_str, int padding_mode,
                              char * input_N, int radix_E, char * input_E,
                              data_t * result_str, int result )
 {
-    unsigned char hash_result[MBEDTLS_MD_MAX_SIZE];
-    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( digest );
     unsigned char output[256];
     mbedtls_rsa_context ctx;
     mbedtls_mpi N, P, Q, E;
@@ -96,7 +89,6 @@ void mbedtls_rsa_pkcs1_sign( data_t * message_str, int padding_mode,
     TEST_ASSERT( mbedtls_rsa_set_padding( &ctx,padding_mode,
                                           MBEDTLS_MD_NONE ) == 0 );
 
-    memset( hash_result, 0x00, sizeof( hash_result ) );
     memset( output, 0x00, sizeof( output ) );
     memset( &rnd_info, 0, sizeof( mbedtls_test_rnd_pseudo_info ) );
 
@@ -110,12 +102,9 @@ void mbedtls_rsa_pkcs1_sign( data_t * message_str, int padding_mode,
     TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == 0 );
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
 
-    if( md_info != NULL )
-        TEST_ASSERT( mbedtls_md( md_info, message_str->x, message_str->len, hash_result ) == 0 );
-
     TEST_ASSERT( mbedtls_rsa_pkcs1_sign(
                      &ctx, &mbedtls_test_rnd_pseudo_rand, &rnd_info,
-                     digest, mbedtls_md_get_size( md_info ), hash_result,
+                     digest, message_str->len, message_str->x,
                      output ) == result );
     if( result == 0 )
     {
@@ -137,8 +126,6 @@ void mbedtls_rsa_pkcs1_verify( data_t * message_str, int padding_mode,
                                char * input_N, int radix_E, char * input_E,
                                data_t * result_str, int result )
 {
-    unsigned char hash_result[MBEDTLS_MD_MAX_SIZE];
-    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( digest );
     mbedtls_rsa_context ctx;
     mbedtls_mpi N, E;
 
@@ -146,7 +133,6 @@ void mbedtls_rsa_pkcs1_verify( data_t * message_str, int padding_mode,
     mbedtls_rsa_init( &ctx );
     TEST_ASSERT( mbedtls_rsa_set_padding( &ctx, padding_mode,
                                           MBEDTLS_MD_NONE ) == 0 );
-    memset( hash_result, 0x00, sizeof( hash_result ) );
 
     TEST_ASSERT( mbedtls_test_read_mpi( &N, radix_N, input_N ) == 0 );
     TEST_ASSERT( mbedtls_test_read_mpi( &E, radix_E, input_E ) == 0 );
@@ -154,10 +140,7 @@ void mbedtls_rsa_pkcs1_verify( data_t * message_str, int padding_mode,
     TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod / 8 ) );
     TEST_ASSERT( mbedtls_rsa_check_pubkey( &ctx ) == 0 );
 
-    if( md_info != NULL )
-        TEST_ASSERT( mbedtls_md( md_info, message_str->x, message_str->len, hash_result ) == 0 );
-
-    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, digest, mbedtls_md_get_size( md_info ), hash_result, result_str->x ) == result );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, digest, message_str->len, message_str->x, result_str->x ) == result );
 
 exit:
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &E );
@@ -697,23 +680,15 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_CTR_DRBG_C:MBEDTLS_ENTROPY_C:ENTROPY_HAVE_STRONG */
+/* BEGIN_CASE */
 void mbedtls_rsa_gen_key( int nrbits, int exponent, int result)
 {
     mbedtls_rsa_context ctx;
-    mbedtls_entropy_context entropy;
-    mbedtls_ctr_drbg_context ctr_drbg;
-    const char *pers = "test_suite_rsa";
-
-    mbedtls_ctr_drbg_init( &ctr_drbg );
-    mbedtls_entropy_init( &entropy );
     mbedtls_rsa_init ( &ctx );
 
-    TEST_ASSERT( mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func,
-                                        &entropy, (const unsigned char *) pers,
-                                        strlen( pers ) ) == 0 );
-
-    TEST_ASSERT( mbedtls_rsa_gen_key( &ctx, mbedtls_ctr_drbg_random, &ctr_drbg, nrbits, exponent ) == result );
+    /* This test uses an insecure RNG, suitable only for testing.
+     * In production, always use a cryptographically strong RNG! */
+    TEST_ASSERT( mbedtls_rsa_gen_key( &ctx, mbedtls_test_rnd_std_rand, NULL, nrbits, exponent ) == result );
     if( result == 0 )
     {
         TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
@@ -722,12 +697,10 @@ void mbedtls_rsa_gen_key( int nrbits, int exponent, int result)
 
 exit:
     mbedtls_rsa_free( &ctx );
-    mbedtls_ctr_drbg_free( &ctr_drbg );
-    mbedtls_entropy_free( &entropy );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_CTR_DRBG_C:MBEDTLS_ENTROPY_C */
+/* BEGIN_CASE */
 void mbedtls_rsa_deduce_primes( int radix_N, char *input_N,
                                 int radix_D, char *input_D,
                                 int radix_E, char *input_E,
@@ -828,7 +801,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_CTR_DRBG_C:MBEDTLS_ENTROPY_C:ENTROPY_HAVE_STRONG */
+/* BEGIN_CASE */
 void mbedtls_rsa_import( int radix_N, char *input_N,
                          int radix_P, char *input_P,
                          int radix_Q, char *input_Q,
@@ -847,26 +820,17 @@ void mbedtls_rsa_import( int radix_N, char *input_N,
     unsigned char *buf_enc  = NULL;
     unsigned char *buf_dec  = NULL;
 
-    mbedtls_entropy_context entropy;
-    mbedtls_ctr_drbg_context ctr_drbg;
-    const char *pers = "test_suite_rsa";
-
     const int have_N = ( strlen( input_N ) > 0 );
     const int have_P = ( strlen( input_P ) > 0 );
     const int have_Q = ( strlen( input_Q ) > 0 );
     const int have_D = ( strlen( input_D ) > 0 );
     const int have_E = ( strlen( input_E ) > 0 );
 
-    mbedtls_ctr_drbg_init( &ctr_drbg );
-    mbedtls_entropy_init( &entropy );
     mbedtls_rsa_init( &ctx );
 
     mbedtls_mpi_init( &N );
     mbedtls_mpi_init( &P ); mbedtls_mpi_init( &Q );
     mbedtls_mpi_init( &D ); mbedtls_mpi_init( &E );
-
-    TEST_ASSERT( mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
-                                (const unsigned char *) pers, strlen( pers ) ) == 0 );
 
     if( have_N )
         TEST_ASSERT( mbedtls_test_read_mpi( &N, radix_N, input_N ) == 0 );
@@ -941,7 +905,9 @@ void mbedtls_rsa_import( int radix_N, char *input_N,
         if( buf_orig == NULL || buf_enc == NULL || buf_dec == NULL )
             goto exit;
 
-        TEST_ASSERT( mbedtls_ctr_drbg_random( &ctr_drbg,
+        /* This test uses an insecure RNG, suitable only for testing.
+         * In production, always use a cryptographically strong RNG! */
+        TEST_ASSERT( mbedtls_test_rnd_std_rand( NULL,
                               buf_orig, mbedtls_rsa_get_len( &ctx ) ) == 0 );
 
         /* Make sure the number we're generating is smaller than the modulus */
@@ -951,8 +917,10 @@ void mbedtls_rsa_import( int radix_N, char *input_N,
 
         if( is_priv )
         {
-            TEST_ASSERT( mbedtls_rsa_private( &ctx, mbedtls_ctr_drbg_random,
-                                              &ctr_drbg, buf_enc,
+            /* This test uses an insecure RNG, suitable only for testing.
+             * In production, always use a cryptographically strong RNG! */
+            TEST_ASSERT( mbedtls_rsa_private( &ctx, mbedtls_test_rnd_std_rand,
+                                              NULL, buf_enc,
                                               buf_dec ) == 0 );
 
             TEST_ASSERT( memcmp( buf_orig, buf_dec,
@@ -967,9 +935,6 @@ exit:
     mbedtls_free( buf_dec  );
 
     mbedtls_rsa_free( &ctx );
-
-    mbedtls_ctr_drbg_free( &ctr_drbg );
-    mbedtls_entropy_free( &entropy );
 
     mbedtls_mpi_free( &N );
     mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
@@ -1101,7 +1066,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_ENTROPY_C:ENTROPY_HAVE_STRONG:MBEDTLS_ENTROPY_C:MBEDTLS_CTR_DRBG_C */
+/* BEGIN_CASE */
 void mbedtls_rsa_validate_params( int radix_N, char *input_N,
                                   int radix_P, char *input_P,
                                   int radix_Q, char *input_Q,
@@ -1118,19 +1083,9 @@ void mbedtls_rsa_validate_params( int radix_N, char *input_N,
     const int have_D = ( strlen( input_D ) > 0 );
     const int have_E = ( strlen( input_E ) > 0 );
 
-    mbedtls_entropy_context entropy;
-    mbedtls_ctr_drbg_context ctr_drbg;
-    const char *pers = "test_suite_rsa";
-
     mbedtls_mpi_init( &N );
     mbedtls_mpi_init( &P ); mbedtls_mpi_init( &Q );
     mbedtls_mpi_init( &D ); mbedtls_mpi_init( &E );
-
-    mbedtls_ctr_drbg_init( &ctr_drbg );
-    mbedtls_entropy_init( &entropy );
-    TEST_ASSERT( mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func,
-                                        &entropy, (const unsigned char *) pers,
-                                        strlen( pers ) ) == 0 );
 
     if( have_N )
         TEST_ASSERT( mbedtls_test_read_mpi( &N, radix_N, input_N ) == 0 );
@@ -1147,25 +1102,24 @@ void mbedtls_rsa_validate_params( int radix_N, char *input_N,
     if( have_E )
         TEST_ASSERT( mbedtls_test_read_mpi( &E, radix_E, input_E ) == 0 );
 
+    /* This test uses an insecure RNG, suitable only for testing.
+     * In production, always use a cryptographically strong RNG! */
     TEST_ASSERT( mbedtls_rsa_validate_params( have_N ? &N : NULL,
                                         have_P ? &P : NULL,
                                         have_Q ? &Q : NULL,
                                         have_D ? &D : NULL,
                                         have_E ? &E : NULL,
-                                        prng ? mbedtls_ctr_drbg_random : NULL,
-                                        prng ? &ctr_drbg : NULL ) == result );
+                                        prng ? mbedtls_test_rnd_std_rand : NULL,
+                                        prng ? NULL : NULL ) == result );
+
 exit:
-
-    mbedtls_ctr_drbg_free( &ctr_drbg );
-    mbedtls_entropy_free( &entropy );
-
     mbedtls_mpi_free( &N );
     mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
     mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_CTR_DRBG_C:MBEDTLS_ENTROPY_C */
+/* BEGIN_CASE */
 void mbedtls_rsa_export_raw( data_t *input_N, data_t *input_P,
                              data_t *input_Q, data_t *input_D,
                              data_t *input_E, int is_priv,
@@ -1260,7 +1214,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_CTR_DRBG_C:MBEDTLS_ENTROPY_C:ENTROPY_HAVE_STRONG */
+/* BEGIN_CASE */
 void mbedtls_rsa_import_raw( data_t *input_N,
                              data_t *input_P, data_t *input_Q,
                              data_t *input_D, data_t *input_E,
@@ -1275,18 +1229,8 @@ void mbedtls_rsa_import_raw( data_t *input_N,
     unsigned char *buf_dec  = NULL;
 
     mbedtls_rsa_context ctx;
-    mbedtls_entropy_context entropy;
-    mbedtls_ctr_drbg_context ctr_drbg;
 
-    const char *pers = "test_suite_rsa";
-
-    mbedtls_ctr_drbg_init( &ctr_drbg );
-    mbedtls_entropy_init( &entropy );
     mbedtls_rsa_init( &ctx );
-
-    TEST_ASSERT( mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func,
-                                        &entropy, (const unsigned char *) pers,
-                                        strlen( pers ) ) == 0 );
 
     if( !successive )
     {
@@ -1346,7 +1290,9 @@ void mbedtls_rsa_import_raw( data_t *input_N,
         if( buf_orig == NULL || buf_enc == NULL || buf_dec == NULL )
             goto exit;
 
-        TEST_ASSERT( mbedtls_ctr_drbg_random( &ctr_drbg,
+        /* This test uses an insecure RNG, suitable only for testing.
+         * In production, always use a cryptographically strong RNG! */
+        TEST_ASSERT( mbedtls_test_rnd_std_rand( NULL,
                               buf_orig, mbedtls_rsa_get_len( &ctx ) ) == 0 );
 
         /* Make sure the number we're generating is smaller than the modulus */
@@ -1356,8 +1302,10 @@ void mbedtls_rsa_import_raw( data_t *input_N,
 
         if( is_priv )
         {
-            TEST_ASSERT( mbedtls_rsa_private( &ctx, mbedtls_ctr_drbg_random,
-                                              &ctr_drbg, buf_enc,
+            /* This test uses an insecure RNG, suitable only for testing.
+             * In production, always use a cryptographically strong RNG! */
+            TEST_ASSERT( mbedtls_rsa_private( &ctx, mbedtls_test_rnd_std_rand,
+                                              NULL, buf_enc,
                                               buf_dec ) == 0 );
 
             TEST_ASSERT( memcmp( buf_orig, buf_dec,
@@ -1372,10 +1320,6 @@ exit:
     mbedtls_free( buf_dec  );
 
     mbedtls_rsa_free( &ctx );
-
-    mbedtls_ctr_drbg_free( &ctr_drbg );
-    mbedtls_entropy_free( &entropy );
-
 }
 /* END_CASE */
 

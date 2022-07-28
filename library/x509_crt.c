@@ -47,6 +47,7 @@
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
+#include "hash_info.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_PLATFORM_C)
@@ -2379,7 +2380,7 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
             flags |= MBEDTLS_X509_BADCRL_BAD_PK;
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        psa_algorithm = mbedtls_psa_translate_md( crl_list->sig_md );
+        psa_algorithm = mbedtls_hash_info_psa_from_md( crl_list->sig_md );
         if( psa_hash_compute( psa_algorithm,
                               crl_list->tbs.p,
                               crl_list->tbs.len,
@@ -2460,7 +2461,7 @@ static int x509_crt_check_signature( const mbedtls_x509_crt *child,
         return( -1 );
 #else
     unsigned char hash[PSA_HASH_MAX_SIZE];
-    psa_algorithm_t hash_alg = mbedtls_psa_translate_md( child->sig_md );
+    psa_algorithm_t hash_alg = mbedtls_hash_info_psa_from_md( child->sig_md );
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     status = psa_hash_compute( hash_alg,

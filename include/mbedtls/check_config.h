@@ -162,10 +162,6 @@
 #error "MBEDTLS_PKCS12_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_PKCS1_V15) && !defined(MBEDTLS_MD_C)
-#error "MBEDTLS_PKCS1_V15 defined, but not all prerequisites"
-#endif
-
 #if defined(MBEDTLS_PKCS1_V21) && !defined(MBEDTLS_MD_C)
 #error "MBEDTLS_PKCS1_V21 defined, but not all prerequisites"
 #endif
@@ -333,6 +329,17 @@
 #error "!MBEDTLS_SSL_KEEP_PEER_CERTIFICATE requires MBEDTLS_SHA512_C, MBEDTLS_SHA256_C or MBEDTLS_SHA1_C"
 #endif
 
+#if defined(MBEDTLS_MD_C) && !( \
+    defined(MBEDTLS_MD5_C) || \
+    defined(MBEDTLS_RIPEMD160_C) || \
+    defined(MBEDTLS_SHA1_C) || \
+    defined(MBEDTLS_SHA224_C) || \
+    defined(MBEDTLS_SHA256_C) || \
+    defined(MBEDTLS_SHA384_C) || \
+    defined(MBEDTLS_SHA512_C) )
+#error "MBEDTLS_MD_C defined, but not all prerequisites"
+#endif
+
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) &&                          \
     ( !defined(MBEDTLS_PLATFORM_C) || !defined(MBEDTLS_PLATFORM_MEMORY) )
 #error "MBEDTLS_MEMORY_BUFFER_ALLOC_C defined, but not all prerequisites"
@@ -359,7 +366,7 @@
 #endif
 
 #if defined(MBEDTLS_PK_C) && \
-    ( !defined(MBEDTLS_MD_C) || ( !defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_ECP_C) ) )
+    !defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_ECP_C)
 #error "MBEDTLS_PK_C defined, but not all prerequisites"
 #endif
 

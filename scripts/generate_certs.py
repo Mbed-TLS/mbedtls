@@ -26,8 +26,7 @@ import re
 import tempfile
 
 class FormatException(Exception):
-    """ Exception that is raised when file has wrong format
-    """
+    """ Custom Excepion for file format """
     typ = ""
     line = 0
 
@@ -37,37 +36,62 @@ class FormatException(Exception):
         self.line = line
 
     def __str__(self):
+        ret = f"In line #{self.line}, "
         if self.typ == "eof":
-            return "Reached end of file unexpectedly"
-        elif self.typ == "beginline":
-            return f"Begin File has wrong number of parameters on line {self.line}"
-        elif self.typ == "beginbegin":
-            return f"Encountered another Begin File line before End File on line {self.line}"
-        elif self.typ == "nofile":
-            return f"Can't open file specified in line {self.line}"
-        return "Not known format exception"
+            ret += "reached end of file unexpectedly"
+        elif self.typ == "begin-begin":
+            ret += f"Encountered another Begin File line before End File"
+        else:
+            ret += "unknown format exception"
+        return ret
 
-class TypeEncodingException(Exception):
-    def __init__(self, tried, line, *args):
+class WrongParamException(Exception):
+    """ Custom exception for wrong parameters in begin line"""
+    def __init__(self, typ, tried, line, *args):
         super().__init__(args)
+        self.typ = typ
         self.tried = tried
         self.line = line
 
     def __str__(self):
-        return f"""The {self.tried} is not valid type/encoding on line {self.line}.
-                Possible types are macro or variable\n
-                Possible encoding is string and binary"""
+        ret = f"In line #{self.line}, "
+        if self.typ == "type":
+            ret += f"{self.tried} is not valid type.(macro or variable)"
+        elif self.typ == "encoding":
+            ret += f"{self.tried} is not valid encoding.(string or binary)"
+        elif self.typ == "nofile":
+            ret += f"{self.tried} is not valid file path"
+        elif self.typ == "param_num":
+            ret += "wrong number of parameters"
+        else:
+            ret += "unknown param exception"
+        return ret
 
 class CertUpdater:
     """ Updater for certs.c"""
     col = 77
+    file_cert = None
+    tmp = None
+    line_num = 0
+    line = ""
 
     def __init__(self):
         """Instantiate the updater for certs.c
 
         certs: path to certs.c
         """
-        self.certs = "tests/src/certs.c"
+        self.file_cert = open("tests/src/certs.c", "r+")
+        self.tmp = tempfile.TemporaryFile(mode="w+t")
+        self.line_num = 0
+        self.line = ""
+
+    def __del__(self):
+        self.file_cert.close()
+        self.tmp.close()
+
+    def read_line(self):
+        self.line_num += 1
+        self.line = self.file_cert.readline()
 
     @staticmethod
     def byte_to_array(filename):
@@ -138,22 +162,21 @@ class CertUpdater:
         return output
 
     # Extract key or certificate from file.
-    def extract_key(self, enctyp, name, filename, line_num):
+    def extract_key(self, enctyp, name, filename):
         """ Depending on encoding and type it calls appriopriate
         function
 
         enctyp: (encoding , type)
         name: name of variable/macro
         filename: where data is
-        line_num: line number
         """
 
         enc = enctyp[0]
         typ = enctyp[1]
         if enc not in ("string", "binary"):
-            raise TypeEncodingException(enc, line_num)
+            raise WrongParamException("encoding", enc, self.line_num)
         if typ not in ("macro", "variable"):
-            raise TypeEncodingException(typ, line_num)
+            raise WrongParamException("type", typ, self.line_num)
 
         output = ""
         if typ == "variable":
@@ -168,45 +191,45 @@ class CertUpdater:
                 output = self.type_macro_string(name, filename)
         return output
 
+    def deal_with_cert(self):
+        self.tmp.write(self.line)
+        args = re.fullmatch(r"^/\*\s*BEGIN FILE(.*)\*/$\n", self.line).group(1) \
+                                                                    .strip()  \
+                                                                    .split(" ")[0:4]
+        if len(args) != 4:
+            raise WrongParamException("param_num", len(args), self.line_num)
+        try:
+            add = self.extract_key((args[0], args[1]), args[2], args[3])
+        except IOError as er:
+            raise WrongParamException("nofile", args[3], self.line_num)
+        self.tmp.write(add)
+        self.read_line()
+        if not self.line:
+            raise FormatException("eof", self.line_num)
+        while not re.fullmatch(r"^/\*\s*END FILE\s*\*/$\n", self.line):
+            if re.fullmatch(r"^/\*\s*BEGIN FILE.*\*/$\n", self.line):
+                raise FormatException("begin-begin", self.line_num)
+            self.read_line()
+            if not self.line:
+                raise FormatException("eof", self.line_num)
+
+    def load_to_tmpfile(self):
+        self.read_line()
+        while self.line:
+            if re.fullmatch(r"^/\*\s*BEGIN FILE.*\*/$\n", self.line):
+                self.deal_with_cert()
+            self.tmp.write(self.line)
+            self.read_line()
+
     def update(self):
         """ Updates cert file using data given in comment
         sections. Location of certs.c file is hardcoded
         """
-        tempf = tempfile.TemporaryFile(mode="w+")
-        with open(self.certs, "r+") as old_f, open(tempf.name, "w+") as tmp:
-            line_num = 1
-            line = old_f.readline()
-            while line:
-                if re.fullmatch(r"^/\*\s*BEGIN FILE.*\*/$\n", line):
-                    tmp.write(line)
-                    args = re.fullmatch(r"^/\*\s*BEGIN FILE(.*)\*/$\n", line).group(1) \
-                                                                             .strip()  \
-                                                                             .split(" ")[0:4]
-                    if len(args) != 4:
-                        raise FormatException("beginline", line_num)
-                    try:
-                        add = self.extract_key((args[0], args[1]), args[2], args[3], line_num)
-                    except IOError as er:
-                        raise FormatException("nofile", line_num)
-                    tmp.write(add)
-                    line = old_f.readline()
-                    line_num += 1
-                    if not line:
-                        raise FormatException("eof", -1)
-                    while not re.fullmatch(r"^/\*\s*END FILE\s*\*/$\n", line):
-                        if re.fullmatch(r"^/\*\s*BEGIN FILE.*\*/$\n", line):
-                            raise FormatException("beginbegin", line_num)
-                        line = old_f.readline()
-                        line_num += 1
-                        if not line:
-                            raise FormatException("eof", -1)
-                tmp.write(line)
-                line = old_f.readline()
-                line_num += 1
-            tmp.seek(0)
-            old_f.truncate(0)
-            old_f.seek(0)
-            old_f.write(tmp.read())
+        self.load_to_tmpfile()
+        self.file_cert.truncate(0)
+        self.file_cert.seek(0)
+        self.tmp.seek(0)
+        self.file_cert.write(self.tmp.read())
 
 def run_main():
     if not os.path.exists("include/mbedtls"):
@@ -216,7 +239,7 @@ def run_main():
     try:
         updater = CertUpdater()
         updater.update()
-    except TypeEncodingException as ex:
+    except WrongParamException as ex:
         print(ex)
         sys.exit(1)
     except FormatException as ex:

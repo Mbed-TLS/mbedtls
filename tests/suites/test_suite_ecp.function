@@ -424,6 +424,7 @@ void ecp_test_mul( int id, data_t * n_hex,
     mbedtls_ecp_point P, nP, R;
     mbedtls_mpi n;
     mbedtls_test_rnd_pseudo_info rnd_info;
+    int rounds = 0;
 
     mbedtls_ecp_group_init( &grp ); mbedtls_ecp_point_init( &R );
     mbedtls_ecp_point_init( &P ); mbedtls_ecp_point_init( &nP );
@@ -446,15 +447,30 @@ void ecp_test_mul( int id, data_t * n_hex,
     TEST_ASSERT( mbedtls_mpi_read_binary( &nP.Z, nPz_hex->x, nPz_hex->len )
                  == 0 );
 
-    TEST_ASSERT( mbedtls_ecp_mul( &grp, &R, &n, &P,
-                                  &mbedtls_test_rnd_pseudo_rand, &rnd_info )
-                 == expected_ret );
-
-    if( expected_ret == 0 )
+    for( rounds = 0; rounds < 2; ++rounds )
     {
-        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &nP.X, &R.X ) == 0 );
-        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &nP.Y, &R.Y ) == 0 );
-        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &nP.Z, &R.Z ) == 0 );
+        /* Second round, make inputs to mbedtls_ecp_mul() carry many limbs */
+        if( rounds == 1 )
+        {
+            TEST_ASSERT( mbedtls_mpi_grow(&R.X, MBEDTLS_MPI_MAX_LIMBS) == 0);
+            TEST_ASSERT( mbedtls_mpi_grow(&R.Y, MBEDTLS_MPI_MAX_LIMBS) == 0);
+            TEST_ASSERT( mbedtls_mpi_grow(&R.Z, MBEDTLS_MPI_MAX_LIMBS) == 0);
+            TEST_ASSERT( mbedtls_mpi_grow(&n, MBEDTLS_MPI_MAX_LIMBS) == 0);
+            TEST_ASSERT( mbedtls_mpi_grow(&P.X, MBEDTLS_MPI_MAX_LIMBS) == 0);
+            TEST_ASSERT( mbedtls_mpi_grow(&P.Y, MBEDTLS_MPI_MAX_LIMBS) == 0);
+            TEST_ASSERT( mbedtls_mpi_grow(&P.Z, MBEDTLS_MPI_MAX_LIMBS) == 0);
+        }
+
+        TEST_ASSERT( mbedtls_ecp_mul( &grp, &R, &n, &P,
+                                      &mbedtls_test_rnd_pseudo_rand, &rnd_info )
+                     == expected_ret );
+
+        if( expected_ret == 0 )
+        {
+            TEST_ASSERT( mbedtls_mpi_cmp_mpi( &nP.X, &R.X ) == 0 );
+            TEST_ASSERT( mbedtls_mpi_cmp_mpi( &nP.Y, &R.Y ) == 0 );
+            TEST_ASSERT( mbedtls_mpi_cmp_mpi( &nP.Z, &R.Z ) == 0 );
+        }
     }
 
 exit:

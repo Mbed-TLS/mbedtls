@@ -1211,7 +1211,7 @@ static int hash_mprime( const unsigned char *hash, size_t hlen,
 
 #if defined(MBEDTLS_MD_C)
     mbedtls_md_context_t md_ctx;
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( md_alg );
     if( md_info == NULL )
@@ -1238,7 +1238,7 @@ exit:
 #else
     psa_hash_operation_t op = PSA_HASH_OPERATION_INIT;
     psa_algorithm_t alg = mbedtls_psa_translate_md( md_alg );
-    psa_status_t status = PSA_SUCCESS;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED ;
     size_t out_size = PSA_HASH_LENGTH( alg );
     size_t out_len;
 

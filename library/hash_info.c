@@ -22,7 +22,7 @@
 
 #include "hash_info.h"
 #include "legacy_or_psa.h"
-#include "error.h"
+#include "mbedtls/error.h"
 
 typedef struct
 {

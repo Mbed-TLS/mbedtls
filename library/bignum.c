@@ -2803,7 +2803,7 @@ int mbedtls_mpi_gen_prime( mbedtls_mpi *X, size_t nbits, int flags,
         else
         {
             /*
-             * An necessary condition for Y and X = 2Y + 1 to be prime
+             * A necessary condition for Y and X = 2Y + 1 to be prime
              * is X = 2 mod 3 (which is equivalent to Y = 2 mod 3).
              * Make sure it is satisfied, while keeping X = 3 mod 4
              */

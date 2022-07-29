@@ -105,7 +105,7 @@ typedef uint8_t psa_ecc_family_t;
  * Values of this type are generally constructed by macros called
  * `PSA_DH_FAMILY_xxx`.
  *
- * The group identifier is required to create an Diffie-Hellman key using the
+ * The group identifier is required to create a Diffie-Hellman key using the
  * PSA_KEY_TYPE_DH_KEY_PAIR() or PSA_KEY_TYPE_DH_PUBLIC_KEY()
  * macros.
  *

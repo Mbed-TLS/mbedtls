@@ -1265,7 +1265,7 @@
  */
 #define PSA_ALG_CHACHA20_POLY1305               ((psa_algorithm_t)0x05100500)
 
-/* In the encoding of a AEAD algorithm, the bits corresponding to
+/* In the encoding of an AEAD algorithm, the bits corresponding to
  * PSA_ALG_AEAD_TAG_LENGTH_MASK encode the length of the AEAD tag.
  * The constants for default lengths follow this encoding.
  */

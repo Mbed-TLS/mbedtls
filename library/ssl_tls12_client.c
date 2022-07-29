@@ -85,7 +85,7 @@ static int ssl_write_renegotiation_ext( mbedtls_ssl_context *ssl,
 
     *olen = 0;
 
-    /* We're always including an TLS_EMPTY_RENEGOTIATION_INFO_SCSV in the
+    /* We're always including a TLS_EMPTY_RENEGOTIATION_INFO_SCSV in the
      * initial ClientHello, in which case also adding the renegotiation
      * info extension is NOT RECOMMENDED as per RFC 5746 Section 3.4. */
     if( ssl->renego_status != MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS )

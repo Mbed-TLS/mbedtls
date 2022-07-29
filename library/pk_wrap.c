@@ -1470,7 +1470,7 @@ static void *pk_opaque_alloc_wrap( void )
 {
     void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_svc_key_id_t ) );
 
-    /* no _init() function to call, an calloc() already zeroized */
+    /* no _init() function to call, as calloc() already zeroized */
 
     return( ctx );
 }

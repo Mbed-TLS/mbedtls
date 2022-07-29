@@ -24,7 +24,6 @@ void sha256_invalid_param( )
     mbedtls_sha256_context ctx;
     unsigned char buf[64] = { 0 };
     size_t const buflen = sizeof( buf );
-    int valid_type = 0;
     int invalid_type = 42;
 
     TEST_EQUAL( MBEDTLS_ERR_SHA256_BAD_INPUT_DATA,
@@ -73,7 +72,6 @@ void sha512_invalid_param( )
     mbedtls_sha512_context ctx;
     unsigned char buf[64] = { 0 };
     size_t const buflen = sizeof( buf );
-    int valid_type = 0;
     int invalid_type = 42;
 
     TEST_EQUAL( MBEDTLS_ERR_SHA512_BAD_INPUT_DATA,

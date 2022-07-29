@@ -46,11 +46,6 @@
 #include <limits.h>
 #include <stdint.h>
 
-/* Parameter validation macros based on platform_util.h */
-#define PK_VALIDATE_RET( cond )    \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_PK_BAD_INPUT_DATA )
-#define PK_VALIDATE( cond )        \
-    MBEDTLS_INTERNAL_VALIDATE( cond )
 
 /*
  * Initialise a mbedtls_pk_context
@@ -400,8 +395,9 @@ int mbedtls_pk_verify_restartable( mbedtls_pk_context *ctx,
                const unsigned char *sig, size_t sig_len,
                mbedtls_pk_restart_ctx *rs_ctx )
 {
-    PK_VALIDATE_RET( ( md_alg == MBEDTLS_MD_NONE && hash_len == 0 ) ||
-                     hash != NULL );
+    if( ( md_alg != MBEDTLS_MD_NONE || hash_len != 0 ) &&
+        hash == NULL )
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
 
     if( ctx->pk_info == NULL ||
         pk_hashlen_helper( md_alg, &hash_len ) != 0 )
@@ -456,8 +452,9 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
                    const unsigned char *hash, size_t hash_len,
                    const unsigned char *sig, size_t sig_len )
 {
-    PK_VALIDATE_RET( ( md_alg == MBEDTLS_MD_NONE && hash_len == 0 ) ||
-                     hash != NULL );
+    if( ( md_alg != MBEDTLS_MD_NONE || hash_len != 0 ) &&
+        hash == NULL )
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
 
     if( ctx->pk_info == NULL )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
@@ -580,8 +577,9 @@ int mbedtls_pk_sign_restartable( mbedtls_pk_context *ctx,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
              mbedtls_pk_restart_ctx *rs_ctx )
 {
-    PK_VALIDATE_RET( ( md_alg == MBEDTLS_MD_NONE && hash_len == 0 ) ||
-                     hash != NULL );
+    if( ( md_alg != MBEDTLS_MD_NONE || hash_len != 0 ) &&
+        hash == NULL )
+        return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
 
     if( ctx->pk_info == NULL ||
         pk_hashlen_helper( md_alg, &hash_len ) != 0 )

@@ -1295,6 +1295,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
      */
     /* If we've settled on a PSK-based exchange, parse PSK identity ext */
     if( mbedtls_ssl_tls13_some_psk_enabled( ssl ) &&
+        mbedtls_ssl_conf_tls13_some_psk_enabled( ssl ) &&
         ( ssl->handshake->extensions_present & MBEDTLS_SSL_EXT_PRE_SHARED_KEY ) )
     {
         ssl->handshake->update_checksum( ssl, buf,

@@ -515,7 +515,7 @@ int mbedtls_rsa_set_padding( mbedtls_rsa_context *ctx, int padding,
         ( hash_id != MBEDTLS_MD_NONE ) )
     {
         /* Just make sure this hash is supported in this build. */
-        if( mbedtls_hash_info_get_size( hash_id ) == 0 )
+        if( mbedtls_hash_info_psa_from_md( hash_id ) == PSA_ALG_NONE )
             return( MBEDTLS_ERR_RSA_INVALID_PADDING );
     }
 #endif /* MBEDTLS_PKCS1_V21 */

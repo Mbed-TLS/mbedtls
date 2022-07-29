@@ -2360,7 +2360,7 @@ start_processing:
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2 );
         sig_alg = MBEDTLS_GET_UINT16_BE( p, 0 );
         if( mbedtls_ssl_get_pk_type_and_md_alg_from_sig_alg(
-                                            sig_alg, &pk_alg, &md_alg ) != 0 &&
+                            sig_alg, &pk_alg, &md_alg ) != 0 &&
             ! mbedtls_ssl_sig_alg_is_offered( ssl, sig_alg ) &&
             ! mbedtls_ssl_sig_alg_is_supported( ssl, sig_alg ) )
         {

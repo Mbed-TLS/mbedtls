@@ -9189,7 +9189,7 @@ run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.2" \
             -c "fragmenting handshake message" \
             -C "error"
 
-## the test below will time out with certain seed. 
+## the test below will time out with certain seed.
 ## The cause is an openssl bug (https://github.com/openssl/openssl/issues/18887)
 skip_next_test
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS

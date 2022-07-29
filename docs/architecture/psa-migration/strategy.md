@@ -42,9 +42,9 @@ are:
   - When `MBEDTLS_PSA_CRYPTO_C` is enabled and used, applications need to call
     `psa_crypto_init()` before TLS/X.509 uses PSA functions. (This prevents us
 from even enabling the option by default.)
-  - `MBEDTLS_PSA_CRYPTO_C` has a hard depend on `MBEDTLS_ENTROPY_C ||
+  - `MBEDTLS_PSA_CRYPTO_C` has a hard dependency on `MBEDTLS_ENTROPY_C ||
     MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG` but it's
-    currently possible to compilte TLS and X.509 without any of the options.
+    currently possible to compile TLS and X.509 without any of the options.
     Also, we can't just auto-enable `MBEDTLS_ENTROPY_C` as it doesn't build
     out of the box on all platforms, and even less
     `MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG` as it requires a user-provided RNG

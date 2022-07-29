@@ -1,0 +1,4 @@
+Bugfix
+   * Fix a bug that ECP multiplication on Montgomery curve is wrongly rejecting
+     valid input that is used to store result. The rejected input is with many
+     limbs. Fixes #5965.

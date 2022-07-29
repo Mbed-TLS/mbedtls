@@ -144,8 +144,6 @@ Bugfix
      operations psa_mac_compute() and psa_mac_sign_setup().
    * The key usage flags PSA_KEY_USAGE_VERIFY_MESSAGE now allows the MAC
      operations psa_mac_verify() and psa_mac_verify_setup().
-   * Fix a bug that ECP multiplication is wrongly rejecting valid input that is
-     used to store result. The rejected input is with many limbs. Fixes #5965.
 
 Changes
     * Explicitly mark the fields mbedtls_ssl_session.exported and

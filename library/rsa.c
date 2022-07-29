@@ -1098,25 +1098,6 @@ cleanup:
 }
 
 #if defined(MBEDTLS_PKCS1_V21)
-#if !defined(MBEDTLS_MD_C)
-static int ret_from_status( psa_status_t status )
-{
-    switch( status )
-    {
-        case PSA_SUCCESS:
-            return( 0 );
-        case PSA_ERROR_NOT_SUPPORTED:
-            return( MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE );
-        case PSA_ERROR_INVALID_ARGUMENT:
-            return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
-        case PSA_ERROR_INSUFFICIENT_MEMORY:
-            return( MBEDTLS_ERR_MD_ALLOC_FAILED );
-        default:
-            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
-    }
-}
-#endif /* !MBEDTLS_MD_C */
-
 /**
  * Generate and apply the MGF1 operation (from PKCS#1 v2.1) to a buffer.
  *
@@ -1208,7 +1189,7 @@ exit:
 #else
     psa_hash_abort( &op );
 
-    return( ret_from_status( status ) );
+    return( mbedtls_md_error_from_psa( status ) );
 #endif
 }
 
@@ -1276,7 +1257,7 @@ exit:
 exit:
     psa_hash_abort( &op );
 
-    return( ret_from_status( status ) );
+    return( mbedtls_md_error_from_psa( status ) );
 #endif /* !MBEDTLS_MD_C */
 }
 
@@ -1308,7 +1289,7 @@ static int compute_hash( mbedtls_md_type_t md_alg,
 
     status = psa_hash_compute( alg, input, ilen, output, out_size, &out_len );
 
-    return( ret_from_status( status ) );
+    return( mbedtls_md_error_from_psa( status ) );
 #endif /* !MBEDTLS_MD_C */
 }
 #endif /* MBEDTLS_PKCS1_V21 */

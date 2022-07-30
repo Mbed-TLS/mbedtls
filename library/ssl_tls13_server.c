@@ -298,7 +298,7 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
 
         ret = ssl_tls13_offered_psks_check_binder_match(
                                             ssl, binder, binder_len, &alg );
-        if( ret != SSL_TLS1_3_OFFERED_PSK_MATCH )
+        if( ret < 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1,
                 "ssl_tls13_offered_psks_check_binder_match" , ret );
@@ -307,6 +307,9 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
                 MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
             return( ret );
         }
+
+        if( ret != SSL_TLS1_3_OFFERED_PSK_MATCH )
+            continue;
 
         matched_identity = identity_id;
         *psk_alg = alg;

@@ -2498,6 +2498,13 @@ MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_write_binders_of_pre_shared_key_ext(
     mbedtls_ssl_context *ssl,
     unsigned char *buf, unsigned char *end );
+
+/**
+ * \brief Remove psk from handshake context
+ *
+ * \param[in]   ssl     SSL context
+ */
+void mbedtls_ssl_remove_psk( mbedtls_ssl_context *ssl );
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
 #endif /* ssl_misc.h */

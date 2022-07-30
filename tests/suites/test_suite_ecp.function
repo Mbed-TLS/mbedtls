@@ -452,13 +452,13 @@ void ecp_test_mul( int id, data_t * n_hex,
         /* Second round, make inputs to mbedtls_ecp_mul() carry many limbs */
         if( rounds == 1 )
         {
-            TEST_ASSERT( mbedtls_mpi_grow(&R.X, MBEDTLS_MPI_MAX_LIMBS) == 0);
-            TEST_ASSERT( mbedtls_mpi_grow(&R.Y, MBEDTLS_MPI_MAX_LIMBS) == 0);
-            TEST_ASSERT( mbedtls_mpi_grow(&R.Z, MBEDTLS_MPI_MAX_LIMBS) == 0);
-            TEST_ASSERT( mbedtls_mpi_grow(&n, MBEDTLS_MPI_MAX_LIMBS) == 0);
-            TEST_ASSERT( mbedtls_mpi_grow(&P.X, MBEDTLS_MPI_MAX_LIMBS) == 0);
-            TEST_ASSERT( mbedtls_mpi_grow(&P.Y, MBEDTLS_MPI_MAX_LIMBS) == 0);
-            TEST_ASSERT( mbedtls_mpi_grow(&P.Z, MBEDTLS_MPI_MAX_LIMBS) == 0);
+            TEST_ASSERT( mbedtls_mpi_grow( &R.X, MBEDTLS_MPI_MAX_LIMBS ) == 0);
+            TEST_ASSERT( mbedtls_mpi_grow( &R.Y, MBEDTLS_MPI_MAX_LIMBS ) == 0);
+            TEST_ASSERT( mbedtls_mpi_grow( &R.Z, MBEDTLS_MPI_MAX_LIMBS ) == 0);
+            TEST_ASSERT( mbedtls_mpi_grow( &n, MBEDTLS_MPI_MAX_LIMBS ) == 0);
+            TEST_ASSERT( mbedtls_mpi_grow( &P.X, MBEDTLS_MPI_MAX_LIMBS ) == 0);
+            TEST_ASSERT( mbedtls_mpi_grow( &P.Y, MBEDTLS_MPI_MAX_LIMBS ) == 0);
+            TEST_ASSERT( mbedtls_mpi_grow( &P.Z, MBEDTLS_MPI_MAX_LIMBS ) == 0);
         }
 
         TEST_ASSERT( mbedtls_ecp_mul( &grp, &R, &n, &P,

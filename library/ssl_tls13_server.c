@@ -1803,7 +1803,7 @@ static int ssl_tls13_write_server_hello_body( mbedtls_ssl_context *ssl,
     }
     p += output_len;
 
-    if( mbedtls_ssl_conf_tls13_some_ephemeral_enabled( ssl ) )
+    if( mbedtls_ssl_tls13_key_exchange_mode_with_ephemeral( ssl ) )
     {
         if( is_hrr )
             ret = ssl_tls13_write_hrr_key_share_ext( ssl, p, end, &output_len );

@@ -49,12 +49,11 @@ void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
         (void) mbedtls_mpi_core_mla( T, n + 2, N, n, u1 );
     }
 
-    mbedtls_mpi_uint carry, borrow, fixup;
+    mbedtls_mpi_uint carry, borrow;
 
     carry  = T[n];
     borrow = mbedtls_mpi_core_sub( X, T, N, n );
-    fixup  = carry < borrow;
-    (void) mbedtls_mpi_core_add_if( X, N, n, fixup );
+    (void) mbedtls_mpi_core_add_if( X, N, n, ( carry < borrow ) );
 }
 
 mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len,

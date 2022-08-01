@@ -189,7 +189,7 @@ void mbedtls_mpi_read_binary( data_t * buf, char * input_A )
     TEST_ASSERT( mbedtls_mpi_read_binary( &X, buf->x, buf->len ) == 0 );
     TEST_ASSERT( sign_is_valid( &X ) );
     TEST_ASSERT( mbedtls_mpi_write_string( &X, 16, str, sizeof( str ), &len ) == 0 );
-    TEST_ASSERT( strcasecmp( (char *) str, input_A ) == 0 );
+    TEST_ASSERT( strcmp( (char *) str, input_A ) == 0 );
 
 exit:
     mbedtls_mpi_free( &X );
@@ -209,7 +209,7 @@ void mbedtls_mpi_read_binary_le( data_t * buf, char * input_A )
     TEST_ASSERT( mbedtls_mpi_read_binary_le( &X, buf->x, buf->len ) == 0 );
     TEST_ASSERT( sign_is_valid( &X ) );
     TEST_ASSERT( mbedtls_mpi_write_string( &X, 16, str, sizeof( str ), &len ) == 0 );
-    TEST_ASSERT( strcasecmp( (char *) str, input_A ) == 0 );
+    TEST_ASSERT( strcmp( (char *) str, input_A ) == 0 );
 
 exit:
     mbedtls_mpi_free( &X );

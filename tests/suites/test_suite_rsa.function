@@ -688,11 +688,11 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_rsa_deduce_primes( int radix_N, char *input_N,
-                                int radix_D, char *input_D,
-                                int radix_E, char *input_E,
-                                int radix_P, char *output_P,
-                                int radix_Q, char *output_Q,
+void mbedtls_rsa_deduce_primes( char *input_N,
+                                char *input_D,
+                                char *input_E,
+                                char *output_P,
+                                char *output_Q,
                                 int corrupt, int result )
 {
     mbedtls_mpi N, P, Pp, Q, Qp, D, E;
@@ -789,11 +789,11 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_rsa_import( int radix_N, char *input_N,
-                         int radix_P, char *input_P,
-                         int radix_Q, char *input_Q,
-                         int radix_D, char *input_D,
-                         int radix_E, char *input_E,
+void mbedtls_rsa_import( char *input_N,
+                         char *input_P,
+                         char *input_Q,
+                         char *input_D,
+                         char *input_E,
                          int successive,
                          int is_priv,
                          int res_check,
@@ -1054,11 +1054,11 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_rsa_validate_params( int radix_N, char *input_N,
-                                  int radix_P, char *input_P,
-                                  int radix_Q, char *input_Q,
-                                  int radix_D, char *input_D,
-                                  int radix_E, char *input_E,
+void mbedtls_rsa_validate_params( char *input_N,
+                                  char *input_P,
+                                  char *input_Q,
+                                  char *input_D,
+                                  char *input_E,
                                   int prng, int result )
 {
     /* Original MPI's with which we set up the RSA context */

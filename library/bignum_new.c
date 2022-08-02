@@ -82,15 +82,6 @@ size_t mbedtls_mpi_core_bitlen( const mbedtls_mpi_uint *X, size_t nx )
 #define GET_BYTE( X, i )                                \
     ( ( ( X )[( i ) / ciL] >> ( ( ( i ) % ciL ) * 8 ) ) & 0xff )
 
-void mbedtls_mpi_mod_residue_release( mbedtls_mpi_mod_residue *r )
-{
-    if ( r == NULL )
-        return;
-
-    r->n = 0;
-    r->p = NULL;
-}
-
 int mbedtls_mpi_mod_residue_setup( mbedtls_mpi_mod_residue *r,
                                    mbedtls_mpi_mod_modulus *m,
                                    mbedtls_mpi_uint *p,
@@ -106,6 +97,15 @@ int mbedtls_mpi_mod_residue_setup( mbedtls_mpi_mod_residue *r,
     r->p = p;
 
     return( 0 );
+}
+
+void mbedtls_mpi_mod_residue_release( mbedtls_mpi_mod_residue *r )
+{
+    if ( r == NULL )
+        return;
+
+    r->n = 0;
+    r->p = NULL;
 }
 
 void mbedtls_mpi_mod_modulus_init( mbedtls_mpi_mod_modulus *m )
@@ -206,7 +206,6 @@ static int mpi_core_clear( mbedtls_mpi_uint *X,
 
 /* Convert a big-endian byte array aligned to the size of mbedtls_mpi_uint
  * into the storage form used by mbedtls_mpi. */
-
 static mbedtls_mpi_uint mpi_bigendian_to_host_c( mbedtls_mpi_uint x )
 {
     uint8_t i;

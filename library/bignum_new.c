@@ -143,19 +143,19 @@ void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m )
 }
 
 int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,
-                                   mbedtls_mpi_uint *X,
-                                   size_t nx,
+                                   mbedtls_mpi_uint *p,
+                                   size_t pn,
                                    int ext_rep,
                                    int int_rep )
 {
     int ret = 0;
 
-    if ( X == NULL || m == NULL )
+    if ( p == NULL || m == NULL )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
-    m->p = X;
-    m->n = nx;
-    m->plen = mbedtls_mpi_core_bitlen( X, nx );
+    m->p = p;
+    m->n = pn;
+    m->plen = mbedtls_mpi_core_bitlen( p, pn );
 
     switch( ext_rep )
     {

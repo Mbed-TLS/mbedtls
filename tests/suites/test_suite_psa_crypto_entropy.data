@@ -43,3 +43,6 @@ validate_entropy_seed_injection:MBEDTLS_ENTROPY_BLOCK_SIZE-1:PSA_ERROR_INVALID_A
 PSA validate entropy injection: before and after crypto_init
 run_entropy_inject_with_crypto_init:
 
+PSA validate entropy collection: basic tests
+depends_on: MBEDTLS_ENTROPY_PSA:PSA_CRYPTO_DRIVER_TEST
+validate_get_entropy_driver_without_entropy:

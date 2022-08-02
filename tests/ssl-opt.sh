@@ -1184,7 +1184,7 @@ do_run_test_once() {
     # terminate the server (and the proxy)
     kill $SRV_PID
     # For Ubuntu 22.04, `Terminated` message is outputed by wait command.
-    # To remove it from stdout, redirect stdout/stderr to CLI_OUT
+    # To remove it from stdout, redirect stdout/stderr to SRV_OUT
     wait $SRV_PID >> $SRV_OUT 2>&1
     SRV_RET=$?
 

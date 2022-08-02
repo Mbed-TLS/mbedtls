@@ -22,7 +22,7 @@
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 
-#include <psa_crypto_cipher.h>
+#include "psa_crypto_cipher.h"
 #include "psa_crypto_core.h"
 #include "psa_crypto_random_impl.h"
 

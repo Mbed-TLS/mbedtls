@@ -130,7 +130,7 @@ void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m )
         case MBEDTLS_MPI_MOD_REP_MONTGOMERY:
             mbedtls_free( m->rep.mont ); break;
         case MBEDTLS_MPI_MOD_REP_OPT_RED:
-            mbedtls_free( m->rep.mont ); break;
+            mbedtls_free( m->rep.ored ); break;
         default:
             break;
     }

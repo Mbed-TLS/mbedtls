@@ -36,9 +36,9 @@
 #else
 #include <stdio.h>
 #include <stdlib.h>
-#define mbedtls_printf     printf
-#define mbedtls_calloc    calloc
-#define mbedtls_free       free
+#define mbedtls_printf      printf
+#define mbedtls_calloc      calloc
+#define mbedtls_free        free
 #endif
 
 /*

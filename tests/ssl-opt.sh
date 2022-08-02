@@ -9203,7 +9203,7 @@ run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.0" \
             0 \
             -s "fragmenting handshake message"
 
-## The four tests below require 1.1.1a or higher version of openssl, otherwise
+## The two tests below require 1.1.1a or higher version of openssl, otherwise
 ## it might trigger a bug due to openssl (https://github.com/openssl/openssl/issues/6902)
 requires_openssl_next
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
@@ -9239,7 +9239,9 @@ run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.0" \
             -c "fragmenting handshake message" \
             -C "error"
 
-requires_openssl_next
+## the two tests below will time out with certain seed.
+## The cause is an openssl bug (https://github.com/openssl/openssl/issues/18887)
+skip_next_test
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -9257,7 +9259,7 @@ run_test    "DTLS fragmenting: 3d, openssl client, DTLS 1.2" \
 
 # -nbio is added to prevent s_client from blocking in case of duplicated
 # messages at the end of the handshake
-requires_openssl_next
+skip_next_test
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -10291,7 +10293,7 @@ client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, openssl server, fragmentation, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5 protect_hvr=1" \
-            "$O_SRV -dtls1 -mtu 768" \
+            "$O_NEXT_SRV -dtls1 -mtu 768" \
             "$P_CLI dgram_packing=0 dtls=1 hs_timeout=500-60000 nbio=2 tickets=0" \
             0 \
             -c "HTTP/1.0 200 OK"

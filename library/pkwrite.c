@@ -59,7 +59,6 @@
 #define mbedtls_free       free
 #endif
 
-
 #if defined(MBEDTLS_RSA_C)
 /*
  *  RSAPublicKey ::= SEQUENCE {
@@ -176,7 +175,6 @@ int mbedtls_pk_write_pubkey( unsigned char **p, unsigned char *start,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len = 0;
-
 
 #if defined(MBEDTLS_RSA_C)
     if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_RSA )
@@ -487,7 +485,6 @@ int mbedtls_pk_write_pubkey_pem( const mbedtls_pk_context *key, unsigned char *b
     unsigned char output_buf[PUB_DER_MAX_BYTES];
     size_t olen = 0;
 
-
     if( ( ret = mbedtls_pk_write_pubkey_der( key, output_buf,
                                      sizeof(output_buf) ) ) < 0 )
     {
@@ -510,7 +507,6 @@ int mbedtls_pk_write_key_pem( const mbedtls_pk_context *key, unsigned char *buf,
     unsigned char output_buf[PRV_DER_MAX_BYTES];
     const char *begin, *end;
     size_t olen = 0;
-
 
     if( ( ret = mbedtls_pk_write_key_der( key, output_buf, sizeof(output_buf) ) ) < 0 )
         return( ret );

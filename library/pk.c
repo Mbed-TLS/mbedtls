@@ -46,13 +46,11 @@
 #include <limits.h>
 #include <stdint.h>
 
-
 /*
  * Initialise a mbedtls_pk_context
  */
 void mbedtls_pk_init( mbedtls_pk_context *ctx )
 {
-
     ctx->pk_info = NULL;
     ctx->pk_ctx = NULL;
 }
@@ -395,8 +393,7 @@ int mbedtls_pk_verify_restartable( mbedtls_pk_context *ctx,
                const unsigned char *sig, size_t sig_len,
                mbedtls_pk_restart_ctx *rs_ctx )
 {
-    if( ( md_alg != MBEDTLS_MD_NONE || hash_len != 0 ) &&
-        hash == NULL )
+    if( ( md_alg != MBEDTLS_MD_NONE || hash_len != 0 ) && hash == NULL )
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
 
     if( ctx->pk_info == NULL ||
@@ -452,8 +449,7 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
                    const unsigned char *hash, size_t hash_len,
                    const unsigned char *sig, size_t sig_len )
 {
-    if( ( md_alg != MBEDTLS_MD_NONE || hash_len != 0 ) &&
-        hash == NULL )
+    if( ( md_alg != MBEDTLS_MD_NONE || hash_len != 0 ) && hash == NULL )
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
 
     if( ctx->pk_info == NULL )
@@ -577,12 +573,10 @@ int mbedtls_pk_sign_restartable( mbedtls_pk_context *ctx,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
              mbedtls_pk_restart_ctx *rs_ctx )
 {
-    if( ( md_alg != MBEDTLS_MD_NONE || hash_len != 0 ) &&
-        hash == NULL )
+    if( ( md_alg != MBEDTLS_MD_NONE || hash_len != 0 ) && hash == NULL )
         return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
 
-    if( ctx->pk_info == NULL ||
-        pk_hashlen_helper( md_alg, &hash_len ) != 0 )
+    if( ctx->pk_info == NULL || pk_hashlen_helper( md_alg, &hash_len ) != 0 )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
@@ -695,7 +689,6 @@ int mbedtls_pk_decrypt( mbedtls_pk_context *ctx,
                 unsigned char *output, size_t *olen, size_t osize,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
-
     if( ctx->pk_info == NULL )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
@@ -714,7 +707,6 @@ int mbedtls_pk_encrypt( mbedtls_pk_context *ctx,
                 unsigned char *output, size_t *olen, size_t osize,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
-
     if( ctx->pk_info == NULL )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
@@ -733,7 +725,6 @@ int mbedtls_pk_check_pair( const mbedtls_pk_context *pub,
                            int (*f_rng)(void *, unsigned char *, size_t),
                            void *p_rng )
 {
-
     if( pub->pk_info == NULL ||
         prv->pk_info == NULL )
     {

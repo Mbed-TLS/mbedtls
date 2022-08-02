@@ -56,7 +56,6 @@
 #define mbedtls_free       free
 #endif
 
-
 #if defined(MBEDTLS_FS_IO)
 /*
  * Load all data from a file into a given buffer.
@@ -69,7 +68,6 @@ int mbedtls_pk_load_file( const char *path, unsigned char **buf, size_t *n )
 {
     FILE *f;
     long size;
-
 
     if( ( f = fopen( path, "rb" ) ) == NULL )
         return( MBEDTLS_ERR_PK_FILE_IO_ERROR );
@@ -125,7 +123,6 @@ int mbedtls_pk_parse_keyfile( mbedtls_pk_context *ctx,
     size_t n;
     unsigned char *buf;
 
-
     if( ( ret = mbedtls_pk_load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
@@ -149,7 +146,6 @@ int mbedtls_pk_parse_public_keyfile( mbedtls_pk_context *ctx, const char *path )
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t n;
     unsigned char *buf;
-
 
     if( ( ret = mbedtls_pk_load_file( path, &buf, &n ) ) != 0 )
         return( ret );
@@ -607,7 +603,6 @@ int mbedtls_pk_parse_subpubkey( unsigned char **p, const unsigned char *end,
     mbedtls_asn1_buf alg_params;
     mbedtls_pk_type_t pk_alg = MBEDTLS_PK_NONE;
     const mbedtls_pk_info_t *pk_info;
-
 
     if( ( ret = mbedtls_asn1_get_tag( p, end, &len,
                     MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )

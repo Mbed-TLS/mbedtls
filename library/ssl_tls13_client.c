@@ -664,10 +664,68 @@ static int ssl_tls13_write_psk_key_exchange_modes_ext( mbedtls_ssl_context *ssl,
     ssl->handshake->extensions_present |= MBEDTLS_SSL_EXT_PSK_KEY_EXCHANGE_MODES;
     return ( 0 );
 }
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+
+/* Check if we have any PSK to offer, returns 0 if PSK is available.
+ * Assign the psk and ticket if pointers are present.
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_get_psk_to_offer(
+        const mbedtls_ssl_context *ssl,
+        int *psk_type,
+        const unsigned char **psk, size_t *psk_len,
+        const unsigned char **psk_identity, size_t *psk_identity_len )
+{
+    if( psk_type == NULL ||
+        psk == NULL || psk_len == NULL ||
+        psk_identity == NULL || psk_identity_len == NULL )
+    {
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+    *psk = NULL;
+    *psk_len = 0;
+    *psk_identity = NULL;
+    *psk_identity_len = 0;
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    /* Check if a ticket has been configured. */
+    if( ssl->session_negotiate != NULL         &&
+        ssl->session_negotiate->ticket != NULL )
+    {
+#if defined(MBEDTLS_HAVE_TIME)
+        mbedtls_time_t now = mbedtls_time( NULL );
+
+        if( ( ssl->session_negotiate->ticket_received <= now &&
+              now - ssl->session_negotiate->ticket_received < 7 * 86400 * 1000 ) )
+        {
+            *psk_type = MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION;
+            *psk = ssl->session_negotiate->resumption_key;
+            *psk_len = ssl->session_negotiate->resumption_key_len;
+            *psk_identity = ssl->session_negotiate->ticket;
+            *psk_identity_len = ssl->session_negotiate->ticket_len;
+            return( 0 );
+        }
+#endif /* MBEDTLS_HAVE_TIME */
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "ticket expired" ) );
+    }
+#endif
+
+    /* Check if an external PSK has been configured. */
+    if( ssl->conf->psk != NULL )
+    {
+        *psk_type = MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL;
+        *psk = ssl->conf->psk;
+        *psk_len = ssl->conf->psk_len;
+        *psk_identity = ssl->conf->psk_identity;
+        *psk_identity_len = ssl->conf->psk_identity_len;
+        return( 0 );
+    }
+
+    return( 1 );
+}
 
 /*
- * mbedtls_ssl_tls13_write_pre_shared_key_ext() structure:
+ * mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext() structure:
  *
  * struct {
  *   opaque identity<1..2^16-1>;
@@ -689,9 +747,6 @@ static int ssl_tls13_write_psk_key_exchange_modes_ext( mbedtls_ssl_context *ssl,
  * } PreSharedKeyExtension;
  *
  */
-
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
-
 int mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext(
     mbedtls_ssl_context *ssl,
     unsigned char *buf, unsigned char *end,
@@ -725,9 +780,8 @@ int mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext(
      *   configured, offer that.
      * - Otherwise, skip the PSK extension.
      */
-
-    if( mbedtls_ssl_get_psk_to_offer( ssl, &psk_type, &psk, &psk_len,
-                                      &psk_identity, &psk_identity_len ) != 0 )
+    if( ssl_tls13_get_psk_to_offer( ssl, &psk_type, &psk, &psk_len,
+                                    &psk_identity, &psk_identity_len ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "skip pre_shared_key extensions" ) );
         return( 0 );
@@ -831,8 +885,8 @@ int mbedtls_ssl_tls13_write_binders_of_pre_shared_key_ext(
     unsigned char transcript[MBEDTLS_MD_MAX_SIZE];
     size_t transcript_len;
 
-    if( mbedtls_ssl_get_psk_to_offer( ssl, &psk_type, &psk, &psk_len,
-                                      &psk_identity, &psk_identity_len ) != 0 )
+    if( ssl_tls13_get_psk_to_offer( ssl, &psk_type, &psk, &psk_len,
+                                    &psk_identity, &psk_identity_len ) != 0 )
     {
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
@@ -1266,15 +1320,15 @@ static int ssl_tls13_parse_server_pre_shared_key_ext( mbedtls_ssl_context *ssl,
     size_t psk_len;
     const unsigned char *psk_identity;
     size_t psk_identity_len;
-
+    int psk_type;
 
     /* Check which PSK we've offered.
      *
      * NOTE: Ultimately, we want to offer multiple PSKs, and in this
      *       case, we need to iterate over them here.
      */
-    if( mbedtls_ssl_get_psk_to_offer( ssl, NULL, &psk, &psk_len,
-                                      &psk_identity, &psk_identity_len ) != 0 )
+    if( ssl_tls13_get_psk_to_offer( ssl, &psk_type, &psk, &psk_len,
+                                    &psk_identity, &psk_identity_len ) != 0 )
     {
         /* If we haven't offered a PSK, the server must not send
          * a PSK identity extension. */
@@ -2404,6 +2458,9 @@ static int ssl_tls13_parse_new_session_ticket( mbedtls_ssl_context *ssl,
                                ret );
         return( ret );
     }
+
+    /* session has been updated, allow export */
+    session->exported = 0;
 
     return( 0 );
 }

@@ -1505,41 +1505,4 @@ int mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
 }
 #endif /* MBEDTLS_ECDH_C */
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
-/* Check if we have any PSK to offer, returns 0 if PSK is available.
- * Assign the psk and ticket if pointers are present.
- */
-int mbedtls_ssl_get_psk_to_offer(
-        const mbedtls_ssl_context *ssl,
-        int *psk_type,
-        const unsigned char **psk, size_t *psk_len,
-        const unsigned char **psk_identity, size_t *psk_identity_len )
-{
-    int ptrs_present = 0;
-
-    if( psk_type != NULL && psk != NULL && psk_len != NULL &&
-        psk_identity != NULL && psk_identity_len != NULL )
-    {
-        ptrs_present = 1;
-    }
-
-    /* Check if an external PSK has been configured. */
-    if( ssl->conf->psk != NULL )
-    {
-        if( ptrs_present )
-        {
-            *psk_type = MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL;
-            *psk = ssl->conf->psk;
-            *psk_len = ssl->conf->psk_len;
-            *psk_identity = ssl->conf->psk_identity;
-            *psk_identity_len = ssl->conf->psk_identity_len;
-        }
-
-        return( 0 );
-    }
-
-    return( 1 );
-}
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
-
 #endif /* MBEDTLS_SSL_TLS_C && MBEDTLS_SSL_PROTO_TLS1_3 */

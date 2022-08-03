@@ -11,6 +11,16 @@
 #define MPI_MAX_BITS_LARGER_THAN_792
 #endif
 
+#define ciL    (sizeof(mbedtls_mpi_uint))   /* chars in limb  */
+#define biL    (ciL << 3)                   /* bits  in limb  */
+
+/*
+ * Convert between bits/chars and number of limbs
+ * Divide first in order to avoid potential overflows
+ */
+#define BITS_TO_LIMBS(i)  ( (i) / biL + ( (i) % biL != 0 ) )
+#define CHARS_TO_LIMBS(i) ( (i) / ciL + ( (i) % ciL != 0 ) )
+
 /* Check the validity of the sign bit in an MPI object. Reject representations
  * that are not supported by the rest of the library and indicate a bug when
  * constructing the value. */

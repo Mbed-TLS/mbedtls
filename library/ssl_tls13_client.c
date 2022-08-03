@@ -1895,7 +1895,12 @@ static int ssl_tls13_parse_encrypted_extensions( mbedtls_ssl_context *ssl,
          */
         switch( extension_type )
         {
+            case MBEDTLS_TLS_EXT_SERVERNAME:
+                MBEDTLS_SSL_DEBUG_MSG( 3, ( "found server_name extension" ) );
 
+                /* The server_name extension should be an empty extension */
+
+                break;
             case MBEDTLS_TLS_EXT_SUPPORTED_GROUPS:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found extensions supported groups" ) );
                 break;

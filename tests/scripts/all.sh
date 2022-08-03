@@ -1884,13 +1884,9 @@ component_test_psa_crypto_config_accel_hash_use_psa () {
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
-    scripts/config.py unset MBEDTLS_SSL_CLI_C
     scripts/config.py unset MBEDTLS_SSL_DTLS_ANTI_REPLAY
     scripts/config.py unset MBEDTLS_SSL_SERVER_NAME_INDICATION
-    scripts/config.py unset MBEDTLS_SSL_SRV_C
-    scripts/config.py unset MBEDTLS_SSL_TLS_C
     # TLS 1.2 currently depends on SHA1_C || SHA256_C || SHA512_C
-    scripts/config.py unset MBEDTLS_SSL_PROTO_TLS1_2
     scripts/config.py unset MBEDTLS_SSL_ENCRYPT_THEN_MAC
     scripts/config.py unset MBEDTLS_SSL_EXTENDED_MASTER_SECRET
     scripts/config.py unset MBEDTLS_SSL_PROTO_DTLS

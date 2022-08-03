@@ -2753,6 +2753,7 @@ int main( int argc, char *argv[] )
     }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     /* The default algorithms profile disables SHA-1, but our tests still
        rely on it heavily. Hence we allow it here. A real-world server
        should use the default profile unless there is a good reason not to. */
@@ -2762,6 +2763,7 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_conf_cert_profile( &conf, &crt_profile_for_test );
         mbedtls_ssl_conf_sig_algs( &conf, ssl_sig_algs_for_test );
     }
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     if( opt.auth_mode != DFL_AUTH_MODE )

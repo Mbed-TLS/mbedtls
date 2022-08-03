@@ -742,8 +742,9 @@
 #error "MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY defined on non-Aarch64 system"
 #endif
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && ( !defined(MBEDTLS_SHA1_C) &&     \
-    !defined(MBEDTLS_SHA256_C) && !defined(MBEDTLS_SHA512_C) )
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) &&\
+    (!defined(MBEDTLS_USE_PSA_CRYPTO) &&\
+    !(defined(MBEDTLS_SHA1_C) || defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA512_c) ) )
 #error "MBEDTLS_SSL_PROTO_TLS1_2 defined, but not all prerequisites"
 #endif
 
@@ -792,7 +793,7 @@
 #endif
 
 #if defined(MBEDTLS_SSL_TLS_C) && ( !defined(MBEDTLS_CIPHER_C) ||     \
-    !defined(MBEDTLS_MD_C) )
+    ( !defined(MBEDTLS_MD_C) && !defined(MBEDTLS_USE_PSA_CRYPTO) ) )
 #error "MBEDTLS_SSL_TLS_C defined, but not all prerequisites"
 #endif
 

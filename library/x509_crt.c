@@ -82,6 +82,7 @@
 #else
 #include <dirent.h>
 #endif /* __MBED__ */
+#include <errno.h>
 #endif /* !_WIN32 || EFIX64 || EFI32 */
 #endif
 
@@ -1658,8 +1659,22 @@ cleanup:
         }
         else if( stat( entry_name, &sb ) == -1 )
         {
-            ret = MBEDTLS_ERR_X509_FILE_IO_ERROR;
-            goto cleanup;
+            if( errno == ENOENT )
+            {
+                /* Broken symbolic link - ignore this entry.
+                    stat(2) will return this error for either (a) a dangling
+                    symlink or (b) a missing file.
+                    Given that we have just obtained the filename from readdir,
+                    assume that it does exist and therefore treat this as a
+                    dangling symlink. */
+                continue;
+            }
+            else
+            {
+                /* Some other file error; report the error. */
+                ret = MBEDTLS_ERR_X509_FILE_IO_ERROR;
+                goto cleanup;
+            }
         }
 
         if( !S_ISREG( sb.st_mode ) )

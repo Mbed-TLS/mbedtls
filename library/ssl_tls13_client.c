@@ -811,6 +811,25 @@ int mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext(
             break;
         }
     }
+    else
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    if( psk_type == MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION )
+    {
+#if defined(MBEDTLS_HAVE_TIME)
+        mbedtls_time_t now = mbedtls_time( NULL );
+        obfuscated_ticket_age =
+            (uint32_t)( now - ssl->session_negotiate->ticket_received ) +
+            ssl->session_negotiate->ticket_age_add;
+#endif
+    }
+    else
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "write_identities_of_pre_shared_key_ext: "
+                                    "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+
 
     ciphersuite_info = mbedtls_ssl_ciphersuite_from_id(
             ssl->session_negotiate->ciphersuite );

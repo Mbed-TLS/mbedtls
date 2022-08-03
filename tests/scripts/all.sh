@@ -1876,14 +1876,6 @@ component_test_psa_crypto_config_accel_hash_use_psa () {
     scripts/config.py unset MBEDTLS_PKCS12_C
     scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
-    # X.509 currently depends on MD_C
-    scripts/config.py unset MBEDTLS_X509_CREATE_C
-    scripts/config.py unset MBEDTLS_X509_CRL_PARSE_C
-    scripts/config.py unset MBEDTLS_X509_CRT_PARSE_C
-    scripts/config.py unset MBEDTLS_X509_CRT_WRITE_C
-    scripts/config.py unset MBEDTLS_X509_CSR_PARSE_C
-    scripts/config.py unset MBEDTLS_X509_CSR_WRITE_C
-    scripts/config.py unset MBEDTLS_X509_USE_C
     # TLS currently depends on MD_C
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
     scripts/config.py unset MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED

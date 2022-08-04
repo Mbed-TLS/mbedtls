@@ -345,9 +345,6 @@ int mbedtls_dhm_make_public( mbedtls_dhm_context *ctx, int x_size,
     DHM_VALIDATE_RET( output != NULL );
     DHM_VALIDATE_RET( f_rng != NULL );
 
-    if( olen < 1 || olen > mbedtls_dhm_get_len( ctx ) )
-        return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
-
     ret = dhm_make_common( ctx, x_size, f_rng, p_rng );
     if( ret == MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED )
         return( MBEDTLS_ERR_DHM_MAKE_PUBLIC_FAILED );

@@ -29,6 +29,7 @@
 #include "mbedtls/cipher.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
+#include "legacy_or_psa.h"
 
 #include <string.h>
 
@@ -40,13 +41,17 @@
 #define mbedtls_free       free
 #endif
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "psa/crypto.h"
+#endif
+
 #if defined(MBEDTLS_PEM_PARSE_C)
 void mbedtls_pem_init( mbedtls_pem_context *ctx )
 {
     memset( ctx, 0, sizeof( mbedtls_pem_context ) );
 }
 
-#if defined(MBEDTLS_MD5_C) && defined(MBEDTLS_CIPHER_MODE_CBC) &&         \
+#if defined(MBEDTLS_HAS_ALG_MD5_VIA_MD_OR_PSA) && defined(MBEDTLS_CIPHER_MODE_CBC) &&         \
     ( defined(MBEDTLS_DES_C) || defined(MBEDTLS_AES_C) )
 /*
  * Read a 16-byte hex string and convert it to binary
@@ -73,6 +78,118 @@ static int pem_get_iv( const unsigned char *s, unsigned char *iv,
     return( 0 );
 }
 
+#if !defined(MBEDTLS_MD5_C)
+static int pem_pbkdf1( unsigned char *key, size_t keylen,
+                       unsigned char *iv,
+                       const unsigned char *pwd, size_t pwdlen )
+{
+    unsigned char md5sum[16];
+    psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
+    size_t output_length = 0;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+
+    status = psa_hash_setup( &operation, PSA_ALG_MD5 );
+    if( status != PSA_SUCCESS )
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        goto exit;
+    }
+    status = psa_hash_update( &operation, pwd, pwdlen );
+    if( status != PSA_SUCCESS )
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        goto exit;
+    }
+    status = psa_hash_update( &operation, iv, 8 );
+    if( status != PSA_SUCCESS )
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        goto exit;
+    }
+    status = psa_hash_finish( &operation, md5sum,
+                                 PSA_HASH_LENGTH( PSA_ALG_MD5 ),
+                                 &output_length );
+    if( status != PSA_SUCCESS )
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        goto exit;
+    }
+    status = psa_hash_abort( &operation );
+    if( status != PSA_SUCCESS )
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        goto exit;
+    }
+
+    /*
+     * key[ 0..15] = MD5(pwd || IV)
+     */
+    if( keylen <= 16 )
+    {
+        memcpy( key, md5sum, keylen );
+        goto exit;
+    }
+
+    memcpy( key, md5sum, 16 );
+
+    /*
+     * key[16..23] = MD5(key[ 0..15] || pwd || IV])
+     */
+    status = psa_hash_setup( &operation, PSA_ALG_MD5 );
+    if( status != PSA_SUCCESS )
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        goto exit;
+    }
+    status = psa_hash_update( &operation, md5sum, 16 );
+    if( status != PSA_SUCCESS )
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        goto exit;
+    }
+    status = psa_hash_update( &operation, pwd, pwdlen );
+    if( status != PSA_SUCCESS )
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        goto exit;
+    }
+    status = psa_hash_update( &operation, iv, 8 );
+    if( status != PSA_SUCCESS )
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        goto exit;
+    }
+    status = psa_hash_finish( &operation, md5sum,
+                                 PSA_HASH_LENGTH( PSA_ALG_MD5 ),
+                                 &output_length );
+    if( status != PSA_SUCCESS )
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        goto exit;
+    }
+    status = psa_hash_abort( &operation );
+    if( status != PSA_SUCCESS )
+    {
+        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+        goto exit;
+    }
+
+    size_t use_len = 16;
+    if( keylen < 32 )
+        use_len = keylen - 16;
+
+    memcpy( key + 16, md5sum, use_len );
+
+exit:
+    mbedtls_platform_zeroize( md5sum, 16 );
+    if( status == PSA_SUCCESS )
+        ret = 0;
+
+    return( ret );
+}
+#else
 static int pem_pbkdf1( unsigned char *key, size_t keylen,
                        unsigned char *iv,
                        const unsigned char *pwd, size_t pwdlen )
@@ -130,6 +247,7 @@ exit:
 
     return( ret );
 }
+#endif
 
 #if defined(MBEDTLS_DES_C)
 /*
@@ -219,7 +337,7 @@ exit:
 }
 #endif /* MBEDTLS_AES_C */
 
-#endif /* MBEDTLS_MD5_C && MBEDTLS_CIPHER_MODE_CBC &&
+#endif /* MBEDTLS_HAS_ALG_MD5_VIA_MD_OR_PSA && MBEDTLS_CIPHER_MODE_CBC &&
           ( MBEDTLS_AES_C || MBEDTLS_DES_C ) */
 
 int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const char *footer,
@@ -230,14 +348,14 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
     size_t len;
     unsigned char *buf;
     const unsigned char *s1, *s2, *end;
-#if defined(MBEDTLS_MD5_C) && defined(MBEDTLS_CIPHER_MODE_CBC) &&         \
+#if defined(MBEDTLS_HAS_ALG_MD5_VIA_MD_OR_PSA) && defined(MBEDTLS_CIPHER_MODE_CBC) &&         \
     ( defined(MBEDTLS_DES_C) || defined(MBEDTLS_AES_C) )
     unsigned char pem_iv[16];
     mbedtls_cipher_type_t enc_alg = MBEDTLS_CIPHER_NONE;
 #else
     ((void) pwd);
     ((void) pwdlen);
-#endif /* MBEDTLS_MD5_C && MBEDTLS_CIPHER_MODE_CBC &&
+#endif /* MBEDTLS_HAS_ALG_MD5_VIA_MD_OR_PSA && MBEDTLS_CIPHER_MODE_CBC &&
           ( MBEDTLS_AES_C || MBEDTLS_DES_C ) */
 
     if( ctx == NULL )
@@ -270,7 +388,7 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
 
     if( s2 - s1 >= 22 && memcmp( s1, "Proc-Type: 4,ENCRYPTED", 22 ) == 0 )
     {
-#if defined(MBEDTLS_MD5_C) && defined(MBEDTLS_CIPHER_MODE_CBC) &&         \
+#if defined(MBEDTLS_HAS_ALG_MD5_VIA_MD_OR_PSA) && defined(MBEDTLS_CIPHER_MODE_CBC) &&         \
     ( defined(MBEDTLS_DES_C) || defined(MBEDTLS_AES_C) )
         enc++;
 
@@ -333,7 +451,7 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
         else return( MBEDTLS_ERR_PEM_INVALID_DATA );
 #else
         return( MBEDTLS_ERR_PEM_FEATURE_UNAVAILABLE );
-#endif /* MBEDTLS_MD5_C && MBEDTLS_CIPHER_MODE_CBC &&
+#endif /* MBEDTLS_HAS_ALG_MD5_VIA_MD_OR_PSA && MBEDTLS_CIPHER_MODE_CBC &&
           ( MBEDTLS_AES_C || MBEDTLS_DES_C ) */
     }
 
@@ -357,7 +475,7 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
 
     if( enc != 0 )
     {
-#if defined(MBEDTLS_MD5_C) && defined(MBEDTLS_CIPHER_MODE_CBC) &&         \
+#if defined(MBEDTLS_HAS_ALG_MD5_VIA_MD_OR_PSA) && defined(MBEDTLS_CIPHER_MODE_CBC) &&         \
     ( defined(MBEDTLS_DES_C) || defined(MBEDTLS_AES_C) )
         if( pwd == NULL )
         {
@@ -406,7 +524,7 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
         mbedtls_platform_zeroize( buf, len );
         mbedtls_free( buf );
         return( MBEDTLS_ERR_PEM_FEATURE_UNAVAILABLE );
-#endif /* MBEDTLS_MD5_C && MBEDTLS_CIPHER_MODE_CBC &&
+#endif /* MBEDTLS_HAS_ALG_MD5_VIA_MD_OR_PSA && MBEDTLS_CIPHER_MODE_CBC &&
           ( MBEDTLS_AES_C || MBEDTLS_DES_C ) */
     }
 

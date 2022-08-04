@@ -2162,7 +2162,7 @@ static int ssl_tls13_parse_certificate_request( mbedtls_ssl_context *ssl,
     size_t certificate_request_context_len = 0;
     size_t extensions_len = 0;
     const unsigned char *extensions_end;
-    unsigned char sig_alg_ext_found = 0;
+    uint32_t extensions_present;
 
     /* ...
      * opaque certificate_request_context<0..2^8-1>
@@ -2202,10 +2202,13 @@ static int ssl_tls13_parse_certificate_request( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, extensions_len );
     extensions_end = p + extensions_len;
 
+    extensions_present = MBEDTLS_SSL_EXT_NONE;
+
     while( p < extensions_end )
     {
         unsigned int extension_type;
         size_t extension_data_len;
+        uint32_t extension_mask;
 
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, extensions_end, 4 );
         extension_type = MBEDTLS_GET_UINT16_BE( p, 0 );
@@ -2213,6 +2216,38 @@ static int ssl_tls13_parse_certificate_request( mbedtls_ssl_context *ssl,
         p += 4;
 
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, extensions_end, extension_data_len );
+
+        /* RFC 8446 page 35
+         *
+         * If an implementation receives an extension which it recognizes and which
+         * is not specified for the message in which it appears, it MUST abort the
+         * handshake with an "illegal_parameter" alert.
+         */
+        extension_mask = mbedtls_tls13_get_extension_mask( extension_type );
+
+        MBEDTLS_SSL_DEBUG_MSG( 3,
+                    ( "encrypted extensions : received %s(%u) extension",
+                      mbedtls_tls13_get_extension_name( extension_type ),
+                      extension_type ) );
+        if( ( extension_mask & MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_CR ) == 0 )
+        {
+            MBEDTLS_SSL_DEBUG_MSG(
+                3, ( "forbidden extension received." ) );
+            MBEDTLS_SSL_PEND_FATAL_ALERT(
+                MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+            return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+        }
+
+        if( extensions_present & extension_mask )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 3,
+                ( "Duplicate %s extensions found",
+                    mbedtls_tls13_get_extension_name( extension_type ) ) );
+            goto decode_error;
+
+        }
+        extensions_present |= extension_mask;
 
         switch( extension_type )
         {
@@ -2223,25 +2258,22 @@ static int ssl_tls13_parse_certificate_request( mbedtls_ssl_context *ssl,
                                                      p + extension_data_len );
                 if( ret != 0 )
                     return( ret );
-                if( ! sig_alg_ext_found )
-                    sig_alg_ext_found = 1;
-                else
-                {
-                    MBEDTLS_SSL_DEBUG_MSG( 3,
-                        ( "Duplicate signature algorithms extensions found" ) );
-                    goto decode_error;
-                }
+
                 break;
 
             default:
-                MBEDTLS_SSL_DEBUG_MSG(
-                    3,
-                    ( "unknown extension found: %u ( ignoring )",
-                    extension_type ) );
+                MBEDTLS_SSL_DEBUG_MSG( 3,
+                    ( "certificate request: received %s(%u) extension ( ignored )",
+                      mbedtls_tls13_get_extension_name( extension_type ),
+                      extension_type ) );
                 break;
         }
+
         p += extension_data_len;
     }
+
+    MBEDTLS_SSL_TLS1_3_PRINT_EXTS( 3, "CertificateRequest", extensions_present );
+
     /* Check that we consumed all the message. */
     if( p != end )
     {
@@ -2249,8 +2281,12 @@ static int ssl_tls13_parse_certificate_request( mbedtls_ssl_context *ssl,
             ( "CertificateRequest misaligned" ) );
         goto decode_error;
     }
-    /* Check that we found signature algorithms extension */
-    if( ! sig_alg_ext_found )
+
+    /* RFC 8446 page 60
+     *
+     * The "signature_algorithms" extension MUST be specified
+     */
+    if( ( extensions_present & MBEDTLS_SSL_EXT_SIG_ALG ) == 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3,
             ( "no signature algorithms extension found" ) );

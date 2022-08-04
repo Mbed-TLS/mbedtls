@@ -2565,8 +2565,11 @@ static int ssl_tls13_parse_new_session_ticket_exts( mbedtls_ssl_context *ssl,
                                                     const unsigned char *end )
 {
     const unsigned char *p = buf;
+    uint32_t extensions_present;
 
     ((void) ssl);
+
+    extensions_present = MBEDTLS_SSL_EXT_NONE;
 
     while( p < end )
     {
@@ -2580,6 +2583,27 @@ static int ssl_tls13_parse_new_session_ticket_exts( mbedtls_ssl_context *ssl,
 
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, extension_data_len );
 
+        /* RFC 8446 page 35
+         *
+         * If an implementation receives an extension which it recognizes and which
+         * is not specified for the message in which it appears, it MUST abort the
+         * handshake with an "illegal_parameter" alert.
+         */
+        extensions_present |= mbedtls_tls13_get_extension_mask( extension_type );
+        MBEDTLS_SSL_DEBUG_MSG( 3,
+                    ( "NewSessionTicket : received %s(%u) extension",
+                      mbedtls_tls13_get_extension_name( extension_type ),
+                      extension_type ) );
+        if( ( extensions_present & MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_NST ) == 0 )
+        {
+            MBEDTLS_SSL_DEBUG_MSG(
+                3, ( "forbidden extension received." ) );
+            MBEDTLS_SSL_PEND_FATAL_ALERT(
+                MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+            return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+        }
+
         switch( extension_type )
         {
             case MBEDTLS_TLS_EXT_EARLY_DATA:
@@ -2587,10 +2611,17 @@ static int ssl_tls13_parse_new_session_ticket_exts( mbedtls_ssl_context *ssl,
                 break;
 
             default:
+                MBEDTLS_SSL_DEBUG_MSG( 3,
+                    ( "NewSessionTicket : received %s(%u) extension ( ignored )",
+                      mbedtls_tls13_get_extension_name( extension_type ),
+                      extension_type ) );
                 break;
         }
+
         p +=  extension_data_len;
     }
+
+    MBEDTLS_SSL_TLS1_3_PRINT_EXTS( 3, "NewSessionTicket", extensions_present );
 
     return( 0 );
 }

@@ -1496,6 +1496,7 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
     size_t extensions_len;
     const unsigned char *extensions_end;
+    uint32_t extensions_present, allowed_extension_mask;
     uint16_t cipher_suite;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
     int fatal_alert = 0;
@@ -1641,6 +1642,11 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "server hello extensions", p, extensions_len );
 
+    extensions_present = MBEDTLS_SSL_EXT_NONE;
+    allowed_extension_mask = is_hrr ?
+                                  MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_HRR :
+                                  MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_SH;
+
     while( p < extensions_end )
     {
         unsigned int extension_type;
@@ -1654,6 +1660,24 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
 
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, extensions_end, extension_data_len );
         extension_data_end = p + extension_data_len;
+
+        /* RFC 8446 page 35
+         *
+         * If an implementation receives an extension which it recognizes and which
+         * is not specified for the message in which it appears, it MUST abort the
+         * handshake with an "illegal_parameter" alert.
+         */
+        extensions_present |= mbedtls_tls13_get_extension_mask( extension_type );
+        MBEDTLS_SSL_DEBUG_MSG( 3,
+                    ( "%s: received %s(%u) extension",
+                      is_hrr ? "hello retry request" : "server hello",
+                      mbedtls_tls13_get_extension_name( extension_type ),
+                      extension_type ) );
+        if( ( extensions_present & allowed_extension_mask ) == 0 )
+        {
+            fatal_alert = MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
+            goto cleanup;
+        }
 
         switch( extension_type )
         {
@@ -1727,16 +1751,30 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
                 break;
 
             default:
-                MBEDTLS_SSL_DEBUG_MSG(
-                    3,
-                    ( "unknown extension found: %u ( ignoring )",
+                MBEDTLS_SSL_DEBUG_MSG( 3,
+                    ( "%s: ignore %s(%u) extension",
+                      is_hrr ? "hello retry request" : "server hello",
+                      mbedtls_tls13_get_extension_name( extension_type ),
                       extension_type ) );
-
-                fatal_alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT;
-                goto cleanup;
+                break;
         }
 
         p += extension_data_len;
+    }
+
+    MBEDTLS_SSL_TLS1_3_PRINT_EXTS(
+        3, is_hrr ? "HelloRetryRequest" : "ServerHello", extensions_present );
+
+    /* RFC 8446 page 102
+     * -  "supported_versions" is REQUIRED for all ClientHello, ServerHello, and
+     *    HelloRetryRequest messages.
+     */
+    if( ( extensions_present & MBEDTLS_SSL_EXT_SUPPORTED_VERSIONS ) == 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1,
+                    ( "%s: supported_versions not found",
+                      is_hrr ? "hello retry request" : "server hello" ) );
+        fatal_alert = MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
     }
 
 cleanup:

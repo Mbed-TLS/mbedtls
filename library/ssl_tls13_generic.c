@@ -1485,4 +1485,130 @@ int mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
 }
 #endif /* MBEDTLS_ECDH_C */
 
+#if defined(MBEDTLS_DEBUG_C)
+const char *mbedtls_tls13_get_extension_name( uint16_t extension_type )
+{
+    switch( extension_type )
+    {
+        case MBEDTLS_TLS_EXT_SERVERNAME:
+            return( "server_name" );
+
+        case MBEDTLS_TLS_EXT_MAX_FRAGMENT_LENGTH:
+            return( "max_fragment_length" );
+
+        case MBEDTLS_TLS_EXT_STATUS_REQUEST:
+            return( "status_request" );
+
+        case MBEDTLS_TLS_EXT_SUPPORTED_GROUPS:
+            return( "supported_groups" );
+
+        case MBEDTLS_TLS_EXT_SIG_ALG:
+            return( "signature_algorithms" );
+
+        case MBEDTLS_TLS_EXT_USE_SRTP:
+            return( "use_srtp" );
+
+        case MBEDTLS_TLS_EXT_HEARTBEAT:
+            return( "heartbeat" );
+
+        case MBEDTLS_TLS_EXT_ALPN:
+            return( "application_layer_protocol_negotiation" );
+
+        case MBEDTLS_TLS_EXT_SCT:
+            return( "signed_certificate_timestamp" );
+
+        case MBEDTLS_TLS_EXT_CLI_CERT_TYPE:
+            return( "client_certificate_type" );
+
+        case MBEDTLS_TLS_EXT_SERV_CERT_TYPE:
+            return( "server_certificate_type" );
+
+        case MBEDTLS_TLS_EXT_PADDING:
+            return( "padding" );
+
+        case MBEDTLS_TLS_EXT_PRE_SHARED_KEY:
+            return( "pre_shared_key" );
+
+        case MBEDTLS_TLS_EXT_EARLY_DATA:
+            return( "early_data" );
+
+        case MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS:
+            return( "supported_versions" );
+
+        case MBEDTLS_TLS_EXT_COOKIE:
+            return( "cookie" );
+
+        case MBEDTLS_TLS_EXT_PSK_KEY_EXCHANGE_MODES:
+            return( "psk_key_exchange_modes" );
+
+        case MBEDTLS_TLS_EXT_CERT_AUTH:
+            return( "certificate_authorities" );
+
+        case MBEDTLS_TLS_EXT_OID_FILTERS:
+            return( "oid_filters" );
+
+        case MBEDTLS_TLS_EXT_POST_HANDSHAKE_AUTH:
+            return( "post_handshake_auth" );
+
+        case MBEDTLS_TLS_EXT_SIG_ALG_CERT:
+            return( "signature_algorithms_cert" );
+
+        case MBEDTLS_TLS_EXT_KEY_SHARE:
+            return( "key_share" );
+    };
+
+    return( "unknown" );
+}
+
+void mbedtls_ssl_tls13_print_extensions( const mbedtls_ssl_context *ssl,
+                                         int level, const char *file, int line,
+                                         const char *hs_msg_name,
+                                         uint32_t extensions_present )
+{
+    static const struct{
+        uint32_t extension_mask;
+        const char *extension_name;
+    } mask_to_str_table[] = {
+            { MBEDTLS_SSL_EXT_SERVERNAME, "server_name" },
+            { MBEDTLS_SSL_EXT_MAX_FRAGMENT_LENGTH, "max_fragment_length" },
+            { MBEDTLS_SSL_EXT_STATUS_REQUEST, "status_request" },
+            { MBEDTLS_SSL_EXT_SUPPORTED_GROUPS, "supported_groups" },
+            { MBEDTLS_SSL_EXT_SIG_ALG, "signature_algorithms" },
+            { MBEDTLS_SSL_EXT_USE_SRTP, "use_srtp" },
+            { MBEDTLS_SSL_EXT_HEARTBEAT, "heartbeat" },
+            { MBEDTLS_SSL_EXT_ALPN, "application_layer_protocol_negotiation" },
+            { MBEDTLS_SSL_EXT_SCT, "signed_certificate_timestamp" },
+            { MBEDTLS_SSL_EXT_CLI_CERT_TYPE, "client_certificate_type" },
+            { MBEDTLS_SSL_EXT_SERV_CERT_TYPE, "server_certificate_type" },
+            { MBEDTLS_SSL_EXT_PADDING, "padding" },
+            { MBEDTLS_SSL_EXT_PRE_SHARED_KEY, "pre_shared_key" },
+            { MBEDTLS_SSL_EXT_EARLY_DATA, "early_data" },
+            { MBEDTLS_SSL_EXT_SUPPORTED_VERSIONS, "supported_versions" },
+            { MBEDTLS_SSL_EXT_COOKIE, "cookie" },
+            { MBEDTLS_SSL_EXT_PSK_KEY_EXCHANGE_MODES, "psk_key_exchange_modes" },
+            { MBEDTLS_SSL_EXT_CERT_AUTH, "certificate_authorities" },
+            { MBEDTLS_SSL_EXT_OID_FILTERS, "oid_filters" },
+            { MBEDTLS_SSL_EXT_POST_HANDSHAKE_AUTH, "post_handshake_auth" },
+            { MBEDTLS_SSL_EXT_SIG_ALG_CERT, "signature_algorithms_cert" },
+            { MBEDTLS_SSL_EXT_KEY_SHARE, "key_share" } };
+
+    mbedtls_debug_print_msg( ssl, level, file, line,
+                             "extension list of %s:", hs_msg_name );
+
+    for( unsigned i = 0;
+         i < sizeof( mask_to_str_table ) / sizeof( mask_to_str_table[0] );
+         i++ )
+    {
+        const char *extension_name = mask_to_str_table[i].extension_name;
+        uint32_t is_present = extensions_present &
+                              mask_to_str_table[i].extension_mask;
+
+        mbedtls_debug_print_msg( ssl, level, file, line,
+                "- %s extension ( %s )", extension_name,
+                is_present ? "true" : "false" );
+    }
+}
+
+#endif /* MBEDTLS_DEBUG_C */
+
 #endif /* MBEDTLS_SSL_TLS_C && MBEDTLS_SSL_PROTO_TLS1_3 */

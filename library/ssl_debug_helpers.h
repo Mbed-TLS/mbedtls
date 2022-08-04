@@ -45,4 +45,25 @@ const char *mbedtls_ssl_named_group_to_str( uint16_t in );
 
 #endif /* MBEDTLS_DEBUG_C */
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#if defined(MBEDTLS_DEBUG_C)
+
+const char *mbedtls_tls13_get_extension_name( uint16_t extension_type );
+
+void mbedtls_ssl_tls13_print_extensions( const mbedtls_ssl_context *ssl,
+                                         int level, const char *file, int line,
+                                         const char *hs_msg_name,
+                                         uint32_t extensions_present );
+
+#define MBEDTLS_SSL_TLS1_3_PRINT_EXTS( level, hs_msg_name, extensions_present ) \
+            mbedtls_ssl_tls13_print_extensions( \
+                ssl, level, __FILE__, __LINE__, hs_msg_name, extensions_present )
+#else
+
+#define MBEDTLS_SSL_TLS1_3_PRINT_EXTS( level, hs_msg_name, extensions_present )
+
+#endif
+
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+
 #endif /* SSL_DEBUG_HELPERS_H */

@@ -926,56 +926,6 @@ static int ssl_tls13_parse_key_shares_ext( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_ECDH_C */
 
-#if defined(MBEDTLS_DEBUG_C)
-static void ssl_tls13_debug_print_client_hello_exts( mbedtls_ssl_context *ssl )
-{
-    ((void) ssl);
-
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "Supported Extensions:" ) );
-    MBEDTLS_SSL_DEBUG_MSG( 3,
-            ( "- KEY_SHARE_EXTENSION ( %s )",
-            ( ( ssl->handshake->extensions_present
-                & MBEDTLS_SSL_EXT_KEY_SHARE ) > 0 ) ? "TRUE" : "FALSE" ) );
-    MBEDTLS_SSL_DEBUG_MSG( 3,
-            ( "- PSK_KEY_EXCHANGE_MODES_EXTENSION ( %s )",
-            ( ( ssl->handshake->extensions_present
-                & MBEDTLS_SSL_EXT_PSK_KEY_EXCHANGE_MODES ) > 0 ) ?
-                "TRUE" : "FALSE" ) );
-    MBEDTLS_SSL_DEBUG_MSG( 3,
-            ( "- PRE_SHARED_KEY_EXTENSION ( %s )",
-            ( ( ssl->handshake->extensions_present
-                & MBEDTLS_SSL_EXT_PRE_SHARED_KEY ) > 0 ) ? "TRUE" : "FALSE" ) );
-    MBEDTLS_SSL_DEBUG_MSG( 3,
-            ( "- SIGNATURE_ALGORITHM_EXTENSION ( %s )",
-            ( ( ssl->handshake->extensions_present
-                & MBEDTLS_SSL_EXT_SIG_ALG ) > 0 ) ? "TRUE" : "FALSE" ) );
-    MBEDTLS_SSL_DEBUG_MSG( 3,
-            ( "- SUPPORTED_GROUPS_EXTENSION ( %s )",
-            ( ( ssl->handshake->extensions_present
-                & MBEDTLS_SSL_EXT_SUPPORTED_GROUPS ) >0 ) ?
-                "TRUE" : "FALSE" ) );
-    MBEDTLS_SSL_DEBUG_MSG( 3,
-            ( "- SUPPORTED_VERSION_EXTENSION ( %s )",
-            ( ( ssl->handshake->extensions_present
-                & MBEDTLS_SSL_EXT_SUPPORTED_VERSIONS ) > 0 ) ?
-                "TRUE" : "FALSE" ) );
-#if defined ( MBEDTLS_SSL_SERVER_NAME_INDICATION )
-    MBEDTLS_SSL_DEBUG_MSG( 3,
-            ( "- SERVERNAME_EXTENSION    ( %s )",
-            ( ( ssl->handshake->extensions_present
-                & MBEDTLS_SSL_EXT_SERVERNAME ) > 0 ) ?
-                "TRUE" : "FALSE" ) );
-#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
-#if defined ( MBEDTLS_SSL_ALPN )
-    MBEDTLS_SSL_DEBUG_MSG( 3,
-            ( "- ALPN_EXTENSION   ( %s )",
-            ( ( ssl->handshake->extensions_present
-                & MBEDTLS_SSL_EXT_ALPN ) > 0 ) ?
-                "TRUE" : "FALSE" ) );
-#endif /* MBEDTLS_SSL_ALPN */
-}
-#endif /* MBEDTLS_DEBUG_C */
-
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_client_hello_has_exts( mbedtls_ssl_context *ssl,
                                             int exts_mask )
@@ -1655,17 +1605,13 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
 
             default:
                 MBEDTLS_SSL_DEBUG_MSG( 3,
-                        ( "unknown extension found: %ud ( ignoring )",
-                          extension_type ) );
+                    ( "client hello: received %s(%u) extension ( ignored )",
+                      mbedtls_tls13_get_extension_name( extension_type ),
+                      extension_type ) );
         }
 
         p += extension_data_len;
     }
-
-#if defined(MBEDTLS_DEBUG_C)
-    /* List all the extensions we have received */
-    ssl_tls13_debug_print_client_hello_exts( ssl );
-#endif /* MBEDTLS_DEBUG_C */
 
     mbedtls_ssl_add_hs_hdr_to_checksum( ssl,
                                         MBEDTLS_SSL_HS_CLIENT_HELLO,

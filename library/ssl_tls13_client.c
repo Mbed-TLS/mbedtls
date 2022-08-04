@@ -32,6 +32,7 @@
 #include "ssl_misc.h"
 #include "ssl_client.h"
 #include "ssl_tls13_keys.h"
+#include "ssl_debug_helpers.h"
 
 /* Write extensions */
 
@@ -1969,6 +1970,7 @@ static int ssl_tls13_parse_encrypted_extensions( mbedtls_ssl_context *ssl,
     size_t extensions_len;
     const unsigned char *p = buf;
     const unsigned char *extensions_end;
+    uint32_t extensions_present;
 
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2 );
     extensions_len = MBEDTLS_GET_UINT16_BE( p, 0 );
@@ -1977,6 +1979,8 @@ static int ssl_tls13_parse_encrypted_extensions( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_BUF( 3, "encrypted extensions", p, extensions_len );
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, extensions_len );
     extensions_end = p + extensions_len;
+
+    extensions_present = MBEDTLS_SSL_EXT_NONE;
 
     while( p < extensions_end )
     {
@@ -1996,10 +2000,27 @@ static int ssl_tls13_parse_encrypted_extensions( mbedtls_ssl_context *ssl,
 
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, extensions_end, extension_data_len );
 
-        /* The client MUST check EncryptedExtensions for the
-         * presence of any forbidden extensions and if any are found MUST abort
-         * the handshake with an "unsupported_extension" alert.
+        /* RFC 8446 page 35
+         *
+         * If an implementation receives an extension which it recognizes and which
+         * is not specified for the message in which it appears, it MUST abort the
+         * handshake with an "illegal_parameter" alert.
          */
+        extensions_present |= mbedtls_tls13_get_extension_mask( extension_type );
+        MBEDTLS_SSL_DEBUG_MSG( 3,
+                    ( "encrypted extensions : received %s(%u) extension",
+                      mbedtls_tls13_get_extension_name( extension_type ),
+                      extension_type ) );
+        if( ( extensions_present & MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_EE ) == 0 )
+        {
+            MBEDTLS_SSL_DEBUG_MSG(
+                3, ( "forbidden extension received." ) );
+            MBEDTLS_SSL_PEND_FATAL_ALERT(
+                MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+            return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+        }
+
         switch( extension_type )
         {
             case MBEDTLS_TLS_EXT_SERVERNAME:
@@ -2024,16 +2045,17 @@ static int ssl_tls13_parse_encrypted_extensions( mbedtls_ssl_context *ssl,
                 break;
 #endif /* MBEDTLS_SSL_ALPN */
             default:
-                MBEDTLS_SSL_DEBUG_MSG(
-                    3, ( "unsupported extension found: %u ", extension_type) );
-                MBEDTLS_SSL_PEND_FATAL_ALERT(
-                    MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT,
-                    MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION );
-                return ( MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION );
+                MBEDTLS_SSL_DEBUG_MSG( 3,
+                    ( "encrypted extensions: received %s(%u) extension ( ignored )",
+                      mbedtls_tls13_get_extension_name( extension_type ),
+                      extension_type ) );
+                break;
         }
 
         p += extension_data_len;
     }
+
+    MBEDTLS_SSL_TLS1_3_PRINT_EXTS( 3, "EncrypedExtensions", extensions_present );
 
     /* Check that we consumed all the message. */
     if( p != end )

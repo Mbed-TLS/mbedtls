@@ -51,12 +51,6 @@
 
 #if !defined(MBEDTLS_AES_ALT)
 
-/* Parameter validation macros based on platform_util.h */
-#define AES_VALIDATE_RET( cond )    \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_AES_BAD_INPUT_DATA )
-#define AES_VALIDATE( cond )        \
-    MBEDTLS_INTERNAL_VALIDATE( cond )
-
 #if defined(MBEDTLS_PADLOCK_C) &&                      \
     ( defined(MBEDTLS_HAVE_X86) || defined(MBEDTLS_PADLOCK_ALIGN16) )
 static int aes_padlock_ace = -1;
@@ -954,8 +948,8 @@ int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
                            const unsigned char input[16],
                            unsigned char output[16] )
 {
-    AES_VALIDATE_RET( mode == MBEDTLS_AES_ENCRYPT ||
-                      mode == MBEDTLS_AES_DECRYPT );
+    if( mode != MBEDTLS_AES_ENCRYPT && mode != MBEDTLS_AES_DECRYPT )
+        return MBEDTLS_ERR_AES_BAD_INPUT_DATA;
 
 #if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
     if( mbedtls_aesni_has_support( MBEDTLS_AESNI_AES ) )
@@ -995,8 +989,8 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char temp[16];
 
-    AES_VALIDATE_RET( mode == MBEDTLS_AES_ENCRYPT ||
-                      mode == MBEDTLS_AES_DECRYPT );
+    if( mode != MBEDTLS_AES_ENCRYPT && mode != MBEDTLS_AES_DECRYPT )
+        return MBEDTLS_ERR_AES_BAD_INPUT_DATA;
 
     if( length % 16 )
         return( MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH );
@@ -1100,8 +1094,8 @@ int mbedtls_aes_crypt_xts( mbedtls_aes_xts_context *ctx,
     unsigned char prev_tweak[16];
     unsigned char tmp[16];
 
-    AES_VALIDATE_RET( mode == MBEDTLS_AES_ENCRYPT ||
-                      mode == MBEDTLS_AES_DECRYPT );
+    if( mode != MBEDTLS_AES_ENCRYPT && mode != MBEDTLS_AES_DECRYPT )
+        return MBEDTLS_ERR_AES_BAD_INPUT_DATA;
 
     /* Data units must be at least 16 bytes long. */
     if( length < 16 )
@@ -1205,8 +1199,8 @@ int mbedtls_aes_crypt_cfb128( mbedtls_aes_context *ctx,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t n;
 
-    AES_VALIDATE_RET( mode == MBEDTLS_AES_ENCRYPT ||
-                      mode == MBEDTLS_AES_DECRYPT );
+    if( mode != MBEDTLS_AES_ENCRYPT && mode != MBEDTLS_AES_DECRYPT )
+        return MBEDTLS_ERR_AES_BAD_INPUT_DATA;
 
     n = *iv_off;
 
@@ -1269,8 +1263,8 @@ int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
     unsigned char c;
     unsigned char ov[17];
 
-    AES_VALIDATE_RET( mode == MBEDTLS_AES_ENCRYPT ||
-                      mode == MBEDTLS_AES_DECRYPT );
+    if( mode != MBEDTLS_AES_ENCRYPT && mode != MBEDTLS_AES_DECRYPT )
+        return MBEDTLS_ERR_AES_BAD_INPUT_DATA;
     while( length-- )
     {
         memcpy( ov, iv, 16 );

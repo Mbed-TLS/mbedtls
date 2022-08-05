@@ -59,31 +59,31 @@ OID get x509 extension - wrong oid - id-ce
 oid_get_x509_extension:"551D":0
 
 OID hash id - id-md5
-depends_on:MBEDTLS_MD5_C
+depends_on:MBEDTLS_HAS_ALG_MD5_VIA_LOWLEVEL_OR_PSA
 oid_get_md_alg_id:"2A864886f70d0205":MBEDTLS_MD_MD5
 
 OID hash id - id-sha1
-depends_on:MBEDTLS_SHA1_C
+depends_on:MBEDTLS_HAS_ALG_SHA_1_VIA_LOWLEVEL_OR_PSA
 oid_get_md_alg_id:"2b0e03021a":MBEDTLS_MD_SHA1
 
 OID hash id - id-sha224
-depends_on:MBEDTLS_SHA224_C
+depends_on:MBEDTLS_HAS_ALG_SHA_224_VIA_LOWLEVEL_OR_PSA
 oid_get_md_alg_id:"608648016503040204":MBEDTLS_MD_SHA224
 
 OID hash id - id-sha256
-depends_on:MBEDTLS_SHA256_C
+depends_on:MBEDTLS_HAS_ALG_SHA_256_VIA_LOWLEVEL_OR_PSA
 oid_get_md_alg_id:"608648016503040201":MBEDTLS_MD_SHA256
 
 OID hash id - id-sha384
-depends_on:MBEDTLS_SHA384_C
+depends_on:MBEDTLS_HAS_ALG_SHA_384_VIA_LOWLEVEL_OR_PSA
 oid_get_md_alg_id:"608648016503040202":MBEDTLS_MD_SHA384
 
 OID hash id - id-sha512
-depends_on:MBEDTLS_SHA512_C
+depends_on:MBEDTLS_HAS_ALG_SHA_512_VIA_LOWLEVEL_OR_PSA
 oid_get_md_alg_id:"608648016503040203":MBEDTLS_MD_SHA512
 
 OID hash id - id-ripemd160
-depends_on:MBEDTLS_RIPEMD160_C
+depends_on:MBEDTLS_HAS_ALG_RIPEMD160_VIA_LOWLEVEL_OR_PSA
 oid_get_md_alg_id:"2b24030201":MBEDTLS_MD_RIPEMD160
 
 OID hash id - invalid oid

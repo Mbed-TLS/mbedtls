@@ -164,10 +164,6 @@ static int mbedtls_a64_crypto_sha512_determine_support( void )
 
 #endif  /* MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT */
 
-#define SHA512_VALIDATE_RET(cond)                           \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA512_BAD_INPUT_DATA )
-#define SHA512_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
-
 #if !defined(MBEDTLS_SHA512_ALT)
 
 #define SHA512_BLOCK_SIZE 128
@@ -206,9 +202,11 @@ void mbedtls_sha512_clone( mbedtls_sha512_context *dst,
 int mbedtls_sha512_starts( mbedtls_sha512_context *ctx, int is384 )
 {
 #if defined(MBEDTLS_SHA384_C)
-    SHA512_VALIDATE_RET( is384 == 0 || is384 == 1 );
+    if( is384 != 0 && is384 != 1 )
+        return MBEDTLS_ERR_SHA512_BAD_INPUT_DATA;
 #else
-    SHA512_VALIDATE_RET( is384 == 0 );
+    if( is384 != 0 )
+        return MBEDTLS_ERR_SHA512_BAD_INPUT_DATA;
 #endif
 
     ctx->total[0] = 0;
@@ -847,9 +845,11 @@ int mbedtls_sha512( const unsigned char *input,
     mbedtls_sha512_context ctx;
 
 #if defined(MBEDTLS_SHA384_C)
-    SHA512_VALIDATE_RET( is384 == 0 || is384 == 1 );
+    if( is384 != 0 && is384 != 1 )
+        return MBEDTLS_ERR_SHA512_BAD_INPUT_DATA;
 #else
-    SHA512_VALIDATE_RET( is384 == 0 );
+    if( is384 != 0 )
+        return MBEDTLS_ERR_SHA512_BAD_INPUT_DATA;
 #endif
 
     mbedtls_sha512_init( &ctx );

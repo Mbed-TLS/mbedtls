@@ -70,11 +70,6 @@
 #define mbedtls_free   free
 #endif
 
-#define CIPHER_VALIDATE_RET( cond )    \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA )
-#define CIPHER_VALIDATE( cond )        \
-    MBEDTLS_INTERNAL_VALIDATE( cond )
-
 static int supported_init = 0;
 
 const int *mbedtls_cipher_list( void )
@@ -255,8 +250,8 @@ int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx,
                            int key_bitlen,
                            const mbedtls_operation_t operation )
 {
-    CIPHER_VALIDATE_RET( operation == MBEDTLS_ENCRYPT ||
-                         operation == MBEDTLS_DECRYPT );
+    if( operation != MBEDTLS_ENCRYPT && operation != MBEDTLS_DECRYPT )
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     if( ctx->cipher_info == NULL )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 

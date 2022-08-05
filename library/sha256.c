@@ -149,10 +149,6 @@ static int mbedtls_a64_crypto_sha256_determine_support( void )
 
 #endif  /* MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT */
 
-#define SHA256_VALIDATE_RET(cond)                           \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA256_BAD_INPUT_DATA )
-#define SHA256_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
-
 #if !defined(MBEDTLS_SHA256_ALT)
 
 #define SHA256_BLOCK_SIZE 64
@@ -182,9 +178,11 @@ void mbedtls_sha256_clone( mbedtls_sha256_context *dst,
 int mbedtls_sha256_starts( mbedtls_sha256_context *ctx, int is224 )
 {
 #if defined(MBEDTLS_SHA224_C)
-    SHA256_VALIDATE_RET( is224 == 0 || is224 == 1 );
+    if( is224 != 0 && is224 != 1 )
+        return MBEDTLS_ERR_SHA256_BAD_INPUT_DATA;
 #else
-    SHA256_VALIDATE_RET( is224 == 0 );
+    if( is224 != 0 )
+        return MBEDTLS_ERR_SHA256_BAD_INPUT_DATA;
 #endif
 
     ctx->total[0] = 0;
@@ -689,9 +687,11 @@ int mbedtls_sha256( const unsigned char *input,
     mbedtls_sha256_context ctx;
 
 #if defined(MBEDTLS_SHA224_C)
-    SHA256_VALIDATE_RET( is224 == 0 || is224 == 1 );
+    if( is224 != 0 && is224 != 1 )
+        return MBEDTLS_ERR_SHA256_BAD_INPUT_DATA;
 #else
-    SHA256_VALIDATE_RET( is224 == 0 );
+    if( is224 != 0 )
+        return MBEDTLS_ERR_SHA256_BAD_INPUT_DATA;
 #endif
 
     mbedtls_sha256_init( &ctx );

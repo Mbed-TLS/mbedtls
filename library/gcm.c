@@ -52,12 +52,6 @@
 
 #if !defined(MBEDTLS_GCM_ALT)
 
-/* Parameter validation macros */
-#define GCM_VALIDATE_RET( cond ) \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_GCM_BAD_INPUT )
-#define GCM_VALIDATE( cond ) \
-    MBEDTLS_INTERNAL_VALIDATE( cond )
-
 /*
  * Initialize a context
  */
@@ -142,7 +136,8 @@ int mbedtls_gcm_setkey( mbedtls_gcm_context *ctx,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const mbedtls_cipher_info_t *cipher_info;
 
-    GCM_VALIDATE_RET( keybits == 128 || keybits == 192 || keybits == 256 );
+    if( keybits != 128 && keybits != 192 && keybits != 256 )
+        return MBEDTLS_ERR_GCM_BAD_INPUT;
 
     cipher_info = mbedtls_cipher_info_from_values( cipher, keybits,
                                                    MBEDTLS_MODE_ECB );

@@ -43,12 +43,6 @@
 
 #if !defined(MBEDTLS_CAMELLIA_ALT)
 
-/* Parameter validation macros */
-#define CAMELLIA_VALIDATE_RET( cond )                                       \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA )
-#define CAMELLIA_VALIDATE( cond )                                           \
-    MBEDTLS_INTERNAL_VALIDATE( cond )
-
 static const unsigned char SIGMA_CHARS[6][8] =
 {
     { 0xa0, 0x9e, 0x66, 0x7f, 0x3b, 0xcc, 0x90, 0x8b },
@@ -474,8 +468,8 @@ int mbedtls_camellia_crypt_ecb( mbedtls_camellia_context *ctx,
 {
     int NR;
     uint32_t *RK, X[4];
-    CAMELLIA_VALIDATE_RET( mode == MBEDTLS_CAMELLIA_ENCRYPT ||
-                           mode == MBEDTLS_CAMELLIA_DECRYPT );
+    if( mode != MBEDTLS_CAMELLIA_ENCRYPT && mode != MBEDTLS_CAMELLIA_DECRYPT )
+        return MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA;
 
     ( (void) mode );
 
@@ -541,8 +535,8 @@ int mbedtls_camellia_crypt_cbc( mbedtls_camellia_context *ctx,
 {
     int i;
     unsigned char temp[16];
-    CAMELLIA_VALIDATE_RET( mode == MBEDTLS_CAMELLIA_ENCRYPT ||
-                           mode == MBEDTLS_CAMELLIA_DECRYPT );
+    if( mode != MBEDTLS_CAMELLIA_ENCRYPT && mode != MBEDTLS_CAMELLIA_DECRYPT )
+        return MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA;
 
     if( length % 16 )
         return( MBEDTLS_ERR_CAMELLIA_INVALID_INPUT_LENGTH );
@@ -598,8 +592,8 @@ int mbedtls_camellia_crypt_cfb128( mbedtls_camellia_context *ctx,
 {
     int c;
     size_t n;
-    CAMELLIA_VALIDATE_RET( mode == MBEDTLS_CAMELLIA_ENCRYPT ||
-                           mode == MBEDTLS_CAMELLIA_DECRYPT );
+    if( mode != MBEDTLS_CAMELLIA_ENCRYPT && mode != MBEDTLS_CAMELLIA_DECRYPT )
+        return MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA;
 
     n = *iv_off;
     if( n >= 16 )

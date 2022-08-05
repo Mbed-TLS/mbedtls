@@ -1444,21 +1444,24 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
     if( cipher_info->mode == MBEDTLS_MODE_CBC ||
         cipher_info->mode == MBEDTLS_MODE_STREAM )
     {
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        maclen = mbedtls_hash_info_get_size( hash_id );
+#else
         mbedtls_md_info_t const *md_info;
 
         /* Pick hash */
         md_info = mbedtls_md_info_from_type( hash_id );
         CHK( md_info != NULL );
-
-        /* Pick hash keys */
         maclen = mbedtls_md_get_size( md_info );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+        /* Pick hash keys */
         CHK( ( md0 = mbedtls_calloc( 1, maclen ) ) != NULL );
         CHK( ( md1 = mbedtls_calloc( 1, maclen ) ) != NULL );
         memset( md0, 0x5, maclen );
         memset( md1, 0x6, maclen );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        alg = mbedtls_hash_info_psa_from_md( mbedtls_md_get_type( md_info ) );
+        alg = mbedtls_hash_info_psa_from_md( hash_id );
 
         CHK( alg != 0 );
 
@@ -1761,10 +1764,23 @@ static int ssl_tls12_populate_session( mbedtls_ssl_session *session,
             mbedtls_calloc( 1, MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN );
         if( session->peer_cert_digest == NULL )
             return( -1 );
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        psa_algorithm_t psa_alg = mbedtls_hash_info_psa_from_md(
+                                    MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE );
+        size_t hash_size = 0;
+        psa_status_t status = psa_hash_compute( psa_alg, tmp_crt.raw.p,
+                                   tmp_crt.raw.len,
+                                   session->peer_cert_digest,
+                                   MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN,
+                                   &hash_size);
+        ret = psa_ssl_status_to_mbedtls( status );
+#else
         ret = mbedtls_md( mbedtls_md_info_from_type(
                               MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE ),
                           tmp_crt.raw.p, tmp_crt.raw.len,
                           session->peer_cert_digest );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
         if( ret != 0 )
             return( ret );
         session->peer_cert_digest_type =

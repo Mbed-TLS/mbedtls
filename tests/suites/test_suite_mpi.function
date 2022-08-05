@@ -2035,7 +2035,7 @@ void mbedtls_mpi_core_montmul( int limbs_AN4, int limbs_B4,
                                char * input_X4,
                                char * input_X8 )
 {
-    mbedtls_mpi A, B, N, X4, X8, T, CA;
+    mbedtls_mpi A, B, N, X4, X8, T, R;
 
     mbedtls_mpi_init( &A );
     mbedtls_mpi_init( &B );
@@ -2043,7 +2043,7 @@ void mbedtls_mpi_core_montmul( int limbs_AN4, int limbs_B4,
     mbedtls_mpi_init( &X4 );    /* expected result, sizeof(mbedtls_mpi_uint) == 4 */
     mbedtls_mpi_init( &X8 );    /* expected result, sizeof(mbedtls_mpi_uint) == 8 */
     mbedtls_mpi_init( &T );
-    mbedtls_mpi_init( &CA );    /* copy of A */
+    mbedtls_mpi_init( &R );     /* for the result */
 
     TEST_EQUAL( mbedtls_test_read_mpi( &A, input_A ), 0 );
     TEST_EQUAL( mbedtls_test_read_mpi( &B, input_B ), 0 );
@@ -2076,24 +2076,10 @@ void mbedtls_mpi_core_montmul( int limbs_AN4, int limbs_B4,
     /* Calculate the Montgomery constant (this is unit tested separately) */
     mbedtls_mpi_uint mm = mbedtls_mpi_montg_init( N.p[0] );
 
-    TEST_EQUAL( mbedtls_mpi_copy( &CA, &A ), 0 );       /* take a copy */
-    TEST_EQUAL( mbedtls_mpi_grow( &CA, limbs_AN ), 0 ); /* ensure it's got the right number of limbs */
+    TEST_EQUAL( mbedtls_mpi_grow( &R, limbs_AN ), 0 ); /* ensure it's got the right number of limbs */
 
-    mbedtls_mpi_montmul( &A, &B, &N, mm, &T );
-    TEST_EQUAL( A.s, 1 );               /* ensure still positive */
-
-    /* Could use mbedtls_mpi_cmp_mpi(), but this gives finer detail if not the same */
-    TEST_EQUAL( A.n, X->n );
-    TEST_EQUAL( memcmp( A.p, X->p, A.n * sizeof(mbedtls_mpi_uint) ), 0 );
-
-    /* First overwrite A so we ensure mbedtls_mpi_core_montmul() does something */
-    memset( A.p, 0xAA, A.n * sizeof(mbedtls_mpi_uint) );
-
-    /* Now test the new function: use the copy CA we took earlier of A as the
-     * LHS, and use A as the destination
-     */
-    mbedtls_mpi_core_montmul( A.p, CA.p, B.p, B.n, N.p, N.n, mm, T.p );
-    TEST_EQUAL( memcmp( A.p, X->p, A.n * sizeof(mbedtls_mpi_uint) ), 0 );
+    mbedtls_mpi_core_montmul( R.p, A.p, B.p, B.n, N.p, N.n, mm, T.p );
+    TEST_EQUAL( memcmp( R.p, X->p, N.n * sizeof(mbedtls_mpi_uint) ), 0 );
 
 exit:
     mbedtls_mpi_free( &A );
@@ -2102,7 +2088,7 @@ exit:
     mbedtls_mpi_free( &X4 );
     mbedtls_mpi_free( &X8 );
     mbedtls_mpi_free( &T );
-    mbedtls_mpi_free( &CA );
+    mbedtls_mpi_free( &R );
 }
 /* END_CASE */
 

@@ -163,7 +163,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_BIGNUM_C */
-void mbedtls_debug_print_mpi( int radix, char * value, char * file, int line,
+void mbedtls_debug_print_mpi( char * value, char * file, int line,
                               char * prefix, char * result_str )
 {
     mbedtls_ssl_context ssl;
@@ -179,7 +179,7 @@ void mbedtls_debug_print_mpi( int radix, char * value, char * file, int line,
 
     TEST_ASSERT( mbedtls_ssl_setup( &ssl, &conf ) == 0 );
 
-    TEST_ASSERT( mbedtls_test_read_mpi( &val, radix, value ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &val, value ) == 0 );
 
     mbedtls_ssl_conf_dbg( &conf, string_debug, &buffer);
 

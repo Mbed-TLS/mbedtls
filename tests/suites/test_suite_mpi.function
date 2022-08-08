@@ -363,6 +363,35 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void mbedtls_mpi_mod_setup( int ext_rep, int int_rep, int iret )
+{
+    #define MLIMBS 8
+    mbedtls_mpi_uint mp[MLIMBS];
+    mbedtls_mpi_mod_modulus m;
+    int ret;
+
+    memset( mp, 0xFF, sizeof(mp) );
+
+    mbedtls_mpi_mod_modulus_init( &m );
+    ret = mbedtls_mpi_mod_modulus_setup( &m, mp, MLIMBS, ext_rep, int_rep );
+    TEST_ASSERT( ret == iret );
+
+    /* Address sanitiser should catch if we try to free mp */
+    mbedtls_mpi_mod_modulus_free( &m );
+
+    /* Make sure that the modulus doesn't have reference to mp anymore */
+    TEST_ASSERT( m.p != mp );
+
+exit:
+    /* It should be safe to call an mbedtls free several times */
+    mbedtls_mpi_mod_modulus_free( &m );
+
+    #undef MLIMBS
+}
+/* END_CASE */
+
+
+/* BEGIN_CASE */
 void mbedtls_mpi_mod_raw_io( data_t *input, int nb_int, int nx_64_int,
                              int iendian, int iret, int oret )
 {

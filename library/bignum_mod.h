@@ -67,13 +67,19 @@ typedef enum
 /** Setup a residue structure.
  *
  * \param r     The address of residue to setup. The size is determined by \p m.
- * \param m     The address of a modulus related to \p r.
- * \param p     The address of the MPI used for \p r.
+ *              (In particular, it must have at least as many limbs as the
+ *              modulus \p m.)
+ * \param m     The address of the modulus related to \p r.
+ * \param p     The address of the limb array storing the value of \p r. The
+ *              memory pointed by \p p will be used by \p r and must not be
+ *              freed or written until after mbedtls_mpi_mod_residue_release()
+ *              is called.
  * \param pn    The number of limbs of \p p.
  *
  * \return      \c 0 if successful.
- * \return      #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p r, \p m or \p p is
- *              #NULL pointer or if \p p is less then \p m.
+ * \return      #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p r, \p m or \p p is #NULL
+ *              pointer, \p pn is less than the limbs in \p m or if \p p is not
+ *              less than \p m.
  */
 int mbedtls_mpi_mod_residue_setup( mbedtls_mpi_mod_residue *r,
                                    mbedtls_mpi_mod_modulus *m,
@@ -81,6 +87,12 @@ int mbedtls_mpi_mod_residue_setup( mbedtls_mpi_mod_residue *r,
                                    size_t pn );
 
 /** Unbind elements of a residue structure.
+ *
+ * This function removes the reference to the limb array that was passed to
+ * mbedtls_mpi_mod_residue_setup() to make it safe to free or use again.
+ *
+ * This function invalidates \p r and it must not be used until after
+ * mbedtls_mpi_mod_residue_setup() is called on it again.
  *
  * \param r     The address of residue to release.
  */
@@ -95,10 +107,15 @@ void mbedtls_mpi_mod_modulus_init( mbedtls_mpi_mod_modulus *m );
 /** Setup a residue structure.
  *
  * \param m         The address of a modulus.
- * \param p         The address of the MPI used for \p m.
+ * \param p         The address of the limb array storing the value of \p m. The
+ *                  memory pointed by \p p will be used by \p r and must not be
+ *                  freed or written until after
+ *                  mbedtls_mpi_mod_modulus_free() is called.
  * \param pn        The number of limbs of \p p.
- * \param ext_rep   The external representation of \p m (eg. byte order).
- * \param int_rep   The selector which representation is used.
+ * \param ext_rep   The external representation to be used for residues
+ *                  associated with \p m (see #mbedtls_mpi_mod_ext_rep).
+ * \param int_rep   The internal representation to be used for residues
+ *                  associated with \p m (see #mbedtls_mpi_mod_rep_selector).
  *
  * \return      \c 0 if successful.
  * \return      #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p m or \p p is
@@ -110,7 +127,13 @@ int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,
                                    int ext_rep,
                                    int int_rep );
 
-/** Unbind elements of a modulus structure.
+/** Free elements of a modulus structure.
+ *
+ * This function frees any memory allocated by mbedtls_mpi_mod_modulus_setup().
+ *
+ * \warning This function does not free the limb array passed to
+ *          mbedtls_mpi_mod_modulus_setup() only removes the reference to it,
+ *          making it safe to free or to use it again.
  *
  * \param m     The address of a modulus.
  */

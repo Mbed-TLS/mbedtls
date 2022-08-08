@@ -28,11 +28,13 @@
 
 /** Import X from unsigned binary data.
  *
- * This function is guaranteed to return an MPI with exactly the necessary
- * number of limbs (in particular, it does not skip 0s in the input).
+ * The MPI needs to have enough limbs to store the full value (in particular,
+ * this function does not skip 0s in the input).
  *
- * \param X      The address of the MPI. The size is determined by \p m.
- * \param m      The address of a modulus related to \p X.
+ * \param X      The address of the MPI. The size is determined by \p m. (In
+ *               particular, it must have at least as many limbs as the modulus
+ *               \p m.)
+ * \param m      The address of the modulus related to \p X.
  * \param buf    The input buffer to import from.
  * \param buflen The length in bytes of \p buf.
  *
@@ -40,7 +42,7 @@
  * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p X isn't
  *               large enough to hold the value in \p buf.
  * \return       #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if the external representation
- *               of \p m is invalid or \p X is less then \p m.
+ *               of \p m is invalid or \p X is not less than \p m.
  */
 int mbedtls_mpi_mod_raw_read( mbedtls_mpi_uint *X,
                               mbedtls_mpi_mod_modulus *m,
@@ -49,9 +51,11 @@ int mbedtls_mpi_mod_raw_read( mbedtls_mpi_uint *X,
 
 /** Export X into unsigned binary data.
  *
- * \param X      The address of the MPI. The size is determined by \p m.
- * \param m      The address of a modulus related to \p X.
- * \param buf    The output buffer to import.
+ * \param X      The address of the MPI. The size is determined by \p m. (In
+ *               particular, it must have at least as many limbs as the modulus
+ *               \p m.)
+ * \param m      The address of the modulus related to \p X.
+ * \param buf    The output buffer to export to.
  * \param buflen The length in bytes of \p buf.
  *
  * \return       \c 0 if successful.

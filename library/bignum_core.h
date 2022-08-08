@@ -54,8 +54,8 @@ void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint * const X,
 
 /** Import X from unsigned binary data, little endian.
  *
- * This function is guaranteed to return an MPI with at least the necessary
- * number of limbs (in particular, it does not skip 0s in the input).
+ * The MPI needs to have enough limbs to store the full value (in particular,
+ * this function does not skip 0s in the input).
  *
  * \param X      The address of the MPI.
  * \param nx     The number of limbs of \p X.
@@ -73,8 +73,8 @@ int mbedtls_mpi_core_read_le( mbedtls_mpi_uint *X,
 
 /** Import X from unsigned binary data, big endian.
  *
- * This function is guaranteed to return an MPI with exactly the necessary
- * number of limbs (in particular, it does not skip 0s in the input).
+ * The MPI needs to have enough limbs to store the full value (in particular,
+ * this function does not skip 0s in the input).
  *
  * \param X      The address of the MPI.
  * \param nx     The number of limbs of \p X.
@@ -94,7 +94,7 @@ int mbedtls_mpi_core_read_be( mbedtls_mpi_uint *X,
  *
  * \param X      The address of the MPI.
  * \param nx     The number of limbs of \p X.
- * \param buf    The output buffer to import.
+ * \param buf    The output buffer to export to.
  * \param buflen The length in bytes of \p buf.
  *
  * \return       \c 0 if successful.
@@ -110,7 +110,7 @@ int mbedtls_mpi_core_write_le( const mbedtls_mpi_uint *X,
  *
  * \param X      The address of the MPI.
  * \param nx     The number of limbs of \p X.
- * \param buf    The output buffer to import.
+ * \param buf    The output buffer to export to.
  * \param buflen The length in bytes of \p buf.
  *
  * \return       \c 0 if successful.

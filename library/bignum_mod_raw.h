@@ -34,12 +34,12 @@
  * \param X      The address of the MPI. The size is determined by \p m.
  * \param m      The address of a modulus related to \p X.
  * \param buf    The input buffer to import from.
- * \param buflen Tne length in bytes of \p buf.
+ * \param buflen The length in bytes of \p buf.
  *
  * \return       \c 0 if successful.
  * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p X isn't
  *               large enough to hold the value in \p buf.
- * \return       #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if the external reprezentation
+ * \return       #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if the external representation
  *               of \p m is invalid or \p X is less then \p m.
  */
 int mbedtls_mpi_mod_raw_read( mbedtls_mpi_uint *X,
@@ -52,12 +52,12 @@ int mbedtls_mpi_mod_raw_read( mbedtls_mpi_uint *X,
  * \param X      The address of the MPI. The size is determined by \p m.
  * \param m      The address of a modulus related to \p X.
  * \param buf    The output buffer to import.
- * \param buflen Tne length in bytes of \p buf.
+ * \param buflen The length in bytes of \p buf.
  *
  * \return       \c 0 if successful.
  * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p buf isn't
  *               large enough to hold the value of \p X.
- * \return       #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if the external reprezentation
+ * \return       #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if the external representation
  *               of \p m is invalid.
  */
 int mbedtls_mpi_mod_raw_write( mbedtls_mpi_uint *X,

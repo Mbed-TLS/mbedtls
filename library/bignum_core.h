@@ -30,7 +30,7 @@
  *
  * \param x     Integer to count leading zero bits.
  *
- * \return      Tne munber of leading zero bits in \p x.
+ * \return      The number of leading zero bits in \p x.
  */
 size_t mbedtls_mpi_core_clz( const mbedtls_mpi_uint x );
 
@@ -39,7 +39,7 @@ size_t mbedtls_mpi_core_clz( const mbedtls_mpi_uint x );
  * \param X     The address of the MPI.
  * \param nx    The number of limbs of \p X.
  *
- * \return      Tne number of bits in \p X.
+ * \return      The number of bits in \p X.
  */
 size_t mbedtls_mpi_core_bitlen( const mbedtls_mpi_uint *X, size_t nx );
 
@@ -60,7 +60,7 @@ void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint * const X,
  * \param X      The address of the MPI.
  * \param nx     The number of limbs of \p X.
  * \param buf    The input buffer to import from.
- * \param buflen Tne length in bytes of \p buf.
+ * \param buflen The length in bytes of \p buf.
  *
  * \return       \c 0 if successful.
  * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p X isn't
@@ -79,7 +79,7 @@ int mbedtls_mpi_core_read_le( mbedtls_mpi_uint *X,
  * \param X      The address of the MPI.
  * \param nx     The number of limbs of \p X.
  * \param buf    The input buffer to import from.
- * \param buflen Tne length in bytes of \p buf.
+ * \param buflen The length in bytes of \p buf.
  *
  * \return       \c 0 if successful.
  * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p X isn't
@@ -95,7 +95,7 @@ int mbedtls_mpi_core_read_be( mbedtls_mpi_uint *X,
  * \param X      The address of the MPI.
  * \param nx     The number of limbs of \p X.
  * \param buf    The output buffer to import.
- * \param buflen Tne length in bytes of \p buf.
+ * \param buflen The length in bytes of \p buf.
  *
  * \return       \c 0 if successful.
  * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p buf isn't
@@ -111,7 +111,7 @@ int mbedtls_mpi_core_write_le( const mbedtls_mpi_uint *X,
  * \param X      The address of the MPI.
  * \param nx     The number of limbs of \p X.
  * \param buf    The output buffer to import.
- * \param buflen Tne length in bytes of \p buf.
+ * \param buflen The length in bytes of \p buf.
  *
  * \return       \c 0 if successful.
  * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p buf isn't

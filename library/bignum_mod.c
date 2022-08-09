@@ -26,10 +26,6 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
 #include "mbedtls/bignum.h"
-#include "bignum_core.h"
-#include "bignum_mod.h"
-#include "bignum_mod_raw.h"
-#include "constant_time_internal.h"
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -40,6 +36,11 @@
 #define mbedtls_calloc      calloc
 #define mbedtls_free        free
 #endif
+
+#include "bignum_core.h"
+#include "bignum_mod.h"
+#include "bignum_mod_raw.h"
+#include "constant_time_internal.h"
 
 int mbedtls_mpi_mod_residue_setup( mbedtls_mpi_mod_residue *r,
                                    mbedtls_mpi_mod_modulus *m,

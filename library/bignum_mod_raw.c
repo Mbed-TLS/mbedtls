@@ -129,4 +129,27 @@ cleanup:
     return( ret );
 }
 
+int mbedtls_mpi_mod_raw_conv_inv( mbedtls_mpi_uint *X,
+                                  const mbedtls_mpi_mod_modulus *modulus )
+{
+    mbedtls_mpi_uint one = 1;
+    mbedtls_mpi T;
+    mbedtls_mpi_init( &T );
+    mbedtls_mpi_core_montmul( X, X, &one, 1, m->p, m->limbs,
+                              m->rep.mont.mm, T.p );
+    mbedtls_mpi_free( &T );
+    return( 0 );
+}
+
+int mbedtls_mpi_mod_raw_conv_fwd( mbedtls_mpi_uint *X,
+                                  const mbedtls_mpi_mod_modulus *modulus )
+{
+    mbedtls_mpi T;
+    mbedtls_mpi_init( &T );
+    mbedtls_mpi_core_montmul( X, X, m->rep.mont.rr, 1, m->p, m->limbs,
+                              m->rep.mont.mm, T.p );
+    mbedtls_mpi_free( &T );
+    return( 0 );
+}
+
 #endif /* MBEDTLS_BIGNUM_C */

@@ -92,4 +92,24 @@ int mbedtls_mpi_mod_raw_write( const mbedtls_mpi_uint *A,
  */
 int mbedtls_mpi_set_montgomery_constant_unsafe( mbedtls_mpi_mod_modulus *m );
 
+/** Convert from internal to public (little endian) data presentation
+ *
+ * \param X      The address of the MPI.
+ * \param m      The address of a modulus.
+ *
+ * \return       \c 0 if successful.
+ */
+int mbedtls_mpi_mod_raw_conv_inv( mbedtls_mpi_uint *X,
+                                  const mbedtls_mpi_mod_modulus *modulus );
+                                  
+/** Convert from public (little endian) to internal data presentation.
+ *
+ * \param X      The address of the MPI.
+ * \param m      The address of a modulus.
+ *
+ * \return       \c 0 if successful.
+ */
+int mbedtls_mpi_mod_raw_conv_fwd( mbedtls_mpi_uint *X,
+                                  const mbedtls_mpi_mod_modulus *modulus );
+
 #endif /* MBEDTLS_BIGNUM_MOD_RAW_H */

@@ -174,7 +174,7 @@ int mbedtls_x509write_crt_set_basic_constraints( mbedtls_x509write_cert *ctx,
                              is_ca, buf + sizeof(buf) - len, len ) );
 }
 
-#if defined(MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA)
+#if defined(MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
 static int mbedtls_x509write_crt_set_key_identifier( mbedtls_x509write_cert *ctx,
                                               int is_ca,
                                               unsigned char tag )

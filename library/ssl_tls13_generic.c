@@ -213,7 +213,7 @@ static int ssl_tls13_parse_certificate_verify( mbedtls_ssl_context *ssl,
         goto error;
     }
 
-    if( mbedtls_ssl_tls13_get_pk_type_and_md_alg_from_sig_alg(
+    if( mbedtls_ssl_get_pk_type_and_md_alg_from_sig_alg(
                                         algorithm, &sig_alg, &md_alg ) != 0 )
     {
         goto error;
@@ -1029,7 +1029,7 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "CertificateVerify with %s",
                                 mbedtls_ssl_sig_alg_to_str( algorithm )) );
 
-    if( mbedtls_ssl_tls13_get_pk_type_and_md_alg_from_sig_alg(
+    if( mbedtls_ssl_get_pk_type_and_md_alg_from_sig_alg(
                                         algorithm, &pk_type, &md_alg ) != 0 )
     {
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR  );

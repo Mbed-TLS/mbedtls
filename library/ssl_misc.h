@@ -2092,7 +2092,7 @@ static inline int mbedtls_ssl_sig_alg_is_offered( const mbedtls_ssl_context *ssl
     return( 0 );
 }
 
-static inline int mbedtls_ssl_tls13_get_pk_type_and_md_alg_from_sig_alg(
+static inline int mbedtls_ssl_get_pk_type_and_md_alg_from_sig_alg(
     uint16_t sig_alg, mbedtls_pk_type_t *pk_type, mbedtls_md_type_t *md_alg )
 {
     *pk_type = mbedtls_ssl_pk_alg_from_sig( sig_alg & 0xff );

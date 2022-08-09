@@ -2617,7 +2617,8 @@ MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_write_new_session_ticket_coordinate( mbedtls_ssl_context *ssl )
 {
     /* Check whether the use of session tickets is enabled */
-    if( ssl->conf->f_ticket_write == NULL )
+    if( ssl->conf->f_ticket_write == NULL ||
+        ssl->handshake->tls13_session_tickets == 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "new session ticket is not enabled" ) );
         return( SSL_NEW_SESSION_TICKET_SKIP );
@@ -2640,6 +2641,10 @@ static int ssl_tls13_prepare_new_session_ticket( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> prepare NewSessionTicket msg" ) );
 
+    if( ssl->handshake->resume == 1 )
+        ssl->handshake->tls13_session_tickets = 0;
+    else
+        ssl->handshake->tls13_session_tickets--;
 #if defined(MBEDTLS_HAVE_TIME)
     session->start = mbedtls_time( NULL );
 #endif
@@ -2885,6 +2890,12 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
         /* start state */
         case MBEDTLS_SSL_HELLO_REQUEST:
             mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_HELLO );
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+            ssl->handshake->tls13_session_tickets =
+                ssl->conf->new_session_tickets ?
+                    ssl->conf->new_session_tickets :
+                    MBEDTLS_SSL_TLS1_3_DEFAULT_NEW_SESSION_TICKETS;
+#endif
             ret = 0;
             break;
 
@@ -3002,7 +3013,11 @@ int mbedtls_ssl_tls13_handshake_server_step( mbedtls_ssl_context *ssl )
              * as part of ssl_prepare_handshake_step.
              */
             ret = 0;
-            mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_HANDSHAKE_OVER );
+
+            if( ssl->handshake->tls13_session_tickets == 0 )
+                mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_HANDSHAKE_OVER );
+            else
+                mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_NEW_SESSION_TICKET );
             break;
 
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */

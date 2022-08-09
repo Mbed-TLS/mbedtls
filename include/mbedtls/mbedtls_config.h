@@ -1579,6 +1579,14 @@
 #define MBEDTLS_SSL_TLS1_3_TICKET_NONCE_LENGTH 32
 
 /**
+ * \def MBEDTLS_SSL_TLS1_3_DEFAULT_NEW_SESSION_TICKETS
+ *
+ * Default number of NewSessionTicket. This is not used in TLS 1.2.
+ *
+ */
+#define MBEDTLS_SSL_TLS1_3_DEFAULT_NEW_SESSION_TICKETS 1
+
+/**
  * \def MBEDTLS_SSL_PROTO_DTLS
  *
  * Enable support for DTLS (all available versions).

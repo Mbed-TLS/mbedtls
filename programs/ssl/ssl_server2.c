@@ -1997,7 +1997,7 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "tickets" ) == 0 )
         {
             opt.tickets = atoi( q );
-            if( opt.tickets < 0 || opt.tickets > 1 )
+            if( opt.tickets < 0 )
                 goto usage;
         }
         else if( strcmp( p, "ticket_rotate" ) == 0 )
@@ -2915,7 +2915,7 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    if( opt.tickets == MBEDTLS_SSL_SESSION_TICKETS_ENABLED )
+    if( opt.tickets != MBEDTLS_SSL_SESSION_TICKETS_DISABLED )
     {
         if( ( ret = mbedtls_ssl_ticket_setup( &ticket_ctx,
                         rng_get, &rng,
@@ -2930,7 +2930,9 @@ int main( int argc, char *argv[] )
                 mbedtls_ssl_ticket_write,
                 mbedtls_ssl_ticket_parse,
                 &ticket_ctx );
-
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+        mbedtls_ssl_conf_new_session_tickets( &conf, opt.tickets );
+#endif
         /* exercise manual ticket rotation (not required for typical use)
          * (used for external synchronization of session ticket encryption keys)
          */

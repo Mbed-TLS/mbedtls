@@ -2009,7 +2009,9 @@
  *
  * Enable the multi-precision integer library.
  *
- * Module:  library/bignum.c, library/bignum_new.c
+ * Module:  library/bignum.c
+ *          library/bignum_new.c
+ *          library/bignum_core.c
  * Caller:  library/dhm.c
  *          library/ecp.c
  *          library/ecdsa.c

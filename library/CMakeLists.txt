@@ -19,6 +19,7 @@ set(src_crypto
     base64.c
     bignum.c
     bignum_new.c
+    bignum_core.c
     camellia.c
     ccm.c
     chacha20.c

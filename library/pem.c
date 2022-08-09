@@ -29,7 +29,6 @@
 #include "mbedtls/cipher.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
-#include "legacy_or_psa.h"
 
 #include <string.h>
 
@@ -44,6 +43,8 @@
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
 #endif
+
+#include "legacy_or_psa.h"
 
 #if defined(MBEDTLS_PEM_PARSE_C)
 void mbedtls_pem_init( mbedtls_pem_context *ctx )

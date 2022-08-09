@@ -26,6 +26,8 @@
 #include "mbedtls/bignum.h"
 #endif
 
+#include "bignum_mod.h"
+
 /** Import X from unsigned binary data.
  *
  * The MPI needs to have enough limbs to store the full value (in particular,

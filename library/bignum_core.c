@@ -38,11 +38,6 @@
 
 #include "bignum_core.h"
 
-#define MPI_VALIDATE_RET( cond )                                       \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_MPI_BAD_INPUT_DATA )
-#define MPI_VALIDATE( cond )                                           \
-    MBEDTLS_INTERNAL_VALIDATE( cond )
-
 #define ciL    (sizeof(mbedtls_mpi_uint))   /* chars in limb  */
 #define biL    (ciL << 3)                   /* bits  in limb  */
 #define biH    (ciL << 2)                   /* half limb size */
@@ -239,9 +234,6 @@ int mbedtls_mpi_core_read_be( mbedtls_mpi_uint *X,
     size_t overhead;
     unsigned char *Xp;
 
-    MPI_VALIDATE_RET( X != NULL );
-    MPI_VALIDATE_RET( buflen == 0 || buf != NULL );
-
     /* Ensure that target MPI has at least the necessary number of limbs */
     MBEDTLS_MPI_CHK( mpi_core_clear( X, nx, limbs ) );
 
@@ -314,9 +306,6 @@ int mbedtls_mpi_core_write_be( const mbedtls_mpi_uint *X,
     size_t bytes_to_copy;
     unsigned char *p;
     size_t i;
-
-    MPI_VALIDATE_RET( X != NULL );
-    MPI_VALIDATE_RET( buflen == 0 || buf != NULL );
 
     stored_bytes = nx * ciL;
 

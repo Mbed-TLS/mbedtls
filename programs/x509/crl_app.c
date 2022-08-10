@@ -64,6 +64,12 @@ int app_mbedtls_x509_crl_ext_cb(void* p_ctx,
     const unsigned char* p,
     const unsigned char* end)
 {
+    ((void) p_ctx);
+    ((void) crl);
+    ((void) oid);
+    ((void) critical);
+    ((void) p);
+    ((void) end);
     return 0;
 }
 

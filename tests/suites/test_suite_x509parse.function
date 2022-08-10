@@ -401,6 +401,12 @@ int parse_crl_ext_cb_recognized(void* p_ctx,
     const unsigned char* p,
     const unsigned char* end)
 {
+    ((void) p_ctx);
+    ((void) crl);
+    ((void) oid);
+    ((void) critical);
+    ((void) p);
+    ((void) end);
     return 0;
 }
 
@@ -411,6 +417,12 @@ int parse_crl_ext_cb_not_recognized(void* p_ctx,
     const unsigned char* p,
     const unsigned char* end)
 {
+    ((void) p_ctx);
+    ((void) crl);
+    ((void) oid);
+    ((void) critical);
+    ((void) p);
+    ((void) end);
     return MBEDTLS_ERR_X509_INVALID_EXTENSIONS + MBEDTLS_ERR_ASN1_UNEXPECTED_TAG;
 }
 
@@ -545,7 +557,7 @@ void mbedtls_x509_crl_parse_cb_recognized( char * crl_file, int result )
 {
     mbedtls_x509_crl   crl;
     size_t n;
-    char *buf = NULL;
+    unsigned char *buf = NULL;
 
     mbedtls_x509_crl_init( &crl );
 
@@ -565,7 +577,7 @@ void mbedtls_x509_crl_parse_cb_not_recognized( char * crl_file, int result )
 {
     mbedtls_x509_crl   crl;
     size_t n;
-    char *buf = NULL;
+    unsigned char *buf = NULL;
 
     mbedtls_x509_crl_init( &crl );
 

@@ -1,0 +1,5 @@
+Bugfix
+   * Fix ECDSA verification, where it was failing to validate the public key
+     for signatures where R == 1 and S == 1. This bug meant that it was
+     possible to verify such signatures with an invalid public key, in some
+     cases.

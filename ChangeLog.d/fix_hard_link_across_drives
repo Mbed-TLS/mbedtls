@@ -1,0 +1,3 @@
+Bugfix
+   * Fix a build issue on Windows where the source and build directory could not be on
+     different drives (#5751).

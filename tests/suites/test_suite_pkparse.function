@@ -2,6 +2,7 @@
 #include "mbedtls/pk.h"
 #include "mbedtls/pem.h"
 #include "mbedtls/oid.h"
+#include "legacy_or_psa.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

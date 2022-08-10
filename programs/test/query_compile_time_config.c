@@ -32,10 +32,10 @@
     "usage: %s [ -all | -any | -l ] <MBEDTLS_CONFIG> ...\n\n"                   \
     "This program takes command line arguments which correspond to\n"           \
     "the string representation of Mbed TLS compile time configurations.\n\n"    \
-    "If only one argument is available, the value 0 will be returned if\n"      \
-    "this configuration is defined in the Mbed TLS build and the macro\n"       \
-    "expansion of that configuration will be printed (if any). Otherwise,\n"    \
-    " 1 will be returned.\n"                                                    \
+    "If \"--all\" and \"--any\" are not used, then, if all given arguments\n"   \
+    "are defined in the Mbed TLS build, 0 is returned; otherwise 1 is\n"        \
+    "returned. If only one argument is given, the macro expansion of that\n"    \
+    "configuration will be printed (if any).\n"                                 \
     "-l\tPrint all available configuration.\n"                                  \
     "-all\tReturn 0 if all configurations are defined. Otherwise, return 1\n"   \
     "-any\tReturn 0 if any configuration is defined. Otherwise, return 1\n"     \

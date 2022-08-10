@@ -38,20 +38,6 @@
 
 #include "bignum_core.h"
 
-#define ciL    (sizeof(mbedtls_mpi_uint))   /* chars in limb  */
-#define biL    (ciL << 3)                   /* bits  in limb  */
-#define biH    (ciL << 2)                   /* half limb size */
-
-/*
- * Convert between bits/chars and number of limbs
- * Divide first in order to avoid potential overflows
- */
-#define BITS_TO_LIMBS(i)  ( (i) / biL + ( (i) % biL != 0 ) )
-#define CHARS_TO_LIMBS(i) ( (i) / ciL + ( (i) % ciL != 0 ) )
-/* Get a specific byte, without range checks. */
-#define GET_BYTE( X, i )                                \
-    ( ( ( X )[( i ) / ciL] >> ( ( ( i ) % ciL ) * 8 ) ) & 0xff )
-
 /*
  * Count leading zero bits in a given integer
  */

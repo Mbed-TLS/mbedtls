@@ -63,18 +63,7 @@
 #define MPI_VALIDATE( cond )                                           \
     MBEDTLS_INTERNAL_VALIDATE( cond )
 
-#define ciL    (sizeof(mbedtls_mpi_uint))         /* chars in limb  */
-#define biL    (ciL << 3)               /* bits  in limb  */
-#define biH    (ciL << 2)               /* half limb size */
-
 #define MPI_SIZE_T_MAX  ( (size_t) -1 ) /* SIZE_T_MAX is not standard */
-
-/*
- * Convert between bits/chars and number of limbs
- * Divide first in order to avoid potential overflows
- */
-#define BITS_TO_LIMBS(i)  ( (i) / biL + ( (i) % biL != 0 ) )
-#define CHARS_TO_LIMBS(i) ( (i) / ciL + ( (i) % ciL != 0 ) )
 
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_mpi_zeroize( mbedtls_mpi_uint *v, size_t n )
@@ -303,10 +292,6 @@ int mbedtls_mpi_get_bit( const mbedtls_mpi *X, size_t pos )
 
     return( ( X->p[pos / biL] >> ( pos % biL ) ) & 0x01 );
 }
-
-/* Get a specific byte, without range checks. */
-#define GET_BYTE( X, i )                                \
-    ( ( ( X )->p[( i ) / ciL] >> ( ( ( i ) % ciL ) * 8 ) ) & 0xff )
 
 /*
  * Set a bit to a specific value of 0 or 1

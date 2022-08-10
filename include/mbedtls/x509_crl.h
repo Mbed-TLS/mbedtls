@@ -148,7 +148,7 @@ int mbedtls_x509_crl_parse_der( mbedtls_x509_crl *chain,
  * \return         A negative error code on failure.
  */
 typedef int (*mbedtls_x509_crl_ext_cb_t)( void *p_ctx,
-                                          mbedtls_x509_crl const *crt,
+                                          mbedtls_x509_crl const *crl,
                                           mbedtls_x509_buf const *oid,
                                           int critical,
                                           const unsigned char *p,

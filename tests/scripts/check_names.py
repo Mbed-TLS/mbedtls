@@ -298,9 +298,9 @@ class CodeParser():
         # Aligns the counts on the assumption that none exceeds 4 digits
         for scope in actual_macros:
             self.log.debug("  {:4} Total {} Macros"
-                            .format(len(all_macros[scope]), scope))
+                           .format(len(all_macros[scope]), scope))
             self.log.debug("  {:4} {} Non-identifier Macros"
-                            .format(len(actual_macros[scope]), scope))
+                           .format(len(actual_macros[scope]), scope))
         self.log.debug("  {:4} Enum Constants".format(len(enum_consts)))
         self.log.debug("  {:4} Identifiers".format(len(identifiers)))
         self.log.debug("  {:4} Exported Symbols".format(len(symbols)))
@@ -836,8 +836,8 @@ class NameChecker():
             match.name
             for match
             in self.parse_result["public_macros"] +
-               self.parse_result["internal_macros"] +
-               self.parse_result["enum_consts"]
+            self.parse_result["internal_macros"] +
+            self.parse_result["enum_consts"]
             }
         typo_exclusion = re.compile(r"XXX|__|_$|^MBEDTLS_.*CONFIG_FILE$|"
                                     r"MBEDTLS_TEST_LIBTESTDRIVER*")

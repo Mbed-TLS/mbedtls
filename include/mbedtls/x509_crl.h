@@ -163,13 +163,16 @@ typedef int (*mbedtls_x509_crl_ext_cb_t)( void *p_ctx,
  * \param buf      buffer holding the CRL data in PEM or DER format
  * \param buflen   size of the buffer
  *                 (including the terminating null byte for PEM data)
+ * \param cb       A callback invoked for every unsupported certificate
+ *                 extension.
+ * \param p_ctx    An opaque context passed to the callback.
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int mbedtls_x509_crl_parse_with_cb_ext( mbedtls_x509_crl *chain, 
-                                        const unsigned char *buf, 
-                                        size_t buflen, 
-                                        mbedtls_x509_crl_ext_cb_t cb, 
+int mbedtls_x509_crl_parse_with_cb_ext( mbedtls_x509_crl *chain,
+                                        const unsigned char *buf,
+                                        size_t buflen,
+                                        mbedtls_x509_crl_ext_cb_t cb,
                                         void* p_ctx);
 
 /**

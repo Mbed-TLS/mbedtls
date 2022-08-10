@@ -311,9 +311,9 @@ static int x509_get_entries( unsigned char **p,
  * Parse one  CRLs in DER format and append it to the chained list
  */
 static int mbedtls_x509_crl_parse_der_internal( mbedtls_x509_crl *chain,
-                                                const unsigned char *buf, 
-                                                size_t buflen, 
-                                                mbedtls_x509_crl_ext_cb_t cb, 
+                                                const unsigned char *buf,
+                                                size_t buflen,
+                                                mbedtls_x509_crl_ext_cb_t cb,
                                                 void* p_ctx)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -562,10 +562,10 @@ int mbedtls_x509_crl_parse_der(mbedtls_x509_crl *chain,
  * Parse one or more CRLs and add them to the chained list
  * support callback
  */
-int mbedtls_x509_crl_parse_with_cb_ext( mbedtls_x509_crl *chain, 
-                                        const unsigned char *buf, 
+int mbedtls_x509_crl_parse_with_cb_ext( mbedtls_x509_crl *chain,
+                                        const unsigned char *buf,
                                         size_t buflen,
-                                        mbedtls_x509_crl_ext_cb_t cb, 
+                                        mbedtls_x509_crl_ext_cb_t cb,
                                         void* p_ctx)
 {
 #if defined(MBEDTLS_PEM_PARSE_C)

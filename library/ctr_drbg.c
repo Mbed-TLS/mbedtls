@@ -51,6 +51,7 @@
 void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx )
 {
     memset( ctx, 0, sizeof( mbedtls_ctr_drbg_context ) );
+    mbedtls_aes_init( &ctx->aes_ctx );
     /* Indicate that the entropy nonce length is not set explicitly.
      * See mbedtls_ctr_drbg_set_nonce_len(). */
     ctx->reseed_counter = -1;

@@ -504,19 +504,19 @@ void ecdsa_verify( int grp_id, char * x, char * y, char * r, char * s, int len, 
     TEST_EQUAL( mbedtls_ecp_group_load( &ctx.grp, curve_info->grp_id ), 0 );
 
     /* Prepare public key */
-    TEST_EQUAL( mbedtls_mpi_read_string( &ctx.Q.X, 16, x ), 0 );
-    TEST_EQUAL( mbedtls_mpi_read_string( &ctx.Q.Y, 16, y ), 0 );
+    TEST_EQUAL( mbedtls_test_read_mpi( &ctx.Q.X, x ), 0 );
+    TEST_EQUAL( mbedtls_test_read_mpi( &ctx.Q.Y, y ), 0 );
     TEST_EQUAL( mbedtls_mpi_lset( &ctx.Q.Z, 1 ), 0 );
 
     /* Prepare signature R & S */
-    TEST_EQUAL( mbedtls_mpi_read_string( &sig_r, 16, r ), 0 );
-    TEST_EQUAL( mbedtls_mpi_read_string( &sig_s, 16, s ), 0 );
+    TEST_EQUAL( mbedtls_test_read_mpi( &sig_r, r ), 0 );
+    TEST_EQUAL( mbedtls_test_read_mpi( &sig_s, s ), 0 );
 
     /* Test whether public key has expected validity */
     TEST_EQUAL( mbedtls_ecp_check_pubkey( &ctx.grp, &ctx.Q ), key_is_valid ? 0 : MBEDTLS_ERR_ECP_INVALID_KEY );
 
     /* Verification */
-    int result = mbedtls_ecdsa_verify( &ctx.grp, FUZZ_DATA, ( size_t ) len, &ctx.Q, &sig_r, &sig_s );
+    int result = mbedtls_ecdsa_verify( &ctx.grp, FUZZ_DATA, (size_t)len, &ctx.Q, &sig_r, &sig_s );
 
     TEST_EQUAL( result, expected );
 

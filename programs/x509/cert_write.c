@@ -262,7 +262,7 @@ int main( int argc, char *argv[] )
     mbedtls_x509_csr_init( &csr );
 #endif
     mbedtls_x509_crt_init( &issuer_crt );
-    memset( buf, 0, 1024 );
+    memset( buf, 0, sizeof(buf) );
 
     if( argc == 0 )
     {
@@ -532,7 +532,7 @@ int main( int argc, char *argv[] )
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        mbedtls_strerror( ret, buf, 1024 );
+        mbedtls_strerror( ret, buf, sizeof(buf) );
         mbedtls_printf( " failed\n  !  mbedtls_ctr_drbg_seed returned %d - %s\n",
                         ret, buf );
         goto exit;
@@ -547,7 +547,7 @@ int main( int argc, char *argv[] )
 
     if( ( ret = mbedtls_mpi_read_string( &serial, 10, opt.serial ) ) != 0 )
     {
-        mbedtls_strerror( ret, buf, 1024 );
+        mbedtls_strerror( ret, buf, sizeof(buf) );
         mbedtls_printf( " failed\n  !  mbedtls_mpi_read_string "
                         "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
         goto exit;
@@ -567,7 +567,7 @@ int main( int argc, char *argv[] )
 
         if( ( ret = mbedtls_x509_crt_parse_file( &issuer_crt, opt.issuer_crt ) ) != 0 )
         {
-            mbedtls_strerror( ret, buf, 1024 );
+            mbedtls_strerror( ret, buf, sizeof(buf) );
             mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse_file "
                             "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
             goto exit;
@@ -577,7 +577,7 @@ int main( int argc, char *argv[] )
                                  &issuer_crt.subject );
         if( ret < 0 )
         {
-            mbedtls_strerror( ret, buf, 1024 );
+            mbedtls_strerror( ret, buf, sizeof(buf) );
             mbedtls_printf( " failed\n  !  mbedtls_x509_dn_gets "
                             "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
             goto exit;
@@ -601,7 +601,7 @@ int main( int argc, char *argv[] )
 
         if( ( ret = mbedtls_x509_csr_parse_file( &csr, opt.request_file ) ) != 0 )
         {
-            mbedtls_strerror( ret, buf, 1024 );
+            mbedtls_strerror( ret, buf, sizeof(buf) );
             mbedtls_printf( " failed\n  !  mbedtls_x509_csr_parse_file "
                             "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
             goto exit;
@@ -611,7 +611,7 @@ int main( int argc, char *argv[] )
                                  &csr.subject );
         if( ret < 0 )
         {
-            mbedtls_strerror( ret, buf, 1024 );
+            mbedtls_strerror( ret, buf, sizeof(buf) );
             mbedtls_printf( " failed\n  !  mbedtls_x509_dn_gets "
                             "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
             goto exit;
@@ -636,7 +636,7 @@ int main( int argc, char *argv[] )
                 opt.subject_pwd, mbedtls_ctr_drbg_random, &ctr_drbg );
         if( ret != 0 )
         {
-            mbedtls_strerror( ret, buf, 1024 );
+            mbedtls_strerror( ret, buf, sizeof(buf) );
             mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile "
                             "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
             goto exit;
@@ -652,7 +652,7 @@ int main( int argc, char *argv[] )
             opt.issuer_pwd, mbedtls_ctr_drbg_random, &ctr_drbg );
     if( ret != 0 )
     {
-        mbedtls_strerror( ret, buf, 1024 );
+        mbedtls_strerror( ret, buf, sizeof(buf) );
         mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile "
                         "returned -x%02x - %s\n\n", (unsigned int) -ret, buf );
         goto exit;
@@ -687,7 +687,7 @@ int main( int argc, char *argv[] )
      */
     if( ( ret = mbedtls_x509write_crt_set_subject_name( &crt, opt.subject_name ) ) != 0 )
     {
-        mbedtls_strerror( ret, buf, 1024 );
+        mbedtls_strerror( ret, buf, sizeof(buf) );
         mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_subject_name "
                         "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
         goto exit;
@@ -695,7 +695,7 @@ int main( int argc, char *argv[] )
 
     if( ( ret = mbedtls_x509write_crt_set_issuer_name( &crt, opt.issuer_name ) ) != 0 )
     {
-        mbedtls_strerror( ret, buf, 1024 );
+        mbedtls_strerror( ret, buf, sizeof(buf) );
         mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_issuer_name "
                         "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
         goto exit;
@@ -710,7 +710,7 @@ int main( int argc, char *argv[] )
     ret = mbedtls_x509write_crt_set_serial( &crt, &serial );
     if( ret != 0 )
     {
-        mbedtls_strerror( ret, buf, 1024 );
+        mbedtls_strerror( ret, buf, sizeof(buf) );
         mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_serial "
                         "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
         goto exit;
@@ -719,7 +719,7 @@ int main( int argc, char *argv[] )
     ret = mbedtls_x509write_crt_set_validity( &crt, opt.not_before, opt.not_after );
     if( ret != 0 )
     {
-        mbedtls_strerror( ret, buf, 1024 );
+        mbedtls_strerror( ret, buf, sizeof(buf) );
         mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_validity "
                         "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
         goto exit;
@@ -737,7 +737,7 @@ int main( int argc, char *argv[] )
                                                            opt.max_pathlen );
         if( ret != 0 )
         {
-            mbedtls_strerror( ret, buf, 1024 );
+            mbedtls_strerror( ret, buf, sizeof(buf) );
             mbedtls_printf( " failed\n  !  x509write_crt_set_basic_contraints "
                             "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
             goto exit;
@@ -758,7 +758,7 @@ int main( int argc, char *argv[] )
         ret = mbedtls_x509write_crt_set_subject_key_identifier( &crt );
         if( ret != 0 )
         {
-            mbedtls_strerror( ret, buf, 1024 );
+            mbedtls_strerror( ret, buf, sizeof(buf) );
             mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_subject"
                             "_key_identifier returned -0x%04x - %s\n\n",
                             (unsigned int) -ret, buf );
@@ -777,7 +777,7 @@ int main( int argc, char *argv[] )
         ret = mbedtls_x509write_crt_set_authority_key_identifier( &crt );
         if( ret != 0 )
         {
-            mbedtls_strerror( ret, buf, 1024 );
+            mbedtls_strerror( ret, buf, sizeof(buf) );
             mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_authority_"
                             "key_identifier returned -0x%04x - %s\n\n",
                             (unsigned int) -ret, buf );
@@ -797,7 +797,7 @@ int main( int argc, char *argv[] )
         ret = mbedtls_x509write_crt_set_key_usage( &crt, opt.key_usage );
         if( ret != 0 )
         {
-            mbedtls_strerror( ret, buf, 1024 );
+            mbedtls_strerror( ret, buf, sizeof(buf) );
             mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_key_usage "
                             "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
             goto exit;
@@ -814,7 +814,7 @@ int main( int argc, char *argv[] )
         ret = mbedtls_x509write_crt_set_ext_key_usage( &crt, opt.ext_key_usage );
         if( ret != 0 )
         {
-            mbedtls_strerror( ret, buf, 1024 );
+            mbedtls_strerror( ret, buf, sizeof(buf) );
             mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_ext_key_usage returned -0x%02x - %s\n\n", (unsigned int) -ret, buf );
             goto exit;
         }
@@ -849,7 +849,7 @@ int main( int argc, char *argv[] )
     if( ( ret = write_certificate( &crt, opt.output_file,
                                    mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
-        mbedtls_strerror( ret, buf, 1024 );
+        mbedtls_strerror( ret, buf, sizeof(buf) );
         mbedtls_printf( " failed\n  !  write_certificate -0x%04x - %s\n\n",
                         (unsigned int) -ret, buf );
         goto exit;

@@ -75,20 +75,6 @@ size_t mbedtls_mpi_core_bitlen( const mbedtls_mpi_uint *X, size_t nx )
     return( ( i * biL ) + j );
 }
 
-/* Check X to have at least n limbs and set it to 0. */
-static int mpi_core_clear( mbedtls_mpi_uint *X,
-                           size_t nx,
-                           size_t limbs )
-{
-    if( nx < limbs )
-        return( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL );
-
-    if( X != NULL )
-        memset( X, 0, nx * ciL );
-
-    return( 0 );
-}
-
 /* Convert a big-endian byte array aligned to the size of mbedtls_mpi_uint
  * into the storage form used by mbedtls_mpi. */
 static mbedtls_mpi_uint mpi_bigendian_to_host_c( mbedtls_mpi_uint x )
@@ -190,18 +176,19 @@ int mbedtls_mpi_core_read_le( mbedtls_mpi_uint *X,
                               const unsigned char *buf,
                               size_t buflen )
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t i;
     size_t const limbs = CHARS_TO_LIMBS( buflen );
 
-    /* Ensure that target MPI has at least the necessary number of limbs */
-    MBEDTLS_MPI_CHK( mpi_core_clear( X, nx, limbs ) );
+    if( nx < limbs )
+        return( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL );
+
+    if( X != NULL )
+        memset( X, 0, nx * ciL );
 
     for( i = 0; i < buflen; i++ )
         X[i / ciL] |= ((mbedtls_mpi_uint) buf[i]) << ((i % ciL) << 3);
 
-cleanup:
-    return( ret );
+    return( 0 );
 }
 
 /*
@@ -215,13 +202,15 @@ int mbedtls_mpi_core_read_be( mbedtls_mpi_uint *X,
                               const unsigned char *buf,
                               size_t buflen )
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t const limbs = CHARS_TO_LIMBS( buflen );
     size_t overhead;
     unsigned char *Xp;
 
-    /* Ensure that target MPI has at least the necessary number of limbs */
-    MBEDTLS_MPI_CHK( mpi_core_clear( X, nx, limbs ) );
+    if( nx < limbs )
+        return( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL );
+
+    if( X != NULL )
+        memset( X, 0, nx * ciL );
 
     overhead = ( nx * ciL ) - buflen;
 
@@ -235,8 +224,7 @@ int mbedtls_mpi_core_read_be( mbedtls_mpi_uint *X,
         mbedtls_mpi_core_bigendian_to_host( X, nx );
     }
 
-cleanup:
-    return( ret );
+    return( 0 );
 }
 
 /*

@@ -357,7 +357,8 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
         x.len = MBEDTLS_OID_SIZE(oid); \
         x.p   = (unsigned char*)oid;   \
         x.tag = MBEDTLS_ASN1_OID;      \
-    } while( 0 )
+    }                                  \
+    while( 0 )
 
             if( strcmp( ext_key_usage, "serverAuth" ) == 0 )
             {

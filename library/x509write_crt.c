@@ -304,7 +304,7 @@ int mbedtls_x509write_crt_set_ext_key_usage( mbedtls_x509write_cert *ctx,
     int ret;
     size_t len = 0;
     const mbedtls_asn1_sequence *last_ext = NULL;
-    mbedtls_asn1_sequence *ext;
+    const mbedtls_asn1_sequence *ext;
 
     memset( buf, 0, sizeof(buf) );
 

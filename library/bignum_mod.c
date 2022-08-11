@@ -77,8 +77,8 @@ void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m )
     switch( m->int_rep )
     {
         case MBEDTLS_MPI_MOD_REP_MONTGOMERY:
-            mbedtls_free( m->rep.mont );
-            break;
+            m->rep.mont.rr = NULL;
+            m->rep.mont.mm = 0; break;
         case MBEDTLS_MPI_MOD_REP_OPT_RED:
             mbedtls_free( m->rep.ored );
             break;
@@ -120,8 +120,8 @@ int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,
     {
         case MBEDTLS_MPI_MOD_REP_MONTGOMERY:
             m->int_rep = int_rep;
-            m->rep.mont = NULL;
-            break;
+            m->rep.mont.rr = NULL;
+            m->rep.mont.mm = 0; break;
         case MBEDTLS_MPI_MOD_REP_OPT_RED:
             m->int_rep = int_rep;
             m->rep.ored = NULL;

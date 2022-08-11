@@ -574,7 +574,7 @@ void mbedtls_ssl_reset_checksum( mbedtls_ssl_context *ssl )
     psa_hash_abort( &ssl->handshake->fin_sha384_psa );
     psa_hash_setup( &ssl->handshake->fin_sha384_psa, PSA_ALG_SHA_384 );
 #else
-    mbedtls_sha512_starts( &ssl->handshake->fin_sha512, 1 );
+    mbedtls_sha512_starts( &ssl->handshake->fin_sha384, 1 );
 #endif
 #endif
 }
@@ -593,7 +593,7 @@ static void ssl_update_checksum_start( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_hash_update( &ssl->handshake->fin_sha384_psa, buf, len );
 #else
-    mbedtls_sha512_update( &ssl->handshake->fin_sha512, buf, len );
+    mbedtls_sha512_update( &ssl->handshake->fin_sha384, buf, len );
 #endif
 #endif
 }
@@ -617,7 +617,7 @@ static void ssl_update_checksum_sha384( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_hash_update( &ssl->handshake->fin_sha384_psa, buf, len );
 #else
-    mbedtls_sha512_update( &ssl->handshake->fin_sha512, buf, len );
+    mbedtls_sha512_update( &ssl->handshake->fin_sha384, buf, len );
 #endif
 }
 #endif
@@ -640,8 +640,8 @@ static void ssl_handshake_params_init( mbedtls_ssl_handshake_params *handshake )
     handshake->fin_sha384_psa = psa_hash_operation_init();
     psa_hash_setup( &handshake->fin_sha384_psa, PSA_ALG_SHA_384 );
 #else
-    mbedtls_sha512_init(   &handshake->fin_sha512    );
-    mbedtls_sha512_starts( &handshake->fin_sha512, 1 );
+    mbedtls_sha512_init(   &handshake->fin_sha384    );
+    mbedtls_sha512_starts( &handshake->fin_sha384, 1 );
 #endif
 #endif
 
@@ -3488,7 +3488,7 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_hash_abort( &handshake->fin_sha384_psa );
 #else
-    mbedtls_sha512_free(   &handshake->fin_sha512    );
+    mbedtls_sha512_free(   &handshake->fin_sha384    );
 #endif
 #endif
 
@@ -5040,7 +5040,7 @@ static int ssl_get_handshake_transcript_sha384( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 
     mbedtls_sha512_init( &sha512 );
-    mbedtls_sha512_clone( &sha512, &ssl->handshake->fin_sha512 );
+    mbedtls_sha512_clone( &sha512, &ssl->handshake->fin_sha384 );
 
     if( ( ret = mbedtls_sha512_finish( &sha512, dst ) ) != 0 )
     {
@@ -5862,7 +5862,7 @@ void ssl_calc_verify_tls_sha384( const mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc verify sha384" ) );
 
-    mbedtls_sha512_clone( &sha512, &ssl->handshake->fin_sha512 );
+    mbedtls_sha512_clone( &sha512, &ssl->handshake->fin_sha384 );
     mbedtls_sha512_finish( &sha512, hash );
 
     *hlen = 48;
@@ -6964,7 +6964,7 @@ static void ssl_calc_finished_tls_sha384(
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc  finished tls sha384" ) );
 
-    mbedtls_sha512_clone( &sha512, &ssl->handshake->fin_sha512 );
+    mbedtls_sha512_clone( &sha512, &ssl->handshake->fin_sha384 );
 
     /*
      * TLSv1.2:

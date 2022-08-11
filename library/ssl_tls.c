@@ -7286,7 +7286,7 @@ static tls_prf_fn ssl_tls12prf_from_cs( int ciphersuite_id )
     const mbedtls_ssl_ciphersuite_t * const ciphersuite_info =
          mbedtls_ssl_ciphersuite_from_id( ciphersuite_id );
 
-    if( ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
+    if( ciphersuite_info != NULL && ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
         return( tls_prf_sha384 );
 #else
     (void) ciphersuite_id;

@@ -34,8 +34,7 @@
     "the string representation of Mbed TLS compile time configurations.\n\n"    \
     "If \"--all\" and \"--any\" are not used, then, if all given arguments\n"   \
     "are defined in the Mbed TLS build, 0 is returned; otherwise 1 is\n"        \
-    "returned. If only one argument is given, the macro expansion of that\n"    \
-    "configuration will be printed (if any).\n"                                 \
+    "returned. Macro expansions of configurations will be printed (if any).\n"                                 \
     "-l\tPrint all available configuration.\n"                                  \
     "-all\tReturn 0 if all configurations are defined. Otherwise, return 1\n"   \
     "-any\tReturn 0 if any configuration is defined. Otherwise, return 1\n"     \

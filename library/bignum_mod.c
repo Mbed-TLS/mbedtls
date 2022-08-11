@@ -47,9 +47,6 @@ int mbedtls_mpi_mod_residue_setup( mbedtls_mpi_mod_residue *r,
                                    mbedtls_mpi_uint *p,
                                    size_t pn )
 {
-    if( p == NULL || m == NULL || r == NULL )
-        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
-
     if( pn < m->n || !mbedtls_mpi_core_lt_ct( m->p, p, pn ) )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
@@ -111,9 +108,6 @@ int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,
                                    mbedtls_mpi_mod_rep_selector int_rep )
 {
     int ret = 0;
-
-    if ( p == NULL || m == NULL )
-        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
     m->p = p;
     m->n = pn;

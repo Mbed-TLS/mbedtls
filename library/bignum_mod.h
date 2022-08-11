@@ -78,9 +78,8 @@ typedef struct {
  * \param pn    The number of limbs of \p p.
  *
  * \return      \c 0 if successful.
- * \return      #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p r, \p m or \p p is #NULL
- *              pointer, \p pn is less than the limbs in \p m or if \p p is not
- *              less than \p m.
+ * \return      #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p pn is less than the limbs
+ *              in \p m or if \p p is not less than \p m.
  */
 int mbedtls_mpi_mod_residue_setup( mbedtls_mpi_mod_residue *r,
                                    mbedtls_mpi_mod_modulus *m,
@@ -119,8 +118,8 @@ void mbedtls_mpi_mod_modulus_init( mbedtls_mpi_mod_modulus *m );
  *                  associated with \p m (see #mbedtls_mpi_mod_rep_selector).
  *
  * \return      \c 0 if successful.
- * \return      #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p m or \p p is
- *              #NULL pointer or if \p ext_rep or \p int_rep is invalid.
+ * \return      #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p ext_rep or \p int_rep is
+ *              invalid.
  */
 int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,
                                    mbedtls_mpi_uint *p,

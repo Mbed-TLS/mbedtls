@@ -2330,6 +2330,9 @@
  *      ECJPAKE
  *
  * Requires: MBEDTLS_ECP_C, MBEDTLS_MD_C
+ *
+ * \warning If building without MBEDTLS_MD_C, you must call psa_crypto_init()
+ * before doing any EC J-PAKE operations.
  */
 #define MBEDTLS_ECJPAKE_C
 

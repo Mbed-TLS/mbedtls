@@ -1326,6 +1326,7 @@ static int ssl_tls13_parse_server_pre_shared_key_ext( mbedtls_ssl_context *ssl,
 {
     int ret = 0;
     size_t selected_identity;
+    int psk_type;
 
     const unsigned char *psk;
     size_t psk_len;

@@ -76,4 +76,14 @@ int mbedtls_mpi_mod_raw_write( const mbedtls_mpi_uint *A,
                                unsigned char *output,
                                size_t output_length );
 
+/**
+ * \brief Calculate initialisation value for fast Montgomery modular
+ *        multiplication
+ *
+ * \param RR   Pointer to residue for 2^{2*n*biL} mod N.
+ * \param N    Little-endian presentation of the modulus, which must be odd.
+ */
+int mbedtls_mpi_get_montgomery_constant_unsafe( mbedtls_mpi *RR,
+                                                mbedtls_mpi const *N );
+
 #endif /* MBEDTLS_BIGNUM_MOD_RAW_H */

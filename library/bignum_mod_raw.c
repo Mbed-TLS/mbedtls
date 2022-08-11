@@ -94,4 +94,18 @@ int mbedtls_mpi_mod_raw_write( const mbedtls_mpi_uint *A,
     }
 }
 
+int mbedtls_mpi_get_montgomery_constant_unsafe( mbedtls_mpi *RR,
+                                                mbedtls_mpi const *N )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( RR, 1 ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( RR, N->n * 2 * biL ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( RR, RR, N ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( RR, N->n ) );
+
+cleanup:
+    return( ret );
+}
+
 #endif /* MBEDTLS_BIGNUM_C */

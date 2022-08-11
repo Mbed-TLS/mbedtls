@@ -1,4 +1,3 @@
-
 /*
  *  Certificate generation and signing
  *
@@ -832,7 +831,7 @@ int main( int argc, char *argv[] )
         ret = mbedtls_x509write_crt_set_ns_cert_type( &crt, opt.ns_cert_type );
         if( ret != 0 )
         {
-            mbedtls_strerror( ret, buf, 1024 );
+            mbedtls_strerror( ret, buf, sizeof(buf) );
             mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_ns_cert_type "
                             "returned -0x%04x - %s\n\n", (unsigned int) -ret, buf );
             goto exit;

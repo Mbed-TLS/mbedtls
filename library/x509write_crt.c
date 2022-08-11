@@ -303,7 +303,10 @@ int mbedtls_x509write_crt_set_ext_key_usage( mbedtls_x509write_cert *ctx,
     unsigned char *c = buf + sizeof(buf);
     int ret;
     size_t len = 0;
-    const mbedtls_asn1_sequence *last_ext = 0, *ext;
+    const mbedtls_asn1_sequence *last_ext = NULL;
+    mbedtls_asn1_sequence *ext;
+
+    memset( buf, 0, sizeof(buf) );
 
     /* We need at least one extension: SEQUENCE SIZE (1..MAX) OF KeyPurposeId */
     if( exts == NULL )
@@ -324,14 +327,10 @@ int mbedtls_x509write_crt_set_ext_key_usage( mbedtls_x509write_cert *ctx,
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, buf, len ) );
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &c, buf, MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) );
 
-    ret = mbedtls_x509write_crt_set_extension( ctx,
+    return mbedtls_x509write_crt_set_extension( ctx,
                          MBEDTLS_OID_EXTENDED_KEY_USAGE,
                          MBEDTLS_OID_SIZE( MBEDTLS_OID_EXTENDED_KEY_USAGE ),
                          1, c, len );
-    if( ret != 0 )
-        return( ret );
-
-    return( 0 );
 }
 
 int mbedtls_x509write_crt_set_ns_cert_type( mbedtls_x509write_cert *ctx,

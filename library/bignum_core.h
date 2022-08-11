@@ -412,4 +412,23 @@ void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
                                const mbedtls_mpi_uint *N, size_t AN_limbs,
                                mbedtls_mpi_uint mm, mbedtls_mpi_uint *T );
 
+/**
+ * \brief Calculate initialisation value for fast Montgomery modular
+ *        multiplication
+ *
+ * \param[out] X  A pointer to the result of the calculation of
+ *                Montgomery const 2^{2*n*biL} mod N.
+ * \param[in]  N  Little-endian presentation of the modulus, which must be odd.
+ *
+ * \return        0 if successful.
+ * \return        #MBEDTLS_ERR_MPI_ALLOC_FAILED if there is not enough space
+ *                to store the value of Montgomery constant squared.
+ * \return        #MBEDTLS_ERR_MPI_DIVISION_BY_ZERO if \p N modulus is zero.
+ * \return        #MBEDTLS_ERR_MPI_NEGATIVE_VALUE if \p N modulus is negative.
+ * \return        #MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED \p N, \p X are NULL
+ *                or other operations fail.
+ */
+int mbedtls_mpi_get_montgomery_constant_unsafe( mbedtls_mpi *X,
+                                                mbedtls_mpi const *N );
+
 #endif /* MBEDTLS_BIGNUM_CORE_H */

@@ -511,4 +511,20 @@ void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
     mbedtls_ct_mpi_uint_cond_assign( AN_limbs, X, T, (unsigned char) ( carry ^ borrow ) );
 }
 
+int mbedtls_mpi_get_montgomery_constant_unsafe( mbedtls_mpi *X,
+                                                mbedtls_mpi const *N )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    if ( X == NULL || N == NULL ) goto cleanup;
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( X, 1 ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( X, N->n * 2 * biL ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( X, X, N ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_shrink( X, N->n ) );
+
+cleanup:
+    return( ret );
+}
+
 #endif /* MBEDTLS_BIGNUM_C */

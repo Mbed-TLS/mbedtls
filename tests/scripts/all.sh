@@ -1208,7 +1208,6 @@ component_test_crypto_full_no_md () {
     scripts/config.py crypto_full
     scripts/config.py unset MBEDTLS_MD_C
     # Direct dependencies
-    scripts/config.py unset MBEDTLS_ECJPAKE_C
     scripts/config.py unset MBEDTLS_HKDF_C
     scripts/config.py unset MBEDTLS_HMAC_DRBG_C
     scripts/config.py unset MBEDTLS_PKCS5_C
@@ -1869,7 +1868,6 @@ component_test_psa_crypto_config_accel_hash_use_psa () {
     # Also unset MD_C and things that depend on it;
     # see component_test_crypto_full_no_md.
     scripts/config.py unset MBEDTLS_MD_C
-    scripts/config.py unset MBEDTLS_ECJPAKE_C
     scripts/config.py unset MBEDTLS_HKDF_C
     scripts/config.py unset MBEDTLS_HMAC_DRBG_C
     scripts/config.py unset MBEDTLS_PKCS5_C

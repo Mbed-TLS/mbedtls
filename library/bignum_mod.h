@@ -26,6 +26,22 @@
 #include "mbedtls/bignum.h"
 #endif
 
+/* Skip 1 as it is slightly easier to accidentally pass to functions. */
+typedef enum
+{
+    MBEDTLS_MPI_MOD_REP_INVALID    = 0,
+    MBEDTLS_MPI_MOD_REP_MONTGOMERY = 2,
+    MBEDTLS_MPI_MOD_REP_OPT_RED
+} mbedtls_mpi_mod_rep_selector;
+
+/* Make mbedtls_mpi_mod_rep_selector and mbedtls_mpi_mod_ext_rep disjoint to
+ * make it easier to catch when they are accidentally swapped. */
+typedef enum
+{
+    MBEDTLS_MPI_MOD_EXT_REP_INVALID = 0,
+    MBEDTLS_MPI_MOD_EXT_REP_LE      = 8,
+    MBEDTLS_MPI_MOD_EXT_REP_BE
+} mbedtls_mpi_mod_ext_rep;
 
 typedef struct
 {
@@ -38,31 +54,16 @@ typedef void* mbedtls_mpi_opt_red_struct;
 
 typedef struct {
     mbedtls_mpi_uint *p;
-    size_t n;       // number of limbs
-    size_t plen;    // bitlen of p
-    int ext_rep;    // signals external representation (eg. byte order)
-    int int_rep;    // selector to signal the active member of the union
+    size_t n;                                // number of limbs
+    size_t plen;                             // bitlen of p
+    mbedtls_mpi_mod_ext_rep ext_rep;         // signals external representation (eg. byte order)
+    mbedtls_mpi_mod_rep_selector int_rep;    // selector to signal the active member of the union
     union rep
     {
         mbedtls_mpi_mont_struct mont;
         mbedtls_mpi_opt_red_struct ored;
     } rep;
 } mbedtls_mpi_mod_modulus;
-
-typedef enum
-{
-    MBEDTLS_MPI_MOD_REP_INVALID    = 0,
-    MBEDTLS_MPI_MOD_REP_MONTGOMERY,
-    MBEDTLS_MPI_MOD_REP_OPT_RED
-} mbedtls_mpi_mod_rep_selector;
-
-typedef enum
-{
-    MBEDTLS_MPI_MOD_EXT_REP_INVALID    = 0,
-    MBEDTLS_MPI_MOD_EXT_REP_LE,
-    MBEDTLS_MPI_MOD_EXT_REP_BE
-} mbedtls_mpi_mod_ext_rep;
-
 
 /** Setup a residue structure.
  *
@@ -124,8 +125,8 @@ void mbedtls_mpi_mod_modulus_init( mbedtls_mpi_mod_modulus *m );
 int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,
                                    mbedtls_mpi_uint *p,
                                    size_t pn,
-                                   int ext_rep,
-                                   int int_rep );
+                                   mbedtls_mpi_mod_ext_rep ext_rep,
+                                   mbedtls_mpi_mod_rep_selector int_rep );
 
 /** Free elements of a modulus structure.
  *

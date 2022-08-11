@@ -88,10 +88,12 @@ void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m )
     switch( m->int_rep )
     {
         case MBEDTLS_MPI_MOD_REP_MONTGOMERY:
-            mbedtls_free( m->rep.mont ); break;
+            mbedtls_free( m->rep.mont );
+            break;
         case MBEDTLS_MPI_MOD_REP_OPT_RED:
-            mbedtls_free( m->rep.ored ); break;
-        default:
+            mbedtls_free( m->rep.ored );
+            break;
+        case MBEDTLS_MPI_MOD_REP_INVALID:
             break;
     }
 
@@ -105,8 +107,8 @@ void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m )
 int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,
                                    mbedtls_mpi_uint *p,
                                    size_t pn,
-                                   int ext_rep,
-                                   int int_rep )
+                                   mbedtls_mpi_mod_ext_rep ext_rep,
+                                   mbedtls_mpi_mod_rep_selector int_rep )
 {
     int ret = 0;
 
@@ -121,7 +123,8 @@ int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,
     {
         case MBEDTLS_MPI_MOD_EXT_REP_LE:
         case MBEDTLS_MPI_MOD_EXT_REP_BE:
-            m->ext_rep = ext_rep; break;
+            m->ext_rep = ext_rep;
+            break;
         default:
             ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
             goto exit;
@@ -131,10 +134,12 @@ int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,
     {
         case MBEDTLS_MPI_MOD_REP_MONTGOMERY:
             m->int_rep = int_rep;
-            m->rep.mont = NULL; break;
+            m->rep.mont = NULL;
+            break;
         case MBEDTLS_MPI_MOD_REP_OPT_RED:
             m->int_rep = int_rep;
-            m->rep.ored = NULL; break;
+            m->rep.ored = NULL;
+            break;
         default:
             ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
             goto exit;

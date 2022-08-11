@@ -48,13 +48,17 @@ int mbedtls_mpi_mod_raw_read( mbedtls_mpi_uint *X,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    if( m->ext_rep == MBEDTLS_MPI_MOD_EXT_REP_LE )
-        ret = mbedtls_mpi_core_read_le( X, m->n, buf, buflen );
-
-    else if( m->ext_rep == MBEDTLS_MPI_MOD_EXT_REP_BE )
-        ret = mbedtls_mpi_core_read_be( X, m->n, buf, buflen );
-    else
-        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+    switch( m->ext_rep )
+    {
+        case MBEDTLS_MPI_MOD_EXT_REP_LE:
+            ret = mbedtls_mpi_core_read_le( X, m->n, buf, buflen );
+            break;
+        case MBEDTLS_MPI_MOD_EXT_REP_BE:
+            ret = mbedtls_mpi_core_read_be( X, m->n, buf, buflen );
+            break;
+        default:
+            return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+    }
 
     if( ret != 0 )
         goto cleanup;
@@ -75,16 +79,15 @@ int mbedtls_mpi_mod_raw_write( mbedtls_mpi_uint *X,
                                unsigned char *buf,
                                size_t buflen )
 {
-    if( m->ext_rep == MBEDTLS_MPI_MOD_EXT_REP_LE )
-        return mbedtls_mpi_core_write_le( X, m->n, buf, buflen );
-
-    else if( m->ext_rep == MBEDTLS_MPI_MOD_EXT_REP_BE )
-        return mbedtls_mpi_core_write_be( X, m->n, buf, buflen );
-
-    else
-        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
-
-    return( 0 );
+    switch( m->ext_rep )
+    {
+        case MBEDTLS_MPI_MOD_EXT_REP_LE:
+            return mbedtls_mpi_core_write_le( X, m->n, buf, buflen );
+        case MBEDTLS_MPI_MOD_EXT_REP_BE:
+            return mbedtls_mpi_core_write_be( X, m->n, buf, buflen );
+        default:
+            return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+    }
 }
 
 #endif /* MBEDTLS_BIGNUM_C */

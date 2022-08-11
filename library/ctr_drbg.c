@@ -449,8 +449,6 @@ int mbedtls_ctr_drbg_seed( mbedtls_ctr_drbg_context *ctx,
     mbedtls_mutex_init( &ctx->mutex );
 #endif
 
-    mbedtls_aes_init( &ctx->aes_ctx );
-
     ctx->f_entropy = f_entropy;
     ctx->p_entropy = p_entropy;
 

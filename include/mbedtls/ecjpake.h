@@ -70,7 +70,7 @@ typedef enum {
  */
 typedef struct mbedtls_ecjpake_context
 {
-    const mbedtls_md_info_t *MBEDTLS_PRIVATE(md_info);   /**< Hash to use                    */
+    mbedtls_md_type_t MBEDTLS_PRIVATE(md_type);          /**< Hash to use                    */
     mbedtls_ecp_group MBEDTLS_PRIVATE(grp);              /**< Elliptic curve                 */
     mbedtls_ecjpake_role MBEDTLS_PRIVATE(role);          /**< Are we client or server?       */
     int MBEDTLS_PRIVATE(point_format);                   /**< Format for point export        */

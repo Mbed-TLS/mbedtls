@@ -85,6 +85,7 @@ void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m )
     switch( m->int_rep )
     {
         case MBEDTLS_MPI_MOD_REP_MONTGOMERY:
+            mbedtls_platform_zeroize( m->rep.mont.rr, m->limbs );
             m->rep.mont.rr = NULL;
             m->rep.mont.mm = 0; break;
         case MBEDTLS_MPI_MOD_REP_OPT_RED:
@@ -128,8 +129,12 @@ int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,
     {
         case MBEDTLS_MPI_MOD_REP_MONTGOMERY:
             m->int_rep = int_rep;
-            m->rep.mont.rr = NULL;
-            m->rep.mont.mm = 0; break;
+            mbedtls_mpi RR; mbedtls_mpi_init( &RR ); 
+            mbedtls_mpi_grow( &RR,  p_limbs );
+            m->rep.mont.rr = RR.p;
+            m->rep.mont.mm = mbedtls_mpi_core_montmul_init( m->p );
+            mbedtls_mpi_set_montgomery_constant_unsafe( m );
+            break;
         case MBEDTLS_MPI_MOD_REP_OPT_RED:
             m->int_rep = int_rep;
             m->rep.ored = NULL;

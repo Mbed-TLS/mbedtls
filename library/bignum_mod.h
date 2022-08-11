@@ -50,7 +50,7 @@ typedef struct
 } mbedtls_mpi_mod_residue;
 
 typedef struct {
-    mbedtls_mpi_uint const *rr;  /* The residue for 2^{2*n*biL} mod N */
+    mbedtls_mpi_uint *rr;        /* The residue for 2^{2*n*biL} mod N */
     mbedtls_mpi_uint mm;         /* Montgomery const for -N^{-1} mod 2^{ciL} */
 } mbedtls_mpi_mont_struct;
 

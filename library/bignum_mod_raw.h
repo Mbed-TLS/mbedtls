@@ -1,5 +1,10 @@
 /**
- *  Internal bignum functions
+ *  Low level modular bignum functions
+ *
+ *  This interface only should be used by the higher level modular bignum
+ *  module (bignum_mod.c) and the ECP module (ecp.c, ecp_curves.c). All other
+ *  modules should use the high level modular bignum interface (bignum_mod.h)
+ *  or the legacy bignum interface (bignum.h).
  *
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
@@ -30,8 +35,8 @@
 
 /** Import X from unsigned binary data.
  *
- * The MPI needs to have enough limbs to store the full value (in particular,
- * this function does not skip 0s in the input).
+ * The MPI needs to have enough limbs to store the full value (including any
+ * most significant zero bytes in the input).
  *
  * \param X      The address of the MPI. The size is determined by \p m. (In
  *               particular, it must have at least as many limbs as the modulus

@@ -130,13 +130,14 @@ unsigned mbedtls_ct_mpi_uint_lt( const mbedtls_mpi_uint x,
                                  const mbedtls_mpi_uint y );
 
 /**
- * \brief          Check if an MPI is less than the other in constant time.
+ * \brief          Check if one unsigned MPI is less than another in constant
+ *                 time.
  *
  * \param X        The left-hand MPI. This must point to an array of limbs
- *                 with the same allocated length as Y.
+ *                 with the same allocated length as \p Y.
  * \param Y        The right-hand MPI. This must point to an array of limbs
- *                 with the same allocated length as X.
- * \param len      The number of limbs in X and Y.
+ *                 with the same allocated length as \p X.
+ * \param len      The number of limbs in \p X and \p Y.
  *
  * \return         The result of the comparison:
  *                 \c 1 if \p X is less than \p Y.

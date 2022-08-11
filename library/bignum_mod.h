@@ -1,5 +1,5 @@
 /**
- *  Internal bignum functions
+ *  Modular bignum functions
  *
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
@@ -72,8 +72,8 @@ typedef struct {
  *              modulus \p m.)
  * \param m     The address of the modulus related to \p r.
  * \param p     The address of the limb array storing the value of \p r. The
- *              memory pointed by \p p will be used by \p r and must not be
- *              freed or written until after mbedtls_mpi_mod_residue_release()
+ *              memory pointed to by \p p will be used by \p r and must not be
+ *              modified in any way until after mbedtls_mpi_mod_residue_release()
  *              is called.
  * \param pn    The number of limbs of \p p.
  *
@@ -104,12 +104,12 @@ void mbedtls_mpi_mod_residue_release( mbedtls_mpi_mod_residue *r );
  */
 void mbedtls_mpi_mod_modulus_init( mbedtls_mpi_mod_modulus *m );
 
-/** Setup a residue structure.
+/** Setup a modulus structure.
  *
- * \param m         The address of a modulus.
+ * \param m         The address of the modulus structure to populate.
  * \param p         The address of the limb array storing the value of \p m. The
- *                  memory pointed by \p p will be used by \p r and must not be
- *                  freed or written until after
+ *                  memory pointed to by \p p will be used by \p m and must not
+ *                  be modified in any way until after
  *                  mbedtls_mpi_mod_modulus_free() is called.
  * \param pn        The number of limbs of \p p.
  * \param ext_rep   The external representation to be used for residues

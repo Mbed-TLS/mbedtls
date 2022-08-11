@@ -749,9 +749,10 @@ unsigned mbedtls_mpi_core_lt_ct( const mbedtls_mpi_uint *X,
                                  size_t len )
 {
     size_t i;
-    /* The value of any of these variables is either 0 or 1 at all times. */
     unsigned ret, cond, done;
 
+    /* The value of any of these variables is either 0 or 1 for the rest of
+     * their scope. */
     ret = cond = done = 0;
 
     for( i = len; i > 0; i-- )

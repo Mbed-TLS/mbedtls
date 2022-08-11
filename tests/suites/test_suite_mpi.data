@@ -341,31 +341,31 @@ mbedtls_mpi_mod_raw_io:"":1:1:MBEDTLS_MPI_MOD_EXT_REP_INVALID:MBEDTLS_ERR_MPI_BA
 Test mbedtls_mpi_mod_raw_io #20 (writing with invalid endianness)
 mbedtls_mpi_mod_raw_io:"":1:1:MBEDTLS_MPI_MOD_EXT_REP_INVALID:0:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
-Test mbedtls_mpi_mod_raw_io #1 (Both representations invalid)
+Test mbedtls_mpi_mod_setup #1 (Both representations invalid)
 mbedtls_mpi_mod_setup:MBEDTLS_MPI_MOD_EXT_REP_INVALID:MBEDTLS_MPI_MOD_REP_INVALID:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
-Test mbedtls_mpi_mod_raw_io #2 (Internal representation invalid)
+Test mbedtls_mpi_mod_setup #2 (Internal representation invalid)
 mbedtls_mpi_mod_setup:MBEDTLS_MPI_MOD_EXT_REP_LE:MBEDTLS_MPI_MOD_REP_INVALID:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
-Test mbedtls_mpi_mod_raw_io #3 (Internal representation invalid)
+Test mbedtls_mpi_mod_setup #3 (Internal representation invalid)
 mbedtls_mpi_mod_setup:MBEDTLS_MPI_MOD_EXT_REP_BE:MBEDTLS_MPI_MOD_REP_INVALID:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
-Test mbedtls_mpi_mod_raw_io #4 (External representation invalid)
+Test mbedtls_mpi_mod_setup #4 (External representation invalid)
 mbedtls_mpi_mod_setup:MBEDTLS_MPI_MOD_EXT_REP_INVALID:MBEDTLS_MPI_MOD_REP_MONTGOMERY:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
-Test mbedtls_mpi_mod_raw_io #5 (External representation invalid)
+Test mbedtls_mpi_mod_setup #5 (External representation invalid)
 mbedtls_mpi_mod_setup:MBEDTLS_MPI_MOD_EXT_REP_INVALID:MBEDTLS_MPI_MOD_REP_OPT_RED:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 
-Test mbedtls_mpi_mod_raw_io #6 (Both representations valid)
+Test mbedtls_mpi_mod_setup #6 (Both representations valid)
 mbedtls_mpi_mod_setup:MBEDTLS_MPI_MOD_EXT_REP_BE:MBEDTLS_MPI_MOD_REP_OPT_RED:0
 
-Test mbedtls_mpi_mod_raw_io #7 (Both representations valid)
+Test mbedtls_mpi_mod_setup #7 (Both representations valid)
 mbedtls_mpi_mod_setup:MBEDTLS_MPI_MOD_EXT_REP_BE:MBEDTLS_MPI_MOD_REP_MONTGOMERY:0
 
-Test mbedtls_mpi_mod_raw_io #8 (Both representations valid)
+Test mbedtls_mpi_mod_setup #8 (Both representations valid)
 mbedtls_mpi_mod_setup:MBEDTLS_MPI_MOD_EXT_REP_LE:MBEDTLS_MPI_MOD_REP_OPT_RED:0
 
-Test mbedtls_mpi_mod_raw_io #9 (Both representations valid)
+Test mbedtls_mpi_mod_setup #9 (Both representations valid)
 mbedtls_mpi_mod_setup:MBEDTLS_MPI_MOD_EXT_REP_LE:MBEDTLS_MPI_MOD_REP_MONTGOMERY:0
 
 Base test mbedtls_mpi_read_binary #1

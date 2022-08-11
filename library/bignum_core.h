@@ -1,5 +1,10 @@
 /**
- *  Internal bignum functions
+ *  Core bignum functions
+ *
+ *  This interface only should be used by the legacy bignum module (bignum.h)
+ *  and the modular bignum modules (bignum_mod.c, bignum_mod_raw.c). All other
+ *  modules should use the high level modular bignum interface (bignum_mod.h)
+ *  or the legacy bignum interface (bignum.h).
  *
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
@@ -34,7 +39,10 @@
  */
 size_t mbedtls_mpi_core_clz( const mbedtls_mpi_uint x );
 
-/** Return the number of bits of an MPI.
+/** Return the the minimum number of bits required to represent the value held
+ * in the MPI.
+ *
+ * \note This function returns 0 if all the limbs of \p X are 0.
  *
  * \param X     The address of the MPI.
  * \param nx    The number of limbs of \p X.
@@ -54,8 +62,8 @@ void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint * const X,
 
 /** Import X from unsigned binary data, little endian.
  *
- * The MPI needs to have enough limbs to store the full value (in particular,
- * this function does not skip 0s in the input).
+ * The MPI needs to have enough limbs to store the full value (including any
+ * most significant zero bytes in the input).
  *
  * \param X      The address of the MPI.
  * \param nx     The number of limbs of \p X.
@@ -73,8 +81,8 @@ int mbedtls_mpi_core_read_le( mbedtls_mpi_uint *X,
 
 /** Import X from unsigned binary data, big endian.
  *
- * The MPI needs to have enough limbs to store the full value (in particular,
- * this function does not skip 0s in the input).
+ * The MPI needs to have enough limbs to store the full value (including any
+ * most significant zero bytes in the input).
  *
  * \param X      The address of the MPI.
  * \param nx     The number of limbs of \p X.
@@ -92,6 +100,10 @@ int mbedtls_mpi_core_read_be( mbedtls_mpi_uint *X,
 
 /** Export X into unsigned binary data, little endian.
  *
+ * \note If \p buf is shorter than \p X the export is still successful if the
+ *       value held in \p X fits in the buffer (that is, if enough of the most
+ *       significant bytes of \p X are 0).
+ *
  * \param X      The address of the MPI.
  * \param nx     The number of limbs of \p X.
  * \param buf    The output buffer to export to.
@@ -107,6 +119,10 @@ int mbedtls_mpi_core_write_le( const mbedtls_mpi_uint *X,
                                size_t buflen );
 
 /** Export X into unsigned binary data, big endian.
+ *
+ * \note If \p buf is shorter than \p X the export is still successful if the
+ *       value held in \p X fits in the buffer (that is, if enough of the most
+ *       significant bytes of \p X are 0).
  *
  * \param X      The address of the MPI.
  * \param nx     The number of limbs of \p X.

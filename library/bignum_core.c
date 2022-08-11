@@ -38,9 +38,6 @@
 
 #include "bignum_core.h"
 
-/*
- * Count leading zero bits in a given integer
- */
 size_t mbedtls_mpi_core_clz( const mbedtls_mpi_uint x )
 {
     size_t j;
@@ -56,9 +53,6 @@ size_t mbedtls_mpi_core_clz( const mbedtls_mpi_uint x )
     return j;
 }
 
-/*
- * Return the number of bits
- */
 size_t mbedtls_mpi_core_bitlen( const mbedtls_mpi_uint *X, size_t nx )
 {
     size_t i, j;
@@ -165,12 +159,6 @@ void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint * const X,
     }
 }
 
-/*
- * Import X from unsigned binary data, little endian
- *
- * The MPI needs to have enough limbs to store the full value (in particular,
- * this function does not skip 0s in the input).
- */
 int mbedtls_mpi_core_read_le( mbedtls_mpi_uint *X,
                               size_t nx,
                               const unsigned char *buf,
@@ -191,12 +179,6 @@ int mbedtls_mpi_core_read_le( mbedtls_mpi_uint *X,
     return( 0 );
 }
 
-/*
- * Import X from unsigned binary data, big endian
- *
- * The MPI needs to have enough limbs to store the full value (in particular,
- * this function does not skip 0s in the input).
- */
 int mbedtls_mpi_core_read_be( mbedtls_mpi_uint *X,
                               size_t nx,
                               const unsigned char *buf,
@@ -227,9 +209,6 @@ int mbedtls_mpi_core_read_be( mbedtls_mpi_uint *X,
     return( 0 );
 }
 
-/*
- * Export X into unsigned binary data, little endian
- */
 int mbedtls_mpi_core_write_le( const mbedtls_mpi_uint *X,
                                size_t nx,
                                unsigned char *buf,
@@ -268,9 +247,6 @@ int mbedtls_mpi_core_write_le( const mbedtls_mpi_uint *X,
     return( 0 );
 }
 
-/*
- * Export X into unsigned binary data, big endian
- */
 int mbedtls_mpi_core_write_be( const mbedtls_mpi_uint *X,
                                size_t nx,
                                unsigned char *buf,

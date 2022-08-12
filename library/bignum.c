@@ -343,7 +343,7 @@ size_t mbedtls_mpi_lsb( const mbedtls_mpi *X )
  */
 size_t mbedtls_mpi_bitlen( const mbedtls_mpi *X )
 {
-    return mbedtls_mpi_core_bitlen( X->p, X->n );
+    return( mbedtls_mpi_core_bitlen( X->p, X->n ) );
 }
 
 /*

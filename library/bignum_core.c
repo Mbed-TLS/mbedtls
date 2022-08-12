@@ -50,7 +50,7 @@ size_t mbedtls_mpi_core_clz( const mbedtls_mpi_uint x )
         mask >>= 1;
     }
 
-    return j;
+    return( j );
 }
 
 size_t mbedtls_mpi_core_bitlen( const mbedtls_mpi_uint *X, size_t nx )
@@ -77,7 +77,7 @@ static mbedtls_mpi_uint mpi_bigendian_to_host_c( mbedtls_mpi_uint x )
     unsigned char *x_ptr;
     mbedtls_mpi_uint tmp = 0;
 
-    for( i = 0, x_ptr = (unsigned char*) &x; i < ciL; i++, x_ptr++ )
+    for( i = 0, x_ptr = (unsigned char *) &x; i < ciL; i++, x_ptr++ )
     {
         tmp <<= CHAR_BIT;
         tmp |= (mbedtls_mpi_uint) *x_ptr;

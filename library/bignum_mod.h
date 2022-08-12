@@ -49,8 +49,8 @@ typedef struct
     mbedtls_mpi_uint *p;
 } mbedtls_mpi_mod_residue;
 
-typedef void* mbedtls_mpi_mont_struct;
-typedef void* mbedtls_mpi_opt_red_struct;
+typedef void *mbedtls_mpi_mont_struct;
+typedef void *mbedtls_mpi_opt_red_struct;
 
 typedef struct {
     mbedtls_mpi_uint *p;

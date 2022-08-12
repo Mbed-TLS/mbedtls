@@ -10,7 +10,7 @@
 #if MBEDTLS_MPI_MAX_BITS > 792
 #define MPI_MAX_BITS_LARGER_THAN_792
 #endif
-#
+
 /* Check the validity of the sign bit in an MPI object. Reject representations
  * that are not supported by the rest of the library and indicate a bug when
  * constructing the value. */
@@ -236,9 +236,10 @@ exit:
 void mbedtls_mpi_core_io_be( data_t *input, int nb_int, int nx_32_int, int iret,
                              int oret )
 {
-    #define BMAX 1024
+#define BMAX 1024
+#define XMAX BMAX / sizeof( mbedtls_mpi_uint )
+
     unsigned char buf[BMAX];
-    #define XMAX BMAX / sizeof( mbedtls_mpi_uint )
     mbedtls_mpi_uint X[XMAX];
     size_t nx, nb;
     int ret;
@@ -288,8 +289,8 @@ void mbedtls_mpi_core_io_be( data_t *input, int nb_int, int nx_32_int, int iret,
 exit:
     ;
 
-    #undef BMAX
-    #undef XMAX
+#undef BMAX
+#undef XMAX
 }
 /* END_CASE */
 
@@ -297,9 +298,10 @@ exit:
 void mbedtls_mpi_core_io_le( data_t *input, int nb_int, int nx_32_int, int iret,
                              int oret )
 {
-    #define BMAX 1024
+#define BMAX 1024
+#define XMAX BMAX / sizeof( mbedtls_mpi_uint )
+
     unsigned char buf[BMAX];
-    #define XMAX BMAX / sizeof( mbedtls_mpi_uint )
     mbedtls_mpi_uint X[XMAX];
     size_t nx, nb;
     int ret;
@@ -347,8 +349,8 @@ void mbedtls_mpi_core_io_le( data_t *input, int nb_int, int nx_32_int, int iret,
 exit:
     ;
 
-    #undef BMAX
-    #undef XMAX
+#undef BMAX
+#undef XMAX
 }
 /* END_CASE */
 
@@ -385,9 +387,10 @@ exit:
 void mbedtls_mpi_mod_raw_io( data_t *input, int nb_int, int nx_64_int,
                              int iendian, int iret, int oret )
 {
-    #define BMAX 1024
+#define BMAX 1024
+#define XMAX BMAX / sizeof( mbedtls_mpi_uint )
+
     unsigned char buf[BMAX];
-    #define XMAX BMAX / sizeof( mbedtls_mpi_uint )
     mbedtls_mpi_uint X[XMAX];
     mbedtls_mpi_uint init[XMAX];
     mbedtls_mpi_mod_modulus m;
@@ -476,8 +479,8 @@ void mbedtls_mpi_mod_raw_io( data_t *input, int nb_int, int nx_64_int,
 exit:
     mbedtls_mpi_mod_modulus_free( &m );
 
-    #undef BMAX
-    #undef XMAX
+#undef BMAX
+#undef XMAX
 }
 /* END_CASE */
 

@@ -82,9 +82,9 @@ int mbedtls_mpi_mod_raw_write( mbedtls_mpi_uint *X,
     switch( m->ext_rep )
     {
         case MBEDTLS_MPI_MOD_EXT_REP_LE:
-            return mbedtls_mpi_core_write_le( X, m->n, buf, buflen );
+            return( mbedtls_mpi_core_write_le( X, m->n, buf, buflen ) );
         case MBEDTLS_MPI_MOD_EXT_REP_BE:
-            return mbedtls_mpi_core_write_be( X, m->n, buf, buflen );
+            return( mbedtls_mpi_core_write_be( X, m->n, buf, buflen ) );
         default:
             return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
     }

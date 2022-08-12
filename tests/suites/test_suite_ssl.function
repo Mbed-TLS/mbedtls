@@ -33,6 +33,18 @@ typedef struct log_pattern
     size_t counter;
 } log_pattern;
 
+int rng_get( void *p_rng, unsigned char *output, size_t output_len )
+{
+(void) p_rng;
+(void) output;
+(void) output_len;
+for(size_t i=0; i<output_len; i++)
+{
+	output[i]=rand();
+	} 
+
+return 0;
+}
 /*
  * This function can be passed to mbedtls to receive output logs from it. In
  * this case, it will count the instances of a log_pattern in the received
@@ -776,9 +788,7 @@ int mbedtls_mock_tcp_recv_msg( void *ctx, unsigned char *buf, size_t buf_len )
     return msg_len;
 }
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
-    defined(MBEDTLS_ENTROPY_C) && \
-    defined(MBEDTLS_CTR_DRBG_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
 
 /*
  * Structure with endpoint's certificates for SSL communication tests.
@@ -798,8 +808,8 @@ typedef struct mbedtls_endpoint
     const char *name;
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
-    mbedtls_ctr_drbg_context ctr_drbg;
-    mbedtls_entropy_context entropy;
+   // mbedtls_ctr_drbg_context ctr_drbg;
+   // mbedtls_entropy_context entropy;
     mbedtls_mock_socket socket;
     mbedtls_endpoint_certificate cert;
 } mbedtls_endpoint;
@@ -981,11 +991,12 @@ int mbedtls_endpoint_init( mbedtls_endpoint *ep, int endpoint_type,
 
     mbedtls_ssl_init( &( ep->ssl ) );
     mbedtls_ssl_config_init( &( ep->conf ) );
-    mbedtls_ctr_drbg_init( &( ep->ctr_drbg ) );
-    mbedtls_ssl_conf_rng( &( ep->conf ),
-        mbedtls_ctr_drbg_random,
-        &( ep->ctr_drbg ) );
-    mbedtls_entropy_init( &( ep->entropy ) );
+        mbedtls_ssl_conf_rng( &( ep->conf ), rng_get, NULL );
+    //mbedtls_ctr_drbg_init( &( ep->ctr_drbg ) );
+   // mbedtls_ssl_conf_rng( &( ep->conf ),
+  //      mbedtls_ctr_drbg_random,
+  //      &( ep->ctr_drbg ) );
+    //mbedtls_entropy_init( &( ep->entropy ) );
 
     TEST_ASSERT( mbedtls_ssl_conf_get_user_data_p( &ep->conf ) == NULL );
     TEST_EQUAL( mbedtls_ssl_conf_get_user_data_n( &ep->conf ), 0 );
@@ -1009,10 +1020,10 @@ int mbedtls_endpoint_init( mbedtls_endpoint *ep, int endpoint_type,
         mbedtls_mock_socket_init( &( ep->socket ) );
     }
 
-    ret = mbedtls_ctr_drbg_seed( &( ep->ctr_drbg ), mbedtls_entropy_func,
-                    &( ep->entropy ), (const unsigned char *) ( ep->name ),
-                    strlen( ep->name ) );
-    TEST_ASSERT( ret == 0 );
+   // ret = mbedtls_ctr_drbg_seed( &( ep->ctr_drbg ), mbedtls_entropy_func,
+  //                  &( ep->entropy ), (const unsigned char *) ( ep->name ),
+  //                  strlen( ep->name ) );
+//    TEST_ASSERT( ret == 0 );
 
     /* Non-blocking callbacks without timeout */
     if( dtls_context != NULL )
@@ -1103,8 +1114,8 @@ void mbedtls_endpoint_free( mbedtls_endpoint *ep,
 
     mbedtls_ssl_free( &( ep->ssl ) );
     mbedtls_ssl_config_free( &( ep->conf ) );
-    mbedtls_ctr_drbg_free( &( ep->ctr_drbg ) );
-    mbedtls_entropy_free( &( ep->entropy ) );
+ //   mbedtls_ctr_drbg_free( &( ep->ctr_drbg ) );
+    //mbedtls_entropy_free( &( ep->entropy ) );
 
     if( context != NULL )
     {
@@ -2019,9 +2030,7 @@ int exchange_data( mbedtls_ssl_context *ssl_1,
                                   ssl_2, 256, 1 );
 }
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
-    defined(MBEDTLS_ENTROPY_C) && \
-    defined(MBEDTLS_CTR_DRBG_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
 static int check_ssl_version( mbedtls_ssl_protocol_version expected_negotiated_version,
                               const mbedtls_ssl_context *ssl )
 {
@@ -2061,9 +2070,7 @@ exit:
 #endif /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C */
 
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C) && \
-    defined(MBEDTLS_ENTROPY_C) && \
-    defined(MBEDTLS_CTR_DRBG_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
 void perform_handshake( handshake_test_options *options )
 {
     /* forced_ciphersuite needs to last until the end of the handshake */
@@ -5092,7 +5099,7 @@ void ssl_session_serialize_version_check( int corrupt_major,
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_ENTROPY_C:MBEDTLS_ENTROPY_C:MBEDTLS_CTR_DRBG_C */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15*/
 void mbedtls_endpoint_sanity( int endpoint_type )
 {
     enum { BUFFSIZE = 1024 };
@@ -5119,7 +5126,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_ENTROPY_C:MBEDTLS_CTR_DRBG_C */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_PKCS1_V15 */
 void move_handshake_to_state(int endpoint_type, int state, int need_pass)
 {
     enum { BUFFSIZE = 1024 };
@@ -5173,7 +5180,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_ENTROPY_C:MBEDTLS_CTR_DRBG_C */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED */
 void handshake_version( int dtls, int client_min_version, int client_max_version,
                         int server_min_version, int server_max_version,
                         int expected_negotiated_version )
@@ -5198,7 +5205,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ENTROPY_C:MBEDTLS_CTR_DRBG_C */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2 */
 void handshake_psk_cipher( char* cipher, int pk_alg, data_t *psk_str, int dtls )
 {
     handshake_test_options options;
@@ -5219,7 +5226,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ENTROPY_C:MBEDTLS_CTR_DRBG_C */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2 */
 void handshake_cipher( char* cipher, int pk_alg, int dtls )
 {
     test_handshake_psk_cipher( cipher, pk_alg, NULL, dtls );
@@ -5229,7 +5236,7 @@ void handshake_cipher( char* cipher, int pk_alg, int dtls )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ENTROPY_C:MBEDTLS_CTR_DRBG_C */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2 */
 void handshake_ciphersuite_select( char* cipher, int pk_alg, data_t *psk_str,
                                    int psa_alg, int psa_alg2, int psa_usage,
                                    int expected_handshake_result,
@@ -5256,7 +5263,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_ENTROPY_C:MBEDTLS_CTR_DRBG_C */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED */
 void app_data( int mfl, int cli_msg_len, int srv_msg_len,
                int expected_cli_fragments,
                int expected_srv_fragments, int dtls )
@@ -5284,7 +5291,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_ENTROPY_C:MBEDTLS_CTR_DRBG_C */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED */
 void app_data_tls( int mfl, int cli_msg_len, int srv_msg_len,
                    int expected_cli_fragments,
                    int expected_srv_fragments )
@@ -5296,7 +5303,7 @@ void app_data_tls( int mfl, int cli_msg_len, int srv_msg_len,
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SSL_PROTO_DTLS:MBEDTLS_ENTROPY_C:MBEDTLS_CTR_DRBG_C */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SSL_PROTO_DTLS */
 void app_data_dtls( int mfl, int cli_msg_len, int srv_msg_len,
                     int expected_cli_fragments,
                     int expected_srv_fragments )
@@ -5308,7 +5315,7 @@ void app_data_dtls( int mfl, int cli_msg_len, int srv_msg_len,
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SSL_PROTO_DTLS:MBEDTLS_SSL_RENEGOTIATION:MBEDTLS_SSL_CONTEXT_SERIALIZATION:MBEDTLS_ENTROPY_C:MBEDTLS_CTR_DRBG_C */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SSL_PROTO_DTLS:MBEDTLS_SSL_RENEGOTIATION:MBEDTLS_SSL_CONTEXT_SERIALIZATION */
 void handshake_serialization( )
 {
     handshake_test_options options;
@@ -5324,7 +5331,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_DEBUG_C:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_ENTROPY_C:MBEDTLS_CTR_DRBG_C */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_DEBUG_C:MBEDTLS_SSL_MAX_FRAGMENT_LENGTH:MBEDTLS_CIPHER_MODE_CBC */
 void handshake_fragmentation( int mfl, int expected_srv_hs_fragmentation, int expected_cli_hs_fragmentation)
 {
     handshake_test_options options;
@@ -5363,7 +5370,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SSL_PROTO_DTLS:MBEDTLS_SSL_RENEGOTIATION:MBEDTLS_ENTROPY_C:MBEDTLS_CTR_DRBG_C */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SSL_PROTO_DTLS:MBEDTLS_SSL_RENEGOTIATION */
 void renegotiation( int legacy_renegotiation )
 {
     handshake_test_options options;
@@ -5382,7 +5389,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_ENTROPY_C:MBEDTLS_CTR_DRBG_C */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED */
 void resize_buffers( int mfl, int renegotiation, int legacy_renegotiation,
                      int serialize, int dtls, char *cipher )
 {
@@ -5406,7 +5413,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH:MBEDTLS_SSL_CONTEXT_SERIALIZATION:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SSL_PROTO_DTLS:MBEDTLS_ENTROPY_C:MBEDTLS_CTR_DRBG_C */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH:MBEDTLS_SSL_CONTEXT_SERIALIZATION:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_SSL_PROTO_DTLS */
 void resize_buffers_serialize_mfl( int mfl )
 {
     test_resize_buffers( mfl, 0, MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION, 1, 1,
@@ -5417,7 +5424,7 @@ void resize_buffers_serialize_mfl( int mfl )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH:MBEDTLS_SSL_RENEGOTIATION:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_ENTROPY_C:MBEDTLS_CTR_DRBG_C */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH:MBEDTLS_SSL_RENEGOTIATION:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED */
 void resize_buffers_renegotiate_mfl( int mfl, int legacy_renegotiation,
                                      char *cipher )
 {
@@ -5818,7 +5825,7 @@ void conf_group()
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_CACHE_C:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_DEBUG_C:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_PKCS1_V15:MBEDTLS_ENTROPY_C:MBEDTLS_CTR_DRBG_C */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_SRV_C:MBEDTLS_SSL_CACHE_C:!MBEDTLS_SSL_PROTO_TLS1_3:MBEDTLS_DEBUG_C:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_PKCS1_V15 */
 void force_bad_session_id_len( )
 {
     enum { BUFFSIZE = 1024 };
@@ -6003,7 +6010,7 @@ void cid_sanity( )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ENTROPY_C:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_CTR_DRBG_C:MBEDTLS_ECP_C:MBEDTLS_ECDSA_C */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_PKCS1_V15:MBEDTLS_SSL_PROTO_TLS1_2:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_RSA_C:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_ECP_C:MBEDTLS_ECDSA_C */
 void raw_key_agreement_fail( int bad_server_ecdhe_key )
 {
     enum { BUFFSIZE = 17000 };

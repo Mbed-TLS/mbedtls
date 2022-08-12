@@ -171,10 +171,12 @@ int mbedtls_mpi_core_read_le( mbedtls_mpi_uint *X,
         return( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL );
 
     if( X != NULL )
+    {
         memset( X, 0, nx * ciL );
 
-    for( i = 0; i < buflen; i++ )
-        X[i / ciL] |= ((mbedtls_mpi_uint) buf[i]) << ((i % ciL) << 3);
+        for( i = 0; i < buflen; i++ )
+            X[i / ciL] |= ((mbedtls_mpi_uint) buf[i]) << ((i % ciL) << 3);
+    }
 
     return( 0 );
 }
@@ -192,18 +194,20 @@ int mbedtls_mpi_core_read_be( mbedtls_mpi_uint *X,
         return( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL );
 
     if( X != NULL )
+    {
         memset( X, 0, nx * ciL );
 
-    overhead = ( nx * ciL ) - buflen;
+        overhead = ( nx * ciL ) - buflen;
 
-    /* Avoid calling `memcpy` with NULL source or destination argument,
-     * even if buflen is 0. */
-    if( buf != NULL )
-    {
-        Xp = (unsigned char*) X;
-        memcpy( Xp + overhead, buf, buflen );
+        /* Avoid calling `memcpy` with NULL source or destination argument,
+         * even if buflen is 0. */
+        if( buf != NULL && X != NULL )
+        {
+            Xp = (unsigned char*) X;
+            memcpy( Xp + overhead, buf, buflen );
 
-        mbedtls_mpi_core_bigendian_to_host( X, nx );
+            mbedtls_mpi_core_bigendian_to_host( X, nx );
+        }
     }
 
     return( 0 );

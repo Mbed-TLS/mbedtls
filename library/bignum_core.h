@@ -85,8 +85,10 @@ int mbedtls_mpi_core_read_le( mbedtls_mpi_uint *X,
  * most significant zero bytes in the input).
  *
  * \param X      The address of the MPI.
+ *               May only be #NULL if \nx is 0 and \p buflen is 0.
  * \param nx     The number of limbs of \p X.
  * \param buf    The input buffer to import from.
+ *               May only be #NULL if \p buflen is 0.
  * \param buflen The length in bytes of \p buf.
  *
  * \return       \c 0 if successful.

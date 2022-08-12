@@ -51,10 +51,10 @@ int mbedtls_mpi_mod_raw_read( mbedtls_mpi_uint *X,
     switch( m->ext_rep )
     {
         case MBEDTLS_MPI_MOD_EXT_REP_LE:
-            ret = mbedtls_mpi_core_read_le( X, m->n, buf, buflen );
+            ret = mbedtls_mpi_core_read_le( X, m->limbs, buf, buflen );
             break;
         case MBEDTLS_MPI_MOD_EXT_REP_BE:
-            ret = mbedtls_mpi_core_read_be( X, m->n, buf, buflen );
+            ret = mbedtls_mpi_core_read_be( X, m->limbs, buf, buflen );
             break;
         default:
             return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
@@ -63,7 +63,7 @@ int mbedtls_mpi_mod_raw_read( mbedtls_mpi_uint *X,
     if( ret != 0 )
         goto cleanup;
 
-    if( !mbedtls_mpi_core_lt_ct( X, m->p, m->n ) )
+    if( !mbedtls_mpi_core_lt_ct( X, m->p, m->limbs ) )
     {
         ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
         goto cleanup;
@@ -82,9 +82,9 @@ int mbedtls_mpi_mod_raw_write( mbedtls_mpi_uint *X,
     switch( m->ext_rep )
     {
         case MBEDTLS_MPI_MOD_EXT_REP_LE:
-            return( mbedtls_mpi_core_write_le( X, m->n, buf, buflen ) );
+            return( mbedtls_mpi_core_write_le( X, m->limbs, buf, buflen ) );
         case MBEDTLS_MPI_MOD_EXT_REP_BE:
-            return( mbedtls_mpi_core_write_be( X, m->n, buf, buflen ) );
+            return( mbedtls_mpi_core_write_be( X, m->limbs, buf, buflen ) );
         default:
             return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
     }

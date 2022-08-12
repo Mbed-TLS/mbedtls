@@ -47,10 +47,10 @@ int mbedtls_mpi_mod_residue_setup( mbedtls_mpi_mod_residue *r,
                                    mbedtls_mpi_uint *p,
                                    size_t pn )
 {
-    if( pn < m->n || !mbedtls_mpi_core_lt_ct( m->p, p, pn ) )
+    if( pn < m->limbs || !mbedtls_mpi_core_lt_ct( m->p, p, pn ) )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
-    r->n = m->n;
+    r->limbs = m->limbs;
     r->p = p;
 
     return( 0 );
@@ -61,7 +61,7 @@ void mbedtls_mpi_mod_residue_release( mbedtls_mpi_mod_residue *r )
     if ( r == NULL )
         return;
 
-    r->n = 0;
+    r->limbs = 0;
     r->p = NULL;
 }
 
@@ -71,8 +71,8 @@ void mbedtls_mpi_mod_modulus_init( mbedtls_mpi_mod_modulus *m )
         return;
 
     m->p = NULL;
-    m->n = 0;
-    m->plen = 0;
+    m->limbs = 0;
+    m->bits = 0;
     m->ext_rep = MBEDTLS_MPI_MOD_EXT_REP_INVALID;
     m->int_rep = MBEDTLS_MPI_MOD_REP_INVALID;
 }
@@ -95,8 +95,8 @@ void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m )
     }
 
     m->p = NULL;
-    m->n = 0;
-    m->plen = 0;
+    m->limbs = 0;
+    m->bits = 0;
     m->ext_rep = MBEDTLS_MPI_MOD_EXT_REP_INVALID;
     m->int_rep = MBEDTLS_MPI_MOD_REP_INVALID;
 }
@@ -110,8 +110,8 @@ int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,
     int ret = 0;
 
     m->p = p;
-    m->n = pn;
-    m->plen = mbedtls_mpi_core_bitlen( p, pn );
+    m->limbs = pn;
+    m->bits = mbedtls_mpi_core_bitlen( p, pn );
 
     switch( ext_rep )
     {

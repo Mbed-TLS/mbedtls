@@ -46,7 +46,7 @@ typedef enum
 typedef struct
 {
     mbedtls_mpi_uint *p;
-    size_t n;
+    size_t limbs;
 } mbedtls_mpi_mod_residue;
 
 typedef void *mbedtls_mpi_mont_struct;
@@ -54,8 +54,8 @@ typedef void *mbedtls_mpi_opt_red_struct;
 
 typedef struct {
     mbedtls_mpi_uint *p;
-    size_t n;                                // number of limbs
-    size_t plen;                             // bitlen of p
+    size_t limbs;                            // number of limbs
+    size_t bits;                             // bitlen of p
     mbedtls_mpi_mod_ext_rep ext_rep;         // signals external representation (eg. byte order)
     mbedtls_mpi_mod_rep_selector int_rep;    // selector to signal the active member of the union
     union rep

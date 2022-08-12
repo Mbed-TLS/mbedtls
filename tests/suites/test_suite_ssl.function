@@ -1,23 +1,7 @@
 /* BEGIN_HEADER */
-#include <mbedtls/ssl.h>
+#include "test/ssl_helpers.h"
 #include <ssl_misc.h>
-#include <mbedtls/ctr_drbg.h>
-#include <mbedtls/entropy.h>
-#include <mbedtls/timing.h>
-#include <mbedtls/debug.h>
-#include <ssl_tls13_keys.h>
-#include <ssl_tls13_invasive.h>
-#include "test/certs.h"
-
-#if defined(MBEDTLS_SSL_CACHE_C)
-#include "mbedtls/ssl_cache.h"
-#endif
-
-#include <psa/crypto.h>
-
 #include <constant_time_internal.h>
-
-#include <test/constant_flow.h>
 
 enum
 {

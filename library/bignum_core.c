@@ -201,7 +201,7 @@ int mbedtls_mpi_core_read_be( mbedtls_mpi_uint *X,
 
         /* Avoid calling `memcpy` with NULL source or destination argument,
          * even if buflen is 0. */
-        if( buf != NULL && X != NULL )
+        if( buf != NULL )
         {
             Xp = (unsigned char*) X;
             memcpy( Xp + overhead, buf, buflen );

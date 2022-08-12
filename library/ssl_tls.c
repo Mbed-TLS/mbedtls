@@ -1795,6 +1795,7 @@ int mbedtls_ssl_set_hs_psk_opaque( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
+#if defined(MBEDTLS_SSL_SRV_C)
 void mbedtls_ssl_conf_psk_cb( mbedtls_ssl_config *conf,
                      int (*f_psk)(void *, mbedtls_ssl_context *, const unsigned char *,
                      size_t),
@@ -1803,6 +1804,8 @@ void mbedtls_ssl_conf_psk_cb( mbedtls_ssl_config *conf,
     conf->f_psk = f_psk;
     conf->p_psk = p_psk;
 }
+#endif /* MBEDTLS_SSL_SRV_C */
+
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)

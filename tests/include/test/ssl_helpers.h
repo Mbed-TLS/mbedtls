@@ -32,6 +32,7 @@
 #include <ssl_tls13_keys.h>
 #include <ssl_tls13_invasive.h>
 #include "test/certs.h"
+#include "test/helpers.h"
 
 #if defined(MBEDTLS_SSL_CACHE_C)
 #include "mbedtls/ssl_cache.h"

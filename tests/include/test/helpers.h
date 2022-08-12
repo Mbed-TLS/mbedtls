@@ -66,6 +66,13 @@ typedef enum
     MBEDTLS_TEST_RESULT_SKIPPED
 } mbedtls_test_result_t;
 
+/* Type for Hex parameters */
+typedef struct data_tag
+{
+    uint8_t *   x;
+    uint32_t    len;
+} data_t;
+
 typedef struct
 {
     mbedtls_test_result_t result;

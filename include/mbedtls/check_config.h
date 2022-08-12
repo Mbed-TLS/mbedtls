@@ -936,6 +936,11 @@
 #error "MBEDTLS_SSL_EXTENDED_MASTER_SECRET defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_SSL_RENEGOTIATION) && \
+    !defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#error "MBEDTLS_SSL_RENEGOTIATION defined, but not all prerequisites"
+#endif
+
 #if defined(MBEDTLS_SSL_TICKET_C) && ( !defined(MBEDTLS_CIPHER_C) && \
                                        !defined(MBEDTLS_USE_PSA_CRYPTO) )
 #error "MBEDTLS_SSL_TICKET_C defined, but not all prerequisites"

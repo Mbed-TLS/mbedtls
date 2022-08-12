@@ -384,7 +384,7 @@ exit:
 
 
 /* BEGIN_CASE */
-void mbedtls_mpi_mod_raw_io( data_t *input, int nb_int, int nx_64_int,
+void mbedtls_mpi_mod_raw_io( data_t *input, int nb_int, int nx_32_int,
                              int iendian, int iret, int oret )
 {
 #define BMAX 1024
@@ -405,12 +405,12 @@ void mbedtls_mpi_mod_raw_io( data_t *input, int nb_int, int nx_64_int,
     nb = nb_int;
     TEST_ASSERT( nb <= BMAX );
 
-    TEST_ASSERT( 0 <= nx_64_int );
-    nx = nx_64_int;
-    /* nx_64_int is the number of 64 bit limbs, if we have 32 bit limbs we need
-     * to double the number of limbs to have the same size. */
-    if( sizeof( mbedtls_mpi_uint ) == 4 )
-        nx *= 2;
+    TEST_ASSERT( 0 <= nx_32_int );
+    nx = nx_32_int;
+    /* nx_32_int is the number of 32 bit limbs, if we have 64 bit limbs we need
+     * to halve the number of limbs to have the same size. */
+    if( sizeof( mbedtls_mpi_uint ) == 8 )
+        nx = nx / 2 + nx % 2;
     TEST_ASSERT( nx <= XMAX );
 
     if( iendian == MBEDTLS_MPI_MOD_EXT_REP_INVALID )

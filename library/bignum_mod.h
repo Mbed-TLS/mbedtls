@@ -45,8 +45,8 @@ typedef enum
 
 typedef struct
 {
-    size_t n;
     mbedtls_mpi_uint *p;
+    size_t n;
 } mbedtls_mpi_mod_residue;
 
 typedef void *mbedtls_mpi_mont_struct;

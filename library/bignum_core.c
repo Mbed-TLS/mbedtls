@@ -164,8 +164,7 @@ int mbedtls_mpi_core_read_le( mbedtls_mpi_uint *X,
                               const unsigned char *buf,
                               size_t buflen )
 {
-    size_t i;
-    size_t const limbs = CHARS_TO_LIMBS( buflen );
+    const size_t limbs = CHARS_TO_LIMBS( buflen );
 
     if( nx < limbs )
         return( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL );
@@ -174,7 +173,7 @@ int mbedtls_mpi_core_read_le( mbedtls_mpi_uint *X,
     {
         memset( X, 0, nx * ciL );
 
-        for( i = 0; i < buflen; i++ )
+        for( size_t i = 0; i < buflen; i++ )
             X[i / ciL] |= ((mbedtls_mpi_uint) buf[i]) << ((i % ciL) << 3);
     }
 
@@ -186,9 +185,7 @@ int mbedtls_mpi_core_read_be( mbedtls_mpi_uint *X,
                               const unsigned char *buf,
                               size_t buflen )
 {
-    size_t const limbs = CHARS_TO_LIMBS( buflen );
-    size_t overhead;
-    unsigned char *Xp;
+    const size_t limbs = CHARS_TO_LIMBS( buflen );
 
     if( nx < limbs )
         return( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL );
@@ -197,13 +194,13 @@ int mbedtls_mpi_core_read_be( mbedtls_mpi_uint *X,
     {
         memset( X, 0, nx * ciL );
 
-        overhead = ( nx * ciL ) - buflen;
+        const size_t overhead = ( nx * ciL ) - buflen;
 
         /* Avoid calling `memcpy` with NULL source or destination argument,
          * even if buflen is 0. */
         if( buf != NULL )
         {
-            Xp = (unsigned char*) X;
+            unsigned char *Xp = (unsigned char *) X;
             memcpy( Xp + overhead, buf, buflen );
 
             mbedtls_mpi_core_bigendian_to_host( X, nx );

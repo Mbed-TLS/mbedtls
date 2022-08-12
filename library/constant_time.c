@@ -748,14 +748,13 @@ unsigned mbedtls_mpi_core_lt_ct( const mbedtls_mpi_uint *X,
                                  const mbedtls_mpi_uint *Y,
                                  size_t len )
 {
-    size_t i;
     unsigned ret, cond, done;
 
     /* The value of any of these variables is either 0 or 1 for the rest of
      * their scope. */
     ret = cond = done = 0;
 
-    for( i = len; i > 0; i-- )
+    for( size_t i = len; i > 0; i-- )
     {
         /*
          * If Y[i - 1] < X[i - 1] then X < Y is false and the result must

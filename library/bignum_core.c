@@ -216,7 +216,6 @@ int mbedtls_mpi_core_write_le( const mbedtls_mpi_uint *X,
 {
     size_t stored_bytes = nx * ciL;
     size_t bytes_to_copy;
-    size_t i;
 
     if( stored_bytes < buflen )
     {
@@ -228,14 +227,14 @@ int mbedtls_mpi_core_write_le( const mbedtls_mpi_uint *X,
 
         /* The output buffer is smaller than the allocated size of X.
          * However X may fit if its leading bytes are zero. */
-        for( i = bytes_to_copy; i < stored_bytes; i++ )
+        for( size_t i = bytes_to_copy; i < stored_bytes; i++ )
         {
             if( GET_BYTE( X, i ) != 0 )
                 return( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL );
         }
     }
 
-    for( i = 0; i < bytes_to_copy; i++ )
+    for( size_t i = 0; i < bytes_to_copy; i++ )
         buf[i] = GET_BYTE( X, i );
 
     if( stored_bytes < buflen )
@@ -255,7 +254,6 @@ int mbedtls_mpi_core_write_be( const mbedtls_mpi_uint *X,
     size_t stored_bytes;
     size_t bytes_to_copy;
     unsigned char *p;
-    size_t i;
 
     stored_bytes = nx * ciL;
 
@@ -276,14 +274,14 @@ int mbedtls_mpi_core_write_be( const mbedtls_mpi_uint *X,
          * However X may fit if its leading bytes are zero. */
         bytes_to_copy = buflen;
         p = buf;
-        for( i = bytes_to_copy; i < stored_bytes; i++ )
+        for( size_t i = bytes_to_copy; i < stored_bytes; i++ )
         {
             if( GET_BYTE( X, i ) != 0 )
                 return( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL );
         }
     }
 
-    for( i = 0; i < bytes_to_copy; i++ )
+    for( size_t i = 0; i < bytes_to_copy; i++ )
         p[bytes_to_copy - i - 1] = GET_BYTE( X, i );
 
     return( 0 );

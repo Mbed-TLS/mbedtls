@@ -84,8 +84,8 @@ OBJS_CRYPTO= \
 	     base64.o \
 	     bignum.o \
 	     bignum_core.o \
-	     bignum_mod_raw.o \
 	     bignum_mod.o \
+	     bignum_mod_raw.o \
 	     camellia.o \
 	     ccm.o \
 	     chacha20.o \

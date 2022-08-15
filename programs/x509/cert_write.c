@@ -467,7 +467,10 @@ int main( int argc, char *argv[] )
                 else if( strcmp( q, "OCSPSigning" ) == 0 )
                     SET_OID( ext_key_usage->buf, MBEDTLS_OID_OCSP_SIGNING );
                 else
+                {
+                    mbedtls_printf( "Invalid argument for option %s\n", p );
                     goto usage;
+                }
 
                 *tail = ext_key_usage;
                 tail = &ext_key_usage->next;

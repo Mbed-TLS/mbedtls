@@ -1,7 +1,5 @@
 /* BEGIN_HEADER */
 #include "test/ssl_helpers.h"
-#include <ssl_misc.h>
-#include <constant_time_internal.h>
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

@@ -24,6 +24,8 @@
 #ifndef SSL_HELPERS_H
 #define SSL_HELPERS_H
 
+#include "mbedtls/build_info.h"
+
 #include <test/helpers.h>
 #include <test/macros.h>
 #include <test/random.h>
@@ -32,7 +34,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(MBEDTLS_SSL_TLS_C)
+#line 2 "suites/test_suite_ssl.function"
 #include <mbedtls/ssl.h>
+#include <ssl_misc.h>
 #include <mbedtls/ctr_drbg.h>
 #include <mbedtls/entropy.h>
 #include <mbedtls/timing.h>
@@ -47,10 +52,9 @@
 
 #include <psa/crypto.h>
 
+#include <constant_time_internal.h>
 
 #include <test/constant_flow.h>
-#include <ssl_misc.h>
-#include <constant_time_internal.h>
 
 enum
 {
@@ -602,5 +606,5 @@ int mbedtls_test_tweak_tls13_certificate_msg_vector_len(
     int *expected_result, mbedtls_ssl_chk_buf_ptr_args *args );
 
 #endif /* MBEDTLS_TEST_HOOKS */
-
+#endif /* MBEDTLS_SSL_TLS_C */
 #endif /* SSL_HELPERS_H */

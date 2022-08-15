@@ -102,7 +102,7 @@ void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m )
 }
 
 int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,
-                                   mbedtls_mpi_uint *p,
+                                   const mbedtls_mpi_uint *p,
                                    size_t pn,
                                    mbedtls_mpi_mod_ext_rep ext_rep,
                                    mbedtls_mpi_mod_rep_selector int_rep )

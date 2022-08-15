@@ -53,7 +53,7 @@ typedef void *mbedtls_mpi_mont_struct;
 typedef void *mbedtls_mpi_opt_red_struct;
 
 typedef struct {
-    mbedtls_mpi_uint *p;
+    const mbedtls_mpi_uint *p;
     size_t limbs;                            // number of limbs
     size_t bits;                             // bitlen of p
     mbedtls_mpi_mod_ext_rep ext_rep;         // signals external representation (eg. byte order)
@@ -122,7 +122,7 @@ void mbedtls_mpi_mod_modulus_init( mbedtls_mpi_mod_modulus *m );
  *              invalid.
  */
 int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,
-                                   mbedtls_mpi_uint *p,
+                                   const mbedtls_mpi_uint *p,
                                    size_t pn,
                                    mbedtls_mpi_mod_ext_rep ext_rep,
                                    mbedtls_mpi_mod_rep_selector int_rep );

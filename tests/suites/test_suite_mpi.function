@@ -236,30 +236,26 @@ exit:
 void mbedtls_mpi_core_io_be( data_t *input, int nb_int, int nx_32_int, int iret,
                              int oret )
 {
-#define BMAX 1024
-#define XMAX BMAX / sizeof( mbedtls_mpi_uint )
-
-    unsigned char buf[BMAX];
-    mbedtls_mpi_uint X[XMAX];
-    size_t nx, nb;
-    int ret;
-
     if( iret != 0 )
         TEST_ASSERT( oret == 0 );
 
     TEST_ASSERT( 0 <= nb_int );
-    nb = nb_int;
-    TEST_ASSERT( nb <= BMAX );
+    size_t nb = nb_int;
 
-    TEST_ASSERT( 0 <= nx_32_int );
-    nx = nx_32_int;
+    unsigned char buf[1024];
+    TEST_ASSERT( nb <= sizeof( buf ) );
+
     /* nx_32_int is the number of 32 bit limbs, if we have 64 bit limbs we need
      * to halve the number of limbs to have the same size. */
     if( sizeof( mbedtls_mpi_uint ) == 8 )
-        nx = nx / 2 + nx % 2;
-    TEST_ASSERT( nx <= XMAX );
+        nx_32_int = nx_32_int / 2 + nx_32_int % 2;
+    TEST_ASSERT( 0 <= nx_32_int );
+    size_t nx = nx_32_int;
 
-    ret =  mbedtls_mpi_core_read_be( X, nx, input->x, input->len );
+    mbedtls_mpi_uint X[sizeof( buf ) / sizeof( mbedtls_mpi_uint )];
+    TEST_ASSERT( nx <= sizeof( X ) / sizeof( X[0] ) );
+
+    int ret = mbedtls_mpi_core_read_be( X, nx, input->x, input->len );
     TEST_ASSERT( ret == iret );
 
     if( iret == 0 )
@@ -288,9 +284,6 @@ void mbedtls_mpi_core_io_be( data_t *input, int nb_int, int nx_32_int, int iret,
 
 exit:
     ;
-
-#undef BMAX
-#undef XMAX
 }
 /* END_CASE */
 
@@ -298,30 +291,26 @@ exit:
 void mbedtls_mpi_core_io_le( data_t *input, int nb_int, int nx_32_int, int iret,
                              int oret )
 {
-#define BMAX 1024
-#define XMAX BMAX / sizeof( mbedtls_mpi_uint )
-
-    unsigned char buf[BMAX];
-    mbedtls_mpi_uint X[XMAX];
-    size_t nx, nb;
-    int ret;
-
     if( iret != 0 )
         TEST_ASSERT( oret == 0 );
 
     TEST_ASSERT( 0 <= nb_int );
-    nb = nb_int;
-    TEST_ASSERT( nb <= BMAX );
+    size_t nb = nb_int;
 
-    TEST_ASSERT( 0 <= nx_32_int );
-    nx = nx_32_int;
+    unsigned char buf[1024];
+    TEST_ASSERT( nb <= sizeof( buf ) );
+
     /* nx_32_int is the number of 32 bit limbs, if we have 64 bit limbs we need
      * to halve the number of limbs to have the same size. */
     if( sizeof( mbedtls_mpi_uint ) == 8 )
-        nx = nx / 2 + nx % 2;
-    TEST_ASSERT( nx <= XMAX );
+        nx_32_int = nx_32_int / 2 + nx_32_int % 2;
+    TEST_ASSERT( 0 <= nx_32_int );
+    size_t nx = nx_32_int;
 
-    ret =  mbedtls_mpi_core_read_le( X, nx, input->x, input->len );
+    mbedtls_mpi_uint X[sizeof( buf ) / sizeof( mbedtls_mpi_uint )];
+    TEST_ASSERT( nx <= sizeof( X ) / sizeof( X[0] ) );
+
+    int ret =  mbedtls_mpi_core_read_le( X, nx, input->x, input->len );
     TEST_ASSERT( ret == iret );
 
     if( iret == 0 )
@@ -348,9 +337,6 @@ void mbedtls_mpi_core_io_le( data_t *input, int nb_int, int nx_32_int, int iret,
 
 exit:
     ;
-
-#undef BMAX
-#undef XMAX
 }
 /* END_CASE */
 
@@ -387,42 +373,37 @@ exit:
 void mbedtls_mpi_mod_raw_io( data_t *input, int nb_int, int nx_32_int,
                              int iendian, int iret, int oret )
 {
-#define BMAX 1024
-#define XMAX BMAX / sizeof( mbedtls_mpi_uint )
-
-    unsigned char buf[BMAX];
-    mbedtls_mpi_uint X[XMAX];
-    mbedtls_mpi_uint init[XMAX];
-    mbedtls_mpi_mod_modulus m;
-    size_t nx, nb;
-    int ret;
-    int endian;
-
     if( iret != 0 )
         TEST_ASSERT( oret == 0 );
 
     TEST_ASSERT( 0 <= nb_int );
-    nb = nb_int;
-    TEST_ASSERT( nb <= BMAX );
+    size_t nb = nb_int;
 
-    TEST_ASSERT( 0 <= nx_32_int );
-    nx = nx_32_int;
+    unsigned char buf[1024];
+    TEST_ASSERT( nb <= sizeof( buf ) );
+
     /* nx_32_int is the number of 32 bit limbs, if we have 64 bit limbs we need
      * to halve the number of limbs to have the same size. */
     if( sizeof( mbedtls_mpi_uint ) == 8 )
-        nx = nx / 2 + nx % 2;
-    TEST_ASSERT( nx <= XMAX );
+        nx_32_int = nx_32_int / 2 + nx_32_int % 2;
+    TEST_ASSERT( 0 <= nx_32_int );
+    size_t nx = nx_32_int;
 
+    mbedtls_mpi_uint X[sizeof( buf ) / sizeof( mbedtls_mpi_uint )];
+    TEST_ASSERT( nx <= sizeof( X ) / sizeof( X[0] ) );
+
+    int endian;
     if( iendian == MBEDTLS_MPI_MOD_EXT_REP_INVALID )
         endian = MBEDTLS_MPI_MOD_EXT_REP_LE;
     else
         endian = iendian;
 
+    mbedtls_mpi_mod_modulus m;
     mbedtls_mpi_mod_modulus_init( &m );
-    TEST_ASSERT( memset( init, 0xFF, sizeof( init ) ) );
-
-    ret = mbedtls_mpi_mod_modulus_setup( &m, init, nx, endian,
-                                         MBEDTLS_MPI_MOD_REP_MONTGOMERY );
+    mbedtls_mpi_uint init[sizeof( X ) / sizeof( X[0] )];
+    memset( init, 0xFF, sizeof( init ) );
+    int ret = mbedtls_mpi_mod_modulus_setup( &m, init, nx, endian,
+                                             MBEDTLS_MPI_MOD_REP_MONTGOMERY );
     TEST_ASSERT( ret == 0 );
 
     if( iendian == MBEDTLS_MPI_MOD_EXT_REP_INVALID && iret != 0 )
@@ -478,9 +459,6 @@ void mbedtls_mpi_mod_raw_io( data_t *input, int nb_int, int nx_32_int,
 
 exit:
     mbedtls_mpi_mod_modulus_free( &m );
-
-#undef BMAX
-#undef XMAX
 }
 /* END_CASE */
 

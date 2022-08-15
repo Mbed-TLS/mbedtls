@@ -223,6 +223,34 @@ requires_config_disabled() {
     esac
 }
 
+requires_all_configs_enabled() {
+    if ! $P_QUERY -all $*
+    then
+        SKIP_NEXT="YES"
+    fi
+}
+
+requires_all_configs_disabled() {
+    if $P_QUERY -any $*
+    then
+        SKIP_NEXT="YES"
+    fi
+}
+
+requires_any_configs_enabled() {
+    if ! $P_QUERY -any $*
+    then
+        SKIP_NEXT="YES"
+    fi
+}
+
+requires_any_configs_disabled() {
+    if $P_QUERY -all $*
+    then
+        SKIP_NEXT="YES"
+    fi
+}
+
 get_config_value_or_default() {
     # This function uses the query_config command line option to query the
     # required Mbed TLS compile time configuration from the ssl_server2
@@ -874,12 +902,12 @@ wait_client_done() {
     ( sleep $CLI_DELAY; echo "===CLIENT_TIMEOUT===" >> $CLI_OUT; kill $CLI_PID ) &
     DOG_PID=$!
 
-    wait $CLI_PID
+    # For Ubuntu 22.04, `Terminated` message is outputed by wait command.
+    # To remove it from stdout, redirect stdout/stderr to CLI_OUT
+    wait $CLI_PID >> $CLI_OUT 2>&1
     CLI_EXIT=$?
 
     kill $DOG_PID >/dev/null 2>&1
-    # For Ubuntu 22.04, `Terminated` message is outputed by wait command.
-    # To remove it from stdout, redirect stdout/stderr to CLI_OUT
     wait $DOG_PID >> $CLI_OUT 2>&1
 
     echo "EXIT: $CLI_EXIT" >> $CLI_OUT
@@ -1230,7 +1258,9 @@ do_run_test_once() {
 
     # terminate the server (and the proxy)
     kill $SRV_PID
-    wait $SRV_PID
+    # For Ubuntu 22.04, `Terminated` message is outputed by wait command.
+    # To remove it from stdout, redirect stdout/stderr to SRV_OUT
+    wait $SRV_PID >> $SRV_OUT 2>&1
     SRV_RET=$?
 
     if [ -n "$PXY_CMD" ]; then
@@ -12725,6 +12755,37 @@ run_test    "TLS 1.3: NewSessionTicket: Basic check, m->m" \
             -s "=> write NewSessionTicket msg" \
             -s "server state: MBEDTLS_SSL_NEW_SESSION_TICKET" \
             -s "server state: MBEDTLS_SSL_NEW_SESSION_TICKET_FLUSH"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+run_test    "TLS 1.2: Check rsa_pss_rsae compatibility issue, m->O" \
+            "$O_NEXT_SRV_NO_CERT -cert data_files/server2-sha256.crt -key data_files/server2.key
+                                 -msg -tls1_2
+                                 -Verify 10 " \
+            "$P_CLI debug_level=4 crt_file=data_files/server2-sha256.crt key_file=data_files/server2.key
+                    sig_algs=rsa_pss_rsae_sha512,rsa_pkcs1_sha512
+                    min_version=tls12 max_version=tls13 " \
+            0 \
+            -c "Protocol is TLSv1.2" \
+            -c "HTTP/1.0 200 [Oo][Kk]"
+
+
+requires_gnutls_tls1_3
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+run_test    "TLS 1.2: Check rsa_pss_rsae compatibility issue, m->G" \
+            "$G_NEXT_SRV_NO_CERT --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key
+                    -d 4
+                    --priority=NORMAL:-VERS-ALL:+VERS-TLS1.2" \
+            "$P_CLI debug_level=4 crt_file=data_files/server2-sha256.crt key_file=data_files/server2.key
+                    sig_algs=rsa_pss_rsae_sha512,rsa_pkcs1_sha512
+                    min_version=tls12 max_version=tls13 " \
+            0 \
+            -c "Protocol is TLSv1.2" \
+            -c "HTTP/1.0 200 [Oo][Kk]"
 
 # Test heap memory usage after handshake
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2

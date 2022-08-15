@@ -185,7 +185,7 @@ int mbedtls_mpi_core_read_be( mbedtls_mpi_uint *X,
                               const unsigned char *buf,
                               size_t buflen )
 {
-    size_t const limbs = CHARS_TO_LIMBS( buflen );
+    const size_t limbs = CHARS_TO_LIMBS( buflen );
 
     if( nx < limbs )
         return( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL );

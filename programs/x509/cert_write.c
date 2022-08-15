@@ -445,13 +445,14 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "ext_key_usage" ) == 0 )
         {
+            mbedtls_asn1_sequence **tail = &opt.ext_key_usage;
+
             while( q != NULL )
             {
                 if( ( r = strchr( q, ',' ) ) != NULL )
                     *r++ = '\0';
 
                 ext_key_usage = mbedtls_calloc( 1, sizeof(mbedtls_asn1_sequence) );
-                ext_key_usage->next = opt.ext_key_usage;
                 ext_key_usage->buf.tag = MBEDTLS_ASN1_OID;
                 if( strcmp( q, "serverAuth" ) == 0 )
                     SET_OID( ext_key_usage->buf, MBEDTLS_OID_SERVER_AUTH );
@@ -467,7 +468,9 @@ int main( int argc, char *argv[] )
                     SET_OID( ext_key_usage->buf, MBEDTLS_OID_OCSP_SIGNING );
                 else
                     goto usage;
-                opt.ext_key_usage = ext_key_usage;
+
+                *tail = ext_key_usage;
+                tail = &ext_key_usage->next;
 
                 q = r;
             }

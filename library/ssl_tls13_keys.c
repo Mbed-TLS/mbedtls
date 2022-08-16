@@ -359,7 +359,7 @@ int mbedtls_ssl_tls13_evolve_secret(
 
     ret = 0;
 
-    if( ( input != NULL ) && ( input_len != 0 ) )
+    if( input != NULL && input_len != 0 )
     {
         memcpy( tmp_input, input, input_len );
         ilen = input_len;
@@ -1579,7 +1579,7 @@ int mbedtls_ssl_tls13_export_handshake_psk( mbedtls_ssl_context *ssl,
         return( 0 );
 
     status = psa_get_key_attributes( ssl->handshake->psk_opaque, &key_attributes );
-    if( status != PSA_SUCCESS)
+    if( status != PSA_SUCCESS )
     {
         return( psa_ssl_status_to_mbedtls( status ) );
     }
@@ -1593,7 +1593,7 @@ int mbedtls_ssl_tls13_export_handshake_psk( mbedtls_ssl_context *ssl,
 
     status = psa_export_key( ssl->handshake->psk_opaque,
                              (uint8_t *)*psk, *psk_len, psk_len );
-    if( status != PSA_SUCCESS)
+    if( status != PSA_SUCCESS )
     {
         mbedtls_free( (void *)*psk );
         return( psa_ssl_status_to_mbedtls( status ) );

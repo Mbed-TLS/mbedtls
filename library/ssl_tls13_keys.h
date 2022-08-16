@@ -693,12 +693,12 @@ MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_compute_application_transform( mbedtls_ssl_context *ssl );
 
 /**
- * \brief Export TLS 1.3 PSK key from handshake context
+ * \brief Export TLS 1.3 PSK from handshake context
  *
  * \param ssl  The SSL context to operate on.
- * \param psk  PSK key output pointer.
+ * \param psk  PSK output pointer.
  * \param psk_len
- *             Length of PSK key.
+ *             Length of PSK.
  *
  * \returns    \c 0 on success.
  * \returns    A negative error code on failure.

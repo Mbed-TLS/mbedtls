@@ -1057,9 +1057,9 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
                                     ciphersuite_info == NULL ?
                                         "Unkown": ciphersuite_info->name ) );
     }
-#else
+#else /* MBEDTLS_DEBUG_C */
     p = cipher_suites_end;
-#endif /* MBEDTLS_DEBUG_C */
+#endif /* !MBEDTLS_DEBUG_C */
 
     /* ...
      * opaque legacy_compression_methods<1..2^8-1>;
@@ -1331,7 +1331,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
      * Search for a matching ciphersuite
      */
     for ( const unsigned char * p_chiper_suite = cipher_suites ;
-            p_chiper_suite < cipher_suites_end; p_chiper_suite += 2 )
+          p_chiper_suite < cipher_suites_end; p_chiper_suite += 2 )
     {
         uint16_t cipher_suite;
         const mbedtls_ssl_ciphersuite_t* ciphersuite_info;

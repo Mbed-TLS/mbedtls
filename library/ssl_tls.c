@@ -1710,7 +1710,7 @@ int mbedtls_ssl_set_hs_psk( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( ssl->tls_version == MBEDTLS_SSL_VERSION_TLS1_2 )
     {
-        if( ssl->handshake->ciphersuite_info->mac == MBEDTLS_MD_SHA384)
+        if( ssl->handshake->ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
             alg = PSA_ALG_TLS12_PSK_TO_MS( PSA_ALG_SHA_384 );
         else
             alg = PSA_ALG_TLS12_PSK_TO_MS( PSA_ALG_SHA_256 );

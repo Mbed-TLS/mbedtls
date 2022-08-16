@@ -80,7 +80,8 @@ extern "C" {
 typedef struct mbedtls_aes_context
 {
     int MBEDTLS_PRIVATE(nr);                     /*!< The number of rounds. */
-    uint32_t *MBEDTLS_PRIVATE(rk);               /*!< AES round keys. */
+    size_t MBEDTLS_PRIVATE(rk_offset);           /*!< The offset in array elements to AES
+                                     round keys in the buffer. */
     uint32_t MBEDTLS_PRIVATE(buf)[68];           /*!< Unaligned data buffer. This buffer can
                                      hold 32 extra Bytes, which can be used for
                                      one of the following purposes:

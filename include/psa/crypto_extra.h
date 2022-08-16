@@ -359,7 +359,7 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
  */
 #define PSA_KEY_TYPE_DSA_KEY_PAIR                    ((psa_key_type_t)0x7002)
 
-/** Whether a key type is an DSA key (pair or public-only). */
+/** Whether a key type is a DSA key (pair or public-only). */
 #define PSA_KEY_TYPE_IS_DSA(type)                                       \
     (PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(type) == PSA_KEY_TYPE_DSA_PUBLIC_KEY)
 
@@ -1287,7 +1287,7 @@ static void psa_pake_cs_set_hash( psa_pake_cipher_suite_t *cipher_suite,
  * Implementation details can change in future versions without notice. */
 typedef struct psa_pake_operation_s psa_pake_operation_t;
 
-/** Return an initial value for an PAKE operation object.
+/** Return an initial value for a PAKE operation object.
  */
 static psa_pake_operation_t psa_pake_operation_init( void );
 

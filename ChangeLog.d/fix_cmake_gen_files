@@ -1,0 +1,3 @@
+Bugfix
+   * Fix an issue in releases with GEN_FILES turned off whereby missing
+     generated files could be turned into symlinks to themselves.

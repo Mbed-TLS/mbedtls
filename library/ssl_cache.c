@@ -50,6 +50,7 @@ void mbedtls_ssl_cache_init( mbedtls_ssl_cache_context *cache )
 #endif
 }
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_cache_find_entry( mbedtls_ssl_cache_context *cache,
                                  unsigned char const *session_id,
                                  size_t session_id_len,
@@ -124,6 +125,7 @@ exit:
     return( ret );
 }
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_cache_pick_writing_slot( mbedtls_ssl_cache_context *cache,
                                         unsigned char const *session_id,
                                         size_t session_id_len,
@@ -312,7 +314,11 @@ exit:
 #endif
 
     if( session_serialized != NULL )
+    {
         mbedtls_platform_zeroize( session_serialized, session_serialized_len );
+        mbedtls_free( session_serialized );
+        session_serialized = NULL;
+    }
 
     return( ret );
 }

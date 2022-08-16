@@ -436,6 +436,9 @@ int mbedtls_hmac_drbg_write_seed_file( mbedtls_hmac_drbg_context *ctx, const cha
     if( ( f = fopen( path, "wb" ) ) == NULL )
         return( MBEDTLS_ERR_HMAC_DRBG_FILE_IO_ERROR );
 
+    /* Ensure no stdio buffering of secrets, as such buffers cannot be wiped. */
+    mbedtls_setbuf( f, NULL );
+
     if( ( ret = mbedtls_hmac_drbg_random( ctx, buf, sizeof( buf ) ) ) != 0 )
         goto exit;
 
@@ -464,6 +467,9 @@ int mbedtls_hmac_drbg_update_seed_file( mbedtls_hmac_drbg_context *ctx, const ch
 
     if( ( f = fopen( path, "rb" ) ) == NULL )
         return( MBEDTLS_ERR_HMAC_DRBG_FILE_IO_ERROR );
+
+    /* Ensure no stdio buffering of secrets, as such buffers cannot be wiped. */
+    mbedtls_setbuf( f, NULL );
 
     n = fread( buf, 1, sizeof( buf ), f );
     if( fread( &c, 1, 1, f ) != 0 )

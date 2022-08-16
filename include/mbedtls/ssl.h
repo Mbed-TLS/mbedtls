@@ -98,6 +98,8 @@
 /* Error space gap */
 /** Processing of the Certificate handshake message failed. */
 #define MBEDTLS_ERR_SSL_BAD_CERTIFICATE                   -0x7A00
+/** Received NewSessionTicket Post Handshake Message */
+#define MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET       -0x7B00
 /* Error space gap */
 /* Error space gap */
 /* Error space gap */
@@ -170,6 +172,15 @@
 #define MBEDTLS_ERR_SSL_BAD_CONFIG                        -0x5E80
 
 /*
+ * Constants from RFC 8446 for TLS 1.3 PSK modes
+ *
+ * Those are used in the Pre-Shared Key Exchange Modes extension.
+ * See Section 4.2.9 in RFC 8446.
+ */
+#define MBEDTLS_SSL_TLS1_3_PSK_MODE_PURE  0 /* Pure PSK-based exchange  */
+#define MBEDTLS_SSL_TLS1_3_PSK_MODE_ECDHE 1 /* PSK+ECDHE-based exchange */
+
+/*
  * TLS 1.3 NamedGroup values
  *
  * From RF 8446
@@ -239,12 +250,14 @@
     ( MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL        |            \
       MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL    ) /*!< All ephemeral TLS 1.3 key exchanges */
 
+#define MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_NONE   ( 0 )
+
 /*
  * Various constants
  */
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
-/* These are the high an low bytes of ProtocolVersion as defined by:
+/* These are the high and low bytes of ProtocolVersion as defined by:
  * - RFC 5246: ProtocolVersion version = { 3, 3 };     // TLS v1.2
  * - RFC 8446: see section 4.2.1
  */
@@ -324,6 +337,13 @@
 #define MBEDTLS_SSL_SRV_CIPHERSUITE_ORDER_CLIENT  1
 #define MBEDTLS_SSL_SRV_CIPHERSUITE_ORDER_SERVER  0
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SHA384_C)
+#define MBEDTLS_SSL_TLS1_3_TICKET_RESUMPTION_KEY_LEN        48
+#elif defined(MBEDTLS_SHA256_C)
+#define MBEDTLS_SSL_TLS1_3_TICKET_RESUMPTION_KEY_LEN        32
+#endif /* MBEDTLS_SHA256_C  */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS */
 /*
  * Default range for DTLS retransmission timer value, in milliseconds.
  * RFC 6347 4.2.4.1 says from 1 second to 60 seconds.
@@ -640,13 +660,16 @@ typedef enum
     MBEDTLS_SSL_FLUSH_BUFFERS,
     MBEDTLS_SSL_HANDSHAKE_WRAPUP,
     MBEDTLS_SSL_HANDSHAKE_OVER,
-    MBEDTLS_SSL_SERVER_NEW_SESSION_TICKET,
+    MBEDTLS_SSL_NEW_SESSION_TICKET,
     MBEDTLS_SSL_SERVER_HELLO_VERIFY_REQUEST_SENT,
     MBEDTLS_SSL_HELLO_RETRY_REQUEST,
     MBEDTLS_SSL_ENCRYPTED_EXTENSIONS,
     MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY,
     MBEDTLS_SSL_CLIENT_CCS_AFTER_SERVER_FINISHED,
     MBEDTLS_SSL_CLIENT_CCS_BEFORE_2ND_CLIENT_HELLO,
+    MBEDTLS_SSL_SERVER_CCS_AFTER_SERVER_HELLO,
+    MBEDTLS_SSL_SERVER_CCS_AFTER_HELLO_RETRY_REQUEST,
+    MBEDTLS_SSL_NEW_SESSION_TICKET_FLUSH,
 }
 mbedtls_ssl_states;
 
@@ -733,7 +756,7 @@ typedef int mbedtls_ssl_recv_timeout_t( void *ctx,
  *                 for the associated \c mbedtls_ssl_get_timer_t callback to
  *                 return correct information.
  *
- * \note           If using a event-driven style of programming, an event must
+ * \note           If using an event-driven style of programming, an event must
  *                 be generated when the final delay is passed. The event must
  *                 cause a call to \c mbedtls_ssl_handshake() with the proper
  *                 SSL context to be scheduled. Care must be taken to ensure
@@ -1136,7 +1159,6 @@ struct mbedtls_ssl_session
     mbedtls_time_t MBEDTLS_PRIVATE(start);       /*!< starting time      */
 #endif
     int MBEDTLS_PRIVATE(ciphersuite);            /*!< chosen ciphersuite */
-    int MBEDTLS_PRIVATE(compression);            /*!< chosen compression */
     size_t MBEDTLS_PRIVATE(id_len);              /*!< session id length  */
     unsigned char MBEDTLS_PRIVATE(id)[32];       /*!< session identifier */
     unsigned char MBEDTLS_PRIVATE(master)[48];   /*!< the master secret  */
@@ -1159,6 +1181,19 @@ struct mbedtls_ssl_session
     size_t MBEDTLS_PRIVATE(ticket_len);          /*!< session ticket length   */
     uint32_t MBEDTLS_PRIVATE(ticket_lifetime);   /*!< ticket lifetime hint    */
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+    uint8_t MBEDTLS_PRIVATE(endpoint);          /*!< 0: client, 1: server */
+    uint8_t MBEDTLS_PRIVATE(ticket_flags);      /*!< Ticket flags */
+    uint32_t MBEDTLS_PRIVATE(ticket_age_add);               /*!< Randomly generated value used to obscure the age of the ticket */
+    uint8_t MBEDTLS_PRIVATE(resumption_key_len);            /*!< resumption_key length */
+    unsigned char MBEDTLS_PRIVATE(resumption_key)[MBEDTLS_SSL_TLS1_3_TICKET_RESUMPTION_KEY_LEN];
+
+#if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_CLI_C)
+    mbedtls_time_t MBEDTLS_PRIVATE(ticket_received);        /*!< time ticket was received */
+#endif /* MBEDTLS_HAVE_TIME && MBEDTLS_SSL_CLI_C */
+
+#endif /*  MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS */
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
     int MBEDTLS_PRIVATE(encrypt_then_mac);       /*!< flag for EtM activation                */
@@ -1494,6 +1529,10 @@ struct mbedtls_ssl_config
 #if defined(MBEDTLS_SSL_SRV_C)
     mbedtls_ssl_hs_cb_t MBEDTLS_PRIVATE(f_cert_cb);  /*!< certificate selection callback */
 #endif /* MBEDTLS_SSL_SRV_C */
+
+#if defined(MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED)
+    const mbedtls_x509_crt *MBEDTLS_PRIVATE(dn_hints);/*!< acceptable client cert issuers    */
+#endif
 };
 
 struct mbedtls_ssl_context
@@ -3126,6 +3165,26 @@ void mbedtls_ssl_conf_ca_chain( mbedtls_ssl_config *conf,
                                mbedtls_x509_crt *ca_chain,
                                mbedtls_x509_crl *ca_crl );
 
+#if defined(MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED)
+/**
+ * \brief          Set DN hints sent to client in CertificateRequest message
+ *
+ * \note           If not set, subject distinguished names (DNs) are taken
+ *                 from \c mbedtls_ssl_conf_ca_chain()
+ *                 or \c mbedtls_ssl_set_hs_ca_chain())
+ *
+ * \param conf     SSL configuration
+ * \param crt      crt chain whose subject DNs are issuer DNs of client certs
+ *                 from which the client should select client peer certificate.
+ */
+static inline
+void mbedtls_ssl_conf_dn_hints( mbedtls_ssl_config *conf,
+                                const mbedtls_x509_crt *crt )
+{
+    conf->MBEDTLS_PRIVATE(dn_hints) = crt;
+}
+#endif /* MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED */
+
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
 /**
  * \brief          Set the trusted certificate callback.
@@ -3649,6 +3708,21 @@ int mbedtls_ssl_set_hs_own_cert( mbedtls_ssl_context *ssl,
 void mbedtls_ssl_set_hs_ca_chain( mbedtls_ssl_context *ssl,
                                   mbedtls_x509_crt *ca_chain,
                                   mbedtls_x509_crl *ca_crl );
+
+#if defined(MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED)
+/**
+ * \brief          Set DN hints sent to client in CertificateRequest message
+ *
+ * \note           Same as \c mbedtls_ssl_conf_dn_hints() but for use within
+ *                 the SNI callback or the certificate selection callback.
+ *
+ * \param ssl      SSL context
+ * \param crt      crt chain whose subject DNs are issuer DNs of client certs
+ *                 from which the client should select client peer certificate.
+ */
+void mbedtls_ssl_set_hs_dn_hints( mbedtls_ssl_context *ssl,
+                                  const mbedtls_x509_crt *crt );
+#endif /* MBEDTLS_KEY_EXCHANGE_CERT_REQ_ALLOWED_ENABLED */
 
 /**
  * \brief          Set authmode for the current handshake.

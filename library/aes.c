@@ -550,19 +550,19 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
     }
 #endif
 
+    ctx->rk_offset = 0;
 #if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_PADLOCK_ALIGN16)
     if( aes_padlock_ace == -1 )
         aes_padlock_ace = mbedtls_padlock_has_support( MBEDTLS_PADLOCK_ACE );
 
     if( aes_padlock_ace )
-        ctx->rk = RK = MBEDTLS_PADLOCK_ALIGN16( ctx->buf );
-    else
+        ctx->rk_offset = MBEDTLS_PADLOCK_ALIGN16( ctx->buf ) - ctx->buf;
 #endif
-    ctx->rk = RK = ctx->buf;
+    RK = ctx->buf + ctx->rk_offset;
 
 #if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
     if( mbedtls_aesni_has_support( MBEDTLS_AESNI_AES ) )
-        return( mbedtls_aesni_setkey_enc( (unsigned char *) ctx->rk, key, keybits ) );
+        return( mbedtls_aesni_setkey_enc( (unsigned char *) RK, key, keybits ) );
 #endif
 
     for( i = 0; i < ( keybits >> 5 ); i++ )
@@ -654,15 +654,15 @@ int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
 
     mbedtls_aes_init( &cty );
 
+    ctx->rk_offset = 0;
 #if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_PADLOCK_ALIGN16)
     if( aes_padlock_ace == -1 )
         aes_padlock_ace = mbedtls_padlock_has_support( MBEDTLS_PADLOCK_ACE );
 
     if( aes_padlock_ace )
-        ctx->rk = RK = MBEDTLS_PADLOCK_ALIGN16( ctx->buf );
-    else
+        ctx->rk_offset = MBEDTLS_PADLOCK_ALIGN16( ctx->buf ) - ctx->buf;
 #endif
-    ctx->rk = RK = ctx->buf;
+    RK = ctx->buf + ctx->rk_offset;
 
     /* Also checks keybits */
     if( ( ret = mbedtls_aes_setkey_enc( &cty, key, keybits ) ) != 0 )
@@ -673,13 +673,13 @@ int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
 #if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
     if( mbedtls_aesni_has_support( MBEDTLS_AESNI_AES ) )
     {
-        mbedtls_aesni_inverse_key( (unsigned char *) ctx->rk,
-                           (const unsigned char *) cty.rk, ctx->nr );
+        mbedtls_aesni_inverse_key( (unsigned char *) RK,
+                           (const unsigned char *) ( cty.buf + cty.rk_offset ), ctx->nr );
         goto exit;
     }
 #endif
 
-    SK = cty.rk + cty.nr * 4;
+    SK = cty.buf + cty.rk_offset + cty.nr * 4;
 
     *RK++ = *SK++;
     *RK++ = *SK++;
@@ -843,7 +843,7 @@ int mbedtls_internal_aes_encrypt( mbedtls_aes_context *ctx,
                                   unsigned char output[16] )
 {
     int i;
-    uint32_t *RK = ctx->rk;
+    uint32_t *RK = ctx->buf + ctx->rk_offset;
     struct
     {
         uint32_t X[4];
@@ -907,7 +907,7 @@ int mbedtls_internal_aes_decrypt( mbedtls_aes_context *ctx,
                                   unsigned char output[16] )
 {
     int i;
-    uint32_t *RK = ctx->rk;
+    uint32_t *RK = ctx->buf + ctx->rk_offset;
     struct
     {
         uint32_t X[4];
@@ -971,7 +971,6 @@ int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
                            unsigned char output[16] )
 {
     AES_VALIDATE_RET( ctx != NULL );
-    AES_VALIDATE_RET( ctx->rk != NULL );
     AES_VALIDATE_RET( input != NULL );
     AES_VALIDATE_RET( output != NULL );
     AES_VALIDATE_RET( mode == MBEDTLS_AES_ENCRYPT ||

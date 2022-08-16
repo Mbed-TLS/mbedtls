@@ -1534,7 +1534,19 @@ int main( int argc, char *argv[] )
             if( *p == ',' )
                 *p++ = '\0';
 
-            if( strcmp( q, "ecdsa_secp256r1_sha256" ) == 0 )
+            if( strcmp( q, "rsa_pkcs1_sha256" ) == 0 )
+            {
+                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256;
+            }
+            else if( strcmp( q, "rsa_pkcs1_sha384" ) == 0 )
+            {
+                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384;
+            }
+            else if( strcmp( q, "rsa_pkcs1_sha512" ) == 0 )
+            {
+                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512;
+            }
+            else if( strcmp( q, "ecdsa_secp256r1_sha256" ) == 0 )
             {
                 sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_ECDSA_SECP256R1_SHA256;
             }
@@ -1558,22 +1570,39 @@ int main( int argc, char *argv[] )
             {
                 sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512;
             }
-            else if( strcmp( q, "rsa_pkcs1_sha256" ) == 0 )
+            else if( strcmp( q, "ed25519" ) == 0 )
             {
-                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256;
+                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_ED25519;
+            }
+            else if( strcmp( q, "ed448" ) == 0 )
+            {
+                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_ED448;
+            }
+            else if( strcmp( q, "rsa_pss_pss_sha256" ) == 0 )
+            {
+                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_RSA_PSS_PSS_SHA256;
+            }
+            else if( strcmp( q, "rsa_pss_pss_sha384" ) == 0 )
+            {
+                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_RSA_PSS_PSS_SHA384;
+            }
+            else if( strcmp( q, "rsa_pss_pss_sha512" ) == 0 )
+            {
+                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_RSA_PSS_PSS_SHA512;
+            }
+            else if( strcmp( q, "rsa_pkcs1_sha1" ) == 0 )
+            {
+                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA1;
+            }
+            else if( strcmp( q, "ecdsa_sha1" ) == 0 )
+            {
+                sig_alg_list[i++] = MBEDTLS_TLS1_3_SIG_ECDSA_SHA1;
             }
             else
             {
-                mbedtls_printf( "unknown signature algorithm %s\n", q );
-                mbedtls_printf( "supported signature algorithms: " );
-                mbedtls_printf( "ecdsa_secp256r1_sha256 " );
-                mbedtls_printf( "ecdsa_secp384r1_sha384 " );
-                mbedtls_printf( "ecdsa_secp521r1_sha512 " );
-                mbedtls_printf( "rsa_pss_rsae_sha256 " );
-                mbedtls_printf( "rsa_pss_rsae_sha384 " );
-                mbedtls_printf( "rsa_pss_rsae_sha512 " );
-                mbedtls_printf( "rsa_pkcs1_sha256 " );
-                mbedtls_printf( "\n" );
+                ret = -1;
+                mbedtls_printf( "unknown signature algorithm \"%s\"\n", q );
+                mbedtls_print_supported_sig_algs();
                 goto exit;
             }
         }
@@ -2616,8 +2645,6 @@ send_request:
     /*
      * 7. Read the HTTP response
      */
-    mbedtls_printf( "  < Read from server:" );
-    fflush( stdout );
 
     /*
      * TLS and DTLS need different reading styles (stream vs datagram)
@@ -2665,6 +2692,18 @@ send_request:
                         ret = 0;
                         goto reconnect;
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+                    case MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET:
+                        /* We were waiting for application data but got
+                         * a NewSessionTicket instead. */
+                        mbedtls_printf( " got new session ticket.\n" );
+                        continue;
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+
                     default:
                         mbedtls_printf( " mbedtls_ssl_read returned -0x%x\n",
                                         (unsigned int) -ret );
@@ -2674,8 +2713,8 @@ send_request:
 
             len = ret;
             buf[len] = '\0';
-            mbedtls_printf( " %d bytes read\n\n%s", len, (char *) buf );
-
+            mbedtls_printf( "  < Read from server: %d bytes read\n\n%s", len, (char *) buf );
+            fflush( stdout );
             /* End of message should be detected according to the syntax of the
              * application protocol (eg HTTP), just use a dummy test here. */
             if( ret > 0 && buf[len-1] == '\n' )
@@ -2738,7 +2777,7 @@ send_request:
 
         len = ret;
         buf[len] = '\0';
-        mbedtls_printf( " %d bytes read\n\n%s", len, (char *) buf );
+        mbedtls_printf( "  < Read from server: %d bytes read\n\n%s", len, (char *) buf );
         ret = 0;
     }
 

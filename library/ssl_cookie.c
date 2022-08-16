@@ -117,7 +117,7 @@ int mbedtls_ssl_cookie_setup( mbedtls_ssl_cookie_ctx *ctx,
     (void)f_rng;
     (void)p_rng;
 
-    alg = mbedtls_psa_translate_md( COOKIE_MD );
+    alg = mbedtls_hash_info_psa_from_md( COOKIE_MD );
     if( alg == 0 )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
@@ -160,6 +160,7 @@ int mbedtls_ssl_cookie_setup( mbedtls_ssl_cookie_ctx *ctx,
 /*
  * Generate the HMAC part of a cookie
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_cookie_hmac( mbedtls_md_context_t *hmac_ctx,
                             const unsigned char time[4],
                             unsigned char **p, unsigned char *end,

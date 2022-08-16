@@ -1,2 +1,0 @@
-Features
-   * Add HKDF-Expand and HKDF-Extract as separate algorithms in the PSA API.

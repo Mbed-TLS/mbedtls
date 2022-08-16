@@ -166,6 +166,10 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
+    /* Ensure no stdio buffering of secrets, as such buffers cannot be wiped. */
+    mbedtls_setbuf( fin, NULL );
+    mbedtls_setbuf( fout, NULL );
+
     /*
      * Read the Cipher and MD from the command line
      */

@@ -623,7 +623,7 @@ static int exercise_key_agreement_key( mbedtls_svc_key_id_t key,
                                        psa_algorithm_t alg )
 {
     psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
-    unsigned char input[1];
+    unsigned char input[1] = { 0 };
     unsigned char output[1];
     int ok = 0;
     psa_algorithm_t kdf_alg = PSA_ALG_KEY_AGREEMENT_GET_KDF( alg );

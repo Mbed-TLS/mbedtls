@@ -1,4 +1,98 @@
-mbed TLS ChangeLog (Sorted per branch, date)
+Mbed TLS ChangeLog (Sorted per branch, date)
+
+= Mbed TLS 2.28.1 branch released 2022-07-11
+
+Default behavior changes
+   * mbedtls_cipher_set_iv will now fail with ChaCha20 and ChaCha20+Poly1305
+     for IV lengths other than 12. The library was silently overwriting this
+     length with 12, but did not inform the caller about it. Fixes #4301.
+
+Features
+   * When MBEDTLS_PSA_CRYPTO_CONFIG is enabled, you may list the PSA crypto
+     feature requirements in the file named by the new macro
+     MBEDTLS_PSA_CRYPTO_CONFIG_FILE instead of the default psa/crypto_config.h.
+     Furthermore you may name an additional file to include after the main
+     file with the macro MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE.
+
+Security
+   * Zeroize dynamically-allocated buffers used by the PSA Crypto key storage
+     module before freeing them. These buffers contain secret key material, and
+     could thus potentially leak the key through freed heap.
+   * Fix a potential heap buffer overread in TLS 1.2 server-side when
+     MBEDTLS_USE_PSA_CRYPTO is enabled, an opaque key (created with
+     mbedtls_pk_setup_opaque()) is provisioned, and a static ECDH ciphersuite
+     is selected. This may result in an application crash or potentially an
+     information leak.
+   * Fix a buffer overread in DTLS ClientHello parsing in servers with
+     MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE enabled. An unauthenticated client
+     or a man-in-the-middle could cause a DTLS server to read up to 255 bytes
+     after the end of the SSL input buffer. The buffer overread only happens
+     when MBEDTLS_SSL_IN_CONTENT_LEN is less than a threshold that depends on
+     the exact configuration: 258 bytes if using mbedtls_ssl_cookie_check(),
+     and possibly up to 571 bytes with a custom cookie check function.
+     Reported by the Cybeats PSI Team.
+
+Bugfix
+   * Fix a memory leak if mbedtls_ssl_config_defaults() is called twice.
+   * Fix several bugs (warnings, compiler and linker errors, test failures)
+     in reduced configurations when MBEDTLS_USE_PSA_CRYPTO is enabled.
+   * Fix a bug in (D)TLS curve negotiation: when MBEDTLS_USE_PSA_CRYPTO was
+     enabled and an ECDHE-ECDSA or ECDHE-RSA key exchange was used, the
+     client would fail to check that the curve selected by the server for
+     ECDHE was indeed one that was offered. As a result, the client would
+     accept any curve that it supported, even if that curve was not allowed
+     according to its configuration. Fixes #5291.
+   * Fix unit tests that used 0 as the file UID. This failed on some
+     implementations of PSA ITS. Fixes #3838.
+   * Fix API violation in mbedtls_md_process() test by adding a call to
+     mbedtls_md_starts(). Fixes #2227.
+   * Fix compile errors when MBEDTLS_HAVE_TIME is not defined. Add tests
+     to catch bad uses of time.h.
+   * Fix the library search path when building a shared library with CMake
+     on Windows.
+   * Fix bug in the alert sending function mbedtls_ssl_send_alert_message()
+     potentially leading to corrupted alert messages being sent in case
+     the function needs to be re-called after initially returning
+     MBEDTLS_SSL_WANT_WRITE. Fixes #1916.
+   * In configurations with MBEDTLS_SSL_DTLS_CONNECTION_ID enabled but none of
+     MBEDTLS_SSL_HW_RECORD_ACCEL, MBEDTLS_SSL_EXPORT_KEYS or MBEDTLS_DEBUG_C,
+     DTLS handshakes using CID would crash due to a null pointer dereference.
+     Fix this. Fixes #3998.
+   * Fix incorrect documentation of mbedtls_x509_crt_profile. The previous
+     documentation stated that the `allowed_pks` field applies to signatures
+     only, but in fact it does apply to the public key type of the end entity
+     certificate, too. Fixes #1992.
+   * Fix PSA cipher multipart operations using ARC4. Previously, an IV was
+     required but discarded. Now, an IV is rejected, as it should be.
+   * Fix undefined behavior in mbedtls_asn1_find_named_data(), where val is
+     not NULL and val_len is zero.
+   * psa_raw_key_agreement() now returns PSA_ERROR_BUFFER_TOO_SMALL when
+     applicable. Fixes #5735.
+   * Fix a bug in the x25519 example program where the removal of
+     MBEDTLS_ECDH_LEGACY_CONTEXT caused the program not to run. Fixes #4901 and
+     #3191.
+   * Encode X.509 dates before 1/1/2000 as UTCTime rather than
+     GeneralizedTime. Fixes #5465.
+   * Fix order value of curve x448.
+   * Fix string representation of DNs when outputting values containing commas
+     and other special characters, conforming to RFC 1779. Fixes #769.
+   * Silence a warning from GCC 12 in the selftest program. Fixes #5974.
+   * Fix mbedtls_asn1_write_mpi() writing an incorrect encoding of 0.
+   * Fix resource leaks in mbedtls_pk_parse_public_key() in low
+     memory conditions.
+   * Fix server connection identifier setting for outgoing encrypted records
+     on DTLS 1.2 session resumption. After DTLS 1.2 session resumption with
+     connection identifier, the Mbed TLS client now properly sends the server
+     connection identifier in encrypted record headers. Fix #5872.
+   * Fix a null pointer dereference when performing some operations on zero
+     represented with 0 limbs (specifically mbedtls_mpi_mod_int() dividing
+     by 2, and mbedtls_mpi_write_string() in base 2).
+   * Fix record sizes larger than 16384 being sometimes accepted despite being
+     non-compliant. This could not lead to a buffer overflow. In particular,
+     application data size was already checked correctly.
+
+Changes
+   * Assume source files are in UTF-8 when using MSVC with CMake.
 
 = mbed TLS 2.28.0 branch released 2021-12-17
 

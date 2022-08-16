@@ -1623,14 +1623,149 @@ requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SHA256_C
 run_test    "Opaque key for client authentication" \
-            "$P_SRV auth_mode=required" \
+            "$P_SRV auth_mode=required crt_file=data_files/server5.crt \
+             key_file=data_files/server5.key" \
             "$P_CLI key_opaque=1 crt_file=data_files/server5.crt \
              key_file=data_files/server5.key" \
             0 \
             -c "key type: Opaque" \
+            -c "Ciphersuite is TLS-ECDHE-ECDSA" \
             -s "Verifying peer X.509 certificate... ok" \
+            -s "Ciphersuite is TLS-ECDHE-ECDSA" \
             -S "error" \
             -C "error"
+
+# Test using an opaque private key for server authentication
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_SHA256_C
+run_test    "Opaque key for server authentication" \
+            "$P_SRV auth_mode=required key_opaque=1 crt_file=data_files/server5.crt \
+             key_file=data_files/server5.key" \
+            "$P_CLI crt_file=data_files/server5.crt \
+             key_file=data_files/server5.key" \
+            0 \
+            -c "Verifying peer X.509 certificate... ok" \
+            -c "Ciphersuite is TLS-ECDHE-ECDSA" \
+            -s "key types: Opaque - invalid PK" \
+            -s "Ciphersuite is TLS-ECDHE-ECDSA" \
+            -S "error" \
+            -C "error"
+
+# Test using an opaque private key for client/server authentication
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_SHA256_C
+run_test    "Opaque key for client/server authentication" \
+            "$P_SRV auth_mode=required key_opaque=1 crt_file=data_files/server5.crt \
+             key_file=data_files/server5.key" \
+            "$P_CLI key_opaque=1 crt_file=data_files/server5.crt \
+             key_file=data_files/server5.key" \
+            0 \
+            -c "key type: Opaque" \
+            -c "Verifying peer X.509 certificate... ok" \
+            -c "Ciphersuite is TLS-ECDHE-ECDSA" \
+            -s "key types: Opaque - invalid PK" \
+            -s "Verifying peer X.509 certificate... ok" \
+            -s "Ciphersuite is TLS-ECDHE-ECDSA" \
+            -S "error" \
+            -C "error"
+
+# Opaque keys not supported for static ECDH
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
+run_test    "Opaque key: server: ECDH-ECDSA not supported" \
+            "$P_SRV debug_level=1 key_opaque=1
+             crt_file=data_files/server5.crt key_file=data_files/server5.key" \
+            "$P_CLI force_ciphersuite=TLS-ECDH-ECDSA-WITH-AES-128-GCM-SHA256" \
+            1 \
+            -s "server key not ECDH capable" \
+            -s "ssl_get_ecdh_params_from_cert() returned" \
+            -s "error" \
+            -c "error"
+
+# Opaque keys not supported for static ECDH
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
+run_test    "Opaque key: server: ECDH-RSA not supported" \
+            "$P_SRV debug_level=1 key_opaque=1
+             crt_file=data_files/server5.crt key_file=data_files/server5.key" \
+            "$P_CLI force_ciphersuite=TLS-ECDH-RSA-WITH-AES-128-GCM-SHA256" \
+            1 \
+            -s "server key not ECDH capable" \
+            -s "ssl_get_ecdh_params_from_cert() returned" \
+            -s "error" \
+            -c "error"
+
+# Opaque PSKs not supported for mixed PSK
+
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "Opaque psk: client: ECDHE-PSK not supported" \
+            "$P_SRV debug_level=1 psk=abc123 psk_identity=foo" \
+            "$P_CLI debug_level=1 psk=abc123 psk_identity=foo psk_opaque=1 \
+            force_version=tls12 \
+            force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA" \
+            1 \
+            -c "opaque PSK not supported with ECDHE-PSK" \
+            -s "error" \
+            -c "error"
+
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "Opaque psk: client: DHE-PSK not supported" \
+            "$P_SRV debug_level=1 psk=abc123 psk_identity=foo" \
+            "$P_CLI debug_level=1 psk=abc123 psk_identity=foo psk_opaque=1 \
+            force_version=tls12 \
+            force_ciphersuite=TLS-DHE-PSK-WITH-AES-128-CBC-SHA" \
+            1 \
+            -c "opaque PSK not supported with DHE-PSK" \
+            -s "error" \
+            -c "error"
+
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "Opaque psk: client: RSA-PSK not supported" \
+            "$P_SRV debug_level=1 psk=abc123 psk_identity=foo" \
+            "$P_CLI debug_level=1 psk=abc123 psk_identity=foo psk_opaque=1 \
+            force_version=tls12 \
+            force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA" \
+            1 \
+            -c "opaque PSK not supported with RSA-PSK" \
+            -s "error" \
+            -c "error"
+
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "Opaque psk: server: ECDHE-PSK not supported" \
+            "$P_SRV debug_level=1 psk=abc123 psk_identity=foo psk_opaque=1 \
+            force_version=tls12 \
+            force_ciphersuite=TLS-ECDHE-PSK-WITH-AES-128-CBC-SHA" \
+            "$P_CLI debug_level=1 psk=abc123 psk_identity=foo" \
+            1 \
+            -s "opaque PSK not supported with ECDHE-PSK" \
+            -s "error" \
+            -c "error"
+
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "Opaque psk: server: DHE-PSK not supported" \
+            "$P_SRV debug_level=1 psk=abc123 psk_identity=foo psk_opaque=1 \
+            force_version=tls12 \
+            force_ciphersuite=TLS-DHE-PSK-WITH-AES-128-CBC-SHA" \
+            "$P_CLI debug_level=1 psk=abc123 psk_identity=foo" \
+            1 \
+            -s "opaque PSK not supported with DHE-PSK" \
+            -s "error" \
+            -c "error"
+
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+run_test    "Opaque psk: server: RSA-PSK not supported" \
+            "$P_SRV debug_level=1 psk=abc123 psk_identity=foo psk_opaque=1 \
+            force_version=tls12 \
+            force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA" \
+            "$P_CLI debug_level=1 psk=abc123 psk_identity=foo" \
+            1 \
+            -s "opaque PSK not supported with RSA-PSK" \
+            -s "error" \
+            -c "error"
 
 # Test ciphersuites which we expect to be fully supported by PSA Crypto
 # and check that we don't fall back to Mbed TLS' internal crypto primitives.
@@ -3364,6 +3499,29 @@ run_test    "Session resume using cache: openssl server" \
             -C "found session_ticket extension" \
             -C "parse new session ticket" \
             -c "a session has been resumed"
+
+# Tests for Session resume and extensions
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_SSL_DTLS_CONNECTION_ID
+run_test    "Session resume and connection ID" \
+            "$P_SRV debug_level=3 cid=1 cid_val=dead dtls=1 tickets=0" \
+            "$P_CLI debug_level=3 cid=1 cid_val=beef dtls=1 tickets=0 reconnect=1" \
+            0 \
+            -c "Enable use of CID extension." \
+            -s "Enable use of CID extension." \
+            -c "client hello, adding CID extension" \
+            -s "found CID extension"           \
+            -s "Use of CID extension negotiated" \
+            -s "server hello, adding CID extension" \
+            -c "found CID extension" \
+            -c "Use of CID extension negotiated" \
+            -s "Copy CIDs into SSL transform" \
+            -c "Copy CIDs into SSL transform" \
+            -c "Peer CID (length 2 Bytes): de ad" \
+            -s "Peer CID (length 2 Bytes): be ef" \
+            -s "Use of Connection ID has been negotiated" \
+            -c "Use of Connection ID has been negotiated"
 
 # Tests for Session Resume based on session-ID and cache, DTLS
 

@@ -5,6 +5,11 @@
  * on the the storage format. On the other hand, these tests treat the storage
  * subsystem as a black box, and in particular have no reliance on the
  * internals of the ITS implementation.
+ *
+ * Note that if you need to make a change that affects how files are
+ * stored, this may indicate that the key store is changing in a
+ * backward-incompatible way! Think carefully about backward compatibility
+ * before changing how test data is constructed or validated.
  */
 
 #include <stdint.h>

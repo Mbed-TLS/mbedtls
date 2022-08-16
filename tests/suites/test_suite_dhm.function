@@ -178,8 +178,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void dhm_do_dhm( int radix_P, char *input_P, int x_size,
-                 int radix_G, char *input_G, int result )
+void dhm_do_dhm( char *input_P, int x_size,
+                 char *input_G, int result )
 {
     mbedtls_dhm_context ctx_srv;
     mbedtls_dhm_context ctx_cli;
@@ -206,8 +206,8 @@ void dhm_do_dhm( int radix_P, char *input_P, int x_size,
     /*
      * Set params
      */
-    TEST_ASSERT( mbedtls_test_read_mpi( &ctx_srv.P, radix_P, input_P ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &ctx_srv.G, radix_G, input_G ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &ctx_srv.P, input_P ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &ctx_srv.G, input_G ) == 0 );
     pub_cli_len = mbedtls_mpi_size( &ctx_srv.P );
 
     /*
@@ -293,7 +293,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void dhm_make_public( int P_bytes, int radix_G, char *input_G, int result )
+void dhm_make_public( int P_bytes, char *input_G, int result )
 {
     mbedtls_mpi P, G;
     mbedtls_dhm_context ctx;
@@ -307,7 +307,7 @@ void dhm_make_public( int P_bytes, int radix_G, char *input_G, int result )
     TEST_ASSERT( mbedtls_mpi_shift_l( &P, ( P_bytes * 8 ) - 1 ) == 0 );
     TEST_ASSERT( mbedtls_mpi_set_bit( &P, 0, 1 ) == 0 );
 
-    TEST_ASSERT( mbedtls_test_read_mpi( &G, radix_G, input_G ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &G, input_G ) == 0 );
 
     TEST_ASSERT( mbedtls_dhm_set_group( &ctx, &P, &G ) == 0 );
     TEST_ASSERT( mbedtls_dhm_make_public( &ctx, (int) mbedtls_mpi_size( &P ),
@@ -331,8 +331,8 @@ void dhm_file( char * filename, char * p, char * g, int len )
     mbedtls_dhm_init( &ctx );
     mbedtls_mpi_init( &P ); mbedtls_mpi_init( &G );
 
-    TEST_ASSERT( mbedtls_test_read_mpi( &P, 16, p ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &G, 16, g ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &P, p ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &G, g ) == 0 );
 
     TEST_ASSERT( mbedtls_dhm_parse_dhmfile( &ctx, filename ) == 0 );
 

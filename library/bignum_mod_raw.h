@@ -99,8 +99,8 @@ int mbedtls_mpi_set_montgomery_constant_unsafe( mbedtls_mpi_mod_modulus *m );
  *
  * \return       \c 0 if successful.
  */
-int mbedtls_mpi_mod_raw_conv_inv( mbedtls_mpi_uint *X,
-                                  const mbedtls_mpi_mod_modulus *modulus );
+int mbedtls_mpi_mod_raw_from_mont_rep( mbedtls_mpi_uint *X,
+                                       const mbedtls_mpi_mod_modulus *m );
                                   
 /** Convert from public (little endian) to internal data presentation.
  *
@@ -109,7 +109,7 @@ int mbedtls_mpi_mod_raw_conv_inv( mbedtls_mpi_uint *X,
  *
  * \return       \c 0 if successful.
  */
-int mbedtls_mpi_mod_raw_conv_fwd( mbedtls_mpi_uint *X,
-                                  const mbedtls_mpi_mod_modulus *modulus );
+int mbedtls_mpi_mod_raw_to_mont_rep( mbedtls_mpi_uint *X,
+                                     const mbedtls_mpi_mod_modulus *m );
 
 #endif /* MBEDTLS_BIGNUM_MOD_RAW_H */

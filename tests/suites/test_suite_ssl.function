@@ -35,15 +35,14 @@ typedef struct log_pattern
 
 int rng_get( void *p_rng, unsigned char *output, size_t output_len )
 {
-(void) p_rng;
-(void) output;
-(void) output_len;
-for(size_t i=0; i<output_len; i++)
-{
-	output[i]=rand();
-	} 
-
-return 0;
+    (void) p_rng;
+    (void) output;
+    (void) output_len;
+    for(size_t i=0; i<output_len; i++)
+    {
+        output[i]=rand();
+    }
+    return 0;
 }
 /*
  * This function can be passed to mbedtls to receive output logs from it. In
@@ -939,7 +938,6 @@ int mbedtls_endpoint_certificate_init( mbedtls_endpoint *ep, int pk_alg,
     ret = mbedtls_ssl_conf_own_cert( &( ep->conf ), &( cert->cert ),
                                      &( cert->pkey ) );
     TEST_ASSERT( ret == 0 );
-
 exit:
     if( ret != 0 )
     {

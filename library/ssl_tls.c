@@ -41,7 +41,7 @@
 #include "ssl_client.h"
 #include "ssl_debug_helpers.h"
 #include "ssl_misc.h"
-#include "legacy_or_psa.h"
+
 #include "mbedtls/debug.h"
 #include "mbedtls/error.h"
 #include "mbedtls/platform_util.h"

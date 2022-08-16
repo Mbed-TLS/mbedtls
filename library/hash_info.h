@@ -74,4 +74,12 @@ psa_algorithm_t mbedtls_hash_info_psa_from_md( mbedtls_md_type_t md_type );
  */
 mbedtls_md_type_t mbedtls_hash_info_md_from_psa( psa_algorithm_t psa_alg );
 
+/** Convert PSA status to MD error code.
+ *
+ * \param status    PSA status.
+ *
+ * \return          The corresponding MD error code,
+ */
+int mbedtls_md_error_from_psa( psa_status_t status );
+
 #endif /* MBEDTLS_HASH_INFO_H */

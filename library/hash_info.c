@@ -22,6 +22,7 @@
 
 #include "hash_info.h"
 #include "legacy_or_psa.h"
+#include "mbedtls/error.h"
 
 typedef struct
 {
@@ -106,4 +107,21 @@ mbedtls_md_type_t mbedtls_hash_info_md_from_psa( psa_algorithm_t psa_alg )
     }
 
     return entry->md_type;
+}
+
+int mbedtls_md_error_from_psa( psa_status_t status )
+{
+    switch( status )
+    {
+        case PSA_SUCCESS:
+            return( 0 );
+        case PSA_ERROR_NOT_SUPPORTED:
+            return( MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE );
+        case PSA_ERROR_INVALID_ARGUMENT:
+            return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+        case PSA_ERROR_INSUFFICIENT_MEMORY:
+            return( MBEDTLS_ERR_MD_ALLOC_FAILED );
+        default:
+            return( MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED );
+    }
 }

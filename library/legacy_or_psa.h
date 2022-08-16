@@ -27,7 +27,9 @@
  *      - low-level module API (aes.h, sha256.h), or
  *      - an abstraction layer (md.h, cipher.h);
  * - <condition> will be either:
- *      - depending on what's available in the build, or
+ *      - depending on what's available in the build:
+ *          legacy API used if available, PSA otherwise
+ *          (this is done to ensure backwards compatibility); or
  *      - depending on whether MBEDTLS_USE_PSA_CRYPTO is defined.
  *
  * Examples:
@@ -125,31 +127,38 @@
 
 /* Hashes using MD or PSA based on availability */
 #if ( defined(MBEDTLS_MD_C) && defined(MBEDTLS_MD5_C) ) || \
-    ( defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_MD5) )
+    ( !defined(MBEDTLS_MD_C) && \
+        defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_MD5) )
 #define MBEDTLS_HAS_ALG_MD5_VIA_MD_OR_PSA
 #endif
 #if ( defined(MBEDTLS_MD_C) && defined(MBEDTLS_RIPEMD160_C) ) || \
-    ( defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_RIPEMD160) )
+    ( !defined(MBEDTLS_MD_C) && \
+        defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_RIPEMD160) )
 #define MBEDTLS_HAS_ALG_RIPEMD160_VIA_MD_OR_PSA
 #endif
 #if ( defined(MBEDTLS_MD_C) && defined(MBEDTLS_SHA1_C) ) || \
-    ( defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_SHA_1) )
+    ( !defined(MBEDTLS_MD_C) && \
+        defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_SHA_1) )
 #define MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA
 #endif
 #if ( defined(MBEDTLS_MD_C) && defined(MBEDTLS_SHA224_C) ) || \
-    ( defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_SHA_224) )
+    ( !defined(MBEDTLS_MD_C) && \
+        defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_SHA_224) )
 #define MBEDTLS_HAS_ALG_SHA_224_VIA_MD_OR_PSA
 #endif
 #if ( defined(MBEDTLS_MD_C) && defined(MBEDTLS_SHA256_C) ) || \
-    ( defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_SHA_256) )
+    ( !defined(MBEDTLS_MD_C) && \
+        defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_SHA_256) )
 #define MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA
 #endif
 #if ( defined(MBEDTLS_MD_C) && defined(MBEDTLS_SHA384_C) ) || \
-    ( defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_SHA_384) )
+    ( !defined(MBEDTLS_MD_C) && \
+        defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_SHA_384) )
 #define MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA
 #endif
 #if ( defined(MBEDTLS_MD_C) && defined(MBEDTLS_SHA512_C) ) || \
-    ( defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_SHA_512) )
+    ( !defined(MBEDTLS_MD_C) && \
+        defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_SHA_512) )
 #define MBEDTLS_HAS_ALG_SHA_512_VIA_MD_OR_PSA
 #endif
 

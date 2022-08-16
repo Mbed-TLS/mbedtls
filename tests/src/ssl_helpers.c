@@ -23,6 +23,8 @@
 
 #include <test/ssl_helpers.h>
 
+#if defined(MBEDTLS_SSL_TLS_C)
+
 void mbedtls_test_ssl_log_analyzer( void *ctx, int level,
                                     const char *file, int line,
                                     const char *str )
@@ -2197,4 +2199,7 @@ int mbedtls_test_tweak_tls13_certificate_msg_vector_len(
 
     return( 0 );
 }
+
+#endif /* MBEDTLS_SSL_TLS_C */
+
 #endif /* MBEDTLS_TEST_HOOKS */

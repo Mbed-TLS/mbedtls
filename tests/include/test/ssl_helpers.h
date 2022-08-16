@@ -59,7 +59,6 @@ typedef UINT32 uint32_t;
 #endif
 
 #if defined(MBEDTLS_SSL_TLS_C)
-#line 2 "suites/test_suite_ssl.function"
 #include <mbedtls/ssl.h>
 #include <ssl_misc.h>
 #include <mbedtls/ctr_drbg.h>

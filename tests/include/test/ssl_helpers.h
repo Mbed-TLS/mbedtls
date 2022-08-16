@@ -32,7 +32,31 @@
 #include <test/psa_crypto_helpers.h>
 
 #include <stdlib.h>
+
+#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
+#include "mbedtls/memory_buffer_alloc.h"
+#endif
+
+#ifdef _MSC_VER
+#include <basetsd.h>
+typedef UINT8 uint8_t;
+typedef INT32 int32_t;
+typedef UINT32 uint32_t;
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp
+#else
+#include <stdint.h>
+#endif
+
 #include <string.h>
+
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__)) || defined(__MINGW32__)
+#include <strings.h>
+#endif
+
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
+#include <unistd.h>
+#endif
 
 #if defined(MBEDTLS_SSL_TLS_C)
 #line 2 "suites/test_suite_ssl.function"
@@ -606,5 +630,7 @@ int mbedtls_test_tweak_tls13_certificate_msg_vector_len(
     int *expected_result, mbedtls_ssl_chk_buf_ptr_args *args );
 
 #endif /* MBEDTLS_TEST_HOOKS */
+
 #endif /* MBEDTLS_SSL_TLS_C */
+
 #endif /* SSL_HELPERS_H */

@@ -128,4 +128,18 @@ psa_key_usage_t mbedtls_test_update_key_usage_flags( psa_key_usage_t usage_flags
     return( updated_usage );
 }
 
+#if defined(MBEDTLS_PSA_CRYPTO_C)
+int test_fail_if_psa_leaking( int line_no, const char *filename )
+{
+    const char *msg = mbedtls_test_helper_is_psa_leaking( );
+    if( msg == NULL )
+        return 0;
+    else
+    {
+        mbedtls_test_fail( msg, line_no, filename );
+        return 1;
+    }
+}
+#endif /* defined(MBEDTLS_PSA_CRYPTO_C) */
+
 #endif /* MBEDTLS_PSA_CRYPTO_C */

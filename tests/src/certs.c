@@ -21,6 +21,14 @@
 
 #include <test/certs.h>
 
+#include "mbedtls/build_info.h"
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "psa/crypto.h"
+#endif
+
+#include "legacy_or_psa.h"
+
 /*
  * Test CA Certificates
  *
@@ -1563,13 +1571,13 @@ const size_t mbedtls_test_cli_crt_ec_len =
  * Dispatch between SHA-1 and SHA-256
  */
 
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
 #define TEST_CA_CRT_RSA  TEST_CA_CRT_RSA_SHA256
 #define TEST_SRV_CRT_RSA TEST_SRV_CRT_RSA_SHA256
 #else
 #define TEST_CA_CRT_RSA  TEST_CA_CRT_RSA_SHA1
 #define TEST_SRV_CRT_RSA TEST_SRV_CRT_RSA_SHA1
-#endif /* MBEDTLS_SHA256_C */
+#endif /* MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
 
 const char mbedtls_test_ca_crt_rsa[]  = TEST_CA_CRT_RSA;
 const char mbedtls_test_srv_crt_rsa[] = TEST_SRV_CRT_RSA;
@@ -1668,10 +1676,10 @@ const size_t mbedtls_test_cli_crt_len =
 
 /* List of CAs in PEM or DER, depending on config */
 const char * mbedtls_test_cas[] = {
-#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_SHA1_C)
+#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
     mbedtls_test_ca_crt_rsa_sha1,
 #endif
-#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
     mbedtls_test_ca_crt_rsa_sha256,
 #endif
 #if defined(MBEDTLS_ECDSA_C)
@@ -1680,10 +1688,10 @@ const char * mbedtls_test_cas[] = {
     NULL
 };
 const size_t mbedtls_test_cas_len[] = {
-#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_SHA1_C)
+#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
     sizeof( mbedtls_test_ca_crt_rsa_sha1 ),
 #endif
-#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
     sizeof( mbedtls_test_ca_crt_rsa_sha256 ),
 #endif
 #if defined(MBEDTLS_ECDSA_C)
@@ -1695,12 +1703,12 @@ const size_t mbedtls_test_cas_len[] = {
 /* List of all available CA certificates in DER format */
 const unsigned char * mbedtls_test_cas_der[] = {
 #if defined(MBEDTLS_RSA_C)
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
     mbedtls_test_ca_crt_rsa_sha256_der,
-#endif /* MBEDTLS_SHA256_C */
-#if defined(MBEDTLS_SHA1_C)
+#endif /* MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
+#if defined(MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
     mbedtls_test_ca_crt_rsa_sha1_der,
-#endif /* MBEDTLS_SHA1_C */
+#endif /* MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
 #endif /* MBEDTLS_RSA_C */
 #if defined(MBEDTLS_ECDSA_C)
     mbedtls_test_ca_crt_ec_der,
@@ -1710,12 +1718,12 @@ const unsigned char * mbedtls_test_cas_der[] = {
 
 const size_t mbedtls_test_cas_der_len[] = {
 #if defined(MBEDTLS_RSA_C)
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
     sizeof( mbedtls_test_ca_crt_rsa_sha256_der ),
-#endif /* MBEDTLS_SHA256_C */
-#if defined(MBEDTLS_SHA1_C)
+#endif /* MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
+#if defined(MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
     sizeof( mbedtls_test_ca_crt_rsa_sha1_der ),
-#endif /* MBEDTLS_SHA1_C */
+#endif /* MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
 #endif /* MBEDTLS_RSA_C */
 #if defined(MBEDTLS_ECDSA_C)
     sizeof( mbedtls_test_ca_crt_ec_der ),
@@ -1727,12 +1735,12 @@ const size_t mbedtls_test_cas_der_len[] = {
 #if defined(MBEDTLS_PEM_PARSE_C)
 const char mbedtls_test_cas_pem[] =
 #if defined(MBEDTLS_RSA_C)
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
     TEST_CA_CRT_RSA_SHA256_PEM
-#endif /* MBEDTLS_SHA256_C */
-#if defined(MBEDTLS_SHA1_C)
+#endif /* MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
+#if defined(MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
     TEST_CA_CRT_RSA_SHA1_PEM
-#endif /* MBEDTLS_SHA1_C */
+#endif /* MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
 #endif /* MBEDTLS_RSA_C */
 #if defined(MBEDTLS_ECDSA_C)
     TEST_CA_CRT_EC_PEM

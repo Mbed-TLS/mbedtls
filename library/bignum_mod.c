@@ -154,4 +154,46 @@ exit:
     return( ret );
 }
 
+int mbedtls_mpi_mod_read( mbedtls_mpi_mod_residue *r,
+                          mbedtls_mpi_mod_modulus *m,
+                          unsigned char *buf,
+                          size_t buflen )
+{
+    int ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+
+    if ( r == NULL || m == NULL || r->limbs != m->limbs )
+        goto cleanup;
+
+    ret = mbedtls_mpi_mod_raw_read( r->p, m, buf, buflen );
+
+    if( ret != 0 )
+        goto cleanup;
+
+    if (m->int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY)
+       ret = mbedtls_mpi_mod_raw_to_mont_rep(r->p, m);
+
+    if( ret != 0 )
+        goto cleanup;
+cleanup:
+    return ( ret );
+}
+
+int mbedtls_mpi_mod_write( mbedtls_mpi_mod_residue *r,
+                           mbedtls_mpi_mod_modulus *m,
+                           unsigned char *buf,
+                           size_t buflen )
+{
+    int ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+    if ( r == NULL || m == NULL || r->limbs != m->limbs )
+        goto cleanup;
+
+    if ( m->int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY) 
+        ret = mbedtls_mpi_mod_raw_from_mont_rep( r->p, m );
+
+    ret = mbedtls_mpi_mod_raw_write( r->p, m, buf, buflen );
+
+    return ( ret );
+cleanup:
+    return ( ret );
+}
 #endif /* MBEDTLS_BIGNUM_C */

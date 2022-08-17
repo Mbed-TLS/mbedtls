@@ -130,7 +130,7 @@ static int ssl_ticket_update_keys( mbedtls_ssl_ticket_context *ctx )
 #endif
 
         if( current_time >= key_time &&
-            current_time - key_time < ctx->ticket_lifetime )
+            (uint64_t) ( current_time - key_time ) < ctx->ticket_lifetime )
         {
             return( 0 );
         }

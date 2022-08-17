@@ -1564,7 +1564,7 @@ static void mpi_montg_init( mbedtls_mpi_uint *mm, const mbedtls_mpi *N )
  * \param[in]       B   One of the numbers to multiply.
  *                      It must be nonzero and must not have more limbs than N
  *                      (B->n <= N->n).
- * \param[in]       N   The modulo. N must be odd.
+ * \param[in]       N   The modulus. \p N must be odd.
  * \param           mm  The value calculated by `mpi_montg_init(&mm, N)`.
  *                      This is -N^-1 mod 2^ciL.
  * \param[in,out]   T   A bignum for temporary storage.

@@ -209,7 +209,7 @@ def main():
     # Very basic check to see if we are in the root.
     path = os.path.join(os.getcwd(), 'scripts', 'generate_release_notes.py')
     if not os.path.exists(path):
-        error(f'{sys.argv[0]} must be run from the mbedtls root')
+        error(f'{sys.argv[0]} must be run from the Mbed TLS root')
 
     args = parse_args(sys.argv[1:])
 

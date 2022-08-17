@@ -56,6 +56,21 @@ void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
     (void) mbedtls_mpi_core_add_if( X, N, n, ( carry < borrow ) );
 }
 
+/*
+ * Fast Montgomery initialization (thanks to Tom St Denis).
+ */
+mbedtls_mpi_uint mbedtls_mpi_montg_init( mbedtls_mpi_uint m0 )
+{
+    mbedtls_mpi_uint x = m0;
+
+    x += ( ( m0 + 2 ) & 4 ) << 1;
+
+    for( unsigned int i = biL; i >= 8; i /= 2 )
+        x *= ( 2 - ( m0 * x ) );
+
+    return( ~x + 1 );
+}
+
 mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len,
                                        const mbedtls_mpi_uint *s, size_t s_len,
                                        mbedtls_mpi_uint b )

@@ -1550,16 +1550,7 @@ int mbedtls_mpi_mod_int( mbedtls_mpi_uint *r, const mbedtls_mpi *A, mbedtls_mpi_
  */
 static void mpi_montg_init( mbedtls_mpi_uint *mm, const mbedtls_mpi *N )
 {
-    mbedtls_mpi_uint x, m0 = N->p[0];
-    unsigned int i;
-
-    x  = m0;
-    x += ( ( m0 + 2 ) & 4 ) << 1;
-
-    for( i = biL; i >= 8; i /= 2 )
-        x *= ( 2 - ( m0 * x ) );
-
-    *mm = ~x + 1;
+    *mm = mbedtls_mpi_montg_init( N->p[0] );
 }
 
 /** Montgomery multiplication: A = A * B * R^-1 mod N  (HAC 14.36)

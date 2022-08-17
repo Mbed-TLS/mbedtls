@@ -171,7 +171,7 @@ int mbedtls_mpi_core_write_be( const mbedtls_mpi_uint *A,
  *                        This must be odd and have exactly \p n limbs.
  * \param[in]      n      The number of limbs in \p X, \p A, \p N.
  * \param          mm     The Montgomery constant for \p N: -N^-1 mod 2^ciL.
- *                        This can be calculated by `mpi_montg_init()`.
+ *                        This can be calculated by `mbedtls_mpi_montg_init()`.
  * \param[in,out]  T      Temporary storage of size at least 2*n+1 limbs.
  *                        Its initial content is unused and
  *                        its final content is indeterminate.
@@ -181,6 +181,17 @@ void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
                                const mbedtls_mpi_uint *B, size_t B_len,
                                const mbedtls_mpi_uint *N, size_t n,
                                mbedtls_mpi_uint mm, mbedtls_mpi_uint *T );
+
+/**
+ * \brief Calculate initialisation value for fast Montgomery modular
+ *        multiplication
+ *
+ * \param m0  The least-significant mbedtls_mpi_uint from the modulus, which
+ *            must be odd
+ *
+ * \return    The initialisation value for fast Montgomery modular multiplication
+ */
+mbedtls_mpi_uint mbedtls_mpi_montg_init( mbedtls_mpi_uint m0 );
 
 /**
  * \brief Perform a known-size multiply accumulate operation: d += b * s

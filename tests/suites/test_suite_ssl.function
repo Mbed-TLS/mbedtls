@@ -11,10 +11,12 @@
 #include "mbedtls/ssl_cache.h"
 #endif
 
-#include <psa/crypto.h>
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "psa/crypto.h"
+#endif
+#include <legacy_or_psa.h>
 
 #include <constant_time_internal.h>
-
 #include <test/constant_flow.h>
 
 enum

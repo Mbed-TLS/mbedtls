@@ -1903,6 +1903,94 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void mbedtls_mpi_core_mla( char * input_d, char * input_s, char * input_b,
+                           char * input_X4, char * input_cy4,
+                           char * input_X8, char * input_cy8 )
+{
+    /* We are testing d += s * b; d, s are MPIs, b is a scalar.
+     *
+     * However, we encode b as an MPI in the .data file for ease of handling.
+     *
+     * We also have the different results for sizeof(mbedtls_mpi_uint) == 4 or 8.
+     */
+    mbedtls_mpi d, s, b, X4, X8, cy4, cy8;
+    mbedtls_mpi_uint *da = NULL;
+    mbedtls_mpi_uint *Xa = NULL;
+
+    mbedtls_mpi_init( &d );
+    mbedtls_mpi_init( &s );
+    mbedtls_mpi_init( &b );
+    mbedtls_mpi_init( &X4 );
+    mbedtls_mpi_init( &X8 );
+    mbedtls_mpi_init( &cy4 );
+    mbedtls_mpi_init( &cy8 );
+
+    TEST_EQUAL( mbedtls_test_read_mpi( &d, input_d ), 0 );
+    TEST_EQUAL( mbedtls_test_read_mpi( &s, input_s ), 0 );
+    TEST_EQUAL( mbedtls_test_read_mpi( &b, input_b ), 0 );
+    TEST_EQUAL( mbedtls_test_read_mpi( &X4, input_X4 ), 0 );
+    TEST_EQUAL( mbedtls_test_read_mpi( &cy4, input_cy4 ), 0 );
+    TEST_EQUAL( mbedtls_test_read_mpi( &X8, input_X8 ), 0 );
+    TEST_EQUAL( mbedtls_test_read_mpi( &cy8, input_cy8 ), 0 );
+
+    /* The MPI encoding of scalar b must be only 1 limb */
+    TEST_EQUAL( b.n, 1 );
+
+    /* We only need to work with X4 or X8, and cy4 or cy8, depending on sizeof(mbedtls_mpi_uint) */
+    mbedtls_mpi *X = ( sizeof(mbedtls_mpi_uint) == 4 ) ? &X4 : &X8;
+    mbedtls_mpi *cy = ( sizeof(mbedtls_mpi_uint) == 4 ) ? &cy4 : &cy8;
+
+    /* The carry should only have one limb */
+    TEST_EQUAL( cy->n, 1 );
+
+    /* All of the inputs are +ve (or zero) */
+    TEST_EQUAL( d.s, 1 );
+    TEST_EQUAL( s.s, 1 );
+    TEST_EQUAL( b.s, 1 );
+    TEST_EQUAL( X->s, 1 );
+    TEST_EQUAL( cy->s, 1 );
+
+    /* Get the (max) number of limbs we will need */
+    size_t limbs = ( d.n < s.n ) ? s.n : d.n;
+
+    /* The result shouldn't have more limbs than the longest input */
+    TEST_ASSERT( X->n <= limbs );
+
+    /* Now let's get arrays of mbedtls_mpi_uints, rather than MPI structures */
+    da = mbedtls_calloc( limbs, sizeof(mbedtls_mpi_uint) );
+    Xa = mbedtls_calloc( limbs, sizeof(mbedtls_mpi_uint) );
+
+    TEST_ASSERT( da != NULL );
+    TEST_ASSERT( Xa != NULL );
+
+    /* Populate the arrays. As the mbedtls_mpi_uint[]s in mbedtls_mpis (and as
+     * processed by mbedtls_mpi_core_add_if()) are little endian, we can just
+     * copy what we have as long as MSBs are 0 (which they are from calloc())
+     */
+    memcpy( da, d.p, d.n * sizeof(mbedtls_mpi_uint) );
+    memcpy( Xa, X->p, X->n * sizeof(mbedtls_mpi_uint) );
+
+    /* 1a) d += s * b => we should get the correct carry */
+    TEST_EQUAL( mbedtls_mpi_core_mla( da, limbs, s.p, s.n, *b.p ), *cy->p );
+
+    /* 1b) d += s * b => we should get the correct result */
+    TEST_EQUAL( memcmp( da, Xa, limbs * sizeof(mbedtls_mpi_uint) ), 0 );
+
+exit:
+    mbedtls_free( da );
+    mbedtls_free( Xa );
+
+    mbedtls_mpi_free( &cy4 );
+    mbedtls_mpi_free( &cy8 );
+    mbedtls_mpi_free( &X4 );
+    mbedtls_mpi_free( &X8 );
+    mbedtls_mpi_free( &b );
+    mbedtls_mpi_free( &s );
+    mbedtls_mpi_free( &d );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void mpi_selftest(  )
 {

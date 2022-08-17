@@ -1693,9 +1693,9 @@ int mbedtls_ssl_set_hs_psk( mbedtls_ssl_context *ssl,
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_key_attributes_t key_attributes = psa_key_attributes_init();
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_algorithm_t alg = PSA_ALG_ANY_HASH;
-    mbedtls_svc_key_id_t key;
+    mbedtls_svc_key_id_t key = MBEDTLS_SVC_KEY_ID_INIT;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     if( psk == NULL || ssl->handshake == NULL )

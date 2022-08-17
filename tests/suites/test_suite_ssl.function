@@ -4023,10 +4023,12 @@ void ssl_decrypt_non_etm_cbc( int cipher_type, int hash_id, int trunc_hmac,
     size_t plaintext_len, block_size, i;
     unsigned char padlen; /* excluding the padding_length byte */
     unsigned char add_data[13];
-    unsigned char mac[MBEDTLS_MD_MAX_SIZE];
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
     size_t sign_mac_length = 0;
+    unsigned char mac[PSA_HASH_MAX_SIZE];
+#else
+    unsigned char mac[MBEDTLS_MD_MAX_SIZE];
 #endif
     int exp_ret;
     int ret;
@@ -4120,7 +4122,7 @@ void ssl_decrypt_non_etm_cbc( int cipher_type, int hash_id, int trunc_hmac,
                                              rec.buf + rec.data_offset,
                                              rec.data_len ) );
     TEST_EQUAL( PSA_SUCCESS, psa_mac_sign_finish( &operation,
-                                                  mac, MBEDTLS_MD_MAX_SIZE,
+                                                  mac, sizeof(mac),
                                                   &sign_mac_length ) );
 #else
     TEST_EQUAL( 0, mbedtls_md_hmac_update( &t0.md_ctx_enc, add_data, 13 ) );

@@ -7810,8 +7810,11 @@ static int ssl_tls12_populate_transform( mbedtls_ssl_transform *transform,
         }
 
         if( ( transform->psa_alg == MBEDTLS_SSL_NULL_CIPHER ) ||
-            ( ( transform->psa_alg == PSA_ALG_CBC_NO_PADDING ) &&
-              ( transform->encrypt_then_mac == MBEDTLS_SSL_ETM_DISABLED ) ) )
+            ( ( transform->psa_alg == PSA_ALG_CBC_NO_PADDING )
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC_ETM)
+              && ( transform->encrypt_then_mac == MBEDTLS_SSL_ETM_DISABLED )
+#endif
+            ) )
             /* mbedtls_ct_hmac() requires the key to be exportable */
             psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_EXPORT |
                                                   PSA_KEY_USAGE_VERIFY_HASH );

@@ -36,7 +36,7 @@ void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
                                mbedtls_mpi_uint mm,
                                mbedtls_mpi_uint *T )
 {
-    memset( T, 0, (2*n+1)*ciL );
+    memset( T, 0, ( 2 * n + 1 ) * ciL );
 
     for( size_t i = 0; i < n; i++, T++ )
     {
@@ -109,12 +109,14 @@ mbedtls_mpi_uint mbedtls_mpi_core_sub( mbedtls_mpi_uint *d,
                                        const mbedtls_mpi_uint *r,
                                        size_t n )
 {
-    mbedtls_mpi_uint c = 0, t, z;
+    mbedtls_mpi_uint c = 0;
 
     for( size_t i = 0; i < n; i++ )
     {
-        z = ( l[i] <  c );    t = l[i] - c;
-        c = ( t < r[i] ) + z; d[i] = t - r[i];
+        mbedtls_mpi_uint z = ( l[i] < c );
+        mbedtls_mpi_uint t = l[i] - c;
+        c = ( t < r[i] ) + z;
+        d[i] = t - r[i];
     }
 
     return( c );

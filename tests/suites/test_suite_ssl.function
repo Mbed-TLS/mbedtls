@@ -15,6 +15,7 @@
 #include "psa/crypto.h"
 #endif
 #include <legacy_or_psa.h>
+#include "hash_info.h"
 
 #include <constant_time_internal.h>
 #include <test/constant_flow.h>
@@ -1444,16 +1445,12 @@ static int build_transforms( mbedtls_ssl_transform *t_in,
     if( cipher_info->mode == MBEDTLS_MODE_CBC ||
         cipher_info->mode == MBEDTLS_MODE_STREAM )
     {
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-        maclen = mbedtls_hash_info_get_size( hash_id );
-#else
-        mbedtls_md_info_t const *md_info;
-
-        /* Pick hash */
-        md_info = mbedtls_md_info_from_type( hash_id );
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
+        mbedtls_md_info_t const *md_info = mbedtls_md_info_from_type( hash_id );
         CHK( md_info != NULL );
-        maclen = mbedtls_md_get_size( md_info );
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#endif
+        maclen = mbedtls_hash_info_get_size( hash_id );
+        CHK( maclen != 0 );
         /* Pick hash keys */
         CHK( ( md0 = mbedtls_calloc( 1, maclen ) ) != NULL );
         CHK( ( md1 = mbedtls_calloc( 1, maclen ) ) != NULL );

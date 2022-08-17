@@ -1572,12 +1572,10 @@ static void mpi_montg_init( mbedtls_mpi_uint *mm, const mbedtls_mpi *N )
  *                      (T->n >= 2 * N->n + 1).
  *                      Its initial content is unused and
  *                      its final content is indeterminate.
- *                      Note that unlike the usual convention in the library
- *                      for `const mbedtls_mpi*`, the content of T can change.
  */
 static void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B,
                          const mbedtls_mpi *N, mbedtls_mpi_uint mm,
-                         const mbedtls_mpi *T )
+                         mbedtls_mpi *T )
 {
     mbedtls_mpi_core_montmul( A->p, A->p, B->p, B->n, N->p, N->n, mm, T->p );
 }
@@ -1588,7 +1586,7 @@ static void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B,
  * See mpi_montmul() regarding constraints and guarantees on the parameters.
  */
 static void mpi_montred( mbedtls_mpi *A, const mbedtls_mpi *N,
-                         mbedtls_mpi_uint mm, const mbedtls_mpi *T )
+                         mbedtls_mpi_uint mm, mbedtls_mpi *T )
 {
     mbedtls_mpi_uint z = 1;
     mbedtls_mpi U;

@@ -143,7 +143,6 @@ exit:
     return( ret );
 }
 #else
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
 static int pem_pbkdf1( unsigned char *key, size_t keylen,
                        unsigned char *iv,
                        const unsigned char *pwd, size_t pwdlen )
@@ -254,8 +253,7 @@ exit:
 
     return( ret );
 }
-#endif
-#endif
+#endif /* MBEDTLS_MD5_C */
 
 #if defined(MBEDTLS_DES_C)
 /*

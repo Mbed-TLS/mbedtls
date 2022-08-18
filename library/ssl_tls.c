@@ -1898,7 +1898,7 @@ mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
  *     struct {
  *       uint64 ticket_received;
  *       uint32 ticket_lifetime;
- *       opaque ticket<0..2^16-1>;
+ *       opaque ticket<1..2^16-1>;
  *     } ClientOnlyData;
  *
  *     struct {
@@ -1925,9 +1925,14 @@ static int ssl_tls13_session_save( const mbedtls_ssl_session *session,
     size_t needed =   1                             /* endpoint */
                     + 2                             /* ciphersuite */
                     + 4                             /* ticket_age_add */
-                    + 2                             /* resumption_key length */
-                    + session->resumption_key_len;  /* resumption_key */
+                    + 1                             /* ticket_flags */
+                    + 1;                            /* resumption_key length */
     *olen = 0;
+
+    if( session->resumption_key_len > MBEDTLS_SSL_TLS1_3_TICKET_RESUMPTION_KEY_LEN )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    needed += session->resumption_key_len;  /* resumption_key */
+
 #if defined(MBEDTLS_HAVE_TIME)
     needed += 8; /* start_time or ticket_received */
 #endif
@@ -1937,8 +1942,13 @@ static int ssl_tls13_session_save( const mbedtls_ssl_session *session,
     {
         needed +=   4                       /* ticket_lifetime */
                   + 2;                      /* ticket_len */
+
+        /* Check size_t overflow */
         if( session->ticket_len > SIZE_MAX - needed )
+        {
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+        }
+
         needed += session->ticket_len;    /* ticket */
     }
 #endif /* MBEDTLS_SSL_CLI_C */
@@ -1980,7 +1990,8 @@ static int ssl_tls13_session_save( const mbedtls_ssl_session *session,
 
         MBEDTLS_PUT_UINT16_BE( session->ticket_len, p, 0 );
         p += 2;
-        if( session->ticket_len > 0 )
+
+        if( session->ticket != NULL && session->ticket_len > 0 )
         {
             memcpy( p, session->ticket, session->ticket_len );
             p += session->ticket_len;

@@ -272,7 +272,7 @@ unsigned mbedtls_ct_uint_if( unsigned condition,
  * \note if1 and if0 must be either 1 or -1, otherwise the result
  *       is undefined.
  *
- * \param condition     Condition to test.
+ * \param condition     Condition to test; must be either 0 or 1.
  * \param if1           The first sign; must be either +1 or -1.
  * \param if0           The second sign; must be either +1 or -1.
  *

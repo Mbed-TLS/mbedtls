@@ -256,7 +256,7 @@ int mbedtls_x509write_crt_set_authority_key_identifier( mbedtls_x509write_cert *
                                                      1,
                                                      (MBEDTLS_ASN1_CONTEXT_SPECIFIC | 0) );
 }
-#endif /* MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA */
+#endif /* MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
 
 int mbedtls_x509write_crt_set_key_usage( mbedtls_x509write_cert *ctx,
                                          unsigned int key_usage )

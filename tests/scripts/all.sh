@@ -2948,6 +2948,7 @@ component_build_armcc () {
     scripts/config.py baremetal
     # armc[56] don't support SHA-512 intrinsics
     scripts/config.py unset MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT
+    scripts/config.py set MBEDTLS_HAVE_ASM
 
     make CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS='--strict --c99' lib
 
@@ -2956,20 +2957,25 @@ component_build_armcc () {
 
     make clean
 
+    # Compile with -O1 since some Arm inline assembly is disabled for -O0.
+
     # ARM Compiler 6 - Target ARMv7-A
-    armc6_build_test "--target=arm-arm-none-eabi -march=armv7-a"
+    armc6_build_test "-O1 --target=arm-arm-none-eabi -march=armv7-a"
 
     # ARM Compiler 6 - Target ARMv7-M
-    armc6_build_test "--target=arm-arm-none-eabi -march=armv7-m"
+    armc6_build_test "-O1 --target=arm-arm-none-eabi -march=armv7-m"
+
+    # ARM Compiler 6 - Target ARMv7-M+DSP
+    armc6_build_test "-O1 --target=arm-arm-none-eabi -march=armv7-m+dsp"
 
     # ARM Compiler 6 - Target ARMv8-A - AArch32
-    armc6_build_test "--target=arm-arm-none-eabi -march=armv8.2-a"
+    armc6_build_test "-O1 --target=arm-arm-none-eabi -march=armv8.2-a"
 
     # ARM Compiler 6 - Target ARMv8-M
-    armc6_build_test "--target=arm-arm-none-eabi -march=armv8-m.main"
+    armc6_build_test "-O1 --target=arm-arm-none-eabi -march=armv8-m.main"
 
     # ARM Compiler 6 - Target ARMv8.2-A - AArch64
-    armc6_build_test "--target=aarch64-arm-none-eabi -march=armv8.2-a+crypto"
+    armc6_build_test "-O1 --target=aarch64-arm-none-eabi -march=armv8.2-a+crypto"
 }
 
 component_test_tls13_only () {

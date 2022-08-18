@@ -58,7 +58,7 @@ void mbedtls_pem_init( mbedtls_pem_context *ctx )
     memset( ctx, 0, sizeof( mbedtls_pem_context ) );
 }
 
-#if defined(PEM_RFC1421 )
+#if defined(PEM_RFC1421)
 /*
  * Read a 16-byte hex string and convert it to binary
  */
@@ -343,7 +343,7 @@ exit:
 }
 #endif /* MBEDTLS_AES_C */
 
-#endif /* PEM_RFC1421  */
+#endif /* PEM_RFC1421 */
 
 int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const char *footer,
                      const unsigned char *data, const unsigned char *pwd,
@@ -353,13 +353,13 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
     size_t len;
     unsigned char *buf;
     const unsigned char *s1, *s2, *end;
-#if defined(PEM_RFC1421 )
+#if defined(PEM_RFC1421)
     unsigned char pem_iv[16];
     mbedtls_cipher_type_t enc_alg = MBEDTLS_CIPHER_NONE;
 #else
     ((void) pwd);
     ((void) pwdlen);
-#endif /* PEM_RFC1421  */
+#endif /* PEM_RFC1421 */
 
     if( ctx == NULL )
         return( MBEDTLS_ERR_PEM_BAD_INPUT_DATA );
@@ -391,7 +391,7 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
 
     if( s2 - s1 >= 22 && memcmp( s1, "Proc-Type: 4,ENCRYPTED", 22 ) == 0 )
     {
-#if defined(PEM_RFC1421 )
+#if defined(PEM_RFC1421)
         enc++;
 
         s1 += 22;
@@ -453,7 +453,7 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
         else return( MBEDTLS_ERR_PEM_INVALID_DATA );
 #else
         return( MBEDTLS_ERR_PEM_FEATURE_UNAVAILABLE );
-#endif /* PEM_RFC1421  */
+#endif /* PEM_RFC1421 */
     }
 
     if( s1 >= s2 )
@@ -476,7 +476,7 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
 
     if( enc != 0 )
     {
-#if defined(PEM_RFC1421 )
+#if defined(PEM_RFC1421)
         if( pwd == NULL )
         {
             mbedtls_platform_zeroize( buf, len );
@@ -524,7 +524,7 @@ int mbedtls_pem_read_buffer( mbedtls_pem_context *ctx, const char *header, const
         mbedtls_platform_zeroize( buf, len );
         mbedtls_free( buf );
         return( MBEDTLS_ERR_PEM_FEATURE_UNAVAILABLE );
-#endif /* PEM_RFC1421  */
+#endif /* PEM_RFC1421 */
     }
 
     ctx->buf = buf;

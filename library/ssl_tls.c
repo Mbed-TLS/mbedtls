@@ -1945,19 +1945,15 @@ static int ssl_tls13_session_save( const mbedtls_ssl_session *session,
 
         /* Check size_t overflow */
         if( session->ticket_len > SIZE_MAX - needed )
-        {
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-        }
 
-        needed += session->ticket_len;    /* ticket */
+        needed += session->ticket_len;      /* ticket */
     }
 #endif /* MBEDTLS_SSL_CLI_C */
 
     *olen = needed;
     if( needed > buf_len )
-    {
         return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
-    }
 
     p[0] = session->endpoint;
     MBEDTLS_PUT_UINT16_BE( session->ciphersuite, p, 1 );
@@ -3073,9 +3069,7 @@ static int ssl_session_save( const mbedtls_ssl_session *session,
     case MBEDTLS_SSL_VERSION_TLS1_3:
         ret = ssl_tls13_session_save( session, p, remaining_len, &out_len );
         if( ret != 0 && ret != MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL )
-        {
             return( ret );
-        }
         used += out_len;
         break;
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */

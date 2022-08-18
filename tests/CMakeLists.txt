@@ -128,9 +128,15 @@ function(add_test_suite suite_name)
             test_suite_${data_name}.datax
     )
 
-    add_executable(test_suite_${data_name} test_suite_${data_name}.c $<TARGET_OBJECTS:mbedtls_test>)
+    if(data_name STREQUAL "ssl")
+        add_executable(test_suite_${data_name} test_suite_${data_name}.c $<TARGET_OBJECTS:mbedtls_test> $<TARGET_OBJECTS:mbedtls_test_ssl>)
+    else()
+        add_executable(test_suite_${data_name} test_suite_${data_name}.c $<TARGET_OBJECTS:mbedtls_test>)
+    endif()
+
     add_dependencies(test_suite_${data_name} test_suite_generated_data)
     target_link_libraries(test_suite_${data_name} ${libs})
+
     # Include test-specific header files from ./include and private header
     # files (used by some invasive tests) from ../library. Public header
     # files are automatically included because the library targets declare

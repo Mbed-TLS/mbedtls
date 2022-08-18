@@ -286,11 +286,19 @@ add_subdirectory(library)
 #
 if(ENABLE_TESTING OR ENABLE_PROGRAMS)
     file(GLOB MBEDTLS_TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/*.c ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/drivers/*.c)
+    list(REMOVE_ITEM MBEDTLS_TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/ssl_helpers.c)
     add_library(mbedtls_test OBJECT ${MBEDTLS_TEST_FILES})
     target_include_directories(mbedtls_test
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/library)
+
+    add_library(mbedtls_test_ssl OBJECT ${CMAKE_CURRENT_SOURCE_DIR}/tests/src/ssl_helpers.c)
+    target_include_directories(mbedtls_test_ssl
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/library
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/everest/include)
 endif()
 
 if(ENABLE_PROGRAMS)

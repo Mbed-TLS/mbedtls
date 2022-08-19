@@ -129,7 +129,7 @@ static mbedtls_mpi_uint mpi_bigendian_to_host( mbedtls_mpi_uint x )
     return( mpi_bigendian_to_host_c( x ) );
 }
 
-void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint * const X,
+void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint *X,
                                          size_t limbs )
 {
     mbedtls_mpi_uint *cur_limb_left;

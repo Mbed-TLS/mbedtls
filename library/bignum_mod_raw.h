@@ -38,12 +38,12 @@
  * The MPI needs to have enough limbs to store the full value (including any
  * most significant zero bytes in the input).
  *
- * \param X      The address of the MPI. The size is determined by \p m. (In
- *               particular, it must have at least as many limbs as the modulus
- *               \p m.)
- * \param m      The address of the modulus related to \p X.
- * \param buf    The input buffer to import from.
- * \param buflen The length in bytes of \p buf.
+ * \param[out] X    The address of the MPI. The size is determined by \p m. (In
+ *                  particular, it must have at least as many limbs as the
+ *                  modulus \p m.)
+ * \param[in] m     The address of the modulus related to \p X.
+ * \param[in] buf   The input buffer to import from.
+ * \param buflen    The length in bytes of \p buf.
  *
  * \return       \c 0 if successful.
  * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p X isn't
@@ -52,18 +52,18 @@
  *               of \p m is invalid or \p X is not less than \p m.
  */
 int mbedtls_mpi_mod_raw_read( mbedtls_mpi_uint *X,
-                              mbedtls_mpi_mod_modulus *m,
-                              unsigned char *buf,
+                              const mbedtls_mpi_mod_modulus *m,
+                              const unsigned char *buf,
                               size_t buflen );
 
 /** Export X into unsigned binary data.
  *
- * \param X      The address of the MPI. The size is determined by \p m. (In
- *               particular, it must have at least as many limbs as the modulus
- *               \p m.)
- * \param m      The address of the modulus related to \p X.
- * \param buf    The output buffer to export to.
- * \param buflen The length in bytes of \p buf.
+ * \param[in] X     The address of the MPI. The size is determined by \p m. (In
+ *                  particular, it must have at least as many limbs as the modulus
+ *                  \p m.)
+ * \param[in] m     The address of the modulus related to \p X.
+ * \param[out] buf  The output buffer to export to.
+ * \param buflen    The length in bytes of \p buf.
  *
  * \return       \c 0 if successful.
  * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p buf isn't
@@ -71,8 +71,8 @@ int mbedtls_mpi_mod_raw_read( mbedtls_mpi_uint *X,
  * \return       #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if the external representation
  *               of \p m is invalid.
  */
-int mbedtls_mpi_mod_raw_write( mbedtls_mpi_uint *X,
-                               mbedtls_mpi_mod_modulus *m,
+int mbedtls_mpi_mod_raw_write( const mbedtls_mpi_uint *X,
+                               const mbedtls_mpi_mod_modulus *m,
                                unsigned char *buf,
                                size_t buflen );
 

@@ -42,8 +42,8 @@
 #include "constant_time_internal.h"
 
 int mbedtls_mpi_mod_raw_read( mbedtls_mpi_uint *X,
-                              mbedtls_mpi_mod_modulus *m,
-                              unsigned char *buf,
+                              const mbedtls_mpi_mod_modulus *m,
+                              const unsigned char *buf,
                               size_t buflen )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -74,8 +74,8 @@ cleanup:
     return( ret );
 }
 
-int mbedtls_mpi_mod_raw_write( mbedtls_mpi_uint *X,
-                               mbedtls_mpi_mod_modulus *m,
+int mbedtls_mpi_mod_raw_write( const mbedtls_mpi_uint *X,
+                               const mbedtls_mpi_mod_modulus *m,
                                unsigned char *buf,
                                size_t buflen )
 {

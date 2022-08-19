@@ -44,8 +44,8 @@ size_t mbedtls_mpi_core_clz( const mbedtls_mpi_uint x );
  *
  * \note This function returns 0 if all the limbs of \p X are 0.
  *
- * \param X     The address of the MPI.
- * \param nx    The number of limbs of \p X.
+ * \param[in] X     The address of the MPI.
+ * \param nx        The number of limbs of \p X.
  *
  * \return      The number of bits in \p X.
  */
@@ -54,10 +54,10 @@ size_t mbedtls_mpi_core_bitlen( const mbedtls_mpi_uint *X, size_t nx );
 /** Convert a big-endian byte array aligned to the size of mbedtls_mpi_uint
  * into the storage form used by mbedtls_mpi.
  *
- * \param X     The address of the MPI.
- * \param limbs The number of limbs of \p X.
+ * \param[in,out] X     The address of the MPI.
+ * \param limbs         The number of limbs of \p X.
  */
-void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint * const X,
+void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint *X,
                                          size_t limbs );
 
 /** Import X from unsigned binary data, little endian.
@@ -65,10 +65,10 @@ void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint * const X,
  * The MPI needs to have enough limbs to store the full value (including any
  * most significant zero bytes in the input).
  *
- * \param X      The address of the MPI.
- * \param nx     The number of limbs of \p X.
- * \param buf    The input buffer to import from.
- * \param buflen The length in bytes of \p buf.
+ * \param[out] X    The address of the MPI.
+ * \param nx        The number of limbs of \p X.
+ * \param[in] buf   The input buffer to import from.
+ * \param buflen    The length in bytes of \p buf.
  *
  * \return       \c 0 if successful.
  * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p X isn't
@@ -84,12 +84,12 @@ int mbedtls_mpi_core_read_le( mbedtls_mpi_uint *X,
  * The MPI needs to have enough limbs to store the full value (including any
  * most significant zero bytes in the input).
  *
- * \param X      The address of the MPI.
- *               May only be #NULL if \nx is 0 and \p buflen is 0.
- * \param nx     The number of limbs of \p X.
- * \param buf    The input buffer to import from.
- *               May only be #NULL if \p buflen is 0.
- * \param buflen The length in bytes of \p buf.
+ * \param[out] X    The address of the MPI.
+ *                  May only be #NULL if \nx is 0 and \p buflen is 0.
+ * \param nx        The number of limbs of \p X.
+ * \param[in] buf   The input buffer to import from.
+ *                  May only be #NULL if \p buflen is 0.
+ * \param buflen    The length in bytes of \p buf.
  *
  * \return       \c 0 if successful.
  * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p X isn't
@@ -106,10 +106,10 @@ int mbedtls_mpi_core_read_be( mbedtls_mpi_uint *X,
  *       value held in \p X fits in the buffer (that is, if enough of the most
  *       significant bytes of \p X are 0).
  *
- * \param X      The address of the MPI.
- * \param nx     The number of limbs of \p X.
- * \param buf    The output buffer to export to.
- * \param buflen The length in bytes of \p buf.
+ * \param[in] X     The address of the MPI.
+ * \param nx        The number of limbs of \p X.
+ * \param[out] buf  The output buffer to export to.
+ * \param buflen    The length in bytes of \p buf.
  *
  * \return       \c 0 if successful.
  * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p buf isn't
@@ -126,10 +126,10 @@ int mbedtls_mpi_core_write_le( const mbedtls_mpi_uint *X,
  *       value held in \p X fits in the buffer (that is, if enough of the most
  *       significant bytes of \p X are 0).
  *
- * \param X      The address of the MPI.
- * \param nx     The number of limbs of \p X.
- * \param buf    The output buffer to export to.
- * \param buflen The length in bytes of \p buf.
+ * \param[in] X     The address of the MPI.
+ * \param nx        The number of limbs of \p X.
+ * \param[out] buf  The output buffer to export to.
+ * \param buflen    The length in bytes of \p buf.
  *
  * \return       \c 0 if successful.
  * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p buf isn't

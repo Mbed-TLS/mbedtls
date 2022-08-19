@@ -67,22 +67,23 @@ typedef struct {
 
 /** Setup a residue structure.
  *
- * \param r     The address of residue to setup. The size is determined by \p m.
- *              (In particular, it must have at least as many limbs as the
- *              modulus \p m.)
- * \param m     The address of the modulus related to \p r.
- * \param p     The address of the limb array storing the value of \p r. The
- *              memory pointed to by \p p will be used by \p r and must not be
- *              modified in any way until after mbedtls_mpi_mod_residue_release()
- *              is called.
- * \param pn    The number of limbs of \p p.
+ * \param[out] r    The address of residue to setup. The size is determined by
+ *                  \p m.
+ *                  (In particular, it must have at least as many limbs as the
+ *                  modulus \p m.)
+ * \param[in] m     The address of the modulus related to \p r.
+ * \param[in] p     The address of the limb array storing the value of \p r.
+ *                  The memory pointed to by \p p will be used by \p r and must
+ *                  not be modified in any way until after
+ *                  mbedtls_mpi_mod_residue_release() is called.
+ * \param pn        The number of limbs of \p p.
  *
  * \return      \c 0 if successful.
  * \return      #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p pn is less than the limbs
  *              in \p m or if \p p is not less than \p m.
  */
 int mbedtls_mpi_mod_residue_setup( mbedtls_mpi_mod_residue *r,
-                                   mbedtls_mpi_mod_modulus *m,
+                                   const mbedtls_mpi_mod_modulus *m,
                                    mbedtls_mpi_uint *p,
                                    size_t pn );
 
@@ -94,22 +95,22 @@ int mbedtls_mpi_mod_residue_setup( mbedtls_mpi_mod_residue *r,
  * This function invalidates \p r and it must not be used until after
  * mbedtls_mpi_mod_residue_setup() is called on it again.
  *
- * \param r     The address of residue to release.
+ * \param[out] r     The address of residue to release.
  */
 void mbedtls_mpi_mod_residue_release( mbedtls_mpi_mod_residue *r );
 
 /** Initialize a modulus structure.
  *
- * \param m     The address of a modulus.
+ * \param[out] m     The address of a modulus.
  */
 void mbedtls_mpi_mod_modulus_init( mbedtls_mpi_mod_modulus *m );
 
 /** Setup a modulus structure.
  *
- * \param m         The address of the modulus structure to populate.
- * \param p         The address of the limb array storing the value of \p m. The
- *                  memory pointed to by \p p will be used by \p m and must not
- *                  be modified in any way until after
+ * \param[out] m    The address of the modulus structure to populate.
+ * \param[in] p     The address of the limb array storing the value of \p m.
+ *                  The memory pointed to by \p p will be used by \p m and must
+ *                  not be modified in any way until after
  *                  mbedtls_mpi_mod_modulus_free() is called.
  * \param pn        The number of limbs of \p p.
  * \param ext_rep   The external representation to be used for residues
@@ -135,7 +136,7 @@ int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,
  *          mbedtls_mpi_mod_modulus_setup() only removes the reference to it,
  *          making it safe to free or to use it again.
  *
- * \param m     The address of a modulus.
+ * \param[in,out] m     The address of a modulus.
  */
 void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m );
 

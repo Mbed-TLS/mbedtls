@@ -43,7 +43,7 @@
 #include "constant_time_internal.h"
 
 int mbedtls_mpi_mod_residue_setup( mbedtls_mpi_mod_residue *r,
-                                   mbedtls_mpi_mod_modulus *m,
+                                   const mbedtls_mpi_mod_modulus *m,
                                    mbedtls_mpi_uint *p,
                                    size_t pn )
 {

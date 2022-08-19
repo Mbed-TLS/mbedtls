@@ -594,62 +594,92 @@ mbedtls_mpi_cmp_mpi:"-1230000000000000000":"":-1
 Test mbedtls_mpi_cmp_mpi: large negative < 0 (1 limb)
 mbedtls_mpi_cmp_mpi:"-1230000000000000000":"0":-1
 
-Base test mbedtls_mpi_core_lt_ct #1
-mbedtls_mpi_core_lt_ct:"02B5":"02B5":0
+mbedtls_mpi_core_lt_ct: x=y (1 limb)
+mpi_core_lt_ct:"02B5":"02B5":0
 
-Base test mbedtls_mpi_core_lt_ct #2
-mbedtls_mpi_core_lt_ct:"02B5":"02B4":0
+mbedtls_mpi_core_lt_ct: x>y (1 limb)
+mpi_core_lt_ct:"02B5":"02B4":0
 
-Base test mbedtls_mpi_core_lt_ct #3
-mbedtls_mpi_core_lt_ct:"02B5":"02B6":1
+mbedtls_mpi_core_lt_ct: x<y (1 limb)
+mpi_core_lt_ct:"02B5":"02B6":1
 
-Base test mbedtls_mpi_core_lt_ct (length=0)
-mbedtls_mpi_core_lt_ct:"":"":0
+mbedtls_mpi_core_lt_ct: x=y (0 limbs)
+mpi_core_lt_ct:"":"":0
 
-Base test mbedtls_mpi_core_lt_ct (corner case - 64 bit) #1
-mbedtls_mpi_core_lt_ct:"7FFFFFFFFFFFFFFF":"FF":0
+mbedtls_mpi_core_lt_ct: x>y (63 bit x, y first byte greater)
+mpi_core_lt_ct:"7FFFFFFFFFFFFFFF":"FF":0
 
-Base test mbedtls_mpi_core_lt_ct (corner case - 64 bit) #2
-mbedtls_mpi_core_lt_ct:"8000000000000000":"7FFFFFFFFFFFFFFF":0
+mbedtls_mpi_core_lt_ct: x<y (63 bit y, x first byte greater)
+mpi_core_lt_ct:"FF":"7FFFFFFFFFFFFFFF":1
 
-Base test mbedtls_mpi_core_lt_ct (corner case - 64 bit) #3
-mbedtls_mpi_core_lt_ct:"8000000000000000":"01":0
+mbedtls_mpi_core_lt_ct: x>y (64 bit x, y=x-1)
+mpi_core_lt_ct:"8000000000000000":"7FFFFFFFFFFFFFFF":0
 
-Base test mbedtls_mpi_core_lt_ct (corner case - 64 bit) #4
-mbedtls_mpi_core_lt_ct:"8000000000000000":"00":0
+mbedtls_mpi_core_lt_ct: x<y (64 bit y, x=y-1)
+mpi_core_lt_ct:"7FFFFFFFFFFFFFFF":"8000000000000000":1
 
-Base test mbedtls_mpi_core_lt_ct (corner case - 64 bit) #5
-mbedtls_mpi_core_lt_ct:"FFFFFFFFFFFFFFFF":"FF":0
+mbedtls_mpi_core_lt_ct: x>y (64 bit x, y=1)
+mpi_core_lt_ct:"8000000000000000":"01":0
 
-Base test mbedtls_mpi_core_lt_ct (corner case - 32 bit) #1
-mbedtls_mpi_core_lt_ct:"7FFFFFFF":"FF":0
+mbedtls_mpi_core_lt_ct: x<y (64 bit y, x=1)
+mpi_core_lt_ct:"01":"8000000000000000":1
 
-Base test mbedtls_mpi_core_lt_ct (corner case - 32 bit) #2
-mbedtls_mpi_core_lt_ct:"80000000":"7FFFFFFF":0
+mbedtls_mpi_core_lt_ct: x>y (64 bit x, y=0)
+mpi_core_lt_ct:"8000000000000000":"00":0
 
-Base test mbedtls_mpi_core_lt_ct (corner case - 32 bit) #3
-mbedtls_mpi_core_lt_ct:"80000000":"01":0
+mbedtls_mpi_core_lt_ct: x<y (64 bit y, x=0)
+mpi_core_lt_ct:"00":"8000000000000000":1
 
-Base test mbedtls_mpi_core_lt_ct (corner case - 32 bit) #4
-mbedtls_mpi_core_lt_ct:"80000000":"00":0
+mbedtls_mpi_core_lt_ct: x>y (64 bit x, first bytes equal)
+mpi_core_lt_ct:"FFFFFFFFFFFFFFFF":"FF":0
 
-Base test mbedtls_mpi_core_lt_ct (corner case - 32 bit) #5
-mbedtls_mpi_core_lt_ct:"FFFFFFFF":"FF":0
+mbedtls_mpi_core_lt_ct: x<y (64 bit y, first bytes equal)
+mpi_core_lt_ct:"FF":"FFFFFFFFFFFFFFFF":1
 
-Multi-limb mbedtls_mpi_core_lt_ct (X<Y, zero vs non-zero MS limb)
-mbedtls_mpi_core_lt_ct:"00FFFFFFFFFFFFFFFF":"01FFFFFFFFFFFFFFFF":1
+mbedtls_mpi_core_lt_ct: x>y (31 bit x, y first byte greater)
+mpi_core_lt_ct:"7FFFFFFF":"FF":0
 
-Multi-limb mbedtls_mpi_core_lt_ct (X>Y, equal MS limbs)
-mbedtls_mpi_core_lt_ct:"EEFFFFFFFFFFFFFFFF":"EEFFFFFFFFFFFFFFF1":0
+mbedtls_mpi_core_lt_ct: x<y (31 bit y, x first byte greater)
+mpi_core_lt_ct:"FF":"7FFFFFFF":1
 
-Multi-limb mbedtls_mpi_core_lt_ct (X=Y)
-mbedtls_mpi_core_lt_ct:"EEFFFFFFFFFFFFFFFF":"EEFFFFFFFFFFFFFFFF":0
+mbedtls_mpi_core_lt_ct: x>y (32 bit x, y=x-1)
+mpi_core_lt_ct:"80000000":"7FFFFFFF":0
 
-Multi-limb mbedtls_mpi_core_lt_ct (Alternating limbs) #1
-mbedtls_mpi_core_lt_ct:"11FFFFFFFFFFFFFFFF":"FF1111111111111111":1
+mbedtls_mpi_core_lt_ct: x<y (32 bit y, x=y-1)
+mpi_core_lt_ct:"7FFFFFFF":"80000000":1
 
-Multi-limb mbedtls_mpi_core_lt_ct (Alternating limbs) #2
-mbedtls_mpi_core_lt_ct:"FF1111111111111111":"11FFFFFFFFFFFFFFFF":0
+mbedtls_mpi_core_lt_ct: x>y (32 bit x, y=1)
+mpi_core_lt_ct:"80000000":"01":0
+
+mbedtls_mpi_core_lt_ct: x<y (32 bit y, x=1)
+mpi_core_lt_ct:"01":"80000000":1
+
+mbedtls_mpi_core_lt_ct: x>y (32 bit x, y=0)
+mpi_core_lt_ct:"80000000":"00":0
+
+mbedtls_mpi_core_lt_ct: x<y (32 bit y, x=0)
+mpi_core_lt_ct:"00":"80000000":1
+
+mbedtls_mpi_core_lt_ct: x>y (32 bit x, first bytes equal)
+mpi_core_lt_ct:"FFFFFFFF":"FF":0
+
+mbedtls_mpi_core_lt_ct: x<y (32 bit y, first bytes equal)
+mpi_core_lt_ct:"FF":"FFFFFFFF":1
+
+mbedtls_mpi_core_lt_ct: x<y, zero vs non-zero MS limb
+mpi_core_lt_ct:"00FFFFFFFFFFFFFFFF":"01FFFFFFFFFFFFFFFF":1
+
+mbedtls_mpi_core_lt_ct: x>y, equal MS limbs
+mpi_core_lt_ct:"EEFFFFFFFFFFFFFFFF":"EEFFFFFFFFFFFFFFF1":0
+
+mbedtls_mpi_core_lt_ct: x=y (multi-limb)
+mpi_core_lt_ct:"EEFFFFFFFFFFFFFFFF":"EEFFFFFFFFFFFFFFFF":0
+
+mbedtls_mpi_core_lt_ct: x<y (alternating limbs)
+mpi_core_lt_ct:"11FFFFFFFFFFFFFFFF":"FF1111111111111111":1
+
+mbedtls_mpi_core_lt_ct: x>y (alternating limbs)
+mpi_core_lt_ct:"FF1111111111111111":"11FFFFFFFFFFFFFFFF":0
 
 Base test mbedtls_mpi_lt_mpi_ct #1
 mbedtls_mpi_lt_mpi_ct:1:"2B5":1:"2B5":0:0

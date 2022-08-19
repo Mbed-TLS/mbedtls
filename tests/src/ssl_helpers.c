@@ -21,6 +21,10 @@
  *  limitations under the License.
  */
 
+#ifdef _MSC_VER
+    #pragma warning( disable : 4267 )
+#endif
+
 #include <test/ssl_helpers.h>
 
 #if defined(MBEDTLS_SSL_TLS_C)

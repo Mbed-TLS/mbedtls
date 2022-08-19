@@ -179,6 +179,66 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void mpi_read_string( int radix_A, char * input_A, char * input_X, int ret )
+{
+    mbedtls_mpi A, X;
+
+    mbedtls_mpi_init( &A );
+    mbedtls_mpi_init( &X );
+
+    TEST_EQUAL( mbedtls_mpi_read_string( &A, radix_A, input_A ), ret );
+    if( ret == 0 )
+    {
+        TEST_EQUAL( sign_is_valid( &A ), 1 );
+        TEST_EQUAL( mbedtls_mpi_read_string( &X, 16, input_X ), 0 );
+        TEST_EQUAL( sign_is_valid( &X ), 1 );
+        TEST_EQUAL( mbedtls_mpi_cmp_mpi( &A, &X ), 0 );
+    }
+exit:
+    mbedtls_mpi_free( &A );
+    mbedtls_mpi_free( &X );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_write_string( char * input_A, int radix_X, char * input_X,
+                       int buf_size, int ret )
+{
+    mbedtls_mpi A;
+    char str[1000];
+    char *x_off;
+    size_t olen, n;
+
+    mbedtls_mpi_init( &A );
+    memset( str, '!', sizeof( str ) );
+
+    TEST_EQUAL( mbedtls_mpi_read_string( &A, 16, input_A ), 0 );
+    TEST_EQUAL( sign_is_valid( &A ), 1 );
+    TEST_EQUAL( mbedtls_mpi_write_string( &A, radix_X, str, buf_size, &olen ), ret );
+
+    if( ret == 0 )
+    {
+        TEST_EQUAL( strcmp( str, input_X ), 0 );
+        // With a small buffer and radix < 16, the overwrite check may
+        // be invalid. In this case, check the remaining n characters
+        // match the last n characters of input_X.
+        n = buf_size - olen;
+        if( radix_X < 16 && n < strlen( input_X ) )
+        {
+            x_off = input_X + strlen( input_X ) - n;
+            TEST_EQUAL( strncmp( str + olen, x_off, n ), 0 );
+        }
+        else
+        {
+            TEST_EQUAL( str[olen] == '!', 1 );
+        }
+    }
+exit:
+    mbedtls_mpi_free( &A );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mpi_read_binary( data_t * buf, char * input_A )
 {
     mbedtls_mpi X;

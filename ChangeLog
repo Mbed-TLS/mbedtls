@@ -5106,7 +5106,7 @@ XySSL ChangeLog
 
     I'd also like to thank Younès Hafri for the CRUX linux port,
     Khalil Petit who added XySSL into pkgsrc and Arnaud Cornet
-    who maintains the Debian package :-)
+    who maintains the Debian package :-) test
 
-= Version 0.1 released on 2006-11-01
+= Version 0.1 released on 2006-11-01 TEST
 

@@ -5101,7 +5101,7 @@ XySSL ChangeLog
     * Fixed a bug reported by Torsten Lauter in ssl_read_record
     * Fixed a bug in rsa_check_privkey that would wrongly cause
       valid RSA keys to be dismissed (thanks to oldwolf)
-    * Fixed a bug in mpi_is_prime that caused some primes to fail
+    * Fixed a bug in mpi_is_prime that caused some primes to fail TEST
       the Miller-Rabin primality test
 
     I'd also like to thank Younès Hafri for the CRUX linux port, TEST

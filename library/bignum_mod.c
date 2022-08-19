@@ -45,9 +45,9 @@
 int mbedtls_mpi_mod_residue_setup( mbedtls_mpi_mod_residue *r,
                                    const mbedtls_mpi_mod_modulus *m,
                                    mbedtls_mpi_uint *p,
-                                   size_t pn )
+                                   size_t p_limbs )
 {
-    if( pn < m->limbs || !mbedtls_mpi_core_lt_ct( m->p, p, pn ) )
+    if( p_limbs < m->limbs || !mbedtls_mpi_core_lt_ct( m->p, p, p_limbs ) )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
     r->limbs = m->limbs;
@@ -103,15 +103,15 @@ void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m )
 
 int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,
                                    const mbedtls_mpi_uint *p,
-                                   size_t pn,
+                                   size_t p_limbs,
                                    mbedtls_mpi_mod_ext_rep ext_rep,
                                    mbedtls_mpi_mod_rep_selector int_rep )
 {
     int ret = 0;
 
     m->p = p;
-    m->limbs = pn;
-    m->bits = mbedtls_mpi_core_bitlen( p, pn );
+    m->limbs = p_limbs;
+    m->bits = mbedtls_mpi_core_bitlen( p, p_limbs );
 
     switch( ext_rep )
     {

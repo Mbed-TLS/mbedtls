@@ -43,18 +43,20 @@
 
 int mbedtls_mpi_mod_raw_read( mbedtls_mpi_uint *X,
                               const mbedtls_mpi_mod_modulus *m,
-                              const unsigned char *buf,
-                              size_t buflen )
+                              const unsigned char *input,
+                              size_t input_lentgth )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     switch( m->ext_rep )
     {
         case MBEDTLS_MPI_MOD_EXT_REP_LE:
-            ret = mbedtls_mpi_core_read_le( X, m->limbs, buf, buflen );
+            ret = mbedtls_mpi_core_read_le( X, m->limbs,
+                                            input, input_lentgth );
             break;
         case MBEDTLS_MPI_MOD_EXT_REP_BE:
-            ret = mbedtls_mpi_core_read_be( X, m->limbs, buf, buflen );
+            ret = mbedtls_mpi_core_read_be( X, m->limbs,
+                                            input, input_lentgth );
             break;
         default:
             return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
@@ -74,17 +76,19 @@ cleanup:
     return( ret );
 }
 
-int mbedtls_mpi_mod_raw_write( const mbedtls_mpi_uint *X,
+int mbedtls_mpi_mod_raw_write( const mbedtls_mpi_uint *A,
                                const mbedtls_mpi_mod_modulus *m,
-                               unsigned char *buf,
-                               size_t buflen )
+                               unsigned char *output,
+                               size_t output_length )
 {
     switch( m->ext_rep )
     {
         case MBEDTLS_MPI_MOD_EXT_REP_LE:
-            return( mbedtls_mpi_core_write_le( X, m->limbs, buf, buflen ) );
+            return( mbedtls_mpi_core_write_le( A, m->limbs,
+                                               output, output_length ) );
         case MBEDTLS_MPI_MOD_EXT_REP_BE:
-            return( mbedtls_mpi_core_write_be( X, m->limbs, buf, buflen ) );
+            return( mbedtls_mpi_core_write_be( A, m->limbs,
+                                               output, output_length ) );
         default:
             return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
     }

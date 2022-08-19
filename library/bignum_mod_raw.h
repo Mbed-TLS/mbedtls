@@ -38,42 +38,42 @@
  * The MPI needs to have enough limbs to store the full value (including any
  * most significant zero bytes in the input).
  *
- * \param[out] X    The address of the MPI. The size is determined by \p m. (In
- *                  particular, it must have at least as many limbs as the
- *                  modulus \p m.)
- * \param[in] m     The address of the modulus related to \p X.
- * \param[in] buf   The input buffer to import from.
- * \param buflen    The length in bytes of \p buf.
+ * \param[out] X        The address of the MPI. The size is determined by \p m.
+ *                      (In particular, it must have at least as many limbs as
+ *                      the modulus \p m.)
+ * \param[in] m         The address of the modulus related to \p X.
+ * \param[in] input     The input buffer to import from.
+ * \param input_length  The length in bytes of \p input.
  *
  * \return       \c 0 if successful.
  * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p X isn't
- *               large enough to hold the value in \p buf.
+ *               large enough to hold the value in \p input.
  * \return       #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if the external representation
  *               of \p m is invalid or \p X is not less than \p m.
  */
 int mbedtls_mpi_mod_raw_read( mbedtls_mpi_uint *X,
                               const mbedtls_mpi_mod_modulus *m,
-                              const unsigned char *buf,
-                              size_t buflen );
+                              const unsigned char *input,
+                              size_t input_length );
 
-/** Export X into unsigned binary data.
+/** Export A into unsigned binary data.
  *
- * \param[in] X     The address of the MPI. The size is determined by \p m. (In
- *                  particular, it must have at least as many limbs as the modulus
- *                  \p m.)
- * \param[in] m     The address of the modulus related to \p X.
- * \param[out] buf  The output buffer to export to.
- * \param buflen    The length in bytes of \p buf.
+ * \param[in] A         The address of the MPI. The size is determined by \p m.
+ *                      (In particular, it must have at least as many limbs as
+ *                      the modulus \p m.)
+ * \param[in] m         The address of the modulus related to \p A.
+ * \param[out] output   The output buffer to export to.
+ * \param output_length The length in bytes of \p output.
  *
  * \return       \c 0 if successful.
- * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p buf isn't
- *               large enough to hold the value of \p X.
+ * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p output isn't
+ *               large enough to hold the value of \p A.
  * \return       #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if the external representation
  *               of \p m is invalid.
  */
-int mbedtls_mpi_mod_raw_write( const mbedtls_mpi_uint *X,
+int mbedtls_mpi_mod_raw_write( const mbedtls_mpi_uint *A,
                                const mbedtls_mpi_mod_modulus *m,
-                               unsigned char *buf,
-                               size_t buflen );
+                               unsigned char *output,
+                               size_t output_length );
 
 #endif /* MBEDTLS_BIGNUM_MOD_RAW_H */

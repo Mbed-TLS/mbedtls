@@ -33,31 +33,31 @@
 
 /** Count leading zero bits in a given integer.
  *
- * \param x     Integer to count leading zero bits.
+ * \param a     Integer to count leading zero bits.
  *
- * \return      The number of leading zero bits in \p x.
+ * \return      The number of leading zero bits in \p a.
  */
-size_t mbedtls_mpi_core_clz( const mbedtls_mpi_uint x );
+size_t mbedtls_mpi_core_clz( const mbedtls_mpi_uint a );
 
 /** Return the the minimum number of bits required to represent the value held
  * in the MPI.
  *
- * \note This function returns 0 if all the limbs of \p X are 0.
+ * \note This function returns 0 if all the limbs of \p A are 0.
  *
- * \param[in] X     The address of the MPI.
- * \param nx        The number of limbs of \p X.
+ * \param[in] A     The address of the MPI.
+ * \param a_limbs   The number of limbs of \p A.
  *
- * \return      The number of bits in \p X.
+ * \return      The number of bits in \p A.
  */
-size_t mbedtls_mpi_core_bitlen( const mbedtls_mpi_uint *X, size_t nx );
+size_t mbedtls_mpi_core_bitlen( const mbedtls_mpi_uint *A, size_t a_limbs );
 
 /** Convert a big-endian byte array aligned to the size of mbedtls_mpi_uint
  * into the storage form used by mbedtls_mpi.
  *
- * \param[in,out] X     The address of the MPI.
- * \param limbs         The number of limbs of \p X.
+ * \param[in,out] A     The address of the MPI.
+ * \param limbs         The number of limbs of \p A.
  */
-void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint *X,
+void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint *A,
                                          size_t limbs );
 
 /** Import X from unsigned binary data, little endian.
@@ -65,80 +65,81 @@ void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint *X,
  * The MPI needs to have enough limbs to store the full value (including any
  * most significant zero bytes in the input).
  *
- * \param[out] X    The address of the MPI.
- * \param nx        The number of limbs of \p X.
- * \param[in] buf   The input buffer to import from.
- * \param buflen    The length in bytes of \p buf.
+ * \param[out] X         The address of the MPI.
+ * \param X_limbs        The number of limbs of \p X.
+ * \param[in] input      The input buffer to import from.
+ * \param input_length   The length bytes of \p input.
  *
  * \return       \c 0 if successful.
  * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p X isn't
- *               large enough to hold the value in \p buf.
+ *               large enough to hold the value in \p input.
  */
 int mbedtls_mpi_core_read_le( mbedtls_mpi_uint *X,
-                              size_t nx,
-                              const unsigned char *buf,
-                              size_t buflen );
+                              size_t X_limbs,
+                              const unsigned char *input,
+                              size_t input_length );
 
 /** Import X from unsigned binary data, big endian.
  *
  * The MPI needs to have enough limbs to store the full value (including any
  * most significant zero bytes in the input).
  *
- * \param[out] X    The address of the MPI.
- *                  May only be #NULL if \nx is 0 and \p buflen is 0.
- * \param nx        The number of limbs of \p X.
- * \param[in] buf   The input buffer to import from.
- *                  May only be #NULL if \p buflen is 0.
- * \param buflen    The length in bytes of \p buf.
+ * \param[out] X        The address of the MPI.
+ *                      May only be #NULL if \X_limbs is 0 and \p input_length
+ *                      is 0.
+ * \param X_limbs       The number of limbs of \p X.
+ * \param[in] input     The input buffer to import from.
+ *                      May only be #NULL if \p input_length is 0.
+ * \param input_length  The length in bytes of \p input.
  *
  * \return       \c 0 if successful.
  * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p X isn't
- *               large enough to hold the value in \p buf.
+ *               large enough to hold the value in \p input.
  */
 int mbedtls_mpi_core_read_be( mbedtls_mpi_uint *X,
-                              size_t nx,
-                              const unsigned char *buf,
-                              size_t buflen );
+                              size_t X_limbs,
+                              const unsigned char *input,
+                              size_t input_length );
 
-/** Export X into unsigned binary data, little endian.
+/** Export A into unsigned binary data, little endian.
  *
- * \note If \p buf is shorter than \p X the export is still successful if the
- *       value held in \p X fits in the buffer (that is, if enough of the most
- *       significant bytes of \p X are 0).
+ * \note If \p output is shorter than \p A the export is still successful if the
+ *       value held in \p A fits in the buffer (that is, if enough of the most
+ *       significant bytes of \p A are 0).
  *
- * \param[in] X     The address of the MPI.
- * \param nx        The number of limbs of \p X.
- * \param[out] buf  The output buffer to export to.
- * \param buflen    The length in bytes of \p buf.
+ * \param[in] A         The address of the MPI.
+ * \param A_limbs       The number of limbs of \p A.
+ * \param[out] output   The output buffer to export to.
+ * \param output_length The length in bytes of \p output.
  *
  * \return       \c 0 if successful.
- * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p buf isn't
- *               large enough to hold the value of \p X.
+ * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p output isn't
+ *               large enough to hold the value of \p A.
  */
-int mbedtls_mpi_core_write_le( const mbedtls_mpi_uint *X,
-                               size_t nx,
-                               unsigned char *buf,
-                               size_t buflen );
+int mbedtls_mpi_core_write_le( const mbedtls_mpi_uint *A,
+                               size_t A_limbs,
+                               unsigned char *output,
+                               size_t output_length );
 
-/** Export X into unsigned binary data, big endian.
+/** Export A into unsigned binary data, big endian.
  *
- * \note If \p buf is shorter than \p X the export is still successful if the
- *       value held in \p X fits in the buffer (that is, if enough of the most
- *       significant bytes of \p X are 0).
+ * \note If \p output is shorter than \p A the export is still successful if the
+ *       value held in \p A fits in the buffer (that is, if enough of the most
+ *       significant bytes of \p A are 0).
  *
- * \param[in] X     The address of the MPI.
- * \param nx        The number of limbs of \p X.
- * \param[out] buf  The output buffer to export to.
- * \param buflen    The length in bytes of \p buf.
+ * \param[in] A         The address of the MPI.
+ * \param A_limbs       The number of limbs of \p A.
+ * \param[out] output   The output buffer to export to.
+ * \param output_length The length in bytes of \p output.
  *
  * \return       \c 0 if successful.
- * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p buf isn't
- *               large enough to hold the value of \p X.
+ * \return       #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p output isn't
+ *               large enough to hold the value of \p A.
  */
-int mbedtls_mpi_core_write_be( const mbedtls_mpi_uint *X,
-                               size_t nx,
-                               unsigned char *buf,
-                               size_t buflen );
+int mbedtls_mpi_core_write_be( const mbedtls_mpi_uint *A,
+                               size_t A_limbs,
+                               unsigned char *output,
+                               size_t output_length );
 
 #define ciL    (sizeof(mbedtls_mpi_uint))   /* chars in limb  */
 #define biL    (ciL << 3)                   /* bits  in limb  */

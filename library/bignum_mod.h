@@ -76,16 +76,16 @@ typedef struct {
  *                  The memory pointed to by \p p will be used by \p r and must
  *                  not be modified in any way until after
  *                  mbedtls_mpi_mod_residue_release() is called.
- * \param pn        The number of limbs of \p p.
+ * \param p_limbs   The number of limbs of \p p.
  *
  * \return      \c 0 if successful.
- * \return      #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p pn is less than the limbs
- *              in \p m or if \p p is not less than \p m.
+ * \return      #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p p_limbs is less than the
+ *              limbs in \p m or if \p p is not less than \p m.
  */
 int mbedtls_mpi_mod_residue_setup( mbedtls_mpi_mod_residue *r,
                                    const mbedtls_mpi_mod_modulus *m,
                                    mbedtls_mpi_uint *p,
-                                   size_t pn );
+                                   size_t p_limbs );
 
 /** Unbind elements of a residue structure.
  *
@@ -112,7 +112,7 @@ void mbedtls_mpi_mod_modulus_init( mbedtls_mpi_mod_modulus *m );
  *                  The memory pointed to by \p p will be used by \p m and must
  *                  not be modified in any way until after
  *                  mbedtls_mpi_mod_modulus_free() is called.
- * \param pn        The number of limbs of \p p.
+ * \param p_limbs   The number of limbs of \p p.
  * \param ext_rep   The external representation to be used for residues
  *                  associated with \p m (see #mbedtls_mpi_mod_ext_rep).
  * \param int_rep   The internal representation to be used for residues
@@ -124,7 +124,7 @@ void mbedtls_mpi_mod_modulus_init( mbedtls_mpi_mod_modulus *m );
  */
 int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,
                                    const mbedtls_mpi_uint *p,
-                                   size_t pn,
+                                   size_t p_limbs,
                                    mbedtls_mpi_mod_ext_rep ext_rep,
                                    mbedtls_mpi_mod_rep_selector int_rep );
 

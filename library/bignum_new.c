@@ -24,6 +24,7 @@
 #include "mbedtls/bignum.h"
 #include "bignum_core.h"
 #include "bn_mul.h"
+#include "constant_time_internal.h"
 
 #include <string.h>
 
@@ -49,11 +50,34 @@ void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
         (void) mbedtls_mpi_core_mla( T, n + 2, N, n, u1 );
     }
 
-    mbedtls_mpi_uint carry, borrow;
+    /* It's possible that the result in T is > N, and so we might need to subtract N */
 
-    carry  = T[n];
-    borrow = mbedtls_mpi_core_sub( X, T, N, n );
-    (void) mbedtls_mpi_core_add_if( X, N, n, ( carry < borrow ) );
+    mbedtls_mpi_uint carry  = T[n];
+    mbedtls_mpi_uint borrow = mbedtls_mpi_core_sub( X, T, N, n );
+
+    /*
+     * Both carry and borrow can only be 0 or 1.
+     *
+     * If carry = 1, the result in T must be > N by definition, and the subtraction
+     * using only n limbs will create borrow, but that will have the correct
+     * final result.
+     *
+     * i.e. (carry, borrow) of (1, 1) => return X
+     *
+     * If carry = 0, then we want to use the result of the subtraction iff
+     * borrow = 0.
+     *
+     * i.e. (carry, borrow) of (0, 0) => return X
+     *                         (0, 1) => return T
+     *
+     * We've confirmed that the unit tests exercise this function with all 3 of
+     * the valid (carry, borrow) combinations (listed above), and that we don't
+     * see (carry, borrow) = (1, 0).
+     *
+     * So the correct return value is already in X if (carry ^ borrow) = 0,
+     * but is in (the lower n limbs of) T if (carry ^ borrow) = 1.
+     */
+     mbedtls_ct_mpi_uint_cond_assign( n, X, T, (unsigned char) ( carry ^ borrow ) );
 }
 
 /*

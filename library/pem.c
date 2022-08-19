@@ -29,6 +29,7 @@
 #include "mbedtls/cipher.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
+#include "hash_info.h"
 
 #include <string.h>
 
@@ -150,42 +151,27 @@ static int pem_pbkdf1( unsigned char *key, size_t keylen,
     unsigned char md5sum[16];
     psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
     size_t output_length = 0;
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
 
-    status = psa_hash_setup( &operation, PSA_ALG_MD5 );
-    if( status != PSA_SUCCESS )
+    if( ( status = psa_hash_setup( &operation, PSA_ALG_MD5 ) ) != PSA_SUCCESS )
+        goto exit;
+
+    if( ( status = psa_hash_update( &operation, pwd, pwdlen ) ) != PSA_SUCCESS )
+        goto exit;
+
+    if( ( status = psa_hash_update( &operation, iv, 8 ) ) != PSA_SUCCESS )
+        goto exit;
+
+    if( ( status = psa_hash_finish( &operation, md5sum,
+                                    PSA_HASH_LENGTH( PSA_ALG_MD5 ),
+                                    &output_length ) ) != PSA_SUCCESS )
     {
-        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         goto exit;
     }
-    status = psa_hash_update( &operation, pwd, pwdlen );
-    if( status != PSA_SUCCESS )
-    {
-        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+
+    if( ( status = psa_hash_abort( &operation ) ) != PSA_SUCCESS )
         goto exit;
-    }
-    status = psa_hash_update( &operation, iv, 8 );
-    if( status != PSA_SUCCESS )
-    {
-        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-        goto exit;
-    }
-    status = psa_hash_finish( &operation, md5sum,
-                                 PSA_HASH_LENGTH( PSA_ALG_MD5 ),
-                                 &output_length );
-    if( status != PSA_SUCCESS )
-    {
-        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-        goto exit;
-    }
-    status = psa_hash_abort( &operation );
-    if( status != PSA_SUCCESS )
-    {
-        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-        goto exit;
-    }
 
     /*
      * key[ 0..15] = MD5(pwd || IV)
@@ -201,44 +187,27 @@ static int pem_pbkdf1( unsigned char *key, size_t keylen,
     /*
      * key[16..23] = MD5(key[ 0..15] || pwd || IV])
      */
-    status = psa_hash_setup( &operation, PSA_ALG_MD5 );
-    if( status != PSA_SUCCESS )
+    if( ( status = psa_hash_setup( &operation, PSA_ALG_MD5 ) ) != PSA_SUCCESS )
+        goto exit;
+
+    if( ( status = psa_hash_update( &operation, md5sum, 16 ) ) != PSA_SUCCESS )
+        goto exit;
+
+    if( ( status = psa_hash_update( &operation, pwd, pwdlen ) ) != PSA_SUCCESS )
+        goto exit;
+
+    if( ( status = psa_hash_update( &operation, iv, 8 ) ) != PSA_SUCCESS )
+        goto exit;
+
+    if( ( status = psa_hash_finish( &operation, md5sum,
+                                    PSA_HASH_LENGTH( PSA_ALG_MD5 ),
+                                    &output_length ) ) != PSA_SUCCESS )
     {
-        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
         goto exit;
     }
-    status = psa_hash_update( &operation, md5sum, 16 );
-    if( status != PSA_SUCCESS )
-    {
-        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
+
+    if( ( status = psa_hash_abort( &operation ) ) != PSA_SUCCESS )
         goto exit;
-    }
-    status = psa_hash_update( &operation, pwd, pwdlen );
-    if( status != PSA_SUCCESS )
-    {
-        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-        goto exit;
-    }
-    status = psa_hash_update( &operation, iv, 8 );
-    if( status != PSA_SUCCESS )
-    {
-        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-        goto exit;
-    }
-    status = psa_hash_finish( &operation, md5sum,
-                                 PSA_HASH_LENGTH( PSA_ALG_MD5 ),
-                                 &output_length );
-    if( status != PSA_SUCCESS )
-    {
-        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-        goto exit;
-    }
-    status = psa_hash_abort( &operation );
-    if( status != PSA_SUCCESS )
-    {
-        ret = MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED;
-        goto exit;
-    }
 
     size_t use_len = 16;
     if( keylen < 32 )
@@ -248,10 +217,8 @@ static int pem_pbkdf1( unsigned char *key, size_t keylen,
 
 exit:
     mbedtls_platform_zeroize( md5sum, 16 );
-    if( status == PSA_SUCCESS )
-        ret = 0;
 
-    return( ret );
+    return( mbedtls_md_error_from_psa ( status ) );
 }
 #endif /* MBEDTLS_MD5_C */
 

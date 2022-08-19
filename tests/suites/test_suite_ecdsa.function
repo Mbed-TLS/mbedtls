@@ -468,7 +468,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void ecdsa_verify( int grp_id, char * x, char * y, char * r, char * s, data_t * content, int key_is_valid, int expected )
+void ecdsa_verify( int grp_id, char * x, char * y, char * r, char * s, data_t * content, int expected )
 {
     mbedtls_ecdsa_context ctx;
     mbedtls_mpi sig_r, sig_s;
@@ -493,18 +493,13 @@ void ecdsa_verify( int grp_id, char * x, char * y, char * r, char * s, data_t * 
     TEST_EQUAL( mbedtls_test_read_mpi( &sig_s, s ), 0 );
 
     /* Test whether public key has expected validity */
-    TEST_EQUAL( mbedtls_ecp_check_pubkey( &ctx.grp, &ctx.Q ), key_is_valid ? 0 : MBEDTLS_ERR_ECP_INVALID_KEY );
+    TEST_EQUAL( mbedtls_ecp_check_pubkey( &ctx.grp, &ctx.Q ),
+        expected == MBEDTLS_ERR_ECP_INVALID_KEY ? MBEDTLS_ERR_ECP_INVALID_KEY : 0 );
 
     /* Verification */
     int result = mbedtls_ecdsa_verify( &ctx.grp, content->x, content->len, &ctx.Q, &sig_r, &sig_s );
 
     TEST_EQUAL( result, expected );
-
-    if ( !key_is_valid ) {
-        /* Invalid public key must always fail */
-        TEST_ASSERT( result != 0 );
-    }
-
 exit:
     mbedtls_ecdsa_free( &ctx );
     mbedtls_mpi_free( &sig_r );

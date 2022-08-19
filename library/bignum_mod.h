@@ -101,7 +101,7 @@ void mbedtls_mpi_mod_residue_release( mbedtls_mpi_mod_residue *r );
 
 /** Initialize a modulus structure.
  *
- * \param[out] m     The address of a modulus.
+ * \param[out] m     The address of the modulus structure to initialize.
  */
 void mbedtls_mpi_mod_modulus_init( mbedtls_mpi_mod_modulus *m );
 
@@ -136,7 +136,7 @@ int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,
  *          mbedtls_mpi_mod_modulus_setup() only removes the reference to it,
  *          making it safe to free or to use it again.
  *
- * \param[in,out] m     The address of a modulus.
+ * \param[in,out] m     The address of the modulus structure to free.
  */
 void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m );
 

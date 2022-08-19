@@ -39,7 +39,7 @@
  */
 size_t mbedtls_mpi_core_clz( const mbedtls_mpi_uint a );
 
-/** Return the the minimum number of bits required to represent the value held
+/** Return the minimum number of bits required to represent the value held
  * in the MPI.
  *
  * \note This function returns 0 if all the limbs of \p A are 0.

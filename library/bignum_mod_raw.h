@@ -1,5 +1,5 @@
 /**
- *  Low level modular bignum functions
+ *  Low-level modular bignum functions
  *
  *  This interface only should be used by the higher level modular bignum
  *  module (bignum_mod.c) and the ECP module (ecp.c, ecp_curves.c). All other

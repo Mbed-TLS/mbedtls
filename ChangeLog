@@ -5104,7 +5104,7 @@ XySSL ChangeLog
     * Fixed a bug in mpi_is_prime that caused some primes to fail
       the Miller-Rabin primality test
 
-    I'd also like to thank Younès Hafri for the CRUX linux port,
+    I'd also like to thank Younès Hafri for the CRUX linux port, TEST
     Khalil Petit who added XySSL into pkgsrc and Arnaud Cornet
     who maintains the Debian package :-) TEST 2
 

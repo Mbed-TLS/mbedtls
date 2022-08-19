@@ -712,7 +712,7 @@ cleanup:
 int mbedtls_mpi_write_binary_le( const mbedtls_mpi *X,
                                  unsigned char *buf, size_t buflen )
 {
-    return( mbedtls_mpi_core_write_le( X->p, X->n, buf, buflen) );
+    return( mbedtls_mpi_core_write_le( X->p, X->n, buf, buflen ) );
 }
 
 /*

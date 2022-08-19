@@ -174,7 +174,10 @@ int mbedtls_mpi_core_read_le( mbedtls_mpi_uint *X,
         memset( X, 0, X_limbs * ciL );
 
         for( size_t i = 0; i < input_length; i++ )
-            X[i / ciL] |= ((mbedtls_mpi_uint) input[i]) << ((i % ciL) << 3);
+        {
+            size_t offset = ( ( i % ciL ) << 3 );
+            X[i / ciL] |= ( (mbedtls_mpi_uint) input[i] ) << offset;
+        }
     }
 
     return( 0 );

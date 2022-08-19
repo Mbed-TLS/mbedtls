@@ -141,9 +141,9 @@ int mbedtls_mpi_core_write_be( const mbedtls_mpi_uint *A,
                                unsigned char *output,
                                size_t output_length );
 
-#define ciL    (sizeof(mbedtls_mpi_uint))   /* chars in limb  */
-#define biL    (ciL << 3)                   /* bits  in limb  */
-#define biH    (ciL << 2)                   /* half limb size */
+#define ciL    ( sizeof(mbedtls_mpi_uint) )   /* chars in limb  */
+#define biL    ( ciL << 3 )                   /* bits  in limb  */
+#define biH    ( ciL << 2 )                   /* half limb size */
 
 /*
  * Convert between bits/chars and number of limbs
@@ -153,6 +153,6 @@ int mbedtls_mpi_core_write_be( const mbedtls_mpi_uint *A,
 #define CHARS_TO_LIMBS(i) ( (i) / ciL + ( (i) % ciL != 0 ) )
 /* Get a specific byte, without range checks. */
 #define GET_BYTE( X, i )                                \
-    ( ( ( X )[( i ) / ciL] >> ( ( ( i ) % ciL ) * 8 ) ) & 0xff )
+    ( ( (X)[(i) / ciL] >> ( ( (i) % ciL ) * 8 ) ) & 0xff )
 
 #endif /* MBEDTLS_BIGNUM_CORE_H */

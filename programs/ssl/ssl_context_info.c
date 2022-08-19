@@ -655,7 +655,7 @@ void print_deserialized_ssl_session( const uint8_t *ssl, uint32_t len,
         {
             printf( "\tMessage-Digest : %s\n", mbedtls_md_get_name( md_info ) );
         }
-#endif
+#endif /* MBEDTLS_MD_C */
     }
 
     CHECK_SSL_END( 1 );

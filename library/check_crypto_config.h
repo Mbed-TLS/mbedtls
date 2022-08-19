@@ -88,8 +88,8 @@
 #error "PSA_WANT_KEY_TYPE_ECC_KEY_PAIR defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_USE_PSA_CRYPTO) &&\
-    !(defined(PSA_WANT_ALG_SHA_1) || defined(PSA_WANT_ALG_SHA_256) || defined(PSA_WANT_ALG_SHA_512) )
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && defined(MBEDTLS_USE_PSA_CRYPTO) && \
+    !( defined(PSA_WANT_ALG_SHA_1) || defined(PSA_WANT_ALG_SHA_256) || defined(PSA_WANT_ALG_SHA_512) )
 #error "MBEDTLS_SSL_PROTO_TLS1_2 defined, but not all prerequisites"
 #endif
 

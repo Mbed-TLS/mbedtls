@@ -2110,19 +2110,19 @@ static inline int mbedtls_ssl_get_pk_type_and_md_alg_from_sig_alg(
             *md_alg = MBEDTLS_MD_SHA256;
             *pk_type = MBEDTLS_PK_RSASSA_PSS;
             break;
-#endif /* MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA  */
+#endif /* MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA  */
 #if defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384:
             *md_alg = MBEDTLS_MD_SHA384;
             *pk_type = MBEDTLS_PK_RSASSA_PSS;
             break;
-#endif /* MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA */
+#endif /* MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
 #if defined(MBEDTLS_HAS_ALG_SHA_512_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:
             *md_alg = MBEDTLS_MD_SHA512;
             *pk_type = MBEDTLS_PK_RSASSA_PSS;
             break;
-#endif /* MBEDTLS_HAS_ALG_SHA_512_VIA_MD_OR_PSA */
+#endif /* MBEDTLS_HAS_ALG_SHA_512_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
 #endif /* MBEDTLS_PKCS1_V21 */
             default:
                 return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );

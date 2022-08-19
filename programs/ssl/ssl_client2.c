@@ -1802,7 +1802,7 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_conf_verify( &conf, my_verify, NULL );
 
     memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
-#endif
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)

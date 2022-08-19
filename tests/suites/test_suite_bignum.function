@@ -149,36 +149,6 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mpi_read_write_string( int radix_X, char * input_X, int radix_A,
-                            char * input_A, int output_size, int result_read,
-                            int result_write )
-{
-    mbedtls_mpi X;
-    char str[1000];
-    size_t len;
-
-    mbedtls_mpi_init( &X );
-
-    memset( str, '!', sizeof( str ) );
-
-    TEST_ASSERT( mbedtls_mpi_read_string( &X, radix_X, input_X ) == result_read );
-    if( result_read == 0 )
-    {
-        TEST_ASSERT( sign_is_valid( &X ) );
-        TEST_ASSERT( mbedtls_mpi_write_string( &X, radix_A, str, output_size, &len ) == result_write );
-        if( result_write == 0 )
-        {
-            TEST_ASSERT( strcasecmp( str, input_A ) == 0 );
-            TEST_ASSERT( str[len] == '!' );
-        }
-    }
-
-exit:
-    mbedtls_mpi_free( &X );
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
 void mpi_read_string( int radix_A, char * input_A, char * input_X, int ret )
 {
     mbedtls_mpi A, X;

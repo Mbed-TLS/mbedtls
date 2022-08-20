@@ -1031,14 +1031,11 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
      */
     MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, cipher_suites_len + 2 + 2 );
 
-   /*
-    * uint8 CipherSuite[2];    // Cryptographic suite selector
-    *
-    * struct {
-    *     ...
-    *     CipherSuite cipher_suites<2..2^16-2>;
-    *     ...
-    * } ClientHello;
+   /* ...
+    * CipherSuite cipher_suites<2..2^16-2>;
+    * ...
+    * with CipherSuite defined as:
+    * uint8 CipherSuite[2];
     */
     cipher_suites = p;
     cipher_suites_end = p + cipher_suites_len;
@@ -1293,7 +1290,6 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
                                         MBEDTLS_SSL_HS_CLIENT_HELLO,
                                         p - buf );
 
-/* TODO: move later */
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
     /* Update checksum with either
      * - The entire content of the CH message, if no PSK extension is present

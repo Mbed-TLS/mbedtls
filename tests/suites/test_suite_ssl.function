@@ -31,6 +31,7 @@ typedef struct log_pattern
     size_t counter;
 } log_pattern;
 
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
 static int rng_seed = 0xBEEF;
 static int rng_get( void *p_rng, unsigned char *output, size_t output_len )
 {
@@ -40,6 +41,7 @@ static int rng_get( void *p_rng, unsigned char *output, size_t output_len )
 
     return 0;
 }
+#endif
 
 /*
  * This function can be passed to mbedtls to receive output logs from it. In
@@ -101,8 +103,10 @@ typedef struct handshake_test_options
 
 void init_handshake_options( handshake_test_options *opts )
 {
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
     srand( rng_seed );
     rng_seed += 0xD0;
+#endif
     opts->cipher = "";
     opts->client_min_version = MBEDTLS_SSL_VERSION_UNKNOWN;
     opts->client_max_version = MBEDTLS_SSL_VERSION_UNKNOWN;

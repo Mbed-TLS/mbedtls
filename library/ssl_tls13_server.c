@@ -100,8 +100,8 @@ static int ssl_tls13_parse_key_exchange_modes_ext( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
-#define SSL_TLS1_3_OFFERED_PSK_NOT_MATCH   0
-#define SSL_TLS1_3_OFFERED_PSK_MATCH       1
+#define SSL_TLS1_3_OFFERED_PSK_NOT_MATCH   1
+#define SSL_TLS1_3_OFFERED_PSK_MATCH       0
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_offered_psks_check_identity_match(
                mbedtls_ssl_context *ssl,
@@ -286,7 +286,6 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_CHK_BUF_READ_PTR( binder, binders_end, binder_len );
         p_binder_len += binder_len + 1;
 
-
         identity_id++;
         if( matched_identity != -1 )
             continue;
@@ -298,8 +297,11 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
 
         ret = ssl_tls13_offered_psks_check_binder_match(
                                             ssl, binder, binder_len, &alg );
-        if( ret < 0 )
+        /* For the security rationale, handshake should be abort when binder
+         * value mismatch. See RFC 8446 section 4.2.11.2 and appendix E.6. */
+        if( ret != SSL_TLS1_3_OFFERED_PSK_MATCH )
         {
+            MBEDTLS_SSL_DEBUG_MSG( 3, ( "Binder is not matched." ) );
             MBEDTLS_SSL_DEBUG_RET( 1,
                 "ssl_tls13_offered_psks_check_binder_match" , ret );
             MBEDTLS_SSL_PEND_FATAL_ALERT(
@@ -307,9 +309,6 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
                 MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
             return( ret );
         }
-
-        if( ret != SSL_TLS1_3_OFFERED_PSK_MATCH )
-            continue;
 
         matched_identity = identity_id;
         *psk_alg = alg;
@@ -329,7 +328,7 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
                                      (size_t)( binders_end - identities_end ) );
     if( matched_identity == -1 )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "No matched pre shared key found" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "No matched PSK or ticket." ) );
         return( MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY );
     }
 
@@ -1306,7 +1305,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
                                                   pre_shared_key_ext_start,
                                                   pre_shared_key_ext_end,
                                                   &psk_alg );
-        if( ret == MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY)
+        if( ret == MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY )
         {
             ssl->handshake->extensions_present &= ~MBEDTLS_SSL_EXT_PRE_SHARED_KEY;
         }

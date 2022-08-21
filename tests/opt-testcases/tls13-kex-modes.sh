@@ -2231,3 +2231,52 @@ run_test    "TLS 1.3: PSK: psk_or_ephemeral: without pre_shared_key,with psk_dhe
             -S "key exchange mode: psk$" \
             -S "key exchange mode: psk_ephemeral" \
             -s "key exchange mode: ephemeral"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_DEBUG_C
+# SOME_ECDHE_ENABLED?
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test    "TLS 1.3: PSK: all: with mismatched key, with psk_ke and psk_dhe_ke. G->m" \
+            "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
+            "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
+                         --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f71 \
+                         localhost" \
+            1 \
+            -s "found psk key exchange modes extension" \
+            -s "found pre_shared_key extension" \
+            -s "Found PSK_EPHEMERAL KEX MODE" \
+            -s "Found PSK KEX MODE" \
+            -s "Binder is not matched." \
+            -S "Pre shared key found" \
+            -S "No matched PSK or ticket"\
+            -S "key exchange mode: psk$" \
+            -S "key exchange mode: psk_ephemeral" \
+            -S "key exchange mode: ephemeral"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_DEBUG_C
+# SOME_ECDHE_ENABLED?
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test    "TLS 1.3: PSK: all: with mismatched key, with psk_ke and psk_dhe_ke. O->m" \
+            "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
+            "$O_NEXT_CLI -tls1_3 -msg -allow_no_dhe_kex \
+                         -psk_identity Client_identity -psk 6162636465666768696a6b6c6d6e6f71" \
+            1 \
+            -s "found psk key exchange modes extension" \
+            -s "found pre_shared_key extension" \
+            -s "Found PSK_EPHEMERAL KEX MODE" \
+            -s "Found PSK KEX MODE" \
+            -s "Binder is not matched." \
+            -S "Pre shared key found" \
+            -S "No matched PSK or ticket"\
+            -S "key exchange mode: psk$" \
+            -S "key exchange mode: psk_ephemeral" \
+            -S "key exchange mode: ephemeral"

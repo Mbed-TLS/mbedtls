@@ -1552,6 +1552,14 @@
 /**
  * \def MBEDTLS_SSL_TLS1_3_TICKET_NONCE_LENGTH
  *
+ * Time in seconds of max ticket lifetime. This is not used in TLS 1.2.
+ *
+ */
+#define MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE 6000
+
+/**
+ * \def MBEDTLS_SSL_TLS1_3_TICKET_NONCE_LENGTH
+ *
  * Size in bytes of a ticket nonce. This is not used in TLS 1.2.
  *
  * This must be less than 256.

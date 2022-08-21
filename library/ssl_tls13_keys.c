@@ -1567,12 +1567,12 @@ cleanup:
     return( ret );
 }
 
-
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
 int mbedtls_ssl_tls13_export_handshake_psk( mbedtls_ssl_context *ssl,
                                             unsigned char **psk,
                                             size_t *psk_len )
 {
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_key_attributes_t key_attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_status_t status;
@@ -1581,7 +1581,7 @@ int mbedtls_ssl_tls13_export_handshake_psk( mbedtls_ssl_context *ssl,
     *psk = NULL;
 
     if( mbedtls_svc_key_id_is_null( ssl->handshake->psk_opaque ) )
-        return( 0 );
+        return( MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED );
 
     status = psa_get_key_attributes( ssl->handshake->psk_opaque, &key_attributes );
     if( status != PSA_SUCCESS )
@@ -1612,14 +1612,8 @@ int mbedtls_ssl_tls13_export_handshake_psk( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED );
     return( 0 );
 #endif /* !MBEDTLS_USE_PSA_CRYPTO */
-#else /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
-    ((void) ssl);
-    *psk = NULL;
-    *psk_len = 0;
-    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
-#endif /* !MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
-
 }
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 

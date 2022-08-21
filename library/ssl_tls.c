@@ -1662,7 +1662,7 @@ int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
     return( ret );
 }
 
-void mbedtls_ssl_remove_psk( mbedtls_ssl_context *ssl )
+static void ssl_remove_psk( mbedtls_ssl_context *ssl )
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( ! mbedtls_svc_key_id_is_null( ssl->handshake->psk_opaque ) )
@@ -1682,7 +1682,6 @@ void mbedtls_ssl_remove_psk( mbedtls_ssl_context *ssl )
         mbedtls_platform_zeroize( ssl->handshake->psk,
                                   ssl->handshake->psk_len );
         mbedtls_free( ssl->handshake->psk );
-        ssl->handshake->psk = NULL;
         ssl->handshake->psk_len = 0;
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
@@ -1704,7 +1703,7 @@ int mbedtls_ssl_set_hs_psk( mbedtls_ssl_context *ssl,
     if( psk_len > MBEDTLS_PSK_MAX_LEN )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    mbedtls_ssl_remove_psk( ssl );
+    ssl_remove_psk( ssl );
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
@@ -1781,7 +1780,7 @@ int mbedtls_ssl_set_hs_psk_opaque( mbedtls_ssl_context *ssl,
         ( ssl->handshake == NULL ) )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
-    mbedtls_ssl_remove_psk( ssl );
+    ssl_remove_psk( ssl );
     ssl->handshake->psk_opaque = psk;
     return( 0 );
 }
@@ -3523,7 +3522,25 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
-    mbedtls_ssl_remove_psk( ssl );
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( ! mbedtls_svc_key_id_is_null( ssl->handshake->psk_opaque ) )
+    {
+        /* The maintenance of the external PSK key slot is the
+         * user's responsibility. */
+        if( ssl->handshake->psk_opaque_is_internal )
+        {
+            psa_destroy_key( ssl->handshake->psk_opaque );
+            ssl->handshake->psk_opaque_is_internal = 0;
+        }
+        ssl->handshake->psk_opaque = MBEDTLS_SVC_KEY_ID_INIT;
+    }
+#else
+    if( handshake->psk != NULL )
+    {
+        mbedtls_platform_zeroize( handshake->psk, handshake->psk_len );
+        mbedtls_free( handshake->psk );
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 #endif
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && \

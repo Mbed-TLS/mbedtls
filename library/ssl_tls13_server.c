@@ -760,9 +760,6 @@ static int ssl_tls13_determine_key_exchange_mode( mbedtls_ssl_context *ssl )
     else
     if( ssl_tls13_check_ephemeral_key_exchange( ssl ) )
     {
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
-        mbedtls_ssl_remove_psk( ssl );
-#endif
         ssl->handshake->key_exchange_mode =
             MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL;
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "key exchange mode: ephemeral" ) );

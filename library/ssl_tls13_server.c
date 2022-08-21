@@ -121,14 +121,155 @@ static int ssl_tls13_parse_key_exchange_modes_ext( mbedtls_ssl_context *ssl,
 
 #define SSL_TLS1_3_OFFERED_PSK_NOT_MATCH   1
 #define SSL_TLS1_3_OFFERED_PSK_MATCH       0
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_offered_psks_check_identity_match_ticket(
+                                            mbedtls_ssl_context *ssl,
+                                            mbedtls_ssl_session *session,
+                                            const unsigned char *identity,
+                                            size_t identity_len,
+                                            uint32_t obfuscated_ticket_age )
+{
+    int ret;
+    unsigned char *ticket_buffer;
+
+    ((void) obfuscated_ticket_age);
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> check_identity_match_ticket" ) );
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "ticket length: %" MBEDTLS_PRINTF_SIZET
+                                    ". ticket_parse is %sconfigured. "
+                                    "ticket_write is %sconfigured.",
+                                identity_len,
+                                ssl->conf->f_ticket_parse == NULL ? "NOT " : "",
+                                ssl->conf->f_ticket_write == NULL ? "NOT " : "" ) );
+
+    if( ssl->conf->f_ticket_parse == NULL ||
+        identity_len == 0 )
+    {
+        /* Ticket parser is not configured, Skip */
+        return( 0 );
+    }
+
+    /* We create a copy of the encrypted ticket since decrypting
+     * it into the same buffer will wipe-out the original content.
+     * We do, however, need the original buffer for computing the
+     * psk binder value.
+     */
+    ticket_buffer = mbedtls_calloc( 1, identity_len );
+    if( ticket_buffer == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small" ) );
+        return ( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+    }
+    memcpy( ticket_buffer, identity, identity_len );
+
+    if( ( ret = ssl->conf->f_ticket_parse( ssl->conf->p_ticket,
+                                           session,
+                                           ticket_buffer, identity_len ) ) != 0 )
+    {
+        if( ret == MBEDTLS_ERR_SSL_INVALID_MAC )
+            MBEDTLS_SSL_DEBUG_MSG( 3, ( "ticket is not authentic" ) );
+        else if( ret == MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED )
+            MBEDTLS_SSL_DEBUG_MSG( 3, ( "ticket is expired" ) );
+        else
+            MBEDTLS_SSL_DEBUG_RET( 1, "ticket_parse", ret );
+    }
+
+    /* We delete the temporary buffer */
+    mbedtls_free( ticket_buffer );
+
+    if( ret == 0 )
+    {
+#if defined(MBEDTLS_HAVE_TIME)
+        mbedtls_time_t now;
+        int64_t diff;
+#endif
+        ret = SSL_TLS1_3_OFFERED_PSK_MATCH;
+#if defined(MBEDTLS_HAVE_TIME)
+        now = mbedtls_time( NULL );
+
+        /* Check #1:
+         *   Is the time when the ticket was issued later than now?
+         */
+        if( now < session->start )
+        {
+            MBEDTLS_SSL_DEBUG_MSG(
+                3, ( "Ticket expired: now=%" MBEDTLS_PRINTF_LONGLONG
+                        ", start=%" MBEDTLS_PRINTF_LONGLONG,
+                     (long long)now, (long long)session->start ) );
+            ret = MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED;
+        }
+
+        /* Check #2:
+         *   Is the ticket age for the selected PSK identity
+         *   (computed by subtracting ticket_age_add from
+         *   PskIdentity.obfuscated_ticket_age modulo 2^32 )
+         *   within a small tolerance of the time since the
+         *   ticket was issued?
+         */
+        diff = ( now - session->start ) -
+               ( obfuscated_ticket_age - session->ticket_age_add );
+
+        if( diff > MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 3,
+                ( "Ticket age outside tolerance window ( diff=%"
+                      MBEDTLS_PRINTF_LONGLONG" )",
+                  (long long)diff ) );
+            ret = MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED;
+        }
+
+#endif /* MBEDTLS_HAVE_TIME */
+    }
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= check_identity_match_ticket" ) );
+    return( ret );
+}
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_offered_psks_check_identity_match(
                mbedtls_ssl_context *ssl,
                const unsigned char *identity,
                size_t identity_len,
+               uint32_t obfuscated_ticket_age,
+               void *session,
                int *psk_type )
 {
+    ((void) session);
+    ((void) obfuscated_ticket_age);
     *psk_type = MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL;
+
+    MBEDTLS_SSL_DEBUG_BUF( 4, "identity", identity, identity_len );
+    ssl->handshake->resume = 0;
+
+
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    if( ssl_tls13_offered_psks_check_identity_match_ticket(
+            ssl, (mbedtls_ssl_session *)session,
+            identity, identity_len,
+            obfuscated_ticket_age ) == SSL_TLS1_3_OFFERED_PSK_MATCH )
+    {
+        mbedtls_ssl_session *i_session=(mbedtls_ssl_session *)session;
+        ssl->handshake->resume = 1;
+        *psk_type = MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION;
+        mbedtls_ssl_set_hs_psk( ssl,
+                                i_session->resumption_key,
+                                i_session->resumption_key_len );
+
+        MBEDTLS_SSL_DEBUG_BUF( 4, "Ticket-resumed PSK:",
+                               i_session->resumption_key,
+                               i_session->resumption_key_len );
+        MBEDTLS_SSL_DEBUG_MSG( 4, ( "ticket: obfuscated_ticket_age: %u",
+                                    (unsigned)obfuscated_ticket_age ) );
+        return( SSL_TLS1_3_OFFERED_PSK_MATCH );
+    }
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+
     /* Check identity with external configured function */
     if( ssl->conf->f_psk != NULL )
     {

@@ -23,10 +23,6 @@
 
 #include "mbedtls/build_info.h"
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-#include "psa/crypto.h"
-#endif
-
 #include "legacy_or_psa.h"
 
 /*

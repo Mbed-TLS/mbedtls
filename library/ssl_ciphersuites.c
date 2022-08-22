@@ -33,9 +33,6 @@
 #include "mbedtls/ssl.h"
 #include "ssl_misc.h"
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-#include "psa/crypto.h"
-#endif
 #include "legacy_or_psa.h"
 
 #include <string.h>

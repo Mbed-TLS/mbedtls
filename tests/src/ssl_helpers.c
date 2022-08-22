@@ -193,7 +193,7 @@ int mbedtls_test_ssl_buffer_put( mbedtls_test_ssl_buffer *buf,
 }
 
 int mbedtls_test_ssl_buffer_get( mbedtls_test_ssl_buffer *buf,
-                                 unsigned char* output,
+                                 unsigned char *output,
                                  size_t output_len )
 {
     size_t overflow = 0;
@@ -292,7 +292,7 @@ int mbedtls_test_ssl_message_queue_pop_info(
 int mbedtls_test_ssl_message_queue_peek_info(
                                         mbedtls_test_ssl_message_queue *queue,
                                         size_t buf_len,
-                                        size_t* msg_len )
+                                        size_t *msg_len )
 {
     if( queue == NULL || msg_len == NULL )
         return MBEDTLS_TEST_ERROR_ARG_NULL;
@@ -308,7 +308,7 @@ void mbedtls_test_mock_socket_init( mbedtls_test_mock_socket *socket )
     memset( socket, 0, sizeof( *socket ) );
 }
 
-void mbedtls_test_mock_socket_close( mbedtls_test_mock_socket* socket )
+void mbedtls_test_mock_socket_close( mbedtls_test_mock_socket *socket )
 {
     if( socket == NULL )
         return;
@@ -331,8 +331,8 @@ void mbedtls_test_mock_socket_close( mbedtls_test_mock_socket* socket )
     memset( socket, 0, sizeof( *socket ) );
 }
 
-int mbedtls_test_mock_socket_connect( mbedtls_test_mock_socket* peer1,
-                                      mbedtls_test_mock_socket* peer2,
+int mbedtls_test_mock_socket_connect( mbedtls_test_mock_socket *peer1,
+                                      mbedtls_test_mock_socket *peer2,
                                       size_t bufsize )
 {
     int ret = -1;
@@ -449,11 +449,11 @@ void mbedtls_test_message_socket_init( mbedtls_test_message_socket_context *ctx 
     ctx->socket = NULL;
 }
 
-int mbedtls_test_message_socket_setup( mbedtls_test_ssl_message_queue* queue_input,
-                                       mbedtls_test_ssl_message_queue* queue_output,
+int mbedtls_test_message_socket_setup( mbedtls_test_ssl_message_queue *queue_input,
+                                       mbedtls_test_ssl_message_queue *queue_output,
                                        size_t queue_capacity,
-                                       mbedtls_test_mock_socket* socket,
-                                       mbedtls_test_message_socket_context* ctx )
+                                       mbedtls_test_mock_socket *socket,
+                                       mbedtls_test_message_socket_context *ctx )
 {
     int ret = mbedtls_test_ssl_message_queue_setup( queue_input, queue_capacity );
     if( ret != 0 )
@@ -466,7 +466,7 @@ int mbedtls_test_message_socket_setup( mbedtls_test_ssl_message_queue* queue_inp
     return 0;
 }
 
-void mbedtls_test_message_socket_close( mbedtls_test_message_socket_context* ctx )
+void mbedtls_test_message_socket_close( mbedtls_test_message_socket_context *ctx )
 {
     if( ctx == NULL )
         return;
@@ -480,8 +480,8 @@ int mbedtls_test_mock_tcp_send_msg( void *ctx,
                                     const unsigned char *buf,
                                     size_t len )
 {
-    mbedtls_test_ssl_message_queue* queue;
-    mbedtls_test_mock_socket* socket;
+    mbedtls_test_ssl_message_queue *queue;
+    mbedtls_test_mock_socket *socket;
     mbedtls_test_message_socket_context *context =
                                     (mbedtls_test_message_socket_context*) ctx;
 
@@ -507,8 +507,8 @@ int mbedtls_test_mock_tcp_recv_msg( void *ctx,
                                     unsigned char *buf,
                                     size_t buf_len )
 {
-    mbedtls_test_ssl_message_queue* queue;
-    mbedtls_test_mock_socket* socket;
+    mbedtls_test_ssl_message_queue *queue;
+    mbedtls_test_mock_socket *socket;
     mbedtls_test_message_socket_context *context =
                                     (mbedtls_test_message_socket_context*) ctx;
     size_t drop_len = 0;
@@ -717,7 +717,7 @@ int mbedtls_test_ssl_endpoint_init(
                             mbedtls_test_message_socket_context *dtls_context,
                             mbedtls_test_ssl_message_queue *input_queue,
                             mbedtls_test_ssl_message_queue *output_queue,
-                            uint16_t* group_list )
+                            uint16_t *group_list )
 {
     int ret = -1;
     uintptr_t user_data_n;
@@ -1002,7 +1002,7 @@ exit:
 
 void set_ciphersuite( mbedtls_ssl_config *conf,
                       const char *cipher,
-                      int* forced_ciphersuite )
+                      int *forced_ciphersuite )
 {
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
     forced_ciphersuite[0] = mbedtls_ssl_get_ciphersuite_id( cipher );

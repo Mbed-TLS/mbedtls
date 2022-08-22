@@ -34,9 +34,7 @@
 #include "mbedtls/cipher.h"
 #endif
 
-#if defined(MBEDTLS_MD_C)
 #include "mbedtls/md.h"
-#endif
 
 /** OID is not found. */
 #define MBEDTLS_ERR_OID_NOT_FOUND                         -0x002E
@@ -519,7 +517,6 @@ int mbedtls_oid_get_oid_by_ec_grp( mbedtls_ecp_group_id grp_id,
                            const char **oid, size_t *olen );
 #endif /* MBEDTLS_ECP_C */
 
-#if defined(MBEDTLS_MD_C)
 /**
  * \brief          Translate SignatureAlgorithm OID into md_type and pk_type
  *
@@ -564,7 +561,6 @@ int mbedtls_oid_get_oid_by_sig_alg( mbedtls_pk_type_t pk_alg, mbedtls_md_type_t 
  * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
  */
 int mbedtls_oid_get_md_hmac( const mbedtls_asn1_buf *oid, mbedtls_md_type_t *md_hmac );
-#endif /* MBEDTLS_MD_C */
 
 /**
  * \brief          Translate hash algorithm OID into md_type

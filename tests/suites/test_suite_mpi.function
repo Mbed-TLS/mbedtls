@@ -247,10 +247,12 @@ void mbedtls_mpi_core_io_be( data_t *input, int nb_int, int nx_32_int, int iret,
 
     /* nx_32_int is the number of 32 bit limbs, if we have 64 bit limbs we need
      * to halve the number of limbs to have the same size. */
-    if( sizeof( mbedtls_mpi_uint ) == 8 )
-        nx_32_int = nx_32_int / 2 + nx_32_int % 2;
+    size_t nx;
     TEST_ASSERT( 0 <= nx_32_int );
-    size_t nx = nx_32_int;
+    if( sizeof( mbedtls_mpi_uint ) == 8 )
+        nx = nx_32_int / 2 + nx_32_int % 2;
+    else
+        nx = nx_32_int;
 
     mbedtls_mpi_uint X[sizeof( buf ) / sizeof( mbedtls_mpi_uint )];
     TEST_ASSERT( nx <= sizeof( X ) / sizeof( X[0] ) );
@@ -302,10 +304,12 @@ void mbedtls_mpi_core_io_le( data_t *input, int nb_int, int nx_32_int, int iret,
 
     /* nx_32_int is the number of 32 bit limbs, if we have 64 bit limbs we need
      * to halve the number of limbs to have the same size. */
-    if( sizeof( mbedtls_mpi_uint ) == 8 )
-        nx_32_int = nx_32_int / 2 + nx_32_int % 2;
+    size_t nx;
     TEST_ASSERT( 0 <= nx_32_int );
-    size_t nx = nx_32_int;
+    if( sizeof( mbedtls_mpi_uint ) == 8 )
+        nx = nx_32_int / 2 + nx_32_int % 2;
+    else
+        nx = nx_32_int;
 
     mbedtls_mpi_uint X[sizeof( buf ) / sizeof( mbedtls_mpi_uint )];
     TEST_ASSERT( nx <= sizeof( X ) / sizeof( X[0] ) );
@@ -384,10 +388,12 @@ void mbedtls_mpi_mod_raw_io( data_t *input, int nb_int, int nx_32_int,
 
     /* nx_32_int is the number of 32 bit limbs, if we have 64 bit limbs we need
      * to halve the number of limbs to have the same size. */
-    if( sizeof( mbedtls_mpi_uint ) == 8 )
-        nx_32_int = nx_32_int / 2 + nx_32_int % 2;
+    size_t nx;
     TEST_ASSERT( 0 <= nx_32_int );
-    size_t nx = nx_32_int;
+    if( sizeof( mbedtls_mpi_uint ) == 8 )
+        nx = nx_32_int / 2 + nx_32_int % 2;
+    else
+        nx = nx_32_int;
 
     mbedtls_mpi_uint X[sizeof( buf ) / sizeof( mbedtls_mpi_uint )];
     TEST_ASSERT( nx <= sizeof( X ) / sizeof( X[0] ) );

@@ -45,7 +45,7 @@ size_t mbedtls_mpi_core_clz( const mbedtls_mpi_uint a );
  * \note This function returns 0 if all the limbs of \p A are 0.
  *
  * \param[in] A     The address of the MPI.
- * \param a_limbs   The number of limbs of \p A.
+ * \param A_limbs   The number of limbs of \p A.
  *
  * \return      The number of bits in \p A.
  */
@@ -55,10 +55,10 @@ size_t mbedtls_mpi_core_bitlen( const mbedtls_mpi_uint *A, size_t A_limbs );
  * into the storage form used by mbedtls_mpi.
  *
  * \param[in,out] A     The address of the MPI.
- * \param limbs         The number of limbs of \p A.
+ * \param A_limbs       The number of limbs of \p A.
  */
 void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint *A,
-                                         size_t limbs );
+                                         size_t A_limbs );
 
 /** Import X from unsigned binary data, little-endian.
  *

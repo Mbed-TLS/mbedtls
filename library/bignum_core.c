@@ -130,11 +130,11 @@ static mbedtls_mpi_uint mpi_bigendian_to_host( mbedtls_mpi_uint a )
 }
 
 void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint *A,
-                                         size_t limbs )
+                                         size_t A_limbs )
 {
     mbedtls_mpi_uint *cur_limb_left;
     mbedtls_mpi_uint *cur_limb_right;
-    if( limbs == 0 )
+    if( A_limbs == 0 )
         return;
 
     /*
@@ -146,7 +146,7 @@ void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint *A,
      * than the right index (it's not a problem if limbs is odd and the
      * indices coincide in the last iteration).
      */
-    for( cur_limb_left = A, cur_limb_right = A + ( limbs - 1 );
+    for( cur_limb_left = A, cur_limb_right = A + ( A_limbs - 1 );
          cur_limb_left <= cur_limb_right;
          cur_limb_left++, cur_limb_right-- )
     {

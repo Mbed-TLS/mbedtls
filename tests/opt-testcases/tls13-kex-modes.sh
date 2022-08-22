@@ -18,7 +18,7 @@
 # limitations under the License.
 #
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -65,7 +65,7 @@ run_test    "TLS 1.3: PSK: psk: with matched key and identity, with psk_ke and p
             -S "key exchange mode: psk_ephemeral" \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -89,7 +89,7 @@ run_test    "TLS 1.3: PSK: psk: with matched key and identity, with psk_ke. G->m
             -S "key exchange mode: psk_ephemeral" \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -136,7 +136,7 @@ run_test    "TLS 1.3: PSK: psk: with matched key and identity, with psk_dhe_ke. 
             -S "key exchange mode: psk_ephemeral" \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -183,7 +183,7 @@ run_test    "TLS 1.3: PSK: psk: with mismatched identity, with psk_ke and psk_dh
             -S "key exchange mode: psk_ephemeral" \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -207,7 +207,7 @@ run_test    "TLS 1.3: PSK: psk: with mismatched identity, with psk_ke. G->m" \
             -S "key exchange mode: psk_ephemeral" \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -254,7 +254,7 @@ run_test    "TLS 1.3: PSK: psk: with mismatched identity, with psk_dhe_ke. O->m"
             -S "key exchange mode: psk_ephemeral" \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -321,7 +321,7 @@ run_test    "TLS 1.3: PSK: psk: without pre_shared_key,with psk_dhe_ke. O->m" \
             -S "key exchange mode: psk_ephemeral" \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -374,7 +374,7 @@ run_test    "TLS 1.3: PSK: psk_ephemeral: with matched key and identity, with ps
             -s "key exchange mode: psk_ephemeral" \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -401,7 +401,7 @@ run_test    "TLS 1.3: PSK: psk_ephemeral: with matched key and identity, with ps
             -S "key exchange mode: psk_ephemeral" \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -454,7 +454,7 @@ run_test    "TLS 1.3: PSK: psk_ephemeral: with matched key and identity, with ps
             -s "key exchange mode: psk_ephemeral" \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -507,7 +507,7 @@ run_test    "TLS 1.3: PSK: psk_ephemeral: with mismatched identity, with psk_ke 
             -S "key exchange mode: psk_ephemeral" \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -534,7 +534,7 @@ run_test    "TLS 1.3: PSK: psk_ephemeral: with mismatched identity, with psk_ke.
             -S "key exchange mode: psk_ephemeral" \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -587,7 +587,7 @@ run_test    "TLS 1.3: PSK: psk_ephemeral: with mismatched identity, with psk_dhe
             -S "key exchange mode: psk_ephemeral" \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -663,7 +663,7 @@ run_test    "TLS 1.3: PSK: psk_ephemeral: without pre_shared_key,with psk_dhe_ke
             -S "key exchange mode: psk_ephemeral" \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -710,7 +710,7 @@ run_test    "TLS 1.3: PSK: ephemeral: with matched key and identity, with psk_ke
             -S "key exchange mode: psk_ephemeral" \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -734,7 +734,7 @@ run_test    "TLS 1.3: PSK: ephemeral: with matched key and identity, with psk_ke
             -S "key exchange mode: psk_ephemeral" \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -781,7 +781,7 @@ run_test    "TLS 1.3: PSK: ephemeral: with matched key and identity, with psk_dh
             -S "key exchange mode: psk_ephemeral" \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -828,7 +828,7 @@ run_test    "TLS 1.3: PSK: ephemeral: with mismatched identity, with psk_ke and 
             -S "key exchange mode: psk_ephemeral" \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -852,7 +852,7 @@ run_test    "TLS 1.3: PSK: ephemeral: with mismatched identity, with psk_ke. G->
             -S "key exchange mode: psk_ephemeral" \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -899,7 +899,7 @@ run_test    "TLS 1.3: PSK: ephemeral: with mismatched identity, with psk_dhe_ke.
             -S "key exchange mode: psk_ephemeral" \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -966,7 +966,7 @@ run_test    "TLS 1.3: PSK: ephemeral: without pre_shared_key,with psk_dhe_ke. O-
             -S "key exchange mode: psk_ephemeral" \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -1011,7 +1011,7 @@ run_test    "TLS 1.3: PSK: psk_all: with matched key and identity, with psk_ke a
             -s "Found PSK KEX MODE" \
             -s "Pre shared key found"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -1037,7 +1037,7 @@ run_test    "TLS 1.3: PSK: psk_all: with matched key and identity, with psk_ke. 
             -S "key exchange mode: psk_ephemeral" \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -1088,7 +1088,7 @@ run_test    "TLS 1.3: PSK: psk_all: with matched key and identity, with psk_dhe_
             -s "key exchange mode: psk_ephemeral" \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -1141,7 +1141,7 @@ run_test    "TLS 1.3: PSK: psk_all: with mismatched identity, with psk_ke and ps
             -S "key exchange mode: psk_ephemeral" \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -1168,7 +1168,7 @@ run_test    "TLS 1.3: PSK: psk_all: with mismatched identity, with psk_ke. G->m"
             -S "key exchange mode: psk_ephemeral" \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -1221,7 +1221,7 @@ run_test    "TLS 1.3: PSK: psk_all: with mismatched identity, with psk_dhe_ke. O
             -S "key exchange mode: psk_ephemeral" \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -1284,7 +1284,8 @@ run_test    "TLS 1.3: PSK: psk_all: without pre_shared_key,with psk_dhe_ke. O->m
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -S "Found PSK KEX MODE" \
             -S "Pre shared key found"
-requires_openssl_tls1_3
+
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -1331,7 +1332,7 @@ run_test    "TLS 1.3: PSK: ephemeral_all: with matched key and identity, with ps
             -s "key exchange mode: psk_ephemeral" \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -1355,7 +1356,7 @@ run_test    "TLS 1.3: PSK: ephemeral_all: with matched key and identity, with ps
             -S "key exchange mode: psk_ephemeral" \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -1402,7 +1403,7 @@ run_test    "TLS 1.3: PSK: ephemeral_all: with matched key and identity, with ps
             -s "key exchange mode: psk_ephemeral" \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -1449,7 +1450,7 @@ run_test    "TLS 1.3: PSK: ephemeral_all: with mismatched identity, with psk_ke 
             -S "key exchange mode: psk_ephemeral" \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -1473,7 +1474,7 @@ run_test    "TLS 1.3: PSK: ephemeral_all: with mismatched identity, with psk_ke.
             -S "key exchange mode: psk_ephemeral" \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -1520,7 +1521,7 @@ run_test    "TLS 1.3: PSK: ephemeral_all: with mismatched identity, with psk_dhe
             -S "key exchange mode: psk_ephemeral" \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -1587,7 +1588,7 @@ run_test    "TLS 1.3: PSK: ephemeral_all: without pre_shared_key,with psk_dhe_ke
             -S "key exchange mode: psk_ephemeral" \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -1634,7 +1635,7 @@ run_test    "TLS 1.3: PSK: all: with matched key and identity, with psk_ke and p
             -s "key exchange mode: psk_ephemeral" \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -1658,7 +1659,7 @@ run_test    "TLS 1.3: PSK: all: with matched key and identity, with psk_ke. G->m
             -S "key exchange mode: psk_ephemeral" \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -1705,7 +1706,7 @@ run_test    "TLS 1.3: PSK: all: with matched key and identity, with psk_dhe_ke. 
             -s "key exchange mode: psk_ephemeral" \
             -S "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -1752,7 +1753,7 @@ run_test    "TLS 1.3: PSK: all: with mismatched identity, with psk_ke and psk_dh
             -S "key exchange mode: psk_ephemeral" \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -1776,7 +1777,7 @@ run_test    "TLS 1.3: PSK: all: with mismatched identity, with psk_ke. G->m" \
             -S "key exchange mode: psk_ephemeral" \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -1823,7 +1824,7 @@ run_test    "TLS 1.3: PSK: all: with mismatched identity, with psk_dhe_ke. O->m"
             -S "key exchange mode: psk_ephemeral" \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -1890,7 +1891,7 @@ run_test    "TLS 1.3: PSK: all: without pre_shared_key,with psk_dhe_ke. O->m" \
             -S "key exchange mode: psk_ephemeral" \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -1943,7 +1944,7 @@ run_test    "TLS 1.3: PSK: psk_or_ephemeral: with matched key and identity, with
             -S "key exchange mode: psk_ephemeral" \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -1970,7 +1971,7 @@ run_test    "TLS 1.3: PSK: psk_or_ephemeral: with matched key and identity, with
             -S "key exchange mode: psk_ephemeral" \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2023,7 +2024,7 @@ run_test    "TLS 1.3: PSK: psk_or_ephemeral: with matched key and identity, with
             -S "key exchange mode: psk_ephemeral" \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2076,7 +2077,7 @@ run_test    "TLS 1.3: PSK: psk_or_ephemeral: with mismatched identity, with psk_
             -S "key exchange mode: psk_ephemeral" \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2103,7 +2104,7 @@ run_test    "TLS 1.3: PSK: psk_or_ephemeral: with mismatched identity, with psk_
             -S "key exchange mode: psk_ephemeral" \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2156,7 +2157,7 @@ run_test    "TLS 1.3: PSK: psk_or_ephemeral: with mismatched identity, with psk_
             -S "key exchange mode: psk_ephemeral" \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2232,7 +2233,7 @@ run_test    "TLS 1.3: PSK: psk_or_ephemeral: without pre_shared_key,with psk_dhe
             -S "key exchange mode: psk_ephemeral" \
             -s "key exchange mode: ephemeral"
 
-requires_openssl_tls1_3
+requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C

@@ -236,7 +236,7 @@ class CodeParser():
         if not all(os.path.isdir(d) for d in ["include", "library", "tests"]):
             raise Exception("This script must be run from Mbed TLS root")
 
-    def comprehensive_parse(self):
+    def comprehensive_parse(self): # pylint: disable=too-many-locals
         """
         Comprehensive ("default") function to call each parsing function and
         retrieve various elements of the code, together with the source location.
@@ -249,27 +249,39 @@ class CodeParser():
             .format(str(self.excluded_files))
         )
 
-        all_macros = self.parse_macros([
+        public_macros = self.parse_macros([
             "include/mbedtls/*.h",
             "include/psa/*.h",
-            "library/*.h",
             "tests/include/test/drivers/*.h",
             "3rdparty/everest/include/everest/everest.h",
             "3rdparty/everest/include/everest/x25519.h"
         ])
-        enum_consts = self.parse_enum_consts([
-            "include/mbedtls/*.h",
+        private_macros = self.parse_macros([
             "library/*.h",
+        ])
+        macros = public_macros + private_macros
+
+        public_enum_consts = self.parse_enum_consts([
+            "include/mbedtls/*.h",
             "3rdparty/everest/include/everest/everest.h",
             "3rdparty/everest/include/everest/x25519.h"
         ])
-        identifiers = self.parse_identifiers([
+        private_enum_consts = self.parse_enum_consts([
+            "library/*.h",
+        ])
+        enum_consts = public_enum_consts + private_enum_consts
+
+        public_identifiers = self.parse_identifiers([
             "include/mbedtls/*.h",
             "include/psa/*.h",
-            "library/*.h",
             "3rdparty/everest/include/everest/everest.h",
             "3rdparty/everest/include/everest/x25519.h"
         ])
+        private_identifiers = self.parse_identifiers([
+            "library/*.h",
+        ])
+        identifiers = private_identifiers + public_identifiers
+
         mbed_words = self.parse_mbed_words([
             "include/mbedtls/*.h",
             "include/psa/*.h",
@@ -283,15 +295,18 @@ class CodeParser():
         symbols = self.parse_symbols()
 
         # Remove identifier macros like mbedtls_printf or mbedtls_calloc
-        identifiers_justname = [x.name for x in identifiers]
-        actual_macros = []
-        for macro in all_macros:
-            if macro.name not in identifiers_justname:
-                actual_macros.append(macro)
+        def remove_identifier_macros(macros):
+            identifiers_justname = [x.name for x in identifiers]
+            return [macro for macro in macros if
+                    macro.name not in identifiers_justname]
+
+        actual_public_macros = remove_identifier_macros(public_macros)
+        actual_private_macros = remove_identifier_macros(private_macros)
+        actual_macros = actual_public_macros + actual_private_macros
 
         self.log.debug("Found:")
         # Aligns the counts on the assumption that none exceeds 4 digits
-        self.log.debug("  {:4} Total Macros".format(len(all_macros)))
+        self.log.debug("  {:4} Total Macros".format(len(macros)))
         self.log.debug("  {:4} Non-identifier Macros".format(len(actual_macros)))
         self.log.debug("  {:4} Enum Constants".format(len(enum_consts)))
         self.log.debug("  {:4} Identifiers".format(len(identifiers)))
@@ -300,6 +315,9 @@ class CodeParser():
             "macros": actual_macros,
             "enum_consts": enum_consts,
             "identifiers": identifiers,
+            "public_macros": actual_public_macros,
+            "public_enum_consts": public_enum_consts,
+            "public_identifiers": public_identifiers,
             "symbols": symbols,
             "mbed_words": mbed_words
         }
@@ -741,9 +759,9 @@ class NameChecker():
         problems += self.check_symbols_declared_in_header()
 
         pattern_checks = [
-            ("macros", MACRO_PATTERN),
-            ("enum_consts", CONSTANTS_PATTERN),
-            ("identifiers", IDENTIFIER_PATTERN)
+            ("public_macros", MACRO_PATTERN),
+            ("public_enum_consts", CONSTANTS_PATTERN),
+            ("public_identifiers", IDENTIFIER_PATTERN)
         ]
         for group, check_pattern in pattern_checks:
             problems += self.check_match_pattern(group, check_pattern)

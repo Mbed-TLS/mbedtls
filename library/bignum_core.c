@@ -38,7 +38,7 @@
 
 #include "bignum_core.h"
 
-size_t mbedtls_mpi_core_clz( const mbedtls_mpi_uint a )
+size_t mbedtls_mpi_core_clz( mbedtls_mpi_uint a )
 {
     size_t j;
     mbedtls_mpi_uint mask = (mbedtls_mpi_uint) 1 << (biL - 1);

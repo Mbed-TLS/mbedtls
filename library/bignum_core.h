@@ -37,7 +37,7 @@
  *
  * \return      The number of leading zero bits in \p a.
  */
-size_t mbedtls_mpi_core_clz( const mbedtls_mpi_uint a );
+size_t mbedtls_mpi_core_clz( mbedtls_mpi_uint a );
 
 /** Return the minimum number of bits required to represent the value held
  * in the MPI.

@@ -186,9 +186,9 @@ typedef struct mbedtls_test_mock_socket
  */
 typedef struct mbedtls_test_message_socket_context
 {
-    mbedtls_test_ssl_message_queue* queue_input;
-    mbedtls_test_ssl_message_queue* queue_output;
-    mbedtls_test_mock_socket* socket;
+    mbedtls_test_ssl_message_queue *queue_input;
+    mbedtls_test_ssl_message_queue *queue_output;
+    mbedtls_test_mock_socket *socket;
 } mbedtls_test_message_socket_context;
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && \
@@ -303,7 +303,7 @@ int mbedtls_test_ssl_buffer_put( mbedtls_test_ssl_buffer *buf,
  * \retval  -1, if \buf is NULL or it hasn't been set up.
  */
 int mbedtls_test_ssl_buffer_get( mbedtls_test_ssl_buffer *buf,
-                                 unsigned char* output,
+                                 unsigned char *output,
                                  size_t output_len );
 
 /*
@@ -361,7 +361,7 @@ int mbedtls_test_ssl_message_queue_pop_info(
 int mbedtls_test_ssl_message_queue_peek_info(
                                         mbedtls_test_ssl_message_queue *queue,
                                         size_t buf_len,
-                                        size_t* msg_len );
+                                        size_t *msg_len );
 
 /*
  * Setup and teardown functions for mock sockets.
@@ -381,7 +381,7 @@ void mbedtls_test_mock_socket_init( mbedtls_test_mock_socket *socket );
  * phenomenon that when closing a UDP connection the peer is not aware of the
  * connection having been closed.
  */
-void mbedtls_test_mock_socket_close( mbedtls_test_mock_socket* socket );
+void mbedtls_test_mock_socket_close( mbedtls_test_mock_socket *socket );
 
 /*
  * Establishes a connection between \p peer1 and \p peer2.
@@ -393,8 +393,8 @@ void mbedtls_test_mock_socket_close( mbedtls_test_mock_socket* socket );
  * the correct value allows for simulation of MTU, sanity testing the mock
  * implementation and mocking TCP connections with lower memory cost.
  */
-int mbedtls_test_mock_socket_connect( mbedtls_test_mock_socket* peer1,
-                                      mbedtls_test_mock_socket* peer2,
+int mbedtls_test_mock_socket_connect( mbedtls_test_mock_socket *peer1,
+                                      mbedtls_test_mock_socket *peer2,
                                       size_t bufsize );
 
 /*
@@ -432,17 +432,17 @@ void mbedtls_test_message_socket_init( mbedtls_test_message_socket_context *ctx 
  * \retval  MBEDTLS_ERR_SSL_ALLOC_FAILED, if allocation of a message
  *          queue failed.
  */
-int mbedtls_test_message_socket_setup( mbedtls_test_ssl_message_queue* queue_input,
-                                       mbedtls_test_ssl_message_queue* queue_output,
+int mbedtls_test_message_socket_setup( mbedtls_test_ssl_message_queue *queue_input,
+                                       mbedtls_test_ssl_message_queue *queue_output,
                                        size_t queue_capacity,
-                                       mbedtls_test_mock_socket* socket,
-                                       mbedtls_test_message_socket_context* ctx );
+                                       mbedtls_test_mock_socket *socket,
+                                       mbedtls_test_message_socket_context *ctx );
 
 /*
  * Close a given message socket context, along with the socket itself. Free the
  * memory allocated by the input queue.
  */
-void mbedtls_test_message_socket_close( mbedtls_test_message_socket_context* ctx );
+void mbedtls_test_message_socket_close( mbedtls_test_message_socket_context *ctx );
 
 /*
  * Send one message through a given message socket context.
@@ -512,7 +512,7 @@ int mbedtls_test_ssl_endpoint_init(
                             mbedtls_test_message_socket_context *dtls_context,
                             mbedtls_test_ssl_message_queue *input_queue,
                             mbedtls_test_ssl_message_queue *output_queue,
-                            uint16_t* group_list );
+                            uint16_t *group_list );
 
 /*
  * Deinitializes certificates from endpoint represented by \p ep.
@@ -560,7 +560,7 @@ int mbedtls_ssl_read_fragment( mbedtls_ssl_context *ssl,
 
 void set_ciphersuite( mbedtls_ssl_config *conf,
                       const char *cipher,
-                      int* forced_ciphersuite );
+                      int *forced_ciphersuite );
 
 int psk_dummy_callback( void *p_info,
                         mbedtls_ssl_context *ssl,

@@ -229,7 +229,7 @@ int mbedtls_mpi_core_write_le( const mbedtls_mpi_uint *A,
     {
         bytes_to_copy = output_length;
 
-        /* The output outputfer is smaller than the allocated size of A.
+        /* The output buffer is smaller than the allocated size of A.
          * However A may fit if its leading bytes are zero. */
         for( size_t i = bytes_to_copy; i < stored_bytes; i++ )
         {
@@ -263,7 +263,7 @@ int mbedtls_mpi_core_write_be( const mbedtls_mpi_uint *X,
 
     if( stored_bytes < output_length )
     {
-        /* There is enough space in the output outputfer. Write initial
+        /* There is enough space in the output buffer. Write initial
          * null bytes and record the position at which to start
          * writing the significant bytes. In this case, the execution
          * trace of this function does not depend on the value of the
@@ -274,7 +274,7 @@ int mbedtls_mpi_core_write_be( const mbedtls_mpi_uint *X,
     }
     else
     {
-        /* The output outputfer is smaller than the allocated size of X.
+        /* The output buffer is smaller than the allocated size of X.
          * However X may fit if its leading bytes are zero. */
         bytes_to_copy = output_length;
         p = output;

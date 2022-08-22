@@ -44,7 +44,7 @@
 int mbedtls_mpi_mod_raw_read( mbedtls_mpi_uint *X,
                               const mbedtls_mpi_mod_modulus *m,
                               const unsigned char *input,
-                              size_t input_lentgth )
+                              size_t input_length )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
@@ -52,11 +52,11 @@ int mbedtls_mpi_mod_raw_read( mbedtls_mpi_uint *X,
     {
         case MBEDTLS_MPI_MOD_EXT_REP_LE:
             ret = mbedtls_mpi_core_read_le( X, m->limbs,
-                                            input, input_lentgth );
+                                            input, input_length );
             break;
         case MBEDTLS_MPI_MOD_EXT_REP_BE:
             ret = mbedtls_mpi_core_read_be( X, m->limbs,
-                                            input, input_lentgth );
+                                            input, input_length );
             break;
         default:
             return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );

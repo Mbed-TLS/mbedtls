@@ -1,9 +1,9 @@
 /**
  *  Low-level modular bignum functions
  *
- *  This interface only should be used by the higher level modular bignum
+ *  This interface should only be used by the higher-level modular bignum
  *  module (bignum_mod.c) and the ECP module (ecp.c, ecp_curves.c). All other
- *  modules should use the high level modular bignum interface (bignum_mod.h)
+ *  modules should use the high-level modular bignum interface (bignum_mod.h)
  *  or the legacy bignum interface (bignum.h).
  *
  *  Copyright The Mbed TLS Contributors

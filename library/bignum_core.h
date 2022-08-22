@@ -1,9 +1,9 @@
 /**
  *  Core bignum functions
  *
- *  This interface only should be used by the legacy bignum module (bignum.h)
+ *  This interface should only be used by the legacy bignum module (bignum.h)
  *  and the modular bignum modules (bignum_mod.c, bignum_mod_raw.c). All other
- *  modules should use the high level modular bignum interface (bignum_mod.h)
+ *  modules should use the high-level modular bignum interface (bignum_mod.h)
  *  or the legacy bignum interface (bignum.h).
  *
  *  Copyright The Mbed TLS Contributors
@@ -49,7 +49,7 @@ size_t mbedtls_mpi_core_clz( const mbedtls_mpi_uint a );
  *
  * \return      The number of bits in \p A.
  */
-size_t mbedtls_mpi_core_bitlen( const mbedtls_mpi_uint *A, size_t a_limbs );
+size_t mbedtls_mpi_core_bitlen( const mbedtls_mpi_uint *A, size_t A_limbs );
 
 /** Convert a big-endian byte array aligned to the size of mbedtls_mpi_uint
  * into the storage form used by mbedtls_mpi.
@@ -60,7 +60,7 @@ size_t mbedtls_mpi_core_bitlen( const mbedtls_mpi_uint *A, size_t a_limbs );
 void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint *A,
                                          size_t limbs );
 
-/** Import X from unsigned binary data, little endian.
+/** Import X from unsigned binary data, little-endian.
  *
  * The MPI needs to have enough limbs to store the full value (including any
  * most significant zero bytes in the input).
@@ -79,7 +79,7 @@ int mbedtls_mpi_core_read_le( mbedtls_mpi_uint *X,
                               const unsigned char *input,
                               size_t input_length );
 
-/** Import X from unsigned binary data, big endian.
+/** Import X from unsigned binary data, big-endian.
  *
  * The MPI needs to have enough limbs to store the full value (including any
  * most significant zero bytes in the input).
@@ -101,7 +101,7 @@ int mbedtls_mpi_core_read_be( mbedtls_mpi_uint *X,
                               const unsigned char *input,
                               size_t input_length );
 
-/** Export A into unsigned binary data, little endian.
+/** Export A into unsigned binary data, little-endian.
  *
  * \note If \p output is shorter than \p A the export is still successful if the
  *       value held in \p A fits in the buffer (that is, if enough of the most
@@ -121,7 +121,7 @@ int mbedtls_mpi_core_write_le( const mbedtls_mpi_uint *A,
                                unsigned char *output,
                                size_t output_length );
 
-/** Export A into unsigned binary data, big endian.
+/** Export A into unsigned binary data, big-endian.
  *
  * \note If \p output is shorter than \p A the export is still successful if the
  *       value held in \p A fits in the buffer (that is, if enough of the most

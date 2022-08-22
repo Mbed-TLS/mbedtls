@@ -129,7 +129,8 @@ function(add_test_suite suite_name)
     )
 
     if(data_name STREQUAL "ssl")
-        add_executable(test_suite_${data_name} test_suite_${data_name}.c $<TARGET_OBJECTS:mbedtls_test> $<TARGET_OBJECTS:mbedtls_test_ssl>)
+        add_executable(test_suite_${data_name} test_suite_${data_name}.c $<TARGET_OBJECTS:mbedtls_test>
+                       $<TARGET_OBJECTS:mbedtls_test_ssl>)
     else()
         add_executable(test_suite_${data_name} test_suite_${data_name}.c $<TARGET_OBJECTS:mbedtls_test>)
     endif()

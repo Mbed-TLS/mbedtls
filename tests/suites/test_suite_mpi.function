@@ -208,24 +208,24 @@ void mbedtls_mpi_core_io_null()
     int ret;
 
     ret = mbedtls_mpi_core_read_be( &X, 1, NULL, 0 );
-    TEST_ASSERT( ret == 0 );
+    TEST_EQUAL( ret, 0 );
     ret = mbedtls_mpi_core_write_be( &X, 1, NULL, 0 );
-    TEST_ASSERT( ret == 0 );
+    TEST_EQUAL( ret, 0 );
 
     ret = mbedtls_mpi_core_read_be( NULL, 0, NULL, 0 );
-    TEST_ASSERT( ret == 0 );
+    TEST_EQUAL( ret, 0 );
     ret = mbedtls_mpi_core_write_be( NULL, 0, NULL, 0 );
-    TEST_ASSERT( ret == 0 );
+    TEST_EQUAL( ret, 0 );
 
     ret = mbedtls_mpi_core_read_le( &X, 1, NULL, 0 );
-    TEST_ASSERT( ret == 0 );
+    TEST_EQUAL( ret, 0 );
     ret = mbedtls_mpi_core_write_le( &X, 1, NULL, 0 );
-    TEST_ASSERT( ret == 0 );
+    TEST_EQUAL( ret, 0 );
 
     ret = mbedtls_mpi_core_read_le( NULL, 0, NULL, 0 );
-    TEST_ASSERT( ret == 0 );
+    TEST_EQUAL( ret, 0 );
     ret = mbedtls_mpi_core_write_le( NULL, 0, NULL, 0 );
-    TEST_ASSERT( ret == 0 );
+    TEST_EQUAL( ret, 0 );
 
 exit:
     ;
@@ -256,12 +256,12 @@ void mbedtls_mpi_core_io_be( data_t *input, int nb_int, int nx_32_int, int iret,
     TEST_ASSERT( nx <= sizeof( X ) / sizeof( X[0] ) );
 
     int ret = mbedtls_mpi_core_read_be( X, nx, input->x, input->len );
-    TEST_ASSERT( ret == iret );
+    TEST_EQUAL( ret, iret );
 
     if( iret == 0 )
     {
         ret =  mbedtls_mpi_core_write_be( X, nx, buf, nb );
-        TEST_ASSERT( ret == oret );
+        TEST_EQUAL( ret, oret );
     }
 
     if( ( iret == 0 ) && ( oret == 0 ) )
@@ -271,14 +271,14 @@ void mbedtls_mpi_core_io_be( data_t *input, int nb_int, int nx_32_int, int iret,
             size_t leading_zeroes = nb - input->len;
             TEST_ASSERT( memcmp( buf + nb - input->len, input->x, input->len ) == 0 );
             for( size_t i = 0; i < leading_zeroes; i++ )
-                TEST_ASSERT( buf[i] == 0 );
+                TEST_EQUAL( buf[i], 0 );
         }
         else
         {
             size_t leading_zeroes = input->len - nb;
             TEST_ASSERT( memcmp( input->x + input->len - nb, buf, nb ) == 0 );
             for( size_t i = 0; i < leading_zeroes; i++ )
-                TEST_ASSERT( input->x[i] == 0 );
+                TEST_EQUAL( input->x[i], 0 );
         }
     }
 
@@ -311,12 +311,12 @@ void mbedtls_mpi_core_io_le( data_t *input, int nb_int, int nx_32_int, int iret,
     TEST_ASSERT( nx <= sizeof( X ) / sizeof( X[0] ) );
 
     int ret =  mbedtls_mpi_core_read_le( X, nx, input->x, input->len );
-    TEST_ASSERT( ret == iret );
+    TEST_EQUAL( ret, iret );
 
     if( iret == 0 )
     {
         ret =  mbedtls_mpi_core_write_le( X, nx, buf, nb );
-        TEST_ASSERT( ret == oret );
+        TEST_EQUAL( ret, oret );
     }
 
     if( ( iret == 0 ) && ( oret == 0 ) )
@@ -325,13 +325,13 @@ void mbedtls_mpi_core_io_le( data_t *input, int nb_int, int nx_32_int, int iret,
         {
             TEST_ASSERT( memcmp( buf, input->x, input->len ) == 0 );
             for( size_t i = input->len; i < nb; i++ )
-                TEST_ASSERT( buf[i] == 0 );
+                TEST_EQUAL( buf[i], 0 );
         }
         else
         {
             TEST_ASSERT( memcmp( input->x, buf, nb ) == 0 );
             for( size_t i = nb; i < input->len; i++ )
-                TEST_ASSERT( input->x[i] == 0 );
+                TEST_EQUAL( input->x[i], 0 );
         }
     }
 
@@ -352,7 +352,7 @@ void mbedtls_mpi_mod_setup( int ext_rep, int int_rep, int iret )
 
     mbedtls_mpi_mod_modulus_init( &m );
     ret = mbedtls_mpi_mod_modulus_setup( &m, mp, MLIMBS, ext_rep, int_rep );
-    TEST_ASSERT( ret == iret );
+    TEST_EQUAL( ret, iret );
 
     /* Address sanitiser should catch if we try to free mp */
     mbedtls_mpi_mod_modulus_free( &m );
@@ -404,13 +404,13 @@ void mbedtls_mpi_mod_raw_io( data_t *input, int nb_int, int nx_32_int,
     memset( init, 0xFF, sizeof( init ) );
     int ret = mbedtls_mpi_mod_modulus_setup( &m, init, nx, endian,
                                              MBEDTLS_MPI_MOD_REP_MONTGOMERY );
-    TEST_ASSERT( ret == 0 );
+    TEST_EQUAL( ret, 0 );
 
     if( iendian == MBEDTLS_MPI_MOD_EXT_REP_INVALID && iret != 0 )
         m.ext_rep = MBEDTLS_MPI_MOD_EXT_REP_INVALID;
 
     ret = mbedtls_mpi_mod_raw_read( X, &m, input->x, input->len );
-    TEST_ASSERT( ret == iret );
+    TEST_EQUAL( ret, iret );
 
     if( iret == 0 )
     {
@@ -418,7 +418,7 @@ void mbedtls_mpi_mod_raw_io( data_t *input, int nb_int, int nx_32_int,
             m.ext_rep = MBEDTLS_MPI_MOD_EXT_REP_INVALID;
 
         ret = mbedtls_mpi_mod_raw_write( X, &m, buf, nb );
-        TEST_ASSERT( ret == oret );
+        TEST_EQUAL( ret, oret );
     }
 
     if( ( iret == 0 ) && ( oret == 0 ) )
@@ -430,13 +430,13 @@ void mbedtls_mpi_mod_raw_io( data_t *input, int nb_int, int nx_32_int,
                 size_t leading_zeroes = nb - input->len;
                 TEST_ASSERT( memcmp( buf + nb - input->len, input->x, input->len ) == 0 );
                 for( size_t i = 0; i < leading_zeroes; i++ )
-                    TEST_ASSERT( buf[i] == 0 );
+                    TEST_EQUAL( buf[i], 0 );
             }
             else
             {
                 TEST_ASSERT( memcmp( buf, input->x, input->len ) == 0 );
                 for( size_t i = input->len; i < nb; i++ )
-                    TEST_ASSERT( buf[i] == 0 );
+                    TEST_EQUAL( buf[i], 0 );
             }
         }
         else
@@ -446,13 +446,13 @@ void mbedtls_mpi_mod_raw_io( data_t *input, int nb_int, int nx_32_int,
                 size_t leading_zeroes = input->len - nb;
                 TEST_ASSERT( memcmp( input->x + input->len - nb, buf, nb ) == 0 );
                 for( size_t i = 0; i < leading_zeroes; i++ )
-                    TEST_ASSERT( input->x[i] == 0 );
+                    TEST_EQUAL( input->x[i], 0 );
             }
             else
             {
                 TEST_ASSERT( memcmp( input->x, buf, nb ) == 0 );
                 for( size_t i = nb; i < input->len; i++ )
-                    TEST_ASSERT( input->x[i] == 0 );
+                    TEST_EQUAL( input->x[i], 0 );
             }
         }
     }
@@ -748,7 +748,7 @@ void mpi_core_lt_ct( data_t * input_X, data_t * input_Y, int input_ret )
     TEST_CF_PUBLIC( Y, len * sizeof( mbedtls_mpi_uint ) );
     TEST_CF_PUBLIC( &ret, sizeof( ret ) );
 
-    TEST_ASSERT( ret == exp_ret );
+    TEST_EQUAL( ret, exp_ret );
 
 exit:
     ;

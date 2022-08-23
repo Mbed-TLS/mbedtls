@@ -1156,38 +1156,6 @@ int mbedtls_mpi_sub_int( mbedtls_mpi *X, const mbedtls_mpi *A, mbedtls_mpi_sint 
     return( mbedtls_mpi_sub_mpi( X, A, &B ) );
 }
 
-mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len,
-                                       const mbedtls_mpi_uint *s, size_t s_len,
-                                       mbedtls_mpi_uint b )
-{
-    mbedtls_mpi_uint c = 0; /* carry */
-    size_t excess_len = d_len - s_len;
-
-    size_t steps_x8 = s_len / 8;
-    size_t steps_x1 = s_len & 7;
-
-    while( steps_x8-- )
-    {
-        MULADDC_X8_INIT
-        MULADDC_X8_CORE
-        MULADDC_X8_STOP
-    }
-
-    while( steps_x1-- )
-    {
-        MULADDC_X1_INIT
-        MULADDC_X1_CORE
-        MULADDC_X1_STOP
-    }
-
-    while( excess_len-- )
-    {
-        *d += c; c = ( *d < c ); d++;
-    }
-
-    return( c );
-}
-
 /*
  * Baseline multiplication: X = A * B  (HAC 14.12)
  */

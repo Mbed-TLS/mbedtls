@@ -27,14 +27,14 @@
 
 #include <string.h>
 
-void MPI_CORE(montmul)( mbedtls_mpi_uint *X,
-                        const mbedtls_mpi_uint *A,
-                        const mbedtls_mpi_uint *B,
-                        size_t B_len,
-                        const mbedtls_mpi_uint *N,
-                        size_t n,
-                        mbedtls_mpi_uint mm,
-                        mbedtls_mpi_uint *T )
+void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
+                               const mbedtls_mpi_uint *A,
+                               const mbedtls_mpi_uint *B,
+                               size_t B_len,
+                               const mbedtls_mpi_uint *N,
+                               size_t n,
+                               mbedtls_mpi_uint mm,
+                               mbedtls_mpi_uint *T )
 {
     memset( T, 0, (2*n+1)*ciL );
 
@@ -45,21 +45,21 @@ void MPI_CORE(montmul)( mbedtls_mpi_uint *X,
         u0 = A[i];
         u1 = ( T[0] + u0 * B[0] ) * mm;
 
-        (void) MPI_CORE(mla)( T, n + 2, B, B_len, u0 );
-        (void) MPI_CORE(mla)( T, n + 2, N, n, u1 );
+        (void) mbedtls_mpi_core_mla( T, n + 2, B, B_len, u0 );
+        (void) mbedtls_mpi_core_mla( T, n + 2, N, n, u1 );
     }
 
     mbedtls_mpi_uint carry, borrow, fixup;
 
     carry  = T[n];
-    borrow = MPI_CORE(sub)( X, T, N, n );
+    borrow = mbedtls_mpi_core_sub( X, T, N, n );
     fixup  = carry < borrow;
-    (void) MPI_CORE(add_if)( X, N, n, fixup );
+    (void) mbedtls_mpi_core_add_if( X, N, n, fixup );
 }
 
-mbedtls_mpi_uint MPI_CORE(mla)( mbedtls_mpi_uint *d, size_t d_len,
-                                const mbedtls_mpi_uint *s, size_t s_len,
-                                mbedtls_mpi_uint b )
+mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len,
+                                       const mbedtls_mpi_uint *s, size_t s_len,
+                                       mbedtls_mpi_uint b )
 {
     mbedtls_mpi_uint c = 0; /* carry */
     if( d_len < s_len )
@@ -90,10 +90,10 @@ mbedtls_mpi_uint MPI_CORE(mla)( mbedtls_mpi_uint *d, size_t d_len,
     return( c );
 }
 
-mbedtls_mpi_uint MPI_CORE(sub)( mbedtls_mpi_uint *d,
-                                const mbedtls_mpi_uint *l,
-                                const mbedtls_mpi_uint *r,
-                                size_t n )
+mbedtls_mpi_uint mbedtls_mpi_core_sub( mbedtls_mpi_uint *d,
+                                       const mbedtls_mpi_uint *l,
+                                       const mbedtls_mpi_uint *r,
+                                       size_t n )
 {
     mbedtls_mpi_uint c = 0, t, z;
 
@@ -106,10 +106,10 @@ mbedtls_mpi_uint MPI_CORE(sub)( mbedtls_mpi_uint *d,
     return( c );
 }
 
-mbedtls_mpi_uint MPI_CORE(add_if)( mbedtls_mpi_uint *d,
-                                   const mbedtls_mpi_uint *r,
-                                   size_t n,
-                                   unsigned cond )
+mbedtls_mpi_uint mbedtls_mpi_core_add_if( mbedtls_mpi_uint *d,
+                                          const mbedtls_mpi_uint *r,
+                                          size_t n,
+                                          unsigned cond )
 {
     mbedtls_mpi_uint c = 0, t;
     for( size_t i = 0; i < n; i++ )

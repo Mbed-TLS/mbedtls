@@ -39,20 +39,20 @@ def quote_str(val):
 
 class BignumTarget(test_generation.BaseTarget):
     """Target for bignum (mpi) test case generation."""
-    gen_file = 'test_suite_mpi.generated'
+    target_basename = 'test_suite_mpi.generated'
 
 
 class BignumOperation(BignumTarget):
     """Common features for test cases covering bignum operations.
 
     Attributes:
-        symb: Symbol used for operation in description.
-        input_vals: List of values used to generate test case args.
-        input_cases: List of tuples containing test case inputs. This
+        symbol: Symbol used for operation in description.
+        input_values: List of values to use as test case inputs.
+        input_cases: List of tuples containing pairs of test case inputs. This
             can be used to implement specific pairs of inputs.
     """
-    symb = ""
-    input_vals = [
+    symbol = ""
+    input_values = [
         "", "0", "7b", "-7b",
         "0000000000000000123", "-0000000000000000123",
         "1230000000000000000", "-1230000000000000000"
@@ -67,26 +67,23 @@ class BignumOperation(BignumTarget):
         self.int_l = hex_to_int(val_l)
         self.int_r = hex_to_int(val_r)
 
-    @property
-    def args(self):
-        return [quote_str(self.arg_l), quote_str(self.arg_r), self.result]
+    def arguments(self):
+        return [quote_str(self.arg_l), quote_str(self.arg_r), self.result()]
 
-    @property
     def description(self):
-        desc = self.desc if self.desc else "{} {} {}".format(
-            self.val_desc(self.arg_l),
-            self.symb,
-            self.val_desc(self.arg_r)
-        )
-        return "{} #{} {}".format(self.title, self.count, desc)
+        if not self.case_description:
+            self.case_description = "{} {} {}".format(
+                self.value_description(self.arg_l),
+                self.symbol,
+                self.value_description(self.arg_r)
+            )
+        return super().description()
 
-    @property
     def result(self) -> Optional[str]:
         return None
 
     @staticmethod
-    def val_desc(val) -> str:
-        """Generate description of the argument val."""
+    def value_description(val) -> str:
         if val == "":
             return "0 (null)"
         if val == "0":
@@ -107,13 +104,13 @@ class BignumOperation(BignumTarget):
     def get_value_pairs(cls) -> Iterator[Tuple[str, ...]]:
         """Generate value pairs."""
         for pair in list(
-                itertools.combinations(cls.input_vals, 2)
+                itertools.combinations(cls.input_values, 2)
             ) + cls.input_cases:
             yield pair
 
     @classmethod
     def generate_tests(cls) -> Iterator[test_case.TestCase]:
-        if cls.func:
+        if cls.test_function:
             # Generate tests for the current class
             for l_value, r_value in cls.get_value_pairs():
                 cur_op = cls(l_value, r_value)
@@ -125,8 +122,8 @@ class BignumOperation(BignumTarget):
 class BignumCmp(BignumOperation):
     """Target for bignum comparison test cases."""
     count = 0
-    func = "mbedtls_mpi_cmp_mpi"
-    title = "MPI compare"
+    test_function = "mbedtls_mpi_cmp_mpi"
+    test_name = "MPI compare"
     input_cases = [
         ("-2", "-3"),
         ("-2", "-2"),
@@ -137,9 +134,8 @@ class BignumCmp(BignumOperation):
     def __init__(self, val_l, val_r):
         super().__init__(val_l, val_r)
         self._result = (self.int_l > self.int_r) - (self.int_l < self.int_r)
-        self.symb = ["<", "==", ">"][self._result + 1]
+        self.symbol = ["<", "==", ">"][self._result + 1]
 
-    @property
     def result(self):
         return str(self._result)
 
@@ -147,8 +143,8 @@ class BignumCmp(BignumOperation):
 class BignumCmpAbs(BignumCmp):
     """Target for abs comparison variant."""
     count = 0
-    func = "mbedtls_mpi_cmp_abs"
-    title = "MPI compare (abs)"
+    test_function = "mbedtls_mpi_cmp_abs"
+    test_name = "MPI compare (abs)"
 
     def __init__(self, val_l, val_r):
         super().__init__(val_l.strip("-"), val_r.strip("-"))
@@ -157,8 +153,8 @@ class BignumCmpAbs(BignumCmp):
 class BignumAdd(BignumOperation):
     """Target for bignum addition test cases."""
     count = 0
-    func = "mbedtls_mpi_add_mpi"
-    title = "MPI add"
+    test_function = "mbedtls_mpi_add_mpi"
+    test_name = "MPI add"
     input_cases = list(itertools.combinations(
         [
             "1c67967269c6", "9cde3",
@@ -168,9 +164,8 @@ class BignumAdd(BignumOperation):
 
     def __init__(self, val_l, val_r):
         super().__init__(val_l, val_r)
-        self.symb = "+"
+        self.symbol = "+"
 
-    @property
     def result(self):
         return quote_str(hex(self.int_l + self.int_r).replace("0x", "", 1))
 
@@ -178,7 +173,7 @@ class BignumAdd(BignumOperation):
 class BignumTestGenerator(test_generation.TestGenerator):
     """Test generator subclass including bignum targets."""
     TARGETS = {
-        subclass.gen_file: subclass.generate_tests for subclass in
+        subclass.target_basename: subclass.generate_tests for subclass in
         test_generation.BaseTarget.__subclasses__()
     } # type: Dict[str, Callable[[], test_case.TestCase]]
 

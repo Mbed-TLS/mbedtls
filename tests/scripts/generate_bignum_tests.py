@@ -103,10 +103,8 @@ class BignumOperation(BignumTarget):
     @classmethod
     def get_value_pairs(cls) -> Iterator[Tuple[str, ...]]:
         """Generate value pairs."""
-        for pair in list(
-                itertools.combinations(cls.input_values, 2)
-            ) + cls.input_cases:
-            yield pair
+        yield from itertools.combinations(cls.input_values, 2)
+        yield from cls.input_cases
 
     @classmethod
     def generate_tests(cls) -> Iterator[test_case.TestCase]:

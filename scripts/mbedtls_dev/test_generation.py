@@ -35,37 +35,37 @@ class BaseTarget:
     """Base target for test case generation.
 
     Attributes:
-        count: Counter for test class.
-        desc: Short description of test case.
-        func: Function which the class generates tests for.
-        gen_file: File to write generated tests to.
-        title: Description of the test function/purpose.
+        count: Counter for test cases from this class.
+        case_description: Short description of the test case. This may be
+            automatically generated using the class, or manually set.
+        target_basename: Basename of file to write generated tests to. This
+            should be specified in a child class of BaseTarget.
+        test_function: Test function which the class generates cases for.
+        test_name: A common name or description of the test function. This can
+            be the function's name, or a short summary of its purpose.
     """
     count = 0
-    desc = ""
-    func = ""
-    gen_file = ""
-    title = ""
+    case_description = ""
+    target_basename = ""
+    test_function = ""
+    test_name = ""
 
     def __init__(self) -> None:
         type(self).count += 1
 
-    @property
-    def args(self) -> List[str]:
-        """Create list of arguments for test case."""
+    def arguments(self) -> List[str]:
         return []
 
-    @property
     def description(self) -> str:
         """Create a numbered test description."""
-        return "{} #{} {}".format(self.title, self.count, self.desc)
+        return "{} #{} {}".format(self.test_name, self.count, self.case_description)
 
     def create_test_case(self) -> test_case.TestCase:
         """Generate test case from the current object."""
         tc = test_case.TestCase()
-        tc.set_description(self.description)
-        tc.set_function(self.func)
-        tc.set_arguments(self.args)
+        tc.set_description(self.description())
+        tc.set_function(self.test_function)
+        tc.set_arguments(self.arguments())
 
         return tc
 

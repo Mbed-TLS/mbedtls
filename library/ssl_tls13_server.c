@@ -188,6 +188,24 @@ static int ssl_tls13_offered_psks_check_binder_match( mbedtls_ssl_context *ssl,
     return( SSL_TLS1_3_OFFERED_PSK_NOT_MATCH );
 }
 
+static const mbedtls_ssl_ciphersuite_t *ssl_tls13_get_ciphersuite_info_by_id(
+                                      mbedtls_ssl_context *ssl,
+                                      uint16_t cipher_suite )
+{
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
+    if( ! mbedtls_ssl_tls13_cipher_suite_is_offered( ssl, cipher_suite ) )
+        return( NULL );
+
+    ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( cipher_suite );
+    if( ( mbedtls_ssl_validate_ciphersuite( ssl, ciphersuite_info,
+                                            ssl->tls_version,
+                                            ssl->tls_version ) != 0 ) )
+    {
+        return( NULL );
+    }
+    return( ciphersuite_info );
+}
+
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_psk_external_check_ciphersuites( mbedtls_ssl_context *ssl,
                                                       const unsigned char *buf,
@@ -1136,16 +1154,10 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, cipher_suites_end, 2 );
 
         cipher_suite = MBEDTLS_GET_UINT16_BE( p, 0 );
-        if( ! mbedtls_ssl_tls13_cipher_suite_is_offered( ssl, cipher_suite ) )
+        ciphersuite_info = ssl_tls13_get_ciphersuite_info_by_id(
+                               ssl,cipher_suite );
+        if( ciphersuite_info == NULL )
             continue;
-
-        ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( cipher_suite );
-        if( ( mbedtls_ssl_validate_ciphersuite(
-                ssl, ciphersuite_info, ssl->tls_version,
-                ssl->tls_version ) != 0 ) )
-        {
-            continue;
-        }
 
         ssl->session_negotiate->ciphersuite = cipher_suite;
         ssl->handshake->ciphersuite_info = ciphersuite_info;

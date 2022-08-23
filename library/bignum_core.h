@@ -155,4 +155,25 @@ int mbedtls_mpi_core_write_be( const mbedtls_mpi_uint *A,
 #define GET_BYTE( X, i )                                \
     ( ( (X)[(i) / ciL] >> ( ( (i) % ciL ) * 8 ) ) & 0xff )
 
+/** Perform a known-size multiply accumulate operation
+ *
+ * Add \p b * \p s to \p d.
+ *
+ * \param[in,out] d     The pointer to the (little-endian) array
+ *                      representing the bignum to accumulate onto.
+ * \param d_len         The number of limbs of \p d. This must be
+ *                      at least \p s_len.
+ * \param[in] s         The pointer to the (little-endian) array
+ *                      representing the bignum to multiply with.
+ *                      This may be the same as \p d. Otherwise,
+ *                      it must be disjoint from \p d.
+ * \param s_len         The number of limbs of \p s.
+ * \param b             A scalar to multiply with.
+ *
+ * \return c            The carry at the end of the operation.
+ */
+mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len ,
+                                       const mbedtls_mpi_uint *s, size_t s_len,
+                                       mbedtls_mpi_uint b );
+
 #endif /* MBEDTLS_BIGNUM_CORE_H */

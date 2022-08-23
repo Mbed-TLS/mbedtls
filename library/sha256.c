@@ -54,6 +54,7 @@
 #      if defined(__linux__)
          /* Our preferred method of detection is getauxval() */
 #        include <sys/auxv.h>
+#        include <asm/hwcap.h>
 #      endif
        /* Use SIGILL on Unix, and fall back to it on Linux */
 #      include <signal.h>

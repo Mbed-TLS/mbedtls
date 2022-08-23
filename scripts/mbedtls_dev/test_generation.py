@@ -23,6 +23,8 @@ import argparse
 import os
 import posixpath
 import re
+
+from abc import abstractmethod
 from typing import Callable, Dict, Iterable, List, Type, TypeVar
 
 from mbedtls_dev import build_tree
@@ -53,15 +55,34 @@ class BaseTarget:
     def __init__(self) -> None:
         type(self).count += 1
 
+    @abstractmethod
     def arguments(self) -> List[str]:
-        return []
+        """Get the list of arguments for the test case.
+
+        Override this method to provide the list of arguments required for
+        generating the test_function.
+
+        Returns:
+            List of arguments required for the test function.
+        """
+        pass
 
     def description(self) -> str:
-        """Create a numbered test description."""
+        """Create a test description.
+
+        Creates a description of the test case, including a name for the test
+        function, and describing the specific test case. This should inform a
+        reader of the purpose of the case. The case description may be
+        generated in the class, or provided manually as needed.
+
+        Returns:
+            Description for the test case.
+        """
         return "{} #{} {}".format(self.test_name, self.count, self.case_description)
 
+
     def create_test_case(self) -> test_case.TestCase:
-        """Generate test case from the current object."""
+        """Generate TestCase from the current object."""
         tc = test_case.TestCase()
         tc.set_description(self.description())
         tc.set_function(self.test_function)
@@ -71,7 +92,16 @@ class BaseTarget:
 
     @classmethod
     def generate_tests(cls):
-        """Generate test cases for the target subclasses."""
+        """Generate test cases for the target subclasses.
+
+        Classes will iterate over its subclasses, calling this method in each.
+        In abstract classes, no further changes are needed, as there is no
+        function to generate tests for.
+        In classes which do implement a test function, this should be overrided
+        and a means to use `create_test_case()` should be added. In most cases
+        the subclasses can still be iterated over, as either the class will
+        have none, or it may continue.
+        """
         for subclass in sorted(cls.__subclasses__(), key=lambda c: c.__name__):
             yield from subclass.generate_tests()
 

@@ -3,6 +3,31 @@
 
 With no arguments, generate all test data. With non-option arguments,
 generate only the specified files.
+
+Class structure:
+
+Target classes are directly derived from test_generation.BaseTarget,
+representing a target file. These indicate where test cases will be written
+to in classes derived from the Target. Multiple Target classes must not
+represent the same target_basename.
+
+Each subclass derived from a Target can either be:
+  - A concrete class, representing a test function, which generates test cases.
+  - An abstract class containing shared methods and attributes, not associated
+    with a test function. An example is BignumOperation, which provides common
+    features used in binary bignum operations.
+
+
+Adding test generation for a function:
+
+A subclass representing the test function should be added, deriving from a
+Target class or a descendant. This subclass must set/implement the following:
+  - test_function: the function name from the associated .function file.
+  - arguments(): generation of the arguments required for the test_function.
+  - generate_function_test(): generation of the test cases for the function.
+
+Additional details and other attributes/methods are given in the documentation
+of BaseTarget in test_generation.py.
 """
 
 # Copyright The Mbed TLS Contributors
@@ -22,6 +47,8 @@ generate only the specified files.
 
 import itertools
 import sys
+
+from abc import abstractmethod
 from typing import Callable, Dict, Iterator, List, Optional, Tuple, TypeVar
 
 import scripts_path # pylint: disable=unused-import
@@ -43,11 +70,16 @@ class BignumTarget(test_generation.BaseTarget):
 
 
 class BignumOperation(BignumTarget):
-    """Common features for test cases covering bignum operations.
+    """Common features for test cases covering binary bignum operations.
+
+    This adds functionality common in binary operation tests. This includes
+    generation of case descriptions, using descriptions of values and symbols
+    to represent the operation or result.
 
     Attributes:
-        symbol: Symbol used for operation in description.
-        input_values: List of values to use as test case inputs.
+        symbol: Symbol used for the operation in case description.
+        input_values: List of values to use as test case inputs. These are
+            combined to produce pairs of values.
         input_cases: List of tuples containing pairs of test case inputs. This
             can be used to implement specific pairs of inputs.
     """
@@ -71,6 +103,12 @@ class BignumOperation(BignumTarget):
         return [quote_str(self.arg_l), quote_str(self.arg_r), self.result()]
 
     def description(self):
+        """Generate a description for the test case.
+
+        If not set, case_description uses the form A `symbol` B, where symbol
+        is used to represent the operation. Descriptions of each value are
+        generated to provide some context to the test case.
+        """
         if not self.case_description:
             self.case_description = "{} {} {}".format(
                 self.value_description(self.arg_l),
@@ -79,11 +117,22 @@ class BignumOperation(BignumTarget):
             )
         return super().description()
 
+    @abstractmethod
     def result(self) -> Optional[str]:
-        return None
+        """Get the result of the operation.
+
+        This may be calculated during initialization and stored as `_result`,
+        or calculated when the method is called.
+        """
+        pass
 
     @staticmethod
     def value_description(val) -> str:
+        """Generate a description of the argument val.
+
+        This produces a simple description of the value, which are used in test
+        case naming, to avoid most generated cases only being numbered.
+        """
         if val == "":
             return "0 (null)"
         if val == "0":
@@ -102,7 +151,11 @@ class BignumOperation(BignumTarget):
 
     @classmethod
     def get_value_pairs(cls) -> Iterator[Tuple[str, ...]]:
-        """Generate value pairs."""
+        """Generator for pairs of inputs.
+
+        Combinations are first generated from all input values, and then
+        specific cases provided.
+        """
         yield from itertools.combinations(cls.input_values, 2)
         yield from cls.input_cases
 
@@ -139,7 +192,7 @@ class BignumCmp(BignumOperation):
 
 
 class BignumCmpAbs(BignumCmp):
-    """Target for abs comparison variant."""
+    """Target for bignum comparison, absolute variant."""
     count = 0
     test_function = "mbedtls_mpi_cmp_abs"
     test_name = "MPI compare (abs)"

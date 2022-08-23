@@ -1581,7 +1581,7 @@ int mbedtls_ssl_tls13_export_handshake_psk( mbedtls_ssl_context *ssl,
     *psk = NULL;
 
     if( mbedtls_svc_key_id_is_null( ssl->handshake->psk_opaque ) )
-        return( MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 
     status = psa_get_key_attributes( ssl->handshake->psk_opaque, &key_attributes );
     if( status != PSA_SUCCESS )
@@ -1609,7 +1609,7 @@ int mbedtls_ssl_tls13_export_handshake_psk( mbedtls_ssl_context *ssl,
     *psk = ssl->handshake->psk;
     *psk_len = ssl->handshake->psk_len;
     if( *psk == NULL )
-        return( MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     return( 0 );
 #endif /* !MBEDTLS_USE_PSA_CRYPTO */
 }

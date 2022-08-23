@@ -140,22 +140,20 @@ static int ssl_tls13_offered_psks_check_binder_match( mbedtls_ssl_context *ssl,
                                                       const unsigned char *binder,
                                                       size_t binder_len,
                                                       int psk_type,
-                                                      mbedtls_md_type_t psk_alg )
+                                                      psa_algorithm_t psk_hash_alg )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    psa_algorithm_t psa_md_alg;
     unsigned char transcript[PSA_HASH_MAX_SIZE];
     size_t transcript_len;
     unsigned char *psk;
     size_t psk_len;
     unsigned char server_computed_binder[PSA_HASH_MAX_SIZE];
 
-    psa_md_alg = mbedtls_psa_translate_md( psk_alg );
     /* Get current state of handshake transcript. */
-    ret = mbedtls_ssl_get_handshake_transcript( ssl, psk_alg,
-                                                transcript, sizeof( transcript ),
-                                                &transcript_len );
+    ret = mbedtls_ssl_get_handshake_transcript(
+              ssl, mbedtls_hash_info_md_from_psa( psk_hash_alg ),
+              transcript, sizeof( transcript ), &transcript_len );
     if( ret != 0 )
         return( ret );
 
@@ -163,7 +161,7 @@ static int ssl_tls13_offered_psks_check_binder_match( mbedtls_ssl_context *ssl,
     if( ret != 0 )
         return( ret );
 
-    ret = mbedtls_ssl_tls13_create_psk_binder( ssl, psa_md_alg,
+    ret = mbedtls_ssl_tls13_create_psk_binder( ssl, psk_hash_alg,
                                                psk, psk_len, psk_type,
                                                transcript,
                                                server_computed_binder );
@@ -276,12 +274,12 @@ static int ssl_tls13_psk_external_check_ciphersuites( mbedtls_ssl_context *ssl,
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
-                                               const unsigned char *buf,
-                                               const unsigned char *end,
+                                               const unsigned char *pre_shared_key_ext,
+                                               const unsigned char *pre_shared_key_ext_end,
                                                const unsigned char *ciphersuites,
                                                const unsigned char *ciphersuites_end )
 {
-    const unsigned char *identities = buf;
+    const unsigned char *identities = pre_shared_key_ext;
     const unsigned char *p_identity_len;
     size_t identities_len;
     const unsigned char *identities_end;
@@ -292,28 +290,32 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
     int matched_identity = -1;
     int identity_id = -1;
 
-    MBEDTLS_SSL_DEBUG_BUF( 3, "pre_shared_key extension", buf, end - buf );
+    MBEDTLS_SSL_DEBUG_BUF( 3, "pre_shared_key extension",
+                           pre_shared_key_ext,
+                           pre_shared_key_ext_end - pre_shared_key_ext );
 
     /* identities_len       2 bytes
      * identities_data   >= 7 bytes
      */
-    MBEDTLS_SSL_CHK_BUF_READ_PTR( identities, end, 7 + 2 );
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( identities, pre_shared_key_ext_end, 7 + 2 );
     identities_len = MBEDTLS_GET_UINT16_BE( identities, 0 );
     p_identity_len = identities + 2;
-    MBEDTLS_SSL_CHK_BUF_READ_PTR( p_identity_len, end, identities_len );
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p_identity_len, pre_shared_key_ext_end,
+                                  identities_len );
     identities_end = p_identity_len + identities_len;
 
     /* binders_len     2  bytes
      * binders      >= 33 bytes
      */
     binders = identities_end;
-    MBEDTLS_SSL_CHK_BUF_READ_PTR( binders, end, 33 + 2 );
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( binders, pre_shared_key_ext_end, 33 + 2 );
     binders_len = MBEDTLS_GET_UINT16_BE( binders, 0 );
     p_binder_len = binders + 2;
-    MBEDTLS_SSL_CHK_BUF_READ_PTR( p_binder_len, end, binders_len );
+    MBEDTLS_SSL_CHK_BUF_READ_PTR( p_binder_len, pre_shared_key_ext_end, binders_len );
     binders_end = p_binder_len + binders_len;
 
-    ssl->handshake->update_checksum( ssl, buf, identities_end - buf );
+    ssl->handshake->update_checksum( ssl, pre_shared_key_ext,
+                                     identities_end - pre_shared_key_ext );
 
     while( p_identity_len < identities_end && p_binder_len < binders_end )
     {
@@ -324,7 +326,7 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
         int psk_type;
         uint16_t cipher_suite;
-        const mbedtls_ssl_ciphersuite_t* ciphersuite_info;
+        const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
 
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p_identity_len, identities_end, 2 + 1 + 4 );
         identity_len = MBEDTLS_GET_UINT16_BE( p_identity_len, 0 );
@@ -370,11 +372,12 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
         }
 
         ret = ssl_tls13_offered_psks_check_binder_match(
-                ssl, binder, binder_len, psk_type, ciphersuite_info->mac );
-        /* For the security rationale, handshake should be abort when binder
-         * value mismatch. See RFC 8446 section 4.2.11.2 and appendix E.6. */
+                  ssl, binder, binder_len, psk_type,
+                  mbedtls_psa_translate_md( ciphersuite_info->mac ) );
         if( ret != SSL_TLS1_3_OFFERED_PSK_MATCH )
         {
+            /* For the security rationale, handshake should be abort when binder
+             * value mismatch. See RFC 8446 section 4.2.11.2 and appendix E.6. */
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "Binder is not matched." ) );
             MBEDTLS_SSL_DEBUG_RET( 1,
                 "ssl_tls13_offered_psks_check_binder_match" , ret );
@@ -1006,7 +1009,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
     const unsigned char *cipher_suites;
-    const unsigned char *pre_shared_key_ext_start = NULL;
+    const unsigned char *pre_shared_key_ext = NULL;
     const unsigned char *pre_shared_key_ext_end = NULL;
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
@@ -1334,7 +1337,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
                  * found out which algorithms to use. We keep a pointer
                  * to the buffer and the size for later processing.
                  */
-                pre_shared_key_ext_start = p;
+                pre_shared_key_ext = p;
                 pre_shared_key_ext_end = extension_data_end;
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
                 ssl->handshake->extensions_present |= MBEDTLS_SSL_EXT_PRE_SHARED_KEY;
@@ -1401,9 +1404,9 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
         ( ssl->handshake->extensions_present & MBEDTLS_SSL_EXT_PRE_SHARED_KEY ) )
     {
         ssl->handshake->update_checksum( ssl, buf,
-                                         pre_shared_key_ext_start - buf );
+                                         pre_shared_key_ext - buf );
         ret = ssl_tls13_parse_pre_shared_key_ext( ssl,
-                                                  pre_shared_key_ext_start,
+                                                  pre_shared_key_ext,
                                                   pre_shared_key_ext_end,
                                                   cipher_suites,
                                                   cipher_suites_end );

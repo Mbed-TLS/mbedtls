@@ -700,8 +700,9 @@ int mbedtls_ssl_tls13_compute_application_transform( mbedtls_ssl_context *ssl );
  * \param[out]  psk  PSK output pointer.
  * \param[out]  psk_len Length of PSK.
  *
- * \returns    \c 0 if there is configured PSK and exported success.
- * \returns    A negative error code on failure.
+ * \returns     \c 0 if there is a configured PSK and it was exported
+ *              successfully.
+ * \returns     A negative error code on failure.
  */
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_export_handshake_psk( mbedtls_ssl_context *ssl,

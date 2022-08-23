@@ -46,6 +46,25 @@
 #include "ssl_tls13_keys.h"
 #include "ssl_debug_helpers.h"
 
+
+static const mbedtls_ssl_ciphersuite_t *ssl_tls13_get_ciphersuite_info_by_id(
+                                      mbedtls_ssl_context *ssl,
+                                      uint16_t cipher_suite )
+{
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
+    if( ! mbedtls_ssl_tls13_cipher_suite_is_offered( ssl, cipher_suite ) )
+        return( NULL );
+
+    ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( cipher_suite );
+    if( ( mbedtls_ssl_validate_ciphersuite( ssl, ciphersuite_info,
+                                            ssl->tls_version,
+                                            ssl->tls_version ) != 0 ) )
+    {
+        return( NULL );
+    }
+    return( ciphersuite_info );
+}
+
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
 /* From RFC 8446:
  *
@@ -188,88 +207,98 @@ static int ssl_tls13_offered_psks_check_binder_match( mbedtls_ssl_context *ssl,
     return( SSL_TLS1_3_OFFERED_PSK_NOT_MATCH );
 }
 
-static const mbedtls_ssl_ciphersuite_t *ssl_tls13_get_ciphersuite_info_by_id(
-                                      mbedtls_ssl_context *ssl,
-                                      uint16_t cipher_suite )
-{
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
-    if( ! mbedtls_ssl_tls13_cipher_suite_is_offered( ssl, cipher_suite ) )
-        return( NULL );
-
-    ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( cipher_suite );
-    if( ( mbedtls_ssl_validate_ciphersuite( ssl, ciphersuite_info,
-                                            ssl->tls_version,
-                                            ssl->tls_version ) != 0 ) )
-    {
-        return( NULL );
-    }
-    return( ciphersuite_info );
-}
-
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_psk_external_check_ciphersuites( mbedtls_ssl_context *ssl,
-                                                      const unsigned char *buf,
-                                                      const unsigned char *end,
-                                                      size_t binder_len,
-                                                      uint16_t *selected_cipher_suite )
+static int ssl_tls13_select_ciphersuite_for_psk(
+               mbedtls_ssl_context *ssl,
+               const unsigned char *cipher_suites,
+               const unsigned char *cipher_suites_end,
+               uint16_t *selected_ciphersuite,
+               const mbedtls_ssl_ciphersuite_t **selected_ciphersuite_info )
 {
-    mbedtls_md_type_t psk_alg;
+    psa_algorithm_t psk_hash_alg = PSA_ALG_SHA_256;
 
-    *selected_cipher_suite = 0;
+    /* RFC 8446, page 55.
+     *
+     * For externally established PSKs, the Hash algorithm MUST be set when the
+     * PSK is established or default to SHA-256 if no such algorithm is defined.
+     *
+     */
+    psk_hash_alg = PSA_ALG_SHA_256;
 
-    switch( binder_len )
-    {
-#if defined(MBEDTLS_SHA256_C)
-        case 32:
-            psk_alg = MBEDTLS_MD_SHA256;
-            break;
-#endif
-#if defined(MBEDTLS_SHA384_C)
-        case 48:
-            psk_alg = MBEDTLS_MD_SHA384;
-            break;
-#endif
-        default:
-            return( MBEDTLS_SSL_ALERT_MSG_DECRYPT_ERROR );
-    }
     /*
      * Search for a matching ciphersuite
      */
-    for ( const unsigned char *p = buf ; p < end ; p += 2 )
+    for ( const unsigned char *p = cipher_suites ;
+          p < cipher_suites_end ; p += 2 )
     {
         uint16_t cipher_suite;
-        const mbedtls_ssl_ciphersuite_t* ciphersuite_info;
-
-        MBEDTLS_SSL_CHK_BUF_READ_PTR( p, end, 2 );
+        const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
 
         cipher_suite = MBEDTLS_GET_UINT16_BE( p, 0 );
-        if( ! mbedtls_ssl_tls13_cipher_suite_is_offered( ssl, cipher_suite ) )
+        ciphersuite_info = ssl_tls13_get_ciphersuite_info_by_id(
+                               ssl,cipher_suite );
+        if( ciphersuite_info == NULL )
             continue;
-
-        ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( cipher_suite );
-        if( ( mbedtls_ssl_validate_ciphersuite(
-                ssl, ciphersuite_info, ssl->tls_version,
-                ssl->tls_version ) != 0 ) )
-        {
-            continue;
-        }
 
         /* MAC of selected ciphersuite MUST be same with PSK binder if exist.
          * Otherwise, client should reject.
          */
-        if( psk_alg != MBEDTLS_MD_NONE && psk_alg != ciphersuite_info->mac )
-            continue;
+        if( psk_hash_alg == mbedtls_psa_translate_md( ciphersuite_info->mac ) )
+        {
+            *selected_ciphersuite = cipher_suite;
+            *selected_ciphersuite_info = ciphersuite_info;
+            return( 0 );
+        }
+    }
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "No matched ciphersuite" ) );
+    return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+}
 
-        *selected_cipher_suite = cipher_suite;
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_select_ciphersuite_for_resumption(
+               mbedtls_ssl_context *ssl,
+               const unsigned char *cipher_suites,
+               const unsigned char *cipher_suites_end,
+               mbedtls_ssl_session *session,
+               uint16_t *selected_ciphersuite,
+               const mbedtls_ssl_ciphersuite_t **selected_ciphersuite_info )
+{
+    ((void) ssl);
+    ((void) session);
+    ((void) cipher_suites);
+    ((void) cipher_suites_end);
+    ((void) selected_ciphersuite);
+    ((void) selected_ciphersuite_info);
+    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+}
 
-        MBEDTLS_SSL_DEBUG_MSG( 5, ( "PSK matched ciphersuite: %04x - %s",
-                                    cipher_suite,
-                                    ciphersuite_info->name ) );
-        return( 0 );
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_select_ciphersuite(
+               mbedtls_ssl_context *ssl,
+               const unsigned char *cipher_suites,
+               const unsigned char *cipher_suites_end,
+               int psk_type,
+               mbedtls_ssl_session *session,
+               uint16_t *selected_ciphersuite,
+               const mbedtls_ssl_ciphersuite_t **selected_ciphersuite_info )
+{
+    *selected_ciphersuite = 0;
+    *selected_ciphersuite_info = NULL;
+    switch( psk_type )
+    {
+        case MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL:
+            return( ssl_tls13_select_ciphersuite_for_psk(
+                        ssl, cipher_suites, cipher_suites_end,
+                        selected_ciphersuite, selected_ciphersuite_info ) );
+        case MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION:
+            return( ssl_tls13_select_ciphersuite_for_resumption(
+                        ssl, cipher_suites, cipher_suites_end, session,
+                        selected_ciphersuite, selected_ciphersuite_info ) );
     }
 
-    return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
 }
+
 /* Parser for pre_shared_key extension in client hello
  *    struct {
  *        opaque identity<1..2^16-1>;
@@ -367,26 +396,19 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
         if( ret != SSL_TLS1_3_OFFERED_PSK_MATCH )
             continue;
 
-        if( psk_type == MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL )
+        MBEDTLS_SSL_DEBUG_MSG( 4, ( "found matched identity" ) );
+        ret = ssl_tls13_select_ciphersuite( ssl, ciphersuites, ciphersuites_end,
+                                            psk_type, NULL, &cipher_suite,
+                                            &ciphersuite_info );
+        if( ret != 0 )
         {
-            ret = ssl_tls13_psk_external_check_ciphersuites(
-                            ssl, ciphersuites, ciphersuites_end,
-                            binder_len, &cipher_suite );
-            if( ret < 0 )
-            {
-                /* See below, no cipher_suite available, abort handshake */
-                MBEDTLS_SSL_PEND_FATAL_ALERT(
-                    MBEDTLS_SSL_ALERT_MSG_DECRYPT_ERROR,
-                    MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-                return( ret );
-            }
-            ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( cipher_suite );
-        }
-        else
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 4, ( "`psk_type = %d` not support yet",
-                                        psk_type ) );
-            return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+            /* See below, no cipher_suite available, abort handshake */
+            MBEDTLS_SSL_PEND_FATAL_ALERT(
+                MBEDTLS_SSL_ALERT_MSG_DECRYPT_ERROR,
+                MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
+            MBEDTLS_SSL_DEBUG_RET(
+                2, "ssl_tls13_select_ciphersuite_for_psk", ret );
+            return( ret );
         }
 
         ret = ssl_tls13_offered_psks_check_binder_match(

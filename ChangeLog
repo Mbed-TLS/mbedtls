@@ -5095,7 +5095,7 @@ XySSL ChangeLog
 
     * Updated timing.c to support ARM and MIPS arch
     * Updated the MPI code to support 8086 on MSVC 1.5
-    * Added the copyright notice at the top of havege.h TEST
+    * Added the copyright notice at the top of havege.h
     * Fixed a bug in sha2_hmac, thanks to newsoft/Wenfang Zhang
     * Fixed a bug reported by Adrian Rüegsegger in x509_read_key TEST test2
     * Fixed a bug reported by Torsten Lauter in ssl_read_record

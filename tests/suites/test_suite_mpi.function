@@ -2008,7 +2008,7 @@ void mbedtls_mpi_montg_init( char * input_N, char * input_mm )
      * The data file contains the expected result for sizeof(mbedtls_mpi_uint) == 8;
      * for sizeof(mbedtls_mpi_uint) == 4 it's just the LSW of this.
      */
-    TEST_ASSERT( mm.n == 1  || mm.n == 2);
+    TEST_ASSERT( mm.n == 1  || mm.n == 2 );
 
     /* All of the inputs are +ve (or zero) */
     TEST_EQUAL( N.s, 1 );

@@ -1545,9 +1545,6 @@ int mbedtls_mpi_mod_int( mbedtls_mpi_uint *r, const mbedtls_mpi *A, mbedtls_mpi_
     return( 0 );
 }
 
-/*
- * Fast Montgomery initialization (thanks to Tom St Denis)
- */
 static void mpi_montg_init( mbedtls_mpi_uint *mm, const mbedtls_mpi *N )
 {
     *mm = mbedtls_mpi_montg_init( N->p );

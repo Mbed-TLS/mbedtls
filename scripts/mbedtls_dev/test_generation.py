@@ -53,6 +53,7 @@ class BaseTarget(metaclass=ABCMeta):
     test_name = ""
 
     def __new__(cls, *args, **kwargs):
+        # pylint: disable=unused-argument
         cls.count += 1
         return super().__new__(cls)
 

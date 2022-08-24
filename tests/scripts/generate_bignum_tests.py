@@ -160,14 +160,10 @@ class BignumOperation(BignumTarget, metaclass=ABCMeta):
         yield from cls.input_cases
 
     @classmethod
-    def generate_tests(cls) -> Iterator[test_case.TestCase]:
-        if cls.test_function:
-            # Generate tests for the current class
-            for l_value, r_value in cls.get_value_pairs():
-                cur_op = cls(l_value, r_value)
-                yield cur_op.create_test_case()
-        # Once current class completed, check descendants
-        yield from super().generate_tests()
+    def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
+        for l_value, r_value in cls.get_value_pairs():
+            cur_op = cls(l_value, r_value)
+            yield cur_op.create_test_case()
 
 
 class BignumCmp(BignumOperation):

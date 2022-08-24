@@ -20,17 +20,13 @@ generate only the specified files.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import argparse
 import itertools
-import os
-import posixpath
-import re
 import sys
-from typing import Iterable, Iterator, List, Optional, Tuple, TypeVar
+from typing import Callable, Dict, Iterator, List, Optional, Tuple, TypeVar
 
 import scripts_path # pylint: disable=unused-import
-from mbedtls_dev import build_tree
 from mbedtls_dev import test_case
+from mbedtls_dev import test_generation
 
 T = TypeVar('T') #pylint: disable=invalid-name
 
@@ -41,52 +37,7 @@ def quote_str(val):
     return "\"{}\"".format(val)
 
 
-class BaseTarget:
-    """Base target for test case generation.
-
-    Attributes:
-        count: Counter for test class.
-        desc: Short description of test case.
-        func: Function which the class generates tests for.
-        gen_file: File to write generated tests to.
-        title: Description of the test function/purpose.
-    """
-    count = 0
-    desc = ""
-    func = ""
-    gen_file = ""
-    title = ""
-
-    def __init__(self) -> None:
-        type(self).count += 1
-
-    @property
-    def args(self) -> List[str]:
-        """Create list of arguments for test case."""
-        return []
-
-    @property
-    def description(self) -> str:
-        """Create a numbered test description."""
-        return "{} #{} {}".format(self.title, self.count, self.desc)
-
-    def create_test_case(self) -> test_case.TestCase:
-        """Generate test case from the current object."""
-        tc = test_case.TestCase()
-        tc.set_description(self.description)
-        tc.set_function(self.func)
-        tc.set_arguments(self.args)
-
-        return tc
-
-    @classmethod
-    def generate_tests(cls):
-        """Generate test cases for the target subclasses."""
-        for subclass in sorted(cls.__subclasses__(), key=lambda c: c.__name__):
-            yield from subclass.generate_tests()
-
-
-class BignumTarget(BaseTarget):
+class BignumTarget(test_generation.BaseTarget):
     """Target for bignum (mpi) test case generation."""
     gen_file = 'test_suite_mpi.generated'
 
@@ -224,76 +175,12 @@ class BignumAdd(BignumOperation):
         return quote_str(hex(self.int_l + self.int_r).replace("0x", "", 1))
 
 
-class TestGenerator:
-    """Generate test data."""
-
-    def __init__(self, options) -> None:
-        self.test_suite_directory = self.get_option(options, 'directory',
-                                                    'tests/suites')
-
-    @staticmethod
-    def get_option(options, name: str, default: T) -> T:
-        value = getattr(options, name, None)
-        return default if value is None else value
-
-    def filename_for(self, basename: str) -> str:
-        """The location of the data file with the specified base name."""
-        return posixpath.join(self.test_suite_directory, basename + '.data')
-
-    def write_test_data_file(self, basename: str,
-                             test_cases: Iterable[test_case.TestCase]) -> None:
-        """Write the test cases to a .data file.
-
-        The output file is ``basename + '.data'`` in the test suite directory.
-        """
-        filename = self.filename_for(basename)
-        test_case.write_data_file(filename, test_cases)
-
-    # Note that targets whose names contain 'test_format' have their content
-    # validated by `abi_check.py`.
+class BignumTestGenerator(test_generation.TestGenerator):
+    """Test generator subclass including bignum targets."""
     TARGETS = {
         subclass.gen_file: subclass.generate_tests for subclass in
-        BaseTarget.__subclasses__()
-    }
-
-    def generate_target(self, name: str) -> None:
-        test_cases = self.TARGETS[name]()
-        self.write_test_data_file(name, test_cases)
-
-def main(args):
-    """Command line entry point."""
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--list', action='store_true',
-                        help='List available targets and exit')
-    parser.add_argument('--list-for-cmake', action='store_true',
-                        help='Print \';\'-separated list of available targets and exit')
-    parser.add_argument('--directory', metavar='DIR',
-                        help='Output directory (default: tests/suites)')
-    parser.add_argument('targets', nargs='*', metavar='TARGET',
-                        help='Target file to generate (default: all; "-": none)')
-    options = parser.parse_args(args)
-    build_tree.chdir_to_root()
-    generator = TestGenerator(options)
-    if options.list:
-        for name in sorted(generator.TARGETS):
-            print(generator.filename_for(name))
-        return
-    # List in a cmake list format (i.e. ';'-separated)
-    if options.list_for_cmake:
-        print(';'.join(generator.filename_for(name)
-                       for name in sorted(generator.TARGETS)), end='')
-        return
-    if options.targets:
-        # Allow "-" as a special case so you can run
-        # ``generate_bignum_tests.py - $targets`` and it works uniformly whether
-        # ``$targets`` is empty or not.
-        options.targets = [os.path.basename(re.sub(r'\.data\Z', r'', target))
-                           for target in options.targets
-                           if target != '-']
-    else:
-        options.targets = sorted(generator.TARGETS)
-    for target in options.targets:
-        generator.generate_target(target)
+        test_generation.BaseTarget.__subclasses__()
+    } # type: Dict[str, Callable[[], test_case.TestCase]]
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    test_generation.main(sys.argv[1:], BignumTestGenerator)

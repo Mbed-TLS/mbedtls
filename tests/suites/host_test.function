@@ -640,11 +640,11 @@ int execute_tests( int argc , const char ** argv )
 
             if( ( ret = get_line( file, buf, sizeof(buf) ) ) != 0 )
                 break;
-            mbedtls_fprintf( stdout, "%s%.66s",
+            mbedtls_fprintf( stdout, "%s%.72s",
                     mbedtls_test_info.result == MBEDTLS_TEST_RESULT_FAILED ?
                     "\n" : "", buf );
             mbedtls_fprintf( stdout, " " );
-            for( i = strlen( buf ) + 1; i < 67; i++ )
+            for( i = strlen( buf ) + 1; i <= 72; i++ )
                 mbedtls_fprintf( stdout, "." );
             mbedtls_fprintf( stdout, " " );
             fflush( stdout );

@@ -131,7 +131,7 @@ class BignumCmp(BignumOperation):
 
     def __init__(self, val_l, val_r):
         super().__init__(val_l, val_r)
-        self._result = (self.int_l > self.int_r) - (self.int_l < self.int_r)
+        self._result = int(self.int_l > self.int_r) - int(self.int_l < self.int_r)
         self.symbol = ["<", "==", ">"][self._result + 1]
 
     def result(self):

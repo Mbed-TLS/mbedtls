@@ -92,8 +92,6 @@ class BignumOperation(BignumTarget, metaclass=ABCMeta):
     input_cases = [] # type: List[Tuple[str, ...]]
 
     def __init__(self, val_l: str, val_r: str) -> None:
-        super().__init__()
-
         self.arg_l = val_l
         self.arg_r = val_r
         self.int_l = hex_to_int(val_l)

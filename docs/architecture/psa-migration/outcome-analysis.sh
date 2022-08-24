@@ -35,7 +35,6 @@ reference_config () {
     scripts/config.py unset MBEDTLS_PKCS1_V21
     scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
     scripts/config.py unset MBEDTLS_PKCS5_C
-    scripts/config.py unset MBEDTLS_PKCS12_C
     scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC
 }
 # Space-separated list of test suites of interest.

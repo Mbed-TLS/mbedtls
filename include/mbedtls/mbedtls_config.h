@@ -2664,7 +2664,11 @@
  * Module:  library/pkcs12.c
  * Caller:  library/pkparse.c
  *
- * Requires: MBEDTLS_ASN1_PARSE_C, MBEDTLS_CIPHER_C, MBEDTLS_MD_C
+ * Requires: MBEDTLS_ASN1_PARSE_C, MBEDTLS_CIPHER_C and either
+ * MBEDTLS_MD_C or MBEDTLS_PSA_CRYPTO_C.
+ *
+ * \warning If building without MBEDTLS_MD_C, you must call psa_crypto_init()
+ * before doing any PKCS12 operation.
  *
  * This module enables PKCS#12 functions.
  */

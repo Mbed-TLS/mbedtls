@@ -1211,7 +1211,6 @@ component_test_crypto_full_no_md () {
     scripts/config.py unset MBEDTLS_HKDF_C
     scripts/config.py unset MBEDTLS_HMAC_DRBG_C
     scripts/config.py unset MBEDTLS_PKCS5_C
-    scripts/config.py unset MBEDTLS_PKCS12_C
     # Indirect dependencies
     scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC
     make
@@ -1871,7 +1870,6 @@ component_test_psa_crypto_config_accel_hash_use_psa () {
     scripts/config.py unset MBEDTLS_HKDF_C
     scripts/config.py unset MBEDTLS_HMAC_DRBG_C
     scripts/config.py unset MBEDTLS_PKCS5_C
-    scripts/config.py unset MBEDTLS_PKCS12_C
     scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
     # TLS currently depends on MD_C

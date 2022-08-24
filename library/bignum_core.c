@@ -348,14 +348,14 @@ void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
 /*
  * Fast Montgomery initialization (thanks to Tom St Denis).
  */
-mbedtls_mpi_uint mbedtls_mpi_montg_init( mbedtls_mpi_uint m0 )
+mbedtls_mpi_uint mbedtls_mpi_montg_init( const mbedtls_mpi_uint *N )
 {
-    mbedtls_mpi_uint x = m0;
+    mbedtls_mpi_uint x = N[0];
 
-    x += ( ( m0 + 2 ) & 4 ) << 1;
+    x += ( ( N[0] + 2 ) & 4 ) << 1;
 
     for( unsigned int i = biL; i >= 8; i /= 2 )
-        x *= ( 2 - ( m0 * x ) );
+        x *= ( 2 - ( N[0] * x ) );
 
     return( ~x + 1 );
 }

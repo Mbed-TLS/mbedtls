@@ -2015,7 +2015,7 @@ void mbedtls_mpi_montg_init( char * input_N, char * input_mm )
     TEST_EQUAL( mm.s, 1 );
 
     /* mbedtls_mpi_montg_init() only returns a result, no error possible */
-    mbedtls_mpi_uint result = mbedtls_mpi_montg_init( N.p[0] );
+    mbedtls_mpi_uint result = mbedtls_mpi_montg_init( N.p );
 
     /* Check we got the correct result */
     TEST_EQUAL( result, mm.p[0] );
@@ -2074,7 +2074,7 @@ void mbedtls_mpi_core_montmul( int limbs_AN4, int limbs_B4,
     TEST_EQUAL( mbedtls_mpi_grow( &T, limbs_AN * 2 + 1 ), 0 );
 
     /* Calculate the Montgomery constant (this is unit tested separately) */
-    mbedtls_mpi_uint mm = mbedtls_mpi_montg_init( N.p[0] );
+    mbedtls_mpi_uint mm = mbedtls_mpi_montg_init( N.p );
 
     TEST_EQUAL( mbedtls_mpi_grow( &R, limbs_AN ), 0 ); /* ensure it's got the right number of limbs */
 

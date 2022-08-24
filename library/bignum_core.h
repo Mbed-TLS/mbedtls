@@ -186,12 +186,12 @@ void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
  * \brief Calculate initialisation value for fast Montgomery modular
  *        multiplication
  *
- * \param m0  The least-significant mbedtls_mpi_uint from the modulus, which
- *            must be odd
+ * \param[in] N  Little-endian presentation of the modulus. This must have
+ *               at least one limb.
  *
- * \return    The initialisation value for fast Montgomery modular multiplication
+ * \return       The initialisation value for fast Montgomery modular multiplication
  */
-mbedtls_mpi_uint mbedtls_mpi_montg_init( mbedtls_mpi_uint m0 );
+mbedtls_mpi_uint mbedtls_mpi_montg_init( const mbedtls_mpi_uint *N );
 
 /**
  * \brief Perform a known-size multiply accumulate operation: d += b * s

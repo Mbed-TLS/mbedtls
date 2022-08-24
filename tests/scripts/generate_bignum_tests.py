@@ -49,7 +49,7 @@ import itertools
 import sys
 
 from abc import ABCMeta, abstractmethod
-from typing import Callable, Dict, Iterator, List, Tuple, TypeVar
+from typing import Callable, Dict, Iterator, List, Tuple, TypeVar, cast
 
 import scripts_path # pylint: disable=unused-import
 from mbedtls_dev import test_case
@@ -89,7 +89,7 @@ class BignumOperation(BignumTarget, metaclass=ABCMeta):
         "0000000000000000123", "-0000000000000000123",
         "1230000000000000000", "-1230000000000000000"
     ] # type: List[str]
-    input_cases = [] # type: List[Tuple[str, str]]
+    input_cases = cast(List[Tuple[str, str]], []) # type: List[Tuple[str, str]]
 
     def __init__(self, val_l: str, val_r: str) -> None:
         self.arg_l = val_l
@@ -154,7 +154,10 @@ class BignumOperation(BignumTarget, metaclass=ABCMeta):
         Combinations are first generated from all input values, and then
         specific cases provided.
         """
-        yield from itertools.combinations(cls.input_values, 2)
+        yield from cast(
+            Iterator[Tuple[str, str]],
+            itertools.combinations(cls.input_values, 2)
+        )
         yield from cls.input_cases
 
     @classmethod
@@ -200,12 +203,15 @@ class BignumAdd(BignumOperation):
     count = 0
     test_function = "mbedtls_mpi_add_mpi"
     test_name = "MPI add"
-    input_cases = list(itertools.combinations(
+    input_cases = cast(
+        List[Tuple[str, str]],
+        list(itertools.combinations(
         [
             "1c67967269c6", "9cde3",
             "-1c67967269c6", "-9cde3",
         ], 2
-    ))
+        ))
+    )
 
     def __init__(self, val_l, val_r) -> None:
         super().__init__(val_l, val_r)

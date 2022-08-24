@@ -79,7 +79,9 @@ class BaseTarget(metaclass=ABCMeta):
         Returns:
             Description for the test case.
         """
-        return "{} #{} {}".format(self.test_name, self.count, self.case_description)
+        return "{} #{} {}".format(
+            self.test_name, self.count, self.case_description
+            ).strip()
 
 
     def create_test_case(self) -> test_case.TestCase:

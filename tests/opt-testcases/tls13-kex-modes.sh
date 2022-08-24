@@ -2321,3 +2321,201 @@ run_test    "TLS 1.3Client: PSK: psk_ephemeral: without pre-share key, with psk_
             -c "<= write client hello" \
             -c "client state: MBEDTLS_SSL_SERVER_CERTIFICATE" \
             -c "HTTP/1.0 200 OK"
+
+#OPENSSL-SERVER ephemeral mode
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test    "TLS 1.3Client: PSK: ephemeral: with matched key and identity, with psk_ke and psk_dhe_ke. m->O" \
+            "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -allow_no_dhe_kex" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
+            0 \
+            -c "=> write client hello" \
+            -c "skip psk_key_exchange_modes extension" \
+            -c "<= write client hello" \
+            -c "found key_shares extension" \
+            -c "HTTP/1.0 200 ok"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test    "TLS 1.3Client: PSK: ephemeral: with matched key and identity, with psk_dhe_ke. m->O" \
+            "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203" \
+            "$P_CLI debug_level=4 sig_algs=ecdsa_secp256r1_sha256 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
+            0 \
+            -c "=> write client hello" \
+            -c "skip psk_key_exchange_modes extension" \
+            -c "<= write client hello" \
+            -c "found key_shares extension" \
+            -c "HTTP/1.0 200 ok"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test    "TLS 1.3Client: PSK: ephemeral: with mismatched identity, with psk_ke and psk_dhe_ke. m->O" \
+            "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -allow_no_dhe_kex" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0c0d0e tls13_kex_modes=ephemeral" \
+            0 \
+            -c "=> write client hello" \
+            -c "skip psk_key_exchange_modes extension" \
+            -c "<= write client hello" \
+            -c "found key_shares extension" \
+            -c "HTTP/1.0 200 ok"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test    "TLS 1.3Client: PSK: ephemeral: with mismatched identity, with psk_dhe_ke. m->O" \
+            "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0d0e0f tls13_kex_modes=ephemeral" \
+            0 \
+            -c "=> write client hello" \
+            -c "skip psk_key_exchange_modes extension" \
+            -c "<= write client hello" \
+            -c "found key_shares extension" \
+            -c "HTTP/1.0 200 ok"
+
+requires_openssl_tls1_3
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test    "TLS 1.3Client: PSK: ephemeral: without pre-share key, with psk_ke and psk_dhe_ke. m->O" \
+            "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203" \
+            "$P_CLI debug_level=4 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
+            0 \
+            -c "=> write client hello" \
+            -c "skip psk_key_exchange_modes extension" \
+            -c "<= write client hello"
+
+#GNUTLS-SERVER ephemeral mode
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+run_test    "TLS 1.3Client: PSK: ephemeral: with matched key and identity, with psk_ke and psk_dhe_ke. m->G" \
+            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
+            0 \
+            -c "=> write client hello" \
+            -c "skip psk_key_exchange_modes extension" \
+            -s "Not sending extension (PSK Key Exchange Modes/45)" \
+            -c "<= write client hello" \
+            -c "HTTP/1.0 200 OK"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+run_test    "TLS 1.3Client: PSK: ephemeral: with matched key and identity, with psk_ke. m->G" \
+            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
+            0 \
+            -c "=> write client hello" \
+            -c "skip psk_key_exchange_modes extension" \
+            -s "Not sending extension (PSK Key Exchange Modes/45)" \
+            -c "<= write client hello" \
+            -c "HTTP/1.0 200 OK"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+run_test    "TLS 1.3Client: PSK: ephemeral: with matched key and identity, with psk_dhe_ke. m->G" \
+            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
+            0 \
+            -c "=> write client hello" \
+            -c "skip psk_key_exchange_modes extension" \
+            -s "Not sending extension (PSK Key Exchange Modes/45)" \
+            -c "<= write client hello" \
+            -c "HTTP/1.0 200 OK"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+run_test    "TLS 1.3Client: PSK: ephemeral: with mismatched identity, with psk_ke and psk_dhe_ke. m->G" \
+            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0d0e0f tls13_kex_modes=ephemeral" \
+            0 \
+            -c "=> write client hello" \
+            -c "skip psk_key_exchange_modes extension" \
+            -s "Not sending extension (PSK Key Exchange Modes/45)" \
+            -c "<= write client hello" \
+            -c "HTTP/1.0 200 OK"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+run_test    "TLS 1.3Client: PSK: ephemeral: with mismatched identity, with psk_ke. m->G" \
+            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0d0e0f tls13_kex_modes=ephemeral" \
+            0 \
+            -c "=> write client hello" \
+            -c "skip psk_key_exchange_modes extension" \
+            -s "Not sending extension (PSK Key Exchange Modes/45)" \
+            -c "<= write client hello" \
+            -c "HTTP/1.0 200 OK"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+run_test    "TLS 1.3Client: PSK: ephemeral: with mismatched identity, with psk_dhe_ke. m->G" \
+            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+CIPHER-ALL --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
+            "$P_CLI debug_level=4 psk=010203 psk_identity=0d0e0f tls13_kex_modes=ephemeral" \
+            0 \
+            -c "=> write client hello" \
+            -c "skip psk_key_exchange_modes extension" \
+            -s "Not sending extension (PSK Key Exchange Modes/45)" \
+            -c "<= write client hello" \
+            -c "HTTP/1.0 200 OK"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_gnutls_tls1_3
+requires_gnutls_next_no_ticket
+requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+requires_config_enabled MBEDTLS_DEBUG_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+run_test    "TLS 1.3Client: PSK: ephemeral: without pre-share key, with psk_ke and psk_dhe_ke. m->G" \
+            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
+            "$P_CLI debug_level=4 psk_identity=0d0e0f tls13_kex_modes=ephemeral" \
+            0 \
+            -c "=> write client hello" \
+            -c "skip psk_key_exchange_modes extension" \
+            -s "Not sending extension (PSK Key Exchange Modes/45)" \
+            -c "<= write client hello" \
+            -c "client state: MBEDTLS_SSL_SERVER_CERTIFICATE" \
+            -c "HTTP/1.0 200 OK"

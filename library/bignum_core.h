@@ -277,28 +277,27 @@ int mbedtls_mpi_core_write_be( const mbedtls_mpi_uint *A,
 void mbedtls_mpi_core_shift_r( mbedtls_mpi_uint *X, size_t limbs,
                                size_t count );
 
-#define MPI_CORE(func) mbedtls_mpi_core_ ## func ## _minimal
-
 /**
- * \brief Add two known-size large unsigned integers, returning the carry.
+ * \brief Add two fixed-size large unsigned integers, returning the carry.
  *
- * Calculate l + r where l and r have the same size.
- * This function operates modulo (2^ciL)^n and returns the carry
+ * Calculates `A + B` where `A` and `B` have the same size.
+ *
+ * This function operates modulo 2^(biL*limbs) and returns the carry
  * (1 if there was a wraparound, and 0 otherwise).
  *
- * d may be aliased to l or r.
+ * \p X may be aliased to \p A or \p B.
  *
- * \param[out] d        The result of the addition.
- * \param[in] l         The left operand.
- * \param[in] r         The right operand.
- * \param n             Number of limbs of \p d, \p l and \p r.
+ * \param[out] X    The result of the addition.
+ * \param[in] A     Little-endian presentation of the left operand.
+ * \param[in] B     Little-endian presentation of the right operand.
+ * \param limbs     Number of limbs of \p X, \p A and \p B.
  *
- * \return              1 if `l + r >= (2^{ciL})^n`, 0 otherwise.
+ * \return          1 if `A + B >= 2^(biL*limbs)`, 0 otherwise.
  */
-mbedtls_mpi_uint MPI_CORE(add)( mbedtls_mpi_uint *d,
-                                const mbedtls_mpi_uint *l,
-                                const mbedtls_mpi_uint *r,
-                                size_t n );
+mbedtls_mpi_uint mbedtls_mpi_core_add( mbedtls_mpi_uint *X,
+                                       const mbedtls_mpi_uint *A,
+                                       const mbedtls_mpi_uint *B,
+                                       size_t limbs );
 
 /**
  * \brief Conditional addition of two fixed-size large unsigned integers,

@@ -358,19 +358,22 @@ void mbedtls_mpi_core_shift_r( mbedtls_mpi_uint *X, size_t limbs,
     }
 }
 
-mbedtls_mpi_uint MPI_CORE(add)( mbedtls_mpi_uint *d,
-                                const mbedtls_mpi_uint *l,
-                                const mbedtls_mpi_uint *r,
-                                size_t n )
+mbedtls_mpi_uint mbedtls_mpi_core_add( mbedtls_mpi_uint *X,
+                                       const mbedtls_mpi_uint *A,
+                                       const mbedtls_mpi_uint *B,
+                                       size_t limbs )
 {
-    mbedtls_mpi_uint c = 0, t;
-    for( size_t i = 0; i < n; i++ )
+    mbedtls_mpi_uint c = 0;
+
+    for( size_t i = 0; i < limbs; i++ )
     {
-        t  = c;
-        t += l[i]; c  = ( t < l[i] );
-        t += r[i]; c += ( t < r[i] );
-        d[i] = t;
+        mbedtls_mpi_uint t = c + A[i];
+        c = ( t < A[i] );
+        t += B[i];
+        c += ( t < B[i] );
+        X[i] = t;
     }
+
     return( c );
 }
 

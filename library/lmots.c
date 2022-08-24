@@ -32,11 +32,12 @@
 
 #include "common.h"
 
-#ifdef MBEDTLS_LMOTS_C
+#ifdef MBEDTLS_LMS_C
 
 #include <string.h>
 
-#include "mbedtls/lmots.h"
+#include "lmots.h"
+
 #include "mbedtls/md.h"
 #include "mbedtls/platform_util.h"
 #include "mbedtls/error.h"
@@ -329,7 +330,7 @@ int mbedtls_lmots_set_algorithm_type( mbedtls_lmots_context *ctx,
 {
     if( ctx == NULL )
     {
-        return( MBEDTLS_ERR_LMOTS_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
     ctx->MBEDTLS_PRIVATE(type) = type;
@@ -350,7 +351,7 @@ int mbedtls_lmots_generate_pub_key_candidate( const unsigned char I_key_identifi
 
     if (I_key_identifier == NULL || msg == NULL || sig == NULL || out == NULL)
     {
-        return( MBEDTLS_ERR_LMOTS_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
     ret = create_symbol_array( I_key_identifier, q_leaf_identifier, msg, msg_len,
@@ -390,13 +391,13 @@ int mbedtls_lmots_sign( mbedtls_lmots_context *ctx,
 
     if( ctx == NULL || f_rng == NULL || p_rng == NULL || msg == NULL || sig == NULL)
     {
-        return( MBEDTLS_ERR_LMOTS_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
     /* Check that a private key is loaded */
     if ( !ctx->MBEDTLS_PRIVATE(have_privkey) )
     {
-        return( MBEDTLS_ERR_LMOTS_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
     ret = f_rng( p_rng, sig + MBEDTLS_LMOTS_SIG_C_RANDOM_OFFSET, MBEDTLS_LMOTS_N_HASH_LEN );
@@ -447,23 +448,23 @@ int mbedtls_lmots_verify( mbedtls_lmots_context *ctx, const unsigned char *msg,
 
     if( ctx == NULL || msg == NULL || sig == NULL)
     {
-        return( MBEDTLS_ERR_LMOTS_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
     if ( !ctx->MBEDTLS_PRIVATE(have_pubkey) )
     {
-        return( MBEDTLS_ERR_LMOTS_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
     if( ctx->MBEDTLS_PRIVATE(type ) != MBEDTLS_LMOTS_SHA256_N32_W8 )
     {
-        return( MBEDTLS_ERR_LMOTS_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
     if ( network_bytes_to_val( MBEDTLS_LMOTS_TYPE_LEN,
                                sig + MBEDTLS_LMOTS_SIG_TYPE_OFFSET ) != MBEDTLS_LMOTS_SHA256_N32_W8 )
     {
-        return( MBEDTLS_ERR_LMOTS_VERIFY_FAILED );
+        return( MBEDTLS_ERR_LMS_VERIFY_FAILED );
     }
 
     ret = mbedtls_lmots_generate_pub_key_candidate( ctx->MBEDTLS_PRIVATE(I_key_identifier),
@@ -478,7 +479,7 @@ int mbedtls_lmots_verify( mbedtls_lmots_context *ctx, const unsigned char *msg,
     if ( memcmp( &Kc_public_key_candidate, ctx->MBEDTLS_PRIVATE(pub_key),
                  sizeof( ctx->MBEDTLS_PRIVATE(pub_key) ) ) )
     {
-        return( MBEDTLS_ERR_LMOTS_VERIFY_FAILED );
+        return( MBEDTLS_ERR_LMS_VERIFY_FAILED );
     }
 
     return( 0 );
@@ -489,7 +490,7 @@ int mbedtls_lmots_import_pubkey( mbedtls_lmots_context *ctx,
 {
     if ( ctx == NULL || key == NULL)
     {
-        return( MBEDTLS_ERR_LMOTS_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
     ctx->MBEDTLS_PRIVATE(type) = network_bytes_to_val( MBEDTLS_LMOTS_TYPE_LEN,
@@ -515,12 +516,12 @@ int mbedtls_lmots_export_pubkey( mbedtls_lmots_context *ctx,
 {
     if ( ctx == NULL || key == NULL)
     {
-        return( MBEDTLS_ERR_LMOTS_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
     if ( ! ctx->MBEDTLS_PRIVATE(have_pubkey) )
     {
-        return( MBEDTLS_ERR_LMOTS_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
     val_to_network_bytes( ctx->MBEDTLS_PRIVATE(type), MBEDTLS_LMOTS_TYPE_LEN,
@@ -546,13 +547,13 @@ int mbedtls_lmots_gen_pubkey( mbedtls_lmots_context *ctx )
 
     if( ctx == NULL )
     {
-        return( MBEDTLS_ERR_LMOTS_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
     /* Check that a private key is loaded */
     if ( !ctx->MBEDTLS_PRIVATE(have_privkey) )
     {
-        return( MBEDTLS_ERR_LMOTS_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
     ret = hash_symbol_array( ctx->MBEDTLS_PRIVATE(I_key_identifier),
@@ -592,16 +593,16 @@ int mbedtls_lmots_gen_privkey( mbedtls_lmots_context *ctx,
 
     if( ctx == NULL || I_key_identifier == NULL || seed == NULL)
     {
-        return( MBEDTLS_ERR_LMOTS_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
     if ( ctx->MBEDTLS_PRIVATE(have_privkey) )
     {
-        return( MBEDTLS_ERR_LMOTS_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
     if ( ctx->MBEDTLS_PRIVATE(type) != MBEDTLS_LMOTS_SHA256_N32_W8 ) {
-        return( MBEDTLS_ERR_LMOTS_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
     memcpy( ctx->MBEDTLS_PRIVATE(I_key_identifier), I_key_identifier,
@@ -681,4 +682,4 @@ out:
     return ret;
 }
 
-#endif /* MBEDTLS_LMOTS_C */
+#endif /* MBEDTLS_LMS_C */

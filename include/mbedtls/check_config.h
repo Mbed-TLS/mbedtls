@@ -353,14 +353,9 @@
 #error "MBEDTLS_MD_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_LMOTS_C) &&                                       \
-    ( !defined(MBEDTLS_MD_C) )
-#error "MBEDTLS_LMOTS_C requires MBEDTLS_MD_C"
-#endif
-
 #if defined(MBEDTLS_LMS_C) &&                                          \
-    ( !defined(MBEDTLS_LMOTS_C) || !defined(MBEDTLS_MD_C) )
-#error "MBEDTLS_LMS_C requires MBEDTLS_LMOTS_C and MBEDTLS_MD_C"
+    ( !defined(MBEDTLS_MD_C) )
+#error "MBEDTLS_LMS_C requires MBEDTLS_MD_C"
 #endif
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) &&                          \

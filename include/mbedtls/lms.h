@@ -30,8 +30,9 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#include "lmots.h"
+
 #include "mbedtls/private_access.h"
-#include "mbedtls/lmots.h"
 
 #define MBEDTLS_ERR_LMS_BAD_INPUT_DATA   -0x0011 /**< Bad data has been input to an LMS function */
 #define MBEDTLS_ERR_LMS_OUT_OF_PRIV_KEYS -0x0013 /**< Specified LMS key has utilised all of its private keys */

@@ -1,12 +1,14 @@
 /* BEGIN_HEADER */
-#include "mbedtls/lmots.h"
+#include "lmots.h"
+#include "mbedtls/lms.h"
+
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
 
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
- * depends_on:MBEDTLS_LMOTS_C:MBEDTLS_SHA256_C:MBEDTLS_CTR_DRBG_C
+ * depends_on:MBEDTLS_LMS_C:MBEDTLS_SHA256_C:MBEDTLS_CTR_DRBG_C
  * END_DEPENDENCIES
  */
 

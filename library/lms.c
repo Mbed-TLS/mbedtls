@@ -36,8 +36,9 @@
 
 #include <string.h>
 
+#include "lmots.h"
+
 #include "mbedtls/lms.h"
-#include "mbedtls/lmots.h"
 #include "mbedtls/md.h"
 #include "mbedtls/error.h"
 #include "mbedtls/platform_util.h"

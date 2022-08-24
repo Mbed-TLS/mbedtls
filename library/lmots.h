@@ -31,9 +31,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define MBEDTLS_ERR_LMOTS_BAD_INPUT_DATA -0x0076 /**< Bad data has been input to an LMOTS function */
-#define MBEDTLS_ERR_LMOTS_VERIFY_FAILED  -0x0078 /**< LMOTS signature verification failed */
-
 #define MBEDTLS_LMOTS_N_HASH_LEN            (32)
 #define MBEDTLS_LMOTS_P_SIG_SYMBOL_LEN      (34)
 #define MBEDTLS_LMOTS_TYPE_LEN              (4)

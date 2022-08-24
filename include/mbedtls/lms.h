@@ -2,7 +2,11 @@
  * \file lms.h
  *
  * \brief This file provides an API for the LMS post-quantum-safe stateful-hash
- *        public-key signature scheme.
+          public-key signature scheme as defined in RFC8554 and NIST.SP.200-208.
+ *        This implementation currently only supports a single parameter set
+ *        MBEDTLS_LMS_SHA256_M32_H10 in order to reduce complexity. This is one
+ *        of the signature schemes recommended by the IETF draft SUIT standard
+ *        for IOT firmware upgrades (RFC9019).
  */
 /*
  *  Copyright The Mbed TLS Contributors
@@ -36,7 +40,7 @@
 
 #define MBEDTLS_LMS_TYPE_LEN            (4)
 #define MBEDTLS_LMS_H_TREE_HEIGHT       (10)
-#define MBEDTLS_LMS_M_NODE_BYTES        (32)
+#define MBEDTLS_LMS_M_NODE_BYTES        (32) /* The length of a hash output, 32 for SHA256 */
 
 #define MBEDTLS_LMS_SIG_LEN (MBEDTLS_LMOTS_Q_LEAF_ID_LEN + MBEDTLS_LMOTS_SIG_LEN + \
                              MBEDTLS_LMS_TYPE_LEN + MBEDTLS_LMS_H_TREE_HEIGHT * MBEDTLS_LMS_M_NODE_BYTES)
@@ -66,6 +70,29 @@ typedef enum {
 } mbedtls_lms_algorithm_type_t;
 
 
+/** LMS context structure.
+ *
+ * The context must be initialized before it is used. A public key must either
+ * be imported, or an algorithm type set, a private key generated and the public
+ * key calculated from it. A context that does not contain a public key cannot
+ * verify, and a context that does not contain a private key cannot sign.
+ *
+ * \dot
+ * digraph lmots {
+ *   UNINITIALIZED -> INIT [label="init"];
+ *   TYPE_SET -> INIT [label="free"];
+ *   PRIVATE -> INIT [label="free"];
+ *   PUBLIC -> INIT [label="free"];
+ *   "PRIVATE+PUBLIC" -> INIT [label="free"];
+ *   INIT -> TYPE_SET [label="set_algorithm_type"];
+ *   INIT -> PUBLIC [label="import_public"];
+ *   PUBLIC -> PUBLIC [label="export_pubkey"];
+ *   "PRIVATE+PUBLIC" -> "PRIVATE+PUBLIC" [label="export_pubkey"];
+ *   PRIVATE -> "PRIVATE+PUBLIC" [label="gen_pubkey"];
+ *   TYPE_SET -> PRIVATE [label="gen_privkey"];
+ * }
+ * \enddot
+ */
 typedef struct {
     unsigned char MBEDTLS_PRIVATE(have_privkey); /*!< Whether the context contains a private key.
                                                      Boolean values only. */
@@ -123,9 +150,9 @@ int mbedtls_lms_set_algorithm_type( mbedtls_lms_context *ctx,
  * \brief                    This function creates a LMS signature, using a
  *                           LMOTS context that contains a private key.
  *
- * \note                     This function is intended for _testing purposes
- *                           only_, due to complexities around updating stateful
- *                           keys.
+ * \warning                  This function is **not intended for use in
+ *                           production**, due to as-yet unsolved problems with
+ *                           handling stateful keys.
  *
  * \note                     Before this function is called, the context must
  *                           have been initialized and must contain a private
@@ -241,6 +268,10 @@ int mbedtls_lms_gen_pubkey( mbedtls_lms_context *ctx );
 /**
  * \brief                    This function generates an LMS private key, and
  *                           stores in into an LMS context.
+ *
+ * \warning                  This function is **not intended for use in
+ *                           production**, due to as-yet unsolved problems with
+ *                           handling stateful keys.
  *
  * \note                     Before this function is called, the context must
  *                           have been initialized and the type of the LMS

@@ -2,7 +2,9 @@
  * \file lmots.h
  *
  * \brief This file provides an API for the LM-OTS post-quantum-safe one-time
- *        public-key signature scheme.
+ *        public-key signature scheme as defined in RFC8554 and NIST.SP.200-208.
+ *        This implementation currently only supports a single parameter set
+ *        MBEDTLS_LMOTS_SHA256_N32_W8 in order to reduce complexity.
  */
 /*
  *  Copyright The Mbed TLS Contributors
@@ -67,6 +69,33 @@ typedef enum {
 } mbedtls_lmots_algorithm_type_t;
 
 
+/** LMOTS context structure.
+ *
+ * The context must be initialized before it is used. A public key must either
+ * be imported, or an algorithm type set, a private key generated and the public
+ * key calculated from it. A context that does not contain a public key cannot
+ * verify, and a context that does not contain a private key cannot sign.
+ * Signing a message will remove the private key from the context, as private
+ * keys can only be used a single time.
+ *
+ * \dot
+ * digraph lmots {
+ *   UNINITIALIZED -> INIT [label="init"];
+ *   TYPE_SET -> INIT [label="free"];
+ *   PRIVATE -> INIT [label="free"];
+ *   PUBLIC -> INIT [label="free"];
+ *   "PRIVATE+PUBLIC" -> INIT [label="free"];
+ *   INIT -> TYPE_SET [label="set_algorithm_type"];
+ *   PRIVATE -> TYPE_SET [label="sign"];
+ *   "PRIVATE+PUBLIC" -> PUBLIC [label="sign"];
+ *   INIT -> PUBLIC [label="import_public"];
+ *   PUBLIC -> PUBLIC [label="export_pubkey"];
+ *   "PRIVATE+PUBLIC" -> "PRIVATE+PUBLIC" [label="export_pubkey"];
+ *   PRIVATE -> "PRIVATE+PUBLIC" [label="gen_pubkey"];
+ *   TYPE_SET -> PRIVATE [label="gen_privkey"];
+ * }
+ * \enddot
+ */
 typedef struct {
     unsigned char MBEDTLS_PRIVATE(have_privkey); /*!< Whether the context contains a private key.
                                                      Boolean values only. */
@@ -129,15 +158,14 @@ int mbedtls_lmots_set_algorithm_type( mbedtls_lmots_context *ctx,
  *                           mbedtls_lmots_verify will be used for LMOTS
  *                           signature verification.
  *
- * \param I_key_identifier   The key identifier of the key, as a 16 byte
- *                           bytestring.
+ * \param I_key_identifier   The key identifier of the key, as a 16-byte string.
  * \param q_leaf_identifier  The leaf identifier of key. If this LMOTS key is
  *                           not being used as part of an LMS key, this should
  *                           be set to 0.
  * \param msg                The buffer from which the message will be read.
  * \param msg_len            The size of the message that will be read.
- * \param sig                The buff from which the signature will be read.
- *                           MBEDTLS_LMOTS_SIG_LEN bytes will be read from this.
+ * \param sig                The buffer from which the signature will be read.
+ *                           #MBEDTLS_LMOTS_SIG_LEN bytes will be read from this.
  * \param out                The buffer where the candidate public key will be
  *                           stored. Must be at least #MBEDTLS_LMOTS_N_HASH_LEN
  *                           bytes in size.
@@ -188,6 +216,10 @@ int mbedtls_lmots_sign( mbedtls_lmots_context *ctx,
 /**
  * \brief                    This function verifies a LMOTS signature, using a
  *                           LMOTS context that contains a public key.
+ *
+ * \warning                  This function is **not intended for use in
+ *                           production**, due to as-yet unsolved problems with
+ *                           handling stateful keys.
  *
  * \note                     Before this function is called, the context must
  *                           have been initialized and must contain a public key
@@ -270,6 +302,10 @@ int mbedtls_lmots_gen_pubkey( mbedtls_lmots_context *ctx );
  * \brief                    This function generates an LMOTS private key, and
  *                           stores in into an LMOTS context.
  *
+ * \warning                  This function is **not intended for use in
+ *                           production**, due to as-yet unsolved problems with
+ *                           handling stateful keys.
+ *
  * \note                     Before this function is called, the context must
  *                           have been initialized and the type of the LMOTS
  *                           context set using mbedtls_lmots_set_algorithm_type
@@ -278,8 +314,7 @@ int mbedtls_lmots_gen_pubkey( mbedtls_lmots_context *ctx );
  *
  * \param ctx                The initialized LMOTS context to generate the key
  *                           into.
- * \param I_key_identifier   The key identifier of the key, as a 16 byte
- *                           bytestring.
+ * \param I_key_identifier   The key identifier of the key, as a 16-byte string.
  * \param q_leaf_identifier  The leaf identifier of key. If this LMOTS key is
  *                           not being used as part of an LMS key, this should
  *                           be set to 0.

@@ -24,7 +24,7 @@ import os
 import posixpath
 import re
 
-from abc import abstractmethod
+from abc import ABCMeta, abstractmethod
 from typing import Callable, Dict, Iterable, List, Type, TypeVar
 
 from mbedtls_dev import build_tree
@@ -33,7 +33,7 @@ from mbedtls_dev import test_case
 T = TypeVar('T') #pylint: disable=invalid-name
 
 
-class BaseTarget:
+class BaseTarget(metaclass=ABCMeta):
     """Base target for test case generation.
 
     Attributes:
@@ -94,13 +94,12 @@ class BaseTarget:
     def generate_tests(cls):
         """Generate test cases for the target subclasses.
 
-        Classes will iterate over its subclasses, calling this method in each.
-        In abstract classes, no further changes are needed, as there is no
+        During generation, each class will iterate over any subclasses, calling
+        this method in each.
+        In abstract classes, no tests will be generated, as there is no
         function to generate tests for.
-        In classes which do implement a test function, this should be overrided
-        and a means to use `create_test_case()` should be added. In most cases
-        the subclasses can still be iterated over, as either the class will
-        have none, or it may continue.
+        In classes which do implement a test function, this should be overridden
+        and a means to use `create_test_case()` should be added.
         """
         for subclass in sorted(cls.__subclasses__(), key=lambda c: c.__name__):
             yield from subclass.generate_tests()

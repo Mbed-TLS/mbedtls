@@ -6560,7 +6560,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
             const mbedtls_ecp_keypair *ec = mbedtls_pk_ec( *pk );
             if( ec == NULL )
             {
-                MBEDTLS_SSL_DEBUG_MSG( 1, ( "mbedtls_pk_ec() returned MULL"));
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "mbedtls_pk_ec() returned NULL" ) );
                 return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
             }
 

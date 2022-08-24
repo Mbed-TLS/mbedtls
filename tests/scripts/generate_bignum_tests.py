@@ -48,7 +48,7 @@ of BaseTarget in test_generation.py.
 import itertools
 import sys
 
-from abc import abstractmethod
+from abc import ABCMeta, abstractmethod
 from typing import Callable, Dict, Iterator, List, Optional, Tuple, TypeVar
 
 import scripts_path # pylint: disable=unused-import
@@ -64,12 +64,12 @@ def quote_str(val):
     return "\"{}\"".format(val)
 
 
-class BignumTarget(test_generation.BaseTarget):
+class BignumTarget(test_generation.BaseTarget, metaclass=ABCMeta):
     """Target for bignum (mpi) test case generation."""
     target_basename = 'test_suite_mpi.generated'
 
 
-class BignumOperation(BignumTarget):
+class BignumOperation(BignumTarget, metaclass=ABCMeta):
     """Common features for test cases covering binary bignum operations.
 
     This adds functionality common in binary operation tests. This includes
@@ -118,7 +118,7 @@ class BignumOperation(BignumTarget):
         return super().description()
 
     @abstractmethod
-    def result(self) -> Optional[str]:
+    def result(self) -> str:
         """Get the result of the operation.
 
         This may be calculated during initialization and stored as `_result`,
@@ -131,7 +131,7 @@ class BignumOperation(BignumTarget):
         """Generate a description of the argument val.
 
         This produces a simple description of the value, which are used in test
-        case naming, to avoid most generated cases only being numbered.
+        case naming, to add context to the test cases.
         """
         if val == "":
             return "0 (null)"

@@ -52,8 +52,9 @@ class BaseTarget(metaclass=ABCMeta):
     test_function = ""
     test_name = ""
 
-    def __init__(self) -> None:
-        type(self).count += 1
+    def __new__(cls, *args, **kwargs):
+        cls.count += 1
+        return super().__new__(cls)
 
     @abstractmethod
     def arguments(self) -> List[str]:

@@ -49,7 +49,7 @@ import itertools
 import sys
 
 from abc import ABCMeta, abstractmethod
-from typing import Callable, Dict, Iterator, List, Optional, Tuple, TypeVar
+from typing import Callable, Dict, Iterator, List, Tuple, TypeVar
 
 import scripts_path # pylint: disable=unused-import
 from mbedtls_dev import test_case
@@ -57,10 +57,10 @@ from mbedtls_dev import test_generation
 
 T = TypeVar('T') #pylint: disable=invalid-name
 
-def hex_to_int(val):
+def hex_to_int(val: str) -> int:
     return int(val, 16) if val else 0
 
-def quote_str(val):
+def quote_str(val) -> str:
     return "\"{}\"".format(val)
 
 
@@ -89,7 +89,7 @@ class BignumOperation(BignumTarget, metaclass=ABCMeta):
         "0000000000000000123", "-0000000000000000123",
         "1230000000000000000", "-1230000000000000000"
     ] # type: List[str]
-    input_cases = [] # type: List[Tuple[str, ...]]
+    input_cases = [] # type: List[Tuple[str, str]]
 
     def __init__(self, val_l: str, val_r: str) -> None:
         self.arg_l = val_l
@@ -97,10 +97,10 @@ class BignumOperation(BignumTarget, metaclass=ABCMeta):
         self.int_l = hex_to_int(val_l)
         self.int_r = hex_to_int(val_r)
 
-    def arguments(self):
+    def arguments(self) -> List[str]:
         return [quote_str(self.arg_l), quote_str(self.arg_r), self.result()]
 
-    def description(self):
+    def description(self) -> str:
         """Generate a description for the test case.
 
         If not set, case_description uses the form A `symbol` B, where symbol
@@ -148,7 +148,7 @@ class BignumOperation(BignumTarget, metaclass=ABCMeta):
         return tmp
 
     @classmethod
-    def get_value_pairs(cls) -> Iterator[Tuple[str, ...]]:
+    def get_value_pairs(cls) -> Iterator[Tuple[str, str]]:
         """Generator for pairs of inputs.
 
         Combinations are first generated from all input values, and then
@@ -176,12 +176,12 @@ class BignumCmp(BignumOperation):
         ("2b5", "2b6")
         ]
 
-    def __init__(self, val_l, val_r):
+    def __init__(self, val_l, val_r) -> None:
         super().__init__(val_l, val_r)
         self._result = int(self.int_l > self.int_r) - int(self.int_l < self.int_r)
         self.symbol = ["<", "==", ">"][self._result + 1]
 
-    def result(self):
+    def result(self) -> str:
         return str(self._result)
 
 
@@ -191,7 +191,7 @@ class BignumCmpAbs(BignumCmp):
     test_function = "mbedtls_mpi_cmp_abs"
     test_name = "MPI compare (abs)"
 
-    def __init__(self, val_l, val_r):
+    def __init__(self, val_l, val_r) -> None:
         super().__init__(val_l.strip("-"), val_r.strip("-"))
 
 
@@ -207,11 +207,11 @@ class BignumAdd(BignumOperation):
         ], 2
     ))
 
-    def __init__(self, val_l, val_r):
+    def __init__(self, val_l, val_r) -> None:
         super().__init__(val_l, val_r)
         self.symbol = "+"
 
-    def result(self):
+    def result(self) -> str:
         return quote_str(hex(self.int_l + self.int_r).replace("0x", "", 1))
 
 

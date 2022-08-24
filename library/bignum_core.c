@@ -296,35 +296,35 @@ int mbedtls_mpi_core_write_be( const mbedtls_mpi_uint *X,
 void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
                                const mbedtls_mpi_uint *A,
                                const mbedtls_mpi_uint *B,
-                               size_t B_len,
+                               size_t B_limbs,
                                const mbedtls_mpi_uint *N,
-                               size_t n,
+                               size_t AN_limbs,
                                mbedtls_mpi_uint mm,
                                mbedtls_mpi_uint *T )
 {
-    memset( T, 0, ( 2 * n + 1 ) * ciL );
+    memset( T, 0, ( 2 * AN_limbs + 1 ) * ciL );
 
-    for( size_t i = 0; i < n; i++, T++ )
+    for( size_t i = 0; i < AN_limbs; i++, T++ )
     {
         mbedtls_mpi_uint u0, u1;
         /* T = (T + u0*B + u1*N) / 2^biL */
         u0 = A[i];
         u1 = ( T[0] + u0 * B[0] ) * mm;
 
-        (void) mbedtls_mpi_core_mla( T, n + 2, B, B_len, u0 );
-        (void) mbedtls_mpi_core_mla( T, n + 2, N, n, u1 );
+        (void) mbedtls_mpi_core_mla( T, AN_limbs + 2, B, B_limbs, u0 );
+        (void) mbedtls_mpi_core_mla( T, AN_limbs + 2, N, AN_limbs, u1 );
     }
 
     /* It's possible that the result in T is > N, and so we might need to subtract N */
 
-    mbedtls_mpi_uint carry  = T[n];
-    mbedtls_mpi_uint borrow = mbedtls_mpi_core_sub( X, T, N, n );
+    mbedtls_mpi_uint carry  = T[AN_limbs];
+    mbedtls_mpi_uint borrow = mbedtls_mpi_core_sub( X, T, N, AN_limbs );
 
     /*
      * Both carry and borrow can only be 0 or 1.
      *
      * If carry = 1, the result in T must be > N by definition, and the subtraction
-     * using only n limbs will create borrow, but that will have the correct
+     * using only AN_limbs limbs will create borrow, but that will have the correct
      * final result.
      *
      * i.e. (carry, borrow) of (1, 1) => return X
@@ -340,9 +340,9 @@ void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
      * see (carry, borrow) = (1, 0).
      *
      * So the correct return value is already in X if (carry ^ borrow) = 0,
-     * but is in (the lower n limbs of) T if (carry ^ borrow) = 1.
+     * but is in (the lower AN_limbs limbs of) T if (carry ^ borrow) = 1.
      */
-     mbedtls_ct_mpi_uint_cond_assign( n, X, T, (unsigned char) ( carry ^ borrow ) );
+     mbedtls_ct_mpi_uint_cond_assign( AN_limbs, X, T, (unsigned char) ( carry ^ borrow ) );
 }
 
 /*
@@ -393,37 +393,37 @@ mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len,
     return( c );
 }
 
-mbedtls_mpi_uint mbedtls_mpi_core_sub( mbedtls_mpi_uint *d,
-                                       const mbedtls_mpi_uint *l,
-                                       const mbedtls_mpi_uint *r,
-                                       size_t n )
+mbedtls_mpi_uint mbedtls_mpi_core_sub( mbedtls_mpi_uint *X,
+                                       const mbedtls_mpi_uint *A,
+                                       const mbedtls_mpi_uint *B,
+                                       size_t limbs )
 {
     mbedtls_mpi_uint c = 0;
 
-    for( size_t i = 0; i < n; i++ )
+    for( size_t i = 0; i < limbs; i++ )
     {
-        mbedtls_mpi_uint z = ( l[i] < c );
-        mbedtls_mpi_uint t = l[i] - c;
-        c = ( t < r[i] ) + z;
-        d[i] = t - r[i];
+        mbedtls_mpi_uint z = ( A[i] < c );
+        mbedtls_mpi_uint t = A[i] - c;
+        c = ( t < B[i] ) + z;
+        X[i] = t - B[i];
     }
 
     return( c );
 }
 
-mbedtls_mpi_uint mbedtls_mpi_core_add_if( mbedtls_mpi_uint *d,
-                                          const mbedtls_mpi_uint *r,
-                                          size_t n,
+mbedtls_mpi_uint mbedtls_mpi_core_add_if( mbedtls_mpi_uint *A,
+                                          const mbedtls_mpi_uint *B,
+                                          size_t limbs,
                                           unsigned cond )
 {
     mbedtls_mpi_uint c = 0, t;
-    for( size_t i = 0; i < n; i++ )
+    for( size_t i = 0; i < limbs; i++ )
     {
-        mbedtls_mpi_uint add = cond * r[i];
+        mbedtls_mpi_uint add = cond * B[i];
         t  = c;
-        t += d[i]; c  = ( t < d[i] );
+        t += A[i]; c  = ( t < A[i] );
         t += add;  c += ( t < add  );
-        d[i] = t;
+        A[i] = t;
     }
     return( c );
 }

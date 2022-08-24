@@ -398,6 +398,25 @@ mbedtls_mpi_uint mbedtls_mpi_core_mla(mbedtls_mpi_uint *X, size_t X_limbs,
                                       const mbedtls_mpi_uint *A, size_t A_limbs,
                                       mbedtls_mpi_uint b);
 
+#define MPI_CORE(func) mbedtls_mpi_core_ ## func ## _minimal
+
+/**
+ * \brief Perform a known-size multiplication
+ *
+ * \param[out] X        The pointer to the (little-endian) array
+ *                      representing the product of \p a and \p b.
+ *                      This must be of length \p a + \p b.
+ * \param[in] A         The pointer to the (little-endian) array
+ *                      representing the first factor.
+ * \param a             The number of limbs in \p A.
+ * \param[in] B         The pointer to the (little-endian) array
+ *                      representing the second factor.
+ * \param b             The number of limbs in \p B.
+ */
+void MPI_CORE(mul)( mbedtls_mpi_uint *X,
+                    const mbedtls_mpi_uint *A, size_t a,
+                    const mbedtls_mpi_uint *B, size_t b );
+
 /**
  * \brief Calculate initialisation value for fast Montgomery modular
  *        multiplication

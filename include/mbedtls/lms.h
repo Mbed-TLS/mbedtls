@@ -38,6 +38,7 @@
 #define MBEDTLS_ERR_LMS_OUT_OF_PRIV_KEYS -0x0013 /**< Specified LMS key has utilised all of its private keys */
 #define MBEDTLS_ERR_LMS_VERIFY_FAILED    -0x0015 /**< LMS signature verification failed */
 #define MBEDTLS_ERR_LMS_ALLOC_FAILED     -0x0017 /**< LMS failed to allocate space for a private key */
+#define MBEDTLS_ERR_LMS_BUFFER_TOO_SMALL -0x0019 /**< Input/output buffer is too small to contain requited data */
 
 #define MBEDTLS_LMS_TYPE_LEN            (4)
 #define MBEDTLS_LMS_H_TREE_HEIGHT       (10)

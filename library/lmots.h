@@ -28,6 +28,8 @@
 
 #include "mbedtls/private_access.h"
 
+#include "psa/crypto.h"
+
 #include <stdint.h>
 #include <stddef.h>
 
@@ -115,6 +117,16 @@ typedef struct {
                                                      output. */
 } mbedtls_lmots_context;
 
+/**
+ * \brief                    This function converts a \ref psa_status_t to a
+ *                           low-level LMS error code.
+ *
+ * \param status             The psa_status_t to convert
+ *
+ * \return                   The corresponding LMS error code.
+ */
+int mbedtls_lms_error_from_psa(psa_status_t status);
+
 
 /**
  * \brief                    This function initializes an LMOTS context
@@ -140,6 +152,9 @@ void mbedtls_lmots_free( mbedtls_lmots_context *ctx );
  *
  * \param ctx                The initialized LMOTS context.
  * \param type               The type that will be set in the context.
+ *
+ * \return         \c 0 on success.
+ * \return         A non-zero error code on failure.
  */
 int mbedtls_lmots_set_algorithm_type( mbedtls_lmots_context *ctx,
                                       mbedtls_lmots_algorithm_type_t type );

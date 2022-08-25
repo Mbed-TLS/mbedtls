@@ -354,8 +354,8 @@
 #endif
 
 #if defined(MBEDTLS_LMS_C) &&                                          \
-    ( !defined(MBEDTLS_MD_C) )
-#error "MBEDTLS_LMS_C requires MBEDTLS_MD_C"
+    ( !defined(MBEDTLS_PSA_CRYPTO_C) )
+#error "MBEDTLS_LMS_C requires MBEDTLS_PSA_CRYPTO_C"
 #endif
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) &&                          \

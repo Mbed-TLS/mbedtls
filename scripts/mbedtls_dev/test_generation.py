@@ -166,7 +166,7 @@ def main(args, generator_class: Type[TestGenerator] = TestGenerator):
     parser.add_argument('--directory', default="tests/suites", metavar='DIR',
                         help='Output directory (default: tests/suites)')
     parser.add_argument('targets', nargs='*', metavar='TARGET',
-                        default=sorted(generator_class.TARGETS), 
+                        default=sorted(generator_class.TARGETS),
                         help='Target file to generate (default: all; "-": none)')
     options = parser.parse_args(args)
     build_tree.chdir_to_root()

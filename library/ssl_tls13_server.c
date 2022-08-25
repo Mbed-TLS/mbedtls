@@ -217,6 +217,9 @@ static int ssl_tls13_select_ciphersuite_for_psk(
 {
     psa_algorithm_t psk_hash_alg = PSA_ALG_SHA_256;
 
+    *selected_ciphersuite = 0;
+    *selected_ciphersuite_info = NULL;
+
     /* RFC 8446, page 55.
      *
      * For externally established PSKs, the Hash algorithm MUST be set when the
@@ -267,35 +270,8 @@ static int ssl_tls13_select_ciphersuite_for_resumption(
     ((void) session);
     ((void) cipher_suites);
     ((void) cipher_suites_end);
-    ((void) selected_ciphersuite);
-    ((void) selected_ciphersuite_info);
-    return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
-}
-
-MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_select_ciphersuite(
-               mbedtls_ssl_context *ssl,
-               const unsigned char *cipher_suites,
-               const unsigned char *cipher_suites_end,
-               int psk_type,
-               mbedtls_ssl_session *session,
-               uint16_t *selected_ciphersuite,
-               const mbedtls_ssl_ciphersuite_t **selected_ciphersuite_info )
-{
     *selected_ciphersuite = 0;
     *selected_ciphersuite_info = NULL;
-    switch( psk_type )
-    {
-        case MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL:
-            return( ssl_tls13_select_ciphersuite_for_psk(
-                        ssl, cipher_suites, cipher_suites_end,
-                        selected_ciphersuite, selected_ciphersuite_info ) );
-        case MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION:
-            return( ssl_tls13_select_ciphersuite_for_resumption(
-                        ssl, cipher_suites, cipher_suites_end, session,
-                        selected_ciphersuite, selected_ciphersuite_info ) );
-    }
-
     return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
 }
 
@@ -397,9 +373,21 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
             continue;
 
         MBEDTLS_SSL_DEBUG_MSG( 4, ( "found matched identity" ) );
-        ret = ssl_tls13_select_ciphersuite( ssl, ciphersuites, ciphersuites_end,
-                                            psk_type, NULL, &cipher_suite,
-                                            &ciphersuite_info );
+        switch( psk_type )
+        {
+            case MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL:
+                ret = ssl_tls13_select_ciphersuite_for_psk(
+                            ssl, ciphersuites, ciphersuites_end,
+                            &cipher_suite, &ciphersuite_info );
+                break;
+            case MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION:
+                ret = ssl_tls13_select_ciphersuite_for_resumption(
+                            ssl, ciphersuites, ciphersuites_end, NULL,
+                            &cipher_suite, &ciphersuite_info );
+                break;
+            default:
+                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
         if( ret != 0 )
         {
             /* See below, no cipher_suite available, abort handshake */
@@ -407,7 +395,7 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
                 MBEDTLS_SSL_ALERT_MSG_DECRYPT_ERROR,
                 MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
             MBEDTLS_SSL_DEBUG_RET(
-                2, "ssl_tls13_select_ciphersuite_for_psk", ret );
+                2, "ssl_tls13_select_ciphersuite", ret );
             return( ret );
         }
 

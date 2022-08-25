@@ -167,6 +167,7 @@ def main(args, generator_class: Type[TestGenerator] = TestGenerator):
     parser.add_argument('--list', action='store_true',
                         help='List available targets and exit')
     parser.add_argument('targets', nargs='*', metavar='TARGET',
+                        default=sorted(generator_class.TARGETS), 
                         help='Target file to generate (default: all; "-": none)')
     options = parser.parse_args(args)
     generator = generator_class(options)
@@ -174,14 +175,11 @@ def main(args, generator_class: Type[TestGenerator] = TestGenerator):
         for name in sorted(generator.TARGETS):
             print(generator.filename_for(name))
         return
-    if options.targets:
-        # Allow "-" as a special case so you can run
-        # ``generate_xxx_tests.py - $targets`` and it works uniformly whether
-        # ``$targets`` is empty or not.
-        options.targets = [os.path.basename(re.sub(r'\.data\Z', r'', target))
-                           for target in options.targets
-                           if target != '-']
-    else:
-        options.targets = sorted(generator.TARGETS)
+    # Allow "-" as a special case so you can run
+    # ``generate_xxx_tests.py - $targets`` and it works uniformly whether
+    # ``$targets`` is empty or not.
+    options.targets = [os.path.basename(re.sub(r'\.data\Z', r'', target))
+                       for target in options.targets
+                       if target != '-']
     for target in options.targets:
         generator.generate_target(target)

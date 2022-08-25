@@ -256,7 +256,7 @@ mbedtls_mpi_uint mbedtls_mpi_core_sub( mbedtls_mpi_uint *X,
  * \param cond       Condition bit dictating whether addition should
  *                   happen or not. This must be \c 0 or \c 1.
  *
- * \warning          If \p assign is neither 0 nor 1, the result of this function
+ * \warning          If \p cond is neither 0 nor 1, the result of this function
  *                   is unspecified, and the resulting value in \p A might be
  *                   neither its original value nor \p A + \p B.
  *

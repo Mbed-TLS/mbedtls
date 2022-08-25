@@ -590,16 +590,17 @@ cleanup:
 
 /* BEGIN MERGE SLOT 3 */
 
-mbedtls_mpi_uint MPI_CORE(sub_int)( mbedtls_mpi_uint *d,
-                                    const mbedtls_mpi_uint *l,
-                                    mbedtls_mpi_uint c, size_t n )
+mbedtls_mpi_uint mbedtls_mpi_core_sub_int( mbedtls_mpi_uint *X,
+                                           const mbedtls_mpi_uint *A,
+                                           mbedtls_mpi_uint c, /* doubles as carry */
+                                           size_t limbs )
 {
-    for( size_t i = 0; i < n; i++ )
+    for( size_t i = 0; i < limbs; i++ )
     {
-        mbedtls_mpi_uint s, t;
-        s = l[i];
-        t = s - c; c = ( t > s );
-        d[i] = t;
+        mbedtls_mpi_uint s = A[i];
+        mbedtls_mpi_uint t = s - c;
+        c = ( t > s );
+        X[i] = t;
     }
 
     return( c );

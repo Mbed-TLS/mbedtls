@@ -35,6 +35,8 @@ T = TypeVar('T') #pylint: disable=invalid-name
 class BaseTarget(metaclass=ABCMeta):
     """Base target for test case generation.
 
+    This should be derived from for file Targets.
+
     Attributes:
         count: Counter for test cases from this class.
         case_description: Short description of the test case. This may be
@@ -43,7 +45,8 @@ class BaseTarget(metaclass=ABCMeta):
             should be specified in a child class of BaseTarget.
         test_function: Test function which the class generates cases for.
         test_name: A common name or description of the test function. This can
-            be the function's name, or a short summary of its purpose.
+            be `test_function`, a clearer equivalent, or a short summary of the
+            test function's purpose.
     """
     count = 0
     case_description = ""
@@ -61,7 +64,7 @@ class BaseTarget(metaclass=ABCMeta):
         """Get the list of arguments for the test case.
 
         Override this method to provide the list of arguments required for
-        generating the test_function.
+        the `test_function`.
 
         Returns:
             List of arguments required for the test function.
@@ -69,12 +72,12 @@ class BaseTarget(metaclass=ABCMeta):
         raise NotImplementedError
 
     def description(self) -> str:
-        """Create a test description.
+        """Create a test case description.
 
         Creates a description of the test case, including a name for the test
-        function, and describing the specific test case. This should inform a
-        reader of the purpose of the case. The case description may be
-        generated in the class, or provided manually as needed.
+        function, a case number, and a description the specific test case.
+        This should inform a reader what is being tested, and provide context
+        for the test case.
 
         Returns:
             Description for the test case.
@@ -85,7 +88,7 @@ class BaseTarget(metaclass=ABCMeta):
 
 
     def create_test_case(self) -> test_case.TestCase:
-        """Generate TestCase from the current object."""
+        """Generate TestCase from the instance."""
         tc = test_case.TestCase()
         tc.set_description(self.description())
         tc.set_function(self.test_function)
@@ -96,7 +99,7 @@ class BaseTarget(metaclass=ABCMeta):
     @classmethod
     @abstractmethod
     def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
-        """Generate test cases for the test function.
+        """Generate test cases for the class test function.
 
         This will be called in classes where `test_function` is set.
         Implementations should yield TestCase objects, by creating instances
@@ -111,11 +114,10 @@ class BaseTarget(metaclass=ABCMeta):
 
         In classes with `test_function` set, `generate_function_tests()` is
         used to generate test cases first.
-        In all classes, this method will iterate over its subclasses, and
-        yield from `generate_tests()` in each.
 
-        Calling this method on a class X will yield test cases from all classes
-        derived from X.
+        In all classes, this method will iterate over its subclasses, and
+        yield from `generate_tests()` in each. Calling this method on a class X
+        will yield test cases from all classes derived from X.
         """
         if cls.test_function:
             yield from cls.generate_function_tests()

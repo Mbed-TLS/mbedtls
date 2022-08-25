@@ -2251,7 +2251,7 @@ run_test    "TLS 1.3: PSK: all: with mismatched key, with psk_ke and psk_dhe_ke.
             -s "found pre_shared_key extension" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
-            -s "Binder is not matched." \
+            -s "Invalid binder." \
             -S "Pre shared key found" \
             -S "No matched PSK or ticket"\
             -S "key exchange mode: psk$" \
@@ -2275,7 +2275,7 @@ run_test    "TLS 1.3: PSK: all: with mismatched key, with psk_ke and psk_dhe_ke.
             -s "found pre_shared_key extension" \
             -s "Found PSK_EPHEMERAL KEX MODE" \
             -s "Found PSK KEX MODE" \
-            -s "Binder is not matched." \
+            -s "Invalid binder." \
             -S "Pre shared key found" \
             -S "No matched PSK or ticket"\
             -S "key exchange mode: psk$" \

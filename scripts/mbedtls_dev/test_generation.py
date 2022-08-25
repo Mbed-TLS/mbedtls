@@ -66,7 +66,7 @@ class BaseTarget(metaclass=ABCMeta):
         Returns:
             List of arguments required for the test function.
         """
-        pass
+        raise NotImplementedError
 
     def description(self) -> str:
         """Create a test description.
@@ -103,7 +103,7 @@ class BaseTarget(metaclass=ABCMeta):
         of the class with appropriate input data, and then calling
         `create_test_case()` on each.
         """
-        pass
+        raise NotImplementedError
 
     @classmethod
     def generate_tests(cls) -> Iterator[test_case.TestCase]:

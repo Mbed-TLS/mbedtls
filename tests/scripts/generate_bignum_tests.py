@@ -122,7 +122,7 @@ class BignumOperation(BignumTarget, metaclass=ABCMeta):
         This may be calculated during initialization and stored as `_result`,
         or calculated when the method is called.
         """
-        pass
+        raise NotImplementedError
 
     @staticmethod
     def value_description(val) -> str:

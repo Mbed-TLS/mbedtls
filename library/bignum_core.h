@@ -504,6 +504,24 @@ int mbedtls_mpi_core_fill_random( mbedtls_mpi_uint *X, size_t X_limbs,
 
 /* BEGIN MERGE SLOT 3 */
 
+#define MPI_CORE(func) mbedtls_mpi_core_ ## func ## _minimal
+
+/**
+ * \brief Subtract unsigned integer from known-size large unsigned integers.
+ *        Return the borrow.
+ *
+ * \param[out] d        The result of the subtraction.
+ * \param[in] l         The left operand.
+ * \param[in] r         The unsigned scalar to subtract.
+ * \param n             Number of limbs of \p d and \p l.
+ *
+ * \return              1 if `l < r`.
+ *                      0 if `l >= r`.
+ */
+mbedtls_mpi_uint MPI_CORE(sub_int)( mbedtls_mpi_uint *d,
+                                    const mbedtls_mpi_uint *l,
+                                    mbedtls_mpi_uint r, size_t n );
+
 /* END MERGE SLOT 3 */
 
 /* BEGIN MERGE SLOT 4 */

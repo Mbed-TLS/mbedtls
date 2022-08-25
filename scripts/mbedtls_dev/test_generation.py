@@ -166,6 +166,7 @@ def main(args, generator_class: Type[TestGenerator] = TestGenerator):
     parser.add_argument('--directory', default="tests/suites", metavar='DIR',
                         help='Output directory (default: tests/suites)')
     parser.add_argument('targets', nargs='*', metavar='TARGET',
+                        default=sorted(generator_class.TARGETS), 
                         help='Target file to generate (default: all; "-": none)')
     options = parser.parse_args(args)
     build_tree.chdir_to_root()
@@ -179,14 +180,11 @@ def main(args, generator_class: Type[TestGenerator] = TestGenerator):
         print(';'.join(generator.filename_for(name)
                        for name in sorted(generator.TARGETS)), end='')
         return
-    if options.targets:
-        # Allow "-" as a special case so you can run
-        # ``generate_xxx_tests.py - $targets`` and it works uniformly whether
-        # ``$targets`` is empty or not.
-        options.targets = [os.path.basename(re.sub(r'\.data\Z', r'', target))
-                           for target in options.targets
-                           if target != '-']
-    else:
-        options.targets = sorted(generator.TARGETS)
+    # Allow "-" as a special case so you can run
+    # ``generate_xxx_tests.py - $targets`` and it works uniformly whether
+    # ``$targets`` is empty or not.
+    options.targets = [os.path.basename(re.sub(r'\.data\Z', r'', target))
+                       for target in options.targets
+                       if target != '-']
     for target in options.targets:
         generator.generate_target(target)

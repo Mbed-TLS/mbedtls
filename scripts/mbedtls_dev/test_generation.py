@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Common test generation classes and main function.
 
 These are used both by generate_psa_tests.py and generate_bignum_tests.py.
@@ -150,7 +149,7 @@ class TestGenerator:
 
     # Note that targets whose names contain 'test_format' have their content
     # validated by `abi_check.py`.
-    TARGETS = {} # type: Dict[str, Callable[..., test_case.TestCase]]
+    TARGETS = {} # type: Dict[str, Callable[..., Iterable[test_case.TestCase]]]
 
     def generate_target(self, name: str, *target_args) -> None:
         """Generate cases and write to data file for a target.

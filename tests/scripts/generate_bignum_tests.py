@@ -49,7 +49,7 @@ import itertools
 import sys
 
 from abc import ABCMeta, abstractmethod
-from typing import Callable, Dict, Iterator, List, Tuple, TypeVar, cast
+from typing import Callable, Dict, Iterable, Iterator, List, Tuple, TypeVar, cast
 
 import scripts_path # pylint: disable=unused-import
 from mbedtls_dev import test_case
@@ -206,10 +206,10 @@ class BignumAdd(BignumOperation):
     input_cases = cast(
         List[Tuple[str, str]],
         list(itertools.combinations(
-        [
-            "1c67967269c6", "9cde3",
-            "-1c67967269c6", "-9cde3",
-        ], 2
+            [
+                "1c67967269c6", "9cde3",
+                "-1c67967269c6", "-9cde3",
+            ], 2
         ))
     )
 
@@ -226,7 +226,7 @@ class BignumTestGenerator(test_generation.TestGenerator):
     TARGETS = {
         subclass.target_basename: subclass.generate_tests for subclass in
         test_generation.BaseTarget.__subclasses__()
-    } # type: Dict[str, Callable[[], test_case.TestCase]]
+    } # type: Dict[str, Callable[[], Iterable[test_case.TestCase]]]
 
 if __name__ == '__main__':
     test_generation.main(sys.argv[1:], BignumTestGenerator)

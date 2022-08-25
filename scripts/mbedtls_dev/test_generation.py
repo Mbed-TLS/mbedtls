@@ -35,7 +35,8 @@ T = TypeVar('T') #pylint: disable=invalid-name
 class BaseTarget(metaclass=ABCMeta):
     """Base target for test case generation.
 
-    This should be derived from for file Targets.
+    Derive directly from this class when adding new file Targets, setting
+    `target_basename`.
 
     Attributes:
         count: Counter for test cases from this class.
@@ -113,7 +114,7 @@ class BaseTarget(metaclass=ABCMeta):
         """Generate test cases for the class and its subclasses.
 
         In classes with `test_function` set, `generate_function_tests()` is
-        used to generate test cases first.
+        called to generate test cases first.
 
         In all classes, this method will iterate over its subclasses, and
         yield from `generate_tests()` in each. Calling this method on a class X

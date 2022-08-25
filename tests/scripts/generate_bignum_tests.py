@@ -24,7 +24,8 @@ from abstract and concrete classes).
 Adding test case generation for a function:
 
 A subclass representing the test function should be added, deriving from a
-file Target. This test class must set/implement the following:
+file Target such as BignumTarget. This test class must set/implement the
+following:
   - test_function: the function name from the associated .function file.
   - test_name: a descriptive name or brief summary to refer to the test
         function.
@@ -128,8 +129,8 @@ class BignumOperation(BignumTarget, metaclass=ABCMeta):
     def result(self) -> str:
         """Get the result of the operation.
 
-        This may be calculated during initialization and stored as `_result`,
-        or calculated when the method is called.
+        This could be calculated during initialization and stored as `_result`
+        and then returned, or calculated when the method is called.
         """
         raise NotImplementedError
 
@@ -137,8 +138,8 @@ class BignumOperation(BignumTarget, metaclass=ABCMeta):
     def value_description(val) -> str:
         """Generate a description of the argument val.
 
-        This produces a simple description of the value, which are used in test
-        case naming, to add context.
+        This produces a simple description of the value, which is used in test
+        case naming to add context.
         """
         if val == "":
             return "0 (null)"
@@ -231,7 +232,7 @@ class BignumAdd(BignumOperation):
 
 
 class BignumTestGenerator(test_generation.TestGenerator):
-    """Test generator subclass setting bignum targets."""
+    """Test generator subclass, for bignum file Targets."""
     TARGETS = {
         subclass.target_basename: subclass.generate_tests for subclass in
         test_generation.BaseTarget.__subclasses__()

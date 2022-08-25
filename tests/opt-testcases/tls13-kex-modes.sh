@@ -1958,7 +1958,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KE
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 run_test    "TLS 1.3Client: PSK: psk: with matched key and identity, with psk_ke and psk_dhe_ke. m->O" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -allow_no_dhe_kex -nocert" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -1994,7 +1994,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KE
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 run_test    "TLS 1.3Client: PSK: psk: with mismatched identity, with psk_ke and psk_dhe_ke. m->O" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -allow_no_dhe_kex -nocert" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0c0d0e tls13_kex_modes=psk" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0c0d0e tls13_kex_modes=psk" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2013,7 +2013,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KE
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 run_test    "TLS 1.3Client: PSK: psk: without pre-share key, with psk_ke and psk_dhe_ke. m->O" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -nocert" \
-            "$P_CLI debug_level=4 psk_identity=0a0b0c tls13_kex_modes=psk" \
+            "$P_CLI debug_level=4 force_version=tls13 psk_identity=0a0b0c tls13_kex_modes=psk" \
             1 \
             -c "=> write client hello" \
             -c "client hello, adding psk_key_exchange_modes extension" \
@@ -2030,7 +2030,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: psk: with matched key and identity, with psk_ke and psk_dhe_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2049,7 +2049,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: psk: with matched key and identity, with psk_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2068,7 +2068,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: psk: with matched key and identity, with psk_dhe_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             1 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2087,7 +2087,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: psk: with mismatched identity, with psk_ke and psk_dhe_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk" \
             1 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2106,7 +2106,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: psk: with mismatched identity, with psk_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk" \
             1 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2125,7 +2125,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: psk: without pre-share key, with psk_ke and psk_dhe_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk_identity=0a0b0c tls13_kex_modes=psk" \
+            "$P_CLI debug_level=4 force_version=tls13 psk_identity=0a0b0c tls13_kex_modes=psk" \
             1 \
             -c "=> write client hello" \
             -c "client hello, adding psk_key_exchange_modes extension" \
@@ -2144,7 +2144,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KE
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 run_test    "TLS 1.3Client: PSK: psk_all: with matched key and identity, with psk_ke and psk_dhe_ke. m->O" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -allow_no_dhe_kex -nocert" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2180,7 +2180,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KE
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 run_test    "TLS 1.3Client: PSK: psk_all: with mismatched identity, with psk_ke and psk_dhe_ke. m->O" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -allow_no_dhe_kex -nocert" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0c0d0e tls13_kex_modes=psk_all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0c0d0e tls13_kex_modes=psk_all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2199,7 +2199,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KE
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 run_test    "TLS 1.3Client: PSK: psk_all: with mismatched identity, with psk_dhe_ke. m->O" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk_all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk_all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2217,7 +2217,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KE
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 run_test    "TLS 1.3Client: PSK: psk_all: without pre-share key, with psk_ke and psk_dhe_ke. m->O" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -nocert" \
-            "$P_CLI debug_level=4 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             1 \
             -c "=> write client hello" \
             -c "client hello, adding psk_key_exchange_modes extension" \
@@ -2234,7 +2234,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: psk_all: with matched key and identity, with psk_ke and psk_dhe_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2253,7 +2253,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: psk_all: with matched key and identity, with psk_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2272,7 +2272,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: psk_all: with matched key and identity, with psk_dhe_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+CIPHER-ALL --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             1 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2291,7 +2291,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: psk_all: with mismatched identity, with psk_ke and psk_dhe_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk_all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk_all" \
             1 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2310,7 +2310,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: psk_all: with mismatched identity, with psk_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk_all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk_all" \
             1 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2329,7 +2329,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: psk_all: without pre-share key, with psk_ke and psk_dhe_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk_identity=0d0e0f tls13_kex_modes=psk_all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk_identity=0d0e0f tls13_kex_modes=psk_all" \
             1 \
             -c "=> write client hello" \
             -c "client hello, adding psk_key_exchange_modes extension" \
@@ -2348,7 +2348,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KE
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 run_test    "TLS 1.3Client: PSK: psk_ephemeral: with matched key and identity, with psk_ke and psk_dhe_ke. m->O" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -allow_no_dhe_kex -nocert" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2384,7 +2384,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KE
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 run_test    "TLS 1.3Client: PSK: psk_ephemeral: with mismatched identity, with psk_ke and psk_dhe_ke. m->O" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -allow_no_dhe_kex -nocert" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0c0d0e tls13_kex_modes=psk_ephemeral" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0c0d0e tls13_kex_modes=psk_ephemeral" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2403,7 +2403,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KE
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 run_test    "TLS 1.3Client: PSK: psk_ephemeral: with mismatched identity, with psk_dhe_ke. m->O" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk_ephemeral" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk_ephemeral" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2421,7 +2421,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KE
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 run_test    "TLS 1.3Client: PSK: psk_ephemeral: without pre-share key, with psk_ke and psk_dhe_ke. m->O" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -nocert" \
-            "$P_CLI debug_level=4 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
+            "$P_CLI debug_level=4 force_version=tls13 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             1 \
             -c "=> write client hello" \
             -c "client hello, adding psk_key_exchange_modes extension" \
@@ -2438,7 +2438,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: psk_ephemeral: with matched key and identity, with psk_ke and psk_dhe_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2457,7 +2457,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: psk_ephemeral: with matched key and identity, with psk_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             1 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2476,7 +2476,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: psk_ephemeral: with matched key and identity, with psk_dhe_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2495,7 +2495,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: psk_ephemeral: with mismatched identity, with psk_ke and psk_dhe_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk_ephemeral" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk_ephemeral" \
             1 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2514,7 +2514,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: psk_ephemeral: with mismatched identity, with psk_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk_ephemeral" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk_ephemeral" \
             1 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2533,7 +2533,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: psk_ephemeral: with mismatched identity, with psk_dhe_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+CIPHER-ALL --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk_ephemeral" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0d0e0f tls13_kex_modes=psk_ephemeral" \
             1 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2552,7 +2552,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: psk_ephemeral: without pre-share key, with psk_ke and psk_dhe_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk_identity=0d0e0f tls13_kex_modes=psk_ephemeral" \
+            "$P_CLI debug_level=4 force_version=tls13 psk_identity=0d0e0f tls13_kex_modes=psk_ephemeral" \
             1 \
             -c "=> write client hello" \
             -c "client hello, adding psk_key_exchange_modes extension" \
@@ -2571,7 +2571,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KE
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 run_test    "TLS 1.3Client: PSK: ephemeral: with matched key and identity, with psk_ke and psk_dhe_ke. m->O" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -allow_no_dhe_kex" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
             0 \
             -c "=> write client hello" \
             -c "skip psk_key_exchange_modes extension" \
@@ -2605,7 +2605,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KE
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 run_test    "TLS 1.3Client: PSK: ephemeral: with mismatched identity, with psk_ke and psk_dhe_ke. m->O" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -allow_no_dhe_kex" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0c0d0e tls13_kex_modes=ephemeral" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0c0d0e tls13_kex_modes=ephemeral" \
             0 \
             -c "=> write client hello" \
             -c "skip psk_key_exchange_modes extension" \
@@ -2622,7 +2622,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KE
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 run_test    "TLS 1.3Client: PSK: ephemeral: with mismatched identity, with psk_dhe_ke. m->O" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0d0e0f tls13_kex_modes=ephemeral" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0d0e0f tls13_kex_modes=ephemeral" \
             0 \
             -c "=> write client hello" \
             -c "skip psk_key_exchange_modes extension" \
@@ -2639,7 +2639,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KE
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 run_test    "TLS 1.3Client: PSK: ephemeral: without pre-share key, with psk_ke and psk_dhe_ke. m->O" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203" \
-            "$P_CLI debug_level=4 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
+            "$P_CLI debug_level=4 force_version=tls13 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
             0 \
             -c "=> write client hello" \
             -c "skip psk_key_exchange_modes extension" \
@@ -2654,7 +2654,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: ephemeral: with matched key and identity, with psk_ke and psk_dhe_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
             0 \
             -c "=> write client hello" \
             -c "skip psk_key_exchange_modes extension" \
@@ -2670,7 +2670,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: ephemeral: with matched key and identity, with psk_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
             0 \
             -c "=> write client hello" \
             -c "skip psk_key_exchange_modes extension" \
@@ -2686,7 +2686,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: ephemeral: with matched key and identity, with psk_dhe_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral" \
             0 \
             -c "=> write client hello" \
             -c "skip psk_key_exchange_modes extension" \
@@ -2702,7 +2702,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: ephemeral: with mismatched identity, with psk_ke and psk_dhe_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0d0e0f tls13_kex_modes=ephemeral" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0d0e0f tls13_kex_modes=ephemeral" \
             0 \
             -c "=> write client hello" \
             -c "skip psk_key_exchange_modes extension" \
@@ -2718,7 +2718,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: ephemeral: with mismatched identity, with psk_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0d0e0f tls13_kex_modes=ephemeral" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0d0e0f tls13_kex_modes=ephemeral" \
             0 \
             -c "=> write client hello" \
             -c "skip psk_key_exchange_modes extension" \
@@ -2734,7 +2734,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: ephemeral: with mismatched identity, with psk_dhe_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+CIPHER-ALL --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0d0e0f tls13_kex_modes=ephemeral" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0d0e0f tls13_kex_modes=ephemeral" \
             0 \
             -c "=> write client hello" \
             -c "skip psk_key_exchange_modes extension" \
@@ -2750,7 +2750,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: ephemeral: without pre-share key, with psk_ke and psk_dhe_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk_identity=0d0e0f tls13_kex_modes=ephemeral" \
+            "$P_CLI debug_level=4 force_version=tls13 psk_identity=0d0e0f tls13_kex_modes=ephemeral" \
             0 \
             -c "=> write client hello" \
             -c "skip psk_key_exchange_modes extension" \
@@ -2769,7 +2769,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KE
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 run_test    "TLS 1.3Client: PSK: ephemeral_all: with matched key and identity, with psk_ke and psk_dhe_ke. m->O" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -allow_no_dhe_kex -nocert" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2805,7 +2805,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KE
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 run_test    "TLS 1.3Client: PSK: ephemeral_all: with mismatched identity, with psk_ke and psk_dhe_ke. m->O" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -allow_no_dhe_kex -nocert" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0c0d0e tls13_kex_modes=ephemeral_all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0c0d0e tls13_kex_modes=ephemeral_all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2824,7 +2824,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KE
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 run_test    "TLS 1.3Client: PSK: ephemeral_all: with mismatched identity, with psk_dhe_ke. m->O" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0d0e0f tls13_kex_modes=ephemeral_all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0d0e0f tls13_kex_modes=ephemeral_all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2842,7 +2842,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KE
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 run_test    "TLS 1.3Client: PSK: ephemeral_all: without pre-share key, with psk_ke and psk_dhe_ke. m->O" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -nocert" \
-            "$P_CLI debug_level=4 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             1 \
             -c "=> write client hello" \
             -c "client hello, adding psk_key_exchange_modes extension" \
@@ -2859,7 +2859,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: ephemeral_all: with matched key and identity, with psk_ke and psk_dhe_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2878,7 +2878,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: ephemeral_all: with matched key and identity, with psk_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2897,7 +2897,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: ephemeral_all: with matched key and identity, with psk_dhe_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2916,7 +2916,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: ephemeral_all: with mismatched identity, with psk_ke and psk_dhe_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0d0e0f tls13_kex_modes=ephemeral_all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0d0e0f tls13_kex_modes=ephemeral_all" \
             1 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2935,7 +2935,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: ephemeral_all: with mismatched identity, with psk_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0d0e0f tls13_kex_modes=ephemeral_all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0d0e0f tls13_kex_modes=ephemeral_all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2954,7 +2954,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: ephemeral_all: with mismatched identity, with psk_dhe_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+CIPHER-ALL --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0d0e0f tls13_kex_modes=ephemeral_all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0d0e0f tls13_kex_modes=ephemeral_all" \
             1 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -2973,7 +2973,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: ephemeral_all: without pre-share key, with psk_ke and psk_dhe_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk_identity=0d0e0f tls13_kex_modes=ephemeral_all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk_identity=0d0e0f tls13_kex_modes=ephemeral_all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding psk_key_exchange_modes extension" \
@@ -2993,7 +2993,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KE
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 run_test    "TLS 1.3Client: PSK: all: with matched key and identity, with psk_ke and psk_dhe_ke. m->O" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -allow_no_dhe_kex -nocert" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -3029,7 +3029,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KE
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 run_test    "TLS 1.3Client: PSK: all: with mismatched identity, with psk_ke and psk_dhe_ke. m->O" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -allow_no_dhe_kex -nocert" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0c0d0e tls13_kex_modes=all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0c0d0e tls13_kex_modes=all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -3048,7 +3048,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KE
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 run_test    "TLS 1.3Client: PSK: all: with mismatched identity, with psk_dhe_ke. m->O" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0d0e0f tls13_kex_modes=all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0d0e0f tls13_kex_modes=all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -3066,7 +3066,7 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KE
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 run_test    "TLS 1.3Client: PSK: all: without pre-share key, with psk_ke and psk_dhe_ke. m->O" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -nocert" \
-            "$P_CLI debug_level=4 psk_identity=0a0b0c tls13_kex_modes=all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk_identity=0a0b0c tls13_kex_modes=all" \
             1 \
             -c "=> write client hello" \
             -c "client hello, adding psk_key_exchange_modes extension" \
@@ -3083,7 +3083,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: all: with matched key and identity, with psk_ke and psk_dhe_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -3102,7 +3102,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: all: with matched key and identity, with psk_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -3121,7 +3121,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: all: with matched key and identity, with psk_dhe_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -3140,7 +3140,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: all: with mismatched identity, with psk_ke and psk_dhe_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0d0e0f tls13_kex_modes=all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0d0e0f tls13_kex_modes=all" \
             1 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -3159,7 +3159,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: all: with mismatched identity, with psk_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0d0e0f tls13_kex_modes=all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0d0e0f tls13_kex_modes=all" \
             1 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -3178,7 +3178,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: all: with mismatched identity, with psk_dhe_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+CIPHER-ALL --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk=010203 psk_identity=0d0e0f tls13_kex_modes=all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk=010203 psk_identity=0d0e0f tls13_kex_modes=all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
@@ -3197,7 +3197,7 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3Client: PSK: all: without pre-share key, with psk_ke and psk_dhe_ke. m->G" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 psk_identity=0d0e0f tls13_kex_modes=all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk_identity=0d0e0f tls13_kex_modes=all" \
             0 \
             -c "=> write client hello" \
             -c "client hello, adding psk_key_exchange_modes extension" \

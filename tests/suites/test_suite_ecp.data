@@ -355,11 +355,11 @@ mbedtls_ecp_group_metadata:MBEDTLS_ECP_DP_BP512R1:512:MBEDTLS_ECP_TYPE_SHORT_WEI
 
 Check ECP group metadata #12 curve25519 (RFC 7748)
 depends_on:MBEDTLS_ECP_DP_CURVE25519_ENABLED
-mbedtls_ecp_group_metadata:MBEDTLS_ECP_DP_CURVE25519:256:MBEDTLS_ECP_TYPE_MONTGOMERY:"7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed":"1db42":"":"9":"":"1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed":29
+mbedtls_ecp_group_metadata:MBEDTLS_ECP_DP_CURVE25519:256:MBEDTLS_ECP_TYPE_MONTGOMERY:"7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed":"76d06":"":"9":"":"1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed":29
 
 Check ECP group metadata #13 curve448 (RFC 7748)
 depends_on:MBEDTLS_ECP_DP_CURVE448_ENABLED
-mbedtls_ecp_group_metadata:MBEDTLS_ECP_DP_CURVE448:448:MBEDTLS_ECP_TYPE_MONTGOMERY:"fffffffffffffffffffffffffffffffffffffffffffffffffffffffeffffffffffffffffffffffffffffffffffffffffffffffffffffffff":"98aa":"":"5":"":"3fffffffffffffffffffffffffffffffffffffffffffffffffffffff7cca23e9c44edb49aed63690216cc2728dc58f552378c292ab5844f3":30
+mbedtls_ecp_group_metadata:MBEDTLS_ECP_DP_CURVE448:448:MBEDTLS_ECP_TYPE_MONTGOMERY:"fffffffffffffffffffffffffffffffffffffffffffffffffffffffeffffffffffffffffffffffffffffffffffffffffffffffffffffffff":"262a6":"":"5":"":"3fffffffffffffffffffffffffffffffffffffffffffffffffffffff7cca23e9c44edb49aed63690216cc2728dc58f552378c292ab5844f3":30
 
 ECP tls read group #1 (record too short)
 mbedtls_ecp_tls_read_group:"0313":MBEDTLS_ERR_ECP_BAD_INPUT_DATA:0:0

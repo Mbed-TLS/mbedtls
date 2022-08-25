@@ -825,6 +825,13 @@ void mbedtls_ecp_group_metadata( int id, int bit_size, int crv_type,
     TEST_EQUAL( mbedtls_test_read_mpi( &exp_B, B ), 0 );
     TEST_EQUAL( mbedtls_test_read_mpi( &exp_G_y, G_y ), 0 );
 
+    // Convert exp_A to internal representation (A+2)/4
+    if( crv_type == MBEDTLS_ECP_TYPE_MONTGOMERY )
+    {
+        TEST_EQUAL( mbedtls_mpi_add_int( &exp_A, &exp_A, 2 ), 0 );
+        TEST_EQUAL( mbedtls_mpi_div_int( &exp_A, NULL, &exp_A, 4 ), 0 );
+    }
+
     // Load group
     TEST_EQUAL( mbedtls_ecp_group_load( &grp, id ), 0 );
 

@@ -126,13 +126,7 @@ class BaseTarget(metaclass=ABCMeta):
 class TestGenerator:
     """Generate test data."""
     def __init__(self, options) -> None:
-        self.test_suite_directory = self.get_option(options, 'directory',
-                                                    'tests/suites')
-
-    @staticmethod
-    def get_option(options, name: str, default: T) -> T:
-        value = getattr(options, name, None)
-        return default if value is None else value
+        self.test_suite_directory = getattr(options, 'directory')
 
     def filename_for(self, basename: str) -> str:
         """The location of the data file with the specified base name."""
@@ -167,7 +161,7 @@ def main(args, generator_class: Type[TestGenerator] = TestGenerator):
                         help='List available targets and exit')
     parser.add_argument('--list-for-cmake', action='store_true',
                         help='Print \';\'-separated list of available targets and exit')
-    parser.add_argument('--directory', metavar='DIR',
+    parser.add_argument('--directory', default="tests/suites", metavar='DIR',
                         help='Output directory (default: tests/suites)')
     parser.add_argument('targets', nargs='*', metavar='TARGET',
                         help='Target file to generate (default: all; "-": none)')

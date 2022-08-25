@@ -167,7 +167,7 @@ def main(args, generator_class: Type[TestGenerator] = TestGenerator):
     parser.add_argument('--list', action='store_true',
                         help='List available targets and exit')
     parser.add_argument('targets', nargs='*', metavar='TARGET',
-                        default=sorted(generator_class.TARGETS), 
+                        default=sorted(generator_class.TARGETS),
                         help='Target file to generate (default: all; "-": none)')
     options = parser.parse_args(args)
     generator = generator_class(options)

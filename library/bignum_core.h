@@ -236,8 +236,8 @@ mbedtls_mpi_uint mbedtls_mpi_core_sub( mbedtls_mpi_uint *X,
                                        size_t limbs );
 
 /**
- * \brief Constant-time conditional addition of two known-size large unsigned
- *        integers, returning the carry.
+ * \brief Conditional addition of two known-size large unsigned integers,
+ *        returning the carry.
  *
  * Functionally equivalent to
  *

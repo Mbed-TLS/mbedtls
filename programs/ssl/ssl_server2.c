@@ -1860,10 +1860,12 @@ int main( int argc, char *argv[] )
                 opt.tls13_kex_modes = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL;
             else if( strcmp( q, "all" ) == 0 )
                 opt.tls13_kex_modes = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_ALL;
-            /* `psk_or_ephemeral` exists in theory and is not recommended in practice.
-             * In server side, if needed extensions are received, psk or ephemeral
-             * mode will be set. Add this mode only for test purposes to improve
-             * test coverage.
+            /* The purpose of `psk_or_ephemeral` is to improve test coverage. That
+             * is not recommended in practice.
+             * `psk_or_ephemeral` exists in theory, we need this mode to test if
+             * this setting work correctly. With this key exchange setting, server
+             * should always perform `ephemeral` handshake. `psk` or `psk_ephermal`
+             * is not expected.
              */
             else if( strcmp( q, "psk_or_ephemeral" ) == 0 )
                 opt.tls13_kex_modes = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK |

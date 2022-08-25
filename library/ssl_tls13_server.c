@@ -47,9 +47,9 @@
 #include "ssl_debug_helpers.h"
 
 
-static const mbedtls_ssl_ciphersuite_t *ssl_tls13_get_ciphersuite_info_by_id(
+static const mbedtls_ssl_ciphersuite_t *ssl_tls13_validate_peer_ciphersuite(
                                       mbedtls_ssl_context *ssl,
-                                      uint16_t cipher_suite )
+                                      unsigned int cipher_suite )
 {
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
     if( ! mbedtls_ssl_tls13_cipher_suite_is_offered( ssl, cipher_suite ) )
@@ -235,8 +235,8 @@ static int ssl_tls13_select_ciphersuite_for_psk(
         const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
 
         cipher_suite = MBEDTLS_GET_UINT16_BE( p, 0 );
-        ciphersuite_info = ssl_tls13_get_ciphersuite_info_by_id(
-                               ssl,cipher_suite );
+        ciphersuite_info = ssl_tls13_validate_peer_ciphersuite( ssl,
+                                                                cipher_suite );
         if( ciphersuite_info == NULL )
             continue;
 
@@ -416,9 +416,10 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
                   mbedtls_psa_translate_md( ciphersuite_info->mac ) );
         if( ret != SSL_TLS1_3_OFFERED_PSK_MATCH )
         {
-            /* For the security rationale, handshake should be abort when binder
-             * value mismatch. See RFC 8446 section 4.2.11.2 and appendix E.6. */
-            MBEDTLS_SSL_DEBUG_MSG( 3, ( "Binder is not matched." ) );
+            /* For security reasons, the handshake should be aborted when we
+             * fail to validate a binder value. See RFC 8446 section 4.2.11.2
+             * and appendix E.6. */
+            MBEDTLS_SSL_DEBUG_MSG( 3, ( "Invalid binder." ) );
             MBEDTLS_SSL_DEBUG_RET( 1,
                 "ssl_tls13_offered_psks_check_binder_match" , ret );
             MBEDTLS_SSL_PEND_FATAL_ALERT(
@@ -1176,7 +1177,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, cipher_suites_end, 2 );
 
         cipher_suite = MBEDTLS_GET_UINT16_BE( p, 0 );
-        ciphersuite_info = ssl_tls13_get_ciphersuite_info_by_id(
+        ciphersuite_info = ssl_tls13_validate_peer_ciphersuite(
                                ssl,cipher_suite );
         if( ciphersuite_info == NULL )
             continue;

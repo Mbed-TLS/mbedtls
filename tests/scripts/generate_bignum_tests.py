@@ -65,6 +65,7 @@ def quote_str(val) -> str:
 
 
 class BignumTarget(test_generation.BaseTarget, metaclass=ABCMeta):
+    #pylint: disable=abstract-method
     """Target for bignum (mpi) test case generation."""
     target_basename = 'test_suite_mpi.generated'
 

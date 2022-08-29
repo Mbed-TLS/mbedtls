@@ -930,7 +930,7 @@ MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_client_hello_has_exts( mbedtls_ssl_context *ssl,
                                             int exts_mask )
 {
-    int masked = ssl->handshake->extensions_present & exts_mask;
+    int masked = ssl->handshake->received_extensions & exts_mask;
     return( masked == exts_mask );
 }
 
@@ -1239,7 +1239,6 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     const unsigned char *cipher_suites_end;
     size_t extensions_len;
     const unsigned char *extensions_end;
-    uint32_t extensions_present;
     int hrr_required = 0;
 
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
@@ -1247,8 +1246,6 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     const unsigned char *pre_shared_key_ext = NULL;
     const unsigned char *pre_shared_key_ext_end = NULL;
 #endif
-
-    extensions_present = MBEDTLS_SSL_EXT_NONE;
 
     /*
      * ClientHello layout:
@@ -1419,20 +1416,23 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello extensions", p, extensions_len );
 
+    ssl->handshake->received_extensions = MBEDTLS_SSL_EXT_NONE;
+
     while( p < extensions_end )
     {
         unsigned int extension_type;
         size_t extension_data_len;
         const unsigned char *extension_data_end;
 
-        /* RFC 8446, page 57
+        /* RFC 8446, section 4.2.11
          *
          * The "pre_shared_key" extension MUST be the last extension in the
          * ClientHello (this facilitates implementation as described below).
          * Servers MUST check that it is the last extension and otherwise fail
          * the handshake with an "illegal_parameter" alert.
          */
-        if( extensions_present & MBEDTLS_SSL_EXT_PRE_SHARED_KEY )
+        if( ssl->handshake->received_extensions &
+            mbedtls_tls13_get_extension_mask( MBEDTLS_TLS_EXT_PRE_SHARED_KEY ) )
         {
             MBEDTLS_SSL_DEBUG_MSG(
                 3, ( "pre_shared_key is not last extension." ) );
@@ -1450,26 +1450,11 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p, extensions_end, extension_data_len );
         extension_data_end = p + extension_data_len;
 
-        /* RFC 8446 page 35
-         *
-         * If an implementation receives an extension which it recognizes and which
-         * is not specified for the message in which it appears, it MUST abort the
-         * handshake with an "illegal_parameter" alert.
-         */
-        extensions_present |= mbedtls_tls13_get_extension_mask( extension_type );
-        MBEDTLS_SSL_DEBUG_MSG( 3,
-                    ( "client hello : received %s(%u) extension",
-                      mbedtls_tls13_get_extension_name( extension_type ),
-                      extension_type ) );
-        if( ( extensions_present & MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_CH ) == 0 )
-        {
-            MBEDTLS_SSL_DEBUG_MSG(
-                3, ( "forbidden extension received." ) );
-            MBEDTLS_SSL_PEND_FATAL_ALERT(
-                MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
-                MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-            return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-        }
+        ret = mbedtls_tls13_check_received_extensions(
+                  ssl, MBEDTLS_SSL_HS_CLIENT_HELLO, extension_type,
+                  MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_CH );
+        if( ret != 0 )
+            return( ret );
 
         switch( extension_type )
         {
@@ -1569,7 +1554,7 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
 
             case MBEDTLS_TLS_EXT_PRE_SHARED_KEY:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found pre_shared_key extension" ) );
-                if( ( extensions_present &
+                if( ( ssl->handshake->received_extensions &
                       MBEDTLS_SSL_EXT_PSK_KEY_EXCHANGE_MODES ) == 0 )
                 {
                     MBEDTLS_SSL_PEND_FATAL_ALERT(
@@ -1622,26 +1607,14 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
                     ( "client hello: received %s(%u) extension ( ignored )",
                       mbedtls_tls13_get_extension_name( extension_type ),
                       extension_type ) );
+                break;
         }
 
         p += extension_data_len;
     }
 
-    MBEDTLS_SSL_TLS1_3_PRINT_EXTS( 3, "ClientHello", extensions_present );
-
-    /* RFC 8446 page 102
-     * -  "supported_versions" is REQUIRED for all ClientHello, ServerHello, and
-     *    HelloRetryRequest messages.
-     */
-    if( ( extensions_present & MBEDTLS_SSL_EXT_SUPPORTED_VERSIONS ) == 0 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1,
-                    ( "client hello: supported_versions not found" ) );
-        MBEDTLS_SSL_PEND_FATAL_ALERT(
-                MBEDTLS_SSL_ALERT_MSG_MISSING_EXTENSION,
-                MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-        return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
-    }
+    MBEDTLS_SSL_TLS1_3_PRINT_EXTS(
+        3, MBEDTLS_SSL_HS_CLIENT_HELLO, ssl->handshake->received_extensions );
 
     mbedtls_ssl_add_hs_hdr_to_checksum( ssl,
                                         MBEDTLS_SSL_HS_CLIENT_HELLO,
@@ -1655,7 +1628,8 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     /* If we've settled on a PSK-based exchange, parse PSK identity ext */
     if( mbedtls_ssl_tls13_some_psk_enabled( ssl ) &&
         mbedtls_ssl_conf_tls13_some_psk_enabled( ssl ) &&
-        ( ssl->handshake->extensions_present & MBEDTLS_SSL_EXT_PRE_SHARED_KEY ) )
+        ( ssl->handshake->received_extensions &
+          MBEDTLS_SSL_EXT_PRE_SHARED_KEY ) )
     {
         ssl->handshake->update_checksum( ssl, buf,
                                          pre_shared_key_ext - buf );
@@ -1666,7 +1640,8 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
                                                   cipher_suites_end );
         if( ret == MBEDTLS_ERR_SSL_UNKNOWN_IDENTITY )
         {
-            extensions_present &= ~MBEDTLS_SSL_EXT_PRE_SHARED_KEY;
+            ssl->handshake->received_extensions &=
+                                ~MBEDTLS_SSL_EXT_PRE_SHARED_KEY;
         }
         else if( ret != 0 )
         {
@@ -1681,7 +1656,6 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
         ssl->handshake->update_checksum( ssl, buf, p - buf );
     }
 
-    ssl->handshake->extensions_present = extensions_present;
     ret = ssl_tls13_determine_key_exchange_mode( ssl );
     if( ret < 0 )
         return( ret );

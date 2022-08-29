@@ -52,12 +52,12 @@ const char *mbedtls_tls13_get_extension_name( uint16_t extension_type );
 
 void mbedtls_ssl_tls13_print_extensions( const mbedtls_ssl_context *ssl,
                                          int level, const char *file, int line,
-                                         const char *hs_msg_name,
+                                         int hs_msg_type,
                                          uint32_t extensions_present );
 
-#define MBEDTLS_SSL_TLS1_3_PRINT_EXTS( level, hs_msg_name, extensions_present ) \
+#define MBEDTLS_SSL_TLS1_3_PRINT_EXTS( level, hs_msg_type, extensions_present ) \
             mbedtls_ssl_tls13_print_extensions( \
-                ssl, level, __FILE__, __LINE__, hs_msg_name, extensions_present )
+                ssl, level, __FILE__, __LINE__, hs_msg_type, extensions_present )
 #else
 
 #define MBEDTLS_SSL_TLS1_3_PRINT_EXTS( level, hs_msg_name, extensions_present )

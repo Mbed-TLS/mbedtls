@@ -946,9 +946,8 @@ struct mbedtls_ssl_handshake_params
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    uint32_t extensions_present;        /*!< extension presence; Each bitfield
-                                             represents an extension and defined
-                                             as \c MBEDTLS_SSL_EXT_XXX */
+    uint32_t sent_extensions;       /*!< extensions sent by endpoint */
+    uint32_t received_extensions;   /*!< extensions received by endpoint */
 
 #if defined(MBEDTLS_SSL_HANDSHAKE_WITH_CERT_ENABLED)
     unsigned char certificate_request_context_len;
@@ -1932,6 +1931,18 @@ static inline int mbedtls_ssl_tls13_some_psk_enabled( mbedtls_ssl_context *ssl )
 
 uint32_t mbedtls_tls13_get_extension_mask( uint16_t extension_type );
 
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_tls13_check_received_extensions( mbedtls_ssl_context *ssl,
+                                             int hs_msg_type,
+                                             uint32_t extension_type,
+                                             uint32_t allowed_mask );
+
+static inline void mbedtls_tls13_set_sent_ext_mask( mbedtls_ssl_context *ssl,
+                                                    uint16_t extension_type )
+{
+    ssl->handshake->sent_extensions |=
+        mbedtls_tls13_get_extension_mask( extension_type );
+}
 
 /*
  * Helper functions to check the selected key exchange mode.

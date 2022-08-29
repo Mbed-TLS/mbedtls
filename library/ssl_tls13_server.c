@@ -419,14 +419,11 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
         matched_identity = identity_id;
 
         /* Update handshake parameters */
-        if( psk_type == MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL )
-        {
-            ssl->session_negotiate->ciphersuite = cipher_suite;
-            ssl->handshake->ciphersuite_info = ciphersuite_info;
-            MBEDTLS_SSL_DEBUG_MSG( 2, ( "overwrite ciphersuite: %04x - %s",
-                                        cipher_suite,
-                                        ciphersuite_info->name ) );
-        }
+        ssl->session_negotiate->ciphersuite = cipher_suite;
+        ssl->handshake->ciphersuite_info = ciphersuite_info;
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "overwrite ciphersuite: %04x - %s",
+                                    cipher_suite, ciphersuite_info->name ) );
+
     }
 
     if( p_identity_len != identities_end || p_binder_len != binders_end )
@@ -1453,6 +1450,8 @@ static int ssl_tls13_parse_client_hello( mbedtls_ssl_context *ssl,
     ret = ssl_tls13_determine_key_exchange_mode( ssl );
     if( ret < 0 )
         return( ret );
+
+    mbedtls_ssl_optimize_checksum( ssl, ssl->handshake->ciphersuite_info );
 
     return( hrr_required ? SSL_CLIENT_HELLO_HRR_REQUIRED : SSL_CLIENT_HELLO_OK );
 }

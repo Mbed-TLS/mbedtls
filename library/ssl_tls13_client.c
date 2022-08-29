@@ -1740,12 +1740,13 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
                 break;
 
             default:
-                MBEDTLS_SSL_DEBUG_MSG( 3,
-                    ( "%s: ignore %s(%u) extension",
+                MBEDTLS_SSL_DEBUG_MSG( 2,
+                    ( "%s: unexpected extension (%s(%u)) received .",
                       is_hrr ? "hello retry request" : "server hello",
                       mbedtls_tls13_get_extension_name( extension_type ),
                       extension_type ) );
-                break;
+                ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+                goto cleanup;
         }
 
         p += extension_data_len;

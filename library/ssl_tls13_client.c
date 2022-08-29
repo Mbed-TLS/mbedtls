@@ -1683,12 +1683,6 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
         {
             case MBEDTLS_TLS_EXT_COOKIE:
 
-                if( !is_hrr )
-                {
-                    fatal_alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT;
-                    goto cleanup;
-                }
-
                 ret = ssl_tls13_parse_cookie_ext( ssl,
                                                   p, extension_data_end );
                 if( ret != 0 )
@@ -1711,11 +1705,6 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_SOME_PSK_ENABLED)
             case MBEDTLS_TLS_EXT_PRE_SHARED_KEY:
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "found pre_shared_key extension" ) );
-                if( is_hrr )
-                {
-                    fatal_alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_EXT;
-                    goto cleanup;
-                }
 
                 if( ( ret = ssl_tls13_parse_server_pre_shared_key_ext(
                                 ssl, p, extension_data_end ) ) != 0 )
@@ -1764,18 +1753,6 @@ static int ssl_tls13_parse_server_hello( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_TLS1_3_PRINT_EXTS(
         3, is_hrr ? "HelloRetryRequest" : "ServerHello", extensions_present );
-
-    /* RFC 8446 page 102
-     * -  "supported_versions" is REQUIRED for all ClientHello, ServerHello, and
-     *    HelloRetryRequest messages.
-     */
-    if( ( extensions_present & MBEDTLS_SSL_EXT_SUPPORTED_VERSIONS ) == 0 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1,
-                    ( "%s: supported_versions not found",
-                      is_hrr ? "hello retry request" : "server hello" ) );
-        fatal_alert = MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
-    }
 
 cleanup:
 
@@ -2277,14 +2254,6 @@ static int ssl_tls13_parse_certificate_request( mbedtls_ssl_context *ssl,
             return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
         }
 
-        if( extensions_present & extension_mask )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 3,
-                ( "Duplicate %s extensions found",
-                    mbedtls_tls13_get_extension_name( extension_type ) ) );
-            goto decode_error;
-
-        }
         extensions_present |= extension_mask;
 
         switch( extension_type )

@@ -103,14 +103,18 @@
 #define MBEDTLS_SSL_EXT_SIG_ALG_CERT                ( 1 << 20 )
 #define MBEDTLS_SSL_EXT_KEY_SHARE                   ( 1 << 21 )
 
-/* Except ServerHello, other message should ignore unrecognized extension.
+/* For request messages, we should just ignore unrecognized extension when
+ * parsing messages. For response messages, we should not ignore unrecognized
+ * extension when parsing messages. Request messages include ClientHello,
+ * Certificate and NewSessionTicket. Response messages include ServerHello,
+ * EncryptExtensions, Certificate and HelloRetryRequest.
  *
- * RFC 8446 page 31
+ * RFC 8446 section 4.1.3
  *
  * The ServerHello MUST only include extensions which are required to establish
  * the cryptographic context and negotiate the protocol version.
  *
- * RFC 8446 page 35
+ * RFC 8446 section 4.2
  *
  * If an implementation receives an extension which it recognizes and which is
  * not specified for the message in which it appears, it MUST abort the handshake
@@ -118,7 +122,7 @@
  */
 #define MBEDTLS_SSL_EXT_UNRECOGNIZED                ( 1U << 31 )
 
-/* RFC 8446 page 36. Allowed extensions for ClienHello */
+/* RFC 8446 section 4.2. Allowed extensions for ClienHello */
 #define MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_CH                                  \
             ( MBEDTLS_SSL_EXT_SERVERNAME                                     | \
               MBEDTLS_SSL_EXT_MAX_FRAGMENT_LENGTH                            | \
@@ -143,7 +147,7 @@
               MBEDTLS_SSL_EXT_SIG_ALG_CERT                                   | \
               MBEDTLS_SSL_EXT_UNRECOGNIZED )
 
-/* RFC 8446 page 36. Allowed extensions for EncryptedExtensions */
+/* RFC 8446 section 4.2. Allowed extensions for EncryptedExtensions */
 #define MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_EE                                  \
             ( MBEDTLS_SSL_EXT_SERVERNAME                                     | \
               MBEDTLS_SSL_EXT_MAX_FRAGMENT_LENGTH                            | \
@@ -153,10 +157,9 @@
               MBEDTLS_SSL_EXT_ALPN                                           | \
               MBEDTLS_SSL_EXT_CLI_CERT_TYPE                                  | \
               MBEDTLS_SSL_EXT_SERV_CERT_TYPE                                 | \
-              MBEDTLS_SSL_EXT_EARLY_DATA                                     | \
-              MBEDTLS_SSL_EXT_UNRECOGNIZED )
+              MBEDTLS_SSL_EXT_EARLY_DATA )
 
-/* RFC 8446 page 36. Allowed extensions for CertificateRequest */
+/* RFC 8446 section 4.2. Allowed extensions for CertificateRequest */
 #define MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_CR                                  \
             ( MBEDTLS_SSL_EXT_STATUS_REQUEST                                 | \
               MBEDTLS_SSL_EXT_SIG_ALG                                        | \
@@ -166,26 +169,24 @@
               MBEDTLS_SSL_EXT_SIG_ALG_CERT                                   | \
               MBEDTLS_SSL_EXT_UNRECOGNIZED )
 
-/* RFC 8446 page 36. Allowed extensions for Certificate */
+/* RFC 8446 section 4.2. Allowed extensions for Certificate */
 #define MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_CT                                  \
             ( MBEDTLS_SSL_EXT_STATUS_REQUEST                                 | \
-              MBEDTLS_SSL_EXT_SCT                                            | \
-              MBEDTLS_SSL_EXT_UNRECOGNIZED )
+              MBEDTLS_SSL_EXT_SCT )
 
-/* RFC 8446 page 36. Allowed extensions for ServerHello */
+/* RFC 8446 section 4.2. Allowed extensions for ServerHello */
 #define MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_SH                                  \
             ( MBEDTLS_SSL_EXT_KEY_SHARE                                      | \
               MBEDTLS_SSL_EXT_PRE_SHARED_KEY                                 | \
               MBEDTLS_SSL_EXT_SUPPORTED_VERSIONS )
 
-/* RFC 8446 page 36. Allowed extensions for HelloRetryRequest */
+/* RFC 8446 section 4.2. Allowed extensions for HelloRetryRequest */
 #define MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_HRR                                 \
             ( MBEDTLS_SSL_EXT_KEY_SHARE                                      | \
               MBEDTLS_SSL_EXT_COOKIE                                         | \
-              MBEDTLS_SSL_EXT_SUPPORTED_VERSIONS                             | \
-              MBEDTLS_SSL_EXT_UNRECOGNIZED )
+              MBEDTLS_SSL_EXT_SUPPORTED_VERSIONS )
 
-/* RFC 8446 page 36. Allowed extensions for NewSessionTicket */
+/* RFC 8446 section 4.2. Allowed extensions for NewSessionTicket */
 #define MBEDTLS_SSL_TLS1_3_ALLOWED_EXTS_OF_NST                                 \
             ( MBEDTLS_SSL_EXT_EARLY_DATA                                     | \
               MBEDTLS_SSL_EXT_UNRECOGNIZED )

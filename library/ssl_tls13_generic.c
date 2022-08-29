@@ -1542,6 +1542,80 @@ int mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
 }
 #endif /* MBEDTLS_ECDH_C */
 
+uint32_t mbedtls_tls13_get_extension_mask( uint16_t extension_type )
+{
+    switch( extension_type )
+    {
+        case MBEDTLS_TLS_EXT_SERVERNAME:
+            return( MBEDTLS_SSL_EXT_SERVERNAME );
+
+        case MBEDTLS_TLS_EXT_MAX_FRAGMENT_LENGTH:
+            return( MBEDTLS_SSL_EXT_MAX_FRAGMENT_LENGTH );
+
+        case MBEDTLS_TLS_EXT_STATUS_REQUEST:
+            return( MBEDTLS_SSL_EXT_STATUS_REQUEST );
+
+        case MBEDTLS_TLS_EXT_SUPPORTED_GROUPS:
+            return( MBEDTLS_SSL_EXT_SUPPORTED_GROUPS );
+
+        case MBEDTLS_TLS_EXT_SIG_ALG:
+            return( MBEDTLS_SSL_EXT_SIG_ALG );
+
+        case MBEDTLS_TLS_EXT_USE_SRTP:
+            return( MBEDTLS_SSL_EXT_USE_SRTP );
+
+        case MBEDTLS_TLS_EXT_HEARTBEAT:
+            return( MBEDTLS_SSL_EXT_HEARTBEAT );
+
+        case MBEDTLS_TLS_EXT_ALPN:
+            return( MBEDTLS_SSL_EXT_ALPN );
+
+        case MBEDTLS_TLS_EXT_SCT:
+            return( MBEDTLS_SSL_EXT_SCT );
+
+        case MBEDTLS_TLS_EXT_CLI_CERT_TYPE:
+            return( MBEDTLS_SSL_EXT_CLI_CERT_TYPE );
+
+        case MBEDTLS_TLS_EXT_SERV_CERT_TYPE:
+            return( MBEDTLS_SSL_EXT_SERV_CERT_TYPE );
+
+        case MBEDTLS_TLS_EXT_PADDING:
+            return( MBEDTLS_SSL_EXT_PADDING );
+
+        case MBEDTLS_TLS_EXT_PRE_SHARED_KEY:
+            return( MBEDTLS_SSL_EXT_PRE_SHARED_KEY );
+
+        case MBEDTLS_TLS_EXT_EARLY_DATA:
+            return( MBEDTLS_SSL_EXT_EARLY_DATA );
+
+        case MBEDTLS_TLS_EXT_SUPPORTED_VERSIONS:
+            return( MBEDTLS_SSL_EXT_SUPPORTED_VERSIONS );
+
+        case MBEDTLS_TLS_EXT_COOKIE:
+            return( MBEDTLS_SSL_EXT_COOKIE );
+
+        case MBEDTLS_TLS_EXT_PSK_KEY_EXCHANGE_MODES:
+            return( MBEDTLS_SSL_EXT_PSK_KEY_EXCHANGE_MODES );
+
+        case MBEDTLS_TLS_EXT_CERT_AUTH:
+            return( MBEDTLS_SSL_EXT_CERT_AUTH );
+
+        case MBEDTLS_TLS_EXT_OID_FILTERS:
+            return( MBEDTLS_SSL_EXT_OID_FILTERS );
+
+        case MBEDTLS_TLS_EXT_POST_HANDSHAKE_AUTH:
+            return( MBEDTLS_SSL_EXT_POST_HANDSHAKE_AUTH );
+
+        case MBEDTLS_TLS_EXT_SIG_ALG_CERT:
+            return( MBEDTLS_SSL_EXT_SIG_ALG_CERT );
+
+        case MBEDTLS_TLS_EXT_KEY_SHARE:
+            return( MBEDTLS_SSL_EXT_KEY_SHARE );
+    };
+
+    return( MBEDTLS_SSL_EXT_UNRECOGNIZED );
+}
+
 #if defined(MBEDTLS_DEBUG_C)
 const char *mbedtls_tls13_get_extension_name( uint16_t extension_type )
 {

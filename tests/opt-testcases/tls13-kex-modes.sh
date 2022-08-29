@@ -61,7 +61,7 @@ run_test    "TLS 1.3: PSK: No valid ciphersuite. O->m" \
 requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: ephemeral&psk_dhe/psk, fail -- no common key exchange mode" \
+run_test    "TLS 1.3: G->m: psk_all/psk, fail, no common kex mode" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
@@ -78,7 +78,7 @@ run_test    "TLS 1.3: G->m: ephemeral&psk_dhe/psk, fail -- no common key exchang
 requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: psk&ephemeral&psk_dhe/psk, good" \
+run_test    "TLS 1.3: G->m: all/psk, good" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
@@ -97,7 +97,7 @@ run_test    "TLS 1.3: G->m: psk&ephemeral&psk_dhe/psk, good" \
 requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: psk&ephemeral&psk_dhe/psk, fail -- no same identity, no fallback" \
+run_test    "TLS 1.3: G->m: all/psk, fail, key id mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername wrong_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
@@ -115,7 +115,7 @@ run_test    "TLS 1.3: G->m: psk&ephemeral&psk_dhe/psk, fail -- no same identity,
 requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: psk&ephemeral&psk_dhe/psk, fail -- different psk with same identity" \
+run_test    "TLS 1.3: G->m: all/psk, fail, key material mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f71 \
@@ -133,7 +133,7 @@ run_test    "TLS 1.3: G->m: psk&ephemeral&psk_dhe/psk, fail -- different psk wit
 requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: psk&ephemeral/psk, good" \
+run_test    "TLS 1.3: G->m: psk&dhe/psk, good" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
@@ -152,7 +152,7 @@ run_test    "TLS 1.3: G->m: psk&ephemeral/psk, good" \
 requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: psk&ephemeral/psk, fail -- no same identity, no fallback" \
+run_test    "TLS 1.3: G->m: psk&dhe/psk, fail, key id mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername wrong_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
@@ -170,7 +170,7 @@ run_test    "TLS 1.3: G->m: psk&ephemeral/psk, fail -- no same identity, no fall
 requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: psk&ephemeral/psk, fail -- different psk with same identity" \
+run_test    "TLS 1.3: G->m: psk&dhe/psk, fail, key material mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f71 \
@@ -189,7 +189,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: ephemeral&psk_dhe/psk_ephemeral, good" \
+run_test    "TLS 1.3: G->m: psk_all/psk_ephemeral, good" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
@@ -209,7 +209,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: ephemeral&psk_dhe/psk_ephemeral, fail -- no same identity, no fallback" \
+run_test    "TLS 1.3: G->m: psk_all/psk_ephemeral, fail, key id mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+VERS-TLS1.3 \
                          --pskusername wrong_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
@@ -228,7 +228,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: ephemeral&psk_dhe/psk_ephemeral, fail -- different psk with same identity" \
+run_test    "TLS 1.3: G->m: psk_all/psk_ephemeral, fail, key material mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f71 \
@@ -247,7 +247,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: psk&ephemeral&psk_dhe/psk_ephemeral, good" \
+run_test    "TLS 1.3: G->m: all/psk_ephemeral, good" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
@@ -267,7 +267,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: psk&ephemeral&psk_dhe/psk_ephemeral, fail -- no same identity, no fallback" \
+run_test    "TLS 1.3: G->m: all/psk_ephemeral, fail, key id mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername wrong_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
@@ -286,7 +286,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: psk&ephemeral&psk_dhe/psk_ephemeral, fail -- different psk with same identity" \
+run_test    "TLS 1.3: G->m: all/psk_ephemeral, fail, key material mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f71 \
@@ -305,7 +305,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: psk&ephemeral/psk_ephemeral, fail -- no common key exchange mode" \
+run_test    "TLS 1.3: G->m: psk&dhe/psk_ephemeral, fail, no common kex mode" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
@@ -323,7 +323,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: ephemeral&psk_dhe/psk_all, good" \
+run_test    "TLS 1.3: G->m: psk_all/psk_all, good" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
@@ -343,7 +343,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: ephemeral&psk_dhe/psk_all, fail -- no same identity, no fallback" \
+run_test    "TLS 1.3: G->m: psk_all/psk_all, fail, key id mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+VERS-TLS1.3 \
                          --pskusername wrong_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
@@ -362,7 +362,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: ephemeral&psk_dhe/psk_all, fail -- different psk with same identity" \
+run_test    "TLS 1.3: G->m: psk_all/psk_all, fail, key material mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f71 \
@@ -381,7 +381,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: psk&ephemeral&psk_dhe/psk_all, good" \
+run_test    "TLS 1.3: G->m: all/psk_all, good" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
@@ -401,7 +401,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: psk&ephemeral&psk_dhe/psk_all, fail -- no same identity, no fallback" \
+run_test    "TLS 1.3: G->m: all/psk_all, fail, key id mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername wrong_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
@@ -420,7 +420,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: psk&ephemeral&psk_dhe/psk_all, fail -- different psk with same identity" \
+run_test    "TLS 1.3: G->m: all/psk_all, fail, key material mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f71 \
@@ -439,7 +439,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: psk&ephemeral/psk_all, good" \
+run_test    "TLS 1.3: G->m: psk&dhe/psk_all, good" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
@@ -459,7 +459,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: psk&ephemeral/psk_all, fail -- no same identity, no fallback" \
+run_test    "TLS 1.3: G->m: psk&dhe/psk_all, fail, key id mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername wrong_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
@@ -478,7 +478,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: psk&ephemeral/psk_all, fail -- different psk with same identity" \
+run_test    "TLS 1.3: G->m: psk&dhe/psk_all, fail, key material mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f71 \
@@ -497,7 +497,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: ephemeral&psk_dhe/ephemeral_all, good" \
+run_test    "TLS 1.3: G->m: psk_all/ephemeral_all, good" \
             "$P_SRV force_version=tls13 tls13_kex_modes=ephemeral_all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
@@ -517,7 +517,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: ephemeral&psk_dhe/ephemeral_all, good -- with fallback" \
+run_test    "TLS 1.3: G->m: psk_all/ephemeral_all, good, key id mismatch, dhe." \
             "$P_SRV force_version=tls13 tls13_kex_modes=ephemeral_all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+VERS-TLS1.3 \
                          --pskusername wrong_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
@@ -536,7 +536,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: ephemeral&psk_dhe/ephemeral_all, fail -- different psk with same identity" \
+run_test    "TLS 1.3: G->m: psk_all/ephemeral_all, fail, key material mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=ephemeral_all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f71 \
@@ -555,7 +555,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: psk&ephemeral&psk_dhe/ephemeral_all, good" \
+run_test    "TLS 1.3: G->m: all/ephemeral_all, good" \
             "$P_SRV force_version=tls13 tls13_kex_modes=ephemeral_all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
@@ -575,7 +575,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: psk&ephemeral&psk_dhe/ephemeral_all, good -- with fallback" \
+run_test    "TLS 1.3: G->m: all/ephemeral_all, good, key id mismatch, dhe." \
             "$P_SRV force_version=tls13 tls13_kex_modes=ephemeral_all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername wrong_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
@@ -594,7 +594,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: psk&ephemeral&psk_dhe/ephemeral_all, fail -- different psk with same identity" \
+run_test    "TLS 1.3: G->m: all/ephemeral_all, fail, key material mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=ephemeral_all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f71 \
@@ -613,7 +613,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: psk&ephemeral/ephemeral_all, good" \
+run_test    "TLS 1.3: G->m: psk&dhe/ephemeral_all, good" \
             "$P_SRV force_version=tls13 tls13_kex_modes=ephemeral_all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
@@ -633,7 +633,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: ephemeral&psk_dhe/all, good" \
+run_test    "TLS 1.3: G->m: psk_all/all, good" \
             "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
@@ -653,7 +653,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: ephemeral&psk_dhe/all, good -- with fallback" \
+run_test    "TLS 1.3: G->m: psk_all/all, good, key id mismatch, dhe." \
             "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+VERS-TLS1.3 \
                          --pskusername wrong_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
@@ -672,7 +672,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: ephemeral&psk_dhe/all, fail -- different psk with same identity" \
+run_test    "TLS 1.3: G->m: psk_all/all, fail, key material mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f71 \
@@ -691,7 +691,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: psk&ephemeral&psk_dhe/all, good" \
+run_test    "TLS 1.3: G->m: all/all, good" \
             "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
@@ -711,7 +711,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: psk&ephemeral&psk_dhe/all, good -- with fallback" \
+run_test    "TLS 1.3: G->m: all/all, good, key id mismatch, dhe." \
             "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername wrong_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
@@ -730,7 +730,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: psk&ephemeral&psk_dhe/all, fail -- different psk with same identity" \
+run_test    "TLS 1.3: G->m: all/all, fail, key material mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f71 \
@@ -749,7 +749,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: psk&ephemeral/all, good" \
+run_test    "TLS 1.3: G->m: psk&dhe/all, good" \
             "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
@@ -769,7 +769,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: psk&ephemeral/all, fail -- different psk with same identity" \
+run_test    "TLS 1.3: G->m: psk&dhe/all, fail, key material mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f71 \
@@ -788,7 +788,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: ephemeral&psk_dhe/psk_or_ephemeral, good" \
+run_test    "TLS 1.3: G->m: psk_all/psk_or_ephemeral, good" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_or_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
@@ -808,7 +808,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: psk&ephemeral&psk_dhe/psk_or_ephemeral, good" \
+run_test    "TLS 1.3: G->m: all/psk_or_ephemeral, good" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_or_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
@@ -828,7 +828,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: psk&ephemeral&psk_dhe/psk_or_ephemeral, fail -- different psk with same identity" \
+run_test    "TLS 1.3: G->m: all/psk_or_ephemeral, fail, key material mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_or_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f71 \
@@ -847,7 +847,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: psk&ephemeral/psk_or_ephemeral, good" \
+run_test    "TLS 1.3: G->m: psk&dhe/psk_or_ephemeral, good" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_or_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
@@ -867,7 +867,7 @@ requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: G->m: psk&ephemeral/psk_or_ephemeral, fail -- different psk with same identity" \
+run_test    "TLS 1.3: G->m: psk&dhe/psk_or_ephemeral, fail, key material mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_or_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$G_NEXT_CLI -d 10 --priority NORMAL:-VERS-ALL:-KX-ALL:-ECDHE-PSK:-DHE-PSK:+PSK:+VERS-TLS1.3 \
                          --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f71 \
@@ -885,7 +885,7 @@ run_test    "TLS 1.3: G->m: psk&ephemeral/psk_or_ephemeral, fail -- different ps
 requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: ephemeral&psk_dhe/psk, fail -- no common key exchange mode" \
+run_test    "TLS 1.3: O->m: psk_all/psk, fail, no common kex mode" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg   \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
@@ -901,7 +901,7 @@ run_test    "TLS 1.3: O->m: ephemeral&psk_dhe/psk, fail -- no common key exchang
 requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: psk&ephemeral&psk_dhe/psk, good" \
+run_test    "TLS 1.3: O->m: all/psk, good" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
@@ -919,7 +919,7 @@ run_test    "TLS 1.3: O->m: psk&ephemeral&psk_dhe/psk, good" \
 requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: psk&ephemeral&psk_dhe/psk, fail -- no same identity, no fallback" \
+run_test    "TLS 1.3: O->m: all/psk, fail, key id mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity wrong_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
@@ -936,7 +936,7 @@ run_test    "TLS 1.3: O->m: psk&ephemeral&psk_dhe/psk, fail -- no same identity,
 requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: psk&ephemeral&psk_dhe/psk, fail -- different psk with same identity" \
+run_test    "TLS 1.3: O->m: all/psk, fail, key material mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f71" \
@@ -954,7 +954,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: ephemeral&psk_dhe/psk_ephemeral, good" \
+run_test    "TLS 1.3: O->m: psk_all/psk_ephemeral, good" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg   \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
@@ -973,7 +973,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: ephemeral&psk_dhe/psk_ephemeral, fail -- no same identity, no fallback" \
+run_test    "TLS 1.3: O->m: psk_all/psk_ephemeral, fail, key id mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg   \
                          -psk_identity wrong_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
@@ -991,7 +991,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: ephemeral&psk_dhe/psk_ephemeral, fail -- different psk with same identity" \
+run_test    "TLS 1.3: O->m: psk_all/psk_ephemeral, fail, key material mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg   \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f71" \
@@ -1009,7 +1009,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: psk&ephemeral&psk_dhe/psk_ephemeral, good" \
+run_test    "TLS 1.3: O->m: all/psk_ephemeral, good" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
@@ -1028,7 +1028,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: psk&ephemeral&psk_dhe/psk_ephemeral, fail -- no same identity, no fallback" \
+run_test    "TLS 1.3: O->m: all/psk_ephemeral, fail, key id mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity wrong_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
@@ -1046,7 +1046,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: psk&ephemeral&psk_dhe/psk_ephemeral, fail -- different psk with same identity" \
+run_test    "TLS 1.3: O->m: all/psk_ephemeral, fail, key material mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f71" \
@@ -1064,7 +1064,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: ephemeral&psk_dhe/psk_all, good" \
+run_test    "TLS 1.3: O->m: psk_all/psk_all, good" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg   \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
@@ -1083,7 +1083,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: ephemeral&psk_dhe/psk_all, fail -- no same identity, no fallback" \
+run_test    "TLS 1.3: O->m: psk_all/psk_all, fail, key id mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg   \
                          -psk_identity wrong_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
@@ -1101,7 +1101,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: ephemeral&psk_dhe/psk_all, fail -- different psk with same identity" \
+run_test    "TLS 1.3: O->m: psk_all/psk_all, fail, key material mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg   \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f71" \
@@ -1119,7 +1119,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: psk&ephemeral&psk_dhe/psk_all, good" \
+run_test    "TLS 1.3: O->m: all/psk_all, good" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
@@ -1138,7 +1138,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: psk&ephemeral&psk_dhe/psk_all, fail -- no same identity, no fallback" \
+run_test    "TLS 1.3: O->m: all/psk_all, fail, key id mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity wrong_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
@@ -1156,7 +1156,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: psk&ephemeral&psk_dhe/psk_all, fail -- different psk with same identity" \
+run_test    "TLS 1.3: O->m: all/psk_all, fail, key material mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f71" \
@@ -1174,7 +1174,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: ephemeral&psk_dhe/ephemeral_all, good" \
+run_test    "TLS 1.3: O->m: psk_all/ephemeral_all, good" \
             "$P_SRV force_version=tls13 tls13_kex_modes=ephemeral_all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg   \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
@@ -1193,7 +1193,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: ephemeral&psk_dhe/ephemeral_all, good -- with fallback" \
+run_test    "TLS 1.3: O->m: psk_all/ephemeral_all, good, key id mismatch, dhe." \
             "$P_SRV force_version=tls13 tls13_kex_modes=ephemeral_all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg   \
                          -psk_identity wrong_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
@@ -1211,7 +1211,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: ephemeral&psk_dhe/ephemeral_all, fail -- different psk with same identity" \
+run_test    "TLS 1.3: O->m: psk_all/ephemeral_all, fail, key material mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=ephemeral_all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg   \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f71" \
@@ -1229,7 +1229,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: psk&ephemeral&psk_dhe/ephemeral_all, good" \
+run_test    "TLS 1.3: O->m: all/ephemeral_all, good" \
             "$P_SRV force_version=tls13 tls13_kex_modes=ephemeral_all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
@@ -1248,7 +1248,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: psk&ephemeral&psk_dhe/ephemeral_all, good -- with fallback" \
+run_test    "TLS 1.3: O->m: all/ephemeral_all, good, key id mismatch, dhe." \
             "$P_SRV force_version=tls13 tls13_kex_modes=ephemeral_all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity wrong_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
@@ -1266,7 +1266,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: psk&ephemeral&psk_dhe/ephemeral_all, fail -- different psk with same identity" \
+run_test    "TLS 1.3: O->m: all/ephemeral_all, fail, key material mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=ephemeral_all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f71" \
@@ -1284,7 +1284,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: ephemeral&psk_dhe/all, good" \
+run_test    "TLS 1.3: O->m: psk_all/all, good" \
             "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg   \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
@@ -1303,7 +1303,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: ephemeral&psk_dhe/all, good -- with fallback" \
+run_test    "TLS 1.3: O->m: psk_all/all, good, key id mismatch, dhe." \
             "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg   \
                          -psk_identity wrong_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
@@ -1321,7 +1321,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: ephemeral&psk_dhe/all, fail -- different psk with same identity" \
+run_test    "TLS 1.3: O->m: psk_all/all, fail, key material mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg   \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f71" \
@@ -1339,7 +1339,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: psk&ephemeral&psk_dhe/all, good" \
+run_test    "TLS 1.3: O->m: all/all, good" \
             "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
@@ -1358,7 +1358,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: psk&ephemeral&psk_dhe/all, good -- with fallback" \
+run_test    "TLS 1.3: O->m: all/all, good, key id mismatch, dhe." \
             "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity wrong_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
@@ -1376,7 +1376,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: psk&ephemeral&psk_dhe/all, fail -- different psk with same identity" \
+run_test    "TLS 1.3: O->m: all/all, fail, key material mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=all debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f71" \
@@ -1394,7 +1394,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: ephemeral&psk_dhe/psk_or_ephemeral, good" \
+run_test    "TLS 1.3: O->m: psk_all/psk_or_ephemeral, good" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_or_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg   \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
@@ -1413,7 +1413,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: psk&ephemeral&psk_dhe/psk_or_ephemeral, good" \
+run_test    "TLS 1.3: O->m: all/psk_or_ephemeral, good" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_or_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f70" \
@@ -1432,7 +1432,7 @@ requires_openssl_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
-run_test    "TLS 1.3: O->m: psk&ephemeral&psk_dhe/psk_or_ephemeral, fail -- different psk with same identity" \
+run_test    "TLS 1.3: O->m: all/psk_or_ephemeral, fail, key material mismatch" \
             "$P_SRV force_version=tls13 tls13_kex_modes=psk_or_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70" \
             "$O_NEXT_CLI -tls1_3 -msg  -allow_no_dhe_kex \
                          -psk_identity Client_identity  -psk 6162636465666768696a6b6c6d6e6f71" \

@@ -152,7 +152,6 @@ extern "C" {
 #define MBEDTLS_ECP_DP_SECP256R1_ENABLED
 #define MBEDTLS_BIGNUM_C
 #define MBEDTLS_ECP_C
-#define MBEDTLS_MD_C
 #define MBEDTLS_ECJPAKE_C
 #endif /* PSA_WANT_ALG_JPAKE */
 

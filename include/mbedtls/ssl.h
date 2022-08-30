@@ -2913,9 +2913,8 @@ void mbedtls_ssl_conf_session_cache( mbedtls_ssl_config *conf,
  *                 corresponding tickets being advertised as resumption PSKs
  *                 by the client.
  *
- * \note           Calling this function multiple times will only be useful
- *                 once TLS 1.3 is supported. For TLS 1.2 connections, this
- *                 function should be called at most once.
+ * \note           For TLS 1.2 connections, this function should be called at
+ *                 most once.
  *
  * \param ssl      The SSL context representing the connection which should
  *                 be attempted to be setup using session resumption. This

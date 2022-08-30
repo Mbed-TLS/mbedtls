@@ -155,7 +155,7 @@ void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint *A,
         mbedtls_mpi_uint tmp;
         /* Note that if cur_limb_left == cur_limb_right,
          * this code effectively swaps the bytes only once. */
-        tmp             = mpi_bigendian_to_host( *cur_limb_left  );
+        tmp             = mpi_bigendian_to_host( *cur_limb_left );
         *cur_limb_left  = mpi_bigendian_to_host( *cur_limb_right );
         *cur_limb_right = tmp;
     }
@@ -298,15 +298,18 @@ mbedtls_mpi_uint mbedtls_mpi_core_add_if( mbedtls_mpi_uint *A,
                                           size_t limbs,
                                           unsigned cond )
 {
-    mbedtls_mpi_uint c = 0, t;
+    mbedtls_mpi_uint c = 0;
+
     for( size_t i = 0; i < limbs; i++ )
     {
         mbedtls_mpi_uint add = cond * B[i];
-        t  = c;
-        t += A[i]; c  = ( t < A[i] );
-        t += add;  c += ( t < add  );
+        mbedtls_mpi_uint t = c + A[i];
+        c = ( t < A[i] );
+        t += add;
+        c += ( t < add );
         A[i] = t;
     }
+
     return( c );
 }
 
@@ -360,7 +363,9 @@ mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len,
 
     while( excess_len-- )
     {
-        *d += c; c = ( *d < c ); d++;
+        *d += c;
+        c = ( *d < c );
+        d++;
     }
 
     return( c );

@@ -631,7 +631,9 @@ void print_deserialized_ssl_session( const uint8_t *ssl, uint32_t len,
     else
     {
         const mbedtls_cipher_info_t *cipher_info;
+#if defined(MBEDTLS_MD_C)
         const mbedtls_md_info_t *md_info;
+#endif
 
         printf( "\tciphersuite    : %s\n", ciphersuite_info->name );
         printf( "\tcipher flags   : 0x%02X\n", ciphersuite_info->flags );

@@ -333,6 +333,11 @@ mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len,
                                        mbedtls_mpi_uint b )
 {
     mbedtls_mpi_uint c = 0; /* carry */
+    /*
+     * It is a documented precondition of this function that d_len >= s_len.
+     * If that's not the case, we swap these round: this turns what would be
+     * a buffer overflow into an incorrect result.
+     */
     if( d_len < s_len )
         s_len = d_len;
     size_t excess_len = d_len - s_len;
@@ -418,9 +423,7 @@ void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
      * i.e. (carry, borrow) of (0, 0) => return X
      *                         (0, 1) => return T
      *
-     * We've confirmed that the unit tests exercise this function with all 3 of
-     * the valid (carry, borrow) combinations (listed above), and that we don't
-     * see (carry, borrow) = (1, 0).
+     * (carry, borrow) = (1, 0) can't happen.
      *
      * So the correct return value is already in X if (carry ^ borrow) = 0,
      * but is in (the lower AN_limbs limbs of) T if (carry ^ borrow) = 1.

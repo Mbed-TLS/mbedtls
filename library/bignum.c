@@ -1569,6 +1569,7 @@ static void mpi_montg_init( mbedtls_mpi_uint *mm, const mbedtls_mpi *N )
  *                      (T->n >= 2 * N->n + 1).
  *                      Its initial content is unused and
  *                      its final content is indeterminate.
+ *                      It does not get reallocated.
  */
 static void mpi_montmul( mbedtls_mpi *A, const mbedtls_mpi *B,
                          const mbedtls_mpi *N, mbedtls_mpi_uint mm,

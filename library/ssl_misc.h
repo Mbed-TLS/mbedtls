@@ -1929,7 +1929,7 @@ static inline int mbedtls_ssl_tls13_some_psk_enabled( mbedtls_ssl_context *ssl )
  * Helper functions for extensions checking and convert.
  */
 
-uint32_t mbedtls_tls13_get_extension_mask( uint16_t extension_type );
+uint32_t mbedtls_tls13_get_extension_mask( unsigned int extension_type );
 
 MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_tls13_check_received_extensions( mbedtls_ssl_context *ssl,

@@ -1528,7 +1528,7 @@ int mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
 }
 #endif /* MBEDTLS_ECDH_C */
 
-uint32_t mbedtls_tls13_get_extension_mask( uint16_t extension_type )
+uint32_t mbedtls_tls13_get_extension_mask( unsigned int extension_type )
 {
     switch( extension_type )
     {

@@ -300,9 +300,23 @@ mbedtls_mpi_uint mbedtls_mpi_core_add_if( mbedtls_mpi_uint *A,
 {
     mbedtls_mpi_uint c = 0;
 
+    /* MSVC has a warning about unary minus on unsigned integer types,
+     * but this is well-defined and precisely what we want to do here. */
+#if defined(_MSC_VER)
+#pragma warning( push )
+#pragma warning( disable : 4146 )
+#endif
+
+    /* all-bits 1 if cond is 1, all-bits 0 if cond is 0 */
+    const mbedtls_mpi_uint mask = -(mbedtls_mpi_uint)cond;
+
+#if defined(_MSC_VER)
+#pragma warning( pop )
+#endif
+
     for( size_t i = 0; i < limbs; i++ )
     {
-        mbedtls_mpi_uint add = cond * B[i];
+        mbedtls_mpi_uint add = mask & B[i];
         mbedtls_mpi_uint t = c + A[i];
         c = ( t < A[i] );
         t += add;

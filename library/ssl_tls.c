@@ -1354,7 +1354,7 @@ void mbedtls_ssl_conf_session_cache( mbedtls_ssl_config *conf,
 int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session *session )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
+    mbedtls_ssl_session *target = ssl->session_negotiate;
     if( ssl == NULL ||
         session == NULL ||
         ssl->session_negotiate == NULL ||
@@ -1362,11 +1362,21 @@ int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session
     {
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
-
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+    if( ssl->handshake->resume == 1 )
+    {
+        target = mbedtls_calloc( 1, sizeof(mbedtls_ssl_session) );
+        if( target->next == NULL )
+            return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+        memset(target, 0, sizeof(mbedtls_ssl_session) );
+        ssl->session_negotiate->next = target;
+    }
+#else
     if( ssl->handshake->resume == 1 )
         return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+#endif
 
-    if( ( ret = mbedtls_ssl_session_copy( ssl->session_negotiate,
+    if( ( ret = mbedtls_ssl_session_copy( target,
                                           session ) ) != 0 )
         return( ret );
 
@@ -3633,7 +3643,7 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
                               sizeof( mbedtls_ssl_handshake_params ) );
 }
 
-void mbedtls_ssl_session_free( mbedtls_ssl_session *session )
+static void ssl_session_free( mbedtls_ssl_session *session )
 {
     if( session == NULL )
         return;
@@ -3647,6 +3657,27 @@ void mbedtls_ssl_session_free( mbedtls_ssl_session *session )
 #endif
 
     mbedtls_platform_zeroize( session, sizeof( mbedtls_ssl_session ) );
+}
+
+void mbedtls_ssl_session_free( mbedtls_ssl_session *session )
+{
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+    mbedtls_ssl_session *head, *tmp;
+
+    if( session == NULL )
+        return;
+
+    head = session->next;
+    while( head != NULL )
+    {
+        tmp = head;
+        head = head->next;
+        ssl_session_free( tmp );
+        mbedtls_free( tmp );
+    }
+
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS */
+    ssl_session_free( session );
 }
 
 #if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)

@@ -1789,6 +1789,7 @@ int main( int argc, char *argv[] )
     }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     /* The default algorithms profile disables SHA-1, but our tests still
        rely on it heavily. */
     if( opt.allow_sha1 > 0 )
@@ -1797,11 +1798,11 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_conf_cert_profile( &conf, &crt_profile_for_test );
         mbedtls_ssl_conf_sig_algs( &conf, ssl_sig_algs_for_test );
     }
-
     if( opt.context_crt_cb == 0 )
         mbedtls_ssl_conf_verify( &conf, my_verify, NULL );
 
     memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)

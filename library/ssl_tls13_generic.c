@@ -1410,7 +1410,7 @@ int mbedtls_ssl_reset_transcript_for_hrr( mbedtls_ssl_context *ssl )
         psa_hash_abort( &ssl->handshake->fin_sha384_psa );
         psa_hash_setup( &ssl->handshake->fin_sha384_psa, PSA_ALG_SHA_384 );
 #else
-        mbedtls_sha512_starts( &ssl->handshake->fin_sha512, 1 );
+        mbedtls_sha512_starts( &ssl->handshake->fin_sha384, 1 );
 #endif
 #endif /* MBEDTLS_SHA384_C */
     }

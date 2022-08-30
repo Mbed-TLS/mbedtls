@@ -645,7 +645,7 @@ void print_deserialized_ssl_session( const uint8_t *ssl, uint32_t len,
         {
             printf( "\tcipher         : %s\n", cipher_info->name );
         }
-
+#if defined(MBEDTLS_MD_C)
         md_info = mbedtls_md_info_from_type( ciphersuite_info->mac );
         if( md_info == NULL )
         {
@@ -655,6 +655,7 @@ void print_deserialized_ssl_session( const uint8_t *ssl, uint32_t len,
         {
             printf( "\tMessage-Digest : %s\n", mbedtls_md_get_name( md_info ) );
         }
+#endif /* MBEDTLS_MD_C */
     }
 
     CHECK_SSL_END( 1 );

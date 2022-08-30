@@ -38,21 +38,23 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/constant_time.h"
 
+#include "legacy_or_psa.h"
+
 #include <string.h>
 
 /*
  * If DTLS is in use, then at least one of SHA-1, SHA-256, SHA-512 is
  * available. Try SHA-256 first, 512 wastes resources
  */
-#if defined(MBEDTLS_SHA224_C)
+#if defined(MBEDTLS_HAS_ALG_SHA_224_VIA_LOWLEVEL_OR_PSA)
 #define COOKIE_MD           MBEDTLS_MD_SHA224
 #define COOKIE_MD_OUTLEN    32
 #define COOKIE_HMAC_LEN     28
-#elif defined(MBEDTLS_SHA384_C)
+#elif defined(MBEDTLS_HAS_ALG_SHA_384_VIA_LOWLEVEL_OR_PSA)
 #define COOKIE_MD           MBEDTLS_MD_SHA384
 #define COOKIE_MD_OUTLEN    48
 #define COOKIE_HMAC_LEN     28
-#elif defined(MBEDTLS_SHA1_C)
+#elif defined(MBEDTLS_HAS_ALG_SHA_1_VIA_LOWLEVEL_OR_PSA)
 #define COOKIE_MD           MBEDTLS_MD_SHA1
 #define COOKIE_MD_OUTLEN    20
 #define COOKIE_HMAC_LEN     20

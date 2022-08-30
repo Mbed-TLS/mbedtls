@@ -156,86 +156,6 @@ int mbedtls_mpi_core_write_be( const mbedtls_mpi_uint *A,
     ( ( (X)[(i) / ciL] >> ( ( (i) % ciL ) * 8 ) ) & 0xff )
 
 /**
- * \brief Montgomery multiplication: X = A * B * R^-1 mod N  (HAC 14.36)
- *
- * \param[out]    X         The destination MPI, as a little-endian array of
- *                          length \p AN_limbs.
- *                          On successful completion, X contains the result of
- *                          the multiplication A * B * R^-1 mod N where
- *                          R = (2^ciL)^AN_limbs.
- * \param[in]     A         Little-endian presentation of first operand.
- *                          Must have exactly \p AN_limbs limbs.
- * \param[in]     B         Little-endian presentation of second operand.
- * \param[in]     B_limbs   The number of limbs in \p B.
- * \param[in]     N         Little-endian presentation of the modulus.
- *                          This must be odd and have exactly \p AN_limbs limbs.
- * \param[in]     AN_limbs  The number of limbs in \p X, \p A, \p N.
- * \param         mm        The Montgomery constant for \p N: -N^-1 mod 2^ciL.
- *                          This can be calculated by `mbedtls_mpi_montg_init()`.
- * \param[in,out] T         Temporary storage of size at least 2*AN_limbs+1 limbs.
- *                          Its initial content is unused and
- *                          its final content is indeterminate.
- */
-void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
-                               const mbedtls_mpi_uint *A,
-                               const mbedtls_mpi_uint *B, size_t B_limbs,
-                               const mbedtls_mpi_uint *N, size_t AN_limbs,
-                               mbedtls_mpi_uint mm, mbedtls_mpi_uint *T );
-
-/**
- * \brief Calculate initialisation value for fast Montgomery modular
- *        multiplication
- *
- * \param[in] N  Little-endian presentation of the modulus. This must have
- *               at least one limb.
- *
- * \return       The initialisation value for fast Montgomery modular multiplication
- */
-mbedtls_mpi_uint mbedtls_mpi_montg_init( const mbedtls_mpi_uint *N );
-
-/**
- * \brief Perform a known-size multiply accumulate operation: A += c * B
- *
- * \param[in,out] A  The pointer to the (little-endian) array
- *                   representing the bignum to accumulate onto.
- * \param A_limbs    The number of limbs of \p A. This must be
- *                   at least \p B_limbs.
- * \param[in] B      The pointer to the (little-endian) array
- *                   representing the bignum to multiply with.
- *                   This may be the same as \p A. Otherwise,
- *                   it must be disjoint from \p A.
- * \param B_limbs    The number of limbs of \p B.
- * \param c          A scalar to multiply with.
- *
- * \return           The carry at the end of the operation.
- */
-mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *A, size_t A_limbs,
-                                       const mbedtls_mpi_uint *B, size_t B_limbs,
-                                       mbedtls_mpi_uint c );
-
-/**
- * \brief Subtract two known-size large unsigned integers, returning the borrow.
- *
- * Calculate A - B where A and B have the same size.
- * This function operates modulo (2^ciL)^limbs and returns the carry
- * (1 if there was a wraparound, i.e. if `A < B`, and 0 otherwise).
- *
- * X may be aliased to A or B.
- *
- * \param[out] X    The result of the subtraction.
- * \param[in] A     Little-endian presentation of left operand.
- * \param[in] B     Little-endian presentation of right operand.
- * \param limbs     Number of limbs of \p X, \p A and \p B.
- *
- * \return          1 if `A < B`.
- *                  0 if `A >= B`.
- */
-mbedtls_mpi_uint mbedtls_mpi_core_sub( mbedtls_mpi_uint *X,
-                                       const mbedtls_mpi_uint *A,
-                                       const mbedtls_mpi_uint *B,
-                                       size_t limbs );
-
-/**
  * \brief Conditional addition of two known-size large unsigned integers,
  *        returning the carry.
  *
@@ -266,5 +186,85 @@ mbedtls_mpi_uint mbedtls_mpi_core_add_if( mbedtls_mpi_uint *A,
                                           const mbedtls_mpi_uint *B,
                                           size_t limbs,
                                           unsigned cond );
+
+/**
+ * \brief Subtract two known-size large unsigned integers, returning the borrow.
+ *
+ * Calculate A - B where A and B have the same size.
+ * This function operates modulo (2^ciL)^limbs and returns the carry
+ * (1 if there was a wraparound, i.e. if `A < B`, and 0 otherwise).
+ *
+ * X may be aliased to A or B.
+ *
+ * \param[out] X    The result of the subtraction.
+ * \param[in] A     Little-endian presentation of left operand.
+ * \param[in] B     Little-endian presentation of right operand.
+ * \param limbs     Number of limbs of \p X, \p A and \p B.
+ *
+ * \return          1 if `A < B`.
+ *                  0 if `A >= B`.
+ */
+mbedtls_mpi_uint mbedtls_mpi_core_sub( mbedtls_mpi_uint *X,
+                                       const mbedtls_mpi_uint *A,
+                                       const mbedtls_mpi_uint *B,
+                                       size_t limbs );
+
+/**
+ * \brief Perform a known-size multiply accumulate operation: A += c * B
+ *
+ * \param[in,out] A  The pointer to the (little-endian) array
+ *                   representing the bignum to accumulate onto.
+ * \param A_limbs    The number of limbs of \p A. This must be
+ *                   at least \p B_limbs.
+ * \param[in] B      The pointer to the (little-endian) array
+ *                   representing the bignum to multiply with.
+ *                   This may be the same as \p A. Otherwise,
+ *                   it must be disjoint from \p A.
+ * \param B_limbs    The number of limbs of \p B.
+ * \param c          A scalar to multiply with.
+ *
+ * \return           The carry at the end of the operation.
+ */
+mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *A, size_t A_limbs,
+                                       const mbedtls_mpi_uint *B, size_t B_limbs,
+                                       mbedtls_mpi_uint c );
+
+/**
+ * \brief Calculate initialisation value for fast Montgomery modular
+ *        multiplication
+ *
+ * \param[in] N  Little-endian presentation of the modulus. This must have
+ *               at least one limb.
+ *
+ * \return       The initialisation value for fast Montgomery modular multiplication
+ */
+mbedtls_mpi_uint mbedtls_mpi_montg_init( const mbedtls_mpi_uint *N );
+
+/**
+ * \brief Montgomery multiplication: X = A * B * R^-1 mod N  (HAC 14.36)
+ *
+ * \param[out]    X         The destination MPI, as a little-endian array of
+ *                          length \p AN_limbs.
+ *                          On successful completion, X contains the result of
+ *                          the multiplication A * B * R^-1 mod N where
+ *                          R = (2^ciL)^AN_limbs.
+ * \param[in]     A         Little-endian presentation of first operand.
+ *                          Must have exactly \p AN_limbs limbs.
+ * \param[in]     B         Little-endian presentation of second operand.
+ * \param[in]     B_limbs   The number of limbs in \p B.
+ * \param[in]     N         Little-endian presentation of the modulus.
+ *                          This must be odd and have exactly \p AN_limbs limbs.
+ * \param[in]     AN_limbs  The number of limbs in \p X, \p A, \p N.
+ * \param         mm        The Montgomery constant for \p N: -N^-1 mod 2^ciL.
+ *                          This can be calculated by `mbedtls_mpi_montg_init()`.
+ * \param[in,out] T         Temporary storage of size at least 2*AN_limbs+1 limbs.
+ *                          Its initial content is unused and
+ *                          its final content is indeterminate.
+ */
+void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
+                               const mbedtls_mpi_uint *A,
+                               const mbedtls_mpi_uint *B, size_t B_limbs,
+                               const mbedtls_mpi_uint *N, size_t AN_limbs,
+                               mbedtls_mpi_uint mm, mbedtls_mpi_uint *T );
 
 #endif /* MBEDTLS_BIGNUM_CORE_H */

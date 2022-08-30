@@ -293,6 +293,89 @@ int mbedtls_mpi_core_write_be( const mbedtls_mpi_uint *X,
     return( 0 );
 }
 
+mbedtls_mpi_uint mbedtls_mpi_core_add_if( mbedtls_mpi_uint *A,
+                                          const mbedtls_mpi_uint *B,
+                                          size_t limbs,
+                                          unsigned cond )
+{
+    mbedtls_mpi_uint c = 0, t;
+    for( size_t i = 0; i < limbs; i++ )
+    {
+        mbedtls_mpi_uint add = cond * B[i];
+        t  = c;
+        t += A[i]; c  = ( t < A[i] );
+        t += add;  c += ( t < add  );
+        A[i] = t;
+    }
+    return( c );
+}
+
+mbedtls_mpi_uint mbedtls_mpi_core_sub( mbedtls_mpi_uint *X,
+                                       const mbedtls_mpi_uint *A,
+                                       const mbedtls_mpi_uint *B,
+                                       size_t limbs )
+{
+    mbedtls_mpi_uint c = 0;
+
+    for( size_t i = 0; i < limbs; i++ )
+    {
+        mbedtls_mpi_uint z = ( A[i] < c );
+        mbedtls_mpi_uint t = A[i] - c;
+        c = ( t < B[i] ) + z;
+        X[i] = t - B[i];
+    }
+
+    return( c );
+}
+
+mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len,
+                                       const mbedtls_mpi_uint *s, size_t s_len,
+                                       mbedtls_mpi_uint b )
+{
+    mbedtls_mpi_uint c = 0; /* carry */
+    if( d_len < s_len )
+        s_len = d_len;
+    size_t excess_len = d_len - s_len;
+    size_t steps_x8 = s_len / 8;
+    size_t steps_x1 = s_len & 7;
+
+    while( steps_x8-- )
+    {
+        MULADDC_X8_INIT
+        MULADDC_X8_CORE
+        MULADDC_X8_STOP
+    }
+
+    while( steps_x1-- )
+    {
+        MULADDC_X1_INIT
+        MULADDC_X1_CORE
+        MULADDC_X1_STOP
+    }
+
+    while( excess_len-- )
+    {
+        *d += c; c = ( *d < c ); d++;
+    }
+
+    return( c );
+}
+
+/*
+ * Fast Montgomery initialization (thanks to Tom St Denis).
+ */
+mbedtls_mpi_uint mbedtls_mpi_montg_init( const mbedtls_mpi_uint *N )
+{
+    mbedtls_mpi_uint x = N[0];
+
+    x += ( ( N[0] + 2 ) & 4 ) << 1;
+
+    for( unsigned int i = biL; i >= 8; i /= 2 )
+        x *= ( 2 - ( N[0] * x ) );
+
+    return( ~x + 1 );
+}
+
 void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
                                const mbedtls_mpi_uint *A,
                                const mbedtls_mpi_uint *B,
@@ -343,89 +426,6 @@ void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
      * but is in (the lower AN_limbs limbs of) T if (carry ^ borrow) = 1.
      */
      mbedtls_ct_mpi_uint_cond_assign( AN_limbs, X, T, (unsigned char) ( carry ^ borrow ) );
-}
-
-/*
- * Fast Montgomery initialization (thanks to Tom St Denis).
- */
-mbedtls_mpi_uint mbedtls_mpi_montg_init( const mbedtls_mpi_uint *N )
-{
-    mbedtls_mpi_uint x = N[0];
-
-    x += ( ( N[0] + 2 ) & 4 ) << 1;
-
-    for( unsigned int i = biL; i >= 8; i /= 2 )
-        x *= ( 2 - ( N[0] * x ) );
-
-    return( ~x + 1 );
-}
-
-mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len,
-                                       const mbedtls_mpi_uint *s, size_t s_len,
-                                       mbedtls_mpi_uint b )
-{
-    mbedtls_mpi_uint c = 0; /* carry */
-    if( d_len < s_len )
-        s_len = d_len;
-    size_t excess_len = d_len - s_len;
-    size_t steps_x8 = s_len / 8;
-    size_t steps_x1 = s_len & 7;
-
-    while( steps_x8-- )
-    {
-        MULADDC_X8_INIT
-        MULADDC_X8_CORE
-        MULADDC_X8_STOP
-    }
-
-    while( steps_x1-- )
-    {
-        MULADDC_X1_INIT
-        MULADDC_X1_CORE
-        MULADDC_X1_STOP
-    }
-
-    while( excess_len-- )
-    {
-        *d += c; c = ( *d < c ); d++;
-    }
-
-    return( c );
-}
-
-mbedtls_mpi_uint mbedtls_mpi_core_sub( mbedtls_mpi_uint *X,
-                                       const mbedtls_mpi_uint *A,
-                                       const mbedtls_mpi_uint *B,
-                                       size_t limbs )
-{
-    mbedtls_mpi_uint c = 0;
-
-    for( size_t i = 0; i < limbs; i++ )
-    {
-        mbedtls_mpi_uint z = ( A[i] < c );
-        mbedtls_mpi_uint t = A[i] - c;
-        c = ( t < B[i] ) + z;
-        X[i] = t - B[i];
-    }
-
-    return( c );
-}
-
-mbedtls_mpi_uint mbedtls_mpi_core_add_if( mbedtls_mpi_uint *A,
-                                          const mbedtls_mpi_uint *B,
-                                          size_t limbs,
-                                          unsigned cond )
-{
-    mbedtls_mpi_uint c = 0, t;
-    for( size_t i = 0; i < limbs; i++ )
-    {
-        mbedtls_mpi_uint add = cond * B[i];
-        t  = c;
-        t += A[i]; c  = ( t < A[i] );
-        t += add;  c += ( t < add  );
-        A[i] = t;
-    }
-    return( c );
 }
 
 #endif /* MBEDTLS_BIGNUM_C */

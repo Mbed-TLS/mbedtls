@@ -226,13 +226,12 @@ static int ssl_tls13_select_ciphersuite_for_psk(
      * PSK is established or default to SHA-256 if no such algorithm is defined.
      *
      */
-    psk_hash_alg = PSA_ALG_SHA_256;
 
     /*
      * Search for a matching ciphersuite
      */
-    for ( const unsigned char *p = cipher_suites ;
-          p < cipher_suites_end ; p += 2 )
+    for ( const unsigned char *p = cipher_suites;
+          p < cipher_suites_end; p += 2 )
     {
         uint16_t cipher_suite;
         const mbedtls_ssl_ciphersuite_t *ciphersuite_info;

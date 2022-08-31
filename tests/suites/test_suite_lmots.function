@@ -15,7 +15,8 @@
 /* BEGIN_CASE */
 void lmots_sign_verify_test ( data_t * msg )
 {
-    mbedtls_lmots_context ctx;
+    mbedtls_lmots_public_t pub_ctx;
+    mbedtls_lmots_private_t priv_ctx;
     unsigned char sig[MBEDTLS_LMOTS_SIG_LEN];
     mbedtls_entropy_context entropy_ctx;
     mbedtls_ctr_drbg_context drbg_ctx;
@@ -23,22 +24,25 @@ void lmots_sign_verify_test ( data_t * msg )
 
     mbedtls_entropy_init( &entropy_ctx );
     mbedtls_ctr_drbg_init( &drbg_ctx );
-    mbedtls_lmots_init( &ctx );
+    mbedtls_lmots_init_public( &pub_ctx );
+    mbedtls_lmots_init_private( &priv_ctx );
 
     TEST_ASSERT( mbedtls_ctr_drbg_seed( &drbg_ctx, mbedtls_entropy_func,
                  &entropy_ctx, (uint8_t*)"", 0 ) == 0 );
     TEST_ASSERT( mbedtls_ctr_drbg_random( &drbg_ctx, seed, sizeof( seed ) ) == 0 );
 
-    TEST_ASSERT( mbedtls_lmots_set_algorithm_type(&ctx, MBEDTLS_LMOTS_SHA256_N32_W8) == 0 );
-    TEST_ASSERT( mbedtls_lmots_gen_privkey(&ctx, (uint8_t[16]){0}, 0x12, seed, sizeof( seed ) ) == 0 );
-    TEST_ASSERT( mbedtls_lmots_gen_pubkey(&ctx) == 0 );
-    TEST_ASSERT( mbedtls_lmots_sign(&ctx, mbedtls_ctr_drbg_random, &drbg_ctx, msg->x, msg->len, sig ) == 0 );
-    TEST_ASSERT( mbedtls_lmots_verify(&ctx, msg->x, msg->len, sig) == 0 );
+    TEST_ASSERT( mbedtls_lmots_generate_private_key(&priv_ctx, MBEDTLS_LMOTS_SHA256_N32_W8,
+                 (uint8_t[16]){0}, 0x12, seed, sizeof( seed ) ) == 0 );
+    TEST_ASSERT( mbedtls_lmots_calculate_public_key(&pub_ctx, &priv_ctx) == 0 );
+    TEST_ASSERT( mbedtls_lmots_sign(&priv_ctx, mbedtls_ctr_drbg_random, &drbg_ctx,
+                 msg->x, msg->len, sig, sizeof(sig), NULL ) == 0 );
+    TEST_ASSERT( mbedtls_lmots_verify(&pub_ctx, msg->x, msg->len, sig, sizeof(sig)) == 0 );
 
 exit:
     mbedtls_entropy_free( &entropy_ctx );
     mbedtls_ctr_drbg_free( &drbg_ctx );
-    mbedtls_lmots_free( &ctx );
+    mbedtls_lmots_free_public( &pub_ctx );
+    mbedtls_lmots_free_private( &priv_ctx );
 }
 /* END_CASE */
 
@@ -46,40 +50,40 @@ exit:
 void lmots_verify_test ( data_t * msg, data_t * sig, data_t * pub_key,
                           int expected_rc )
 {
-    mbedtls_lmots_context ctx;
+    mbedtls_lmots_public_t ctx;
 
-    mbedtls_lmots_init( &ctx );
+    mbedtls_lmots_init_public( &ctx );
 
-    mbedtls_lmots_import_pubkey( &ctx, pub_key->x );
+    mbedtls_lmots_import_public_key( &ctx, pub_key->x, pub_key->len );
 
-    TEST_ASSERT(mbedtls_lmots_verify( &ctx, msg->x, msg->len, sig->x ) == expected_rc );
+    TEST_ASSERT(mbedtls_lmots_verify( &ctx, msg->x, msg->len, sig->x, sig->len ) == expected_rc );
 
 exit:
-    mbedtls_lmots_free( &ctx );
+    mbedtls_lmots_free_public( &ctx );
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
 void lmots_import_export_test (  data_t * pub_key )
 {
-    mbedtls_lmots_context ctx;
-    uint8_t exported_pub_key[MBEDTLS_LMOTS_PUBKEY_LEN];
+    mbedtls_lmots_public_t ctx;
+    uint8_t exported_pub_key[MBEDTLS_LMOTS_PUBLIC_KEY_LEN];
 
-    mbedtls_lmots_init( &ctx );
-    TEST_ASSERT( mbedtls_lmots_import_pubkey( &ctx, pub_key->x ) == 0 );
-    TEST_ASSERT( mbedtls_lmots_export_pubkey( &ctx, exported_pub_key ) == 0 );
+    mbedtls_lmots_init_public( &ctx );
+    TEST_ASSERT( mbedtls_lmots_import_public_key( &ctx, pub_key->x, pub_key->len ) == 0 );
+    TEST_ASSERT( mbedtls_lmots_export_public_key( &ctx, exported_pub_key, sizeof( exported_pub_key ), NULL ) == 0 );
 
-    TEST_ASSERT( memcmp( pub_key->x, exported_pub_key, MBEDTLS_LMOTS_PUBKEY_LEN ) == 0 );
+    TEST_ASSERT( memcmp( pub_key->x, exported_pub_key, MBEDTLS_LMOTS_PUBLIC_KEY_LEN ) == 0 );
 
 exit:
-    mbedtls_lmots_free( &ctx );
+    mbedtls_lmots_free_public( &ctx );
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
 void lmots_reuse_test ( data_t * msg )
 {
-    mbedtls_lmots_context ctx;
+    mbedtls_lmots_private_t ctx;
     unsigned char sig[MBEDTLS_LMOTS_SIG_LEN];
     mbedtls_entropy_context entropy_ctx;
     mbedtls_ctr_drbg_context drbg_ctx;
@@ -92,19 +96,21 @@ void lmots_reuse_test ( data_t * msg )
 
     mbedtls_ctr_drbg_random( &drbg_ctx, seed, sizeof( seed ) );
 
-    mbedtls_lmots_init( &ctx );
-    TEST_ASSERT( mbedtls_lmots_set_algorithm_type( &ctx, MBEDTLS_LMOTS_SHA256_N32_W8 ) == 0 );
-    TEST_ASSERT( mbedtls_lmots_gen_privkey(&ctx, (uint8_t[16]){0}, 0x12, seed, sizeof( seed ) ) == 0 );
-    TEST_ASSERT( mbedtls_lmots_sign(&ctx, mbedtls_ctr_drbg_random, &drbg_ctx, msg->x, msg->len, sig ) == 0 );
+    mbedtls_lmots_init_private( &ctx );
+    TEST_ASSERT( mbedtls_lmots_generate_private_key(&ctx, MBEDTLS_LMOTS_SHA256_N32_W8,
+                                                    (uint8_t[16]){0}, 0x12, seed, sizeof( seed ) ) == 0 );
+    TEST_ASSERT( mbedtls_lmots_sign(&ctx, mbedtls_ctr_drbg_random, &drbg_ctx,
+                                    msg->x, msg->len, sig, sizeof( sig ), NULL ) == 0 );
 
     /* Running another sign operation should fail, since the key should now have
      * been erased.
      */
-    TEST_ASSERT( mbedtls_lmots_sign(&ctx, mbedtls_ctr_drbg_random, &drbg_ctx, msg->x, msg->len, sig ) != 0 );
+    TEST_ASSERT( mbedtls_lmots_sign(&ctx, mbedtls_ctr_drbg_random, &drbg_ctx,
+                                    msg->x, msg->len, sig, sizeof( sig ), NULL ) != 0 );
 
 exit:
     mbedtls_entropy_free( &entropy_ctx );
     mbedtls_ctr_drbg_free( &drbg_ctx );
-    mbedtls_lmots_free( &ctx );
+    mbedtls_lmots_free_private( &ctx );
 }
 /* END_CASE */

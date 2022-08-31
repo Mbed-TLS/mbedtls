@@ -32,33 +32,24 @@
 
 #include "lmots.h"
 
-#include "mbedtls/private_access.h"
+#include "mbedtls/build_info.h"
 
 #define MBEDTLS_ERR_LMS_BAD_INPUT_DATA   -0x0011 /**< Bad data has been input to an LMS function */
-#define MBEDTLS_ERR_LMS_OUT_OF_PRIV_KEYS -0x0013 /**< Specified LMS key has utilised all of its private keys */
+#define MBEDTLS_ERR_LMS_OUT_OF_PRIVATE_KEYS -0x0013 /**< Specified LMS key has utilised all of its private keys */
 #define MBEDTLS_ERR_LMS_VERIFY_FAILED    -0x0015 /**< LMS signature verification failed */
 #define MBEDTLS_ERR_LMS_ALLOC_FAILED     -0x0017 /**< LMS failed to allocate space for a private key */
 #define MBEDTLS_ERR_LMS_BUFFER_TOO_SMALL -0x0019 /**< Input/output buffer is too small to contain requited data */
 
-#define MBEDTLS_LMS_TYPE_LEN            (4)
-#define MBEDTLS_LMS_H_TREE_HEIGHT       (10)
 #define MBEDTLS_LMS_M_NODE_BYTES        (32) /* The length of a hash output, 32 for SHA256 */
+#define MBEDTLS_LMS_TYPE_LEN            (4)
+#define MBEDTLS_LMS_H_TREE_HEIGHT       (10u)
 
 #define MBEDTLS_LMS_SIG_LEN (MBEDTLS_LMOTS_Q_LEAF_ID_LEN + MBEDTLS_LMOTS_SIG_LEN + \
                              MBEDTLS_LMS_TYPE_LEN + MBEDTLS_LMS_H_TREE_HEIGHT * MBEDTLS_LMS_M_NODE_BYTES)
 
-#define MBEDTLS_LMS_PUBKEY_LEN (MBEDTLS_LMS_TYPE_LEN + MBEDTLS_LMOTS_TYPE_LEN + \
+#define MBEDTLS_LMS_PUBLIC_KEY_LEN (MBEDTLS_LMS_TYPE_LEN + MBEDTLS_LMOTS_TYPE_LEN + \
                                 MBEDTLS_LMOTS_I_KEY_ID_LEN + MBEDTLS_LMS_M_NODE_BYTES)
 
-#define MBEDTLS_LMS_SIG_Q_LEAF_ID_OFFSET    (0)
-#define MBEDTLS_LMS_SIG_OTS_SIG_OFFSET      (MBEDTLS_LMS_SIG_Q_LEAF_ID_OFFSET + MBEDTLS_LMOTS_Q_LEAF_ID_LEN)
-#define MBEDTLS_LMS_SIG_TYPE_OFFSET         (MBEDTLS_LMS_SIG_OTS_SIG_OFFSET   + MBEDTLS_LMOTS_SIG_LEN)
-#define MBEDTLS_LMS_SIG_PATH_OFFSET         (MBEDTLS_LMS_SIG_TYPE_OFFSET      + MBEDTLS_LMS_TYPE_LEN)
-
-#define MBEDTLS_LMS_PUBKEY_TYPE_OFFSET      (0)
-#define MBEDTLS_LMS_PUBKEY_OTSTYPE_OFFSET   (MBEDTLS_LMS_PUBKEY_TYPE_OFFSET     + MBEDTLS_LMS_TYPE_LEN)
-#define MBEDTLS_LMS_PUBKEY_I_KEY_ID_OFFSET  (MBEDTLS_LMS_PUBKEY_OTSTYPE_OFFSET  + MBEDTLS_LMOTS_TYPE_LEN)
-#define MBEDTLS_LMS_PUBKEY_ROOT_NODE_OFFSET (MBEDTLS_LMS_PUBKEY_I_KEY_ID_OFFSET + MBEDTLS_LMOTS_I_KEY_ID_LEN)
 
 #ifdef __cplusplus
 extern "C" {
@@ -72,85 +63,234 @@ typedef enum {
 } mbedtls_lms_algorithm_type_t;
 
 
-/** LMS context structure.
+/** LMS parameters structure.
+ *
+ * This contains the metadata associated with an LMS key, detailing the
+ * algorithm type, the type of the underlying OTS algorithm, and the key ID.
+ */
+typedef struct {
+    unsigned char MBEDTLS_PRIVATE(I_key_identifier[MBEDTLS_LMOTS_I_KEY_ID_LEN]); /*!< The key
+                                                     identifier. */
+    mbedtls_lmots_algorithm_type_t MBEDTLS_PRIVATE(otstype); /*!< The LM-OTS key type identifier as
+                                                               per IANA. Only SHA256_N32_W8 is
+                                                               currently supported. */
+    mbedtls_lms_algorithm_type_t MBEDTLS_PRIVATE(type); /*!< The LMS key type identifier as per
+                                                             IANA. Only SHA256_M32_H10 is currently
+                                                             supported. */
+} mbedtls_lms_parameters_t;
+
+/** LMS public context structure.
+ *
+ *A LMS public key is the hash output that is the root of the merkle tree, and
+ * the applicable parameter set
  *
  * The context must be initialized before it is used. A public key must either
- * be imported, or an algorithm type set, a private key generated and the public
- * key calculated from it. A context that does not contain a public key cannot
- * verify, and a context that does not contain a private key cannot sign.
+ * be imported or generated from a private context.
  *
  * \dot
- * digraph lmots {
+ * digraph lms_public_t {
  *   UNINITIALIZED -> INIT [label="init"];
- *   TYPE_SET -> INIT [label="free"];
- *   PRIVATE -> INIT [label="free"];
- *   PUBLIC -> INIT [label="free"];
- *   "PRIVATE+PUBLIC" -> INIT [label="free"];
- *   INIT -> TYPE_SET [label="set_algorithm_type"];
- *   INIT -> PUBLIC [label="import_public"];
- *   PUBLIC -> PUBLIC [label="export_pubkey"];
- *   "PRIVATE+PUBLIC" -> "PRIVATE+PUBLIC" [label="export_pubkey"];
- *   PRIVATE -> "PRIVATE+PUBLIC" [label="gen_pubkey"];
- *   TYPE_SET -> PRIVATE [label="gen_privkey"];
+ *   HAVE_PUBLIC_KEY -> INIT [label="free"];
+ *   INIT -> HAVE_PUBLIC_KEY [label="import_public_key"];
+ *   INIT -> HAVE_PUBLIC_KEY [label="calculate_public_key from private key"];
+ *   HAVE_PUBLIC_KEY -> HAVE_PUBLIC_KEY [label="export_public_key"];
  * }
  * \enddot
  */
 typedef struct {
-    unsigned char MBEDTLS_PRIVATE(have_privkey); /*!< Whether the context contains a private key.
-                                                     Boolean values only. */
-    unsigned char MBEDTLS_PRIVATE(have_pubkey); /*!< Whether the context contains a public key.
-                                                     Boolean values only. */
-    unsigned char MBEDTLS_PRIVATE(I_key_identifier)[MBEDTLS_LMOTS_I_KEY_ID_LEN]; /*!< The key
-                                                     identifier. */
-    mbedtls_lms_algorithm_type_t MBEDTLS_PRIVATE(type); /*!< The LMS key type identifier as per
-                                                     IANA. Only SHA256_M32_H10 is currently
-                                                     supported. */
-    mbedtls_lmots_algorithm_type_t MBEDTLS_PRIVATE(otstype); /*!< The LM-OTS key type identifier as
-                                                     per IANA. Only SHA256_N32_W8 is currently
-                                                     supported. */
-    unsigned int MBEDTLS_PRIVATE(q_next_usable_key); /*!< The index of the next OTS key that has not
-                                                     been used. */
-    mbedtls_lmots_context *MBEDTLS_PRIVATE(priv_keys); /*!< The private key material. One OTS key
-                                                     for each leaf node in the merkle tree. */
+    mbedtls_lms_parameters_t MBEDTLS_PRIVATE(params);
     unsigned char MBEDTLS_PRIVATE(T_1_pub_key)[MBEDTLS_LMS_M_NODE_BYTES]; /*!< The public key, in
                                                      the form of the merkle tree root node. */
-} mbedtls_lms_context;
+    unsigned char MBEDTLS_PRIVATE(have_public_key); /*!< Whether the context contains a public key.
+                                                     Boolean values only. */
+} mbedtls_lms_public_t;
 
+
+/** LMS private context structure.
+ *
+ * A LMS private key is a set of LMOTS private keys, an index to the next usable
+ * key, and the applicable parameter set.
+ *
+ * The context must be initialized before it is used. A public key must either
+ * be imported or generated from a private context.
+ *
+ * \dot
+ * digraph lms_public_t {
+ *   UNINITIALIZED -> INIT [label="init"];
+ *   HAVE_PRIVATE_KEY -> INIT [label="free"];
+ *   INIT -> HAVE_PRIVATE_KEY [label="generate_private_key"];
+ * }
+ * \enddot
+ */
+typedef struct {
+    mbedtls_lms_parameters_t MBEDTLS_PRIVATE(params);
+    uint32_t MBEDTLS_PRIVATE(q_next_usable_key); /*!< The index of the next OTS key that has not
+                                                      been used. */
+    mbedtls_lmots_private_t *MBEDTLS_PRIVATE(ots_private_keys); /*!< The private key material. One OTS key
+                                                              for each leaf node in the merkle tree. */
+    mbedtls_lmots_public_t *MBEDTLS_PRIVATE(ots_public_keys); /*!< The OTS key public keys, used to
+                                                                   build the merkle tree. */
+    unsigned char MBEDTLS_PRIVATE(have_private_key); /*!< Whether the context contains a private key.
+                                                     Boolean values only. */
+} mbedtls_lms_private_t;
 
 /**
- * \brief                    This function initializes an LMS context
+ * \brief                    This function initializes an LMS public context
  *
  * \param ctx                The uninitialized LMS context that will then be
  *                           initialized.
  */
-void mbedtls_lms_init( mbedtls_lms_context *ctx );
+void mbedtls_lms_init_public( mbedtls_lms_public_t *ctx );
 
 /**
- * \brief                    This function uninitializes an LMS context
+ * \brief                    This function uninitializes an LMS public context
  *
  * \param ctx                The initialized LMS context that will then be
  *                           uninitialized.
  */
-void mbedtls_lms_free( mbedtls_lms_context *ctx );
+void mbedtls_lms_free_public( mbedtls_lms_public_t *ctx );
 
 /**
- * \brief                    This function sets the type of an LMS context
+ * \brief                    This function imports an LMS public key into a
+ *                           public LMS context.
  *
- * \note                     The parameter set in the context will then be used
- *                           for keygen operations etc.
+ * \note                     Before this function is called, the context must
+ *                           have been initialized.
  *
- * \param ctx                The initialized LMS context.
- * \param type               The type that will be set in the context.
- * \param otstype            The type of the LMOTS implementation used by this
- *                           context.
+ * \note                     See IETF RFC8554 for details of the encoding of
+ *                           this public key.
+ *
+ * \param ctx                The initialized LMS context store the key in.
+ * \param key                The buffer from which the key will be read.
+ *                           #MBEDTLS_LMS_PUBLIC_KEY_LEN bytes will be read from
+ *                           this.
+ * \param key_size           The size of the key being imported.
+ *
+ * \return         \c 0 on success.
+ * \return         A non-zero error code on failure.
  */
-int mbedtls_lms_set_algorithm_type( mbedtls_lms_context *ctx,
-                                    mbedtls_lms_algorithm_type_t type,
-                                    mbedtls_lmots_algorithm_type_t otstype);
+int mbedtls_lms_import_public_key( mbedtls_lms_public_t *ctx,
+                                   const unsigned char *key, size_t key_size );
+
+/**
+ * \brief                    This function verifies a LMS signature, using a
+ *                           LMS context that contains a public key.
+ *
+ * \note                     Before this function is called, the context must
+ *                           have been initialized and must contain a public key
+ *                           (either by import or generation).
+ *
+ * \param ctx                The initialized LMS public context from which the
+ *                           public key will be read.
+ * \param msg                The buffer from which the message will be read.
+ * \param msg_size           The size of the message that will be read.
+ * \param sig                The buf from which the signature will be read.
+ *                           #MBEDTLS_LMS_SIG_LEN bytes will be read from
+ *                           this.
+ * \param sig_size           The size of the signature to be verified.
+ *
+ * \return         \c 0 on successful verification.
+ * \return         A non-zero error code on failure.
+ */
+int mbedtls_lms_verify( const mbedtls_lms_public_t *ctx,
+                        const unsigned char *msg, size_t msg_size,
+                        const unsigned char *sig, size_t sig_size );
+
+/**
+ * \brief                    This function initializes an LMS private context
+ *
+ * \param ctx                The uninitialized LMS private context that will
+ *                           then be initialized. */
+void mbedtls_lms_init_private( mbedtls_lms_private_t *ctx );
+
+/**
+ * \brief                    This function uninitializes an LMS private context
+ *
+ * \param ctx                The initialized LMS private context that will then
+ *                           be uninitialized.
+ */
+void mbedtls_lms_free_private( mbedtls_lms_private_t *ctx );
+
+/**
+ * \brief                    This function generates an LMS private key, and
+ *                           stores in into an LMS private context.
+ *
+ * \warning                  This function is **not intended for use in
+ *                           production**, due to as-yet unsolved problems with
+ *                           handling stateful keys.
+ *
+ * \note                     The seed must have at least 256 bits of entropy.
+ *
+ * \param ctx                The initialized LMOTS context to generate the key
+ *                           into.
+ * \param type               The LMS parameter set identifier.
+ * \param otstype            The LMOTS parameter set identifier.
+ * \param f_rng              The RNG function to be used to generate the key ID.
+ * \param p_rng              The RNG context to be passed to f_rng
+ * \param seed               The seed used to deterministically generate the
+ *                           key.
+ * \param seed_size          The length of the seed.
+ *
+ * \return         \c 0 on success.
+ * \return         A non-zero error code on failure.
+ */
+int mbedtls_lms_generate_private_key( mbedtls_lms_private_t *ctx,
+                                      mbedtls_lms_algorithm_type_t type,
+                                      mbedtls_lmots_algorithm_type_t otstype,
+                                      int (*f_rng)(void *, unsigned char *, size_t),
+                                      void* p_rng, unsigned char *seed,
+                                      size_t seed_size );
+
+/**
+ * \brief                    This function generates an LMS public key from a
+ *                           LMS context that already contains a private key.
+ *
+ * \note                     Before this function is called, the context must
+ *                           have been initialized and the context must contain
+ *                           a private key.
+ *
+ * \param ctx                The initialized LMS public context to generate the key
+ *                           from and store it into.
+ *
+ * \param ctx                The LMS private context to read the private key
+ *                           from. This must have been initialized and contain a
+ *                           private key.
+ *
+ * \return         \c 0 on success.
+ * \return         A non-zero error code on failure.
+ */
+int mbedtls_lms_calculate_public_key( mbedtls_lms_public_t *ctx,
+                                      mbedtls_lms_private_t *priv_ctx );
+
+/**
+ * \brief                    This function exports an LMS public key from a
+ *                           LMS public context that already contains a public
+ *                           key.
+ *
+ * \note                     Before this function is called, the context must
+ *                           have been initialized and the context must contain
+ *                           a public key.
+ *
+ * \note                     See IETF RFC8554 for details of the encoding of
+ *                           this public key.
+ *
+ * \param ctx                The initialized LMS public context that contains
+ *                           the public key.
+ * \param key                The buffer into which the key will be output. Must
+ *                           be at least #MBEDTLS_LMS_PUBLIC_KEY_LEN in size.
+ * \param key_size           The size of the key buffer.
+ * \param key_len            If not NULL, will be written with the size of the
+ *                           key.
+ *
+ * \return         \c 0 on success.
+ * \return         A non-zero error code on failure.
+ */
+int mbedtls_lms_export_public_key( mbedtls_lms_public_t *ctx, unsigned char *key,
+                                   size_t key_size, size_t *key_len );
 
 /**
  * \brief                    This function creates a LMS signature, using a
- *                           LMOTS context that contains a private key.
+ *                           LMS context that contains unused private keys.
  *
  * \warning                  This function is **not intended for use in
  *                           production**, due to as-yet unsolved problems with
@@ -167,135 +307,27 @@ int mbedtls_lms_set_algorithm_type( mbedtls_lms_context *ctx,
  *                           important to not perform copy operations on LMS
  *                           contexts that contain private key material.
  *
- * \param ctx                The initialized LMS context from which the
+ * \param ctx                The initialized LMS private context from which the
  *                           private key will be read.
  * \param f_rng              The RNG function to be used for signature
  *                           generation.
  * \param p_rng              The RNG context to be passed to f_rng
  * \param msg                The buffer from which the message will be read.
- * \param msg_len            The size of the message that will be read.
+ * \param msg_size           The size of the message that will be read.
  * \param sig                The buf into which the signature will be stored.
- *                           Must be at least #MBEDTLS_LMOTS_SIG_LEN in size.
+ *                           Must be at least #MBEDTLS_LMS_SIG_LEN in size.
+ * \param sig_size           The size of the buffer the signature will be
+ *                           written into.
+ * \param sig_len            If not NULL, will be written with the size of the
+ *                           signature.
  *
  * \return         \c 0 on success.
  * \return         A non-zero error code on failure.
  */
-int mbedtls_lms_sign( mbedtls_lms_context *ctx,
+int mbedtls_lms_sign( mbedtls_lms_private_t *ctx,
                       int (*f_rng)(void *, unsigned char *, size_t),
-                      void* p_rng, unsigned char *msg, unsigned int msg_len,
-                      unsigned char *sig);
-
-/**
- * \brief                    This function verifies a LMS signature, using a
- *                           LMS context that contains a public key.
- *
- * \note                     Before this function is called, the context must
- *                           have been initialized and must contain a public key
- *                           (either by import or generation).
- *
- * \param ctx                The initialized LMS context from which the public
- *                           key will be read.
- * \param msg                The buffer from which the message will be read.
- * \param msg_len            The size of the message that will be read.
- * \param sig                The buf from which the signature will be read.
- *                           #MBEDTLS_LMS_SIG_LEN bytes will be read from
- *                           this.
- *
- * \return         \c 0 on successful verification.
- * \return         A non-zero error code on failure.
- */
-int mbedtls_lms_verify( const mbedtls_lms_context *ctx,
-                        const unsigned char *msg, unsigned int msg_len,
-                        const unsigned char *sig );
-
-/**
- * \brief                    This function imports an LMOTS public key into a
- *                           LMS context.
- *
- * \note                     Before this function is called, the context must
- *                           have been initialized.
- *
- * \note                     See IETF RFC8554 for details of the encoding of
- *                           this public key.
- *
- * \param ctx                The initialized LMS context store the key in.
- * \param key                The buffer from which the key will be read.
- *                           #MBEDTLS_LMS_PUBKEY_LEN bytes will be read from
- *                           this.
- *
- * \return         \c 0 on success.
- * \return         A non-zero error code on failure.
- */
-int mbedtls_lms_import_pubkey( mbedtls_lms_context *ctx,
-                               const unsigned char *key );
-
-/**
- * \brief                    This function exports an LMOTS public key from a
- *                           LMS context that already contains a public key.
- *
- * \note                     Before this function is called, the context must
- *                           have been initialized and the context must contain
- *                           a public key.
- *
- * \note                     See IETF RFC8554 for details of the encoding of
- *                           this public key.
- *
- * \param ctx                The initialized LMS context that contains the
- *                           publc key.
- * \param key                The buffer into which the key will be output. Must
- *                           be at least #MBEDTLS_LMS_PUBKEY_LEN in size.
- *
- * \return         \c 0 on success.
- * \return         A non-zero error code on failure.
- */
-int mbedtls_lms_export_pubkey( mbedtls_lms_context *ctx,
-                               unsigned char *key );
-
-/**
- * \brief                    This function generates an LMS public key from a
- *                           LMS context that already contains a private key.
- *
- * \note                     Before this function is called, the context must
- *                           have been initialized and the context must contain
- *                           a private key.
- *
- * \param ctx                The initialized LMS context to generate the key
- *                           from and store it into.
- *
- * \return         \c 0 on success.
- * \return         A non-zero error code on failure.
- */
-int mbedtls_lms_gen_pubkey( mbedtls_lms_context *ctx );
-
-/**
- * \brief                    This function generates an LMS private key, and
- *                           stores in into an LMS context.
- *
- * \warning                  This function is **not intended for use in
- *                           production**, due to as-yet unsolved problems with
- *                           handling stateful keys.
- *
- * \note                     Before this function is called, the context must
- *                           have been initialized and the type of the LMS
- *                           context set using mbedtls_lmots_set_algorithm_type
- *
- * \note                     The seed must have at least 256 bits of entropy.
- *
- * \param ctx                The initialized LMOTS context to generate the key
- *                           into.
- * \param f_rng              The RNG function to be used to generate the key ID.
- * \param p_rng              The RNG context to be passed to f_rng
- * \param seed               The seed used to deterministically generate the
- *                           key.
- * \param seed_len           The length of the seed.
- *
- * \return         \c 0 on success.
- * \return         A non-zero error code on failure.
- */
-int mbedtls_lms_gen_privkey( mbedtls_lms_context *ctx,
-                             int (*f_rng)(void *, unsigned char *, size_t),
-                             void* p_rng, unsigned char *seed,
-                             size_t seed_len );
+                      void* p_rng, unsigned char *msg, unsigned int msg_size,
+                      unsigned char *sig, size_t sig_size, size_t *sig_len);
 
 #ifdef __cplusplus
 }

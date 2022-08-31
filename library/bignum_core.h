@@ -171,7 +171,8 @@ int mbedtls_mpi_core_write_be( const mbedtls_mpi_uint *A,
  *                   representing the bignum to accumulate onto.
  * \param[in] B      The pointer to the (little-endian) array
  *                   representing the bignum to conditionally add
- *                   to \p A. This must be disjoint from \p A.
+ *                   to \p A. This may be aliased to \p A but may not
+ *                   overlap otherwise.
  * \param limbs      Number of limbs of \p A and \p B.
  * \param cond       Condition bit dictating whether addition should
  *                   happen or not. This must be \c 0 or \c 1.
@@ -219,8 +220,8 @@ mbedtls_mpi_uint mbedtls_mpi_core_sub( mbedtls_mpi_uint *X,
  *                   at least \p B_limbs.
  * \param[in] B      The pointer to the (little-endian) array
  *                   representing the bignum to multiply with.
- *                   This may be the same as \p A. Otherwise,
- *                   it must be disjoint from \p A.
+ *                   This may be aliased to \p A but may not overlap
+ *                   otherwise.
  * \param B_limbs    The number of limbs of \p B.
  * \param c          A scalar to multiply with.
  *

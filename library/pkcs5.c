@@ -423,7 +423,7 @@ cleanup:
 
 #if defined(MBEDTLS_SELF_TEST)
 
-#if !defined(MBEDTLS_SHA1_C)
+#if !defined(MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA)
 int mbedtls_pkcs5_self_test( int verbose )
 {
     if( verbose != 0 )
@@ -518,7 +518,7 @@ int mbedtls_pkcs5_self_test( int verbose )
 exit:
     return( ret );
 }
-#endif /* MBEDTLS_SHA1_C */
+#endif /* MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA */
 
 #endif /* MBEDTLS_SELF_TEST */
 

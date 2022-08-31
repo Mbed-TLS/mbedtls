@@ -181,7 +181,7 @@ int mbedtls_mpi_core_write_be( const mbedtls_mpi_uint *A,
  *                   is unspecified, and the resulting value in \p A might be
  *                   neither its original value nor \p A + \p B.
  *
- * \return           1 if `A + cond * B >= (2^{ciL})^limbs`, 0 otherwise.
+ * \return           1 if `A + cond * B >= 2^(biL*limbs)`, 0 otherwise.
  */
 mbedtls_mpi_uint mbedtls_mpi_core_add_if( mbedtls_mpi_uint *A,
                                           const mbedtls_mpi_uint *B,
@@ -192,7 +192,7 @@ mbedtls_mpi_uint mbedtls_mpi_core_add_if( mbedtls_mpi_uint *A,
  * \brief Subtract two known-size large unsigned integers, returning the borrow.
  *
  * Calculate `A - B` where \p A and \p B have the same size.
- * This function operates modulo `(2^ciL)^limbs` and returns the carry
+ * This function operates modulo `2^(biL*limbs)` and returns the carry
  * (1 if there was a wraparound, i.e. if `A < B`, and 0 otherwise).
  *
  * \p X may be aliased to \p A or \p B, or even both, but may not overlap
@@ -248,8 +248,8 @@ mbedtls_mpi_uint mbedtls_mpi_montg_init( const mbedtls_mpi_uint *N );
  * \param[out]    X         The destination MPI, as a little-endian array of
  *                          length \p AN_limbs.
  *                          On successful completion, X contains the result of
- *                          the multiplication A * B * R^-1 mod N where
- *                          R = (2^ciL)^AN_limbs.
+ *                          the multiplication `A * B * R^-1` mod N where
+ *                          `R = 2^(biL*AN_limbs)`.
  * \param[in]     A         Little-endian presentation of first operand.
  *                          Must have the same number of limbs as \p N.
  * \param[in]     B         Little-endian presentation of second operand.
@@ -259,7 +259,7 @@ mbedtls_mpi_uint mbedtls_mpi_montg_init( const mbedtls_mpi_uint *N );
  *                          This must be odd, and have exactly the same number
  *                          of limbs as \p A.
  * \param[in]     AN_limbs  The number of limbs in \p X, \p A and \p N.
- * \param         mm        The Montgomery constant for \p N: -N^-1 mod 2^ciL.
+ * \param         mm        The Montgomery constant for \p N: -N^-1 mod 2^biL.
  *                          This can be calculated by `mbedtls_mpi_montg_init()`.
  * \param[in,out] T         Temporary storage of size at least 2*AN_limbs+1 limbs.
  *                          Its initial content is unused and

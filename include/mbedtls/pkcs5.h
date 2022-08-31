@@ -71,6 +71,26 @@ int mbedtls_pkcs5_pbes2( const mbedtls_asn1_buf *pbe_params, int mode,
 #endif /* MBEDTLS_ASN1_PARSE_C */
 
 /**
+ * \brief          PKCS#5 PBKDF2 using HMAC without using the HMAC context
+ *
+ * \param md_type  Hash algorithm used
+ * \param password Password to use when generating key
+ * \param plen     Length of password
+ * \param salt     Salt to use when generating key
+ * \param slen     Length of salt
+ * \param iteration_count       Iteration count
+ * \param key_length            Length of generated key in bytes
+ * \param output   Generated key. Must be at least as big as key_length
+ *
+ * \returns        0 on success, or a MBEDTLS_ERR_XXX code if verification fails.
+ */
+int mbedtls_pkcs5_pbkdf2_hmac_ext( mbedtls_md_type_t md_type,
+                       const unsigned char *password,
+                       size_t plen, const unsigned char *salt, size_t slen,
+                       unsigned int iteration_count,
+                       uint32_t key_length, unsigned char *output );
+
+/**
  * \brief          PKCS#5 PBKDF2 using HMAC
  *
  * \param ctx      Generic HMAC context

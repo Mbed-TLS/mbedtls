@@ -14,12 +14,14 @@ void pbkdf2_hmac( int hash, data_t * pw_str, data_t * salt_str,
 {
     unsigned char key[100];
 
+    PSA_INIT();
     TEST_ASSERT( mbedtls_pkcs5_pbkdf2_hmac_ext( hash, pw_str->x, pw_str->len,
                                                 salt_str->x, salt_str->len,
                                                 it_cnt, key_len, key ) == 0 );
 
     TEST_ASSERT( mbedtls_test_hexcmp( key, result_key_string->x,
                                       key_len, result_key_string->len ) == 0 );
+    PSA_DONE();
 }
 /* END_CASE */
 
@@ -30,6 +32,8 @@ void mbedtls_pkcs5_pbes2( int params_tag, data_t *params_hex, data_t *pw,
     int my_ret;
     mbedtls_asn1_buf params;
     unsigned char *my_out = NULL;
+
+    PSA_INIT();
 
     params.tag = params_tag;
     params.p = params_hex->x;
@@ -46,6 +50,7 @@ void mbedtls_pkcs5_pbes2( int params_tag, data_t *params_hex, data_t *pw,
 
 exit:
     mbedtls_free( my_out );
+    PSA_DONE();
 }
 /* END_CASE */
 

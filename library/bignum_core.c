@@ -413,36 +413,37 @@ void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
 
     for( size_t i = 0; i < AN_limbs; i++, T++ )
     {
-        mbedtls_mpi_uint u0, u1;
         /* T = (T + u0*B + u1*N) / 2^biL */
-        u0 = A[i];
-        u1 = ( T[0] + u0 * B[0] ) * mm;
+        mbedtls_mpi_uint u0 = A[i];
+        mbedtls_mpi_uint u1 = ( T[0] + u0 * B[0] ) * mm;
 
         (void) mbedtls_mpi_core_mla( T, AN_limbs + 2, B, B_limbs, u0 );
         (void) mbedtls_mpi_core_mla( T, AN_limbs + 2, N, AN_limbs, u1 );
     }
 
-    /* It's possible that the result in T is > N, and so we might need to subtract N */
+    /*
+     * The result we want is (T >= N) ? T - N : T.
+     *
+     * For better constant-time properties in this function, we always do the
+     * subtraction, with the result in X.
+     *
+     * We also look to see if there was any carry in the final additions in the
+     * loop above.
+     */
 
     mbedtls_mpi_uint carry  = T[AN_limbs];
     mbedtls_mpi_uint borrow = mbedtls_mpi_core_sub( X, T, N, AN_limbs );
 
     /*
-     * Both carry and borrow can only be 0 or 1.
+     * Using R as the Montgomery radix (auxiliary modulus) i.e. 2^(biL*AN_limbs):
      *
-     * If carry = 1, the result in T must be > N by definition, and the subtraction
-     * using only AN_limbs limbs will create borrow, but that will have the correct
-     * final result.
+     * T can be in one of 3 ranges:
      *
-     * i.e. (carry, borrow) of (1, 1) => return X
+     * 1) T < N      : (carry, borrow) = (0, 1): we want T
+     * 2) N <= T < R : (carry, borrow) = (0, 0): we want X
+     * 3) T >= R     : (carry, borrow) = (1, 1): we want X
      *
-     * If carry = 0, then we want to use the result of the subtraction iff
-     * borrow = 0.
-     *
-     * i.e. (carry, borrow) of (0, 0) => return X
-     *                         (0, 1) => return T
-     *
-     * (carry, borrow) = (1, 0) can't happen.
+     * and (carry, borrow) = (1, 0) can't happen.
      *
      * So the correct return value is already in X if (carry ^ borrow) = 0,
      * but is in (the lower AN_limbs limbs of) T if (carry ^ borrow) = 1.

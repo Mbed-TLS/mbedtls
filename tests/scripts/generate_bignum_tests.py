@@ -166,7 +166,7 @@ class BignumOperation(BignumTarget, metaclass=ABCMeta):
         """
         yield from cast(
             Iterator[Tuple[str, str]],
-            itertools.combinations(cls.input_values, 2)
+            itertools.combinations_with_replacement(cls.input_values, 2)
         )
         yield from cls.input_cases
 
@@ -215,7 +215,7 @@ class BignumAdd(BignumOperation):
     test_name = "MPI add"
     input_cases = cast(
         List[Tuple[str, str]],
-        list(itertools.combinations(
+        list(itertools.combinations_with_replacement(
             [
                 "1c67967269c6", "9cde3",
                 "-1c67967269c6", "-9cde3",

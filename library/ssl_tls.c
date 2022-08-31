@@ -1362,19 +1362,30 @@ int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session
     {
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
+    defined(MBEDTLS_SSL_SESSION_TICKETS)
     if( ssl->handshake->resume == 1 )
     {
-        target = mbedtls_calloc( 1, sizeof(mbedtls_ssl_session) );
-        if( target->next == NULL )
-            return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
-        memset(target, 0, sizeof(mbedtls_ssl_session) );
-        ssl->session_negotiate->next = target;
+        if( session->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 &&
+            ssl->session_negotiate->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 )
+        {
+            mbedtls_ssl_session *next_session = ssl->session_negotiate;
+            target = mbedtls_calloc( 1, sizeof(mbedtls_ssl_session) );
+            if( target == NULL )
+                return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+
+            while( next_session->next != NULL )
+                next_session = next_session->next;
+            next_session->next = target;
+        }
+        else
+            return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
     }
-#else
+#else /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS */
     if( ssl->handshake->resume == 1 )
         return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
-#endif
+#endif /* !( MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS ) */
 
     if( ( ret = mbedtls_ssl_session_copy( target,
                                           session ) ) != 0 )
@@ -3661,7 +3672,9 @@ static void ssl_session_free( mbedtls_ssl_session *session )
 
 void mbedtls_ssl_session_free( mbedtls_ssl_session *session )
 {
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
+    defined(MBEDTLS_SSL_SESSION_TICKETS) && \
+    defined(MBEDTLS_SSL_CLI_C)
     mbedtls_ssl_session *head, *tmp;
 
     if( session == NULL )
@@ -3676,7 +3689,10 @@ void mbedtls_ssl_session_free( mbedtls_ssl_session *session )
         mbedtls_free( tmp );
     }
 
-#endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 &&
+          MBEDTLS_SSL_SESSION_TICKETS &&
+          MBEDTLS_SSL_CLI_C */
+
     ssl_session_free( session );
 }
 

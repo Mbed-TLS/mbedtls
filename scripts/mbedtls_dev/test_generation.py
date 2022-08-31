@@ -52,7 +52,7 @@ class BaseTarget(metaclass=ABCMeta):
     """
     count = 0
     case_description = ""
-    dependencies: List[str] = []
+    dependencies = [] # type: List[str]
     target_basename = ""
     test_function = ""
     test_name = ""

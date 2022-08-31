@@ -31,6 +31,20 @@
 #include "mbedtls/bignum.h"
 #endif
 
+#define ciL    ( sizeof(mbedtls_mpi_uint) )   /* chars in limb  */
+#define biL    ( ciL << 3 )                   /* bits  in limb  */
+#define biH    ( ciL << 2 )                   /* half limb size */
+
+/*
+ * Convert between bits/chars and number of limbs
+ * Divide first in order to avoid potential overflows
+ */
+#define BITS_TO_LIMBS(i)  ( (i) / biL + ( (i) % biL != 0 ) )
+#define CHARS_TO_LIMBS(i) ( (i) / ciL + ( (i) % ciL != 0 ) )
+/* Get a specific byte, without range checks. */
+#define GET_BYTE( X, i )                                \
+    ( ( (X)[(i) / ciL] >> ( ( (i) % ciL ) * 8 ) ) & 0xff )
+
 /** Count leading zero bits in a given integer.
  *
  * \param a     Integer to count leading zero bits.
@@ -140,20 +154,6 @@ int mbedtls_mpi_core_write_be( const mbedtls_mpi_uint *A,
                                size_t A_limbs,
                                unsigned char *output,
                                size_t output_length );
-
-#define ciL    ( sizeof(mbedtls_mpi_uint) )   /* chars in limb  */
-#define biL    ( ciL << 3 )                   /* bits  in limb  */
-#define biH    ( ciL << 2 )                   /* half limb size */
-
-/*
- * Convert between bits/chars and number of limbs
- * Divide first in order to avoid potential overflows
- */
-#define BITS_TO_LIMBS(i)  ( (i) / biL + ( (i) % biL != 0 ) )
-#define CHARS_TO_LIMBS(i) ( (i) / ciL + ( (i) % ciL != 0 ) )
-/* Get a specific byte, without range checks. */
-#define GET_BYTE( X, i )                                \
-    ( ( (X)[(i) / ciL] >> ( ( (i) % ciL ) * 8 ) ) & 0xff )
 
 /**
  * \brief Conditional addition of two known-size large unsigned integers,

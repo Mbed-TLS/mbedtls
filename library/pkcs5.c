@@ -208,6 +208,7 @@ exit:
 }
 #endif /* MBEDTLS_ASN1_PARSE_C */
 
+#if defined(MBEDTLS_MD_C)
 #if defined(MBEDTLS_DEPRECATED_REMOVED)
 static
 #endif
@@ -292,6 +293,7 @@ cleanup:
 
     return( ret );
 }
+#endif /* MBEDTLS_MD_C */
 
 int mbedtls_pkcs5_pbkdf2_hmac_ext( mbedtls_md_type_t md_alg,
                        const unsigned char *password,
@@ -418,7 +420,7 @@ cleanup:
         ret = MBEDTLS_ERR_ERROR_GENERIC_ERROR;
 
     return ( ret );
-#endif
+#endif /* !MBEDTLS_MD_C */
 }
 
 #if defined(MBEDTLS_SELF_TEST)

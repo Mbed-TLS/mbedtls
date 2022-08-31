@@ -90,6 +90,7 @@ int mbedtls_pkcs5_pbkdf2_hmac_ext( mbedtls_md_type_t md_type,
                        unsigned int iteration_count,
                        uint32_t key_length, unsigned char *output );
 
+#if defined(MBEDTLS_MD_C)
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /**
  * \brief          PKCS#5 PBKDF2 using HMAC
@@ -113,6 +114,7 @@ int MBEDTLS_DEPRECATED mbedtls_pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx,
                        unsigned int iteration_count,
                        uint32_t key_length, unsigned char *output );
 #endif /* !MBEDTLS_DEPRECATED_REMOVED */
+#endif /* MBEDTLS_MD_C */
 #if defined(MBEDTLS_SELF_TEST)
 
 /**

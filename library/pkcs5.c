@@ -208,6 +208,9 @@ exit:
 }
 #endif /* MBEDTLS_ASN1_PARSE_C */
 
+#if defined(MBEDTLS_DEPRECATED_REMOVED)
+static
+#endif
 int mbedtls_pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx,
                        const unsigned char *password,
                        size_t plen, const unsigned char *salt, size_t slen,

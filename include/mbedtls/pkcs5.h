@@ -90,8 +90,11 @@ int mbedtls_pkcs5_pbkdf2_hmac_ext( mbedtls_md_type_t md_type,
                        unsigned int iteration_count,
                        uint32_t key_length, unsigned char *output );
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /**
  * \brief          PKCS#5 PBKDF2 using HMAC
+ *
+ * \deprecated     Superseded by mbedtls_pkcs5_pbkdf2_hmac_ext().
  *
  * \param ctx      Generic HMAC context
  * \param password Password to use when generating key
@@ -104,11 +107,12 @@ int mbedtls_pkcs5_pbkdf2_hmac_ext( mbedtls_md_type_t md_type,
  *
  * \returns        0 on success, or a MBEDTLS_ERR_XXX code if verification fails.
  */
-int mbedtls_pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx, const unsigned char *password,
+int MBEDTLS_DEPRECATED mbedtls_pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx,
+                       const unsigned char *password,
                        size_t plen, const unsigned char *salt, size_t slen,
                        unsigned int iteration_count,
                        uint32_t key_length, unsigned char *output );
-
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 #if defined(MBEDTLS_SELF_TEST)
 
 /**

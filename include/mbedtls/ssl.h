@@ -1194,10 +1194,13 @@ struct mbedtls_ssl_session
     uint8_t MBEDTLS_PRIVATE(resumption_key_len);            /*!< resumption_key length */
     unsigned char MBEDTLS_PRIVATE(resumption_key)[MBEDTLS_SSL_TLS1_3_TICKET_RESUMPTION_KEY_LEN];
 
-#if defined(MBEDTLS_HAVE_TIME) && defined(MBEDTLS_SSL_CLI_C)
+#if defined(MBEDTLS_SSL_CLI_C)
+#if defined(MBEDTLS_HAVE_TIME)
     mbedtls_time_t MBEDTLS_PRIVATE(ticket_received);        /*!< time ticket was received */
-#endif /* MBEDTLS_HAVE_TIME && MBEDTLS_SSL_CLI_C */
+#endif /* MBEDTLS_HAVE_TIME */
     mbedtls_ssl_session *next;
+#endif /* MBEDTLS_SSL_CLI_C */
+
 #endif /*  MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS */
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)

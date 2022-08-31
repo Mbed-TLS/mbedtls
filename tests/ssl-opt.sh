@@ -2313,40 +2313,6 @@ run_test    "TLS 1.3: key exchange mode parameter passing: All" \
             "$P_CLI tls13_kex_modes=all" \
             0
 
-requires_openssl_tls1_3
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_config_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_DEBUG_C
-run_test    "TLS 1.3: PSK: basic check, O->m" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk debug_level=5 psk=6162636465666768696a6b6c6d6e6f70" \
-            "$O_NEXT_CLI -tls1_3 -psk 1234 -psk 6162636465666768696a6b6c6d6e6f70 -allow_no_dhe_kex" \
-            1 \
-            -s "found psk key exchange modes extension" \
-            -s "found pre_shared_key extension" \
-            -s "Found PSK_EPHEMERAL KEX MODE" \
-            -s "Found PSK KEX MODE" \
-            -s "Pre shared key found"
-
-requires_gnutls_tls1_3
-requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
-requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
-requires_config_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED
-requires_config_enabled MBEDTLS_SSL_SRV_C
-requires_config_enabled MBEDTLS_DEBUG_C
-run_test    "TLS 1.3: PSK: basic check, G->m" \
-            "$P_SRV force_version=tls13 tls13_kex_modes=psk debug_level=5 psk=6162636465666768696a6b6c6d6e6f70" \
-            "$G_NEXT_CLI --priority NORMAL:-VERS-ALL:+KX-ALL:+PSK:+DHE-PSK:+VERS-TLS1.3 \
-                         --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70 \
-                         localhost" \
-            1 \
-            -s "found psk key exchange modes extension" \
-            -s "found pre_shared_key extension" \
-            -s "Found PSK_EPHEMERAL KEX MODE" \
-            -s "Found PSK KEX MODE" \
-            -s "Pre shared key found"
-
 # Tests for datagram packing
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 run_test    "DTLS: multiple records in same datagram, client and server" \

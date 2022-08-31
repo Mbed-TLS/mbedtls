@@ -42,6 +42,7 @@ class BaseTarget(metaclass=ABCMeta):
         count: Counter for test cases from this class.
         case_description: Short description of the test case. This may be
             automatically generated using the class, or manually set.
+        dependencies: A list of dependencies required for the test case.
         target_basename: Basename of file to write generated tests to. This
             should be specified in a child class of BaseTarget.
         test_function: Test function which the class generates cases for.
@@ -51,6 +52,7 @@ class BaseTarget(metaclass=ABCMeta):
     """
     count = 0
     case_description = ""
+    dependencies: List[str] = []
     target_basename = ""
     test_function = ""
     test_name = ""
@@ -94,6 +96,7 @@ class BaseTarget(metaclass=ABCMeta):
         tc.set_description(self.description())
         tc.set_function(self.test_function)
         tc.set_arguments(self.arguments())
+        tc.set_dependencies(self.dependencies)
 
         return tc
 

@@ -276,15 +276,17 @@ psa_key_usage_t mbedtls_test_update_key_usage_flags( psa_key_usage_t usage_flags
         }                                                                  \
     }                                                                      \
     while( 0 )
-#else
-/* Define empty macros so that we can use them in the preamble and teardown
- * of every test function that uses PSA conditionally based on
- * MBEDTLS_PSA_CRYPTO_C. */
-#define PSA_INIT( ) ( (void) 0 )
-#define PSA_DONE( ) ( (void) 0 )
 
+#if !defined(MBEDTLS_MD_C)
+#define PSA_INIT_IF_NO_MD( ) PSA_INIT( )
+#define PSA_DONE_IF_NO_MD( ) PSA_DONE( )
+#endif
 #endif /* MBEDTLS_PSA_CRYPTO_C */
 
+#if defined(MBEDTLS_MD_C)
+#define PSA_INIT_IF_NO_MD( ) ( (void) 0 )
+#define PSA_DONE_IF_NO_MD( ) ( (void) 0 )
+#endif
 /** \def USE_PSA_INIT
  *
  * Call this macro to initialize the PSA subsystem if #MBEDTLS_USE_PSA_CRYPTO

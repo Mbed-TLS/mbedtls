@@ -312,14 +312,14 @@ int mbedtls_pkcs5_pbkdf2_hmac_ext( mbedtls_md_type_t md_alg,
 {
 #if defined(MBEDTLS_MD_C)
     mbedtls_md_context_t md_ctx;
-    const mbedtls_md_info_t *md_info;
-    int ret;
-
-    mbedtls_md_init( &md_ctx );
+    const mbedtls_md_info_t *md_info = NULL;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     md_info = mbedtls_md_info_from_type( md_alg );
     if( md_info == NULL )
         return( MBEDTLS_ERR_PKCS5_FEATURE_UNAVAILABLE );
+
+    mbedtls_md_init( &md_ctx );
 
     if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 1 ) ) != 0 )
         goto exit;
@@ -334,21 +334,21 @@ exit:
     unsigned int i;
     unsigned char md1[PSA_HASH_MAX_SIZE];
     unsigned char work[PSA_HASH_MAX_SIZE];
-    unsigned char md_size = mbedtls_hash_info_get_size( md_alg );
+    const unsigned char md_size = mbedtls_hash_info_get_size( md_alg );
     psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
 
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    size_t use_len, out_len, out_size;
+    size_t use_len, out_len;
     unsigned char *out_p = output;
     unsigned char counter[4];
-    mbedtls_svc_key_id_t psa_hmac_key;
+    mbedtls_svc_key_id_t psa_hmac_key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    const psa_algorithm_t alg = PSA_ALG_HMAC( mbedtls_hash_info_psa_from_md( md_alg ) );
+    const size_t out_size = PSA_MAC_LENGTH( PSA_KEY_TYPE_HMAC, 0, alg );
 
-
-    memset( counter, 0, 4 );
+    memset( counter, 0, sizeof( counter ) );
     counter[3] = 1;
-    psa_algorithm_t alg = PSA_ALG_HMAC( mbedtls_hash_info_psa_from_md( md_alg ) );
-    out_size = PSA_MAC_LENGTH( PSA_KEY_TYPE_HMAC, 0, alg );
+
     psa_set_key_usage_flags( &attributes, PSA_KEY_USAGE_SIGN_MESSAGE );
     psa_set_key_algorithm( &attributes,  alg );
     psa_set_key_type( &attributes, PSA_KEY_TYPE_HMAC );
@@ -377,14 +377,14 @@ exit:
         if( ( status = psa_mac_update( &operation, salt, slen ) ) != PSA_SUCCESS )
             goto cleanup;
 
-        if( ( status = psa_mac_update( &operation, counter, 4 ) ) != PSA_SUCCESS )
+        if( ( status = psa_mac_update( &operation, counter, sizeof( counter ) ) ) != PSA_SUCCESS )
             goto cleanup;
 
         if( ( status = psa_mac_sign_finish( &operation, work, out_size, &out_len ) )
             != PSA_SUCCESS )
             goto cleanup;
 
-        memcpy( md1, work, md_size );
+        memcpy( md1, work, out_len );
 
         for( i = 1; i < iteration_count; i++ )
         {

@@ -16,7 +16,6 @@ void rsa_invalid_param( )
     mbedtls_rsa_context ctx;
     const int invalid_padding = 42;
     const int invalid_hash_id = 0xff;
-    const mbedtls_md_type_t md_alg_none = MBEDTLS_MD_NONE;
     unsigned char buf[] = {0x00,0x01,0x02,0x03,0x04,0x05};
     size_t buf_len = sizeof( buf );
 

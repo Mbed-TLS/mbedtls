@@ -55,14 +55,20 @@
 #endif
 
 #define MBEDTLS_LMS_SIG_Q_LEAF_ID_OFFSET     (0)
-#define MBEDTLS_LMS_SIG_OTS_SIG_OFFSET       (MBEDTLS_LMS_SIG_Q_LEAF_ID_OFFSET + MBEDTLS_LMOTS_Q_LEAF_ID_LEN)
-#define MBEDTLS_LMS_SIG_TYPE_OFFSET(otstype) (MBEDTLS_LMS_SIG_OTS_SIG_OFFSET   + MBEDTLS_LMOTS_SIG_LEN(otstype))
-#define MBEDTLS_LMS_SIG_PATH_OFFSET(otstype) (MBEDTLS_LMS_SIG_TYPE_OFFSET(otstype) + MBEDTLS_LMS_TYPE_LEN)
+#define MBEDTLS_LMS_SIG_OTS_SIG_OFFSET       (MBEDTLS_LMS_SIG_Q_LEAF_ID_OFFSET + \
+                                              MBEDTLS_LMOTS_Q_LEAF_ID_LEN)
+#define MBEDTLS_LMS_SIG_TYPE_OFFSET(otstype) (MBEDTLS_LMS_SIG_OTS_SIG_OFFSET   + \
+                                              MBEDTLS_LMOTS_SIG_LEN(otstype))
+#define MBEDTLS_LMS_SIG_PATH_OFFSET(otstype) (MBEDTLS_LMS_SIG_TYPE_OFFSET(otstype) + \
+                                              MBEDTLS_LMS_TYPE_LEN)
 
 #define MBEDTLS_LMS_PUBLIC_KEY_TYPE_OFFSET      (0)
-#define MBEDTLS_LMS_PUBLIC_KEY_OTSTYPE_OFFSET   (MBEDTLS_LMS_PUBLIC_KEY_TYPE_OFFSET     + MBEDTLS_LMS_TYPE_LEN)
-#define MBEDTLS_LMS_PUBLIC_KEY_I_KEY_ID_OFFSET  (MBEDTLS_LMS_PUBLIC_KEY_OTSTYPE_OFFSET  + MBEDTLS_LMOTS_TYPE_LEN)
-#define MBEDTLS_LMS_PUBLIC_KEY_ROOT_NODE_OFFSET (MBEDTLS_LMS_PUBLIC_KEY_I_KEY_ID_OFFSET + MBEDTLS_LMOTS_I_KEY_ID_LEN)
+#define MBEDTLS_LMS_PUBLIC_KEY_OTSTYPE_OFFSET   (MBEDTLS_LMS_PUBLIC_KEY_TYPE_OFFSET + \
+                                                 MBEDTLS_LMS_TYPE_LEN)
+#define MBEDTLS_LMS_PUBLIC_KEY_I_KEY_ID_OFFSET  (MBEDTLS_LMS_PUBLIC_KEY_OTSTYPE_OFFSET  + \
+                                                 MBEDTLS_LMOTS_TYPE_LEN)
+#define MBEDTLS_LMS_PUBLIC_KEY_ROOT_NODE_OFFSET (MBEDTLS_LMS_PUBLIC_KEY_I_KEY_ID_OFFSET + \
+                                                 MBEDTLS_LMOTS_I_KEY_ID_LEN)
 
 
 /* Currently only support H=10 */
@@ -208,7 +214,8 @@ int mbedtls_lms_import_public_key( mbedtls_lms_public_t *ctx,
         return( MBEDTLS_ERR_LMS_BUFFER_TOO_SMALL );
     }
 
-    type = network_bytes_to_unsigned_int( MBEDTLS_LMS_TYPE_LEN, key + MBEDTLS_LMS_PUBLIC_KEY_TYPE_OFFSET );
+    type = network_bytes_to_unsigned_int( MBEDTLS_LMS_TYPE_LEN,
+            key + MBEDTLS_LMS_PUBLIC_KEY_TYPE_OFFSET );
     if( type != MBEDTLS_LMS_SHA256_M32_H10 )
     {
         return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
@@ -216,7 +223,7 @@ int mbedtls_lms_import_public_key( mbedtls_lms_public_t *ctx,
     ctx->params.type = type;
 
     otstype = network_bytes_to_unsigned_int( MBEDTLS_LMOTS_TYPE_LEN,
-                                    key + MBEDTLS_LMS_PUBLIC_KEY_OTSTYPE_OFFSET );
+            key + MBEDTLS_LMS_PUBLIC_KEY_OTSTYPE_OFFSET );
     if( otstype != MBEDTLS_LMOTS_SHA256_N32_W8 )
     {
         return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
@@ -272,14 +279,14 @@ int mbedtls_lms_verify( const mbedtls_lms_public_t *ctx,
     }
 
     if( network_bytes_to_unsigned_int( MBEDTLS_LMOTS_TYPE_LEN,
-                              sig + MBEDTLS_LMS_SIG_OTS_SIG_OFFSET + MBEDTLS_LMOTS_SIG_TYPE_OFFSET)
+            sig + MBEDTLS_LMS_SIG_OTS_SIG_OFFSET + MBEDTLS_LMOTS_SIG_TYPE_OFFSET)
         != MBEDTLS_LMOTS_SHA256_N32_W8 )
     {
         return( MBEDTLS_ERR_LMS_VERIFY_FAILED );
     }
 
     if( network_bytes_to_unsigned_int( MBEDTLS_LMS_TYPE_LEN,
-                                       sig + MBEDTLS_LMS_SIG_TYPE_OFFSET(ctx->params.otstype))
+            sig + MBEDTLS_LMS_SIG_TYPE_OFFSET(ctx->params.otstype))
         != MBEDTLS_LMS_SHA256_M32_H10 )
     {
         return( MBEDTLS_ERR_LMS_VERIFY_FAILED );
@@ -287,7 +294,7 @@ int mbedtls_lms_verify( const mbedtls_lms_public_t *ctx,
 
 
     q_leaf_identifier = network_bytes_to_unsigned_int( MBEDTLS_LMOTS_Q_LEAF_ID_LEN,
-                                              sig + MBEDTLS_LMS_SIG_Q_LEAF_ID_OFFSET );
+            sig + MBEDTLS_LMS_SIG_Q_LEAF_ID_OFFSET );
 
     if( q_leaf_identifier >= MERKLE_TREE_LEAF_NODE_AM(ctx->params.type) )
     {
@@ -302,12 +309,10 @@ int mbedtls_lms_verify( const mbedtls_lms_public_t *ctx,
                                    ots_params.q_leaf_identifier );
     ots_params.type = ctx->params.otstype;
 
-    ret = mbedtls_lmots_calculate_public_key_candidate( &ots_params, msg, msg_size,
-                                                        sig + MBEDTLS_LMS_SIG_OTS_SIG_OFFSET,
-                                                        MBEDTLS_LMOTS_SIG_LEN(ctx->params.otstype),
-                                                        Kc_candidate_ots_pub_key,
-                                                        sizeof(Kc_candidate_ots_pub_key),
-                                                        NULL );
+    ret = mbedtls_lmots_calculate_public_key_candidate( &ots_params, msg,
+            msg_size, sig + MBEDTLS_LMS_SIG_OTS_SIG_OFFSET,
+            MBEDTLS_LMOTS_SIG_LEN(ctx->params.otstype), Kc_candidate_ots_pub_key,
+            sizeof(Kc_candidate_ots_pub_key), NULL );
     if( ret )
     {
         return( ret );
@@ -319,7 +324,8 @@ int mbedtls_lms_verify( const mbedtls_lms_public_t *ctx,
             MERKLE_TREE_INTERNAL_NODE_AM(ctx->params.type) + q_leaf_identifier,
             Tc_candidate_root_node );
 
-    curr_node_id = MERKLE_TREE_INTERNAL_NODE_AM(ctx->params.type) + q_leaf_identifier;
+    curr_node_id = MERKLE_TREE_INTERNAL_NODE_AM(ctx->params.type) +
+                   q_leaf_identifier;
 
     for( height = 0; height < MBEDTLS_LMS_H_TREE_HEIGHT(ctx->params.type);
          height++ )
@@ -389,7 +395,8 @@ static int calculate_merkle_tree( mbedtls_lms_private_t *ctx,
         ret = create_merkle_internal_value( &ctx->params,
                 &tree[(r_node_idx * 2) * MBEDTLS_LMS_M_NODE_BYTES(ctx->params.type)],
                 &tree[(r_node_idx * 2 + 1) * MBEDTLS_LMS_M_NODE_BYTES(ctx->params.type)],
-                r_node_idx, &tree[r_node_idx * MBEDTLS_LMS_M_NODE_BYTES(ctx->params.type)] );
+                r_node_idx,
+                &tree[r_node_idx * MBEDTLS_LMS_M_NODE_BYTES(ctx->params.type)] );
         if( ret )
         {
             return( ret );
@@ -587,7 +594,8 @@ int mbedtls_lms_calculate_public_key( mbedtls_lms_public_t *ctx,
 }
 
 
-int mbedtls_lms_export_public_key( mbedtls_lms_public_t *ctx, unsigned char *key,
+int mbedtls_lms_export_public_key( mbedtls_lms_public_t *ctx,
+                                   unsigned char *key,
                                    size_t key_size, size_t *key_len )
 {
     if( key_size < MBEDTLS_LMS_PUBLIC_KEY_LEN(ctx->params.type) ) {
@@ -602,9 +610,8 @@ int mbedtls_lms_export_public_key( mbedtls_lms_public_t *ctx, unsigned char *key
     unsigned_int_to_network_bytes(
             ctx->params.type,
             MBEDTLS_LMS_TYPE_LEN, key + MBEDTLS_LMS_PUBLIC_KEY_TYPE_OFFSET );
-    unsigned_int_to_network_bytes(
-            ctx->params.otstype,
-            MBEDTLS_LMOTS_TYPE_LEN, key + MBEDTLS_LMS_PUBLIC_KEY_OTSTYPE_OFFSET );
+    unsigned_int_to_network_bytes( ctx->params.otstype, MBEDTLS_LMOTS_TYPE_LEN,
+                                   key + MBEDTLS_LMS_PUBLIC_KEY_OTSTYPE_OFFSET );
     memcpy( key + MBEDTLS_LMS_PUBLIC_KEY_I_KEY_ID_OFFSET,
             ctx->params.I_key_identifier,
             MBEDTLS_LMOTS_I_KEY_ID_LEN );
@@ -671,15 +678,14 @@ int mbedtls_lms_sign( mbedtls_lms_private_t *ctx,
         return( ret );
     }
 
-    unsigned_int_to_network_bytes( ctx->params.type,
-                                   MBEDTLS_LMS_TYPE_LEN,
-                                   sig + MBEDTLS_LMS_SIG_TYPE_OFFSET(ctx->params.otstype) );
+    unsigned_int_to_network_bytes( ctx->params.type, MBEDTLS_LMS_TYPE_LEN,
+            sig + MBEDTLS_LMS_SIG_TYPE_OFFSET(ctx->params.otstype) );
     unsigned_int_to_network_bytes( q_leaf_identifier, MBEDTLS_LMOTS_Q_LEAF_ID_LEN,
                                    sig + MBEDTLS_LMS_SIG_Q_LEAF_ID_OFFSET);
 
     ret = get_merkle_path( ctx,
-                           MERKLE_TREE_INTERNAL_NODE_AM(ctx->params.type) + q_leaf_identifier,
-                           sig + MBEDTLS_LMS_SIG_PATH_OFFSET(ctx->params.otstype) );
+            MERKLE_TREE_INTERNAL_NODE_AM(ctx->params.type) + q_leaf_identifier,
+            sig + MBEDTLS_LMS_SIG_PATH_OFFSET(ctx->params.otstype) );
     if( ret )
     {
         return( ret );

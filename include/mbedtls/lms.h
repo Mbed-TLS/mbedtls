@@ -68,7 +68,8 @@
 extern "C" {
 #endif
 
-/* https://www.iana.org/assignments/leighton-micali-signatures/leighton-micali-signatures.xhtml
+/** The Identifier of the LMS parameter set, as per
+ * https://www.iana.org/assignments/leighton-micali-signatures/leighton-micali-signatures.xhtml
  * We are only implementing a subset of the types, particularly H10, for the sake of simplicty.
  */
 typedef enum {

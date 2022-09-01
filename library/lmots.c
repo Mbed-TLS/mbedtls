@@ -44,13 +44,18 @@
 
 #include "psa/crypto.h"
 
-#define MBEDTLS_LMOTS_SIG_C_RANDOM_OFFSET  (MBEDTLS_LMOTS_SIG_TYPE_OFFSET     + MBEDTLS_LMOTS_TYPE_LEN)
-#define MBEDTLS_LMOTS_SIG_SIGNATURE_OFFSET(type) (MBEDTLS_LMOTS_SIG_C_RANDOM_OFFSET + MBEDTLS_LMOTS_C_RANDOM_VALUE_LEN(type))
+#define MBEDTLS_LMOTS_SIG_C_RANDOM_OFFSET (MBEDTLS_LMOTS_SIG_TYPE_OFFSET + \
+                                           MBEDTLS_LMOTS_TYPE_LEN)
+#define MBEDTLS_LMOTS_SIG_SIGNATURE_OFFSET(type) (MBEDTLS_LMOTS_SIG_C_RANDOM_OFFSET + \
+                                                  MBEDTLS_LMOTS_C_RANDOM_VALUE_LEN(type))
 
-#define MBEDTLS_LMOTS_PUBLIC_KEY_TYPE_OFFSET      (0)
-#define MBEDTLS_LMOTS_PUBLIC_KEY_I_KEY_ID_OFFSET  (MBEDTLS_LMOTS_PUBLIC_KEY_TYPE_OFFSET      + MBEDTLS_LMOTS_TYPE_LEN)
-#define MBEDTLS_LMOTS_PUBLIC_KEY_Q_LEAF_ID_OFFSET (MBEDTLS_LMOTS_PUBLIC_KEY_I_KEY_ID_OFFSET  + MBEDTLS_LMOTS_I_KEY_ID_LEN)
-#define MBEDTLS_LMOTS_PUBLIC_KEY_KEY_HASH_OFFSET  (MBEDTLS_LMOTS_PUBLIC_KEY_Q_LEAF_ID_OFFSET + MBEDTLS_LMOTS_Q_LEAF_ID_LEN)
+#define MBEDTLS_LMOTS_PUBLIC_KEY_TYPE_OFFSET     (0)
+#define MBEDTLS_LMOTS_PUBLIC_KEY_I_KEY_ID_OFFSET (MBEDTLS_LMOTS_PUBLIC_KEY_TYPE_OFFSET + \
+                                                  MBEDTLS_LMOTS_TYPE_LEN)
+#define MBEDTLS_LMOTS_PUBLIC_KEY_Q_LEAF_ID_OFFSET (MBEDTLS_LMOTS_PUBLIC_KEY_I_KEY_ID_OFFSET + \
+                                                   MBEDTLS_LMOTS_I_KEY_ID_LEN)
+#define MBEDTLS_LMOTS_PUBLIC_KEY_KEY_HASH_OFFSET (MBEDTLS_LMOTS_PUBLIC_KEY_Q_LEAF_ID_OFFSET + \
+                                                  MBEDTLS_LMOTS_Q_LEAF_ID_LEN)
 
 /* We only support parameter sets that use 8-bit digits, as it does not require
  * translation logic between digits and bytes */
@@ -69,7 +74,8 @@
 static const unsigned char D_PUBLIC_CONSTANT_BYTES[D_CONST_LEN] = {0x80, 0x80};
 static const unsigned char D_MESSAGE_CONSTANT_BYTES[D_CONST_LEN] = {0x81, 0x81};
 
-void unsigned_int_to_network_bytes(unsigned int val, size_t len, unsigned char *bytes)
+void unsigned_int_to_network_bytes(unsigned int val, size_t len,
+                                   unsigned char *bytes)
 {
     size_t idx;
 
@@ -78,7 +84,8 @@ void unsigned_int_to_network_bytes(unsigned int val, size_t len, unsigned char *
     }
 }
 
-unsigned int network_bytes_to_unsigned_int(size_t len, const unsigned char *bytes)
+unsigned int network_bytes_to_unsigned_int(size_t len,
+                                           const unsigned char *bytes)
 {
     size_t idx;
     unsigned int val = 0;
@@ -195,13 +202,18 @@ static int hash_digit_array( const mbedtls_lmots_parameters_t *params,
           i_digit_idx++ )
     {
 
-        memcpy( tmp_hash, &x_digit_array[i_digit_idx * MBEDTLS_LMOTS_N_HASH_LEN(params->type)],
+        memcpy( tmp_hash,
+                &x_digit_array[i_digit_idx * MBEDTLS_LMOTS_N_HASH_LEN(params->type)],
                 MBEDTLS_LMOTS_N_HASH_LEN(params->type) );
 
-        j_hash_idx_min = hash_idx_min_values != NULL ? hash_idx_min_values[i_digit_idx] : 0;
-        j_hash_idx_max = hash_idx_max_values != NULL ? hash_idx_max_values[i_digit_idx] : DIGIT_MAX_VALUE;
+        j_hash_idx_min = hash_idx_min_values != NULL ?
+                hash_idx_min_values[i_digit_idx] : 0;
+        j_hash_idx_max = hash_idx_max_values != NULL ?
+                hash_idx_max_values[i_digit_idx] : DIGIT_MAX_VALUE;
 
-        for ( j_hash_idx = (unsigned char)j_hash_idx_min; j_hash_idx < j_hash_idx_max; j_hash_idx++ )
+        for ( j_hash_idx = (unsigned char)j_hash_idx_min;
+              j_hash_idx < j_hash_idx_max;
+              j_hash_idx++ )
         {
             status = psa_hash_setup( &op, PSA_ALG_SHA_256 );
             ret = mbedtls_lms_error_from_psa( status );
@@ -222,13 +234,15 @@ static int hash_digit_array( const mbedtls_lmots_parameters_t *params,
             if ( ret != 0 )
                 goto exit;
 
-            unsigned_int_to_network_bytes( i_digit_idx, I_DIGIT_IDX_LEN, i_digit_idx_bytes );
+            unsigned_int_to_network_bytes( i_digit_idx, I_DIGIT_IDX_LEN,
+                                           i_digit_idx_bytes );
             status = psa_hash_update( &op, i_digit_idx_bytes, I_DIGIT_IDX_LEN );
             ret = mbedtls_lms_error_from_psa( status );
             if ( ret != 0 )
                 goto exit;
 
-            unsigned_int_to_network_bytes( j_hash_idx, J_HASH_IDX_LEN, j_hash_idx_bytes );
+            unsigned_int_to_network_bytes( j_hash_idx, J_HASH_IDX_LEN,
+                                           j_hash_idx_bytes );
             status = psa_hash_update( &op, j_hash_idx_bytes, J_HASH_IDX_LEN );
             ret = mbedtls_lms_error_from_psa( status );
             if ( ret != 0 )
@@ -240,7 +254,8 @@ static int hash_digit_array( const mbedtls_lmots_parameters_t *params,
             if ( ret != 0 )
                 goto exit;
 
-            status = psa_hash_finish( &op, tmp_hash, sizeof( tmp_hash ), &output_hash_len );
+            status = psa_hash_finish( &op, tmp_hash, sizeof( tmp_hash ),
+                                      &output_hash_len );
             ret = mbedtls_lms_error_from_psa( status );
             if ( ret != 0 )
                 goto exit;
@@ -248,8 +263,8 @@ static int hash_digit_array( const mbedtls_lmots_parameters_t *params,
             psa_hash_abort( &op );
         }
 
-        memcpy( &output[i_digit_idx * MBEDTLS_LMOTS_N_HASH_LEN(params->type)], tmp_hash,
-                MBEDTLS_LMOTS_N_HASH_LEN(params->type) );
+        memcpy( &output[i_digit_idx * MBEDTLS_LMOTS_N_HASH_LEN(params->type)],
+                tmp_hash, MBEDTLS_LMOTS_N_HASH_LEN(params->type) );
     }
 
 exit:
@@ -304,7 +319,8 @@ static int public_key_from_hashed_digit_array( const mbedtls_lmots_parameters_t 
     if ( ret != 0 )
         goto exit;
 
-    status = psa_hash_finish( &op, pub_key, MBEDTLS_LMOTS_N_HASH_LEN(params->type),
+    status = psa_hash_finish( &op, pub_key,
+                              MBEDTLS_LMOTS_N_HASH_LEN(params->type),
                               &output_hash_len );
     ret = mbedtls_lms_error_from_psa( status );
 
@@ -354,10 +370,12 @@ int mbedtls_lmots_import_public_key( mbedtls_lmots_public_t *ctx,
     }
 
     memcpy( ctx->params.I_key_identifier,
-            key + MBEDTLS_LMOTS_PUBLIC_KEY_I_KEY_ID_OFFSET, MBEDTLS_LMOTS_I_KEY_ID_LEN );
+            key + MBEDTLS_LMOTS_PUBLIC_KEY_I_KEY_ID_OFFSET,
+            MBEDTLS_LMOTS_I_KEY_ID_LEN );
 
     memcpy( ctx->params.q_leaf_identifier,
-            key + MBEDTLS_LMOTS_PUBLIC_KEY_Q_LEAF_ID_OFFSET, MBEDTLS_LMOTS_Q_LEAF_ID_LEN );
+            key + MBEDTLS_LMOTS_PUBLIC_KEY_Q_LEAF_ID_OFFSET,
+            MBEDTLS_LMOTS_Q_LEAF_ID_LEN );
 
     memcpy( ctx->public_key,
             key + MBEDTLS_LMOTS_PUBLIC_KEY_KEY_HASH_OFFSET,
@@ -448,7 +466,7 @@ int mbedtls_lmots_verify( mbedtls_lmots_public_t *ctx, const unsigned char *msg,
     }
 
     if ( network_bytes_to_unsigned_int( MBEDTLS_LMOTS_TYPE_LEN,
-                               sig + MBEDTLS_LMOTS_SIG_TYPE_OFFSET ) != MBEDTLS_LMOTS_SHA256_N32_W8 )
+         sig + MBEDTLS_LMOTS_SIG_TYPE_OFFSET ) != MBEDTLS_LMOTS_SHA256_N32_W8 )
     {
         return( MBEDTLS_ERR_LMS_VERIFY_FAILED );
     }
@@ -545,7 +563,8 @@ int mbedtls_lmots_generate_private_key( mbedtls_lmots_private_t *ctx,
         if ( ret )
             goto exit;
 
-        unsigned_int_to_network_bytes( i_digit_idx, I_DIGIT_IDX_LEN, i_digit_idx_bytes );
+        unsigned_int_to_network_bytes( i_digit_idx, I_DIGIT_IDX_LEN,
+                                       i_digit_idx_bytes );
         status = psa_hash_update( &op, i_digit_idx_bytes, I_DIGIT_IDX_LEN );
         ret = mbedtls_lms_error_from_psa( status );
         if ( ret )
@@ -691,7 +710,8 @@ int mbedtls_lmots_sign( mbedtls_lmots_private_t *ctx,
         return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
-    ret = f_rng( p_rng, tmp_c_random, MBEDTLS_LMOTS_N_HASH_LEN(ctx->params.type) );
+    ret = f_rng( p_rng, tmp_c_random,
+                 MBEDTLS_LMOTS_N_HASH_LEN(ctx->params.type) );
     if ( ret )
     {
         return( ret );

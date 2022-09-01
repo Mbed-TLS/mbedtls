@@ -59,8 +59,9 @@
 extern "C" {
 #endif
 
-/* https://www.iana.org/assignments/leighton-micali-signatures/leighton-micali-signatures.xhtml
- * We are only implementing a subset of the types, particularly n32_w8, for the sake of simplicty.
+/** The Identifier of the LMS parameter set, as per
+ *  https://www.iana.org/assignments/leighton-micali-signatures/leighton-micali-signatures.xhtml.
+ *  We are only implementing a subset of the types, particularly N32_W8, for the sake of simplicty.
  */
 typedef enum {
     MBEDTLS_LMOTS_SHA256_N32_W8 = 4
@@ -144,7 +145,8 @@ typedef struct {
  *
  * \return                   The corresponding LMS error code.
  */
-void unsigned_int_to_network_bytes(unsigned int val, size_t len, unsigned char *bytes);
+void unsigned_int_to_network_bytes(unsigned int val, size_t len,
+                                   unsigned char *bytes);
 
 /**
  * \brief                    This function converts a network-byte-order
@@ -155,7 +157,8 @@ void unsigned_int_to_network_bytes(unsigned int val, size_t len, unsigned char *
  *
  * \return                   The corresponding LMS error code.
  */
-unsigned int network_bytes_to_unsigned_int(size_t len, const unsigned char *bytes);
+unsigned int network_bytes_to_unsigned_int(size_t len,
+                                           const unsigned char *bytes);
 
 /**
  * \brief                    This function converts a \ref psa_status_t to a
@@ -196,8 +199,8 @@ void mbedtls_lmots_free_public( mbedtls_lmots_public_t *ctx );
  *
  * \param ctx                The initialized LMOTS context store the key in.
  * \param key                The buffer from which the key will be read.
- *                           #MBEDTLS_LMOTS_PUBLIC_KEY_LEN bytes will be read from
- *                           this.
+ *                           #MBEDTLS_LMOTS_PUBLIC_KEY_LEN bytes will be read
+ *                           from this.
  *
  * \return         \c 0 on success.
  * \return         A non-zero error code on failure.
@@ -221,7 +224,8 @@ int mbedtls_lmots_import_public_key( mbedtls_lmots_public_t *ctx,
  * \param msg                The buffer from which the message will be read.
  * \param msg_size           The size of the message that will be read.
  * \param sig                The buffer from which the signature will be read.
- *                           #MBEDTLS_LMOTS_SIG_LEN bytes will be read from this.
+ *                           #MBEDTLS_LMOTS_SIG_LEN bytes will be read from
+ *                           this.
  * \param out                The buffer where the candidate public key will be
  *                           stored. Must be at least #MBEDTLS_LMOTS_N_HASH_LEN
  *                           bytes in size.
@@ -248,7 +252,8 @@ int mbedtls_lmots_calculate_public_key_candidate( const mbedtls_lmots_parameters
  *
  * \note                     Before this function is called, the context must
  *                           have been initialized and must contain a public key
- *                           (either by import or calculation from a private key).
+ *                           (either by import or calculation from a private
+ *                           key).
  *
  * \param ctx                The initialized LMOTS context from which the public
  *                           key will be read.

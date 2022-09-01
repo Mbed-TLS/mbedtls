@@ -33,18 +33,25 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define MBEDTLS_LMOTS_N_HASH_LEN            (32)
-#define MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT     (34)
-#define MBEDTLS_LMOTS_TYPE_LEN              (4)
-#define MBEDTLS_LMOTS_C_RANDOM_VALUE_LEN    (MBEDTLS_LMOTS_N_HASH_LEN)
-#define MBEDTLS_LMOTS_I_KEY_ID_LEN          (16)
-#define MBEDTLS_LMOTS_Q_LEAF_ID_LEN         (4)
+/* Currently only defined for SHA256, 32 is the max hash output size */
+#define MBEDTLS_LMOTS_N_HASH_LEN_MAX           (32u)
+#define MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT_MAX    (34u)
+#define MBEDTLS_LMOTS_N_HASH_LEN(type)         (type == MBEDTLS_LMOTS_SHA256_N32_W8 ? 32u : 0)
+#define MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT(type)  (type == MBEDTLS_LMOTS_SHA256_N32_W8 ? 34u : 0)
+#define MBEDTLS_LMOTS_C_RANDOM_VALUE_LEN(type) (MBEDTLS_LMOTS_N_HASH_LEN(type))
+#define MBEDTLS_LMOTS_TYPE_LEN                 (4u)
+#define MBEDTLS_LMOTS_I_KEY_ID_LEN             (16u)
+#define MBEDTLS_LMOTS_Q_LEAF_ID_LEN            (4u)
 
-#define MBEDTLS_LMOTS_SIG_LEN (MBEDTLS_LMOTS_TYPE_LEN + MBEDTLS_LMOTS_C_RANDOM_VALUE_LEN + \
-                               (MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT * MBEDTLS_LMOTS_N_HASH_LEN))
+#define MBEDTLS_LMOTS_SIG_LEN(type) (MBEDTLS_LMOTS_TYPE_LEN + \
+                                     MBEDTLS_LMOTS_C_RANDOM_VALUE_LEN(type) + \
+                                     (MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT(type) * \
+                                      MBEDTLS_LMOTS_N_HASH_LEN(type)))
 
-#define MBEDTLS_LMOTS_PUBLIC_KEY_LEN (MBEDTLS_LMOTS_TYPE_LEN + MBEDTLS_LMOTS_I_KEY_ID_LEN + \
-                                  MBEDTLS_LMOTS_Q_LEAF_ID_LEN + MBEDTLS_LMOTS_N_HASH_LEN)
+#define MBEDTLS_LMOTS_PUBLIC_KEY_LEN(type) (MBEDTLS_LMOTS_TYPE_LEN + \
+                                            MBEDTLS_LMOTS_I_KEY_ID_LEN + \
+                                            MBEDTLS_LMOTS_Q_LEAF_ID_LEN + \
+                                            MBEDTLS_LMOTS_N_HASH_LEN(type))
 
 #define MBEDTLS_LMOTS_SIG_TYPE_OFFSET       (0)
 
@@ -121,7 +128,7 @@ typedef struct {
  */
 typedef struct {
     mbedtls_lmots_parameters_t MBEDTLS_PRIVATE(params);
-    unsigned char MBEDTLS_PRIVATE(private_key)[MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT][32];
+    unsigned char MBEDTLS_PRIVATE(private_key)[MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT_MAX][32];
     unsigned char MBEDTLS_PRIVATE(have_private_key); /*!< Whether the context contains a private key.
                                                      Boolean values only. */
 } mbedtls_lmots_private_t;

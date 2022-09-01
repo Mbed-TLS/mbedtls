@@ -40,15 +40,28 @@
 #define MBEDTLS_ERR_LMS_ALLOC_FAILED     -0x0017 /**< LMS failed to allocate space for a private key */
 #define MBEDTLS_ERR_LMS_BUFFER_TOO_SMALL -0x0019 /**< Input/output buffer is too small to contain requited data */
 
-#define MBEDTLS_LMS_M_NODE_BYTES        (32) /* The length of a hash output, 32 for SHA256 */
 #define MBEDTLS_LMS_TYPE_LEN            (4)
-#define MBEDTLS_LMS_H_TREE_HEIGHT       (10u)
+#define MBEDTLS_LMS_H_TREE_HEIGHT(type) (type == MBEDTLS_LMS_SHA256_M32_H10 ? 10u : 0)
 
-#define MBEDTLS_LMS_SIG_LEN (MBEDTLS_LMOTS_Q_LEAF_ID_LEN + MBEDTLS_LMOTS_SIG_LEN + \
-                             MBEDTLS_LMS_TYPE_LEN + MBEDTLS_LMS_H_TREE_HEIGHT * MBEDTLS_LMS_M_NODE_BYTES)
+/* The length of a hash output, Currently only imlemented for SHA256.
+ * Max is 32 bytes.
+ */
+/* The length of a hash output, Currently only imlemented for SHA256.
+ * Max is 32 bytes.
+ */
+#define MBEDTLS_LMS_M_NODE_BYTES(type) (type == MBEDTLS_LMS_SHA256_M32_H10 ? 32 : 0)
+#define MBEDTLS_LMS_M_NODE_BYTES_MAX 32
 
-#define MBEDTLS_LMS_PUBLIC_KEY_LEN (MBEDTLS_LMS_TYPE_LEN + MBEDTLS_LMOTS_TYPE_LEN + \
-                                MBEDTLS_LMOTS_I_KEY_ID_LEN + MBEDTLS_LMS_M_NODE_BYTES)
+#define MBEDTLS_LMS_SIG_LEN(type, otstype) (MBEDTLS_LMOTS_Q_LEAF_ID_LEN + \
+                                            MBEDTLS_LMOTS_SIG_LEN(otstype) + \
+                                            MBEDTLS_LMS_TYPE_LEN + \
+                                            (MBEDTLS_LMS_H_TREE_HEIGHT(type) * \
+                                             MBEDTLS_LMS_M_NODE_BYTES(type)))
+
+#define MBEDTLS_LMS_PUBLIC_KEY_LEN(type) (MBEDTLS_LMS_TYPE_LEN + \
+                                          MBEDTLS_LMOTS_TYPE_LEN + \
+                                          MBEDTLS_LMOTS_I_KEY_ID_LEN + \
+                                          MBEDTLS_LMS_M_NODE_BYTES(type))
 
 
 #ifdef __cplusplus
@@ -99,7 +112,7 @@ typedef struct {
  */
 typedef struct {
     mbedtls_lms_parameters_t MBEDTLS_PRIVATE(params);
-    unsigned char MBEDTLS_PRIVATE(T_1_pub_key)[MBEDTLS_LMS_M_NODE_BYTES]; /*!< The public key, in
+    unsigned char MBEDTLS_PRIVATE(T_1_pub_key)[MBEDTLS_LMS_M_NODE_BYTES_MAX]; /*!< The public key, in
                                                      the form of the merkle tree root node. */
     unsigned char MBEDTLS_PRIVATE(have_public_key); /*!< Whether the context contains a public key.
                                                      Boolean values only. */

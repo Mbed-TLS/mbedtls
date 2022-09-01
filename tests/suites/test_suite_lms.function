@@ -15,7 +15,7 @@ void lms_sign_verify_test ( data_t * msg )
 {
     mbedtls_lms_public_t pub_ctx;
     mbedtls_lms_private_t priv_ctx;
-    unsigned char sig[MBEDTLS_LMS_SIG_LEN];
+    unsigned char sig[MBEDTLS_LMS_SIG_LEN(MBEDTLS_LMS_SHA256_M32_H10, MBEDTLS_LMOTS_SHA256_N32_W8)];
     mbedtls_entropy_context entropy_ctx;
     mbedtls_ctr_drbg_context drbg_ctx;
     uint8_t seed[16];
@@ -76,15 +76,15 @@ exit:
 void lms_import_export_test (  data_t * pub_key )
 {
     mbedtls_lms_public_t ctx;
-    uint8_t exported_pub_key[MBEDTLS_LMS_PUBLIC_KEY_LEN];
+    uint8_t exported_pub_key[MBEDTLS_LMS_PUBLIC_KEY_LEN(MBEDTLS_LMS_SHA256_M32_H10)];
 
     mbedtls_lms_init_public(&ctx);
     TEST_ASSERT( mbedtls_lms_import_public_key( &ctx, pub_key->x, pub_key->len ) == 0 );
     TEST_ASSERT( mbedtls_lms_export_public_key( &ctx, exported_pub_key,
                                                 sizeof(exported_pub_key), NULL ) == 0 );
 
-    ASSERT_COMPARE( pub_key->x, MBEDTLS_LMS_PUBLIC_KEY_LEN,
-                    exported_pub_key, MBEDTLS_LMS_PUBLIC_KEY_LEN );
+    ASSERT_COMPARE( pub_key->x, MBEDTLS_LMS_PUBLIC_KEY_LEN(MBEDTLS_LMS_SHA256_M32_H10),
+                    exported_pub_key, MBEDTLS_LMS_PUBLIC_KEY_LEN(MBEDTLS_LMS_SHA256_M32_H10) );
 
 exit:
     mbedtls_lms_free_public( &ctx );

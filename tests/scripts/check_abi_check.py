@@ -48,7 +48,7 @@ class TestAbiCheck(unittest.TestCase):
         '''
         possible_lines = ["Checking.*", "No compatibility issues.*", "PASS.*", "Info.*"]
         pattern = pattern_create(possible_lines)
-        out = run_abi_check("mbedtls-3.2.0","mbedtls-3.2.1")
+        out = run_abi_check("mbedtls-3.2.0", "mbedtls-3.2.1")
         self.assertIsNone(re.fullmatch(pattern, out, re.MULTILINE))
 
     def test_abi_different(self):
@@ -57,7 +57,7 @@ class TestAbiCheck(unittest.TestCase):
         possible_lines = ["Checking.*", "Compatibility issues.*", "Test.*", "Fail.*", "Info.*"]
         pattern = pattern_create(possible_lines)
         try:
-            out = run_abi_check("mbedtls-2.27.0","mbedtls-3.2.1")
+            out = run_abi_check("mbedtls-2.27.0", "mbedtls-3.2.1")
         except subprocess.CalledProcessError as err:
             out = err.output.decode("utf-8")
             self.assertEqual(1, err.returncode)

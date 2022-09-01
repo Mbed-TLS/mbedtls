@@ -118,13 +118,13 @@ static int create_digit_array_with_checksum( const mbedtls_lmots_parameters_t *p
     if ( ret != 0 )
         goto exit;
 
-    status = psa_hash_update( &op, params->MBEDTLS_PRIVATE(I_key_identifier),
+    status = psa_hash_update( &op, params->I_key_identifier,
                               MBEDTLS_LMOTS_I_KEY_ID_LEN );
     ret = mbedtls_lms_error_from_psa( status );
     if ( ret != 0 )
         goto exit;
 
-    status = psa_hash_update( &op, params->MBEDTLS_PRIVATE(q_leaf_identifier),
+    status = psa_hash_update( &op, params->q_leaf_identifier,
                               MBEDTLS_LMOTS_Q_LEAF_ID_LEN );
     ret = mbedtls_lms_error_from_psa( status );
     if ( ret != 0 )
@@ -199,14 +199,14 @@ static int hash_digit_array( const mbedtls_lmots_parameters_t *params,
                 goto exit;
 
             status = psa_hash_update( &op,
-                                      params->MBEDTLS_PRIVATE(I_key_identifier),
+                                      params->I_key_identifier,
                                       MBEDTLS_LMOTS_I_KEY_ID_LEN );
             ret = mbedtls_lms_error_from_psa( status );
             if ( ret != 0 )
                 goto exit;
 
             status = psa_hash_update( &op,
-                                      params->MBEDTLS_PRIVATE(q_leaf_identifier),
+                                      params->q_leaf_identifier,
                                       MBEDTLS_LMOTS_Q_LEAF_ID_LEN );
             ret = mbedtls_lms_error_from_psa( status );
             if ( ret != 0 )
@@ -268,13 +268,13 @@ static int public_key_from_hashed_digit_array( const mbedtls_lmots_parameters_t 
         goto exit;
 
     status = psa_hash_update( &op,
-                              params->MBEDTLS_PRIVATE(I_key_identifier),
+                              params->I_key_identifier,
                               MBEDTLS_LMOTS_I_KEY_ID_LEN );
     ret = mbedtls_lms_error_from_psa( status );
     if ( ret != 0 )
         goto exit;
 
-    status = psa_hash_update( &op, params->MBEDTLS_PRIVATE(q_leaf_identifier),
+    status = psa_hash_update( &op, params->q_leaf_identifier,
                               MBEDTLS_LMOTS_Q_LEAF_ID_LEN );
     ret = mbedtls_lms_error_from_psa( status );
     if ( ret != 0 )
@@ -335,21 +335,21 @@ int mbedtls_lmots_import_public_key( mbedtls_lmots_public_t *ctx,
         return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
-    ctx->MBEDTLS_PRIVATE(params).MBEDTLS_PRIVATE(type) =
+    ctx->params.type =
         network_bytes_to_unsigned_int( MBEDTLS_LMOTS_TYPE_LEN,
                                        key + MBEDTLS_LMOTS_SIG_TYPE_OFFSET );
 
-    memcpy( ctx->MBEDTLS_PRIVATE(params).MBEDTLS_PRIVATE(I_key_identifier),
+    memcpy( ctx->params.I_key_identifier,
             key + MBEDTLS_LMOTS_PUBLIC_KEY_I_KEY_ID_OFFSET, MBEDTLS_LMOTS_I_KEY_ID_LEN );
 
-    memcpy( ctx->MBEDTLS_PRIVATE(MBEDTLS_PRIVATE(params).q_leaf_identifier),
+    memcpy( ctx->params.q_leaf_identifier,
             key + MBEDTLS_LMOTS_PUBLIC_KEY_Q_LEAF_ID_OFFSET, MBEDTLS_LMOTS_Q_LEAF_ID_LEN );
 
-    memcpy( ctx->MBEDTLS_PRIVATE(public_key),
+    memcpy( ctx->public_key,
             key + MBEDTLS_LMOTS_PUBLIC_KEY_KEY_HASH_OFFSET,
             MBEDTLS_LMOTS_N_HASH_LEN );
 
-    ctx->MBEDTLS_PRIVATE(have_public_key) = 1;
+    ctx->have_public_key = 1;
 
     return( 0 );
 }
@@ -421,12 +421,12 @@ int mbedtls_lmots_verify( mbedtls_lmots_public_t *ctx, const unsigned char *msg,
         return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
-    if ( !ctx->MBEDTLS_PRIVATE(have_public_key) )
+    if ( !ctx->have_public_key )
     {
         return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
-    if( ctx->MBEDTLS_PRIVATE(params).MBEDTLS_PRIVATE( type )
+    if( ctx->params.MBEDTLS_PRIVATE( type )
         != MBEDTLS_LMOTS_SHA256_N32_W8 )
     {
         return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
@@ -438,7 +438,7 @@ int mbedtls_lmots_verify( mbedtls_lmots_public_t *ctx, const unsigned char *msg,
         return( MBEDTLS_ERR_LMS_VERIFY_FAILED );
     }
 
-    ret = mbedtls_lmots_calculate_public_key_candidate( &ctx->MBEDTLS_PRIVATE(params),
+    ret = mbedtls_lmots_calculate_public_key_candidate( &ctx->params,
                                                         msg, msg_size, sig, sig_size,
                                                         Kc_public_key_candidate,
                                                         MBEDTLS_LMOTS_N_HASH_LEN,
@@ -448,8 +448,8 @@ int mbedtls_lmots_verify( mbedtls_lmots_public_t *ctx, const unsigned char *msg,
         return( ret );
     }
 
-    if ( memcmp( &Kc_public_key_candidate, ctx->MBEDTLS_PRIVATE(public_key),
-                 sizeof( ctx->MBEDTLS_PRIVATE(public_key) ) ) )
+    if ( memcmp( &Kc_public_key_candidate, ctx->public_key,
+                 sizeof( ctx->public_key ) ) )
     {
         return( MBEDTLS_ERR_LMS_VERIFY_FAILED );
     }
@@ -482,7 +482,7 @@ int mbedtls_lmots_generate_private_key( mbedtls_lmots_private_t *ctx,
     unsigned char const_bytes[1];
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    if ( ctx->MBEDTLS_PRIVATE(have_private_key) )
+    if ( ctx->have_private_key )
     {
         return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
@@ -491,15 +491,15 @@ int mbedtls_lmots_generate_private_key( mbedtls_lmots_private_t *ctx,
         return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
-    ctx->MBEDTLS_PRIVATE(params).MBEDTLS_PRIVATE(type) = type;
+    ctx->params.type = type;
 
-    memcpy( ctx->MBEDTLS_PRIVATE(params).MBEDTLS_PRIVATE(I_key_identifier),
+    memcpy( ctx->params.I_key_identifier,
             I_key_identifier,
-            sizeof( ctx->MBEDTLS_PRIVATE(params).MBEDTLS_PRIVATE(I_key_identifier) ) );
+            sizeof( ctx->params.I_key_identifier ) );
 
     unsigned_int_to_network_bytes(q_leaf_identifier,
                                   MBEDTLS_LMOTS_Q_LEAF_ID_LEN,
-                                  ctx->MBEDTLS_PRIVATE(params).MBEDTLS_PRIVATE(q_leaf_identifier) );
+                                  ctx->params.q_leaf_identifier );
 
     unsigned_int_to_network_bytes( 0xFF, sizeof( const_bytes ), const_bytes );
 
@@ -512,14 +512,14 @@ int mbedtls_lmots_generate_private_key( mbedtls_lmots_private_t *ctx,
             goto exit;
 
         ret = psa_hash_update( &op,
-                               ctx->MBEDTLS_PRIVATE(params).MBEDTLS_PRIVATE(I_key_identifier),
-                               sizeof( ctx->MBEDTLS_PRIVATE(params).MBEDTLS_PRIVATE(I_key_identifier) ) );
+                               ctx->params.I_key_identifier,
+                               sizeof( ctx->params.I_key_identifier ) );
         ret = mbedtls_lms_error_from_psa( status );
         if ( ret )
             goto exit;
 
         status = psa_hash_update( &op,
-                                  ctx->MBEDTLS_PRIVATE(params).MBEDTLS_PRIVATE(q_leaf_identifier),
+                                  ctx->params.q_leaf_identifier,
                                   MBEDTLS_LMOTS_Q_LEAF_ID_LEN );
         ret = mbedtls_lms_error_from_psa( status );
         if ( ret )
@@ -542,7 +542,7 @@ int mbedtls_lmots_generate_private_key( mbedtls_lmots_private_t *ctx,
             goto exit;
 
         status = psa_hash_finish( &op,
-                                  ctx->MBEDTLS_PRIVATE(private_key)[i_digit_idx],
+                                  ctx->private_key[i_digit_idx],
                                   32, &output_hash_len );
         ret = mbedtls_lms_error_from_psa( status );
         if ( ret )
@@ -551,7 +551,7 @@ int mbedtls_lmots_generate_private_key( mbedtls_lmots_private_t *ctx,
         psa_hash_abort( &op );
     }
 
-    ctx->MBEDTLS_PRIVATE(have_private_key) = 1;
+    ctx->have_private_key = 1;
 
 exit:
     if( ret )
@@ -575,29 +575,29 @@ int mbedtls_lmots_calculate_public_key( mbedtls_lmots_public_t *ctx,
     }
 
     /* Check that a private key is loaded */
-    if ( !priv_ctx->MBEDTLS_PRIVATE(have_private_key) )
+    if ( !priv_ctx->have_private_key )
     {
         return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
-    ret = hash_digit_array( &priv_ctx->MBEDTLS_PRIVATE(params),
-                            ( const unsigned char( *)[MBEDTLS_LMOTS_N_HASH_LEN] )(priv_ctx->MBEDTLS_PRIVATE(private_key)),
+    ret = hash_digit_array( &priv_ctx->params,
+                            ( const unsigned char( *)[MBEDTLS_LMOTS_N_HASH_LEN] )(priv_ctx->private_key),
                             NULL, NULL, y_hashed_digits );
     if ( ret )
     {
         return( ret );
     }
 
-    ret = public_key_from_hashed_digit_array( &priv_ctx->MBEDTLS_PRIVATE(params),
+    ret = public_key_from_hashed_digit_array( &priv_ctx->params,
                                                ( const unsigned char( *)[MBEDTLS_LMOTS_N_HASH_LEN] )y_hashed_digits,
-                                               ctx->MBEDTLS_PRIVATE(public_key) );
+                                               ctx->public_key );
     if ( ret )
     {
         return( ret );
     }
 
-    memcpy( &ctx->MBEDTLS_PRIVATE(params), &priv_ctx->MBEDTLS_PRIVATE(params),
-            sizeof( ctx->MBEDTLS_PRIVATE(params) ) );
+    memcpy( &ctx->params, &priv_ctx->params,
+            sizeof( ctx->params ) );
 
     ctx->MBEDTLS_PRIVATE(have_public_key = 1);
 
@@ -614,24 +614,24 @@ int mbedtls_lmots_export_public_key( mbedtls_lmots_public_t *ctx,
         return( MBEDTLS_ERR_LMS_BUFFER_TOO_SMALL );
     }
 
-    if( ! ctx->MBEDTLS_PRIVATE(have_public_key) )
+    if( ! ctx->have_public_key )
     {
         return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
-    unsigned_int_to_network_bytes( ctx->MBEDTLS_PRIVATE(params).MBEDTLS_PRIVATE(type),
+    unsigned_int_to_network_bytes( ctx->params.type,
                                    MBEDTLS_LMOTS_TYPE_LEN,
                                    key + MBEDTLS_LMOTS_SIG_TYPE_OFFSET );
 
     memcpy( key + MBEDTLS_LMOTS_PUBLIC_KEY_I_KEY_ID_OFFSET,
-            ctx->MBEDTLS_PRIVATE(params).MBEDTLS_PRIVATE(I_key_identifier),
+            ctx->params.I_key_identifier,
             MBEDTLS_LMOTS_I_KEY_ID_LEN );
 
     memcpy(key + MBEDTLS_LMOTS_PUBLIC_KEY_Q_LEAF_ID_OFFSET,
-           ctx->MBEDTLS_PRIVATE(params).MBEDTLS_PRIVATE(q_leaf_identifier),
+           ctx->params.q_leaf_identifier,
            MBEDTLS_LMOTS_Q_LEAF_ID_LEN);
 
-    memcpy( key + MBEDTLS_LMOTS_PUBLIC_KEY_KEY_HASH_OFFSET, ctx->MBEDTLS_PRIVATE(public_key),
+    memcpy( key + MBEDTLS_LMOTS_PUBLIC_KEY_KEY_HASH_OFFSET, ctx->public_key,
             MBEDTLS_LMOTS_N_HASH_LEN );
 
     if( key_len != NULL )
@@ -662,7 +662,7 @@ int mbedtls_lmots_sign( mbedtls_lmots_private_t *ctx,
     }
 
     /* Check that a private key is loaded */
-    if ( !ctx->MBEDTLS_PRIVATE(have_private_key) )
+    if ( !ctx->have_private_key )
     {
         return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
@@ -673,7 +673,7 @@ int mbedtls_lmots_sign( mbedtls_lmots_private_t *ctx,
         return( ret );
     }
 
-    ret = create_digit_array_with_checksum( &ctx->MBEDTLS_PRIVATE(params),
+    ret = create_digit_array_with_checksum( &ctx->params,
                                             msg, msg_size,
                                             sig + MBEDTLS_LMOTS_SIG_C_RANDOM_OFFSET,
                                             tmp_digit_array );
@@ -682,24 +682,24 @@ int mbedtls_lmots_sign( mbedtls_lmots_private_t *ctx,
         return( ret );
     }
 
-    ret = hash_digit_array( &ctx->MBEDTLS_PRIVATE(params),
-                             ( const unsigned char( *)[MBEDTLS_LMOTS_N_HASH_LEN] )(ctx->MBEDTLS_PRIVATE(private_key)),
+    ret = hash_digit_array( &ctx->params,
+                             ( const unsigned char( *)[MBEDTLS_LMOTS_N_HASH_LEN] )(ctx->private_key),
                              NULL, tmp_digit_array, tmp_sig );
     if ( ret )
     {
         return( ret );
     }
 
-    unsigned_int_to_network_bytes( ctx->MBEDTLS_PRIVATE(params).MBEDTLS_PRIVATE(type),
+    unsigned_int_to_network_bytes( ctx->params.type,
                                    MBEDTLS_LMOTS_TYPE_LEN,
                                    sig + MBEDTLS_LMOTS_SIG_TYPE_OFFSET );
 
     /* We've got a valid signature now, so it's time to make sure the private
      * key can't be reused.
      */
-    ctx->MBEDTLS_PRIVATE(have_private_key) = 0;
-    mbedtls_platform_zeroize(ctx->MBEDTLS_PRIVATE(private_key),
-                             sizeof(ctx->MBEDTLS_PRIVATE(private_key)));
+    ctx->have_private_key = 0;
+    mbedtls_platform_zeroize(ctx->private_key,
+                             sizeof(ctx->private_key));
 
     memcpy(sig + MBEDTLS_LMOTS_SIG_SIGNATURE_OFFSET, tmp_sig,
            MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT * MBEDTLS_LMOTS_N_HASH_LEN);

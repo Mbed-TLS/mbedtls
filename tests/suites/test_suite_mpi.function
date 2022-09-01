@@ -1736,10 +1736,10 @@ void mbedtls_mpi_core_add_if( char * input_l, char * input_r,
     mbedtls_mpi_init( &l );
     mbedtls_mpi_init( &r );
 
-    TEST_EQUAL( mbedtls_test_read_mpi( &l, input_l ), 0 );
-    TEST_EQUAL( mbedtls_test_read_mpi( &r, input_r ), 0 );
-    TEST_EQUAL( mbedtls_test_read_mpi( &X4, input_X4 ), 0 );
-    TEST_EQUAL( mbedtls_test_read_mpi( &X8, input_X8 ), 0 );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &l, input_l ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &r, input_r ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &X4, input_X4 ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &X8, input_X8 ) );
 
     /* We only need to work with one of (X4, carry4) or (X8, carry8) depending
      * on sizeof(mbedtls_mpi_uint)
@@ -1748,9 +1748,9 @@ void mbedtls_mpi_core_add_if( char * input_l, char * input_r,
     mbedtls_mpi_uint carry = ( sizeof(mbedtls_mpi_uint) == 4 ) ? carry4 : carry8;
 
     /* All of the inputs are +ve (or zero) */
-    TEST_EQUAL( l.s, 1 );
-    TEST_EQUAL( r.s, 1 );
-    TEST_EQUAL( X->s, 1 );
+    TEST_EQUAL( 1, l.s );
+    TEST_EQUAL( 1, r.s );
+    TEST_EQUAL( 1, X->s );
 
     /* Test cases are such that l <= r, so #limbs should be <= */
     TEST_ASSERT( l.n <= r.n );
@@ -1777,29 +1777,29 @@ void mbedtls_mpi_core_add_if( char * input_l, char * input_r,
 
     /* 1a) a += b, cond = 0 => there should be no carry */
     memcpy( da, la, r.n * sizeof(mbedtls_mpi_uint) );
-    TEST_EQUAL( mbedtls_mpi_core_add_if( da, ra, r.n, 0 ), 0 );
+    TEST_EQUAL( 0, mbedtls_mpi_core_add_if( da, ra, r.n, 0 ) );
 
     /* 1b) and a should be unchanged */
-    TEST_EQUAL( memcmp( da, la, r.n * sizeof(mbedtls_mpi_uint) ), 0 );
+    TEST_EQUAL( 0, memcmp( da, la, r.n * sizeof(mbedtls_mpi_uint) ) );
 
     /* 2a) a += b, cond = 1 => we should get the correct carry */
-    TEST_EQUAL( mbedtls_mpi_core_add_if( da, ra, r.n, 1 ), carry );
+    TEST_EQUAL( carry, mbedtls_mpi_core_add_if( da, ra, r.n, 1 ) );
 
     /* 2b) and a should have the correct result */
-    TEST_EQUAL( memcmp( da, Xa, r.n * sizeof(mbedtls_mpi_uint) ), 0 );
+    TEST_EQUAL( 0, memcmp( da, Xa, r.n * sizeof(mbedtls_mpi_uint) ) );
 
     /* 3a) b += a, cond = 0 => there should be no carry */
     memcpy( da, ra, r.n * sizeof(mbedtls_mpi_uint) );
-    TEST_EQUAL( mbedtls_mpi_core_add_if( da, la, r.n, 0 ), 0 );
+    TEST_EQUAL( 0, mbedtls_mpi_core_add_if( da, la, r.n, 0 ) );
 
     /* 3b) and b should be unchanged */
-    TEST_EQUAL( memcmp( da, ra, r.n * sizeof(mbedtls_mpi_uint) ), 0 );
+    TEST_EQUAL( 0, memcmp( da, ra, r.n * sizeof(mbedtls_mpi_uint) ) );
 
     /* 4a) b += a, cond = 1 => we should get the correct carry */
-    TEST_EQUAL( mbedtls_mpi_core_add_if( da, la, r.n, 1 ), carry );
+    TEST_EQUAL( carry, mbedtls_mpi_core_add_if( da, la, r.n, 1 ) );
 
     /* 4b) and b should have the correct result */
-    TEST_EQUAL( memcmp( da, Xa, r.n * sizeof(mbedtls_mpi_uint) ), 0 );
+    TEST_EQUAL( 0, memcmp( da, Xa, r.n * sizeof(mbedtls_mpi_uint) ) );
 
 exit:
     mbedtls_free( la );
@@ -1830,16 +1830,16 @@ void mbedtls_mpi_core_sub( char * input_l, char * input_r,
     mbedtls_mpi_init( &X4 );
     mbedtls_mpi_init( &X8 );
 
-    TEST_EQUAL( mbedtls_test_read_mpi( &l, input_l ), 0 );
-    TEST_EQUAL( mbedtls_test_read_mpi( &r, input_r ), 0 );
-    TEST_EQUAL( mbedtls_test_read_mpi( &X4, input_X4 ), 0 );
-    TEST_EQUAL( mbedtls_test_read_mpi( &X8, input_X8 ), 0 );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &l, input_l ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &r, input_r ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &X4, input_X4 ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &X8, input_X8 ) );
 
     /* All of the inputs are +ve (or zero) */
-    TEST_EQUAL( l.s, 1 );
-    TEST_EQUAL( r.s, 1 );
-    TEST_EQUAL( X4.s, 1 );
-    TEST_EQUAL( X8.s, 1 );
+    TEST_EQUAL( 1, l.s );
+    TEST_EQUAL( 1, r.s );
+    TEST_EQUAL( 1, X4.s );
+    TEST_EQUAL( 1, X8.s );
 
     /* Get the number of limbs we will need */
     size_t limbs = ( l.n < r.n ) ? r.n : l.n;
@@ -1873,7 +1873,7 @@ void mbedtls_mpi_core_sub( char * input_l, char * input_r,
     TEST_EQUAL( mbedtls_mpi_core_sub( da, la, ra, limbs ), (mbedtls_mpi_uint) carry );
 
     /* 1b) d = l - r => we should get the correct result */
-    TEST_EQUAL( memcmp( da, Xa, limbs * sizeof(mbedtls_mpi_uint) ), 0 );
+    TEST_EQUAL( 0, memcmp( da, Xa, limbs * sizeof(mbedtls_mpi_uint) ) );
 
     /* 2 and 3 test "d may be aliased to l or r" */
     /* 2a) l -= r => we should get the correct carry (use d to avoid clobbering l) */
@@ -1881,14 +1881,14 @@ void mbedtls_mpi_core_sub( char * input_l, char * input_r,
     TEST_EQUAL( mbedtls_mpi_core_sub( da, da, ra, limbs ), (mbedtls_mpi_uint) carry );
 
     /* 2b) l -= r => we should get the correct result */
-    TEST_EQUAL( memcmp( da, Xa, limbs * sizeof(mbedtls_mpi_uint) ), 0 );
+    TEST_EQUAL( 0, memcmp( da, Xa, limbs * sizeof(mbedtls_mpi_uint) ) );
 
     /* 3a) r = l - r => we should get the correct carry (use d to avoid clobbering r) */
     memcpy( da, ra, limbs * sizeof(mbedtls_mpi_uint) );
     TEST_EQUAL( mbedtls_mpi_core_sub( da, la, da, limbs ), (mbedtls_mpi_uint) carry );
 
     /* 3b) r = l - r => we should get the correct result */
-    TEST_EQUAL( memcmp( da, Xa, limbs * sizeof(mbedtls_mpi_uint) ), 0 );
+    TEST_EQUAL( 0, memcmp( da, Xa, limbs * sizeof(mbedtls_mpi_uint) ) );
 
 exit:
     mbedtls_free( la );
@@ -1926,30 +1926,30 @@ void mbedtls_mpi_core_mla( char * input_d, char * input_s, char * input_b,
     mbedtls_mpi_init( &cy4 );
     mbedtls_mpi_init( &cy8 );
 
-    TEST_EQUAL( mbedtls_test_read_mpi( &d, input_d ), 0 );
-    TEST_EQUAL( mbedtls_test_read_mpi( &s, input_s ), 0 );
-    TEST_EQUAL( mbedtls_test_read_mpi( &b, input_b ), 0 );
-    TEST_EQUAL( mbedtls_test_read_mpi( &X4, input_X4 ), 0 );
-    TEST_EQUAL( mbedtls_test_read_mpi( &cy4, input_cy4 ), 0 );
-    TEST_EQUAL( mbedtls_test_read_mpi( &X8, input_X8 ), 0 );
-    TEST_EQUAL( mbedtls_test_read_mpi( &cy8, input_cy8 ), 0 );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &d, input_d ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &s, input_s ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &b, input_b ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &X4, input_X4 ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &cy4, input_cy4 ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &X8, input_X8 ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &cy8, input_cy8 ) );
 
     /* The MPI encoding of scalar b must be only 1 limb */
-    TEST_EQUAL( b.n, 1 );
+    TEST_EQUAL( 1, b.n );
 
     /* We only need to work with X4 or X8, and cy4 or cy8, depending on sizeof(mbedtls_mpi_uint) */
     mbedtls_mpi *X = ( sizeof(mbedtls_mpi_uint) == 4 ) ? &X4 : &X8;
     mbedtls_mpi *cy = ( sizeof(mbedtls_mpi_uint) == 4 ) ? &cy4 : &cy8;
 
     /* The carry should only have one limb */
-    TEST_EQUAL( cy->n, 1 );
+    TEST_EQUAL( 1, cy->n );
 
     /* All of the inputs are +ve (or zero) */
-    TEST_EQUAL( d.s, 1 );
-    TEST_EQUAL( s.s, 1 );
-    TEST_EQUAL( b.s, 1 );
-    TEST_EQUAL( X->s, 1 );
-    TEST_EQUAL( cy->s, 1 );
+    TEST_EQUAL( 1, d.s );
+    TEST_EQUAL( 1, s.s );
+    TEST_EQUAL( 1, b.s );
+    TEST_EQUAL( 1, X->s );
+    TEST_EQUAL( 1, cy->s );
 
     /* Get the (max) number of limbs we will need */
     size_t limbs = ( d.n < s.n ) ? s.n : d.n;
@@ -1975,7 +1975,7 @@ void mbedtls_mpi_core_mla( char * input_d, char * input_s, char * input_b,
     TEST_EQUAL( mbedtls_mpi_core_mla( da, limbs, s.p, s.n, *b.p ), *cy->p );
 
     /* 1b) d += s * b => we should get the correct result */
-    TEST_EQUAL( memcmp( da, Xa, limbs * sizeof(mbedtls_mpi_uint) ), 0 );
+    TEST_EQUAL( 0, memcmp( da, Xa, limbs * sizeof(mbedtls_mpi_uint) ) );
 
 exit:
     mbedtls_free( da );
@@ -1999,8 +1999,8 @@ void mbedtls_mpi_montg_init( char * input_N, char * input_mm )
     mbedtls_mpi_init( &N );
     mbedtls_mpi_init( &mm );
 
-    TEST_EQUAL( mbedtls_test_read_mpi( &N, input_N ), 0 );
-    TEST_EQUAL( mbedtls_test_read_mpi( &mm, input_mm ), 0 );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &N, input_N ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &mm, input_mm ) );
 
     /* The MPI encoding of mm should be 1 limb (sizeof(mbedtls_mpi_uint) == 8) or
      * 2 limbs (sizeof(mbedtls_mpi_uint) == 4).
@@ -2011,8 +2011,8 @@ void mbedtls_mpi_montg_init( char * input_N, char * input_mm )
     TEST_ASSERT( mm.n == 1  || mm.n == 2 );
 
     /* All of the inputs are +ve (or zero) */
-    TEST_EQUAL( N.s, 1 );
-    TEST_EQUAL( mm.s, 1 );
+    TEST_EQUAL( 1, N.s );
+    TEST_EQUAL( 1, mm.s );
 
     /* mbedtls_mpi_montg_init() only returns a result, no error possible */
     mbedtls_mpi_uint result = mbedtls_mpi_montg_init( N.p );
@@ -2045,11 +2045,11 @@ void mbedtls_mpi_core_montmul( int limbs_AN4, int limbs_B4,
     mbedtls_mpi_init( &T );
     mbedtls_mpi_init( &R );     /* for the result */
 
-    TEST_EQUAL( mbedtls_test_read_mpi( &A, input_A ), 0 );
-    TEST_EQUAL( mbedtls_test_read_mpi( &B, input_B ), 0 );
-    TEST_EQUAL( mbedtls_test_read_mpi( &N, input_N ), 0 );
-    TEST_EQUAL( mbedtls_test_read_mpi( &X4, input_X4 ), 0 );
-    TEST_EQUAL( mbedtls_test_read_mpi( &X8, input_X8 ), 0 );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &A, input_A ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &B, input_B ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &N, input_N ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &X4, input_X4 ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &X8, input_X8 ) );
 
     mbedtls_mpi *X = ( sizeof(mbedtls_mpi_uint) == 4 ) ? &X4 : &X8;
 
@@ -2061,25 +2061,25 @@ void mbedtls_mpi_core_montmul( int limbs_AN4, int limbs_B4,
     TEST_ASSERT( limbs_B <= limbs_AN );
 
     /* All of the inputs are +ve (or zero) */
-    TEST_EQUAL( A.s, 1 );
-    TEST_EQUAL( B.s, 1 );
-    TEST_EQUAL( N.s, 1 );
-    TEST_EQUAL( X->s, 1 );
+    TEST_EQUAL( 1, A.s );
+    TEST_EQUAL( 1, B.s );
+    TEST_EQUAL( 1, N.s );
+    TEST_EQUAL( 1, X->s );
 
-    TEST_EQUAL( mbedtls_mpi_grow( &A, limbs_AN ), 0 );
-    TEST_EQUAL( mbedtls_mpi_grow( &N, limbs_AN ), 0 );
-    TEST_EQUAL( mbedtls_mpi_grow( X, limbs_AN ), 0 );
-    TEST_EQUAL( mbedtls_mpi_grow( &B, limbs_B ), 0 );
+    TEST_EQUAL( 0, mbedtls_mpi_grow( &A, limbs_AN ) );
+    TEST_EQUAL( 0, mbedtls_mpi_grow( &N, limbs_AN ) );
+    TEST_EQUAL( 0, mbedtls_mpi_grow( X, limbs_AN ) );
+    TEST_EQUAL( 0, mbedtls_mpi_grow( &B, limbs_B ) );
 
-    TEST_EQUAL( mbedtls_mpi_grow( &T, limbs_AN * 2 + 1 ), 0 );
+    TEST_EQUAL( 0, mbedtls_mpi_grow( &T, limbs_AN * 2 + 1 ) );
 
     /* Calculate the Montgomery constant (this is unit tested separately) */
     mbedtls_mpi_uint mm = mbedtls_mpi_montg_init( N.p );
 
-    TEST_EQUAL( mbedtls_mpi_grow( &R, limbs_AN ), 0 ); /* ensure it's got the right number of limbs */
+    TEST_EQUAL( 0, mbedtls_mpi_grow( &R, limbs_AN ) ); /* ensure it's got the right number of limbs */
 
     mbedtls_mpi_core_montmul( R.p, A.p, B.p, B.n, N.p, N.n, mm, T.p );
-    TEST_EQUAL( memcmp( R.p, X->p, N.n * sizeof(mbedtls_mpi_uint) ), 0 );
+    TEST_EQUAL( 0, memcmp( R.p, X->p, N.n * sizeof(mbedtls_mpi_uint) ) );
 
 exit:
     mbedtls_mpi_free( &A );

@@ -640,7 +640,15 @@ int mbedtls_lmots_sign( mbedtls_lmots_private_t *ctx,
                         unsigned char *sig, size_t sig_size, size_t* sig_len )
 {
     unsigned char tmp_digit_array[MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT];
+    /* Create a temporary buffer to prepare the signature in. This allows us to
+     * finish creating a signature (ensuring the process doesn't fail), and then
+     * erase the private key **before** writing any data into the sig parameter
+     * buffer. If data were directly written into the sig buffer, it might leak
+     * a partial signature on failure, which effectively compromises the private
+     * key.
+     */
     unsigned char tmp_sig[MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT][MBEDTLS_LMOTS_N_HASH_LEN];
+    unsigned char tmp_c_random[MBEDTLS_LMOTS_C_RANDOM_VALUE_LEN];
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     if ( msg == NULL && msg_size != 0 )
@@ -659,7 +667,7 @@ int mbedtls_lmots_sign( mbedtls_lmots_private_t *ctx,
         return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
-    ret = f_rng( p_rng, sig + MBEDTLS_LMOTS_SIG_C_RANDOM_OFFSET, MBEDTLS_LMOTS_N_HASH_LEN );
+    ret = f_rng( p_rng, tmp_c_random, MBEDTLS_LMOTS_N_HASH_LEN );
     if ( ret )
     {
         return( ret );
@@ -667,7 +675,7 @@ int mbedtls_lmots_sign( mbedtls_lmots_private_t *ctx,
 
     ret = create_digit_array_with_checksum( &ctx->params,
                                             msg, msg_size,
-                                            sig + MBEDTLS_LMOTS_SIG_C_RANDOM_OFFSET,
+                                            tmp_c_random,
                                             tmp_digit_array );
     if ( ret )
     {
@@ -693,8 +701,11 @@ int mbedtls_lmots_sign( mbedtls_lmots_private_t *ctx,
     mbedtls_platform_zeroize(ctx->private_key,
                              sizeof(ctx->private_key));
 
-    memcpy(sig + MBEDTLS_LMOTS_SIG_SIGNATURE_OFFSET, tmp_sig,
-           MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT * MBEDTLS_LMOTS_N_HASH_LEN);
+    memcpy( sig + MBEDTLS_LMOTS_SIG_C_RANDOM_OFFSET, tmp_c_random,
+            MBEDTLS_LMOTS_C_RANDOM_VALUE_LEN );
+
+    memcpy( sig + MBEDTLS_LMOTS_SIG_SIGNATURE_OFFSET, tmp_sig,
+            MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT * MBEDTLS_LMOTS_N_HASH_LEN );
 
     if( sig_len != NULL )
     {

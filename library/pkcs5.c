@@ -209,14 +209,11 @@ exit:
 #endif /* MBEDTLS_ASN1_PARSE_C */
 
 #if defined(MBEDTLS_MD_C)
-#if defined(MBEDTLS_DEPRECATED_REMOVED)
-static
-#endif
-int mbedtls_pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx,
-                       const unsigned char *password,
-                       size_t plen, const unsigned char *salt, size_t slen,
-                       unsigned int iteration_count,
-                       uint32_t key_length, unsigned char *output )
+static int pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx,
+                              const unsigned char *password,
+                              size_t plen, const unsigned char *salt, size_t slen,
+                              unsigned int iteration_count,
+                              uint32_t key_length, unsigned char *output )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     int j;
@@ -293,6 +290,18 @@ cleanup:
 
     return( ret );
 }
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+int mbedtls_pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx,
+                       const unsigned char *password,
+                       size_t plen, const unsigned char *salt, size_t slen,
+                       unsigned int iteration_count,
+                       uint32_t key_length, unsigned char *output )
+{
+    return( pkcs5_pbkdf2_hmac( ctx, password, plen, salt, slen, iteration_count,
+                               key_length, output ) );
+}
+#endif
 #endif /* MBEDTLS_MD_C */
 
 int mbedtls_pkcs5_pbkdf2_hmac_ext( mbedtls_md_type_t md_alg,
@@ -314,8 +323,8 @@ int mbedtls_pkcs5_pbkdf2_hmac_ext( mbedtls_md_type_t md_alg,
 
     if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 1 ) ) != 0 )
         goto exit;
-    ret = mbedtls_pkcs5_pbkdf2_hmac( &md_ctx, password, plen, salt, slen,
-                                     iteration_count, key_length, output );
+    ret = pkcs5_pbkdf2_hmac( &md_ctx, password, plen, salt, slen,
+                             iteration_count, key_length, output );
 exit:
     mbedtls_md_free( &md_ctx );
     return( ret );

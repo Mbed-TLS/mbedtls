@@ -36,7 +36,7 @@ class FormatException(Exception):
         self.line = line
 
     def __str__(self):
-        ret = f"In line #{self.line}, "
+        ret = "In line " + str(self.line) + ", "
         if self.typ == "eof":
             ret += "reached end of file unexpectedly"
         elif self.typ == "begin-begin":
@@ -54,13 +54,13 @@ class WrongParamException(Exception):
         self.line = line
 
     def __str__(self):
-        ret = f"In line #{self.line}, "
+        ret = "In line " + str(self.line) + ", "
         if self.typ == "type":
-            ret += f"{self.tried} is not valid type.(macro or variable)"
+            ret += self.tried + " is not valid type.(macro or variable)"
         elif self.typ == "encoding":
-            ret += f"{self.tried} is not valid encoding.(string or binary)"
+            ret += self.tried + " is not valid encoding.(string or binary)"
         elif self.typ == "nofile":
-            ret += f"{self.tried} is not valid file path"
+            ret += self.tried + " is not valid file path"
         elif self.typ == "param_num":
             ret += "wrong number of parameters"
         else:

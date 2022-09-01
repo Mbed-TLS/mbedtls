@@ -71,5 +71,4 @@ def run_main():
         traceback.print_exc()
         sys.exit(2)
 
-if __name__ == "__main__":
-    run_main()
+run_main()

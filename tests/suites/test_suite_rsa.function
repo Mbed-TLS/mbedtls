@@ -50,7 +50,7 @@ void rsa_invalid_param( )
                 MBEDTLS_ERR_RSA_INVALID_PADDING );
 #endif
 
-#if defined( MBEDTLS_PKCS1_V15 )
+#if defined(MBEDTLS_PKCS1_V15)
     TEST_EQUAL( mbedtls_rsa_rsassa_pkcs1_v15_sign(&ctx, NULL,
                                               NULL, md_alg_none,
                                               buf_len,

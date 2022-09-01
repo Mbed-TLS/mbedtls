@@ -329,7 +329,6 @@ exit:
     mbedtls_md_free( &md_ctx );
     return( ret );
 #else
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     int j;
     unsigned int i;
     unsigned char md1[PSA_HASH_MAX_SIZE];
@@ -338,6 +337,7 @@ exit:
     psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
 
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t status_destruction = PSA_ERROR_CORRUPTION_DETECTED;
     size_t use_len, out_len;
     unsigned char *out_p = output;
     unsigned char counter[4];
@@ -359,7 +359,7 @@ exit:
                                    password, plen,
                                    &psa_hmac_key ) ) != PSA_SUCCESS )
     {
-        return MBEDTLS_ERR_ERROR_GENERIC_ERROR;
+        return MBEDTLS_ERR_PKCS5_BAD_INPUT_DATA;
     }
 
 #if UINT_MAX > 0xFFFFFFFF
@@ -396,10 +396,8 @@ exit:
                 goto cleanup;
             if( ( status = psa_mac_update( &operation, md1, md_size ) ) != PSA_SUCCESS )
                 goto cleanup;
-
             if( ( status = psa_mac_sign_finish( &operation, md1, out_size, &out_len ) ) != PSA_SUCCESS )
                 goto cleanup;
-
 
             // U1 xor U2
             //
@@ -422,13 +420,14 @@ cleanup:
     /* Zeroise buffers to clear sensitive data from memory. */
     mbedtls_platform_zeroize( work, PSA_HASH_MAX_SIZE );
     mbedtls_platform_zeroize( md1, PSA_HASH_MAX_SIZE );
-    psa_destroy_key( psa_hmac_key );
-    ret = (status != PSA_SUCCESS? MBEDTLS_ERR_ERROR_GENERIC_ERROR: 0);
-    status = psa_mac_abort( &operation );
-    if( ret == 0 && status != PSA_SUCCESS )
-        ret = MBEDTLS_ERR_ERROR_GENERIC_ERROR;
+    status_destruction = psa_destroy_key( psa_hmac_key );
+    if( status == PSA_SUCCESS && status_destruction != PSA_SUCCESS )
+        status = status_destruction;
+    status_destruction = psa_mac_abort( &operation );
+    if( status == PSA_SUCCESS && status_destruction != PSA_SUCCESS )
+        status = status_destruction;
 
-    return ( ret );
+    return( mbedtls_md_error_from_psa( status ) );
 #endif /* !MBEDTLS_MD_C */
 }
 

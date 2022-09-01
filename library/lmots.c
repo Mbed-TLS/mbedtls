@@ -393,9 +393,7 @@ int mbedtls_lmots_calculate_public_key_candidate( const mbedtls_lmots_parameters
         return ( ret );
     }
 
-    ret = public_key_from_hashed_digit_array( params,
-                                               ( const unsigned char( *)[MBEDTLS_LMOTS_N_HASH_LEN] )y_hashed_digits,
-                                               out );
+    ret = public_key_from_hashed_digit_array( params, y_hashed_digits, out );
     if ( ret )
     {
         return ( ret );
@@ -569,28 +567,22 @@ int mbedtls_lmots_calculate_public_key( mbedtls_lmots_public_t *ctx,
     unsigned char y_hashed_digits[MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT][MBEDTLS_LMOTS_N_HASH_LEN];
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
-    if( ctx == NULL )
-    {
-        return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
-    }
-
     /* Check that a private key is loaded */
     if ( !priv_ctx->have_private_key )
     {
         return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
-    ret = hash_digit_array( &priv_ctx->params,
-                            ( const unsigned char( *)[MBEDTLS_LMOTS_N_HASH_LEN] )(priv_ctx->private_key),
-                            NULL, NULL, y_hashed_digits );
+    ret = hash_digit_array( &priv_ctx->params, priv_ctx->private_key, NULL,
+                            NULL, y_hashed_digits );
     if ( ret )
     {
         return( ret );
     }
 
     ret = public_key_from_hashed_digit_array( &priv_ctx->params,
-                                               ( const unsigned char( *)[MBEDTLS_LMOTS_N_HASH_LEN] )y_hashed_digits,
-                                               ctx->public_key );
+                                              y_hashed_digits,
+                                              ctx->public_key );
     if ( ret )
     {
         return( ret );
@@ -683,7 +675,7 @@ int mbedtls_lmots_sign( mbedtls_lmots_private_t *ctx,
     }
 
     ret = hash_digit_array( &ctx->params,
-                             ( const unsigned char( *)[MBEDTLS_LMOTS_N_HASH_LEN] )(ctx->private_key),
+                             ctx->private_key,
                              NULL, tmp_digit_array, tmp_sig );
     if ( ret )
     {

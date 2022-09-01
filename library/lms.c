@@ -73,10 +73,10 @@
 static const unsigned char D_LEAF_CONSTANT_BYTES[D_CONST_LEN] = {0x82, 0x82};
 static const unsigned char D_INTERNAL_CONSTANT_BYTES[D_CONST_LEN] = {0x83, 0x83};
 
-static int create_merkle_leaf_node( const unsigned char I_key_identifier[MBEDTLS_LMOTS_I_KEY_ID_LEN],
-                                    unsigned char pub_key[MBEDTLS_LMOTS_N_HASH_LEN],
-                                    unsigned int r_node_idx,
-                                    unsigned char out[MBEDTLS_LMS_M_NODE_BYTES] )
+static int create_merkle_leaf_value( const unsigned char I_key_identifier[MBEDTLS_LMOTS_I_KEY_ID_LEN],
+                                     unsigned char pub_key[MBEDTLS_LMOTS_N_HASH_LEN],
+                                     unsigned int r_node_idx,
+                                     unsigned char out[MBEDTLS_LMS_M_NODE_BYTES] )
 {
     psa_hash_operation_t op;
     psa_status_t status;
@@ -122,11 +122,11 @@ exit:
     return( ret );
 }
 
-static int create_merkle_internal_node( const unsigned char I_key_identifier[MBEDTLS_LMOTS_I_KEY_ID_LEN],
-                                        const unsigned char left_node[MBEDTLS_LMS_M_NODE_BYTES],
-                                        const unsigned char right_node[MBEDTLS_LMS_M_NODE_BYTES],
-                                        unsigned int r_node_idx,
-                                        unsigned char out[MBEDTLS_LMS_M_NODE_BYTES] )
+static int create_merkle_internal_value( const unsigned char I_key_identifier[MBEDTLS_LMOTS_I_KEY_ID_LEN],
+                                         const unsigned char left_node[MBEDTLS_LMS_M_NODE_BYTES],
+                                         const unsigned char right_node[MBEDTLS_LMS_M_NODE_BYTES],
+                                         unsigned int r_node_idx,
+                                         unsigned char out[MBEDTLS_LMS_M_NODE_BYTES] )
 {
     psa_hash_operation_t op;
     psa_status_t status;
@@ -190,7 +190,7 @@ static int calculate_merkle_tree( mbedtls_lms_private_t *ctx,
     {
         r_node_idx = MERKLE_TREE_INTERNAL_NODE_AM + priv_key_idx;
 
-        ret = create_merkle_leaf_node(
+        ret = create_merkle_leaf_value(
             ctx->params.I_key_identifier,
             ctx->ots_public_keys[priv_key_idx].public_key,
             r_node_idx, tree[r_node_idx] );
@@ -205,7 +205,7 @@ static int calculate_merkle_tree( mbedtls_lms_private_t *ctx,
     for( r_node_idx = MERKLE_TREE_INTERNAL_NODE_AM - 1; r_node_idx > 0;
          r_node_idx-- )
     {
-        ret = create_merkle_internal_node(
+        ret = create_merkle_internal_value(
             ctx->params.I_key_identifier,
             tree[(r_node_idx * 2)], tree[(r_node_idx * 2 + 1)], r_node_idx, tree[r_node_idx] );
         if( ret )
@@ -370,7 +370,7 @@ int mbedtls_lms_verify( const mbedtls_lms_public_t *ctx,
         return( ret );
     }
 
-    create_merkle_leaf_node(
+    create_merkle_leaf_value(
             ctx->params.I_key_identifier,
             Kc_candidate_ots_pub_key, MERKLE_TREE_INTERNAL_NODE_AM + q_leaf_identifier,
             Tc_candidate_root_node );
@@ -393,7 +393,7 @@ int mbedtls_lms_verify( const mbedtls_lms_public_t *ctx,
             right_node = ( ( const unsigned char( * )[MBEDTLS_LMS_M_NODE_BYTES] )( sig + MBEDTLS_LMS_SIG_PATH_OFFSET ) )[height];
         }
 
-        create_merkle_internal_node(
+        create_merkle_internal_value(
             ctx->params.I_key_identifier,
             left_node, right_node, parent_node_id, Tc_candidate_root_node);
 

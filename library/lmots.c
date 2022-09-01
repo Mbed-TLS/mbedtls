@@ -489,6 +489,8 @@ int mbedtls_lmots_generate_private_key( mbedtls_lmots_private_t *ctx,
         return( MBEDTLS_ERR_LMS_BAD_INPUT_DATA );
     }
 
+    op = psa_hash_operation_init( );
+
     ctx->params.type = type;
 
     memcpy( ctx->params.I_key_identifier,
@@ -503,7 +505,6 @@ int mbedtls_lmots_generate_private_key( mbedtls_lmots_private_t *ctx,
 
     for ( i_digit_idx = 0; i_digit_idx < MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT; i_digit_idx++ )
     {
-        op = psa_hash_operation_init( );
         status = psa_hash_setup( &op, PSA_ALG_SHA_256 );
         ret = mbedtls_lms_error_from_psa( status );
         if ( ret != 0 )

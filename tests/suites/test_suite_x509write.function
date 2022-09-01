@@ -102,13 +102,14 @@ void x509_csr_check( char * key_file, char * cert_req_check_file, int md_type,
 
     memset( &rnd_info, 0x2a, sizeof( mbedtls_test_rnd_pseudo_info ) );
 
+    mbedtls_x509write_csr_init( &req );
+
     USE_PSA_INIT( );
 
     mbedtls_pk_init( &key );
     TEST_ASSERT( mbedtls_pk_parse_keyfile( &key, key_file, NULL,
                         mbedtls_test_rnd_std_rand, NULL ) == 0 );
 
-    mbedtls_x509write_csr_init( &req );
     mbedtls_x509write_csr_set_md_alg( &req, md_type );
     mbedtls_x509write_csr_set_key( &req, &key );
     TEST_ASSERT( mbedtls_x509write_csr_set_subject_name( &req, subject_name ) == 0 );
@@ -184,8 +185,11 @@ void x509_csr_check_opaque( char *key_file, int md_type, int key_usage,
     const char *subject_name = "C=NL,O=PolarSSL,CN=PolarSSL Server 1";
     mbedtls_test_rnd_pseudo_info rnd_info;
 
-    PSA_INIT( );
     memset( &rnd_info, 0x2a, sizeof( mbedtls_test_rnd_pseudo_info ) );
+
+    mbedtls_x509write_csr_init( &req );
+
+    USE_PSA_INIT( );
 
     md_alg_psa = mbedtls_hash_info_psa_from_md( (mbedtls_md_type_t) md_type );
     TEST_ASSERT( md_alg_psa != MBEDTLS_MD_NONE );
@@ -205,7 +209,6 @@ void x509_csr_check_opaque( char *key_file, int md_type, int key_usage,
                                             PSA_KEY_USAGE_SIGN_HASH,
                                             PSA_ALG_NONE ) == 0 );
 
-    mbedtls_x509write_csr_init( &req );
     mbedtls_x509write_csr_set_md_alg( &req, md_type );
     mbedtls_x509write_csr_set_key( &req, &key );
     TEST_ASSERT( mbedtls_x509write_csr_set_subject_name( &req, subject_name ) == 0 );

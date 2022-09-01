@@ -191,7 +191,10 @@ class CertUpdater:
                 output = self.type_macro_string(name, filename)
         return output
 
+    # This function is called when parser ecnounters header line for certificate.
     def deal_with_cert(self):
+        """ It will deal with certificate header line accordingly
+        """
         self.tmp.write(self.line)
         args = re.fullmatch(r"^/\*\s*BEGIN FILE(.*)\*/$\n", self.line).group(1) \
                                                                     .strip()  \

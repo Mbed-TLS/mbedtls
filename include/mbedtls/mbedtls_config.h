@@ -2469,11 +2469,23 @@
  * Module:  library/lms.c
  * Caller:
  *
- * Requires: MBEDTLS_MD_C
+ * Requires: MBEDTLS_PSA_CRYPTO_C
  *
- * Uncomment to enable the LMS signature algorithm.
+ * Uncomment to enable the LMS verification algorithm and public key operations.
  */
 #define MBEDTLS_LMS_C
+
+/**
+ * \def MBEDTLS_LMS_PRIVATE
+ *
+ * Enable LMS private-key operations and signing code. Functions enabled by this
+ * option are experimental, and should not be used in production.
+ *
+ * Requires: MBEDTLS_LMS_C
+ *
+ * Uncomment to enable the LMS signature algorithm and private key operations.
+ */
+// #define MBEDTLS_LMS_PRIVATE
 
 /**
  * \def MBEDTLS_NIST_KW_C

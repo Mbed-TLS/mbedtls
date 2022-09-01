@@ -101,6 +101,7 @@ typedef struct {
                                                      Boolean values only. */
 } mbedtls_lmots_public_t;
 
+#ifdef MBEDTLS_LMS_PRIVATE
 /** LMOTS private context structure.
  *
  * A LMOTS private key is one hash output for each of digit of the digest +
@@ -124,6 +125,7 @@ typedef struct {
     unsigned char MBEDTLS_PRIVATE(have_private_key); /*!< Whether the context contains a private key.
                                                      Boolean values only. */
 } mbedtls_lmots_private_t;
+#endif /* MBEDTLS_LMS_PRIVATE */
 
 /**
  * \brief                    This function converts an unsigned int into a
@@ -256,6 +258,8 @@ int mbedtls_lmots_verify( mbedtls_lmots_public_t *ctx, const unsigned char *msg,
                           size_t msg_size, const unsigned char *sig,
                           size_t sig_size );
 
+#ifdef MBEDTLS_LMS_PRIVATE
+
 /**
  * \brief                    This function initializes a private LMOTS context
  *
@@ -375,6 +379,7 @@ int mbedtls_lmots_sign( mbedtls_lmots_private_t *ctx,
                         void *p_rng, const unsigned char *msg, size_t msg_size,
                         unsigned char *sig, size_t sig_size, size_t* sig_len );
 
+#endif /* MBEDTLS_LMS_PRIVATE */
 
 #ifdef __cplusplus
 }

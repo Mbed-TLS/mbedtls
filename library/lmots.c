@@ -455,6 +455,8 @@ int mbedtls_lmots_verify( mbedtls_lmots_public_t *ctx, const unsigned char *msg,
     return( 0 );
 }
 
+#ifdef MBEDTLS_LMS_PRIVATE
+
 void mbedtls_lmots_init_private( mbedtls_lmots_private_t *ctx )
 {
     mbedtls_platform_zeroize( ctx, sizeof( mbedtls_lmots_private_t  ) ) ;
@@ -716,4 +718,5 @@ int mbedtls_lmots_sign( mbedtls_lmots_private_t *ctx,
     return( 0 );
 }
 
+#endif /* MBEDTLS_LMS_PRIVATE */
 #endif /* MBEDTLS_LMS_C */

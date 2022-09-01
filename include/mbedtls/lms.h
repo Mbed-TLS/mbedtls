@@ -106,6 +106,7 @@ typedef struct {
 } mbedtls_lms_public_t;
 
 
+#ifdef MBEDTLS_LMS_PRIVATE
 /** LMS private context structure.
  *
  * A LMS private key is a set of LMOTS private keys, an index to the next usable
@@ -133,6 +134,7 @@ typedef struct {
     unsigned char MBEDTLS_PRIVATE(have_private_key); /*!< Whether the context contains a private key.
                                                      Boolean values only. */
 } mbedtls_lms_private_t;
+#endif /* MBEDTLS_LMS_PRIVATE */
 
 /**
  * \brief                    This function initializes an LMS public context
@@ -196,6 +198,7 @@ int mbedtls_lms_verify( const mbedtls_lms_public_t *ctx,
                         const unsigned char *msg, size_t msg_size,
                         const unsigned char *sig, size_t sig_size );
 
+#ifdef MBEDTLS_LMS_PRIVATE
 /**
  * \brief                    This function initializes an LMS private context
  *
@@ -328,6 +331,7 @@ int mbedtls_lms_sign( mbedtls_lms_private_t *ctx,
                       int (*f_rng)(void *, unsigned char *, size_t),
                       void* p_rng, unsigned char *msg, unsigned int msg_size,
                       unsigned char *sig, size_t sig_size, size_t *sig_len);
+#endif /* MBEDTLS_LMS_PRIVATE */
 
 #ifdef __cplusplus
 }

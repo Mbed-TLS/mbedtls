@@ -32,7 +32,7 @@ def run_abi_check(old_tag, new_tag):
                                    stderr=subprocess.STDOUT).decode("utf-8")
 
 def pattern_create(lines):
-    return "^["+ "".join(["("+line+")" for line in lines]) +"]$"
+    return "(("+ "|".join(lines) +").*\n?)+"
 
 class TestAbiCheck(unittest.TestCase):
     ''' This class test abi check script
@@ -46,22 +46,22 @@ class TestAbiCheck(unittest.TestCase):
     def test_abi_same(self):
         ''' This test checks no false positive
         '''
-        possible_lines = ["Checking.*", "No compatibility issues.*", "PASS.*", "Info.*"]
+        possible_lines = ["Checking", "No compatibility issues", "PASS", "Info"]
         pattern = pattern_create(possible_lines)
         out = run_abi_check("mbedtls-3.2.0", "mbedtls-3.2.1")
-        self.assertIsNone(re.fullmatch(pattern, out, re.MULTILINE))
+        self.assertIsNotNone(re.fullmatch(pattern, out, re.MULTILINE))
 
     def test_abi_different(self):
         ''' This test checks no false negative
         '''
-        possible_lines = ["Checking.*", "Compatibility issues.*", "Test.*", "Fail.*", "Info.*"]
+        possible_lines = ["Checking", "Compatibility issues", "Test", "FAIL", "Info"]
         pattern = pattern_create(possible_lines)
         try:
             out = run_abi_check("mbedtls-2.27.0", "mbedtls-3.2.1")
         except subprocess.CalledProcessError as err:
             out = err.output.decode("utf-8")
             self.assertEqual(1, err.returncode)
-        self.assertIsNone(re.fullmatch(pattern, out, re.MULTILINE))
+        self.assertIsNotNone(re.fullmatch(pattern, out, re.MULTILINE))
 
 def run_main():
     try:

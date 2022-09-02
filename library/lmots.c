@@ -194,7 +194,7 @@ static int create_digit_array_with_checksum( const mbedtls_lmots_parameters_t *p
         goto exit;
 
     status = psa_hash_finish( &op, out,
-                              MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT(params->type),
+                              MBEDTLS_LMOTS_N_HASH_LEN(params->type),
                               &output_hash_len );
     ret = mbedtls_lms_error_from_psa( status );
     if( ret != 0 )

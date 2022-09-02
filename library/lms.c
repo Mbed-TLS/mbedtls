@@ -205,7 +205,7 @@ static int create_merkle_internal_value( const mbedtls_lms_parameters_t *params,
     if( ret != 0 )
         goto exit;
 
-    status = psa_hash_update( &op, D_INTERNAL_CONSTANT_BYTES, D_CONST_LEN );
+    status = psa_hash_update( &op, D_INTR_CONSTANT_BYTES, D_CONST_LEN );
     ret = mbedtls_lms_error_from_psa( status );
     if( ret != 0 )
         goto exit;

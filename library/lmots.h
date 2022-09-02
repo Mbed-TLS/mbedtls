@@ -104,7 +104,7 @@ typedef struct {
  */
 typedef struct {
     mbedtls_lmots_parameters_t MBEDTLS_PRIVATE(params);
-    unsigned char MBEDTLS_PRIVATE(public_key)[32];
+    unsigned char MBEDTLS_PRIVATE(public_key)[MBEDTLS_LMOTS_N_HASH_LEN_MAX];
     unsigned char MBEDTLS_PRIVATE(have_public_key); /*!< Whether the context contains a public key.
                                                      Boolean values only. */
 } mbedtls_lmots_public_t;
@@ -129,7 +129,7 @@ typedef struct {
  */
 typedef struct {
     mbedtls_lmots_parameters_t MBEDTLS_PRIVATE(params);
-    unsigned char MBEDTLS_PRIVATE(private_key)[MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT_MAX][32];
+    unsigned char MBEDTLS_PRIVATE(private_key)[MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT_MAX][MBEDTLS_LMOTS_N_HASH_LEN_MAX];
     unsigned char MBEDTLS_PRIVATE(have_private_key); /*!< Whether the context contains a private key.
                                                      Boolean values only. */
 } mbedtls_lmots_private_t;

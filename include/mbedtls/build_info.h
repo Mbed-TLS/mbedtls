@@ -77,7 +77,11 @@
 #if defined(MBEDTLS_PK_C) && defined(MBEDTLS_USE_PSA_CRYPTO)
 #define MBEDTLS_PK_WRITE_C
 #endif
-#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
+
+/* Make sure all configuration symbols are set before including check_config.h,
+ * even the ones that are calculated programmatically. */
+#if defined(MBEDTLS_PSA_CRYPTO_CONFIG) /* PSA_WANT_xxx influences MBEDTLS_xxx */ || \
+    defined(MBEDTLS_PSA_CRYPTO_C) /* MBEDTLS_xxx influences PSA_WANT_xxx */
 #include "mbedtls/config_psa.h"
 #endif
 

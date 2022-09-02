@@ -411,7 +411,7 @@ void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
 {
     memset( T, 0, ( 2 * AN_limbs + 1 ) * ciL );
 
-    for( size_t i = 0; i < AN_limbs; i++, T++ )
+    for( size_t i = 0; i < AN_limbs; i++ )
     {
         /* T = (T + u0*B + u1*N) / 2^biL */
         mbedtls_mpi_uint u0 = A[i];
@@ -419,6 +419,8 @@ void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
 
         (void) mbedtls_mpi_core_mla( T, AN_limbs + 2, B, B_limbs, u0 );
         (void) mbedtls_mpi_core_mla( T, AN_limbs + 2, N, AN_limbs, u1 );
+
+        T++;
     }
 
     /*

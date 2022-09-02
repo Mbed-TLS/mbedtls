@@ -96,36 +96,36 @@ static int create_merkle_leaf_value( const mbedtls_lms_parameters_t *params,
     op = psa_hash_operation_init( );
     status = psa_hash_setup( &op, PSA_ALG_SHA_256 );
     ret = mbedtls_lms_error_from_psa( status );
-    if ( ret != 0 )
+    if( ret != 0 )
         goto exit;
 
     status = psa_hash_update( &op, params->I_key_identifier,
                               MBEDTLS_LMOTS_I_KEY_ID_LEN );
     ret = mbedtls_lms_error_from_psa( status );
-    if( ret )
+    if( ret != 0 )
         goto exit;
 
     unsigned_int_to_network_bytes( r_node_idx, 4, r_node_idx_bytes );
     status = psa_hash_update( &op, r_node_idx_bytes, 4 );
     ret = mbedtls_lms_error_from_psa( status );
-    if( ret )
+    if( ret != 0 )
         goto exit;
 
     status = psa_hash_update( &op, D_LEAF_CONSTANT_BYTES, D_CONST_LEN );
     ret = mbedtls_lms_error_from_psa( status );
-    if( ret )
+    if( ret != 0 )
         goto exit;
 
     status = psa_hash_update( &op, pub_key,
                               MBEDTLS_LMOTS_N_HASH_LEN(params->otstype) );
     ret = mbedtls_lms_error_from_psa( status );
-    if( ret )
+    if( ret != 0 )
         goto exit;
 
     status = psa_hash_finish( &op, out, MBEDTLS_LMS_M_NODE_BYTES(params->type),
                               &output_hash_len );
     ret = mbedtls_lms_error_from_psa( status );
-    if( ret )
+    if( ret != 0 )
         goto exit;
 
 exit:
@@ -149,42 +149,42 @@ static int create_merkle_internal_value( const mbedtls_lms_parameters_t *params,
     op = psa_hash_operation_init( );
     status = psa_hash_setup( &op, PSA_ALG_SHA_256 );
     ret = mbedtls_lms_error_from_psa( status );
-    if ( ret != 0 )
+    if( ret != 0 )
         goto exit;
 
     status = psa_hash_update( &op, params->I_key_identifier,
                               MBEDTLS_LMOTS_I_KEY_ID_LEN );
     ret = mbedtls_lms_error_from_psa( status );
-    if( ret )
+    if( ret != 0 )
         goto exit;
 
     unsigned_int_to_network_bytes( r_node_idx, 4, r_node_idx_bytes );
     status = psa_hash_update( &op, r_node_idx_bytes, 4 );
     ret = mbedtls_lms_error_from_psa( status );
-    if( ret )
+    if( ret != 0 )
         goto exit;
 
     status = psa_hash_update( &op, D_INTERNAL_CONSTANT_BYTES, D_CONST_LEN );
     ret = mbedtls_lms_error_from_psa( status );
-    if( ret )
+    if( ret != 0 )
         goto exit;
 
     status = psa_hash_update( &op, left_node,
                               MBEDTLS_LMS_M_NODE_BYTES(params->type) );
     ret = mbedtls_lms_error_from_psa( status );
-    if( ret )
+    if( ret != 0 )
         goto exit;
 
     status = psa_hash_update( &op, right_node,
                               MBEDTLS_LMS_M_NODE_BYTES(params->type) );
     ret = mbedtls_lms_error_from_psa( status );
-    if( ret )
+    if( ret != 0 )
         goto exit;
 
     ret = psa_hash_finish( &op, out, MBEDTLS_LMS_M_NODE_BYTES(params->type),
                            &output_hash_len );
     ret = mbedtls_lms_error_from_psa( status );
-    if( ret )
+    if( ret != 0 )
         goto exit;
 
 exit:
@@ -313,7 +313,7 @@ int mbedtls_lms_verify( const mbedtls_lms_public_t *ctx,
             msg_size, sig + MBEDTLS_LMS_SIG_OTS_SIG_OFFSET,
             MBEDTLS_LMOTS_SIG_LEN(ctx->params.otstype), Kc_candidate_ots_pub_key,
             sizeof( Kc_candidate_ots_pub_key ), NULL );
-    if( ret )
+    if( ret != 0 )
     {
         return( ret );
     }
@@ -380,7 +380,7 @@ static int calculate_merkle_tree( mbedtls_lms_private_t *ctx,
         ret = create_merkle_leaf_value( &ctx->params,
                 ctx->ots_public_keys[priv_key_idx].public_key, r_node_idx,
                 &tree[r_node_idx * MBEDTLS_LMS_M_NODE_BYTES(ctx->params.type)] );
-        if( ret )
+        if( ret != 0 )
         {
             return( ret );
         }
@@ -397,7 +397,7 @@ static int calculate_merkle_tree( mbedtls_lms_private_t *ctx,
                 &tree[( r_node_idx * 2 + 1 ) * MBEDTLS_LMS_M_NODE_BYTES(ctx->params.type)],
                 r_node_idx,
                 &tree[r_node_idx * MBEDTLS_LMS_M_NODE_BYTES(ctx->params.type)] );
-        if( ret )
+        if( ret != 0 )
         {
             return( ret );
         }
@@ -417,7 +417,7 @@ static int get_merkle_path( mbedtls_lms_private_t *ctx,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     ret = calculate_merkle_tree( ctx, ( unsigned char * )tree );
-    if( ret )
+    if( ret != 0 )
     {
         return( ret );
     }
@@ -524,12 +524,12 @@ int mbedtls_lms_generate_private_key( mbedtls_lms_private_t *ctx,
                                                   otstype,
                                                   ctx->params.I_key_identifier,
                                                   idx, seed, seed_size );
-        if( ret )
+        if( ret != 0 )
             goto exit;
 
         ret = mbedtls_lmots_calculate_public_key( &ctx->ots_public_keys[idx],
                                                   &ctx->ots_private_keys[idx] );
-        if( ret )
+        if( ret != 0 )
             goto exit;
     }
 
@@ -537,7 +537,7 @@ int mbedtls_lms_generate_private_key( mbedtls_lms_private_t *ctx,
     ctx->have_private_key = 1;
 
 exit:
-    if( ret )
+    if( ret != 0 )
     {
         for ( free_idx = 0; free_idx < idx; free_idx++ )
         {
@@ -580,7 +580,7 @@ int mbedtls_lms_calculate_public_key( mbedtls_lms_public_t *ctx,
             sizeof( mbedtls_lmots_parameters_t ) );
 
     ret = calculate_merkle_tree( priv_ctx, ( unsigned char * )tree );
-    if( ret )
+    if( ret != 0 )
     {
         return( ret );
     }
@@ -676,7 +676,7 @@ int mbedtls_lms_sign( mbedtls_lms_private_t *ctx,
                               sig + MBEDTLS_LMS_SIG_OTS_SIG_OFFSET,
                               MBEDTLS_LMS_SIG_LEN(ctx->params.type, ctx->params.otstype),
                               NULL );
-    if( ret )
+    if( ret != 0 )
     {
         return( ret );
     }
@@ -689,7 +689,7 @@ int mbedtls_lms_sign( mbedtls_lms_private_t *ctx,
     ret = get_merkle_path( ctx,
             MERKLE_TREE_INTERNAL_NODE_AM(ctx->params.type) + q_leaf_identifier,
             sig + MBEDTLS_LMS_SIG_PATH_OFFSET(ctx->params.otstype) );
-    if( ret )
+    if( ret != 0 )
     {
         return( ret );
     }

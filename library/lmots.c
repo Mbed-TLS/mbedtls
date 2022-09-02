@@ -182,13 +182,10 @@ static int hash_digit_array( const mbedtls_lmots_parameters_t *params,
                              const unsigned char *hash_idx_max_values,
                              unsigned char *output )
 {
-    unsigned char i_digit_idx;
-    unsigned char j_hash_idx;
+    unsigned int i_digit_idx;
     unsigned char i_digit_idx_bytes[I_DIGIT_IDX_LEN];
-    unsigned char j_hash_idx_bytes[1];
-    /* These can't be unsigned chars, because they are sometimes set to
-     * #DIGIT_MAX_VALUE, which has a value of 256
-     */
+    unsigned int j_hash_idx;
+    unsigned char j_hash_idx_bytes[J_HASH_IDX_LEN];
     unsigned int j_hash_idx_min;
     unsigned int j_hash_idx_max;
     psa_hash_operation_t op;
@@ -213,7 +210,7 @@ static int hash_digit_array( const mbedtls_lmots_parameters_t *params,
         j_hash_idx_max = hash_idx_max_values != NULL ?
                 hash_idx_max_values[i_digit_idx] : DIGIT_MAX_VALUE;
 
-        for ( j_hash_idx = ( unsigned char )j_hash_idx_min;
+        for ( j_hash_idx = j_hash_idx_min;
               j_hash_idx < j_hash_idx_max;
               j_hash_idx++ )
         {

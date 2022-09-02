@@ -260,7 +260,7 @@
 #error "MBEDTLS_ECP_NO_FALLBACK defined, but no alternative implementation enabled"
 #endif
 
-#if defined(MBEDTLS_HKDF_C) && !defined(MBEDTLS_MD_C)
+#if defined(MBEDTLS_HKDF_C) && !( defined(MBEDTLS_MD_C) || defined(MBEDTLS_PSA_CRYPTO_C) )
 #error "MBEDTLS_HKDF_C defined, but not all prerequisites"
 #endif
 
@@ -755,10 +755,9 @@
  * Otherwise support for at least one ciphersuite mandates either SHA_256 or
  * SHA_384.
  */
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
-    ( ( !defined(MBEDTLS_HKDF_C) ) || \
-      ( !defined(MBEDTLS_SHA256_C) && !defined(MBEDTLS_SHA384_C) ) || \
-      ( !defined(MBEDTLS_PSA_CRYPTO_C) ) )
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) &&                   \
+    !( ( defined(PSA_WANT_ALG_SHA_256) || defined(PSA_WANT_ALG_SHA_348) ) && \
+        ( defined(MBEDTLS_USE_PSA_CRYPTO) || ( defined(MBEDTLS_MD_C) && ( defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA384_C) ) ) ) )
 #error "MBEDTLS_SSL_PROTO_TLS1_3 defined, but not all prerequisites"
 #endif
 

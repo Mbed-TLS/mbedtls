@@ -898,7 +898,7 @@ class PSATestGenerator(test_generation.TestGenerator):
     """Test generator subclass including PSA targets and info."""
     # Note that targets whose names contain 'test_format' have their content
     # validated by `abi_check.py`.
-    TARGETS = {
+    targets = {
         'test_suite_psa_crypto_generate_key.generated':
         lambda info: KeyGenerate(info).test_cases_for_key_generation(),
         'test_suite_psa_crypto_not_supported.generated':

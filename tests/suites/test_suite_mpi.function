@@ -1767,12 +1767,13 @@ void mpi_core_add_if( char * input_A, char * input_B,
      * We generated test data such that B was always >= A, so that's how many
      * limbs each of these need.
      */
-    a = mbedtls_calloc( B.n, sizeof(mbedtls_mpi_uint) );
-    b = mbedtls_calloc( B.n, sizeof(mbedtls_mpi_uint) );
-    x = mbedtls_calloc( B.n, sizeof(mbedtls_mpi_uint) );
-    d = mbedtls_calloc( B.n, sizeof(mbedtls_mpi_uint) );
+    size_t limbs = B.n;
+    a = mbedtls_calloc( limbs, sizeof(mbedtls_mpi_uint) );
+    b = mbedtls_calloc( limbs, sizeof(mbedtls_mpi_uint) );
+    x = mbedtls_calloc( limbs, sizeof(mbedtls_mpi_uint) );
+    d = mbedtls_calloc( limbs, sizeof(mbedtls_mpi_uint) );
 
-    size_t bytes = B.n * sizeof(mbedtls_mpi_uint);
+    size_t bytes = limbs * sizeof(mbedtls_mpi_uint);
 
     TEST_ASSERT( a != NULL );
     TEST_ASSERT( b != NULL );
@@ -1789,29 +1790,41 @@ void mpi_core_add_if( char * input_A, char * input_B,
 
     /* 1a) a + b: d = a; d += b, cond = 0 => there should be no carry */
     memcpy( d, a, bytes );
-    TEST_EQUAL( 0, mbedtls_mpi_core_add_if( d, b, B.n, 0 ) );
+    TEST_EQUAL( 0, mbedtls_mpi_core_add_if( d, b, limbs, 0 ) );
 
     /* 1b) and d should be unchanged */
     ASSERT_COMPARE( d, bytes, a, bytes );
 
     /* 2a) a + b: d = a; d += b, cond = 1 => we should get the correct carry */
-    TEST_EQUAL( carry, mbedtls_mpi_core_add_if( d, b, B.n, 1 ) );
+    TEST_EQUAL( carry, mbedtls_mpi_core_add_if( d, b, limbs, 1 ) );
 
     /* 2b) and d should have the correct result */
     ASSERT_COMPARE( d, bytes, x, bytes );
 
     /* 3a) b + a: d = b; d += a, cond = 0 => there should be no carry */
     memcpy( d, b, bytes );
-    TEST_EQUAL( 0, mbedtls_mpi_core_add_if( d, a, B.n, 0 ) );
+    TEST_EQUAL( 0, mbedtls_mpi_core_add_if( d, a, limbs, 0 ) );
 
     /* 3b) and d should be unchanged */
     ASSERT_COMPARE( d, bytes, b, bytes );
 
     /* 4a) b + a: d = b; d += a, cond = 1 => we should get the correct carry */
-    TEST_EQUAL( carry, mbedtls_mpi_core_add_if( d, a, B.n, 1 ) );
+    TEST_EQUAL( carry, mbedtls_mpi_core_add_if( d, a, limbs, 1 ) );
 
     /* 4b) and d should have the correct result */
     ASSERT_COMPARE( d, bytes, x, bytes );
+
+    /* 5) a + b where a and b are aliased - only when a == b */
+    if ( A.n == B.n && memcmp( A.p, B.p, bytes ) == 0 )
+    {
+        /* 5a) cond = 0 => no carry, and no change to b */
+        TEST_EQUAL( 0, mbedtls_mpi_core_add_if( b, b, limbs, 0 ) );
+        ASSERT_COMPARE( b, bytes, B.p, bytes );
+
+        /* 5b) cond = 1 => correct carry, and correct result in b */
+        TEST_EQUAL( carry, mbedtls_mpi_core_add_if( b, b, limbs, 1 ) );
+        ASSERT_COMPARE( b, bytes, x, bytes );
+    }
 
 exit:
     mbedtls_free( a );

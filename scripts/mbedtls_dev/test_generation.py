@@ -133,6 +133,11 @@ class TestGenerator:
     """Generate test data."""
     def __init__(self, options) -> None:
         self.test_suite_directory = getattr(options, 'directory')
+        # Add file Targets which have been declared in other modules
+        self.targets.update({
+            subclass.target_basename: subclass.generate_tests
+            for subclass in BaseTarget.__subclasses__()
+        })
 
     def filename_for(self, basename: str) -> str:
         """The location of the data file with the specified base name."""
@@ -149,7 +154,7 @@ class TestGenerator:
 
     # Note that targets whose names contain 'test_format' have their content
     # validated by `abi_check.py`.
-    TARGETS = {} # type: Dict[str, Callable[..., Iterable[test_case.TestCase]]]
+    targets = {} # type: Dict[str, Callable[..., Iterable[test_case.TestCase]]]
 
     def generate_target(self, name: str, *target_args) -> None:
         """Generate cases and write to data file for a target.
@@ -157,7 +162,7 @@ class TestGenerator:
         For target callables which require arguments, override this function
         and pass these arguments using super() (see PSATestGenerator).
         """
-        test_cases = self.TARGETS[name](*target_args)
+        test_cases = self.targets[name](*target_args)
         self.write_test_data_file(name, test_cases)
 
 def main(args, generator_class: Type[TestGenerator] = TestGenerator):
@@ -170,25 +175,27 @@ def main(args, generator_class: Type[TestGenerator] = TestGenerator):
     parser.add_argument('--directory', default="tests/suites", metavar='DIR',
                         help='Output directory (default: tests/suites)')
     parser.add_argument('targets', nargs='*', metavar='TARGET',
-                        default=sorted(generator_class.TARGETS),
                         help='Target file to generate (default: all; "-": none)')
     options = parser.parse_args(args)
     build_tree.chdir_to_root()
     generator = generator_class(options)
     if options.list:
-        for name in sorted(generator.TARGETS):
+        for name in sorted(generator.targets):
             print(generator.filename_for(name))
         return
     # List in a cmake list format (i.e. ';'-separated)
     if options.list_for_cmake:
         print(';'.join(generator.filename_for(name)
-                       for name in sorted(generator.TARGETS)), end='')
+                       for name in sorted(generator.targets)), end='')
         return
-    # Allow "-" as a special case so you can run
-    # ``generate_xxx_tests.py - $targets`` and it works uniformly whether
-    # ``$targets`` is empty or not.
-    options.targets = [os.path.basename(re.sub(r'\.data\Z', r'', target))
-                       for target in options.targets
-                       if target != '-']
+    if options.targets:
+        # Allow "-" as a special case so you can run
+        # ``generate_xxx_tests.py - $targets`` and it works uniformly whether
+        # ``$targets`` is empty or not.
+        options.targets = [os.path.basename(re.sub(r'\.data\Z', r'', target))
+                            for target in options.targets
+                            if target != '-']
+    else:
+        options.targets = sorted(generator.targets)
     for target in options.targets:
         generator.generate_target(target)

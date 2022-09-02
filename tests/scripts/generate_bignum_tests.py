@@ -231,12 +231,5 @@ class BignumAdd(BignumOperation):
         return quote_str(hex(self.int_l + self.int_r).replace("0x", "", 1))
 
 
-class BignumTestGenerator(test_generation.TestGenerator):
-    """Test generator subclass, for bignum file Targets."""
-    TARGETS = {
-        subclass.target_basename: subclass.generate_tests for subclass in
-        test_generation.BaseTarget.__subclasses__()
-    } # type: Dict[str, Callable[[], Iterable[test_case.TestCase]]]
-
 if __name__ == '__main__':
-    test_generation.main(sys.argv[1:], BignumTestGenerator)
+    test_generation.main(sys.argv[1:])

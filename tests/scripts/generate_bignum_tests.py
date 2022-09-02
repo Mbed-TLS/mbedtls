@@ -58,7 +58,7 @@ import itertools
 import sys
 
 from abc import ABCMeta, abstractmethod
-from typing import Callable, Dict, Iterable, Iterator, List, Tuple, TypeVar, cast
+from typing import Iterator, List, Tuple, TypeVar, cast
 
 import scripts_path # pylint: disable=unused-import
 from mbedtls_dev import test_case

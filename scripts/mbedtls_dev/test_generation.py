@@ -193,8 +193,8 @@ def main(args, generator_class: Type[TestGenerator] = TestGenerator):
         # ``generate_xxx_tests.py - $targets`` and it works uniformly whether
         # ``$targets`` is empty or not.
         options.targets = [os.path.basename(re.sub(r'\.data\Z', r'', target))
-                            for target in options.targets
-                            if target != '-']
+                           for target in options.targets
+                           if target != '-']
     else:
         options.targets = sorted(generator.targets)
     for target in options.targets:

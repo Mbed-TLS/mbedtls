@@ -344,7 +344,7 @@ int mbedtls_lms_export_public_key( mbedtls_lms_public_t *ctx, unsigned char *key
 int mbedtls_lms_sign( mbedtls_lms_private_t *ctx,
                       int (*f_rng)(void *, unsigned char *, size_t),
                       void* p_rng, unsigned char *msg, unsigned int msg_size,
-                      unsigned char *sig, size_t sig_size, size_t *sig_len);
+                      unsigned char *sig, size_t sig_size, size_t *sig_len );
 #endif /* MBEDTLS_LMS_PRIVATE */
 
 #ifdef __cplusplus

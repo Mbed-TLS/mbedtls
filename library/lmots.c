@@ -44,11 +44,6 @@
 
 #include "psa/crypto.h"
 
-#define MBEDTLS_LMOTS_SIG_C_RANDOM_OFFSET (MBEDTLS_LMOTS_SIG_TYPE_OFFSET + \
-                                           MBEDTLS_LMOTS_TYPE_LEN)
-#define MBEDTLS_LMOTS_SIG_SIGNATURE_OFFSET(type) (MBEDTLS_LMOTS_SIG_C_RANDOM_OFFSET + \
-                                                  MBEDTLS_LMOTS_C_RANDOM_VALUE_LEN(type))
-
 #define MBEDTLS_LMOTS_PUBLIC_KEY_TYPE_OFFSET     (0)
 #define MBEDTLS_LMOTS_PUBLIC_KEY_I_KEY_ID_OFFSET (MBEDTLS_LMOTS_PUBLIC_KEY_TYPE_OFFSET + \
                                                   MBEDTLS_LMOTS_TYPE_LEN)
@@ -73,6 +68,10 @@
 #define D_CONST_LEN            (2)
 static const unsigned char D_PUBLIC_CONSTANT_BYTES[D_CONST_LEN] = {0x80, 0x80};
 static const unsigned char D_MESSAGE_CONSTANT_BYTES[D_CONST_LEN] = {0x81, 0x81};
+
+#if defined(MBEDTLS_TEST_HOOKS)
+int( *mbedtls_lmots_sign_private_key_invalidated_hook )( unsigned char * ) = NULL;
+#endif /* defined(MBEDTLS_TEST_HOOKS) */
 
 void unsigned_int_to_network_bytes( unsigned int val, size_t len,
                                     unsigned char *bytes )
@@ -814,6 +813,18 @@ int mbedtls_lmots_sign( mbedtls_lmots_private_t *ctx,
     unsigned_int_to_network_bytes( ctx->params.type,
                                    MBEDTLS_LMOTS_TYPE_LEN,
                                    sig + MBEDTLS_LMOTS_SIG_TYPE_OFFSET );
+
+    /* Test hook to check if sig is being written to before we invalidate the
+     * private key.
+     */
+#if defined(MBEDTLS_TEST_HOOKS)
+    if( mbedtls_lmots_sign_private_key_invalidated_hook != NULL )
+    {
+        ret = ( *mbedtls_lmots_sign_private_key_invalidated_hook )( sig );
+        if( ret != 0 )
+            return( ret );
+    }
+#endif /* defined(MBEDTLS_TEST_HOOKS) */
 
     /* We've got a valid signature now, so it's time to make sure the private
      * key can't be reused.

@@ -54,6 +54,10 @@
                                             MBEDTLS_LMOTS_N_HASH_LEN(type))
 
 #define MBEDTLS_LMOTS_SIG_TYPE_OFFSET       (0)
+#define MBEDTLS_LMOTS_SIG_C_RANDOM_OFFSET (MBEDTLS_LMOTS_SIG_TYPE_OFFSET + \
+                                           MBEDTLS_LMOTS_TYPE_LEN)
+#define MBEDTLS_LMOTS_SIG_SIGNATURE_OFFSET(type) (MBEDTLS_LMOTS_SIG_C_RANDOM_OFFSET + \
+                                                  MBEDTLS_LMOTS_C_RANDOM_VALUE_LEN(type))
 
 #ifdef __cplusplus
 extern "C" {

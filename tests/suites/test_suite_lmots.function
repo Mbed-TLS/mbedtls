@@ -2,6 +2,27 @@
 #include "lmots.h"
 #include "mbedtls/lms.h"
 
+#if defined(MBEDTLS_TEST_HOOKS)
+extern int( *mbedtls_lmots_sign_private_key_invalidated_hook )( unsigned char * );
+
+int check_lmots_private_key_for_leak(unsigned char * sig)
+{
+    size_t idx;
+
+    for( idx = MBEDTLS_LMOTS_SIG_SIGNATURE_OFFSET(MBEDTLS_LMOTS_SHA256_N32_W8);
+         idx < MBEDTLS_LMOTS_SIG_LEN(MBEDTLS_LMOTS_SHA256_N32_W8);
+         idx++ )
+    {
+        if( sig[idx] != 0x7E ) {
+        while(1){}
+            return 1;
+        }
+    }
+
+    return 0;
+}
+#endif /* defined(MBEDTLS_TEST_HOOKS) */
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -26,6 +47,29 @@ void lmots_sign_verify_test ( data_t *msg, data_t *key_id, int leaf_id,
     TEST_ASSERT( mbedtls_lmots_sign(&priv_ctx, &mbedtls_test_rnd_std_rand, NULL,
                  msg->x, msg->len, sig, sizeof(sig), NULL ) == 0 );
     TEST_ASSERT( mbedtls_lmots_verify(&pub_ctx, msg->x, msg->len, sig, sizeof(sig)) == 0 );
+
+exit:
+    mbedtls_lmots_free_public( &pub_ctx );
+    mbedtls_lmots_free_private( &priv_ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void lmots_sign_verify_null_msg_test ( data_t *key_id, int leaf_id, data_t *seed )
+{
+    mbedtls_lmots_public_t pub_ctx;
+    mbedtls_lmots_private_t priv_ctx;
+    unsigned char sig[MBEDTLS_LMOTS_SIG_LEN(MBEDTLS_LMOTS_SHA256_N32_W8)];
+
+    mbedtls_lmots_init_public( &pub_ctx );
+    mbedtls_lmots_init_private( &priv_ctx );
+
+    TEST_ASSERT( mbedtls_lmots_generate_private_key(&priv_ctx, MBEDTLS_LMOTS_SHA256_N32_W8,
+                 key_id->x, leaf_id, seed->x, seed->len ) == 0 );
+    TEST_ASSERT( mbedtls_lmots_calculate_public_key(&pub_ctx, &priv_ctx) == 0 );
+    TEST_ASSERT( mbedtls_lmots_sign(&priv_ctx, &mbedtls_test_rnd_std_rand, NULL,
+                 NULL, 0, sig, sizeof(sig), NULL ) == 0 );
+    TEST_ASSERT( mbedtls_lmots_verify(&pub_ctx, NULL, 0, sig, sizeof(sig)) == 0 );
 
 exit:
     mbedtls_lmots_free_public( &pub_ctx );
@@ -92,5 +136,30 @@ void lmots_reuse_test ( data_t *msg, data_t *key_id, int leaf_id, data_t *seed )
 
 exit:
     mbedtls_lmots_free_private( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_TEST_HOOKS */
+void lmots_signature_leak_test ( data_t *msg, data_t *key_id, int leaf_id,
+                                 data_t *seed )
+{
+    mbedtls_lmots_private_t ctx;
+    unsigned char sig[MBEDTLS_LMOTS_SIG_LEN(MBEDTLS_LMOTS_SHA256_N32_W8)];
+
+    mbedtls_lmots_sign_private_key_invalidated_hook = &check_lmots_private_key_for_leak;
+
+    /* Fill with recognisable pattern */
+    memset( sig, 0x7E, sizeof( sig ) );
+
+    mbedtls_lmots_init_private( &ctx );
+    TEST_ASSERT( mbedtls_lmots_generate_private_key(&ctx, MBEDTLS_LMOTS_SHA256_N32_W8,
+                                                    key_id->x, leaf_id, seed->x,
+                                                    seed->len ) == 0 );
+    TEST_ASSERT( mbedtls_lmots_sign(&ctx, mbedtls_test_rnd_std_rand, NULL,
+                                    msg->x, msg->len, sig, sizeof( sig ), NULL ) == 0 );
+
+exit:
+    mbedtls_lmots_free_private( &ctx );
+    mbedtls_lmots_sign_private_key_invalidated_hook = NULL;
 }
 /* END_CASE */

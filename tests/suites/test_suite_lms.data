@@ -3,6 +3,11 @@ LMS sign-verify test
 # message, and verifies the signature.
 lms_sign_verify_test:"c41ba177a0ca1ec31dfb2e145237e65b":"626201f41afd7c9af793cf158da58e33"
 
+LMS NULL-message sign-verify test
+# This test uses a NULL zero-length message, and then generates a private key,
+# signs the message, and verifies the signature.
+lms_sign_verify_null_msg_test:"923a3c8e38c9b72e067996bfdaa36856"
+
 LMS hash-sigs interop test #1
 # This test uses data from https://github.com/cisco/hash-sigs due to the limited
 # amount of available test vectors for LMS. A public/private key was generated

@@ -228,7 +228,7 @@ class BignumAdd(BignumOperation):
         self.symbol = "+"
 
     def result(self) -> str:
-        return quote_str(hex(self.int_l + self.int_r).replace("0x", "", 1))
+        return quote_str("{:x}".format(self.int_l + self.int_r))
 
 
 if __name__ == '__main__':

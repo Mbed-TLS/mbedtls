@@ -419,6 +419,73 @@ case " $CONFIGS_ENABLED " in
     *) PSK_ONLY="NO";;
 esac
 
+HAS_ALG_SHA_1="NO"
+HAS_ALG_SHA_224="NO"
+HAS_ALG_SHA_256="NO"
+HAS_ALG_SHA_384="NO"
+HAS_ALG_SHA_512="NO"
+
+check_for_hash_alg()
+{
+    CURR_ALG="INVALID";
+    USE_PSA="NO"
+    case $CONFIGS_ENABLED in
+        *" MBEDTLS_USE_PSA_CRYPTO"[\ =]*)
+            USE_PSA="YES";
+        ;;
+        *) :;;
+    esac
+    if [ $USE_PSA = "YES" ]; then
+        CURR_ALG=PSA_WANT_ALG_${1}
+    else
+        CURR_ALG=MBEDTLS_${1}_C
+        # Remove the second underscore to match MBEDTLS_* naming convention
+        CURR_ALG=$(echo "$CURR_ALG" | sed 's/_//2')
+    fi
+
+    case $CONFIGS_ENABLED in
+        *" $CURR_ALG"[\ =]*)
+            return 0
+        ;;
+        *) :;;
+    esac
+    return 1
+}
+
+populate_enabled_hash_algs()
+{
+    for hash_alg in SHA_1 SHA_224 SHA_256 SHA_384 SHA_512; do
+        if check_for_hash_alg "$hash_alg"; then
+            hash_alg_variable=HAS_ALG_${hash_alg}
+            eval ${hash_alg_variable}=YES
+        fi
+    done
+}
+
+# skip next test if the given hash alg is not supported
+requires_hash_alg() {
+    HASH_DEFINE="Invalid"
+    HAS_HASH_ALG="NO"
+    case $1 in
+        SHA_1):;;
+        SHA_224):;;
+        SHA_256):;;
+        SHA_384):;;
+        SHA_512):;;
+      *)
+            echo "Unsupported hash alg - $1"
+            exit 1
+        ;;
+    esac
+
+    HASH_DEFINE=HAS_ALG_${1}
+    eval "HAS_HASH_ALG=\${${HASH_DEFINE}}"
+    if [ "$HAS_HASH_ALG" = "NO" ]
+    then
+        SKIP_NEXT="YES"
+    fi
+}
+
 # skip next test if OpenSSL doesn't support FALLBACK_SCSV
 requires_openssl_with_fallback_scsv() {
     if [ -z "${OPENSSL_HAS_FBSCSV:-}" ]; then
@@ -1477,6 +1544,8 @@ cleanup() {
 #
 
 get_options "$@"
+
+populate_enabled_hash_algs
 
 # Optimize filters: if $FILTER and $EXCLUDE can be expressed as shell
 # patterns rather than regular expressions, use a case statement instead

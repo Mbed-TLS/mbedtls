@@ -540,7 +540,8 @@ psa_status_t psa_pake_input( psa_pake_operation_t *operation,
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
     if( operation->alg == PSA_ALG_JPAKE )
     {
-        if( operation->state == PSA_PAKE_STATE_SETUP ) {
+        if( operation->state == PSA_PAKE_STATE_SETUP )
+        {
             status = psa_pake_ecjpake_setup( operation );
             if( status != PSA_SUCCESS )
             {

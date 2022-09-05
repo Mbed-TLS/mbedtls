@@ -101,6 +101,67 @@ enum psa_pake_state
     PSA_PAKE_INPUT_X4S          = 6,
 };
 
+/*
+ * The first PAKE step shares the same sequences of the second PAKE step
+ * but with a second set of KEY_SHARE/ZK_PUBLIC/ZK_PROOF outputs/inputs.
+ * This it's simpler to share the same sequences numbers of the first
+ * set of KEY_SHARE/ZK_PUBLIC/ZK_PROOF outputs/inputs in both PAKE steps.
+ *
+ * State sequence with step, state & sequence enums:
+ *   => Input & Output Step = PSA_PAKE_STEP_INVALID
+ *   => state = PSA_PAKE_STATE_INVALID
+ *   psa_pake_setup()
+ *   => Input & Output Step = PSA_PAKE_STEP_X1_X2
+ *   => state = PSA_PAKE_STATE_SETUP
+ *   => sequence = PSA_PAKE_SEQ_INVALID
+ *   |
+ *   |--- In any order: (First round input before or after first round output)
+ *   |   | First call of psa_pake_output() or psa_pake_input() sets
+ *   |   | state = PSA_PAKE_STATE_READY
+ *   |   |
+ *   |   |------ In Order: => state = PSA_PAKE_OUTPUT_X1_X2
+ *   |   |       | psa_pake_output() => sequence = PSA_PAKE_X1_STEP_KEY_SHARE
+ *   |   |       | psa_pake_output() => sequence = PSA_PAKE_X1_STEP_ZK_PUBLIC
+ *   |   |       | psa_pake_output() => sequence = PSA_PAKE_X1_STEP_ZK_PROOF
+ *   |   |       | psa_pake_output() => sequence = PSA_PAKE_X2_STEP_KEY_SHARE
+ *   |   |       | psa_pake_output() => sequence = PSA_PAKE_X2_STEP_ZK_PUBLIC
+ *   |   |       | psa_pake_output() => sequence = PSA_PAKE_X2_STEP_ZK_PROOF
+ *   |   |       | => state = PSA_PAKE_STATE_READY
+ *   |   |       | => sequence = PSA_PAKE_SEQ_INVALID
+ *   |   |       \ => Output Step = PSA_PAKE_STEP_X2S
+ *   |   |
+ *   |   |------ In Order: => state = PSA_PAKE_INPUT_X1_X2
+ *   |   |       | psa_pake_input() => sequence = PSA_PAKE_X1_STEP_KEY_SHARE
+ *   |   |       | psa_pake_input() => sequence = PSA_PAKE_X1_STEP_ZK_PUBLIC
+ *   |   |       | psa_pake_input() => sequence = PSA_PAKE_X1_STEP_ZK_PROOF
+ *   |   |       | psa_pake_input() => sequence = PSA_PAKE_X2_STEP_KEY_SHARE
+ *   |   |       | psa_pake_input() => sequence = PSA_PAKE_X2_STEP_ZK_PUBLIC
+ *   |   |       | psa_pake_input() => sequence = PSA_PAKE_X2_STEP_ZK_PROOF
+ *   |   |       | => state = PSA_PAKE_STATE_READY
+ *   |   |       | => sequence = PSA_PAKE_SEQ_INVALID
+ *   |   |       \ => Output Step = PSA_PAKE_INPUT_X4S
+ *   |
+ *   |--- In any order: (Second round input before or after second round output)
+ *   |   |
+ *   |   |------ In Order: => state = PSA_PAKE_OUTPUT_X2S
+ *   |   |       | psa_pake_output() => sequence = PSA_PAKE_X1_STEP_KEY_SHARE
+ *   |   |       | psa_pake_output() => sequence = PSA_PAKE_X1_STEP_ZK_PUBLIC
+ *   |   |       | psa_pake_output() => sequence = PSA_PAKE_X1_STEP_ZK_PROOF
+ *   |   |       | => state = PSA_PAKE_STATE_READY
+ *   |   |       | => sequence = PSA_PAKE_SEQ_INVALID
+ *   |   |       \ => Output Step = PSA_PAKE_STEP_DERIVE
+ *   |   |
+ *   |   |------ In Order: => state = PSA_PAKE_INPUT_X4S
+ *   |   |       | psa_pake_input() => sequence = PSA_PAKE_X1_STEP_KEY_SHARE
+ *   |   |       | psa_pake_input() => sequence = PSA_PAKE_X1_STEP_ZK_PUBLIC
+ *   |   |       | psa_pake_input() => sequence = PSA_PAKE_X1_STEP_ZK_PROOF
+ *   |   |       | => state = PSA_PAKE_STATE_READY
+ *   |   |       | => sequence = PSA_PAKE_SEQ_INVALID
+ *   |   |       \ => Output Step = PSA_PAKE_STEP_DERIVE
+ *   |
+ *   psa_pake_get_implicit_key()
+ *   => Input & Output Step = PSA_PAKE_STEP_INVALID
+ */
 enum psa_pake_sequence
 {
     PSA_PAKE_SEQ_INVALID        = 0,

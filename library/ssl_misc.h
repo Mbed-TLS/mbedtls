@@ -2178,18 +2178,18 @@ static inline int mbedtls_ssl_tls13_sig_alg_is_supported(
     switch( sig_alg )
     {
 #if defined(MBEDTLS_PKCS1_V15)
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
         case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256:
             break;
-#endif /* MBEDTLS_SHA256_C */
-#if defined(MBEDTLS_SHA384_C)
+#endif /* MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
+#if defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
         case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384:
             break;
-#endif /* MBEDTLS_SHA384_C */
-#if defined(MBEDTLS_SHA512_C)
+#endif /* MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
+#if defined(MBEDTLS_HAS_ALG_SHA_512_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
         case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512:
             break;
-#endif /* MBEDTLS_SHA512_C */
+#endif /* MBEDTLS_HAS_ALG_SHA_512_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
 #endif /* MBEDTLS_PKCS1_V15 */
         default:
             return( mbedtls_ssl_tls13_sig_alg_for_cert_verify_is_supported(

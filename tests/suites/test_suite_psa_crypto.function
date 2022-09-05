@@ -780,6 +780,14 @@ static int ecjpake_do_round( psa_algorithm_t alg, unsigned int primitive,
                 expected_status = PSA_ERROR_DATA_INVALID;
             }
 
+            /*
+             * When injecting errors in inputs, the implementation is
+             * free to detect it right away of with a delay.
+             * This permits delaying the error until the end of the input
+             * sequence, if no error appears then, this will be treated
+             * as an error.
+             */
+
             if( client_input_first == 1 )
             {
                 /* Client first round Input */

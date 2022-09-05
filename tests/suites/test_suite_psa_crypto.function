@@ -706,11 +706,11 @@ exit:
 }
 
 #if defined(PSA_WANT_ALG_JPAKE)
-static int ecjpake_do_round( psa_algorithm_t alg, unsigned int primitive,
-                             psa_pake_operation_t *server,
-                             psa_pake_operation_t *client,
-                             int client_input_first,
-                             int round, int inject_error )
+static void ecjpake_do_round( psa_algorithm_t alg, unsigned int primitive,
+                              psa_pake_operation_t *server,
+                              psa_pake_operation_t *client,
+                              int client_input_first,
+                              int round, int inject_error )
 {
     unsigned char *buffer0 = NULL, *buffer1 = NULL;
     size_t buffer_length = (
@@ -733,7 +733,6 @@ static int ecjpake_do_round( psa_algorithm_t alg, unsigned int primitive,
     size_t c_x1_pr_off, c_x2_pr_off, c_x2s_pr_off;
     psa_status_t expected_status = PSA_SUCCESS;
     psa_status_t status;
-    int ret = 0;
 
     ASSERT_ALLOC( buffer0, buffer_length );
     ASSERT_ALLOC( buffer1, buffer_length );
@@ -868,9 +867,9 @@ static int ecjpake_do_round( psa_algorithm_t alg, unsigned int primitive,
                     TEST_EQUAL( status, PSA_SUCCESS );
                 }
 
-                /* Error didn't trigger, exit with error */
+                /* Error didn't trigger, make test fail */
                 if( inject_error == 1 )
-                    goto exit;
+                    TEST_ASSERT( ! "One of the last psa_pake_input() calls should have returned the expected error." );
             }
 
             /* Client first round Output */
@@ -985,9 +984,9 @@ static int ecjpake_do_round( psa_algorithm_t alg, unsigned int primitive,
                     TEST_EQUAL( status, PSA_SUCCESS );
                 }
 
-                /* Error didn't trigger, exit with error */
+                /* Error didn't trigger, make test fail */
                 if( inject_error == 1 )
-                    goto exit;
+                    TEST_ASSERT( ! "One of the last psa_pake_input() calls should have returned the expected error." );
             }
 
             if( inject_error == 2 )
@@ -1070,9 +1069,9 @@ static int ecjpake_do_round( psa_algorithm_t alg, unsigned int primitive,
                 TEST_EQUAL( status, PSA_SUCCESS );
             }
 
-            /* Error didn't trigger, exit with error */
+            /* Error didn't trigger, make test fail */
             if( inject_error == 2 )
-                goto exit;
+                TEST_ASSERT( ! "One of the last psa_pake_input() calls should have returned the expected error." );
 
             break;
 
@@ -1143,9 +1142,9 @@ static int ecjpake_do_round( psa_algorithm_t alg, unsigned int primitive,
                     TEST_EQUAL( status, PSA_SUCCESS );
                 }
 
-                /* Error didn't trigger, exit with error */
+                /* Error didn't trigger, make test fail */
                 if( inject_error == 3 )
-                    goto exit;
+                    TEST_ASSERT( ! "One of the last psa_pake_input() calls should have returned the expected error." );
             }
 
             /* Client second round Output */
@@ -1208,9 +1207,9 @@ static int ecjpake_do_round( psa_algorithm_t alg, unsigned int primitive,
                     TEST_EQUAL( status, PSA_SUCCESS );
                 }
 
-                /* Error didn't trigger, exit with error */
+                /* Error didn't trigger, make test fail */
                 if( inject_error == 3 )
-                    goto exit;
+                    TEST_ASSERT( ! "One of the last psa_pake_input() calls should have returned the expected error." );
             }
 
             if( inject_error == 4 )
@@ -1256,20 +1255,17 @@ static int ecjpake_do_round( psa_algorithm_t alg, unsigned int primitive,
                 TEST_EQUAL( status, PSA_SUCCESS );
             }
 
-            /* Error didn't trigger, exit with error */
+            /* Error didn't trigger, make test fail */
             if( inject_error == 4 )
-                goto exit;
+                TEST_ASSERT( ! "One of the last psa_pake_input() calls should have returned the expected error." );
 
             break;
 
     }
 
-    ret = 1;
-
 exit:
     mbedtls_free( buffer0 );
     mbedtls_free( buffer1 );
-    return( ret );
 }
 #endif /* PSA_WANT_ALG_JPAKE */
 
@@ -8868,16 +8864,14 @@ void ecjpake_rounds_inject( int alg_arg, int primitive_arg, int hash_arg,
     PSA_ASSERT( psa_pake_set_password_key( &server, key ) );
     PSA_ASSERT( psa_pake_set_password_key( &client, key ) );
 
-    TEST_EQUAL( ecjpake_do_round( alg, primitive_arg, &server, &client,
-                                  client_input_first, 1,
-                                  inject_error ), 1 );
+    ecjpake_do_round( alg, primitive_arg, &server, &client,
+                      client_input_first, 1, inject_error );
 
     if( inject_error == 1 || inject_error == 2 )
         goto exit;
 
-    TEST_EQUAL( ecjpake_do_round( alg, primitive_arg, &server, &client,
-                client_input_first, 2,
-                inject_error ), 1 );
+    ecjpake_do_round( alg, primitive_arg, &server, &client,
+                      client_input_first, 2, inject_error );
 
 exit:
     psa_destroy_key( key );
@@ -8947,8 +8941,8 @@ void ecjpake_rounds( int alg_arg, int primitive_arg, int hash_arg,
                 PSA_ERROR_BAD_STATE );
 
     /* First round */
-    TEST_EQUAL( ecjpake_do_round( alg, primitive_arg, &server, &client,
-                                  client_input_first, 1, 0 ), 1 );
+    ecjpake_do_round( alg, primitive_arg, &server, &client,
+                      client_input_first, 1, 0 );
 
     TEST_EQUAL( psa_pake_get_implicit_key( &server, &server_derive ),
                 PSA_ERROR_BAD_STATE );
@@ -8956,8 +8950,8 @@ void ecjpake_rounds( int alg_arg, int primitive_arg, int hash_arg,
                 PSA_ERROR_BAD_STATE );
 
     /* Second round */
-    TEST_EQUAL( ecjpake_do_round( alg, primitive_arg, &server, &client,
-                                  client_input_first, 2, 0 ), 1 );
+    ecjpake_do_round( alg, primitive_arg, &server, &client,
+                      client_input_first, 2, 0 );
 
     PSA_ASSERT( psa_pake_get_implicit_key( &server, &server_derive ) );
     PSA_ASSERT( psa_pake_get_implicit_key( &client, &client_derive ) );

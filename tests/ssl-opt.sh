@@ -1895,8 +1895,44 @@ requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_disabled MBEDTLS_SSL_ASYNC_PRIVATE
 requires_hash_alg SHA_256
-run_test    "Opaque key for server authentication: invalid alg: decrypt with ECC key" \
+run_test    "Opaque key for server authentication: invalid key: decrypt with ECC key, no async" \
+            "$P_SRV key_opaque=1 crt_file=data_files/server5.crt \
+             key_file=data_files/server5.key key_opaque_algs=rsa-decrypt,none \
+             debug_level=1" \
+            "$P_CLI" \
+            1 \
+            -s "key types: Opaque, none" \
+            -s "error" \
+            -c "error" \
+            -c "Public key type mismatch"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_RSA_C
+requires_config_disabled MBEDTLS_SSL_ASYNC_PRIVATE
+requires_hash_alg SHA_256
+run_test    "Opaque key for server authentication: invalid key: ecdh with RSA key, no async" \
+            "$P_SRV key_opaque=1 crt_file=data_files/server2-sha256.crt \
+             key_file=data_files/server2.key key_opaque_algs=ecdh,none \
+             debug_level=1" \
+            "$P_CLI" \
+            1 \
+            -s "key types: Opaque, none" \
+            -s "error" \
+            -c "error" \
+            -c "Public key type mismatch"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+requires_hash_alg SHA_256
+run_test    "Opaque key for server authentication: invalid alg: decrypt with ECC key, async" \
             "$P_SRV key_opaque=1 crt_file=data_files/server5.crt \
              key_file=data_files/server5.key key_opaque_algs=rsa-decrypt,none \
              debug_level=1" \
@@ -1912,8 +1948,9 @@ requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
 requires_config_enabled MBEDTLS_X509_CRT_PARSE_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 requires_hash_alg SHA_256
-run_test    "Opaque key for server authentication: invalid alg: ecdh with RSA key" \
+run_test    "Opaque key for server authentication: invalid alg: ecdh with RSA key, async" \
             "$P_SRV key_opaque=1 crt_file=data_files/server2-sha256.crt \
              key_file=data_files/server2.key key_opaque_algs=ecdh,none \
              debug_level=1" \

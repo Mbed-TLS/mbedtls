@@ -46,6 +46,8 @@ int main( void )
 #define MAX_REQUEST_SIZE      20000
 #define MAX_REQUEST_SIZE_STR "20000"
 
+#define MAX_SAVED_TICKET_NUM 16
+
 #define DFL_SERVER_NAME         "localhost"
 #define DFL_SERVER_ADDR         NULL
 #define DFL_SERVER_PORT         "4433"
@@ -771,9 +773,11 @@ int main( int argc, char *argv[] )
     rng_context_t rng;
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
-    mbedtls_ssl_session saved_session;
-    unsigned char *session_data = NULL;
-    size_t session_data_len = 0;
+    mbedtls_ssl_session saved_session[MAX_SAVED_TICKET_NUM];
+    int saved_session_count = 0;
+    unsigned char *session_data[MAX_SAVED_TICKET_NUM];
+    size_t session_data_len[MAX_SAVED_TICKET_NUM];
+    int session_data_count = 0;
 #if defined(MBEDTLS_TIMING_C)
     mbedtls_timing_delay_context timer;
 #endif
@@ -824,7 +828,9 @@ int main( int argc, char *argv[] )
     mbedtls_net_init( &server_fd );
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_config_init( &conf );
-    memset( &saved_session, 0, sizeof( mbedtls_ssl_session ) );
+    memset( &saved_session[0], 0, sizeof( saved_session ) );
+    memset( &session_data[0], 0, sizeof( session_data ) );
+    memset( &session_data_len[0], 0, sizeof( session_data_len ) );
     rng_init( &rng );
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_x509_crt_init( &cacert );
@@ -2419,8 +2425,9 @@ int main( int argc, char *argv[] )
 
         if( opt.reco_mode == 1 )
         {
-            if( ( ret = ssl_save_session_serialize( &ssl,
-                            &session_data, &session_data_len ) ) != 0 )
+            if( ( ret = ssl_save_session_serialize(
+                            &ssl, &session_data[session_data_count],
+                            &session_data_len[session_data_count] ) ) != 0 )
             {
                 mbedtls_printf( " failed\n  ! ssl_save_session_serialize returned -0x%04x\n\n",
                                 (unsigned int) -ret );
@@ -2430,7 +2437,7 @@ int main( int argc, char *argv[] )
         }
         else
         {
-            if( ( ret = mbedtls_ssl_get_session( &ssl, &saved_session ) ) != 0 )
+            if( ( ret = mbedtls_ssl_get_session( &ssl, &saved_session[saved_session_count++] ) ) != 0 )
             {
                 mbedtls_printf( " failed\n  ! mbedtls_ssl_get_session returned -0x%x\n\n",
                                 (unsigned int) -ret );
@@ -2443,7 +2450,8 @@ int main( int argc, char *argv[] )
         if( opt.reco_mode == 1 )
         {
             mbedtls_printf( "    [ Saved %u bytes of session data]\n",
-                            (unsigned) session_data_len );
+                            (unsigned) session_data_len[session_data_count] );
+            session_data_count++;
         }
     }
 
@@ -2727,8 +2735,9 @@ send_request:
 
                             if( opt.reco_mode == 1 )
                             {
-                                if( ( ret = ssl_save_session_serialize( &ssl,
-                                                &session_data, &session_data_len ) ) != 0 )
+                                if( ( ret = ssl_save_session_serialize(
+                                                &ssl, &session_data[session_data_count],
+                                                &session_data_len[session_data_count] ) ) != 0 )
                                 {
                                     mbedtls_printf( " failed\n  ! ssl_save_session_serialize returned -0x%04x\n\n",
                                                     (unsigned int) -ret );
@@ -2737,7 +2746,7 @@ send_request:
                             }
                             else
                             {
-                                if( ( ret = mbedtls_ssl_get_session( &ssl, &saved_session ) ) != 0 )
+                                if( ( ret = mbedtls_ssl_get_session( &ssl, &saved_session[saved_session_count++] ) ) != 0 )
                                 {
                                     mbedtls_printf( " failed\n  ! mbedtls_ssl_get_session returned -0x%x\n\n",
                                                     (unsigned int) -ret );
@@ -2750,7 +2759,8 @@ send_request:
                             if( opt.reco_mode == 1 )
                             {
                                 mbedtls_printf( "    [ Saved %u bytes of session data]\n",
-                                                (unsigned) session_data_len );
+                                                (unsigned) session_data_len[session_data_count] );
+                                session_data_count++;
                             }
                         }
                         continue;
@@ -3094,21 +3104,27 @@ reconnect:
 
         if( opt.reco_mode == 1 )
         {
-            if( ( ret = mbedtls_ssl_session_load( &saved_session,
-                                                  session_data,
-                                                  session_data_len ) ) != 0 )
+            for( i = 0; i < session_data_count; i++ )
             {
-                mbedtls_printf( " failed\n  ! mbedtls_ssl_session_load returned -0x%x\n\n",
-                                (unsigned int) -ret );
-                goto exit;
+                if( ( ret = mbedtls_ssl_session_load( &saved_session[saved_session_count++],
+                                                      session_data[i],
+                                                      session_data_len[i] ) ) != 0 )
+                {
+                    mbedtls_printf( " failed\n  ! mbedtls_ssl_session_load returned -0x%x\n\n",
+                                    (unsigned int) -ret );
+                    goto exit;
+                }
             }
         }
 
-        if( ( ret = mbedtls_ssl_set_session( &ssl, &saved_session ) ) != 0 )
+        for( i = 0; i < saved_session_count; i++ )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_set_session returned -0x%x\n\n",
-                            (unsigned int) -ret );
-            goto exit;
+            if( ( ret = mbedtls_ssl_set_session( &ssl, &saved_session[i] ) ) != 0 )
+            {
+                mbedtls_printf( " failed\n  ! mbedtls_ssl_set_session returned -0x%x\n\n",
+                                (unsigned int) -ret );
+                goto exit;
+            }
         }
 
         if( ( ret = mbedtls_net_connect( &server_fd,
@@ -3166,11 +3182,15 @@ exit:
 
     mbedtls_ssl_free( &ssl );
     mbedtls_ssl_config_free( &conf );
-    mbedtls_ssl_session_free( &saved_session );
 
-    if( session_data != NULL )
-        mbedtls_platform_zeroize( session_data, session_data_len );
-    mbedtls_free( session_data );
+    for( i = 0; i < MAX_SAVED_TICKET_NUM; i++ )
+    {
+        mbedtls_ssl_session_free( &saved_session[i] );
+
+        if( session_data[i] != NULL )
+            mbedtls_platform_zeroize( session_data[i], session_data_len[i] );
+        mbedtls_free( session_data[i] );
+    }
 #if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
     if( context_buf != NULL )
         mbedtls_platform_zeroize( context_buf, context_buf_len );

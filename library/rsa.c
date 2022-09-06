@@ -57,12 +57,9 @@
 /* We use MD first if it's available (for compatibility reasons)
  * and "fall back" to PSA otherwise (which needs psa_crypto_init()). */
 #if defined(MBEDTLS_PKCS1_V21)
-#if defined(MBEDTLS_MD_C)
-#define HASH_MAX_SIZE   MBEDTLS_MD_MAX_SIZE
-#else /* MBEDTLS_MD_C */
+#if !defined(MBEDTLS_MD_C)
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
-#define HASH_MAX_SIZE   PSA_HASH_MAX_SIZE
 #endif /* MBEDTLS_MD_C */
 #endif /* MBEDTLS_PKCS1_V21 */
 
@@ -1114,7 +1111,7 @@ static int mgf_mask( unsigned char *dst, size_t dlen, unsigned char *src,
     unsigned char *p;
     unsigned int hlen;
     size_t i, use_len;
-    unsigned char mask[HASH_MAX_SIZE];
+    unsigned char mask[MBEDTLS_HASH_MAX_SIZE];
 #if defined(MBEDTLS_MD_C)
     int ret = 0;
     const mbedtls_md_info_t *md_info;
@@ -1469,7 +1466,7 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
     size_t ilen, i, pad_len;
     unsigned char *p, bad, pad_done;
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
-    unsigned char lhash[HASH_MAX_SIZE];
+    unsigned char lhash[MBEDTLS_HASH_MAX_SIZE];
     unsigned int hlen;
 
     RSA_VALIDATE_RET( ctx != NULL );
@@ -2064,7 +2061,7 @@ int mbedtls_rsa_rsassa_pss_verify_ext( mbedtls_rsa_context *ctx,
     size_t siglen;
     unsigned char *p;
     unsigned char *hash_start;
-    unsigned char result[HASH_MAX_SIZE];
+    unsigned char result[MBEDTLS_HASH_MAX_SIZE];
     unsigned int hlen;
     size_t observed_salt_len, msb;
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE] = {0};

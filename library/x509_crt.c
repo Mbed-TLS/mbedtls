@@ -47,8 +47,8 @@
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
-#include "hash_info.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
+#include "hash_info.h"
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -2354,11 +2354,10 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
                                const mbedtls_x509_crt_profile *profile )
 {
     int flags = 0;
+    unsigned char hash[MBEDTLS_HASH_MAX_SIZE];
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    unsigned char hash[PSA_HASH_MAX_SIZE];
     psa_algorithm_t psa_algorithm;
 #else
-    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
     const mbedtls_md_info_t *md_info;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
     size_t hash_length;

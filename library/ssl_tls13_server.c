@@ -1674,6 +1674,10 @@ static int ssl_tls13_write_key_share_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, adding key share extension" ) );
 
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "server hello, write selected_group: %s (%04x)",
+                                mbedtls_ssl_named_group_to_str( group ),
+                                group ) );
+
     /* Check if we have space for header and length fields:
      * - extension_type         (2 bytes)
      * - extension_data_length  (2 bytes)

@@ -260,7 +260,7 @@
 #error "MBEDTLS_ECP_NO_FALLBACK defined, but no alternative implementation enabled"
 #endif
 
-#if defined(MBEDTLS_HKDF_C) && !( defined(MBEDTLS_MD_C) || defined(MBEDTLS_PSA_CRYPTO_C) )
+#if defined(MBEDTLS_HKDF_C) && !defined(MBEDTLS_MD_C)
 #error "MBEDTLS_HKDF_C defined, but not all prerequisites"
 #endif
 

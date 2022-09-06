@@ -104,7 +104,7 @@ enum psa_pake_state
 /*
  * The first PAKE step shares the same sequences of the second PAKE step
  * but with a second set of KEY_SHARE/ZK_PUBLIC/ZK_PROOF outputs/inputs.
- * This it's simpler to share the same sequences numbers of the first
+ * It's simpler to share the same sequences numbers of the first
  * set of KEY_SHARE/ZK_PUBLIC/ZK_PROOF outputs/inputs in both PAKE steps.
  *
  * State sequence with step, state & sequence enums:

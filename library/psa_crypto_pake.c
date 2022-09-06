@@ -128,7 +128,7 @@ enum psa_pake_state
  *   |   |       | psa_pake_output() => sequence = PSA_PAKE_X2_STEP_ZK_PROOF
  *   |   |       | => state = PSA_PAKE_STATE_READY
  *   |   |       | => sequence = PSA_PAKE_SEQ_INVALID
- *   |   |       \ => Output Step = PSA_PAKE_STEP_X2S
+ *   |   |       | => Output Step = PSA_PAKE_STEP_X2S
  *   |   |
  *   |   |------ In Order: => state = PSA_PAKE_INPUT_X1_X2
  *   |   |       | psa_pake_input() => sequence = PSA_PAKE_X1_STEP_KEY_SHARE
@@ -139,7 +139,7 @@ enum psa_pake_state
  *   |   |       | psa_pake_input() => sequence = PSA_PAKE_X2_STEP_ZK_PROOF
  *   |   |       | => state = PSA_PAKE_STATE_READY
  *   |   |       | => sequence = PSA_PAKE_SEQ_INVALID
- *   |   |       \ => Output Step = PSA_PAKE_INPUT_X4S
+ *   |   |       | => Output Step = PSA_PAKE_INPUT_X4S
  *   |
  *   |--- In any order: (Second round input before or after second round output)
  *   |   |
@@ -149,7 +149,7 @@ enum psa_pake_state
  *   |   |       | psa_pake_output() => sequence = PSA_PAKE_X1_STEP_ZK_PROOF
  *   |   |       | => state = PSA_PAKE_STATE_READY
  *   |   |       | => sequence = PSA_PAKE_SEQ_INVALID
- *   |   |       \ => Output Step = PSA_PAKE_STEP_DERIVE
+ *   |   |       | => Output Step = PSA_PAKE_STEP_DERIVE
  *   |   |
  *   |   |------ In Order: => state = PSA_PAKE_INPUT_X4S
  *   |   |       | psa_pake_input() => sequence = PSA_PAKE_X1_STEP_KEY_SHARE
@@ -157,7 +157,7 @@ enum psa_pake_state
  *   |   |       | psa_pake_input() => sequence = PSA_PAKE_X1_STEP_ZK_PROOF
  *   |   |       | => state = PSA_PAKE_STATE_READY
  *   |   |       | => sequence = PSA_PAKE_SEQ_INVALID
- *   |   |       \ => Output Step = PSA_PAKE_STEP_DERIVE
+ *   |   |       | => Output Step = PSA_PAKE_STEP_DERIVE
  *   |
  *   psa_pake_get_implicit_key()
  *   => Input & Output Step = PSA_PAKE_STEP_INVALID

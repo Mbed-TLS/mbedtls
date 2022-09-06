@@ -132,7 +132,7 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
                                             size_t identity_len,
                                             uint32_t obfuscated_ticket_age )
 {
-    int ret;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *ticket_buffer;
 
     ((void) obfuscated_ticket_age);
@@ -146,12 +146,9 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
                                 ssl->conf->f_ticket_parse == NULL ? "NOT " : "",
                                 ssl->conf->f_ticket_write == NULL ? "NOT " : "" ) );
 
-    if( ssl->conf->f_ticket_parse == NULL ||
-        identity_len == 0 )
-    {
-        /* Ticket parser is not configured, Skip */
+    /* Ticket parser is not configured, Skip */
+    if( ssl->conf->f_ticket_parse == NULL || identity_len == 0 )
         return( 0 );
-    }
 
     /* We create a copy of the encrypted ticket since decrypting
      * it into the same buffer will wipe-out the original content.

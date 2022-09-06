@@ -689,7 +689,7 @@ static int ssl_tls13_get_psk_to_offer(
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     /* Check if a ticket has been configured. */
-    if( ssl->session_negotiate != NULL         &&
+    if( ssl->session_negotiate != NULL &&
         ssl->session_negotiate->ticket != NULL )
     {
 #if defined(MBEDTLS_HAVE_TIME)

@@ -1,0 +1,3 @@
+Bugfix
+   * Fix support for little-endian Microblaze when MBEDTLS_HAVE_ASM is defined.
+     Contributed by Kazuyuki Kimura to fix #2020.

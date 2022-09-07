@@ -471,7 +471,8 @@ int main( void )
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 #define USAGE_TLS1_3_KEY_EXCHANGE_MODES \
     "    tls13_kex_modes=%%s   default: all\n"     \
-    "                          options: psk, psk_ephemeral, ephemeral, ephemeral_all, psk_all, all\n"
+    "                          options: psk, psk_ephemeral, psk_all, ephemeral,\n"  \
+    "                                   ephemeral_all, all, psk_or_ephemeral\n"
 #else
 #define USAGE_TLS1_3_KEY_EXCHANGE_MODES ""
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
@@ -676,9 +677,9 @@ struct options
     int force_srtp_profile;     /* SRTP protection profile to use or all    */
     int support_mki;            /* The dtls mki mki support                 */
     const char *key1_opaque_alg1; /* Allowed opaque key 1 alg 1            */
-    const char *key1_opaque_alg2; /* Allowed Opaque key 1 alg 2            */
+    const char *key1_opaque_alg2; /* Allowed opaque key 1 alg 2            */
     const char *key2_opaque_alg1; /* Allowed opaque key 2 alg 1            */
-    const char *key2_opaque_alg2; /* Allowed Opaque key 2 alg 2            */
+    const char *key2_opaque_alg2; /* Allowed opaque key 2 alg 2            */
 } opt;
 
 #include "ssl_test_common_source.c"
@@ -1859,6 +1860,16 @@ int main( int argc, char *argv[] )
                 opt.tls13_kex_modes = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_ALL;
             else if( strcmp( q, "all" ) == 0 )
                 opt.tls13_kex_modes = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_ALL;
+            /* The purpose of `psk_or_ephemeral` is to improve test coverage. That
+             * is not recommended in practice.
+             * `psk_or_ephemeral` exists in theory, we need this mode to test if
+             * this setting work correctly. With this key exchange setting, server
+             * should always perform `ephemeral` handshake. `psk` or `psk_ephermal`
+             * is not expected.
+             */
+            else if( strcmp( q, "psk_or_ephemeral" ) == 0 )
+                opt.tls13_kex_modes = MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK |
+                                      MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL ;
             else goto usage;
         }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
@@ -2753,6 +2764,7 @@ int main( int argc, char *argv[] )
     }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     /* The default algorithms profile disables SHA-1, but our tests still
        rely on it heavily. Hence we allow it here. A real-world server
        should use the default profile unless there is a good reason not to. */
@@ -2762,6 +2774,7 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_conf_cert_profile( &conf, &crt_profile_for_test );
         mbedtls_ssl_conf_sig_algs( &conf, ssl_sig_algs_for_test );
     }
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     if( opt.auth_mode != DFL_AUTH_MODE )

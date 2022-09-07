@@ -6,6 +6,9 @@
 #include "mbedtls/oid.h"
 #include "mbedtls/rsa.h"
 
+#include "hash_info.h"
+#include "legacy_or_psa.h"
+
 #if defined(MBEDTLS_RSA_C)
 int mbedtls_rsa_decrypt_func( void *ctx, size_t *olen,
                        const unsigned char *input, unsigned char *output,
@@ -32,8 +35,7 @@ size_t mbedtls_rsa_key_len_func( void *ctx )
     defined(MBEDTLS_PEM_WRITE_C) && defined(MBEDTLS_X509_CSR_WRITE_C)
 static int x509_crt_verifycsr( const unsigned char *buf, size_t buflen )
 {
-    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
-    const mbedtls_md_info_t *md_info;
+    unsigned char hash[PSA_HASH_MAX_SIZE];
     mbedtls_x509_csr csr;
     int ret = 0;
 
@@ -45,8 +47,12 @@ static int x509_crt_verifycsr( const unsigned char *buf, size_t buflen )
         goto cleanup;
     }
 
-    md_info = mbedtls_md_info_from_type( csr.sig_md );
-    if( mbedtls_md( md_info, csr.cri.p, csr.cri.len, hash ) != 0 )
+    psa_algorithm_t psa_alg = mbedtls_hash_info_psa_from_md( csr.sig_md );
+    size_t hash_size = 0;
+    psa_status_t status = psa_hash_compute( psa_alg, csr.cri.p, csr.cri.len,
+                                            hash, PSA_HASH_MAX_SIZE, &hash_size );
+
+    if( status != PSA_SUCCESS )
     {
         /* Note: this can't happen except after an internal error */
         ret = MBEDTLS_ERR_X509_BAD_INPUT_DATA;
@@ -54,7 +60,7 @@ static int x509_crt_verifycsr( const unsigned char *buf, size_t buflen )
     }
 
     if( mbedtls_pk_verify_ext( csr.sig_pk, csr.sig_opts, &csr.pk,
-                       csr.sig_md, hash, mbedtls_md_get_size( md_info ),
+                       csr.sig_md, hash, mbedtls_hash_info_get_size( csr.sig_md ),
                        csr.sig.p, csr.sig.len ) != 0 )
     {
         ret = MBEDTLS_ERR_X509_CERT_VERIFY_FAILED;
@@ -96,13 +102,14 @@ void x509_csr_check( char * key_file, char * cert_req_check_file, int md_type,
 
     memset( &rnd_info, 0x2a, sizeof( mbedtls_test_rnd_pseudo_info ) );
 
+    mbedtls_x509write_csr_init( &req );
+
     USE_PSA_INIT( );
 
     mbedtls_pk_init( &key );
     TEST_ASSERT( mbedtls_pk_parse_keyfile( &key, key_file, NULL,
                         mbedtls_test_rnd_std_rand, NULL ) == 0 );
 
-    mbedtls_x509write_csr_init( &req );
     mbedtls_x509write_csr_set_md_alg( &req, md_type );
     mbedtls_x509write_csr_set_key( &req, &key );
     TEST_ASSERT( mbedtls_x509write_csr_set_subject_name( &req, subject_name ) == 0 );
@@ -178,10 +185,13 @@ void x509_csr_check_opaque( char *key_file, int md_type, int key_usage,
     const char *subject_name = "C=NL,O=PolarSSL,CN=PolarSSL Server 1";
     mbedtls_test_rnd_pseudo_info rnd_info;
 
-    PSA_INIT( );
     memset( &rnd_info, 0x2a, sizeof( mbedtls_test_rnd_pseudo_info ) );
 
-    md_alg_psa = mbedtls_psa_translate_md( (mbedtls_md_type_t) md_type );
+    mbedtls_x509write_csr_init( &req );
+
+    USE_PSA_INIT( );
+
+    md_alg_psa = mbedtls_hash_info_psa_from_md( (mbedtls_md_type_t) md_type );
     TEST_ASSERT( md_alg_psa != MBEDTLS_MD_NONE );
 
     mbedtls_pk_init( &key );
@@ -199,7 +209,6 @@ void x509_csr_check_opaque( char *key_file, int md_type, int key_usage,
                                             PSA_KEY_USAGE_SIGN_HASH,
                                             PSA_ALG_NONE ) == 0 );
 
-    mbedtls_x509write_csr_init( &req );
     mbedtls_x509write_csr_set_md_alg( &req, md_type );
     mbedtls_x509write_csr_set_key( &req, &key );
     TEST_ASSERT( mbedtls_x509write_csr_set_subject_name( &req, subject_name ) == 0 );
@@ -226,7 +235,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_PEM_WRITE_C:MBEDTLS_X509_CRT_WRITE_C:MBEDTLS_SHA1_C */
+/* BEGIN_CASE depends_on:MBEDTLS_PEM_WRITE_C:MBEDTLS_X509_CRT_WRITE_C:MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
 void x509_crt_check( char *subject_key_file, char *subject_pwd,
                      char *subject_name, char *issuer_key_file,
                      char *issuer_pwd, char *issuer_name,
@@ -294,7 +303,7 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
     {
         psa_algorithm_t alg_psa, md_alg_psa;
 
-        md_alg_psa = mbedtls_psa_translate_md( (mbedtls_md_type_t) md_type );
+        md_alg_psa = mbedtls_hash_info_psa_from_md( (mbedtls_md_type_t) md_type );
         TEST_ASSERT( md_alg_psa != MBEDTLS_MD_NONE );
 
         if( mbedtls_pk_get_type( &issuer_key ) == MBEDTLS_PK_ECKEY )
@@ -313,7 +322,7 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
     if( pk_wrap == 2 )
         TEST_ASSERT( mbedtls_pk_get_type( &issuer_key ) == MBEDTLS_PK_OPAQUE );
 
-    TEST_ASSERT( mbedtls_test_read_mpi( &serial, 10, serial_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &serial, serial_str ) == 0 );
 
     if( ver != -1 )
         mbedtls_x509write_crt_set_version( &crt, ver );

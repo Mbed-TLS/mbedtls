@@ -1,6 +1,0 @@
-Bugfix
-   * Fix resource leaks in mbedtls_pk_parse_public_key() in low
-     memory conditions.
-Security
-   * Fix potential memory leak inside mbedtls_ssl_cache_set() with
-     an invalid session id length.

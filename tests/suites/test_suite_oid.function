@@ -3,6 +3,7 @@
 #include "mbedtls/asn1.h"
 #include "mbedtls/asn1write.h"
 #include "string.h"
+#include "legacy_or_psa.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -82,7 +83,7 @@ void oid_get_x509_extension( data_t *oid, int exp_type )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_MD_C */
+/* BEGIN_CASE */
 void oid_get_md_alg_id( data_t *oid, int exp_md_id )
 {
     mbedtls_asn1_buf md_oid = { 0, 0, NULL };

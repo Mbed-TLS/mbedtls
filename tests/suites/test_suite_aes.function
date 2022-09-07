@@ -460,6 +460,36 @@ void aes_misc_params( )
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void aes_ecb_copy_context( data_t * key_str, data_t * src_str )
+{
+    unsigned char output1[16], output2[16], plain[16];
+    mbedtls_aes_context ctx1, ctx2, ctx3;
+
+    // Set key and encrypt with original context
+    mbedtls_aes_init( &ctx1 );
+    TEST_ASSERT( mbedtls_aes_setkey_enc( &ctx1, key_str->x,
+                                         key_str->len * 8 ) == 0 );
+    TEST_ASSERT( mbedtls_aes_crypt_ecb( &ctx1, MBEDTLS_AES_ENCRYPT,
+                                        src_str->x, output1 ) == 0 );
+
+    ctx2 = ctx1;
+    TEST_ASSERT( mbedtls_aes_setkey_dec( &ctx1, key_str->x,
+                                         key_str->len * 8 ) == 0 );
+    ctx3 = ctx1;
+    memset( &ctx1, 0, sizeof( ctx1 ) );
+
+    // Encrypt and decrypt with copied context
+    TEST_ASSERT( mbedtls_aes_crypt_ecb( &ctx2, MBEDTLS_AES_ENCRYPT,
+                                        src_str->x, output2 ) == 0 );
+    TEST_ASSERT( mbedtls_aes_crypt_ecb( &ctx3, MBEDTLS_AES_DECRYPT,
+                                        output1, plain ) == 0 );
+
+    TEST_ASSERT( mbedtls_test_hexcmp( output1, output2, 16, 16 ) == 0 );
+    TEST_ASSERT( mbedtls_test_hexcmp( src_str->x, plain, src_str->len, 16 ) == 0 );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void aes_selftest(  )
 {

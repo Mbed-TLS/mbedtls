@@ -1789,6 +1789,7 @@ int main( int argc, char *argv[] )
     }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     /* The default algorithms profile disables SHA-1, but our tests still
        rely on it heavily. */
     if( opt.allow_sha1 > 0 )
@@ -1797,11 +1798,11 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_conf_cert_profile( &conf, &crt_profile_for_test );
         mbedtls_ssl_conf_sig_algs( &conf, ssl_sig_algs_for_test );
     }
-
     if( opt.context_crt_cb == 0 )
         mbedtls_ssl_conf_verify( &conf, my_verify, NULL );
 
     memset( peer_crt_info, 0, sizeof( peer_crt_info ) );
+#endif /* MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
@@ -2645,8 +2646,6 @@ send_request:
     /*
      * 7. Read the HTTP response
      */
-    mbedtls_printf( "  < Read from server:" );
-    fflush( stdout );
 
     /*
      * TLS and DTLS need different reading styles (stream vs datagram)
@@ -2694,6 +2693,18 @@ send_request:
                         ret = 0;
                         goto reconnect;
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+                    case MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET:
+                        /* We were waiting for application data but got
+                         * a NewSessionTicket instead. */
+                        mbedtls_printf( " got new session ticket.\n" );
+                        continue;
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+
                     default:
                         mbedtls_printf( " mbedtls_ssl_read returned -0x%x\n",
                                         (unsigned int) -ret );
@@ -2703,8 +2714,8 @@ send_request:
 
             len = ret;
             buf[len] = '\0';
-            mbedtls_printf( " %d bytes read\n\n%s", len, (char *) buf );
-
+            mbedtls_printf( "  < Read from server: %d bytes read\n\n%s", len, (char *) buf );
+            fflush( stdout );
             /* End of message should be detected according to the syntax of the
              * application protocol (eg HTTP), just use a dummy test here. */
             if( ret > 0 && buf[len-1] == '\n' )
@@ -2767,7 +2778,7 @@ send_request:
 
         len = ret;
         buf[len] = '\0';
-        mbedtls_printf( " %d bytes read\n\n%s", len, (char *) buf );
+        mbedtls_printf( "  < Read from server: %d bytes read\n\n%s", len, (char *) buf );
         ret = 0;
     }
 

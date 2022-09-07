@@ -18,7 +18,7 @@ module.
 are specific to TLS 1.3; those parts always use PSA Crypto. The parts of the
 TLS 1.3 code that are common with TLS 1.2, however, follow this option;
 currently this is the record protection code, computation of the running
-handshake hash, and X.509). You need to enable `MBEDTLS_USE_PSA_CRYPTO` if you
+handshake hash, and X.509. You need to enable `MBEDTLS_USE_PSA_CRYPTO` if you
 want TLS 1.3 to use PSA everywhere.
 
 New APIs / API extensions
@@ -100,7 +100,7 @@ Current exception:
 - verification of RSA-PSS signatures with a salt length that is different from
   the hash length.
 
-Other than the above exceptions, all crypto operations are based on PSA when
+Other than the above exception, all crypto operations are based on PSA when
 `MBEDTLS_USE_PSA_CRYPTO` is enabled.
 
 ### PK layer: most crypto operations based on PSA
@@ -108,8 +108,8 @@ Other than the above exceptions, all crypto operations are based on PSA when
 Current exception:
 
 - verification of RSA-PSS signatures with a salt length that is different from
-  the hash length.
+  the hash length, or with an MGF hash that's different from the message hash.
 
-Other than the above exceptions, all crypto operations are based on PSA when
+Other than the above exception, all crypto operations are based on PSA when
 `MBEDTLS_USE_PSA_CRYPTO` is enabled.
 

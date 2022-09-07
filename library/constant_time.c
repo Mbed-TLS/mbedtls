@@ -272,7 +272,7 @@ unsigned mbedtls_ct_uint_if( unsigned condition,
  * \note if1 and if0 must be either 1 or -1, otherwise the result
  *       is undefined.
  *
- * \param condition     Condition to test.
+ * \param condition     Condition to test; must be either 0 or 1.
  * \param if1           The first sign; must be either +1 or -1.
  * \param if0           The second sign; must be either +1 or -1.
  *
@@ -738,6 +738,50 @@ int mbedtls_mpi_safe_cond_swap( mbedtls_mpi *X,
     }
 
 cleanup:
+    return( ret );
+}
+
+/*
+ * Compare unsigned values in constant time
+ */
+unsigned mbedtls_mpi_core_lt_ct( const mbedtls_mpi_uint *A,
+                                 const mbedtls_mpi_uint *B,
+                                 size_t limbs )
+{
+    unsigned ret, cond, done;
+
+    /* The value of any of these variables is either 0 or 1 for the rest of
+     * their scope. */
+    ret = cond = done = 0;
+
+    for( size_t i = limbs; i > 0; i-- )
+    {
+        /*
+         * If B[i - 1] < A[i - 1] then A < B is false and the result must
+         * remain 0.
+         *
+         * Again even if we can make a decision, we just mark the result and
+         * the fact that we are done and continue looping.
+         */
+        cond = mbedtls_ct_mpi_uint_lt( B[i - 1], A[i - 1] );
+        done |= cond;
+
+        /*
+         * If A[i - 1] < B[i - 1] then A < B is true.
+         *
+         * Again even if we can make a decision, we just mark the result and
+         * the fact that we are done and continue looping.
+         */
+        cond = mbedtls_ct_mpi_uint_lt( A[i - 1], B[i - 1] );
+        ret |= cond & ( 1 - done );
+        done |= cond;
+    }
+
+    /*
+     * If all the limbs were equal, then the numbers are equal, A < B is false
+     * and leaving the result 0 is correct.
+     */
+
     return( ret );
 }
 

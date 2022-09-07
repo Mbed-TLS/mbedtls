@@ -1,0 +1,2 @@
+Bugfix
+   * Refactor mbedtls_aes_context to support shallow-copying. Fixes #2147.

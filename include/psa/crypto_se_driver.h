@@ -395,7 +395,7 @@ typedef psa_status_t (*psa_drv_se_cipher_setup_t)(psa_drv_se_context_t *drv_cont
                                                   psa_encrypt_or_decrypt_t direction);
 
 /** \brief A function that sets the initialization vector (if
- * necessary) for an secure element cipher operation
+ * necessary) for a secure element cipher operation
  *
  * Rationale: The `psa_se_cipher_*` operation in the PSA Cryptographic API has
  * two IV functions: one to set the IV, and one to generate it internally. The

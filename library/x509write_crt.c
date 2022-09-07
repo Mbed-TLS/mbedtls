@@ -43,7 +43,10 @@
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
+#include "hash_info.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+#include "legacy_or_psa.h"
 
 void mbedtls_x509write_crt_init( mbedtls_x509write_cert *ctx )
 {
@@ -171,7 +174,7 @@ int mbedtls_x509write_crt_set_basic_constraints( mbedtls_x509write_cert *ctx,
                              is_ca, buf + sizeof(buf) - len, len ) );
 }
 
-#if defined(MBEDTLS_SHA1_C)
+#if defined(MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
 static int mbedtls_x509write_crt_set_key_identifier( mbedtls_x509write_cert *ctx,
                                               int is_ca,
                                               unsigned char tag )
@@ -253,7 +256,7 @@ int mbedtls_x509write_crt_set_authority_key_identifier( mbedtls_x509write_cert *
                                                      1,
                                                      (MBEDTLS_ASN1_CONTEXT_SPECIFIC | 0) );
 }
-#endif /* MBEDTLS_SHA1_C */
+#endif /* MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
 
 int mbedtls_x509write_crt_set_key_usage( mbedtls_x509write_cert *ctx,
                                          unsigned int key_usage )
@@ -500,7 +503,7 @@ int mbedtls_x509write_crt_der( mbedtls_x509write_cert *ctx,
 
     /* Compute hash of CRT. */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_algorithm = mbedtls_psa_translate_md( ctx->md_alg );
+    psa_algorithm = mbedtls_hash_info_psa_from_md( ctx->md_alg );
 
     status = psa_hash_compute( psa_algorithm,
                                c,

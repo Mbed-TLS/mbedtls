@@ -1710,6 +1710,12 @@ static int ssl_tls13_postprocess_server_hello( mbedtls_ssl_context *ssl )
             goto cleanup;
     }
 
+    MBEDTLS_SSL_DEBUG_MSG( 3,
+            ( "Server selected key exchange mode: %s",
+              handshake->key_exchange_mode == 1 ? "psk" :
+              (handshake->key_exchange_mode == 2 ? "ephemeral" :
+              "psk_ephemeral")) );
+
     /* Start the TLS 1.3 key schedule: Set the PSK and derive early secret.
      *
      * TODO: We don't have to do this in case we offered 0-RTT and the

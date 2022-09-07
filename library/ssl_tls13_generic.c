@@ -1401,7 +1401,7 @@ int mbedtls_ssl_reset_transcript_for_hrr( mbedtls_ssl_context *ssl )
     }
 #endif /* MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
 #if defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
-    else if( ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
+    if( ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
     {
         MBEDTLS_SSL_DEBUG_BUF( 4, "Truncated SHA-384 handshake transcript",
                                hash_transcript, hash_len );

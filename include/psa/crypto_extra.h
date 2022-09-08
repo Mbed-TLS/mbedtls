@@ -1829,7 +1829,7 @@ psa_status_t psa_pake_abort( psa_pake_operation_t * operation );
  */
 #if defined(MBEDTLS_PSA_BUILTIN_PAKE)
 #define PSA_PAKE_OPERATION_INIT {PSA_ALG_NONE, 0, 0, 0, 0,              \
-                                 MBEDTLS_SVC_KEY_ID_INIT, 0, NULL, 0, 0, \
+                                 MBEDTLS_SVC_KEY_ID_INIT, 0, {0}, 0, 0, \
                                  {.dummy = 0}}
 #else
 #define PSA_PAKE_OPERATION_INIT {PSA_ALG_NONE, 0, 0, {0}}
@@ -1905,6 +1905,7 @@ static inline void psa_pake_cs_set_hash( psa_pake_cipher_suite_t *cipher_suite,
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
 #include <mbedtls/ecjpake.h>
+#define PSA_PAKE_BUFFER_SIZE ( ( 69 + 66 + 33 ) * 2 )
 #endif
 
 struct psa_pake_operation_s
@@ -1917,7 +1918,7 @@ struct psa_pake_operation_s
     unsigned int MBEDTLS_PRIVATE(output_step);
     mbedtls_svc_key_id_t MBEDTLS_PRIVATE(password);
     psa_pake_role_t MBEDTLS_PRIVATE(role);
-    uint8_t *MBEDTLS_PRIVATE(buffer);
+    uint8_t MBEDTLS_PRIVATE(buffer[PSA_PAKE_BUFFER_SIZE]);
     size_t MBEDTLS_PRIVATE(buffer_length);
     size_t MBEDTLS_PRIVATE(buffer_offset);
 #endif

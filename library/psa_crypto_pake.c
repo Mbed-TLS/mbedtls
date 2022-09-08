@@ -33,10 +33,6 @@
 #include <mbedtls/error.h>
 #include <string.h>
 
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
-#define PSA_PAKE_BUFFER_SIZE ( ( 69 + 66 + 33 ) * 2 )
-#endif
-
 /*
  * State sequence:
  *
@@ -234,7 +230,7 @@ psa_status_t psa_pake_setup( psa_pake_operation_t *operation,
         operation->input_step = PSA_PAKE_STEP_X1_X2;
         operation->output_step = PSA_PAKE_STEP_X1_X2;
 
-        operation->buffer = NULL;
+        mbedtls_platform_zeroize( operation->buffer, PSA_PAKE_BUFFER_SIZE );
         operation->buffer_length = 0;
         operation->buffer_offset = 0;
 
@@ -383,10 +379,6 @@ static psa_status_t psa_pake_ecjpake_setup( psa_pake_operation_t *operation )
     if( ret != 0 )
         return( mbedtls_ecjpake_to_psa_error( ret ) );
 
-    operation->buffer = mbedtls_calloc( 1, PSA_PAKE_BUFFER_SIZE );
-    if( operation->buffer == NULL )
-        return( PSA_ERROR_INSUFFICIENT_MEMORY );
-
     operation->state = PSA_PAKE_STATE_READY;
 
     return( PSA_SUCCESS );
@@ -428,8 +420,7 @@ psa_status_t psa_pake_output( psa_pake_operation_t *operation,
         }
 
         if( operation->state >= PSA_PAKE_STATE_READY &&
-            ( mbedtls_ecjpake_check( &operation->ctx.ecjpake ) != 0 ||
-              operation->buffer == NULL ) )
+            mbedtls_ecjpake_check( &operation->ctx.ecjpake ) != 0 )
         {
             return( PSA_ERROR_BAD_STATE );
         }
@@ -612,8 +603,7 @@ psa_status_t psa_pake_input( psa_pake_operation_t *operation,
         }
 
         if( operation->state >= PSA_PAKE_STATE_READY &&
-            ( mbedtls_ecjpake_check( &operation->ctx.ecjpake ) != 0 ||
-              operation->buffer == NULL ) )
+            mbedtls_ecjpake_check( &operation->ctx.ecjpake ) != 0 )
         {
             return( PSA_ERROR_BAD_STATE );
         }
@@ -794,8 +784,7 @@ psa_status_t psa_pake_abort(psa_pake_operation_t * operation)
         operation->output_step = 0;
         operation->password = MBEDTLS_SVC_KEY_ID_INIT;
         operation->role = 0;
-        mbedtls_free( operation->buffer );
-        operation->buffer = NULL;
+        mbedtls_platform_zeroize( operation->buffer, PSA_PAKE_BUFFER_SIZE );
         operation->buffer_length = 0;
         operation->buffer_offset = 0;
         mbedtls_ecjpake_free( &operation->ctx.ecjpake );

@@ -267,7 +267,7 @@ int mbedtls_ecjpake_derive_secret( mbedtls_ecjpake_context *ctx,
  * \param buf       The buffer to write the derived secret to. This must
  *                  be a writable buffer of length \p len Bytes.
  * \param len       The length of \p buf in Bytes.
- * \param olen      The address at which to store the total number of Bytes
+ * \param olen      The address at which to store the total number of bytes
  *                  written to \p buf. This must not be \c NULL.
  * \param f_rng     The RNG function to use. This must not be \c NULL.
  * \param p_rng     The RNG parameter to be passed to \p f_rng. This

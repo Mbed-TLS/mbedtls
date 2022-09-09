@@ -1931,34 +1931,6 @@ cleanup:
     return( ret );
 }
 
-/* Fill X with n_bytes random bytes.
- * X must already have room for those bytes.
- * The ordering of the bytes returned from the RNG is suitable for
- * deterministic ECDSA (see RFC 6979 §3.3 and mbedtls_mpi_core_random()).
- * The size and sign of X are unchanged.
- * n_bytes must not be 0.
- */
-int mbedtls_mpi_core_fill_random(
-    mbedtls_mpi_uint *X, size_t X_limbs,
-    size_t n_bytes,
-    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    const size_t limbs = CHARS_TO_LIMBS( n_bytes );
-    const size_t overhead = ( limbs * ciL ) - n_bytes;
-
-    if( X_limbs < limbs )
-        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
-
-    memset( X, 0, overhead );
-    memset( (unsigned char *) X + limbs * ciL, 0, ( X_limbs - limbs ) * ciL );
-    MBEDTLS_MPI_CHK( f_rng( p_rng, (unsigned char *) X + overhead, n_bytes ) );
-    mbedtls_mpi_core_bigendian_to_host( X, limbs );
-
-cleanup:
-    return( ret );
-}
-
 /*
  * Fill X with size bytes of random.
  *

@@ -86,7 +86,7 @@ int main( void )
 #define DFL_MAX_PATHLEN         -1
 #define DFL_SIG_ALG             MBEDTLS_MD_SHA256
 #define DFL_KEY_USAGE           0
-#define DFL_EXT_KEY_USAGE       0
+#define DFL_EXT_KEY_USAGE       NULL
 #define DFL_NS_CERT_TYPE        0
 #define DFL_VERSION             3
 #define DFL_AUTH_IDENT          1

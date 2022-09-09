@@ -1934,25 +1934,26 @@ cleanup:
 /* Fill X with n_bytes random bytes.
  * X must already have room for those bytes.
  * The ordering of the bytes returned from the RNG is suitable for
- * deterministic ECDSA (see RFC 6979 §3.3 and mbedtls_mpi_random()).
+ * deterministic ECDSA (see RFC 6979 §3.3 and mbedtls_mpi_core_random()).
  * The size and sign of X are unchanged.
  * n_bytes must not be 0.
  */
-static int mpi_fill_random_internal(
-    mbedtls_mpi *X, size_t n_bytes,
+int mbedtls_mpi_core_fill_random(
+    mbedtls_mpi_uint *X, size_t X_limbs,
+    size_t n_bytes,
     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const size_t limbs = CHARS_TO_LIMBS( n_bytes );
     const size_t overhead = ( limbs * ciL ) - n_bytes;
 
-    if( X->n < limbs )
+    if( X_limbs < limbs )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
-    memset( X->p, 0, overhead );
-    memset( (unsigned char *) X->p + limbs * ciL, 0, ( X->n - limbs ) * ciL );
-    MBEDTLS_MPI_CHK( f_rng( p_rng, (unsigned char *) X->p + overhead, n_bytes ) );
-    mbedtls_mpi_core_bigendian_to_host( X->p, limbs );
+    memset( X, 0, overhead );
+    memset( (unsigned char *) X + limbs * ciL, 0, ( X_limbs - limbs ) * ciL );
+    MBEDTLS_MPI_CHK( f_rng( p_rng, (unsigned char *) X + overhead, n_bytes ) );
+    mbedtls_mpi_core_bigendian_to_host( X, limbs );
 
 cleanup:
     return( ret );
@@ -1980,7 +1981,7 @@ int mbedtls_mpi_fill_random( mbedtls_mpi *X, size_t size,
     if( size == 0 )
         return( 0 );
 
-    ret = mpi_fill_random_internal( X, size, f_rng, p_rng );
+    ret = mbedtls_mpi_core_fill_random( X->p, X->n, size, f_rng, p_rng );
 
 cleanup:
     return( ret );
@@ -2042,7 +2043,9 @@ int mbedtls_mpi_random( mbedtls_mpi *X,
      */
     do
     {
-        MBEDTLS_MPI_CHK( mpi_fill_random_internal( X, n_bytes, f_rng, p_rng ) );
+        MBEDTLS_MPI_CHK( mbedtls_mpi_core_fill_random( X->p, X->n,
+                                                       n_bytes,
+                                                       f_rng, p_rng ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( X, 8 * n_bytes - n_bits ) );
 
         if( --count == 0 )

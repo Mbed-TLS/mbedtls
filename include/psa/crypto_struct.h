@@ -491,6 +491,48 @@ static inline size_t psa_get_key_bits(
     return attributes->MBEDTLS_PRIVATE(core).MBEDTLS_PRIVATE(bits);
 }
 
+/**
+ * \brief The context for PSA interruptible hash signing.
+ *
+ * \note  Contents not yet designed as implementation specific.
+ *
+ */
+struct psa_sign_hash_interruptible_operation_s {
+    size_t MBEDTLS_PRIVATE(num_ops);
+};
+
+#define PSA_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT { 0 }
+
+static inline struct psa_sign_hash_interruptible_operation_s
+psa_sign_hash_interruptible_operation_init(void)
+{
+    const struct psa_sign_hash_interruptible_operation_s v =
+        PSA_SIGN_HASH_INTERRUPTIBLE_OPERATION_INIT;
+
+    return v;
+}
+
+/**
+ * \brief The context for PSA interruptible hash verification.
+ *
+ * \note  Contents not yet designed as implementation specific.
+ *
+ */
+struct psa_verify_hash_interruptible_operation_s {
+    size_t MBEDTLS_PRIVATE(num_ops);
+};
+
+#define PSA_VERIFY_HASH_INTERRUPTIBLE_OPERATION_INIT { 0 }
+
+static inline struct psa_verify_hash_interruptible_operation_s
+psa_verify_hash_interruptible_operation_init(void)
+{
+    const struct psa_verify_hash_interruptible_operation_s v =
+        PSA_VERIFY_HASH_INTERRUPTIBLE_OPERATION_INIT;
+
+    return v;
+}
+
 #ifdef __cplusplus
 }
 #endif

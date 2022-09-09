@@ -50,6 +50,8 @@ void ecdh_invalid_param( )
     mbedtls_ecp_keypair kp;
     int invalid_side = 42;
 
+    mbedtls_ecp_keypair_init( &kp );
+
     TEST_EQUAL( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                             mbedtls_ecdh_get_params( &ctx, &kp,
                                                      invalid_side ) );

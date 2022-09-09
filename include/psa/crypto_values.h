@@ -328,6 +328,13 @@
  */
 #define PSA_ERROR_DATA_INVALID          ((psa_status_t)-153)
 
+/** The function that returns this status is defined as interruptible and
+ *  still has work to do, thus the user should call the function again with the
+ *  same operation context until it either returns #PSA_SUCCESS or any other
+ *  error. This is not an error per se, more a notification of status.
+ */
+#define PSA_OPERATION_INCOMPLETE           ((psa_status_t)-248)
+
 /**@}*/
 
 /** \defgroup crypto_types Key and algorithm types
@@ -2723,6 +2730,20 @@ static inline int mbedtls_svc_key_id_is_null( mbedtls_svc_key_id_t key )
 #define MBEDTLS_PSA_ALG_AEAD_EQUAL(aead_alg_1, aead_alg_2) \
     (!(((aead_alg_1) ^ (aead_alg_2)) & \
        ~(PSA_ALG_AEAD_TAG_LENGTH_MASK | PSA_ALG_AEAD_AT_LEAST_THIS_LENGTH_FLAG)))
+
+/**@}*/
+
+/**@}*/
+
+/** \defgroup interruptible Interruptible operations
+ * @{
+ */
+
+/** Maximum value for use with \c psa_interruptible_set_max_ops() to determine
+ *  the maximum number of ops allowed to be executed by an interruptible
+ *  function in a single call.
+ */
+#define PSA_INTERRUPTIBLE_MAX_OPS_UNLIMITED INT32_MAX
 
 /**@}*/
 

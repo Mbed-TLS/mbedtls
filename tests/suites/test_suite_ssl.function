@@ -5419,7 +5419,7 @@ void resize_buffers_renegotiate_mfl( int mfl, int legacy_renegotiation,
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC:MBEDTLS_TEST_HOOKS */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
 void ssl_cf_hmac( int hash )
 {
     /*
@@ -5569,7 +5569,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC:MBEDTLS_TEST_HOOKS */
+/* BEGIN_CASE depends_on:MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
 void ssl_cf_memcpy_offset( int offset_min, int offset_max, int len )
 {
     unsigned char *dst = NULL;

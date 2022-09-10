@@ -35,7 +35,7 @@ void mask_of_range( int low_arg, int high_arg )
 /* END_CASE */
 
 /* BEGIN_CASE */
-void enc_chars( )
+void base64_enc_chars( )
 {
     for( unsigned value = 0; value < 64; value++ )
     {
@@ -50,7 +50,7 @@ void enc_chars( )
 /* END_CASE */
 
 /* BEGIN_CASE */
-void dec_chars( )
+void base64_dec_values( )
 {
     char *p;
     signed char expected;

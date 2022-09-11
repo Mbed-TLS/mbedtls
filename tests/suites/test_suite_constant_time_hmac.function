@@ -8,6 +8,8 @@
 
 #include "constant_time_internal.h"
 
+#include "mbedtls/md.h"
+
 #include <test/constant_flow.h>
 
 /* END_HEADER */

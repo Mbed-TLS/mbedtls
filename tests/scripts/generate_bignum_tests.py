@@ -211,6 +211,7 @@ class BignumCmpAbs(BignumCmp):
 class BignumAdd(BignumOperation):
     """Test cases for bignum value addition."""
     count = 0
+    symbol = "+"
     test_function = "mbedtls_mpi_add_mpi"
     test_name = "MPI add"
     input_cases = cast(
@@ -222,10 +223,6 @@ class BignumAdd(BignumOperation):
             ], 2
         ))
     )
-
-    def __init__(self, val_l, val_r) -> None:
-        super().__init__(val_l, val_r)
-        self.symbol = "+"
 
     def result(self) -> str:
         return quote_str("{:x}".format(self.int_l + self.int_r))

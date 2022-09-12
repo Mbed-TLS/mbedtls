@@ -77,13 +77,19 @@ int mbedtls_mpi_mod_raw_write( const mbedtls_mpi_uint *A,
                                size_t output_length );
 
 /**
- * \brief Calculate initialisation value for fast Montgomery modular
- *        multiplication
+ * \brief Calculate and set initialisation value for fast Montgomery modular
+ *        multiplication.
  *
- * \param RR   Pointer to residue for 2^{2*n*biL} mod N.
- * \param N    Little-endian presentation of the modulus, which must be odd.
+ * \param[in,out] m  The address of the modulus structure to use in Montgomery
+ *                   constant initialisation. The output will be written to a
+ *                   pre-initialised memory location pointed by \p m (m->rep.mont.rr).
+ * 
+ * \return        0 if successful. 
+ * \return        #MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED if \p output isn't
+ *                large enough to hold the value of \p A.
+ * \return        #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if the external representation
+ *                of \p m is invalid.
  */
-int mbedtls_mpi_get_montgomery_constant_unsafe( mbedtls_mpi *RR,
-                                                mbedtls_mpi const *N );
+int mbedtls_mpi_set_montgomery_constant_unsafe( mbedtls_mpi_mod_modulus *m );
 
 #endif /* MBEDTLS_BIGNUM_MOD_RAW_H */

@@ -1887,6 +1887,7 @@ component_test_psa_crypto_config_accel_hash_use_psa () {
 
     msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated hash and USE_PSA"
     make test
+    tests/compat.sh
 }
 
 component_test_psa_crypto_config_accel_cipher () {

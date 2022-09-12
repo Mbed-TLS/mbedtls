@@ -25,6 +25,7 @@
 
 #include "mbedtls/error.h"
 #include "mbedtls/platform_util.h"
+#include "constant_time_internal.h"
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -159,6 +160,61 @@ void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint *A,
         *cur_limb_left  = mpi_bigendian_to_host( *cur_limb_right );
         *cur_limb_right = tmp;
     }
+}
+
+int mbedtls_mpi_core_cond_assign( mbedtls_mpi_uint *X,
+                                  size_t X_limbs,
+                                  const mbedtls_mpi_uint *Y,
+                                  size_t Y_limbs,
+                                  unsigned char assign )
+{
+    if( X_limbs < Y_limbs )
+        return( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL );
+
+    if( X != NULL && Y != NULL )
+    {
+        /* all-bits 1 if assign is 1, all-bits 0 if assign is 0 */
+        mbedtls_mpi_uint limb_mask = mbedtls_ct_mpi_uint_mask( assign );
+
+        mbedtls_ct_mpi_uint_cond_assign( X_limbs, X, Y, assign );
+
+        for( size_t i = Y_limbs; i < X_limbs; i++ )
+            X[i] &= ~limb_mask;
+
+        return( 0 );
+    }
+
+    return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+}
+
+int mbedtls_mpi_core_cond_swap( mbedtls_mpi_uint *X,
+                                size_t X_limbs,
+                                mbedtls_mpi_uint *Y,
+                                size_t Y_limbs,
+                                unsigned char swap )
+{
+    if( X == Y )
+        return( 0 );
+
+    if( X_limbs != Y_limbs )
+        return( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL );
+
+    if( X != NULL && Y != NULL )
+    {
+        /* all-bits 1 if swap is 1, all-bits 0 if swap is 0 */
+        mbedtls_mpi_uint limb_mask = mbedtls_ct_mpi_uint_mask( swap );
+
+        for( size_t i = 0; i < X_limbs; i++ )
+        {
+            mbedtls_mpi_uint tmp = X[i];
+            X[i] = ( X[i] & ~limb_mask ) | ( Y[i] & limb_mask );
+            Y[i] = ( Y[i] & ~limb_mask ) | (  tmp & limb_mask );
+        }
+
+        return( 0 );
+    }
+
+    return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 }
 
 int mbedtls_mpi_core_read_le( mbedtls_mpi_uint *X,

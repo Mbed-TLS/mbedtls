@@ -764,6 +764,326 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void mpi_core_cond_assign( data_t * input_X,
+                           data_t * input_Y,
+                           int cond,
+                           int input_ret )
+{
+    #define MAX_LEN 64
+    mbedtls_mpi_uint buff_X[MAX_LEN];
+    mbedtls_mpi_uint buff_Y[MAX_LEN];
+    mbedtls_mpi_uint *X = buff_X;
+    mbedtls_mpi_uint *Y = buff_Y;
+    unsigned exp_ret = input_ret;
+    unsigned ret;
+    size_t len_X = CHARS_TO_LIMBS( input_X->len );
+    size_t len_Y = CHARS_TO_LIMBS( input_Y->len );
+
+    TEST_ASSERT( len_X <= MAX_LEN );
+    TEST_ASSERT( len_Y <= MAX_LEN );
+
+    if( len_X == 0 )
+    {
+        X = NULL;
+        len_X = len_Y;
+    }
+    else
+        TEST_ASSERT( mbedtls_mpi_core_read_be( X, len_X, input_X->x, input_X->len )
+                     == 0 );
+
+    if( len_Y == 0 )
+    {
+        Y = NULL;
+        len_Y = len_X;
+    }
+    else
+        TEST_ASSERT( mbedtls_mpi_core_read_be( Y, len_Y, input_Y->x, input_Y->len )
+                     == 0 );
+
+    TEST_CF_SECRET( X, len_X * sizeof( mbedtls_mpi_uint ) );
+    TEST_CF_SECRET( Y, len_Y * sizeof( mbedtls_mpi_uint ) );
+
+    ret = mbedtls_mpi_core_cond_assign( X, len_X, Y, len_Y, cond );
+
+    TEST_CF_PUBLIC( X, len_X * sizeof( mbedtls_mpi_uint ) );
+    TEST_CF_PUBLIC( Y, len_Y * sizeof( mbedtls_mpi_uint ) );
+    TEST_CF_PUBLIC( &ret, sizeof( ret ) );
+
+    TEST_EQUAL( ret, exp_ret );
+
+    if( !ret )
+    {
+        if( cond )
+            ASSERT_COMPARE( X, len_Y * sizeof( mbedtls_mpi_uint ),
+                            Y, len_Y * sizeof( mbedtls_mpi_uint ) );
+
+        else
+            TEST_ASSERT( memcmp( X, Y, len_X * sizeof( mbedtls_mpi_uint ) ) != 0 );
+    }
+
+exit:
+    ;
+
+    #undef MAX_LEN
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_core_cond_swap( data_t * input_X,
+                         data_t * input_Y,
+                         int cond,
+                         int input_ret )
+{
+    #define MAX_LEN 64
+    mbedtls_mpi_uint tmp_X[MAX_LEN];
+    mbedtls_mpi_uint tmp_Y[MAX_LEN];
+    mbedtls_mpi_uint buff_X[MAX_LEN];
+    mbedtls_mpi_uint buff_Y[MAX_LEN];
+    mbedtls_mpi_uint *X = buff_X;
+    mbedtls_mpi_uint *Y = buff_Y;
+    unsigned exp_ret = input_ret;
+    unsigned ret;
+    size_t len_X = CHARS_TO_LIMBS( input_X->len );
+    size_t len_Y = CHARS_TO_LIMBS( input_Y->len );
+
+    TEST_ASSERT( len_X <= MAX_LEN );
+    TEST_ASSERT( len_Y <= MAX_LEN );
+
+    if( len_X == 0 )
+    {
+        X = NULL;
+        len_X = len_Y;
+    }
+    else
+    {
+        TEST_ASSERT( mbedtls_mpi_core_read_be( tmp_X, len_X,
+                                               input_X->x, input_X->len )
+                     == 0 );
+        memcpy( X, tmp_X, len_X * sizeof( mbedtls_mpi_uint ) );
+    }
+
+    if( len_Y == 0 )
+    {
+        Y = NULL;
+        len_Y = len_X;
+    }
+    else
+    {
+        TEST_ASSERT( mbedtls_mpi_core_read_be( tmp_Y, len_Y,
+                                               input_Y->x, input_Y->len )
+                     == 0 );
+        memcpy( Y, tmp_Y, len_Y * sizeof( mbedtls_mpi_uint ) );
+    }
+
+    TEST_CF_SECRET( X, len_X * sizeof( mbedtls_mpi_uint ) );
+    TEST_CF_SECRET( Y, len_Y * sizeof( mbedtls_mpi_uint ) );
+
+    ret = mbedtls_mpi_core_cond_swap( X, len_X, Y, len_Y, cond );
+
+    TEST_CF_PUBLIC( X, len_X * sizeof( mbedtls_mpi_uint ) );
+    TEST_CF_PUBLIC( Y, len_Y * sizeof( mbedtls_mpi_uint ) );
+    TEST_CF_PUBLIC( &ret, sizeof( ret ) );
+
+    TEST_EQUAL( ret, exp_ret );
+
+    if( !ret )
+    {
+        if( cond )
+        {
+            ASSERT_COMPARE( X,     len_Y * sizeof( mbedtls_mpi_uint ),
+                            tmp_Y, len_Y * sizeof( mbedtls_mpi_uint ) );
+            ASSERT_COMPARE( Y,     len_X * sizeof( mbedtls_mpi_uint ),
+                            tmp_X, len_X * sizeof( mbedtls_mpi_uint ) );
+        }
+
+        else
+        {
+            ASSERT_COMPARE( X,     len_X * sizeof( mbedtls_mpi_uint ),
+                            tmp_X, len_X * sizeof( mbedtls_mpi_uint ) );
+            ASSERT_COMPARE( Y,     len_Y * sizeof( mbedtls_mpi_uint ),
+                            tmp_Y, len_Y * sizeof( mbedtls_mpi_uint ) );
+        }
+    }
+
+exit:
+    ;
+
+    #undef MAX_LEN
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_mod_raw_cond_assign( data_t * input_X,
+                              data_t * input_Y,
+                              int cond,
+                              int input_ret )
+{
+    #define MAX_LEN 64
+    mbedtls_mpi_uint buff_X[MAX_LEN];
+    mbedtls_mpi_uint buff_Y[MAX_LEN];
+    mbedtls_mpi_uint buff_m[MAX_LEN];
+    mbedtls_mpi_uint *X = buff_X;
+    mbedtls_mpi_uint *Y = buff_Y;
+    mbedtls_mpi_mod_modulus m;
+    unsigned exp_ret = input_ret;
+    unsigned ret;
+    size_t len_X = CHARS_TO_LIMBS( input_X->len );
+    size_t len_Y = CHARS_TO_LIMBS( input_Y->len );
+
+    TEST_ASSERT( len_X <= MAX_LEN );
+    TEST_ASSERT( len_Y <= MAX_LEN );
+
+    memset( buff_m, 0, MAX_LEN * sizeof( mbedtls_mpi_uint ) );
+    mbedtls_mpi_mod_modulus_init( &m );
+    TEST_ASSERT( mbedtls_mpi_mod_modulus_setup(
+                        &m, buff_m,
+                        len_X <= len_Y ? len_X : len_Y,
+                        MBEDTLS_MPI_MOD_EXT_REP_BE,
+                        MBEDTLS_MPI_MOD_REP_MONTGOMERY )
+                 == 0 );
+
+    if( len_X == 0 )
+    {
+        X = NULL;
+        len_X = len_Y;
+    }
+    else
+        TEST_ASSERT( mbedtls_mpi_core_read_be( X, len_X,
+                                               input_X->x, input_X->len )
+                     == 0 );
+
+    if( len_Y == 0 )
+    {
+        Y = NULL;
+        len_Y = len_X;
+    }
+    else
+        TEST_ASSERT( mbedtls_mpi_core_read_be( Y, len_Y,
+                                               input_Y->x, input_Y->len )
+                     == 0 );
+
+    TEST_CF_SECRET( X, len_X * sizeof( mbedtls_mpi_uint ) );
+    TEST_CF_SECRET( Y, len_Y * sizeof( mbedtls_mpi_uint ) );
+
+    ret = mbedtls_mpi_mod_raw_cond_assign( X, Y, &m, cond );
+
+    TEST_CF_PUBLIC( X, len_X * sizeof( mbedtls_mpi_uint ) );
+    TEST_CF_PUBLIC( Y, len_Y * sizeof( mbedtls_mpi_uint ) );
+    TEST_CF_PUBLIC( &ret, sizeof( ret ) );
+
+    TEST_EQUAL( ret, exp_ret );
+
+    if( !ret )
+    {
+        if( cond )
+            ASSERT_COMPARE( X, len_Y * sizeof( mbedtls_mpi_uint ),
+                            Y, len_Y * sizeof( mbedtls_mpi_uint ) );
+
+        else
+            TEST_ASSERT( memcmp( X, Y, m.limbs * sizeof( mbedtls_mpi_uint ) ) != 0 );
+    }
+
+exit:
+    ;
+
+    #undef MAX_LEN
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_mod_raw_cond_swap( data_t * input_X,
+                            data_t * input_Y,
+                            int cond,
+                            int input_ret )
+{
+    #define MAX_LEN 64
+    mbedtls_mpi_uint tmp_X[MAX_LEN];
+    mbedtls_mpi_uint tmp_Y[MAX_LEN];
+    mbedtls_mpi_uint buff_X[MAX_LEN];
+    mbedtls_mpi_uint buff_Y[MAX_LEN];
+    mbedtls_mpi_uint buff_m[MAX_LEN];
+    mbedtls_mpi_uint *X = buff_X;
+    mbedtls_mpi_uint *Y = buff_Y;
+    mbedtls_mpi_mod_modulus m;
+    unsigned exp_ret = input_ret;
+    unsigned ret;
+    size_t len_X = CHARS_TO_LIMBS( input_X->len );
+    size_t len_Y = CHARS_TO_LIMBS( input_Y->len );
+
+    TEST_ASSERT( len_X <= MAX_LEN );
+    TEST_ASSERT( len_Y <= MAX_LEN );
+
+    memset( buff_m, 0, MAX_LEN * sizeof( mbedtls_mpi_uint ) );
+    mbedtls_mpi_mod_modulus_init( &m );
+    TEST_ASSERT( mbedtls_mpi_mod_modulus_setup(
+                        &m, buff_m,
+                        len_X <= len_Y ? len_X : len_Y,
+                        MBEDTLS_MPI_MOD_EXT_REP_BE,
+                        MBEDTLS_MPI_MOD_REP_MONTGOMERY )
+                 == 0 );
+
+    if( len_X == 0 )
+    {
+        X = NULL;
+        len_X = len_Y;
+    }
+    else
+    {
+        TEST_ASSERT( mbedtls_mpi_core_read_be( tmp_X, len_X, input_X->x, input_X->len )
+                     == 0 );
+        memcpy( X, tmp_X, len_X * sizeof( mbedtls_mpi_uint ) );
+    }
+
+    if( len_Y == 0 )
+    {
+        Y = NULL;
+        len_Y = len_X;
+    }
+    else
+    {
+        TEST_ASSERT( mbedtls_mpi_core_read_be( tmp_Y, len_Y, input_Y->x, input_Y->len )
+                     == 0 );
+        memcpy( Y, tmp_Y, len_Y * sizeof( mbedtls_mpi_uint ) );
+    }
+
+    TEST_CF_SECRET( X, len_X * sizeof( mbedtls_mpi_uint ) );
+    TEST_CF_SECRET( Y, len_Y * sizeof( mbedtls_mpi_uint ) );
+
+    ret = mbedtls_mpi_mod_raw_cond_swap( X, Y, &m, cond );
+
+    TEST_CF_PUBLIC( X, len_X * sizeof( mbedtls_mpi_uint ) );
+    TEST_CF_PUBLIC( Y, len_Y * sizeof( mbedtls_mpi_uint ) );
+    TEST_CF_PUBLIC( &ret, sizeof( ret ) );
+
+    TEST_EQUAL( ret, exp_ret );
+
+    if( !ret )
+    {
+        if( cond )
+        {
+            ASSERT_COMPARE( X,     m.limbs * sizeof( mbedtls_mpi_uint ),
+                            tmp_Y, len_Y   * sizeof( mbedtls_mpi_uint ) );
+            ASSERT_COMPARE( Y,     m.limbs * sizeof( mbedtls_mpi_uint ),
+                            tmp_X, len_X   * sizeof( mbedtls_mpi_uint ) );
+        }
+
+        else
+        {
+            ASSERT_COMPARE( X,     len_X   * sizeof( mbedtls_mpi_uint ),
+                            tmp_X, m.limbs * sizeof( mbedtls_mpi_uint ) );
+            ASSERT_COMPARE( Y,     len_Y   * sizeof( mbedtls_mpi_uint ),
+                            tmp_Y, m.limbs * sizeof( mbedtls_mpi_uint ) );
+        }
+    }
+
+exit:
+    ;
+
+    #undef MAX_LEN
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mpi_lt_mpi_ct( int size_X, char * input_X,
                     int size_Y, char * input_Y,
                     int input_ret, int input_err )

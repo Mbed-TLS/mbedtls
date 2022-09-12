@@ -33,6 +33,63 @@
 
 #include "bignum_mod.h"
 
+/**
+ * \brief   Perform a safe conditional copy of MPI which doesn't reveal whether
+ *          the condition was true or not.
+ *
+ * \param[OUT] X        The address of the first MPI. This must be initialized.
+ * \param[IN]  Y        The address of the second MPI. This must be initialized.
+ * \param[IN]  m        The address of the modulus related to \p X and \p Y.
+ * \param      assign   The condition deciding whether to perform the
+ *                      assignment or not. Must be either 0 or 1:
+ *                      * \c 1: Perform the assignment `X = Y`.
+ *                      * \c 0: Keep the original value of \p X.
+ *
+ * \note           This function avoids leaking any information about whether
+ *                 the assignment was done or not.
+ *
+ * \warning        If \p assign is neither 0 nor 1, the result of this function
+ *                 is indeterminate, and the resulting value in \p X might be
+ *                 neither its original value nor the value in \p Y.
+ *
+ * \return         \c 0 if successful.
+ * \return         #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p X isn't
+ *                 large enough to hold the value in \p Y.
+ * \return         #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p X or \p Y is invalid.
+ */
+int mbedtls_mpi_mod_raw_cond_assign( mbedtls_mpi_uint *X,
+                                     mbedtls_mpi_uint *Y,
+                                     const mbedtls_mpi_mod_modulus *m,
+                                     unsigned char assign );
+
+/**
+ * \brief   Perform a safe conditional copy of MPI which doesn't reveal whether
+ *          the condition was true or not.
+ *
+ * \param[IN,OUT] X     The address of the first MPI. This must be initialized.
+ * \param[IN,OUT] Y     The address of the second MPI. This must be initialized.
+ * \param[IN]     m     The address of the modulus related to \p X and \p Y.
+ * \param         swap  The condition deciding whether to perform
+ *                      the swap or not. Must be either 0 or 1:
+ *                      * \c 1: Swap the values of \p X and \p Y.
+ *                      * \c 0: Keep the original values of \p X and \p Y.
+ *
+ * \note           This function avoids leaking any information about whether
+ *                 the swap was done or not.
+ *
+ * \warning        If \p swap is neither 0 nor 1, the result of this function
+ *                 is indeterminate, and both \p X and \p Y might end up with
+ *                 values different to either of the original ones.
+ *
+ * \return         \c 0 if successful.
+ * \return         #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if the size of
+ *                 \p X and \p Y is differ.
+ * \return         #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p X or \p Y is invalid.
+ */int mbedtls_mpi_mod_raw_cond_swap( mbedtls_mpi_uint *X,
+                                   mbedtls_mpi_uint *Y,
+                                   const mbedtls_mpi_mod_modulus *m,
+                                   unsigned char swap );
+
 /** Import X from unsigned binary data.
  *
  * The MPI needs to have enough limbs to store the full value (including any

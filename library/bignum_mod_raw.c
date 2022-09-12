@@ -41,6 +41,24 @@
 #include "bignum_mod.h"
 #include "constant_time_internal.h"
 
+int mbedtls_mpi_mod_raw_cond_assign( mbedtls_mpi_uint *X,
+                                     mbedtls_mpi_uint *Y,
+                                     const mbedtls_mpi_mod_modulus *m,
+                                     unsigned char assign )
+{
+    return mbedtls_mpi_core_cond_assign( X, m->limbs,
+                                         Y, m->limbs, assign );
+}
+
+int mbedtls_mpi_mod_raw_cond_swap( mbedtls_mpi_uint *X,
+                                   mbedtls_mpi_uint *Y,
+                                   const mbedtls_mpi_mod_modulus *m,
+                                   unsigned char swap )
+{
+    return mbedtls_mpi_core_cond_swap( X, m->limbs,
+                                       Y, m->limbs, swap );
+}
+
 int mbedtls_mpi_mod_raw_read( mbedtls_mpi_uint *X,
                               const mbedtls_mpi_mod_modulus *m,
                               const unsigned char *input,

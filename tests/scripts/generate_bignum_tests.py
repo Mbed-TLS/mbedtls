@@ -101,14 +101,14 @@ class BignumOperation(BignumTarget, metaclass=ABCMeta):
     ] # type: List[str]
     input_cases = cast(List[Tuple[str, str]], []) # type: List[Tuple[str, str]]
 
-    def __init__(self, val_l: str, val_r: str) -> None:
-        self.arg_l = val_l
-        self.arg_r = val_r
-        self.int_l = hex_to_int(val_l)
-        self.int_r = hex_to_int(val_r)
+    def __init__(self, val_a: str, val_b: str) -> None:
+        self.arg_a = val_a
+        self.arg_b = val_b
+        self.int_a = hex_to_int(val_a)
+        self.int_b = hex_to_int(val_b)
 
     def arguments(self) -> List[str]:
-        return [quote_str(self.arg_l), quote_str(self.arg_r), self.result()]
+        return [quote_str(self.arg_a), quote_str(self.arg_b), self.result()]
 
     def description(self) -> str:
         """Generate a description for the test case.
@@ -119,9 +119,9 @@ class BignumOperation(BignumTarget, metaclass=ABCMeta):
         """
         if not self.case_description:
             self.case_description = "{} {} {}".format(
-                self.value_description(self.arg_l),
+                self.value_description(self.arg_a),
                 self.symbol,
-                self.value_description(self.arg_r)
+                self.value_description(self.arg_b)
             )
         return super().description()
 
@@ -172,8 +172,8 @@ class BignumOperation(BignumTarget, metaclass=ABCMeta):
 
     @classmethod
     def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
-        for l_value, r_value in cls.get_value_pairs():
-            cur_op = cls(l_value, r_value)
+        for a_value, b_value in cls.get_value_pairs():
+            cur_op = cls(a_value, b_value)
             yield cur_op.create_test_case()
 
 
@@ -189,9 +189,9 @@ class BignumCmp(BignumOperation):
         ("2b5", "2b6")
         ]
 
-    def __init__(self, val_l, val_r) -> None:
-        super().__init__(val_l, val_r)
-        self._result = int(self.int_l > self.int_r) - int(self.int_l < self.int_r)
+    def __init__(self, val_a, val_b) -> None:
+        super().__init__(val_a, val_b)
+        self._result = int(self.int_a > self.int_b) - int(self.int_a < self.int_b)
         self.symbol = ["<", "==", ">"][self._result + 1]
 
     def result(self) -> str:
@@ -204,8 +204,8 @@ class BignumCmpAbs(BignumCmp):
     test_function = "mbedtls_mpi_cmp_abs"
     test_name = "MPI compare (abs)"
 
-    def __init__(self, val_l, val_r) -> None:
-        super().__init__(val_l.strip("-"), val_r.strip("-"))
+    def __init__(self, val_a, val_b) -> None:
+        super().__init__(val_a.strip("-"), val_b.strip("-"))
 
 
 class BignumAdd(BignumOperation):
@@ -225,7 +225,7 @@ class BignumAdd(BignumOperation):
     )
 
     def result(self) -> str:
-        return quote_str("{:x}".format(self.int_l + self.int_r))
+        return quote_str("{:x}".format(self.int_a + self.int_b))
 
 
 if __name__ == '__main__':

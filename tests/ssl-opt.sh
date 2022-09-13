@@ -12127,7 +12127,7 @@ requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3, default suite, PSK - gnutls" \
-            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+ECDHE-PSK:+DHE-PSK:+PSK:+CIPHER-ALL:%NO_TICKETS --pskhint=0a0b0c --pskpasswd=data_files/simplepass.psk" \
+            "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:+ECDHE-PSK:+DHE-PSK:+PSK:+CIPHER-ALL --pskpasswd=data_files/simplepass.psk" \
             "$P_CLI debug_level=4 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             0 \
             -c "=> write client hello" \

@@ -399,17 +399,17 @@ psa_status_t psa_pake_output( psa_pake_operation_t *operation,
         operation->state == PSA_PAKE_STATE_INVALID )
         return( PSA_ERROR_BAD_STATE );
 
-    if( step != PSA_PAKE_STEP_KEY_SHARE &&
-        step != PSA_PAKE_STEP_ZK_PUBLIC &&
-        step != PSA_PAKE_STEP_ZK_PROOF )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-
     if( output == NULL || output_size == 0 || output_length == NULL )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
     if( operation->alg == PSA_ALG_JPAKE )
     {
+        if( step != PSA_PAKE_STEP_KEY_SHARE &&
+            step != PSA_PAKE_STEP_ZK_PUBLIC &&
+            step != PSA_PAKE_STEP_ZK_PROOF )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+
         if( operation->state == PSA_PAKE_STATE_SETUP ) {
             status = psa_pake_ecjpake_setup( operation );
             if( status != PSA_SUCCESS )
@@ -598,17 +598,17 @@ psa_status_t psa_pake_input( psa_pake_operation_t *operation,
         operation->state == PSA_PAKE_STATE_INVALID )
         return( PSA_ERROR_BAD_STATE );
 
-    if( step != PSA_PAKE_STEP_KEY_SHARE &&
-        step != PSA_PAKE_STEP_ZK_PUBLIC &&
-        step != PSA_PAKE_STEP_ZK_PROOF )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-
     if( input == NULL || input_length == 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
     if( operation->alg == PSA_ALG_JPAKE )
     {
+        if( step != PSA_PAKE_STEP_KEY_SHARE &&
+            step != PSA_PAKE_STEP_ZK_PUBLIC &&
+            step != PSA_PAKE_STEP_ZK_PROOF )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+
         if( operation->state == PSA_PAKE_STATE_SETUP )
         {
             status = psa_pake_ecjpake_setup( operation );

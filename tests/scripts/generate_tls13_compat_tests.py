@@ -398,7 +398,7 @@ class MbedTLSServ(MbedTLSBase):
                                 named_group=named_group,
                                 iana_value=NAMED_GROUP_IANA_VALUE[named_group])]
 
-        check_strings.append("Verifying peer X.509 certificate... ok")
+        check_strings.append("Certificate verification was skipped")
         return ['-s "{}"'.format(i) for i in check_strings]
 
     def pre_cmd(self):

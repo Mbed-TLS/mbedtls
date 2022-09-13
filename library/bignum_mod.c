@@ -170,8 +170,6 @@ int mbedtls_mpi_mod_read( mbedtls_mpi_mod_residue *r,
     if (m->int_rep == MBEDTLS_MPI_MOD_REP_MONTGOMERY)
        ret = mbedtls_mpi_mod_raw_to_mont_rep(r->p, m);
 
-    if( ret != 0 )
-        goto cleanup;
 cleanup:
     return ( ret );
 }
@@ -190,7 +188,6 @@ int mbedtls_mpi_mod_write( mbedtls_mpi_mod_residue *r,
 
     ret = mbedtls_mpi_mod_raw_write( r->p, m, buf, buflen );
 
-    return ( ret );
 cleanup:
     return ( ret );
 }

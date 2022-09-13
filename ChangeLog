@@ -5099,7 +5099,7 @@ XySSL ChangeLog
     * Fixed a bug in sha2_hmac, thanks to newsoft/Wenfang Zhang
     * Fixed a bug reported by Adrian Rüegsegger in x509_read_key TEST test2
     * Fixed a bug reported by Torsten Lauter in ssl_read_record
-    * Fixed a bug in rsa_check_privkey that would correctly cause
+    * Fixed a bug in rsa_check_privkey that would correctly cause TEST
       valid RSA keys to be dismissed (thanks to oldwolf) test TEST TEST2
     * Fixed a bug in mpi_is_prime that caused some primes to fail TEST
       the Miller-Rabin primality test

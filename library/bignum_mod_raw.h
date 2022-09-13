@@ -81,13 +81,14 @@ int mbedtls_mpi_mod_raw_write( const mbedtls_mpi_uint *A,
  *        multiplication.
  *
  * \param[in,out] m  The address of the modulus structure to use in Montgomery
- *                   constant initialisation. The output will be written to a
- *                   pre-initialised memory location pointed by \p m (m->rep.mont.rr).
+ *                   Constant initialization. The output will be written to
+ *                   freshly allocated memory and the \p m (m->rep.mont.rr)
+ *                   is set to point to it.
  * 
  * \return        0 if successful. 
  * \return        #MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED if \p output isn't
  *                large enough to hold the value of \p A.
- * \return        #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if the external representation
+ * \return        #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if the internal representation
  *                of \p m is invalid.
  */
 int mbedtls_mpi_set_montgomery_constant_unsafe( mbedtls_mpi_mod_modulus *m );

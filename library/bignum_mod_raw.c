@@ -104,8 +104,7 @@ int mbedtls_mpi_set_montgomery_constant_unsafe( mbedtls_mpi_mod_modulus *m )
     mbedtls_mpi_init( &N ); 
     mbedtls_mpi_init( &RR );
 
-    if (m->p == NULL || m->rep.mont.rr == NULL ||
-        m->int_rep != MBEDTLS_MPI_MOD_REP_MONTGOMERY)
+    if (m->p == NULL || m->int_rep != MBEDTLS_MPI_MOD_REP_MONTGOMERY)
     {
         ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
         goto cleanup;
@@ -120,8 +119,8 @@ int mbedtls_mpi_set_montgomery_constant_unsafe( mbedtls_mpi_mod_modulus *m )
     MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( &RR, N.n * 2 * biL ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &RR, &RR, &N ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &RR, N.n ) );
-
-    memcpy( m->rep.mont.rr, RR.p, sizeof(mbedtls_mpi_uint) *  m->limbs );
+    m->rep.mont.rr = RR.p;
+    RR.p = NULL;
     ret = 0;
 
 cleanup:

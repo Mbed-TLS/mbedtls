@@ -403,6 +403,20 @@ psa_status_t psa_pake_output( psa_pake_operation_t *operation,
         return( PSA_ERROR_INVALID_ARGUMENT );
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
+    /*
+     * The PSA CRYPTO PAKE and MbedTLS JPAKE API have a different
+     * handling of output sequencing.
+     *
+     * The MbedTLS JPAKE API outputs the whole X1+X2 anf X2S steps data
+     * at once, on the other side the PSA CRYPTO PAKE api requires
+     * the KEY_SHARE/ZP_PUBLIC/ZK_PROOF parts of X1, X2 & X2S to be
+     * retrieved in sequence.
+     *
+     * In order to achieve API compatibility, the whole X1+X2 or X2S steps
+     * data is stored in an intermediate buffer at first step output call,
+     * and data is sliced down by parsing the ECPoint records in order
+     * to return the right parts on each step.
+     */
     if( operation->alg == PSA_ALG_JPAKE )
     {
         if( step != PSA_PAKE_STEP_KEY_SHARE &&
@@ -602,6 +616,21 @@ psa_status_t psa_pake_input( psa_pake_operation_t *operation,
         return( PSA_ERROR_INVALID_ARGUMENT );
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
+    /*
+     * The PSA CRYPTO PAKE and MbedTLS JPAKE API have a different
+     * handling of input sequencing.
+     *
+     * The MbedTLS JPAKE API takes the whole X1+X2 or X4S steps data
+     * at once as input, on the other side the PSA CRYPTO PAKE api requires
+     * the KEY_SHARE/ZP_PUBLIC/ZK_PROOF parts of X1, X2 & X4S to be
+     * given in sequence.
+     *
+     * In order to achieve API compatibility, each X1+X2 or X4S step data
+     * is stored sequentially in an intermediate buffer and given to the
+     * MbedTLS JPAKE API on the last step.
+     *
+     * This causes any input error to be only detected on the last step.
+     */
     if( operation->alg == PSA_ALG_JPAKE )
     {
         if( step != PSA_PAKE_STEP_KEY_SHARE &&

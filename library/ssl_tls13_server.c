@@ -143,21 +143,14 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> check_identity_match_ticket" ) );
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "ticket length: %" MBEDTLS_PRINTF_SIZET
-                                    ". ticket_parse is %sconfigured. "
-                                    "ticket_write is %sconfigured.",
-                                identity_len,
-                                ssl->conf->f_ticket_parse == NULL ? "NOT " : "",
-                                ssl->conf->f_ticket_write == NULL ? "NOT " : "" ) );
-
     /* Ticket parser is not configured, Skip */
     if( ssl->conf->f_ticket_parse == NULL || identity_len == 0 )
         return( 0 );
 
-    /* We create a copy of the encrypted ticket since decrypting
-     * it into the same buffer will wipe-out the original content.
-     * We do, however, need the original buffer for computing the
-     * psk binder value.
+    /* We create a copy of the encrypted ticket since the ticket parsing
+     * function is allowed to use its input buffer as an output buffer
+     * (in-place decryption). We do, however, need the original buffer for
+     * computing the PSK binder value.
      */
     ticket_buffer = mbedtls_calloc( 1, identity_len );
     if( ticket_buffer == NULL )
@@ -258,8 +251,8 @@ static int ssl_tls13_offered_psks_check_identity_match(
                const unsigned char *identity,
                size_t identity_len,
                uint32_t obfuscated_ticket_age,
-               void *session,
-               int *psk_type )
+               int *psk_type,
+               mbedtls_ssl_session *session )
 {
     ((void) session);
     ((void) obfuscated_ticket_age);
@@ -267,8 +260,6 @@ static int ssl_tls13_offered_psks_check_identity_match(
 
     MBEDTLS_SSL_DEBUG_BUF( 4, "identity", identity, identity_len );
     ssl->handshake->resume = 0;
-
-
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     if( ssl_tls13_offered_psks_check_identity_match_ticket(
@@ -444,31 +435,26 @@ static int ssl_tls13_select_ciphersuite_for_resumption(
         if( ciphersuite_info == NULL )
             continue;
 
-        *selected_ciphersuite = session->ciphersuite;
+        *selected_ciphersuite = cipher_suite;
         *selected_ciphersuite_info = ciphersuite_info;
 
         return( 0 );
-
     }
 
     return( MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE );
 }
 
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_session_copy( mbedtls_ssl_session *dst,
-                                   mbedtls_ssl_session *src )
+static int ssl_tls13_session_copy_ticket( mbedtls_ssl_session *dst,
+                                          const mbedtls_ssl_session *src )
 {
-    dst->endpoint = src->endpoint;
-    dst->ciphersuite = src->ciphersuite;
     dst->ticket_age_add = src->ticket_age_add;
     dst->ticket_flags = src->ticket_flags;
     dst->resumption_key_len = src->resumption_key_len;
     if( src->resumption_key_len == 0 )
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     memcpy( dst->resumption_key, src->resumption_key, src->resumption_key_len );
-#if defined(MBEDTLS_HAVE_TIME)
-    dst->start = src->start;
-#endif
+
     return( 0 );
 }
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
@@ -551,7 +537,7 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
         const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
         mbedtls_ssl_session session;
-        memset( &session, 0, sizeof( session ) );
+        mbedtls_ssl_session_init( &session );
 #endif
 
         MBEDTLS_SSL_CHK_BUF_READ_PTR( p_identity_len, identities_end, 2 + 1 + 4 );
@@ -573,7 +559,7 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
 
         ret = ssl_tls13_offered_psks_check_identity_match(
                   ssl, identity, identity_len, obfuscated_ticket_age,
-                  &session, &psk_type );
+                  &psk_type, &session );
         if( ret != SSL_TLS1_3_OFFERED_PSK_MATCH )
             continue;
 
@@ -590,6 +576,8 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
                 ret = ssl_tls13_select_ciphersuite_for_resumption(
                             ssl, ciphersuites, ciphersuites_end, &session,
                             &cipher_suite, &ciphersuite_info );
+                if( ret != 0 )
+                    mbedtls_ssl_session_free( &session );
 #else
                 ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
 #endif
@@ -632,18 +620,13 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
 
         /* Update handshake parameters */
         ssl->handshake->ciphersuite_info = ciphersuite_info;
-        if( psk_type == MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL )
-        {
-            ssl->session_negotiate->ciphersuite = cipher_suite;
-           MBEDTLS_SSL_DEBUG_MSG( 2, ( "overwrite ciphersuite: %04x - %s",
-                                        cipher_suite,
-                                        ciphersuite_info->name ) );
-        }
+        ssl->session_negotiate->ciphersuite = cipher_suite;
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "overwrite ciphersuite: %04x - %s",
+                                    cipher_suite, ciphersuite_info->name ) );
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-        else
         if( psk_type == MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION )
         {
-            ret = ssl_tls13_session_copy(ssl->session_negotiate, &session );
+            ret = ssl_tls13_session_copy_ticket(ssl->session_negotiate, &session );
             mbedtls_ssl_session_free( &session );
             if( ret != 0 )
                 return( ret );

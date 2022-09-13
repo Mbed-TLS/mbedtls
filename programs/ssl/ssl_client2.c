@@ -708,6 +708,7 @@ exit:
     mbedtls_ssl_session_free( &exported_session );
     return( ret );
 }
+
 int main( int argc, char *argv[] )
 {
     int ret = 0, len, tail_len, i, written, frags, retry_left;

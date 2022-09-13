@@ -127,13 +127,17 @@ static int ssl_tls13_parse_key_exchange_modes_ext( mbedtls_ssl_context *ssl,
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_offered_psks_check_identity_match_ticket(
                                             mbedtls_ssl_context *ssl,
-                                            mbedtls_ssl_session *session,
                                             const unsigned char *identity,
                                             size_t identity_len,
-                                            uint32_t obfuscated_ticket_age )
+                                            uint32_t obfuscated_ticket_age,
+                                            mbedtls_ssl_session *session )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char *ticket_buffer;
+#if defined(MBEDTLS_HAVE_TIME)
+    mbedtls_time_t now;
+    uint64_t age_in_s, age_in_ms, client_age_in_ms;
+#endif
 
     ((void) obfuscated_ticket_age);
 
@@ -178,49 +182,70 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
     /* We delete the temporary buffer */
     mbedtls_free( ticket_buffer );
 
-    if( ret == 0 )
+    if( ret != 0 )
+        goto exit;
+
+    ret = MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED;
+#if defined(MBEDTLS_HAVE_TIME)
+    now = mbedtls_time( NULL );
+
+    ret = MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED;
+    if( now < session->start )
     {
-#if defined(MBEDTLS_HAVE_TIME)
-        mbedtls_time_t now;
-        int64_t diff;
-#endif
-        ret = SSL_TLS1_3_OFFERED_PSK_MATCH;
-#if defined(MBEDTLS_HAVE_TIME)
-        now = mbedtls_time( NULL );
+        MBEDTLS_SSL_DEBUG_MSG(
+            3, ( "Ticket expired: now=%" MBEDTLS_PRINTF_LONGLONG
+                    ", start=%" MBEDTLS_PRINTF_LONGLONG,
+                    (long long)now, (long long)session->start ) );
+        goto exit;
+    }
 
-        /* Check #1:
-         *   Is the time when the ticket was issued later than now?
-         */
-        if( now < session->start )
-        {
-            MBEDTLS_SSL_DEBUG_MSG(
-                3, ( "Ticket expired: now=%" MBEDTLS_PRINTF_LONGLONG
-                        ", start=%" MBEDTLS_PRINTF_LONGLONG,
-                     (long long)now, (long long)session->start ) );
-            ret = MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED;
-        }
+    age_in_s = (uint64_t)( now - session->start );
 
-        /* Check #2:
-         *   Is the ticket age for the selected PSK identity
-         *   (computed by subtracting ticket_age_add from
-         *   PskIdentity.obfuscated_ticket_age modulo 2^32 )
-         *   within a small tolerance of the time since the
-         *   ticket was issued?
-         */
-        diff = ( now - session->start ) -
-               ( obfuscated_ticket_age - session->ticket_age_add );
+    /* RFC 8446 section 4.6.1
+     *
+     * Servers MUST NOT use any value greater than 604800 seconds (7 days).
+     *
+     * RFC 8446 section 4.2.11.1
+     *
+     * Clients MUST NOT attempt to use tickets which have ages greater than
+     * the "ticket_lifetime" value which was provided with the ticket.
+     *
+     * For time being, the age MUST be less than 604800 seconds (7 days).
+     */
+    if( age_in_s > 604800 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG(
+            3, ( "Ticket expired: Ticket age exceed limitation ticket_age=%lu",
+                 (long unsigned int)age_in_s ) );
+        goto exit;
+    }
 
-        if( diff > MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 3,
-                ( "Ticket age outside tolerance window ( diff=%"
-                      MBEDTLS_PRINTF_LONGLONG" )",
-                  (long long)diff ) );
-            ret = MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED;
-        }
+    /* RFC 8446 section 4.2.10
+     *
+     * For PSKs provisioned via NewSessionTicket, a server MUST validate that
+     * the ticket age for the selected PSK identity (computed by subtracting
+     * ticket_age_add from PskIdentity.obfuscated_ticket_age modulo 2^32) is
+     * within a small tolerance of the time since the ticket was issued.
+     */
+    age_in_ms = age_in_s * 1000;
+    client_age_in_ms = obfuscated_ticket_age - session->ticket_age_add;
+    if( age_in_ms < client_age_in_ms ||
+        ( age_in_ms - client_age_in_ms ) > MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE )
+    {
+        MBEDTLS_SSL_DEBUG_MSG(
+            3, ( "Ticket expired: Ticket age outside tolerance window "
+                     "( diff=%d )",
+                 (int)(age_in_ms - client_age_in_ms ) ) );
+        goto exit;
+    }
+
+    ret = 0;
 
 #endif /* MBEDTLS_HAVE_TIME */
-    }
+
+exit:
+    if( ret != 0 )
+        mbedtls_ssl_session_free( session );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= check_identity_match_ticket" ) );
     return( ret );
@@ -247,9 +272,8 @@ static int ssl_tls13_offered_psks_check_identity_match(
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     if( ssl_tls13_offered_psks_check_identity_match_ticket(
-            ssl, (mbedtls_ssl_session *)session,
-            identity, identity_len,
-            obfuscated_ticket_age ) == SSL_TLS1_3_OFFERED_PSK_MATCH )
+            ssl, identity, identity_len, obfuscated_ticket_age,
+            (mbedtls_ssl_session *)session ) == SSL_TLS1_3_OFFERED_PSK_MATCH )
     {
         mbedtls_ssl_session *i_session=(mbedtls_ssl_session *)session;
         ssl->handshake->resume = 1;

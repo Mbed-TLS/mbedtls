@@ -35,8 +35,8 @@
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
-#include "hash_info.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
+#include "hash_info.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -145,7 +145,7 @@ static int x509write_csr_der_internal( mbedtls_x509write_csr *ctx,
     const char *sig_oid;
     size_t sig_oid_len = 0;
     unsigned char *c, *c2;
-    unsigned char hash[64];
+    unsigned char hash[MBEDTLS_HASH_MAX_SIZE];
     size_t pub_len = 0, sig_and_oid_len = 0, sig_len;
     size_t len = 0;
     mbedtls_pk_type_t pk_alg;

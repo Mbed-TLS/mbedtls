@@ -236,7 +236,7 @@ static int ecjpake_hash( const mbedtls_md_type_t md_type,
     unsigned char *p = buf;
     const unsigned char *end = buf + sizeof( buf );
     const size_t id_len = strlen( id );
-    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
+    unsigned char hash[MBEDTLS_HASH_MAX_SIZE];
 
     /* Write things to temporary buffer */
     MBEDTLS_MPI_CHK( ecjpake_write_len_point( &p, end, grp, pf, G ) );

@@ -513,19 +513,42 @@ psa_status_t psa_pake_output( psa_pake_operation_t *operation,
             operation->buffer_offset = 0;
         }
 
-        /* Load output sequence length */
+        /*
+         * Steps sequences are stored as:
+         * struct {
+         *     opaque point <1..2^8-1>;
+         * } ECPoint;
+         *
+         * Where byte 0 stores the ECPoint curve point length.
+         *
+         * The sequence length is equal to:
+         * - data length extracted from byte 0
+         * - byte 0 size (1)
+         */
         if( operation->state == PSA_PAKE_OUTPUT_X2S &&
             operation->sequence == PSA_PAKE_X1_STEP_KEY_SHARE )
         {
             if( operation->role == PSA_PAKE_ROLE_SERVER )
-                /* Length is stored after 3bytes curve */
+                /*
+                 * The X2S KEY SHARE Server steps sequence is stored as:
+                 * struct {
+                 *     ECPoint X;
+                 *    opaque r <1..2^8-1>;
+                 * } ECSchnorrZKP;
+                 *
+                 * And MbedTLS uses a 3 bytes Ephemeral public key ECPoint,
+                 * so byte 3 stores the r Schnorr signature length.
+                 *
+                 * The sequence length is equal to:
+                 * - curve storage size (3)
+                 * - data length extracted from byte 3
+                 * - byte 3 size (1)
+                 */
                 length = 3 + operation->buffer[3] + 1;
             else
-                /* Length is stored at the first byte */
                 length = operation->buffer[0] + 1;
         }
         else
-            /* Length is stored at the first byte of the next chunk */
             length = operation->buffer[operation->buffer_offset] + 1;
 
         if( length > operation->buffer_length )

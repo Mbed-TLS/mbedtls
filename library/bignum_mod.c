@@ -85,7 +85,8 @@ void mbedtls_mpi_mod_modulus_free( mbedtls_mpi_mod_modulus *m )
     switch( m->int_rep )
     {
         case MBEDTLS_MPI_MOD_REP_MONTGOMERY:
-            mbedtls_platform_zeroize( m->rep.mont.rr, m->limbs );
+            mbedtls_platform_zeroize( (mbedtls_mpi_uint *) m->rep.mont.rr,
+                                      m->limbs );
             m->rep.mont.rr = NULL;
             m->rep.mont.mm = 0; break;
         case MBEDTLS_MPI_MOD_REP_OPT_RED:

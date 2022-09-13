@@ -198,7 +198,7 @@ psa_status_t psa_pake_setup( psa_pake_operation_t *operation,
                              const psa_pake_cipher_suite_t *cipher_suite)
 {
     /* A context must be freshly initialized before it can be set up. */
-    if( operation->alg != 0 )
+    if( operation->alg != PSA_ALG_NONE )
         return( PSA_ERROR_BAD_STATE );
 
     if( cipher_suite == NULL ||
@@ -249,7 +249,7 @@ psa_status_t psa_pake_set_password_key( psa_pake_operation_t *operation,
     psa_key_type_t type;
     psa_key_usage_t usage;
 
-    if( operation->alg == 0 ||
+    if( operation->alg == PSA_ALG_NONE ||
         operation->state != PSA_PAKE_STATE_SETUP )
     {
         return( PSA_ERROR_BAD_STATE );
@@ -282,7 +282,7 @@ psa_status_t psa_pake_set_user( psa_pake_operation_t *operation,
                                 const uint8_t *user_id,
                                 size_t user_id_len )
 {
-    if( operation->alg == 0 ||
+    if( operation->alg == PSA_ALG_NONE ||
         operation->state != PSA_PAKE_STATE_SETUP )
     {
         return( PSA_ERROR_BAD_STATE );
@@ -298,7 +298,7 @@ psa_status_t psa_pake_set_peer( psa_pake_operation_t *operation,
                                 const uint8_t *peer_id,
                                 size_t peer_id_len )
 {
-    if( operation->alg == 0 ||
+    if( operation->alg == PSA_ALG_NONE ||
         operation->state != PSA_PAKE_STATE_SETUP )
     {
         return( PSA_ERROR_BAD_STATE );
@@ -313,7 +313,7 @@ psa_status_t psa_pake_set_peer( psa_pake_operation_t *operation,
 psa_status_t psa_pake_set_role( psa_pake_operation_t *operation,
                                 psa_pake_role_t role )
 {
-    if( operation->alg == 0 ||
+    if( operation->alg == PSA_ALG_NONE ||
         operation->state != PSA_PAKE_STATE_SETUP )
     {
         return( PSA_ERROR_BAD_STATE );
@@ -395,7 +395,7 @@ psa_status_t psa_pake_output( psa_pake_operation_t *operation,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t length;
 
-    if( operation->alg == 0 ||
+    if( operation->alg == PSA_ALG_NONE ||
         operation->state == PSA_PAKE_STATE_INVALID )
         return( PSA_ERROR_BAD_STATE );
 
@@ -556,7 +556,7 @@ psa_status_t psa_pake_output( psa_pake_operation_t *operation,
 
             operation->state = PSA_PAKE_STATE_READY;
             operation->output_step++;
-            operation->sequence = 0;
+            operation->sequence = PSA_PAKE_SEQ_INVALID;
         }
         else
             operation->sequence++;
@@ -577,7 +577,7 @@ psa_status_t psa_pake_input( psa_pake_operation_t *operation,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t buffer_remain;
 
-    if( operation->alg == 0 ||
+    if( operation->alg == PSA_ALG_NONE ||
         operation->state == PSA_PAKE_STATE_INVALID )
         return( PSA_ERROR_BAD_STATE );
 
@@ -715,7 +715,7 @@ psa_status_t psa_pake_input( psa_pake_operation_t *operation,
         {
             operation->state = PSA_PAKE_STATE_READY;
             operation->input_step++;
-            operation->sequence = 0;
+            operation->sequence = PSA_PAKE_SEQ_INVALID;
         }
         else
             operation->sequence++;
@@ -733,7 +733,7 @@ psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
-    if( operation->alg == 0 ||
+    if( operation->alg == PSA_ALG_NONE ||
         operation->state != PSA_PAKE_STATE_READY ||
         operation->input_step != PSA_PAKE_STEP_DERIVE ||
         operation->output_step != PSA_PAKE_STEP_DERIVE )
@@ -772,7 +772,7 @@ psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
 
 psa_status_t psa_pake_abort(psa_pake_operation_t * operation)
 {
-    if( operation->alg == 0 )
+    if( operation->alg == PSA_ALG_NONE )
     {
         return( PSA_SUCCESS );
     }
@@ -780,10 +780,10 @@ psa_status_t psa_pake_abort(psa_pake_operation_t * operation)
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_JPAKE)
     if( operation->alg == PSA_ALG_JPAKE )
     {
-        operation->input_step = 0;
-        operation->output_step = 0;
+        operation->input_step = PSA_PAKE_STEP_INVALID;
+        operation->output_step = PSA_PAKE_STEP_INVALID;
         operation->password = MBEDTLS_SVC_KEY_ID_INIT;
-        operation->role = 0;
+        operation->role = PSA_PAKE_ROLE_NONE;
         mbedtls_platform_zeroize( operation->buffer, PSA_PAKE_BUFFER_SIZE );
         operation->buffer_length = 0;
         operation->buffer_offset = 0;
@@ -791,9 +791,9 @@ psa_status_t psa_pake_abort(psa_pake_operation_t * operation)
     }
 #endif
 
-    operation->alg = 0;
-    operation->state = 0;
-    operation->sequence = 0;
+    operation->alg = PSA_ALG_NONE;
+    operation->state = PSA_PAKE_STATE_INVALID;
+    operation->sequence = PSA_PAKE_SEQ_INVALID;
 
     return( PSA_SUCCESS );
 }

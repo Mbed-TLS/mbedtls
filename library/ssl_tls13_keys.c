@@ -1504,8 +1504,7 @@ cleanup:
     return( ret );
 }
 
-int mbedtls_ssl_tls13_generate_resumption_master_secret(
-    mbedtls_ssl_context *ssl )
+int mbedtls_ssl_tls13_compute_resumption_master_secret( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
 
@@ -1515,7 +1514,7 @@ int mbedtls_ssl_tls13_generate_resumption_master_secret(
     size_t transcript_len;
 
     MBEDTLS_SSL_DEBUG_MSG( 2,
-          ( "=> mbedtls_ssl_tls13_generate_resumption_master_secret" ) );
+        ( "=> mbedtls_ssl_tls13_compute_resumption_master_secret" ) );
 
     md_type = ssl->handshake->ciphersuite_info->mac;
 
@@ -1542,7 +1541,7 @@ int mbedtls_ssl_tls13_generate_resumption_master_secret(
              mbedtls_md_get_size( mbedtls_md_info_from_type( md_type ) ) );
 
     MBEDTLS_SSL_DEBUG_MSG( 2,
-          ( "<= mbedtls_ssl_tls13_generate_resumption_master_secret" ) );
+        ( "<= mbedtls_ssl_tls13_compute_resumption_master_secret" ) );
     return( 0 );
 }
 

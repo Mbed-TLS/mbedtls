@@ -2318,11 +2318,11 @@ static int ssl_tls13_write_client_finished( mbedtls_ssl_context *ssl )
     if( ret != 0 )
         return( ret );
 
-    ret = mbedtls_ssl_tls13_generate_resumption_master_secret( ssl );
+    ret = mbedtls_ssl_tls13_compute_resumption_master_secret( ssl );
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1,
-                "mbedtls_ssl_tls13_generate_resumption_master_secret ", ret );
+                "mbedtls_ssl_tls13_compute_resumption_master_secret ", ret );
         return ( ret );
     }
 

@@ -86,7 +86,6 @@ is enabled, no change required on the application side.
 
 Current exceptions:
 
-- EC J-PAKE (when `MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED` is defined)
 - finite-field (non-EC) Diffie-Hellman (used in key exchanges: DHE-RSA,
   DHE-PSK)
 

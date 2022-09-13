@@ -419,12 +419,6 @@ psa_status_t psa_pake_output( psa_pake_operation_t *operation,
             }
         }
 
-        if( operation->state >= PSA_PAKE_STATE_READY &&
-            mbedtls_ecjpake_check( &operation->ctx.ecjpake ) != 0 )
-        {
-            return( PSA_ERROR_BAD_STATE );
-        }
-
         if( operation->state != PSA_PAKE_STATE_READY &&
             operation->state != PSA_PAKE_OUTPUT_X1_X2 &&
             operation->state != PSA_PAKE_OUTPUT_X2S )
@@ -623,12 +617,6 @@ psa_status_t psa_pake_input( psa_pake_operation_t *operation,
                 psa_pake_abort( operation );
                 return( status );
             }
-        }
-
-        if( operation->state >= PSA_PAKE_STATE_READY &&
-            mbedtls_ecjpake_check( &operation->ctx.ecjpake ) != 0 )
-        {
-            return( PSA_ERROR_BAD_STATE );
         }
 
         if( operation->state != PSA_PAKE_STATE_READY &&

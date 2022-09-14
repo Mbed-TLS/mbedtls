@@ -35,8 +35,9 @@ T = TypeVar('T') #pylint: disable=invalid-name
 class BaseTarget(metaclass=ABCMeta):
     """Base target for test case generation.
 
-    Derive directly from this class when adding new file Targets, setting
-    `target_basename`.
+    Child classes of this class represent an output file, and can be referred
+    to as file targets. These indicate where test cases will be written to for
+    all subclasses of the file target, which is set by `target_basename`.
 
     Attributes:
         count: Counter for test cases from this class.

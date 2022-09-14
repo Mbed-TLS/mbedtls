@@ -6,11 +6,11 @@ generate only the specified files.
 
 Class structure:
 
-Child classes of test_generation.BaseTarget (file Targets) represent a target
+Child classes of test_generation.BaseTarget (file targets) represent an output
 file. These indicate where test cases will be written to, for all subclasses of
-this Target. Multiple Target classes should not reuse a `target_basename`.
+this target. Multiple file targets should not reuse a `target_basename`.
 
-Each subclass derived from a file Target can either be:
+Each subclass derived from a file target can either be:
   - A concrete class, representing a test function, which generates test cases.
   - An abstract class containing shared methods and attributes, not associated
         with a test function. An example is BignumOperation, which provides
@@ -24,7 +24,7 @@ from abstract and concrete classes).
 Adding test case generation for a function:
 
 A subclass representing the test function should be added, deriving from a
-file Target such as BignumTarget. This test class must set/implement the
+file target such as BignumTarget. This test class must set/implement the
 following:
   - test_function: the function name from the associated .function file.
   - test_name: a descriptive name or brief summary to refer to the test

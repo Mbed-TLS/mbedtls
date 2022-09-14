@@ -56,9 +56,10 @@ of BaseTarget in test_generation.py.
 
 import itertools
 import sys
+import typing
 
 from abc import ABCMeta, abstractmethod
-from typing import Iterator, List, Tuple, TypeVar, cast
+from typing import Iterator, List, Tuple, TypeVar
 
 import scripts_path # pylint: disable=unused-import
 from mbedtls_dev import test_case
@@ -99,7 +100,7 @@ class BignumOperation(BignumTarget, metaclass=ABCMeta):
         "0000000000000000123", "-0000000000000000123",
         "1230000000000000000", "-1230000000000000000"
     ] # type: List[str]
-    input_cases = cast(List[Tuple[str, str]], []) # type: List[Tuple[str, str]]
+    input_cases = [] # type: List[Tuple[str, str]]
 
     def __init__(self, val_a: str, val_b: str) -> None:
         self.arg_a = val_a
@@ -164,7 +165,7 @@ class BignumOperation(BignumTarget, metaclass=ABCMeta):
         Combinations are first generated from all input values, and then
         specific cases provided.
         """
-        yield from cast(
+        yield from typing.cast(
             Iterator[Tuple[str, str]],
             itertools.combinations_with_replacement(cls.input_values, 2)
         )
@@ -214,7 +215,7 @@ class BignumAdd(BignumOperation):
     symbol = "+"
     test_function = "mbedtls_mpi_add_mpi"
     test_name = "MPI add"
-    input_cases = cast(
+    input_cases = typing.cast(
         List[Tuple[str, str]],
         list(itertools.combinations_with_replacement(
             [

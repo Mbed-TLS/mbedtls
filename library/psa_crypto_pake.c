@@ -407,7 +407,7 @@ psa_status_t psa_pake_output( psa_pake_operation_t *operation,
      * The PSA CRYPTO PAKE and MbedTLS JPAKE API have a different
      * handling of output sequencing.
      *
-     * The MbedTLS JPAKE API outputs the whole X1+X2 anf X2S steps data
+     * The MbedTLS JPAKE API outputs the whole X1+X2 and X2S steps data
      * at once, on the other side the PSA CRYPTO PAKE api requires
      * the KEY_SHARE/ZP_PUBLIC/ZK_PROOF parts of X1, X2 & X2S to be
      * retrieved in sequence.

@@ -168,7 +168,6 @@ static int pkcs7_get_digest_algorithm_set( unsigned char **p,
 
     end = *p + len;
 
-    /** For now, it assumes there is only one digest algorithm specified **/
     ret = mbedtls_asn1_get_alg_null( p, end, alg );
     if( ret != 0 )
     {
@@ -176,8 +175,9 @@ static int pkcs7_get_digest_algorithm_set( unsigned char **p,
         goto out;
     }
 
+    /** For now, it assumes there is only one digest algorithm specified **/
     if ( *p != end )
-        ret = MBEDTLS_ERR_PKCS7_INVALID_FORMAT;
+        ret = MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE;
 
 out:
     return( ret );
@@ -231,7 +231,7 @@ static int pkcs7_get_certificates( unsigned char **p, unsigned char *end,
      */
     if (end_cert != end_set)
     {
-        ret = MBEDTLS_ERR_PKCS7_INVALID_CERT;
+        ret = MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE;
         goto out;
     }
 

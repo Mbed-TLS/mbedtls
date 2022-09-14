@@ -976,7 +976,7 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
     psa_algorithm_t psa_algorithm = PSA_ALG_NONE;
     uint16_t algorithm = MBEDTLS_TLS1_3_SIG_NONE;
     size_t signature_len = 0;
-    unsigned char verify_hash[ MBEDTLS_MD_MAX_SIZE ];
+    unsigned char verify_hash[PSA_HASH_MAX_SIZE];
     size_t verify_hash_len;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
@@ -1361,7 +1361,7 @@ cleanup:
 int mbedtls_ssl_reset_transcript_for_hrr( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    unsigned char hash_transcript[ MBEDTLS_MD_MAX_SIZE + 4 ];
+    unsigned char hash_transcript[PSA_HASH_MAX_SIZE + 4];
     size_t hash_len;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
     uint16_t cipher_suite = ssl->session_negotiate->ciphersuite;
@@ -1371,7 +1371,7 @@ int mbedtls_ssl_reset_transcript_for_hrr( mbedtls_ssl_context *ssl )
 
     ret = mbedtls_ssl_get_handshake_transcript( ssl, ciphersuite_info->mac,
                                                 hash_transcript + 4,
-                                                MBEDTLS_MD_MAX_SIZE,
+                                                PSA_HASH_MAX_SIZE,
                                                 &hash_len );
     if( ret != 0 )
     {

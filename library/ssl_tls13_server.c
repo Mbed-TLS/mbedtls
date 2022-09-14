@@ -137,7 +137,7 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
 #if defined(MBEDTLS_HAVE_TIME)
     mbedtls_time_t now;
     uint64_t age_in_s;
-    int64_t diff_in_ms;
+    int64_t age_diff_in_ms;
 #endif
 
     ((void) obfuscated_ticket_age);
@@ -183,7 +183,6 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
 #if defined(MBEDTLS_HAVE_TIME)
     now = mbedtls_time( NULL );
 
-    ret = MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED;
     if( now < session->start )
     {
         MBEDTLS_SSL_DEBUG_MSG(
@@ -220,15 +219,20 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
      * the ticket age for the selected PSK identity (computed by subtracting
      * ticket_age_add from PskIdentity.obfuscated_ticket_age modulo 2^32) is
      * within a small tolerance of the time since the ticket was issued.
+     *
+     * NOTE: When `now == session->start`, `age_diff_in_ms` will get a negative
+     *       result. That's reasonable, the age units are different between
+     *       server and client sides. Add a -1000 tolerance window to resolve
+     *       that.
      */
-    diff_in_ms = age_in_s * 1000;
-    diff_in_ms -= ( obfuscated_ticket_age - session->ticket_age_add );
-    diff_in_ms += MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE / 2;
-    if( diff_in_ms < 0 || diff_in_ms > MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE )
+    age_diff_in_ms = age_in_s * 1000;
+    age_diff_in_ms -= ( obfuscated_ticket_age - session->ticket_age_add );
+    if( age_diff_in_ms <= -1000 ||
+        age_diff_in_ms > MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE )
     {
         MBEDTLS_SSL_DEBUG_MSG(
             3, ( "Ticket expired: Ticket age outside tolerance window "
-                     "( diff=%d )", (int)diff_in_ms ) );
+                     "( diff=%d )", (int)age_diff_in_ms ) );
         goto exit;
     }
 
@@ -264,7 +268,7 @@ static int ssl_tls13_offered_psks_check_identity_match(
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     if( ssl_tls13_offered_psks_check_identity_match_ticket(
             ssl, identity, identity_len, obfuscated_ticket_age,
-            (mbedtls_ssl_session *)session ) == SSL_TLS1_3_OFFERED_PSK_MATCH )
+            session ) == SSL_TLS1_3_OFFERED_PSK_MATCH )
     {
         mbedtls_ssl_session *i_session=(mbedtls_ssl_session *)session;
         ssl->handshake->resume = 1;
@@ -626,7 +630,8 @@ static int ssl_tls13_parse_pre_shared_key_ext( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
         if( psk_type == MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION )
         {
-            ret = ssl_tls13_session_copy_ticket(ssl->session_negotiate, &session );
+            ret = ssl_tls13_session_copy_ticket( ssl->session_negotiate,
+                                                 &session );
             mbedtls_ssl_session_free( &session );
             if( ret != 0 )
                 return( ret );

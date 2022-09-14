@@ -665,9 +665,7 @@ static int ssl_tls13_write_psk_key_exchange_modes_ext( mbedtls_ssl_context *ssl,
     return ( 0 );
 }
 
-/* Check if we have any PSK to offer, returns 0 if PSK is available.
- * Assign the psk and ticket if pointers are present.
- */
+/* Check if we have any PSK to offer, returns 0 if a PSK is available. */
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_get_psk_to_offer(
         const mbedtls_ssl_context *ssl,
@@ -810,12 +808,10 @@ int mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext(
     {
 #if defined(MBEDTLS_HAVE_TIME)
         mbedtls_time_t now = mbedtls_time( NULL );
-        uint64_t age_in_ms =
-                     ( now - ssl->session_negotiate->ticket_received ) * 1000;
 
         obfuscated_ticket_age =
-            (uint32_t)( ( age_in_ms + ssl->session_negotiate->ticket_age_add )
-                        & ( ( 1LL << 32 ) - 1 ) );
+            ( (uint32_t)( now - ssl->session_negotiate->ticket_received ) * 1000 )
+              + ssl->session_negotiate->ticket_age_add;
 #endif
     }
     else

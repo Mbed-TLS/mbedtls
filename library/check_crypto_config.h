@@ -93,4 +93,9 @@
 #error "MBEDTLS_SSL_PROTO_TLS1_2 defined, but not all prerequisites"
 #endif
 
+#if defined(PSA_WANT_ALG_TLS12_ECJPAKE_TO_PMS) && \
+    !defined(PSA_WANT_ALG_SHA_256)
+#error "PSA_WANT_ALG_TLS12_ECJPAKE_TO_PMS defined, but not all prerequisites"
+#endif
+
 #endif /* MBEDTLS_CHECK_CRYPTO_CONFIG_H */

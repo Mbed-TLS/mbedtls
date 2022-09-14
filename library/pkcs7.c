@@ -656,17 +656,21 @@ int mbedtls_pkcs7_signed_data_verify( mbedtls_pkcs7 *pkcs7,
      * We could also cache hashes by md, so if there are several sigs all using
      * the same algo we don't recalculate the hash each time.
      */
-    signer = &pkcs7->signed_data.signers;
-    while( signer )
+    for( signer = &pkcs7->signed_data.signers; signer; signer = signer->next )
     {
         ret = mbedtls_oid_get_md_alg( &signer->alg_identifier, &md_alg );
         if( ret != 0 )
         {
             ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
-            goto out;
+            continue;
         }
 
         md_info = mbedtls_md_info_from_type( md_alg );
+        if( md_info == NULL )
+        {
+            ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
+            continue;
+        }
 
         hash = mbedtls_calloc( mbedtls_md_get_size( md_info ), 1 );
         if( hash == NULL ) {
@@ -677,8 +681,9 @@ int mbedtls_pkcs7_signed_data_verify( mbedtls_pkcs7 *pkcs7,
         ret = mbedtls_md( md_info, data, datalen, hash );
         if( ret != 0 )
         {
+            ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
             mbedtls_free( hash );
-            goto out;
+            continue;
         }
 
         ret = mbedtls_pk_verify( &pk_cxt, md_alg, hash,
@@ -689,8 +694,6 @@ int mbedtls_pkcs7_signed_data_verify( mbedtls_pkcs7 *pkcs7,
 
         if( ret == 0 )
             break;
-
-        signer = signer->next;
     }
 
 out:
@@ -716,16 +719,21 @@ int mbedtls_pkcs7_signed_hash_verify( mbedtls_pkcs7 *pkcs7,
     }
 
     signer = &pkcs7->signed_data.signers;
-    while( signer )
+    for( signer = &pkcs7->signed_data.signers; signer; signer = signer->next )
     {
         ret = mbedtls_oid_get_md_alg( &signer->alg_identifier, &md_alg );
         if( ret != 0 )
         {
             ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
-            goto out;
+            continue;
         }
 
         md_info = mbedtls_md_info_from_type( md_alg );
+        if( md_info == NULL )
+        {
+            ret = MBEDTLS_ERR_PKCS7_VERIFY_FAIL;
+            continue;
+        }
 
         if( hashlen != mbedtls_md_get_size( md_info ) )
         {
@@ -739,8 +747,6 @@ int mbedtls_pkcs7_signed_hash_verify( mbedtls_pkcs7 *pkcs7,
                                  pkcs7->signed_data.signers.sig.len );
         if( ret == 0 )
             break;
-
-        signer = signer->next;
     }
 
 out:

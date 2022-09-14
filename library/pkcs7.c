@@ -58,8 +58,7 @@
  */
 void mbedtls_pkcs7_init( mbedtls_pkcs7 *pkcs7 )
 {
-    memset( pkcs7, 0, sizeof( mbedtls_pkcs7 ) );
-    pkcs7->raw.p = NULL;
+    memset( pkcs7, 0, sizeof( *pkcs7 ) );
 }
 
 static int pkcs7_get_next_content_len( unsigned char **p, unsigned char *end,
@@ -229,7 +228,7 @@ static int pkcs7_get_certificates( unsigned char **p, unsigned char *end,
      * So, we support only the root certificate and the single signer.
      * The behaviour would be improved with addition of multiple signer support.
      */
-    if (end_cert != end_set)
+    if ( end_cert != end_set )
     {
         ret = MBEDTLS_ERR_PKCS7_FEATURE_UNAVAILABLE;
         goto out;
@@ -702,7 +701,8 @@ out:
 
 int mbedtls_pkcs7_signed_hash_verify( mbedtls_pkcs7 *pkcs7,
                                       const mbedtls_x509_crt *cert,
-                                      const unsigned char *hash, size_t hashlen)
+                                      const unsigned char *hash, 
+                                      size_t hashlen )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const mbedtls_md_info_t *md_info;
@@ -750,7 +750,7 @@ int mbedtls_pkcs7_signed_hash_verify( mbedtls_pkcs7 *pkcs7,
     }
 
 out:
-    return ( ret );
+    return( ret );
 }
 
 /*

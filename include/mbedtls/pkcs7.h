@@ -22,23 +22,22 @@
  */
 
 /**
- * Note: For the time being, this application of the PKCS7 cryptographic
+ * Note: For the time being, this implementation of the PKCS7 cryptographic
  * message syntax is a partial implementation of RFC 2315.
  * Differences include:
  *  - The RFC specifies 6 different content types. The only type currently
- *    supported in MbedTLS is the signed data content type.
+ *    supported in Mbed TLS is the signed data content type.
  *  - The only supported PKCS7 Signed Data syntax version is version 1
- *  - The RFC specifies support for BER. This application is limited to
+ *  - The RFC specifies support for BER. This implementation is limited to
  *    DER only.
  *  - The RFC specifies that multiple digest algorithms can be specified
- *    in the Signed Data type. Only one digest algorithm is supported in MbedTLS.
- *  - The RFC specifies the Signed Data certificate format can be
- *    X509 or PKCS6. The only type currently supported in MbedTLS is X509.
+ *    in the Signed Data type. Only one digest algorithm is supported in Mbed TLS.
+ *  - The RFC specifies the Signed Data type can contain multiple X509 or PKCS6
+ *    certificates. In Mbed TLS, this list can only contain 0 or 1 certificates
+ *    and they must be in X509 format.
  *  - The RFC specifies the Signed Data type can contain
- *    certificate-revocation lists (crls). This application has no support
+ *    certificate-revocation lists (crls). This implementation has no support
  *    for crls so it is assumed to be an empty list.
- *  - The RFC specifies support for multiple signers. This application only
- *    supports the Signed Data type with a single signer.
  */
 
 #ifndef MBEDTLS_PKCS7_H

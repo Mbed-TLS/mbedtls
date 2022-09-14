@@ -136,7 +136,8 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
     unsigned char *ticket_buffer;
 #if defined(MBEDTLS_HAVE_TIME)
     mbedtls_time_t now;
-    uint64_t age_in_s, age_in_ms, client_age_in_ms;
+    uint64_t age_in_s;
+    int64_t diff_in_ms;
 #endif
 
     ((void) obfuscated_ticket_age);
@@ -220,15 +221,14 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
      * ticket_age_add from PskIdentity.obfuscated_ticket_age modulo 2^32) is
      * within a small tolerance of the time since the ticket was issued.
      */
-    age_in_ms = age_in_s * 1000;
-    client_age_in_ms = obfuscated_ticket_age - session->ticket_age_add;
-    if( age_in_ms < client_age_in_ms ||
-        ( age_in_ms - client_age_in_ms ) > MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE )
+    diff_in_ms = age_in_s * 1000;
+    diff_in_ms -= ( obfuscated_ticket_age - session->ticket_age_add );
+    diff_in_ms += MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE / 2;
+    if( diff_in_ms < 0 || diff_in_ms > MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE )
     {
         MBEDTLS_SSL_DEBUG_MSG(
             3, ( "Ticket expired: Ticket age outside tolerance window "
-                     "( diff=%d )",
-                 (int)(age_in_ms - client_age_in_ms ) ) );
+                     "( diff=%d )", (int)diff_in_ms ) );
         goto exit;
     }
 

@@ -36,6 +36,7 @@
 #include "mbedtls/platform_util.h"
 #include "constant_time_internal.h"
 #include "mbedtls/constant_time.h"
+#include "hash_info.h"
 
 #include <string.h>
 
@@ -3059,11 +3060,8 @@ curve_matching_done:
 
         size_t dig_signed_len = ssl->out_msg + ssl->out_msglen - dig_signed;
         size_t hashlen = 0;
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-        unsigned char hash[PSA_HASH_MAX_SIZE];
-#else
-        unsigned char hash[MBEDTLS_MD_MAX_SIZE];
-#endif
+        unsigned char hash[MBEDTLS_HASH_MAX_SIZE];
+
         int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
         /*

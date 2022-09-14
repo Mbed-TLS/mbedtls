@@ -43,6 +43,7 @@ class BaseTarget(metaclass=ABCMeta):
         case_description: Short description of the test case. This may be
             automatically generated using the class, or manually set.
         dependencies: A list of dependencies required for the test case.
+        show_test_count: Toggle for inclusion of `count` in the test description.
         target_basename: Basename of file to write generated tests to. This
             should be specified in a child class of BaseTarget.
         test_function: Test function which the class generates cases for.
@@ -53,6 +54,7 @@ class BaseTarget(metaclass=ABCMeta):
     count = 0
     case_description = ""
     dependencies = [] # type: List[str]
+    show_test_count = True
     target_basename = ""
     test_function = ""
     test_name = ""
@@ -78,16 +80,19 @@ class BaseTarget(metaclass=ABCMeta):
         """Create a test case description.
 
         Creates a description of the test case, including a name for the test
-        function, a case number, and a description the specific test case.
-        This should inform a reader what is being tested, and provide context
-        for the test case.
+        function, an optional case count, and a description of the specific
+        test case. This should inform a reader what is being tested, and
+        provide context for the test case.
 
         Returns:
             Description for the test case.
         """
-        return "{} #{} {}".format(
-            self.test_name, self.count, self.case_description
-            ).strip()
+        if self.show_test_count:
+            return "{} #{} {}".format(
+                self.test_name, self.count, self.case_description
+                ).strip()
+        else:
+            return "{} {}".format(self.test_name, self.case_description).strip()
 
 
     def create_test_case(self) -> test_case.TestCase:

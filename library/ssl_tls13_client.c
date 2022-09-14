@@ -675,17 +675,11 @@ static int ssl_tls13_get_psk_to_offer(
         const unsigned char **psk, size_t *psk_len,
         const unsigned char **psk_identity, size_t *psk_identity_len )
 {
-    if( psk_type == NULL ||
-        psk == NULL || psk_len == NULL ||
-        psk_identity == NULL || psk_identity_len == NULL )
-    {
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-    }
-
     *psk = NULL;
     *psk_len = 0;
     *psk_identity = NULL;
     *psk_identity_len = 0;
+    *psk_type = MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL;
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     /* Check if a ticket has been configured. */
@@ -694,9 +688,9 @@ static int ssl_tls13_get_psk_to_offer(
     {
 #if defined(MBEDTLS_HAVE_TIME)
         mbedtls_time_t now = mbedtls_time( NULL );
-
-        if( ( ssl->session_negotiate->ticket_received <= now &&
-              now - ssl->session_negotiate->ticket_received < 7 * 86400 * 1000 ) )
+        if( ssl->session_negotiate->ticket_received <= now &&
+            (uint64_t)( now - ssl->session_negotiate->ticket_received )
+                    <= ssl->session_negotiate->ticket_lifetime )
         {
             *psk_type = MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION;
             *psk = ssl->session_negotiate->resumption_key;
@@ -713,7 +707,6 @@ static int ssl_tls13_get_psk_to_offer(
     /* Check if an external PSK has been configured. */
     if( ssl->conf->psk != NULL )
     {
-        *psk_type = MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL;
         *psk = ssl->conf->psk;
         *psk_len = ssl->conf->psk_len;
         *psk_identity = ssl->conf->psk_identity;
@@ -721,7 +714,7 @@ static int ssl_tls13_get_psk_to_offer(
         return( 0 );
     }
 
-    return( 1 );
+    return( MBEDTLS_ERR_ERROR_GENERIC_ERROR );
 }
 
 /*
@@ -817,9 +810,12 @@ int mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext(
     {
 #if defined(MBEDTLS_HAVE_TIME)
         mbedtls_time_t now = mbedtls_time( NULL );
+        uint64_t age_in_ms =
+                     ( now - ssl->session_negotiate->ticket_received ) * 1000;
+
         obfuscated_ticket_age =
-            (uint32_t)( now - ssl->session_negotiate->ticket_received ) +
-            ssl->session_negotiate->ticket_age_add;
+            (uint32_t)( ( age_in_ms + ssl->session_negotiate->ticket_age_add )
+                        & ( ( 1LL << 32 ) - 1 ) );
 #endif
     }
     else

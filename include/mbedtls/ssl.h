@@ -338,13 +338,9 @@
 #define MBEDTLS_SSL_SRV_CIPHERSUITE_ORDER_SERVER  0
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
-#if ( !defined(MBEDTLS_USE_PSA_CRYPTO) && \
-        defined(MBEDTLS_MD_C) && defined(MBEDTLS_SHA256_C) ) || \
-    ( defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_SHA_256) )
+#if defined(PSA_WANT_ALG_SHA_384)
 #define MBEDTLS_SSL_TLS1_3_TICKET_RESUMPTION_KEY_LEN        48
-#elif ( !defined(MBEDTLS_USE_PSA_CRYPTO) && \
-        defined(MBEDTLS_MD_C) && defined(MBEDTLS_SHA384_C) ) || \
-    ( defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_SHA_384) )
+#elif defined(PSA_WANT_ALG_SHA_256)
 #define MBEDTLS_SSL_TLS1_3_TICKET_RESUMPTION_KEY_LEN        32
 #endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 && MBEDTLS_SSL_SESSION_TICKETS */

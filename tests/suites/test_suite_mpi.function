@@ -1768,21 +1768,17 @@ void mpi_core_add_if( char * input_A, char * input_B,
      * limbs each of these need.
      */
     size_t limbs = B.n;
-    a = mbedtls_calloc( limbs, sizeof(mbedtls_mpi_uint) );
-    b = mbedtls_calloc( limbs, sizeof(mbedtls_mpi_uint) );
-    x = mbedtls_calloc( limbs, sizeof(mbedtls_mpi_uint) );
-    d = mbedtls_calloc( limbs, sizeof(mbedtls_mpi_uint) );
-
     size_t bytes = limbs * sizeof(mbedtls_mpi_uint);
 
-    TEST_ASSERT( a != NULL );
-    TEST_ASSERT( b != NULL );
-    TEST_ASSERT( x != NULL );
-    TEST_ASSERT( d != NULL );
+    /* ASSERT_ALLOC() uses calloc() under the hood, so these do get zeroed */
+    ASSERT_ALLOC( a, bytes );
+    ASSERT_ALLOC( b, bytes );
+    ASSERT_ALLOC( x, bytes );
+    ASSERT_ALLOC( d, bytes );
 
     /* Populate the arrays. As the mbedtls_mpi_uint[]s in mbedtls_mpis (and as
      * processed by mbedtls_mpi_core_add_if()) are little endian, we can just
-     * copy what we have as long as MSBs are 0 (which they are from calloc())
+     * copy what we have as long as MSBs are 0 (which they are from ASSERT_ALLOC())
      */
     memcpy( a, A.p, A.n * sizeof(mbedtls_mpi_uint) );
     memcpy( b, B.p, B.n * sizeof(mbedtls_mpi_uint) );
@@ -1877,19 +1873,16 @@ void mpi_core_sub( char * input_A, char * input_B,
     TEST_ASSERT( X->n <= limbs );
 
     /* Now let's get arrays of mbedtls_mpi_uints, rather than MPI structures */
-    a = mbedtls_calloc( limbs, sizeof(mbedtls_mpi_uint) );
-    b = mbedtls_calloc( limbs, sizeof(mbedtls_mpi_uint) );
-    x = mbedtls_calloc( limbs, sizeof(mbedtls_mpi_uint) );
-    r = mbedtls_calloc( limbs, sizeof(mbedtls_mpi_uint) );
 
-    TEST_ASSERT( a != NULL );
-    TEST_ASSERT( b != NULL );
-    TEST_ASSERT( x != NULL );
-    TEST_ASSERT( r != NULL );
+    /* ASSERT_ALLOC() uses calloc() under the hood, so these do get zeroed */
+    ASSERT_ALLOC( a, bytes );
+    ASSERT_ALLOC( b, bytes );
+    ASSERT_ALLOC( x, bytes );
+    ASSERT_ALLOC( r, bytes );
 
     /* Populate the arrays. As the mbedtls_mpi_uint[]s in mbedtls_mpis (and as
      * processed by mbedtls_mpi_core_sub()) are little endian, we can just
-     * copy what we have as long as MSBs are 0 (which they are from calloc())
+     * copy what we have as long as MSBs are 0 (which they are from ASSERT_ALLOC())
      */
     memcpy( a, A.p, A.n * sizeof(mbedtls_mpi_uint) );
     memcpy( b, B.p, B.n * sizeof(mbedtls_mpi_uint) );
@@ -1985,15 +1978,14 @@ void mpi_core_mla( char * input_A, char * input_B, char * input_S,
     TEST_ASSERT( X->n <= limbs );
 
     /* Now let's get arrays of mbedtls_mpi_uints, rather than MPI structures */
-    a = mbedtls_calloc( limbs, sizeof(mbedtls_mpi_uint) );
-    x = mbedtls_calloc( limbs, sizeof(mbedtls_mpi_uint) );
 
-    TEST_ASSERT( a != NULL );
-    TEST_ASSERT( x != NULL );
+    /* ASSERT_ALLOC() uses calloc() under the hood, so these do get zeroed */
+    ASSERT_ALLOC( a, bytes );
+    ASSERT_ALLOC( x, bytes );
 
     /* Populate the arrays. As the mbedtls_mpi_uint[]s in mbedtls_mpis (and as
      * processed by mbedtls_mpi_core_mla()) are little endian, we can just
-     * copy what we have as long as MSBs are 0 (which they are from calloc()).
+     * copy what we have as long as MSBs are 0 (which they are from ASSERT_ALLOC()).
      */
     memcpy( a, A.p, A.n * sizeof(mbedtls_mpi_uint) );
     memcpy( x, X->p, X->n * sizeof(mbedtls_mpi_uint) );

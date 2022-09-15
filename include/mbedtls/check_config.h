@@ -750,17 +750,28 @@
 #error "MBEDTLS_SSL_PROTO_TLS1_2 defined, but not all prerequisites"
 #endif
 
-/*
- * HKDF is mandatory for TLS 1.3.
- * Otherwise support for at least one ciphersuite mandates either SHA_256 or
- * SHA_384.
- */
+/* TLS 1.3 requires separate HKDF parts from PSA */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
-    ( ( !defined(MBEDTLS_HKDF_C) ) || \
-      ( !defined(MBEDTLS_SHA256_C) && !defined(MBEDTLS_SHA384_C) ) || \
-      ( !defined(MBEDTLS_PSA_CRYPTO_C) ) )
+        !( defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_HKDF_EXTRACT) && defined(PSA_WANT_ALG_HKDF_EXPAND) )
 #error "MBEDTLS_SSL_PROTO_TLS1_3 defined, but not all prerequisites"
 #endif
+
+/* TLS 1.3 requires at least one ciphersuite, so at least SHA-256 or SHA-384 */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+/* We always need at least one of the hashes via PSA (for use with HKDF) */
+#if !( defined(PSA_WANT_ALG_SHA_256) || defined(PSA_WANT_ALG_SHA_384) )
+#error "MBEDTLS_SSL_PROTO_TLS1_3 defined, but not all prerequisites"
+#endif /* !(PSA_WANT_ALG_SHA_256 || PSA_WANT_ALG_SHA_384) */
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
+/* When USE_PSA_CRYPTO is not defined, we also need SHA-256 or SHA-384 via the
+ * legacy interface, including via the MD layer, for the parts of the code
+ * that are shared with TLS 1.2 (running handshake hash). */
+#if !defined(MBEDTLS_MD_C) || \
+    !( defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA384_C) )
+#error "MBEDTLS_SSL_PROTO_TLS1_3 defined, but not all prerequisites"
+#endif /* !MBEDTLS_MD_C || !(MBEDTLS_SHA256_C || MBEDTLS_SHA384_C) */
+#endif /* !MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 /*
  * The current implementation of TLS 1.3 requires MBEDTLS_SSL_KEEP_PEER_CERTIFICATE.

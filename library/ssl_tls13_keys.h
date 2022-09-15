@@ -81,7 +81,7 @@ extern const struct mbedtls_ssl_tls13_labels_struct mbedtls_ssl_tls13_labels;
  * Since contexts are always hashes of message transcripts, this can
  * be approximated from above by the maximum hash size. */
 #define MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_CONTEXT_LEN  \
-    MBEDTLS_MD_MAX_SIZE
+    PSA_HASH_MAX_SIZE
 
 /* Maximum desired length for expanded key material generated
  * by HKDF-Expand-Label.

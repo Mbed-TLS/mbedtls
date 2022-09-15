@@ -1870,8 +1870,10 @@ component_test_psa_crypto_config_accel_hash_use_psa () {
     scripts/config.py unset MBEDTLS_HMAC_DRBG_C
     scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC
     scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_DETERMINISTIC_ECDSA
-    # TLS 1.3 currently depends on SHA256_C || SHA384_C
-    # but is already disabled in the default config
+    # Enable TLS 1.3: use PSA implementation for hashes
+    scripts/config.py set MBEDTLS_SSL_PROTO_TLS1_3
+    scripts/config.py set MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+    scripts/config.py set MBEDTLS_SSL_CID_TLS1_3_PADDING_GRANULARITY 1
 
     loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
     make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -I../../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS" all

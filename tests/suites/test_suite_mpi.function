@@ -1863,7 +1863,7 @@ void mpi_core_sub( char * input_A, char * input_B,
     TEST_EQUAL( 1, X8.s );
 
     /* Get the number of limbs we will need */
-    size_t limbs = ( A.n < B.n ) ? B.n : A.n;
+    size_t limbs = MAX( A.n, B.n );
     size_t bytes = limbs * sizeof(mbedtls_mpi_uint);
 
     /* We only need to work with X4 or X8, depending on sizeof(mbedtls_mpi_uint) */
@@ -1971,7 +1971,7 @@ void mpi_core_mla( char * input_A, char * input_B, char * input_S,
     TEST_EQUAL( 1, cy->s );
 
     /* Get the (max) number of limbs we will need */
-    size_t limbs = ( A.n < B.n ) ? B.n : A.n;
+    size_t limbs = MAX( A.n, B.n );
     size_t bytes = limbs * sizeof(mbedtls_mpi_uint);
 
     /* The result shouldn't have more limbs than the longest input */

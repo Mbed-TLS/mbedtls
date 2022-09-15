@@ -220,10 +220,10 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
      * ticket_age_add from PskIdentity.obfuscated_ticket_age modulo 2^32) is
      * within a small tolerance of the time since the ticket was issued.
      *
-     * NOTE: When `now == session->start`, `age_diff_in_ms` will get a negative
-     *       result. That's reasonable, the age units are different between
-     *       server and client sides. Add a -1000 tolerance window to resolve
-     *       that.
+     * NOTE: When `now == session->start`, `age_diff_in_ms` may be negative
+     *       as the age units are different on the server (s) and in the
+     *       client (ms) side. Add a -1000 ms tolerance window to take this
+     *       into account.
      */
     age_diff_in_ms = age_in_s * 1000;
     age_diff_in_ms -= ( obfuscated_ticket_age - session->ticket_age_add );
@@ -270,16 +270,15 @@ static int ssl_tls13_offered_psks_check_identity_match(
             ssl, identity, identity_len, obfuscated_ticket_age,
             session ) == SSL_TLS1_3_OFFERED_PSK_MATCH )
     {
-        mbedtls_ssl_session *i_session=(mbedtls_ssl_session *)session;
         ssl->handshake->resume = 1;
         *psk_type = MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION;
         mbedtls_ssl_set_hs_psk( ssl,
-                                i_session->resumption_key,
-                                i_session->resumption_key_len );
+                                session->resumption_key,
+                                session->resumption_key_len );
 
         MBEDTLS_SSL_DEBUG_BUF( 4, "Ticket-resumed PSK:",
-                               i_session->resumption_key,
-                               i_session->resumption_key_len );
+                               session->resumption_key,
+                               session->resumption_key_len );
         MBEDTLS_SSL_DEBUG_MSG( 4, ( "ticket: obfuscated_ticket_age: %u",
                                     (unsigned)obfuscated_ticket_age ) );
         return( SSL_TLS1_3_OFFERED_PSK_MATCH );

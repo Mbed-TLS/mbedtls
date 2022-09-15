@@ -12838,6 +12838,17 @@ run_test    "TLS 1.3: NewSessionTicket: Basic check, m->m" \
             -s "key exchange mode: psk_ephemeral" \
             -s "found pre_shared_key extension"
 
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_DEBUG_C
+run_test "TLS 1.3: NewSessionTicket: reconnect with psk_ephemeral, m->m" \
+         "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70 tickets=4" \
+         "$P_CLI force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70 reco_mode=1 reconnect=1" \
+         0 \
+         -c "Pre-configured PSK number = 5" \
+         -s "sent selected_identity: 0"
 
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2

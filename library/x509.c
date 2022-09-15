@@ -62,7 +62,7 @@
 #include <time.h>
 #endif
 
-#include "legacy_or_psa.h"
+#include "mbedtls/legacy_or_psa.h"
 
 #define CHECK(code) if( ( ret = ( code ) ) != 0 ){ return( ret ); }
 #define CHECK_RANGE(min, max, val)                      \

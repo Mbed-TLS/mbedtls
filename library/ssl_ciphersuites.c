@@ -33,7 +33,7 @@
 #include "mbedtls/ssl.h"
 #include "ssl_misc.h"
 
-#include "legacy_or_psa.h"
+#include "mbedtls/legacy_or_psa.h"
 
 #include <string.h>
 

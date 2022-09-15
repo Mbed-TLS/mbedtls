@@ -38,7 +38,7 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/constant_time.h"
 
-#include "legacy_or_psa.h"
+#include "mbedtls/legacy_or_psa.h"
 
 #include <string.h>
 

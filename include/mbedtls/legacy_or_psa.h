@@ -96,7 +96,7 @@
 #ifndef MBEDTLS_OR_PSA_HELPERS_H
 #define MBEDTLS_OR_PSA_HELPERS_H
 
-#include "common.h"
+#include "mbedtls/build_info.h"
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 #include "psa/crypto.h"
 #endif /* MBEDTLS_PSA_CRYPTO_C */

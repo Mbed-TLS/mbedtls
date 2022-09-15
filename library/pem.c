@@ -45,7 +45,7 @@
 #include "psa/crypto.h"
 #endif
 
-#include "legacy_or_psa.h"
+#include "mbedtls/legacy_or_psa.h"
 
 #if defined(MBEDTLS_HAS_ALG_MD5_VIA_MD_OR_PSA_BASED_ON_USE_PSA) &&  \
     defined(MBEDTLS_CIPHER_MODE_CBC) &&                             \

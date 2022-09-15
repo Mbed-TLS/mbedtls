@@ -120,6 +120,7 @@ int main( void )
 #define DFL_MFL_CODE            MBEDTLS_SSL_MAX_FRAG_LEN_NONE
 #define DFL_TRUNC_HMAC          -1
 #define DFL_TICKETS             MBEDTLS_SSL_SESSION_TICKETS_ENABLED
+#define DFL_DUMMY_TICKET        0
 #define DFL_TICKET_ROTATE       0
 #define DFL_TICKET_TIMEOUT      86400
 #define DFL_TICKET_AEAD         MBEDTLS_CIPHER_AES_256_GCM
@@ -636,6 +637,7 @@ struct options
     unsigned char mfl_code;     /* code for maximum fragment length         */
     int trunc_hmac;             /* accept truncated hmac?                   */
     int tickets;                /* enable / disable session tickets         */
+    int dummy_ticket;           /* enable / disable dummy ticket generator  */
     int ticket_rotate;          /* session ticket rotate (code coverage)    */
     int ticket_timeout;         /* session ticket lifetime                  */
     int ticket_aead;            /* session ticket protection                */
@@ -1349,6 +1351,90 @@ int report_cid_usage( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
+    defined(MBEDTLS_SSL_SESSION_TICKETS) && \
+    defined(MBEDTLS_HAVE_TIME)
+/* Functions for session ticket tests
+ *
+ */
+static uint32_t dummy_ticket_id = 0;
+int dummy_ticket_write( void *p_ticket,
+                              const mbedtls_ssl_session *session,
+                              unsigned char *start,
+                              const unsigned char *end,
+                              size_t *tlen,
+                              uint32_t *ticket_lifetime )
+{
+    int ret;
+    unsigned char *p = start;
+    uint32_t *ticket_id = (uint32_t*)p_ticket;
+    size_t clear_len;
+
+    if( end - p < 8 )
+    {
+        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+    }
+    *((uint32_t *)p) = *ticket_id;
+    *ticket_id +=1;
+    p += 4;
+    *((uint32_t *)p) = 7 * 24 * 3600;
+    *ticket_lifetime = 7 * 24 * 3600;
+    p += 4;
+
+    /* Dump session state */
+    if( ( ret = mbedtls_ssl_session_save( session, p, end - p,
+                                          &clear_len ) ) != 0 )
+    {
+         return( ret );
+    }
+
+    *tlen = 8 + clear_len;
+
+    return( 0 );
+}
+
+int dummy_ticket_parse( void *p_ticket,
+                              mbedtls_ssl_session *session,
+                              unsigned char *buf,
+                              size_t len )
+{
+    int ret;
+    uint32_t ticket_id;
+    ((void) p_ticket);
+    ticket_id = *( (uint32_t*)buf );
+
+    if( ( ret = mbedtls_ssl_session_load( session, buf + 8, len - 8 ) ) != 0 )
+        return( ret );
+
+    switch( (ticket_id + 7)% 7 )
+    {
+        case 0:
+            return( MBEDTLS_ERR_SSL_INVALID_MAC );
+        case 1:
+            return( MBEDTLS_ERR_SSL_SESSION_TICKET_EXPIRED );
+        case 2:
+            session->start = mbedtls_time( NULL ) + 10;
+            break;
+        case 3:
+            session->start = mbedtls_time( NULL ) - 10 - 7 * 24 * 3600;
+            break;
+        case 4:
+            session->start = mbedtls_time( NULL ) - 10;
+            break;
+        case 5:
+            session->start = mbedtls_time( NULL );
+            session->ticket_age_add -= 1000;
+            break;
+        default:
+            break;
+    }
+
+    return( ret );
+}
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 &&
+          MBEDTLS_SSL_SESSION_TICKETS &&
+          MBEDTLS_HAVE_TIME */
+
 int main( int argc, char *argv[] )
 {
     int ret = 0, len, written, frags, exchanges_left;
@@ -1605,6 +1691,7 @@ int main( int argc, char *argv[] )
     opt.mfl_code            = DFL_MFL_CODE;
     opt.trunc_hmac          = DFL_TRUNC_HMAC;
     opt.tickets             = DFL_TICKETS;
+    opt.dummy_ticket        = DFL_DUMMY_TICKET;
     opt.ticket_rotate       = DFL_TICKET_ROTATE;
     opt.ticket_timeout      = DFL_TICKET_TIMEOUT;
     opt.ticket_aead         = DFL_TICKET_AEAD;
@@ -1998,6 +2085,12 @@ int main( int argc, char *argv[] )
         {
             opt.tickets = atoi( q );
             if( opt.tickets < 0 )
+                goto usage;
+        }
+        else if( strcmp( p, "dummy_ticket" ) == 0 )
+        {
+            opt.dummy_ticket = atoi( q );
+            if( opt.dummy_ticket < 0 )
                 goto usage;
         }
         else if( strcmp( p, "ticket_rotate" ) == 0 )
@@ -2917,19 +3010,36 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     if( opt.tickets != MBEDTLS_SSL_SESSION_TICKETS_DISABLED )
     {
-        if( ( ret = mbedtls_ssl_ticket_setup( &ticket_ctx,
-                        rng_get, &rng,
-                        opt.ticket_aead,
-                        opt.ticket_timeout ) ) != 0 )
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
+    defined(MBEDTLS_SSL_SESSION_TICKETS) && \
+    defined(MBEDTLS_HAVE_TIME)
+        if( opt.dummy_ticket )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_ticket_setup returned %d\n\n", ret );
-            goto exit;
+            mbedtls_ssl_conf_session_tickets_cb( &conf,
+                    dummy_ticket_write,
+                    dummy_ticket_parse,
+                    &dummy_ticket_id );
+        }
+        else
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 &&
+          MBEDTLS_SSL_SESSION_TICKETS &&
+          MBEDTLS_HAVE_TIME */
+        {
+            if( ( ret = mbedtls_ssl_ticket_setup( &ticket_ctx,
+                            rng_get, &rng,
+                            opt.ticket_aead,
+                            opt.ticket_timeout ) ) != 0 )
+            {
+                mbedtls_printf( " failed\n  ! mbedtls_ssl_ticket_setup returned %d\n\n", ret );
+                goto exit;
+            }
+
+            mbedtls_ssl_conf_session_tickets_cb( &conf,
+                    mbedtls_ssl_ticket_write,
+                    mbedtls_ssl_ticket_parse,
+                    &ticket_ctx );
         }
 
-        mbedtls_ssl_conf_session_tickets_cb( &conf,
-                mbedtls_ssl_ticket_write,
-                mbedtls_ssl_ticket_parse,
-                &ticket_ctx );
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
         mbedtls_ssl_conf_new_session_tickets( &conf, opt.tickets );
 #endif

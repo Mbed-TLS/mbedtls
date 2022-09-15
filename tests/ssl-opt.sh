@@ -12844,11 +12844,33 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 requires_config_enabled MBEDTLS_DEBUG_C
 run_test "TLS 1.3: NewSessionTicket: reconnect with psk_ephemeral, m->m" \
-         "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70 tickets=4" \
+         "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70 tickets=8 dummy_ticket=1" \
          "$P_CLI force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70 reco_mode=1 reconnect=1" \
          0 \
-         -c "Pre-configured PSK number = 5" \
-         -s "sent selected_identity: 0"
+         -c "Pre-configured PSK number = 9" \
+         -s "sent selected_identity: 6" \
+         -s "ticket is not authentic" \
+         -s "ticket is expired" \
+         -s "Ticket expired: start is in future " \
+         -s "Ticket expired: Ticket age exceed limitation" \
+         -s "Ticket expired: Ticket age outside tolerance window"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
+requires_config_enabled MBEDTLS_SSL_SESSION_TICKETS
+requires_config_enabled MBEDTLS_SSL_SRV_C
+requires_config_enabled MBEDTLS_SSL_CLI_C
+requires_config_enabled MBEDTLS_DEBUG_C
+run_test "TLS 1.3: NewSessionTicket: reconnect with dummy tickets, m->m" \
+         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=8 dummy_ticket=1" \
+         "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
+         0 \
+         -c "Pre-configured PSK number = 8" \
+         -s "sent selected_identity: 6" \
+         -s "ticket is not authentic" \
+         -s "ticket is expired" \
+         -s "Ticket expired: start is in future " \
+         -s "Ticket expired: Ticket age exceed limitation" \
+         -s "Ticket expired: Ticket age outside tolerance window"
 
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2

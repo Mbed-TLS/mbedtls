@@ -1889,7 +1889,7 @@ void mpi_core_sub( char * input_A, char * input_B,
     memcpy( x, X->p, X->n * sizeof(mbedtls_mpi_uint) );
 
     /* 1a) r = a - b => we should get the correct carry */
-    TEST_EQUAL( mbedtls_mpi_core_sub( r, a, b, limbs ), (mbedtls_mpi_uint) carry );
+    TEST_EQUAL( carry, mbedtls_mpi_core_sub( r, a, b, limbs ) );
 
     /* 1b) r = a - b => we should get the correct result */
     ASSERT_COMPARE( r, bytes, x, bytes );
@@ -1897,14 +1897,14 @@ void mpi_core_sub( char * input_A, char * input_B,
     /* 2 and 3 test "r may be aliased to a or b" */
     /* 2a) r = a; r -= b => we should get the correct carry (use r to avoid clobbering a) */
     memcpy( r, a, bytes );
-    TEST_EQUAL( mbedtls_mpi_core_sub( r, r, b, limbs ), (mbedtls_mpi_uint) carry );
+    TEST_EQUAL( carry, mbedtls_mpi_core_sub( r, r, b, limbs ) );
 
     /* 2b) r -= b => we should get the correct result */
     ASSERT_COMPARE( r, bytes, x, bytes );
 
     /* 3a) r = b; r = a - r => we should get the correct carry (use r to avoid clobbering b) */
     memcpy( r, b, bytes );
-    TEST_EQUAL( mbedtls_mpi_core_sub( r, a, r, limbs ), (mbedtls_mpi_uint) carry );
+    TEST_EQUAL( carry, mbedtls_mpi_core_sub( r, a, r, limbs ) );
 
     /* 3b) r = a - b => we should get the correct result */
     ASSERT_COMPARE( r, bytes, x, bytes );

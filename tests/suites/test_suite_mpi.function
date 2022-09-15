@@ -873,8 +873,8 @@ void mpi_swap( char *X_hex, char *Y_hex )
     TEST_ASSERT( mbedtls_test_read_mpi( &Y0, Y_hex ) == 0 );
 
     /* mbedtls_mpi_swap() */
-    TEST_ASSERT( mbedtls_test_read_mpi( &X,  X_hex ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &Y,  Y_hex ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &X, X_hex ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &Y, Y_hex ) == 0 );
     mbedtls_mpi_swap( &X, &Y );
     TEST_ASSERT( sign_is_valid( &X ) );
     TEST_ASSERT( sign_is_valid( &Y ) );
@@ -884,8 +884,8 @@ void mpi_swap( char *X_hex, char *Y_hex )
     /* mbedtls_mpi_safe_cond_swap(), swap done */
     mbedtls_mpi_free( &X );
     mbedtls_mpi_free( &Y );
-    TEST_ASSERT( mbedtls_test_read_mpi( &X,  X_hex ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &Y,  Y_hex ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &X, X_hex ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &Y, Y_hex ) == 0 );
     TEST_ASSERT( mbedtls_mpi_safe_cond_swap( &X, &Y, 1 ) == 0 );
     TEST_ASSERT( sign_is_valid( &X ) );
     TEST_ASSERT( sign_is_valid( &Y ) );
@@ -895,8 +895,8 @@ void mpi_swap( char *X_hex, char *Y_hex )
     /* mbedtls_mpi_safe_cond_swap(), swap not done */
     mbedtls_mpi_free( &X );
     mbedtls_mpi_free( &Y );
-    TEST_ASSERT( mbedtls_test_read_mpi( &X,  X_hex ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &Y,  Y_hex ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &X, X_hex ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &Y, Y_hex ) == 0 );
     TEST_ASSERT( mbedtls_mpi_safe_cond_swap( &X, &Y, 0 ) == 0 );
     TEST_ASSERT( sign_is_valid( &X ) );
     TEST_ASSERT( sign_is_valid( &Y ) );
@@ -915,7 +915,7 @@ void mpi_swap_self( char *X_hex )
     mbedtls_mpi X, X0;
     mbedtls_mpi_init( &X ); mbedtls_mpi_init( &X0 );
 
-    TEST_ASSERT( mbedtls_test_read_mpi( &X,  X_hex ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &X, X_hex ) == 0 );
     TEST_ASSERT( mbedtls_test_read_mpi( &X0, X_hex ) == 0 );
 
     mbedtls_mpi_swap( &X, &X );

@@ -93,17 +93,12 @@ void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint *A,
  * \warning        If \p assign is neither 0 nor 1, the result of this function
  *                 is indeterminate, and the resulting value in \p X might be
  *                 neither its original value nor the value in \p Y.
- *
- * \return         \c 0 if successful.
- * \return         #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if \p X isn't
- *                 large enough to hold the value in \p Y.
- * \return         #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p X or \p Y is invalid.
  */
-int mbedtls_mpi_core_cond_assign( mbedtls_mpi_uint *X,
-                                  size_t X_limbs,
-                                  const mbedtls_mpi_uint *Y,
-                                  size_t Y_limbs,
-                                  unsigned char assign );
+void mbedtls_mpi_core_cond_assign( mbedtls_mpi_uint *X,
+                                   size_t X_limbs,
+                                   const mbedtls_mpi_uint *Y,
+                                   size_t Y_limbs,
+                                   unsigned char assign );
 
 /**
  * \brief   Perform a safe conditional copy of MPI which doesn't reveal whether
@@ -126,17 +121,12 @@ int mbedtls_mpi_core_cond_assign( mbedtls_mpi_uint *X,
  * \warning        If \p swap is neither 0 nor 1, the result of this function
  *                 is indeterminate, and both \p X and \p Y might end up with
  *                 values different to either of the original ones.
- *
- * \return         \c 0 if successful.
- * \return         #MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL if the size of
- *                 \p X and \p Y is differ.
- * \return         #MBEDTLS_ERR_MPI_BAD_INPUT_DATA if \p X or \p Y is invalid.
  */
-int mbedtls_mpi_core_cond_swap( mbedtls_mpi_uint *X,
-                                size_t X_limbs,
-                                mbedtls_mpi_uint *Y,
-                                size_t Y_limbs,
-                                unsigned char swap );
+void mbedtls_mpi_core_cond_swap( mbedtls_mpi_uint *X,
+                                 size_t X_limbs,
+                                 mbedtls_mpi_uint *Y,
+                                 size_t Y_limbs,
+                                 unsigned char swap );
 
 /** Import X from unsigned binary data, little-endian.
  *

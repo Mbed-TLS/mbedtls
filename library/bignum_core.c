@@ -162,59 +162,36 @@ void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint *A,
     }
 }
 
-int mbedtls_mpi_core_cond_assign( mbedtls_mpi_uint *X,
-                                  size_t X_limbs,
-                                  const mbedtls_mpi_uint *Y,
-                                  size_t Y_limbs,
-                                  unsigned char assign )
+void mbedtls_mpi_core_cond_assign( mbedtls_mpi_uint *X,
+                                   size_t X_limbs,
+                                   const mbedtls_mpi_uint *Y,
+                                   size_t Y_limbs,
+                                   unsigned char assign )
 {
-    if( X_limbs < Y_limbs )
-        return( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL );
+    /* all-bits 1 if assign is 1, all-bits 0 if assign is 0 */
+    mbedtls_mpi_uint limb_mask = mbedtls_ct_mpi_uint_mask( assign );
 
-    if( X != NULL && Y != NULL )
-    {
-        /* all-bits 1 if assign is 1, all-bits 0 if assign is 0 */
-        mbedtls_mpi_uint limb_mask = mbedtls_ct_mpi_uint_mask( assign );
+    mbedtls_ct_mpi_uint_cond_assign( Y_limbs, X, Y, assign );
 
-        mbedtls_ct_mpi_uint_cond_assign( X_limbs, X, Y, assign );
-
-        for( size_t i = Y_limbs; i < X_limbs; i++ )
-            X[i] &= ~limb_mask;
-
-        return( 0 );
-    }
-
-    return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+    for( size_t i = Y_limbs; i < X_limbs; i++ )
+        X[i] &= ~limb_mask;
 }
 
-int mbedtls_mpi_core_cond_swap( mbedtls_mpi_uint *X,
-                                size_t X_limbs,
-                                mbedtls_mpi_uint *Y,
-                                size_t Y_limbs,
-                                unsigned char swap )
+void mbedtls_mpi_core_cond_swap( mbedtls_mpi_uint *X,
+                                 size_t X_limbs,
+                                 mbedtls_mpi_uint *Y,
+                                 size_t Y_limbs,
+                                 unsigned char swap )
 {
-    if( X == Y )
-        return( 0 );
+    /* all-bits 1 if swap is 1, all-bits 0 if swap is 0 */
+    mbedtls_mpi_uint limb_mask = mbedtls_ct_mpi_uint_mask( swap );
 
-    if( X_limbs != Y_limbs )
-        return( MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL );
-
-    if( X != NULL && Y != NULL )
+    for( size_t i = 0; i < X_limbs; i++ )
     {
-        /* all-bits 1 if swap is 1, all-bits 0 if swap is 0 */
-        mbedtls_mpi_uint limb_mask = mbedtls_ct_mpi_uint_mask( swap );
-
-        for( size_t i = 0; i < X_limbs; i++ )
-        {
-            mbedtls_mpi_uint tmp = X[i];
-            X[i] = ( X[i] & ~limb_mask ) | ( Y[i] & limb_mask );
-            Y[i] = ( Y[i] & ~limb_mask ) | (  tmp & limb_mask );
-        }
-
-        return( 0 );
+        mbedtls_mpi_uint tmp = X[i];
+        X[i] = ( X[i] & ~limb_mask ) | ( Y[i] & limb_mask );
+        Y[i] = ( Y[i] & ~limb_mask ) | (  tmp & limb_mask );
     }
-
-    return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 }
 
 int mbedtls_mpi_core_read_le( mbedtls_mpi_uint *X,

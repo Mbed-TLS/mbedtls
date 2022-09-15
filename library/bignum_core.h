@@ -163,28 +163,28 @@ int mbedtls_mpi_core_write_be( const mbedtls_mpi_uint *A,
  *
  * ```
  * if( cond )
- *    A += B;
+ *    X += A;
  * return carry;
  * ```
  *
- * \param[in,out] A  The pointer to the (little-endian) array
+ * \param[in,out] X  The pointer to the (little-endian) array
  *                   representing the bignum to accumulate onto.
- * \param[in] B      The pointer to the (little-endian) array
+ * \param[in] A      The pointer to the (little-endian) array
  *                   representing the bignum to conditionally add
- *                   to \p A. This may be aliased to \p A but may not
+ *                   to \p X. This may be aliased to \p X but may not
  *                   overlap otherwise.
- * \param limbs      Number of limbs of \p A and \p B.
+ * \param limbs      Number of limbs of \p X and \p A.
  * \param cond       Condition bit dictating whether addition should
  *                   happen or not. This must be \c 0 or \c 1.
  *
  * \warning          If \p cond is neither 0 nor 1, the result of this function
- *                   is unspecified, and the resulting value in \p A might be
- *                   neither its original value nor \p A + \p B.
+ *                   is unspecified, and the resulting value in \p X might be
+ *                   neither its original value nor \p X + \p A.
  *
- * \return           1 if `A + cond * B >= 2^(biL*limbs)`, 0 otherwise.
+ * \return           1 if `X + cond * A >= 2^(biL*limbs)`, 0 otherwise.
  */
-mbedtls_mpi_uint mbedtls_mpi_core_add_if( mbedtls_mpi_uint *A,
-                                          const mbedtls_mpi_uint *B,
+mbedtls_mpi_uint mbedtls_mpi_core_add_if( mbedtls_mpi_uint *X,
+                                          const mbedtls_mpi_uint *A,
                                           size_t limbs,
                                           unsigned cond );
 
@@ -212,24 +212,24 @@ mbedtls_mpi_uint mbedtls_mpi_core_sub( mbedtls_mpi_uint *X,
                                        size_t limbs );
 
 /**
- * \brief Perform a fixed-size multiply accumulate operation: A += c * B
+ * \brief Perform a fixed-size multiply accumulate operation: X += b * A
  *
- * \param[in,out] A  The pointer to the (little-endian) array
+ * \param[in,out] X  The pointer to the (little-endian) array
  *                   representing the bignum to accumulate onto.
- * \param A_limbs    The number of limbs of \p A. This must be
- *                   at least \p B_limbs.
- * \param[in] B      The pointer to the (little-endian) array
+ * \param X_limbs    The number of limbs of \p X. This must be
+ *                   at least \p A_limbs.
+ * \param[in] A      The pointer to the (little-endian) array
  *                   representing the bignum to multiply with.
- *                   This may be aliased to \p A but may not overlap
+ *                   This may be aliased to \p X but may not overlap
  *                   otherwise.
- * \param B_limbs    The number of limbs of \p B.
- * \param c          A scalar to multiply with.
+ * \param A_limbs    The number of limbs of \p A.
+ * \param b          X scalar to multiply with.
  *
  * \return           The carry at the end of the operation.
  */
-mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *A, size_t A_limbs,
-                                       const mbedtls_mpi_uint *B, size_t B_limbs,
-                                       mbedtls_mpi_uint c );
+mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *X, size_t X_limbs,
+                                       const mbedtls_mpi_uint *A, size_t A_limbs,
+                                       mbedtls_mpi_uint b );
 
 /**
  * \brief Calculate initialisation value for fast Montgomery modular

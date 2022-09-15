@@ -293,8 +293,8 @@ int mbedtls_mpi_core_write_be( const mbedtls_mpi_uint *X,
     return( 0 );
 }
 
-mbedtls_mpi_uint mbedtls_mpi_core_add_if( mbedtls_mpi_uint *A,
-                                          const mbedtls_mpi_uint *B,
+mbedtls_mpi_uint mbedtls_mpi_core_add_if( mbedtls_mpi_uint *X,
+                                          const mbedtls_mpi_uint *A,
                                           size_t limbs,
                                           unsigned cond )
 {
@@ -305,12 +305,12 @@ mbedtls_mpi_uint mbedtls_mpi_core_add_if( mbedtls_mpi_uint *A,
 
     for( size_t i = 0; i < limbs; i++ )
     {
-        mbedtls_mpi_uint add = mask & B[i];
-        mbedtls_mpi_uint t = c + A[i];
-        c = ( t < A[i] );
+        mbedtls_mpi_uint add = mask & A[i];
+        mbedtls_mpi_uint t = c + X[i];
+        c = ( t < X[i] );
         t += add;
         c += ( t < add );
-        A[i] = t;
+        X[i] = t;
     }
 
     return( c );

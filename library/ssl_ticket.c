@@ -21,13 +21,7 @@
 
 #if defined(MBEDTLS_SSL_TICKET_C)
 
-#if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
-#else
-#include <stdlib.h>
-#define mbedtls_calloc    calloc
-#define mbedtls_free      free
-#endif
 
 #include "ssl_misc.h"
 #include "mbedtls/ssl_ticket.h"

@@ -377,7 +377,7 @@ mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len,
 /*
  * Fast Montgomery initialization (thanks to Tom St Denis).
  */
-mbedtls_mpi_uint mbedtls_mpi_montg_init( const mbedtls_mpi_uint *N )
+mbedtls_mpi_uint mbedtls_mpi_core_montmul_init( const mbedtls_mpi_uint *N )
 {
     mbedtls_mpi_uint x = N[0];
 

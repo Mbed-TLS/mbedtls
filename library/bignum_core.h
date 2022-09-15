@@ -240,7 +240,7 @@ mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *A, size_t A_limbs,
  *
  * \return       The initialisation value for fast Montgomery modular multiplication
  */
-mbedtls_mpi_uint mbedtls_mpi_montg_init( const mbedtls_mpi_uint *N );
+mbedtls_mpi_uint mbedtls_mpi_core_montmul_init( const mbedtls_mpi_uint *N );
 
 /**
  * \brief Montgomery multiplication: X = A * B * R^-1 mod N  (HAC 14.36)
@@ -260,7 +260,7 @@ mbedtls_mpi_uint mbedtls_mpi_montg_init( const mbedtls_mpi_uint *N );
  *                          of limbs as \p A.
  * \param[in]     AN_limbs  The number of limbs in \p X, \p A and \p N.
  * \param         mm        The Montgomery constant for \p N: -N^-1 mod 2^biL.
- *                          This can be calculated by `mbedtls_mpi_montg_init()`.
+ *                          This can be calculated by `mbedtls_mpi_core_montmul_init()`.
  * \param[in,out] T         Temporary storage of size at least 2*AN_limbs+1 limbs.
  *                          Its initial content is unused and
  *                          its final content is indeterminate.

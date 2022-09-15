@@ -5926,6 +5926,66 @@ run_test    "SNI: DTLS, CA override with CRL" \
             -S "! The certificate is not correctly signed by the trusted CA" \
             -s "The certificate has been revoked (is on a CRL)"
 
+requires_config_enabled MBEDTLS_SSL_SERVER_NAME_INDICATION
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+run_test    "SNI: DTLS with PSK " \
+            "$P_SRV debug_level=3 dtls=1 \
+             psk=abc123 psk_identity=foo sni=localhost,-,-,-,-,-" \
+            "$P_CLI debug_level=3 server_name=localhost dtls=1  \
+             force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA  \
+             psk_identity=foo psk=abc123" \
+            0 \
+            -s "parse ServerName extension" \
+            -s "Ciphersuite is TLS-PSK-WITH-AES-128-CBC-SHA" \
+            -c "HTTP/1.0 200 OK"
+
+requires_config_enabled MBEDTLS_SSL_SERVER_NAME_INDICATION
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+run_test    "SNI: DTLS with PSK, SN not matching " \
+            "$P_SRV debug_level=3 dtls=1 \
+             psk=abc123 psk_identity=foo sni=localhost,-,-,-,-,-" \
+            "$P_CLI debug_level=3 server_name=nonesuch.example dtls=1  \
+             force_ciphersuite=TLS-PSK-WITH-AES-128-CBC-SHA  \
+             psk_identity=foo psk=abc123" \
+            1 \
+            -s "parse ServerName extension" \
+            -s "ssl_sni_wrapper() returned" \
+            -s "mbedtls_ssl_handshake returned" \
+            -c "mbedtls_ssl_handshake returned" \
+            -c "SSL - A fatal alert message was received from our peer"
+
+# Test for case where Mbed-TLS is built without X509 support
+
+requires_config_enabled MBEDTLS_SSL_SERVER_NAME_INDICATION
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_disabled MBEDTLS_X509_CRT_PARSE_C
+run_test    "SNI: DTLS with PSK, no X509 " \
+            "$P_SRV debug_level=3 dtls=1 \
+             psk=abc123 psk_identity=foo sni=localhost,-,-,-,-,-" \
+            "$P_CLI debug_level=3 server_name=localhost dtls=1  \
+             force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8  \
+             psk_identity=foo psk=abc123" \
+            0 \
+            -s "parse ServerName extension" \
+            -s "Ciphersuite is TLS-PSK-WITH-AES-128-CCM-8" \
+            -c "HTTP/1.0 200 OK"
+
+requires_config_enabled MBEDTLS_SSL_SERVER_NAME_INDICATION
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_disabled MBEDTLS_X509_CRT_PARSE_C
+run_test    "SNI: DTLS with PSK, SN not matching, no X509 " \
+            "$P_SRV debug_level=3 dtls=1 \
+             psk=abc123 psk_identity=foo sni=localhost,-,-,-,-,-" \
+            "$P_CLI debug_level=3 server_name=nonesuch.example dtls=1  \
+             force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8  \
+             psk_identity=foo psk=abc123" \
+            1 \
+            -s "parse ServerName extension" \
+            -s "ssl_sni_wrapper() returned" \
+            -s "mbedtls_ssl_handshake returned" \
+            -c "mbedtls_ssl_handshake returned" \
+            -c "SSL - A fatal alert message was received from our peer"
+
 # Tests for non-blocking I/O: exercise a variety of handshake flows
 
 run_test    "Non-blocking I/O: basic handshake" \

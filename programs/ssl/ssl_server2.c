@@ -716,10 +716,14 @@ typedef struct _sni_entry sni_entry;
 
 struct _sni_entry {
     const char *name;
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_x509_crt *cert;
     mbedtls_pk_context *key;
     mbedtls_x509_crt* ca;
+#if defined(MBEDTLS_X509_CRL_PARSE_C)
     mbedtls_x509_crl* crl;
+#endif /* MBEDTLS_X509_CRL_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
     int authmode;
     sni_entry *next;
 };
@@ -730,6 +734,7 @@ void sni_free( sni_entry *head )
 
     while( cur != NULL )
     {
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
         mbedtls_x509_crt_free( cur->cert );
         mbedtls_free( cur->cert );
 
@@ -741,7 +746,8 @@ void sni_free( sni_entry *head )
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
         mbedtls_x509_crl_free( cur->crl );
         mbedtls_free( cur->crl );
-#endif
+#endif /* MBEDTLS_X509_CRL_PARSE_C */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
         next = cur->next;
         mbedtls_free( cur );
         cur = next;
@@ -773,6 +779,7 @@ sni_entry *sni_parse( char *sni_string )
     {
         if( ( new = mbedtls_calloc( 1, sizeof( sni_entry ) ) ) == NULL )
         {
+            mbedtls_printf("Error allocating sni_entry\n");
             sni_free( cur );
             return( NULL );
         }
@@ -786,45 +793,70 @@ sni_entry *sni_parse( char *sni_string )
 #endif
         GET_ITEM( auth_str );
 
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
         if( ( new->cert = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt ) ) ) == NULL ||
             ( new->key = mbedtls_calloc( 1, sizeof( mbedtls_pk_context ) ) ) == NULL )
+        {
+            mbedtls_printf("Error allocating cert and key\n");
             goto error;
+        }
 
         mbedtls_x509_crt_init( new->cert );
         mbedtls_pk_init( new->key );
 
-        if( mbedtls_x509_crt_parse_file( new->cert, crt_file ) != 0 ||
-            mbedtls_pk_parse_keyfile( new->key, key_file, "", rng_get, &rng ) != 0 )
-            goto error;
+        if( strcmp( crt_file, "-" ) != 0 &&
+            strcmp( key_file, "-" ) != 0 )
+        {
+            if( mbedtls_x509_crt_parse_file( new->cert, crt_file ) != 0 ||
+                mbedtls_pk_parse_keyfile( new->key, key_file, "", rng_get, &rng ) != 0 )
+                mbedtls_printf("Error parsing cert %s or key %s\n", crt_file, key_file);
+                goto error;
+        }
 
         if( strcmp( ca_file, "-" ) != 0 )
         {
             if( ( new->ca = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt ) ) ) == NULL )
+            {
+                mbedtls_printf("Error allocating crt\n");
                 goto error;
+            }
 
             mbedtls_x509_crt_init( new->ca );
 
             if( mbedtls_x509_crt_parse_file( new->ca, ca_file ) != 0 )
+            {
+                mbedtls_printf("Error parsing ca %s\n", ca_file);
                 goto error;
+            }
         }
 
 #if defined(MBEDTLS_X509_CRL_PARSE_C)
         if( strcmp( crl_file, "-" ) != 0 )
         {
             if( ( new->crl = mbedtls_calloc( 1, sizeof( mbedtls_x509_crl ) ) ) == NULL )
+            {
+                mbedtls_printf("Error allocating crl\n");
                 goto error;
+            }
 
             mbedtls_x509_crl_init( new->crl );
 
             if( mbedtls_x509_crl_parse_file( new->crl, crl_file ) != 0 )
+            {
+                mbedtls_printf("Error parsing crl %s\n", crl_file);
                 goto error;
+            }
         }
 #endif
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
         if( strcmp( auth_str, "-" ) != 0 )
         {
             if( ( new->authmode = get_auth_mode( auth_str ) ) < 0 )
+            {
+                mbedtls_printf("Error getting auth mode %s\n", auth_str);
                 goto error;
+            }
         }
         else
             new->authmode = DFL_AUTH_MODE;
@@ -882,6 +914,7 @@ int cert_callback( mbedtls_ssl_context *ssl )
     const sni_entry *cur = (sni_entry *) mbedtls_ssl_get_user_data_p( ssl );
     if( cur != NULL )
     {
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
         /*(exercise mbedtls_ssl_get_hs_sni(); not otherwise used here)*/
         size_t name_len;
         const unsigned char *name = mbedtls_ssl_get_hs_sni( ssl, &name_len );
@@ -896,6 +929,7 @@ int cert_callback( mbedtls_ssl_context *ssl )
             mbedtls_ssl_set_hs_authmode( ssl, cur->authmode );
 
         return( mbedtls_ssl_set_hs_own_cert( ssl, cur->cert, cur->key ) );
+#endif /* MBEDFTLS_X509_CRT_PARSE_C */
     }
 
     return( 0 );

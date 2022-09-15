@@ -30,6 +30,7 @@
 
 #if defined(MBEDTLS_BIGNUM_C)
 #include "mbedtls/bignum.h"
+#include "bignum_core.h"
 #endif
 
 #if defined(MBEDTLS_SSL_TLS_C)

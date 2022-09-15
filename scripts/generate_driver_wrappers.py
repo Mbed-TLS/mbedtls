@@ -23,7 +23,7 @@
 import sys
 import os
 import json
-from typing import Tuple, NewType
+from typing import Tuple, NewType, Dict, Any
 import argparse
 import jsonschema
 import jinja2
@@ -33,6 +33,13 @@ JSONSchema = NewType('JSONSchema', object)
 # The Driver is an Object, but practically it's indexable and can called a dictionary to
 # keep MyPy happy till MyPy comes with a more composite type for JsonObjects.
 Driver = NewType('Driver', dict)
+
+
+class JsonValidationException(Exception):
+    def __init__(self, message="Json Validation Failed"):
+        self.message = message
+        super().__init__(self.message)
+
 
 def render(template_path: str, driver_jsoncontext: list) -> str:
     """
@@ -93,8 +100,17 @@ def validate_json(driverjson_data: Driver, driverschema_list: dict) -> bool:
 
     return True
 
+
+def load_driver(schemas: Dict[str, Any], driver_file: str) -> Any:
+    with open(driver_file, 'r') as f:
+        json_data = json.load(f)
+        if not validate_json(json_data, schemas):
+            raise JsonValidationException()
+        return json_data
+
+
 def read_driver_descriptions(mbedtls_root: str, json_directory: str, \
-                          jsondriver_list: str) -> Tuple[bool, list]:
+                             jsondriver_list: str) -> Tuple[bool, list]:
     """
     Merge driver JSON files into a single ordered JSON after validation.
     """
@@ -112,18 +128,17 @@ def read_driver_descriptions(mbedtls_root: str, json_directory: str, \
                            'driver_opaque_schema.json'), 'r') as file:
         opaque_driver_schema = json.load(file)
 
-    driver_schema_list = {'transparent':transparent_driver_schema,
-                          'opaque':opaque_driver_schema}
-
+    driver_schema = {'transparent': transparent_driver_schema,
+                     'opaque': opaque_driver_schema}
     with open(os.path.join(json_directory, jsondriver_list), 'r') as driverlistfile:
-        driverlist = json.load(driverlistfile)
-    for file_name in driverlist:
-        with open(os.path.join(json_directory, file_name), 'r') as infile:
-            json_data = json.load(infile)
-            ret = validate_json(json_data, driver_schema_list)
-            if ret is False:
-                return ret, []
-            result.append(json_data)
+        driver_list = json.load(driverlistfile)
+
+    try:
+        result = [load_driver(driver_schema, driver_file=os.path.join(json_directory, driver_file_name))
+                  for driver_file_name in driver_list]
+    except JsonValidationException as _:
+        return False, []
+
     return True, result
 
 
@@ -171,6 +186,7 @@ def main() -> int:
     generate_driver_wrapper_file(template_directory, output_directory, merged_driver_json)
 
     return 0
+
 
 if __name__ == '__main__':
     sys.exit(main())

@@ -36,9 +36,7 @@
 #include <stdio.h>
 #endif
 
-#if defined(MBEDTLS_SELF_TEST)
 #include "mbedtls/platform.h"
-#endif /* MBEDTLS_SELF_TEST */
 
 /*
  * CTR_DRBG context initialization

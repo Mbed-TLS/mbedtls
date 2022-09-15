@@ -39,9 +39,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)
 #include "mbedtls/platform.h"
-#endif /* MBEDTLS_SELF_TEST && MBEDTLS_AES_C */
 
 #if !defined(MBEDTLS_NIST_KW_ALT)
 

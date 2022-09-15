@@ -34,9 +34,7 @@
 
 #include "mbedtls/platform.h"
 
-#if defined(MBEDTLS_SELF_TEST)
 #include "mbedtls/platform.h"
-#endif /* MBEDTLS_SELF_TEST */
 
 
 #define ENTROPY_MAX_LOOP    256     /**< Maximum amount to loop before error */

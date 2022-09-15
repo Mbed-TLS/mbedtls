@@ -32,9 +32,7 @@
 
 #include <string.h>
 
-#if defined(MBEDTLS_SELF_TEST)
 #include "mbedtls/platform.h"
-#endif /* MBEDTLS_SELF_TEST */
 
 #if !defined(MBEDTLS_MD5_ALT)
 

@@ -1784,7 +1784,8 @@ void mpi_core_add_if( char * input_A, char * input_B,
     memcpy( b, B.p, B.n * sizeof(mbedtls_mpi_uint) );
     memcpy( sum, X->p, X->n * sizeof(mbedtls_mpi_uint) );
 
-    /* The test cases have a <= b to avoid repetition, so we test a + b then b + a */
+    /* The test cases have a <= b to avoid repetition, so we test a + b then,
+     * if a != b, b + a. If a == b, we can test when a and b are aliased */
 
     /* a + b */
 
@@ -1797,21 +1798,10 @@ void mpi_core_add_if( char * input_A, char * input_B,
     TEST_EQUAL( carry, mbedtls_mpi_core_add_if( d, b, limbs, 1 ) );
     ASSERT_COMPARE( d, bytes, sum, bytes );
 
-    /* b + a */
-
-    /* cond = 0 => d unchanged, no carry */
-    memcpy( d, b, bytes );
-    TEST_EQUAL( 0, mbedtls_mpi_core_add_if( d, a, limbs, 0 ) );
-    ASSERT_COMPARE( d, bytes, b, bytes );
-
-    /* cond = 1 => correct result and carry */
-    TEST_EQUAL( carry, mbedtls_mpi_core_add_if( d, a, limbs, 1 ) );
-    ASSERT_COMPARE( d, bytes, sum, bytes );
-
-    /* If a == b we can test where a and b are aliased */
-
     if ( A.n == B.n && memcmp( A.p, B.p, bytes ) == 0 )
     {
+        /* a == b, so test where a and b are aliased */
+
         /* cond = 0 => d unchanged, no carry */
         TEST_EQUAL( 0, mbedtls_mpi_core_add_if( b, b, limbs, 0 ) );
         ASSERT_COMPARE( b, bytes, B.p, bytes );
@@ -1819,6 +1809,19 @@ void mpi_core_add_if( char * input_A, char * input_B,
         /* cond = 1 => correct result and carry */
         TEST_EQUAL( carry, mbedtls_mpi_core_add_if( b, b, limbs, 1 ) );
         ASSERT_COMPARE( b, bytes, sum, bytes );
+    }
+    else
+    {
+        /* a != b, so test b + a */
+
+        /* cond = 0 => d unchanged, no carry */
+        memcpy( d, b, bytes );
+        TEST_EQUAL( 0, mbedtls_mpi_core_add_if( d, a, limbs, 0 ) );
+        ASSERT_COMPARE( d, bytes, b, bytes );
+
+        /* cond = 1 => correct result and carry */
+        TEST_EQUAL( carry, mbedtls_mpi_core_add_if( d, a, limbs, 1 ) );
+        ASSERT_COMPARE( d, bytes, sum, bytes );
     }
 
 exit:

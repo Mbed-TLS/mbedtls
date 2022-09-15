@@ -264,6 +264,7 @@ mbedtls_mpi_uint mbedtls_mpi_montg_init( const mbedtls_mpi_uint *N );
  * \param[in,out] T         Temporary storage of size at least 2*AN_limbs+1 limbs.
  *                          Its initial content is unused and
  *                          its final content is indeterminate.
+ *                          It must not overlap any of the other parameters.
  */
 void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
                                const mbedtls_mpi_uint *A,

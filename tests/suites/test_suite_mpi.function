@@ -1722,29 +1722,29 @@ exit:
 
 /* BEGIN_CASE */
 void mpi_core_add_if( char * input_A, char * input_B,
-                      char * input_X4, int carry4,
-                      char * input_X8, int carry8 )
+                      char * input_S4, int carry4,
+                      char * input_S8, int carry8 )
 {
-    mbedtls_mpi X4, X8, A, B;
+    mbedtls_mpi S4, S8, A, B;
     mbedtls_mpi_uint *a = NULL; /* first value to add */
     mbedtls_mpi_uint *b = NULL; /* second value to add */
-    mbedtls_mpi_uint *x = NULL; /* expected */
-    mbedtls_mpi_uint *d = NULL; /* destination - the in/out first op */
+    mbedtls_mpi_uint *sum = NULL;
+    mbedtls_mpi_uint *d = NULL; /* destination - the in/out first operand */
 
     mbedtls_mpi_init( &A );
     mbedtls_mpi_init( &B );
-    mbedtls_mpi_init( &X4 );
-    mbedtls_mpi_init( &X8 );
+    mbedtls_mpi_init( &S4 );
+    mbedtls_mpi_init( &S8 );
 
     TEST_EQUAL( 0, mbedtls_test_read_mpi( &A, input_A ) );
     TEST_EQUAL( 0, mbedtls_test_read_mpi( &B, input_B ) );
-    TEST_EQUAL( 0, mbedtls_test_read_mpi( &X4, input_X4 ) );
-    TEST_EQUAL( 0, mbedtls_test_read_mpi( &X8, input_X8 ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &S4, input_S4 ) );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &S8, input_S8 ) );
 
-    /* We only need to work with one of (X4, carry4) or (X8, carry8) depending
+    /* We only need to work with one of (S4, carry4) or (S8, carry8) depending
      * on sizeof(mbedtls_mpi_uint)
      */
-    mbedtls_mpi *X = ( sizeof(mbedtls_mpi_uint) == 4 ) ? &X4 : &X8;
+    mbedtls_mpi *X = ( sizeof(mbedtls_mpi_uint) == 4 ) ? &S4 : &S8;
     mbedtls_mpi_uint carry = ( sizeof(mbedtls_mpi_uint) == 4 ) ? carry4 : carry8;
 
     /* All of the inputs are +ve (or zero) */
@@ -1773,7 +1773,7 @@ void mpi_core_add_if( char * input_A, char * input_B,
     /* ASSERT_ALLOC() uses calloc() under the hood, so these do get zeroed */
     ASSERT_ALLOC( a, bytes );
     ASSERT_ALLOC( b, bytes );
-    ASSERT_ALLOC( x, bytes );
+    ASSERT_ALLOC( sum, bytes );
     ASSERT_ALLOC( d, bytes );
 
     /* Populate the arrays. As the mbedtls_mpi_uint[]s in mbedtls_mpis (and as
@@ -1782,7 +1782,7 @@ void mpi_core_add_if( char * input_A, char * input_B,
      */
     memcpy( a, A.p, A.n * sizeof(mbedtls_mpi_uint) );
     memcpy( b, B.p, B.n * sizeof(mbedtls_mpi_uint) );
-    memcpy( x, X->p, X->n * sizeof(mbedtls_mpi_uint) );
+    memcpy( sum, X->p, X->n * sizeof(mbedtls_mpi_uint) );
 
     /* 1a) a + b: d = a; d += b, cond = 0 => there should be no carry */
     memcpy( d, a, bytes );
@@ -1795,7 +1795,7 @@ void mpi_core_add_if( char * input_A, char * input_B,
     TEST_EQUAL( carry, mbedtls_mpi_core_add_if( d, b, limbs, 1 ) );
 
     /* 2b) and d should have the correct result */
-    ASSERT_COMPARE( d, bytes, x, bytes );
+    ASSERT_COMPARE( d, bytes, sum, bytes );
 
     /* 3a) b + a: d = b; d += a, cond = 0 => there should be no carry */
     memcpy( d, b, bytes );
@@ -1808,7 +1808,7 @@ void mpi_core_add_if( char * input_A, char * input_B,
     TEST_EQUAL( carry, mbedtls_mpi_core_add_if( d, a, limbs, 1 ) );
 
     /* 4b) and d should have the correct result */
-    ASSERT_COMPARE( d, bytes, x, bytes );
+    ASSERT_COMPARE( d, bytes, sum, bytes );
 
     /* 5) a + b where a and b are aliased - only when a == b */
     if ( A.n == B.n && memcmp( A.p, B.p, bytes ) == 0 )
@@ -1819,17 +1819,17 @@ void mpi_core_add_if( char * input_A, char * input_B,
 
         /* 5b) cond = 1 => correct carry, and correct result in b */
         TEST_EQUAL( carry, mbedtls_mpi_core_add_if( b, b, limbs, 1 ) );
-        ASSERT_COMPARE( b, bytes, x, bytes );
+        ASSERT_COMPARE( b, bytes, sum, bytes );
     }
 
 exit:
     mbedtls_free( a );
     mbedtls_free( b );
-    mbedtls_free( x );
+    mbedtls_free( sum );
     mbedtls_free( d );
 
-    mbedtls_mpi_free( &X4 );
-    mbedtls_mpi_free( &X8 );
+    mbedtls_mpi_free( &S4 );
+    mbedtls_mpi_free( &S8 );
     mbedtls_mpi_free( &A );
     mbedtls_mpi_free( &B );
 }

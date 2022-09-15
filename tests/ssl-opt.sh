@@ -12671,8 +12671,7 @@ run_test    "TLS 1.3: Check server no suitable signature algorithm, G->m" \
                                  --x509certfile data_files/server2-sha256.crt --x509keyfile data_files/server2.key \
                                  --priority=NORMAL:-SIGN-ALL:+SIGN-RSA-SHA512:+SIGN-RSA-PSS-RSAE-SHA512:+SIGN-ECDSA-SECP521R1-SHA512"  \
             1 \
-            -s "ssl_tls13_pick_key_cert:selected signature algorithm rsa_pss_rsae_sha512" \
-            -s "select_sig_alg_for_certificate_verify:no suitable signature algorithm found"
+            -S "ssl_tls13_pick_key_cert:check signature algorithm"
 
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -12688,8 +12687,7 @@ run_test    "TLS 1.3: Check server no suitable signature algorithm, O->m" \
                                  -cert data_files/server2-sha256.crt -key data_files/server2.key \
                                  -sigalgs rsa_pkcs1_sha512:rsa_pss_rsae_sha512:ecdsa_secp521r1_sha512"  \
             1 \
-            -s "ssl_tls13_pick_key_cert:selected signature algorithm rsa_pss_rsae_sha512" \
-            -s "select_sig_alg_for_certificate_verify:no suitable signature algorithm found"
+            -S "ssl_tls13_pick_key_cert:check signature algorithm"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
@@ -12704,8 +12702,7 @@ run_test    "TLS 1.3: Check server no suitable signature algorithm, m->m" \
             "$P_CLI allow_sha1=0 debug_level=4 crt_file=data_files/server2-sha256.crt key_file=data_files/server2.key \
                     sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,ecdsa_secp521r1_sha512" \
             1 \
-            -s "ssl_tls13_pick_key_cert:selected signature algorithm rsa_pss_rsae_sha512" \
-            -s "select_sig_alg_for_certificate_verify:no suitable signature algorithm found"
+            -S "ssl_tls13_pick_key_cert:check signature algorithm"
 
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3

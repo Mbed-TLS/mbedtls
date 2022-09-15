@@ -156,7 +156,7 @@ int mbedtls_mpi_core_write_be( const mbedtls_mpi_uint *A,
                                size_t output_length );
 
 /**
- * \brief Conditional addition of two known-size large unsigned integers,
+ * \brief Conditional addition of two fixed-size large unsigned integers,
  *        returning the carry.
  *
  * Functionally equivalent to
@@ -189,7 +189,7 @@ mbedtls_mpi_uint mbedtls_mpi_core_add_if( mbedtls_mpi_uint *A,
                                           unsigned cond );
 
 /**
- * \brief Subtract two known-size large unsigned integers, returning the borrow.
+ * \brief Subtract two fixed-size large unsigned integers, returning the borrow.
  *
  * Calculate `A - B` where \p A and \p B have the same size.
  * This function operates modulo `2^(biL*limbs)` and returns the carry
@@ -212,7 +212,7 @@ mbedtls_mpi_uint mbedtls_mpi_core_sub( mbedtls_mpi_uint *X,
                                        size_t limbs );
 
 /**
- * \brief Perform a known-size multiply accumulate operation: A += c * B
+ * \brief Perform a fixed-size multiply accumulate operation: A += c * B
  *
  * \param[in,out] A  The pointer to the (little-endian) array
  *                   representing the bignum to accumulate onto.

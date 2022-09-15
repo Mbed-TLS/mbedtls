@@ -55,8 +55,7 @@ void mbedtls_mpi_mod_raw_cond_swap( mbedtls_mpi_uint *X,
                                     const mbedtls_mpi_mod_modulus *m,
                                     unsigned char swap )
 {
-    mbedtls_mpi_core_cond_swap( X, m->limbs,
-                                Y, m->limbs, swap );
+    mbedtls_mpi_core_cond_swap( X, Y, m->limbs, swap );
 }
 
 int mbedtls_mpi_mod_raw_read( mbedtls_mpi_uint *X,

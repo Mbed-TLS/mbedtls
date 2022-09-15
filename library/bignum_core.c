@@ -178,15 +178,14 @@ void mbedtls_mpi_core_cond_assign( mbedtls_mpi_uint *X,
 }
 
 void mbedtls_mpi_core_cond_swap( mbedtls_mpi_uint *X,
-                                 size_t X_limbs,
                                  mbedtls_mpi_uint *Y,
-                                 size_t Y_limbs,
+                                 size_t limbs,
                                  unsigned char swap )
 {
     /* all-bits 1 if swap is 1, all-bits 0 if swap is 0 */
     mbedtls_mpi_uint limb_mask = mbedtls_ct_mpi_uint_mask( swap );
 
-    for( size_t i = 0; i < X_limbs; i++ )
+    for( size_t i = 0; i < limbs; i++ )
     {
         mbedtls_mpi_uint tmp = X[i];
         X[i] = ( X[i] & ~limb_mask ) | ( Y[i] & limb_mask );

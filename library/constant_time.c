@@ -716,7 +716,7 @@ int mbedtls_mpi_safe_cond_swap( mbedtls_mpi *X,
     X->s = mbedtls_ct_cond_select_sign( swap, Y->s, X->s );
     Y->s = mbedtls_ct_cond_select_sign( swap, s, Y->s );
 
-    mbedtls_mpi_core_cond_swap( X->p, X->n, Y->p, Y->n, swap );
+    mbedtls_mpi_core_cond_swap( X->p, Y->p, X->n, swap );
 
 cleanup:
     return( ret );

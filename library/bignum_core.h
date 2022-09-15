@@ -123,9 +123,8 @@ void mbedtls_mpi_core_cond_assign( mbedtls_mpi_uint *X,
  *                 values different to either of the original ones.
  */
 void mbedtls_mpi_core_cond_swap( mbedtls_mpi_uint *X,
-                                 size_t X_limbs,
                                  mbedtls_mpi_uint *Y,
-                                 size_t Y_limbs,
+                                 size_t limbs,
                                  unsigned char swap );
 
 /** Import X from unsigned binary data, little-endian.

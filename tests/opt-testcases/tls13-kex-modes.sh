@@ -66,6 +66,233 @@ run_test    "TLS 1.3: PSK: No valid ciphersuite. O->m" \
             -s "Found PSK KEX MODE" \
             -s "No matched ciphersuite"
 
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test "TLS 1.3: NewSessionTicket: psk_ephemeral, auth fail, m->m" \
+         "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70 tickets=8 dummy_ticket=1" \
+         "$P_CLI force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70 reco_mode=1 reconnect=1" \
+         0 \
+         -c "Pre-configured PSK number = 2" \
+         -s "sent selected_identity: 1" \
+         -s "key exchange mode: psk_ephemeral" \
+         -s "ticket is not authentic" \
+         -S "ticket is expired" \
+         -S "Ticket expired: start is in future" \
+         -S "Ticket expired: Ticket age exceed limitation" \
+         -S "Ticket expired: Ticket age outside tolerance window"
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test "TLS 1.3: NewSessionTicket: ephemeral, auth fail, m->m" \
+         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=8 dummy_ticket=1" \
+         "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
+         0 \
+         -c "Pre-configured PSK number = 1" \
+         -S "sent selected_identity:" \
+         -s "key exchange mode: ephemeral" \
+         -s "ticket is not authentic" \
+         -S "ticket is expired" \
+         -S "Ticket expired: start is in future" \
+         -S "Ticket expired: Ticket age exceed limitation" \
+         -S "Ticket expired: Ticket age outside tolerance window"
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test "TLS 1.3: NewSessionTicket: psk_ephemeral, expired, m->m" \
+         "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70 tickets=8 dummy_ticket=2" \
+         "$P_CLI force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70 reco_mode=1 reconnect=1" \
+         0 \
+         -c "Pre-configured PSK number = 2" \
+         -s "sent selected_identity: 1" \
+         -s "key exchange mode: psk_ephemeral" \
+         -S "ticket is not authentic" \
+         -s "ticket is expired" \
+         -S "Ticket expired: start is in future" \
+         -S "Ticket expired: Ticket age exceed limitation" \
+         -S "Ticket expired: Ticket age outside tolerance window"
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test "TLS 1.3: NewSessionTicket: ephemeral, expired, m->m" \
+         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=8 dummy_ticket=2" \
+         "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
+         0 \
+         -c "Pre-configured PSK number = 1" \
+         -S "sent selected_identity:" \
+         -s "key exchange mode: ephemeral" \
+         -S "ticket is not authentic" \
+         -s "ticket is expired" \
+         -S "Ticket expired: start is in future" \
+         -S "Ticket expired: Ticket age exceed limitation" \
+         -S "Ticket expired: Ticket age outside tolerance window"
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test "TLS 1.3: NewSessionTicket: psk_ephemeral, future start, m->m" \
+         "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70 tickets=8 dummy_ticket=3" \
+         "$P_CLI force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70 reco_mode=1 reconnect=1" \
+         0 \
+         -c "Pre-configured PSK number = 2" \
+         -s "sent selected_identity: 1" \
+         -s "key exchange mode: psk_ephemeral" \
+         -S "ticket is not authentic" \
+         -S "ticket is expired" \
+         -s "Ticket expired: start is in future" \
+         -S "Ticket expired: Ticket age exceed limitation" \
+         -S "Ticket expired: Ticket age outside tolerance window"
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test "TLS 1.3: NewSessionTicket: ephemeral, future start, m->m" \
+         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=8 dummy_ticket=3" \
+         "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
+         0 \
+         -c "Pre-configured PSK number = 1" \
+         -S "sent selected_identity:" \
+         -s "key exchange mode: ephemeral" \
+         -S "ticket is not authentic" \
+         -S "ticket is expired" \
+         -s "Ticket expired: start is in future" \
+         -S "Ticket expired: Ticket age exceed limitation" \
+         -S "Ticket expired: Ticket age outside tolerance window"
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test "TLS 1.3: NewSessionTicket: psk_ephemeral, out of max age, m->m" \
+         "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70 tickets=8 dummy_ticket=4" \
+         "$P_CLI force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70 reco_mode=1 reconnect=1" \
+         0 \
+         -c "Pre-configured PSK number = 2" \
+         -s "sent selected_identity: 1" \
+         -s "key exchange mode: psk_ephemeral" \
+         -S "ticket is not authentic" \
+         -S "ticket is expired" \
+         -S "Ticket expired: start is in future" \
+         -s "Ticket expired: Ticket age exceed limitation" \
+         -S "Ticket expired: Ticket age outside tolerance window"
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test "TLS 1.3: NewSessionTicket: ephemeral, out of max age, m->m" \
+         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=8 dummy_ticket=4" \
+         "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
+         0 \
+         -c "Pre-configured PSK number = 1" \
+         -S "sent selected_identity:" \
+         -s "key exchange mode: ephemeral" \
+         -S "ticket is not authentic" \
+         -S "ticket is expired" \
+         -S "Ticket expired: start is in future" \
+         -s "Ticket expired: Ticket age exceed limitation" \
+         -S "Ticket expired: Ticket age outside tolerance window"
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test "TLS 1.3: NewSessionTicket: psk_ephemeral, negative tolerance exceed, m->m" \
+         "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70 tickets=8 dummy_ticket=5" \
+         "$P_CLI force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70 reco_mode=1 reconnect=1" \
+         0 \
+         -c "Pre-configured PSK number = 2" \
+         -s "sent selected_identity: 1" \
+         -s "key exchange mode: psk_ephemeral" \
+         -S "ticket is not authentic" \
+         -S "ticket is expired" \
+         -S "Ticket expired: start is in future" \
+         -S "Ticket expired: Ticket age exceed limitation" \
+         -s "Ticket expired: Ticket age outside tolerance window"
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test "TLS 1.3: NewSessionTicket: ephemeral, negative tolerance exceed, m->m" \
+         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=8 dummy_ticket=5" \
+         "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
+         0 \
+         -c "Pre-configured PSK number = 1" \
+         -S "sent selected_identity:" \
+         -s "key exchange mode: ephemeral" \
+         -S "ticket is not authentic" \
+         -S "ticket is expired" \
+         -S "Ticket expired: start is in future" \
+         -S "Ticket expired: Ticket age exceed limitation" \
+         -s "Ticket expired: Ticket age outside tolerance window"
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test "TLS 1.3: NewSessionTicket: psk_ephemeral, tolerance exceed, m->m" \
+         "$P_SRV force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70 tickets=8 dummy_ticket=6" \
+         "$P_CLI force_version=tls13 tls13_kex_modes=psk_ephemeral debug_level=5 psk_identity=Client_identity psk=6162636465666768696a6b6c6d6e6f70 reco_mode=1 reconnect=1" \
+         0 \
+         -c "Pre-configured PSK number = 2" \
+         -s "sent selected_identity: 1" \
+         -s "key exchange mode: psk_ephemeral" \
+         -S "ticket is not authentic" \
+         -S "ticket is expired" \
+         -S "Ticket expired: start is in future" \
+         -S "Ticket expired: Ticket age exceed limitation" \
+         -s "Ticket expired: Ticket age outside tolerance window"
+
+requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_SESSION_TICKETS MBEDTLS_SSL_SRV_C \
+                             MBEDTLS_SSL_CLI_C MBEDTLS_DEBUG_C MBEDTLS_HAVE_TIME
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED \
+                             MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
+run_test "TLS 1.3: NewSessionTicket: ephemeral, tolerance exceed, m->m" \
+         "$P_SRV debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key force_version=tls13 tickets=8 dummy_ticket=6" \
+         "$P_CLI debug_level=4 reco_mode=1 reconnect=1" \
+         0 \
+         -c "Pre-configured PSK number = 1" \
+         -S "sent selected_identity:" \
+         -s "key exchange mode: ephemeral" \
+         -S "ticket is not authentic" \
+         -S "ticket is expired" \
+         -S "Ticket expired: start is in future" \
+         -S "Ticket expired: Ticket age exceed limitation" \
+         -s "Ticket expired: Ticket age outside tolerance window"
 
 requires_gnutls_tls1_3
 requires_all_configs_enabled MBEDTLS_SSL_PROTO_TLS1_3 MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE MBEDTLS_SSL_SRV_C MBEDTLS_DEBUG_C

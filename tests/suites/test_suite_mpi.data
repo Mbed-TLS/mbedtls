@@ -682,106 +682,40 @@ mbedtls_mpi_core_lt_ct: x>y (alternating limbs)
 mpi_core_lt_ct:"FF1111111111111111":"11FFFFFFFFFFFFFFFF":0
 
 mbedtls_mpi_core_cond_assign: same size, true condition
-mpi_core_cond_assign:"FFFFFFFF":"11111111":1:0
+mpi_core_cond_assign:"FFFFFFFF":"11111111":1
 
 mbedtls_mpi_core_cond_assign: same size, false condition
-mpi_core_cond_assign:"FFFFFFFF":"11111111":0:0
+mpi_core_cond_assign:"FFFFFFFF":"11111111":0
 
 mbedtls_mpi_core_cond_assign: target larger, true condition
-mpi_core_cond_assign:"FFFFFFFFEEEEEEEEDDDDDDDD":"11111111":1:0
+mpi_core_cond_assign:"FFFFFFFFEEEEEEEEDDDDDDDD":"11111111":1
 
 mbedtls_mpi_core_cond_assign: target larger, false condition
-mpi_core_cond_assign:"FFFFFFFFEEEEEEEEDDDDDDDD":"11111111":0:0
-
-#mbedtls_mpi_core_cond_assign: target smaller, true condition
-#mpi_core_cond_assign:"FFFFFFFF":"111111112222222233333333":1:MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL
-
-#mbedtls_mpi_core_cond_assign: target smaller, false condition
-#mpi_core_cond_assign:"FFFFFFFF":"111111112222222233333333":0:MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL
-
-#mbedtls_mpi_core_cond_assign: target invalid, true condition
-#mpi_core_cond_assign:"":"11111111":1:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
-
-#mbedtls_mpi_core_cond_assign: target invalid, false condition
-#mpi_core_cond_assign:"":"11111111":0:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
-
-#mbedtls_mpi_core_cond_assign: source invalid, true condition
-#mpi_core_cond_assign:"FFFFFFFF":"":1:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
-
-#mbedtls_mpi_core_cond_assign: source invalid, false condition
-#mpi_core_cond_assign:"FFFFFFFF":"":0:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+mpi_core_cond_assign:"FFFFFFFFEEEEEEEEDDDDDDDD":"11111111":0
 
 mbedtls_mpi_core_cond_swap: same value, true condition
-mpi_core_cond_swap:"FFFFFFFF":"FFFFFFFF":1:0
+mpi_core_cond_swap:"FFFFFFFF":"FFFFFFFF":1
 
 mbedtls_mpi_core_cond_swap: same size, true condition
-mpi_core_cond_swap:"FFFFFFFF":"11111111":1:0
+mpi_core_cond_swap:"FFFFFFFF":"11111111":1
 
 mbedtls_mpi_core_cond_swap: same size, false condition
-mpi_core_cond_swap:"FFFFFFFF":"11111111":0:0
-
-#mbedtls_mpi_core_cond_swap: first larger, true condition
-#mpi_core_cond_swap:"FFFFFFFFEEEEEEEEDDDDDDDD":"11111111":1:MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL
-
-#mbedtls_mpi_core_cond_swap: first larger, false condition
-#mpi_core_cond_swap:"FFFFFFFFEEEEEEEEDDDDDDDD":"11111111":0:MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL
-
-#mbedtls_mpi_core_cond_swap: first smaller, true condition
-#mpi_core_cond_swap:"FFFFFFFF":"111111112222222233333333":1:MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL
-
-#mbedtls_mpi_core_cond_swap: first smaller, false condition
-#mpi_core_cond_swap:"FFFFFFFF":"111111112222222233333333":0:MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL
-
-#mbedtls_mpi_core_cond_swap: first invalid, true condition
-#mpi_core_cond_swap:"":"11111111":1:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
-
-#mbedtls_mpi_core_cond_swap: first invalid, false condition
-#mpi_core_cond_swap:"":"11111111":0:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
-
-#mbedtls_mpi_core_cond_swap: second invalid, true condition
-#mpi_core_cond_swap:"FFFFFFFF":"":1:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
-
-#mbedtls_mpi_core_cond_swap: second invalid, false condition
-#mpi_core_cond_swap:"FFFFFFFF":"":0:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+mpi_core_cond_swap:"FFFFFFFF":"11111111":0
 
 mbedtls_mpi_mod_raw_cond_assign: same size, true condition
-mpi_mod_raw_cond_assign:"FFFFFFFF":"11111111":1:0
+mpi_mod_raw_cond_assign:"FFFFFFFF":"11111111":1
 
 mbedtls_mpi_mod_raw_cond_assign: same size, false condition
-mpi_mod_raw_cond_assign:"FFFFFFFF":"11111111":0:0
-
-#mbedtls_mpi_mod_raw_cond_assign: target invalid, true condition
-#mpi_mod_raw_cond_assign:"":"11111111":1:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
-
-#mbedtls_mpi_mod_raw_cond_assign: target invalid, false condition
-#mpi_mod_raw_cond_assign:"":"11111111":0:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
-
-#mbedtls_mpi_mod_raw_cond_assign: source invalid, true condition
-#mpi_mod_raw_cond_assign:"FFFFFFFF":"":1:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
-
-#mbedtls_mpi_mod_raw_cond_assign: source invalid, false condition
-#mpi_mod_raw_cond_assign:"FFFFFFFF":"":0:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+mpi_mod_raw_cond_assign:"FFFFFFFF":"11111111":0
 
 mbedtls_mpi_mod_raw_cond_swap: same value, true condition
-mpi_mod_raw_cond_swap:"FFFFFFFF":"FFFFFFFF":1:0
+mpi_mod_raw_cond_swap:"FFFFFFFF":"FFFFFFFF":1
 
 mbedtls_mpi_mod_raw_cond_swap: same size, true condition
-mpi_mod_raw_cond_swap:"FFFFFFFF":"11111111":1:0
+mpi_mod_raw_cond_swap:"FFFFFFFF":"11111111":1
 
 mbedtls_mpi_mod_raw_cond_swap: same size, false condition
-mpi_mod_raw_cond_swap:"FFFFFFFF":"11111111":0:0
-
-#mbedtls_mpi_mod_raw_cond_swap: first invalid, true condition
-#mpi_mod_raw_cond_swap:"":"11111111":1:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
-
-#mbedtls_mpi_mod_raw_cond_swap: first invalid, false condition
-#mpi_mod_raw_cond_swap:"":"11111111":0:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
-
-#mbedtls_mpi_mod_raw_cond_swap: second invalid, true condition
-#mpi_mod_raw_cond_swap:"FFFFFFFF":"":1:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
-
-#mbedtls_mpi_mod_raw_cond_swap: second invalid, false condition
-#mpi_mod_raw_cond_swap:"FFFFFFFF":"":0:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
+mpi_mod_raw_cond_swap:"FFFFFFFF":"11111111":0
 
 Base test mbedtls_mpi_lt_mpi_ct #1
 mpi_lt_mpi_ct:1:"2B5":1:"2B5":0:0

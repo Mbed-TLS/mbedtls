@@ -22,13 +22,6 @@
 #include "mbedtls/build_info.h"
 
 #include "mbedtls/platform.h"
-#if !defined(MBEDTLS_PLATFORM_C)
-#include <stdio.h>
-#include <stdlib.h>
-#define mbedtls_exit       exit
-#define mbedtls_printf     printf
-#define mbedtls_free       free
-#endif
 
 #if !defined(MBEDTLS_HAVE_TIME)
 int main( void )

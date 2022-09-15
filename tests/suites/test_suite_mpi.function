@@ -239,23 +239,23 @@ void mpi_core_io_be( data_t *input, int nb_int, int nx_32_int, int iret,
     if( iret != 0 )
         TEST_ASSERT( oret == 0 );
 
-    TEST_ASSERT( 0 <= nb_int );
+    TEST_LE_S( 0, nb_int );
     size_t nb = nb_int;
 
     unsigned char buf[1024];
-    TEST_ASSERT( nb <= sizeof( buf ) );
+    TEST_LE_U( nb, sizeof( buf ) );
 
     /* nx_32_int is the number of 32 bit limbs, if we have 64 bit limbs we need
      * to halve the number of limbs to have the same size. */
     size_t nx;
-    TEST_ASSERT( 0 <= nx_32_int );
+    TEST_LE_S( 0, nx_32_int );
     if( sizeof( mbedtls_mpi_uint ) == 8 )
         nx = nx_32_int / 2 + nx_32_int % 2;
     else
         nx = nx_32_int;
 
     mbedtls_mpi_uint X[sizeof( buf ) / sizeof( mbedtls_mpi_uint )];
-    TEST_ASSERT( nx <= sizeof( X ) / sizeof( X[0] ) );
+    TEST_LE_U( nx, sizeof( X ) / sizeof( X[0] ) );
 
     int ret = mbedtls_mpi_core_read_be( X, nx, input->x, input->len );
     TEST_EQUAL( ret, iret );
@@ -296,23 +296,23 @@ void mpi_core_io_le( data_t *input, int nb_int, int nx_32_int, int iret,
     if( iret != 0 )
         TEST_ASSERT( oret == 0 );
 
-    TEST_ASSERT( 0 <= nb_int );
+    TEST_LE_S( 0, nb_int );
     size_t nb = nb_int;
 
     unsigned char buf[1024];
-    TEST_ASSERT( nb <= sizeof( buf ) );
+    TEST_LE_U( nb, sizeof( buf ) );
 
     /* nx_32_int is the number of 32 bit limbs, if we have 64 bit limbs we need
      * to halve the number of limbs to have the same size. */
     size_t nx;
-    TEST_ASSERT( 0 <= nx_32_int );
+    TEST_LE_S( 0, nx_32_int );
     if( sizeof( mbedtls_mpi_uint ) == 8 )
         nx = nx_32_int / 2 + nx_32_int % 2;
     else
         nx = nx_32_int;
 
     mbedtls_mpi_uint X[sizeof( buf ) / sizeof( mbedtls_mpi_uint )];
-    TEST_ASSERT( nx <= sizeof( X ) / sizeof( X[0] ) );
+    TEST_LE_U( nx, sizeof( X ) / sizeof( X[0] ) );
 
     int ret =  mbedtls_mpi_core_read_le( X, nx, input->x, input->len );
     TEST_EQUAL( ret, iret );
@@ -380,23 +380,23 @@ void mpi_mod_raw_io( data_t *input, int nb_int, int nx_32_int,
     if( iret != 0 )
         TEST_ASSERT( oret == 0 );
 
-    TEST_ASSERT( 0 <= nb_int );
+    TEST_LE_S( 0, nb_int );
     size_t nb = nb_int;
 
     unsigned char buf[1024];
-    TEST_ASSERT( nb <= sizeof( buf ) );
+    TEST_LE_U( nb, sizeof( buf ) );
 
     /* nx_32_int is the number of 32 bit limbs, if we have 64 bit limbs we need
      * to halve the number of limbs to have the same size. */
     size_t nx;
-    TEST_ASSERT( 0 <= nx_32_int );
+    TEST_LE_S( 0, nx_32_int );
     if( sizeof( mbedtls_mpi_uint ) == 8 )
         nx = nx_32_int / 2 + nx_32_int % 2;
     else
         nx = nx_32_int;
 
     mbedtls_mpi_uint X[sizeof( buf ) / sizeof( mbedtls_mpi_uint )];
-    TEST_ASSERT( nx <= sizeof( X ) / sizeof( X[0] ) );
+    TEST_LE_U( nx, sizeof( X ) / sizeof( X[0] ) );
 
     int endian;
     if( iendian == MBEDTLS_MPI_MOD_EXT_REP_INVALID )
@@ -738,7 +738,7 @@ void mpi_core_lt_ct( data_t * input_X, data_t * input_Y, int input_ret )
     size_t len = CHARS_TO_LIMBS(
                     input_X->len > input_Y->len ? input_X->len : input_Y->len );
 
-    TEST_ASSERT( len <= MAX_LEN );
+    TEST_LE_U( len, MAX_LEN );
 
     TEST_ASSERT( mbedtls_mpi_core_read_be( X, len, input_X->x, input_X->len )
                  == 0 );
@@ -1753,8 +1753,8 @@ void mpi_core_add_if( char * input_A, char * input_B,
     TEST_EQUAL( 1, X->s );
 
     /* Test cases are such that A <= B, so #limbs should be <= */
-    TEST_ASSERT( A.n <= B.n );
-    TEST_ASSERT( X->n <= B.n );
+    TEST_LE_U( A.n, B.n );
+    TEST_LE_U( X->n, B.n );
 
     /* Now let's get arrays of mbedtls_mpi_uints, rather than MPI structures */
 
@@ -1870,7 +1870,7 @@ void mpi_core_sub( char * input_A, char * input_B,
     mbedtls_mpi *X = ( sizeof(mbedtls_mpi_uint) == 4 ) ? &X4 : &X8;
 
     /* The result shouldn't have more limbs than the longest input */
-    TEST_ASSERT( X->n <= limbs );
+    TEST_LE_U( X->n, limbs );
 
     /* Now let's get arrays of mbedtls_mpi_uints, rather than MPI structures */
 
@@ -1975,7 +1975,7 @@ void mpi_core_mla( char * input_A, char * input_B, char * input_S,
     size_t bytes = limbs * sizeof(mbedtls_mpi_uint);
 
     /* The result shouldn't have more limbs than the longest input */
-    TEST_ASSERT( X->n <= limbs );
+    TEST_LE_U( X->n, limbs );
 
     /* Now let's get arrays of mbedtls_mpi_uints, rather than MPI structures */
 
@@ -2075,9 +2075,10 @@ void mpi_core_montmul( int limbs_AN4, int limbs_B4,
     int limbs_AN = ( sizeof(mbedtls_mpi_uint) == 4 ) ? limbs_AN4 : limbs_AN8;
     int limbs_B = ( sizeof(mbedtls_mpi_uint) == 4 ) ? limbs_B4 : limbs_B8;
 
-    TEST_ASSERT( (size_t)limbs_AN >= A.n && (size_t)limbs_AN >= X->n );
-    TEST_ASSERT( (size_t)limbs_B >= B.n );
-    TEST_ASSERT( limbs_B <= limbs_AN );
+    TEST_LE_U( A.n, (size_t)limbs_AN );
+    TEST_LE_U( X->n, (size_t)limbs_AN );
+    TEST_LE_U( B.n, (size_t)limbs_B );
+    TEST_LE_U( limbs_B, limbs_AN );
 
     /* All of the inputs are +ve (or zero) */
     TEST_EQUAL( 1, A.s );

@@ -1929,7 +1929,9 @@ void mpi_core_mla( char * input_A, char * input_B, char * input_S,
 {
     /* We are testing A += B * s; A, B are MPIs, s is a scalar.
      *
-     * However, we encode s as an MPI in the .data file for ease of handling.
+     * However, we encode s as an MPI in the .data file as the test framework
+     * currently only supports `int`-typed scalars, and that doesn't cover the
+     * full range of `mbedtls_mpi_uint`.
      *
      * We also have the different results for sizeof(mbedtls_mpi_uint) == 4 or 8.
      */

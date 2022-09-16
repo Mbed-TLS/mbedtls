@@ -1537,7 +1537,8 @@ int mbedtls_ssl_tls13_compute_resumption_master_secret( mbedtls_ssl_context *ssl
 
     MBEDTLS_SSL_DEBUG_BUF( 4, "Resumption master secret",
              ssl->session_negotiate->app_secrets.resumption_master_secret,
-             mbedtls_md_get_size( mbedtls_md_info_from_type( md_type ) ) );
+             PSA_HASH_LENGTH(
+                PSA_ALG_HMAC( mbedtls_hash_info_psa_from_md( md_type ) ) ) );
 
 
     MBEDTLS_SSL_DEBUG_MSG( 2,

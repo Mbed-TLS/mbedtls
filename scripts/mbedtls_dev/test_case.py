@@ -1,4 +1,4 @@
-"""Library for generating Mbed TLS test data.
+"""Library for constructing an Mbed TLS test case.
 """
 
 # Copyright The Mbed TLS Contributors

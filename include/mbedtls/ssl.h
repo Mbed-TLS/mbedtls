@@ -52,9 +52,7 @@
 #include "mbedtls/platform_time.h"
 #endif
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 /*
  * SSL Error codes

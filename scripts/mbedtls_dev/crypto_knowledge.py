@@ -22,7 +22,7 @@ import enum
 import re
 from typing import FrozenSet, Iterable, List, Optional, Tuple
 
-from mbedtls_dev.asymmetric_key_data import ASYMMETRIC_KEY_DATA
+from .asymmetric_key_data import ASYMMETRIC_KEY_DATA
 
 
 def short_expression(original: str, level: int = 0) -> str:

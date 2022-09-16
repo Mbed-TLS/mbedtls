@@ -106,10 +106,9 @@ void mbedtls_mpi_core_cond_assign( mbedtls_mpi_uint *X,
  *
  * \param[IN,OUT] X         The address of the first MPI.
  *                          This must be initialized.
- * \param         X_limbs   The number of limbs of \p X.
  * \param[IN,OUT] Y         The address of the second MPI.
  *                          This must be initialized.
- * \param         Y_limbs   The number of limbs of \p Y.
+ * \param         limbs     The number of limbs of \p Y and \p X.
  * \param         swap      The condition deciding whether to perform
  *                          the swap or not. Must be either 0 or 1:
  *                          * \c 1: Swap the values of \p X and \p Y.

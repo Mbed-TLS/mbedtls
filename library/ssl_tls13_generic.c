@@ -906,12 +906,8 @@ int mbedtls_ssl_tls13_check_sig_alg_cert_key_match( uint16_t sig_alg,
         case MBEDTLS_SSL_SIG_RSA:
             switch( sig_alg )
             {
-                case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256:
-                    return( key_size <= 3072 );
-
-                case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384:
-                    return( key_size <= 7680 );
-
+                case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256: /* Intentional fallthrough */
+                case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA384: /* Intentional fallthrough */
                 case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:
                     return( 1 );
 

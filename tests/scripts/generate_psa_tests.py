@@ -30,7 +30,7 @@ from mbedtls_dev import crypto_knowledge
 from mbedtls_dev import macro_collector
 from mbedtls_dev import psa_storage
 from mbedtls_dev import test_case
-from mbedtls_dev import test_generation
+from mbedtls_dev import test_data_generation
 
 
 def psa_want_symbol(name: str) -> str:
@@ -892,7 +892,7 @@ class StorageFormatV0(StorageFormat):
         yield from super().generate_all_keys()
         yield from self.all_keys_for_implicit_usage()
 
-class PSATestGenerator(test_generation.TestGenerator):
+class PSATestGenerator(test_data_generation.TestGenerator):
     """Test generator subclass including PSA targets and info."""
     # Note that targets whose names contain 'test_format' have their content
     # validated by `abi_check.py`.
@@ -917,4 +917,4 @@ class PSATestGenerator(test_generation.TestGenerator):
         super().generate_target(name, self.info)
 
 if __name__ == '__main__':
-    test_generation.main(sys.argv[1:], __doc__, PSATestGenerator)
+    test_data_generation.main(sys.argv[1:], __doc__, PSATestGenerator)

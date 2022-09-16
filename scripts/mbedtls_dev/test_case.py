@@ -21,7 +21,7 @@ import os
 import sys
 from typing import Iterable, List, Optional
 
-from mbedtls_dev import typing_util
+from . import typing_util
 
 def hex_string(data: bytes) -> str:
     return '"' + binascii.hexlify(data).decode('ascii') + '"'

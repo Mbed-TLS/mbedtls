@@ -34,11 +34,13 @@
 
 #include "mbedtls/build_info.h"
 
-#if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(MBEDTLS_ECDSA_C)
+#if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(MBEDTLS_ECDSA_C) || \
+    defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 int main( void )
 {
     printf( "MBEDTLS_PSA_CRYPTO_C and MBEDTLS_ECDSA_C"
-            "not defined.\r\n" );
+            "not defined and/or "
+            "MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined.\r\n" );
     return( 0 );
 }
 #else

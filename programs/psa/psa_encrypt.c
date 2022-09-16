@@ -33,11 +33,12 @@
 
 
 #if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(MBEDTLS_AES_C) || \
-    !defined(MBEDTLS_CCM_C)
+    !defined(MBEDTLS_CCM_C) || defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
 int main( void )
 {
     printf( "MBEDTLS_PSA_CRYPTO_C and/or MBEDTLS_AES_C and/or "
-            "MBEDTLS_CCM_C not defined.\r\n" );
+            "MBEDTLS_CCM_C not defined and/or "
+            "MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER defined.\r\n" );
     return( 0 );
 }
 #else

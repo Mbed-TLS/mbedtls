@@ -92,10 +92,10 @@ int main( void )
         return( EXIT_FAILURE );
     }
 #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
-     size_t output_length = 0;
-    psa_status_t status = mbedtls_psa_external_get_random( &global_data.rng,
-                                                           output, output_size,
-                                                           &output_length );
+    size_t output_length = 0;
+    status = mbedtls_psa_external_get_random( &global_data.rng,
+                                              output, output_size,
+                                              &output_length );
 
     status = mbedtls_psa_external_get_random ( output, BUFFER_SIZE );
     if( status != PSA_SUCCESS )

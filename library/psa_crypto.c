@@ -5174,7 +5174,8 @@ static psa_status_t psa_key_derivation_setup_kdf(
     {
         return( PSA_ERROR_NOT_SUPPORTED );
     }
-#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT)
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT) || \
+    defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS)
     if( PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) ||
         ( kdf_alg == PSA_ALG_TLS12_ECJPAKE_TO_PMS ) )
         operation->capacity = hash_size;

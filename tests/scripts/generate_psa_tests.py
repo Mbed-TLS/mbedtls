@@ -917,4 +917,4 @@ class PSATestGenerator(test_generation.TestGenerator):
         super().generate_target(name, self.info)
 
 if __name__ == '__main__':
-    test_generation.main(sys.argv[1:], PSATestGenerator)
+    test_generation.main(sys.argv[1:], __doc__, PSATestGenerator)

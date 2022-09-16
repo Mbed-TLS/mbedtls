@@ -233,6 +233,6 @@ class BignumAdd(BignumOperation):
     def result(self) -> str:
         return quote_str("{:x}".format(self.int_a + self.int_b))
 
-
 if __name__ == '__main__':
-    test_generation.main(sys.argv[1:])
+    # Use the section of the docstring relevant to the CLI as description
+    test_generation.main(sys.argv[1:], "\n".join(__doc__.splitlines()[:4]))

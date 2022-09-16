@@ -810,7 +810,8 @@ void mpi_core_cond_assign( data_t * input_X,
                         Y, len_Y * sizeof( mbedtls_mpi_uint ) );
 
     else
-        TEST_ASSERT( memcmp( X, Y, len_X * sizeof( mbedtls_mpi_uint ) ) != 0 );
+        TEST_ASSERT( memcmp( X, Y, MIN( len_X, len_Y ) *
+                                   sizeof( mbedtls_mpi_uint ) ) != 0 );
 
 exit:
     ;

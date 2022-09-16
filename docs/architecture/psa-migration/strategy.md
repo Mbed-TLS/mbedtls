@@ -351,7 +351,7 @@ It should be noted that there are currently:
 - too many different ways of computing a hash (low-level, MD, PSA);
 - too many different ways to configure the library that influence which of
   these ways is available and will be used (`MBEDTLS_USE_PSA_CRYPTO`,
-`MBEDTLS_PSA_CRYPTO_CONFIG`, `mbedtls_config.h` + `psa/crypto_config.h`).
+  `MBEDTLS_PSA_CRYPTO_CONFIG`, `mbedtls_config.h` + `psa/crypto_config.h`).
 
 As a result, we need more families of dependency macros than we'd like to.
 This is a temporary situation until we move to a place where everything is
@@ -361,12 +361,12 @@ the new macros in the hope of avoiding confusion.
 Note: the new macros supplement but do not replace the existing macros:
 - code that always uses PSA Crypto (for example, code specific to TLS 1.3)
   should use `PSA_WANT_xxx`;
-- code that always uses the legacy API (for exmaple, crypto modules that have
+- code that always uses the legacy API (for example, crypto modules that have
   not undergone step 1 yet) should use `MBEDTLS_xxx_C`;
 - code that may use one of the two APIs, either based on
   `MBEDTLS_USE_PSA_CRYPTO` (X.509, TLS 1.2, shared between TLS 1.2 and 1.3),
-or based on availability (crypto modules after step 1), should use one of the
-new macros from `legacy_or_psa.h`.
+  or based on availability (crypto modules after step 1), should use one of
+  the new macros from `legacy_or_psa.h`.
 
 Executing step 3 will mostly consist of using the right dependency macros in
 the right places (once the previous steps are done).

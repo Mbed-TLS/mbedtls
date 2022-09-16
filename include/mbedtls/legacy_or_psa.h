@@ -19,7 +19,7 @@
  */
 
 /*
- * Note: applications who are targetting a specific configurations do not need
+ * Note: applications that are targeting a specific configuration do not need
  * to use these macros; instead they should directly use the functions they
  * know are available in their configuration.
  *
@@ -29,7 +29,7 @@
  *
  * Note: code that is purely based on the legacy crypto APIs (mbedtls_xxx())
  * does not need to use these macros; instead it should use the relevant
- * MBEDTLS_xxx_ macros.
+ * MBEDTLS_xxx macros.
  *
  * These macros are for code that wants to use <crypto feature> and will do so
  * using <legacy API> or PSA depending on <condition>, where:

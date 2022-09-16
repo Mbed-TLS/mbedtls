@@ -1149,10 +1149,37 @@ static int ssl_tls13_parse_server_pre_shared_key_ext( mbedtls_ssl_context *ssl,
                                                       const unsigned char *buf,
                                                       const unsigned char *end )
 {
-    ((void) ssl);
-    ((void) buf);
-    ((void) end);
-    return( 0 );
+    int ret = 0;
+    int selected_identity;
+    int psk_type;
+    const unsigned char *psk;
+    size_t psk_len;
+    psa_algorithm_t psa_alg;
+
+    MBEDTLS_SSL_CHK_BUF_PTR( buf, end, 2 );
+    selected_identity = MBEDTLS_GET_UINT16_BE( buf, 0 );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "selected_identity = %d", selected_identity ) );
+
+    if( ssl_tls13_psk_list_get_psk(
+            ssl, selected_identity, &psk_type, &psa_alg, &psk, &psk_len ) != 0)
+    {
+        MBEDTLS_SSL_DEBUG_MSG(
+            1, ( "Invalid chosen PSK identity." ) );
+
+        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                                      MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+        return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+    }
+
+    ret = mbedtls_ssl_set_hs_psk( ssl, psk, psk_len );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_set_hs_psk", ret );
+    }
+    else
+        ssl->handshake->extensions_present |= MBEDTLS_SSL_EXT_PRE_SHARED_KEY;
+
+    return( ret );
 }
 
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */

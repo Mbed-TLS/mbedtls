@@ -7235,7 +7235,9 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS:MBEDTLS_SHA256_C */
 void derive_ecjpake_to_pms( data_t *input, int expected_input_status,
-                            int derivation_step, data_t *expected_output,
+                            int derivation_step,
+                            int capacity, int expected_capacity_status,
+                            data_t *expected_output,
                             int expected_output_status )
 {
     psa_algorithm_t alg = PSA_ALG_TLS12_ECJPAKE_TO_PMS;
@@ -7248,8 +7250,8 @@ void derive_ecjpake_to_pms( data_t *input, int expected_input_status,
     PSA_ASSERT( psa_crypto_init() );
 
     PSA_ASSERT( psa_key_derivation_setup( &operation, alg ) );
-    PSA_ASSERT( psa_key_derivation_set_capacity( &operation,
-                                                 expected_output->len ) );
+    TEST_EQUAL( psa_key_derivation_set_capacity( &operation, capacity ),
+        (psa_status_t) expected_capacity_status );
 
     TEST_EQUAL( psa_key_derivation_input_bytes( &operation,
                 step, input->x, input->len ),

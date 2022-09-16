@@ -2021,10 +2021,15 @@
 #define PSA_ALG_TLS12_PSK_TO_MS_GET_HASH(hkdf_alg)                         \
     (PSA_ALG_CATEGORY_HASH | ((hkdf_alg) & PSA_ALG_HASH_MASK))
 
-/* Macro to build a KDF that takes the shared secret K (an EC point in case
- * of EC J-PAKE) and calculates SHA256(K.X) that the rest of TLS 1.2 will
- * use to derive the session secret. Uses PSA_ALG_SHA_256. Only P-256 is
- * supported, so the input has to be exactly 65 bytes.
+/* The TLS 1.2 ECJPAKE-to-PMS KDF. It takes the shared secret K (an EC point
+ * in case of EC J-PAKE) and calculates SHA256(K.X) that the rest of TLS 1.2
+ * will use to derive the session secret, as defined by step 2 of
+ * https://datatracker.ietf.org/doc/html/draft-cragie-tls-ecjpake-01#section-8.7.
+ * Uses PSA_ALG_SHA_256.
+ * This function takes a single input:
+ * #PSA_KEY_DERIVATION_INPUT_SECRET is the shared secret K from EC J-PAKE.
+ * The only supported curve is secp256r1 (the 256-bit curve in
+ * #PSA_ECC_FAMILY_SECP_R1), so the input must be exactly 65 bytes.
  */
 #define PSA_ALG_TLS12_ECJPAKE_TO_PMS            ((psa_algorithm_t)0x08000600)
 #define PSA_ALG_IS_TLS12_ECJPAKE_TO_PMS(alg)                               \

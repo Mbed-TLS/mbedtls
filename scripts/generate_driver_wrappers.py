@@ -134,7 +134,8 @@ def read_driver_descriptions(mbedtls_root: str, json_directory: str, \
         driver_list = json.load(driverlistfile)
 
     try:
-        result = [load_driver(driver_schema, driver_file=os.path.join(json_directory, driver_file_name))
+        result = [load_driver(schemas=driver_schema,
+                              driver_file=os.path.join(json_directory, driver_file_name))
                   for driver_file_name in driver_list]
     except JsonValidationException as _:
         return False, []

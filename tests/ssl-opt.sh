@@ -2054,7 +2054,7 @@ run_test    "TLS1.3 opaque key: no suitable algorithm found" \
             -c "key type: Opaque" \
             -s "key types: Opaque, Opaque" \
             -c "error" \
-            -s "select_sig_alg_for_certificate_verify:no suitable signature algorithm found" \
+            -s "no suitable signature algorithm"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
@@ -11562,7 +11562,7 @@ run_test    "TLS 1.3: Client authentication, client alg not in server list - ope
             -c "got a certificate request" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
-            -c "signature algorithm not in received or offered list." \
+            -c "no suitable signature algorithm" \
             -C "unknown pk type"
 
 requires_gnutls_tls1_3
@@ -11580,7 +11580,7 @@ run_test    "TLS 1.3: Client authentication, client alg not in server list - gnu
             -c "got a certificate request" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
-            -c "signature algorithm not in received or offered list." \
+            -c "no suitable signature algorithm" \
             -C "unknown pk type"
 
 # Test using an opaque private key for client authentication
@@ -11834,7 +11834,7 @@ run_test    "TLS 1.3: Client authentication - opaque key, client alg not in serv
             -c "got a certificate request" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
-            -c "signature algorithm not in received or offered list." \
+            -c "no suitable signature algorithm" \
             -C "unkown pk type"
 
 requires_gnutls_tls1_3
@@ -11853,7 +11853,7 @@ run_test    "TLS 1.3: Client authentication - opaque key, client alg not in serv
             -c "got a certificate request" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE" \
             -c "client state: MBEDTLS_SSL_CLIENT_CERTIFICATE_VERIFY" \
-            -c "signature algorithm not in received or offered list." \
+            -c "no suitable signature algorithm" \
             -C "unkown pk type"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -12582,7 +12582,7 @@ run_test    "TLS 1.3: Check signature algorithm order, m->O" \
                     sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,rsa_pss_rsae_sha384,ecdsa_secp256r1_sha256" \
             0 \
             -c "Protocol is TLSv1.3" \
-            -c "select_sig_alg_for_certificate_verify:selected signature algorithm rsa_pss_rsae_sha512" \
+            -c "CertificateVerify signature with rsa_pss_rsae_sha512" \
             -c "HTTP/1.0 200 [Oo][Kk]"
 
 requires_gnutls_tls1_3
@@ -12598,7 +12598,7 @@ run_test    "TLS 1.3: Check signature algorithm order, m->G" \
                     sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,rsa_pss_rsae_sha384,ecdsa_secp256r1_sha256" \
             0 \
             -c "Protocol is TLSv1.3" \
-            -c "select_sig_alg_for_certificate_verify:selected signature algorithm rsa_pss_rsae_sha512" \
+            -c "CertificateVerify signature with rsa_pss_rsae_sha512" \
             -c "HTTP/1.0 200 [Oo][Kk]"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -12615,8 +12615,8 @@ run_test    "TLS 1.3: Check signature algorithm order, m->m" \
                     sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,rsa_pss_rsae_sha384,ecdsa_secp256r1_sha256" \
             0 \
             -c "Protocol is TLSv1.3" \
-            -c "select_sig_alg_for_certificate_verify:selected signature algorithm rsa_pss_rsae_sha512" \
-            -s "select_sig_alg_for_certificate_verify:selected signature algorithm rsa_pss_rsae_sha512" \
+            -c "CertificateVerify signature with rsa_pss_rsae_sha512" \
+            -s "CertificateVerify signature with rsa_pss_rsae_sha512" \
             -s "ssl_tls13_pick_key_cert:selected signature algorithm rsa_pss_rsae_sha512" \
             -c "HTTP/1.0 200 [Oo][Kk]"
 
@@ -12635,7 +12635,7 @@ run_test    "TLS 1.3: Check signature algorithm order, O->m" \
                                  -sigalgs rsa_pkcs1_sha512:rsa_pss_rsae_sha512:rsa_pss_rsae_sha384:ecdsa_secp256r1_sha256"  \
             0 \
             -c "TLSv1.3" \
-            -s "select_sig_alg_for_certificate_verify:selected signature algorithm rsa_pss_rsae_sha512" \
+            -s "CertificateVerify signature with rsa_pss_rsae_sha512" \
             -s "ssl_tls13_pick_key_cert:selected signature algorithm rsa_pss_rsae_sha512"
 
 requires_gnutls_tls1_3
@@ -12654,7 +12654,7 @@ run_test    "TLS 1.3: Check signature algorithm order, G->m" \
             0 \
             -c "Negotiated version: 3.4" \
             -c "HTTP/1.0 200 [Oo][Kk]" \
-            -s "select_sig_alg_for_certificate_verify:selected signature algorithm rsa_pss_rsae_sha512" \
+            -s "CertificateVerify signature with rsa_pss_rsae_sha512" \
             -s "ssl_tls13_pick_key_cert:selected signature algorithm rsa_pss_rsae_sha512"
 
 requires_gnutls_tls1_3
@@ -12758,7 +12758,7 @@ run_test    "TLS 1.3: Check client no signature algorithm, m->O" \
             "$P_CLI debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key \
                     sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,rsa_pss_rsae_sha384,ecdsa_secp256r1_sha256" \
             1 \
-            -c "select_sig_alg_for_certificate_verify:no suitable signature algorithm found"
+            -c "no suitable signature algorithm"
 
 requires_gnutls_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -12772,7 +12772,7 @@ run_test    "TLS 1.3: Check client no signature algorithm, m->G" \
             "$P_CLI debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key \
                     sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,rsa_pss_rsae_sha384,ecdsa_secp256r1_sha256" \
             1 \
-            -c "select_sig_alg_for_certificate_verify:no suitable signature algorithm found"
+            -c "no suitable signature algorithm"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
@@ -12787,7 +12787,7 @@ run_test    "TLS 1.3: Check client no signature algorithm, m->m" \
             "$P_CLI debug_level=4 crt_file=data_files/server5.crt key_file=data_files/server5.key \
                     sig_algs=rsa_pkcs1_sha512,rsa_pss_rsae_sha512,rsa_pss_rsae_sha384,ecdsa_secp256r1_sha256" \
             1 \
-            -c "select_sig_alg_for_certificate_verify:no suitable signature algorithm found"
+            -c "no suitable signature algorithm"
 
 requires_openssl_tls1_3
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3

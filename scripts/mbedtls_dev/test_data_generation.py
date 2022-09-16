@@ -1,4 +1,7 @@
-"""Common test generation classes and main function.
+"""Common code for test data generation.
+
+This module defines classes that are of general use to automatically
+generate .data files for unit tests, as well as a main function.
 
 These are used both by generate_psa_tests.py and generate_bignum_tests.py.
 """

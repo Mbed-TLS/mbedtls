@@ -18,6 +18,15 @@
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
+#ifndef _BSD_SOURCE
+/* Required to get htole64() from gcc/glibc's endian.h (older systems)
+ * when we compile with -std=c99 */
+#define _BSD_SOURCE
+#endif
+#ifndef _DEFAULT_SOURCE
+/* (modern version of _BSD_SOURCE) */
+#define _DEFAULT_SOURCE
+#endif
 
 #include "common.h"
 

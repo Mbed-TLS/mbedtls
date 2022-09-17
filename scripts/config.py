@@ -161,8 +161,16 @@ def is_full_section(section):
     return section.endswith('support') or section.endswith('modules')
 
 def realfull_adapter(_name, active, section):
-    """Activate all symbols found in the system and feature sections."""
-    if not is_full_section(section):
+    """Activate all symbols found in the global and boolean feature sections.
+
+    This is intended for building the documentation, including the
+    documentation of settings that are activated by defining an optional
+    preprocessor macro.
+
+    Do not activate definitions in the section containing symbols that are
+    supposed to be defined and documented in their own module.
+    """
+    if section == 'Module configuration options':
         return active
     return True
 
@@ -198,6 +206,8 @@ EXCLUDE_FROM_FULL = frozenset([
     'MBEDTLS_PSA_CRYPTO_SPM', # platform dependency (PSA SPM)
     'MBEDTLS_PSA_INJECT_ENTROPY', # build dependency (hook functions)
     'MBEDTLS_RSA_NO_CRT', # influences the use of RSA in X.509 and TLS
+    'MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY', # interacts with *_USE_A64_CRYPTO_IF_PRESENT
+    'MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY', # interacts with *_USE_A64_CRYPTO_IF_PRESENT
     'MBEDTLS_TEST_CONSTANT_FLOW_MEMSAN', # build dependency (clang+memsan)
     'MBEDTLS_TEST_CONSTANT_FLOW_VALGRIND', # build dependency (valgrind headers)
     'MBEDTLS_X509_REMOVE_INFO', # removes a feature
@@ -272,6 +282,21 @@ def baremetal_adapter(name, active, section):
         return True
     return include_in_full(name) and keep_in_baremetal(name)
 
+# This set contains options that are mostly for debugging or test purposes,
+# and therefore should be excluded when doing code size measurements.
+# Options that are their own module (such as MBEDTLS_ERROR_C) are not listed
+# and therefore will be included when doing code size measurements.
+EXCLUDE_FOR_SIZE = frozenset([
+    'MBEDTLS_DEBUG_C', # large code size increase in TLS
+    'MBEDTLS_SELF_TEST', # increases the size of many modules
+    'MBEDTLS_TEST_HOOKS', # only useful with the hosted test framework, increases code size
+])
+
+def baremetal_size_adapter(name, active, section):
+    if name in EXCLUDE_FOR_SIZE:
+        return False
+    return baremetal_adapter(name, active, section)
+
 def include_in_crypto(name):
     """Rules for symbols in a crypto configuration."""
     if name.startswith('MBEDTLS_X509_') or \
@@ -299,6 +324,9 @@ def crypto_adapter(adapter):
         return adapter(name, active, section)
     return continuation
 
+DEPRECATED = frozenset([
+    'MBEDTLS_PSA_CRYPTO_SE_C',
+])
 def no_deprecated_adapter(adapter):
     """Modify an adapter to disable deprecated symbols.
 
@@ -309,6 +337,8 @@ def no_deprecated_adapter(adapter):
     def continuation(name, active, section):
         if name == 'MBEDTLS_DEPRECATED_REMOVED':
             return True
+        if name in DEPRECATED:
+            return False
         if adapter is None:
             return active
         return adapter(name, active, section)
@@ -393,7 +423,7 @@ class ConfigFile(Config):
         value = setting.value
         if value is None:
             value = ''
-        # Normally the whitespace to separte the symbol name from the
+        # Normally the whitespace to separate the symbol name from the
         # value is part of middle, and there's no whitespace for a symbol
         # with no value. But if a symbol has been changed from having a
         # value to not having one, the whitespace is wrong, so fix it.
@@ -484,6 +514,9 @@ if __name__ == '__main__':
         add_adapter('baremetal', baremetal_adapter,
                     """Like full, but exclude features that require platform
                     features such as file input-output.""")
+        add_adapter('baremetal_size', baremetal_size_adapter,
+                    """Like baremetal, but exclude debugging features.
+                    Useful for code size measurements.""")
         add_adapter('full', full_adapter,
                     """Uncomment most features.
                     Exclude alternative implementations and platform support

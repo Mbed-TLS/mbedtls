@@ -114,7 +114,7 @@ mbedtls_x509_crt;
 typedef struct mbedtls_x509_san_other_name
 {
     /**
-     * The type_id is an OID as deifned in RFC 5280.
+     * The type_id is an OID as defined in RFC 5280.
      * To check the value of the type id, you should use
      * \p MBEDTLS_OID_CMP with a known OID mbedtls_x509_buf.
      */
@@ -190,7 +190,9 @@ mbedtls_x509_subject_alternative_name;
 typedef struct mbedtls_x509_crt_profile
 {
     uint32_t allowed_mds;       /**< MDs for signatures         */
-    uint32_t allowed_pks;       /**< PK algs for signatures     */
+    uint32_t allowed_pks;       /**< PK algs for public keys;
+                                 *   this applies to all certificates
+                                 *   in the provided chain.     */
     uint32_t allowed_curves;    /**< Elliptic curves for ECDSA  */
     uint32_t rsa_min_bitlen;    /**< Minimum size for RSA keys  */
 }
@@ -955,6 +957,23 @@ void mbedtls_x509_crt_restart_free( mbedtls_x509_crt_restart_ctx *ctx );
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
+/**
+ * \brief               Query certificate for given extension type
+ *
+ * \param[in] ctx       Certificate context to be queried, must not be \c NULL
+ * \param ext_type      Extension type being queried for, must be a valid
+ *                      extension type. Must be one of the MBEDTLS_X509_EXT_XXX
+ *                      values
+ *
+ * \return              0 if the given extension type is not present,
+ *                      non-zero otherwise
+ */
+static inline int mbedtls_x509_crt_has_ext_type( const mbedtls_x509_crt *ctx,
+                                                 int ext_type )
+{
+    return ctx->MBEDTLS_PRIVATE(ext_types) & ext_type;
+}
+
 /** \} name Structures and functions for parsing and writing X.509 certificates */
 
 #if defined(MBEDTLS_X509_CRT_WRITE_C)
@@ -966,7 +985,7 @@ void mbedtls_x509_crt_restart_free( mbedtls_x509_crt_restart_ctx *ctx );
 void mbedtls_x509write_crt_init( mbedtls_x509write_cert *ctx );
 
 /**
- * \brief           Set the verion for a Certificate
+ * \brief           Set the version for a Certificate
  *                  Default: MBEDTLS_X509_CRT_VERSION_3
  *
  * \param ctx       CRT context to use
@@ -1082,14 +1101,14 @@ int mbedtls_x509write_crt_set_extension( mbedtls_x509write_cert *ctx,
  * \param is_ca     is this a CA certificate
  * \param max_pathlen   maximum length of certificate chains below this
  *                      certificate (only for CA certificates, -1 is
- *                      inlimited)
+ *                      unlimited)
  *
  * \return          0 if successful, or a MBEDTLS_ERR_X509_ALLOC_FAILED
  */
 int mbedtls_x509write_crt_set_basic_constraints( mbedtls_x509write_cert *ctx,
                                          int is_ca, int max_pathlen );
 
-#if defined(MBEDTLS_SHA1_C)
+#if defined(MBEDTLS_SHA1_C) || ( defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_SHA_1) )
 /**
  * \brief           Set the subjectKeyIdentifier extension for a CRT
  *                  Requires that mbedtls_x509write_crt_set_subject_key() has been
@@ -1111,7 +1130,7 @@ int mbedtls_x509write_crt_set_subject_key_identifier( mbedtls_x509write_cert *ct
  * \return          0 if successful, or a MBEDTLS_ERR_X509_ALLOC_FAILED
  */
 int mbedtls_x509write_crt_set_authority_key_identifier( mbedtls_x509write_cert *ctx );
-#endif /* MBEDTLS_SHA1_C */
+#endif /* MBEDTLS_SHA1_C || (MBEDTLS_PSA_CRYPTO_C && PSA_WANT_ALG_SHA_1)*/
 
 /**
  * \brief           Set the Key Usage Extension flags

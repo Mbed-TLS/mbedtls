@@ -21,7 +21,7 @@ void mbedtls_md_process(  )
     /*
      * Very minimal testing of mbedtls_md_process, just make sure the various
      * xxx_process_wrap() function pointers are valid. (Testing that they
-     * indeed do the right thing whould require messing with the internal
+     * indeed do the right thing would require messing with the internal
      * state of the underlying mbedtls_md/sha context.)
      *
      * Also tests that mbedtls_md_list() only returns valid MDs.

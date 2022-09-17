@@ -44,6 +44,14 @@
     MBEDTLS_SSL_TLS1_3_LABEL( client_cv   , "TLS 1.3, client CertificateVerify" ) \
     MBEDTLS_SSL_TLS1_3_LABEL( server_cv   , "TLS 1.3, server CertificateVerify" )
 
+#define MBEDTLS_SSL_TLS1_3_CONTEXT_UNHASHED 0
+#define MBEDTLS_SSL_TLS1_3_CONTEXT_HASHED   1
+
+#define MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL   0
+#define MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION 1
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+
 #define MBEDTLS_SSL_TLS1_3_LABEL( name, string )       \
     const unsigned char name    [ sizeof(string) - 1 ];
 
@@ -73,7 +81,7 @@ extern const struct mbedtls_ssl_tls13_labels_struct mbedtls_ssl_tls13_labels;
  * Since contexts are always hashes of message transcripts, this can
  * be approximated from above by the maximum hash size. */
 #define MBEDTLS_SSL_TLS1_3_KEY_SCHEDULE_MAX_CONTEXT_LEN  \
-    MBEDTLS_MD_MAX_SIZE
+    PSA_HASH_MAX_SIZE
 
 /* Maximum desired length for expanded key material generated
  * by HKDF-Expand-Label.
@@ -113,8 +121,9 @@ extern const struct mbedtls_ssl_tls13_labels_struct mbedtls_ssl_tls13_labels;
  * \return           A negative error code on failure.
  */
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_hkdf_expand_label(
-                     mbedtls_md_type_t hash_alg,
+                     psa_algorithm_t hash_alg,
                      const unsigned char *secret, size_t secret_len,
                      const unsigned char *label, size_t label_len,
                      const unsigned char *ctx, size_t ctx_len,
@@ -151,16 +160,13 @@ int mbedtls_ssl_tls13_hkdf_expand_label(
  * \returns             A negative error code on failure.
  */
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_make_traffic_keys(
-                     mbedtls_md_type_t hash_alg,
+                     psa_algorithm_t hash_alg,
                      const unsigned char *client_secret,
                      const unsigned char *server_secret, size_t secret_len,
                      size_t key_len, size_t iv_len,
                      mbedtls_ssl_key_set *keys );
-
-
-#define MBEDTLS_SSL_TLS1_3_CONTEXT_UNHASHED 0
-#define MBEDTLS_SSL_TLS1_3_CONTEXT_HASHED   1
 
 /**
  * \brief The \c Derive-Secret function from the TLS 1.3 standard RFC 8446.
@@ -201,8 +207,9 @@ int mbedtls_ssl_tls13_make_traffic_keys(
  * \returns        \c 0 on success.
  * \returns        A negative error code on failure.
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_derive_secret(
-                   mbedtls_md_type_t hash_alg,
+                   psa_algorithm_t hash_alg,
                    const unsigned char *secret, size_t secret_len,
                    const unsigned char *label, size_t label_len,
                    const unsigned char *ctx, size_t ctx_len,
@@ -235,14 +242,14 @@ int mbedtls_ssl_tls13_derive_secret(
  *        is omitted here. Its calculation is part of the separate routine
  *        mbedtls_ssl_tls13_create_psk_binder().
  *
- * \param md_type      The hash algorithm associated with the PSK for which
+ * \param hash_alg     The hash algorithm associated with the PSK for which
  *                     early data key material is being derived.
  * \param early_secret The early secret from which the early data key material
  *                     should be derived. This must be a readable buffer whose
  *                     length is the digest size of the hash algorithm
  *                     represented by \p md_size.
  * \param transcript   The transcript of the handshake so far, calculated with
- *                     respect to \p md_type. This must be a readable buffer
+ *                     respect to \p hash_alg. This must be a readable buffer
  *                     whose length is the digest size of the hash algorithm
  *                     represented by \p md_size.
  * \param derived      The address of the structure in which to store
@@ -251,8 +258,9 @@ int mbedtls_ssl_tls13_derive_secret(
  * \returns        \c 0 on success.
  * \returns        A negative error code on failure.
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_derive_early_secrets(
-          mbedtls_md_type_t md_type,
+          psa_algorithm_t hash_alg,
           unsigned char const *early_secret,
           unsigned char const *transcript, size_t transcript_len,
           mbedtls_ssl_tls13_early_secrets *derived );
@@ -280,14 +288,14 @@ int mbedtls_ssl_tls13_derive_early_secrets(
  *        the client and server secret derived by this function need to be
  *        further processed by mbedtls_ssl_tls13_make_traffic_keys().
  *
- * \param md_type           The hash algorithm associated with the ciphersuite
+ * \param hash_alg          The hash algorithm associated with the ciphersuite
  *                          that's being used for the connection.
  * \param handshake_secret  The handshake secret from which the handshake key
  *                          material should be derived. This must be a readable
  *                          buffer whose length is the digest size of the hash
  *                          algorithm represented by \p md_size.
  * \param transcript        The transcript of the handshake so far, calculated
- *                          with respect to \p md_type. This must be a readable
+ *                          with respect to \p hash_alg. This must be a readable
  *                          buffer whose length is the digest size of the hash
  *                          algorithm represented by \p md_size.
  * \param derived           The address of the structure in which to
@@ -296,8 +304,9 @@ int mbedtls_ssl_tls13_derive_early_secrets(
  * \returns        \c 0 on success.
  * \returns        A negative error code on failure.
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_derive_handshake_secrets(
-          mbedtls_md_type_t md_type,
+          psa_algorithm_t hash_alg,
           unsigned char const *handshake_secret,
           unsigned char const *transcript, size_t transcript_len,
           mbedtls_ssl_tls13_handshake_secrets *derived );
@@ -329,7 +338,7 @@ int mbedtls_ssl_tls13_derive_handshake_secrets(
  *        the client and server secret derived by this function need to be
  *        further processed by mbedtls_ssl_tls13_make_traffic_keys().
  *
- * \param md_type           The hash algorithm associated with the ciphersuite
+ * \param hash_alg          The hash algorithm associated with the ciphersuite
  *                          that's being used for the connection.
  * \param master_secret     The master secret from which the application key
  *                          material should be derived. This must be a readable
@@ -337,17 +346,18 @@ int mbedtls_ssl_tls13_derive_handshake_secrets(
  *                          algorithm represented by \p md_size.
  * \param transcript        The transcript of the handshake up to and including
  *                          the ServerFinished message, calculated with respect
- *                          to \p md_type. This must be a readable buffer whose
+ *                          to \p hash_alg. This must be a readable buffer whose
  *                          length is the digest size of the hash algorithm
- *                          represented by \p md_type.
+ *                          represented by \p hash_alg.
  * \param derived           The address of the structure in which to
  *                          store the application key material.
  *
  * \returns        \c 0 on success.
  * \returns        A negative error code on failure.
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_derive_application_secrets(
-          mbedtls_md_type_t md_type,
+          psa_algorithm_t hash_alg,
           unsigned char const *master_secret,
           unsigned char const *transcript, size_t transcript_len,
           mbedtls_ssl_tls13_application_secrets *derived );
@@ -358,7 +368,7 @@ int mbedtls_ssl_tls13_derive_application_secrets(
  *        This is a small wrapper invoking mbedtls_ssl_tls13_derive_secret()
  *        with the appropriate labels from the standard.
  *
- * \param md_type           The hash algorithm used in the application for which
+ * \param hash_alg          The hash algorithm used in the application for which
  *                          key material is being derived.
  * \param application_secret The application secret from which the resumption master
  *                          secret should be derived. This must be a readable
@@ -366,9 +376,9 @@ int mbedtls_ssl_tls13_derive_application_secrets(
  *                          algorithm represented by \p md_size.
  * \param transcript        The transcript of the handshake up to and including
  *                          the ClientFinished message, calculated with respect
- *                          to \p md_type. This must be a readable buffer whose
+ *                          to \p hash_alg. This must be a readable buffer whose
  *                          length is the digest size of the hash algorithm
- *                          represented by \p md_type.
+ *                          represented by \p hash_alg.
  * \param transcript_len    The length of \p transcript in Bytes.
  * \param derived           The address of the structure in which to
  *                          store the resumption master secret.
@@ -376,8 +386,9 @@ int mbedtls_ssl_tls13_derive_application_secrets(
  * \returns        \c 0 on success.
  * \returns        A negative error code on failure.
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_derive_resumption_master_secret(
-          mbedtls_md_type_t md_type,
+          psa_algorithm_t hash_alg,
           unsigned char const *application_secret,
           unsigned char const *transcript, size_t transcript_len,
           mbedtls_ssl_tls13_application_secrets *derived );
@@ -449,21 +460,19 @@ int mbedtls_ssl_tls13_derive_resumption_master_secret(
  * \returns           A negative error code on failure.
  */
 
+MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_evolve_secret(
-                   mbedtls_md_type_t hash_alg,
+                   psa_algorithm_t hash_alg,
                    const unsigned char *secret_old,
                    const unsigned char *input, size_t input_len,
                    unsigned char *secret_new );
-
-#define MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL   0
-#define MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION 1
 
 /**
  * \brief             Calculate a TLS 1.3 PSK binder.
  *
  * \param ssl         The SSL context. This is used for debugging only and may
  *                    be \c NULL if MBEDTLS_DEBUG_C is disabled.
- * \param md_type     The hash algorithm associated to the PSK \p psk.
+ * \param hash_alg    The hash algorithm associated to the PSK \p psk.
  * \param psk         The buffer holding the PSK for which to create a binder.
  * \param psk_len     The size of \p psk in bytes.
  * \param psk_type    This indicates whether the PSK \p psk is externally
@@ -472,17 +481,18 @@ int mbedtls_ssl_tls13_evolve_secret(
  * \param transcript  The handshake transcript up to the point where the
  *                    PSK binder calculation happens. This must be readable,
  *                    and its size must be equal to the digest size of
- *                    the hash algorithm represented by \p md_type.
+ *                    the hash algorithm represented by \p hash_alg.
  * \param result      The address at which to store the PSK binder on success.
  *                    This must be writable, and its size must be equal to the
  *                    digest size of  the hash algorithm represented by
- *                    \p md_type.
+ *                    \p hash_alg.
  *
  * \returns           \c 0 on success.
  * \returns           A negative error code on failure.
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_create_psk_binder( mbedtls_ssl_context *ssl,
-                               const mbedtls_md_type_t md_type,
+                               const psa_algorithm_t hash_alg,
                                unsigned char const *psk, size_t psk_len,
                                int psk_type,
                                unsigned char const *transcript,
@@ -515,6 +525,7 @@ int mbedtls_ssl_tls13_create_psk_binder( mbedtls_ssl_context *ssl,
  *                     mbedtls_ssl_transform_encrypt().
  * \return             A negative error code on failure.
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
                                           int endpoint,
                                           int ciphersuite,
@@ -541,6 +552,7 @@ int mbedtls_ssl_tls13_populate_transform( mbedtls_ssl_transform *transform,
  * \returns    \c 0 on success.
  * \returns    A negative error code on failure.
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_key_schedule_stage_early( mbedtls_ssl_context *ssl );
 
 /**
@@ -559,6 +571,7 @@ int mbedtls_ssl_tls13_key_schedule_stage_early( mbedtls_ssl_context *ssl );
  * \returns    \c 0 on success.
  * \returns    A negative error code on failure.
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_key_schedule_stage_handshake( mbedtls_ssl_context *ssl );
 
 /**
@@ -573,6 +586,7 @@ int mbedtls_ssl_tls13_key_schedule_stage_handshake( mbedtls_ssl_context *ssl );
  * \returns    \c 0 on success.
  * \returns    A negative error code on failure.
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
                                                mbedtls_ssl_key_set *traffic_keys );
 
@@ -592,6 +606,7 @@ int mbedtls_ssl_tls13_generate_handshake_keys( mbedtls_ssl_context *ssl,
  * \returns    \c 0 on success.
  * \returns    A negative error code on failure.
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_key_schedule_stage_application( mbedtls_ssl_context *ssl );
 
 /**
@@ -606,8 +621,23 @@ int mbedtls_ssl_tls13_key_schedule_stage_application( mbedtls_ssl_context *ssl )
  * \returns    \c 0 on success.
  * \returns    A negative error code on failure.
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_generate_application_keys(
     mbedtls_ssl_context* ssl, mbedtls_ssl_key_set *traffic_keys );
+
+/**
+ * \brief Compute TLS 1.3 resumption master secret.
+ *
+ * \param ssl  The SSL context to operate on. This must be in
+ *             key schedule stage \c Application, see
+ *             mbedtls_ssl_tls13_key_schedule_stage_application().
+ *
+ * \returns    \c 0 on success.
+ * \returns    A negative error code on failure.
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_tls13_generate_resumption_master_secret(
+    mbedtls_ssl_context *ssl );
 
 /**
  * \brief Calculate the verify_data value for the client or server TLS 1.3
@@ -631,10 +661,55 @@ int mbedtls_ssl_tls13_generate_application_keys(
  * \returns    \c 0 on success.
  * \returns    A negative error code on failure.
  */
+MBEDTLS_CHECK_RETURN_CRITICAL
 int mbedtls_ssl_tls13_calculate_verify_data( mbedtls_ssl_context *ssl,
                                              unsigned char *dst,
                                              size_t dst_len,
                                              size_t *actual_len,
                                              int which );
+
+/**
+ * \brief Compute TLS 1.3 handshake transform
+ *
+ * \param ssl  The SSL context to operate on. The early secret must have been
+ *             computed.
+ *
+ * \returns    \c 0 on success.
+ * \returns    A negative error code on failure.
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_tls13_compute_handshake_transform( mbedtls_ssl_context *ssl );
+
+/**
+ * \brief Compute TLS 1.3 application transform
+ *
+ * \param ssl  The SSL context to operate on. The early secret must have been
+ *             computed.
+ *
+ * \returns    \c 0 on success.
+ * \returns    A negative error code on failure.
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_tls13_compute_application_transform( mbedtls_ssl_context *ssl );
+
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+/**
+ * \brief Export TLS 1.3 PSK from handshake context
+ *
+ * \param[in]   ssl  The SSL context to operate on.
+ * \param[out]  psk  PSK output pointer.
+ * \param[out]  psk_len Length of PSK.
+ *
+ * \returns     \c 0 if there is a configured PSK and it was exported
+ *              successfully.
+ * \returns     A negative error code on failure.
+ */
+MBEDTLS_CHECK_RETURN_CRITICAL
+int mbedtls_ssl_tls13_export_handshake_psk( mbedtls_ssl_context *ssl,
+                                            unsigned char **psk,
+                                            size_t *psk_len );
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #endif /* MBEDTLS_SSL_TLS1_3_KEYS_H */

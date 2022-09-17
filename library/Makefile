@@ -47,9 +47,9 @@ LOCAL_CFLAGS += -fPIC -fpic
 endif
 endif
 
-SOEXT_TLS=so.17
-SOEXT_X509=so.4
-SOEXT_CRYPTO=so.11
+SOEXT_TLS?=so.18
+SOEXT_X509?=so.4
+SOEXT_CRYPTO?=so.12
 
 # Set AR_DASH= (empty string) to use an ar implementation that does not accept
 # the - prefix for command line options (e.g. llvm-ar)
@@ -83,6 +83,9 @@ OBJS_CRYPTO= \
 	     asn1write.o \
 	     base64.o \
 	     bignum.o \
+	     bignum_core.o \
+	     bignum_mod.o \
+	     bignum_mod_raw.o \
 	     camellia.o \
 	     ccm.o \
 	     chacha20.o \
@@ -103,6 +106,7 @@ OBJS_CRYPTO= \
 	     entropy_poll.o \
 	     error.o \
 	     gcm.o \
+	     hash_info.o \
 	     hkdf.o \
 	     hmac_drbg.o \
 	     md.o \
@@ -131,6 +135,7 @@ OBJS_CRYPTO= \
 	     psa_crypto_ecp.o \
 	     psa_crypto_hash.o \
 	     psa_crypto_mac.o \
+	     psa_crypto_pake.o \
 	     psa_crypto_rsa.o \
 	     psa_crypto_se.o \
 	     psa_crypto_slot_management.o \
@@ -168,12 +173,13 @@ OBJS_TLS= \
 	  net_sockets.o \
 	  ssl_cache.o \
 	  ssl_ciphersuites.o \
-	  ssl_cli.o \
+	  ssl_client.o \
 	  ssl_cookie.o \
 	  ssl_msg.o \
-	  ssl_srv.o \
 	  ssl_ticket.o \
 	  ssl_tls.o \
+	  ssl_tls12_client.o \
+	  ssl_tls12_server.o \
 	  ssl_tls13_keys.o \
 	  ssl_tls13_client.o \
 	  ssl_tls13_server.o \
@@ -217,9 +223,11 @@ libmbedtls.$(SOEXT_TLS): $(OBJS_TLS) libmbedx509.so
 	echo "  LD    $@"
 	$(CC) -shared -Wl,-soname,$@ -o $@ $(OBJS_TLS) -L. -lmbedx509 -lmbedcrypto $(LOCAL_LDFLAGS) $(LDFLAGS)
 
+ifneq ($(SOEXT_TLS),so)
 libmbedtls.so: libmbedtls.$(SOEXT_TLS)
 	echo "  LN    $@ -> $<"
 	ln -sf $< $@
+endif
 
 libmbedtls.dylib: $(OBJS_TLS) libmbedx509.dylib
 	echo "  LD    $@"
@@ -244,9 +252,11 @@ libmbedx509.$(SOEXT_X509): $(OBJS_X509) libmbedcrypto.so
 	echo "  LD    $@"
 	$(CC) -shared -Wl,-soname,$@ -o $@ $(OBJS_X509) -L. -lmbedcrypto $(LOCAL_LDFLAGS) $(LDFLAGS)
 
+ifneq ($(SOEXT_X509),so)
 libmbedx509.so: libmbedx509.$(SOEXT_X509)
 	echo "  LN    $@ -> $<"
 	ln -sf $< $@
+endif
 
 libmbedx509.dylib: $(OBJS_X509) libmbedcrypto.dylib
 	echo "  LD    $@"
@@ -271,9 +281,11 @@ libmbedcrypto.$(SOEXT_CRYPTO): $(OBJS_CRYPTO)
 	echo "  LD    $@"
 	$(CC) -shared -Wl,-soname,$@ -o $@ $(OBJS_CRYPTO) $(LOCAL_LDFLAGS) $(LDFLAGS)
 
+ifneq ($(SOEXT_CRYPTO),so)
 libmbedcrypto.so: libmbedcrypto.$(SOEXT_CRYPTO)
 	echo "  LN    $@ -> $<"
 	ln -sf $< $@
+endif
 
 libmbedcrypto.dylib: $(OBJS_CRYPTO)
 	echo "  LD    $@"

@@ -29,7 +29,7 @@
 
 #include "mbedtls/build_info.h"
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#if defined(MBEDTLS_PSA_CRYPTO_C)
 
 #include "psa/crypto.h"
 
@@ -124,35 +124,38 @@ static inline psa_key_usage_t mbedtls_psa_translate_cipher_operation(
 
 /* Translations for hashing. */
 
+/* Note: this function should not be used from inside the library, use
+ * mbedtls_hash_info_psa_from_md() from the internal hash_info.h instead.
+ * It is kept only for compatibility in case applications were using it. */
 static inline psa_algorithm_t mbedtls_psa_translate_md( mbedtls_md_type_t md_alg )
 {
     switch( md_alg )
     {
-#if defined(MBEDTLS_MD5_C)
+#if defined(MBEDTLS_MD5_C) || defined(PSA_WANT_ALG_MD5)
     case MBEDTLS_MD_MD5:
         return( PSA_ALG_MD5 );
 #endif
-#if defined(MBEDTLS_SHA1_C)
+#if defined(MBEDTLS_SHA1_C) || defined(PSA_WANT_ALG_SHA_1)
     case MBEDTLS_MD_SHA1:
         return( PSA_ALG_SHA_1 );
 #endif
-#if defined(MBEDTLS_SHA224_C)
+#if defined(MBEDTLS_SHA224_C) || defined(PSA_WANT_ALG_SHA_224)
     case MBEDTLS_MD_SHA224:
         return( PSA_ALG_SHA_224 );
 #endif
-#if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_SHA256_C) || defined(PSA_WANT_ALG_SHA_256)
     case MBEDTLS_MD_SHA256:
         return( PSA_ALG_SHA_256 );
 #endif
-#if defined(MBEDTLS_SHA384_C)
+#if defined(MBEDTLS_SHA384_C) || defined(PSA_WANT_ALG_SHA_384)
     case MBEDTLS_MD_SHA384:
         return( PSA_ALG_SHA_384 );
 #endif
-#if defined(MBEDTLS_SHA512_C)
+#if defined(MBEDTLS_SHA512_C) || defined(PSA_WANT_ALG_SHA_512)
     case MBEDTLS_MD_SHA512:
         return( PSA_ALG_SHA_512 );
 #endif
-#if defined(MBEDTLS_RIPEMD160_C)
+#if defined(MBEDTLS_RIPEMD160_C) || defined(PSA_WANT_ALG_RIPEMD160)
     case MBEDTLS_MD_RIPEMD160:
         return( PSA_ALG_RIPEMD160 );
 #endif
@@ -277,13 +280,11 @@ static inline psa_key_type_t mbedtls_psa_parse_tls_ecc_group(
 }
 #endif /* MBEDTLS_ECP_C */
 
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-
 /* Expose whatever RNG the PSA subsystem uses to applications using the
  * mbedtls_xxx API. The declarations and definitions here need to be
  * consistent with the implementation in library/psa_crypto_random_impl.h.
  * See that file for implementation documentation. */
-#if defined(MBEDTLS_PSA_CRYPTO_C)
+
 
 /* The type of a `f_rng` random generator function that many library functions
  * take.
@@ -363,6 +364,6 @@ extern mbedtls_psa_drbg_context_t *const mbedtls_psa_random_state;
 
 #endif /* !defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG) */
 
-#endif /* defined(MBEDTLS_USE_PSA_CRYPTO) || defined(MBEDTLS_SSL_PROTO_TLS1_3) */
+#endif /* MBEDTLS_PSA_CRYPTO_C */
 
 #endif /* MBEDTLS_PSA_UTIL_H */

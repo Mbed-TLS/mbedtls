@@ -184,7 +184,7 @@ int mbedtls_x509write_csr_set_subject_name( mbedtls_x509write_csr *ctx,
  *                  private key used to sign the CSR when writing it)
  *
  * \param ctx       CSR context to use
- * \param key       Asymetric key to include
+ * \param key       Asymmetric key to include
  */
 void mbedtls_x509write_csr_set_key( mbedtls_x509write_csr *ctx, mbedtls_pk_context *key );
 

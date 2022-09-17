@@ -91,6 +91,14 @@ void mbedtls_memory_buffer_set_verify( int verify );
 void mbedtls_memory_buffer_alloc_status( void );
 
 /**
+ * \brief   Get the number of alloc/free so far.
+ *
+ * \param alloc_count   Number of allocations.
+ * \param free_count    Number of frees.
+ */
+void mbedtls_memory_buffer_alloc_count_get( size_t *alloc_count, size_t *free_count );
+
+/**
  * \brief   Get the peak heap usage so far
  *
  * \param max_used      Peak number of bytes in use or committed. This

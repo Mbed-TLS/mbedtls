@@ -164,20 +164,29 @@ static int exercise_cipher_key( mbedtls_svc_key_id_t key,
                                 psa_algorithm_t alg )
 {
     psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
-    unsigned char iv[16] = {0};
-    size_t iv_length = sizeof( iv );
+    unsigned char iv[PSA_CIPHER_IV_MAX_SIZE] = {0};
+    size_t iv_length;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_type_t key_type;
     const unsigned char plaintext[16] = "Hello, world...";
     unsigned char ciphertext[32] = "(wabblewebblewibblewobblewubble)";
     size_t ciphertext_length = sizeof( ciphertext );
     unsigned char decrypted[sizeof( ciphertext )];
     size_t part_length;
 
+    PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
+    key_type = psa_get_key_type( &attributes );
+    iv_length = PSA_CIPHER_IV_LENGTH( key_type, alg );
+
     if( usage & PSA_KEY_USAGE_ENCRYPT )
     {
         PSA_ASSERT( psa_cipher_encrypt_setup( &operation, key, alg ) );
-        PSA_ASSERT( psa_cipher_generate_iv( &operation,
-                                            iv, sizeof( iv ),
-                                            &iv_length ) );
+        if( iv_length != 0 )
+        {
+            PSA_ASSERT( psa_cipher_generate_iv( &operation,
+                                                iv, sizeof( iv ),
+                                                &iv_length ) );
+        }
         PSA_ASSERT( psa_cipher_update( &operation,
                                        plaintext, sizeof( plaintext ),
                                        ciphertext, sizeof( ciphertext ),
@@ -195,18 +204,14 @@ static int exercise_cipher_key( mbedtls_svc_key_id_t key,
         int maybe_invalid_padding = 0;
         if( ! ( usage & PSA_KEY_USAGE_ENCRYPT ) )
         {
-            psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-            PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
-            /* This should be PSA_CIPHER_GET_IV_SIZE but the API doesn't
-             * have this macro yet. */
-            iv_length = PSA_BLOCK_CIPHER_BLOCK_LENGTH(
-                psa_get_key_type( &attributes ) );
             maybe_invalid_padding = ! PSA_ALG_IS_STREAM_CIPHER( alg );
-            psa_reset_key_attributes( &attributes );
         }
         PSA_ASSERT( psa_cipher_decrypt_setup( &operation, key, alg ) );
-        PSA_ASSERT( psa_cipher_set_iv( &operation,
-                                       iv, iv_length ) );
+        if( iv_length != 0 )
+        {
+            PSA_ASSERT( psa_cipher_set_iv( &operation,
+                                           iv, iv_length ) );
+        }
         PSA_ASSERT( psa_cipher_update( &operation,
                                        ciphertext, ciphertext_length,
                                        decrypted, sizeof( decrypted ),
@@ -216,7 +221,7 @@ static int exercise_cipher_key( mbedtls_svc_key_id_t key,
                                     sizeof( decrypted ) - part_length,
                                     &part_length );
         /* For a stream cipher, all inputs are valid. For a block cipher,
-         * if the input is some aribtrary data rather than an actual
+         * if the input is some arbitrary data rather than an actual
          ciphertext, a padding error is likely.  */
         if( maybe_invalid_padding )
             TEST_ASSERT( status == PSA_SUCCESS ||
@@ -229,6 +234,7 @@ static int exercise_cipher_key( mbedtls_svc_key_id_t key,
 
 exit:
     psa_cipher_abort( &operation );
+    psa_reset_key_attributes( &attributes );
     return( 0 );
 }
 
@@ -236,8 +242,10 @@ static int exercise_aead_key( mbedtls_svc_key_id_t key,
                               psa_key_usage_t usage,
                               psa_algorithm_t alg )
 {
-    unsigned char nonce[16] = {0};
-    size_t nonce_length = sizeof( nonce );
+    unsigned char nonce[PSA_AEAD_NONCE_MAX_SIZE] = {0};
+    size_t nonce_length;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_type_t key_type;
     unsigned char plaintext[16] = "Hello, world...";
     unsigned char ciphertext[48] = "(wabblewebblewibblewobblewubble)";
     size_t ciphertext_length = sizeof( ciphertext );
@@ -249,19 +257,9 @@ static int exercise_aead_key( mbedtls_svc_key_id_t key,
         alg = PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg, PSA_ALG_AEAD_GET_TAG_LENGTH( alg ) );
     }
 
-    /* Default IV length for AES-GCM is 12 bytes */
-    if( PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg, 0 ) ==
-        PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_GCM, 0 ) )
-    {
-        nonce_length = 12;
-    }
-
-    /* IV length for CCM needs to be between 7 and 13 bytes */
-    if( PSA_ALG_AEAD_WITH_SHORTENED_TAG( alg, 0 ) ==
-        PSA_ALG_AEAD_WITH_SHORTENED_TAG( PSA_ALG_CCM, 0 ) )
-    {
-        nonce_length = 12;
-    }
+    PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
+    key_type = psa_get_key_type( &attributes );
+    nonce_length = PSA_AEAD_NONCE_LENGTH( key_type, alg );
 
     if( usage & PSA_KEY_USAGE_ENCRYPT )
     {
@@ -291,7 +289,19 @@ static int exercise_aead_key( mbedtls_svc_key_id_t key,
     return( 1 );
 
 exit:
+    psa_reset_key_attributes( &attributes );
     return( 0 );
+}
+
+static int can_sign_or_verify_message( psa_key_usage_t usage,
+                                       psa_algorithm_t alg )
+{
+    /* Sign-the-unspecified-hash algorithms can only be used with
+     * {sign,verify}_hash, not with {sign,verify}_message. */
+    if( alg == PSA_ALG_ECDSA_ANY || alg == PSA_ALG_RSA_PKCS1V15_SIGN_RAW )
+        return( 0 );
+    return( usage & ( PSA_KEY_USAGE_SIGN_MESSAGE |
+                      PSA_KEY_USAGE_VERIFY_MESSAGE ) );
 }
 
 static int exercise_signature_key( mbedtls_svc_key_id_t key,
@@ -344,7 +354,7 @@ static int exercise_signature_key( mbedtls_svc_key_id_t key,
         }
     }
 
-    if( usage & ( PSA_KEY_USAGE_SIGN_MESSAGE | PSA_KEY_USAGE_VERIFY_MESSAGE ) )
+    if( can_sign_or_verify_message( usage, alg ) )
     {
         unsigned char message[256] = "Hello, world...";
         unsigned char signature[PSA_SIGNATURE_MAX_SIZE] = {0};
@@ -613,15 +623,65 @@ static int exercise_key_agreement_key( mbedtls_svc_key_id_t key,
                                        psa_algorithm_t alg )
 {
     psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
+    unsigned char input[1] = { 0 };
     unsigned char output[1];
     int ok = 0;
+    psa_algorithm_t kdf_alg = PSA_ALG_KEY_AGREEMENT_GET_KDF( alg );
+    psa_status_t expected_key_agreement_status = PSA_SUCCESS;
 
     if( usage & PSA_KEY_USAGE_DERIVE )
     {
         /* We need two keys to exercise key agreement. Exercise the
          * private key against its own public key. */
         PSA_ASSERT( psa_key_derivation_setup( &operation, alg ) );
-        PSA_ASSERT( mbedtls_test_psa_key_agreement_with_self( &operation, key ) );
+        if( PSA_ALG_IS_TLS12_PRF( kdf_alg ) ||
+            PSA_ALG_IS_TLS12_PSK_TO_MS( kdf_alg ) )
+        {
+            PSA_ASSERT( psa_key_derivation_input_bytes(
+                            &operation, PSA_KEY_DERIVATION_INPUT_SEED,
+                            input, sizeof( input ) ) );
+        }
+
+        if( PSA_ALG_IS_HKDF_EXTRACT( kdf_alg ) )
+        {
+            PSA_ASSERT( psa_key_derivation_input_bytes(
+                &operation, PSA_KEY_DERIVATION_INPUT_SALT,
+                input, sizeof( input ) ) );
+        }
+
+        /* For HKDF_EXPAND input secret may fail as secret size may not match
+           to expected PRK size. In practice it means that key bits must match
+           hash length. Otherwise test should fail with INVALID_ARGUMENT. */
+        if( PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) )
+        {
+            psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+            PSA_ASSERT( psa_get_key_attributes( key, &attributes ) );
+            size_t key_bits = psa_get_key_bits( &attributes );
+            psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH( kdf_alg );
+
+            if( PSA_BITS_TO_BYTES( key_bits ) != PSA_HASH_LENGTH( hash_alg ) )
+                expected_key_agreement_status = PSA_ERROR_INVALID_ARGUMENT;
+        }
+
+        TEST_EQUAL( mbedtls_test_psa_key_agreement_with_self( &operation, key ),
+                    expected_key_agreement_status );
+
+        if( expected_key_agreement_status != PSA_SUCCESS )
+            return( 1 );
+
+        if( PSA_ALG_IS_TLS12_PRF( kdf_alg ) ||
+            PSA_ALG_IS_TLS12_PSK_TO_MS( kdf_alg ) )
+        {
+            PSA_ASSERT( psa_key_derivation_input_bytes(
+                            &operation, PSA_KEY_DERIVATION_INPUT_LABEL,
+                            input, sizeof( input ) ) );
+        }
+        else if( PSA_ALG_IS_HKDF( kdf_alg ) || PSA_ALG_IS_HKDF_EXPAND( kdf_alg ) )
+        {
+            PSA_ASSERT( psa_key_derivation_input_bytes(
+                            &operation, PSA_KEY_DERIVATION_INPUT_INFO,
+                            input, sizeof( input ) ) );
+        }
         PSA_ASSERT( psa_key_derivation_output_bytes( &operation,
                                                      output,
                                                      sizeof( output ) ) );
@@ -895,7 +955,7 @@ int mbedtls_test_psa_exercise_key( mbedtls_svc_key_id_t key,
         return( 0 );
 
     if( alg == 0 )
-        ok = 1; /* If no algorihm, do nothing (used for raw data "keys"). */
+        ok = 1; /* If no algorithm, do nothing (used for raw data "keys"). */
     else if( PSA_ALG_IS_MAC( alg ) )
         ok = exercise_mac_key( key, usage, alg );
     else if( PSA_ALG_IS_CIPHER( alg ) )

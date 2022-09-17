@@ -59,11 +59,6 @@ int main( void )
 
     mbedtls_printf( "\n\n" );
 
-#if defined(_WIN32)
-    mbedtls_printf( "  Press Enter to exit this program.\n" );
-    fflush( stdout ); getchar();
-#endif
-
     mbedtls_exit( MBEDTLS_EXIT_SUCCESS );
 }
 #endif /* MBEDTLS_MD5_C */

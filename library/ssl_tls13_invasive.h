@@ -20,44 +20,16 @@
 
 #include "common.h"
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+
 #include "psa/crypto.h"
-#endif
 
 #if defined(MBEDTLS_TEST_HOOKS)
-
-#if defined(MBEDTLS_PSA_CRYPTO_C)
-
-/**
- *  \brief  Expand the supplied \p prk into several additional pseudorandom
- *          keys, which is the output of the HKDF.
- *
- *  \param  alg       The HMAC algorithm to use (\c #PSA_ALG_HMAC( PSA_ALG_XXX )
- *                    value such that PSA_ALG_XXX is a hash algorithm and
- *                    #PSA_ALG_IS_HMAC(\p alg) is true).
- *  \param  prk       A pseudorandom key of \p prk_len bytes. \p prk is
- *                    usually the output from the HKDF extract step.
- *  \param  prk_len   The length in bytes of \p prk.
- *  \param  info      An optional context and application specific information
- *                    string. This can be a zero-length string.
- *  \param  info_len  The length of \p info in bytes.
- *  \param  okm       The output keying material of \p okm_len bytes.
- *  \param  okm_len   The length of the output keying material in bytes. This
- *                    must be less than or equal to
- *                    255 * #PSA_HASH_LENGTH( \p alg ) bytes.
- *
- *  \return 0 on success.
- *  \return #PSA_ERROR_INVALID_ARGUMENT when the parameters are invalid.
- *  \return An PSA_ERROR_* error for errors returned from the underlying
- *          PSA layer.
- */
-psa_status_t mbedtls_psa_hkdf_expand( psa_algorithm_t alg,
-                                      const unsigned char *prk, size_t prk_len,
-                                      const unsigned char *info, size_t info_len,
-                                      unsigned char *okm, size_t okm_len );
-
-#endif /* MBEDTLS_PSA_CRYPTO_C */
-
+int mbedtls_ssl_tls13_parse_certificate( mbedtls_ssl_context *ssl,
+                                         const unsigned char *buf,
+                                         const unsigned char *end );
 #endif /* MBEDTLS_TEST_HOOKS */
+
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 #endif /* MBEDTLS_SSL_TLS13_INVASIVE_H */

@@ -76,7 +76,7 @@ check()
 
     for FILE in "$@"; do
         if [ -e "$FILE" ]; then
-            cp "$FILE" "$FILE.bak"
+            cp -p "$FILE" "$FILE.bak"
         else
             rm -f "$FILE.bak"
         fi
@@ -86,16 +86,17 @@ check()
 
     # Compare the script output to the old files and remove backups
     for FILE in "$@"; do
-        if ! diff "$FILE" "$FILE.bak" >/dev/null 2>&1; then
+        if diff "$FILE" "$FILE.bak" >/dev/null 2>&1; then
+            # Move the original file back so that $FILE's timestamp doesn't
+            # change (avoids spurious rebuilds with make).
+            mv "$FILE.bak" "$FILE"
+        else
             echo "'$FILE' was either modified or deleted by '$SCRIPT'"
             if [ -z "$UPDATE" ]; then
                 exit 1
+            else
+                rm -f "$FILE.bak"
             fi
-        fi
-        if [ -z "$UPDATE" ]; then
-            mv "$FILE.bak" "$FILE"
-        else
-            rm -f "$FILE.bak"
         fi
     done
 
@@ -125,4 +126,5 @@ check scripts/generate_ssl_debug_helpers.py library/ssl_debug_helpers_generated.
 # the step that creates or updates these files.
 check scripts/generate_visualc_files.pl visualc/VS2010
 check scripts/generate_psa_constants.py programs/psa/psa_constant_names_generated.c
+check tests/scripts/generate_bignum_tests.py $(tests/scripts/generate_bignum_tests.py --list)
 check tests/scripts/generate_psa_tests.py $(tests/scripts/generate_psa_tests.py --list)

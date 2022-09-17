@@ -272,7 +272,7 @@ unsigned mbedtls_ct_uint_if( unsigned condition,
  * \note if1 and if0 must be either 1 or -1, otherwise the result
  *       is undefined.
  *
- * \param condition     Condition to test.
+ * \param condition     Condition to test; must be either 0 or 1.
  * \param if1           The first sign; must be either +1 or -1.
  * \param if0           The second sign; must be either +1 or -1.
  *
@@ -437,6 +437,132 @@ void mbedtls_ct_memcpy_offset( unsigned char *dest,
     }
 }
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+
+#if defined(PSA_WANT_ALG_SHA_384)
+#define MAX_HASH_BLOCK_LENGTH PSA_HASH_BLOCK_LENGTH( PSA_ALG_SHA_384 )
+#elif defined(PSA_WANT_ALG_SHA_256)
+#define MAX_HASH_BLOCK_LENGTH PSA_HASH_BLOCK_LENGTH( PSA_ALG_SHA_256 )
+#else /* See check_config.h */
+#define MAX_HASH_BLOCK_LENGTH PSA_HASH_BLOCK_LENGTH( PSA_ALG_SHA_1 )
+#endif
+
+int mbedtls_ct_hmac( mbedtls_svc_key_id_t key,
+                     psa_algorithm_t mac_alg,
+                     const unsigned char *add_data,
+                     size_t add_data_len,
+                     const unsigned char *data,
+                     size_t data_len_secret,
+                     size_t min_data_len,
+                     size_t max_data_len,
+                     unsigned char *output )
+{
+    /*
+     * This function breaks the HMAC abstraction and uses psa_hash_clone()
+     * extension in order to get constant-flow behaviour.
+     *
+     * HMAC(msg) is defined as HASH(okey + HASH(ikey + msg)) where + means
+     * concatenation, and okey/ikey are the XOR of the key with some fixed bit
+     * patterns (see RFC 2104, sec. 2).
+     *
+     * We'll first compute ikey/okey, then inner_hash = HASH(ikey + msg) by
+     * hashing up to minlen, then cloning the context, and for each byte up
+     * to maxlen finishing up the hash computation, keeping only the
+     * correct result.
+     *
+     * Then we only need to compute HASH(okey + inner_hash) and we're done.
+     */
+    psa_algorithm_t hash_alg = PSA_ALG_HMAC_GET_HASH( mac_alg );
+    const size_t block_size = PSA_HASH_BLOCK_LENGTH( hash_alg );
+    unsigned char key_buf[MAX_HASH_BLOCK_LENGTH];
+    const size_t hash_size = PSA_HASH_LENGTH( hash_alg );
+    psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
+    size_t hash_length;
+
+    unsigned char aux_out[PSA_HASH_MAX_SIZE];
+    psa_hash_operation_t aux_operation = PSA_HASH_OPERATION_INIT;
+    size_t offset;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    size_t mac_key_length;
+    size_t i;
+
+#define PSA_CHK( func_call )        \
+    do {                            \
+        status = (func_call);       \
+        if( status != PSA_SUCCESS ) \
+            goto cleanup;           \
+    } while( 0 )
+
+    /* Export MAC key
+     * We assume key length is always exactly the output size
+     * which is never more than the block size, thus we use block_size
+     * as the key buffer size.
+     */
+    PSA_CHK( psa_export_key( key, key_buf, block_size, &mac_key_length ) );
+
+    /* Calculate ikey */
+    for( i = 0; i < mac_key_length; i++ )
+        key_buf[i] = (unsigned char)( key_buf[i] ^ 0x36 );
+    for(; i < block_size; ++i )
+        key_buf[i] = 0x36;
+
+    PSA_CHK( psa_hash_setup( &operation, hash_alg ) );
+
+    /* Now compute inner_hash = HASH(ikey + msg) */
+    PSA_CHK( psa_hash_update( &operation, key_buf, block_size ) );
+    PSA_CHK( psa_hash_update( &operation, add_data, add_data_len ) );
+    PSA_CHK( psa_hash_update( &operation, data, min_data_len ) );
+
+    /* Fill the hash buffer in advance with something that is
+     * not a valid hash (barring an attack on the hash and
+     * deliberately-crafted input), in case the caller doesn't
+     * check the return status properly. */
+    memset( output, '!', hash_size );
+
+    /* For each possible length, compute the hash up to that point */
+    for( offset = min_data_len; offset <= max_data_len; offset++ )
+    {
+        PSA_CHK( psa_hash_clone( &operation, &aux_operation ) );
+        PSA_CHK( psa_hash_finish( &aux_operation, aux_out,
+                                  PSA_HASH_MAX_SIZE, &hash_length ) );
+        /* Keep only the correct inner_hash in the output buffer */
+        mbedtls_ct_memcpy_if_eq( output, aux_out, hash_size,
+                                 offset, data_len_secret );
+
+        if( offset < max_data_len )
+            PSA_CHK( psa_hash_update( &operation, data + offset, 1 ) );
+    }
+
+    /* Abort current operation to prepare for final operation */
+    PSA_CHK( psa_hash_abort( &operation ) );
+
+    /* Calculate okey */
+    for( i = 0; i < mac_key_length; i++ )
+        key_buf[i] = (unsigned char)( ( key_buf[i] ^ 0x36 ) ^ 0x5C );
+    for(; i < block_size; ++i )
+        key_buf[i] = 0x5C;
+
+    /* Now compute HASH(okey + inner_hash) */
+    PSA_CHK( psa_hash_setup( &operation, hash_alg ) );
+    PSA_CHK( psa_hash_update( &operation, key_buf, block_size ) );
+    PSA_CHK( psa_hash_update( &operation, output, hash_size ) );
+    PSA_CHK( psa_hash_finish( &operation, output, hash_size, &hash_length ) );
+
+#undef PSA_CHK
+
+cleanup:
+    mbedtls_platform_zeroize( key_buf, MAX_HASH_BLOCK_LENGTH );
+    mbedtls_platform_zeroize( aux_out, PSA_HASH_MAX_SIZE );
+
+    psa_hash_abort( &operation );
+    psa_hash_abort( &aux_operation );
+    return( psa_ssl_status_to_mbedtls( status ) );
+}
+
+#undef MAX_HASH_BLOCK_LENGTH
+
+#else
 int mbedtls_ct_hmac( mbedtls_md_context_t *ctx,
                      const unsigned char *add_data,
                      size_t add_data_len,
@@ -489,6 +615,12 @@ int mbedtls_ct_hmac( mbedtls_md_context_t *ctx,
     MD_CHK( mbedtls_md_update( ctx, add_data, add_data_len ) );
     MD_CHK( mbedtls_md_update( ctx, data, min_data_len ) );
 
+    /* Fill the hash buffer in advance with something that is
+     * not a valid hash (barring an attack on the hash and
+     * deliberately-crafted input), in case the caller doesn't
+     * check the return status properly. */
+    memset( output, '!', hash_size );
+
     /* For each possible length, compute the hash up to that point */
     for( offset = min_data_len; offset <= max_data_len; offset++ )
     {
@@ -520,6 +652,7 @@ cleanup:
     mbedtls_md_free( &aux );
     return( ret );
 }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #endif /* MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC */
 
@@ -569,7 +702,7 @@ cleanup:
 /*
  * Conditionally swap X and Y, without leaking information
  * about whether the swap was made or not.
- * Here it is not ok to simply swap the pointers, which whould lead to
+ * Here it is not ok to simply swap the pointers, which would lead to
  * different memory access patterns when X and Y are used afterwards.
  */
 int mbedtls_mpi_safe_cond_swap( mbedtls_mpi *X,
@@ -605,6 +738,50 @@ int mbedtls_mpi_safe_cond_swap( mbedtls_mpi *X,
     }
 
 cleanup:
+    return( ret );
+}
+
+/*
+ * Compare unsigned values in constant time
+ */
+unsigned mbedtls_mpi_core_lt_ct( const mbedtls_mpi_uint *A,
+                                 const mbedtls_mpi_uint *B,
+                                 size_t limbs )
+{
+    unsigned ret, cond, done;
+
+    /* The value of any of these variables is either 0 or 1 for the rest of
+     * their scope. */
+    ret = cond = done = 0;
+
+    for( size_t i = limbs; i > 0; i-- )
+    {
+        /*
+         * If B[i - 1] < A[i - 1] then A < B is false and the result must
+         * remain 0.
+         *
+         * Again even if we can make a decision, we just mark the result and
+         * the fact that we are done and continue looping.
+         */
+        cond = mbedtls_ct_mpi_uint_lt( B[i - 1], A[i - 1] );
+        done |= cond;
+
+        /*
+         * If A[i - 1] < B[i - 1] then A < B is true.
+         *
+         * Again even if we can make a decision, we just mark the result and
+         * the fact that we are done and continue looping.
+         */
+        cond = mbedtls_ct_mpi_uint_lt( A[i - 1], B[i - 1] );
+        ret |= cond & ( 1 - done );
+        done |= cond;
+    }
+
+    /*
+     * If all the limbs were equal, then the numbers are equal, A < B is false
+     * and leaving the result 0 is correct.
+     */
+
     return( ret );
 }
 

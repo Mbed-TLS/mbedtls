@@ -2,6 +2,8 @@
 #include "mbedtls/pkcs12.h"
 #include "common.h"
 
+#include "legacy_or_psa.h"
+
 typedef enum
 {
    USE_NULL_INPUT = 0,

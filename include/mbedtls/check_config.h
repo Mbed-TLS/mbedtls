@@ -76,7 +76,7 @@
 #endif
 
 #if defined(MBEDTLS_CMAC_C) && \
-    !defined(MBEDTLS_AES_C) && !defined(MBEDTLS_DES_C)
+    ( !defined(MBEDTLS_CIPHER_C ) || ( !defined(MBEDTLS_AES_C) && !defined(MBEDTLS_DES_C) ) )
 #error "MBEDTLS_CMAC_C defined, but not all prerequisites"
 #endif
 
@@ -108,7 +108,8 @@
 #endif
 
 #if defined(MBEDTLS_ECJPAKE_C) &&           \
-    ( !defined(MBEDTLS_ECP_C) || !defined(MBEDTLS_MD_C) )
+    ( !defined(MBEDTLS_ECP_C) ||            \
+      !( defined(MBEDTLS_MD_C) || defined(MBEDTLS_PSA_CRYPTO_C) ) )
 #error "MBEDTLS_ECJPAKE_C defined, but not all prerequisites"
 #endif
 
@@ -146,11 +147,27 @@
 #endif
 
 #if defined(MBEDTLS_PK_PARSE_C) && !defined(MBEDTLS_ASN1_PARSE_C)
-#error "MBEDTLS_PK_PARSE_C defined, but not all prerequesites"
+#error "MBEDTLS_PK_PARSE_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_PKCS5_C) && !defined(MBEDTLS_MD_C)
-#error "MBEDTLS_PKCS5_C defined, but not all prerequesites"
+#if defined(MBEDTLS_PKCS12_C) && !defined(MBEDTLS_CIPHER_C)
+#error "MBEDTLS_PKCS12_C defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PKCS5_C) && \
+    ( !( defined(MBEDTLS_MD_C) || defined(MBEDTLS_PSA_CRYPTO_C) ) || \
+        !defined(MBEDTLS_CIPHER_C) )
+#error "MBEDTLS_PKCS5_C defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PKCS12_C) && \
+    !( defined(MBEDTLS_MD_C) || defined(MBEDTLS_PSA_CRYPTO_C) )
+#error "MBEDTLS_PKCS12_C defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PKCS1_V21) && \
+    !( defined(MBEDTLS_MD_C) || defined(MBEDTLS_PSA_CRYPTO_C) )
+#error "MBEDTLS_PKCS1_V21 defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_ENTROPY_C) && (!defined(MBEDTLS_SHA512_C) &&      \
@@ -316,17 +333,28 @@
 #error "!MBEDTLS_SSL_KEEP_PEER_CERTIFICATE requires MBEDTLS_SHA512_C, MBEDTLS_SHA256_C or MBEDTLS_SHA1_C"
 #endif
 
+#if defined(MBEDTLS_MD_C) && !( \
+    defined(MBEDTLS_MD5_C) || \
+    defined(MBEDTLS_RIPEMD160_C) || \
+    defined(MBEDTLS_SHA1_C) || \
+    defined(MBEDTLS_SHA224_C) || \
+    defined(MBEDTLS_SHA256_C) || \
+    defined(MBEDTLS_SHA384_C) || \
+    defined(MBEDTLS_SHA512_C) )
+#error "MBEDTLS_MD_C defined, but not all prerequisites"
+#endif
+
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) &&                          \
     ( !defined(MBEDTLS_PLATFORM_C) || !defined(MBEDTLS_PLATFORM_MEMORY) )
 #error "MBEDTLS_MEMORY_BUFFER_ALLOC_C defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_MEMORY_BACKTRACE) && !defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
-#error "MBEDTLS_MEMORY_BACKTRACE defined, but not all prerequesites"
+#error "MBEDTLS_MEMORY_BACKTRACE defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_MEMORY_DEBUG) && !defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
-#error "MBEDTLS_MEMORY_DEBUG defined, but not all prerequesites"
+#error "MBEDTLS_MEMORY_DEBUG defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_PADLOCK_C) && !defined(MBEDTLS_HAVE_ASM)
@@ -342,7 +370,7 @@
 #endif
 
 #if defined(MBEDTLS_PK_C) && \
-    ( !defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_ECP_C) )
+    !defined(MBEDTLS_RSA_C) && !defined(MBEDTLS_ECP_C)
 #error "MBEDTLS_PK_C defined, but not all prerequisites"
 #endif
 
@@ -366,6 +394,20 @@
     ( defined(MBEDTLS_PLATFORM_STD_EXIT) ||\
         defined(MBEDTLS_PLATFORM_EXIT_ALT) )
 #error "MBEDTLS_PLATFORM_EXIT_MACRO and MBEDTLS_PLATFORM_STD_EXIT/MBEDTLS_PLATFORM_EXIT_ALT cannot be defined simultaneously"
+#endif
+
+#if defined(MBEDTLS_PLATFORM_SETBUF_ALT) && !defined(MBEDTLS_PLATFORM_C)
+#error "MBEDTLS_PLATFORM_SETBUF_ALT defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PLATFORM_SETBUF_MACRO) && !defined(MBEDTLS_PLATFORM_C)
+#error "MBEDTLS_PLATFORM_SETBUF_MACRO defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PLATFORM_SETBUF_MACRO) &&\
+    ( defined(MBEDTLS_PLATFORM_STD_SETBUF) ||\
+        defined(MBEDTLS_PLATFORM_SETBUF_ALT) )
+#error "MBEDTLS_PLATFORM_SETBUF_MACRO and MBEDTLS_PLATFORM_STD_SETBUF/MBEDTLS_PLATFORM_SETBUF_ALT cannot be defined simultaneously"
 #endif
 
 #if defined(MBEDTLS_PLATFORM_TIME_ALT) &&\
@@ -550,6 +592,10 @@
 #error "MBEDTLS_PSA_CRYPTO_C defined, but not all prerequisites (missing RNG)"
 #endif
 
+#if defined(MBEDTLS_PSA_CRYPTO_C) && !defined(MBEDTLS_CIPHER_C )
+#error "MBEDTLS_PSA_CRYPTO_C defined, but not all prerequisites"
+#endif
+
 #if defined(MBEDTLS_PSA_CRYPTO_SPM) && !defined(MBEDTLS_PSA_CRYPTO_C)
 #error "MBEDTLS_PSA_CRYPTO_SPM defined, but not all prerequisites"
 #endif
@@ -559,6 +605,14 @@
         defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) )
 #error "MBEDTLS_PSA_CRYPTO_SE_C defined, but not all prerequisites"
 #endif
+
+#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
+#if defined(MBEDTLS_DEPRECATED_REMOVED)
+#error "MBEDTLS_PSA_CRYPTO_SE_C is deprecated and will be removed in a future version of Mbed TLS"
+#elif defined(MBEDTLS_DEPRECATED_WARNING)
+#warning "MBEDTLS_PSA_CRYPTO_SE_C is deprecated and will be removed in a future version of Mbed TLS"
+#endif
+#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) &&            \
     ! defined(MBEDTLS_PSA_CRYPTO_C)
@@ -605,6 +659,61 @@
 #error "MBEDTLS_SHA384_C defined without MBEDTLS_SHA512_C"
 #endif
 
+#if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT) && \
+    defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY)
+#error "Must only define one of MBEDTLS_SHA512_USE_A64_CRYPTO_*"
+#endif
+
+#if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT) || \
+    defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY)
+#if !defined(MBEDTLS_SHA512_C)
+#error "MBEDTLS_SHA512_USE_A64_CRYPTO_* defined without MBEDTLS_SHA512_C"
+#endif
+#if defined(MBEDTLS_SHA512_ALT) || defined(MBEDTLS_SHA512_PROCESS_ALT)
+#error "MBEDTLS_SHA512_*ALT can't be used with MBEDTLS_SHA512_USE_A64_CRYPTO_*"
+#endif
+/*
+ * Best performance comes from most recent compilers, with intrinsics and -O3.
+ * Must compile with -march=armv8.2-a+sha3, but we can't detect armv8.2-a, and
+ * can't always detect __ARM_FEATURE_SHA512 (notably clang 7-12).
+ *
+ * GCC < 8 won't work at all (lacks the sha512 instructions)
+ * GCC >= 8 uses intrinsics, sets __ARM_FEATURE_SHA512
+ *
+ * Clang < 7 won't work at all (lacks the sha512 instructions)
+ * Clang 7-12 don't have intrinsics (but we work around that with inline
+ *            assembler) or __ARM_FEATURE_SHA512
+ * Clang == 13.0.0 same as clang 12 (only seen on macOS)
+ * Clang >= 13.0.1 has __ARM_FEATURE_SHA512 and intrinsics
+ */
+#if defined(__aarch64__) && !defined(__ARM_FEATURE_SHA512)
+   /* Test Clang first, as it defines __GNUC__ */
+#  if defined(__clang__)
+#    if __clang_major__ < 7
+#      error "A more recent Clang is required for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
+#    elif __clang_major__ < 13 || \
+         (__clang_major__ == 13 && __clang_minor__ == 0 && __clang_patchlevel__ == 0)
+       /* We implement the intrinsics with inline assembler, so don't error */
+#    else
+#      error "Must use minimum -march=armv8.2-a+sha3 for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
+#    endif
+#  elif defined(__GNUC__)
+#    if __GNUC__ < 8
+#      error "A more recent GCC is required for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
+#    else
+#      error "Must use minimum -march=armv8.2-a+sha3 for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
+#    endif
+#  else
+#    error "Only GCC and Clang supported for MBEDTLS_SHA512_USE_A64_CRYPTO_*"
+#  endif
+#endif
+
+#endif /* MBEDTLS_SHA512_USE_A64_CRYPTO_IF_PRESENT || MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY */
+
+#if defined(MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY) && !defined(__aarch64__)
+#error "MBEDTLS_SHA512_USE_A64_CRYPTO_ONLY defined on non-Aarch64 system"
+#endif
+
 #if defined(MBEDTLS_SHA224_C) && !defined(MBEDTLS_SHA256_C)
 #error "MBEDTLS_SHA224_C defined without MBEDTLS_SHA256_C"
 #endif
@@ -613,21 +722,62 @@
 #error "MBEDTLS_SHA256_C defined without MBEDTLS_SHA224_C"
 #endif
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && ( !defined(MBEDTLS_SHA1_C) &&     \
-    !defined(MBEDTLS_SHA256_C) && !defined(MBEDTLS_SHA512_C) )
+#if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT) && \
+    defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY)
+#error "Must only define one of MBEDTLS_SHA256_USE_A64_CRYPTO_*"
+#endif
+
+#if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_IF_PRESENT) || \
+    defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY)
+#if !defined(MBEDTLS_SHA256_C)
+#error "MBEDTLS_SHA256_USE_A64_CRYPTO_* defined without MBEDTLS_SHA256_C"
+#endif
+#if defined(MBEDTLS_SHA256_ALT) || defined(MBEDTLS_SHA256_PROCESS_ALT)
+#error "MBEDTLS_SHA256_*ALT can't be used with MBEDTLS_SHA256_USE_A64_CRYPTO_*"
+#endif
+#if defined(__aarch64__) && !defined(__ARM_FEATURE_CRYPTO)
+#error "Must use minimum -march=armv8-a+crypto for MBEDTLS_SHA256_USE_A64_CRYPTO_*"
+#endif
+#endif
+
+#if defined(MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY) && \
+    !defined(__aarch64__) && !defined(_M_ARM64)
+#error "MBEDTLS_SHA256_USE_A64_CRYPTO_ONLY defined on non-Aarch64 system"
+#endif
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && !defined(MBEDTLS_USE_PSA_CRYPTO) && \
+    !( defined(MBEDTLS_SHA1_C) || defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA512_C) )
 #error "MBEDTLS_SSL_PROTO_TLS1_2 defined, but not all prerequisites"
 #endif
 
-/*
- * HKDF is mandatory for TLS 1.3.
- * Otherwise support for at least one ciphersuite mandates either SHA_256 or
- * SHA_384.
- */
+/* TLS 1.3 requires separate HKDF parts from PSA */
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
-    ( ( !defined(MBEDTLS_HKDF_C) ) || \
-      ( !defined(MBEDTLS_SHA256_C) && !defined(MBEDTLS_SHA384_C) ) || \
-      ( !defined(MBEDTLS_PSA_CRYPTO_C) ) )
+        !( defined(MBEDTLS_PSA_CRYPTO_C) && defined(PSA_WANT_ALG_HKDF_EXTRACT) && defined(PSA_WANT_ALG_HKDF_EXPAND) )
 #error "MBEDTLS_SSL_PROTO_TLS1_3 defined, but not all prerequisites"
+#endif
+
+/* TLS 1.3 requires at least one ciphersuite, so at least SHA-256 or SHA-384 */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+/* We always need at least one of the hashes via PSA (for use with HKDF) */
+#if !( defined(PSA_WANT_ALG_SHA_256) || defined(PSA_WANT_ALG_SHA_384) )
+#error "MBEDTLS_SSL_PROTO_TLS1_3 defined, but not all prerequisites"
+#endif /* !(PSA_WANT_ALG_SHA_256 || PSA_WANT_ALG_SHA_384) */
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
+/* When USE_PSA_CRYPTO is not defined, we also need SHA-256 or SHA-384 via the
+ * legacy interface, including via the MD layer, for the parts of the code
+ * that are shared with TLS 1.2 (running handshake hash). */
+#if !defined(MBEDTLS_MD_C) || \
+    !( defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA384_C) )
+#error "MBEDTLS_SSL_PROTO_TLS1_3 defined, but not all prerequisites"
+#endif /* !MBEDTLS_MD_C || !(MBEDTLS_SHA256_C || MBEDTLS_SHA384_C) */
+#endif /* !MBEDTLS_USE_PSA_CRYPTO */
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+
+/*
+ * The current implementation of TLS 1.3 requires MBEDTLS_SSL_KEEP_PEER_CERTIFICATE.
+ */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+#error "MBEDTLS_SSL_PROTO_TLS1_3 defined without MBEDTLS_SSL_KEEP_PEER_CERTIFICATE"
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) &&                                    \
@@ -656,7 +806,7 @@
 #endif
 
 #if defined(MBEDTLS_SSL_TLS_C) && ( !defined(MBEDTLS_CIPHER_C) ||     \
-    !defined(MBEDTLS_MD_C) )
+    ( !defined(MBEDTLS_MD_C) && !defined(MBEDTLS_USE_PSA_CRYPTO) ) )
 #error "MBEDTLS_SSL_TLS_C defined, but not all prerequisites"
 #endif
 
@@ -702,16 +852,22 @@
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC) &&   \
     !defined(MBEDTLS_SSL_PROTO_TLS1_2)
-#error "MBEDTLS_SSL_ENCRYPT_THEN_MAC defined, but not all prerequsites"
+#error "MBEDTLS_SSL_ENCRYPT_THEN_MAC defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET) && \
     !defined(MBEDTLS_SSL_PROTO_TLS1_2)
-#error "MBEDTLS_SSL_EXTENDED_MASTER_SECRET defined, but not all prerequsites"
+#error "MBEDTLS_SSL_EXTENDED_MASTER_SECRET defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_SSL_TICKET_C) && !defined(MBEDTLS_CIPHER_C)
+#if defined(MBEDTLS_SSL_TICKET_C) && ( !defined(MBEDTLS_CIPHER_C) && \
+                                       !defined(MBEDTLS_USE_PSA_CRYPTO) )
 #error "MBEDTLS_SSL_TICKET_C defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_SSL_TLS1_3_TICKET_NONCE_LENGTH) && \
+    MBEDTLS_SSL_TLS1_3_TICKET_NONCE_LENGTH >= 256
+#error "MBEDTLS_SSL_TLS1_3_TICKET_NONCE_LENGTH must be less than 256"
 #endif
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) && \
@@ -747,14 +903,16 @@
 #endif
 
 #if defined(MBEDTLS_X509_USE_C) && ( !defined(MBEDTLS_BIGNUM_C) ||  \
-    !defined(MBEDTLS_OID_C) || !defined(MBEDTLS_ASN1_PARSE_C) ||      \
-    !defined(MBEDTLS_PK_PARSE_C) )
+    !defined(MBEDTLS_OID_C) || !defined(MBEDTLS_ASN1_PARSE_C) ||    \
+    !defined(MBEDTLS_PK_PARSE_C) ||                                 \
+    ( !defined(MBEDTLS_MD_C) && !defined(MBEDTLS_USE_PSA_CRYPTO) ) )
 #error "MBEDTLS_X509_USE_C defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_X509_CREATE_C) && ( !defined(MBEDTLS_BIGNUM_C) ||  \
     !defined(MBEDTLS_OID_C) || !defined(MBEDTLS_ASN1_WRITE_C) ||       \
-    !defined(MBEDTLS_PK_WRITE_C) )
+    !defined(MBEDTLS_PK_PARSE_C) ||                                    \
+    ( !defined(MBEDTLS_MD_C) && !defined(MBEDTLS_USE_PSA_CRYPTO) ) )
 #error "MBEDTLS_X509_CREATE_C defined, but not all prerequisites"
 #endif
 
@@ -801,23 +959,23 @@
  * cause a build to succeed but with features removed. */
 
 #if defined(MBEDTLS_HAVEGE_C) //no-check-names
-#error "MBEDTLS_HAVEGE_C was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/2599"
+#error "MBEDTLS_HAVEGE_C was removed in Mbed TLS 3.0. See https://github.com/Mbed-TLS/mbedtls/issues/2599"
 #endif
 
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL) //no-check-names
-#error "MBEDTLS_SSL_HW_RECORD_ACCEL was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4031"
+#error "MBEDTLS_SSL_HW_RECORD_ACCEL was removed in Mbed TLS 3.0. See https://github.com/Mbed-TLS/mbedtls/issues/4031"
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3) //no-check-names
-#error "MBEDTLS_SSL_PROTO_SSL3 (SSL v3.0 support) was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4031"
+#error "MBEDTLS_SSL_PROTO_SSL3 (SSL v3.0 support) was removed in Mbed TLS 3.0. See https://github.com/Mbed-TLS/mbedtls/issues/4031"
 #endif
 
 #if defined(MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO) //no-check-names
-#error "MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO (SSL v2 ClientHello support) was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4031"
+#error "MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO (SSL v2 ClientHello support) was removed in Mbed TLS 3.0. See https://github.com/Mbed-TLS/mbedtls/issues/4031"
 #endif
 
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT) //no-check-names
-#error "MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT (compatibility with the buggy implementation of truncated HMAC in Mbed TLS up to 2.7) was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4031"
+#error "MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT (compatibility with the buggy implementation of truncated HMAC in Mbed TLS up to 2.7) was removed in Mbed TLS 3.0. See https://github.com/Mbed-TLS/mbedtls/issues/4031"
 #endif
 
 #if defined(MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES) //no-check-names
@@ -825,23 +983,23 @@
 #endif
 
 #if defined(MBEDTLS_ZLIB_SUPPORT) //no-check-names
-#error "MBEDTLS_ZLIB_SUPPORT was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4031"
+#error "MBEDTLS_ZLIB_SUPPORT was removed in Mbed TLS 3.0. See https://github.com/Mbed-TLS/mbedtls/issues/4031"
 #endif
 
 #if defined(MBEDTLS_CHECK_PARAMS) //no-check-names
-#error "MBEDTLS_CHECK_PARAMS was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4313"
+#error "MBEDTLS_CHECK_PARAMS was removed in Mbed TLS 3.0. See https://github.com/Mbed-TLS/mbedtls/issues/4313"
 #endif
 
 #if defined(MBEDTLS_SSL_CID_PADDING_GRANULARITY) //no-check-names
-#error "MBEDTLS_SSL_CID_PADDING_GRANULARITY was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4335"
+#error "MBEDTLS_SSL_CID_PADDING_GRANULARITY was removed in Mbed TLS 3.0. See https://github.com/Mbed-TLS/mbedtls/issues/4335"
 #endif
 
 #if defined(MBEDTLS_SSL_TLS1_3_PADDING_GRANULARITY) //no-check-names
-#error "MBEDTLS_SSL_TLS1_3_PADDING_GRANULARITY was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4335"
+#error "MBEDTLS_SSL_TLS1_3_PADDING_GRANULARITY was removed in Mbed TLS 3.0. See https://github.com/Mbed-TLS/mbedtls/issues/4335"
 #endif
 
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC) //no-check-names
-#error "MBEDTLS_SSL_TRUNCATED_HMAC was removed in Mbed TLS 3.0. See https://github.com/ARMmbed/mbedtls/issues/4341"
+#error "MBEDTLS_SSL_TRUNCATED_HMAC was removed in Mbed TLS 3.0. See https://github.com/Mbed-TLS/mbedtls/issues/4341"
 #endif
 
 /*

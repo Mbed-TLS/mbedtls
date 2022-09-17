@@ -46,11 +46,13 @@ void my_debug( void *ctx, int level,
     fflush( (FILE *) ctx  );
 }
 
+#if defined(MBEDTLS_HAVE_TIME)
 mbedtls_time_t dummy_constant_time( mbedtls_time_t* time )
 {
     (void) time;
     return 0x5af2a056;
 }
+#endif
 
 #if !defined(MBEDTLS_TEST_USE_PSA_CRYPTO_RNG)
 static int dummy_entropy( void *data, unsigned char *output, size_t len )
@@ -190,6 +192,103 @@ int rng_get( void *p_rng, unsigned char *output, size_t output_len )
 
 #endif /* !MBEDTLS_TEST_USE_PSA_CRYPTO_RNG */
 }
+
+int key_opaque_alg_parse( const char *arg, const char **alg1, const char **alg2 )
+{
+    char* separator;
+    if( ( separator = strchr( arg, ',' ) ) == NULL )
+        return 1;
+    *separator = '\0';
+
+    *alg1 = arg;
+    *alg2 = separator + 1;
+
+    if( strcmp( *alg1, "rsa-sign-pkcs1" ) != 0 &&
+        strcmp( *alg1, "rsa-sign-pss" ) != 0 &&
+        strcmp( *alg1, "rsa-decrypt" ) != 0 &&
+        strcmp( *alg1, "ecdsa-sign" ) != 0 &&
+        strcmp( *alg1, "ecdh" ) != 0 )
+        return 1;
+
+    if( strcmp( *alg2, "rsa-sign-pkcs1" ) != 0 &&
+        strcmp( *alg2, "rsa-sign-pss" ) != 0 &&
+        strcmp( *alg2, "rsa-decrypt" ) != 0 &&
+        strcmp( *alg2, "ecdsa-sign" ) != 0 &&
+        strcmp( *alg2, "ecdh" ) != 0 &&
+        strcmp( *alg2, "none" ) != 0 )
+        return 1;
+
+    return 0;
+}
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+int key_opaque_set_alg_usage( const char *alg1, const char *alg2,
+                              psa_algorithm_t *psa_alg1,
+                              psa_algorithm_t *psa_alg2,
+                              psa_key_usage_t *usage,
+                              mbedtls_pk_type_t key_type )
+{
+    if( strcmp( alg1, "none" ) != 0 )
+    {
+        const char * algs[] = { alg1, alg2 };
+        psa_algorithm_t *psa_algs[] = { psa_alg1, psa_alg2 };
+
+        for ( int i = 0; i < 2; i++ )
+        {
+            if( strcmp( algs[i], "rsa-sign-pkcs1" ) == 0 )
+            {
+                *psa_algs[i] = PSA_ALG_RSA_PKCS1V15_SIGN( PSA_ALG_ANY_HASH );
+                *usage |= PSA_KEY_USAGE_SIGN_HASH;
+            }
+            else if( strcmp( algs[i], "rsa-sign-pss" ) == 0 )
+            {
+                *psa_algs[i] = PSA_ALG_RSA_PSS( PSA_ALG_ANY_HASH );
+                *usage |= PSA_KEY_USAGE_SIGN_HASH;
+            }
+            else if( strcmp( algs[i], "rsa-decrypt" ) == 0 )
+            {
+                *psa_algs[i] = PSA_ALG_RSA_PKCS1V15_CRYPT;
+                *usage |= PSA_KEY_USAGE_DECRYPT;
+            }
+            else if( strcmp( algs[i], "ecdsa-sign" ) == 0 )
+            {
+                *psa_algs[i] = PSA_ALG_ECDSA( PSA_ALG_ANY_HASH );
+                *usage |= PSA_KEY_USAGE_SIGN_HASH;
+            }
+            else if( strcmp( algs[i], "ecdh" ) == 0 )
+            {
+                *psa_algs[i] = PSA_ALG_ECDH;
+                *usage |= PSA_KEY_USAGE_DERIVE;
+            }
+            else if( strcmp( algs[i], "none" ) == 0 )
+            {
+                *psa_algs[i] = PSA_ALG_NONE;
+            }
+        }
+    }
+    else
+    {
+        if( key_type == MBEDTLS_PK_ECKEY )
+        {
+            *psa_alg1 = PSA_ALG_ECDSA( PSA_ALG_ANY_HASH );
+            *psa_alg2 = PSA_ALG_ECDH;
+            *usage = PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_DERIVE;
+        }
+        else if( key_type == MBEDTLS_PK_RSA )
+        {
+            *psa_alg1 = PSA_ALG_RSA_PKCS1V15_SIGN( PSA_ALG_ANY_HASH );
+            *psa_alg2 = PSA_ALG_RSA_PSS( PSA_ALG_ANY_HASH );
+            *usage = PSA_KEY_USAGE_SIGN_HASH;
+        }
+        else
+        {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
 int ca_callback( void *data, mbedtls_x509_crt const *child,

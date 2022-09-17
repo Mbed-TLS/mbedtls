@@ -186,7 +186,7 @@ class PSAMacroEnumerator:
                 for value in argument_lists[i][1:]:
                     arguments[i] = value
                     yield self._format_arguments(name, arguments)
-                arguments[i] = argument_lists[0][0]
+                arguments[i] = argument_lists[i][0]
         except BaseException as e:
             raise Exception('distribute_arguments({})'.format(name)) from e
 
@@ -400,10 +400,26 @@ enumerate
             'other_algorithm': [],
             'lifetime': [self.lifetimes],
         } #type: Dict[str, List[Set[str]]]
-        self.arguments_for['mac_length'] += ['1', '63']
-        self.arguments_for['min_mac_length'] += ['1', '63']
-        self.arguments_for['tag_length'] += ['1', '63']
-        self.arguments_for['min_tag_length'] += ['1', '63']
+        mac_lengths = [str(n) for n in [
+            1,  # minimum expressible
+            4,  # minimum allowed by policy
+            13, # an odd size in a plausible range
+            14, # an even non-power-of-two size in a plausible range
+            16, # same as full size for at least one algorithm
+            63, # maximum expressible
+        ]]
+        self.arguments_for['mac_length'] += mac_lengths
+        self.arguments_for['min_mac_length'] += mac_lengths
+        aead_lengths = [str(n) for n in [
+            1,  # minimum expressible
+            4,  # minimum allowed by policy
+            13, # an odd size in a plausible range
+            14, # an even non-power-of-two size in a plausible range
+            16, # same as full size for at least one algorithm
+            63, # maximum expressible
+        ]]
+        self.arguments_for['tag_length'] += aead_lengths
+        self.arguments_for['min_tag_length'] += aead_lengths
 
     def add_numerical_values(self) -> None:
         """Add numerical values that are not supported to the known identifiers."""

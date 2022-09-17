@@ -1,0 +1,8 @@
+Features
+   * When GnuTLS/Openssl server is configured in TLS 1.2 mode with a certificate
+     declaring an RSA public key and Mbed TLS is configured in hybrid mode, if
+     `rsa_pss_rsae_*` algorithms are before `rsa_pkcs1_*` ones in this list then
+     the GnuTLS/Openssl server chooses an `rsa_pss_rsae_*` signature algorithm
+     for its signature in the key exchange message. As Mbed TLS 1.2 does not
+     support them, the handshake fails. Add `rsa_pss_rsae_*` support for TLS 1.2
+     to resolve the compitablity issue.

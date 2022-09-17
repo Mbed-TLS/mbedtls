@@ -6,9 +6,9 @@
 #     command but rather at the target level using the
 #     target_include_directories command. That way, it is easier to guarantee
 #     that targets are built using the proper list of include directories.
-#   + Use the PUBLIC and PRIVATE keywords to specifiy the scope of include
+#   + Use the PUBLIC and PRIVATE keywords to specify the scope of include
 #     directories. That way, a target linking to a library (using the
-#     target_link_librairies command) inherits from the library PUBLIC include
+#     target_link_libraries command) inherits from the library PUBLIC include
 #     directories and not from the PRIVATE ones.
 # - MBEDTLS_TARGET_PREFIX: CMake targets are designed to be alterable by calling
 #   CMake in order to avoid target name clashes, via the use of
@@ -39,6 +39,8 @@ else()
     project("mbed TLS" C)
 endif()
 
+include(GNUInstallDirs)
+
 # Determine if mbed TLS is being built as a subproject using add_subdirectory()
 if(NOT DEFINED MBEDTLS_AS_SUBPROJECT)
   set(MBEDTLS_AS_SUBPROJECT ON)
@@ -54,7 +56,7 @@ option(ENABLE_PROGRAMS "Build mbed TLS programs." ON)
 
 option(UNSAFE_BUILD "Allow unsafe builds. These builds ARE NOT SECURE." OFF)
 option(MBEDTLS_FATAL_WARNINGS "Compiler warnings treated as errors" ON)
-if(WIN32)
+if(CMAKE_HOST_WIN32)
     option(GEN_FILES "Generate the auto-generated files as needed" OFF)
 else()
     option(GEN_FILES "Generate the auto-generated files as needed" ON)
@@ -129,7 +131,10 @@ function(link_to_source base_name)
         set(target "${CMAKE_CURRENT_SOURCE_DIR}/${base_name}")
     endif()
 
-    if (NOT EXISTS ${link})
+    # Linking to non-existent file is not desirable. At best you will have a
+    # dangling link, but when building in tree, this can create a symbolic link
+    # to itself.
+    if (EXISTS ${target} AND NOT EXISTS ${link})
         if (CMAKE_HOST_UNIX)
             set(command ln -s ${target} ${link})
         else()
@@ -169,6 +174,9 @@ endfunction(get_name_without_last_ext)
 string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER_ID}")
 
 include(CheckCCompilerFlag)
+
+set(CMAKE_C_EXTENSIONS OFF)
+set(CMAKE_C_STANDARD 99)
 
 if(CMAKE_COMPILER_IS_GNU)
     # some warnings we want are not available with old GCC versions
@@ -219,7 +227,7 @@ if(CMAKE_COMPILER_IS_CLANG)
 endif(CMAKE_COMPILER_IS_CLANG)
 
 if(CMAKE_COMPILER_IS_IAR)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --warn_about_c_style_casts --warnings_are_errors -Ohz")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --warn_about_c_style_casts -Ohz")
 endif(CMAKE_COMPILER_IS_IAR)
 
 if(CMAKE_COMPILER_IS_MSVC)
@@ -240,6 +248,10 @@ if(MBEDTLS_FATAL_WARNINGS)
             set(CMAKE_C_FLAGS_ASANDBG "${CMAKE_C_FLAGS_ASANDBG} -Wno-error=cpp")
         endif(UNSAFE_BUILD)
     endif(CMAKE_COMPILER_IS_CLANG OR CMAKE_COMPILER_IS_GNU)
+
+    if (CMAKE_COMPILER_IS_IAR)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --warning_are_errors")
+    endif(CMAKE_COMPILER_IS_IAR)
 endif(MBEDTLS_FATAL_WARNINGS)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
@@ -249,8 +261,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
 endif(CMAKE_BUILD_TYPE STREQUAL "Coverage")
 
 if(LIB_INSTALL_DIR)
-else()
-    set(LIB_INSTALL_DIR lib)
+    set(CMAKE_INSTALL_LIBDIR "${LIB_INSTALL_DIR}")
 endif()
 
 add_subdirectory(include)
@@ -344,7 +355,7 @@ if(NOT DISABLE_PACKAGE_CONFIG_AND_INSTALL)
     write_basic_package_version_file(
         "cmake/MbedTLSConfigVersion.cmake"
             COMPATIBILITY SameMajorVersion
-            VERSION 3.1.0)
+            VERSION 3.2.1)
 
     install(
         FILES "${CMAKE_CURRENT_BINARY_DIR}/cmake/MbedTLSConfig.cmake"

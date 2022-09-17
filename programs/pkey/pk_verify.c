@@ -136,11 +136,6 @@ exit:
     }
 #endif
 
-#if defined(_WIN32)
-    mbedtls_printf( "  + Press Enter to exit this program.\n" );
-    fflush( stdout ); getchar();
-#endif
-
     mbedtls_exit( exit_code );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_SHA256_C &&

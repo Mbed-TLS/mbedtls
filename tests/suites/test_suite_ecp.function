@@ -16,6 +16,44 @@
     mbedtls_ecp_point_free( x );    \
     mbedtls_ecp_point_init( x );
 
+/* Auxiliary function to compare two mbedtls_ecp_group objects. */
+inline static int mbedtls_ecp_group_cmp( mbedtls_ecp_group *grp1,
+                                         mbedtls_ecp_group *grp2 )
+{
+    if( mbedtls_mpi_cmp_mpi( &grp1->P, &grp2->P ) != 0 )
+        return 1;
+    if( mbedtls_mpi_cmp_mpi( &grp1->A, &grp2->A ) != 0 )
+        return 1;
+    if( mbedtls_mpi_cmp_mpi( &grp1->B, &grp2->B ) != 0 )
+        return 1;
+    if( mbedtls_mpi_cmp_mpi( &grp1->N, &grp2->N ) != 0 )
+        return 1;
+    if( mbedtls_ecp_point_cmp( &grp1->G, &grp2->G ) != 0 )
+        return 1;
+    if( grp1->id != grp2->id )
+        return 1;
+    if( grp1->pbits != grp2->pbits )
+        return 1;
+    if( grp1->nbits != grp2->nbits )
+        return 1;
+    if( grp1->h != grp2->h )
+        return 1;
+    if( grp1->modp != grp2->modp )
+        return 1;
+    if( grp1->t_pre != grp2->t_pre )
+        return 1;
+    if( grp1->t_post != grp2->t_post )
+        return 1;
+    if( grp1->t_data != grp2->t_data )
+        return 1;
+    if( grp1->T_size != grp2->T_size )
+        return 1;
+    if( grp1->T != grp2->T )
+        return 1;
+
+    return 0;
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -23,7 +61,7 @@
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE depends_on:NOT_DEFINED */
+/* BEGIN_CASE */
 void ecp_invalid_param( )
 {
     mbedtls_ecp_group grp;
@@ -82,9 +120,9 @@ void ecp_check_pub( int grp_id, char * x_hex, char * y_hex, char * z_hex,
 
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, grp_id ) == 0 );
 
-    TEST_ASSERT( mbedtls_test_read_mpi( &P.X, 16, x_hex ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &P.Y, 16, y_hex ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &P.Z, 16, z_hex ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &P.X, x_hex ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &P.Y, y_hex ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &P.Z, z_hex ) == 0 );
 
     TEST_ASSERT( mbedtls_ecp_check_pubkey( &grp, &P ) == ret );
 
@@ -135,13 +173,13 @@ void ecp_test_vect_restart( int id,
 
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
 
-    TEST_ASSERT( mbedtls_test_read_mpi( &dA, 16, dA_str ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &xA, 16, xA_str ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &yA, 16, yA_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &dA, dA_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &xA, xA_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &yA, yA_str ) == 0 );
 
-    TEST_ASSERT( mbedtls_test_read_mpi( &dB, 16, dB_str ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &xZ, 16, xZ_str ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &yZ, 16, yZ_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &dB, dB_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &xZ, xZ_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &yZ, yZ_str ) == 0 );
 
     mbedtls_ecp_set_max_ops( (unsigned) max_ops );
 
@@ -222,13 +260,13 @@ void ecp_muladd_restart( int id, char *xR_str, char *yR_str,
 
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
 
-    TEST_ASSERT( mbedtls_test_read_mpi( &u1, 16, u1_str ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &u2, 16, u2_str ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &xR, 16, xR_str ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &yR, 16, yR_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &u1, u1_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &u2, u2_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &xR, xR_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &yR, yR_str ) == 0 );
 
-    TEST_ASSERT( mbedtls_test_read_mpi( &Q.X, 16, xQ_str ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &Q.Y, 16, yQ_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &Q.X, xQ_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &Q.Y, yQ_str ) == 0 );
     TEST_ASSERT( mbedtls_mpi_lset( &Q.Z, 1 ) == 0 );
 
     mbedtls_ecp_set_max_ops( (unsigned) max_ops );
@@ -285,14 +323,14 @@ void ecp_test_vect( int id, char * dA_str, char * xA_str, char * yA_str,
 
     TEST_ASSERT( mbedtls_ecp_check_pubkey( &grp, &grp.G ) == 0 );
 
-    TEST_ASSERT( mbedtls_test_read_mpi( &dA, 16, dA_str ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &xA, 16, xA_str ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &yA, 16, yA_str ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &dB, 16, dB_str ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &xB, 16, xB_str ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &yB, 16, yB_str ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &xZ, 16, xZ_str ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &yZ, 16, yZ_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &dA, dA_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &xA, xA_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &yA, yA_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &dB, dB_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &xB, xB_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &yB, yB_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &xZ, xZ_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &yZ, yZ_str ) == 0 );
 
     TEST_ASSERT( mbedtls_ecp_mul( &grp, &R, &dA, &grp.G,
                           &mbedtls_test_rnd_pseudo_rand, &rnd_info ) == 0 );
@@ -342,11 +380,11 @@ void ecp_test_vec_x( int id, char * dA_hex, char * xA_hex, char * dB_hex,
 
     TEST_ASSERT( mbedtls_ecp_check_pubkey( &grp, &grp.G ) == 0 );
 
-    TEST_ASSERT( mbedtls_test_read_mpi( &dA, 16, dA_hex ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &dB, 16, dB_hex ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &xA, 16, xA_hex ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &xB, 16, xB_hex ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &xS, 16, xS_hex ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &dA, dA_hex ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &dB, dB_hex ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &xA, xA_hex ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &xB, xB_hex ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &xS, xS_hex ) == 0 );
 
     TEST_ASSERT( mbedtls_ecp_mul( &grp, &R, &dA, &grp.G,
                           &mbedtls_test_rnd_pseudo_rand, &rnd_info ) == 0 );
@@ -508,7 +546,7 @@ void ecp_fast_mod( int id, char * N_str )
     mbedtls_mpi_init( &N ); mbedtls_mpi_init( &R );
     mbedtls_ecp_group_init( &grp );
 
-    TEST_ASSERT( mbedtls_test_read_mpi( &N, 16, N_str ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &N, N_str ) == 0 );
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
     TEST_ASSERT( grp.modp != NULL );
 
@@ -547,9 +585,9 @@ void ecp_write_binary( int id, char * x, char * y, char * z, int format,
 
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
 
-    TEST_ASSERT( mbedtls_test_read_mpi( &P.X, 16, x ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &P.Y, 16, y ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &P.Z, 16, z ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &P.X, x ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &P.Y, y ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &P.Z, z ) == 0 );
 
     TEST_ASSERT( mbedtls_ecp_point_write_binary( &grp, &P, format,
                                    &olen, buf, blen ) == ret );
@@ -579,9 +617,9 @@ void ecp_read_binary( int id, data_t * buf, char * x, char * y, char * z,
 
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
 
-    TEST_ASSERT( mbedtls_test_read_mpi( &X, 16, x ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &Y, 16, y ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &Z, 16, z ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &X, x ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &Y, y ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &Z, z ) == 0 );
 
     TEST_ASSERT( mbedtls_ecp_point_read_binary( &grp, &P, buf->x, buf->len ) == ret );
 
@@ -623,9 +661,9 @@ void mbedtls_ecp_tls_read_point( int id, data_t * buf, char * x, char * y,
 
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
 
-    TEST_ASSERT( mbedtls_test_read_mpi( &X, 16, x ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &Y, 16, y ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &Z, 16, z ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &X, x ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &Y, y ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &Z, z ) == 0 );
 
     TEST_ASSERT( mbedtls_ecp_tls_read_point( &grp, &P, &vbuf, buf->len ) == ret );
 
@@ -760,7 +798,7 @@ void mbedtls_ecp_check_privkey( int id, char * key_hex, int ret )
     mbedtls_mpi_init( &d );
 
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &d, 16, key_hex ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &d, key_hex ) == 0 );
 
     TEST_ASSERT( mbedtls_ecp_check_privkey( &grp, &d ) == ret );
 
@@ -789,7 +827,7 @@ void mbedtls_ecp_check_pub_priv( int id_pub, char * Qx_pub, char * Qy_pub,
     if( id != MBEDTLS_ECP_DP_NONE )
         TEST_ASSERT( mbedtls_ecp_group_load( &prv.grp, id ) == 0 );
     TEST_ASSERT( mbedtls_ecp_point_read_string( &prv.Q, 16, Qx, Qy ) == 0 );
-    TEST_ASSERT( mbedtls_test_read_mpi( &prv.d, 16, d ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &prv.d, d ) == 0 );
 
     TEST_ASSERT( mbedtls_ecp_check_pub_priv( &pub, &prv,
                           &mbedtls_test_rnd_pseudo_rand, &rnd_info ) == ret );
@@ -982,9 +1020,136 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void ecp_set_zero( int id, data_t * P_bin )
+{
+    mbedtls_ecp_group grp;
+    mbedtls_ecp_point pt, zero_pt, nonzero_pt;
+
+    mbedtls_ecp_group_init( &grp );
+    mbedtls_ecp_point_init( &pt );
+    mbedtls_ecp_point_init( &zero_pt );
+    mbedtls_ecp_point_init( &nonzero_pt );
+
+    // Set zero and non-zero points for comparison
+    TEST_EQUAL( mbedtls_ecp_set_zero( &zero_pt ), 0 );
+    TEST_EQUAL( mbedtls_ecp_group_load( &grp, id ), 0 );
+    TEST_EQUAL( mbedtls_ecp_point_read_binary( &grp, &nonzero_pt,
+                                               P_bin->x, P_bin->len ), 0 );
+    TEST_EQUAL( mbedtls_ecp_is_zero( &zero_pt ), 1 );
+    TEST_EQUAL( mbedtls_ecp_is_zero( &nonzero_pt ), 0 );
+
+    // Test initialized point
+    TEST_EQUAL( mbedtls_ecp_set_zero( &pt ), 0 );
+    TEST_EQUAL( mbedtls_ecp_is_zero( &pt ), 1 );
+    TEST_EQUAL( mbedtls_ecp_point_cmp( &zero_pt, &pt ), 0 );
+    TEST_EQUAL( mbedtls_ecp_point_cmp( &nonzero_pt, &zero_pt ),
+                MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+    // Test zeroed point
+    TEST_EQUAL( mbedtls_ecp_set_zero( &pt ), 0 );
+    TEST_EQUAL( mbedtls_ecp_is_zero( &pt ), 1 );
+    TEST_EQUAL( mbedtls_ecp_point_cmp( &zero_pt, &pt ), 0 );
+    TEST_EQUAL( mbedtls_ecp_point_cmp( &nonzero_pt, &pt ),
+                MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+    // Set point to non-zero value
+    TEST_EQUAL( mbedtls_ecp_point_read_binary( &grp, &pt,
+                                               P_bin->x, P_bin->len ), 0 );
+    TEST_EQUAL( mbedtls_ecp_is_zero( &pt ), 0 );
+    TEST_EQUAL( mbedtls_ecp_point_cmp( &zero_pt, &pt ),
+                MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+    TEST_EQUAL( mbedtls_ecp_point_cmp( &nonzero_pt, &pt), 0 );
+
+    // Test non-zero point
+    TEST_EQUAL( mbedtls_ecp_set_zero( &pt ), 0 );
+    TEST_EQUAL( mbedtls_ecp_is_zero( &pt ), 1 );
+    TEST_EQUAL( mbedtls_ecp_point_cmp( &zero_pt, &pt ), 0 );
+    TEST_EQUAL( mbedtls_ecp_point_cmp( &nonzero_pt, &pt ),
+                MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+    // Test freed non-zero point
+    TEST_EQUAL( mbedtls_ecp_point_read_binary( &grp, &pt,
+                                               P_bin->x, P_bin->len ), 0 );
+    mbedtls_ecp_point_free( &pt );
+    TEST_EQUAL( mbedtls_ecp_set_zero( &pt ), 0 );
+    TEST_EQUAL( mbedtls_ecp_is_zero( &pt ), 1 );
+    TEST_EQUAL( mbedtls_ecp_point_cmp( &zero_pt, &pt ), 0 );
+    TEST_EQUAL( mbedtls_ecp_point_cmp( &nonzero_pt, &pt),
+                MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+exit:
+    mbedtls_ecp_group_free( &grp );
+    mbedtls_ecp_point_free( &pt );
+    mbedtls_ecp_point_free( &zero_pt );
+    mbedtls_ecp_point_free( &nonzero_pt );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void ecp_selftest(  )
 {
     TEST_ASSERT( mbedtls_ecp_self_test( 1 ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ecp_export( int id, char * Qx, char * Qy,char * d, int expected_ret, int invalid_grp )
+{
+    mbedtls_ecp_keypair key;
+    mbedtls_ecp_group export_grp;
+    mbedtls_mpi export_d;
+    mbedtls_ecp_point export_Q;
+
+    mbedtls_ecp_group_init( &export_grp );
+    mbedtls_ecp_group_init( &key.grp );
+    mbedtls_mpi_init( &export_d );
+    mbedtls_ecp_point_init( &export_Q );
+
+    mbedtls_ecp_keypair_init( &key );
+    if( invalid_grp == 0 )
+        TEST_ASSERT( mbedtls_ecp_group_load( &key.grp, id ) == 0 );
+    TEST_ASSERT( mbedtls_ecp_point_read_string( &key.Q, 16, Qx, Qy ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &key.d, d ) == 0 );
+
+    TEST_EQUAL( mbedtls_ecp_export( &key, &export_grp,
+                                    &export_d, &export_Q ), expected_ret );
+
+    if( expected_ret == 0 )
+    {
+        TEST_EQUAL( mbedtls_ecp_point_cmp( &key.Q, &export_Q ), 0 );
+        TEST_EQUAL( mbedtls_mpi_cmp_mpi( &key.d, &export_d ), 0 );
+        TEST_EQUAL( mbedtls_ecp_group_cmp( &key.grp, &export_grp ), 0 );
+    }
+
+exit:
+    mbedtls_ecp_keypair_free( &key );
+    mbedtls_ecp_group_free( &export_grp );
+    mbedtls_mpi_free( &export_d );
+    mbedtls_ecp_point_free( &export_Q );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ecp_check_order( int id, char * expected_order_hex )
+{
+    mbedtls_ecp_group grp;
+    mbedtls_mpi expected_n;
+
+    mbedtls_ecp_group_init( &grp );
+    mbedtls_mpi_init( &expected_n );
+
+    TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &expected_n, expected_order_hex ) == 0);
+
+    // check sign bits are well-formed (i.e. 1 or -1) - see #5810
+    TEST_ASSERT( grp.N.s == -1 || grp.N.s == 1);
+    TEST_ASSERT( expected_n.s == -1 || expected_n.s == 1);
+
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &grp.N, &expected_n ) == 0 );
+
+exit:
+    mbedtls_ecp_group_free( &grp );
+    mbedtls_mpi_free( &expected_n );
 }
 /* END_CASE */

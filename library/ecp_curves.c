@@ -26,6 +26,7 @@
 #include "mbedtls/error.h"
 
 #include "bn_mul.h"
+#include "bignum_internal.h"
 #include "ecp_invasive.h"
 
 #include <string.h>
@@ -4736,6 +4737,8 @@ int mbedtls_ecp_group_load( mbedtls_ecp_group *grp, mbedtls_ecp_group_id id )
     ECP_VALIDATE_RET( grp != NULL );
     mbedtls_ecp_group_free( grp );
 
+    mbedtls_ecp_group_init( grp );
+
     grp->id = id;
 
     switch( id )
@@ -5213,40 +5216,30 @@ cleanup:
 
 /*
  * Fast quasi-reduction modulo p255 = 2^255 - 19
- * Write N as A0 + 2^255 A1, return A0 + 19 * A1
+ * Write N as A0 + 2^256 A1, return A0 + 38 * A1
  */
 static int ecp_mod_p255( mbedtls_mpi *N )
 {
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t i;
-    mbedtls_mpi M;
-    mbedtls_mpi_uint Mp[P255_WIDTH + 2];
+    mbedtls_mpi_uint Mp[P255_WIDTH];
 
-    if( N->n < P255_WIDTH )
+    /* Helper references for top part of N */
+    mbedtls_mpi_uint * const NT_p = N->p + P255_WIDTH;
+    const size_t NT_n = N->n - P255_WIDTH;
+    if( N->n <= P255_WIDTH )
         return( 0 );
-
-    /* M = A1 */
-    M.s = 1;
-    M.n = N->n - ( P255_WIDTH - 1 );
-    if( M.n > P255_WIDTH + 1 )
+    if( NT_n > P255_WIDTH )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-    M.p = Mp;
-    memset( Mp, 0, sizeof Mp );
-    memcpy( Mp, N->p + P255_WIDTH - 1, M.n * sizeof( mbedtls_mpi_uint ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &M, 255 % ( 8 * sizeof( mbedtls_mpi_uint ) ) ) );
-    M.n++; /* Make room for multiplication by 19 */
 
-    /* N = A0 */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( N, 255, 0 ) );
-    for( i = P255_WIDTH; i < N->n; i++ )
-        N->p[i] = 0;
+    /* Split N as N + 2^256 M */
+    memcpy( Mp,   NT_p, sizeof( mbedtls_mpi_uint ) * NT_n );
+    memset( NT_p, 0,    sizeof( mbedtls_mpi_uint ) * NT_n );
 
-    /* N = A0 + 19 * A1 */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_mul_int( &M, &M, 19 ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_add_abs( N, N, &M ) );
+    /* N = A0 + 38 * A1 */
+    mbedtls_mpi_core_mla( N->p, P255_WIDTH + 1,
+                          Mp, NT_n,
+                          38 );
 
-cleanup:
-    return( ret );
+    return( 0 );
 }
 #endif /* MBEDTLS_ECP_DP_CURVE25519_ENABLED */
 

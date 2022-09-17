@@ -82,6 +82,9 @@ int mbedtls_pk_load_file( const char *path, unsigned char **buf, size_t *n )
     if( ( f = fopen( path, "rb" ) ) == NULL )
         return( MBEDTLS_ERR_PK_FILE_IO_ERROR );
 
+    /* Ensure no stdio buffering of secrets, as such buffers cannot be wiped. */
+    mbedtls_setbuf( f, NULL );
+
     fseek( f, 0, SEEK_END );
     if( ( size = ftell( f ) ) == -1 )
     {
@@ -475,7 +478,7 @@ static int pk_use_ecparams( const mbedtls_asn1_buf *params, mbedtls_ecp_group *g
     }
 
     /*
-     * grp may already be initilialized; if so, make sure IDs match
+     * grp may already be initialized; if so, make sure IDs match
      */
     if( grp->id != MBEDTLS_ECP_DP_NONE && grp->id != grp_id )
         return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT );
@@ -808,7 +811,7 @@ static int pk_parse_key_pkcs1_der( mbedtls_rsa_context *rsa,
        goto cleanup;
 
 #else
-    /* Verify existance of the CRT params */
+    /* Verify existence of the CRT params */
     if( ( ret = asn1_get_nonzero_mpi( &p, end, &T ) ) != 0 ||
         ( ret = asn1_get_nonzero_mpi( &p, end, &T ) ) != 0 ||
         ( ret = asn1_get_nonzero_mpi( &p, end, &T ) ) != 0 )
@@ -866,7 +869,7 @@ static int pk_parse_key_sec1_der( mbedtls_ecp_keypair *eck,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     int version, pubkey_done;
     size_t len;
-    mbedtls_asn1_buf params;
+    mbedtls_asn1_buf params = { 0, 0, NULL };
     unsigned char *p = (unsigned char *) key;
     unsigned char *end = p + keylen;
     unsigned char *end2;
@@ -1454,10 +1457,16 @@ int mbedtls_pk_parse_public_key( mbedtls_pk_context *ctx,
     {
         p = pem.buf;
         if( ( pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_RSA ) ) == NULL )
+        {
+            mbedtls_pem_free( &pem );
             return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
+        }
 
         if( ( ret = mbedtls_pk_setup( ctx, pk_info ) ) != 0 )
+        {
+            mbedtls_pem_free( &pem );
             return( ret );
+        }
 
         if ( ( ret = pk_get_rsapubkey( &p, p + pem.buflen, mbedtls_pk_rsa( *ctx ) ) ) != 0 )
             mbedtls_pk_free( ctx );

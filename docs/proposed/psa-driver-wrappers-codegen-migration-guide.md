@@ -1,5 +1,5 @@
-Migrating to an auto genrated psa_crypto_driver_wrappers.c file
-===============================================================
+Migrating to an auto generated psa_crypto_driver_wrappers.c file
+================================================================
 
 **This is a specification of work in progress. The implementation is not yet merged into Mbed TLS.**
 
@@ -8,7 +8,7 @@ It is meant to give the library user migration guidelines while the Mbed TLS pro
 
 ## Introduction
 
-The design of the Driver Wrappers code generation is based on the design proposal https://github.com/ARMmbed/mbedtls/pull/5067
+The design of the Driver Wrappers code generation is based on the design proposal https://github.com/Mbed-TLS/mbedtls/pull/5067
 During the process of implementation there might be minor variations wrt versioning and broader implementation specific ideas, but the design remains the same.
 
 ## Prerequisites
@@ -21,7 +21,7 @@ Python3, Jinja2 rev 2.10.1 and jsonschema rev 3.2.0
 
 ### What's critical for a migrating user
 
-The Driver Wrapper auto generation project is designed to use a python templating library ( Jinja2 ) to render templates based on drivers that are defined using a Driver descrioption JSON file(s).
+The Driver Wrapper auto generation project is designed to use a python templating library ( Jinja2 ) to render templates based on drivers that are defined using a Driver description JSON file(s).
 
 While that is the larger goal, for version 1.1 here's what's changed
 

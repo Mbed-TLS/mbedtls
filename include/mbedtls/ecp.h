@@ -262,7 +262,7 @@ mbedtls_ecp_group;
 #if !defined(MBEDTLS_ECP_WINDOW_SIZE)
 /*
  * Maximum "window" size used for point multiplication.
- * Default: a point where higher memory usage yields disminishing performance
+ * Default: a point where higher memory usage yields diminishing performance
  *          returns.
  * Minimum value: 2. Maximum value: 7.
  *
@@ -918,7 +918,7 @@ int mbedtls_ecp_tls_write_group( const mbedtls_ecp_group *grp,
  * \note            To prevent timing attacks, this function
  *                  executes the exact same sequence of base-field
  *                  operations for any valid \p m. It avoids any if-branch or
- *                  array index depending on the value of \p m. If also uses
+ *                  array index depending on the value of \p m. It also uses
  *                  \p f_rng to randomize some intermediate results.
  *
  * \param grp       The ECP group to use.
@@ -1277,6 +1277,26 @@ int mbedtls_ecp_write_key( mbedtls_ecp_keypair *key,
 int mbedtls_ecp_check_pub_priv(
         const mbedtls_ecp_keypair *pub, const mbedtls_ecp_keypair *prv,
         int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
+
+/**
+ * \brief           This function exports generic key-pair parameters.
+ *
+ * \param key       The key pair to export from.
+ * \param grp       Slot for exported ECP group.
+ *                  It must point to an initialized ECP group.
+ * \param d         Slot for the exported secret value.
+ *                  It must point to an initialized mpi.
+ * \param Q         Slot for the exported public value.
+ *                  It must point to an initialized ECP point.
+ *
+ * \return          \c 0 on success,
+ * \return          #MBEDTLS_ERR_MPI_ALLOC_FAILED on memory-allocation failure.
+ * \return          #MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if key id doesn't
+ *                  correspond to a known group.
+ * \return          Another negative error code on other kinds of failure.
+ */
+int mbedtls_ecp_export(const mbedtls_ecp_keypair *key, mbedtls_ecp_group *grp,
+                       mbedtls_mpi *d, mbedtls_ecp_point *Q);
 
 #if defined(MBEDTLS_SELF_TEST)
 

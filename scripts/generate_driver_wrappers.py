@@ -60,8 +60,9 @@ def render(template_path: str, driver_jsoncontext: list) -> str:
     return template.render(drivers=driver_jsoncontext)
 
 
-def generate_driver_wrapper_file(template_dir: str, \
-                                 output_dir: str, driver_jsoncontext: list) -> None:
+def generate_driver_wrapper_file(template_dir: str,
+                                 output_dir: str,
+                                 driver_jsoncontext: list) -> None:
     """
     Generate the file psa_crypto_driver_wrapper.c.
     """
@@ -108,6 +109,7 @@ def validate_json(driverjson_data: Driver, driverschema_list: dict) -> None:
 
 
 def load_driver(schemas: Dict[str, Any], driver_file: str) -> Any:
+    """loads validated json driver"""
     with open(file=driver_file, mode='r', encoding='UTF-8') as f:
         json_data = json.load(f)
         try:
@@ -156,7 +158,8 @@ def read_driver_descriptions(mbedtls_root: str,
             for driver_file_name in driver_list]
 
 
-def trace_exception(e, file=sys.stderr):
+def trace_exception(e: Exception, file=sys.stderr) -> None:
+    """Prints exception trace to the given TextIO handle"""
     print("Exception: type: %s, message: %s, trace: %s" % (
         e.__class__, str(e), format_tb(e.__traceback__)
     ), file)

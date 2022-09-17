@@ -23,12 +23,12 @@
 import sys
 import os
 import json
-from typing import Tuple, NewType, Dict, Any
+from typing import NewType, Dict, Any
+from traceback import format_tb
 import argparse
 import jsonschema
 import jinja2
 from mbedtls_dev import build_tree
-from traceback import format_tb
 
 JSONSchema = NewType('JSONSchema', object)
 # The Driver is an Object, but practically it's indexable and can called a dictionary to
@@ -70,7 +70,9 @@ def generate_driver_wrapper_file(template_dir: str, \
 
     result = render(driver_wrapper_template_filename, driver_jsoncontext)
 
-    with open(os.path.join(output_dir, "psa_crypto_driver_wrappers.c"), 'w') as out_file:
+    with open(file=os.path.join(output_dir, "psa_crypto_driver_wrappers.c"),
+              mode='w',
+              encoding='UTF-8') as out_file:
         out_file.write(result)
 
 
@@ -106,7 +108,7 @@ def validate_json(driverjson_data: Driver, driverschema_list: dict) -> None:
 
 
 def load_driver(schemas: Dict[str, Any], driver_file: str) -> Any:
-    with open(driver_file, 'r') as f:
+    with open(file=driver_file, mode='r', encoding='UTF-8') as f:
         json_data = json.load(f)
         try:
             validate_json(json_data, schemas)
@@ -115,7 +117,8 @@ def load_driver(schemas: Dict[str, Any], driver_file: str) -> Any:
         return json_data
 
 
-def load_schemas(mbedtls_root):
+def load_schemas(mbedtls_root: str) -> Dict[str, Any]:
+    """Load schemas map"""
     schema_file_paths = {
         'transparent': os.path.join(mbedtls_root,
                                     'scripts',
@@ -130,7 +133,7 @@ def load_schemas(mbedtls_root):
     }
     driver_schema = {}
     for key, file_path in schema_file_paths.items():
-        with open(file_path, 'r') as file:
+        with open(file=file_path, mode='r', encoding='UTF-8') as file:
             driver_schema[key] = json.load(file)
     return driver_schema
 
@@ -141,10 +144,11 @@ def read_driver_descriptions(mbedtls_root: str,
     """
     Merge driver JSON files into a single ordered JSON after validation.
     """
-    result = []
     driver_schema = load_schemas(mbedtls_root)
 
-    with open(os.path.join(json_directory, jsondriver_list), 'r') as driver_list_file:
+    with open(file=os.path.join(json_directory, jsondriver_list),
+              mode='r',
+              encoding='UTF-8') as driver_list_file:
         driver_list = json.load(driver_list_file)
 
     return [load_driver(schemas=driver_schema,

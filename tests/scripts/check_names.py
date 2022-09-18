@@ -56,6 +56,10 @@ import shutil
 import subprocess
 import logging
 
+import scripts_path # pylint: disable=unused-import
+from mbedtls_dev import build_tree
+
+
 # Naming patterns to check against. These are defined outside the NameCheck
 # class for ease of modification.
 PUBLIC_MACRO_PATTERN = r"^(MBEDTLS|PSA)_[0-9A-Z_]*[0-9A-Z]$"
@@ -219,7 +223,7 @@ class CodeParser():
     """
     def __init__(self, log):
         self.log = log
-        self.check_repo_path()
+        build_tree.check_repo_path()
 
         # Memo for storing "glob expression": set(filepaths)
         self.files = {}
@@ -227,15 +231,6 @@ class CodeParser():
         # Globally excluded filenames.
         # Note that "*" can match directory separators in exclude lists.
         self.excluded_files = ["*/bn_mul", "*/compat-2.x.h"]
-
-    @staticmethod
-    def check_repo_path():
-        """
-        Check that the current working directory is the project root, and throw
-        an exception if not.
-        """
-        if not all(os.path.isdir(d) for d in ["include", "library", "tests"]):
-            raise Exception("This script must be run from Mbed TLS root")
 
     def comprehensive_parse(self):
         """

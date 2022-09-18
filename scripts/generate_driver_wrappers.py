@@ -131,7 +131,7 @@ def load_schemas(mbedtls_root: str) -> Dict[str, Any]:
                                'scripts',
                                'data_files',
                                'driver_jsons',
-                               'driver_transparent_schema.json')
+                               'driver_opaque_schema.json')
     }
     driver_schema = {}
     for key, file_path in schema_file_paths.items():

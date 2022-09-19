@@ -1504,12 +1504,43 @@ cleanup:
     return( ret );
 }
 
-int mbedtls_ssl_tls13_generate_resumption_master_secret(
-    mbedtls_ssl_context *ssl )
+int mbedtls_ssl_tls13_compute_resumption_master_secret( mbedtls_ssl_context *ssl )
 {
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_md_type_t md_type;
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+    unsigned char transcript[MBEDTLS_TLS1_3_MD_MAX_SIZE];
+    size_t transcript_len;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2,
+        ( "=> mbedtls_ssl_tls13_compute_resumption_master_secret" ) );
+
+    md_type = handshake->ciphersuite_info->mac;
+
+    ret = mbedtls_ssl_get_handshake_transcript( ssl, md_type,
+                                                transcript, sizeof( transcript ),
+                                                &transcript_len );
+    if( ret != 0 )
+        return( ret );
+
+    ret = mbedtls_ssl_tls13_derive_resumption_master_secret(
+                              mbedtls_psa_translate_md( md_type ),
+                              handshake->tls13_master_secrets.app,
+                              transcript, transcript_len,
+                              &ssl->session_negotiate->app_secrets );
+    if( ret != 0 )
+        return( ret );
+
     /* Erase master secrets */
-    mbedtls_platform_zeroize( &ssl->handshake->tls13_master_secrets,
-                              sizeof( ssl->handshake->tls13_master_secrets ) );
+    mbedtls_platform_zeroize( &handshake->tls13_master_secrets,
+                              sizeof( handshake->tls13_master_secrets ) );
+
+    MBEDTLS_SSL_DEBUG_BUF( 4, "Resumption master secret",
+             ssl->session_negotiate->app_secrets.resumption_master_secret,
+             PSA_HASH_LENGTH( mbedtls_psa_translate_md( md_type ) ) ) ;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2,
+        ( "<= mbedtls_ssl_tls13_compute_resumption_master_secret" ) );
     return( 0 );
 }
 

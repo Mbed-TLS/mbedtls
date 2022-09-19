@@ -120,7 +120,9 @@ def load_driver(schemas: Dict[str, Any], driver_file: str) -> Any:
 
 
 def load_schemas(mbedtls_root: str) -> Dict[str, Any]:
-    """Load schemas map"""
+    """
+    Load schemas map
+    """
     schema_file_paths = {
         'transparent': os.path.join(mbedtls_root,
                                     'scripts',

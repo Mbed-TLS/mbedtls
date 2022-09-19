@@ -958,7 +958,7 @@
  * might still happen. For this reason, this is disabled by default.
  *
  * Requires: MBEDTLS_ECJPAKE_C
- *           SHA-256 (via MD is present, or via PSA, see MBEDTLS_ECJPAKE_C)
+ *           SHA-256 (via MD if present, or via PSA, see MBEDTLS_ECJPAKE_C)
  *           MBEDTLS_ECP_DP_SECP256R1_ENABLED
  *
  * This enables the following ciphersuites (if other requisites are

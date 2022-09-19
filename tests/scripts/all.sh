@@ -1933,6 +1933,60 @@ component_test_psa_crypto_config_accel_cipher () {
     make test
 }
 
+component_test_psa_crypto_config_accel_cipher_aead () {
+    msg "build MBEDTLS_PSA_CRYPTO_CONFIG with accelerated cipher+aead"
+
+    # cipher algorithms
+    loc_accel_list="ALG_STREAM_CIPHER ALG_CTR ALG_CFB ALG_OFB ALG_ECB_NO_PADDING ALG_CBC_NO_PADDING ALG_CBC_PKCS7"
+    # aead algorithms
+    loc_accel_list="$loc_accel_list ALG_CCM ALG_CHACHA20_POLY1305"
+    # cipher key types
+    loc_accel_list="$loc_accel_list KEY_TYPE_AES KEY_TYPE_ARIA KEY_TYPE_CAMELLIA KEY_TYPE_CHACHA20 KEY_TYPE_DES"
+    loc_accel_flags=$( echo "$loc_accel_list" | sed 's/[^ ]* */-DLIBTESTDRIVER1_MBEDTLS_PSA_ACCEL_&/g' )
+    make -C tests libtestdriver1.a CFLAGS="$ASAN_CFLAGS $loc_accel_flags" LDFLAGS="$ASAN_CFLAGS"
+
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_DRIVERS
+    scripts/config.py set MBEDTLS_PSA_CRYPTO_CONFIG
+
+    # There is no intended accelerator support for ALG STREAM_CIPHER and
+    # ALG_ECB_NO_PADDING. Therefore, asking for them in the build implies the
+    # inclusion of the Mbed TLS cipher operations. As we want to test here with
+    # cipher operations solely supported by accelerators, disabled those
+    # PSA configuration options.
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_STREAM_CIPHER
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_ECB_NO_PADDING
+    scripts/config.py -f include/psa/crypto_config.h unset PSA_WANT_ALG_CMAC
+
+    # unset cipher modes
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CTR
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CFB
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_OFB
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
+    scripts/config.py unset MBEDTLS_CIPHER_PADDING_PKCS7
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_XTS
+
+    # unset AEAD modules
+    scripts/config.py unset MBEDTLS_CCM_C
+    scripts/config.py unset MBEDTLS_GCM_C
+    scripts/config.py unset MBEDTLS_POLY1305_C
+    scripts/config.py unset MBEDTLS_CHACHAPOLY_C
+
+    # unset cipher primitives
+    scripts/config.py unset MBEDTLS_AES_C
+    scripts/config.py unset MBEDTLS_ARIA_C
+    scripts/config.py unset MBEDTLS_CAMELLIA_C
+    scripts/config.py unset MBEDTLS_CHACHA20_C
+    scripts/config.py unset MBEDTLS_DES_C
+
+    loc_accel_flags="$loc_accel_flags $( echo "$loc_accel_list" | sed 's/[^ ]* */-DMBEDTLS_PSA_ACCEL_&/g' )"
+    make CFLAGS="$ASAN_CFLAGS -Werror -I../tests/include -I../tests -DPSA_CRYPTO_DRIVER_TEST -DMBEDTLS_TEST_LIBTESTDRIVER1 $loc_accel_flags" LDFLAGS="-ltestdriver1 $ASAN_CFLAGS"
+
+    not grep mbedtls_des* library/des.o
+
+    msg "test: MBEDTLS_PSA_CRYPTO_CONFIG with accelerated cipher+aead"
+    make test
+}
+
 component_test_psa_crypto_config_no_driver() {
     # full plus MBEDTLS_PSA_CRYPTO_CONFIG
     msg "build: full + MBEDTLS_PSA_CRYPTO_CONFIG minus MBEDTLS_PSA_CRYPTO_DRIVERS"

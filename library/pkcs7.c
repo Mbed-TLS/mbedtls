@@ -243,9 +243,9 @@ static int pkcs7_get_certificates( unsigned char **p, unsigned char *end,
 
     *p = *p + len1;
 
-    /* 
+    /*
      * Since in this version we strictly support single certificate, and reaching
-     * here implies we have parsed successfully, we return 1. 
+     * here implies we have parsed successfully, we return 1.
      */
     ret = 1;
 
@@ -701,7 +701,7 @@ out:
 
 int mbedtls_pkcs7_signed_hash_verify( mbedtls_pkcs7 *pkcs7,
                                       const mbedtls_x509_crt *cert,
-                                      const unsigned char *hash, 
+                                      const unsigned char *hash,
                                       size_t hashlen )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;

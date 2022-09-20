@@ -345,6 +345,56 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void mpi_core_uint_le_mpi( char *input_A )
+{
+    mbedtls_mpi_uint *A = NULL;
+    size_t A_limbs = 0;
+
+    TEST_EQUAL( mbedtls_test_read_mpi_core( &A, &A_limbs, input_A ), 0 );
+
+    int is_large = 0; /* nonzero limbs beyond the lowest-order one? */
+    for( size_t i = 1; i < A_limbs; i++ )
+    {
+        if( A[i] != 0 )
+        {
+            is_large = 1;
+            break;
+        }
+    }
+
+    TEST_CF_SECRET( A, A_limbs * sizeof( *A ) );
+
+    TEST_EQUAL( mbedtls_mpi_core_uint_le_mpi( 0, A, A_limbs ), 1 );
+    TEST_EQUAL( mbedtls_mpi_core_uint_le_mpi( A[0], A, A_limbs ), 1 );
+
+    if( is_large )
+    {
+        TEST_EQUAL( mbedtls_mpi_core_uint_le_mpi( A[0] + 1,
+                                                  A, A_limbs ), 1 );
+        TEST_EQUAL( mbedtls_mpi_core_uint_le_mpi( (mbedtls_mpi_uint)( -1 ) >> 1,
+                                                  A, A_limbs ), 1 );
+        TEST_EQUAL( mbedtls_mpi_core_uint_le_mpi( (mbedtls_mpi_uint)( -1 ),
+                                                  A, A_limbs ), 1 );
+    }
+    else
+    {
+        TEST_EQUAL( mbedtls_mpi_core_uint_le_mpi( A[0] + 1,
+                                                  A, A_limbs ),
+                    A[0] + 1 <= A[0] );
+        TEST_EQUAL( mbedtls_mpi_core_uint_le_mpi( (mbedtls_mpi_uint)( -1 ) >> 1,
+                                                  A, A_limbs ),
+                    (mbedtls_mpi_uint)( -1 ) >> 1 <= A[0] );
+        TEST_EQUAL( mbedtls_mpi_core_uint_le_mpi( (mbedtls_mpi_uint)( -1 ),
+                                                  A, A_limbs ),
+                    (mbedtls_mpi_uint)( -1 ) <= A[0] );
+    }
+
+exit:
+    mbedtls_free( A );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mpi_core_cond_assign( char * input_X,
                            char * input_Y,
                            int input_bytes )

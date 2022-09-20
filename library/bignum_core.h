@@ -129,6 +129,22 @@ size_t mbedtls_mpi_core_bitlen( const mbedtls_mpi_uint *A, size_t A_limbs );
 void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint *A,
                                          size_t A_limbs );
 
+/** \brief         Compare a machine integer with an MPI.
+ *
+ *                 This function operates in constant time with respect
+ *                 to the values of \p min and \p A.
+ *
+ * \param min      A machine integer.
+ * \param[in] A    An MPI.
+ * \param A_limbs  The number of limbs of \p A.
+ *                 This must be at least 1.
+ *
+ * \return         1 if \p min is less than or equal to \p A, otherwise 0.
+ */
+unsigned mbedtls_mpi_core_uint_le_mpi( mbedtls_mpi_uint min,
+                                       const mbedtls_mpi_uint *A,
+                                       size_t A_limbs );
+
 /**
  * \brief   Perform a safe conditional copy of an MPI which doesn't reveal
  *          whether assignment was done or not.

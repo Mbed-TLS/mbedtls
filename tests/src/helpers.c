@@ -15,6 +15,7 @@
  *  limitations under the License.
  */
 
+#include <test/constant_flow.h>
 #include <test/helpers.h>
 #include <test/macros.h>
 #include <string.h>
@@ -102,8 +103,12 @@ void mbedtls_test_info_reset( void )
 int mbedtls_test_equal( const char *test, int line_no, const char* filename,
                         unsigned long long value1, unsigned long long value2 )
 {
+    TEST_CF_PUBLIC( &value1, sizeof( value1 ) );
+    TEST_CF_PUBLIC( &value2, sizeof( value2 ) );
+
     if( value1 == value2 )
         return( 1 );
+
     if( mbedtls_test_info.result == MBEDTLS_TEST_RESULT_FAILED )
     {
         /* We've already recorded the test as having failed. Don't
@@ -125,8 +130,12 @@ int mbedtls_test_equal( const char *test, int line_no, const char* filename,
 int mbedtls_test_le_u( const char *test, int line_no, const char* filename,
                        unsigned long long value1, unsigned long long value2 )
 {
+    TEST_CF_PUBLIC( &value1, sizeof( value1 ) );
+    TEST_CF_PUBLIC( &value2, sizeof( value2 ) );
+
     if( value1 <= value2 )
         return( 1 );
+
     if( mbedtls_test_info.result == MBEDTLS_TEST_RESULT_FAILED )
     {
         /* We've already recorded the test as having failed. Don't
@@ -148,8 +157,12 @@ int mbedtls_test_le_u( const char *test, int line_no, const char* filename,
 int mbedtls_test_le_s( const char *test, int line_no, const char* filename,
                        long long value1, long long value2 )
 {
+    TEST_CF_PUBLIC( &value1, sizeof( value1 ) );
+    TEST_CF_PUBLIC( &value2, sizeof( value2 ) );
+
     if( value1 <= value2 )
         return( 1 );
+
     if( mbedtls_test_info.result == MBEDTLS_TEST_RESULT_FAILED )
     {
         /* We've already recorded the test as having failed. Don't

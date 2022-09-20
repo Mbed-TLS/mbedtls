@@ -2114,6 +2114,33 @@ void mpi_core_montmul( int limbs_AN4, int limbs_B4,
     size_t bytes = N.n * sizeof(mbedtls_mpi_uint);
     ASSERT_COMPARE( R.p, bytes, X->p, bytes );
 
+    /* The output (R, above) may be aliased to A - use R to save the value of A */
+
+    memcpy( R.p, A.p, bytes );
+
+    mbedtls_mpi_core_montmul( A.p, A.p, B.p, B.n, N.p, N.n, mm, T.p );
+    ASSERT_COMPARE( A.p, bytes, X->p, bytes );
+
+    memcpy( A.p, R.p, bytes );  /* restore A */
+
+    /* The output may be aliased to N - use R to save the value of N */
+
+    memcpy( R.p, N.p, bytes );
+
+    mbedtls_mpi_core_montmul( N.p, A.p, B.p, B.n, N.p, N.n, mm, T.p );
+    ASSERT_COMPARE( N.p, bytes, X->p, bytes );
+
+    memcpy( N.p, R.p, bytes );
+
+    /* The output may even be aliased to B, if AN_limbs == B_limbs */
+
+    if (limbs_AN == limbs_B)
+    {
+        /* Note: last test, so we don't save B */
+        mbedtls_mpi_core_montmul( B.p, A.p, B.p, B.n, N.p, N.n, mm, T.p );
+        ASSERT_COMPARE( B.p, bytes, X->p, bytes );
+    }
+
 exit:
     mbedtls_mpi_free( &A );
     mbedtls_mpi_free( &B );

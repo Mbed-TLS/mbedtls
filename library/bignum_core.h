@@ -245,6 +245,14 @@ mbedtls_mpi_uint mbedtls_mpi_core_montmul_init( const mbedtls_mpi_uint *N );
 /**
  * \brief Montgomery multiplication: X = A * B * R^-1 mod N  (HAC 14.36)
  *
+ * \p X may be aliased to \p A or \p N, or even \p B (if \p AN_limbs ==
+ * \p B_limbs) but may not overlap any parameters otherwise.
+ *
+ * \p A, \p B and \p N must not alias or overlap each other in any way, even
+ * if \p AN_limbs == \p B_limbs.
+ *
+ * \p A and \p B must be in canonical form: that is, <= \p N.
+ *
  * \param[out]    X         The destination MPI, as a little-endian array of
  *                          length \p AN_limbs.
  *                          On successful completion, X contains the result of

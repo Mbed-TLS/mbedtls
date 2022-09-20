@@ -1911,6 +1911,14 @@ void mpi_core_sub( char * input_A, char * input_B,
     /* 3b) r = a - b => we should get the correct result */
     ASSERT_COMPARE( r, bytes, x, bytes );
 
+    /* 4 tests "r may be aliased to [...] both" */
+    if ( A.n == B.n && memcmp( A.p, B.p, bytes ) == 0 )
+    {
+        memcpy( r, b, bytes );
+        TEST_EQUAL( carry, mbedtls_mpi_core_sub( r, r, r, limbs ) );
+        ASSERT_COMPARE( r, bytes, x, bytes );
+    }
+
 exit:
     mbedtls_free( a );
     mbedtls_free( b );

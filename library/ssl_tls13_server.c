@@ -235,6 +235,20 @@ static int ssl_tls13_offered_psks_check_identity_match_ticket(
                  (int)age_diff_in_ms ) );
         goto exit;
     }
+#if 0
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+        if( ssl->session_negotiate->hostname != NULL &&
+            ssl->session_negotiate->hostname_len != 0 &&
+            memcmp( ssl->session_negotiate->hostname,
+            ssl->session->hostname, ssl->session->hostname_len ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_MSG(
+            3, ( "Session hostname not matched with stored session ticket" ) );
+            goto exit;
+        }
+
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
+#endif
 
     ret = 0;
 

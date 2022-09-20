@@ -366,6 +366,7 @@ int main( void )
     "\n usage: ssl_client2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
     "    server_name=%%s      default: localhost\n"         \
+    "    rec_server_name=%%s  default: localhost\n"         \
     "    server_addr=%%s      default: given by name\n"     \
     "    server_port=%%d      default: 4433\n"              \
     "    request_page=%%s     default: \".\"\n"             \
@@ -455,6 +456,7 @@ int main( void )
 struct options
 {
     const char *server_name;    /* hostname of the server (client only)     */
+    const char *rec_s_name;     /* hostname of the server (re-connect)     */
     const char *server_addr;    /* address of the server (client only)      */
     const char *server_port;    /* port on which the ssl service runs       */
     int debug_level;            /* level of debugging                       */
@@ -876,6 +878,7 @@ int main( int argc, char *argv[] )
     }
 
     opt.server_name         = DFL_SERVER_NAME;
+    opt.rec_s_name          = DFL_SERVER_NAME;
     opt.server_addr         = DFL_SERVER_ADDR;
     opt.server_port         = DFL_SERVER_PORT;
     opt.debug_level         = DFL_DEBUG_LEVEL;
@@ -961,6 +964,8 @@ int main( int argc, char *argv[] )
 
         if( strcmp( p, "server_name" ) == 0 )
             opt.server_name = q;
+        else if( strcmp( p, "rec_server_name" ) == 0 )
+            opt.rec_s_name = q;
         else if( strcmp( p, "server_addr" ) == 0 )
             opt.server_addr = q;
         else if( strcmp( p, "server_port" ) == 0 )
@@ -3112,6 +3117,16 @@ reconnect:
                             (unsigned int) -ret );
             goto exit;
         }
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+        if( ( ret = mbedtls_ssl_reset_hostname( &ssl, opt.server_name,
+                                                opt.rec_s_name ) ) != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_reset_hostname returned %d\n\n",
+                            ret );
+            goto exit;
+        }
+#endif
 
         if( ( ret = mbedtls_net_connect( &server_fd,
                         opt.server_addr, opt.server_port,

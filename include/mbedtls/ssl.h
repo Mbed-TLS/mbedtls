@@ -1201,6 +1201,11 @@ struct mbedtls_ssl_session
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
     mbedtls_ssl_tls13_application_secrets MBEDTLS_PRIVATE(app_secrets);
 #endif
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    uint8_t MBEDTLS_PRIVATE(hostname_len);            /*!< host_name length */
+    char *MBEDTLS_PRIVATE(hostname);             /*!< host name binded with tickets */
+    uint8_t hostname_mismatch;                   /*!< whether new host_name match with saved one */
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 };
 
 /*
@@ -3662,6 +3667,27 @@ void mbedtls_ssl_conf_sig_algs( mbedtls_ssl_config *conf,
  *                 On too long input failure, old hostname is unchanged.
  */
 int mbedtls_ssl_set_hostname( mbedtls_ssl_context *ssl, const char *hostname );
+
+/**
+ * \brief          Reset the hostname to the new server name when reconnection.
+ *
+ * \param ssl           SSL context
+ * \param hostname      the server hostname, may be NULL
+ * \param rec_hostname  the server rec_hostname, may be NULL
+
+ * \note           Maximum hostname length MBEDTLS_SSL_MAX_HOST_NAME_LEN.
+ *
+ * \return         0 if successful, MBEDTLS_ERR_SSL_ALLOC_FAILED on
+ *                 allocation failure, MBEDTLS_ERR_SSL_BAD_INPUT_DATA on
+ *                 too long input rec_hostname.
+ *
+ *                 Rec_hostname set to the one provided on success.
+ *                 On allocation failure hostname is unchanged.
+ *                 On too long input failure, old hostname is unchanged.
+ */
+int mbedtls_ssl_reset_hostname( mbedtls_ssl_context *ssl,
+                                const char *hostname,
+                                const char *rec_hostname );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)

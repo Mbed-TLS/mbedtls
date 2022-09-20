@@ -54,6 +54,7 @@ static int ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
 {
     unsigned char *p = buf;
     size_t hostname_len;
+    size_t cmp_hostname_len;
 
     *olen = 0;
 
@@ -64,7 +65,24 @@ static int ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
         ( "client hello, adding server name extension: %s",
           ssl->hostname ) );
 
+    ssl->session_negotiate->hostname_mismatch = 0;
     hostname_len = strlen( ssl->hostname );
+
+    cmp_hostname_len = hostname_len < ssl->session_negotiate->hostname_len ?
+                       hostname_len : ssl->session_negotiate->hostname_len;
+
+    if( hostname_len != ssl->session_negotiate->hostname_len ||
+        memcmp( ssl->hostname, ssl->session_negotiate->hostname, cmp_hostname_len ) )
+        ssl->session_negotiate->hostname_mismatch = 1;
+
+    if( ssl->session_negotiate->hostname == NULL )
+    {
+        ssl->session_negotiate->hostname = mbedtls_calloc( 1, hostname_len );
+        if( ssl->session_negotiate->hostname == NULL )
+            return MBEDTLS_ERR_SSL_ALLOC_FAILED;
+        memcpy(ssl->session_negotiate->hostname, ssl->hostname, hostname_len);
+    }
+    ssl->session_negotiate->hostname_len = hostname_len;
 
     MBEDTLS_SSL_CHK_BUF_PTR( p, end, hostname_len + 9 );
 

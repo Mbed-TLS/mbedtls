@@ -214,6 +214,9 @@ mbedtls_mpi_uint mbedtls_mpi_core_sub( mbedtls_mpi_uint *X,
 /**
  * \brief Perform a fixed-size multiply accumulate operation: X += b * A
  *
+ * \p X may be aliased to \p A (when \p X_limbs == \p A_limbs), but may not
+ * otherwise overlap.
+ *
  * \param[in,out] X  The pointer to the (little-endian) array
  *                   representing the bignum to accumulate onto.
  * \param X_limbs    The number of limbs of \p X. This must be

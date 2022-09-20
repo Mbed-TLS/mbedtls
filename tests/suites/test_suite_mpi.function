@@ -2008,6 +2008,14 @@ void mpi_core_mla( char * input_A, char * input_B, char * input_S,
     /* 1b) A += B * s => we should get the correct result */
     ASSERT_COMPARE( a, bytes, x, bytes );
 
+    if ( A.n == B.n && memcmp( A.p, B.p, bytes ) == 0 )
+    {
+        /* Check when A and B are aliased */
+        memcpy( a, A.p, A.n * sizeof(mbedtls_mpi_uint) );
+        TEST_EQUAL( mbedtls_mpi_core_mla( a, limbs, a, limbs, *S.p ), *cy->p );
+        ASSERT_COMPARE( a, bytes, x, bytes );
+    }
+
 exit:
     mbedtls_free( a );
     mbedtls_free( x );

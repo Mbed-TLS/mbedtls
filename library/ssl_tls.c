@@ -711,7 +711,7 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
     if( ssl->transform_negotiate )
         mbedtls_ssl_transform_free( ssl->transform_negotiate );
     if( ssl->session_negotiate )
-        mbedtls_ssl_session_free( ssl->session_negotiate );
+        mbedtls_ssl_session_free_chain( ssl->session_negotiate );
     if( ssl->handshake )
         mbedtls_ssl_handshake_free( ssl );
 
@@ -3654,7 +3654,7 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
                               sizeof( mbedtls_ssl_handshake_params ) );
 }
 
-static void ssl_session_free( mbedtls_ssl_session *session )
+void mbedtls_ssl_session_free( mbedtls_ssl_session *session )
 {
     if( session == NULL )
         return;
@@ -3670,8 +3670,10 @@ static void ssl_session_free( mbedtls_ssl_session *session )
     mbedtls_platform_zeroize( session, sizeof( mbedtls_ssl_session ) );
 }
 
-void mbedtls_ssl_session_free( mbedtls_ssl_session *session )
+
+void mbedtls_ssl_session_free_chain( mbedtls_ssl_session *session )
 {
+
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
     defined(MBEDTLS_SSL_SESSION_TICKETS) && \
     defined(MBEDTLS_SSL_CLI_C)
@@ -3685,16 +3687,15 @@ void mbedtls_ssl_session_free( mbedtls_ssl_session *session )
     {
         tmp = head;
         head = head->next;
-        ssl_session_free( tmp );
+        mbedtls_ssl_session_free( tmp );
         mbedtls_free( tmp );
     }
-
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 &&
           MBEDTLS_SSL_SESSION_TICKETS &&
           MBEDTLS_SSL_CLI_C */
-
-    ssl_session_free( session );
+    mbedtls_ssl_session_free( session );
 }
+
 
 #if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION)
 

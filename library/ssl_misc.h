@@ -2491,4 +2491,7 @@ int mbedtls_ssl_tls13_write_binders_of_pre_shared_key_ext(
     unsigned char *buf, unsigned char *end );
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
 
+/* Free chain of session */
+void mbedtls_ssl_session_free_chain( mbedtls_ssl_session *session );
+
 #endif /* ssl_misc.h */

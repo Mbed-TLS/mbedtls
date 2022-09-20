@@ -59,6 +59,13 @@
 #include "mbedtls/bignum.h"
 #endif
 
+/** The type of test case arguments that contain binary data. */
+typedef struct data_tag
+{
+    uint8_t *   x;
+    uint32_t    len;
+} data_t;
+
 typedef enum
 {
     MBEDTLS_TEST_RESULT_SUCCESS = 0,

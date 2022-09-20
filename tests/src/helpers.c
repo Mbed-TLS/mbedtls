@@ -345,6 +345,24 @@ void mbedtls_test_err_add_check( int high, int low,
 #endif /* MBEDTLS_TEST_HOOKS */
 
 #if defined(MBEDTLS_BIGNUM_C)
+#include "bignum_core.h"
+
+int mbedtls_test_read_mpi_core( mbedtls_mpi_uint **pX, size_t *plimbs,
+                                const data_t *input )
+{
+    /* Sanity check */
+    if( *pX != NULL )
+        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+
+    *plimbs = ( input->len + sizeof( **pX ) - 1 ) / sizeof( **pX );
+    if( *plimbs == 0 )
+        return( 0 );
+    *pX = mbedtls_calloc( *plimbs, sizeof( **pX ) );
+    if( *pX == NULL )
+        return( MBEDTLS_ERR_MPI_ALLOC_FAILED );
+    return( mbedtls_mpi_core_read_be( *pX, *plimbs, input->x, input->len ) );
+}
+
 int mbedtls_test_read_mpi( mbedtls_mpi *X, const char *s )
 {
     /* mbedtls_mpi_read_string() currently retains leading zeros.

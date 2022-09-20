@@ -283,6 +283,28 @@ void mbedtls_test_err_add_check( int high, int low,
 #endif
 
 #if defined(MBEDTLS_BIGNUM_C)
+/** Allocate and populate a core MPI from a test case argument.
+ *
+ * This function allocates exactly as many limbs as necessary to fit
+ * the length of the input. In other words, it preserves leading zeros.
+ *
+ * The limb array is allocated with mbedtls_calloc() and must later be
+ * freed with mbedtls_free().
+ *
+ * \param[in,out] pX    The address where a pointer to the allocated limb
+ *                      array will be stored.
+ *                      \c *pX must be null on entry.
+ *                      On exit, \c *pX is null on error or if the number
+ *                      of limbs is 0.
+ * \param[out] plimbs   The address where the number of limbs will be stored.
+ * \param[in] input     The test argument to read.
+ *                      It is interpreted as a big-endian integer in base 256.
+ *
+ * \return \c 0 on success, an \c MBEDTLS_ERR_MPI_xxx error code otherwise.
+ */
+int mbedtls_test_read_mpi_core( mbedtls_mpi_uint **pX, size_t *plimbs,
+                                const data_t *input );
+
 /** Read an MPI from a hexadecimal string.
  *
  * Like mbedtls_mpi_read_string(), but size the resulting bignum based

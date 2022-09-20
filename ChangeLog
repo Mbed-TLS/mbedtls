@@ -3,7 +3,7 @@ Mbed TLS ChangeLog (Sorted per branch, date)
 = Mbed TLS 3.2.1 branch released 2022-07-12
 
 Bugfix
-   *  Re-add missing generated file library/ssl_debug_helpers_generated.c
+   *  Re-add missing generated file library/psa_crypto_driver_wrappers.c
 
 = Mbed TLS 3.2.0 branch released 2022-07-11
 

@@ -167,6 +167,8 @@ int mbedtls_mpi_core_write_be( const mbedtls_mpi_uint *A,
  * return carry;
  * ```
  *
+ * This function operates modulo `2^(biL*limbs)`.
+ *
  * \param[in,out] X  The pointer to the (little-endian) array
  *                   representing the bignum to accumulate onto.
  * \param[in] A      The pointer to the (little-endian) array
@@ -216,6 +218,8 @@ mbedtls_mpi_uint mbedtls_mpi_core_sub( mbedtls_mpi_uint *X,
  *
  * \p X may be aliased to \p A (when \p X_limbs == \p A_limbs), but may not
  * otherwise overlap.
+ *
+ * This function operates modulo `2^(biL*X_limbs)`.
  *
  * \param[in,out] X  The pointer to the (little-endian) array
  *                   representing the bignum to accumulate onto.

@@ -65,6 +65,7 @@
 #define PSA_WANT_ALG_ECB_NO_PADDING             1
 #define PSA_WANT_ALG_ECDH                       1
 #define PSA_WANT_ALG_ECDSA                      1
+#define PSA_WANT_ALG_JPAKE                      1
 #define PSA_WANT_ALG_GCM                        1
 #define PSA_WANT_ALG_HKDF                       1
 #define PSA_WANT_ALG_HKDF_EXTRACT               1

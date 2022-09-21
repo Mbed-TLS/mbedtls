@@ -27,7 +27,7 @@
 #include "mbedtls/rsa.h"
 #include "mbedtls/error.h"
 
-#include "legacy_or_psa.h"
+#include "mbedtls/legacy_or_psa.h"
 
 #include <stdio.h>
 #include <string.h>

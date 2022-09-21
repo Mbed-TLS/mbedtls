@@ -126,4 +126,5 @@ check scripts/generate_ssl_debug_helpers.py library/ssl_debug_helpers_generated.
 # the step that creates or updates these files.
 check scripts/generate_visualc_files.pl visualc/VS2010
 check scripts/generate_psa_constants.py programs/psa/psa_constant_names_generated.c
+check tests/scripts/generate_bignum_tests.py $(tests/scripts/generate_bignum_tests.py --list)
 check tests/scripts/generate_psa_tests.py $(tests/scripts/generate_psa_tests.py --list)

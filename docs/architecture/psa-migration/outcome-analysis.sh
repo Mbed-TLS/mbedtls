@@ -34,8 +34,6 @@ reference_config () {
     scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
     scripts/config.py unset MBEDTLS_PKCS1_V21
     scripts/config.py unset MBEDTLS_X509_RSASSA_PSS_SUPPORT
-    scripts/config.py unset MBEDTLS_PKCS5_C
-    scripts/config.py unset MBEDTLS_PKCS12_C
     scripts/config.py unset MBEDTLS_ECDSA_DETERMINISTIC
 }
 # Space-separated list of test suites of interest.
@@ -116,4 +114,3 @@ compare_builds () {
 compare_builds before-default after-default
 compare_builds before-full after-full
 compare_builds reference drivers
-

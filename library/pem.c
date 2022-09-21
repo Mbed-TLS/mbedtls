@@ -45,12 +45,14 @@
 #include "psa/crypto.h"
 #endif
 
-#include "legacy_or_psa.h"
+#include "mbedtls/legacy_or_psa.h"
 
-#if defined(MBEDTLS_HAS_ALG_MD5_VIA_MD_OR_PSA_BASED_ON_USE_PSA) && defined(MBEDTLS_CIPHER_MODE_CBC) &&         \
+#if defined(MBEDTLS_HAS_ALG_MD5_VIA_MD_OR_PSA_BASED_ON_USE_PSA) &&  \
+    defined(MBEDTLS_CIPHER_MODE_CBC) &&                             \
     ( defined(MBEDTLS_DES_C) || defined(MBEDTLS_AES_C) )
 #define PEM_RFC1421
-#endif /* MBEDTLS_HAS_ALG_MD5_VIA_MD_OR_PSA_BASED_ON_USE_PSA && MBEDTLS_CIPHER_MODE_CBC &&
+#endif /* MBEDTLS_HAS_ALG_MD5_VIA_MD_OR_PSA_BASED_ON_USE_PSA &&
+          MBEDTLS_CIPHER_MODE_CBC &&
           ( MBEDTLS_AES_C || MBEDTLS_DES_C ) */
 
 #if defined(MBEDTLS_PEM_PARSE_C)

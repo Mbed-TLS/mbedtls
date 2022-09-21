@@ -958,7 +958,7 @@
  * might still happen. For this reason, this is disabled by default.
  *
  * Requires: MBEDTLS_ECJPAKE_C
- *           MBEDTLS_SHA256_C
+ *           SHA-256 (via MD if present, or via PSA, see MBEDTLS_ECJPAKE_C)
  *           MBEDTLS_ECP_DP_SECP256R1_ENABLED
  *
  * This enables the following ciphersuites (if other requisites are
@@ -1492,8 +1492,14 @@
  *
  * Enable support for TLS 1.2 (and DTLS 1.2 if DTLS is enabled).
  *
- * Requires: MBEDTLS_SHA1_C or MBEDTLS_SHA256_C or MBEDTLS_SHA512_C
- *           (Depends on ciphersuites)
+ * Requires: Without MBEDTLS_USE_PSA_CRYPTO: MBEDTLS_MD_C and
+ *              (MBEDTLS_SHA1_C or MBEDTLS_SHA256_C or MBEDTLS_SHA512_C)
+ *           With MBEDTLS_USE_PSA_CRYPTO:
+ *              PSA_WANT_ALG_SHA_1 or PSA_WANT_ALG_SHA_256 or
+ *              PSA_WANT_ALG_SHA_512
+ *
+ * \warning If building with MBEDTLS_USE_PSA_CRYPTO, you must call
+ * psa_crypto_init() before doing any TLS operations.
  *
  * Comment this macro to disable support for TLS 1.2 / DTLS 1.2
  */
@@ -1512,11 +1518,11 @@
  * Requires: MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
  * Requires: MBEDTLS_PSA_CRYPTO_C
  *
- * Note: even though TLS 1.3 depends on PSA Crypto, if you want it to only use
- * PSA for all crypto operations, you need to also enable
- * MBEDTLS_USE_PSA_CRYPTO; otherwise X.509 operations, and functions that are
- * common with TLS 1.2 (record protection, running handshake hash) will still
- * use non-PSA crypto.
+ * Note: even though TLS 1.3 depends on PSA Crypto, and uses it unconditonally
+ * for most operations, if you want it to only use PSA for all crypto
+ * operations, you need to also enable MBEDTLS_USE_PSA_CRYPTO; otherwise X.509
+ * operations, and functions that are common with TLS 1.2 (record protection,
+ * running handshake hash) will still use non-PSA crypto.
  *
  * Uncomment this macro to enable the support for TLS 1.3.
  */
@@ -1543,6 +1549,26 @@
  *
  */
 //#define MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
+
+/**
+ * \def MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE
+ *
+ * Maximum time difference in milliseconds tolerated between the age of a
+ * ticket from the server and client point of view.
+ * From the client point of view, the age of a ticket is the time difference
+ * between the time when the client proposes to the server to use the ticket
+ * (time of writing of the Pre-Shared Key Extension including the ticket) and
+ * the time the client received the ticket from the server.
+ * From the server point of view, the age of a ticket is the time difference
+ * between the time when the server receives a proposition from the client
+ * to use the ticket and the time when the ticket was created by the server.
+ * The server age is expected to be always greater than the client one and
+ * MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE defines the
+ * maximum difference tolerated for the server to accept the ticket.
+ * This is not used in TLS 1.2.
+ *
+ */
+#define MBEDTLS_SSL_TLS1_3_TICKET_AGE_TOLERANCE 6000
 
 /**
  * \def MBEDTLS_SSL_TLS1_3_TICKET_NONCE_LENGTH
@@ -2332,7 +2358,7 @@
  * This module is used by the following key exchanges:
  *      ECJPAKE
  *
- * Requires: MBEDTLS_ECP_C, MBEDTLS_MD_C
+ * Requires: MBEDTLS_ECP_C and either MBEDTLS_MD_C or MBEDTLS_PSA_CRYPTO_C
  *
  * \warning If building without MBEDTLS_MD_C, you must call psa_crypto_init()
  * before doing any EC J-PAKE operations.
@@ -2649,7 +2675,10 @@
  *
  * Module:  library/pkcs5.c
  *
- * Requires: MBEDTLS_CIPHER_C, MBEDTLS_MD_C
+ * Requires: MBEDTLS_CIPHER_C and either MBEDTLS_MD_C or MBEDTLS_PSA_CRYPTO_C.
+ *
+ * \warning If building without MBEDTLS_MD_C, you must call psa_crypto_init()
+ * before doing any PKCS5 operation.
  *
  * This module adds support for the PKCS#5 functions.
  */
@@ -2664,7 +2693,11 @@
  * Module:  library/pkcs12.c
  * Caller:  library/pkparse.c
  *
- * Requires: MBEDTLS_ASN1_PARSE_C, MBEDTLS_CIPHER_C, MBEDTLS_MD_C
+ * Requires: MBEDTLS_ASN1_PARSE_C, MBEDTLS_CIPHER_C and either
+ * MBEDTLS_MD_C or MBEDTLS_PSA_CRYPTO_C.
+ *
+ * \warning If building without MBEDTLS_MD_C, you must call psa_crypto_init()
+ * before doing any PKCS12 operation.
  *
  * This module enables PKCS#12 functions.
  */
@@ -3127,8 +3160,8 @@
  * Requires: MBEDTLS_ASN1_PARSE_C, MBEDTLS_BIGNUM_C, MBEDTLS_OID_C, MBEDTLS_PK_PARSE_C,
  *           (MBEDTLS_MD_C or MBEDTLS_USE_PSA_CRYPTO)
  *
- * \warning If building without MBEDTLS_MD_C, you must call psa_crypto_init()
- * before doing any X.509 operation.
+ * \warning If building with MBEDTLS_USE_PSA_CRYPTO, you must call
+ * psa_crypto_init() before doing any X.509 operation.
  *
  * This module is required for the X.509 parsing modules.
  */
@@ -3188,8 +3221,8 @@
  * Requires: MBEDTLS_BIGNUM_C, MBEDTLS_OID_C, MBEDTLS_PK_PARSE_C,
  *           (MBEDTLS_MD_C or MBEDTLS_USE_PSA_CRYPTO)
  *
- * \warning If building without MBEDTLS_MD_C, you must call psa_crypto_init()
- * before doing any X.509 create operation.
+ * \warning If building with MBEDTLS_USE_PSA_CRYPTO, you must call
+ * psa_crypto_init() before doing any X.509 create operation.
  *
  * This module is the basis for creating X.509 certificates and CSRs.
  */

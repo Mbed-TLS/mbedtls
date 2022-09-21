@@ -1,6 +1,6 @@
 /**
- *  Internal macros to express dependencies for code and tests
- *  that may use either the legacy API or PSA in various builds.
+ *  Macros to express dependencies for code and tests that may use either the
+ *  legacy API or PSA in various builds; mostly for internal use.
  *
  *  Copyright The Mbed TLS Contributors
  *  SPDX-License-Identifier: Apache-2.0
@@ -19,6 +19,18 @@
  */
 
 /*
+ * Note: applications that are targeting a specific configuration do not need
+ * to use these macros; instead they should directly use the functions they
+ * know are available in their configuration.
+ *
+ * Note: code that is purely based on PSA Crypto (psa_xxx() functions)
+ * does not need to use these macros; instead it should use the relevant
+ * PSA_WANT_xxx macros.
+ *
+ * Note: code that is purely based on the legacy crypto APIs (mbedtls_xxx())
+ * does not need to use these macros; instead it should use the relevant
+ * MBEDTLS_xxx macros.
+ *
  * These macros are for code that wants to use <crypto feature> and will do so
  * using <legacy API> or PSA depending on <condition>, where:
  * - <crypto feature> will generally be an algorithm (SHA-256, ECDH) but may
@@ -36,15 +48,10 @@
  * - TLS 1.2 will compute hashes using either mbedtls_md_xxx() (and
  *   mbedtls_sha256_xxx()) or psa_aead_xxx() depending on whether
  *   MBEDTLS_USE_PSA_CRYPTO is defined;
- * - RSA PKCS#1 v2.1 will, in the near future*, compute hashes (for padding)
- *   using either `mbedtls_md()` if it's available, or `psa_hash_compute()`
- *   otherwise;
- * - PEM decoding of PEM-encrypted keys will, in the near future*, compute MD5
- *   hashes using either `mbedtls_md5_xxx()` if it's available, or
- *   `psa_hash_xxx()` otherwise.
- * *See docs/architecture/psa-migration/strategy.md, section "Supporting
- * builds with drivers without the software implementation", strategy for step
- * 1 (libmbedcrypto except the RNG subsystem).
+ * - RSA PKCS#1 v2.1 will compute hashes (for padding) using either
+ *   `mbedtls_md()` if it's available, or `psa_hash_compute()` otherwise;
+ * - PEM decoding of PEM-encrypted keys will compute MD5 hashes using either
+ *   `mbedtls_md5_xxx()` if it's available, or `psa_hash_xxx()` otherwise.
  *
  * Note: the macros are essential to express test dependencies. Inside code,
  * we could instead just use the equivalent pre-processor condition, but
@@ -70,9 +77,9 @@
  *      MBEDTLS_HAS_ALG_MD5_VIA_LOWLEVEL_OR_PSA
  *
  * Note: every time it's possible to use, say SHA-256, via the MD API, then
- * it's also possible to used it via the low-level API. So, code that wants to
+ * it's also possible to use it via the low-level API. So, code that wants to
  * use SHA-256 via both APIs only needs to depend on the MD macro. Also, it
- * just so happens that all the choosing which API to use based on
+ * just so happens that all the code choosing which API to use based on
  * MBEDTLS_USE_PSA_CRYPTO (X.509, TLS 1.2/shared), always uses the abstraction
  * layer (sometimes in addition to the low-level API), so we don't need the
  * MBEDTLS_HAS_feature_VIA_LOWLEVEL_OR_PSA_BASED_ON_USE_PSA macros.
@@ -89,7 +96,7 @@
 #ifndef MBEDTLS_OR_PSA_HELPERS_H
 #define MBEDTLS_OR_PSA_HELPERS_H
 
-#include "common.h"
+#include "mbedtls/build_info.h"
 #if defined(MBEDTLS_PSA_CRYPTO_C)
 #include "psa/crypto.h"
 #endif /* MBEDTLS_PSA_CRYPTO_C */

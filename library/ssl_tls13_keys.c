@@ -359,7 +359,7 @@ int mbedtls_ssl_tls13_evolve_secret(
 
     ret = 0;
 
-    if( input != NULL )
+    if( input != NULL && input_len != 0 )
     {
         memcpy( tmp_input, input, input_len );
         ilen = input_len;
@@ -825,6 +825,9 @@ int mbedtls_ssl_tls13_create_psk_binder( mbedtls_ssl_context *ssl,
         goto exit;
     }
 
+    MBEDTLS_SSL_DEBUG_BUF( 4, "mbedtls_ssl_tls13_create_psk_binder",
+                           early_secret, hash_len ) ;
+
     if( psk_type == MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION )
     {
         ret = mbedtls_ssl_tls13_derive_secret( hash_alg,
@@ -1052,6 +1055,8 @@ int mbedtls_ssl_tls13_key_schedule_stage_early( mbedtls_ssl_context *ssl )
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     psa_algorithm_t hash_alg;
     mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+    unsigned char *psk = NULL;
+    size_t psk_len = 0;
 
     if( handshake->ciphersuite_info == NULL )
     {
@@ -1060,15 +1065,34 @@ int mbedtls_ssl_tls13_key_schedule_stage_early( mbedtls_ssl_context *ssl )
     }
 
     hash_alg = mbedtls_hash_info_psa_from_md( handshake->ciphersuite_info->mac );
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+    if( mbedtls_ssl_tls13_key_exchange_mode_with_psk( ssl ) )
+    {
+        ret = mbedtls_ssl_tls13_export_handshake_psk( ssl, &psk, &psk_len );
+        if( ret != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_export_handshake_psk",
+                                   ret );
+            return( ret );
+        }
+    }
+#endif
 
-    ret = mbedtls_ssl_tls13_evolve_secret( hash_alg, NULL, NULL, 0,
+    ret = mbedtls_ssl_tls13_evolve_secret( hash_alg, NULL, psk, psk_len,
                                            handshake->tls13_master_secrets.early );
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && \
+    defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+    mbedtls_free( (void*)psk );
+#endif
     if( ret != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_evolve_secret", ret );
         return( ret );
     }
 
+    MBEDTLS_SSL_DEBUG_BUF( 4, "mbedtls_ssl_tls13_key_schedule_stage_early",
+                           handshake->tls13_master_secrets.early,
+                           PSA_HASH_LENGTH( hash_alg ) );
     return( 0 );
 }
 
@@ -1480,12 +1504,43 @@ cleanup:
     return( ret );
 }
 
-int mbedtls_ssl_tls13_generate_resumption_master_secret(
-    mbedtls_ssl_context *ssl )
+int mbedtls_ssl_tls13_compute_resumption_master_secret( mbedtls_ssl_context *ssl )
 {
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_md_type_t md_type;
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+    unsigned char transcript[MBEDTLS_TLS1_3_MD_MAX_SIZE];
+    size_t transcript_len;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2,
+        ( "=> mbedtls_ssl_tls13_compute_resumption_master_secret" ) );
+
+    md_type = handshake->ciphersuite_info->mac;
+
+    ret = mbedtls_ssl_get_handshake_transcript( ssl, md_type,
+                                                transcript, sizeof( transcript ),
+                                                &transcript_len );
+    if( ret != 0 )
+        return( ret );
+
+    ret = mbedtls_ssl_tls13_derive_resumption_master_secret(
+                              mbedtls_psa_translate_md( md_type ),
+                              handshake->tls13_master_secrets.app,
+                              transcript, transcript_len,
+                              &ssl->session_negotiate->app_secrets );
+    if( ret != 0 )
+        return( ret );
+
     /* Erase master secrets */
-    mbedtls_platform_zeroize( &ssl->handshake->tls13_master_secrets,
-                              sizeof( ssl->handshake->tls13_master_secrets ) );
+    mbedtls_platform_zeroize( &handshake->tls13_master_secrets,
+                              sizeof( handshake->tls13_master_secrets ) );
+
+    MBEDTLS_SSL_DEBUG_BUF( 4, "Resumption master secret",
+             ssl->session_negotiate->app_secrets.resumption_master_secret,
+             PSA_HASH_LENGTH( mbedtls_psa_translate_md( md_type ) ) ) ;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2,
+        ( "<= mbedtls_ssl_tls13_compute_resumption_master_secret" ) );
     return( 0 );
 }
 
@@ -1543,4 +1598,48 @@ cleanup:
     return( ret );
 }
 
+#if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
+int mbedtls_ssl_tls13_export_handshake_psk( mbedtls_ssl_context *ssl,
+                                            unsigned char **psk,
+                                            size_t *psk_len )
+{
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_key_attributes_t key_attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    *psk_len = 0;
+    *psk = NULL;
+
+    if( mbedtls_svc_key_id_is_null( ssl->handshake->psk_opaque ) )
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+
+    status = psa_get_key_attributes( ssl->handshake->psk_opaque, &key_attributes );
+    if( status != PSA_SUCCESS )
+        return( psa_ssl_status_to_mbedtls( status ) );
+
+    *psk_len = PSA_BITS_TO_BYTES( psa_get_key_bits( &key_attributes ) );
+    *psk = mbedtls_calloc( 1, *psk_len );
+    if( *psk == NULL )
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+
+    status = psa_export_key( ssl->handshake->psk_opaque,
+                             (uint8_t *)*psk, *psk_len, psk_len );
+    if( status != PSA_SUCCESS )
+    {
+        mbedtls_free( (void *)*psk );
+        *psk = NULL;
+        return( psa_ssl_status_to_mbedtls( status ) );
+    }
+    return( 0 );
+#else
+    *psk = ssl->handshake->psk;
+    *psk_len = ssl->handshake->psk_len;
+    if( *psk == NULL )
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    return( 0 );
+#endif /* !MBEDTLS_USE_PSA_CRYPTO */
+}
+#endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+

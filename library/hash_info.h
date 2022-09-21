@@ -35,6 +35,20 @@
 #include "mbedtls/md.h"
 #include "psa/crypto.h"
 
+/** \def MBEDTLS_HASH_MAX_SIZE
+ *
+ * Maximum size of a hash based on configuration.
+ */
+#if defined(MBEDTLS_MD_C) && ( \
+    !defined(MBEDTLS_PSA_CRYPTO_C) || \
+    MBEDTLS_MD_MAX_SIZE >= PSA_HASH_MAX_SIZE )
+#define MBEDTLS_HASH_MAX_SIZE MBEDTLS_MD_MAX_SIZE
+#elif defined(MBEDTLS_PSA_CRYPTO_C) && ( \
+    !defined(MBEDTLS_MD_C) || \
+    PSA_HASH_MAX_SIZE >= MBEDTLS_MD_MAX_SIZE )
+#define MBEDTLS_HASH_MAX_SIZE PSA_HASH_MAX_SIZE
+#endif
+
 /** Get the output length of the given hash type from its MD type.
  *
  * \note To get the output length from the PSA alg, use \c PSA_HASH_LENGTH().

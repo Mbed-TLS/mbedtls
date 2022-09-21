@@ -1295,6 +1295,18 @@ void mbedtls_ssl_tls13_handshake_wrapup( mbedtls_ssl_context *ssl )
         mbedtls_ssl_session_free( ssl->session );
         mbedtls_free( ssl->session );
     }
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && \
+    defined(MBEDTLS_SSL_CLI_C)
+    if( ssl->session_negotiate->next )
+    {
+        mbedtls_ssl_session_free_chain(ssl->session_negotiate->next);
+        mbedtls_free(ssl->session_negotiate->next);
+        ssl->session_negotiate->next = NULL;
+    }
+#endif /* MBEDTLS_SSL_SESSION_TICKETS &&
+          MBEDTLS_SSL_CLI_C */
+
     ssl->session = ssl->session_negotiate;
     ssl->session_negotiate = NULL;
 

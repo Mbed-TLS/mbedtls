@@ -4321,7 +4321,7 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
     {
         mbedtls_ssl_handshake_free( ssl );
         mbedtls_ssl_transform_free( ssl->transform_negotiate );
-        mbedtls_ssl_session_free( ssl->session_negotiate );
+        mbedtls_ssl_session_free_chain( ssl->session_negotiate );
 
         mbedtls_free( ssl->handshake );
         mbedtls_free( ssl->transform_negotiate );

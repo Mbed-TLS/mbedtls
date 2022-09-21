@@ -522,7 +522,7 @@ static int ssl_parse_session_ticket_ext( mbedtls_ssl_context *ssl,
     session.id_len = ssl->session_negotiate->id_len;
     memcpy( &session.id, ssl->session_negotiate->id, session.id_len );
 
-    mbedtls_ssl_session_free_chain( ssl->session_negotiate );
+    mbedtls_ssl_session_free( ssl->session_negotiate );
     memcpy( ssl->session_negotiate, &session, sizeof( mbedtls_ssl_session ) );
 
     /* Zeroize instead of free as we copied the content */

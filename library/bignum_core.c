@@ -602,6 +602,67 @@ cleanup:
     return( ret );
 }
 
+int mbedtls_mpi_core_random( mbedtls_mpi_uint *X,
+                             mbedtls_mpi_uint min,
+                             const mbedtls_mpi_uint *N,
+                             size_t limbs,
+                             int (*f_rng)(void *, unsigned char *, size_t),
+                             void *p_rng )
+{
+    unsigned ge_lower = 1, lt_upper = 0;
+    size_t n_bits = mbedtls_mpi_core_bitlen( N, limbs );
+    size_t n_bytes = ( n_bits + 7 ) / 8;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    /*
+     * When min == 0, each try has at worst a probability 1/2 of failing
+     * (the msb has a probability 1/2 of being 0, and then the result will
+     * be < N), so after 30 tries failure probability is a most 2**(-30).
+     *
+     * When N is just below a power of 2, as is the case when generating
+     * a random scalar on most elliptic curves, 1 try is enough with
+     * overwhelming probability. When N is just above a power of 2,
+     * as when generating a random scalar on secp224k1, each try has
+     * a probability of failing that is almost 1/2.
+     *
+     * The probabilities are almost the same if min is nonzero but negligible
+     * compared to N. This is always the case when N is crypto-sized, but
+     * it's convenient to support small N for testing purposes. When N
+     * is small, use a higher repeat count, otherwise the probability of
+     * failure is macroscopic.
+     */
+    int count = ( n_bytes > 4 ? 30 : 250 );
+
+    /*
+     * Match the procedure given in RFC 6979 §3.3 (deterministic ECDSA)
+     * when f_rng is a suitably parametrized instance of HMAC_DRBG:
+     * - use the same byte ordering;
+     * - keep the leftmost n_bits bits of the generated octet string;
+     * - try until result is in the desired range.
+     * This also avoids any bias, which is especially important for ECDSA.
+     */
+    do
+    {
+        MBEDTLS_MPI_CHK( mbedtls_mpi_core_fill_random( X, limbs,
+                                                       n_bytes,
+                                                       f_rng, p_rng ) );
+        mbedtls_mpi_core_shift_r( X, limbs, 8 * n_bytes - n_bits );
+
+        if( --count == 0 )
+        {
+            ret = MBEDTLS_ERR_MPI_NOT_ACCEPTABLE;
+            goto cleanup;
+        }
+
+        ge_lower = mbedtls_mpi_core_uint_le_mpi( min, X, limbs );
+        lt_upper = mbedtls_mpi_core_lt_ct( X, N, limbs );
+    }
+    while( ge_lower == 0 || lt_upper == 0 );
+
+cleanup:
+    return( ret );
+}
+
 /* BEGIN MERGE SLOT 1 */
 
 static size_t exp_mod_get_window_size( size_t Ebits )

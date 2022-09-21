@@ -1978,11 +1978,20 @@ int mbedtls_mpi_random( mbedtls_mpi *X,
     if( ret != 0 )
         return( ret );
 
-    unsigned ge_lower = 1, lt_upper = 0;
-    size_t n_bits = mbedtls_mpi_bitlen( N );
-    size_t n_bytes = ( n_bits + 7 ) / 8;
+    return( mbedtls_mpi_core_random( X->p, min, N->p, X->n, f_rng, p_rng ) );
+}
 
-    ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+int mbedtls_mpi_core_random( mbedtls_mpi_uint *X,
+                             mbedtls_mpi_uint min,
+                             const mbedtls_mpi_uint *N,
+                             size_t limbs,
+                             int (*f_rng)(void *, unsigned char *, size_t),
+                             void *p_rng )
+{
+    unsigned ge_lower = 1, lt_upper = 0;
+    size_t n_bits = mbedtls_mpi_core_bitlen( N, limbs );
+    size_t n_bytes = ( n_bits + 7 ) / 8;
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     /*
      * When min == 0, each try has at worst a probability 1/2 of failing
@@ -2013,10 +2022,10 @@ int mbedtls_mpi_random( mbedtls_mpi *X,
      */
     do
     {
-        MBEDTLS_MPI_CHK( mbedtls_mpi_core_fill_random( X->p, X->n,
+        MBEDTLS_MPI_CHK( mbedtls_mpi_core_fill_random( X, limbs,
                                                        n_bytes,
                                                        f_rng, p_rng ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( X, 8 * n_bytes - n_bits ) );
+        mbedtls_mpi_core_shift_r( X, limbs, 8 * n_bytes - n_bits );
 
         if( --count == 0 )
         {
@@ -2024,8 +2033,8 @@ int mbedtls_mpi_random( mbedtls_mpi *X,
             goto cleanup;
         }
 
-        ge_lower = mbedtls_mpi_core_uint_le_mpi( min, X->p, X->n );
-        lt_upper = mbedtls_mpi_core_lt_ct( X->p, N->p, N->n );
+        ge_lower = mbedtls_mpi_core_uint_le_mpi( min, X, limbs );
+        lt_upper = mbedtls_mpi_core_lt_ct( X, N, limbs );
     }
     while( ge_lower == 0 || lt_upper == 0 );
 

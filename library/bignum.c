@@ -1966,16 +1966,23 @@ int mbedtls_mpi_random( mbedtls_mpi *X,
                         int (*f_rng)(void *, unsigned char *, size_t),
                         void *p_rng )
 {
-    int ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
-    int count;
-    unsigned ge_lower = 1, lt_upper = 0;
-    size_t n_bits = mbedtls_mpi_bitlen( N );
-    size_t n_bytes = ( n_bits + 7 ) / 8;
-
     if( min < 0 )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
     if( mbedtls_mpi_cmp_int( N, min ) <= 0 )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+
+    /* Ensure that target MPI has exactly the same number of limbs
+     * as the upper bound, even if the upper bound has leading zeros.
+     * This is necessary for the mbedtls_mpi_lt_mpi_ct() check. */
+    int ret = mbedtls_mpi_resize_clear( X, N->n );
+    if( ret != 0 )
+        return( ret );
+
+    unsigned ge_lower = 1, lt_upper = 0;
+    size_t n_bits = mbedtls_mpi_bitlen( N );
+    size_t n_bytes = ( n_bits + 7 ) / 8;
+
+    ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
 
     /*
      * When min == 0, each try has at worst a probability 1/2 of failing
@@ -1994,12 +2001,7 @@ int mbedtls_mpi_random( mbedtls_mpi *X,
      * is small, use a higher repeat count, otherwise the probability of
      * failure is macroscopic.
      */
-    count = ( n_bytes > 4 ? 30 : 250 );
-
-    /* Ensure that target MPI has exactly the same number of limbs
-     * as the upper bound, even if the upper bound has leading zeros.
-     * This is necessary for the mbedtls_mpi_lt_mpi_ct() check. */
-    MBEDTLS_MPI_CHK( mbedtls_mpi_resize_clear( X, N->n ) );
+    int count = ( n_bytes > 4 ? 30 : 250 );
 
     /*
      * Match the procedure given in RFC 6979 §3.3 (deterministic ECDSA)

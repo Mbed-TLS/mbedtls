@@ -1741,8 +1741,9 @@ run_test    "TLS 1.3: m->m: psk/psk_all, fail - no common psk" \
             "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             "$P_CLI nbio=2 debug_level=5 psk_identity=0a0b0c psk=040506 tls13_kex_modes=psk" \
             1 \
-            -c "skip pre_shared_key extensions" \
+            -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
+            -c "client hello, adding PSK binder list" \
             -s "Invalid binder."
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -1778,8 +1779,9 @@ run_test    "TLS 1.3: m->m: psk/all, fail - no common psk" \
             "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             "$P_CLI nbio=2 debug_level=5 psk_identity=0a0b0c psk=040506 tls13_kex_modes=psk" \
             1 \
-            -c "skip pre_shared_key extensions" \
+            -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
+            -c "client hello, adding PSK binder list" \
             -s "Invalid binder."
 
 # psk_ephemeral mode in client
@@ -2992,11 +2994,12 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KE
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 run_test    "TLS 1.3: m->O: ephemeral_all/all, fail,no common psk" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -nocert" \
-            "$P_CLI debug_level=4 force_version=tls13 psk_identity=0a0b0c -psk 040506 tls13_kex_modes=ephemeral_all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk_identity=0a0b0c psk=040506 tls13_kex_modes=ephemeral_all" \
             1 \
             -c "=> write client hello" \
+            -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
-            -c "skip pre_shared_key extensions" \
+            -c "client hello, adding PSK binder list" \
             -c "Last error was: -0x7780 - SSL - A fatal alert message was received from our peer" \
             -c "<= write client hello"
 
@@ -3083,11 +3086,12 @@ requires_any_configs_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED MBEDTLS_KE
                              MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED
 run_test    "TLS 1.3: m->O: all/all, fail,no common psk, no fallback" \
             "$O_NEXT_SRV -msg -debug -tls1_3 -psk_identity 0a0b0c -psk 010203 -nocert" \
-            "$P_CLI debug_level=4 force_version=tls13 psk_identity=0a0b0c -psk 010203 tls13_kex_modes=all" \
+            "$P_CLI debug_level=4 force_version=tls13 psk_identity=0a0b0c psk=040506 tls13_kex_modes=all" \
             1 \
             -c "=> write client hello" \
+            -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
-            -c "skip pre_shared_key extensions" \
+            -c "client hello, adding PSK binder list" \
             -c "Last error was: -0x7780 - SSL - A fatal alert message was received from our peer" \
             -c "<= write client hello"
 
@@ -3191,11 +3195,12 @@ requires_config_enabled MBEDTLS_DEBUG_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3: m->G: psk/ephemeral_all, fail, no common psk" \
             "$G_NEXT_SRV -d 4 --priority=NORMAL:-VERS-ALL:+VERS-TLS1.3:-KX-ALL:+ECDHE-PSK:+DHE-PSK:-PSK:+CIPHER-ALL --pskpasswd=data_files/simplepass.psk" \
-            "$P_CLI debug_level=4 force_version=tls13 psk_identity=0a0b0c -psk 010203 tls13_kex_modes=psk" \
+            "$P_CLI debug_level=4 force_version=tls13 psk_identity=0a0b0c psk=040506 tls13_kex_modes=psk" \
             1 \
             -c "=> write client hello" \
+            -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
-            -c "skip pre_shared_key extensions" \
+            -c "client hello, adding PSK binder list" \
             -s "Parsing extension 'PSK Key Exchange Modes/45'" \
             -c "<= write client hello" \
             -c "Last error was: -0x7780 - SSL - A fatal alert message was received from our peer"

@@ -131,7 +131,8 @@ int mbedtls_mpi_mod_modulus_setup( mbedtls_mpi_mod_modulus *m,
         case MBEDTLS_MPI_MOD_REP_MONTGOMERY:
             m->int_rep = int_rep;
             m->rep.mont.mm = mbedtls_mpi_core_montmul_init( m->p );
-            mbedtls_mpi_set_montgomery_constant_unsafe( m );
+            mbedtls_mpi_set_montgomery_constant_unsafe( &m->rep.mont.rr,
+                                                        m->p, m->limbs );
             break;
         case MBEDTLS_MPI_MOD_REP_OPT_RED:
             m->int_rep = int_rep;

@@ -94,7 +94,9 @@ int mbedtls_mpi_mod_raw_write( const mbedtls_mpi_uint *A,
     }
 }
 
-int mbedtls_mpi_set_montgomery_constant_unsafe( mbedtls_mpi_mod_modulus *m )
+int mbedtls_mpi_set_montgomery_constant_unsafe( const mbedtls_mpi_uint **X,
+                                                const mbedtls_mpi_uint *A,
+                                                size_t limbs )
                                                 
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -104,14 +106,11 @@ int mbedtls_mpi_set_montgomery_constant_unsafe( mbedtls_mpi_mod_modulus *m )
     mbedtls_mpi_init( &N ); 
     mbedtls_mpi_init( &RR );
 
-    if (m->p == NULL || m->int_rep != MBEDTLS_MPI_MOD_REP_MONTGOMERY)
-    {
-        ret = MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+    if ( A == NULL )
         goto cleanup;
-    }
 
-    if ( !mbedtls_mpi_grow( &N,  m->limbs ) )
-        memcpy( N.p, m->p,  sizeof(mbedtls_mpi_uint) *  m->limbs );
+    if ( !mbedtls_mpi_grow( &N,  limbs ) )
+        memcpy( N.p, A, sizeof(mbedtls_mpi_uint) *  limbs );
     else
         goto cleanup;
 
@@ -119,7 +118,7 @@ int mbedtls_mpi_set_montgomery_constant_unsafe( mbedtls_mpi_mod_modulus *m )
     MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( &RR, N.n * 2 * biL ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_mod_mpi( &RR, &RR, &N ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( &RR, N.n ) );
-    m->rep.mont.rr = RR.p;
+    *X = RR.p;
     RR.p = NULL;
     ret = 0;
 

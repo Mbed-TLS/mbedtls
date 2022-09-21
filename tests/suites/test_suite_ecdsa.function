@@ -1,7 +1,7 @@
 /* BEGIN_HEADER */
 #include "mbedtls/ecdsa.h"
 #include "hash_info.h"
-#include "legacy_or_psa.h"
+#include "mbedtls/legacy_or_psa.h"
 #if ( defined(MBEDTLS_ECDSA_DETERMINISTIC) && defined(MBEDTLS_SHA256_C) ) || \
     ( !defined(MBEDTLS_ECDSA_DETERMINISTIC) && defined(MBEDTLS_HAS_ALG_SHA_256_VIA_LOWLEVEL_OR_PSA) )
 #define MBEDTLS_HAS_ALG_SHA_256_VIA_MD_IF_DETERMINISTIC

@@ -46,7 +46,7 @@
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #include "hash_info.h"
-#include "legacy_or_psa.h"
+#include "mbedtls/legacy_or_psa.h"
 
 void mbedtls_x509write_crt_init( mbedtls_x509write_cert *ctx )
 {

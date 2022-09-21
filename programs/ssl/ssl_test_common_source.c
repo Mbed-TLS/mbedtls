@@ -297,49 +297,23 @@ int send_cb( void *ctx, unsigned char const *buf, size_t len )
 #define MBEDTLS_SSL_SIG_ALG( hash )
 #endif
 
-#if ( !defined(MBEDTLS_USE_PSA_CRYPTO) && \
-        defined(MBEDTLS_MD_C) && defined(MBEDTLS_SHA1_C) ) || \
-    ( defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_SHA_1) )
-#define HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA
-#endif
-#if ( !defined(MBEDTLS_USE_PSA_CRYPTO) && \
-        defined(MBEDTLS_MD_C) && defined(MBEDTLS_SHA224_C) ) || \
-    ( defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_SHA_224) )
-#define HAS_ALG_SHA_224_VIA_MD_OR_PSA_BASED_ON_USE_PSA
-#endif
-#if ( !defined(MBEDTLS_USE_PSA_CRYPTO) && \
-        defined(MBEDTLS_MD_C) && defined(MBEDTLS_SHA256_C) ) || \
-    ( defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_SHA_256) )
-#define HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA
-#endif
-#if ( !defined(MBEDTLS_USE_PSA_CRYPTO) && \
-        defined(MBEDTLS_MD_C) && defined(MBEDTLS_SHA384_C) ) || \
-    ( defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_SHA_384) )
-#define HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA
-#endif
-#if ( !defined(MBEDTLS_USE_PSA_CRYPTO) && \
-        defined(MBEDTLS_MD_C) && defined(MBEDTLS_SHA512_C) ) || \
-    ( defined(MBEDTLS_USE_PSA_CRYPTO) && defined(PSA_WANT_ALG_SHA_512) )
-#define HAS_ALG_SHA_512_VIA_MD_OR_PSA_BASED_ON_USE_PSA
-#endif
-
 uint16_t ssl_sig_algs_for_test[] = {
-#if defined(HAS_ALG_SHA_512_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+#if defined(MBEDTLS_HAS_ALG_SHA_512_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
     MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA512 )
 #endif
-#if defined(HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+#if defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
     MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA384 )
 #endif
-#if defined(HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+#if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
     MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA256 )
 #endif
-#if defined(HAS_ALG_SHA_224_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+#if defined(MBEDTLS_HAS_ALG_SHA_224_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
     MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA224 )
 #endif
-#if defined(MBEDTLS_RSA_C) && defined(HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
     MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA256,
 #endif /* MBEDTLS_RSA_C && MBEDTLS_SHA256_C */
-#if defined(HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+#if defined(MBEDTLS_HAS_ALG_SHA_1_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
     /* Allow SHA-1 as we use it extensively in tests. */
     MBEDTLS_SSL_SIG_ALG( MBEDTLS_SSL_HASH_SHA1 )
 #endif

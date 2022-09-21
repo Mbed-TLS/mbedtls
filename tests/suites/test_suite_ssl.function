@@ -11,7 +11,7 @@
 #include "mbedtls/ssl_cache.h"
 #endif
 
-#include <legacy_or_psa.h>
+#include <mbedtls/legacy_or_psa.h>
 #include "hash_info.h"
 
 #include <constant_time_internal.h>
@@ -5439,7 +5439,7 @@ void ssl_cf_hmac( int hash )
     size_t min_in_len, in_len, max_in_len, i;
     /* TLS additional data is 13 bytes (hence the "lucky 13" name) */
     unsigned char add_data[13];
-    unsigned char ref_out[MBEDTLS_MD_MAX_SIZE];
+    unsigned char ref_out[MBEDTLS_HASH_MAX_SIZE];
     unsigned char *data = NULL;
     unsigned char *out = NULL;
     unsigned char rec_num = 0;

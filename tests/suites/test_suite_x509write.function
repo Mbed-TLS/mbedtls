@@ -7,7 +7,7 @@
 #include "mbedtls/rsa.h"
 
 #include "hash_info.h"
-#include "legacy_or_psa.h"
+#include "mbedtls/legacy_or_psa.h"
 
 #if defined(MBEDTLS_RSA_C)
 int mbedtls_rsa_decrypt_func( void *ctx, size_t *olen,

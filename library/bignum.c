@@ -777,48 +777,6 @@ int mbedtls_mpi_shift_r( mbedtls_mpi *X, size_t count )
     return( 0 );
 }
 
-void mbedtls_mpi_core_shift_r( mbedtls_mpi_uint *X, size_t limbs,
-                               size_t count )
-{
-    size_t i, v0, v1;
-    mbedtls_mpi_uint r0 = 0, r1;
-
-    v0 = count /  biL;
-    v1 = count & (biL - 1);
-
-    if( v0 > limbs || ( v0 == limbs && v1 > 0 ) )
-    {
-        memset( X, 0, limbs * ciL );
-        return;
-    }
-
-    /*
-     * shift by count / limb_size
-     */
-    if( v0 > 0 )
-    {
-        for( i = 0; i < limbs - v0; i++ )
-            X[i] = X[i + v0];
-
-        for( ; i < limbs; i++ )
-            X[i] = 0;
-    }
-
-    /*
-     * shift by count % limb_size
-     */
-    if( v1 > 0 )
-    {
-        for( i = limbs; i > 0; i-- )
-        {
-            r1 = X[i - 1] << (biL - v1);
-            X[i - 1] >>= v1;
-            X[i - 1] |= r0;
-            r0 = r1;
-        }
-    }
-}
-
 /*
  * Compare unsigned values
  */

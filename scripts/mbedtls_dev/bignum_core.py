@@ -29,6 +29,47 @@ class BignumCoreTarget(test_data_generation.BaseTarget, metaclass=ABCMeta):
     target_basename = 'test_suite_bignum_core.generated'
 
 
+class BignumCoreShiftR(BignumCoreTarget, metaclass=ABCMeta):
+    """Test cases for mbedtls_bignum_core_shift_r()."""
+    count = 0
+    test_function = "mpi_core_shift_r"
+    test_name = "Core shift right"
+
+    DATA = [
+        ('00', '0', [0, 1, 8]),
+        ('01', '1', [0, 1, 2, 8, 64]),
+        ('dee5ca1a7ef10a75', '64-bit',
+         list(range(11)) + [31, 32, 33, 63, 64, 65, 71, 72]),
+        ('002e7ab0070ad57001', '[leading 0 limb]',
+         [0, 1, 8, 63, 64]),
+        ('a1055eb0bb1efa1150ff', '80-bit',
+         [0, 1, 8, 63, 64, 65, 72, 79, 80, 81, 88, 128, 129, 136]),
+        ('020100000000000000001011121314151617', '138-bit',
+         [0, 1, 8, 9, 16, 72, 73, 136, 137, 138, 144]),
+    ]
+
+    def __init__(self, input_hex: str, descr: str, count: int) -> None:
+        self.input_hex = input_hex
+        self.number_description = descr
+        self.shift_count = count
+        self.result = bignum_common.hex_to_int(input_hex) >> count
+
+    def arguments(self) -> List[str]:
+        return ['"{}"'.format(self.input_hex),
+                str(self.shift_count),
+                '"{:0{}x}"'.format(self.result, len(self.input_hex))]
+
+    def description(self) -> str:
+        return 'Core shift {} >> {}'.format(self.number_description,
+                                            self.shift_count)
+
+    @classmethod
+    def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
+        for input_hex, descr, counts in cls.DATA:
+            for count in counts:
+                yield cls(input_hex, descr, count).create_test_case()
+
+
 class BignumCoreOperation(bignum_common.OperationCommon, BignumCoreTarget, metaclass=ABCMeta):
     #pylint: disable=abstract-method
     """Common features for bignum core operations."""

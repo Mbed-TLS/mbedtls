@@ -2654,10 +2654,6 @@ static int ssl_tls13_prepare_new_session_ticket( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> prepare NewSessionTicket msg" ) );
 
-    if( ssl->handshake->resume == 1 )
-        ssl->handshake->new_session_tickets_count = 0;
-    else
-        ssl->handshake->new_session_tickets_count--;
 #if defined(MBEDTLS_HAVE_TIME)
     session->start = mbedtls_time( NULL );
 #endif
@@ -2869,6 +2865,8 @@ static int ssl_tls13_write_new_session_ticket( mbedtls_ssl_context *ssl )
 
         MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_finish_handshake_msg(
                                   ssl, buf_len, msg_len ) );
+
+        ssl->handshake->new_session_tickets_count--;
 
         mbedtls_ssl_handshake_set_state( ssl,
                                          MBEDTLS_SSL_NEW_SESSION_TICKET_FLUSH );

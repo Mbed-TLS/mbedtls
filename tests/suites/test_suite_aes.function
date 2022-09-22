@@ -358,7 +358,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:NOT_DEFINED */
+/* BEGIN_CASE */
 void aes_invalid_mode( )
 {
     mbedtls_aes_context aes_ctx;

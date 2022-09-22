@@ -51,12 +51,6 @@
 
 #if !defined(MBEDTLS_AES_ALT)
 
-/* Parameter validation macros based on platform_util.h */
-#define AES_VALIDATE_RET( cond )    \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_AES_BAD_INPUT_DATA )
-#define AES_VALIDATE( cond )        \
-    MBEDTLS_INTERNAL_VALIDATE( cond )
-
 #if defined(MBEDTLS_PADLOCK_C) &&                      \
     ( defined(MBEDTLS_HAVE_X86) || defined(MBEDTLS_PADLOCK_ALIGN16) )
 static int aes_padlock_ace = -1;
@@ -489,8 +483,6 @@ static void aes_gen_tables( void )
 
 void mbedtls_aes_init( mbedtls_aes_context *ctx )
 {
-    AES_VALIDATE( ctx != NULL );
-
     memset( ctx, 0, sizeof( mbedtls_aes_context ) );
 }
 
@@ -505,8 +497,6 @@ void mbedtls_aes_free( mbedtls_aes_context *ctx )
 #if defined(MBEDTLS_CIPHER_MODE_XTS)
 void mbedtls_aes_xts_init( mbedtls_aes_xts_context *ctx )
 {
-    AES_VALIDATE( ctx != NULL );
-
     mbedtls_aes_init( &ctx->crypt );
     mbedtls_aes_init( &ctx->tweak );
 }
@@ -530,9 +520,6 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
 {
     unsigned int i;
     uint32_t *RK;
-
-    AES_VALIDATE_RET( ctx != NULL );
-    AES_VALIDATE_RET( key != NULL );
 
     switch( keybits )
     {
@@ -649,9 +636,6 @@ int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
     uint32_t *RK;
     uint32_t *SK;
 
-    AES_VALIDATE_RET( ctx != NULL );
-    AES_VALIDATE_RET( key != NULL );
-
     mbedtls_aes_init( &cty );
 
     ctx->rk_offset = 0;
@@ -743,9 +727,6 @@ int mbedtls_aes_xts_setkey_enc( mbedtls_aes_xts_context *ctx,
     const unsigned char *key1, *key2;
     unsigned int key1bits, key2bits;
 
-    AES_VALIDATE_RET( ctx != NULL );
-    AES_VALIDATE_RET( key != NULL );
-
     ret = mbedtls_aes_xts_decode_keys( key, keybits, &key1, &key1bits,
                                        &key2, &key2bits );
     if( ret != 0 )
@@ -767,9 +748,6 @@ int mbedtls_aes_xts_setkey_dec( mbedtls_aes_xts_context *ctx,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const unsigned char *key1, *key2;
     unsigned int key1bits, key2bits;
-
-    AES_VALIDATE_RET( ctx != NULL );
-    AES_VALIDATE_RET( key != NULL );
 
     ret = mbedtls_aes_xts_decode_keys( key, keybits, &key1, &key1bits,
                                        &key2, &key2bits );
@@ -970,11 +948,8 @@ int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
                            const unsigned char input[16],
                            unsigned char output[16] )
 {
-    AES_VALIDATE_RET( ctx != NULL );
-    AES_VALIDATE_RET( input != NULL );
-    AES_VALIDATE_RET( output != NULL );
-    AES_VALIDATE_RET( mode == MBEDTLS_AES_ENCRYPT ||
-                      mode == MBEDTLS_AES_DECRYPT );
+    if( mode != MBEDTLS_AES_ENCRYPT && mode != MBEDTLS_AES_DECRYPT )
+        return MBEDTLS_ERR_AES_BAD_INPUT_DATA;
 
 #if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
     if( mbedtls_aesni_has_support( MBEDTLS_AESNI_AES ) )
@@ -1014,12 +989,8 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     unsigned char temp[16];
 
-    AES_VALIDATE_RET( ctx != NULL );
-    AES_VALIDATE_RET( mode == MBEDTLS_AES_ENCRYPT ||
-                      mode == MBEDTLS_AES_DECRYPT );
-    AES_VALIDATE_RET( iv != NULL );
-    AES_VALIDATE_RET( input != NULL );
-    AES_VALIDATE_RET( output != NULL );
+    if( mode != MBEDTLS_AES_ENCRYPT && mode != MBEDTLS_AES_DECRYPT )
+        return MBEDTLS_ERR_AES_BAD_INPUT_DATA;
 
     if( length % 16 )
         return( MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH );
@@ -1123,12 +1094,8 @@ int mbedtls_aes_crypt_xts( mbedtls_aes_xts_context *ctx,
     unsigned char prev_tweak[16];
     unsigned char tmp[16];
 
-    AES_VALIDATE_RET( ctx != NULL );
-    AES_VALIDATE_RET( mode == MBEDTLS_AES_ENCRYPT ||
-                      mode == MBEDTLS_AES_DECRYPT );
-    AES_VALIDATE_RET( data_unit != NULL );
-    AES_VALIDATE_RET( input != NULL );
-    AES_VALIDATE_RET( output != NULL );
+    if( mode != MBEDTLS_AES_ENCRYPT && mode != MBEDTLS_AES_DECRYPT )
+        return MBEDTLS_ERR_AES_BAD_INPUT_DATA;
 
     /* Data units must be at least 16 bytes long. */
     if( length < 16 )
@@ -1232,13 +1199,8 @@ int mbedtls_aes_crypt_cfb128( mbedtls_aes_context *ctx,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t n;
 
-    AES_VALIDATE_RET( ctx != NULL );
-    AES_VALIDATE_RET( mode == MBEDTLS_AES_ENCRYPT ||
-                      mode == MBEDTLS_AES_DECRYPT );
-    AES_VALIDATE_RET( iv_off != NULL );
-    AES_VALIDATE_RET( iv != NULL );
-    AES_VALIDATE_RET( input != NULL );
-    AES_VALIDATE_RET( output != NULL );
+    if( mode != MBEDTLS_AES_ENCRYPT && mode != MBEDTLS_AES_DECRYPT )
+        return MBEDTLS_ERR_AES_BAD_INPUT_DATA;
 
     n = *iv_off;
 
@@ -1301,12 +1263,8 @@ int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
     unsigned char c;
     unsigned char ov[17];
 
-    AES_VALIDATE_RET( ctx != NULL );
-    AES_VALIDATE_RET( mode == MBEDTLS_AES_ENCRYPT ||
-                      mode == MBEDTLS_AES_DECRYPT );
-    AES_VALIDATE_RET( iv != NULL );
-    AES_VALIDATE_RET( input != NULL );
-    AES_VALIDATE_RET( output != NULL );
+    if( mode != MBEDTLS_AES_ENCRYPT && mode != MBEDTLS_AES_DECRYPT )
+        return MBEDTLS_ERR_AES_BAD_INPUT_DATA;
     while( length-- )
     {
         memcpy( ov, iv, 16 );
@@ -1344,12 +1302,6 @@ int mbedtls_aes_crypt_ofb( mbedtls_aes_context *ctx,
 {
     int ret = 0;
     size_t n;
-
-    AES_VALIDATE_RET( ctx != NULL );
-    AES_VALIDATE_RET( iv_off != NULL );
-    AES_VALIDATE_RET( iv != NULL );
-    AES_VALIDATE_RET( input != NULL );
-    AES_VALIDATE_RET( output != NULL );
 
     n = *iv_off;
 
@@ -1391,13 +1343,6 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
     int c, i;
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t n;
-
-    AES_VALIDATE_RET( ctx != NULL );
-    AES_VALIDATE_RET( nc_off != NULL );
-    AES_VALIDATE_RET( nonce_counter != NULL );
-    AES_VALIDATE_RET( stream_block != NULL );
-    AES_VALIDATE_RET( input != NULL );
-    AES_VALIDATE_RET( output != NULL );
 
     n = *nc_off;
 

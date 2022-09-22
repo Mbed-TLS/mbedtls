@@ -674,7 +674,6 @@ static void ssl_handshake_params_init( mbedtls_ssl_handshake_params *handshake )
     !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
     mbedtls_pk_init( &handshake->peer_pubkey );
 #endif
-
 }
 
 void mbedtls_ssl_transform_init( mbedtls_ssl_transform *transform )

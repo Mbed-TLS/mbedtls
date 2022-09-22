@@ -146,8 +146,6 @@ typedef struct {
  * \param val                The unsigned integer value
  * \param len                The length of the string.
  * \param bytes              The string to output into.
- *
- * \return                   The corresponding LMS error code.
  */
 void unsigned_int_to_network_bytes( unsigned int val, size_t len,
                                     unsigned char *bytes );

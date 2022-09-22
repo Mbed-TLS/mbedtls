@@ -3257,6 +3257,7 @@ int mbedtls_ssl_handshake_step( mbedtls_ssl_context *ssl )
         {
             case MBEDTLS_SSL_HELLO_REQUEST:
                 ssl->state = MBEDTLS_SSL_CLIENT_HELLO;
+                ret = 0;
                 break;
 
             case MBEDTLS_SSL_CLIENT_HELLO:

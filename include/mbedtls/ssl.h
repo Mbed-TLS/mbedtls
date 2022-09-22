@@ -1337,7 +1337,7 @@ struct mbedtls_ssl_config
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && \
     defined(MBEDTLS_SSL_SRV_C) && \
     defined(MBEDTLS_SSL_PROTO_TLS1_3)
-    uint16_t MBEDTLS_PRIVATE(new_session_tickets);   /*!< number of NewSessionTicket */
+    uint16_t MBEDTLS_PRIVATE(new_session_tickets_count);   /*!< number of NewSessionTicket */
 #endif
 
 #if defined(MBEDTLS_SSL_SRV_C)
@@ -4137,9 +4137,9 @@ void mbedtls_ssl_conf_session_tickets( mbedtls_ssl_config *conf, int use_tickets
     defined(MBEDTLS_SSL_SRV_C) && \
     defined(MBEDTLS_SSL_PROTO_TLS1_3)
 /**
- * \brief          Number of NewSessionTicket message that sent by server.
+ * \brief          Number of NewSessionTicket messages for the server to send
+ *                 after handshake completion.
  *                 (Default: MBEDTLS_SSL_TLS1_3_DEFAULT_NEW_SESSION_TICKETS)
- *
  *
  * \param conf     SSL configuration
  * \param num_tickets   Number of NewSessionTicket.

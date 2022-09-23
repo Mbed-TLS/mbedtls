@@ -102,12 +102,12 @@ unsigned int network_bytes_to_unsigned_int( size_t len,
  * string. See NIST SP800-208 section 3.1 or RFC8554 Algorithm 2 for details of
  * the checksum algorithm.
  *
- *  \param params              The LMOTS parameter set, I and q values which
- *                             describe the key being used.
+ *  params              The LMOTS parameter set, I and q values which
+ *                      describe the key being used.
  *
- *  \param digest              The digit string to create the digest from. As
- *                             this does not contain a checksum, it is the same
- *                             size as a hash output.
+ *  digest              The digit string to create the digest from. As
+ *                      this does not contain a checksum, it is the same
+ *                      size as a hash output.
  */
 static unsigned short lmots_checksum_calculate( const mbedtls_lmots_parameters_t *params,
                                                 const unsigned char* digest )
@@ -128,23 +128,23 @@ static unsigned short lmots_checksum_calculate( const mbedtls_lmots_parameters_t
  * SP800-208 section 3.1 or RFC8554 Algorithm 3 step 5 (also used in Algorithm
  * 4b step 3) for details.
  *
- *  \param params              The LMOTS parameter set, I and q values which
- *                             describe the key being used.
+ *  params              The LMOTS parameter set, I and q values which
+ *                      describe the key being used.
  *
- *  \param msg                 The message that will be hashed to create the
- *                             digest.
+ *  msg                 The message that will be hashed to create the
+ *                      digest.
  *
- *  \param msg_size            The size of the message.
+ *  msg_size            The size of the message.
  *
- *  \param C_random_value      The random value that will be combined with the
- *                             message digest. This is always the same size as a
- *                             hash output for whichever hash algorithm is
- *                             determined by the parameter set.
+ *  C_random_value      The random value that will be combined with the
+ *                      message digest. This is always the same size as a
+ *                      hash output for whichever hash algorithm is
+ *                      determined by the parameter set.
  *
- *  \param output              An output containing the digit string (+
- *                             checksum) of length P digits (in the case of
- *                             MBEDTLS_LMOTS_SHA256_N32_W8, this means it is of
- *                             size P bytes).
+ *  output              An output containing the digit string (+
+ *                      checksum) of length P digits (in the case of
+ *                      MBEDTLS_LMOTS_SHA256_N32_W8, this means it is of
+ *                      size P bytes).
  */
 static int create_digit_array_with_checksum( const mbedtls_lmots_parameters_t *params,
                                              const unsigned char *msg,
@@ -216,27 +216,27 @@ exit:
  * Algorithm 3 step 5), and to calculate a public key candidate from a
  * signature and message (RFC8554 Algorithm 4b step 3).
  *
- *  \param params              The LMOTS parameter set, I and q values which
- *                             describe the key being used.
+ *  params              The LMOTS parameter set, I and q values which
+ *                      describe the key being used.
  *
- *  \param x_digit_array       The array of digits (of size P, 34 in the case of
- *                             MBEDTLS_LMOTS_SHA256_N32_W8).
+ *  x_digit_array       The array of digits (of size P, 34 in the case of
+ *                      MBEDTLS_LMOTS_SHA256_N32_W8).
  *
- *  \param hash_idx_min_values An array of the starting values of the j iterator
- *                             for each of the members of the digit array. If
- *                             this value in NULL, then all iterators will start
- *                             at 0.
+ *  hash_idx_min_values An array of the starting values of the j iterator
+ *                      for each of the members of the digit array. If
+ *                      this value in NULL, then all iterators will start
+ *                      at 0.
  *
- *  \param hash_idx_max_values An array of the upper bound values of the j
- *                             iterator for each of the members of the digit
- *                             array. If this value in NULL, then iterator is
- *                             bounded to be less than 2^w - 1 (255 in the case
- *                             of MBEDTLS_LMOTS_SHA256_N32_W8)
+ *  hash_idx_max_values An array of the upper bound values of the j
+ *                      iterator for each of the members of the digit
+ *                      array. If this value in NULL, then iterator is
+ *                      bounded to be less than 2^w - 1 (255 in the case
+ *                      of MBEDTLS_LMOTS_SHA256_N32_W8)
  *
- *  \param output              An array containing a hash output for each member
- *                             of the digit string P. In the case of
- *                             MBEDTLS_LMOTS_SHA256_N32_W8, this is of size 32 *
- *                             34.
+ *  output              An array containing a hash output for each member
+ *                      of the digit string P. In the case of
+ *                      MBEDTLS_LMOTS_SHA256_N32_W8, this is of size 32 *
+ *                      34.
  */
 static int hash_digit_array( const mbedtls_lmots_parameters_t *params,
                              const unsigned char *x_digit_array,
@@ -345,15 +345,15 @@ exit:
  * step 4), and to calculate a public key candidate from a signature and message
  * (RFC8554 Algorithm 4b step 3).
  *
- *  \param params           The LMOTS parameter set, I and q values which describe
- *                          the key being used.
- *  \param y_hashed_digits  The array of hashes, one hash for each digit of the
- *                          symbol array (which is of size P, 34 in the case of
- *                          MBEDTLS_LMOTS_SHA256_N32_W8)
+ *  params           The LMOTS parameter set, I and q values which describe
+ *                   the key being used.
+ *  y_hashed_digits  The array of hashes, one hash for each digit of the
+ *                   symbol array (which is of size P, 34 in the case of
+ *                   MBEDTLS_LMOTS_SHA256_N32_W8)
  *
- *  \param pub_key          The output public key (or candidate public key in
- *                          case this is being run as part of signature
- *                          verification), in the form of a hash output.
+ *  pub_key          The output public key (or candidate public key in
+ *                   case this is being run as part of signature
+ *                   verification), in the form of a hash output.
  */
 static int public_key_from_hashed_digit_array( const mbedtls_lmots_parameters_t *params,
                                                const unsigned char *y_hashed_digits,

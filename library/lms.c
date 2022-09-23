@@ -87,19 +87,19 @@ static const unsigned char D_INTR_CONSTANT_BYTES[D_CONST_LEN] = {0x83, 0x83};
  * public key and some other parameters like the leaf index). This function
  * implements RFC8554 section 5.3, in the case where r >= 2^h.
  *
- *  \param params              The LMS parameter set, the underlying LMOTS
- *                             parameter set, and I value which describe the key
- *                             being used.
+ *  params              The LMS parameter set, the underlying LMOTS
+ *                      parameter set, and I value which describe the key
+ *                      being used.
  *
- *  \param pub_key             The public key of the private whose index
- *                             corresponds to the index of this leaf node. This
- *                             is a hash output.
+ *  pub_key             The public key of the private whose index
+ *                      corresponds to the index of this leaf node. This
+ *                      is a hash output.
  *
- *  \param r_node_idx          The index of this node in the merkle tree. Note
- *                             that the root node of the merkle tree is
- *                             1-indexed.
+ *  r_node_idx          The index of this node in the merkle tree. Note
+ *                      that the root node of the merkle tree is
+ *                      1-indexed.
  *
- *  \param out                 The output node value, which is a hash output.
+ *  out                 The output node value, which is a hash output.
  */
 static int create_merkle_leaf_value( const mbedtls_lms_parameters_t *params,
                                      unsigned char *pub_key,
@@ -157,23 +157,23 @@ exit:
  * of a public key and some other parameters like the node index). This function
  * implements RFC8554 section 5.3, in the case where r < 2^h.
  *
- *  \param params              The LMS parameter set, the underlying LMOTS
- *                             parameter set, and I value which describe the key
- *                             being used.
+ *  params              The LMS parameter set, the underlying LMOTS
+ *                      parameter set, and I value which describe the key
+ *                      being used.
  *
- *  \param left_node           The value of the child of this node which is on
- *                             the left-hand side. As with all nodes on the
- *                             merkle tree, this is a hash output.
+ *  left_node           The value of the child of this node which is on
+ *                      the left-hand side. As with all nodes on the
+ *                      merkle tree, this is a hash output.
  *
- *  \param right_node          The value of the child of this node which is on
- *                             the right-hand side. As with all nodes on the
- *                             merkle tree, this is a hash output.
+ *  right_node          The value of the child of this node which is on
+ *                      the right-hand side. As with all nodes on the
+ *                      merkle tree, this is a hash output.
  *
- *  \param r_node_idx          The index of this node in the merkle tree. Note
- *                             that the root node of the merkle tree is
- *                             1-indexed.
+ *  r_node_idx          The index of this node in the merkle tree. Note
+ *                      that the root node of the merkle tree is
+ *                      1-indexed.
  *
- *  \param out                 The output node value, which is a hash output.
+ *  out                 The output node value, which is a hash output.
  */
 static int create_merkle_internal_value( const mbedtls_lms_parameters_t *params,
                                          const unsigned char *left_node,
@@ -408,15 +408,15 @@ int mbedtls_lms_verify( const mbedtls_lms_public_t *ctx,
  * implements RFC8554 section 5.3, and is used to generate a public key (as the
  * public key is the root node of the merkle tree).
  *
- *  \param ctx                 The LMS private context, containing a parameter
- *                             set and private key material consisting of both
- *                             public and private OTS.
+ *  ctx                 The LMS private context, containing a parameter
+ *                      set and private key material consisting of both
+ *                      public and private OTS.
  *
- *  \param tree                The output tree, which is 2^(H + 1) hash outputs.
- *                             In the case of H=10 we have 2048 tree nodes (of
- *                             which 1024 of them are leaf nodes). Note that
- *                             because the merkle tree root is 1-indexed, the 0
- *                             index tree node is never used.
+ *  tree                The output tree, which is 2^(H + 1) hash outputs.
+ *                      In the case of H=10 we have 2048 tree nodes (of
+ *                      which 1024 of them are leaf nodes). Note that
+ *                      because the merkle tree root is 1-indexed, the 0
+ *                      index tree node is never used.
  */
 static int calculate_merkle_tree( mbedtls_lms_private_t *ctx,
                                   unsigned char *tree )
@@ -465,13 +465,13 @@ static int calculate_merkle_tree( mbedtls_lms_private_t *ctx,
  * and return the full path. This function implements RFC8554 section 5.4.1, as
  * the merkle path is the main component of an LMS signature.
  *
- *  \param ctx                 The LMS private context, containing a parameter
- *                             set and private key material consisting of both
- *                             public and private OTS.
+ *  ctx                 The LMS private context, containing a parameter
+ *                      set and private key material consisting of both
+ *                      public and private OTS.
  *
- *  \param leaf_node_id        Which leaf node to calculate the path from.
+ *  leaf_node_id        Which leaf node to calculate the path from.
  *
- *  \param tree                The output path, which is H hash outputs.
+ *  tree                The output path, which is H hash outputs.
  */
 static int get_merkle_path( mbedtls_lms_private_t *ctx,
                             unsigned int leaf_node_id,

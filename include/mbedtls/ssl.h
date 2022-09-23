@@ -4137,16 +4137,17 @@ void mbedtls_ssl_conf_session_tickets( mbedtls_ssl_config *conf, int use_tickets
     defined(MBEDTLS_SSL_SRV_C) && \
     defined(MBEDTLS_SSL_PROTO_TLS1_3)
 /**
-* \brief    Number of NewSessionTicket messages for the server to send
- *           after handshake completion.
+ * \brief   Number of NewSessionTicket messages for the server to send
+ *          after handshake completion.
+ *
  * \note    The default value is
- *          MBEDTLS_SSL_TLS1_3_DEFAULT_NEW_SESSION_TICKETS.
- * \note    In case of a session resumption, this setting only partially
- *          apply. At most one ticket is sent in that case to just review the
- *          pool of tickets of the client. The rationale is to avoid the
- *          number of tickets on the server to become rapidly out of
- *          control when the server has the same configuration for all its
- *          connection instances.
+ *          \c MBEDTLS_SSL_TLS1_3_DEFAULT_NEW_SESSION_TICKETS.
+ *
+ * \note    In case of a session resumption, this setting only partially apply.
+ *          At most one ticket is sent in that case to just renew the pool of
+ *          tickets of the client. The rationale is to avoid the number of
+ *          tickets on the server to become rapidly out of control when the
+ *          server has the same configuration for all its connection instances.
  *
  * \param conf    SSL configuration
  * \param num_tickets    Number of NewSessionTicket.

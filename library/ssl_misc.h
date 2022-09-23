@@ -624,6 +624,9 @@ struct mbedtls_ssl_handshake_params
 #if defined(MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED)
     uint8_t tls13_kex_modes; /*!< Key exchange modes supported by the client */
 #endif
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    uint16_t new_session_tickets_count;         /*!< number of session tickets */
+#endif
 #endif /* MBEDTLS_SSL_SRV_C */
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */

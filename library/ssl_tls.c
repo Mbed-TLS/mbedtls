@@ -763,6 +763,13 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
     mbedtls_ssl_transform_init( ssl->transform_negotiate );
     ssl_handshake_params_init( ssl->handshake );
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
+    defined(MBEDTLS_SSL_SRV_C) && \
+    defined(MBEDTLS_SSL_SESSION_TICKETS)
+    ssl->handshake->new_session_tickets_count =
+        ssl->conf->new_session_tickets_count ;
+#endif
+
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
@@ -2611,6 +2618,15 @@ void mbedtls_ssl_conf_session_tickets( mbedtls_ssl_config *conf, int use_tickets
 #endif
 
 #if defined(MBEDTLS_SSL_SRV_C)
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+void mbedtls_ssl_conf_new_session_tickets( mbedtls_ssl_config *conf,
+                                           uint16_t num_tickets )
+{
+    conf->new_session_tickets_count = num_tickets;
+}
+#endif
+
 void mbedtls_ssl_conf_session_tickets_cb( mbedtls_ssl_config *conf,
         mbedtls_ssl_ticket_write_t *f_ticket_write,
         mbedtls_ssl_ticket_parse_t *f_ticket_parse,
@@ -4644,6 +4660,10 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+    mbedtls_ssl_conf_new_session_tickets(
+        conf, MBEDTLS_SSL_TLS1_3_DEFAULT_NEW_SESSION_TICKETS );
+#endif
     /*
      * Allow all TLS 1.3 key exchange modes by default.
      */

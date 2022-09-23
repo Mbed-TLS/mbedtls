@@ -300,6 +300,53 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void pk_invalid_param()
+{
+    mbedtls_pk_context ctx;
+    mbedtls_pk_type_t pk_type = 0;
+    unsigned char buf[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
+    size_t buf_size = sizeof( buf );
+
+    mbedtls_pk_init( &ctx );
+
+    TEST_EQUAL( MBEDTLS_ERR_PK_BAD_INPUT_DATA,
+                mbedtls_pk_verify_restartable( &ctx, MBEDTLS_MD_NONE,
+                                               NULL, buf_size,
+                                               buf, buf_size,
+                                               NULL ) );
+    TEST_EQUAL( MBEDTLS_ERR_PK_BAD_INPUT_DATA,
+                mbedtls_pk_verify_restartable( &ctx, MBEDTLS_MD_SHA256,
+                                               NULL, 0,
+                                               buf, buf_size,
+                                               NULL ) );
+    TEST_EQUAL( MBEDTLS_ERR_PK_BAD_INPUT_DATA,
+                mbedtls_pk_verify_ext( pk_type, NULL,
+                                       &ctx, MBEDTLS_MD_NONE,
+                                       NULL, buf_size,
+                                       buf, buf_size ) );
+    TEST_EQUAL( MBEDTLS_ERR_PK_BAD_INPUT_DATA,
+                mbedtls_pk_verify_ext( pk_type, NULL,
+                                       &ctx, MBEDTLS_MD_SHA256,
+                                       NULL, 0,
+                                       buf, buf_size ) );
+    TEST_EQUAL( MBEDTLS_ERR_PK_BAD_INPUT_DATA,
+                mbedtls_pk_sign_restartable( &ctx, MBEDTLS_MD_NONE,
+                                             NULL, buf_size,
+                                             buf, buf_size, &buf_size,
+                                             NULL, NULL,
+                                             NULL ) );
+    TEST_EQUAL( MBEDTLS_ERR_PK_BAD_INPUT_DATA,
+                mbedtls_pk_sign_restartable( &ctx, MBEDTLS_MD_SHA256,
+                                             NULL, 0,
+                                             buf, buf_size, &buf_size,
+                                             NULL, NULL,
+                                             NULL ) );
+exit:
+    mbedtls_pk_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void valid_parameters( )
 {
     mbedtls_pk_context pk;

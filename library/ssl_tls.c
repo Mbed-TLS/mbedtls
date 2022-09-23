@@ -1351,6 +1351,71 @@ void mbedtls_ssl_conf_session_cache( mbedtls_ssl_config *conf,
 #endif /* MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_CLI_C)
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
+    defined(MBEDTLS_SSL_SESSION_TICKETS)
+static void ssl_tls13_resumption_session_list_free(
+                mbedtls_ssl_resumption_session *resumption_session )
+{
+    mbedtls_ssl_resumption_session *head, *tmp;
+
+    head = resumption_session;
+    while( head != NULL )
+    {
+        tmp = head;
+        head = head->next;
+        mbedtls_platform_zeroize( tmp, tmp->size + sizeof( tmp ) );
+        mbedtls_free( tmp );
+    }
+}
+
+static int ssl_tls13_resumption_session_list_add(
+               mbedtls_ssl_handshake_params *handshake,
+               const mbedtls_ssl_session *session )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    mbedtls_ssl_resumption_session *resumption_session, *p;
+    unsigned char *data;
+    size_t session_serialized_len;
+    size_t size;
+
+    ret = mbedtls_ssl_session_save( session, NULL, 0, &session_serialized_len );
+    if( ret != MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL )
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+
+    size = session_serialized_len + sizeof( mbedtls_ssl_resumption_session );
+    data = mbedtls_calloc( 1, size );
+    if( data == NULL )
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+
+    resumption_session = (mbedtls_ssl_resumption_session *)data;
+    data += sizeof( mbedtls_ssl_resumption_session );
+    ret = mbedtls_ssl_session_save( session,
+                                    data,
+                                    session_serialized_len,
+                                    &session_serialized_len );
+    if( ret != 0 )
+    {
+        mbedtls_free( resumption_session );
+        return( ret );
+    }
+    resumption_session->size = session_serialized_len;
+
+    if( handshake->resumption_session_list == NULL )
+    {
+        handshake->resumption_session_list = resumption_session;
+        return( 0 );
+    }
+    p = handshake->resumption_session_list;
+    while( p->next != NULL )
+        p = p->next;
+    p->next = resumption_session;
+    return( ret );
+}
+
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 &&
+          MBEDTLS_SSL_SESSION_TICKETS */
+
 int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session *session )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -1362,6 +1427,22 @@ int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session
     {
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
+    defined(MBEDTLS_SSL_SESSION_TICKETS)
+    if( session->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 )
+    {
+        ret = ssl_tls13_resumption_session_list_add( ssl->handshake, session );
+        if( ret != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 2, "ssl_tls13_resumption_session_list_add",
+                                ret );
+            return( ret );
+        }
+        if( ssl->handshake->resume == 1 )
+            return( 0 );
+    }
+#endif
 
     if( ssl->handshake->resume == 1 )
         return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
@@ -3616,6 +3697,9 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
     mbedtls_ssl_transform_free( handshake->transform_earlydata );
     mbedtls_free( handshake->transform_earlydata );
     mbedtls_free( handshake->transform_handshake );
+#if defined(MBEDTLS_SSL_CLI_C) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+    ssl_tls13_resumption_session_list_free( handshake->resumption_session_list );
+#endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 
 

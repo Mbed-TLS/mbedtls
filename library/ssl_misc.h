@@ -524,6 +524,17 @@ typedef struct
     unsigned char server_handshake_traffic_secret[ MBEDTLS_TLS1_3_MD_MAX_SIZE ];
 } mbedtls_ssl_tls13_handshake_secrets;
 
+typedef struct mbedtls_ssl_resumption_session mbedtls_ssl_resumption_session;
+struct mbedtls_ssl_resumption_session
+{
+
+    mbedtls_ssl_resumption_session *next;
+    /* size and data should be store/load with mbedtls_ssl_session_{load,save}.
+     * session data should be saved after size.
+     */
+    size_t size;
+};
+
 /*
  * This structure contains the parameters only needed during handshake.
  */
@@ -625,6 +636,10 @@ struct mbedtls_ssl_handshake_params
     uint8_t tls13_kex_modes; /*!< Key exchange modes supported by the client */
 #endif
 #endif /* MBEDTLS_SSL_SRV_C */
+
+#if defined(MBEDTLS_SSL_CLI_C) && defined(MBEDTLS_SSL_SESSION_TICKETS)
+    mbedtls_ssl_resumption_session *resumption_session_list;
+#endif
 
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
 

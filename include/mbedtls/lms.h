@@ -269,7 +269,7 @@ int mbedtls_lms_generate_private_key( mbedtls_lms_private_t *ctx,
  * \param ctx                The initialized LMS public context to generate the key
  *                           from and store it into.
  *
- * \param ctx                The LMS private context to read the private key
+ * \param priv_ctx           The LMS private context to read the private key
  *                           from. This must have been initialized and contain a
  *                           private key.
  *

@@ -16,6 +16,8 @@ void rsa_invalid_param( )
     mbedtls_rsa_context ctx;
     const int invalid_padding = 42;
     const int invalid_hash_id = 0xff;
+    unsigned char buf[] = {0x00,0x01,0x02,0x03,0x04,0x05};
+    size_t buf_len = sizeof( buf );
 
     mbedtls_rsa_init( &ctx );
 
@@ -29,6 +31,28 @@ void rsa_invalid_param( )
                                          invalid_hash_id ),
                 MBEDTLS_ERR_RSA_INVALID_PADDING );
 
+    TEST_EQUAL( mbedtls_rsa_pkcs1_sign(&ctx, NULL,
+                                       NULL, MBEDTLS_MD_NONE,
+                                       buf_len,
+                                       NULL, buf),
+                MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_EQUAL( mbedtls_rsa_pkcs1_sign(&ctx, NULL,
+                                       NULL, MBEDTLS_MD_SHA256,
+                                       0,
+                                       NULL, buf),
+                MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_EQUAL( mbedtls_rsa_pkcs1_verify(&ctx, MBEDTLS_MD_NONE,
+                                         buf_len,
+                                         NULL, buf),
+                MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_EQUAL( mbedtls_rsa_pkcs1_verify(&ctx, MBEDTLS_MD_SHA256,
+                                         0,
+                                         NULL, buf),
+                MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
 #if !defined(MBEDTLS_PKCS1_V15)
     TEST_EQUAL( mbedtls_rsa_set_padding( &ctx,
                                          MBEDTLS_RSA_PKCS_V15,
@@ -36,11 +60,73 @@ void rsa_invalid_param( )
                 MBEDTLS_ERR_RSA_INVALID_PADDING );
 #endif
 
+#if defined(MBEDTLS_PKCS1_V15)
+    TEST_EQUAL( mbedtls_rsa_rsassa_pkcs1_v15_sign(&ctx, NULL,
+                                              NULL, MBEDTLS_MD_NONE,
+                                              buf_len,
+                                              NULL, buf),
+                MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_EQUAL( mbedtls_rsa_rsassa_pkcs1_v15_sign(&ctx, NULL,
+                                              NULL, MBEDTLS_MD_SHA256,
+                                              0,
+                                              NULL, buf),
+                MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_EQUAL( mbedtls_rsa_rsassa_pkcs1_v15_verify(&ctx, MBEDTLS_MD_NONE,
+                                                buf_len,
+                                                NULL, buf),
+                MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_EQUAL( mbedtls_rsa_rsassa_pkcs1_v15_verify(&ctx, MBEDTLS_MD_SHA256,
+                                                0,
+                                                NULL, buf),
+                MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+
+#endif
+
 #if !defined(MBEDTLS_PKCS1_V21)
     TEST_EQUAL( mbedtls_rsa_set_padding( &ctx,
                                          MBEDTLS_RSA_PKCS_V21,
                                          MBEDTLS_MD_NONE ),
                 MBEDTLS_ERR_RSA_INVALID_PADDING );
+#endif
+
+#if defined(MBEDTLS_PKCS1_V21)
+    TEST_EQUAL( mbedtls_rsa_rsassa_pss_sign_ext(&ctx, NULL, NULL,
+                                    MBEDTLS_MD_NONE, buf_len,
+                                    NULL, buf_len,
+                                    buf ),
+                MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_EQUAL( mbedtls_rsa_rsassa_pss_sign_ext(&ctx, NULL, NULL,
+                                    MBEDTLS_MD_SHA256, 0,
+                                    NULL, buf_len,
+                                    buf ),
+                MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_EQUAL( mbedtls_rsa_rsassa_pss_verify_ext(&ctx, MBEDTLS_MD_NONE,
+                                                  buf_len, NULL,
+                                                  MBEDTLS_MD_NONE,
+                                                  buf_len, buf),
+                MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_EQUAL( mbedtls_rsa_rsassa_pss_verify_ext(&ctx, MBEDTLS_MD_SHA256,
+                                                  0, NULL,
+                                                  MBEDTLS_MD_NONE,
+                                                  buf_len, buf),
+                MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_EQUAL( mbedtls_rsa_rsassa_pss_verify(&ctx, MBEDTLS_MD_NONE,
+                                              buf_len,
+                                              NULL, buf),
+                MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_EQUAL( mbedtls_rsa_rsassa_pss_verify(&ctx, MBEDTLS_MD_SHA256,
+                                              0,
+                                              NULL, buf),
+                MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 #endif
 
 exit:

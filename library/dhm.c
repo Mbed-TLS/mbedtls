@@ -55,11 +55,6 @@
 
 #if !defined(MBEDTLS_DHM_ALT)
 
-#define DHM_VALIDATE_RET( cond )    \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_DHM_BAD_INPUT_DATA )
-#define DHM_VALIDATE( cond )        \
-    MBEDTLS_INTERNAL_VALIDATE( cond )
-
 /*
  * helper to validate the mbedtls_mpi size and import it
  */
@@ -120,7 +115,6 @@ cleanup:
 
 void mbedtls_dhm_init( mbedtls_dhm_context *ctx )
 {
-    DHM_VALIDATE( ctx != NULL );
     memset( ctx, 0, sizeof( mbedtls_dhm_context ) );
 }
 
@@ -173,9 +167,6 @@ int mbedtls_dhm_read_params( mbedtls_dhm_context *ctx,
                      const unsigned char *end )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    DHM_VALIDATE_RET( ctx != NULL );
-    DHM_VALIDATE_RET( p != NULL && *p != NULL );
-    DHM_VALIDATE_RET( end != NULL );
 
     if( ( ret = dhm_read_bignum( &ctx->P,  p, end ) ) != 0 ||
         ( ret = dhm_read_bignum( &ctx->G,  p, end ) ) != 0 ||
@@ -252,10 +243,6 @@ int mbedtls_dhm_make_params( mbedtls_dhm_context *ctx, int x_size,
     int ret;
     size_t n1, n2, n3;
     unsigned char *p;
-    DHM_VALIDATE_RET( ctx != NULL );
-    DHM_VALIDATE_RET( output != NULL );
-    DHM_VALIDATE_RET( olen != NULL );
-    DHM_VALIDATE_RET( f_rng != NULL );
 
     ret = dhm_make_common( ctx, x_size, f_rng, p_rng );
     if( ret != 0 )
@@ -300,9 +287,6 @@ int mbedtls_dhm_set_group( mbedtls_dhm_context *ctx,
                            const mbedtls_mpi *G )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    DHM_VALIDATE_RET( ctx != NULL );
-    DHM_VALIDATE_RET( P != NULL );
-    DHM_VALIDATE_RET( G != NULL );
 
     if( ( ret = mbedtls_mpi_copy( &ctx->P, P ) ) != 0 ||
         ( ret = mbedtls_mpi_copy( &ctx->G, G ) ) != 0 )
@@ -320,8 +304,6 @@ int mbedtls_dhm_read_public( mbedtls_dhm_context *ctx,
                      const unsigned char *input, size_t ilen )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    DHM_VALIDATE_RET( ctx != NULL );
-    DHM_VALIDATE_RET( input != NULL );
 
     if( ilen < 1 || ilen > mbedtls_dhm_get_len( ctx ) )
         return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
@@ -341,9 +323,6 @@ int mbedtls_dhm_make_public( mbedtls_dhm_context *ctx, int x_size,
                      void *p_rng )
 {
     int ret;
-    DHM_VALIDATE_RET( ctx != NULL );
-    DHM_VALIDATE_RET( output != NULL );
-    DHM_VALIDATE_RET( f_rng != NULL );
 
     if( olen < 1 || olen > mbedtls_dhm_get_len( ctx ) )
         return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
@@ -440,9 +419,6 @@ int mbedtls_dhm_calc_secret( mbedtls_dhm_context *ctx,
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_mpi GYb;
-    DHM_VALIDATE_RET( ctx != NULL );
-    DHM_VALIDATE_RET( output != NULL );
-    DHM_VALIDATE_RET( olen != NULL );
 
     if( f_rng == NULL )
         return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA );
@@ -517,9 +493,6 @@ int mbedtls_dhm_parse_dhm( mbedtls_dhm_context *dhm, const unsigned char *dhmin,
 #if defined(MBEDTLS_PEM_PARSE_C)
     mbedtls_pem_context pem;
 #endif /* MBEDTLS_PEM_PARSE_C */
-
-    DHM_VALIDATE_RET( dhm != NULL );
-    DHM_VALIDATE_RET( dhmin != NULL );
 
 #if defined(MBEDTLS_PEM_PARSE_C)
     mbedtls_pem_init( &pem );
@@ -667,8 +640,6 @@ int mbedtls_dhm_parse_dhmfile( mbedtls_dhm_context *dhm, const char *path )
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t n;
     unsigned char *buf;
-    DHM_VALIDATE_RET( dhm != NULL );
-    DHM_VALIDATE_RET( path != NULL );
 
     if( ( ret = load_file( path, &buf, &n ) ) != 0 )
         return( ret );

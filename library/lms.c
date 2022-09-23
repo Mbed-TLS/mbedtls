@@ -525,7 +525,7 @@ void mbedtls_lms_free_private( mbedtls_lms_private_t *ctx )
         mbedtls_free( ctx->ots_public_keys );
     }
 
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_lms_public_t ) );
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_lms_private_t ) );
 }
 
 

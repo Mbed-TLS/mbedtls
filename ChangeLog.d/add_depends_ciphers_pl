@@ -1,0 +1,4 @@
+Bugfix
+   * Fix some test cases which would not compile or run correctly when some
+     ciphers were not enabled, and add tests/scripts/depends-ciphers.pl in
+     order to prevent similar issues in the future.

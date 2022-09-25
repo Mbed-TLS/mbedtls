@@ -69,10 +69,8 @@ for my $cipher (@ciphers) {
         }
     }
 
-    system( "CFLAGS='-Werror -Wall -Wextra' make lib" )
-        and abort "Failed to build lib: $cipher\n";
-    system( "cd tests && make" ) and abort "Failed to build tests: $cipher\n";
-    system( "make test" ) and abort "Failed test suite: $cipher\n";
+    system( "CFLAGS='-Werror -O1' make" ) and abort "Failed to build: $cipher\n";
+    system( "make test" ) and abort "Failed to run tests: $cipher\n";
 }
 
 system( "mv $config_h.bak $config_h" ) and die "$config_h not restored\n";

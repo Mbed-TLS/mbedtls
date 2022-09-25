@@ -29,7 +29,7 @@ use strict;
 
 -d 'library' && -d 'include' && -d 'tests' or die "Must be run from root\n";
 
-my $config_h = 'include/mbedtls/config.h';
+my $config_h = 'include/mbedtls/mbedtls_config.h';
 
 # get a list of ciphers from the cipher module
 my $cipher_h = 'include/mbedtls/cipher.h';

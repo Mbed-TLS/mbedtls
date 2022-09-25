@@ -91,7 +91,7 @@ for my $hash_config (@hash_configs) {
     }
 
     system( "CFLAGS='-Werror -O1' make" ) and abort "Failed to build: $hash_config_string\n";
-    system( "make test" ) and abort "Failed to run tests: $hash_config_string\n";    
+    system( "make test" ) and abort "Failed to run tests: $hash_config_string\n";
 }
 
 system( "mv $config_h.bak $config_h" ) and die "$config_h not restored\n";

@@ -1603,6 +1603,11 @@ component_test_depends_pkalgs () {
     tests/scripts/depends-pkalgs.pl
 }
 
+component_test_depends_ciphers () {
+    msg "test/build: depends-ciphers.pl (gcc)" # ~ 5 min
+    tests/scripts/depends-ciphers.pl
+}
+
 component_test_depends_pkalgs_psa () {
     msg "test/build: depends-pkalgs.pl with MBEDTLS_USE_PSA_CRYPTO defined (gcc)"
     scripts/config.py set MBEDTLS_USE_PSA_CRYPTO

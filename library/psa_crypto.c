@@ -4355,7 +4355,7 @@ psa_status_t psa_key_derivation_abort( psa_key_derivation_operation_t *operation
     if( kdf_alg == PSA_ALG_TLS12_ECJPAKE_TO_PMS )
     {
         mbedtls_platform_zeroize( operation->ctx.tls12_ecjpake_to_pms.data,
-            PSA_TLS12_ECJPAKE_TO_PMS_DATA_SIZE );
+            sizeof( operation->ctx.tls12_ecjpake_to_pms.data ) );
     }
     else
 #endif /* defined(MBEDTLS_PSA_BUILTIN_ALG_TLS12_ECJPAKE_TO_PMS) */
@@ -4647,7 +4647,7 @@ static psa_status_t psa_key_derivation_tls12_ecjpake_to_pms_read(
     size_t output_length )
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    size_t output_size;
+    size_t output_size = 0;
 
     if( output_length != 32 )
         return ( PSA_ERROR_INVALID_ARGUMENT );
@@ -5578,7 +5578,9 @@ static psa_status_t psa_tls12_ecjpake_to_pms_input(
 {
     if( data_length != PSA_TLS12_ECJPAKE_TO_PMS_INPUT_SIZE ||
         step != PSA_KEY_DERIVATION_INPUT_SECRET )
+    {
         return( PSA_ERROR_INVALID_ARGUMENT );
+    }
 
     /* Check if the passed point is in an uncompressed form */
     if( data[0] != 0x04 )

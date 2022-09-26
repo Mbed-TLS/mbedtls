@@ -57,7 +57,7 @@ of BaseTarget in test_data_generation.py.
 import sys
 
 from abc import ABCMeta
-from typing import Iterator, List
+from typing import Dict, Iterator, List
 
 import scripts_path # pylint: disable=unused-import
 from mbedtls_dev import test_case
@@ -173,6 +173,229 @@ class BignumAdd(BignumOperation):
 
     def result(self) -> List[str]:
         return [bignum_common.quote_str("{:x}").format(self.int_a + self.int_b)]
+
+
+
+class BignumReadWrite(BignumTarget, metaclass=ABCMeta):
+    #pylint: disable=abstract-method
+    """Common features for read/write test cases.
+
+    This adds functionality common in bignum read and write tests. This
+    includes conversion of strings between radices, test case description
+    generation, and setting expected return values in error cases.
+
+    Attributes:
+        radix_input_values: Dictionary of radices to test, with input values
+            used for test cases with each radix.
+        return_value: Expected return value from read/write operation.
+        return_description: Dictionary containing non-zero return values and
+            descriptions of the cause of the error.
+    """
+    radix_input_values = {
+        10: [
+            "0", "1", "", "-0", "128", "-23", "-023", "056", "a28", "28a",
+            (
+                "56125680981752282334141896320372489490613963693556392520816"
+                "01789211135060411169768270549831951204904051669882782929207"
+                "68080069408739749795845270734810126360163539134623767555567"
+                "20019831187364993587901952757307830896531678727717924"
+            )
+        ],
+        16: [
+            "0", "1", "", "-0", "80", "-17", "-017", "038", "a28", "28a",
+            (
+                "0941379d00fed1491fe15df284dfde4a142f68aa8d412023195cee66883"
+                "e6290ffe703f4ea5963bf212713cee46b107c09182b5edcd955adac418b"
+                "f4918e2889af48e1099d513830cec85c26ac1e158b52620e33ba8692f89"
+                "3efbb2f958b4424"
+            )
+        ],
+        15: ["1d", "1f"],
+        17: ["38"],
+        19: ["a28"]
+    } # type: Dict[int, List[str]]
+    return_value: str = "0"
+    return_description = {
+        "MBEDTLS_ERR_MPI_INVALID_CHARACTER": "Invalid character",
+        "MBEDTLS_ERR_MPI_BAD_INPUT_DATA": "Illegal radix",
+        "MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL": "Buffer too small"
+    } # type: Dict[str, str]
+
+    def __init__(self, val_a: str, radix: int, case_description: str = "") -> None:
+        self.val_a = val_a
+        self.radix = radix
+        if case_description:
+            self.case_description = case_description
+
+    def description(self) -> str:
+        """Generate a description for the test case.
+
+        If not set, case description includes the radix and a description
+        of the input. If the expected return value is non-zero, adds the error
+        cause to the description.
+        """
+        if self.case_description == "":
+            self.case_description = "{} {} {}".format(
+                "radix", self.radix, self.value_description(self.val_a)
+            ).strip()
+        if self.return_value != "0":
+            self.case_description = "{} ({})".format(
+                self.case_description,
+                self.return_description.get(self.return_value)
+            )
+        return super().description()
+
+    @staticmethod
+    def value_description(val: str) -> str:
+        """Generate a description of the input value.
+
+        This produces a simple description of the value, which is used in test
+        case naming to add context.
+        """
+        tmp_components = [] # List[str]
+        if val == "":
+            return "empty string"
+        if val[0] == "-":
+            tmp_components.append("negative")
+            val = val[1:]
+        if val.startswith("0") and len(val) > 1:
+            tmp_components.append("leading zero")
+        elif val.startswith("0"):
+            tmp_components.append("zero")
+        return " ".join(tmp_components)
+
+    def convert_radix(self, val: str, in_radix: int, out_radix: int) -> str:
+        """Convert a string between radices.
+
+        Sets return_value when radix is out of the supported range (2 to 16),
+        or when an invalid character is read.
+        """
+        digits = "0123456789abcdef"
+        sign = ""
+        if max(out_radix, in_radix) > 16 or min(out_radix, in_radix) < 2:
+            self.return_value = "MBEDTLS_ERR_MPI_BAD_INPUT_DATA"
+            return ""
+        if val == "" and out_radix == 16:
+            return ""
+
+        if val.startswith("-"):
+            val = val[1:]
+            sign = "-"
+        for char in val:
+            if char not in digits[:in_radix]:
+                self.return_value = "MBEDTLS_ERR_MPI_INVALID_CHARACTER"
+                return ""
+
+        int_val = abs(int(val, in_radix)) if val != "" else 0
+        if int_val == 0:
+            sign = ""
+        # Convert value to output radix
+        # Use string formatting for hex and dec
+        if out_radix == 16:
+            ret = "{:x}".format(int_val)
+            # Add zero if hex value is odd number of digits
+            ret = "{}{}{}".format(sign, "0" if len(ret) % 2 else "", ret)
+        elif out_radix == 10:
+            ret = "{}{}".format(sign, int_val)
+        elif int_val == 0:
+            ret = "0"
+        else:
+            # For other radices, create list of digits and join
+            ret_digits = [] # type: List[str]
+            while int_val:
+                ret_digits.insert(0, digits[int_val % out_radix])
+                int_val //= out_radix
+            ret = "{}{}".format(sign, "".join(ret_digits))
+        return ret
+
+    @classmethod
+    def additional_test_cases(cls) -> Iterator[test_case.TestCase]:
+        """Generate additional edge case tests.
+
+        This can be used to implement additional test cases which require
+        additional arguments. By default yields no test cases.
+        """
+        yield from ()
+
+    @classmethod
+    def generate_function_tests(cls) -> Iterator[test_case.TestCase]:
+        for radix in cls.radix_input_values:
+            for input_value in cls.radix_input_values[radix]:
+                cur_op = cls(input_value, radix)
+                yield cur_op.create_test_case()
+        yield from cls.additional_test_cases()
+
+
+class BignumReadString(BignumReadWrite):
+    """Test cases for reading bignum values from strings."""
+    count = 0
+    test_function = "mpi_read_string"
+    test_name = "Read MPI string"
+
+    def __init__(self, val_a: str, radix: int, case_description: str = "") -> None:
+        super().__init__(val_a, radix, case_description)
+        self.val_x = self.convert_radix(val_a, self.radix, 16)
+
+    def arguments(self) -> List[str]:
+        return [
+            str(self.radix),
+            bignum_common.quote_str(self.val_a),
+            bignum_common.quote_str(self.val_x.upper()),
+            self.return_value
+        ]
+
+
+class BignumWriteString(BignumReadWrite):
+    """Test cases for writing bignum values to strings."""
+    count = 0
+    test_function = "mpi_write_string"
+    test_name = "Write MPI string"
+
+    def __init__(self, val_a: str, radix: int, case_description: str = "",
+                 undersize_buffer: bool = False):
+        super().__init__(val_a, radix, case_description)
+        self.val_x = self.convert_radix(val_a, 16, self.radix)
+
+        # Set the buffer size for the output value
+        if self.val_x == "":
+            self.buf_size = self.min_buf_size(1)
+        else:
+            self.buf_size = self.min_buf_size(int(self.val_x, self.radix))
+
+        if undersize_buffer:
+            self.buf_size -= 1
+            self.val_x = ""
+            self.return_value = "MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL"
+
+    def arguments(self) -> List[str]:
+        return [
+            bignum_common.quote_str(self.val_a),
+            str(self.radix),
+            bignum_common.quote_str(self.val_x.upper()),
+            str(self.buf_size),
+            self.return_value
+        ]
+
+    def min_buf_size(self, val: int) -> int:
+        """Calculate minimum buffer size for a value.
+
+        Logic is equivalent to that used in `mbedtls_mpi_write_string()` in
+        the C library.
+        """
+        n = abs(val).bit_length()
+        if self.radix >= 4:
+            n >>= 1
+        if self.radix >= 16:
+            n >>= 1
+        n += 3 # Null, negative sign and rounding compensation
+        n += n & 1 # Ensure n is even for hex
+        return n
+
+    @classmethod
+    def additional_test_cases(cls) -> Iterator[test_case.TestCase]:
+        # Add tests for undersized write buffer
+        for radix in [2, 10, 16]:
+            yield cls("-23", radix, undersize_buffer=True).create_test_case()
 
 
 if __name__ == '__main__':

@@ -175,7 +175,6 @@ class BignumAdd(BignumOperation):
         return [bignum_common.quote_str("{:x}").format(self.int_a + self.int_b)]
 
 
-
 class BignumReadWrite(BignumTarget, metaclass=ABCMeta):
     #pylint: disable=abstract-method
     """Common features for read/write test cases.

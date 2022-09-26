@@ -1667,6 +1667,21 @@ cleanup:
     return( ret );
 }
 
+char *ssl_get_kex_mode_str(int mode)
+{
+    switch( mode )
+    {
+        case MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK:
+            return "psk";
+        case MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL:
+            return "ephemeral";
+        case MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL:
+            return "psk_ephemeral";
+        default:
+            return "unknown mode";
+    }
+}
+
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_postprocess_server_hello( mbedtls_ssl_context *ssl )
 {
@@ -1706,26 +1721,18 @@ static int ssl_tls13_postprocess_server_hello( mbedtls_ssl_context *ssl )
             goto cleanup;
     }
 
-    MBEDTLS_SSL_DEBUG_MSG( 3,
-            ( "Server selected key exchange mode: %s",
-              handshake->key_exchange_mode ==
-              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK ? "psk" :
-              (handshake->key_exchange_mode ==
-              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL ? "ephemeral" :
-              "psk_ephemeral")) );
-
     if( !mbedtls_ssl_conf_tls13_check_kex_modes( ssl, handshake->key_exchange_mode ) )
     {
         ret = MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
         MBEDTLS_SSL_DEBUG_MSG( 2,
-                ( "Not supported kex mode in client: %s",
-              handshake->key_exchange_mode ==
-              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK ? "psk" :
-              (handshake->key_exchange_mode ==
-              MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL ? "ephemeral" :
-              "psk_ephemeral")) );
+                ( "Key exchange mode(%s) is not configured supported.",
+                ssl_get_kex_mode_str( handshake->key_exchange_mode ) ) );
         goto cleanup;
     }
+
+    MBEDTLS_SSL_DEBUG_MSG( 3,
+            ( "Server selected key exchange mode: %s",
+              ssl_get_kex_mode_str( handshake->key_exchange_mode ) ) );
 
     /* Start the TLS 1.3 key schedule: Set the PSK and derive early secret.
      *

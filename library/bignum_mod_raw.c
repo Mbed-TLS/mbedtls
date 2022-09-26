@@ -42,7 +42,7 @@
 #include "constant_time_internal.h"
 
 void mbedtls_mpi_mod_raw_cond_assign( mbedtls_mpi_uint *X,
-                                      mbedtls_mpi_uint *Y,
+                                      const mbedtls_mpi_uint *Y,
                                       const mbedtls_mpi_mod_modulus *m,
                                       unsigned char assign )
 {

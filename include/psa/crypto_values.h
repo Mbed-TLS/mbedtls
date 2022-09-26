@@ -2031,7 +2031,7 @@
  * The only supported curve is secp256r1 (the 256-bit curve in
  * #PSA_ECC_FAMILY_SECP_R1), so the input must be exactly 65 bytes.
  */
-#define PSA_ALG_TLS12_ECJPAKE_TO_PMS            ((psa_algorithm_t)0x08000600)
+#define PSA_ALG_TLS12_ECJPAKE_TO_PMS            ((psa_algorithm_t)0x08000609)
 
 /* This flag indicates whether the key derivation algorithm is suitable for
  * use on low-entropy secrets such as password - these algorithms are also

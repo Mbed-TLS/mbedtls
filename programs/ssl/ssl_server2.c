@@ -809,8 +809,10 @@ sni_entry *sni_parse( char *sni_string )
         {
             if( mbedtls_x509_crt_parse_file( new->cert, crt_file ) != 0 ||
                 mbedtls_pk_parse_keyfile( new->key, key_file, "", rng_get, &rng ) != 0 )
+            {
                 mbedtls_printf("Error parsing cert %s or key %s\n", crt_file, key_file);
                 goto error;
+            }
         }
 
         if( strcmp( ca_file, "-" ) != 0 )

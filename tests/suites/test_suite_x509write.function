@@ -361,6 +361,7 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
         mbedtls_x509_crt crt_parse, trusted;
         uint32_t flags;
 
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
         mbedtls_x509_crt_init( &crt_parse );
         mbedtls_x509_crt_init( &trusted );
 
@@ -374,6 +375,7 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
 
         mbedtls_x509_crt_free( &crt_parse );
         mbedtls_x509_crt_free( &trusted );
+#endif
 
         TEST_EQUAL( flags, 0 );
         TEST_EQUAL( ret, 0 );

@@ -213,7 +213,7 @@ class BignumReadWrite(BignumTarget, metaclass=ABCMeta):
         17: ["38"],
         19: ["a28"]
     } # type: Dict[int, List[str]]
-    return_value: str = "0"
+    return_value = "0"
     return_description = {
         "MBEDTLS_ERR_MPI_INVALID_CHARACTER": "Invalid character",
         "MBEDTLS_ERR_MPI_BAD_INPUT_DATA": "Illegal radix",

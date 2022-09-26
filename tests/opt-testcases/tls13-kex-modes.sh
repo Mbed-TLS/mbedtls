@@ -1835,15 +1835,6 @@ run_test    "TLS 1.3: m->m: psk_ephemeral/psk_ephemeral, fail - no common psk" \
             -c "client hello, adding PSK binder list" \
             -s "Invalid binder."
 
-"""
- Currently server side will not check whether client
- support ephemeral mode or not, it will cause improper
- fallback. It's a bit complicated cause there is no good
- way to pass the ephemeral kex mode from client to server,
- will create one issue to solve the bug.
- Skip this test case temporarily.
-"""
-SKIP_NEXT="YES"
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
@@ -1856,8 +1847,7 @@ run_test    "TLS 1.3: m->m: psk_ephemeral/ephemeral, fail - no common kex mode" 
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
-            -c "client hello, adding PSK binder list" \
-            -s "ClientHello message misses mandatory extensions."
+            -c "client hello, adding PSK binder list"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -1872,8 +1862,6 @@ run_test    "TLS 1.3: m->m: psk_ephemeral/ephemeral_all, good" \
             -c "Server selected key exchange mode: psk_ephemeral" \
             -c "HTTP/1.0 200 OK"
 
-# Skip this test case temporarily.
-SKIP_NEXT="YES"
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -1887,8 +1875,7 @@ run_test    "TLS 1.3: m->m: psk_ephemeral/ephemeral_all, fail - no common id" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
-            -s "No matched PSK or ticket" \
-            -s "ClientHello message misses mandatory extensions."
+            -s "No matched PSK or ticket"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -1953,8 +1940,6 @@ run_test    "TLS 1.3: m->m: psk_ephemeral/all, good" \
             -c "Server selected key exchange mode: psk_ephemeral" \
             -c "HTTP/1.0 200 OK"
 
-# Skip this test case temporarily.
-SKIP_NEXT="YES"
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
@@ -1966,7 +1951,6 @@ run_test    "TLS 1.3: m->m: psk_ephemeral/all, fail - no common id" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
             -s "No matched PSK or ticket" \
-            -s "ClientHello message misses mandatory extensions."
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2292,8 +2276,6 @@ run_test    "TLS 1.3: m->m: psk_all/psk_ephemeral, fail - no common psk" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -s "ClientHello message misses mandatory extensions."
 
-# Skip this test case temporarily.
-SKIP_NEXT="YES"
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
@@ -2303,8 +2285,7 @@ run_test    "TLS 1.3: m->m: psk_all/ephemeral, fail - no common kex mode" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
-            -c "client hello, adding PSK binder list" \
-            -s "ClientHello message misses mandatory extensions."
+            -c "client hello, adding PSK binder list"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2319,8 +2300,6 @@ run_test    "TLS 1.3: m->m: psk_all/ephemeral_all, good" \
             -c "Server selected key exchange mode: psk_ephemeral" \
             -c "HTTP/1.0 200 OK"
 
-# Skip this test case temporarily.
-SKIP_NEXT="YES"
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
@@ -2331,8 +2310,7 @@ run_test    "TLS 1.3: m->m: psk_all/ephemeral_all, fail - no common id" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
-            -s "No matched PSK or ticket" \
-            -s "ClientHello message misses mandatory extensions."
+            -s "No matched PSK or ticket"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2397,8 +2375,6 @@ run_test    "TLS 1.3: m->m: psk_all/all, good" \
             -c "Server selected key exchange mode: psk_ephemeral" \
             -c "HTTP/1.0 200 OK"
 
-# Skip this test case temporarily.
-SKIP_NEXT="YES"
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
@@ -2409,8 +2385,7 @@ run_test    "TLS 1.3: m->m: psk_all/all, fail - no common id" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
-            -s "No matched PSK or ticket" \
-            -s "ClientHello message misses mandatory extensions."
+            -s "No matched PSK or ticket"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C

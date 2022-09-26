@@ -58,7 +58,7 @@ void mbedtls_mpi_mod_raw_cond_assign( mbedtls_mpi_uint *X,
                                       unsigned char assign );
 
 /**
- * \brief   Perform a safe conditional copy of MPI which doesn't reveal whether
+ * \brief   Perform a safe conditional swap of MPI which doesn't reveal whether
  *          the condition was true or not.
  *
  * \param[IN,OUT] X     The address of the first MPI. This must be initialized.

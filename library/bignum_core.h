@@ -79,9 +79,9 @@ void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint *A,
  *          the condition was true or not.
  *
  * \param[OUT] X        The address of the first MPI. This must be initialized.
- * \param      X_limbs  The number of limbs of \p X.
+ *                      It must have at least \p limbs limbs.
  * \param[IN]  Y        The address of the second MPI. This must be initialized.
- * \param      Y_limbs  The number of limbs of \p Y.
+ * \param      limbs    The number of limbs of \p Y.
  * \param      assign   The condition deciding whether to perform the
  *                      assignment or not. Must be either 0 or 1:
  *                      * \c 1: Perform the assignment `X = Y`.
@@ -95,9 +95,8 @@ void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint *A,
  *                 neither its original value nor the value in \p Y.
  */
 void mbedtls_mpi_core_cond_assign( mbedtls_mpi_uint *X,
-                                   size_t X_limbs,
                                    const mbedtls_mpi_uint *Y,
-                                   size_t Y_limbs,
+                                   size_t limbs,
                                    unsigned char assign );
 
 /**

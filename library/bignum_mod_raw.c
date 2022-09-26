@@ -46,8 +46,7 @@ void mbedtls_mpi_mod_raw_cond_assign( mbedtls_mpi_uint *X,
                                       const mbedtls_mpi_mod_modulus *m,
                                       unsigned char assign )
 {
-    mbedtls_mpi_core_cond_assign( X, m->limbs,
-                                  Y, m->limbs, assign );
+    mbedtls_mpi_core_cond_assign( X, Y, m->limbs, assign );
 }
 
 void mbedtls_mpi_mod_raw_cond_swap( mbedtls_mpi_uint *X,

@@ -786,7 +786,7 @@ void mpi_core_cond_assign( data_t * input_X,
     TEST_CF_SECRET( X, len_X * sizeof( mbedtls_mpi_uint ) );
     TEST_CF_SECRET( Y, len_Y * sizeof( mbedtls_mpi_uint ) );
 
-    mbedtls_mpi_core_cond_assign( X, len_X, Y, len_Y, cond );
+    mbedtls_mpi_core_cond_assign( X, Y, len_Y, cond );
 
     TEST_CF_PUBLIC( X, len_X * sizeof( mbedtls_mpi_uint ) );
     TEST_CF_PUBLIC( Y, len_Y * sizeof( mbedtls_mpi_uint ) );

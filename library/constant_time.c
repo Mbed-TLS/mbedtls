@@ -682,11 +682,17 @@ int mbedtls_mpi_safe_cond_assign( mbedtls_mpi *X,
     MPI_VALIDATE_RET( X != NULL );
     MPI_VALIDATE_RET( Y != NULL );
 
+    /* all-bits 1 if assign is 1, all-bits 0 if assign is 0 */
+    mbedtls_mpi_uint limb_mask = mbedtls_ct_mpi_uint_mask( assign );
+
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, Y->n ) );
 
     X->s = mbedtls_ct_cond_select_sign( assign, Y->s, X->s );
 
-    mbedtls_mpi_core_cond_assign( X->p, X->n, Y->p, Y->n, assign );
+    mbedtls_mpi_core_cond_assign( X->p, Y->p, Y->n, assign );
+
+    for( size_t i = Y->n; i < X->n; i++ )
+        X->p[i] &= ~limb_mask;
 
 cleanup:
     return( ret );

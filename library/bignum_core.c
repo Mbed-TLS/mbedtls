@@ -163,18 +163,11 @@ void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint *A,
 }
 
 void mbedtls_mpi_core_cond_assign( mbedtls_mpi_uint *X,
-                                   size_t X_limbs,
                                    const mbedtls_mpi_uint *Y,
-                                   size_t Y_limbs,
+                                   size_t limbs,
                                    unsigned char assign )
 {
-    /* all-bits 1 if assign is 1, all-bits 0 if assign is 0 */
-    mbedtls_mpi_uint limb_mask = mbedtls_ct_mpi_uint_mask( assign );
-
-    mbedtls_ct_mpi_uint_cond_assign( Y_limbs, X, Y, assign );
-
-    for( size_t i = Y_limbs; i < X_limbs; i++ )
-        X[i] &= ~limb_mask;
+    mbedtls_ct_mpi_uint_cond_assign( limbs, X, Y, assign );
 }
 
 void mbedtls_mpi_core_cond_swap( mbedtls_mpi_uint *X,

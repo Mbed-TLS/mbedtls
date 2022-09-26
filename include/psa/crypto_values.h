@@ -2030,6 +2030,8 @@
  * #PSA_KEY_DERIVATION_INPUT_SECRET is the shared secret K from EC J-PAKE.
  * The only supported curve is secp256r1 (the 256-bit curve in
  * #PSA_ECC_FAMILY_SECP_R1), so the input must be exactly 65 bytes.
+ * The output has to be read as a single chunk of 32 bytes, defined as
+ * PSA_TLS12_ECJPAKE_TO_PMS_DATA_SIZE.
  */
 #define PSA_ALG_TLS12_ECJPAKE_TO_PMS            ((psa_algorithm_t)0x08000609)
 

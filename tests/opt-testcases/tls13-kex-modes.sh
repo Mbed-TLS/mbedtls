@@ -1645,7 +1645,7 @@ run_test    "TLS 1.3: m->m: psk/psk, good" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
-            -c "Server selected key exchange mode: psk" \
+            -c "Server selected key exchange mode: psk$" \
             -c "HTTP/1.0 200 OK"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -1718,7 +1718,7 @@ run_test    "TLS 1.3: m->m: psk/psk_all, good" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
-            -c "Server selected key exchange mode: psk" \
+            -c "Server selected key exchange mode: psk$" \
             -c "HTTP/1.0 200 OK"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -1756,7 +1756,7 @@ run_test    "TLS 1.3: m->m: psk/all, good" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
-            -c "Server selected key exchange mode: psk" \
+            -c "Server selected key exchange mode: psk$" \
             -c "HTTP/1.0 200 OK"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -2102,7 +2102,7 @@ run_test    "TLS 1.3: m->m: ephemeral_all/ephemeral_all, good" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-run_test    "TLS 1.3: m->m: ephemeral_all/ephemeral_all,good,no common id,fallback to ephemeral" \
+run_test    "TLS 1.3: m->m: ephemeral_all/ephemeral_all,good,no common id,fallback" \
             "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0d0e0f tls13_kex_modes=ephemeral_all" \
             0 \
@@ -2115,7 +2115,7 @@ run_test    "TLS 1.3: m->m: ephemeral_all/ephemeral_all,good,no common id,fallba
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-run_test    "TLS 1.3: m->m: ephemeral_all/ephemeral_all,good,no common psk,fallback to ephemeral" \
+run_test    "TLS 1.3: m->m: ephemeral_all/ephemeral_all,good,no common psk,fallback" \
             "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             "$P_CLI nbio=2 debug_level=5 psk=040506 psk_identity=0d0e0f tls13_kex_modes=ephemeral_all" \
             0 \
@@ -2212,7 +2212,7 @@ run_test    "TLS 1.3: m->m: psk_all/psk, good" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
-            -c "Server selected key exchange mode: psk" \
+            -c "Server selected key exchange mode: psk$" \
             -c "HTTP/1.0 200 OK"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -2270,11 +2270,12 @@ requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
 run_test    "TLS 1.3: m->m: psk_all/psk_ephemeral, fail - no common psk" \
             "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk_ephemeral" \
-            "$P_CLI nbio=2 debug_level=5 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
+            "$P_CLI nbio=2 debug_level=5 psk=040506 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             1 \
-            -c "skip pre_shared_key extensions" \
+            -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
-            -s "ClientHello message misses mandatory extensions."
+            -c "client hello, adding PSK binder list" \
+            -s "Invalid binder."
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
@@ -2410,19 +2411,20 @@ run_test    "TLS 1.3: m->m: all/psk, good" \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
-            -c "Server selected key exchange mode: psk" \
+            -c "Server selected key exchange mode: psk$" \
             -c "HTTP/1.0 200 OK"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-run_test    "TLS 1.3: m->m: all/psk, fail - no common kex mode" \
+run_test    "TLS 1.3: m->m: all/psk, fail - no common id" \
             "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=psk" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0d0e0f tls13_kex_modes=all" \
             1 \
             -c "client hello, adding pre_shared_key extension, omitting PSK binder list" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
+            -s "No matched PSK or ticket" \
             -s "ClientHello message misses mandatory extensions."
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -2581,7 +2583,7 @@ run_test    "TLS 1.3: m->m: all/all, good" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-run_test    "TLS 1.3: m->m: all/all, good - no common id, fallback to ephemeral" \
+run_test    "TLS 1.3: m->m: all/all, good - no common id, fallback" \
             "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=all" \
             "$P_CLI nbio=2 debug_level=5 psk=010203 psk_identity=0d0e0f tls13_kex_modes=all" \
             0 \
@@ -2620,7 +2622,7 @@ run_test    "TLS 1.3: m->O: psk/all, good" \
             -c "client hello, adding psk_key_exchange_modes extension" \
             -c "client hello, adding PSK binder list" \
             -c "<= write client hello" \
-            -c "Server selected key exchange mode: psk" \
+            -c "Server selected key exchange mode: psk$" \
             -c "HTTP/1.0 200 ok"
 
 requires_openssl_tls1_3
@@ -2851,7 +2853,7 @@ run_test    "TLS 1.3: m->G: psk/all, good" \
             -s "Parsing extension 'PSK Key Exchange Modes/45'" \
             -s "Parsing extension 'Pre Shared Key/41'" \
             -c "<= write client hello" \
-            -c "Server selected key exchange mode: psk" \
+            -c "Server selected key exchange mode: psk$" \
             -c "HTTP/1.0 200 OK"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -2889,7 +2891,7 @@ run_test    "TLS 1.3: m->G: psk_all/all, good" \
             -s "Parsing extension 'PSK Key Exchange Modes/45'" \
             -s "Parsing extension 'Pre Shared Key/41'" \
             -c "<= write client hello" \
-            -c "Server selected key exchange mode: psk" \
+            -c "Server selected key exchange mode: psk$" \
             -c "HTTP/1.0 200 OK"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
@@ -3038,7 +3040,7 @@ run_test    "TLS 1.3: m->G: all/all, good" \
             -s "Parsing extension 'PSK Key Exchange Modes/45'" \
             -s "Parsing extension 'Pre Shared Key/41'" \
             -c "<= write client hello" \
-            -c "Server selected key exchange mode: psk" \
+            -c "Server selected key exchange mode: psk$" \
             -c "HTTP/1.0 200 OK"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3

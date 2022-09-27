@@ -38,11 +38,11 @@
  *          the condition was true or not.
  *
  * \param[OUT] X        The address of the first MPI. This must be initialized.
- * \param[IN]  Y        The address of the second MPI. This must be initialized.
- * \param[IN]  m        The address of the modulus related to \p X and \p Y.
+ * \param[IN]  A        The address of the second MPI. This must be initialized.
+ * \param[IN]  m        The address of the modulus related to \p X and \p A.
  * \param      assign   The condition deciding whether to perform the
  *                      assignment or not. Must be either 0 or 1:
- *                      * \c 1: Perform the assignment `X = Y`.
+ *                      * \c 1: Perform the assignment `X = A`.
  *                      * \c 0: Keep the original value of \p X.
  *
  * \note           This function avoids leaking any information about whether
@@ -50,10 +50,10 @@
  *
  * \warning        If \p assign is neither 0 nor 1, the result of this function
  *                 is indeterminate, and the resulting value in \p X might be
- *                 neither its original value nor the value in \p Y.
+ *                 neither its original value nor the value in \p B.
  */
 void mbedtls_mpi_mod_raw_cond_assign( mbedtls_mpi_uint *X,
-                                      const mbedtls_mpi_uint *Y,
+                                      const mbedtls_mpi_uint *A,
                                       const mbedtls_mpi_mod_modulus *m,
                                       unsigned char assign );
 
@@ -61,23 +61,23 @@ void mbedtls_mpi_mod_raw_cond_assign( mbedtls_mpi_uint *X,
  * \brief   Perform a safe conditional swap of MPI which doesn't reveal whether
  *          the condition was true or not.
  *
- * \param[IN,OUT] X     The address of the first MPI. This must be initialized.
- * \param[IN,OUT] Y     The address of the second MPI. This must be initialized.
- * \param[IN]     m     The address of the modulus related to \p X and \p Y.
+ * \param[IN,OUT] A     The address of the first MPI. This must be initialized.
+ * \param[IN,OUT] B     The address of the second MPI. This must be initialized.
+ * \param[IN]     m     The address of the modulus related to \p A and \p B.
  * \param         swap  The condition deciding whether to perform
  *                      the swap or not. Must be either 0 or 1:
- *                      * \c 1: Swap the values of \p X and \p Y.
- *                      * \c 0: Keep the original values of \p X and \p Y.
+ *                      * \c 1: Swap the values of \p A and \p B.
+ *                      * \c 0: Keep the original values of \p A and \p B.
  *
  * \note           This function avoids leaking any information about whether
  *                 the swap was done or not.
  *
  * \warning        If \p swap is neither 0 nor 1, the result of this function
- *                 is indeterminate, and both \p X and \p Y might end up with
+ *                 is indeterminate, and both \p A and \p B might end up with
  *                 values different to either of the original ones.
  */
-void mbedtls_mpi_mod_raw_cond_swap( mbedtls_mpi_uint *X,
-                                    mbedtls_mpi_uint *Y,
+void mbedtls_mpi_mod_raw_cond_swap( mbedtls_mpi_uint *A,
+                                    mbedtls_mpi_uint *B,
                                     const mbedtls_mpi_mod_modulus *m,
                                     unsigned char swap );
 

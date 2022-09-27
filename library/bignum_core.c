@@ -163,15 +163,15 @@ void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint *A,
 }
 
 void mbedtls_mpi_core_cond_assign( mbedtls_mpi_uint *X,
-                                   const mbedtls_mpi_uint *Y,
+                                   const mbedtls_mpi_uint *A,
                                    size_t limbs,
                                    unsigned char assign )
 {
-    mbedtls_ct_mpi_uint_cond_assign( limbs, X, Y, assign );
+    mbedtls_ct_mpi_uint_cond_assign( limbs, X, A, assign );
 }
 
-void mbedtls_mpi_core_cond_swap( mbedtls_mpi_uint *X,
-                                 mbedtls_mpi_uint *Y,
+void mbedtls_mpi_core_cond_swap( mbedtls_mpi_uint *A,
+                                 mbedtls_mpi_uint *B,
                                  size_t limbs,
                                  unsigned char swap )
 {
@@ -180,9 +180,9 @@ void mbedtls_mpi_core_cond_swap( mbedtls_mpi_uint *X,
 
     for( size_t i = 0; i < limbs; i++ )
     {
-        mbedtls_mpi_uint tmp = X[i];
-        X[i] = ( X[i] & ~limb_mask ) | ( Y[i] & limb_mask );
-        Y[i] = ( Y[i] & ~limb_mask ) | (  tmp & limb_mask );
+        mbedtls_mpi_uint tmp = A[i];
+        A[i] = ( A[i] & ~limb_mask ) | ( B[i] & limb_mask );
+        B[i] = ( B[i] & ~limb_mask ) | (  tmp & limb_mask );
     }
 }
 

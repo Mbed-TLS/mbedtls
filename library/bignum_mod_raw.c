@@ -42,19 +42,19 @@
 #include "constant_time_internal.h"
 
 void mbedtls_mpi_mod_raw_cond_assign( mbedtls_mpi_uint *X,
-                                      const mbedtls_mpi_uint *Y,
+                                      const mbedtls_mpi_uint *A,
                                       const mbedtls_mpi_mod_modulus *m,
                                       unsigned char assign )
 {
-    mbedtls_mpi_core_cond_assign( X, Y, m->limbs, assign );
+    mbedtls_mpi_core_cond_assign( X, A, m->limbs, assign );
 }
 
-void mbedtls_mpi_mod_raw_cond_swap( mbedtls_mpi_uint *X,
-                                    mbedtls_mpi_uint *Y,
+void mbedtls_mpi_mod_raw_cond_swap( mbedtls_mpi_uint *A,
+                                    mbedtls_mpi_uint *B,
                                     const mbedtls_mpi_mod_modulus *m,
                                     unsigned char swap )
 {
-    mbedtls_mpi_core_cond_swap( X, Y, m->limbs, swap );
+    mbedtls_mpi_core_cond_swap( A, B, m->limbs, swap );
 }
 
 int mbedtls_mpi_mod_raw_read( mbedtls_mpi_uint *X,

@@ -1788,6 +1788,51 @@ mpi_fill_random:16:15:0:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
 Fill random: MAX_SIZE bytes, RNG failure after MAX_SIZE-1 bytes
 mpi_fill_random:MBEDTLS_MPI_MAX_SIZE:MBEDTLS_MPI_MAX_SIZE-1:0:MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
 
+MPI core random basic: 0..1
+mpi_core_random_basic:0:"01":0
+
+MPI core random basic: 0..2
+mpi_core_random_basic:0:"02":0
+
+MPI core random basic: 1..2
+mpi_core_random_basic:1:"02":0
+
+MPI core random basic: 2^30..2^31
+mpi_core_random_basic:0x40000000:"80000000":0
+
+MPI core random basic: 0..2^128
+mpi_core_random_basic:0x40000000:"0100000000000000000000000000000000":0
+
+MPI core random basic: 2^30..2^129
+mpi_core_random_basic:0x40000000:"0200000000000000000000000000000000":0
+
+# Use the same data values for mpi_core_random_basic->NOT_ACCEPTABLE
+# and for mpi_random_values where we want to return NOT_ACCEPTABLE but
+# this isn't checked at runtime.
+MPI core random basic: 2^28-1..2^28 (NOT_ACCEPTABLE)
+mpi_core_random_basic:0x0fffffff:"10000000":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
+
+MPI random legacy=core: 2^28-1..2^28 (NOT_ACCEPTABLE)
+mpi_random_values:0x0fffffff:"10000000"
+
+MPI core random basic: 2^29-1..2^29 (NOT_ACCEPTABLE)
+mpi_core_random_basic:0x1fffffff:"20000000":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
+
+MPI random legacy=core: 2^29-1..2^29 (NOT_ACCEPTABLE)
+mpi_random_values:0x1fffffff:"20000000"
+
+MPI core random basic: 2^30-1..2^30 (NOT_ACCEPTABLE)
+mpi_core_random_basic:0x3fffffff:"40000000":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
+
+MPI random legacy=core: 2^30-1..2^30 (NOT_ACCEPTABLE)
+mpi_random_values:0x3fffffff:"40000000"
+
+MPI core random basic: 2^31-1..2^31 (NOT_ACCEPTABLE)
+mpi_core_random_basic:0x7fffffff:"80000000":MBEDTLS_ERR_MPI_NOT_ACCEPTABLE
+
+MPI random legacy=core: 2^31-1..2^31 (NOT_ACCEPTABLE)
+mpi_random_values:0x7fffffff:"80000000"
+
 MPI random in range: 1..2
 mpi_random_many:1:"02":1000
 

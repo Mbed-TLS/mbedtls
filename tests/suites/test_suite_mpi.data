@@ -681,41 +681,23 @@ mpi_core_lt_ct:"11FFFFFFFFFFFFFFFF":"FF1111111111111111":1
 mbedtls_mpi_core_lt_ct: x>y (alternating limbs)
 mpi_core_lt_ct:"FF1111111111111111":"11FFFFFFFFFFFFFFFF":0
 
-mbedtls_mpi_core_cond_assign: same size, true condition
-mpi_core_cond_assign:"FFFFFFFF":"11111111":1
+mbedtls_mpi_core_cond_assign
+mpi_core_cond_assign:"FFFFFFFF":"11111111"
 
-mbedtls_mpi_core_cond_assign: same size, false condition
-mpi_core_cond_assign:"FFFFFFFF":"11111111":0
+mbedtls_mpi_core_cond_swap: same value
+mpi_core_cond_swap:"FFFFFFFF":"FFFFFFFF"
 
-mbedtls_mpi_core_cond_assign: target larger, true condition
-mpi_core_cond_assign:"FFFFFFFFEEEEEEEEDDDDDDDD":"11111111":1
+mbedtls_mpi_core_cond_swap: different value
+mpi_core_cond_swap:"FFFFFFFF":"11111111"
 
-mbedtls_mpi_core_cond_assign: target larger, false condition
-mpi_core_cond_assign:"FFFFFFFFEEEEEEEEDDDDDDDD":"11111111":0
+mbedtls_mpi_mod_raw_cond_assign
+mpi_mod_raw_cond_assign:"FFFFFFFF":"11111111"
 
-mbedtls_mpi_core_cond_swap: same value, true condition
-mpi_core_cond_swap:"FFFFFFFF":"FFFFFFFF":1
+mbedtls_mpi_mod_raw_cond_swap: same value
+mpi_mod_raw_cond_swap:"FFFFFFFF":"FFFFFFFF"
 
-mbedtls_mpi_core_cond_swap: same size, true condition
-mpi_core_cond_swap:"FFFFFFFF":"11111111":1
-
-mbedtls_mpi_core_cond_swap: same size, false condition
-mpi_core_cond_swap:"FFFFFFFF":"11111111":0
-
-mbedtls_mpi_mod_raw_cond_assign: same size, true condition
-mpi_mod_raw_cond_assign:"FFFFFFFF":"11111111":1
-
-mbedtls_mpi_mod_raw_cond_assign: same size, false condition
-mpi_mod_raw_cond_assign:"FFFFFFFF":"11111111":0
-
-mbedtls_mpi_mod_raw_cond_swap: same value, true condition
-mpi_mod_raw_cond_swap:"FFFFFFFF":"FFFFFFFF":1
-
-mbedtls_mpi_mod_raw_cond_swap: same size, true condition
-mpi_mod_raw_cond_swap:"FFFFFFFF":"11111111":1
-
-mbedtls_mpi_mod_raw_cond_swap: same size, false condition
-mpi_mod_raw_cond_swap:"FFFFFFFF":"11111111":0
+mbedtls_mpi_mod_raw_cond_swap: different value
+mpi_mod_raw_cond_swap:"FFFFFFFF":"11111111"
 
 Base test mbedtls_mpi_lt_mpi_ct #1
 mpi_lt_mpi_ct:1:"2B5":1:"2B5":0:0

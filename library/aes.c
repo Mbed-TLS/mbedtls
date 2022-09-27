@@ -1690,7 +1690,8 @@ int mbedtls_aes_self_test( int verbose )
     unsigned char key[32];
     unsigned char buf[64];
     const unsigned char *aes_tests;
-#if defined(MBEDTLS_CIPHER_MODE_CBC) || defined(MBEDTLS_CIPHER_MODE_CFB)
+#if defined(MBEDTLS_CIPHER_MODE_CBC) || defined(MBEDTLS_CIPHER_MODE_CFB) || \
+    defined(MBEDTLS_CIPHER_MODE_OFB)
     unsigned char iv[16];
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_CBC)

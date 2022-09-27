@@ -917,9 +917,11 @@ static psa_algorithm_t ssl_tls13_iana_sig_alg_to_psa_alg( uint16_t sig_alg )
         case MBEDTLS_TLS1_3_SIG_RSA_PSS_RSAE_SHA512:
             return( PSA_ALG_RSA_PSS( PSA_ALG_SHA_512 ) );
         case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA256:
+            return( PSA_ALG_RSA_PKCS1V15_SIGN( PSA_ALG_SHA_256 ) );
         case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA384:
+            return( PSA_ALG_RSA_PKCS1V15_SIGN( PSA_ALG_SHA_384 ) );
         case MBEDTLS_TLS1_3_SIG_RSA_PKCS1_SHA512:
-            return( PSA_ALG_RSA_PKCS1V15_CRYPT );
+            return( PSA_ALG_RSA_PKCS1V15_SIGN( PSA_ALG_SHA_512 ) );
         default:
             return( PSA_ALG_NONE );
     }

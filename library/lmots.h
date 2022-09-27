@@ -151,8 +151,8 @@ extern int( *mbedtls_lmots_sign_private_key_invalidated_hook )( unsigned char * 
  * \param len                The length of the string.
  * \param bytes              The string to output into.
  */
-void unsigned_int_to_network_bytes( unsigned int val, size_t len,
-                                    unsigned char *bytes );
+void mbedtls_lms_unsigned_int_to_network_bytes( unsigned int val, size_t len,
+                                                unsigned char *bytes );
 
 /**
  * \brief                    This function converts a network-byte-order
@@ -163,8 +163,8 @@ void unsigned_int_to_network_bytes( unsigned int val, size_t len,
  *
  * \return                   The corresponding LMS error code.
  */
-unsigned int network_bytes_to_unsigned_int( size_t len,
-                                            const unsigned char *bytes );
+unsigned int mbedtls_lms_network_bytes_to_unsigned_int( size_t len,
+                                                        const unsigned char *bytes );
 
 /**
  * \brief                    This function converts a \ref psa_status_t to a

@@ -46,7 +46,7 @@
  */
 unsigned mbedtls_ct_uint_mask( unsigned value );
 
-#if defined(MBEDTLS_SSL_SOME_SUITES_USE_TLS_CBC)
+#if defined(MBEDTLS_SSL_SOME_SUITES_USE_MAC)
 
 /** Turn a value into a mask:
  * - if \p value == 0, return the all-bits 0 mask, aka 0

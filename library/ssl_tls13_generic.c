@@ -1021,6 +1021,12 @@ static int ssl_tls13_write_certificate_verify_body( mbedtls_ssl_context *ssl,
              MBEDTLS_SSL_DEBUG_MSG( 2, ( "CertificateVerify signature failed with %s",
                                     mbedtls_ssl_sig_alg_to_str( *sig_alg ) ) );
              MBEDTLS_SSL_DEBUG_RET( 2, "mbedtls_pk_sign_ext", ret );
+
+             /* The signature failed. This is possible if the private key
+              * was not suitable for the signature operation as purposely we
+              * did not check its suitability completely. Let's try with
+              * another signature algorithm.
+              */
              continue;
         }
 

@@ -559,9 +559,13 @@ void aes_misc_params( )
     defined(MBEDTLS_CIPHER_MODE_XTS) || \
     defined(MBEDTLS_CIPHER_MODE_CFB) || \
     defined(MBEDTLS_CIPHER_MODE_OFB)
-    mbedtls_aes_context aes_ctx;
     const unsigned char in[16] = { 0 };
     unsigned char out[16];
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_CBC) || \
+    defined(MBEDTLS_CIPHER_MODE_CFB) || \
+    defined(MBEDTLS_CIPHER_MODE_OFB)
+mbedtls_aes_context aes_ctx;
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_XTS)
     mbedtls_aes_xts_context xts_ctx;

@@ -962,6 +962,9 @@
 #error "MBEDTLS_SSL_VARIABLE_BUFFER_LENGTH defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && !( defined(MBEDTLS_CIPHER_MODE_AEAD) || defined(MBEDTLS_NIST_KW_C) )
+#error "MBEDTLS_SSL_SESSION_TICKETS defined, but not all prerequisites"
+#endif
 
 
 /* Reject attempts to enable options that have been removed and that could

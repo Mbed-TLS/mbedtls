@@ -114,6 +114,7 @@ static int ssl_ticket_gen_key( mbedtls_ssl_ticket_context *ctx,
 /*
  * Rotate/generate keys if necessary
  */
+#if defined(MBEDTLS_CIPHER_MODE_AEAD) || defined(MBEDTLS_NIST_KW_C)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_ticket_update_keys( mbedtls_ssl_ticket_context *ctx )
 {
@@ -150,6 +151,7 @@ static int ssl_ticket_update_keys( mbedtls_ssl_ticket_context *ctx )
 #endif /* MBEDTLS_HAVE_TIME */
         return( 0 );
 }
+#endif
 
 /*
  * Rotate active session ticket encryption key
@@ -293,7 +295,7 @@ int mbedtls_ssl_ticket_setup( mbedtls_ssl_ticket_context *ctx,
  * The key_name, iv, and length of encrypted_state are the additional
  * authenticated data.
  */
-
+#if defined(MBEDTLS_CIPHER_MODE_AEAD) || defined(MBEDTLS_NIST_KW_C)
 int mbedtls_ssl_ticket_write( void *p_ticket,
                               const mbedtls_ssl_session *session,
                               unsigned char *start,
@@ -390,7 +392,9 @@ cleanup:
 
     return( ret );
 }
+#endif
 
+#if defined(MBEDTLS_CIPHER_MODE_AEAD) || defined(MBEDTLS_NIST_KW_C)
 /*
  * Select key based on name
  */
@@ -517,6 +521,7 @@ cleanup:
 
     return( ret );
 }
+#endif
 
 /*
  * Free context

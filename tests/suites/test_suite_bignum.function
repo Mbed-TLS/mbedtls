@@ -1347,7 +1347,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mpi_random_many( int min, data_t *bound_bytes, int iterations )
+void mpi_random_many( int min, char *bound_hex, int iterations )
 {
     /* Generate numbers in the range 1..bound-1. Do it iterations times.
      * This function assumes that the value of bound is at least 2 and
@@ -1355,9 +1355,11 @@ void mpi_random_many( int min, data_t *bound_bytes, int iterations )
      * effectively never occurs.
      */
 
-    mbedtls_mpi upper_bound;
+    data_t bound_bytes = {NULL, 0};
+    mbedtls_mpi_uint *upper_bound = NULL;
+    size_t limbs;
     size_t n_bits;
-    mbedtls_mpi result;
+    mbedtls_mpi_uint *result = NULL;
     size_t b;
     /* If upper_bound is small, stats[b] is the number of times the value b
      * has been generated. Otherwise stats[b] is the number of times a
@@ -1367,12 +1369,11 @@ void mpi_random_many( int min, data_t *bound_bytes, int iterations )
     int full_stats;
     size_t i;
 
-    mbedtls_mpi_init( &upper_bound );
-    mbedtls_mpi_init( &result );
+    TEST_EQUAL( 0, mbedtls_test_read_mpi_core( &upper_bound, &limbs,
+                                               bound_hex ) );
+    ASSERT_ALLOC( result, limbs * ciL );
 
-    TEST_EQUAL( 0, mbedtls_mpi_read_binary( &upper_bound,
-                                            bound_bytes->x, bound_bytes->len ) );
-    n_bits = mbedtls_mpi_bitlen( &upper_bound );
+    n_bits = mbedtls_mpi_core_bitlen( upper_bound, limbs );
     /* Consider a bound "small" if it's less than 2^5. This value is chosen
      * to be small enough that the probability of missing one value is
      * negligible given the number of iterations. It must be less than
@@ -1381,7 +1382,7 @@ void mpi_random_many( int min, data_t *bound_bytes, int iterations )
     if( n_bits <= 5 )
     {
         full_stats = 1;
-        stats_len = bound_bytes->x[bound_bytes->len - 1];
+        stats_len = (uint8_t) upper_bound[0];
     }
     else
     {
@@ -1393,23 +1394,28 @@ void mpi_random_many( int min, data_t *bound_bytes, int iterations )
     for( i = 0; i < (size_t) iterations; i++ )
     {
         mbedtls_test_set_step( i );
-        TEST_EQUAL( 0, mbedtls_mpi_random( &result, min, &upper_bound,
-                                           mbedtls_test_rnd_std_rand, NULL ) );
+        TEST_EQUAL( 0, mbedtls_mpi_core_random( result,
+                                                min, upper_bound, limbs,
+                                                mbedtls_test_rnd_std_rand, NULL ) );
 
-        TEST_ASSERT( sign_is_valid( &result ) );
-        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &result, &upper_bound ) < 0 );
-        TEST_ASSERT( mbedtls_mpi_cmp_int( &result, min ) >= 0 );
+        /* Temporarily use a legacy MPI for analysis, because the
+         * necessary auxiliary functions don't exist yet in core. */
+        mbedtls_mpi B = {1, limbs, upper_bound};
+        mbedtls_mpi R = {1, limbs, result};
+
+        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &R, &B ) < 0 );
+        TEST_ASSERT( mbedtls_mpi_cmp_int( &R, min ) >= 0 );
         if( full_stats )
         {
             uint8_t value;
-            TEST_EQUAL( 0, mbedtls_mpi_write_binary( &result, &value, 1 ) );
+            TEST_EQUAL( 0, mbedtls_mpi_write_binary( &R, &value, 1 ) );
             TEST_ASSERT( value < stats_len );
             ++stats[value];
         }
         else
         {
             for( b = 0; b < n_bits; b++ )
-                stats[b] += mbedtls_mpi_get_bit( &result, b );
+                stats[b] += mbedtls_mpi_get_bit( &R, b );
         }
     }
 
@@ -1427,8 +1433,12 @@ void mpi_random_many( int min, data_t *bound_bytes, int iterations )
     }
     else
     {
+        bound_bytes.len = limbs * sizeof( mbedtls_mpi_uint );
+        ASSERT_ALLOC( bound_bytes.x, bound_bytes.len );
+        mbedtls_mpi_core_write_be( upper_bound, limbs,
+                                   bound_bytes.x, bound_bytes.len );
         int statistically_safe_all_the_way =
-            is_significantly_above_a_power_of_2( bound_bytes );
+            is_significantly_above_a_power_of_2( &bound_bytes );
         for( b = 0; b < n_bits; b++ )
         {
             mbedtls_test_set_step( 1000000 + b );
@@ -1449,8 +1459,9 @@ void mpi_random_many( int min, data_t *bound_bytes, int iterations )
     }
 
 exit:
-    mbedtls_mpi_free( &upper_bound );
-    mbedtls_mpi_free( &result );
+    mbedtls_free( bound_bytes.x );
+    mbedtls_free( upper_bound );
+    mbedtls_free( result );
     mbedtls_free( stats );
 }
 /* END_CASE */

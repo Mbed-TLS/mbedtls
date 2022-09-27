@@ -3,8 +3,6 @@
 #include "mbedtls/lms.h"
 
 #if defined(MBEDTLS_TEST_HOOKS)
-extern int( *mbedtls_lmots_sign_private_key_invalidated_hook )( unsigned char * );
-
 int check_lmots_private_key_for_leak(unsigned char * sig)
 {
     size_t idx;

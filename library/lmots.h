@@ -139,6 +139,10 @@ typedef struct {
 } mbedtls_lmots_private_t;
 #endif /* MBEDTLS_LMS_PRIVATE */
 
+#if defined(MBEDTLS_TEST_HOOKS)
+extern int( *mbedtls_lmots_sign_private_key_invalidated_hook )( unsigned char * );
+#endif /* defined(MBEDTLS_TEST_HOOKS) */
+
 /**
  * \brief                    This function converts an unsigned int into a
  *                           network-byte-order (big endian) string.

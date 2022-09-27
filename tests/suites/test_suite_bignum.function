@@ -2,6 +2,7 @@
 #include "mbedtls/bignum.h"
 #include "mbedtls/entropy.h"
 #include "constant_time_internal.h"
+#include "bignum_core.h"
 #include "test/constant_flow.h"
 
 #if MBEDTLS_MPI_MAX_BITS > 792
@@ -1295,6 +1296,57 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void mpi_random_values( int min, char *max_hex )
+{
+    mbedtls_test_rnd_pseudo_info rnd_core = {
+        {'T', 'h', 'i', 's', ' ', 'i', ',', 'a',
+         's', 'e', 'e', 'd', '!', 0},
+        0, 0};
+    mbedtls_test_rnd_pseudo_info rnd_legacy;
+    memcpy( &rnd_legacy, &rnd_core, sizeof( rnd_core ) );
+    mbedtls_mpi max_legacy;
+    mbedtls_mpi_init( &max_legacy );
+    mbedtls_mpi_uint *R_core = NULL;
+    mbedtls_mpi R_legacy;
+    mbedtls_mpi_init( &R_legacy );
+
+    TEST_EQUAL( 0, mbedtls_test_read_mpi( &max_legacy, max_hex ) );
+    size_t limbs = max_legacy.n;
+    ASSERT_ALLOC( R_core, limbs * ciL );
+
+    /* Call the legacy function and the core function with the same random
+     * stream. */
+    int core_ret = mbedtls_mpi_core_random( R_core, min, max_legacy.p, limbs,
+                                            mbedtls_test_rnd_pseudo_rand,
+                                            &rnd_core );
+    int legacy_ret = mbedtls_mpi_random( &R_legacy, min, &max_legacy,
+                                         mbedtls_test_rnd_pseudo_rand,
+                                         &rnd_legacy );
+
+    /* They must return the same status, and, on success, output the
+     * same number, with the same limb count. */
+    TEST_EQUAL( core_ret, legacy_ret );
+    if( core_ret == 0 )
+    {
+        ASSERT_COMPARE( R_core, limbs * ciL,
+                        R_legacy.p, R_legacy.n * ciL );
+    }
+
+    /* Also check that they have consumed the RNG in the same way. */
+    /* This may theoretically fail on rare platforms with padding in
+     * the structure! If this is a problem in practice, change to a
+     * field-by-field comparison. */
+    ASSERT_COMPARE( &rnd_core, sizeof( rnd_core ),
+                    &rnd_legacy, sizeof( rnd_legacy ) );
+
+exit:
+    mbedtls_mpi_free( &max_legacy );
+    mbedtls_free( R_core );
+    mbedtls_mpi_free( &R_legacy );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mpi_random_many( int min, data_t *bound_bytes, int iterations )
 {
     /* Generate numbers in the range 1..bound-1. Do it iterations times.
@@ -1481,7 +1533,6 @@ void most_negative_mpi_sint( )
     mbedtls_mpi_init( &R );
     mbedtls_mpi_init( &X );
 
-    const size_t biL = 8 * sizeof( mbedtls_mpi_sint );
     mbedtls_mpi_uint most_positive_plus_1 = (mbedtls_mpi_uint) 1 << ( biL - 1 );
     const mbedtls_mpi_sint most_positive = most_positive_plus_1 - 1;
     const mbedtls_mpi_sint most_negative = - most_positive - 1;

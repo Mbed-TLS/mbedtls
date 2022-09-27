@@ -506,7 +506,7 @@ static int get_merkle_path( mbedtls_lms_private_t *ctx,
 
 void mbedtls_lms_init_private( mbedtls_lms_private_t *ctx )
 {
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_lms_public_t ) ) ;
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_lms_private_t ) ) ;
 }
 
 void mbedtls_lms_free_private( mbedtls_lms_private_t *ctx )

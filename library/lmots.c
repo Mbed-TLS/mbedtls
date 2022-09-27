@@ -44,13 +44,13 @@
 
 #include "psa/crypto.h"
 
-#define MBEDTLS_LMOTS_PUBLIC_KEY_TYPE_OFFSET     (0)
-#define MBEDTLS_LMOTS_PUBLIC_KEY_I_KEY_ID_OFFSET (MBEDTLS_LMOTS_PUBLIC_KEY_TYPE_OFFSET + \
-                                                  MBEDTLS_LMOTS_TYPE_LEN)
-#define MBEDTLS_LMOTS_PUBLIC_KEY_Q_LEAF_ID_OFFSET (MBEDTLS_LMOTS_PUBLIC_KEY_I_KEY_ID_OFFSET + \
-                                                   MBEDTLS_LMOTS_I_KEY_ID_LEN)
-#define MBEDTLS_LMOTS_PUBLIC_KEY_KEY_HASH_OFFSET (MBEDTLS_LMOTS_PUBLIC_KEY_Q_LEAF_ID_OFFSET + \
-                                                  MBEDTLS_LMOTS_Q_LEAF_ID_LEN)
+#define PUBLIC_KEY_TYPE_OFFSET     (0)
+#define PUBLIC_KEY_I_KEY_ID_OFFSET (PUBLIC_KEY_TYPE_OFFSET + \
+                                    MBEDTLS_LMOTS_TYPE_LEN)
+#define PUBLIC_KEY_Q_LEAF_ID_OFFSET (PUBLIC_KEY_I_KEY_ID_OFFSET + \
+                                     MBEDTLS_LMOTS_I_KEY_ID_LEN)
+#define PUBLIC_KEY_KEY_HASH_OFFSET (PUBLIC_KEY_Q_LEAF_ID_OFFSET + \
+                                    MBEDTLS_LMOTS_Q_LEAF_ID_LEN)
 
 /* We only support parameter sets that use 8-bit digits, as it does not require
  * translation logic between digits and bytes */
@@ -61,7 +61,7 @@
 #define D_CONST_LEN            (2)
 
 /* Currently only defined for SHA256, 32 is the max hash output size */
-#define MBEDTLS_LMOTS_C_RANDOM_VALUE_LEN_MAX (MBEDTLS_LMOTS_N_HASH_LEN_MAX)
+#define C_RANDOM_VALUE_LEN_MAX (MBEDTLS_LMOTS_N_HASH_LEN_MAX)
 
 #define DIGIT_MAX_VALUE        ((1u << W_WINTERNITZ_PARAMETER) - 1u)
 
@@ -449,15 +449,15 @@ int mbedtls_lmots_import_public_key( mbedtls_lmots_public_t *ctx,
     }
 
     memcpy( ctx->params.I_key_identifier,
-            key + MBEDTLS_LMOTS_PUBLIC_KEY_I_KEY_ID_OFFSET,
+            key + PUBLIC_KEY_I_KEY_ID_OFFSET,
             MBEDTLS_LMOTS_I_KEY_ID_LEN );
 
     memcpy( ctx->params.q_leaf_identifier,
-            key + MBEDTLS_LMOTS_PUBLIC_KEY_Q_LEAF_ID_OFFSET,
+            key + PUBLIC_KEY_Q_LEAF_ID_OFFSET,
             MBEDTLS_LMOTS_Q_LEAF_ID_LEN );
 
     memcpy( ctx->public_key,
-            key + MBEDTLS_LMOTS_PUBLIC_KEY_KEY_HASH_OFFSET,
+            key + PUBLIC_KEY_KEY_HASH_OFFSET,
             MBEDTLS_LMOTS_N_HASH_LEN(ctx->params.type) );
 
     ctx->have_public_key = 1;
@@ -738,15 +738,15 @@ int mbedtls_lmots_export_public_key( mbedtls_lmots_public_t *ctx,
                                                MBEDTLS_LMOTS_TYPE_LEN,
                                                key + MBEDTLS_LMOTS_SIG_TYPE_OFFSET );
 
-    memcpy( key + MBEDTLS_LMOTS_PUBLIC_KEY_I_KEY_ID_OFFSET,
+    memcpy( key + PUBLIC_KEY_I_KEY_ID_OFFSET,
             ctx->params.I_key_identifier,
             MBEDTLS_LMOTS_I_KEY_ID_LEN );
 
-    memcpy( key + MBEDTLS_LMOTS_PUBLIC_KEY_Q_LEAF_ID_OFFSET,
+    memcpy( key + PUBLIC_KEY_Q_LEAF_ID_OFFSET,
             ctx->params.q_leaf_identifier,
             MBEDTLS_LMOTS_Q_LEAF_ID_LEN );
 
-    memcpy( key + MBEDTLS_LMOTS_PUBLIC_KEY_KEY_HASH_OFFSET, ctx->public_key,
+    memcpy( key + PUBLIC_KEY_KEY_HASH_OFFSET, ctx->public_key,
             MBEDTLS_LMOTS_N_HASH_LEN(ctx->params.type) );
 
     if( key_len != NULL )
@@ -771,7 +771,7 @@ int mbedtls_lmots_sign( mbedtls_lmots_private_t *ctx,
      * key.
      */
     unsigned char tmp_sig[MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT_MAX][MBEDTLS_LMOTS_N_HASH_LEN_MAX];
-    unsigned char tmp_c_random[MBEDTLS_LMOTS_C_RANDOM_VALUE_LEN_MAX];
+    unsigned char tmp_c_random[C_RANDOM_VALUE_LEN_MAX];
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
     if( msg == NULL && msg_size != 0 )

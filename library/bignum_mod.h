@@ -1,5 +1,7 @@
 /**
  *  Modular bignum functions
+ *
+ * This module implements operations on integers modulo some fixed modulus.
  */
 
 /*

@@ -6,6 +6,11 @@
  *  modules should use the high-level modular bignum interface (bignum_mod.h)
  *  or the legacy bignum interface (bignum.h).
  *
+ * This module is about processing non-negative integers with a fixed upper
+ * bound that's of the form 2^#biL-1. Many operations treat these numbers
+ * as the principal representation of a number modulo 2^#biL or a smaller
+ * bound.
+ *
  */
 
 /*

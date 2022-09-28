@@ -810,7 +810,8 @@ void mpi_core_cond_assign( data_t * input_X,
     ASSERT_COMPARE( X, len_Y_byte, Y, len_Y_byte );
 
 exit:
-    ;
+    mbedtls_free( X );
+    mbedtls_free( Y );
 
     #undef MAX_LEN
 }
@@ -873,7 +874,10 @@ void mpi_core_cond_swap( data_t * input_X,
     ASSERT_COMPARE( Y, len_X_byte, tmp_X, len_X_byte );
 
 exit:
-    ;
+    mbedtls_free( tmp_X );
+    mbedtls_free( tmp_Y );
+    mbedtls_free( X );
+    mbedtls_free( Y );
 
     #undef MAX_LEN
 }
@@ -938,7 +942,10 @@ void mpi_mod_raw_cond_assign( data_t * input_X,
     ASSERT_COMPARE( X, len_Y_byte, Y, len_Y_byte );
 
 exit:
-    ;
+    mbedtls_free( X );
+    mbedtls_free( Y );
+
+    mbedtls_mpi_mod_modulus_free( &m );
 
     #undef MAX_LEN
 }
@@ -1010,7 +1017,12 @@ void mpi_mod_raw_cond_swap( data_t * input_X,
     ASSERT_COMPARE( Y, len_m_byte, tmp_X, len_X_byte );
 
 exit:
-    ;
+    mbedtls_free( tmp_X );
+    mbedtls_free( tmp_Y );
+    mbedtls_free( X );
+    mbedtls_free( Y );
+
+    mbedtls_mpi_mod_modulus_free( &m );
 
     #undef MAX_LEN
 }

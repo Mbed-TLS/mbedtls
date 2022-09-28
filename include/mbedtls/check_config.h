@@ -966,6 +966,9 @@
 #error "MBEDTLS_SSL_SESSION_TICKETS defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_SSL_CONTEXT_SERIALIZATION) && !defined(MBEDTLS_CIPHER_MODE_AEAD)
+#error "MBEDTLS_SSL_CONTEXT_SERIALIZATION defined, but not all prerequisites"
+#endif
 
 /* Reject attempts to enable options that have been removed and that could
  * cause a build to succeed but with features removed. */

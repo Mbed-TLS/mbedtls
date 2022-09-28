@@ -2115,7 +2115,7 @@ run_test    "TLS 1.3: m->m: ephemeral_all/ephemeral_all,good,key id mismatch,fal
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-run_test    "TLS 1.3: m->m: ephemeral_all/ephemeral_all,good,key material mismatch,fallback" \
+run_test    "TLS 1.3: m->m: ephemeral_all/ephemeral_all, fail, key material mismatch" \
             "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             "$P_CLI nbio=2 debug_level=5 psk=040506 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             1 \
@@ -2315,7 +2315,7 @@ run_test    "TLS 1.3: m->m: psk_all/ephemeral_all, fail, key id mismatch" \
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_3
 requires_config_enabled MBEDTLS_SSL_SRV_C
 requires_config_enabled MBEDTLS_SSL_CLI_C
-run_test    "TLS 1.3: m->m: psk_all/ephemeral_all, good, key material mismatch" \
+run_test    "TLS 1.3: m->m: psk_all/ephemeral_all, fail, key material mismatch" \
             "$P_SRV nbio=2 debug_level=5 force_version=tls13 psk=010203 psk_identity=0a0b0c tls13_kex_modes=ephemeral_all" \
             "$P_CLI nbio=2 debug_level=5 psk=040506 psk_identity=0a0b0c tls13_kex_modes=psk_all" \
             1 \

@@ -1727,13 +1727,13 @@ static int ssl_tls13_postprocess_server_hello( mbedtls_ssl_context *ssl )
     {
         ret = MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE;
         MBEDTLS_SSL_DEBUG_MSG( 2,
-                ( "Key exchange mode(%s) is not configured supported.",
+                ( "Key exchange mode(%s) is not supported.",
                 ssl_tls13_get_kex_mode_str( handshake->key_exchange_mode ) ) );
         goto cleanup;
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 3,
-            ( "Server selected key exchange mode: %s",
+            ( "Selected key exchange mode: %s",
               ssl_tls13_get_kex_mode_str( handshake->key_exchange_mode ) ) );
 
     /* Start the TLS 1.3 key schedule: Set the PSK and derive early secret.

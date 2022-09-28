@@ -1738,8 +1738,6 @@ psa_status_t psa_pake_get_implicit_key( psa_pake_operation_t *operation,
  */
 psa_status_t psa_pake_abort( psa_pake_operation_t * operation );
 
-/**@}*/
-
 /** A sufficient output buffer size for psa_pake_output().
  *
  * If the size of the output buffer is at least this large, it is guaranteed
@@ -1900,6 +1898,8 @@ static inline struct psa_pake_operation_s psa_pake_operation_init( void )
     const struct psa_pake_operation_s v = PSA_PAKE_OPERATION_INIT;
     return( v );
 }
+
+/**@}*/
 
 #ifdef __cplusplus
 }

@@ -7797,6 +7797,51 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_BUILTIN_ALG_TLS12_PSK_TO_MS:MBEDTLS_SHA256_C */
+void derive_ecjpake_to_pms( data_t *input, int expected_input_status_arg,
+                            int derivation_step,
+                            int capacity, int expected_capacity_status_arg,
+                            data_t *expected_output,
+                            int expected_output_status_arg )
+{
+    psa_algorithm_t alg = PSA_ALG_TLS12_ECJPAKE_TO_PMS;
+    psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
+    psa_key_derivation_step_t step = (psa_key_derivation_step_t) derivation_step;
+    uint8_t *output_buffer = NULL;
+    psa_status_t status;
+    psa_status_t expected_input_status = (psa_status_t) expected_input_status_arg;
+    psa_status_t expected_capacity_status = (psa_status_t) expected_capacity_status_arg;
+    psa_status_t expected_output_status = (psa_status_t) expected_output_status_arg;
+
+    ASSERT_ALLOC( output_buffer, expected_output->len );
+    PSA_ASSERT( psa_crypto_init() );
+
+    PSA_ASSERT( psa_key_derivation_setup( &operation, alg ) );
+    TEST_EQUAL( psa_key_derivation_set_capacity( &operation, capacity ),
+                expected_capacity_status);
+
+    TEST_EQUAL( psa_key_derivation_input_bytes( &operation,
+                    step, input->x, input->len ),
+                expected_input_status );
+
+    if( ( (psa_status_t) expected_input_status ) != PSA_SUCCESS )
+        goto exit;
+
+    status = psa_key_derivation_output_bytes( &operation, output_buffer,
+        expected_output->len );
+
+    TEST_EQUAL( status, expected_output_status );
+    if( expected_output->len != 0 && expected_output_status == PSA_SUCCESS )
+        ASSERT_COMPARE( output_buffer, expected_output->len, expected_output->x,
+                        expected_output->len );
+
+exit:
+    mbedtls_free( output_buffer );
+    psa_key_derivation_abort( &operation );
+    PSA_DONE();
+}
+/* END_CASE */
+
 /* BEGIN_CASE */
 void derive_key_exercise( int alg_arg,
                           data_t *key_data,

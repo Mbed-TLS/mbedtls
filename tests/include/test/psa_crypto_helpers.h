@@ -146,7 +146,36 @@ const char *mbedtls_test_helper_is_psa_leaking( void );
     }                                                                   \
     while( 0 )
 
+/** How to create a key with mbedtls_test_psa_create_key(). */
+typedef enum {
+    IMPORT_KEY = 0,
+    GENERATE_KEY = 1,
+    DERIVE_KEY = 2
+} mbedtls_test_psa_create_key_method_t;
 
+/** Create a key for test purposes.
+ *
+ * \note    If the creation fails, this function marks the test case as failed.
+ *          As an exception, if \p method is #DERIVE_KEY and no supported key
+ *          derivation algorithm is enabled, this function instead marks the
+ *          test case as skipped.
+ *
+ * \param method                How to create the key.
+ *                              See #mbedtls_test_psa_create_key_method_t.
+ * \param[in] attributes        Attributes for the new key.
+ * \param[in] key_material      Key material to use when importing,
+ *                              or for the secret when deriving.
+ *                              Ignored when generating.
+ * \param key_material_size     The size of \p key_material in bytes.
+ * \param[out] key              On success, the key identifier.
+ *
+ * \return  1 if the key was created successfully, otherwise 0.
+ */
+int mbedtls_test_psa_create_key( mbedtls_test_psa_create_key_method_t method,
+                                 const psa_key_attributes_t *attributes,
+                                 const uint8_t *key_material,
+                                 size_t key_material_size,
+                                 mbedtls_svc_key_id_t *key );
 
 #if defined(RECORD_PSA_STATUS_COVERAGE_LOG)
 psa_status_t mbedtls_test_record_status( psa_status_t status,

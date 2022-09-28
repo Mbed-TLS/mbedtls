@@ -94,6 +94,76 @@ const char *mbedtls_test_helper_is_psa_leaking( void )
     return( NULL );
 }
 
+int mbedtls_test_psa_create_key( mbedtls_test_psa_create_key_method_t method,
+                                 const psa_key_attributes_t *attributes,
+                                 const uint8_t *key_material,
+                                 size_t key_material_size,
+                                 mbedtls_svc_key_id_t *key )
+{
+    int ok = 0;
+    psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
+    mbedtls_svc_key_id_t base_key = MBEDTLS_SVC_KEY_ID_INIT;
+
+    switch( method )
+    {
+        case IMPORT_KEY:
+            /* Import the key */
+            PSA_ASSERT( psa_import_key( attributes,
+                                        key_material, key_material_size,
+                                        key ) );
+            break;
+
+        case GENERATE_KEY:
+            /* Generate a key */
+            PSA_ASSERT( psa_generate_key( attributes, key ) );
+            break;
+
+        case DERIVE_KEY:
+#if defined(PSA_WANT_ALG_HKDF) && defined(PSA_WANT_ALG_SHA_256)
+            {
+                /* Create base key */
+                psa_algorithm_t derive_alg = PSA_ALG_HKDF( PSA_ALG_SHA_256 );
+                psa_key_attributes_t base_attributes = PSA_KEY_ATTRIBUTES_INIT;
+                psa_set_key_usage_flags( &base_attributes,
+                                         PSA_KEY_USAGE_DERIVE );
+                psa_set_key_algorithm( &base_attributes, derive_alg );
+                psa_set_key_type( &base_attributes, PSA_KEY_TYPE_DERIVE );
+                PSA_ASSERT( psa_import_key( &base_attributes,
+                                            key_material, key_material_size,
+                                            &base_key ) );
+                /* Derive a key. */
+                PSA_ASSERT( psa_key_derivation_setup( &operation, derive_alg ) );
+                PSA_ASSERT( psa_key_derivation_input_key(
+                                &operation,
+                                PSA_KEY_DERIVATION_INPUT_SECRET, base_key ) );
+                PSA_ASSERT( psa_key_derivation_input_bytes(
+                                &operation, PSA_KEY_DERIVATION_INPUT_INFO,
+                                NULL, 0 ) );
+                PSA_ASSERT( psa_key_derivation_output_key( attributes,
+                                                           &operation,
+                                                           key ) );
+                PSA_ASSERT( psa_key_derivation_abort( &operation ) );
+                PSA_ASSERT( psa_destroy_key( base_key ) );
+                base_key = MBEDTLS_SVC_KEY_ID_INIT;
+            }
+#else
+            TEST_ASSUME( ! "KDF not supported in this configuration" );
+#endif
+            break;
+
+        default:
+            TEST_ASSERT( ! "generation_method not implemented in test" );
+            break;
+    }
+
+    ok = 1;
+
+exit:
+    psa_destroy_key( base_key );
+    psa_key_derivation_abort( &operation );
+    return( ok );
+}
+
 #if defined(RECORD_PSA_STATUS_COVERAGE_LOG)
 /** Name of the file where return statuses are logged by #RECORD_STATUS. */
 #define STATUS_LOG_FILE_NAME "statuses.log"

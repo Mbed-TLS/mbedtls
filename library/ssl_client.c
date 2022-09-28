@@ -79,7 +79,7 @@ static int ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
     {
         ssl->session_negotiate->hostname = mbedtls_calloc( 1, hostname_len );
         if( ssl->session_negotiate->hostname == NULL )
-            return MBEDTLS_ERR_SSL_ALLOC_FAILED;
+            return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
         memcpy(ssl->session_negotiate->hostname, ssl->hostname, hostname_len);
     }
     ssl->session_negotiate->hostname_len = hostname_len;

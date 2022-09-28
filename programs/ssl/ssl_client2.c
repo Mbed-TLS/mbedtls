@@ -346,10 +346,11 @@ int main( void )
 
 #define USAGE_KEY_OPAQUE_ALGS \
     "    key_opaque_algs=%%s  Allowed opaque key algorithms.\n"                      \
-    "                        comma-separated pair of values among the following:\n"   \
-    "                        rsa-sign-pkcs1, rsa-sign-pss, rsa-decrypt,\n"           \
-    "                        ecdsa-sign, ecdh, none (only acceptable for\n"          \
-    "                        the second value).\n"                                   \
+    "                        comma-separated pair of values among the following:\n"    \
+    "                        rsa-sign-pkcs1, rsa-sign-pss, rsa-sign-pss-sha256,\n"     \
+    "                        rsa-sign-pss-sha384, rsa-sign-pss-sha512, rsa-decrypt,\n" \
+    "                        ecdsa-sign, ecdh, none (only acceptable for\n"            \
+    "                        the second value).\n"                                     \
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_3)
 #define USAGE_TLS1_3_KEY_EXCHANGE_MODES \
@@ -1821,7 +1822,8 @@ int main( int argc, char *argv[] )
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     mbedtls_printf( " ok (key type: %s)\n",
-                    strlen( opt.key_file ) ? mbedtls_pk_get_name( &pkey ) : "none" );
+                    strlen( opt.key_file ) || strlen( opt.key_opaque_alg1 ) ?
+                            mbedtls_pk_get_name( &pkey ) : "none" );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     /*

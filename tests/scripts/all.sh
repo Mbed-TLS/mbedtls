@@ -1341,6 +1341,75 @@ component_test_crypto_full_stream_cipher_only () {
     make test
 }
 
+component_test_crypto_default_cbc_legacy_cipher_only () {
+    msg "build: default with only CBC-legacy cipher"
+
+    # Disable all ciphers
+    # AEAD (controlled by the presence of one of GCM_C, CCM_C, CHACHAPOLY_C
+    scripts/config.py unset MBEDTLS_GCM_C
+    scripts/config.py unset MBEDTLS_CCM_C
+    scripts/config.py unset MBEDTLS_CHACHAPOLY_C
+    # CBC-legacy (controlled by MBEDTLS_CIPHER_MODE_CBC plus at least one block cipher (AES, ARIA, Camellia, DES))
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
+    scripts/config.py unset MBEDTLS_AES_C
+    scripts/config.py unset MBEDTLS_CAMELLIA_C
+    scripts/config.py unset MBEDTLS_ARIA_C
+    scripts/config.py unset MBEDTLS_DES_C
+    # CBC-EtM (controlled by the same as CBC-legacy plus MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+    scripts/config.py unset MBEDTLS_SSL_ENCRYPT_THEN_MAC
+    # stream (currently that's just the NULL pseudo-cipher (controlled by MBEDTLS_CIPHER_NULL_CIPHER)
+    scripts/config.py unset MBEDTLS_CIPHER_NULL_CIPHER
+    # Indirect dependencies
+    scripts/config.py unset MBEDTLS_CTR_DRBG_C
+    scripts/config.py unset MBEDTLS_CMAC_C
+    scripts/config.py unset MBEDTLS_NIST_KW_C
+    scripts/config.py unset MBEDTLS_SSL_SESSION_TICKETS
+    scripts/config.py unset MBEDTLS_SSL_CONTEXT_SERIALIZATION
+
+    # Enable CBC-legacy cipher only
+    scripts/config.py set MBEDTLS_CIPHER_MODE_CBC
+    scripts/config.py set MBEDTLS_AES_C
+    make
+
+    msg "test: default with only CBC-legacy cipher"
+    make test
+}
+
+component_test_crypto_full_cbc_legacy_cipher_only () {
+    msg "build: full with only CBC-legacy cipher"
+
+    scripts/config.py crypto_full
+    # Disable all ciphers
+    # AEAD (controlled by the presence of one of GCM_C, CCM_C, CHACHAPOLY_C
+    scripts/config.py unset MBEDTLS_GCM_C
+    scripts/config.py unset MBEDTLS_CCM_C
+    scripts/config.py unset MBEDTLS_CHACHAPOLY_C
+    # CBC-legacy (controlled by MBEDTLS_CIPHER_MODE_CBC plus at least one block cipher (AES, ARIA, Camellia, DES))
+    scripts/config.py unset MBEDTLS_CIPHER_MODE_CBC
+    scripts/config.py unset MBEDTLS_AES_C
+    scripts/config.py unset MBEDTLS_CAMELLIA_C
+    scripts/config.py unset MBEDTLS_ARIA_C
+    scripts/config.py unset MBEDTLS_DES_C
+    # CBC-EtM (controlled by the same as CBC-legacy plus MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+    scripts/config.py unset MBEDTLS_SSL_ENCRYPT_THEN_MAC
+    # stream (currently that's just the NULL pseudo-cipher (controlled by MBEDTLS_CIPHER_NULL_CIPHER)
+    scripts/config.py unset MBEDTLS_CIPHER_NULL_CIPHER
+    # Indirect dependencies
+    scripts/config.py unset MBEDTLS_CTR_DRBG_C
+    scripts/config.py unset MBEDTLS_CMAC_C
+    scripts/config.py unset MBEDTLS_NIST_KW_C
+    scripts/config.py unset MBEDTLS_SSL_SESSION_TICKETS
+    scripts/config.py unset MBEDTLS_SSL_CONTEXT_SERIALIZATION
+
+    # Enable CBC-legacy cipher only
+    scripts/config.py set MBEDTLS_CIPHER_MODE_CBC
+    scripts/config.py set MBEDTLS_AES_C
+    make
+
+    msg "test: full with only CBC-legacy cipher"
+    make test
+}
+
 component_test_psa_external_rng_use_psa_crypto () {
     msg "build: full + PSA_CRYPTO_EXTERNAL_RNG + USE_PSA_CRYPTO minus CTR_DRBG"
     scripts/config.py full

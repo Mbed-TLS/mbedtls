@@ -1261,6 +1261,23 @@ psa_status_t psa_get_key_slot_number(
 }
 #endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
+/** Retrieve key audit information.
+ */
+psa_status_t psa_get_key_audit_flags( mbedtls_svc_key_id_t key,
+                                      psa_key_audit_flags_t *audit_flags )
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_slot_t *slot;
+
+    status = psa_get_and_lock_key_slot_with_policy( key, &slot, 0, 0 );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    *audit_flags = slot->audit_flags;
+
+    return( psa_unlock_key_slot( slot ) );
+}
+
 static psa_status_t psa_export_key_buffer_internal( const uint8_t *key_buffer,
                                                     size_t key_buffer_size,
                                                     uint8_t *data,

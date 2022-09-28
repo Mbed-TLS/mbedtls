@@ -694,7 +694,7 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_family_t curve,
  *   have been present outside that secure element, even if it could not
  *   escape the security boundary of the PSA Crypto implementation.
  *
- * \note    Mbed TLS does not support this flag yet.
+ * \note    Mbed TLS currently supports this flag only for volatile keys.
  */
 #define PSA_KEY_AUDIT_FLAG_NEVER_EXPORTED ((psa_key_audit_flags_t) 0x00000001u)
 

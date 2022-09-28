@@ -1,0 +1,5 @@
+Features
+   * A new experimental API psa_get_key_audit_flags() allows auditing
+     properties of a key. Currently the only supported property is whether
+     the key material can be guaranteed to have never been exposed outside
+     its security boundary, and this is only implemented for volatile keys.

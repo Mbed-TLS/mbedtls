@@ -32,7 +32,8 @@ exit:
 void key_audit_created( int lifetime,
                         int usage_flags_arg,
                         int creation_method,
-                        int expected_audit_flags_arg )
+                        int expected_audit_flags_arg,
+                        int expected_persistent_copy_audit_flags_arg )
 {
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     mbedtls_svc_key_id_t key_id = MBEDTLS_SVC_KEY_ID_INIT;
@@ -71,8 +72,21 @@ void key_audit_created( int lifetime,
          * its attributes are possibly tighter. */
         psa_reset_key_attributes( &attributes );
         PSA_ASSERT( psa_copy_key( key_id, &attributes, &key_copy ) );
+        actual_audit_flags = 0xdeadbeef;
         PSA_ASSERT( psa_get_key_audit_flags( key_copy, &actual_audit_flags ) );
         TEST_EQUAL( expected_audit_flags, actual_audit_flags );
+        PSA_ASSERT( psa_destroy_key( key_copy ) );
+
+        /* A persistent copy may have weaker flags. */
+        key_copy = mbedtls_svc_key_id_make( 0, 2 );
+        TEST_USES_KEY_ID( key_copy );
+        psa_set_key_id( &attributes, key_copy );
+        psa_set_key_lifetime( &attributes, PSA_KEY_LIFETIME_PERSISTENT );
+        PSA_ASSERT( psa_copy_key( key_id, &attributes, &key_copy ) );
+        actual_audit_flags = 0xdeadbeef;
+        PSA_ASSERT( psa_get_key_audit_flags( key_copy, &actual_audit_flags ) );
+        TEST_EQUAL( expected_persistent_copy_audit_flags_arg,
+                    actual_audit_flags );
         PSA_ASSERT( psa_destroy_key( key_copy ) );
     }
 

@@ -30,8 +30,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include "lmots.h"
-
 #include "mbedtls/build_info.h"
 
 #define MBEDTLS_ERR_LMS_BAD_INPUT_DATA   -0x0011 /**< Bad data has been input to an LMS function */
@@ -39,6 +37,13 @@
 #define MBEDTLS_ERR_LMS_VERIFY_FAILED    -0x0015 /**< LMS signature verification failed */
 #define MBEDTLS_ERR_LMS_ALLOC_FAILED     -0x0017 /**< LMS failed to allocate space for a private key */
 #define MBEDTLS_ERR_LMS_BUFFER_TOO_SMALL -0x0019 /**< Input/output buffer is too small to contain requited data */
+
+/* Currently only defined for SHA256, 32 is the max hash output size */
+#define MBEDTLS_LMOTS_N_HASH_LEN_MAX           (32u)
+#define MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT_MAX    (34u)
+#define MBEDTLS_LMOTS_N_HASH_LEN(type)         (type == MBEDTLS_LMOTS_SHA256_N32_W8 ? 32u : 0)
+#define MBEDTLS_LMOTS_I_KEY_ID_LEN             (16u)
+#define MBEDTLS_LMOTS_Q_LEAF_ID_LEN            (4u)
 
 #define MBEDTLS_LMS_TYPE_LEN            (4)
 #define MBEDTLS_LMS_H_TREE_HEIGHT(type) (type == MBEDTLS_LMS_SHA256_M32_H10 ? 10u : 0)
@@ -75,6 +80,81 @@ extern "C" {
 typedef enum {
     MBEDTLS_LMS_SHA256_M32_H10 = 0x6,
 } mbedtls_lms_algorithm_type_t;
+
+/** The Identifier of the LMOTS parameter set, as per
+ *  https://www.iana.org/assignments/leighton-micali-signatures/leighton-micali-signatures.xhtml.
+ *  We are only implementing a subset of the types, particularly N32_W8, for the sake of simplicty.
+ */
+typedef enum {
+    MBEDTLS_LMOTS_SHA256_N32_W8 = 4
+} mbedtls_lmots_algorithm_type_t;
+
+/** LMOTS parameters structure.
+ *
+ * This contains the metadata associated with an LMOTS key, detailing the
+ * algorithm type, the key ID, and the leaf identifier should be key be part of
+ * a LMS key.
+ */
+typedef struct {
+    unsigned char MBEDTLS_PRIVATE(I_key_identifier[MBEDTLS_LMOTS_I_KEY_ID_LEN]); /*!< The key
+                                                     identifier. */
+    unsigned char MBEDTLS_PRIVATE(q_leaf_identifier[MBEDTLS_LMOTS_Q_LEAF_ID_LEN]); /*!< Which
+                                                      leaf of the LMS key this is.
+                                                      0 if the key is not part of an LMS key. */
+    mbedtls_lmots_algorithm_type_t MBEDTLS_PRIVATE(type); /*!< The LM-OTS key type identifier as
+                                                               per IANA. Only SHA256_N32_W8 is
+                                                               currently supported. */
+} mbedtls_lmots_parameters_t;
+
+/** LMOTS public context structure.
+ *
+ * A LMOTS public key is a hash output, and the applicable parameter set.
+ *
+ * The context must be initialized before it is used. A public key must either
+ * be imported or generated from a private context.
+ *
+ * \dot
+ * digraph lmots_public_t {
+ *   UNINITIALIZED -> INIT [label="init"];
+ *   HAVE_PUBLIC_KEY -> INIT [label="free"];
+ *   INIT -> HAVE_PUBLIC_KEY [label="import_public_key"];
+ *   INIT -> HAVE_PUBLIC_KEY [label="calculate_public_key from private key"];
+ *   HAVE_PUBLIC_KEY -> HAVE_PUBLIC_KEY [label="export_public_key"];
+ * }
+ * \enddot
+ */
+typedef struct {
+    mbedtls_lmots_parameters_t MBEDTLS_PRIVATE(params);
+    unsigned char MBEDTLS_PRIVATE(public_key)[MBEDTLS_LMOTS_N_HASH_LEN_MAX];
+    unsigned char MBEDTLS_PRIVATE(have_public_key); /*!< Whether the context contains a public key.
+                                                     Boolean values only. */
+} mbedtls_lmots_public_t;
+
+#ifdef MBEDTLS_LMS_PRIVATE
+/** LMOTS private context structure.
+ *
+ * A LMOTS private key is one hash output for each of digit of the digest +
+ * checksum, and the applicable parameter set.
+ *
+ * The context must be initialized before it is used. A public key must either
+ * be imported or generated from a private context.
+ *
+ * \dot
+ * digraph lmots_public_t {
+ *   UNINITIALIZED -> INIT [label="init"];
+ *   HAVE_PRIVATE_KEY -> INIT [label="free"];
+ *   INIT -> HAVE_PRIVATE_KEY [label="generate_private_key"];
+ *   HAVE_PRIVATE_KEY -> INIT [label="sign"];
+ * }
+ * \enddot
+ */
+typedef struct {
+    mbedtls_lmots_parameters_t MBEDTLS_PRIVATE(params);
+    unsigned char MBEDTLS_PRIVATE(private_key)[MBEDTLS_LMOTS_P_SIG_DIGIT_COUNT_MAX][MBEDTLS_LMOTS_N_HASH_LEN_MAX];
+    unsigned char MBEDTLS_PRIVATE(have_private_key); /*!< Whether the context contains a private key.
+                                                     Boolean values only. */
+} mbedtls_lmots_private_t;
+#endif /* MBEDTLS_LMS_PRIVATE */
 
 
 /** LMS parameters structure.

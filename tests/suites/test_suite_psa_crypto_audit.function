@@ -77,6 +77,7 @@ void key_audit_created( int lifetime,
         TEST_EQUAL( expected_audit_flags, actual_audit_flags );
         PSA_ASSERT( psa_destroy_key( key_copy ) );
 
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
         /* A persistent copy may have weaker flags. */
         key_copy = mbedtls_svc_key_id_make( 0, 2 );
         TEST_USES_KEY_ID( key_copy );
@@ -88,6 +89,9 @@ void key_audit_created( int lifetime,
         TEST_EQUAL( expected_persistent_copy_audit_flags_arg,
                     actual_audit_flags );
         PSA_ASSERT( psa_destroy_key( key_copy ) );
+#else
+        (void) expected_persistent_copy_audit_flags_arg;
+#endif
     }
 
     if( ! PSA_KEY_LIFETIME_IS_VOLATILE( lifetime ) )

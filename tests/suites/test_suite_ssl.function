@@ -1854,6 +1854,7 @@ static int ssl_tls13_populate_session( mbedtls_ssl_session *session,
                 return( -1 );
             memset( session->ticket, 33, ticket_len );
         }
+        session->hostname = NULL;
     }
 #endif /* MBEDTLS_SSL_CLI_C */
 

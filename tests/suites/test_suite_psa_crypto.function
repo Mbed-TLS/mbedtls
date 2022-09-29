@@ -7973,9 +7973,10 @@ void persistent_key_load_key_from_storage( data_t *data,
     psa_set_key_algorithm( &attributes, alg );
     psa_set_key_type( &attributes, type );
     psa_set_key_bits( &attributes, bits );
-    TEST_ASSERT( mbedtls_test_psa_create_key( creation_method, &attributes,
-                                              data->x, data->len,
-                                              &key ) );
+    if( ! mbedtls_test_psa_create_key( creation_method, &attributes,
+                                       data->x, data->len,
+                                       &key ) )
+        goto exit;
     psa_reset_key_attributes( &attributes );
 
     /* Export the key if permitted by the key policy. */

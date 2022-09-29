@@ -59,9 +59,10 @@ void key_audit_created( int lifetime,
     psa_set_key_bits( &attributes, key_bits );
     psa_set_key_usage_flags( &attributes, usage_flags );
 
-    TEST_ASSERT( mbedtls_test_psa_create_key( creation_method, &attributes,
-                                              key_material, key_material_size,
-                                              &key_id ) );
+    if( ! mbedtls_test_psa_create_key( creation_method, &attributes,
+                                       key_material, key_material_size,
+                                       &key_id ) )
+        goto exit;
 
     PSA_ASSERT( psa_get_key_audit_flags( key_id, &actual_audit_flags ) );
     TEST_EQUAL( expected_audit_flags, actual_audit_flags );

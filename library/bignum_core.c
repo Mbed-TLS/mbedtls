@@ -439,7 +439,7 @@ void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
      * So the correct return value is already in X if (carry ^ borrow) = 0,
      * but is in (the lower AN_limbs limbs of) T if (carry ^ borrow) = 1.
      */
-     mbedtls_ct_mpi_uint_cond_assign( AN_limbs, X, T, (unsigned char) ( carry ^ borrow ) );
+    mbedtls_ct_mpi_uint_cond_assign( AN_limbs, X, T, (unsigned char) ( carry ^ borrow ) );
 }
 
 #endif /* MBEDTLS_BIGNUM_C */

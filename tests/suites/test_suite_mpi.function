@@ -2140,11 +2140,22 @@ void mpi_core_montmul( int limbs_AN4, int limbs_B4,
 
     memcpy( N.p, R.p, bytes );
 
-    /* The output may even be aliased to B, if AN_limbs == B_limbs */
-
     if (limbs_AN == limbs_B)
     {
-        /* Note: last test, so we don't save B */
+        /* Test when A aliased to B (requires A == B on input values) */
+        if ( memcmp( A.p, B.p, bytes ) == 0 )
+        {
+            /* Test with A aliased to B and output, since this is permitted -
+             * don't bother with yet another test with only A and B aliased */
+
+            mbedtls_mpi_core_montmul( B.p, B.p, B.p, B.n, N.p, N.n, mm, T.p );
+            ASSERT_COMPARE( B.p, bytes, X->p, bytes );
+
+            memcpy( B.p, A.p, bytes );  /* restore B from equal value A */
+        }
+
+        /* The output may be aliased to B - last test, so we don't save B */
+
         mbedtls_mpi_core_montmul( B.p, A.p, B.p, B.n, N.p, N.n, mm, T.p );
         ASSERT_COMPARE( B.p, bytes, X->p, bytes );
     }

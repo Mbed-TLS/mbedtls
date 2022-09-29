@@ -295,6 +295,17 @@ int mbedtls_ssl_session_copy( mbedtls_ssl_session *dst,
 
         memcpy( dst->ticket, src->ticket, src->ticket_len );
     }
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    if( src->hostname != NULL )
+    {
+        dst->hostname = mbedtls_calloc( 1, strlen(src->hostname) + 1 );
+        if( dst->hostname == NULL )
+            return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+        memcpy( dst->hostname, src->hostname, strlen(src->hostname) + 1 );
+    }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_3 */
+
 #endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
 
     return( 0 );
@@ -1917,6 +1928,7 @@ mbedtls_ssl_mode_t mbedtls_ssl_get_mode_from_ciphersuite(
  *       uint64 ticket_received;
  *       uint32 ticket_lifetime;
  *       opaque ticket<1..2^16-1>;
+ *       opaque hostname<1..2^16-1>;
  *     } ClientOnlyData;
  *
  *     struct {
@@ -3657,6 +3669,11 @@ void mbedtls_ssl_session_free( mbedtls_ssl_session *session )
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
     mbedtls_free( session->ticket );
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    mbedtls_free( session->hostname );
+#endif
+
 #endif
 
     mbedtls_platform_zeroize( session, sizeof( mbedtls_ssl_session ) );

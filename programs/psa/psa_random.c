@@ -57,7 +57,7 @@ typedef struct
 
 static psa_global_data_t global_data;
 
-psa_status_t mbedtls_psa_external_get_random(
+psa_status_t mbedtls_psa_external_gen_random(
     mbedtls_psa_external_random_context_t *context,
     uint8_t *output, size_t output_size, size_t *output_length )
 {
@@ -93,14 +93,15 @@ int main( void )
     }
 #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
     size_t output_length = 0;
-    status = mbedtls_psa_external_get_random( &global_data.rng,
+    size_t output_size = 0;
+
+    status = mbedtls_psa_external_gen_random( &global_data.rng,
                                               output, output_size,
                                               &output_length );
 
-    status = mbedtls_psa_external_get_random ( output, BUFFER_SIZE );
     if( status != PSA_SUCCESS )
     {
-        printf( "mbedtls_psa_external_get_random failed\n" );
+        printf( "mbedtls_psa_external_gen_random failed\n" );
         return( EXIT_FAILURE );
     }
 

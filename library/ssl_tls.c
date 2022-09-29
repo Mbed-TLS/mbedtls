@@ -5543,6 +5543,21 @@ exit:
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
+static int tls_prf_dummy( const unsigned char *secret, size_t slen,
+                          const char *label,
+                          const unsigned char *random, size_t rlen,
+                          unsigned char *dstbuf, size_t dlen )
+{
+    (void) secret;
+    (void) slen;
+    (void) label;
+    (void) random;
+    (void) rlen;
+    (void) dstbuf;
+    (void) dlen;
+    return( MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE );
+}
+
 #if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int tls_prf_sha256( const unsigned char *secret, size_t slen,
@@ -7373,6 +7388,8 @@ exit:
  * Helper to get TLS 1.2 PRF from ciphersuite
  * (Duplicates bits of logic from ssl_set_handshake_prfs().)
  */
+#if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA) || \
+    defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
 static tls_prf_fn ssl_tls12prf_from_cs( int ciphersuite_id )
 {
 #if defined(MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
@@ -7381,11 +7398,19 @@ static tls_prf_fn ssl_tls12prf_from_cs( int ciphersuite_id )
 
     if( ciphersuite_info != NULL && ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
         return( tls_prf_sha384 );
-#else
-    (void) ciphersuite_id;
+    else
 #endif
-    return( tls_prf_sha256 );
+#if defined(MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA)
+    {
+        if( ciphersuite_info != NULL && ciphersuite_info->mac == MBEDTLS_MD_SHA256 )
+            return( tls_prf_sha256 );
+    }
+#endif
+    return( tls_prf_dummy );
+
 }
+#endif /* MBEDTLS_HAS_ALG_SHA_256_VIA_MD_OR_PSA_BASED_ON_USE_PSA ||
+          MBEDTLS_HAS_ALG_SHA_384_VIA_MD_OR_PSA_BASED_ON_USE_PSA */
 #endif /* MBEDTLS_SSL_CONTEXT_SERIALIZATION */
 
 static mbedtls_tls_prf_types tls_prf_get_type( mbedtls_ssl_tls_prf_cb *tls_prf )

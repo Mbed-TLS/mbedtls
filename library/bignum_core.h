@@ -273,8 +273,8 @@ mbedtls_mpi_uint mbedtls_mpi_core_montmul_init( const mbedtls_mpi_uint *N );
  * \param[in]     N         Little-endian presentation of the modulus.
  *                          This must be odd, and have exactly the same number
  *                          of limbs as \p A.
- *                          It must not alias or otherwise overlap any of the
- *                          other parameters.
+ *                          It may alias \p X, but must not alias or otherwise
+ *                          overlap any of the other parameters.
  * \param[in]     AN_limbs  The number of limbs in \p X, \p A and \p N.
  * \param         mm        The Montgomery constant for \p N: -N^-1 mod 2^biL.
  *                          This can be calculated by `mbedtls_mpi_core_montmul_init()`.

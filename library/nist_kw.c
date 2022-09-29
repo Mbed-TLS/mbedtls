@@ -54,35 +54,38 @@
 #define MIN_SEMIBLOCKS_COUNT   3
 
 /*! The 64-bit default integrity check value (ICV) for KW mode. */
-static const unsigned char NIST_KW_ICV1[] = {0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6};
+static const unsigned char NIST_KW_ICV1[] =
+{ 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6 };
 /*! The 32-bit default integrity check value (ICV) for KWP mode. */
-static const  unsigned char NIST_KW_ICV2[] = {0xA6, 0x59, 0x59, 0xA6};
+static const unsigned char NIST_KW_ICV2[] = { 0xA6, 0x59, 0x59, 0xA6 };
 
 /*
  * Initialize context
  */
-void mbedtls_nist_kw_init( mbedtls_nist_kw_context *ctx )
+void mbedtls_nist_kw_init(mbedtls_nist_kw_context *ctx)
 {
-    memset( ctx, 0, sizeof( mbedtls_nist_kw_context ) );
+    memset(ctx, 0, sizeof(mbedtls_nist_kw_context));
 }
 
-int mbedtls_nist_kw_setkey( mbedtls_nist_kw_context *ctx,
-                            mbedtls_cipher_id_t cipher,
-                            const unsigned char *key,
-                            unsigned int keybits,
-                            const int is_wrap )
+int mbedtls_nist_kw_setkey(mbedtls_nist_kw_context *ctx,
+                           mbedtls_cipher_id_t     cipher,
+                           const unsigned char     *key,
+                           unsigned int            keybits,
+                           const int               is_wrap)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     const mbedtls_cipher_info_t *cipher_info;
 
-    cipher_info = mbedtls_cipher_info_from_values( cipher,
-                                                   keybits,
-                                                   MBEDTLS_MODE_ECB );
-    if( cipher_info == NULL )
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    cipher_info = mbedtls_cipher_info_from_values(cipher,
+                                                  keybits,
+                                                  MBEDTLS_MODE_ECB);
+    if (cipher_info == NULL) {
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
+    }
 
-    if( cipher_info->block_size != 16 )
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    if (cipher_info->block_size != 16) {
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
+    }
 
     /*
      * SP 800-38F currently defines AES cipher as the only block cipher allowed:
@@ -93,44 +96,44 @@ int mbedtls_nist_kw_setkey( mbedtls_nist_kw_context *ctx,
      *  Currently we don't support other 128 bit block ciphers for key wrapping,
      *  such as Camellia and Aria.
      */
-    if( cipher != MBEDTLS_CIPHER_ID_AES )
-        return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
-
-    mbedtls_cipher_free( &ctx->cipher_ctx );
-
-    if( ( ret = mbedtls_cipher_setup( &ctx->cipher_ctx, cipher_info ) ) != 0 )
-        return( ret );
-
-    if( ( ret = mbedtls_cipher_setkey( &ctx->cipher_ctx, key, keybits,
-                                       is_wrap ? MBEDTLS_ENCRYPT :
-                                                 MBEDTLS_DECRYPT )
-                                                                   ) != 0 )
-    {
-        return( ret );
+    if (cipher != MBEDTLS_CIPHER_ID_AES) {
+        return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
     }
 
-    return( 0 );
+    mbedtls_cipher_free(&ctx->cipher_ctx);
+
+    if ((ret = mbedtls_cipher_setup(&ctx->cipher_ctx, cipher_info)) != 0) {
+        return ret;
+    }
+
+    if ((ret = mbedtls_cipher_setkey(&ctx->cipher_ctx, key, keybits,
+                                     is_wrap ? MBEDTLS_ENCRYPT :
+                                     MBEDTLS_DECRYPT)
+         ) != 0) {
+        return ret;
+    }
+
+    return 0;
 }
 
 /*
  * Free context
  */
-void mbedtls_nist_kw_free( mbedtls_nist_kw_context *ctx )
+void mbedtls_nist_kw_free(mbedtls_nist_kw_context *ctx)
 {
-    mbedtls_cipher_free( &ctx->cipher_ctx );
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_nist_kw_context ) );
+    mbedtls_cipher_free(&ctx->cipher_ctx);
+    mbedtls_platform_zeroize(ctx, sizeof(mbedtls_nist_kw_context));
 }
 
 /*
  * Helper function for Xoring the uint64_t "t" with the encrypted A.
  * Defined in NIST SP 800-38F section 6.1
  */
-static void calc_a_xor_t( unsigned char A[KW_SEMIBLOCK_LENGTH], uint64_t t )
+static void calc_a_xor_t(unsigned char A[KW_SEMIBLOCK_LENGTH], uint64_t t)
 {
     size_t i = 0;
-    for( i = 0; i < sizeof( t ); i++ )
-    {
-        A[i] ^= ( t >> ( ( sizeof( t ) - 1 - i ) * 8 ) ) & 0xff;
+    for (i = 0; i < sizeof(t); i++) {
+        A[i] ^= (t >> ((sizeof(t) - 1 - i) * 8)) & 0xff;
     }
 }
 
@@ -138,10 +141,11 @@ static void calc_a_xor_t( unsigned char A[KW_SEMIBLOCK_LENGTH], uint64_t t )
  * KW-AE as defined in SP 800-38F section 6.2
  * KWP-AE as defined in SP 800-38F section 6.3
  */
-int mbedtls_nist_kw_wrap( mbedtls_nist_kw_context *ctx,
-                          mbedtls_nist_kw_mode_t mode,
-                          const unsigned char *input, size_t in_len,
-                          unsigned char *output, size_t *out_len, size_t out_size )
+int mbedtls_nist_kw_wrap(mbedtls_nist_kw_context *ctx,
+                         mbedtls_nist_kw_mode_t mode,
+                         const unsigned char *input, size_t in_len,
+                         unsigned char *output, size_t *out_len,
+                         size_t out_size)
 {
     int ret = 0;
     size_t semiblocks = 0;
@@ -155,106 +159,96 @@ int mbedtls_nist_kw_wrap( mbedtls_nist_kw_context *ctx,
     /*
      * Generate the String to work on
      */
-    if( mode == MBEDTLS_KW_MODE_KW )
-    {
-        if( out_size < in_len + KW_SEMIBLOCK_LENGTH )
-        {
-            return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    if (mode == MBEDTLS_KW_MODE_KW) {
+        if (out_size < in_len + KW_SEMIBLOCK_LENGTH) {
+            return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
         }
 
         /*
          * According to SP 800-38F Table 1, the plaintext length for KW
          * must be between 2 to 2^54-1 semiblocks inclusive.
          */
-        if( in_len < 16 ||
+        if (in_len < 16 ||
 #if SIZE_MAX > 0x1FFFFFFFFFFFFF8
             in_len > 0x1FFFFFFFFFFFFF8 ||
 #endif
-            in_len % KW_SEMIBLOCK_LENGTH != 0 )
-        {
-            return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+            in_len % KW_SEMIBLOCK_LENGTH != 0) {
+            return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
         }
 
-        memcpy( output, NIST_KW_ICV1, KW_SEMIBLOCK_LENGTH );
-        memmove( output + KW_SEMIBLOCK_LENGTH, input, in_len );
-    }
-    else
-    {
-        if( in_len % 8 != 0 )
-        {
-            padlen = ( 8 - ( in_len % 8 ) );
+        memcpy(output, NIST_KW_ICV1, KW_SEMIBLOCK_LENGTH);
+        memmove(output + KW_SEMIBLOCK_LENGTH, input, in_len);
+    } else {
+        if (in_len % 8 != 0) {
+            padlen = (8 - (in_len % 8));
         }
 
-        if( out_size < in_len + KW_SEMIBLOCK_LENGTH + padlen )
-        {
-            return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+        if (out_size < in_len + KW_SEMIBLOCK_LENGTH + padlen) {
+            return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
         }
 
         /*
          * According to SP 800-38F Table 1, the plaintext length for KWP
          * must be between 1 and 2^32-1 octets inclusive.
          */
-        if( in_len < 1
+        if (in_len < 1
 #if SIZE_MAX > 0xFFFFFFFF
             || in_len > 0xFFFFFFFF
 #endif
-          )
-        {
-            return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+            ) {
+            return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
         }
 
-        memcpy( output, NIST_KW_ICV2, KW_SEMIBLOCK_LENGTH / 2 );
-        MBEDTLS_PUT_UINT32_BE( ( in_len & 0xffffffff ), output,
-                       KW_SEMIBLOCK_LENGTH / 2 );
+        memcpy(output, NIST_KW_ICV2, KW_SEMIBLOCK_LENGTH / 2);
+        MBEDTLS_PUT_UINT32_BE((in_len & 0xffffffff), output,
+                              KW_SEMIBLOCK_LENGTH / 2);
 
-        memcpy( output + KW_SEMIBLOCK_LENGTH, input, in_len );
-        memset( output + KW_SEMIBLOCK_LENGTH + in_len, 0, padlen );
+        memcpy(output + KW_SEMIBLOCK_LENGTH, input, in_len);
+        memset(output + KW_SEMIBLOCK_LENGTH + in_len, 0, padlen);
     }
-    semiblocks = ( ( in_len + padlen ) / KW_SEMIBLOCK_LENGTH ) + 1;
+    semiblocks = ((in_len + padlen) / KW_SEMIBLOCK_LENGTH) + 1;
 
-    s = 6 * ( semiblocks - 1 );
+    s = 6 * (semiblocks - 1);
 
-    if( mode == MBEDTLS_KW_MODE_KWP
-        && in_len <= KW_SEMIBLOCK_LENGTH )
-    {
-        memcpy( inbuff, output, 16 );
-        ret = mbedtls_cipher_update( &ctx->cipher_ctx,
-                                     inbuff, 16, output, &olen );
-        if( ret != 0 )
+    if (mode == MBEDTLS_KW_MODE_KWP
+        && in_len <= KW_SEMIBLOCK_LENGTH) {
+        memcpy(inbuff, output, 16);
+        ret = mbedtls_cipher_update(&ctx->cipher_ctx,
+                                    inbuff, 16, output, &olen);
+        if (ret != 0) {
             goto cleanup;
-    }
-    else
-    {
+        }
+    } else {
         unsigned char *R2 = output + KW_SEMIBLOCK_LENGTH;
-        unsigned char *A = output;
+        unsigned char *A  = output;
 
         /*
          * Do the wrapping function W, as defined in RFC 3394 section 2.2.1
          */
-        if( semiblocks < MIN_SEMIBLOCKS_COUNT )
-        {
+        if (semiblocks < MIN_SEMIBLOCKS_COUNT) {
             ret = MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
             goto cleanup;
         }
 
         /* Calculate intermediate values */
-        for( t = 1; t <= s; t++ )
-        {
-            memcpy( inbuff, A, KW_SEMIBLOCK_LENGTH );
-            memcpy( inbuff + KW_SEMIBLOCK_LENGTH, R2, KW_SEMIBLOCK_LENGTH );
+        for (t = 1; t <= s; t++) {
+            memcpy(inbuff, A, KW_SEMIBLOCK_LENGTH);
+            memcpy(inbuff + KW_SEMIBLOCK_LENGTH, R2, KW_SEMIBLOCK_LENGTH);
 
-            ret = mbedtls_cipher_update( &ctx->cipher_ctx,
-                                         inbuff, 16, outbuff, &olen );
-            if( ret != 0 )
+            ret = mbedtls_cipher_update(&ctx->cipher_ctx,
+                                        inbuff, 16, outbuff, &olen);
+            if (ret != 0) {
                 goto cleanup;
+            }
 
-            memcpy( A, outbuff, KW_SEMIBLOCK_LENGTH );
-            calc_a_xor_t( A, t );
+            memcpy(A, outbuff, KW_SEMIBLOCK_LENGTH);
+            calc_a_xor_t(A, t);
 
-            memcpy( R2, outbuff + KW_SEMIBLOCK_LENGTH, KW_SEMIBLOCK_LENGTH );
+            memcpy(R2, outbuff + KW_SEMIBLOCK_LENGTH, KW_SEMIBLOCK_LENGTH);
             R2 += KW_SEMIBLOCK_LENGTH;
-            if( R2 >= output + ( semiblocks * KW_SEMIBLOCK_LENGTH ) )
+            if (R2 >= output + (semiblocks * KW_SEMIBLOCK_LENGTH)) {
                 R2 = output + KW_SEMIBLOCK_LENGTH;
+            }
         }
     }
 
@@ -262,14 +256,13 @@ int mbedtls_nist_kw_wrap( mbedtls_nist_kw_context *ctx,
 
 cleanup:
 
-    if( ret != 0)
-    {
-        memset( output, 0, semiblocks * KW_SEMIBLOCK_LENGTH );
+    if (ret != 0) {
+        memset(output, 0, semiblocks * KW_SEMIBLOCK_LENGTH);
     }
-    mbedtls_platform_zeroize( inbuff, KW_SEMIBLOCK_LENGTH * 2 );
-    mbedtls_platform_zeroize( outbuff, KW_SEMIBLOCK_LENGTH * 2 );
+    mbedtls_platform_zeroize(inbuff, KW_SEMIBLOCK_LENGTH * 2);
+    mbedtls_platform_zeroize(outbuff, KW_SEMIBLOCK_LENGTH * 2);
 
-    return( ret );
+    return ret;
 }
 
 /*
@@ -280,13 +273,13 @@ cleanup:
  * 3. Minimal number of semiblocks is 3.
  * 4. A is a buffer to hold the first semiblock of the input buffer.
  */
-static int unwrap( mbedtls_nist_kw_context *ctx,
-                   const unsigned char *input, size_t semiblocks,
-                   unsigned char A[KW_SEMIBLOCK_LENGTH],
-                   unsigned char *output, size_t* out_len )
+static int unwrap(mbedtls_nist_kw_context *ctx,
+                  const unsigned char *input, size_t semiblocks,
+                  unsigned char A[KW_SEMIBLOCK_LENGTH],
+                  unsigned char *output, size_t *out_len)
 {
     int ret = 0;
-    const size_t s = 6 * ( semiblocks - 1 );
+    const size_t s = 6 * (semiblocks - 1);
     size_t olen;
     uint64_t t = 0;
     unsigned char outbuff[KW_SEMIBLOCK_LENGTH * 2];
@@ -294,58 +287,61 @@ static int unwrap( mbedtls_nist_kw_context *ctx,
     unsigned char *R = NULL;
     *out_len = 0;
 
-    if( semiblocks < MIN_SEMIBLOCKS_COUNT )
-    {
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    if (semiblocks < MIN_SEMIBLOCKS_COUNT) {
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
-    memcpy( A, input, KW_SEMIBLOCK_LENGTH );
-    memmove( output, input + KW_SEMIBLOCK_LENGTH, ( semiblocks - 1 ) * KW_SEMIBLOCK_LENGTH );
-    R = output + ( semiblocks - 2 ) * KW_SEMIBLOCK_LENGTH;
+    memcpy(A, input, KW_SEMIBLOCK_LENGTH);
+    memmove(output, input + KW_SEMIBLOCK_LENGTH,
+            (semiblocks - 1) * KW_SEMIBLOCK_LENGTH);
+    R = output + (semiblocks - 2) * KW_SEMIBLOCK_LENGTH;
 
     /* Calculate intermediate values */
-    for( t = s; t >= 1; t-- )
-    {
-        calc_a_xor_t( A, t );
+    for (t = s; t >= 1; t--) {
+        calc_a_xor_t(A, t);
 
-        memcpy( inbuff, A, KW_SEMIBLOCK_LENGTH );
-        memcpy( inbuff + KW_SEMIBLOCK_LENGTH, R, KW_SEMIBLOCK_LENGTH );
+        memcpy(inbuff, A, KW_SEMIBLOCK_LENGTH);
+        memcpy(inbuff + KW_SEMIBLOCK_LENGTH, R, KW_SEMIBLOCK_LENGTH);
 
-        ret = mbedtls_cipher_update( &ctx->cipher_ctx,
-                                     inbuff, 16, outbuff, &olen );
-        if( ret != 0 )
+        ret = mbedtls_cipher_update(&ctx->cipher_ctx,
+                                    inbuff, 16, outbuff, &olen);
+        if (ret != 0) {
             goto cleanup;
+        }
 
-        memcpy( A, outbuff, KW_SEMIBLOCK_LENGTH );
+        memcpy(A, outbuff, KW_SEMIBLOCK_LENGTH);
 
         /* Set R as LSB64 of outbuff */
-        memcpy( R, outbuff + KW_SEMIBLOCK_LENGTH, KW_SEMIBLOCK_LENGTH );
+        memcpy(R, outbuff + KW_SEMIBLOCK_LENGTH, KW_SEMIBLOCK_LENGTH);
 
-        if( R == output )
-            R = output + ( semiblocks - 2 ) * KW_SEMIBLOCK_LENGTH;
-        else
+        if (R == output) {
+            R = output + (semiblocks - 2) * KW_SEMIBLOCK_LENGTH;
+        } else {
             R -= KW_SEMIBLOCK_LENGTH;
+        }
     }
 
-    *out_len = ( semiblocks - 1 ) * KW_SEMIBLOCK_LENGTH;
+    *out_len = (semiblocks - 1) * KW_SEMIBLOCK_LENGTH;
 
 cleanup:
-    if( ret != 0)
-        memset( output, 0, ( semiblocks - 1 ) * KW_SEMIBLOCK_LENGTH );
-    mbedtls_platform_zeroize( inbuff, sizeof( inbuff )  );
-    mbedtls_platform_zeroize( outbuff, sizeof( outbuff ) );
+    if (ret != 0) {
+        memset(output, 0, (semiblocks - 1) * KW_SEMIBLOCK_LENGTH);
+    }
+    mbedtls_platform_zeroize(inbuff, sizeof(inbuff));
+    mbedtls_platform_zeroize(outbuff, sizeof(outbuff));
 
-    return( ret );
+    return ret;
 }
 
 /*
  * KW-AD as defined in SP 800-38F section 6.2
  * KWP-AD as defined in SP 800-38F section 6.3
  */
-int mbedtls_nist_kw_unwrap( mbedtls_nist_kw_context *ctx,
-                            mbedtls_nist_kw_mode_t mode,
-                            const unsigned char *input, size_t in_len,
-                            unsigned char *output, size_t *out_len, size_t out_size )
+int mbedtls_nist_kw_unwrap(mbedtls_nist_kw_context *ctx,
+                           mbedtls_nist_kw_mode_t mode,
+                           const unsigned char *input, size_t in_len,
+                           unsigned char *output, size_t *out_len,
+                           size_t out_size)
 {
     int ret = 0;
     size_t i, olen;
@@ -353,89 +349,80 @@ int mbedtls_nist_kw_unwrap( mbedtls_nist_kw_context *ctx,
     unsigned char diff, bad_padding = 0;
 
     *out_len = 0;
-    if( out_size < in_len - KW_SEMIBLOCK_LENGTH )
-    {
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    if (out_size < in_len - KW_SEMIBLOCK_LENGTH) {
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
     }
 
-    if( mode == MBEDTLS_KW_MODE_KW )
-    {
+    if (mode == MBEDTLS_KW_MODE_KW) {
         /*
          * According to SP 800-38F Table 1, the ciphertext length for KW
          * must be between 3 to 2^54 semiblocks inclusive.
          */
-        if( in_len < 24 ||
+        if (in_len < 24 ||
 #if SIZE_MAX > 0x200000000000000
             in_len > 0x200000000000000 ||
 #endif
-            in_len % KW_SEMIBLOCK_LENGTH != 0 )
-        {
-            return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+            in_len % KW_SEMIBLOCK_LENGTH != 0) {
+            return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
         }
 
-        ret = unwrap( ctx, input, in_len / KW_SEMIBLOCK_LENGTH,
-                      A, output, out_len );
-        if( ret != 0 )
+        ret = unwrap(ctx, input, in_len / KW_SEMIBLOCK_LENGTH,
+                     A, output, out_len);
+        if (ret != 0) {
             goto cleanup;
+        }
 
         /* Check ICV in "constant-time" */
-        diff = mbedtls_ct_memcmp( NIST_KW_ICV1, A, KW_SEMIBLOCK_LENGTH );
+        diff = mbedtls_ct_memcmp(NIST_KW_ICV1, A, KW_SEMIBLOCK_LENGTH);
 
-        if( diff != 0 )
-        {
+        if (diff != 0) {
             ret = MBEDTLS_ERR_CIPHER_AUTH_FAILED;
             goto cleanup;
         }
-
-    }
-    else if( mode == MBEDTLS_KW_MODE_KWP )
-    {
+    } else if (mode == MBEDTLS_KW_MODE_KWP) {
         size_t padlen = 0;
         uint32_t Plen;
         /*
          * According to SP 800-38F Table 1, the ciphertext length for KWP
          * must be between 2 to 2^29 semiblocks inclusive.
          */
-        if( in_len < KW_SEMIBLOCK_LENGTH * 2 ||
+        if (in_len < KW_SEMIBLOCK_LENGTH * 2 ||
 #if SIZE_MAX > 0x100000000
             in_len > 0x100000000 ||
 #endif
-            in_len % KW_SEMIBLOCK_LENGTH != 0 )
-        {
-            return(  MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+            in_len % KW_SEMIBLOCK_LENGTH != 0) {
+            return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
         }
 
-        if( in_len == KW_SEMIBLOCK_LENGTH * 2 )
-        {
+        if (in_len == KW_SEMIBLOCK_LENGTH * 2) {
             unsigned char outbuff[KW_SEMIBLOCK_LENGTH * 2];
-            ret = mbedtls_cipher_update( &ctx->cipher_ctx,
-                                         input, 16, outbuff, &olen );
-            if( ret != 0 )
+            ret = mbedtls_cipher_update(&ctx->cipher_ctx,
+                                        input, 16, outbuff, &olen);
+            if (ret != 0) {
                 goto cleanup;
+            }
 
-            memcpy( A, outbuff, KW_SEMIBLOCK_LENGTH );
-            memcpy( output, outbuff + KW_SEMIBLOCK_LENGTH, KW_SEMIBLOCK_LENGTH );
-            mbedtls_platform_zeroize( outbuff, sizeof( outbuff ) );
+            memcpy(A, outbuff, KW_SEMIBLOCK_LENGTH);
+            memcpy(output, outbuff + KW_SEMIBLOCK_LENGTH, KW_SEMIBLOCK_LENGTH);
+            mbedtls_platform_zeroize(outbuff, sizeof(outbuff));
             *out_len = KW_SEMIBLOCK_LENGTH;
-        }
-        else
-        {
+        } else {
             /* in_len >=  KW_SEMIBLOCK_LENGTH * 3 */
-            ret = unwrap( ctx, input, in_len / KW_SEMIBLOCK_LENGTH,
-                          A, output, out_len );
-            if( ret != 0 )
+            ret = unwrap(ctx, input, in_len / KW_SEMIBLOCK_LENGTH,
+                         A, output, out_len);
+            if (ret != 0) {
                 goto cleanup;
+            }
         }
 
         /* Check ICV in "constant-time" */
-        diff = mbedtls_ct_memcmp( NIST_KW_ICV2, A, KW_SEMIBLOCK_LENGTH / 2 );
+        diff = mbedtls_ct_memcmp(NIST_KW_ICV2, A, KW_SEMIBLOCK_LENGTH / 2);
 
-        if( diff != 0 )
-        {
+        if (diff != 0) {
             ret = MBEDTLS_ERR_CIPHER_AUTH_FAILED;
         }
 
-        Plen = MBEDTLS_GET_UINT32_BE( A, KW_SEMIBLOCK_LENGTH / 2 );
+        Plen = MBEDTLS_GET_UINT32_BE(A, KW_SEMIBLOCK_LENGTH / 2);
 
         /*
          * Plen is the length of the plaintext, when the input is valid.
@@ -443,51 +430,45 @@ int mbedtls_nist_kw_unwrap( mbedtls_nist_kw_context *ctx,
          * larger than 8, because of the type wrap around.
          */
         padlen = in_len - KW_SEMIBLOCK_LENGTH - Plen;
-        if ( padlen > 7 )
-        {
+        if (padlen > 7) {
             padlen &= 7;
             ret = MBEDTLS_ERR_CIPHER_AUTH_FAILED;
         }
 
         /* Check padding in "constant-time" */
-        for( diff = 0, i = 0; i < KW_SEMIBLOCK_LENGTH; i++ )
-        {
-             if( i >= KW_SEMIBLOCK_LENGTH - padlen )
-                 diff |= output[*out_len - KW_SEMIBLOCK_LENGTH + i];
-             else
-                 bad_padding |= output[*out_len - KW_SEMIBLOCK_LENGTH + i];
+        for (diff = 0, i = 0; i < KW_SEMIBLOCK_LENGTH; i++) {
+            if (i >= KW_SEMIBLOCK_LENGTH - padlen) {
+                diff |= output[*out_len - KW_SEMIBLOCK_LENGTH + i];
+            } else {
+                bad_padding |= output[*out_len - KW_SEMIBLOCK_LENGTH + i];
+            }
         }
 
-        if( diff != 0 )
-        {
+        if (diff != 0) {
             ret = MBEDTLS_ERR_CIPHER_AUTH_FAILED;
         }
 
-        if( ret != 0 )
-        {
+        if (ret != 0) {
             goto cleanup;
         }
-        memset( output + Plen, 0, padlen );
+        memset(output + Plen, 0, padlen);
         *out_len = Plen;
-    }
-    else
-    {
+    } else {
         ret = MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
         goto cleanup;
     }
 
 cleanup:
-    if( ret != 0 )
-    {
-        memset( output, 0, *out_len );
+    if (ret != 0) {
+        memset(output, 0, *out_len);
         *out_len = 0;
     }
 
-    mbedtls_platform_zeroize( &bad_padding, sizeof( bad_padding) );
-    mbedtls_platform_zeroize( &diff, sizeof( diff ) );
-    mbedtls_platform_zeroize( A, sizeof( A ) );
+    mbedtls_platform_zeroize(&bad_padding, sizeof(bad_padding));
+    mbedtls_platform_zeroize(&diff, sizeof(diff));
+    mbedtls_platform_zeroize(A, sizeof(A));
 
-    return( ret );
+    return ret;
 }
 
 #endif /* !MBEDTLS_NIST_KW_ALT */
@@ -502,7 +483,8 @@ cleanup:
  */
 static const unsigned int key_len[KW_TESTS] = { 16, 24, 32 };
 
-static const unsigned char kw_key[KW_TESTS][32] = {
+static const unsigned char kw_key[KW_TESTS][32] =
+{
     { 0x75, 0x75, 0xda, 0x3a, 0x93, 0x60, 0x7c, 0xc2,
       0xbf, 0xd8, 0xce, 0xc7, 0xaa, 0xdf, 0xd9, 0xa6 },
     { 0x2d, 0x85, 0x26, 0x08, 0x1d, 0x02, 0xfb, 0x5b,
@@ -514,7 +496,8 @@ static const unsigned char kw_key[KW_TESTS][32] = {
       0x1c, 0xb7, 0x8e, 0xab, 0xd5, 0xda, 0xd7, 0x88 }
 };
 
-static const unsigned char kw_msg[KW_TESTS][40] = {
+static const unsigned char kw_msg[KW_TESTS][40] =
+{
     { 0x42, 0x13, 0x6d, 0x3c, 0x38, 0x4a, 0x3e, 0xea,
       0xc9, 0x5a, 0x06, 0x6f, 0xd2, 0x8f, 0xed, 0x3f },
     { 0x95, 0xc1, 0x1b, 0xf5, 0x35, 0x3a, 0xfe, 0xdb,
@@ -529,7 +512,8 @@ static const unsigned char kw_msg[KW_TESTS][40] = {
 
 static const size_t kw_msg_len[KW_TESTS] = { 16, 40, 24 };
 static const size_t kw_out_len[KW_TESTS] = { 24, 48, 32 };
-static const unsigned char kw_res[KW_TESTS][48] = {
+static const unsigned char kw_res[KW_TESTS][48] =
+{
     { 0x03, 0x1f, 0x6b, 0xd7, 0xe6, 0x1e, 0x64, 0x3d,
       0xf6, 0x85, 0x94, 0x81, 0x6f, 0x64, 0xca, 0xa3,
       0xf5, 0x6f, 0xab, 0xea, 0x25, 0x48, 0xf5, 0xfb },
@@ -545,7 +529,8 @@ static const unsigned char kw_res[KW_TESTS][48] = {
       0x16, 0x58, 0x4f, 0xa9, 0xf6, 0xcb, 0xf5, 0x12 }
 };
 
-static const unsigned char kwp_key[KW_TESTS][32] = {
+static const unsigned char kwp_key[KW_TESTS][32] =
+{
     { 0x78, 0x65, 0xe2, 0x0f, 0x3c, 0x21, 0x65, 0x9a,
       0xb4, 0x69, 0x0b, 0x62, 0x9c, 0xdf, 0x3c, 0xc4 },
     { 0xf5, 0xf8, 0x96, 0xa3, 0xbd, 0x2f, 0x4a, 0x98,
@@ -557,7 +542,8 @@ static const unsigned char kwp_key[KW_TESTS][32] = {
       0xf6, 0x0a, 0x8d, 0x61, 0xab, 0x5f, 0x22, 0x5a }
 };
 
-static const unsigned char kwp_msg[KW_TESTS][31] = {
+static const unsigned char kwp_msg[KW_TESTS][31] =
+{
     { 0xbd, 0x68, 0x43, 0xd4, 0x20, 0x37, 0x8d, 0xc8,
       0x96 },
     { 0x6c, 0xcd, 0xd5, 0x85, 0x18, 0x40, 0x97, 0xeb,
@@ -568,7 +554,8 @@ static const unsigned char kwp_msg[KW_TESTS][31] = {
 };
 static const size_t kwp_msg_len[KW_TESTS] = { 9, 31, 1 };
 
-static const unsigned char kwp_res[KW_TESTS][48] = {
+static const unsigned char kwp_res[KW_TESTS][48] =
+{
     { 0x41, 0xec, 0xa9, 0x56, 0xd4, 0xaa, 0x04, 0x7e,
       0xb5, 0xcf, 0x4e, 0xfe, 0x65, 0x96, 0x61, 0xe7,
       0x4d, 0xb6, 0xf8, 0xc5, 0x64, 0xe2, 0x35, 0x00 },
@@ -582,130 +569,133 @@ static const unsigned char kwp_res[KW_TESTS][48] = {
 };
 static const size_t kwp_out_len[KW_TESTS] = { 24, 40, 16 };
 
-int mbedtls_nist_kw_self_test( int verbose )
+int mbedtls_nist_kw_self_test(int verbose)
 {
     mbedtls_nist_kw_context ctx;
     unsigned char out[48];
     size_t olen;
     int i;
     int ret = 0;
-    mbedtls_nist_kw_init( &ctx );
+    mbedtls_nist_kw_init(&ctx);
 
-    for( i = 0; i < KW_TESTS; i++ )
-    {
-        if( verbose != 0 )
-            mbedtls_printf( "  KW-AES-%u ", (unsigned int) key_len[i] * 8 );
+    for (i = 0; i < KW_TESTS; i++) {
+        if (verbose != 0) {
+            mbedtls_printf("  KW-AES-%u ", (unsigned int)key_len[i] * 8);
+        }
 
-        ret = mbedtls_nist_kw_setkey( &ctx, MBEDTLS_CIPHER_ID_AES,
-                                      kw_key[i], key_len[i] * 8, 1 );
-        if( ret != 0 )
-        {
-            if( verbose != 0 )
-                mbedtls_printf( "  KW: setup failed " );
+        ret = mbedtls_nist_kw_setkey(&ctx, MBEDTLS_CIPHER_ID_AES,
+                                     kw_key[i], key_len[i] * 8, 1);
+        if (ret != 0) {
+            if (verbose != 0) {
+                mbedtls_printf("  KW: setup failed ");
+            }
 
             goto end;
         }
 
-        ret = mbedtls_nist_kw_wrap( &ctx, MBEDTLS_KW_MODE_KW, kw_msg[i],
-                                    kw_msg_len[i], out, &olen, sizeof( out ) );
-        if( ret != 0 || kw_out_len[i] != olen ||
-            memcmp( out, kw_res[i], kw_out_len[i] ) != 0 )
-        {
-            if( verbose != 0 )
-                mbedtls_printf( "failed. ");
+        ret = mbedtls_nist_kw_wrap(&ctx, MBEDTLS_KW_MODE_KW, kw_msg[i],
+                                   kw_msg_len[i], out, &olen, sizeof(out));
+        if (ret != 0 || kw_out_len[i] != olen ||
+            memcmp(out, kw_res[i], kw_out_len[i]) != 0) {
+            if (verbose != 0) {
+                mbedtls_printf("failed. ");
+            }
 
             ret = 1;
             goto end;
         }
 
-        if( ( ret = mbedtls_nist_kw_setkey( &ctx, MBEDTLS_CIPHER_ID_AES,
-                                            kw_key[i], key_len[i] * 8, 0 ) )
-              != 0 )
-        {
-            if( verbose != 0 )
-                mbedtls_printf( "  KW: setup failed ");
+        if ((ret = mbedtls_nist_kw_setkey(&ctx, MBEDTLS_CIPHER_ID_AES,
+                                          kw_key[i], key_len[i] * 8, 0))
+            != 0) {
+            if (verbose != 0) {
+                mbedtls_printf("  KW: setup failed ");
+            }
 
             goto end;
         }
 
-        ret = mbedtls_nist_kw_unwrap( &ctx, MBEDTLS_KW_MODE_KW,
-                                      out, olen, out, &olen, sizeof( out ) );
+        ret = mbedtls_nist_kw_unwrap(&ctx, MBEDTLS_KW_MODE_KW,
+                                     out, olen, out, &olen, sizeof(out));
 
-        if( ret != 0 || olen != kw_msg_len[i] ||
-            memcmp( out, kw_msg[i], kw_msg_len[i] ) != 0 )
-        {
-            if( verbose != 0 )
-                mbedtls_printf( "failed\n" );
+        if (ret != 0 || olen != kw_msg_len[i] ||
+            memcmp(out, kw_msg[i], kw_msg_len[i]) != 0) {
+            if (verbose != 0) {
+                mbedtls_printf("failed\n");
+            }
 
             ret = 1;
             goto end;
         }
 
-        if( verbose != 0 )
-            mbedtls_printf( " passed\n" );
+        if (verbose != 0) {
+            mbedtls_printf(" passed\n");
+        }
     }
 
-    for( i = 0; i < KW_TESTS; i++ )
-    {
-        olen = sizeof( out );
-        if( verbose != 0 )
-            mbedtls_printf( "  KWP-AES-%u ", (unsigned int) key_len[i] * 8 );
+    for (i = 0; i < KW_TESTS; i++) {
+        olen = sizeof(out);
+        if (verbose != 0) {
+            mbedtls_printf("  KWP-AES-%u ", (unsigned int)key_len[i] * 8);
+        }
 
-        ret = mbedtls_nist_kw_setkey( &ctx, MBEDTLS_CIPHER_ID_AES, kwp_key[i],
-                                      key_len[i] * 8, 1 );
-        if( ret  != 0 )
-        {
-            if( verbose != 0 )
-                mbedtls_printf( "  KWP: setup failed " );
+        ret = mbedtls_nist_kw_setkey(&ctx, MBEDTLS_CIPHER_ID_AES, kwp_key[i],
+                                     key_len[i] * 8, 1);
+        if (ret  != 0) {
+            if (verbose != 0) {
+                mbedtls_printf("  KWP: setup failed ");
+            }
 
             goto end;
         }
-        ret = mbedtls_nist_kw_wrap( &ctx, MBEDTLS_KW_MODE_KWP, kwp_msg[i],
-                                    kwp_msg_len[i], out, &olen, sizeof( out ) );
+        ret = mbedtls_nist_kw_wrap(&ctx, MBEDTLS_KW_MODE_KWP, kwp_msg[i],
+                                   kwp_msg_len[i], out, &olen, sizeof(out));
 
-        if( ret != 0 || kwp_out_len[i] != olen ||
-            memcmp( out, kwp_res[i], kwp_out_len[i] ) != 0 )
-        {
-            if( verbose != 0 )
-                mbedtls_printf( "failed. ");
+        if (ret != 0 || kwp_out_len[i] != olen ||
+            memcmp(out, kwp_res[i], kwp_out_len[i]) != 0) {
+            if (verbose != 0) {
+                mbedtls_printf("failed. ");
+            }
 
             ret = 1;
             goto end;
         }
 
-        if( ( ret = mbedtls_nist_kw_setkey( &ctx, MBEDTLS_CIPHER_ID_AES,
-                                            kwp_key[i], key_len[i] * 8, 0 ) )
-              != 0 )
-        {
-            if( verbose != 0 )
-                mbedtls_printf( "  KWP: setup failed ");
+        if ((ret = mbedtls_nist_kw_setkey(&ctx, MBEDTLS_CIPHER_ID_AES,
+                                          kwp_key[i], key_len[i] * 8, 0))
+            != 0) {
+            if (verbose != 0) {
+                mbedtls_printf("  KWP: setup failed ");
+            }
 
             goto end;
         }
 
-        ret = mbedtls_nist_kw_unwrap(  &ctx, MBEDTLS_KW_MODE_KWP, out,
-                                       olen, out, &olen, sizeof( out ) );
+        ret = mbedtls_nist_kw_unwrap(&ctx, MBEDTLS_KW_MODE_KWP, out,
+                                     olen, out, &olen, sizeof(out));
 
-        if( ret != 0 || olen != kwp_msg_len[i] ||
-            memcmp( out, kwp_msg[i], kwp_msg_len[i] ) != 0 )
-        {
-            if( verbose != 0 )
-                mbedtls_printf( "failed. ");
+        if (ret != 0 || olen != kwp_msg_len[i] ||
+            memcmp(out, kwp_msg[i], kwp_msg_len[i]) != 0) {
+            if (verbose != 0) {
+                mbedtls_printf("failed. ");
+            }
 
             ret = 1;
             goto end;
         }
 
-        if( verbose != 0 )
-            mbedtls_printf( " passed\n" );
+        if (verbose != 0) {
+            mbedtls_printf(" passed\n");
+        }
     }
 end:
-    mbedtls_nist_kw_free( &ctx );
+    mbedtls_nist_kw_free(&ctx);
 
-    if( verbose != 0 )
-        mbedtls_printf( "\n" );
+    if (verbose != 0) {
+        mbedtls_printf("\n");
+    }
 
-    return( ret );
+    return ret;
 }
 
 #endif /* MBEDTLS_SELF_TEST && MBEDTLS_AES_C */

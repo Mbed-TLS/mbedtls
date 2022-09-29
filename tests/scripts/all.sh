@@ -1289,6 +1289,7 @@ component_test_tls1_2_default_stream_cipher_only () {
     scripts/config.py set MBEDTLS_CIPHER_NULL_CIPHER
     # Indirect dependencies
     scripts/config.py unset MBEDTLS_SSL_CONTEXT_SERIALIZATION
+    scripts/config.py unset MBEDTLS_SSL_SESSION_TICKETS
 
     make
 
@@ -1312,6 +1313,7 @@ component_test_tls1_2_default_stream_cipher_only_use_psa () {
     scripts/config.py set MBEDTLS_CIPHER_NULL_CIPHER
     # Indirect dependencies
     scripts/config.py unset MBEDTLS_SSL_CONTEXT_SERIALIZATION
+    scripts/config.py unset MBEDTLS_SSL_SESSION_TICKETS
 
     make
 
@@ -1334,11 +1336,15 @@ component_test_tls1_2_default_cbc_legacy_cipher_only () {
     scripts/config.py unset MBEDTLS_CIPHER_NULL_CIPHER
     # Indirect dependencies
     scripts/config.py unset MBEDTLS_SSL_CONTEXT_SERIALIZATION
+    scripts/config.py unset MBEDTLS_SSL_SESSION_TICKETS
 
     make
 
     msg "test: default with only CBC-legacy cipher"
     make test
+
+    msg "test: default with only CBC-legacy cipher - ssl-opt.sh (subset)"
+    tests/ssl-opt.sh -f "TLS 1.2"
 }
 
 component_test_tls1_2_deafult_cbc_legacy_cipher_only_use_psa () {
@@ -1357,11 +1363,15 @@ component_test_tls1_2_deafult_cbc_legacy_cipher_only_use_psa () {
     scripts/config.py unset MBEDTLS_CIPHER_NULL_CIPHER
     # Indirect dependencies
     scripts/config.py unset MBEDTLS_SSL_CONTEXT_SERIALIZATION
+    scripts/config.py unset MBEDTLS_SSL_SESSION_TICKETS
 
     make
 
     msg "test: default with only CBC-legacy cipher use psa"
     make test
+
+    msg "test: default with only CBC-legacy cipher use psa - ssl-opt.sh (subset)"
+    tests/ssl-opt.sh -f "TLS 1.2"
 }
 
 component_test_tls1_2_default_cbc_legacy_cbc_etm_cipher_only () {
@@ -1379,15 +1389,19 @@ component_test_tls1_2_default_cbc_legacy_cbc_etm_cipher_only () {
     scripts/config.py unset MBEDTLS_CIPHER_NULL_CIPHER
     # Indirect dependencies
     scripts/config.py unset MBEDTLS_SSL_CONTEXT_SERIALIZATION
+    scripts/config.py unset MBEDTLS_SSL_SESSION_TICKETS
 
     make
 
     msg "test: default with only CBC-legacy and CBC-EtM ciphers"
     make test
+
+    msg "test: default with only CBC-legacy and CBC-EtM ciphers - ssl-opt.sh (subset)"
+    tests/ssl-opt.sh -f "TLS 1.2"
 }
 
-component_test_tls1_2_full_cbc_legacy_cbc_etm_cipher_only_use_psa () {
-    msg "build: full with only CBC-legacy and CBC-EtM ciphers use psa"
+component_test_tls1_2_default_cbc_legacy_cbc_etm_cipher_only_use_psa () {
+    msg "build: default with only CBC-legacy and CBC-EtM ciphers use psa"
 
     scripts/config.py set MBEDTLS_USE_PSA_CRYPTO
     # Disable AEAD (controlled by the presence of one of GCM_C, CCM_C, CHACHAPOLY_C)
@@ -1402,11 +1416,15 @@ component_test_tls1_2_full_cbc_legacy_cbc_etm_cipher_only_use_psa () {
     scripts/config.py unset MBEDTLS_CIPHER_NULL_CIPHER
     # Indirect dependencies
     scripts/config.py unset MBEDTLS_SSL_CONTEXT_SERIALIZATION
+    scripts/config.py unset MBEDTLS_SSL_SESSION_TICKETS
 
     make
 
-    msg "test: full with only CBC-legacy and CBC-EtM ciphers use psa"
+    msg "test: default with only CBC-legacy and CBC-EtM ciphers use psa"
     make test
+
+    msg "test: default with only CBC-legacy and CBC-EtM ciphers use psa - ssl-opt.sh (subset)"
+    tests/ssl-opt.sh -f "TLS 1.2"
 }
 
 component_test_psa_external_rng_use_psa_crypto () {

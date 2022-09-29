@@ -674,13 +674,13 @@ mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_family_t curve,
  * be exposed in plaintext form outside security boundary of its location.
  *
  * This flag should be set if all of the following conditions are met:
- * - The key was generated randomly with psa_generate_key().
+ * - The key material was generated randomly with psa_generate_key().
  * - The key has never had the flag #PSA_KEY_USAGE_EXPORT.
- * - If the key is located in a secure element, it never had the flag
- *   #PSA_KEY_USAGE_COPY.
  * - If the key can be exposed outside its security boundary in wrapped form,
  *   the implementation guarantees that the wrapping key itself cannot be
  *   exposed.
+ * - If the key was created by copying another key, these properties also
+ *   apply to the original key.
  *
  * This flag must not be set in any of the following cases:
  * - The key was created by import.

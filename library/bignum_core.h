@@ -78,9 +78,9 @@ void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint *A,
  * \brief   Perform a safe conditional copy of MPI which doesn't reveal whether
  *          the condition was true or not.
  *
- * \param[OUT] X        The address of the first MPI. This must be initialized.
+ * \param[out] X        The address of the first MPI. This must be initialized.
  *                      It must have at least \p limbs limbs.
- * \param[IN]  A        The address of the second MPI. This must be initialized.
+ * \param[in]  A        The address of the second MPI. This must be initialized.
  * \param      limbs    The number of limbs of \p A.
  * \param      assign   The condition deciding whether to perform the
  *                      assignment or not. Must be either 0 or 1:
@@ -103,9 +103,9 @@ void mbedtls_mpi_core_cond_assign( mbedtls_mpi_uint *X,
  * \brief   Perform a safe conditional swap of MPI which doesn't reveal whether
  *          the condition was true or not.
  *
- * \param[IN,OUT] X         The address of the first MPI.
+ * \param[in,out] X         The address of the first MPI.
  *                          This must be initialized.
- * \param[IN,OUT] Y         The address of the second MPI.
+ * \param[in,out] Y         The address of the second MPI.
  *                          This must be initialized.
  * \param         limbs     The number of limbs of \p X and \p Y.
  * \param         swap      The condition deciding whether to perform

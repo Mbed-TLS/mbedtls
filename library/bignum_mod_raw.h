@@ -37,9 +37,9 @@
  * \brief   Perform a safe conditional copy of MPI which doesn't reveal whether
  *          the condition was true or not.
  *
- * \param[OUT] X        The address of the first MPI. This must be initialized.
- * \param[IN]  A        The address of the second MPI. This must be initialized.
- * \param[IN]  N        The address of the modulus related to \p X and \p A.
+ * \param[out] X        The address of the first MPI. This must be initialized.
+ * \param[in]  A        The address of the second MPI. This must be initialized.
+ * \param[in]  N        The address of the modulus related to \p X and \p A.
  * \param      assign   The condition deciding whether to perform the
  *                      assignment or not. Must be either 0 or 1:
  *                      * \c 1: Perform the assignment `X = A`.
@@ -61,9 +61,9 @@ void mbedtls_mpi_mod_raw_cond_assign( mbedtls_mpi_uint *X,
  * \brief   Perform a safe conditional swap of MPI which doesn't reveal whether
  *          the condition was true or not.
  *
- * \param[IN,OUT] X     The address of the first MPI. This must be initialized.
- * \param[IN,OUT] Y     The address of the second MPI. This must be initialized.
- * \param[IN]     N     The address of the modulus related to \p X and \p Y.
+ * \param[in,out] X     The address of the first MPI. This must be initialized.
+ * \param[in,out] Y     The address of the second MPI. This must be initialized.
+ * \param[in]     N     The address of the modulus related to \p X and \p Y.
  * \param         swap  The condition deciding whether to perform
  *                      the swap or not. Must be either 0 or 1:
  *                      * \c 1: Swap the values of \p X and \p Y.

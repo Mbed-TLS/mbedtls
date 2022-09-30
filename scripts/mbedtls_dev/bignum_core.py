@@ -70,3 +70,22 @@ class BignumCoreOperation(bignum_common.OperationCommon, BignumCoreTarget, metac
         for a_value, b_value in cls.get_value_pairs():
             yield cls(a_value, b_value).create_test_case()
 
+
+
+class BignumCoreAddIf(BignumCoreOperation):
+    """Test cases for bignum core add if."""
+    count = 0
+    symbol = "+"
+    test_function = "mpi_core_add_if"
+    test_name = "mbedtls_mpi_core_add_if"
+
+    def result(self) -> str:
+        tmp = self.int_a + self.int_b
+        bound_val = max(self.int_a, self.int_b)
+        bound_4 = bignum_common.bound_mpi4(bound_val)
+        bound_8 = bignum_common.bound_mpi8(bound_val)
+        carry_4, remainder_4 = divmod(tmp, bound_4)
+        carry_8, remainder_8 = divmod(tmp, bound_8)
+        return "\"{:x}\":{}:\"{:x}\":{}".format(
+            remainder_4, carry_4, remainder_8, carry_8
+        )

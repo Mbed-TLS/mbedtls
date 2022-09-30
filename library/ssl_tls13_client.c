@@ -668,17 +668,19 @@ static int ssl_tls13_write_psk_key_exchange_modes_ext( mbedtls_ssl_context *ssl,
 static psa_algorithm_t ssl_tls13_ciphersuite_to_alg( mbedtls_ssl_context *ssl,
                                                      int ciphersuite )
 {
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info = NULL;
-    ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( ciphersuite );
 
-    if( mbedtls_ssl_validate_ciphersuite(
-                        ssl, ciphersuite_info,
-                        MBEDTLS_SSL_VERSION_TLS1_3,
-                        MBEDTLS_SSL_VERSION_TLS1_3 ) == 0 )
+    psa_algorithm_t psa_alg;
+    if( mbedtls_ssl_tls13_ciphersuite_to_alg(
+                    ssl, ciphersuite, &psa_alg ) != 0 )
     {
-        return( mbedtls_psa_translate_md( ciphersuite_info->mac ) );
+        /* ciphersuite is `ssl->session_negotiate->ciphersuite` or
+         * PSA_ALG_SHA256, both are validated before writting pre_shared_key.
+         */
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "should never happen" ) );
+        return( PSA_ALG_NONE );
     }
-    return( PSA_ALG_NONE );
+
+    return( psa_alg );
 }
 
 static int ssl_tls13_has_configured_psk( mbedtls_ssl_context *ssl )
@@ -695,9 +697,7 @@ static int ssl_tls13_has_configured_ticket( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
     mbedtls_ssl_session *session = ssl->session_negotiate;
     return( session != NULL &&
-            session->ticket != NULL &&
-            ssl_tls13_ciphersuite_to_alg( ssl,
-                ssl->session_negotiate->ciphersuite ) != PSA_ALG_NONE );
+            session->ticket != NULL );
 #else
     ((void) ssl);
     return( 0 );

@@ -1373,6 +1373,15 @@ int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session
     if( ssl->handshake->resume == 1 )
         return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+    if( session->tls_version == MBEDTLS_SSL_VERSION_TLS1_3 &&
+        ( ( ret = mbedtls_ssl_tls13_ciphersuite_to_alg(
+                      ssl, session->ciphersuite, NULL ) ) != 0 ) )
+    {
+        return( ret );
+    }
+#endif
+
     if( ( ret = mbedtls_ssl_session_copy( ssl->session_negotiate,
                                           session ) ) != 0 )
         return( ret );

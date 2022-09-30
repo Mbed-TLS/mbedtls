@@ -1485,4 +1485,36 @@ int mbedtls_ssl_tls13_generate_and_write_ecdh_key_exchange(
 }
 #endif /* MBEDTLS_ECDH_C */
 
+int mbedtls_ssl_tls13_ciphersuite_to_alg( mbedtls_ssl_context *ssl,
+                                          int ciphersuite,
+                                          psa_algorithm_t *psa_alg )
+{
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info = NULL;
+    psa_algorithm_t alg;
+
+    ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( ciphersuite );
+    if( psa_alg )
+        *psa_alg = PSA_ALG_NONE;
+
+    if( mbedtls_ssl_validate_ciphersuite(
+                        ssl, ciphersuite_info,
+                        MBEDTLS_SSL_VERSION_TLS1_3,
+                        MBEDTLS_SSL_VERSION_TLS1_3 ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 4, ( "%d is not valid.", ciphersuite ) );
+        return( MBEDTLS_ERR_SSL_INVALID_MAC );
+    }
+
+    alg = mbedtls_psa_translate_md( ciphersuite_info->mac );
+    if( alg == PSA_ALG_NONE )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 4, ( "%d is not valid.", ciphersuite ) );
+        return( MBEDTLS_ERR_SSL_INVALID_MAC );
+    }
+
+    if( psa_alg )
+        *psa_alg = alg;
+    return( 0 );
+}
+
 #endif /* MBEDTLS_SSL_TLS_C && MBEDTLS_SSL_PROTO_TLS1_3 */

@@ -148,6 +148,7 @@ class TestGenerator:
         self.targets.update({
             subclass.target_basename: subclass.generate_tests
             for subclass in BaseTarget.__subclasses__()
+            if subclass.target_basename
         })
 
     def filename_for(self, basename: str) -> str:

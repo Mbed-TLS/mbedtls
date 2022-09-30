@@ -1099,7 +1099,6 @@ static int ssl_tls13_parse_server_pre_shared_key_ext( mbedtls_ssl_context *ssl,
 {
     int ret = 0;
     int selected_identity;
-    int psk_type = MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL;
     const unsigned char *psk;
     size_t psk_len;
     psa_algorithm_t psa_alg;
@@ -1107,58 +1106,30 @@ static int ssl_tls13_parse_server_pre_shared_key_ext( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_CHK_BUF_PTR( buf, end, 2 );
     selected_identity = MBEDTLS_GET_UINT16_BE( buf, 0 );
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "selected_identity = %d", selected_identity ) );
-
-    if( ssl_tls13_has_configured_psk( ssl ) &&
-        ssl_tls13_has_configured_ticket( ssl ) )
+    if( selected_identity >= ssl_tls13_get_configured_psk_count( ssl ) )
     {
-        if( selected_identity >= 2 )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Out of range" ) );
-            goto exit;
-        }
-        switch( selected_identity )
-        {
-            case 0:
-                psk_type = MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION;
-                break;
-            case 1:
-                psk_type = MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL;
-                break;
-        }
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Out of range" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Invalid chosen PSK identity." ) );
+
+        MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
+                                      MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
+        return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
     }
-    else if( ssl_tls13_has_configured_psk( ssl ) ||
-             ssl_tls13_has_configured_ticket( ssl ) )
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+    if( selected_identity == 0 && ssl_tls13_has_configured_ticket( ssl ) )
     {
-        if( selected_identity >= 1 )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "Out of range" ) );
-            goto exit;
-        }
-
-        if( ssl_tls13_has_configured_psk( ssl ) )
-            psk_type = MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL;
-        else if( ssl_tls13_has_configured_ticket( ssl ) )
-            psk_type = MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION;
+        ret = ssl_tls13_ticket_get_psk( ssl, &psa_alg, &psk, &psk_len );
+    }
+    else
+#endif
+    if( ssl_tls13_has_configured_psk( ssl ) )
+    {
+        ret = ssl_tls13_psk_get_psk( ssl, &psa_alg, &psk, &psk_len );
     }
     else
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-    }
-    switch( psk_type )
-    {
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
-        case MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION:
-            ret = ssl_tls13_ticket_get_psk( ssl, &psa_alg, &psk, &psk_len );
-            break;
-#endif
-        case MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL:
-            ret = ssl_tls13_psk_get_psk(
-                      ssl, &psa_alg, &psk, &psk_len );
-            break;
-        default:
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
     if( ret != 0 )
         return( ret );
@@ -1172,14 +1143,6 @@ static int ssl_tls13_parse_server_pre_shared_key_ext( mbedtls_ssl_context *ssl,
         ssl->handshake->extensions_present |= MBEDTLS_SSL_EXT_PRE_SHARED_KEY;
 
     return( ret );
-
-exit:
-    MBEDTLS_SSL_DEBUG_MSG(
-            1, ( "Invalid chosen PSK identity." ) );
-
-    MBEDTLS_SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER,
-                                    MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
-    return( MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER );
 }
 
 #endif /* MBEDTLS_KEY_EXCHANGE_SOME_PSK_ENABLED */

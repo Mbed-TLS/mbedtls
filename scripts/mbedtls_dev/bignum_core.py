@@ -89,3 +89,24 @@ class BignumCoreAddIf(BignumCoreOperation):
         return "\"{:x}\":{}:\"{:x}\":{}".format(
             remainder_4, carry_4, remainder_8, carry_8
         )
+
+
+class BignumCoreSub(BignumCoreOperation):
+    """Test cases for bignum core sub."""
+    count = 0
+    symbol = "-"
+    test_function = "mpi_core_sub"
+    test_name = "mbedtls_mpi_core_sub"
+
+    def result(self) -> str:
+        if self.int_a >= self.int_b:
+            result_4 = result_8 = self.int_a - self.int_b
+            carry = 0
+        else:
+            bound_val = max(self.int_a, self.int_b)
+            bound_4 = bignum_common.bound_mpi4(bound_val)
+            result_4 = bound_4 + self.int_a - self.int_b
+            bound_8 = bignum_common.bound_mpi8(bound_val)
+            result_8 = bound_8 + self.int_a - self.int_b
+            carry = 1
+        return "\"{:x}\":\"{:x}\":{}".format(result_4, result_8, carry)

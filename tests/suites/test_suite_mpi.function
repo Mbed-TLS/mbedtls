@@ -890,12 +890,13 @@ void mpi_mod_raw_cond_assign( data_t * input_X,
     #define MAX_LEN 64
     mbedtls_mpi_uint *X = NULL;
     mbedtls_mpi_uint *Y = NULL;
-    mbedtls_mpi_uint buff_m[MAX_LEN];
+    mbedtls_mpi_uint *buff_m = NULL;
     mbedtls_mpi_mod_modulus m;
     size_t limbs_X = CHARS_TO_LIMBS( input_X->len );
     size_t limbs_Y = CHARS_TO_LIMBS( input_Y->len );
     size_t len_X = limbs_X * sizeof( mbedtls_mpi_uint );
     size_t len_Y = limbs_Y * sizeof( mbedtls_mpi_uint );
+    size_t len_m = len_Y;
 
     TEST_ASSERT( limbs_X <= MAX_LEN );
     TEST_ASSERT( limbs_Y <= MAX_LEN );
@@ -903,7 +904,8 @@ void mpi_mod_raw_cond_assign( data_t * input_X,
     ASSERT_ALLOC( X, len_X );
     ASSERT_ALLOC( Y, len_Y );
 
-    memset( buff_m, 0, MAX_LEN * sizeof( mbedtls_mpi_uint ) );
+    ASSERT_ALLOC( buff_m, len_m );
+    memset( buff_m, 0, len_m );
     mbedtls_mpi_mod_modulus_init( &m );
     TEST_ASSERT( mbedtls_mpi_mod_modulus_setup(
                         &m, buff_m, limbs_Y,
@@ -946,6 +948,7 @@ exit:
     mbedtls_free( Y );
 
     mbedtls_mpi_mod_modulus_free( &m );
+    mbedtls_free( buff_m );
 
     #undef MAX_LEN
 }
@@ -960,7 +963,7 @@ void mpi_mod_raw_cond_swap( data_t * input_X,
     mbedtls_mpi_uint *tmp_Y = NULL;
     mbedtls_mpi_uint *X = NULL;
     mbedtls_mpi_uint *Y = NULL;
-    mbedtls_mpi_uint buff_m[MAX_LEN];
+    mbedtls_mpi_uint *buff_m = NULL;
     mbedtls_mpi_mod_modulus m;
     size_t limbs_X = CHARS_TO_LIMBS( input_X->len );
     size_t limbs_Y = CHARS_TO_LIMBS( input_Y->len );
@@ -974,7 +977,8 @@ void mpi_mod_raw_cond_swap( data_t * input_X,
     ASSERT_ALLOC( tmp_X, len_X );
     ASSERT_ALLOC( tmp_Y, len_Y );
 
-    memset( buff_m, 0, MAX_LEN * sizeof( mbedtls_mpi_uint ) );
+    ASSERT_ALLOC( buff_m, len_m );
+    memset( buff_m, 0, len_m );
     mbedtls_mpi_mod_modulus_init( &m );
     TEST_ASSERT( mbedtls_mpi_mod_modulus_setup(
                         &m, buff_m, limbs_X,
@@ -1023,6 +1027,7 @@ exit:
     mbedtls_free( Y );
 
     mbedtls_mpi_mod_modulus_free( &m );
+    mbedtls_free( buff_m );
 
     #undef MAX_LEN
 }

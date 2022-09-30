@@ -707,11 +707,20 @@ static int ssl_tls13_has_configured_ticket( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_session_tickets_get_identity(
-               mbedtls_ssl_context *ssl, psa_algorithm_t *psa_alg,
-               const unsigned char **identity, size_t *identity_len )
+static int ssl_tls13_ticket_get_identity( mbedtls_ssl_context *ssl,
+                                          psa_algorithm_t *psa_alg,
+                                          const unsigned char **identity,
+                                          size_t *identity_len )
 {
     mbedtls_ssl_session *session = ssl->session_negotiate;
+
+    *psa_alg = PSA_ALG_NONE;
+    *identity = NULL;
+    *identity_len = 0;
+
+    if( !ssl_tls13_has_configured_ticket( ssl ) )
+        return( -1 );
+
     *psa_alg = ssl_tls13_ciphersuite_to_alg( ssl, session->ciphersuite );
     *identity = session->ticket;
     *identity_len = session->ticket_len;
@@ -719,13 +728,20 @@ static int ssl_tls13_session_tickets_get_identity(
 }
 
 MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_session_tickets_get_psk( mbedtls_ssl_context *ssl,
-                                              psa_algorithm_t *psa_alg,
-                                              const unsigned char **psk,
-                                              size_t *psk_len )
+static int ssl_tls13_ticket_get_psk( mbedtls_ssl_context *ssl,
+                                     psa_algorithm_t *psa_alg,
+                                     const unsigned char **psk,
+                                     size_t *psk_len )
 {
 
     mbedtls_ssl_session *session = ssl->session_negotiate;
+
+    *psa_alg = PSA_ALG_NONE;
+    *psk = NULL;
+    *psk_len = 0;
+
+    if( !ssl_tls13_has_configured_ticket( ssl ) )
+        return( -1 );
 
     *psa_alg = ssl_tls13_ciphersuite_to_alg( ssl, session->ciphersuite );
     *psk = session->resumption_key;
@@ -742,6 +758,12 @@ static int ssl_tls13_psk_get_identity( mbedtls_ssl_context *ssl,
                                        const unsigned char **identity,
                                        size_t *identity_len )
 {
+    *psa_alg = PSA_ALG_NONE;
+    *identity = NULL;
+    *identity_len = 0;
+
+    if( !ssl_tls13_has_configured_psk( ssl ) )
+        return( -1 );
 
     *psa_alg = PSA_ALG_SHA_256;
     *identity = ssl->conf->psk_identity;
@@ -755,35 +777,19 @@ static int ssl_tls13_psk_get_psk( mbedtls_ssl_context *ssl,
                                   const unsigned char **psk,
                                   size_t *psk_len )
 {
+    *psa_alg = PSA_ALG_NONE;
+    *psk = NULL;
+    *psk_len = 0;
+
+    if( !ssl_tls13_has_configured_psk( ssl ) )
+        return( -1 );
+
     *psa_alg = PSA_ALG_SHA_256;
     *psk = ssl->conf->psk;
     *psk_len = ssl->conf->psk_len;
     return( 0 );
 }
 
-/*
- * mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext() structure:
- *
- * struct {
- *   opaque identity<1..2^16-1>;
- *   uint32 obfuscated_ticket_age;
- * } PskIdentity;
- *
- * opaque PskBinderEntry<32..255>;
- *
- * struct {
- *   PskIdentity identities<7..2^16-1>;
- *   PskBinderEntry binders<33..2^16-1>;
- * } OfferedPsks;
- *
- * struct {
- *   select (Handshake.msg_type) {
- *      case client_hello: OfferedPsks;
- *      ...
- *   };
- * } PreSharedKeyExtension;
- *
- */
 MBEDTLS_CHECK_RETURN_CRITICAL
 static int ssl_tls13_write_identity( mbedtls_ssl_context *ssl,
                                      unsigned char *buf,
@@ -806,7 +812,7 @@ static int ssl_tls13_write_identity( mbedtls_ssl_context *ssl,
     {
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
         case MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION:
-            if( ssl_tls13_session_tickets_get_identity(
+            if( ssl_tls13_ticket_get_identity(
                     ssl, &psa_alg, &identity, &identity_len ) == 0 )
             {
 #if defined(MBEDTLS_HAVE_TIME)
@@ -858,6 +864,103 @@ static int ssl_tls13_write_identity( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
+
+MBEDTLS_CHECK_RETURN_CRITICAL
+static int ssl_tls13_write_binder( mbedtls_ssl_context *ssl,
+                                   unsigned char *buf,
+                                   unsigned char *end,
+                                   int psk_type,
+                                   size_t *out_len )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    unsigned char *p = buf;
+    const unsigned char *psk;
+    psa_algorithm_t psa_alg = PSA_ALG_NONE;
+    size_t psk_len;
+    unsigned char binder_len;
+    unsigned char transcript[MBEDTLS_MD_MAX_SIZE];
+    size_t transcript_len = 0;
+
+    *out_len = 0;
+
+    switch( psk_type )
+    {
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_HAVE_TIME)
+        case MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION:
+            if( ssl_tls13_ticket_get_psk( ssl, &psa_alg, &psk, &psk_len ) != 0 )
+                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+            break;
+#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_HAVE_TIME*/
+        case MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL:
+            if( ssl_tls13_psk_get_psk( ssl, &psa_alg, &psk, &psk_len ) != 0 )
+                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+            break;
+        default:
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+
+    binder_len = PSA_HASH_LENGTH( psa_alg );
+    if( binder_len == 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+
+    /*
+     * - binder_len           (1 bytes)
+     * - binder               (binder_len bytes)
+     */
+    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 1 + binder_len );
+
+    p[0] = binder_len;
+
+    /* Get current state of handshake transcript. */
+    ret = mbedtls_ssl_get_handshake_transcript(
+            ssl, mbedtls_hash_info_md_from_psa( psa_alg ),
+            transcript, MBEDTLS_MD_MAX_SIZE, &transcript_len );
+    if( ret != 0 )
+        return( ret );
+
+
+
+    ret = mbedtls_ssl_tls13_create_psk_binder( ssl, psa_alg,
+                                               psk, psk_len, psk_type,
+                                               transcript, p + 1 );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_create_psk_binder", ret );
+        return( ret );
+    }
+    MBEDTLS_SSL_DEBUG_BUF( 4, "write binder", p, 1 + binder_len );
+
+    *out_len = 1 + binder_len;
+
+    return( ret );
+}
+
+/*
+ * mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext() structure:
+ *
+ * struct {
+ *   opaque identity<1..2^16-1>;
+ *   uint32 obfuscated_ticket_age;
+ * } PskIdentity;
+ *
+ * opaque PskBinderEntry<32..255>;
+ *
+ * struct {
+ *   PskIdentity identities<7..2^16-1>;
+ *   PskBinderEntry binders<33..2^16-1>;
+ * } OfferedPsks;
+ *
+ * struct {
+ *   select (Handshake.msg_type) {
+ *      case client_hello: OfferedPsks;
+ *      ...
+ *   };
+ * } PreSharedKeyExtension;
+ *
+ */
 int mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext(
     mbedtls_ssl_context *ssl,
     unsigned char *buf, unsigned char *end,
@@ -936,82 +1039,6 @@ int mbedtls_ssl_tls13_write_identities_of_pre_shared_key_ext(
     ssl->handshake->extensions_present |= MBEDTLS_SSL_EXT_PRE_SHARED_KEY;
 
     return( 0 );
-}
-
-MBEDTLS_CHECK_RETURN_CRITICAL
-static int ssl_tls13_write_binder( mbedtls_ssl_context *ssl,
-                                   unsigned char *buf,
-                                   unsigned char *end,
-                                   int psk_type,
-                                   size_t *out_len )
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    unsigned char *p = buf;
-    const unsigned char *psk;
-    psa_algorithm_t psa_alg = PSA_ALG_NONE;
-    size_t psk_len;
-    unsigned char binder_len;
-    unsigned char transcript[MBEDTLS_MD_MAX_SIZE];
-    size_t transcript_len = 0;
-
-    *out_len = 0;
-
-    switch( psk_type )
-    {
-#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_HAVE_TIME)
-        case MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION:
-            if( ssl_tls13_session_tickets_get_psk(
-                    ssl, &psa_alg, &psk, &psk_len ) != 0 )
-            {
-                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-            }
-            break;
-#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_HAVE_TIME*/
-        case MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL:
-            if( ssl_tls13_psk_get_psk( ssl, &psa_alg, &psk, &psk_len ) != 0 )
-                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-            break;
-        default:
-            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-    }
-
-    binder_len = PSA_HASH_LENGTH( psa_alg );
-    if( binder_len == 0 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "should never happen" ) );
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-    }
-
-    /*
-     * - binder_len           (1 bytes)
-     * - binder               (binder_len bytes)
-     */
-    MBEDTLS_SSL_CHK_BUF_PTR( p, end, 1 + binder_len );
-
-    p[0] = binder_len;
-
-    /* Get current state of handshake transcript. */
-    ret = mbedtls_ssl_get_handshake_transcript(
-            ssl, mbedtls_hash_info_md_from_psa( psa_alg ),
-            transcript, MBEDTLS_MD_MAX_SIZE, &transcript_len );
-    if( ret != 0 )
-        return( ret );
-
-
-
-    ret = mbedtls_ssl_tls13_create_psk_binder( ssl, psa_alg,
-                                               psk, psk_len, psk_type,
-                                               transcript, p + 1 );
-    if( ret != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_tls13_create_psk_binder", ret );
-        return( ret );
-    }
-    MBEDTLS_SSL_DEBUG_BUF( 4, "write binder", p, 1 + binder_len );
-
-    *out_len = 1 + binder_len;
-
-    return( ret );
 }
 
 int mbedtls_ssl_tls13_write_binders_of_pre_shared_key_ext(
@@ -1135,8 +1162,7 @@ static int ssl_tls13_parse_server_pre_shared_key_ext( mbedtls_ssl_context *ssl,
     {
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
         case MBEDTLS_SSL_TLS1_3_PSK_RESUMPTION:
-            ret = ssl_tls13_session_tickets_get_psk(
-                      ssl, &psa_alg, &psk, &psk_len );
+            ret = ssl_tls13_ticket_get_psk( ssl, &psa_alg, &psk, &psk_len );
             break;
 #endif
         case MBEDTLS_SSL_TLS1_3_PSK_EXTERNAL:

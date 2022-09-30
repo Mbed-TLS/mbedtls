@@ -1,0 +1,100 @@
+/* BEGIN_HEADER */
+#include "mbedtls/bignum.h"
+#include "mbedtls/entropy.h"
+#include "bignum_mod.h"
+#include "constant_time_internal.h"
+#include "test/constant_flow.h"
+
+/* Check the validity of the sign bit in an MPI object. Reject representations
+ * that are not supported by the rest of the library and indicate a bug when
+ * constructing the value. */
+static int sign_is_valid( const mbedtls_mpi *X )
+{
+    if( X->s != 1 && X->s != -1 )
+        return( 0 ); // invalid sign bit, e.g. 0
+    if( mbedtls_mpi_bitlen( X ) == 0 && X->s != 1 )
+        return( 0 ); // negative zero
+    return( 1 );
+}
+
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_BIGNUM_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void mpi_mod_setup( int ext_rep, int int_rep, int iret )
+{
+    #define MLIMBS 8
+    mbedtls_mpi_uint mp[MLIMBS];
+    mbedtls_mpi_mod_modulus m;
+    int ret;
+
+    memset( mp, 0xFF, sizeof(mp) );
+
+    mbedtls_mpi_mod_modulus_init( &m );
+    ret = mbedtls_mpi_mod_modulus_setup( &m, mp, MLIMBS, ext_rep, int_rep );
+    TEST_EQUAL( ret, iret );
+
+    /* Address sanitiser should catch if we try to free mp */
+    mbedtls_mpi_mod_modulus_free( &m );
+
+    /* Make sure that the modulus doesn't have reference to mp anymore */
+    TEST_ASSERT( m.p != mp );
+
+exit:
+    /* It should be safe to call an mbedtls free several times */
+    mbedtls_mpi_mod_modulus_free( &m );
+
+    #undef MLIMBS
+}
+/* END_CASE */
+
+
+/* BEGIN_CASE */
+void mpi_mod_mpi( char * input_X, char * input_Y,
+                  char * input_A, int div_result )
+{
+    mbedtls_mpi X, Y, A;
+    int res;
+    mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y ); mbedtls_mpi_init( &A );
+
+    TEST_ASSERT( mbedtls_test_read_mpi( &X, input_X ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &Y, input_Y ) == 0 );
+    TEST_ASSERT( mbedtls_test_read_mpi( &A, input_A ) == 0 );
+    res = mbedtls_mpi_mod_mpi( &X, &X, &Y );
+    TEST_ASSERT( res == div_result );
+    if( res == 0 )
+    {
+        TEST_ASSERT( sign_is_valid( &X ) );
+        TEST_ASSERT( mbedtls_mpi_cmp_mpi( &X, &A ) == 0 );
+    }
+
+exit:
+    mbedtls_mpi_free( &X ); mbedtls_mpi_free( &Y ); mbedtls_mpi_free( &A );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mpi_mod_int( char * input_X, int input_Y,
+                  int input_A, int div_result )
+{
+    mbedtls_mpi X;
+    int res;
+    mbedtls_mpi_uint r;
+    mbedtls_mpi_init( &X );
+
+    TEST_ASSERT( mbedtls_test_read_mpi( &X, input_X ) == 0 );
+    res = mbedtls_mpi_mod_int( &r, &X, input_Y );
+    TEST_ASSERT( res == div_result );
+    if( res == 0 )
+    {
+        TEST_ASSERT( r == (mbedtls_mpi_uint) input_A );
+    }
+
+exit:
+    mbedtls_mpi_free( &X );
+}
+/* END_CASE */

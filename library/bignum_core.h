@@ -103,25 +103,25 @@ void mbedtls_mpi_core_cond_assign( mbedtls_mpi_uint *X,
  * \brief   Perform a safe conditional swap of MPI which doesn't reveal whether
  *          the condition was true or not.
  *
- * \param[IN,OUT] A         The address of the first MPI.
+ * \param[IN,OUT] X         The address of the first MPI.
  *                          This must be initialized.
- * \param[IN,OUT] B         The address of the second MPI.
+ * \param[IN,OUT] Y         The address of the second MPI.
  *                          This must be initialized.
- * \param         limbs     The number of limbs of \p A and \p B.
+ * \param         limbs     The number of limbs of \p X and \p Y.
  * \param         swap      The condition deciding whether to perform
  *                          the swap or not. Must be either 0 or 1:
- *                          * \c 1: Swap the values of \p A and \p B.
- *                          * \c 0: Keep the original values of \p A and \p B.
+ *                          * \c 1: Swap the values of \p X and \p Y.
+ *                          * \c 0: Keep the original values of \p X and \p Y.
  *
  * \note           This function avoids leaking any information about whether
  *                 the swap was done or not.
  *
  * \warning        If \p swap is neither 0 nor 1, the result of this function
- *                 is indeterminate, and both \p A and \p B might end up with
+ *                 is indeterminate, and both \p X and \p Y might end up with
  *                 values different to either of the original ones.
  */
-void mbedtls_mpi_core_cond_swap( mbedtls_mpi_uint *A,
-                                 mbedtls_mpi_uint *B,
+void mbedtls_mpi_core_cond_swap( mbedtls_mpi_uint *X,
+                                 mbedtls_mpi_uint *Y,
                                  size_t limbs,
                                  unsigned char swap );
 

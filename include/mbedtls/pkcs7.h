@@ -47,9 +47,9 @@
 
 #include "mbedtls/build_info.h"
 
-#include "asn1.h"
-#include "x509.h"
-#include "x509_crt.h"
+#include "mbedtls/asn1.h"
+#include "mbedtls/x509.h"
+#include "mbedtls/x509_crt.h"
 
 /**
  * \name PKCS7 Module Error codes

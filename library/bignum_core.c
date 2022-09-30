@@ -37,6 +37,8 @@
 #endif
 
 #include "bignum_core.h"
+#include "bn_mul.h"
+#include "constant_time_internal.h"
 
 size_t mbedtls_mpi_core_clz( mbedtls_mpi_uint a )
 {
@@ -153,7 +155,7 @@ void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint *A,
         mbedtls_mpi_uint tmp;
         /* Note that if cur_limb_left == cur_limb_right,
          * this code effectively swaps the bytes only once. */
-        tmp             = mpi_bigendian_to_host( *cur_limb_left  );
+        tmp             = mpi_bigendian_to_host( *cur_limb_left );
         *cur_limb_left  = mpi_bigendian_to_host( *cur_limb_right );
         *cur_limb_right = tmp;
     }
@@ -289,6 +291,155 @@ int mbedtls_mpi_core_write_be( const mbedtls_mpi_uint *X,
         p[bytes_to_copy - i - 1] = GET_BYTE( X, i );
 
     return( 0 );
+}
+
+mbedtls_mpi_uint mbedtls_mpi_core_add_if( mbedtls_mpi_uint *X,
+                                          const mbedtls_mpi_uint *A,
+                                          size_t limbs,
+                                          unsigned cond )
+{
+    mbedtls_mpi_uint c = 0;
+
+    /* all-bits 0 if cond is 0, all-bits 1 if cond is non-0 */
+    const mbedtls_mpi_uint mask = mbedtls_ct_mpi_uint_mask( cond );
+
+    for( size_t i = 0; i < limbs; i++ )
+    {
+        mbedtls_mpi_uint add = mask & A[i];
+        mbedtls_mpi_uint t = c + X[i];
+        c = ( t < X[i] );
+        t += add;
+        c += ( t < add );
+        X[i] = t;
+    }
+
+    return( c );
+}
+
+mbedtls_mpi_uint mbedtls_mpi_core_sub( mbedtls_mpi_uint *X,
+                                       const mbedtls_mpi_uint *A,
+                                       const mbedtls_mpi_uint *B,
+                                       size_t limbs )
+{
+    mbedtls_mpi_uint c = 0;
+
+    for( size_t i = 0; i < limbs; i++ )
+    {
+        mbedtls_mpi_uint z = ( A[i] < c );
+        mbedtls_mpi_uint t = A[i] - c;
+        c = ( t < B[i] ) + z;
+        X[i] = t - B[i];
+    }
+
+    return( c );
+}
+
+mbedtls_mpi_uint mbedtls_mpi_core_mla( mbedtls_mpi_uint *d, size_t d_len,
+                                       const mbedtls_mpi_uint *s, size_t s_len,
+                                       mbedtls_mpi_uint b )
+{
+    mbedtls_mpi_uint c = 0; /* carry */
+    /*
+     * It is a documented precondition of this function that d_len >= s_len.
+     * If that's not the case, we swap these round: this turns what would be
+     * a buffer overflow into an incorrect result.
+     */
+    if( d_len < s_len )
+        s_len = d_len;
+    size_t excess_len = d_len - s_len;
+    size_t steps_x8 = s_len / 8;
+    size_t steps_x1 = s_len & 7;
+
+    while( steps_x8-- )
+    {
+        MULADDC_X8_INIT
+        MULADDC_X8_CORE
+        MULADDC_X8_STOP
+    }
+
+    while( steps_x1-- )
+    {
+        MULADDC_X1_INIT
+        MULADDC_X1_CORE
+        MULADDC_X1_STOP
+    }
+
+    while( excess_len-- )
+    {
+        *d += c;
+        c = ( *d < c );
+        d++;
+    }
+
+    return( c );
+}
+
+/*
+ * Fast Montgomery initialization (thanks to Tom St Denis).
+ */
+mbedtls_mpi_uint mbedtls_mpi_core_montmul_init( const mbedtls_mpi_uint *N )
+{
+    mbedtls_mpi_uint x = N[0];
+
+    x += ( ( N[0] + 2 ) & 4 ) << 1;
+
+    for( unsigned int i = biL; i >= 8; i /= 2 )
+        x *= ( 2 - ( N[0] * x ) );
+
+    return( ~x + 1 );
+}
+
+void mbedtls_mpi_core_montmul( mbedtls_mpi_uint *X,
+                               const mbedtls_mpi_uint *A,
+                               const mbedtls_mpi_uint *B,
+                               size_t B_limbs,
+                               const mbedtls_mpi_uint *N,
+                               size_t AN_limbs,
+                               mbedtls_mpi_uint mm,
+                               mbedtls_mpi_uint *T )
+{
+    memset( T, 0, ( 2 * AN_limbs + 1 ) * ciL );
+
+    for( size_t i = 0; i < AN_limbs; i++ )
+    {
+        /* T = (T + u0*B + u1*N) / 2^biL */
+        mbedtls_mpi_uint u0 = A[i];
+        mbedtls_mpi_uint u1 = ( T[0] + u0 * B[0] ) * mm;
+
+        (void) mbedtls_mpi_core_mla( T, AN_limbs + 2, B, B_limbs, u0 );
+        (void) mbedtls_mpi_core_mla( T, AN_limbs + 2, N, AN_limbs, u1 );
+
+        T++;
+    }
+
+    /*
+     * The result we want is (T >= N) ? T - N : T.
+     *
+     * For better constant-time properties in this function, we always do the
+     * subtraction, with the result in X.
+     *
+     * We also look to see if there was any carry in the final additions in the
+     * loop above.
+     */
+
+    mbedtls_mpi_uint carry  = T[AN_limbs];
+    mbedtls_mpi_uint borrow = mbedtls_mpi_core_sub( X, T, N, AN_limbs );
+
+    /*
+     * Using R as the Montgomery radix (auxiliary modulus) i.e. 2^(biL*AN_limbs):
+     *
+     * T can be in one of 3 ranges:
+     *
+     * 1) T < N      : (carry, borrow) = (0, 1): we want T
+     * 2) N <= T < R : (carry, borrow) = (0, 0): we want X
+     * 3) T >= R     : (carry, borrow) = (1, 1): we want X
+     *
+     * and (carry, borrow) = (1, 0) can't happen.
+     *
+     * So the correct return value is already in X if (carry ^ borrow) = 0,
+     * but is in (the lower AN_limbs limbs of) T if (carry ^ borrow) = 1.
+     */
+    mbedtls_ct_mpi_uint_cond_assign( AN_limbs, X, T, (unsigned char) ( carry ^ borrow ) );
 }
 
 #endif /* MBEDTLS_BIGNUM_C */

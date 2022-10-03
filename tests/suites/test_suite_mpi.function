@@ -765,16 +765,20 @@ exit:
 
 /* BEGIN_CASE */
 void mpi_core_cond_assign( data_t * input_X,
-                           data_t * input_Y )
+                           data_t * input_Y,
+                           int input_len,
+                           int is_fail )
 {
     mbedtls_mpi_uint *X = NULL;
     mbedtls_mpi_uint *Y = NULL;
     size_t limbs_X = CHARS_TO_LIMBS( input_X->len );
     size_t limbs_Y = CHARS_TO_LIMBS( input_Y->len );
     size_t limbs = limbs_X;
+    size_t copy_limbs = CHARS_TO_LIMBS( input_len );
     size_t len = limbs * sizeof( mbedtls_mpi_uint );
 
     TEST_ASSERT( limbs_X == limbs_Y );
+    TEST_ASSERT( copy_limbs <= limbs );
 
     ASSERT_ALLOC( X, len );
     ASSERT_ALLOC( Y, len );
@@ -789,7 +793,7 @@ void mpi_core_cond_assign( data_t * input_X,
     TEST_CF_SECRET( X, len );
     TEST_CF_SECRET( Y, len );
 
-    mbedtls_mpi_core_cond_assign( X, Y, limbs, 0 );
+    mbedtls_mpi_core_cond_assign( X, Y, copy_limbs, 0 );
 
     TEST_CF_PUBLIC( X, len );
     TEST_CF_PUBLIC( Y, len );
@@ -800,12 +804,15 @@ void mpi_core_cond_assign( data_t * input_X,
     TEST_CF_SECRET( X, len );
     TEST_CF_SECRET( Y, len );
 
-    mbedtls_mpi_core_cond_assign( X, Y, limbs, 1 );
+    mbedtls_mpi_core_cond_assign( X, Y, copy_limbs, 1 );
 
     TEST_CF_PUBLIC( X, len );
     TEST_CF_PUBLIC( Y, len );
 
-    ASSERT_COMPARE( X, len, Y, len );
+    if( is_fail )
+        TEST_ASSERT( memcmp( X, Y, len ) != 0 );
+    else
+        ASSERT_COMPARE( X, len, Y, len );
 
 exit:
     mbedtls_free( X );
@@ -815,7 +822,9 @@ exit:
 
 /* BEGIN_CASE */
 void mpi_core_cond_swap( data_t * input_X,
-                         data_t * input_Y )
+                         data_t * input_Y,
+                         int input_len,
+                         int is_fail )
 {
     mbedtls_mpi_uint *tmp_X = NULL;
     mbedtls_mpi_uint *tmp_Y = NULL;
@@ -824,9 +833,11 @@ void mpi_core_cond_swap( data_t * input_X,
     size_t limbs_X = CHARS_TO_LIMBS( input_X->len );
     size_t limbs_Y = CHARS_TO_LIMBS( input_Y->len );
     size_t limbs = limbs_X;
+    size_t copy_limbs = CHARS_TO_LIMBS( input_len );
     size_t len = limbs * sizeof( mbedtls_mpi_uint );
 
     TEST_ASSERT( limbs_X == limbs_Y );
+    TEST_ASSERT( copy_limbs <= limbs );
 
     ASSERT_ALLOC( tmp_X, len );
     ASSERT_ALLOC( tmp_Y, len );
@@ -847,7 +858,7 @@ void mpi_core_cond_swap( data_t * input_X,
     TEST_CF_SECRET( X, len );
     TEST_CF_SECRET( Y, len );
 
-    mbedtls_mpi_core_cond_swap( X, Y, limbs, 0 );
+    mbedtls_mpi_core_cond_swap( X, Y, copy_limbs, 0 );
 
     TEST_CF_PUBLIC( X, len );
     TEST_CF_PUBLIC( Y, len );
@@ -859,13 +870,23 @@ void mpi_core_cond_swap( data_t * input_X,
     TEST_CF_SECRET( X, len );
     TEST_CF_SECRET( Y, len );
 
-    mbedtls_mpi_core_cond_swap( X, Y, limbs, 1 );
+    mbedtls_mpi_core_cond_swap( X, Y, copy_limbs, 1 );
 
     TEST_CF_PUBLIC( X, len );
     TEST_CF_PUBLIC( Y, len );
 
-    ASSERT_COMPARE( X, len, tmp_Y, len );
-    ASSERT_COMPARE( Y, len, tmp_X, len );
+    if( is_fail )
+    {
+        TEST_ASSERT( memcmp( X, tmp_X, len ) != 0 );
+        TEST_ASSERT( memcmp( X, tmp_Y, len ) != 0 );
+        TEST_ASSERT( memcmp( Y, tmp_X, len ) != 0 );
+        TEST_ASSERT( memcmp( Y, tmp_Y, len ) != 0 );
+    }
+    else
+    {
+        ASSERT_COMPARE( X, len, tmp_Y, len );
+        ASSERT_COMPARE( Y, len, tmp_X, len );
+    }
 
 exit:
     mbedtls_free( tmp_X );
@@ -877,7 +898,9 @@ exit:
 
 /* BEGIN_CASE */
 void mpi_mod_raw_cond_assign( data_t * input_X,
-                              data_t * input_Y )
+                              data_t * input_Y,
+                              int input_len,
+                              int is_fail )
 {
     #define MAX_LEN 64
     mbedtls_mpi_uint *X = NULL;
@@ -887,9 +910,11 @@ void mpi_mod_raw_cond_assign( data_t * input_X,
     size_t limbs_X = CHARS_TO_LIMBS( input_X->len );
     size_t limbs_Y = CHARS_TO_LIMBS( input_Y->len );
     size_t limbs = limbs_X;
+    size_t copy_limbs = CHARS_TO_LIMBS( input_len );
     size_t len = limbs * sizeof( mbedtls_mpi_uint );
 
     TEST_ASSERT( limbs_X == limbs_Y );
+    TEST_ASSERT( copy_limbs <= limbs );
 
     ASSERT_ALLOC( X, len );
     ASSERT_ALLOC( Y, len );
@@ -898,7 +923,7 @@ void mpi_mod_raw_cond_assign( data_t * input_X,
     memset( buff_m, 0, len );
     mbedtls_mpi_mod_modulus_init( &m );
     TEST_ASSERT( mbedtls_mpi_mod_modulus_setup(
-                        &m, buff_m, limbs,
+                        &m, buff_m, copy_limbs,
                         MBEDTLS_MPI_MOD_EXT_REP_BE,
                         MBEDTLS_MPI_MOD_REP_MONTGOMERY )
                  == 0 );
@@ -920,7 +945,7 @@ void mpi_mod_raw_cond_assign( data_t * input_X,
     TEST_CF_PUBLIC( X, len );
     TEST_CF_PUBLIC( Y, len );
 
-    TEST_ASSERT( memcmp( X, Y, m.limbs * sizeof( mbedtls_mpi_uint ) ) != 0 );
+    TEST_ASSERT( memcmp( X, Y, len ) != 0 );
 
     /* condition is true */
     TEST_CF_SECRET( X, len );
@@ -931,7 +956,10 @@ void mpi_mod_raw_cond_assign( data_t * input_X,
     TEST_CF_PUBLIC( X, len );
     TEST_CF_PUBLIC( Y, len );
 
-    ASSERT_COMPARE( X, len, Y, len );
+    if( is_fail )
+        TEST_ASSERT( memcmp( X, Y, len ) != 0 );
+    else
+        ASSERT_COMPARE( X, len, Y, len );
 
 exit:
     mbedtls_free( X );
@@ -944,7 +972,9 @@ exit:
 
 /* BEGIN_CASE */
 void mpi_mod_raw_cond_swap( data_t * input_X,
-                            data_t * input_Y )
+                            data_t * input_Y,
+                            int input_len,
+                            int is_fail )
 {
     mbedtls_mpi_uint *tmp_X = NULL;
     mbedtls_mpi_uint *tmp_Y = NULL;
@@ -955,18 +985,20 @@ void mpi_mod_raw_cond_swap( data_t * input_X,
     size_t limbs_X = CHARS_TO_LIMBS( input_X->len );
     size_t limbs_Y = CHARS_TO_LIMBS( input_Y->len );
     size_t limbs = limbs_X;
+    size_t copy_limbs = CHARS_TO_LIMBS( input_len );
     size_t len = limbs * sizeof( mbedtls_mpi_uint );
 
     TEST_ASSERT( limbs_X == limbs_Y );
+    TEST_ASSERT( copy_limbs <= limbs );
 
     ASSERT_ALLOC( tmp_X, len );
     ASSERT_ALLOC( tmp_Y, len );
 
-    ASSERT_ALLOC( buff_m, len );
-    memset( buff_m, 0, len );
+    ASSERT_ALLOC( buff_m, input_len );
+    memset( buff_m, 0, input_len );
     mbedtls_mpi_mod_modulus_init( &m );
     TEST_ASSERT( mbedtls_mpi_mod_modulus_setup(
-                        &m, buff_m, limbs,
+                        &m, buff_m, copy_limbs,
                         MBEDTLS_MPI_MOD_EXT_REP_BE,
                         MBEDTLS_MPI_MOD_REP_MONTGOMERY )
                  == 0 );
@@ -1002,8 +1034,18 @@ void mpi_mod_raw_cond_swap( data_t * input_X,
     TEST_CF_PUBLIC( X, len );
     TEST_CF_PUBLIC( Y, len );
 
-    ASSERT_COMPARE( X, len, tmp_Y, len );
-    ASSERT_COMPARE( Y, len, tmp_X, len );
+    if( is_fail )
+    {
+        TEST_ASSERT( memcmp( X, tmp_X, len ) != 0 );
+        TEST_ASSERT( memcmp( X, tmp_Y, len ) != 0 );
+        TEST_ASSERT( memcmp( Y, tmp_X, len ) != 0 );
+        TEST_ASSERT( memcmp( Y, tmp_Y, len ) != 0 );
+    }
+    else
+    {
+        ASSERT_COMPARE( X, len, tmp_Y, len );
+        ASSERT_COMPARE( Y, len, tmp_X, len );
+    }
 
 exit:
     mbedtls_free( tmp_X );

@@ -79,7 +79,7 @@ void mbedtls_mpi_core_bigendian_to_host( mbedtls_mpi_uint *A,
  *          the condition was true or not.
  *
  * \param[out] X        The address of the first MPI. This must be initialized.
- *                      It must have at least \p limbs limbs.
+ *                      Must have enough limbs to store the full value of \p A.
  * \param[in]  A        The address of the second MPI. This must be initialized.
  * \param      limbs    The number of limbs of \p A.
  * \param      assign   The condition deciding whether to perform the

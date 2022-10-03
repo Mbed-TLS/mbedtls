@@ -37,7 +37,10 @@
  * \brief   Perform a safe conditional copy of MPI which doesn't reveal whether
  *          the condition was true or not.
  *
+ * The size to copy is determined by \p N.
+ *
  * \param[out] X        The address of the first MPI. This must be initialized.
+ *                      Must have enough limbs to store the full value of \p A.
  * \param[in]  A        The address of the second MPI. This must be initialized.
  * \param[in]  N        The address of the modulus related to \p X and \p A.
  * \param      assign   The condition deciding whether to perform the
@@ -60,6 +63,8 @@ void mbedtls_mpi_mod_raw_cond_assign( mbedtls_mpi_uint *X,
 /**
  * \brief   Perform a safe conditional swap of MPI which doesn't reveal whether
  *          the condition was true or not.
+ *
+ * The size to swap is determined by \p N.
  *
  * \param[in,out] X     The address of the first MPI. This must be initialized.
  * \param[in,out] Y     The address of the second MPI. This must be initialized.

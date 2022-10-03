@@ -1703,8 +1703,7 @@
  * tickets, including authenticated encryption and key management. Example
  * callbacks are provided by MBEDTLS_SSL_TICKET_C.
  *
- * Requires: MBEDTLS_GCM_C or MBEDTLS_CCM_C or MBEDTLS_CHACHAPOLY_C or
- *           MBEDTLS_NIST_KW_C
+ * Requires: MBEDTLS_GCM_C or MBEDTLS_CCM_C or MBEDTLS_CHACHAPOLY_C
  *
  * Comment this macro to disable support for SSL session tickets
  */

@@ -3234,7 +3234,8 @@ int main( int argc, char *argv[] )
     }
 #endif
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_3)
+#if defined(MBEDTLS_SSL_PROTO_TLS1_3) && \
+    defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
     if( opt.sig_algs != NULL )
         mbedtls_ssl_conf_sig_algs( &conf, sig_alg_list );
 #endif /* MBEDTLS_SSL_PROTO_TLS1_3 */

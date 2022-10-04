@@ -1256,7 +1256,8 @@ int mbedtls_ssl_tls13_key_schedule_stage_handshake( mbedtls_ssl_context *ssl )
     unsigned char *shared_secret = NULL;
     size_t shared_secret_len = 0;
 
-#if defined(MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED)
+#if defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED) || \
+    defined(MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED)
     /*
      * Compute ECDHE secret used to compute the handshake secret from which
      * client_handshake_traffic_secret and server_handshake_traffic_secret
@@ -1310,7 +1311,8 @@ int mbedtls_ssl_tls13_key_schedule_stage_handshake( mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
         }
     }
-#endif /* MBEDTLS_KEY_EXCHANGE_SOME_ECDHE_ENABLED */
+#endif /* MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_EPHEMERAL_ENABLED ||
+          MBEDTLS_SSL_TLS1_3_KEY_EXCHANGE_MODE_PSK_EPHEMERAL_ENABLED */
 
     /*
      * Compute the Handshake Secret

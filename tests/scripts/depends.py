@@ -180,17 +180,17 @@ and subsequent commands are tests that cannot run if the build failed).'''
 
 # SSL/TLS versions up to 1.1 and corresponding options. These require
 # both MD5 and SHA-1.
-ssl_pre_1_2_dependencies = ['MBEDTLS_SSL_CBC_RECORD_SPLITTING',
+SSL_PRE_1_2_DEPENDENCIES = ['MBEDTLS_SSL_CBC_RECORD_SPLITTING',
                             'MBEDTLS_SSL_PROTO_SSL3',
                             'MBEDTLS_SSL_PROTO_TLS1',
                             'MBEDTLS_SSL_PROTO_TLS1_1']
 
 # If the configuration option A requires B, make sure that
-# B in reverse_dependencies[A].
+# B in REVERSE_DEPENDENCIES[A].
 # All the information here should be contained in check_config.h. This
 # file includes a copy because it changes rarely and it would be a pain
 # to extract automatically.
-reverse_dependencies = {
+REVERSE_DEPENDENCIES = {
     'MBEDTLS_AES_C': ['MBEDTLS_CTR_DRBG_C',
                       'MBEDTLS_NIST_KW_C'],
     'MBEDTLS_CHACHA20_C': ['MBEDTLS_CHACHAPOLY_C'],
@@ -206,7 +206,7 @@ reverse_dependencies = {
                       'MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED',
                       'MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED'],
     'MBEDTLS_ECP_DP_SECP256R1_ENABLED': ['MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED'],
-    'MBEDTLS_MD5_C': ssl_pre_1_2_dependencies,
+    'MBEDTLS_MD5_C': SSL_PRE_1_2_DEPENDENCIES,
     'MBEDTLS_PKCS1_V21': ['MBEDTLS_X509_RSASSA_PSS_SUPPORT'],
     'MBEDTLS_PKCS1_V15': ['MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED',
                           'MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED',
@@ -218,7 +218,7 @@ reverse_dependencies = {
                       'MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED',
                       'MBEDTLS_KEY_EXCHANGE_RSA_ENABLED',
                       'MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED'],
-    'MBEDTLS_SHA1_C': ssl_pre_1_2_dependencies,
+    'MBEDTLS_SHA1_C': SSL_PRE_1_2_DEPENDENCIES,
     'MBEDTLS_SHA256_C': ['MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED',
                          'MBEDTLS_ENTROPY_FORCE_SHA256',
                          'MBEDTLS_SHA224_C',
@@ -240,7 +240,7 @@ reverse_dependencies = {
 # If an option is tested in an exclusive test, alter the following defines.
 # These are not neccesarily dependencies, but just minimal required changes
 # if a given define is the only one enabled from an exclusive group.
-exclusive_groups = {
+EXCLUSIVE_GROUPS = {
     'MBEDTLS_SHA224_C': ['MBEDTLS_SHA256_C'],
     'MBEDTLS_SHA384_C': ['MBEDTLS_SHA512_C'],
     'MBEDTLS_ECP_DP_CURVE448_ENABLED': ['!MBEDTLS_ECDSA_C',
@@ -263,7 +263,7 @@ exclusive_groups = {
 def handle_exclusive_groups(config_settings, symbol):
     """For every symbol tested in an exclusive group check if there are other
 defines to be altered. """
-    for dep in exclusive_groups.get(symbol, []):
+    for dep in EXCLUSIVE_GROUPS.get(symbol, []):
         unset = dep.startswith('!')
         if unset:
             dep = dep[1:]
@@ -275,7 +275,7 @@ An option O is turned off if config_settings[O] is False."""
     for key, value in sorted(config_settings.items()):
         if value is not False:
             continue
-        for dep in reverse_dependencies.get(key, []):
+        for dep in REVERSE_DEPENDENCIES.get(key, []):
             config_settings[dep] = False
 
 class ExclusiveDomain: # pylint: disable=too-few-public-methods
